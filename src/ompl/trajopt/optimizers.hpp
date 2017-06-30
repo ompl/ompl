@@ -82,22 +82,22 @@ class BasicTrustRegionSQP : public Optimizer {
    */
 public:
   // TODO: Move all of these planner end parameters to the PlannerTerminationCondition function.
-  double improve_ratio_threshold_, // minimum ratio true_improve/approx_improve to accept step
-         minTrustBoxSize_, // if trust region gets any smaller, exit and report convergence
+  double improve_ratio_threshold_{.25}, // minimum ratio true_improve/approx_improve to accept step
+         minTrustBoxSize_{1e-4}, // if trust region gets any smaller, exit and report convergence
          minApproxImprove_{1e-4}, // if model improves less than this, exit and report convergence
          minApproxImproveFrac_{0.001}, // if model improves less than this, exit and report convergence
          // The maximum number of iterations that the algorithm will run it's outter penality loop.
          maxIter_{40},
          // if improvement (exact / approximate) is less than improve_ratio_threshold, shrink trust region by this ratio
-         trust_shrink_ratio_,
+         trust_shrink_ratio_{.1},
          // if improvement (exact / approximate) is greater than or equal to improve_ratio_threshold, expand trust region by this ratio
-         trust_expand_ratio_,
-         cnt_tolerance_, // after convergence of penalty subproblem, if constraint violation is less than this, we're done
-         max_merit_coeff_increases_, // number of times that we jack up penalty coefficient
-         merit_coeff_increase_ratio_, // ratio that we increate coeff each time
-         max_time_ // not yet implemented
+         trust_expand_ratio_{1.5},
+         cnt_tolerance_{1e-4}, // after convergence of penalty subproblem, if constraint violation is less than this, we're done
+         max_merit_coeff_increases_{5}, // number of times that we jack up penalty coefficient
+         merit_coeff_increase_ratio_{10}, // ratio that we increate coeff each time
+         max_time_{INFINITY} // not yet implemented
          ;
-  double merit_error_coeff_, // initial penalty coefficient
+  double merit_error_coeff_{10}, // initial penalty coefficient
          trust_box_size_{0.1} // current size of trust region (component-wise)
          ;
 

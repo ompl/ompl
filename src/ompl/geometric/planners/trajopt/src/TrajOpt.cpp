@@ -35,6 +35,7 @@
 /* Authors: John Schulman, Bryce Willey */
 
 #include "ompl/geometric/planners/trajopt/TrajOpt.h"
+#include "ompl/base/goals/GoalState.h"
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/objectives/ConvexifiableOptimization.h"
 #include "ompl/trajopt/typedefs.hpp"
@@ -62,16 +63,37 @@ void ompl::geometric::TrajOpt::setup()
     }
 
     // TODO: get a method to take a state and a time stamp to turn it into a constraint.
-    ompl::base::SE2StateSpace::StateType *start = pdef_->getStartState(0)->as<ompl::base::SE2StateSpace::StateType>();
-
+    ompl::base::SE2StateSpace::StateType *start = pdef_->getStartState(0)
+            ->as<ompl::base::SE2StateSpace::StateType>();
+    ompl::base::SE2StateSpace::StateType *goal = pdef_->getGoal()->as<ompl::base::GoalState>()
+            ->getState()->as<ompl::base::SE2StateSpace::StateType>();
     // There's no way to index into SE2, so just grab the x, then the y, then the yaw.
-    problem_->addLinearConstraint(sco::exprSub(sco::AffExpr(problem_->traj_vars_(0, 0)), start->getX()), sco::EQ);
-    problem_->addLinearConstraint(sco::exprSub(sco::AffExpr(problem_->traj_vars_(0, 1)), start->getY()), sco::EQ);
-    problem_->addLinearConstraint(sco::exprSub(sco::AffExpr(problem_->traj_vars_(0, 2)), start->getYaw()), sco::EQ);
+    problem_->addLinearConstraint(sco::exprSub(
+            sco::AffExpr(problem_->traj_vars_(0, 0)), start->getX()), sco::EQ);
+    problem_->addLinearConstraint(sco::exprSub(
+            sco::AffExpr(problem_->traj_vars_(0, 1)), start->getY()), sco::EQ);
+    problem_->addLinearConstraint(sco::exprSub(
+            sco::AffExpr(problem_->traj_vars_(0, 2)), start->getYaw()), sco::EQ);
+    problem_->addLinearConstraint(sco::exprSub(
+            sco::AffExpr(problem_->traj_vars_(nSteps_- 1, 0)), goal->getX()), sco::EQ);
+    problem_->addLinearConstraint(sco::exprSub(
+            sco::AffExpr(problem_->traj_vars_(nSteps_ - 1, 1)), goal->getY()), sco::EQ);
+    problem_->addLinearConstraint(sco::exprSub(
+            sco::AffExpr(problem_->traj_vars_(nSteps_ - 1, 2)), goal->getYaw()), sco::EQ);
+
+    // TODO: for now, make the initial trajectory a linear interpolation.
+    trajopt::TrajArray ta(nSteps_, 3); // TODO replace with vector length.
+    for (int i = 0; i < nSteps_; i++) {
+        ta(i, 0) = start->getX() + (goal->getX() - start->getX()) * i / (nSteps_ - 1);
+        ta(i, 1) = start->getY() + (goal->getY() - start->getY()) * i / (nSteps_ - 1);
+        ta(i, 2) = start->getYaw() + (goal->getYaw() - start->getYaw()) * i / (nSteps_ - 1);
+    }
+    problem_->SetInitTraj(ta);
 
     // Grab the problem definition (from parent Planner class) to get all of the
     //   Optmization objectives.
-    static_cast<ompl::base::ConvexifiableOptimization *>(pdef_->getOptimizationObjective().get())->addToProblem(problem_);
+    static_cast<ompl::base::ConvexifiableOptimization *>(
+            pdef_->getOptimizationObjective().get())->addToProblem(problem_);
 
     // Finally, initialize the SQP/Model with all of the variables and costs/constraints.
     // TODO: ?
@@ -92,9 +114,11 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::solve(const ompl::base::Plan
         case sco::OPT_CONVERGED: {
             // TODO: check that the path actually is collision free.
             // If not, return APPROXIMATE_SOlUTION.
-            ompl::base::PlannerSolution solution(trajFromTraj2Ompl(trajopt::getTraj(results.x, problem_->GetVars())));
+            trajopt::TrajArray ta = trajopt::getTraj(results.x, problem_->GetVars());
+            ompl::base::PlannerSolution solution(trajFromTraj2Ompl(ta));
 
-            solution.setOptimized(pdef_->getOptimizationObjective(), ompl::base::Cost(results.total_cost), true);
+            solution.setOptimized(pdef_->getOptimizationObjective(),
+                    ompl::base::Cost(results.total_cost), true);
             pdef_->addSolutionPath(solution);
             return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION);
             break;
@@ -121,10 +145,15 @@ ompl::base::PathPtr ompl::geometric::TrajOpt::trajFromTraj2Ompl(trajopt::TrajArr
     // t = timestep.
     for (int t = 0; t < traj.rows(); t++) {
         ompl::base::State *s = si_->allocState();
-        ompl::base::RealVectorStateSpace::StateType *rvs = s->as<ompl::base::RealVectorStateSpace::StateType>();
-        for (int d = 0; d < traj.cols(); d++) {
+        ompl::base::SE2StateSpace::StateType *se2 =
+                s->as<ompl::base::SE2StateSpace::StateType>();
+        // TODO: unhardcode.
+        se2->setX(traj(t, 0));
+        se2->setY(traj(t, 1));
+        se2->setYaw(traj(t, 2));
+        /*for (int d = 0; d < traj.cols(); d++) {
             (*rvs)[d] = traj(t, d);
-        }
+        }*/
         path->append(s);
     }
     return path;

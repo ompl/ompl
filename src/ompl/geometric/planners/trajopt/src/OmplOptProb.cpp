@@ -39,7 +39,8 @@
 #include <boost/format.hpp>
 #include "ompl/trajopt/typedefs.hpp"
 
-ompl::geometric::OmplOptProb::OmplOptProb(int nSteps, ompl::base::SpaceInformationPtr &si)
+ompl::geometric::OmplOptProb::OmplOptProb(int nSteps, ompl::base::SpaceInformationPtr &si) :
+    si_(si)
 {
     // Get the space information and nSteps_ to make the array of variables.
     int dof = si_->getStateDimension();

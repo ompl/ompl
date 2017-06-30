@@ -16,17 +16,24 @@ namespace ompl {
                 sv_(sv), ss_(ss), safeDist_(safeDist)
             {}
             Eigen::VectorXd operator()(const Eigen::VectorXd& x) const {
-                // TODO: stop assuming StateType.
-                State *state = ss_->allocState();
-                SE2StateSpace::StateType *se2State = state->as<SE2StateSpace::StateType>();
-                se2State->setX(x(0));
-                se2State->setY(x(1));
-                se2State->setYaw(x(2));
-                double clearance = sv_->clearance(se2State);
+                // TODO: stop assuming StateType and hardcoding nsteps and stuff.
+                double clearanceSum = 0.0;
+                for (int i = 0; i < 10; i++) {
+                    State *state = ss_->allocState();
+                    SE2StateSpace::StateType *se2State = state->as<SE2StateSpace::StateType>();
+                    se2State->setX(x(i * 3));
+                    se2State->setY(x(i * 3 + 1));
+                    se2State->setYaw(x(i * 3 + 2));
+                    double clearance = sv_->clearance(se2State);
+                    printf("\tState: (%f, %f), yaw = %f, Clearance: %f\n", x(i * 3), x(i * 3 + 1), x(i * 3 + 2), clearance);
+                    //printf("Size: %lu, State: (%f, %f), yaw = %f, Clearance: %f\n", x.size(), x(0), x(1), x(2), clearance);
+                    clearanceSum += sco::pospart(safeDist_ - clearance);
+                }
                 // Use ConstraintFromFunc for now, just return a vector of 1.
                 // TODO: figure out why exactly Constraints have to be Vec -> VectorXd
                 Eigen::VectorXd toReturn(1);
-                return toReturn * sco::pospart(safeDist_ - clearance);
+                printf("ClearanceSum: %f\n", clearanceSum);
+                return toReturn * clearanceSum;
             }
         };
     }
@@ -48,13 +55,15 @@ ompl::base::ObstacleConstraint::ObstacleConstraint(const ompl::base::SpaceInform
     ConvexifiableConstraint(si), safeDist_(safeDist) {}
 
 ompl::base::Cost ompl::base::ObstacleConstraint::stateCost(const State *s) const {
-    return Cost(sco::pospart(safeDist_ - si_->getStateValidityChecker()->clearance(s)));
+    double clearance = si_->getStateValidityChecker()->clearance(s);
+    printf("state: %s, clearance: %f\n", "...", clearance);
+    return Cost(sco::pospart(safeDist_ - clearance));
 }
 
 ompl::base::Cost ompl::base::ObstacleConstraint::motionCost(const State *s1, const State *s2) const {
     // TODO: make this continious. TrajOpt isn't at the moment, but they detail how to (convex hulls.)
-    double s1HingePenalty = sco::pospart(safeDist_ - si_->getStateValidityChecker()->clearance(s1));
-    double s2HingePenalty = sco::pospart(safeDist_ - si_->getStateValidityChecker()->clearance(s2));
+    double s1HingePenalty = stateCost(s1).value();
+    double s2HingePenalty = stateCost(s2).value();
     return Cost(std::max(s1HingePenalty, s2HingePenalty));
 }
 

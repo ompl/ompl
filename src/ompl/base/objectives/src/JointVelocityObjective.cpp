@@ -15,7 +15,8 @@ static Eigen::MatrixXd diffPrevRow(const Eigen::MatrixXd& in) {
     return in.middleRows(1, in.rows()-1) - in.middleRows(0, in.rows()-1);
 }
 
-ompl::base::JointVelCost::JointVelCost(const trajopt::VarArray& vars)
+ompl::base::JointVelCost::JointVelCost(const trajopt::VarArray& vars) :
+    vars_(vars)
 {
     for (int i = 0; i < vars.rows() - 1; i++)
     {
