@@ -47,12 +47,33 @@ ompl::geometric::OmplOptProb::OmplOptProb(int nSteps, ompl::base::SpaceInformati
     // Get the bounds of the state space (assume SE2 for now)
     // TODO: eventually use StateSpace magic to see if it is bounded or not.
     ompl::base::StateSpacePtr ss = si_->getStateSpace();
-    ompl::base::RealVectorBounds bounds = ss->as<ompl::base::SE2StateSpace>()->getBounds();
-    std::vector<double> low = bounds.low;
-    low.push_back(-1 * std::numeric_limits<double>::infinity());
-    std::vector<double> high = bounds.high;
-    high.push_back(std::numeric_limits<double>::infinity());
-
+    double max_extent = ss->getMaximumExtent();
+    std::vector<double> low;
+    std::vector<double> high;
+    if (max_extent == std::numeric_limits<double>::infinity()) {
+        ompl::base::RealVectorBounds bounds(dof);
+        for (int i = 0; i < nSteps; i++) {
+            bounds.low[i] = -1 * std::numeric_limits<double>::infinity();
+            bounds.high[i] = std::numeric_limits<double>::infinity();
+        }
+        low = bounds.low;
+        high = bounds.high;
+    } else {
+        // Check for some specific spaces.
+        ompl::base::SE2StateSpace *se2;
+        ompl::base::RealVectorStateSpace *real;
+        if ((se2 = dynamic_cast<ompl::base::SE2StateSpace *>(ss.get()))) {
+            ompl::base::RealVectorBounds bounds = se2->getBounds();
+            bounds.low.push_back(-1 * std::numeric_limits<double>::infinity());
+            bounds.high.push_back(std::numeric_limits<double>::infinity());
+            low = bounds.low;
+            high = bounds.high;
+        } else if ((real = dynamic_cast<ompl::base::RealVectorStateSpace *>(ss.get()))) {
+            ompl::base::RealVectorBounds bounds = real->getBounds();
+            low = bounds.low;
+            high = bounds.high;
+        }
+    }
     std::vector<double> vlower, vupper;
     std::vector<std::string> names;
     for (int i = 0; i < nSteps; i++) {

@@ -39,18 +39,18 @@ static DblVec evaluateCosts(vector<CostPtr>& costs, const DblVec& x) {
   return out;
 }
 static DblVec evaluateConstraintViols(vector<ConstraintPtr>& constraints, const DblVec& x) {
-  DblVec out(constraints.size());
-  for (size_t i=0; i < constraints.size(); ++i) {
-    out[i] = constraints[i]->violation(x);
-  }
-  return out;
+    DblVec out(constraints.size());
+    for (size_t i=0; i < constraints.size(); ++i) {
+      out[i] = constraints[i]->violation(x);
+    }
+    return out;
 }
 static vector<ConvexObjectivePtr> convexifyCosts(vector<CostPtr>& costs, const DblVec& x, Model* model) {
-  vector<ConvexObjectivePtr> out(costs.size());
-  for (size_t i=0; i < costs.size(); ++i) {
-    out[i] = costs[i]->convex(x,  model);
-  }
-  return out;
+    vector<ConvexObjectivePtr> out(costs.size());
+    for (size_t i=0; i < costs.size(); ++i) {
+      out[i] = costs[i]->convex(x,  model);
+    }
+    return out;
 }
 static vector<ConvexConstraintsPtr> convexifyConstraints(vector<ConstraintPtr>& cnts, const DblVec& x, Model* model) {
   vector<ConvexConstraintsPtr> out(cnts.size());
