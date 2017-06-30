@@ -62,31 +62,30 @@ void ompl::geometric::TrajOpt::setup()
         throw Exception("Need at least 1 start state.");
     }
 
+    int dof = si_->getStateDimension();
+
     // TODO: get a method to take a state and a time stamp to turn it into a constraint.
-    ompl::base::SE2StateSpace::StateType *start = pdef_->getStartState(0)
-            ->as<ompl::base::SE2StateSpace::StateType>();
-    ompl::base::SE2StateSpace::StateType *goal = pdef_->getGoal()->as<ompl::base::GoalState>()
-            ->getState()->as<ompl::base::SE2StateSpace::StateType>();
-    // There's no way to index into SE2, so just grab the x, then the y, then the yaw.
-    problem_->addLinearConstraint(sco::exprSub(
-            sco::AffExpr(problem_->traj_vars_(0, 0)), start->getX()), sco::EQ);
-    problem_->addLinearConstraint(sco::exprSub(
-            sco::AffExpr(problem_->traj_vars_(0, 1)), start->getY()), sco::EQ);
-    problem_->addLinearConstraint(sco::exprSub(
-            sco::AffExpr(problem_->traj_vars_(0, 2)), start->getYaw()), sco::EQ);
-    problem_->addLinearConstraint(sco::exprSub(
-            sco::AffExpr(problem_->traj_vars_(nSteps_- 1, 0)), goal->getX()), sco::EQ);
-    problem_->addLinearConstraint(sco::exprSub(
-            sco::AffExpr(problem_->traj_vars_(nSteps_ - 1, 1)), goal->getY()), sco::EQ);
-    problem_->addLinearConstraint(sco::exprSub(
-            sco::AffExpr(problem_->traj_vars_(nSteps_ - 1, 2)), goal->getYaw()), sco::EQ);
+    ompl::base::State *start = pdef_->getStartState(0);
+    ompl::base::State *goal = pdef_->getGoal()->as<ompl::base::GoalState>()->getState();
+    ompl::base::StateSpacePtr ss = si_->getStateSpace();
+    std::vector<double> startVec(dof);
+    std::vector<double> endVec(dof);
+    ss->copyToReals(startVec, start);
+    ss->copyToReals(endVec, goal);
+
+    for (int i = 0; i < dof; i++) {
+        problem_->addLinearConstraint(sco::exprSub(
+                sco::AffExpr(problem_->traj_vars_(0, i)), startVec[i]), sco::EQ);
+        problem_->addLinearConstraint(sco::exprSub(
+                sco::AffExpr(problem_->traj_vars_(nSteps_ - 1, i)), endVec[i]), sco::EQ);
+    }
 
     // TODO: for now, make the initial trajectory a linear interpolation.
-    trajopt::TrajArray ta(nSteps_, 3); // TODO replace with vector length.
+    trajopt::TrajArray ta(nSteps_, dof);
     for (int i = 0; i < nSteps_; i++) {
-        ta(i, 0) = start->getX() + (goal->getX() - start->getX()) * i / (nSteps_ - 1);
-        ta(i, 1) = start->getY() + (goal->getY() - start->getY()) * i / (nSteps_ - 1);
-        ta(i, 2) = start->getYaw() + (goal->getYaw() - start->getYaw()) * i / (nSteps_ - 1);
+        for (int j = 0; j < dof; j++) {
+            ta(i, j) = startVec[j] + (endVec[j] - startVec[j]) * i / (nSteps_ - 1);
+        }
     }
     problem_->SetInitTraj(ta);
 
@@ -142,18 +141,16 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::solve(const ompl::base::Plan
 
 ompl::base::PathPtr ompl::geometric::TrajOpt::trajFromTraj2Ompl(trajopt::TrajArray traj) {
     auto path(std::make_shared<ompl::geometric::PathGeometric>(si_));
+    int dof = si_->getStateDimension();
+    ompl::base::StateSpacePtr ss = si_->getStateSpace();
     // t = timestep.
     for (int t = 0; t < traj.rows(); t++) {
+        std::vector<double> stateVec(dof);
+        for (int i = 0; i < dof; i++) {
+            stateVec[i] = traj(t, i);
+        }
         ompl::base::State *s = si_->allocState();
-        ompl::base::SE2StateSpace::StateType *se2 =
-                s->as<ompl::base::SE2StateSpace::StateType>();
-        // TODO: unhardcode.
-        se2->setX(traj(t, 0));
-        se2->setY(traj(t, 1));
-        se2->setYaw(traj(t, 2));
-        /*for (int d = 0; d < traj.cols(); d++) {
-            (*rvs)[d] = traj(t, d);
-        }*/
+        ss->copyFromReals(s, stateVec);
         path->append(s);
     }
     return path;

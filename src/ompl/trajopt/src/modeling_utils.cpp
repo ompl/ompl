@@ -143,10 +143,11 @@ ConstraintFromFunc::ConstraintFromFunc(VectorOfVectorPtr f, MatrixOfVectorPtr df
     Constraint(name), f_(f), dfdx_(dfdx), vars_(vars), coeffs_(coeffs), type_(type), epsilon_(DEFAULT_EPSILON) {}
 
 vector<double> ConstraintFromFunc::value(const vector<double>& xin) {
-  VectorXd x = getVec(xin, vars_);
-   VectorXd err = f_->call(x);
-   if (coeffs_.size()>0) err.array() *= coeffs_.array();
-   return toDblVec(err);
+    VectorXd x = getVec(xin, vars_);
+    VectorXd err = f_->call(x);
+    if (coeffs_.size()>0) err.array() *= coeffs_.array();
+
+    return toDblVec(err);
 }
 
 ConvexConstraintsPtr ConstraintFromFunc::convex(const vector<double>& xin, Model* model) {
