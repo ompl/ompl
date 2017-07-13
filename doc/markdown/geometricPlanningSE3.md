@@ -61,7 +61,7 @@ We then set the bounds for the R<sup>3</sup> component of this state space:
 \skip RealVectorBounds
 \until setBounds
 Create an instance of ompl::base::SpaceInformation for the state space
-\skipline SpaceInformationPtr
+\skipline SpaceInformation
 Set the state validity checker
 \skipline setStateValidityChecker
 Create a random start state:
@@ -71,11 +71,11 @@ And a random goal state:
 \skip goal(space)
 \until goal.random
 Create an instance of ompl::base::ProblemDefinition
-\skipline ProblemDefinitionPtr
+\skipline ProblemDefinition
 Set the start and goal states for the problem definition.
 \skipline setStartAndGoalStates
 Create an instance of a planner
-\skipline PlannerPtr
+\skipline RRTConnect
 Tell the planner which problem we are interested in solving
 \skipline setProblemDefinition
 Make sure all the settings for the space and planner are in order. This will also lead to the runtime computation of the state validity checking resolution.
