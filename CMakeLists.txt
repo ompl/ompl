@@ -114,20 +114,20 @@ find_package(OpenDE QUIET)
 set(OMPL_EXTENSION_OPENDE ${OPENDE_FOUND})
 if (OPENDE_FOUND)
   add_definitions(${OPENDE_DEFINITIONS})
-  include_directories(SYSTEM ${OPENDE_INCLUDE_DIR})
+  include_directories(${OPENDE_INCLUDE_DIR})
 endif()
 
 find_package(Triangle QUIET)
 set(OMPL_EXTENSION_TRIANGLE ${TRIANGLE_FOUND})
 if (TRIANGLE_FOUND)
-  include_directories(SYSTEM ${TRIANGLE_INCLUDE_DIR})
+  include_directories(${TRIANGLE_INCLUDE_DIR})
 endif()
 
 # If FLANN is installed, a wrapper for its nearest neighbor data structures can be used
 find_package(flann 1.8.3 QUIET)
 if (FLANN_FOUND)
     set(OMPL_HAVE_FLANN 1)
-    include_directories(SYSTEM "${FLANN_INCLUDE_DIRS}")
+    include_directories("${FLANN_INCLUDE_DIRS}")
     link_directories(${FLANN_LIBRARY_DIRS})
 endif()
 
