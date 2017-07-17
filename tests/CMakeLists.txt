@@ -16,6 +16,9 @@ add_ompl_test(test_heap datastructures/heap.cpp)
 add_ompl_test(test_grid datastructures/grid.cpp)
 add_ompl_test(test_gridb datastructures/gridb.cpp)
 add_ompl_test(test_nearestneighbors datastructures/nearestneighbors.cpp)
+if(FLANN_FOUND)
+    target_link_libraries(test_nearestneighbors ${FLANN_LIBRARIES})
+endif()
 add_ompl_test(test_pdf datastructures/pdf.cpp)
 
 # Test utilities

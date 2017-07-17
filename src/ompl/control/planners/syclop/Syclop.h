@@ -283,6 +283,14 @@ namespace ompl
                 virtual ~Region()
                 {
                 }
+
+#if __cplusplus >= 201103L
+                Region(const Region&) = default;
+                Region& operator=(const Region&) = default;
+                Region(Region&&) = default;
+                Region& operator=(Region&&) = default;
+#endif
+
                 /** \brief Clears motions and coverage information from this region. */
                 void clear()
                 {
