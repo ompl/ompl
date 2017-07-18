@@ -74,7 +74,7 @@ else()
   # don't use chrono
   find_package(Boost COMPONENTS date_time thread serialization filesystem system program_options unit_test_framework REQUIRED)
 endif()
-include_directories(SYSTEM ${Boost_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIR})
 
 if(${Boost_VERSION} LESS 105300)
   # Include bundled version of boost::odeint if it isn't installed natively
