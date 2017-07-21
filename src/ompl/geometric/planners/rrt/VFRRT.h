@@ -39,7 +39,7 @@
 
 #include <limits>
 
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 
 #include <ompl/geometric/planners/rrt/RRT.h>
 
