@@ -116,15 +116,15 @@ namespace ompl
             void writeState(const State *state) const;
 
             /** \brief This function checks whether a state satisfies its bounds */
-            bool satisfiesBounds(const State *state) const;
+            bool satisfiesBounds(const State *state) const override;
 
-            State *allocState() const;
-            void freeState(State *state) const;
-            void copyState(State *destination, const State *source) const;
-            void interpolate(const State *from, const State *to, const double t, State *state) const;
+            State *allocState() const override;
+            void freeState(State *state) const override;
+            void copyState(State *destination, const State *source) const override;
+            void interpolate(const State *from, const State *to, double t, State *state) const override;
 
-            StateSamplerPtr allocDefaultStateSampler() const;
-            StateSamplerPtr allocStateSampler() const;
+            StateSamplerPtr allocDefaultStateSampler() const override;
+            StateSamplerPtr allocStateSampler() const override;
 
         protected:
             /** \brief Representation of the MORSE parameters OMPL needs to plan */
