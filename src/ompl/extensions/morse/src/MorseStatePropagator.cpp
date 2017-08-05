@@ -48,7 +48,7 @@ ompl::control::MorseStatePropagator::MorseStatePropagator(const SpaceInformation
 }
 
 void ompl::control::MorseStatePropagator::propagate(const base::State *state, const Control *control,
-                                                    const double duration, base::State *result) const
+                                                    double duration, base::State *result) const
 {
     std::lock_guard<std::mutex> lock(env_->mutex_);
 

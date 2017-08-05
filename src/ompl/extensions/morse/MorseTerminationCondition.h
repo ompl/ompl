@@ -49,11 +49,8 @@ namespace ompl
         class MorseTerminationCondition : public PlannerTerminationCondition
         {
         public:
-            /** \brief The representation of the MORSE simulation environment */
-            const MorseEnvironmentPtr env_;
-
             MorseTerminationCondition(const MorseEnvironmentPtr env)
-                : PlannerTerminationCondition([env] { return !env_->simRunning_; })
+                : PlannerTerminationCondition([env] { return !env->simRunning_; })
             {
             }
 

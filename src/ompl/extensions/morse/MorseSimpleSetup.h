@@ -84,7 +84,7 @@ namespace ompl
             void setup() override;
 
             /** \brief Run the planner until solution is found or user shuts down MORSE */
-            base::PlannerStatus solve() override;
+            base::PlannerStatus solve();
 
             /** \brief Set the MORSE world to the states that are
                 contained in a given path, sequentially. */
