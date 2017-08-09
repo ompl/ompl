@@ -213,11 +213,8 @@ def getControllers():
         c = getattr(morse.builder.actuators, cname)
         # Is c a class?
         if isinstance(c, type):
-            # Does it inherit from Actuator and is it not Actuator?
-            # OR does it inherit from ActuatorCreator and is it not ActuatorCreator?
-            if (issubclass(c, morse.builder.Actuator) and
-                c != morse.builder.Actuator) or \
-                (issubclass(c, morse.builder.creator.ActuatorCreator) and
+            # Does it inherit from ActuatorCreator and is it not ActuatorCreator?
+            if (issubclass(c, morse.builder.creator.ActuatorCreator) and
                 c != morse.builder.creator.ActuatorCreator):
                 # Is it not in our exclusions list?
                 if cname not in excluded_controllers:
