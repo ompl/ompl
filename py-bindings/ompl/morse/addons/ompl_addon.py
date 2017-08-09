@@ -536,25 +536,35 @@ class BoundsConfiguration(bpy.types.Operator):
         # Wait for a connection
         sockS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sockC = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        while True:
+        connectionAttempts = 0
+        connected = False
+        while not connected and connectionAttempts < 5:
+            connectionAttempts += 1
             try:
                 sockS.connect(('localhost', 50007))
+                connected = True
             except:
-                time.sleep(0.5)
-                continue
-            break
-        while True:
+                time.sleep(0.1)
+        if not connected:
+            print("OMPL Error: Failed to connected to socket on port 50007.")
+            return {'FINISHED'}
+        connectionAttempts = 0
+        connected = False
+        while not connected and conenctionAttempts < 5:
+            connectionAttempts += 1
             try:
                 sockC.connect(('localhost', 4000))
+                connected = True
             except:
-                time.sleep(0.5)
-                continue
-            break
+                time.sleep(0.1)
+        if not connected:
+            print("OMPL Error: Failed to connected to socket on port 4000.")
+            return {'FINISHED'}
 
         # Retrieve the control description
         self.cdesc = ompl.morse.environment.MyEnvironment(sockS, sockC, True).cdesc
         if self.cdesc[0] > 16:
-            print("Control dimension exceeds 16! This dialog won't be able to accomdate that many.")
+            print("OMPL Error: Control dimension exceeds 16! This dialog won't be able to accomdate that many.")
             return {'FINISHED'}
 
         # Invoke bounds dialog
