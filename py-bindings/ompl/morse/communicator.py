@@ -200,7 +200,7 @@ def goalRegionSatisfied():
 #    Returns [sum_of_Nargs, [cbm0, cbM0, ...], (component_name,service_name,Nargs), ...]
 def getControlDescription():
 
-    settings = bpy.context.scene.objects['__settings']
+    settings = bpy.context.scene.objects['ompl_settings']
     desc = [0, []]
     # Query the request_manager for a list of services
     for name, inst in bge.logic.morsedata.morse_services.request_managers().items():
@@ -229,7 +229,7 @@ def getControlDescription():
 def getRigidBodiesBounds():
 
     # Check whether user set the autopb flag
-    settings = bpy.context.scene.objects['__settings']
+    settings = bpy.context.scene.objects['ompl_settings']
     if settings['autopb']:
 
         # Find min and max values for all objects' bounding box vertices
@@ -315,11 +315,11 @@ def endSimulation():
     # Stop the game engine loop
     bge.logic.endGame()
 
-    mode = bpy.data.objects['__settings']['Mode']
+    mode = bpy.data.objects['ompl_settings']['Mode']
     if mode == 'PLAY':
 
         # We need to clean up the created animation file
-        animpath = bpy.data.objects['__settings']['Animpath']
+        animpath = bpy.data.objects['ompl_settings']['Animpath']
 
         # Prevent autostart
         bpy.context.scene.game_settings.use_auto_start = False
@@ -327,7 +327,7 @@ def endSimulation():
         # Mark unwanted objects for deletion; set the active camera
         toDelete = []
         for obj in bpy.context.scene.objects:
-            if obj.name in ['Scene_Script_Holder','CameraFP','__settings'] or \
+            if obj.name in ['Scene_Script_Holder','CameraFP','ompl_settings'] or \
               obj.name.endswith('.goalPose') or obj.name.endswith('.goalRegion') or \
               obj.name.endswith('.goalRot'):
                 toDelete.append(obj)
@@ -400,7 +400,7 @@ def spawn_planner():
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind(('localhost', 50007))
 
-    mode = bpy.data.objects['__settings']['Mode']
+    mode = bpy.data.objects['ompl_settings']['Mode']
     if mode == 'PLAN':
         # Spawn planner.py
         f = '/planner.py'
@@ -410,7 +410,7 @@ def spawn_planner():
 
     if mode != 'QUERY':
         # Pass the name of the output (or input) file
-        subprocess.Popen(['env', sys.executable, '-P', OMPL_DIR + f, '--', bpy.data.objects['__settings']['Outpath']])
+        subprocess.Popen(['env', sys.executable, '-P', OMPL_DIR + f, '--', bpy.data.objects['ompl_settings']['Outpath']])
 
     # Make a connection
     s.listen(0)

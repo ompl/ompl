@@ -147,11 +147,11 @@ for obj in bpy.context.scene.objects:
         # True means "no sleeping"
         obj.game.use_sleep = True
 
-# Get '__settings' object so we can set up some properties
-if not ('__settings' in bpy.data.objects):
+# Get 'ompl_settings' object so we can set up some properties
+if not ('ompl_settings' in bpy.data.objects):
     print("OMPL Error: could not access settings object. Add robot/goal first.")
     exit()
-settings = bpy.data.objects['__settings']
+settings = bpy.data.objects['ompl_settings']
 settings.hide = False
 settings.hide_render = False
 settings.hide_select = False

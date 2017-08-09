@@ -114,11 +114,11 @@ class Plan(bpy.types.Operator):
                 else:
                     obj.game.physics_type = 'NO_COLLISION'
 
-        if not context.scene.objects.get('__settings'):
+        if not context.scene.objects.get('ompl_settings'):
             # Bounds Configuration hasn't been setup for this file yet
             bpy.ops.ompl.boundsconfig('INVOKE_DEFAULT')
         else:
-            settings = context.scene.objects['__settings']
+            settings = context.scene.objects['ompl_settings']
             if not settings.get('autopb'):
                 # Bounds Configuration hasn't been setup for this file yet
                 bpy.ops.ompl.boundsconfig('INVOKE_DEFAULT')
@@ -155,10 +155,10 @@ class Play(bpy.types.Operator):
     # \brief Called when the button is pressed; prompts for the path file
     def invoke(self, context, event):
 
-        if not context.scene.objects.get('__settings'):
+        if not context.scene.objects.get('ompl_settings'):
             # Select an animation save file
             bpy.ops.ompl.animfile('INVOKE_DEFAULT')
-        elif not context.scene.objects['__settings'].get('Animpath'):
+        elif not context.scene.objects['ompl_settings'].get('Animpath'):
             # Select an animation save file
             bpy.ops.ompl.animfile('INVOKE_DEFAULT')
 
@@ -369,7 +369,7 @@ class AnimFile(bpy.types.Operator):
     # \brief Save the name of the file for later
     def execute(self, context):
 
-        context.scene.objects['__settings']['Animpath'] = self.filepath
+        context.scene.objects['ompl_settings']['Animpath'] = self.filepath
         return {'FINISHED'}
 
     ##
@@ -377,10 +377,10 @@ class AnimFile(bpy.types.Operator):
     def invoke(self, context, event):
 
         # Add the settings object if it doesn't exist
-        if not context.scene.objects.get('__settings'):
+        if not context.scene.objects.get('ompl_settings'):
             bpy.ops.object.add()
-            context.object.name = '__settings'
-        settings = context.scene.objects['__settings']
+            context.object.name = 'ompl_settings'
+        settings = context.scene.objects['ompl_settings']
 
         # Get the settings object out of the way
         settings.hide = True
@@ -455,7 +455,7 @@ class BoundsConfiguration(bpy.types.Operator):
     def execute(self, context):
 
         # Save settings to the scene
-        settings = context.scene.objects['__settings']
+        settings = context.scene.objects['ompl_settings']
         settings['autopb'] = self.autopb
         settings['pbx'] = self.pbx
         settings['pbX'] = self.pbX
@@ -508,10 +508,10 @@ class BoundsConfiguration(bpy.types.Operator):
     def invoke(self, context, event):
 
         # If the settings have not been set before, initialize them
-        if not context.scene.objects.get('__settings'):
+        if not context.scene.objects.get('ompl_settings'):
             bpy.ops.object.add()
             settings = context.object
-            settings.name = '__settings'
+            settings.name = 'ompl_settings'
             settings['autopb'] = True
             settings['pbx'] = -1000
             settings['pbX'] = 1000
