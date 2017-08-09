@@ -536,30 +536,22 @@ class BoundsConfiguration(bpy.types.Operator):
         # Wait for a connection
         sockS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sockC = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        connectionAttempts = 0
-        connected = False
-        while not connected and connectionAttempts < 5:
-            connectionAttempts += 1
+        while True:
             try:
+                print("Waiting for port 50007 to connect.")
                 sockS.connect(('localhost', 50007))
-                connected = True
             except:
-                time.sleep(0.1)
-        if not connected:
-            print("OMPL Error: Failed to connected to socket on port 50007.")
-            return {'FINISHED'}
-        connectionAttempts = 0
-        connected = False
-        while not connected and conenctionAttempts < 5:
-            connectionAttempts += 1
+                time.sleep(0.5)
+                continue
+            break
+        while True:
             try:
+                print("Waiting for port 4000 to connect.")
                 sockC.connect(('localhost', 4000))
-                connected = True
             except:
-                time.sleep(0.1)
-        if not connected:
-            print("OMPL Error: Failed to connected to socket on port 4000.")
-            return {'FINISHED'}
+                time.sleep(0.5)
+                continue
+            break
 
         # Retrieve the control description
         self.cdesc = ompl.morse.environment.MyEnvironment(sockS, sockC, True).cdesc
