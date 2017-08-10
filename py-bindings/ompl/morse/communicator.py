@@ -327,11 +327,11 @@ def endSimulation():
         # Mark unwanted objects for deletion; set the active camera
         toDelete = []
         for obj in bpy.context.scene.objects:
-            if obj.name in ['Scene_Script_Holder','CameraFP','ompl_settings'] or \
-              obj.name.endswith('.goalPose') or obj.name.endswith('.goalRegion') or \
-              obj.name.endswith('.goalRot'):
+            if obj.name in ['Scene_Script_Holder','CameraFP',
+                            'ompl_settings','MORSE.Properties',
+                            '__morse_dt_analyser']:
                 toDelete.append(obj)
-            elif obj.name == "Camera":
+            elif obj.name == 'Camera':
                 bpy.context.scene.camera = obj
             for child in obj.children:
                 if child.name.endswith('Motion'):
@@ -340,6 +340,13 @@ def endSimulation():
         for obj in toDelete:
             _recurseDelete(obj)
 
+        # Delete text files in the blend file.
+        for txt in ['communicator.py', 'component_config.py',
+                    'setup_path.py', 'Info.txt']:
+            txt = bpy.data.texts.get(txt)
+            if txt:
+                bpy.data.texts.remove(txt)
+            
         # Save animation curves to specified file
         bpy.ops.wm.save_mainfile(filepath=animpath, check_existing=False)
 
