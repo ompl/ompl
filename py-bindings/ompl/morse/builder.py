@@ -163,11 +163,9 @@ if mode == 'PLAY':
     bpy.context.scene.game_settings.use_animation_record = True
 
 bpy.ops.object.select_all(action='DESELECT')
-context_override = {"active_object":settings,"object":settings,"blend_data":bpy.data,
-                    "scene":bpy.context.scene,"edit_object":settings}
 
 # Add 'Tick' sensor
-bpy.ops.logic.sensor_add(context_override, type='DELAY', name='Tick')
+bpy.ops.logic.sensor_add(type='DELAY', name='Tick', object='ompl_settings')
 tick = settings.game.sensors['Tick']
 tick.use_repeat = True
 
@@ -175,7 +173,7 @@ tick.use_repeat = True
 bpy.ops.text.open(filepath=OMPL_DIR + "/communicator.py")
 
 # Add 'Comm' controller for the script
-bpy.ops.logic.controller_add(context_override, type='PYTHON', name='Comm')
+bpy.ops.logic.controller_add(type='PYTHON', name='Comm', object='ompl_settings')
 comm = settings.game.controllers['Comm']
 comm.mode = 'MODULE'
 comm.module = 'communicator.main'
