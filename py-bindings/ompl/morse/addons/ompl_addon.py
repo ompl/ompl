@@ -119,7 +119,7 @@ class Plan(bpy.types.Operator):
             bpy.ops.ompl.boundsconfig('INVOKE_DEFAULT')
         else:
             settings = context.scene.objects['ompl_settings']
-            if not settings.get('autopb'):
+            if settings.get('autopb') is None:
                 # Bounds Configuration hasn't been setup for this file yet
                 bpy.ops.ompl.boundsconfig('INVOKE_DEFAULT')
 
