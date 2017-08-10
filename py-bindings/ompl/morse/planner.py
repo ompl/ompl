@@ -80,7 +80,8 @@ def planWithMorse(sockS, sockC):
 
         # Write the solution path to file
         if ss.haveSolutionPath():
-            print("Saving solution.")
+            solnFileName = sys.argv[sys.argv.index('--') + 1]
+            print("Saving solution to '" + solnFileName + "'...")
             cpath = ss.getSolutionPath()
             # Save the states, controls, and durations
             st = []
@@ -91,9 +92,10 @@ def planWithMorse(sockS, sockC):
                 con.append(tuple(cpath.getControl(i)[j] for j in range(env.cdesc[0])))
                 dur.append(cpath.getControlDuration(i))
             st.append(env.stateToList(cpath.getState(cpath.getControlCount())))
-            with open(sys.argv[1], 'wb') as f:
+            with open(solnFileName, 'wb') as f:
                 # Pickle it all into a file
                 pickle.dump((st,con,dur), f)
+            print("...done.")
         else:
             print("No solution found.")
 

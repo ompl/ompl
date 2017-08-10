@@ -48,6 +48,8 @@ import morse.blender
 
 OMPL_DIR=os.path.dirname(__file__)
 
+print("OMPL builder script invocation: " + str(sys.argv))
+
 # Determine the mode to use (third argument)
 mode = sys.argv[sys.argv.index('--') + 3]
 

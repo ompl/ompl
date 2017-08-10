@@ -54,7 +54,9 @@ def playWithMorse(sockS, sockC):
         env = MyEnvironment(sockS, sockC)
 
         # Read path from file for playback
-        with open(sys.argv[1], 'rb') as f:
+        solnSaveFile = sys.argv[sys.argv.index('--') + 1]
+        print("Loading path from file '" + solnSaveFile + ".")
+        with open(solnSaveFile, 'rb') as f:
             (st,con,dur) = pickle.load(f)
         for i in range(len(con)):
             # Load state
