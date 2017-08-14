@@ -320,6 +320,7 @@ def endSimulation():
 
         # We need to clean up the created animation file
         animpath = bpy.data.objects['ompl_settings']['Animpath']
+        animtmppath = animpath + ".tmp"
 
         # Prevent autostart
         bpy.context.scene.game_settings.use_auto_start = False
@@ -347,8 +348,9 @@ def endSimulation():
             if txt:
                 bpy.data.texts.remove(txt)
             
-        # Save animation curves to specified file
-        bpy.ops.wm.save_mainfile(filepath=animpath, check_existing=False)
+        # Save animation curves to tmp file
+        print("OMPL: Writing to tmp file '" + animtmppath + "'")
+        bpy.ops.wm.save_mainfile(filepath=animtmppath, check_existing=False)
 
     # Signal to exit loop
     return False

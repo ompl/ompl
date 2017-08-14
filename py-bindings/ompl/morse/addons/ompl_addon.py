@@ -130,6 +130,22 @@ class Plan(bpy.types.Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+@bpy.app.handlers.persistent
+def import_and_resave(animpath):
+    bpy.app.handlers.load_post.clear()
+    animtmppath = animpath + ".tmp"
+    print("OMPL: appending animation data")
+    with bpy.data.libraries.load(filepath=animtmppath) as (f,t):
+        t.scenes = ['S.MORSE_LOGIC']
+    print("OMPL: deleting tmp file")
+    import os
+    os.remove(animtmppath)
+    bpy.data.scenes.remove(bpy.data.scenes['Scene'])
+    bpy.data.scenes['S.MORSE_LOGIC'].name = 'Scene'
+    bpy.context.screen.scene = bpy.data.scenes['Scene']
+    bpy.ops.wm.save_mainfile(filepath=animpath)
+
+    
 ##
 # \brief Invoke Path Playback
 class Play(bpy.types.Operator):
@@ -145,10 +161,24 @@ class Play(bpy.types.Operator):
     # \brief Called when the dialogs finish; starts up the simulation
     def execute(self, context):
 
+        animpath = context.scene.objects['ompl_settings']['Animpath']
+        if animpath == '':
+            self.report({'ERROR'}, "Choose animation save file first!")
+            return {'FINISHED'}
+        self.report({'WARNING'}, "Switching to .blend file: '" + animpath + "'")
+        
         print('Starting player...')
         print("Playing %s with %s" % (bpy.data.filepath, self.filepath))
-        subprocess.Popen(['morse', '-c', 'run', 'ompl', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAY'])
+        subprocess.run(['morse', '-c', 'run', 'ompl', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAY'])
 
+        # Load blank file. Append animated objects. Re-save.
+        print("OMPL: Will save animation data to '" + animpath + "'")
+        cont = bpy.app.handlers.persistent(lambda _: import_and_resave(animpath))
+        bpy.app.handlers.load_post.append(cont)
+        blankpath = OMPL_DIR + '/resources/blank.blend'
+        print("OMPL: Loading blank file")
+        bpy.ops.wm.open_mainfile(filepath=blankpath)
+        
         return {'FINISHED'}
 
     ##
@@ -316,7 +346,7 @@ class AddGoal(bpy.types.Operator):
 
         # Check that the object exists
         if not bpy.data.objects.get(self.body):
-            print("No such object: '%s'" % self.body)
+            self.report({'ERROR'}, "No such object: '%s'" % self.body)
             return {'FINISHED'}
 
         goalname = self.body + '.' + self.goal_type
@@ -556,7 +586,7 @@ class BoundsConfiguration(bpy.types.Operator):
         # Retrieve the control description
         self.cdesc = ompl.morse.environment.MyEnvironment(sockS, sockC, True).cdesc
         if self.cdesc[0] > 16:
-            print("OMPL Error: Control dimension exceeds 16! This dialog won't be able to accomdate that many.")
+            self.report({'ERROR'}, "OMPL Error: Control dimension exceeds 16! This dialog won't be able to accomdate that many.")
             return {'FINISHED'}
 
         # Invoke bounds dialog
