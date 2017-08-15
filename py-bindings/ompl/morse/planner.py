@@ -119,5 +119,7 @@ sockC.connect(('localhost', 4000))
 # Plan
 planWithMorse(sockS, sockC)
 
+# Quit this instance of Blender.
+exit(0)
 
 
