@@ -264,6 +264,9 @@ def getRigidBodiesBounds():
         mZ -= dz
         MZ += dz
 
+        print("OMPL: Inferred position bounds [[%f,%f],[%f,%f],[%f,%f]]"
+              % (mX,MX,mY,MY,mZ,MZ))
+        
     else:
 
         # Use user-specified positional bounds
