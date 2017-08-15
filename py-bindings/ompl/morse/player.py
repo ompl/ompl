@@ -90,5 +90,7 @@ sockC.connect(('localhost', 4000))
 # Play
 playWithMorse(sockS, sockC)
 
+# Quit this blender instance.
+exit(0)
 
 
