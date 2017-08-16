@@ -208,12 +208,15 @@ def getControlDescription():
             for cname, services in inst.services().items():
                 if cname.endswith('Motion'):
                     for svc in services:
+                        if svc == 'set_property':
+                            continue
                         # Add info to the description
                         n = len(inspect.getargspec(inst._services[cname,svc][0])[0]) - 1
-                        if n > 0: # Services like stop() aren't really helpful to OMPL
-                            # Fill it in backwards
-                            desc = desc[:2] + [(cname, svc, n)] + desc[2:]
-                            desc[0] += n
+                        if n == 0: # Services like stop() aren't really helpful to OMPL
+                            continue
+                        # Fill it in backwards
+                        desc = desc[:2] + [(cname, svc, n)] + desc[2:]
+                        desc[0] += n
 
     # Fill in the control bounds at the beginning
     for i in range(min(16,desc[0])):

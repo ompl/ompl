@@ -68,9 +68,10 @@ def planWithMorse(sockS, sockC):
         # Alternative setup with a planner using a projection
         planner = oc.KPIECE1(si)
         space = si.getStateSpace()
-        proj = ExampleProjection(space)
-        space.registerProjection("ExampleProjection", proj)
-        planner.setProjectionEvaluator("ExampleProjection")
+        # This projection uses the x,y coords of every rigid body in the state space.
+        proj = om.MorseProjection(space)
+        space.registerProjection("MorseProjection", proj)
+        planner.setProjectionEvaluator("MorseProjection")
         """
 
         ss.setPlanner(planner)
