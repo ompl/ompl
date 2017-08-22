@@ -55,14 +55,17 @@ namespace ompl
             ConvexifiableConstraint(const SpaceInformationPtr &si) : ConvexifiableOptimization(si) {}
 
             void addToProblem(sco::OptProbPtr problem) {
-                problem->addConstraint(toConstraint(problem));
+                std::vector<sco::ConstraintPtr> constraints = toConstraint(problem);
+                for (sco::ConstraintPtr constraint : constraints) {
+                    problem->addConstraint(constraint);
+                }
             }
 
         protected:
             /** \brief Turns the Optimization Constraint into a convexifiable constraint
                 Must be implemented by each subclass.
                 */
-            virtual sco::ConstraintPtr toConstraint(sco::OptProbPtr problem) = 0;
+            virtual std::vector<sco::ConstraintPtr> toConstraint(sco::OptProbPtr problem) = 0;
         };
     }
 }

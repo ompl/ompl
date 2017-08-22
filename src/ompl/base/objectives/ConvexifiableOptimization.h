@@ -38,7 +38,7 @@
 #define OMPL_BASE_OBJECTIVES_CONVEXIFIABLE_OPTIMIZATION_
 
 #include "ompl/base/OptimizationObjective.h"
-#include "ompl/trajopt/modeling.hpp"
+#include "ompl/trajopt/modeling.h"
 
 namespace ompl
 {

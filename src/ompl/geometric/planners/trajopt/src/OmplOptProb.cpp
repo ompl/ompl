@@ -34,10 +34,11 @@
 
 /* Authors: Bryce Willey */
 
+#include <boost/format.hpp>
+
 #include "ompl/geometric/planners/trajopt/OmplOptProb.h"
 #include "ompl/base/spaces/SE2StateSpace.h"
-#include <boost/format.hpp>
-#include "ompl/trajopt/typedefs.hpp"
+#include "ompl/trajopt/typedefs.h"
 
 ompl::geometric::OmplOptProb::OmplOptProb(int nSteps, ompl::base::SpaceInformationPtr &si) :
     si_(si)
@@ -46,13 +47,15 @@ ompl::geometric::OmplOptProb::OmplOptProb(int nSteps, ompl::base::SpaceInformati
     int dof = si_->getStateDimension();
     // Get the bounds of the state space (assume SE2 for now)
     // TODO: eventually use StateSpace magic to see if it is bounded or not.
+    // TODO: write a method in OMPL to get general state space bounds,
+    // similar to how you can with copyToReals.
     ompl::base::StateSpacePtr ss = si_->getStateSpace();
     double max_extent = ss->getMaximumExtent();
     std::vector<double> low;
     std::vector<double> high;
     if (max_extent == std::numeric_limits<double>::infinity()) {
         ompl::base::RealVectorBounds bounds(dof);
-        for (int i = 0; i < nSteps; i++) {
+        for (int i = 0; i < dof; i++) {
             bounds.low[i] = -1 * std::numeric_limits<double>::infinity();
             bounds.high[i] = std::numeric_limits<double>::infinity();
         }
@@ -70,6 +73,14 @@ ompl::geometric::OmplOptProb::OmplOptProb(int nSteps, ompl::base::SpaceInformati
             high = bounds.high;
         } else if ((real = dynamic_cast<ompl::base::RealVectorStateSpace *>(ss.get()))) {
             ompl::base::RealVectorBounds bounds = real->getBounds();
+            low = bounds.low;
+            high = bounds.high;
+        } else {
+            ompl::base::RealVectorBounds bounds(dof);
+            for (int i = 0; i < dof; i++) {
+                bounds.low[i] = -1 * std::numeric_limits<double>::infinity();
+                bounds.high[i] = std::numeric_limits<double>::infinity();
+            }
             low = bounds.low;
             high = bounds.high;
         }

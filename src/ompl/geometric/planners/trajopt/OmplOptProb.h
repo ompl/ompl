@@ -34,12 +34,12 @@
 
 /* Authors: Bryce Willey */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_TRAJOPT_OMPLOPTPROB
-#define OMPL_GEOMETRIC_PLANNERS_TRAJOPT_OMPLOPTPROB
+#ifndef OMPL_GEOMETRIC_PLANNERS_TRAJOPT_OMPLOPTPROB_
+#define OMPL_GEOMETRIC_PLANNERS_TRAJOPT_OMPLOPTPROB_
 
 #include "ompl/base/OptimizationObjective.h"
-#include "ompl/trajopt/modeling.hpp"
-#include "ompl/trajopt/typedefs.hpp"
+#include "ompl/trajopt/modeling.h"
+#include "ompl/trajopt/typedefs.h"
 
 namespace ompl
 {
