@@ -34,15 +34,20 @@
 
 /* Authors: John Schulman, Bryce Willey */
 
+#include <chrono>
+#include <thread>
+
 #include "ompl/geometric/planners/trajopt/TrajOpt.h"
 #include "ompl/base/goals/GoalState.h"
+#include "ompl/base/goals/GoalLazySamples.h"
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/objectives/ConvexifiableOptimization.h"
-#include "ompl/trajopt/typedefs.hpp"
-#include "ompl/trajopt/expr_ops.hpp"
-#include "ompl/trajopt/solver_interface.hpp"
-#include "ompl/trajopt/optimizers.hpp"
-#include "ompl/trajopt/utils.hpp"
+
+#include "ompl/trajopt/typedefs.h"
+#include "ompl/trajopt/expr_ops.h"
+#include "ompl/trajopt/solver_interface.h"
+#include "ompl/trajopt/optimizers.h"
+#include "ompl/trajopt/utils.h"
 
 ompl::geometric::TrajOpt::TrajOpt(const ompl::base::SpaceInformationPtr &si)
   : base::Planner(si, "TrajOpt") {}
@@ -66,7 +71,21 @@ void ompl::geometric::TrajOpt::setup()
 
     // TODO: get a method to take a state and a time stamp to turn it into a constraint.
     ompl::base::State *start = pdef_->getStartState(0);
-    ompl::base::State *goal = pdef_->getGoal()->as<ompl::base::GoalState>()->getState();
+    ompl::base::State *goal = pdef_->getSpaceInformation()->allocState();
+    ompl::base::GoalType type = pdef_->getGoal()->getType();
+    if (type == ompl::base::GoalType::GOAL_STATE) {
+        goal = pdef_->getGoal()->as<ompl::base::GoalState>()->getState();
+    } else if (type == ompl::base::GoalType::GOAL_SAMPLEABLE_REGION ||
+               type == ompl::base::GoalType::GOAL_STATES) {
+        pdef_->getGoal()->as<ompl::base::GoalSampleableRegion>()->sampleGoal(goal);
+    } else if (type == ompl::base::GoalType::GOAL_LAZY_SAMPLES) {
+        pdef_->getGoal()->as<ompl::base::GoalLazySamples>()->startSampling();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        pdef_->getGoal()->as<ompl::base::GoalLazySamples>()->stopSampling();
+        pdef_->getGoal()->as<ompl::base::GoalLazySamples>()->sampleGoal(goal);
+    } else {
+        throw Exception("The goal is not a single state or sampleable, cannot get the actual goal.");
+    }
     ompl::base::StateSpacePtr ss = si_->getStateSpace();
     std::vector<double> startVec(dof);
     std::vector<double> endVec(dof);
@@ -80,7 +99,7 @@ void ompl::geometric::TrajOpt::setup()
                 sco::AffExpr(problem_->traj_vars_(nSteps_ - 1, i)), endVec[i]), sco::EQ);
     }
 
-    // TODO: for now, make the initial trajectory a linear interpolation.
+    // TODO: for now, initial trajectory is a linear interpolation, make this configurable.
     trajopt::TrajArray ta(nSteps_, dof);
     for (int i = 0; i < nSteps_; i++) {
         for (int j = 0; j < dof; j++) {

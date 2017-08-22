@@ -34,33 +34,43 @@
 
 /* Authors: John Schulman, Bryce Willey */
 
-#ifndef OMPL_BASE_OBJECTIVES_JOINT_VELOCITY_OBJECTIVE_
-#define OMPL_BASE_OBJECTIVES_JOINT_VELOCITY_OBJECTIVE_
+#ifndef OMPL_BASE_OBJECTIVES_JOINT_DISTANCE_OBJECTIVE_
+#define OMPL_BASE_OBJECTIVES_JOINT_DISTANCE_OBJECTIVE_
 
 #include "ompl/base/objectives/ConvexifiableObjective.h"
-#include "ompl/trajopt/sco_fwd.hpp"
-#include "ompl/trajopt/modeling.hpp"
-#include "ompl/trajopt/typedefs.hpp"
+#include "ompl/trajopt/sco_fwd.h"
+#include "ompl/trajopt/modeling.h"
+#include "ompl/trajopt/typedefs.h"
 
 namespace ompl
 {
     namespace base
     {
-        class JointVelCost : public sco::Cost
+        /**
+         * \brief Encourages minimum length paths by using the sum of squared displacements.
+         */
+        class JointDistCost : public sco::Cost
         {
         public:
-            JointVelCost(const trajopt::VarArray& traj);
+            JointDistCost(const trajopt::VarArray& traj);
+            /**
+             * Turns this cost into a convex cost.
+             */
             sco::ConvexObjectivePtr convex(const std::vector<double>& x, sco::Model* model);
+
+            /**
+             * Gets the cost value of a specific trajectory.
+             */
             double value(const std::vector<double>&);
         private:
             trajopt::VarArray vars_;
             sco::QuadExpr expr_;
         };
 
-        class JointVelocityObjective : public ConvexifiableObjective
+        class JointDistanceObjective : public ConvexifiableObjective
         {
         public:
-            JointVelocityObjective(const SpaceInformationPtr &si);
+            JointDistanceObjective(const SpaceInformationPtr &si);
 
             /** \brief Returns identity cost. */
             Cost stateCost(const State *s) const override;

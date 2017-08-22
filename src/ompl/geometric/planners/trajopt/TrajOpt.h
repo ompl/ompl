@@ -34,21 +34,21 @@
 
 /* Authors: John Schulman, Bryce Willey */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_TRAJOPT_TRAJOPT
-#define OMPL_GEOMETRIC_PLANNERS_TRAJOPT_TRAJOPT
+#ifndef OMPL_GEOMETRIC_PLANNERS_TRAJOPT_TRAJOPT_
+#define OMPL_GEOMETRIC_PLANNERS_TRAJOPT_TRAJOPT_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/geometric/planners/trajopt/OmplOptProb.h"
-#include "ompl/trajopt/typedefs.hpp"
-#include "ompl/trajopt/optimizers.hpp"
+#include "ompl/trajopt/typedefs.h"
+#include "ompl/trajopt/optimizers.h"
 
 namespace ompl
 {
     namespace geometric
     {
         /**
-        @anchor gTrajOpt
+        @anchor TrajOpt
         @par Short Description
         \ref gTrajOpt is an optimization based approach for motion planning.
         It uses sequential convex optimization (sco) to locally optimize a
@@ -118,8 +118,6 @@ namespace ompl
             {
                 return minApproxImproveFrac_;
             }
-
-            // TODO: figure out the best way to describe costs and constraints.
 
         protected:
             ompl::base::PathPtr trajFromTraj2Ompl(trajopt::TrajArray traj);
