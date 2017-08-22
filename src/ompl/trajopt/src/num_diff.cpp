@@ -1,4 +1,7 @@
-#include "ompl/trajopt/num_diff.hpp"
+/* Authors: John Schulman. */
+
+#include "ompl/trajopt/num_diff.h"
+
 using namespace Eigen;
 using namespace sco;
 

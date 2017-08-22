@@ -1,12 +1,13 @@
-#include "ompl/trajopt/bpmpd_interface.hpp"
-#include "ompl/trajopt/logging.hpp"
-#include "ompl/trajopt/stl_to_string.hpp"
-#include "ompl/trajopt/expr_ops.hpp"
 #include <boost/foreach.hpp>
 #include <cmath>
 #include <fstream>
-#include "ompl/trajopt/bpmpd_io.hpp"
 #include <signal.h>
+
+#include "ompl/trajopt/bpmpd_interface.h"
+#include "ompl/trajopt/logging.h"
+#include "ompl/trajopt/stl_to_string.h"
+#include "ompl/trajopt/expr_ops.h"
+#include "ompl/trajopt/bpmpd_io.h"
 
 using namespace std;
 using namespace bpmpd_io;
@@ -482,12 +483,12 @@ CvxOptStatus BPMPDModel::optimize() {
 }
 void BPMPDModel::setObjective(const AffExpr& expr)
 {
-  m_objective.affexpr = expr;
+    m_objective.affexpr = expr;
 }
 
 void BPMPDModel::setObjective(const QuadExpr& expr)
 {
-  m_objective = expr;
+    m_objective = expr;
 }
 
 void BPMPDModel::addToObjective(const AffExpr &expr)
@@ -501,6 +502,7 @@ void BPMPDModel::addToObjective(const QuadExpr& expr)
 }
 
 void BPMPDModel::writeToFile(const string& fname) {
+    printf("BPMPDModel cannot yet write to file.\n");
   // assert(0 && "NOT IMPLEMENTED");
 }
 

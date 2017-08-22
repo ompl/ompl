@@ -1,12 +1,11 @@
-#include "ompl/trajopt/modeling.hpp"
-#include "ompl/trajopt/modeling_utils.hpp"
-#include "ompl/trajopt/expr_ops.hpp"
 #include <iostream>
 #include <Eigen/Eigenvalues>
-#include "ompl/trajopt/eigen_conversions.hpp"
-using namespace std;
-using namespace util;
 
+#include "ompl/trajopt/modeling.h"
+#include "ompl/trajopt/modeling_utils.h"
+#include "ompl/trajopt/expr_ops.h"
+#include "ompl/trajopt/eigen_conversions.h"
+using namespace std;
 
 namespace sco {
 

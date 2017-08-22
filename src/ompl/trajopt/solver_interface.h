@@ -2,11 +2,11 @@
 #include <boost/shared_ptr.hpp>
 #include <vector>
 #include <string>
-#include "ompl/trajopt/sco_fwd.hpp"
 #include <iosfwd>
 #include <limits>
+
+#include "ompl/trajopt/sco_fwd.h"
 /**
-@file solver_interface.hpp
 @brief Interface to convex solvers
 
   This is based on Gurobi's nice c++ API (though the SCO Gurobi backend uses the Gurobi c api).

@@ -1,5 +1,5 @@
 #pragma once
-#include "expr_ops.hpp"
+#include "expr_ops.h"
 
 namespace sco {
 

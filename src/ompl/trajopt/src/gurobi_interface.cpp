@@ -1,18 +1,20 @@
-#include "ompl/trajopt/solver_interface.hpp"
-#include "ompl/trajopt/gurobi_interface.hpp"
-#include "utils/logging.hpp"
+
+#include <boost/foreach.h>
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <stdexcept>
+#include <utility>
+
+#include "ompl/trajopt/solver_interface.h"
+#include "ompl/trajopt/gurobi_interface.h"
+#include "ompl/trajopt/logging.h"
 extern "C" {
 #include "ompl/trajopt/gurobi_c.h"
 }
-#include <boost/foreach.hpp>
-#include "ompl/trajopt/sco_common.hpp"
-#include <map>
-#include <utility>
+#include "ompl/trajopt/sco_common.h"
 #include "ompl/trajopt/macros.h"
-#include <sstream>
-#include <stdexcept>
-#include <iostream>
-#include "ompl/trajopt/stl_to_string.hpp"
+#include "ompl/trajopt/stl_to_string.h"
 
 using namespace std;
 

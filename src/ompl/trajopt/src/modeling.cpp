@@ -1,12 +1,15 @@
-#include "ompl/trajopt/modeling.hpp"
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
 #include <cstdio>
-#include "ompl/trajopt/expr_ops.hpp"
-#include "ompl/trajopt/sco_common.hpp"
-#include "ompl/trajopt/macros.h"
 #include <iostream>
 #include <sstream>
+
+#include "ompl/trajopt/modeling.h"
+#include "ompl/trajopt/expr_ops.h"
+#include "ompl/trajopt/sco_common.h"
+#include "ompl/trajopt/macros.h"
+
+/* Author: John Schulman */
 
 using namespace std;
 

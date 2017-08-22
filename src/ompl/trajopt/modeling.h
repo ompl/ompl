@@ -7,8 +7,8 @@
 
 #include <vector>
 #include <boost/shared_ptr.hpp>
-#include "ompl/trajopt/sco_fwd.hpp"
-#include "ompl/trajopt/solver_interface.hpp"
+#include "ompl/trajopt/sco_fwd.h"
+#include "ompl/trajopt/solver_interface.h"
 
 namespace sco {
 

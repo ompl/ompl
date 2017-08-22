@@ -1,6 +1,7 @@
-#include "ompl/trajopt/stl_to_string.hpp"
 #include <sstream>
 #include <vector>
+#include "ompl/trajopt/stl_to_string.h"
+
 using namespace std;
 
 namespace {
@@ -17,7 +18,6 @@ std::string Str_impl(const vector<T>& x) {
 
 }
 
-
 namespace util {
 
 std::string Str(const vector<double>& x) {
@@ -29,8 +29,5 @@ std::string Str(const vector<float>& x) {
 std::string Str(const vector<int>& x) {
   return Str_impl(x);
 }
-
-
-
 
 }

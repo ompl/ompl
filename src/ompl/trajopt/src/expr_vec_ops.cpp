@@ -1,4 +1,4 @@
-#include "ompl/trajopt/expr_vec_ops.hpp"
+#include "ompl/trajopt/expr_vec_ops.h"
 
 sco::AffExpr sco::varDot(const VectorXd& x, const VarVector& v) {
   sco::AffExpr out;

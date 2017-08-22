@@ -1,7 +1,9 @@
 #pragma once
 #include <string>
-#include "modeling.hpp"
 #include <boost/function.hpp>
+
+#include "ompl/trajopt/modeling.h"
+
 /*
  * Algorithms for non-convex, constrained optimization
  */

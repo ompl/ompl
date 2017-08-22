@@ -1,5 +1,5 @@
-#include "ompl/trajopt/expr_ops.hpp"
 #include <cmath>
+#include "ompl/trajopt/expr_ops.h"
 
 static inline double sq(double x) {return x*x;}
 

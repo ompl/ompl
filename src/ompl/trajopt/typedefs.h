@@ -4,9 +4,9 @@
 #include <Eigen/Core>
 #include <boost/shared_ptr.hpp>
 
-#include "ompl/trajopt/modeling.hpp"
-#include "ompl/trajopt/basic_array.hpp"
-#include "macros.h"
+#include "ompl/trajopt/modeling.h"
+#include "ompl/trajopt/basic_array.h"
+#include "ompl/trajopt/macros.h"
 
 namespace trajopt {
 
@@ -28,5 +28,4 @@ using Eigen::VectorXd;
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> TrajArray;
 using Eigen::MatrixXd;
 using Eigen::Matrix3d;
-
 }

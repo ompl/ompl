@@ -1,9 +1,8 @@
 #pragma once
-#include "modeling.hpp"
-#include "num_diff.hpp"
-#include "sco_common.hpp"
+#include "modeling.h"
+#include "num_diff.h"
+#include "sco_common.h"
 /**
-@file modeling_utils.hpp
 @brief Build problem from user-defined functions
 Utilities for creating Cost and Constraint objects from functions
 using numerical derivatives or user-defined analytic derivatives.
