@@ -47,7 +47,12 @@ if (NOT APPLE AND OMPL_HAVE_EIGEN3)
 
   target_link_libraries(bpmpd_caller ${BPMPD_LIBRARY})
   list(APPEND SCO_SOURCE_FILES ${TRAJOPT_SOURCE_DIR}/bpmpd_interface.cpp)
-  set_property(SOURCE ${TRAJOPT_SOURCE_DIR}/bpmpd_interface.cpp APPEND PROPERTY COMPILE_DEFINITIONS BPMPD_CALLER="\\\"${CMAKE_BINARY_DIR}/bin/bpmpd_caller\\\"")
+
+  # This line works when compling with catkin (it puts the executable in a weird directory).
+  set_property(SOURCE ${TRAJOPT_SOURCE_DIR}/bpmpd_interface.cpp APPEND PROPERTY COMPILE_DEFINITIONS BPMPD_CALLER="\\\"${CMAKE_BINARY_DIR}/devel/lib/ompl/bpmpd_caller\\\"")
+
+  # Uncomment this line if you are building for vanilla CMake.
+  #set_property(SOURCE ${TRAJOPT_SOURCE_DIR}/bpmpd_interface.cpp APPEND PROPERTY COMPILE_DEFINITIONS BPMPD_CALLER="\\\"${CMAKE_BINARY_DIR}/bin/bpmpd_caller\\\"")
 
   set(BPMPD_WORKING_DIR ${CMAKE_CURRENT_BINARY_DIR})
   set_property(SOURCE ${TRAJOPT_SOURCE_DIR}/bpmpd_caller.cpp APPEND PROPERTY COMPILE_DEFINITIONS BPMPD_WORKING_DIR="${BPMPD_WORKING_DIR}")
@@ -127,7 +132,7 @@ else(MSVC)
 endif(MSVC)
 
 # install the library
-install(TARGETS ompl
+install(TARGETS ompl sco bpmpd_caller
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT ompl)
 if(NOT MSVC)

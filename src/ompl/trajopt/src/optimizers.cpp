@@ -1,15 +1,19 @@
-#include "ompl/trajopt/optimizers.hpp"
-#include "ompl/trajopt/modeling.hpp"
-#include "ompl/trajopt/logging.hpp"
-#include <boost/foreach.hpp>
-#include "ompl/trajopt/solver_interface.hpp"
-#include "ompl/trajopt/expr_ops.hpp"
+/* Authors: Jon Schulman. */
+
 #include <cmath>
 #include <cstdio>
-#include "ompl/trajopt/sco_common.hpp"
-#include "ompl/trajopt/stl_to_string.hpp"
-#include "ompl/trajopt/macros.h"
+#include <boost/foreach.hpp>
 #include <boost/format.hpp>
+
+#include "ompl/trajopt/optimizers.h"
+#include "ompl/trajopt/modeling.h"
+#include "ompl/trajopt/logging.h"
+#include "ompl/trajopt/solver_interface.h"
+#include "ompl/trajopt/expr_ops.h"
+#include "ompl/trajopt/sco_common.h"
+#include "ompl/trajopt/stl_to_string.h"
+#include "ompl/trajopt/macros.h"
+
 using namespace std;
 using namespace util;
 

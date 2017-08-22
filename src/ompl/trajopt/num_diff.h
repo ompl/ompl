@@ -17,6 +17,7 @@ typedef boost::shared_ptr<ScalarOfVector> ScalarOfVectorPtr;
 typedef boost::shared_ptr<VectorOfVector> VectorOfVectorPtr;
 typedef boost::shared_ptr<MatrixOfVector> MatrixOfVectorPtr;
 
+/** \brief A function that takes a vector (eigen) and returns a scalar. */
 class ScalarOfVector {
 public:
   virtual double operator()(const VectorXd& x) const = 0;
@@ -27,6 +28,7 @@ public:
   static ScalarOfVectorPtr construct(const boost_func&);
 };
 
+/** \brief A function that takes a vector of any size and retuns a vector (can be different size.) */
 class VectorOfVector {
 public:
   virtual VectorXd operator()(const VectorXd& x) const = 0;

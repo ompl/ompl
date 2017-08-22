@@ -1,7 +1,9 @@
-#include "ompl/trajopt/utils.hpp"
-#include "ompl/trajopt/solver_interface.hpp"
 #include <boost/format.hpp>
 #include <Eigen/Geometry>
+
+#include "ompl/trajopt/utils.h"
+#include "ompl/trajopt/solver_interface.h"
+
 using namespace Eigen;
 
 namespace trajopt {

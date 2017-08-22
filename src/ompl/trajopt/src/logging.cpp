@@ -1,7 +1,8 @@
-#include <string>
-#include <iostream>
-#include "ompl/trajopt/logging.hpp"
 #include <cstdlib>
+#include <iostream>
+#include <string>
+
+#include "ompl/trajopt/logging.h"
 using namespace std;
 
 namespace util {

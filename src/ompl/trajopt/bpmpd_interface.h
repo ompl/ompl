@@ -1,9 +1,8 @@
 
-#include "ompl/trajopt/solver_interface.hpp"
+#include "ompl/trajopt/solver_interface.h"
 #include "ompl/trajopt/macros.h"
 
 namespace sco {
-
 
 class BPMPDModel : public Model {
 public:

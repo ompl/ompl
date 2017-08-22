@@ -1,12 +1,6 @@
-#include "solver_interface.hpp"
+#include "solver_interface.h"
 
-/**
-
-@file gurobi_interface.hpp
-
-Gurobi backend
-
-*/
+/** Gurobi backend */
 
 struct _GRBmodel;
 typedef struct _GRBmodel GRBmodel;
@@ -51,4 +45,3 @@ public:
 
 
 }
-

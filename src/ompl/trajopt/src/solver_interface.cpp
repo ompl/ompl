@@ -1,10 +1,12 @@
-#include "ompl/trajopt/solver_interface.hpp"
 #include <iostream>
-#include "ompl/trajopt/macros.h"
+#include <boost/foreach.hpp>
 #include <boost/format.hpp>
 #include <sstream>
 #include <map>
-#include <boost/foreach.hpp>
+
+#include "ompl/trajopt/solver_interface.h"
+#include "ompl/trajopt/macros.h"
+
 using namespace std;
 
 namespace sco {
@@ -172,7 +174,5 @@ ModelPtr createModel() {
   return ModelPtr();
 
 }
-
-
 
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "ompl/trajopt/typedefs.hpp"
+#include "ompl/trajopt/typedefs.h"
 
 namespace trajopt {
 

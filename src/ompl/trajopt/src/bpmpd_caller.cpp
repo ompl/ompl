@@ -1,9 +1,9 @@
-#include "ompl/trajopt/bpmpd_io.hpp"
 #include <unistd.h>
 #include <iostream>
-#include "ompl/trajopt/stl_to_string.hpp"
 #include <errno.h>
 #include <string.h>
+#include "ompl/trajopt/bpmpd_io.h"
+#include "ompl/trajopt/stl_to_string.h"
 using namespace bpmpd_io;
 using namespace std;
 
