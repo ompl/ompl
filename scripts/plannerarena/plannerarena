@@ -37,7 +37,7 @@ file.arg.name <- "--file="
 script.name <- sub(file.arg.name, "", args[grep(file.arg.name, args)])
 # directory name containing this script
 script.dir <- dirname(normalizePath(script.name))
-if (file.exists(paste0(script.dir,"/app.R"))) {
+if (file.exists(paste0(script.dir,"/server.R"))) {
     # if "app.R" exists in the same dir, then this is the app dir
     appDir <- script.dir
     # config file is in the ompl top-level dir
