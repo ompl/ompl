@@ -465,6 +465,7 @@ CvxOptStatus BPMPDModel::optimize() {
    bpmpd_output bo;
    ser(gPipeOut, bo, DESER);
 
+   bo_ = bo;
    m_soln = vector<double>(bo.primal.begin(), bo.primal.begin()+n);
    int retcode = bo.code;
 
@@ -474,12 +475,7 @@ CvxOptStatus BPMPDModel::optimize() {
 
 #endif
 
-
-
     // exit(0);
-
-
-
 }
 void BPMPDModel::setObjective(const AffExpr& expr)
 {
@@ -502,7 +498,22 @@ void BPMPDModel::addToObjective(const QuadExpr& expr)
 }
 
 void BPMPDModel::writeToFile(const string& fname) {
-    printf("BPMPDModel cannot yet write to file.\n");
+    FILE* crash_fd = fopen(fname.c_str(), "w");
+    if (crash_fd == NULL) {
+        printf("BPMPDModel cannot write to file: unable to open %s\n", fname.c_str());
+    }
+    fprintf(crash_fd, "bpmpd output:\ncode: %d\nopt: %f\nsoln: ", bo_.code, bo_.opt);
+    for (auto xi : m_soln) {
+        fprintf(crash_fd, "%f, ", xi);
+    }
+    fprintf(crash_fd, "\nstatus: ");
+    for (auto a : bo_.status) {
+        fprintf(crash_fd, "%d, ", a);
+    }
+    fprintf(crash_fd, "\nobjective: %s\n", CSTR(m_objective));
+    fflush(crash_fd);
+    fclose(crash_fd);
+
   // assert(0 && "NOT IMPLEMENTED");
 }
 

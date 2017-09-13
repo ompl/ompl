@@ -40,6 +40,7 @@
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/trajopt/modeling.h"
 #include "ompl/trajopt/typedefs.h"
+#include "ompl/trajopt/solver_interface.h"
 
 namespace ompl
 {
@@ -69,6 +70,15 @@ namespace ompl
             {
                 return traj_vars_;
             }
+
+            sco::VarVector GetVarRow(int i) {
+                return traj_vars_.row(i);
+            }
+
+            sco::Var& GetVar(int i, int j) {
+                return traj_vars_.at(i, j);
+            }
+
             trajopt::VarArray traj_vars_;
 
         private:

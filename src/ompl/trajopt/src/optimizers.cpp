@@ -44,8 +44,10 @@ static DblVec evaluateCosts(vector<CostPtr>& costs, const DblVec& x) {
 }
 static DblVec evaluateConstraintViols(vector<ConstraintPtr>& constraints, const DblVec& x) {
     DblVec out(constraints.size());
+
     for (size_t i=0; i < constraints.size(); ++i) {
       out[i] = constraints[i]->violation(x);
+      //std::cout << "Constraint " << i << " violation: " << out[i] << std::endl;
     }
     return out;
 }
@@ -57,11 +59,12 @@ static vector<ConvexObjectivePtr> convexifyCosts(vector<CostPtr>& costs, const D
     return out;
 }
 static vector<ConvexConstraintsPtr> convexifyConstraints(vector<ConstraintPtr>& cnts, const DblVec& x, Model* model) {
-  vector<ConvexConstraintsPtr> out(cnts.size());
-  for (size_t i=0; i < cnts.size(); ++i) {
-    out[i] = cnts[i]->convex(x, model);
-  }
-  return out;
+    vector<ConvexConstraintsPtr> out(cnts.size());
+    //std::cout << "Convexifying constraints." << std::endl;
+    for (size_t i=0; i < cnts.size(); ++i) {
+      out[i] = cnts[i]->convex(x, model);
+    }
+    return out;
 }
 
 DblVec evaluateModelCosts(vector<ConvexObjectivePtr>& costs, const DblVec& x) {
@@ -261,6 +264,10 @@ OptStatus BasicTrustRegionSQP::optimize() {
 
         // the n variables of the OptProb happen to be the first n variables in the Model
         DblVec new_x(model_var_vals.begin(), model_var_vals.begin() + x_.size());
+        std::cout << "     Old x  |    New x   | diff " << std::endl;
+        for (int i= 0; i < x_.size(); i++) {
+            printf("%+.9f | %+.9f | %+.9f\n", x_[i], new_x[i], x_[i] - new_x[i]);
+        }
 
         if (GetLogLevel() >= util::LevelDebug) {
           DblVec cnt_costs1 = evaluateModelCosts(cnt_cost_models, model_var_vals);
@@ -295,12 +302,14 @@ OptStatus BasicTrustRegionSQP::optimize() {
         if (approx_merit_improve < minApproxImprove_) {
           LOG_INFO("converged because improvement was small (%.3e < %.3e)", approx_merit_improve, minApproxImprove_);
           retval = OPT_CONVERGED;
+          x_ = new_x; // NOTE: added, since even though improvement was small, it should be kept.
           goto penaltyadjustment;
         }
         if (approx_merit_improve / old_merit < minApproxImproveFrac_) {
           LOG_INFO(
               "converged because improvement ratio was small (%.3e < %.3e)",
               approx_merit_improve/old_merit, minApproxImproveFrac_);
+          x_ = new_x; // NOTE: added; even though improvement ratio was small, it should be kept.
           retval = OPT_CONVERGED;
           goto penaltyadjustment;
         }
@@ -313,7 +322,7 @@ OptStatus BasicTrustRegionSQP::optimize() {
           results_.cost_vals = new_cost_vals;
           results_.cnt_viols = new_cnt_viols;
           adjustTrustRegion(trust_expand_ratio_);
-          LOG_INFO("expanded trust region. niterew box size: %.4f",trust_box_size_);
+          LOG_INFO("expanded trust region. new box size: %.4f",trust_box_size_);
           break;
         }
       }

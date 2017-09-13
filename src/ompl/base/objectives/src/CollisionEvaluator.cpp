@@ -48,6 +48,11 @@ ompl::base::JacobianDiscreteCollisionEvaluator::JacobianDiscreteCollisionEvaluat
 
 std::vector<sco::AffExpr> ompl::base::JacobianDiscreteCollisionEvaluator::calcDistanceExpressions(std::vector<double> x) {
     std::vector<double> x_0 = sco::getDblVec(x, vars_);
+    //std::cout << "x_0: ";
+    //for (int i = 0; i < x_0.size(); i++) {
+    //    std::cout << x_0[i] << ", ";
+    //}
+    //std::cout << std::endl;
     std::vector<sco::AffExpr> exprs;
 
     // Fields to be filled in by inCollision.
@@ -55,7 +60,6 @@ std::vector<sco::AffExpr> ompl::base::JacobianDiscreteCollisionEvaluator::calcDi
     std::vector<Eigen::Vector3d> normals;
     std::vector<double> signedDists;
     std::vector<std::string> link_names;
-    std::cout << "Calculating Distance Expressions" << std::endl;
     if (inCollision_(x_0, signedDists, points, link_names, normals)) {
         // For each collision, make the affine expression,
         // sd(vars) = sd(x_0) + normal^T * J_pa(x_0) * vars - normal^T * J_pa(x_0) * x
@@ -63,6 +67,7 @@ std::vector<sco::AffExpr> ompl::base::JacobianDiscreteCollisionEvaluator::calcDi
             double signedDist = signedDists[i];
             Eigen::Vector3d normal = normals[i];
             Eigen::Vector3d point = points[i];
+            printf("Collided point: %f, %f, %f\n", point[0], point[1], point[2]);
             std::string link_name = link_names[i];
 
             printf("A collision!: dist: %f\n\tlink_name: %s\n\tnormal: %f, %f, %f\n",
@@ -72,6 +77,7 @@ std::vector<sco::AffExpr> ompl::base::JacobianDiscreteCollisionEvaluator::calcDi
             sco::exprInc(dist, sco::varDot(dist_gradient, vars_));
             sco::exprInc(dist, -dist_gradient.dot(sco::toVectorXd(x_0)));
             exprs.push_back(dist);
+            //std::cout << "dist expression: " << dist << std::endl;
         }
     }
     return exprs;
@@ -87,11 +93,21 @@ std::vector<double> ompl::base::JacobianDiscreteCollisionEvaluator::calcDistance
     std::vector<double> signedDists;
     std::vector<std::string> link_names;
     bool collision = inCollision_(dofVals, signedDists, points, link_names, normals);
-    printf("A collision?: %d:", collision);
     if (collision) {
-        printf("first dist: %f\n\tlink_name: %s\n\tnormal: %f, %f, %f\n",
-               signedDists[0], link_names[0].c_str(), normals[0][0], normals[0][1], normals[0][2]);
+        std::cout << "dofVals: ";
+        for (int i = 0; i < dofVals.size(); i++) {
+            std::cout << dofVals[i] << ", ";
+        }
+        std::cout << std::endl;
+        printf("dists: ");
+        for (int i = 0; i < signedDists.size(); i++) {
+            printf("%f, ", signedDists[i]);
+        }
+        printf("\n\tlink_name: %s\n\tnormal: %f, %f, %f",
+            link_names[0].c_str(), normals[0][0], normals[0][1], normals[0][2]);
+        distsAtSteps.insert(distsAtSteps.begin(), signedDists.begin(), signedDists.end());
     }
+    printf("\n");
     return distsAtSteps;
 }
 

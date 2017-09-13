@@ -107,21 +107,26 @@ ompl::base::Cost ompl::base::ObstacleConstraint::motionCost(const State *s1, con
 std::vector<sco::ConstraintPtr> ompl::base::ObstacleConstraint::toConstraint(sco::OptProbPtr problem)
 {
     std::vector<sco::ConstraintPtr> constraints;
-    if (useJacobians_) {
-        printf("Using jacobians\n");
-        sco::ConstraintPtr constraint(new JacobianCollisionTrajOptConstraint(
-            safeDist_, collision_, si_->getStateSpace(), J_,
-            std::static_pointer_cast<ompl::geometric::OmplOptProb>(problem)->getVars()
-        ));
-        constraints.push_back(constraint);
-    } else {
-        printf("NOT using jacobians\n");
-        sco::ConstraintPtr constraint(new NumericalCollisionTrajOptConstraint(
-                si_->getStateValidityChecker(),
-                si_->getStateSpace(),
-                std::static_pointer_cast<ompl::geometric::OmplOptProb>(problem)->getVars(),
-                safeDist_));
-        constraints.push_back(constraint);
+    int size = problem->getNumVars();
+    int dof = si_->getStateDimension();
+    int nSteps = size / dof;
+    printf("Using jacobians: %s\n", (useJacobians_) ? "true" : "false");
+    printf("SafeDist: %f\n", safeDist_);
+    for (int i = 0; i < nSteps; i++) {
+        if (useJacobians_) {
+            sco::ConstraintPtr constraint(new JacobianCollisionTrajOptConstraint(
+                safeDist_, collision_, si_->getStateSpace(), J_,
+                std::static_pointer_cast<ompl::geometric::OmplOptProb>(problem)->GetVarRow(i)
+            ));
+            constraints.push_back(constraint);
+        } else {
+            sco::ConstraintPtr constraint(new NumericalCollisionTrajOptConstraint(
+                    si_->getStateValidityChecker(),
+                    si_->getStateSpace(),
+                    std::static_pointer_cast<ompl::geometric::OmplOptProb>(problem)->GetVarRow(i),
+                    safeDist_));
+            constraints.push_back(constraint);
+        }
     }
     return constraints;
 }

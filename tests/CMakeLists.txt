@@ -32,6 +32,10 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_random util/random/random.cpp)
     add_ompl_test(test_machine_specs benchmark/machine_specs.cpp)
 
+    # Test Trajopt optimization code.
+    add_ompl_test(test_smallproblems trajopt/small-problems-unit.cpp)
+    add_ompl_test(test_solverinterface trajopt/solver-interface-unit.cpp)
+
     # Test base code
     add_ompl_test(test_state_operations base/state_operations.cpp)
     add_ompl_test(test_state_spaces base/state_spaces.cpp)

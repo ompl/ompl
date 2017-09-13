@@ -1,6 +1,7 @@
 
 #include "ompl/trajopt/solver_interface.h"
 #include "ompl/trajopt/macros.h"
+#include "ompl/trajopt/bpmpd_io.h"
 
 namespace sco {
 
@@ -12,6 +13,8 @@ public:
   vector<ConstraintType> m_cntTypes;
   vector<double> m_soln;
   vector<double> m_lbs, m_ubs;
+
+  bpmpd_io::bpmpd_output bo_;
 
   QuadExpr m_objective;
 
