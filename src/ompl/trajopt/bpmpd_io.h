@@ -22,7 +22,6 @@ enum SerMode {
 
 template <typename T>
 void ser(int fp, T& x, SerMode mode) {
-
   switch (mode) {
     case SER: {
       T xcopy=x;
@@ -55,7 +54,6 @@ void ser(int fp,  vector<T>& x,  SerMode mode) {
       break;
     }
   }
-
 }
 
 struct bpmpd_input
@@ -80,7 +78,6 @@ const char EXIT_CHAR = 123;
 const char CHECK_CHAR = 111;
 
 void ser(int fp, bpmpd_input & bi, SerMode mode) {
-
   char scorrect='z', s=(mode==SER) ? scorrect : 0;
   ser(fp, s, mode);
   if (s == EXIT_CHAR) {

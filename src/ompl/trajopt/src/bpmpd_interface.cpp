@@ -513,8 +513,6 @@ void BPMPDModel::writeToFile(const string& fname) {
     fprintf(crash_fd, "\nobjective: %s\n", CSTR(m_objective));
     fflush(crash_fd);
     fclose(crash_fd);
-
-  // assert(0 && "NOT IMPLEMENTED");
 }
 
 VarVector BPMPDModel::getVars() const {
