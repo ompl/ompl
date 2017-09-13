@@ -15,7 +15,8 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-W -Wall -Wextra #-Wconversion
                     -Wcast-qual -Wwrite-strings -Wunreachable-code -Wpointer-arith
                     -Winit-self -Wredundant-decls
-                    -Wno-unused-parameter -Wno-unused-function)
+                    -Wno-unused-parameter -Wno-unused-function
+                    -fext-numeric-literals)
     # prepend optimizion flag (in case the default setting doesn't include one)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
 endif(CMAKE_COMPILER_IS_GNUCXX)
