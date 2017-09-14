@@ -1,10 +1,7 @@
 
 #include "ompl/trajopt/solver_interface.h"
 #include "ompl/trajopt/macros.h"
-<<<<<<< HEAD
 #include "ompl/trajopt/bpmpd_io.h"
-=======
->>>>>>> 4e22d6089d52170fd5b690707ba495def7931fd8
 
 namespace sco {
 
@@ -17,11 +14,8 @@ public:
   vector<double> m_soln;
   vector<double> m_lbs, m_ubs;
 
-<<<<<<< HEAD
   bpmpd_io::bpmpd_output bo_;
 
-=======
->>>>>>> 4e22d6089d52170fd5b690707ba495def7931fd8
   QuadExpr m_objective;
 
   int m_pipeIn, m_pipeOut, m_pid;
