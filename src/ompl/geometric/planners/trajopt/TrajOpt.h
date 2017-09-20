@@ -122,6 +122,10 @@ namespace ompl
         protected:
             ompl::base::PathPtr trajFromTraj2Ompl(trajopt::TrajArray traj);
 
+            ompl::base::PlannerStatus constructOptProblem();
+
+            void plotCallback(sco::OptProb *prob, std::vector<double>& x);
+
             /** \brief The number of time steps/waypoints in the optimized trajectory.
                 Smaller means quicker optimization, larger means finer trajectories. */
             int nSteps_{10};
@@ -138,6 +142,8 @@ namespace ompl
             sco::BasicTrustRegionSQP *sqpOptimizer;
 
             OmplOptProbPtr problem_;
+
+            FILE* fd;
         };
     }
 }

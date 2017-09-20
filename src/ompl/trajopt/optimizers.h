@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <boost/function.hpp>
+#include <functional>
 
 #include "ompl/trajopt/modeling.h"
 
@@ -63,7 +63,7 @@ public:
   vector<double>& x() {return results_.x;}
   OptResults& results() {return results_;}
 
-  typedef boost::function<void(OptProb*, DblVec&)> Callback;
+  typedef std::function<void(OptProb*, DblVec&)> Callback;
   void addCallback(const Callback& f); // called before each iteration
 
 protected:

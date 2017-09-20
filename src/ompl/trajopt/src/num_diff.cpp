@@ -7,10 +7,10 @@ using namespace sco;
 
 namespace sco {
 
-ScalarOfVectorPtr ScalarOfVector::construct(const boost_func& f) {
+ScalarOfVectorPtr ScalarOfVector::construct(const func_vector2double& f) {
   struct F : public ScalarOfVector {
-    boost_func f;
-    F(const boost_func& _f) : f(_f) {}
+    func_vector2double f;
+    F(const func_vector2double& _f) : f(_f) {}
     double operator()(const VectorXd& x) const {
       return f(x);
     }
@@ -18,10 +18,10 @@ ScalarOfVectorPtr ScalarOfVector::construct(const boost_func& f) {
   ScalarOfVector* sov = new F(f); // to avoid erroneous clang warning
   return ScalarOfVectorPtr(sov);
 }
-VectorOfVectorPtr VectorOfVector::construct(const boost_func& f) {
+VectorOfVectorPtr VectorOfVector::construct(const func_vector2vector& f) {
   struct F : public VectorOfVector {
-    boost_func f;
-    F(const boost_func& _f) : f(_f) {}
+    func_vector2vector f;
+    F(const func_vector2vector& _f) : f(_f) {}
     VectorXd operator()(const VectorXd& x) const {
       return f(x);
     }

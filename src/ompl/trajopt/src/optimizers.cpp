@@ -264,10 +264,6 @@ OptStatus BasicTrustRegionSQP::optimize() {
 
         // the n variables of the OptProb happen to be the first n variables in the Model
         DblVec new_x(model_var_vals.begin(), model_var_vals.begin() + x_.size());
-        std::cout << "     Old x  |    New x   | diff " << std::endl;
-        for (int i= 0; i < x_.size(); i++) {
-            printf("%+.9f | %+.9f | %+.9f\n", x_[i], new_x[i], x_[i] - new_x[i]);
-        }
 
         if (GetLogLevel() >= util::LevelDebug) {
           DblVec cnt_costs1 = evaluateModelCosts(cnt_cost_models, model_var_vals);
@@ -288,13 +284,14 @@ OptStatus BasicTrustRegionSQP::optimize() {
         double exact_merit_improve = old_merit - new_merit;
         double merit_improve_ratio = exact_merit_improve / approx_merit_improve;
 
-        if (util::GetLogLevel() >= util::LevelInfo) {
-          LOG_INFO(" ");
-          printCostInfo(results_.cost_vals, model_cost_vals, new_cost_vals,
-                        results_.cnt_viols, model_cnt_viols, new_cnt_viols, cost_names,
-                        cnt_names, merit_error_coeff_);
-          printf("%15s | %10.3e | %10.3e | %10.3e | %10.3e\n", "TOTAL", old_merit, approx_merit_improve, exact_merit_improve, merit_improve_ratio);
-        }
+        // Commented out because it's annoying, but still need INFO level debugging.
+        //if (util::GetLogLevel() >= util::LevelInfo) {
+          //LOG_INFO(" ");
+          //printCostInfo(results_.cost_vals, model_cost_vals, new_cost_vals,
+            //            results_.cnt_viols, model_cnt_viols, new_cnt_viols, cost_names,
+            //            cnt_names, merit_error_coeff_);
+          //printf("%15s | %10.3e | %10.3e | %10.3e | %10.3e\n", "TOTAL", old_merit, approx_merit_improve, exact_merit_improve, merit_improve_ratio);
+        //}
 
         if (approx_merit_improve < -1e-5) {
           LOG_ERROR("approximate merit function got worse (%.3e). (convexification is probably wrong to zeroth order)", approx_merit_improve);

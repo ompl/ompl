@@ -25,7 +25,6 @@ Eigen::VectorXd ompl::base::ObstacleDistanceFunction::operator()(const Eigen::Ve
         double clearance = sv_->clearance(state);
         toReturn[t] = sco::pospart(safeDist_ - clearance);
     }
-    std::cout << toReturn.transpose() << std::endl << std::endl;
     return toReturn;
 }
 

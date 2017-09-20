@@ -50,42 +50,55 @@
 #include "ompl/trajopt/utils.h"
 
 ompl::geometric::TrajOpt::TrajOpt(const ompl::base::SpaceInformationPtr &si)
-  : base::Planner(si, "TrajOpt") {}
+  : base::Planner(si, "TrajOpt") {
+    // Make tmp file for the path at each iteration.
+    fd = fopen("/tmp/tmpfile.txt", "w");
+}
 
 // TODO: write
 ompl::geometric::TrajOpt::~TrajOpt() {}
-void ompl::geometric::TrajOpt::clear() {}
+
+void ompl::geometric::TrajOpt::clear() {
+    Planner::clear();
+    pis_.restart();
+    sqpOptimizer = nullptr;
+    problem_ = std::make_shared<OmplOptProb>(nSteps_, si_);
+}
 
 void ompl::geometric::TrajOpt::setup()
 {
     Planner::setup();
     problem_ = std::make_shared<OmplOptProb>(nSteps_, si_);
+}
 
+ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
+{
     // TODO: assuming only one start state. Should look into handling multiple
     // smartly, possibly to better handle multiple intiations.
-    if (pdef_->getStartStateCount() <= 0) {
-        throw Exception("Need at least 1 start state.");
+    if (!pis_.haveMoreStartStates())
+    {
+        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
+        return base::PlannerStatus::INVALID_START;
     }
+
+    auto *goalRegion = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    if (goalRegion == nullptr)
+    {
+        OMPL_ERROR("%S: Unknown type of goal", getName().c_str());
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
+    }
+    if (!goalRegion->couldSample())
+    {
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
+        return base::PlannerStatus::INVALID_GOAL;
+    }
+
+    const ompl::base::State *start = pis_.nextStart();
+    const ompl::base::State *goal = pis_.nextGoal();
 
     int dof = si_->getStateDimension();
 
     // TODO: get a method to take a state and a time stamp to turn it into a constraint.
-    ompl::base::State *start = pdef_->getStartState(0);
-    ompl::base::State *goal = pdef_->getSpaceInformation()->allocState();
-    ompl::base::GoalType type = pdef_->getGoal()->getType();
-    if (type == ompl::base::GoalType::GOAL_STATE) {
-        goal = pdef_->getGoal()->as<ompl::base::GoalState>()->getState();
-    } else if (type == ompl::base::GoalType::GOAL_SAMPLEABLE_REGION ||
-               type == ompl::base::GoalType::GOAL_STATES) {
-        pdef_->getGoal()->as<ompl::base::GoalSampleableRegion>()->sampleGoal(goal);
-    } else if (type == ompl::base::GoalType::GOAL_LAZY_SAMPLES) {
-        pdef_->getGoal()->as<ompl::base::GoalLazySamples>()->startSampling();
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        pdef_->getGoal()->as<ompl::base::GoalLazySamples>()->stopSampling();
-        pdef_->getGoal()->as<ompl::base::GoalLazySamples>()->sampleGoal(goal);
-    } else {
-        throw Exception("The goal is not a single state or sampleable, cannot get the actual goal.");
-    }
     ompl::base::StateSpacePtr ss = si_->getStateSpace();
     std::vector<double> startVec(dof);
     std::vector<double> endVec(dof);
@@ -114,7 +127,6 @@ void ompl::geometric::TrajOpt::setup()
             pdef_->getOptimizationObjective().get())->addToProblem(problem_);
 
     // Finally, initialize the SQP/Model with all of the variables and costs/constraints.
-    // TODO: ?
     sqpOptimizer = new sco::BasicTrustRegionSQP(problem_);
 
     sqpOptimizer->maxIter_ = maxIter_;
@@ -122,10 +134,29 @@ void ompl::geometric::TrajOpt::setup()
     sqpOptimizer->improve_ratio_threshold_ = 0.2;
     sqpOptimizer->merit_error_coeff_ = initPenaltyCoef_;
     sqpOptimizer->initialize(trajopt::trajToDblVec(problem_->GetInitTraj()));
+    sqpOptimizer->addCallback([this](sco::OptProb *prob, std::vector<double>& x) {
+        plotCallback(prob, x);
+    });
+
+    return base::PlannerStatus::EXACT_SOLUTION;
 }
 
 ompl::base::PlannerStatus ompl::geometric::TrajOpt::solve(const ompl::base::PlannerTerminationCondition &ptc)
 {
+    // If it has been solved already, just run the optimizer again?
+    // TODO: do something smart like trying another random path, or changing opt params.
+    if (!pdef_->hasSolution() || !sqpOptimizer)
+    {
+        // Restart the input state iterator so we can get the start state again.
+        pis_.restart();
+        problem_ = std::make_shared<OmplOptProb>(nSteps_, si_);
+        auto constructStatus = constructOptProblem();
+        if (constructStatus != base::PlannerStatus::EXACT_SOLUTION)
+        {
+            // Unable to even construct the optimization problem.
+            return constructStatus;
+        }
+    }
     sqpOptimizer->optimize();
     sco::OptResults &results = sqpOptimizer->results();
     switch(results.status) {
@@ -156,6 +187,15 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::solve(const ompl::base::Plan
             break;
     }
     return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::UNKNOWN);
+}
+
+void ompl::geometric::TrajOpt::plotCallback(sco::OptProb *prob, std::vector<double>& x) {
+    int dof = si_->getStateDimension();
+    int steps = x.size() / dof;
+    for (int i = 0; i < steps; i++) {
+        fprintf(fd, "%f %f\n", x[i * dof + 0], x[i * dof + 1]);
+    }
+    fprintf(fd, "\n");
 }
 
 ompl::base::PathPtr ompl::geometric::TrajOpt::trajFromTraj2Ompl(trajopt::TrajArray traj) {

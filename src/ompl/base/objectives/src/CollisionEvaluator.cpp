@@ -63,7 +63,7 @@ std::vector<sco::AffExpr> ompl::base::JacobianDiscreteCollisionEvaluator::calcDi
     if (inCollision_(x_0, signedDists, points, link_names, normals)) {
         // For each collision, make the affine expression,
         // sd(vars) = sd(x_0) + normal^T * J_pa(x_0) * vars - normal^T * J_pa(x_0) * x
-        for (int i = 0; i < signedDists.size(); i++) {
+        for (unsigned int i = 0; i < signedDists.size(); i++) {
             double signedDist = signedDists[i];
             Eigen::Vector3d normal = normals[i];
             Eigen::Vector3d point = points[i];
@@ -95,12 +95,12 @@ std::vector<double> ompl::base::JacobianDiscreteCollisionEvaluator::calcDistance
     bool collision = inCollision_(dofVals, signedDists, points, link_names, normals);
     if (collision) {
         std::cout << "dofVals: ";
-        for (int i = 0; i < dofVals.size(); i++) {
+        for (unsigned int i = 0; i < dofVals.size(); i++) {
             std::cout << dofVals[i] << ", ";
         }
         std::cout << std::endl;
         printf("dists: ");
-        for (int i = 0; i < signedDists.size(); i++) {
+        for (unsigned int i = 0; i < signedDists.size(); i++) {
             printf("%f, ", signedDists[i]);
         }
         printf("\n\tlink_name: %s\n\tnormal: %f, %f, %f",

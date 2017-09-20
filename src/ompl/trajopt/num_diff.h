@@ -1,5 +1,5 @@
 #pragma once
-#include <boost/function.hpp>
+#include <functional>
 #include <Eigen/Dense>
 #include <boost/shared_ptr.hpp>
 /*
@@ -7,7 +7,6 @@
  */
 
 namespace sco {
-using boost::function;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
 class ScalarOfVector;
@@ -24,8 +23,8 @@ public:
   double call(const VectorXd& x) const {return operator()(x);}
   virtual ~ScalarOfVector() {}
 
-  typedef function<double(VectorXd)> boost_func;
-  static ScalarOfVectorPtr construct(const boost_func&);
+  typedef std::function<double(VectorXd)> func_vector2double;
+  static ScalarOfVectorPtr construct(const func_vector2double&);
 };
 
 /** \brief A function that takes a vector of any size and retuns a vector (can be different size.) */
@@ -35,8 +34,8 @@ public:
   VectorXd call(const VectorXd& x) const {return operator()(x);}
   virtual ~VectorOfVector() {}
 
-  typedef function<VectorXd(VectorXd)> boost_func;
-  static VectorOfVectorPtr construct(const boost_func&);
+  typedef std::function<VectorXd(VectorXd)> func_vector2vector;
+  static VectorOfVectorPtr construct(const func_vector2vector&);
 };
 
 class MatrixOfVector {
@@ -45,8 +44,8 @@ public:
     MatrixXd call(const VectorXd& x) const {return operator()(x);}
     virtual ~MatrixOfVector() {}
 
-    typedef function<MatrixXd(VectorXd)> boost_func;
-    static MatrixOfVectorPtr construct(const boost_func&);
+    typedef std::function<MatrixXd(VectorXd)> func_vector2Matrix;
+    static MatrixOfVectorPtr construct(const func_vector2Matrix&);
 };
 
 
