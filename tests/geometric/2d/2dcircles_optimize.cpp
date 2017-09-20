@@ -43,7 +43,11 @@
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"
 #include "ompl/geometric/planners/cforest/CForest.h"
+#include "ompl/geometric/planners/trajopt/TrajOpt.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include "ompl/base/objectives/JointDistanceObjective.h"
+#include "ompl/base/objectives/ConvexifiableOptimization.h"
+#include "ompl/base/objectives/ObstacleConstraint.h"
 #include "ompl/base/goals/GoalState.h"
 #include "ompl/util/RandomNumbers.h"
 
@@ -77,6 +81,15 @@ public:
 
 protected:
 
+    virtual base::OptimizationObjectivePtr initObjective(const base::SpaceInformationPtr &si)
+    {
+        // define an objective that is met the moment the solution is found
+        auto opt(std::make_shared<base::PathLengthOptimizationObjective>(si));
+        opt->setCostThreshold(opt->infiniteCost());
+
+        return opt;
+    }
+
     /* test a planner in a planar environment with circular obstacles */
     void test2DCirclesGeneral(const Circles2D &circles,
                               const base::SpaceInformationPtr &si,
@@ -84,10 +97,7 @@ protected:
     {
         /* instantiate problem definition */
         auto pdef(std::make_shared<base::ProblemDefinition>(si));
-
-        // define an objective that is met the moment the solution is found
-        auto opt(std::make_shared<base::PathLengthOptimizationObjective>(si));
-        opt->setCostThreshold(opt->infiniteCost());
+        auto opt = initObjective(si);
         pdef->setOptimizationObjective(opt);
 
         /* instantiate motion planner */
@@ -182,9 +192,8 @@ protected:
         auto pdef(std::make_shared<base::ProblemDefinition>(si));
 
         // define an objective that is met the moment the solution is found
-        auto opt(std::make_shared<base::PathLengthOptimizationObjective>(si));
-        opt->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
-        pdef->setOptimizationObjective(base::OptimizationObjectivePtr(opt));
+        auto opt = initObjective(si);
+        pdef->setOptimizationObjective(opt);
 
         /* instantiate motion planner */
         base::PlannerPtr planner = newPlanner(si);
@@ -330,6 +339,96 @@ protected:
     }
 };
 
+class TrajOptTest : public TestPlanner
+{
+protected:
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
+    {
+        auto trajopt(std::make_shared<geometric::TrajOpt>(si));
+        trajopt->setTimeStepCount(30);
+        return trajopt;
+    }
+
+    virtual void test2DCircles(const Circles2D& circles) override
+    {
+        base::SpaceInformationPtr si = geometric::spaceInformation2DCircles(circles);
+        test2DCirclesTrajOpt(circles, si, 1.0);
+    }
+
+    virtual base::OptimizationObjectivePtr initObjective(const base::SpaceInformationPtr &si) override
+    {
+        // Define objective that is met pretty quickly.
+        auto opt(std::make_shared<base::MultiConvexifiableOptimization>(si));
+        opt->addObjective(std::make_shared<base::JointDistanceObjective>(si));
+        opt->addObjective(std::make_shared<base::ObstacleConstraint>(si, 0.15)); // TODO: consider changing this
+
+        return opt;
+    }
+
+    /* test a planner in a planar environment with circular obstacles */
+    void test2DCirclesTrajOpt(const Circles2D &circles,
+                              const base::SpaceInformationPtr &si,
+                              double solutionTime)
+    {
+        /* instantiate problem definition */
+        auto pdef(std::make_shared<base::ProblemDefinition>(si));
+        auto opt = initObjective(si);
+        pdef->setOptimizationObjective(opt);
+
+        /* instantiate motion planner */
+        base::PlannerPtr planner = newPlanner(si);
+        planner->setProblemDefinition(pdef);
+        planner->setup();
+
+        std::size_t nt = std::min<std::size_t>(10, circles.getQueryCount());
+
+        // run a simple test first
+        if (nt > 0)
+        {
+            const Circles2D::Query &q = circles.getQuery(0);
+            setupProblem(q, si, pdef);
+
+            base::PlannerTest pt(planner);
+            pt.test();
+            planner->clear();
+            pdef->clearSolutionPaths();
+        }
+
+        for (std::size_t i = 0 ; i < nt ; ++i)
+        {
+            const Circles2D::Query &q = circles.getQuery(i);
+            setupProblem(q, si, pdef);
+
+            planner->clear();
+            pdef->clearSolutionPaths();
+
+            // we change the optimization objective so the planner runs until the first solution
+            opt->setCostThreshold(opt->infiniteCost());
+
+            bool solved = planner->solve(solutionTime);
+            if (solved)
+            {
+              geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
+              base::Cost ini_cost = path->cost(pdef->getOptimizationObjective());
+              std::cout << "Final path:" << std::endl;
+              path->printAsMatrix(std::cout);
+
+              pdef->clearSolutionPaths();
+              // we change the optimization objective so the planner can achieve the objective
+              opt->setCostThreshold(ini_cost);
+              if (planner->solve(DT_SOLUTION_TIME))
+              {
+                  path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
+                  base::Cost prev_cost  = path->cost(pdef->getOptimizationObjective());
+                  BOOST_CHECK(pdef->hasOptimizedSolution() || opt->isCostEquivalentTo(ini_cost, prev_cost));
+              }
+
+            }
+        }
+    }
+
+};
+
 // Seed the RNG so that a known edge case occurs in DubinsNoGoalBias
 struct InitializeRandomSeed
 {
@@ -384,9 +483,10 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
             printf("Done with %s.\n", #Name);                                \
     }
 
-OMPL_PLANNER_TEST(PRMstar)
-OMPL_PLANNER_TEST(PRM)
-OMPL_PLANNER_TEST(RRTstar)
-OMPL_PLANNER_TEST(CForest)
+//OMPL_PLANNER_TEST(PRMstar)
+//OMPL_PLANNER_TEST(PRM)
+//OMPL_PLANNER_TEST(RRTstar)
+//OMPL_PLANNER_TEST(CForest)
+OMPL_PLANNER_TEST(TrajOpt)
 
 BOOST_AUTO_TEST_SUITE_END()

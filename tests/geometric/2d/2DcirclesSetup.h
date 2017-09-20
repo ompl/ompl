@@ -66,6 +66,12 @@ namespace ompl
                 return circles_.noOverlap(xy[0], xy[1]);
             }
 
+            virtual double clearance(const base::State *state) const
+            {
+                const double *xy = state->as<base::RealVectorStateSpace::StateType>()->values;
+                return circles_.signedDistance(xy[0], xy[1]);
+            }
+
         private:
             const Circles2D circles_;
         };

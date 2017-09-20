@@ -39,6 +39,7 @@
 
 #include <fstream>
 #include <vector>
+#include <limits>
 
 struct Circles2D
 {
@@ -142,6 +143,22 @@ struct Circles2D
                 return false;
         }
         return true;
+    }
+
+    double signedDistance(double x, double y) const
+    {
+        double minDist = std::numeric_limits<double>::infinity();
+        for (std::size_t i = 0; i < circles_.size(); ++i)
+        {
+            double dx = circles_[i].x_ - x;
+            double dy = circles_[i].y_ - y;
+            double distToI = sqrt(dx * dx + dy * dy) - circles_[i].r_;
+            if (distToI  < minDist)
+            {
+                minDist = distToI;
+            }
+        }
+        return minDist;
     }
 
     std::vector<Circle> circles_;
