@@ -5,6 +5,9 @@ if (CMAKE_VERSION VERSION_LESS "3.1")
     endif()
 else()
     set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    # this next line shouldn't be necessary, but doesn't always get added by cmake (e.g., for clang++-5)
+    add_definitions(-std=c++11)
 endif()
 
 
@@ -12,7 +15,8 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-W -Wall -Wextra #-Wconversion
                     -Wcast-qual -Wwrite-strings -Wunreachable-code -Wpointer-arith
                     -Winit-self -Wredundant-decls
-                    -Wno-unused-parameter -Wno-unused-function)
+                    -Wno-unused-parameter -Wno-unused-function
+                    -fext-numeric-literals)
     # prepend optimizion flag (in case the default setting doesn't include one)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
 endif(CMAKE_COMPILER_IS_GNUCXX)

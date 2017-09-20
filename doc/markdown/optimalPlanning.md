@@ -37,8 +37,6 @@ However, there are problems that cannot be exactly represented with this assumpt
 
 The reason why these two objectives cannot be combined is because we need more than one value to perform the accumulation of the path cost. We need one value to hold the accumulation of length along the path, and another value to hold the the minimum clearance value encountered so far in the path. Therefore, _the multi-objective problems that cannot be represented in OMPL are those where the individual objectives do not share a cost accumulation function_. We note that the above objective can be approximated by combining a path length objective with a state cost integral objective where state cost is a function of clearance.
 
-OMPL currently does not support control planning with general optimization objectives.
-
 ## Want to learn more?
 
 Check out these tutorials:
