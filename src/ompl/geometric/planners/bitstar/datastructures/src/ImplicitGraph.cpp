@@ -226,14 +226,14 @@ namespace ompl
                 vertexNN_.reset();
             }
 
-            // The various calculations and tracked values
+            // The various calculations and tracked values, same as in the header
             samplesInThisBatch_ = 0u;
             numUniformStates_ = 0u;
             r_ = 0.0;
             k_rgg_ = 0.0;  // This is a double for better rounding later
             k_ = 0u;
 
-            approximationMeasure_ = si_->getSpaceMeasure();
+            approximationMeasure_ = 0.0;
             minCost_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
             maxCost_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
             costSampled_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
