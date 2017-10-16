@@ -75,27 +75,6 @@ namespace ompl
         // Public functions:
         BITstar::BITstar(const ompl::base::SpaceInformationPtr &si, const std::string &name /*= "BITstar"*/)
           : ompl::base::Planner(si, name)
-          , costHelpPtr_(nullptr)
-          , graphPtr_(nullptr)
-          , queuePtr_(nullptr)
-          , curGoalVertex_(nullptr)
-          , bestCost_(std::numeric_limits<double>::infinity())  // Gets set in setup to the proper calls from
-                                                                // OptimizationObjective
-          , bestLength_(0u)
-          , prunedCost_(std::numeric_limits<double>::infinity())  // Gets set in setup to the proper calls from
-                                                                  // OptimizationObjective
-          , prunedMeasure_(0.0)  // Gets set in setup with the proper call to Planner::si_->getSpaceMeasure()
-          , hasExactSolution_(false)
-          , stopLoop_(false)
-          , numBatches_(0u)
-          , numPrunings_(0u)
-          , numIterations_(0u)
-          , numRewirings_(0u)
-          , numEdgeCollisionChecks_(0u)
-          , samplesPerBatch_(100u)
-          , usePruning_(true)
-          , pruneFraction_(0.05)
-          , stopOnSolnChange_(false)
         {
 #ifdef BITSTAR_DEBUG
             OMPL_WARN("%s: Compiled with debug-level asserts.", Planner::getName().c_str());
