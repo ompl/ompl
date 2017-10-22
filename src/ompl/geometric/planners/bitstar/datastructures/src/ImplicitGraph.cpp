@@ -226,14 +226,14 @@ namespace ompl
                 vertexNN_.reset();
             }
 
-            // The various calculations and tracked values
+            // The various calculations and tracked values, same as in the header
             samplesInThisBatch_ = 0u;
             numUniformStates_ = 0u;
             r_ = 0.0;
             k_rgg_ = 0.0;  // This is a double for better rounding later
             k_ = 0u;
 
-            approximationMeasure_ = si_->getSpaceMeasure();
+            approximationMeasure_ = 0.0;
             minCost_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
             maxCost_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
             costSampled_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
@@ -724,14 +724,18 @@ namespace ompl
         {
             this->confirmSetup();
 
+            // Variable:
+            // Create a copy of the vertex pointer so we don't delete it out from under ourselves.
+            VertexPtr sampleToDelete(oldSample);
+
             // Increment our counter
             ++numFreeStatesPruned_;
 
             // Remove from the set of samples
-            freeStateNN_->remove(oldSample);
+            freeStateNN_->remove(sampleToDelete);
 
             // Mark the sample as pruned
-            oldSample->markPruned();
+            sampleToDelete->markPruned();
         }
 
         void BITstar::ImplicitGraph::addVertex(const VertexPtr &newVertex, bool removeFromFree)
@@ -767,32 +771,40 @@ namespace ompl
             }
         }
 
-        unsigned int BITstar::ImplicitGraph::removeVertex(const VertexPtr &oldSample, bool moveToFree)
+        unsigned int BITstar::ImplicitGraph::removeVertex(const VertexPtr &oldVertex, bool moveToFree)
         {
             this->confirmSetup();
+
+            // Variable:
+            // A copy of the vertex pointer to be removed so we can't delete it out from under ourselves (occurs when
+            // this function is given an element of the maintained set as the argument)
+            VertexPtr vertexToDelete(oldVertex);
 
             // Increment our counter
             ++numVerticesDisconnected_;
 
             // Remove from the nearest-neighbour structure
-            vertexNN_->remove(oldSample);
+            vertexNN_->remove(vertexToDelete);
 
             // Add back as sample, if that would be beneficial
-            if (moveToFree && !queuePtr_->samplePruneCondition(oldSample))
+            if (moveToFree && !queuePtr_->samplePruneCondition(vertexToDelete))
             {
                 // Yes, the vertex is still useful as a sample. Track as recycled so they are reused as samples in the
                 // next batch.
-                recycledSamples_.push_back(oldSample);
+                recycledSamples_.push_back(vertexToDelete);
 
                 // Return that the vertex was recycled
                 return 0u;
             }
-            // No, the vertex is not useful anymore. Mark as pruned. This functions as a lock to prevent accessing
-            // anything about the vertex.
-            oldSample->markPruned();
+            else
+            {
+                // No, the vertex is not useful anymore. Mark as pruned. This functions as a lock to prevent accessing
+                // anything about the vertex.
+                vertexToDelete->markPruned();
 
-            // Return that the vertex was completely pruned
-            return 1u;
+                // Return that the vertex was completely pruned
+                return 1u;
+            }
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
 
