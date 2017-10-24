@@ -151,7 +151,7 @@ if (NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
     include(CMakePackageConfigHelpers)
     set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR})
     set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
-    configure_package_config_file(ompl/omplConfig.cmake.in
+    configure_package_config_file(omplConfig.cmake.in
         ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
         INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/ompl/cmake
         PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
