@@ -6,7 +6,7 @@ install(PROGRAMS ompl_benchmark_statistics.py
 find_program(R_EXEC R)
 if (R_EXEC)
     install(DIRECTORY plannerarena
-        DESTINATION share/ompl
+        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl"
         COMPONENT ompl)
     install(PROGRAMS plannerarena/plannerarena
         DESTINATION bin

@@ -24,12 +24,6 @@ if(MSVC OR MSVC90 OR MSVC10)
     set(MSVC ON)
 endif (MSVC OR MSVC90 OR MSVC10)
 
-# add "${prefix}/share/cmake/Modules", which is where Eigen3's module is in MacPorts.
-if(${CMAKE_VERSION} VERSION_LESS 2.8.12)
-    get_filename_component(CMAKE_ROOT_DIR "${CMAKE_ROOT}" PATH)
-else()
-    get_filename_component(CMAKE_ROOT_DIR "${CMAKE_ROOT}" DIRECTORY)
-endif()
 set(CMAKE_MODULE_PATH
     "${CMAKE_MODULE_PATH}"
     "${CMAKE_ROOT_DIR}/cmake/Modules"
@@ -45,7 +39,7 @@ set(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/lib")
 set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
     CACHE FILEPATH "Path to directory with auxiliary CMake scripts for OMPL")
 set(OMPL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(OMPL_DEMO_INSTALL_DIR "share/ompl/demos"
+set(OMPL_DEMO_INSTALL_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ompl/demos"
     CACHE STRING "Relative path to directory where demos will be installed")
 
 # Add support in Boost::Python for std::shared_ptr

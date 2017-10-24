@@ -80,7 +80,7 @@ if (OMPL_BUILD_PYBINDINGS)
                 PATTERN "addons" EXCLUDE)
             # blender add-on
             install(DIRECTORY ompl/morse/addons
-                DESTINATION "share/ompl"
+                DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl"
                 COMPONENT morse
                 PATTERN "*.pyc" EXCLUDE)
         endif()
