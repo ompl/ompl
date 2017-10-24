@@ -1,14 +1,14 @@
 install(PROGRAMS ompl_benchmark_statistics.py
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     COMPONENT ompl
-    RENAME ompl_benchmark_statistics${OMPL_INSTALL_SUFFIX}.py)
+    RENAME ompl_benchmark_statistics.py)
 
 find_program(R_EXEC R)
 if (R_EXEC)
     install(DIRECTORY plannerarena
-        DESTINATION "share/ompl${OMPL_INSTALL_SUFFIX}"
+        DESTINATION share/ompl
         COMPONENT ompl)
     install(PROGRAMS plannerarena/plannerarena
         DESTINATION bin
-        RENAME plannerarena${OMPL_INSTALL_SUFFIX})
+        RENAME plannerarena)
 endif()

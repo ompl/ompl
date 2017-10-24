@@ -1,7 +1,0 @@
-#!/bin/sh
-cd @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATAROOTDIR@
-rm -f ompl
-cd @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/pkgconfig
-rm -f ompl.pc
-cd @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@
-rm -f ompl omplext_odeint omplapp

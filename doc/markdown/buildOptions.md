@@ -10,4 +10,4 @@ OMPL_BUILD_PYBINDINGS         | ON            | Whether to compile the Python bi
 OMPL_BUILD_PYTESTS            | ON            | Whether the Python tests should be added to the `test` target.
 OMPL_BUILD_TESTS              | ON            | Wether to compile the C++ unit tests
 OMPL_REGISTRATION             | ON            | Whether the registration page is shown. (Disabling it might be useful for build bots.)
-OMPL_VERSIONED_INSTALL        | OFF           | Whether directories and executables created by `make install` have a version suffix. Useful if you want to install multiple versions of OMPL in the same directory.
+OMPL_VERSIONED_INSTALL        | OFF           | Install header files in include/ompl-X.Y/ompl, where X and Y are the major and minor version numbers.

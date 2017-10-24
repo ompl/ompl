@@ -45,7 +45,7 @@ set(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/lib")
 set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
     CACHE FILEPATH "Path to directory with auxiliary CMake scripts for OMPL")
 set(OMPL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(OMPL_DEMO_INSTALL_DIR "share/ompl${OMPL_INSTALL_SUFFIX}/demos"
+set(OMPL_DEMO_INSTALL_DIR "share/ompl/demos"
     CACHE STRING "Relative path to directory where demos will be installed")
 
 # Add support in Boost::Python for std::shared_ptr
@@ -151,15 +151,15 @@ configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
 install(FILES "${pkg_conf_file}"
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
   COMPONENT ompl
-  RENAME "ompl${OMPL_INSTALL_SUFFIX}.pc")
+  RENAME "ompl.pc")
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/markdown/FindOMPL.cmake"
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl"
   COMPONENT ompl
   RENAME ompl-config.cmake)
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ompl.conf"
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl"
   COMPONENT ompl)
 
 # script to install ompl on Ubuntu
@@ -174,21 +174,6 @@ configure_file(
 add_custom_target(uninstall
   COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 
-if (OMPL_VERSIONED_INSTALL)
-  # script to create sym links
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/create_symlinks.sh.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/create_symlinks.sh" @ONLY)
-  execute_process(COMMAND
-    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/create_symlinks.sh"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-  install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/.symlinks/" DESTINATION .)
-  # script to uninstall sym links
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/uninstall_symlinks.sh.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/uninstall_symlinks.sh" @ONLY)
-  add_custom_target(uninstall_links COMMAND
-    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/uninstall_symlinks.sh")
-  add_dependencies(uninstall uninstall_links)
-endif()
 include(CPackSettings)
 
 option(OMPL_REGISTRATION "Enable one-time registration of OMPL" ON)
