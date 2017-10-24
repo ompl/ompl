@@ -147,10 +147,24 @@ install(FILES "${pkg_conf_file}"
   COMPONENT ompl
   RENAME "ompl.pc")
 
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/markdown/FindOMPL.cmake"
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl"
-  COMPONENT ompl
-  RENAME ompl-config.cmake)
+if (NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
+    include(CMakePackageConfigHelpers)
+    set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR})
+    set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
+    configure_package_config_file(ompl/omplConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/ompl/cmake
+        PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
+        NO_CHECK_REQUIRED_COMPONENTS_MACRO)
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
+        VERSION ${OMPL_VERSION}
+        COMPATIBILITY SameMajorVersion)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
+        DESTINATION ${LIB_INSTALL_DIR}/cmake/ompl
+        COMPONENT ompl)
+endif()
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ompl.conf"
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl"
