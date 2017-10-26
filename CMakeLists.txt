@@ -90,15 +90,7 @@ find_package(Threads QUIET)
 enable_testing()
 
 find_package(Python QUIET)
-if (PYTHON_FOUND)
-    if (PYTHON_VERSION_MAJOR EQUAL 3)
-        set(_Boost_PYTHON3_HEADERS "boost/python.hpp")
-        find_package(Boost COMPONENTS python3 QUIET)
-        set(Boost_PYTHON_LIBRARY "${Boost_PYTHON3_LIBRARY}")
-    else()
-        find_package(Boost COMPONENTS python QUIET)
-    endif()
-endif()
+find_boost_python()
 
 # Eigen is needed for the InformedStateSampler
 find_package(Eigen3 QUIET)
