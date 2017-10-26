@@ -94,7 +94,7 @@ class CircleEnv(object):
 def main():
     # Read in the circles env
     cirEnv = CircleEnv()
-    cirEnv.loadCircles("../../resources/circle_obstacles.txt")
+    cirEnv.loadCircles("../../resources/simple_circle_obstacles.txt")
     cirEnv.loadPaths("/tmp/tmpfile.txt")#"circle_paths.txt")
     win = cirEnv.makeWindow()
     #win.yUp()

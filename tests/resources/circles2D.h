@@ -40,6 +40,7 @@
 #include <fstream>
 #include <vector>
 #include <limits>
+#include <Eigen/Core>
 
 struct Circles2D
 {
@@ -159,6 +160,82 @@ struct Circles2D
             }
         }
         return minDist;
+    }
+
+    Eigen::Vector2d lineClosestPoint(double x1, double y1, double x2, double y2, std::size_t i) const
+    {
+        // Assuming no degenerative cases.
+        double slope = (y2 - y1) / (x2 - x1);
+        double b = -slope * x1 + y1;
+        double centerSlope = -1 / slope;
+        double centerB = -centerSlope * circles_[i].x_ + circles_[i].y_;
+        double closestX = (centerB - b) / (slope - centerSlope);
+        if (x1 < x2) {
+            // Outside the line. Choose the closest endpoint.
+            if (closestX < x1) {
+                Eigen::Vector2d out(x1, y1);
+                return out;
+            }
+            if (closestX > x2) {
+                Eigen::Vector2d out(x2, y2);
+                return out;
+            }
+        }
+        if (x1 > x2) {
+            if (closestX < x2) {
+                Eigen::Vector2d out(x2, y2);
+                return out;
+            }
+            if (closestX > x1){
+                Eigen::Vector2d out(x1, y1);
+                return out;
+            }
+        }
+        Eigen::Vector2d out(closestX, slope * closestX + b);
+        return out;
+    }
+
+    double lineSignedDistance(double x1, double y1, double x2, double y2, Eigen::Vector2d& point) const
+    {
+        double minDist = std::numeric_limits<double>::infinity();
+        for (std::size_t i = 0; i < circles_.size(); i++) {
+            Eigen::Vector2d ipoint = lineClosestPoint(x1, y1, x2, y2, i);
+            double dx = circles_[i].x_ - ipoint[0];
+            double dy = circles_[i].y_ - ipoint[1];
+            double distToI = sqrt(dx * dx + dy * dy) - circles_[i].r_;
+            if (distToI < minDist)
+            {
+                minDist = distToI;
+                point = ipoint;
+            }
+        }
+        //printf("x1: %f, y1: %f, x2: %f, y2: %f, pointX: %f, pointY: %f, signedDist: %f\n",
+        //    x1, y1, x2, y2, point[0], point[1], minDist);
+        return minDist;
+    }
+
+    Eigen::Vector3d minimalTranslationNormal(double x, double y) const
+    {
+        double minDist = std::numeric_limits<double>::infinity();
+        std::size_t bestI = 0;
+        for (std::size_t i = 0; i < circles_.size(); ++i)
+        {
+            double dx = circles_[i].x_ - x;
+            double dy = circles_[i].y_ - y;
+            double distToI = sqrt(dx * dx + dy * dy) - circles_[i].r_;
+            if (distToI  < minDist)
+            {
+                minDist = distToI;
+                bestI = i;
+            }
+        }
+        if (minDist <= 0) {
+            Eigen::Vector3d out(x - circles_[bestI].x_, y - circles_[bestI].y_, 0);
+            return out.normalized();
+        } else {
+            Eigen::Vector3d in(circles_[bestI].x_ - x, circles_[bestI].y_ - y, 0);
+            return in.normalized();
+        }
     }
 
     std::vector<Circle> circles_;

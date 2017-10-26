@@ -81,15 +81,6 @@ public:
 
 protected:
 
-    virtual base::OptimizationObjectivePtr initObjective(const base::SpaceInformationPtr &si)
-    {
-        // define an objective that is met the moment the solution is found
-        auto opt(std::make_shared<base::PathLengthOptimizationObjective>(si));
-        opt->setCostThreshold(opt->infiniteCost());
-
-        return opt;
-    }
-
     /* test a planner in a planar environment with circular obstacles */
     void test2DCirclesGeneral(const Circles2D &circles,
                               const base::SpaceInformationPtr &si,
@@ -97,7 +88,11 @@ protected:
     {
         /* instantiate problem definition */
         auto pdef(std::make_shared<base::ProblemDefinition>(si));
-        auto opt = initObjective(si);
+
+        // define an objective that is met the moment the solution is found
+        auto opt(std::make_shared<base::PathLengthOptimizationObjective>(si));
+        opt->setCostThreshold(opt->infiniteCost());
+
         pdef->setOptimizationObjective(opt);
 
         /* instantiate motion planner */
@@ -192,7 +187,9 @@ protected:
         auto pdef(std::make_shared<base::ProblemDefinition>(si));
 
         // define an objective that is met the moment the solution is found
-        auto opt = initObjective(si);
+        auto opt(std::make_shared<base::PathLengthOptimizationObjective>(si));
+        opt->setCostThreshold(opt->infiniteCost());
+
         pdef->setOptimizationObjective(opt);
 
         /* instantiate motion planner */
@@ -345,7 +342,7 @@ protected:
     base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
     {
         auto trajopt(std::make_shared<geometric::TrajOpt>(si));
-        trajopt->setTimeStepCount(30);
+        trajopt->setTimeStepCount(6);
         return trajopt;
     }
 
@@ -355,24 +352,70 @@ protected:
         test2DCirclesTrajOpt(circles, si, 1.0);
     }
 
-    virtual base::OptimizationObjectivePtr initObjective(const base::SpaceInformationPtr &si) override
-    {
-        // Define objective that is met pretty quickly.
-        auto opt(std::make_shared<base::MultiConvexifiableOptimization>(si));
-        opt->addObjective(std::make_shared<base::JointDistanceObjective>(si));
-        opt->addObjective(std::make_shared<base::ObstacleConstraint>(si, 0.15)); // TODO: consider changing this
-
-        return opt;
-    }
-
     /* test a planner in a planar environment with circular obstacles */
     void test2DCirclesTrajOpt(const Circles2D &circles,
                               const base::SpaceInformationPtr &si,
                               double solutionTime)
     {
         /* instantiate problem definition */
+        double safetyDistance = 0.15;
         auto pdef(std::make_shared<base::ProblemDefinition>(si));
-        auto opt = initObjective(si);
+        auto opt(std::make_shared<base::MultiConvexifiableOptimization>(si));
+        opt->addObjective(std::make_shared<base::JointDistanceObjective>(si));
+        ompl::base::WorkspaceCollisionFn collisions = [circles, safetyDistance](std::vector<double> configuration,
+                                                             std::vector<double>& signedDist,
+                                                             std::vector<Eigen::Vector3d>& point,
+                                                             std::vector<std::string>& link_name,
+                                                             std::vector<Eigen::Vector3d>& normal)
+        {
+            // The configuration is the position of the circle.
+            double x = configuration[0];
+            double y = configuration[1];
+            signedDist.push_back(circles.signedDistance(x, y));
+            // TODO: vector3d should be changed to the workspace dimension.
+            point.push_back(Eigen::Vector3d(x, y, 0));
+            // ignore link name, I guess.
+            link_name.push_back("point");
+            // Normals move the object out of collision.
+            normal.push_back(circles.minimalTranslationNormal(x, y));
+            return signedDist[0] <= safetyDistance;
+        };
+
+        ompl::base::WorkspaceContinuousCollisionFn continuousCollisions = [circles, safetyDistance](std::vector<double> configuration0,
+                                                                std::vector<double> configuration1,
+                                                                std::vector<double>& signedDist,
+                                                                std::vector<Eigen::Vector3d>& point_swept,
+                                                                std::vector<Eigen::Vector3d>& point0,
+                                                                std::vector<Eigen::Vector3d>& point1,
+                                                                std::vector<std::string>& link_name,
+                                                                std::vector<Eigen::Vector3d>& normal)
+        {
+            double x1 = configuration0[0], x2 = configuration1[0];
+            double y1 = configuration0[1], y2 = configuration1[1];
+            Eigen::Vector2d closestPoint;
+            signedDist.push_back(circles.lineSignedDistance(x1, y1, x2, y2, closestPoint));
+            point_swept.push_back(Eigen::Vector3d(closestPoint[0], closestPoint[1], 0));
+            point0.push_back(Eigen::Vector3d(x1, y1, 0));
+            point1.push_back(Eigen::Vector3d(x2, y2, 0));
+            link_name.push_back("point");
+            normal.push_back(circles.minimalTranslationNormal(closestPoint[0], closestPoint[1]));
+            return signedDist[0] <= safetyDistance;
+        };
+
+        ompl::base::JacobianFn jacobian = [circles](std::vector<double> configuration,
+                                                    Eigen::Vector3d point, std::string link)
+        {
+            // Ignore the point and link. There's one point and one link.
+            // The Jacobian of a point
+            Eigen::MatrixXd j(3, 2);
+            j << 1, 0,
+                 0, 1,
+                 0, 0;
+            return j;
+        };
+        //opt->addObjective(std::make_shared<base::ObstacleConstraint>(si, safetyDistance));
+        //opt->addObjective(std::make_shared<base::ObstacleConstraint>(si, safetyDistance, collisions, jacobian));
+        opt->addObjective(std::make_shared<base::ObstacleConstraint>(si, safetyDistance, continuousCollisions, jacobian));
         pdef->setOptimizationObjective(opt);
 
         /* instantiate motion planner */
@@ -387,7 +430,7 @@ protected:
         {
             const Circles2D::Query &q = circles.getQuery(0);
             setupProblem(q, si, pdef);
-
+            printf("pdef: startStateCount: %d, startState: %p\n", pdef->getStartStateCount(), pdef->getStartState(0));
             base::PlannerTest pt(planner);
             pt.test();
             planner->clear();
@@ -422,7 +465,6 @@ protected:
                   base::Cost prev_cost  = path->cost(pdef->getOptimizationObjective());
                   BOOST_CHECK(pdef->hasOptimizedSolution() || opt->isCostEquivalentTo(ini_cost, prev_cost));
               }
-
             }
         }
     }
@@ -462,8 +504,8 @@ protected:
     {
         verbose_ = VERBOSE;
         boost::filesystem::path path(TEST_RESOURCES_DIR);
-        circles_.loadCircles((path / "circle_obstacles.txt").string());
-        circles_.loadQueries((path / "circle_queries.txt").string());
+        circles_.loadCircles((path / "simple_circle_obstacles.txt").string());
+        circles_.loadQueries((path / "simple_circle_queries.txt").string());
     }
 
     Circles2D     circles_;
