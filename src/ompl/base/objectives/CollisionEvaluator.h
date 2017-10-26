@@ -59,7 +59,11 @@ namespace ompl
          *        returns the closest point on the system to the collision, and the normal vector
          *        (in the workspace) that points to the direction to exit the collision.
          */
-        typedef std::function<bool(std::vector<double>, std::vector<double>& signedDist, std::vector<Eigen::Vector3d>&, std::vector<std::string>&, std::vector<Eigen::Vector3d>&)>
+        typedef std::function<bool(std::vector<double>,
+                                   std::vector<double>& signedDist,
+                                   std::vector<Eigen::Vector3d>&,
+                                   std::vector<std::string>&,
+                                   std::vector<Eigen::Vector3d>&)>
             WorkspaceCollisionFn;
 
         /**
@@ -103,9 +107,35 @@ namespace ompl
             sco::VarVector vars_;
         };
 
-        //struct JacobianContiniousCollisionEvaluator : public JacobianCollisionEvaluator {
+        typedef std::function<bool(std::vector<double>,
+                                   std::vector<double>,
+                                   std::vector<double>& signedDists,
+                                   std::vector<Eigen::Vector3d>&, // p_swept
+                                   std::vector<Eigen::Vector3d>&, // p0
+                                   std::vector<Eigen::Vector3d>&, // p1
+                                   std::vector<std::string>&,
+                                   std::vector<Eigen::Vector3d>&)>
+            WorkspaceContinuousCollisionFn;
+
+        struct JacobianContinuousCollisionEvaluator : public JacobianCollisionEvaluator {
             // TODO: actually write.
-        //}
+            JacobianContinuousCollisionEvaluator(
+                WorkspaceContinuousCollisionFn inCollision,
+                StateSpacePtr ss,
+                JacobianFn J,
+                sco::VarVector vars0,
+                sco::VarVector vars1);
+
+            virtual std::vector<sco::AffExpr> calcDistanceExpressions(std::vector<double> x);
+            virtual std::vector<double> calcDistances(std::vector<double> x);
+            virtual sco::VarVector getVars();
+
+            WorkspaceContinuousCollisionFn inCollision_;
+            StateSpacePtr ss_;
+            JacobianFn J_;
+            sco::VarVector vars0_;
+            sco::VarVector vars1_;
+        };
 
     }
 }

@@ -93,6 +93,8 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
         return base::PlannerStatus::INVALID_GOAL;
     }
 
+    pis_.update();
+    printf("pis_.haveMoreStartStates: %s", pis_.haveMoreStartStates() ? "true": "false");
     const ompl::base::State *start = pis_.nextStart();
     const ompl::base::State *goal = pis_.nextGoal();
 

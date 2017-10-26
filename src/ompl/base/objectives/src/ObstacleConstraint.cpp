@@ -75,6 +75,42 @@ std::vector<double> ompl::base::JacobianCollisionTrajOptConstraint::value(const 
     return out;
 }
 
+/************ Jacobian Continuous Collision Constraint Implementation. ********/
+
+ompl::base::JacobianContinuousTrajOptConstraint::JacobianContinuousTrajOptConstraint(
+        double safeDist,
+        WorkspaceContinuousCollisionFn collision,
+        StateSpacePtr ss,
+        JacobianFn J,
+        sco::VarVector vars0,
+        sco::VarVector vars1) :
+    eval_(new JacobianContinuousCollisionEvaluator(collision, ss, J, vars0, vars1)),
+    safeDist_(safeDist)
+{
+    name_ ="Jacobian Continuous Collision";
+}
+
+sco::ConvexConstraintsPtr ompl::base::JacobianContinuousTrajOptConstraint::convex(const std::vector<double>& x, sco::Model *model)
+{
+    sco::ConvexConstraintsPtr out(new sco::ConvexConstraints(model));
+    std::vector<sco::AffExpr> exprs = eval_->calcDistanceExpressions(x);
+    for (size_t i = 0; i < exprs.size() ; i++) {
+        sco::AffExpr viol = sco::exprSub(sco::AffExpr(safeDist_), exprs[i]);
+        out->addIneqCnt(viol); // coeffs?
+    }
+    return out;
+}
+
+std::vector<double> ompl::base::JacobianContinuousTrajOptConstraint::value(const std::vector<double>& x)
+{
+    std::vector<double> dists = eval_->calcDistances(x);
+    std::vector<double> out(dists.size());
+    for (size_t i = 0; i < dists.size(); i++) {
+        out[i] = sco::pospart(safeDist_ - dists[i]);
+    }
+    return out;
+}
+
 /************ OMPL Obstacle Constraint Implementation. ****************/
 
 ompl::base::ObstacleConstraint::ObstacleConstraint(const ompl::base::SpaceInformationPtr &si, double safeDist) :
@@ -86,7 +122,16 @@ ompl::base::ObstacleConstraint::ObstacleConstraint(
         WorkspaceCollisionFn collision,
         JacobianFn J) :
     ConvexifiableConstraint(si), collision_(collision), J_(J),
-    useJacobians_(true), safeDist_(safeDist)
+    useJacobians_(true), continuous_(false), safeDist_(safeDist)
+{}
+
+ompl::base::ObstacleConstraint::ObstacleConstraint(
+        const ompl::base::SpaceInformationPtr &si,
+        double safeDist,
+        WorkspaceContinuousCollisionFn collision,
+        JacobianFn J):
+    ConvexifiableConstraint(si), continuousCollision_(collision), J_(J),
+    useJacobians_(true), continuous_(true), safeDist_(safeDist)
 {}
 
 ompl::base::Cost ompl::base::ObstacleConstraint::stateCost(const State *s) const
@@ -111,6 +156,17 @@ std::vector<sco::ConstraintPtr> ompl::base::ObstacleConstraint::toConstraint(sco
     int nSteps = size / dof;
     printf("Using jacobians: %s\n", (useJacobians_) ? "true" : "false");
     printf("SafeDist: %f\n", safeDist_);
+    if (continuous_) {
+        for (int i = 0; i < nSteps - 1; i++) {
+            sco::ConstraintPtr constraint(new JacobianContinuousTrajOptConstraint(
+                safeDist_, continuousCollision_, si_->getStateSpace(), J_,
+                std::static_pointer_cast<ompl::geometric::OmplOptProb>(problem)->GetVarRow(i),
+                std::static_pointer_cast<ompl::geometric::OmplOptProb>(problem)->GetVarRow(i + 1)
+            ));
+            constraints.push_back(constraint);
+        }
+        return constraints;
+    }
     for (int i = 0; i < nSteps; i++) {
         if (useJacobians_) {
             sco::ConstraintPtr constraint(new JacobianCollisionTrajOptConstraint(

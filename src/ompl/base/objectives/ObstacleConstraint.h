@@ -103,6 +103,27 @@ namespace ompl
             double safeDist_;
         };
 
+        class JacobianContinuousTrajOptConstraint : public sco::IneqConstraint
+        {
+        public:
+            JacobianContinuousTrajOptConstraint(
+                    double safeDist,
+                    WorkspaceContinuousCollisionFn collision,
+                    StateSpacePtr ss,
+                    JacobianFn J,
+                    sco::VarVector vars0,
+                    sco::VarVector vars1);
+            virtual sco::ConvexConstraintsPtr convex(const std::vector<double>& x, sco::Model* model);
+            virtual std::vector<double> value(const std::vector<double>& x);
+            sco::VarVector getVars() {
+                return eval_->getVars();
+            }
+
+        private:
+            std::shared_ptr<JacobianContinuousCollisionEvaluator> eval_;
+            double safeDist_;
+        };
+
         /**
          * \brief An OMPL OptimizationObjective that constrains the robot to avoid obstacles
          *        using signed distances.
@@ -120,6 +141,8 @@ namespace ompl
             ObstacleConstraint(const SpaceInformationPtr &si, double safeDist);
             ObstacleConstraint(const SpaceInformationPtr &si, double safeDist,
                                WorkspaceCollisionFn collision, JacobianFn J);
+            ObstacleConstraint(const SpaceInformationPtr &si, double safeDist,
+                               WorkspaceContinuousCollisionFn collision, JacobianFn J);
 
             Cost stateCost(const State *s) const override;
             Cost motionCost(const State *s1, const State *s2) const override;
@@ -127,9 +150,11 @@ namespace ompl
         protected:
             std::vector<sco::ConstraintPtr> toConstraint(sco::OptProbPtr problem) override;
             WorkspaceCollisionFn collision_;
+            WorkspaceContinuousCollisionFn continuousCollision_;
             JacobianFn J_;
 
             bool useJacobians_ = false;
+            bool continuous_ = false;
             double safeDist_;
         };
     }
