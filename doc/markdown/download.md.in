@@ -16,7 +16,7 @@
   .
   Note that these package managers may not always have the latest release.
 
-- [Installation script for Ubuntu 14.04, 15.10, and 16.04](install-ompl-ubuntu.sh)
+- [Installation script for Ubuntu 14.04, 15.10, 16.04, and 17.10](install-ompl-ubuntu.sh)
 - [Installation instructions.](installation.html)
 - [Older releases.](https://bitbucket.org/ompl/ompl/downloads) See the [release notes](releaseNotes.html) for a brief a description of changes for each release.
 

@@ -1,8 +1,16 @@
-find_package(Boost COMPONENTS python)
 # The python version needs to match the one used to build Boost.Python.
 # You can optionally specify the desired version like so:
 #   find_package(Python 2.6)
 find_package(Python QUIET)
+if (PYTHON_FOUND)
+    if (PYTHON_VERSION_MAJOR EQUAL 3)
+        set(_Boost_PYTHON3_HEADERS "boost/python.hpp")
+        find_package(Boost COMPONENTS python3 QUIET)
+        set(Boost_PYTHON_LIBRARY "${Boost_PYTHON3_LIBRARY}")
+    else()
+        find_package(Boost COMPONENTS python QUIET)
+    endif()
+endif()
 find_python_module(pyplusplus 1.6.0)
 find_python_module(pygccxml 1.7.2)
 find_package(castxml)
