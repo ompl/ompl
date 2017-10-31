@@ -25,7 +25,7 @@
 *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
 *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESSaddLinearConstraint INTERRUPTION) HOWEVER
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
@@ -71,6 +71,36 @@ namespace ompl
         {
         public:
             JointDistanceObjective(const SpaceInformationPtr &si);
+
+            /** \brief Returns identity cost. */
+            Cost stateCost(const State *s) const override;
+
+            Cost motionCost(const State *s1, const State *s2) const override;
+
+        protected:
+            sco::CostPtr toCost(sco::OptProbPtr problem) override;
+        };
+
+        /**
+         * \brief Encourages smooth paths by using the double finite difference.
+         */
+        class JointAccelCost : public sco::Cost
+        {
+        public:
+            JointAccelCost(const trajopt::VarArray& traj);
+
+            sco::ConvexObjectivePtr convex(const std::vector<double>&x, sco::Model* model);
+
+            double value(const std::vector<double>&);
+        private:
+            trajopt::VarArray vars_;
+            sco::QuadExpr expr_;
+        };
+
+        class JointAccelObjective : public ConvexifiableObjective
+        {
+        public:
+            JointAccelObjective(const SpaceInformationPtr &si);
 
             /** \brief Returns identity cost. */
             Cost stateCost(const State *s) const override;

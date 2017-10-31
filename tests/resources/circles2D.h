@@ -41,6 +41,7 @@
 #include <vector>
 #include <limits>
 #include <Eigen/Core>
+#include <Eigen/Dense>
 
 struct Circles2D
 {
@@ -164,8 +165,28 @@ struct Circles2D
 
     Eigen::Vector2d lineClosestPoint(double x1, double y1, double x2, double y2, std::size_t i) const
     {
+        Eigen::Vector2d b(circles_[i].x_ - x1, circles_[i].y_ - y1);
+        double deltaY = y2 - y1;
+        double deltaX = x2 - x1;
+        Eigen::Matrix2d A;
+        A << deltaY, deltaX, -deltaX, deltaY;
+        // Solves the system of eqn.
+        Eigen::Vector2d z = A.colPivHouseholderQr().solve(b);
+        if (z[1] <= 0) {
+            // outside the line, choose the first end point.
+            Eigen::Vector2d out(x1, y1);
+            return out;
+        } else if (z[1] >= 1) {
+            Eigen::Vector2d out(x2, y2);
+            return out;
+        } else {
+            // Inside the line, return the first.
+            Eigen::Vector2d out(x1 + z[1]*deltaX, y1 + z[1]*deltaY);
+            return out;
+        }
+
         // Assuming no degenerative cases.
-        double slope = (y2 - y1) / (x2 - x1);
+        /*double slope = (y2 - y1) / (x2 - x1);
         double b = -slope * x1 + y1;
         double centerSlope = -1 / slope;
         double centerB = -centerSlope * circles_[i].x_ + circles_[i].y_;
@@ -192,7 +213,7 @@ struct Circles2D
             }
         }
         Eigen::Vector2d out(closestX, slope * closestX + b);
-        return out;
+        return out; */
     }
 
     double lineSignedDistance(double x1, double y1, double x2, double y2, Eigen::Vector2d& point) const

@@ -108,15 +108,16 @@ ostream& operator<<(ostream& o, const Cnt& c) {
 }
 ostream& operator<<(ostream& o, const AffExpr& e) {
   o << e.constant;
+  std::cout.precision(17);
   for (size_t i=0; i < e.size(); ++i) {
-    o << " + " << e.coeffs[i] << "*" << e.vars[i];
+    o << " + " << fixed << e.coeffs[i] << "*" << e.vars[i];
   }
   return o;
 }
 ostream& operator<<(ostream& o, const QuadExpr& e) {
   o << e.affexpr;
   for (size_t i=0; i < e.size(); ++i) {
-    o << " + " << e.coeffs[i] << "*" << e.vars1[i] << "*" << e.vars2[i];
+    o << " + " << fixed << e.coeffs[i] << "*" << e.vars1[i] << "*" << e.vars2[i];
   }
   return o;
 }

@@ -358,7 +358,7 @@ protected:
                               double solutionTime)
     {
         /* instantiate problem definition */
-        double safetyDistance = 0.15;
+        double safetyDistance = 0.25;
         auto pdef(std::make_shared<base::ProblemDefinition>(si));
         auto opt(std::make_shared<base::MultiConvexifiableOptimization>(si));
         opt->addObjective(std::make_shared<base::JointDistanceObjective>(si));
@@ -378,7 +378,7 @@ protected:
             link_name.push_back("point");
             // Normals move the object out of collision.
             normal.push_back(circles.minimalTranslationNormal(x, y));
-            return signedDist[0] <= safetyDistance;
+            return signedDist[0] <= safetyDistance * 2;
         };
 
         ompl::base::WorkspaceContinuousCollisionFn continuousCollisions = [circles, safetyDistance](std::vector<double> configuration0,
@@ -399,7 +399,7 @@ protected:
             point1.push_back(Eigen::Vector3d(x2, y2, 0));
             link_name.push_back("point");
             normal.push_back(circles.minimalTranslationNormal(closestPoint[0], closestPoint[1]));
-            return signedDist[0] <= safetyDistance;
+            return signedDist[0] <= safetyDistance * 2;
         };
 
         ompl::base::JacobianFn jacobian = [circles](std::vector<double> configuration,

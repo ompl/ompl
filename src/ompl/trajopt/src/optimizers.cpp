@@ -264,7 +264,12 @@ OptStatus BasicTrustRegionSQP::optimize() {
 
         // the n variables of the OptProb happen to be the first n variables in the Model
         DblVec new_x(model_var_vals.begin(), model_var_vals.begin() + x_.size());
+        std::cout << "     name       |     Old x   |    New x     | diff " << std::endl;
+        for (int i= 0; i < x_.size(); i++) {
+            printf("%15s | % 12.8f | % 12.8f | % 12.8f\n", CSTR(prob_->getVars()[i]), x_[i], new_x[i], x_[i] - new_x[i]);
+        }
 
+        
         if (GetLogLevel() >= util::LevelDebug) {
           DblVec cnt_costs1 = evaluateModelCosts(cnt_cost_models, model_var_vals);
           DblVec cnt_costs2 = model_cnt_viols;
@@ -284,6 +289,14 @@ OptStatus BasicTrustRegionSQP::optimize() {
         double exact_merit_improve = old_merit - new_merit;
         double merit_improve_ratio = exact_merit_improve / approx_merit_improve;
 
+        printf("More debug: old_merit: %f, model_merit: %f, new_merit: %f, approx_merit_improve: %f\n"
+               "model cost: %f, model_cnt_violation: %f, merit_error_coeff_: %f\n"
+               "old   cost: %f,   old_cnt_violation: %f, merit_error_coeff_: %f\n"
+               "new   cost: %f,   new_cnt_violation: %f, merit_error_coeff_: %f\n",
+               old_merit, model_merit, new_merit, approx_merit_improve, vecSum(model_cost_vals), vecSum(model_cnt_viols), merit_error_coeff_,
+               vecSum(results_.cost_vals), vecSum(results_.cnt_viols), merit_error_coeff_,
+               vecSum(new_cost_vals), vecSum(new_cnt_viols), merit_error_coeff_);
+
         // Commented out because it's annoying, but still need INFO level debugging.
         //if (util::GetLogLevel() >= util::LevelInfo) {
         //  LOG_INFO(" ");
@@ -294,7 +307,8 @@ OptStatus BasicTrustRegionSQP::optimize() {
         //}
 
         if (approx_merit_improve < -1e-5) {
-          LOG_ERROR("approximate merit function got worse (%.3e). (convexification is probably wrong to zeroth order)", approx_merit_improve);
+          LOG_ERROR("approximate merit function got worse (%.3e). "
+                    "(convexification is probably wrong to zeroth order)", approx_merit_improve);
         }
         if (approx_merit_improve < minApproxImprove_) {
           LOG_INFO("converged because improvement was small (%.3e < %.3e)", approx_merit_improve, minApproxImprove_);

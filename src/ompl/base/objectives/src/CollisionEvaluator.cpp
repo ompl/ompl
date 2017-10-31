@@ -134,6 +134,7 @@ std::vector<sco::AffExpr> ompl::base::JacobianContinuousCollisionEvaluator::calc
             // sd(var0, var1) = sd(x_0, x_1) + alpha * normal^T * J_p0(x_0) * (vars0 - x_0) ...
             //                  + (1 - alpha) * normal^T * J_p1(x_1) * (vars1 - x_1)
             double signedDist = signedDists[i];
+            printf("SignedDist %d: %f\n", i, signedDist);
             Eigen::Vector3d normal = normals[i];
             Eigen::Vector3d point_swept = points_swept[i];
             Eigen::Vector3d point0 = points0[i];
@@ -171,6 +172,9 @@ std::vector<double> ompl::base::JacobianContinuousCollisionEvaluator::calcDistan
 
     bool collision = inCollision_(dof0, dof1, signedDists, points_swept, points0, points1, link_names, normals);
     if (collision) {
+        for (unsigned int i = 0; i < signedDists.size(); i++) {
+            printf("SignedDist (calc) %d: %f\n", i, signedDists[i]);
+        }
         distsAtSteps.insert(distsAtSteps.begin(), signedDists.begin(), signedDists.end());
     }
     return distsAtSteps;

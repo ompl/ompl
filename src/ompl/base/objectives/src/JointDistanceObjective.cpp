@@ -45,6 +45,18 @@ double ompl::base::JointDistCost::value(const std::vector<double>& xvec)
     return (diffPrevRow(traj).array().square().matrix()).sum();
 }
 
+/*ompl::base::JointAccelCost::JointAccelCost(const trajopt::VarArray& vars) : vars_(vars)
+{
+    for (int i = 0; i < vars.rows() - 1; i++)
+    {
+        for (int j = 0; j < vars.cols(); j++)
+        {
+            sco::AffExpr vel;
+            sco::exprInc()
+        }
+    }
+}*/
+
 /*****************************************
  * OMPL Side of Joint Velocity Objectives.
  ****************************************/
