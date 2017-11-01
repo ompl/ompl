@@ -51,6 +51,7 @@ install:
       docker build -t "$DOCKERFILE" -f "scripts/docker/$DOCKERFILE" .;
     fi
   - if [ -z "$DOCKERFILE" -a "$TRAVIS_OS_NAME" = "osx" ]; then
+      brew update;
       brew install boost-python ode eigen python cmake;
       if [ ! -e ${HOME}/castxml/bin/castxml ]; then
         curl https://midas3.kitware.com/midas/download/item/318762/castxml-macosx.tar.gz | tar zxf - -C ${HOME};
