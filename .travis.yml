@@ -42,9 +42,6 @@ matrix:
       services:
         - docker
       env: DOCKERFILE="ubuntu-xenial" JOBS=4 TEST_EXCLUDE='test_(machine_specs|random)'
-  allow_failures:
-    - os: osx
-
 
 install:
   - if [ -n "$DOCKERFILE" ]; then
