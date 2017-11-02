@@ -125,8 +125,6 @@ if [[ ! -z $PYTHON ]]; then
     fi
 fi
 
-if [[ ! -z $PYTHON ]]
-
 install_common_dependencies
 if [ ! -z $PYTHON ]; then
     install_python_binding_dependencies

@@ -20,15 +20,15 @@ matrix:
         apt: true
         directories:
           - ${HOME}/castxml
+          - /usr/local
     # On OS X, exclude test_machine_specs; fails due to "lazy" memory freeing in Release mode
     # (test passes in Debug builds).
     # On OS X, exclude test_random; fails due to bug in Boost.Random in 1.56.
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode9.1
       compiler: clang
       env: JOBS=2 TEST_EXCLUDE='test_(machine_specs|random)'
       cache:
-        apt: true
         directories:
           - ${HOME}/castxml
           - /usr/local
