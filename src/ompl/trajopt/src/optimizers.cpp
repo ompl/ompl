@@ -241,6 +241,7 @@ OptStatus BasicTrustRegionSQP::optimize() {
       QuadExpr objective;
       BOOST_FOREACH(ConvexObjectivePtr& co, cost_models)exprInc(objective, co->quad_);
       BOOST_FOREACH(ConvexObjectivePtr& co, cnt_cost_models){
+        std::cout << "Adding to model objective: " << co->quad_ << std::endl;
         exprInc(objective, co->quad_);
       }
 

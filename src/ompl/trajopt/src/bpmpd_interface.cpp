@@ -378,7 +378,7 @@ CvxOptStatus BPMPDModel::optimize() {
 
   vector< vector<double> > var2qcoeffs(n);
   vector< vector<int> > var2qinds(n);
-  cout << "adding objective " << m_objective << std::endl;
+  //cout << "adding objective " << m_objective << std::endl;
 
   for (size_t i=0; i < m_objective.size(); ++i) {
     int idx1 = m_objective.vars1[i].var_rep->index, idx2 = m_objective.vars2[i].var_rep->index;

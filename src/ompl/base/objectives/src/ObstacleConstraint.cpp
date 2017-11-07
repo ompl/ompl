@@ -60,7 +60,7 @@ sco::ConvexConstraintsPtr ompl::base::JacobianCollisionTrajOptConstraint::convex
     std::vector<sco::AffExpr> exprs = eval_->calcDistanceExpressions(x);
     for (size_t i = 0; i < exprs.size(); i++) {
         sco::AffExpr viol = sco::exprSub(sco::AffExpr(safeDist_), exprs[i]);
-        out->addIneqCnt(viol); // coeffs?
+        out->addIneqCnt(sco::exprMult(viol, coeff_));
     }
     return out;
 }
@@ -97,7 +97,7 @@ sco::ConvexConstraintsPtr ompl::base::JacobianContinuousTrajOptConstraint::conve
     for (size_t i = 0; i < exprs.size() ; i++) {
         sco::AffExpr viol = sco::exprSub(sco::AffExpr(safeDist_), exprs[i]);
         std::cout << "Expression: (drive to min)" << viol << std::endl;
-        out->addIneqCnt(viol); // coeffs?
+        out->addIneqCnt(sco::exprMult(viol, coeff_));
     }
     return out;
 }

@@ -101,6 +101,7 @@ namespace ompl
         private:
             std::shared_ptr<JacobianCollisionEvaluator> eval_;
             double safeDist_;
+            double coeff_ = 10;
         };
 
         class JacobianContinuousTrajOptConstraint : public sco::IneqConstraint
@@ -122,6 +123,7 @@ namespace ompl
         private:
             std::shared_ptr<JacobianContinuousCollisionEvaluator> eval_;
             double safeDist_;
+            double coeff_ = 10;
         };
 
         /**
