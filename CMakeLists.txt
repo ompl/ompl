@@ -92,6 +92,22 @@ enable_testing()
 find_package(Python QUIET)
 find_boost_python()
 
+if(PYTHON_FOUND)
+    # PyPy is more than an order of magnitude faster in generating the Python
+    # bindings than CPython, so use it if available.
+    find_program(PYPY NAMES pypy${PYTHON_VERSION_MAJOR} pypy)
+    if(PYPY)
+        option(OMPL_USE_PYPY "Use PyPy for generating Python bindings" ON)
+    else()
+        option(OMPL_USE_PYPY "Use PyPy for generating Python bindings" OFF)
+    endif()
+    if(OMPL_USE_PYPY)
+        set(PYTHON_BINDING_EXEC "${PYPY}")
+    else()
+        set(PYTHON_BINDING_EXEC "${PYTHON_EXEC}")
+    endif()
+endif()
+
 # Eigen is needed for the InformedStateSampler
 find_package(Eigen3 QUIET)
 if (EIGEN3_FOUND)

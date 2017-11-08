@@ -34,6 +34,10 @@ if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY AND PY_PYPLUSPLUS
     set(PY_OMPL_GENERATE ON CACHE BOOL
         "Whether the C++ code for the OMPL Python module can be generated")
     mark_as_advanced(PY_OMPL_GENERATE)
+
+    get_filename_component(PY_PYPLUSPLUS_DIR "${PY_PYPLUSPLUS}" DIRECTORY)
+    get_filename_component(PY_PYGCCXML_DIR "${PY_PYGCCXML}" DIRECTORY)
+    set(PYTHONPATH "${PY_PYPLUSPLUS_DIR}:${PY_PYGCCXML_DIR}:$ENV{PYTHONPATH}" CACHE STRING "Python path for pyplusplus and pygccxml")
 endif()
 
 function(create_module_header_file_target module)
@@ -59,7 +63,7 @@ function(create_module_code_generation_target module)
     # target for regenerating code. Cmake is run so that the list of
     # sources for the py_ompl_${module} target (see below) is updated.
     add_custom_target(update_${module}_bindings
-        COMMAND ${PYTHON_EXEC}
+        COMMAND env PYTHONPATH=\"${PYTHONPATH}\" ${PYTHON_BINDING_EXEC}
         "${CMAKE_CURRENT_SOURCE_DIR}/generate_bindings.py" "${module}"
         "2>&1" | tee "${CMAKE_BINARY_DIR}/pyplusplus_${module}.log"
         COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}
