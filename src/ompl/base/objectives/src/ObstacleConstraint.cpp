@@ -70,7 +70,7 @@ std::vector<double> ompl::base::JacobianCollisionTrajOptConstraint::value(const 
     std::vector<double> dists = eval_->calcDistances(x);
     std::vector<double> out(dists.size());
     for (size_t i = 0; i < dists.size(); i++) {
-        out[i] = sco::pospart(safeDist_ - dists[i]);
+        out[i] = sco::pospart(safeDist_ - dists[i]) * coeff_;
     }
     return out;
 }
@@ -107,7 +107,7 @@ std::vector<double> ompl::base::JacobianContinuousTrajOptConstraint::value(const
     std::vector<double> dists = eval_->calcDistances(x);
     std::vector<double> out(dists.size());
     for (size_t i = 0; i < dists.size(); i++) {
-        out[i] = sco::pospart(safeDist_ - dists[i]);
+        out[i] = sco::pospart(safeDist_ - dists[i]) * coeff_;
     }
     return out;
 }
