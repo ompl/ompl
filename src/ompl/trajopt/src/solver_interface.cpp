@@ -108,7 +108,7 @@ ostream& operator<<(ostream& o, const Cnt& c) {
 }
 ostream& operator<<(ostream& o, const AffExpr& e) {
   o << e.constant;
-  std::cout.precision(17);
+  std::cout.precision(5);
   for (size_t i=0; i < e.size(); ++i) {
     o << " + " << fixed << e.coeffs[i] << "*" << e.vars[i];
   }

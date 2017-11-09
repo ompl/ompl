@@ -55,12 +55,19 @@ static vector<ConvexObjectivePtr> convexifyCosts(vector<CostPtr>& costs, const D
     vector<ConvexObjectivePtr> out(costs.size());
     for (size_t i=0; i < costs.size(); ++i) {
       out[i] = costs[i]->convex(x,  model);
+      std::cout << "Objective at x: " << costs[i]->value(x) << std::endl;
+      std::cout << "Convex   obj: " << out[i]->quad_ << std::endl;
+      for (auto eq : out[i]->eqs_) {
+          std::cout << "    Convex   eq : " << eq << std::endl;
+      }
+      for (auto ineq : out[i]->ineqs_) {
+          std::cout << "    Convex ineqs: " << ineq << std::endl;
+      }
     }
     return out;
 }
 static vector<ConvexConstraintsPtr> convexifyConstraints(vector<ConstraintPtr>& cnts, const DblVec& x, Model* model) {
     vector<ConvexConstraintsPtr> out(cnts.size());
-    //std::cout << "Convexifying constraints." << std::endl;
     for (size_t i=0; i < cnts.size(); ++i) {
       out[i] = cnts[i]->convex(x, model);
     }
@@ -231,19 +238,24 @@ OptStatus BasicTrustRegionSQP::optimize() {
         ++results_.n_func_evals;
       }
 
-      vector<ConvexObjectivePtr> cost_models = convexifyCosts(prob_->getCosts(),x_, model_.get());
-      vector<ConvexConstraintsPtr> cnt_models = convexifyConstraints(constraints, x_, model_.get());
-      vector<ConvexObjectivePtr> cnt_cost_models = cntsToCosts(cnt_models, merit_error_coeff_, model_.get());
+      std::vector<ConvexObjectivePtr> cost_models = convexifyCosts(prob_->getCosts(),x_, model_.get());
+      std::vector<ConvexConstraintsPtr> cnt_models = convexifyConstraints(constraints, x_, model_.get());
+      std::vector<ConvexObjectivePtr> cnt_cost_models = cntsToCosts(cnt_models, merit_error_coeff_, model_.get());
       model_->update();
       BOOST_FOREACH(ConvexObjectivePtr& cost, cost_models)cost->addConstraintsToModel();
       BOOST_FOREACH(ConvexObjectivePtr& cost, cnt_cost_models)cost->addConstraintsToModel();
       model_->update();
       QuadExpr objective;
-      BOOST_FOREACH(ConvexObjectivePtr& co, cost_models)exprInc(objective, co->quad_);
-      BOOST_FOREACH(ConvexObjectivePtr& co, cnt_cost_models){
-        std::cout << "Adding to model objective: " << co->quad_ << std::endl;
+      BOOST_FOREACH(ConvexObjectivePtr& co, cost_models) {
+        //std::cout << "Adding cost to model objective: " << co->quad_ << std::endl;
         exprInc(objective, co->quad_);
       }
+      BOOST_FOREACH(ConvexObjectivePtr& co, cnt_cost_models) {
+        //std::cout << "Adding constraint to model objective: " << co->quad_ << std::endl;
+        exprInc(objective, co->quad_);
+      }
+
+      std::cout << "Final objective is: " << objective << std::endl;
 
       model_->setObjective(objective);
 
@@ -263,6 +275,7 @@ OptStatus BasicTrustRegionSQP::optimize() {
         DblVec model_cost_vals = evaluateModelCosts(cost_models, model_var_vals);
         DblVec model_cnt_viols = evaluateModelCntViols(cnt_models, model_var_vals);
 
+        //double old_model_merit = vecSum(evaluateModelCosts(cost_models, x_)) + merit_error_coeff_ * vecSum(evaluateModelCntViols(cnt_models, x_));
         // the n variables of the OptProb happen to be the first n variables in the Model
         DblVec new_x(model_var_vals.begin(), model_var_vals.begin() + x_.size());
         std::cout << "     name       |     Old x   |    New x     | diff " << std::endl;
@@ -270,12 +283,11 @@ OptStatus BasicTrustRegionSQP::optimize() {
             printf("%15s | % 12.8f | % 12.8f | % 12.8f\n", CSTR(prob_->getVars()[i]), x_[i], new_x[i], x_[i] - new_x[i]);
         }
 
-        
         if (GetLogLevel() >= util::LevelDebug) {
           DblVec cnt_costs1 = evaluateModelCosts(cnt_cost_models, model_var_vals);
           DblVec cnt_costs2 = model_cnt_viols;
           for (size_t i=0; i < cnt_costs2.size(); ++i) cnt_costs2[i] *= merit_error_coeff_;
-          LOG_DEBUG("SHOULD BE ALMOST THE SAME: %s ?= %s", CSTR(cnt_costs1), CSTR(cnt_costs2) );
+          LOG_INFO("SHOULD BE ALMOST THE SAME: %s ?= %s", CSTR(cnt_costs1), CSTR(cnt_costs2) );
           // not exactly the same because cnt_costs1 is based on aux variables, but they might not be at EXACTLY the right value
         }
 
@@ -290,13 +302,15 @@ OptStatus BasicTrustRegionSQP::optimize() {
         double exact_merit_improve = old_merit - new_merit;
         double merit_improve_ratio = exact_merit_improve / approx_merit_improve;
 
-        printf("More debug: old_merit: %f, model_merit: %f, new_merit: %f, approx_merit_improve: %f\n"
+        printf("old_merit:  %f, model_merit: %f, new_merit: %f, approx_merit_improve: %f\n"
                "model cost: %f, model_cnt_violation: %f, merit_error_coeff_: %f\n"
-               "old   cost: %f,   old_cnt_violation: %f, merit_error_coeff_: %f\n"
-               "new   cost: %f,   new_cnt_violation: %f, merit_error_coeff_: %f\n",
+               "old cost:   %f,   old_cnt_violation: %f, merit_error_coeff_: %f\n"
+               "new cost:   %f,   new_cnt_violation: %f, merit_error_coeff_: %f\n",
                old_merit, model_merit, new_merit, approx_merit_improve, vecSum(model_cost_vals), vecSum(model_cnt_viols), merit_error_coeff_,
                vecSum(results_.cost_vals), vecSum(results_.cnt_viols), merit_error_coeff_,
                vecSum(new_cost_vals), vecSum(new_cnt_viols), merit_error_coeff_);
+        std::cout << "model cost: "; for (auto x : model_cost_vals) std::cout << x << ", "; std::cout << std::endl;
+        std::cout << "old cost  : "; for (auto x:  results_.cost_vals) std::cout << x << ", "; std::cout << std::endl;
 
         // Commented out because it's annoying, but still need INFO level debugging.
         //if (util::GetLogLevel() >= util::LevelInfo) {
