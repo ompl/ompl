@@ -41,6 +41,21 @@
 #include "ompl/trajopt/utils.h"
 #include "ompl/trajopt/eigen_conversions.h"
 
+
+sco::AffExpr ompl::base::JacobianCollisionEvaluator::distExprFromOne(double signedDist, Eigen::Vector3d normal,
+        Eigen::Vector3d point, Eigen::MatrixXd j, std::vector<double> x_0, std::vector<sco::Var> vars)
+{
+    // Make the affine expression,
+    // sd(vars) = sd(x_0) + normal^T * J_pa(x_0) * vars - normal^T * J_pa(x_0) * x
+    printf("A collision!: dist: %f\n\tnormal: %f, %f, %f\n\tcollided point: %f, %f, %f\n",
+           signedDist, normal[0], normal[1], normal[2], point[0], point[1], point[2]);
+    sco::AffExpr dist(signedDist);
+    Eigen::VectorXd dist_gradient = normal.transpose() * j;
+    sco::exprInc(dist, sco::varDot(dist_gradient, vars));
+    sco::exprInc(dist, -dist_gradient.dot(sco::toVectorXd(x_0)));
+    return dist;
+}
+
 ompl::base::JacobianDiscreteCollisionEvaluator::JacobianDiscreteCollisionEvaluator(
         WorkspaceCollisionFn inCollision, StateSpacePtr ss, JacobianFn J, sco::VarVector vars) :
     inCollision_(inCollision), ss_(ss), J_(J), vars_(vars)
@@ -56,23 +71,9 @@ std::vector<sco::AffExpr> ompl::base::JacobianDiscreteCollisionEvaluator::calcDi
     std::vector<double> signedDists;
     std::vector<std::string> link_names;
     if (inCollision_(x_0, signedDists, points, link_names, normals)) {
-        // For each collision, make the affine expression,
-        // sd(vars) = sd(x_0) + normal^T * J_pa(x_0) * vars - normal^T * J_pa(x_0) * x
         for (unsigned int i = 0; i < signedDists.size(); i++) {
-            double signedDist = signedDists[i];
-            Eigen::Vector3d normal = normals[i];
-            Eigen::Vector3d point = points[i];
-            printf("Collided point: %f, %f, %f\n", point[0], point[1], point[2]);
-            std::string link_name = link_names[i];
-
-            printf("A collision!: dist: %f\n\tlink_name: %s\n\tnormal: %f, %f, %f\n",
-                   signedDist, link_name.c_str(), normal[0], normal[1], normal[2]);
-            sco::AffExpr dist(signedDist);
-            printf("Made an affine expression.\n");
-            Eigen::MatrixXd j = J_(x_0, point, link_name);
-            Eigen::VectorXd dist_gradient = normal.transpose() * j;
-            sco::exprInc(dist, sco::varDot(dist_gradient, vars_));
-            sco::exprInc(dist, -dist_gradient.dot(sco::toVectorXd(x_0)));
+            Eigen::MatrixXd j = J_(x_0, points[i], link_names[i]);
+            sco::AffExpr dist = distExprFromOne(signedDists[i], normals[i], points[i], j, x_0, vars_);
             exprs.push_back(dist);
             std::cout << "dist expression: " << dist << std::endl;
         }
@@ -133,6 +134,24 @@ std::vector<sco::AffExpr> ompl::base::JacobianContinuousCollisionEvaluator::calc
         for (unsigned int i = 0; i < signedDists.size(); i++) {
             // sd(var0, var1) = sd(x_0, x_1) + alpha * normal^T * J_p0(x_0) * (vars0 - x_0) ...
             //                  + (1 - alpha) * normal^T * J_p1(x_1) * (vars1 - x_1)
+            Eigen::MatrixXd j0 = J_(x_0, points0[i], link_names[i]);
+            Eigen::MatrixXd j1 = J_(x_1, points1[i], link_names[i]);
+            sco::AffExpr dist0 = distExprFromOne(signedDists[i], normals[i], points0[i], j0, x_0, vars0_);
+            sco::AffExpr dist1 = distExprFromOne(signedDists[i], normals[i], points1[i], j1, x_1, vars1_);
+
+            double p1ps = (points1[i] - points_swept[i]).norm();
+            double alpha = p1ps / (p1ps + (points0[i] -points_swept[i]).norm());
+            exprScale(dist0, alpha);
+            exprScale(dist1, 1 - alpha);
+
+            sco::AffExpr dist(0);
+            exprInc(dist, dist0);
+            exprInc(dist, dist1);
+            cleanupAff(dist);
+            exprs.push_back(dist);
+
+
+            /*
             double signedDist = signedDists[i];
             printf("SignedDist %d: %f\n", i, signedDist);
             Eigen::Vector3d normal = normals[i];
@@ -143,16 +162,14 @@ std::vector<sco::AffExpr> ompl::base::JacobianContinuousCollisionEvaluator::calc
             sco::AffExpr dist(signedDist);
             Eigen::MatrixXd j0 = J_(x_0, point0, link_name);
             Eigen::MatrixXd j1 = J_(x_1, point1, link_name);
-            double p1ps = (point1 - point_swept).norm();
-            double alpha = p1ps / (p1ps + (point0 -point_swept).norm());
-
             Eigen::VectorXd dist_gradient0 = alpha * normal.transpose() * j0;
-            Eigen::VectorXd dist_gradient1 = (1 - alpha) * normal.transpose() * j1;
+            Eigen::VectorXd dist_gradient1 = (1.0 - alpha) * normal.transpose() * j1;
             sco::exprInc(dist, sco::varDot(dist_gradient0, vars0_));
             sco::exprInc(dist, -dist_gradient0.dot(sco::toVectorXd(x_0)));
             sco::exprInc(dist, sco::varDot(dist_gradient1, vars1_));
             sco::exprInc(dist, -dist_gradient1.dot(sco::toVectorXd(x_1)));
             exprs.push_back(dist);
+            */
         }
     }
     return exprs;

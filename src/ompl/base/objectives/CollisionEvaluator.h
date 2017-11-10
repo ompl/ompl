@@ -71,6 +71,7 @@ namespace ompl
          *        gradient.
          */
         struct JacobianCollisionEvaluator {
+            sco::AffExpr distExprFromOne(double signedDist, Eigen::Vector3d normal, Eigen::Vector3d point, Eigen::MatrixXd j, std::vector<double> x_0, std::vector<sco::Var> vars);
             virtual std::vector<sco::AffExpr> calcDistanceExpressions(std::vector<double> x) = 0;
             virtual std::vector<double> calcDistances(std::vector<double> x) = 0;
             ~JacobianCollisionEvaluator() {}
