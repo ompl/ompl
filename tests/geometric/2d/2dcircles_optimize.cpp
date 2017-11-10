@@ -358,7 +358,7 @@ protected:
                               double solutionTime)
     {
         /* instantiate problem definition */
-        double safetyDistance = 0.25;
+        double safetyDistance = 0.5;
         auto pdef(std::make_shared<base::ProblemDefinition>(si));
         auto opt(std::make_shared<base::MultiConvexifiableOptimization>(si));
         opt->addObjective(std::make_shared<base::JointDistanceObjective>(si));
@@ -426,7 +426,7 @@ protected:
         std::size_t nt = std::min<std::size_t>(10, circles.getQueryCount());
 
         // run a simple test first
-        if (nt > 0)
+        /*if (nt > 0)
         {
             const Circles2D::Query &q = circles.getQuery(0);
             setupProblem(q, si, pdef);
@@ -435,7 +435,7 @@ protected:
             pt.test();
             planner->clear();
             pdef->clearSolutionPaths();
-        }
+        }*/
 
         for (std::size_t i = 0 ; i < nt ; ++i)
         {
