@@ -38,6 +38,7 @@
 #define OMPL_GEOMETRIC_PLANNERS_TRAJOPT_TRAJOPT_
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
+#include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/geometric/planners/trajopt/OmplOptProb.h"
 #include "ompl/trajopt/typedefs.h"
@@ -114,13 +115,16 @@ namespace ompl
                 minApproxImproveFrac_ = minApproxImproveFrac;
             }
 
-            double setMinApproxImproveFraction()
+            double getMinApproxImproveFraction()
             {
                 return minApproxImproveFrac_;
             }
 
+            void setInitialTrajectory(ompl::geometric::PathGeometric inPath);
+
         protected:
             ompl::base::PathPtr trajFromTraj2Ompl(trajopt::TrajArray traj);
+
 
             ompl::base::PlannerStatus constructOptProblem();
 

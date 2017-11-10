@@ -199,6 +199,29 @@ void ompl::geometric::TrajOpt::plotCallback(sco::OptProb *prob, std::vector<doub
     }
     fprintf(fd, "\n");
 }
+void ompl::geometric::TrajOpt::setInitialTrajectory(ompl::geometric::PathGeometric inPath) {
+    int dof = si_->getStateDimension();
+    size_t states = inPath.getStateCount();
+    if (states > nSteps_) {
+        OMPL_ERROR("Input path has %d states, but trajopt is only working with %d waypoints!", states, nSteps_);
+        return;
+    }
+    if (states < nSteps_) {
+        inPath.interpolate(nSteps_);
+    }
+    auto ss = si_->getStateSpace();
+
+    trajopt::TrajArray ta(nSteps_, dof);
+    for (int i = 0; i < nSteps_; i++) {
+        const ompl::base::State *state = inPath.getState(i);
+        std::vector<double> startVec(dof);
+        std::vector<double> stateVec;
+        ss->copyToReals(startVec, state);
+        for (int j = 0; j < dof; j++) {
+            ta(i, j) = stateVec[j];
+        }
+    }
+}
 
 ompl::base::PathPtr ompl::geometric::TrajOpt::trajFromTraj2Ompl(trajopt::TrajArray traj) {
     auto path(std::make_shared<ompl::geometric::PathGeometric>(si_));
