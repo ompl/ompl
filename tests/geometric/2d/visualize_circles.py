@@ -16,7 +16,7 @@ class CircleEnv(object):
         self.maxY_ = 0.0
         self.scale_ = 16.0
         self.circles = []
-        self.lines = []
+        self.paths = []
         self.points = []
 
     def loadCircles(self, filename):
@@ -50,13 +50,13 @@ class CircleEnv(object):
                     self.maxY_ = cir.p2.y
 
     def loadPaths(self, filename):
-        file = open(filename)
-        file.readline()
-        file.readline()
+        paths = open(filename)
+        paths.readline()
+        paths.readline()
 
         last_point = None
-        current_color = color_rgb(random.randint(1, 255), random.randint(1, 255), random.randint(1, 255))
-        for line in file:
+        current_path = []
+        for line in paths:
             p = line.split()
             if p and not last_point:
                 last_point = Point(self.scale_ * float(p[0]), self.scale_ * float(p[1]))
@@ -66,15 +66,23 @@ class CircleEnv(object):
             elif p and last_point:
                 current_point = Point(self.scale_ * float(p[0]), self.scale_ * float(p[1]))
                 line = Line(last_point, current_point)
-                line.setFill(current_color)
-                self.lines.append(line)
+                current_path.append(line)
                 last_point = current_point
                 p = Circle(last_point, 0.05 * self.scale_)
                 p.setFill('black')
                 self.points.append(p)
             else:
+                # Starting a new trajectory
+                self.paths.append(current_path)
+                current_path = []
                 last_point = None
-                current_color = color_rgb(random.randint(1, 255), random.randint(1, 255), random.randint(1, 255))
+
+        current_red = 255
+        inc = 255 / len(self.paths)
+        for path in self.paths:
+            for line in path:
+                line.setFill(color_rgb(int(current_red), int(255 - current_red), 0))
+            current_red = current_red - inc
 
     def makeWindow(self):
         total_x = self.maxX_ - self.minX_
@@ -86,8 +94,9 @@ class CircleEnv(object):
     def draw(self, win):
         for cir in self.circles:
             cir.draw(win)
-        for line in self.lines:
-            line.draw(win)
+        for path in self.paths:
+            for line in path:
+                line.draw(win)
         for p in self.points:
             p.draw(win)
 

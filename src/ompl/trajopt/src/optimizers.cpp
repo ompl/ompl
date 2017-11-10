@@ -55,14 +55,6 @@ static vector<ConvexObjectivePtr> convexifyCosts(vector<CostPtr>& costs, const D
     vector<ConvexObjectivePtr> out(costs.size());
     for (size_t i=0; i < costs.size(); ++i) {
       out[i] = costs[i]->convex(x,  model);
-      std::cout << "Objective at x: " << costs[i]->value(x) << std::endl;
-      std::cout << "Convex   obj: " << out[i]->quad_ << std::endl;
-      for (auto eq : out[i]->eqs_) {
-          std::cout << "    Convex   eq : " << eq << std::endl;
-      }
-      for (auto ineq : out[i]->ineqs_) {
-          std::cout << "    Convex ineqs: " << ineq << std::endl;
-      }
     }
     return out;
 }
@@ -246,22 +238,30 @@ OptStatus BasicTrustRegionSQP::optimize() {
       BOOST_FOREACH(ConvexObjectivePtr& cost, cnt_cost_models)cost->addConstraintsToModel();
       model_->update();
       QuadExpr objective;
-      BOOST_FOREACH(ConvexObjectivePtr& co, cost_models) {
-        //std::cout << "Adding cost to model objective: " << co->quad_ << std::endl;
+      for (auto co : cost_models) {
         exprInc(objective, co->quad_);
       }
-      BOOST_FOREACH(ConvexObjectivePtr& co, cnt_cost_models) {
-        //std::cout << "Adding constraint to model objective: " << co->quad_ << std::endl;
+      for (auto co : cnt_cost_models) {
         exprInc(objective, co->quad_);
       }
-
-      std::cout << "Final objective is: " << objective << std::endl;
 
       model_->setObjective(objective);
 
       while (trust_box_size_ >= minTrustBoxSize_) {
 
         setTrustBoxConstraints(x_);
+        /*
+        DblVec old_model_var_vals = model_->getVarValues(model_->getVars());
+        for (size_t i= 0; i < x_.size(); i++) {
+            old_model_var_vals[i] = x_[i]; // leaves the hinge values the same
+        }
+        for (size_t i = x_.size(); i < old_model_var_vals.size(); i++) {
+            std::cout << "Extra var: " << old_model_var_vals[i] << std::endl;
+        }
+        DblVec old_model_cost_vals = evaluateModelCosts(cost_models, old_model_var_vals);
+        DblVec old_model_cnt_viols = evaluateModelCntViols(cnt_models, old_model_var_vals);
+        */
+
         CvxOptStatus status = model_->optimize();
         ++results_.n_qp_solves;
         if (status != CVX_SOLVED) {
@@ -278,16 +278,16 @@ OptStatus BasicTrustRegionSQP::optimize() {
         //double old_model_merit = vecSum(evaluateModelCosts(cost_models, x_)) + merit_error_coeff_ * vecSum(evaluateModelCntViols(cnt_models, x_));
         // the n variables of the OptProb happen to be the first n variables in the Model
         DblVec new_x(model_var_vals.begin(), model_var_vals.begin() + x_.size());
-        std::cout << "     name       |     Old x   |    New x     | diff " << std::endl;
-        for (int i= 0; i < x_.size(); i++) {
-            printf("%15s | % 12.8f | % 12.8f | % 12.8f\n", CSTR(prob_->getVars()[i]), x_[i], new_x[i], x_[i] - new_x[i]);
-        }
+        //std::cout << "     name       |  old model x |      Old x    |    New x     | diff " << std::endl;
+        //for (size_t i= 0; i < x_.size(); i++) {
+        //    printf("%15s | % 12.8f | % 12.8f | % 12.8f | % 12.8f\n", CSTR(prob_->getVars()[i]), x_[i], old_model_var_vals[i], new_x[i], x_[i] - new_x[i]);
+        //}
 
         if (GetLogLevel() >= util::LevelDebug) {
           DblVec cnt_costs1 = evaluateModelCosts(cnt_cost_models, model_var_vals);
           DblVec cnt_costs2 = model_cnt_viols;
           for (size_t i=0; i < cnt_costs2.size(); ++i) cnt_costs2[i] *= merit_error_coeff_;
-          LOG_INFO("SHOULD BE ALMOST THE SAME: %s ?= %s", CSTR(cnt_costs1), CSTR(cnt_costs2) );
+          LOG_DEBUG("SHOULD BE ALMOST THE SAME: %s ?= %s", CSTR(cnt_costs1), CSTR(cnt_costs2) );
           // not exactly the same because cnt_costs1 is based on aux variables, but they might not be at EXACTLY the right value
         }
 
@@ -296,21 +296,31 @@ OptStatus BasicTrustRegionSQP::optimize() {
         ++results_.n_func_evals;
 
         double old_merit = vecSum(results_.cost_vals) + merit_error_coeff_ * vecSum(results_.cnt_viols);
+        //double old_model_merit = vecSum(old_model_cost_vals) + merit_error_coeff_ * vecSum(old_model_cnt_viols);
         double model_merit = vecSum(model_cost_vals) + merit_error_coeff_ * vecSum(model_cnt_viols);
         double new_merit = vecSum(new_cost_vals) + merit_error_coeff_ * vecSum(new_cnt_viols);
         double approx_merit_improve = old_merit - model_merit;
         double exact_merit_improve = old_merit - new_merit;
         double merit_improve_ratio = exact_merit_improve / approx_merit_improve;
 
-        printf("old_merit:  %f, model_merit: %f, new_merit: %f, approx_merit_improve: %f\n"
+        /*
+        printf("old_merit:  %f, model_merit: %f, old model_merit: %f, new_merit: %f, approx_merit_improve: %f\n"
                "model cost: %f, model_cnt_violation: %f, merit_error_coeff_: %f\n"
+               "old model : %f, old_model_cnt_viols: %f, merit_error_coeff_: %f\n"
                "old cost:   %f,   old_cnt_violation: %f, merit_error_coeff_: %f\n"
                "new cost:   %f,   new_cnt_violation: %f, merit_error_coeff_: %f\n",
-               old_merit, model_merit, new_merit, approx_merit_improve, vecSum(model_cost_vals), vecSum(model_cnt_viols), merit_error_coeff_,
+               old_merit, model_merit, old_model_merit, new_merit, approx_merit_improve,
+               vecSum(model_cost_vals), vecSum(model_cnt_viols), merit_error_coeff_,
+               vecSum(old_model_cost_vals), vecSum(old_model_cnt_viols), merit_error_coeff_,
                vecSum(results_.cost_vals), vecSum(results_.cnt_viols), merit_error_coeff_,
                vecSum(new_cost_vals), vecSum(new_cnt_viols), merit_error_coeff_);
         std::cout << "model cost: "; for (auto x : model_cost_vals) std::cout << x << ", "; std::cout << std::endl;
-        std::cout << "old cost  : "; for (auto x:  results_.cost_vals) std::cout << x << ", "; std::cout << std::endl;
+        std::cout << "model cnt : "; for (auto x : model_cnt_viols) std::cout << x << ", "; std::cout << std::endl;
+        std::cout << "new cost  : "; for (auto x : new_cost_vals) std::cout << x << ", "; std::cout << std::endl;
+        std::cout << "new cnt   : "; for (auto x : new_cnt_viols) std::cout << x << ", "; std::cout << std::endl;
+        std::cout << "old cost  : "; for (auto x : results_.cost_vals) std::cout << x << ", "; std::cout << std::endl;
+        std::cout << "old cnt   : "; for (auto x : results_.cnt_viols) std::cout << x << ", "; std::cout << std::endl;
+        */
 
         // Commented out because it's annoying, but still need INFO level debugging.
         //if (util::GetLogLevel() >= util::LevelInfo) {
