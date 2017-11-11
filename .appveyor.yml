@@ -37,4 +37,4 @@ after_build:
 #  - cmd: ctest -C %configuration%
 
 artifacts:
-  - path: 'build\omplapp*.zip'
+  - path: 'build\ompl*.zip'

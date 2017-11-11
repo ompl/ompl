@@ -42,15 +42,7 @@ set(OMPL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(OMPL_DEMO_INSTALL_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ompl/demos"
     CACHE STRING "Relative path to directory where demos will be installed")
 
-# Add support in Boost::Python for std::shared_ptr
-# This is a hack that replaces boost::shared_ptr related code with std::shared_ptr.
-# Proper support for std::shared_ptr was added in Boost 1.63.
-if(Boost_VERSION VERSION_LESS "106300")
-    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/external")
-endif()
-
 include_directories("${OMPL_INCLUDE_DIR}")
-
 
 if(MSVC)
     add_definitions(-DBOOST_ALL_NO_LIB)
@@ -65,6 +57,14 @@ endif(IS_ICPC)
 
 find_package(Boost 1.54 COMPONENTS serialization filesystem system program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
+
+# Add support in Boost::Python for std::shared_ptr
+# This is a hack that replaces boost::shared_ptr related code with std::shared_ptr.
+# Proper support for std::shared_ptr was added in Boost 1.63.
+if(Boost_VERSION VERSION_LESS "106300")
+    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/external")
+endif()
+
 
 # on OS X we need to check whether to use libc++ or libstdc++ with clang++
 if(APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
