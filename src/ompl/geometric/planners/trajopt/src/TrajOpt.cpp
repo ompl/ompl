@@ -56,7 +56,9 @@ ompl::geometric::TrajOpt::TrajOpt(const ompl::base::SpaceInformationPtr &si)
 }
 
 // TODO: write
-ompl::geometric::TrajOpt::~TrajOpt() {}
+ompl::geometric::TrajOpt::~TrajOpt() {
+    fclose(fd);
+}
 
 void ompl::geometric::TrajOpt::clear() {
     Planner::clear();
@@ -94,7 +96,7 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
     }
 
     pis_.update();
-    printf("pis_.haveMoreStartStates: %s", pis_.haveMoreStartStates() ? "true": "false");
+    //printf("pis_.haveMoreStartStates: %s", pis_.haveMoreStartStates() ? "true": "false");
     const ompl::base::State *start = pis_.nextStart();
     const ompl::base::State *goal = pis_.nextGoal();
 
@@ -116,7 +118,7 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
 
     // TODO: for now, initial trajectory is a linear interpolation, make this configurable.
     trajopt::TrajArray ta(nSteps_, dof);
-    for (int i = 0; i < nSteps_; i++) {
+    for (size_t i = 0; i < nSteps_; i++) {
         for (int j = 0; j < dof; j++) {
             ta(i, j) = startVec[j] + (endVec[j] - startVec[j]) * i / (nSteps_ - 1);
         }
@@ -137,7 +139,7 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
     sqpOptimizer->merit_error_coeff_ = initPenaltyCoef_;
     sqpOptimizer->initialize(trajopt::trajToDblVec(problem_->GetInitTraj()));
     sqpOptimizer->addCallback([this](sco::OptProb *prob, std::vector<double>& x) {
-        plotCallback(prob, x);
+        plotCallback(x);
     });
 
     return base::PlannerStatus::EXACT_SOLUTION;
@@ -165,6 +167,7 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::solve(const ompl::base::Plan
         case sco::OPT_CONVERGED: {
             // TODO: check that the path actually is collision free.
             // If not, return APPROXIMATE_SOlUTION.
+            plotCallback(results.x);
             trajopt::TrajArray ta = trajopt::getTraj(results.x, problem_->GetVars());
             ompl::base::PlannerSolution solution(trajFromTraj2Ompl(ta));
 
@@ -191,7 +194,7 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::solve(const ompl::base::Plan
     return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::UNKNOWN);
 }
 
-void ompl::geometric::TrajOpt::plotCallback(sco::OptProb *prob, std::vector<double>& x) {
+void ompl::geometric::TrajOpt::plotCallback(std::vector<double>& x) {
     int dof = si_->getStateDimension();
     int steps = x.size() / dof;
     for (int i = 0; i < steps; i++) {

@@ -8,6 +8,7 @@
 #include "ompl/trajopt/stl_to_string.h"
 #include "ompl/trajopt/expr_ops.h"
 #include "ompl/trajopt/bpmpd_io.h"
+#include "ompl/util/Console.h"
 
 using namespace std;
 using namespace bpmpd_io;
@@ -338,9 +339,6 @@ CvxOptStatus BPMPDModel::optimize() {
   vector<int> acolcnt(n), acolidx, qcolcnt(n), qcolidx, status(m+n);
   vector<double> acolnzs, qcolnzs, rhs(m), obj(n,0), lbound(m+n), ubound(m+n), primal(m+n), dual(m+n);
 
-
-
-
   DBG(m_lbs);
   DBG(m_ubs);
   for (size_t iVar=0; iVar < n; ++iVar) {
@@ -353,6 +351,7 @@ CvxOptStatus BPMPDModel::optimize() {
   vector< vector<double> > var2cntvals(n);
   for (size_t iCnt=0; iCnt < m; ++iCnt) {
     const AffExpr& aff = m_cntExprs[iCnt];
+    OMPL_DEVMSG1("BPMPD: Constraint expression: %s", CSTR(aff));
     vector<int> inds = vars2inds(aff.vars);
 
     for (size_t i=0; i < aff.vars.size(); ++i) {
@@ -378,6 +377,7 @@ CvxOptStatus BPMPDModel::optimize() {
   vector< vector<double> > var2qcoeffs(n);
   vector< vector<int> > var2qinds(n);
 
+  OMPL_DEVMSG1("BPMPD: Objective: %s", CSTR(m_objective));
   for (size_t i=0; i < m_objective.size(); ++i) {
     int idx1 = m_objective.vars1[i].var_rep->index, idx2 = m_objective.vars2[i].var_rep->index;
     if (idx1 < idx2) {
@@ -434,9 +434,6 @@ CvxOptStatus BPMPDModel::optimize() {
   DBG(lbound);
   DBG(ubound);
 
-
-
-
 #if 0
   bpmpd(&m, &n, &nz, &qn, &qnz, acolcnt.data(), acolidx.data(), acolnzs.data(), qcolcnt.data(), qcolidx.data(), qcolnzs.data(),
       rhs.data(), obj.data(), lbound.data(), ubound.data(),
@@ -461,17 +458,29 @@ CvxOptStatus BPMPDModel::optimize() {
 
   // std::cout << "serialization time:" << end-start << std::endl;
 
+  bpmpd_output bo;
+  ser(gPipeOut, bo, DESER);
 
-   bpmpd_output bo;
-   ser(gPipeOut, bo, DESER);
+  bo_ = bo;
+  m_soln = vector<double>(bo.primal.begin(), bo.primal.begin()+n);
+  int retcode = bo.code;
 
-   bo_ = bo;
-   m_soln = vector<double>(bo.primal.begin(), bo.primal.begin()+n);
-   int retcode = bo.code;
-
-  if (retcode == 2) return CVX_SOLVED;
-  else if (retcode==3 || retcode ==4) return CVX_INFEASIBLE;
-  else return CVX_FAILED;
+  if (retcode == 1)
+  {
+      OMPL_WARN("BPMPD: Optimization produced suboptimal feasible solution: "
+                "will most likely cause the approximate merit to increase.");
+      return CVX_SOLVED;
+  }
+  else if (retcode == 2)
+  {
+      return CVX_SOLVED;
+  }
+  else if (retcode == 3 || retcode == 4)
+  {
+      return CVX_INFEASIBLE;
+  }
+  else
+      return CVX_FAILED;
 
 #endif
 

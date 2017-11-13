@@ -128,11 +128,11 @@ namespace ompl
 
             ompl::base::PlannerStatus constructOptProblem();
 
-            void plotCallback(sco::OptProb *prob, std::vector<double>& x);
+            void plotCallback(std::vector<double>& x);
 
             /** \brief The number of time steps/waypoints in the optimized trajectory.
                 Smaller means quicker optimization, larger means finer trajectories. */
-            int nSteps_{10};
+            size_t nSteps_{10};
 
             /** \brief The starting penalty coefficient, goes to infinity as the algorithm progresses. */
             double initPenaltyCoef_{20};

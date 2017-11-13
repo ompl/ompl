@@ -23,6 +23,7 @@ file(GLOB_RECURSE OMPL_SOURCE_CODE
 set(TRAJOPT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/trajopt/src)
 
 set(SCO_SOURCE_FILES
+    util/src/Console.cpp
     ${TRAJOPT_SOURCE_DIR}/solver_interface.cpp
     ${TRAJOPT_SOURCE_DIR}/modeling.cpp
     ${TRAJOPT_SOURCE_DIR}/expr_ops.cpp

@@ -47,8 +47,8 @@ sco::AffExpr ompl::base::JacobianCollisionEvaluator::distExprFromOne(double sign
 {
     // Make the affine expression,
     // sd(vars) = sd(x_0) + normal^T * J_pa(x_0) * vars - normal^T * J_pa(x_0) * x
-    printf("A collision!: dist: %f\n\tnormal: %f, %f, %f\n\tcollided point: %f, %f, %f\n",
-           signedDist, normal[0], normal[1], normal[2], point[0], point[1], point[2]);
+    //printf("A collision!: dist: %f\n\tnormal: %f, %f, %f\n\tcollided point: %f, %f, %f\n",
+    //       signedDist, normal[0], normal[1], normal[2], point[0], point[1], point[2]);
     sco::AffExpr dist(signedDist);
     Eigen::VectorXd dist_gradient = normal.transpose() * j;
     sco::exprInc(dist, sco::varDot(dist_gradient, vars));
@@ -75,7 +75,6 @@ std::vector<sco::AffExpr> ompl::base::JacobianDiscreteCollisionEvaluator::calcDi
             Eigen::MatrixXd j = J_(x_0, points[i], link_names[i]);
             sco::AffExpr dist = distExprFromOne(signedDists[i], normals[i], points[i], j, x_0, vars_);
             exprs.push_back(dist);
-            std::cout << "dist expression: " << dist << std::endl;
         }
     }
     return exprs;
@@ -92,20 +91,10 @@ std::vector<double> ompl::base::JacobianDiscreteCollisionEvaluator::calcDistance
     std::vector<std::string> link_names;
     bool collision = inCollision_(dofVals, signedDists, points, link_names, normals);
     if (collision) {
-        std::cout << "dofVals: ";
-        for (unsigned int i = 0; i < dofVals.size(); i++) {
-            std::cout << dofVals[i] << ", ";
-        }
-        std::cout << std::endl;
-        printf("dists: ");
-        for (unsigned int i = 0; i < signedDists.size(); i++) {
-            printf("%f, ", signedDists[i]);
-        }
-        printf("\n\tlink_name: %s\n\tnormal: %f, %f, %f",
-            link_names[0].c_str(), normals[0][0], normals[0][1], normals[0][2]);
+        //printf("\n\tlink_name: %s\n\tnormal: %f, %f, %f",
+        //    link_names[0].c_str(), normals[0][0], normals[0][1], normals[0][2]);
         distsAtSteps.insert(distsAtSteps.begin(), signedDists.begin(), signedDists.end());
     }
-    printf("\n");
     return distsAtSteps;
 }
 
@@ -149,27 +138,6 @@ std::vector<sco::AffExpr> ompl::base::JacobianContinuousCollisionEvaluator::calc
             exprInc(dist, dist1);
             cleanupAff(dist);
             exprs.push_back(dist);
-
-
-            /*
-            double signedDist = signedDists[i];
-            printf("SignedDist %d: %f\n", i, signedDist);
-            Eigen::Vector3d normal = normals[i];
-            Eigen::Vector3d point_swept = points_swept[i];
-            Eigen::Vector3d point0 = points0[i];
-            Eigen::Vector3d point1 = points1[i];
-            std::string link_name = link_names[i];
-            sco::AffExpr dist(signedDist);
-            Eigen::MatrixXd j0 = J_(x_0, point0, link_name);
-            Eigen::MatrixXd j1 = J_(x_1, point1, link_name);
-            Eigen::VectorXd dist_gradient0 = alpha * normal.transpose() * j0;
-            Eigen::VectorXd dist_gradient1 = (1.0 - alpha) * normal.transpose() * j1;
-            sco::exprInc(dist, sco::varDot(dist_gradient0, vars0_));
-            sco::exprInc(dist, -dist_gradient0.dot(sco::toVectorXd(x_0)));
-            sco::exprInc(dist, sco::varDot(dist_gradient1, vars1_));
-            sco::exprInc(dist, -dist_gradient1.dot(sco::toVectorXd(x_1)));
-            exprs.push_back(dist);
-            */
         }
     }
     return exprs;
@@ -189,9 +157,6 @@ std::vector<double> ompl::base::JacobianContinuousCollisionEvaluator::calcDistan
 
     bool collision = inCollision_(dof0, dof1, signedDists, points_swept, points0, points1, link_names, normals);
     if (collision) {
-        for (unsigned int i = 0; i < signedDists.size(); i++) {
-            printf("SignedDist (calc) %d: %f\n", i, signedDists[i]);
-        }
         distsAtSteps.insert(distsAtSteps.begin(), signedDists.begin(), signedDists.end());
     }
     return distsAtSteps;

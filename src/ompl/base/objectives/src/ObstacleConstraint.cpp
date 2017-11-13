@@ -96,7 +96,6 @@ sco::ConvexConstraintsPtr ompl::base::JacobianContinuousTrajOptConstraint::conve
     std::vector<sco::AffExpr> exprs = eval_->calcDistanceExpressions(x);
     for (size_t i = 0; i < exprs.size() ; i++) {
         sco::AffExpr viol = sco::exprSub(sco::AffExpr(safeDist_), exprs[i]);
-        std::cout << "Expression: (drive to min)" << viol << std::endl;
         out->addIneqCnt(sco::exprMult(viol, coeff_));
     }
     return out;
@@ -155,8 +154,8 @@ std::vector<sco::ConstraintPtr> ompl::base::ObstacleConstraint::toConstraint(sco
     int size = problem->getNumVars();
     int dof = si_->getStateDimension();
     int nSteps = size / dof;
-    printf("Using jacobians: %s\n", (useJacobians_) ? "true" : "false");
-    printf("SafeDist: %f\n", safeDist_);
+    //printf("Using jacobians: %s\n", (useJacobians_) ? "true" : "false");
+    //printf("SafeDist: %f\n", safeDist_);
     if (continuous_) {
         for (int i = 0; i < nSteps - 1; i++) {
             sco::ConstraintPtr constraint(new JacobianContinuousTrajOptConstraint(

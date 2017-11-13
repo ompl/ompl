@@ -5,6 +5,7 @@
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 
+#include "ompl/util/Console.h"
 #include "ompl/trajopt/optimizers.h"
 #include "ompl/trajopt/modeling.h"
 #include "ompl/trajopt/logging.h"
@@ -47,7 +48,6 @@ static DblVec evaluateConstraintViols(vector<ConstraintPtr>& constraints, const 
 
     for (size_t i=0; i < constraints.size(); ++i) {
       out[i] = constraints[i]->violation(x);
-      std::cout << "Constraint " << i << " violation: " << out[i] << std::endl;
     }
     return out;
 }
@@ -219,8 +219,8 @@ OptStatus BasicTrustRegionSQP::optimize() {
     for (int iter = 1; ; ++iter) { /* sqp loop */
       callCallbacks(x_);
 
-      LOG_DEBUG("current iterate: %s", CSTR(x_));
-      LOG_INFO("iteration %i", iter);
+      OMPL_DEVMSG1("current iterate: %s", CSTR(x_));
+      OMPL_DEBUG("iteration %i", iter);
 
       // speedup: if you just evaluated the cost when doing the line search, use that
       if (results_.cost_vals.empty() && results_.cnt_viols.empty()) { //only happens on the first iteration
@@ -265,7 +265,7 @@ OptStatus BasicTrustRegionSQP::optimize() {
         CvxOptStatus status = model_->optimize();
         ++results_.n_qp_solves;
         if (status != CVX_SOLVED) {
-          LOG_ERROR("convex solver failed! set TRAJOPT_LOG_THRESH=DEBUG to see solver output. saving model to /tmp/fail.lp and IIS to /tmp/fail.ilp");
+          OMPL_ERROR("convex solver failed! set TRAJOPT_LOG_THRESH=DEBUG to see solver output. saving model to /tmp/fail.lp and IIS to /tmp/fail.ilp");
           model_->writeToFile("/tmp/fail.lp");
           model_->writeToFile("/tmp/fail.ilp");
           return cleanup(OPT_FAILED, x_);
@@ -287,7 +287,7 @@ OptStatus BasicTrustRegionSQP::optimize() {
           DblVec cnt_costs1 = evaluateModelCosts(cnt_cost_models, model_var_vals);
           DblVec cnt_costs2 = model_cnt_viols;
           for (size_t i=0; i < cnt_costs2.size(); ++i) cnt_costs2[i] *= merit_error_coeff_;
-          LOG_DEBUG("SHOULD BE ALMOST THE SAME: %s ?= %s", CSTR(cnt_costs1), CSTR(cnt_costs2) );
+          OMPL_DEVMSG1("SHOULD BE ALMOST THE SAME: %s ?= %s", CSTR(cnt_costs1), CSTR(cnt_costs2) );
           // not exactly the same because cnt_costs1 is based on aux variables, but they might not be at EXACTLY the right value
         }
 
@@ -332,17 +332,17 @@ OptStatus BasicTrustRegionSQP::optimize() {
         //}
 
         if (approx_merit_improve < -1e-5) {
-          LOG_ERROR("approximate merit function got worse (%.3e). "
+          OMPL_WARN("approximate merit function got worse (%.3e). "
                     "(convexification is probably wrong to zeroth order)", approx_merit_improve);
         }
         if (approx_merit_improve < minApproxImprove_) {
-          LOG_INFO("converged because improvement was small (%.3e < %.3e)", approx_merit_improve, minApproxImprove_);
+          OMPL_DEBUG("converged because improvement was small (%.3e < %.3e)", approx_merit_improve, minApproxImprove_);
           retval = OPT_CONVERGED;
           x_ = new_x; // NOTE: added, since even though improvement was small, it should be kept.
           goto penaltyadjustment;
         }
         if (approx_merit_improve / old_merit < minApproxImproveFrac_) {
-          LOG_INFO(
+          OMPL_DEBUG(
               "converged because improvement ratio was small (%.3e < %.3e)",
               approx_merit_improve/old_merit, minApproxImproveFrac_);
           x_ = new_x; // NOTE: added; even though improvement ratio was small, it should be kept.
@@ -351,24 +351,24 @@ OptStatus BasicTrustRegionSQP::optimize() {
         }
         else if (exact_merit_improve < 0 || merit_improve_ratio < improve_ratio_threshold_) {
           adjustTrustRegion(trust_shrink_ratio_);
-          LOG_INFO("shrunk trust region. new box size: %.4f",
-              trust_box_size_);
+          OMPL_DEBUG("shrunk trust region. new box size: %.4f",
+                   trust_box_size_);
         } else {
           x_ = new_x;
           results_.cost_vals = new_cost_vals;
           results_.cnt_viols = new_cnt_viols;
           adjustTrustRegion(trust_expand_ratio_);
-          LOG_INFO("expanded trust region. new box size: %.4f",trust_box_size_);
+          OMPL_DEBUG("expanded trust region. new box size: %.4f",trust_box_size_);
           break;
         }
       }
 
       if (trust_box_size_ < minTrustBoxSize_) {
-        LOG_INFO("converged because trust region is tiny");
+        OMPL_DEBUG("converged because trust region is tiny");
         retval = OPT_CONVERGED;
         goto penaltyadjustment;
       } else if (iter >= maxIter_) {
-        LOG_INFO("iteration limit: iter %d, maxIter_ %f", iter, maxIter_);
+        OMPL_DEBUG("iteration limit: iter %d, maxIter_ %f", iter, maxIter_);
         return cleanup(OPT_SCO_ITERATION_LIMIT, x_);
       }
     }
@@ -376,16 +376,16 @@ OptStatus BasicTrustRegionSQP::optimize() {
     penaltyadjustment:
     if (results_.cnt_viols.empty() || vecMax(results_.cnt_viols) < cnt_tolerance_) {
       if (results_.cnt_viols.size() > 0) {
-          LOG_INFO("woo-hoo! constraints are satisfied (to tolerance %.2e)", cnt_tolerance_);
+          OMPL_DEBUG("woo-hoo! constraints are satisfied (to tolerance %.2e)", cnt_tolerance_);
       }
       return cleanup(retval, x_);
     } else {
-      LOG_INFO("not all constraints are satisfied. increasing penalties");
+      OMPL_DEBUG("not all constraints are satisfied. increasing penalties");
       merit_error_coeff_ *= merit_coeff_increase_ratio_;
       trust_box_size_ = fmax(trust_box_size_, minTrustBoxSize_ / trust_shrink_ratio_ * 1.5);
     }
   }
-  LOG_INFO("optimization couldn't satisfy all constraints");
+  OMPL_DEBUG("optimization couldn't satisfy all constraints");
   return cleanup(OPT_PENALTY_ITERATION_LIMIT, x_);
 }
 
@@ -393,7 +393,7 @@ OptStatus BasicTrustRegionSQP::cleanup(OptStatus retval, DblVec& x_) {
   assert(retval != INVALID && "should never happen");
   results_.status = retval;
   results_.total_cost = vecSum(results_.cost_vals);
-  LOG_INFO("\n==================\n%s==================", CSTR(results_));
+  //LOG_INFO("\n==================\n%s==================", CSTR(results_));
   callCallbacks(x_);
 
   return retval;
