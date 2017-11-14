@@ -24,6 +24,7 @@ int main(int argc, char** argv) {
   // int counter=0;
   while (true) {
     bpmpd_input bi;
+    fprintf(stderr, "BPMPD caller: Reading input from main code\n");
     ser(STDIN_FILENO, bi, DESER);
 
     int memsiz = 0;

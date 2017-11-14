@@ -50,6 +50,7 @@ if (NOT APPLE AND OMPL_HAVE_EIGEN3)
   list(APPEND SCO_SOURCE_FILES ${TRAJOPT_SOURCE_DIR}/bpmpd_interface.cpp)
 
   # This line works when compling with catkin (it puts the executable in a weird directory).
+  message("BPMPD Caller is set to \\\"${CMAKE_BINARY_DIR}/devel/lib/ompl/bpmpd_caller\\\", check if this is right")
   set_property(SOURCE ${TRAJOPT_SOURCE_DIR}/bpmpd_interface.cpp APPEND PROPERTY COMPILE_DEFINITIONS BPMPD_CALLER="\\\"${CMAKE_BINARY_DIR}/devel/lib/ompl/bpmpd_caller\\\"")
 
   # Uncomment this line if you are building for vanilla CMake.

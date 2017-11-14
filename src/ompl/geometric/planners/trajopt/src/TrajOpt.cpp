@@ -49,10 +49,15 @@
 #include "ompl/trajopt/optimizers.h"
 #include "ompl/trajopt/utils.h"
 
+#include "ompl/util/Console.h"
+
 ompl::geometric::TrajOpt::TrajOpt(const ompl::base::SpaceInformationPtr &si)
   : base::Planner(si, "TrajOpt") {
     // Make tmp file for the path at each iteration.
     fd = fopen("/tmp/tmpfile.txt", "w");
+    auto fileLog = new ompl::msg::OutputHandlerFile("/tmp/IHateThis.log");
+    ompl::msg::useOutputHandler(fileLog);
+    ompl::msg::setLogLevel(ompl::msg::LogLevel::LOG_DEV2);
 }
 
 // TODO: write
@@ -116,7 +121,6 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
                 sco::AffExpr(problem_->traj_vars_(nSteps_ - 1, i)), endVec[i]), sco::EQ);
     }
 
-    // TODO: for now, initial trajectory is a linear interpolation, make this configurable.
     trajopt::TrajArray ta(nSteps_, dof);
     for (size_t i = 0; i < nSteps_; i++) {
         for (int j = 0; j < dof; j++) {
@@ -132,6 +136,7 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
 
     // Finally, initialize the SQP/Model with all of the variables and costs/constraints.
     sqpOptimizer = new sco::BasicTrustRegionSQP(problem_);
+    fprintf(stderr, "Made the opt problem\n");
 
     sqpOptimizer->maxIter_ = maxIter_;
     sqpOptimizer->minApproxImproveFrac_ = minApproxImproveFrac_;
@@ -165,16 +170,19 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::solve(const ompl::base::Plan
     sco::OptResults &results = sqpOptimizer->results();
     switch(results.status) {
         case sco::OPT_CONVERGED: {
-            // TODO: check that the path actually is collision free.
-            // If not, return APPROXIMATE_SOlUTION.
             plotCallback(results.x);
             trajopt::TrajArray ta = trajopt::getTraj(results.x, problem_->GetVars());
             ompl::base::PlannerSolution solution(trajFromTraj2Ompl(ta));
+            ompl::geometric::PathGeometric *path = solution.path_->as<ompl::geometric::PathGeometric>();
+            if (si_->checkMotion(path->getStates(), path->getStates().size())) {
 
-            solution.setOptimized(pdef_->getOptimizationObjective(),
-                    ompl::base::Cost(results.total_cost), true);
-            pdef_->addSolutionPath(solution);
-            return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION);
+                solution.setOptimized(pdef_->getOptimizationObjective(),
+                                      ompl::base::Cost(results.total_cost), true);
+                pdef_->addSolutionPath(solution);
+                return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION);
+            } else {
+                return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION);
+            }
             break;
         }
 
@@ -215,7 +223,7 @@ void ompl::geometric::TrajOpt::setInitialTrajectory(ompl::geometric::PathGeometr
     auto ss = si_->getStateSpace();
 
     trajopt::TrajArray ta(nSteps_, dof);
-    for (int i = 0; i < nSteps_; i++) {
+    for (size_t i = 0; i < nSteps_; i++) {
         const ompl::base::State *state = inPath.getState(i);
         std::vector<double> startVec(dof);
         std::vector<double> stateVec;

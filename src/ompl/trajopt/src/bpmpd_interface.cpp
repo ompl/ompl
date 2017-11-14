@@ -174,7 +174,7 @@ pid_t popen2(const char *command, int *infp, int *outfp)
     if (pipe(p_stdin) != 0 || pipe(p_stdout) != 0)
         return -1;
 
-    pid = fork();
+    pid = vfork();
 
     if (pid < 0) {
       assert(0);
@@ -183,24 +183,54 @@ pid_t popen2(const char *command, int *infp, int *outfp)
     else if (pid == 0)
     {
         close(p_stdin[WRITE]);
-        dup2(p_stdin[READ], READ);
+        // In the BPMPD_CALLER process
+        // close fileno(stdin) and redirect the stdin pipe's file description to be fileno(stdin).
+        int ret = dup2(p_stdin[READ], READ);
+        if (ret == -1)
+        {
+            int errdup = errno;
+            fprintf(stderr, "dup2 on p_stdin[READ] failed: %s\n", strerror(errdup));
+        } else
+        {
+            fprintf(stderr, "fd %d now points to the same source as %d\n", READ, p_stdin[READ]);
+        }
         close(p_stdout[READ]);
-        dup2(p_stdout[WRITE], WRITE);
+        ret = dup2(p_stdout[WRITE], WRITE);
+        if (ret == -1)
+        {
+            int errdup = errno;
+            fprintf(stderr, "dup2 on p_stdin[READ] failed: %s\n", strerror(errdup));
+        } else
+        {
+            fprintf(stderr, "fd %d now points to the same source as %d\n", WRITE, p_stdout[WRITE]);
+        }
 
         execl("/bin/sh", "sh", "-c", command, NULL);
-        perror("execl");
+        perror("execl failed to start BPMPD caller");
         exit(1);
     }
 
     if (infp == NULL)
+    {
+        fprintf(stderr, "closing the WRITE end of the stdin pipe\n");
         close(p_stdin[WRITE]);
+    }
     else
+    {
+        fprintf(stderr, "infp is now %d\n", p_stdin[WRITE]);
         *infp = p_stdin[WRITE];
+    }
 
     if (outfp == NULL)
+    {
+        fprintf(stderr, "closing READ end of the stdout pipe\n");
         close(p_stdout[READ]);
+    }
     else
+    {
+        fprintf(stderr, "outfp is now %d\n", p_stdout[READ]);
         *outfp = p_stdout[READ];
+    }
 
     return pid;
 }
@@ -212,7 +242,6 @@ void fexit() {
   char text[1] = {EXIT_CHAR};
   int n = write(gPipeIn, text, 1);
   ALWAYS_ASSERT(n==1);
-
 }
 
 BPMPDModel::BPMPDModel() : m_pipeIn(0), m_pipeOut(0) {
@@ -351,7 +380,7 @@ CvxOptStatus BPMPDModel::optimize() {
   vector< vector<double> > var2cntvals(n);
   for (size_t iCnt=0; iCnt < m; ++iCnt) {
     const AffExpr& aff = m_cntExprs[iCnt];
-    OMPL_DEVMSG1("BPMPD: Constraint expression: %s", CSTR(aff));
+    /*OMPL_DEVMSG1*/fprintf(stderr, "BPMPD: Constraint expression: %s", CSTR(aff));
     vector<int> inds = vars2inds(aff.vars);
 
     for (size_t i=0; i < aff.vars.size(); ++i) {
@@ -377,7 +406,7 @@ CvxOptStatus BPMPDModel::optimize() {
   vector< vector<double> > var2qcoeffs(n);
   vector< vector<int> > var2qinds(n);
 
-  OMPL_DEVMSG1("BPMPD: Objective: %s", CSTR(m_objective));
+  /*OMPL_DEVMSG1*/fprintf(stderr, "BPMPD: Objective: %s", CSTR(m_objective));
   for (size_t i=0; i < m_objective.size(); ++i) {
     int idx1 = m_objective.vars1[i].var_rep->index, idx2 = m_objective.vars2[i].var_rep->index;
     if (idx1 < idx2) {
@@ -454,6 +483,7 @@ CvxOptStatus BPMPDModel::optimize() {
 #else
 
   bpmpd_input bi(m,n,nz, qn, qnz, acolcnt, acolidx, acolnzs, qcolcnt, qcolidx, qcolnzs, rhs, obj, lbound, ubound);
+  fprintf(stderr, "Communicating opt problem to bpmpd caller\n");
   ser(gPipeIn, bi, SER);
 
   // std::cout << "serialization time:" << end-start << std::endl;
