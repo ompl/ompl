@@ -200,7 +200,8 @@ pid_t popen2(const char *command, int *infp, int *outfp)
         {
             int errdup = errno;
             fprintf(stderr, "dup2 on p_stdin[READ] failed: %s\n", strerror(errdup));
-        } else
+        }
+        else
         {
             fprintf(stderr, "fd %d now points to the same source as %d\n", WRITE, p_stdout[WRITE]);
         }
@@ -526,7 +527,7 @@ void BPMPDModel::setObjective(const QuadExpr& expr)
     m_objective = expr;
 }
 
-void BPMPDModel::addToObjective(const AffExpr &expr)
+/*void BPMPDModel::addToObjective(const AffExpr &expr)
 {
     m_objective = exprAdd(m_objective, expr);
 }
@@ -534,7 +535,7 @@ void BPMPDModel::addToObjective(const AffExpr &expr)
 void BPMPDModel::addToObjective(const QuadExpr& expr)
 {
     m_objective = exprAdd(m_objective, expr);
-}
+}*/
 
 void BPMPDModel::writeToFile(const string& fname) {
     FILE* crash_fd = fopen(fname.c_str(), "w");

@@ -36,8 +36,8 @@ public:
   virtual CvxOptStatus optimize();
   virtual void setObjective(const AffExpr&);
   virtual void setObjective(const QuadExpr&);
-  virtual void addToObjective(const AffExpr&);
-  virtual void addToObjective(const QuadExpr&);
+  //virtual void addToObjective(const AffExpr&);
+  //virtual void addToObjective(const QuadExpr&);
   virtual void writeToFile(const string& fname);
   virtual VarVector getVars() const;
 

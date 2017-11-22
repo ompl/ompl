@@ -68,10 +68,10 @@ public:
   virtual void setObjective(const QuadExpr&)=0;
 
   /** \brief Adds the given experssion to the currently defined objective function. */
-  virtual void addToObjective(const AffExpr&)=0;
+  //virtual void addToObjective(const AffExpr&)=0;
 
   /** \brief Adds the given experssion to the currently defined objective function. */
-  virtual void addToObjective(const QuadExpr&)=0;
+  //virtual void addToObjective(const QuadExpr&)=0;
 
   virtual void writeToFile(const string& fname)=0;
 

@@ -105,6 +105,15 @@ if (EIGEN3_FOUND)
     include_directories("${EIGEN3_INCLUDE_DIR}")
 endif()
 
+# Gurobi is needed (but needs to be changed out TODO) for TrajOpt
+find_package(GUROBI)
+if (NOT GUROBI_FOUND)
+    message("Gurobi not found. TrajOpt will not work on ROS")
+else()
+    message("Gurobi found")
+    include_directories(${GUROBI_INCLUDE_DIRS})
+endif()
+
 # MORSE is only needed for Modular OpenRobots Simulation Engine bindings
 find_package(MORSE QUIET)
 set(OMPL_EXTENSION_MORSE ${MORSE_FOUND})

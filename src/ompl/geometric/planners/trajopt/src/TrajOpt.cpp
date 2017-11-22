@@ -42,6 +42,7 @@
 #include "ompl/base/goals/GoalLazySamples.h"
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/objectives/ConvexifiableOptimization.h"
+#include "ompl/base/PlannerTerminationCondition.h"
 
 #include "ompl/trajopt/typedefs.h"
 #include "ompl/trajopt/expr_ops.h"
@@ -99,11 +100,22 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
         OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
+    if (!goalRegion->canSample()) {
+        //TODO
+        OMPL_ERROR("TODO?");
+    }
 
     pis_.update();
     //printf("pis_.haveMoreStartStates: %s", pis_.haveMoreStartStates() ? "true": "false");
     const ompl::base::State *start = pis_.nextStart();
-    const ompl::base::State *goal = pis_.nextGoal();
+    const ompl::base::State *goal = pis_.nextGoal(ompl::base::timedPlannerTerminationCondition(1.0));
+    if (goal == nullptr) {
+        goal = pis_.nextGoal(); // try again
+        if (goal == nullptr) {
+            OMPL_ERROR("Goal is null? %p", goal);
+        }
+    }
+    OMPL_INFORM("Goal is %p", goal);
 
     int dof = si_->getStateDimension();
 

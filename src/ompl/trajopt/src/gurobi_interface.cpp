@@ -1,5 +1,4 @@
 
-#include <boost/foreach.h>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -10,7 +9,7 @@
 #include "ompl/trajopt/gurobi_interface.h"
 #include "ompl/trajopt/logging.h"
 extern "C" {
-#include "ompl/trajopt/gurobi_c.h"
+#include "gurobi_c.h"
 }
 #include "ompl/trajopt/sco_common.h"
 #include "ompl/trajopt/macros.h"
@@ -75,6 +74,7 @@ ModelPtr createGurobiModel() {
 }
 
 GurobiModel::GurobiModel() {
+  fprintf(stderr, "Creating a Gurobi Model\n");
   if (!gEnv) {
     GRBloadenv(&gEnv, NULL);
     if (util::GetLogLevel() < util::LevelDebug) {
@@ -225,17 +225,24 @@ void GurobiModel::setObjective(const QuadExpr& quad_expr) {
       const_cast<int*>(inds2.data()), const_cast<double*>(quad_expr.coeffs.data()));
 }
 
+/*void GurobiModel::addToObjective(const AffExpr &expr) {
+
+}
+
+void GurobiModel::addToObjective(const QuadExpr &expr) {
+
+}*/
+
 void GurobiModel::writeToFile(const string& fname) {
   ENSURE_SUCCESS(GRBwrite(m_model, fname.c_str()));
 }
-
 
 void GurobiModel::update() {
   ENSURE_SUCCESS(GRBupdatemodel(m_model));
 
   {
   int inew = 0;
-  BOOST_FOREACH(const Var& var, m_vars) {
+  for (const Var& var: m_vars) {
     if (!var.var_rep->removed) {
       m_vars[inew] = var;
       var.var_rep->index = inew;
@@ -247,7 +254,7 @@ void GurobiModel::update() {
   }
   {
   int inew = 0;
-  BOOST_FOREACH(const Cnt& cnt, m_cnts) {
+  for (const Cnt& cnt: m_cnts) {
     if (!cnt.cnt_rep->removed) {
       m_cnts[inew] = cnt;
       cnt.cnt_rep->index = inew;

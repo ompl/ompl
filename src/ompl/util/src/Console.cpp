@@ -129,7 +129,10 @@ void ompl::msg::log(const char *file, int line, LogLevel level, const char *m, .
         va_end(__ap);
         buf[MAX_BUFFER_SIZE - 1] = '\0';
 
-        doh->output_handler_->log(buf, level, file, line);
+        //doh->output_handler_->log(buf, level, file, line);
+        fprintf(stderr, buf);
+        fprintf(stderr, "\n");
+
     }
 }
 

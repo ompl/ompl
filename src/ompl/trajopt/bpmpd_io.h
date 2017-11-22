@@ -105,9 +105,6 @@ void ser(int fp, bpmpd_input & bi, SerMode mode) {
   ser(fp,bi.ubound,mode);
 }
 
-
-
-
 struct bpmpd_output
 {
 
@@ -141,8 +138,6 @@ void ser(int fp, bpmpd_output & bo, SerMode mode)
 
 }
 
-
 #pragma GCC diagnostic pop
-
 
 }

@@ -20,6 +20,9 @@ file(GLOB_RECURSE OMPL_SOURCE_CODE
     #trajopt/*.cpp
 )
 
+
+####### TRAJOPT Specific stuff ##############
+
 set(TRAJOPT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/trajopt/src)
 
 set(SCO_SOURCE_FILES
@@ -61,9 +64,23 @@ if (NOT APPLE AND OMPL_HAVE_EIGEN3)
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/trajopt/bpmpd.par DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
   set_property(SOURCE ${TRAJOPT_SOURCE_DIR}/solver_interface.cpp APPEND PROPERTY COMPILE_DEFINITIONS HAVE_BPMPD )
+  if (GUROBI_FOUND)
+      set_property(SOURCE ${TRAJOPT_SOURCE_DIR}/solver_interface.cpp APPEND PROPERTY COMPILE_DEFINITIONS HAVE_GUROBI)
+      list(APPEND SCO_SOURCE_FILES ${TRAJOPT_SOURCE_DIR}/gurobi_interface.cpp)
+  endif(GUROBI_FOUND)
+
   add_library(sco ${SCO_SOURCE_FILES})
-  target_link_libraries(sco ${BPMPD_LIBRARY})
+
+  set (SCO_LINK_LIBS ${BPMPD_LIBRARY})
+  if (GUROBI_FOUND)
+      list(APPEND SCO_LINK_LIBS ${GUROBI_LIBRARIES})
+  endif()
+
+  target_link_libraries(sco ${SCO_LINK_LIBS})
 endif()
+
+
+######### END TRAJOPT Specific ##################
 
 if(NOT OMPL_HAVE_EIGEN3)
     list(REMOVE_ITEM OMPL_SOURCE_CODE
