@@ -174,6 +174,7 @@ pid_t popen2(const char *command, int *infp, int *outfp)
     if (pipe(p_stdin) != 0 || pipe(p_stdout) != 0)
         return -1;
 
+    // TODO: before this point, make the shared objects to pass over, and lock them all.
     pid = vfork();
 
     if (pid < 0) {
@@ -246,6 +247,7 @@ void fexit() {
 }
 
 BPMPDModel::BPMPDModel() : m_pipeIn(0), m_pipeOut(0) {
+  fprintf(stderr, "Creating a BPMPDModel: SHOULD NOT HAPPEN");
   if (gPID == 0) {
     atexit(fexit);
     gPID = popen2(BPMPD_CALLER, &gPipeIn, &gPipeOut);

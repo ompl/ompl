@@ -284,12 +284,15 @@ const ompl::base::State *ompl::base::PlannerInputStates::nextGoal(const PlannerT
         {
             attempt = false;
 
+            OMPL_INFORM("Sampled Goals: %d, max sample count: %d, can sample: %s",
+                        sampledGoalsCount_, goal->maxSampleCount(), (goal->canSample()) ? "true": "false");
             if (sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample())
             {
                 if (tempState_ == nullptr)
                     tempState_ = si_->allocState();
                 do
                 {
+                    OMPL_DEBUG("Sampling goals");
                     goal->sampleGoal(tempState_);
                     sampledGoalsCount_++;
                     bool bounds = si_->satisfiesBounds(tempState_);
@@ -316,6 +319,7 @@ const ompl::base::State *ompl::base::PlannerInputStates::nextGoal(const PlannerT
             }
             if (goal->couldSample() && !ptc)
             {
+                OMPL_DEBUG("Goal couldSample, about to wait for goal states");
                 if (first)
                 {
                     first = false;
@@ -327,6 +331,8 @@ const ompl::base::State *ompl::base::PlannerInputStates::nextGoal(const PlannerT
                 attempt = !ptc;
             }
         }
+    } else {
+        OMPL_ERROR("PIS: Cannot sample from goal");
     }
 
     return nullptr;

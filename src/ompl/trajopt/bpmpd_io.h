@@ -20,6 +20,7 @@ enum SerMode {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
+//TODO: replace these calls to ser with writes to the shared memory
 template <typename T>
 void ser(int fp, T& x, SerMode mode) {
   switch (mode) {
@@ -117,6 +118,9 @@ struct bpmpd_output
     primal(primal), dual(dual), status(status), code(code), opt(opt) {}
 };
 
+// TODO replace this call with calls to the new smaller sers that write to shared memory,
+// and at the end of this one, if the mode is write, then unlock the memory so the other
+// process can read it.
 void ser(int fp, bpmpd_output & bo, SerMode mode)
 {
   char scorrect=CHECK_CHAR, s=(mode==SER) ? scorrect : 0;

@@ -56,9 +56,11 @@ ompl::geometric::TrajOpt::TrajOpt(const ompl::base::SpaceInformationPtr &si)
   : base::Planner(si, "TrajOpt") {
     // Make tmp file for the path at each iteration.
     fd = fopen("/tmp/tmpfile.txt", "w");
+    OMPL_WARN("Before setting new output handler");
     auto fileLog = new ompl::msg::OutputHandlerFile("/tmp/IHateThis.log");
     ompl::msg::useOutputHandler(fileLog);
     ompl::msg::setLogLevel(ompl::msg::LogLevel::LOG_DEV2);
+    OMPL_WARN("After setting new output handler");
 }
 
 // TODO: write
@@ -148,7 +150,7 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
 
     // Finally, initialize the SQP/Model with all of the variables and costs/constraints.
     sqpOptimizer = new sco::BasicTrustRegionSQP(problem_);
-    fprintf(stderr, "Made the opt problem\n");
+    //fprintf(stderr, "Made the opt problem\n");
 
     sqpOptimizer->maxIter_ = maxIter_;
     sqpOptimizer->minApproxImproveFrac_ = minApproxImproveFrac_;
