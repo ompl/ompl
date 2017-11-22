@@ -71,11 +71,16 @@ namespace ompl
          *        gradient.
          */
         struct JacobianCollisionEvaluator {
+            JacobianCollisionEvaluator(JacobianFn J) : J_(J) {}
+
             sco::AffExpr distExprFromOne(double signedDist, Eigen::Vector3d normal, Eigen::Vector3d point, Eigen::MatrixXd j, std::vector<double> x_0, std::vector<sco::Var> vars);
             virtual std::vector<sco::AffExpr> calcDistanceExpressions(std::vector<double> x) = 0;
             virtual std::vector<double> calcDistances(std::vector<double> x) = 0;
             ~JacobianCollisionEvaluator() {}
             virtual sco::VarVector getVars() = 0;
+
+
+            JacobianFn J_;
         };
 
         struct JacobianDiscreteCollisionEvaluator : public JacobianCollisionEvaluator {
@@ -104,7 +109,6 @@ namespace ompl
 
             WorkspaceCollisionFn inCollision_;
             StateSpacePtr ss_;
-            JacobianFn J_;
             sco::VarVector vars_;
         };
 
@@ -133,7 +137,6 @@ namespace ompl
 
             WorkspaceContinuousCollisionFn inCollision_;
             StateSpacePtr ss_;
-            JacobianFn J_;
             sco::VarVector vars0_;
             sco::VarVector vars1_;
         };
