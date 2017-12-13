@@ -30,7 +30,6 @@ matrix:
       env: JOBS=2 TEST_EXCLUDE='test_(machine_specs|random)'
       cache:
         directories:
-          - ${HOME}/castxml
           - /usr/local
     - os: linux
       sudo: required
@@ -49,10 +48,7 @@ install:
     fi
   - if [ -z "$DOCKERFILE" -a "$TRAVIS_OS_NAME" = "osx" ]; then
       brew update;
-      brew install boost-python ode eigen python cmake;
-      if [ ! -e ${HOME}/castxml/bin/castxml ]; then
-        curl https://midas3.kitware.com/midas/download/item/318762/castxml-macosx.tar.gz | tar zxf - -C ${HOME};
-      fi;
+      brew install boost-python ode eigen python cmake castxml;
     fi
   - if [ -z "$DOCKERFILE" -a "$TRAVIS_OS_NAME" = "linux" ]; then
       sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;
@@ -62,7 +58,7 @@ install:
       wget -O - https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar zxf - -C ${HOME};
     fi
   - if [ -z "$DOCKERFILE" ]; then
-      sudo -H pip -v install pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.8.0.tar.gz;
+      sudo -H pip -v install pygccxml pyplusplus;
     fi
 
 
