@@ -113,7 +113,7 @@ if __name__ == "__main__":
 ~~~
 
 
-# Creating boost::function objects from Python functions {#pyfunction_to_stdfunction}
+# Creating std::function objects from Python functions {#pyfunction_to_stdfunction}
 
 OMPL relies heavily on std::function objects for callback functions. To specify a Python function as a callback function, that function needs to be cast to the right function type. The simple example above already showed how to do this for a state validity checker function:
 
