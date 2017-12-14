@@ -48,7 +48,7 @@ install:
     fi
   - if [ -z "$DOCKERFILE" -a "$TRAVIS_OS_NAME" = "osx" ]; then
       brew update;
-      brew install boost-python ode eigen python cmake castxml;
+      brew install boost-python ode eigen castxml;
     fi
   - if [ -z "$DOCKERFILE" -a "$TRAVIS_OS_NAME" = "linux" ]; then
       sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;
