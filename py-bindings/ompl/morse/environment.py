@@ -35,7 +35,6 @@
 # Author: Caleb Voss
 
 import math
-import socket
 import pickle
 
 from ompl import base as ob
@@ -118,7 +117,7 @@ class MyEnvironment(om.MorseEnvironment):
         rb = self.call('getRigidBodiesBounds()', b'')
         if not rb:
             raise Exception("Can't communicate with MORSE process")
-        for i in [1,2,3]:
+        for i in [1, 2, 3]:
             # Make them suitable for sending to the C++ constructor
             rb[i] = list2vec(rb[i])
 
@@ -295,7 +294,6 @@ class ExampleProjection(om.MorseProjection):
     ##
     # \brief Dimension of the projection space
     def getDimension(self):
-
         # We're only interested in x,y position
         return 2
 
@@ -304,7 +302,7 @@ class ExampleProjection(om.MorseProjection):
     def defaultCellSizes(self):
 
         # Cells will measure 1 Blender unit by 1 Blender unit
-        self.cellSizes_ = list2vec([1,1])
+        self.cellSizes_ = list2vec([1, 1])
 
     ##
     # \brief Get the projected coordinates of a state
@@ -342,14 +340,12 @@ class MyGoal(om.MorseGoal):
     ##
     # \brief How close are these rigid body states in position?
     def distLoc(self, st, loc):
-
         # Compoute Euclidean distance
         return math.sqrt(sum((st[i]-loc[i])**2 for i in range(3)))
 
     ##
     # \brief How close are these rigid body states in orientation?
     def distRot(self, st, rot):
-
         # 1-(<q1,q2>^2) where <q1,q2> is the inner product of the quaternions;
         #   yields a value in [0,1] where 0 means quats are the same
         return 1 - sum(st[i]*rot[i] for i in range(4))**2
@@ -369,7 +365,7 @@ class MyGoal(om.MorseGoal):
                 # This is a LocRot goal; get positional and rotational distance
                 quat = state[4*crit[0]+3]
                 stateTup = (state[4*crit[0]+0], (quat.w, quat.x, quat.y, quat.z))
-                (dl,dr) = self.distLocRot(stateTup, crit[1])
+                (dl, dr) = self.distLocRot(stateTup, crit[1])
 
                 # Check tolerances for satisfaction
                 if dl > crit[2] or dr > crit[3]:
@@ -402,4 +398,3 @@ class MyGoal(om.MorseGoal):
 
         # Whether any criterion was not satisfied
         return sat
-

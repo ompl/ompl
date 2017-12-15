@@ -41,20 +41,18 @@ from functools import partial
 try:
     from ompl import base as ob
     from ompl import control as oc
-    from ompl import geometric as og
-except:
+except ModuleNotFoundError:
     # if the ompl module is not in the PYTHONPATH assume it is installed in a
     # subdirectory of the parent directory called "py-bindings."
     from os.path import abspath, dirname, join
     import sys
-    sys.path.insert(0, join(dirname(dirname(abspath(__file__))),'py-bindings'))
+    sys.path.insert(0, join(dirname(dirname(abspath(__file__))), 'py-bindings'))
     from ompl import base as ob
     from ompl import control as oc
-    from ompl import geometric as og
 
 def kinematicCarODE(q, u, qdot):
-    theta = q[2];
-    carLength = 0.2;
+    theta = q[2]
+    carLength = 0.2
     qdot[0] = u[0] * cos(theta)
     qdot[1] = u[0] * sin(theta)
     qdot[2] = u[0] * tan(u[1]) / carLength
@@ -95,15 +93,15 @@ def plan():
 
     # create a start state
     start = ob.State(space)
-    start().setX(-0.5);
-    start().setY(0.0);
-    start().setYaw(0.0);
+    start().setX(-0.5)
+    start().setY(0.0)
+    start().setYaw(0.0)
 
     # create a goal state
-    goal = ob.State(space);
-    goal().setX(0.0);
-    goal().setY(0.5);
-    goal().setYaw(0.0);
+    goal = ob.State(space)
+    goal().setX(0.0)
+    goal().setY(0.5)
+    goal().setYaw(0.0)
 
     # set the start and goal states
     ss.setStartAndGoalStates(start, goal, 0.05)

@@ -43,24 +43,23 @@
 #       /path/to/KinematicChainPathPlot.py 10 # produces kinematic_10.pdf
 #       /path/to/KinematicChainPathPlot.py 10 movie # produces kinematic_10.mp4
 
-from sys import argv, exit
+from sys import argv
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches  import PathPatch
 from matplotlib.path import Path
 from matplotlib import animation, cm, colors
-from matplotlib.backends.backend_pdf import PdfPages
 
 fig = plt.figure()
 plt.axis('equal')
 ax = plt.axes(xlim=(-1, 1), ylim=(-1, 1))
 ln, = plt.plot([], [], animated=True)
 
-def getPositions(pose, linkLength, color = 'red'):
+def getPositions(pose, linkLength, color='red'):
     angles = np.cumsum(pose)
     return PathPatch(Path(
-        np.insert(linkLength * np.cumsum([np.cos(angles), np.sin(angles)],
-            axis = 1), 0, 0., axis = 1).T), facecolor='none', edgecolor = color)
+        np.insert(linkLength * np.cumsum([np.cos(angles), np.sin(angles)], \
+            axis=1), 0, 0., axis=1).T), facecolor='none', edgecolor=color)
 
 def drawEnvironment(env):
     ax.clear()
@@ -70,20 +69,20 @@ def drawPose(index, env, poses, linkLength):
     drawEnvironment(env)
     if index == -1:
         cMap = cm.ScalarMappable(
-            norm = colors.Normalize(vmin=0, vmax=poses.shape[0] - 1),
-            cmap = plt.get_cmap('viridis') )
-        for (i,pose) in enumerate(poses):
-            plt.gca().add_patch(getPositions(pose, linkLength,
+            norm=colors.Normalize(vmin=0, vmax=poses.shape[0] - 1),
+            cmap=plt.get_cmap('viridis'))
+        for (i, pose) in enumerate(poses):
+            plt.gca().add_patch(getPositions(pose, linkLength, \
                 cMap.to_rgba(i)))
     else:
-        plt.gca().add_patch(getPositions(poses[index,:], linkLength))
+        plt.gca().add_patch(getPositions(poses[index, :], linkLength))
         return ln,
 
 def makeMovie(fname, env, poses, linkLength):
-    ani = animation.FuncAnimation(plt.gcf(), drawPose,
-        fargs=(env, poses, linkLength), frames = poses.shape[0],
-        blit = True)
-    ani.save(fname, bitrate = 300, fps = 20)
+    ani = animation.FuncAnimation(plt.gcf(), drawPose, \
+        fargs=(env, poses, linkLength), frames=poses.shape[0], \
+        blit=True)
+    ani.save(fname, bitrate=300, fps=20)
 
 if __name__ == '__main__':
     if len(argv) < 2:

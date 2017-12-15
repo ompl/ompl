@@ -40,7 +40,6 @@
 #  the external script
 
 import sys
-import os
 import subprocess
 import inspect
 import socket
@@ -144,7 +143,7 @@ def getGoalCriteria():
     rigidNames = list(map(lambda o: o.name, rigidObjects))
 
     # For each goal object
-    for (gbody,gameobj) in goalObjects:
+    for (gbody, gameobj) in goalObjects:
         try:
             # Which rigid body does it correspond to?
             j = gbody.name.rfind('.')
@@ -152,15 +151,15 @@ def getGoalCriteria():
 
             if gbody.name.endswith('.goalPose'):
                 # If it's a pose, use location and rotation
-                crit.append((i,getGoalLocRotState(gameobj),gbody['locTol'],gbody['rotTol']))
+                crit.append((i, getGoalLocRotState(gameobj), gbody['locTol'], gbody['rotTol']))
 
             elif gbody.name.endswith('.goalRot'):
                 # If it's a rotationm use rotation only
-                crit.append((i,getGoalRotState(gameobj),gbody['rotTol']))
+                crit.append((i, getGoalRotState(gameobj), gbody['rotTol']))
 
             else:
                 # If it's a region, get location only
-                crit.append((i,getGoalRegionState(gameobj)))
+                crit.append((i, getGoalRegionState(gameobj)))
 
         except ValueError:
             # Goal specification for non-existent body
@@ -187,8 +186,9 @@ def goalRegionSatisfied():
         sensor = obj.sensors["__collision"]
         if not sensor.hitObject:
             # If no collision, check if it's entirely inside using a ray cast
-            (hit, point, normal) = obj.rayCast(obj, bge.logic.getCurrentScene().objects[sensor.propName],
-                                               0, sensor.propName, 1, 1, 0)
+            (hit, point, normal) = obj.rayCast(obj, \
+                bge.logic.getCurrentScene().objects[sensor.propName], \
+                0, sensor.propName, 1, 1, 0)
             # If we're on the inside, the first face we hit should be facing away from us
             if not hit or sum(normal[i]*(obj.worldPosition[i]-point[i]) for i in range(3)) > 0:
                 return False
@@ -211,7 +211,7 @@ def getControlDescription():
                         if svc == 'set_property':
                             continue
                         # Add info to the description
-                        n = len(inspect.getargspec(inst._services[cname,svc][0])[0]) - 1
+                        n = len(inspect.getargspec(inst._services[cname, svc][0])[0]) - 1
                         if n == 0: # Services like stop() aren't really helpful to OMPL
                             continue
                         # Fill it in backwards
@@ -219,7 +219,7 @@ def getControlDescription():
                         desc[0] += n
 
     # Fill in the control bounds at the beginning
-    for i in range(min(16,desc[0])):
+    for i in range(min(16, desc[0])):
         desc[1] += [settings['cbm%i'%i], settings['cbM%i'%i]]
 
     # Send the encoded description
@@ -256,7 +256,7 @@ def getRigidBodiesBounds():
         dx = MX-mY
         dy = MY-mY
         dz = MZ-mZ
-        dM = max(dx,dy,dz)
+        dM = max(dx, dy, dz)
         dx = dx/10.0 + dM/100.0
         dy = dy/10.0 + dM/100.0
         dz = dz/10.0 + dM/100.0
@@ -268,8 +268,7 @@ def getRigidBodiesBounds():
         MZ += dz
 
         print("OMPL: Inferred position bounds [[%f,%f],[%f,%f],[%f,%f]]"
-              % (mX,MX,mY,MY,mZ,MZ))
-        
+              % (mX, MX, mY, MY, mZ, MZ))
     else:
 
         # Use user-specified positional bounds
@@ -334,8 +333,8 @@ def endSimulation():
         # Mark unwanted objects for deletion; set the active camera
         toDelete = []
         for obj in bpy.context.scene.objects:
-            if obj.name in ['Scene_Script_Holder','CameraFP',
-                            'ompl_settings','MORSE.Properties',
+            if obj.name in ['Scene_Script_Holder', 'CameraFP',
+                            'ompl_settings', 'MORSE.Properties',
                             '__morse_dt_analyser']:
                 toDelete.append(obj)
             elif obj.name == 'Camera':
@@ -353,7 +352,7 @@ def endSimulation():
             txt = bpy.data.texts.get(txt)
             if txt:
                 bpy.data.texts.remove(txt)
-            
+
         # Save animation curves to tmp file
         print("OMPL: Writing to tmp file '" + animtmppath + "'")
         bpy.ops.wm.save_mainfile(filepath=animtmppath, check_existing=False)
@@ -395,8 +394,8 @@ def submitState():
     sock.sendall(b'\x06')
 
     # Load the state into the Game Engine, one object at a time
-    for i in range(len(s)):
-        setObjState(rigidObjects[i], s[i])
+    for (i, state) in enumerate(s):
+        setObjState(rigidObjects[i], state)
 
     return True
 
@@ -425,12 +424,13 @@ def spawn_planner():
 
     if mode != 'QUERY':
         # Pass the name of the output (or input) file
-        subprocess.Popen(['env', sys.executable, '-P', OMPL_DIR + f, '--', bpy.data.objects['ompl_settings']['Outpath']])
+        subprocess.Popen(['env', sys.executable, '-P', OMPL_DIR + f, '--', \
+            bpy.data.objects['ompl_settings']['Outpath']])
 
     # Make a connection
     s.listen(0)
     global sock
-    sock, addr = s.accept()
+    sock, _ = s.accept()
 
 ##
 # \brief This function is run during MORSE simulation between every
@@ -488,7 +488,7 @@ def main():
                 continue
 
             # Check if it's named as a goal criterion
-            if [True for goalStr in ['.goalPose','.goalRegion','.goalRot'] if gameobj.name.endswith(goalStr)]:
+            if [True for goalStr in ['.goalPose', '.goalRegion', '.goalRot'] if gameobj.name.endswith(goalStr)]:
                 print("\t> goal criterion " + gameobj.name)
 
                 if gameobj.name.endswith('.goalRegion'):
@@ -499,7 +499,7 @@ def main():
                     body[body.name] = True
                     goalRegionObjects.append(gameobj)
 
-                goalObjects.append((obj,gameobj))
+                goalObjects.append((obj, gameobj))
 
             elif obj.game.physics_type == 'RIGID_BODY':
 
@@ -507,14 +507,14 @@ def main():
                 parent = gameobj.parent
                 goal_child = False
                 while parent:
-                    if [True for goalStr in ['.goalPose','.goalRegion','.goalRot']
+                    if [True for goalStr in ['.goalPose', '.goalRegion', '.goalRot'] \
                       if parent.name.endswith(goalStr)]:
-                        goal_child  = True
+                        goal_child = True
                         break
                     parent = parent.parent
 
                 if not goal_child:
-                    print("[%i] rigid body %s" % (len(rigidObjects),gameobj.name))
+                    print("[%i] rigid body %s" % (len(rigidObjects), gameobj.name))
                     rigidObjects.append(gameobj)
 
         # Reset terminal colors
@@ -526,6 +526,3 @@ def main():
     if sock:
         # Handle requests from the planner
         communicate()
-
-
-
