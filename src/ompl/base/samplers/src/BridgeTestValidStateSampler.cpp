@@ -39,7 +39,7 @@ bool ompl::base::BridgeTestValidStateSampler::sample(State *state)
             }
         }
         ++attempts;
-    } while (valid && attempts < attempts_);
+    } while (!valid && attempts < attempts_);
 
     si_->freeState(endpoint);
     return valid;
@@ -65,7 +65,7 @@ bool ompl::base::BridgeTestValidStateSampler::sampleNear(State *state, const Sta
             }
         }
         ++attempts;
-    } while (valid && attempts < attempts_);
+    } while (!valid && attempts < attempts_);
 
     si_->freeState(endpoint);
     return valid;
