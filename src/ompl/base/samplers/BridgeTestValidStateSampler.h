@@ -1,7 +1,10 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2017, 
+*  National Institute of Advanced Industrial Science and
+*  Technology (AIST)
+*
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,9 +17,10 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
+*   * Neither the name of the National Institute of Advanced Industrial 
+*     Science and Technology nor the names of its contributors may be 
+*     used to endorse or promote products derived from this software 
+*     without specific prior written permission.
 *
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -32,10 +36,13 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#pragma once
+/* Author: Andreas Orthey */
 
-#include <ompl/base/ValidStateSampler.h>
-#include <ompl/base/StateSampler.h>
+#ifndef OMPL_BASE_SAMPLERS_BRIDGE_TEST_VALID_STATE_SAMPLER_
+#define OMPL_BASE_SAMPLERS_BRIDGE_TEST_VALID_STATE_SAMPLER_
+
+#include "ompl/base/ValidStateSampler.h"
+#include "ompl/base/StateSampler.h"
 
 namespace ompl
 {
@@ -49,7 +56,7 @@ namespace ompl
             Hsu, D., Jiang, T., Reif, J., & Sun, Z., The bridge test for sampling narrow
             passages with probabilistic roadmap planners. In <em>Robotics and
             Automation</em>, 2003. 
-            [[URL]](ftp://www-cs-faculty.stanford.edu/cs/robotics/pub/dyhsu/papers/icra03.pdf)
+            [[URL]](http://dx.doi.org/10.1109/ROBOT.2003.1242285)
 
         */
 
@@ -89,3 +96,4 @@ namespace ompl
         };
     }
 }
+#endif
