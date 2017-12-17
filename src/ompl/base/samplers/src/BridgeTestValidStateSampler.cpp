@@ -2,21 +2,14 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/tools/config/MagicConstants.h"
 
-
 ompl::base::BridgeTestValidStateSampler::BridgeTestValidStateSampler(const SpaceInformation *si)
-  : ValidStateSampler(si), sampler_(si->allocStateSampler())
-    , stddev_(si->getMaximumExtent() * magic::STD_DEV_AS_SPACE_EXTENT_FRACTION)
+  : ValidStateSampler(si)
+  , sampler_(si->allocStateSampler())
+  , stddev_(si->getMaximumExtent() * magic::STD_DEV_AS_SPACE_EXTENT_FRACTION)
 {
     name_ = "bridge_test";
-    params_.declareParam<double>("standard_deviation",
-                                 [this](double stddev)
-                                 {
-                                     setStdDev(stddev);
-                                 },
-                                 [this]
-                                 {
-                                     return getStdDev();
-                                 });
+    params_.declareParam<double>("standard_deviation", [this](double stddev) { setStdDev(stddev); },
+                                 [this] { return getStdDev(); });
 }
 
 bool ompl::base::BridgeTestValidStateSampler::sample(State *state)
@@ -28,11 +21,11 @@ bool ompl::base::BridgeTestValidStateSampler::sample(State *state)
     {
         sampler_->sampleUniform(state);
         bool v1 = si_->isValid(state);
-        if(!v1)
+        if (!v1)
         {
             sampler_->sampleGaussian(endpoint, state, stddev_);
             bool v2 = si_->isValid(endpoint);
-            if(!v2)
+            if (!v2)
             {
                 si_->getStateSpace()->interpolate(endpoint, state, 0.5, state);
                 valid = si_->isValid(state);
@@ -54,11 +47,11 @@ bool ompl::base::BridgeTestValidStateSampler::sampleNear(State *state, const Sta
     {
         sampler_->sampleUniformNear(state, near, distance);
         bool v1 = si_->isValid(state);
-        if(!v1)
+        if (!v1)
         {
             sampler_->sampleGaussian(endpoint, state, distance);
             bool v2 = si_->isValid(endpoint);
-            if(!v2)
+            if (!v2)
             {
                 si_->getStateSpace()->interpolate(endpoint, state, 0.5, state);
                 valid = si_->isValid(state);
