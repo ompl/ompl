@@ -64,13 +64,13 @@ install:
 
 script:
   - if [ -n "$DOCKERFILE" ]; then
-      docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. && make -j $JOBS && ctest -E '$TEST_EXCLUDE'";
+      docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. && make -j $JOBS && ctest -E -j $JOBS '$TEST_EXCLUDE'";
     else
       mkdir -p build &&
       cd build &&
       cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DCASTXML=${HOME}/castxml/bin/castxml .. &&
       make -j $JOBS &&
-      ctest -E "$TEST_EXCLUDE";
+      ctest -j $JOBS -E "$TEST_EXCLUDE";
     fi
 
 # disabled because this takes several hours to complete:
