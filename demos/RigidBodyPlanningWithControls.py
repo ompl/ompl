@@ -41,7 +41,7 @@ from functools import partial
 try:
     from ompl import base as ob
     from ompl import control as oc
-except ModuleNotFoundError:
+except ImportError:
     # if the ompl module is not in the PYTHONPATH assume it is installed in a
     # subdirectory of the parent directory called "py-bindings."
     from os.path import abspath, dirname, join
