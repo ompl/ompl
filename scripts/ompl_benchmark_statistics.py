@@ -39,6 +39,7 @@
 from os.path import exists
 import os
 import sqlite3
+import sys
 from optparse import OptionParser
 plottingEnabled = True
 try:
@@ -49,7 +50,7 @@ try:
     import matplotlib.pyplot as plt
     import numpy as np
     from math import floor
-except ModuleNotFoundError:
+except ImportError:
     print('Matplotlib or Numpy was not found; disabling plotting capabilities...')
     plottingEnabled = False
 
@@ -111,6 +112,8 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
     """Parse benchmark log files and store the parsed data in a sqlite3 database."""
 
     conn = sqlite3.connect(dbname)
+    if sys.version_info[0] < 3:
+        conn.text_factory = lambda x: unicode(x, 'utf-8', 'ignore')
     c = conn.cursor()
     c.execute('PRAGMA FOREIGN_KEYS = ON')
 
@@ -596,7 +599,7 @@ if __name__ == "__main__":
     if options.view:
         computeViews(options.dbname, options.moveit)
 
-    if options.plot:
+    if plottingEnabled and options.plot:
         plotStatistics(options.dbname, options.plot)
 
     if options.mysqldb:
