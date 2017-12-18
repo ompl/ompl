@@ -64,7 +64,7 @@ install:
 
 script:
   - if [ -n "$DOCKERFILE" ]; then
-      docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. && make -j $JOBS && ctest -E -j $JOBS '$TEST_EXCLUDE'";
+      docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. && make -j $JOBS && ctest -j $JOBS -E '$TEST_EXCLUDE'";
     else
       mkdir -p build &&
       cd build &&
