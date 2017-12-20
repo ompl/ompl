@@ -57,4 +57,4 @@ space->registerDefaultProjection(base::ProjectionEvaluatorPtr(new MyProjection(s
 
 For more reading on this topic, please see:
 
- - Șucan, Ioan A., Kavraki Lydia E., On the Performance of Random Linear Projections for Sampling-Based Motion Planning, in _IEEE/RSJ International Conference on Intelligent Robots and Systems_, pp. 2434-2439, Oct 2009. DOI: http://dx.doi.org/10.1109/IROS.2009.5354403.
+- Șucan, Ioan A., Kavraki Lydia E., On the Performance of Random Linear Projections for Sampling-Based Motion Planning, in _IEEE/RSJ International Conference on Intelligent Robots and Systems_, pp. 2434-2439, Oct 2009. DOI: <http://dx.doi.org/10.1109/IROS.2009.5354403>.

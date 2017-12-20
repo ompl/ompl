@@ -20,7 +20,6 @@
 - [Installation instructions.](installation.html)
 - [Older releases.](https://bitbucket.org/ompl/ompl/downloads) See the [release notes](releaseNotes.html) for a brief a description of changes for each release.
 
-
 # Repositories {#download_repos}
 
 - The [latest source](https://bitbucket.org/ompl/ompl/src) is available via Mercurial or Git. For anonymous checkout use:
@@ -37,7 +36,6 @@
   <a href="https://bitbucket.org/ompl/ompl/get/tip.tar.gz" class="btn btn-primary btn-sm">TGZ</a>
   <a href="https://bitbucket.org/ompl/ompl/get/tip.zip" class="btn btn-primary btn-sm">ZIP</a><br><br>
 - [Installation instructions](installation.html) are the same as for a release.
-
 
 # OMPL in ROS
 
