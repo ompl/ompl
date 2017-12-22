@@ -23,7 +23,7 @@ matrix:
     - os: osx
       osx_image: xcode9.1
       compiler: clang
-      env: JOBS=2 PYTHON_EXEC=/usr/local/bin/python3
+      env: JOBS=2 PYTHON_EXEC=/usr/local/bin/python3 PYTHON_VERSION=3
       cache:
         directories:
           - /usr/local
@@ -55,7 +55,7 @@ install:
       wget -O - https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar zxf - -C ${HOME};
     fi
   - if [ -z "$DOCKERFILE" ]; then
-      sudo -H pip -v install pygccxml pyplusplus;
+      sudo -H pip${PYTHON_VERSION} -v install pygccxml pyplusplus;
     fi
 
 
@@ -71,6 +71,3 @@ script:
     fi
 
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then make -j4 update_bindings; fi
-
-# disabled because this takes several hours to complete:
-#make -j $JOBS update_bindings &&
