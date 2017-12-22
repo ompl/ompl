@@ -52,7 +52,6 @@
 #include "ompl/base/spaces/DubinsStateSpace.h"
 
 #include <boost/math/constants/constants.hpp>
-#include "../BoostTestTeamCityReporter.h"
 
 #include "StateSpaceTest.h"
 

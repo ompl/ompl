@@ -43,7 +43,6 @@
 #include "ompl/base/spaces/SE3StateSpace.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/Time.h"
-#include "../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 

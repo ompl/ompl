@@ -37,7 +37,7 @@
 #define BOOST_TEST_MODULE "Memory"
 #include <boost/test/unit_test.hpp>
 #include "ompl/tools/benchmark/MachineSpecs.h"
-#include "../BoostTestTeamCityReporter.h"
+
 #include <cstring>
 #include <cstdlib>
 #include <iostream>

@@ -37,7 +37,6 @@
 #define BOOST_TEST_MODULE "GridB"
 #include <boost/test/unit_test.hpp>
 #include "ompl/datastructures/GridB.h"
-#include "../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 

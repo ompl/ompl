@@ -47,7 +47,6 @@
 #include "ompl/base/goals/GoalState.h"
 #include "ompl/util/RandomNumbers.h"
 
-#include "../../BoostTestTeamCityReporter.h"
 #include "../../base/PlannerTest.h"
 
 using namespace ompl;
