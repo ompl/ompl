@@ -39,6 +39,7 @@
 from os.path import join, dirname
 from sys import argv, setrecursionlimit
 from pygccxml import declarations
+from pygccxml.declarations.runtime_errors import declaration_not_found_t
 from pyplusplus.module_builder import call_policies
 from ompl.bindings_generator import code_generator_t, default_replacement
 
@@ -153,7 +154,7 @@ class ompl_base_generator_t(code_generator_t):
         self.std_ns.class_('vector< ompl::base::State * >').rename('vectorState')
         try:
             self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
-        except:
+        except declaration_not_found_t:
             pass
         self.std_ns.class_('vector< std::shared_ptr<ompl::base::StateSpace> >').rename(
             'vectorStateSpacePtr')
@@ -203,8 +204,9 @@ class ompl_base_generator_t(code_generator_t):
         # add array access to double components of state
         self.add_array_access(bstate, 'double')
         # loop over all predefined state spaces
-        for stype in ['Compound', 'RealVector', 'SO2', 'SO3', 'SE2', 'SE3', 'Discrete', 'Time',
-                      'Dubins', 'ReedsShepp']:
+        spaces = [s.related_class.name.replace('StateSpace','') \
+            for s in self.ompl_ns.class_('StateSpace').recursive_derived]
+        for stype in spaces:
             # create a python type for each of their corresponding state types
             state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateSpace >' % stype)
             state.rename(stype+'State')
@@ -247,7 +249,7 @@ class ompl_base_generator_t(code_generator_t):
             stateStorage.member_function('getStateSamplerAllocatorRange').exclude()
             stateStorage.add_registration_code('def("getStateSamplerAllocatorRange", ' \
             '&ompl::base::StateStorage::getStateSamplerAllocatorRange)')
-        except:
+        except declaration_not_found_t:
             pass
 
         cls = self.ompl_ns.class_('PlannerStatus')
@@ -355,7 +357,7 @@ class ompl_base_generator_t(code_generator_t):
                 arg_types=['::std::istream &']).exclude()
             self.ompl_ns.class_('StateStorage').member_function('store', \
                 arg_types=['::std::ostream &']).exclude()
-        except:
+        except declaration_not_found_t:
             pass
 
 class ompl_control_generator_t(code_generator_t):
@@ -427,8 +429,11 @@ class ompl_control_generator_t(code_generator_t):
         # print paths as matrices
         self.replace_member_functions(self.ompl_ns.member_functions('printAsMatrix'))
         # export ODESolver-derived classes that use Boost.OdeInt
+        planners = [p.related_class for p in self.ompl_ns.class_('ODESolver').recursive_derived]
+        for planner in planners:
+            print(planner.name)
         for odesolver in ['ODEBasicSolver', 'ODEErrorSolver', 'ODEAdaptiveSolver']:
-            self.ompl_ns.class_(lambda cls: cls.name.startswith(odesolver)).rename(odesolver)
+            self.ompl_ns.class_(lambda cls, slv=odesolver: cls.name.startswith(slv)).rename(odesolver)
         self.add_function_wrapper(
             'void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ' \
             'ompl::control::ODESolver::StateType &)',
@@ -497,22 +502,20 @@ class ompl_control_generator_t(code_generator_t):
         # least make it work). It seems rather hacky and there may be a better
         # solution.
 
-        # do this for all planners
-        for planner in ['KPIECE1', 'PDST', 'RRT', 'EST', 'Syclop', 'SyclopEST', 'SyclopRRT', \
-            'SST']:
+        planners = [p.related_class for p in self.ompl_ns.class_('Planner').recursive_derived]
+        for planner in planners:
             # many planners exist with the same name in another namespace
-            self.ompl_ns.namespace('control').class_(planner).wrapper_alias = \
-                'Control%s_wrapper' % planner
-            self.ompl_ns.class_(planner).add_registration_code(
+            planner.wrapper_alias = 'Control%s_wrapper' % planner.name
+            planner.add_registration_code(
                 'def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))' \
                 '(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )')
-            self.ompl_ns.class_(planner).add_registration_code("""
+            planner.add_registration_code("""
             def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
                     &Control%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % \
-                    planner)
-            self.ompl_ns.class_(planner).add_registration_code("""
+                    planner.name)
+            planner.add_registration_code("""
             def("checkValidity",&::ompl::base::Planner::checkValidity,
-                    &Control%s_wrapper::default_checkValidity )""" % planner)
+                    &Control%s_wrapper::default_checkValidity )""" % planner.name)
 
 class ompl_geometric_generator_t(code_generator_t):
     def __init__(self):
@@ -586,27 +589,19 @@ class ompl_geometric_generator_t(code_generator_t):
         # planners. The code below forces Py++ to do the right thing (or at
         # least make it work). It seems rather hacky and there may be a better
         # solution.
-
-        # do this for all planners
-        for planner in ['EST', 'BiEST', 'ProjEST', 'KPIECE1', 'BKPIECE1', 'LBKPIECE1', 'PRM',
-                        'LazyPRM', 'LazyPRMstar', 'PDST', 'LazyRRT', 'RRT', 'RRTConnect', 'TRRT',
-                        'RRTstar', 'RRTXstatic', 'RRTsharp', 'LBTRRT', 'SBL', 'SPARS', 'SPARStwo',
-                        'STRIDE', 'FMT', 'BFMT', 'InformedRRTstar', 'SORRTstar', 'BITstar', 'SST']:
-            try:
-                cls = self.ompl_ns.class_(planner)
-            except:
-                continue
-            self.ompl_ns.class_(planner).add_registration_code(
+        planners = [p.related_class for p in self.ompl_ns.class_('Planner').recursive_derived]
+        for planner in planners:
+            planner.add_registration_code(
                 'def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))' \
                 '(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )')
-            if planner != 'PRM':
+            if planner.name != 'PRM':
                 # PRM overrides setProblemDefinition, so we don't need to add this code
-                self.ompl_ns.class_(planner).add_registration_code("""
+                planner.add_registration_code("""
                 def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
-                    &%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner)
-            self.ompl_ns.class_(planner).add_registration_code("""
+                    &%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner.name)
+            planner.add_registration_code("""
             def("checkValidity",&::ompl::base::Planner::checkValidity,
-                &%s_wrapper::default_checkValidity )""" % planner)
+                &%s_wrapper::default_checkValidity )""" % planner.name)
 
         # The OMPL implementation of PRM uses two threads: one for constructing
         # the roadmap and another for checking for a solution. This causes
@@ -685,7 +680,7 @@ class ompl_geometric_generator_t(code_generator_t):
                 'NearestNeighborsLinear')
             self.ompl_ns.class_('KStrategy<unsigned long>').rename('KStrategy')
             self.ompl_ns.class_('KStarStrategy<unsigned long>').rename('KStarStrategy')
-        except:
+        except declaration_not_found_t:
             self.ompl_ns.class_('NearestNeighbors<unsigned int>').include()
             self.ompl_ns.class_('NearestNeighbors<unsigned int>').rename('NearestNeighbors')
             self.ompl_ns.class_('NearestNeighborsLinear<unsigned int>').rename(
@@ -698,7 +693,7 @@ class ompl_geometric_generator_t(code_generator_t):
             # (#I don't know why this doesn't work):
             self.ompl_ns.class_('BITstar').member_functions('getEdgeQueue').exclude()
             self.ompl_ns.class_('BITstar').member_functions('getVertexQueue').exclude()
-        except:
+        except declaration_not_found_t:
             pass
 
 class ompl_tools_generator_t(code_generator_t):
@@ -827,7 +822,7 @@ class ompl_util_generator_t(code_generator_t):
                 'uniformProlateHyperspheroidSurface').exclude()
             self.ompl_ns.class_('RNG').member_functions(
                 'uniformProlateHyperspheroid').exclude()
-        except:
+        except declaration_not_found_t:
             pass
 
 class ompl_morse_generator_t(code_generator_t):
