@@ -65,9 +65,8 @@ script:
     else
       mkdir -p build &&
       cd build &&
-      cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DCASTXML=${HOME}/castxml/bin/castxml .. &&
+      cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. &&
+      if [ "$TRAVIS_OS_NAME" = "osx" ]; then make -j4 update_bindings; fi &&
       make -j $JOBS &&
       ctest -j $JOBS;
     fi
-
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then make -j4 update_bindings; fi
