@@ -2,12 +2,11 @@ language: cpp
 
 matrix:
   include:
-    # On Linux, exclude test_machine_specs; started to fail when we switched to g++-5
     - os: linux
       dist: trusty
       sudo: required
       compiler: gcc
-      env: PYTHONPATH=/usr/local/lib/python2.7/dist-packages PATH=${PATH}:${HOME}/castxml/bin JOBS=4 TEST_EXCLUDE='test_machine_spec'
+      env: PYTHONPATH=/usr/local/lib/python2.7/dist-packages PATH=${PATH}:${HOME}/castxml/bin JOBS=4
       addons:
         apt:
           packages:
@@ -21,13 +20,10 @@ matrix:
         directories:
           - ${HOME}/castxml
           - /usr/local
-    # On OS X, exclude test_machine_specs; fails due to "lazy" memory freeing in Release mode
-    # (test passes in Debug builds).
-    # On OS X, exclude test_random; fails due to bug in Boost.Random in 1.56.
     - os: osx
       osx_image: xcode9.1
       compiler: clang
-      env: JOBS=2 TEST_EXCLUDE='test_(machine_specs|random)'
+      env: JOBS=2 PYTHON_EXEC=/usr/local/bin/python3
       cache:
         directories:
           - /usr/local
@@ -40,7 +36,7 @@ matrix:
       sudo: required
       services:
         - docker
-      env: DOCKERFILE="ubuntu-xenial" JOBS=4 TEST_EXCLUDE='test_(machine_specs|random)'
+      env: DOCKERFILE="ubuntu-xenial" JOBS=4
 
 install:
   - if [ -n "$DOCKERFILE" ]; then
@@ -48,7 +44,8 @@ install:
     fi
   - if [ -z "$DOCKERFILE" -a "$TRAVIS_OS_NAME" = "osx" ]; then
       brew update;
-      brew install boost-python ode eigen castxml;
+      brew install boost-python --with-python3;
+      brew install ode eigen castxml pypy3;
     fi
   - if [ -z "$DOCKERFILE" -a "$TRAVIS_OS_NAME" = "linux" ]; then
       sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;
@@ -64,14 +61,16 @@ install:
 
 script:
   - if [ -n "$DOCKERFILE" ]; then
-      docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. && make -j $JOBS && ctest -j $JOBS -E '$TEST_EXCLUDE'";
+      docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. && make -j $JOBS && ctest -j $JOBS";
     else
       mkdir -p build &&
       cd build &&
       cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp -DCASTXML=${HOME}/castxml/bin/castxml .. &&
       make -j $JOBS &&
-      ctest -j $JOBS -E "$TEST_EXCLUDE";
+      ctest -j $JOBS;
     fi
+
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then make -j4 update_bindings; fi
 
 # disabled because this takes several hours to complete:
 #make -j $JOBS update_bindings &&
