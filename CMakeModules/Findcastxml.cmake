@@ -5,7 +5,7 @@ if(NOT CASTXML)
 endif()
 
 if (CASTXML)
-    set(CASTXMLCFLAGS "-std=c++11 ${CASTXMLCFLAGS}")
+    set(CASTXMLCFLAGS "-std=c++11 $ENV{CASTXMLCFLAGS}")
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         set(CASTXMLCOMPILER "g++")
