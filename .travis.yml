@@ -23,7 +23,7 @@ matrix:
     - os: osx
       osx_image: xcode9.1
       compiler: clang
-      env: JOBS=2 PYTHON_EXEC=/usr/local/bin/python3 PYTHON_VERSION=3 -DCASTXMLCFLAGS=-D__LITTLE_ENDIAN__=1
+      env: JOBS=2 PYTHON_EXEC=/usr/local/bin/python3 PYTHON_VERSION=3 -DCASTXMLCFLAGS=-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/machine
       cache:
         directories:
           - /usr/local
@@ -66,7 +66,7 @@ script:
       mkdir -p build &&
       cd build &&
       cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. &&
-      if [ "$TRAVIS_OS_NAME" = "osx" ]; then make -j4 update_bindings; fi &&
+      if [ "$TRAVIS_OS_NAME" = "osx" ]; then cat castxml.cfg; make -j4 update_bindings; fi &&
       make -j $JOBS &&
       ctest -j $JOBS;
     fi
