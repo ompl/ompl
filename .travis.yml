@@ -23,7 +23,7 @@ matrix:
     - os: osx
       osx_image: xcode9.1
       compiler: clang
-      env: JOBS=2 PYTHON_EXEC=/usr/local/bin/python3 PYTHON_VERSION=3
+      env: JOBS=2 PYTHON_EXEC=/usr/local/bin/python3 PYTHON_VERSION=3 CXXFLAGS=-D__LITTLE_ENDIAN__=1
       cache:
         directories:
           - /usr/local
