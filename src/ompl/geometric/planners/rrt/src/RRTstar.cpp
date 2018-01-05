@@ -200,7 +200,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         allocSampler();
     }
 
-    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
+    OMPL_INFORM("%s: Started planning with %u states. Seeking a solution better than %.5f.", getName().c_str(), nn_->size(), opt_->getCostThreshold().value());
 
     if ((useTreePruning_ || useRejectionSampling_ || useInformedSampling_ || useNewStateRejection_) &&
         !si_->getStateSpace()->isMetricSpace())
@@ -213,7 +213,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     Motion *approxGoalMotion = nullptr;
     double approxDist = std::numeric_limits<double>::infinity();
-    bool sufficientlyShort = false;
 
     auto *rmotion = new Motion(si_);
     base::State *rstate = rmotion->state;
@@ -481,9 +480,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                     OMPL_INFORM("%s: Found an initial solution with a cost of %.2f in %u iterations (%u "
                                 "vertices in the graph)",
                                 getName().c_str(), bestCost_, iterations_, nn_->size());
-
-                    // Check if it satisfies the optimization objective.
-                    sufficientlyShort = opt_->isSatisfied(bestCost_);
                 }
                 else
                 {
@@ -498,11 +494,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                             bestCost_ = bestGoalMotion_->cost;
                             updatedSolution = true;
 
-                            // Check if it satisfies the optimization objective.
-                            sufficientlyShort = opt_->isSatisfied(bestCost_);
-
-                            // If it does, break the for loop
-                            if (sufficientlyShort)
+                            // Check if it satisfies the optimization objective, if it does, break the for loop
+                            if (opt_->isSatisfied(bestCost_))
                             {
                                 break;
                             }
@@ -544,7 +537,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
         }
 
         // terminate if a sufficient solution is found
-        if (bestGoalMotion_ && sufficientlyShort)
+        if (bestGoalMotion_ && opt_->isSatisfied(bestCost_))
             break;
     }
 
@@ -589,7 +582,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             psol.setApproximate(approxDist);
 
         // Does the solution satisfy the optimization objective?
-        psol.setOptimized(opt_, newSolution->cost, sufficientlyShort);
+        psol.setOptimized(opt_, newSolution->cost, opt_->isSatisfied(bestCost_));
         pdef_->addSolutionPath(psol);
     }
     // No else, we have nothing
