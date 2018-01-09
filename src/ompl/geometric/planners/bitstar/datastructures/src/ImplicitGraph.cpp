@@ -233,7 +233,11 @@ namespace ompl
             k_rgg_ = 0.0;  // This is a double for better rounding later
             k_ = 0u;
 
-            approximationMeasure_ = si_->getSpaceMeasure();
+            // Calling si_ causes a segfault if it's not setup yet.
+            if (si_)
+            {
+                approximationMeasure_ = si_->getSpaceMeasure();
+            }
             minCost_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
             maxCost_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
             costSampled_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
@@ -271,7 +275,7 @@ namespace ompl
             {
                 throw ompl::Exception("b->state is unallocated");
             }
-#endif  // BITSTAR_DEBUG
+#endif // BITSTAR_DEBUG
 
             // Using RRTstar as an example, this order gives us the distance FROM the queried state TO the other
             // neighbours in the structure.
