@@ -42,6 +42,7 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_state_storage base/state_storage.cpp)
     add_ompl_test(test_ptc base/ptc.cpp)
     add_ompl_test(test_planner_data base/planner_data.cpp)
+    add_ompl_test(test_joint_cost base/joint_cost.cpp)
 
     # Test kinematic motion planners in 2D environments
     add_ompl_test(test_2denvs_geometric geometric/2d/2denvs.cpp)
