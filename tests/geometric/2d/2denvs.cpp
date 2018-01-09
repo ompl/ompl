@@ -66,7 +66,6 @@
 #include "ompl/geometric/planners/prm/SPARStwo.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
-#include "../../BoostTestTeamCityReporter.h"
 #include "../../base/PlannerTest.h"
 
 using namespace ompl;

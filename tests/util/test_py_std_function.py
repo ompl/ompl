@@ -55,11 +55,11 @@ class TestPyStdFunction(unittest.TestCase):
     def testIntClassFunObj(self):
         i = IntClass(0)
         j = intClassFun0_obj(i, 1)
-        self.assertEqual((i.value,j.value), (0,1))
+        self.assertEqual((i.value, j.value), (0, 1))
         j = intClassFun1_obj(i, 1)
-        self.assertEqual((i.value,j.value), (1,1))
+        self.assertEqual((i.value, j.value), (1, 1))
         j = intClassFun2_obj(i, 2)
-        self.assertEqual((i.value,j.value), (1,2))
+        self.assertEqual((i.value, j.value), (1, 2))
         # k = 2
         # j = intClassFun3_obj(i, k) # can't pass ints by reference yet
         # self.assertEqual((i.value,j.value), (2,2))
@@ -69,25 +69,25 @@ class TestPyStdFunction(unittest.TestCase):
         i = IntClass(0)
         f = IntClassFun0_t(myIntFun0)
         j = f(i, 1)
-        self.assertEqual((i.value,j.value), (0,1))
+        self.assertEqual((i.value, j.value), (0, 1))
         f = IntClassFun1_t(myIntFun0)
         j = f(i, 1)
-        self.assertEqual((i.value,j.value), (1,1))
+        self.assertEqual((i.value, j.value), (1, 1))
         f = IntClassFun2_t(myIntFun0)
         j = f(i, 2)
         # const-ness is ignored
-        self.assertEqual((i.value,j.value), (2,2))
+        self.assertEqual((i.value, j.value), (2, 2))
     def testMyIntClassFun1(self):
         i = IntClass(0)
         f = IntClassFun0_t(myIntFun1)
         j = f(i, 1)
-        self.assertEqual((i.value,j.value), (0,1))
+        self.assertEqual((i.value, j.value), (0, 1))
         f = IntClassFun1_t(myIntFun1)
         j = f(i, 1)
-        self.assertEqual((i.value,j.value), (1,1))
+        self.assertEqual((i.value, j.value), (1, 1))
         f = IntClassFun2_t(myIntFun1)
         j = f(i, 2)
-        self.assertEqual((i.value,j.value), (2,2))
+        self.assertEqual((i.value, j.value), (2, 2))
     def testMyIntClassFun2(self):
         i = IntClass(0)
         f = IntClassFun4_t(myIntFun2)
@@ -96,7 +96,7 @@ class TestPyStdFunction(unittest.TestCase):
 
 
 def suite():
-    suites = (unittest.makeSuite(TestPyStdFunction,'test'))
+    suites = (unittest.makeSuite(TestPyStdFunction, 'test'))
     return unittest.TestSuite(suites)
 
 if __name__ == '__main__':

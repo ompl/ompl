@@ -39,7 +39,6 @@
 import socket
 import pickle
 import sys
-import time
 
 from ompl.morse.environment import *
 
@@ -57,23 +56,23 @@ def playWithMorse(sockS, sockC):
         solnSaveFile = sys.argv[sys.argv.index('--') + 1]
         print("Loading path from file '" + solnSaveFile + ".")
         with open(solnSaveFile, 'rb') as f:
-            (st,con,dur) = pickle.load(f)
-        for i in range(len(con)):
+            (st, con, dur) = pickle.load(f)
+        for (i, control) in enumerate(con):
             # Load state
             env.call('submitState()', pickle.dumps(st[i]))
             # Apply control
-            print(con[i])
-            env.applyControl(con[i])
+            print(control)
+            env.applyControl(control)
             # Simulate
-            for _ in range(round(dur[i]/(controlStepSize))):
+            for _ in range(round(dur[i] / (controlStepSize))):
                 env.worldStep(controlStepSize)
         # Last state
         env.call('submitState()', pickle.dumps(st[len(con)]))
 
     except Exception as msg:
         # Ignore errors caused by MORSE or Blender shutting down
-        if str(msg)!="[Errno 104] Connection reset by peer" \
-            and str(msg)!="[Errno 32] Broken pipe":
+        if str(msg) != "[Errno 104] Connection reset by peer" \
+            and str(msg) != "[Errno 32] Broken pipe":
             raise
 
     finally:
@@ -92,5 +91,3 @@ playWithMorse(sockS, sockC)
 
 # Quit this blender instance.
 exit(0)
-
-

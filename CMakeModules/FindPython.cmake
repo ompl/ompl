@@ -165,6 +165,26 @@ function(find_python_module module)
     find_package_handle_standard_args(PY_${module} DEFAULT_MSG PY_${module_upper})
 endfunction(find_python_module)
 
+# macro to attempt to find the *correct* Boost.Python library (i.e., the
+# one that matches the version number of the python interpreter that was
+# found).
+macro(find_boost_python)
+    if (PYTHON_FOUND)
+        foreach(_bp_libname
+            "python-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}"
+            "python${PYTHON_VERSION_MAJOR}" "python")
+            string(TOUPPER ${_bp_libname} _bp_upper)
+            set(_Boost_${_bp_upper}_HEADERS "boost/python.hpp")
+            find_package(Boost COMPONENTS ${_bp_libname} QUIET)
+            set(_bplib "${Boost_${_bp_upper}_LIBRARY}")
+            if (_bplib)
+                set(Boost_PYTHON_LIBRARY "${_bplib}")
+                break()
+            endif()
+        endforeach()
+    endif()
+endmacro(find_boost_python)
+
 set(PYTHON_ARCH "unknown")
 if(APPLE)
     set(PYTHON_ARCH "darwin")

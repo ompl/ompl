@@ -44,7 +44,6 @@
 #include "ompl/control/PlannerDataStorage.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/control/spaces/RealVectorControlSpace.h"
-#include "../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 

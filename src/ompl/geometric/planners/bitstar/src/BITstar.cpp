@@ -75,27 +75,6 @@ namespace ompl
         // Public functions:
         BITstar::BITstar(const ompl::base::SpaceInformationPtr &si, const std::string &name /*= "BITstar"*/)
           : ompl::base::Planner(si, name)
-          , costHelpPtr_(nullptr)
-          , graphPtr_(nullptr)
-          , queuePtr_(nullptr)
-          , curGoalVertex_(nullptr)
-          , bestCost_(std::numeric_limits<double>::infinity())  // Gets set in setup to the proper calls from
-                                                                // OptimizationObjective
-          , bestLength_(0u)
-          , prunedCost_(std::numeric_limits<double>::infinity())  // Gets set in setup to the proper calls from
-                                                                  // OptimizationObjective
-          , prunedMeasure_(0.0)  // Gets set in setup with the proper call to Planner::si_->getSpaceMeasure()
-          , hasExactSolution_(false)
-          , stopLoop_(false)
-          , numBatches_(0u)
-          , numPrunings_(0u)
-          , numIterations_(0u)
-          , numRewirings_(0u)
-          , numEdgeCollisionChecks_(0u)
-          , samplesPerBatch_(100u)
-          , usePruning_(true)
-          , pruneFraction_(0.05)
-          , stopOnSolnChange_(false)
         {
 #ifdef BITSTAR_DEBUG
             OMPL_WARN("%s: Compiled with debug-level asserts.", Planner::getName().c_str());
@@ -240,58 +219,63 @@ namespace ompl
 
         void BITstar::setup()
         {
-            // Call the base class setup:
+            // Call the base class setup. Marks Planner::setup_ as true.
             Planner::setup();
 
-            // Do some sanity checks
-            // Make sure we have a problem definition
-            if (!static_cast<bool>(Planner::pdef_))
+            // Check if we have a problem definition
+            if (static_cast<bool>(Planner::pdef_))
             {
-                OMPL_ERROR("%s::setup() was called without a problem definition.", Planner::getName().c_str());
-                Planner::setup_ = false;
-                return;
-            }
-
-            // Make sure we have an optimization objective
-            if (!Planner::pdef_->hasOptimizationObjective())
-            {
-                OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length.",
-                            Planner::getName().c_str());
-                Planner::pdef_->setOptimizationObjective(
-                    std::make_shared<base::PathLengthOptimizationObjective>(Planner::si_));
-            }
-
-            // If the problem definition *has* a goal, make sure it is of appropriate type
-            if (static_cast<bool>(Planner::pdef_->getGoal()))
-            {
-                if (!Planner::pdef_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION))
+                // We do, do some initialization work.
+                // See if we have an optimization objective
+                if (!Planner::pdef_->hasOptimizationObjective())
                 {
-                    OMPL_ERROR("%s::setup() BIT* currently only supports goals that can be cast to a sampleable goal "
-                               "region.",
-                               Planner::getName().c_str());
-                    Planner::setup_ = false;
-                    return;
+                    OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length.",
+                                Planner::getName().c_str());
+                    Planner::pdef_->setOptimizationObjective(
+                        std::make_shared<base::PathLengthOptimizationObjective>(Planner::si_));
                 }
-                // No else, of correct type.
+                // No else, we were given one.
+
+                // If the problem definition *has* a goal, make sure it is of appropriate type
+                if (static_cast<bool>(Planner::pdef_->getGoal()))
+                {
+                    if (!Planner::pdef_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION))
+                    {
+                        OMPL_ERROR("%s::setup() BIT* currently only supports goals that can be cast to a sampleable goal "
+                                   "region.",
+                                   Planner::getName().c_str());
+                        // Mark as not setup:
+                        Planner::setup_ = false;
+                        return;
+                    }
+                    // No else, of correct type.
+                }
+                // No else, called without a goal. Is this MoveIt?
+
+                // Setup the CostHelper, it provides everything I need from optimization objective plus some frills
+                costHelpPtr_->setup(Planner::pdef_->getOptimizationObjective(), graphPtr_);
+
+                // Setup the queue
+                queuePtr_->setup(costHelpPtr_, graphPtr_);
+
+                // Setup the graph, it does not hold a copy of this or Planner::pis_, but uses them to create a NN struct
+                // and check for starts/goals, respectively.
+                graphPtr_->setup(Planner::si_, Planner::pdef_, costHelpPtr_, queuePtr_, this, Planner::pis_);
+
+                // Set the best and pruned costs to the proper objective-based values:
+                bestCost_ = costHelpPtr_->infiniteCost();
+                prunedCost_ = costHelpPtr_->infiniteCost();
+
+                // Get the measure of the problem
+                prunedMeasure_ = Planner::si_->getSpaceMeasure();
+
+                // We are already marked as setup.
             }
-            // No else, called without a goal. Is this MoveIt?
-
-            // Setup the CostHelper, it provides everything I need from optimization objective plus some frills
-            costHelpPtr_->setup(Planner::pdef_->getOptimizationObjective(), graphPtr_);
-
-            // Setup the queue
-            queuePtr_->setup(costHelpPtr_, graphPtr_);
-
-            // Setup the graph, it does not hold a copy of this or Planner::pis_, but uses them to create a NN struct
-            // and check for starts/goals, respectively.
-            graphPtr_->setup(Planner::si_, Planner::pdef_, costHelpPtr_, queuePtr_, this, Planner::pis_);
-
-            // Set the best and pruned costs to the proper objective-based values:
-            bestCost_ = costHelpPtr_->infiniteCost();
-            prunedCost_ = costHelpPtr_->infiniteCost();
-
-            // Get the measure of the problem
-            prunedMeasure_ = Planner::si_->getSpaceMeasure();
+            else
+            {
+                // We don't, so we can't setup. Make sure that is explicit.
+                Planner::setup_ = false;
+            }
         }
 
         void BITstar::clear()
@@ -333,7 +317,16 @@ namespace ompl
 
         ompl::base::PlannerStatus BITstar::solve(const ompl::base::PlannerTerminationCondition &ptc)
         {
+            // Check that Planner::setup_ is true, if not call this->setup()
             Planner::checkValidity();
+
+            // Assert setup succeeded
+            if (!Planner::setup_)
+            {
+                throw ompl::Exception("%s::solve() failed to set up the planner. Has a problem definition been set?", Planner::getName().c_str());
+            }
+            // No else
+
             OMPL_INFORM("%s: Searching for a solution to the given planning problem.", Planner::getName().c_str());
 
             // Reset the manual stop to the iteration loop:

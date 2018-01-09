@@ -50,7 +50,6 @@
 #include "ompl/base/ScopedState.h"
 #include "ompl/base/spaces/DiscreteStateSpace.h"
 #include "ompl/base/spaces/SE3StateSpace.h"
-#include "../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 

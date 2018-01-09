@@ -4,7 +4,7 @@ This document provides a brief overview of OMPL coding standards. It is meant to
 
 \note An automatic code formatter is available to automate enforcing the style guide, see below.
 
-# Spacing
+## Spacing
 
 - Each source block should be indented by 4 space characters. No tab characters should appear in source code.
 - Each enclosing brace should reside on its own line, but braces can be omitted if the enclosed block consists of exactly one line.
@@ -24,8 +24,7 @@ int foo(int &n)
 }
 ~~~
 
-
-# Filenames & Macros
+## Filenames & Macros
 
 - Source filenames should begin each word with a capital letter, and there should be no underscores between words.
 - Header files should use the .h extension, and implementation files should use the .cpp extension.
@@ -38,8 +37,7 @@ For example, the header and implementation files in which ompl::RNG is defined a
 #ifndef OMPL_UTIL_RANDOM_NUMBERS_
 ~~~
 
-
-# Functions & Classes
+## Functions & Classes
 
 - Function names should begin with a lower-case letter and should begin each subsequent word with a capital letter, and there should be no underscores between words (e.g., ompl::base::StateSpace::setName()).
 - Functions accepting no parameters should have void in place of a parameter list.
@@ -71,8 +69,7 @@ private:
 int SampleObject::NUM_INSTANCES = 0;
 ~~~
 
-
-# Other Coding Guidelines
+## Other Coding Guidelines
 
 - Compiler specific features should never be used (avoid use of \#ifdef).
 - Code must compile without warnings.
@@ -84,23 +81,23 @@ int SampleObject::NUM_INSTANCES = 0;
    - if possible, pass a _const reference_ to the type; this means that a pointer to the object passed in will not be maintained and no changes need to be made to the object.
    - if changes need to be made to the object passed in, pass it by _reference_ (non const).
    - if a pointer to the object needs to be maintained for later use, pass the the _Ptr_ type as _const T Ptr &_. This maintains a shared pointer to the passed in object. However, this can create a dependency cycle (e.g., StateValidityChecker storing a shared pointer to SpaceInformation, which already stores a shared pointer to StateValidityChecker).
-   - when a dependency cyle would be created, and often access to the pointer is needed, use a _raw pointer_. Use a const raw pointer if possible. If access to the pointer is not often required, using a _weak pointer_ is good.
+   - when a dependency cycle would be created, and often access to the pointer is needed, use a _raw pointer_. Use a const raw pointer if possible. If access to the pointer is not often required, using a _weak pointer_ is good.
 
-# Automatic Code Formatting
+## Automatic Code Formatting
 
 An automatic code formatter is available to automate enforcing the style guide, using [clang-format](http://clang.llvm.org/docs/ClangFormat.html). This set of tools can be used standalone via command line or with editor integrations.
 
-## Setup
+### Setup
 
- * Install **clang_format**. For Ubuntu:
+Install **clang_format**. For Ubuntu:
 
-   ``sudo apt-get install -y clang-format-3.6``
+    sudo apt-get install -y clang-format-3.6
 
-## Usage
+### Usage
 
-A configuration file is available at the base of the OMPL repository that will be automatically picked up by the following commands. You can run **clang_format** in several ways:
+A configuration file is available at the base of the OMPL repository that will be automatically picked up by the following commands. You can run `clang_format` in several ways:
 
-### Command Line
+#### Command Line
 
 Format single file:
 
@@ -110,7 +107,7 @@ Format entire directory recursively including subfolders:
 
     find . -name '*.h' -or -name '*.hpp' -or -name '*.cpp' | xargs clang-format-3.6 --i -style=file $1
 
-### Emacs Editor Configuration
+#### Emacs Editor Configuration
 
 In your ``~/.emacs`` config file, add the following:
 
@@ -133,12 +130,12 @@ Set a keyboard shortcut to run, such as F12
 
     (global-set-key [f12] 'run-ompl-clang-format)
 
-### Atom Editor Configuration
+#### Atom Editor Configuration
 
 Install the [clang-format](https://atom.io/packages/clang-format) package via the Atom package manager or ``apm install clang-format``.
 
 In the package settings set ``clang-format-3.6`` as your executable and point 'Style' to your ``.clang_format`` file.
 
-### Other Editors
+#### Other Editors
 
 Please contribute instructions here.

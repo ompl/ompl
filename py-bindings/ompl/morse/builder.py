@@ -46,7 +46,7 @@ import bpy
 import morse.builder
 import morse.blender
 
-OMPL_DIR=os.path.dirname(__file__)
+OMPL_DIR = os.path.dirname(__file__)
 
 print("OMPL builder script invocation: " + str(sys.argv))
 
@@ -55,7 +55,7 @@ mode = sys.argv[sys.argv.index('--') + 3]
 
 # Use wmctrl for window manipulation
 # (fails silently if wmctrl not installed)
-winID = subprocess.check_output(['bash', '-c',
+winID = subprocess.check_output(['bash', '-c', \
     'wmctrl -l | grep morse_default_autorun | awk \'{ print $1 }\'']).decode()[:-1]
 # Set a meaningful title
 if mode == 'PLAN':
@@ -86,7 +86,7 @@ i = 0
 for obj in bpy.context.scene.objects:
 
     # In PLAY mode, delete the goals
-    if [True for goalStr in ['.goalPose','.goalRegion','.goalRot'] if obj.name.endswith(goalStr)]:
+    if [True for goalStr in ['.goalPose', '.goalRegion', '.goalRot'] if obj.name.endswith(goalStr)]:
         if mode == 'PLAY':
             to_delete.append(obj)
         continue
@@ -101,11 +101,11 @@ for obj in bpy.context.scene.objects:
 
         # Make names acceptable for MORSE
         rname = obj.name
-        rnameSafe = rname.replace('.','_')
+        rnameSafe = rname.replace('.', '_')
         if rname != rnameSafe:
             print("WARNING: had to rename robot %s to %s because dots not allowed in MORSE names"
                   % (rname, rnameSafe))
-            for goalStr in ['.goalPose','.goalRegion','.goalRot']:
+            for goalStr in ['.goalPose', '.goalRegion', '.goalRot']:
                 goal = bpy.context.scene.objects.get(obj.name + goalStr)
                 if goal:
                     print("\t> also renamed goal %s" % goal.name)

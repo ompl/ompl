@@ -62,7 +62,8 @@ class PlanningAlgorithms(object):
             for pname in pnames:
                 p = params[pname]
                 rangeSuggestion = p.getRangeSuggestion()
-                if rangeSuggestion == '': continue
+                if rangeSuggestion == '':
+                    continue
                 rangeSuggestion = rangeSuggestion.split(':')
                 defaultValue = p.getValue()
                 if len(rangeSuggestion) == 1:
@@ -77,7 +78,7 @@ class PlanningAlgorithms(object):
                         rangeType = self.ENUM
                         defaultValue = 0 if defaultValue == '' else rangeSuggestion.index(defaultValue)
                 else:
-                    if ('.' in rangeSuggestion[0] or '.' in rangeSuggestion[-1]):
+                    if '.' in rangeSuggestion[0] or '.' in rangeSuggestion[-1]:
                         rangeType = self.DOUBLE
                         rangeSuggestion = [float(r) for r in rangeSuggestion]
                         defaultValue = 0. if defaultValue == '' else float(defaultValue)
@@ -99,8 +100,8 @@ def initializePlannerLists():
     import ompl.geometric, ompl.control, ompl.util
     logLevel = ompl.util.getLogLevel()
     ompl.util.setLogLevel(ompl.util.LogLevel.LOG_ERROR)
-    if ompl.geometric.planners == None:
+    if ompl.geometric.planners is None:
         ompl.geometric.planners = ompl.PlanningAlgorithms(ompl.geometric)
-    if ompl.control.planners == None:
+    if ompl.control.planners is None:
         ompl.control.planners = ompl.PlanningAlgorithms(ompl.control)
     ompl.util.setLogLevel(logLevel)

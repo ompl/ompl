@@ -17,7 +17,6 @@ As part of this effort, we have developed a collection of assignments that can b
 
 We are looking for educational partners to use and further develop the material. If you are interested in the educational material, please contact [Mark Moll](http://mmoll.rice.edu) and [Lydia Kavraki](http://www.cs.rice.edu/~kavraki).
 
-
 \htmlonly
 <img src="images/comp450-Fall2010.jpg" width="100%">
 <p class="text-center">

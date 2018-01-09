@@ -10,4 +10,5 @@ OMPL_BUILD_PYBINDINGS         | ON            | Whether to compile the Python bi
 OMPL_BUILD_PYTESTS            | ON            | Whether the Python tests should be added to the `test` target.
 OMPL_BUILD_TESTS              | ON            | Wether to compile the C++ unit tests
 OMPL_REGISTRATION             | ON            | Whether the registration page is shown. (Disabling it might be useful for build bots.)
-OMPL_VERSIONED_INSTALL        | OFF           | Whether directories and executables created by `make install` have a version suffix. Useful if you want to install multiple versions of OMPL in the same directory.
+OMPL_USE_PYPY                 | OFF           | Whether [PyPy](https://pypy.org) is used to generate the Python bindings. This can greatly speed up this process. It's enabled by default if PyPy was found by CMake. If PyPy is not installed in the default path, you can specify the path on the command line: `cmake -DPYPY=~/pypy3-v5.9.0-linux64/bin/pypy3 -DPYTHON_EXEC=/usr/bin/python3 ../..`
+OMPL_VERSIONED_INSTALL        | OFF           | Install header files in include/ompl-X.Y/ompl, where X and Y are the major and minor version numbers.

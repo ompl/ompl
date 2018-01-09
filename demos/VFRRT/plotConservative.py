@@ -37,10 +37,10 @@
 # Authors: Caleb Voss, Wilson Beebe
 
 
+from matplotlib import cm
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from pylab import *
-from matplotlib import cm
+import numpy as np
 
 def potential(x, y):
     return 1 + np.sin(x) * np.sin(y)
@@ -58,12 +58,12 @@ X, Y, Z = potentialSurface()
 ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0)
 
 x = np.loadtxt("vfrrt-conservative.path")
-ax.plot(x[:,0], x[:,1], potential(x[:,0], x[:,1]), color='b')
+ax.plot(x[:, 0], x[:, 1], potential(x[:, 0], x[:, 1]), color='b')
 
 x = np.loadtxt("trrt-conservative.path")
-ax.plot(x[:,0], x[:,1], potential(x[:,0], x[:,1]), color='r')
+ax.plot(x[:, 0], x[:, 1], potential(x[:, 0], x[:, 1]), color='r')
 
 x = np.loadtxt("rrtstar-conservative.path")
-ax.plot(x[:,0], x[:,1], potential(x[:,0], x[:,1]), color='g')
+ax.plot(x[:, 0], x[:, 1], potential(x[:, 0], x[:, 1]), color='g')
 
 plt.show()

@@ -91,17 +91,26 @@ namespace ompl
             }
 
             // Check that the provided statespace is compatible and extract the necessary indices.
-            // The statespace must either be R^n or SE(2) or SE(3)
+            // The statespace must either be R^n or SE(2) or SE(3).
+            // If it is UNKNOWN, warn and treat it as R^n
             if (!InformedSampler::space_->isCompound())
             {
                 if (InformedSampler::space_->getType() == STATE_SPACE_REAL_VECTOR)
                 {
+                    // R^n, this is easy
+                    informedIdx_ = 0u;
+                    uninformedIdx_ = 0u;
+                }
+                else if (InformedSampler::space_->getType() == STATE_SPACE_UNKNOWN)
+                {
+                    // Unknown, this is annoying. I hope the user knows what they're doing
+                    OMPL_WARN("PathLengthDirectInfSampler: Treating the StateSpace of type \"STATE_SPACE_UNKNOWN\" as type \"STATE_SPACE_REAL_VECTOR\".");
                     informedIdx_ = 0u;
                     uninformedIdx_ = 0u;
                 }
                 else
                 {
-                    throw Exception("PathLengthDirectInfSampler only supports RealVector, SE2 and SE3 StateSpaces.");
+                    throw Exception("PathLengthDirectInfSampler only supports Unknown, RealVector, SE2, and SE3 StateSpaces.");
                 }
             }
             else if (InformedSampler::space_->isCompound())

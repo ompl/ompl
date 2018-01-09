@@ -11,11 +11,9 @@ RUN apt-get -y update && \
        libode-dev \
        libeigen3-dev \
        python-pip  && \
-    pip -v install pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.8.0.tar.gz
-
+    pip -v install pygccxml pyplusplus
 
 COPY . /root/ompl
-
 
 # Local Variables:
 # mode: dockerfile

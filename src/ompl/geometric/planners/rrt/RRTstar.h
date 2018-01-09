@@ -462,8 +462,8 @@ namespace ompl
             /** \brief Objective we're optimizing */
             base::OptimizationObjectivePtr opt_;
 
-            /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion *lastGoalMotion_{nullptr};
+            /** \brief The best goal motion. */
+            Motion *bestGoalMotion_{nullptr};
 
             /** \brief A list of states in the tree that satisfy the goal condition */
             std::vector<Motion *> goalMotions_;

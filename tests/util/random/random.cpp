@@ -40,7 +40,6 @@
 
 #include "ompl/config.h"
 #include "ompl/util/RandomNumbers.h"
-#include "../../BoostTestTeamCityReporter.h"
 #include <cmath>
 #include <vector>
 #include <cstdio>

@@ -36,14 +36,14 @@
 
 # Author: Mark Moll
 
-import sys
-from os.path import abspath, dirname, join
-sys.path.insert(0, join(dirname(dirname(dirname(abspath(__file__)))),'py-bindings') )
 import unittest
 from math import pi
+import sys
+from os.path import abspath, dirname, join
+sys.path.insert(0, join(dirname(dirname(dirname(abspath(__file__)))), 'py-bindings'))
 from ompl.base import *
 
-def isValid(state):
+def isValid(_):
     return True
 
 class TestSO2(unittest.TestCase):
@@ -74,8 +74,8 @@ class TestSO3(unittest.TestCase):
         m = SO3StateSpace()
         s1 = SO3State(m)
         s1.random()
-        s2 = s1;
-        self.assertAlmostEqual(m.distance(s1(),s2()), 0.0, 3)
+        s2 = s1
+        self.assertAlmostEqual(m.distance(s1(), s2()), 0.0, 3)
         s2.random()
 
         si = SpaceInformation(m)
@@ -86,10 +86,10 @@ class TestSO3(unittest.TestCase):
         count = si.getMotionStates(s1(), s2(), states, 10, True, True)
         self.assertEqual(count, len(states))
 
-        for i in range(len(states)):
-            nrm = m.norm(states[i])
+        for state in states:
+            nrm = m.norm(state)
             self.assertAlmostEqual(nrm, 1.0, 15)
-            si.freeState(states[i])
+            si.freeState(state)
 
 
 def suite():

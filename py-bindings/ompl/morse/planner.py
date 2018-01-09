@@ -95,15 +95,15 @@ def planWithMorse(sockS, sockC):
             st.append(env.stateToList(cpath.getState(cpath.getControlCount())))
             with open(solnFileName, 'wb') as f:
                 # Pickle it all into a file
-                pickle.dump((st,con,dur), f)
+                pickle.dump((st, con, dur), f)
             print("...done.")
         else:
             print("No solution found.")
 
     except Exception as msg:
         # Ignore errors caused by MORSE or Blender shutting down
-        if str(msg)!="[Errno 104] Connection reset by peer" \
-          and str(msg)!="[Errno 32] Broken pipe":
+        if str(msg) != "[Errno 104] Connection reset by peer" \
+          and str(msg) != "[Errno 32] Broken pipe":
             raise
 
     finally:
@@ -122,5 +122,3 @@ planWithMorse(sockS, sockC)
 
 # Quit this instance of Blender.
 exit(0)
-
-

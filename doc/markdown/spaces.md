@@ -1,7 +1,6 @@
 # Available Spaces
 
-
-# State Spaces
+## State Spaces
 
 This set of state spaces is included in OMPL:
 
@@ -16,11 +15,9 @@ This set of state spaces is included in OMPL:
 - ReedsShepp (representation of a Reeds-Shepp car's state space, ompl::base::ReedsSheppStateSpace) and
 - OpenDE   (representation of OpenDE states, if the [Open Dynamics Engine][opende] library is available, ompl::control::OpenDEStateSpace).
 
-
 In addition, the ompl::base::CompoundStateSpace allows users to create arbitrarily complex state spaces out of simpler state spaces.
 
-
-# Control Spaces
+## Control Spaces
 
 This set of control spaces is included in OMPL:
 

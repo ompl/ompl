@@ -39,20 +39,16 @@
 from math import sin, cos
 from functools import partial
 try:
-    from ompl import util as ou
     from ompl import base as ob
     from ompl import control as oc
-    from ompl import geometric as og
-except:
+except ImportError:
     # if the ompl module is not in the PYTHONPATH assume it is installed in a
     # subdirectory of the parent directory called "py-bindings."
     from os.path import abspath, dirname, join
     import sys
-    sys.path.insert(0, join(dirname(dirname(abspath(__file__))),'py-bindings'))
-    from ompl import util as ou
+    sys.path.insert(0, join(dirname(dirname(abspath(__file__))), 'py-bindings'))
     from ompl import base as ob
     from ompl import control as oc
-    from ompl import geometric as og
 
 ## @cond IGNORE
 # a decomposition is only needed for SyclopRRT and SyclopEST
@@ -73,8 +69,8 @@ def isStateValid(spaceInformation, state):
     return spaceInformation.satisfiesBounds(state)
 
 def propagate(start, control, duration, state):
-    state.setX( start.getX() + control[0] * duration * cos(start.getYaw()) )
-    state.setY( start.getY() + control[0] * duration * sin(start.getYaw()) )
+    state.setX(start.getX() + control[0] * duration * cos(start.getYaw()))
+    state.setY(start.getY() + control[0] * duration * sin(start.getYaw()))
     state.setYaw(start.getYaw() + control[1] * duration)
 
 def plan():
@@ -98,20 +94,21 @@ def plan():
 
     # define a simple setup class
     ss = oc.SimpleSetup(cspace)
-    ss.setStateValidityChecker(ob.StateValidityCheckerFn(partial(isStateValid, ss.getSpaceInformation())))
+    ss.setStateValidityChecker(ob.StateValidityCheckerFn( \
+        partial(isStateValid, ss.getSpaceInformation())))
     ss.setStatePropagator(oc.StatePropagatorFn(propagate))
 
     # create a start state
     start = ob.State(space)
-    start().setX(-0.5);
-    start().setY(0.0);
-    start().setYaw(0.0);
+    start().setX(-0.5)
+    start().setY(0.0)
+    start().setYaw(0.0)
 
     # create a goal state
-    goal = ob.State(space);
-    goal().setX(0.0);
-    goal().setY(0.5);
-    goal().setYaw(0.0);
+    goal = ob.State(space)
+    goal().setX(0.0)
+    goal().setY(0.5)
+    goal().setYaw(0.0)
 
     # set the start and goal states
     ss.setStartAndGoalStates(start, goal, 0.05)
