@@ -52,3 +52,18 @@ void ompl::base::WrapperStateSampler::sampleGaussian(State *state, const State *
     sampler_->sampleGaussian(state->as<ompl::base::WrapperStateSpace::StateType>()->getState(),
                              mean->as<ompl::base::WrapperStateSpace::StateType>()->getState(), stdDev);
 }
+
+void ompl::base::WrapperStateSpace::setup()
+{
+    space_->setup();
+    maxExtent_ = space_->getMaximumExtent();
+    longestValidSegmentFraction_ = space_->getLongestValidSegmentFraction();
+    longestValidSegmentCountFactor_ = space_->getValidSegmentCountFactor();
+    longestValidSegment_ = space_->getLongestValidSegmentLength();
+    projections_ = space_->getRegisteredProjections();
+    params_ = space_->params();
+
+    valueLocationsInOrder_ = space_->getValueLocations();
+    valueLocationsByName_ = space_->getValueLocationsByName();
+    substateLocationsByName_ = space_->getSubstateLocationsByName();
+}
