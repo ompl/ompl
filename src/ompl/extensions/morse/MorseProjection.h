@@ -52,20 +52,20 @@ namespace ompl
             MorseProjection(const StateSpacePtr &space);
 
             /** \brief Perform configuration steps, if needed */
-            void setup();
+            void setup() override;
 
             /** \brief Return the dimension of the projection defined by this evaluator */
-            virtual unsigned int getDimension() const;
+            unsigned int getDimension() const override;
 
             /** \brief Set the default cell dimensions for this
                 projection. The default implementation of this
                 function sets the size to 1.0 for all dimensions.
                 setup() calls this function if no cell
                 dimensions have been previously set. */
-            virtual void defaultCellSizes();
+            void defaultCellSizes() override;
 
             /** \brief Compute the projection as an array of double values */
-            virtual void project(const State *state, EuclideanProjection &projection) const;
+            void project(const State *state, EuclideanProjection &projection) const override;
 
         protected:
             /** \brief The state space this projection operates on */

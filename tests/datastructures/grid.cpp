@@ -39,7 +39,6 @@
 
 #include "ompl/datastructures/Grid.h"
 #include "ompl/datastructures/GridN.h"
-#include "../BoostTestTeamCityReporter.h"
 
 using namespace ompl;
 

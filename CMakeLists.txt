@@ -24,12 +24,6 @@ if(MSVC OR MSVC90 OR MSVC10)
     set(MSVC ON)
 endif (MSVC OR MSVC90 OR MSVC10)
 
-# add "${prefix}/share/cmake/Modules", which is where Eigen3's module is in MacPorts.
-if(${CMAKE_VERSION} VERSION_LESS 2.8.12)
-    get_filename_component(CMAKE_ROOT_DIR "${CMAKE_ROOT}" PATH)
-else()
-    get_filename_component(CMAKE_ROOT_DIR "${CMAKE_ROOT}" DIRECTORY)
-endif()
 set(CMAKE_MODULE_PATH
     "${CMAKE_MODULE_PATH}"
     "${CMAKE_ROOT_DIR}/cmake/Modules"
@@ -45,18 +39,10 @@ set(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/lib")
 set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
     CACHE FILEPATH "Path to directory with auxiliary CMake scripts for OMPL")
 set(OMPL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(OMPL_DEMO_INSTALL_DIR "share/ompl${OMPL_INSTALL_SUFFIX}/demos"
+set(OMPL_DEMO_INSTALL_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ompl/demos"
     CACHE STRING "Relative path to directory where demos will be installed")
 
-# Add support in Boost::Python for std::shared_ptr
-# This is a hack that replaces boost::shared_ptr related code with std::shared_ptr.
-# Proper support for std::shared_ptr was added in Boost 1.63.
-if(Boost_VERSION VERSION_LESS "106300")
-    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/external")
-endif()
-
 include_directories("${OMPL_INCLUDE_DIR}")
-
 
 if(MSVC)
     add_definitions(-DBOOST_ALL_NO_LIB)
@@ -70,7 +56,15 @@ else(IS_ICPC)
 endif(IS_ICPC)
 
 find_package(Boost 1.54 COMPONENTS serialization filesystem system program_options REQUIRED)
-include_directories(SYSTEM ${Boost_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIR})
+
+# Add support in Boost::Python for std::shared_ptr
+# This is a hack that replaces boost::shared_ptr related code with std::shared_ptr.
+# Proper support for std::shared_ptr was added in Boost 1.63.
+if(Boost_VERSION VERSION_LESS "106300")
+    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/external")
+endif()
+
 
 # on OS X we need to check whether to use libc++ or libstdc++ with clang++
 if(APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -96,7 +90,23 @@ find_package(Threads QUIET)
 enable_testing()
 
 find_package(Python QUIET)
-find_package(Boost COMPONENTS python QUIET)
+find_boost_python()
+
+if(PYTHON_FOUND)
+    # PyPy is more than an order of magnitude faster in generating the Python
+    # bindings than CPython, so use it if available.
+    find_program(PYPY NAMES pypy${PYTHON_VERSION_MAJOR} pypy)
+    if(PYPY)
+        option(OMPL_USE_PYPY "Use PyPy for generating Python bindings" ON)
+    else()
+        option(OMPL_USE_PYPY "Use PyPy for generating Python bindings" OFF)
+    endif()
+    if(OMPL_USE_PYPY)
+        set(PYTHON_BINDING_EXEC "${PYPY}")
+    else()
+        set(PYTHON_BINDING_EXEC "${PYTHON_EXEC}")
+    endif()
+endif()
 
 # Eigen is needed for the InformedStateSampler
 find_package(Eigen3 QUIET)
@@ -114,20 +124,20 @@ find_package(OpenDE QUIET)
 set(OMPL_EXTENSION_OPENDE ${OPENDE_FOUND})
 if (OPENDE_FOUND)
   add_definitions(${OPENDE_DEFINITIONS})
-  include_directories(SYSTEM ${OPENDE_INCLUDE_DIR})
+  include_directories(${OPENDE_INCLUDE_DIR})
 endif()
 
 find_package(Triangle QUIET)
 set(OMPL_EXTENSION_TRIANGLE ${TRIANGLE_FOUND})
 if (TRIANGLE_FOUND)
-  include_directories(SYSTEM ${TRIANGLE_INCLUDE_DIR})
+  include_directories(${TRIANGLE_INCLUDE_DIR})
 endif()
 
 # If FLANN is installed, a wrapper for its nearest neighbor data structures can be used
 find_package(flann 1.8.3 QUIET)
 if (FLANN_FOUND)
     set(OMPL_HAVE_FLANN 1)
-    include_directories(SYSTEM "${FLANN_INCLUDE_DIRS}")
+    include_directories("${FLANN_INCLUDE_DIRS}")
     link_directories(${FLANN_LIBRARY_DIRS})
 endif()
 
@@ -151,15 +161,29 @@ configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
 install(FILES "${pkg_conf_file}"
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
   COMPONENT ompl
-  RENAME "ompl${OMPL_INSTALL_SUFFIX}.pc")
+  RENAME "ompl.pc")
 
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/markdown/FindOMPL.cmake"
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
-  COMPONENT ompl
-  RENAME ompl-config.cmake)
+if (NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
+    include(CMakePackageConfigHelpers)
+    set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR})
+    set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
+    configure_package_config_file(omplConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/ompl/cmake
+        PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
+        NO_CHECK_REQUIRED_COMPONENTS_MACRO)
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
+        VERSION ${OMPL_VERSION}
+        COMPATIBILITY SameMajorVersion)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
+        DESTINATION ${LIB_INSTALL_DIR}/cmake/ompl
+        COMPONENT ompl)
+endif()
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ompl.conf"
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl${OMPL_INSTALL_SUFFIX}"
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl"
   COMPONENT ompl)
 
 # script to install ompl on Ubuntu
@@ -174,21 +198,6 @@ configure_file(
 add_custom_target(uninstall
   COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 
-if (OMPL_VERSIONED_INSTALL)
-  # script to create sym links
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/create_symlinks.sh.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/create_symlinks.sh" @ONLY)
-  execute_process(COMMAND
-    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/create_symlinks.sh"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-  install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/.symlinks/" DESTINATION .)
-  # script to uninstall sym links
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/uninstall_symlinks.sh.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/uninstall_symlinks.sh" @ONLY)
-  add_custom_target(uninstall_links COMMAND
-    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/uninstall_symlinks.sh")
-  add_dependencies(uninstall uninstall_links)
-endif()
 include(CPackSettings)
 
 option(OMPL_REGISTRATION "Enable one-time registration of OMPL" ON)

@@ -38,14 +38,12 @@
 
 import sys
 from os.path import abspath, dirname, join
-sys.path.insert(0, join(dirname(dirname(dirname(abspath(__file__)))),'py-bindings') )
+sys.path.insert(0, join(dirname(dirname(dirname(abspath(__file__)))), 'py-bindings'))
 from functools import partial
-from os.path import dirname
 from time import clock
 from math import fabs
 import unittest
 import copy
-import ompl.util as ou
 import ompl.base as ob
 import ompl.geometric as og
 from ompl.util import setLogLevel, LogLevel
@@ -63,7 +61,7 @@ class Environment(object):
         self.goal = [int(i) for i in lines[2].split(' ')[1:3]]
         for i in range(self.width):
             self.grid.append(
-                [int(i) for i in lines[4+i].split(' ')[0:self.height]])
+                [int(j) for j in lines[4+i].split(' ')[0:self.height]])
         self.char_mapping = ['__', '##', 'oo', 'XX']
 
     def __str__(self):
@@ -121,7 +119,7 @@ class mySetup(object):
         self.setup.setStartAndGoalStates(self.start, self.goal)
 
 
-def testPlanner(env, time, pathLength, show = False):
+def testPlanner(env, time, pathLength, show=False):
     result = True
     setup = mySetup(env)
     startTime = clock()
@@ -147,7 +145,7 @@ def testPlanner(env, time, pathLength, show = False):
             for i in range(len(path.states)):
                 x = int(path.states[i][0][0])
                 y = int(path.states[i][1][0])
-                if temp.grid[x][y] in [0,2]:
+                if temp.grid[x][y] in [0, 2]:
                     temp.grid[x][y] = 2
                 else:
                     temp.grid[x][y] = 3
@@ -171,9 +169,10 @@ class PlanTest(unittest.TestCase):
         good = 0
         N = 25
 
-        for i in range(N):
+        for _ in range(N):
             (result, time, length) = testPlanner(self.env, time, length, False)
-            if result: good = good + 1
+            if result:
+                good = good + 1
 
         success = 100.0 * float(good) / float(N)
         avgruntime = time / float(N)
@@ -190,7 +189,7 @@ class PlanTest(unittest.TestCase):
 
 
 def suite():
-    suites = ( unittest.makeSuite(PlanTest) )
+    suites = (unittest.makeSuite(PlanTest))
     return unittest.TestSuite(suites)
 
 if __name__ == '__main__':

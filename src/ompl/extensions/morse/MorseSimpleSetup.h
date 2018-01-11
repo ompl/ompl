@@ -81,7 +81,7 @@ namespace ompl
             /** \brief This method will create the necessary classes
                 for planning. The solve() method will call this
                 function automatically. */
-            void setup();
+            void setup() override;
 
             /** \brief Run the planner until solution is found or user shuts down MORSE */
             base::PlannerStatus solve();

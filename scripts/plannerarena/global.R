@@ -63,11 +63,3 @@ conditionalDisable <- function(widget, condition) {
     else
         widget
 }
-
-# see http://stackoverflow.com/questions/29948876/adding-prefix-or-suffix-to-most-data-frame-variable-names-in-piped-r-workflow
-tbl.renamer <- function(tbl, prefix="x", suffix=NULL, index=seq_along(tbl_vars(tbl))) {
-  newnames <- tbl_vars(tbl) # Get old variable names
-  names(newnames) <- newnames
-  names(newnames)[index] <- paste0(prefix,".",newnames,suffix)[index] # create a named vector for .dots
-  rename_(tbl,.dots=newnames) # rename the variables
-}

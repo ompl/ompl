@@ -54,7 +54,7 @@ Lifelong Planning A. Artif. Intell. 155(1-2): 93-146 (2004)
 
 // workaround for bug in Boost 1.60; see https://svn.boost.org/trac/boost/ticket/11880
 #include <boost/version.hpp>
-#if BOOST_VERSION > 105900
+#if BOOST_VERSION == 106000
 #include <boost/type_traits/ice.hpp>
 #endif
 

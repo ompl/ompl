@@ -231,11 +231,16 @@ ompl::geometric::BiTRRT::GrowResult ompl::geometric::BiTRRT::extendTree(Motion *
     bool reach = true;
 
     // Compute the state to extend toward
-    double d = si_->distance(nearest->state, toMotion->state);
+    bool treeIsStart = (tree == tStart_);
+    double d = (treeIsStart ? si_->distance(nearest->state, toMotion->state)
+                            : si_->distance(toMotion->state, nearest->state));
     // Truncate the random state to be no more than maxDistance_ from nearest neighbor
     if (d > maxDistance_)
     {
-        si_->getStateSpace()->interpolate(nearest->state, toMotion->state, maxDistance_ / d, toMotion->state);
+        if (tree == tStart_)
+            si_->getStateSpace()->interpolate(nearest->state, toMotion->state, maxDistance_ / d, toMotion->state);
+        else
+            si_->getStateSpace()->interpolate(toMotion->state, nearest->state, 1.0 - maxDistance_ / d, toMotion->state);
         d = maxDistance_;
         reach = false;
     }
@@ -248,7 +253,9 @@ ompl::geometric::BiTRRT::GrowResult ompl::geometric::BiTRRT::extendTree(Motion *
     bool validMotion =
         (tree == tStart_ ? si_->checkMotion(nearest->state, toMotion->state) :
                            si_->isValid(toMotion->state) && si_->checkMotion(toMotion->state, nearest->state)) &&
-        transitionTest(opt_->motionCost(nearest->state, toMotion->state)) && minExpansionControl(d);
+                               transitionTest(tree == tStart_ ? opt_->motionCost(nearest->state, toMotion->state)
+                                                              : opt_->motionCost(toMotion->state, nearest->state)) &&
+                               minExpansionControl(d);
 
     if (validMotion)
     {
@@ -271,7 +278,9 @@ bool ompl::geometric::BiTRRT::connectTrees(Motion *nmotion, TreeData &tree, Moti
 {
     // Get the nearest state to nmotion in tree (nmotion is NOT in tree)
     Motion *nearest = tree->nearest(nmotion);
-    double dist = si_->distance(nearest->state, nmotion->state);
+    bool treeIsStart = tree == tStart_;
+    double dist = (treeIsStart ? si_->distance(nearest->state, nmotion->state)
+                               : si_->distance(nmotion->state, nearest->state));
 
     // Do not attempt a connection if the trees are far apart
     if (dist > connectionRange_)
@@ -305,7 +314,6 @@ bool ompl::geometric::BiTRRT::connectTrees(Motion *nmotion, TreeData &tree, Moti
     // Successful connection
     if (result == SUCCESS)
     {
-        bool treeIsStart = tree == tStart_;
         Motion *startMotion = treeIsStart ? next : nmotion;
         Motion *goalMotion = treeIsStart ? nmotion : next;
 

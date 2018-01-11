@@ -84,7 +84,7 @@ KoulesStateSpace::KoulesStateSpace(unsigned int numKoules)
 
 void KoulesStateSpace::registerProjections()
 {
-    registerDefaultProjection(std::make_shared<KoulesProjection>(this, (getDimension() - 1) / 4 + 1));
+    registerDefaultProjection(std::make_shared<KoulesProjection>(this, 3));
     registerProjection("PDSTProjection", std::make_shared<KoulesProjection>(this, (getDimension() - 1) / 2 + 1));
 }
 

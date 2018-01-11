@@ -42,8 +42,6 @@
 #include "ompl/base/PlannerTerminationCondition.h"
 #include "ompl/util/Time.h"
 
-#include "../BoostTestTeamCityReporter.h"
-
 using namespace ompl;
 
 BOOST_AUTO_TEST_CASE(TestSimpleTermination)

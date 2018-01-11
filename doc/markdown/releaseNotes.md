@@ -1,5 +1,19 @@
 # Release Notes
 
+# OMPL 1.3.2 (November 11, 2017)
+
+- Bug fixes for gcc6, clang5, and new versions of Boost.
+- Made PlannerArena work with latest versions of R packages.
+- Made MORSE plugin work with latest version MORSE.
+- [Optionally, use PyPy for Python binding generation.](buildOptions.html) This can significantly speed up the binding generation process (with pypy3 5.9.0 it now takes less than 10 minutes on a modern PC).
+- Misc. bug fixes.
+
+
+# OMPL 1.3.1 (May 18, 2017)
+
+- Tidy up code.
+- Small bug fixes.
+
 
 # OMPL 1.3.0 (March 1, 2017)
 

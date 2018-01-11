@@ -9,11 +9,11 @@ For Ubuntu 15.10 and newer you can install `castxml` with `sudo apt-get install 
 The pygccxml and Py++ packages can be installed with `pip` (a package manager specifically for Python packages):
 
     sudo apt-get install pip
-    sudo -H pip install -vU pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.7.tar.gz
+    sudo -H pip install -vU pygccxml pyplusplus
 
 ## OS X
 
 If you use MacPorts on OS X, then Py++ and its dependencies can be installed like so:
 
     sudo port install py27-pyplusplus # if you use python2.7
-    sudo port install py35-pyplusplus # if you use python3.5
+    sudo port install py36-pyplusplus # if you use python3.6

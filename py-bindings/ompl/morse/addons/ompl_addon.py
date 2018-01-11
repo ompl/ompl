@@ -51,7 +51,6 @@ import sys
 import time
 
 import bpy
-import mathutils
 
 import ompl.morse.environment
 
@@ -75,23 +74,25 @@ class Plan(bpy.types.Operator):
 
     ##
     # \brief Called when the dialogs finish; starts up the simulation
-    def execute(self, context):
+    def execute(self, _):
 
         print('Starting planner...')
         print("Planning on %s, saving to %s" % (bpy.data.filepath, self.filepath))
-        subprocess.Popen(['morse', '-c', 'run', 'ompl', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAN'])
+        subprocess.Popen(['morse', '-c', 'run', 'ompl', OMPL_DIR+'/builder.py', '--', \
+            bpy.data.filepath, self.filepath, 'PLAN'])
 
         return {'FINISHED'}
 
     ##
     # \brief Called when the button is pressed; double-check configuration and
     #    ask for a file to save the path to
-    def invoke(self, context, event):
+    def invoke(self, context, _):
 
         # Double-check goal object properties to make sure they're out of the way and
         #   connected properly
         for obj in bpy.data.objects:
-            if [True for goalStr in ['.goalPose','.goalRegion','.goalRot'] if obj.name.endswith(goalStr)]:
+            if [True for goalStr in ['.goalPose', '.goalRegion', '.goalRot'] \
+                if obj.name.endswith(goalStr)]:
                 obj.hide_render = True
                 if obj.name.endswith('.goalRegion'):
                     obj.game.physics_type = 'SENSOR'
@@ -103,7 +104,7 @@ class Plan(bpy.types.Operator):
                         # Link up a collision sensor
                         bpy.ops.logic.sensor_add(type='COLLISION', name="__collision", object=obj.name)
                         collider = obj.game.sensors.get("__collision")
-                    collider.property = body.name.replace('.','_')
+                    collider.property = body.name.replace('.', '_')
                     # Just to make the sensor active
                     dummy = obj.game.controllers.get("__dummy")
                     if not dummy:
@@ -114,12 +115,12 @@ class Plan(bpy.types.Operator):
                 else:
                     obj.game.physics_type = 'NO_COLLISION'
 
-        if not context.scene.objects.get('__settings'):
+        if not context.scene.objects.get('ompl_settings'):
             # Bounds Configuration hasn't been setup for this file yet
             bpy.ops.ompl.boundsconfig('INVOKE_DEFAULT')
         else:
-            settings = context.scene.objects['__settings']
-            if not settings.get('autopb'):
+            settings = context.scene.objects['ompl_settings']
+            if settings.get('autopb') is None:
                 # Bounds Configuration hasn't been setup for this file yet
                 bpy.ops.ompl.boundsconfig('INVOKE_DEFAULT')
 
@@ -130,6 +131,20 @@ class Plan(bpy.types.Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+@bpy.app.handlers.persistent
+def import_and_resave(animpath):
+    bpy.app.handlers.load_post.clear()
+    animtmppath = animpath + ".tmp"
+    print("OMPL: appending animation data")
+    with bpy.data.libraries.load(filepath=animtmppath) as (_, t):
+        t.scenes = ['S.MORSE_LOGIC']
+    print("OMPL: deleting tmp file")
+    os.remove(animtmppath)
+    bpy.data.scenes.remove(bpy.data.scenes['Scene'])
+    bpy.data.scenes['S.MORSE_LOGIC'].name = 'Scene'
+    bpy.context.screen.scene = bpy.data.scenes['Scene']
+    bpy.ops.wm.save_mainfile(filepath=animpath)
+
 ##
 # \brief Invoke Path Playback
 class Play(bpy.types.Operator):
@@ -138,27 +153,41 @@ class Play(bpy.types.Operator):
     bl_label = "Playback and save"
 
     ## \brief File where the planner wrote the solution path
-    filepath = bpy.props.StringProperty(name="Solution file",
+    filepath = bpy.props.StringProperty(name="Solution file", \
         description="File where where the OMPL planner saved a solution path", subtype="FILE_PATH")
 
     ##
     # \brief Called when the dialogs finish; starts up the simulation
     def execute(self, context):
 
+        animpath = context.scene.objects['ompl_settings']['Animpath']
+        if animpath == '':
+            self.report({'ERROR'}, "Choose animation save file first!")
+            return {'FINISHED'}
+        self.report({'WARNING'}, "Switching to .blend file: '" + animpath + "'")
+
         print('Starting player...')
         print("Playing %s with %s" % (bpy.data.filepath, self.filepath))
-        subprocess.Popen(['morse', '-c', 'run', 'ompl', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAY'])
+        subprocess.run(['morse', '-c', 'run', 'ompl', OMPL_DIR+'/builder.py', '--', bpy.data.filepath, self.filepath, 'PLAY'])
+
+        # Load blank file. Append animated objects. Re-save.
+        print("OMPL: Will save animation data to '" + animpath + "'")
+        cont = bpy.app.handlers.persistent(lambda _: import_and_resave(animpath))
+        bpy.app.handlers.load_post.append(cont)
+        blankpath = OMPL_DIR + '/resources/blank.blend'
+        print("OMPL: Loading blank file")
+        bpy.ops.wm.open_mainfile(filepath=blankpath)
 
         return {'FINISHED'}
 
     ##
     # \brief Called when the button is pressed; prompts for the path file
-    def invoke(self, context, event):
+    def invoke(self, context, _):
 
-        if not context.scene.objects.get('__settings'):
+        if not context.scene.objects.get('ompl_settings'):
             # Select an animation save file
             bpy.ops.ompl.animfile('INVOKE_DEFAULT')
-        elif not context.scene.objects['__settings'].get('Animpath'):
+        elif not context.scene.objects['ompl_settings'].get('Animpath'):
             # Select an animation save file
             bpy.ops.ompl.animfile('INVOKE_DEFAULT')
 
@@ -178,9 +207,10 @@ def getRobots():
     # This is a list of incompatible robots (e.g., some use controllers that require you to explicitly
     #   name the internal variable you want to change instead of merely accepting a list of control values).
     #   If you write your own controller that is compatible, feel free to take the robot out of this blacklist
-    excluded_robots = ['B21','BarePR2','BasePR2','Human','Hummer','Jido','LocalizedPR2','NavPR2','Victim']
+    excluded_robots = ['B21', 'BarePR2', 'BasePR2', 'Human', 'Hummer', 'Jido', \
+        'LocalizedPR2', 'NavPR2', 'Victim']
     robotEnum = []
-    i=0
+    i = 0
     for cname in dir(morse.builder.robots):
         c = getattr(morse.builder.robots, cname)
         # Is c a class?
@@ -190,7 +220,7 @@ def getRobots():
                 # Is is not in our exlusions list?
                 if cname not in excluded_robots:
                     # Add an entry for it
-                    robotEnum.append((cname,cname,'morse.builder.robots.'+cname,i))
+                    robotEnum.append((cname, cname, 'morse.builder.robots.' + cname, i))
                     i += 1
     # Put then in alphabetical order
     robotEnum.reverse()
@@ -205,24 +235,22 @@ def getControllers():
     # Exclude controllers that require non-numeric parameters, don't have a socket interface, or are irrelevant;
     #   you may be able to rewrite some of these (e.g., SteerForce) with little modification so that they do
     #   accept purely numeric inputs
-    excluded_controllers = ['Armature','Destination','ForceTorque','Gripper','Joystick','Keyboard','KukaLWR',
-        'Light','Mocap','MocapControl','MotionXYW','Orientation','PTU','RotorcraftAttitude','Sound','SteerForce']
+    excluded_controllers = ['Armature', 'Destination', 'ForceTorque', 'Gripper', 'Joystick', \
+        'Keyboard', 'KukaLWR', 'Light', 'Mocap', 'MocapControl', 'MotionXYW', 'Orientation', \
+        'PTU', 'RotorcraftAttitude', 'Sound', 'SteerForce']
     controllerEnum = []
-    i=0
+    i = 0
     for cname in dir(morse.builder.actuators):
         c = getattr(morse.builder.actuators, cname)
         # Is c a class?
         if isinstance(c, type):
-            # Does it inherit from Actuator and is it not Actuator?
-            # OR does it inherit from ActuatorCreator and is it not ActuatorCreator?
-            if (issubclass(c, morse.builder.Actuator) and
-                c != morse.builder.Actuator) or \
-                (issubclass(c, morse.builder.creator.ActuatorCreator) and
-                c != morse.builder.creator.ActuatorCreator):
+            # Does it inherit from ActuatorCreator and is it not ActuatorCreator?
+            if issubclass(c, morse.builder.creator.ActuatorCreator) and \
+                c != morse.builder.creator.ActuatorCreator:
                 # Is it not in our exclusions list?
                 if cname not in excluded_controllers:
                     # Add an entry for it
-                    controllerEnum.append((cname,cname,'morse.builder.actuators.'+cname,i))
+                    controllerEnum.append((cname, cname, 'morse.builder.actuators.' + cname, i))
                     i += 1
     controllerEnum.reverse()
     return controllerEnum
@@ -235,12 +263,12 @@ class AddRobot(bpy.types.Operator):
     bl_label = "Add Robot..."
 
     # Set up the robot and controller selection menus
-    robotEnum = [('','','')]
-    controllerEnum = [('','','')]
+    robotEnum = [('', '', '')]
+    controllerEnum = [('', '', '')]
 
-    robot_type = bpy.props.EnumProperty(items=robotEnum, name="MORSE robot",
+    robot_type = bpy.props.EnumProperty(items=robotEnum, name="MORSE robot", \
         description="A robot from the MORSE components library", default=robotEnum[-1][0])
-    controller_type = bpy.props.EnumProperty(items=controllerEnum, name="MORSE actuator",
+    controller_type = bpy.props.EnumProperty(items=controllerEnum, name="MORSE actuator", \
         description="The actuator to control the robot", default=controllerEnum[-1][0])
 
 
@@ -266,7 +294,7 @@ class AddRobot(bpy.types.Operator):
         robotObj.hide_render = False
 
         # Remove unnecessary game properties
-        while len(robotObj.game.properties) > 0:
+        while robotObj.game.properties:
             bpy.ops.object.game_property_remove()
 
         # Add properties for robot_type and controller_type
@@ -277,8 +305,7 @@ class AddRobot(bpy.types.Operator):
 
     ##
     # \brief Prompt for robot and controller selection
-    def invoke(self, context, event):
-
+    def invoke(self, context, _):
         return context.window_manager.invoke_props_dialog(self)
 
 ##
@@ -299,10 +326,10 @@ class AddGoal(bpy.types.Operator):
     bl_label = "Add Goal..."
 
     # Parameters are the type of goal and the name of the object we define the goal for
-    body = bpy.props.StringProperty(name="Rigid Body",
+    body = bpy.props.StringProperty(name="Rigid Body", \
         description="The body to define a goal for", default="")
-    goal_type = bpy.props.EnumProperty(items=[('goalRot','Rotation only','Rotation'),
-        ('goalPose','Pose','Position and Rotation')], name="Goal Type",
+    goal_type = bpy.props.EnumProperty(items=[('goalRot', 'Rotation only', 'Rotation'), \
+        ('goalPose', 'Pose', 'Position and Rotation')], name="Goal Type", \
         description="The kind of goal specification", default='goalPose')
 
     ##
@@ -319,7 +346,7 @@ class AddGoal(bpy.types.Operator):
 
         # Check that the object exists
         if not bpy.data.objects.get(self.body):
-            print("No such object: '%s'" % self.body)
+            self.report({'ERROR'}, "No such object: '%s'" % self.body)
             return {'FINISHED'}
 
         goalname = self.body + '.' + self.goal_type
@@ -352,8 +379,7 @@ class AddGoal(bpy.types.Operator):
 
     ##
     # \brief Prompt for the object name and goal type
-    def invoke(self, context, event):
-
+    def invoke(self, context, _):
         return context.window_manager.invoke_props_dialog(self)
 
 
@@ -365,25 +391,24 @@ class AnimFile(bpy.types.Operator):
     bl_label = "Choose animation save file..."
 
     ## \brief Second *.blend to save the animation data
-    filepath = bpy.props.StringProperty(name="Animation Save file",
+    filepath = bpy.props.StringProperty(name="Animation Save file", \
         description="*.blend file where the animation curves should be saved to", subtype="FILE_PATH")
 
     ##
     # \brief Save the name of the file for later
     def execute(self, context):
 
-        context.scene.objects['__settings']['Animpath'] = self.filepath
+        context.scene.objects['ompl_settings']['Animpath'] = self.filepath
         return {'FINISHED'}
 
     ##
     # \brief Prompt for the animation save file
-    def invoke(self, context, event):
-
+    def invoke(self, context, _):
         # Add the settings object if it doesn't exist
-        if not context.scene.objects.get('__settings'):
+        if not context.scene.objects.get('ompl_settings'):
             bpy.ops.object.add()
-            context.object.name = '__settings'
-        settings = context.scene.objects['__settings']
+            context.object.name = 'ompl_settings'
+        settings = context.scene.objects['ompl_settings']
 
         # Get the settings object out of the way
         settings.hide = True
@@ -407,8 +432,8 @@ class BoundsConfiguration(bpy.types.Operator):
 
     # Properties displayed in the dialog; p=position,l=linear,a=angular,c=control;
     #   x,y,z,m=min, X,Y,Z,M=max; handles up to 16 control inputs
-    autopb = bpy.props.BoolProperty(name="Automatic position bounds",
-        description="Overrides user-provided numbers by analyzing the scene",
+    autopb = bpy.props.BoolProperty(name="Automatic position bounds", \
+        description="Overrides user-provided numbers by analyzing the scene", \
         default=True)
     pbx = bpy.props.FloatProperty(name="Min", default=-1000, min=-1000, max=1000)
     pbX = bpy.props.FloatProperty(name="Max", default=1000, min=-1000, max=1000)
@@ -458,7 +483,7 @@ class BoundsConfiguration(bpy.types.Operator):
     def execute(self, context):
 
         # Save settings to the scene
-        settings = context.scene.objects['__settings']
+        settings = context.scene.objects['ompl_settings']
         settings['autopb'] = self.autopb
         settings['pbx'] = self.pbx
         settings['pbX'] = self.pbX
@@ -483,8 +508,8 @@ class BoundsConfiguration(bpy.types.Operator):
             delattr(BoundsConfiguration, 'cbm%i'%i)
             delattr(BoundsConfiguration, 'cbM%i'%i)
 
-        BoundsConfiguration.autopb = bpy.props.BoolProperty(name="Automatic position bounds",
-            description="Overrides user-provided numbers by analyzing the scene",
+        BoundsConfiguration.autopb = bpy.props.BoolProperty(name="Automatic position bounds", \
+            description="Overrides user-provided numbers by analyzing the scene", \
             default=settings['autopb'])
         BoundsConfiguration.pbx = bpy.props.FloatProperty(name="Min", default=settings['pbx'], min=-1000, max=1000)
         BoundsConfiguration.pbX = bpy.props.FloatProperty(name="Max", default=settings['pbX'], min=-1000, max=1000)
@@ -508,13 +533,12 @@ class BoundsConfiguration(bpy.types.Operator):
 
     ##
     # \brief Query MORSE for control description, then open the dialog
-    def invoke(self, context, event):
-
+    def invoke(self, context, _):
         # If the settings have not been set before, initialize them
-        if not context.scene.objects.get('__settings'):
+        if not context.scene.objects.get('ompl_settings'):
             bpy.ops.object.add()
             settings = context.object
-            settings.name = '__settings'
+            settings.name = 'ompl_settings'
             settings['autopb'] = True
             settings['pbx'] = -1000
             settings['pbX'] = 1000
@@ -541,6 +565,7 @@ class BoundsConfiguration(bpy.types.Operator):
         sockC = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
             try:
+                print("Waiting for port 50007 to connect.")
                 sockS.connect(('localhost', 50007))
             except:
                 time.sleep(0.5)
@@ -548,6 +573,7 @@ class BoundsConfiguration(bpy.types.Operator):
             break
         while True:
             try:
+                print("Waiting for port 4000 to connect.")
                 sockC.connect(('localhost', 4000))
             except:
                 time.sleep(0.5)
@@ -557,7 +583,7 @@ class BoundsConfiguration(bpy.types.Operator):
         # Retrieve the control description
         self.cdesc = ompl.morse.environment.MyEnvironment(sockS, sockC, True).cdesc
         if self.cdesc[0] > 16:
-            print("Control dimension exceeds 16! This dialog won't be able to accomdate that many.")
+            self.report({'ERROR'}, "OMPL Error: Control dimension exceeds 16! This dialog won't be able to accomdate that many.")
             return {'FINISHED'}
 
         # Invoke bounds dialog
@@ -565,8 +591,7 @@ class BoundsConfiguration(bpy.types.Operator):
 
     ##
     # \brief
-    def draw(self, context):
-
+    def draw(self, _):
         mainlayout = self.layout.row()
         # 3 sections in first column:
         sections = mainlayout.column()
@@ -646,8 +671,7 @@ class OMPLMenu(bpy.types.Menu):
 
     ##
     # \brief Add operators to the menu
-    def draw(self, context):
-
+    def draw(self, _):
         self.layout.operator_context = 'INVOKE_DEFAULT'
         self.layout.operator(AddRobot.bl_idname)
         self.layout.operator(AddGoal.bl_idname)
@@ -658,24 +682,22 @@ class OMPLMenu(bpy.types.Menu):
 
 ##
 # \brief Function called to initialize the menu
-def menu_func(self, context):
-
+def menu_func(self, _):
     self.layout.menu(OMPLMenu.bl_idname)
 
 ##
 # \brief Deferred import of morse.builder (whenever a new file is loaded)
 @bpy.app.handlers.persistent
-def handler_scene_update_post(dummy):
-
+def handler_scene_update_post(_):
     # A little hackish, but now is a good time to import morse.builder
     if 'morse.builder' not in sys.modules:
         del AddRobot.robot_type
         del AddRobot.controller_type
         robotEnum = getRobots()
         controllerEnum = getControllers()
-        AddRobot.robot_type = bpy.props.EnumProperty(items=robotEnum, name="MORSE robot",
+        AddRobot.robot_type = bpy.props.EnumProperty(items=robotEnum, name="MORSE robot", \
             description="A robot from the MORSE components library", default=robotEnum[-1][0])
-        AddRobot.controller_type = bpy.props.EnumProperty(items=controllerEnum, name="MORSE actuator",
+        AddRobot.controller_type = bpy.props.EnumProperty(items=controllerEnum, name="MORSE actuator", \
             description="The actuator to control the robot", default=controllerEnum[-1][0])
         bpy.utils.unregister_class(AddRobot)
         bpy.utils.register_class(AddRobot)
@@ -725,7 +747,3 @@ def unregister():
     bpy.utils.unregister_class(OMPLMenu)
     bpy.types.INFO_MT_game.remove(menu_func)
     bpy.app.handlers.scene_update_post.remove(handler_scene_update_post)
-
-
-
-

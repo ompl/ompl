@@ -1,0 +1,34 @@
+# CMake OMPL module
+#
+# It defines the following variables:
+# OMPL_FOUND         - TRUE
+# OMPL_INCLUDE_DIRS  - The OMPL include directory
+# OMPL_LIBRARIES     - The OMPL library
+# OMPLAPP_LIBRARIES  - The OMPL.app libraries (if installed)
+# OMPL_VERSION       - The OMPL version in the form <major>.<minor>.<patchlevel>
+# OMPL_MAJOR_VERSION - Major version
+# OMPL_MINOR_VERSION - Minor version
+# OMPL_PATCH_VERSION - Patch version
+
+@PACKAGE_INIT@
+
+set(OMPL_VERSION @OMPL_VERSION@)
+set(OMPL_MAJOR_VERSION @OMPL_MAJOR_VERSION@)
+set(OMPL_MINOR_VERSION @OMPL_MINOR_VERSION@)
+set(OMPL_PATCH_VERSION @OMPL_PATCH_VERSION@)
+
+set_and_check(OMPL_INCLUDE_DIRS @PACKAGE_INCLUDE_INSTALL_DIR@)
+set_and_check(OMPL_LIBRARY_DIR @PACKAGE_LIB_INSTALL_DIR@)
+find_library(OMPL_LIBRARIES NAMES ompl.${OMPL_VERSION} ompl
+    PATHS ${OMPL_LIBRARY_DIR} NO_DEFAULT_PATH)
+find_library(OMPLAPPBASE_LIBRARY NAMES ompl_app_base.${OMPL_VERSION} ompl_app_base
+    PATHS ${OMPL_LIBRARY_DIR} NO_DEFAULT_PATH)
+find_library(OMPLAPP_LIBRARY NAMES ompl_app.${OMPL_VERSION} ompl_app
+    PATHS ${OMPL_LIBRARY_DIR} NO_DEFAULT_PATH)
+if (OMPLAPPBASE_LIBRARY AND OMPLAPP_LIBRARY)
+    set(OMPLAPP_LIBRARIES "${OMPLAPPBASE_LIBRARY};${OMPLAPP_LIBRARY}"
+        CACHE STRING "Paths to OMPL.app libraries")
+endif()
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(ompl DEFAULT_MSG OMPL_INCLUDE_DIRS OMPL_LIBRARIES)

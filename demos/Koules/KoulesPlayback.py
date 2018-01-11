@@ -38,10 +38,8 @@
 
 from sys import argv, stdout
 from os.path import basename, splitext
-from math import cos, sin, atan2, pi, sqrt, ceil
+from math import cos, sin, atan2, pi, ceil
 import matplotlib.pyplot as plt
-from matplotlib.path import Path
-from matplotlib import patches
 import matplotlib.animation as animation
 
 targetFrameRate = 30 # desired number of frames per second
@@ -72,31 +70,31 @@ def normalizeAngle(theta):
 def plotShip(x, u):
     pos = (x[0], x[1])
     theta = x[4]
-    (cs,ss) = (shipRadius*cos(theta), shipRadius*sin(theta))
-    v = [ u[0] - x[2], u[1] - x[3] ]
+    (cs, ss) = (shipRadius*cos(theta), shipRadius * sin(theta))
+    v = [u[0] - x[2], u[1] - x[3]]
     deltaTheta = normalizeAngle(atan2(v[1], v[0]) - theta)
     if v[0]*v[0] + v[1]*v[1] >= shipDelta * shipDelta:
         if abs(deltaTheta) < shipEps:
             # accelerate forward, draw thruster on the back
-            ax.add_patch(plt.Circle((pos[0] - cs, pos[1] - ss), .3 * shipRadius, color = "red"))
+            ax.add_patch(plt.Circle((pos[0] - cs, pos[1] - ss), .3 * shipRadius, color="red"))
         elif deltaTheta > 0:
             # rotate counterclockwise, draw thruster on right side
-            ax.add_patch(plt.Circle((pos[0] + ss, pos[1] - cs), .3 * shipRadius, color = "red"))
+            ax.add_patch(plt.Circle((pos[0] + ss, pos[1] - cs), .3 * shipRadius, color="red"))
         else:
             # rotate clockwise, draw thruster on left side
-            ax.add_patch(plt.Circle((pos[0] - ss, pos[1] + cs), .3 * shipRadius, color = "red"))
+            ax.add_patch(plt.Circle((pos[0] - ss, pos[1] + cs), .3 * shipRadius, color="red"))
     # draw ship
-    ax.add_patch(plt.Circle(x[:2], shipRadius, color = "yellow"))
+    ax.add_patch(plt.Circle(x[:2], shipRadius, color="yellow"))
     # draw two blue "eyes"
-    ax.add_patch(plt.Circle((pos[0] + .7*shipRadius*cos(theta + .75),
-        pos[1] + .7*shipRadius*sin(theta + .75)), .2 * shipRadius, color = "blue"))
-    ax.add_patch(plt.Circle((pos[0] + .7*shipRadius*cos(theta - .75),
-        pos[1] + .7*shipRadius*sin(theta - .75)), .2 * shipRadius, color = "blue"))
+    ax.add_patch(plt.Circle((pos[0] + .7*shipRadius*cos(theta + .75), \
+        pos[1] + .7*shipRadius*sin(theta + .75)), .2 * shipRadius, color="blue"))
+    ax.add_patch(plt.Circle((pos[0] + .7*shipRadius*cos(theta - .75), \
+        pos[1] + .7*shipRadius*sin(theta - .75)), .2 * shipRadius, color="blue"))
 
 def plotKoules(state):
     numKoules = int(len(state)/4)
     for i in range(numKoules):
-        ax.add_patch(plt.Circle((state[4 * i], state[4 * i + 1]), kouleRadius, color = "red"))
+        ax.add_patch(plt.Circle((state[4 * i], state[4 * i + 1]), kouleRadius, color="red"))
 
 def plotSystem(index):
     ax.clear()
@@ -115,23 +113,23 @@ def makeMovie(fname):
         sideLength, shipRadius, kouleRadius, propagationStepSize, shipAcceleration, \
             shipRotVel, shipDelta, shipEps = [float(x) for x in next(f).split()]
         path = [[float(x) for x in line.split(' ')] for line in f]
-        if len(path) == 0:
+        if not path:
             print('Error: %s contains no solution path' % fname)
             return
         step = int(ceil(speedUp / (propagationStepSize * targetFrameRate)))
         path = path[0:len(path):step]
         print('Creating a movie with %d frames...' % len(path))
         print('Printing a \'.\' for every 10th frame:')
-        ani = animation.FuncAnimation(fig, plotSystem, frames = len(path),
-            interval = 1000. / step, blit = True)
-        (base,ext) = splitext(basename(fname))
+        ani = animation.FuncAnimation(fig, plotSystem, frames=len(path), \
+            interval=1000. / step, blit=True)
+        (base, _) = splitext(basename(fname))
         outfname = base + '.mp4'
-        ani.save(outfname, bitrate = 300, fps = targetFrameRate, writer='mencoder')
+        ani.save(outfname, bitrate=300, fps=targetFrameRate)
         print('')
 
 if __name__ == '__main__':
     if len(argv) == 1:
         print('Usage: KoulesPlayback.py <filename> [<filename2> ...]')
     else:
-        for fname in argv[1:]:
-            makeMovie(fname)
+        for trajectory_file in argv[1:]:
+            makeMovie(trajectory_file)

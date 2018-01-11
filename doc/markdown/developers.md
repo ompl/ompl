@@ -2,8 +2,7 @@
 
 OMPL is developed and maintained by the [Physical and Biological Computing Group](http://www.kavrakilab.org) at Rice University, led by [Dr. Lydia Kavraki](http://www.cs.rice.edu/~kavraki). The development is coordinated by [Dr. Mark Moll](http://mmoll.rice.edu), [Dr. Lydia Kavraki](http://www.cs.rice.edu/~kavraki) (Rice) and [Dr. Ioan Șucan](http://ioan.sucan.ro) (Google\[X\], formerly Rice). Many others have contributed to OMPL as well, as can be seen below.
 
-
-## Contributors (in alphabetical order):
+## Contributors (in alphabetical order)
 
 - [Jennifer Barry](http://people.csail.mit.edu/jbarry), Leslie Pack Kaelbling and Tomás Lozano-Pérez's [Learning in Intelligent Systems Group](http://lis.csail.mit.edu), MIT (now at Rethink Robotics)
 - [Prudhvi Boyapalli](http://www.prudhviboyapalli.com), Rice University
@@ -32,6 +31,5 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 - Sonny Tarbouriech, University of Sherbrooke
 - [Luis Torres](http://luis.web.unc.edu), Ron Alterovitz' [Computational Robotics Group](http://robotics.cs.unc.edu), University of North Carolina at Chapel Hill (now at Google)
 - [Caleb Voss](http://calebvoss.com), Rice University (now at Georgia Tech)
-
 
 Click [here](thirdparty.html) for a detailed description of some of the third-party contributions.

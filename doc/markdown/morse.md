@@ -63,6 +63,8 @@ MORSE requires special knowledge of the robots in a scene in order to control th
 
 This brings up a dialog where you can select a robot type and a controller for it. Note that controllers may be designed to work only with specific robots, and vice versa. A simple choice is the SegwayRMP400 controlled by MotionVWDiff. This provides a car-like robot with 4 wheels and a controller with two inputs: desired velocity and desired turning speed. MORSE takes care of converted these inputs into appropriate forces to be applied to the wheels during simulation.
 
+\note **Tip:** Some MORSE installations incorrectly identify their own resource folder. E.g., MORSE may look for robot models at '/usr/local/share/morse/' instead of '/usr/share/morse'. If that is the case, the robot model will not be found in this step, and MORSE will print an error to the terminal. Creating a symlink can rectify this.
+
 After adding a robot to the scene, you can position it using the grab and rotate tools (`g`, and `r`). If you would like more than one robot of the same type, you can use the duplicate tool (`Shift` + `d`) instead of returning to the Add Robot dialog.
 
 # Defining the goal {#morseGoal}

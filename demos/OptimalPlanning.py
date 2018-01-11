@@ -40,17 +40,16 @@ try:
     from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
-except:
+except ImportError:
     # if the ompl module is not in the PYTHONPATH assume it is installed in a
     # subdirectory of the parent directory called "py-bindings."
     from os.path import abspath, dirname, join
     import sys
-    sys.path.insert(0, join(dirname(dirname(abspath(__file__))),'py-bindings'))
+    sys.path.insert(0, join(dirname(dirname(abspath(__file__))), 'py-bindings'))
     from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
 from math import sqrt
-from sys import argv
 import argparse
 
 ## @cond IGNORE
@@ -59,9 +58,6 @@ import argparse
 # centered at (0.5,0.5). Any states lying in this circular region are
 # considered "in collision".
 class ValidityChecker(ob.StateValidityChecker):
-    def __init__(self, si):
-        super(ValidityChecker, self).__init__(si)
-
     # Returns whether the given state's position overlaps the
     # circular obstacle
     def isValid(self, state):
@@ -181,7 +177,7 @@ def allocatePlanner(si, plannerType):
     elif plannerType.lower() == "sorrtstar":
         return og.SORRTstar(si)
     else:
-        OMPL_ERROR("Planner-type is not implemented in allocation function.");
+        ou.OMPL_ERROR("Planner-type is not implemented in allocation function.")
 
 
 # Keep these in alphabetical order and all lower case
@@ -195,7 +191,7 @@ def allocateObjective(si, objectiveType):
     elif objectiveType.lower() == "weightedlengthandclearancecombo":
         return getBalancedObjective1(si)
     else:
-        OMPL_ERROR("Optimization-objective is not implemented in allocation function.");
+        ou.OMPL_ERROR("Optimization-objective is not implemented in allocation function.")
 
 
 
@@ -251,12 +247,16 @@ def plan(runTime, plannerType, objectiveType, fname):
 
     if solved:
         # Output the length of the path found
-        print("{0} found solution of path length {1:.4f} with an optimization objective value of {2:.4f}".format(optimizingPlanner.getName(), pdef.getSolutionPath().length(), pdef.getSolutionPath().cost(pdef.getOptimizationObjective()).value()))
+        print('{0} found solution of path length {1:.4f} with an optimization ' \
+            'objective value of {2:.4f}'.format( \
+            optimizingPlanner.getName(), \
+            pdef.getSolutionPath().length(), \
+            pdef.getSolutionPath().cost(pdef.getOptimizationObjective()).value()))
 
         # If a filename was specified, output the path as a matrix to
         # that file for visualization
         if fname:
-            with open(fname,'w') as outFile:
+            with open(fname, 'w') as outFile:
                 outFile.write(pdef.getSolutionPath().printAsMatrix())
     else:
         print("No solution found.")
@@ -266,18 +266,30 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Optimal motion planning demo program.')
 
     # Add a filename argument
-    parser.add_argument('-t', '--runtime', type=float, default=1.0, help='(Optional) Specify the runtime in seconds. Defaults to 1 and must be greater than 0.')
-    parser.add_argument('-p', '--planner', default='RRTstar', choices=['BFMTstar', 'BITstar', 'FMTstar', 'InformedRRTstar', 'PRMstar', 'RRTstar', 'SORRTstar'], help='(Optional) Specify the optimal planner to use, defaults to RRTstar if not given.') # Alphabetical order
-    parser.add_argument('-o', '--objective', default='PathLength', choices=['PathClearance', 'PathLength', 'ThresholdPathLength', 'WeightedLengthAndClearanceCombo'], help='(Optional) Specify the optimization objective, defaults to PathLength if not given.') # Alphabetical order
-    parser.add_argument('-f', '--file',  default=None, help='(Optional) Specify an output path for the found solution path.')
-    parser.add_argument('-i', '--info', type=int, default=0, choices=[0, 1, 2], help='(Optional) Set the OMPL log level. 0 for WARN, 1 for INFO, 2 for DEBUG. Defaults to WARN.')
+    parser.add_argument('-t', '--runtime', type=float, default=1.0, help=\
+        '(Optional) Specify the runtime in seconds. Defaults to 1 and must be greater than 0.')
+    parser.add_argument('-p', '--planner', default='RRTstar', \
+        choices=['BFMTstar', 'BITstar', 'FMTstar', 'InformedRRTstar', 'PRMstar', 'RRTstar', \
+        'SORRTstar'], \
+        help='(Optional) Specify the optimal planner to use, defaults to RRTstar if not given.')
+    parser.add_argument('-o', '--objective', default='PathLength', \
+        choices=['PathClearance', 'PathLength', 'ThresholdPathLength', \
+        'WeightedLengthAndClearanceCombo'], \
+        help='(Optional) Specify the optimization objective, defaults to PathLength if not given.')
+    parser.add_argument('-f', '--file', default=None, \
+        help='(Optional) Specify an output path for the found solution path.')
+    parser.add_argument('-i', '--info', type=int, default=0, choices=[0, 1, 2], \
+        help='(Optional) Set the OMPL log level. 0 for WARN, 1 for INFO, 2 for DEBUG.' \
+        ' Defaults to WARN.')
 
     # Parse the arguments
     args = parser.parse_args()
 
     # Check that time is positive
     if args.runtime <= 0:
-        raise argparse.ArgumentTypeError("argument -t/--runtime: invalid choice: %r (choose a positive number greater than 0)"%(args.runtime,))
+        raise argparse.ArgumentTypeError(
+            "argument -t/--runtime: invalid choice: %r (choose a positive number greater than 0)" \
+            % (args.runtime,))
 
     # Set the log level
     if args.info == 0:
@@ -287,7 +299,7 @@ if __name__ == "__main__":
     elif args.info == 2:
         ou.setLogLevel(ou.LOG_DEBUG)
     else:
-        OMPL_ERROR("Invalid log-level integer.");
+        ou.OMPL_ERROR("Invalid log-level integer.")
 
     # Solve the planning problem
     plan(args.runtime, args.planner, args.objective, args.file)

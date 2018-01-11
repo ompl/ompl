@@ -1,4 +1,4 @@
-#  Acknowledgements
+# Acknowledgements
 
 This project is supported in part by NSF NRI grant #1317849, NSF Expeditions grant #1139011, NSF CCLI grant #0920721 and a generous gift from Willow Garage. The code is based on an older version of OMPL written by [Ioan Șucan](http://ioan.sucan.ro) while at Willow Garage. This project has also benefited from a number of other efforts:
 

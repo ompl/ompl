@@ -38,7 +38,6 @@
 #include <boost/test/unit_test.hpp>
 
 #include "2DmapSetup1.h"
-#include "../../BoostTestTeamCityReporter.h"
 #include <iostream>
 
 using namespace ompl;

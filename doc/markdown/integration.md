@@ -10,6 +10,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   <a class="btn btn-default" href="#integration_morse">MORSE</a>
   <a class="btn btn-default" href="#integration_kautham">Kautham</a>
   <a class="btn btn-default" href="#integration_verosim">VEROSIM</a>
+  <a class="btn btn-default" href="#integration_aikido">AIKIDO</a>
   <a class="btn btn-default" href="#integration_rl">Robotics Library</a>
   <a class="btn btn-default" href="#integration_sims">SIMS</a>
   <a class="btn btn-default" href="#integration_omplapp">OMPL.app</a>
@@ -87,7 +88,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
-    VEROSIM is a 3D simulation system which aims at implementing the core idea of “eRobotics,” i.e., to design, program, control and optimize complex automated systems in detailed 3D simulations of their prospective working environments (space, open landscapes, forests, cities, buildings, factories etc), before commissioning the real system. At VEROSIM co-developer MMI / RWTH Aachen University, Christian Schlette uses OMPL for conventional robot motion planning as well as examining the transferability of sampling-based planners to new (robotic) applications. The adjacent video shows a user interface for the simulation-based programming of micro-optical assembly processes, where VEROSIM and OMPL support non-roboticists with automated motion planning in cluttered workcells.
+    VEROSIM is a 3D simulation system which aims at implementing the core idea of “eRobotics,” i.e., to design, program, control and optimize complex automated systems in detailed 3D simulations of their prospective working environments (space, open landscapes, forests, cities, buildings, factories etc), before commissioning the real system. At the University of Southern Denmark (SDU), Christian Schlette works on the integration of OMPL into VEROSIM for conventional robot motion planning as well as examining the transferability of sampling-based planners to new (robotic) applications. The adjacent video shows an example by RWTH Aachen University, where the integration of VEROSIM and OMPL support non-roboticists with automated motion planning in cluttered workcells.
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-16by9">
@@ -96,6 +97,14 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
+
+# AIKIDO {#integration_aikido}
+
+<div class="row">
+  <div class="col-lg-7 col-md-6 col-sm-5">
+    AIKIDO is a C++ library, complete with Python bindings, for solving robotic motion planning and decision making problems. This library is tightly integrated with [DART](http://dartsim.github.io/) for kinematic/dynamics calculations and [OMPL](http://ompl.kavrakilab.org/) for motion planning. AIKIDO optionally integrates with [ROS](http://ros.org/), through the suite of `aikido_ros` packages, for execution on real robots.
+  </div>
+</div>
 
 # Robotics Library {#integration_rl}
 
@@ -115,10 +124,10 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
-    The Kavraki lab has applied motion planning algorithms to the problem of characterizing protein flexibility and conformational changes. A better understanding of protein structure and flexibility is critical to understanding their function. Proteins can be modeled as long kinematic chains. Instead of collisions, state validity is determined by molecular energy. We have developed a conformational sampling framework called [the Structured Intuitive Move Selector (SIMS)](http://www.kavrakilab.org/bioinformatics/tracing_conformational_changes). It uses [Rosetta](http://www.rosettacommons.org) for modeling protein structures and computing their biophysical feasibility. The SIMS software is still very much under development, but will be released at some point in the near future.
+    The Kavraki lab has applied motion planning algorithms to the problem of characterizing protein flexibility and conformational changes. A better understanding of protein structure and flexibility is critical to understanding their function. Proteins can be modeled as long kinematic chains. Instead of collisions, state validity is determined by molecular energy. We have developed a conformational sampling framework called [the Structured Intuitive Move Selector (SIMS)](https://doi.org/10.1371/journal.pone.0068826). It uses [Rosetta](http://www.rosettacommons.org) for modeling protein structures and computing their biophysical feasibility. The SIMS software is still very much under development, but will be released at some point in the near future.
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
-    <img src="http://www.kavrakilab.org/biomedicalcomputing/images/groel_path.png" width="100%">
+    <img src="http://journals.plos.org/plosone/article/figure/image?size=medium&id=10.1371/journal.pone.0068826.g008" width="100%">
   </div>
 </div>
 

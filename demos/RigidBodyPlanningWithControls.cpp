@@ -177,7 +177,7 @@ void plan()
     // print the problem settings
     pdef->print(std::cout);
 
-    // attempt to solve the problem within one second of planning time
+    // attempt to solve the problem within ten seconds of planning time
     ob::PlannerStatus solved = planner->ob::Planner::solve(10.0);
 
     if (solved)
