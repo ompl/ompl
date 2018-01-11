@@ -32,12 +32,12 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Caleb Voss */
+/* Author: Zachary Kingston, Caleb Voss */
 
 #ifndef OMPL_BASE_SPACES_ATLAS_CHART_
 #define OMPL_BASE_SPACES_ATLAS_CHART_
 
-#include "ompl/base/spaces/AtlasStateSpace.h"
+#include "ompl/base/spaces/constraint/AtlasStateSpace.h"
 #include "ompl/datastructures/PDF.h"
 
 #include <vector>
@@ -239,6 +239,11 @@ namespace ompl
              * specified in \a ignore1 and \a ignore2. */
             bool inPolytope(const Eigen::Ref<const Eigen::VectorXd> &u, const Halfspace *ignore1 = nullptr,
                             const Halfspace *ignore2 = nullptr) const;
+
+            /** \brief Attempt a sample within the chart. Returns true if sample
+             * was successful, false if a sample could not be found within
+             * bounds. */
+            bool sample(Eigen::VectorXd &x) const;
 
             /** \brief Check if chart point \a v lies very close to any part of
              * the boundary. Wherever it does, expand the neighboring chart's

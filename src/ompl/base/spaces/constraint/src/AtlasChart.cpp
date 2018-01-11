@@ -34,7 +34,7 @@
 
 /* Author: Caleb Voss */
 
-#include "ompl/base/spaces/AtlasChart.h"
+#include "ompl/base/spaces/constraint/AtlasChart.h"
 
 #include <eigen3/Eigen/Dense>
 

@@ -35,7 +35,7 @@
 /* Author: Zachary Kingston */
 
 #include "ompl/base/Constraint.h"
-#include "ompl/base/spaces/ConstrainedStateSpace.h"
+#include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 
 void ompl::base::Constraint::function(const State *state, const Eigen::Ref<Eigen::VectorXd> &out) const
 {

@@ -42,7 +42,7 @@
 #include "ompl/base/samplers/UniformValidStateSampler.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
-#include "ompl/base/spaces/ConstrainedStateSpace.h"
+#include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Time.h"

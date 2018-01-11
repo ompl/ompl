@@ -34,25 +34,22 @@
 
 /* Author: Zachary Kingston */
 
-#include "ompl/base/spaces/NullspaceStateSpace.h"
-
-#include "ompl/base/SpaceInformation.h"
-#include "ompl/util/Exception.h"
+#include "ompl/base/spaces/constraint/ProjectedStateSpace.h"
 
 #include <eigen3/Eigen/Core>
 
-/// NullspaceStateSpace
+/// ProjectedStateSpace
 
 /// Public
 
-void ompl::base::NullspaceStateSpace::checkSpace(const SpaceInformation *si)
+void ompl::base::ProjectedStateSpace::checkSpace(const SpaceInformation *si)
 {
-    if (dynamic_cast<NullspaceStateSpace *>(si->getStateSpace().get()) == nullptr)
-        throw ompl::Exception("ompl::base::NullspaceStateSpace(): "
-                              "si needs to use an NullspaceStateSpace!");
+    if (dynamic_cast<ProjectedStateSpace *>(si->getStateSpace().get()) == nullptr)
+        throw ompl::Exception("ompl::base::ProjectedStateSpace(): "
+                              "si needs to use an ProjectedStateSpace!");
 }
 
-bool ompl::base::NullspaceStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
+bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
                                                        std::vector<State *> *stateList) const
 {
     // We can't move along the manifold if we were never there in the first place
@@ -68,82 +65,44 @@ bool ompl::base::NullspaceStateSpace::traverseManifold(const State *from, const 
 
     const double tolerance = delta_ + std::numeric_limits<double>::epsilon();
 
-    double distToGo = distance(from, to);
-    double distTraveled = 0;
-    const double distMax = distToGo;
-
     // No need to traverse the manifold if we are already there
-    if (distToGo < tolerance)
+    if (distance(from, to) < tolerance)
         return true;
 
-    // Get vector representations
-    const StateType *fromAsType = from->as<StateType>();
-    const StateType *toAsType = to->as<StateType>();
-    Eigen::Ref<const Eigen::VectorXd> x_from = fromAsType->constVectorView();
-    Eigen::Ref<const Eigen::VectorXd> x_to = toAsType->constVectorView();
-
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
+    double dist = distance(from, to);
 
     State *previous = cloneState(from);
     State *scratch = allocState();
 
-    Eigen::Map<const Eigen::VectorXd> x_prev = previous->as<StateType>()->constVectorView();
-    Eigen::Map<Eigen::VectorXd> x_scratch = scratch->as<StateType>()->vectorView();
-
-    Eigen::MatrixXd j(n_ - k_, n_);
-
     do
     {
-        WrapperStateSpace::interpolate(previous, to, delta_ / distToGo, scratch);
-        constraint_->jacobian(x_prev, j);
+        // Compute the parameterization for interpolation
+        WrapperStateSpace::interpolate(previous, to, delta_ / dist, scratch);
 
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd = j.jacobiSvd(Eigen::ComputeFullV);
-        x_scratch += svd.matrixV() * svd.matrixV().transpose() * (x_scratch - x_prev);
-
-        double step = distance(previous, scratch);
-
+        // Project new state onto constraint manifold
+        const bool onManifold = constraint_->project(scratch);
         const bool valid = interpolate || svc->isValid(scratch);
-        const bool deviated = step > 2.0 * delta_;
-        const bool wandering = (distTraveled += step) > 2.0 * distMax;
-        if (!valid || deviated || wandering)
+        const bool deviated = distance(previous, scratch) > 2.0 * delta_;
+        if (!onManifold || !valid || deviated)
             break;
 
         // Check if we are no closer than before
-        double newDist = distance(scratch, to);
-        if (newDist >= distToGo)
+        const double newDist = distance(scratch, to);
+        if (newDist >= dist)
             break;
 
-        const bool toFarFromManifold = constraint_->distance(x_scratch) > epsilon_;
-        if (toFarFromManifold || newDist < tolerance)
-        {
-            if (!constraint_->project(scratch))
-                break;
-
-            newDist = distance(scratch, to);
-        }
-
-        distToGo = newDist;
-
+        dist = newDist;
         copyState(previous, scratch);
 
         // Store the new state
         if (stateList != nullptr)
             stateList->push_back(cloneState(scratch));
 
-    } while (distToGo > tolerance);
+    } while (dist > tolerance);
 
     freeState(scratch);
     freeState(previous);
 
-    return distToGo < tolerance;
-}
-
-ompl::base::State *ompl::base::NullspaceStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList,
-                                                                         const double t) const
-{
-    StateType *state = ConstrainedStateSpace::piecewiseInterpolate(stateList, t)->as<StateType>();
-    if (!constraint_->project(state))
-        return nullptr;
-
-    return state;
+    return dist < tolerance;
 }

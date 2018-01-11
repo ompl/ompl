@@ -38,9 +38,9 @@
 #define OMPL_BASE_CONSTRAINED_SPACE_INFORMATION_
 
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/base/spaces/ConstrainedStateSpace.h"
-#include "ompl/base/spaces/AtlasChart.h"
-#include "ompl/base/spaces/AtlasStateSpace.h"
+#include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
+#include "ompl/base/spaces/constraint/AtlasChart.h"
+#include "ompl/base/spaces/constraint/AtlasStateSpace.h"
 
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/Console.h"

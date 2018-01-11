@@ -89,9 +89,6 @@ namespace ompl
              * information \a si. */
             ConstrainedValidStateSampler(const SpaceInformation *si);
 
-            /** \brief Destructor. */
-            ~ConstrainedValidStateSampler();
-
             /** \brief Sample a valid state uniformly from the charted regions
              * of the manifold. Return sample in \a state. */
             bool sample(State *state) override;
@@ -107,9 +104,6 @@ namespace ompl
 
             /** \brief Constraint function. */
             const ConstraintPtr constraint_;
-
-            /** \brief Scratch state used in sampling. */
-            State *scratch_;
         };
 
         /** \brief Atlas-specific implementation of checkMotion(). */

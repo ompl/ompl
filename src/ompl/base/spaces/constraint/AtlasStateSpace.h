@@ -44,7 +44,7 @@
 #include "ompl/datastructures/NearestNeighborsGNAT.h"
 #include "ompl/datastructures/PDF.h"
 
-#include "ompl/base/spaces/ConstrainedStateSpace.h"
+#include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 
 #include <eigen3/Eigen/Core>
 

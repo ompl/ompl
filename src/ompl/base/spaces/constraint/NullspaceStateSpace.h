@@ -38,7 +38,7 @@
 #define OMPL_BASE_SPACES_NULLSPACE_STATE_SPACE_
 
 #include "ompl/base/Constraint.h"
-#include "ompl/base/spaces/ConstrainedStateSpace.h"
+#include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 
 #include <eigen3/Eigen/Core>
 

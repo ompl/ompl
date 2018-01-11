@@ -34,7 +34,7 @@
 
 /* Author: Zachary Kingston */
 
-#include "ompl/base/spaces/ConstrainedStateSpace.h"
+#include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 #include "ompl/util/Exception.h"
 
 /// ConstrainedStateSampler
@@ -74,14 +74,8 @@ ompl::base::ConstrainedValidStateSampler::ConstrainedValidStateSampler(const Spa
   , sampler_(si->getStateSpace().get()->as<ompl::base::ConstrainedStateSpace>(),
              si->getStateSpace().get()->as<ompl::base::ConstrainedStateSpace>()->getSpace()->allocDefaultStateSampler())
   , constraint_(si->getStateSpace()->as<ompl::base::ConstrainedStateSpace>()->getConstraint())
-  , scratch_(si->allocState())
 {
     ConstrainedStateSpace::checkSpace(si);
-}
-
-ompl::base::ConstrainedValidStateSampler::~ConstrainedValidStateSampler()
-{
-    si_->freeState(scratch_);
 }
 
 bool ompl::base::ConstrainedValidStateSampler::sample(State *state)
