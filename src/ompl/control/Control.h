@@ -90,7 +90,7 @@ namespace ompl
 
             /** \brief Cast a component of this instance to a desired type. */
             template <class T>
-            const T *as(const unsigned int index) const
+            const T *as(unsigned int index) const
             {
                 /** \brief Make sure the type we are allocating is indeed a state */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T *, Control *>));
@@ -100,12 +100,18 @@ namespace ompl
 
             /** \brief Cast a component of this instance to a desired type. */
             template <class T>
-            T *as(const unsigned int index)
+            T *as(unsigned int index)
             {
                 /** \brief Make sure the type we are allocating is indeed a state */
                 BOOST_CONCEPT_ASSERT((boost::Convertible<T *, Control *>));
 
                 return static_cast<T *>(components[index]);
+            }
+
+            /** \brief Return the i-th control component */
+            Control* operator[](unsigned int index)
+            {
+                return components[index];
             }
 
             /** \brief The components that make up a compound control */
