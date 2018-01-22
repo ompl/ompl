@@ -1052,12 +1052,12 @@ namespace ompl
             graphPtr_->setUseKNearest(useKNearest);
 
             // If the planner is default named, we change it:
-            if (graphPtr_->getUseKNearest() && Planner::getName() == "kBITstar")
+            if (!graphPtr_->getUseKNearest() && Planner::getName() == "kBITstar")
             {
                 // It's current the default k-nearest BIT* name, and we're toggling, so set to the default r-disc
                 Planner::setName("BITstar");
             }
-            else if (!graphPtr_->getUseKNearest() && Planner::getName() == "BITstar")
+            else if (graphPtr_->getUseKNearest() && Planner::getName() == "BITstar")
             {
                 // It's current the default r-disc BIT* name, and we're toggling, so set to the default k-nearest
                 Planner::setName("kBITstar");
