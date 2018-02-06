@@ -66,7 +66,7 @@ namespace ompl
 
             /** \brief Sample a state uniformly from the charted regions of the
              * manifold. Return sample in \a state. */
-            void sampleUniform(State *state);
+            void sampleUniform(State *state) override;
 
             /** \brief Sample a state uniformly from the ball with center \a
              * near and radius \a distance. Return sample in \a state.
@@ -208,7 +208,7 @@ namespace ompl
              * where \a t = 0 is \a from, and \a t = 1 is the final state
              * reached by traverseManifold(\a from, \a to, true, ...), which may
              * not be \a to. State returned in \a state. */
-            void interpolate(const State *from, const State *to, double t, State *state) const;
+            void interpolate(const State *from, const State *to, double t, State *state) const override;
 
             /** \brief Like interpolate(...), but uses the information about
              * intermediate states already supplied in \a stateList from a

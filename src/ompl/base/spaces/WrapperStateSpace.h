@@ -163,38 +163,38 @@ namespace ompl
                 return space_->params();
             }
 
-            double getLongestValidSegmentFraction() const
+            double getLongestValidSegmentFraction() const override
             {
                 return space_->getLongestValidSegmentFraction();
             }
 
-            void setLongestValidSegmentFraction(double segmentFraction)
+            void setLongestValidSegmentFraction(double segmentFraction) override
             {
                 space_->setLongestValidSegmentFraction(segmentFraction);
             }
 
-            unsigned int validSegmentCount(const State *state1, const State *state2) const
+            unsigned int validSegmentCount(const State *state1, const State *state2) const override
             {
                 return space_->validSegmentCount(state1->as<StateType>()->getState(),
                                                  state2->as<StateType>()->getState());
             }
 
-            void setValidSegmentCountFactor(unsigned int factor)
+            void setValidSegmentCountFactor(unsigned int factor) override
             {
                 space_->setValidSegmentCountFactor(factor);
             }
 
-            unsigned int getValidSegmentCountFactor() const
+            unsigned int getValidSegmentCountFactor() const override
             {
                 return space_->getValidSegmentCountFactor();
             }
 
-            double getLongestValidSegmentLength() const
+            double getLongestValidSegmentLength() const override
             {
                 return space_->getLongestValidSegmentLength();
             }
 
-            void computeSignature(std::vector<int> &signature) const
+            void computeSignature(std::vector<int> &signature) const override
             {
                 space_->computeSignature(signature);
             }

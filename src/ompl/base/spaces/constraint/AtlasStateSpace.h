@@ -320,7 +320,7 @@ namespace ompl
              * a copy of \a to if we reached \a to. Caller is responsible for
              * freeing states returned in \a stateList. */
             bool traverseManifold(const State *from, const State *to, bool interpolate = false,
-                                  std::vector<State *> *stateList = nullptr) const;
+                                  std::vector<State *> *stateList = nullptr) const override;
 
 
             State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const override;
@@ -330,19 +330,19 @@ namespace ompl
              * @{ */
 
             /** \brief Return an instance of the AtlasStateSampler. */
-            StateSamplerPtr allocDefaultStateSampler() const
+            StateSamplerPtr allocDefaultStateSampler() const override
             {
                 return StateSamplerPtr(new AtlasStateSampler(*this));
             }
 
-            void copyState(State *destination, const State *source) const
+            void copyState(State *destination, const State *source) const override
             {
                 ConstrainedStateSpace::copyState(destination, source);
                 destination->as<StateType>()->setChart(source->as<StateType>()->getChart());
             }
 
             /** \brief Allocate a new state in this space. */
-            State *allocState() const
+            State *allocState() const override
             {
                 StateType *state = new StateType(space_->allocState(), n_);
                 state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
