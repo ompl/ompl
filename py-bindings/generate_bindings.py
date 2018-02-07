@@ -165,6 +165,8 @@ class ompl_base_generator_t(code_generator_t):
         self.std_ns.class_('map< std::string, ompl::base::StateSpace::SubstateLocation >').rename(
             'mapStringToSubstateLocation')
         self.std_ns.class_('vector<ompl::base::PlannerSolution>').rename('vectorPlannerSolution')
+        self.ompl_ns.class_('AtlasChart').member_function('toPolygon').exclude()
+
         pairStateDouble = self.std_ns.class_('pair<ompl::base::State *, double>')
         pairStateDouble.rename('pairStateDouble')
         pairStateDouble.include()
@@ -217,9 +219,12 @@ class ompl_base_generator_t(code_generator_t):
                 '(( bp::arg("other") )))')
             # mark the space statetype as 'internal' to emphasize that it
             # shouldn't typically be used by a regular python user
-            if stype != 'Dubins' and stype != 'ReedsShepp':
+            try:
                 self.ompl_ns.class_(stype + 'StateSpace').decls('StateType').rename(
                     stype + 'StateInternal')
+            except:
+                # ignore derived statespaces that do not define their own StateType
+                pass
             # add a constructor that allows, e.g., a State to be constructed from a SE3State
             bstate.add_registration_code(
                 'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateSpace> const &>' \
@@ -269,7 +274,9 @@ class ompl_base_generator_t(code_generator_t):
         # Using nullptr as a default value in method arguments causes
         # problems with Boost.Python.
         # See https://github.com/boostorg/python/issues/60
-        self.ompl_ns.class_('ProblemDefinition').add_declaration_code('#define nullptr NULL\n')
+        for cls in ['ProblemDefinition', 'AtlasChart', 'AtlasStateSpace', 'ConstrainedStateSpace',
+            'NullspaceStateSpace', 'ProjectedStateSpace']:
+            self.ompl_ns.class_(cls).add_declaration_code('#define nullptr NULL\n')
 
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now
         #self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()

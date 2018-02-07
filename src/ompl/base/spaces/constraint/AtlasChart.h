@@ -240,11 +240,6 @@ namespace ompl
             bool inPolytope(const Eigen::Ref<const Eigen::VectorXd> &u, const Halfspace *ignore1 = nullptr,
                             const Halfspace *ignore2 = nullptr) const;
 
-            /** \brief Attempt a sample within the chart. Returns true if sample
-             * was successful, false if a sample could not be found within
-             * bounds. */
-            bool sample(Eigen::VectorXd &x) const;
-
             /** \brief Check if chart point \a v lies very close to any part of
              * the boundary. Wherever it does, expand the neighboring chart's
              * boundary to include. */

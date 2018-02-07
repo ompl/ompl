@@ -219,7 +219,7 @@ namespace ompl
             virtual State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const;
 
             /** \brief Allocate a new state in this space. */
-            virtual State *allocState() const override;
+            State *allocState() const override;
 
             /** \brief Allocate the default state sampler for this space. */
             StateSamplerPtr allocDefaultStateSampler() const override

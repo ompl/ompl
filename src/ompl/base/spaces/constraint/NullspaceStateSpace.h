@@ -62,9 +62,9 @@ namespace ompl
             static void checkSpace(const SpaceInformation *si);
 
             bool traverseManifold(const State *from, const State *to, bool interpolate = false,
-                                  std::vector<State*> *stateList = nullptr) const;
+                                  std::vector<State*> *stateList = nullptr) const override;
 
-            virtual State *piecewiseInterpolate(const std::vector<State *> &stateList, const double t) const;
+            State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const override;
 
         private:
             const double epsilon_;
