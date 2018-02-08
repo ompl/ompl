@@ -50,7 +50,7 @@ namespace ompl
     namespace magic
     {
         /** \brief Default projection tolerance of a constraint unless otherwise specified. */
-        static const double CONSTRAINT_PROJECTION_TOLERANCE = 1e-4;
+        static const double CONSTRAINT_PROJECTION_TOLERANCE = 1e-6;
 
         /** \brief Maximum number of iterations in projection routine until giving up. */
         static const unsigned int CONSTRAINT_PROJECTION_MAX_ITERATIONS = 50;
@@ -67,9 +67,9 @@ namespace ompl
         {
         public:
             /** \brief Constructor. */
-            Constraint(const unsigned int ambientDim, const unsigned int manifoldDim)
+            Constraint(const unsigned int ambientDim, const unsigned int coDim)
               : n_(ambientDim)
-              , k_(manifoldDim)
+              , k_(ambientDim - coDim)
               , tolerance_(magic::CONSTRAINT_PROJECTION_TOLERANCE)
               , maxIterations_(magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS)
             {
@@ -82,14 +82,14 @@ namespace ompl
 
             /** \brief Compute the constraint function at \a state. Result is
              * returned in \a out, which should be allocated to size n_. */
-            void function(const State *state, const Eigen::Ref<Eigen::VectorXd> &out) const;
+            void function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const;
 
             /** \brief Compute the Jacobian of the constraint function at \a
              * state. Result is returned in \a out, which should be allocated to
              * size (n_ - k_) by n_. Default implementation performs the
              * differentiation numerically, which may be slower and/or more
              * inaccurate than an explicit formula. */
-            void jacobian(const State *state, const Eigen::Ref<Eigen::MatrixXd> &out) const;
+            void jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const;
 
             /** \brief Project a state \a state given the constraints. If a valid
              * projection cannot be found, this method will return false. */
@@ -159,24 +159,25 @@ namespace ompl
 
             /** \brief Compute the constraint function at \a x. Result is returned
              * in \a out, which should be allocated to size n_. */
-            virtual void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const = 0;
+            virtual void function(const Eigen::Ref<const Eigen::VectorXd> &x,
+                                  Eigen::Ref<Eigen::VectorXd> out) const = 0;
 
             /** \brief Compute the Jacobian of the constraint function at \a x.
              * Result is returned in \a out, which should be allocated to size
              * (n_ - k_) by n_. Default implementation performs the
              * differentiation numerically, which may be slower and/or more
              * inaccurate than an explicit formula. */
-            virtual void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const;
+            virtual void jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const;
 
             /** \brief Project a state \a x given the constraints. If a valid
              * projection cannot be found, this method will return false. */
             virtual bool project(Eigen::Ref<Eigen::VectorXd> x) const;
 
             /** \brief Returns the distance of \a x to the constraint manifold. */
-            virtual double distance(const Eigen::VectorXd &x) const;
+            virtual double distance(const Eigen::Ref<const Eigen::VectorXd> &x) const;
 
             /** \brief Check whether a state \a x satisfies the constraints */
-            virtual bool isSatisfied(const Eigen::VectorXd &x) const;
+            virtual bool isSatisfied(const Eigen::Ref<const Eigen::VectorXd> &x) const;
 
         protected:
             /** \brief Ambient space dimension. */

@@ -131,14 +131,12 @@ namespace ompl
 
             /** \brief Print the path to a stream */
             void print(std::ostream &out) const override;
+
             /** \brief Print the path as a real-valued matrix where the
                 i-th row represents the i-th state along the path. Each
                 row contains the state components as returned by
                 ompl::base::StateSpace::copyToReals. */
             virtual void printAsMatrix(std::ostream &out) const;
-
-            /** \brief Print the path as a PLY file mesh to a stream */
-            void printPLY(std::ostream &out) const;
 
             /** @name Path operations
                 @{ */

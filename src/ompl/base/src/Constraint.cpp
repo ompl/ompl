@@ -37,12 +37,12 @@
 #include "ompl/base/Constraint.h"
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 
-void ompl::base::Constraint::function(const State *state, const Eigen::Ref<Eigen::VectorXd> &out) const
+void ompl::base::Constraint::function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const
 {
     function(state->as<ConstrainedStateSpace::StateType>()->constVectorView(), out);
 }
 
-void ompl::base::Constraint::jacobian(const State *state, const Eigen::Ref<Eigen::MatrixXd> &out) const
+void ompl::base::Constraint::jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const
 {
     jacobian(state->as<ConstrainedStateSpace::StateType>()->constVectorView(), out);
 }
@@ -62,7 +62,7 @@ bool ompl::base::Constraint::isSatisfied(const State *state) const
     return isSatisfied(state->as<ConstrainedStateSpace::StateType>()->constVectorView());
 }
 
-void ompl::base::Constraint::jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+void ompl::base::Constraint::jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const
 {
     Eigen::VectorXd y1 = x;
     Eigen::VectorXd y2 = x;
@@ -107,31 +107,29 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
     Eigen::VectorXd f(getCoDimension());
     Eigen::MatrixXd j(getCoDimension(), n_);
 
-    const double squaredTolerance = tolerance_ * tolerance_ + std::numeric_limits<double>::epsilon();
+    const double squaredTolerance = tolerance_ * tolerance_;
 
     function(x, f);
     while ((norm = f.squaredNorm()) > squaredTolerance && iter++ < maxIterations_)
     {
         jacobian(x, j);
-        // x -= j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(f);
-        x -= j.fullPivLu().solve(f);
+        x -= j.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(f);
         function(x, f);
     }
 
     return norm < squaredTolerance;
 }
 
-double ompl::base::Constraint::distance(const Eigen::VectorXd &x) const
+double ompl::base::Constraint::distance(const Eigen::Ref<const Eigen::VectorXd> &x) const
 {
     Eigen::VectorXd f(getCoDimension());
     function(x, f);
     return f.norm();
 }
 
-bool ompl::base::Constraint::isSatisfied(const Eigen::VectorXd &x) const
+bool ompl::base::Constraint::isSatisfied(const Eigen::Ref<const Eigen::VectorXd> &x) const
 {
     Eigen::VectorXd f(getCoDimension());
     function(x, f);
-
     return f.allFinite() && f.squaredNorm() <= tolerance_ * tolerance_;
 }

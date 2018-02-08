@@ -56,7 +56,9 @@ namespace ompl
 
     namespace base
     {
-        class ConstrainedStateSpace;
+        /// @cond IGNORE
+        OMPL_CLASS_FORWARD(ConstrainedStateSpace);
+        /// @endcond
 
         /** \brief StateSampler for use on an atlas. */
         class ConstrainedStateSampler : public WrapperStateSampler
@@ -165,7 +167,7 @@ namespace ompl
                     return Eigen::Map<const Eigen::VectorXd>(values, n_);
                 }
 
-                double *values;
+                double *values{nullptr};
 
             protected:
                 const unsigned int n_;
