@@ -49,6 +49,8 @@
 #include "ompl/util/Exception.h"
 
 // BIT*:
+// A collection of common helper functions
+#include "ompl/geometric/planners/bitstar/datastructures/HelperFunctions.h"
 // The vertex class:
 #include "ompl/geometric/planners/bitstar/datastructures/Vertex.h"
 // The cost-helper class:

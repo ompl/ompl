@@ -42,6 +42,9 @@
 // For std::swap
 #include <algorithm>
 
+// BIT*:
+// A collection of common helper functions
+#include "ompl/geometric/planners/bitstar/datastructures/HelperFunctions.h"
 // The ID generator class
 #include "ompl/geometric/planners/bitstar/datastructures/IdGenerator.h"
 

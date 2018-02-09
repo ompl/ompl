@@ -56,6 +56,8 @@
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
 // BIT*:
+// A collection of common helper functions
+#include "ompl/geometric/planners/bitstar/datastructures/HelperFunctions.h"
 // The Vertex ID generator class
 #include "ompl/geometric/planners/bitstar/datastructures/IdGenerator.h"
 // My vertex class:

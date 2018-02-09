@@ -38,6 +38,8 @@
 #include "ompl/geometric/planners/bitstar/datastructures/CostHelper.h"
 
 // BIT*:
+// A collection of common helper functions
+#include "ompl/geometric/planners/bitstar/datastructures/HelperFunctions.h"
 // The implicit graph:
 #include "ompl/geometric/planners/bitstar/datastructures/ImplicitGraph.h"
 
