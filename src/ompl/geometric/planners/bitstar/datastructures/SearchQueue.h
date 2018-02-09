@@ -193,13 +193,13 @@ namespace ompl
              * thrown away (i.e., are not even useful as a sample) */
             std::pair<unsigned int, unsigned int> prune(const VertexConstPtr &goalVertexPtr);
 
-            /** \brief Resort the queue around the marked unsorted vertices. If allowed, will simply remove any vertices
-             * that need to be resorted but will later be pruned. */
+            /** \brief Resort the queue around the marked unsorted vertices. If allowed, will remove any vertices
+             * that need to be resorted but would later be pruned. */
             void resort();
 
             /** \brief Finish the queue if it is sorted, if not resort the queue. Finishing the queue clears all the
-             * edge containers and mocs the vertex expansion token to the end. After a call to finish, isEmpty() will
-             * return true. Keeps threshold, etc.*/
+             * edge containers and moves the vertex expansion token to the end. After calling finish() ON A SORTED QUEUE,
+             * isEmpty() will return true. Keeps threshold, etc.*/
             void finish();
 
             /** \brief Reset the queue, clearing all the edge containers and moving the vertex expansion token to the
@@ -407,7 +407,7 @@ namespace ompl
             ////////////////////////////////
             // Debug
             /** \brief Test if the class is setup and throw if not. */
-            void confirmSetup() const;
+            void assertSetup() const;
             ////////////////////////////////
 
             ////////////////////////////////
@@ -446,8 +446,8 @@ namespace ompl
             /** \brief A vector of vertices that we will need to process when resorting the queue: */
             VertexPtrVector resortVertices_;
 
-            /** \brief The maximum heuristic value allowed for vertices/edges in the queue.*/
-            ompl::base::Cost costThreshold_{std::numeric_limits<double>::infinity()};
+            /** \brief The cost of the best solution, which is the maximum heuristic value allowed for vertices/edges in the queue.*/
+            ompl::base::Cost solnCost_{std::numeric_limits<double>::infinity()};
 
             /** \brief Whether the problem has a solution */
             bool hasExactSolution_{false};

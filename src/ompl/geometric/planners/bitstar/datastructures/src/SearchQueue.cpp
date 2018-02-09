@@ -88,7 +88,7 @@ namespace ompl
             graphPtr_ = graphPtr;
 
             // Set the the cost threshold to infinity to start:
-            costThreshold_ = costHelpPtr_->infiniteCost();
+            solnCost_ = costHelpPtr_->infiniteCost();
         }
 
         void BITstar::SearchQueue::clear()
@@ -119,7 +119,7 @@ namespace ompl
             resortVertices_.clear();
 
             // The cost threshold:
-            costThreshold_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
+            solnCost_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
 
             // The existence of a solution:
             hasExactSolution_ = false;
@@ -135,7 +135,7 @@ namespace ompl
 
         void BITstar::SearchQueue::enqueueVertex(const VertexPtr &newVertex, bool removeFromFree)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Insert the vertex:
             this->vertexInsertHelper(newVertex, true, removeFromFree, true);
@@ -143,7 +143,7 @@ namespace ompl
 
         void BITstar::SearchQueue::enqueueEdge(const VertexPtrPair &newEdge)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Call my helper function:
             this->edgeInsertHelper(newEdge, edgeQueue_.end());
@@ -151,7 +151,7 @@ namespace ompl
 
         void BITstar::SearchQueue::enqueueEdge(const VertexPtr &sourceVertex, const VertexPtr &targetVertex)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Call my helper function:
             this->enqueueEdge(std::make_pair(sourceVertex, targetVertex));
@@ -159,7 +159,7 @@ namespace ompl
 
         void BITstar::SearchQueue::unqueueVertex(const VertexPtr &oldVertex)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Disconnect from parent if necessary, cascading cost updates:
             if (oldVertex->hasParent())
@@ -173,7 +173,7 @@ namespace ompl
 
         BITstar::VertexPtr BITstar::SearchQueue::frontVertex()
         {
-            this->confirmSetup();
+            this->assertSetup();
 
 #ifdef BITSTAR_DEBUG
             if (this->isEmpty() == true)
@@ -191,7 +191,7 @@ namespace ompl
 
         BITstar::VertexPtrPair BITstar::SearchQueue::frontEdge()
         {
-            this->confirmSetup();
+            this->assertSetup();
 
 #ifdef BITSTAR_DEBUG
             if (this->isEmpty() == true)
@@ -209,7 +209,7 @@ namespace ompl
 
         BITstar::SearchQueue::CostDouble BITstar::SearchQueue::frontVertexValue()
         {
-            this->confirmSetup();
+            this->assertSetup();
 
 #ifdef BITSTAR_DEBUG
             if (this->isEmpty() == true)
@@ -227,7 +227,7 @@ namespace ompl
 
         BITstar::SearchQueue::CostTriple BITstar::SearchQueue::frontEdgeValue()
         {
-            this->confirmSetup();
+            this->assertSetup();
 
 #ifdef BITSTAR_DEBUG
             if (this->isEmpty() == true)
@@ -245,7 +245,7 @@ namespace ompl
 
         void BITstar::SearchQueue::popFrontEdge(VertexPtrPair *bestEdge)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
 #ifdef BITSTAR_DEBUG
             if (this->isEmpty() == true)
@@ -256,6 +256,13 @@ namespace ompl
 
             // Update the queue:
             this->updateQueue();
+
+#ifdef BITSTAR_DEBUG
+            if (edgeQueue_.begin() == edgeQueue_.end())
+            {
+                throw ompl::Exception("Edge queue is still empty after an update.");
+            }
+#endif  // BITSTAR_DEBUG
 
             // Return the front:
             *bestEdge = edgeQueue_.begin()->second;
@@ -269,7 +276,7 @@ namespace ompl
 
         BITstar::VertexPtrPair BITstar::SearchQueue::popFrontEdge()
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             VertexPtrPair rval;
 
@@ -280,18 +287,18 @@ namespace ompl
 
         void BITstar::SearchQueue::hasSolution(const ompl::base::Cost &solnCost)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Flag
             hasExactSolution_ = true;
 
             // Store
-            costThreshold_ = solnCost;
+            solnCost_ = solnCost;
         }
 
         void BITstar::SearchQueue::removeEdgesTo(const VertexPtr &cVertex)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             if (!edgeQueue_.empty())
             {
@@ -323,7 +330,7 @@ namespace ompl
 
         void BITstar::SearchQueue::removeEdgesFrom(const VertexPtr &pVertex)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             if (!edgeQueue_.empty())
             {
@@ -355,7 +362,7 @@ namespace ompl
 
         void BITstar::SearchQueue::removeExtraEdgesTo(const VertexPtr &cVertex)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             if (!edgeQueue_.empty())
             {
@@ -413,7 +420,7 @@ namespace ompl
 
         void BITstar::SearchQueue::removeExtraEdgesFrom(const VertexPtr &pVertex)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             if (!edgeQueue_.empty())
             {
@@ -471,14 +478,14 @@ namespace ompl
 
         void BITstar::SearchQueue::markVertexUnsorted(const VertexPtr &vertex)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             resortVertices_.push_back(vertex);
         }
 
         std::pair<unsigned int, unsigned int> BITstar::SearchQueue::prune(const VertexConstPtr &goalVertexPtr)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
 #ifdef BITSTAR_DEBUG
             if (hasExactSolution_ == false)
@@ -552,7 +559,7 @@ namespace ompl
 
         void BITstar::SearchQueue::resort()
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Iterate through every vertex marked for resorting:
             if (!resortVertices_.empty())
@@ -647,24 +654,26 @@ namespace ompl
                                 "%d samples.",
                                 nameFunc_().c_str(), numPruned.first, numPruned.second);
                 }
-                // NO else, sshhh
+                // No else, sshhh
             }
             // No else, nothing to resort
         }
 
         void BITstar::SearchQueue::finish()
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Is there anything to resort before we're marked as finished?
             if (!resortVertices_.empty())
             {
+                // There are unsorted vertices, sort them:
                 OMPL_DEBUG("%s (SearchQueue): Resorting an unsorted queue instead of marking it as finished.",
                            nameFunc_().c_str());
                 this->resort();
             }
             else
             {
+                // We have exhausted this queue.
                 // Clear the edge containers:
                 edgeQueue_.clear();
                 outgoingEdges_.clear();
@@ -680,7 +689,7 @@ namespace ompl
 
         void BITstar::SearchQueue::reset()
         {
-            this->confirmSetup();
+            this->assertSetup();
 
 #ifdef BITSTAR_DEBUG
             if (resortVertices_.empty() == false)
@@ -703,7 +712,7 @@ namespace ompl
 
         bool BITstar::SearchQueue::vertexInsertCondition(const VertexPtr &state) const
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Threshold should always be g_t(x_g)
 
@@ -711,12 +720,12 @@ namespace ompl
             // Just in case we're using a vertex that is exactly optimally connected
             // g^(v) + h^(v) <= g_t(x_g)?
             return costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicVertex(state),
-                                                                costThreshold_);
+                                                                solnCost_);
         }
 
         bool BITstar::SearchQueue::edgeInsertCondition(const VertexPtrPair &edge) const
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             bool rval;
 
@@ -724,7 +733,7 @@ namespace ompl
             // optimally connected
             // g^(v) + c^(v,x) + h^(x) <= g_t(x_g)?
             rval = costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicEdge(edge),
-                                                                costThreshold_);
+                                                                solnCost_);
 
             // If the child is connected already, we need to check if we could do better than it's current connection.
             // But only if we're inserting the edge
@@ -742,30 +751,30 @@ namespace ompl
 
         bool BITstar::SearchQueue::vertexPruneCondition(const VertexPtr &state) const
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Threshold should always be g_t(x_g)
 
             // Prune the vertex if it could cannot part of a better solution in the current graph.  Greater-than just in
             // case we're using an edge that is exactly optimally connected.
             // g_t(v) + h^(v) > g_t(x_g)?
-            return costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicVertex(state), costThreshold_);
+            return costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicVertex(state), solnCost_);
         }
 
         bool BITstar::SearchQueue::samplePruneCondition(const VertexPtr &state) const
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Threshold should always be g_t(x_g)
             // Prune the unconnected sample if it could never be better of a better solution.
             // g^(v) + h^(v) >= g_t(x_g)?
             return costHelpPtr_->isCostWorseThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicVertex(state),
-                                                               costThreshold_);
+                                                               solnCost_);
         }
 
         bool BITstar::SearchQueue::edgePruneCondition(const VertexPtrPair &edge) const
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             bool rval;
             // Threshold should always be g_t(x_g)
@@ -773,7 +782,7 @@ namespace ompl
             // Prune the edge if it could cannot part of a better solution in the current graph.  Greater-than just in
             // case we're using an edge that is exactly optimally connected.
             // g_t(v) + c^(v,x) + h^(x) > g_t(x_g)?
-            rval = costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicEdge(edge), costThreshold_);
+            rval = costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicEdge(edge), solnCost_);
 
             // If the child is connected already, we need to check if we could do better than it's current connection.
             // But only if we're not pruning based on the first check
@@ -791,7 +800,7 @@ namespace ompl
 
         unsigned int BITstar::SearchQueue::numEdges()
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Update the queue:
             this->updateQueue();
@@ -801,7 +810,7 @@ namespace ompl
 
         unsigned int BITstar::SearchQueue::numVertices()
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Update the queue:
             this->updateQueue();
@@ -826,7 +835,7 @@ namespace ompl
 
         unsigned int BITstar::SearchQueue::numEdgesTo(const VertexPtr &cVertex)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Update the queue:
             this->updateQueue();
@@ -860,7 +869,7 @@ namespace ompl
 
         unsigned int BITstar::SearchQueue::numEdgesFrom(const VertexPtr &pVertex)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Update the queue:
             this->updateQueue();
@@ -894,28 +903,28 @@ namespace ompl
 
         unsigned int BITstar::SearchQueue::numUnsorted() const
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             return resortVertices_.size();
         }
 
         bool BITstar::SearchQueue::isSorted() const
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             return resortVertices_.empty();
         }
 
         bool BITstar::SearchQueue::isReset() const
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             return (vertexToExpand_ == vertexQueue_.begin() && edgeQueue_.empty());
         }
 
         bool BITstar::SearchQueue::isEmpty()
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Update the queue:
             this->updateQueue();
@@ -933,7 +942,7 @@ namespace ompl
 
         bool BITstar::SearchQueue::isVertexExpanded(const VertexConstPtr &vertex) const
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Variable
             // The vertex iterator
@@ -964,7 +973,7 @@ namespace ompl
 
         void BITstar::SearchQueue::getVertices(VertexConstPtrVector *vertexQueue)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Update the queue:
             this->updateQueue();
@@ -982,7 +991,7 @@ namespace ompl
 
         void BITstar::SearchQueue::getEdges(VertexConstPtrPairVector *edgeQueue)
         {
-            this->confirmSetup();
+            this->assertSetup();
 
             // Update the queue:
             this->updateQueue();
@@ -1673,7 +1682,7 @@ namespace ompl
                                                 });
         }
 
-        void BITstar::SearchQueue::confirmSetup() const
+        void BITstar::SearchQueue::assertSetup() const
         {
 #ifdef BITSTAR_DEBUG
             if (isSetup_ == false)

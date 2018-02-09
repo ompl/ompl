@@ -80,7 +80,7 @@ namespace ompl
         {
         public:
             /** \brief Constructor */
-            Vertex(ompl::base::SpaceInformationPtr si, ompl::base::OptimizationObjectivePtr opt, bool root = false);
+            Vertex(ompl::base::SpaceInformationPtr si, const CostHelperPtr &costHelpPtr, bool root = false);
 
             /** \brief Destructor */
             ~Vertex();
@@ -194,7 +194,7 @@ namespace ompl
             ompl::base::SpaceInformationPtr si_;
 
             /** \brief The optimization objective used by the planner */
-            ompl::base::OptimizationObjectivePtr opt_;
+            const CostHelperPtr &costHelpPtr_;
 
             /** \brief The state itself */
             ompl::base::State *state_;

@@ -156,7 +156,7 @@ namespace ompl
             std::pair<unsigned int, unsigned int> prune(double prunedMeasure);
             //////////////////
 
-            ////////////////////////////////
+            //////////////////
             // Adding/remove individual states:
             /** \brief Add an unconnected sample */
             void addSample(const VertexPtr &newSample);
@@ -170,7 +170,12 @@ namespace ompl
             /** \brief Remove a vertex from the tree, can optionally be allowed to move it to the set of unconnected
              * samples if may still be useful. */
             unsigned int removeVertex(const VertexPtr &oldSample, bool moveToFree);
-            ////////////////////////////////
+            //////////////////
+
+            //////////////////
+            // General helper functions
+            void assertValidSample(const VertexConstPtr &sample, bool mustBeNew);
+            //////////////////
 
             //////////////////
             // Graph settings:
@@ -294,7 +299,7 @@ namespace ompl
             ////////////////////////////////
             // Debug
             /** \brief Test if the class is setup and throw if not. */
-            void confirmSetup() const;
+            void assertSetup() const;
             ////////////////////////////////
 
             ////////////////////////////////

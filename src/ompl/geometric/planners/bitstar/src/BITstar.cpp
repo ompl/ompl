@@ -763,11 +763,12 @@ namespace ompl
             }
             else
             {
-                // If not, we just add the vertex, first mark the target vertex as no longer new and unexpanded:
-                newEdge.second->markUnexpandedToSamples();
-                newEdge.second->markUnexpandedToVertices();
+#ifdef BITSTAR_DEBUG
+                graphPtr_->assertValidSample(newEdge.second, false);
+#endif  // BITSTAR_DEBUG
+                // If not, we just add the vertex:
 
-                // Then add a child to the parent, not updating costs:
+                // Add a child to the parent, not updating costs:
                 newEdge.first->addChild(newEdge.second, false);
 
                 // Add a parent to the child, updating descendant costs if requested:
@@ -917,7 +918,7 @@ namespace ompl
             OMPL_INFORM("%s (%u iters): Found a solution of cost %.4f (%u vertices) from %u samples by processing %u "
                         "edges (%u collision checked) to create %u vertices and perform %u rewirings. The graph "
                         "currently has %u vertices.",
-                        Planner::getName().c_str(), numIterations_, bestCost_.value(), bestLength_,
+                        Planner::getName().c_str(), numIterations_, bestCost_, bestLength_,
                         graphPtr_->numStatesGenerated(), queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_,
                         graphPtr_->numVerticesConnected(), numRewirings_, graphPtr_->numConnectedVertices());
         }
@@ -927,7 +928,7 @@ namespace ompl
             OMPL_INFORM("%s: Finished with a solution of cost %.4f (%u vertices) found from %u samples by processing "
                         "%u edges (%u collision checked) to create %u vertices and perform %u rewirings. The final "
                         "graph has %u vertices.",
-                        Planner::getName().c_str(), bestCost_.value(), bestLength_, graphPtr_->numStatesGenerated(),
+                        Planner::getName().c_str(), bestCost_, bestLength_, graphPtr_->numStatesGenerated(),
                         queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_, graphPtr_->numVerticesConnected(),
                         numRewirings_, graphPtr_->numConnectedVertices());
         }

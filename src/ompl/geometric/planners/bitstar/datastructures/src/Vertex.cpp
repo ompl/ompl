@@ -42,11 +42,16 @@
 // For std::swap
 #include <algorithm>
 
+// For exceptions:
+#include "ompl/util/Exception.h"
+
 // BIT*:
 // A collection of common helper functions
 #include "ompl/geometric/planners/bitstar/datastructures/HelperFunctions.h"
 // The ID generator class
 #include "ompl/geometric/planners/bitstar/datastructures/IdGenerator.h"
+// The cost-helper class:
+#include "ompl/geometric/planners/bitstar/datastructures/CostHelper.h"
 
 namespace ompl
 {
@@ -54,19 +59,19 @@ namespace ompl
     {
         /////////////////////////////////////////////////////////////////////////////////////////////
         // Public functions:
-        BITstar::Vertex::Vertex(ompl::base::SpaceInformationPtr si, ompl::base::OptimizationObjectivePtr opt,
+        BITstar::Vertex::Vertex(ompl::base::SpaceInformationPtr si, const CostHelperPtr &costHelpPtr,
                                 bool root /*= false*/)
           : vId_(getIdGenerator().getNewId())
           , si_(std::move(si))
-          , opt_(std::move(opt))
+          , costHelpPtr_(std::move(costHelpPtr))
           , state_(si_->allocState())
           , isRoot_(root)
-          , edgeCost_(opt_->infiniteCost())
-          , cost_(opt_->infiniteCost())
+          , edgeCost_(costHelpPtr_->infiniteCost())
+          , cost_(costHelpPtr_->infiniteCost())
         {
             if (this->isRoot())
             {
-                cost_ = opt_->identityCost();
+                cost_ = costHelpPtr_->identityCost();
             }
             // No else, infinite by default
         }
@@ -458,13 +463,13 @@ namespace ompl
             if (this->isRoot())
             {
                 // Am I root? -- I don't really know how this would ever be called, but ok.
-                cost_ = opt_->identityCost();
+                cost_ = costHelpPtr_->identityCost();
                 depth_ = 0u;
             }
             else if (!this->hasParent())
             {
                 // Am I disconnected?
-                cost_ = opt_->infiniteCost();
+                cost_ = costHelpPtr_->infiniteCost();
 
                 // Set the depth to 0u, getDepth will throw in this condition
                 depth_ = 0u;
@@ -482,7 +487,7 @@ namespace ompl
             else
             {
                 // I have a parent, so my cost is my parent cost + my edge cost to the parent
-                cost_ = opt_->combineCosts(parentSPtr_->getCost(), edgeCost_);
+                cost_ = costHelpPtr_->combineCosts(parentSPtr_->getCost(), edgeCost_);
 
                 // I am one more than my parent's depth:
                 depth_ = (parentSPtr_->getDepth() + 1u);
