@@ -69,6 +69,14 @@
 // The search queue class
 #include "ompl/geometric/planners/bitstar/datastructures/SearchQueue.h"
 
+// Debug macros
+#ifdef BITSTAR_DEBUG
+    /** \brief A debug-only call to assert that the object is setup. */
+    #define ASSERT_SETUP this->assertSetup();
+#else
+    #define ASSERT_SETUP
+#endif
+
 namespace ompl
 {
     namespace geometric
@@ -262,7 +270,7 @@ namespace ompl
 
         double BITstar::ImplicitGraph::distanceFunction(const VertexConstPtr &a, const VertexConstPtr &b) const
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
 #ifdef BITSTAR_DEBUG
             if (static_cast<bool>(a->stateConst()) == false)
@@ -283,7 +291,7 @@ namespace ompl
 
         void BITstar::ImplicitGraph::nearestSamples(const VertexPtr &vertex, VertexPtrVector *neighbourSamples)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Make sure sampling has happened first:
             this->updateSamples(vertex);
@@ -303,7 +311,7 @@ namespace ompl
 
         void BITstar::ImplicitGraph::nearestVertices(const VertexPtr &vertex, VertexPtrVector *neighbourVertices)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Increment our counter:
             ++numNearestNeighbours_;
@@ -320,7 +328,7 @@ namespace ompl
 
         void BITstar::ImplicitGraph::getGraphAsPlannerData(ompl::base::PlannerData &data) const
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Add samples
             if (static_cast<bool>(freeStateNN_))
@@ -376,7 +384,7 @@ namespace ompl
 
         void BITstar::ImplicitGraph::hasSolution(const ompl::base::Cost &solnCost)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // We have a solution!
             hasExactSolution_ = true;
@@ -392,7 +400,7 @@ namespace ompl
         void BITstar::ImplicitGraph::updateStartAndGoalStates(ompl::base::PlannerInputStates &pis,
                                                               const base::PlannerTerminationCondition &ptc)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Variable
             // Whether we've added a start or goal:
@@ -643,7 +651,7 @@ namespace ompl
 
         void BITstar::ImplicitGraph::addNewSamples(const unsigned int &numSamples)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Set the cost sampled to the minimum
             costSampled_ = minCost_;
@@ -688,7 +696,7 @@ namespace ompl
 
         std::pair<unsigned int, unsigned int> BITstar::ImplicitGraph::prune(double prunedMeasure)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
 #ifdef BITSTAR_DEBUG
             if (hasExactSolution_ == false)
@@ -714,7 +722,7 @@ namespace ompl
 
         void BITstar::ImplicitGraph::addSample(const VertexPtr &newSample)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // NO COUNTER. generated samples are counted at the sampler.
 
@@ -732,7 +740,7 @@ namespace ompl
 
         void BITstar::ImplicitGraph::removeSample(const VertexPtr &oldSample)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Variable:
 #ifdef BITSTAR_DEBUG
@@ -765,7 +773,7 @@ namespace ompl
 
         void BITstar::ImplicitGraph::addVertex(const VertexPtr &newVertex, bool removeFromFree)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
 #ifdef BITSTAR_DEBUG
             // Make sure it's connected first, so that the queue gets updated properly.
@@ -798,7 +806,7 @@ namespace ompl
 
         unsigned int BITstar::ImplicitGraph::removeVertex(const VertexPtr &oldVertex, bool moveToFree)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Variable:
 #ifdef BITSTAR_DEBUG
@@ -1301,12 +1309,10 @@ namespace ompl
 
         void BITstar::ImplicitGraph::assertSetup() const
         {
-#ifdef BITSTAR_DEBUG
             if (isSetup_ == false)
             {
                 throw ompl::Exception("BITstar::ImplicitGraph was used before it was setup.");
             }
-#endif  // BITSTAR_DEBUG
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
 

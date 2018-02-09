@@ -53,6 +53,25 @@
 // The cost-helper class:
 #include "ompl/geometric/planners/bitstar/datastructures/CostHelper.h"
 
+// Debug macros
+#ifdef BITSTAR_DEBUG
+    // Debug setting. The id number of a vertex to track. Requires BITSTAR_DEBUG to be defined in BITstar.h
+    #define TRACK_VERTEX_ID 0
+
+    /** \brief A helper function to print out every function called on vertex "TRACK_VERTEX_ID" that changes it */
+    #define PRINT_VERTEX_CHANGE \
+        if (vId_ == TRACK_VERTEX_ID) \
+        { \
+            std::cout << "vId " << vId_ << ": " << __func__ << "()" << std::endl; \
+        }
+
+    /** \brief A debug-only call to assert that the vertex is not pruned. */
+    #define ASSERT_NOT_PRUNED this->assertNotPruned();
+#else
+    #define PRINT_VERTEX_CHANGE
+    #define ASSERT_NOT_PRUNED
+#endif
+
 namespace ompl
 {
     namespace geometric
@@ -69,6 +88,8 @@ namespace ompl
           , edgeCost_(costHelpPtr_->infiniteCost())
           , cost_(costHelpPtr_->infiniteCost())
         {
+            PRINT_VERTEX_CHANGE
+
             if (this->isRoot())
             {
                 cost_ = costHelpPtr_->identityCost();
@@ -78,54 +99,58 @@ namespace ompl
 
         BITstar::Vertex::~Vertex()
         {
+            PRINT_VERTEX_CHANGE
+
             // Free the state on destruction
             si_->freeState(state_);
         }
 
         BITstar::VertexId BITstar::Vertex::getId() const
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
+
             return vId_;
         }
 
         ompl::base::State const *BITstar::Vertex::stateConst() const
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
 
             return state_;
         }
 
         ompl::base::State *BITstar::Vertex::state()
         {
-            this->assertNotPruned();
+            PRINT_VERTEX_CHANGE
+            ASSERT_NOT_PRUNED
 
             return state_;
         }
 
         bool BITstar::Vertex::isRoot() const
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
 
             return isRoot_;
         }
 
         bool BITstar::Vertex::hasParent() const
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
 
             return static_cast<bool>(parentSPtr_);
         }
 
         bool BITstar::Vertex::isInTree() const
         {
-            // No need to assert, as the two other functions both do
+            ASSERT_NOT_PRUNED
 
             return this->isRoot() || this->hasParent();
         }
 
         unsigned int BITstar::Vertex::getDepth() const
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
             if (this->isRoot() == false && this->hasParent() == false)
@@ -140,7 +165,7 @@ namespace ompl
 
         BITstar::VertexConstPtr BITstar::Vertex::getParentConst() const
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
             if (this->hasParent() == false)
@@ -161,7 +186,7 @@ namespace ompl
 
         BITstar::VertexPtr BITstar::Vertex::getParent()
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
             if (this->hasParent() == false)
@@ -183,7 +208,8 @@ namespace ompl
         void BITstar::Vertex::addParent(const VertexPtr &newParent, const ompl::base::Cost &edgeInCost,
                                         bool updateChildCosts /*= true*/)
         {
-            this->assertNotPruned();
+            PRINT_VERTEX_CHANGE
+            ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
             if (this->hasParent() == true)
@@ -208,7 +234,8 @@ namespace ompl
 
         void BITstar::Vertex::removeParent(bool updateChildCosts /*= true*/)
         {
-            this->assertNotPruned();
+            PRINT_VERTEX_CHANGE
+            ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
             if (this->hasParent() == false)
@@ -231,14 +258,14 @@ namespace ompl
 
         bool BITstar::Vertex::hasChildren() const
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
 
             return !childWPtrs_.empty();
         }
 
         void BITstar::Vertex::getChildrenConst(VertexConstPtrVector *children) const
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
 
             children->clear();
 
@@ -260,7 +287,7 @@ namespace ompl
 
         void BITstar::Vertex::getChildren(VertexPtrVector *children)
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
 
             children->clear();
 
@@ -282,7 +309,8 @@ namespace ompl
 
         void BITstar::Vertex::addChild(const VertexPtr &newChild, bool updateChildCosts /*= true*/)
         {
-            this->assertNotPruned();
+            PRINT_VERTEX_CHANGE
+            ASSERT_NOT_PRUNED
 
             // Push back the shared_ptr into the vector of weak_ptrs, this makes a weak_ptr copy
             childWPtrs_.push_back(newChild);
@@ -296,7 +324,8 @@ namespace ompl
 
         void BITstar::Vertex::removeChild(const VertexPtr &oldChild, bool updateChildCosts /*= true*/)
         {
-            this->assertNotPruned();
+            PRINT_VERTEX_CHANGE
+            ASSERT_NOT_PRUNED
 
             // Variables
             // Whether the child has been found (and then deleted);
@@ -354,14 +383,14 @@ namespace ompl
 
         ompl::base::Cost BITstar::Vertex::getCost() const
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
 
             return cost_;
         }
 
         ompl::base::Cost BITstar::Vertex::getEdgeInCost() const
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
             if (this->hasParent() == false)
@@ -375,63 +404,69 @@ namespace ompl
 
         bool BITstar::Vertex::isNew() const
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
 
             return isNew_;
         }
 
         void BITstar::Vertex::markNew()
         {
-            this->assertNotPruned();
+            PRINT_VERTEX_CHANGE
+            ASSERT_NOT_PRUNED
 
             isNew_ = true;
         }
 
         void BITstar::Vertex::markOld()
         {
-            this->assertNotPruned();
+            PRINT_VERTEX_CHANGE
+            ASSERT_NOT_PRUNED
 
             isNew_ = false;
         }
 
         bool BITstar::Vertex::hasBeenExpandedToSamples() const
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
 
             return hasBeenExpandedToSamples_;
         }
 
         void BITstar::Vertex::markExpandedToSamples()
         {
-            this->assertNotPruned();
+            PRINT_VERTEX_CHANGE
+            ASSERT_NOT_PRUNED
 
             hasBeenExpandedToSamples_ = true;
         }
 
         void BITstar::Vertex::markUnexpandedToSamples()
         {
-            this->assertNotPruned();
+            PRINT_VERTEX_CHANGE
+            ASSERT_NOT_PRUNED
 
             hasBeenExpandedToSamples_ = false;
         }
 
         bool BITstar::Vertex::hasBeenExpandedToVertices() const
         {
-            this->assertNotPruned();
+            ASSERT_NOT_PRUNED
 
             return hasBeenExpandedToVertices_;
         }
 
         void BITstar::Vertex::markExpandedToVertices()
         {
-            this->assertNotPruned();
+            PRINT_VERTEX_CHANGE
+            ASSERT_NOT_PRUNED
 
             hasBeenExpandedToVertices_ = true;
         }
 
         void BITstar::Vertex::markUnexpandedToVertices()
         {
-            this->assertNotPruned();
+            PRINT_VERTEX_CHANGE
+            ASSERT_NOT_PRUNED
 
             hasBeenExpandedToVertices_ = false;
         }
@@ -443,13 +478,16 @@ namespace ompl
 
         void BITstar::Vertex::markPruned()
         {
-            this->assertNotPruned();
+            PRINT_VERTEX_CHANGE
+            ASSERT_NOT_PRUNED
 
             isPruned_ = true;
         }
 
         void BITstar::Vertex::markUnpruned()
         {
+            PRINT_VERTEX_CHANGE
+
             isPruned_ = false;
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
@@ -458,7 +496,8 @@ namespace ompl
         // Protected functions:
         void BITstar::Vertex::updateCostAndDepth(bool cascadeUpdates /*= true*/)
         {
-            this->assertNotPruned();
+            PRINT_VERTEX_CHANGE
+            ASSERT_NOT_PRUNED
 
             if (this->isRoot())
             {
@@ -520,14 +559,12 @@ namespace ompl
         // Private functions:
         void BITstar::Vertex::assertNotPruned() const
         {
-#ifdef BITSTAR_DEBUG
             if (isPruned_ == true)
             {
                 std::cout << std::endl
                           << "vId: " << vId_ << std::endl;
                 throw ompl::Exception("Attempting to access a pruned vertex.");
             }
-#endif  // BITSTAR_DEBUG
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
     }  // geometric

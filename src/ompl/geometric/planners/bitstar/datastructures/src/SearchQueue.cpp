@@ -58,6 +58,14 @@
 // The implicit graph:
 #include "ompl/geometric/planners/bitstar/datastructures/ImplicitGraph.h"
 
+// Debug macros
+#ifdef BITSTAR_DEBUG
+    /** \brief A debug-only call to assert that the object is setup. */
+    #define ASSERT_SETUP this->assertSetup();
+#else
+    #define ASSERT_SETUP
+#endif
+
 namespace ompl
 {
     namespace geometric
@@ -135,7 +143,7 @@ namespace ompl
 
         void BITstar::SearchQueue::enqueueVertex(const VertexPtr &newVertex, bool removeFromFree)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Insert the vertex:
             this->vertexInsertHelper(newVertex, true, removeFromFree, true);
@@ -143,7 +151,7 @@ namespace ompl
 
         void BITstar::SearchQueue::enqueueEdge(const VertexPtrPair &newEdge)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Call my helper function:
             this->edgeInsertHelper(newEdge, edgeQueue_.end());
@@ -151,7 +159,7 @@ namespace ompl
 
         void BITstar::SearchQueue::enqueueEdge(const VertexPtr &sourceVertex, const VertexPtr &targetVertex)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Call my helper function:
             this->enqueueEdge(std::make_pair(sourceVertex, targetVertex));
@@ -159,7 +167,7 @@ namespace ompl
 
         void BITstar::SearchQueue::unqueueVertex(const VertexPtr &oldVertex)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Disconnect from parent if necessary, cascading cost updates:
             if (oldVertex->hasParent())
@@ -173,7 +181,7 @@ namespace ompl
 
         BITstar::VertexPtr BITstar::SearchQueue::frontVertex()
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
 #ifdef BITSTAR_DEBUG
             if (this->isEmpty() == true)
@@ -191,7 +199,7 @@ namespace ompl
 
         BITstar::VertexPtrPair BITstar::SearchQueue::frontEdge()
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
 #ifdef BITSTAR_DEBUG
             if (this->isEmpty() == true)
@@ -209,7 +217,7 @@ namespace ompl
 
         BITstar::SearchQueue::CostDouble BITstar::SearchQueue::frontVertexValue()
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
 #ifdef BITSTAR_DEBUG
             if (this->isEmpty() == true)
@@ -227,7 +235,7 @@ namespace ompl
 
         BITstar::SearchQueue::CostTriple BITstar::SearchQueue::frontEdgeValue()
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
 #ifdef BITSTAR_DEBUG
             if (this->isEmpty() == true)
@@ -245,7 +253,7 @@ namespace ompl
 
         void BITstar::SearchQueue::popFrontEdge(VertexPtrPair *bestEdge)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
 #ifdef BITSTAR_DEBUG
             if (this->isEmpty() == true)
@@ -276,7 +284,7 @@ namespace ompl
 
         BITstar::VertexPtrPair BITstar::SearchQueue::popFrontEdge()
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             VertexPtrPair rval;
 
@@ -287,7 +295,7 @@ namespace ompl
 
         void BITstar::SearchQueue::hasSolution(const ompl::base::Cost &solnCost)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Flag
             hasExactSolution_ = true;
@@ -298,7 +306,7 @@ namespace ompl
 
         void BITstar::SearchQueue::removeEdgesTo(const VertexPtr &cVertex)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             if (!edgeQueue_.empty())
             {
@@ -330,7 +338,7 @@ namespace ompl
 
         void BITstar::SearchQueue::removeEdgesFrom(const VertexPtr &pVertex)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             if (!edgeQueue_.empty())
             {
@@ -362,7 +370,7 @@ namespace ompl
 
         void BITstar::SearchQueue::removeExtraEdgesTo(const VertexPtr &cVertex)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             if (!edgeQueue_.empty())
             {
@@ -420,7 +428,7 @@ namespace ompl
 
         void BITstar::SearchQueue::removeExtraEdgesFrom(const VertexPtr &pVertex)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             if (!edgeQueue_.empty())
             {
@@ -478,14 +486,14 @@ namespace ompl
 
         void BITstar::SearchQueue::markVertexUnsorted(const VertexPtr &vertex)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             resortVertices_.push_back(vertex);
         }
 
         std::pair<unsigned int, unsigned int> BITstar::SearchQueue::prune(const VertexConstPtr &goalVertexPtr)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
 #ifdef BITSTAR_DEBUG
             if (hasExactSolution_ == false)
@@ -559,7 +567,7 @@ namespace ompl
 
         void BITstar::SearchQueue::resort()
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Iterate through every vertex marked for resorting:
             if (!resortVertices_.empty())
@@ -661,7 +669,7 @@ namespace ompl
 
         void BITstar::SearchQueue::finish()
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Is there anything to resort before we're marked as finished?
             if (!resortVertices_.empty())
@@ -689,7 +697,7 @@ namespace ompl
 
         void BITstar::SearchQueue::reset()
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
 #ifdef BITSTAR_DEBUG
             if (resortVertices_.empty() == false)
@@ -712,7 +720,7 @@ namespace ompl
 
         bool BITstar::SearchQueue::vertexInsertCondition(const VertexPtr &state) const
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Threshold should always be g_t(x_g)
 
@@ -725,7 +733,7 @@ namespace ompl
 
         bool BITstar::SearchQueue::edgeInsertCondition(const VertexPtrPair &edge) const
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             bool rval;
 
@@ -751,7 +759,7 @@ namespace ompl
 
         bool BITstar::SearchQueue::vertexPruneCondition(const VertexPtr &state) const
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Threshold should always be g_t(x_g)
 
@@ -763,7 +771,7 @@ namespace ompl
 
         bool BITstar::SearchQueue::samplePruneCondition(const VertexPtr &state) const
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Threshold should always be g_t(x_g)
             // Prune the unconnected sample if it could never be better of a better solution.
@@ -774,7 +782,7 @@ namespace ompl
 
         bool BITstar::SearchQueue::edgePruneCondition(const VertexPtrPair &edge) const
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             bool rval;
             // Threshold should always be g_t(x_g)
@@ -800,7 +808,7 @@ namespace ompl
 
         unsigned int BITstar::SearchQueue::numEdges()
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Update the queue:
             this->updateQueue();
@@ -810,7 +818,7 @@ namespace ompl
 
         unsigned int BITstar::SearchQueue::numVertices()
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Update the queue:
             this->updateQueue();
@@ -835,7 +843,7 @@ namespace ompl
 
         unsigned int BITstar::SearchQueue::numEdgesTo(const VertexPtr &cVertex)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Update the queue:
             this->updateQueue();
@@ -869,7 +877,7 @@ namespace ompl
 
         unsigned int BITstar::SearchQueue::numEdgesFrom(const VertexPtr &pVertex)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Update the queue:
             this->updateQueue();
@@ -903,28 +911,28 @@ namespace ompl
 
         unsigned int BITstar::SearchQueue::numUnsorted() const
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             return resortVertices_.size();
         }
 
         bool BITstar::SearchQueue::isSorted() const
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             return resortVertices_.empty();
         }
 
         bool BITstar::SearchQueue::isReset() const
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             return (vertexToExpand_ == vertexQueue_.begin() && edgeQueue_.empty());
         }
 
         bool BITstar::SearchQueue::isEmpty()
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Update the queue:
             this->updateQueue();
@@ -942,7 +950,7 @@ namespace ompl
 
         bool BITstar::SearchQueue::isVertexExpanded(const VertexConstPtr &vertex) const
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Variable
             // The vertex iterator
@@ -973,7 +981,7 @@ namespace ompl
 
         void BITstar::SearchQueue::getVertices(VertexConstPtrVector *vertexQueue)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Update the queue:
             this->updateQueue();
@@ -991,7 +999,7 @@ namespace ompl
 
         void BITstar::SearchQueue::getEdges(VertexConstPtrPairVector *edgeQueue)
         {
-            this->assertSetup();
+            ASSERT_SETUP
 
             // Update the queue:
             this->updateQueue();
@@ -1695,12 +1703,10 @@ namespace ompl
 
         void BITstar::SearchQueue::assertSetup() const
         {
-#ifdef BITSTAR_DEBUG
             if (isSetup_ == false)
             {
                 throw ompl::Exception("BITstar::SearchQueue was used before it was setup.");
             }
-#endif  // BITSTAR_DEBUG
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
 
