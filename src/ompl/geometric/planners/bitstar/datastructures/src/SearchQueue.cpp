@@ -733,7 +733,7 @@ namespace ompl
                 // Can it ever be a better path to the vertex? Less-than-equal to just in case we're using an edge that
                 // is exactly optimally connected
                 // g^(v) + c^(v,x) <= g_t(x)?
-                rval = costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicTarget(edge),
+                rval = costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicToTarget(edge),
                                                                     edge.second->getCost());  // Ever rewire?
             }
 
@@ -782,7 +782,7 @@ namespace ompl
                 // Can it ever be a better path to the vertex in the current graph? Greater-than to just in case we're
                 // using an edge that is exactly optimally connected
                 // g_t(v) + c^(v,x) > g_t(x)?
-                rval = costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicTarget(edge),
+                rval = costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicToTarget(edge),
                                                      edge.second->getCost());  // Currently rewire?
             }
 
@@ -1658,7 +1658,7 @@ namespace ompl
         BITstar::SearchQueue::CostTriple BITstar::SearchQueue::edgeQueueValue(const VertexPtrPair &edge) const
         {
             // Construct and return an array
-            return {{costHelpPtr_->currentHeuristicEdge(edge), costHelpPtr_->currentHeuristicTarget(edge),
+            return {{costHelpPtr_->currentHeuristicEdge(edge), costHelpPtr_->currentHeuristicToTarget(edge),
                               edge.first->getCost()}};
         }
 

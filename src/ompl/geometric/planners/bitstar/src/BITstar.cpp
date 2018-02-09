@@ -506,7 +506,7 @@ namespace ompl
                 {
                     // What about improving the current graph?
                     // g_t(v) + c_hat(v,x)  < g_t(x)?
-                    if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicTarget(bestEdge),
+                    if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicToTarget(bestEdge),
                                                        bestEdge.second->getCost()))
                     {
                         // Ok, so it *could* be a useful edge. Do the work of calculating its cost for real
