@@ -1100,40 +1100,26 @@ namespace ompl
                 }
                 // No else
 
+                // Add potential edges from the vertex to nearby states.
+                // Do so intelligently to avoid repeatedly considering the same failed edges (likely due to collision).
+
                 // Add edges to unconnected targets who could ever provide a better solution:
                 // Has the vertex been expanded into edges towards unconnected samples before?
                 if (!vertex->hasBeenExpandedToSamples())
                 {
                     // It has not, that means none of its outgoing edges have been considered. Add them all
-                    for (auto &targetSample : neighbourSamples)
-                    {
-                        // Attempt to queue the edge.
-                        this->enqueueEdgeConditionally(vertex, targetSample);
-                    }
-
-                    // Mark it as expanded
-                    vertex->markExpandedToSamples();
+                    this->enqueueSamples(vertex, neighbourSamples, true);
                 }
                 else
                 {
                     // It has, which means that outgoing edges to old unconnected vertices have already been considered.
                     // Only add those that lead to new vertices
-                    for (auto &targetSample : neighbourSamples)
-                    {
-                        // Is the target new?
-                        if (targetSample->isNew())
-                        {
-                            // It is, attempt to queue the edge.
-                            this->enqueueEdgeConditionally(vertex, targetSample);
-                        }
-                        // No else, we've considered this edge before.
-                    }
+                    this->enqueueSamples(vertex, neighbourSamples, false);
                 }
 
                 // If the vertex has never been expanded into possible rewiring edges *and* either we're not delaying
                 // rewiring or we have a solution, we add those rewiring candidates:
-                if (!vertex->hasBeenExpandedToVertices() &&
-                    (!delayRewiring_ || hasExactSolution_))
+                if (!vertex->hasBeenExpandedToVertices() && (!delayRewiring_ || hasExactSolution_))
                 {
                     // If we're using an r-disc RGG, we will not have gotten the neighbour vertices yet, get them now
                     if (!graphPtr_->getUseKNearest())
@@ -1145,38 +1131,63 @@ namespace ompl
 
                     // Iterate over the vector of connected targets and add only those who could ever provide a better
                     // solution:
-                    for (auto &targetVertex : neighbourVertices)
-                    {
-                        // Make sure it is not the root or myself.
-                        if (!targetVertex->isRoot() && targetVertex->getId() != vertex->getId())
-                        {
-                            // Make sure I am not already the parent
-                            if (targetVertex->getParent()->getId() != vertex->getId())
-                            {
-                                // Make sure the neighbour vertex is not already my parent:
-                                if (vertex->isRoot())
-                                {
-                                    // I am root, I have no parent, so attempt to queue the edge:
-                                    this->enqueueEdgeConditionally(vertex, targetVertex);
-                                }
-                                else if (targetVertex->getId() != vertex->getParent()->getId())
-                                {
-                                    // The neighbour is not my parent, attempt to queue the edge:
-                                    this->enqueueEdgeConditionally(vertex, targetVertex);
-                                }
-                                // No else, this vertex is my parent.
-                            }
-                            // No else
-                        }
-                        // No else
-                    }
-
-                    // Mark the vertex as expanded into rewirings
-                    vertex->markExpandedToVertices();
+                    this->enqueueVertices(vertex, neighbourVertices);
                 }
                 // No else
             }
             // No else
+        }
+
+        void BITstar::SearchQueue::enqueueSamples(const VertexPtr &vertex, const VertexPtrVector& neighbourSamples, bool addAll)
+        {
+            // Iterate through the samples and add each one
+            for (auto &targetSample : neighbourSamples)
+            {
+                // Is the target new? Do we care?
+                if (addAll || targetSample->isNew())
+                {
+                    // It is new or we don't care, attempt to queue the edge.
+                    this->enqueueEdgeConditionally(vertex, targetSample);
+                }
+                // No else, we've considered this edge before and we're being selective.
+            }
+
+            // Mark it as expanded
+            vertex->markExpandedToSamples();
+        }
+
+        void BITstar::SearchQueue::enqueueVertices(const VertexPtr &vertex, const VertexPtrVector& neighbourVertices)
+        {
+            // Iterate over the vector of connected targets and add only those who could ever provide a better
+            // solution:
+            for (auto &targetVertex : neighbourVertices)
+            {
+                // Make sure it is not the root or myself.
+                if (!targetVertex->isRoot() && targetVertex->getId() != vertex->getId())
+                {
+                    // Make sure I am not already the parent
+                    if (targetVertex->getParent()->getId() != vertex->getId())
+                    {
+                        // Make sure the neighbour vertex is not already my parent:
+                        if (vertex->isRoot())
+                        {
+                            // I am root, I have no parent, so attempt to queue the edge:
+                            this->enqueueEdgeConditionally(vertex, targetVertex);
+                        }
+                        else if (targetVertex->getId() != vertex->getParent()->getId())
+                        {
+                            // The neighbour is not my parent, attempt to queue the edge:
+                            this->enqueueEdgeConditionally(vertex, targetVertex);
+                        }
+                        // No else, this vertex is my parent.
+                    }
+                    // No else
+                }
+                // No else
+            }
+
+            // Mark the vertex as expanded into rewirings
+            vertex->markExpandedToVertices();
         }
 
         void BITstar::SearchQueue::enqueueEdgeConditionally(const VertexPtr &parent, const VertexPtr &child)

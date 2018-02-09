@@ -343,6 +343,13 @@ namespace ompl
             /** \brief Update the edge queue by adding all the potential edges from the vertex to nearby states. */
             void expandVertex(const VertexPtr &vertex);
 
+            /** \brief Iterate through the list of neighbouring unconnected vertices and add potential edges to
+            * the queue if the vertex is marked as new *or* we're adding all of them. */
+            void enqueueSamples(const VertexPtr &vertex, const VertexPtrVector& neighbourSamples, bool addAll);
+
+            /** \brief Iterate through the list of neighbouring vertices and add potential edges to the queue. */
+            void enqueueVertices(const VertexPtr &vertex, const VertexPtrVector& neighbourVertices);
+
             /** \brief Attempt to add an edge to the queue. Checks that the edge meets the queueing condition. */
             void enqueueEdgeConditionally(const VertexPtr &parent, const VertexPtr &child);
 

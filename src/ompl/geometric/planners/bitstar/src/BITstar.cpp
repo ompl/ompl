@@ -766,7 +766,7 @@ namespace ompl
 #ifdef BITSTAR_DEBUG
                 graphPtr_->assertValidSample(newEdge.second, false);
 #endif  // BITSTAR_DEBUG
-                // If not, we just add the vertex:
+                // If not, we just add the vertex
 
                 // Add a child to the parent, not updating costs:
                 newEdge.first->addChild(newEdge.second, false);
