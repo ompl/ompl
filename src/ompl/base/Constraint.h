@@ -62,11 +62,18 @@ namespace ompl
         OMPL_CLASS_FORWARD(Constraint);
         /// @endcond
 
-        /** \brief Definition of a constraint on (a portion of) the state space. */
+        /** \brief Definition of a differentiable holonomic constraint on a configuration space. */
         class Constraint
         {
         public:
-            /** \brief Constructor. */
+            /** \brief Constructor. The dimension of the ambient configuration space as well as the dimension of the
+             function's output need to be specified (the co-dimension of the constraint manifold). I.E., for a sphere
+             constraint function in \f$\mathbb{R}^3$,
+            \f[
+                F(q) = \left\lVert q \right\rVert - 1 \qquad F(q) : \f\mathbb{R}^3 \rightarrow \mathbb{R}
+            \f]
+            \a ambientDim will be 3, and \a coDim will be 1.
+            */
             Constraint(const unsigned int ambientDim, const unsigned int coDim)
               : n_(ambientDim)
               , k_(ambientDim - coDim)
@@ -80,19 +87,18 @@ namespace ompl
 
             virtual ~Constraint(){};
 
-            /** \brief Compute the constraint function at \a state. Result is
-             * returned in \a out, which should be allocated to size n_. */
+            /** \brief Compute the constraint function at \a state. Result is returned in \a out, which should be
+             allocated to size \a coDim. */
             void function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const;
 
-            /** \brief Compute the Jacobian of the constraint function at \a
-             * state. Result is returned in \a out, which should be allocated to
-             * size (n_ - k_) by n_. Default implementation performs the
-             * differentiation numerically, which may be slower and/or more
-             * inaccurate than an explicit formula. */
+            /** \brief Compute the Jacobian of the constraint function at \a state. Result is returned in \a out, which
+             should be allocated to size \a coDim by \a ambientDim. Default implementation performs the differentiation
+             numerically with a seven-point central difference stencil. It is best to provide an analytic
+             formulation. */
             void jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const;
 
-            /** \brief Project a state \a state given the constraints. If a valid
-             * projection cannot be found, this method will return false. */
+            /** \brief Project a state \a state given the constraints. If a valid projection cannot be found, this
+             method will return false. Even if this method fails, \a state will be modified. */
             bool project(State *state) const;
 
             /** \brief Returns the distance of \a state to the constraint manifold. */
@@ -113,18 +119,11 @@ namespace ompl
                 return k_;
             }
 
-            /** \brief Returns the dimension of the manifold. */
+            /** \brief Returns the co-dimension of the manifold, or dimension of the image of the constraint
+             function. */
             unsigned int getCoDimension() const
             {
                 return n_ - k_;
-            }
-
-            void setManifoldDimension(unsigned int k)
-            {
-                if (k <= 0)
-                    throw ompl::Exception("ompl::base::Constraint(): "
-                                          "Space is over constrained!");
-                k_ = k;
             }
 
             /** \brief Returns the tolerance of the projection routine. */
@@ -157,20 +156,19 @@ namespace ompl
                 maxIterations_ = iterations;
             }
 
-            /** \brief Compute the constraint function at \a x. Result is returned
-             * in \a out, which should be allocated to size n_. */
+            /** \brief Compute the constraint function at \a x. Result is returned in \a out, which should be allocated
+             to size \a coDim. */
             virtual void function(const Eigen::Ref<const Eigen::VectorXd> &x,
                                   Eigen::Ref<Eigen::VectorXd> out) const = 0;
 
-            /** \brief Compute the Jacobian of the constraint function at \a x.
-             * Result is returned in \a out, which should be allocated to size
-             * (n_ - k_) by n_. Default implementation performs the
-             * differentiation numerically, which may be slower and/or more
-             * inaccurate than an explicit formula. */
+            /** \brief Compute the Jacobian of the constraint function at \a x. Result is returned in \a out, which
+             should be allocated to size \a coDim by \a ambientDim. Default implementation performs the differentiation
+             numerically with a seven-point central difference stencil. It is best to provide an analytic
+             formulation. */
             virtual void jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const;
 
-            /** \brief Project a state \a x given the constraints. If a valid
-             * projection cannot be found, this method will return false. */
+            /** \brief Project a state \a x given the constraints. If a valid projection cannot be found, this method
+             will return false. */
             virtual bool project(Eigen::Ref<Eigen::VectorXd> x) const;
 
             /** \brief Returns the distance of \a x to the constraint manifold. */
@@ -184,7 +182,7 @@ namespace ompl
             const unsigned int n_;
 
             /** \brief Manifold dimension. */
-            unsigned int k_;
+            const unsigned int k_;
 
             /** \brief Tolerance for Newton method used in projection onto manifold. */
             double tolerance_;
@@ -197,7 +195,8 @@ namespace ompl
         OMPL_CLASS_FORWARD(ConstraintIntersection);
         /// @endcond
 
-        /** \brief Definition of a constraint on (a portion of) the state space. */
+        /** \brief Definition of a constraint composed of multiple constraints that all must be satisfied
+         simultaneously. This class `stacks` the constraint functions together. */
         class ConstraintIntersection : public Constraint
         {
         public:
@@ -209,6 +208,7 @@ namespace ompl
                     addConstraint(constraint);
             }
 
+            /** \brief Destructor. Destroys all constituent constraints. */
             ~ConstraintIntersection()
             {
                 for (auto constraint : constraints_)
@@ -242,93 +242,33 @@ namespace ompl
                 constraints_.push_back(constraint);
             }
 
+            /** \brief Constituent constraints. */
             std::vector<Constraint *> constraints_;
         };
 
-        /** \brief Definition of a constraint on (a portion of) the state space. */
-        class ConstraintUnion : public Constraint
-        {
-        public:
-            /** \brief Constructor. If constraints is empty assume it will be filled later. */
-            ConstraintUnion(const unsigned int ambientDim, std::initializer_list<Constraint *> constraints)
-              : Constraint(ambientDim, ambientDim)
-            {
-                for (auto constraint : constraints)
-                    addConstraint(constraint);
-            }
+        /// @cond IGNORE
+        OMPL_CLASS_FORWARD(ConstraintObjective);
+        /// @endcond
 
-            ~ConstraintUnion()
-            {
-                for (auto constraint : constraints_)
-                    delete constraint;
-            }
-
-            const Constraint *closest(const Eigen::VectorXd &x) const
-            {
-                Eigen::VectorXd f(n_ - k_);
-
-                Constraint *c = nullptr;
-                double min = std::numeric_limits<double>::max();
-
-                for (auto constraint : constraints_)
-                {
-                    double v = constraint->distance(x);
-                    if (v < min)
-                    {
-                        c = constraint;
-                        min = v;
-                    }
-                }
-
-                return c;
-            }
-
-            void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
-            {
-                closest(x)->function(x, out);
-            }
-
-            void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
-            {
-                closest(x)->jacobian(x, out);
-            }
-
-        protected:
-            void addConstraint(Constraint *constraint)
-            {
-                if (k_ == n_)
-                    setManifoldDimension(constraint->getManifoldDimension());
-                else if (k_ != constraint->getManifoldDimension())
-                    throw ompl::Exception("ompl::base::ConstraintUnion(): "
-                                          "Manifold Dimensions must be the same.");
-
-                constraints_.push_back(constraint);
-            }
-
-            std::vector<Constraint *> constraints_;
-        };
-
+        /** \brief Wrapper around ompl::base::Constraint to use as an optimization objective. */
         class ConstraintObjective : public OptimizationObjective
         {
         public:
+            /** \brief Constructor. */
             ConstraintObjective(ConstraintPtr constraint, SpaceInformationPtr si)
               : OptimizationObjective(si), constraint_(std::move(constraint))
             {
             }
 
-            /** \brief Evaluate a cost map defined on the state space at a state \e s. */
+            /** \brief Evaluate a cost map defined on the state space at a state \e s. Cost map is defined as the
+             * distance from the constraint. */
             virtual Cost stateCost(const State *s) const
             {
                 return Cost(constraint_->distance(s));
             }
 
-            /** \brief Get the cost that corresponds to the motion segment between \e s1 and \e s2 */
-            virtual Cost motionCost(const State *s1, const State *s2) const
-            {
-                return Cost(fabs(constraint_->distance(s1) - constraint_->distance(s2)));
-            }
-
         protected:
+            /** \brief Optimizing constraint */
             ConstraintPtr constraint_;
         };
     }
