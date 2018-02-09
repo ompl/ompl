@@ -50,47 +50,37 @@
 #include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
 
 #include <ompl/geometric/planners/est/EST.h>
-#include <ompl/geometric/planners/est/BiEST.h>
-
 #include <ompl/geometric/planners/prm/PRM.h>
-
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
-
-#include <ompl/geometric/planners/bitstar/BITstar.h>
-
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
-#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
 
-using namespace std;
-using namespace placeholders;
-using namespace ompl::base;
-using namespace ompl::geometric;
-using namespace boost::program_options;
-using namespace Eigen;
+namespace po = boost::program_options;
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
 
-class SphereConstraint : public Constraint
+class SphereConstraint : public ob::Constraint
 {
 public:
-    SphereConstraint() : Constraint(3, 1)
+    SphereConstraint() : ob::Constraint(3, 1)
     {
     }
 
-    void function(const Ref<const VectorXd> &x, Ref<VectorXd> out) const override
+    void function(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::VectorXd> out) const override
     {
         out[0] = x.norm() - 1;
     }
 
-    void jacobian(const Ref<const VectorXd> &x, Ref<MatrixXd> out) const override
+    void jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const override
     {
         out = x.transpose().normalized();
     }
 };
 
-bool isValid(const State *state)
+bool isValid(const ob::State *state)
 {
-    auto x = state->as<ConstrainedStateSpace::StateType>()->constVectorView();
+    auto x = state->as<ob::ConstrainedStateSpace::StateType>()->constVectorView();
 
     if (-0.75 < x[2] && x[2] < -0.60)
     {
@@ -114,82 +104,117 @@ bool isValid(const State *state)
     return true;
 }
 
-int main(int argc, char **argv)
+void spherePlanning(bool output)
 {
     // Create the ambient space state space for the problem.
-    StateSpacePtr rvss(new RealVectorStateSpace(3));
+    auto rvss = std::make_shared<ob::RealVectorStateSpace>(3);
 
-    RealVectorBounds bounds(3);
+    ob::RealVectorBounds bounds(3);
     bounds.setLow(-1);
     bounds.setHigh(1);
 
-    rvss->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
+    rvss->setBounds(bounds);
 
     // Create a shared pointer to our constraint.
-    ConstraintPtr constraint(new SphereConstraint);
+    auto constraint = std::make_shared<SphereConstraint>();
 
     // Combine the ambient state space and the constraint to create the
     // constrained state space.
-    ConstrainedStateSpacePtr css(new ProjectedStateSpace(rvss, constraint));
+    auto css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
 
-    ConstrainedSpaceInformationPtr csi(new ConstrainedSpaceInformation(css));
-    SimpleSetupPtr ss(new SimpleSetup(csi));
+    // Setup space information and setup
+    auto csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
+    auto ss = std::make_shared<og::SimpleSetup>(csi);
 
-    ss->setStateValidityChecker(bind(isValid, _1));
+    // Create start and goal states (poles of the sphere)
+    ob::ScopedState<> start(css);
+    ob::ScopedState<> goal(css);
+    start->as<ob::ProjectedStateSpace::StateType>()->vectorView() << 0, 0, -1;
+    goal->as<ob::ProjectedStateSpace::StateType>()->vectorView() << 0, 0, 1;
 
-    csi->setValidStateSamplerAllocator([](const SpaceInformation *si) -> ValidStateSamplerPtr {
-        return ValidStateSamplerPtr(new ConstrainedValidStateSampler(si));
-    });
+    // Create planner
+    auto planner = std::make_shared<og::RRTConnect>(csi);
+    planner->setRange(0.1);
 
-    ScopedState<> start(css);
-    ScopedState<> goal(css);
-    start->as<ProjectedStateSpace::StateType>()->vectorView() << 0, 0, -1;
-    goal->as<ProjectedStateSpace::StateType>()->vectorView() << 0, 0, 1;
-
+    // Setup problem
     ss->setStartAndGoalStates(start, goal);
-
-    PlannerPtr planner(new RRTConnect(csi));
+    ss->setStateValidityChecker(isValid);
     ss->setPlanner(planner);
-
     ss->setup();
 
-    auto tstart = clock();
-    PlannerStatus stat = ss->solve(5.);
+    ob::PlannerStatus stat = ss->solve(5.);
     if (stat)
     {
-        const double time = ((double)(clock() - tstart)) / CLOCKS_PER_SEC;
-        cout << "Took " << time << " seconds." << endl;
-
+        // Get solution and validate
         auto path = ss->getSolutionPath();
         if (!css->checkPath(path))
-            cout << "Path does not satisfy constraints!" << endl;
+            std::cout << "Path does not satisfy constraints!" << std::endl;
 
-        cout << "Simplifying solution..." << endl;
-        double originalLength = path.length();
+        if (stat == ob::PlannerStatus::APPROXIMATE_SOLUTION)
+            std::cout << "Solution is approximate." << std::endl;
+
+        // Simplify solution and validate simplified solution path.
+        std::cout << "Simplifying solution..." << std::endl;
         ss->simplifySolution(5.);
 
-        cout << "Path Length " << originalLength << " -> " << path.length() << endl;
+        auto simplePath = ss->getSolutionPath();
+        std::cout << "Path Length " << path.length() << " -> " << simplePath.length() << std::endl;
 
-        if (!css->checkPath(path))
-            cout << "Simplified path does not satisfy constraints!" << endl;
+        if (!css->checkPath(simplePath))
+            std::cout << "Simplified path does not satisfy constraints!" << std::endl;
 
-        if (stat == PlannerStatus::APPROXIMATE_SOLUTION)
-            cout << "Solution is approximate." << endl;
+        if (output)
+        {
+            // Interpolate and validate interpolated solution path.
+            std::cout << "Interpolating path..." << std::endl;
+            simplePath.interpolate();
 
-        cout << "Interpolating path..." << endl;
-        path.interpolate();
+            if (!css->checkPath(simplePath))
+                std::cout << "Interpolated path does not satisfy constraints!" << std::endl;
 
-        if (!css->checkPath(path))
-            cout << "Interpolated path does not satisfy constraints!" << endl;
-
-        cout << "Dumping animation file..." << endl;
-
-        ofstream file("sphere_path.txt");
-        path.printAsMatrix(file);
-        file.close();
+            std::cout << "Dumping path..." << std::endl;
+            std::ofstream pathfile("sphere_path.txt");
+            simplePath.printAsMatrix(pathfile);
+            pathfile.close();
+        }
     }
     else
-        cout << "No solution found." << endl;
+        std::cout << "No solution found." << std::endl;
+
+    if (output)
+    {
+        std::cout << "Dumping graph data..." << std::endl;
+        ob::PlannerData data(csi);
+        planner->getPlannerData(data);
+
+        std::ofstream graphfile("sphere_graph.graphml");
+        data.printGraphML(graphfile);
+        graphfile.close();
+    }
+}
+
+auto help_msg = "Shows this help message.";
+auto output_msg = "Dump found solution path (if one exists) in plain text and planning graph in GraphML to "
+                  "`sphere_path.txt` and `sphere_graph.graphml` respectively.";
+
+int main(int argc, char **argv)
+{
+    bool output;
+
+    po::options_description desc("Options");
+    desc.add_options()("help,h", help_msg)("output,o", po::bool_switch(&output)->default_value(false), output_msg);
+
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
+
+    if (vm.count("help"))
+    {
+        std::cout << desc << std::endl;
+        return 1;
+    }
+
+    spherePlanning(output);
 
     return 0;
 }
