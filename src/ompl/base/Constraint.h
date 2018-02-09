@@ -119,11 +119,18 @@ namespace ompl
                 return k_;
             }
 
-            /** \brief Returns the co-dimension of the manifold, or dimension of the image of the constraint
-             function. */
+            /** \brief Returns the dimension of the manifold. */
             unsigned int getCoDimension() const
             {
                 return n_ - k_;
+            }
+
+            void setManifoldDimension(unsigned int k)
+            {
+                if (k <= 0)
+                    throw ompl::Exception("ompl::base::Constraint(): "
+                                          "Space is over constrained!");
+                k_ = k;
             }
 
             /** \brief Returns the tolerance of the projection routine. */
@@ -182,7 +189,7 @@ namespace ompl
             const unsigned int n_;
 
             /** \brief Manifold dimension. */
-            const unsigned int k_;
+            unsigned int k_;
 
             /** \brief Tolerance for Newton method used in projection onto manifold. */
             double tolerance_;
