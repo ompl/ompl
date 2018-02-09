@@ -58,6 +58,8 @@
 #include "ompl/base/OptimizationObjective.h"
 // The nearest neighbours structure
 #include "ompl/datastructures/NearestNeighbors.h"
+// The binary heap data structure
+#include "ompl/datastructures/BinaryHeap.h"
 
 // BIT*:
 // I am member class of the BITstar class (i.e., I am in it's namespace), so I need to include it's definition to be
@@ -302,33 +304,36 @@ namespace ompl
         private:
             ////////////////////////////////
             // Helpful alias declarations:
-            /** \brief An alias declaration to the underlying vertex queue as a multiset.  The advantage to a multimap
+            /** \brief An alias declaration to the underlying vertex queue as a multimap.  The advantage of a multimap
              * over a multiset is that a copy of the key is stored with the value, which guarantees that the ordering
              * remains sane. Even if the inherent key for a value has changed, it will still be sorted under the old key
              * until manually updated and the map will be sorted */
             typedef std::multimap<CostDouble, VertexPtr, std::function<bool(const CostDouble &, const CostDouble &)>>
-                QValueToVertexMMap;
+                CostDoubleToVertexMMap;
 
-            /** \brief An alias declaration to the underlying edge queue as a multimap. Multimapped for the same reason
-             * as QValueToVertexMMap */
-            typedef std::multimap<CostTriple, VertexPtrPair,
-                                  std::function<bool(const CostTriple &, const CostTriple &)>>
-                QValueToVertexPtrPairMMap;
+            /** \brief An alias declaration to the individual data stored in the edge-queue binary heap. */
+            typedef std::pair<CostTriple, VertexPtrPair> CostTripleAndVertexPtrPair;
+
+            /** \brief An alias declaration to the underlying edge queue as a binary heap. Stored with data for the same reason
+             * as CostDoubleToVertexMMap */
+            typedef ompl::BinaryHeap<CostTripleAndVertexPtrPair,
+                                  std::function<bool(const CostTripleAndVertexPtrPair &, const CostTripleAndVertexPtrPair &)>>
+                CostTripleAndVertexPtrPairBinHeap;
 
             /** \brief An alias declaration for an iterator into the vertex queue multimap */
-            typedef QValueToVertexMMap::iterator VertexQueueIter;
+            typedef CostDoubleToVertexMMap::iterator VertexQueueIter;
 
             /** \brief An alias declaration for an unordered_map of vertex queue iterators indexed on vertex*/
             typedef std::unordered_map<BITstar::VertexId, VertexQueueIter> VertexIdToVertexQueueIterUMap;
 
-            /** \brief An alias declaration for an iterator into the edge queue multimap */
-            typedef QValueToVertexPtrPairMMap::iterator EdgeQueueIter;
+            /** \brief An alias declaration for an element pointer into the edge queue binary heap */
+            typedef CostTripleAndVertexPtrPairBinHeap::Element* EdgeQueueElemPtr;
 
-            /** \brief An alias declaration for a vector of edge queue iterators*/
-            typedef std::vector<EdgeQueueIter> EdgeQueueIterVector;
+            /** \brief An alias declaration for a vector of edge queue pointers */
+            typedef std::vector<EdgeQueueElemPtr> EdgeQueueElemPtrVector;
 
-            /** \brief An alias declaration for an unordered_map of edge queue iterators indexed by vertex*/
-            typedef std::unordered_map<BITstar::VertexId, EdgeQueueIterVector> VertexIdToEdgeQueueIterVectorUMap;
+            /** \brief An alias declaration for an unordered_map of edge queue pointers indexed by vertex*/
+            typedef std::unordered_map<BITstar::VertexId, EdgeQueueElemPtrVector> VertexIdToEdgeQueueElemPtrVectorUMap;
             ////////////////////////////////
 
             ////////////////////////////////
@@ -384,16 +389,15 @@ namespace ompl
 
             ////////////////////////////////
             // Edge helper functions:
-            /** \brief Insert an edge into the queue and lookups with an optional hint. Pass edgeQueue_.end() as the
-             * iterator if the hint is not needed. */
-            void edgeInsertHelper(const VertexPtrPair &newEdge, EdgeQueueIter positionHint);
+            /** \brief Insert an edge into the queue and lookups. */
+            void edgeInsertHelper(const VertexPtrPair &newEdge);
 
-            /** \brief Erase an edge by iterator. The two boolean flags should be true by default. */
-            void edgeRemoveHelper(const EdgeQueueIter &oldEdgeIter, bool rmIncomingLookup, bool rmOutgoingLookup);
+            /** \brief Erase an edge by queue pointer. The two boolean flags should be true by default. */
+            void edgeRemoveHelper(const EdgeQueueElemPtr &oldEdgeElemPtr, bool rmIncomingLookup, bool rmOutgoingLookup);
 
             /** \brief Erase an edge from the given lookup container at the specified index */
-            void rmEdgeLookupHelper(VertexIdToEdgeQueueIterVectorUMap &lookup, const BITstar::VertexId &idx,
-                                    const EdgeQueueIter &mmapIterToRm);
+            void rmEdgeLookupHelper(VertexIdToEdgeQueueElemPtrVectorUMap &lookup, const BITstar::VertexId &idx,
+                                    const EdgeQueueElemPtr &elemPtrToRm);
             ////////////////////////////////
 
             ////////////////////////////////
@@ -433,22 +437,22 @@ namespace ompl
             ImplicitGraphPtr graphPtr_{nullptr};
 
             /** \brief The underlying queue of vertices. Sorted by vertexQueueComparison. */
-            QValueToVertexMMap vertexQueue_;
+            CostDoubleToVertexMMap vertexQueue_;
 
             /** \brief The next vertex in the expansion queue to expand*/
             VertexQueueIter vertexToExpand_;
 
             /** \brief The underlying queue of edges. Sorted by edgeQueueComparison. */
-            QValueToVertexPtrPairMMap edgeQueue_;
+            CostTripleAndVertexPtrPairBinHeap edgeQueue_;
 
             /** \brief A lookup from vertex to iterator in the vertex queue */
             VertexIdToVertexQueueIterUMap vertexIterLookup_;
 
             /** \brief A unordered map from a vertex to all the edges in the queue emanating from the vertex: */
-            VertexIdToEdgeQueueIterVectorUMap outgoingEdges_;
+            VertexIdToEdgeQueueElemPtrVectorUMap outgoingEdges_;
 
             /** \brief A unordered map from a vertex to all the edges in the queue leading into the vertex: */
-            VertexIdToEdgeQueueIterVectorUMap incomingEdges_;
+            VertexIdToEdgeQueueElemPtrVectorUMap incomingEdges_;
 
             /** \brief A vector of vertices that we will need to process when resorting the queue: */
             VertexPtrVector resortVertices_;
