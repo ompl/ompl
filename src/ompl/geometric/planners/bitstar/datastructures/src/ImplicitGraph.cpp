@@ -725,8 +725,23 @@ namespace ompl
             this->confirmSetup();
 
             // Variable:
-            // Create a copy of the vertex pointer so we don't delete it out from under ourselves.
+#ifdef BITSTAR_DEBUG
+            // The use count of the passed shared pointer. Used in debug mode to assert that we took ownership of our own copy.
+            unsigned int initCount = oldSample.use_count();
+#endif  // BITSTAR_DEBUG
+            // A copy of the sample pointer to be removed so we can't delete it out from under ourselves (occurs when
+            // this function is given an element of the maintained set as the argument)
             VertexPtr sampleToDelete(oldSample);
+
+#ifdef BITSTAR_DEBUG
+            // Assert that the vertexToDelete took it's own copy
+            if (sampleToDelete.use_count() == initCount)
+            {
+                throw ompl::Exception("A code change has prevented ImplicitGraph::removeSample() "
+                                      "from taking it's own copy of the given shared pointer. See "
+                                      "https://bitbucket.org/ompl/ompl/issues/364/code-cleanup-breaking-bit");
+            }
+#endif  // BITSTAR_DEBUG
 
             // Increment our counter
             ++numFreeStatesPruned_;
@@ -776,9 +791,23 @@ namespace ompl
             this->confirmSetup();
 
             // Variable:
+#ifdef BITSTAR_DEBUG
+            // The use count of the passed shared pointer. Used in debug mode to assert that we took ownership of our own copy.
+            unsigned int initCount = oldVertex.use_count();
+#endif  // BITSTAR_DEBUG
             // A copy of the vertex pointer to be removed so we can't delete it out from under ourselves (occurs when
             // this function is given an element of the maintained set as the argument)
             VertexPtr vertexToDelete(oldVertex);
+
+#ifdef BITSTAR_DEBUG
+            // Assert that the vertexToDelete took it's own copy
+            if (vertexToDelete.use_count() == initCount)
+            {
+                throw ompl::Exception("A code change has prevented ImplicitGraph::removeVertex() "
+                                      "from taking it's own copy of the given shared pointer. See "
+                                      "https://bitbucket.org/ompl/ompl/issues/364/code-cleanup-breaking-bit");
+            }
+#endif  // BITSTAR_DEBUG
 
             // Increment our counter
             ++numVerticesDisconnected_;

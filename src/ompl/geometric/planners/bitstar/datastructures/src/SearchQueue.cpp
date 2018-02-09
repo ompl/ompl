@@ -1470,16 +1470,27 @@ namespace ompl
 
         unsigned int BITstar::SearchQueue::vertexRemoveHelper(const VertexPtr &oldVertex, bool fullyRemove)
         {
-            // Variable
+            // Variables
             // The number of samples deleted (i.e., if this vertex is NOT recycled as a sample, this is a 1)
             unsigned int deleted = 0u;
+#ifdef BITSTAR_DEBUG
+            // The use count of the passed shared pointer. Used in debug mode to assert that we took ownership of our own copy.
+            unsigned int initCount = oldVertex.use_count();
+#endif  // BITSTAR_DEBUG
             // A copy of the vertex pointer to be removed so we can't delete it out from under ourselves (occurs when
             // this function is given an element of the maintained set as the argument)
-            const VertexPtr& vertexToDelete(oldVertex);
+            VertexPtr vertexToDelete(oldVertex);
             // The iterator into the lookup:
             auto lookupIter = vertexIterLookup_.find(vertexToDelete->getId());
 
 #ifdef BITSTAR_DEBUG
+            // Assert that the vertexToDelete took it's own copy
+            if (vertexToDelete.use_count() == initCount)
+            {
+                throw ompl::Exception("A code change has prevented SearchQueue::vertexRemoveHelper() "
+                                      "from taking it's own copy of the given shared pointer. See "
+                                      "https://bitbucket.org/ompl/ompl/issues/364/code-cleanup-breaking-bit");
+            }
             // Check that the vertex is not connected to a parent:
             if (vertexToDelete->hasParent() == true && fullyRemove == true)
             {
