@@ -219,6 +219,34 @@ struct Circles2D
         return out.normalized();
     }
 
+    void signedDistanceGradient(double x, double y, Eigen::MatrixXd& grad) const
+    {
+        static double resolution = 0.02;
+        double inv_twice_resolution = 1.0 / (2.0 * resolution);
+        double xgrad =  (signedDistance(x + resolution, y) - signedDistance(x - resolution, y)) * inv_twice_resolution;
+        double ygrad = (signedDistance(x, y + resolution) - signedDistance(x, y - resolution)) * inv_twice_resolution;
+        grad(0, 0) = xgrad;
+        grad(0, 1) = ygrad;
+    }
+
+    double getMaxDistance(double resolution) const
+    {
+        double max = -1 * std::numeric_limits<double>::infinity();
+        for (double x = minX_; x < maxX_; x += resolution)
+        {
+            for (double y = minY_; y < maxY_; y+= resolution)
+            {
+                double dist = signedDistance(x, y);
+                if (dist > max)
+                {
+                    max = dist;
+                }
+            }
+        }
+        return max;
+    }
+
+
     std::vector<Circle> circles_;
     std::vector<Query> queries_;
     double minX_;

@@ -1,6 +1,10 @@
 #!/bin/env python
 
-from graphics import *
+from graphics import Point
+from graphics import Circle
+from graphics import Line
+from graphics import GraphWin 
+from graphics import color_rgb
 import random
 
 # Circle objects are just gonna be circles from the graphics lib.
@@ -20,6 +24,16 @@ class CircleEnv(object):
         self.points = []
 
     def loadCircles(self, filename):
+        """
+        File needs to be in this format:
+        
+        units: meter // these two lines are for human readability
+            x  y  z  // will be ignored
+        1   0  0  5
+        2   -10 8 1
+        ...
+        """
+
         file = open(filename)
 
         # Ignore first 2 lines
@@ -50,6 +64,18 @@ class CircleEnv(object):
                     self.maxY_ = cir.p2.y
 
     def loadPaths(self, filename):
+        """
+        File needs to be in this format:
+
+        units: meter
+        x y
+        1.3 4.2
+        3.2 -4.2
+
+        7.2 4.3
+        ...
+        """
+
         paths = open(filename)
         paths.readline()
         paths.readline()
@@ -103,7 +129,7 @@ class CircleEnv(object):
 def main():
     # Read in the circles env
     cirEnv = CircleEnv()
-    cirEnv.loadCircles("../../resources/simple_circle_obstacles.txt")
+    cirEnv.loadCircles("../../resources/circle_obstacles.txt")
     cirEnv.loadPaths("/tmp/tmpfile.txt")
     win = cirEnv.makeWindow()
     #win.yUp()

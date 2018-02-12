@@ -72,6 +72,15 @@ namespace ompl
                 return circles_.signedDistance(xy[0], xy[1]);
             }
 
+            virtual double clearanceWithClosestGradient(const base::State * state, Eigen::MatrixXd &grad,
+                bool &gradient_avaliable) const override
+            {
+                const double *xy = state->as<base::RealVectorStateSpace::StateType>()->values;
+                circles_.signedDistanceGradient(xy[0], xy[1], grad);
+                gradient_avaliable = true;
+                return circles_.signedDistance(xy[0], xy[1]);
+            }
+
         private:
             const Circles2D circles_;
         };

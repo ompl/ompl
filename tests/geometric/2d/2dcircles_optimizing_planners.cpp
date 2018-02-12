@@ -45,6 +45,7 @@
 #include "ompl/base/objectives/JointDistanceObjective.h"
 #include "ompl/base/objectives/ConvexifiableOptimization.h"
 #include "ompl/base/objectives/ObstacleConstraint.h"
+#include "ompl/base/objectives/CollisionEvaluator.h"
 #include "ompl/base/goals/GoalState.h"
 
 using namespace ompl;
@@ -64,47 +65,45 @@ public:
         auto opt(std::make_shared<base::MultiConvexifiableOptimization>(si));
         opt->addObjective(std::make_shared<base::JointDistanceObjective>(si));
         ompl::base::WorkspaceCollisionFn collisions = [circles, safetyDistance](std::vector<double> configuration,
-                                                             std::vector<double>& signedDist,
-                                                             std::vector<Eigen::Vector3d>& point,
-                                                             std::vector<std::string>& link_name,
-                                                             std::vector<Eigen::Vector3d>& normal)
+                                                             std::vector<ompl::base::CollisionInfo>& collisionStructs)
         {
             // The configuration is the position of the circle.
             double x = configuration[0];
             double y = configuration[1];
-            signedDist.push_back(circles.signedDistance(x, y));
+            ompl::base::CollisionInfo collisionStruct;
+            collisionStruct.x = configuration;
+            collisionStruct.signedDist = circles.signedDistance(x, y);
             // TODO: vector3d should be changed to the workspace dimension.
-            point.push_back(Eigen::Vector3d(x, y, 0));
+            collisionStruct.points.push_back(Eigen::Vector3d(x, y, 0));
             // ignore link name, I guess.
-            link_name.push_back("point");
+            collisionStruct.link_names.push_back("point");
             // Normals move the object out of collision.
-            normal.push_back(circles.minimalTranslationNormal(x, y));
-            return signedDist[0] <= safetyDistance * 2;
+            collisionStruct.normal = circles.minimalTranslationNormal(x, y);
+            collisionStructs.push_back(collisionStruct);
+            return collisionStruct.signedDist <= safetyDistance * 2;
         };
 
         ompl::base::WorkspaceContinuousCollisionFn continuousCollisions = [circles, safetyDistance](std::vector<double> configuration0,
                                                                 std::vector<double> configuration1,
-                                                                std::vector<double>& signedDist,
-                                                                std::vector<Eigen::Vector3d>& point_swept,
-                                                                std::vector<Eigen::Vector3d>& point0,
-                                                                std::vector<Eigen::Vector3d>& point1,
-                                                                std::vector<std::string>& link_name,
-                                                                std::vector<Eigen::Vector3d>& normal)
+                                                                std::vector<ompl::base::ContinuousCollisionInfo>& collisionStructs)
         {
+            ompl::base::ContinuousCollisionInfo collisionStruct;
             double x1 = configuration0[0], x2 = configuration1[0];
             double y1 = configuration0[1], y2 = configuration1[1];
             Eigen::Vector2d closestPoint;
-            signedDist.push_back(circles.lineSignedDistance(x1, y1, x2, y2, closestPoint));
-            point_swept.push_back(Eigen::Vector3d(closestPoint[0], closestPoint[1], 0));
-            point0.push_back(Eigen::Vector3d(x1, y1, 0));
-            point1.push_back(Eigen::Vector3d(x2, y2, 0));
-            link_name.push_back("point");
-            normal.push_back(circles.minimalTranslationNormal(closestPoint[0], closestPoint[1]));
-            return signedDist[0] <= safetyDistance * 2;
+            collisionStruct.x_0 = configuration0;
+            collisionStruct.x_1 = configuration1;
+            collisionStruct.signedDist = circles.lineSignedDistance(x1, y1, x2, y2, closestPoint);
+            collisionStruct.p_swept = Eigen::Vector3d(closestPoint[0], closestPoint[1], 0);
+            collisionStruct.p0 = Eigen::Vector3d(x1, y1, 0);
+            collisionStruct.p1 = Eigen::Vector3d(x2, y2, 0);
+            collisionStruct.link_name = "point";
+            collisionStruct.normal = circles.minimalTranslationNormal(closestPoint[0], closestPoint[1]);
+            collisionStructs.push_back(collisionStruct);
+            return collisionStruct.signedDist <= safetyDistance * 2;
         };
 
-        ompl::base::JacobianFn jacobian = [circles](std::vector<double> configuration,
-                                                    Eigen::Vector3d point, std::string link)
+        ompl::base::JacobianFn jacobian = [circles](ompl::base::CollisionInfo collisionStruct, int which)
         {
             // Ignore the point and link. There's one point and one link.
             // The Jacobian of a point
@@ -144,7 +143,7 @@ public:
             BOOST_CHECK(solved);
             if (solved)
             {
-                geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
+                //geometric::PathGeometric *path = static_cast<geometric::PathGeometric*>(pdef->getSolutionPath().get());
                 //std::cout << "Final path:" << std::endl;
                 //path->printAsMatrix(std::cout);
             }
