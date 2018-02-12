@@ -75,7 +75,7 @@
     #define ASSERT_SETUP this->assertSetup();
 #else
     #define ASSERT_SETUP
-#endif
+#endif  // BITSTAR_DEBUG
 
 namespace ompl
 {
@@ -753,7 +753,7 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert that the vertexToDelete took it's own copy
-            if (sampleToDelete.use_count() == initCount)
+            if (sampleToDelete.use_count() <= initCount)
             {
                 throw ompl::Exception("A code change has prevented ImplicitGraph::removeSample() "
                                       "from taking it's own copy of the given shared pointer. See "
@@ -819,7 +819,7 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert that the vertexToDelete took it's own copy
-            if (vertexToDelete.use_count() == initCount)
+            if (vertexToDelete.use_count() <= initCount)
             {
                 throw ompl::Exception("A code change has prevented ImplicitGraph::removeVertex() "
                                       "from taking it's own copy of the given shared pointer. See "
@@ -885,6 +885,11 @@ namespace ompl
             {
                 std::cout << std::endl << "vId: " << sample->getId() << std::endl;
                 throw ompl::Exception("Sample is already marked as expanded to vertices.");
+            }
+            if (sample->hasVertexQueueEntry())
+            {
+                std::cout << std::endl << "vId: " << sample->getId() << std::endl;
+                throw ompl::Exception("Sample already has an entry in the vertex queue.");
             }
         }
         /////////////////////////////////////////////////////////////////////////////////////////////

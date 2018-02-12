@@ -69,6 +69,10 @@
 // My queue class
 #include "ompl/geometric/planners/bitstar/datastructures/SearchQueue.h"
 
+#ifdef BITSTAR_DEBUG
+    #warning Compiling BIT* with debug-level asserts
+#endif  // BITSTAR_DEBUG
+
 namespace ompl
 {
     namespace geometric
@@ -768,11 +772,11 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
                 // If not, we just add the vertex
 
-                // Add a child to the parent, not updating costs:
-                newEdge.first->addChild(newEdge.second, false);
-
-                // Add a parent to the child, updating descendant costs if requested:
+                // Add a parent to the child, updating descendant costs:
                 newEdge.second->addParent(newEdge.first, edgeCost, true);
+
+                // Add a child to the parent:
+                newEdge.first->addChild(newEdge.second);
 
                 // Then enqueue the vertex, moving it from the free set to the vertex set.
                 queuePtr_->enqueueVertex(newEdge.second, true);
@@ -797,17 +801,16 @@ namespace ompl
             ++numRewirings_;
 
             // Remove the child from the parent, not updating costs
-            newEdge.second->getParent()->removeChild(newEdge.second, false);
+            newEdge.second->getParent()->removeChild(newEdge.second);
 
             // Remove the parent from the child, not updating costs
             newEdge.second->removeParent(false);
 
-            // Add the child to the parent, not updating costs
-            newEdge.first->addChild(newEdge.second, false);
+            // Add the parent to the child. updating the downstream costs.
+            newEdge.second->addParent(newEdge.first, edgeCost, true);
 
-            // Add the parent to the child. This updates the cost of the child as well as all it's descendents (if
-            // requested).
-            newEdge.second->addParent(newEdge.first, edgeCost);
+            // Add the child to the parent.
+            newEdge.first->addChild(newEdge.second);
 
             // Mark the queues as unsorted below this child
             queuePtr_->markVertexUnsorted(newEdge.second);

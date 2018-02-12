@@ -93,21 +93,33 @@ namespace ompl
         {
         public:
             ////////////////////////////////
-            // Data alias declarations:
-            /** \brief An alias declaration for a pair of costs, i.e., the vertex sorting key. Done as an array instead
+            // Aliases to underlying data types used by the SearchQueue
+            // Types for the vertex queue:
+            /** \brief A pair of costs, i.e., the vertex queue sorting key. Done as an array instead
              * of a pair for consistency with the EdgeQueue */
             typedef std::array<ompl::base::Cost, 2u> CostDouble;
-            /** \brief An alias declaration for a triple of costs, i.e., the edge sorting key */
+            /** \brief The function signature of the sorting function for the Vertex Queue*/
+            typedef std::function<bool(const CostDouble &, const CostDouble &)> VertexQueueSortFunc;
+            /** \brief The underlying vertex queue.  The advantage of a multimap over a multiset is that a copy
+             * of the key is stored with the value, which guarantees that the ordering remains sane
+             * even if the data inherently behind the queue value changes. In such a case the queue
+             * will remain sorted by the old key until manually updated */
+            typedef std::multimap<CostDouble, VertexPtr, VertexQueueSortFunc> VertexQueueAsMMap;
+            /** \brief An iterator into the vertex queue multimap */
+            typedef VertexQueueAsMMap::iterator VertexQueueIter;
+            // Types for the edge queue
+            /** \brief A triplet of costs, i.e., the edge queue sorting key. */
             typedef std::array<ompl::base::Cost, 3u> CostTriple;
-            ////////////////////////////////
-
-            ////////////////////////////////
-            // Function alias declarations:
-            /** \brief A std::function definition for the distance between two vertices. */
-            typedef std::function<double(const VertexConstPtr &, const VertexConstPtr &)> DistanceFunc;
-
-            /** \brief A std::function definition for the neighbourhood of a vertex . */
-            typedef std::function<unsigned int(const VertexPtr &, VertexPtrVector *)> NeighbourhoodFunc;
+            /** \brief The data stored in the edge-queue binary heap. */
+            typedef std::pair<CostTriple, VertexPtrPair> CostTripleAndVertexPtrPair;
+            /** \brief The function signature of the sorting function for the Edge Queue*/
+            typedef std::function<bool(const CostTripleAndVertexPtrPair &, const CostTripleAndVertexPtrPair &)> EdgeQueueSortFunc;
+            /** \brief The underlying edge queue. Using static keys for the same reason as the Vertex Queue */
+            typedef ompl::BinaryHeap<CostTripleAndVertexPtrPair, EdgeQueueSortFunc> EdgeQueueAsPairBinHeap;
+            /** \brief An element pointer into the edge queue binary heap */
+            typedef EdgeQueueAsPairBinHeap::Element* EdgeQueueElemPtr;
+            /** \brief A vector of edge queue pointers */
+            typedef std::vector<EdgeQueueElemPtr> EdgeQueueElemPtrVector;
             ////////////////////////////////
 
             ////////////////////////////////
@@ -193,7 +205,7 @@ namespace ompl
              * threshold. Descendents of pruned vertices that are not pruned themselves are returned to the set of free
              * states. Returns the number of vertices removed, and the number of said vertices that are completely
              * thrown away (i.e., are not even useful as a sample) */
-            std::pair<unsigned int, unsigned int> prune(const VertexConstPtr &goalVertexPtr);
+            std::pair<unsigned int, unsigned int> prune(const VertexConstPtr &vertex);
 
             /** \brief Resort the queue around the marked unsorted vertices. If allowed, will remove any vertices
              * that need to be resorted but would later be pruned. */
@@ -303,40 +315,6 @@ namespace ompl
             //////////////////
         private:
             ////////////////////////////////
-            // Helpful alias declarations:
-            /** \brief An alias declaration to the underlying vertex queue as a multimap.  The advantage of a multimap
-             * over a multiset is that a copy of the key is stored with the value, which guarantees that the ordering
-             * remains sane. Even if the inherent key for a value has changed, it will still be sorted under the old key
-             * until manually updated and the map will be sorted */
-            typedef std::multimap<CostDouble, VertexPtr, std::function<bool(const CostDouble &, const CostDouble &)>>
-                CostDoubleToVertexMMap;
-
-            /** \brief An alias declaration to the individual data stored in the edge-queue binary heap. */
-            typedef std::pair<CostTriple, VertexPtrPair> CostTripleAndVertexPtrPair;
-
-            /** \brief An alias declaration to the underlying edge queue as a binary heap. Stored with data for the same reason
-             * as CostDoubleToVertexMMap */
-            typedef ompl::BinaryHeap<CostTripleAndVertexPtrPair,
-                                  std::function<bool(const CostTripleAndVertexPtrPair &, const CostTripleAndVertexPtrPair &)>>
-                CostTripleAndVertexPtrPairBinHeap;
-
-            /** \brief An alias declaration for an iterator into the vertex queue multimap */
-            typedef CostDoubleToVertexMMap::iterator VertexQueueIter;
-
-            /** \brief An alias declaration for an unordered_map of vertex queue iterators indexed on vertex*/
-            typedef std::unordered_map<BITstar::VertexId, VertexQueueIter> VertexIdToVertexQueueIterUMap;
-
-            /** \brief An alias declaration for an element pointer into the edge queue binary heap */
-            typedef CostTripleAndVertexPtrPairBinHeap::Element* EdgeQueueElemPtr;
-
-            /** \brief An alias declaration for a vector of edge queue pointers */
-            typedef std::vector<EdgeQueueElemPtr> EdgeQueueElemPtrVector;
-
-            /** \brief An alias declaration for an unordered_map of edge queue pointers indexed by vertex*/
-            typedef std::unordered_map<BITstar::VertexId, EdgeQueueElemPtrVector> VertexIdToEdgeQueueElemPtrVectorUMap;
-            ////////////////////////////////
-
-            ////////////////////////////////
             // High level primitives:
             /** \brief Make sure that all vertices in our tree with a cost-to-come less than the minimum cost in our
              * edge queue has been expanded. Calls expandVertex() for each such vertex. */
@@ -366,8 +344,8 @@ namespace ompl
 
             ////////////////////////////////
             // Vertex helper functions:
-            /** \brief Reinsert a vertex and its associated queue edges. This is the main workhorse of resorting. */
-            void reinsertVertex(const VertexPtr &unorderedVertex);
+            /** \brief Resort a vertex and its associated edges in the various queues. This is the main workhorse of resorting. */
+            void resortVertex(const VertexPtr &unorderedVertex);
 
             /** \brief Prune a branch of the graph. Returns the number of vertices removed, and the number of said
              * vertices that are completely thrown away (i.e., are not even useful as a sample) */
@@ -382,22 +360,9 @@ namespace ompl
             void vertexInsertHelper(const VertexPtr &newVertex, bool expandIfBeforeToken, bool removeFromFree,
                                     bool addToNNStruct);
 
-            /** \brief Remove a vertex from the queue and optionally its entries in the various lookups and NN structs.
+            /** \brief Remove a vertex from the vertex queue and optionally also its edge queue and NN entries.
              * Returns the number of vertices that are completely deleted. */
             unsigned int vertexRemoveHelper(const VertexPtr &oldVertex, bool fullyRemove);
-            ////////////////////////////////
-
-            ////////////////////////////////
-            // Edge helper functions:
-            /** \brief Insert an edge into the queue and lookups. */
-            void edgeInsertHelper(const VertexPtrPair &newEdge);
-
-            /** \brief Erase an edge by queue pointer. The two boolean flags should be true by default. */
-            void edgeRemoveHelper(const EdgeQueueElemPtr &oldEdgeElemPtr, bool rmIncomingLookup, bool rmOutgoingLookup);
-
-            /** \brief Erase an edge from the given lookup container at the specified index */
-            void rmEdgeLookupHelper(VertexIdToEdgeQueueElemPtrVectorUMap &lookup, const BITstar::VertexId &idx,
-                                    const EdgeQueueElemPtr &elemPtrToRm);
             ////////////////////////////////
 
             ////////////////////////////////
@@ -437,22 +402,13 @@ namespace ompl
             ImplicitGraphPtr graphPtr_{nullptr};
 
             /** \brief The underlying queue of vertices. Sorted by vertexQueueComparison. */
-            CostDoubleToVertexMMap vertexQueue_;
+            VertexQueueAsMMap vertexQueue_;
 
             /** \brief The next vertex in the expansion queue to expand*/
             VertexQueueIter vertexToExpand_;
 
             /** \brief The underlying queue of edges. Sorted by edgeQueueComparison. */
-            CostTripleAndVertexPtrPairBinHeap edgeQueue_;
-
-            /** \brief A lookup from vertex to iterator in the vertex queue */
-            VertexIdToVertexQueueIterUMap vertexIterLookup_;
-
-            /** \brief A unordered map from a vertex to all the edges in the queue emanating from the vertex: */
-            VertexIdToEdgeQueueElemPtrVectorUMap outgoingEdges_;
-
-            /** \brief A unordered map from a vertex to all the edges in the queue leading into the vertex: */
-            VertexIdToEdgeQueueElemPtrVectorUMap incomingEdges_;
+            EdgeQueueAsPairBinHeap edgeQueue_;
 
             /** \brief A vector of vertices that we will need to process when resorting the queue: */
             VertexPtrVector resortVertices_;
@@ -462,6 +418,9 @@ namespace ompl
 
             /** \brief Whether the problem has a solution */
             bool hasExactSolution_{false};
+
+            /** \brief A counter for the number of times we've reset the vertex queue. Used to efficiently reset the edge queue lookups stored in vertices */
+            unsigned int numQueueResets_{0u};
             ////////////////////////////////
 
             ////////////////////////////////
