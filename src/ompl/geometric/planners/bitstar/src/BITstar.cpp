@@ -345,6 +345,22 @@ namespace ompl
                 graphPtr_->updateStartAndGoalStates(Planner::pis_, ptc);
             }
 
+            // Warn if we are missing a start
+            if (!graphPtr_->hasAStart())
+            {
+                // We don't have a start, since there's no way to wait for one to appear, so we will not be solving this "problem" today
+                OMPL_WARN("%s: A solution cannot be found as no valid start states are available.", Planner::getName().c_str());
+            }
+            // No else, it's a start
+
+            // Warn if we are missing a goal
+            if (!graphPtr_->hasAGoal())
+            {
+                // We don't have a goal (and we waited as long as ptc allowed us for one to appear), so we will not be solving this "problem" today
+                OMPL_WARN("%s: A solution cannot be found as no valid goal states are available.", Planner::getName().c_str());
+            }
+            // No else, there's a goal to all of this
+
             /* Iterate as long as:
               - We're allowed (ptc == false && stopLoop_ == false), AND
               - We haven't found a good enough solution (costHelpPtr_->isSatisfied(bestCost) == false),

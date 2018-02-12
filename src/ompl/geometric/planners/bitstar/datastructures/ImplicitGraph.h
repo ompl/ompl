@@ -84,6 +84,9 @@ namespace ompl
 
             //////////////////
             // Graph access:
+            /** \brief Gets whether the graph contains a start or not. */
+            bool hasAStart() const;
+
             /** \brief Gets whether the graph contains a goal or not. */
             bool hasAGoal() const;
 

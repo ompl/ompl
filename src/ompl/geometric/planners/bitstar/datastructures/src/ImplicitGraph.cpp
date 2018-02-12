@@ -445,28 +445,35 @@ namespace ompl
                 // No else, there was no goal.
             } while (pis.haveMoreGoalStates());
 
-            // And then do the for starts. We do this last as the starts are added to the queue, which uses a cost-to-go
-            // heuristic in it's ordering, and for that we want all the goals updated.
-            // As there is no way to wait for new *start* states, this loop can be cleaner
-            // There is no need to rebuild the queue when we add start vertices, as the queue is ordered on current
-            // cost-to-come, and adding a start doesn't change that.
+            /*
+            And then do the same for starts. We do this last as the starts are added to the queue, which uses a cost-to-go
+            heuristic in it's ordering, and for that we want all the goals updated.
+            As there is no way to wait for new *start* states, this loop can be cleaner
+            There is no need to rebuild the queue when we add start vertices, as the queue is ordered on current
+            cost-to-come, and adding a start doesn't change that.
+            */
             while (pis.haveMoreStartStates())
             {
                 // Variable
-                // A new start pointer
+                // A new start pointer, if  PlannerInputStates finds that it is invalid we will get a nullptr.
                 const ompl::base::State *newStart = pis.nextStart();
 
-                // Allocate the vertex pointer:
-                startVertices_.push_back(std::make_shared<Vertex>(si_, costHelpPtr_, true));
+                // Check if it's valid
+                if (static_cast<bool>(newStart))
+                {
+                    // Allocate the vertex pointer:
+                    startVertices_.push_back(std::make_shared<Vertex>(si_, costHelpPtr_, true));
 
-                // Copy the value into the state:
-                si_->copyState(startVertices_.back()->state(), newStart);
+                    // Copy the value into the state:
+                    si_->copyState(startVertices_.back()->state(), newStart);
 
-                // Add this start vertex to the queue. It is not a sample, so skip that step:
-                queuePtr_->enqueueVertex(startVertices_.back(), false);
+                    // Add this start vertex to the queue. It is not a sample, so skip that step:
+                    queuePtr_->enqueueVertex(startVertices_.back(), false);
 
-                // Mark that we've added:
-                addedStart = true;
+                    // Mark that we've added:
+                    addedStart = true;
+                }
+                // No else, there was no start.
             }
 
             // Now, if we added a new start and have previously pruned goals, we may want to readd them.
@@ -641,9 +648,8 @@ namespace ompl
             // Make sure that if we have a goal, we also have a start, since there's no way to wait for more *starts*
             if (!goalVertices_.empty() && startVertices_.empty())
             {
-                OMPL_WARN("%s (ImplicitGraph): The problem has a goal but not a start. Since PlannerInputStates "
-                          "provides no method to "
-                          "wait for a _start_ state, BIT* will probably not work at all.",
+                OMPL_WARN("%s (ImplicitGraph): The problem has a goal but not a start. BIT* cannot find a solution "
+                          "since PlannerInputStates provides no method to wait for a valid _start_ state to appear.",
                           nameFunc_().c_str());
             }
             // No else
@@ -1323,6 +1329,11 @@ namespace ompl
 
         /////////////////////////////////////////////////////////////////////////////////////////////
         // Boring sets/gets (Public):
+        bool BITstar::ImplicitGraph::hasAStart() const
+        {
+            return (!startVertices_.empty());
+        }
+
         bool BITstar::ImplicitGraph::hasAGoal() const
         {
             return (!goalVertices_.empty());
