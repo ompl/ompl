@@ -39,6 +39,7 @@
 
 #include "ompl/base/State.h"
 #include "ompl/util/ClassForward.h"
+#include <Eigen/Core>
 
 namespace ompl
 {
@@ -144,6 +145,22 @@ namespace ompl
             virtual double clearance(const State *state, State * /*validState*/, bool &validStateAvailable) const
             {
                 validStateAvailable = false;
+                return clearance(state);
+            }
+
+            virtual double clearanceWithAll(const State *state, Eigen::VectorXd &normal, Eigen::VectorXd &closestPoint, bool &normalAvailable) const
+            {
+                normalAvailable = false;
+                return clearance(state);
+            }
+
+            /**
+             * Given a particular state, return the gradient of the closest point to an obstacle
+             * at that state w.r.t. the cost.
+             */
+            virtual double clearanceWithClosestGradient(const State *state, Eigen::MatrixXd &grad, bool &gradient_avaliable) const
+            {
+                gradient_avaliable = false;
                 return clearance(state);
             }
 
