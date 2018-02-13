@@ -493,17 +493,6 @@ namespace ompl
             bool stopOnSolnChange_{false};
             ///////////////////////////////////////////////////////////////////
         };  // class: BITstar
-
-        ////////////////////////////////
-        // Basic helpers
-        /** \brief Define the addition operator for a std::pair<T,U> from the addition operators of T and U. */
-        template <typename T, typename U>
-        std::pair<T, U> operator+(const std::pair<T, U> &lhs, const std::pair<T, U> &rhs)
-        {
-            return std::make_pair(lhs.first + rhs.first, lhs.second + rhs.second);
-        }
-        ////////////////////////////////
-
     }  // geometric
 }  // ompl
 #endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_BITSTAR_

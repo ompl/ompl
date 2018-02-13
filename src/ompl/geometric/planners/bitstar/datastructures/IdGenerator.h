@@ -72,8 +72,8 @@ namespace ompl
 
         private:
             // Variables:
-            // The next ID to be returned:
-            BITstar::VertexId nextId_{0u};
+            // The next ID to be returned. We never use 0.
+            BITstar::VertexId nextId_{1u};
             // The mutex
             std::mutex idMutex_;
         };
