@@ -52,10 +52,10 @@ namespace ompl
 {
     namespace magic
     {
-        static const unsigned int ATLAS_STATE_SAMPLER_TRIES = 100;
+        static const unsigned int ATLAS_STATE_SAMPLER_TRIES = 50;
         static const double ATLAS_STATE_SPACE_EPSILON = 0.2;
         static const double ATLAS_STATE_SPACE_LAMBDA = 2.0;
-        static const double ATLAS_STATE_SPACE_RHO = 0.5;
+        static const double ATLAS_STATE_SPACE_RHO_MULTIPLIER = 5;
         static const double ATLAS_STATE_SPACE_ALPHA = M_PI / 8.0;
         static const double ATLAS_STATE_SPACE_EXPLORATION = 0.5;
         static const unsigned int ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION = 200;
@@ -131,7 +131,8 @@ namespace ompl
             typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
 
             /** \brief Construct an atlas with the specified dimensions. */
-            AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint, bool lazy = false, bool bias = false, bool separate = true);
+            AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint, bool lazy = false,
+                            bool bias = false, bool separate = true);
 
             /** \brief Destructor. */
             virtual ~AtlasStateSpace();
@@ -269,7 +270,7 @@ namespace ompl
             /** \brief Wrapper for newChart(). Charts created this way will
              * persist through calls to clear().
              * \throws ompl::Exception if manifold seems degenerate here. */
-            AtlasChart *anchorChart(const StateType *state) const;
+            AtlasChart *anchorChart(const State *state) const;
 
             /** \brief Create a new chart for the atlas, centered at \a xorigin,
              * which should be on the manifold. Returns nullptr upon failure. */
@@ -300,13 +301,11 @@ namespace ompl
             bool traverseManifold(const State *from, const State *to, bool interpolate = false,
                                   std::vector<State *> *stateList = nullptr) const override;
 
-
             State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const override;
             /** @} */
 
             /** @name Interpolation and state management
              * @{ */
-
 
             /** \brief Allocate the default state sampler for this space. */
             StateSamplerPtr allocDefaultStateSampler() const override
@@ -319,7 +318,6 @@ namespace ompl
             {
                 return std::make_shared<AtlasStateSampler>(this);
             }
-
 
             void copyState(State *destination, const State *source) const override
             {

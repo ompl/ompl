@@ -85,20 +85,6 @@ public:
     }
 };
 
-bool obstacle(const ob::State *state)
-{
-    auto x = state->as<ob::ConstrainedStateSpace::StateType>()->constVectorView();
-
-    if (-0.1 < x[2] && x[2] < 0.1)
-    {
-        if (-0.05 < x[0] && x[0] < 0.05)
-            return x[1] < 0;
-        return false;
-    }
-
-    return true;
-}
-
 bool obstacles(const ob::State *state)
 {
     auto x = state->as<ob::ConstrainedStateSpace::StateType>()->constVectorView();
@@ -125,11 +111,6 @@ bool obstacles(const ob::State *state)
     return true;
 }
 
-bool always(const ob::State *state)
-{
-    return true;
-}
-
 void spherePlanning(bool output, enum SPACE_TYPE type)
 {
     // Create the ambient space state space for the problem.
@@ -145,26 +126,30 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
     auto constraint = std::make_shared<SphereConstraint>();
 
     ob::ConstrainedStateSpacePtr css;
+    ob::ConstrainedSpaceInformationPtr csi;
 
     // Combine the ambient state space and the constraint to create the
     // constrained state space.
     switch (type)
     {
         case PJ:
-            OMPL_INFORM("Using Projection-based State Space!");
+            OMPL_INFORM("Using Projection-Based State Space!");
             css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
+            csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
             break;
         case AT:
-            OMPL_INFORM("Using Atlas-based State Space!");
+            OMPL_INFORM("Using Atlas-Based State Space!");
             css = std::make_shared<ob::AtlasStateSpace>(rvss, constraint);
+            csi = std::make_shared<ob::AtlasSpaceInformation>(css);
             break;
         case TB:
-            // css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
+            OMPL_INFORM("Using Tangent Bundle-Based State Space!");
+            css = std::make_shared<ob::AtlasStateSpace>(rvss, constraint, true, true, false);
+            csi = std::make_shared<ob::AtlasSpaceInformation>(css);
             break;
     }
 
     // Setup space information and setup
-    auto csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
     auto ss = std::make_shared<og::SimpleSetup>(csi);
 
     // Create start and goal states (poles of the sphere)
@@ -181,8 +166,8 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
         case TB:
             start->as<ob::AtlasStateSpace::StateType>()->vectorView() << 0, 0, -1;
             goal->as<ob::AtlasStateSpace::StateType>()->vectorView() << 0, 0, 1;
-            css->as<ob::AtlasStateSpace>()->anchorChart(start->as<ob::AtlasStateSpace::StateType>());
-            css->as<ob::AtlasStateSpace>()->anchorChart(goal->as<ob::AtlasStateSpace::StateType>());
+            css->as<ob::AtlasStateSpace>()->anchorChart(start.get());
+            css->as<ob::AtlasStateSpace>()->anchorChart(goal.get());
             break;
     }
 
@@ -195,8 +180,10 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
     ss->setPlanner(planner);
     ss->setup();
 
+    // Solve the problem
     ob::PlannerStatus stat = ss->solve(5.);
     std::cout << std::endl;
+
     if (stat)
     {
         // Get solution and validate
@@ -217,7 +204,8 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
         if (!css->checkPath(simplePath))
             OMPL_WARN("Simplified path does not satisfy constraints!");
 
-        if (type == AT)
+        // For atlas types, output information about size of atlas and amount of space explored
+        if (type == AT || type == TB)
         {
             auto at = css->as<ompl::base::AtlasStateSpace>();
             OMPL_INFORM("Atlas has %zu charts, %.3f%% open.", at->getChartCount(), at->estimateFrontierPercent());
@@ -251,7 +239,7 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
         data.printGraphML(graphfile);
         graphfile.close();
 
-        if (type == AT)
+        if (type == AT || type == TB)
         {
             OMPL_INFORM("Dumping atlas to `sphere_atlas.ply`.");
             std::ofstream atlasfile("sphere_atlas.ply");

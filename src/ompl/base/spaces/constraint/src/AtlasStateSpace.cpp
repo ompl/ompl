@@ -213,7 +213,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, c
   , maxChartsPerExtension_(ompl::magic::ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION)
   , biasFunction_([&](AtlasChart *c) -> double { return (getChartCount() - c->getNeighborCount()) + 1; })
 {
-    setRho(ompl::magic::ATLAS_STATE_SPACE_RHO);
+    setRho(delta_ * ompl::magic::ATLAS_STATE_SPACE_RHO_MULTIPLIER);
     setAlpha(ompl::magic::ATLAS_STATE_SPACE_ALPHA);
     setExploration(ompl::magic::ATLAS_STATE_SPACE_EXPLORATION);
 
@@ -274,10 +274,10 @@ void ompl::base::AtlasStateSpace::clear()
     ConstrainedStateSpace::clear();
 }
 
-ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart(const StateType *state) const
+ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart(const ompl::base::State *state) const
 {
     // This could fail with an exception. We cannot recover if that happens.
-    auto c = newChart(state->constVectorView());
+    auto c = newChart(state->as<StateType>()->constVectorView());
     if (c == nullptr)
         throw ompl::Exception("ompl::base::AtlasStateSpace::anchorChart(): "
                               "Initial chart creation failed. Cannot proceed.");

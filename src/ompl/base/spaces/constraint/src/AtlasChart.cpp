@@ -115,7 +115,7 @@ void ompl::base::AtlasChart::Halfspace::intersect(const Halfspace &l1, const Hal
 
 /// Private
 
-void ompl::base::AtlasChart::Halfspace::setU(const Eigen::VectorXd &u)
+void ompl::base::AtlasChart::Halfspace::setU(const Eigen::Ref<const Eigen::VectorXd> &u)
 {
     u_ = u;
 
@@ -189,17 +189,12 @@ void ompl::base::AtlasChart::phi(const Eigen::Ref<const Eigen::VectorXd> &u, Eig
 }
 
 bool ompl::base::AtlasChart::psi(const Eigen::Ref<const Eigen::VectorXd> &u,
-                                 const Eigen::Ref<Eigen::VectorXd> &out) const
+                                 Eigen::Ref<Eigen::VectorXd> out) const
 {
     // Initial guess for Newton's method
     Eigen::VectorXd x0(n_);
     phi(u, x0);
-    return psiFromAmbient(x0, out);
-}
 
-bool ompl::base::AtlasChart::psiFromAmbient(const Eigen::Ref<const Eigen::VectorXd> &x0,
-                                            Eigen::Ref<Eigen::VectorXd> out) const
-{
     // Newton-Raphson to solve Ax = b
     unsigned int iter = 0;
     double norm = 0;
@@ -329,7 +324,7 @@ bool ompl::base::AtlasChart::toPolygon(std::vector<Eigen::VectorXd> &vertices) c
     bool is_frontier = false;
     Eigen::VectorXd v0(2);
     v0 << radius_, 0;
-    const double step = M_PI / 16;
+    const double step = M_PI / 32;
     for (double a = 0; a < 2 * M_PI; a += step)
     {
         const Eigen::VectorXd vn = Eigen::Rotation2Dd(a) * v0;

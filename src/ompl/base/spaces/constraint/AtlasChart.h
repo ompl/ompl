@@ -110,7 +110,7 @@ namespace ompl
                     return owner_;
                 }
 
-                Eigen::Ref<const Eigen::VectorXd> getU() const
+                const Eigen::Ref<const Eigen::VectorXd> getU() const
                 {
                     return u_;
                 }
@@ -137,7 +137,7 @@ namespace ompl
 
                 /** \brief Generate the linear inequality. We will divide the
                  * space in half between \a u and 0, and 0 will lie inside. */
-                void setU(const Eigen::VectorXd &u);
+                void setU(const Eigen::Ref<const Eigen::VectorXd> &u);
 
                 /** \brief Compute the distance between a point \a v on our
                  * chart and the halfspace boundary as a scalar factor of
@@ -223,11 +223,7 @@ namespace ompl
             /** \brief Exponential mapping. Project chart point \a u onto the
              * manifold and store the result in \a out, which should be
              * allocated to size n_. */
-            bool psi(const Eigen::Ref<const Eigen::VectorXd> &u, const Eigen::Ref<Eigen::VectorXd> &out) const;
-
-            /** \brief Same as AtlasChart::psi(), except it starts from an
-             * ambient space point \a x0. */
-            bool psiFromAmbient(const Eigen::Ref<const Eigen::VectorXd> &x0, Eigen::Ref<Eigen::VectorXd> out) const;
+            bool psi(const Eigen::Ref<const Eigen::VectorXd> &u, Eigen::Ref<Eigen::VectorXd> out) const;
 
             /** \brief Logarithmic mapping. Project ambient point \a x onto the
              * chart and store the result in \a out, which should be allocated
@@ -283,7 +279,6 @@ namespace ompl
             {
                 return element_;
             }
-
 
         protected:
             /** \brief Atlas to which this chart belongs. */
