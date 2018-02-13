@@ -150,15 +150,17 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
     // constrained state space.
     switch (type)
     {
-    case PJ:
-        css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
-        break;
-    case AT:
-        css = std::make_shared<ob::AtlasStateSpace>(rvss, constraint);
-        break;
-    case TB:
-        // css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
-        break;
+        case PJ:
+            OMPL_INFORM("Using Projection-based State Space!");
+            css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
+            break;
+        case AT:
+            OMPL_INFORM("Using Atlas-based State Space!");
+            css = std::make_shared<ob::AtlasStateSpace>(rvss, constraint);
+            break;
+        case TB:
+            // css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
+            break;
     }
 
     // Setup space information and setup
@@ -171,17 +173,17 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
 
     switch (type)
     {
-    case PJ:
-        start->as<ob::ProjectedStateSpace::StateType>()->vectorView() << 0, 0, -1;
-        goal->as<ob::ProjectedStateSpace::StateType>()->vectorView() << 0, 0, 1;
-        break;
-    case AT:
-    case TB:
-        start->as<ob::AtlasStateSpace::StateType>()->vectorView() << 0, 0, -1;
-        goal->as<ob::AtlasStateSpace::StateType>()->vectorView() << 0, 0, 1;
-        css->as<ob::AtlasStateSpace>()->anchorChart(start->as<ob::AtlasStateSpace::StateType>());
-        css->as<ob::AtlasStateSpace>()->anchorChart(goal->as<ob::AtlasStateSpace::StateType>());
-        break;
+        case PJ:
+            start->as<ob::ProjectedStateSpace::StateType>()->vectorView() << 0, 0, -1;
+            goal->as<ob::ProjectedStateSpace::StateType>()->vectorView() << 0, 0, 1;
+            break;
+        case AT:
+        case TB:
+            start->as<ob::AtlasStateSpace::StateType>()->vectorView() << 0, 0, -1;
+            goal->as<ob::AtlasStateSpace::StateType>()->vectorView() << 0, 0, 1;
+            css->as<ob::AtlasStateSpace>()->anchorChart(start->as<ob::AtlasStateSpace::StateType>());
+            css->as<ob::AtlasStateSpace>()->anchorChart(goal->as<ob::AtlasStateSpace::StateType>());
+            break;
     }
 
     // Create planner
@@ -194,61 +196,77 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
     ss->setup();
 
     ob::PlannerStatus stat = ss->solve(5.);
+    std::cout << std::endl;
     if (stat)
     {
         // Get solution and validate
         auto path = ss->getSolutionPath();
         if (!css->checkPath(path))
-            std::cout << "Path does not satisfy constraints!" << std::endl;
+            OMPL_WARN("Path does not satisfy constraints!");
 
         if (stat == ob::PlannerStatus::APPROXIMATE_SOLUTION)
-            std::cout << "Solution is approximate." << std::endl;
+            OMPL_WARN("Solution is approximate.");
 
         // Simplify solution and validate simplified solution path.
-        std::cout << "Simplifying solution..." << std::endl;
+        OMPL_INFORM("Simplifying solution...");
         ss->simplifySolution(5.);
 
         auto simplePath = ss->getSolutionPath();
-        std::cout << "Path Length " << path.length() << " -> " << simplePath.length() << std::endl;
+        OMPL_INFORM("Simplified Path Length: %.3f -> %.3f", path.length(), simplePath.length());
 
         if (!css->checkPath(simplePath))
-            std::cout << "Simplified path does not satisfy constraints!" << std::endl;
+            OMPL_WARN("Simplified path does not satisfy constraints!");
+
+        if (type == AT)
+        {
+            auto at = css->as<ompl::base::AtlasStateSpace>();
+            OMPL_INFORM("Atlas has %zu charts, %.3f%% open.", at->getChartCount(), at->estimateFrontierPercent());
+        }
 
         if (output)
         {
             // Interpolate and validate interpolated solution path.
-            std::cout << "Interpolating path..." << std::endl;
+            OMPL_INFORM("Interpolating path...");
             simplePath.interpolate();
 
             if (!css->checkPath(simplePath))
-                std::cout << "Interpolated path does not satisfy constraints!" << std::endl;
+                OMPL_WARN("Interpolated path does not satisfy constraints!");
 
-            std::cout << "Dumping path..." << std::endl;
+            OMPL_INFORM("Dumping path to `sphere_path.txt`.");
             std::ofstream pathfile("sphere_path.txt");
             simplePath.printAsMatrix(pathfile);
             pathfile.close();
         }
     }
     else
-        std::cout << "No solution found." << std::endl;
+        OMPL_WARN("No solution found.");
 
     if (output)
     {
-        std::cout << "Dumping graph data..." << std::endl;
+        OMPL_INFORM("Dumping planner graph to `sphere_graph.graphml`.");
         ob::PlannerData data(csi);
         planner->getPlannerData(data);
 
         std::ofstream graphfile("sphere_graph.graphml");
         data.printGraphML(graphfile);
         graphfile.close();
+
+        if (type == AT)
+        {
+            OMPL_INFORM("Dumping atlas to `sphere_atlas.ply`.");
+            std::ofstream atlasfile("sphere_atlas.ply");
+            css->as<ob::AtlasStateSpace>()->printPLY(atlasfile);
+            atlasfile.close();
+        }
     }
 }
 
 auto help_msg = "Shows this help message.";
 auto output_msg = "Dump found solution path (if one exists) in plain text and planning graph in GraphML to "
                   "`sphere_path.txt` and `sphere_graph.graphml` respectively.";
-auto space_msg = "Choose which constraint handling methodology to use. One of `PJ` - Projection (Default), `AT` - Atlas, `TB` - "
-                 "Tangent Bundle.";
+auto space_msg =
+    "Choose which constraint handling methodology to use. One of `PJ` - Projection (Default), `AT` - Atlas, `TB` - "
+    "Tangent Bundle.";
 
 std::istream &operator>>(std::istream &in, enum SPACE_TYPE &type)
 {

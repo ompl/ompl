@@ -273,14 +273,14 @@ namespace ompl
 
             /** \brief Create a new chart for the atlas, centered at \a xorigin,
              * which should be on the manifold. Returns nullptr upon failure. */
-            AtlasChart *newChart(const Eigen::VectorXd &xorigin) const;
+            AtlasChart *newChart(const Eigen::Ref<const Eigen::VectorXd> &xorigin) const;
 
             /** \brief Pick a chart at random. */
             AtlasChart *sampleChart(void) const;
 
             /** \brief Find the chart to which \a x belongs. Returns nullptr if
              * no chart found. Assumes \a x is already on the manifold. */
-            AtlasChart *owningChart(const Eigen::VectorXd &x) const;
+            AtlasChart *owningChart(const Eigen::VectorXd &xorigin) const;
 
             /** \brief Wrapper to return chart \a state belongs to. Will attempt
              * to initialize new chart if \a state does not belong to one. */

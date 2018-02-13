@@ -48,7 +48,7 @@
 
 /// Public
 
-ompl::base::AtlasStateSampler::AtlasStateSampler(const AtlasStateSpace* space) : StateSampler(space), atlas_(space)
+ompl::base::AtlasStateSampler::AtlasStateSampler(const AtlasStateSpace *space) : StateSampler(space), atlas_(space)
 {
 }
 
@@ -264,7 +264,7 @@ void ompl::base::AtlasStateSpace::clear()
                 AtlasChart::generateHalfspace(c, anchor);
 
         anchor->setID(charts_.size());
-        chartNN_.add(std::make_pair<>(&anchor->getXorigin(), charts_.size()));
+        chartNN_.add(std::make_pair(&anchor->getXorigin(), charts_.size()));
         charts_.push_back(anchor);
 
         if (bias_)
@@ -286,7 +286,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart(const StateType
     return c;
 }
 
-ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::VectorXd &xorigin) const
+ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Ref<const Eigen::VectorXd> &xorigin) const
 {
     AtlasChart *addedC;
     try
@@ -317,7 +317,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Vecto
     }
 
     addedC->setID(charts_.size());
-    chartNN_.add(std::make_pair<>(&addedC->getXorigin(), charts_.size()));
+    chartNN_.add(std::make_pair(&addedC->getXorigin(), charts_.size()));
     charts_.push_back(addedC);
 
     if (bias_)
@@ -344,8 +344,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::getChart(const StateType *s
 
     if (c == nullptr || force)
     {
-        Eigen::Ref<const Eigen::VectorXd> n = state->constVectorView();
-
+        auto n = state->constVectorView();
         c = owningChart(n);
 
         if (c == nullptr)
@@ -372,16 +371,16 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart(const Eigen::Ve
     for (auto &near : nearbyCharts)
     {
         // The point must lie in the chart's validity region and polytope
-        AtlasChart *c = charts_[near.second];
-        c->psiInverse(x, u_t);
-        c->phi(u_t, x_temp);
+        auto chart = charts_[near.second];
+        chart->psiInverse(x, u_t);
+        chart->phi(u_t, x_temp);
 
         const bool withinEpsilon = (x_temp - x).squaredNorm() < (epsilon_ * epsilon_);
         const bool withinRho = u_t.squaredNorm() < (rho_ * rho_);
-        const bool inPolytope = c->inPolytope(u_t);
+        const bool inPolytope = chart->inPolytope(u_t);
 
         if (withinEpsilon && withinRho && inPolytope)
-            return c;
+            return chart;
     }
 
     return nullptr;
@@ -399,11 +398,11 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     if (!constraint_->isSatisfied(from))
         return false;
 
-    const StateType *fromAsType = from->as<StateType>();
-    const StateType *toAsType = to->as<StateType>();
+    auto fromAsType = from->as<StateType>();
+    auto toAsType = to->as<StateType>();
 
     // Try to get starting chart from `from` state.
-    AtlasChart *c = getChart(fromAsType);
+    auto c = getChart(fromAsType);
     if (c == nullptr)
         return false;
 
@@ -414,23 +413,23 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         stateList->push_back(cloneState(from));
     }
 
-    const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
+    auto svc = si_->getStateValidityChecker();
 
     // No need to traverse the manifold if we are already there
-    const double tolerance = delta_ + std::numeric_limits<double>::epsilon();
+    const double tolerance = delta_;
     if (distance(from, to) < tolerance)
         return true;
 
     // Get vector representations
-    Eigen::Ref<const Eigen::VectorXd> x_from = fromAsType->constVectorView();
-    Eigen::Ref<const Eigen::VectorXd> x_to = toAsType->constVectorView();
+    auto x_from = fromAsType->constVectorView();
+    auto x_to = toAsType->constVectorView();
 
     // Traversal stops if the ball of radius distMax centered at x_from is left
     const double distMax = (x_from - x_to).norm();
 
     // Create a scratch state to use for movement.
-    StateType *scratch = cloneState(from)->as<StateType>();
-    Eigen::Ref<Eigen::VectorXd> x_scratch = scratch->vectorView();
+    auto scratch = cloneState(from)->as<StateType>();
+    auto x_scratch = scratch->vectorView();
     Eigen::VectorXd x_temp(n_);
 
     // Project from and to points onto the chart
@@ -439,7 +438,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     c->psiInverse(x_to, u_b);
 
     bool done = false;
-    unsigned int chartsCreated = 0;
+    std::size_t chartsCreated = 0;
     double dist = 0;
 
     if (lazy_)
@@ -583,10 +582,10 @@ ompl::base::State *ompl::base::AtlasStateSpace::piecewiseInterpolate(const std::
     if (lazy_)
     {
         Eigen::VectorXd u(k_);
-        AtlasChart *c = getChart(state);
-        c->psiInverse(state->constVectorView(), u);
+        auto chart = getChart(state);
+        chart->psiInverse(state->constVectorView(), u);
 
-        if (!c->psi(u, state->vectorView()))
+        if (!chart->psi(u, state->vectorView()))
             return nullptr;
     }
 
