@@ -52,6 +52,58 @@ namespace ompl
 {
     namespace base
     {
+        /// @cond IGNORE
+        OMPL_CLASS_FORWARD(ProjectedStateSpace);
+        /// @endcond
+
+        /** \brief StateSampler for use on an atlas. */
+        class ProjectedStateSampler : public WrapperStateSampler
+        {
+        public:
+            ProjectedStateSampler(const ProjectedStateSpace *space, StateSamplerPtr sampler);
+
+            /** \brief Sample a state uniformly from the charted regions of the
+             * manifold. Return sample in \a state. */
+            void sampleUniform(State *state) override;
+
+            /** \brief Sample a state uniformly from the ball with center \a
+             * near and radius \a distance. Return sample in \a state.
+             * \note rho_s_ is a good choice for \a distance. */
+            void sampleUniformNear(State *state, const State *near, double distance) override;
+
+            /** \brief Sample a state uniformly from a normal distribution with
+                given \a mean and \a stdDev. Return sample in \a state. */
+            void sampleGaussian(State *state, const State *mean, double stdDev) override;
+
+        protected:
+            const ConstraintPtr constraint_;
+        };
+
+        /** \brief ValidStateSampler for use on an atlas. */
+        class ProjectedValidStateSampler : public ValidStateSampler
+        {
+        public:
+            /** \brief Create a valid state sampler for the specifed space
+             * information \a si. */
+            ProjectedValidStateSampler(const SpaceInformation *si);
+
+            /** \brief Sample a valid state uniformly from the charted regions
+             * of the manifold. Return sample in \a state. */
+            bool sample(State *state) override;
+
+            /** \brief Sample a valid state uniformly from the ball with center
+             * \a near and radius \a distance. Return sample in \a state.
+             * \note rho_s_ is a good choice for \a distance. */
+            bool sampleNear(State *state, const State *near, double distance) override;
+
+        private:
+            /** \brief Underlying ordinary atlas state sampler. */
+            ProjectedStateSampler sampler_;
+
+            /** \brief Constraint function. */
+            const ConstraintPtr constraint_;
+        };
+
         /** \brief State space encapsulating a planner-agnostic algorithm for
          * planning on a constraint manifold. */
         class ProjectedStateSpace : public ConstrainedStateSpace
@@ -71,6 +123,18 @@ namespace ompl
              * \a si is, in fact, an AtlasStateSpace. */
             static void checkSpace(const SpaceInformation *si);
 
+            /** \brief Allocate the default state sampler for this space. */
+            StateSamplerPtr allocDefaultStateSampler() const override
+            {
+                return std::make_shared<ProjectedStateSampler>(this, space_->allocDefaultStateSampler());
+            }
+
+            /** \brief Allocate the previously set state sampler for this space. */
+            StateSamplerPtr allocStateSampler() const override
+            {
+                return std::make_shared<ProjectedStateSampler>(this, space_->allocStateSampler());
+            }
+
             /** \brief Traverse the manifold from \a from toward \a to. Returns
              * true if we reached \a to, and false if we stopped early for any
              * reason, such as a collision or traveling too far. No collision
@@ -80,7 +144,7 @@ namespace ompl
              * a copy of \a to if we reached \a to. Caller is responsible for
              * freeing states returned in \a stateList. */
             bool traverseManifold(const State *from, const State *to, bool interpolate = false,
-                                  std::vector<State *> *stateList = nullptr) const;
+                                  std::vector<State *> *stateList = nullptr) const override;
         };
     }
 }

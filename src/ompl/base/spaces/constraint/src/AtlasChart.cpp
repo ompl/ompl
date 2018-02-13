@@ -332,12 +332,12 @@ bool ompl::base::AtlasChart::toPolygon(std::vector<Eigen::VectorXd> &vertices) c
     const double step = M_PI / 16;
     for (double a = 0; a < 2 * M_PI; a += step)
     {
-        const Eigen::VectorXd v = Eigen::Rotation2Dd(a) * v0;
+        const Eigen::VectorXd vn = Eigen::Rotation2Dd(a) * v0;
 
-        if (inPolytope(v))
+        if (inPolytope(vn))
         {
             is_frontier = true;
-            phi(v, intersection);
+            phi(vn, intersection);
             vertices.push_back(intersection);
         }
     }

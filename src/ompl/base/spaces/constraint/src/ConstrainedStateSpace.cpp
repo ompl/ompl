@@ -37,72 +37,6 @@
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 #include "ompl/util/Exception.h"
 
-/// ConstrainedStateSampler
-
-/// Public
-
-ompl::base::ConstrainedStateSampler::ConstrainedStateSampler(const ConstrainedStateSpace *space,
-                                                             StateSamplerPtr sampler)
-  : WrapperStateSampler(space, sampler), constraint_(space->getConstraint())
-{
-}
-
-void ompl::base::ConstrainedStateSampler::sampleUniform(State *state)
-{
-    WrapperStateSampler::sampleUniform(state);
-    constraint_->project(state);
-}
-
-void ompl::base::ConstrainedStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
-{
-    WrapperStateSampler::sampleUniformNear(state, near, distance);
-    constraint_->project(state);
-}
-
-void ompl::base::ConstrainedStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
-{
-    WrapperStateSampler::sampleGaussian(state, mean, stdDev);
-    constraint_->project(state);
-}
-
-/// ConstrainedValidStateSampler
-
-/// Public
-
-ompl::base::ConstrainedValidStateSampler::ConstrainedValidStateSampler(const SpaceInformation *si)
-  : ValidStateSampler(si)
-  , sampler_(si->getStateSpace().get()->as<ompl::base::ConstrainedStateSpace>(),
-             si->getStateSpace().get()->as<ompl::base::ConstrainedStateSpace>()->getSpace()->allocDefaultStateSampler())
-  , constraint_(si->getStateSpace()->as<ompl::base::ConstrainedStateSpace>()->getConstraint())
-{
-    ConstrainedStateSpace::checkSpace(si);
-}
-
-bool ompl::base::ConstrainedValidStateSampler::sample(State *state)
-{
-    // Rejection sample for at most attempts_ tries.
-    unsigned int tries = 0;
-    bool valid;
-
-    do
-        sampler_.sampleUniform(state);
-    while (!(valid = si_->isValid(state) && constraint_->isSatisfied(state)) && ++tries < attempts_);
-
-    return valid;
-}
-
-bool ompl::base::ConstrainedValidStateSampler::sampleNear(State *state, const State *near, const double distance)
-{
-    // Rejection sample for at most attempts_ tries.
-    unsigned int tries = 0;
-    bool valid;
-    do
-        sampler_.sampleUniformNear(state, near, distance);
-    while (!(valid = si_->isValid(state) && constraint_->isSatisfied(state)) && ++tries < attempts_);
-
-    return valid;
-}
-
 /// ConstrainedMotionValidator
 
 /// Public
@@ -231,45 +165,44 @@ void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const Sta
 {
     // Get the list of intermediate states along the manifold.
     std::vector<State *> stateList;
-    const State *newState = from;
+    auto temp = from;
 
     if (traverseManifold(from, to, true, &stateList))
     {
         stateList.push_back(cloneState(to));
-
-        newState = piecewiseInterpolate(stateList, t);
-        newState = (newState == nullptr) ? from : newState;
+        temp = piecewiseInterpolate(stateList, t);
     }
 
-    copyState(state, newState);
+    copyState(state, temp);
 
-    for (State *state : stateList)
-        freeState(state);
+    for (auto s : stateList)
+        freeState(s);
 }
 
 ompl::base::State *ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList,
                                                                            const double t) const
 {
-    const std::size_t n = stateList.size();
+    unsigned int n = stateList.size();
     double d[n];
 
     // Compute partial sums of distances between intermediate states.
-    d[0] = 0;
-    for (std::size_t i = 1; i < n; i++)
+    d[0] = 0.;
+    for (unsigned int i = 1; i < n; ++i)
         d[i] = d[i - 1] + distance(stateList[i - 1], stateList[i]);
 
     // Find the two adjacent states that t lies between.
-    unsigned int i = 0;
-    if (d[n - 1] == 0)
+    const double last = d[n - 1];
+    if (last <= std::numeric_limits<double>::epsilon())
         return stateList[0];
 
     else
     {
-        while (i < n - 1 && d[i] / d[n - 1] <= t)
+        unsigned int i = 0;
+        while (i < (n - 1) && (d[i] / last) <= t)
             i++;
 
-        const double t1 = d[i] / d[n - 1] - t;
-        const double t2 = (i <= n - 2) ? d[i + 1] / d[n - 1] - t : 1;
+        const double t1 = d[i] / last - t;
+        const double t2 = (i <= n - 2) ? d[i + 1] / last - t : 1;
 
         return (t1 < t2) ? stateList[i] : stateList[i + 1];
     }

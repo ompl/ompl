@@ -38,6 +38,71 @@
 
 #include <eigen3/Eigen/Core>
 
+/// ProjectedStateSampler
+
+/// Public
+
+ompl::base::ProjectedStateSampler::ProjectedStateSampler(const ProjectedStateSpace *space, StateSamplerPtr sampler)
+  : WrapperStateSampler(space, sampler), constraint_(space->getConstraint())
+{
+}
+
+void ompl::base::ProjectedStateSampler::sampleUniform(State *state)
+{
+    WrapperStateSampler::sampleUniform(state);
+    constraint_->project(state);
+}
+
+void ompl::base::ProjectedStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
+{
+    WrapperStateSampler::sampleUniformNear(state, near, distance);
+    constraint_->project(state);
+}
+
+void ompl::base::ProjectedStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
+{
+    WrapperStateSampler::sampleGaussian(state, mean, stdDev);
+    constraint_->project(state);
+}
+
+/// ProjectedValidStateSampler
+
+/// Public
+
+ompl::base::ProjectedValidStateSampler::ProjectedValidStateSampler(const SpaceInformation *si)
+  : ValidStateSampler(si)
+  , sampler_(si->getStateSpace().get()->as<ompl::base::ProjectedStateSpace>(),
+             si->getStateSpace().get()->as<ompl::base::ProjectedStateSpace>()->getSpace()->allocDefaultStateSampler())
+  , constraint_(si->getStateSpace()->as<ompl::base::ProjectedStateSpace>()->getConstraint())
+{
+    ProjectedStateSpace::checkSpace(si);
+}
+
+bool ompl::base::ProjectedValidStateSampler::sample(State *state)
+{
+    // Rejection sample for at most attempts_ tries.
+    unsigned int tries = 0;
+    bool valid;
+
+    do
+        sampler_.sampleUniform(state);
+    while (!(valid = si_->isValid(state) && constraint_->isSatisfied(state)) && ++tries < attempts_);
+
+    return valid;
+}
+
+bool ompl::base::ProjectedValidStateSampler::sampleNear(State *state, const State *near, const double distance)
+{
+    // Rejection sample for at most attempts_ tries.
+    unsigned int tries = 0;
+    bool valid;
+    do
+        sampler_.sampleUniformNear(state, near, distance);
+    while (!(valid = si_->isValid(state) && constraint_->isSatisfied(state)) && ++tries < attempts_);
+
+    return valid;
+}
+
 /// ProjectedStateSpace
 
 /// Public
@@ -63,17 +128,17 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
         stateList->push_back(cloneState(from));
     }
 
-    const double tolerance = delta_ + std::numeric_limits<double>::epsilon();
+    const double tolerance = delta_;
 
-    // No need to traverse the manifold if we are already there
-    if (distance(from, to) < tolerance)
+    // No need to traverse the manifold if we are already there.
+    double dist;
+    if ((dist = distance(from, to)) <= tolerance)
         return true;
 
     const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
-    double dist = distance(from, to);
 
-    State *previous = cloneState(from);
-    State *scratch = allocState();
+    auto previous = cloneState(from);
+    auto scratch = allocState();
 
     do
     {
@@ -99,10 +164,10 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
         if (stateList != nullptr)
             stateList->push_back(cloneState(scratch));
 
-    } while (dist > tolerance);
+    } while (dist >= tolerance);
 
     freeState(scratch);
     freeState(previous);
 
-    return dist < tolerance;
+    return dist <= tolerance;
 }

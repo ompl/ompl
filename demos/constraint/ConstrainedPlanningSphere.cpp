@@ -60,6 +60,13 @@ namespace po = boost::program_options;
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
+enum SPACE_TYPE
+{
+    PJ,
+    AT,
+    TB
+};
+
 class SphereConstraint : public ob::Constraint
 {
 public:
@@ -78,7 +85,21 @@ public:
     }
 };
 
-bool isValid(const ob::State *state)
+bool obstacle(const ob::State *state)
+{
+    auto x = state->as<ob::ConstrainedStateSpace::StateType>()->constVectorView();
+
+    if (-0.1 < x[2] && x[2] < 0.1)
+    {
+        if (-0.05 < x[0] && x[0] < 0.05)
+            return x[1] < 0;
+        return false;
+    }
+
+    return true;
+}
+
+bool obstacles(const ob::State *state)
 {
     auto x = state->as<ob::ConstrainedStateSpace::StateType>()->constVectorView();
 
@@ -104,23 +125,41 @@ bool isValid(const ob::State *state)
     return true;
 }
 
-void spherePlanning(bool output)
+bool always(const ob::State *state)
+{
+    return true;
+}
+
+void spherePlanning(bool output, enum SPACE_TYPE type)
 {
     // Create the ambient space state space for the problem.
     auto rvss = std::make_shared<ob::RealVectorStateSpace>(3);
 
     ob::RealVectorBounds bounds(3);
-    bounds.setLow(-1);
-    bounds.setHigh(1);
+    bounds.setLow(-2);
+    bounds.setHigh(2);
 
     rvss->setBounds(bounds);
 
     // Create a shared pointer to our constraint.
     auto constraint = std::make_shared<SphereConstraint>();
 
+    ob::ConstrainedStateSpacePtr css;
+
     // Combine the ambient state space and the constraint to create the
     // constrained state space.
-    auto css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
+    switch (type)
+    {
+    case PJ:
+        css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
+        break;
+    case AT:
+        css = std::make_shared<ob::AtlasStateSpace>(rvss, constraint);
+        break;
+    case TB:
+        // css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
+        break;
+    }
 
     // Setup space information and setup
     auto csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
@@ -129,16 +168,28 @@ void spherePlanning(bool output)
     // Create start and goal states (poles of the sphere)
     ob::ScopedState<> start(css);
     ob::ScopedState<> goal(css);
-    start->as<ob::ProjectedStateSpace::StateType>()->vectorView() << 0, 0, -1;
-    goal->as<ob::ProjectedStateSpace::StateType>()->vectorView() << 0, 0, 1;
+
+    switch (type)
+    {
+    case PJ:
+        start->as<ob::ProjectedStateSpace::StateType>()->vectorView() << 0, 0, -1;
+        goal->as<ob::ProjectedStateSpace::StateType>()->vectorView() << 0, 0, 1;
+        break;
+    case AT:
+    case TB:
+        start->as<ob::AtlasStateSpace::StateType>()->vectorView() << 0, 0, -1;
+        goal->as<ob::AtlasStateSpace::StateType>()->vectorView() << 0, 0, 1;
+        css->as<ob::AtlasStateSpace>()->anchorChart(start->as<ob::AtlasStateSpace::StateType>());
+        css->as<ob::AtlasStateSpace>()->anchorChart(goal->as<ob::AtlasStateSpace::StateType>());
+        break;
+    }
 
     // Create planner
-    auto planner = std::make_shared<og::RRTConnect>(csi);
-    planner->setRange(0.1);
+    auto planner = std::make_shared<og::RRT>(csi);
 
     // Setup problem
     ss->setStartAndGoalStates(start, goal);
-    ss->setStateValidityChecker(isValid);
+    ss->setStateValidityChecker(obstacles);
     ss->setPlanner(planner);
     ss->setup();
 
@@ -196,13 +247,34 @@ void spherePlanning(bool output)
 auto help_msg = "Shows this help message.";
 auto output_msg = "Dump found solution path (if one exists) in plain text and planning graph in GraphML to "
                   "`sphere_path.txt` and `sphere_graph.graphml` respectively.";
+auto space_msg = "Choose which constraint handling methodology to use. One of `PJ` - Projection (Default), `AT` - Atlas, `TB` - "
+                 "Tangent Bundle.";
+
+std::istream &operator>>(std::istream &in, enum SPACE_TYPE &type)
+{
+    std::string token;
+    in >> token;
+    if (token == "PJ")
+        type = PJ;
+    else if (token == "AT")
+        type = AT;
+    else if (token == "TB")
+        type = TB;
+    else
+        in.setstate(std::ios_base::failbit);
+
+    return in;
+}
 
 int main(int argc, char **argv)
 {
     bool output;
+    enum SPACE_TYPE type;
 
     po::options_description desc("Options");
-    desc.add_options()("help,h", help_msg)("output,o", po::bool_switch(&output)->default_value(false), output_msg);
+    desc.add_options()("help,h", help_msg);
+    desc.add_options()("output,o", po::bool_switch(&output)->default_value(false), output_msg);
+    desc.add_options()("space,s", po::value<enum SPACE_TYPE>(&type), space_msg);
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -214,7 +286,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    spherePlanning(output);
+    spherePlanning(output, type);
 
     return 0;
 }

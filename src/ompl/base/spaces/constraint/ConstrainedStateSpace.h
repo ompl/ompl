@@ -51,7 +51,7 @@ namespace ompl
 {
     namespace magic
     {
-        static const double CONSTRAINED_STATE_SPACE_DELTA = 0.01;
+        static const double CONSTRAINED_STATE_SPACE_DELTA = 0.05;
     }
 
     namespace base
@@ -59,54 +59,6 @@ namespace ompl
         /// @cond IGNORE
         OMPL_CLASS_FORWARD(ConstrainedStateSpace);
         /// @endcond
-
-        /** \brief StateSampler for use on an atlas. */
-        class ConstrainedStateSampler : public WrapperStateSampler
-        {
-        public:
-            ConstrainedStateSampler(const ConstrainedStateSpace *space, StateSamplerPtr sampler);
-
-            /** \brief Sample a state uniformly from the charted regions of the
-             * manifold. Return sample in \a state. */
-            void sampleUniform(State *state) override;
-
-            /** \brief Sample a state uniformly from the ball with center \a
-             * near and radius \a distance. Return sample in \a state.
-             * \note rho_s_ is a good choice for \a distance. */
-            void sampleUniformNear(State *state, const State *near, double distance) override;
-
-            /** \brief Sample a state uniformly from a normal distribution with
-                given \a mean and \a stdDev. Return sample in \a state. */
-            void sampleGaussian(State *state, const State *mean, double stdDev) override;
-
-        protected:
-            const ConstraintPtr constraint_;
-        };
-
-        /** \brief ValidStateSampler for use on an atlas. */
-        class ConstrainedValidStateSampler : public ValidStateSampler
-        {
-        public:
-            /** \brief Create a valid state sampler for the specifed space
-             * information \a si. */
-            ConstrainedValidStateSampler(const SpaceInformation *si);
-
-            /** \brief Sample a valid state uniformly from the charted regions
-             * of the manifold. Return sample in \a state. */
-            bool sample(State *state) override;
-
-            /** \brief Sample a valid state uniformly from the ball with center
-             * \a near and radius \a distance. Return sample in \a state.
-             * \note rho_s_ is a good choice for \a distance. */
-            bool sampleNear(State *state, const State *near, double distance) override;
-
-        private:
-            /** \brief Underlying ordinary atlas state sampler. */
-            ConstrainedStateSampler sampler_;
-
-            /** \brief Constraint function. */
-            const ConstraintPtr constraint_;
-        };
 
         /** \brief Atlas-specific implementation of checkMotion(). */
         class ConstrainedMotionValidator : public MotionValidator
@@ -222,18 +174,6 @@ namespace ompl
 
             /** \brief Allocate a new state in this space. */
             State *allocState() const override;
-
-            /** \brief Allocate the default state sampler for this space. */
-            StateSamplerPtr allocDefaultStateSampler() const override
-            {
-                return StateSamplerPtr(new ConstrainedStateSampler(this, space_->allocDefaultStateSampler()));
-            }
-
-            /** \brief Allocate the previously set state sampler for this space. */
-            StateSamplerPtr allocStateSampler() const override
-            {
-                return StateSamplerPtr(new ConstrainedStateSampler(this, space_->allocStateSampler()));
-            }
 
             /** \brief Set \a delta, the step size for traversing the manifold
              * and collision checking. Default 0.02. */

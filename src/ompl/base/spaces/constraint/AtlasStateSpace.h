@@ -72,7 +72,7 @@ namespace ompl
         class AtlasStateSampler : public StateSampler
         {
         public:
-            AtlasStateSampler(const AtlasStateSpace &space);
+            AtlasStateSampler(const AtlasStateSpace *space);
 
             /** \brief Sample a state uniformly from the charted regions of the
              * manifold. Return sample in \a state. */
@@ -89,32 +89,10 @@ namespace ompl
 
         private:
             /** \brief Atlas on which to sample. */
-            const AtlasStateSpace &atlas_;
+            const AtlasStateSpace *atlas_;
 
             /** \brief Random number generator. */
             mutable RNG rng_;
-        };
-
-        /** \brief ValidStateSampler for use on an atlas. */
-        class AtlasValidStateSampler : public ValidStateSampler
-        {
-        public:
-            /** \brief Create a valid state sampler for the specifed space
-             * information \a si. */
-            AtlasValidStateSampler(const SpaceInformation *si);
-
-            /** \brief Sample a valid state uniformly from the charted regions
-             * of the manifold. Return sample in \a state. */
-            virtual bool sample(State *state) override;
-
-            /** \brief Sample a valid state uniformly from the ball with center
-             * \a near and radius \a distance. Return sample in \a state.
-             * \note rho_s_ is a good choice for \a distance. */
-            virtual bool sampleNear(State *state, const State *near, double distance) override;
-
-        private:
-            /** \brief Underlying ordinary atlas state sampler. */
-            AtlasStateSampler sampler_;
         };
 
         /** \brief State space encapsulating a planner-agnostic atlas algorithm
@@ -291,7 +269,7 @@ namespace ompl
             /** \brief Wrapper for newChart(). Charts created this way will
              * persist through calls to clear().
              * \throws ompl::Exception if manifold seems degenerate here. */
-            AtlasChart *anchorChart(const Eigen::VectorXd &xorigin) const;
+            AtlasChart *anchorChart(const StateType *state) const;
 
             /** \brief Create a new chart for the atlas, centered at \a xorigin,
              * which should be on the manifold. Returns nullptr upon failure. */
@@ -329,11 +307,19 @@ namespace ompl
             /** @name Interpolation and state management
              * @{ */
 
-            /** \brief Return an instance of the AtlasStateSampler. */
+
+            /** \brief Allocate the default state sampler for this space. */
             StateSamplerPtr allocDefaultStateSampler() const override
             {
-                return StateSamplerPtr(new AtlasStateSampler(*this));
+                return std::make_shared<AtlasStateSampler>(this);
             }
+
+            /** \brief Allocate the previously set state sampler for this space. */
+            StateSamplerPtr allocStateSampler() const override
+            {
+                return std::make_shared<AtlasStateSampler>(this);
+            }
+
 
             void copyState(State *destination, const State *source) const override
             {
