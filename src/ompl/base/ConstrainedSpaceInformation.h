@@ -63,6 +63,7 @@ namespace ompl
             unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State *> &states,
                                          unsigned int count, bool endpoints, bool alloc) const override
             {
+
                 bool success = stateSpace_->as<ConstrainedStateSpace>()->traverseManifold(s1, s2, false, &states);
 
                 if (!success && states.size() == 0)
@@ -72,41 +73,38 @@ namespace ompl
             }
         };
 
-        class AtlasSpaceInformation : public ConstrainedSpaceInformation
+        class TangentBundleSpaceInformation : public ConstrainedSpaceInformation
         {
         public:
-            AtlasSpaceInformation(StateSpacePtr space) : ConstrainedSpaceInformation(space)
+            TangentBundleSpaceInformation(StateSpacePtr space) : ConstrainedSpaceInformation(space)
             {
             }
 
             unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State *> &states,
                                          unsigned int count, bool endpoints, bool alloc) const override
             {
-                AtlasStateSpace *atlas = stateSpace_->as<AtlasStateSpace>();
+                auto &&atlas = stateSpace_->as<TangentBundleStateSpace>();
                 bool success = atlas->traverseManifold(s1, s2, false, &states);
 
                 if (!success && states.size() == 0)
                     states.push_back(cloneState(s1));
 
-                if (atlas->getLazy())
+                auto it = states.begin();
+                for (; it != states.end(); ++it)
                 {
-                    auto it = states.begin();
-                    for (; it != states.end(); ++it)
-                    {
-                        auto stateT = (*it)->as<AtlasStateSpace::StateType>();
-                        Eigen::VectorXd u(atlas->getManifoldDimension());
-                        AtlasChart *c = atlas->getChart(stateT);
-                        c->psiInverse(stateT->constVectorView(), u);
+                    auto stateT = (*it)->as<AtlasStateSpace::StateType>();
+                    Eigen::VectorXd u(atlas->getManifoldDimension());
+                    AtlasChart *c = atlas->getChart(stateT);
+                    c->psiInverse(stateT->constVectorView(), u);
 
-                        if (!c->psi(u, stateT->vectorView()))
-                            break;
-                    }
+                    if (!c->psi(u, stateT->vectorView()))
+                        break;
+                }
 
-                    while (it != states.end())
-                    {
-                        freeState(*it);
-                        it = states.erase(it);
-                    }
+                while (it != states.end())
+                {
+                    freeState(*it);
+                    it = states.erase(it);
                 }
 
                 return states.size();
@@ -114,26 +112,24 @@ namespace ompl
 
             bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override
             {
+                auto &&atlas = stateSpace_->as<TangentBundleStateSpace>();
                 bool valid = motionValidator_->checkMotion(s1, s2, lastValid);
 
-                AtlasStateSpace *atlas = stateSpace_->as<AtlasStateSpace>();
-                if (atlas->getLazy() && lastValid.first)
+                if (lastValid.first)
                 {
-                  auto stateT = lastValid.first->as<AtlasStateSpace::StateType>();
+                    auto stateT = lastValid.first->as<AtlasStateSpace::StateType>();
 
-                  Eigen::VectorXd u(atlas->getManifoldDimension());
-                  AtlasChart *c = atlas->getChart(stateT);
-                  c->psiInverse(stateT->constVectorView(), u);
+                    Eigen::VectorXd u(atlas->getManifoldDimension());
+                    AtlasChart *c = atlas->getChart(stateT);
+                    c->psiInverse(stateT->constVectorView(), u);
 
-                  if (!c->psi(u, stateT->vectorView()))
-                    valid = false;
+                    if (!c->psi(u, stateT->vectorView()))
+                        valid = false;
                 }
 
                 return valid;
             }
         };
-
-
     }
 }
 

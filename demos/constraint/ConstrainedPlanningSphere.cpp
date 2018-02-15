@@ -89,19 +89,19 @@ bool obstacles(const ob::State *state)
 {
     auto x = state->as<ob::ConstrainedStateSpace::StateType>()->constVectorView();
 
-    if (-0.75 < x[2] && x[2] < -0.60)
+    if (-0.80 < x[2] && x[2] < -0.55)
     {
         if (-0.05 < x[1] && x[1] < 0.05)
             return x[0] > 0;
         return false;
     }
-    else if (-0.1 < x[2] && x[2] < 0.1)
+    else if (-0.15 < x[2] && x[2] < 0.15)
     {
         if (-0.05 < x[0] && x[0] < 0.05)
             return x[1] < 0;
         return false;
     }
-    else if (0.60 < x[2] && x[2] < 0.75)
+    else if (0.55 < x[2] && x[2] < 0.80)
     {
         if (-0.05 < x[1] && x[1] < 0.05)
             return x[0] < 0;
@@ -140,12 +140,12 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
         case AT:
             OMPL_INFORM("Using Atlas-Based State Space!");
             css = std::make_shared<ob::AtlasStateSpace>(rvss, constraint);
-            csi = std::make_shared<ob::AtlasSpaceInformation>(css);
+            csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
             break;
         case TB:
             OMPL_INFORM("Using Tangent Bundle-Based State Space!");
-            css = std::make_shared<ob::AtlasStateSpace>(rvss, constraint, true, true, false);
-            csi = std::make_shared<ob::AtlasSpaceInformation>(css);
+            css = std::make_shared<ob::TangentBundleStateSpace>(rvss, constraint);
+            csi = std::make_shared<ob::TangentBundleSpaceInformation>(css);
             break;
     }
 
@@ -172,7 +172,7 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
     }
 
     // Create planner
-    auto planner = std::make_shared<og::RRT>(csi);
+    auto planner = std::make_shared<og::RRTstar>(csi);
 
     // Setup problem
     ss->setStartAndGoalStates(start, goal);
@@ -188,7 +188,7 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
     {
         // Get solution and validate
         auto path = ss->getSolutionPath();
-        if (!css->checkPath(path))
+        if (!path.check())
             OMPL_WARN("Path does not satisfy constraints!");
 
         if (stat == ob::PlannerStatus::APPROXIMATE_SOLUTION)
@@ -201,14 +201,16 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
         auto simplePath = ss->getSolutionPath();
         OMPL_INFORM("Simplified Path Length: %.3f -> %.3f", path.length(), simplePath.length());
 
-        if (!css->checkPath(simplePath))
+        if (!simplePath.check())
             OMPL_WARN("Simplified path does not satisfy constraints!");
 
         // For atlas types, output information about size of atlas and amount of space explored
         if (type == AT || type == TB)
         {
             auto at = css->as<ompl::base::AtlasStateSpace>();
-            OMPL_INFORM("Atlas has %zu charts, %.3f%% open.", at->getChartCount(), at->estimateFrontierPercent());
+            OMPL_INFORM("Atlas has %zu charts", at->getChartCount());
+            if (type == AT)
+                OMPL_INFORM("Atlas has %.3f%% openness", at->estimateFrontierPercent());
         }
 
         if (output)
@@ -217,7 +219,7 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
             OMPL_INFORM("Interpolating path...");
             simplePath.interpolate();
 
-            if (!css->checkPath(simplePath))
+            if (!simplePath.check())
                 OMPL_WARN("Interpolated path does not satisfy constraints!");
 
             OMPL_INFORM("Dumping path to `sphere_path.txt`.");

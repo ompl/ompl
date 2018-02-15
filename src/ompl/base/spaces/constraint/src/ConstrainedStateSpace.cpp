@@ -155,7 +155,7 @@ void ompl::base::ConstrainedStateSpace::clear()
 
 ompl::base::State *ompl::base::ConstrainedStateSpace::allocState() const
 {
-    StateType *state = new StateType(space_->allocState(), n_);
+    auto *state = new StateType(space_->allocState(), n_);
     state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
     return state;
 }
@@ -206,22 +206,4 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const
 
         return (t1 < t2) ? stateList[i] : stateList[i + 1];
     }
-}
-
-bool ompl::base::ConstrainedStateSpace::checkPath(ompl::geometric::PathGeometric &path,
-                                                  std::vector<unsigned int> *indices) const
-{
-    bool valid = true;
-    auto states = path.getStates();
-    for (unsigned int i = 0; i < states.size(); ++i)
-        if (!constraint_->isSatisfied(states[i]))
-        {
-            valid = false;
-            if (indices != nullptr)
-                indices->push_back(i);
-            else
-                break;
-        }
-
-    return valid;
 }

@@ -46,7 +46,9 @@
 
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 
+#include <boost/math/constants/constants.hpp>
 #include <eigen3/Eigen/Core>
+
 
 namespace ompl
 {
@@ -56,7 +58,7 @@ namespace ompl
         static const double ATLAS_STATE_SPACE_EPSILON = 0.2;
         static const double ATLAS_STATE_SPACE_LAMBDA = 2.0;
         static const double ATLAS_STATE_SPACE_RHO_MULTIPLIER = 5;
-        static const double ATLAS_STATE_SPACE_ALPHA = M_PI / 8.0;
+        static const double ATLAS_STATE_SPACE_ALPHA = boost::math::constants::pi<double>() / 8.0;
         static const double ATLAS_STATE_SPACE_EXPLORATION = 0.5;
         static const unsigned int ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION = 200;
     }
@@ -131,8 +133,8 @@ namespace ompl
             typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
 
             /** \brief Construct an atlas with the specified dimensions. */
-            AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint, bool lazy = false,
-                            bool bias = false, bool separate = true);
+            AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint, bool bias = false,
+                            bool separate = true);
 
             /** \brief Destructor. */
             virtual ~AtlasStateSpace();
@@ -174,7 +176,7 @@ namespace ompl
              * chart. Must be within the range (0, pi/2). Default pi/16. */
             void setAlpha(const double alpha)
             {
-                if (alpha <= 0 || alpha >= M_PI_2)
+                if (alpha <= 0 || alpha >= boost::math::constants::pi<double>() / 2.)
                     throw ompl::Exception("ompl::base::AtlasStateSpace::setAlpha(): "
                                           "alpha must be in (0, pi/2).");
                 cos_alpha_ = std::cos(alpha);
@@ -214,11 +216,6 @@ namespace ompl
             void setMaxChartsPerExtension(const unsigned int charts)
             {
                 maxChartsPerExtension_ = charts;
-            }
-
-            bool getLazy() const
-            {
-                return lazy_;
             }
 
             /** \brief Get epsilon. */
@@ -301,7 +298,6 @@ namespace ompl
             bool traverseManifold(const State *from, const State *to, bool interpolate = false,
                                   std::vector<State *> *stateList = nullptr) const override;
 
-            State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const override;
             /** @} */
 
             /** @name Interpolation and state management
@@ -363,7 +359,6 @@ namespace ompl
 
             mutable PDF<AtlasChart *> chartPDF_;
 
-        private:
             /** \brief Maximum distance between a chart and the manifold inside its validity region. */
             double epsilon_;
 
@@ -380,11 +375,13 @@ namespace ompl
              * this. */
             double lambda_;
 
-            /** \brief Enable or disable halfspace separation of the charts. */
-            const bool lazy_;
-
+            /** \brief Use a biased sampler to sample charts */
             const bool bias_;
 
+            /** \brief Function to bias chart sampling */
+            AtlasChartBiasFunction biasFunction_;
+
+            /** \brief Enable or disable halfspace separation of the charts. */
             const bool separate_;
 
             /** \brief Sampling radius within a chart. Inferred from rho and exploration parameters. */
@@ -395,8 +392,20 @@ namespace ompl
 
             /** \brief Random number generator. */
             mutable RNG rng_;
+        };
 
-            AtlasChartBiasFunction biasFunction_;
+        class TangentBundleStateSpace : public AtlasStateSpace
+        {
+        public:
+            TangentBundleStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint)
+              : AtlasStateSpace(ambientSpace, constraint, true, false)
+            {
+            }
+
+            bool traverseManifold(const State *from, const State *to, bool interpolate = false,
+                                  std::vector<State *> *stateList = nullptr) const override;
+
+            State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const override;
         };
     }
 }

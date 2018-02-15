@@ -222,8 +222,6 @@ namespace ompl
                 return caching_;
             }
 
-            bool checkPath(geometric::PathGeometric &path, std::vector<unsigned int> *indices = nullptr) const;
-
             /** @} */
 
         protected:
