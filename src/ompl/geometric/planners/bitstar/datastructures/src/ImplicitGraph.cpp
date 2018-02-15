@@ -1295,15 +1295,34 @@ namespace ompl
             auto dimDbl = static_cast<double>(si_->getStateDimension());
 
             // Calculate the term and return
-            return 2.0 *
-                   std::pow((1.0 + 1.0 / dimDbl) * (approximationMeasure_ / unitNBallMeasure(si_->getStateDimension())),
-                            1.0 / dimDbl);  // RRG radius (biggest for unit-volume problem)
+            // RRT*
+            return std::pow(2.0 * (1.0 + 1.0 / dimDbl) *
+                                  (approximationMeasure_ /
+                                    unitNBallMeasure(si_->getStateDimension())),
+                            1.0 / dimDbl);
+
+            // Relevant work on calculating the minimum radius:
             /*
-            return std::pow(2.0 * (1.0 + 1.0 / dimDbl) * (approximationMeasure_ /
-            unitNBallMeasure(si_->getStateDimension())), 1.0 / dimDbl); //RRT* radius (smaller for unit-volume problem)
-            return 2.0 * std::pow((1.0 / dimDbl) * (approximationMeasure_ / unitNBallMeasure(si_->getStateDimension())),
-            1.0 / dimDbl); //FMT* radius (smallest for R2, equiv to RRT* for R3 and then middle for higher d. All
-            unit-volume)
+            // PRM*,RRG radius (biggest for unit-volume problem)
+            // See Theorem 34 in Karaman & Frazzoli IJRR 2011
+            return 2.0 * std::pow((1.0 + 1.0 / dimDbl) *
+                                  (approximationMeasure_ /
+                                    unitNBallMeasure(si_->getStateDimension())),
+                                  1.0 / dimDbl);
+
+            // FMT* radius (R2: smallest, R3: equiv to RRT*, Higher d: middle).
+            // See Theorem 4.1 in Janson et al. IJRR 2015
+            return 2.0 * std::pow((1.0 / dimDbl) *
+                                  (approximationMeasure_ /
+                                    unitNBallMeasure(si_->getStateDimension())),
+                                   1.0 / dimDbl);
+
+            // RRT* radius (smallest for unit-volume problems above R3).
+            // See Theorem 38 in Karaman & Frazzoli IJRR 2011
+            return std::pow(2.0 * (1.0 + 1.0 / dimDbl) *
+                                  (approximationMeasure_ /
+                                    unitNBallMeasure(si_->getStateDimension())),
+                            1.0 / dimDbl);
             */
         }
 
