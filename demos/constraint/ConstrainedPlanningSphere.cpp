@@ -55,6 +55,7 @@
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
+#include <ompl/geometric/planners/bitstar/BITstar.h>
 
 namespace po = boost::program_options;
 namespace ob = ompl::base;
@@ -172,7 +173,7 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
     }
 
     // Create planner
-    auto planner = std::make_shared<og::RRTstar>(csi);
+    auto planner = std::make_shared<og::RRTConnect>(csi);
 
     // Setup problem
     ss->setStartAndGoalStates(start, goal);

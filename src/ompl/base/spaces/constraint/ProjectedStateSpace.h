@@ -144,7 +144,7 @@ namespace ompl
              * a copy of \a to if we reached \a to. Caller is responsible for
              * freeing states returned in \a stateList. */
             bool traverseManifold(const State *from, const State *to, bool interpolate = false,
-                                  std::vector<State *> *stateList = nullptr) const override;
+                                  std::vector<State *> *stateList = nullptr, bool endpoints = true) const override;
         };
     }
 }

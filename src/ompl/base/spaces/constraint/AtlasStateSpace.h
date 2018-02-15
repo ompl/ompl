@@ -49,7 +49,6 @@
 #include <boost/math/constants/constants.hpp>
 #include <eigen3/Eigen/Core>
 
-
 namespace ompl
 {
     namespace magic
@@ -59,7 +58,7 @@ namespace ompl
         static const double ATLAS_STATE_SPACE_LAMBDA = 2.0;
         static const double ATLAS_STATE_SPACE_RHO_MULTIPLIER = 5;
         static const double ATLAS_STATE_SPACE_ALPHA = boost::math::constants::pi<double>() / 8.0;
-        static const double ATLAS_STATE_SPACE_EXPLORATION = 0.5;
+        static const double ATLAS_STATE_SPACE_EXPLORATION = 0.75;
         static const unsigned int ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION = 200;
     }
 
@@ -137,7 +136,7 @@ namespace ompl
                             bool separate = true);
 
             /** \brief Destructor. */
-            virtual ~AtlasStateSpace();
+            ~AtlasStateSpace();
 
             /** @name Setup and tuning of atlas parameters
              * @{ */
@@ -296,7 +295,7 @@ namespace ompl
              * a copy of \a to if we reached \a to. Caller is responsible for
              * freeing states returned in \a stateList. */
             bool traverseManifold(const State *from, const State *to, bool interpolate = false,
-                                  std::vector<State *> *stateList = nullptr) const override;
+                                  std::vector<State *> *stateList = nullptr, bool endpoints = true) const override;
 
             /** @} */
 
@@ -400,10 +399,11 @@ namespace ompl
             TangentBundleStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint)
               : AtlasStateSpace(ambientSpace, constraint, true, false)
             {
+                setName("TangentBundle" + space_->getName());
             }
 
             bool traverseManifold(const State *from, const State *to, bool interpolate = false,
-                                  std::vector<State *> *stateList = nullptr) const override;
+                                  std::vector<State *> *stateList = nullptr, bool endpoints = true) const override;
 
             State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const override;
         };

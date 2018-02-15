@@ -43,8 +43,9 @@
 
 #include <cmath>
 
-bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
-                                                           std::vector<ompl::base::State *> *stateList) const
+bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, const State *to, bool interpolate,
+                                                           std::vector<ompl::base::State *> *stateList,
+                                                           bool endpoints) const
 {
     // We can't traverse the manifold if we don't start on it.
     if (!constraint_->isSatisfied(from))
@@ -62,14 +63,16 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
     if (stateList != nullptr)
     {
         stateList->clear();
-        stateList->push_back(cloneState(from));
+
+        if (endpoints)
+            stateList->push_back(cloneState(from));
     }
 
     auto &&svc = si_->getStateValidityChecker();
 
     // No need to traverse the manifold if we are already there
     const double tolerance = delta_;
-    if (distance(from, to) < tolerance)
+    if (distance(from, to) <= tolerance)
         return true;
 
     // Get vector representations
@@ -144,7 +147,7 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
         x_scratch = x_temp;
 
         // Keep the state in a list, if requested.
-        if (stateList != nullptr)
+        if (stateList != nullptr && ((endpoints && !done) || !endpoints))
             stateList->push_back(cloneState(scratch));
 
     } while (!done);

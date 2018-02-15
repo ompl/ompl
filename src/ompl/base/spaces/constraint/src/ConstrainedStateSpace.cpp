@@ -55,7 +55,16 @@ ompl::base::ConstrainedMotionValidator::ConstrainedMotionValidator(const SpaceIn
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2) const
 {
-    return ss_.getConstraint()->isSatisfied(s1) && ss_.getConstraint()->isSatisfied(s2) && ss_.traverseManifold(s1, s2);
+    const bool s1sat = ss_.getConstraint()->isSatisfied(s1);
+    const bool s2sat = ss_.getConstraint()->isSatisfied(s2);
+    const bool travel = ss_.traverseManifold(s1, s2);
+
+    if (!travel)
+    {
+        const bool travel = ss_.traverseManifold(s1, s2);
+    }
+
+    return s1sat && s2sat && travel;
 }
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2,
@@ -107,7 +116,6 @@ ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr spa
   , n_(space->getDimension())
   , k_(constraint_->getManifoldDimension())
   , setup_(false)
-  , caching_(true)
 {
     setDelta(magic::CONSTRAINED_STATE_SPACE_DELTA);
 }

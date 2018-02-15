@@ -156,7 +156,7 @@ namespace ompl
              * a copy of \a to if we reached \a to. Caller is responsible for
              * freeing states returned in \a stateList. */
             virtual bool traverseManifold(const State *from, const State *to, bool interpolate = false,
-                                          std::vector<State *> *stateList = nullptr) const = 0;
+                                          std::vector<State *> *stateList = nullptr, bool endpoints = true) const = 0;
 
             /** \brief Find the state between \a from and \a to at time \a t,
              * where \a t = 0 is \a from, and \a t = 1 is the final state
@@ -212,16 +212,6 @@ namespace ompl
                 return constraint_;
             }
 
-            void setCaching(bool caching)
-            {
-                caching_ = caching;
-            }
-
-            bool getCaching() const
-            {
-                return caching_;
-            }
-
             /** @} */
 
         protected:
@@ -243,8 +233,6 @@ namespace ompl
 
             /** \brief Whether setup() has been called. */
             bool setup_;
-
-            bool caching_;
         };
     }
 }

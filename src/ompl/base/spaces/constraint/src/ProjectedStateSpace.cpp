@@ -114,8 +114,8 @@ void ompl::base::ProjectedStateSpace::checkSpace(const SpaceInformation *si)
                               "si needs to use an ProjectedStateSpace!");
 }
 
-bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
-                                                       std::vector<State *> *stateList) const
+bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const State *to, bool interpolate,
+                                                       std::vector<State *> *stateList, bool endpoints) const
 {
     // We can't move along the manifold if we were never there in the first place
     if (!constraint_->isSatisfied(from))
@@ -125,7 +125,9 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
     if (stateList != nullptr)
     {
         stateList->clear();
-        stateList->push_back(cloneState(from));
+
+        if (endpoints)
+            stateList->push_back(cloneState(from));
     }
 
     const double tolerance = delta_;

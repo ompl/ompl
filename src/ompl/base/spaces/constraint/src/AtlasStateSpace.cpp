@@ -308,7 +308,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Ref<c
     if (separate_)
     {
         std::vector<NNElement> nearbyCharts;
-        chartNN_.nearestR(std::make_pair(&addedC->getXorigin(), 0), 2 * rho_, nearbyCharts);
+        chartNN_.nearestR(std::make_pair(&addedC->getXorigin(), 0), 2 * rho_s_, nearbyCharts);
         for (auto &&near : nearbyCharts)
         {
             AtlasChart *c = charts_[near.second];
@@ -394,8 +394,8 @@ std::size_t ompl::base::AtlasStateSpace::getChartCount() const
     return charts_.size();
 }
 
-bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const State *to, const bool interpolate,
-                                                   std::vector<ompl::base::State *> *stateList) const
+bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const State *to, bool interpolate,
+                                                   std::vector<ompl::base::State *> *stateList, bool endpoints) const
 {
     // We can't traverse the manifold if we don't start on it.
     if (!constraint_->isSatisfied(from))
@@ -413,14 +413,16 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     if (stateList != nullptr)
     {
         stateList->clear();
-        stateList->push_back(cloneState(from));
+
+        if (endpoints)
+            stateList->push_back(cloneState(from));
     }
 
     auto &&svc = si_->getStateValidityChecker();
 
     // No need to traverse the manifold if we are already there
     const double tolerance = delta_;
-    if (distance(from, to) < tolerance)
+    if (distance(from, to) <= tolerance)
         return true;
 
     // Get vector representations
@@ -504,12 +506,13 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
             c->psiInverse(x_to, u_b);
         }
 
-        // Keep the state in a list, if requested.
-        if (stateList != nullptr)
-            stateList->push_back(cloneState(scratch));
-
         done = (u_b - u_j).squaredNorm() <= sqDelta;
         factor = 1;
+
+        // Keep the state in a list, if requested.
+        if (stateList != nullptr && ((endpoints && !done) || !endpoints))
+            stateList->push_back(cloneState(scratch));
+
     } while (!done);
 
     const bool ret = done && (x_to - x_scratch).squaredNorm() <= sqDelta;
