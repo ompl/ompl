@@ -122,15 +122,13 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     unsigned int tries = ompl::magic::ATLAS_STATE_SAMPLER_TRIES;
     Eigen::VectorXd uoffset(atlas_->getManifoldDimension());
 
-    // TODO: Is this a hack or is this theoretically sound? Find out more after the break.
-    const double distClamped = std::min(dist, atlas_->getRho_s());
     do
     {
         // Sample within dist
         for (std::size_t i = 0; i < k; ++i)
             uoffset[i] = ru[i] + rng_.gaussian01();
 
-        uoffset *= distClamped * std::pow(rng_.uniform01(), 1.0 / k) / uoffset.norm();
+        uoffset *= dist * std::pow(rng_.uniform01(), 1.0 / k) / uoffset.norm();
     } while (--tries > 0 && !c->psi(uoffset, rx));  // Try again if we can't project.
 
     if (tries == 0)
