@@ -430,7 +430,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     auto &&x_to = toAsType->constVectorView();
 
     // Traversal stops if the ball of radius distMax centered at x_from is left
-    const double distMax = (x_from - x_to).norm();
+    const double distMax = lambda_ * (x_from - x_to).norm();
 
     // Create a scratch state to use for movement.
     auto &&scratch = cloneState(from)->as<StateType>();
@@ -457,6 +457,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         // Take a step towards the final state
         u_j += factor * delta_ * (u_b - u_j).normalized();
 
+        // will also bork on non-finite numbers
         const bool onManifold = c->psi(u_j, x_temp);
         if (!onManifold)
             break;
@@ -478,7 +479,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
 
         const bool valid = interpolate || svc->isValid(scratch);
         const bool exceedMaxDist = (x_scratch - x_from).norm() > distMax;
-        const bool exceedWandering = dist > (lambda_ * distMax);
+        const bool exceedWandering = dist > distMax;
         const bool exceedChartLimit = chartsCreated > maxChartsPerExtension_;
         if (!valid || exceedMaxDist || exceedWandering || exceedChartLimit)
             break;
@@ -496,7 +497,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
             bool created = false;
             if ((c = getChart(scratch, true, &created)) == nullptr)
             {
-                OMPL_ERROR("ompl::base::AtlasStateSpace::traverseManifold(): Treating singularity as an obstacle.");
+                OMPL_ERROR("Treating singularity as an obstacle.");
                 break;
             }
             chartsCreated += created;

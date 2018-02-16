@@ -55,7 +55,7 @@ namespace ompl
     {
         static const unsigned int ATLAS_STATE_SAMPLER_TRIES = 50;
         static const double ATLAS_STATE_SPACE_EPSILON = 0.2;
-        static const double ATLAS_STATE_SPACE_LAMBDA = 2.0;
+        static const double ATLAS_STATE_SPACE_LAMBDA = 3.0;
         static const double ATLAS_STATE_SPACE_RHO_MULTIPLIER = 5;
         static const double ATLAS_STATE_SPACE_ALPHA = boost::math::constants::pi<double>() / 8.0;
         static const double ATLAS_STATE_SPACE_EXPLORATION = 0.75;

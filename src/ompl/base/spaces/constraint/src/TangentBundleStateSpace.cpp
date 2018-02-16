@@ -80,7 +80,7 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
     auto &&x_to = toAsType->constVectorView();
 
     // Traversal stops if the ball of radius distMax centered at x_from is left
-    const double distMax = (x_from - x_to).norm();
+    const double distMax = lambda_ * (x_from - x_to).norm();
 
     // Create a scratch state to use for movement.
     auto &&scratch = cloneState(from)->as<StateType>();
@@ -108,7 +108,7 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
 
         const bool valid = interpolate || svc->isValid(scratch);
         const bool exceedMaxDist = (x_temp - x_from).norm() > distMax || !std::isfinite(dist);
-        const bool exceedWandering = dist > (lambda_ * distMax);
+        const bool exceedWandering = dist > distMax;
         const bool exceedChartLimit = chartsCreated > maxChartsPerExtension_;
         if (!valid || exceedMaxDist || exceedWandering || exceedChartLimit)
             break;
@@ -131,8 +131,7 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
             bool created = false;
             if ((c = getChart(scratch, true, &created)) == nullptr)
             {
-                OMPL_ERROR("ompl::base::TangentBundleStateSpace::traverseManifold(): Treating singularity as an "
-                           "obstacle.");
+                OMPL_ERROR("Treating singularity as an obstacle.");
                 break;
             }
             chartsCreated += created;
@@ -152,7 +151,7 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
 
     } while (!done);
 
-    const bool ret = done && (x_to - x_scratch).squaredNorm() <= sqDelta;
+    const bool ret = (x_to - x_scratch).squaredNorm() <= sqDelta;
     freeState(scratch);
 
     return ret;

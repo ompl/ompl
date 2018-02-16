@@ -182,7 +182,7 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
     ss->setup();
 
     // Solve the problem
-    ob::PlannerStatus stat = ss->solve(5.);
+    ob::PlannerStatus stat = ss->solve(30.);
     std::cout << std::endl;
 
     if (stat)
@@ -255,9 +255,10 @@ void spherePlanning(bool output, enum SPACE_TYPE type)
 auto help_msg = "Shows this help message.";
 auto output_msg = "Dump found solution path (if one exists) in plain text and planning graph in GraphML to "
                   "`sphere_path.txt` and `sphere_graph.graphml` respectively.";
-auto space_msg =
-    "Choose which constraint handling methodology to use. One of `PJ` - Projection (Default), `AT` - Atlas, `TB` - "
-    "Tangent Bundle.";
+auto space_msg = "Choose which constraint handling methodology to use. One of: "
+                 "`PJ` - Projection (Default), "
+                 "`AT` - Atlas, "
+                 "`TB` - Tangent Bundle.";
 
 std::istream &operator>>(std::istream &in, enum SPACE_TYPE &type)
 {
