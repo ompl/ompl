@@ -77,7 +77,7 @@ namespace ompl
 
             Cost motionCost(const State *s1, const State *s2) const override;
 
-        protected:
+        //protected:
             sco::CostPtr toCost(sco::OptProbPtr problem) override;
         };
 
@@ -107,7 +107,7 @@ namespace ompl
 
             Cost motionCost(const State *s1, const State *s2) const override;
 
-        protected:
+        //protected:
             sco::CostPtr toCost(sco::OptProbPtr problem) override;
         };
     }

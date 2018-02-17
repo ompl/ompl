@@ -47,11 +47,54 @@ namespace ompl
 {
     namespace base
     {
+        // TODO make this a template that external code can use somehow.
+        struct CollisionInfo {
+            std::vector<double> x;
+            double signedDist;
+            std::vector<Eigen::Vector3d> points; // either one or two points.
+            std::vector<std::string> link_names; // 1-to-1 correspondance with the points above.
+            Eigen::Vector3d normal;
+        };
+
+        struct ContinuousCollisionInfo {
+            std::vector<double> x_0;
+            std::vector<double> x_1;
+            double signedDist;
+            Eigen::Vector3d p0;
+            Eigen::Vector3d p1;
+            Eigen::Vector3d p_swept;
+            std::string link_name;
+            Eigen::Vector3d normal;
+
+            CollisionInfo getTimeOne() {
+                CollisionInfo c;
+                c.x = x_0;
+                c.signedDist = signedDist;
+                c.points = {p0};
+                c.link_names = {link_name};
+                c.normal = normal;
+                return c;
+            }
+
+            CollisionInfo getTimeTwo() {
+                CollisionInfo c;
+                c.x = x_1;
+                c.signedDist = signedDist;
+                c.points = {p1};
+                c.link_names = {link_name};
+                c.normal = normal;
+                return c;
+            }
+        };
+
+        // TODO: consider returning just a costGradient/distance gradient in the collision info,
+        //       so we don't need a separate Jacobian function, it can be combined into the collision function,
+        //       and we don't need to introduce the concept of the Workspace into OMPL
         /**
          * \brief A callback that generates a Jacobian from a system configuration, and a point on a
-         *        particular body/link of the system.
+         *        particular body/link of the system. (int says which point/link in collision info to use).
          */
-        typedef std::function<Eigen::MatrixXd(std::vector<double>, Eigen::Vector3d, std::string)>
+        typedef std::function<Eigen::MatrixXd(CollisionInfo, int)>
             JacobianFn;
 
         /**
@@ -60,10 +103,7 @@ namespace ompl
          *        (in the workspace) that points to the direction to exit the collision.
          */
         typedef std::function<bool(std::vector<double>,
-                                   std::vector<double>& signedDist,
-                                   std::vector<Eigen::Vector3d>&,
-                                   std::vector<std::string>&,
-                                   std::vector<Eigen::Vector3d>&)>
+                                   std::vector<CollisionInfo>&)>
             WorkspaceCollisionFn;
 
         /**
@@ -73,12 +113,16 @@ namespace ompl
         struct JacobianCollisionEvaluator {
             JacobianCollisionEvaluator(JacobianFn J) : J_(J) {}
 
-            sco::AffExpr distExprFromOne(double signedDist, Eigen::Vector3d normal, Eigen::Vector3d point, Eigen::MatrixXd j, std::vector<double> x_0, std::vector<sco::Var> vars);
+            sco::AffExpr distExprOneVaries(double signedDist, Eigen::Vector3d normal,
+                Eigen::MatrixXd j,
+                std::vector<double> x_0, std::vector<sco::Var> vars);
+            sco::AffExpr distExprTwoVaries(double signedDist, Eigen::Vector3d normal,
+                Eigen::MatrixXd j_a, Eigen::MatrixXd j_b,
+                std::vector<double> x_0, std::vector<sco::Var> vars);
             virtual std::vector<sco::AffExpr> calcDistanceExpressions(std::vector<double> x) = 0;
             virtual std::vector<double> calcDistances(std::vector<double> x) = 0;
             ~JacobianCollisionEvaluator() {}
             virtual sco::VarVector getVars() = 0;
-
 
             JacobianFn J_;
         };
@@ -114,12 +158,7 @@ namespace ompl
 
         typedef std::function<bool(std::vector<double>,
                                    std::vector<double>,
-                                   std::vector<double>& signedDists,
-                                   std::vector<Eigen::Vector3d>&, // p_swept
-                                   std::vector<Eigen::Vector3d>&, // p0
-                                   std::vector<Eigen::Vector3d>&, // p1
-                                   std::vector<std::string>&,
-                                   std::vector<Eigen::Vector3d>&)>
+                                   std::vector<ContinuousCollisionInfo>&)>
             WorkspaceContinuousCollisionFn;
 
         struct JacobianContinuousCollisionEvaluator : public JacobianCollisionEvaluator {

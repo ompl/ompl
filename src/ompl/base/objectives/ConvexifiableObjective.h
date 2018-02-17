@@ -59,7 +59,7 @@ namespace ompl
                 problem->addCost(toCost(problem));
             }
 
-        protected:
+        //protected:
             /** \brief Turns this optimization objective into a convexifiable cost.
                 Must be implemented by each subclass individually. */
             virtual sco::CostPtr toCost(sco::OptProbPtr problem) = 0;
