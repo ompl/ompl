@@ -34,8 +34,8 @@
 
 /* Author: Bryce Willey */
 
-#ifndef OMPL_BASE_SAMPLERS_GRADIENT_MEDIAL_AXIS_SAMPLER_
-#define OMPL_BASE_SAMPLERS_GRADIENT_MEDIAL_AXIS_SAMPLER_
+#ifndef OMPL_BASE_SAMPLERS_GRADIENT_MEDIAL_AXIS_VALID_STATE_SAMPLER_
+#define OMPL_BASE_SAMPLERS_GRADIENT_MEDIAL_AXIS_VALID_STATE_SAMPLER_
 
 #include "ompl/base/StateSampler.h"
 
@@ -55,16 +55,16 @@ namespace ompl
 {
     namespace base
     {
-        OMPL_CLASS_FORWARD(GradientMedialAxisStateSampler);
+        OMPL_CLASS_FORWARD(GradientMedialAxisValidStateSampler);
 
         /** \brief A state sampler that uses gradient descent to sample along
          *         the medial axis of a cost.
          */
-        class GradientMedialAxisStateSampler : public ValidStateSampler
+        class GradientMedialAxisValidStateSampler : public ValidStateSampler
         {
         public:
-            GradientMedialAxisStateSampler(const SpaceInformation *si);
-            ~GradientMedialAxisStateSampler() override = default;
+            GradientMedialAxisValidStateSampler(const SpaceInformation *si);
+            ~GradientMedialAxisValidStateSampler() override = default;
 
             bool sample(State *state) override;
         
@@ -79,7 +79,7 @@ namespace ompl
             void runNewtonsMethod(State *state, const State *start);
 
             StateSamplerPtr sampler_;
-            double defaultDist_ = 2.0;
+            double defaultDist_ = 0.1;
             unsigned int dof_;
             std::ofstream of_;
         };

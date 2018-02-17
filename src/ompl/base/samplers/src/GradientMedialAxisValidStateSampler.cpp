@@ -34,32 +34,32 @@
 
 /* Author: Bryce Willey */
 
-#include "ompl/base/samplers/GradientMedialAxisStateSampler.h"
+#include "ompl/base/samplers/GradientMedialAxisValidStateSampler.h"
 #include "ompl/base/SpaceInformation.h"
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <limits>
 
-ompl::base::GradientMedialAxisStateSampler::GradientMedialAxisStateSampler(const SpaceInformation *si)
+ompl::base::GradientMedialAxisValidStateSampler::GradientMedialAxisValidStateSampler(const SpaceInformation *si)
   : ValidStateSampler(si), sampler_(si->allocStateSampler())
 {
     name_ = "gradient_medial_axis";
     dof_ = si->getStateDimension();
-    of_.open("/tmp/tmpfile.txt");
+    of_.open("/tmp/tmpfile2.txt");
 }
 
-bool ompl::base::GradientMedialAxisStateSampler::sample(State *state)
+bool ompl::base::GradientMedialAxisValidStateSampler::sample(State *state)
 {
     return sampleWithSafetyDist(state, defaultDist_);
 }
 
-bool ompl::base::GradientMedialAxisStateSampler::sampleNear(State *state, const State *near, double distance)
+bool ompl::base::GradientMedialAxisValidStateSampler::sampleNear(State *state, const State *near, double distance)
 {
     // Just ignore everything. 
     return sampleWithSafetyDist(state, defaultDist_);
 }
 
-bool ompl::base::GradientMedialAxisStateSampler::sampleWithSafetyDist(State *state, double defaultDist)
+bool ompl::base::GradientMedialAxisValidStateSampler::sampleWithSafetyDist(State *state, double defaultDist)
 {
     // Sample the starting state.
     sampler_->sampleUniform(state);

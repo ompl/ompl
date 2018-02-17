@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Bryce Willey */
 
 #ifndef OMPL_TEST_CIRCLES_2D_
 #define OMPL_TEST_CIRCLES_2D_
@@ -42,6 +42,7 @@
 #include <limits>
 #include <Eigen/Core>
 #include <Eigen/Dense>
+#include <functional>
 
 struct Circles2D
 {
@@ -96,13 +97,13 @@ struct Circles2D
             for (std::size_t i = 0 ; i < circles_.size() ; ++i)
             {
                 if (circles_[i].x_ - circles_[i].r_ < minX_)
-                    minX_ = circles_[i].x_ - circles_[i].r_;
+                    minX_ = circles_[i].x_ - circles_[i].r_ - 0.2;
                 if (circles_[i].y_ - circles_[i].r_ < minY_)
-                    minY_ = circles_[i].y_ - circles_[i].r_;
+                    minY_ = circles_[i].y_ - circles_[i].r_ - 0.2;
                 if (circles_[i].x_ + circles_[i].r_ > maxX_)
-                    maxX_ = circles_[i].x_ + circles_[i].r_;
+                    maxX_ = circles_[i].x_ + circles_[i].r_ + 0.2;
                 if (circles_[i].y_ + circles_[i].r_ > maxY_)
-                    maxY_ = circles_[i].y_ + circles_[i].r_;
+                    maxY_ = circles_[i].y_ + circles_[i].r_ + 0.2;
             }
         }
     }
@@ -245,7 +246,6 @@ struct Circles2D
         }
         return max;
     }
-
 
     std::vector<Circle> circles_;
     std::vector<Query> queries_;
