@@ -196,9 +196,9 @@ BOOST_AUTO_TEST_CASE(geometric_calc_medialAxis)
     circles.loadQueries((path / "circle_queries.txt").string());
 
     SignedDistanceField2D sdf(circles.minX_, circles.maxX_, circles.minY_, circles.maxY_);
-    std::function<bool(double, double)> isValid = [circles](double x, double y)
+    auto isValid = [circles](double x, double y, int &i)
     {
-        return circles.noOverlap(x, y);
+        return circles.noOverlap(x, y, i);
     };
     sdf.calculateSignedDistance(0.1, isValid);
 }

@@ -49,9 +49,17 @@ struct SignedDistanceField2D
         : minX_(minX), maxX_(maxX), minY_(minY), maxY_(maxY)
     {}
 
+    /**
+     * Common short variable names: (I've kept them to make the algorithm more
+     * readable when coming directly from the paper):
+     *   f: function to be transformed.
+     *   df: the distance transform of f
+     *   n: the number of grid cells in this array
+     */
     std::vector<double> distance_transform_one_dimension(
-            std::function<double (unsigned int)> f, 
-            std::function<void (unsigned int, double)>df, 
+            std::function<double (size_t)> f,
+            std::function<void (size_t, double)>df,
+            std::function<void (size_t, size_t)> set_obj_at_from,
             unsigned int n, bool verbose=false)
     {
         // START: ALGORITHM from Felzenswalb and Huttenlocher - 2004
@@ -77,6 +85,7 @@ struct SignedDistanceField2D
             }
 
         retry:
+            // The intersection of the parabola coming from q and the one coming from v[k].
             double s = ((f(q) + q * q) - (f(v[k]) + v[k] * v[k])) / (2 * q - 2 * v[k]);
             if (s <= z[k])
             {
@@ -102,6 +111,7 @@ struct SignedDistanceField2D
             if (verbose)
                 std::cout << "f(q): " << f(q) << ", q: " << q << ", k: " << k<< ", v[k]:" << v[k] << ", f(v[k]):" << f(v[k])<< ", z[k]: " << z[k] << ", z[k+ 1]: " << z[k+1] << ", final: " << (q -v[k]) * (q - v[k]) + f(v[k]) << std::endl;
             df(q, (q - v[k]) * (q - v[k]) + f(v[k]));
+            set_obj_at_from(q, v[k]);
         }
         return z;
         // END: Felzenswalb and Huttenlocher
@@ -117,8 +127,28 @@ struct SignedDistanceField2D
                || std::abs(x-y) < std::numeric_limits<double>::min();
     }
 
-    bool setMedialAxis(double boundary, double max_idx, std::function<double (unsigned int)> getSD, 
-                      std::function<void (unsigned int)>setMedial)
+    bool setMedialAxisObj(double boundary, double max_idx,
+                      std::function<int (size_t)>getObjs,
+                      std::function<void (size_t)>setMedial)
+    {
+        if (boundary < 1.0 || boundary > max_idx - 2)
+        {
+            return false;
+        }
+        size_t above = (size_t)floor(boundary + 1);
+        size_t below = (size_t)ceil(boundary - 1);
+
+        if (getObjs(above) != getObjs(below))
+        {
+            setMedial((size_t) round(boundary));
+            return true;
+        }
+        return false;
+    }
+
+    /** DEPRECATED */
+    bool setMedialAxis_Noisy(double boundary, double max_idx, std::function<double (size_t)> getSD, 
+                      std::function<void (size_t)>setMedial)
     {
         //EXP1
         //if (boundary < 1.0 || boundary > max_idx - 2)
@@ -165,31 +195,57 @@ struct SignedDistanceField2D
         return false;
     }
 
-    void calculateSignedDistance(double resolution, std::function<bool(double, double)> isValid)
+    void deallocDoubleMatrix(double **matrix, size_t x)
+    {
+        for (size_t ix = 0; ix < x; ix++)
+        {
+            free(matrix[ix]);
+        }
+        free(matrix);
+    }
+
+    double **allocDoubleMatrix(size_t x, size_t y)
+    {
+        double **matrix = (double **)malloc(sizeof(double *) * x);
+        for (size_t ix = 0; ix < x; ix++)
+        {
+            matrix[ix] = (double *)malloc(sizeof(double) * y);
+        }
+        return matrix;
+    }
+
+    int **allocIntMatrix(size_t x, size_t y)
+    {
+        int **matrix = (int **)malloc(sizeof(int *) * x);
+        for (size_t ix = 0; ix < x; ix++)
+        {
+            matrix[ix] = (int *)malloc(sizeof(int) * y);
+        }
+        return matrix;
+    }
+
+    // TODO: go to commit 79665b21b9e5c6a85a5d to test SDF calculations without object bookkeeping.
+    void calculateSignedDistance(double resolution, std::function<bool(double, double, int&)> isValid)
     {
         // Get the size of the grids setup.
         double df_resolution_ = resolution;
         num_entries_[0] = ceil((maxX_ - minX_) / df_resolution_);
         num_entries_[1] = ceil((maxY_ - minY_) / df_resolution_);
 
-        signed_distance_ = (double **)malloc(sizeof(double *) * num_entries_[0]);
-        double **signed_distance_prev = (double **)malloc(sizeof(double *) * num_entries_[0]);
-        dist_from_medial_axis_ = (double **)malloc(sizeof(double *) * num_entries_[0]);
-        double **dist_from_medial_axis_prev = (double **)malloc(sizeof(double *) * num_entries_[0]);
-        double **inv_df = (double **)malloc(sizeof(double *) * num_entries_[0]);
-        double **inv_df_prev = (double **) malloc(sizeof(double *) * num_entries_[0]);
+        signed_distance_ = allocDoubleMatrix(num_entries_[0], num_entries_[1]);
+        double **signed_distance_prev = allocDoubleMatrix(num_entries_[0], num_entries_[1]);
+        dist_from_medial_axis_ = allocDoubleMatrix(num_entries_[0], num_entries_[1]);
+        double **dist_from_medial_axis_prev = allocDoubleMatrix(num_entries_[0], num_entries_[1]);
+        double **inv_df = allocDoubleMatrix(num_entries_[0], num_entries_[1]);
+        double **inv_df_prev = allocDoubleMatrix(num_entries_[0], num_entries_[1]);
         double **temp;
-        for (unsigned int ix = 0; ix < num_entries_[0]; ix++)
-        {
-            signed_distance_[ix] = (double *)malloc(sizeof(double) * num_entries_[1]);
-            signed_distance_prev[ix] = (double *)malloc(sizeof(double) * num_entries_[1]);
+        int **temp_int;
+        int **objs = allocIntMatrix(num_entries_[0], num_entries_[1]);
+        int **objs_prev = allocIntMatrix(num_entries_[0], num_entries_[1]);
 
-            dist_from_medial_axis_[ix] = (double *)malloc(sizeof(double) * num_entries_[1]);
-            dist_from_medial_axis_prev[ix] = (double *)malloc(sizeof(double) * num_entries_[1]);
+        // Will use the null func a lot.
+        auto null_func = [](size_t i, size_t j){};
 
-            inv_df[ix] = (double *)malloc(sizeof(double) * num_entries_[1]);
-            inv_df_prev[ix] = (double *)malloc(sizeof(double) * num_entries_[1]);
-        }
         std::cout << "Allocated memory" << std::endl;
 
         // Start off by computing a binary image (0 if obstacle, inf if none)
@@ -200,15 +256,18 @@ struct SignedDistanceField2D
             {
                 double x = minX_ + ix * df_resolution_;
                 double y = minY_ + iy * df_resolution_;
-                if (isValid(x, y))
+                int obj_ref;
+                if (isValid(x, y, obj_ref))
                 {
                     signed_distance_[ix][iy] = std::numeric_limits<double>::max();
                     inv_df[ix][iy] = 0;
+                    objs[ix][iy] = -1; // -1 means no object yet.
                 }
                 else
                 {
                     signed_distance_[ix][iy] = 0;
                     inv_df[ix][iy] = std::numeric_limits<double>::max();
+                    objs[ix][iy] = obj_ref;
                 }
                 dist_from_medial_axis_[ix][iy] = std::numeric_limits<double>::max();
             }
@@ -218,22 +277,31 @@ struct SignedDistanceField2D
         temp = signed_distance_prev;
         signed_distance_prev = signed_distance_;
         signed_distance_ = temp;
+
         temp = inv_df_prev;
         inv_df_prev = inv_df;
         inv_df = temp;
 
+        temp_int = objs_prev;
+        objs_prev = objs;
+        objs = temp_int;
+
         // Now, compute the 1D transform along each row of the grid.
         for (unsigned int ix = 0; ix < num_entries_[0]; ix++)
         {
-            auto sdf_get = [signed_distance_prev, ix](unsigned int i)
-            {
-                return signed_distance_prev[ix][i];
-            };
-            auto sdf_set = [this, ix](unsigned int i, double toSet) 
+            auto sdf_get = [signed_distance_prev, ix](size_t i){ return signed_distance_prev[ix][i]; };
+            auto sdf_set = [this, ix](size_t i, double toSet)
             { 
                 this->signed_distance_[ix][i] = toSet; 
             };
-            std::vector<double> z = distance_transform_one_dimension(sdf_get, sdf_set, num_entries_[1]);
+
+            auto obj_set_at_from = [objs_prev, objs, ix](size_t i, size_t j)
+            {
+                objs[ix][i] = objs_prev[ix][j];
+            };
+
+            std::vector<double> z =
+                    distance_transform_one_dimension(sdf_get, sdf_set, obj_set_at_from, num_entries_[1]);
 
             //auto medial_get = [this, ix](unsigned int i){ return sqrt(this->signed_distance_[ix][i]); };
             //auto medial_set = [this, ix](unsigned int i){ this->dist_from_medial_axis_[ix][i] = 0.0; };
@@ -248,20 +316,21 @@ struct SignedDistanceField2D
             {
                 inv_df[ix][i] = toSet;
             };
-            distance_transform_one_dimension(inv_get, inv_set, num_entries_[1]);
+            distance_transform_one_dimension(inv_get, inv_set, null_func, num_entries_[1]);
         }
         std::cout << "1D x axis done." << std::endl;
-
-        writeDfToJsonFile(signed_distance_, "/tmp/normal_half.json");
-        writeDfToJsonFile(inv_df, "/tmp/inv_half.json");
-        writeDfToJsonFile(dist_from_medial_axis_, "/tmp/medial_bin_half.json");
 
         temp = signed_distance_prev;
         signed_distance_prev = signed_distance_;
         signed_distance_ = temp;
+
         temp = inv_df_prev;
         inv_df_prev = inv_df;
         inv_df = temp;
+
+        temp_int = objs_prev;
+        objs_prev = objs;
+        objs = temp_int;
 
         // Now, compute the 1D transform along each column of the grid.
         for (unsigned iy = 0; iy < num_entries_[1]; iy++)
@@ -274,27 +343,28 @@ struct SignedDistanceField2D
             { 
                 this->signed_distance_[i][iy] = toSet; 
             };
-            std::vector<double> z = distance_transform_one_dimension(sdf_get, sdf_set, num_entries_[0]);
+            auto obj_set_at_from = [objs_prev, objs, iy](size_t i, size_t j)
+            {
+                objs[i][iy] = objs_prev[j][iy];
+            };
+            std::vector<double> z =
+                    distance_transform_one_dimension(sdf_get, sdf_set, obj_set_at_from, num_entries_[0]);
 
-            auto medial_get = [this, iy](unsigned int i){ return sqrt(this->signed_distance_[i][iy]); };
+            auto medial_get = [objs, iy](unsigned int i){ return objs[i][iy]; };
             auto medial_set = [this, iy](unsigned int i){ this->dist_from_medial_axis_[i][iy] = 0.0; };
 
             for (auto boundary : z)
             {
-                setMedialAxis(boundary, num_entries_[0], medial_get, medial_set);
+                setMedialAxisObj(boundary, num_entries_[0], medial_get, medial_set);
             }
             auto inv_get = [inv_df_prev, iy](unsigned int i) { return inv_df_prev[i][iy]; };
             auto inv_set = [inv_df, iy](unsigned int i, double toSet)
             {
                 inv_df[i][iy] = toSet;
             };
-            distance_transform_one_dimension(inv_get, inv_set, num_entries_[0]);
+            distance_transform_one_dimension(inv_get, inv_set, null_func, num_entries_[0]);
         }
         std::cout << "1D y axis done." << std::endl;
-
-        writeDfToJsonFile(signed_distance_, "/tmp/normal_two.json");
-        writeDfToJsonFile(inv_df, "/tmp/inv_two.json");
-        writeDfToJsonFile(dist_from_medial_axis_, "/tmp/medial_bin_two.json");
 
         for (unsigned ix = 0; ix < num_entries_[0]; ix++)
         {
@@ -306,18 +376,20 @@ struct SignedDistanceField2D
             { 
                 //this->signed_distance_[ix][i] = toSet; 
             };
-            std::vector<double> z = distance_transform_one_dimension(sdf_get, sdf_set, num_entries_[1]);
-            auto medial_get = [this, ix](unsigned int i){ return sqrt(this->signed_distance_[ix][i]); };
+            auto obj_set_at_from = [objs_prev, objs](size_t i, size_t j)
+            {
+                //objs[ix][i] = objs_prev[ix][j];
+            };
+            std::vector<double> z =
+                    distance_transform_one_dimension(sdf_get, sdf_set, obj_set_at_from, num_entries_[1]);
+            auto medial_get = [objs, ix](unsigned int i){ return objs[ix][i]; };
             auto medial_set = [this, ix](unsigned int i){ this->dist_from_medial_axis_[ix][i] = 0.0; };
 
             for (auto boundary : z)
             {
-                setMedialAxis(boundary, num_entries_[1], medial_get, medial_set);
+                setMedialAxisObj(boundary, num_entries_[1], medial_get, medial_set);
             }
         }
-
-        writeDfToJsonFile(signed_distance_, "/tmp/normal_tww.json");
-        writeDfToJsonFile(dist_from_medial_axis_, "/tmp/medial_bin_tww.json");
 
         // Done with the standard SDF! Finish the last computations.
         for (unsigned int ix = 0; ix < num_entries_[0]; ix++)
@@ -344,7 +416,7 @@ struct SignedDistanceField2D
             {
                 this->dist_from_medial_axis_[ix][i] = toSet;
             };
-            distance_transform_one_dimension(ma_get, ma_set, num_entries_[1]);
+            distance_transform_one_dimension(ma_get, ma_set, null_func, num_entries_[1]);
         }
         std::cout << "Medial 1D x axis done." << std::endl;
 
@@ -362,7 +434,7 @@ struct SignedDistanceField2D
             {
                 this->dist_from_medial_axis_[i][iy] = toSet;
             };
-            distance_transform_one_dimension(ma_get, ma_set, num_entries_[0]);
+            distance_transform_one_dimension(ma_get, ma_set, null_func, num_entries_[0]);
         }
         std::cout << "Medial 1D x axis done." << std::endl;
 
@@ -374,12 +446,9 @@ struct SignedDistanceField2D
             }
         }
         std::cout << "Medial sqrts done." << std::endl;
-
-        // TODO: we can write out the streams, but can we read them back in?
-        writeDfToJsonFile(dist_from_medial_axis_, "/tmp/medial_axis.json");
-        writeDfToJsonFile(signed_distance_, "/tmp/normal_z.json");
     }
 
+    // TODO: we can write out the streams, but can we read them back in?
     bool writeDfToJsonFile(double **data, std::string filename) const
     {
         std::ofstream outfile;
@@ -389,7 +458,17 @@ struct SignedDistanceField2D
         return toReturn;
     }
 
-    bool writeDfToJsonToStream(double **data, std::ostream& os) const 
+    bool writeIntsToJsonFile(int **data, std::string filename) const
+    {
+        std::ofstream outfile;
+        outfile.open(filename);
+        bool toReturn = writeDfToJsonToStream(data, outfile);
+        outfile.close();
+        return toReturn;
+    }
+
+    template <class T>
+    bool writeDfToJsonToStream(T **data, std::ostream& os) const
     {
         os << "{";
         os << "\"resolution\": " << df_resolution_ << "," << std::endl;
@@ -415,7 +494,6 @@ struct SignedDistanceField2D
         os.flush();
         return true;
     }
-
 
     double minX_;
     double maxX_;

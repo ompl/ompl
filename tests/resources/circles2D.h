@@ -145,6 +145,28 @@ struct Circles2D
         return true;
     }
 
+    /**
+     * Gets the circle that the point is in collision with, if any.
+     * If returns false, then the circle index (of the first circle)
+     * is stored in cir.
+     * Used for object bookeeping in signed distance field
+     * calculations.
+     */
+    bool noOverlap(double x, double y, int &cir) const
+    {
+        for (std::size_t i = 0 ; i < circles_.size() ; ++i)
+        {
+            double dx = circles_[i].x_ - x;
+            double dy = circles_[i].y_ - y;
+            if (dx * dx + dy * dy < circles_[i].r2_)
+            {
+                cir = (int)i;
+                return false;
+            }
+        }
+        return true;
+    }
+
     double signedDistance(double x, double y) const
     {
         double minDist = std::numeric_limits<double>::infinity();
