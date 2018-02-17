@@ -83,7 +83,7 @@ namespace ompl
                 State *state_;
             };
 
-            WrapperStateSpace(const StateSpacePtr space) : StateSpace(), space_(std::move(space))
+            WrapperStateSpace(const StateSpacePtr& space) : StateSpace(), space_(std::move(space))
             {
             }
 
@@ -231,7 +231,7 @@ namespace ompl
 
             State *cloneState(const State *source) const
             {
-                StateType *clone = allocState()->as<StateType>();
+                auto *clone = allocState()->as<StateType>();
                 copyState(clone, source);
                 return clone;
             }
@@ -279,7 +279,7 @@ namespace ompl
 
             void freeState(State *state) const override
             {
-                StateType *wstate = state->as<StateType>();
+                auto *wstate = state->as<StateType>();
                 space_->freeState(wstate->getState());
                 delete wstate;
             }

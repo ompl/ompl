@@ -126,7 +126,7 @@ namespace ompl
             };
 
             /** \brief Construct an atlas with the specified dimensions. */
-            ConstrainedStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint);
+            ConstrainedStateSpace(const StateSpacePtr& ambientSpace, const ConstraintPtr& constraint);
 
             bool isMetricSpace() const override
             {

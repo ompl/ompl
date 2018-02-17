@@ -37,13 +37,14 @@
 #include "ompl/base/spaces/constraint/ProjectedStateSpace.h"
 
 #include <eigen3/Eigen/Core>
+#include <utility>
 
 /// ProjectedStateSampler
 
 /// Public
 
 ompl::base::ProjectedStateSampler::ProjectedStateSampler(const ProjectedStateSpace *space, StateSamplerPtr sampler)
-  : WrapperStateSampler(space, sampler), constraint_(space->getConstraint())
+  : WrapperStateSampler(space, std::move(sampler)), constraint_(space->getConstraint())
 {
 }
 

@@ -37,6 +37,8 @@
 #ifndef OMPL_BASE_CONSTRAINED_SPACE_INFORMATION_
 #define OMPL_BASE_CONSTRAINED_SPACE_INFORMATION_
 
+#include <utility>
+
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 #include "ompl/base/spaces/constraint/AtlasChart.h"
@@ -55,7 +57,7 @@ namespace ompl
         class ConstrainedSpaceInformation : public SpaceInformation
         {
         public:
-            ConstrainedSpaceInformation(StateSpacePtr space) : SpaceInformation(space)
+            ConstrainedSpaceInformation(StateSpacePtr space) : SpaceInformation(std::move(space))
             {
                 stateSpace_->as<ConstrainedStateSpace>()->setSpaceInformation(this);
             }
@@ -75,7 +77,7 @@ namespace ompl
         class TangentBundleSpaceInformation : public ConstrainedSpaceInformation
         {
         public:
-            TangentBundleSpaceInformation(StateSpacePtr space) : ConstrainedSpaceInformation(space)
+            TangentBundleSpaceInformation(StateSpacePtr space) : ConstrainedSpaceInformation(std::move(space))
             {
             }
 

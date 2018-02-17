@@ -110,14 +110,14 @@ namespace ompl
         {
         public:
             /** \brief Construct an atlas with the specified dimensions. */
-            ProjectedStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint)
+            ProjectedStateSpace(const StateSpacePtr& ambientSpace, const ConstraintPtr& constraint)
               : ConstrainedStateSpace(ambientSpace, constraint)
             {
                 setName("Projected" + space_->getName());
             }
 
             /** \brief Destructor. */
-            virtual ~ProjectedStateSpace() = default;
+            ~ProjectedStateSpace() override = default;
 
             /** \brief Check that the space referred to by the space information
              * \a si is, in fact, an AtlasStateSpace. */

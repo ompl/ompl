@@ -67,7 +67,7 @@ namespace ompl
         class AtlasChart;
         class AtlasStateSpace;
 
-        typedef std::function<double(AtlasChart *)> AtlasChartBiasFunction;
+        using AtlasChartBiasFunction = std::function<double (AtlasChart *)>;
 
         /** \brief StateSampler for use on an atlas. */
         class AtlasStateSampler : public StateSampler
@@ -77,16 +77,16 @@ namespace ompl
 
             /** \brief Sample a state uniformly from the charted regions of the
              * manifold. Return sample in \a state. */
-            virtual void sampleUniform(State *state) override;
+            void sampleUniform(State *state) override;
 
             /** \brief Sample a state uniformly from the ball with center \a
              * near and radius \a distance. Return sample in \a state.
              * \note rho_s_ is a good choice for \a distance. */
-            virtual void sampleUniformNear(State *state, const State *near, double distance) override;
+            void sampleUniformNear(State *state, const State *near, double distance) override;
 
             /** \brief Sample a state uniformly from a normal distribution with
                 given \a mean and \a stdDev. Return sample in \a state. */
-            virtual void sampleGaussian(State *state, const State *mean, double stdDev) override;
+            void sampleGaussian(State *state, const State *mean, double stdDev) override;
 
         private:
             /** \brief Atlas on which to sample. */
@@ -112,7 +112,7 @@ namespace ompl
                 }
 
                 /** \brief Get the chart this state is on. */
-                AtlasChart *getChart(void) const
+                AtlasChart *getChart() const
                 {
                     return chart_;
                 }
@@ -132,11 +132,11 @@ namespace ompl
             typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
 
             /** \brief Construct an atlas with the specified dimensions. */
-            AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint, bool bias = false,
+            AtlasStateSpace(const StateSpacePtr& ambientSpace, const ConstraintPtr& constraint, bool bias = false,
                             bool separate = true);
 
             /** \brief Destructor. */
-            ~AtlasStateSpace();
+            ~AtlasStateSpace() override;
 
             /** @name Setup and tuning of atlas parameters
              * @{ */
@@ -273,7 +273,7 @@ namespace ompl
             AtlasChart *newChart(const Eigen::Ref<const Eigen::VectorXd> &xorigin) const;
 
             /** \brief Pick a chart at random. */
-            AtlasChart *sampleChart(void) const;
+            AtlasChart *sampleChart() const;
 
             /** \brief Find the chart to which \a x belongs. Returns nullptr if
              * no chart found. Assumes \a x is already on the manifold. */
@@ -284,7 +284,7 @@ namespace ompl
             AtlasChart *getChart(const StateType *state, bool force = false, bool *created = nullptr) const;
 
             /** \brief Return the number of charts currently in the atlas. */
-            std::size_t getChartCount(void) const;
+            std::size_t getChartCount() const;
 
             /** \brief Traverse the manifold from \a from toward \a to. Returns
              * true if we reached \a to, and false if we stopped early for any
@@ -323,7 +323,7 @@ namespace ompl
             /** \brief Allocate a new state in this space. */
             State *allocState() const override
             {
-                StateType *state = new StateType(space_->allocState(), n_);
+                auto *state = new StateType(space_->allocState(), n_);
                 state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
                 return state;
             }
@@ -396,7 +396,7 @@ namespace ompl
         class TangentBundleStateSpace : public AtlasStateSpace
         {
         public:
-            TangentBundleStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint)
+            TangentBundleStateSpace(const StateSpacePtr& ambientSpace, const ConstraintPtr& constraint)
               : AtlasStateSpace(ambientSpace, constraint, true, false)
             {
                 setName("TangentBundle" + space_->getName());

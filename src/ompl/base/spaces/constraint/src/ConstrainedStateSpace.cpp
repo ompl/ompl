@@ -109,7 +109,7 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
     return ss_.getConstraint()->isSatisfied(s1) && ss_.getConstraint()->isSatisfied(s2) && reached;
 }
 
-ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr space, const ConstraintPtr constraint)
+ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr& space, const ConstraintPtr& constraint)
   : WrapperStateSpace(space)
   , si_(nullptr)
   , constraint_(std::move(constraint))

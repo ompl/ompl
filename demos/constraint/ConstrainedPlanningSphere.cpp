@@ -45,7 +45,6 @@
 #include <ompl/base/Constraint.h>
 #include <ompl/base/ConstrainedSpaceInformation.h>
 #include <ompl/base/spaces/constraint/ConstrainedStateSpace.h>
-#include <ompl/base/spaces/constraint/AtlasChart.h>
 #include <ompl/base/spaces/constraint/AtlasStateSpace.h>
 #include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
 
@@ -109,7 +108,7 @@ public:
 class SphereProjection : public ob::ProjectionEvaluator
 {
 public:
-    SphereProjection(ob::StateSpacePtr space) : ob::ProjectionEvaluator(space)
+    SphereProjection(const ob::StateSpacePtr& space) : ob::ProjectionEvaluator(space)
     {
     }
 
@@ -358,7 +357,11 @@ auto space_msg = "Choose which constraint handling methodology to use. One of:\n
                  "AT - Atlas, "
                  "TB - Tangent Bundle.";
 auto planner_msg = "Choose which motion planner to use. One of:\n"
-                   "RRT (Default), RRTConnect, RRTstar, EST, BITstar, PRM, KPIECE";
+                   "RRT (Default), RRTConnect, RRTstar, "
+                   "EST, BiEST, ProjEST, "
+                   "BITstar, "
+                   "PRM, SPARS, "
+                   "KPIECE, BKPIECE.";
 
 std::istream &operator>>(std::istream &in, enum SPACE_TYPE &type)
 {

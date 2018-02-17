@@ -204,7 +204,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
 
 /// Public
 
-ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr ambientSpace, const ConstraintPtr constraint,
+ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr& ambientSpace, const ConstraintPtr& constraint,
                                              bool bias, bool separate)
   : ConstrainedStateSpace(ambientSpace, constraint)
   , epsilon_(ompl::magic::ATLAS_STATE_SPACE_EPSILON)

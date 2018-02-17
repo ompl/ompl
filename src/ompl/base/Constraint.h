@@ -44,6 +44,7 @@
 
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
+#include <utility>
 
 namespace ompl
 {
@@ -85,7 +86,7 @@ namespace ompl
                                           "Ambient and manifold dimensions must be positive.");
             }
 
-            virtual ~Constraint(){};
+            virtual ~Constraint()= default;;
 
             /** \brief Compute the constraint function at \a state. Result is returned in \a out, which should be
              allocated to size \a coDim. */
@@ -216,7 +217,7 @@ namespace ompl
             }
 
             /** \brief Destructor. Destroys all constituent constraints. */
-            ~ConstraintIntersection()
+            ~ConstraintIntersection() override
             {
                 for (auto constraint : constraints_)
                     delete constraint;
@@ -263,13 +264,13 @@ namespace ompl
         public:
             /** \brief Constructor. */
             ConstraintObjective(ConstraintPtr constraint, SpaceInformationPtr si)
-              : OptimizationObjective(si), constraint_(std::move(constraint))
+              : OptimizationObjective(std::move(si)), constraint_(std::move(constraint))
             {
             }
 
             /** \brief Evaluate a cost map defined on the state space at a state \e s. Cost map is defined as the
              * distance from the constraint. */
-            virtual Cost stateCost(const State *s) const
+            Cost stateCost(const State *s) const override
             {
                 return Cost(constraint_->distance(s));
             }
