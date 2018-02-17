@@ -142,22 +142,23 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
                 sco::AffExpr(problem_->traj_vars_(nSteps_ - 1, i)), endVec[i]), sco::EQ);
     }
 
-    trajopt::TrajArray ta(nSteps_, dof);
-    for (size_t i = 0; i < nSteps_; i++) {
-        for (int j = 0; j < dof; j++) {
-            ta(i, j) = startVec[j] + (endVec[j] - startVec[j]) * i / (nSteps_ - 1);
+    if (!problem_->InitTrajIsSet()) {
+        trajopt::TrajArray ta(nSteps_, dof);
+        for (size_t i = 0; i < nSteps_; i++) {
+            for (int j = 0; j < dof; j++) {
+                ta(i, j) = startVec[j] + (endVec[j] - startVec[j]) * i / (nSteps_ - 1);
+            }
         }
+        problem_->SetInitTraj(ta);
     }
-    problem_->SetInitTraj(ta);
 
-    // Grab the problem definition (from parent Planner class) to get all of the
-    //   Optmization objectives.
+    // Grab the problem definition to get the Optmization objectives.
     static_cast<ompl::base::ConvexifiableOptimization *>(
-            pdef_->getOptimizationObjective().get())->addToProblem(problem_);
+            pdef_->getOptimizationObjective().get()
+    )->addToProblem(problem_);
 
     // Finally, initialize the SQP/Model with all of the variables and costs/constraints.
     sqpOptimizer = new sco::BasicTrustRegionSQP(problem_);
-    //fprintf(stderr, "Made the opt problem\n");
 
     sqpOptimizer->maxIter_ = maxIter_;
     sqpOptimizer->minApproxImproveFrac_ = minApproxImproveFrac_;
@@ -187,6 +188,11 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::solve(const ompl::base::Plan
             return constructStatus;
         }
     }
+    return optimize(ptc);
+}
+
+ompl::base::PlannerStatus ompl::geometric::TrajOpt::optimize(const ompl::base::PlannerTerminationCondition &ptc)
+{
     sqpOptimizer->optimize();
     sco::OptResults &results = sqpOptimizer->results();
     switch(results.status) {
@@ -194,22 +200,45 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::solve(const ompl::base::Plan
             plotCallback(results.x);
             trajopt::TrajArray ta = trajopt::getTraj(results.x, problem_->GetVars());
             ompl::base::PlannerSolution solution(trajFromTraj2Ompl(ta));
-            ompl::geometric::PathGeometric *path = solution.path_->as<ompl::geometric::PathGeometric>();
-            if (si_->checkMotion(path->getStates(), path->getStates().size())) {
-
-                solution.setOptimized(pdef_->getOptimizationObjective(),
-                                      ompl::base::Cost(results.total_cost), true);
-                pdef_->addSolutionPath(solution);
-                return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION);
-            } else {
-                return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION);
-            }
+            ompl::geometric::PathGeometric *path = solution.path_->as<PathGeometric>();
+            for (size_t i = 0; i < path->getStates().size() - 1; i++) 
+            {
+                if (!si_->checkMotion(path->getState(i), path->getState(i + 1)))
+                {
+                    OMPL_WARN("TrajOpt optimized all the way, but final solution still collides");
+                    //return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION);
+                }
+            }     
+            solution.setOptimized(pdef_->getOptimizationObjective(),
+                                  ompl::base::Cost(results.total_cost), true);
+            pdef_->addSolutionPath(solution);
+            return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION);
             break;
         }
 
         case sco::OPT_SCO_ITERATION_LIMIT:
         case sco::OPT_PENALTY_ITERATION_LIMIT:
-            return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::TIMEOUT);
+            /*if (nSteps_ < 200)
+            {
+                OMPL_WARN("Wasn't able to find a path with %d waypoint. Trying again with double.", nSteps_);
+                nSteps_ = nSteps_ * 2;
+                auto lastPath = trajFromTraj2Ompl(trajopt::getTraj(results.x, problem_->GetVars()))->as<PathGeometric>();
+                setInitialTrajectory(*lastPath);
+                constructOptProblem();
+                return optimize(ptc);
+            }
+            else*/
+            {
+                OMPL_WARN("Maxed out at nSteps_ == %d", nSteps_);
+                //return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::TIMEOUT);
+                
+                // Not really, but need to see wrong plans to figure out what's wrong.
+                ompl::base::PlannerSolution solution(trajFromTraj2Ompl(trajopt::getTraj(results.x, problem_->GetVars())));
+                solution.setOptimized(pdef_->getOptimizationObjective(),
+                                      ompl::base::Cost(results.total_cost), true);
+                pdef_->addSolutionPath(solution);
+                return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION);
+            }
             break;
 
         case sco::OPT_FAILED:
@@ -247,19 +276,20 @@ void ompl::geometric::TrajOpt::setInitialTrajectory(ompl::geometric::PathGeometr
     for (size_t i = 0; i < nSteps_; i++) {
         const ompl::base::State *state = inPath.getState(i);
         std::vector<double> startVec(dof);
-        std::vector<double> stateVec;
         ss->copyToReals(startVec, state);
         for (int j = 0; j < dof; j++) {
-            ta(i, j) = stateVec[j];
+            ta(i, j) = startVec[j];
         }
     }
+
+    problem_->SetInitTraj(ta);
 }
 
 ompl::base::PathPtr ompl::geometric::TrajOpt::trajFromTraj2Ompl(trajopt::TrajArray traj) {
     auto path(std::make_shared<ompl::geometric::PathGeometric>(si_));
     int dof = si_->getStateDimension();
     ompl::base::StateSpacePtr ss = si_->getStateSpace();
-    // t = timestep.
+    // t is timestep.
     for (int t = 0; t < traj.rows(); t++) {
         std::vector<double> stateVec(dof);
         for (int i = 0; i < dof; i++) {

@@ -125,14 +125,15 @@ namespace ompl
         protected:
             ompl::base::PathPtr trajFromTraj2Ompl(trajopt::TrajArray traj);
 
-
             ompl::base::PlannerStatus constructOptProblem();
+
+            ompl::base::PlannerStatus optimize(const ompl::base::PlannerTerminationCondition &ptc);
 
             void plotCallback(std::vector<double>& x);
 
             /** \brief The number of time steps/waypoints in the optimized trajectory.
                 Smaller means quicker optimization, larger means finer trajectories. */
-            size_t nSteps_{10};
+            size_t nSteps_{50};
 
             /** \brief The starting penalty coefficient, goes to infinity as the algorithm progresses. */
             double initPenaltyCoef_{20};

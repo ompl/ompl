@@ -59,6 +59,12 @@ namespace ompl
             void SetInitTraj(const trajopt::TrajArray& x)
             {
                 init_traj_ = x;
+                initTrajIsSet = true;
+            }
+
+            bool InitTrajIsSet()
+            {
+                return initTrajIsSet;
             }
 
             trajopt::TrajArray GetInitTraj()
@@ -82,6 +88,7 @@ namespace ompl
             trajopt::VarArray traj_vars_;
 
         private:
+            bool initTrajIsSet = false;
             ompl::base::SpaceInformationPtr si_;
             trajopt::TrajArray init_traj_;
         };

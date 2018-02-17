@@ -305,7 +305,7 @@ OptStatus BasicTrustRegionSQP::optimize() {
         double approx_merit_improve = old_merit - model_merit;
         double exact_merit_improve = old_merit - new_merit;
         double merit_improve_ratio = exact_merit_improve / approx_merit_improve;
-
+ 
         /*
         printf("old_merit:  %f, model_merit: %f, old model_merit: %f, new_merit: %f, approx_merit_improve: %f\n"
                "model cost: %f, model_cnt_violation: %f, merit_error_coeff_: %f\n"
