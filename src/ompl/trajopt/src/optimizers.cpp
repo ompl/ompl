@@ -33,21 +33,22 @@ std::ostream& operator<<(std::ostream& o, const OptResults& r) {
 }
 
 //////////////////////////////////////////////////
-////////// private utility functions for  sqp /////////
+/////// private utility functions for  sqp ///////
 //////////////////////////////////////////////////
 
 static DblVec evaluateCosts(vector<CostPtr>& costs, const DblVec& x) {
   DblVec out(costs.size());
   for (size_t i=0; i < costs.size(); ++i) {
     out[i] = costs[i]->value(x);
+    //OMPL_DEBUG("cost %d: %f", i, out[i]);
   }
   return out;
 }
 static DblVec evaluateConstraintViols(vector<ConstraintPtr>& constraints, const DblVec& x) {
     DblVec out(constraints.size());
-
     for (size_t i=0; i < constraints.size(); ++i) {
       out[i] = constraints[i]->violation(x);
+      //OMPL_DEBUG("constraint %d: %f", i, out[i]);
     }
     return out;
 }
@@ -70,6 +71,7 @@ DblVec evaluateModelCosts(vector<ConvexObjectivePtr>& costs, const DblVec& x) {
   DblVec out(costs.size());
   for (size_t i=0; i < costs.size(); ++i) {
     out[i] = costs[i]->value(x);
+    //OMPL_DEBUG("model cost %d: %f", i, out[i]);
   }
   return out;
 }
@@ -77,6 +79,7 @@ DblVec evaluateModelCntViols(vector<ConvexConstraintsPtr>& cnts, const DblVec& x
   DblVec out(cnts.size());
   for (size_t i=0; i < cnts.size(); ++i) {
     out[i] = cnts[i]->violation(x);
+    //OMPL_DEBUG("model constraint %d: %f", i, out[i]);
   }
   return out;
 }
@@ -219,7 +222,7 @@ OptStatus BasicTrustRegionSQP::optimize() {
     for (int iter = 1; ; ++iter) { /* sqp loop */
       callCallbacks(x_);
 
-      OMPL_DEVMSG1("current iterate: %s", CSTR(x_));
+      //OMPL_DEVMSG1("current iterate: %s", CSTR(x_));
       OMPL_DEBUG("iteration %i", iter);
 
       // speedup: if you just evaluated the cost when doing the line search, use that
@@ -323,13 +326,13 @@ OptStatus BasicTrustRegionSQP::optimize() {
         */
 
         // Commented out because it's annoying, but still need INFO level debugging.
-        //if (util::GetLogLevel() >= util::LevelInfo) {
-        //  LOG_INFO(" ");
-        //  printCostInfo(results_.cost_vals, model_cost_vals, new_cost_vals,
-        //                results_.cnt_viols, model_cnt_viols, new_cnt_viols, cost_names,
-        //                cnt_names, merit_error_coeff_);
-        //  printf("%15s | %10.3e | %10.3e | %10.3e | %10.3e\n", "TOTAL", old_merit, approx_merit_improve, exact_merit_improve, merit_improve_ratio);
-        //}
+        if (util::GetLogLevel() >= util::LevelInfo) {
+          LOG_INFO(" ");
+          printCostInfo(results_.cost_vals, model_cost_vals, new_cost_vals,
+                        results_.cnt_viols, model_cnt_viols, new_cnt_viols, cost_names,
+                        cnt_names, merit_error_coeff_);
+          printf("%15s | %10.3e | %10.3e | %10.3e | %10.3e\n", "TOTAL", old_merit, approx_merit_improve, exact_merit_improve, merit_improve_ratio);
+        }
 
         if (approx_merit_improve < -1e-5) {
           OMPL_WARN("approximate merit function got worse (%.3e). "

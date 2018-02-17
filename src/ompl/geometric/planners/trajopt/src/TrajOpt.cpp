@@ -56,11 +56,10 @@ ompl::geometric::TrajOpt::TrajOpt(const ompl::base::SpaceInformationPtr &si)
   : base::Planner(si, "TrajOpt") {
     // Make tmp file for the path at each iteration.
     fd = fopen("/tmp/tmpfile.txt", "w");
-    OMPL_WARN("Before setting new output handler");
     auto fileLog = new ompl::msg::OutputHandlerFile("/tmp/IHateThis.log");
     ompl::msg::useOutputHandler(fileLog);
     ompl::msg::setLogLevel(ompl::msg::LogLevel::LOG_DEV2);
-    OMPL_WARN("After setting new output handler");
+    OMPL_WARN("Number of Waypoints: %d", nSteps_);
 }
 
 // TODO: write
@@ -108,7 +107,6 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
     }
 
     pis_.update();
-    //printf("pis_.haveMoreStartStates: %s", pis_.haveMoreStartStates() ? "true": "false");
     const ompl::base::State *start = pis_.nextStart();
     const ompl::base::State *goal = pis_.nextGoal(ompl::base::timedPlannerTerminationCondition(1.0));
     if (goal == nullptr) {
@@ -127,6 +125,15 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
     std::vector<double> endVec(dof);
     ss->copyToReals(startVec, start);
     ss->copyToReals(endVec, goal);
+    std::cerr << "-{ start: [";
+    for (int i = 0; i < startVec.size(); i++) {
+        std::cerr << startVec[i] << ", ";
+    }
+    std::cerr << "], goal: [";
+    for (int i = 0; i < endVec.size(); i++) {
+        std::cerr << endVec[i] << ", ";
+    }
+    std::cerr << "]}" << std::endl;
 
     for (int i = 0; i < dof; i++) {
         problem_->addLinearConstraint(sco::exprSub(
