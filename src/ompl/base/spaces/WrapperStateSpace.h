@@ -37,6 +37,8 @@
 #ifndef OMPL_BASE_SPACES_WRAPPER_STATE_SPACE_
 #define OMPL_BASE_SPACES_WRAPPER_STATE_SPACE_
 
+#include <utility>
+
 #include "ompl/base/StateSpace.h"
 
 namespace ompl
@@ -83,7 +85,7 @@ namespace ompl
                 State *state_;
             };
 
-            WrapperStateSpace(const StateSpacePtr& space) : StateSpace(), space_(std::move(space))
+            WrapperStateSpace(const StateSpacePtr &space) : StateSpace(), space_(std::move(space))
             {
             }
 
