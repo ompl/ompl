@@ -109,7 +109,7 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
     return ss_.getConstraint()->isSatisfied(s1) && ss_.getConstraint()->isSatisfied(s2) && reached;
 }
 
-ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr& space, const ConstraintPtr& constraint)
+ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr &space, const ConstraintPtr &constraint)
   : WrapperStateSpace(space)
   , si_(nullptr)
   , constraint_(std::move(constraint))
@@ -138,7 +138,20 @@ void ompl::base::ConstrainedStateSpace::setSpaceInformation(SpaceInformation *si
                               "si for ConstrainedStateSpace must be constructed from the same state space object.");
 
     si_ = si;
-    si_->setStateValidityCheckingResolution(delta_);
+}
+
+void ompl::base::ConstrainedStateSpace::setDelta(double delta)
+{
+    if (delta <= 0)
+        throw ompl::Exception("ompl::base::ConstrainedStateSpace::setDelta(): "
+                              "delta must be positive.");
+    delta_ = delta;
+
+    if (setup_)
+    {
+        setLongestValidSegmentFraction(delta_ / getMaximumExtent());
+        si_->setStateValidityCheckingResolution(delta_);
+    }
 }
 
 void ompl::base::ConstrainedStateSpace::setup()
@@ -148,13 +161,17 @@ void ompl::base::ConstrainedStateSpace::setup()
 
     if (si_ == nullptr)
         throw ompl::Exception("ompl::base::ConstrainedStateSpace::setup(): "
-                              "Must associate a SpaceInformation object to the ConstrainedStateSpace via "
+                              "Must associate a SpaceInformation object to the ConstrainedStateSpace via"
                               "setStateInformation() before use.");
 
     WrapperStateSpace::setup();
 
-    setup_ = true;
     setDelta(delta_);  // This makes some setup-related calls
+    setup_ = true;
+
+    // Call again to make sure information propagates properly to both wrapper
+    // and underlying space.
+    WrapperStateSpace::setup();
 }
 
 void ompl::base::ConstrainedStateSpace::clear()
@@ -173,7 +190,9 @@ void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const Sta
 {
     // Get the list of intermediate states along the manifold.
     std::vector<State *> stateList;
-    auto temp = from;
+
+    // Default to returning `from' if traversal fails.
+    auto &&temp = from;
 
     if (traverseManifold(from, to, true, &stateList))
     {
@@ -198,7 +217,7 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const
     for (unsigned int i = 1; i < n; ++i)
         d[i] = d[i - 1] + distance(stateList[i - 1], stateList[i]);
 
-    // Find the two adjacent states that t lies between.
+    // Find the two adjacent states that t lies between, and return the closer.
     const double last = d[n - 1];
     if (last <= std::numeric_limits<double>::epsilon())
         return stateList[0];

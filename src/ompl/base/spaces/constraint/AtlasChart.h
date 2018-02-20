@@ -51,10 +51,10 @@ namespace ompl
          * of the manifold. */
         class AtlasChart
         {
-            /** \brief Halfspace equation on a chart.
-             * \note Use AtlasChart::generateHalfspace to create new halfspace
-             * objects. Since each halfspace is associated to exactly one chart,
-             * we let the chart be responsible for deleting it. */
+            /** \brief Halfspace equation on a chart. \note Use
+             * AtlasChart::generateHalfspace to create new halfspace objects.
+             * Since each halfspace is associated to exactly one chart, we let
+             * the chart be responsible for deleting it. */
             class Halfspace
             {
             public:
@@ -76,8 +76,6 @@ namespace ompl
                  * extend its boundary so that it also contains \a v when \a v
                  * is projected onto the neighboring chart. */
                 void checkNear(const Eigen::Ref<const Eigen::VectorXd> &v) const;
-
-                /// @cond IGNORE
 
                 /** \brief Compute up to two vertices of intersection with a
                  * circle of radius \a r.  If one vertex is found, it is stored
@@ -109,13 +107,6 @@ namespace ompl
                 {
                     return owner_;
                 }
-
-                const Eigen::Ref<const Eigen::VectorXd> getU() const
-                {
-                    return u_;
-                }
-
-                /// @endcond
 
             private:
                 /** \brief Chart to which this halfspace belongs. */
@@ -245,7 +236,6 @@ namespace ompl
              * neighbors of this chart. Returns nullptr if none found.*/
             const AtlasChart *owningNeighbor(const Eigen::Ref<const Eigen::VectorXd> &x) const;
 
-            /// @cond IGNORE
             /** \brief For manifolds of dimension 2, return in order in \a
              * vertices the polygon boundary of this chart, including an
              * approximation of the circular boundary where the polygon exceeds
@@ -262,7 +252,6 @@ namespace ompl
              * chart's polytope boundary is completely defined by its
              * halfspaces. */
             bool estimateIsFrontier() const;
-            /// @cond IGNORE
 
             /** \brief Create two complementary halfspaces dividing the space
              * between charts \a c1 and \a c2, and add them to the charts'
@@ -270,11 +259,15 @@ namespace ompl
              * \note Charts must be different charts from the same atlas. */
             static void generateHalfspace(AtlasChart *c1, AtlasChart *c2);
 
+            /** \brief Sets the PDF element for this chart used by the
+             * overlaying atlas structure for biased sampling. */
             void setPDFElement(PDF<AtlasChart *>::Element *element)
             {
                 element_ = element;
             }
 
+            /** \brief Gets the PDF element for this chart used by the
+             * overlaying atlas structure for biased sampling. */
             PDF<AtlasChart *>::Element *getPDFElement() const
             {
                 return element_;
@@ -321,6 +314,7 @@ namespace ompl
             /** \brief Unique ID in the atlas. Must be manually set. */
             unsigned int id_ = 0;
 
+            /** \brief PDF element for biased sampling of charts. */
             PDF<AtlasChart *>::Element *element_;
         };
     }

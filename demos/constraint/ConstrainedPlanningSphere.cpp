@@ -46,6 +46,7 @@
 #include <ompl/base/ConstrainedSpaceInformation.h>
 #include <ompl/base/spaces/constraint/ConstrainedStateSpace.h>
 #include <ompl/base/spaces/constraint/AtlasStateSpace.h>
+#include <ompl/base/spaces/constraint/TangentBundleStateSpace.h>
 #include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
 
 #include <ompl/geometric/planners/rrt/RRT.h>

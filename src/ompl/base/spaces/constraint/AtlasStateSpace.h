@@ -64,10 +64,41 @@ namespace ompl
 
     namespace base
     {
-        class AtlasChart;
-        class AtlasStateSpace;
+        /**
+           @anchor gAtlas
 
-        using AtlasChartBiasFunction = std::function<double (AtlasChart *)>;
+           \ref gAtlas AtlasStateSpace implements an atlas-based methodology for constrained sampling-based planning,
+           where the underlying constraint manifold is locally parameterized by \e charts (AtlasChart). The underlying
+           constraint manifold can then be sampled and explored using the collection of these charts (an \e atlas).
+
+           @par External Documentation
+
+           This state space is inspired by the work on AtlasRRT. One reference of which is the following.
+
+           L. Jaillet and J. M. Porta, "Path Planning Under Kinematic Constraints by Rapidly Exploring Manifolds," in
+           IEEE Transactions on Robotics, vol. 29, no. 1, pp. 105-117, Feb. 2013. DOI: <a
+           href="http://dx.doi.org/10.1109/TRO.2012.2222272">10.1109/TRO.2012.2222272</a>.
+
+           For more information on constrained sampling-based planning using atlas-based methods, see the following,
+           specifically the section on atlas-based methods.
+
+           Z. Kingston, M. Moll, and L. E. Kavraki, “Sampling-Based Methods for
+           Motion Planning with Constraints,” Annual Review of Control, Robotics,
+           and Autonomous Systems, 2018. PrePrint: <a
+           href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf"></a>
+        */
+
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::AtlasChart */
+        OMPL_CLASS_FORWARD(AtlasChart);
+        /// @endcond
+
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::AtlasStateSpace */
+        OMPL_CLASS_FORWARD(AtlasStateSpace);
+        /// @endcond
+
+        using AtlasChartBiasFunction = std::function<double(AtlasChart *)>;
 
         /** \brief StateSampler for use on an atlas. */
         class AtlasStateSampler : public StateSampler
@@ -80,8 +111,8 @@ namespace ompl
             void sampleUniform(State *state) override;
 
             /** \brief Sample a state uniformly from the ball with center \a
-             * near and radius \a distance. Return sample in \a state.
-             * \note rho_s_ is a good choice for \a distance. */
+             * near and radius \a distance. Return sample in \a state. \note
+             * rho_s_ is a good choice for \a distance. */
             void sampleUniformNear(State *state, const State *near, double distance) override;
 
             /** \brief Sample a state uniformly from a normal distribution with
@@ -132,21 +163,18 @@ namespace ompl
             typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
 
             /** \brief Construct an atlas with the specified dimensions. */
-            AtlasStateSpace(const StateSpacePtr& ambientSpace, const ConstraintPtr& constraint, bool bias = false,
+            AtlasStateSpace(const StateSpacePtr &ambientSpace, const ConstraintPtr &constraint, bool bias = false,
                             bool separate = true);
 
             /** \brief Destructor. */
             ~AtlasStateSpace() override;
-
-            /** @name Setup and tuning of atlas parameters
-             * @{ */
 
             /** \brief Check that the space referred to by the space information
              * \a si is, in fact, an AtlasStateSpace. */
             static void checkSpace(const SpaceInformation *si);
 
             /** \brief Reset the space (except for anchor charts). */
-            void clear();
+            void clear() override;
 
             /** \brief Set \a epsilon, the maximum permissible distance between
              * a point in the validity region of a chart and its projection onto
@@ -258,10 +286,6 @@ namespace ompl
             {
                 return maxChartsPerExtension_;
             }
-            /** @} */
-
-            /** @name Manifold and chart operations
-             *  @{ */
 
             /** \brief Wrapper for newChart(). Charts created this way will
              * persist through calls to clear().
@@ -293,14 +317,10 @@ namespace ompl
              * is not nullptr, the sequence of intermediates is saved to it,
              * including a copy of \a from, as well as the final state, which is
              * a copy of \a to if we reached \a to. Caller is responsible for
-             * freeing states returned in \a stateList. */
+             * freeing states returned in \a stateList. if \a endpoints is true,
+             * then \a from and \a to are included in stateList. */
             bool traverseManifold(const State *from, const State *to, bool interpolate = false,
                                   std::vector<State *> *stateList = nullptr, bool endpoints = true) const override;
-
-            /** @} */
-
-            /** @name Interpolation and state management
-             * @{ */
 
             /** \brief Allocate the default state sampler for this space. */
             StateSamplerPtr allocDefaultStateSampler() const override
@@ -328,11 +348,6 @@ namespace ompl
                 return state;
             }
 
-            /** @} */
-
-            /** @name Visualization and debug
-             * @{ */
-
             /** \brief Estimate what percentage of atlas charts do not have
              * fully formed polytope boundaries, and are therefore on the
              * frontier. */
@@ -345,8 +360,6 @@ namespace ompl
             {
                 biasFunction_ = biasFunction;
             }
-
-            /** @} */
 
         protected:
             /** \brief Set of charts, sampleable by weight. */
@@ -391,21 +404,6 @@ namespace ompl
 
             /** \brief Random number generator. */
             mutable RNG rng_;
-        };
-
-        class TangentBundleStateSpace : public AtlasStateSpace
-        {
-        public:
-            TangentBundleStateSpace(const StateSpacePtr& ambientSpace, const ConstraintPtr& constraint)
-              : AtlasStateSpace(ambientSpace, constraint, true, false)
-            {
-                setName("TangentBundle" + space_->getName());
-            }
-
-            bool traverseManifold(const State *from, const State *to, bool interpolate = false,
-                                  std::vector<State *> *stateList = nullptr, bool endpoints = true) const override;
-
-            State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const override;
         };
     }
 }

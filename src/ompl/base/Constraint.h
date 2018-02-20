@@ -50,26 +50,31 @@ namespace ompl
 {
     namespace magic
     {
-        /** \brief Default projection tolerance of a constraint unless otherwise specified. */
-        static const double CONSTRAINT_PROJECTION_TOLERANCE = 1e-6;
+        /** \brief Default projection tolerance of a constraint unless otherwise
+         * specified. */
+        static const double CONSTRAINT_PROJECTION_TOLERANCE = 1e-4;
 
-        /** \brief Maximum number of iterations in projection routine until giving up. */
+        /** \brief Maximum number of iterations in projection routine until
+         * giving up. */
         static const unsigned int CONSTRAINT_PROJECTION_MAX_ITERATIONS = 50;
     }
 
     namespace base
     {
         /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::Constraint */
         OMPL_CLASS_FORWARD(Constraint);
         /// @endcond
 
-        /** \brief Definition of a differentiable holonomic constraint on a configuration space. */
+        /** \brief Definition of a differentiable holonomic constraint on a
+         * configuration space. */
         class Constraint
         {
         public:
-            /** \brief Constructor. The dimension of the ambient configuration space as well as the dimension of the
-             function's output need to be specified (the co-dimension of the constraint manifold). I.E., for a sphere
-             constraint function in \f$\mathbb{R}^3$,
+            /** \brief Constructor. The dimension of the ambient configuration
+             space as well as the dimension of the function's output need to be
+             specified (the co-dimension of the constraint manifold). I.E., for
+             a sphere constraint function in \f$\mathbb{R}^3$,
             \f[
                 F(q) = \left\lVert q \right\rVert - 1 \qquad F(q) : \f\mathbb{R}^3 \rightarrow \mathbb{R}
             \f]
@@ -88,24 +93,28 @@ namespace ompl
 
             virtual ~Constraint()= default;;
 
-            /** \brief Compute the constraint function at \a state. Result is returned in \a out, which should be
-             allocated to size \a coDim. */
+            /** \brief Compute the constraint function at \a state. Result is
+             returned in \a out, which should be allocated to size \a coDim. */
             void function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const;
 
-            /** \brief Compute the Jacobian of the constraint function at \a state. Result is returned in \a out, which
-             should be allocated to size \a coDim by \a ambientDim. Default implementation performs the differentiation
-             numerically with a seven-point central difference stencil. It is best to provide an analytic
-             formulation. */
+            /** \brief Compute the Jacobian of the constraint function at \a
+             state. Result is returned in \a out, which should be allocated to
+             size \a coDim by \a ambientDim. Default implementation performs the
+             differentiation numerically with a seven-point central difference
+             stencil. It is best to provide an analytic formulation. */
             void jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const;
 
-            /** \brief Project a state \a state given the constraints. If a valid projection cannot be found, this
-             method will return false. Even if this method fails, \a state will be modified. */
+            /** \brief Project a state \a state given the constraints. If a
+             valid projection cannot be found, this method will return false.
+             Even if this method fails, \a state will be modified. */
             bool project(State *state) const;
 
-            /** \brief Returns the distance of \a state to the constraint manifold. */
+            /** \brief Returns the distance of \a state to the constraint
+             * manifold. */
             double distance(const State *state) const;
 
-            /** \brief Check whether a state \a state satisfies the constraints */
+            /** \brief Check whether a state \a state satisfies the
+             * constraints */
             bool isSatisfied(const State *state) const;
 
             /** \brief Returns the dimension of the ambient space. */
@@ -126,6 +135,7 @@ namespace ompl
                 return n_ - k_;
             }
 
+            /** \brief Sets the underlying manifold dimension. */
             void setManifoldDimension(unsigned int k)
             {
                 if (k <= 0)
@@ -140,7 +150,8 @@ namespace ompl
                 return tolerance_;
             }
 
-            /** \brief Returns the maximum number of allowed iterations in the projection routine. */
+            /** \brief Returns the maximum number of allowed iterations in the
+             * projection routine. */
             unsigned int getMaxIterations() const
             {
                 return maxIterations_;
@@ -155,7 +166,8 @@ namespace ompl
                 tolerance_ = tolerance;
             }
 
-            /** \brief Sets the maximum number of iterations in the projection routine. */
+            /** \brief Sets the maximum number of iterations in the projection
+             * routine. */
             void setMaxIterations(const unsigned int iterations)
             {
                 if (iterations == 0)
@@ -164,19 +176,20 @@ namespace ompl
                 maxIterations_ = iterations;
             }
 
-            /** \brief Compute the constraint function at \a x. Result is returned in \a out, which should be allocated
-             to size \a coDim. */
+            /** \brief Compute the constraint function at \a x. Result is
+             returned in \a out, which should be allocated to size \a coDim. */
             virtual void function(const Eigen::Ref<const Eigen::VectorXd> &x,
                                   Eigen::Ref<Eigen::VectorXd> out) const = 0;
 
-            /** \brief Compute the Jacobian of the constraint function at \a x. Result is returned in \a out, which
-             should be allocated to size \a coDim by \a ambientDim. Default implementation performs the differentiation
-             numerically with a seven-point central difference stencil. It is best to provide an analytic
-             formulation. */
+            /** \brief Compute the Jacobian of the constraint function at \a x.
+             Result is returned in \a out, which should be allocated to size \a
+             coDim by \a ambientDim. Default implementation performs the
+             differentiation numerically with a seven-point central difference
+             stencil. It is best to provide an analytic formulation. */
             virtual void jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const;
 
-            /** \brief Project a state \a x given the constraints. If a valid projection cannot be found, this method
-             will return false. */
+            /** \brief Project a state \a x given the constraints. If a valid
+             projection cannot be found, this method will return false. */
             virtual bool project(Eigen::Ref<Eigen::VectorXd> x) const;
 
             /** \brief Returns the distance of \a x to the constraint manifold. */
@@ -192,10 +205,12 @@ namespace ompl
             /** \brief Manifold dimension. */
             unsigned int k_;
 
-            /** \brief Tolerance for Newton method used in projection onto manifold. */
+            /** \brief Tolerance for Newton method used in projection onto
+             * manifold. */
             double tolerance_;
 
-            /** \brief Maximum number of iterations for Newton method used in projection onto manifold. */
+            /** \brief Maximum number of iterations for Newton method used in
+             * projection onto manifold. */
             unsigned int maxIterations_;
         };
 
@@ -203,12 +218,14 @@ namespace ompl
         OMPL_CLASS_FORWARD(ConstraintIntersection);
         /// @endcond
 
-        /** \brief Definition of a constraint composed of multiple constraints that all must be satisfied
-         simultaneously. This class `stacks` the constraint functions together. */
+        /** \brief Definition of a constraint composed of multiple constraints
+         that all must be satisfied simultaneously. This class `stacks' the
+         constraint functions together. */
         class ConstraintIntersection : public Constraint
         {
         public:
-            /** \brief Constructor. If constraints is empty assume it will be filled later. */
+            /** \brief Constructor. If constraints is empty assume it will be
+             * filled later. */
             ConstraintIntersection(const unsigned int ambientDim, std::initializer_list<Constraint *> constraints)
               : Constraint(ambientDim, ambientDim)
             {
@@ -258,7 +275,8 @@ namespace ompl
         OMPL_CLASS_FORWARD(ConstraintObjective);
         /// @endcond
 
-        /** \brief Wrapper around ompl::base::Constraint to use as an optimization objective. */
+        /** \brief Wrapper around ompl::base::Constraint to use as an
+         * optimization objective. */
         class ConstraintObjective : public OptimizationObjective
         {
         public:
@@ -268,8 +286,8 @@ namespace ompl
             {
             }
 
-            /** \brief Evaluate a cost map defined on the state space at a state \e s. Cost map is defined as the
-             * distance from the constraint. */
+            /** \brief Evaluate a cost map defined on the state space at a state
+             * \e s. Cost map is defined as the distance from the constraint. */
             Cost stateCost(const State *s) const override
             {
                 return Cost(constraint_->distance(s));

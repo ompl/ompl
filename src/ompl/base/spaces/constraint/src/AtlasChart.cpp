@@ -392,10 +392,4 @@ void ompl::base::AtlasChart::generateHalfspace(AtlasChart *c1, AtlasChart *c2)
 void ompl::base::AtlasChart::addBoundary(Halfspace *halfspace)
 {
     polytope_.push_back(halfspace);
-
-    // Sort halfspaces so that closer ones come first (cut out more of the space)
-    std::sort(polytope_.begin(), polytope_.end(),
-             [](const Halfspace *h1, const Halfspace *h2) -> bool {
-                 return h1->getU().norm() < h2->getU().norm();
-             });
 }

@@ -45,43 +45,61 @@ namespace ompl
 {
     namespace base
     {
+        /** \brief A state sampler that wraps around another state sampler.
+         */
         class WrapperStateSampler : public StateSampler
         {
         public:
+            /** \brief Constructor. Requires the wrapper state space \a space
+             * and the underlying sampler \a sampler. */
             WrapperStateSampler(const StateSpace *space, StateSamplerPtr sampler)
               : StateSampler(space), sampler_(std::move(sampler))
             {
             }
 
+            /** \brief Sample a state using underlying sampler. */
             void sampleUniform(State *state) override;
+
+            /** \brief Sample a nearby state using underlying sampler. */
             void sampleUniformNear(State *state, const State *near, double distance) override;
+
+            /** \brief Sample a state within a Gaussian distribution using underlying sampler. */
             void sampleGaussian(State *state, const State *mean, double stdDev) override;
 
         protected:
+            /** \brief Underlying state sampler. */
             StateSamplerPtr sampler_;
         };
 
+        /** \brief State space wrapper that transparently passes state space
+         * operations through to the underlying space. Allows augmentation of
+         * state spaces with additional information. */
         class WrapperStateSpace : public StateSpace
         {
         public:
+            /** \brief Wrapper state type. Contains a reference to an underlying state. */
             class StateType : public State
             {
             public:
+                /** \brief Constructor. Takes a reference \a state to the underlying state. */
                 StateType(State *state) : state_(state)
                 {
                 }
 
+                /** \brief Get a const pointer to the underlying state. */
                 const State *getState() const
                 {
                     return state_;
                 }
 
+                /** \brief Get a pointer to the underlying state. */
                 State *getState()
                 {
                     return state_;
                 }
 
             protected:
+                /** \brief Underlying state. */
                 State *state_;
             };
 

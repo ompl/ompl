@@ -51,16 +51,52 @@ namespace ompl
 {
     namespace magic
     {
+        /** \brief Default resolution for which to evaluate underlying
+         * constraint manifold. */
         static const double CONSTRAINED_STATE_SPACE_DELTA = 0.05;
     }
 
     namespace base
     {
+        /**
+           @anchor gConstrained
+
+           @par Short Description
+
+           \ref gConstrained ConstrainedStateSpace encapsulates the idea of decoupled constrained planning, where the
+           planner and constraint satisfaction methodology are separated. Core to this idea is the augmentation of a
+           state space, rather than the augmentation of a planner. In OMPL, this is implemented as the
+           ConstrainedStateSpace and its concrete implementations: ProjectedStateSpace for projection-based constraint
+           satisfaction, AtlasStateSpace for atlas-based manifold approximation, and TangentBundleStateSpace for a lazy
+           atlas-based approach.
+
+           The core benefit of this method is that there is no additional work to make a sampling-based planner plan
+           with constraints (in this case, a differentiable function of a state, implemented in Constraint), enabling
+           mix-and-matching of planners with constraint methodologies, e.g., KPIECE1 with TangentBundleStateSpace, or
+           RRT* with ProjectedStateSpace, and so on.
+
+           @par External Documentation
+
+           The decoupling approach is described in the following paper.
+
+           Z. Kingston, M. Moll, L. E. Kavraki, "Decoupling Constraints from Sampling-Based Planners," in International
+           Symposium of Robotics Research, Puerto Varas, Chile, 2017. PrePrint: <a
+           href="http://kavrakilab.org/publications/kingston2017decoupling-constraints.pdf"></a>
+
+           For more information on constrained sampling-based planning in general, see the following.
+
+           Z. Kingston, M. Moll, and L. E. Kavraki, “Sampling-Based Methods for Motion Planning with Constraints,”
+           Annual Review of Control, Robotics, and Autonomous Systems, 2018. PrePrint: <a
+           href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf"></a>
+        */
+
         /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::ConstrainedStateSpace */
         OMPL_CLASS_FORWARD(ConstrainedStateSpace);
         /// @endcond
 
-        /** \brief Atlas-specific implementation of checkMotion(). */
+        /** \brief Constrained configuration space specific implementation of
+         * checkMotion() that uses traverseManifold(). */
         class ConstrainedMotionValidator : public MotionValidator
         {
         public:
@@ -76,24 +112,32 @@ namespace ompl
 
             /** \brief Return whether we can step from \a s1 to \a s2 along the
              * manifold without collision. If not, return the last valid state
-             * and its interpolation parameter in \a lastValid.
-             * \note The interpolation parameter will not likely reproduce the
-             * last valid state if used in interpolation since the distance
-             * between the last valid state and \a s2 is estimated using the
-             * ambient metric. */
+             * and its interpolation parameter in \a lastValid. \note The
+             * interpolation parameter will not likely reproduce the last valid
+             * state if used in interpolation since the distance between the
+             * last valid state and \a s2 is estimated using the ambient
+             * metric. */
             bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
 
         private:
             /** \brief Space in which we check motion. */
             const ConstrainedStateSpace &ss_;
         };
-        /// @endcond
 
+        /** \brief A state space that has a \a Constraint imposed upon it.
+         * Underlying space functions are passed to the ambient space, and the
+         * constraint is used to inform any manifold related operations.
+         * setSpaceInformation() must be called in order for collision checking
+         * to be done in tandem with manifold traversal, a significant time
+         * saver. */
         class ConstrainedStateSpace : public WrapperStateSpace
         {
         public:
-            /** \brief A state in an atlas represented as a real vector in
-             * ambient space and a chart that it belongs to. */
+            /** \brief A state in a constrained configuration space that can be
+             * represented as a dense real vector of values. Upon creation, the
+             * location of the values of the state must be set with setValues(),
+             * otherwise further operations that use state information will
+             * fail. */
             class StateType : public WrapperStateSpace::StateType
             {
             public:
@@ -102,6 +146,9 @@ namespace ompl
                 {
                 }
 
+                /** \brief Sets the value information for the state. Should be
+                 * called immediately after construction, before any constrained
+                 * space operations are done. */
                 void setValues(double *location)
                 {
                     values = location;
@@ -114,38 +161,44 @@ namespace ompl
                 }
 
                 /** \brief View this state as a const vector. */
-                Eigen::Map<const Eigen::VectorXd> constVectorView() const
+                const Eigen::Map<const Eigen::VectorXd> constVectorView() const
                 {
                     return Eigen::Map<const Eigen::VectorXd>(values, n_);
                 }
 
+                /** \brief Local reference to location of state values. */
                 double *values{nullptr};
 
             protected:
+                /** \brief Dimension of state. */
                 const unsigned int n_;
             };
 
-            /** \brief Construct an atlas with the specified dimensions. */
-            ConstrainedStateSpace(const StateSpacePtr& ambientSpace, const ConstraintPtr& constraint);
+            /** \brief Construct a constrained space from an \a ambientSpace and
+             * a \a constraint. */
+            ConstrainedStateSpace(const StateSpacePtr &ambientSpace, const ConstraintPtr &constraint);
 
+            /** \brief Returns false as the implicit constrained configuration
+             * space defined by the constraint is not metric with respect to the
+             * ambient configuration space's metric. */
             bool isMetricSpace() const override
             {
                 return false;
             }
 
             /** \brief Check that the space referred to by the space information
-             * \a si is, in fact, an AtlasStateSpace. */
+             * \a si is, in fact, an ConstrainedStateSpace. */
             static void checkSpace(const SpaceInformation *si);
 
-            /** \brief Sets the space information for this state space. Required for collision checking in manifold
-             * traversal. */
+            /** \brief Sets the space information for this state space. Required
+             * for collision checking in manifold traversal. */
             void setSpaceInformation(SpaceInformation *si);
 
             /** \brief Final setup for the space. */
             void setup() override;
 
             /** \brief Clear any allocated memory from the state space. */
-            void clear();
+            virtual void clear();
 
             /** \brief Traverse the manifold from \a from toward \a to. Returns
              * true if we reached \a to, and false if we stopped early for any
@@ -154,11 +207,12 @@ namespace ompl
              * is not nullptr, the sequence of intermediates is saved to it,
              * including a copy of \a from, as well as the final state, which is
              * a copy of \a to if we reached \a to. Caller is responsible for
-             * freeing states returned in \a stateList. */
+             * freeing states returned in \a stateList. if \a endpoints is true,
+             * then \a from and \a to are included in stateList. */
             virtual bool traverseManifold(const State *from, const State *to, bool interpolate = false,
                                           std::vector<State *> *stateList = nullptr, bool endpoints = true) const = 0;
 
-            /** \brief Find the state between \a from and \a to at time \a t,
+            /** \brief Find a state between \a from and \a to at time \a t,
              * where \a t = 0 is \a from, and \a t = 1 is the final state
              * reached by traverseManifold(\a from, \a to, true, ...), which may
              * not be \a to. State returned in \a state. */
@@ -166,27 +220,18 @@ namespace ompl
 
             /** \brief Like interpolate(...), but uses the information about
              * intermediate states already supplied in \a stateList from a
-             * previous call to followManifold(..., true, \a stateList). The
-             * 'from' and 'to' states are the first and last elements \a
-             * stateList. Assumes \a stateList contains at least two
-             * elements. */
+             * previous call to traverseManifold(..., true, \a stateList). The
+             * \a from and \a to states are the first and last elements \a
+             * stateList. */
             virtual State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const;
 
             /** \brief Allocate a new state in this space. */
             State *allocState() const override;
 
             /** \brief Set \a delta, the step size for traversing the manifold
-             * and collision checking. Default 0.02. */
-            void setDelta(const double delta)
-            {
-                if (delta <= 0)
-                    throw ompl::Exception("ompl::base::ConstrainedStateSpace::setDelta(): "
-                                          "delta must be positive.");
-                delta_ = delta;
-
-                /* if (setup_) */
-                /*     setLongestValidSegmentFraction(delta_ / getMaximumExtent()); */
-            }
+             * and collision checking. Default defined by
+             * ompl::magic::CONSTRAINED_STATE_SPACE_DELTA. */
+            void setDelta(const double delta);
 
             /** \brief Get delta. */
             double getDelta() const

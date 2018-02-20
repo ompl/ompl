@@ -66,44 +66,6 @@ void ompl::base::ProjectedStateSampler::sampleGaussian(State *state, const State
     constraint_->project(state);
 }
 
-/// ProjectedValidStateSampler
-
-/// Public
-
-ompl::base::ProjectedValidStateSampler::ProjectedValidStateSampler(const SpaceInformation *si)
-  : ValidStateSampler(si)
-  , sampler_(si->getStateSpace().get()->as<ompl::base::ProjectedStateSpace>(),
-             si->getStateSpace().get()->as<ompl::base::ProjectedStateSpace>()->getSpace()->allocDefaultStateSampler())
-  , constraint_(si->getStateSpace()->as<ompl::base::ProjectedStateSpace>()->getConstraint())
-{
-    ProjectedStateSpace::checkSpace(si);
-}
-
-bool ompl::base::ProjectedValidStateSampler::sample(State *state)
-{
-    // Rejection sample for at most attempts_ tries.
-    unsigned int tries = 0;
-    bool valid;
-
-    do
-        sampler_.sampleUniform(state);
-    while (!(valid = si_->isValid(state) && constraint_->isSatisfied(state)) && ++tries < attempts_);
-
-    return valid;
-}
-
-bool ompl::base::ProjectedValidStateSampler::sampleNear(State *state, const State *near, const double distance)
-{
-    // Rejection sample for at most attempts_ tries.
-    unsigned int tries = 0;
-    bool valid;
-    do
-        sampler_.sampleUniformNear(state, near, distance);
-    while (!(valid = si_->isValid(state) && constraint_->isSatisfied(state)) && ++tries < attempts_);
-
-    return valid;
-}
-
 /// ProjectedStateSpace
 
 /// Public

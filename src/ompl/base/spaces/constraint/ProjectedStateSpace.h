@@ -52,65 +52,62 @@ namespace ompl
 {
     namespace base
     {
+        /**
+        @anchor gProject
+
+        \ref gProject ProjectedStateSpace implements a projection-based methodology for constrained sampling-based
+        planning, where points in ambient space are \e projected onto the constraint manifold via a projection operator,
+        which in this case is implemented as a Newton's method.
+
+        @par External Documentation
+
+        For more information on constrained sampling-based planning using projection-based methods, see the following,
+        specifically the section on projection-based methods.
+
+        Z. Kingston, M. Moll, and L. E. Kavraki, “Sampling-Based Methods for
+        Motion Planning with Constraints,” Annual Review of Control, Robotics,
+        and Autonomous Systems, 2018. PrePrint: <a
+        href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf"></a>
+        */
+
         /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::ProjectedStateSpace */
         OMPL_CLASS_FORWARD(ProjectedStateSpace);
         /// @endcond
 
-        /** \brief StateSampler for use on an atlas. */
+        /** \brief StateSampler for use for a projection-based state space. */
         class ProjectedStateSampler : public WrapperStateSampler
         {
         public:
+            /** \brief Constructor. */
             ProjectedStateSampler(const ProjectedStateSpace *space, StateSamplerPtr sampler);
 
-            /** \brief Sample a state uniformly from the charted regions of the
-             * manifold. Return sample in \a state. */
+            /** \brief Sample a state uniformly in ambient space and project to
+             * the manifold. Return sample in \a state. */
             void sampleUniform(State *state) override;
 
             /** \brief Sample a state uniformly from the ball with center \a
-             * near and radius \a distance. Return sample in \a state.
-             * \note rho_s_ is a good choice for \a distance. */
+             * near and radius \a distance in ambient space and project to the
+             * manifold. Return sample in \a state. */
             void sampleUniformNear(State *state, const State *near, double distance) override;
 
             /** \brief Sample a state uniformly from a normal distribution with
-                given \a mean and \a stdDev. Return sample in \a state. */
+                given \a mean and \a stdDev in ambient space and project to the
+                manifold. Return sample in \a state. */
             void sampleGaussian(State *state, const State *mean, double stdDev) override;
 
         protected:
+            /** \brief Constraint. */
             const ConstraintPtr constraint_;
         };
 
-        /** \brief ValidStateSampler for use on an atlas. */
-        class ProjectedValidStateSampler : public ValidStateSampler
-        {
-        public:
-            /** \brief Create a valid state sampler for the specifed space
-             * information \a si. */
-            ProjectedValidStateSampler(const SpaceInformation *si);
-
-            /** \brief Sample a valid state uniformly from the charted regions
-             * of the manifold. Return sample in \a state. */
-            bool sample(State *state) override;
-
-            /** \brief Sample a valid state uniformly from the ball with center
-             * \a near and radius \a distance. Return sample in \a state.
-             * \note rho_s_ is a good choice for \a distance. */
-            bool sampleNear(State *state, const State *near, double distance) override;
-
-        private:
-            /** \brief Underlying ordinary atlas state sampler. */
-            ProjectedStateSampler sampler_;
-
-            /** \brief Constraint function. */
-            const ConstraintPtr constraint_;
-        };
-
-        /** \brief State space encapsulating a planner-agnostic algorithm for
-         * planning on a constraint manifold. */
+        /** \brief State space encapsulating a projection-based methodology for
+         * planning with constraints. */
         class ProjectedStateSpace : public ConstrainedStateSpace
         {
         public:
             /** \brief Construct an atlas with the specified dimensions. */
-            ProjectedStateSpace(const StateSpacePtr& ambientSpace, const ConstraintPtr& constraint)
+            ProjectedStateSpace(const StateSpacePtr &ambientSpace, const ConstraintPtr &constraint)
               : ConstrainedStateSpace(ambientSpace, constraint)
             {
                 setName("Projected" + space_->getName());
@@ -142,7 +139,8 @@ namespace ompl
              * is not nullptr, the sequence of intermediates is saved to it,
              * including a copy of \a from, as well as the final state, which is
              * a copy of \a to if we reached \a to. Caller is responsible for
-             * freeing states returned in \a stateList. */
+             * freeing states returned in \a stateList. if \a endpoints is true,
+             * then \a from and \a to are included in stateList. */
             bool traverseManifold(const State *from, const State *to, bool interpolate = false,
                                   std::vector<State *> *stateList = nullptr, bool endpoints = true) const override;
         };
