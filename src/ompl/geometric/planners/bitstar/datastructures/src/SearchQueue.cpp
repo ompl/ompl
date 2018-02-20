@@ -86,7 +86,7 @@ namespace ompl
         {
         }
 
-        void BITstar::SearchQueue::setup(const CostHelperPtr &costHelpPtr, const ImplicitGraphPtr &graphPtr)
+        void BITstar::SearchQueue::setup(CostHelper *costHelpPtr, ImplicitGraph *graphPtr)
         {
             // Store that I am setup
             isSetup_ = true;
@@ -108,8 +108,8 @@ namespace ompl
             isSetup_ = false;
 
             // The pointers
-            costHelpPtr_.reset();
-            graphPtr_.reset();
+            costHelpPtr_ = nullptr;
+            graphPtr_ = nullptr;
 
             // The vertex queue:
             vertexQueue_.clear();

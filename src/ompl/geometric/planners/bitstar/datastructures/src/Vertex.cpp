@@ -76,7 +76,7 @@ namespace ompl
     {
         /////////////////////////////////////////////////////////////////////////////////////////////
         // Public functions:
-        BITstar::Vertex::Vertex(ompl::base::SpaceInformationPtr si, const CostHelperPtr &costHelpPtr,
+        BITstar::Vertex::Vertex(ompl::base::SpaceInformationPtr si, const CostHelper *const costHelpPtr,
                                 bool root /*= false*/)
           : vId_(getIdGenerator().getNewId())
           , si_(std::move(si))

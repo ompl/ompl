@@ -83,10 +83,10 @@ namespace ompl
             ////////////////////////////////////////////////////
             // Public functions:
             /** \brief Constructor */
-            Vertex(ompl::base::SpaceInformationPtr si, const CostHelperPtr &costHelpPtr, bool root = false);
+            Vertex(ompl::base::SpaceInformationPtr si, const CostHelper *const costHelpPtr, bool root = false);
 
             /** \brief Destructor */
-            ~Vertex();
+            virtual ~Vertex();
 
             /** \brief The (unique) vertex ID */
             BITstar::VertexId getId() const;
@@ -271,7 +271,7 @@ namespace ompl
             ompl::base::SpaceInformationPtr si_;
 
             /** \brief The optimization objective used by the planner */
-            const CostHelperPtr &costHelpPtr_;
+            const CostHelper *const costHelpPtr_;
 
             /** \brief The state itself */
             ompl::base::State *state_;

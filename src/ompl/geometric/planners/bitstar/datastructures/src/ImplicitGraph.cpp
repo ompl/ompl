@@ -90,7 +90,7 @@ namespace ompl
 
         void BITstar::ImplicitGraph::setup(const ompl::base::SpaceInformationPtr &si,
                                            const ompl::base::ProblemDefinitionPtr &pdef,
-                                           const CostHelperPtr &costHelper, const SearchQueuePtr &searchQueue,
+                                           CostHelper *costHelper, SearchQueue *searchQueue,
                                            const ompl::base::Planner *plannerPtr, ompl::base::PlannerInputStates &pis)
         {
             // Store that I am setup so that any debug-level tests will pass. This requires assuring that this function
@@ -206,8 +206,8 @@ namespace ompl
             // Pointers given at setup
             si_.reset();
             pdef_.reset();
-            costHelpPtr_.reset();
-            queuePtr_.reset();
+            costHelpPtr_ = nullptr;
+            queuePtr_ = nullptr;
 
             // Sampling
             rng_ = ompl::RNG();

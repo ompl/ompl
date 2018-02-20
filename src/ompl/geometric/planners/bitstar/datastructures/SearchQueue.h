@@ -131,7 +131,7 @@ namespace ompl
             virtual ~SearchQueue() = default;
 
             /** \brief Setup the SearchQueue, must be called before use */
-            void setup(const CostHelperPtr &costHelpPtr, const ImplicitGraphPtr &graphPtr);
+            void setup(CostHelper *costHelpPtr, ImplicitGraph *graphPtr);
 
             /** \brief Clear the queue to the state of construction. */
             void clear();
@@ -396,10 +396,10 @@ namespace ompl
 
             /** \brief A cost/heuristic helper class. As I am a copy of the version owned by BITstar.cpp, I can be reset
              * in a clear().*/
-            CostHelperPtr costHelpPtr_{nullptr};
+            CostHelper *costHelpPtr_{nullptr};
 
             /** \brief The samples represented as an edge-implicit graph */
-            ImplicitGraphPtr graphPtr_{nullptr};
+            ImplicitGraph *graphPtr_{nullptr};
 
             /** \brief The underlying queue of vertices. Sorted by vertexQueueComparison. */
             VertexQueueAsMMap vertexQueue_;

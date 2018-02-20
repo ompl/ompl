@@ -259,14 +259,14 @@ namespace ompl
                 // No else, called without a goal. Is this MoveIt?
 
                 // Setup the CostHelper, it provides everything I need from optimization objective plus some frills
-                costHelpPtr_->setup(Planner::pdef_->getOptimizationObjective(), graphPtr_);
+                costHelpPtr_->setup(Planner::pdef_->getOptimizationObjective(), graphPtr_.get());
 
                 // Setup the queue
-                queuePtr_->setup(costHelpPtr_, graphPtr_);
+                queuePtr_->setup(costHelpPtr_.get(), graphPtr_.get());
 
                 // Setup the graph, it does not hold a copy of this or Planner::pis_, but uses them to create a NN struct
                 // and check for starts/goals, respectively.
-                graphPtr_->setup(Planner::si_, Planner::pdef_, costHelpPtr_, queuePtr_, this, Planner::pis_);
+                graphPtr_->setup(Planner::si_, Planner::pdef_, costHelpPtr_.get(), queuePtr_.get(), this, Planner::pis_);
 
                 // Set the best and pruned costs to the proper objective-based values:
                 bestCost_ = costHelpPtr_->infiniteCost();
