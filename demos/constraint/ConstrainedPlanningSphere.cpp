@@ -75,7 +75,7 @@ public:
 
     void project(const ob::State *state, ob::EuclideanProjection &projection) const override
     {
-        auto &&x = state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
+        auto &&x = state->as<ob::ConstrainedStateSpace::StateType>()->constVectorView();
         projection(0) = atan2(x[1], x[0]);
         projection(1) = acos(x[2]);
     }
@@ -158,15 +158,6 @@ void spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planne
         if (!simplePath.check())
             OMPL_WARN("Simplified path fails check!");
 
-        // For atlas types, output information about size of atlas and amount of space explored
-        if (space == AT || space == TB)
-        {
-            auto at = cp.css->as<ompl::base::AtlasStateSpace>();
-            OMPL_INFORM("Atlas has %zu charts", at->getChartCount());
-            if (space == AT)
-                OMPL_INFORM("Atlas has %.3f%% openness", at->estimateFrontierPercent());
-        }
-
         if (output)
         {
             // Interpolate and validate interpolated solution path.
@@ -184,6 +175,15 @@ void spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planne
     }
     else
         OMPL_WARN("No solution found.");
+
+    // For atlas types, output information about size of atlas and amount of space explored
+    if (space == AT || space == TB)
+    {
+        auto at = cp.css->as<ob::AtlasStateSpace>();
+        OMPL_INFORM("Atlas has %zu charts", at->getChartCount());
+        if (space == AT)
+            OMPL_INFORM("Atlas is approximately %.3f%% open", at->estimateFrontierPercent());
+    }
 
     if (output)
     {
