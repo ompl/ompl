@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2014, Rice University
+*  Copyright (c) 2018, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,1188 +34,251 @@
 
 /* Author: Zachary Kingston */
 
+#include <iostream>
 #include <fstream>
-#include <thread>
 
-#include <ompl/base/ScopedState.h>
-#include <ompl/base/Constraint.h>
-#include <ompl/base/StateSpace.h>
-#include <ompl/base/ConstrainedSpaceInformation.h>
-#include <ompl/base/spaces/constraint/AtlasChart.h>
-#include <ompl/base/spaces/constraint/AtlasStateSpace.h>
-#include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
-#include <ompl/base/spaces/constraint/NullspaceStateSpace.h>
+#include <boost/program_options.hpp>
+
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/PathGeometric.h>
 
-#include <ompl/geometric/planners/est/BiEST.h>
-#include <ompl/geometric/planners/est/EST.h>
-#include <ompl/geometric/planners/est/ProjEST.h>
+#include <ompl/base/Constraint.h>
+#include <ompl/base/ConstrainedSpaceInformation.h>
+#include <ompl/base/spaces/constraint/ConstrainedStateSpace.h>
+#include <ompl/base/spaces/constraint/AtlasStateSpace.h>
+#include <ompl/base/spaces/constraint/TangentBundleStateSpace.h>
+#include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
 
-#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
-#include <ompl/geometric/planners/kpiece/KPIECE1.h>
-#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
-
-#include <ompl/geometric/planners/pdst/PDST.h>
-#include <ompl/geometric/planners/prm/PRM.h>
-#include <ompl/geometric/planners/prm/LazyPRM.h>
-#include <ompl/geometric/planners/prm/PRMstar.h>
-#include <ompl/geometric/planners/prm/LazyPRMstar.h>
-#include <ompl/geometric/planners/prm/SPARS.h>
-#include <ompl/geometric/planners/prm/SPARStwo.h>
-
-#include <ompl/geometric/planners/rrt/LBTRRT.h>
-#include <ompl/geometric/planners/rrt/LazyRRT.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
-#include <ompl/geometric/planners/rrt/TRRT.h>
-
-#include <ompl/geometric/planners/sbl/SBL.h>
-#include <ompl/geometric/planners/stride/STRIDE.h>
+#include <ompl/geometric/planners/est/EST.h>
+#include <ompl/geometric/planners/est/BiEST.h>
+#include <ompl/geometric/planners/est/ProjEST.h>
 #include <ompl/geometric/planners/bitstar/BITstar.h>
+#include <ompl/geometric/planners/prm/PRM.h>
+#include <ompl/geometric/planners/prm/SPARS.h>
+#include <ompl/geometric/planners/prm/SPARStwo.h>
+#include <ompl/geometric/planners/kpiece/KPIECE1.h>
+#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
 
-/** Simple manifold example: the unit sphere. */
-class EmptyConstraint : public ompl::base::Constraint
+namespace po = boost::program_options;
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
+
+enum SPACE_TYPE
 {
-public:
-    EmptyConstraint(const unsigned int n) : ompl::base::Constraint(n, n)
-    {
-    }
-
-    void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
-    {
-        out.setZero();
-    }
-
-    void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
-    {
-        out.setZero();
-    }
+    PJ,
+    AT,
+    TB
 };
 
-/** Simple manifold example: the unit sphere. */
-class SphereConstraint : public ompl::base::Constraint
+auto space_msg = "Choose which constraint handling methodology to use. One of:\n"
+                 "PJ - Projection (Default), "
+                 "AT - Atlas, "
+                 "TB - Tangent Bundle.";
+
+std::istream &operator>>(std::istream &in, enum SPACE_TYPE &type)
 {
-public:
-    SphereConstraint() : ompl::base::Constraint(3, 2)
-    {
-    }
+    std::string token;
+    in >> token;
+    if (token == "PJ")
+        type = PJ;
+    else if (token == "AT")
+        type = AT;
+    else if (token == "TB")
+        type = TB;
+    else
+        in.setstate(std::ios_base::failbit);
 
-    void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
-    {
-        out[0] = x.norm() - 1;
-    }
+    return in;
+}
 
-    void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
-    {
-        out = x.transpose().normalized();
-    }
+void addSpaceOption(po::options_description &desc, enum SPACE_TYPE *space)
+{
+    desc.add_options()("space,s", po::value<enum SPACE_TYPE>(space), space_msg);
+}
+
+enum PLANNER_TYPE
+{
+    RRT,
+    RRTConnect,
+    RRTstar,
+    EST,
+    BiEST,
+    ProjEST,
+    BITstar,
+    PRM,
+    SPARS,
+    KPIECE,
+    BKPIECE
 };
 
-/** Simple manifold example: the xy plane. */
-class PlaneConstraint : public ompl::base::Constraint
+auto planner_msg = "Choose which motion planner to use. One of:\n"
+                   "RRT (Default), RRTConnect, RRTstar, "
+                   "EST, BiEST, ProjEST, "
+                   "BITstar, "
+                   "PRM, SPARS, "
+                   "KPIECE, BKPIECE.";
+
+std::istream &operator>>(std::istream &in, enum PLANNER_TYPE &type)
+{
+    std::string token;
+    in >> token;
+    if (token == "RRT")
+        type = RRT;
+    else if (token == "RRTConnect")
+        type = RRTConnect;
+    else if (token == "RRTstar")
+        type = RRTstar;
+    else if (token == "EST")
+        type = EST;
+    else if (token == "BiEST")
+        type = BiEST;
+    else if (token == "ProjEST")
+        type = ProjEST;
+    else if (token == "BITstar")
+        type = BITstar;
+    else if (token == "PRM")
+        type = PRM;
+    else if (token == "SPARS")
+        type = SPARS;
+    else if (token == "KPIECE")
+        type = KPIECE;
+    else if (token == "BKPIECE")
+        type = BKPIECE;
+    else
+        in.setstate(std::ios_base::failbit);
+
+    return in;
+}
+
+void addPlannerOption(po::options_description &desc, enum PLANNER_TYPE *planner)
+{
+    desc.add_options()("planner,p", po::value<enum PLANNER_TYPE>(planner), planner_msg);
+}
+
+class ConstrainedProblem
 {
 public:
-    PlaneConstraint() : ompl::base::Constraint(3, 2)
+    ConstrainedProblem(enum SPACE_TYPE type, StateSpacePtr space, ConstraintPtr constraint)
+      : space(std::move(space)), constraint(std::move(constraint))
     {
-    }
-
-    void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
-    {
-        out[0] = x[2];
-    }
-
-    void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
-    {
-        out(0, 0) = 0;
-        out(0, 1) = 0;
-        out(0, 2) = 1;
-    }
-};
-
-/** Torus manifold. */
-class TorusConstraint : public ompl::base::Constraint
-{
-public:
-    const double outer_radius;
-    const double inner_radius;
-
-    TorusConstraint(const double r1, const double r2) : ompl::base::Constraint(3, 2), outer_radius(r1), inner_radius(r2)
-    {
-    }
-
-    void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
-    {
-        Eigen::VectorXd c(3);
-        c << x[0], x[1], 0;
-        out[0] = (x - outer_radius * c.normalized()).norm() - inner_radius;
-    }
-
-    void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
-    {
-        const double xySquaredNorm = x[0] * x[0] + x[1] * x[1];
-        const double xyNorm = std::sqrt(xySquaredNorm);
-        const double denom = std::sqrt(x[2] * x[2] + (xyNorm - outer_radius) * (xyNorm - outer_radius));
-        const double c = (xyNorm - outer_radius) * (xyNorm * xySquaredNorm) / (xySquaredNorm * xySquaredNorm * denom);
-        out(0, 0) = x[0] * c;
-        out(0, 1) = x[1] * c;
-        out(0, 2) = x[2] / denom;
-    }
-
-    bool isValid(const ompl::base::State *state)
-    {
-        Eigen::Ref<const Eigen::VectorXd> v =
-            state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
-
-        const double x = v[0], y = v[1], z = v[2];
-
-        if (abs(x) < 1)
+        // Combine the ambient state space and the constraint to create the
+        // constrained state space.
+        switch (space)
         {
-            if (abs(y) < 3 && abs(z) < 0.1)
-                return true;
-
-            return false;
-        }
-
-        return true;
-    }
-};
-
-class KleinConstraint : public ompl::base::Constraint
-{
-public:
-    KleinConstraint() : ompl::base::Constraint(3, 2)
-    {
-    }
-
-    void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
-    {
-        const double p = x.squaredNorm() + 2 * x[1] - 1;
-        const double n = x.squaredNorm() - 2 * x[1] - 1;
-        const double u = n * n - 8 * x[2] * x[2];
-
-        out[0] = p * u + 16 * x[0] * x[1] * n;
-    }
-
-    void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
-    {
-        const double p = x.squaredNorm() + 2 * x[1] - 1;
-        const double n = x.squaredNorm() - 2 * x[1] - 1;
-        const double u = n * n - 8 * x[2] * x[2];
-
-        out(0, 0) = 32 * x[0] * x[0] * x[1] + 16 * x[1] * n + 4 * x[0] * n * p + 2 * x[0] * u;
-        out(0, 1) = 32 * x[0] * x[1] * (x[1] - 1) + 16 * x[0] * n + 4 * (x[1] - 1) * n * p + 2 * (x[1] + 1) * u;
-        out(0, 2) = 2 * x[2] * (16 * x[0] * x[1] + 2 * p * (n - 4) + u);
-    }
-};
-
-class StewartBase
-{
-public:
-    virtual void getStart(Eigen::VectorXd &x) = 0;
-    virtual void getGoal(Eigen::VectorXd &x) = 0;
-};
-
-class StewartChain : public ompl::base::Constraint, public StewartBase
-{
-public:
-    StewartChain(const unsigned int n, Eigen::VectorXd offset, unsigned int links, unsigned int id, double length = 1,
-                 double jointSize = 0.2, unsigned int extra = 0)
-      : ompl::base::Constraint(n, n - links)
-      , offset_(offset)
-      , links_(links)
-      , id_(id)
-      , length_(length)
-      , jointSize_(jointSize)
-      , extra_(extra)
-    {
-        if (links % 2 == 0)
-            throw ompl::Exception("Number of links must be odd!");
-    }
-
-    void getConfiguration(Eigen::VectorXd &x, double angle)
-    {
-        unsigned int offset = 3 * links_ * id_;
-        const Eigen::VectorXd axis = Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_;
-
-        const Eigen::VectorXd step = Eigen::Vector3d::UnitZ() * length_;
-        Eigen::VectorXd joint = offset_ + Eigen::AngleAxisd(angle, axis) * step;
-
-        unsigned int i = 0;
-        for (; i < links_; ++i)
-        {
-            x.segment(3 * i + offset, 3) = joint;
-            if (i < links_ - 2)
-                joint += step;
-            else
-                joint += Eigen::AngleAxisd(-angle, axis) * step;
-        }
-    }
-
-    void getStart(Eigen::VectorXd &x)
-    {
-        getConfiguration(x, M_PI / 16);
-    }
-
-    void getGoal(Eigen::VectorXd &x)
-    {
-        unsigned int offset = 3 * links_ * id_;
-
-        Eigen::VectorXd nstep = offset_ * length_;
-        Eigen::VectorXd estep = Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_ * length_;
-        Eigen::VectorXd sstep = Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()) * offset_ * length_;
-        Eigen::VectorXd wstep = Eigen::AngleAxisd(3 * M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_ * length_;
-
-
-        Eigen::VectorXd joint = offset_ + nstep;
-        x.segment(3 * 0 + offset, 3) = joint;
-        x.segment(3 * 1 + offset, 3) = x.segment(3 * 0 + offset, 3) + estep;
-        x.segment(3 * 2 + offset, 3) = x.segment(3 * 1 + offset, 3) + estep;
-        x.segment(3 * 3 + offset, 3) = x.segment(3 * 2 + offset, 3) + Eigen::Vector3d::UnitZ() * length_;
-        x.segment(3 * 4 + offset, 3) = x.segment(3 * 3 + offset, 3) + sstep;
-        x.segment(3 * 5 + offset, 3) = x.segment(3 * 4 + offset, 3) + sstep;
-        x.segment(3 * 6 + offset, 3) = x.segment(3 * 5 + offset, 3) + wstep;
-
-    /*     Eigen::VectorXd joint = offset_ + step; */
-
-    /*     unsigned int i = 0; */
-    /*     for (; i < links_ / 2; ++i, joint += step) */
-    /*         x.segment(3 * i + offset, 3) = joint; */
-
-    /*     joint += Eigen::Vector3d::UnitZ() * length_ - step; */
-    /*     for (; i < links_; ++i, joint -= step) */
-    /*         x.segment(3 * i + offset, 3) = joint; */
-    }
-
-    Eigen::Ref<const Eigen::VectorXd> getLink(const Eigen::VectorXd &x, const unsigned int idx) const
-    {
-        const unsigned int offset = 3 * links_ * id_;
-        return x.segment(offset + 3 * idx, 3);
-    }
-
-    void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
-    {
-        unsigned int idx = 0;
-
-        Eigen::VectorXd j1 = offset_;
-        for (unsigned int i = 0; i < links_; ++i)
-        {
-            const Eigen::VectorXd j2 = getLink(x, i);
-            out[idx++] = (j1 - j2).norm() - length_;
-            j1 = j2;
-        }
-    }
-
-    void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
-    {
-        const unsigned int offset = 3 * links_ * id_;
-        out.setZero();
-
-        Eigen::VectorXd plus(3 * (links_ + 1));
-        plus.head(3 * links_) = x.segment(offset, 3 * links_);
-        plus.tail(3) = Eigen::VectorXd::Zero(3);
-
-        Eigen::VectorXd minus(3 * (links_ + 1));
-        minus.head(3) = offset_;
-        minus.tail(3 * links_) = x.segment(offset, 3 * links_);
-
-        const Eigen::VectorXd diagonal = plus - minus;
-
-        for (unsigned int i = 0; i < links_; i++)
-            out.row(i).segment(3 * i + offset, 3) = diagonal.segment(3 * i, 3).normalized();
-
-        out.block(1, offset, links_ - 1, 3 * links_ - 3) -= out.block(1, offset + 3, links_ - 1, 3 * links_ - 3);
-    }
-
-private:
-    const Eigen::VectorXd offset_;
-    const unsigned int links_;
-    const unsigned int id_;
-    const double length_;
-    const double jointSize_;
-    const unsigned int extra_;
-};
-
-class StewartPlatform : public ompl::base::Constraint, public StewartBase
-{
-public:
-    StewartPlatform(const unsigned int n, unsigned int chains, unsigned int links, double radius = 1)
-      : ompl::base::Constraint(n, n - chains), chains_(chains), links_(links), radius_(radius)
-    {
-        if (chains == 2)
-            setManifoldDimension(k_ + 1);
-
-        if (chains >= 4)
-            setManifoldDimension(k_ - (chains - 3));
-    }
-
-    Eigen::Ref<const Eigen::VectorXd> getTip(const Eigen::VectorXd &x, unsigned int id) const
-    {
-        return x.segment(3 * links_ * ((id % chains_) + 1) - 3, 3);
-    }
-
-    void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
-    {
-        if (chains_ == 2)
-        {
-            out[0] = (getTip(x, 0) - getTip(x, 1)).norm() - radius_ * 2;
-            return;
-        }
-
-        unsigned int idx = 0;
-
-        Eigen::VectorXd centroid = Eigen::VectorXd::Zero(3);
-        for (unsigned int i = 0; i < chains_; ++i)
-            centroid += getTip(x, i);
-        centroid /= chains_;
-
-        for (unsigned int i = 0; i < chains_; ++i)
-            out[idx++] = (centroid - getTip(x, i)).norm() - radius_;
-
-        for (int i = 0; i < static_cast<int>(chains_) - 3; ++i)
-        {
-            Eigen::Ref<const Eigen::Vector3d> ab = getTip(x, i + 1) - getTip(x, i);
-            Eigen::Ref<const Eigen::Vector3d> ac = getTip(x, i + 2) - getTip(x, i);
-            Eigen::Ref<const Eigen::Vector3d> ad = getTip(x, i + 3) - getTip(x, i);
-
-            out[idx++] = ad.dot(ab.cross(ac));
-        }
-    }
-
-    void getStart(Eigen::VectorXd &x)
-    {
-    }
-
-    void getGoal(Eigen::VectorXd &x)
-    {
-    }
-
-private:
-    const unsigned int chains_;
-    const unsigned int links_;
-    const double radius_;
-};
-
-class StewartConstraint : public ompl::base::ConstraintIntersection
-{
-public:
-    StewartConstraint(unsigned int chains, unsigned int links, unsigned int extra = 0, double radius = 1,
-                      double length = 1, double jointSize = 0.2)
-      : ompl::base::ConstraintIntersection(chains * links * 3, {})
-      , chains_(chains)
-      , links_(links)
-      , radius_(radius)
-      , length_(length)
-      , jointSize_(jointSize)
-    {
-        const unsigned int dof = chains * links * 3;
-        Eigen::VectorXd offset = Eigen::Vector3d::UnitX();
-        for (unsigned int i = 0; i < chains_; ++i)
-        {
-            addConstraint(new StewartChain(dof, offset, links, i, length, jointSize, extra));
-            offset = Eigen::AngleAxisd(2 * M_PI / static_cast<double>(chains), Eigen::Vector3d::UnitZ()) * offset;
-        }
-
-        addConstraint(new StewartPlatform(dof, chains, links, radius));
-    }
-
-    void getStart(Eigen::VectorXd &x)
-    {
-        for (unsigned int i = 0; i < constraints_.size(); ++i)
-            dynamic_cast<StewartBase *>(constraints_[i])->getStart(x);
-    }
-
-    void getGoal(Eigen::VectorXd &x)
-    {
-        for (unsigned int i = 0; i < constraints_.size(); ++i)
-            dynamic_cast<StewartBase *>(constraints_[i])->getGoal(x);
-    }
-
-    bool isValid(const ompl::base::State *state)
-    {
-        Eigen::Ref<const Eigen::VectorXd> x =
-            state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
-
-        for (unsigned int i = 0; i < links_ * chains_; ++i)
-        {
-            if (x.segment(3 * i, 3)[2] < 0)
-                return false;
-        }
-
-        for (unsigned int i = 0; i < links_ * chains_ - 1; ++i)
-        {
-            if (x.segment(3 * i, 3).cwiseAbs().maxCoeff() < jointSize_)
-                return false;
-
-            for (unsigned int j = i + 1; j < links_ * chains_; ++j)
-                if ((x.segment(3 * i, 3) - x.segment(3 * j, 3)).cwiseAbs().maxCoeff() < jointSize_)
-                    return false;
-        }
-
-        return true;
-    }
-
-private:
-    const unsigned int chains_;
-    const unsigned int links_;
-    const double radius_;
-    const double length_;
-    const double jointSize_;
-};
-
-class Wall
-{
-public:
-    Wall(double offset, double thickness, double width, unsigned int type)
-      : offset_(offset), thickness_(thickness + 0.2), width_(width + 0.2), type_(type)
-    {
-    }
-
-    bool within(double x) const
-    {
-        if (x < (offset_ - thickness_) || x > (offset_ + thickness_))
-            return false;
-        return true;
-    }
-
-    bool checkLink(const Eigen::VectorXd &v) const
-    {
-        double x = v[0], y = v[1], z = v[2];
-
-        if (!within(x))
-            return true;
-
-        if (z <= width_)
-        {
-            switch (type_)
-            {
-            case 0:
-                if (y < 0)
-                    return true;
+            case PJ:
+                OMPL_INFORM("Using Projection-Based State Space!");
+                css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
+                csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
                 break;
+            case AT:
+                OMPL_INFORM("Using Atlas-Based State Space!");
+                css = std::make_shared<ob::AtlasStateSpace>(rvss, constraint);
+                csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
+                break;
+            case TB:
+                OMPL_INFORM("Using Tangent Bundle-Based State Space!");
+                css = std::make_shared<ob::TangentBundleStateSpace>(rvss, constraint);
+                csi = std::make_shared<ob::TangentBundleSpaceInformation>(css);
+                break;
+        }
 
-            case 1:
-                if (y > 0)
-                    return true;
+        ss = std::make_shared<og::SimpleSetup>(csi);
+    }
+
+    void setStartAndGoalStates(const Eigen::Ref<const Eigen::VectorXd> &start,
+                               const Eigen::Ref<const Eigen::VectorXd> &goal)
+    {
+        // Create start and goal states (poles of the sphere)
+        ob::ScopedState<> sstart(css);
+        ob::ScopedState<> sgoal(css);
+
+        sstart->as<ob::ProjectedStateSpace::StateType>()->vectorView() = start;
+        sgoal->as<ob::ProjectedStateSpace::StateType>()->vectorView() = goal;
+
+        switch (space)
+        {
+            case AT:
+            case TB:
+                css->as<ob::AtlasStateSpace>()->anchorChart(sstart.get());
+                css->as<ob::AtlasStateSpace>()->anchorChart(sgoal.get());
+                break;
+            default:
+                break;
+        }
+
+        // Setup problem
+        ss->setStartAndGoalStates(sstart, sgoal);
+    }
+
+    void setPlanner(enum PLANNER_TYPE type, const std::string &projection = "")
+    {
+        const bool isProj = projection != "";
+
+        switch (type)
+        {
+            case RRT:
+                pp = std::make_shared<og::RRT>(csi);
+                break;
+            case RRTConnect:
+                pp = std::make_shared<og::RRTConnect>(csi);
+                break;
+            case RRTstar:
+                pp = std::make_shared<og::RRTstar>(csi);
+                break;
+            case EST:
+                pp = std::make_shared<og::EST>(csi);
+                break;
+            case BiEST:
+                pp = std::make_shared<og::BiEST>(csi);
+                break;
+            case ProjEST:
+            {
+                auto est = std::make_shared<og::ProjEST>(csi);
+                if (isProj)
+                    est->setProjectionEvaluator(projection);
+                pp = est;
+                break;
+            }
+            case BITstar:
+                pp = std::make_shared<og::BITstar>(csi);
+                break;
+            case PRM:
+                pp = std::make_shared<og::PRM>(csi);
+                break;
+            case SPARS:
+                pp = std::make_shared<og::SPARS>(csi);
+                break;
+            case KPIECE:
+            {
+                auto kpiece = std::make_shared<og::KPIECE1>(csi);
+                if (isProj)
+                    kpiece->setProjectionEvaluator(projection);
+                pp = kpiece;
+                break;
+            }
+            case BKPIECE:
+            {
+                auto kpiece = std::make_shared<og::BKPIECE1>(csi);
+                if (isProj)
+                    kpiece->setProjectionEvaluator(projection);
+                pp = kpiece;
                 break;
             }
         }
 
-        return false;
+        ss->setPlanner(pp);
     }
 
-private:
-    const double offset_;
-    const double thickness_;
-    const double width_;
-    const unsigned int type_;
+    ob::StateSpacePtr space;
+    ob::ConstraintPtr constraint;
+
+    ob::ConstrainedStateSpacePtr css;
+    ob::ConstrainedSpaceInformationPtr csi;
+
+    ob::PlannerPtr pp;
+
+    og::SimpleSetupPtr ss;
 };
-
-/** Kinematic chain manifold. */
-class ChainConstraint : public ompl::base::Constraint
-{
-public:
-    ChainConstraint(unsigned int links, unsigned int obstacles = 0, unsigned int extra = 1)
-      : ompl::base::Constraint(3 * links, 2 * links - extra)
-      , links_(links)
-      , length_(1.0)
-      , radius_(links - 2)
-      , jointSize_(0.2)
-      , obstacles_(obstacles)
-      , extra_(extra)
-    {
-        double step = 2 * radius_ / (double)(obstacles_ + 1);
-        double current = -radius_ + step;
-        for (unsigned int i = 0; i < obstacles_; i++)
-        {
-            walls_.emplace_back(Wall(current, radius_ / 8, 0.5, i % 2));
-            current += step;
-        }
-    }
-
-    void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
-    {
-        // Consecutive joints must be a fixed distance apart.
-        Eigen::VectorXd joint1 = Eigen::VectorXd::Zero(3);
-        for (unsigned int i = 0; i < links_; i++)
-        {
-            const Eigen::VectorXd joint2 = x.segment(3 * i, 3);
-            out[i] = (joint1 - joint2).norm() - length_;
-            joint1 = joint2;
-        }
-
-
-        if (extra_ >= 1)
-            out[links_] = x.tail(3).norm() - radius_;
-
-        unsigned int o = links_ - 5;
-
-        if (extra_ >= 2)
-            out[links_ + 1] = x[(o + 0) * 3 + 2] - x[(o + 1) * 3 + 2];
-        if (extra_ >= 3)
-            out[links_ + 2] = x[(o + 1) * 3 + 0] - x[(o + 2) * 3 + 0];
-        if (extra_ >= 4)
-            out[links_ + 3] = x[(o + 2) * 3 + 2] - x[(o + 3) * 3 + 2];
-    }
-
-    void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
-    {
-        out.setZero();
-
-        Eigen::VectorXd plus(3 * (links_ + 1));
-        plus.head(3 * links_) = x.segment(0, 3 * links_);
-        plus.tail(3) = Eigen::VectorXd::Zero(3);
-
-        Eigen::VectorXd minus(3 * (links_ + 1));
-        minus.head(3) = Eigen::VectorXd::Zero(3);
-        minus.tail(3 * links_) = x.segment(0, 3 * links_);
-
-        const Eigen::VectorXd diagonal = plus - minus;
-
-        for (unsigned int i = 0; i < links_; i++)
-            out.row(i).segment(3 * i + 0, 3) = diagonal.segment(3 * i, 3).normalized();
-
-        out.block(1, 0, links_ - 1, 3 * links_ - 3) -= out.block(1, 3, links_ - 1, 3 * links_ - 3);
-
-        if (extra_ >= 1)
-            out.row(links_).tail(3) = -diagonal.tail(3).normalized().transpose();
-
-        unsigned int o = links_ - 5;
-
-        if (extra_ >= 2)
-        {
-            out(links_ + 1, (o + 0) * 3 + 2) = 1;
-            out(links_ + 1, (o + 1) * 3 + 2) = -1;
-        }
-        if (extra_ >= 3)
-        {
-            out(links_ + 2, (o + 1) * 3 + 0) = 1;
-            out(links_ + 2, (o + 2) * 3 + 0) = -1;
-        }
-        if (extra_ >= 4)
-        {
-            out(links_ + 3, (o + 2) * 3 + 2) = 1;
-            out(links_ + 3, (o + 3) * 3 + 2) = -1;
-        }
-    }
-
-    bool isValid(const ompl::base::State *state)
-    {
-        Eigen::Ref<const Eigen::VectorXd> x =
-            state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
-
-
-        for (unsigned int i = 0; i < links_; i++)
-        {
-            const Eigen::VectorXd &link = x.segment(3 * i, 3);
-            if (link[2] < 0)
-                return false;
-
-            if (link.norm() >= radius_)
-                for (auto wall : walls_)
-                    if (!wall.checkLink(link))
-                        return false;
-        }
-
-        for (unsigned int i = 0; i < links_ - 1; i++)
-        {
-            if (x.segment(3 * i, 3).cwiseAbs().maxCoeff() < jointSize_)
-                return false;
-
-            for (unsigned int j = i + 1; j < links_; j++)
-            {
-                if ((x.segment(3 * i, 3) - x.segment(3 * j, 3)).cwiseAbs().maxCoeff() < jointSize_)
-                    return false;
-            }
-        }
-
-        return true;
-    }
-
-private:
-    const unsigned int links_;  // Number of chain links.
-    const double length_;       // Length of one link.
-    const double radius_;       // Radius of the sphere that the end effector is constrained to.
-    const double jointSize_;    // Size of joints
-    const unsigned int obstacles_;
-    const unsigned int extra_;
-    std::vector<Wall> walls_;
-};
-
-class SphereProjection : public ompl::base::ProjectionEvaluator
-{
-public:
-    SphereProjection(ompl::base::StateSpacePtr space) : ompl::base::ProjectionEvaluator(space)
-    {
-    }
-
-    unsigned int getDimension(void) const
-    {
-        return 2;
-    }
-
-    void defaultCellSizes(void)
-    {
-        cellSizes_.resize(2);
-        cellSizes_[0] = 0.1;
-        cellSizes_[1] = 0.1;
-    }
-
-    void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
-    {
-        Eigen::Ref<const Eigen::VectorXd> x =
-            state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
-
-        projection(0) = atan2(x[1], x[0]);
-        projection(1) = acos(x[2]);
-    }
-};
-
-class ChainProjection : public ompl::base::ProjectionEvaluator
-{
-public:
-    ChainProjection(ompl::base::StateSpacePtr space, unsigned int dim, unsigned int links)
-      : ompl::base::ProjectionEvaluator(space), dim_(dim), links_(links), radius_((links - 4) + 2)
-    {
-    }
-
-    unsigned int getDimension(void) const
-    {
-        return 2;
-    }
-
-    void defaultCellSizes(void)
-    {
-        cellSizes_.resize(2);
-        cellSizes_[0] = 0.1;
-        cellSizes_[1] = 0.1;
-    }
-
-    void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
-    {
-        Eigen::Ref<const Eigen::VectorXd> x =
-            state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
-
-        unsigned int s = dim_ * (links_ - 1);
-
-        projection(0) = atan2(x[s + 1], x[s]);
-        projection(1) = acos(x[s + 2] / radius_);
-    }
-
-private:
-    const unsigned int dim_;    // Workspace dimension.
-    const unsigned int links_;  // Number of chain links.
-    double radius_;
-};
-
-class StewartProjection : public ompl::base::ProjectionEvaluator
-{
-public:
-    StewartProjection(ompl::base::StateSpacePtr space, unsigned int links, unsigned int chains)
-      : ompl::base::ProjectionEvaluator(space), chains_(chains), links_(links)
-    {
-    }
-
-    unsigned int getDimension(void) const
-    {
-        return 1;
-    }
-
-    void defaultCellSizes(void)
-    {
-        cellSizes_.resize(1);
-        cellSizes_[0] = 0.1;
-        // cellSizes_[1] = 0.1;
-        // cellSizes_[2] = 0.1;
-    }
-
-    void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
-    {
-        Eigen::Ref<const Eigen::VectorXd> x =
-            state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
-
-        for (unsigned int i = 0; i < chains_; ++i)
-            projection(0) = x[3 * (i + 1) * links_ - 1];
-
-        projection(0) /= chains_;
-    }
-
-private:
-    const unsigned int chains_;  // Workspace dimension.
-    const unsigned int links_;   // Number of chain links.
-};
-
-/**
- * State validity checking functions implicitly define the free space where they return true.
- */
-
-/** 3 ring-shaped obstacles on latitudinal lines, with a small gap in each. */
-bool sphereValid_helper(const Eigen::Ref<const Eigen::VectorXd> x)
-{
-    if (-0.75 < x[2] && x[2] < -0.60)
-    {
-        if (-0.05 < x[1] && x[1] < 0.05)
-            return x[0] > 0;
-        return false;
-    }
-    else if (-0.1 < x[2] && x[2] < 0.1)
-    {
-        if (-0.05 < x[0] && x[0] < 0.05)
-            return x[1] < 0;
-        return false;
-    }
-    else if (0.60 < x[2] && x[2] < 0.75)
-    {
-        if (-0.05 < x[1] && x[1] < 0.05)
-            return x[0] < 0;
-        return false;
-    }
-    return true;
-}
-
-/** Correct path on the sphere must snake around. */
-bool sphereValid(double sleep, const ompl::base::State *state)
-{
-    std::this_thread::sleep_for(ompl::time::seconds(sleep));
-    return sphereValid_helper(state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView());
-}
-
-/** Every state is valid. */
-bool always(double sleep, const ompl::base::State *)
-{
-    std::this_thread::sleep_for(ompl::time::seconds(sleep));
-    return true;
-}
-
-/** States surrounding the goal are invalid, making it unreachable. We can use this to build up an atlas
- * until time runs out, so we can see the big picture. */
-bool unreachable(double sleep, const ompl::base::State *state, const Eigen::VectorXd &goal, const double radius)
-{
-    std::this_thread::sleep_for(ompl::time::seconds(sleep));
-    return std::abs((state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView() - goal).norm() -
-                    radius) > radius - 0.01;
-}
-
-/**
- * Problem initialization functions set the dimension, the manifold, start and goal points \a x and \a y,
- * and the validity checker \a isValid.
- */
-
-/** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::Constraint *initPlaneSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                               ompl::base::StateValidityCheckerFn &isValid,
-                                               ompl::base::RealVectorBounds &bounds, double sleep)
-{
-    const std::size_t dim = 3;
-
-    // Start and goal points
-    x = Eigen::VectorXd(dim);
-    x << 1, 0, 0;
-    y = Eigen::VectorXd(dim);
-    y << -1, 0, 0;
-
-    // Validity checker
-    isValid = std::bind(&always, sleep, std::placeholders::_1);
-
-    // Atlas initialization (can use numerical methods to compute the Jacobian, but giving an explicit function is
-    // faster)
-    return new ompl::base::ConstraintIntersection(3, {new PlaneConstraint(), new SphereConstraint()});
-}
-
-ompl::base::Constraint *initEmptyProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                         ompl::base::StateValidityCheckerFn &isValid,
-                                         ompl::base::RealVectorBounds &bounds, double sleep)
-{
-    const std::size_t dim = 3;
-
-    x = Eigen::VectorXd(dim);
-    x << 4, 4, 0;
-    y = Eigen::VectorXd(dim);
-    y << -4, -4, 0;
-
-    isValid = std::bind(&always, sleep, std::placeholders::_1);
-
-    bounds.resize(dim);
-    bounds.setLow(-4);
-    bounds.setLow(4);
-
-    return new EmptyConstraint(3);
-}
-
-ompl::base::Constraint *initPlaneProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                         ompl::base::StateValidityCheckerFn &isValid,
-                                         ompl::base::RealVectorBounds &bounds, double sleep)
-{
-    const std::size_t dim = 3;
-
-    x = Eigen::VectorXd(dim);
-    x << 4, 4, 0;
-    y = Eigen::VectorXd(dim);
-    y << -4, -4, 0;
-
-    isValid = std::bind(&always, sleep, std::placeholders::_1);
-
-    bounds.resize(dim);
-    bounds.setLow(-4);
-    bounds.setHigh(4);
-
-    return new PlaneConstraint();
-}
-
-/** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::Constraint *initSphereProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                          ompl::base::StateValidityCheckerFn &isValid,
-                                          ompl::base::RealVectorBounds &bounds, double sleep)
-{
-    const std::size_t dim = 3;
-
-    // Start and goal points
-    x = Eigen::VectorXd(dim);
-    x << 0, 0, -1;
-    y = Eigen::VectorXd(dim);
-    y << 0, 0, 1;
-
-    // Validity checker
-    isValid = std::bind(&sphereValid, sleep, std::placeholders::_1);
-
-    bounds.resize(dim);
-    bounds.setLow(-1);
-    bounds.setHigh(1);
-
-    return new SphereConstraint();
-}
-
-/** Initialize the atlas for the torus problem and store the start and goal vectors. */
-ompl::base::Constraint *initTorusProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                         ompl::base::StateValidityCheckerFn &isValid,
-                                         ompl::base::RealVectorBounds &bounds, double sleep, double ir = 1, double outr = 3, double bb = 4)
-{
-    const std::size_t dim = 3;
-
-    // Start and goal points
-    x = Eigen::VectorXd(dim);
-    x << -outr - ir, 0, 0;
-    y = Eigen::VectorXd(dim);
-    y << outr, 0, ir;
-
-    bounds.resize(dim);
-
-    bounds.setLow(0, -bb);
-    bounds.setHigh(0, bb);
-
-    bounds.setLow(1, -bb);
-    bounds.setHigh(1, bb);
-
-    bounds.setLow(2, -ir);
-    bounds.setHigh(2, ir);
-
-    auto torus = new TorusConstraint(outr, ir);
-    isValid = std::bind(&TorusConstraint::isValid, torus, std::placeholders::_1);
-
-    return torus;
-}
-
-/** Initialize the atlas for the sphere problem and store the start and goal vectors. */
-ompl::base::Constraint *initKleinProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                         ompl::base::StateValidityCheckerFn &isValid,
-                                         ompl::base::RealVectorBounds &bounds, double sleep)
-{
-    const std::size_t dim = 3;
-
-    // Start and goal points
-    x = Eigen::VectorXd(dim);
-    x << -0.5, -0.25, 0.1892222244330081;
-    y = Eigen::VectorXd(dim);
-    y << 2.5, -1.5, 1.0221854181962458;
-
-    // Validity checker
-    isValid = std::bind(&always, sleep, std::placeholders::_1);
-
-    bounds.resize(dim);
-    bounds.setLow(-5);
-    bounds.setHigh(5);
-
-    return new KleinConstraint();
-}
-
-/** Initialize the atlas for the kinematic chain problem. */
-ompl::base::Constraint *initChainProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                         ompl::base::StateValidityCheckerFn &isValid,
-                                         ompl::base::RealVectorBounds &bounds, double sleep, int links = 20, unsigned int extra = 0, unsigned int obstacles = 0)
-{
-    const std::size_t dim = 3 * links;
-
-    // Start and goal points (each triple is the 3D location of a joint)
-
-    x = Eigen::VectorXd(dim);
-    y = Eigen::VectorXd(dim);
-
-    int i = 0;
-    for (; i < links - 3; ++i)
-    {
-        x[3 * i] = i + 1;
-        x[3 * i + 1] = 0;
-        x[3 * i + 2] = 0;
-
-        y[3 * i] = -(i + 1);
-        y[3 * i + 1] = 0;
-        y[3 * i + 2] = 0;
-    }
-
-    x[3 * i] = i;
-    x[3 * i + 1] = -1;
-    x[3 * i + 2] = 0;
-
-    y[3 * i] = -i;
-    y[3 * i + 1] = 1;
-    y[3 * i + 2] = 0;
-
-    i++;
-
-    x[3 * i] = i;
-    x[3 * i + 1] = -1;
-    x[3 * i + 2] = 0;
-
-    y[3 * i] = -i;
-    y[3 * i + 1] = 1;
-    y[3 * i + 2] = 0;
-
-    i++;
-
-    x[3 * i] = i - 1;
-    x[3 * i + 1] = 0;
-    x[3 * i + 2] = 0;
-
-    y[3 * i] = -(i - 1);
-    y[3 * i + 1] = 0;
-    y[3 * i + 2] = 0;
-
-    ChainConstraint *constraint = new ChainConstraint(links, obstacles, extra);
-    isValid = std::bind(&ChainConstraint::isValid, constraint, std::placeholders::_1);
-
-    bounds.resize(dim);
-    for (int i = 0; i < links; ++i)
-    {
-        bounds.setLow(3 * i + 0, -i - 1);
-        bounds.setHigh(3 * i + 0, i + 1);
-
-        bounds.setLow(3 * i + 1, -i - 1);
-        bounds.setHigh(3 * i + 1, i + 1);
-
-        bounds.setLow(3 * i + 2, 0);
-        bounds.setHigh(3 * i + 2, i + 1);
-    }
-
-    return constraint;
-}
-
-// TODO
-/* class EndEffectorGoal : public ompl::base::GoalLazySamples */
-/* { */
-/* public: */
-/*     EndEffectorGoal(const ompl::base::SpaceInformationPtr &si, const ompl::base::GoalSamplingFn &sampler) */
-/*       : ompl::base::GoalLazySamples(si, sampler) */
-/*     { */
-/*     } */
-
-/*     ~EndEffectorGoal() override */
-/*     { */
-/*     } */
-
-/*     bool isSatisfied(const ompl::base::State *state) const override */
-/*     { */
-/*     } */
-
-/*     double distanceGoal(const ompl::base::State *state) const override */
-/*     { */
-/*     } */
-
-/*     static bool goalStateSampler(const ompl::base::GoalLazySamples *gls, ompl::base::State *state) */
-/*     { */
-/*     } */
-
-/* protected: */
-/*     og::EndEffectorConstraintPtr ee_; */
-/* }; */
-
-/** Initialize the constraint for the kinematic chain problem. */
-ompl::base::Constraint *initStewartProblem(Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                           ompl::base::StateValidityCheckerFn &isValid,
-                                           ompl::base::RealVectorBounds &bounds, double sleep, unsigned int links = 3,
-                                           unsigned int chains = 4, unsigned int extra = 0)
-{
-    unsigned int dim = 3 * links * chains;
-    x = Eigen::VectorXd(dim);
-    y = Eigen::VectorXd(dim);
-
-    StewartConstraint *constraint = new StewartConstraint(chains, links, extra);
-
-    constraint->getStart(y);
-    constraint->getGoal(x);
-
-    /* for (unsigned int i = 0; i < 100; ++i) */
-    /* { */
-    /*     if (constraint->project(y)) */
-    /*       break; */
-    /* } */
-
-    isValid = std::bind(&StewartConstraint::isValid, constraint, std::placeholders::_1);
-
-    bounds.resize(dim);
-    for (unsigned int c = 0; c < chains; ++c)
-    {
-        const unsigned int o = 3 * c * links;
-        for (int i = 0; i < (int)links; ++i)
-        {
-            bounds.setLow(o + 3 * i + 0, -10);
-            bounds.setHigh(o + 3 * i + 0, 10);
-
-            bounds.setLow(o + 3 * i + 1, -10);
-            bounds.setHigh(o + 3 * i + 1, 10);
-
-            bounds.setLow(o + 3 * i + 2, -10);
-            bounds.setHigh(o + 3 * i + 2, 10);
-        }
-    }
-
-    return constraint;
-}
-
-/** Allocator function for a sampler for the atlas that only returns valid points. */
-ompl::base::ValidStateSamplerPtr avssa(const ompl::base::SpaceInformation *si)
-{
-    return ompl::base::ValidStateSamplerPtr(new ompl::base::AtlasValidStateSampler(si));
-}
-
-/** Allocator function for a sampler for the atlas that only returns valid points. */
-ompl::base::ValidStateSamplerPtr pvssa(const ompl::base::SpaceInformation *si)
-{
-    return ompl::base::ValidStateSamplerPtr(new ompl::base::ConstrainedValidStateSampler(si));
-}
-
-/** Print usage information. */
-void printProblems(void)
-{
-    std::cout << "Available problems:\n";
-    std::cout << "    empty plane sphere circle torus klein chain stewart\n";
-}
-
-/** Print usage information. */
-void printPlanners(void)
-{
-    std::cout << "Available planners:\n";
-    std::cout << "    EST RealEST BiRealEST SBL STRIDE\n";
-    std::cout << "    RRT RRTIntermediate RRTConnect RRTConnectIntermediate RRTstar LazyRRT TRRT\n";
-    std::cout << "    LBTRRT KPIECE1 BKPIECE1 LBKPIECE1 PDST\n";
-    std::cout << "    PRM PRMstar LazyPRM LazyPRMstar SPARS SPARStwo\n";
-}
-
-/** Initialize the problem specified in the string. */
-ompl::base::Constraint *parseProblem(const char *const problem, Eigen::VectorXd &x, Eigen::VectorXd &y,
-                                     ompl::base::StateValidityCheckerFn &isValid, ompl::base::RealVectorBounds &bounds,
-                                     double sleep = 0, unsigned int links = 5, unsigned int chains = 2,
-                                     unsigned int extra = 0, unsigned int obstacles = 0, double outr = 3, double ir = 1, double bb = 4)
-{
-    if (std::strcmp(problem, "plane") == 0)
-        return initPlaneProblem(x, y, isValid, bounds, sleep);
-    else if (std::strcmp(problem, "sphere") == 0)
-        return initSphereProblem(x, y, isValid, bounds, sleep);
-    else if (std::strcmp(problem, "circle") == 0)
-        return initPlaneSphereProblem(x, y, isValid, bounds, sleep);
-    else if (std::strcmp(problem, "torus") == 0)
-        return initTorusProblem(x, y, isValid, bounds, sleep, ir, outr, bb);
-    else if (std::strcmp(problem, "klein") == 0)
-        return initKleinProblem(x, y, isValid, bounds, sleep);
-    else if (std::strcmp(problem, "chain") == 0)
-        return initChainProblem(x, y, isValid, bounds, sleep, links, extra, obstacles);
-    else if (std::strcmp(problem, "stewart") == 0)
-        return initStewartProblem(x, y, isValid, bounds, sleep, links, chains, extra);
-    if (std::strcmp(problem, "empty") == 0)
-        return initEmptyProblem(x, y, isValid, bounds, sleep);
-    else
-        return NULL;
-}
-
-/** Initialize the planner specified in the string. */
-ompl::base::Planner *parsePlanner(const char *const planner, const ompl::base::SpaceInformationPtr &si)
-{
-    if (std::strcmp(planner, "EST") == 0)
-        return new ompl::geometric::EST(si);
-
-    else if (std::strcmp(planner, "BiEST") == 0)
-        return new ompl::geometric::BiEST(si);
-
-    else if (std::strcmp(planner, "ProjEST") == 0)
-        return new ompl::geometric::ProjEST(si);
-
-    else if (std::strcmp(planner, "RRT") == 0)
-        return new ompl::geometric::RRT(si);
-
-    else if (std::strcmp(planner, "RRTIntermediate") == 0)
-        return new ompl::geometric::RRT(si, true);
-
-    else if (std::strcmp(planner, "RRTConnect") == 0)
-    {
-        auto planner = new ompl::geometric::RRTConnect(si);
-        planner->setRange(1);
-        return planner;
-    }
-
-    else if (std::strcmp(planner, "RRTConnectIntermediate") == 0)
-        return new ompl::geometric::RRTConnect(si, true);
-
-    else if (std::strcmp(planner, "RRTstar") == 0)
-        return new ompl::geometric::RRTstar(si);
-
-    else if (std::strcmp(planner, "LazyRRT") == 0)
-        return new ompl::geometric::LazyRRT(si);
-
-    else if (std::strcmp(planner, "TRRT") == 0)
-        return new ompl::geometric::TRRT(si);
-
-    else if (std::strcmp(planner, "LBTRRT") == 0)
-        return new ompl::geometric::LBTRRT(si);
-
-    else if (std::strcmp(planner, "KPIECE1") == 0)
-        return new ompl::geometric::KPIECE1(si);
-
-    else if (std::strcmp(planner, "BKPIECE1") == 0)
-        return new ompl::geometric::BKPIECE1(si);
-
-    else if (std::strcmp(planner, "LBKPIECE1") == 0)
-        return new ompl::geometric::LBKPIECE1(si);
-
-    else if (std::strcmp(planner, "PDST") == 0)
-        return new ompl::geometric::PDST(si);
-
-    else if (std::strcmp(planner, "PRM") == 0)
-        return new ompl::geometric::PRM(si);
-
-    else if (std::strcmp(planner, "PRMstar") == 0)
-        return new ompl::geometric::PRMstar(si);
-
-    else if (std::strcmp(planner, "LazyPRM") == 0)
-        return new ompl::geometric::LazyPRM(si);
-
-    else if (std::strcmp(planner, "LazyPRMstar") == 0)
-        return new ompl::geometric::LazyPRMstar(si);
-
-    else if (std::strcmp(planner, "SBL") == 0)
-        return new ompl::geometric::SBL(si);
-
-    else if (std::strcmp(planner, "SPARS") == 0)
-        return new ompl::geometric::SPARS(si);
-
-    else if (std::strcmp(planner, "SPARStwo") == 0)
-        return new ompl::geometric::SPARStwo(si);
-
-    else if (std::strcmp(planner, "STRIDE") == 0)
-        return new ompl::geometric::STRIDE(si);
-
-    else if (std::strcmp(planner, "BITstar") == 0)
-      return new ompl::geometric::BITstar(si);
-
-    else
-        return NULL;
-}

@@ -85,7 +85,8 @@ namespace ompl
             unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State *> &states,
                                          unsigned int count, bool endpoints, bool alloc) const override
             {
-                bool success = stateSpace_->as<ConstrainedStateSpace>()->traverseManifold(s1, s2, false, &states, endpoints);
+                bool success =
+                    stateSpace_->as<ConstrainedStateSpace>()->traverseManifold(s1, s2, false, &states, endpoints);
 
                 if (!success && states.size() == 0 && endpoints)
                     states.push_back(cloneState(s1));
