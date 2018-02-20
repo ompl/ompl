@@ -77,7 +77,7 @@ namespace ompl
             virtual ~CostHelper() = default;
 
             /** \brief Setup the CostHelper, must be called before use */
-            inline void setup(const ompl::base::OptimizationObjectivePtr &opt, const ImplicitGraphPtr &graph)
+            inline void setup(const ompl::base::OptimizationObjectivePtr &opt, ImplicitGraph *graph)
             {
                 opt_ = opt;
                 graphPtr_ = graph;
@@ -87,7 +87,7 @@ namespace ompl
             inline void clear()
             {
                 opt_.reset();
-                graphPtr_.reset();
+                graphPtr_ = nullptr;
             };
 
             /** \brief Get the underling OptimizationObjective */
@@ -327,7 +327,7 @@ namespace ompl
 
             /** \brief A local pointer to the samples/vertices viewed as an implicit graph. As this is a copy of the
              * version owned by BITstar.cpp it can be reset in a clear(). */
-            ImplicitGraphPtr graphPtr_;
+            ImplicitGraph *graphPtr_;
             ////////////////////////////////
         };  // class CostHelper
     }       // geometric

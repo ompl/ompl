@@ -75,7 +75,7 @@ namespace ompl
             /** \brief Setup the ImplicitGraph, must be called before use. Does not take a copy of the
              * PlannerInputStates, but checks it for starts/goals. */
             void setup(const ompl::base::SpaceInformationPtr &si, const ompl::base::ProblemDefinitionPtr &pdef,
-                       const CostHelperPtr &costHelper, const SearchQueuePtr &searchQueue,
+                       CostHelper *costHelper, SearchQueue *searchQueue,
                        const ompl::base::Planner *plannerPtr, ompl::base::PlannerInputStates &pis);
 
             /** \brief Clear the graph to the state of construction. */
@@ -321,11 +321,11 @@ namespace ompl
 
             /** \brief A cost/heuristic helper class. As this is a copy of the version owned by BITstar.cpp it can be
              * reset in a clear(). */
-            CostHelperPtr costHelpPtr_{nullptr};
+            CostHelper *costHelpPtr_{nullptr};
 
             /** \brief The queue class. As this is a copy of the version owned by BITstar.cpp it can be reset in a
              * clear(). */
-            SearchQueuePtr queuePtr_{nullptr};
+            SearchQueue *queuePtr_{nullptr};
 
             /** \brief An instance of a random number generator */
             ompl::RNG rng_;
