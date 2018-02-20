@@ -34,59 +34,7 @@
 
 /* Author: Zachary Kingston */
 
-#include <iostream>
-#include <fstream>
-
-#include <boost/program_options.hpp>
-
-#include <ompl/geometric/SimpleSetup.h>
-#include <ompl/geometric/PathGeometric.h>
-
-#include <ompl/base/Constraint.h>
-#include <ompl/base/ConstrainedSpaceInformation.h>
-#include <ompl/base/spaces/constraint/ConstrainedStateSpace.h>
-#include <ompl/base/spaces/constraint/AtlasStateSpace.h>
-#include <ompl/base/spaces/constraint/TangentBundleStateSpace.h>
-#include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
-
-#include <ompl/geometric/planners/rrt/RRT.h>
-#include <ompl/geometric/planners/rrt/RRTConnect.h>
-#include <ompl/geometric/planners/rrt/RRTstar.h>
-#include <ompl/geometric/planners/est/EST.h>
-#include <ompl/geometric/planners/est/BiEST.h>
-#include <ompl/geometric/planners/est/ProjEST.h>
-#include <ompl/geometric/planners/bitstar/BITstar.h>
-#include <ompl/geometric/planners/prm/PRM.h>
-#include <ompl/geometric/planners/prm/SPARS.h>
-#include <ompl/geometric/planners/prm/SPARStwo.h>
-#include <ompl/geometric/planners/kpiece/KPIECE1.h>
-#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
-
-namespace po = boost::program_options;
-namespace ob = ompl::base;
-namespace og = ompl::geometric;
-
-enum SPACE_TYPE
-{
-    PJ,
-    AT,
-    TB
-};
-
-enum PLANNER_TYPE
-{
-    RRT,
-    RRTConnect,
-    RRTstar,
-    EST,
-    BiEST,
-    ProjEST,
-    BITstar,
-    PRM,
-    SPARS,
-    KPIECE,
-    BKPIECE
-};
+#include "ConstrainedPlanningCommon.h"
 
 class SphereConstraint : public ob::Constraint
 {
@@ -109,7 +57,7 @@ public:
 class SphereProjection : public ob::ProjectionEvaluator
 {
 public:
-    SphereProjection(const ob::StateSpacePtr& space) : ob::ProjectionEvaluator(space)
+    SphereProjection(const ob::StateSpacePtr &space) : ob::ProjectionEvaluator(space)
     {
     }
 
@@ -173,140 +121,47 @@ void spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planne
     // Create a shared pointer to our constraint.
     auto constraint = std::make_shared<SphereConstraint>();
 
-    ob::ConstrainedStateSpacePtr css;
-    ob::ConstrainedSpaceInformationPtr csi;
+    ConstrainedProblem cp(space, rvss, constraint);
+    cp.css->registerProjection("sphere", std::make_shared<SphereProjection>(cp.css));
 
-    // Combine the ambient state space and the constraint to create the
-    // constrained state space.
-    switch (space)
-    {
-        case PJ:
-            OMPL_INFORM("Using Projection-Based State Space!");
-            css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
-            csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
-            break;
-        case AT:
-            OMPL_INFORM("Using Atlas-Based State Space!");
-            css = std::make_shared<ob::AtlasStateSpace>(rvss, constraint);
-            csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
-            break;
-        case TB:
-            OMPL_INFORM("Using Tangent Bundle-Based State Space!");
-            css = std::make_shared<ob::TangentBundleStateSpace>(rvss, constraint);
-            csi = std::make_shared<ob::TangentBundleSpaceInformation>(css);
-            break;
-    }
+    Eigen::VectorXd start(3), goal(3);
+    start << 0, 0, -1;
+    goal << 0, 0, 1;
 
-    // Setup space information and setup
-    auto ss = std::make_shared<og::SimpleSetup>(csi);
+    cp.setStartAndGoalStates(start, goal);
+    cp.ss->setStateValidityChecker(obstacles);
 
-    // Create start and goal states (poles of the sphere)
-    ob::ScopedState<> start(css);
-    ob::ScopedState<> goal(css);
-
-    switch (space)
-    {
-        case PJ:
-            start->as<ob::ProjectedStateSpace::StateType>()->vectorView() << 0, 0, -1;
-            goal->as<ob::ProjectedStateSpace::StateType>()->vectorView() << 0, 0, 1;
-            break;
-        case AT:
-        case TB:
-            start->as<ob::AtlasStateSpace::StateType>()->vectorView() << 0, 0, -1;
-            goal->as<ob::AtlasStateSpace::StateType>()->vectorView() << 0, 0, 1;
-            css->as<ob::AtlasStateSpace>()->anchorChart(start.get());
-            css->as<ob::AtlasStateSpace>()->anchorChart(goal.get());
-            break;
-    }
-
-    css->registerProjection("sphere", std::make_shared<SphereProjection>(css));
-
-    // Create planner
-
-    ob::PlannerPtr pp;
-    switch (planner)
-    {
-        case RRT:
-            pp = std::make_shared<og::RRT>(csi);
-            break;
-        case RRTConnect:
-            pp = std::make_shared<og::RRTConnect>(csi);
-            break;
-        case RRTstar:
-            pp = std::make_shared<og::RRTstar>(csi);
-            break;
-        case EST:
-            pp = std::make_shared<og::EST>(csi);
-            break;
-        case BiEST:
-            pp = std::make_shared<og::BiEST>(csi);
-            break;
-        case ProjEST:
-        {
-            auto est = std::make_shared<og::ProjEST>(csi);
-            est->setProjectionEvaluator("sphere");
-            pp = est;
-            break;
-        }
-        case BITstar:
-            pp = std::make_shared<og::BITstar>(csi);
-            break;
-        case PRM:
-            pp = std::make_shared<og::PRM>(csi);
-            break;
-        case SPARS:
-            pp = std::make_shared<og::SPARS>(csi);
-            break;
-        case KPIECE:
-        {
-            auto kpiece = std::make_shared<og::KPIECE1>(csi);
-            kpiece->setProjectionEvaluator("sphere");
-            pp = kpiece;
-            break;
-        }
-        case BKPIECE:
-        {
-            auto kpiece = std::make_shared<og::BKPIECE1>(csi);
-            kpiece->setProjectionEvaluator("sphere");
-            pp = kpiece;
-            break;
-        }
-    }
-
-    // Setup problem
-    ss->setStartAndGoalStates(start, goal);
-    ss->setStateValidityChecker(obstacles);
-    ss->setPlanner(pp);
-    ss->setup();
+    cp.setPlanner(planner, "sphere");
+    cp.ss->setup();
 
     // Solve the problem
-    ob::PlannerStatus stat = ss->solve(5.);
+    ob::PlannerStatus stat = cp.ss->solve(5.);
     std::cout << std::endl;
 
     if (stat)
     {
         // Get solution and validate
-        auto path = ss->getSolutionPath();
+        auto path = cp.ss->getSolutionPath();
         if (!path.check())
-            OMPL_WARN("Path does not satisfy constraints!");
+            OMPL_WARN("Path fails check!");
 
         if (stat == ob::PlannerStatus::APPROXIMATE_SOLUTION)
             OMPL_WARN("Solution is approximate.");
 
         // Simplify solution and validate simplified solution path.
         OMPL_INFORM("Simplifying solution...");
-        ss->simplifySolution(5.);
+        cp.ss->simplifySolution(5.);
 
-        auto simplePath = ss->getSolutionPath();
+        auto simplePath = cp.ss->getSolutionPath();
         OMPL_INFORM("Simplified Path Length: %.3f -> %.3f", path.length(), simplePath.length());
 
         if (!simplePath.check())
-            OMPL_WARN("Simplified path does not satisfy constraints!");
+            OMPL_WARN("Simplified path fails check!");
 
         // For atlas types, output information about size of atlas and amount of space explored
         if (space == AT || space == TB)
         {
-            auto at = css->as<ompl::base::AtlasStateSpace>();
+            auto at = cp.css->as<ompl::base::AtlasStateSpace>();
             OMPL_INFORM("Atlas has %zu charts", at->getChartCount());
             if (space == AT)
                 OMPL_INFORM("Atlas has %.3f%% openness", at->estimateFrontierPercent());
@@ -319,7 +174,7 @@ void spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planne
             simplePath.interpolate();
 
             if (!simplePath.check())
-                OMPL_WARN("Interpolated path does not satisfy constraints!");
+                OMPL_WARN("Interpolated path fails check!");
 
             OMPL_INFORM("Dumping path to `sphere_path.txt`.");
             std::ofstream pathfile("sphere_path.txt");
@@ -333,8 +188,8 @@ void spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planne
     if (output)
     {
         OMPL_INFORM("Dumping planner graph to `sphere_graph.graphml`.");
-        ob::PlannerData data(csi);
-        pp->getPlannerData(data);
+        ob::PlannerData data(cp.csi);
+        cp.pp->getPlannerData(data);
 
         std::ofstream graphfile("sphere_graph.graphml");
         data.printGraphML(graphfile);
@@ -344,7 +199,7 @@ void spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planne
         {
             OMPL_INFORM("Dumping atlas to `sphere_atlas.ply`.");
             std::ofstream atlasfile("sphere_atlas.ply");
-            css->as<ob::AtlasStateSpace>()->printPLY(atlasfile);
+            cp.css->as<ob::AtlasStateSpace>()->printPLY(atlasfile);
             atlasfile.close();
         }
     }
@@ -353,64 +208,6 @@ void spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planne
 auto help_msg = "Shows this help message.";
 auto output_msg = "Dump found solution path (if one exists) in plain text and planning graph in GraphML to "
                   "`sphere_path.txt` and `sphere_graph.graphml` respectively.";
-auto space_msg = "Choose which constraint handling methodology to use. One of:\n"
-                 "PJ - Projection (Default), "
-                 "AT - Atlas, "
-                 "TB - Tangent Bundle.";
-auto planner_msg = "Choose which motion planner to use. One of:\n"
-                   "RRT (Default), RRTConnect, RRTstar, "
-                   "EST, BiEST, ProjEST, "
-                   "BITstar, "
-                   "PRM, SPARS, "
-                   "KPIECE, BKPIECE.";
-
-std::istream &operator>>(std::istream &in, enum SPACE_TYPE &type)
-{
-    std::string token;
-    in >> token;
-    if (token == "PJ")
-        type = PJ;
-    else if (token == "AT")
-        type = AT;
-    else if (token == "TB")
-        type = TB;
-    else
-        in.setstate(std::ios_base::failbit);
-
-    return in;
-}
-
-std::istream &operator>>(std::istream &in, enum PLANNER_TYPE &type)
-{
-    std::string token;
-    in >> token;
-    if (token == "RRT")
-        type = RRT;
-    else if (token == "RRTConnect")
-        type = RRTConnect;
-    else if (token == "RRTstar")
-        type = RRTstar;
-    else if (token == "EST")
-        type = EST;
-    else if (token == "BiEST")
-        type = BiEST;
-    else if (token == "ProjEST")
-        type = ProjEST;
-    else if (token == "BITstar")
-        type = BITstar;
-    else if (token == "PRM")
-        type = PRM;
-    else if (token == "SPARS")
-        type = SPARS;
-    else if (token == "KPIECE")
-        type = KPIECE;
-    else if (token == "BKPIECE")
-        type = BKPIECE;
-    else
-        in.setstate(std::ios_base::failbit);
-
-    return in;
-}
 
 int main(int argc, char **argv)
 {
@@ -421,8 +218,9 @@ int main(int argc, char **argv)
     po::options_description desc("Options");
     desc.add_options()("help,h", help_msg);
     desc.add_options()("output,o", po::bool_switch(&output)->default_value(false), output_msg);
-    desc.add_options()("space,s", po::value<enum SPACE_TYPE>(&space), space_msg);
-    desc.add_options()("planner,p", po::value<enum PLANNER_TYPE>(&planner), planner_msg);
+
+    addSpaceOption(desc, &space);
+    addPlannerOption(desc, &planner);
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);

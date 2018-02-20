@@ -161,26 +161,26 @@ void addPlannerOption(po::options_description &desc, enum PLANNER_TYPE *planner)
 class ConstrainedProblem
 {
 public:
-    ConstrainedProblem(enum SPACE_TYPE type, StateSpacePtr space, ConstraintPtr constraint)
-      : space(std::move(space)), constraint(std::move(constraint))
+    ConstrainedProblem(enum SPACE_TYPE type, ob::StateSpacePtr space_, ob::ConstraintPtr constraint_)
+        : type(type), space(std::move(space_)), constraint(std::move(constraint_))
     {
         // Combine the ambient state space and the constraint to create the
         // constrained state space.
-        switch (space)
+        switch (type)
         {
             case PJ:
                 OMPL_INFORM("Using Projection-Based State Space!");
-                css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
+                css = std::make_shared<ob::ProjectedStateSpace>(space, constraint);
                 csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
                 break;
             case AT:
                 OMPL_INFORM("Using Atlas-Based State Space!");
-                css = std::make_shared<ob::AtlasStateSpace>(rvss, constraint);
+                css = std::make_shared<ob::AtlasStateSpace>(space, constraint);
                 csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
                 break;
             case TB:
                 OMPL_INFORM("Using Tangent Bundle-Based State Space!");
-                css = std::make_shared<ob::TangentBundleStateSpace>(rvss, constraint);
+                css = std::make_shared<ob::TangentBundleStateSpace>(space, constraint);
                 csi = std::make_shared<ob::TangentBundleSpaceInformation>(css);
                 break;
         }
@@ -198,7 +198,7 @@ public:
         sstart->as<ob::ProjectedStateSpace::StateType>()->vectorView() = start;
         sgoal->as<ob::ProjectedStateSpace::StateType>()->vectorView() = goal;
 
-        switch (space)
+        switch (type)
         {
             case AT:
             case TB:
@@ -271,6 +271,8 @@ public:
 
         ss->setPlanner(pp);
     }
+
+    enum SPACE_TYPE type;
 
     ob::StateSpacePtr space;
     ob::ConstraintPtr constraint;
