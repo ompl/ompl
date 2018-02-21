@@ -42,12 +42,144 @@
 #include <vector>
 #include <limits>
 #include <functional>
+#include "general2D.h"
 
-struct SignedDistanceField2D
+struct SignedDistanceField2D : public General2D
 {
     SignedDistanceField2D(double minX, double maxX, double minY, double maxY)
         : minX_(minX), maxX_(maxX), minY_(minY), maxY_(maxY)
     {}
+
+    /**
+     * Rounds to the closest grid position.
+     */
+    bool worldToGrid(double x, double y, size_t &ix, size_t &iy) const
+    {
+        ix = (size_t) round((x - minX_) / df_resolution_);
+        iy = (size_t) round((y - minY_) / df_resolution_);
+        return ix < num_entries_[0] && iy < num_entries_[1];
+    }
+
+    bool noOverlap(double x, double y) const
+    {
+        size_t ix, iy;
+        bool in_bounds = worldToGrid(x, y, ix, iy);
+        return in_bounds && signed_distance_[ix][iy] > 0;
+    }
+
+    double signedDistance(double x, double y) const
+    {
+        size_t ix, iy;
+        worldToGrid(x, y, ix, iy);
+        return signed_distance_[ix][iy] * df_resolution_;
+    }
+
+    double obstacleDistanceGradient(double x, double y, Eigen::MatrixXd &grad) const
+    {
+        size_t ix, iy;
+        worldToGrid(x, y, ix, iy);
+        size_t lower_x = ix - 1;
+        size_t upper_x = ix + 1;
+        if (ix == 0)
+        {
+            lower_x = ix;
+        }
+        if (ix == num_entries_[0] - 1)
+        {
+            upper_x = ix;
+        }
+        grad(0, 0) = (signed_distance_[upper_x][iy] - signed_distance_[lower_x][iy]) / 2.0;
+
+        size_t lower_y = iy - 1;
+        size_t upper_y = iy + 1;
+        if (iy == 0)
+        {
+            lower_y = iy;
+        }
+        if (iy == num_entries_[1] - 1)
+        {
+            upper_y = iy;
+        }
+        grad(0, 1) = (signed_distance_[ix][upper_y] - signed_distance_[ix][lower_y]) / 2.0;
+        return signed_distance_[ix][iy] * df_resolution_;
+    }
+
+    double medialAxisGradient(double x, double y, Eigen::MatrixXd &grad) const
+    {
+        size_t ix, iy;
+        worldToGrid(x, y, ix, iy);
+        // take the negative of dist at each location, so we're going up towards 0. 
+        // Doesn't matter since we're doing newton's towards 0, but might do extra stuff
+        // to increas the value later.
+        size_t lower_x = ix - 1;
+        size_t upper_x = ix + 1;
+        if (ix == 0)
+        {
+            lower_x = ix;
+        }
+        if (ix == num_entries_[0] - 1)
+        {
+            upper_x = ix;
+        }
+        grad(0, 0) = (dist_from_medial_axis_[upper_x][iy] - dist_from_medial_axis_[lower_x][iy]) / 2.0;
+
+        size_t lower_y = iy - 1;
+        size_t upper_y = iy + 1;
+        if (iy == 0) 
+        {
+            lower_y = iy;
+        }
+        if (iy == num_entries_[1] - 1)
+        {
+            upper_y = iy;
+        }
+        grad(0, 1) = (dist_from_medial_axis_[ix][upper_y] - dist_from_medial_axis_[ix][lower_y]) / 2.0;
+        return dist_from_medial_axis_[ix][iy] * df_resolution_;
+    }
+
+    // TODO: line valid, clearance, obstacle gradient, and axis gradient
+    // Look at each grid that the line goes through, and take the min of each of those.
+    bool lineNoOverlap(double x1, double y1, double x2, double y2) const
+    {
+        // Just take points along the line, every df_resolution.
+        double delta_x = x2 - x1;
+        double delta_y = y2 - y1;
+        double length = sqrt(delta_x * delta_x + delta_y + delta_y);
+        int pointCount = (int) ceil(length / df_resolution_);
+        for (int i = 0; i < pointCount; i++)
+        {
+            double x = x1 + delta_x * ((i * 1.0) / (pointCount * 1.0));
+            double y = y1 + delta_y * ((i * 1.0) / (pointCount * 1.0));
+            if (!noOverlap(x, y))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    double lineSignedDistance(double x1, double y1, double x2, double y2, Eigen::Vector2d & point) const
+    {
+        // Just take points along the line, every df_resolution.
+        double delta_x = x2 - x1;
+        double delta_y = y2 - y1;
+        double length = sqrt(delta_x * delta_x + delta_y + delta_y);
+        int pointCount = (int) ceil(length / df_resolution_);
+        double clearance = std::numeric_limits<double>::infinity();
+        for (int i = 0; i < pointCount; i++)
+        {
+            double x = x1 + delta_x * ((i * 1.0) / (pointCount * 1.0));
+            double y = y1 + delta_y * ((i * 1.0) / (pointCount * 1.0));
+            double dist = signedDistance(x, y);
+            if (dist < clearance)
+            {
+                clearance = dist;
+                point[0] = x;
+                point[1] = y;
+            }
+        }
+        return clearance;
+    }
 
     /**
      * Common short variable names: (I've kept them to make the algorithm more
@@ -228,9 +360,10 @@ struct SignedDistanceField2D
     void calculateSignedDistance(double resolution, std::function<bool(double, double, int&)> isValid)
     {
         // Get the size of the grids setup.
-        double df_resolution_ = resolution;
-        num_entries_[0] = ceil((maxX_ - minX_) / df_resolution_);
-        num_entries_[1] = ceil((maxY_ - minY_) / df_resolution_);
+        df_resolution_ = resolution;
+        // Go a little higher for valid entries on the upper side.
+        num_entries_[0] = ceil((maxX_ - minX_) / df_resolution_) + 1;
+        num_entries_[1] = ceil((maxY_ - minY_) / df_resolution_) + 1;
 
         signed_distance_ = allocDoubleMatrix(num_entries_[0], num_entries_[1]);
         double **signed_distance_prev = allocDoubleMatrix(num_entries_[0], num_entries_[1]);

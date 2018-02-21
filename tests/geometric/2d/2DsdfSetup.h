@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Willow Garage
+*  Copyright (c) 2018, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of Willow Garage nor the names of its
+*   * Neither the name of the Rice University nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,10 +32,10 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Bryce Willey */
 
-#ifndef OMPL_TEST_2DCIRCLES_SETUP_
-#define OMPL_TEST_2DCIRCLES_SETUP_
+#ifndef OMPL_TEST_2DSDF_SETUP_
+#define OMPL_TEST_2DSDF_SETUP_
 
 #include <boost/filesystem.hpp>
 
@@ -43,33 +43,33 @@
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 
 #include "../../resources/config.h"
-#include "../../resources/circles2D.h"
+#include "../../resources/sdf2D.h"
 
 namespace ompl
 {
     namespace geometric
     {
 
-        class StateValidityChecker2DCircles : public base::StateValidityChecker
+        class StateValidityChecker2DSdf : public base::StateValidityChecker
         {
         public:
 
-            StateValidityChecker2DCircles(const base::SpaceInformationPtr &si, const Circles2D &circles) :
+            StateValidityChecker2DSdf(const base::SpaceInformationPtr &si, const SignedDistanceField2D &sdf) :
                 base::StateValidityChecker(si),
-                circles_(circles)
+                sdf_(sdf)
             {
             }
 
             virtual bool isValid(const base::State *state) const
             {
                 const double *xy = state->as<base::RealVectorStateSpace::StateType>()->values;
-                return circles_.noOverlap(xy[0], xy[1]);
+                return sdf_.noOverlap(xy[0], xy[1]);
             }
 
             virtual double clearance(const base::State *state) const
             {
                 const double *xy = state->as<base::RealVectorStateSpace::StateType>()->values;
-                return circles_.signedDistance(xy[0], xy[1]);
+                return sdf_.signedDistance(xy[0], xy[1]);
             }
 
             virtual double clearanceWithClosestGradient(const base::State * state, Eigen::MatrixXd &grad,
@@ -77,27 +77,33 @@ namespace ompl
             {
                 const double *xy = state->as<base::RealVectorStateSpace::StateType>()->values;
                 gradient_avaliable = true;
-                return circles_.obstacleDistanceGradient(xy[0], xy[1], grad);
+                double dist = sdf_.obstacleDistanceGradient(xy[0], xy[1], grad);
+                return dist;
+            }
+
+            virtual double clearanceWithMedialGradient(const base::State *state, Eigen::MatrixXd &grad, bool &gradient_avaliable) const override
+            {
+                const double *xy = state->as<base::RealVectorStateSpace::StateType>()->values;
+                gradient_avaliable = true;
+                return sdf_.medialAxisGradient(xy[0], xy[1], grad);
             }
 
         private:
-            const Circles2D circles_;
+            const SignedDistanceField2D sdf_;
         };
 
-        static base::SpaceInformationPtr spaceInformation2DCircles(const Circles2D &circles)
+        static base::SpaceInformationPtr spaceInformation2DSdf(const SignedDistanceField2D &sdf)
         {
             auto space(std::make_shared<base::RealVectorStateSpace>());
-            space->addDimension(circles.minX_, circles.maxX_);
-            space->addDimension(circles.minY_, circles.maxY_);
+            space->addDimension(sdf.minX_, sdf.maxX_);
+            space->addDimension(sdf.minY_, sdf.maxY_);
             auto si(std::make_shared<base::SpaceInformation>(space));
             si->setStateValidityChecker(
-                std::make_shared<StateValidityChecker2DCircles>(si, circles));
+                std::make_shared<StateValidityChecker2DSdf>(si, sdf));
             si->setStateValidityCheckingResolution(0.002);
             si->setup();
             return si;
         }
-
-
     }
 }
 

@@ -35,13 +35,15 @@
 /* Authors: Bryce Willey */
 
 #define BOOST_TEST_MODULE "GeometricPlanningMedialAxisSampling"
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 
 #include "2DcirclesSetup.h"
 #include "2DArticulatedSetup.h"
+#include "2DsdfSetup.h"
 #include "../../resources/sdf2D.h"
 #include <iostream>
 
+#include "ompl/base/samplers/GradientObstacleValidStateSampler.h"
 #include "ompl/base/samplers/GradientMedialAxisValidStateSampler.h"
 #include "ompl/geometric/planners/prm/PRM.h"
 #include "ompl/base/goals/GoalState.h"
@@ -58,7 +60,7 @@ public:
 };
 }
 
-BOOST_AUTO_TEST_CASE(geometric_medialAxisSampling)
+BOOST_AUTO_TEST_CASE(geometric_obstacleSampling)
 {
     Circles2D circles;
     boost::filesystem::path path(TEST_RESOURCES_DIR);
@@ -69,7 +71,7 @@ BOOST_AUTO_TEST_CASE(geometric_medialAxisSampling)
     ompl::base::SpaceInformationPtr si = ompl::geometric::spaceInformation2DCircles(circles);
     ompl::base::ValidStateSamplerAllocator alloc = [](const ompl::base::SpaceInformation *space_info)
     {
-        return std::make_shared<ompl::base::GradientMedialAxisValidStateSampler>(space_info);
+        return std::make_shared<ompl::base::GradientObstacleValidStateSampler>(space_info);
     };
     si->setValidStateSamplerAllocator(alloc);
     ompl::base::ValidStateSamplerPtr gradientSampler = si->allocValidStateSampler();
@@ -84,21 +86,23 @@ BOOST_AUTO_TEST_CASE(geometric_medialAxisSampling)
         worked = (success) ? worked + 1 : worked;
     }
  
-    std::cout << "Gradient sampling in point space worked for " << worked << " of " << total << 
-                 " times, or " << (1.0 * worked) / (1.0 * total) * 100 << "%" << std::endl;
+    std::cout << "Obstacle Gradient sampling in point space worked for " << worked << " of " 
+              << total << " times, or " << (1.0 * worked) / (1.0 * total) * 100 << "%" 
+              << std::endl;
 }
 
-BOOST_AUTO_TEST_CASE(geometric_articulatedMedialAxisSampling)
+BOOST_AUTO_TEST_CASE(geometric_articulatedObstacleSampling)
 {
-    Articulated2D environment;
+    Circles2D circles;
     boost::filesystem::path path(TEST_RESOURCES_DIR);
-    environment.loadCircles((path / "artic_obstacles.txt").string());
-    environment.loadQueries((path / "artic_queries.txt").string());
+    circles.loadCircles((path / "artic_obstacles.txt").string());
+    circles.loadQueries((path / "artic_queries.txt").string());
+    Articulated2D environment(&circles);
 
     ompl::base::SpaceInformationPtr si = ompl::geometric::spaceInformation2DArticulated(environment);
     ompl::base::ValidStateSamplerAllocator alloc = [](const ompl::base::SpaceInformation *space_info)
     {
-        return std::make_shared<ompl::base::GradientMedialAxisValidStateSampler>(space_info);
+        return std::make_shared<ompl::base::GradientObstacleValidStateSampler>(space_info);
     };
     si->setValidStateSamplerAllocator(alloc);
     ompl::base::ValidStateSamplerPtr gradientSampler = si->allocValidStateSampler();
@@ -112,8 +116,9 @@ BOOST_AUTO_TEST_CASE(geometric_articulatedMedialAxisSampling)
         worked = (success) ? worked + 1 : worked;
     }
 
-    std::cout << "Gradient sampling in articulated space worked for " << worked << " of " << total << 
-                 " times, or " << (1.0 * worked) / (1.0 * total) * 100 << "%" << std::endl;
+    std::cout << "Obstacle gradient sampling in articulated space worked for " << worked << " of "
+              << total << " times, or " << (1.0 * worked) / (1.0 * total) * 100 << "%" 
+              << std::endl;
 }
 
 ompl::base::GoalPtr genGoalFromQuery(const Articulated2D::Query &q,
@@ -146,17 +151,18 @@ void setupProblem(const Articulated2D::Query &q,
     pdef->setGoal(goal);
 }
 
-BOOST_AUTO_TEST_CASE(geometric_articulatedMedialAxisPlanning)
+BOOST_AUTO_TEST_CASE(geometric_articulatedObstaclePlanning)
 {
-    Articulated2D environment;
+    Circles2D circles;
     boost::filesystem::path path(TEST_RESOURCES_DIR);
-    environment.loadCircles((path / "artic_obstacles.txt").string());
-    environment.loadQueries((path / "artic_queries.txt").string());
+    circles.loadCircles((path / "artic_obstacles.txt").string());
+    circles.loadQueries((path / "artic_queries.txt").string());
+    Articulated2D environment(&circles);
 
     ompl::base::SpaceInformationPtr si = ompl::geometric::spaceInformation2DArticulated(environment);
     ompl::base::ValidStateSamplerAllocator alloc = [](const ompl::base::SpaceInformation *space_info)
     {
-        return std::make_shared<ompl::base::GradientMedialAxisValidStateSampler>(space_info);
+        return std::make_shared<ompl::base::GradientObstacleValidStateSampler>(space_info);
     };
     si->setValidStateSamplerAllocator(alloc);
 
@@ -169,9 +175,9 @@ BOOST_AUTO_TEST_CASE(geometric_articulatedMedialAxisPlanning)
 
     std::ofstream of;
     of.open("/tmp/tmpfile.txt");
-    for (std::size_t i = 0; i < environment.getQueryCount(); i++)
+    for (std::size_t i = 0; i < circles.getQueryCount(); i++)
     {
-        const Articulated2D::Query &q = environment.getQuery(i);
+        const Circles2D::Query &q = circles.getQuery(i);
         setupProblem(q, si, pdef);
 
         planner->clear();
@@ -188,7 +194,7 @@ BOOST_AUTO_TEST_CASE(geometric_articulatedMedialAxisPlanning)
     of.close();
 }
 
-BOOST_AUTO_TEST_CASE(geometric_calc_medialAxis)
+BOOST_AUTO_TEST_CASE(geometric_sdf_vs_circles)
 {
     Circles2D circles;
     boost::filesystem::path path(TEST_RESOURCES_DIR);
@@ -201,4 +207,101 @@ BOOST_AUTO_TEST_CASE(geometric_calc_medialAxis)
         return circles.noOverlap(x, y, i);
     };
     sdf.calculateSignedDistance(0.1, isValid);
+
+    ompl::base::SpaceInformationPtr si1 = ompl::geometric::spaceInformation2DSdf(sdf);
+    auto svc1 = si1->getStateValidityChecker();
+    ompl::base::SpaceInformationPtr si2 = ompl::geometric::spaceInformation2DCircles(circles);
+    auto svc2 = si2->getStateValidityChecker();
+    ompl::base::StateSamplerPtr sampler = si1->allocStateSampler();
+
+    // Do like 20 different samples, see what happens.
+    ompl::base::State *state = si1->allocState();
+    int total = 40;
+    for (int i = 0; i < total; i++)
+    {
+        sampler->sampleUniform(state);
+        Eigen::MatrixXd grad(1, 2);
+        Eigen::MatrixXd grad2(1, 2);
+        bool aval;
+        double dist1 = svc1->clearanceWithClosestGradient(state, grad, aval);
+        double dist2 = svc2->clearanceWithClosestGradient(state, grad2, aval);
+        BOOST_CHECK(std::abs(dist1 - dist2) < 0.5);
+        BOOST_CHECK(std::abs(grad(0) - grad2(0)) < 0.8);
+        BOOST_CHECK(std::abs(grad(1) - grad2(1)) < 0.8);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(geometric_medialAxis_Samples)
+{
+    Circles2D circles;
+    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    circles.loadCircles((path / "circle_obstacles.txt").string());
+    circles.loadQueries((path / "circle_queries.txt").string());
+
+    SignedDistanceField2D sdf(circles.minX_, circles.maxX_, circles.minY_, circles.maxY_);
+    auto isValid = [circles](double x, double y, int &i)
+    {
+        return circles.noOverlap(x, y, i);
+    };
+    sdf.calculateSignedDistance(0.1, isValid);
+
+    // Get a statespace /sampler.
+    ompl::base::SpaceInformationPtr si = ompl::geometric::spaceInformation2DSdf(sdf);
+    ompl::base::ValidStateSamplerAllocator alloc = [](const ompl::base::SpaceInformation *space_info)
+    {
+        return std::make_shared<ompl::base::GradientMedialAxisValidStateSampler>(space_info, 0.3);
+    };
+    si->setValidStateSamplerAllocator(alloc);
+    ompl::base::ValidStateSamplerPtr gradientSampler = si->allocValidStateSampler();
+
+    // Do like 20 different samples, see what happens.
+    ompl::base::State *state = si->allocState();
+    int total = 10000;
+    int worked = 0;
+    for (int i = 0; i < total; i++)
+    {
+        //bool success = gradientSampler->sample(state);
+        //worked = (success) ? worked + 1 : worked;
+    }
+ 
+    std::cout << "Gradient sampling in point space worked for " << worked << " of " << total << 
+                 " times, or " << (1.0 * worked) / (1.0 * total) * 100 << "%" << std::endl;
+}
+
+BOOST_AUTO_TEST_CASE(geometric_articulatedMedialSampling)
+{
+    Circles2D circles;
+    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    circles.loadCircles((path / "artic_obstacles.txt").string());
+    circles.loadQueries((path / "artic_queries.txt").string());
+    
+    SignedDistanceField2D sdf(circles.minX_, circles.maxX_, circles.minY_, circles.maxY_);
+    auto isValid = [circles](double x, double y, int &i)
+    {
+        return circles.noOverlap(x, y, i);
+    };
+    sdf.calculateSignedDistance(0.1, isValid);
+
+    Articulated2D environment(&sdf);
+
+    ompl::base::SpaceInformationPtr si = ompl::geometric::spaceInformation2DArticulated(environment);
+    ompl::base::ValidStateSamplerAllocator alloc = [](const ompl::base::SpaceInformation *space_info)
+    {
+        return std::make_shared<ompl::base::GradientObstacleValidStateSampler>(space_info);
+    };
+    si->setValidStateSamplerAllocator(alloc);
+    ompl::base::ValidStateSamplerPtr gradientSampler = si->allocValidStateSampler();
+
+    ompl::base::State *state = si->allocState();
+    int total = 200;
+    int worked = 0;
+    for (int i = 0; i < total; i++)
+    {
+        bool success = gradientSampler->sample(state);
+        worked = (success) ? worked + 1 : worked;
+    }
+
+    std::cout << "Obstacle gradient sampling in articulated space worked for " << worked << " of "
+              << total << " times, or " << (1.0 * worked) / (1.0 * total) * 100 << "%" 
+              << std::endl;
 }

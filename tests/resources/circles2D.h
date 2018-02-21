@@ -44,7 +44,9 @@
 #include <Eigen/Dense>
 #include <functional>
 
-struct Circles2D
+#include "general2D.h"
+
+struct Circles2D : public General2D
 {
     struct Circle
     {
@@ -206,6 +208,21 @@ struct Circles2D
         }
     }
 
+    bool lineNoOverlap(double x1, double y1, double x2, double y2) const
+    {
+        for (std::size_t i = 0; i < circles_.size(); i++) {
+            Eigen::Vector2d ipoint = lineClosestPoint(x1, y1, x2, y2, i);
+            double dx = circles_[i].x_ - ipoint[0];
+            double dy = circles_[i].y_ - ipoint[1];
+            if (dx * dx + dy * dy < circles_[i].r2_)
+            {
+                return false;
+            }
+        }
+        return true;
+
+    }
+
     double lineSignedDistance(double x1, double y1, double x2, double y2, Eigen::Vector2d& point) const
     {
         double minDist = std::numeric_limits<double>::infinity();
@@ -242,14 +259,19 @@ struct Circles2D
         return out.normalized();
     }
 
-    void signedDistanceGradient(double x, double y, Eigen::MatrixXd& grad) const
+    double obstacleDistanceGradient(double x, double y, Eigen::MatrixXd& grad) const
     {
         static double resolution = 0.02;
         double inv_twice_resolution = 1.0 / (2.0 * resolution);
-        double xgrad =  (signedDistance(x + resolution, y) - signedDistance(x - resolution, y)) * inv_twice_resolution;
-        double ygrad = (signedDistance(x, y + resolution) - signedDistance(x, y - resolution)) * inv_twice_resolution;
-        grad(0, 0) = xgrad;
-        grad(0, 1) = ygrad;
+        grad(0, 0) =  (signedDistance(x + resolution, y) - signedDistance(x - resolution, y)) * inv_twice_resolution;
+        grad(0, 1) = (signedDistance(x, y + resolution) - signedDistance(x, y - resolution)) * inv_twice_resolution;
+        return signedDistance(x, y);
+    }
+
+    double medialAxisGradient(double x, double y, Eigen::MatrixXd &grad) const
+    {
+        // TODO(brycew): ?
+        return -1.0;
     }
 
     double getMaxDistance(double resolution) const

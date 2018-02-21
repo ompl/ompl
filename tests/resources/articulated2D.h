@@ -54,38 +54,13 @@ struct Articulated2D
         double start_one_, start_two_, goal_one_, goal_two_;
     };
 
-    Articulated2D() :
+    Articulated2D(General2D *environ) :
+        environment(environ),
         rootX_(0.0),
         rootY_(0.0),
         link_1_length_(0.0),
         link_2_length_(0.0)
     {}
-
-    void loadCircles(const std::string &filename)
-    {
-        std::ifstream fin(filename.c_str());
-        std::string attrib;
-        fin >> attrib >> rootX_ >> rootY_;
-        fin >> attrib >> link_1_length_ >> link_2_length_;
-        fin.close();
-        environment.loadCircles(filename);
-    }
-
-    void loadQueries(const std::string &filename)
-    {
-        environment.loadQueries(filename);
-    }
-
-    const Query& getQuery(std::size_t index) const
-    {
-        Circles2D::Query cirQ = environment.queries_[index];
-        return *(new Query(cirQ));
-    }
-
-    std::size_t getQueryCount() const
-    {
-        return environment.queries_.size();
-    }
 
     /**
      * Given the joint angles of the robot, return the end point of the 1st link and the end point
@@ -107,10 +82,10 @@ struct Articulated2D
     {
         Eigen::Vector2d end1, end2, point1, point2;
         forwardKinematics(angle1, angle2, end1, end2);
-        double dist1 = environment.lineSignedDistance(rootX_, rootY_, end1[0], end1[1], point1);
+        double dist1 = environment->lineSignedDistance(rootX_, rootY_, end1[0], end1[1], point1);
         if (dist1 <= 0.0)
             return true;
-        double dist2 = environment.lineSignedDistance(end1[0], end1[1], end2[0], end2[1], point2);
+        double dist2 = environment->lineSignedDistance(end1[0], end1[1], end2[0], end2[1], point2);
         if (dist2 <= 0.0)
             return true;
         return false;
@@ -120,8 +95,8 @@ struct Articulated2D
     {
         Eigen::Vector2d end1, end2, point1, point2;
         forwardKinematics(angle1, angle2, end1, end2);
-        double dist1 = environment.lineSignedDistance(rootX_, rootY_, end1[0], end1[1], point1);
-        double dist2 = environment.lineSignedDistance(end1[0], end1[1], end2[0], end2[1], point2);
+        double dist1 = environment->lineSignedDistance(rootX_, rootY_, end1[0], end1[1], point1);
+        double dist2 = environment->lineSignedDistance(end1[0], end1[1], end2[0], end2[1], point2);
         if (dist1 <= dist2)
         {
             point[0] = point1[0] - rootX_;
@@ -156,7 +131,7 @@ struct Articulated2D
         double min_dist = signedDistance(angle1, angle2, link, point, global_point);
 
         // Get the workspace gradient.
-        environment.signedDistanceGradient(global_point[0], global_point[1], grad);
+        environment->obstacleDistanceGradient(global_point[0], global_point[1], grad);
         
         // Get the jacobian: (hardcoded for RR manip from Lynch and Park book)
         Eigen::MatrixXd jaco(2, 2);
@@ -182,7 +157,7 @@ struct Articulated2D
     }
 
     // When reading queries from here, they shouldn't be X and Y, they are angle1 and angle2.
-    Circles2D environment;
+    General2D *environment;
 
     double rootX_;
     double rootY_;

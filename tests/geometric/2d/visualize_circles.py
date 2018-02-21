@@ -65,6 +65,10 @@ class CircleEnv(object):
                     self.maxX_ = cir.p2.x
                 if cir.p2.y > self.maxY_:
                     self.maxY_ = cir.p2.y
+            self.minX_ -= 50
+            self.minY_ -= 50
+            self.maxX_ += 50
+            self.maxY_ += 50
 
     def loadPaths(self, filename):
         """
