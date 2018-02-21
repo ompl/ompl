@@ -202,7 +202,7 @@ bool ompl::base::AtlasChart::psi(const Eigen::Ref<const Eigen::VectorXd> &u,
     Eigen::VectorXd b(n_);
 
     const double tolerance = constraint_->getTolerance();
-    const double squaredTolerance = tolerance * tolerance + std::numeric_limits<double>::epsilon();
+    const double squaredTolerance = tolerance * tolerance;
 
     // Initialize output to initial guess
     out = x0;

@@ -171,6 +171,11 @@ void spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planne
             std::ofstream pathfile("sphere_path.txt");
             simplePath.printAsMatrix(pathfile);
             pathfile.close();
+
+            OMPL_INFORM("Dumping problem information to `sphere_info.txt`.");
+            std::ofstream infofile("sphere_info.txt");
+            infofile << space << std::endl;
+            infofile.close();
         }
     }
     else

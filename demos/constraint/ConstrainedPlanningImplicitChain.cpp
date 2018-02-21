@@ -45,8 +45,8 @@ private:
     class Wall
     {
     public:
-        Wall(double offset, double thickness, double width, unsigned int type)
-          : offset_(offset), thickness_(thickness), width_(width), type_(type)
+        Wall(double offset, double thickness, double width, double joint_radius, unsigned int type)
+          : offset_(offset), thickness_(thickness + joint_radius), width_(width + joint_radius), type_(type)
         {
         }
 
@@ -60,7 +60,7 @@ private:
             return true;
         }
 
-        bool checkLink(const Eigen::Ref<const Eigen::VectorXd> &v) const
+        bool checkJoint(const Eigen::Ref<const Eigen::VectorXd> &v) const
         {
             double x = v[0], y = v[1], z = v[2];
 
@@ -93,9 +93,9 @@ private:
         const unsigned int type_;
     };
 
-    static constexpr double WALL_WIDTH = 0.5;
-    static constexpr double JOINT_RADIUS = 0.2;
-    static constexpr double LINK_LENGTH = 1.0;
+    const double WALL_WIDTH = 0.5;
+    const double JOINT_RADIUS = 0.2;
+    const double LINK_LENGTH = 1.0;
 
 public:
     /**
@@ -123,7 +123,7 @@ public:
         double current = -radius_ + step;
 
         for (unsigned int i = 0; i < obstacles_; i++, current += step)
-            walls_.emplace_back(current, radius_ / 8 + JOINT_RADIUS, WALL_WIDTH + JOINT_RADIUS, i % 2);
+            walls_.emplace_back(current, radius_ / 8, WALL_WIDTH, JOINT_RADIUS, i % 2);
     }
 
     void function(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::VectorXd> out) const override
@@ -199,24 +199,26 @@ public:
 
         for (unsigned int i = 0; i < links_; i++)
         {
-            const Eigen::VectorXd &link = x.segment(3 * i, 3);
-            if (link[2] < 0)
+            auto &&joint = x.segment(3 * i, 3);
+            if (joint[2] < 0)
                 return false;
 
-            if (link.norm() >= radius_)
+            if (joint.norm() >= (radius_ - jointRadius_))
                 for (auto wall : walls_)
-                    if (!wall.checkLink(link))
+                    if (!wall.checkJoint(joint))
                         return false;
         }
 
         for (unsigned int i = 0; i < links_ - 1; i++)
         {
-            if (x.segment(3 * i, 3).cwiseAbs().maxCoeff() < jointRadius_)
+            auto &&joint1 = x.segment(3 * i, 3);
+            if (joint1.cwiseAbs().maxCoeff() < jointRadius_)
                 return false;
 
             for (unsigned int j = i + 1; j < links_; j++)
             {
-                if ((x.segment(3 * i, 3) - x.segment(3 * j, 3)).cwiseAbs().maxCoeff() < jointRadius_)
+                auto &&joint2 = x.segment(3 * j, 3);
+                if ((joint1 - joint2).cwiseAbs().maxCoeff() < jointRadius_)
                     return false;
             }
         }
@@ -229,7 +231,7 @@ public:
         auto rvss = std::make_shared<ob::RealVectorStateSpace>(3 * links_);
         ob::RealVectorBounds bounds(3 * links_);
 
-        for (int i = 0; i < (int) links_; ++i)
+        for (int i = 0; i < (int)links_; ++i)
         {
             bounds.setLow(3 * i + 0, -i - 1);
             bounds.setHigh(3 * i + 0, i + 1);
@@ -251,7 +253,7 @@ public:
         goal = Eigen::VectorXd(3 * links_);
 
         int i = 0;
-        for (; i < (int) links_ - 3; ++i)
+        for (; i < (int)links_ - 3; ++i)
         {
             start[3 * i] = i + 1;
             start[3 * i + 1] = 0;
@@ -333,6 +335,16 @@ public:
         return std::make_shared<ChainProjection>(space, links_, radius_);
     }
 
+    void dump(std::ofstream &file) const
+    {
+        file << links_ << std::endl;
+        file << obstacles_ << std::endl;
+        file << extra_ << std::endl;
+        file << jointRadius_ << std::endl;
+        file << length_ << std::endl;
+        file << radius_ << std::endl;
+    }
+
 private:
     const unsigned int links_;      // Number of chain links.
     const double length_;           // Length of one link.
@@ -394,10 +406,16 @@ void chainPlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner
             if (!simplePath.check())
                 OMPL_WARN("Interpolated path fails check!");
 
-            OMPL_INFORM("Dumping path to `sphere_path.txt`.");
-            std::ofstream pathfile("sphere_path.txt");
+            OMPL_INFORM("Dumping path to `chain_path.txt`.");
+            std::ofstream pathfile("chain_path.txt");
             simplePath.printAsMatrix(pathfile);
             pathfile.close();
+
+            OMPL_INFORM("Dumping problem information to `chain_info.txt`.");
+            std::ofstream infofile("chain_info.txt");
+            infofile << space << std::endl;
+            constraint->dump(infofile);
+            infofile.close();
         }
     }
     else
@@ -414,7 +432,8 @@ void chainPlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner
 }
 
 auto help_msg = "Shows this help message.";
-auto output_msg = "Dump found solution path (if one exists) in plain text to `sphere_path.txt`.";
+auto output_msg = "Dump found solution path (if one exists) in plain text to `chain_path.txt`. "
+                  "Problem information is dumped to `chain_info`.txt";
 auto links_msg = "Number of links in the kinematic chain. Minimum is 4.";
 auto obstacles_msg = "Number of `wall' obstacles on the surface of the sphere. Ranges from [0, 2]";
 auto extra_msg = "Number of extra constraints to add to the chain. Extra constraints are as follows:\n"

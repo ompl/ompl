@@ -68,9 +68,9 @@ namespace og = ompl::geometric;
 
 enum SPACE_TYPE
 {
-    PJ,
-    AT,
-    TB
+    PJ = 0,
+    AT = 1,
+    TB = 2
 };
 
 auto space_msg = "Choose which constraint handling methodology to use. One of:\n"
@@ -162,7 +162,7 @@ class ConstrainedProblem
 {
 public:
     ConstrainedProblem(enum SPACE_TYPE type, ob::StateSpacePtr space_, ob::ConstraintPtr constraint_)
-        : type(type), space(std::move(space_)), constraint(std::move(constraint_))
+      : type(type), space(std::move(space_)), constraint(std::move(constraint_))
     {
         // Combine the ambient state space and the constraint to create the
         // constrained state space.
@@ -213,11 +213,11 @@ public:
         ss->setStartAndGoalStates(sstart, sgoal);
     }
 
-    void setPlanner(enum PLANNER_TYPE type, const std::string &projection = "")
+    void setPlanner(enum PLANNER_TYPE planner, const std::string &projection = "")
     {
         const bool isProj = projection != "";
 
-        switch (type)
+        switch (planner)
         {
             case RRT:
                 pp = std::make_shared<og::RRT>(csi);
@@ -256,6 +256,8 @@ public:
                 auto kpiece = std::make_shared<og::KPIECE1>(csi);
                 if (isProj)
                     kpiece->setProjectionEvaluator(projection);
+                if (type == AT || type == TB)
+                    kpiece->setRange(css->as<ob::AtlasStateSpace>()->getRho_s());
                 pp = kpiece;
                 break;
             }
