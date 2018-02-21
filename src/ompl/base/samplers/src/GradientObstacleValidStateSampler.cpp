@@ -34,31 +34,32 @@
 
 /* Author: Bryce Willey */
 
-#include "ompl/base/samplers/GradientMedialAxisValidStateSampler.h"
+#include "ompl/base/samplers/GradientObstacleValidStateSampler.h"
 #include <Eigen/Core>
 #include <Eigen/SVD>
 
-
-ompl::base::GradientMedialAxisValidStateSampler::GradientMedialAxisValidStateSampler(const SpaceInformation *si, double epsilon)
+ompl::base::GradientObstacleValidStateSampler::GradientObstacleValidStateSampler(const SpaceInformation *si, double epsilon)
   : GradientValidStateSampler(si, epsilon)
 {
-    of_.open("/tmp/tmpfile_medial.txt");
+    static int i = 0;
+    of_.open(std::string("/tmp/tmpfile_obs_") + std::to_string(i++) + std::string(".txt"));
 }
 
-bool ompl::base::GradientMedialAxisValidStateSampler::sampleWithEpsilon(State *state, double epsilon)
+bool ompl::base::GradientObstacleValidStateSampler::sampleWithEpsilon(State *state, double defaultDist)
 {
     // Sample the starting state.
     sampler_->sampleUniform(state);
     bool grad_avaliable;
     // Generalize to Matrix...
     Eigen::MatrixXd grad(1, dof_);
-    double dist = si_->getStateValidityChecker()->clearanceWithMedialGradient(state, grad, grad_avaliable);
+    double dist = si_->getStateValidityChecker()->clearanceWithClosestGradient(state, grad, grad_avaliable);
     if (!grad_avaliable)
     {
         // Can't do anything!
-        OMPL_ERROR("Need the medial axis gradient to function properly.");
+        OMPL_ERROR("Need the gradient to function properly.");
         return false;
     }
+
 
     // TODO(brycew): move this variable out
     int max_iterations = 50;
@@ -66,14 +67,13 @@ bool ompl::base::GradientMedialAxisValidStateSampler::sampleWithEpsilon(State *s
     std::vector<double> state_vec(dof_);
     si_->getStateSpace()->copyToReals(state_vec, state);
     Eigen::Map<Eigen::VectorXd> eig_state(state_vec.data(), dof_);
-    while (std::abs(dist) > epsilon && iter++ < max_iterations)
+    while (dist < defaultDist && iter++ < max_iterations)
     {
         si_->getStateSpace()->copyToReals(state_vec, state);
-
         // Convert to eigen.
-        Eigen::Matrix<double, 1, 1> f; f << dist;
+        Eigen::Matrix<double, 1, 1> f; f << dist - defaultDist;
 
-        //of_ << eig_state.transpose() << std::endl;
+        of_ << eig_state.transpose() << std::endl;
         
         eig_state -= grad.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(f);
 
@@ -83,13 +83,13 @@ bool ompl::base::GradientMedialAxisValidStateSampler::sampleWithEpsilon(State *s
         // Until then, just do a hard cap and exit?
         si_->getStateSpace()->enforceBounds(state);
 
-        dist = si_->getStateValidityChecker()->clearanceWithMedialGradient(state, grad, grad_avaliable);
+        dist = si_->getStateValidityChecker()->clearanceWithClosestGradient(state, grad, grad_avaliable);
         
-        if (std::abs(dist) <= epsilon || iter >= max_iterations)
+        if (dist >= defaultDist || iter >= max_iterations)
         {
             of_ << eig_state.transpose() << std::endl;
             of_ << std::endl;
         }
     }
-    return std::abs(dist) <= epsilon;
+    return dist > 0.0;
 }

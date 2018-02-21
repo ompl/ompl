@@ -148,6 +148,7 @@ namespace ompl
                 return clearance(state);
             }
 
+            // TODO(brycew): only used in omplapp right now, replace with ClosestGradient version.
             virtual double clearanceWithAll(const State *state, Eigen::VectorXd &normal, Eigen::VectorXd &closestPoint, bool &normalAvailable) const
             {
                 normalAvailable = false;
@@ -159,6 +160,16 @@ namespace ompl
              * at that state w.r.t. the cost.
              */
             virtual double clearanceWithClosestGradient(const State *state, Eigen::MatrixXd &grad, bool &gradient_avaliable) const
+            {
+                gradient_avaliable = false;
+                return clearance(state);
+            }
+
+            /**
+             * Given a particular state, return the gradient of the closest point to an obstacle
+             * towards the medial axis in the workspace.
+             */
+            virtual double clearanceWithMedialGradient(const State *state, Eigen::MatrixXd &grad, bool &gradient_avaliable) const
             {
                 gradient_avaliable = false;
                 return clearance(state);

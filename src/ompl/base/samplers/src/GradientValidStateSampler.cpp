@@ -34,30 +34,23 @@
 
 /* Author: Bryce Willey */
 
-#ifndef OMPL_BASE_SAMPLERS_GRADIENT_MEDIAL_AXIS_VALID_STATE_SAMPLER_
-#define OMPL_BASE_SAMPLERS_GRADIENT_MEDIAL_AXIS_VALID_STATE_SAMPLER_
-
-#include "ompl/base/StateSampler.h"
 #include "ompl/base/samplers/GradientValidStateSampler.h"
+#include "ompl/base/SpaceInformation.h"
+#include <limits>
 
-namespace ompl
+ompl::base::GradientValidStateSampler::GradientValidStateSampler(const SpaceInformation *si, double epsilon)
+  : ValidStateSampler(si), epsilon_(epsilon), sampler_(si->allocStateSampler())
 {
-    namespace base
-    {
-        OMPL_CLASS_FORWARD(GradientMedialAxisValidStateSampler);
-
-        /** \brief A state sampler that uses gradient descent to sample along
-         *         the medial axis of a cost.
-         */
-        class GradientMedialAxisValidStateSampler : public GradientValidStateSampler
-        {
-        public:
-            GradientMedialAxisValidStateSampler(const SpaceInformation *si, double epsilon=0.1);
-            ~GradientMedialAxisValidStateSampler() override = default;
-
-            virtual bool sampleWithEpsilon(State *state, double epsilon);
-        };
-    }
+    dof_ = si->getStateDimension();
 }
 
-#endif
+bool ompl::base::GradientValidStateSampler::sample(State *state)
+{
+    return sampleWithEpsilon(state, epsilon_);
+}
+
+bool ompl::base::GradientValidStateSampler::sampleNear(State *state, const State *near, double distance)
+{
+    // Just ignore everything. 
+    return sampleWithEpsilon(state, epsilon_);
+}

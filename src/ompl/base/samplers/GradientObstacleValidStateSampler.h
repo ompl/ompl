@@ -34,8 +34,8 @@
 
 /* Author: Bryce Willey */
 
-#ifndef OMPL_BASE_SAMPLERS_GRADIENT_MEDIAL_AXIS_VALID_STATE_SAMPLER_
-#define OMPL_BASE_SAMPLERS_GRADIENT_MEDIAL_AXIS_VALID_STATE_SAMPLER_
+#ifndef OMPL_BASE_SAMPLERS_GRADIENT_OBSTACLE_VALID_STATE_SAMPLER_
+#define OMPL_BASE_SAMPLERS_GRADIENT_OBSTACLE_VALID_STATE_SAMPLER_
 
 #include "ompl/base/StateSampler.h"
 #include "ompl/base/samplers/GradientValidStateSampler.h"
@@ -44,16 +44,16 @@ namespace ompl
 {
     namespace base
     {
-        OMPL_CLASS_FORWARD(GradientMedialAxisValidStateSampler);
+        OMPL_CLASS_FORWARD(GradientObstacleValidStateSampler);
 
         /** \brief A state sampler that uses gradient descent to sample along
          *         the medial axis of a cost.
          */
-        class GradientMedialAxisValidStateSampler : public GradientValidStateSampler
+        class GradientObstacleValidStateSampler : public GradientValidStateSampler
         {
         public:
-            GradientMedialAxisValidStateSampler(const SpaceInformation *si, double epsilon=0.1);
-            ~GradientMedialAxisValidStateSampler() override = default;
+            GradientObstacleValidStateSampler(const SpaceInformation *si, double epsilon=0.1);
+            ~GradientObstacleValidStateSampler() override = default;
 
             virtual bool sampleWithEpsilon(State *state, double epsilon);
         };

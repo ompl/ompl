@@ -34,28 +34,52 @@
 
 /* Author: Bryce Willey */
 
-#ifndef OMPL_BASE_SAMPLERS_GRADIENT_MEDIAL_AXIS_VALID_STATE_SAMPLER_
-#define OMPL_BASE_SAMPLERS_GRADIENT_MEDIAL_AXIS_VALID_STATE_SAMPLER_
+#ifndef OMPL_BASE_SAMPLERS_GRADIENT_VALID_STATE_SAMPLER_
+#define OMPL_BASE_SAMPLERS_GRADIENT_VALID_STATE_SAMPLER_
 
 #include "ompl/base/StateSampler.h"
-#include "ompl/base/samplers/GradientValidStateSampler.h"
+
+// We need to be able to sample with a cost.
+#include "ompl/base/Cost.h"
+
+// For std::function
+#include <functional>
+
+// For the collision info struct and the existing definition of a Jacobian Function.
+#include "ompl/base/objectives/CollisionEvaluator.h"
+
+#include <fstream>
+#include <iostream>
 
 namespace ompl
 {
     namespace base
     {
-        OMPL_CLASS_FORWARD(GradientMedialAxisValidStateSampler);
+        OMPL_CLASS_FORWARD(GradientValidStateSampler);
 
         /** \brief A state sampler that uses gradient descent to sample along
          *         the medial axis of a cost.
          */
-        class GradientMedialAxisValidStateSampler : public GradientValidStateSampler
+        class GradientValidStateSampler : public ValidStateSampler
         {
         public:
-            GradientMedialAxisValidStateSampler(const SpaceInformation *si, double epsilon=0.1);
-            ~GradientMedialAxisValidStateSampler() override = default;
+            GradientValidStateSampler(const SpaceInformation *si, double epsilon=0.1);
+            ~GradientValidStateSampler() override = default;
 
-            virtual bool sampleWithEpsilon(State *state, double epsilon);
+            bool sample(State *state) override;
+        
+            virtual bool sampleWithEpsilon(State *state, double epsilon)=0;
+
+            /**GradientValidStateSampler.1
+             * TODO(brycew): why does this need to be implemented? Figure out a way around.
+             */
+            bool sampleNear(State *state, const State *near, double distance) override;
+
+        protected:
+            double epsilon_ = 0.1;
+            StateSamplerPtr sampler_;
+            unsigned int dof_;
+            std::ofstream of_;
         };
     }
 }
