@@ -172,6 +172,20 @@ void ompl::base::ConstrainedStateSpace::setup()
     // Call again to make sure information propagates properly to both wrapper
     // and underlying space.
     WrapperStateSpace::setup();
+
+    auto *state = space_->allocState();
+    bool flag = true;
+    for (unsigned int i = 1; i < space_->getDimension() && flag; ++i)
+    {
+        std::size_t newStride = space_->getValueAddressAtIndex(state, i) - space_->getValueAddressAtIndex(state, i - 1);
+        flag = newStride == 1;
+    }
+
+    space_->freeState(state);
+
+    if (!flag)
+        throw ompl::Exception("ompl::base::ConstrainedStateSpace::setup(): "
+                              "Stride length of member variables != 1, cannot translate into dense vector.");
 }
 
 void ompl::base::ConstrainedStateSpace::clear()

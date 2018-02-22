@@ -63,7 +63,8 @@ def getPositions(pose, linkLength, color='red'):
 
 def drawEnvironment(env):
     ax.clear()
-    plt.gca().add_patch(env)
+    if env:
+        plt.gca().add_patch(env)
 
 def drawPose(index, env, poses, linkLength):
     drawEnvironment(env)
@@ -90,8 +91,14 @@ if __name__ == '__main__':
         exit(1)
 
     dims = int(argv[1])
-    coords = np.loadtxt('environment_%d.dat' % dims)
-    env = PathPatch(Path(coords), facecolor='none', edgecolor='black')
+
+    env = None
+    try:
+        coords = np.loadtxt('environment_%d.dat' % dims)
+        env = PathPatch(Path(coords), facecolor='none', edgecolor='black')
+    except ValueError:
+        pass
+
     poses = np.loadtxt('kinematic_path_%d.dat' % dims)
     linkLength = 1. / dims
 

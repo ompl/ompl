@@ -53,6 +53,7 @@ if (OMPL_BUILD_DEMOS)
     # add_ompl_demo(demo_ConstrainedPlanningTest ConstrainedPlanningTest.cpp)
     add_ompl_demo(demo_ConstrainedPlanningSphere constraint/ConstrainedPlanningSphere.cpp)
     add_ompl_demo(demo_ConstrainedPlanningImplicitChain constraint/ConstrainedPlanningImplicitChain.cpp)
+    add_ompl_demo(demo_ConstrainedPlanningKinematicChain constraint/ConstrainedPlanningKinematicChain.cpp)
   endif()
 
   if (OMPL_EXTENSION_OPENDE)

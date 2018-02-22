@@ -167,6 +167,7 @@ struct ConstrainedOptions
     double delta;
     double tolerance;
     unsigned int tries;
+    double range;
 };
 
 void addConstrainedOptions(po::options_description &desc, struct ConstrainedOptions *options)
@@ -174,6 +175,8 @@ void addConstrainedOptions(po::options_description &desc, struct ConstrainedOpti
     auto delta_msg = "Step-size for discrete geodesic on manifold.";
     auto tolerance_msg = "Constraint satisfaction tolerance.";
     auto tries_msg = "Maximum number sample tries per sample.";
+    auto range_msg = "Planner `range` value for planners that support this parameter. Automatically determined "
+                     "otherwise (when 0).";
 
     desc.add_options()("delta,d", po::value<double>(&options->delta)->default_value(om::CONSTRAINED_STATE_SPACE_DELTA),
                        delta_msg);
@@ -183,6 +186,7 @@ void addConstrainedOptions(po::options_description &desc, struct ConstrainedOpti
     desc.add_options()(
         "tries", po::value<unsigned int>(&options->tries)->default_value(om::CONSTRAINT_PROJECTION_MAX_ITERATIONS),
         tries_msg);
+    desc.add_options()("range,r", po::value<double>(&options->range)->default_value(0), range_msg);
 }
 
 struct AtlasOptions
@@ -259,6 +263,7 @@ public:
                 break;
         }
 
+        css->setup();
         ss = std::make_shared<og::SimpleSetup>(csi);
     }
 
@@ -299,8 +304,8 @@ public:
         ob::ScopedState<> sstart(css);
         ob::ScopedState<> sgoal(css);
 
-        sstart->as<ob::ProjectedStateSpace::StateType>()->vectorView() = start;
-        sgoal->as<ob::ProjectedStateSpace::StateType>()->vectorView() = goal;
+        sstart->as<ob::ConstrainedStateSpace::StateType>()->vectorView() = start;
+        sgoal->as<ob::ConstrainedStateSpace::StateType>()->vectorView() = goal;
 
         switch (type)
         {
@@ -317,62 +322,78 @@ public:
         ss->setStartAndGoalStates(sstart, sgoal);
     }
 
-    void setPlanner(enum PLANNER_TYPE planner, const std::string &projection = "")
+    template <typename _T>
+    std::shared_ptr<_T> createPlanner()
+    {
+        auto &&planner = std::make_shared<_T>(csi);
+        return planner;
+    }
+
+    template <typename _T>
+    std::shared_ptr<_T> createPlannerRange()
+    {
+        auto &&planner = createPlanner<_T>();
+
+        if (c_opt.range == 0)
+        {
+            if (type == AT || type == TB)
+                planner->setRange(css->as<ob::AtlasStateSpace>()->getRho_s());
+        }
+        else
+            planner->setRange(c_opt.range);
+
+        return planner;
+    }
+
+    template <typename _T>
+    std::shared_ptr<_T> createPlannerRangeProj(const std::string &projection)
     {
         const bool isProj = projection != "";
+        auto &&planner = createPlannerRange<_T>();
 
+        if (isProj)
+            planner->setProjectionEvaluator(projection);
+
+        return planner;
+    }
+
+    void setPlanner(enum PLANNER_TYPE planner, const std::string &projection = "")
+    {
         switch (planner)
         {
             case RRT:
-                pp = std::make_shared<og::RRT>(csi);
+                pp = createPlannerRange<og::RRT>();
                 break;
             case RRTConnect:
-                pp = std::make_shared<og::RRTConnect>(csi);
+                pp = createPlannerRange<og::RRTConnect>();
                 break;
             case RRTstar:
-                pp = std::make_shared<og::RRTstar>(csi);
+                pp = createPlannerRange<og::RRTstar>();
                 break;
             case EST:
-                pp = std::make_shared<og::EST>(csi);
+                pp = createPlannerRange<og::EST>();
                 break;
             case BiEST:
-                pp = std::make_shared<og::BiEST>(csi);
+                pp = createPlannerRange<og::BiEST>();
                 break;
             case ProjEST:
-            {
-                auto est = std::make_shared<og::ProjEST>(csi);
-                if (isProj)
-                    est->setProjectionEvaluator(projection);
-                pp = est;
+                pp = createPlannerRangeProj<og::ProjEST>(projection);
                 break;
-            }
             case BITstar:
-                pp = std::make_shared<og::BITstar>(csi);
+                pp = createPlanner<og::BITstar>();
                 break;
             case PRM:
-                pp = std::make_shared<og::PRM>(csi);
+                pp = createPlanner<og::PRM>();
                 break;
             case SPARS:
-                pp = std::make_shared<og::SPARS>(csi);
+                pp = createPlanner<og::SPARS>();
                 break;
             case KPIECE:
-            {
-                auto kpiece = std::make_shared<og::KPIECE1>(csi);
-                if (isProj)
-                    kpiece->setProjectionEvaluator(projection);
-                if (type == AT || type == TB)
-                    kpiece->setRange(css->as<ob::AtlasStateSpace>()->getRho_s());
-                pp = kpiece;
+                pp = createPlannerRangeProj<og::KPIECE1>(projection);
                 break;
-            }
             case BKPIECE:
-            {
-                auto kpiece = std::make_shared<og::BKPIECE1>(csi);
-                if (isProj)
-                    kpiece->setProjectionEvaluator(projection);
-                pp = kpiece;
+                pp = createPlannerRangeProj<og::BKPIECE1>(projection);
                 break;
-            }
         }
 
         ss->setPlanner(pp);
