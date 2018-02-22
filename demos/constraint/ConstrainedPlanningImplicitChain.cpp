@@ -114,6 +114,7 @@ public:
       : ob::Constraint(3 * links, links + extra)
       , links_(links)
       , length_(LINK_LENGTH)
+      , width_(WALL_WIDTH)
       , radius_(links - 2)
       , jointRadius_(JOINT_RADIUS)
       , obstacles_(obstacles)
@@ -343,11 +344,13 @@ public:
         file << jointRadius_ << std::endl;
         file << length_ << std::endl;
         file << radius_ << std::endl;
+        file << width_ << std::endl;
     }
 
 private:
     const unsigned int links_;      // Number of chain links.
     const double length_;           // Length of one link.
+    const double width_;            // Width of obstacle wall.
     const double radius_;           // Radius of the sphere that the end effector is constrained to.
     const double jointRadius_;      // Size of joints
     const unsigned int obstacles_;  // Number of obstacles on sphere surface
@@ -356,12 +359,16 @@ private:
 };
 
 void chainPlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner, unsigned int links,
-                   unsigned int obstacles, unsigned int extra)
+                   unsigned int obstacles, unsigned int extra, struct ConstrainedOptions &c_opt,
+                   struct AtlasOptions &a_opt)
 {
     // Create a shared pointer to our constraint.
     auto constraint = std::make_shared<ChainConstraint>(links, obstacles, extra);
 
     ConstrainedProblem cp(space, constraint->createSpace(), constraint);
+    cp.setConstrainedOptions(c_opt);
+    cp.setAtlasOptions(a_opt);
+
     cp.css->registerProjection("chain", constraint->getProjection(cp.css));
 
     Eigen::VectorXd start, goal;
@@ -452,6 +459,9 @@ int main(int argc, char **argv)
     unsigned int obstacles = 0;
     unsigned int extra = 1;
 
+    struct ConstrainedOptions c_opt;
+    struct AtlasOptions a_opt;
+
     po::options_description desc("Options");
     desc.add_options()("help,h", help_msg);
     desc.add_options()("output,o", po::bool_switch(&output)->default_value(false), output_msg);
@@ -461,6 +471,8 @@ int main(int argc, char **argv)
 
     addSpaceOption(desc, &space);
     addPlannerOption(desc, &planner);
+    addConstrainedOptions(desc, &c_opt);
+    addAtlasOptions(desc, &a_opt);
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -472,7 +484,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    chainPlanning(output, space, planner, links, obstacles, extra);
+    chainPlanning(output, space, planner, links, obstacles, extra, c_opt, a_opt);
 
     return 0;
 }

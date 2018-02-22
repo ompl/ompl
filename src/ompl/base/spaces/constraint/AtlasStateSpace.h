@@ -53,7 +53,6 @@ namespace ompl
 {
     namespace magic
     {
-        static const unsigned int ATLAS_STATE_SAMPLER_TRIES = 50;
         static const double ATLAS_STATE_SPACE_EPSILON = 0.2;
         static const double ATLAS_STATE_SPACE_LAMBDA = 3.0;
         static const double ATLAS_STATE_SPACE_RHO_MULTIPLIER = 5;
@@ -245,6 +244,19 @@ namespace ompl
                 maxChartsPerExtension_ = charts;
             }
 
+            /** \brief Sets whether biased sampling should be used or not,
+             * according the bias function set by setBiasFunction(). */
+            void setBias(bool bias)
+            {
+                bias_ = bias;
+            }
+
+            /** \brief Sets whether the atlas should separate charts or not. */
+            void setSeparated(bool separate)
+            {
+                separate_ = separate;
+            }
+
             /** \brief Get epsilon. */
             double getEpsilon() const
             {
@@ -285,6 +297,18 @@ namespace ompl
             unsigned int getMaxChartsPerExtension() const
             {
                 return maxChartsPerExtension_;
+            }
+
+            /** \brief Returns whether the atlas is using biased sampling or not. */
+            bool isBiased() const
+            {
+                return bias_;
+            }
+
+            /** \brief Returns whether the atlas is separating charts or not. */
+            bool isSeparated() const
+            {
+                return separate_;
             }
 
             /** \brief Wrapper for newChart(). Charts created this way will
@@ -388,13 +412,13 @@ namespace ompl
             double lambda_;
 
             /** \brief Use a biased sampler to sample charts */
-            const bool bias_;
+            bool bias_;
 
             /** \brief Function to bias chart sampling */
             AtlasChartBiasFunction biasFunction_;
 
             /** \brief Enable or disable halfspace separation of the charts. */
-            const bool separate_;
+            bool separate_;
 
             /** \brief Sampling radius within a chart. Inferred from rho and exploration parameters. */
             mutable double rho_s_;

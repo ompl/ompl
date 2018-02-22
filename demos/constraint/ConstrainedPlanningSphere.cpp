@@ -107,7 +107,8 @@ bool obstacles(const ob::State *state)
     return true;
 }
 
-void spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner)
+void spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner, struct ConstrainedOptions &c_opt,
+                    struct AtlasOptions &a_opt)
 {
     // Create the ambient space state space for the problem.
     auto rvss = std::make_shared<ob::RealVectorStateSpace>(3);
@@ -122,6 +123,9 @@ void spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planne
     auto constraint = std::make_shared<SphereConstraint>();
 
     ConstrainedProblem cp(space, rvss, constraint);
+    cp.setConstrainedOptions(c_opt);
+    cp.setAtlasOptions(a_opt);
+
     cp.css->registerProjection("sphere", std::make_shared<SphereProjection>(cp.css));
 
     Eigen::VectorXd start(3), goal(3);
@@ -220,12 +224,17 @@ int main(int argc, char **argv)
     enum SPACE_TYPE space = PJ;
     enum PLANNER_TYPE planner = RRT;
 
+    struct ConstrainedOptions c_opt;
+    struct AtlasOptions a_opt;
+
     po::options_description desc("Options");
     desc.add_options()("help,h", help_msg);
     desc.add_options()("output,o", po::bool_switch(&output)->default_value(false), output_msg);
 
     addSpaceOption(desc, &space);
     addPlannerOption(desc, &planner);
+    addConstrainedOptions(desc, &c_opt);
+    addAtlasOptions(desc, &a_opt);
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -237,7 +246,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    spherePlanning(output, space, planner);
+    spherePlanning(output, space, planner, c_opt, a_opt);
 
     return 0;
 }

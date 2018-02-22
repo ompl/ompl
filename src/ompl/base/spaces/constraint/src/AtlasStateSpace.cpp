@@ -61,7 +61,7 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
     AtlasChart *c;
 
     // Sampling a point on the manifold.
-    unsigned int tries = ompl::magic::ATLAS_STATE_SAMPLER_TRIES;
+    unsigned int tries = ompl::magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS;
     do
     {
         // Rejection sampling to find a point inside a chart's polytope.
@@ -119,7 +119,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     // Sample a point from the starting chart.
     c->psiInverse(n, ru);
 
-    unsigned int tries = ompl::magic::ATLAS_STATE_SAMPLER_TRIES;
+    unsigned int tries = ompl::magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS;
     Eigen::VectorXd uoffset(atlas_->getManifoldDimension());
 
     do
@@ -171,7 +171,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
     c->psiInverse(m, ru);
 
     // Sample a point in a normal distribution on the starting chart.
-    unsigned int tries = ompl::magic::ATLAS_STATE_SAMPLER_TRIES;
+    unsigned int tries = ompl::magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS;
     Eigen::VectorXd rand(k);
 
     const double stdDevClamped = std::min(stdDev, atlas_->getRho_s());

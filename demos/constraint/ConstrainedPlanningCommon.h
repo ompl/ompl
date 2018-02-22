@@ -34,6 +34,9 @@
 
 /* Author: Zachary Kingston */
 
+#ifndef OMPL_DEMO_CONSTRAINED_COMMON_
+#define OMPL_DEMO_CONSTRAINED_COMMON_
+
 #include <iostream>
 #include <fstream>
 
@@ -65,6 +68,7 @@
 namespace po = boost::program_options;
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
+namespace om = ompl::magic;
 
 enum SPACE_TYPE
 {
@@ -72,11 +76,6 @@ enum SPACE_TYPE
     AT = 1,
     TB = 2
 };
-
-auto space_msg = "Choose which constraint handling methodology to use. One of:\n"
-                 "PJ - Projection (Default), "
-                 "AT - Atlas, "
-                 "TB - Tangent Bundle.";
 
 std::istream &operator>>(std::istream &in, enum SPACE_TYPE &type)
 {
@@ -96,6 +95,11 @@ std::istream &operator>>(std::istream &in, enum SPACE_TYPE &type)
 
 void addSpaceOption(po::options_description &desc, enum SPACE_TYPE *space)
 {
+    auto space_msg = "Choose which constraint handling methodology to use. One of:\n"
+                     "PJ - Projection (Default), "
+                     "AT - Atlas, "
+                     "TB - Tangent Bundle.";
+
     desc.add_options()("space,s", po::value<enum SPACE_TYPE>(space), space_msg);
 }
 
@@ -113,13 +117,6 @@ enum PLANNER_TYPE
     KPIECE,
     BKPIECE
 };
-
-auto planner_msg = "Choose which motion planner to use. One of:\n"
-                   "RRT (Default), RRTConnect, RRTstar, "
-                   "EST, BiEST, ProjEST, "
-                   "BITstar, "
-                   "PRM, SPARS, "
-                   "KPIECE, BKPIECE.";
 
 std::istream &operator>>(std::istream &in, enum PLANNER_TYPE &type)
 {
@@ -155,7 +152,84 @@ std::istream &operator>>(std::istream &in, enum PLANNER_TYPE &type)
 
 void addPlannerOption(po::options_description &desc, enum PLANNER_TYPE *planner)
 {
+    auto planner_msg = "Choose which motion planner to use. One of:\n"
+                       "RRT (Default), RRTConnect, RRTstar, "
+                       "EST, BiEST, ProjEST, "
+                       "BITstar, "
+                       "PRM, SPARS, "
+                       "KPIECE, BKPIECE.";
+
     desc.add_options()("planner,p", po::value<enum PLANNER_TYPE>(planner), planner_msg);
+}
+
+struct ConstrainedOptions
+{
+    double delta;
+    double tolerance;
+    unsigned int tries;
+};
+
+void addConstrainedOptions(po::options_description &desc, struct ConstrainedOptions *options)
+{
+    auto delta_msg = "Step-size for discrete geodesic on manifold.";
+    auto tolerance_msg = "Constraint satisfaction tolerance.";
+    auto tries_msg = "Maximum number sample tries per sample.";
+
+    desc.add_options()("delta,d", po::value<double>(&options->delta)->default_value(om::CONSTRAINED_STATE_SPACE_DELTA),
+                       delta_msg);
+    desc.add_options()("tolerance",
+                       po::value<double>(&options->tolerance)->default_value(om::CONSTRAINT_PROJECTION_TOLERANCE),
+                       tolerance_msg);
+    desc.add_options()(
+        "tries", po::value<unsigned int>(&options->tries)->default_value(om::CONSTRAINT_PROJECTION_MAX_ITERATIONS),
+        tries_msg);
+}
+
+struct AtlasOptions
+{
+    double epsilon;
+    double rho;
+    double exploration;
+    double lambda;
+    double alpha;
+    bool bias;
+    bool separate;
+    unsigned int charts;
+};
+
+void addAtlasOptions(po::options_description &desc, struct AtlasOptions *options)
+{
+    auto epsilon_msg = "Maximum distance from an atlas chart to the manifold. Must be positive.";
+    auto rho_msg = "Maximum radius for an atlas chart. Must be positive.";
+    auto exploration_msg = "Value in [0, 1] which tunes balance of refinement and exploration in "
+                           "atlas sampling.";
+    auto lambda_msg = "Maximum `wandering` allowed during atlas traversal. Must be greater than 1.";
+    auto alpha_msg = "Maximum angle between an atlas chart and the manifold. Must be in [0, PI/2].";
+    auto bias_msg = "Sets whether the atlas should use frontier-biased chart sampling rather than "
+                    "uniform.";
+    auto separate_msg = "Sets that the atlas should not compute chart separating halfspaces.";
+    auto charts_msg = "Maximum number of atlas charts that can be generated during one manifold "
+                      "traversal.";
+
+    desc.add_options()("epsilon", po::value<double>(&options->epsilon)->default_value(om::ATLAS_STATE_SPACE_EPSILON),
+                       epsilon_msg);
+    desc.add_options()("rho",
+                       po::value<double>(&options->rho)
+                           ->default_value(om::CONSTRAINED_STATE_SPACE_DELTA * om::ATLAS_STATE_SPACE_RHO_MULTIPLIER),
+                       rho_msg);
+    desc.add_options()("exploration",
+                       po::value<double>(&options->exploration)->default_value(om::ATLAS_STATE_SPACE_EXPLORATION),
+                       exploration_msg);
+    desc.add_options()("lambda", po::value<double>(&options->lambda)->default_value(om::ATLAS_STATE_SPACE_LAMBDA),
+                       lambda_msg);
+    desc.add_options()("alpha", po::value<double>(&options->alpha)->default_value(om::ATLAS_STATE_SPACE_ALPHA),
+                       alpha_msg);
+    desc.add_options()("bias", po::bool_switch(&options->bias)->default_value(false), bias_msg);
+    desc.add_options()("no-separate", po::bool_switch(&options->separate)->default_value(false), separate_msg);
+    desc.add_options()(
+        "charts",
+        po::value<unsigned int>(&options->charts)->default_value(om::ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION),
+        charts_msg);
 }
 
 class ConstrainedProblem
@@ -186,6 +260,36 @@ public:
         }
 
         ss = std::make_shared<og::SimpleSetup>(csi);
+    }
+
+    void setConstrainedOptions(struct ConstrainedOptions &opt)
+    {
+        c_opt = opt;
+
+        constraint->setTolerance(opt.tolerance);
+        constraint->setMaxIterations(opt.tries);
+
+        css->setDelta(opt.delta);
+    }
+
+    void setAtlasOptions(struct AtlasOptions &opt)
+    {
+        a_opt = opt;
+
+        if (!(type == AT || type == TB))
+            return;
+
+        auto &&atlas = css->as<ob::AtlasStateSpace>();
+        atlas->setExploration(opt.exploration);
+        atlas->setEpsilon(opt.epsilon);
+        atlas->setRho(opt.rho);
+        atlas->setAlpha(opt.alpha);
+        atlas->setLambda(opt.lambda);
+        atlas->setMaxChartsPerExtension(opt.charts);
+        atlas->setBias(opt.bias);
+        atlas->setSeparated(!opt.separate);
+
+        atlas->setup();
     }
 
     void setStartAndGoalStates(const Eigen::Ref<const Eigen::VectorXd> &start,
@@ -285,4 +389,9 @@ public:
     ob::PlannerPtr pp;
 
     og::SimpleSetupPtr ss;
+
+    struct ConstrainedOptions c_opt;
+    struct AtlasOptions a_opt;
 };
+
+#endif
