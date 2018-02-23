@@ -102,8 +102,8 @@ void chainPlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner
 
     Eigen::VectorXd start, goal;
     start = Eigen::VectorXd::Constant(links, boost::math::constants::pi<double>() / (double)(links + 1));
-    goal = Eigen::VectorXd::Constant(links, 0);
-    goal[0] = boost::math::constants::pi<double>() / 2.;
+    goal = Eigen::VectorXd::Constant(links, -boost::math::constants::pi<double>() / (double)(links + 1));
+    goal[0] += boost::math::constants::pi<double>();
 
     cp.setStartAndGoalStates(start, goal);
     cp.ss->setStateValidityChecker(std::make_shared<ConstrainedKinematicChainValidityChecker>(cp.csi));
