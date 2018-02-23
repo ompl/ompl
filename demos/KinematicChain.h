@@ -37,7 +37,7 @@
 #ifndef OMPL_DEMO_KINEMATIC_CHAIN_
 #define OMPL_DEMO_KINEMATIC_CHAIN_
 
-#include <ompl/base/spaces/SO2StateSpace.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
 #include <ompl/geometric/planners/est/EST.h>
@@ -85,15 +85,18 @@ protected:
     ompl::base::ProjectionMatrix projectionMatrix_;
 };
 
-class KinematicChainSpace : public ompl::base::CompoundStateSpace
+class KinematicChainSpace : public ompl::base::RealVectorStateSpace
 {
 public:
     KinematicChainSpace(unsigned int numLinks, double linkLength, Environment *env = nullptr)
-      : linkLength_(linkLength), environment_(env)
+      : ompl::base::RealVectorStateSpace(numLinks), linkLength_(linkLength), environment_(env)
     {
-        for (unsigned int i = 0; i < numLinks; ++i)
-            addSubspace(std::make_shared<ompl::base::SO2StateSpace>(), 1.);
-        lock();
+        ompl::base::RealVectorBounds bounds(numLinks);
+        bounds.setLow(-boost::math::constants::pi<double>());
+        bounds.setHigh(boost::math::constants::pi<double>());
+        setBounds(bounds);
+
+        type_ = ompl::base::STATE_SPACE_SO2;
     }
 
     void registerProjections() override
@@ -107,20 +110,78 @@ public:
         const auto *cstate2 = state2->as<StateType>();
         double theta1 = 0., theta2 = 0., dx = 0., dy = 0., dist = 0.;
 
-        for (unsigned int i = 0; i < getSubspaceCount(); ++i)
+        for (unsigned int i = 0; i < dimension_; ++i)
         {
-            theta1 += cstate1->as<ompl::base::SO2StateSpace::StateType>(i)->value;
-            theta2 += cstate2->as<ompl::base::SO2StateSpace::StateType>(i)->value;
+            theta1 += cstate1->values[i];
+            theta2 += cstate2->values[i];
             dx += cos(theta1) - cos(theta2);
             dy += sin(theta1) - sin(theta2);
             dist += sqrt(dx * dx + dy * dy);
         }
+
         return dist * linkLength_;
     }
+
+    void enforceBounds(ompl::base::State *state) const override
+    {
+        auto *statet = state->as<StateType>();
+
+        for (unsigned int i = 0; i < dimension_; ++i)
+        {
+            double v = fmod(statet->values[i], 2.0 * boost::math::constants::pi<double>());
+            if (v < -boost::math::constants::pi<double>())
+                v += 2.0 * boost::math::constants::pi<double>();
+            else if (v >= boost::math::constants::pi<double>())
+                v -= 2.0 * boost::math::constants::pi<double>();
+            statet->values[i] = v;
+        }
+    }
+
+    bool equalStates(const ompl::base::State *state1, const ompl::base::State *state2) const override
+    {
+        bool flag = true;
+        const auto *cstate1 = state1->as<StateType>();
+        const auto *cstate2 = state2->as<StateType>();
+
+        for (unsigned int i = 0; i < dimension_ && flag; ++i)
+            flag &= fabs(cstate1->values[i] - cstate2->values[i]) < std::numeric_limits<double>::epsilon() * 2.0;
+
+        return flag;
+    }
+
+    void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t,
+                     ompl::base::State *state) const override
+    {
+        const auto *fromt = from->as<StateType>();
+        const auto *tot = to->as<StateType>();
+        auto *statet = state->as<StateType>();
+
+        for (unsigned int i = 0; i < dimension_; ++i)
+        {
+            double diff = tot->values[i] - fromt->values[i];
+            if (fabs(diff) <= boost::math::constants::pi<double>())
+                statet->values[i] = fromt->values[i] + diff * t;
+            else
+            {
+                if (diff > 0.0)
+                    diff = 2.0 * boost::math::constants::pi<double>() - diff;
+                else
+                    diff = -2.0 * boost::math::constants::pi<double>() - diff;
+
+                statet->values[i] = fromt->values[i] - diff * t;
+                if (statet->values[i] > boost::math::constants::pi<double>())
+                    statet->values[i] -= 2.0 * boost::math::constants::pi<double>();
+                else if (statet->values[i] < -boost::math::constants::pi<double>())
+                    statet->values[i] += 2.0 * boost::math::constants::pi<double>();
+            }
+        }
+    }
+
     double linkLength() const
     {
         return linkLength_;
     }
+
     const Environment *environment() const
     {
         return environment_;
@@ -157,7 +218,7 @@ protected:
         segments.reserve(n + 1);
         for (unsigned int i = 0; i < n; ++i)
         {
-            theta += s->as<ompl::base::SO2StateSpace::StateType>(i)->value;
+            theta += s->values[i];
             xN = x + cos(theta) * linkLength;
             yN = y + sin(theta) * linkLength;
             segments.emplace_back(x, y, xN, yN);

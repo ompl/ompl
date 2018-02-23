@@ -173,6 +173,7 @@ void ompl::base::ConstrainedStateSpace::setup()
     // and underlying space.
     WrapperStateSpace::setup();
 
+    // Check if stride length of underlying state variables is 1
     auto *state = space_->allocState();
     bool flag = true;
     for (unsigned int i = 1; i < space_->getDimension() && flag; ++i)
@@ -180,7 +181,6 @@ void ompl::base::ConstrainedStateSpace::setup()
         std::size_t newStride = space_->getValueAddressAtIndex(state, i) - space_->getValueAddressAtIndex(state, i - 1);
         flag = newStride == 1;
     }
-
     space_->freeState(state);
 
     if (!flag)

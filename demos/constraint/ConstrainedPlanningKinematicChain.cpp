@@ -62,29 +62,24 @@ public:
 
     void function(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::VectorXd> out) const override
     {
-        Eigen::Vector2d xv = Eigen::Vector2d::Zero();
-        Eigen::Vector2d xN = Eigen::Vector2d::Zero();
+        Eigen::Vector2d e(0), eN(0);
+        double theta = 0.;
 
-        double theta = 0;
-        const unsigned int n = x.size();
-
-        for (unsigned int i = 0; i < n; ++i)
+        for (unsigned int i = 0; i < x.size(); ++i)
         {
             theta += x[i];
-            xN[0] = xv[0] + cos(theta) * linkLength_;
-            xN[1] = xv[1] + sin(theta) * linkLength_;
-            xv = xN;
+            eN[0] = e[0] + cos(theta) * linkLength_;
+            eN[1] = e[1] + sin(theta) * linkLength_;
+            e = eN;
         }
-        xN[0] = xv[0] + cos(theta) * 0.001;
-        xN[1] = xv[1] + sin(theta) * 0.001;
 
-        out[0] = xN.norm() - 0.636911;
+        out[0] = e[0];
     }
 
-    void jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const override
-    {
-        out = x.transpose().normalized();
-    }
+    // void jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const override
+    // {
+    //     out[]
+    // }
 
 private:
     double linkLength_;
@@ -107,7 +102,8 @@ void chainPlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner
 
     Eigen::VectorXd start, goal;
     start = Eigen::VectorXd::Constant(links, boost::math::constants::pi<double>() / (double)(links + 1));
-    goal = Eigen::VectorXd::Constant(links, -boost::math::constants::pi<double>() / (double)(links + 1));
+    goal = Eigen::VectorXd::Constant(links, 0);
+    goal[0] = boost::math::constants::pi<double>() / 2.;
 
     cp.setStartAndGoalStates(start, goal);
     cp.ss->setStateValidityChecker(std::make_shared<ConstrainedKinematicChainValidityChecker>(cp.csi));
