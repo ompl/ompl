@@ -433,7 +433,8 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     // Create a scratch state to use for movement.
     auto &&scratch = cloneState(from)->as<StateType>();
     auto &&x_scratch = scratch->vectorView();
-    Eigen::VectorXd x_temp(n_);
+    auto &&temp = allocState()->as<StateType>();
+    auto &&x_temp = temp->vectorView();
 
     // Project from and to points onto the chart
     Eigen::VectorXd u_j(k_), u_b(k_);
@@ -444,7 +445,6 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     std::size_t chartsCreated = 0;
     double dist = 0;
 
-    const double sqDelta = std::pow(delta_, 2);
     double factor = 1;
 
     do
@@ -460,7 +460,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         if (!onManifold)
             break;
 
-        const double step = (x_temp - x_scratch).norm();
+        const double step = distance(scratch, temp);
 
         const bool exceedStepSize = step >= lambda_ * delta_;
         if (exceedStepSize)
@@ -476,7 +476,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         scratch->setChart(c);
 
         const bool valid = interpolate || svc->isValid(scratch);
-        const bool exceedMaxDist = (x_scratch - x_from).norm() > distMax;
+        const bool exceedMaxDist = distance(from, scratch) > distMax;
         const bool exceedWandering = dist > distMax;
         const bool exceedChartLimit = chartsCreated > maxChartsPerExtension_;
         if (!valid || exceedMaxDist || exceedWandering || exceedChartLimit)
@@ -485,7 +485,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         // Check if we left the validity region or polytope of the chart.
         c->phi(u_j, x_temp);
 
-        const bool exceedsEpsilon = (x_scratch - x_temp).squaredNorm() > (epsilon_ * epsilon_);
+        const bool exceedsEpsilon = distance(scratch, temp) > epsilon_;
         const bool exceedsAngle = delta_ / step < cos_alpha_;
         const bool outsidePolytope = !c->inPolytope(u_j);
 
@@ -505,7 +505,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
             c->psiInverse(x_to, u_b);
         }
 
-        done = (u_b - u_j).squaredNorm() <= sqDelta;
+        done = (u_b - u_j).squaredNorm() <= delta_ * delta_;
         factor = 1;
 
         // Keep the state in a list, if requested.
@@ -514,8 +514,9 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
 
     } while (!done);
 
-    const bool ret = done && (x_to - x_scratch).squaredNorm() <= sqDelta;
+    const bool ret = done && distance(to, scratch) <= delta_;
     freeState(scratch);
+    freeState(temp);
 
     return ret;
 }

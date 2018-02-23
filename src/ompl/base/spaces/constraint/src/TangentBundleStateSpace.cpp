@@ -85,7 +85,8 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
     // Create a scratch state to use for movement.
     auto &&scratch = cloneState(from)->as<StateType>();
     auto &&x_scratch = scratch->vectorView();
-    Eigen::VectorXd x_temp(n_);
+    auto &&temp = cloneState(from)->as<StateType>();
+    auto &&x_temp = temp->vectorView();
 
     // Project from and to points onto the chart
     Eigen::VectorXd u_j(k_), u_b(k_);
@@ -103,11 +104,11 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
         u_j += delta_ * (u_b - u_j).normalized();
         c->phi(u_j, x_temp);
 
-        const double step = (x_temp - x_scratch).norm();
+        const double step = distance(temp, scratch);
         dist += step;
 
         const bool valid = interpolate || svc->isValid(scratch);
-        const bool exceedMaxDist = (x_temp - x_from).norm() > distMax || !std::isfinite(dist);
+        const bool exceedMaxDist = distance(temp, from) > distMax || !std::isfinite(dist);
         const bool exceedWandering = dist > distMax;
         const bool exceedChartLimit = chartsCreated > maxChartsPerExtension_;
         if (!valid || exceedMaxDist || exceedWandering || exceedChartLimit)
@@ -151,8 +152,9 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
 
     } while (!done);
 
-    const bool ret = (x_to - x_scratch).squaredNorm() <= sqDelta;
+    const bool ret = distance(to, scratch) <= delta_;
     freeState(scratch);
+    freeState(temp);
 
     return ret;
 }
