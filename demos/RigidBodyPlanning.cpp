@@ -37,6 +37,7 @@
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/geometric/planners/rrt/RRTplus.h>
 #include <ompl/geometric/SimpleSetup.h>
 
 #include <ompl/config.h>
@@ -96,7 +97,10 @@ void plan()
     pdef->setStartAndGoalStates(start, goal);
 
     // create a planner for the defined space
-    auto planner(std::make_shared<og::RRTConnect>(si));
+    auto planner(std::make_shared<og::RRTPlus>(si));
+    planner->setRange(1.0);
+    planner->setGoalBias(0.05);
+    planner->setSubsearchBound(1.0);
 
     // set the problem we are trying to solve for the planner
     planner->setProblemDefinition(pdef);
@@ -156,6 +160,12 @@ void planWithSimpleSetup()
 
     // set the start and goal states
     ss.setStartAndGoalStates(start, goal);
+
+    auto planner(std::make_shared<og::RRTPlus>(ss.getSpaceInformation()));
+    planner->setRange(1.0);
+    planner->setGoalBias(0.05);
+    planner->setSubsearchBound(1.0);
+    ss.setPlanner(planner);
 
     // this call is optional, but we put it in to get more output information
     ss.setup();

@@ -36,6 +36,7 @@
 
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
+#include <ompl/geometric/planners/rrt/RRTplus.h>
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/prm/PRM.h>
@@ -252,6 +253,16 @@ Environment createHornEnvironment(unsigned int d, double eps)
     return env;
 }
 
+// A function that matches the ompl::base::PlannerAllocator type.
+// It will be used in main() to allocate an instance of RRT+
+ompl::base::PlannerPtr myConfiguredPlanner(const ompl::base::SpaceInformationPtr &si)
+{
+    ompl::geometric::RRTPlus *rrt_plus = new ompl::geometric::RRTPlus(si);
+    rrt_plus->setRange(1.0);
+    rrt_plus->setGoalBias(0.05);
+    rrt_plus->setSubsearchBound(60.0);
+    return ompl::base::PlannerPtr(rrt_plus);
+}
 
 int main(int argc, char **argv)
 {
@@ -308,6 +319,9 @@ int main(int argc, char **argv)
     b.addPlanner(std::make_shared<ompl::geometric::KPIECE1>(ss.getSpaceInformation()));
     b.addPlanner(std::make_shared<ompl::geometric::RRT>(ss.getSpaceInformation()));
     b.addPlanner(std::make_shared<ompl::geometric::PRM>(ss.getSpaceInformation()));
+
+    b.addPlannerAllocator(std::bind(&myConfiguredPlanner, std::placeholders::_1));
+
     b.benchmark(request);
     b.saveResultsToFile(boost::str(boost::format("kinematic_%i.log") % numLinks).c_str());
 
