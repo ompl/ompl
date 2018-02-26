@@ -58,12 +58,6 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
     const bool s1sat = ss_.getConstraint()->isSatisfied(s1);
     const bool s2sat = ss_.getConstraint()->isSatisfied(s2);
     const bool travel = ss_.traverseManifold(s1, s2);
-
-    if (!travel)
-    {
-        const bool travel = ss_.traverseManifold(s1, s2);
-    }
-
     return s1sat && s2sat && travel;
 }
 
