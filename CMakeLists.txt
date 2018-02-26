@@ -141,6 +141,24 @@ if (FLANN_FOUND)
     link_directories(${FLANN_LIBRARY_DIRS})
 endif()
 
+# Numpy is used to convert Eigen matrices/vectors to numpy arrays
+if(PYTHON_FOUND AND EIGEN3_FOUND)
+    find_python_module(numpy)
+    if (PY_NUMPY AND NOT Boost_VERSION VERSION_LESS "106300")
+        if (PYTHON_VERSION_MAJOR EQUAL 3)
+            set(_Boost_NUMPY3_HEADERS "boost/python/numpy.hpp")
+            find_package(Boost COMPONENTS numpy3)
+            set(Boost_NUMPY_LIBRARY "${Boost_NUMPY3_LIBRARY}")
+        else()
+            find_package(Boost COMPONENTS numpy)
+        endif()
+        if(Boost_FOUND)
+            set(OMPL_HAVE_NUMPY 1)
+            include_directories("${PY_NUMPY}/core/include")
+        endif()
+    endif()
+endif()
+
 # R is needed for running Planner Arena locally
 find_program(R_EXEC R)
 

@@ -1,12 +1,4 @@
 option(OMPL_BUILD_DEMOS "Build OMPL demos" ON)
-find_package(PNG)
-find_path(PNGXX png.hpp PATH_SUFFIXES "png++")
-message(${PNGXX})
-if (PNGXX AND PNG_LIBRARIES)
-    set(OMPL_HAVE_PNGXX 1)
-    message(${PNG_LIBRARIES})
-    include_directories(PNGXX)
-endif()
 
 if (OMPL_BUILD_DEMOS)
 
@@ -16,8 +8,7 @@ if (OMPL_BUILD_DEMOS)
       ompl
       ${Boost_FILESYSTEM_LIBRARY}
       ${Boost_SYSTEM_LIBRARY}
-      ${Boost_PROGRAM_OPTIONS_LIBRARY}
-      ${PNG_LIBRARIES})
+      ${Boost_PROGRAM_OPTIONS_LIBRARY})
   endmacro(add_ompl_demo)
 
   add_ompl_demo(demo_RigidBodyPlanning RigidBodyPlanning.cpp)

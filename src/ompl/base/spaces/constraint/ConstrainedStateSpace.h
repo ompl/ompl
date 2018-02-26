@@ -43,7 +43,6 @@
 #include "ompl/base/MotionValidator.h"
 #include "ompl/base/spaces/WrapperStateSpace.h"
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/geometric/PathGeometric.h"
 
 #include <eigen3/Eigen/Core>
 
@@ -166,10 +165,19 @@ namespace ompl
                     return Eigen::Map<const Eigen::VectorXd>(values, n_);
                 }
 
+                double operator[](unsigned int i) const
+                {
+                    return values[i];
+                }
+                double &operator[](unsigned int i)
+                {
+                    return values[i];
+                }
+
+            protected:
                 /** \brief Local reference to location of state values. */
                 double *values{nullptr};
 
-            protected:
                 /** \brief Dimension of state. */
                 const unsigned int n_;
             };

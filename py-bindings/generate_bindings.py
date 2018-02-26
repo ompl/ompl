@@ -206,7 +206,7 @@ class ompl_base_generator_t(code_generator_t):
         # add array access to double components of state
         self.add_array_access(bstate, 'double')
         # loop over all predefined state spaces
-        spaces = [s.related_class.name.replace('StateSpace','') \
+        spaces = [s.related_class.name.replace('StateSpace', '') \
             for s in self.ompl_ns.class_('StateSpace').recursive_derived]
         for stype in spaces:
             # create a python type for each of their corresponding state types
@@ -274,9 +274,10 @@ class ompl_base_generator_t(code_generator_t):
         # Using nullptr as a default value in method arguments causes
         # problems with Boost.Python.
         # See https://github.com/boostorg/python/issues/60
-        for cls in ['ProblemDefinition', 'AtlasChart', 'AtlasStateSpace', 'ConstrainedStateSpace',
-            'NullspaceStateSpace', 'ProjectedStateSpace']:
+        for cls in ['ProblemDefinition', 'AtlasChart', 'AtlasStateSpace', 'ConstrainedStateSpace', \
+            'ProjectedStateSpace']:
             self.ompl_ns.class_(cls).add_declaration_code('#define nullptr NULL\n')
+        self.add_array_access(self.ompl_ns.class_('ConstrainedStateSpace').class_('StateType'))
 
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now
         #self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()

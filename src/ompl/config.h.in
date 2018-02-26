@@ -60,7 +60,7 @@
 /** \brief Whether FLANN is installed */
 #cmakedefine01 OMPL_HAVE_FLANN
 
-/** \brief Whether png++ is installed */
-#cmakedefine01 OMPL_HAVE_PNGXX
+/** \brief Whether Numpy is installed */
+#cmakedefine01 OMPL_HAVE_NUMPY
 
 #endif

@@ -43,7 +43,6 @@
 #include "ompl/base/ValidStateSampler.h"
 #include "ompl/base/Constraint.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
-#include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 
 #include <eigen3/Eigen/Core>

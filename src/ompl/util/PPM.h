@@ -59,6 +59,12 @@ namespace ompl
 
         PPM() = default;
 
+        /* \brief Load a .ppm file. Throw an exception in case of an error. */
+        PPM(const char *filename)
+        {
+            loadFile(filename);
+        }
+
         /** \brief Load a .ppm file. Throw an exception in case of an error. */
         void loadFile(const char *filename);
 
