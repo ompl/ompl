@@ -62,7 +62,7 @@ public:
 
     void function(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::VectorXd> out) const override
     {
-        Eigen::Vector2d e(0), eN(0);
+        Eigen::Vector2d e = Eigen::Vector2d::Zero(), eN = Eigen::Vector2d::Zero();
         double theta = 0.;
 
         for (unsigned int i = 0; i < x.size(); ++i)
