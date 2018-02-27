@@ -234,14 +234,8 @@ void ompl::base::AtlasStateSpace::checkSpace(const SpaceInformation *si)
 void ompl::base::AtlasStateSpace::clear()
 {
     // Delete the non-anchor charts
-    std::vector<AtlasChart *> anchorCharts;
-    for (AtlasChart *c : charts_)
-    {
-        if (c->isAnchor())
-            anchorCharts.push_back(c);
-        else
-            delete c;
-    }
+    for (auto chart : charts_)
+        delete chart;
 
     charts_.clear();
 
@@ -254,18 +248,22 @@ void ompl::base::AtlasStateSpace::clear()
     chartPDF_.clear();
 
     // Reinstate the anchor charts
-    for (AtlasChart *anchor : anchorCharts)
+    for (auto anchor : anchorCharts_)
     {
         anchor->clear();
-
-        if (separate_)
-            for (AtlasChart *c : charts_)
-                AtlasChart::generateHalfspace(c, anchor);
 
         anchor->setID(charts_.size());
         chartNN_.add(std::make_pair(&anchor->getXorigin(), charts_.size()));
         charts_.push_back(anchor);
+
         elements_.push_back(chartPDF_.add(anchor, biasFunction_(anchor)));
+    }
+
+    if (separate_)
+    {
+        for (std::size_t i = 0; i < charts_.size(); ++i)
+            for (std::size_t j = i + 1; j < charts_.size(); ++j)
+                AtlasChart::generateHalfspace(charts_[i], charts_[j]);
     }
 
     ConstrainedStateSpace::clear();
@@ -280,6 +278,8 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart(const ompl::bas
                               "Initial chart creation failed. Cannot proceed.");
 
     c->makeAnchor();
+    anchorCharts_.push_back(c);
+
     return c;
 }
 

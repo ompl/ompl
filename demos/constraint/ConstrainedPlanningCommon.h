@@ -297,7 +297,8 @@ public:
                 return (atlas->getChartCount() - c->getNeighborCount()) + 1;
             });
 
-        atlas->setSeparated(!opt.separate);
+        if (type == AT)
+            atlas->setSeparated(!opt.separate);
 
         atlas->setup();
     }

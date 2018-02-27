@@ -48,7 +48,13 @@ ompl::base::TangentBundleStateSpace::TangentBundleStateSpace(const StateSpacePtr
   : AtlasStateSpace(ambientSpace, constraint, false)
 {
     setName("TangentBundle" + space_->getName());
-    setBiasFunction([&](ompl::base::AtlasChart *c) -> double { return (getChartCount() - c->getNeighborCount()) + 1; });
+    setBiasFunction([&](AtlasChart *c) -> double {
+        double d = 0;
+        for (auto anchor : anchorCharts_)
+            d = std::max(d, (anchor->getXorigin() - c->getXorigin()).norm());
+
+        return d;
+    });
 }
 
 bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, const State *to, bool interpolate,

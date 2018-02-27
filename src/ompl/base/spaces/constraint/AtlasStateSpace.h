@@ -373,8 +373,11 @@ namespace ompl
             void printPLY(std::ostream &out) const;
 
         protected:
-            /** \brief Set of charts, sampleable by weight. */
+            /** \brief Set of charts. */
             mutable std::vector<AtlasChart *> charts_;
+
+            /** \brief Set of anchored charts. */
+            mutable std::vector<AtlasChart *> anchorCharts_;
 
             /** \brief Set of PDF elements for biased sampling of charts. */
             mutable std::vector<PDF<AtlasChart *>::Element *> elements_;
