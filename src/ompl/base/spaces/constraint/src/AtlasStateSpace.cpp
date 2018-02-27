@@ -218,6 +218,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr &ambientSpace, 
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace()
 {
+    // Delete anchors first so clear does no reinitialization.
     for (auto anchor : anchors_)
         freeState(anchor);
 
@@ -298,7 +299,6 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Ref<c
         }
     }
 
-    addedC->setID(charts_.size());
     chartNN_.add(std::make_pair(&addedC->getXorigin(), charts_.size()));
     charts_.push_back(addedC);
     elements_.push_back(chartPDF_.add(addedC, biasFunction_(addedC)));
@@ -359,11 +359,6 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart(const Eigen::Ve
     }
 
     return nullptr;
-}
-
-std::size_t ompl::base::AtlasStateSpace::getChartCount() const
-{
-    return charts_.size();
 }
 
 bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const State *to, bool interpolate,

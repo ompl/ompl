@@ -320,11 +320,17 @@ namespace ompl
             AtlasChart *owningChart(const Eigen::VectorXd &xorigin) const;
 
             /** \brief Wrapper to return chart \a state belongs to. Will attempt
-             * to initialize new chart if \a state does not belong to one. */
+             * to initialize new chart if \a state does not belong to one. If \a
+             * force is true, this routine will reinitialize the chart that the
+             * state should be on. If \a created is not null, it will be set to
+             * true if a new chart is created. */
             AtlasChart *getChart(const StateType *state, bool force = false, bool *created = nullptr) const;
 
             /** \brief Return the number of charts currently in the atlas. */
-            std::size_t getChartCount() const;
+            std::size_t getChartCount() const
+            {
+                return charts_.size();
+            }
 
             /** \brief Traverse the manifold from \a from toward \a to. Returns
              * true if we reached \a to, and false if we stopped early for any

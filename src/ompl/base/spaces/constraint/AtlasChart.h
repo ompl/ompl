@@ -165,20 +165,6 @@ namespace ompl
                 return xorigin_;
             }
 
-            /** \brief Set this chart's unique identifier in its atlas. Should
-             * be its index in the atlas's vector of charts. */
-            void setID(unsigned int id)
-            {
-                id_ = id;
-            }
-
-            /** \brief Get this chart's unique identifier in its atlas. This is
-             * its index in the atlas's vector of charts. */
-            unsigned int getID() const
-            {
-                return id_;
-            }
-
             /** \brief Returns the dimension of the ambient space. */
             unsigned int getAmbientDimension() const
             {
@@ -273,9 +259,6 @@ namespace ompl
 
             /** \brief Maximum valid radius of this chart. */
             const double radius_;
-
-            /** \brief Unique ID in the atlas. Must be manually set. */
-            unsigned int id_{0};
         };
     }
 }
