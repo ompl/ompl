@@ -50,8 +50,8 @@ ompl::base::TangentBundleStateSpace::TangentBundleStateSpace(const StateSpacePtr
     setName("TangentBundle" + space_->getName());
     setBiasFunction([&](AtlasChart *c) -> double {
         double d = 0;
-        for (auto anchor : anchorCharts_)
-            d = std::max(d, (anchor->getXorigin() - c->getXorigin()).norm());
+        for (auto anchor : anchors_)
+            d = std::max(d, (anchor->constVectorView() - c->getXorigin()).norm());
 
         return d;
     });

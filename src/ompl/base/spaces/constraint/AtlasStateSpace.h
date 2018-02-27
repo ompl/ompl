@@ -376,8 +376,8 @@ namespace ompl
             /** \brief Set of charts. */
             mutable std::vector<AtlasChart *> charts_;
 
-            /** \brief Set of anchored charts. */
-            mutable std::vector<AtlasChart *> anchorCharts_;
+            /** \brief Set of states on which there are anchored charts. */
+            mutable std::vector<StateType *> anchors_;
 
             /** \brief Set of PDF elements for biased sampling of charts. */
             mutable std::vector<PDF<AtlasChart *>::Element *> elements_;

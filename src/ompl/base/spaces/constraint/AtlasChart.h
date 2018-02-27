@@ -158,20 +158,6 @@ namespace ompl
              * boundary. */
             void clear();
 
-            /* Specify that this is a special chart (e.g. start or goal is on
-             * it) that should persist through a call to
-             * AtlasStateSpace::clear(). */
-            void makeAnchor()
-            {
-                isAnchor_ = true;
-            }
-
-            /** \brief Is this chart marked as an anchor chart for the atlas? */
-            bool isAnchor() const
-            {
-                return isAnchor_;
-            }
-
             /** \brief Returns phi(0), the center of the chart in ambient
              * space. */
             const Eigen::VectorXd &getXorigin() const
@@ -260,11 +246,8 @@ namespace ompl
             static void generateHalfspace(AtlasChart *c1, AtlasChart *c2);
 
         protected:
-            /** \brief Atlas to which this chart belongs. */
-            const AtlasStateSpace *atlas_;
-
             /** \brief The constraint function that defines the manifold. */
-            const ConstraintPtr constraint_;
+            const Constraint *constraint_;
 
             /** \brief Set of halfspaces defining the polytope boundary. */
             std::vector<Halfspace *> polytope_;
@@ -290,9 +273,6 @@ namespace ompl
 
             /** \brief Maximum valid radius of this chart. */
             const double radius_;
-
-            /** \brief Whether this chart is an anchor chart in the atlas. */
-            bool isAnchor_{false};
 
             /** \brief Unique ID in the atlas. Must be manually set. */
             unsigned int id_{0};

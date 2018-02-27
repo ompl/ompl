@@ -150,10 +150,9 @@ void ompl::base::AtlasChart::Halfspace::expandToInclude(const Eigen::Ref<const E
 /// Public
 
 ompl::base::AtlasChart::AtlasChart(const AtlasStateSpace *atlas, const Eigen::Ref<const Eigen::VectorXd> &xorigin)
-  : atlas_(atlas)
-  , constraint_(atlas->getConstraint())
-  , n_(atlas_->getAmbientDimension())
-  , k_(atlas_->getManifoldDimension())
+  : constraint_(atlas->getConstraint().get())
+  , n_(atlas->getAmbientDimension())
+  , k_(atlas->getManifoldDimension())
   , xorigin_(xorigin)
   , bigPhi_([&]() -> const Eigen::MatrixXd {
       Eigen::MatrixXd j(n_ - k_, n_);
@@ -177,7 +176,7 @@ ompl::base::AtlasChart::~AtlasChart()
 
 void ompl::base::AtlasChart::clear()
 {
-    for (Halfspace *h : polytope_)
+    for (auto h : polytope_)
         delete h;
 
     polytope_.clear();
@@ -188,8 +187,7 @@ void ompl::base::AtlasChart::phi(const Eigen::Ref<const Eigen::VectorXd> &u, Eig
     out = xorigin_ + bigPhi_ * u;
 }
 
-bool ompl::base::AtlasChart::psi(const Eigen::Ref<const Eigen::VectorXd> &u,
-                                 Eigen::Ref<Eigen::VectorXd> out) const
+bool ompl::base::AtlasChart::psi(const Eigen::Ref<const Eigen::VectorXd> &u, Eigen::Ref<Eigen::VectorXd> out) const
 {
     // Initial guess for Newton's method
     Eigen::VectorXd x0(n_);
@@ -370,10 +368,6 @@ bool ompl::base::AtlasChart::estimateIsFrontier() const
 
 void ompl::base::AtlasChart::generateHalfspace(AtlasChart *c1, AtlasChart *c2)
 {
-    if (c1->atlas_ != c2->atlas_)
-        throw ompl::Exception("ompl::base::AtlasChart::generateHalfspace(): "
-                              "Charts must belong to the same atlas.");
-
     if (c1 == c2)
         throw ompl::Exception("ompl::base::AtlasChart::generateHalfspace(): "
                               "Must use two different charts.");

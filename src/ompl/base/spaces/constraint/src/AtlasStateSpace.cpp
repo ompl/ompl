@@ -218,9 +218,11 @@ ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr &ambientSpace, 
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace()
 {
+    for (auto anchor : anchors_)
+        freeState(anchor);
+
+    anchors_.clear();
     clear();
-    for (AtlasChart *c : charts_)
-        delete c;
 }
 
 /// Static.
@@ -248,39 +250,24 @@ void ompl::base::AtlasStateSpace::clear()
     chartPDF_.clear();
 
     // Reinstate the anchor charts
-    for (auto anchor : anchorCharts_)
-    {
-        anchor->clear();
-
-        anchor->setID(charts_.size());
-        chartNN_.add(std::make_pair(&anchor->getXorigin(), charts_.size()));
-        charts_.push_back(anchor);
-
-        elements_.push_back(chartPDF_.add(anchor, biasFunction_(anchor)));
-    }
-
-    if (separate_)
-    {
-        for (std::size_t i = 0; i < charts_.size(); ++i)
-            for (std::size_t j = i + 1; j < charts_.size(); ++j)
-                AtlasChart::generateHalfspace(charts_[i], charts_[j]);
-    }
+    for (auto anchor : anchors_)
+        newChart(anchor->constVectorView());
 
     ConstrainedStateSpace::clear();
 }
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart(const ompl::base::State *state) const
 {
+    auto anchor = cloneState(state)->as<StateType>();
+    anchors_.push_back(anchor);
+
     // This could fail with an exception. We cannot recover if that happens.
-    AtlasChart *c = newChart(state->as<StateType>()->constVectorView());
-    if (c == nullptr)
+    AtlasChart *chart = newChart(anchor->constVectorView());
+    if (chart == nullptr)
         throw ompl::Exception("ompl::base::AtlasStateSpace::anchorChart(): "
                               "Initial chart creation failed. Cannot proceed.");
 
-    c->makeAnchor();
-    anchorCharts_.push_back(c);
-
-    return c;
+    return chart;
 }
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Ref<const Eigen::VectorXd> &xorigin) const
