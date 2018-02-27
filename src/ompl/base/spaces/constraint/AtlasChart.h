@@ -149,7 +149,7 @@ namespace ompl
             /** \brief Create a tangent space chart for \a atlas with center at
              * ambient space point \a xorigin.
              * \throws ompl::Exception when manifold seems degenerate here. */
-            AtlasChart(const AtlasStateSpace *atlas, const Eigen::Ref<const Eigen::VectorXd> &xorigin);
+            AtlasChart(const AtlasStateSpace *atlas, const AtlasStateSpace::StateType *state);
 
             /** \brief Destructor. */
             ~AtlasChart();
@@ -160,9 +160,9 @@ namespace ompl
 
             /** \brief Returns phi(0), the center of the chart in ambient
              * space. */
-            const Eigen::VectorXd &getXorigin() const
+            const AtlasStateSpace::StateType *getOrigin() const
             {
-                return xorigin_;
+                return state_;
             }
 
             /** \brief Returns the dimension of the ambient space. */
@@ -252,7 +252,7 @@ namespace ompl
             const unsigned int k_;
 
             /** \brief Origin of the chart in ambient space coordinates. */
-            const Eigen::VectorXd xorigin_;
+            const AtlasStateSpace::StateType *state_;
 
             /** \brief Basis for the chart space. */
             const Eigen::MatrixXd bigPhi_;

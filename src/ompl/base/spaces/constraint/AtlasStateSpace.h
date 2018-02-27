@@ -159,7 +159,7 @@ namespace ompl
             };
 
             // Store an AtlasChart's xorigin and index in the charts_ array.
-            typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
+            typedef std::pair<const StateType *, std::size_t> NNElement;
 
             /** \brief Construct an atlas with the specified dimensions. */
             AtlasStateSpace(const StateSpacePtr &ambientSpace, const ConstraintPtr &constraint, bool separate = true);
@@ -310,14 +310,14 @@ namespace ompl
 
             /** \brief Create a new chart for the atlas, centered at \a xorigin,
              * which should be on the manifold. Returns nullptr upon failure. */
-            AtlasChart *newChart(const Eigen::Ref<const Eigen::VectorXd> &xorigin) const;
+            AtlasChart *newChart(const StateType *state) const;
 
             /** \brief Pick a chart at random. */
             AtlasChart *sampleChart() const;
 
             /** \brief Find the chart to which \a x belongs. Returns nullptr if
              * no chart found. Assumes \a x is already on the manifold. */
-            AtlasChart *owningChart(const Eigen::VectorXd &xorigin) const;
+            AtlasChart *owningChart(const StateType* state) const;
 
             /** \brief Wrapper to return chart \a state belongs to. Will attempt
              * to initialize new chart if \a state does not belong to one. If \a

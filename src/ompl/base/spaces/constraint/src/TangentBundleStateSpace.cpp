@@ -51,7 +51,7 @@ ompl::base::TangentBundleStateSpace::TangentBundleStateSpace(const StateSpacePtr
     setBiasFunction([&](AtlasChart *c) -> double {
         double d = 0;
         for (auto anchor : anchors_)
-            d = std::max(d, (anchor->constVectorView() - c->getXorigin()).norm());
+            d = std::max(d, distance(anchor, c->getOrigin()));
 
         return d;
     });

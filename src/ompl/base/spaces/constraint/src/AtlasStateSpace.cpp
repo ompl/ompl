@@ -84,13 +84,13 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
         // becomes a problem.
         OMPL_WARN("ompl::base::AtlasStateSpace::sampleUniform(): "
                   "Took too long; returning center of a random chart.");
-        rx = c->getXorigin();
+        rx = c->getOrigin()->constVectorView();
     }
 
     // Extend polytope of neighboring chart wherever point is near the border.
     c->psiInverse(rx, ru);
     c->borderCheck(ru);
-    astate->setChart(atlas_->owningChart(rx));
+    astate->setChart(atlas_->owningChart(astate));
 }
 
 void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State *near, const double dist)
@@ -213,7 +213,7 @@ ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr &ambientSpace, 
     setName("Atlas" + space_->getName());
 
     chartNN_.setDistanceFunction(
-        [](const NNElement &e1, const NNElement &e2) -> double { return (*e1.first - *e2.first).norm(); });
+        [&](const NNElement &e1, const NNElement &e2) -> double { return distance(e1.first, e2.first); });
 }
 
 ompl::base::AtlasStateSpace::~AtlasStateSpace()
@@ -252,7 +252,7 @@ void ompl::base::AtlasStateSpace::clear()
 
     // Reinstate the anchor charts
     for (auto anchor : anchors_)
-        newChart(anchor->constVectorView());
+        newChart(anchor);
 
     ConstrainedStateSpace::clear();
 }
@@ -263,7 +263,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart(const ompl::bas
     anchors_.push_back(anchor);
 
     // This could fail with an exception. We cannot recover if that happens.
-    AtlasChart *chart = newChart(anchor->constVectorView());
+    AtlasChart *chart = newChart(anchor);
     if (chart == nullptr)
         throw ompl::Exception("ompl::base::AtlasStateSpace::anchorChart(): "
                               "Initial chart creation failed. Cannot proceed.");
@@ -271,17 +271,23 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart(const ompl::bas
     return chart;
 }
 
-ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Ref<const Eigen::VectorXd> &xorigin) const
+ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const StateType *state) const
 {
     AtlasChart *addedC;
+    StateType *addedS = nullptr;
     try
     {
-        addedC = new AtlasChart(this, xorigin);
+        addedS = cloneState(state)->as<StateType>();
+        addedC = new AtlasChart(this, addedS);
     }
     catch (ompl::Exception &e)
     {
         OMPL_ERROR("ompl::base::AtlasStateSpace::newChart(): "
                    "Failed because manifold looks degenerate here.");
+
+        if (addedS != nullptr)
+            freeState(addedS);
+
         return nullptr;
     }
 
@@ -290,7 +296,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Ref<c
     if (separate_)
     {
         std::vector<NNElement> nearbyCharts;
-        chartNN_.nearestR(std::make_pair(&addedC->getXorigin(), 0), 2 * rho_s_, nearbyCharts);
+        chartNN_.nearestR(std::make_pair(addedS, 0), 2 * rho_s_, nearbyCharts);
         for (auto &&near : nearbyCharts)
         {
             AtlasChart *c = charts_[near.second];
@@ -299,7 +305,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Ref<c
         }
     }
 
-    chartNN_.add(std::make_pair(&addedC->getXorigin(), charts_.size()));
+    chartNN_.add(std::make_pair(addedS, charts_.size()));
     charts_.push_back(addedC);
     elements_.push_back(chartPDF_.add(addedC, biasFunction_(addedC)));
 
@@ -321,12 +327,11 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::getChart(const StateType *s
 
     if (c == nullptr || force)
     {
-        auto n = state->constVectorView();
-        c = owningChart(n);
+        c = owningChart(state);
 
         if (c == nullptr)
         {
-            c = newChart(n);
+            c = newChart(state);
             if (created != nullptr)
                 *created = true;
         }
@@ -338,12 +343,13 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::getChart(const StateType *s
     return c;
 }
 
-ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart(const Eigen::VectorXd &x) const
+ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart(const StateType *state) const
 {
     Eigen::VectorXd x_temp(n_), u_t(k_);
+    auto &&x = state->constVectorView();
 
     std::vector<NNElement> nearbyCharts;
-    chartNN_.nearestR(std::make_pair(&x, 0), rho_, nearbyCharts);
+    chartNN_.nearestR(std::make_pair(state, 0), rho_, nearbyCharts);
 
     for (auto &near : nearbyCharts)
     {
