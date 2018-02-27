@@ -73,13 +73,8 @@ public:
             e = eN;
         }
 
-        out[0] = e[0];
+        out[0] = e[1] - linkLength_;
     }
-
-    // void jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const override
-    // {
-    //     out[]
-    // }
 
 private:
     double linkLength_;
@@ -101,9 +96,12 @@ void chainPlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner
     cp.setAtlasOptions(a_opt);
 
     Eigen::VectorXd start, goal;
-    start = Eigen::VectorXd::Constant(links, boost::math::constants::pi<double>() / (double)(links + 1));
-    goal = Eigen::VectorXd::Constant(links, -boost::math::constants::pi<double>() / (double)(links + 1));
-    goal[0] += boost::math::constants::pi<double>();
+    start = Eigen::VectorXd::Constant(links, 0);
+    goal = Eigen::VectorXd::Constant(links, 0);
+
+    start[links - 1] = boost::math::constants::pi<double>() / 2;
+    goal[0] = boost::math::constants::pi<double>();
+    goal[links - 1] = -boost::math::constants::pi<double>() / 2;
 
     cp.setStartAndGoalStates(start, goal);
     cp.ss->setStateValidityChecker(std::make_shared<ConstrainedKinematicChainValidityChecker>(cp.csi));

@@ -72,8 +72,9 @@ void ompl::base::Constraint::jacobian(const Eigen::Ref<const Eigen::VectorXd> &x
     // Use a 7-point central difference stencil on each column.
     for (std::size_t j = 0; j < n_; j++)
     {
+        const double ax = std::fabs(x[j]);
         // Make step size as small as possible while still giving usable accuracy.
-        const double h = std::sqrt(std::numeric_limits<double>::epsilon()) * (x[j] >= 1 ? x[j] : 1);
+        const double h = std::sqrt(std::numeric_limits<double>::epsilon()) * (ax >= 1 ? ax : 1);
 
         // Can't assume y1[j]-y2[j] == 2*h because of precision errors.
         y1[j] += h;
