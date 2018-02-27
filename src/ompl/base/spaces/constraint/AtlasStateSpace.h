@@ -37,7 +37,6 @@
 #ifndef OMPL_BASE_SPACES_ATLAS_STATE_SPACE_
 #define OMPL_BASE_SPACES_ATLAS_STATE_SPACE_
 
-#include "ompl/base/MotionValidator.h"
 #include "ompl/base/StateSampler.h"
 #include "ompl/base/ValidStateSampler.h"
 #include "ompl/base/Constraint.h"
@@ -83,8 +82,9 @@ namespace ompl
 
            Z. Kingston, M. Moll, and L. E. Kavraki, “Sampling-Based Methods for
            Motion Planning with Constraints,” Annual Review of Control, Robotics,
-           and Autonomous Systems, 2018. PrePrint: <a
-           href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf"></a>
+           and Autonomous Systems, 2018. DOI: <a
+           href="http://dx.doi.org/10.1146/annurev-control-060117-105226">10.1146/annurev-control-060117-105226</a>
+           <a href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf">[PDF]</a>.
         */
 
         /// @cond IGNORE
@@ -178,7 +178,7 @@ namespace ompl
             /** \brief Set \a epsilon, the maximum permissible distance between
              * a point in the validity region of a chart and its projection onto
              * the manifold. Default 0.1. */
-            void setEpsilon(const double epsilon)
+            void setEpsilon(double epsilon)
             {
                 if (epsilon <= 0)
                     throw ompl::Exception("ompl::base::AtlasStateSpace::setEpsilon(): "
@@ -188,7 +188,7 @@ namespace ompl
 
             /** \brief Set \a rho, the maximum radius for which a chart is
              * valid. Default 0.1. */
-            void setRho(const double rho)
+            void setRho(double rho)
             {
                 if (rho <= 0)
                     throw ompl::Exception("ompl::base::AtlasStateSpace::setRho(): "
@@ -200,7 +200,7 @@ namespace ompl
             /** \brief Set \a alpha, the maximum permissible angle between the
              * chart and the manifold inside the validity region of the
              * chart. Must be within the range (0, pi/2). Default pi/16. */
-            void setAlpha(const double alpha)
+            void setAlpha(double alpha)
             {
                 if (alpha <= 0 || alpha >= boost::math::constants::pi<double>() / 2.)
                     throw ompl::Exception("ompl::base::AtlasStateSpace::setAlpha(): "
@@ -213,7 +213,7 @@ namespace ompl
              * (sampling on the frontier). Valid values are in the range [0,1),
              * where 0 is all refinement, and 1 is all exploration. Default
              * 0.5. */
-            void setExploration(const double exploration)
+            void setExploration(double exploration)
             {
                 if (exploration >= 1)
                     throw ompl::Exception("ompl::base::AtlasStateSpace::setExploration(): "
@@ -228,7 +228,7 @@ namespace ompl
              * distance that can be accumulated while traversing the manifold
              * from x to y before the algorithm stops. Must be greater than 1.
              * Default 2. */
-            void setLambda(const double lambda)
+            void setLambda(double lambda)
             {
                 if (lambda <= 1)
                     throw ompl::Exception("ompl::base::AtlasStateSpace::setLambda(): "
@@ -239,7 +239,7 @@ namespace ompl
             /** \brief Sometimes manifold traversal creates many charts. This
              * parameter limits the number of charts that can be created during
              * one traversal. Default 200. */
-            void setMaxChartsPerExtension(const unsigned int charts)
+            void setMaxChartsPerExtension(unsigned int charts)
             {
                 maxChartsPerExtension_ = charts;
             }
@@ -396,7 +396,7 @@ namespace ompl
             mutable PDF<AtlasChart *> chartPDF_;
 
             /** \brief Maximum distance between a chart and the manifold inside its validity region. */
-            double epsilon_;
+            double epsilon_{ompl::magic::ATLAS_STATE_SPACE_EPSILON};
 
             /** \brief Maximum radius of chart validity region. */
             double rho_;
@@ -409,7 +409,7 @@ namespace ompl
 
             /** \brief Manifold traversal from x to y is stopped if accumulated distance is greater than d(x,y) times
              * this. */
-            double lambda_;
+            double lambda_{ompl::magic::ATLAS_STATE_SPACE_LAMBDA};
 
             /** \brief Use a biased sampler to sample charts */
             bool bias_;
@@ -424,7 +424,7 @@ namespace ompl
             mutable double rho_s_;
 
             /** \brief Maximum number of charts that can be created in one manifold traversal. */
-            unsigned int maxChartsPerExtension_;
+            unsigned int maxChartsPerExtension_{ompl::magic::ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION};
 
             /** \brief Random number generator. */
             mutable RNG rng_;

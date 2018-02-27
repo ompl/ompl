@@ -35,7 +35,7 @@
 /* Author: Caleb Voss */
 
 #include "ompl/base/spaces/constraint/AtlasChart.h"
-
+#include <boost/math/constants/constants.hpp>
 #include <eigen3/Eigen/Dense>
 
 /// AtlasChart::Halfspace
@@ -83,13 +83,14 @@ bool ompl::base::AtlasChart::Halfspace::circleIntersect(const double r, Eigen::R
     discr = std::sqrt(discr);
 
     // Compute the 2 solutions (possibly 1 repeated solution).
+    double unorm = std::sqrt(usqnorm_);
     v1[0] = -u_[1] * discr;
     v1[1] = u_[0] * discr;
     v2 = -v1;
-    v1 += u_ * u_.norm();
-    v2 += u_ * u_.norm();
-    v1 /= 2 * u_.norm();
-    v2 /= 2 * u_.norm();
+    v1 += u_ * unorm;
+    v2 += u_ * unorm;
+    v1 /= 2 * unorm;
+    v2 /= 2 * unorm;
 
     return true;
 }
@@ -291,6 +292,7 @@ bool ompl::base::AtlasChart::toPolygon(std::vector<Eigen::VectorXd> &vertices) c
     // intersects the circle.
     Eigen::VectorXd v(2);
     Eigen::VectorXd intersection(n_);
+    vertices.clear();
     for (std::size_t i = 0; i < polytope_.size(); i++)
     {
         for (std::size_t j = i + 1; j < polytope_.size(); j++)
@@ -324,8 +326,8 @@ bool ompl::base::AtlasChart::toPolygon(std::vector<Eigen::VectorXd> &vertices) c
     bool is_frontier = false;
     Eigen::VectorXd v0(2);
     v0 << radius_, 0;
-    const double step = M_PI / 32;
-    for (double a = 0; a < 2 * M_PI; a += step)
+    const double step = boost::math::constants::pi<double>() / 32.;
+    for (double a = 0.; a < 2. * boost::math::constants::pi<double>(); a += step)
     {
         const Eigen::VectorXd vn = Eigen::Rotation2Dd(a) * v0;
 
@@ -339,7 +341,7 @@ bool ompl::base::AtlasChart::toPolygon(std::vector<Eigen::VectorXd> &vertices) c
 
     // Put all the points in order.
     std::sort(vertices.begin(), vertices.end(),
-              [&](Eigen::Ref<const Eigen::VectorXd> x1, Eigen::Ref<const Eigen::VectorXd> x2) -> bool {
+              [&](const Eigen::Ref<const Eigen::VectorXd> &x1, const Eigen::Ref<const Eigen::VectorXd> &x2) -> bool {
                   // Check the angles to see who should come first.
                   Eigen::VectorXd v1(2), v2(2);
                   psiInverse(x1, v1);

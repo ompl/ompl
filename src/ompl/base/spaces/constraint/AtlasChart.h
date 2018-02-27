@@ -114,7 +114,7 @@ namespace ompl
 
                 /** \brief Halfspace complementary to this one, but on the
                  * neighboring chart. */
-                Halfspace *complement_ = nullptr;
+                Halfspace *complement_{nullptr};
 
                 /** \brief Center of the neighboring chart projected onto our
                  * chart. */

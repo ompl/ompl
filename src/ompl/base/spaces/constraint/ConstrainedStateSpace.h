@@ -270,7 +270,7 @@ namespace ompl
         protected:
             /** \brief SpaceInformation associated with this space. Required
              * for early collision checking in manifold traversal. */
-            SpaceInformation *si_;
+            SpaceInformation *si_{nullptr};
 
             /** \brief Constraint function that defines the manifold. */
             const ConstraintPtr constraint_;
@@ -285,7 +285,7 @@ namespace ompl
             double delta_;
 
             /** \brief Whether setup() has been called. */
-            bool setup_;
+            bool setup_{false};
         };
     }
 }
