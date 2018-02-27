@@ -107,20 +107,17 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
         const double step = distance(temp, scratch);
         dist += step;
 
-        const bool valid = interpolate || svc->isValid(scratch);
-        const bool exceedMaxDist = distance(temp, from) > distMax || !std::isfinite(dist);
-        const bool exceedWandering = dist > distMax;
-        const bool exceedChartLimit = chartsCreated > maxChartsPerExtension_;
-        if (!valid || exceedMaxDist || exceedWandering || exceedChartLimit)
+        if (!(interpolate || svc->isValid(scratch)) // valid
+            || distance(temp, from) > distMax || !std::isfinite(dist) // exceed max dist
+            || dist > distMax // exceed wandering
+            || chartsCreated > maxChartsPerExtension_) // exceed chart limit
             break;
 
-        const bool outsidePolytope = !c->inPolytope(u_j);
-        const bool toFarFromManifold = constraint_->distance(x_temp) > epsilon_;
-
         done = (u_b - u_j).squaredNorm() <= sqDelta;
-
         // Find or make a new chart if new state is off of current chart
-        if (outsidePolytope || toFarFromManifold || done)
+        if (done
+            || !c->inPolytope(u_j) // outside polytope
+            || constraint_->distance(x_temp) > epsilon_) // to far from manifold
         {
             const bool onManifold = c->psi(u_j, x_temp);
             if (!onManifold)

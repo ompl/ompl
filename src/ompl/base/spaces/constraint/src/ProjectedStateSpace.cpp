@@ -111,10 +111,9 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
         WrapperStateSpace::interpolate(previous, to, delta_ / dist, scratch);
 
         // Project new state onto constraint manifold
-        const bool onManifold = constraint_->project(scratch);
-        const bool valid = interpolate || svc->isValid(scratch);
-        const bool deviated = distance(previous, scratch) > 2.0 * delta_;
-        if (!onManifold || !valid || deviated)
+        if (!constraint_->project(scratch) // not on manifold
+            || !(interpolate || svc->isValid(scratch)) // not valid
+            || distance(previous, scratch) > 2.0 * delta_) // deviated
             break;
 
         // Check if we are no closer than before

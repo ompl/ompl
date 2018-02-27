@@ -40,10 +40,6 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/Exception.h"
 
-#include <eigen3/Eigen/Core>
-
-#include <cmath>
-
 /// AtlasStateSampler
 
 /// Public
@@ -207,12 +203,9 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
 ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr& ambientSpace, const ConstraintPtr& constraint,
                                              bool bias, bool separate)
   : ConstrainedStateSpace(ambientSpace, constraint)
-  , epsilon_(ompl::magic::ATLAS_STATE_SPACE_EPSILON)
-  , lambda_(ompl::magic::ATLAS_STATE_SPACE_LAMBDA)
   , bias_(bias)
   , biasFunction_([&](AtlasChart *c) -> double { return (getChartCount() - c->getNeighborCount()) + 1; })
   , separate_(separate)
-  , maxChartsPerExtension_(ompl::magic::ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION)
 {
     setRho(delta_ * ompl::magic::ATLAS_STATE_SPACE_RHO_MULTIPLIER);
     setAlpha(ompl::magic::ATLAS_STATE_SPACE_ALPHA);
@@ -376,11 +369,9 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart(const Eigen::Ve
         chart->psiInverse(x, u_t);
         chart->phi(u_t, x_temp);
 
-        const bool withinEpsilon = (x_temp - x).squaredNorm() < (epsilon_ * epsilon_);
-        const bool withinRho = u_t.squaredNorm() < (rho_ * rho_);
-        const bool inPolytope = chart->inPolytope(u_t);
-
-        if (withinEpsilon && withinRho && inPolytope)
+        if ((x_temp - x).squaredNorm() < (epsilon_ * epsilon_) // within epsilon
+            && u_t.squaredNorm() < (rho_ * rho_) // within rho
+            && chart->inPolytope(u_t)) // in polytope
             return chart;
     }
 
@@ -475,22 +466,19 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         x_scratch = x_temp;
         scratch->setChart(c);
 
-        const bool valid = interpolate || svc->isValid(scratch);
-        const bool exceedMaxDist = distance(from, scratch) > distMax;
-        const bool exceedWandering = dist > distMax;
-        const bool exceedChartLimit = chartsCreated > maxChartsPerExtension_;
-        if (!valid || exceedMaxDist || exceedWandering || exceedChartLimit)
+        if (!(interpolate || svc->isValid(scratch)) // not valid
+            || distance(from, scratch) > distMax //exceed max dist
+            || dist > distMax // exceed wandering
+            || chartsCreated > maxChartsPerExtension_) // exceed chart limit
             break;
 
         // Check if we left the validity region or polytope of the chart.
         c->phi(u_j, x_temp);
 
-        const bool exceedsEpsilon = distance(scratch, temp) > epsilon_;
-        const bool exceedsAngle = delta_ / step < cos_alpha_;
-        const bool outsidePolytope = !c->inPolytope(u_j);
-
         // Find or make a new chart if new state is off of current chart
-        if (exceedsEpsilon || exceedsAngle || outsidePolytope)
+        if (distance(scratch, temp) > epsilon_ // exceeds epsilon
+            || delta_ / step < cos_alpha_ // exceeds angle
+            || !c->inPolytope(u_j)) // outside polytope
         {
             bool created = false;
             if ((c = getChart(scratch, true, &created)) == nullptr)

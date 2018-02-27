@@ -65,8 +65,9 @@ namespace ompl
 
         Z. Kingston, M. Moll, and L. E. Kavraki, “Sampling-Based Methods for
         Motion Planning with Constraints,” Annual Review of Control, Robotics,
-        and Autonomous Systems, 2018. PrePrint: <a
-        href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf"></a>
+        and Autonomous Systems, 2018. DOI: <a
+        href="http://dx.doi.org/10.1146/annurev-control-060117-105226">10.1146/annurev-control-060117-105226</a>
+        <a href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf">[PDF]</a>.
         */
 
         /// @cond IGNORE
