@@ -167,7 +167,6 @@ ompl::base::AtlasChart::AtlasChart(const AtlasStateSpace *atlas, const Eigen::Re
       return decomp.kernel().householderQr().householderQ() * Eigen::MatrixXd::Identity(n_, k_);
   }())
   , radius_(atlas->getRho_s())
-  , epsilon_(atlas->getEpsilon())
 {
 }
 

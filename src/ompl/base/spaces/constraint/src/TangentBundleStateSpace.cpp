@@ -43,6 +43,14 @@
 
 #include <cmath>
 
+ompl::base::TangentBundleStateSpace::TangentBundleStateSpace(const StateSpacePtr &ambientSpace,
+                                                             const ConstraintPtr &constraint)
+  : AtlasStateSpace(ambientSpace, constraint, false)
+{
+    setName("TangentBundle" + space_->getName());
+    setBiasFunction([&](ompl::base::AtlasChart *c) -> double { return (getChartCount() - c->getNeighborCount()) + 1; });
+}
+
 bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, const State *to, bool interpolate,
                                                            std::vector<ompl::base::State *> *stateList,
                                                            bool endpoints) const
@@ -107,17 +115,16 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
         const double step = distance(temp, scratch);
         dist += step;
 
-        if (!(interpolate || svc->isValid(scratch)) // valid
-            || distance(temp, from) > distMax || !std::isfinite(dist) // exceed max dist
-            || dist > distMax // exceed wandering
-            || chartsCreated > maxChartsPerExtension_) // exceed chart limit
+        if (!(interpolate || svc->isValid(scratch))                    // valid
+            || distance(temp, from) > distMax || !std::isfinite(dist)  // exceed max dist
+            || dist > distMax                                          // exceed wandering
+            || chartsCreated > maxChartsPerExtension_)                 // exceed chart limit
             break;
 
         done = (u_b - u_j).squaredNorm() <= sqDelta;
         // Find or make a new chart if new state is off of current chart
-        if (done
-            || !c->inPolytope(u_j) // outside polytope
-            || constraint_->distance(x_temp) > epsilon_) // to far from manifold
+        if (done || !c->inPolytope(u_j)                   // outside polytope
+            || constraint_->distance(x_temp) > epsilon_)  // to far from manifold
         {
             const bool onManifold = c->psi(u_j, x_temp);
             if (!onManifold)

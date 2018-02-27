@@ -200,11 +200,10 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
 
 /// Public
 
-ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr& ambientSpace, const ConstraintPtr& constraint,
-                                             bool bias, bool separate)
+ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr &ambientSpace, const ConstraintPtr &constraint,
+                                             bool separate)
   : ConstrainedStateSpace(ambientSpace, constraint)
-  , bias_(bias)
-  , biasFunction_([&](AtlasChart *c) -> double { return (getChartCount() - c->getNeighborCount()) + 1; })
+  , biasFunction_([](AtlasChart *c) -> double { return 1; })
   , separate_(separate)
 {
     setRho(delta_ * ompl::magic::ATLAS_STATE_SPACE_RHO_MULTIPLIER);
@@ -245,6 +244,12 @@ void ompl::base::AtlasStateSpace::clear()
     }
 
     charts_.clear();
+
+    for (auto &element : elements_)
+        chartPDF_.remove(element);
+
+    elements_.clear();
+
     chartNN_.clear();
     chartPDF_.clear();
 
@@ -260,9 +265,7 @@ void ompl::base::AtlasStateSpace::clear()
         anchor->setID(charts_.size());
         chartNN_.add(std::make_pair(&anchor->getXorigin(), charts_.size()));
         charts_.push_back(anchor);
-
-        if (bias_)
-            anchor->setPDFElement(chartPDF_.add(anchor, biasFunction_(anchor)));
+        elements_.push_back(chartPDF_.add(anchor, biasFunction_(anchor)));
     }
 
     ConstrainedStateSpace::clear();
@@ -304,18 +307,14 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const Eigen::Ref<c
         {
             AtlasChart *c = charts_[near.second];
             AtlasChart::generateHalfspace(c, addedC);
-
-            if (bias_)
-                chartPDF_.update(c->getPDFElement(), biasFunction_(c));
+            chartPDF_.update(elements_[near.second], biasFunction_(c));
         }
     }
 
     addedC->setID(charts_.size());
     chartNN_.add(std::make_pair(&addedC->getXorigin(), charts_.size()));
     charts_.push_back(addedC);
-
-    if (bias_)
-        addedC->setPDFElement(chartPDF_.add(addedC, biasFunction_(addedC)));
+    elements_.push_back(chartPDF_.add(addedC, biasFunction_(addedC)));
 
     return addedC;
 }
@@ -326,10 +325,7 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::sampleChart() const
         throw ompl::Exception("ompl::base::AtlasStateSpace::sampleChart(): "
                               "Atlas sampled before any charts were made. Use AtlasStateSpace::anchorChart() first.");
 
-    if (bias_)
-        return chartPDF_.sample(rng_.uniform01());
-    else
-        return charts_[rng_.uniformInt(0, charts_.size() - 1)];
+    return chartPDF_.sample(rng_.uniform01());
 }
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::getChart(const StateType *state, bool force, bool *created) const
@@ -369,9 +365,9 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart(const Eigen::Ve
         chart->psiInverse(x, u_t);
         chart->phi(u_t, x_temp);
 
-        if ((x_temp - x).squaredNorm() < (epsilon_ * epsilon_) // within epsilon
-            && u_t.squaredNorm() < (rho_ * rho_) // within rho
-            && chart->inPolytope(u_t)) // in polytope
+        if ((x_temp - x).squaredNorm() < (epsilon_ * epsilon_)  // within epsilon
+            && u_t.squaredNorm() < (rho_ * rho_)                // within rho
+            && chart->inPolytope(u_t))                          // in polytope
             return chart;
     }
 
@@ -466,19 +462,19 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         x_scratch = x_temp;
         scratch->setChart(c);
 
-        if (!(interpolate || svc->isValid(scratch)) // not valid
-            || distance(from, scratch) > distMax //exceed max dist
-            || dist > distMax // exceed wandering
-            || chartsCreated > maxChartsPerExtension_) // exceed chart limit
+        if (!(interpolate || svc->isValid(scratch))     // not valid
+            || distance(from, scratch) > distMax        // exceed max dist
+            || dist > distMax                           // exceed wandering
+            || chartsCreated > maxChartsPerExtension_)  // exceed chart limit
             break;
 
         // Check if we left the validity region or polytope of the chart.
         c->phi(u_j, x_temp);
 
         // Find or make a new chart if new state is off of current chart
-        if (distance(scratch, temp) > epsilon_ // exceeds epsilon
-            || delta_ / step < cos_alpha_ // exceeds angle
-            || !c->inPolytope(u_j)) // outside polytope
+        if (distance(scratch, temp) > epsilon_  // exceeds epsilon
+            || delta_ / step < cos_alpha_       // exceeds angle
+            || !c->inPolytope(u_j))             // outside polytope
         {
             bool created = false;
             if ((c = getChart(scratch, true, &created)) == nullptr)

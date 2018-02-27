@@ -291,7 +291,12 @@ public:
         atlas->setAlpha(opt.alpha);
         atlas->setLambda(opt.lambda);
         atlas->setMaxChartsPerExtension(opt.charts);
-        atlas->setBias(opt.bias);
+
+        if (opt.bias)
+            atlas->setBiasFunction([atlas](ompl::base::AtlasChart *c) -> double {
+                return (atlas->getChartCount() - c->getNeighborCount()) + 1;
+            });
+
         atlas->setSeparated(!opt.separate);
 
         atlas->setup();

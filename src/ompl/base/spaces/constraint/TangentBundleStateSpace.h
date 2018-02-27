@@ -82,11 +82,7 @@ namespace ompl
         class TangentBundleStateSpace : public AtlasStateSpace
         {
         public:
-            TangentBundleStateSpace(const StateSpacePtr &ambientSpace, const ConstraintPtr &constraint)
-              : AtlasStateSpace(ambientSpace, constraint, true, false)
-            {
-                setName("TangentBundle" + space_->getName());
-            }
+            TangentBundleStateSpace(const StateSpacePtr &ambientSpace, const ConstraintPtr &constraint);
 
             /** \brief Traverse the manifold from \a from toward \a to. Returns
              * true if we reached \a to, and false if we stopped early for any

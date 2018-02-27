@@ -152,7 +152,7 @@ namespace ompl
             AtlasChart(const AtlasStateSpace *atlas, const Eigen::Ref<const Eigen::VectorXd> &xorigin);
 
             /** \brief Destructor. */
-            virtual ~AtlasChart();
+            ~AtlasChart();
 
             /** \brief Forget all acquired information such as the halfspace
              * boundary. */
@@ -259,20 +259,6 @@ namespace ompl
              * \note Charts must be different charts from the same atlas. */
             static void generateHalfspace(AtlasChart *c1, AtlasChart *c2);
 
-            /** \brief Sets the PDF element for this chart used by the
-             * overlaying atlas structure for biased sampling. */
-            void setPDFElement(PDF<AtlasChart *>::Element *element)
-            {
-                element_ = element;
-            }
-
-            /** \brief Gets the PDF element for this chart used by the
-             * overlaying atlas structure for biased sampling. */
-            PDF<AtlasChart *>::Element *getPDFElement() const
-            {
-                return element_;
-            }
-
         protected:
             /** \brief Atlas to which this chart belongs. */
             const AtlasStateSpace *atlas_;
@@ -305,17 +291,11 @@ namespace ompl
             /** \brief Maximum valid radius of this chart. */
             const double radius_;
 
-            /** \brief Maximum valid distance to manifold from this chart. */
-            const double epsilon_;
-
             /** \brief Whether this chart is an anchor chart in the atlas. */
-            bool isAnchor_ = false;
+            bool isAnchor_{false};
 
             /** \brief Unique ID in the atlas. Must be manually set. */
-            unsigned int id_ = 0;
-
-            /** \brief PDF element for biased sampling of charts. */
-            PDF<AtlasChart *>::Element *element_;
+            unsigned int id_{0};
         };
     }
 }

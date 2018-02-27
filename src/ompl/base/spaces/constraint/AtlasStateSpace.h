@@ -162,8 +162,7 @@ namespace ompl
             typedef std::pair<const Eigen::VectorXd *, std::size_t> NNElement;
 
             /** \brief Construct an atlas with the specified dimensions. */
-            AtlasStateSpace(const StateSpacePtr &ambientSpace, const ConstraintPtr &constraint, bool bias = false,
-                            bool separate = true);
+            AtlasStateSpace(const StateSpacePtr &ambientSpace, const ConstraintPtr &constraint, bool separate = true);
 
             /** \brief Destructor. */
             ~AtlasStateSpace() override;
@@ -244,11 +243,10 @@ namespace ompl
                 maxChartsPerExtension_ = charts;
             }
 
-            /** \brief Sets whether biased sampling should be used or not,
-             * according the bias function set by setBiasFunction(). */
-            void setBias(bool bias)
+            /** \brief Sets bias function for sampling. */
+            void setBiasFunction(const AtlasChartBiasFunction &biasFunction)
             {
-                bias_ = bias;
+                biasFunction_ = biasFunction;
             }
 
             /** \brief Sets whether the atlas should separate charts or not. */
@@ -297,12 +295,6 @@ namespace ompl
             unsigned int getMaxChartsPerExtension() const
             {
                 return maxChartsPerExtension_;
-            }
-
-            /** \brief Returns whether the atlas is using biased sampling or not. */
-            bool isBiased() const
-            {
-                return bias_;
             }
 
             /** \brief Returns whether the atlas is separating charts or not. */
@@ -380,20 +372,19 @@ namespace ompl
             /** \brief Write a mesh representation of the atlas to a stream. */
             void printPLY(std::ostream &out) const;
 
-            void setBiasFunction(const AtlasChartBiasFunction &biasFunction)
-            {
-                biasFunction_ = biasFunction;
-            }
-
         protected:
             /** \brief Set of charts, sampleable by weight. */
             mutable std::vector<AtlasChart *> charts_;
 
+            /** \brief Set of PDF elements for biased sampling of charts. */
+            mutable std::vector<PDF<AtlasChart *>::Element *> elements_;
+
+            /** \brief PDF of charts according to a bias function. */
+            mutable PDF<AtlasChart *> chartPDF_;
+
             /** \brief Set of chart centers and indices, accessible by
              * nearest-neighbor queries to the chart centers. */
             mutable NearestNeighborsGNAT<NNElement> chartNN_;
-
-            mutable PDF<AtlasChart *> chartPDF_;
 
             /** \brief Maximum distance between a chart and the manifold inside its validity region. */
             double epsilon_{ompl::magic::ATLAS_STATE_SPACE_EPSILON};
@@ -410,9 +401,6 @@ namespace ompl
             /** \brief Manifold traversal from x to y is stopped if accumulated distance is greater than d(x,y) times
              * this. */
             double lambda_{ompl::magic::ATLAS_STATE_SPACE_LAMBDA};
-
-            /** \brief Use a biased sampler to sample charts */
-            bool bias_;
 
             /** \brief Function to bias chart sampling */
             AtlasChartBiasFunction biasFunction_;
