@@ -239,15 +239,19 @@ void ompl::base::AtlasStateSpace::clear()
     // Delete the non-anchor charts
     for (auto chart : charts_)
         delete chart;
-
     charts_.clear();
 
     for (auto &element : elements_)
         chartPDF_.remove(element);
-
     elements_.clear();
 
+    std::vector<NNElement> nnList;
+    chartNN_.list(nnList);
+    for (auto &chart : nnList)
+        freeState(const_cast<StateType *>(chart.first));
+
     chartNN_.clear();
+
     chartPDF_.clear();
 
     // Reinstate the anchor charts
