@@ -56,7 +56,7 @@ ompl::base::ConstrainedMotionValidator::ConstrainedMotionValidator(const SpaceIn
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2) const
 {
     return ss_.getConstraint()->isSatisfied(s1)
-        && ss_.getConstraint()->isSatisfied(s2);
+        && ss_.getConstraint()->isSatisfied(s2)
         && ss_.traverseManifold(s1, s2);
 }
 
