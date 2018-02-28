@@ -51,7 +51,7 @@ ompl::base::JacobianCollisionTrajOptConstraint::JacobianCollisionTrajOptConstrai
     eval_(new JacobianDiscreteCollisionEvaluator(collision, ss, J, vars)),
     safeDist_(safeDist)
 {
-    name_ = std::string("JacobianColl ") + vars[0].var_rep->name;
+    name_ = std::string("JacoColl ") + vars[0].var_rep->name;
 }
 
 sco::ConvexConstraintsPtr ompl::base::JacobianCollisionTrajOptConstraint::convex(const std::vector<double>& x, sco::Model *model)
@@ -71,6 +71,7 @@ std::vector<double> ompl::base::JacobianCollisionTrajOptConstraint::value(const 
     std::vector<double> out(dists.size());
     for (size_t i = 0; i < dists.size(); i++) {
         out[i] = sco::pospart(safeDist_ - dists[i]) * coeff_;
+        OMPL_INFORM("%s: out[%d] = %f = %f - %f", name_.c_str(), i, out[i], safeDist_, dists[i]);
     }
     return out;
 }
@@ -87,7 +88,7 @@ ompl::base::JacobianContinuousTrajOptConstraint::JacobianContinuousTrajOptConstr
     eval_(new JacobianContinuousCollisionEvaluator(collision, ss, J, vars0, vars1)),
     safeDist_(safeDist)
 {
-    name_ ="Jacobian ContColl";
+    name_ ="Jaco ContColl";
 }
 
 sco::ConvexConstraintsPtr ompl::base::JacobianContinuousTrajOptConstraint::convex(const std::vector<double>& x, sco::Model *model)

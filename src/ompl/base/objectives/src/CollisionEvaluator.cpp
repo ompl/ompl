@@ -49,8 +49,8 @@ sco::AffExpr ompl::base::JacobianCollisionEvaluator::distExprOneVaries(double si
     // sd(vars) = sd(x_0) + normal^T * J_pa(x_0) * vars - normal^T * J_pa(x_0) * x
     sco::AffExpr dist(signedDist);
     Eigen::VectorXd dist_gradient = normal.transpose() * j;
-    std::cerr << "normal" << std::endl << normal << std::endl;
-    std::cerr << "dist_grad: " << std::endl << dist_gradient << std::endl;
+    //std::cerr << "normal" << std::endl << normal << std::endl;
+    //std::cerr << "dist_grad: " << std::endl << dist_gradient << std::endl;
     sco::exprInc(dist, sco::varDot(dist_gradient, vars));
     sco::exprInc(dist, -dist_gradient.dot(sco::toVectorXd(x_0)));
     return dist;
@@ -65,7 +65,7 @@ sco::AffExpr ompl::base::JacobianCollisionEvaluator::distExprTwoVaries(double si
     Eigen::VectorXd dist_a_grad = normal.transpose() * j_a;
     Eigen::VectorXd dist_b_grad = normal.transpose() * j_b;
     Eigen::VectorXd diff = dist_a_grad - dist_b_grad;
-    std::cerr << "dist_grad: " << diff << std::endl;
+    //std::cerr << "dist_grad: " << diff << std::endl;
     sco::exprInc(dist, sco::varDot(diff, vars));
     sco::exprInc(dist, -diff.dot(sco::toVectorXd(x_0)));
     return dist;
@@ -82,8 +82,8 @@ std::vector<sco::AffExpr> ompl::base::JacobianDiscreteCollisionEvaluator::calcDi
 
     // Fields to be filled in by inCollision.
     std::vector<CollisionInfo> collisionStructs;
+    OMPL_INFORM("Getting structs for DistanceExpressions: Configuration: %f, %f, %f, %f, %f, %f", x_0[0], x_0[1], x_0[2], x_0[3], x_0[4], x_0[5]);
     if (inCollision_(x_0, collisionStructs)) {
-        OMPL_INFORM("Configuration: %f, %f, %f, %f, %f, %f", x_0[0], x_0[1], x_0[2], x_0[3], x_0[4], x_0[5]);
         for (auto collisionStruct : collisionStructs) {
             //OMPL_INFORM("signed distance: %f, point: %f, %f, %f, link_name: %s",
             //            collisionStruct.signedDist,
@@ -96,12 +96,12 @@ std::vector<sco::AffExpr> ompl::base::JacobianDiscreteCollisionEvaluator::calcDi
                 auto dist = distExprTwoVaries(collisionStruct.signedDist, collisionStruct.normal, j, j_b, x_0, vars_);
                 result = dist.value(x);
                 exprs.push_back(dist);
-                std::cerr << "EXPR: " << dist << std::endl;
+                //std::cerr << "EXPR: " << dist << std::endl;
             } else {
                 auto dist = distExprOneVaries(collisionStruct.signedDist, collisionStruct.normal, j, x_0, vars_);
                 result = dist.value(x);
                 exprs.push_back(dist);
-                std::cerr << dist << std::endl;
+                //std::cerr << dist << std::endl;
             }
             //OMPL_INFORM("At the current position: dist evaluates to %f", result);
         }
@@ -115,6 +115,7 @@ std::vector<double> ompl::base::JacobianDiscreteCollisionEvaluator::calcDistance
 
     // TODO: We only need the clearance, so maybe pass in another callback that just gives that.
     std::vector<CollisionInfo> collisionStructs;
+    OMPL_INFORM("Getting structs for Distances: Configuration: %f, %f, %f, %f, %f, %f", dofVals[0], dofVals[1], dofVals[2], dofVals[3], dofVals[4], dofVals[5]);
     bool collision = inCollision_(dofVals, collisionStructs);
     if (collision) {
         for (auto collisionStruct : collisionStructs) {

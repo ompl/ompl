@@ -40,7 +40,7 @@ static DblVec evaluateCosts(vector<CostPtr>& costs, const DblVec& x) {
   DblVec out(costs.size());
   for (size_t i=0; i < costs.size(); ++i) {
     out[i] = costs[i]->value(x);
-    //OMPL_DEBUG("cost %d: %f", i, out[i]);
+    OMPL_DEBUG("cost %d (%s): %f", i, costs[i]->name().c_str(), out[i]);
   }
   return out;
 }
@@ -48,7 +48,7 @@ static DblVec evaluateConstraintViols(vector<ConstraintPtr>& constraints, const 
     DblVec out(constraints.size());
     for (size_t i=0; i < constraints.size(); ++i) {
       out[i] = constraints[i]->violation(x);
-      //OMPL_DEBUG("constraint %d: %f", i, out[i]);
+      OMPL_DEBUG("constraint %d (%s): %f", i, constraints[i]->name().c_str(), out[i]);
     }
     return out;
 }
@@ -71,7 +71,7 @@ DblVec evaluateModelCosts(vector<ConvexObjectivePtr>& costs, const DblVec& x) {
   DblVec out(costs.size());
   for (size_t i=0; i < costs.size(); ++i) {
     out[i] = costs[i]->value(x);
-    //OMPL_DEBUG("model cost %d: %f", i, out[i]);
+    OMPL_DEBUG("model cost %d: %f", i, out[i]);
   }
   return out;
 }
