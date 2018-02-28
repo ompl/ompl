@@ -97,8 +97,6 @@ namespace ompl
         OMPL_CLASS_FORWARD(AtlasStateSpace);
         /// @endcond
 
-        using AtlasChartBiasFunction = std::function<double(AtlasChart *)>;
-
         /** \brief StateSampler for use on an atlas. */
         class AtlasStateSampler : public StateSampler
         {
@@ -131,6 +129,9 @@ namespace ompl
         class AtlasStateSpace : public ConstrainedStateSpace
         {
         public:
+            using AtlasChartBiasFunction = std::function<double(AtlasChart *)>;
+            using NNElement = std::pair<const StateType *, std::size_t>;
+
             /** \brief A state in an atlas represented as a real vector in
              * ambient space and a chart that it belongs to. */
             class StateType : public ConstrainedStateSpace::StateType
@@ -154,12 +155,9 @@ namespace ompl
                 }
 
             private:
-                /** \brief Chart owning the real vector. */
-                mutable AtlasChart *chart_ = nullptr;
+                /** \brief Chart owning the state. */
+                mutable AtlasChart *chart_{nullptr};
             };
-
-            // Store an AtlasChart's xorigin and index in the charts_ array.
-            typedef std::pair<const StateType *, std::size_t> NNElement;
 
             /** \brief Construct an atlas with the specified dimensions. */
             AtlasStateSpace(const StateSpacePtr &ambientSpace, const ConstraintPtr &constraint, bool separate = true);
@@ -173,6 +171,33 @@ namespace ompl
 
             /** \brief Reset the space (except for anchor charts). */
             void clear() override;
+
+            /** \brief Allocate the default state sampler for this space. */
+            StateSamplerPtr allocDefaultStateSampler() const override
+            {
+                return std::make_shared<AtlasStateSampler>(this);
+            }
+
+            /** \brief Allocate the previously set state sampler for this space. */
+            StateSamplerPtr allocStateSampler() const override
+            {
+                return std::make_shared<AtlasStateSampler>(this);
+            }
+
+            void copyState(State *destination, const State *source) const override
+            {
+                ConstrainedStateSpace::copyState(destination, source);
+                destination->as<StateType>()->setChart(source->as<StateType>()->getChart());
+            }
+
+            /** \brief Allocate a new state in this space. */
+            State *allocState() const override
+            {
+                return new StateType(this);
+            }
+
+            /** @name Getters and Setters
+                @{ */
 
             /** \brief Set \a epsilon, the maximum permissible distance between
              * a point in the validity region of a chart and its projection onto
@@ -303,10 +328,16 @@ namespace ompl
                 return separate_;
             }
 
-            /** \brief Wrapper for newChart(). Charts created this way will
-             * persist through calls to clear().
-             * \throws ompl::Exception if manifold seems degenerate here. */
-            AtlasChart *anchorChart(const State *state) const;
+            /** \brief Return the number of charts currently in the atlas. */
+            std::size_t getChartCount() const
+            {
+                return charts_.size();
+            }
+
+            /** @} */
+
+            /** @name Atlas Chart Management
+                @{ */
 
             /** \brief Create a new chart for the atlas, centered at \a xorigin,
              * which should be on the manifold. Returns nullptr upon failure. */
@@ -326,11 +357,15 @@ namespace ompl
              * true if a new chart is created. */
             AtlasChart *getChart(const StateType *state, bool force = false, bool *created = nullptr) const;
 
-            /** \brief Return the number of charts currently in the atlas. */
-            std::size_t getChartCount() const
-            {
-                return charts_.size();
-            }
+            /** @} */
+
+            /** @name Constrained Planning
+                @{ */
+
+            /** \brief Wrapper for newChart(). Charts created this way will
+             * persist through calls to clear().
+             * \throws ompl::Exception if manifold seems degenerate here. */
+            AtlasChart *anchorChart(const State *state) const;
 
             /** \brief Traverse the manifold from \a from toward \a to. Returns
              * true if we reached \a to, and false if we stopped early for any
@@ -344,29 +379,10 @@ namespace ompl
             bool traverseManifold(const State *from, const State *to, bool interpolate = false,
                                   std::vector<State *> *stateList = nullptr, bool endpoints = true) const override;
 
-            /** \brief Allocate the default state sampler for this space. */
-            StateSamplerPtr allocDefaultStateSampler() const override
-            {
-                return std::make_shared<AtlasStateSampler>(this);
-            }
+            /** @} */
 
-            /** \brief Allocate the previously set state sampler for this space. */
-            StateSamplerPtr allocStateSampler() const override
-            {
-                return std::make_shared<AtlasStateSampler>(this);
-            }
-
-            void copyState(State *destination, const State *source) const override
-            {
-                ConstrainedStateSpace::copyState(destination, source);
-                destination->as<StateType>()->setChart(source->as<StateType>()->getChart());
-            }
-
-            /** \brief Allocate a new state in this space. */
-            State *allocState() const override
-            {
-                return new StateType(this);
-            }
+            /** @name Statistics and Visualization
+                @{ */
 
             /** \brief Estimate what percentage of atlas charts do not have
              * fully formed polytope boundaries, and are therefore on the
@@ -376,7 +392,10 @@ namespace ompl
             /** \brief Write a mesh representation of the atlas to a stream. */
             void printPLY(std::ostream &out) const;
 
+            /** @} */
+
         protected:
+
             /** \brief Set of states on which there are anchored charts. */
             mutable std::vector<StateType *> anchors_;
 
@@ -389,6 +408,9 @@ namespace ompl
             /** \brief Set of chart centers and indices, accessible by
              * nearest-neighbor queries to the chart centers. */
             mutable NearestNeighborsGNAT<NNElement> chartNN_;
+
+            /** @name Tunable Parameters
+                @{ */
 
             /** \brief Maximum distance between a chart and the manifold inside its validity region. */
             double epsilon_{ompl::magic::ATLAS_STATE_SPACE_EPSILON};
@@ -406,17 +428,19 @@ namespace ompl
              * this. */
             double lambda_{ompl::magic::ATLAS_STATE_SPACE_LAMBDA};
 
-            /** \brief Function to bias chart sampling */
-            AtlasChartBiasFunction biasFunction_;
-
-            /** \brief Enable or disable halfspace separation of the charts. */
-            bool separate_;
-
             /** \brief Sampling radius within a chart. Inferred from rho and exploration parameters. */
             mutable double rho_s_;
 
             /** \brief Maximum number of charts that can be created in one manifold traversal. */
             unsigned int maxChartsPerExtension_{ompl::magic::ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION};
+
+            /** @} */
+
+            /** \brief Function to bias chart sampling */
+            AtlasChartBiasFunction biasFunction_;
+
+            /** \brief Enable or disable halfspace separation of the charts. */
+            bool separate_;
 
             /** \brief Random number generator. */
             mutable RNG rng_;

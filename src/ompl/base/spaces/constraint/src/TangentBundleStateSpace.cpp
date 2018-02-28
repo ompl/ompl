@@ -86,7 +86,8 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
 
     // No need to traverse the manifold if we are already there
     const double tolerance = delta_;
-    if (distance(from, to) <= tolerance)
+    const double distTo = distance(from, to);
+    if (distTo <= tolerance)
         return true;
 
     // Get vector representations
@@ -94,7 +95,7 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
     auto &&x_to = toAsType->constVectorView();
 
     // Traversal stops if the ball of radius distMax centered at x_from is left
-    const double distMax = lambda_ * (x_from - x_to).norm();
+    const double distMax = lambda_ * distTo;
 
     // Create a scratch state to use for movement.
     auto &&scratch = cloneState(from)->as<StateType>();

@@ -244,7 +244,10 @@ void ompl::base::AtlasStateSpace::clear()
     std::vector<NNElement> nnList;
     chartNN_.list(nnList);
     for (auto &chart : nnList)
-        freeState(const_cast<StateType *>(chart.first));
+    {
+        const State *state = chart.first;
+        freeState(const_cast<State *>(state));
+    }
 
     chartNN_.clear();
     chartPDF_.clear();
