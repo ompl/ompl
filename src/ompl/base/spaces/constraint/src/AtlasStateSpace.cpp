@@ -241,17 +241,12 @@ void ompl::base::AtlasStateSpace::clear()
         delete chart;
     charts_.clear();
 
-    for (auto &element : elements_)
-        chartPDF_.remove(element);
-    elements_.clear();
-
     std::vector<NNElement> nnList;
     chartNN_.list(nnList);
     for (auto &chart : nnList)
         freeState(const_cast<StateType *>(chart.first));
 
     chartNN_.clear();
-
     chartPDF_.clear();
 
     // Reinstate the anchor charts
@@ -277,20 +272,21 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::anchorChart(const ompl::bas
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const StateType *state) const
 {
-    AtlasChart *addedC;
-    StateType *addedS = nullptr;
+    AtlasChart *chart;
+    StateType *cstate = nullptr;
+
     try
     {
-        addedS = cloneState(state)->as<StateType>();
-        addedC = new AtlasChart(this, addedS);
+        cstate = cloneState(state)->as<StateType>();
+        chart = new AtlasChart(this, cstate);
     }
     catch (ompl::Exception &e)
     {
         OMPL_ERROR("ompl::base::AtlasStateSpace::newChart(): "
                    "Failed because manifold looks degenerate here.");
 
-        if (addedS != nullptr)
-            freeState(addedS);
+        if (cstate != nullptr)
+            freeState(cstate);
 
         return nullptr;
     }
@@ -300,20 +296,22 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::newChart(const StateType *s
     if (separate_)
     {
         std::vector<NNElement> nearbyCharts;
-        chartNN_.nearestR(std::make_pair(addedS, 0), 2 * rho_s_, nearbyCharts);
+        chartNN_.nearestR(std::make_pair(cstate, 0), 2 * rho_s_, nearbyCharts);
+
         for (auto &&near : nearbyCharts)
         {
-            AtlasChart *c = charts_[near.second];
-            AtlasChart::generateHalfspace(c, addedC);
-            chartPDF_.update(elements_[near.second], biasFunction_(c));
+            AtlasChart *other = charts_[near.second];
+            AtlasChart::generateHalfspace(other, chart);
+
+            chartPDF_.update(chartPDF_.getElements()[near.second], biasFunction_(other));
         }
     }
 
-    chartNN_.add(std::make_pair(addedS, charts_.size()));
-    charts_.push_back(addedC);
-    elements_.push_back(chartPDF_.add(addedC, biasFunction_(addedC)));
+    chartNN_.add(std::make_pair(cstate, charts_.size()));
+    charts_.push_back(chart);
+    chartPDF_.add(chart, biasFunction_(chart));
 
-    return addedC;
+    return chart;
 }
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::sampleChart() const
@@ -349,26 +347,27 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::getChart(const StateType *s
 
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart(const StateType *state) const
 {
-    Eigen::VectorXd x_temp(n_), u_t(k_);
-    auto &&x = state->constVectorView();
+    Eigen::VectorXd u_t(k_);
+    auto temp = allocState()->as<StateType>();
 
-    std::vector<NNElement> nearbyCharts;
-    chartNN_.nearestR(std::make_pair(state, 0), rho_, nearbyCharts);
+    std::vector<NNElement> nearby;
+    chartNN_.nearestR(std::make_pair(state, 0), rho_, nearby);
 
-    for (auto &near : nearbyCharts)
+    AtlasChart *chart = nullptr;
+    for (auto near = nearby.begin(); near != nearby.end() && chart == nullptr; ++near)
     {
         // The point must lie in the chart's validity region and polytope
-        auto chart = charts_[near.second];
-        chart->psiInverse(x, u_t);
-        chart->phi(u_t, x_temp);
+        auto owner = charts_[near->second];
+        owner->psiInverse(state->constVectorView(), u_t);
+        owner->phi(u_t, temp->vectorView());
 
-        if ((x_temp - x).squaredNorm() < (epsilon_ * epsilon_)  // within epsilon
-            && u_t.squaredNorm() < (rho_ * rho_)                // within rho
-            && chart->inPolytope(u_t))                          // in polytope
-            return chart;
+        if (owner->inPolytope(u_t)                // in polytope
+            && distance(state, temp) < epsilon_)  // within epsilon
+            chart = owner;
     }
 
-    return nullptr;
+    freeState(temp);
+    return chart;
 }
 
 bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const State *to, bool interpolate,
@@ -399,7 +398,8 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
 
     // No need to traverse the manifold if we are already there
     const double tolerance = delta_;
-    if (distance(from, to) <= tolerance)
+    const double distTo = distance(from, to);
+    if (distTo <= tolerance)
         return true;
 
     // Get vector representations
@@ -407,7 +407,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     auto &&x_to = toAsType->constVectorView();
 
     // Traversal stops if the ball of radius distMax centered at x_from is left
-    const double distMax = lambda_ * (x_from - x_to).norm();
+    const double distMax = lambda_ * distTo;
 
     // Create a scratch state to use for movement.
     auto &&scratch = cloneState(from)->as<StateType>();

@@ -317,7 +317,7 @@ namespace ompl
 
             /** \brief Find the chart to which \a x belongs. Returns nullptr if
              * no chart found. Assumes \a x is already on the manifold. */
-            AtlasChart *owningChart(const StateType* state) const;
+            AtlasChart *owningChart(const StateType *state) const;
 
             /** \brief Wrapper to return chart \a state belongs to. Will attempt
              * to initialize new chart if \a state does not belong to one. If \a
@@ -377,14 +377,11 @@ namespace ompl
             void printPLY(std::ostream &out) const;
 
         protected:
-            /** \brief Set of charts. */
-            mutable std::vector<AtlasChart *> charts_;
-
             /** \brief Set of states on which there are anchored charts. */
             mutable std::vector<StateType *> anchors_;
 
-            /** \brief Set of PDF elements for biased sampling of charts. */
-            mutable std::vector<PDF<AtlasChart *>::Element *> elements_;
+            /** \brief Set of charts. */
+            mutable std::vector<AtlasChart *> charts_;
 
             /** \brief PDF of charts according to a bias function. */
             mutable PDF<AtlasChart *> chartPDF_;
