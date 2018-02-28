@@ -46,7 +46,7 @@ ompl::base::AtlasChart::Halfspace::Halfspace(const AtlasChart *owner, const Atla
 {
     // Project neighbor's chart center onto our chart.
     Eigen::VectorXd u(owner_->k_);
-    owner_->psiInverse(neighbor->getOrigin()->constVectorView(), u);
+    owner_->psiInverse(*neighbor->getOrigin(), u);
 
     // Compute the halfspace equation, which is the perpendicular bisector
     // between 0 and u (plus 5% to reduce cracks, see Jaillet et al.).
@@ -156,7 +156,7 @@ ompl::base::AtlasChart::AtlasChart(const AtlasStateSpace *atlas, const AtlasStat
   , state_(state)
   , bigPhi_([&]() -> const Eigen::MatrixXd {
       Eigen::MatrixXd j(n_ - k_, n_);
-      constraint_->jacobian(state_->constVectorView(), j);
+      constraint_->jacobian(*state_, j);
 
       Eigen::FullPivLU<Eigen::MatrixXd> decomp = j.fullPivLu();
       if (!decomp.isSurjective())
@@ -184,7 +184,7 @@ void ompl::base::AtlasChart::clear()
 
 void ompl::base::AtlasChart::phi(const Eigen::Ref<const Eigen::VectorXd> &u, Eigen::Ref<Eigen::VectorXd> out) const
 {
-    out = state_->constVectorView() + bigPhi_ * u;
+    out = *state_ + bigPhi_ * u;
 }
 
 bool ompl::base::AtlasChart::psi(const Eigen::Ref<const Eigen::VectorXd> &u, Eigen::Ref<Eigen::VectorXd> out) const
@@ -232,7 +232,7 @@ bool ompl::base::AtlasChart::psi(const Eigen::Ref<const Eigen::VectorXd> &u, Eig
 void ompl::base::AtlasChart::psiInverse(const Eigen::Ref<const Eigen::VectorXd> &x,
                                         Eigen::Ref<Eigen::VectorXd> out) const
 {
-    out = bigPhi_.transpose() * (x - state_->constVectorView());
+    out = bigPhi_.transpose() * (x - *state_);
 }
 
 bool ompl::base::AtlasChart::inPolytope(const Eigen::Ref<const Eigen::VectorXd> &u, const Halfspace *const ignore1,

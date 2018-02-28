@@ -65,11 +65,11 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
     if (!constraint_->isSatisfied(from))
         return false;
 
-    auto &&fromAsType = from->as<StateType>();
-    auto &&toAsType = to->as<StateType>();
+    auto &&afrom = from->as<StateType>();
+    auto &&ato = to->as<StateType>();
 
     // Try to get starting chart from `from` state.
-    AtlasChart *c = getChart(fromAsType);
+    AtlasChart *c = getChart(afrom);
     if (c == nullptr)
         return false;
 
@@ -90,23 +90,17 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
     if (distTo <= tolerance)
         return true;
 
-    // Get vector representations
-    auto &&x_from = fromAsType->constVectorView();
-    auto &&x_to = toAsType->constVectorView();
-
-    // Traversal stops if the ball of radius distMax centered at x_from is left
+    // Traversal stops if the ball of radius distMax centered at from is left
     const double distMax = lambda_ * distTo;
 
     // Create a scratch state to use for movement.
     auto &&scratch = cloneState(from)->as<StateType>();
-    auto &&x_scratch = scratch->vectorView();
     auto &&temp = cloneState(from)->as<StateType>();
-    auto &&x_temp = temp->vectorView();
 
     // Project from and to points onto the chart
     Eigen::VectorXd u_j(k_), u_b(k_);
-    c->psiInverse(x_scratch, u_j);
-    c->psiInverse(x_to, u_b);
+    c->psiInverse(*scratch, u_j);
+    c->psiInverse(*ato, u_b);
 
     bool done = false;
     std::size_t chartsCreated = 0;
@@ -117,7 +111,7 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
     {
         // Take a step towards the final state
         u_j += delta_ * (u_b - u_j).normalized();
-        c->phi(u_j, x_temp);
+        c->phi(u_j, *temp);
 
         const double step = distance(temp, scratch);
         dist += step;
@@ -131,13 +125,13 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
         done = (u_b - u_j).squaredNorm() <= sqDelta;
         // Find or make a new chart if new state is off of current chart
         if (done || !c->inPolytope(u_j)                   // outside polytope
-            || constraint_->distance(x_temp) > epsilon_)  // to far from manifold
+            || constraint_->distance(*temp) > epsilon_)  // to far from manifold
         {
-            const bool onManifold = c->psi(u_j, x_temp);
+            const bool onManifold = c->psi(u_j, *temp);
             if (!onManifold)
                 break;
 
-            x_scratch = x_temp;
+            copyState(scratch, temp);
             scratch->setChart(c);
 
             bool created = false;
@@ -149,13 +143,13 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
             chartsCreated += created;
 
             // Re-project onto the next chart.
-            c->psiInverse(x_scratch, u_j);
-            c->psiInverse(x_to, u_b);
+            c->psiInverse(*scratch, u_j);
+            c->psiInverse(*ato, u_b);
 
             done = (u_b - u_j).squaredNorm() <= sqDelta;
         }
 
-        x_scratch = x_temp;
+        copyState(scratch, temp);
 
         // Keep the state in a list, if requested.
         if (stateList != nullptr && ((endpoints && !done) || !endpoints))
@@ -178,9 +172,9 @@ ompl::base::State *ompl::base::TangentBundleStateSpace::piecewiseInterpolate(con
 
     Eigen::VectorXd u(k_);
     auto chart = getChart(state);
-    chart->psiInverse(state->constVectorView(), u);
+    chart->psiInverse(*state, u);
 
-    if (!chart->psi(u, state->vectorView()) && !svc->isValid(state))
+    if (!chart->psi(u, *state) && !svc->isValid(state))
         return nullptr;
 
     return state;

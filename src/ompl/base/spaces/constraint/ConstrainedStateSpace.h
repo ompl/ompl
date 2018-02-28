@@ -134,45 +134,20 @@ namespace ompl
         public:
             /** \brief A state in a constrained configuration space that can be
              * represented as a dense real vector of values. */
-            class StateType : public WrapperStateSpace::StateType
+            class StateType : public WrapperStateSpace::StateType, public Eigen::Map<Eigen::VectorXd>
             {
             public:
                 /** \brief Constructor. Requires \a space to setup information about underlying state. */
                 StateType(const ConstrainedStateSpace *space)
                   : WrapperStateSpace::StateType(space->getSpace()->allocState())
-                  , values(space->getValueAddressAtIndex(this, 0))
-                  , n_(space->getDimension())
+                  , Eigen::Map<Eigen::VectorXd>(space->getValueAddressAtIndex(this, 0), space->getDimension())
                 {
                 }
 
-                /** \brief View this state as a vector. */
-                Eigen::Map<Eigen::VectorXd> vectorView() const
+                void copy(const Eigen::Ref<const Eigen::VectorXd> &other)
                 {
-                    return Eigen::Map<Eigen::VectorXd>(values, n_);
+                    *static_cast<Eigen::Map<Eigen::VectorXd> *>(this) = other;
                 }
-
-                /** \brief View this state as a const vector. */
-                const Eigen::Map<const Eigen::VectorXd> constVectorView() const
-                {
-                    return Eigen::Map<const Eigen::VectorXd>(values, n_);
-                }
-
-                double operator[](unsigned int i) const
-                {
-                    return values[i];
-                }
-
-                double &operator[](unsigned int i)
-                {
-                    return values[i];
-                }
-
-            protected:
-                /** \brief Local reference to location of state values. */
-                double *values;
-
-                /** \brief Dimension of state. */
-                const unsigned int n_;
             };
 
             /** \brief Construct a constrained space from an \a ambientSpace and

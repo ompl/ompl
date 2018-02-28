@@ -51,7 +51,6 @@ ompl::base::AtlasStateSampler::AtlasStateSampler(const AtlasStateSpace *space) :
 void ompl::base::AtlasStateSampler::sampleUniform(State *state)
 {
     auto &&astate = state->as<AtlasStateSpace::StateType>();
-    auto &&rx = astate->vectorView();
     const std::size_t k = atlas_->getManifoldDimension();
     Eigen::VectorXd ry(atlas_->getAmbientDimension()), ru(k);
     AtlasChart *c;
@@ -76,7 +75,7 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
         } while (tries-- > 0 && !c->inPolytope(ru));
 
         // Project. Will need to try again if this fails.
-    } while (tries > 0 && !c->psi(ru, rx));
+    } while (tries > 0 && !c->psi(ru, *astate));
 
     if (tries == 0)
     {
@@ -84,11 +83,11 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
         // becomes a problem.
         OMPL_WARN("ompl::base::AtlasStateSpace::sampleUniform(): "
                   "Took too long; returning center of a random chart.");
-        rx = c->getOrigin()->constVectorView();
+        atlas_->copyState(astate, c->getOrigin());
     }
 
     // Extend polytope of neighboring chart wherever point is near the border.
-    c->psiInverse(rx, ru);
+    c->psiInverse(*astate, ru);
     c->borderCheck(ru);
     astate->setChart(atlas_->owningChart(astate));
 }
@@ -99,7 +98,6 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     auto &&astate = state->as<AtlasStateSpace::StateType>();
     auto &&anear = near->as<AtlasStateSpace::StateType>();
 
-    auto &&n = anear->constVectorView();
     const std::size_t k = atlas_->getManifoldDimension();
     Eigen::VectorXd rx(atlas_->getAmbientDimension()), ru(k);
 
@@ -113,7 +111,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     }
 
     // Sample a point from the starting chart.
-    c->psiInverse(n, ru);
+    c->psiInverse(*anear, ru);
 
     unsigned int tries = ompl::magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS;
     Eigen::VectorXd uoffset(atlas_->getManifoldDimension());
@@ -133,7 +131,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
         // problem. Check planner code to see how it gets chosen.
         OMPL_WARN("ompl::base:::AtlasStateSpace::sampleUniformNear(): "
                   "Took too long; returning initial point.");
-        rx = n;
+        rx = *anear;
     }
 
     // Be lazy about determining the new chart if we are not in the old one
@@ -142,7 +140,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     else
         c->borderCheck(ru);
 
-    astate->vectorView() = rx;
+    astate->copy(rx);
     astate->setChart(c);
 }
 
@@ -151,7 +149,6 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
     auto &&astate = state->as<AtlasStateSpace::StateType>();
     auto &&amean = mean->as<AtlasStateSpace::StateType>();
 
-    auto &&m = amean->constVectorView();
     const std::size_t k = atlas_->getManifoldDimension();
     Eigen::VectorXd rx(atlas_->getAmbientDimension()), ru(k);
 
@@ -164,7 +161,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
         return;
     }
 
-    c->psiInverse(m, ru);
+    c->psiInverse(*amean, ru);
 
     // Sample a point in a normal distribution on the starting chart.
     unsigned int tries = ompl::magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS;
@@ -183,7 +180,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
     {
         OMPL_WARN("ompl::base::AtlasStateSpace::sampleUniforGaussian(): "
                   "Took too long; returning initial point.");
-        rx = m;
+        rx = *amean;
     }
 
     // Be lazy about determining the new chart if we are not in the old one
@@ -192,7 +189,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
     else
         c->borderCheck(ru);
 
-    astate->vectorView() = rx;
+    astate->copy(rx);
     astate->setChart(c);
 }
 
@@ -361,8 +358,8 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart(const StateType
     {
         // The point must lie in the chart's validity region and polytope
         auto owner = charts_[near->second];
-        owner->psiInverse(state->constVectorView(), u_t);
-        owner->phi(u_t, temp->vectorView());
+        owner->psiInverse(*state, u_t);
+        owner->phi(u_t, *temp);
 
         if (owner->inPolytope(u_t)                // in polytope
             && distance(state, temp) < epsilon_)  // within epsilon
@@ -380,11 +377,11 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     if (!constraint_->isSatisfied(from))
         return false;
 
-    auto &&fromAsType = from->as<StateType>();
-    auto &&toAsType = to->as<StateType>();
+    auto &&afrom = from->as<StateType>();
+    auto &&ato = to->as<StateType>();
 
     // Try to get starting chart from `from` state.
-    AtlasChart *c = getChart(fromAsType);
+    AtlasChart *c = getChart(afrom);
     if (c == nullptr)
         return false;
 
@@ -405,23 +402,17 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     if (distTo <= tolerance)
         return true;
 
-    // Get vector representations
-    auto &&x_from = fromAsType->constVectorView();
-    auto &&x_to = toAsType->constVectorView();
-
     // Traversal stops if the ball of radius distMax centered at x_from is left
     const double distMax = lambda_ * distTo;
 
     // Create a scratch state to use for movement.
     auto &&scratch = cloneState(from)->as<StateType>();
-    auto &&x_scratch = scratch->vectorView();
     auto &&temp = allocState()->as<StateType>();
-    auto &&x_temp = temp->vectorView();
 
     // Project from and to points onto the chart
     Eigen::VectorXd u_j(k_), u_b(k_);
-    c->psiInverse(x_scratch, u_j);
-    c->psiInverse(x_to, u_b);
+    c->psiInverse(*scratch, u_j);
+    c->psiInverse(*ato, u_b);
 
     bool done = false;
     std::size_t chartsCreated = 0;
@@ -438,7 +429,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         u_j += factor * delta_ * (u_b - u_j).normalized();
 
         // will also bork on non-finite numbers
-        const bool onManifold = c->psi(u_j, x_temp);
+        const bool onManifold = c->psi(u_j, *temp);
         if (!onManifold)
             break;
 
@@ -454,7 +445,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         dist += step;
 
         // Update state
-        x_scratch = x_temp;
+        copyState(scratch, temp);
         scratch->setChart(c);
 
         if (!(interpolate || svc->isValid(scratch))     // not valid
@@ -464,7 +455,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
             break;
 
         // Check if we left the validity region or polytope of the chart.
-        c->phi(u_j, x_temp);
+        c->phi(u_j, *temp);
 
         // Find or make a new chart if new state is off of current chart
         if (distance(scratch, temp) > epsilon_  // exceeds epsilon
@@ -480,8 +471,8 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
             chartsCreated += created;
 
             // Re-project onto the next chart.
-            c->psiInverse(x_scratch, u_j);
-            c->psiInverse(x_to, u_b);
+            c->psiInverse(*scratch, u_j);
+            c->psiInverse(*ato, u_b);
         }
 
         done = (u_b - u_j).squaredNorm() <= delta_ * delta_;

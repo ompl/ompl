@@ -39,27 +39,27 @@
 
 void ompl::base::Constraint::function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const
 {
-    function(state->as<ConstrainedStateSpace::StateType>()->constVectorView(), out);
+    function(*state->as<ConstrainedStateSpace::StateType>(), out);
 }
 
 void ompl::base::Constraint::jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const
 {
-    jacobian(state->as<ConstrainedStateSpace::StateType>()->constVectorView(), out);
+    jacobian(*state->as<ConstrainedStateSpace::StateType>(), out);
 }
 
 bool ompl::base::Constraint::project(State *state) const
 {
-    return project(state->as<ConstrainedStateSpace::StateType>()->vectorView());
+    return project(*state->as<ConstrainedStateSpace::StateType>());
 }
 
 double ompl::base::Constraint::distance(const State *state) const
 {
-    return distance(state->as<ConstrainedStateSpace::StateType>()->constVectorView());
+    return distance(*state->as<ConstrainedStateSpace::StateType>());
 }
 
 bool ompl::base::Constraint::isSatisfied(const State *state) const
 {
-    return isSatisfied(state->as<ConstrainedStateSpace::StateType>()->constVectorView());
+    return isSatisfied(*state->as<ConstrainedStateSpace::StateType>());
 }
 
 void ompl::base::Constraint::jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const

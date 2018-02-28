@@ -136,9 +136,9 @@ namespace ompl
                     auto stateT = (*it)->as<AtlasStateSpace::StateType>();
                     Eigen::VectorXd u(atlas->getManifoldDimension());
                     AtlasChart *c = atlas->getChart(stateT);
-                    c->psiInverse(stateT->constVectorView(), u);
+                    c->psiInverse(*stateT, u);
 
-                    if (!c->psi(u, stateT->vectorView()))
+                    if (!c->psi(u, *stateT))
                         break;
                 }
 
@@ -174,9 +174,9 @@ namespace ompl
 
                     Eigen::VectorXd u(atlas->getManifoldDimension());
                     AtlasChart *c = atlas->getChart(stateT);
-                    c->psiInverse(stateT->constVectorView(), u);
+                    c->psiInverse(*stateT, u);
 
-                    if (!c->psi(u, stateT->vectorView()))
+                    if (!c->psi(u, *stateT))
                         valid = false;
                 }
 

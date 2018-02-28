@@ -196,7 +196,7 @@ public:
      * collisions with the extra obstacles on the surface of the sphere. */
     bool isValid(const ob::State *state)
     {
-        auto &&x = state->as<ob::ConstrainedStateSpace::StateType>()->constVectorView();
+        auto &&x = *state->as<ob::ConstrainedStateSpace::StateType>();
 
         for (unsigned int i = 0; i < links_; i++)
         {
@@ -321,7 +321,7 @@ public:
 
             void project(const ob::State *state, ob::EuclideanProjection &projection) const
             {
-                auto &&x = state->as<ob::ConstrainedStateSpace::StateType>()->constVectorView();
+                auto &&x = *state->as<ob::ConstrainedStateSpace::StateType>();
                 const unsigned int s = 3 * (links_ - 1);
 
                 projection(0) = atan2(x[s + 1], x[s]);

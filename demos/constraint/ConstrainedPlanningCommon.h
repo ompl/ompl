@@ -310,8 +310,8 @@ public:
         ob::ScopedState<> sstart(css);
         ob::ScopedState<> sgoal(css);
 
-        sstart->as<ob::ConstrainedStateSpace::StateType>()->vectorView() = start;
-        sgoal->as<ob::ConstrainedStateSpace::StateType>()->vectorView() = goal;
+        sstart->as<ob::ConstrainedStateSpace::StateType>()->copy(start);
+        sgoal->as<ob::ConstrainedStateSpace::StateType>()->copy(goal);
 
         switch (type)
         {

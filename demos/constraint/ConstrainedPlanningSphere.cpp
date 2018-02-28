@@ -75,7 +75,7 @@ public:
 
     void project(const ob::State *state, ob::EuclideanProjection &projection) const override
     {
-        auto &&x = state->as<ob::ConstrainedStateSpace::StateType>()->constVectorView();
+        auto &&x = *state->as<ob::ConstrainedStateSpace::StateType>();
         projection(0) = atan2(x[1], x[0]);
         projection(1) = acos(x[2]);
     }
@@ -83,7 +83,7 @@ public:
 
 bool obstacles(const ob::State *state)
 {
-    auto &&x = state->as<ob::ConstrainedStateSpace::StateType>()->constVectorView();
+    auto &&x = *state->as<ob::ConstrainedStateSpace::StateType>();
 
     if (-0.80 < x[2] && x[2] < -0.55)
     {
