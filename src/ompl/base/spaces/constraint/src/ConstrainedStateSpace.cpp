@@ -185,9 +185,7 @@ void ompl::base::ConstrainedStateSpace::clear()
 
 ompl::base::State *ompl::base::ConstrainedStateSpace::allocState() const
 {
-    auto *state = new StateType(space_->allocState(), n_);
-    state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
-    return state;
+    return new StateType(this);
 }
 
 void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const State *to, const double t,

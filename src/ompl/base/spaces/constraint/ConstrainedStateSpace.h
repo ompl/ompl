@@ -133,24 +133,16 @@ namespace ompl
         {
         public:
             /** \brief A state in a constrained configuration space that can be
-             * represented as a dense real vector of values. Upon creation, the
-             * location of the values of the state must be set with setValues(),
-             * otherwise further operations that use state information will
-             * fail. */
+             * represented as a dense real vector of values. */
             class StateType : public WrapperStateSpace::StateType
             {
             public:
-                /** \brief Construct state of size \a n. */
-                StateType(State *state, unsigned int n) : WrapperStateSpace::StateType(state), n_(n)
+                /** \brief Constructor. Requires \a space to setup information about underlying state. */
+                StateType(const ConstrainedStateSpace *space)
+                  : WrapperStateSpace::StateType(space->getSpace()->allocState())
+                  , values(space->getValueAddressAtIndex(this, 0))
+                  , n_(space->getDimension())
                 {
-                }
-
-                /** \brief Sets the value information for the state. Should be
-                 * called immediately after construction, before any constrained
-                 * space operations are done. */
-                void setValues(double *location)
-                {
-                    values = location;
                 }
 
                 /** \brief View this state as a vector. */
@@ -169,6 +161,7 @@ namespace ompl
                 {
                     return values[i];
                 }
+
                 double &operator[](unsigned int i)
                 {
                     return values[i];
@@ -176,7 +169,7 @@ namespace ompl
 
             protected:
                 /** \brief Local reference to location of state values. */
-                double *values{nullptr};
+                double *values;
 
                 /** \brief Dimension of state. */
                 const unsigned int n_;

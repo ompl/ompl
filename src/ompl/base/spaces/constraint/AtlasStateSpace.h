@@ -137,7 +137,7 @@ namespace ompl
             {
             public:
                 /** \brief Construct state of size \a n. */
-                StateType(State *state, const unsigned int n) : ConstrainedStateSpace::StateType(state, n)
+                StateType(const ConstrainedStateSpace *space) : ConstrainedStateSpace::StateType(space)
                 {
                 }
 
@@ -365,9 +365,7 @@ namespace ompl
             /** \brief Allocate a new state in this space. */
             State *allocState() const override
             {
-                auto *state = new StateType(space_->allocState(), n_);
-                state->setValues(space_->getValueAddressAtIndex(state->getState(), 0));
-                return state;
+                return new StateType(this);
             }
 
             /** \brief Estimate what percentage of atlas charts do not have
