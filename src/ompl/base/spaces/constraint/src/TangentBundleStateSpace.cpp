@@ -65,8 +65,8 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
     if (!constraint_->isSatisfied(from))
         return false;
 
-    auto &&afrom = from->as<StateType>();
-    auto &&ato = to->as<StateType>();
+    auto afrom = from->as<StateType>();
+    auto ato = to->as<StateType>();
 
     // Try to get starting chart from `from` state.
     AtlasChart *c = getChart(afrom);
@@ -94,8 +94,8 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
     const double distMax = lambda_ * distTo;
 
     // Create a scratch state to use for movement.
-    auto &&scratch = cloneState(from)->as<StateType>();
-    auto &&temp = cloneState(from)->as<StateType>();
+    auto scratch = cloneState(from)->as<StateType>();
+    auto temp = cloneState(from)->as<StateType>();
 
     // Project from and to points onto the chart
     Eigen::VectorXd u_j(k_), u_b(k_);
@@ -106,7 +106,7 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
     std::size_t chartsCreated = 0;
     double dist = 0;
 
-    const double sqDelta = std::pow(delta_, 2);
+    const double sqDelta = delta_ * delta_;
     do
     {
         // Take a step towards the final state
@@ -124,7 +124,7 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
 
         done = (u_b - u_j).squaredNorm() <= sqDelta;
         // Find or make a new chart if new state is off of current chart
-        if (done || !c->inPolytope(u_j)                   // outside polytope
+        if (done || !c->inPolytope(u_j)                  // outside polytope
             || constraint_->distance(*temp) > epsilon_)  // to far from manifold
         {
             const bool onManifold = c->psi(u_j, *temp);
@@ -168,14 +168,24 @@ ompl::base::State *ompl::base::TangentBundleStateSpace::piecewiseInterpolate(con
                                                                              const double t) const
 {
     auto state = ConstrainedStateSpace::piecewiseInterpolate(stateList, t)->as<StateType>();
+    if (!project(state))
+        return stateList[0];
+
+    return state;
+}
+
+bool ompl::base::TangentBundleStateSpace::project(State *state) const
+{
+    auto astate = state->as<StateType>();
     auto &&svc = si_->getStateValidityChecker();
 
     Eigen::VectorXd u(k_);
-    auto chart = getChart(state);
-    chart->psiInverse(*state, u);
+    AtlasChart *chart = getChart(astate);
+    chart->psiInverse(*astate, u);
 
-    if (!chart->psi(u, *state) && !svc->isValid(state))
-        return nullptr;
+    if (!chart->psi(u, *astate)    // On manifold
+        && !svc->isValid(state))  // Valid state
+        return false;
 
-    return state;
+    return true;
 }

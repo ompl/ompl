@@ -377,8 +377,8 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     if (!constraint_->isSatisfied(from))
         return false;
 
-    auto &&afrom = from->as<StateType>();
-    auto &&ato = to->as<StateType>();
+    auto afrom = from->as<StateType>();
+    auto ato = to->as<StateType>();
 
     // Try to get starting chart from `from` state.
     AtlasChart *c = getChart(afrom);
@@ -406,8 +406,8 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
     const double distMax = lambda_ * distTo;
 
     // Create a scratch state to use for movement.
-    auto &&scratch = cloneState(from)->as<StateType>();
-    auto &&temp = allocState()->as<StateType>();
+    auto scratch = cloneState(from)->as<StateType>();
+    auto temp = allocState()->as<StateType>();
 
     // Project from and to points onto the chart
     Eigen::VectorXd u_j(k_), u_b(k_);

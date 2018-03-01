@@ -69,7 +69,8 @@ namespace ompl
            Motion Planning with Constraints,” Annual Review of Control, Robotics,
            and Autonomous Systems, 2018. DOI: <a
            href="http://dx.doi.org/10.1146/annurev-control-060117-105226">10.1146/annurev-control-060117-105226</a>
-           <a href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf">[PDF]</a>.
+           <a
+           href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf">[PDF]</a>.
         */
 
         /// @cond IGNORE
@@ -104,6 +105,38 @@ namespace ompl
              * manifold traversal, additional fix-up is required to generate a
              * state that satisfies constraints. */
             State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const override;
+
+            /** \brief Reproject a state onto the surface of the manifold. Returns true if projection was successful,
+             * and the new state is valid. */
+            bool project(State *state) const;
+        };
+
+        class TangentBundleMotionValidator : public ConstrainedMotionValidator
+        {
+        public:
+            /** \brief Constructor. */
+            TangentBundleMotionValidator(SpaceInformation *si) : ConstrainedMotionValidator(si)
+            {
+            }
+
+            /** \brief Constructor. */
+            TangentBundleMotionValidator(const SpaceInformationPtr &si) : ConstrainedMotionValidator(si)
+            {
+            }
+
+            /** \brief Return whether we can step from \a s1 to \a s2 along the
+             * manifold without collision. If not, return the last valid state
+             * and its interpolation parameter in \a lastValid. \note The
+             * interpolation parameter will not likely reproduce the last valid
+             * state if used in interpolation since the distance between the
+             * last valid state and \a s2 is estimated using the ambient
+             * metric. */
+            bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override
+            {
+                bool ret = ConstrainedMotionValidator::checkMotion(s1, s2, lastValid);
+                auto state = lastValid.first->as<AtlasStateSpace::StateType>();
+                return ret && reinterpret_cast<const TangentBundleStateSpace &>(ss_).project(state);
+            }
         };
     }
 }

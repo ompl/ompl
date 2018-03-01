@@ -118,7 +118,7 @@ namespace ompl
              * metric. */
             bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
 
-        private:
+        protected:
             /** \brief Space in which we check motion. */
             const ConstrainedStateSpace &ss_;
         };
@@ -146,7 +146,7 @@ namespace ompl
 
                 void copy(const Eigen::Ref<const Eigen::VectorXd> &other)
                 {
-                    *static_cast<Eigen::Map<Eigen::VectorXd> *>(this) = other;
+                    static_cast<Eigen::Map<Eigen::VectorXd> *>(this)->operator=(other);
                 }
             };
 
