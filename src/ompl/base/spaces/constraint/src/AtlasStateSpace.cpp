@@ -438,7 +438,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         const bool exceedStepSize = step >= lambda_ * delta_;
         if (exceedStepSize)
         {
-            factor *= 0.5;
+            factor *= backoff_;
             continue;
         }
 

@@ -58,6 +58,7 @@ namespace ompl
         static const double ATLAS_STATE_SPACE_ALPHA = boost::math::constants::pi<double>() / 8.0;
         static const double ATLAS_STATE_SPACE_EXPLORATION = 0.75;
         static const unsigned int ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION = 200;
+        static const double ATLAS_STATE_SPACE_BACKOFF = 0.75;
     }
 
     namespace base
@@ -84,7 +85,8 @@ namespace ompl
            Motion Planning with Constraints,” Annual Review of Control, Robotics,
            and Autonomous Systems, 2018. DOI: <a
            href="http://dx.doi.org/10.1146/annurev-control-060117-105226">10.1146/annurev-control-060117-105226</a>
-           <a href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf">[PDF]</a>.
+           <a
+           href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf">[PDF]</a>.
         */
 
         /// @cond IGNORE
@@ -280,6 +282,12 @@ namespace ompl
                 separate_ = separate;
             }
 
+            /** \brief Sets the backoff factor in manifold traversal factor. */
+            void setBackoff(double backoff)
+            {
+                backoff_ = backoff;
+            }
+
             /** \brief Get epsilon. */
             double getEpsilon() const
             {
@@ -332,6 +340,12 @@ namespace ompl
             std::size_t getChartCount() const
             {
                 return charts_.size();
+            }
+
+            /** \brief Returns the current backoff factor used in manifold traversal. */
+            double getBackoff() const
+            {
+                return backoff_;
             }
 
             /** @} */
@@ -395,7 +409,6 @@ namespace ompl
             /** @} */
 
         protected:
-
             /** \brief Set of states on which there are anchored charts. */
             mutable std::vector<StateType *> anchors_;
 
@@ -430,6 +443,9 @@ namespace ompl
 
             /** \brief Sampling radius within a chart. Inferred from rho and exploration parameters. */
             mutable double rho_s_;
+
+            /** \brief Step size reduction factor during manifold traversal. */
+            double backoff_{ompl::magic::ATLAS_STATE_SPACE_BACKOFF};
 
             /** \brief Maximum number of charts that can be created in one manifold traversal. */
             unsigned int maxChartsPerExtension_{ompl::magic::ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION};
