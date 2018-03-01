@@ -55,9 +55,7 @@ ompl::base::ConstrainedMotionValidator::ConstrainedMotionValidator(const SpaceIn
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2) const
 {
-    return ss_.getConstraint()->isSatisfied(s1)
-        && ss_.getConstraint()->isSatisfied(s2)
-        && ss_.traverseManifold(s1, s2);
+    return ss_.getConstraint()->isSatisfied(s2) && ss_.traverseManifold(s1, s2);
 }
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2,
@@ -98,8 +96,7 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
     }
 
     ss_.freeState(stateList.back());
-
-    return ss_.getConstraint()->isSatisfied(s1) && ss_.getConstraint()->isSatisfied(s2) && reached;
+    return ss_.getConstraint()->isSatisfied(s2) && reached;
 }
 
 ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr &space, const ConstraintPtr &constraint)

@@ -50,9 +50,11 @@ ompl::base::AtlasStateSampler::AtlasStateSampler(const AtlasStateSpace *space) :
 
 void ompl::base::AtlasStateSampler::sampleUniform(State *state)
 {
-    auto &&astate = state->as<AtlasStateSpace::StateType>();
+    auto astate = state->as<AtlasStateSpace::StateType>();
+
     const std::size_t k = atlas_->getManifoldDimension();
-    Eigen::VectorXd ry(atlas_->getAmbientDimension()), ru(k);
+    Eigen::VectorXd ru(k);
+
     AtlasChart *c;
 
     // Sampling a point on the manifold.
@@ -95,11 +97,13 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
 void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State *near, const double dist)
 {
     // Find the chart that the starting point is on.
-    auto &&astate = state->as<AtlasStateSpace::StateType>();
-    auto &&anear = near->as<AtlasStateSpace::StateType>();
+    auto astate = state->as<AtlasStateSpace::StateType>();
+    auto anear = near->as<AtlasStateSpace::StateType>();
 
+    const std::size_t n = atlas_->getAmbientDimension();
     const std::size_t k = atlas_->getManifoldDimension();
-    Eigen::VectorXd rx(atlas_->getAmbientDimension()), ru(k);
+
+    Eigen::VectorXd ru(k), uoffset(k);
 
     AtlasChart *c = atlas_->getChart(anear);
     if (c == nullptr)
@@ -114,8 +118,6 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     c->psiInverse(*anear, ru);
 
     unsigned int tries = ompl::magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS;
-    Eigen::VectorXd uoffset(atlas_->getManifoldDimension());
-
     do
     {
         // Sample within dist
@@ -123,7 +125,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
             uoffset[i] = ru[i] + rng_.gaussian01();
 
         uoffset *= dist * std::pow(rng_.uniform01(), 1.0 / k) / uoffset.norm();
-    } while (--tries > 0 && !c->psi(uoffset, rx));  // Try again if we can't project.
+    } while (--tries > 0 && !c->psi(uoffset, *astate));  // Try again if we can't project.
 
     if (tries == 0)
     {
@@ -131,26 +133,25 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
         // problem. Check planner code to see how it gets chosen.
         OMPL_WARN("ompl::base:::AtlasStateSpace::sampleUniformNear(): "
                   "Took too long; returning initial point.");
-        rx = *anear;
+        atlas_->copyState(state, near);
     }
 
-    // Be lazy about determining the new chart if we are not in the old one
-    if (c->psiInverse(rx, ru), !c->inPolytope(ru))
-        c = nullptr;
+    c->psiInverse(*astate, ru);
+    if (!c->inPolytope(ru))
+        c = atlas_->getChart(astate, true);
     else
         c->borderCheck(ru);
 
-    astate->copy(rx);
     astate->setChart(c);
 }
 
 void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
 {
-    auto &&astate = state->as<AtlasStateSpace::StateType>();
-    auto &&amean = mean->as<AtlasStateSpace::StateType>();
+    auto astate = state->as<AtlasStateSpace::StateType>();
+    auto amean = mean->as<AtlasStateSpace::StateType>();
 
     const std::size_t k = atlas_->getManifoldDimension();
-    Eigen::VectorXd rx(atlas_->getAmbientDimension()), ru(k);
+    Eigen::VectorXd ru(k), rand(k);
 
     AtlasChart *c = atlas_->getChart(amean);
     if (c == nullptr)
@@ -165,31 +166,26 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
 
     // Sample a point in a normal distribution on the starting chart.
     unsigned int tries = ompl::magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS;
-    Eigen::VectorXd rand(k);
-
-    const double stdDevClamped = std::min(stdDev, atlas_->getRho_s());
-    const double s = stdDevClamped / std::sqrt(k);
 
     do
     {
         for (std::size_t i = 0; i < k; i++)
-            rand[i] = ru[i] + rng_.gaussian(0, s);
-    } while (--tries > 0 && !c->psi(rand, rx));  // Try again if we can't project.
+            rand[i] = ru[i] + rng_.gaussian(0, stdDev);
+    } while (--tries > 0 && !c->psi(rand, *astate));  // Try again if we can't project.
 
     if (tries == 0)
     {
         OMPL_WARN("ompl::base::AtlasStateSpace::sampleUniforGaussian(): "
                   "Took too long; returning initial point.");
-        rx = *amean;
+        atlas_->copyState(state, mean);
     }
 
-    // Be lazy about determining the new chart if we are not in the old one
-    if (c->psiInverse(rx, ru), !c->inPolytope(ru))
-        c = nullptr;
+    c->psiInverse(*astate, ru);
+    if (!c->inPolytope(ru))
+        c = atlas_->getChart(astate, true);
     else
         c->borderCheck(ru);
 
-    astate->copy(rx);
     astate->setChart(c);
 }
 
@@ -326,7 +322,6 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::sampleChart() const
 ompl::base::AtlasChart *ompl::base::AtlasStateSpace::getChart(const StateType *state, bool force, bool *created) const
 {
     AtlasChart *c = state->getChart();
-
     if (c == nullptr || force)
     {
         c = owningChart(state);
@@ -353,17 +348,23 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart(const StateType
     std::vector<NNElement> nearby;
     chartNN_.nearestR(std::make_pair(state, 0), rho_, nearby);
 
+    double best = epsilon_;
     AtlasChart *chart = nullptr;
-    for (auto near = nearby.begin(); near != nearby.end() && chart == nullptr; ++near)
+    for (auto near = nearby.begin(); near != nearby.end(); ++near)
     {
         // The point must lie in the chart's validity region and polytope
         auto owner = charts_[near->second];
         owner->psiInverse(*state, u_t);
         owner->phi(u_t, *temp);
 
-        if (owner->inPolytope(u_t)                // in polytope
-            && distance(state, temp) < epsilon_)  // within epsilon
+        double far;
+        if (owner->inPolytope(u_t)                       // in polytope
+            && (far = distance(state, temp)) < epsilon_  // within epsilon
+            && far < best)
+        {
+            best = far;
             chart = owner;
+        }
     }
 
     freeState(temp);
@@ -431,7 +432,10 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         // will also bork on non-finite numbers
         const bool onManifold = c->psi(u_j, *temp);
         if (!onManifold)
+        {
+            done = false;
             break;
+        }
 
         const double step = distance(scratch, temp);
 
@@ -452,7 +456,10 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
             || distance(from, scratch) > distMax        // exceed max dist
             || dist > distMax                           // exceed wandering
             || chartsCreated > maxChartsPerExtension_)  // exceed chart limit
+        {
+            done = false;
             break;
+        }
 
         // Check if we left the validity region or polytope of the chart.
         c->phi(u_j, *temp);
@@ -466,6 +473,7 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
             if ((c = getChart(scratch, true, &created)) == nullptr)
             {
                 OMPL_ERROR("Treating singularity as an obstacle.");
+                done = false;
                 break;
             }
             chartsCreated += created;

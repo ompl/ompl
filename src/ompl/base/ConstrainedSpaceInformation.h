@@ -125,28 +125,25 @@ namespace ompl
                                          unsigned int count, bool endpoints, bool alloc) const override
             {
                 auto &&atlas = stateSpace_->as<TangentBundleStateSpace>();
-                bool success = atlas->traverseManifold(s1, s2, false, &states);
 
-                if (!success && states.size() == 0)
-                    states.push_back(cloneState(s1));
+                std::vector<State *> temp;
+                bool success = atlas->traverseManifold(s1, s2, false, &temp);
 
-                auto it = states.begin();
-                for (; it != states.end(); ++it)
+                if (!success && temp.size() == 0)
+                    temp.push_back(cloneState(s1));
+
+                auto it = temp.begin();
+                for (; it != temp.end(); ++it)
                 {
-                    auto stateT = (*it)->as<AtlasStateSpace::StateType>();
-                    Eigen::VectorXd u(atlas->getManifoldDimension());
-                    AtlasChart *c = atlas->getChart(stateT);
-                    c->psiInverse(*stateT, u);
-
-                    if (!c->psi(u, *stateT))
+                    auto astate = (*it)->as<AtlasStateSpace::StateType>();
+                    if (!atlas->project(astate))
                         break;
+
+                    states.push_back(astate);
                 }
 
-                while (it != states.end())
-                {
-                    freeState(*it);
-                    it = states.erase(it);
-                }
+                while (it != temp.end())
+                    freeState(*it++);
 
                 return states.size();
             }
@@ -170,13 +167,8 @@ namespace ompl
 
                 if (lastValid.first)
                 {
-                    auto stateT = lastValid.first->as<AtlasStateSpace::StateType>();
-
-                    Eigen::VectorXd u(atlas->getManifoldDimension());
-                    AtlasChart *c = atlas->getChart(stateT);
-                    c->psiInverse(*stateT, u);
-
-                    if (!c->psi(u, *stateT))
+                    auto astate = lastValid.first->as<AtlasStateSpace::StateType>();
+                    if (!atlas->project(astate))
                         valid = false;
                 }
 

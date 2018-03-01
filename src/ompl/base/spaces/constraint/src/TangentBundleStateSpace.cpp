@@ -124,7 +124,7 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
 
         done = (u_b - u_j).squaredNorm() <= sqDelta;
         // Find or make a new chart if new state is off of current chart
-        if (done || !c->inPolytope(u_j)                  // outside polytope
+        if (done || !c->inPolytope(u_j)                 // outside polytope
             || constraint_->distance(*temp) > epsilon_)  // to far from manifold
         {
             const bool onManifold = c->psi(u_j, *temp);
@@ -183,9 +183,9 @@ bool ompl::base::TangentBundleStateSpace::project(State *state) const
     AtlasChart *chart = getChart(astate);
     chart->psiInverse(*astate, u);
 
-    if (!chart->psi(u, *astate)    // On manifold
-        && !svc->isValid(state))  // Valid state
-        return false;
+    if (chart->psi(u, *astate)   // On manifold
+        && svc->isValid(state))  // Valid state
+        return true;
 
-    return true;
+    return false;
 }
