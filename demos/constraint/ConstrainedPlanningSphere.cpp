@@ -85,19 +85,19 @@ bool obstacles(const ob::State *state)
 {
     auto &&x = *state->as<ob::ConstrainedStateSpace::StateType>();
 
-    if (-0.80 < x[2] && x[2] < -0.55)
+    if (-0.80 < x[2] && x[2] < -0.6)
     {
         if (-0.05 < x[1] && x[1] < 0.05)
             return x[0] > 0;
         return false;
     }
-    else if (-0.15 < x[2] && x[2] < 0.15)
+    else if (-0.1 < x[2] && x[2] < 0.1)
     {
         if (-0.05 < x[0] && x[0] < 0.05)
             return x[1] < 0;
         return false;
     }
-    else if (0.55 < x[2] && x[2] < 0.80)
+    else if (0.6 < x[2] && x[2] < 0.80)
     {
         if (-0.05 < x[1] && x[1] < 0.05)
             return x[0] < 0;
@@ -107,7 +107,7 @@ bool obstacles(const ob::State *state)
     return true;
 }
 
-void spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner, struct ConstrainedOptions &c_opt,
+bool spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner, struct ConstrainedOptions &c_opt,
                     struct AtlasOptions &a_opt)
 {
     // Create the ambient space state space for the problem.
@@ -166,15 +166,26 @@ void spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planne
         {
             // Interpolate and validate interpolated solution path.
             OMPL_INFORM("Interpolating path...");
+            path.interpolate();
+
+            if (!path.check())
+                OMPL_WARN("Interpolated simplified path fails check!");
+
+            OMPL_INFORM("Interpolating simplified path...");
             simplePath.interpolate();
 
             if (!simplePath.check())
-                OMPL_WARN("Interpolated path fails check!");
+                OMPL_WARN("Interpolated simplified path fails check!");
 
             OMPL_INFORM("Dumping path to `sphere_path.txt`.");
             std::ofstream pathfile("sphere_path.txt");
-            simplePath.printAsMatrix(pathfile);
+            path.printAsMatrix(pathfile);
             pathfile.close();
+
+            OMPL_INFORM("Dumping simplified path to `sphere_simplepath.txt`.");
+            std::ofstream simplepathfile("sphere_simplepath.txt");
+            simplePath.printAsMatrix(simplepathfile);
+            simplepathfile.close();
 
             OMPL_INFORM("Dumping problem information to `sphere_info.txt`.");
             std::ofstream infofile("sphere_info.txt");
@@ -212,6 +223,8 @@ void spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planne
             atlasfile.close();
         }
     }
+
+    return stat;
 }
 
 auto help_msg = "Shows this help message.";
@@ -246,7 +259,5 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    spherePlanning(output, space, planner, c_opt, a_opt);
-
-    return 0;
+    return spherePlanning(output, space, planner, c_opt, a_opt);
 }
