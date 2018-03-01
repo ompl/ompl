@@ -180,7 +180,7 @@ bool ompl::base::TangentBundleStateSpace::project(State *state) const
     auto &&svc = si_->getStateValidityChecker();
 
     Eigen::VectorXd u(k_);
-    AtlasChart *chart = getChart(astate);
+    AtlasChart *chart = getChart(astate, true);
     chart->psiInverse(*astate, u);
 
     if (chart->psi(u, *astate)   // On manifold

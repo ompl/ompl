@@ -192,8 +192,7 @@ void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const Sta
     std::vector<State *> stateList;
 
     // Default to returning `from' if traversal fails.
-    const State *temp = from;
-
+    auto temp = from;
     if (traverseManifold(from, to, true, &stateList))
     {
         stateList.push_back(cloneState(to));
