@@ -80,6 +80,8 @@ namespace ompl
 
             void setup() override;
 
+            void setOptimizerCallback(std::function<void(OptProb*, std::vector<double>&)> callback);
+
             void setTimeStepCount(int nSteps)
             {
                 nSteps_ = nSteps;
@@ -149,6 +151,8 @@ namespace ompl
             OmplOptProbPtr problem_;
 
             FILE* fd;
+
+            std::function<void(OptProb*, std::vector<double>&)> callback_;
         };
     }
 }

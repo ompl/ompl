@@ -383,7 +383,6 @@ CvxOptStatus BPMPDModel::optimize() {
   vector< vector<double> > var2cntvals(n);
   for (size_t iCnt=0; iCnt < m; ++iCnt) {
     const AffExpr& aff = m_cntExprs[iCnt];
-    /*OMPL_DEVMSG1*/fprintf(stderr, "BPMPD: Constraint expression: %s", CSTR(aff));
     vector<int> inds = vars2inds(aff.vars);
 
     for (size_t i=0; i < aff.vars.size(); ++i) {
@@ -409,7 +408,6 @@ CvxOptStatus BPMPDModel::optimize() {
   vector< vector<double> > var2qcoeffs(n);
   vector< vector<int> > var2qinds(n);
 
-  /*OMPL_DEVMSG1*/fprintf(stderr, "BPMPD: Objective: %s", CSTR(m_objective));
   for (size_t i=0; i < m_objective.size(); ++i) {
     int idx1 = m_objective.vars1[i].var_rep->index, idx2 = m_objective.vars2[i].var_rep->index;
     if (idx1 < idx2) {
@@ -486,7 +484,6 @@ CvxOptStatus BPMPDModel::optimize() {
 #else
 
   bpmpd_input bi(m,n,nz, qn, qnz, acolcnt, acolidx, acolnzs, qcolcnt, qcolidx, qcolnzs, rhs, obj, lbound, ubound);
-  fprintf(stderr, "Communicating opt problem to bpmpd caller\n");
   ser(gPipeIn, bi, SER);
 
   // std::cout << "serialization time:" << end-start << std::endl;

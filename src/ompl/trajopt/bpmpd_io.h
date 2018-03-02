@@ -2,12 +2,13 @@
 
 #include <vector>
 #include <string>
-using std::string;
-using std::vector;
 #include <iostream>
 #include <assert.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+using std::string;
+using std::vector;
 using namespace std;
 
 namespace bpmpd_io {
@@ -27,13 +28,11 @@ void ser(int fp, T& x, SerMode mode) {
     case SER: {
       T xcopy=x;
       int n = write(fp, &xcopy, sizeof(T));
-      fprintf(stderr, "BPMPD wrote %d bytes, wanted to read %zu\n", n, sizeof(T));
       assert (n == sizeof(T));
       break;
     }
     case DESER: {
       int n = read(fp, &x, sizeof(T));
-      fprintf(stderr, "BPMPD read %d bytes, wanted to read %zu\n", n, sizeof(T));
       assert (n == sizeof(T));
       break;
     }
@@ -47,14 +46,12 @@ void ser(int fp,  vector<T>& x,  SerMode mode) {
   switch (mode) {
     case SER: {
       int n = write(fp, x.data(), sizeof(T)*size);
-      fprintf(stderr, "(vector) BPMPD wrote %d bytes, wanted to read %zu\n", n, sizeof(T) * size);
       assert (n == sizeof(T)*size);
       break;
     }
     case DESER: {
       x.resize(size);
       int n = read(fp, x.data(), sizeof(T)*size);
-      fprintf(stderr, "(vector) BPMPD read %d bytes, wanted to read %zu\n", n, sizeof(T) * size);
       assert (n == sizeof(T)*size);
       break;
     }
@@ -128,18 +125,11 @@ void ser(int fp, bpmpd_output & bo, SerMode mode)
   if (s == EXIT_CHAR) {
     exit(0);
   }
-  fprintf(stderr, "BPMPD: Reading primal\n");
   ser(fp, bo.primal, mode);
-  fprintf(stderr, "BPMPD: Reading dual\n");
   ser(fp, bo.dual, mode);
-  fprintf(stderr, "BPMPD: Reading status\n");
   ser(fp, bo.status, mode);
-  fprintf(stderr, "BPMPD: Reading code\n");
   ser(fp, bo.code, mode);
-  fprintf(stderr, "BPMPD: Reading opt\n");
   ser(fp, bo.opt, mode);
-  fprintf(stderr, "Done reading all\n");
-
 }
 
 #pragma GCC diagnostic pop

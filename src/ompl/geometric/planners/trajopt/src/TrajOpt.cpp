@@ -60,6 +60,9 @@ ompl::geometric::TrajOpt::TrajOpt(const ompl::base::SpaceInformationPtr &si)
     ompl::msg::useOutputHandler(fileLog);
     ompl::msg::setLogLevel(ompl::msg::LogLevel::LOG_DEV2);
     OMPL_WARN("Number of Waypoints: %d", nSteps_);
+    callback_ = [this](sco::OptProb *prob, std::vector<double>& x) {
+        plotCallback(x);
+    };
 }
 
 // TODO: write
@@ -78,6 +81,11 @@ void ompl::geometric::TrajOpt::setup()
 {
     Planner::setup();
     problem_ = std::make_shared<OmplOptProb>(nSteps_, si_);
+}
+
+void ompl::base::setOptimizerCallback(std::function<void(OptProb*, std::vector<double>&)> callback);
+{
+    callback_ = callback;    
 }
 
 ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
@@ -165,9 +173,7 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
     sqpOptimizer->improve_ratio_threshold_ = 0.2;
     sqpOptimizer->merit_error_coeff_ = initPenaltyCoef_;
     sqpOptimizer->initialize(trajopt::trajToDblVec(problem_->GetInitTraj()));
-    sqpOptimizer->addCallback([this](sco::OptProb *prob, std::vector<double>& x) {
-        plotCallback(x);
-    });
+    sqpOptimizer->addCallback(callback_);
 
     return base::PlannerStatus::EXACT_SOLUTION;
 }

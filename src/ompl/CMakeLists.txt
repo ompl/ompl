@@ -20,7 +20,6 @@ file(GLOB_RECURSE OMPL_SOURCE_CODE
     #trajopt/*.cpp
 )
 
-
 ####### TRAJOPT Specific stuff ##############
 
 set(TRAJOPT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/trajopt/src)
@@ -69,14 +68,14 @@ if (NOT APPLE AND OMPL_HAVE_EIGEN3)
       list(APPEND SCO_SOURCE_FILES ${TRAJOPT_SOURCE_DIR}/gurobi_interface.cpp)
   endif(GUROBI_FOUND)
 
-  add_library(sco ${SCO_SOURCE_FILES})
+  add_library(ompl-sco ${SCO_SOURCE_FILES})
 
   set (SCO_LINK_LIBS ${BPMPD_LIBRARY})
   if (GUROBI_FOUND)
       list(APPEND SCO_LINK_LIBS ${GUROBI_LIBRARIES})
   endif()
 
-  target_link_libraries(sco ${SCO_LINK_LIBS})
+  target_link_libraries(ompl-sco ${SCO_LINK_LIBS})
 endif()
 
 
@@ -138,7 +137,7 @@ target_link_libraries(ompl
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_CHRONO_LIBRARY}
   ${CMAKE_THREAD_LIBS_INIT}
-  sco)
+  ompl-sco)
 
 if(MSVC)
   set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")
@@ -151,7 +150,7 @@ else(MSVC)
 endif(MSVC)
 
 # install the library
-install(TARGETS ompl sco bpmpd_caller
+install(TARGETS ompl ompl-sco bpmpd_caller
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT ompl)
 if(NOT MSVC)
