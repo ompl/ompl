@@ -105,7 +105,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
 
     Eigen::VectorXd ru(k), uoffset(k);
 
-    AtlasChart *c = atlas_->getChart(anear);
+    AtlasChart *c = atlas_->getChart(anear, true);
     if (c == nullptr)
     {
         OMPL_ERROR("ompl::base::AtlasStateSpace::sampleUniformNear(): "
@@ -116,7 +116,6 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
 
     // Sample a point from the starting chart.
     c->psiInverse(*anear, ru);
-
     unsigned int tries = ompl::magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS;
     do
     {
@@ -153,7 +152,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
     const std::size_t k = atlas_->getManifoldDimension();
     Eigen::VectorXd ru(k), rand(k);
 
-    AtlasChart *c = atlas_->getChart(amean);
+    AtlasChart *c = atlas_->getChart(amean, true);
     if (c == nullptr)
     {
         OMPL_ERROR("ompl::base::AtlasStateSpace::sampleGaussian(): "
