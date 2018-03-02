@@ -381,7 +381,7 @@ void chainPlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner
     cp.ss->setup();
 
     // Solve the problem
-    ob::PlannerStatus stat = cp.ss->solve(5.);
+    ob::PlannerStatus stat = cp.ss->solve(c_opt.time);
     std::cout << std::endl;
 
     if (stat)

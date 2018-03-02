@@ -166,6 +166,7 @@ struct ConstrainedOptions
 {
     double delta;
     double tolerance;
+    double time;
     unsigned int tries;
     double range;
 };
@@ -174,6 +175,7 @@ void addConstrainedOptions(po::options_description &desc, struct ConstrainedOpti
 {
     auto delta_msg = "Step-size for discrete geodesic on manifold.";
     auto tolerance_msg = "Constraint satisfaction tolerance.";
+    auto time_msg = "Planning time allowed.";
     auto tries_msg = "Maximum number sample tries per sample.";
     auto range_msg = "Planner `range` value for planners that support this parameter. Automatically determined "
                      "otherwise (when 0).";
@@ -183,6 +185,7 @@ void addConstrainedOptions(po::options_description &desc, struct ConstrainedOpti
     desc.add_options()("tolerance",
                        po::value<double>(&options->tolerance)->default_value(om::CONSTRAINT_PROJECTION_TOLERANCE),
                        tolerance_msg);
+    desc.add_options()("time", po::value<double>(&options->time)->default_value(5.), time_msg);
     desc.add_options()(
         "tries", po::value<unsigned int>(&options->tries)->default_value(om::CONSTRAINT_PROJECTION_MAX_ITERATIONS),
         tries_msg);
