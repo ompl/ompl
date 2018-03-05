@@ -71,7 +71,7 @@ std::vector<double> ompl::base::JacobianCollisionTrajOptConstraint::value(const 
     std::vector<double> out(dists.size());
     for (size_t i = 0; i < dists.size(); i++) {
         out[i] = sco::pospart(safeDist_ - dists[i]) * coeff_;
-        OMPL_INFORM("%s: out[%d] = %f = %f - %f", name_.c_str(), i, out[i], safeDist_, dists[i]);
+        //OMPL_INFORM("%s: out[%d] = %f = %f - %f", name_.c_str(), i, out[i], safeDist_, dists[i]);
     }
     return out;
 }

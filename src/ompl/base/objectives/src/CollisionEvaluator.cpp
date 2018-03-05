@@ -82,7 +82,7 @@ std::vector<sco::AffExpr> ompl::base::JacobianDiscreteCollisionEvaluator::calcDi
 
     // Fields to be filled in by inCollision.
     std::vector<CollisionInfo> collisionStructs;
-    OMPL_INFORM("Getting structs for DistanceExpressions: Configuration: %f, %f, %f, %f, %f, %f", x_0[0], x_0[1], x_0[2], x_0[3], x_0[4], x_0[5]);
+    //OMPL_INFORM("Getting structs for DistanceExpressions: Configuration: %f, %f, %f, %f, %f, %f", x_0[0], x_0[1], x_0[2], x_0[3], x_0[4], x_0[5]);
     if (inCollision_(x_0, collisionStructs)) {
         for (auto collisionStruct : collisionStructs) {
             //OMPL_INFORM("signed distance: %f, point: %f, %f, %f, link_name: %s",
@@ -115,7 +115,7 @@ std::vector<double> ompl::base::JacobianDiscreteCollisionEvaluator::calcDistance
 
     // TODO: We only need the clearance, so maybe pass in another callback that just gives that.
     std::vector<CollisionInfo> collisionStructs;
-    OMPL_INFORM("Getting structs for Distances: Configuration: %f, %f, %f, %f, %f, %f", dofVals[0], dofVals[1], dofVals[2], dofVals[3], dofVals[4], dofVals[5]);
+    //OMPL_INFORM("Getting structs for Distances: Configuration: %f, %f, %f, %f, %f, %f", dofVals[0], dofVals[1], dofVals[2], dofVals[3], dofVals[4], dofVals[5]);
     bool collision = inCollision_(dofVals, collisionStructs);
     if (collision) {
         for (auto collisionStruct : collisionStructs) {

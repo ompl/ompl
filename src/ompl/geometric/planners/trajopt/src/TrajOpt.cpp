@@ -83,7 +83,7 @@ void ompl::geometric::TrajOpt::setup()
     problem_ = std::make_shared<OmplOptProb>(nSteps_, si_);
 }
 
-void ompl::base::setOptimizerCallback(std::function<void(OptProb*, std::vector<double>&)> callback);
+void ompl::geometric::TrajOpt::setOptimizerCallback(std::function<void(sco::OptProb*, std::vector<double>&)> callback)
 {
     callback_ = callback;    
 }
