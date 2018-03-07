@@ -1,6 +1,6 @@
 # Constrained Planning Tutorial
 
-Defining a constrained motion planning problem is easy and very similar to defining an unconstrained planning problem. The primary difference is the need to define a _constraint_, and the use of a _constrained state space_, which wraps around an ambient state space. In this example, we will walk through defining a simple constrained planning problem: a point in $\mathbb{R}^3$ that is constrained to be on the surface of a sphere, giving a constraint function $f(q) = \lVert q \rVert - 1$. This is very similar to the problem defined by the demo [ConstrainedPlanningSphere](ConstrainedPlanningSphere_8cpp_source.html).
+Defining a constrained motion planning problem is easy and very similar to defining an unconstrained planning problem. The primary difference is the need to define a _constraint_, and the use of a _constrained state space_, which wraps around an ambient state space. In this example, we will walk through defining a simple constrained planning problem: a point in \f$\mathbb{R}^3\f$ that is constrained to be on the surface of a sphere, giving a constraint function \f$f(q) = \lVert q \rVert - 1\f$. This is very similar to the problem defined by the demo [ConstrainedPlanningSphere](ConstrainedPlanningSphere_8cpp_source.html).
 
 ## Defining the Constraint
 
@@ -46,16 +46,16 @@ void Sphere::jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eig
 }
 ~~~
 
-We now have a constraint function that defines a sphere in $\mathbb{R}^3$! We can visualize the constraint simply as a sphere in $\mathbb{R}^3$, shown below.
+We now have a constraint function that defines a sphere in \f$\mathbb{R}^3\f$! We can visualize the constraint simply as a sphere in \f$\mathbb{R}^3\f$, shown below.
 
-<div class="row"><img src="images/sphere.png" class="span8 offset1"></div>
+<div class="row"><img src="images/sphere.png" class="col-xs-8 col-xs-offset-2"></div>
 
 Now we can use this constraint to define a constrained state space.
 
 
 ## Defining the Constrained State Space
 
-Before we can define a constrained state space, we need to define the ambient state space $\mathbb{R}^3$.
+Before we can define a constrained state space, we need to define the ambient state space \f$\mathbb{R}^3\f$.
 
 ~~~{.cpp}
 // Create the ambient space state space for the problem.
@@ -132,7 +132,7 @@ ss->setStateValidityChecker(obstacle);
 
 This obstacle looks something like this on our sphere:
 
-<div class="row"><img src="images/obstacles.png" class="span8 offset1"></div>
+<div class="row"><img src="images/obstacles.png" class="col-xs-8 col-xs-offset-2"></div>
 
 Now, let's also set the start and goal states, the south and north poles of the sphere. Note that for constrained problems, the start and goal states (if using exact states) must satisfy the constraint function. If they do not, then problem will occur.
 
@@ -195,7 +195,7 @@ else
 
 With all that, we've now solved a constrained motion planning problem on a sphere. A resulting motion graph for PRM could look something like this, with the simplified solution path highlighted in yellow:
 
-<div class="row"><img src="images/prm.png" class="span8 offset1"></div>
+<div class="row"><img src="images/prm.png" class="col-xs-8 col-xs-offset-2"></div>
 
 # In Summary
 

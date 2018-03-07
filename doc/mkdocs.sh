@@ -11,4 +11,3 @@ for f in *.html search/*.js; do
     sed 's/href="md_doc_markdown_/href="/g' "$f" > "$f.new"
     mv "$f.new" "$f"
 done
-
