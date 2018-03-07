@@ -55,7 +55,7 @@ else(IS_ICPC)
     add_definitions(-DBOOST_TEST_DYN_LINK)
 endif(IS_ICPC)
 
-find_package(Boost 1.54 COMPONENTS serialization filesystem system program_options REQUIRED)
+find_package(Boost 1.54 COMPONENTS serialization filesystem system program_options date_time REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
 # Add support in Boost::Python for std::shared_ptr

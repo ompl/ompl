@@ -347,6 +347,13 @@ public:
         file << width_ << std::endl;
     }
 
+    void addBenchmarkParameters(ot::Benchmark *bench) const
+    {
+        bench->addExperimentParameter("links", "INTEGER", std::to_string(links_));
+        bench->addExperimentParameter("obstacles", "INTEGER", std::to_string(obstacles_));
+        bench->addExperimentParameter("extra", "INTEGER", std::to_string(extra_));
+    }
+
 private:
     const unsigned int links_;      // Number of chain links.
     const double length_;           // Length of one link.
@@ -358,9 +365,42 @@ private:
     std::vector<Wall> walls_;       // Obstacles
 };
 
-void chainPlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner, unsigned int links,
+bool chainPlanningOnce(ConstrainedProblem &cp, enum PLANNER_TYPE planner, bool output)
+{
+    cp.setPlanner(planner, "chain");
+
+    // Solve the problem
+    ob::PlannerStatus stat = cp.solveOnce(output, "chain");
+
+    if (output)
+    {
+        OMPL_INFORM("Dumping problem information to `chain_info.txt`.");
+        std::ofstream infofile("chain_info.txt");
+        infofile << cp.type << std::endl;
+        dynamic_cast<ChainConstraint *>(cp.constraint.get())->dump(infofile);
+        infofile.close();
+    }
+
+    cp.atlasStats();
+
+    return stat;
+}
+
+bool chainPlanningBench(ConstrainedProblem &cp, std::vector<enum PLANNER_TYPE> &planners)
+{
+    cp.setupBenchmark(planners, "chain");
+
+    auto chain = dynamic_cast<ChainConstraint *>(cp.constraint.get());
+    chain->addBenchmarkParameters(cp.bench);
+
+    cp.runBenchmark();
+
+    return 0;
+}
+
+bool chainPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_TYPE> &planners, unsigned int links,
                    unsigned int obstacles, unsigned int extra, struct ConstrainedOptions &c_opt,
-                   struct AtlasOptions &a_opt)
+                   struct AtlasOptions &a_opt, bool bench)
 {
     // Create a shared pointer to our constraint.
     auto constraint = std::make_shared<ChainConstraint>(links, obstacles, extra);
@@ -377,65 +417,10 @@ void chainPlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner
     cp.setStartAndGoalStates(start, goal);
     cp.ss->setStateValidityChecker(std::bind(&ChainConstraint::isValid, constraint, std::placeholders::_1));
 
-    cp.setPlanner(planner, "chain");
-    cp.ss->setup();
-
-    // Solve the problem
-    ob::PlannerStatus stat = cp.ss->solve(c_opt.time);
-    std::cout << std::endl;
-
-    if (stat)
-    {
-        // Get solution and validate
-        auto path = cp.ss->getSolutionPath();
-        if (!path.check())
-            OMPL_WARN("Path fails check!");
-
-        if (stat == ob::PlannerStatus::APPROXIMATE_SOLUTION)
-            OMPL_WARN("Solution is approximate.");
-
-        // Simplify solution and validate simplified solution path.
-        OMPL_INFORM("Simplifying solution...");
-        cp.ss->simplifySolution(5.);
-
-        auto simplePath = cp.ss->getSolutionPath();
-        OMPL_INFORM("Simplified Path Length: %.3f -> %.3f", path.length(), simplePath.length());
-
-        if (!simplePath.check())
-            OMPL_WARN("Simplified path fails check!");
-
-        if (output)
-        {
-            // Interpolate and validate interpolated solution path.
-            OMPL_INFORM("Interpolating path...");
-            simplePath.interpolate();
-
-            if (!simplePath.check())
-                OMPL_WARN("Interpolated path fails check!");
-
-            OMPL_INFORM("Dumping path to `chain_path.txt`.");
-            std::ofstream pathfile("chain_path.txt");
-            simplePath.printAsMatrix(pathfile);
-            pathfile.close();
-
-            OMPL_INFORM("Dumping problem information to `chain_info.txt`.");
-            std::ofstream infofile("chain_info.txt");
-            infofile << space << std::endl;
-            constraint->dump(infofile);
-            infofile.close();
-        }
-    }
+    if (!bench)
+        return chainPlanningOnce(cp, planners[0], output);
     else
-        OMPL_WARN("No solution found.");
-
-    // For atlas types, output information about size of atlas and amount of space explored
-    if (space == AT || space == TB)
-    {
-        auto at = cp.css->as<ob::AtlasStateSpace>();
-        OMPL_INFORM("Atlas has %zu charts", at->getChartCount());
-        if (space == AT)
-            OMPL_INFORM("Atlas is approximately %.3f%% open", at->estimateFrontierPercent());
-    }
+        return chainPlanningBench(cp, planners);
 }
 
 auto help_msg = "Shows this help message.";
@@ -448,12 +433,13 @@ auto extra_msg = "Number of extra constraints to add to the chain. Extra constra
                  "2: (links-5)th and (links-4)th ball have the same z-value\n"
                  "3: (links-4)th and (links-3)th ball have the same x-value\n"
                  "4: (links-3)th and (links-2)th ball have the same z-value";
+auto bench_msg = "Do benchmarking on provided planner list.";
 
 int main(int argc, char **argv)
 {
-    bool output;
+    bool output, bench;
     enum SPACE_TYPE space = PJ;
-    enum PLANNER_TYPE planner = RRT;
+    std::vector<enum PLANNER_TYPE> planners = {RRT};
 
     unsigned int links = 5;
     unsigned int obstacles = 0;
@@ -468,9 +454,10 @@ int main(int argc, char **argv)
     desc.add_options()("links,l", po::value<unsigned int>(&links)->default_value(5), links_msg);
     desc.add_options()("obstacles,x", po::value<unsigned int>(&obstacles)->default_value(0), obstacles_msg);
     desc.add_options()("extra,e", po::value<unsigned int>(&extra)->default_value(1), extra_msg);
+    desc.add_options()("bench", po::bool_switch(&bench)->default_value(false), bench_msg);
 
     addSpaceOption(desc, &space);
-    addPlannerOption(desc, &planner);
+    addPlannerOption(desc, &planners);
     addConstrainedOptions(desc, &c_opt);
     addAtlasOptions(desc, &a_opt);
 
@@ -484,7 +471,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    chainPlanning(output, space, planner, links, obstacles, extra, c_opt, a_opt);
+    chainPlanning(output, space, planners, links, obstacles, extra, c_opt, a_opt, bench);
 
     return 0;
 }

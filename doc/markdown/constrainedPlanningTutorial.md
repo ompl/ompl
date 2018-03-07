@@ -1,0 +1,202 @@
+# Constrained Planning Tutorial
+
+Defining a constrained motion planning problem is easy and very similar to defining an unconstrained planning problem. The primary difference is the need to define a _constraint_, and the use of a _constrained state space_, which wraps around an ambient state space. In this example, we will walk through defining a simple constrained planning problem: a point in $\mathbb{R}^3$ that is constrained to be on the surface of a sphere, giving a constraint function $f(q) = \lVert q \rVert - 1$. This is very similar to the problem defined by the demo [ConstrainedPlanningSphere](ConstrainedPlanningSphere_8cpp_source.html).
+
+## Defining the Constraint
+
+First, let's define our constraint class. Constraints must inherit from the base class `ompl::base::Constraint`. A bare-bones version of the sphere constraint we gave above might look like this:
+
+~~~{.cpp}
+// Constraints must inherit from the constraint base class. By default, a
+// numerical approximation to the Jacobian of the constraint function is computed
+// using a central finite difference.
+class Sphere : public ob::Constraint
+{
+public:
+    // ob::Constraint's constructor takes in two parameters, the dimension of
+    // the ambient state space, and the dimension of the real vector space the
+    // constraint maps into. For our sphere example, as we are planning in R^3, the
+    // dimension of the ambient space is 3, and as our constraint outputs one real
+    // value the second parameter is one (this is also the co-dimension of the
+    // constraint manifold).
+    Sphere() : ob::Constraint(3, 1)
+    {
+    }
+
+    // Here we define the actual constraint function, which takes in some state
+    // "x" (from the ambient space) and sets the values of "out" to the result of
+    // the constraint function.
+    void function(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::VectorXd> out) const override
+    {
+        // f(q) = || q || - 1, as discussed above.
+        out[0] = x.norm() - 1;
+    }
+};
+~~~
+
+However, we can do better. We would like to include an analytical Jacobian for our constraint function, so that planning more efficient. Either we can compute this by hand, or we can use some symbolic solver (e.g., `ConstraintGeneration.py` shows how to do this with [SymPy](http://www.sympy.org/en/index.html)). Either way, we add to our class the function to compute the Jacobian:
+
+~~~{.cpp}
+// Implement the Jacobian of the constraint function. The Jacobian for the
+// constraint function is an matrix of dimension equal to the co-dimension of the
+// constraint by the ambient dimension (in this case, 1 by 3).
+void Sphere::jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const override
+{
+    out = x.transpose().normalized();
+}
+~~~
+
+We now have a constraint function that defines a sphere in $\mathbb{R}^3$! We can visualize the constraint simply as a sphere in $\mathbb{R}^3$, shown below.
+
+<div class="row"><img src="images/sphere.png" class="span8 offset1"></div>
+
+Now we can use this constraint to define a constrained state space.
+
+
+## Defining the Constrained State Space
+
+Before we can define a constrained state space, we need to define the ambient state space $\mathbb{R}^3$.
+
+~~~{.cpp}
+// Create the ambient space state space for the problem.
+auto rvss = std::make_shared<ob::RealVectorStateSpace>(3);
+
+// Set bounds on the space.
+ob::RealVectorBounds bounds(3);
+bounds.setLow(-2);
+bounds.setHigh(2);
+
+rvss->setBounds(bounds);
+~~~
+
+We then need to create an instance of our constraint:
+
+~~~{.cpp}
+// Create our sphere constraint.
+auto constraint = std::make_shared<Sphere>();
+~~~
+
+Now that we have both the ambient state space and the constraint, we can define the constrained state space. For this example, we will be using `ompl::base::ProjectedStateSpace`, which implements a projection operator-based methodology for satisfying constraints. However, we could also just as easily use the other constrained state spaces, `ompl::base::AtlasStateSpace` or `ompl::base::TangentBundleStateSpace`, for this problem. We will also be creating a `ompl::base::ConstrainedSpaceInformation`, which is an augmentation of `ompl::base::SpaceInformation` with some small modification to take into account constraints.
+
+~~~{.cpp}
+// Combine the ambient space and the constraint into a constrained state space.
+auto css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
+
+// Define the constrained space information for this constrained state space.
+auto csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
+~~~
+
+Now, we have a constrained state space and space information which we can use for planning.
+
+
+## Defining a Problem
+
+Let's define a simple problem to solve for this constrained space: traverse the sphere from the south pole to the north pole, avoiding a simple obstacle near the equator. Defining a problem using the constraint framework is as simple as defining an unconstrained problem, and uses the same set of tools. For example, we will be creating a `ompl::geometric::SimpleSetup` to help with problem definition.
+
+~~~{.cpp}
+// Simple Setup
+auto ss = std::make_shared<og::SimpleSetup>(csi);
+~~~
+
+Let's define our state validity checker, which is a simple narrow band around the equator with a hole on one side:
+
+~~~{.cpp}
+bool obstacle(const ob::State *state)
+{
+    // As ob::ConstrainedStateSpace::StateType inherits from
+    // Eigen::Map<Eigen::VectorXd>, we can grab a reference to it for some easier
+    // state access.
+    const Eigen::Map<Eigen::VectorXd> &x = *state->as<ob::ConstrainedStateSpace::StateType>();
+
+    // Alternatively, we could access the underlying real vector state with the
+    // following incantation:
+    //   auto x = state->as<ob::ConstrainedStateSpace::StateType>()->getState()->as<ob::RealVectorStateSpace::StateType>();
+    // Note the use of "getState()" on the constrained state. This accesss the
+    // underlying state that was allocated by the ambient state space.
+
+    // Define a narrow band obstacle with a small hole on one side.
+    if (-0.1 < x[2] && x[2] < 0.1)
+    {
+        if (-0.05 < x[0] && x[0] < 0.05)
+            return x[1] < 0;
+
+        return false;
+    }
+
+    return true;
+}
+
+// Set the state validity checker in simple setup.
+ss->setStateValidityChecker(obstacle);
+~~~
+
+This obstacle looks something like this on our sphere:
+
+<div class="row"><img src="images/obstacles.png" class="span8 offset1"></div>
+
+Now, let's also set the start and goal states, the south and north poles of the sphere. Note that for constrained problems, the start and goal states (if using exact states) must satisfy the constraint function. If they do not, then problem will occur.
+
+~~~{.cpp}
+// Start and goal vectors.
+Eigen::VectorXd sv(3), gv(3);
+sv << 0, 0, -1;
+gv << 0, 0,  1;
+
+// Scoped states that we will add to simple setup.
+ob::ScopedState<> start(css);
+ob::ScopedState<> goal(css);
+
+// Copy the values from the vectors into the start and goal states.
+start->as<ob::ConstrainedStateSpace::StateType>()->copy(start);
+goal->as<ob::ConstrainedStateSpace::StateType>()->copy(goal);
+
+// If we were using an Atlas or TangentBundleStateSpace, we would also have to anchor these states to charts:
+//   css->anchorChart(start.get());
+//   css->anchorChart(goal.get());
+// Which gives a starting point for the atlas to grow.
+
+ss->setStartAndGoalStates(start, goal);
+~~~
+
+Finally, we can add a planner like normal. Let's use `ompl::geometric::PRM`:
+
+~~~{.cpp}
+auto pp = std::make_shared<og::PRM>(csi);
+ss->setPlanner(pp);
+~~~
+
+With everything now in place, we can set everything up to get ready for planning:
+
+~~~{.cpp}
+ss->setup();
+~~~
+
+## Solving a Problem
+
+Same as how defining a problem is similar for constrained and unconstrained problems, solving a problem is also very similar. Let's give our planner 5 seconds of time and see what happens:
+
+~~~{.cpp}
+// Solve a problem like normal.
+ob::PlannerStatus stat = ss->solve(c_opt.time);
+if (stat)
+{
+    // Path simplification also works when using a constrained state space!
+    ss->simplifySolution(5.);
+
+    // Get solution path.
+    auto path = ss->getSolutionPath();
+
+    // Interpolation also works on constrained state spaces.
+    path.interpolate();
+}
+else
+    OMPL_WARN("No solution found!");
+~~~
+
+With all that, we've now solved a constrained motion planning problem on a sphere. A resulting motion graph for PRM could look something like this, with the simplified solution path highlighted in yellow:
+
+<div class="row"><img src="images/prm.png" class="span8 offset1"></div>
+
+# In Summary
+
+Overall, planning with constraints is simple to setup and use. Beyond requiring you to define a constraint function and wrap your ambient space in a constrained state space, OMPL works and feels like normal. You can read more in general about constrained planning on the [main page](constrainedPlanning.html).

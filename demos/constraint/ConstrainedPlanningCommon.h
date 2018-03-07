@@ -40,6 +40,9 @@
 #include <iostream>
 #include <fstream>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/local_time_adjustor.hpp>
+#include <boost/date_time/c_local_time_adjustor.hpp>
 #include <boost/program_options.hpp>
 
 #include <ompl/geometric/SimpleSetup.h>
@@ -65,10 +68,15 @@
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
 #include <ompl/geometric/planners/kpiece/BKPIECE1.h>
 
+#include <ompl/tools/benchmark/Benchmark.h>
+
+namespace bpt = boost::posix_time;
+namespace bgt = boost::gregorian;
 namespace po = boost::program_options;
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 namespace om = ompl::magic;
+namespace ot = ompl::tools;
 
 enum SPACE_TYPE
 {
@@ -76,6 +84,8 @@ enum SPACE_TYPE
     AT = 1,
     TB = 2
 };
+
+const std::string spaceStr[3] = {"PJ", "AT", "TB"};
 
 std::istream &operator>>(std::istream &in, enum SPACE_TYPE &type)
 {
@@ -150,16 +160,16 @@ std::istream &operator>>(std::istream &in, enum PLANNER_TYPE &type)
     return in;
 }
 
-void addPlannerOption(po::options_description &desc, enum PLANNER_TYPE *planner)
+void addPlannerOption(po::options_description &desc, std::vector<enum PLANNER_TYPE> *planners)
 {
-    auto planner_msg = "Choose which motion planner to use. One of:\n"
+    auto planner_msg = "List of which motion planner to use (multiple if benchmarking, one if planning). Choose from:\n"
                        "RRT (Default), RRTConnect, RRTstar, "
                        "EST, BiEST, ProjEST, "
                        "BITstar, "
                        "PRM, SPARS, "
                        "KPIECE, BKPIECE.";
 
-    desc.add_options()("planner,p", po::value<enum PLANNER_TYPE>(planner), planner_msg);
+    desc.add_options()("planner,p", po::value<std::vector<enum PLANNER_TYPE>>(planners)->multitoken(), planner_msg);
 }
 
 struct ConstrainedOptions
@@ -366,46 +376,177 @@ public:
         return planner;
     }
 
-    void setPlanner(enum PLANNER_TYPE planner, const std::string &projection = "")
+    ob::PlannerPtr getPlanner(enum PLANNER_TYPE planner, const std::string &projection = "")
     {
+        ob::PlannerPtr p;
         switch (planner)
         {
             case RRT:
-                pp = createPlannerRange<og::RRT>();
+                p = createPlannerRange<og::RRT>();
                 break;
             case RRTConnect:
-                pp = createPlannerRange<og::RRTConnect>();
+                p = createPlannerRange<og::RRTConnect>();
                 break;
             case RRTstar:
-                pp = createPlannerRange<og::RRTstar>();
+                p = createPlannerRange<og::RRTstar>();
                 break;
             case EST:
-                pp = createPlannerRange<og::EST>();
+                p = createPlannerRange<og::EST>();
                 break;
             case BiEST:
-                pp = createPlannerRange<og::BiEST>();
+                p = createPlannerRange<og::BiEST>();
                 break;
             case ProjEST:
-                pp = createPlannerRangeProj<og::ProjEST>(projection);
+                p = createPlannerRangeProj<og::ProjEST>(projection);
                 break;
             case BITstar:
-                pp = createPlanner<og::BITstar>();
+                p = createPlanner<og::BITstar>();
                 break;
             case PRM:
-                pp = createPlanner<og::PRM>();
+                p = createPlanner<og::PRM>();
                 break;
             case SPARS:
-                pp = createPlanner<og::SPARS>();
+                p = createPlanner<og::SPARS>();
                 break;
             case KPIECE:
-                pp = createPlannerRangeProj<og::KPIECE1>(projection);
+                p = createPlannerRangeProj<og::KPIECE1>(projection);
                 break;
             case BKPIECE:
-                pp = createPlannerRangeProj<og::BKPIECE1>(projection);
+                p = createPlannerRangeProj<og::BKPIECE1>(projection);
                 break;
         }
+        return p;
+    }
 
+    void setPlanner(enum PLANNER_TYPE planner, const std::string &projection = "")
+    {
+        pp = getPlanner(planner, projection);
         ss->setPlanner(pp);
+    }
+
+    ob::PlannerStatus solveOnce(bool output = false, const std::string &name = "ompl")
+    {
+        ss->setup();
+        ob::PlannerStatus stat = ss->solve(c_opt.time);
+        std::cout << std::endl;
+
+        if (stat)
+        {
+            // Get solution and validate
+            auto path = ss->getSolutionPath();
+            if (!path.check())
+                OMPL_WARN("Path fails check!");
+
+            if (stat == ob::PlannerStatus::APPROXIMATE_SOLUTION)
+                OMPL_WARN("Solution is approximate.");
+
+            // Simplify solution and validate simplified solution path.
+            OMPL_INFORM("Simplifying solution...");
+            ss->simplifySolution(5.);
+
+            auto simplePath = ss->getSolutionPath();
+            OMPL_INFORM("Simplified Path Length: %.3f -> %.3f", path.length(), simplePath.length());
+
+            if (!simplePath.check())
+                OMPL_WARN("Simplified path fails check!");
+
+            if (output)
+            {
+                // Interpolate and validate interpolated solution path.
+                OMPL_INFORM("Interpolating path...");
+                path.interpolate();
+
+                if (!path.check())
+                    OMPL_WARN("Interpolated simplified path fails check!");
+
+                OMPL_INFORM("Interpolating simplified path...");
+                simplePath.interpolate();
+
+                if (!simplePath.check())
+                    OMPL_WARN("Interpolated simplified path fails check!");
+
+                OMPL_INFORM("Dumping path to `%s_path.txt`.", name.c_str());
+                std::ofstream pathfile((boost::format("%1%_path.txt") % name).str());
+                path.printAsMatrix(pathfile);
+                pathfile.close();
+
+                OMPL_INFORM("Dumping simplified path to `%s_simplepath.txt`.", name.c_str());
+                std::ofstream simplepathfile((boost::format("%1%_simplepath.txt") % name).str());
+                simplePath.printAsMatrix(simplepathfile);
+                simplepathfile.close();
+            }
+        }
+        else
+            OMPL_WARN("No solution found.");
+
+        return stat;
+    }
+
+    void setupBenchmark(std::vector<enum PLANNER_TYPE> &planners, const std::string &problem)
+    {
+        bench = new ot::Benchmark(*ss, problem);
+
+        bench->addExperimentParameter("n", "INTEGER", std::to_string(constraint->getAmbientDimension()));
+        bench->addExperimentParameter("k", "INTEGER", std::to_string(constraint->getManifoldDimension()));
+        bench->addExperimentParameter("n - k", "INTEGER", std::to_string(constraint->getCoDimension()));
+        bench->addExperimentParameter("space", "INTEGER", std::to_string(type));
+
+        request = ot::Benchmark::Request(c_opt.time, 2048, 100, 0.1, true, false, true, true);
+
+        for (auto planner : planners)
+            bench->addPlanner(getPlanner(planner, problem));
+
+        bench->setPreRunEvent([&](const ob::PlannerPtr &planner) {
+            if (type == AT || type == TB)
+                planner->getSpaceInformation()->getStateSpace()->as<ompl::base::AtlasStateSpace>()->clear();
+            else
+                planner->getSpaceInformation()->getStateSpace()->as<ompl::base::ConstrainedStateSpace>()->clear();
+
+            planner->clear();
+        });
+    }
+
+    void runBenchmark()
+    {
+        bench->benchmark(request);
+
+        bpt::ptime now(bgt::day_clock::universal_day(), bpt::second_clock::universal_time().time_of_day());
+        const std::string filename = (boost::format("%1%_%2%_%3%_benchmark.log") % bpt::to_simple_string(now) %
+                                      bench->getExperimentName() % spaceStr[type])
+                                         .str();
+
+        bench->saveResultsToFile(filename.c_str());
+    }
+
+    void atlasStats()
+    {
+        // For atlas types, output information about size of atlas and amount of space explored
+        if (type == AT || type == TB)
+        {
+            auto at = css->as<ob::AtlasStateSpace>();
+            OMPL_INFORM("Atlas has %zu charts", at->getChartCount());
+            if (type == AT)
+                OMPL_INFORM("Atlas is approximately %.3f%% open", at->estimateFrontierPercent());
+        }
+    }
+
+    void dumpGraph(const std::string &name)
+    {
+        OMPL_INFORM("Dumping planner graph to `%s_graph.graphml`.", name.c_str());
+        ob::PlannerData data(csi);
+        pp->getPlannerData(data);
+
+        std::ofstream graphfile((boost::format("%1%_graph.graphml") % name).str());
+        data.printGraphML(graphfile);
+        graphfile.close();
+
+        if (type == AT || type == TB)
+        {
+            OMPL_INFORM("Dumping atlas to `%s_atlas.ply`.", name.c_str());
+            std::ofstream atlasfile((boost::format("%1%_atlas.ply") % name).str());
+            css->as<ob::AtlasStateSpace>()->printPLY(atlasfile);
+            atlasfile.close();
+        }
     }
 
     enum SPACE_TYPE type;
@@ -422,6 +563,9 @@ public:
 
     struct ConstrainedOptions c_opt;
     struct AtlasOptions a_opt;
+
+    ot::Benchmark *bench;
+    ot::Benchmark::Request request;
 };
 
 #endif

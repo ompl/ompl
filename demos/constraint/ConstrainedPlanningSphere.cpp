@@ -107,8 +107,38 @@ bool obstacles(const ob::State *state)
     return true;
 }
 
-bool spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner, struct ConstrainedOptions &c_opt,
-                    struct AtlasOptions &a_opt)
+bool spherePlanningOnce(ConstrainedProblem &cp, enum PLANNER_TYPE planner, bool output)
+{
+    cp.setPlanner(planner, "sphere");
+
+    // Solve the problem
+    ob::PlannerStatus stat = cp.solveOnce(output, "sphere");
+
+    if (output)
+    {
+        OMPL_INFORM("Dumping problem information to `sphere_info.txt`.");
+        std::ofstream infofile("sphere_info.txt");
+        infofile << cp.type << std::endl;
+        infofile.close();
+    }
+
+    cp.atlasStats();
+
+    if (output)
+        cp.dumpGraph("sphere");
+
+    return stat;
+}
+
+bool spherePlanningBench(ConstrainedProblem &cp, std::vector<enum PLANNER_TYPE> &planners)
+{
+    cp.setupBenchmark(planners, "sphere");
+    cp.runBenchmark();
+    return 0;
+}
+
+bool spherePlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_TYPE> &planners,
+                    struct ConstrainedOptions &c_opt, struct AtlasOptions &a_opt, bool bench)
 {
     // Create the ambient space state space for the problem.
     auto rvss = std::make_shared<ob::RealVectorStateSpace>(3);
@@ -135,107 +165,22 @@ bool spherePlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planne
     cp.setStartAndGoalStates(start, goal);
     cp.ss->setStateValidityChecker(obstacles);
 
-    cp.setPlanner(planner, "sphere");
-    cp.ss->setup();
-
-    // Solve the problem
-    ob::PlannerStatus stat = cp.ss->solve(c_opt.time);
-    std::cout << std::endl;
-
-    if (stat)
-    {
-        // Get solution and validate
-        auto path = cp.ss->getSolutionPath();
-        if (!path.check())
-            OMPL_WARN("Path fails check!");
-
-        if (stat == ob::PlannerStatus::APPROXIMATE_SOLUTION)
-            OMPL_WARN("Solution is approximate.");
-
-        // Simplify solution and validate simplified solution path.
-        OMPL_INFORM("Simplifying solution...");
-        cp.ss->simplifySolution(5.);
-
-        auto simplePath = cp.ss->getSolutionPath();
-        OMPL_INFORM("Simplified Path Length: %.3f -> %.3f", path.length(), simplePath.length());
-
-        if (!simplePath.check())
-            OMPL_WARN("Simplified path fails check!");
-
-        if (output)
-        {
-            // Interpolate and validate interpolated solution path.
-            OMPL_INFORM("Interpolating path...");
-            path.interpolate();
-
-            if (!path.check())
-                OMPL_WARN("Interpolated simplified path fails check!");
-
-            OMPL_INFORM("Interpolating simplified path...");
-            simplePath.interpolate();
-
-            if (!simplePath.check())
-                OMPL_WARN("Interpolated simplified path fails check!");
-
-            OMPL_INFORM("Dumping path to `sphere_path.txt`.");
-            std::ofstream pathfile("sphere_path.txt");
-            path.printAsMatrix(pathfile);
-            pathfile.close();
-
-            OMPL_INFORM("Dumping simplified path to `sphere_simplepath.txt`.");
-            std::ofstream simplepathfile("sphere_simplepath.txt");
-            simplePath.printAsMatrix(simplepathfile);
-            simplepathfile.close();
-
-            OMPL_INFORM("Dumping problem information to `sphere_info.txt`.");
-            std::ofstream infofile("sphere_info.txt");
-            infofile << space << std::endl;
-            infofile.close();
-        }
-    }
+    if (!bench)
+        return spherePlanningOnce(cp, planners[0], output);
     else
-        OMPL_WARN("No solution found.");
-
-    // For atlas types, output information about size of atlas and amount of space explored
-    if (space == AT || space == TB)
-    {
-        auto at = cp.css->as<ob::AtlasStateSpace>();
-        OMPL_INFORM("Atlas has %zu charts", at->getChartCount());
-        if (space == AT)
-            OMPL_INFORM("Atlas is approximately %.3f%% open", at->estimateFrontierPercent());
-    }
-
-    if (output)
-    {
-        OMPL_INFORM("Dumping planner graph to `sphere_graph.graphml`.");
-        ob::PlannerData data(cp.csi);
-        cp.pp->getPlannerData(data);
-
-        std::ofstream graphfile("sphere_graph.graphml");
-        data.printGraphML(graphfile);
-        graphfile.close();
-
-        if (space == AT || space == TB)
-        {
-            OMPL_INFORM("Dumping atlas to `sphere_atlas.ply`.");
-            std::ofstream atlasfile("sphere_atlas.ply");
-            cp.css->as<ob::AtlasStateSpace>()->printPLY(atlasfile);
-            atlasfile.close();
-        }
-    }
-
-    return stat;
+        return spherePlanningBench(cp, planners);
 }
 
 auto help_msg = "Shows this help message.";
 auto output_msg = "Dump found solution path (if one exists) in plain text and planning graph in GraphML to "
                   "`sphere_path.txt` and `sphere_graph.graphml` respectively.";
+auto bench_msg = "Do benchmarking on provided planner list.";
 
 int main(int argc, char **argv)
 {
-    bool output;
+    bool output, bench;
     enum SPACE_TYPE space = PJ;
-    enum PLANNER_TYPE planner = RRT;
+    std::vector<enum PLANNER_TYPE> planners = {RRT};
 
     struct ConstrainedOptions c_opt;
     struct AtlasOptions a_opt;
@@ -243,9 +188,10 @@ int main(int argc, char **argv)
     po::options_description desc("Options");
     desc.add_options()("help,h", help_msg);
     desc.add_options()("output,o", po::bool_switch(&output)->default_value(false), output_msg);
+    desc.add_options()("bench", po::bool_switch(&bench)->default_value(false), bench_msg);
 
     addSpaceOption(desc, &space);
-    addPlannerOption(desc, &planner);
+    addPlannerOption(desc, &planners);
     addConstrainedOptions(desc, &c_opt);
     addAtlasOptions(desc, &a_opt);
 
@@ -259,5 +205,5 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    return spherePlanning(output, space, planner, c_opt, a_opt);
+    return spherePlanning(output, space, planners, c_opt, a_opt, bench);
 }
