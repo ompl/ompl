@@ -60,6 +60,7 @@ namespace ompl
             {
                 init_traj_ = x;
                 initTrajIsSet = true;
+                OMPL_WARN("Initial traj is set in OptProb");
             }
 
             bool InitTrajIsSet()

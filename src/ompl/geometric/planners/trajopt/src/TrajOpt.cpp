@@ -133,15 +133,6 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
     std::vector<double> endVec(dof);
     ss->copyToReals(startVec, start);
     ss->copyToReals(endVec, goal);
-    std::cerr << "-{ start: [";
-    for (int i = 0; i < startVec.size(); i++) {
-        std::cerr << startVec[i] << ", ";
-    }
-    std::cerr << "], goal: [";
-    for (int i = 0; i < endVec.size(); i++) {
-        std::cerr << endVec[i] << ", ";
-    }
-    std::cerr << "]}" << std::endl;
 
     for (int i = 0; i < dof; i++) {
         problem_->addLinearConstraint(sco::exprSub(
@@ -151,6 +142,7 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
     }
 
     if (!problem_->InitTrajIsSet()) {
+        OMPL_WARN("Initial trajectory wasn't set, starting with straight line interpolation.");
         trajopt::TrajArray ta(nSteps_, dof);
         for (size_t i = 0; i < nSteps_; i++) {
             for (int j = 0; j < dof; j++) {
@@ -158,6 +150,10 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
             }
         }
         problem_->SetInitTraj(ta);
+    }
+    else
+    {
+        OMPL_WARN("Initial trajectory is already set, keeping it");
     }
 
     // Grab the problem definition to get the Optmization objectives.
@@ -186,7 +182,15 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::solve(const ompl::base::Plan
     {
         // Restart the input state iterator so we can get the start state again.
         pis_.restart();
-        problem_ = std::make_shared<OmplOptProb>(nSteps_, si_);
+        if (!problem_)
+        {
+            OMPL_WARN("Re-initing the problem instance");
+            problem_ = std::make_shared<OmplOptProb>(nSteps_, si_);
+        }
+        else
+        {
+            OMPL_WARN("problem already init, continueing on");
+        }
         auto constructStatus = constructOptProblem();
         if (constructStatus != base::PlannerStatus::EXACT_SOLUTION)
         {
@@ -267,6 +271,7 @@ void ompl::geometric::TrajOpt::plotCallback(std::vector<double>& x) {
     fprintf(fd, "\n");
 }
 void ompl::geometric::TrajOpt::setInitialTrajectory(ompl::geometric::PathGeometric inPath) {
+    OMPL_WARN("Setting the initial trajectory");
     int dof = si_->getStateDimension();
     size_t states = inPath.getStateCount();
     if (states > nSteps_) {
