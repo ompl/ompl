@@ -63,6 +63,15 @@ ompl::geometric::TrajOpt::TrajOpt(const ompl::base::SpaceInformationPtr &si)
     callback_ = [this](sco::OptProb *prob, std::vector<double>& x) {
         plotCallback(x);
     };
+
+    Planner::declareParam<int>("time_step_count", this, 
+            &TrajOpt::setTimeStepCount, &TrajOpt::getTimeStepCount, "5:1:200");
+    Planner::declareParam<int>("max_iterations", this,
+            &TrajOpt::setMaxIterations, &TrajOpt::getMaxIterations);
+    Planner::declareParam<double>("initial_penalty_coef", this,
+            &TrajOpt::setInitialPenaltyCoef, &TrajOpt::getInitialPenaltyCoef);
+    Planner::declareParam<double>("min_approx_improve_fraction", this,
+            &TrajOpt::setMinApproxImproveFraction, &TrajOpt::getMinApproxImproveFraction);
 }
 
 // TODO: write

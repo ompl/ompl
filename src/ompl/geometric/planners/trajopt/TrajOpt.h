@@ -87,7 +87,7 @@ namespace ompl
                 nSteps_ = nSteps;
             }
 
-            int getTimeStepCount()
+            int getTimeStepCount() const
             {
                 return nSteps_;
             }
@@ -97,7 +97,7 @@ namespace ompl
                 maxIter_ = maxIter;
             }
 
-            int getMaxIterations()
+            int getMaxIterations() const
             {
                 return maxIter_;
             }
@@ -107,7 +107,7 @@ namespace ompl
                 initPenaltyCoef_ = initPenaltyCoef;
             }
 
-            double getInitialPenaltyCoef()
+            double getInitialPenaltyCoef() const
             {
                 return initPenaltyCoef_;
             }
@@ -117,7 +117,7 @@ namespace ompl
                 minApproxImproveFrac_ = minApproxImproveFrac;
             }
 
-            double getMinApproxImproveFraction()
+            double getMinApproxImproveFraction() const
             {
                 return minApproxImproveFrac_;
             }
