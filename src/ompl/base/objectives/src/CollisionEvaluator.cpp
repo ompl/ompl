@@ -150,8 +150,16 @@ std::vector<sco::AffExpr> ompl::base::JacobianContinuousCollisionEvaluator::calc
             sco::AffExpr dist0 = distExprOneVaries(collisionStruct.signedDist, collisionStruct.normal, j0, x_0, vars0_);
             sco::AffExpr dist1 = distExprOneVaries(collisionStruct.signedDist, collisionStruct.normal, j1, x_1, vars1_);
 
-            double p1ps = (collisionStruct.p1 - collisionStruct.p_swept).norm();
-            double alpha = p1ps / (p1ps + (collisionStruct.p0 - collisionStruct.p_swept).norm());
+            double alpha;
+            if (collisionStruct.alpha < 0 || collisionStruct.alpha > 1)
+            {
+                double p1ps = (collisionStruct.p1 - collisionStruct.p_swept).norm();
+                alpha = p1ps / (p1ps + (collisionStruct.p0 - collisionStruct.p_swept).norm());
+            }
+            else
+            {
+                alpha = collisionStruct.alpha;
+            }
             exprScale(dist0, alpha);
             exprScale(dist1, 1 - alpha);
 

@@ -63,6 +63,8 @@ namespace ompl
             Eigen::Vector3d p0;
             Eigen::Vector3d p1;
             Eigen::Vector3d p_swept;
+            double alpha = -1; /* If not valid (not automatically found), should be set to -1 
+                             (will be ignored if out of inclusize range of 0 to 1). */
             std::string link_name;
             Eigen::Vector3d normal;
 
