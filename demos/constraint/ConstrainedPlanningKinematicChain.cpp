@@ -80,8 +80,40 @@ private:
     double linkLength_;
 };
 
-void chainPlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner, unsigned int links,
-                   struct ConstrainedOptions &c_opt, struct AtlasOptions &a_opt)
+bool chainPlanningOnce(ConstrainedProblem &cp, enum PLANNER_TYPE planner, bool output)
+{
+    cp.setPlanner(planner);
+
+    // Solve the problem
+    ob::PlannerStatus stat = cp.solveOnce(true);
+
+    if (output && stat)
+    {
+        auto filename = boost::str(boost::format("kinematic_path_%i.dat") % cp.constraint->getAmbientDimension());
+        OMPL_INFORM("Dumping problem information to `%s`.", filename.c_str());
+        auto path = cp.ss->getSolutionPath();
+        path.interpolate();
+        std::ofstream pathfile(filename);
+        path.printAsMatrix(pathfile);
+        pathfile.close();
+    }
+
+    cp.atlasStats();
+
+    return stat;
+}
+
+bool chainPlanningBench(ConstrainedProblem &cp, std::vector<enum PLANNER_TYPE> &planners)
+{
+    cp.setupBenchmark(planners, "kinematic");
+    cp.bench->addExperimentParameter("links", "INTEGER", std::to_string(cp.constraint->getAmbientDimension()));
+
+    cp.runBenchmark();
+    return 0;
+}
+
+bool chainPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_TYPE> &planners, unsigned int links,
+                   struct ConstrainedOptions &c_opt, struct AtlasOptions &a_opt, bool bench)
 {
     Environment env = createEmptyEnvironment(links);
 
@@ -106,82 +138,37 @@ void chainPlanning(bool output, enum SPACE_TYPE space, enum PLANNER_TYPE planner
     cp.setStartAndGoalStates(start, goal);
     cp.ss->setStateValidityChecker(std::make_shared<ConstrainedKinematicChainValidityChecker>(cp.csi));
 
-    cp.setPlanner(planner);
-    cp.ss->setup();
-
-    // Solve the problem
-    ob::PlannerStatus stat = cp.ss->solve(c_opt.time);
-    std::cout << std::endl;
-
-    if (stat)
-    {
-        // Get solution and validate
-        auto path = cp.ss->getSolutionPath();
-        if (!path.check())
-            OMPL_WARN("Path fails check!");
-
-        if (stat == ob::PlannerStatus::APPROXIMATE_SOLUTION)
-            OMPL_WARN("Solution is approximate.");
-
-        // Simplify solution and validate simplified solution path.
-        OMPL_INFORM("Simplifying solution...");
-        cp.ss->simplifySolution(5.);
-
-        auto simplePath = cp.ss->getSolutionPath();
-        OMPL_INFORM("Simplified Path Length: %.3f -> %.3f", path.length(), simplePath.length());
-
-        if (!simplePath.check())
-            OMPL_WARN("Simplified path fails check!");
-
-        if (output)
-        {
-            // Interpolate and validate interpolated solution path.
-            OMPL_INFORM("Interpolating path...");
-            simplePath.interpolate();
-
-            if (!simplePath.check())
-                OMPL_WARN("Interpolated path fails check!");
-
-            std::ofstream pathfile(boost::str(boost::format("kinematic_path_%i.dat") % links).c_str());
-            simplePath.printAsMatrix(pathfile);
-            pathfile.close();
-        }
-    }
+    if (!bench)
+        return chainPlanningOnce(cp, planners[0], output);
     else
-        OMPL_WARN("No solution found.");
-
-    // For atlas types, output information about size of atlas and amount of space explored
-    if (space == AT || space == TB)
-    {
-        auto at = cp.css->as<ob::AtlasStateSpace>();
-        OMPL_INFORM("Atlas has %zu charts", at->getChartCount());
-        if (space == AT)
-            OMPL_INFORM("Atlas is approximately %.3f%% open", at->estimateFrontierPercent());
-    }
+        return chainPlanningBench(cp, planners);
 }
 
 auto help_msg = "Shows this help message.";
 auto output_msg = "Dump found solution path (if one exists) and environment to data files that can be rendered with "
                   "`KinematicChainPathPlot.py`.";
 auto links_msg = "Number of links in kinematic chain.";
+auto bench_msg = "Do benchmarking on provided planner list.";
 
 int main(int argc, char **argv)
 {
-    bool output;
+    bool output, bench;
     enum SPACE_TYPE space = PJ;
-    enum PLANNER_TYPE planner = RRT;
-    unsigned int links;
+    std::vector<enum PLANNER_TYPE> planners = {RRT};
 
     struct ConstrainedOptions c_opt;
     struct AtlasOptions a_opt;
+
+    unsigned int links;
 
     po::options_description desc("Options");
     desc.add_options()("help,h", help_msg);
     desc.add_options()("output,o", po::bool_switch(&output)->default_value(false), output_msg);
     desc.add_options()("links,l", po::value<unsigned int>(&links)->default_value(5), links_msg);
+    desc.add_options()("bench", po::bool_switch(&bench)->default_value(false), bench_msg);
 
     addSpaceOption(desc, &space);
-    addPlannerOption(desc, &planner);
+    addPlannerOption(desc, &planners);
     addConstrainedOptions(desc, &c_opt);
     addAtlasOptions(desc, &a_opt);
 
@@ -195,7 +182,5 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    chainPlanning(output, space, planner, links, c_opt, a_opt);
-
-    return 0;
+    return chainPlanning(output, space, planners, links, c_opt, a_opt, bench);
 }

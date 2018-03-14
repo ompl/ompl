@@ -450,21 +450,21 @@ public:
             if (!simplePath.check())
                 OMPL_WARN("Simplified path fails check!");
 
+            // Interpolate and validate interpolated solution path.
+            OMPL_INFORM("Interpolating path...");
+            path.interpolate();
+
+            if (!path.check())
+                OMPL_WARN("Interpolated simplified path fails check!");
+
+            OMPL_INFORM("Interpolating simplified path...");
+            simplePath.interpolate();
+
+            if (!simplePath.check())
+                OMPL_WARN("Interpolated simplified path fails check!");
+
             if (output)
             {
-                // Interpolate and validate interpolated solution path.
-                OMPL_INFORM("Interpolating path...");
-                path.interpolate();
-
-                if (!path.check())
-                    OMPL_WARN("Interpolated simplified path fails check!");
-
-                OMPL_INFORM("Interpolating simplified path...");
-                simplePath.interpolate();
-
-                if (!simplePath.check())
-                    OMPL_WARN("Interpolated simplified path fails check!");
-
                 OMPL_INFORM("Dumping path to `%s_path.txt`.", name.c_str());
                 std::ofstream pathfile((boost::format("%1%_path.txt") % name).str());
                 path.printAsMatrix(pathfile);
