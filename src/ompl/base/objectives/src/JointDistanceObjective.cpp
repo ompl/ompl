@@ -20,6 +20,7 @@ static Eigen::MatrixXd diffPrevRow(const Eigen::MatrixXd& in)
 ompl::base::JointDistCost::JointDistCost(const trajopt::VarArray& vars) :
     vars_(vars)
 {
+    // TODO: coefficients?
     for (int i = 0; i < vars.rows() - 1; i++)
     {
         for (int j = 0; j < vars.cols(); j++)
@@ -72,10 +73,18 @@ ompl::base::Cost ompl::base::JointDistanceObjective::stateCost(const State *s) c
 
 ompl::base::Cost ompl::base::JointDistanceObjective::motionCost(const State *s1, const State *s2) const
 {
-    return Cost(pow(si_->distance(s1, s2), 2));
-    // TODO: add a coefficient when we know how to separate joints.
-    // TODO: if the statespace distance isn't euclidean, then this will give different answers than
-    //       the cost pointer.
+    // NOTE: for consistency, we copy both states to reals and operate on doubles.
+    //       For state spaces like SO2, this will give different answers than distance(s1, s2)^2.
+    std::vector<double> state1, state2;
+    si_->copyToReals(state1, s1);
+    si_->copyToReals(state2, s2);
+    double cost = 0.0;
+    for (int i = 0; i < si_->getStateDimension(); i++)
+    {
+        double dist = state2[i] - state1[i];
+        cost += (dist * dist); 
+    }
+    return Cost(cost); // Cost(pow(si_->distance(s1, s2), 2));
 }
 
 sco::CostPtr ompl::base::JointDistanceObjective::toCost(sco::OptProbPtr problem)

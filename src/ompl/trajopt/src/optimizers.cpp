@@ -84,13 +84,13 @@ DblVec evaluateModelCntViols(vector<ConvexConstraintsPtr>& cnts, const DblVec& x
   return out;
 }
 
-static vector<string> getCostNames(const vector<CostPtr>& costs) {
-  vector<string> out(costs.size());
+static vector<string> getCostNames(const std::vector<CostPtr>& costs) {
+  std::vector<string> out(costs.size());
   for (size_t i=0; i < costs.size(); ++i) out[i] = costs[i]->name();
   return out;
 }
-static vector<string> getCntNames(const vector<ConstraintPtr>& cnts) {
-  vector<string> out(cnts.size());
+static vector<string> getCntNames(const std::vector<ConstraintPtr>& cnts) {
+  std::vector<string> out(cnts.size());
   for (size_t i=0; i < cnts.size(); ++i) out[i] = cnts[i]->name();
   return out;
 }
