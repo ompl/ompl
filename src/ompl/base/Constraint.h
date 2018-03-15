@@ -240,7 +240,7 @@ namespace ompl
                     delete constraint;
             }
 
-            void function(const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> out) const
+            void function(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::VectorXd> out) const override
             {
                 unsigned int i = 0;
                 for (auto constraint : constraints_)
@@ -250,7 +250,7 @@ namespace ompl
                 }
             }
 
-            void jacobian(const Eigen::VectorXd &x, Eigen::Ref<Eigen::MatrixXd> out) const
+            void jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const override
             {
                 unsigned int i = 0;
                 for (auto constraint : constraints_)
