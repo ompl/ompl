@@ -54,9 +54,12 @@ class SphereConstraint(ob.Constraint):
         super(SphereConstraint, self).__init__(3, 1)
     def function(self, x, out):
         out[0] = np.linalg.norm(x) - 1
-    # def jacobian(self, x, out):
-    #     nrm = np.linalg.norm(x)
-    #     out = np.transpose(x/nrm if nrm > 0 else x)
+    def jacobian(self, x, out):
+        nrm = np.linalg.norm(x)
+        if np.isfinite(nrm) and nrm>0:
+            out[0,:] = x.transpose()/nrm
+        else:
+            out[0,:] = [1, 0, 0]
 
 def obstacles(x):
     if -0.8 < x[2] and x[2] < -0.6:
