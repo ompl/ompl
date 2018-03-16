@@ -373,8 +373,10 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart(const StateType
 bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const State *to, bool interpolate,
                                                    std::vector<ompl::base::State *> *stateList, bool endpoints) const
 {
+    auto &&svc = si_->getStateValidityChecker();
+
     // We can't traverse the manifold if we don't start on it.
-    if (!constraint_->isSatisfied(from))
+    if (!constraint_->isSatisfied(from) || !(interpolate || svc->isValid(from)))
         return false;
 
     auto afrom = from->as<StateType>();
@@ -393,8 +395,6 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         if (endpoints)
             stateList->push_back(cloneState(from));
     }
-
-    auto &&svc = si_->getStateValidityChecker();
 
     // No need to traverse the manifold if we are already there
     const double tolerance = delta_;
@@ -482,7 +482,8 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
             c->psiInverse(*ato, u_b);
         }
 
-        done = (u_b - u_j).squaredNorm() <= delta_ * delta_;
+
+        done = distance(scratch, to) <= delta_;
         factor = 1;
 
         // Keep the state in a list, if requested.

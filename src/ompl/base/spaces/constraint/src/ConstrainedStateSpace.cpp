@@ -71,6 +71,7 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
     {
         if (lastValid.first != nullptr)
             ss_.copyState(lastValid.first, s1);
+
         lastValid.second = 0;
         return false;
     }
@@ -156,6 +157,8 @@ void ompl::base::ConstrainedStateSpace::setup()
 
     setDelta(delta_);  // This makes some setup-related calls
     setup_ = true;
+
+    setDelta(delta_)
 
     // Call again to make sure information propagates properly to both wrapper
     // and underlying space.

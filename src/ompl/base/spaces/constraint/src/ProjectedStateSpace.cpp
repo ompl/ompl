@@ -100,7 +100,7 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
     if ((dist = distance(from, to)) <= tolerance)
         return true;
 
-    const StateValidityCheckerPtr &svc = si_->getStateValidityChecker();
+    auto &&svc = si_->getStateValidityChecker();
 
     auto previous = cloneState(from);
     auto scratch = allocState();
