@@ -234,7 +234,7 @@ int main(int argc, char **argv)
     desc.add_options()("bench", po::bool_switch(&bench)->default_value(false), bench_msg);
     desc.add_options()("outer", po::value<double>(&outer)->default_value(2), outer_msg);
     desc.add_options()("inner", po::value<double>(&inner)->default_value(1), inner_msg);
-    desc.add_options()("maze,m", po::value<std::string>(&maze)->required(), maze_msg);
+    desc.add_options()("maze,m", po::value<std::string>(&maze), maze_msg);
 
     addSpaceOption(desc, &space);
     addPlannerOption(desc, &planners);
@@ -248,6 +248,12 @@ int main(int argc, char **argv)
     if (vm.count("help"))
     {
         std::cout << desc << std::endl;
+        return 1;
+    }
+
+    if (maze == "")
+    {
+        OMPL_ERROR("--maze is a required.");
         return 1;
     }
 

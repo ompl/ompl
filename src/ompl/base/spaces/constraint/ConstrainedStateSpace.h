@@ -146,6 +146,8 @@ namespace ompl
 
                 void copy(const Eigen::Ref<const Eigen::VectorXd> &other)
                 {
+                    // Explicitly cast and call `=` on the state as an
+                    // Eigen::Map<...>. This copies the other.
                     static_cast<Eigen::Map<Eigen::VectorXd> *>(this)->operator=(other);
                 }
             };
@@ -176,6 +178,18 @@ namespace ompl
             /** \brief Clear any allocated memory from the state space. */
             virtual void clear();
 
+            /** \brief Allocate a new state in this space. */
+            State *allocState() const override;
+
+            /** @name Constrained Planning
+                @{ */
+
+            /** \brief Find a state between \a from and \a to around time \a t,
+             * where \a t = 0 is \a from, and \a t = 1 is the final state
+             * reached by traverseManifold(\a from, \a to, true, ...), which may
+             * not be \a to. State returned in \a state. */
+            void interpolate(const State *from, const State *to, double t, State *state) const override;
+
             /** \brief Traverse the manifold from \a from toward \a to. Returns
              * true if we reached \a to, and false if we stopped early for any
              * reason, such as a collision or traveling too far. No collision
@@ -184,32 +198,29 @@ namespace ompl
              * including a copy of \a from, as well as the final state, which is
              * a copy of \a to if we reached \a to. Caller is responsible for
              * freeing states returned in \a stateList. if \a endpoints is true,
-             * then \a from and \a to are included in stateList. */
+             * then \a from and \a to are included in stateList. Needs to be
+             * implemented by any constrained state space. */
             virtual bool traverseManifold(const State *from, const State *to, bool interpolate = false,
                                           std::vector<State *> *stateList = nullptr, bool endpoints = true) const = 0;
 
-            /** \brief Find a state between \a from and \a to at time \a t,
-             * where \a t = 0 is \a from, and \a t = 1 is the final state
-             * reached by traverseManifold(\a from, \a to, true, ...), which may
-             * not be \a to. State returned in \a state. */
-            void interpolate(const State *from, const State *to, double t, State *state) const override;
-
-            /** \brief Like interpolate(...), but uses the information about
+            /** \brief Like interpolate(...), but interpolates between
              * intermediate states already supplied in \a stateList from a
              * previous call to traverseManifold(..., true, \a stateList). The
              * \a from and \a to states are the first and last elements \a
-             * stateList. */
+             * stateList. Returns a pointer to a state in \a stateList. */
             virtual State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const;
 
-            /** \brief Allocate a new state in this space. */
-            State *allocState() const override;
+            /** @} */
+
+            /** @name Setters and Getters
+                @{ */
 
             /** \brief Set \a delta, the step size for traversing the manifold
              * and collision checking. Default defined by
              * ompl::magic::CONSTRAINED_STATE_SPACE_DELTA. */
             void setDelta(const double delta);
 
-            /** \brief Get delta. */
+            /** \brief Get delta, the step size across the manifold. */
             double getDelta() const
             {
                 return delta_;

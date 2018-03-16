@@ -158,7 +158,7 @@ void ompl::base::ConstrainedStateSpace::setup()
     setDelta(delta_);  // This makes some setup-related calls
     setup_ = true;
 
-    setDelta(delta_)
+    setDelta(delta_);
 
     // Call again to make sure information propagates properly to both wrapper
     // and underlying space.
