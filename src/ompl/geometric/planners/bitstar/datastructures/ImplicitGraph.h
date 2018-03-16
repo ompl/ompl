@@ -75,7 +75,7 @@ namespace ompl
             /** \brief Setup the ImplicitGraph, must be called before use. Does not take a copy of the
              * PlannerInputStates, but checks it for starts/goals. */
             void setup(const ompl::base::SpaceInformationPtr &si, const ompl::base::ProblemDefinitionPtr &pdef,
-                       const CostHelperPtr &costHelper, const SearchQueuePtr &searchQueue,
+                       CostHelper *costHelper, SearchQueue *searchQueue,
                        const ompl::base::Planner *plannerPtr, ompl::base::PlannerInputStates &pis);
 
             /** \brief Clear the graph to the state of construction. */
@@ -84,6 +84,9 @@ namespace ompl
 
             //////////////////
             // Graph access:
+            /** \brief Gets whether the graph contains a start or not. */
+            bool hasAStart() const;
+
             /** \brief Gets whether the graph contains a goal or not. */
             bool hasAGoal() const;
 
@@ -156,7 +159,7 @@ namespace ompl
             std::pair<unsigned int, unsigned int> prune(double prunedMeasure);
             //////////////////
 
-            ////////////////////////////////
+            //////////////////
             // Adding/remove individual states:
             /** \brief Add an unconnected sample */
             void addSample(const VertexPtr &newSample);
@@ -170,7 +173,12 @@ namespace ompl
             /** \brief Remove a vertex from the tree, can optionally be allowed to move it to the set of unconnected
              * samples if may still be useful. */
             unsigned int removeVertex(const VertexPtr &oldSample, bool moveToFree);
-            ////////////////////////////////
+            //////////////////
+
+            //////////////////
+            // General helper functions
+            void assertValidSample(const VertexConstPtr &sample, bool mustBeNew);
+            //////////////////
 
             //////////////////
             // Graph settings:
@@ -294,7 +302,7 @@ namespace ompl
             ////////////////////////////////
             // Debug
             /** \brief Test if the class is setup and throw if not. */
-            void confirmSetup() const;
+            void assertSetup() const;
             ////////////////////////////////
 
             ////////////////////////////////
@@ -313,11 +321,11 @@ namespace ompl
 
             /** \brief A cost/heuristic helper class. As this is a copy of the version owned by BITstar.cpp it can be
              * reset in a clear(). */
-            CostHelperPtr costHelpPtr_{nullptr};
+            CostHelper *costHelpPtr_{nullptr};
 
             /** \brief The queue class. As this is a copy of the version owned by BITstar.cpp it can be reset in a
              * clear(). */
-            SearchQueuePtr queuePtr_{nullptr};
+            SearchQueue *queuePtr_{nullptr};
 
             /** \brief An instance of a random number generator */
             ompl::RNG rng_;

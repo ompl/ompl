@@ -53,9 +53,10 @@
 
 // BIT*:
 // I am member class of the BITstar class (i.e., I am in it's namespace), so I need to include it's definition to be
-// aware of the class BITstar. It has a forward declaration to me and the other helper classes but I will need to
-// include any I use in my .cpp (to avoid dependency loops).
+// aware of the class BITstar. It has a forward declaration to me and the other helper classes.
 #include "ompl/geometric/planners/bitstar/BITstar.h"
+// I store data for the SearchQueue, get their definitions.
+#include "ompl/geometric/planners/bitstar/datastructures/SearchQueue.h"
 
 namespace ompl
 {
@@ -79,11 +80,13 @@ namespace ompl
         class BITstar::Vertex
         {
         public:
+            ////////////////////////////////////////////////////
+            // Public functions:
             /** \brief Constructor */
-            Vertex(ompl::base::SpaceInformationPtr si, ompl::base::OptimizationObjectivePtr opt, bool root = false);
+            Vertex(ompl::base::SpaceInformationPtr si, const CostHelper *const costHelpPtr, bool root = false);
 
             /** \brief Destructor */
-            ~Vertex();
+            virtual ~Vertex();
 
             /** \brief The (unique) vertex ID */
             BITstar::VertexId getId() const;
@@ -94,6 +97,8 @@ namespace ompl
             /** \brief The state of a vertex as a mutable pointer*/
             ompl::base::State *state();
 
+            ////////////////////////////
+            // The vertex's graph properties:
             /** \brief Whether the vertex is root */
             bool isRoot() const;
 
@@ -114,13 +119,12 @@ namespace ompl
             /** \brief Get the parent of a vertex as a mutable pointer*/
             VertexPtr getParent();
 
-            /** \brief Set the parent of a vertex, cannot be used to replace a previous parent. Will update this
-             * vertex's cost, and can update descendent costs */
-            void addParent(const VertexPtr &newParent, const ompl::base::Cost &edgeInCost,
-                           bool updateChildCosts = true);
+            /** \brief Set the parent of this vertex, cannot be used to replace a previous parent. Will always update
+             * this vertex's cost, and can update descendent costs */
+            void addParent(const VertexPtr &newParent, const ompl::base::Cost &edgeInCost, bool updateChildCosts);
 
-            /** \brief Remove the parent edge. Will update this vertex's cost, and can update the descendent costs */
-            void removeParent(bool updateChildCosts = true);
+            /** \brief Remove the parent of this vertex. Will always update this vertex's cost, and can update the descendent costs */
+            void removeParent(bool updateChildCosts);
 
             /** \brief Get whether this vertex has any children */
             bool hasChildren() const;
@@ -131,13 +135,13 @@ namespace ompl
             /** \brief Get the children of a vertex as mutable pointers */
             void getChildren(VertexPtrVector *children);
 
-            /** \brief Add a child vertex. Does not change this vertex's cost, and can update the child and its
-             * descendent costs */
-            void addChild(const VertexPtr &newChild, bool updateChildCosts = true);
+            /** \brief Add a child to this vertex. Does not change this vertex's cost or those of its descendants. Child must already have this vertex listed as it's parent. */
+            void addChild(const VertexPtr &newChild);
 
-            /** \brief Remove a child vertex. Does not change this vertex's cost, and can update the child and its
-             * descendent costs. Will throw an exception if the given vertex pointer is not in the vector of children.*/
-            void removeChild(const VertexPtr &oldChild, bool updateChildCosts = true);
+            /** \brief Remove a child from this vertex. Does not change this vertex's cost or those of its descendants.
+            * Child must still have this vertex listed as its parent and it will also throw an exception if the given
+            * vertex pointer is not found. */
+            void removeChild(const VertexPtr &oldChild);
 
             /** \brief Get the cost-to-come of a vertex. Return infinity if the edge is disconnected */
             ompl::base::Cost getCost() const;
@@ -180,7 +184,80 @@ namespace ompl
 
             /** \brief Mark the vertex as unpruned. */
             void markUnpruned();
+            ////////////////////////////
 
+            ////////////////////////////
+            // Functions for the vertex's SearchQueue data
+            //////////////
+            // Vertex queue info:
+            /** \brief Get an iterator to this vertex in the vertex queue */
+            SearchQueue::VertexQueueIter getVertexQueueIter() const;
+
+            /** \brief Set the iterator to this vertex in the vertex queue */
+            void setVertexQueueIter(const SearchQueue::VertexQueueIter &newPtr);
+
+            /** \brief Clear the iterator to this vertex in the vertex queue */
+            void clearVertexQueueIter();
+
+            /** \brief Return true if the vertex has a link to it's entry in the Vertex Queue */
+            bool hasVertexQueueEntry() const;
+            //////////////
+
+            //////////////
+            // Edge queue info (incoming edges):
+            /** \brief Add to the list of the edge queue entries that point in to this vertex. Will clear existing in/out lookups if they were added under a different id.*/
+            void addIncomingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &newInPtr, unsigned int vertexQueueResetNum);
+
+            /** \brief Remove an incoming edge queue entry by value to the member vector.*/
+            void rmIncomingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &elemToDelete, unsigned int vertexQueueResetNum);
+
+            /** \brief Remove an incoming edge queue entry by iterator to the member vector.*/
+            void rmIncomingEdgeQueuePtrByIter(const SearchQueue::EdgeQueueElemPtrVector::const_iterator &constIterToDelete, unsigned int vertexQueueResetNum);
+
+            /** \brief Clear the pointers to all of the incoming edge queue entries */
+            void clearIncomingEdgeQueuePtrs();
+
+            /** \brief Get an iterator to the front of the incoming edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
+            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator incomingEdgeQueuePtrsBeginConst(unsigned int vertexQueueResetNum);
+
+            /** \brief Get an iterator to the end of the incoming edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
+            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator incomingEdgeQueuePtrsEndConst(unsigned int vertexQueueResetNum);
+
+            /** \brief Get the number of edge queue entries incoming to this vertex. Will clear existing in/out lookups if they were added under a different id. */
+            unsigned int getNumIncomingEdgeQueuePtrs(unsigned int vertexQueueResetNum);
+
+            /** \brief Return true if the vertex has links to incoming entries in the Edge Queue. Will clear existing in/out lookups if they were added under a different id. */
+            bool hasIncomingEdgeQueueEntries(unsigned int vertexQueueResetNum);
+            //////////////
+
+            //////////////
+            // Edge queue info (outgoing edges):
+            /** \brief Add to the list of the edge queue entries that point out of this vertex. Will clear existing in/out lookups if they were added under a different id.*/
+            void addOutgoingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &newOutPtr, unsigned int vertexQueueResetNum);
+
+            /** \brief Remove an outgoing edge queue entry by value.*/
+            void rmOutgoingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &elemToDelete, unsigned int vertexQueueResetNum);
+
+            /** \brief Remove an outgoing edge queue entry by iterator to the member vector.*/
+            void rmOutgoingEdgeQueuePtrByIter(const SearchQueue::EdgeQueueElemPtrVector::const_iterator &constIterToDelete, unsigned int vertexQueueResetNum);
+
+            /** \brief Clear the pointers to all of the outgoing edge queue entries */
+            void clearOutgoingEdgeQueuePtrs();
+
+            /** \brief Get an iterator to the front of the outgoing edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
+            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator outgoingEdgeQueuePtrsBeginConst(unsigned int vertexQueueResetNum);
+
+            /** \brief Get an iterator to the end of the outgoing edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
+            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator outgoingEdgeQueuePtrsEndConst(unsigned int vertexQueueResetNum);
+
+            /** \brief Get the number of edge queue entries outgoing from this vertex. Will clear existing in/out lookups if they were added under a different id. */
+            unsigned int getNumOutgoingEdgeQueuePtrs(unsigned int vertexQueueResetNum);
+
+            /** \brief Return true if the vertex has links to outgoing entries in the Edge Queue. Will clear existing in/out lookups if they were added under a different id. */
+            bool hasOutgoingEdgeQueueEntries(unsigned int vertexQueueResetNum);
+            //////////////
+            ////////////////////////////
+            ////////////////////////////////////////////////////
         protected:
             /** \brief Calculates the updated cost and depth of the current state, as well as calling all children's
              * updateCostAndDepth() functions and thus updating everything down-stream (if desired).*/
@@ -194,7 +271,7 @@ namespace ompl
             ompl::base::SpaceInformationPtr si_;
 
             /** \brief The optimization objective used by the planner */
-            ompl::base::OptimizationObjectivePtr opt_;
+            const CostHelper *const costHelpPtr_;
 
             /** \brief The state itself */
             ompl::base::State *state_;
@@ -231,6 +308,31 @@ namespace ompl
             /** \brief The child states as weak pointers, such that the ownership loop is broken and a state can be
              * deleted once it's children are.*/
             std::vector<VertexWeakPtr> childWPtrs_;
+
+            /** \brief A pointer to this vertex in the vertex queue */
+            SearchQueue::VertexQueueIter vertexQueueIter_;
+
+            /** \brief Whether a valid iterator the vertex queue exists (as iterators have no equivalent to NULL) */
+            bool isVertexQueueSet_{false};
+
+            /** \brief A list of pointers to elements in the edge queue that point in to this vertex */
+            SearchQueue::EdgeQueueElemPtrVector edgeQueueInPtrs_;
+
+            /** \brief A list of pointers to elements in the edge queue that point out from this vertex */
+            SearchQueue::EdgeQueueElemPtrVector edgeQueueOutPtrs_;
+
+            /** \brief The id-number associated with the currently stored edge lookups. This is used to reset existing
+            * lookups when on the next pass through the vertex queue. */
+            unsigned int edgeLookupPass_{0u};
+
+            /** \brief A helper function to clear the given incoming lookup (and in debug mode assert it existed) */
+            void rmIncomingHelper(const SearchQueue::EdgeQueueElemPtrVector::iterator &iterToDelete);
+
+            /** \brief A helper function to clear the given outgoing lookup (and in debug mode assert it existed) */
+            void rmOutgoingHelper(const SearchQueue::EdgeQueueElemPtrVector::iterator &iterToDelete);
+
+            /** \brief A helper function to clear existing lookups if they are out of date (i.e., created at a different id than the one given) */
+            void clearOldLookups(unsigned int vertexQueueResetNum);
 
             /** \brief A helper function to check that the vertex is not pruned and throw if so */
             void assertNotPruned() const;

@@ -42,14 +42,19 @@
 #include "ompl/base/Cost.h"
 // The optimization objective class:
 #include "ompl/base/OptimizationObjective.h"
+// For exceptions:
+#include "ompl/util/Exception.h"
+
 
 // BIT*:
 // I am member class of the BITstar class (i.e., I am in it's namespace), so I need to include it's definition to be
 // aware of the class BITstar. It has a forward declaration to me and the other helper classes but I will need to
 // include any I use in my .cpp (to avoid dependency loops).
 #include "ompl/geometric/planners/bitstar/BITstar.h"
-// Include the vertex class here so we can inline a bunch of functions:
+// The vertex class
 #include "ompl/geometric/planners/bitstar/datastructures/Vertex.h"
+// The graph class
+#include "ompl/geometric/planners/bitstar/datastructures/ImplicitGraph.h"
 
 namespace ompl
 {
@@ -57,7 +62,7 @@ namespace ompl
     {
         /** @anchor CostHelper
         \par Short Description
-        A class that consolidates all the various heuristic calculations for vertices/edges in a graph into one place.
+        A header-only class that consolidates all the various heuristic calculations for vertices/edges in a graph into one place.
         Most of these functions are simply combinatorial pass-throughs to the OptimizationObjective. */
 
         /** \brief A helper class to handle the various heuristic functions in one place. */
@@ -72,10 +77,18 @@ namespace ompl
             virtual ~CostHelper() = default;
 
             /** \brief Setup the CostHelper, must be called before use */
-            void setup(const ompl::base::OptimizationObjectivePtr &opt, const ImplicitGraphPtr &graph);
+            inline void setup(const ompl::base::OptimizationObjectivePtr &opt, ImplicitGraph *graph)
+            {
+                opt_ = opt;
+                graphPtr_ = graph;
+            };
 
             /** \brief Clear the CostHelper, returns to state at construction*/
-            void clear();
+            inline void clear()
+            {
+                opt_.reset();
+                graphPtr_ = nullptr;
+            };
 
             /** \brief Get the underling OptimizationObjective */
             inline ompl::base::OptimizationObjectivePtr getOptObj() const
@@ -106,7 +119,7 @@ namespace ompl
              * cost-to-come, edge cost, and cost-to-go. */
             inline ompl::base::Cost lowerBoundHeuristicEdge(const VertexConstPtrPair &edgePair) const
             {
-                return this->combineCosts(this->lowerBoundHeuristicTarget(edgePair),
+                return this->combineCosts(this->lowerBoundHeuristicToTarget(edgePair),
                                           this->costToGoHeuristic(edgePair.second));
             };
 
@@ -115,14 +128,14 @@ namespace ompl
              * estimates of the edge cost, and cost-to-go. */
             inline ompl::base::Cost currentHeuristicEdge(const VertexConstPtrPair &edgePair) const
             {
-                return this->combineCosts(this->currentHeuristicTarget(edgePair),
+                return this->combineCosts(this->currentHeuristicToTarget(edgePair),
                                           this->costToGoHeuristic(edgePair.second));
             };
 
             /** \brief Calculates a heuristic estimate of the cost of a path to the \e target of an edge, independent of
              * the current cost-to-come of the parent state. I.e., combines heuristics estimates of the cost-to-come and
              * the edge cost. */
-            inline ompl::base::Cost lowerBoundHeuristicTarget(const VertexConstPtrPair &edgePair) const
+            inline ompl::base::Cost lowerBoundHeuristicToTarget(const VertexConstPtrPair &edgePair) const
             {
                 return this->combineCosts(this->costToComeHeuristic(edgePair.first), this->edgeCostHeuristic(edgePair));
             };
@@ -130,27 +143,61 @@ namespace ompl
             /** \brief Calculates a heuristic estimate of the cost of a path to the \e target of an edge, dependent on
              * the cost-to-come of the parent state. I.e., combines the current cost-to-come with heuristic estimates of
              * the edge cost. */
-            inline ompl::base::Cost currentHeuristicTarget(const VertexConstPtrPair &edgePair) const
+            inline ompl::base::Cost currentHeuristicToTarget(const VertexConstPtrPair &edgePair) const
             {
                 return this->combineCosts(edgePair.first->getCost(), this->edgeCostHeuristic(edgePair));
             };
 
             /** \brief Calculate a heuristic estimate of the cost-to-come for a Vertex */
-            ompl::base::Cost costToComeHeuristic(const VertexConstPtr &vertex) const;
+            inline ompl::base::Cost costToComeHeuristic(const VertexConstPtr &vertex) const
+            {
+                // Variable
+                // The current best cost to the state, initialize to infinity
+                ompl::base::Cost curBest = this->infiniteCost();
 
-            /** \brief Calculate a heuristic estimate of the cost an edge between two Vertices */
+                // Iterate over the vector of starts, finding the minimum estimated cost-to-come to the state
+                for (auto startIter = graphPtr_->startVerticesBeginConst(); startIter != graphPtr_->startVerticesEndConst();
+                     ++startIter)
+                {
+                    // Update the cost-to-come as the better of the best so far and the new one
+                    curBest = this->betterCost(curBest,
+                                               this->motionCostHeuristic((*startIter)->stateConst(), vertex->stateConst()));
+                }
+
+                // Return
+                return curBest;
+            };
+
+            /** \brief Calculate a heuristic estimate of the cost of an edge between two Vertices */
             inline ompl::base::Cost edgeCostHeuristic(const VertexConstPtrPair &edgePair) const
             {
                 return this->motionCostHeuristic(edgePair.first->stateConst(), edgePair.second->stateConst());
             };
 
             /** \brief Calculate a heuristic estimate of the cost-to-go for a Vertex */
-            ompl::base::Cost costToGoHeuristic(const VertexConstPtr &vertex) const;
+            inline ompl::base::Cost costToGoHeuristic(const VertexConstPtr &vertex) const
+            {
+                // Variable
+                // The current best cost to a goal from the state, initialize to infinity
+                ompl::base::Cost curBest = this->infiniteCost();
+
+                // Iterate over the vector of goals, finding the minimum estimated cost-to-go from the state
+                for (auto goalIter = graphPtr_->goalVerticesBeginConst(); goalIter != graphPtr_->goalVerticesEndConst();
+                     ++goalIter)
+                {
+                    // Update the cost-to-go as the better of the best so far and the new one
+                    curBest = this->betterCost(curBest,
+                                               this->motionCostHeuristic(vertex->stateConst(), (*goalIter)->stateConst()));
+                }
+
+                // Return
+                return curBest;
+            };
             //////////////////
 
             //////////////////
             // Cost-calculation functions
-            /** \brief The true cost of an edge, including collisions.*/
+            /** \brief The true cost of an edge, including constraints.*/
             inline ompl::base::Cost trueEdgeCost(const VertexConstPtrPair &edgePair) const
             {
                 return this->motionCost(edgePair.first->stateConst(), edgePair.second->stateConst());
@@ -233,7 +280,6 @@ namespace ompl
             {
                 return opt_->isSatisfied(a);
             };
-
             inline bool isFinite(const ompl::base::Cost &a) const
             {
                 return opt_->isFinite(a);
@@ -281,7 +327,7 @@ namespace ompl
 
             /** \brief A local pointer to the samples/vertices viewed as an implicit graph. As this is a copy of the
              * version owned by BITstar.cpp it can be reset in a clear(). */
-            ImplicitGraphPtr graphPtr_;
+            ImplicitGraph *graphPtr_;
             ////////////////////////////////
         };  // class CostHelper
     }       // geometric

@@ -142,12 +142,6 @@ namespace ompl
             typedef std::vector<VertexConstPtrPair> VertexConstPtrPairVector;
             /** \brief The OMPL::NearestNeighbors structure. */
             typedef std::shared_ptr<NearestNeighbors<VertexPtr>> VertexPtrNNPtr;
-            /** \brief A cost helper shared pointer. */
-            typedef std::shared_ptr<CostHelper> CostHelperPtr;
-            /** \brief An implicit graph shared pointer. */
-            typedef std::shared_ptr<ImplicitGraph> ImplicitGraphPtr;
-            /** \brief An search queue shared pointer. */
-            typedef std::shared_ptr<SearchQueue> SearchQueuePtr;
 
             /** \brief A utility functor for ImplicitGraph and SearchQueue */
             typedef std::function<std::string()> NameFunc;
@@ -156,7 +150,7 @@ namespace ompl
             BITstar(const base::SpaceInformationPtr &si, const std::string &name = "BITstar");
 
             /** \brief Destruct! */
-            ~BITstar() override = default;
+            virtual ~BITstar() override = default;
 
             /** \brief Setup */
             void setup() override;
@@ -421,15 +415,15 @@ namespace ompl
             ///////////////////////////////////////////////////////////////////
             // Variables -- Make sure every one is configured in setup() and reset in clear():
             /** \brief A helper for cost and heuristic calculations */
-            CostHelperPtr costHelpPtr_{nullptr};
+            std::shared_ptr<CostHelper> costHelpPtr_{nullptr};
 
             /** \brief The samples represented as an edge-implicit graph */
-            ImplicitGraphPtr graphPtr_{nullptr};
+            std::shared_ptr<ImplicitGraph> graphPtr_{nullptr};
 
             /** \brief The queue of vertices to expand and edges to process ordered on "f-value", i.e., estimated
              * solution cost. Remaining vertex queue "size" and edge queue size are accessible via
              * vertexQueueSizeProgressProperty and edgeQueueSizeProgressProperty, respectively. */
-            SearchQueuePtr queuePtr_{nullptr};
+            std::shared_ptr<SearchQueue> queuePtr_{nullptr};
 
             /** \brief The goal vertex of the current best solution */
             VertexConstPtr curGoalVertex_{nullptr};
@@ -493,17 +487,6 @@ namespace ompl
             bool stopOnSolnChange_{false};
             ///////////////////////////////////////////////////////////////////
         };  // class: BITstar
-
-        ////////////////////////////////
-        // Basic helpers
-        /** \brief Define the addition operator for a std::pair<T,U> from the addition operators of T and U. */
-        template <typename T, typename U>
-        std::pair<T, U> operator+(const std::pair<T, U> &lhs, const std::pair<T, U> &rhs)
-        {
-            return std::make_pair(lhs.first + rhs.first, lhs.second + rhs.second);
-        }
-        ////////////////////////////////
-
     }  // geometric
 }  // ompl
 #endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_BITSTAR_

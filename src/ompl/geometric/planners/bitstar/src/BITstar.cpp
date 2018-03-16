@@ -56,6 +56,8 @@
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
 // BIT*:
+// A collection of common helper functions
+#include "ompl/geometric/planners/bitstar/datastructures/HelperFunctions.h"
 // The Vertex ID generator class
 #include "ompl/geometric/planners/bitstar/datastructures/IdGenerator.h"
 // My vertex class:
@@ -66,6 +68,10 @@
 #include "ompl/geometric/planners/bitstar/datastructures/ImplicitGraph.h"
 // My queue class
 #include "ompl/geometric/planners/bitstar/datastructures/SearchQueue.h"
+
+#ifdef BITSTAR_DEBUG
+    #warning Compiling BIT* with debug-level asserts
+#endif  // BITSTAR_DEBUG
 
 namespace ompl
 {
@@ -253,14 +259,14 @@ namespace ompl
                 // No else, called without a goal. Is this MoveIt?
 
                 // Setup the CostHelper, it provides everything I need from optimization objective plus some frills
-                costHelpPtr_->setup(Planner::pdef_->getOptimizationObjective(), graphPtr_);
+                costHelpPtr_->setup(Planner::pdef_->getOptimizationObjective(), graphPtr_.get());
 
                 // Setup the queue
-                queuePtr_->setup(costHelpPtr_, graphPtr_);
+                queuePtr_->setup(costHelpPtr_.get(), graphPtr_.get());
 
                 // Setup the graph, it does not hold a copy of this or Planner::pis_, but uses them to create a NN struct
                 // and check for starts/goals, respectively.
-                graphPtr_->setup(Planner::si_, Planner::pdef_, costHelpPtr_, queuePtr_, this, Planner::pis_);
+                graphPtr_->setup(Planner::si_, Planner::pdef_, costHelpPtr_.get(), queuePtr_.get(), this, Planner::pis_);
 
                 // Set the best and pruned costs to the proper objective-based values:
                 bestCost_ = costHelpPtr_->infiniteCost();
@@ -338,6 +344,22 @@ namespace ompl
             {
                 graphPtr_->updateStartAndGoalStates(Planner::pis_, ptc);
             }
+
+            // Warn if we are missing a start
+            if (!graphPtr_->hasAStart())
+            {
+                // We don't have a start, since there's no way to wait for one to appear, so we will not be solving this "problem" today
+                OMPL_WARN("%s: A solution cannot be found as no valid start states are available.", Planner::getName().c_str());
+            }
+            // No else, it's a start
+
+            // Warn if we are missing a goal
+            if (!graphPtr_->hasAGoal())
+            {
+                // We don't have a goal (and we waited as long as ptc allowed us for one to appear), so we will not be solving this "problem" today
+                OMPL_WARN("%s: A solution cannot be found as no valid goal states are available.", Planner::getName().c_str());
+            }
+            // No else, there's a goal to all of this
 
             /* Iterate as long as:
               - We're allowed (ptc == false && stopLoop_ == false), AND
@@ -504,7 +526,7 @@ namespace ompl
                 {
                     // What about improving the current graph?
                     // g_t(v) + c_hat(v,x)  < g_t(x)?
-                    if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicTarget(bestEdge),
+                    if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicToTarget(bestEdge),
                                                        bestEdge.second->getCost()))
                     {
                         // Ok, so it *could* be a useful edge. Do the work of calculating its cost for real
@@ -761,15 +783,16 @@ namespace ompl
             }
             else
             {
-                // If not, we just add the vertex, first mark the target vertex as no longer new and unexpanded:
-                newEdge.second->markUnexpandedToSamples();
-                newEdge.second->markUnexpandedToVertices();
+#ifdef BITSTAR_DEBUG
+                graphPtr_->assertValidSample(newEdge.second, false);
+#endif  // BITSTAR_DEBUG
+                // If not, we just add the vertex
 
-                // Then add a child to the parent, not updating costs:
-                newEdge.first->addChild(newEdge.second, false);
-
-                // Add a parent to the child, updating descendant costs if requested:
+                // Add a parent to the child, updating descendant costs:
                 newEdge.second->addParent(newEdge.first, edgeCost, true);
+
+                // Add a child to the parent:
+                newEdge.first->addChild(newEdge.second);
 
                 // Then enqueue the vertex, moving it from the free set to the vertex set.
                 queuePtr_->enqueueVertex(newEdge.second, true);
@@ -794,17 +817,16 @@ namespace ompl
             ++numRewirings_;
 
             // Remove the child from the parent, not updating costs
-            newEdge.second->getParent()->removeChild(newEdge.second, false);
+            newEdge.second->getParent()->removeChild(newEdge.second);
 
             // Remove the parent from the child, not updating costs
             newEdge.second->removeParent(false);
 
-            // Add the child to the parent, not updating costs
-            newEdge.first->addChild(newEdge.second, false);
+            // Add the parent to the child. updating the downstream costs.
+            newEdge.second->addParent(newEdge.first, edgeCost, true);
 
-            // Add the parent to the child. This updates the cost of the child as well as all it's descendents (if
-            // requested).
-            newEdge.second->addParent(newEdge.first, edgeCost);
+            // Add the child to the parent.
+            newEdge.first->addChild(newEdge.second);
 
             // Mark the queues as unsorted below this child
             queuePtr_->markVertexUnsorted(newEdge.second);
@@ -915,7 +937,7 @@ namespace ompl
             OMPL_INFORM("%s (%u iters): Found a solution of cost %.4f (%u vertices) from %u samples by processing %u "
                         "edges (%u collision checked) to create %u vertices and perform %u rewirings. The graph "
                         "currently has %u vertices.",
-                        Planner::getName().c_str(), numIterations_, bestCost_.value(), bestLength_,
+                        Planner::getName().c_str(), numIterations_, bestCost_, bestLength_,
                         graphPtr_->numStatesGenerated(), queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_,
                         graphPtr_->numVerticesConnected(), numRewirings_, graphPtr_->numConnectedVertices());
         }
@@ -925,7 +947,7 @@ namespace ompl
             OMPL_INFORM("%s: Finished with a solution of cost %.4f (%u vertices) found from %u samples by processing "
                         "%u edges (%u collision checked) to create %u vertices and perform %u rewirings. The final "
                         "graph has %u vertices.",
-                        Planner::getName().c_str(), bestCost_.value(), bestLength_, graphPtr_->numStatesGenerated(),
+                        Planner::getName().c_str(), bestCost_, bestLength_, graphPtr_->numStatesGenerated(),
                         queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_, graphPtr_->numVerticesConnected(),
                         numRewirings_, graphPtr_->numConnectedVertices());
         }
@@ -1052,12 +1074,12 @@ namespace ompl
             graphPtr_->setUseKNearest(useKNearest);
 
             // If the planner is default named, we change it:
-            if (graphPtr_->getUseKNearest() && Planner::getName() == "kBITstar")
+            if (!graphPtr_->getUseKNearest() && Planner::getName() == "kBITstar")
             {
                 // It's current the default k-nearest BIT* name, and we're toggling, so set to the default r-disc
                 Planner::setName("BITstar");
             }
-            else if (!graphPtr_->getUseKNearest() && Planner::getName() == "BITstar")
+            else if (graphPtr_->getUseKNearest() && Planner::getName() == "BITstar")
             {
                 // It's current the default r-disc BIT* name, and we're toggling, so set to the default k-nearest
                 Planner::setName("kBITstar");
