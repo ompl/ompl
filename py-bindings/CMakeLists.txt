@@ -52,8 +52,8 @@ if (OMPL_BUILD_PYBINDINGS)
         foreach(module ${OMPL_MODULES})
             create_module_target(${module})
         endforeach(module)
-        if(OMPL_HAVE_NUMPY)
-            target_link_libraries(py_ompl_util ${Boost_NUMPY_LIBRARY})
+        if(OMPL_HAVE_NUMPY AND TARGET py_ompl_base)
+            target_link_libraries(py_ompl_base ${Boost_NUMPY_LIBRARY})
         endif()
 
         install(DIRECTORY ompl DESTINATION "${OMPL_PYTHON_INSTALL_DIR}"

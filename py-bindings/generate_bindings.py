@@ -41,6 +41,7 @@ from sys import argv, setrecursionlimit
 from pygccxml import declarations
 from pygccxml.declarations.runtime_errors import declaration_not_found_t
 from pyplusplus.module_builder import call_policies
+from pyplusplus import function_transformers as FT
 from ompl.bindings_generator import code_generator_t, default_replacement
 
 class ompl_base_generator_t(code_generator_t):
@@ -277,7 +278,6 @@ class ompl_base_generator_t(code_generator_t):
         for cls in ['ProblemDefinition', 'AtlasChart', 'AtlasStateSpace', 'ConstrainedStateSpace', \
             'ProjectedStateSpace']:
             self.ompl_ns.class_(cls).add_declaration_code('#define nullptr NULL\n')
-        self.add_array_access(self.ompl_ns.class_('ConstrainedStateSpace').class_('StateType'))
 
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now
         #self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()
@@ -367,6 +367,24 @@ class ompl_base_generator_t(code_generator_t):
                 arg_types=['::std::ostream &']).exclude()
         except declaration_not_found_t:
             pass
+
+        # add code for numpy.array <-> Eigen conversions
+        self.mb.add_declaration_code(open(join(dirname(__file__), \
+            'numpy_eigen.cpp'), 'r').read())
+        self.mb.add_registration_code("""
+            EIGEN_ARRAY_CONVERTER(Eigen::MatrixXd, 2)
+            EIGEN_ARRAY_CONVERTER(Eigen::VectorXd, 1)
+        """)
+        self.mb.add_registration_code('np::initialize();', tail=False)
+        self.add_array_access(self.ompl_ns.class_('ConstrainedStateSpace').class_('StateType'), 'double')
+        for cls in [self.ompl_ns.class_('Constraint'), self.ompl_ns.class_('ConstraintIntersection')]:
+            for method in ['function', 'jacobian']:
+                cls.member_function(method, arg_types=[
+                    '::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, 0, Eigen::InnerStride<1> > const &',
+                    None]).add_transformation(FT.input(0))
+        cls = self.ompl_ns.class_('Constraint')
+        for method in ['distance', 'isSatisfied']:
+            cls.member_function(method, arg_types=['::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, 0, Eigen::InnerStride<1> > const &']).add_transformation(FT.input(0))
 
 class ompl_control_generator_t(code_generator_t):
     def __init__(self):
@@ -496,6 +514,8 @@ class ompl_control_generator_t(code_generator_t):
         self.ompl_ns.namespace('control').class_('SimpleSetup').add_registration_code(
             'def("getPlannerAllocator", &ompl::control::SimpleSetup::getPlannerAllocator, ' \
             'bp::return_value_policy< bp::copy_const_reference >())')
+        # exclude deprecated API function
+        self.ompl_ns.free_function('getDefaultPlanner').exclude()
 
         # Do this for all classes that exist with the same name in another namespace
         # (We also do it for all planners; see below)
@@ -589,6 +609,8 @@ class ompl_geometric_generator_t(code_generator_t):
             'bp::return_value_policy< bp::copy_const_reference >())')
         self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::BITstar::Vertex> >').exclude()
         self.std_ns.class_('vector<const ompl::base::State *>').exclude()
+        # exclude deprecated API function
+        self.ompl_ns.free_function('getDefaultPlanner').exclude()
 
         # Py++ seems to get confused by some methods declared in one module
         # that are *not* overridden in a derived class in another module. The
