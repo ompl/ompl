@@ -95,7 +95,7 @@ namespace ompl
         /// @endcond
 
         /** \brief Constrained configuration space specific implementation of
-         * checkMotion() that uses traverseManifold(). */
+         * checkMotion() that uses discreteGeodesic(). */
         class ConstrainedMotionValidator : public MotionValidator
         {
         public:
@@ -186,7 +186,7 @@ namespace ompl
 
             /** \brief Find a state between \a from and \a to around time \a t,
              * where \a t = 0 is \a from, and \a t = 1 is the final state
-             * reached by traverseManifold(\a from, \a to, true, ...), which may
+             * reached by discreteGeodesic(\a from, \a to, true, ...), which may
              * not be \a to. State returned in \a state. */
             void interpolate(const State *from, const State *to, double t, State *state) const override;
 
@@ -200,15 +200,15 @@ namespace ompl
              * freeing states returned in \a stateList. if \a endpoints is true,
              * then \a from and \a to are included in stateList. Needs to be
              * implemented by any constrained state space. */
-            virtual bool traverseManifold(const State *from, const State *to, bool interpolate = false,
-                                          std::vector<State *> *stateList = nullptr, bool endpoints = true) const = 0;
+            virtual bool discreteGeodesic(const State *from, const State *to, bool interpolate = false,
+                                          std::vector<State *> *geodesic = nullptr) const = 0;
 
             /** \brief Like interpolate(...), but interpolates between
              * intermediate states already supplied in \a stateList from a
-             * previous call to traverseManifold(..., true, \a stateList). The
+             * previous call to discreteGeodesic(..., true, \a stateList). The
              * \a from and \a to states are the first and last elements \a
              * stateList. Returns a pointer to a state in \a stateList. */
-            virtual State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const;
+            virtual State *geodesicInterpolate(const std::vector<State *> &stateList, double t) const;
 
             /** @} */
 

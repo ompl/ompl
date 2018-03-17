@@ -370,8 +370,8 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart(const StateType
     return chart;
 }
 
-bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const State *to, bool interpolate,
-                                                   std::vector<ompl::base::State *> *stateList, bool endpoints) const
+bool ompl::base::AtlasStateSpace::discreteGeodesic(const State *from, const State *to, bool interpolate,
+                                                   std::vector<ompl::base::State *> *geodesic) const
 {
     auto &&svc = si_->getStateValidityChecker();
 
@@ -388,12 +388,10 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         return false;
 
     // Save a copy of the from state.
-    if (stateList != nullptr)
+    if (geodesic != nullptr)
     {
-        stateList->clear();
-
-        if (endpoints)
-            stateList->push_back(cloneState(from));
+        geodesic->clear();
+        geodesic->push_back(cloneState(from));
     }
 
     // No need to traverse the manifold if we are already there
@@ -487,8 +485,8 @@ bool ompl::base::AtlasStateSpace::traverseManifold(const State *from, const Stat
         factor = 1;
 
         // Keep the state in a list, if requested.
-        if (stateList != nullptr && ((endpoints && !done) || !endpoints))
-            stateList->push_back(cloneState(scratch));
+        if (geodesic != nullptr)
+            geodesic->push_back(cloneState(scratch));
 
     } while (!done);
 
