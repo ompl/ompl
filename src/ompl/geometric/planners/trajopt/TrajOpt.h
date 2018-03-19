@@ -125,7 +125,8 @@ namespace ompl
             void setInitialTrajectory(ompl::geometric::PathGeometric inPath);
 
         protected:
-            ompl::base::PathPtr trajFromTraj2Ompl(trajopt::TrajArray traj);
+            std::shared_ptr<ompl::geometric::PathGeometric> trajFromTraj2Ompl(trajopt::TrajArray traj);
+            trajopt::TrajArray trajFromOmpl2Traj(ompl::geometric::PathGeometric path);
 
             ompl::base::PlannerStatus constructOptProblem();
 
@@ -135,7 +136,7 @@ namespace ompl
 
             /** \brief The number of time steps/waypoints in the optimized trajectory.
                 Smaller means quicker optimization, larger means finer trajectories. */
-            size_t nSteps_{50};
+            size_t nSteps_{10};
 
             /** \brief The starting penalty coefficient, goes to infinity as the algorithm progresses. */
             double initPenaltyCoef_{20};

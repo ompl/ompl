@@ -141,29 +141,29 @@ ompl::base::Cost ompl::base::ObstacleConstraint::stateCost(const State *s) const
     return Cost(sco::pospart(safeDist_ - clearance));
     // Make a list of fake variables.
     std::vector<double> state;
-    si_->copyToReals(state, s);
+    si_->getStateSpace()->copyToReals(state, s);
     std::vector<sco::Var> fake_variables;
     for (int i = 0; i < si_->getStateDimension() * 2; i++)
     {
         std::stringstream ss;
         ss << i;
-        fake_variables.push_back(new sco::VarRep(i, ss.str(), this));
+        fake_variables.push_back(new sco::VarRep(i, ss.str(), NULL));
     }
     if (continuous_) {
         return motionCost(s, s);
     }
-    if (useJacobian_) {
+    if (useJacobians_) {
         sco::ConstraintPtr constraint(new JacobianCollisionTrajOptConstraint(
             safeDist_, collision_, si_->getStateSpace(), J_,
             fake_variables));
-        return Cost(constraint->value(state));
+        return Cost(sco::vecSum(constraint->value(state)));
     } else {
         sco::ConstraintPtr constraint(new NumericalCollisionTrajOptConstraint(
                     si_->getStateValidityChecker(),
                     si_->getStateSpace(),
                     fake_variables,
                     safeDist_));
-        return Cost(constraint->value(state));
+        return Cost(sco::vecSum(constraint->value(state)));
     }
 
 }
@@ -172,11 +172,11 @@ ompl::base::Cost ompl::base::ObstacleConstraint::motionCost(const State *s1, con
 {
     // TODO: make this continious. TrajOpt isn't at the moment, but they detail how to (convex hulls.)
     // Make a list of fake variables.
-    if (continous_)
+    if (continuous_)
     {
         std::vector<double> both_states, state2;
-        si_->copyToReals(both_states, s1);
-        si_->copyToReals(state2, s2);
+        si_->getStateSpace()->copyToReals(both_states, s1);
+        si_->getStateSpace()->copyToReals(state2, s2);
         both_states.insert(both_states.end(), state2.begin(), state2.end());
         std::vector<sco::Var> fake_variables_0;
         std::vector<sco::Var> fake_variables_1;
@@ -186,20 +186,20 @@ ompl::base::Cost ompl::base::ObstacleConstraint::motionCost(const State *s1, con
             ss << i;
             if (i < si_->getStateDimension())
             {
-                fake_variables_0.push_back(new sco::VarRep(i, ss.str(), this));
+                fake_variables_0.push_back(new sco::VarRep(i, ss.str(), NULL));
             }
             else
             {
-                fake_variables_1.push_back(new sco::VarRep(i, ss.str(), this));
+                fake_variables_1.push_back(new sco::VarRep(i, ss.str(), NULL));
             }
         }
         // With our list, we can make a constraint.
         sco::ConstraintPtr constraint(new JacobianContinuousTrajOptConstraint(
             safeDist_, continuousCollision_, si_->getStateSpace(), J_,
             fake_variables_0, fake_variables_1));
-        return Cost(constraint->value(both_states));
+        return Cost(sco::vecSum(constraint->value(both_states)));
     } else {
-        return stateCost(s1) + stateCost(s2);
+        return Cost(stateCost(s1).value() + stateCost(s2).value());
     }
 }
 

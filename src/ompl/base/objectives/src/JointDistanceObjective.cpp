@@ -76,8 +76,8 @@ ompl::base::Cost ompl::base::JointDistanceObjective::motionCost(const State *s1,
     // NOTE: for consistency, we copy both states to reals and operate on doubles.
     //       For state spaces like SO2, this will give different answers than distance(s1, s2)^2.
     std::vector<double> state1, state2;
-    si_->copyToReals(state1, s1);
-    si_->copyToReals(state2, s2);
+    si_->getStateSpace()->copyToReals(state1, s1);
+    si_->getStateSpace()->copyToReals(state2, s2);
     double cost = 0.0;
     for (int i = 0; i < si_->getStateDimension(); i++)
     {

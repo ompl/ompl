@@ -55,13 +55,12 @@
 ompl::geometric::TrajOpt::TrajOpt(const ompl::base::SpaceInformationPtr &si)
   : base::Planner(si, "TrajOpt") {
     // Make tmp file for the path at each iteration.
-    fd = fopen("/tmp/tmpfile.txt", "w");
-    auto fileLog = new ompl::msg::OutputHandlerFile("/tmp/IHateThis.log");
-    ompl::msg::useOutputHandler(fileLog);
-    ompl::msg::setLogLevel(ompl::msg::LogLevel::LOG_DEV2);
-    OMPL_WARN("Number of Waypoints: %d", nSteps_);
+    //fd = fopen("/tmp/tmpfile.txt", "w");
+    //auto fileLog = new ompl::msg::OutputHandlerFile("/tmp/IHateThis.log");
+    //ompl::msg::useOutputHandler(fileLog);
+    //ompl::msg::setLogLevel(ompl::msg::LogLevel::LOG_DEV2);
     callback_ = [this](sco::OptProb *prob, std::vector<double>& x) {
-        plotCallback(x);
+        //plotCallback(x);
     };
 
     Planner::declareParam<int>("time_step_count", this, 
@@ -76,7 +75,7 @@ ompl::geometric::TrajOpt::TrajOpt(const ompl::base::SpaceInformationPtr &si)
 
 // TODO: write
 ompl::geometric::TrajOpt::~TrajOpt() {
-    fclose(fd);
+    //fclose(fd);
 }
 
 void ompl::geometric::TrajOpt::clear() {
@@ -132,7 +131,6 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
             OMPL_ERROR("Goal is null? %p", goal);
         }
     }
-    OMPL_INFORM("Goal is %p", goal);
 
     int dof = si_->getStateDimension();
 
@@ -160,9 +158,17 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
         }
         problem_->SetInitTraj(ta);
     }
-    else
+    std::shared_ptr<ompl::geometric::PathGeometric> path = trajFromTraj2Ompl(problem_->GetInitTraj());
+    ompl::base::State *last_state = path->getState(path->getStateCount() - 1);
+    if (not si_->equalStates(last_state, goal))
     {
-        OMPL_WARN("Initial trajectory is already set, keeping it");
+        // The goal isn't the last state, make sure it is.
+        auto ta = problem_->GetInitTraj();
+        for (int j = 0; j < dof; j++)
+        {
+            ta(nSteps_, j) = endVec[j];
+        }
+        problem_->SetInitTraj(ta);
     }
 
     // Grab the problem definition to get the Optmization objectives.
@@ -195,10 +201,6 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::solve(const ompl::base::Plan
         {
             OMPL_WARN("Re-initing the problem instance");
             problem_ = std::make_shared<OmplOptProb>(nSteps_, si_);
-        }
-        else
-        {
-            OMPL_WARN("problem already init, continueing on");
         }
         auto constructStatus = constructOptProblem();
         if (constructStatus != base::PlannerStatus::EXACT_SOLUTION)
@@ -275,18 +277,29 @@ void ompl::geometric::TrajOpt::plotCallback(std::vector<double>& x) {
     int dof = si_->getStateDimension();
     int steps = x.size() / dof;
     for (int i = 0; i < steps; i++) {
-        fprintf(fd, "%f %f\n", x[i * dof + 0], x[i * dof + 1]);
+        //fprintf(fd, "%f %f\n", x[i * dof + 0], x[i * dof + 1]);
     }
-    fprintf(fd, "\n");
+    //fprintf(fd, "\n");
 }
 void ompl::geometric::TrajOpt::setInitialTrajectory(ompl::geometric::PathGeometric inPath) {
     OMPL_WARN("Setting the initial trajectory");
-    int dof = si_->getStateDimension();
     size_t states = inPath.getStateCount();
     if (states > nSteps_) {
         OMPL_ERROR("Input path has %d states, but trajopt is only working with %d waypoints!", states, nSteps_);
         return;
     }
+    if (states == 1)
+    {
+        OMPL_WARN("Ignoring path with 1 state.");
+        return;
+    }
+    problem_->SetInitTraj(trajFromOmpl2Traj(inPath));
+}
+
+trajopt::TrajArray ompl::geometric::TrajOpt::trajFromOmpl2Traj(ompl::geometric::PathGeometric inPath)
+{
+    int dof = si_->getStateDimension();
+    size_t states = inPath.getStateCount();
     if (states < nSteps_) {
         inPath.interpolate(nSteps_);
     }
@@ -302,10 +315,10 @@ void ompl::geometric::TrajOpt::setInitialTrajectory(ompl::geometric::PathGeometr
         }
     }
 
-    problem_->SetInitTraj(ta);
+    return ta;
 }
 
-ompl::base::PathPtr ompl::geometric::TrajOpt::trajFromTraj2Ompl(trajopt::TrajArray traj) {
+std::shared_ptr<ompl::geometric::PathGeometric> ompl::geometric::TrajOpt::trajFromTraj2Ompl(trajopt::TrajArray traj) {
     auto path(std::make_shared<ompl::geometric::PathGeometric>(si_));
     int dof = si_->getStateDimension();
     ompl::base::StateSpacePtr ss = si_->getStateSpace();
