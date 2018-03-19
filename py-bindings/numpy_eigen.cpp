@@ -20,10 +20,10 @@ struct EigenToPython
             bp::handle<>(PyCapsule_New(new Eigen::Map<T>(data, m.rows(), m.cols()), nullptr, [](PyObject *ptr) {
                 delete (Eigen::Map<T> *)PyCapsule_GetPointer(ptr, nullptr);
             })));
-        return boost::python::incref(np::from_data(data, np::dtype::get_builtin<double>(),
-                                                   bp::make_tuple(m.rows(), m.cols()),
-                                                   bp::make_tuple(sizeof(double), m.rows() * sizeof(double)), capsule)
-                                         .ptr());
+        return boost::python::incref(
+            np::from_data(data, np::dtype::get_builtin<double>(), bp::make_tuple(m.rows(), m.cols()),
+                          bp::make_tuple(m.rowStride() * sizeof(double), m.colStride() * sizeof(double)), capsule)
+                .ptr());
     }
 };
 template <>
@@ -35,7 +35,7 @@ PyObject *EigenToPython<Eigen::VectorXd>::convert(const Eigen::Ref<Eigen::Vector
             delete (Eigen::Map<Eigen::VectorXd> *)PyCapsule_GetPointer(ptr, nullptr);
         })));
     return boost::python::incref(np::from_data(data, np::dtype::get_builtin<double>(), bp::make_tuple(v.rows()),
-                                               bp::make_tuple(sizeof(double)), capsule)
+                                               bp::make_tuple(v.innerStride() * sizeof(double)), capsule)
                                      .ptr());
 }
 template <>
@@ -47,15 +47,16 @@ PyObject *EigenToPython<const Eigen::VectorXd>::convert(const Eigen::Ref<const E
             delete (Eigen::Map<Eigen::VectorXd> *)PyCapsule_GetPointer(ptr, nullptr);
         })));
     return boost::python::incref(np::from_data(data, np::dtype::get_builtin<double>(), bp::make_tuple(v.rows()),
-                                               bp::make_tuple(sizeof(double)), capsule)
+                                               bp::make_tuple(v.innerStride() * sizeof(double)), capsule)
                                      .ptr());
 }
 
 template <typename T>
 void copy_ndarray(const np::ndarray &array, void *storage)
 {
-    new (storage)
-        Eigen::Ref<T>(Eigen::Map<T>(reinterpret_cast<double *>(array.get_data()), array.shape(0), array.shape(1)));
+    new (storage) Eigen::Ref<T>(Eigen::Map<T, 0, Eigen::OuterStride<>>(reinterpret_cast<double *>(array.get_data()),
+                                                                       array.shape(0), array.shape(1),
+                                                                       Eigen::OuterStride<>(array.strides(1))));
 }
 template <>
 void copy_ndarray<Eigen::VectorXd>(const np::ndarray &array, void *storage)

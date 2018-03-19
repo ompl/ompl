@@ -36,30 +36,45 @@
 
 # Author: Mark Moll
 
-try:
-    from ompl import base as ob
-    from ompl import geometric as og
-except ImportError:
-    # if the ompl module is not in the PYTHONPATH assume it is installed in a
-    # subdirectory of the parent directory called "py-bindings."
-    from os.path import abspath, dirname, join
-    import sys
-    sys.path.insert(0, join(dirname(dirname(dirname(abspath(__file__)))), 'py-bindings'))
-    from ompl import base as ob
-    from ompl import geometric as og
+import argparse
+import math
 import numpy as np
+from ConstrainedPlanningCommon import *
+
 
 class SphereConstraint(ob.Constraint):
+
     def __init__(self):
         super(SphereConstraint, self).__init__(3, 1)
+
     def function(self, x, out):
         out[0] = np.linalg.norm(x) - 1
+
     def jacobian(self, x, out):
         nrm = np.linalg.norm(x)
-        if np.isfinite(nrm) and nrm>0:
-            out[0,:] = x.transpose()/nrm
+        if np.isfinite(nrm) and nrm > 0:
+            out[0, :] = x / nrm
         else:
-            out[0,:] = [1, 0, 0]
+            out[0, :] = [1, 0, 0]
+
+
+class SphereProjection(ob.ProjectionEvaluator):
+
+    def __init__(self, space):
+        super(SphereProjection, self).__init__(space)
+
+    def getDimension(self):
+        return 2
+
+    def defaultCellSizes(self):
+        self.cellSizes.resize(2)
+        self.cellSizes[0] = 0.1
+        self.cellSizes[1] = 0.1
+
+    def project(self, state, projection):
+        projection[0] = math.atan2(state[1], state[0])
+        projection[1] = math.acos(state[2])
+
 
 def obstacles(x):
     if -0.8 < x[2] and x[2] < -0.6:
@@ -76,7 +91,30 @@ def obstacles(x):
         return False
     return True
 
-def plan():
+
+def spherePlanningOnce(cp, plannername, output):
+    cp.setPlanner(plannername, "sphere")
+
+    # Solve the problem
+    stat = cp.solveOnce(output, "sphere")
+
+    if output:
+        ou.OMPL_INFORM("Dumping problem information to `sphere_info.txt`.")
+        with open("sphere_info.txt", "w") as infofile:
+            print(cp.spaceType, file=infofile)
+
+    cp.atlasStats()
+    if output:
+        cp.dumpGraph("sphere")
+    return stat
+
+
+def spherePlanningBench(cp, planners):
+    cp.setupBenchmark(planners, "sphere")
+    cp.runBenchmark()
+
+
+def spherePlanning(options):
     # Create the ambient space state space for the problem.
     rvss = ob.RealVectorStateSpace(3)
     bounds = ob.RealVectorBounds(3)
@@ -87,52 +125,36 @@ def plan():
     # Create our constraint.
     constraint = SphereConstraint()
 
-    # Combine the ambient state space and the constraint to create the
-    # constrained state space.
-    css = ob.ProjectedStateSpace(rvss, constraint)
-    csi = ob.ConstrainedSpaceInformation(css)
-    ss = og.SimpleSetup(csi)
+    cp = ConstrainedProblem(options.space, rvss, constraint, options)
+    cp.css.registerProjection("sphere", SphereProjection(cp.css))
 
-    ss.setStateValidityChecker(ob.StateValidityCheckerFn(obstacles))
-
-    csi.setValidStateSamplerAllocator(ob.ValidStateSamplerAllocator(
-        lambda si: ob.ConstrainedValidStateSampler(si)))
-    start = ob.State(css)
-    goal = ob.State(css)
+    start = ob.State(cp.css)
+    goal = ob.State(cp.css)
     start[0] = 0
     start[1] = 0
     start[2] = -1
     goal[0] = 0
     goal[1] = 0
     goal[2] = 1
-    ss.setStartAndGoalStates(start, goal)
+    cp.setStartAndGoalStates(start, goal)
+    cp.ss.setStateValidityChecker(ob.StateValidityCheckerFn(obstacles))
 
-    planner = og.RRTConnect(csi)
-    ss.setPlanner(planner)
-
-    ss.setup()
-
-    result = ss.solve(15.)
-    if result:
-        path = ss.getSolutionPath()
-
-        print("Simplifying solution...")
-        originalLength = path.length()
-        ss.simplifySolution(5.)
-        print("Path Length %g -> %g " % (originalLength, path.length()))
-
-        if result.getStatus() == ob.PlannerStatus.APPROXIMATE_SOLUTION:
-            print("Solution is approximate.")
-
-        print("Interpolating path...")
-        path.interpolate()
-
-        print("Dumping animation file...")
-
-        with open("sphere_path.txt", 'w') as f:
-            print(path.printAsMatrix(), file=f)
+    planners = options.planner.split(",")
+    if not options.bench:
+        spherePlanningOnce(cp, planners[0], options.output)
     else:
-        print("No solution found.")
+        spherePlanningBench(cp, planners)
 
 if __name__ == "__main__":
-    plan()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-o", "--output", action="store_true",
+                        help="Dump found solution path (if one exists) in plain text and planning graph in GraphML to "
+                        "`sphere_path.txt` and `sphere_graph.graphml` respectively.")
+    parser.add_argument("--bench", action="store_true",
+                        help="Do benchmarking on provided planner list.")
+    addSpaceOption(parser)
+    addPlannerOption(parser)
+    addConstrainedOptions(parser)
+    addAtlasOptions(parser)
+
+    spherePlanning(parser.parse_args())

@@ -140,6 +140,17 @@ class ompl_base_generator_t(code_generator_t):
             return s.str();
         }
         """)
+        # "Atlas::printPLY(std::cout)" will be replaced with
+        # something more pythonesque: "print(PlannerData.printGraphviz())"
+        replacement['::ompl::base::AtlasStateSpace::printPLY'] = \
+        ('def("printPLY", &__printPLY)', """
+        std::string __printPLY(%s* obj)
+        {
+            std::ostringstream s;
+            obj->printPLY(s);
+            return s.str();
+        }
+        """)
         code_generator_t.__init__(self, 'base', ['bindings/util'], replacement)
 
     def filter_declarations(self):
@@ -276,8 +287,9 @@ class ompl_base_generator_t(code_generator_t):
         # problems with Boost.Python.
         # See https://github.com/boostorg/python/issues/60
         for cls in ['ProblemDefinition', 'AtlasChart', 'AtlasStateSpace', 'ConstrainedStateSpace', \
-            'ProjectedStateSpace']:
+            'ProjectedStateSpace', 'TangentBundleStateSpace']:
             self.ompl_ns.class_(cls).add_declaration_code('#define nullptr NULL\n')
+        self.replace_member_function(self.ompl_ns.class_('AtlasStateSpace').member_function('printPLY'))
 
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now
         #self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()
@@ -353,6 +365,8 @@ class ompl_base_generator_t(code_generator_t):
             'CostToGoHeuristic', 'Cost-to-go heuristic for optimizing planners')
         self.add_function_wrapper('std::string()', 'PlannerProgressProperty', \
             'Function that returns stringified value of a property while a planner is running')
+        self.add_function_wrapper('double(ompl::base::AtlasChart *)', 'AtlasChartBiasFunction',
+            'Bias function for sampling a chart from an atlas.')
 
         # rename SamplerSelectors
         self.ompl_ns.class_('SamplerSelector< ompl::base::StateSampler >').rename(
@@ -762,6 +776,24 @@ class ompl_tools_generator_t(code_generator_t):
             return s.str();
         }
         """)
+        replacement['setPlannerSwitchEvent'] = ('def("setPlannerSwitchEvent", &__setPlannerSwitchEvent)', """
+        void __setPlannerSwitchEvent(%s* obj, std::function<void(ompl::base::PlannerPtr)> event)
+        {
+            obj->setPlannerSwitchEvent(event);
+        }
+        """)
+        replacement['setPreRunEvent'] = ('def("setPreRunEvent", &__setPreRunEvent)', """
+        void __setPreRunEvent(%s* obj, std::function<void(ompl::base::PlannerPtr)> event)
+        {
+            obj->setPreRunEvent(event);
+        }
+        """)
+        replacement['setPostRunEvent'] = ('def("setPostRunEvent", &__setPostRunEvent)', """
+        void __setPostRunEvent(%s* obj, std::function<void(ompl::base::PlannerPtr, ompl::tools::Benchmark::RunProperties &)> event)
+        {
+            obj->setPostRunEvent(event);
+        }
+        """)
 
         code_generator_t.__init__(self, 'tools', \
             ['bindings/util', 'bindings/base', 'bindings/geometric', 'bindings/control'], \
@@ -776,39 +808,22 @@ class ompl_tools_generator_t(code_generator_t):
 
         benchmark_cls = self.ompl_ns.class_('Benchmark')
         self.replace_member_function(benchmark_cls.member_function('benchmark'))
-        # next five statements take care of weird error in default value for name argument in constructor
-        benchmark_cls.constructors().exclude()
-        benchmark_cls.add_registration_code(
-            'def(bp::init< ompl::geometric::SimpleSetup &, bp::optional< std::string const & > >(( bp::arg("setup"), bp::arg("name")=std::basic_string<char, std::char_traits<char>, std::allocator<char> >() )) )')
-        benchmark_cls.add_wrapper_code(
-            """Benchmark_wrapper(::ompl::geometric::SimpleSetup & setup, const ::std::string & name=std::string() )
-        : ompl::tools::Benchmark( boost::ref(setup), name )
-          , bp::wrapper< ompl::tools::Benchmark >(){}""")
-        benchmark_cls.add_registration_code(
-            'def(bp::init< ompl::control::SimpleSetup &, bp::optional< std::string const & > >(( bp::arg("setup"), bp::arg("name")=std::basic_string<char, std::char_traits<char>, std::allocator<char> >() )) )')
-        benchmark_cls.add_wrapper_code(
-            """Benchmark_wrapper(::ompl::control::SimpleSetup & setup, const ::std::string & name=std::string() )
-          : ompl::tools::Benchmark( boost::ref(setup), name )
-            , bp::wrapper< ompl::tools::Benchmark >(){}""")
+        for constructor in benchmark_cls.constructors(arg_types=[None, "::std::string const &"]):
+            constructor.add_transformation(FT.input(1))
+
         # don't want to export iostream
         benchmark_cls.member_function('saveResultsToStream').exclude()
         self.ompl_ns.member_functions('addPlannerAllocator').exclude()
-        benchmark_cls.member_functions(lambda method: method.name.startswith('set') and \
-            method.name.endswith('Event')).exclude()
+        self.replace_member_functions(benchmark_cls.member_functions(
+            lambda method: method.name.startswith('set') and method.name.endswith('Event')))
         benchmark_cls.add_registration_code(
             'def("addPlannerAllocator", &ompl::tools::Benchmark::addPlannerAllocator)')
         self.ompl_ns.class_('OptimizePlan').add_registration_code(
             'def("addPlannerAllocator", &ompl::tools::OptimizePlan::addPlannerAllocator)')
-        benchmark_cls.add_registration_code(
-            'def("setPlannerSwitchEvent", &ompl::tools::Benchmark::setPlannerSwitchEvent)')
-        benchmark_cls.add_registration_code(
-            'def("setPreRunEvent", &ompl::tools::Benchmark::setPreRunEvent)')
-        benchmark_cls.add_registration_code(
-            'def("setPostRunEvent", &ompl::tools::Benchmark::setPostRunEvent)')
-        self.add_function_wrapper('void(const ompl::base::PlannerPtr&)', \
+        self.add_function_wrapper('void(const ompl::base::PlannerPtr)', \
             'PreSetupEvent', 'Pre-setup event')
         self.add_function_wrapper(
-            'void(const ompl::base::PlannerPtr&, ompl::tools::Benchmark::RunProperties&)',
+            'void(ompl::base::PlannerPtr, ompl::tools::Benchmark::RunProperties&)',
             'PostSetupEvent', 'Post-setup event')
         benchmark_cls.class_('Request').no_init = False
 

@@ -165,12 +165,12 @@ bool torusPlanningOnce(ConstrainedProblem &cp, enum PLANNER_TYPE planner, bool o
     return stat;
 }
 
-// bool spherePlanningBench(ConstrainedProblem &cp, std::vector<enum PLANNER_TYPE> &planners)
-// {
-//     cp.setupBenchmark(planners, "sphere");
-//     cp.runBenchmark();
-//     return 0;
-// }
+bool torusPlanningBench(ConstrainedProblem &cp, std::vector<enum PLANNER_TYPE> &planners)
+{
+    cp.setupBenchmark(planners, "torus");
+    cp.runBenchmark();
+    return 0;
+}
 
 bool torusPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_TYPE> &planners,
                    struct ConstrainedOptions &c_opt, struct AtlasOptions &a_opt, bool bench, double outer, double inner,
@@ -192,8 +192,6 @@ bool torusPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_
     cp.setConstrainedOptions(c_opt);
     cp.setAtlasOptions(a_opt);
 
-    // cp.css->registerProjection("sphere", std::make_shared<SphereProjection>(cp.css));
-
     Eigen::Vector3d start, goal;
     constraint->getStartAndGoalStates(start, goal);
     std::cout << start.transpose() << std::endl;
@@ -204,13 +202,14 @@ bool torusPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_
 
     if (!bench)
         return torusPlanningOnce(cp, planners[0], output);
-    // else
-    //     return spherePlanningBench(cp, planners);
+    else
+        return torusPlanningBench(cp, planners);
+
 }
 
 auto help_msg = "Shows this help message.";
 auto output_msg = "Dump found solution path (if one exists) in plain text and planning graph in GraphML to "
-                  "`sphere_path.txt` and `sphere_graph.graphml` respectively.";
+                  "`torus_path.txt` and `torus_graph.graphml` respectively.";
 auto bench_msg = "Do benchmarking on provided planner list.";
 auto outer_msg = "Outer radius of torus.";
 auto inner_msg = "Inner radius of torus.";

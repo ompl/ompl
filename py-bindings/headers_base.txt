@@ -51,11 +51,11 @@ src/ompl/base/spaces/DubinsStateSpace.h
 src/ompl/base/spaces/ReedsSheppStateSpace.h
 src/ompl/base/spaces/WrapperStateSpace.h
 src/ompl/base/spaces/constraint/ConstrainedStateSpace.h
-src/ompl/base/spaces/constraint/AtlasChart.h
 src/ompl/base/spaces/constraint/AtlasStateSpace.h
+src/ompl/base/spaces/constraint/AtlasChart.h
+src/ompl/base/spaces/constraint/TangentBundleStateSpace.h
 src/ompl/base/ConstrainedSpaceInformation.h
 src/ompl/base/spaces/constraint/ProjectedStateSpace.h
-src/ompl/base/spaces/constraint/TangentBundleStateSpace.h
 src/ompl/base/samplers/BridgeTestValidStateSampler.h
 src/ompl/base/samplers/GaussianValidStateSampler.h
 src/ompl/base/samplers/MaximizeClearanceValidStateSampler.h
