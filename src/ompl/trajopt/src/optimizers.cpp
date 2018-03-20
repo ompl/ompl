@@ -326,13 +326,13 @@ OptStatus BasicTrustRegionSQP::optimize() {
         */
 
         // Commented out because it's annoying, but still need INFO level debugging.
-        if (util::GetLogLevel() >= util::LevelInfo) {
-          LOG_INFO(" ");
-          printCostInfo(results_.cost_vals, model_cost_vals, new_cost_vals,
-                        results_.cnt_viols, model_cnt_viols, new_cnt_viols, cost_names,
-                        cnt_names, merit_error_coeff_);
-          printf("%15s | %10.3e | %10.3e | %10.3e | %10.3e\n", "TOTAL", old_merit, approx_merit_improve, exact_merit_improve, merit_improve_ratio);
-        }
+        //if (util::GetLogLevel() >= util::LevelInfo) {
+          //LOG_INFO(" ");
+          //printCostInfo(results_.cost_vals, model_cost_vals, new_cost_vals,
+          //              results_.cnt_viols, model_cnt_viols, new_cnt_viols, cost_names,
+          //              cnt_names, merit_error_coeff_);
+          //printf("%15s | %10.3e | %10.3e | %10.3e | %10.3e\n", "TOTAL", old_merit, approx_merit_improve, exact_merit_improve, merit_improve_ratio);
+        //}
 
         if (approx_merit_improve < -1e-5) {
           OMPL_WARN("approximate merit function got worse (%.3e). "
