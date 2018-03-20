@@ -67,7 +67,8 @@ namespace ompl
         Motion Planning with Constraints,” Annual Review of Control, Robotics,
         and Autonomous Systems, 2018. DOI: <a
         href="http://dx.doi.org/10.1146/annurev-control-060117-105226">10.1146/annurev-control-060117-105226</a>
-        <a href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf">[PDF]</a>.
+        <a
+        href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf">[PDF]</a>.
         */
 
         /// @cond IGNORE
@@ -141,8 +142,8 @@ namespace ompl
              * a copy of \a to if we reached \a to. Caller is responsible for
              * freeing states returned in \a stateList. if \a endpoints is true,
              * then \a from and \a to are included in stateList. */
-            bool traverseManifold(const State *from, const State *to, bool interpolate = false,
-                                  std::vector<State *> *stateList = nullptr, bool endpoints = true) const override;
+            bool discreteGeodesic(const State *from, const State *to, bool interpolate = false,
+                                  std::vector<State *> *geodesic = nullptr) const override;
         };
     }
 }

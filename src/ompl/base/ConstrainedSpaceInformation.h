@@ -85,10 +85,9 @@ namespace ompl
             unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State *> &states,
                                          unsigned int count, bool endpoints, bool alloc) const override
             {
-                bool success =
-                    stateSpace_->as<ConstrainedStateSpace>()->traverseManifold(s1, s2, false, &states, endpoints);
+                bool success = stateSpace_->as<ConstrainedStateSpace>()->discreteGeodesic(s1, s2, false, &states);
 
-                if (!success && states.size() == 0 && endpoints)
+                if (!success && states.size() == 0)
                     states.push_back(cloneState(s1));
 
                 return states.size();
@@ -127,7 +126,7 @@ namespace ompl
                 auto &&atlas = stateSpace_->as<TangentBundleStateSpace>();
 
                 std::vector<State *> temp;
-                bool success = atlas->traverseManifold(s1, s2, false, &temp);
+                bool success = atlas->discreteGeodesic(s1, s2, false, &temp);
 
                 if (!success && temp.size() == 0)
                     temp.push_back(cloneState(s1));

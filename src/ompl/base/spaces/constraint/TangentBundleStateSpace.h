@@ -94,17 +94,17 @@ namespace ompl
              * a copy of \a to if we reached \a to. Caller is responsible for
              * freeing states returned in \a stateList. if \a endpoints is true,
              * then \a from and \a to are included in stateList. */
-            bool traverseManifold(const State *from, const State *to, bool interpolate = false,
-                                  std::vector<State *> *stateList = nullptr, bool endpoints = true) const override;
+            bool discreteGeodesic(const State *from, const State *to, bool interpolate = false,
+                                  std::vector<State *> *geodesic = nullptr) const override;
 
             /** \brief Like interpolate(...), but uses the information about
              * intermediate states already supplied in \a stateList from a
-             * previous call to traverseManifold(..., true, \a stateList). The
+             * previous call to discreteGeodesic(..., true, \a stateList). The
              * \a from and \a to states are the first and last elements \a
              * stateList. As TangentBundleStateSpace employs a lazy approach to
              * manifold traversal, additional fix-up is required to generate a
              * state that satisfies constraints. */
-            State *piecewiseInterpolate(const std::vector<State *> &stateList, double t) const override;
+            State *geodesicInterpolate(const std::vector<State *> &geodesic, double t) const override;
 
             /** \brief Reproject a state onto the surface of the manifold. Returns true if projection was successful,
              * and the new state is valid. */

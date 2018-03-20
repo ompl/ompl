@@ -390,8 +390,8 @@ namespace ompl
              * a copy of \a to if we reached \a to. Caller is responsible for
              * freeing states returned in \a stateList. if \a endpoints is true,
              * then \a from and \a to are included in stateList. */
-            bool traverseManifold(const State *from, const State *to, bool interpolate = false,
-                                  std::vector<State *> *stateList = nullptr, bool endpoints = true) const override;
+            bool discreteGeodesic(const State *from, const State *to, bool interpolate = false,
+                                  std::vector<State *> *geodesic = nullptr) const override;
 
             /** @} */
 

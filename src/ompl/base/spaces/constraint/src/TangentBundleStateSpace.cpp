@@ -57,9 +57,8 @@ ompl::base::TangentBundleStateSpace::TangentBundleStateSpace(const StateSpacePtr
     });
 }
 
-bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, const State *to, bool interpolate,
-                                                           std::vector<ompl::base::State *> *stateList,
-                                                           bool endpoints) const
+bool ompl::base::TangentBundleStateSpace::discreteGeodesic(const State *from, const State *to, bool interpolate,
+                                                           std::vector<State *> *geodesic) const
 {
     // We can't traverse the manifold if we don't start on it.
     if (!constraint_->isSatisfied(from))
@@ -74,12 +73,10 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
         return false;
 
     // Save a copy of the from state.
-    if (stateList != nullptr)
+    if (geodesic != nullptr)
     {
-        stateList->clear();
-
-        if (endpoints)
-            stateList->push_back(cloneState(from));
+        geodesic->clear();
+        geodesic->push_back(cloneState(from));
     }
 
     auto &&svc = si_->getStateValidityChecker();
@@ -124,7 +121,7 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
 
         done = (u_b - u_j).squaredNorm() <= sqDelta;
         // Find or make a new chart if new state is off of current chart
-        if (done || !c->inPolytope(u_j)                 // outside polytope
+        if (done || !c->inPolytope(u_j)                  // outside polytope
             || constraint_->distance(*temp) > epsilon_)  // to far from manifold
         {
             const bool onManifold = c->psi(u_j, *temp);
@@ -152,8 +149,8 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
         copyState(scratch, temp);
 
         // Keep the state in a list, if requested.
-        if (stateList != nullptr && ((endpoints && !done) || !endpoints))
-            stateList->push_back(cloneState(scratch));
+        if (geodesic != nullptr)
+            geodesic->push_back(cloneState(scratch));
 
     } while (!done);
 
@@ -164,12 +161,12 @@ bool ompl::base::TangentBundleStateSpace::traverseManifold(const State *from, co
     return ret;
 }
 
-ompl::base::State *ompl::base::TangentBundleStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList,
-                                                                             const double t) const
+ompl::base::State *ompl::base::TangentBundleStateSpace::geodesicInterpolate(const std::vector<State *> &geodesic,
+                                                                            const double t) const
 {
-    auto state = ConstrainedStateSpace::piecewiseInterpolate(stateList, t)->as<StateType>();
+    auto state = ConstrainedStateSpace::geodesicInterpolate(geodesic, t)->as<StateType>();
     if (!project(state))
-        return stateList[0];
+        return geodesic[0];
 
     return state;
 }

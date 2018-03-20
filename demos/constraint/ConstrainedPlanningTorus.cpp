@@ -35,6 +35,8 @@
 /* Author: Zachary Kingston */
 
 #include <ompl/util/PPM.h>
+#include <boost/filesystem.hpp>
+
 #include "ConstrainedPlanningCommon.h"
 
 static const double pi2 = 2 * boost::math::constants::pi<double>();
@@ -47,7 +49,7 @@ public:
     const double inner;
 
     TorusConstraint(const double outer, const double inner, const std::string &maze)
-      : ompl::base::Constraint(3, 1), outer(outer), inner(inner)
+      : ompl::base::Constraint(3, 1), outer(outer), inner(inner), file_(maze)
     {
         ppm_.loadFile(maze.c_str());
     }
@@ -138,7 +140,17 @@ public:
         return mazePixel(coords);
     }
 
+    void dump(std::ofstream &file) const
+    {
+        file << outer << std::endl;
+        file << inner << std::endl;
+
+        boost::filesystem::path path(file_);
+        file << boost::filesystem::canonical(path).string() << std::endl;
+    }
+
 private:
+    const std::string file_;
     ompl::PPM ppm_;
 };
 
@@ -154,6 +166,7 @@ bool torusPlanningOnce(ConstrainedProblem &cp, enum PLANNER_TYPE planner, bool o
         OMPL_INFORM("Dumping problem information to `torus_info.txt`.");
         std::ofstream infofile("torus_info.txt");
         infofile << cp.type << std::endl;
+        dynamic_cast<TorusConstraint *>(cp.constraint.get())->dump(infofile);
         infofile.close();
     }
 
@@ -194,8 +207,6 @@ bool torusPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_
 
     Eigen::Vector3d start, goal;
     constraint->getStartAndGoalStates(start, goal);
-    std::cout << start.transpose() << std::endl;
-    std::cout << goal.transpose() << std::endl;
 
     cp.setStartAndGoalStates(start, goal);
     cp.ss->setStateValidityChecker(std::bind(&TorusConstraint::isValid, constraint, std::placeholders::_1));
@@ -204,7 +215,6 @@ bool torusPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_
         return torusPlanningOnce(cp, planners[0], output);
     else
         return torusPlanningBench(cp, planners);
-
 }
 
 auto help_msg = "Shows this help message.";
@@ -225,7 +235,8 @@ int main(int argc, char **argv)
     struct AtlasOptions a_opt;
 
     double outer, inner;
-    std::string maze;
+    boost::filesystem::path path(__FILE__);
+    std::string maze = (path.parent_path() / "mazes/thick.ppm").string();
 
     po::options_description desc("Options");
     desc.add_options()("help,h", help_msg);

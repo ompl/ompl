@@ -55,7 +55,7 @@ ompl::base::ConstrainedMotionValidator::ConstrainedMotionValidator(const SpaceIn
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2) const
 {
-    return ss_.getConstraint()->isSatisfied(s2) && ss_.traverseManifold(s1, s2);
+    return ss_.getConstraint()->isSatisfied(s2) && ss_.discreteGeodesic(s1, s2, false);
 }
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2,
@@ -63,7 +63,7 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
 {
     // Invoke the manifold-traversing algorithm to save intermediate states
     std::vector<ompl::base::State *> stateList;
-    bool reached = ss_.traverseManifold(s1, s2, false, &stateList);
+    bool reached = ss_.discreteGeodesic(s1, s2, false, &stateList);
 
     // We are supposed to be able to assume that s1 is valid. However, it's not
     // on rare occasions, and I don't know why. This makes stateList empty.
@@ -192,37 +192,34 @@ void ompl::base::ConstrainedStateSpace::interpolate(const State *from, const Sta
                                                     State *state) const
 {
     // Get the list of intermediate states along the manifold.
-    std::vector<State *> stateList;
+    std::vector<State *> geodesic;
 
     // Default to returning `from' if traversal fails.
     auto temp = from;
-    if (traverseManifold(from, to, true, &stateList))
-    {
-        stateList.push_back(cloneState(to));
-        temp = piecewiseInterpolate(stateList, t);
-    }
+    if (discreteGeodesic(from, to, true, &geodesic))
+        temp = geodesicInterpolate(geodesic, t);
 
     copyState(state, temp);
 
-    for (auto s : stateList)
+    for (auto s : geodesic)
         freeState(s);
 }
 
-ompl::base::State *ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const std::vector<State *> &stateList,
-                                                                           const double t) const
+ompl::base::State *ompl::base::ConstrainedStateSpace::geodesicInterpolate(const std::vector<State *> &geodesic,
+                                                                          const double t) const
 {
-    unsigned int n = stateList.size();
+    unsigned int n = geodesic.size();
     double d[n];
 
     // Compute partial sums of distances between intermediate states.
     d[0] = 0.;
     for (unsigned int i = 1; i < n; ++i)
-        d[i] = d[i - 1] + distance(stateList[i - 1], stateList[i]);
+        d[i] = d[i - 1] + distance(geodesic[i - 1], geodesic[i]);
 
     // Find the two adjacent states that t lies between, and return the closer.
     const double last = d[n - 1];
     if (last <= std::numeric_limits<double>::epsilon())
-        return stateList[0];
+        return geodesic[0];
 
     else
     {
@@ -233,6 +230,6 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::piecewiseInterpolate(const
         const double t1 = d[i] / last - t;
         const double t2 = (i <= n - 2) ? d[i + 1] / last - t : 1;
 
-        return (t1 < t2) ? stateList[i] : stateList[i + 1];
+        return (t1 < t2) ? geodesic[i] : geodesic[i + 1];
     }
 }

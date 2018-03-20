@@ -77,20 +77,14 @@ void ompl::base::ProjectedStateSpace::checkSpace(const SpaceInformation *si)
                               "si needs to use an ProjectedStateSpace!");
 }
 
-bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const State *to, bool interpolate,
-                                                       std::vector<State *> *stateList, bool endpoints) const
+bool ompl::base::ProjectedStateSpace::discreteGeodesic(const State *from, const State *to, bool interpolate,
+                                                       std::vector<State *> *geodesic) const
 {
-    // We can't move along the manifold if we were never there in the first place
-    if (!constraint_->isSatisfied(from))
-        return false;
-
     // Save a copy of the from state.
-    if (stateList != nullptr)
+    if (geodesic != nullptr)
     {
-        stateList->clear();
-
-        if (endpoints)
-            stateList->push_back(cloneState(from));
+        geodesic->clear();
+        geodesic->push_back(cloneState(from));
     }
 
     const double tolerance = delta_;
@@ -100,20 +94,19 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
     if ((dist = distance(from, to)) <= tolerance)
         return true;
 
-    auto &&svc = si_->getStateValidityChecker();
-
     auto previous = cloneState(from);
     auto scratch = allocState();
 
+    auto &&svc = si_->getStateValidityChecker();
+
     do
     {
-        // Compute the parameterization for interpolation
         WrapperStateSpace::interpolate(previous, to, delta_ / dist, scratch);
 
         // Project new state onto constraint manifold
-        if (!constraint_->project(scratch) // not on manifold
-            || !(interpolate || svc->isValid(scratch)) // not valid
-            || distance(previous, scratch) > 2.0 * delta_) // deviated
+        if (!constraint_->project(scratch)                  // not on manifold
+            || !(interpolate || svc->isValid(scratch))      // not valid
+            || distance(previous, scratch) > 2.0 * delta_)  // deviated
             break;
 
         // Check if we are no closer than before
@@ -125,8 +118,8 @@ bool ompl::base::ProjectedStateSpace::traverseManifold(const State *from, const 
         copyState(previous, scratch);
 
         // Store the new state
-        if (stateList != nullptr)
-            stateList->push_back(cloneState(scratch));
+        if (geodesic != nullptr)
+            geodesic->push_back(cloneState(scratch));
 
     } while (dist >= tolerance);
 
