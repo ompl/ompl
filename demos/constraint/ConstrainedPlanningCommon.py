@@ -87,6 +87,11 @@ def addConstrainedOptions(parser):
                        help="Planner `range` value for planners that support this parameter. Automatically determined "
                        "otherwise (when 0).")
 
+def list2vec(l):
+    ret = ou.vectorDouble()
+    for e in l:
+        ret.append(e)
+    return ret
 
 def clearSpaceAndPlanner(planner):
     planner.getSpaceInformation().getStateSpace().clear()
