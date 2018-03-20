@@ -139,7 +139,7 @@ if (FLANN_FOUND)
 endif()
 
 # Numpy is used to convert Eigen matrices/vectors to numpy arrays
-if(PYTHON_FOUND AND EIGEN3_FOUND)
+if(PYTHON_FOUND)
     find_python_module(numpy)
     if (PY_NUMPY AND NOT Boost_VERSION VERSION_LESS "106300")
         if (PYTHON_VERSION_MAJOR EQUAL 3)

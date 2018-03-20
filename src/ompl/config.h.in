@@ -57,7 +57,7 @@
 /** \brief Whether FLANN is installed */
 #cmakedefine01 OMPL_HAVE_FLANN
 
-/** \brief Whether Numpy is installed */
+/** \brief Whether Numpy and Boost.Numpy are installed */
 #cmakedefine01 OMPL_HAVE_NUMPY
 
 #endif

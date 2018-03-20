@@ -177,7 +177,6 @@ class ompl_base_generator_t(code_generator_t):
         self.std_ns.class_('map< std::string, ompl::base::StateSpace::SubstateLocation >').rename(
             'mapStringToSubstateLocation')
         self.std_ns.class_('vector<ompl::base::PlannerSolution>').rename('vectorPlannerSolution')
-        self.ompl_ns.class_('AtlasChart').member_function('toPolygon').exclude()
 
         pairStateDouble = self.std_ns.class_('pair<ompl::base::State *, double>')
         pairStateDouble.rename('pairStateDouble')
@@ -286,10 +285,36 @@ class ompl_base_generator_t(code_generator_t):
         # Using nullptr as a default value in method arguments causes
         # problems with Boost.Python.
         # See https://github.com/boostorg/python/issues/60
-        for cls in ['ProblemDefinition', 'AtlasChart', 'AtlasStateSpace', 'ConstrainedStateSpace', \
-            'ProjectedStateSpace', 'TangentBundleStateSpace']:
-            self.ompl_ns.class_(cls).add_declaration_code('#define nullptr NULL\n')
-        self.replace_member_function(self.ompl_ns.class_('AtlasStateSpace').member_function('printPLY'))
+        self.ompl_ns.class_('ProblemDefinition').add_declaration_code('#define nullptr NULL\n')
+        try:
+            for cls in ['AtlasChart', 'AtlasStateSpace', 'ConstrainedStateSpace', \
+                'ProjectedStateSpace', 'TangentBundleStateSpace']:
+                self.ompl_ns.class_(cls).add_declaration_code('#define nullptr NULL\n')
+            self.ompl_ns.class_('AtlasChart').member_function('toPolygon').exclude()
+            self.replace_member_function(self.ompl_ns.class_('AtlasStateSpace').member_function('printPLY'))
+            self.add_function_wrapper('double(ompl::base::AtlasChart *)', 'AtlasChartBiasFunction',
+                'Bias function for sampling a chart from an atlas.')
+                    # add code for numpy.array <-> Eigen conversions
+            self.mb.add_declaration_code(open(join(dirname(__file__), \
+                'numpy_eigen.cpp'), 'r').read())
+            self.mb.add_registration_code("""
+                EIGEN_ARRAY_CONVERTER(Eigen::MatrixXd, 2)
+                EIGEN_ARRAY_CONVERTER(Eigen::VectorXd, 1)
+            """)
+            self.mb.add_registration_code('np::initialize();', tail=False)
+            self.add_array_access(self.ompl_ns.class_('ConstrainedStateSpace').class_('StateType'), 'double')
+            for cls in [self.ompl_ns.class_('Constraint'), self.ompl_ns.class_('ConstraintIntersection')]:
+                for method in ['function', 'jacobian']:
+                    cls.member_function(method, arg_types=[
+                        '::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, 0, Eigen::InnerStride<1> > const &',
+                        None]).add_transformation(FT.input(0))
+            cls = self.ompl_ns.class_('Constraint')
+            for method in ['distance', 'isSatisfied']:
+                cls.member_function(method, arg_types=['::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, 0, Eigen::InnerStride<1> > const &']).add_transformation(FT.input(0))
+        except:
+            # python bindings for constrained planning code is only generated if boost.numpy was found
+            #self.ompl_ns.class_('ScopedState< ompl::base::ConstrainedSpace::StateSpace >').exclude()
+            pass
 
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now
         #self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()
@@ -365,8 +390,6 @@ class ompl_base_generator_t(code_generator_t):
             'CostToGoHeuristic', 'Cost-to-go heuristic for optimizing planners')
         self.add_function_wrapper('std::string()', 'PlannerProgressProperty', \
             'Function that returns stringified value of a property while a planner is running')
-        self.add_function_wrapper('double(ompl::base::AtlasChart *)', 'AtlasChartBiasFunction',
-            'Bias function for sampling a chart from an atlas.')
 
         # rename SamplerSelectors
         self.ompl_ns.class_('SamplerSelector< ompl::base::StateSampler >').rename(
@@ -382,23 +405,6 @@ class ompl_base_generator_t(code_generator_t):
         except declaration_not_found_t:
             pass
 
-        # add code for numpy.array <-> Eigen conversions
-        self.mb.add_declaration_code(open(join(dirname(__file__), \
-            'numpy_eigen.cpp'), 'r').read())
-        self.mb.add_registration_code("""
-            EIGEN_ARRAY_CONVERTER(Eigen::MatrixXd, 2)
-            EIGEN_ARRAY_CONVERTER(Eigen::VectorXd, 1)
-        """)
-        self.mb.add_registration_code('np::initialize();', tail=False)
-        self.add_array_access(self.ompl_ns.class_('ConstrainedStateSpace').class_('StateType'), 'double')
-        for cls in [self.ompl_ns.class_('Constraint'), self.ompl_ns.class_('ConstraintIntersection')]:
-            for method in ['function', 'jacobian']:
-                cls.member_function(method, arg_types=[
-                    '::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, 0, Eigen::InnerStride<1> > const &',
-                    None]).add_transformation(FT.input(0))
-        cls = self.ompl_ns.class_('Constraint')
-        for method in ['distance', 'isSatisfied']:
-            cls.member_function(method, arg_types=['::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, 0, Eigen::InnerStride<1> > const &']).add_transformation(FT.input(0))
 
 class ompl_control_generator_t(code_generator_t):
     def __init__(self):
