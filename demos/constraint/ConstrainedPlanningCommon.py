@@ -36,6 +36,7 @@
 
 # Author: Mark Moll
 
+from __future__ import print_function
 try:
     from ompl import util as ou
     from ompl import base as ob

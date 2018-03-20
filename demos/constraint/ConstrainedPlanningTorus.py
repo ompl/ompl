@@ -36,6 +36,7 @@
 
 # Author: Mark Moll
 
+from __future__ import print_function
 from ConstrainedPlanningCommon import *
 import argparse
 import math
