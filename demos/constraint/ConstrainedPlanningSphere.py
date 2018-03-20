@@ -67,9 +67,7 @@ class SphereProjection(ob.ProjectionEvaluator):
         return 2
 
     def defaultCellSizes(self):
-        self.cellSizes.resize(2)
-        self.cellSizes[0] = 0.1
-        self.cellSizes[1] = 0.1
+        self.cellSizes_ = list2vec([.1, .1])
 
     def project(self, state, projection):
         projection[0] = math.atan2(state[1], state[0])

@@ -131,7 +131,7 @@ namespace ompl
         class AtlasStateSpace : public ConstrainedStateSpace
         {
         public:
-            using AtlasChartBiasFunction = std::function<double(AtlasChart *)>;
+            typedef std::function<double(AtlasChart *)> AtlasChartBiasFunction;
             using NNElement = std::pair<const StateType *, std::size_t>;
 
             /** \brief A state in an atlas represented as a real vector in

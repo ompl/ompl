@@ -39,8 +39,8 @@
 from ConstrainedPlanningCommon import *
 import argparse
 import math
-import numpy as np
 from functools import partial
+import numpy as np
 
 PI2 = 2 * math.pi
 
@@ -139,7 +139,7 @@ def torusPlanningOnce(cp, planner, output):
     if output:
         ou.OMPL_INFORM("Dumping problem information to `torus_info.txt`.")
         with open("torus_info.txt", "w") as infofile:
-            print(cp.type, file=infofile)
+            print(cp.spaceType, file=infofile)
 
     cp.atlasStats()
 

@@ -1,3 +1,5 @@
+#include "ompl/config.h"
+#if OMPL_HAVE_NUMPY
 #include <Eigen/Eigen>
 #include <boost/python/numpy.hpp>
 
@@ -104,3 +106,6 @@ struct EigenFromPython
         data->convertible = storage;
     }
 };
+#else
+#define EIGEN_ARRAY_CONVERTER(Type, N)
+#endif

@@ -100,7 +100,6 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
     auto astate = state->as<AtlasStateSpace::StateType>();
     auto anear = near->as<AtlasStateSpace::StateType>();
 
-    const std::size_t n = atlas_->getAmbientDimension();
     const std::size_t k = atlas_->getManifoldDimension();
 
     Eigen::VectorXd ru(k), uoffset(k);

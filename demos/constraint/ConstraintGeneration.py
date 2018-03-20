@@ -86,8 +86,8 @@ if __name__ == "__main__":
     outer_radius = 3
     inner_radius = 1
 
-    c = t.getVars();
-    c[2] = 0;
+    c = t.getVars()
+    c[2] = 0
     torus = (t.getVars() - outer_radius * c / c.norm()).norm() - inner_radius
     t.addConstraint(torus)
 
