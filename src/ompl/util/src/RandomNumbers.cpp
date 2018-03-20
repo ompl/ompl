@@ -322,7 +322,6 @@ void ompl::RNG::uniformInBall(double r, unsigned int n, double value[])
     }
 }
 
-#if OMPL_HAVE_EIGEN3
 void ompl::RNG::uniformProlateHyperspheroidSurface(const std::shared_ptr<const ProlateHyperspheroid> &phsPtr,
                                                    double value[])
 {
@@ -349,4 +348,3 @@ void ompl::RNG::uniformProlateHyperspheroid(const std::shared_ptr<const ProlateH
     // Transform to the PHS
     phsPtr->transform(&sphere[0], value);
 }
-#endif

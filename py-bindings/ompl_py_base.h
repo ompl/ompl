@@ -81,10 +81,12 @@ namespace ompl
         DeclareStateType(Dubins);
         DeclareStateType(ReedsShepp);
         DeclareStateType(Wrapper);
+#if OMPL_HAVE_NUMPY
         DeclareStateType(Constrained);
         DeclareStateType(Atlas);
         DeclareStateType(Projected);
         DeclareStateType(TangentBundle);
+#endif
 
         DeclareSpecificParamType(0, bool);
         DeclareSpecificParamType(1, char);

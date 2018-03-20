@@ -301,7 +301,6 @@ BOOST_AUTO_TEST_CASE(SampleBall)
     }
 }
 
-#if OMPL_HAVE_EIGEN3
 BOOST_AUTO_TEST_CASE(SamplePhsSurface)
 {
     // Variables
@@ -413,5 +412,3 @@ BOOST_AUTO_TEST_CASE(SampleInPhs)
         }
     }
 }
-
-#endif // OMPL_HAVE_EIGEN3

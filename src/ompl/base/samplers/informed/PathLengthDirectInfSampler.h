@@ -37,11 +37,6 @@
 #ifndef OMPL_BASE_SAMPLERS_INFORMED_PATH_LENGTH_DIRECT_INFORMED_SAMPLER_
 #define OMPL_BASE_SAMPLERS_INFORMED_PATH_LENGTH_DIRECT_INFORMED_SAMPLER_
 
-#include <ompl/config.h>
-#if !OMPL_HAVE_EIGEN3
-#error The PathLengthDirectInfSampler class uses Eigen3, which was not detected at build time.
-#endif
-
 // We inherit from InformedStateSampler
 #include "ompl/base/samplers/InformedStateSampler.h"
 

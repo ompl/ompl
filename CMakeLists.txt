@@ -108,12 +108,9 @@ if(PYTHON_FOUND)
     endif()
 endif()
 
-# Eigen is needed for the InformedStateSampler
-find_package(Eigen3 QUIET)
-if (EIGEN3_FOUND)
-    set(OMPL_HAVE_EIGEN3 1)
-    include_directories("${EIGEN3_INCLUDE_DIR}")
-endif()
+# Eigen is needed for constrained planning, the InformedStateSampler, and VFRRT
+find_package(Eigen3 REQUIRED)
+include_directories("${EIGEN3_INCLUDE_DIR}")
 
 # MORSE is only needed for Modular OpenRobots Simulation Engine bindings
 find_package(MORSE QUIET)
