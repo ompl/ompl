@@ -12,7 +12,7 @@ There are currently three provided representations of constrained state spaces, 
 - `ompl::base::AtlasStateSpace`, a constrained state space that, while planning, builds a piecewise linear approximation of \f$X\f$ using tangent spaces. This approximation is called an _atlas_, and is used to guide planning.
 - `ompl::base::TangentBundleStateSpace`, a constrained state space similar to `ompl::base::AtlasStateSpace`, but lazily evaluates the atlas.
 
-Each of these state spaces has their own documentation that can be viewed on their page. The augmented state space approach taken by OMPL was presented in [this paper](http://kavrakilab.org/publications/kingston2017decoupling-constraints.pdf). More information about constrained motion planning is presented in [this review paper](http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf).
+Each of these state spaces has their own documentation that can be viewed on their page. The augmented state space approach taken by OMPL was presented in [a paper presented at ISRR 2017](http://kavrakilab.org/publications/kingston2017decoupling-constraints.pdf). More information about constrained motion planning is presented in [this review paper](http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf).
 
 You can view an example of how to use the constrained planning framework in [this tutorial](constrainedPlanningTutorial.html)!
 
@@ -32,16 +32,9 @@ In general, your constraint function should be a _continuous_ and _differentiabl
 
 #### Interpolation Failures
 
-Currently, each of the constrained state spaces implements interpolation on the constraint submanifold via computing a _discrete geodesic_ between the two query points.
-The discrete geodesic is a sequence of close (to approximate continuity), constraint satisfying states between two query points.
-The distance between each point in the discrete geodesic is tuned by the "delta" parameter in `ompl::base::ConstrainedStateSpace`.
-How this discrete geodesic is computed is key to how constrained state space operates, as it is used ubiquitously throughout the code (e.g., interpolation, collision checking, motion validation, and others).
+Currently, each of the constrained state spaces implements interpolation on the constraint submanifold via computing a _discrete geodesic_ between the two query points. The discrete geodesic is a sequence of close (to approximate continuity), constraint satisfying states between two query points. The distance between each point in the discrete geodesic is tuned by the "delta" parameter in `ompl::base::ConstrainedStateSpace::setDelta()`. How this discrete geodesic is computed is key to how constrained state space operates, as it is used ubiquitously throughout the code (e.g., interpolation, collision checking, motion validation, and others).
 
-Due to the nature of how these routines are implemented, it is possible for computation of the discrete geodesic to _fail_, thus causing potentially unexpected results from whatever overlying routine requested a discrete geodesic.
-These failures can be the result of singularities in the constraint, high curvature of the submanifold, and various other issues.
-However, interpolation in "regular" state spaces does not generally fail as they are analytic, such as linear interpolation in `ompl::base::RealVectorStateSpace`; hence, `ompl::base::StateStace::interpolate` is assumed to always be successful.
-As a result, some unexpected behavior can be seen if interpolation fails during planning with a constrained state space.
-Increasing or decreasing the "delta" parameter in `ompl::base::ConstrainedStateSpace`, increasing or decreasing the constraint satisfaction tolerance, and other hyperparameter tuning can fix these problems.
+Due to the nature of how these routines are implemented, it is possible for computation of the discrete geodesic to _fail_, thus causing potentially unexpected results from whatever overlying routine requested a discrete geodesic. These failures can be the result of singularities in the constraint, high curvature of the submanifold, and various other issues. However, interpolation in "regular" state spaces does not generally fail as they are analytic, such as linear interpolation in `ompl::base::RealVectorStateSpace`; hence, `ompl::base::StateStace::interpolate` is assumed to always be successful. As a result, some unexpected behavior can be seen if interpolation fails during planning with a constrained state space. Increasing or decreasing the "delta" parameter in `ompl::base::ConstrainedStateSpace`, increasing or decreasing the constraint satisfaction tolerance, and other hyperparameter tuning can fix these problems.
 
 #### Hyperparameter Sensitivity
 
