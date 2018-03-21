@@ -31,5 +31,6 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 - Sonny Tarbouriech, University of Sherbrooke
 - [Luis Torres](http://luis.web.unc.edu), Ron Alterovitz' [Computational Robotics Group](http://robotics.cs.unc.edu), University of North Carolina at Chapel Hill (now at Google)
 - [Caleb Voss](http://calebvoss.com), Rice University (now at Georgia Tech)
+- [Zachary Kingston](http://zacharykingston.me), Rice University
 
 Click [here](thirdparty.html) for a detailed description of some of the third-party contributions.

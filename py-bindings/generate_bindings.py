@@ -313,7 +313,6 @@ class ompl_base_generator_t(code_generator_t):
                 cls.member_function(method, arg_types=['::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, 0, Eigen::InnerStride<1> > const &']).add_transformation(FT.input(0))
         except:
             # python bindings for constrained planning code is only generated if boost.numpy was found
-            #self.ompl_ns.class_('ScopedState< ompl::base::ConstrainedSpace::StateSpace >').exclude()
             pass
 
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now

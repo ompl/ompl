@@ -14,6 +14,20 @@ An overview of [MoveIt!](http://moveit.ros.org), the [ROS](http://www.ros.org) p
 </div>
 \endhtmlonly
 
+# Planning with constraints
+
+OMPL has support for [motion planning subject to hard constraints](constrainedPlanning.html), including, but not limited to, Cartesian planning. In [a paper presented at ISRR 2017](http://www.kavrakilab.org/publications/kingston2017decoupling-constraints.html) we describe how we have integrated prior motion planning approaches to planning with constraints in one framework that allows you to use any of the OMPL planners for constrained planning. The video below illustrates the main ideas. The examples in the videos are included as demo programs in the `ompl/demos/constraint` directory.
+
+\htmlonly
+<div class="row">
+  <div class="col-md-8 col-sm-10 col-md-offset-2 col-sm-offset-1">
+    <div class="embed-responsive embed-responsive-4by3">
+      <iframe src="http://player.vimeo.com/video/261052837?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
+    </div>
+  </div>
+</div>
+\endhtmlonly
+
 # Morse
 
 Morse is a robot simulator built on top of the 3D modeling program Blender. Caleb Voss has developed a plugin for Blender that allows you use OMPL to plan motions for Morse robots. There is [extensive documentation](morse.html) on how to use this plugin. Below are some example videos produced with this plugin.
