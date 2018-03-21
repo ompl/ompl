@@ -20,23 +20,23 @@ You can view an example of how to use the constrained planning framework in [thi
 
 In order for the constrained planning framework to work, your underlying state space and constraint function must satisfy a few assumptions.
 
-#### Contiguous Memory
+### Contiguous Memory
 
 As an implementation detail, the memory allocated in a state by the underlying state space must be a contiguous array of `double` values. For example, `ompl::base::RealVectorStateSpace`, or the state space implemented in the kinematic chain benchmark both allocate a contiguous array of `double` values. This detail is required by the various constrained state spaces and constraint function in order to view them as `Eigen::VectorXd`s, using `Eigen::Map<Eigen::VectorXd>`. Note that `ompl::base::ConstrainedStateSpace::StateType` derives from this class, for convenience.
 
 However, this assumption prevents the `ompl::base::CompoundStateSpace` from being used by the constrained planning framework, as state allocation does not guarantee contiguity.
 
-#### Constraint Differentiability
+### Constraint Differentiability
 
 In general, your constraint function should be a _continuous_ and _differentiable_ function of the robot's state. Singularities in the constraint function can cause bad behavior by the underlying constraint satisfaction methods. `ompl::base::AtlasStateSpace` and `ompl::base::TangentBundleStateSpace` both will treat singularities as obstacles in the planning process.
 
-#### Interpolation Failures
+### Interpolation Failures
 
 Currently, each of the constrained state spaces implements interpolation on the constraint submanifold via computing a _discrete geodesic_ between the two query points. The discrete geodesic is a sequence of close (to approximate continuity), constraint satisfying states between two query points. The distance between each point in the discrete geodesic is tuned by the "delta" parameter in `ompl::base::ConstrainedStateSpace::setDelta()`. How this discrete geodesic is computed is key to how constrained state space operates, as it is used ubiquitously throughout the code (e.g., interpolation, collision checking, motion validation, and others).
 
 Due to the nature of how these routines are implemented, it is possible for computation of the discrete geodesic to _fail_, thus causing potentially unexpected results from whatever overlying routine requested a discrete geodesic. These failures can be the result of singularities in the constraint, high curvature of the submanifold, and various other issues. However, interpolation in "regular" state spaces does not generally fail as they are analytic, such as linear interpolation in `ompl::base::RealVectorStateSpace`; hence, `ompl::base::StateStace::interpolate` is assumed to always be successful. As a result, some unexpected behavior can be seen if interpolation fails during planning with a constrained state space. Increasing or decreasing the "delta" parameter in `ompl::base::ConstrainedStateSpace`, increasing or decreasing the constraint satisfaction tolerance, and other hyperparameter tuning can fix these problems.
 
-#### Hyperparameter Sensitivity
+### Hyperparameter Sensitivity
 
 The constrained state spaces, in general, are sensitive to the tuning of their various hyperparameters. Some reasonable defaults are set at start, but many constrained planning problems will have different characteristics of the underlying submanifold, and as such different parameters may be needed. Some basic rules-of-thumb are provided below:
 
