@@ -2,7 +2,7 @@
 
 Sometimes, the motion of a robot is _constrained_ by its task or inherent kinematic properties. For example, a robot might want to keep a cup of water level, remain in contact with a surface to write on it, or follow some curve in space that corresponds to a task. In each of these cases, the constraint on the robot's motion is defined by some _function_, \f$f(q) : \mathcal{Q} \rightarrow \mathbb{R}^n\f$, which maps the robot's state space \f$\mathcal{Q}\f$ onto a real vector value \f$\mathbb{R}^n\f$. The constraint is considered satisfied whenever \f$f(q) = \mathbf{0}\f$. For example, to keep the cup level, the angular distance of the cup's axis to the upright z-axis could be the constraint function. In addition, a constraint satisfying motion satisfies \f$f(q) = 0\f$ at every point along the path. Constrained motion planning addresses the question of how to find a constraint satisfying motion, while still avoiding obstacles or achieving other objectives.
 
-In general, motion planners are not aware of constraints, and will generate paths that do not satisfy the constraint. This is because the _submanifold_ of constraint satisfying configurations \f$X = \{ q \in \mathcal{Q} \mid f(q) = \mathbf{0} \}\f$ is lower-dimensional compared to the state space of the robot, and thus near impossible to sample from. To plan constraint satisfying motion, OMPL provides a means to augment the state space of a robot with knowledge of the constraint, representing \f$X\f$ as a state space. Any motion plan generated using this augmented state space will satisfy the constraint, as the primitive operations used by motions planners (e.g., `ompl::StateSpace::interpolate`) automatically generate constraint satisfying states. The constrained planning framework enables any sampling-based planner (included asymptotically optimal planners) to plan while respecting a constraint function.
+In general, motion planners are not aware of constraints, and will generate paths that do not satisfy the constraint. This is because the _submanifold_ of constraint satisfying configurations \f$X = \{ q \in \mathcal{Q} \mid f(q) = \mathbf{0} \}\f$ is lower-dimensional compared to the state space of the robot, and thus near impossible to sample from. To plan constraint satisfying motion, OMPL provides a means to augment the state space of a robot with knowledge of the constraint, representing \f$X\f$ as a state space. Any motion plan generated using this augmented state space will satisfy the constraint, as the primitive operations used by motions planners (e.g., `ompl::base::StateSpace::interpolate`) automatically generate constraint satisfying states. The constrained planning framework enables any sampling-based planner (included asymptotically optimal planners) to plan while respecting a constraint function.
 
 You can represent a constraint function using `ompl::base::Constraint`, where you must implement the function \f$f\f$, and optionally the analytic Jacobian of the constraint function. If no analytic Jacobian is provided, a numerical finite central difference routine is used to approximate the Jacobian. However, this is very computationally intensive, and providing an analytic derivative is preferred. We provide a simple script `ConstraintGeneration.py` that uses the [SymPy](http://www.sympy.org/en/index.html) Python library for symbolic differentiation of constraints, and can automatically generate constraint code that can be used in your programs. There is also `ompl::base::ConstraintIntersection`, which allows for composition of multiple constraints together that must all be satisfied.
 
@@ -28,7 +28,20 @@ However, this assumption prevents the `ompl::base::CompoundStateSpace` from bein
 
 #### Constraint Differentiability
 
-In general, your constraint function should be a _continuous_ and _differentiable_ function of the robot's state. Singularities in the constraint function can cause bad behavior by the underlying constraint satisfaction methods.
+In general, your constraint function should be a _continuous_ and _differentiable_ function of the robot's state. Singularities in the constraint function can cause bad behavior by the underlying constraint satisfaction methods. `ompl::base::AtlasStateSpace` and `ompl::base::TangentBundleStateSpace` both will treat singularities as obstacles in the planning process.
+
+#### Interpolation Failures
+
+Currently, each of the constrained state spaces implements interpolation on the constraint submanifold via computing a _discrete geodesic_ between the two query points.
+The discrete geodesic is a sequence of close (to approximate continuity), constraint satisfying states between two query points.
+The distance between each point in the discrete geodesic is tuned by the "delta" parameter in `ompl::base::ConstrainedStateSpace`.
+How this discrete geodesic is computed is key to how constrained state space operates, as it is used ubiquitously throughout the code (e.g., interpolation, collision checking, motion validation, and others).
+
+Due to the nature of how these routines are implemented, it is possible for computation of the discrete geodesic to _fail_, thus causing potentially unexpected results from whatever overlying routine requested a discrete geodesic.
+These failures can be the result of singularities in the constraint, high curvature of the submanifold, and various other issues.
+However, interpolation in "regular" state spaces does not generally fail as they are analytic, such as linear interpolation in `ompl::base::RealVectorStateSpace`; hence, `ompl::base::StateStace::interpolate` is assumed to always be successful.
+As a result, some unexpected behavior can be seen if interpolation fails during planning with a constrained state space.
+Increasing or decreasing the "delta" parameter in `ompl::base::ConstrainedStateSpace`, increasing or decreasing the constraint satisfaction tolerance, and other hyperparameter tuning can fix these problems.
 
 #### Hyperparameter Sensitivity
 
