@@ -86,7 +86,7 @@ auto css = std::make_shared<ob::ProjectedStateSpace>(rvss, constraint);
 auto csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
 ~~~
 
-Now, we have a constrained state space and space information which we can use for planning.
+One of the most important things that `ompl::base::ConstrainedSpaceInformation` does is call `ompl::base::ConstrainedStateSpace::setSpaceInformation`, which allows for the manifold traversal to do collision checking in tandem with discrete geodesic computation. Now, we have a constrained state space and space information which we can use for planning.
 
 
 ## Defining a Problem

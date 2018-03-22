@@ -70,13 +70,6 @@ void ompl::base::ProjectedStateSampler::sampleGaussian(State *state, const State
 
 /// Public
 
-void ompl::base::ProjectedStateSpace::checkSpace(const SpaceInformation *si)
-{
-    if (dynamic_cast<ProjectedStateSpace *>(si->getStateSpace().get()) == nullptr)
-        throw ompl::Exception("ompl::base::ProjectedStateSpace(): "
-                              "si needs to use an ProjectedStateSpace!");
-}
-
 bool ompl::base::ProjectedStateSpace::discreteGeodesic(const State *from, const State *to, bool interpolate,
                                                        std::vector<State *> *geodesic) const
 {

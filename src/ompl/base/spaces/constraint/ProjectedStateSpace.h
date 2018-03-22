@@ -117,10 +117,6 @@ namespace ompl
             /** \brief Destructor. */
             ~ProjectedStateSpace() override = default;
 
-            /** \brief Check that the space referred to by the space information
-             * \a si is, in fact, an AtlasStateSpace. */
-            static void checkSpace(const SpaceInformation *si);
-
             /** \brief Allocate the default state sampler for this space. */
             StateSamplerPtr allocDefaultStateSampler() const override
             {

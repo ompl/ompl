@@ -44,13 +44,11 @@
 ompl::base::ConstrainedMotionValidator::ConstrainedMotionValidator(SpaceInformation *si)
   : MotionValidator(si), ss_(*si->getStateSpace()->as<ConstrainedStateSpace>())
 {
-    ConstrainedStateSpace::checkSpace(si);
 }
 
 ompl::base::ConstrainedMotionValidator::ConstrainedMotionValidator(const SpaceInformationPtr &si)
   : MotionValidator(si), ss_(*si->getStateSpace()->as<ConstrainedStateSpace>())
 {
-    ConstrainedStateSpace::checkSpace(si.get());
 }
 
 bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const State *s2) const
@@ -107,13 +105,6 @@ ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr &sp
   , k_(constraint_->getManifoldDimension())
 {
     setDelta(magic::CONSTRAINED_STATE_SPACE_DELTA);
-}
-
-void ompl::base::ConstrainedStateSpace::checkSpace(const SpaceInformation *si)
-{
-    if (dynamic_cast<ConstrainedStateSpace *>(si->getStateSpace().get()) == nullptr)
-        throw ompl::Exception("ompl::base::ConstrainedStateSpace(): "
-                              "si needs to use an ConstrainedStateSpace!");
 }
 
 void ompl::base::ConstrainedStateSpace::setSpaceInformation(SpaceInformation *si)

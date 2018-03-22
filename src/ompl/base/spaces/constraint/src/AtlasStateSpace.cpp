@@ -217,14 +217,6 @@ ompl::base::AtlasStateSpace::~AtlasStateSpace()
     clear();
 }
 
-/// Static.
-void ompl::base::AtlasStateSpace::checkSpace(const SpaceInformation *si)
-{
-    if (dynamic_cast<AtlasStateSpace *>(si->getStateSpace().get()) == nullptr)
-        throw ompl::Exception("ompl::base::AtlasStateSpace(): "
-                              "si needs to use an AtlasStateSpace!");
-}
-
 void ompl::base::AtlasStateSpace::clear()
 {
     // Delete the non-anchor charts
@@ -481,7 +473,6 @@ bool ompl::base::AtlasStateSpace::discreteGeodesic(const State *from, const Stat
             c->psiInverse(*scratch, u_j);
             c->psiInverse(*ato, u_b);
         }
-
 
         done = distance(scratch, to) <= delta_;
         factor = 1;

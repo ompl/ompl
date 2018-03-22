@@ -164,10 +164,6 @@ namespace ompl
                 return false;
             }
 
-            /** \brief Check that the space referred to by the space information
-             * \a si is, in fact, an ConstrainedStateSpace. */
-            static void checkSpace(const SpaceInformation *si);
-
             /** \brief Sets the space information for this state space. Required
              * for collision checking in manifold traversal. */
             void setSpaceInformation(SpaceInformation *si);
@@ -180,6 +176,13 @@ namespace ompl
 
             /** \brief Allocate a new state in this space. */
             State *allocState() const override;
+
+            void sanityChecks() const override
+            {
+                double zero = std::numeric_limits<double>::epsilon();
+                double eps = std::numeric_limits<double>::epsilon();
+                StateSpace::sanityChecks(zero, eps, ~STATESPACE_INTERPOLATION);
+            }
 
             /** @name Constrained Planning
                 @{ */
