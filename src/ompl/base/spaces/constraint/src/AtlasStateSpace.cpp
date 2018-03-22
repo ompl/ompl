@@ -435,6 +435,9 @@ bool ompl::base::AtlasStateSpace::discreteGeodesic(const State *from, const Stat
 
         const double step = distance(scratch, temp);
 
+        if (step < std::numeric_limits<double>::epsilon())
+            break;
+
         const bool exceedStepSize = step >= lambda_ * delta_;
         if (exceedStepSize)
         {
