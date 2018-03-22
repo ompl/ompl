@@ -111,6 +111,10 @@ bool ompl::base::TangentBundleStateSpace::discreteGeodesic(const State *from, co
         c->phi(u_j, *temp);
 
         const double step = distance(temp, scratch);
+
+        if (step < std::numeric_limits<double>::epsilon())
+            break;
+
         dist += step;
 
         if (!(interpolate || svc->isValid(scratch))                    // valid
