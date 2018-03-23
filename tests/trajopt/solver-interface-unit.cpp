@@ -3,19 +3,16 @@
 #include <boost/test/included/unit_test.hpp>
 
 #include <cstdio>
-#include <boost/foreach.hpp>
 #include <iostream>
 
 #include "ompl/trajopt/solver_interface.h"
-#include "ompl/trajopt/logging.h"
 #include "ompl/trajopt/expr_ops.h"
 #include "ompl/trajopt/stl_to_string.h"
-using namespace std;
+#include "ompl/util/Console.h"
 
-using namespace sco;
 
 BOOST_AUTO_TEST_CASE(setup_problem) {
-    sco::ModelPtr solver = createModel();
+    sco::ModelPtr solver = sco::createModel();
     std::vector<sco::Var> vars;
     for (int i=0; i < 3; ++i) {
         char namebuf[5];
@@ -33,8 +30,8 @@ BOOST_AUTO_TEST_CASE(setup_problem) {
     sco::QuadExpr affsquared = exprSquare(aff);
     solver->setObjective(affsquared);
     solver->update();
-    LOG_INFO("objective: %s", CSTR(affsquared));
-    LOG_INFO("please manually check that /tmp/solver-interface-test.lp matches this");
+    OMPL_INFORM("objective: %s", CSTR(affsquared));
+    OMPL_INFORM("please manually check that /tmp/solver-interface-test.lp matches this");
     solver->writeToFile("/tmp/solver-interface-test.lp");
 
     solver->optimize();

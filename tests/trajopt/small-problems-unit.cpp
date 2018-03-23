@@ -14,7 +14,8 @@
 #include "ompl/trajopt/modeling_utils.h"
 #include "ompl/trajopt/sco_common.h"
 #include "ompl/trajopt/stl_to_string.h"
-#include "ompl/trajopt/logging.h"
+
+#include "ompl/util/Console.h"
 
 void setupProblem(sco::OptProbPtr& probptr, size_t nvars) {
     probptr.reset(new sco::OptProb());
@@ -27,7 +28,6 @@ void setupProblem(sco::OptProbPtr& probptr, size_t nvars) {
 
 void expectAllNear(const std::vector<double>& x, const std::vector<double>& y, double abstol) {
     BOOST_CHECK_EQUAL(x.size(), y.size());
-    LOG_INFO("checking %s ?= %s", CSTR(x), CSTR(y));
     for (size_t i=0; i < x.size(); ++i) {
         BOOST_CHECK_SMALL(x[i] - y[i], abstol);
     }
