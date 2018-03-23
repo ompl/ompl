@@ -429,8 +429,6 @@ public:
     {
         ss->setup();
 
-        // csi->printProperties(std::cout);
-
         ob::PlannerStatus stat = ss->solve(c_opt.time);
         std::cout << std::endl;
 
