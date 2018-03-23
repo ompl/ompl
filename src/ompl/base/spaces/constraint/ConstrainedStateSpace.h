@@ -51,7 +51,7 @@ namespace ompl
     namespace magic
     {
         static const double CONSTRAINED_STATE_SPACE_DELTA = 0.05;
-        static const double CONSTRAINED_STATE_SPACE_LAMBDA = 3.0;
+        static const double CONSTRAINED_STATE_SPACE_LAMBDA = 2.0;
     }
 
     namespace base
