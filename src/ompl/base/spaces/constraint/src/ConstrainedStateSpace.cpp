@@ -128,8 +128,9 @@ void ompl::base::ConstrainedStateSpace::constrainedSanityChecks(unsigned int fla
         if (flags & CONSTRAINED_STATESPACE_JACOBIAN)
         {
             Eigen::MatrixXd j_a(n_ - k_, n_), j_n(n_ - k_, n_);
-            constraint_->jacobian(*s1, j_a);
-            constraint_->Constraint::jacobian(*s1, j_n);
+
+            constraint_->jacobian(*s1, j_a);              // Provided routine
+            constraint_->Constraint::jacobian(*s1, j_n);  // Numerical approximation
 
             if ((j_a - j_n).norm() > constraint_->getTolerance())
                 throw Exception("Constraint Jacobian deviates from numerical approximation.");
@@ -139,7 +140,7 @@ void ompl::base::ConstrainedStateSpace::constrainedSanityChecks(unsigned int fla
 
         // Check that samplers are returning constraint satisfying samples.
         if (flags & CONSTRAINED_STATESPACE_SAMPLERS && (!constraint_->isSatisfied(s1) || !constraint_->isSatisfied(s2)))
-            throw Exception("Constraint-aware samplers generate invalid states.");
+            throw Exception("State samplers generate constraint unsatisfying states.");
 
         std::vector<State *> geodesic;
         // Make sure that the manifold is traversable at least once.
