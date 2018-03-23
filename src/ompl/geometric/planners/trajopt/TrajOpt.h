@@ -37,12 +37,12 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_TRAJOPT_TRAJOPT_
 #define OMPL_GEOMETRIC_PLANNERS_TRAJOPT_TRAJOPT_
 
-#include "ompl/geometric/planners/PlannerIncludes.h"
-#include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/OptimizationObjective.h"
+#include "ompl/geometric/PathGeometric.h"
+#include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/geometric/planners/trajopt/OmplOptProb.h"
-#include "ompl/trajopt/typedefs.h"
 #include "ompl/trajopt/optimizers.h"
+#include "ompl/trajopt/typedefs.h"
 
 namespace ompl
 {
@@ -80,7 +80,7 @@ namespace ompl
 
             void setup() override;
 
-            void setOptimizerCallback(std::function<void(sco::OptProb*, std::vector<double>&)> callback);
+            void setOptimizerCallback(std::function<void(sco::OptProb *, std::vector<double> &)> callback);
 
             void setTimeStepCount(int nSteps)
             {
@@ -132,7 +132,7 @@ namespace ompl
 
             ompl::base::PlannerStatus optimize(const ompl::base::PlannerTerminationCondition &ptc);
 
-            void plotCallback(std::vector<double>& x);
+            void plotCallback(std::vector<double> &x);
 
             /** \brief The number of time steps/waypoints in the optimized trajectory.
                 Smaller means quicker optimization, larger means finer trajectories. */
@@ -151,9 +151,9 @@ namespace ompl
 
             OmplOptProbPtr problem_;
 
-            FILE* fd;
+            FILE *fd;
 
-            std::function<void(sco::OptProb*, std::vector<double>&)> callback_;
+            std::function<void(sco::OptProb *, std::vector<double> &)> callback_;
         };
     }
 }

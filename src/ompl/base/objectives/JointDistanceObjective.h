@@ -38,8 +38,8 @@
 #define OMPL_BASE_OBJECTIVES_JOINT_DISTANCE_OBJECTIVE_
 
 #include "ompl/base/objectives/ConvexifiableObjective.h"
-#include "ompl/trajopt/sco_fwd.h"
 #include "ompl/trajopt/modeling.h"
+#include "ompl/trajopt/sco_fwd.h"
 #include "ompl/trajopt/typedefs.h"
 
 namespace ompl
@@ -52,16 +52,17 @@ namespace ompl
         class JointDistCost : public sco::Cost
         {
         public:
-            JointDistCost(const sco::VarArray& traj);
+            JointDistCost(const sco::VarArray &traj);
             /**
              * Turns this cost into a convex cost.
              */
-            sco::ConvexObjectivePtr convex(const std::vector<double>& x, sco::Model* model);
+            sco::ConvexObjectivePtr convex(const std::vector<double> &x, sco::Model *model);
 
             /**
              * Gets the cost value of a specific trajectory.
              */
-            double value(const std::vector<double>&);
+            double value(const std::vector<double> &);
+
         private:
             sco::VarArray vars_;
             sco::QuadExpr expr_;
@@ -77,7 +78,7 @@ namespace ompl
 
             Cost motionCost(const State *s1, const State *s2) const override;
 
-        //protected:
+            // protected:
             sco::CostPtr toCost(sco::OptProbPtr problem) override;
         };
 
@@ -87,11 +88,12 @@ namespace ompl
         class JointAccelCost : public sco::Cost
         {
         public:
-            JointAccelCost(const sco::VarArray& traj);
+            JointAccelCost(const sco::VarArray &traj);
 
-            sco::ConvexObjectivePtr convex(const std::vector<double>&x, sco::Model* model);
+            sco::ConvexObjectivePtr convex(const std::vector<double> &x, sco::Model *model);
 
-            double value(const std::vector<double>&);
+            double value(const std::vector<double> &);
+
         private:
             sco::VarArray vars_;
             sco::QuadExpr expr_;
@@ -107,7 +109,7 @@ namespace ompl
 
             Cost motionCost(const State *s1, const State *s2) const override;
 
-        //protected:
+            // protected:
             sco::CostPtr toCost(sco::OptProbPtr problem) override;
         };
     }

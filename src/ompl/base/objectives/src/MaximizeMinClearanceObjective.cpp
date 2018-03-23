@@ -35,8 +35,8 @@
 /* Author: Luis G. Torres */
 
 #include "ompl/base/objectives/MaximizeMinClearanceObjective.h"
-#include "ompl/tools/config/MagicConstants.h"
 #include <limits>
+#include "ompl/tools/config/MagicConstants.h"
 
 ompl::base::MaximizeMinClearanceObjective::MaximizeMinClearanceObjective(const SpaceInformationPtr &si)
   : MinimaxObjective(si)

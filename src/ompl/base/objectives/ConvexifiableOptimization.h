@@ -53,7 +53,7 @@ namespace ompl
          *       g_i(x) <= 0
          *      h_i(x) = 0
          *
-         *  This optimization can function either as a cost (f(x) above), or as a constraint, 
+         *  This optimization can function either as a cost (f(x) above), or as a constraint,
          *  either an equality constraint (h(x)) or an inequality constraint (g(x)).
          *
          *  Subclasses handle the differences between a cost or a constraint.
@@ -63,7 +63,9 @@ namespace ompl
         class ConvexifiableOptimization : public OptimizationObjective
         {
         public:
-            ConvexifiableOptimization(const SpaceInformationPtr &si) : OptimizationObjective(si) {}
+            ConvexifiableOptimization(const SpaceInformationPtr &si) : OptimizationObjective(si)
+            {
+            }
 
             virtual void addToProblem(sco::OptProbPtr problem) = 0;
         };
@@ -74,20 +76,25 @@ namespace ompl
         class MultiConvexifiableOptimization : public ConvexifiableOptimization
         {
         public:
+            MultiConvexifiableOptimization(const SpaceInformationPtr &si) : ConvexifiableOptimization(si)
+            {
+            }
 
-            MultiConvexifiableOptimization(const SpaceInformationPtr &si) : ConvexifiableOptimization(si) {}
-
-            ompl::base::Cost stateCost(const ompl::base::State* state) const {
+            ompl::base::Cost stateCost(const ompl::base::State *state) const
+            {
                 Cost c = identityCost();
-                for (ConvexifiableOptimizationPtr opt : components_) {
+                for (ConvexifiableOptimizationPtr opt : components_)
+                {
                     c = Cost(c.value() + opt->stateCost(state).value());
                 }
                 return c;
             }
 
-            ompl::base::Cost motionCost(const State *s1, const State *s2) const {
+            ompl::base::Cost motionCost(const State *s1, const State *s2) const
+            {
                 Cost c = identityCost();
-                for (ConvexifiableOptimizationPtr opt : components_) {
+                for (ConvexifiableOptimizationPtr opt : components_)
+                {
                     c = Cost(c.value() + opt->motionCost(s1, s2).value());
                 }
                 return c;
@@ -102,10 +109,12 @@ namespace ompl
 
             void addToProblem(sco::OptProbPtr problem)
             {
-                for (ConvexifiableOptimizationPtr c : components_) {
+                for (ConvexifiableOptimizationPtr c : components_)
+                {
                     c->addToProblem(problem);
                 }
             }
+
         private:
             std::vector<ConvexifiableOptimizationPtr> components_;
         };

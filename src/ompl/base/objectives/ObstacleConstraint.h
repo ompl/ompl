@@ -37,8 +37,8 @@
 #ifndef OMPL_BASE_OBJECTIVES_OBSTACLE_CONSTRAINT_
 #define OMPL_BASE_OBJECTIVES_OBSTACLE_CONSTRAINT_
 
-#include "ompl/base/objectives/ConvexifiableConstraint.h"
 #include "ompl/base/objectives/CollisionEvaluator.h"
+#include "ompl/base/objectives/ConvexifiableConstraint.h"
 #include "ompl/trajopt/modeling_utils.h"
 #include "ompl/trajopt/typedefs.h"
 
@@ -50,14 +50,16 @@ namespace ompl
          * \brief A glue function that gets the distance to the nearest object for each
          *        configuration in a TrajOpt trajectory
          */
-        struct ObstacleDistanceFunction : public sco::VectorOfVector {
+        struct ObstacleDistanceFunction : public sco::VectorOfVector
+        {
             StateValidityCheckerPtr sv_;
             StateSpacePtr ss_;
             double safeDist_;
 
-            ObstacleDistanceFunction(StateValidityCheckerPtr sv, StateSpacePtr ss, double safeDist) :
-                    sv_(sv), ss_(ss), safeDist_(safeDist)
-            {}
+            ObstacleDistanceFunction(StateValidityCheckerPtr sv, StateSpacePtr ss, double safeDist)
+              : sv_(sv), ss_(ss), safeDist_(safeDist)
+            {
+            }
 
             Eigen::VectorXd operator()(const Eigen::VectorXd &x) const;
         };
@@ -76,25 +78,19 @@ namespace ompl
              *        safe_dist is the minimum distance the system can be from an obsacle before
              *        it is penalized.
              */
-            NumericalCollisionTrajOptConstraint(
-                StateValidityCheckerPtr sv,
-                StateSpacePtr ss,
-                const sco::VarVector& vars,
-                double safe_dist);
+            NumericalCollisionTrajOptConstraint(StateValidityCheckerPtr sv, StateSpacePtr ss,
+                                                const sco::VarVector &vars, double safe_dist);
         };
 
         class JacobianCollisionTrajOptConstraint : public sco::IneqConstraint
         {
         public:
-            JacobianCollisionTrajOptConstraint(
-                    double safeDist,
-                    WorkspaceCollisionFn collision,
-                    StateSpacePtr ss,
-                    JacobianFn J,
-                    sco::VarVector vars);
-            virtual sco::ConvexConstraintsPtr convex(const std::vector<double>& x, sco::Model* model);
-            virtual std::vector<double> value(const std::vector<double>& x);
-            sco::VarVector getVars() {
+            JacobianCollisionTrajOptConstraint(double safeDist, WorkspaceCollisionFn collision, StateSpacePtr ss,
+                                               JacobianFn J, sco::VarVector vars);
+            virtual sco::ConvexConstraintsPtr convex(const std::vector<double> &x, sco::Model *model);
+            virtual std::vector<double> value(const std::vector<double> &x);
+            sco::VarVector getVars()
+            {
                 return eval_->getVars();
             }
 
@@ -107,16 +103,13 @@ namespace ompl
         class JacobianContinuousTrajOptConstraint : public sco::IneqConstraint
         {
         public:
-            JacobianContinuousTrajOptConstraint(
-                    double safeDist,
-                    WorkspaceContinuousCollisionFn collision,
-                    StateSpacePtr ss,
-                    JacobianFn J,
-                    sco::VarVector vars0,
-                    sco::VarVector vars1);
-            virtual sco::ConvexConstraintsPtr convex(const std::vector<double>& x, sco::Model* model);
-            virtual std::vector<double> value(const std::vector<double>& x);
-            sco::VarVector getVars() {
+            JacobianContinuousTrajOptConstraint(double safeDist, WorkspaceContinuousCollisionFn collision,
+                                                StateSpacePtr ss, JacobianFn J, sco::VarVector vars0,
+                                                sco::VarVector vars1);
+            virtual sco::ConvexConstraintsPtr convex(const std::vector<double> &x, sco::Model *model);
+            virtual std::vector<double> value(const std::vector<double> &x);
+            sco::VarVector getVars()
+            {
                 return eval_->getVars();
             }
 
@@ -141,10 +134,10 @@ namespace ompl
              * obstacle. After that, a hinge cost will be added to the optimization objective.
              */
             ObstacleConstraint(const SpaceInformationPtr &si, double safeDist);
-            ObstacleConstraint(const SpaceInformationPtr &si, double safeDist,
-                               WorkspaceCollisionFn collision, JacobianFn J);
-            ObstacleConstraint(const SpaceInformationPtr &si, double safeDist,
-                               WorkspaceContinuousCollisionFn collision, JacobianFn J);
+            ObstacleConstraint(const SpaceInformationPtr &si, double safeDist, WorkspaceCollisionFn collision,
+                               JacobianFn J);
+            ObstacleConstraint(const SpaceInformationPtr &si, double safeDist, WorkspaceContinuousCollisionFn collision,
+                               JacobianFn J);
 
             Cost stateCost(const State *s) const override;
             Cost motionCost(const State *s1, const State *s2) const override;
@@ -161,6 +154,5 @@ namespace ompl
         };
     }
 }
-
 
 #endif

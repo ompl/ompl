@@ -50,7 +50,9 @@ namespace ompl
         class ConvexifiableObjective : public ConvexifiableOptimization
         {
         public:
-            ConvexifiableObjective(const SpaceInformationPtr &si) : ConvexifiableOptimization(si) {}
+            ConvexifiableObjective(const SpaceInformationPtr &si) : ConvexifiableOptimization(si)
+            {
+            }
 
             /** \brief Adds itself to the current optimization problem definition as a
                 cost to be optimized (as opposed to a hard constraint). */
@@ -59,7 +61,7 @@ namespace ompl
                 problem->addCost(toCost(problem));
             }
 
-        //protected:
+            // protected:
             /** \brief Turns this optimization objective into a convexifiable cost.
                 Must be implemented by each subclass individually. */
             virtual sco::CostPtr toCost(sco::OptProbPtr problem) = 0;

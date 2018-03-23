@@ -36,12 +36,11 @@
 
 #include <boost/format.hpp>
 
-#include "ompl/geometric/planners/trajopt/OmplOptProb.h"
 #include "ompl/base/spaces/SE2StateSpace.h"
+#include "ompl/geometric/planners/trajopt/OmplOptProb.h"
 #include "ompl/trajopt/typedefs.h"
 
-ompl::geometric::OmplOptProb::OmplOptProb(int nSteps, ompl::base::SpaceInformationPtr &si) :
-    si_(si)
+ompl::geometric::OmplOptProb::OmplOptProb(int nSteps, ompl::base::SpaceInformationPtr &si) : si_(si)
 {
     // Get the space information and nSteps_ to make the array of variables.
     int dof = si_->getStateDimension();
@@ -53,31 +52,41 @@ ompl::geometric::OmplOptProb::OmplOptProb(int nSteps, ompl::base::SpaceInformati
     double max_extent = ss->getMaximumExtent();
     std::vector<double> low;
     std::vector<double> high;
-    if (max_extent == std::numeric_limits<double>::infinity()) {
+    if (max_extent == std::numeric_limits<double>::infinity())
+    {
         ompl::base::RealVectorBounds bounds(dof);
-        for (int i = 0; i < dof; i++) {
+        for (int i = 0; i < dof; i++)
+        {
             bounds.low[i] = -1 * std::numeric_limits<double>::infinity();
             bounds.high[i] = std::numeric_limits<double>::infinity();
         }
         low = bounds.low;
         high = bounds.high;
-    } else {
+    }
+    else
+    {
         // Check for some specific spaces.
         ompl::base::SE2StateSpace *se2;
         ompl::base::RealVectorStateSpace *real;
-        if ((se2 = dynamic_cast<ompl::base::SE2StateSpace *>(ss.get()))) {
+        if ((se2 = dynamic_cast<ompl::base::SE2StateSpace *>(ss.get())))
+        {
             ompl::base::RealVectorBounds bounds = se2->getBounds();
             bounds.low.push_back(-1 * std::numeric_limits<double>::infinity());
             bounds.high.push_back(std::numeric_limits<double>::infinity());
             low = bounds.low;
             high = bounds.high;
-        } else if ((real = dynamic_cast<ompl::base::RealVectorStateSpace *>(ss.get()))) {
+        }
+        else if ((real = dynamic_cast<ompl::base::RealVectorStateSpace *>(ss.get())))
+        {
             ompl::base::RealVectorBounds bounds = real->getBounds();
             low = bounds.low;
             high = bounds.high;
-        } else {
+        }
+        else
+        {
             ompl::base::RealVectorBounds bounds(dof);
-            for (int i = 0; i < dof; i++) {
+            for (int i = 0; i < dof; i++)
+            {
                 bounds.low[i] = -1 * std::numeric_limits<double>::infinity();
                 bounds.high[i] = std::numeric_limits<double>::infinity();
             }
@@ -87,11 +96,13 @@ ompl::geometric::OmplOptProb::OmplOptProb(int nSteps, ompl::base::SpaceInformati
     }
     std::vector<double> vlower, vupper;
     std::vector<std::string> names;
-    for (int i = 0; i < nSteps; i++) {
+    for (int i = 0; i < nSteps; i++)
+    {
         vlower.insert(vlower.end(), low.data(), low.data() + low.size());
         vupper.insert(vupper.end(), high.data(), high.data() + high.size());
-        for (int j = 0; j < dof; j++) {
-            names.push_back( (boost::format("j_%i_%i")%i%j).str());
+        for (int j = 0; j < dof; j++)
+        {
+            names.push_back((boost::format("j_%i_%i") % i % j).str());
         }
     }
     sco::VarVector trajvarvec = createVariables(names, vlower, vupper);

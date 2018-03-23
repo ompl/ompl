@@ -35,15 +35,15 @@
 /* Authors: Bryce Willey */
 
 #include "ompl/base/objectives/CollisionEvaluator.h"
-#include "ompl/trajopt/sco_common.h"
+#include "ompl/trajopt/eigen_conversions.h"
 #include "ompl/trajopt/expr_ops.h"
 #include "ompl/trajopt/expr_vec_ops.h"
+#include "ompl/trajopt/sco_common.h"
 #include "ompl/trajopt/utils.h"
-#include "ompl/trajopt/eigen_conversions.h"
-
 
 sco::AffExpr ompl::base::JacobianCollisionEvaluator::distExprOneVaries(double signedDist, Eigen::Vector3d normal,
-        Eigen::MatrixXd j, std::vector<double> x_0, std::vector<sco::Var> vars)
+                                                                       Eigen::MatrixXd j, std::vector<double> x_0,
+                                                                       std::vector<sco::Var> vars)
 {
     // Make the affine expression:
     // sd(vars) = sd(x_0) + normal^T * J_pa(x_0) * vars - normal^T * J_pa(x_0) * x
@@ -55,7 +55,9 @@ sco::AffExpr ompl::base::JacobianCollisionEvaluator::distExprOneVaries(double si
 }
 
 sco::AffExpr ompl::base::JacobianCollisionEvaluator::distExprTwoVaries(double signedDist, Eigen::Vector3d normal,
-        Eigen::MatrixXd j_a, Eigen::MatrixXd j_b, std::vector<double> x_0, std::vector<sco::Var>vars)
+                                                                       Eigen::MatrixXd j_a, Eigen::MatrixXd j_b,
+                                                                       std::vector<double> x_0,
+                                                                       std::vector<sco::Var> vars)
 {
     // Makes the affine expression:
     // signed_distance(vars) = signed_distance(x_0) + (normal^T * J_pa(x_0) - normal^T * J_pb(x_0)) * vars +
@@ -69,25 +71,33 @@ sco::AffExpr ompl::base::JacobianCollisionEvaluator::distExprTwoVaries(double si
     return dist;
 }
 
-ompl::base::JacobianDiscreteCollisionEvaluator::JacobianDiscreteCollisionEvaluator(
-        WorkspaceCollisionFn inCollision, StateSpacePtr ss, JacobianFn J, sco::VarVector vars) :
-    JacobianCollisionEvaluator(J), inCollision_(inCollision), ss_(ss), vars_(vars)
-{}
+ompl::base::JacobianDiscreteCollisionEvaluator::JacobianDiscreteCollisionEvaluator(WorkspaceCollisionFn inCollision,
+                                                                                   StateSpacePtr ss, JacobianFn J,
+                                                                                   sco::VarVector vars)
+  : JacobianCollisionEvaluator(J), inCollision_(inCollision), ss_(ss), vars_(vars)
+{
+}
 
-std::vector<sco::AffExpr> ompl::base::JacobianDiscreteCollisionEvaluator::calcDistanceExpressions(std::vector<double> x) {
+std::vector<sco::AffExpr> ompl::base::JacobianDiscreteCollisionEvaluator::calcDistanceExpressions(std::vector<double> x)
+{
     std::vector<double> x_0 = sco::getDblVec(x, vars_);
     std::vector<sco::AffExpr> exprs;
 
     // Fields to be filled in by inCollision.
     std::vector<CollisionInfo> collisionStructs;
-    if (inCollision_(x_0, collisionStructs)) {
-        for (auto collisionStruct : collisionStructs) {
+    if (inCollision_(x_0, collisionStructs))
+    {
+        for (auto collisionStruct : collisionStructs)
+        {
             Eigen::MatrixXd j = J_(collisionStruct, 0);
-            if (collisionStruct.points.size() == 2) {
+            if (collisionStruct.points.size() == 2)
+            {
                 Eigen::MatrixXd j_b = J_(collisionStruct, 1);
                 auto dist = distExprTwoVaries(collisionStruct.signedDist, collisionStruct.normal, j, j_b, x_0, vars_);
                 exprs.push_back(dist);
-            } else {
+            }
+            else
+            {
                 auto dist = distExprOneVaries(collisionStruct.signedDist, collisionStruct.normal, j, x_0, vars_);
                 exprs.push_back(dist);
             }
@@ -96,39 +106,49 @@ std::vector<sco::AffExpr> ompl::base::JacobianDiscreteCollisionEvaluator::calcDi
     return exprs;
 }
 
-std::vector<double> ompl::base::JacobianDiscreteCollisionEvaluator::calcDistances(std::vector<double> x) {
+std::vector<double> ompl::base::JacobianDiscreteCollisionEvaluator::calcDistances(std::vector<double> x)
+{
     std::vector<double> dofVals = sco::getDblVec(x, vars_);
     std::vector<double> distsAtSteps;
 
     // TODO: We only need the clearance, so maybe pass in another callback that just gives that.
     std::vector<CollisionInfo> collisionStructs;
     bool collision = inCollision_(dofVals, collisionStructs);
-    if (collision) {
-        for (auto collisionStruct : collisionStructs) {
+    if (collision)
+    {
+        for (auto collisionStruct : collisionStructs)
+        {
             distsAtSteps.push_back(collisionStruct.signedDist);
         }
     }
     return distsAtSteps;
 }
 
-sco::VarVector ompl::base::JacobianDiscreteCollisionEvaluator::getVars() {
+sco::VarVector ompl::base::JacobianDiscreteCollisionEvaluator::getVars()
+{
     return vars_;
 }
 
 ompl::base::JacobianContinuousCollisionEvaluator::JacobianContinuousCollisionEvaluator(
-        WorkspaceContinuousCollisionFn inCollision, StateSpacePtr ss, JacobianFn J, sco::VarVector vars0, sco::VarVector vars1) :
-    JacobianCollisionEvaluator(J), inCollision_(inCollision), ss_(ss), vars0_(vars0), vars1_(vars1)
-{}
+    WorkspaceContinuousCollisionFn inCollision, StateSpacePtr ss, JacobianFn J, sco::VarVector vars0,
+    sco::VarVector vars1)
+  : JacobianCollisionEvaluator(J), inCollision_(inCollision), ss_(ss), vars0_(vars0), vars1_(vars1)
+{
+}
 
-std::vector<sco::AffExpr> ompl::base::JacobianContinuousCollisionEvaluator::calcDistanceExpressions(std::vector<double> x) {
-    std::vector<double> x_0 = sco::getDblVec(x, vars0_); // configuration at first time
-    std::vector<double> x_1 = sco::getDblVec(x, vars1_); // configuration at the second time
+std::vector<sco::AffExpr>
+ompl::base::JacobianContinuousCollisionEvaluator::calcDistanceExpressions(std::vector<double> x)
+{
+    std::vector<double> x_0 = sco::getDblVec(x, vars0_);  // configuration at first time
+    std::vector<double> x_1 = sco::getDblVec(x, vars1_);  // configuration at the second time
     std::vector<sco::AffExpr> exprs;
 
     // Fields to be filled in by inCollision.
     std::vector<ContinuousCollisionInfo> collisionStructs;
-    if (inCollision_(x_0, x_1, collisionStructs)) {
-        for (auto collisionStruct : collisionStructs) {
+    if (inCollision_(x_0, x_1, collisionStructs))
+    {
+        for (auto collisionStruct : collisionStructs)
+        {
             // sd(var0, var1) = sd(x_0, x_1) + alpha * normal^T * J_p0(x_0) * (vars0 - x_0) ...
             //                  + (1 - alpha) * normal^T * J_p1(x_1) * (vars1 - x_1)
             Eigen::MatrixXd j0 = J_(collisionStruct.getTimeOne(), 0);
@@ -160,7 +180,8 @@ std::vector<sco::AffExpr> ompl::base::JacobianContinuousCollisionEvaluator::calc
     return exprs;
 }
 
-std::vector<double> ompl::base::JacobianContinuousCollisionEvaluator::calcDistances(std::vector<double> x) {
+std::vector<double> ompl::base::JacobianContinuousCollisionEvaluator::calcDistances(std::vector<double> x)
+{
     std::vector<double> dof0 = sco::getDblVec(x, vars0_);
     std::vector<double> dof1 = sco::getDblVec(x, vars1_);
     std::vector<double> distsAtSteps;
@@ -168,15 +189,18 @@ std::vector<double> ompl::base::JacobianContinuousCollisionEvaluator::calcDistan
     std::vector<ContinuousCollisionInfo> collisionStructs;
 
     bool collision = inCollision_(dof0, dof1, collisionStructs);
-    if (collision) {
-        for (auto collisionStruct : collisionStructs) {
+    if (collision)
+    {
+        for (auto collisionStruct : collisionStructs)
+        {
             distsAtSteps.push_back(collisionStruct.signedDist);
         }
     }
     return distsAtSteps;
 }
 
-sco::VarVector ompl::base::JacobianContinuousCollisionEvaluator::getVars() {
+sco::VarVector ompl::base::JacobianContinuousCollisionEvaluator::getVars()
+{
     // What a waste of memory, find a better solution for this.
     std::vector<sco::Var> allVars;
     allVars.insert(allVars.begin(), vars1_.begin(), vars1_.begin());

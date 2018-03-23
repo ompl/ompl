@@ -52,11 +52,15 @@ namespace ompl
         class ConvexifiableConstraint : public ConvexifiableOptimization
         {
         public:
-            ConvexifiableConstraint(const SpaceInformationPtr &si) : ConvexifiableOptimization(si) {}
+            ConvexifiableConstraint(const SpaceInformationPtr &si) : ConvexifiableOptimization(si)
+            {
+            }
 
-            void addToProblem(sco::OptProbPtr problem) {
+            void addToProblem(sco::OptProbPtr problem)
+            {
                 std::vector<sco::ConstraintPtr> constraints = toConstraint(problem);
-                for (sco::ConstraintPtr constraint : constraints) {
+                for (sco::ConstraintPtr constraint : constraints)
+                {
                     problem->addConstraint(constraint);
                 }
             }

@@ -39,24 +39,25 @@
 
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/trajopt/modeling.h"
-#include "ompl/trajopt/typedefs.h"
 #include "ompl/trajopt/solver_interface.h"
+#include "ompl/trajopt/typedefs.h"
 
 namespace ompl
 {
     namespace geometric
     {
-
         OMPL_CLASS_FORWARD(OmplOptProb);
 
         class OmplOptProb : public sco::OptProb
         {
         public:
             // TODO: do we need this constructor?
-            OmplOptProb() {}
+            OmplOptProb()
+            {
+            }
             OmplOptProb(int nSteps, ompl::base::SpaceInformationPtr &si);
 
-            void SetInitTraj(const sco::TrajArray& x)
+            void SetInitTraj(const sco::TrajArray &x)
             {
                 init_traj_ = x;
                 initTrajIsSet = true;
@@ -77,11 +78,13 @@ namespace ompl
                 return traj_vars_;
             }
 
-            sco::VarVector GetVarRow(int i) {
+            sco::VarVector GetVarRow(int i)
+            {
                 return traj_vars_.row(i);
             }
 
-            sco::Var& GetVar(int i, int j) {
+            sco::Var &GetVar(int i, int j)
+            {
                 return traj_vars_.at(i, j);
             }
 

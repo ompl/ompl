@@ -1,24 +1,23 @@
 /* Authors: John Schulman, Bryce Willey */
-#include <cmath>
 #include <Eigen/Core>
+#include <cmath>
 
 #include "ompl/base/objectives/JointDistanceObjective.h"
+#include "ompl/geometric/planners/trajopt/OmplOptProb.h"
 #include "ompl/trajopt/expr_ops.h"
 #include "ompl/trajopt/utils.h"
-#include "ompl/geometric/planners/trajopt/OmplOptProb.h"
 
 /**
  * Takes the difference of each row from the previous row.
  */
-static Eigen::MatrixXd diffPrevRow(const Eigen::MatrixXd& in)
+static Eigen::MatrixXd diffPrevRow(const Eigen::MatrixXd &in)
 {
     // Subtracts rows 0:(end-1) from 1:end-1
     // 2nd arg to `middleRows` is a count, NOT the last index.
     return in.middleRows(1, in.rows() - 1) - in.middleRows(0, in.rows() - 1);
 }
 
-ompl::base::JointDistCost::JointDistCost(const sco::VarArray& vars) :
-    vars_(vars)
+ompl::base::JointDistCost::JointDistCost(const sco::VarArray &vars) : vars_(vars)
 {
     // TODO: coefficients?
     for (int i = 0; i < vars.rows() - 1; i++)
@@ -27,20 +26,20 @@ ompl::base::JointDistCost::JointDistCost(const sco::VarArray& vars) :
         {
             sco::AffExpr vel;
             sco::exprInc(vel, sco::exprMult(vars(i, j), -1));
-            sco::exprInc(vel, vars(i+1, j));
+            sco::exprInc(vel, vars(i + 1, j));
             sco::exprInc(expr_, sco::exprSquare(vel));
         }
     }
 }
 
-sco::ConvexObjectivePtr ompl::base::JointDistCost::convex(const std::vector<double>& x, sco::Model* model)
+sco::ConvexObjectivePtr ompl::base::JointDistCost::convex(const std::vector<double> &x, sco::Model *model)
 {
     sco::ConvexObjectivePtr out(new sco::ConvexObjective(model));
     out->addQuadExpr(expr_);
     return out;
 }
 
-double ompl::base::JointDistCost::value(const std::vector<double>& xvec)
+double ompl::base::JointDistCost::value(const std::vector<double> &xvec)
 {
     Eigen::MatrixXd traj = sco::getTraj(xvec, vars_);
     return (diffPrevRow(traj).array().square().matrix()).sum();
@@ -62,9 +61,10 @@ double ompl::base::JointDistCost::value(const std::vector<double>& xvec)
  * OMPL Side of Joint Velocity Objectives.
  ****************************************/
 
-ompl::base::JointDistanceObjective::JointDistanceObjective(const ompl::base::SpaceInformationPtr &si) :
-    ConvexifiableObjective(si)
-{}
+ompl::base::JointDistanceObjective::JointDistanceObjective(const ompl::base::SpaceInformationPtr &si)
+  : ConvexifiableObjective(si)
+{
+}
 
 ompl::base::Cost ompl::base::JointDistanceObjective::stateCost(const State *s) const
 {
@@ -82,9 +82,9 @@ ompl::base::Cost ompl::base::JointDistanceObjective::motionCost(const State *s1,
     for (size_t i = 0; i < si_->getStateDimension(); i++)
     {
         double dist = state2[i] - state1[i];
-        cost += (dist * dist); 
+        cost += (dist * dist);
     }
-    return Cost(cost); // Cost(pow(si_->distance(s1, s2), 2));
+    return Cost(cost);  // Cost(pow(si_->distance(s1, s2), 2));
 }
 
 sco::CostPtr ompl::base::JointDistanceObjective::toCost(sco::OptProbPtr problem)

@@ -37,40 +37,42 @@
 #include <chrono>
 #include <thread>
 
-#include "ompl/geometric/planners/trajopt/TrajOpt.h"
-#include "ompl/base/goals/GoalState.h"
-#include "ompl/base/goals/GoalLazySamples.h"
-#include "ompl/base/spaces/SE2StateSpace.h"
-#include "ompl/base/objectives/ConvexifiableOptimization.h"
 #include "ompl/base/PlannerTerminationCondition.h"
+#include "ompl/base/goals/GoalLazySamples.h"
+#include "ompl/base/goals/GoalState.h"
+#include "ompl/base/objectives/ConvexifiableOptimization.h"
+#include "ompl/base/spaces/SE2StateSpace.h"
+#include "ompl/geometric/planners/trajopt/TrajOpt.h"
 
-#include "ompl/trajopt/typedefs.h"
 #include "ompl/trajopt/expr_ops.h"
-#include "ompl/trajopt/solver_interface.h"
 #include "ompl/trajopt/optimizers.h"
+#include "ompl/trajopt/solver_interface.h"
+#include "ompl/trajopt/typedefs.h"
 #include "ompl/trajopt/utils.h"
 
 #include "ompl/util/Console.h"
 
-ompl::geometric::TrajOpt::TrajOpt(const ompl::base::SpaceInformationPtr &si)
-  : base::Planner(si, "TrajOpt") {
-    callback_ = [this](sco::OptProb *prob, std::vector<double>& x) {
-        //plotCallback(x);
+ompl::geometric::TrajOpt::TrajOpt(const ompl::base::SpaceInformationPtr &si) : base::Planner(si, "TrajOpt")
+{
+    callback_ = [this](sco::OptProb *prob, std::vector<double> &x) {
+        // plotCallback(x);
     };
 
-    Planner::declareParam<int>("time_step_count", this, 
-            &TrajOpt::setTimeStepCount, &TrajOpt::getTimeStepCount, "5:1:200");
-    Planner::declareParam<int>("max_iterations", this,
-            &TrajOpt::setMaxIterations, &TrajOpt::getMaxIterations);
-    Planner::declareParam<double>("initial_penalty_coef", this,
-            &TrajOpt::setInitialPenaltyCoef, &TrajOpt::getInitialPenaltyCoef);
-    Planner::declareParam<double>("min_approx_improve_fraction", this,
-            &TrajOpt::setMinApproxImproveFraction, &TrajOpt::getMinApproxImproveFraction);
+    Planner::declareParam<int>("time_step_count", this, &TrajOpt::setTimeStepCount, &TrajOpt::getTimeStepCount, "5:1:"
+                                                                                                                "200");
+    Planner::declareParam<int>("max_iterations", this, &TrajOpt::setMaxIterations, &TrajOpt::getMaxIterations);
+    Planner::declareParam<double>("initial_penalty_coef", this, &TrajOpt::setInitialPenaltyCoef,
+                                  &TrajOpt::getInitialPenaltyCoef);
+    Planner::declareParam<double>("min_approx_improve_fraction", this, &TrajOpt::setMinApproxImproveFraction,
+                                  &TrajOpt::getMinApproxImproveFraction);
 }
 
-ompl::geometric::TrajOpt::~TrajOpt() {}
+ompl::geometric::TrajOpt::~TrajOpt()
+{
+}
 
-void ompl::geometric::TrajOpt::clear() {
+void ompl::geometric::TrajOpt::clear()
+{
     Planner::clear();
     pis_.restart();
     sqpOptimizer = nullptr;
@@ -83,9 +85,9 @@ void ompl::geometric::TrajOpt::setup()
     problem_ = std::make_shared<OmplOptProb>(nSteps_, si_);
 }
 
-void ompl::geometric::TrajOpt::setOptimizerCallback(std::function<void(sco::OptProb*, std::vector<double>&)> callback)
+void ompl::geometric::TrajOpt::setOptimizerCallback(std::function<void(sco::OptProb *, std::vector<double> &)> callback)
 {
-    callback_ = callback;    
+    callback_ = callback;
 }
 
 ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
@@ -109,17 +111,20 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
         OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
-    if (!goalRegion->canSample()) {
-        //TODO
+    if (!goalRegion->canSample())
+    {
+        // TODO
         OMPL_ERROR("TODO?");
     }
 
     pis_.update();
     const ompl::base::State *start = pis_.nextStart();
     const ompl::base::State *goal = pis_.nextGoal(ompl::base::timedPlannerTerminationCondition(1.0));
-    if (goal == nullptr) {
-        goal = pis_.nextGoal(); // try again
-        if (goal == nullptr) {
+    if (goal == nullptr)
+    {
+        goal = pis_.nextGoal();  // try again
+        if (goal == nullptr)
+        {
             OMPL_ERROR("Goal is null? %p", goal);
         }
     }
@@ -133,18 +138,21 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
     ss->copyToReals(startVec, start);
     ss->copyToReals(endVec, goal);
 
-    for (int i = 0; i < dof; i++) {
-        problem_->addLinearConstraint(sco::exprSub(
-                sco::AffExpr(problem_->traj_vars_(0, i)), startVec[i]), sco::EQ);
-        problem_->addLinearConstraint(sco::exprSub(
-                sco::AffExpr(problem_->traj_vars_(nSteps_ - 1, i)), endVec[i]), sco::EQ);
+    for (int i = 0; i < dof; i++)
+    {
+        problem_->addLinearConstraint(sco::exprSub(sco::AffExpr(problem_->traj_vars_(0, i)), startVec[i]), sco::EQ);
+        problem_->addLinearConstraint(sco::exprSub(sco::AffExpr(problem_->traj_vars_(nSteps_ - 1, i)), endVec[i]),
+                                      sco::EQ);
     }
 
-    if (!problem_->InitTrajIsSet()) {
+    if (!problem_->InitTrajIsSet())
+    {
         OMPL_WARN("Initial trajectory wasn't set, starting with straight line interpolation.");
         sco::TrajArray ta(nSteps_, dof);
-        for (size_t i = 0; i < nSteps_; i++) {
-            for (int j = 0; j < dof; j++) {
+        for (size_t i = 0; i < nSteps_; i++)
+        {
+            for (int j = 0; j < dof; j++)
+            {
                 ta(i, j) = startVec[j] + (endVec[j] - startVec[j]) * i / (nSteps_ - 1);
             }
         }
@@ -164,9 +172,8 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
     }
 
     // Grab the problem definition to get the Optmization objectives.
-    static_cast<ompl::base::ConvexifiableOptimization *>(
-            pdef_->getOptimizationObjective().get()
-    )->addToProblem(problem_);
+    static_cast<ompl::base::ConvexifiableOptimization *>(pdef_->getOptimizationObjective().get())
+        ->addToProblem(problem_);
 
     // Finally, initialize the SQP/Model with all of the variables and costs/constraints.
     sqpOptimizer = new sco::BasicTrustRegionSQP(problem_);
@@ -208,22 +215,23 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::optimize(const ompl::base::P
 {
     sqpOptimizer->optimize();
     sco::OptResults &results = sqpOptimizer->results();
-    switch(results.status) {
-        case sco::OPT_CONVERGED: {
+    switch (results.status)
+    {
+        case sco::OPT_CONVERGED:
+        {
             plotCallback(results.x);
             sco::TrajArray ta = sco::getTraj(results.x, problem_->GetVars());
             ompl::base::PlannerSolution solution(trajFromTraj2Ompl(ta));
             ompl::geometric::PathGeometric *path = solution.path_->as<PathGeometric>();
-            for (size_t i = 0; i < path->getStates().size() - 1; i++) 
+            for (size_t i = 0; i < path->getStates().size() - 1; i++)
             {
                 if (!si_->checkMotion(path->getState(i), path->getState(i + 1)))
                 {
                     OMPL_WARN("TrajOpt optimized all the way, but final solution still collides");
-                    //return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION);
+                    // return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION);
                 }
-            }     
-            solution.setOptimized(pdef_->getOptimizationObjective(),
-                                  ompl::base::Cost(results.total_cost), true);
+            }
+            solution.setOptimized(pdef_->getOptimizationObjective(), ompl::base::Cost(results.total_cost), true);
             pdef_->addSolutionPath(solution);
             return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION);
             break;
@@ -236,7 +244,8 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::optimize(const ompl::base::P
             {
                 OMPL_WARN("Wasn't able to find a path with %d waypoint. Trying again with double.", nSteps_);
                 nSteps_ = nSteps_ * 2;
-                auto lastPath = trajFromTraj2Ompl(trajopt::getTraj(results.x, problem_->GetVars()))->as<PathGeometric>();
+                auto lastPath = trajFromTraj2Ompl(trajopt::getTraj(results.x,
+            problem_->GetVars()))->as<PathGeometric>();
                 setInitialTrajectory(*lastPath);
                 constructOptProblem();
                 return optimize(ptc);
@@ -247,10 +256,9 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::optimize(const ompl::base::P
 
                 // TODO(brycew): Eventually, tag as approximate path, because we still need to see
                 // the final path.
-                //return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::TIMEOUT);
+                // return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::TIMEOUT);
                 ompl::base::PlannerSolution solution(trajFromTraj2Ompl(sco::getTraj(results.x, problem_->GetVars())));
-                solution.setOptimized(pdef_->getOptimizationObjective(),
-                                      ompl::base::Cost(results.total_cost), true);
+                solution.setOptimized(pdef_->getOptimizationObjective(), ompl::base::Cost(results.total_cost), true);
                 pdef_->addSolutionPath(solution);
                 return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION);
             }
@@ -267,18 +275,22 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::optimize(const ompl::base::P
     return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::UNKNOWN);
 }
 
-void ompl::geometric::TrajOpt::plotCallback(std::vector<double>& x) {
+void ompl::geometric::TrajOpt::plotCallback(std::vector<double> &x)
+{
     int dof = si_->getStateDimension();
     int steps = x.size() / dof;
-    for (int i = 0; i < steps; i++) {
-        //fprintf(fd, "%f %f\n", x[i * dof + 0], x[i * dof + 1]);
+    for (int i = 0; i < steps; i++)
+    {
+        // fprintf(fd, "%f %f\n", x[i * dof + 0], x[i * dof + 1]);
     }
-    //fprintf(fd, "\n");
+    // fprintf(fd, "\n");
 }
-void ompl::geometric::TrajOpt::setInitialTrajectory(ompl::geometric::PathGeometric inPath) {
+void ompl::geometric::TrajOpt::setInitialTrajectory(ompl::geometric::PathGeometric inPath)
+{
     OMPL_WARN("Setting the initial trajectory");
     size_t states = inPath.getStateCount();
-    if (states > nSteps_) {
+    if (states > nSteps_)
+    {
         OMPL_ERROR("Input path has %d states, but trajopt is only working with %d waypoints!", states, nSteps_);
         return;
     }
@@ -294,17 +306,20 @@ sco::TrajArray ompl::geometric::TrajOpt::trajFromOmpl2Traj(ompl::geometric::Path
 {
     int dof = si_->getStateDimension();
     size_t states = inPath.getStateCount();
-    if (states < nSteps_) {
+    if (states < nSteps_)
+    {
         inPath.interpolate(nSteps_);
     }
     auto ss = si_->getStateSpace();
 
     sco::TrajArray ta(nSteps_, dof);
-    for (size_t i = 0; i < nSteps_; i++) {
+    for (size_t i = 0; i < nSteps_; i++)
+    {
         const ompl::base::State *state = inPath.getState(i);
         std::vector<double> startVec(dof);
         ss->copyToReals(startVec, state);
-        for (int j = 0; j < dof; j++) {
+        for (int j = 0; j < dof; j++)
+        {
             ta(i, j) = startVec[j];
         }
     }
@@ -312,14 +327,17 @@ sco::TrajArray ompl::geometric::TrajOpt::trajFromOmpl2Traj(ompl::geometric::Path
     return ta;
 }
 
-std::shared_ptr<ompl::geometric::PathGeometric> ompl::geometric::TrajOpt::trajFromTraj2Ompl(sco::TrajArray traj) {
+std::shared_ptr<ompl::geometric::PathGeometric> ompl::geometric::TrajOpt::trajFromTraj2Ompl(sco::TrajArray traj)
+{
     auto path(std::make_shared<ompl::geometric::PathGeometric>(si_));
     int dof = si_->getStateDimension();
     ompl::base::StateSpacePtr ss = si_->getStateSpace();
     // t is timestep.
-    for (int t = 0; t < traj.rows(); t++) {
+    for (int t = 0; t < traj.rows(); t++)
+    {
         std::vector<double> stateVec(dof);
-        for (int i = 0; i < dof; i++) {
+        for (int i = 0; i < dof; i++)
+        {
             stateVec[i] = traj(t, i);
         }
         ompl::base::State *s = si_->allocState();
