@@ -108,23 +108,25 @@ ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr &sp
     setDelta(magic::CONSTRAINED_STATE_SPACE_DELTA);
 }
 
-void ompl::base::ConstrainedStateSpace::sanityChecks() const
+void ompl::base::ConstrainedStateSpace::constrainedSanityChecks(unsigned int flags) const
 {
     State *s1 = allocState();
     State *s2 = allocState();
     StateSamplerPtr ss = allocStateSampler();
 
     bool isTraversable = false;
-    bool badGeodesics = false;
+    bool satisfyGeodesics = false;
+    bool continuityGeodesics = false;
     bool badSamplers = false;
 
-    for (unsigned int i = 0; i < ompl::magic::TEST_STATE_COUNT && !badGeodesics; ++i)
+    for (unsigned int i = 0; i < ompl::magic::TEST_STATE_COUNT; ++i)
     {
         ss->sampleUniform(s1);
         ss->sampleUniformNear(s2, s1, 10 * delta_);
 
         // Check that samplers are returning constraint satisfying samples.
-        badSamplers |= !constraint_->isSatisfied(s1) || !constraint_->isSatisfied(s2);
+        if (flags & CONSTRAINED_STATESPACE_SAMPLERS)
+            badSamplers |= !constraint_->isSatisfied(s1) || !constraint_->isSatisfied(s2);
 
         std::vector<State *> geodesic;
         // Make sure that the manifold is traversable at least once.
@@ -134,11 +136,12 @@ void ompl::base::ConstrainedStateSpace::sanityChecks() const
             for (auto s : geodesic)
             {
                 // Make sure geodesics contain only constraint satisfying states.
-                badGeodesics |= !constraint_->isSatisfied(s);
+                if (flags & CONSTRAINED_STATESPACE_GEODESIC_SATISFY)
+                    satisfyGeodesics |= !constraint_->isSatisfied(s);
 
                 // Make sure geodesics have some continuity.
-                if (prev != nullptr)
-                    badGeodesics |= distance(prev, s) > lambda_ * delta_;
+                if (flags & CONSTRAINED_STATESPACE_GEODESIC_CONTINUITY && prev != nullptr)
+                    continuityGeodesics |= distance(prev, s) > lambda_ * delta_;
 
                 prev = s;
             }
@@ -146,6 +149,15 @@ void ompl::base::ConstrainedStateSpace::sanityChecks() const
             for (auto s : geodesic)
                 freeState(s);
         }
+
+        if (satisfyGeodesics)
+            throw Exception("Discrete geodesic computation generates invalid states.");
+
+        if (continuityGeodesics)
+            throw Exception("Discrete geodesic computation generates non-continuous states.");
+
+        if (badSamplers)
+            throw Exception("Constraint-aware samplers generate invalid states.");
     }
 
     freeState(s1);
@@ -153,12 +165,11 @@ void ompl::base::ConstrainedStateSpace::sanityChecks() const
 
     if (!isTraversable)
         throw Exception("Unable to compute discrete geodesic on constraint.");
+}
 
-    if (badGeodesics)
-        throw Exception("Discrete geodesic computation generates invalid states.");
-
-    if (badSamplers)
-        throw Exception("Constraint-aware samplers generate invalid states.");
+void ompl::base::ConstrainedStateSpace::sanityChecks() const
+{
+    constrainedSanityChecks(~0);
 
     double zero = std::numeric_limits<double>::epsilon();
     double eps = std::numeric_limits<double>::epsilon();

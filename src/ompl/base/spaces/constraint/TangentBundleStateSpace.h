@@ -85,6 +85,10 @@ namespace ompl
         public:
             TangentBundleStateSpace(const StateSpacePtr &ambientSpace, const ConstraintPtr &constraint);
 
+            /** \brief Do sanity checks, minus geodesic constraint
+             * satisfiability (as this is a lazy method). */
+            void sanityChecks() const override;
+
             /** \brief Traverse the manifold from \a from toward \a to. Returns
              * true if we reached \a to, and false if we stopped early for any
              * reason, such as a collision or traveling too far. No collision

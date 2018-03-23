@@ -57,6 +57,18 @@ ompl::base::TangentBundleStateSpace::TangentBundleStateSpace(const StateSpacePtr
     });
 }
 
+void ompl::base::TangentBundleStateSpace::sanityChecks() const
+{
+    constrainedSanityChecks(CONSTRAINED_STATESPACE_GEODESIC_CONTINUITY | CONSTRAINED_STATESPACE_SAMPLERS);
+
+    double zero = std::numeric_limits<double>::epsilon();
+    double eps = std::numeric_limits<double>::epsilon();
+    unsigned int flags = STATESPACE_DISTANCE_DIFFERENT_STATES | STATESPACE_DISTANCE_SYMMETRIC |
+                         STATESPACE_DISTANCE_BOUND | STATESPACE_RESPECT_BOUNDS | STATESPACE_ENFORCE_BOUNDS_NO_OP;
+
+    StateSpace::sanityChecks(zero, eps, flags);
+}
+
 bool ompl::base::TangentBundleStateSpace::discreteGeodesic(const State *from, const State *to, bool interpolate,
                                                            std::vector<State *> *geodesic) const
 {

@@ -131,6 +131,20 @@ namespace ompl
         class ConstrainedStateSpace : public WrapperStateSpace
         {
         public:
+            /** \brief Flags used in a bit mask for constrained state space
+             * sanity checks, constraintSanityChecks(). */
+            enum SanityChecks
+            {
+                /** \brief Check whether state samplers return constraint satisfying samples. */
+                CONSTRAINED_STATESPACE_SAMPLERS = (1 << 1),
+
+                /** \brief Check whether discrete geodesics satisfy the constraint at all points. */
+                CONSTRAINED_STATESPACE_GEODESIC_SATISFY = (1 << 2),
+
+                /** \brief Check whether discrete geodesics keep lambda_ * delta_ continuity. */
+                CONSTRAINED_STATESPACE_GEODESIC_CONTINUITY = (1 << 3)
+            };
+
             /** \brief A state in a constrained configuration space that can be
              * represented as a dense real vector of values. */
             class StateType : public WrapperStateSpace::StateType, public Eigen::Map<Eigen::VectorXd>
@@ -176,6 +190,11 @@ namespace ompl
             /** \brief Allocate a new state in this space. */
             State *allocState() const override;
 
+            /** \brief Do some sanity checks relating to discrete geodesic
+            computation and constraint satisfaction. See SanityChecks flags. */
+            void constrainedSanityChecks(unsigned int flags) const;
+
+            /** \brief Perform both constrained and regular sanity checks. */
             void sanityChecks() const override;
 
             /** @name Constrained Planning
