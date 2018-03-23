@@ -52,7 +52,7 @@ namespace ompl
         class JointDistCost : public sco::Cost
         {
         public:
-            JointDistCost(const trajopt::VarArray& traj);
+            JointDistCost(const sco::VarArray& traj);
             /**
              * Turns this cost into a convex cost.
              */
@@ -63,7 +63,7 @@ namespace ompl
              */
             double value(const std::vector<double>&);
         private:
-            trajopt::VarArray vars_;
+            sco::VarArray vars_;
             sco::QuadExpr expr_;
         };
 
@@ -87,13 +87,13 @@ namespace ompl
         class JointAccelCost : public sco::Cost
         {
         public:
-            JointAccelCost(const trajopt::VarArray& traj);
+            JointAccelCost(const sco::VarArray& traj);
 
             sco::ConvexObjectivePtr convex(const std::vector<double>&x, sco::Model* model);
 
             double value(const std::vector<double>&);
         private:
-            trajopt::VarArray vars_;
+            sco::VarArray vars_;
             sco::QuadExpr expr_;
         };
 

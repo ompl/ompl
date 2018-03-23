@@ -44,11 +44,11 @@ namespace ompl
     namespace base
     {
         /** \brief An optimization objective that can be used as either an equality constraint or
-            an inequality constraint. When added to the SQP Model (addToModel), it will add itself
-            as a constraint,and willbe multiplied by the penalty cost over each iteration of the
-            L1-penalty algorithm (see @TrajOptPlanner).
-            TODO: add the references in this description.
-        */
+         *  an inequality constraint. When added to the Sequential Quadratic Program Model
+         *  (addToModel), it will add itself as a constraint,and will be multiplied by the
+         *  penalty cost over each iteration of the L1-penalty algorithm (see @TrajOptPlanner).
+         *  TODO: add the references in this description.
+         */
         class ConvexifiableConstraint : public ConvexifiableOptimization
         {
         public:

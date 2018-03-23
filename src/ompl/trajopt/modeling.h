@@ -15,9 +15,9 @@ namespace sco {
 using std::vector;
 
 /**
-Stores convex terms in a objective
-For non-quadratic terms like hinge(x) and abs(x), it needs to add auxilliary variables and linear constraints to the model
-Note: When this object is deleted, the constraints and variables it added to the model are removed
+ * Stores convex terms in a objective
+ * For non-quadratic terms like hinge(x) and abs(x), it needs to add auxilliary variables and linear constraints to the model
+ * Note: When this object is deleted, the constraints and variables it added to the model are removed
  */
 class ConvexObjective {
 public:
@@ -55,9 +55,9 @@ private:
 };
 
 /**
-Stores convex inequality constraints and affine equality constraints.
-Actually only affine inequality constraints are currently implemented.
-*/
+ * Stores convex inequality constraints and affine equality constraints.
+ * Actually only affine inequality constraints are currently implemented.
+ */
 class ConvexConstraints {
 public:
   ConvexConstraints(Model* model) : model_(model) {}
@@ -89,8 +89,8 @@ private:
 };
 
 /**
-Non-convex cost function, which knows how to calculate its convex approximation (convexify() method)
-*/
+ * Non-convex cost function, which knows how to calculate its convex approximation (convexify() method)
+ */
 class Cost {
 public:
   /** Evaluate at solution vector x*/
@@ -110,8 +110,8 @@ protected:
 };
 
 /**
-Non-convex vector-valued constraint function, which knows how to calculate its convex approximation
-*/
+ * Non-convex vector-valued constraint function, which knows how to calculate its convex approximation
+ */
 class Constraint {
 public:
 
@@ -150,8 +150,8 @@ public:
 };
 
 /**
-Non-convex optimization problem
-*/
+ * Non-convex optimization problem
+ */
 class OptProb {
 public:
   OptProb();

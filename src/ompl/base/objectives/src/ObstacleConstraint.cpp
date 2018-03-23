@@ -143,7 +143,7 @@ ompl::base::Cost ompl::base::ObstacleConstraint::stateCost(const State *s) const
     std::vector<double> state;
     si_->getStateSpace()->copyToReals(state, s);
     std::vector<sco::Var> fake_variables;
-    for (int i = 0; i < si_->getStateDimension() * 2; i++)
+    for (size_t i = 0; i < si_->getStateDimension() * 2; i++)
     {
         std::stringstream ss;
         ss << i;
@@ -170,7 +170,6 @@ ompl::base::Cost ompl::base::ObstacleConstraint::stateCost(const State *s) const
 
 ompl::base::Cost ompl::base::ObstacleConstraint::motionCost(const State *s1, const State *s2) const
 {
-    // TODO: make this continious. TrajOpt isn't at the moment, but they detail how to (convex hulls.)
     // Make a list of fake variables.
     if (continuous_)
     {
@@ -180,7 +179,7 @@ ompl::base::Cost ompl::base::ObstacleConstraint::motionCost(const State *s1, con
         both_states.insert(both_states.end(), state2.begin(), state2.end());
         std::vector<sco::Var> fake_variables_0;
         std::vector<sco::Var> fake_variables_1;
-        for (int i = 0; i < si_->getStateDimension() * 2; i++)
+        for (size_t i = 0; i < si_->getStateDimension() * 2; i++)
         {
             std::stringstream ss;
             ss << i;

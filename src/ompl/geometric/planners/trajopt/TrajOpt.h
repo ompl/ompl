@@ -125,8 +125,8 @@ namespace ompl
             void setInitialTrajectory(ompl::geometric::PathGeometric inPath);
 
         protected:
-            std::shared_ptr<ompl::geometric::PathGeometric> trajFromTraj2Ompl(trajopt::TrajArray traj);
-            trajopt::TrajArray trajFromOmpl2Traj(ompl::geometric::PathGeometric path);
+            std::shared_ptr<ompl::geometric::PathGeometric> trajFromTraj2Ompl(sco::TrajArray traj);
+            sco::TrajArray trajFromOmpl2Traj(ompl::geometric::PathGeometric path);
 
             ompl::base::PlannerStatus constructOptProblem();
 

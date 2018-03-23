@@ -80,6 +80,13 @@ public:
   virtual ~Model() {}
 };
 
+/**
+ * \brief A variable representation in an optimization problem:
+ * index: the number of variable this is. The optimization problem state is commonly 
+ *        stored as a vector of doubles, this is used as the index into that vector.
+ * name: arbitrary human understandable name for the variable.
+ * creator: used to determine that the same optimization instance made this variable.
+ */
 struct VarRep {
   VarRep(int _index, const string& _name, void* _creator) : index(_index), name(_name), removed(false), creator(_creator) {}
   int index;
@@ -88,6 +95,7 @@ struct VarRep {
   void* creator;
 };
 
+// A variable in an optimization problem (actual info is in VarRep).
 struct Var {
   VarRep* var_rep;
   Var() : var_rep(NULL) {}
@@ -106,7 +114,7 @@ struct CntRep {
   string expr; // todo placeholder
 };
 
-// Constraint?
+// Constraint
 struct Cnt {
   CntRep* cnt_rep;
   Cnt(): cnt_rep(NULL) {}

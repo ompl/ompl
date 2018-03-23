@@ -6,7 +6,7 @@
 
 using namespace Eigen;
 
-namespace trajopt {
+namespace sco {
 
 TrajArray getTraj(const DblVec& x, const VarArray& vars) {
   TrajArray out(vars.rows(), vars.cols());

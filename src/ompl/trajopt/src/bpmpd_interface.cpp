@@ -4,7 +4,6 @@
 #include <signal.h>
 
 #include "ompl/trajopt/bpmpd_interface.h"
-#include "ompl/trajopt/logging.h"
 #include "ompl/trajopt/stl_to_string.h"
 #include "ompl/trajopt/expr_ops.h"
 #include "ompl/trajopt/bpmpd_io.h"
@@ -303,7 +302,7 @@ void BPMPDModel::removeCnts(const vector<Cnt>& cnts) {
 void BPMPDModel::update() {
   {
   int inew = 0;
-  for (int iold=0; iold < m_vars.size(); ++iold) {
+  for (size_t iold=0; iold < m_vars.size(); ++iold) {
     const Var& var = m_vars[iold];
     if (!var.var_rep->removed) {
       m_vars[inew] = var;
@@ -320,7 +319,7 @@ void BPMPDModel::update() {
   }
   {
   int inew = 0;
-  for (int iold = 0; iold < m_cnts.size(); ++iold) {
+  for (size_t iold = 0; iold < m_cnts.size(); ++iold) {
     const Cnt& cnt = m_cnts[iold];
     if (!cnt.cnt_rep->removed) {
       m_cnts[inew] = cnt;
@@ -338,15 +337,15 @@ void BPMPDModel::update() {
 }
 
 void BPMPDModel::setVarBounds(const vector<Var>& vars, const vector<double>& lower, const vector<double>& upper) {
-  for (int i=0; i < vars.size(); ++i) {
+  for (size_t i=0; i < vars.size(); ++i) {
     int varind = vars[i].var_rep->index;
     m_lbs[varind] = lower[i];
     m_ubs[varind] = upper[i];
   }
 }
-vector<double> BPMPDModel::getVarValues(const VarVector& vars) const {
-  vector<double> out(vars.size());
-  for (int i=0; i < vars.size(); ++i) {
+std::vector<double> BPMPDModel::getVarValues(const VarVector& vars) const {
+  std::vector<double> out(vars.size());
+  for (size_t i=0; i < vars.size(); ++i) {
     int varind = vars[i].var_rep->index;
     out[i] = m_soln[varind];
   }
@@ -368,8 +367,8 @@ CvxOptStatus BPMPDModel::optimize() {
   size_t n = m_vars.size();
   size_t m = m_cnts.size();
 
-  vector<int> acolcnt(n), acolidx, qcolcnt(n), qcolidx, status(m+n);
-  vector<double> acolnzs, qcolnzs, rhs(m), obj(n,0), lbound(m+n), ubound(m+n), primal(m+n), dual(m+n);
+  std::vector<int> acolcnt(n), acolidx, qcolcnt(n), qcolidx, status(m+n);
+  std::vector<double> acolnzs, qcolnzs, rhs(m), obj(n,0), lbound(m+n), ubound(m+n), primal(m+n), dual(m+n);
 
   DBG(m_lbs);
   DBG(m_ubs);
@@ -396,7 +395,7 @@ CvxOptStatus BPMPDModel::optimize() {
 
   }
 
-  for (int iVar=0; iVar < n; ++iVar) {
+  for (size_t iVar=0; iVar < n; ++iVar) {
     simplify2(var2cntinds[iVar], var2cntvals[iVar]);
     acolcnt[iVar] = var2cntinds[iVar].size();
     acolidx.insert(acolidx.end(), var2cntinds[iVar].begin(), var2cntinds[iVar].end());
@@ -435,7 +434,7 @@ CvxOptStatus BPMPDModel::optimize() {
     obj[m_objective.affexpr.vars[i].var_rep->index] += m_objective.affexpr.coeffs[i];
   }
 
-#define VECINC(vec) for (int i=0; i < vec.size(); ++i) ++vec[i];
+#define VECINC(vec) for (size_t i=0; i < vec.size(); ++i) ++vec[i];
   VECINC(acolidx);
   VECINC(qcolidx);
 #undef VECINC

@@ -45,20 +45,19 @@ namespace ompl
     namespace base
     {
         /** \brief An optimization objective that can be turned into an analytical convex
-            approximation.
-
-            In the context of a non-convex optimization problem:
-              minimize f(x)
-              subject to
-                g_i(x) <= 0
-                h_i(x) = 0
-
-            This optimization can function either as a cost (f(x) above), or as a constraint (g(x)
-            and h(x) above), either an equality constraint or an inequality constraint.
-
-            Subclasses handle the differences between a cost or a constraint.
-        */
-
+         *  approximation.
+         *
+         *  In the context of the non-convex optimization problem:
+         *    minimize f(x)
+         *    subject to
+         *       g_i(x) <= 0
+         *      h_i(x) = 0
+         *
+         *  This optimization can function either as a cost (f(x) above), or as a constraint, 
+         *  either an equality constraint (h(x)) or an inequality constraint (g(x)).
+         *
+         *  Subclasses handle the differences between a cost or a constraint.
+         */
         OMPL_CLASS_FORWARD(ConvexifiableOptimization);
 
         class ConvexifiableOptimization : public OptimizationObjective

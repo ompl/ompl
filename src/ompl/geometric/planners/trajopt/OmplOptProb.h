@@ -56,7 +56,7 @@ namespace ompl
             OmplOptProb() {}
             OmplOptProb(int nSteps, ompl::base::SpaceInformationPtr &si);
 
-            void SetInitTraj(const trajopt::TrajArray& x)
+            void SetInitTraj(const sco::TrajArray& x)
             {
                 init_traj_ = x;
                 initTrajIsSet = true;
@@ -67,12 +67,12 @@ namespace ompl
                 return initTrajIsSet;
             }
 
-            trajopt::TrajArray GetInitTraj()
+            sco::TrajArray GetInitTraj()
             {
                 return init_traj_;
             }
 
-            trajopt::VarArray GetVars()
+            sco::VarArray GetVars()
             {
                 return traj_vars_;
             }
@@ -85,12 +85,12 @@ namespace ompl
                 return traj_vars_.at(i, j);
             }
 
-            trajopt::VarArray traj_vars_;
+            sco::VarArray traj_vars_;
 
         private:
             bool initTrajIsSet = false;
             ompl::base::SpaceInformationPtr si_;
-            trajopt::TrajArray init_traj_;
+            sco::TrajArray init_traj_;
         };
     }
 }

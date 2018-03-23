@@ -1,7 +1,6 @@
 #include <cmath>
 #include "ompl/trajopt/expr_ops.h"
-
-static inline double sq(double x) {return x*x;}
+#include "ompl/trajopt/sco_common.h"
 
 namespace sco {
 QuadExpr exprSquare(const Var& a) {

@@ -44,9 +44,9 @@ namespace ompl
     namespace base
     {
         /** \brief An optimization objective. When added to the SQP Model (addToModel), it will add
-            itself as a cost.
-            TODO: add the references in this description.
-        */
+         *  itself as a cost.
+         *  TODO: add the references in this description.
+         */
         class ConvexifiableObjective : public ConvexifiableOptimization
         {
         public:

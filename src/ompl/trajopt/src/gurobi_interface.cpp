@@ -5,9 +5,9 @@
 #include <stdexcept>
 #include <utility>
 
+#include "ompl/util/Console.h"
 #include "ompl/trajopt/solver_interface.h"
 #include "ompl/trajopt/gurobi_interface.h"
-#include "ompl/trajopt/logging.h"
 extern "C" {
 #include "gurobi_c.h"
 }
@@ -74,10 +74,9 @@ ModelPtr createGurobiModel() {
 }
 
 GurobiModel::GurobiModel() {
-  fprintf(stderr, "Creating a Gurobi Model\n");
   if (!gEnv) {
     GRBloadenv(&gEnv, NULL);
-    if (util::GetLogLevel() < util::LevelDebug) {
+    if (ompl::msg::getLogLevel() < ompl::msg::LogLevel::LOG_DEBUG) {
       ENSURE_SUCCESS(GRBsetintparam(gEnv, "OutputFlag",0));
     }
   }
@@ -98,7 +97,7 @@ Var GurobiModel::addVar(const string& name, double lb, double ub) {
 
 
 Cnt GurobiModel::addEqCnt(const AffExpr& expr, const string& name) {
-  LOG_TRACE("adding eq constraint: %s = 0", CSTR(expr));
+  OMPL_DEVMSG2("adding eq constraint: %s = 0", CSTR(expr));
   vector<int> inds = vars2inds(expr.vars);
   vector<double> vals = expr.coeffs;
   simplify2(inds, vals);
@@ -108,7 +107,7 @@ Cnt GurobiModel::addEqCnt(const AffExpr& expr, const string& name) {
   return m_cnts.back();
 }
 Cnt GurobiModel::addIneqCnt(const AffExpr& expr, const string& name) {
-  LOG_TRACE("adding ineq: %s <= 0", CSTR(expr));
+  OMPL_DEVMSG2("adding ineq: %s <= 0", CSTR(expr));
   vector<int> inds = vars2inds(expr.vars);
   vector<double> vals = expr.coeffs;
   simplify2(inds, vals);
@@ -139,13 +138,13 @@ void resetIndices(vector<Cnt>& cnts) {
 void GurobiModel::removeVars(const vector<Var>& vars) {
   vector<int>inds = vars2inds(vars);
   ENSURE_SUCCESS(GRBdelvars(m_model, inds.size(), inds.data()));
-  for (int i=0; i < vars.size(); ++i) vars[i].var_rep->removed = true;
+  for (size_t i=0; i < vars.size(); ++i) vars[i].var_rep->removed = true;
 }
 
 void GurobiModel::removeCnts(const vector<Cnt>& cnts) {
   vector<int>inds = cnts2inds(cnts);
   ENSURE_SUCCESS(GRBdelconstrs(m_model, inds.size(), inds.data()));
-  for (int i=0; i < cnts.size(); ++i) cnts[i].cnt_rep->removed = true;
+  for (size_t i=0; i < cnts.size(); ++i) cnts[i].cnt_rep->removed = true;
 }
 
 #if 0
@@ -187,7 +186,7 @@ CvxOptStatus GurobiModel::optimize(){
   GRBgetintattr(m_model, GRB_INT_ATTR_STATUS, &status);
   if (status == GRB_OPTIMAL) {
     double objval; GRBgetdblattr(m_model, GRB_DBL_ATTR_OBJVAL, &objval);
-    LOG_DEBUG("solver objective value: %.3e", objval);
+    OMPL_DEBUG("solver objective value: %.3e", objval);
     return CVX_SOLVED;
   }
   else if (status == GRB_INFEASIBLE) {

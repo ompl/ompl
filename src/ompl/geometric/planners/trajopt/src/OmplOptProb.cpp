@@ -95,5 +95,5 @@ ompl::geometric::OmplOptProb::OmplOptProb(int nSteps, ompl::base::SpaceInformati
         }
     }
     sco::VarVector trajvarvec = createVariables(names, vlower, vupper);
-    traj_vars_ = trajopt::VarArray(nSteps, dof, trajvarvec.data());
+    traj_vars_ = sco::VarArray(nSteps, dof, trajvarvec.data());
 }

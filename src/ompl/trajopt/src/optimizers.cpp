@@ -2,13 +2,11 @@
 
 #include <cmath>
 #include <cstdio>
-#include <boost/foreach.hpp>
 #include <boost/format.hpp>
 
 #include "ompl/util/Console.h"
 #include "ompl/trajopt/optimizers.h"
 #include "ompl/trajopt/modeling.h"
-#include "ompl/trajopt/logging.h"
 #include "ompl/trajopt/solver_interface.h"
 #include "ompl/trajopt/expr_ops.h"
 #include "ompl/trajopt/sco_common.h"
@@ -40,7 +38,6 @@ static DblVec evaluateCosts(vector<CostPtr>& costs, const DblVec& x) {
   DblVec out(costs.size());
   for (size_t i=0; i < costs.size(); ++i) {
     out[i] = costs[i]->value(x);
-    //OMPL_DEBUG("cost %d (%s): %f", i, costs[i]->name().c_str(), out[i]);
   }
   return out;
 }
@@ -48,7 +45,6 @@ static DblVec evaluateConstraintViols(vector<ConstraintPtr>& constraints, const 
     DblVec out(constraints.size());
     for (size_t i=0; i < constraints.size(); ++i) {
       out[i] = constraints[i]->violation(x);
-      //OMPL_DEBUG("constraint %d (%s): %f", i, constraints[i]->name().c_str(), out[i]);
     }
     return out;
 }
@@ -71,7 +67,6 @@ DblVec evaluateModelCosts(vector<ConvexObjectivePtr>& costs, const DblVec& x) {
   DblVec out(costs.size());
   for (size_t i=0; i < costs.size(); ++i) {
     out[i] = costs[i]->value(x);
-    OMPL_DEBUG("model cost %d: %f", i, out[i]);
   }
   return out;
 }
@@ -79,7 +74,6 @@ DblVec evaluateModelCntViols(vector<ConvexConstraintsPtr>& cnts, const DblVec& x
   DblVec out(cnts.size());
   for (size_t i=0; i < cnts.size(); ++i) {
     out[i] = cnts[i]->violation(x);
-    //OMPL_DEBUG("model constraint %d: %f", i, out[i]);
   }
   return out;
 }
@@ -121,15 +115,15 @@ void printCostInfo(const vector<double>& old_cost_vals, const vector<double>& mo
 
 }
 
-// todo: use different coeffs for each constraint
+// TODO: use different coeffs for each constraint
 vector<ConvexObjectivePtr> cntsToCosts(const vector<ConvexConstraintsPtr>& cnts, double err_coeff, Model* model) {
   vector<ConvexObjectivePtr> out;
-  BOOST_FOREACH(const ConvexConstraintsPtr& cnt, cnts) {
+  for (const ConvexConstraintsPtr& cnt : cnts) {
     ConvexObjectivePtr obj(new ConvexObjective(model));
-    BOOST_FOREACH(const AffExpr& aff, cnt->eqs_) {
+    for (const AffExpr& aff : cnt->eqs_) {
       obj->addAbs(aff, err_coeff);
     }
-    BOOST_FOREACH(const AffExpr& aff, cnt->ineqs_) {
+    for (const AffExpr& aff : cnt->ineqs_) {
       obj->addHinge(aff, err_coeff);
     }
     out.push_back(obj);
@@ -162,7 +156,7 @@ BasicTrustRegionSQP::BasicTrustRegionSQP(OptProbPtr prob) {
   setProblem(prob);
 }
 
-// TODO: All these are initialized in hpp, get rid of this function.
+// TODO(brycew): All these should be initialized in hpp, get rid of this function.
 void BasicTrustRegionSQP::initParameters() {
     improve_ratio_threshold_ = .25;
     minTrustBoxSize_ = 1e-4;
@@ -222,8 +216,7 @@ OptStatus BasicTrustRegionSQP::optimize() {
     for (int iter = 1; ; ++iter) { /* sqp loop */
       callCallbacks(x_);
 
-      //OMPL_DEVMSG1("current iterate: %s", CSTR(x_));
-      OMPL_DEBUG("iteration %i", iter);
+      //OMPL_DEBUG("iteration %i", iter);
 
       // speedup: if you just evaluated the cost when doing the line search, use that
       if (results_.cost_vals.empty() && results_.cnt_viols.empty()) { //only happens on the first iteration
@@ -237,8 +230,12 @@ OptStatus BasicTrustRegionSQP::optimize() {
       std::vector<ConvexConstraintsPtr> cnt_models = convexifyConstraints(constraints, x_, model_.get());
       std::vector<ConvexObjectivePtr> cnt_cost_models = cntsToCosts(cnt_models, merit_error_coeff_, model_.get());
       model_->update();
-      BOOST_FOREACH(ConvexObjectivePtr& cost, cost_models)cost->addConstraintsToModel();
-      BOOST_FOREACH(ConvexObjectivePtr& cost, cnt_cost_models)cost->addConstraintsToModel();
+      for (ConvexObjectivePtr& cost : cost_models) {
+        cost->addConstraintsToModel();
+      }
+      for (ConvexObjectivePtr& cost : cnt_cost_models) {
+        cost->addConstraintsToModel();
+      }
       model_->update();
       QuadExpr objective;
       for (auto co : cost_models) {
@@ -285,8 +282,8 @@ OptStatus BasicTrustRegionSQP::optimize() {
         //for (size_t i= 0; i < x_.size(); i++) {
         //    printf("%15s | % 12.8f | % 12.8f | % 12.8f | % 12.8f\n", CSTR(prob_->getVars()[i]), x_[i], old_model_var_vals[i], new_x[i], x_[i] - new_x[i]);
         //}
-
-        if (GetLogLevel() >= util::LevelDebug) {
+ 
+        if (ompl::msg::getLogLevel() >= ompl::msg::LogLevel::LOG_DEBUG) {
           DblVec cnt_costs1 = evaluateModelCosts(cnt_cost_models, model_var_vals);
           DblVec cnt_costs2 = model_cnt_viols;
           for (size_t i=0; i < cnt_costs2.size(); ++i) cnt_costs2[i] *= merit_error_coeff_;
@@ -306,27 +303,8 @@ OptStatus BasicTrustRegionSQP::optimize() {
         double exact_merit_improve = old_merit - new_merit;
         double merit_improve_ratio = exact_merit_improve / approx_merit_improve;
  
-        /*
-        printf("old_merit:  %f, model_merit: %f, old model_merit: %f, new_merit: %f, approx_merit_improve: %f\n"
-               "model cost: %f, model_cnt_violation: %f, merit_error_coeff_: %f\n"
-               "old model : %f, old_model_cnt_viols: %f, merit_error_coeff_: %f\n"
-               "old cost:   %f,   old_cnt_violation: %f, merit_error_coeff_: %f\n"
-               "new cost:   %f,   new_cnt_violation: %f, merit_error_coeff_: %f\n",
-               old_merit, model_merit, old_model_merit, new_merit, approx_merit_improve,
-               vecSum(model_cost_vals), vecSum(model_cnt_viols), merit_error_coeff_,
-               vecSum(old_model_cost_vals), vecSum(old_model_cnt_viols), merit_error_coeff_,
-               vecSum(results_.cost_vals), vecSum(results_.cnt_viols), merit_error_coeff_,
-               vecSum(new_cost_vals), vecSum(new_cnt_viols), merit_error_coeff_);
-        std::cout << "model cost: "; for (auto x : model_cost_vals) std::cout << x << ", "; std::cout << std::endl;
-        std::cout << "model cnt : "; for (auto x : model_cnt_viols) std::cout << x << ", "; std::cout << std::endl;
-        std::cout << "new cost  : "; for (auto x : new_cost_vals) std::cout << x << ", "; std::cout << std::endl;
-        std::cout << "new cnt   : "; for (auto x : new_cnt_viols) std::cout << x << ", "; std::cout << std::endl;
-        std::cout << "old cost  : "; for (auto x : results_.cost_vals) std::cout << x << ", "; std::cout << std::endl;
-        std::cout << "old cnt   : "; for (auto x : results_.cnt_viols) std::cout << x << ", "; std::cout << std::endl;
-        */
-
         // Commented out because it's annoying, but still need INFO level debugging.
-        //if (util::GetLogLevel() >= util::LevelInfo) {
+        //if (ompl::msg::getLogLevel() >= ompl::msg::LogLevel::LOG_INFO) {
           //LOG_INFO(" ");
           //printCostInfo(results_.cost_vals, model_cost_vals, new_cost_vals,
           //              results_.cnt_viols, model_cnt_viols, new_cnt_viols, cost_names,

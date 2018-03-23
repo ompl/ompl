@@ -5,6 +5,7 @@
 #include <sstream>
 #include <map>
 #include <set>
+
 namespace util {
 
 using std::string;
@@ -61,4 +62,4 @@ std::string Str(const typename std::map<K,V>& x) {
   return ss.str();
 }
 
-}
+} // namespace util

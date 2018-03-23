@@ -17,7 +17,6 @@ file(GLOB_RECURSE OMPL_SOURCE_CODE
     geometric/*.cpp
     control/*.cpp
     tools/*.cpp
-    #trajopt/*.cpp
 )
 
 ####### TRAJOPT Specific stuff ##############
@@ -29,12 +28,9 @@ set(SCO_SOURCE_FILES
     ${TRAJOPT_SOURCE_DIR}/solver_interface.cpp
     ${TRAJOPT_SOURCE_DIR}/modeling.cpp
     ${TRAJOPT_SOURCE_DIR}/expr_ops.cpp
-    ${TRAJOPT_SOURCE_DIR}/expr_vec_ops.cpp
-    ${TRAJOPT_SOURCE_DIR}/logging.cpp
     ${TRAJOPT_SOURCE_DIR}/optimizers.cpp
     ${TRAJOPT_SOURCE_DIR}/modeling_utils.cpp
     ${TRAJOPT_SOURCE_DIR}/num_diff.cpp
-    ${TRAJOPT_SOURCE_DIR}/stl_to_string.cpp
     ${TRAJOPT_SOURCE_DIR}/utils.cpp
 )
 

@@ -54,11 +54,6 @@
 
 ompl::geometric::TrajOpt::TrajOpt(const ompl::base::SpaceInformationPtr &si)
   : base::Planner(si, "TrajOpt") {
-    // Make tmp file for the path at each iteration.
-    //fd = fopen("/tmp/tmpfile.txt", "w");
-    //auto fileLog = new ompl::msg::OutputHandlerFile("/tmp/IHateThis.log");
-    //ompl::msg::useOutputHandler(fileLog);
-    //ompl::msg::setLogLevel(ompl::msg::LogLevel::LOG_DEV2);
     callback_ = [this](sco::OptProb *prob, std::vector<double>& x) {
         //plotCallback(x);
     };
@@ -73,10 +68,7 @@ ompl::geometric::TrajOpt::TrajOpt(const ompl::base::SpaceInformationPtr &si)
             &TrajOpt::setMinApproxImproveFraction, &TrajOpt::getMinApproxImproveFraction);
 }
 
-// TODO: write
-ompl::geometric::TrajOpt::~TrajOpt() {
-    //fclose(fd);
-}
+ompl::geometric::TrajOpt::~TrajOpt() {}
 
 void ompl::geometric::TrajOpt::clear() {
     Planner::clear();
@@ -150,7 +142,7 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
 
     if (!problem_->InitTrajIsSet()) {
         OMPL_WARN("Initial trajectory wasn't set, starting with straight line interpolation.");
-        trajopt::TrajArray ta(nSteps_, dof);
+        sco::TrajArray ta(nSteps_, dof);
         for (size_t i = 0; i < nSteps_; i++) {
             for (int j = 0; j < dof; j++) {
                 ta(i, j) = startVec[j] + (endVec[j] - startVec[j]) * i / (nSteps_ - 1);
@@ -183,7 +175,7 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::constructOptProblem()
     sqpOptimizer->minApproxImproveFrac_ = minApproxImproveFrac_;
     sqpOptimizer->improve_ratio_threshold_ = 0.2;
     sqpOptimizer->merit_error_coeff_ = initPenaltyCoef_;
-    sqpOptimizer->initialize(trajopt::trajToDblVec(problem_->GetInitTraj()));
+    sqpOptimizer->initialize(sco::trajToDblVec(problem_->GetInitTraj()));
     sqpOptimizer->addCallback(callback_);
 
     return base::PlannerStatus::EXACT_SOLUTION;
@@ -219,7 +211,7 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::optimize(const ompl::base::P
     switch(results.status) {
         case sco::OPT_CONVERGED: {
             plotCallback(results.x);
-            trajopt::TrajArray ta = trajopt::getTraj(results.x, problem_->GetVars());
+            sco::TrajArray ta = sco::getTraj(results.x, problem_->GetVars());
             ompl::base::PlannerSolution solution(trajFromTraj2Ompl(ta));
             ompl::geometric::PathGeometric *path = solution.path_->as<PathGeometric>();
             for (size_t i = 0; i < path->getStates().size() - 1; i++) 
@@ -239,6 +231,7 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::optimize(const ompl::base::P
 
         case sco::OPT_SCO_ITERATION_LIMIT:
         case sco::OPT_PENALTY_ITERATION_LIMIT:
+            // TODO(brycew): had segfaults when restarting TrajOpt with more waypoints, fix this.
             /*if (nSteps_ < 200)
             {
                 OMPL_WARN("Wasn't able to find a path with %d waypoint. Trying again with double.", nSteps_);
@@ -251,10 +244,11 @@ ompl::base::PlannerStatus ompl::geometric::TrajOpt::optimize(const ompl::base::P
             else*/
             {
                 OMPL_WARN("Maxed out at nSteps_ == %d", nSteps_);
+
+                // TODO(brycew): Eventually, tag as approximate path, because we still need to see
+                // the final path.
                 //return ompl::base::PlannerStatus(ompl::base::PlannerStatus::StatusType::TIMEOUT);
-                
-                // Not really, but need to see wrong plans to figure out what's wrong.
-                ompl::base::PlannerSolution solution(trajFromTraj2Ompl(trajopt::getTraj(results.x, problem_->GetVars())));
+                ompl::base::PlannerSolution solution(trajFromTraj2Ompl(sco::getTraj(results.x, problem_->GetVars())));
                 solution.setOptimized(pdef_->getOptimizationObjective(),
                                       ompl::base::Cost(results.total_cost), true);
                 pdef_->addSolutionPath(solution);
@@ -296,7 +290,7 @@ void ompl::geometric::TrajOpt::setInitialTrajectory(ompl::geometric::PathGeometr
     problem_->SetInitTraj(trajFromOmpl2Traj(inPath));
 }
 
-trajopt::TrajArray ompl::geometric::TrajOpt::trajFromOmpl2Traj(ompl::geometric::PathGeometric inPath)
+sco::TrajArray ompl::geometric::TrajOpt::trajFromOmpl2Traj(ompl::geometric::PathGeometric inPath)
 {
     int dof = si_->getStateDimension();
     size_t states = inPath.getStateCount();
@@ -305,7 +299,7 @@ trajopt::TrajArray ompl::geometric::TrajOpt::trajFromOmpl2Traj(ompl::geometric::
     }
     auto ss = si_->getStateSpace();
 
-    trajopt::TrajArray ta(nSteps_, dof);
+    sco::TrajArray ta(nSteps_, dof);
     for (size_t i = 0; i < nSteps_; i++) {
         const ompl::base::State *state = inPath.getState(i);
         std::vector<double> startVec(dof);
@@ -318,7 +312,7 @@ trajopt::TrajArray ompl::geometric::TrajOpt::trajFromOmpl2Traj(ompl::geometric::
     return ta;
 }
 
-std::shared_ptr<ompl::geometric::PathGeometric> ompl::geometric::TrajOpt::trajFromTraj2Ompl(trajopt::TrajArray traj) {
+std::shared_ptr<ompl::geometric::PathGeometric> ompl::geometric::TrajOpt::trajFromTraj2Ompl(sco::TrajArray traj) {
     auto path(std::make_shared<ompl::geometric::PathGeometric>(si_));
     int dof = si_->getStateDimension();
     ompl::base::StateSpacePtr ss = si_->getStateSpace();

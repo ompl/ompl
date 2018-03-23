@@ -8,7 +8,7 @@
 #include "ompl/trajopt/basic_array.h"
 #include "ompl/trajopt/macros.h"
 
-namespace trajopt {
+namespace sco {
 
 using std::vector;
 using std::map;

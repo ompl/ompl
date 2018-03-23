@@ -3,10 +3,13 @@
 
 namespace sco {
 
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
-
-AffExpr varDot(const VectorXd& x, const VarVector& v);
-AffExpr exprDot(const VectorXd& x, const AffExprVector& v);
-
+AffExpr varDot(const Eigen::VectorXd& x, const VarVector& v)
+{
+  AffExpr out;
+  out.constant = 0;
+  out.vars = v;
+  out.coeffs = std::vector<double>(x.data(), x.data() + x.size());
+  return out;
 }
+
+} // namespace sco

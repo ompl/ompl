@@ -17,7 +17,7 @@ static Eigen::MatrixXd diffPrevRow(const Eigen::MatrixXd& in)
     return in.middleRows(1, in.rows() - 1) - in.middleRows(0, in.rows() - 1);
 }
 
-ompl::base::JointDistCost::JointDistCost(const trajopt::VarArray& vars) :
+ompl::base::JointDistCost::JointDistCost(const sco::VarArray& vars) :
     vars_(vars)
 {
     // TODO: coefficients?
@@ -42,7 +42,7 @@ sco::ConvexObjectivePtr ompl::base::JointDistCost::convex(const std::vector<doub
 
 double ompl::base::JointDistCost::value(const std::vector<double>& xvec)
 {
-    Eigen::MatrixXd traj = trajopt::getTraj(xvec, vars_);
+    Eigen::MatrixXd traj = sco::getTraj(xvec, vars_);
     return (diffPrevRow(traj).array().square().matrix()).sum();
 }
 
@@ -79,7 +79,7 @@ ompl::base::Cost ompl::base::JointDistanceObjective::motionCost(const State *s1,
     si_->getStateSpace()->copyToReals(state1, s1);
     si_->getStateSpace()->copyToReals(state2, s2);
     double cost = 0.0;
-    for (int i = 0; i < si_->getStateDimension(); i++)
+    for (size_t i = 0; i < si_->getStateDimension(); i++)
     {
         double dist = state2[i] - state1[i];
         cost += (dist * dist); 

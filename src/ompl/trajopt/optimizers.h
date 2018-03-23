@@ -9,9 +9,6 @@
  */
 namespace sco {
 
-using std::string;
-using std::vector;
-
 enum OptStatus {
   OPT_CONVERGED,
   OPT_SCO_ITERATION_LIMIT, // hit iteration limit before convergence
@@ -27,17 +24,17 @@ static const char* OptStatus_strings[]  = {
   "INVALID"
 };
 
-inline string statusToString(OptStatus status) {
+inline std::string statusToString(OptStatus status) {
   return OptStatus_strings[status];
 }
 
 
 struct OptResults {
-  DblVec x; // solution estimate
+  std::vector<double> x; // solution estimate
   OptStatus status;
   double total_cost;
-  vector<double> cost_vals;
-  DblVec cnt_viols;
+  std::vector<double> cost_vals;
+  std::vector<double> cnt_viols;
   int n_func_evals, n_qp_solves;
   void clear() {
     x.clear();
@@ -59,16 +56,16 @@ public:
   virtual OptStatus optimize() = 0;
   virtual ~Optimizer() {}
   virtual void setProblem(OptProbPtr prob) {prob_ = prob;}
-  void initialize(const vector<double>& x);
+  void initialize(const std::vector<double>& x);
   vector<double>& x() {return results_.x;}
   OptResults& results() {return results_;}
 
-  typedef std::function<void(OptProb*, DblVec&)> Callback;
+  typedef std::function<void(OptProb*, std::vector<double>&)> Callback;
   void addCallback(const Callback& f); // called before each iteration
 
 protected:
   vector<Callback> callbacks_;
-  void callCallbacks(DblVec& x);
+  void callCallbacks(std::vector<double>& x);
   OptProbPtr prob_;
   OptResults results_;
 };
@@ -109,9 +106,9 @@ public:
   OptStatus optimize();
 protected:
   void adjustTrustRegion(double ratio);
-  void setTrustBoxConstraints(const vector<double>& x);
+  void setTrustBoxConstraints(const std::vector<double>& x);
   void initParameters();
-  OptStatus cleanup(OptStatus retval, DblVec& x_);
+  OptStatus cleanup(OptStatus retval, std::vector<double>& x_);
   ModelPtr model_;
 };
 
