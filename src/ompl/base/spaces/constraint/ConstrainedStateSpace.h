@@ -50,9 +50,8 @@ namespace ompl
 {
     namespace magic
     {
-        /** \brief Default resolution for which to evaluate underlying
-         * constraint manifold. */
         static const double CONSTRAINED_STATE_SPACE_DELTA = 0.05;
+        static const double CONSTRAINED_STATE_SPACE_LAMBDA = 3.0;
     }
 
     namespace base
@@ -177,12 +176,7 @@ namespace ompl
             /** \brief Allocate a new state in this space. */
             State *allocState() const override;
 
-            void sanityChecks() const override
-            {
-                double zero = std::numeric_limits<double>::epsilon();
-                double eps = std::numeric_limits<double>::epsilon();
-                StateSpace::sanityChecks(zero, eps, ~STATESPACE_INTERPOLATION);
-            }
+            void sanityChecks() const override;
 
             /** @name Constrained Planning
                 @{ */
@@ -223,10 +217,29 @@ namespace ompl
              * ompl::magic::CONSTRAINED_STATE_SPACE_DELTA. */
             void setDelta(const double delta);
 
+            /** \brief Set \a lambda, where lambda * distance(x, y) is the
+             * maximum distance that can be accumulated while traversing the
+             * manifold from x to y before the algorithm stops. Additionally,
+             * lambda * delta is the greatest distance a point can diverge from
+             * its previous step, to preserve continuity. Must be greater than
+             * 1. */
+            void setLambda(double lambda)
+            {
+                if (lambda <= 1)
+                    throw ompl::Exception("ompl::base::AtlasStateSpace::setLambda(): "
+                                          "lambda must be > 1.");
+                lambda_ = lambda;
+            }
+
             /** \brief Get delta, the step size across the manifold. */
             double getDelta() const
             {
                 return delta_;
+            }
+
+            double getLambda() const
+            {
+                return lambda_;
             }
 
             /** \brief Returns the dimension of the ambient space. */
@@ -265,6 +278,12 @@ namespace ompl
 
             /** \brief Step size when traversing the manifold and collision checking. */
             double delta_;
+
+            /** \brief Manifold traversal from x to y is stopped if accumulated
+             * distance is greater than d(x,y) times this. Additionally, if d(x,
+             * y) is greater than lambda * delta between two points, search is
+             * discontinued. */
+            double lambda_{ompl::magic::CONSTRAINED_STATE_SPACE_LAMBDA};
 
             /** \brief Whether setup() has been called. */
             bool setup_{false};

@@ -176,6 +176,7 @@ void addPlannerOption(po::options_description &desc, std::vector<enum PLANNER_TY
 struct ConstrainedOptions
 {
     double delta;
+    double lambda;
     double tolerance;
     double time;
     unsigned int tries;
@@ -185,6 +186,7 @@ struct ConstrainedOptions
 void addConstrainedOptions(po::options_description &desc, struct ConstrainedOptions *options)
 {
     auto delta_msg = "Step-size for discrete geodesic on manifold.";
+    auto lambda_msg = "Maximum `wandering` allowed during traversal. Must be greater than 1.";
     auto tolerance_msg = "Constraint satisfaction tolerance.";
     auto time_msg = "Planning time allowed.";
     auto tries_msg = "Maximum number sample tries per sample.";
@@ -193,6 +195,8 @@ void addConstrainedOptions(po::options_description &desc, struct ConstrainedOpti
 
     desc.add_options()("delta,d", po::value<double>(&options->delta)->default_value(om::CONSTRAINED_STATE_SPACE_DELTA),
                        delta_msg);
+    desc.add_options()("lambda", po::value<double>(&options->lambda)->default_value(om::CONSTRAINED_STATE_SPACE_LAMBDA),
+                       lambda_msg);
     desc.add_options()("tolerance",
                        po::value<double>(&options->tolerance)->default_value(om::CONSTRAINT_PROJECTION_TOLERANCE),
                        tolerance_msg);
@@ -208,7 +212,6 @@ struct AtlasOptions
     double epsilon;
     double rho;
     double exploration;
-    double lambda;
     double alpha;
     bool bias;
     bool separate;
@@ -221,7 +224,6 @@ void addAtlasOptions(po::options_description &desc, struct AtlasOptions *options
     auto rho_msg = "Maximum radius for an atlas chart. Must be positive.";
     auto exploration_msg = "Value in [0, 1] which tunes balance of refinement and exploration in "
                            "atlas sampling.";
-    auto lambda_msg = "Maximum `wandering` allowed during atlas traversal. Must be greater than 1.";
     auto alpha_msg = "Maximum angle between an atlas chart and the manifold. Must be in [0, PI/2].";
     auto bias_msg = "Sets whether the atlas should use frontier-biased chart sampling rather than "
                     "uniform.";
@@ -238,8 +240,6 @@ void addAtlasOptions(po::options_description &desc, struct AtlasOptions *options
     desc.add_options()("exploration",
                        po::value<double>(&options->exploration)->default_value(om::ATLAS_STATE_SPACE_EXPLORATION),
                        exploration_msg);
-    desc.add_options()("lambda", po::value<double>(&options->lambda)->default_value(om::ATLAS_STATE_SPACE_LAMBDA),
-                       lambda_msg);
     desc.add_options()("alpha", po::value<double>(&options->alpha)->default_value(om::ATLAS_STATE_SPACE_ALPHA),
                        alpha_msg);
     desc.add_options()("bias", po::bool_switch(&options->bias)->default_value(false), bias_msg);
@@ -289,6 +289,7 @@ public:
         constraint->setMaxIterations(opt.tries);
 
         css->setDelta(opt.delta);
+        css->setLambda(opt.lambda);
     }
 
     void setAtlasOptions(struct AtlasOptions &opt)
@@ -303,7 +304,6 @@ public:
         atlas->setEpsilon(opt.epsilon);
         atlas->setRho(opt.rho);
         atlas->setAlpha(opt.alpha);
-        atlas->setLambda(opt.lambda);
         atlas->setMaxChartsPerExtension(opt.charts);
 
         if (opt.bias)
@@ -428,6 +428,9 @@ public:
     ob::PlannerStatus solveOnce(bool output = false, const std::string &name = "ompl")
     {
         ss->setup();
+
+        // csi->printProperties(std::cout);
+
         ob::PlannerStatus stat = ss->solve(c_opt.time);
         std::cout << std::endl;
 

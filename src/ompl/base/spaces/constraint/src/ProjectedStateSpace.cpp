@@ -83,9 +83,11 @@ bool ompl::base::ProjectedStateSpace::discreteGeodesic(const State *from, const 
     const double tolerance = delta_;
 
     // No need to traverse the manifold if we are already there.
-    double dist;
+    double dist, step, total = 0;
     if ((dist = distance(from, to)) <= tolerance)
         return true;
+
+    const double max = dist * lambda_;
 
     auto previous = cloneState(from);
     auto scratch = allocState();
@@ -99,7 +101,12 @@ bool ompl::base::ProjectedStateSpace::discreteGeodesic(const State *from, const 
         // Project new state onto constraint manifold
         if (!constraint_->project(scratch)                  // not on manifold
             || !(interpolate || svc->isValid(scratch))      // not valid
-            || distance(previous, scratch) > 2.0 * delta_)  // deviated
+            || (step = distance(previous, scratch)) > lambda_ * delta_)  // deviated
+            break;
+
+        // Check if we have wandered too far
+        total += step;
+        if (total > max)
             break;
 
         // Check if we are no closer than before

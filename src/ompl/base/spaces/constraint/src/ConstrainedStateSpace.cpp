@@ -107,6 +107,50 @@ ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr &sp
     setDelta(magic::CONSTRAINED_STATE_SPACE_DELTA);
 }
 
+void ompl::base::ConstrainedStateSpace::sanityChecks() const
+{
+    State *s1 = allocState();
+    State *s2 = allocState();
+    StateSamplerPtr ss = allocStateSampler();
+
+    bool isTraversable = false;
+    bool badGeodesics = false;
+    bool badSamplers = false;
+
+    for (unsigned int i = 0; i < 10 && !badGeodesics; ++i)
+    {
+        ss->sampleUniform(s1);
+        ss->sampleUniformNear(s2, s1, 10 * delta_);
+        badSamplers |= !constraint_->isSatisfied(s1) || !constraint_->isSatisfied(s2);
+
+        std::vector<State *> geodesic;
+        if ((isTraversable |= discreteGeodesic(s1, s2, true, &geodesic)))
+        {
+            for (auto s : geodesic)
+            {
+                badGeodesics |= !constraint_->isSatisfied(s);
+                freeState(s);
+            }
+        }
+    }
+
+    if (!isTraversable)
+        throw Exception("Unable to compute discrete geodesic on constraint.");
+
+    if (badGeodesics)
+        throw Exception("Discrete geodesic computation generates invalid states.");
+
+    if (badSamplers)
+        throw Exception("Constraint-aware samplers generate invalid states.");
+
+    double zero = std::numeric_limits<double>::epsilon();
+    double eps = std::numeric_limits<double>::epsilon();
+    unsigned int flags = STATESPACE_DISTANCE_DIFFERENT_STATES | STATESPACE_DISTANCE_SYMMETRIC |
+                         STATESPACE_DISTANCE_BOUND | STATESPACE_RESPECT_BOUNDS | STATESPACE_ENFORCE_BOUNDS_NO_OP;
+
+    StateSpace::sanityChecks(zero, eps, flags);
+}
+
 void ompl::base::ConstrainedStateSpace::setSpaceInformation(SpaceInformation *si)
 {
     // Check that the object is valid

@@ -53,7 +53,6 @@ namespace ompl
     namespace magic
     {
         static const double ATLAS_STATE_SPACE_EPSILON = 0.05;
-        static const double ATLAS_STATE_SPACE_LAMBDA = 3.0;
         static const double ATLAS_STATE_SPACE_RHO_MULTIPLIER = 5;
         static const double ATLAS_STATE_SPACE_ALPHA = boost::math::constants::pi<double>() / 8.0;
         static const double ATLAS_STATE_SPACE_EXPLORATION = 0.75;
@@ -246,18 +245,6 @@ namespace ompl
                 setRho(rho_);
             }
 
-            /** \brief Set \a lambda, where lambda * ||x-y|| is the maximum
-             * distance that can be accumulated while traversing the manifold
-             * from x to y before the algorithm stops. Must be greater than 1.
-             * Default 2. */
-            void setLambda(double lambda)
-            {
-                if (lambda <= 1)
-                    throw ompl::Exception("ompl::base::AtlasStateSpace::setLambda(): "
-                                          "lambda must be > 1.");
-                lambda_ = lambda;
-            }
-
             /** \brief Sometimes manifold traversal creates many charts. This
              * parameter limits the number of charts that can be created during
              * one traversal. Default 200. */
@@ -306,12 +293,6 @@ namespace ompl
             double getExploration() const
             {
                 return exploration_;
-            }
-
-            /** \brief Get lambda. */
-            double getLambda() const
-            {
-                return lambda_;
             }
 
             /** \brief Get the sampling radius. */
@@ -432,10 +413,6 @@ namespace ompl
 
             /** \brief Balance between explorationa and refinement. */
             double exploration_;
-
-            /** \brief Manifold traversal from x to y is stopped if accumulated distance is greater than d(x,y) times
-             * this. */
-            double lambda_{ompl::magic::ATLAS_STATE_SPACE_LAMBDA};
 
             /** \brief Sampling radius within a chart. Inferred from rho and exploration parameters. */
             mutable double rho_s_;
