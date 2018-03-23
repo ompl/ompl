@@ -92,22 +92,22 @@ namespace ompl
             /** \brief Traverse the manifold from \a from toward \a to. Returns
              * true if we reached \a to, and false if we stopped early for any
              * reason, such as a collision or traveling too far. No collision
-             * checking is performed if \a interpolate is true. If \a stateList
+             * checking is performed if \a interpolate is true. If \a geodesic
              * is not nullptr, the sequence of intermediates is saved to it,
              * including a copy of \a from, as well as the final state, which is
              * a copy of \a to if we reached \a to. Caller is responsible for
-             * freeing states returned in \a stateList. if \a endpoints is true,
-             * then \a from and \a to are included in stateList. */
+             * freeing states returned in \a geodesic.*/
             bool discreteGeodesic(const State *from, const State *to, bool interpolate = false,
                                   std::vector<State *> *geodesic = nullptr) const override;
 
-            /** \brief Like interpolate(...), but uses the information about
+            /** \brief Like interpolate(...), but interpolates between
              * intermediate states already supplied in \a stateList from a
-             * previous call to discreteGeodesic(..., true, \a stateList). The
-             * \a from and \a to states are the first and last elements \a
-             * stateList. As TangentBundleStateSpace employs a lazy approach to
-             * manifold traversal, additional fix-up is required to generate a
-             * state that satisfies constraints. */
+             * previous call to discreteGeodesic(..., \a geodesic). The \a from
+             * and \a to states are the first and last elements \a stateList.
+             * Returns a pointer to a state in \a geodesic. As
+             * TangentBundleStateSpace employs a lazy approach to manifold
+             * traversal, additional fix-up is required to generate a state that
+             * satisfies constraints. */
             State *geodesicInterpolate(const std::vector<State *> &geodesic, double t) const override;
 
             /** \brief Reproject a state onto the surface of the manifold. Returns true if projection was successful,

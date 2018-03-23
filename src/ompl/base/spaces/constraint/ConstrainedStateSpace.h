@@ -135,14 +135,21 @@ namespace ompl
              * sanity checks, constraintSanityChecks(). */
             enum SanityChecks
             {
-                /** \brief Check whether state samplers return constraint satisfying samples. */
+                /** \brief Check whether state samplers return constraint
+                 * satisfying samples. */
                 CONSTRAINED_STATESPACE_SAMPLERS = (1 << 1),
 
-                /** \brief Check whether discrete geodesics satisfy the constraint at all points. */
+                /** \brief Check whether discrete geodesics satisfy the
+                 * constraint at all points. */
                 CONSTRAINED_STATESPACE_GEODESIC_SATISFY = (1 << 2),
 
-                /** \brief Check whether discrete geodesics keep lambda_ * delta_ continuity. */
-                CONSTRAINED_STATESPACE_GEODESIC_CONTINUITY = (1 << 3)
+                /** \brief Check whether discrete geodesics keep lambda_ *
+                 * delta_ continuity. */
+                CONSTRAINED_STATESPACE_GEODESIC_CONTINUITY = (1 << 3),
+
+                /** \brief Check whether geodesicInterpolate(...) returns
+                 * constraint satisfying states. */
+                CONSTRAINED_STATESPACE_GEODESIC_INTERPOLATE = (1 << 4)
             };
 
             /** \brief A state in a constrained configuration space that can be
@@ -209,22 +216,21 @@ namespace ompl
             /** \brief Traverse the manifold from \a from toward \a to. Returns
              * true if we reached \a to, and false if we stopped early for any
              * reason, such as a collision or traveling too far. No collision
-             * checking is performed if \a interpolate is true. If \a stateList
+             * checking is performed if \a interpolate is true. If \a geodesic
              * is not nullptr, the sequence of intermediates is saved to it,
              * including a copy of \a from, as well as the final state, which is
              * a copy of \a to if we reached \a to. Caller is responsible for
-             * freeing states returned in \a stateList. if \a endpoints is true,
-             * then \a from and \a to are included in stateList. Needs to be
-             * implemented by any constrained state space. */
+             * freeing states returned in \a geodesic. Needs to be implemented
+             * by any constrained state space. */
             virtual bool discreteGeodesic(const State *from, const State *to, bool interpolate = false,
                                           std::vector<State *> *geodesic = nullptr) const = 0;
 
             /** \brief Like interpolate(...), but interpolates between
              * intermediate states already supplied in \a stateList from a
-             * previous call to discreteGeodesic(..., true, \a stateList). The
+             * previous call to discreteGeodesic(..., \a geodesic). The
              * \a from and \a to states are the first and last elements \a
-             * stateList. Returns a pointer to a state in \a stateList. */
-            virtual State *geodesicInterpolate(const std::vector<State *> &stateList, double t) const;
+             * stateList. Returns a pointer to a state in \a geodesic. */
+            virtual State *geodesicInterpolate(const std::vector<State *> &geodesic, double t) const;
 
             /** @} */
 

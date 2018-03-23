@@ -115,23 +115,27 @@ void ompl::base::ConstrainedStateSpace::constrainedSanityChecks(unsigned int fla
     StateSamplerPtr ss = allocStateSampler();
 
     bool isTraversable = false;
-    bool satisfyGeodesics = false;
-    bool continuityGeodesics = false;
-    bool badSamplers = false;
 
     for (unsigned int i = 0; i < ompl::magic::TEST_STATE_COUNT; ++i)
     {
+        bool satisfyGeodesics = false;
+        bool continuityGeodesics = false;
+
         ss->sampleUniform(s1);
         ss->sampleUniformNear(s2, s1, 10 * delta_);
 
         // Check that samplers are returning constraint satisfying samples.
-        if (flags & CONSTRAINED_STATESPACE_SAMPLERS)
-            badSamplers |= !constraint_->isSatisfied(s1) || !constraint_->isSatisfied(s2);
+        if (flags & CONSTRAINED_STATESPACE_SAMPLERS && (!constraint_->isSatisfied(s1) || !constraint_->isSatisfied(s2)))
+            throw Exception("Constraint-aware samplers generate invalid states.");
 
         std::vector<State *> geodesic;
         // Make sure that the manifold is traversable at least once.
         if ((isTraversable |= discreteGeodesic(s1, s2, true, &geodesic)))
         {
+            if (flags & CONSTRAINED_STATESPACE_GEODESIC_INTERPOLATE &&
+                !constraint_->isSatisfied(geodesicInterpolate(geodesic, 0.5)))
+                throw Exception("Geodesic interpolate returns unsatisfying configurations.");
+
             State *prev = nullptr;
             for (auto s : geodesic)
             {
@@ -155,9 +159,6 @@ void ompl::base::ConstrainedStateSpace::constrainedSanityChecks(unsigned int fla
 
         if (continuityGeodesics)
             throw Exception("Discrete geodesic computation generates non-continuous states.");
-
-        if (badSamplers)
-            throw Exception("Constraint-aware samplers generate invalid states.");
     }
 
     freeState(s1);

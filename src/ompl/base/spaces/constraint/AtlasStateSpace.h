@@ -361,12 +361,11 @@ namespace ompl
             /** \brief Traverse the manifold from \a from toward \a to. Returns
              * true if we reached \a to, and false if we stopped early for any
              * reason, such as a collision or traveling too far. No collision
-             * checking is performed if \a interpolate is true. If \a stateList
+             * checking is performed if \a interpolate is true. If \a geodesic
              * is not nullptr, the sequence of intermediates is saved to it,
              * including a copy of \a from, as well as the final state, which is
              * a copy of \a to if we reached \a to. Caller is responsible for
-             * freeing states returned in \a stateList. if \a endpoints is true,
-             * then \a from and \a to are included in stateList. */
+             * freeing states returned in \a geodesic.*/
             bool discreteGeodesic(const State *from, const State *to, bool interpolate = false,
                                   std::vector<State *> *geodesic = nullptr) const override;
 
