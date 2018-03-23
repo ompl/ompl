@@ -110,7 +110,7 @@ ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr &sp
 
 void ompl::base::ConstrainedStateSpace::constrainedSanityChecks(unsigned int flags) const
 {
-    State *s1 = allocState();
+    StateType *s1 = allocState()->as<StateType>();
     State *s2 = allocState();
     StateSamplerPtr ss = allocStateSampler();
 
@@ -122,6 +122,19 @@ void ompl::base::ConstrainedStateSpace::constrainedSanityChecks(unsigned int fla
         bool continuityGeodesics = false;
 
         ss->sampleUniform(s1);
+
+        // Verify that the provided Jacobian routine for the constraint is close
+        // to the numerical approximation.
+        if (flags & CONSTRAINED_STATESPACE_JACOBIAN)
+        {
+            Eigen::MatrixXd j_a(n_ - k_, n_), j_n(n_ - k_, n_);
+            constraint_->jacobian(*s1, j_a);
+            constraint_->Constraint::jacobian(*s1, j_n);
+
+            if ((j_a - j_n).norm() > constraint_->getTolerance())
+                throw Exception("Constraint Jacobian deviates from numerical approximation.");
+        }
+
         ss->sampleUniformNear(s2, s1, 10 * delta_);
 
         // Check that samplers are returning constraint satisfying samples.
@@ -132,6 +145,7 @@ void ompl::base::ConstrainedStateSpace::constrainedSanityChecks(unsigned int fla
         // Make sure that the manifold is traversable at least once.
         if ((isTraversable |= discreteGeodesic(s1, s2, true, &geodesic)))
         {
+            // Verify that geodesicInterpolate returns a constraint satisfying state.
             if (flags & CONSTRAINED_STATESPACE_GEODESIC_INTERPOLATE &&
                 !constraint_->isSatisfied(geodesicInterpolate(geodesic, 0.5)))
                 throw Exception("Geodesic interpolate returns unsatisfying configurations.");

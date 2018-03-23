@@ -149,7 +149,11 @@ namespace ompl
 
                 /** \brief Check whether geodesicInterpolate(...) returns
                  * constraint satisfying states. */
-                CONSTRAINED_STATESPACE_GEODESIC_INTERPOLATE = (1 << 4)
+                CONSTRAINED_STATESPACE_GEODESIC_INTERPOLATE = (1 << 4),
+
+                /** \brief Check if the constraint's numerical Jacobian
+                 * approximates its provided Jacobian. */
+                CONSTRAINED_STATESPACE_JACOBIAN = (1 << 5)
             };
 
             /** \brief A state in a constrained configuration space that can be
