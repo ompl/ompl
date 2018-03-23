@@ -76,7 +76,7 @@ ModelPtr createGurobiModel() {
 GurobiModel::GurobiModel() {
   if (!gEnv) {
     GRBloadenv(&gEnv, NULL);
-    if (ompl::msg::getLogLevel() < ompl::msg::LogLevel::LOG_DEBUG) {
+    if (ompl::msg::getLogLevel() > ompl::msg::LogLevel::LOG_DEV1) {
       ENSURE_SUCCESS(GRBsetintparam(gEnv, "OutputFlag",0));
     }
   }
@@ -147,30 +147,12 @@ void GurobiModel::removeCnts(const vector<Cnt>& cnts) {
   for (size_t i=0; i < cnts.size(); ++i) cnts[i].cnt_rep->removed = true;
 }
 
-#if 0
-void GurobiModel::setVarBounds(const Var& var, double lower, double upper) {
-  assert(var.var_rep->creator == this);
-  ENSURE_SUCCESS(GRBsetdblattrelement(m_model, GRB_DBL_ATTR_LB, var.var_rep->index, lower));
-  ENSURE_SUCCESS(GRBsetdblattrelement(m_model, GRB_DBL_ATTR_UB, var.var_rep->index, upper));
-}
-#endif
-
-
 void GurobiModel::setVarBounds(const VarVector& vars, const vector<double>& lower, const vector<double>& upper) {
   assert(vars.size() == lower.size() && vars.size() == upper.size());
   vector<int> inds = vars2inds(vars);
   ENSURE_SUCCESS(GRBsetdblattrlist(m_model, GRB_DBL_ATTR_LB, inds.size(), inds.data(), const_cast<double*>(lower.data())));
   ENSURE_SUCCESS(GRBsetdblattrlist(m_model, GRB_DBL_ATTR_UB, inds.size(), inds.data(), const_cast<double*>(upper.data())));
 }
-
-#if 0
-double GurobiModel::getVarValue(const Var& var) const {
-  assert(var.var_rep->creator == this);
-  double out;
-  ENSURE_SUCCESS(GRBgetdblattrelement(m_model, GRB_DBL_ATTR_X, var.var_rep->index, &out));
-  return out;
-}
-#endif
 
 vector<double> GurobiModel::getVarValues(const vector<Var>& vars) const {
   assert((vars.size() == 0) || (vars[0].var_rep->creator == this));

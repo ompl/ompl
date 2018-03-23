@@ -164,7 +164,6 @@ namespace ompl
             WorkspaceContinuousCollisionFn;
 
         struct JacobianContinuousCollisionEvaluator : public JacobianCollisionEvaluator {
-            // TODO: actually write.
             JacobianContinuousCollisionEvaluator(
                 WorkspaceContinuousCollisionFn inCollision,
                 StateSpacePtr ss,

@@ -137,6 +137,7 @@ std::vector<sco::AffExpr> ompl::base::JacobianContinuousCollisionEvaluator::calc
             sco::AffExpr dist1 = distExprOneVaries(collisionStruct.signedDist, collisionStruct.normal, j1, x_1, vars1_);
 
             double alpha;
+            // Assuming that an incorrect alpha means we have to calulate it ourselves.
             if (collisionStruct.alpha < 0 || collisionStruct.alpha > 1)
             {
                 double p1ps = (collisionStruct.p1 - collisionStruct.p_swept).norm();
@@ -163,13 +164,6 @@ std::vector<double> ompl::base::JacobianContinuousCollisionEvaluator::calcDistan
     std::vector<double> dof0 = sco::getDblVec(x, vars0_);
     std::vector<double> dof1 = sco::getDblVec(x, vars1_);
     std::vector<double> distsAtSteps;
-
-    std::vector<Eigen::Vector3d> points_swept;
-    std::vector<Eigen::Vector3d> points0;
-    std::vector<Eigen::Vector3d> points1;
-    std::vector<Eigen::Vector3d> normals;
-    std::vector<double> signedDists;
-    std::vector<std::string> link_names;
 
     std::vector<ContinuousCollisionInfo> collisionStructs;
 

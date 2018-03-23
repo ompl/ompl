@@ -283,7 +283,7 @@ OptStatus BasicTrustRegionSQP::optimize() {
         //    printf("%15s | % 12.8f | % 12.8f | % 12.8f | % 12.8f\n", CSTR(prob_->getVars()[i]), x_[i], old_model_var_vals[i], new_x[i], x_[i] - new_x[i]);
         //}
  
-        if (ompl::msg::getLogLevel() >= ompl::msg::LogLevel::LOG_DEBUG) {
+        if (ompl::msg::getLogLevel() <= ompl::msg::LogLevel::LOG_DEBUG) {
           DblVec cnt_costs1 = evaluateModelCosts(cnt_cost_models, model_var_vals);
           DblVec cnt_costs2 = model_cnt_viols;
           for (size_t i=0; i < cnt_costs2.size(); ++i) cnt_costs2[i] *= merit_error_coeff_;
@@ -304,7 +304,7 @@ OptStatus BasicTrustRegionSQP::optimize() {
         double merit_improve_ratio = exact_merit_improve / approx_merit_improve;
  
         // Commented out because it's annoying, but still need INFO level debugging.
-        //if (ompl::msg::getLogLevel() >= ompl::msg::LogLevel::LOG_INFO) {
+        //if (ompl::msg::getLogLevel() <= ompl::msg::LogLevel::LOG_INFO) {
           //LOG_INFO(" ");
           //printCostInfo(results_.cost_vals, model_cost_vals, new_cost_vals,
           //              results_.cnt_viols, model_cnt_viols, new_cnt_viols, cost_names,
