@@ -240,7 +240,7 @@ public:
             bounds.setLow(3 * i + 1, -i - 1);
             bounds.setHigh(3 * i + 1, i + 1);
 
-            bounds.setLow(3 * i + 2, 0);
+            bounds.setLow(3 * i + 2, -i - 1);
             bounds.setHigh(3 * i + 2, i + 1);
         }
 

@@ -58,7 +58,7 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
     AtlasChart *c;
 
     // Sampling a point on the manifold.
-    unsigned int tries = ompl::magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS;
+    unsigned int tries = ompl::magic::ATLAS_STATE_SPACE_SAMPLES;
     do
     {
         // Rejection sampling to find a point inside a chart's polytope.
@@ -88,6 +88,8 @@ void ompl::base::AtlasStateSampler::sampleUniform(State *state)
         atlas_->copyState(astate, c->getOrigin());
     }
 
+    space_->enforceBounds(state);
+
     // Extend polytope of neighboring chart wherever point is near the border.
     c->psiInverse(*astate, ru);
     c->borderCheck(ru);
@@ -115,7 +117,7 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
 
     // Sample a point from the starting chart.
     c->psiInverse(*anear, ru);
-    unsigned int tries = ompl::magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS;
+    unsigned int tries = ompl::magic::ATLAS_STATE_SPACE_SAMPLES;
     do
     {
         // Sample within dist
@@ -133,6 +135,8 @@ void ompl::base::AtlasStateSampler::sampleUniformNear(State *state, const State 
                   "Took too long; returning initial point.");
         atlas_->copyState(state, near);
     }
+
+    space_->enforceBounds(state);
 
     c->psiInverse(*astate, ru);
     if (!c->inPolytope(ru))
@@ -163,7 +167,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
     c->psiInverse(*amean, ru);
 
     // Sample a point in a normal distribution on the starting chart.
-    unsigned int tries = ompl::magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS;
+    unsigned int tries = ompl::magic::ATLAS_STATE_SPACE_SAMPLES;
 
     do
     {
@@ -177,6 +181,8 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
                   "Took too long; returning initial point.");
         atlas_->copyState(state, mean);
     }
+
+    space_->enforceBounds(state);
 
     c->psiInverse(*astate, ru);
     if (!c->inPolytope(ru))

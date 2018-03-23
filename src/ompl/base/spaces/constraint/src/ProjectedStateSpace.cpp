@@ -52,18 +52,21 @@ void ompl::base::ProjectedStateSampler::sampleUniform(State *state)
 {
     WrapperStateSampler::sampleUniform(state);
     constraint_->project(state);
+    space_->enforceBounds(state);
 }
 
 void ompl::base::ProjectedStateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
     WrapperStateSampler::sampleUniformNear(state, near, distance);
     constraint_->project(state);
+    space_->enforceBounds(state);
 }
 
 void ompl::base::ProjectedStateSampler::sampleGaussian(State *state, const State *mean, const double stdDev)
 {
     WrapperStateSampler::sampleGaussian(state, mean, stdDev);
     constraint_->project(state);
+    space_->enforceBounds(state);
 }
 
 /// ProjectedStateSpace

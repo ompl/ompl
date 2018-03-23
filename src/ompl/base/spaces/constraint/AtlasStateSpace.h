@@ -52,6 +52,7 @@ namespace ompl
 {
     namespace magic
     {
+        static const unsigned int ATLAS_STATE_SPACE_SAMPLES = 10;
         static const double ATLAS_STATE_SPACE_EPSILON = 0.05;
         static const double ATLAS_STATE_SPACE_RHO_MULTIPLIER = 5;
         static const double ATLAS_STATE_SPACE_ALPHA = boost::math::constants::pi<double>() / 8.0;
