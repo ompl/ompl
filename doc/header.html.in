@@ -19,7 +19,13 @@
   <![endif]-->
   <script src="search/searchdata.js"></script>
   <script src="search/search.js"></script>
-
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      extensions: ["tex2jax.js", "TeX/AMSmath.js", "TeX/AMSsymbols.js"],
+      jax: ["input/TeX","output/HTML-CSS"],
+  });
+  </script>
+  <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
 </head>
 <body>
   <nav class="navbar navbar-inverse navbar-fixed-top" id="top" role="navigation">
@@ -52,6 +58,7 @@
               <li><a href="benchmark.html">Benchmarking Planners</a></li>
               <li><a href="spaces.html">Available State Spaces</a></li>
               <li><a href="optimalPlanning.html">Optimal Planning</a></li>
+              <li><a href="constrainedPlanning.html">Constrained Planning</a></li>
               <li><a href="FAQ.html">FAQ</a></li>
               <li class="divider"></li>
               <li class="dropdown-header">External links</li>

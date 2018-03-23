@@ -168,9 +168,9 @@ void ompl::msg::OutputHandlerSTD::log(const std::string &text, LogLevel level, c
         if (isTTY)
             std::cout << LogColorString[level + 2];
         std::cout << LogLevelString[level + 2] << text << std::endl;
-        std::cout.flush();
         if (isTTY)
             std::cout << ANSI_COLOR_RESET;
+        std::cout.flush();
     }
 }
 

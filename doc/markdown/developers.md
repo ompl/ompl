@@ -20,6 +20,7 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 - Florian Hauer, Georgia Tech
 - Gil Jones, Google
 - [Sertac Karaman](http://sertac.scripts.mit.edu/web), Emilio Frazzoli's [Aerospace Robotics and Embedded Systems Laboratory](http://ares.lids.mit.edu), MIT
+- [Zachary Kingston](http://zkingston.com), Rice University
 - [Ryan Luna](http://www.ryanluna.com), Rice University (now at Google[X])
 - Matt Maly, Rice University (now at Google)
 - [James Marble](http://www.cse.unr.edu/robotics/pracsys/marble), Kostas Bekris' [Physics-aware Research for Autonomous Computational SYStems group](http://www.cse.unr.edu/robotics/pracsys), University of Nevada, Reno

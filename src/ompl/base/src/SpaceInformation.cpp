@@ -35,16 +35,17 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/base/samplers/UniformValidStateSampler.h"
+#include <cassert>
+#include <queue>
+#include <utility>
 #include "ompl/base/DiscreteMotionValidator.h"
-#include "ompl/base/spaces/ReedsSheppStateSpace.h"
+#include "ompl/base/samplers/UniformValidStateSampler.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
+#include "ompl/base/spaces/ReedsSheppStateSpace.h"
+#include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
+#include "ompl/tools/config/MagicConstants.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Time.h"
-#include "ompl/tools/config/MagicConstants.h"
-#include <queue>
-#include <cassert>
-#include <utility>
 
 ompl::base::SpaceInformation::SpaceInformation(StateSpacePtr space) : stateSpace_(std::move(space)), setup_(false)
 {
@@ -111,6 +112,8 @@ void ompl::base::SpaceInformation::setDefaultMotionValidator()
         motionValidator_ = std::make_shared<ReedsSheppMotionValidator>(this);
     else if (dynamic_cast<DubinsStateSpace *>(stateSpace_.get()))
         motionValidator_ = std::make_shared<DubinsMotionValidator>(this);
+    else if (dynamic_cast<ConstrainedStateSpace *>(stateSpace_.get()))
+        motionValidator_ = std::make_shared<ConstrainedMotionValidator>(this);
     else
         motionValidator_ = std::make_shared<DiscreteMotionValidator>(this);
 }
@@ -431,8 +434,7 @@ void ompl::base::SpaceInformation::printSettings(std::ostream &out) const
     out << "  - valid segment count factor: " << stateSpace_->getValidSegmentCountFactor() << std::endl;
     out << "  - state space:" << std::endl;
     stateSpace_->printSettings(out);
-    out << std::endl
-        << "Declared parameters:" << std::endl;
+    out << std::endl << "Declared parameters:" << std::endl;
     params_.print(out);
     ValidStateSamplerPtr vss = allocValidStateSampler();
     out << "Valid state sampler named " << vss->getName() << " with parameters:" << std::endl;

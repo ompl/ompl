@@ -36,11 +36,7 @@
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include <memory>
-#if OMPL_HAVE_EIGEN3
 #include "ompl/base/samplers/informed/PathLengthDirectInfSampler.h"
-#else
-#include "ompl/base/samplers/informed/RejectionInfSampler.h"
-#endif
 
 ompl::base::PathLengthOptimizationObjective::PathLengthOptimizationObjective(const SpaceInformationPtr &si)
   : ompl::base::OptimizationObjective(si)
@@ -72,14 +68,5 @@ ompl::base::InformedSamplerPtr ompl::base::PathLengthOptimizationObjective::allo
 {
 // Make the direct path-length informed sampler and return. If OMPL was compiled with Eigen, a direct version is
 // available, if not a rejection-based technique can be used
-#if OMPL_HAVE_EIGEN3
     return std::make_shared<PathLengthDirectInfSampler>(probDefn, maxNumberCalls);
-#else
-    throw Exception("Direct sampling of the path-length objective requires Eigen, but this version of OMPL was "
-                    "compiled without Eigen support. If possible, please install Eigen and recompile OMPL. If this is "
-                    "not possible, you can manually create an instantiation of RejectionInfSampler to approximate the "
-                    "behaviour of direct informed sampling.");
-    // Return a null pointer to avoid compiler warnings
-    return ompl::base::InformedSamplerPtr();
-#endif
 }

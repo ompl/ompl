@@ -358,9 +358,9 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount)
                 std::vector<base::State *> block;
                 unsigned int ans = si_->getMotionStates(s1, s2, block, ns, false, true);
                 // sanity checks
-                if ((int)ans != ns || block.size() != ans)
-                    throw Exception("Internal error in path interpolation. Incorrect number of intermediate states. "
-                                    "Please contact the developers.");
+                // if ((int)ans != ns || block.size() != ans)
+                //     throw Exception("Internal error in path interpolation. Incorrect number of intermediate states. "
+                //                     "Please contact the developers.");
 
                 newStates.insert(newStates.end(), block.begin(), block.end());
             }
@@ -378,9 +378,9 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount)
     // add the last state
     newStates.push_back(states_[n1]);
     states_.swap(newStates);
-    if (requestCount != states_.size())
-        throw Exception("Internal error in path interpolation. This should never happen. Please contact the "
-                        "developers.");
+    // if (requestCount != states_.size())
+    //     throw Exception("Internal error in path interpolation. This should never happen. Please contact the "
+    //                     "developers.");
 }
 
 void ompl::geometric::PathGeometric::reverse()

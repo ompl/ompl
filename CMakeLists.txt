@@ -55,7 +55,7 @@ else(IS_ICPC)
     add_definitions(-DBOOST_TEST_DYN_LINK)
 endif(IS_ICPC)
 
-find_package(Boost 1.54 COMPONENTS serialization filesystem system program_options REQUIRED)
+find_package(Boost 1.54 COMPONENTS serialization filesystem system program_options date_time REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
 # Add support in Boost::Python for std::shared_ptr
@@ -108,12 +108,9 @@ if(PYTHON_FOUND)
     endif()
 endif()
 
-# Eigen is needed for the InformedStateSampler
-find_package(Eigen3 QUIET)
-if (EIGEN3_FOUND)
-    set(OMPL_HAVE_EIGEN3 1)
-    include_directories("${EIGEN3_INCLUDE_DIR}")
-endif()
+# Eigen is needed for constrained planning, the InformedStateSampler, and VFRRT
+find_package(Eigen3 REQUIRED)
+include_directories("${EIGEN3_INCLUDE_DIR}")
 
 # MORSE is only needed for Modular OpenRobots Simulation Engine bindings
 find_package(MORSE QUIET)
@@ -139,6 +136,24 @@ if (FLANN_FOUND)
     set(OMPL_HAVE_FLANN 1)
     include_directories("${FLANN_INCLUDE_DIRS}")
     link_directories(${FLANN_LIBRARY_DIRS})
+endif()
+
+# Numpy is used to convert Eigen matrices/vectors to numpy arrays
+if(PYTHON_FOUND)
+    find_python_module(numpy)
+    if (PY_NUMPY AND NOT Boost_VERSION VERSION_LESS "106300")
+        if (PYTHON_VERSION_MAJOR EQUAL 3)
+            set(_Boost_NUMPY3_HEADERS "boost/python/numpy.hpp")
+            find_package(Boost COMPONENTS numpy3)
+            set(Boost_NUMPY_LIBRARY "${Boost_NUMPY3_LIBRARY}")
+        else()
+            find_package(Boost COMPONENTS numpy)
+        endif()
+        if(Boost_FOUND)
+            set(OMPL_HAVE_NUMPY 1)
+            include_directories("${PY_NUMPY}/core/include")
+        endif()
+    endif()
 endif()
 
 # R is needed for running Planner Arena locally

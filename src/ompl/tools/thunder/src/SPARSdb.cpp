@@ -570,8 +570,7 @@ void ompl::geometric::SPARSdb::printDebug(std::ostream &out) const
     out << "    Edges Count:    " << getNumEdges() << std::endl;
     out << "    Iterations: " << getIterations() << std::endl;
     out << "    Consecutive Failures: " << consecutiveFailures_ << std::endl;
-    out << "    Number of guards: " << nn_->size() << std::endl
-        << std::endl;
+    out << "    Number of guards: " << nn_->size() << std::endl << std::endl;
 }
 
 bool ompl::geometric::SPARSdb::getGuardSpacingFactor(const double pathLength, int &numGuards, double &spacingFactor)

@@ -196,8 +196,11 @@ class code_generator_t(object):
 
     def add_array_access(self, cls, rettype=None):
         """Add array indexing to a class."""
-        op = cls.operators("[]")
-        op.exclude()
+        try:
+            op = cls.operators("[]")
+            op.exclude()
+        except:
+            pass
         self.mb.logger.info('Adding array access to class ' + cls.decl_string)
         (reg, wrapper) = self.replacement['array_read_access']
         cls.add_registration_code(reg)

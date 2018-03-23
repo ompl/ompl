@@ -44,6 +44,11 @@
 #include "ompl/base/spaces/TimeStateSpace.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
+#if OMPL_HAVE_NUMPY
+#include "ompl/base/spaces/constraint/AtlasStateSpace.h"
+#include "ompl/base/spaces/constraint/ProjectedStateSpace.h"
+#include "ompl/base/spaces/constraint/TangentBundleStateSpace.h"
+#endif
 #include "ompl/base/Goal.h"
 #include "ompl/base/PlannerData.h"
 #include "py_std_function.hpp"
@@ -77,6 +82,13 @@ namespace ompl
         DeclareStateType(Time);
         DeclareStateType(Dubins);
         DeclareStateType(ReedsShepp);
+        DeclareStateType(Wrapper);
+#if OMPL_HAVE_NUMPY
+        DeclareStateType(Constrained);
+        DeclareStateType(Atlas);
+        DeclareStateType(Projected);
+        DeclareStateType(TangentBundle);
+#endif
 
         DeclareSpecificParamType(0, bool);
         DeclareSpecificParamType(1, char);

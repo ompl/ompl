@@ -131,6 +131,7 @@ namespace ompl
 
             /** \brief Print the path to a stream */
             void print(std::ostream &out) const override;
+
             /** \brief Print the path as a real-valued matrix where the
                 i-th row represents the i-th state along the path. Each
                 row contains the state components as returned by

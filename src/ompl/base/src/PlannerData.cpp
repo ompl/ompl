@@ -785,3 +785,66 @@ bool ompl::base::PlannerData::hasControls() const
 {
     return false;
 }
+
+void ompl::base::PlannerData::printPLY(std::ostream &out, const bool asIs) const
+{
+    const base::StateSpace *space(si_->getStateSpace().get());
+
+    unsigned int dim = space->getDimension();
+    if (dim > 3)
+        throw Exception("Cannot output mesh of path in more than 3 dimensions!");
+
+    std::vector<double> reals;
+    std::stringstream v, f;
+    std::size_t vcount = 0;
+    std::size_t fcount = 0;
+
+    auto stateOutput = [&](const ompl::base::State *state) {
+        space->copyToReals(reals, state);
+        std::copy(reals.begin(), reals.end(), std::ostream_iterator<double>(v, " "));
+        v << std::endl;
+    };
+
+    const Graph &graph = toBoostGraph();
+
+    BGL_FORALL_EDGES(edge, graph, PlannerData::Graph)
+    {
+        std::vector<ompl::base::State *> stateList;
+        const State *source = boost::get(vertex_type, graph, boost::source(edge, graph))->getState();
+        const State *target = boost::get(vertex_type, graph, boost::target(edge, graph))->getState();
+
+        unsigned int n = 0;
+        if (!asIs)
+            n = si_->getStateSpace()->validSegmentCount(source, target);
+        si_->getMotionStates(source, target, stateList, n, true, true);
+
+        stateOutput(stateList[0]);
+        vcount++;
+        for (std::size_t i = 1; i < stateList.size(); i++)
+        {
+            stateOutput(stateList[i]);
+            stateOutput(stateList[i - 1]);
+            vcount += 2;
+            f << 3 << " " << vcount - 3 << " " << vcount - 2 << " " << vcount - 1 << "\n";
+            fcount++;
+            si_->freeState(stateList[i - 1]);
+        }
+        si_->freeState(stateList.back());
+    }
+
+    out << "ply\n";
+    out << "format ascii 1.0\n";
+    out << "element vertex " << vcount << "\n";
+    out << "property float x\n";
+
+    if (dim > 1)
+        out << "property float y\n";
+
+    if (dim > 2)
+        out << "property float z\n";
+
+    out << "element face " << fcount << "\n";
+    out << "property list uint uint vertex_index\n";
+    out << "end_header\n";
+    out << v.str() << f.str();
+}

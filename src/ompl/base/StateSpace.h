@@ -262,17 +262,17 @@ namespace ompl
                 of the segments considered valid. The effect of this
                 function is immediate (setup() does not need to be
                 called). */
-            void setValidSegmentCountFactor(unsigned int factor);
+            virtual void setValidSegmentCountFactor(unsigned int factor);
 
             /** \brief Get the value used to multiply the return value of validSegmentCount().*/
-            unsigned int getValidSegmentCountFactor() const;
+            virtual unsigned int getValidSegmentCountFactor() const;
 
             /** \brief Get the longest valid segment at the time setup() was called. */
-            double getLongestValidSegmentLength() const;
+            virtual double getLongestValidSegmentLength() const;
 
             /** \brief Compute an array of ints that uniquely identifies the structure of the state space.
                 The first element of the signature is the number of integers that follow */
-            void computeSignature(std::vector<int> &signature) const;
+            virtual void computeSignature(std::vector<int> &signature) const;
 
             /** @} */
 
@@ -401,10 +401,10 @@ namespace ompl
 
             /** \brief Copy all the real values from a state \e source to the array \e reals using
              * getValueAddressAtLocation() */
-            void copyToReals(std::vector<double> &reals, const State *source) const;
+            virtual void copyToReals(std::vector<double> &reals, const State *source) const;
 
             /** \brief Copy the values from \e reals to the state \e destination using getValueAddressAtLocation() */
-            void copyFromReals(State *destination, const std::vector<double> &reals) const;
+            virtual void copyFromReals(State *destination, const std::vector<double> &reals) const;
 
             /** @} */
 

@@ -361,6 +361,10 @@ namespace ompl
             /// \brief Writes a GraphML file of this structure to the given stream
             void printGraphML(std::ostream &out = std::cout) const;
 
+            /** \brief Write a mesh of the planner graph to a stream. Insert
+             * additional vertices if \a asIs == true. */
+            void printPLY(std::ostream &out, bool asIs = false) const;
+
             /// \}
             /// \name Advanced graph extraction
             /// \{

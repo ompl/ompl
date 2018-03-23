@@ -27,16 +27,20 @@ if (OMPL_BUILD_DEMOS)
   add_ompl_demo(demo_PlannerData PlannerData.cpp)
   add_ompl_demo(demo_ThunderLightning ThunderLightning.cpp)
 
+
   add_ompl_demo(demo_OptimalPlanning OptimalPlanning.cpp)
   add_ompl_demo(demo_PlannerProgressProperties PlannerProgressProperties.cpp)
   add_ompl_demo(demo_CForestCircleGridBenchmark CForestCircleGridBenchmark.cpp)
 
   add_ompl_demo(demo_Diagonal Diagonal.cpp)
 
-  if(OMPL_HAVE_EIGEN3)
-    add_ompl_demo(demo_VectorFieldConservative VFRRT/VectorFieldConservative.cpp)
-    add_ompl_demo(demo_VectorFieldNonconservative VFRRT/VectorFieldNonconservative.cpp)
-  endif()
+  add_ompl_demo(demo_VectorFieldConservative VFRRT/VectorFieldConservative.cpp)
+  add_ompl_demo(demo_VectorFieldNonconservative VFRRT/VectorFieldNonconservative.cpp)
+
+  add_ompl_demo(demo_ConstrainedPlanningSphere constraint/ConstrainedPlanningSphere.cpp)
+  add_ompl_demo(demo_ConstrainedPlanningImplicitChain constraint/ConstrainedPlanningImplicitChain.cpp)
+  add_ompl_demo(demo_ConstrainedPlanningKinematicChain constraint/ConstrainedPlanningKinematicChain.cpp)
+  add_ompl_demo(demo_ConstrainedPlanningTorus constraint/ConstrainedPlanningTorus.cpp)
 
   if (OMPL_EXTENSION_OPENDE)
     add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)

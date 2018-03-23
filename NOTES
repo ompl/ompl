@@ -1,0 +1,17 @@
+PositionConstraint
+------------------
+Need to make sure that the constraint bounds are a subset of the state space bounds.
+This should be straightforward to do.
+
+
+ConstraintInformation
+---------------------
+Currently not possible to see if two constraints affect the same portion of
+the StateSpace.  Maybe make SubstateLocation required for Constraint base.
+Then it is easy to see if two Constraints affect the same subspace.
+
+
+SpaceInformation
+----------------
+Consider extending base::SpaceInformation.  Add ConstrainedSpaceInformation and
+add the ConstraintInformation ptr to it directly.

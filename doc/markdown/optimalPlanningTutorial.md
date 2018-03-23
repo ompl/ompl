@@ -121,7 +121,7 @@ ob::PlannerStatus solved = optimizingPlanner->solve(1.0);
 
 Here's an animation demonstrating the progress of the RRTstar planner on the problem we just defined:
 
-<div class="row"><img src="images/path-length.gif" class="span8 offset1"></div>
+<div class="row"><img src="images/path-length.gif" class="col-xs-10 col-xs-offset-1"></div>
 
 Note that when attempting to solve the planning problem, we specify a time limit of 1 second. In regular motion planning, the planner will stop as soon as a path between the start and goal states has been found - this can take far less than 1 second of planning. However, if you execute this example you'll notice that the planner always takes the full planning time of 1 second. This is because optimizing planners have a stricter stopping requirement than regular planners. Regular planners stop when they've found a path from start to goal; on the other hand, optimizing planners stop when they've found a path from start to goal that _satisfies the optimization objective_.
 
