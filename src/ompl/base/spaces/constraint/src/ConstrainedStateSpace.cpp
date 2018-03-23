@@ -34,6 +34,7 @@
 
 /* Author: Zachary Kingston */
 
+#include "ompl/tools/config/MagicConstants.h"
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 #include "ompl/util/Exception.h"
 
@@ -117,22 +118,38 @@ void ompl::base::ConstrainedStateSpace::sanityChecks() const
     bool badGeodesics = false;
     bool badSamplers = false;
 
-    for (unsigned int i = 0; i < 10 && !badGeodesics; ++i)
+    for (unsigned int i = 0; i < ompl::magic::TEST_STATE_COUNT && !badGeodesics; ++i)
     {
         ss->sampleUniform(s1);
         ss->sampleUniformNear(s2, s1, 10 * delta_);
+
+        // Check that samplers are returning constraint satisfying samples.
         badSamplers |= !constraint_->isSatisfied(s1) || !constraint_->isSatisfied(s2);
 
         std::vector<State *> geodesic;
+        // Make sure that the manifold is traversable at least once.
         if ((isTraversable |= discreteGeodesic(s1, s2, true, &geodesic)))
         {
+            State *prev = nullptr;
             for (auto s : geodesic)
             {
+                // Make sure geodesics contain only constraint satisfying states.
                 badGeodesics |= !constraint_->isSatisfied(s);
-                freeState(s);
+
+                // Make sure geodesics have some continuity.
+                if (prev != nullptr)
+                    badGeodesics |= distance(prev, s) > lambda_ * delta_;
+
+                prev = s;
             }
+
+            for (auto s : geodesic)
+                freeState(s);
         }
     }
+
+    freeState(s1);
+    freeState(s2);
 
     if (!isTraversable)
         throw Exception("Unable to compute discrete geodesic on constraint.");

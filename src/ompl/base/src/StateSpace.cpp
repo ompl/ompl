@@ -97,24 +97,12 @@ ompl::base::StateSpace::StateSpace()
     maxExtent_ = std::numeric_limits<double>::infinity();
 
     params_.declareParam<double>("longest_valid_segment_fraction",
-                                 [this](double segmentFraction)
-                                 {
-                                     setLongestValidSegmentFraction(segmentFraction);
-                                 },
-                                 [this]
-                                 {
-                                     return getLongestValidSegmentFraction();
-                                 });
+                                 [this](double segmentFraction) { setLongestValidSegmentFraction(segmentFraction); },
+                                 [this] { return getLongestValidSegmentFraction(); });
 
     params_.declareParam<unsigned int>("valid_segment_count_factor",
-                                       [this](unsigned int factor)
-                                       {
-                                           setValidSegmentCountFactor(factor);
-                                       },
-                                       [this]
-                                       {
-                                           return getValidSegmentCountFactor();
-                                       });
+                                       [this](unsigned int factor) { setValidSegmentCountFactor(factor); },
+                                       [this] { return getValidSegmentCountFactor(); });
     as.list_.push_back(this);
 }
 
@@ -680,7 +668,7 @@ void ompl::base::StateSpace::sanityChecks(double zero, double eps, unsigned int 
     }
 
     // Test that interpolation works as expected and also test triangle inequality
-    if (!isDiscrete() && !isHybrid())
+    if (!isDiscrete() && !isHybrid() && (flags & (STATESPACE_INTERPOLATION | STATESPACE_TRIANGLE_INEQUALITY)))
     {
         State *s1 = allocState();
         State *s2 = allocState();
