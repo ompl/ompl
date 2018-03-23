@@ -5,43 +5,41 @@
 struct _GRBmodel;
 typedef struct _GRBmodel GRBmodel;
 
-namespace sco {
+namespace sco
+{
+    class GurobiModel : public Model
+    {
+    public:
+        GRBmodel *m_model;
+        vector<Var> m_vars;
+        vector<Cnt> m_cnts;
 
-class GurobiModel : public Model {
-public:
-  GRBmodel* m_model;
-  vector<Var> m_vars;
-  vector<Cnt> m_cnts;
+        GurobiModel();
 
-  GurobiModel();
+        Var addVar(const string &name);
+        Var addVar(const string &name, double lower, double upper);
 
-  Var addVar(const string& name);
-  Var addVar(const string& name, double lower, double upper);
+        Cnt addEqCnt(const AffExpr &, const string &name);
+        Cnt addIneqCnt(const AffExpr &, const string &name);
+        Cnt addIneqCnt(const QuadExpr &, const string &name);
 
-  Cnt addEqCnt(const AffExpr&, const string& name);
-  Cnt addIneqCnt(const AffExpr&, const string& name);
-  Cnt addIneqCnt(const QuadExpr&, const string& name);
+        void removeVars(const vector<Var> &);
+        void removeCnts(const vector<Cnt> &);
 
-  void removeVars(const vector<Var>&);
-  void removeCnts(const vector<Cnt>&);
+        void update();
+        void setVarBounds(const std::vector<Var> &, const std::vector<double> &lower, const std::vector<double> &upper);
+        vector<double> getVarValues(const vector<Var> &) const;
 
-  void update();
-  void setVarBounds(const std::vector<Var>&, const std::vector<double>& lower, const std::vector<double>& upper);
-  vector<double> getVarValues(const vector<Var>&) const;
+        CvxOptStatus optimize();
+        /** Don't use this function, because it adds constraints that aren't tracked  */
+        CvxOptStatus optimizeFeasRelax();
 
-  CvxOptStatus optimize();
-  /** Don't use this function, because it adds constraints that aren't tracked  */
-  CvxOptStatus optimizeFeasRelax();
+        void setObjective(const AffExpr &);
+        void setObjective(const QuadExpr &);
+        void writeToFile(const string &fname);
 
-  void setObjective(const AffExpr&);
-  void setObjective(const QuadExpr&);
-  void writeToFile(const string& fname);
+        VarVector getVars() const;
 
-  VarVector getVars() const;
-
-  ~GurobiModel();
-
-};
-
-
+        ~GurobiModel();
+    };
 }

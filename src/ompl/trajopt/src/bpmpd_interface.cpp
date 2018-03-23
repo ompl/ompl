@@ -1,12 +1,12 @@
+#include <signal.h>
 #include <boost/foreach.hpp>
 #include <cmath>
 #include <fstream>
-#include <signal.h>
 
 #include "ompl/trajopt/bpmpd_interface.h"
-#include "ompl/trajopt/stl_to_string.h"
-#include "ompl/trajopt/expr_ops.h"
 #include "ompl/trajopt/bpmpd_io.h"
+#include "ompl/trajopt/expr_ops.h"
+#include "ompl/trajopt/stl_to_string.h"
 #include "ompl/util/Console.h"
 
 using namespace std;
@@ -150,318 +150,350 @@ double BIG = 1e+30;
 //          double *, double *, double *, int *, double *, int *, double *, int *);
 // }
 
-namespace sco {
+namespace sco
+{
+    extern void simplify2(vector<int> &inds, vector<double> &vals);
+    extern vector<int> vars2inds(const vector<Var> &vars);
+    extern vector<int> cnts2inds(const vector<Cnt> &cnts);
 
-extern void simplify2(vector<int>& inds, vector<double>& vals);
-extern vector<int> vars2inds(const vector<Var>& vars);
-extern vector<int> cnts2inds(const vector<Cnt>& cnts);
-
-ModelPtr createBPMPDModel() {
-  ModelPtr out(new BPMPDModel());
-  return out;
-}
-
+    ModelPtr createBPMPDModel()
+    {
+        ModelPtr out(new BPMPDModel());
+        return out;
+    }
 
 #define READ 0
 #define WRITE 1
 
-pid_t popen2(const char *command, int *infp, int *outfp)
-{
-    int p_stdin[2], p_stdout[2];
-    pid_t pid;
-
-    if (pipe(p_stdin) != 0 || pipe(p_stdout) != 0)
-        return -1;
-
-    // TODO: before this point, make the shared objects to pass over, and lock them all.
-    pid = vfork();
-
-    if (pid < 0) {
-      assert(0);
-      return pid;
-    }
-    else if (pid == 0)
+    pid_t popen2(const char *command, int *infp, int *outfp)
     {
-        close(p_stdin[WRITE]);
-        // In the BPMPD_CALLER process
-        // close fileno(stdin) and redirect the stdin pipe's file description to be fileno(stdin).
-        int ret = dup2(p_stdin[READ], READ);
-        if (ret == -1)
+        int p_stdin[2], p_stdout[2];
+        pid_t pid;
+
+        if (pipe(p_stdin) != 0 || pipe(p_stdout) != 0)
+            return -1;
+
+        // TODO: before this point, make the shared objects to pass over, and lock them all.
+        pid = vfork();
+
+        if (pid < 0)
         {
-            int errdup = errno;
-            fprintf(stderr, "dup2 on p_stdin[READ] failed: %s\n", strerror(errdup));
-        } else
-        {
-            fprintf(stderr, "fd %d now points to the same source as %d\n", READ, p_stdin[READ]);
+            assert(0);
+            return pid;
         }
-        close(p_stdout[READ]);
-        ret = dup2(p_stdout[WRITE], WRITE);
-        if (ret == -1)
+        else if (pid == 0)
         {
-            int errdup = errno;
-            fprintf(stderr, "dup2 on p_stdin[READ] failed: %s\n", strerror(errdup));
+            close(p_stdin[WRITE]);
+            // In the BPMPD_CALLER process
+            // close fileno(stdin) and redirect the stdin pipe's file description to be fileno(stdin).
+            int ret = dup2(p_stdin[READ], READ);
+            if (ret == -1)
+            {
+                int errdup = errno;
+                fprintf(stderr, "dup2 on p_stdin[READ] failed: %s\n", strerror(errdup));
+            }
+            else
+            {
+                fprintf(stderr, "fd %d now points to the same source as %d\n", READ, p_stdin[READ]);
+            }
+            close(p_stdout[READ]);
+            ret = dup2(p_stdout[WRITE], WRITE);
+            if (ret == -1)
+            {
+                int errdup = errno;
+                fprintf(stderr, "dup2 on p_stdin[READ] failed: %s\n", strerror(errdup));
+            }
+            else
+            {
+                fprintf(stderr, "fd %d now points to the same source as %d\n", WRITE, p_stdout[WRITE]);
+            }
+
+            execl("/bin/sh", "sh", "-c", command, NULL);
+            perror("execl failed to start BPMPD caller");
+            exit(1);
+        }
+
+        if (infp == NULL)
+        {
+            fprintf(stderr, "closing the WRITE end of the stdin pipe\n");
+            close(p_stdin[WRITE]);
         }
         else
         {
-            fprintf(stderr, "fd %d now points to the same source as %d\n", WRITE, p_stdout[WRITE]);
+            fprintf(stderr, "infp is now %d\n", p_stdin[WRITE]);
+            *infp = p_stdin[WRITE];
         }
 
-        execl("/bin/sh", "sh", "-c", command, NULL);
-        perror("execl failed to start BPMPD caller");
-        exit(1);
+        if (outfp == NULL)
+        {
+            fprintf(stderr, "closing READ end of the stdout pipe\n");
+            close(p_stdout[READ]);
+        }
+        else
+        {
+            fprintf(stderr, "outfp is now %d\n", p_stdout[READ]);
+            *outfp = p_stdout[READ];
+        }
+
+        return pid;
     }
 
-    if (infp == NULL)
+    pid_t gPID = 0;
+    int gPipeIn = 0, gPipeOut = 0;
+
+    void fexit()
     {
-        fprintf(stderr, "closing the WRITE end of the stdin pipe\n");
-        close(p_stdin[WRITE]);
+        char text[1] = {EXIT_CHAR};
+        int n = write(gPipeIn, text, 1);
+        ALWAYS_ASSERT(n == 1);
     }
-    else
+
+    BPMPDModel::BPMPDModel() : m_pipeIn(0), m_pipeOut(0)
     {
-        fprintf(stderr, "infp is now %d\n", p_stdin[WRITE]);
-        *infp = p_stdin[WRITE];
+        fprintf(stderr, "Creating a BPMPDModel: SHOULD NOT HAPPEN");
+        if (gPID == 0)
+        {
+            atexit(fexit);
+            gPID = popen2(BPMPD_CALLER, &gPipeIn, &gPipeOut);
+        }
     }
 
-    if (outfp == NULL)
+    BPMPDModel::~BPMPDModel()
     {
-        fprintf(stderr, "closing READ end of the stdout pipe\n");
-        close(p_stdout[READ]);
+        // char text[1] = {123};
+        // write(gPipeIn, text, 1);
+        // // kill(m_pid, SIGKILL); // TODO: WHY DOES THIS KILL THE PARENT PROCESS?!
+        // close(m_pipeIn);
+        // close(m_pipeOut);
+        // m_pipeIn=0;
+        // m_pipeOut=0;
     }
-    else
+
+    Var BPMPDModel::addVar(const string &name)
     {
-        fprintf(stderr, "outfp is now %d\n", p_stdout[READ]);
-        *outfp = p_stdout[READ];
+        m_vars.push_back(new VarRep(m_vars.size(), name, this));
+        m_lbs.push_back(-BIG);
+        m_ubs.push_back(BIG);
+        return m_vars.back();
     }
 
-    return pid;
-}
-
-pid_t gPID=0;
-int gPipeIn=0, gPipeOut=0;
-
-void fexit() {
-  char text[1] = {EXIT_CHAR};
-  int n = write(gPipeIn, text, 1);
-  ALWAYS_ASSERT(n==1);
-}
-
-BPMPDModel::BPMPDModel() : m_pipeIn(0), m_pipeOut(0) {
-  fprintf(stderr, "Creating a BPMPDModel: SHOULD NOT HAPPEN");
-  if (gPID == 0) {
-    atexit(fexit);
-    gPID = popen2(BPMPD_CALLER, &gPipeIn, &gPipeOut);
-  }
-}
-
-BPMPDModel::~BPMPDModel() {
-  // char text[1] = {123};
-  // write(gPipeIn, text, 1);
-  // // kill(m_pid, SIGKILL); // TODO: WHY DOES THIS KILL THE PARENT PROCESS?!
-  // close(m_pipeIn);
-  // close(m_pipeOut);
-  // m_pipeIn=0;
-  // m_pipeOut=0;
-}
-
-Var BPMPDModel::addVar(const string& name) {
-  m_vars.push_back(new VarRep(m_vars.size(), name, this));
-  m_lbs.push_back(-BIG);
-  m_ubs.push_back(BIG);
-  return m_vars.back();
-}
-
-Cnt BPMPDModel::addEqCnt(const AffExpr& expr, const string& name) {
-  m_cnts.push_back(new CntRep(m_cnts.size(), this));
-  m_cntExprs.push_back(expr);
-  m_cntTypes.push_back(EQ);
-  return m_cnts.back();
-}
-
-Cnt BPMPDModel::addIneqCnt(const AffExpr& expr, const string& name) {
-  m_cnts.push_back(new CntRep(m_cnts.size(), this));
-  m_cntExprs.push_back(expr);
-  m_cntTypes.push_back(INEQ);
-  return m_cnts.back();
-}
-
-Cnt BPMPDModel::addIneqCnt(const QuadExpr&, const string& name) {
-  assert( 0 && "NOT IMPLEMENTED");
-  return 0;
-}
-
-void BPMPDModel::removeVars(const VarVector& vars) {
-  vector<int>inds = vars2inds(vars);
-  for (size_t i=0; i < vars.size(); ++i) vars[i].var_rep->removed = true;
-}
-
-void BPMPDModel::removeCnts(const vector<Cnt>& cnts) {
-  vector<int>inds = cnts2inds(cnts);
-  for (size_t i=0; i < cnts.size(); ++i) cnts[i].cnt_rep->removed = true;
-}
-
-void BPMPDModel::update() {
-  {
-  int inew = 0;
-  for (size_t iold=0; iold < m_vars.size(); ++iold) {
-    const Var& var = m_vars[iold];
-    if (!var.var_rep->removed) {
-      m_vars[inew] = var;
-      m_lbs[inew] = m_lbs[iold];
-      m_ubs[inew] = m_ubs[iold];
-      var.var_rep->index = inew;
-      ++inew;
-    }
-    else delete var.var_rep;
-  }
-  m_vars.resize(inew);
-  m_lbs.resize(inew);
-  m_ubs.resize(inew);
-  }
-  {
-  int inew = 0;
-  for (size_t iold = 0; iold < m_cnts.size(); ++iold) {
-    const Cnt& cnt = m_cnts[iold];
-    if (!cnt.cnt_rep->removed) {
-      m_cnts[inew] = cnt;
-      m_cntExprs[inew] = m_cntExprs[iold];
-      m_cntTypes[inew] = m_cntTypes[iold];
-      cnt.cnt_rep->index = inew;
-      ++inew;
-    }
-    else delete cnt.cnt_rep;
-  }
-  m_cnts.resize(inew);
-  m_cntExprs.resize(inew);
-  m_cntTypes.resize(inew);
-  }
-}
-
-void BPMPDModel::setVarBounds(const vector<Var>& vars, const vector<double>& lower, const vector<double>& upper) {
-  for (size_t i=0; i < vars.size(); ++i) {
-    int varind = vars[i].var_rep->index;
-    m_lbs[varind] = lower[i];
-    m_ubs[varind] = upper[i];
-  }
-}
-std::vector<double> BPMPDModel::getVarValues(const VarVector& vars) const {
-  std::vector<double> out(vars.size());
-  for (size_t i=0; i < vars.size(); ++i) {
-    int varind = vars[i].var_rep->index;
-    out[i] = m_soln[varind];
-  }
-  return out;
-}
-
-#define DBG(expr) //cout << #expr << ": " << CSTR(expr) << std::endl
-
-
-CvxOptStatus BPMPDModel::optimize() {
-  update();
-    //
-  //
-  // int    m, n, nz, qn, qnz, acolcnt[maxn+1], acolidx[maxnz], qcolcnt[maxn+1], qcolidx[maxqnz],
-  //        status[maxn+maxm], code, memsiz;
-  // double acolnzs[maxnz], qcolnzs[maxqnz], rhs[maxm], obj[maxn], lbound[maxn+maxm],
-  //        ubound[maxn+maxm], primal[maxn+maxm], dual[maxn+maxm], big, opt;
-
-  size_t n = m_vars.size();
-  size_t m = m_cnts.size();
-
-  std::vector<int> acolcnt(n), acolidx, qcolcnt(n), qcolidx, status(m+n);
-  std::vector<double> acolnzs, qcolnzs, rhs(m), obj(n,0), lbound(m+n), ubound(m+n), primal(m+n), dual(m+n);
-
-  DBG(m_lbs);
-  DBG(m_ubs);
-  for (size_t iVar=0; iVar < n; ++iVar) {
-    lbound[iVar] = fmax(m_lbs[iVar], -BIG);
-    ubound[iVar] = fmin(m_ubs[iVar], BIG);
-  }
-
-
-  vector< vector<int> > var2cntinds(n);
-  vector< vector<double> > var2cntvals(n);
-  for (size_t iCnt=0; iCnt < m; ++iCnt) {
-    const AffExpr& aff = m_cntExprs[iCnt];
-    vector<int> inds = vars2inds(aff.vars);
-
-    for (size_t i=0; i < aff.vars.size(); ++i) {
-      var2cntinds[inds[i]].push_back(iCnt);
-      var2cntvals[inds[i]].push_back(aff.coeffs[i]); // xxx maybe repeated/
+    Cnt BPMPDModel::addEqCnt(const AffExpr &expr, const string &name)
+    {
+        m_cnts.push_back(new CntRep(m_cnts.size(), this));
+        m_cntExprs.push_back(expr);
+        m_cntTypes.push_back(EQ);
+        return m_cnts.back();
     }
 
-    lbound[n+iCnt] = (m_cntTypes[iCnt] == INEQ) ? -BIG : 0;
-    ubound[n+iCnt] = 0;
-    rhs[iCnt] = -aff.constant;
-
-  }
-
-  for (size_t iVar=0; iVar < n; ++iVar) {
-    simplify2(var2cntinds[iVar], var2cntvals[iVar]);
-    acolcnt[iVar] = var2cntinds[iVar].size();
-    acolidx.insert(acolidx.end(), var2cntinds[iVar].begin(), var2cntinds[iVar].end());
-    acolnzs.insert(acolnzs.end(), var2cntvals[iVar].begin(), var2cntvals[iVar].end());
-  }
-  // cout << CSTR(acolidx) << endl;
-  // cout << CSTR(acolnzs) << endl;
-
-  vector< vector<double> > var2qcoeffs(n);
-  vector< vector<int> > var2qinds(n);
-
-  for (size_t i=0; i < m_objective.size(); ++i) {
-    int idx1 = m_objective.vars1[i].var_rep->index, idx2 = m_objective.vars2[i].var_rep->index;
-    if (idx1 < idx2) {
-      var2qinds[idx1].push_back(idx2);
-      var2qcoeffs[idx1].push_back(m_objective.coeffs[i]);
+    Cnt BPMPDModel::addIneqCnt(const AffExpr &expr, const string &name)
+    {
+        m_cnts.push_back(new CntRep(m_cnts.size(), this));
+        m_cntExprs.push_back(expr);
+        m_cntTypes.push_back(INEQ);
+        return m_cnts.back();
     }
-    else if (idx1 == idx2) {
-      var2qinds[idx1].push_back(idx2);
-      var2qcoeffs[idx1].push_back(m_objective.coeffs[i]*2);
+
+    Cnt BPMPDModel::addIneqCnt(const QuadExpr &, const string &name)
+    {
+        assert(0 && "NOT IMPLEMENTED");
+        return 0;
     }
-    else {
-      var2qinds[idx2].push_back(idx1);
-      var2qcoeffs[idx2].push_back(m_objective.coeffs[i]);
+
+    void BPMPDModel::removeVars(const VarVector &vars)
+    {
+        vector<int> inds = vars2inds(vars);
+        for (size_t i = 0; i < vars.size(); ++i)
+            vars[i].var_rep->removed = true;
     }
-  }
 
-  for (size_t iVar=0; iVar < n; ++iVar) {
-    simplify2(var2qinds[iVar], var2qcoeffs[iVar]);
-    qcolidx.insert(qcolidx.end(), var2qinds[iVar].begin(), var2qinds[iVar].end());
-    qcolnzs.insert(qcolnzs.end(), var2qcoeffs[iVar].begin(), var2qcoeffs[iVar].end());
-    qcolcnt[iVar] = var2qinds[iVar].size();
-  }
+    void BPMPDModel::removeCnts(const vector<Cnt> &cnts)
+    {
+        vector<int> inds = cnts2inds(cnts);
+        for (size_t i = 0; i < cnts.size(); ++i)
+            cnts[i].cnt_rep->removed = true;
+    }
 
-  for (size_t i=0; i < m_objective.affexpr.size(); ++i) {
-    obj[m_objective.affexpr.vars[i].var_rep->index] += m_objective.affexpr.coeffs[i];
-  }
+    void BPMPDModel::update()
+    {
+        {
+            int inew = 0;
+            for (size_t iold = 0; iold < m_vars.size(); ++iold)
+            {
+                const Var &var = m_vars[iold];
+                if (!var.var_rep->removed)
+                {
+                    m_vars[inew] = var;
+                    m_lbs[inew] = m_lbs[iold];
+                    m_ubs[inew] = m_ubs[iold];
+                    var.var_rep->index = inew;
+                    ++inew;
+                }
+                else
+                    delete var.var_rep;
+            }
+            m_vars.resize(inew);
+            m_lbs.resize(inew);
+            m_ubs.resize(inew);
+        }
+        {
+            int inew = 0;
+            for (size_t iold = 0; iold < m_cnts.size(); ++iold)
+            {
+                const Cnt &cnt = m_cnts[iold];
+                if (!cnt.cnt_rep->removed)
+                {
+                    m_cnts[inew] = cnt;
+                    m_cntExprs[inew] = m_cntExprs[iold];
+                    m_cntTypes[inew] = m_cntTypes[iold];
+                    cnt.cnt_rep->index = inew;
+                    ++inew;
+                }
+                else
+                    delete cnt.cnt_rep;
+            }
+            m_cnts.resize(inew);
+            m_cntExprs.resize(inew);
+            m_cntTypes.resize(inew);
+        }
+    }
 
-#define VECINC(vec) for (size_t i=0; i < vec.size(); ++i) ++vec[i];
-  VECINC(acolidx);
-  VECINC(qcolidx);
+    void BPMPDModel::setVarBounds(const vector<Var> &vars, const vector<double> &lower, const vector<double> &upper)
+    {
+        for (size_t i = 0; i < vars.size(); ++i)
+        {
+            int varind = vars[i].var_rep->index;
+            m_lbs[varind] = lower[i];
+            m_ubs[varind] = upper[i];
+        }
+    }
+    std::vector<double> BPMPDModel::getVarValues(const VarVector &vars) const
+    {
+        std::vector<double> out(vars.size());
+        for (size_t i = 0; i < vars.size(); ++i)
+        {
+            int varind = vars[i].var_rep->index;
+            out[i] = m_soln[varind];
+        }
+        return out;
+    }
+
+#define DBG(expr)  // cout << #expr << ": " << CSTR(expr) << std::endl
+
+    CvxOptStatus BPMPDModel::optimize()
+    {
+        update();
+        //
+        //
+        // int    m, n, nz, qn, qnz, acolcnt[maxn+1], acolidx[maxnz], qcolcnt[maxn+1], qcolidx[maxqnz],
+        //        status[maxn+maxm], code, memsiz;
+        // double acolnzs[maxnz], qcolnzs[maxqnz], rhs[maxm], obj[maxn], lbound[maxn+maxm],
+        //        ubound[maxn+maxm], primal[maxn+maxm], dual[maxn+maxm], big, opt;
+
+        size_t n = m_vars.size();
+        size_t m = m_cnts.size();
+
+        std::vector<int> acolcnt(n), acolidx, qcolcnt(n), qcolidx, status(m + n);
+        std::vector<double> acolnzs, qcolnzs, rhs(m), obj(n, 0), lbound(m + n), ubound(m + n), primal(m + n),
+            dual(m + n);
+
+        DBG(m_lbs);
+        DBG(m_ubs);
+        for (size_t iVar = 0; iVar < n; ++iVar)
+        {
+            lbound[iVar] = fmax(m_lbs[iVar], -BIG);
+            ubound[iVar] = fmin(m_ubs[iVar], BIG);
+        }
+
+        vector<vector<int>> var2cntinds(n);
+        vector<vector<double>> var2cntvals(n);
+        for (size_t iCnt = 0; iCnt < m; ++iCnt)
+        {
+            const AffExpr &aff = m_cntExprs[iCnt];
+            vector<int> inds = vars2inds(aff.vars);
+
+            for (size_t i = 0; i < aff.vars.size(); ++i)
+            {
+                var2cntinds[inds[i]].push_back(iCnt);
+                var2cntvals[inds[i]].push_back(aff.coeffs[i]);  // xxx maybe repeated/
+            }
+
+            lbound[n + iCnt] = (m_cntTypes[iCnt] == INEQ) ? -BIG : 0;
+            ubound[n + iCnt] = 0;
+            rhs[iCnt] = -aff.constant;
+        }
+
+        for (size_t iVar = 0; iVar < n; ++iVar)
+        {
+            simplify2(var2cntinds[iVar], var2cntvals[iVar]);
+            acolcnt[iVar] = var2cntinds[iVar].size();
+            acolidx.insert(acolidx.end(), var2cntinds[iVar].begin(), var2cntinds[iVar].end());
+            acolnzs.insert(acolnzs.end(), var2cntvals[iVar].begin(), var2cntvals[iVar].end());
+        }
+        // cout << CSTR(acolidx) << endl;
+        // cout << CSTR(acolnzs) << endl;
+
+        vector<vector<double>> var2qcoeffs(n);
+        vector<vector<int>> var2qinds(n);
+
+        for (size_t i = 0; i < m_objective.size(); ++i)
+        {
+            int idx1 = m_objective.vars1[i].var_rep->index, idx2 = m_objective.vars2[i].var_rep->index;
+            if (idx1 < idx2)
+            {
+                var2qinds[idx1].push_back(idx2);
+                var2qcoeffs[idx1].push_back(m_objective.coeffs[i]);
+            }
+            else if (idx1 == idx2)
+            {
+                var2qinds[idx1].push_back(idx2);
+                var2qcoeffs[idx1].push_back(m_objective.coeffs[i] * 2);
+            }
+            else
+            {
+                var2qinds[idx2].push_back(idx1);
+                var2qcoeffs[idx2].push_back(m_objective.coeffs[i]);
+            }
+        }
+
+        for (size_t iVar = 0; iVar < n; ++iVar)
+        {
+            simplify2(var2qinds[iVar], var2qcoeffs[iVar]);
+            qcolidx.insert(qcolidx.end(), var2qinds[iVar].begin(), var2qinds[iVar].end());
+            qcolnzs.insert(qcolnzs.end(), var2qcoeffs[iVar].begin(), var2qcoeffs[iVar].end());
+            qcolcnt[iVar] = var2qinds[iVar].size();
+        }
+
+        for (size_t i = 0; i < m_objective.affexpr.size(); ++i)
+        {
+            obj[m_objective.affexpr.vars[i].var_rep->index] += m_objective.affexpr.coeffs[i];
+        }
+
+#define VECINC(vec)                                                                                                    \
+    for (size_t i = 0; i < vec.size(); ++i)                                                                            \
+        ++vec[i];
+        VECINC(acolidx);
+        VECINC(qcolidx);
 #undef VECINC
 
-  // cout << "objective: " << m_objective << endl;
+        // cout << "objective: " << m_objective << endl;
 
+        int nz = acolnzs.size(), qn = n, qnz = qcolnzs.size();
 
-  int nz = acolnzs.size(),
-      qn = n,
-      qnz = qcolnzs.size();
-
-
-  DBG(m);
-  DBG(n);
-  DBG(nz);
-  DBG(qn);
-  DBG(qnz);
-  DBG(acolcnt);
-  DBG(acolidx);
-  DBG(acolnzs);
-  DBG(qcolcnt);
-  DBG(qcolidx);
-  DBG(qcolnzs);
-  DBG(rhs);
-  DBG(obj);
-  DBG(lbound);
-  DBG(ubound);
+        DBG(m);
+        DBG(n);
+        DBG(nz);
+        DBG(qn);
+        DBG(qnz);
+        DBG(acolcnt);
+        DBG(acolidx);
+        DBG(acolnzs);
+        DBG(qcolcnt);
+        DBG(qcolidx);
+        DBG(qcolnzs);
+        DBG(rhs);
+        DBG(obj);
+        DBG(lbound);
+        DBG(ubound);
 
 #if 0
   bpmpd(&m, &n, &nz, &qn, &qnz, acolcnt.data(), acolidx.data(), acolnzs.data(), qcolcnt.data(), qcolidx.data(), qcolnzs.data(),
@@ -482,79 +514,84 @@ CvxOptStatus BPMPDModel::optimize() {
 
 #else
 
-  bpmpd_input bi(m,n,nz, qn, qnz, acolcnt, acolidx, acolnzs, qcolcnt, qcolidx, qcolnzs, rhs, obj, lbound, ubound);
-  ser(gPipeIn, bi, SER);
+        bpmpd_input bi(m, n, nz, qn, qnz, acolcnt, acolidx, acolnzs, qcolcnt, qcolidx, qcolnzs, rhs, obj, lbound,
+                       ubound);
+        ser(gPipeIn, bi, SER);
 
-  // std::cout << "serialization time:" << end-start << std::endl;
+        // std::cout << "serialization time:" << end-start << std::endl;
 
-  bpmpd_output bo;
-  ser(gPipeOut, bo, DESER);
+        bpmpd_output bo;
+        ser(gPipeOut, bo, DESER);
 
-  bo_ = bo;
-  m_soln = vector<double>(bo.primal.begin(), bo.primal.begin()+n);
-  int retcode = bo.code;
+        bo_ = bo;
+        m_soln = vector<double>(bo.primal.begin(), bo.primal.begin() + n);
+        int retcode = bo.code;
 
-  if (retcode == 1)
-  {
-      OMPL_WARN("BPMPD: Optimization produced suboptimal feasible solution: "
-                "will most likely cause the approximate merit to increase.");
-      return CVX_SOLVED;
-  }
-  else if (retcode == 2)
-  {
-      return CVX_SOLVED;
-  }
-  else if (retcode == 3 || retcode == 4)
-  {
-      return CVX_INFEASIBLE;
-  }
-  else
-      return CVX_FAILED;
+        if (retcode == 1)
+        {
+            OMPL_WARN("BPMPD: Optimization produced suboptimal feasible solution: "
+                      "will most likely cause the approximate merit to increase.");
+            return CVX_SOLVED;
+        }
+        else if (retcode == 2)
+        {
+            return CVX_SOLVED;
+        }
+        else if (retcode == 3 || retcode == 4)
+        {
+            return CVX_INFEASIBLE;
+        }
+        else
+            return CVX_FAILED;
 
 #endif
 
-    // exit(0);
-}
-void BPMPDModel::setObjective(const AffExpr& expr)
-{
-    m_objective.affexpr = expr;
-}
-
-void BPMPDModel::setObjective(const QuadExpr& expr)
-{
-    m_objective = expr;
-}
-
-/*void BPMPDModel::addToObjective(const AffExpr &expr)
-{
-    m_objective = exprAdd(m_objective, expr);
-}
-
-void BPMPDModel::addToObjective(const QuadExpr& expr)
-{
-    m_objective = exprAdd(m_objective, expr);
-}*/
-
-void BPMPDModel::writeToFile(const string& fname) {
-    FILE* crash_fd = fopen(fname.c_str(), "w");
-    if (crash_fd == NULL) {
-        printf("BPMPDModel cannot write to file: unable to open %s\n", fname.c_str());
+        // exit(0);
     }
-    fprintf(crash_fd, "bpmpd output:\ncode: %d\nopt: %f\nsoln: ", bo_.code, bo_.opt);
-    for (auto xi : m_soln) {
-        fprintf(crash_fd, "%f, ", xi);
+    void BPMPDModel::setObjective(const AffExpr &expr)
+    {
+        m_objective.affexpr = expr;
     }
-    fprintf(crash_fd, "\nstatus: ");
-    for (auto a : bo_.status) {
-        fprintf(crash_fd, "%d, ", a);
+
+    void BPMPDModel::setObjective(const QuadExpr &expr)
+    {
+        m_objective = expr;
     }
-    fprintf(crash_fd, "\nobjective: %s\n", CSTR(m_objective));
-    fflush(crash_fd);
-    fclose(crash_fd);
-}
 
-VarVector BPMPDModel::getVars() const {
-  return m_vars;
-}
+    /*void BPMPDModel::addToObjective(const AffExpr &expr)
+    {
+        m_objective = exprAdd(m_objective, expr);
+    }
 
+    void BPMPDModel::addToObjective(const QuadExpr& expr)
+    {
+        m_objective = exprAdd(m_objective, expr);
+    }*/
+
+    void BPMPDModel::writeToFile(const string &fname)
+    {
+        FILE *crash_fd = fopen(fname.c_str(), "w");
+        if (crash_fd == NULL)
+        {
+            printf("BPMPDModel cannot write to file: unable to open %s\n", fname.c_str());
+        }
+        fprintf(crash_fd, "bpmpd output:\ncode: %d\nopt: %f\nsoln: ", bo_.code, bo_.opt);
+        for (auto xi : m_soln)
+        {
+            fprintf(crash_fd, "%f, ", xi);
+        }
+        fprintf(crash_fd, "\nstatus: ");
+        for (auto a : bo_.status)
+        {
+            fprintf(crash_fd, "%d, ", a);
+        }
+        fprintf(crash_fd, "\nobjective: %s\n", CSTR(m_objective));
+        fflush(crash_fd);
+        fclose(crash_fd);
+    }
+
+    VarVector BPMPDModel::getVars() const
+    {
+        return m_vars;
+    }
 }
