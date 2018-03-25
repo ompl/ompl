@@ -1,5 +1,5 @@
 #!/bin/sh
-rm -rf html
+#rm -rf html
 doxygen Doxyfile
 cp -r css fonts images js ieee-ram-2012-ompl.pdf ../install-ompl-ubuntu.sh html
 

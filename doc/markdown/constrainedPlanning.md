@@ -45,7 +45,7 @@ The constrained state spaces, in general, are sensitive to the tuning of their v
   - Valid step size for manifold traversal with `ompl::base::ConstrainedStateSpace::setDelta()`
   - Many atlas related parameters for `ompl::base::AtlasStateSpace`, such as \f$\epsilon, \rho\f$, and exploration.
 - Generally, the step size for manifold traversal is related to the relative _curvature_ of the underlying constraint submanifold. Less curvy submanifolds can permit larger step sizes (i.e., if the constraint defines a hyperplane, you can use a large step size). Play around with this value if speed is a concern, as the larger the step size is, the less time is spent traversing the manifold.
-- For the atlas- and tangent bundle-based spaces, planners that rely on uniform sampling of the space may require a high exploration parameter so the constraint submanifold becomes covered quicker (e.g., BIT*). Additionally, planners that rely on `ompl::base::StateSampler::samplerNear()` may also require a high exploration or $\rho$ parameter in order to expand effectively.
+- For the atlas- and tangent bundle-based spaces, planners that rely on uniform sampling of the space may require a high exploration parameter so the constraint submanifold becomes covered quicker (e.g., BIT*). Additionally, planners that rely on `ompl::base::StateSampler::samplerNear()` may also require a high exploration or \f$\rho\f$ parameter in order to expand effectively.
 - And many others! In general, the projection-based space is less sensitive to poor parameter tuning than atlas- or tangent bundle-based space, and as such is a good starting point to validate whether a constrained planning problem is feasible.
 
 ## Want to learn more?
