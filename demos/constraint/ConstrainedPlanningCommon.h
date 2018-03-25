@@ -40,9 +40,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/date_time/local_time_adjustor.hpp>
-#include <boost/date_time/c_local_time_adjustor.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 
@@ -71,8 +68,6 @@
 
 #include <ompl/tools/benchmark/Benchmark.h>
 
-namespace bpt = boost::posix_time;
-namespace bgt = boost::gregorian;
 namespace po = boost::program_options;
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
@@ -512,8 +507,8 @@ public:
     {
         bench->benchmark(request);
 
-        bpt::ptime now(bgt::day_clock::universal_day(), bpt::second_clock::universal_time().time_of_day());
-        const std::string filename = (boost::format("%1%_%2%_%3%_benchmark.log") % bpt::to_simple_string(now) %
+        auto now(ompl::time::as_string(ompl::time::now()));
+        const std::string filename = (boost::format("%1%_%2%_%3%_benchmark.log") % now %
                                       bench->getExperimentName() % spaceStr[type])
                                          .str();
 
