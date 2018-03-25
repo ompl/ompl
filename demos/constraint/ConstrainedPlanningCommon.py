@@ -78,6 +78,8 @@ def addConstrainedOptions(parser):
     group = parser.add_argument_group("Constrained planning options")
     group.add_argument("-d", "--delta", type=float, default=ob.CONSTRAINED_STATE_SPACE_DELTA,
                        help="Step-size for discrete geodesic on manifold.")
+    group.add_argument("--lambda", type=float, dest="lambda_", metavar="LAMBDA", default=ob.CONSTRAINED_STATE_SPACE_LAMBDA,
+                       help="Maximum `wandering` allowed during atlas traversal. Must be greater than 1.")
     group.add_argument("--tolerance", type=float, default=ob.CONSTRAINT_PROJECTION_TOLERANCE,
                        help="Constraint satisfaction tolerance.")
     group.add_argument("--time", type=float, default=5.,
@@ -107,8 +109,6 @@ def addAtlasOptions(parser):
                        ob.ATLAS_STATE_SPACE_RHO_MULTIPLIER, help="Maximum radius for an atlas chart. Must be positive.")
     group.add_argument("--exploration", type=float, default=ob.ATLAS_STATE_SPACE_EXPLORATION, help="Value in [0, 1] which tunes balance of refinement and exploration in "
                        "atlas sampling.")
-    group.add_argument("--lambda", type=float, dest="lambda_", metavar="LAMBDA", default=ob.ATLAS_STATE_SPACE_LAMBDA,
-                       help="Maximum `wandering` allowed during atlas traversal. Must be greater than 1.")
     group.add_argument("--alpha", type=float, default=ob.ATLAS_STATE_SPACE_ALPHA,
                        help="Maximum angle between an atlas chart and the manifold. Must be in [0, PI/2].")
     group.add_argument("--bias", action="store_true",
@@ -149,12 +149,12 @@ class ConstrainedProblem(object):
 
         self.css.setup()
         self.css.setDelta(options.delta)
+        self.css.setLambda(options.lambda_)
         if not spaceType == "PJ":
             self.css.setExploration(options.exploration)
             self.css.setEpsilon(options.epsilon)
             self.css.setRho(options.rho)
             self.css.setAlpha(options.alpha)
-            self.css.setLambda(options.lambda_)
             self.css.setMaxChartsPerExtension(options.charts)
             if options.bias:
                 self.css.setBiasFunction(lambda c, atlas=self.css:
