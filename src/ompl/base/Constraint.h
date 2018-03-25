@@ -91,11 +91,19 @@ namespace ompl
                                           "Ambient and manifold dimensions must be positive.");
             }
 
-            virtual ~Constraint()= default;;
+            virtual ~Constraint() = default;
+
+            /** @name Constraint Function Operations
+                @{ */
 
             /** \brief Compute the constraint function at \a state. Result is
              returned in \a out, which should be allocated to size \a coDim. */
             void function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const;
+
+            /** \brief Compute the constraint function at \a x. Result is
+                returned in \a out, which should be allocated to size \a coDim. */
+            virtual void function(const Eigen::Ref<const Eigen::VectorXd> &x,
+                                  Eigen::Ref<Eigen::VectorXd> out) const = 0;
 
             /** \brief Compute the Jacobian of the constraint function at \a
              state. Result is returned in \a out, which should be allocated to
@@ -104,18 +112,45 @@ namespace ompl
              stencil. It is best to provide an analytic formulation. */
             void jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const;
 
+            /** \brief Compute the Jacobian of the constraint function at \a x.
+              Result is returned in \a out, which should be allocated to size \a
+              coDim by \a ambientDim. Default implementation performs the
+              differentiation numerically with a seven-point central difference
+              stencil. It is best to provide an analytic formulation. */
+            virtual void jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const;
+
+            /** @} */
+
+            /** @name Other Function Operations
+                @{ */
+
             /** \brief Project a state \a state given the constraints. If a
              valid projection cannot be found, this method will return false.
              Even if this method fails, \a state will be modified. */
             bool project(State *state) const;
 
+            /** \brief Project a state \a x given the constraints. If a valid
+                projection cannot be found, this method will return false. */
+            virtual bool project(Eigen::Ref<Eigen::VectorXd> x) const;
+
             /** \brief Returns the distance of \a state to the constraint
              * manifold. */
             double distance(const State *state) const;
 
+            /** \brief Returns the distance of \a x to the constraint manifold. */
+            virtual double distance(const Eigen::Ref<const Eigen::VectorXd> &x) const;
+
             /** \brief Check whether a state \a state satisfies the
              * constraints */
             bool isSatisfied(const State *state) const;
+
+            /** \brief Check whether a state \a x satisfies the constraints */
+            virtual bool isSatisfied(const Eigen::Ref<const Eigen::VectorXd> &x) const;
+
+            /** @} */
+
+            /** @name Getters and Setters
+                @{ */
 
             /** \brief Returns the dimension of the ambient space. */
             unsigned int getAmbientDimension() const
@@ -176,27 +211,7 @@ namespace ompl
                 maxIterations_ = iterations;
             }
 
-            /** \brief Compute the constraint function at \a x. Result is
-             returned in \a out, which should be allocated to size \a coDim. */
-            virtual void function(const Eigen::Ref<const Eigen::VectorXd> &x,
-                                  Eigen::Ref<Eigen::VectorXd> out) const = 0;
-
-            /** \brief Compute the Jacobian of the constraint function at \a x.
-             Result is returned in \a out, which should be allocated to size \a
-             coDim by \a ambientDim. Default implementation performs the
-             differentiation numerically with a seven-point central difference
-             stencil. It is best to provide an analytic formulation. */
-            virtual void jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const;
-
-            /** \brief Project a state \a x given the constraints. If a valid
-             projection cannot be found, this method will return false. */
-            virtual bool project(Eigen::Ref<Eigen::VectorXd> x) const;
-
-            /** \brief Returns the distance of \a x to the constraint manifold. */
-            virtual double distance(const Eigen::Ref<const Eigen::VectorXd> &x) const;
-
-            /** \brief Check whether a state \a x satisfies the constraints */
-            virtual bool isSatisfied(const Eigen::Ref<const Eigen::VectorXd> &x) const;
+            /** @} */
 
         protected:
             /** \brief Ambient space dimension. */
@@ -227,7 +242,7 @@ namespace ompl
             /** \brief Constructor. If constraints is empty assume it will be
              * filled later. */
             ConstraintIntersection(const unsigned int ambientDim, std::initializer_list<Constraint *> constraints)
-              : Constraint(ambientDim, ambientDim)
+              : Constraint(ambientDim, 0)
             {
                 for (auto constraint : constraints)
                     addConstraint(constraint);

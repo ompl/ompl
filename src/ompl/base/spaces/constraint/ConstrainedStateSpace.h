@@ -180,6 +180,9 @@ namespace ompl
              * a \a constraint. */
             ConstrainedStateSpace(const StateSpacePtr &ambientSpace, const ConstraintPtr &constraint);
 
+            /** @name State Space Related Operations
+                @{ */
+
             /** \brief Returns false as the implicit constrained configuration
              * space defined by the constraint is not metric with respect to the
              * ambient configuration space's metric. */
@@ -207,6 +210,8 @@ namespace ompl
 
             /** \brief Perform both constrained and regular sanity checks. */
             void sanityChecks() const override;
+
+            /** @} */
 
             /** @name Constrained Planning
                 @{ */
