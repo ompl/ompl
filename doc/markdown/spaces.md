@@ -14,10 +14,10 @@ This set of state spaces is included in OMPL:
 - Dubins (representation of a Dubins car's state space, ompl::base::DubinsStateSpace),
 - ReedsShepp (representation of a Reeds-Shepp car's state space, ompl::base::ReedsSheppStateSpace) and
 - OpenDE   (representation of OpenDE states, if the [Open Dynamics Engine][opende] library is available, ompl::control::OpenDEStateSpace).
-- Constrained state space (ompl::base::ConstrainedStateSpace), an abstract base class for planning with constraints. There are several derived classes corresponding to different methodologies for dealing with constraints:
+- Constrained state space (ompl::base::ConstrainedStateSpace), an abstract base class for [planning with constraints](constrainedPlanning.html). There are several derived classes corresponding to different methodologies for dealing with constraints:
     - ompl::base::ProjectedStateSpace: uses Newton's method to project states in the ambient configuration space onto the constraint manifold.
     - ompl::base::AtlasStateSpace: a state space that incrementally builds up an atlas approximation of the constraint manifold.
-    - ompl::base::TangentBundle: a state space that is derived from the atlas state space and performs some operations lazily.
+    - ompl::base::TangentBundleStateSpace: a state space that is derived from the atlas state space and performs some operations lazily.
 
 In addition, the ompl::base::CompoundStateSpace allows users to create arbitrarily complex state spaces out of simpler state spaces.
 
