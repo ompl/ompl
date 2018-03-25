@@ -36,34 +36,35 @@
 
 #include "ConstrainedPlanningCommon.h"
 
-class StewartBase
+class ParallelBase
 {
 public:
     virtual void getStart(Eigen::VectorXd &x) = 0;
     virtual void getGoal(Eigen::VectorXd &x) = 0;
 };
 
-class StewartChain : public ompl::base::Constraint, public StewartBase
+class ParallelChain : public ob::Constraint, public ParallelBase
 {
 public:
-    StewartChain(const unsigned int n, Eigen::VectorXd offset, unsigned int links, unsigned int id, double length = 1,
-                 double jointSize = 0.2, unsigned int extra = 0)
-      : ompl::base::Constraint(n, n - links)
+    ParallelChain(const unsigned int n, Eigen::Vector3d offset, unsigned int links, unsigned int chainNum,
+                  double length = 1, double jointRadius = 0.2)
+      : ob::Constraint(n, links)
       , offset_(offset)
       , links_(links)
-      , id_(id)
+      , chainNum_(chainNum)
       , length_(length)
-      , jointSize_(jointSize)
-      , extra_(extra)
+      , jointRadius_(jointRadius)
     {
         if (links % 2 == 0)
             throw ompl::Exception("Number of links must be odd!");
     }
 
-    void getConfiguration(Eigen::VectorXd &x, double angle)
+    void getStart(Eigen::VectorXd &x) override
     {
-        unsigned int offset = 3 * links_ * id_;
-        const Eigen::VectorXd axis = Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_;
+        const double angle = boost::math::constants::pi<double>() / 16;
+        const unsigned int offset = 3 * links_ * chainNum_;
+        const Eigen::VectorXd axis =
+            Eigen::AngleAxisd(boost::math::constants::pi<double>() / 2, Eigen::Vector3d::UnitZ()) * offset_;
 
         const Eigen::VectorXd step = Eigen::Vector3d::UnitZ() * length_;
         Eigen::VectorXd joint = offset_ + Eigen::AngleAxisd(angle, axis) * step;
@@ -79,43 +80,44 @@ public:
         }
     }
 
-    void getStart(Eigen::VectorXd &x)
+    void getGoal(Eigen::VectorXd &x) override
     {
-        getConfiguration(x, M_PI / 16);
-    }
+        unsigned int offset = 3 * links_ * chainNum_;
 
-    void getGoal(Eigen::VectorXd &x)
-    {
-        unsigned int offset = 3 * links_ * id_;
+        if (links_ == 7)
+        {
+            Eigen::VectorXd nstep = offset_ * length_;
+            Eigen::VectorXd estep = Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_ * length_;
+            Eigen::VectorXd sstep = Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()) * offset_ * length_;
+            Eigen::VectorXd wstep = Eigen::AngleAxisd(3 * M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_ * length_;
 
-        Eigen::VectorXd nstep = offset_ * length_;
-        Eigen::VectorXd estep = Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_ * length_;
-        Eigen::VectorXd sstep = Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()) * offset_ * length_;
-        Eigen::VectorXd wstep = Eigen::AngleAxisd(3 * M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_ * length_;
+            Eigen::VectorXd joint = offset_ + nstep;
+            x.segment(3 * 0 + offset, 3) = joint;
+            x.segment(3 * 1 + offset, 3) = x.segment(3 * 0 + offset, 3) + estep;
+            x.segment(3 * 2 + offset, 3) = x.segment(3 * 1 + offset, 3) + estep;
+            x.segment(3 * 3 + offset, 3) = x.segment(3 * 2 + offset, 3) + Eigen::Vector3d::UnitZ() * length_;
+            x.segment(3 * 4 + offset, 3) = x.segment(3 * 3 + offset, 3) + sstep;
+            x.segment(3 * 5 + offset, 3) = x.segment(3 * 4 + offset, 3) + sstep;
+            x.segment(3 * 6 + offset, 3) = x.segment(3 * 5 + offset, 3) + wstep;
+        }
+        else
+        {
+            Eigen::VectorXd step = offset_ * length_;
+            Eigen::VectorXd joint = offset_ + step;
 
-        Eigen::VectorXd joint = offset_ + nstep;
-        x.segment(3 * 0 + offset, 3) = joint;
-        x.segment(3 * 1 + offset, 3) = x.segment(3 * 0 + offset, 3) + estep;
-        x.segment(3 * 2 + offset, 3) = x.segment(3 * 1 + offset, 3) + estep;
-        x.segment(3 * 3 + offset, 3) = x.segment(3 * 2 + offset, 3) + Eigen::Vector3d::UnitZ() * length_;
-        x.segment(3 * 4 + offset, 3) = x.segment(3 * 3 + offset, 3) + sstep;
-        x.segment(3 * 5 + offset, 3) = x.segment(3 * 4 + offset, 3) + sstep;
-        x.segment(3 * 6 + offset, 3) = x.segment(3 * 5 + offset, 3) + wstep;
+            unsigned int i = 0;
+            for (; i < links_ / 2; ++i, joint += step)
+                x.segment(3 * i + offset, 3) = joint;
 
-        /*     Eigen::VectorXd joint = offset_ + step; */
-
-        /*     unsigned int i = 0; */
-        /*     for (; i < links_ / 2; ++i, joint += step) */
-        /*         x.segment(3 * i + offset, 3) = joint; */
-
-        /*     joint += Eigen::Vector3d::UnitZ() * length_ - step; */
-        /*     for (; i < links_; ++i, joint -= step) */
-        /*         x.segment(3 * i + offset, 3) = joint; */
+            joint += Eigen::Vector3d::UnitZ() * length_ - step;
+            for (; i < links_; ++i, joint -= step)
+                x.segment(3 * i + offset, 3) = joint;
+        }
     }
 
     Eigen::Ref<const Eigen::VectorXd> getLink(const Eigen::VectorXd &x, const unsigned int idx) const
     {
-        const unsigned int offset = 3 * links_ * id_;
+        const unsigned int offset = 3 * links_ * chainNum_;
         return x.segment(offset + 3 * idx, 3);
     }
 
@@ -134,7 +136,7 @@ public:
 
     void jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const override
     {
-        const unsigned int offset = 3 * links_ * id_;
+        const unsigned int offset = 3 * links_ * chainNum_;
         out.setZero();
 
         Eigen::VectorXd plus(3 * (links_ + 1));
@@ -154,19 +156,18 @@ public:
     }
 
 private:
-    const Eigen::VectorXd offset_;
+    const Eigen::Vector3d offset_;
     const unsigned int links_;
-    const unsigned int id_;
+    const unsigned int chainNum_;
     const double length_;
-    const double jointSize_;
-    const unsigned int extra_;
+    const double jointRadius_;
 };
 
-class StewartPlatform : public ompl::base::Constraint, public StewartBase
+class ParallelPlatform : public ob::Constraint, public ParallelBase
 {
 public:
-    StewartPlatform(const unsigned int n, unsigned int chains, unsigned int links, double radius = 1)
-      : ompl::base::Constraint(n, n - chains), chains_(chains), links_(links), radius_(radius)
+    ParallelPlatform(unsigned int links, unsigned int chains, double radius = 1)
+      : ob::Constraint(3 * links * chains, chains), links_(links), chains_(chains), radius_(radius)
     {
         if (chains == 2)
             setManifoldDimension(k_ + 1);
@@ -190,7 +191,7 @@ public:
 
         unsigned int idx = 0;
 
-        Eigen::VectorXd centroid = Eigen::VectorXd::Zero(3);
+        Eigen::Vector3d centroid = Eigen::Vector3d::Zero();
         for (unsigned int i = 0; i < chains_; ++i)
             centroid += getTip(x, i);
         centroid /= chains_;
@@ -198,69 +199,94 @@ public:
         for (unsigned int i = 0; i < chains_; ++i)
             out[idx++] = (centroid - getTip(x, i)).norm() - radius_;
 
-        for (int i = 0; i < static_cast<int>(chains_) - 3; ++i)
+        for (unsigned int i = 0; i < chains_ - 3; ++i)
         {
-            Eigen::Ref<const Eigen::Vector3d> ab = getTip(x, i + 1) - getTip(x, i);
-            Eigen::Ref<const Eigen::Vector3d> ac = getTip(x, i + 2) - getTip(x, i);
-            Eigen::Ref<const Eigen::Vector3d> ad = getTip(x, i + 3) - getTip(x, i);
+            const Eigen::Vector3d ab = getTip(x, i + 1) - getTip(x, i);
+            const Eigen::Vector3d ac = getTip(x, i + 2) - getTip(x, i);
+            const Eigen::Vector3d ad = getTip(x, i + 3) - getTip(x, i);
 
             out[idx++] = ad.dot(ab.cross(ac));
         }
     }
 
-    void getStart(Eigen::VectorXd &x)
+    void getStart(Eigen::VectorXd &x) override
     {
     }
 
-    void getGoal(Eigen::VectorXd &x)
+    void getGoal(Eigen::VectorXd &x) override
     {
     }
 
 private:
-    const unsigned int chains_;
     const unsigned int links_;
+    const unsigned int chains_;
     const double radius_;
 };
 
-class StewartConstraint : public ompl::base::ConstraintIntersection
+class ParallelConstraint : public ob::ConstraintIntersection, public ParallelBase
 {
 public:
-    StewartConstraint(unsigned int chains, unsigned int links, unsigned int extra = 0, double radius = 1,
-                      double length = 1, double jointSize = 0.2)
-      : ompl::base::ConstraintIntersection(chains * links * 3, {})
-      , chains_(chains)
+    ParallelConstraint(unsigned int links, unsigned int chains, double radius = 1, double length = 1,
+                       double jointRadius = 0.2)
+      : ob::ConstraintIntersection(3 * links * chains, {})
       , links_(links)
+      , chains_(chains)
       , radius_(radius)
       , length_(length)
-      , jointSize_(jointSize)
+      , jointRadius_(jointRadius)
     {
-        const unsigned int dof = chains * links * 3;
-        Eigen::VectorXd offset = Eigen::Vector3d::UnitX();
+        Eigen::Vector3d offset = Eigen::Vector3d::UnitX();
         for (unsigned int i = 0; i < chains_; ++i)
         {
-            addConstraint(new StewartChain(dof, offset, links, i, length, jointSize, extra));
-            offset = Eigen::AngleAxisd(2 * M_PI / static_cast<double>(chains), Eigen::Vector3d::UnitZ()) * offset;
+            addConstraint(new ParallelChain(chains * links * 3, offset, links, i, length, jointRadius));
+            offset = Eigen::AngleAxisd(2 * M_PI / (double)chains, Eigen::Vector3d::UnitZ()) * offset;
         }
 
-        addConstraint(new StewartPlatform(dof, chains, links, radius));
+        addConstraint(new ParallelPlatform(links, chains, radius));
     }
 
-    void getStart(Eigen::VectorXd &x)
+    void getStart(Eigen::VectorXd &x) override
     {
+        x = Eigen::VectorXd(3 * links_ * chains_);
         for (unsigned int i = 0; i < constraints_.size(); ++i)
-            dynamic_cast<StewartBase *>(constraints_[i])->getStart(x);
+            dynamic_cast<ParallelBase *>(constraints_[i])->getStart(x);
     }
 
-    void getGoal(Eigen::VectorXd &x)
+    void getGoal(Eigen::VectorXd &x) override
     {
+        x = Eigen::VectorXd(3 * links_ * chains_);
         for (unsigned int i = 0; i < constraints_.size(); ++i)
-            dynamic_cast<StewartBase *>(constraints_[i])->getGoal(x);
+            dynamic_cast<ParallelBase *>(constraints_[i])->getGoal(x);
     }
 
-    bool isValid(const ompl::base::State *state)
+    ob::StateSpacePtr createSpace() const
     {
-        Eigen::Ref<const Eigen::VectorXd> x =
-            state->as<ompl::base::ConstrainedStateSpace::StateType>()->constVectorView();
+        auto rvss = std::make_shared<ob::RealVectorStateSpace>(3 * links_ * chains_);
+        ob::RealVectorBounds bounds(3 * links_ * chains_);
+
+        for (unsigned int c = 0; c < chains_; ++c)
+        {
+            const unsigned int o = 3 * c * links_;
+            for (int i = 0; i < (int)links_; ++i)
+            {
+                bounds.setLow(o + 3 * i + 0, -i - 2);
+                bounds.setHigh(o + 3 * i + 0, i + 2);
+
+                bounds.setLow(o + 3 * i + 1, -i - 2);
+                bounds.setHigh(o + 3 * i + 1, i + 2);
+
+                bounds.setLow(o + 3 * i + 2, -i - 2);
+                bounds.setHigh(o + 3 * i + 2, i + 2);
+            }
+        }
+
+        rvss->setBounds(bounds);
+        return rvss;
+    }
+
+    bool isValid(const ob::State *state)
+    {
+        auto &&x = *state->as<ob::ConstrainedStateSpace::StateType>();
 
         for (unsigned int i = 0; i < links_ * chains_; ++i)
         {
@@ -270,38 +296,94 @@ public:
 
         for (unsigned int i = 0; i < links_ * chains_ - 1; ++i)
         {
-            if (x.segment(3 * i, 3).cwiseAbs().maxCoeff() < jointSize_)
+            if (x.segment(3 * i, 3).cwiseAbs().maxCoeff() < jointRadius_)
                 return false;
 
             for (unsigned int j = i + 1; j < links_ * chains_; ++j)
-                if ((x.segment(3 * i, 3) - x.segment(3 * j, 3)).cwiseAbs().maxCoeff() < jointSize_)
+                if ((x.segment(3 * i, 3) - x.segment(3 * j, 3)).cwiseAbs().maxCoeff() < jointRadius_)
                     return false;
         }
 
         return true;
     }
 
+    /** Create a projection evaluator for the parallel constraint. Finds the
+     * centroid of the platform and project it to a one-dimensional space. */
+    ob::ProjectionEvaluatorPtr getProjection(ob::StateSpacePtr space) const
+    {
+        class ParallelProjection : public ob::ProjectionEvaluator
+        {
+        public:
+            ParallelProjection(ob::StateSpacePtr space, unsigned int links, unsigned int chains)
+              : ob::ProjectionEvaluator(space), chains_(chains), links_(links)
+            {
+            }
+
+            unsigned int getDimension(void) const
+            {
+                return 1;
+            }
+
+            void defaultCellSizes(void)
+            {
+                cellSizes_.resize(1);
+                cellSizes_[0] = 0.1;
+            }
+
+            void project(const ob::State *state, ob::EuclideanProjection &projection) const
+            {
+                auto &&x = *state->as<ob::ConstrainedStateSpace::StateType>();
+
+                for (unsigned int i = 0; i < chains_; ++i)
+                    projection(0) = x[3 * (i + 1) * links_ - 1];
+
+                projection(0) /= chains_;
+            }
+
+        private:
+            const unsigned int chains_;
+            const unsigned int links_;
+        };
+
+        return std::make_shared<ParallelProjection>(space, links_, chains_);
+    }
+
+    void dump(std::ofstream &file) const
+    {
+        file << links_ << std::endl;
+        file << chains_ << std::endl;
+        file << jointRadius_ << std::endl;
+        file << length_ << std::endl;
+        file << radius_ << std::endl;
+    }
+
+    void addBenchmarkParameters(ot::Benchmark *bench) const
+    {
+        bench->addExperimentParameter("links", "INTEGER", std::to_string(links_));
+        bench->addExperimentParameter("chains", "INTEGER", std::to_string(chains_));
+    }
+
 private:
-    const unsigned int chains_;
     const unsigned int links_;
+    const unsigned int chains_;
     const double radius_;
     const double length_;
-    const double jointSize_;
+    const double jointRadius_;
 };
 
-bool chainPlanningOnce(ConstrainedProblem &cp, enum PLANNER_TYPE planner, bool output)
+bool parallelPlanningOnce(ConstrainedProblem &cp, enum PLANNER_TYPE planner, bool output)
 {
-    cp.setPlanner(planner, "chain");
+    cp.setPlanner(planner, "parallel");
 
     // Solve the problem
-    ob::PlannerStatus stat = cp.solveOnce(output, "chain");
+    ob::PlannerStatus stat = cp.solveOnce(output, "parallel");
 
     if (output)
     {
-        OMPL_INFORM("Dumping problem information to `chain_info.txt`.");
-        std::ofstream infofile("chain_info.txt");
+        OMPL_INFORM("Dumping problem information to `parallel_info.txt`.");
+        std::ofstream infofile("parallel_info.txt");
         infofile << cp.type << std::endl;
-        dynamic_cast<ChainConstraint *>(cp.constraint.get())->dump(infofile);
+        dynamic_cast<ParallelConstraint *>(cp.constraint.get())->dump(infofile);
         infofile.close();
     }
 
@@ -310,53 +392,48 @@ bool chainPlanningOnce(ConstrainedProblem &cp, enum PLANNER_TYPE planner, bool o
     return stat;
 }
 
-bool chainPlanningBench(ConstrainedProblem &cp, std::vector<enum PLANNER_TYPE> &planners)
+bool parallelPlanningBench(ConstrainedProblem &cp, std::vector<enum PLANNER_TYPE> &planners)
 {
-    cp.setupBenchmark(planners, "chain");
+    cp.setupBenchmark(planners, "parallel");
 
-    auto chain = dynamic_cast<ChainConstraint *>(cp.constraint.get());
-    chain->addBenchmarkParameters(cp.bench);
+    auto parallel = dynamic_cast<ParallelConstraint *>(cp.constraint.get());
+    parallel->addBenchmarkParameters(cp.bench);
 
     cp.runBenchmark();
 
     return 0;
 }
 
-bool chainPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_TYPE> &planners, unsigned int links,
-                   unsigned int obstacles, unsigned int extra, struct ConstrainedOptions &c_opt,
-                   struct AtlasOptions &a_opt, bool bench)
+bool parallelPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_TYPE> &planners, unsigned int links,
+                      unsigned int chains, struct ConstrainedOptions &c_opt, struct AtlasOptions &a_opt, bool bench)
 {
     // Create a shared pointer to our constraint.
-    auto constraint = std::make_shared<ChainConstraint>(links, obstacles, extra);
+    auto constraint = std::make_shared<ParallelConstraint>(links, chains);
 
     ConstrainedProblem cp(space, constraint->createSpace(), constraint);
     cp.setConstrainedOptions(c_opt);
     cp.setAtlasOptions(a_opt);
 
-    cp.css->registerProjection("chain", constraint->getProjection(cp.css));
+    cp.css->registerProjection("parallel", constraint->getProjection(cp.css));
 
     Eigen::VectorXd start, goal;
-    constraint->setStartAndGoalStates(start, goal);
+    constraint->getStart(start);
+    constraint->getGoal(goal);
 
     cp.setStartAndGoalStates(start, goal);
-    cp.ss->setStateValidityChecker(std::bind(&ChainConstraint::isValid, constraint, std::placeholders::_1));
+    cp.ss->setStateValidityChecker(std::bind(&ParallelConstraint::isValid, constraint, std::placeholders::_1));
 
     if (!bench)
-        return chainPlanningOnce(cp, planners[0], output);
+        return parallelPlanningOnce(cp, planners[0], output);
     else
-        return chainPlanningBench(cp, planners);
+        return parallelPlanningBench(cp, planners);
 }
 
 auto help_msg = "Shows this help message.";
-auto output_msg = "Dump found solution path (if one exists) in plain text to `chain_path.txt`. "
-                  "Problem information is dumped to `chain_info`.txt";
-auto links_msg = "Number of links in the kinematic chain. Minimum is 4.";
-auto obstacles_msg = "Number of `wall' obstacles on the surface of the sphere. Ranges from [0, 2]";
-auto extra_msg = "Number of extra constraints to add to the chain. Extra constraints are as follows:\n"
-                 "1: End-effector is constrained to be on the surface of a sphere of radius links - 2\n"
-                 "2: (links-5)th and (links-4)th ball have the same z-value\n"
-                 "3: (links-4)th and (links-3)th ball have the same x-value\n"
-                 "4: (links-3)th and (links-2)th ball have the same z-value";
+auto output_msg = "Dump found solution path (if one exists) in plain text to `parallel_path.txt`. "
+                  "Problem information is dumped to `parallel_info`.txt";
+auto links_msg = "Number of links in each kinematic chain. Minimum is 3. Must be odd.";
+auto chains_msg = "Number of chains in parallel mechanism. Minimum is 2.";
 auto bench_msg = "Do benchmarking on provided planner list.";
 
 int main(int argc, char **argv)
@@ -365,9 +442,8 @@ int main(int argc, char **argv)
     enum SPACE_TYPE space = PJ;
     std::vector<enum PLANNER_TYPE> planners = {RRT};
 
-    unsigned int links = 5;
-    unsigned int obstacles = 0;
-    unsigned int extra = 1;
+    unsigned int links = 3;
+    unsigned int chains = 4;
 
     struct ConstrainedOptions c_opt;
     struct AtlasOptions a_opt;
@@ -375,9 +451,8 @@ int main(int argc, char **argv)
     po::options_description desc("Options");
     desc.add_options()("help,h", help_msg);
     desc.add_options()("output,o", po::bool_switch(&output)->default_value(false), output_msg);
-    desc.add_options()("links,l", po::value<unsigned int>(&links)->default_value(5), links_msg);
-    desc.add_options()("obstacles,x", po::value<unsigned int>(&obstacles)->default_value(0), obstacles_msg);
-    desc.add_options()("extra,e", po::value<unsigned int>(&extra)->default_value(1), extra_msg);
+    desc.add_options()("links,l", po::value<unsigned int>(&links)->default_value(3), links_msg);
+    desc.add_options()("chains,c", po::value<unsigned int>(&chains)->default_value(4), chains_msg);
     desc.add_options()("bench", po::bool_switch(&bench)->default_value(false), bench_msg);
 
     addSpaceOption(desc, &space);
@@ -395,7 +470,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    chainPlanning(output, space, planners, links, obstacles, extra, c_opt, a_opt, bench);
+    parallelPlanning(output, space, planners, links, chains, c_opt, a_opt, bench);
 
     return 0;
 }
