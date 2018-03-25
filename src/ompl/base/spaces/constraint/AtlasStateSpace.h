@@ -65,8 +65,8 @@ namespace ompl
     {
         /**
            @anchor gAtlas
-
-           \ref gAtlas AtlasStateSpace implements an atlas-based methodology for constrained sampling-based planning,
+           @par Short description
+           AtlasStateSpace implements an atlas-based methodology for constrained sampling-based planning,
            where the underlying constraint manifold is locally parameterized by \e charts (AtlasChart). The underlying
            constraint manifold can then be sampled and explored using the collection of these charts (an \e atlas).
 
@@ -126,8 +126,6 @@ namespace ompl
             mutable RNG rng_;
         };
 
-        /** \brief State space encapsulating a planner-agnostic atlas algorithm
-         * for planning on a constraint manifold. */
         class AtlasStateSpace : public ConstrainedStateSpace
         {
         public:

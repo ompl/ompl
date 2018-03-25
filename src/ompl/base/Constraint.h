@@ -66,6 +66,9 @@ namespace ompl
         OMPL_CLASS_FORWARD(Constraint);
         /// @endcond
 
+        /** \class ompl::base::ConstraintPtr
+            \brief A shared pointer wrapper for ompl::base::Constraint */
+
         /** \brief Definition of a differentiable holonomic constraint on a
          * configuration space. */
         class Constraint

@@ -53,8 +53,8 @@ namespace ompl
     {
         /**
         @anchor gProject
-
-        \ref gProject ProjectedStateSpace implements a projection-based methodology for constrained sampling-based
+        @par Short description
+        ProjectedStateSpace implements a projection-based methodology for constrained sampling-based
         planning, where points in ambient space are \e projected onto the constraint manifold via a projection operator,
         which in this case is implemented as a Newton's method.
 
