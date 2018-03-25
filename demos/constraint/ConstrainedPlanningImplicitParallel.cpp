@@ -357,6 +357,12 @@ public:
         file << radius_ << std::endl;
     }
 
+    void addBenchmarkParameters(ot::Benchmark *bench) const
+    {
+        bench->addExperimentParameter("links", "INTEGER", std::to_string(links_));
+        bench->addExperimentParameter("chains", "INTEGER", std::to_string(chains_));
+    }
+
 private:
     const unsigned int links_;
     const unsigned int chains_;
@@ -386,17 +392,17 @@ bool parallelPlanningOnce(ConstrainedProblem &cp, enum PLANNER_TYPE planner, boo
     return stat;
 }
 
-// bool chainPlanningBench(ConstrainedProblem &cp, std::vector<enum PLANNER_TYPE> &planners)
-// {
-//     cp.setupBenchmark(planners, "chain");
+bool parallelPlanningBench(ConstrainedProblem &cp, std::vector<enum PLANNER_TYPE> &planners)
+{
+    cp.setupBenchmark(planners, "parallel");
 
-//     auto chain = dynamic_cast<ChainConstraint *>(cp.constraint.get());
-//     chain->addBenchmarkParameters(cp.bench);
+    auto parallel = dynamic_cast<ParallelConstraint *>(cp.constraint.get());
+    parallel->addBenchmarkParameters(cp.bench);
 
-//     cp.runBenchmark();
+    cp.runBenchmark();
 
-//     return 0;
-// }
+    return 0;
+}
 
 bool parallelPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_TYPE> &planners, unsigned int links,
                       unsigned int chains, struct ConstrainedOptions &c_opt, struct AtlasOptions &a_opt, bool bench)
@@ -419,8 +425,8 @@ bool parallelPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANN
 
     if (!bench)
         return parallelPlanningOnce(cp, planners[0], output);
-    // else
-    //     return chainPlanningBench(cp, planners);
+    else
+        return parallelPlanningBench(cp, planners);
 }
 
 auto help_msg = "Shows this help message.";
