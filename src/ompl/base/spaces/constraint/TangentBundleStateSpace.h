@@ -43,43 +43,40 @@ namespace ompl
 {
     namespace base
     {
-        /**
-           @anchor gTangentBundle
-           @par Short description
-           TangentBundleStateSpace implements a lazy atlas-based methodology for constrained
-           sampling-based planning, where the underlying constraint manifold is locally parameterized by \e charts
-           (AtlasChart). The underlying constraint manifold can then be sampled and explored using the collection of
-           these charts (an \e atlas). The difference between TangentBundleStateSpace and AtlasStateSpace is three-fold:
-           TangentBundleStateSpace takes a lazy approach to evaluating the constraint function when traversing the
-           manifold, TangentBundleStateSpace uses biased sampling for selected charts by default, and
-           TangentBundleStateSpace does not use halfspace separation of charts.
-
-           @par External Documentation
-
-           This state space is inspired by the work on Tangent Bundle RRT.
-
-           B. Kim, T. T. Um, C. Suh, and F. C. Park, "Tangent bundle RRT: A randomized algorithm for constrained motion
-           planning," Robotica 34.1 (2016): 202-225. DOI: <a
-           href="http://dx.doi.org/10.1017/S0263574714001234">10.1017/S0263574714001234</a>.
-
-           For more information on constrained sampling-based planning using atlas-based methods, see the following,
-           specifically the section on atlas-based methods.
-
-           Z. Kingston, M. Moll, and L. E. Kavraki, “Sampling-Based Methods for
-           Motion Planning with Constraints,” Annual Review of Control, Robotics,
-           and Autonomous Systems, 2018. DOI: <a
-           href="http://dx.doi.org/10.1146/annurev-control-060117-105226">10.1146/annurev-control-060117-105226</a>
-           <a
-           href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf">[PDF]</a>.
-        */
-
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::TangentBundleStateSpace */
         OMPL_CLASS_FORWARD(TangentBundleStateSpace);
         /// @endcond
 
-        /** \brief State space encapsulating a planner-agnostic lazy atlas algorithm
-         * for planning on a constraint manifold. */
+        /**
+           @anchor gTangentBundle
+           @par Short description
+           TangentBundleStateSpace implements a lazy atlas-based methodology for constrained sampling-based planning,
+           where the underlying constraint manifold is locally parameterized by \e charts (AtlasChart). The underlying
+           constraint manifold can then be sampled and explored using the collection of these charts (an \e atlas). The
+           difference between TangentBundleStateSpace and AtlasStateSpace is three-fold: TangentBundleStateSpace takes a
+           lazy approach to evaluating the constraint function when traversing the manifold, TangentBundleStateSpace
+           uses biased sampling for selected charts by default, and TangentBundleStateSpace does not use halfspace
+           separation of charts.
+
+           @par External Documentation
+           This state space is inspired by the work on Tangent Bundle RRT.
+
+           B. Kim, T. T. Um, C. Suh, and F. C. Park, "Tangent bundle RRT: A randomized algorithm for constrained motion
+           planning," Robotica 34.1 (2016): 202-225. DOI:
+           <a href="http://dx.doi.org/10.1017/S0263574714001234">10.1017/S0263574714001234</a>.
+
+           For more information on constrained sampling-based planning using atlas-based methods, see the following
+           review paper. The section on atlas-based methods cites most of the relevant literature.
+
+           Z. Kingston, M. Moll, and L. E. Kavraki, “Sampling-Based Methods for Motion Planning with Constraints,”
+           Annual Review of Control, Robotics, and Autonomous Systems, 2018. DOI:
+           <a href="http://dx.doi.org/10.1146/annurev-control-060117-105226">10.1146/annurev-control-060117-105226</a>
+           <a href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf">[PDF]</a>.
+        */
+
+        /** \brief ConstrainedStateSpace encapsulating a planner-agnostic lazy
+         * atlas algorithm for planning on a constraint manifold. */
         class TangentBundleStateSpace : public AtlasStateSpace
         {
         public:

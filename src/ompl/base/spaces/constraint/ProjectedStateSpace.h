@@ -51,26 +51,6 @@ namespace ompl
 {
     namespace base
     {
-        /**
-        @anchor gProject
-        @par Short description
-        ProjectedStateSpace implements a projection-based methodology for constrained sampling-based
-        planning, where points in ambient space are \e projected onto the constraint manifold via a projection operator,
-        which in this case is implemented as a Newton's method.
-
-        @par External Documentation
-
-        For more information on constrained sampling-based planning using projection-based methods, see the following,
-        specifically the section on projection-based methods.
-
-        Z. Kingston, M. Moll, and L. E. Kavraki, “Sampling-Based Methods for
-        Motion Planning with Constraints,” Annual Review of Control, Robotics,
-        and Autonomous Systems, 2018. DOI: <a
-        href="http://dx.doi.org/10.1146/annurev-control-060117-105226">10.1146/annurev-control-060117-105226</a>
-        <a
-        href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf">[PDF]</a>.
-        */
-
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ProjectedStateSpace */
         OMPL_CLASS_FORWARD(ProjectedStateSpace);
@@ -102,8 +82,25 @@ namespace ompl
             const ConstraintPtr constraint_;
         };
 
-        /** \brief State space encapsulating a projection-based methodology for
-         * planning with constraints. */
+        /**
+           @anchor gProject
+           @par Short Description
+           ProjectedStateSpace implements a projection-based methodology for constrained sampling-based planning, where
+           points in ambient space are \e projected onto the constraint manifold via a projection operator, which in
+           this case is implemented as a Newton's method within the Constraint.
+
+           @par External Documentation
+           For more information on constrained sampling-based planning using projection-based methods, see the following review paper.
+           The section on projection-based methods cites most of the relevant literature.
+
+           Z. Kingston, M. Moll, and L. E. Kavraki, “Sampling-Based Methods for Motion Planning with Constraints,”
+           Annual Review of Control, Robotics, and Autonomous Systems, 2018. DOI:
+           <a href="http://dx.doi.org/10.1146/annurev-control-060117-105226">10.1146/annurev-control-060117-105226</a>
+           <a href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf">[PDF]</a>.
+        */
+
+        /** \brief ConstrainedStateSpace encapsulating a projection-based
+         * methodology for planning with constraints. */
         class ProjectedStateSpace : public ConstrainedStateSpace
         {
         public:

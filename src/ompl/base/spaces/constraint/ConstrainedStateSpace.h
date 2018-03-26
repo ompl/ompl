@@ -56,38 +56,6 @@ namespace ompl
 
     namespace base
     {
-        /**
-           @anchor gConstrained
-
-           @par Short Description
-
-           \ref gConstrained ConstrainedStateSpace encapsulates the idea of decoupled constrained planning, where the
-           planner and constraint satisfaction methodology are separated. Core to this idea is the augmentation of a
-           state space, rather than the augmentation of a planner. In OMPL, this is implemented as the
-           ConstrainedStateSpace and its concrete implementations: ProjectedStateSpace for projection-based constraint
-           satisfaction, AtlasStateSpace for atlas-based manifold approximation, and TangentBundleStateSpace for a lazy
-           atlas-based approach.
-
-           The core benefit of this method is that there is no additional work to make a sampling-based planner plan
-           with constraints (in this case, a differentiable function of a state, implemented in Constraint), enabling
-           mix-and-matching of planners with constraint methodologies, e.g., KPIECE1 with TangentBundleStateSpace, or
-           RRT* with ProjectedStateSpace, and so on.
-
-           @par External Documentation
-
-           The decoupling approach is described in the following paper.
-
-           Z. Kingston, M. Moll, L. E. Kavraki, "Decoupling Constraints from Sampling-Based Planners," in International
-           Symposium of Robotics Research, Puerto Varas, Chile, 2017. PrePrint: <a
-           href="http://kavrakilab.org/publications/kingston2017decoupling-constraints.pdf"></a>
-
-           For more information on constrained sampling-based planning in general, see the following.
-
-           Z. Kingston, M. Moll, and L. E. Kavraki, “Sampling-Based Methods for Motion Planning with Constraints,”
-           Annual Review of Control, Robotics, and Autonomous Systems, 2018. PrePrint: <a
-           href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf"></a>
-        */
-
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ConstrainedStateSpace */
         OMPL_CLASS_FORWARD(ConstrainedStateSpace);
@@ -122,12 +90,39 @@ namespace ompl
             const ConstrainedStateSpace &ss_;
         };
 
-        /** \brief A state space that has a \a Constraint imposed upon it.
+        /**
+           @anchor gConstrained
+           @par Short Description
+           ConstrainedStateSpace encapsulates the idea of decoupled constrained planning, where the planner and
+           constraint satisfaction methodology are separated. Core to this idea is the augmentation of a state space,
+           rather than the augmentation of a planner. In OMPL, this is implemented as the ConstrainedStateSpace and its
+           concrete implementations: ProjectedStateSpace for projection-based constraint satisfaction, AtlasStateSpace
+           for atlas-based manifold approximation, and TangentBundleStateSpace for a lazy atlas-based approach.
+
+           The core benefit of this method is that there is no additional work to make a sampling-based planner plan
+           with constraints (in this case, a differentiable function of a state, implemented in Constraint), enabling
+           mix-and-matching of planners with constraint methodologies, e.g., KPIECE1 with TangentBundleStateSpace, or
+           RRT* with ProjectedStateSpace, and so on.
+
+           @par External Documentation
+           The decoupling approach is described in the following paper.
+
+           Z. Kingston, M. Moll, L. E. Kavraki, "Decoupling Constraints from Sampling-Based Planners," in International
+           Symposium of Robotics Research, Puerto Varas, Chile, 2017. PrePrint:
+           <a href="http://kavrakilab.org/publications/kingston2017decoupling-constraints.pdf"></a>
+
+           For more information on constrained sampling-based planning in general, see the following.
+
+           Z. Kingston, M. Moll, and L. E. Kavraki, “Sampling-Based Methods for Motion Planning with Constraints,”
+           Annual Review of Control, Robotics, and Autonomous Systems, 2018. PrePrint:
+           <a href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf"></a>
+        */
+
+        /** \brief A StateSpace that has a \a Constraint imposed upon it.
          * Underlying space functions are passed to the ambient space, and the
          * constraint is used to inform any manifold related operations.
          * setSpaceInformation() must be called in order for collision checking
-         * to be done in tandem with manifold traversal, a significant time
-         * saver. */
+         * to be done in tandem with manifold traversal. */
         class ConstrainedStateSpace : public WrapperStateSpace
         {
         public:
@@ -252,11 +247,9 @@ namespace ompl
             void setDelta(const double delta);
 
             /** \brief Set \a lambda, where lambda * distance(x, y) is the
-             * maximum distance that can be accumulated while traversing the
-             * manifold from x to y before the algorithm stops. Additionally,
-             * lambda * delta is the greatest distance a point can diverge from
-             * its previous step, to preserve continuity. Must be greater than
-             * 1. */
+             * maximum length of the geodesic x to y. Additionally, lambda *
+             * delta is the greatest distance a point can diverge from its
+             * previous step, to preserve continuity. Must be greater than 1. */
             void setLambda(double lambda)
             {
                 if (lambda <= 1)
@@ -271,6 +264,7 @@ namespace ompl
                 return delta_;
             }
 
+            /** \brief Get lambda (see setLambda()). */
             double getLambda() const
             {
                 return lambda_;

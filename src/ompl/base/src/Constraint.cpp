@@ -47,21 +47,6 @@ void ompl::base::Constraint::jacobian(const State *state, Eigen::Ref<Eigen::Matr
     jacobian(*state->as<ConstrainedStateSpace::StateType>(), out);
 }
 
-bool ompl::base::Constraint::project(State *state) const
-{
-    return project(*state->as<ConstrainedStateSpace::StateType>());
-}
-
-double ompl::base::Constraint::distance(const State *state) const
-{
-    return distance(*state->as<ConstrainedStateSpace::StateType>());
-}
-
-bool ompl::base::Constraint::isSatisfied(const State *state) const
-{
-    return isSatisfied(*state->as<ConstrainedStateSpace::StateType>());
-}
-
 void ompl::base::Constraint::jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const
 {
     Eigen::VectorXd y1 = x;
@@ -100,6 +85,11 @@ void ompl::base::Constraint::jacobian(const Eigen::Ref<const Eigen::VectorXd> &x
     }
 }
 
+bool ompl::base::Constraint::project(State *state) const
+{
+    return project(*state->as<ConstrainedStateSpace::StateType>());
+}
+
 bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
 {
     // Newton's method
@@ -121,11 +111,21 @@ bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
     return norm < squaredTolerance;
 }
 
+double ompl::base::Constraint::distance(const State *state) const
+{
+    return distance(*state->as<ConstrainedStateSpace::StateType>());
+}
+
 double ompl::base::Constraint::distance(const Eigen::Ref<const Eigen::VectorXd> &x) const
 {
     Eigen::VectorXd f(getCoDimension());
     function(x, f);
     return f.norm();
+}
+
+bool ompl::base::Constraint::isSatisfied(const State *state) const
+{
+    return isSatisfied(*state->as<ConstrainedStateSpace::StateType>());
 }
 
 bool ompl::base::Constraint::isSatisfied(const Eigen::Ref<const Eigen::VectorXd> &x) const

@@ -508,9 +508,8 @@ public:
         bench->benchmark(request);
 
         auto now(ompl::time::as_string(ompl::time::now()));
-        const std::string filename = (boost::format("%1%_%2%_%3%_benchmark.log") % now %
-                                      bench->getExperimentName() % spaceStr[type])
-                                         .str();
+        const std::string filename =
+            (boost::format("%1%_%2%_%3%_benchmark.log") % now % bench->getExperimentName() % spaceStr[type]).str();
 
         bench->saveResultsToFile(filename.c_str());
     }
