@@ -42,6 +42,9 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_2dmap_ik geometric/2d/2dmap_ik.cpp)
     add_ompl_test(test_2dcircles_opt_geometric geometric/2d/2dcircles_optimize.cpp)
 
+    # Test constrained planning
+    add_ompl_test(test_constraint_sphere geometric/constraint/test_sphere.cpp)
+
     # Test planning with controls on a 2D map
     add_ompl_test(test_2dmap_control control/2dmap/2dmap.cpp)
     add_ompl_test(test_planner_data_control control/planner_data.cpp)
