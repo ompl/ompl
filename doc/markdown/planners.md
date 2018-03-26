@@ -9,7 +9,7 @@ To see how to benchmark planners, click [here](benchmark.html).
 
 # Geometric planners {#geometric_planners}
 
-Planners in this category only accounts for the geometric and kinematic constraints of the system. It is assumed that any feasible path can be turned into a dynamically feasible trajectory. Planners in this category can be divided into several overlapping subcategories:
+Planners in this category only accounts for the geometric and kinematic constraints of the system. It is assumed that any feasible path can be turned into a dynamically feasible trajectory. Any of these planners can be used to [plan with geometric constraints](constrainedPlanning.html). Planners in this category can be divided into several overlapping subcategories:
 
 <div class="plannerlist">
 - **Multi-query planners**<br>
