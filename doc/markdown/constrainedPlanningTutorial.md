@@ -4,7 +4,7 @@ Defining a constrained motion planning problem is easy and very similar to defin
 
 ## Defining the Constraint
 
-First, let's define our constraint class. Constraints must inherit from the base class `ompl::base::Constraint`. A bare-bones version of the sphere constraint we gave above might look like this:
+First, let's define our constraint class. Constraints must inherit from the base class `ompl::base::Constraint`. Primarily, the function `ompl::base::Constraint::function()` must be implemented by any concrete implementation of a constraint. A bare-bones version of the sphere constraint we gave above might look like this:
 
 ~~~{.cpp}
 // Constraints must inherit from the constraint base class. By default, a
@@ -23,12 +23,14 @@ public:
     {
     }
 
-    // Here we define the actual constraint function, which takes in some state
-    // "x" (from the ambient space) and sets the values of "out" to the result of
-    // the constraint function.
+    // Here we define the actual constraint function, which takes in some state "x"
+    // (from the ambient space) and sets the values of "out" to the result of the
+    // constraint function. Note that we are implementing `function` which has this
+    // function signature, not the one that takes in ompl::base::State.
     void function(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::VectorXd> out) const override
     {
-        // f(q) = || q || - 1, as discussed above.
+        // The function that defines a sphere is f(q) = || q || - 1, as discussed
+        // above. Eigen makes this easy to express:
         out[0] = x.norm() - 1;
     }
 };
@@ -46,7 +48,9 @@ However, we can do better. We would like to include an analytical Jacobian for o
 ~~~{.cpp}
 // Implement the Jacobian of the constraint function. The Jacobian for the
 // constraint function is an matrix of dimension equal to the co-dimension of the
-// constraint by the ambient dimension (in this case, 1 by 3).
+// constraint by the ambient dimension (in this case, 1 by 3). Similar to
+// `function` above, we implement the `jacobian` method with the following
+// function signature.
 void Sphere::jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const override
 {
     out = x.transpose().normalized();
@@ -107,7 +111,7 @@ Let's define a simple problem to solve for this constrained space: traverse the 
 auto ss = std::make_shared<og::SimpleSetup>(csi);
 ~~~
 
-### State Validity Checker 
+### State Validity Checker
 
 Let's define our state validity checker, which is a simple narrow band around the equator with a hole on one side:
 
@@ -205,7 +209,7 @@ if (stat)
 
     // Interpolation also works on constrained state spaces.
     path.interpolate();
-    
+
     // Then do whatever you want with the path, like normal!
 }
 else
