@@ -104,18 +104,23 @@ namespace ompl
            mix-and-matching of planners with constraint methodologies, e.g., KPIECE1 with TangentBundleStateSpace, or
            RRT* with ProjectedStateSpace, and so on.
 
+           See \ref constrainedPlanning for more details.
+
            @par External Documentation
-           The decoupling approach is described in the following paper.
+           The following paper describes the idea of decoupled constrained planning, as implemented in OMPL.
 
-           Z. Kingston, M. Moll, L. E. Kavraki, "Decoupling Constraints from Sampling-Based Planners," in International
+           Z. Kingston, M. Moll, and L. E. Kavraki, "Decoupling Constraints from Sampling-Based Planners," in International
            Symposium of Robotics Research, Puerto Varas, Chile, 2017. PrePrint:
-           <a href="http://kavrakilab.org/publications/kingston2017decoupling-constraints.pdf"></a>
+           <a href="http://kavrakilab.org/publications/kingston2017decoupling-constraints.pdf">[PDF]</a>
 
-           For more information on constrained sampling-based planning in general, see the following.
+           For more information on constrained sampling-based planning in general, see the following review paper. The
+           sections on projection- and atlas-based planning describe the methods used in the ProjectedStateSpace,
+           AtlasStateSpace, and TangentBundleStateSpace.
 
            Z. Kingston, M. Moll, and L. E. Kavraki, “Sampling-Based Methods for Motion Planning with Constraints,”
-           Annual Review of Control, Robotics, and Autonomous Systems, 2018. PrePrint:
-           <a href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf"></a>
+           Annual Review of Control, Robotics, and Autonomous Systems, 2018. DOI:
+           <a href="http://dx.doi.org/10.1146/annurev-control-060117-105226">10.1146/annurev-control-060117-105226</a>
+           <a href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf">[PDF]</a>.
         */
 
         /** \brief A StateSpace that has a \a Constraint imposed upon it.
@@ -151,8 +156,13 @@ namespace ompl
                 CONSTRAINED_STATESPACE_JACOBIAN = (1 << 5)
             };
 
-            /** \brief A state in a constrained configuration space that can be
-             * represented as a dense real vector of values. */
+            /** \brief A State in a ConstrainedStateSpace, represented as a
+             * dense real vector of values. For convenience and efficiency of
+             * various Constraint related operations, this State inherits from
+             * Eigen::Map<Eigen::VectorXd>, mapping the underlying dense double
+             * vector into an Eigen::VectorXd. Note that this state type
+             * inherits from WrapperStateSpace::StateType, and as such the
+             * underlying state can be accessed by getState(). */
             class StateType : public WrapperStateSpace::StateType, public Eigen::Map<Eigen::VectorXd>
             {
             public:
@@ -163,6 +173,9 @@ namespace ompl
                 {
                 }
 
+                /** \brief Copy the contents from a vector into this state. Uses
+                 * the underlying copy operator used by Eigen for dense
+                 * vectors. */
                 void copy(const Eigen::Ref<const Eigen::VectorXd> &other)
                 {
                     // Explicitly cast and call `=` on the state as an

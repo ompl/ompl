@@ -70,7 +70,8 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::base::Constraint */
 
         /** \brief Definition of a differentiable holonomic constraint on a
-         * configuration space. */
+         * configuration space. See \ref constrainedPlanning for more details.
+        */
         class Constraint
         {
         public:

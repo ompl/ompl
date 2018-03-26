@@ -50,7 +50,7 @@ namespace ompl
 
         /**
            @anchor gTangentBundle
-           @par Short description
+           @par Short Description
            TangentBundleStateSpace implements a lazy atlas-based methodology for constrained sampling-based planning,
            where the underlying constraint manifold is locally parameterized by \e charts (AtlasChart). The underlying
            constraint manifold can then be sampled and explored using the collection of these charts (an \e atlas). The
