@@ -51,6 +51,7 @@ namespace ompl
          * of the manifold. */
         class AtlasChart
         {
+        private:
             /** \brief Halfspace equation on a chart. \note Use
              * AtlasChart::generateHalfspace to create new halfspace objects.
              * Since each halfspace is associated to exactly one chart, we let
@@ -215,6 +216,8 @@ namespace ompl
              * included. */
             bool toPolygon(std::vector<Eigen::VectorXd> &vertices) const;
 
+            /** \brief Returns the number of charts this chart shares a
+             * halfspace boundary with. */
             std::size_t getNeighborCount() const
             {
                 return polytope_.size();
