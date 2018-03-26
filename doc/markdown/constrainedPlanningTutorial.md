@@ -179,7 +179,7 @@ ss->setStartAndGoalStates(start, goal);
 
 ### Planner
 
-Finally, we can add a planner like normal. Let's use `ompl::geometric::PRM`:
+Finally, we can add a planner like normal. Let's use `ompl::geometric::PRM`, but any other planner in `ompl::geometric` would do.
 
 ~~~{.cpp}
 auto pp = std::make_shared<og::PRM>(csi);
