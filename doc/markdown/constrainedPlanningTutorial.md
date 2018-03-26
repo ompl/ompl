@@ -166,8 +166,8 @@ ob::ScopedState<> start(css);
 ob::ScopedState<> goal(css);
 
 // Copy the values from the vectors into the start and goal states.
-start->as<ob::ConstrainedStateSpace::StateType>()->copy(start);
-goal->as<ob::ConstrainedStateSpace::StateType>()->copy(goal);
+start->as<ob::ConstrainedStateSpace::StateType>()->copy(sv);
+goal->as<ob::ConstrainedStateSpace::StateType>()->copy(gv);
 
 // If we were using an Atlas or TangentBundleStateSpace, we would also have to anchor these states to charts:
 //   css->anchorChart(start.get());

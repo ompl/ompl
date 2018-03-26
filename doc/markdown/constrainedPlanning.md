@@ -36,6 +36,10 @@ Currently, each of the constrained state spaces implements interpolation on the 
 
 Due to the nature of how these routines are implemented, it is possible for computation of the discrete geodesic to _fail_, thus causing potentially unexpected results from whatever overlying routine requested a discrete geodesic. These failures can be the result of singularities in the constraint, high curvature of the submanifold, and various other issues. However, interpolation in "regular" state spaces does not generally fail as they are analytic, such as linear interpolation in `ompl::base::RealVectorStateSpace`; hence, `ompl::base::StateStace::interpolate` is assumed to always be successful. As a result, some unexpected behavior can be seen if interpolation fails during planning with a constrained state space. Increasing or decreasing the "delta" parameter in `ompl::base::ConstrainedStateSpace`, increasing or decreasing the constraint satisfaction tolerance, and other hyperparameter tuning can fix these problems.
 
+#### Path Continuity
+
+On the topic of interpolation, if you want a path that satisfies constraints _and_ is potentially executable by a real system, you will want to interpolate whatever path (simplified or un-simplified) you find.
+
 ### Hyperparameter Sensitivity
 
 The constrained state spaces, in general, are sensitive to the tuning of their various hyperparameters. Some reasonable defaults are set at start, but many constrained planning problems will have different characteristics of the underlying submanifold, and as such different parameters may be needed. Some basic rules-of-thumb are provided below:
