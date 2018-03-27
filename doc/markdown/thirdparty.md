@@ -78,13 +78,12 @@ _arXiv_, 2013 [[PDF]](http://arxiv.org/pdf/1308.0189.pdf)
 
     - S. Karaman and E. Frazzoli, _Sampling-based algorithms for optimal motion planning_ Int. Journal of Robotics Research, 2011. Also available at http://arxiv.org/abs/1105.1186.
 
-  For more information on RRT* and its variants see http://ares.lids.mit.edu/rrtstar.
 
 # PRM extensions
 
 ### Author: James Marble (University of Nevada at Reno)
 
-- Generalized the implementation of PRM so that different variations can be created by passing connection strategies and filters. Provided such functions for PRM and PRM*.
+- Generalized the implementation of [PRM](\ref gPRM) so that different variations can be created by passing connection strategies and filters. Provided such functions for PRM and [PRM*](\ref gPRMstar).
 
 
 # RRT extension for planning with controls
