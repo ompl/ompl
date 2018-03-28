@@ -40,7 +40,7 @@ Planners in this category only accounts for the geometric and kinematic constrai
       SST is an asymptotically near-optimal incremental version of RRT.
     - [Transition-based RRT (T-RRT)](\ref gTRRT)<br>
       T-RRT does not give any hard optimality guarantees, but tries to find short, low-cost paths.
-    - [Vector Field RRT](\gVFRRT)<br>
+    - [Vector Field RRT](\ref gVFRRT)<br>
       VF-RRT is a tree-based motion planner that tries to minimize the so-called upstream cost of a path. The upstream cost is defined by an integral over a user-defined vector field.
     - [Parallel RRT (pRRT)](\ref gpRRT)<br>
       Many different parallelization schemes have been proposed for sampling-based planners, including RRT. In this implementation, several threads simultaneously add states to the same tree. Once a solution is found, all threads terminate.

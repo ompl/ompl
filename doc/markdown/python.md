@@ -7,8 +7,8 @@ from ompl import base, control, geometric, tools, util
 dir(base), dir(control), dir(geometric), dir(tools), dir(util)
 ~~~
 
-## Contents
-
+# Contents
+ 
 - \ref py_good_practices
 - \ref cpp_py_diffs
 - \ref py_api_diffs
@@ -16,7 +16,7 @@ dir(base), dir(control), dir(geometric), dir(tools), dir(util)
 - \ref pyfunction_to_stdfunction
 - \ref updating_python_bindings
 
-## Usage of the Python bindings: Good practices {#py_good_practices}
+# Usage of the Python bindings: Good practices {#py_good_practices}
 
 Although almost all C++ functionality is exposed to Python, there are some caveats to be aware off:
 
@@ -24,12 +24,12 @@ Although almost all C++ functionality is exposed to Python, there are some cavea
 - C++ threads and Boost.Python don't mix; see the [Boost.Python FAQ](http://www.boost.org/libs/python/doc/v2/faq.html). If you have multi-threaded C++ code where multiple threads can call the Python interpreter at the same time, then this can lead to crashes. For that reason, we do not have Python bindings for the parallelized RRT and SBL planners, because they can call a Python state validator function at the same time.
 - Just because you \em can create Python classes that derive from C++ classes, this doesn't mean it is a good idea. You pay a performance penalty each time your code crosses the Python-C++ barrier (objects may need to copied, locks acquired, etc.). This means that it is an especially bad idea to override low-level classes. For low-level functionality it is best to stick to the built-in OMPL functionality and use just the callback functions (e.g., for state validation and state propagation). It is also highly recommended to use the ompl::geometric::SimpleSetup and ompl::control::SimpleSetup classes rather than the lower-level classes for that same reason.
 
-## Important differences between C++ and Python {#cpp_py_diffs}
+# Important differences between C++ and Python {#cpp_py_diffs}
 
 - There are no templates in Python, so templated C++ classes and functions need to be fully instantiated to allow them to be exposed to python.
 - There are no C-style pointers in python, and no “new” or “delete” operators. This could be a problem, but can be dealt with mostly by using [shared_ptr](http://en.cppreference.com/w/cpp/memory/shared_ptr)'s. If a C++ function takes pointer input/output parameters, _usually_ a reference to the object is passed in the python bindings. In other words, you should be able to get and set the current value of an object through its methods. In some cases odd side effects may occur if you pass temporary objects (e.g., `function_call(Constructor_call())`), so it's advisable to create variables with the appropriate scope.
 
-## Differences between the C++ and Python API's {#py_api_diffs}
+# Differences between the C++ and Python API's {#py_api_diffs}
 
 - An STL vector of int's is of type vectorInt in Python (analogously for other types).
 - The C++ class State has been renamed AbstractState, while the C++ class ScopedState\<\> is called State in Python.
@@ -50,7 +50,7 @@ s().setX(1.0)          # this also works
 
 Many of the python demo and test programs are direct ports of the corresponding C++ programs. If you compare these programs, the sometimes subtle differences will become more obvious. In the python programs you will notice that we can create python classes that derive from C++ classes and pass instances of such classes to C++ functions. Similarly, we can create python functions (such as state validity checkers or propagate functions) that can be called by C++ code.
 
-## A simple example {#py_example}
+# A simple example {#py_example}
 
 Below is a simple annotated example. It is available in ompl/py-bindings/demos/RigidBodyPlanning.py.
 
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     plan()
 ~~~
 
-## Creating std::function objects from Python functions {#pyfunction_to_stdfunction}
+# Creating std::function objects from Python functions {#pyfunction_to_stdfunction}
 
 OMPL relies heavily on std::function objects for callback functions. To specify a Python function as a callback function, that function needs to be cast to the right function type. The simple example above already showed how to do this for a state validity checker function:
 

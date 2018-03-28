@@ -1,4 +1,4 @@
-# How to Benchmark Planners
+#How to Benchmark Planners
 
 OMPL contains a ompl::Benchmark class that facilitates solving a motion planning problem repeatedly with different parameters, different planners, different samplers, or even differently configured versions of the same planning algorithm. Below, we will describe how you can use this class.
 
@@ -18,7 +18,9 @@ For a command line program for rigid body motion planning and basic kinodynamic 
 For interactive visualization of benchmark databases, please see [plannerarena.org](http://plannerarena.org).
 
 \if OMPLAPP
-## Create a benchmark configuration file {#benchmark_config}
+
+# Create a benchmark configuration file {#benchmark_config}
+
 
 OMPL.app contains a command line program called `ompl_benchmark`, that can read a text based configuration file using an ini style format with key/value pairs. This is the same format that can be read and saved with the OMPL.app GUI. The GUI ignores the settings related to benchmarking. However, it is often convenient to create an initial configuration with the GUI and add the benchmark settings with a text editor. Currently the base functionality of the `ompl_benchmark` program only applies to geometric planning in SE(2) and SE(3) and kinodynamic planning for certain systems, but the program can be extended by the user to other types of planning problems.
 
@@ -109,7 +111,8 @@ When using multiple planner instances, a useful parameter is “name”, as it c
 Finally, to execute the benchmark configuration file, simply run the `ompl_benchmark` executable in the OMPL.app bin directory, and supply the path to the config file as the first argument.
 \endif
 
-## Writing benchmarking code {#benchmark_code}
+Writing benchmarking code {#benchmark_code}
+-------------------------------------------
 
 Benchmarking a set of planners on a specified problem using the Benchmark class in your own code is a simple task in OMPL. The steps involved are as follows:
 
@@ -211,7 +214,7 @@ b.setPreRunEvent(std::bind(&optionalPreRunEvent, std::placeholders::_1));
 b.setPostRunEvent(std::bind(&optionalPostRunEvent, std::placeholders::_1, std::placeholders::_2));
 ~~~
 
-## Processing the benchmarking log file {#benchmark_log}
+# Processing the benchmarking log file {#benchmark_log}
 
 Once the C++ code computing the results has been executed, a log file is generated. This contains information about the settings of the planners, the parameters of the problem tested on, etc. To visualize this information, we provide a script that parses the log files:
 
@@ -271,7 +274,7 @@ Planning algorithms can also register callback functions that the Benchmark clas
 
 With the Benchmark class one can thus measure how the cost is decreasing over time. The ompl_benchmark_statistics.py script will automatically generate plots of progress properties as a function of time.
 
-## Sample benchmark results {#benchmark_sample_results}
+# Sample benchmark results {#benchmark_sample_results}
 
 Below are sample results for running benchmarks for two example problems: the “cubicles” environment and the “Twistycool” environment. The complete benchmarking program (SE3RigidBodyPlanningBenchmark.cpp), the environment and robot files are included with OMPL.app, so you can rerun the exact same benchmarks on your own machine. See the [gallery](gallery.html#gallery_omplapp) for visualizations of sample solutions to both problems. The results below were run on a recent model Apple MacBook Pro (2.66 GHz Intel Core i7, 8GB of RAM). It is important to note that none of the planner parameters were tuned; all benchmarks were run with default settings. From these results one cannot draw any firm conclusions about which planner is “better” than some other planner.
 
@@ -292,7 +295,7 @@ For boolean measurements the script will create bar charts with the percentage o
 
 Whenever measurements are not always available for a particular attribute, the columns for each planner are labeled with the number of runs for which no data was available. For instance, the boolean attribute __correct solution__ is not set if a solution is not found.
 
-## The benchmark logfile format {#benchmark_logfile_format}
+# The benchmark logfile format {#benchmark_logfile_format}
 
 The benchmark log files have a pretty simple structure. Below we have included their syntax in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus–Naur_Form). This may be useful for someone interested in extending other planning libraries with similar logging capabilities (which would be helpful in a direct comparison of the performance of planning libraries). Log files in this format can be parsed by ompl_benchmark_statistics.py (see next section).
 
@@ -346,7 +349,7 @@ prog_run_data         ::= data "," | data "," prog_run_data;
 
 Here, `EOL` denotes a newline character, `int` denotes an integer, `float` denotes a floating point number, `num` denotes an integer or float value and undefined symbols correspond to strings without whitespace characters. The exception is `property_name` which is a string that _can_ have whitespace characters. It is also assumed that if the log file says there is data for _k_ planners that that really is the case (likewise for the number of run measurements and the optional progress measurements).
 
-## The benchmark database schema {#benchmark_database}
+# The benchmark database schema {#benchmark_database}
 
 <div class="col-sm-4 pull-right">
   <img src="images/benchmarkdb_schema.png" width="100%">
