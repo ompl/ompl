@@ -74,7 +74,7 @@ endif(MSVC)
 # generate export header
 generate_export_header(ompl EXPORT_FILE_NAME export.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/export.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/fcl)
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ompl)
 
 
 # install the library
