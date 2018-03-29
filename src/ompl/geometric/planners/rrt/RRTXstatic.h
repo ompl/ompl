@@ -284,7 +284,7 @@ namespace ompl
             }
 
         protected:
-            class OMPL_EXPORT Motion;
+            class Motion;
 
             /** \brief Defines the operator to compare motions */
             struct OMPL_EXPORT MotionCompare

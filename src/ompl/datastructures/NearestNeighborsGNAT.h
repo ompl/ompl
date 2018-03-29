@@ -85,7 +85,7 @@ namespace ompl
 
         // another internal data structure is a priority queue of nodes to
         // check next for possible nearest neighbors
-        class OMPL_EXPORT Node;
+        class Node;
         using NodeDist = std::pair<Node *, double>;
         struct OMPL_EXPORT NodeDistCompare
         {

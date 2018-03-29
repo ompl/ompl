@@ -50,7 +50,7 @@ namespace ompl
 {
     namespace base
     {
-        class OMPL_EXPORT Goal;
+        class Goal;
 
         /** \brief The definition of a function which returns an admissible estimate of the optimal path cost from a
          * given state to a goal. */

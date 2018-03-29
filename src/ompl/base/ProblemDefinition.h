@@ -136,7 +136,7 @@ namespace ompl
             std::string plannerName_;
         };
 
-        class OMPL_EXPORT Planner;
+        class Planner;
 
         /** \brief When a planner has an intermediate solution (e.g., optimizing planners), a function with this
            signature can be called

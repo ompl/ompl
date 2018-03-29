@@ -66,7 +66,7 @@ namespace ompl
         class OMPL_EXPORT ProductGraph
         {
         public:
-            class OMPL_EXPORT State;
+            class State;
 
             /// @cond IGNORE
             /** \brief Hash function for State to be used in std::unordered_map */

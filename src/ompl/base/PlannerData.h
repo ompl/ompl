@@ -160,7 +160,7 @@ namespace ompl
         OMPL_CLASS_FORWARD(PlannerData);
 
         // Forward declaration for PlannerData::computeEdgeWeights
-        class OMPL_EXPORT OptimizationObjective;
+        class OptimizationObjective;
         /// @endcond
 
         /** \class ompl::base::PlannerDataPtr
@@ -174,7 +174,7 @@ namespace ompl
         class OMPL_EXPORT PlannerData
         {
         public:
-            class OMPL_EXPORT Graph;
+            class Graph;
 
             /// \brief Representation for a non-existant edge
             static const PlannerDataEdge NO_EDGE;

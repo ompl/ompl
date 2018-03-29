@@ -178,7 +178,7 @@ namespace ompl
     private:
         /** \brief A forward declaration to a data structure class holding data for spherical distributions of various
          * dimension. */
-        class OMPL_EXPORT SphericalData;
+        class SphericalData;
 
         /** \brief The seed used for the instance of a RNG */
         std::uint_fast32_t localSeed_;

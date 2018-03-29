@@ -109,16 +109,16 @@ namespace ompl
         public:
             // Forward declarations so that the classes belong to BIT*:
             /** \brief The vertex of implicit and explicit graphs. */
-            class OMPL_EXPORT Vertex;
+            class Vertex;
             /** \brief A generator of unique vertex IDs. */
-            class OMPL_EXPORT IdGenerator;
+            class IdGenerator;
             /** \brief A helper class to consolidate cost and heuristic calculations. */
-            class OMPL_EXPORT CostHelper;
+            class CostHelper;
             /** \brief The samples viewed as an edge-implicit random geometric graph. */
-            class OMPL_EXPORT ImplicitGraph;
+            class ImplicitGraph;
             /** \brief The queue of edges to process as a dual-stage queue (tracks both the expansion of vertices and
              * the resulting edges) */
-            class OMPL_EXPORT SearchQueue;
+            class SearchQueue;
             // Helpful alias declarations:
             /** \brief A vertex shared pointer. */
             typedef std::shared_ptr<Vertex> VertexPtr;

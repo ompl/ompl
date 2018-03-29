@@ -95,7 +95,7 @@ namespace ompl
             bool eval() const;
 
         private:
-            class OMPL_EXPORT PlannerTerminationConditionImpl;
+            class PlannerTerminationConditionImpl;
             std::shared_ptr<PlannerTerminationConditionImpl> impl_;
         };
 

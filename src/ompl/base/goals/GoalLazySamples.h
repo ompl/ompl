@@ -47,7 +47,7 @@ namespace ompl
 {
     namespace base
     {
-        class OMPL_EXPORT GoalLazySamples;
+        class GoalLazySamples;
 
         /** \brief Goal sampling function. Returns false when no further calls should be made to it.
             Fills its second argument (the state) with the sampled goal state. This function need not

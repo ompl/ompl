@@ -112,7 +112,7 @@ namespace ompl
 
         private:
             /// @cond IGNORE
-            class OMPL_EXPORT SelfConfigImpl;
+            class SelfConfigImpl;
 
             SelfConfigImpl *impl_;
             std::string context_;

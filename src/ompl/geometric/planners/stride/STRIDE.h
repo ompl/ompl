@@ -48,7 +48,7 @@
 namespace ompl
 {
     template <typename _T>
-    class OMPL_EXPORT NearestNeighborsGNAT;
+    class NearestNeighborsGNAT;
 
     namespace geometric
     {

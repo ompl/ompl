@@ -45,7 +45,7 @@ namespace ompl
 {
     namespace control
     {
-        class OMPL_EXPORT World;
+        class World;
     }
 }
 

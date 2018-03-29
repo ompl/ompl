@@ -45,7 +45,7 @@ namespace ompl
 {
     namespace geometric
     {
-        class OMPL_EXPORT CForest;
+        class CForest;
     }
 
     namespace base

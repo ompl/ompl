@@ -144,7 +144,7 @@ namespace ompl
             void getPlannerData(base::PlannerData &data) const override;
 
         protected:
-            class OMPL_EXPORT Motion;
+            class Motion;
             struct OMPL_EXPORT MotionInfo;
 
             /** \brief A grid cell */
