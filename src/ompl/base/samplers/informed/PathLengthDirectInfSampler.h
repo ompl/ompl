@@ -78,7 +78,7 @@ namespace ompl
         */
 
         /** \brief An informed sampler for problems seeking to minimize path length.*/
-        class PathLengthDirectInfSampler : public InformedSampler
+        class OMPL_EXPORT PathLengthDirectInfSampler : public InformedSampler
         {
         public:
             /** \brief Construct a sampler that only generates states with a heuristic solution estimate that is less

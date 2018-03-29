@@ -59,7 +59,7 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::base::Goal */
 
         /** \brief Abstract definition of goals.*/
-        class Goal
+        class OMPL_EXPORT Goal
         {
         public:
             // non-copyable

@@ -66,7 +66,7 @@ namespace ompl
     // Data is of type std::size_t
     template <typename Graph,      // Boost graph
               typename Heuristic>  // heuristic to estimate cost
-    class LPAstarOnGraph
+    class OMPL_EXPORT LPAstarOnGraph
     {
     public:
         LPAstarOnGraph(std::size_t source, std::size_t target, Graph &graph, Heuristic &h)
@@ -190,7 +190,7 @@ namespace ompl
         }
 
     private:
-        struct Key
+        struct OMPL_EXPORT Key
         {
             Key(double first_ = -1, double second_ = -1) : first(first_), second(second_)
             {
@@ -202,7 +202,7 @@ namespace ompl
             double first, second;
         };
 
-        class Node
+        class OMPL_EXPORT Node
         {
         public:
             Node(double costToCome, double costToGo, double rhs, std::size_t &dataId, Node *parentNode = nullptr)
@@ -279,7 +279,7 @@ namespace ompl
             std::size_t id;  // unique data associated with node
         };                   // Node
 
-        struct LessThanNodeK
+        struct OMPL_EXPORT LessThanNodeK
         {
             bool operator()(const Node *n1, const Node *n2) const
             {
@@ -287,7 +287,7 @@ namespace ompl
             }
         };  // LessThanNodeK
 
-        struct Hash
+        struct OMPL_EXPORT Hash
         {
             std::size_t operator()(const std::size_t id) const
             {

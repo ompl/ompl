@@ -57,7 +57,7 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::base::StateValidityChecker */
 
         /** \brief Properties that a state validity checker may have */
-        struct StateValidityCheckerSpecs
+        struct OMPL_EXPORT StateValidityCheckerSpecs
         {
             /** \brief Specify the type of clearance computation */
             enum ClearanceComputationType
@@ -87,7 +87,7 @@ namespace ompl
         /** \brief Abstract definition for a class checking the
             validity of states. The implementation of this class must
             be thread safe. */
-        class StateValidityChecker
+        class OMPL_EXPORT StateValidityChecker
         {
         public:
             /** \brief Constructor */
@@ -162,7 +162,7 @@ namespace ompl
         };
 
         /** \brief The simplest state validity checker: all states are valid */
-        class AllValidStateValidityChecker : public StateValidityChecker
+        class OMPL_EXPORT AllValidStateValidityChecker : public StateValidityChecker
         {
         public:
             /** \brief Constructor */

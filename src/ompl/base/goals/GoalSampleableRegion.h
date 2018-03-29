@@ -44,7 +44,7 @@ namespace ompl
     namespace base
     {
         /** \brief Abstract definition of a goal region that can be sampled */
-        class GoalSampleableRegion : public GoalRegion
+        class OMPL_EXPORT GoalSampleableRegion : public GoalRegion
         {
         public:
             /** \brief Create a goal region that can be sampled */

@@ -55,7 +55,7 @@ namespace ompl
         NearestNeighbors::distFun_ callback function
     */
     template <typename _T>
-    class FLANNDistance
+    class OMPL_EXPORT FLANNDistance
     {
     public:
         using ElementType = ompl::base::State *;
@@ -85,7 +85,7 @@ namespace ompl
         http://people.cs.ubc.ca/~mariusm/index.php/FLANN/FLANN
     */
     template <typename _T, typename _Dist = FLANNDistance<_T>>
-    class NearestNeighborsFLANN : public NearestNeighbors<_T>
+    class OMPL_EXPORT NearestNeighborsFLANN : public NearestNeighbors<_T>
     {
     public:
         NearestNeighborsFLANN(std::shared_ptr<flann::IndexParams> params)
@@ -329,7 +329,7 @@ namespace ompl
     }
 
     template <typename _T, typename _Dist = FLANNDistance<_T>>
-    class NearestNeighborsFLANNLinear : public NearestNeighborsFLANN<_T, _Dist>
+    class OMPL_EXPORT NearestNeighborsFLANNLinear : public NearestNeighborsFLANN<_T, _Dist>
     {
     public:
         NearestNeighborsFLANNLinear()
@@ -339,7 +339,7 @@ namespace ompl
     };
 
     template <typename _T, typename _Dist = FLANNDistance<_T>>
-    class NearestNeighborsFLANNHierarchicalClustering : public NearestNeighborsFLANN<_T, _Dist>
+    class OMPL_EXPORT NearestNeighborsFLANNHierarchicalClustering : public NearestNeighborsFLANN<_T, _Dist>
     {
     public:
         NearestNeighborsFLANNHierarchicalClustering()

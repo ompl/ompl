@@ -72,7 +72,7 @@ namespace ompl
         /** \brief Definition of a differentiable holonomic constraint on a
          * configuration space. See \ref constrainedPlanning for more details.
         */
-        class Constraint
+        class OMPL_EXPORT Constraint
         {
         public:
             /** \brief Constructor. The dimension of the ambient configuration
@@ -240,7 +240,7 @@ namespace ompl
         /** \brief Definition of a constraint composed of multiple constraints
          that all must be satisfied simultaneously. This class `stacks' the
          constraint functions together. */
-        class ConstraintIntersection : public Constraint
+        class OMPL_EXPORT ConstraintIntersection : public Constraint
         {
         public:
             /** \brief Constructor. If constraints is empty assume it will be
@@ -296,7 +296,7 @@ namespace ompl
 
         /** \brief Wrapper around ompl::base::Constraint to use as an
          * optimization objective. */
-        class ConstraintObjective : public OptimizationObjective
+        class OMPL_EXPORT ConstraintObjective : public OptimizationObjective
         {
         public:
             /** \brief Constructor. */

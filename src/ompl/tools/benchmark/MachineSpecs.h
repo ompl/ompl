@@ -37,6 +37,7 @@
 #ifndef OMPL_TOOLS_BENCHMARK_MACHINE_SPECS_
 #define OMPL_TOOLS_BENCHMARK_MACHINE_SPECS_
 
+#include "ompl/export.h"
 #include <string>
 
 namespace ompl
@@ -49,12 +50,15 @@ namespace ompl
 
         /** \brief Get the amount of memory the current process is using. This should work on major platforms (Windows,
          * Mac OS, Linux) */
+        OMPL_EXPORT
         MemUsage_t getProcessMemoryUsage();
 
         /** \brief Get the hostname of the machine in use */
+        OMPL_EXPORT
         std::string getHostname();
 
         /** \brief Get information about the CPU of the machine in use */
+        OMPL_EXPORT
         std::string getCPUInfo();
     }
 }

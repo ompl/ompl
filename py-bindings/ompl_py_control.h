@@ -45,6 +45,7 @@ namespace ompl
 {
     namespace control
     {
+        OMPL_EXPORT
         inline int dummyODESolverSize()
         {
             return sizeof(ODEBasicSolver<>) + sizeof(ODEErrorSolver<>) + sizeof(ODEAdaptiveSolver<>);

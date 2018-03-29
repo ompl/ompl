@@ -42,7 +42,7 @@ namespace ompl
     namespace base
     {
         /** \brief State space sampler for discrete states */
-        class PrecomputedStateSampler : public StateSampler
+        class OMPL_EXPORT PrecomputedStateSampler : public StateSampler
         {
         public:
             /** \brief Constructor. Takes the state space to be sampled (\e space) and the set of states to draw samples

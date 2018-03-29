@@ -11,6 +11,8 @@ else()
     add_definitions(-std=c++11)
 endif()
 
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-W -Wall -Wextra #-Wconversion

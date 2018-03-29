@@ -45,7 +45,7 @@ namespace ompl
     namespace base
     {
         /** \brief Definition of a goal state */
-        class GoalState : public GoalSampleableRegion
+        class OMPL_EXPORT GoalState : public GoalSampleableRegion
         {
         public:
             /** \brief Create a goal representation that is in fact a state  */

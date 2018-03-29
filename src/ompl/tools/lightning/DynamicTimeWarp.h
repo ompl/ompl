@@ -57,7 +57,7 @@ namespace ompl
         /** \class ompl::geometric::DynamicTimeWarpPtr
             \brief A shared pointer wrapper for ompl::tools::DynamicTimeWarp */
 
-        class DynamicTimeWarp
+        class OMPL_EXPORT DynamicTimeWarp
         {
         public:
             explicit DynamicTimeWarp(base::SpaceInformationPtr si);

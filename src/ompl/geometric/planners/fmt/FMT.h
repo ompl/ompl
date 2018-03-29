@@ -87,7 +87,7 @@ namespace ompl
         */
         /** @brief Asymptotically Optimal Fast Marching Tree algorithm developed
             by L. Janson and M. Pavone. */
-        class FMT : public ompl::base::Planner
+        class OMPL_EXPORT FMT : public ompl::base::Planner
         {
         public:
             FMT(const base::SpaceInformationPtr &si);
@@ -211,7 +211,7 @@ namespace ompl
         protected:
             /** \brief Representation of a motion
               */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 /** \brief The FMT* planner begins with all nodes included in
@@ -341,7 +341,7 @@ namespace ompl
             };
 
             /** \brief Comparator used to order motions in a binary heap */
-            struct MotionCompare
+            struct OMPL_EXPORT MotionCompare
             {
                 MotionCompare() = default;
 
@@ -489,7 +489,7 @@ namespace ompl
             bool extendedFMT_{true};
 
             // For sorting a list of costs and getting only their sorted indices
-            struct CostIndexCompare
+            struct OMPL_EXPORT CostIndexCompare
             {
                 CostIndexCompare(const std::vector<base::Cost> &costs, const base::OptimizationObjective &opt)
                   : costs_(costs), opt_(opt)

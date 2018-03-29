@@ -48,7 +48,7 @@
 namespace ompl
 {
     template <typename _T>
-    class NearestNeighborsGNAT;
+    class OMPL_EXPORT NearestNeighborsGNAT;
 
     namespace geometric
     {
@@ -75,7 +75,7 @@ namespace ompl
         */
 
         /** \brief Search Tree with Resolution Independent Density Estimation */
-        class STRIDE : public base::Planner
+        class OMPL_EXPORT STRIDE : public base::Planner
         {
         public:
             /** \brief Constructor */
@@ -235,7 +235,7 @@ namespace ompl
 
         protected:
             /** \brief The definition of a motion */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;

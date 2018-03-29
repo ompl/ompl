@@ -63,7 +63,7 @@ namespace ompl
             [[PDF]](http://robotics.snu.ac.kr/fcp/files/_pdf_files_publications/201411_Randomized%20path%20planning.pdf)
 
         */
-        class VFRRT : public RRT
+        class OMPL_EXPORT VFRRT : public RRT
         {
         public:
             typedef std::function<Eigen::VectorXd(const base::State *)> VectorField;

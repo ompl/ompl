@@ -104,21 +104,21 @@ namespace ompl
         <a href="http://www.youtube.com/watch?v=MRzSfLpNBmA">Illustration video</a>.
         */
         /** \brief Batch Informed Trees (BIT*)*/
-        class BITstar : public ompl::base::Planner
+        class OMPL_EXPORT BITstar : public ompl::base::Planner
         {
         public:
             // Forward declarations so that the classes belong to BIT*:
             /** \brief The vertex of implicit and explicit graphs. */
-            class Vertex;
+            class OMPL_EXPORT Vertex;
             /** \brief A generator of unique vertex IDs. */
-            class IdGenerator;
+            class OMPL_EXPORT IdGenerator;
             /** \brief A helper class to consolidate cost and heuristic calculations. */
-            class CostHelper;
+            class OMPL_EXPORT CostHelper;
             /** \brief The samples viewed as an edge-implicit random geometric graph. */
-            class ImplicitGraph;
+            class OMPL_EXPORT ImplicitGraph;
             /** \brief The queue of edges to process as a dual-stage queue (tracks both the expansion of vertices and
              * the resulting edges) */
-            class SearchQueue;
+            class OMPL_EXPORT SearchQueue;
             // Helpful alias declarations:
             /** \brief A vertex shared pointer. */
             typedef std::shared_ptr<Vertex> VertexPtr;

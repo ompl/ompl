@@ -49,7 +49,7 @@ namespace ompl
             R<sup>n</sup> vector state to produce an R<sup>k</sup>
             projection. The multiplication matrix needs to be supplied
             as input. */
-        class RealVectorLinearProjectionEvaluator : public ProjectionEvaluator
+        class OMPL_EXPORT RealVectorLinearProjectionEvaluator : public ProjectionEvaluator
         {
         public:
             /** \brief Initialize a linear projection evaluator for state space \e space. The used projection matrix is
@@ -80,7 +80,7 @@ namespace ompl
         };
 
         /** \brief Definition for a class computing a random linear projections */
-        class RealVectorRandomLinearProjectionEvaluator : public RealVectorLinearProjectionEvaluator
+        class OMPL_EXPORT RealVectorRandomLinearProjectionEvaluator : public RealVectorLinearProjectionEvaluator
         {
         public:
             /** \brief Initialize a linear projection evaluator for state space \e space. The used projection matrix is
@@ -123,7 +123,7 @@ namespace ompl
         };
 
         /** \brief Definition for a class computing orthogonal projections */
-        class RealVectorOrthogonalProjectionEvaluator : public ProjectionEvaluator
+        class OMPL_EXPORT RealVectorOrthogonalProjectionEvaluator : public ProjectionEvaluator
         {
         public:
             /** \brief Initialize an orthogonal projection evaluator for state space \e space. The indices of the
@@ -161,7 +161,7 @@ namespace ompl
         };
 
         /** \brief Define the identity projection */
-        class RealVectorIdentityProjectionEvaluator : public ProjectionEvaluator
+        class OMPL_EXPORT RealVectorIdentityProjectionEvaluator : public ProjectionEvaluator
         {
         public:
             /** \brief Initialize the identity projection evaluator for state space \e space. The indices of the

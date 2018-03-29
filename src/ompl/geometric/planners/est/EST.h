@@ -62,7 +62,7 @@ namespace ompl
         */
 
         /** \brief Expansive Space Trees */
-        class EST : public base::Planner
+        class OMPL_EXPORT EST : public base::Planner
         {
         public:
             /** \brief Constructor */
@@ -114,7 +114,7 @@ namespace ompl
 
         protected:
             /// \brief The definition of a motion
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;

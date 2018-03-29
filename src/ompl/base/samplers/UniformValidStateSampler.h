@@ -45,7 +45,7 @@ namespace ompl
     namespace base
     {
         /** \brief A state sampler that only samples valid states, uniformly. */
-        class UniformValidStateSampler : public ValidStateSampler
+        class OMPL_EXPORT UniformValidStateSampler : public ValidStateSampler
         {
         public:
             /** \brief Constructor */

@@ -45,7 +45,7 @@ namespace ompl
     namespace base
     {
         template <typename SpaceType_>
-        class TypedSpaceInformation : public SpaceInformation
+        class OMPL_EXPORT TypedSpaceInformation : public SpaceInformation
         {
         public:
             /*--- Type Definitions ---*/

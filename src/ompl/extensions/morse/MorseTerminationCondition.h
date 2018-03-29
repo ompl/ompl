@@ -46,7 +46,7 @@ namespace ompl
     {
         /** \brief This class represents a termination condition for the planner that
             only terminates if the user shuts down the MORSE simulation */
-        class MorseTerminationCondition : public PlannerTerminationCondition
+        class OMPL_EXPORT MorseTerminationCondition : public PlannerTerminationCondition
         {
         public:
             MorseTerminationCondition(const MorseEnvironmentPtr env)

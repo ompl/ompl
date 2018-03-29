@@ -95,7 +95,7 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::tools::Lightning */
 
         /** \brief Built off of SimpleSetup but provides support for planning from experience */
-        class Lightning : public ompl::tools::ExperienceSetup
+        class OMPL_EXPORT Lightning : public ompl::tools::ExperienceSetup
         {
         public:
             /** \brief Constructor needs the state space used for planning. */

@@ -83,7 +83,7 @@ namespace ompl
         */
 
         /** \brief Parallel Single-query Bi-directional Lazy collision checking planner */
-        class pSBL : public base::Planner
+        class OMPL_EXPORT pSBL : public base::Planner
         {
         public:
             pSBL(const base::SpaceInformationPtr &si);
@@ -144,8 +144,8 @@ namespace ompl
             void getPlannerData(base::PlannerData &data) const override;
 
         protected:
-            class Motion;
-            struct MotionInfo;
+            class OMPL_EXPORT Motion;
+            struct OMPL_EXPORT MotionInfo;
 
             /** \brief A grid cell */
             typedef Grid<MotionInfo>::Cell GridCell;
@@ -153,7 +153,7 @@ namespace ompl
             /** \brief A PDF of grid cells */
             typedef PDF<GridCell *> CellPDF;
 
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;
@@ -174,7 +174,7 @@ namespace ompl
             };
 
             /** \brief A struct containing an array of motions and a corresponding PDF element */
-            struct MotionInfo
+            struct OMPL_EXPORT MotionInfo
             {
                 Motion *operator[](unsigned int i)
                 {
@@ -204,7 +204,7 @@ namespace ompl
                 CellPDF::Element *elem_;
             };
 
-            struct TreeData
+            struct OMPL_EXPORT TreeData
             {
                 TreeData() = default;
 
@@ -214,20 +214,20 @@ namespace ompl
                 std::mutex lock;
             };
 
-            struct SolutionInfo
+            struct OMPL_EXPORT SolutionInfo
             {
                 std::vector<Motion *> solution;
                 bool found;
                 std::mutex lock;
             };
 
-            struct PendingRemoveMotion
+            struct OMPL_EXPORT PendingRemoveMotion
             {
                 TreeData *tree;
                 Motion *motion;
             };
 
-            struct MotionsToBeRemoved
+            struct OMPL_EXPORT MotionsToBeRemoved
             {
                 std::vector<PendingRemoveMotion> motions;
                 std::mutex lock;

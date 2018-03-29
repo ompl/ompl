@@ -46,7 +46,7 @@ namespace ompl
     namespace base
     {
         template <typename SpaceType_>
-        class TypedStateValidityChecker : public StateValidityChecker
+        class OMPL_EXPORT TypedStateValidityChecker : public StateValidityChecker
         {
         public:
             using SpaceType = SpaceType_;

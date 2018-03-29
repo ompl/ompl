@@ -69,7 +69,7 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::tools::LightningDB */
 
         /** \brief Save and load entire paths from file */
-        class LightningDB
+        class OMPL_EXPORT LightningDB
         {
         public:
             /** \brief Constructor needs the state space used for planning.

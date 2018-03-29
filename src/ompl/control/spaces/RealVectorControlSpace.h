@@ -46,7 +46,7 @@ namespace ompl
     namespace control
     {
         /** \brief Uniform sampler for the R<sup>n</sup> state space */
-        class RealVectorControlUniformSampler : public ControlSampler
+        class OMPL_EXPORT RealVectorControlUniformSampler : public ControlSampler
         {
         public:
             /** \brief Constructor */
@@ -58,11 +58,11 @@ namespace ompl
         };
 
         /** \brief A control space representing R<sup>n</sup>. */
-        class RealVectorControlSpace : public ControlSpace
+        class OMPL_EXPORT RealVectorControlSpace : public ControlSpace
         {
         public:
             /** \brief The definition of a control in R<sup>n</sup> */
-            class ControlType : public Control
+            class OMPL_EXPORT ControlType : public Control
             {
             public:
                 /** \brief Access element i of values.  This does not

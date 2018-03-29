@@ -55,11 +55,11 @@ namespace ompl
     {
         /** \brief One-level discretization used for KPIECE */
         template <typename Motion>
-        class Discretization
+        class OMPL_EXPORT Discretization
         {
         public:
             /** \brief The data held by a cell in the grid of motions */
-            struct CellData
+            struct OMPL_EXPORT CellData
             {
                 CellData() = default;
 
@@ -91,7 +91,7 @@ namespace ompl
 
             /** \brief Definintion of an operator passed to the Grid
                 structure, to order cells by importance */
-            struct OrderCellsByImportance
+            struct OMPL_EXPORT OrderCellsByImportance
             {
                 /** \brief Order function */
                 bool operator()(const CellData *const a, const CellData *const b) const

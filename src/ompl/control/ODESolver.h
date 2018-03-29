@@ -66,7 +66,7 @@ namespace ompl
         /// equations (ODE) of the type q' = f(q,u) using numerical integration.  Classes
         /// deriving from this must implement the solve method.  The user must supply
         /// the ODE to solve.
-        class ODESolver
+        class OMPL_EXPORT ODESolver
         {
         public:
             /// \brief Portable data type for the state values
@@ -123,7 +123,7 @@ namespace ompl
             static StatePropagatorPtr getStatePropagator(ODESolverPtr solver,
                                                          const PostPropagationEvent &postEvent = nullptr)
             {
-                class ODESolverStatePropagator : public StatePropagator
+                class OMPL_EXPORT ODESolverStatePropagator : public StatePropagator
                 {
                 public:
                     ODESolverStatePropagator(const ODESolverPtr& solver, PostPropagationEvent pe)
@@ -167,7 +167,7 @@ namespace ompl
 
             /// @cond IGNORE
             // Functor used by the boost::numeric::odeint stepper object
-            struct ODEFunctor
+            struct OMPL_EXPORT ODEFunctor
             {
                 ODEFunctor(ODE o, const Control *ctrl) : ode(std::move(o)), control(ctrl)
                 {
@@ -192,7 +192,7 @@ namespace ompl
         /// is a fourth order Runge-Kutta method.  This class wraps around the simple stepper
         /// concept from boost::numeric::odeint.
         template <class Solver = odeint::runge_kutta4<ODESolver::StateType>>
-        class ODEBasicSolver : public ODESolver
+        class OMPL_EXPORT ODEBasicSolver : public ODESolver
         {
         public:
             /// \brief Parameterized constructor.  Takes a reference to the SpaceInformation,
@@ -219,7 +219,7 @@ namespace ompl
         /// is a fifth order Runge-Kutta Cash-Karp method with a fourth order error bound.
         /// This class wraps around the error stepper concept from boost::numeric::odeint.
         template <class Solver = odeint::runge_kutta_cash_karp54<ODESolver::StateType>>
-        class ODEErrorSolver : public ODESolver
+        class OMPL_EXPORT ODEErrorSolver : public ODESolver
         {
         public:
             /// \brief Parameterized constructor.  Takes a reference to the SpaceInformation,
@@ -266,7 +266,7 @@ namespace ompl
         /// the error stepper concept from boost::numeric::odeint.  The default
         /// is a fifth order Runge-Kutta Cash-Karp method with a fourth order error bound.
         template <class Solver = odeint::runge_kutta_cash_karp54<ODESolver::StateType>>
-        class ODEAdaptiveSolver : public ODESolver
+        class OMPL_EXPORT ODEAdaptiveSolver : public ODESolver
         {
         public:
             /// \brief Parameterized constructor.  Takes a reference to the SpaceInformation,

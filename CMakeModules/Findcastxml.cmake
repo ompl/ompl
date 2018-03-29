@@ -28,6 +28,7 @@ compiler_path=${CMAKE_CXX_COMPILER}
 
     set(_candidate_include_path
         "${OMPL_INCLUDE_DIR}"
+        "${CMAKE_BINARY_DIR}/src"
         "${OMPLAPP_INCLUDE_DIR}"
         "${PYTHON_INCLUDE_DIRS}"
         "${Boost_INCLUDE_DIR}"

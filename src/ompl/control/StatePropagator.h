@@ -58,7 +58,7 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::control::StatePropagator */
 
         /** \brief Model the effect of controls on system states */
-        class StatePropagator
+        class OMPL_EXPORT StatePropagator
         {
         public:
             /** \brief Constructor */

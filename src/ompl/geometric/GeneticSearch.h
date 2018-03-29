@@ -57,7 +57,7 @@ namespace ompl
         */
 
         /** \brief Genetic Algorithm for searching valid states */
-        class GeneticSearch
+        class OMPL_EXPORT GeneticSearch
         {
         public:
             /** \brief Construct an instance of a genetic algorithm for inverse kinematics given the space information
@@ -172,14 +172,14 @@ namespace ompl
                 return checkValidity_ ? si_->isValid(state) : true;
             }
 
-            struct Individual
+            struct OMPL_EXPORT Individual
             {
                 base::State *state;
                 double distance;
                 bool valid;
             };
 
-            struct IndividualSort
+            struct OMPL_EXPORT IndividualSort
             {
                 bool operator()(const Individual &a, const Individual &b)
                 {

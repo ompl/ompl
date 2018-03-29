@@ -68,7 +68,7 @@ namespace ompl
         */
 
         /** \brief Lower Bound Tree Rapidly-exploring Random Trees */
-        class LBTRRT : public base::Planner
+        class OMPL_EXPORT LBTRRT : public base::Planner
         {
         public:
             /** \brief Constructor */
@@ -159,7 +159,7 @@ namespace ompl
 
                 a motion is a simultunaeous represntation of the two trees used by LBT-RRT
                 a lower bound tree named Tlb and an approximaion tree named Tapx. */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;
@@ -191,7 +191,7 @@ namespace ompl
             };
 
             /** \brief comparator  - metric is the cost to reach state via a specific state*/
-            struct IsLessThan
+            struct OMPL_EXPORT IsLessThan
             {
                 IsLessThan(LBTRRT *plannerPtr, Motion *motion) : plannerPtr_(plannerPtr), motion_(motion)
                 {
@@ -212,7 +212,7 @@ namespace ompl
             };  // IsLessThan
 
             /** \brief comparator  - metric is the lower bound cost*/
-            struct IsLessThanLB
+            struct OMPL_EXPORT IsLessThanLB
             {
                 IsLessThanLB(LBTRRT *plannerPtr) : plannerPtr_(plannerPtr)
                 {

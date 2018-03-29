@@ -45,7 +45,7 @@ namespace ompl
     /** \brief This class defines a grid that keeps track of its boundary:
      * it distinguishes between interior and exterior cells.  */
     template <typename _T, class LessThanExternal = std::less<_T>, class LessThanInternal = LessThanExternal>
-    class GridB : public GridN<_T>
+    class OMPL_EXPORT GridB : public GridN<_T>
     {
     public:
         /// Definition of a cell in this grid
@@ -61,7 +61,7 @@ namespace ompl
         /// \cond IGNORE
         // the type of cell here needs an extra pointer to allow the updatable heap to work fast
         // however, this stays hidden from the user
-        struct CellX : public Cell
+        struct OMPL_EXPORT CellX : public Cell
         {
             CellX() : Cell()
             {
@@ -306,7 +306,7 @@ namespace ompl
         }
 
         /// Define order for internal cells
-        struct LessThanInternalCell
+        struct OMPL_EXPORT LessThanInternalCell
         {
             bool operator()(const CellX *const a, const CellX *const b) const
             {
@@ -318,7 +318,7 @@ namespace ompl
         };
 
         /// Define order for external cells
-        struct LessThanExternalCell
+        struct OMPL_EXPORT LessThanExternalCell
         {
             bool operator()(const CellX *const a, const CellX *const b) const
             {

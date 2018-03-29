@@ -59,7 +59,7 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::base::ValidStateSampler */
 
         /** \brief Abstract definition of a state sampler. */
-        class ValidStateSampler
+        class OMPL_EXPORT ValidStateSampler
         {
         public:
             // non-copyable

@@ -44,6 +44,7 @@ namespace ompl
 {
     namespace util
     {
+        OMPL_EXPORT
         inline int dummySTLContainerSize()
         {
             return sizeof(std::vector<std::size_t>) +

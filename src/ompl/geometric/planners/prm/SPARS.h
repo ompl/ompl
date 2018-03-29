@@ -74,7 +74,7 @@ namespace ompl
          */
 
         /** \brief <b> SPArse Roadmap Spanner technique. </b> */
-        class SPARS : public base::Planner
+        class OMPL_EXPORT SPARS : public base::Planner
         {
         public:
             /** \brief Enumeration which specifies the reason a guard is added to the spanner. */
@@ -88,27 +88,27 @@ namespace ompl
                 QUALITY,
             };
 
-            struct vertex_state_t
+            struct OMPL_EXPORT vertex_state_t
             {
                 typedef boost::vertex_property_tag kind;
             };
 
-            struct vertex_representative_t
+            struct OMPL_EXPORT vertex_representative_t
             {
                 typedef boost::vertex_property_tag kind;
             };
 
-            struct vertex_color_t
+            struct OMPL_EXPORT vertex_color_t
             {
                 typedef boost::vertex_property_tag kind;
             };
 
-            struct vertex_list_t
+            struct OMPL_EXPORT vertex_list_t
             {
                 typedef boost::vertex_property_tag kind;
             };
 
-            struct vertex_interface_list_t
+            struct OMPL_EXPORT vertex_interface_list_t
             {
                 typedef boost::vertex_property_tag kind;
             };

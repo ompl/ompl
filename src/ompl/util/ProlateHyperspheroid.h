@@ -39,6 +39,7 @@
 
 #include <memory>
 
+#include "ompl/export.h"
 // For ease-of-use shared_ptr definition
 #include <ompl/util/ClassForward.h>
 
@@ -58,7 +59,7 @@ namespace ompl
     DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
     <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
     <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
-    class ProlateHyperspheroid
+    class OMPL_EXPORT ProlateHyperspheroid
     {
     public:
         /** \brief The description of an n-dimensional prolate hyperspheroid */
@@ -98,7 +99,7 @@ namespace ompl
     protected:
     private:
         /** \brief A forward declaration to the data structure class for the PIMPL idiom. */
-        struct PhsData;
+        struct OMPL_EXPORT PhsData;
 
         /** \brief A shared pointer to the actual data of a ProlateHyperspheroid. Used to hide Eigen from the header. */
         std::shared_ptr<PhsData> dataPtr_;

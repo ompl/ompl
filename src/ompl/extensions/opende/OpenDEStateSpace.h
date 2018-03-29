@@ -47,7 +47,7 @@ namespace ompl
     namespace control
     {
         /** \brief State space representing OpenDE states */
-        class OpenDEStateSpace : public base::CompoundStateSpace
+        class OMPL_EXPORT OpenDEStateSpace : public base::CompoundStateSpace
         {
         public:
             enum
@@ -76,7 +76,7 @@ namespace ompl
 
             /** \brief OpenDE State. This is a compound state that allows accessing the properties of the bodies the
              * state space is constructed for. */
-            class StateType : public base::CompoundStateSpace::StateType
+            class OMPL_EXPORT StateType : public base::CompoundStateSpace::StateType
             {
             public:
                 StateType() = default;

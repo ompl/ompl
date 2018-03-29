@@ -46,11 +46,11 @@ namespace ompl
     namespace base
     {
         /** \brief A state space representing SE(3) */
-        class SE3StateSpace : public CompoundStateSpace
+        class OMPL_EXPORT SE3StateSpace : public CompoundStateSpace
         {
         public:
             /** \brief A state in SE(3): position = (x, y, z), quaternion = (x, y, z, w) */
-            class StateType : public CompoundStateSpace::StateType
+            class OMPL_EXPORT StateType : public CompoundStateSpace::StateType
             {
             public:
                 StateType() = default;

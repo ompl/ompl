@@ -47,7 +47,7 @@ namespace ompl
     {
         /** \brief Create the set of classes typically needed to solve a
             control problem when forward propagation is computed with MORSE */
-        class MorseSimpleSetup : public SimpleSetup
+        class OMPL_EXPORT MorseSimpleSetup : public SimpleSetup
         {
         public:
             /** \brief Pointer to the environment representing the MORSE simulation */

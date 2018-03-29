@@ -100,7 +100,7 @@ namespace ompl
         */
 
         /** \brief Optimal Rapidly-exploring Random Trees Maintaining A Pseudo Optimal Tree*/
-        class RRTXstatic : public base::Planner
+        class OMPL_EXPORT RRTXstatic : public base::Planner
         {
         public:
             RRTXstatic(const base::SpaceInformationPtr &si);
@@ -284,10 +284,10 @@ namespace ompl
             }
 
         protected:
-            class Motion;
+            class OMPL_EXPORT Motion;
 
             /** \brief Defines the operator to compare motions */
-            struct MotionCompare
+            struct OMPL_EXPORT MotionCompare
             {
                 /** \brief Constructor */
                 MotionCompare(base::OptimizationObjectivePtr opt, base::ProblemDefinitionPtr pdef)
@@ -323,7 +323,7 @@ namespace ompl
             };
 
             /** \brief Representation of a motion (node of the tree) */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 /** \brief Constructor that allocates memory for the state. This constructor automatically allocates

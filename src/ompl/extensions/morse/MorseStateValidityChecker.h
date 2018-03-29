@@ -46,7 +46,7 @@ namespace ompl
     {
         /** \brief The simplest state validity checker: all states are valid if
             they are within bounds */
-        class MorseStateValidityChecker : public StateValidityChecker
+        class OMPL_EXPORT MorseStateValidityChecker : public StateValidityChecker
         {
         public:
             /** \brief Constructor */

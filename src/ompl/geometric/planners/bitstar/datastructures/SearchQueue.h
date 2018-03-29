@@ -89,7 +89,7 @@ namespace ompl
 
         /** \brief A queue of edges to be processed that integrates both the expansion of \ref gVertex "Vertices" and
          * the ordering of the resulting edges. */
-        class BITstar::SearchQueue
+        class OMPL_EXPORT BITstar::SearchQueue
         {
         public:
             ////////////////////////////////

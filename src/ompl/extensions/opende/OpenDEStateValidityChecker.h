@@ -45,7 +45,7 @@ namespace ompl
     namespace control
     {
         /** \brief The simplest state validity checker: all states are valid */
-        class OpenDEStateValidityChecker : public base::StateValidityChecker
+        class OMPL_EXPORT OpenDEStateValidityChecker : public base::StateValidityChecker
         {
         public:
             /** \brief Constructor */

@@ -52,12 +52,12 @@ namespace ompl
     namespace control
     {
         /** \brief A TriangularDecomposition is a triangulation that ignores obstacles. */
-        class TriangularDecomposition : public Decomposition
+        class OMPL_EXPORT TriangularDecomposition : public Decomposition
         {
             // \todo: Switch all geometry code to use boost::geometry.
             // This requires that we use boost version 1.47 or greater.
         public:
-            struct Vertex
+            struct OMPL_EXPORT Vertex
             {
                 Vertex() = default;
                 Vertex(double vx, double vy);
@@ -66,7 +66,7 @@ namespace ompl
             };
 
             // A polygon is a list of vertices in counter-clockwise order.
-            struct Polygon
+            struct OMPL_EXPORT Polygon
             {
                 Polygon(int nv) : pts(nv)
                 {
@@ -75,7 +75,7 @@ namespace ompl
                 std::vector<Vertex> pts;
             };
 
-            struct Triangle : public Polygon
+            struct OMPL_EXPORT Triangle : public Polygon
             {
                 Triangle() : Polygon(3)
                 {
@@ -144,7 +144,7 @@ namespace ompl
             double triAreaPct_;
 
         private:
-            class LocatorGrid : public GridDecomposition
+            class OMPL_EXPORT LocatorGrid : public GridDecomposition
             {
             public:
                 LocatorGrid(int len, const Decomposition *d)

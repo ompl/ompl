@@ -44,7 +44,7 @@ namespace ompl
     namespace base
     {
         /** \brief State space sampler for time */
-        class TimeStateSampler : public StateSampler
+        class OMPL_EXPORT TimeStateSampler : public StateSampler
         {
         public:
             /** \brief Constructor */
@@ -66,11 +66,11 @@ namespace ompl
             expected. After construction, the state space is
             unbounded. isBounded() can be used to check if the state space
             is bounded or not. */
-        class TimeStateSpace : public StateSpace
+        class OMPL_EXPORT TimeStateSpace : public StateSpace
         {
         public:
             /** \brief The definition of a time state */
-            class StateType : public State
+            class OMPL_EXPORT StateType : public State
             {
             public:
                 /** \brief The position in time */

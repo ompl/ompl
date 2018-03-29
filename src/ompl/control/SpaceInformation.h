@@ -67,7 +67,7 @@ namespace ompl
 
         /** \brief Space information containing necessary information for planning with controls. setup() needs to be
          * called before use. */
-        class SpaceInformation : public base::SpaceInformation
+        class OMPL_EXPORT SpaceInformation : public base::SpaceInformation
         {
         public:
             /** \brief Constructor. Sets the instance of the state and control spaces to plan with. */

@@ -50,7 +50,7 @@ namespace ompl
 {
     namespace base
     {
-        class Goal;
+        class OMPL_EXPORT Goal;
 
         /** \brief The definition of a function which returns an admissible estimate of the optimal path cost from a
          * given state to a goal. */
@@ -67,7 +67,7 @@ namespace ompl
         /** \brief Abstract definition of optimization objectives.
 
             \note This implementation has greatly benefited from discussions with Kris Hauser */
-        class OptimizationObjective
+        class OMPL_EXPORT OptimizationObjective
         {
         public:
             // non-copyable
@@ -199,12 +199,13 @@ namespace ompl
             exactly zero. Note: \e goal is assumed to be of type
             ompl::base::GoalRegion
         */
+        OMPL_EXPORT
         Cost goalRegionCostToGo(const State *state, const Goal *goal);
 
         /** \brief This class allows for the definition of multiobjective optimal planning problems. Objectives are
          * added to this compound object, and motion costs are computed by taking a weighted sum of the individual
          * objective costs. */
-        class MultiOptimizationObjective : public OptimizationObjective
+        class OMPL_EXPORT MultiOptimizationObjective : public OptimizationObjective
         {
         public:
             MultiOptimizationObjective(const SpaceInformationPtr &si);
@@ -246,7 +247,7 @@ namespace ompl
 
         protected:
             /** \brief Defines a pairing of an objective and its weight */
-            struct Component
+            struct OMPL_EXPORT Component
             {
                 Component(OptimizationObjectivePtr obj, double weight);
                 OptimizationObjectivePtr objective;
@@ -271,15 +272,18 @@ namespace ompl
 
         /** \brief Given two optimization objectives, returns a MultiOptimizationObjective that combines the two
           * objectives with both weights equal to 1.0. */
+        OMPL_EXPORT
         OptimizationObjectivePtr operator+(const OptimizationObjectivePtr &a,
                                                   const OptimizationObjectivePtr &b);
 
         /** \brief Given a weighing factor and an optimization objective, returns a MultiOptimizationObjective
           * containing only this objective weighted by the given weight */
+        OMPL_EXPORT
         OptimizationObjectivePtr operator*(double weight, const OptimizationObjectivePtr &a);
 
         /** \brief Given a weighing factor and an optimization objective, returns a MultiOptimizationObjective
          * containing only this objective weighted by the given weight */
+        OMPL_EXPORT
         OptimizationObjectivePtr operator*(const OptimizationObjectivePtr &a, double weight);
     }
 }

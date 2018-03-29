@@ -53,13 +53,13 @@ namespace ompl
 
         /** \brief Create the set of classes typically needed to solve a
             geometric problem */
-        class ExperienceSetup : public geometric::SimpleSetup
+        class OMPL_EXPORT ExperienceSetup : public geometric::SimpleSetup
         {
         public:
             /**
              * \brief Simple logging functionality encapsled in a struct
              */
-            struct ExperienceStats
+            struct OMPL_EXPORT ExperienceStats
             {
                 ExperienceStats() = default;
 
@@ -98,7 +98,7 @@ namespace ompl
             /**
              * \brief Single entry for the csv data logging file
              */
-            struct ExperienceLog
+            struct OMPL_EXPORT ExperienceLog
             {
                 ExperienceLog() = default;
                 // Times

@@ -66,7 +66,7 @@ namespace ompl
         ///[[PDF]](https://hal.archives-ouvertes.fr/hal-00872224/document)
 
         /// \brief Bi-directional Transition-based Rapidly-exploring Random Trees
-        class BiTRRT : public base::Planner
+        class OMPL_EXPORT BiTRRT : public base::Planner
         {
         public:
             /// Constructor
@@ -180,7 +180,7 @@ namespace ompl
 
         protected:
             /// \brief Representation of a motion in the search tree
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 /// \brief Default constructor

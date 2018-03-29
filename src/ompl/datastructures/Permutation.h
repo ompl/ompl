@@ -46,7 +46,7 @@ namespace ompl
     /// This class tends to be faster than the two-argument version of
     /// std::random_shuffle when permute is called several times, since
     /// the random number generator doesn't need to be allocated each time.
-    class Permutation : public std::vector<int>
+    class OMPL_EXPORT Permutation : public std::vector<int>
     {
     public:
         /// \brief Create a permutation of the numbers 0, ... , n - 1

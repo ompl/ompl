@@ -75,7 +75,7 @@ namespace ompl
         */
 
         /** \brief Lazy Bi-directional KPIECE with one level of discretization */
-        class LBKPIECE1 : public base::Planner
+        class OMPL_EXPORT LBKPIECE1 : public base::Planner
         {
         public:
             /** \brief Constructor */
@@ -163,7 +163,7 @@ namespace ompl
 
         protected:
             /** \brief Representation of a motion for this algorithm */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;

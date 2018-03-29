@@ -43,7 +43,7 @@ namespace ompl
 {
     /** \brief Representation of a grid where cells keep track of how many neighbors they have */
     template <typename _T>
-    class GridN : public Grid<_T>
+    class OMPL_EXPORT GridN : public Grid<_T>
     {
     public:
         /// Datatype for cell in base class
@@ -56,7 +56,7 @@ namespace ompl
         using Coord = typename Grid<_T>::Coord;
 
         /// Definition of a cell in this grid
-        struct Cell : public BaseCell
+        struct OMPL_EXPORT Cell : public BaseCell
         {
             /// The number of neighbors
             unsigned int neighbors{0};

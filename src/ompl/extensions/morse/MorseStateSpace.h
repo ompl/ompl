@@ -45,12 +45,12 @@ namespace ompl
     namespace base
     {
         /** \brief State space representing MORSE states */
-        class MorseStateSpace : public CompoundStateSpace
+        class OMPL_EXPORT MorseStateSpace : public CompoundStateSpace
         {
         public:
             /** \brief MORSE State. This is a compound state that allows accessing the properties of the bodies the
              * state space is constructed for. */
-            class StateType : public CompoundStateSpace::StateType
+            class OMPL_EXPORT StateType : public CompoundStateSpace::StateType
             {
             public:
                 StateType() : CompoundStateSpace::StateType()

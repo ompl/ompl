@@ -59,7 +59,7 @@ namespace ompl
 
         /** \brief A Decomposition is a partition of a bounded Euclidean space into a fixed number of regions which are
          * denoted by integers. */
-        class Decomposition
+        class OMPL_EXPORT Decomposition
         {
         public:
             /** \brief Constructor. Creates a Decomposition with a given dimension

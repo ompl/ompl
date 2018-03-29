@@ -66,7 +66,7 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::base::ProblemDefinition */
 
         /** \brief Representation of a solution to a planning problem */
-        struct PlannerSolution
+        struct OMPL_EXPORT PlannerSolution
         {
             /** \brief Construct a solution that consists of a \e path and its attributes (whether it is \e approximate
              * and the \e difference to the desired goal) */
@@ -136,7 +136,7 @@ namespace ompl
             std::string plannerName_;
         };
 
-        class Planner;
+        class OMPL_EXPORT Planner;
 
         /** \brief When a planner has an intermediate solution (e.g., optimizing planners), a function with this
            signature can be called
@@ -149,7 +149,7 @@ namespace ompl
         /** \brief Definition of a problem to be solved. This includes
             the start state(s) for the system and a goal specification.
             Will contain solutions, if found.  */
-        class ProblemDefinition
+        class OMPL_EXPORT ProblemDefinition
         {
         public:
             // non-copyable

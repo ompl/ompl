@@ -77,7 +77,7 @@ namespace ompl
         */
 
         /** \brief The vertex of the underlying graphs in \ref gBITstar "BIT*"*/
-        class BITstar::Vertex
+        class OMPL_EXPORT BITstar::Vertex
         {
         public:
             ////////////////////////////////////////////////////

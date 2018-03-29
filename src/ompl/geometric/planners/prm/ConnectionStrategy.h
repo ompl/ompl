@@ -53,7 +53,7 @@ namespace ompl
          * Attempt to connect to the k nearest neighbors.
          */
         template <class Milestone>
-        class KStrategy
+        class OMPL_EXPORT KStrategy
         {
         public:
             /** \brief Constructor takes the maximum number of nearest neighbors to return (\e k) and the
@@ -117,7 +117,7 @@ namespace ompl
          * <em>Int. Journal of Robotics Research</em> Volume 30, Number 7, June 2010
          */
         template <class Milestone>
-        class KStarStrategy : public KStrategy<Milestone>
+        class OMPL_EXPORT KStarStrategy : public KStrategy<Milestone>
         {
         public:
             typedef std::function<unsigned int()> NumNeighborsFn;
@@ -154,7 +154,7 @@ namespace ompl
          * \brief Return at most k neighbors, as long as they are also within a specified bound.
          */
         template <class Milestone>
-        class KBoundedStrategy : public KStrategy<Milestone>
+        class OMPL_EXPORT KBoundedStrategy : public KStrategy<Milestone>
         {
         public:
             /**

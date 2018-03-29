@@ -45,14 +45,14 @@ namespace ompl
     namespace tools
     {
         /** \brief Benchmark a set of planners on a problem instance */
-        class Benchmark
+        class OMPL_EXPORT Benchmark
         {
         public:
             /** \brief This structure contains information about the
                 activity of a benchmark instance.  If the instance is
                 running, it is possible to find out information such
                 as which planner is currently being tested or how much */
-            struct Status
+            struct OMPL_EXPORT Status
             {
                 Status()
                 {
@@ -87,7 +87,7 @@ namespace ompl
             typedef std::function<void(const base::PlannerPtr &, RunProperties &)> PostSetupEvent;
 
             /** \brief The data collected after running a planner multiple times */
-            struct PlannerExperiment
+            struct OMPL_EXPORT PlannerExperiment
             {
                 /// The name of the planner
                 std::string name;
@@ -113,7 +113,7 @@ namespace ompl
             };
 
             /** \brief This structure holds experimental data for a set of planners */
-            struct CompleteExperiment
+            struct OMPL_EXPORT CompleteExperiment
             {
                 /** \brief The name of the experiment */
                 std::string name;
@@ -153,7 +153,7 @@ namespace ompl
             };
 
             /** \brief Representation of a benchmark request */
-            struct Request
+            struct OMPL_EXPORT Request
             {
                 /** \brief Constructor that provides default values for all members */
                 Request(double maxTime = 5.0, double maxMem = 4096.0, unsigned int runCount = 100,

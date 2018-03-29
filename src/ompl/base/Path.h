@@ -64,7 +64,7 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::base::Path */
 
         /** \brief Abstract definition of a path */
-        class Path
+        class OMPL_EXPORT Path
         {
         public:
             // non-copyable

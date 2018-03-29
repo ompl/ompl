@@ -55,7 +55,7 @@ namespace ompl
         /// \brief A shared pointer wrapper for ompl::base::SolutionNonExistenceProof
 
         /// \brief Abstract definition of a proof for the non-existence of a solution to a problem
-        class SolutionNonExistenceProof
+        class OMPL_EXPORT SolutionNonExistenceProof
         {
         public:
             SolutionNonExistenceProof(SpaceInformationPtr si) : si_(std::move(si))

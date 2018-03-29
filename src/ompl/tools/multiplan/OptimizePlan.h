@@ -46,7 +46,7 @@ namespace ompl
         /** \brief Run one or more motion planners repeatedly (using a
             specified number of threads), and hybridize solutions, trying
             to optimize solutions. */
-        class OptimizePlan
+        class OMPL_EXPORT OptimizePlan
         {
         public:
             /** \brief Create an instance for a specified space information */

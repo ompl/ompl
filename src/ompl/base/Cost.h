@@ -37,6 +37,7 @@
 #ifndef OMPL_BASE_COST_
 #define OMPL_BASE_COST_
 
+#include "ompl/export.h"
 #include <iostream>
 
 namespace ompl
@@ -44,7 +45,7 @@ namespace ompl
     namespace base
     {
         /** \brief Definition of a cost value. Can represent the cost of a motion or the cost of a state. */
-        class Cost
+        class OMPL_EXPORT Cost
         {
         public:
             /** \brief Construct cost with a specified value */
@@ -64,6 +65,7 @@ namespace ompl
         };
 
         /** \brief Output operator for Cost */
+        OMPL_EXPORT
         std::ostream &operator<<(std::ostream &stream, Cost c);
     }
 }

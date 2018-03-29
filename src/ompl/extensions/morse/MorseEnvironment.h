@@ -63,7 +63,7 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::base::MorseEnvironment */
 
         /** \brief This class contains the MORSE constructs OMPL needs to know about when planning. */
-        class MorseEnvironment
+        class OMPL_EXPORT MorseEnvironment
         {
         public:
             /** \brief The dimension of the control space for this simulation */

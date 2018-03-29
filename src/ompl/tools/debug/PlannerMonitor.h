@@ -50,7 +50,7 @@ namespace ompl
     {
         /** \brief Monitor the properties a planner exposes, as the planner is running.
             Dump the planner properties to a stream, periodically. */
-        class PlannerMonitor
+        class OMPL_EXPORT PlannerMonitor
         {
         public:
             // non-copyright

@@ -62,7 +62,7 @@ namespace ompl
         */
 
         /** \brief Bi-directional Expansive Space Trees */
-        class BiEST : public base::Planner
+        class OMPL_EXPORT BiEST : public base::Planner
         {
         public:
             /** \brief Constructor */
@@ -100,7 +100,7 @@ namespace ompl
 
         protected:
             /// \brief The definition of a motion
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;

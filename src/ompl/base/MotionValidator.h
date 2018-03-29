@@ -61,7 +61,7 @@ namespace ompl
             validity of motions -- path segments between states. This
             is often called a local planner. The implementation of
             this class must be thread safe. */
-        class MotionValidator
+        class OMPL_EXPORT MotionValidator
         {
         public:
             /** \brief Constructor */

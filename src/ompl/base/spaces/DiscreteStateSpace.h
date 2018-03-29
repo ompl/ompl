@@ -44,7 +44,7 @@ namespace ompl
     namespace base
     {
         /** \brief State space sampler for discrete states */
-        class DiscreteStateSampler : public StateSampler
+        class OMPL_EXPORT DiscreteStateSampler : public StateSampler
         {
         public:
             /** \brief Constructor */
@@ -64,11 +64,11 @@ namespace ompl
             States do not wrap around; i.e. the distance between state
             lowerBound and state upperBound is upperBound-lowerBound.
             The dimension of the space is 1. */
-        class DiscreteStateSpace : public StateSpace
+        class OMPL_EXPORT DiscreteStateSpace : public StateSpace
         {
         public:
             /** \brief The definition of a discrete state */
-            class StateType : public State
+            class OMPL_EXPORT StateType : public State
             {
             public:
                 /** \brief The current state - an int in range [lowerBound, upperBound] */

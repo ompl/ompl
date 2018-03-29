@@ -63,7 +63,7 @@ namespace ompl
             solve(), the set of known solutions (maintained by
             ompl::base::Goal) are not cleared, and neither is the
             hybridization datastructure.*/
-        class ParallelPlan
+        class OMPL_EXPORT ParallelPlan
         {
         public:
             /** \brief Create an instance for a specified space information */

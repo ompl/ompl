@@ -45,11 +45,11 @@ namespace ompl
 {
     /** \brief A container that supports probabilistic sampling over weighted data. */
     template <typename _T>
-    class PDF
+    class OMPL_EXPORT PDF
     {
     public:
         /** \brief A class that will hold data contained in the PDF. */
-        class Element
+        class OMPL_EXPORT Element
         {
             friend class PDF;
 

@@ -70,7 +70,7 @@ namespace ompl
         */
 
         /** \brief Synergistic Combination of Layers of Planning. */
-        class Syclop : public base::Planner
+        class OMPL_EXPORT Syclop : public base::Planner
         {
         public:
             /** \brief Each edge weight between two adjacent regions in the Decomposition is defined
@@ -234,7 +234,7 @@ namespace ompl
             /// @}
 
             /** \brief Contains default values for Syclop parameters. */
-            struct Defaults
+            struct OMPL_EXPORT Defaults
             {
                 static const int NUM_FREEVOL_SAMPLES = 100000;
                 static const int COVGRID_LENGTH = 128;
@@ -251,10 +251,10 @@ namespace ompl
         protected:
 #pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
                        /** \brief Representation of a motion
-           
+
                            A motion contains pointers to its state, its parent motion, and the control
                            that was applied to get from its parent to its state. */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;
@@ -278,7 +278,7 @@ namespace ompl
 
 #pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
             /** \brief Representation of a region in the Decomposition assigned to Syclop. */
-            class Region
+            class OMPL_EXPORT Region
             {
             public:
                 Region() = default;
@@ -325,7 +325,7 @@ namespace ompl
 #pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
                        /** \brief Representation of an adjacency (a directed edge) between two regions
                            in the Decomposition assigned to Syclop. */
-            class Adjacency
+            class OMPL_EXPORT Adjacency
             {
             public:
                 Adjacency() = default;
@@ -400,7 +400,7 @@ namespace ompl
         private:
             /// @cond IGNORE
             /** \brief Hash function for std::pair<int,int> to be used in std::unordered_map */
-            struct HashRegionPair
+            struct OMPL_EXPORT HashRegionPair
             {
                 size_t operator()(const std::pair<int, int> &p) const
                 {
@@ -413,7 +413,7 @@ namespace ompl
 
             /** \brief Syclop uses a CoverageGrid to estimate coverage in its assigned Decomposition.
                 The CoverageGrid should have finer resolution than the Decomposition. */
-            class CoverageGrid : public GridDecomposition
+            class OMPL_EXPORT CoverageGrid : public GridDecomposition
             {
             public:
                 CoverageGrid(const int len, const DecompositionPtr &d)
@@ -449,7 +449,7 @@ namespace ompl
             /// @cond IGNORE
             friend class DecompositionHeuristic;
 
-            class DecompositionHeuristic : public boost::astar_heuristic<RegionGraph, double>
+            class OMPL_EXPORT DecompositionHeuristic : public boost::astar_heuristic<RegionGraph, double>
             {
             public:
                 DecompositionHeuristic(const Syclop *s, const Region &goal) : syclop(s), goalRegion(goal)
@@ -467,11 +467,11 @@ namespace ompl
                 const Region &goalRegion;
             };
 
-            struct found_goal
+            struct OMPL_EXPORT found_goal
             {
             };
 
-            class GoalVisitor : public boost::default_astar_visitor
+            class OMPL_EXPORT GoalVisitor : public boost::default_astar_visitor
             {
             public:
                 GoalVisitor(const int goal) : goalRegion(goal)
@@ -489,7 +489,7 @@ namespace ompl
             /// @endcond
 
             /// @cond IGNORE
-            class RegionSet
+            class OMPL_EXPORT RegionSet
             {
             public:
                 int sampleUniform()

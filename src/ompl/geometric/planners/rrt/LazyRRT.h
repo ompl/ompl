@@ -78,7 +78,7 @@ namespace ompl
         */
 
         /** \brief Lazy RRT */
-        class LazyRRT : public base::Planner
+        class OMPL_EXPORT LazyRRT : public base::Planner
         {
         public:
             /** \brief Constructor */
@@ -143,7 +143,7 @@ namespace ompl
 
         protected:
             /** \brief Representation of a motion */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;

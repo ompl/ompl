@@ -46,7 +46,7 @@ namespace ompl
     {
         /** \brief Representation of controls applied in MORSE
             environments. This is an array of double values. */
-        class MorseControlSpace : public RealVectorControlSpace
+        class OMPL_EXPORT MorseControlSpace : public RealVectorControlSpace
         {
         public:
             /** \brief Construct a representation of controls passed

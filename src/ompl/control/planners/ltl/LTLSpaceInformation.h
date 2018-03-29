@@ -52,7 +52,7 @@ namespace ompl
 
         /** \class ompl::control::LTLSpaceInformationPtr
             \brief A shared pointer wrapper for ompl::control::LTLSpaceInformation */
-        class LTLSpaceInformation : public SpaceInformation
+        class OMPL_EXPORT LTLSpaceInformation : public SpaceInformation
         {
         public:
             LTLSpaceInformation(const SpaceInformationPtr &si, const ProductGraphPtr &prod);

@@ -45,7 +45,7 @@ namespace ompl
     {
         /** \brief An optimization objective which defines path cost using the idea of mechanical work. To be used in
          * conjunction with TRRT. */
-        class MechanicalWorkOptimizationObjective : public OptimizationObjective
+        class OMPL_EXPORT MechanicalWorkOptimizationObjective : public OptimizationObjective
         {
         public:
             /** \brief The mechanical work formulation requires a weighing factor to use for the length of a path in

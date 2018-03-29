@@ -57,7 +57,7 @@ namespace ompl
 
          This is the type of path produced when planning with
          differential constraints. */
-        class PathControl : public base::Path
+        class OMPL_EXPORT PathControl : public base::Path
         {
         public:
             /** \brief Constructor */

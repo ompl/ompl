@@ -55,7 +55,7 @@ namespace ompl
     namespace geometric
     {
         /** \brief Rapidly-exploring Random Trees */
-        class LazyLBTRRT : public base::Planner
+        class OMPL_EXPORT LazyLBTRRT : public base::Planner
         {
         public:
             /** \brief Constructor */
@@ -137,7 +137,7 @@ namespace ompl
 
         protected:
             /** \brief Representation of a motion */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;
@@ -166,7 +166,7 @@ namespace ompl
                 BoostGraph;
 
             friend class CostEstimatorApx;  // allow CostEstimatorApx access to private members
-            class CostEstimatorApx
+            class OMPL_EXPORT CostEstimatorApx
             {
             public:
                 CostEstimatorApx(LazyLBTRRT *alg) : alg_(alg)
@@ -186,7 +186,7 @@ namespace ompl
                 Motion *target_;
             };  // CostEstimatorApx
 
-            class CostEstimatorLb
+            class OMPL_EXPORT CostEstimatorLb
             {
             public:
                 CostEstimatorLb(base::Goal *goal, std::vector<Motion *> &idToMotionMap)

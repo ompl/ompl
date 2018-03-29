@@ -44,7 +44,7 @@ namespace ompl
     namespace base
     {
         /** \brief An optimization objective which corresponds to optimizing path length. */
-        class PathLengthOptimizationObjective : public OptimizationObjective
+        class OMPL_EXPORT PathLengthOptimizationObjective : public OptimizationObjective
         {
         public:
             PathLengthOptimizationObjective(const SpaceInformationPtr &si);

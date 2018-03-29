@@ -46,7 +46,7 @@ namespace ompl
         /** \brief The cost of a path is defined as the worst state
             cost over the entire path. This objective attempts to find
             the path with the "best worst cost" over all paths. */
-        class MinimaxObjective : public OptimizationObjective
+        class OMPL_EXPORT MinimaxObjective : public OptimizationObjective
         {
         public:
             MinimaxObjective(const SpaceInformationPtr &si);

@@ -66,7 +66,7 @@ namespace ompl
         Most of these functions are simply combinatorial pass-throughs to the OptimizationObjective. */
 
         /** \brief A helper class to handle the various heuristic functions in one place. */
-        class BITstar::CostHelper
+        class OMPL_EXPORT BITstar::CostHelper
         {
         public:
             ////////////////////////////////

@@ -60,7 +60,7 @@ namespace ompl
             not. operator() will return true if either the implemented
             condition is met (the call to eval() returns true) or if
             the user called terminate(true). */
-        class PlannerTerminationCondition
+        class OMPL_EXPORT PlannerTerminationCondition
         {
         public:
             /** \brief Construct a termination condition. By default, eval() will call the externally specified function
@@ -95,45 +95,53 @@ namespace ompl
             bool eval() const;
 
         private:
-            class PlannerTerminationConditionImpl;
+            class OMPL_EXPORT PlannerTerminationConditionImpl;
             std::shared_ptr<PlannerTerminationConditionImpl> impl_;
         };
 
         /** \brief Simple termination condition that always returns false. The termination condition will never be met
          */
+        OMPL_EXPORT
         PlannerTerminationCondition plannerNonTerminatingCondition();
 
         /** \brief Simple termination condition that always returns true. The termination condition will always be met
          */
+        OMPL_EXPORT
         PlannerTerminationCondition plannerAlwaysTerminatingCondition();
 
         /** \brief Combine two termination conditions into one. If either termination condition returns true, this one
          * will return true as well. */
+        OMPL_EXPORT
         PlannerTerminationCondition plannerOrTerminationCondition(const PlannerTerminationCondition &c1,
                                                                   const PlannerTerminationCondition &c2);
 
         /** \brief Combine two termination conditions into one. Both termination conditions need to return true for this
          * one to return true. */
+        OMPL_EXPORT
         PlannerTerminationCondition plannerAndTerminationCondition(const PlannerTerminationCondition &c1,
                                                                    const PlannerTerminationCondition &c2);
 
         /** \brief Return a termination condition that will become true \e duration seconds in the future (wall-time) */
+        OMPL_EXPORT
         PlannerTerminationCondition timedPlannerTerminationCondition(double duration);
 
         /** \brief Return a termination condition that will become true \e duration in the future (wall-time) */
+        OMPL_EXPORT
         PlannerTerminationCondition timedPlannerTerminationCondition(time::duration duration);
 
         /** \brief Return a termination condition that will become true \e duration seconds in the future (wall-time),
          * but is checked in a separate thread, every \e interval seconds; \e interval must be less than \e duration */
+        OMPL_EXPORT
         PlannerTerminationCondition timedPlannerTerminationCondition(double duration, double interval);
 
         /** \brief Return a termination condition that will become true as soon as the problem definition has an exact
          * solution */
+        OMPL_EXPORT
         PlannerTerminationCondition exactSolnPlannerTerminationCondition(const ompl::base::ProblemDefinitionPtr &pdef);
 
         /** \brief A class to run a planner for a specific number of iterations. Casts to a PTC for use with
          * Planner::solve */
-        class IterationTerminationCondition
+        class OMPL_EXPORT IterationTerminationCondition
         {
         public:
             /** \brief Construct a termination condition that can be evaluated numIterations times before returning

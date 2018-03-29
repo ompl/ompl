@@ -50,7 +50,7 @@ namespace ompl
             At every propagation step, controls are applied using
             MorseEnvironment::applyControl(), and then \b worldStep()
             is called.*/
-        class MorseStatePropagator : public StatePropagator
+        class OMPL_EXPORT MorseStatePropagator : public StatePropagator
         {
         public:
             /** \brief Construct representation of a MORSE state propagator.

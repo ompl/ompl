@@ -61,7 +61,7 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::base::StateSampler */
 
         /** \brief Abstract definition of a state space sampler. */
-        class StateSampler
+        class OMPL_EXPORT StateSampler
         {
         public:
             // non-copyable
@@ -108,7 +108,7 @@ namespace ompl
         };
 
         /** \brief Definition of a compound state sampler. This is useful to construct samplers for compound states. */
-        class CompoundStateSampler : public StateSampler
+        class OMPL_EXPORT CompoundStateSampler : public StateSampler
         {
         public:
             /** \brief Constructor */
@@ -150,7 +150,7 @@ namespace ompl
         };
 
         /** \brief Construct a sampler that samples only within a subspace of the space */
-        class SubspaceStateSampler : public StateSampler
+        class OMPL_EXPORT SubspaceStateSampler : public StateSampler
         {
         public:
             /** \brief Construct a sampler for \e space but only sample components common to \e subspace. Use \e weight

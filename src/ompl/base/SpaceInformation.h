@@ -78,7 +78,7 @@ namespace ompl
         /** \brief The base class for space information. This contains
             all the information about the space planning is done in.
             setup() needs to be called as well, before use */
-        class SpaceInformation
+        class OMPL_EXPORT SpaceInformation
         {
         public:
             // non-copyable

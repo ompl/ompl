@@ -46,11 +46,11 @@ namespace ompl
     namespace base
     {
         /** \brief A state space representing SE(2) */
-        class SE2StateSpace : public CompoundStateSpace
+        class OMPL_EXPORT SE2StateSpace : public CompoundStateSpace
         {
         public:
             /** \brief A state in SE(2): (x, y, yaw) */
-            class StateType : public CompoundStateSpace::StateType
+            class OMPL_EXPORT StateType : public CompoundStateSpace::StateType
             {
             public:
                 StateType() = default;

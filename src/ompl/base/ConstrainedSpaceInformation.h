@@ -60,7 +60,7 @@ namespace ompl
 
         /** \brief Space information for a constrained state space. Implements
          * more direct for getting motion states. */
-        class ConstrainedSpaceInformation : public SpaceInformation
+        class OMPL_EXPORT ConstrainedSpaceInformation : public SpaceInformation
         {
         public:
             /** \brief Constructor. Sets the instance of the state space to plan with. */
@@ -97,7 +97,7 @@ namespace ompl
         /** \brief Space information for a tangent bundle-based state space.
          * Implements more direct for getting motion states and checking motion,
          * as the lazy approach requires post-processing. */
-        class TangentBundleSpaceInformation : public ConstrainedSpaceInformation
+        class OMPL_EXPORT TangentBundleSpaceInformation : public ConstrainedSpaceInformation
         {
         public:
             /** \brief Constructor. Sets the instance of the state space to plan with. */

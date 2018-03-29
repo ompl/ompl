@@ -55,7 +55,7 @@ namespace ompl
             of which are defined over a decomposition of the system's state space.
 
             \todo cite papers */
-        class LTLPlanner : public base::Planner
+        class OMPL_EXPORT LTLPlanner : public base::Planner
         {
         public:
             /** \brief Create an LTLPlanner with a given space and product graph.
@@ -96,7 +96,7 @@ namespace ompl
 
                 A motion contains pointers to its state, its parent motion, and the control
                 that was applied to get from its parent to its state. */
-            struct Motion
+            struct OMPL_EXPORT Motion
             {
             public:
                 /** \brief Default constructor for Motion. */
@@ -129,7 +129,7 @@ namespace ompl
             /** \brief A structure to hold measurement information for a high-level state,
                 as well as the set of tree motions belonging to that high-level state.
                 Exactly one ProductGraphStateInfo will exist for each ProductGraph::State. */
-            struct ProductGraphStateInfo
+            struct OMPL_EXPORT ProductGraphStateInfo
             {
                 /** \brief Creates an info object with no measurements and no tree motions. */
                 ProductGraphStateInfo() = default;

@@ -76,7 +76,7 @@ namespace ompl
         ///
         /// BOOST_CLASS_EXPORT(MyVertexClass);
         /// \endcode
-        class PlannerDataStorage
+        class OMPL_EXPORT PlannerDataStorage
         {
         public:
             /// \brief Default constructor.
@@ -102,7 +102,7 @@ namespace ompl
 
         protected:
             /// \brief Information stored at the beginning of the PlannerData archive
-            struct Header
+            struct OMPL_EXPORT Header
             {
                 /// \brief OMPL PlannerData specific marker (fixed value)
                 boost::uint32_t marker;
@@ -129,7 +129,7 @@ namespace ompl
             };
 
             /// \brief The object containing all vertex data that will be stored
-            struct PlannerDataVertexData
+            struct OMPL_EXPORT PlannerDataVertexData
             {
                 enum VertexType
                 {
@@ -152,7 +152,7 @@ namespace ompl
             };
 
             /// \brief The object containing all edge data that will be stored
-            struct PlannerDataEdgeData
+            struct OMPL_EXPORT PlannerDataEdgeData
             {
                 template <typename Archive>
                 void serialize(Archive &ar, const unsigned int /*version*/)

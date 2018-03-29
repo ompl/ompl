@@ -61,7 +61,7 @@ namespace ompl
         */
 
         /** \brief A conceptual representation of samples as an edge-implicit random geometric graph. */
-        class BITstar::ImplicitGraph
+        class OMPL_EXPORT BITstar::ImplicitGraph
         {
         public:
             ////////////////////////////////

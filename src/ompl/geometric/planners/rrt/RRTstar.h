@@ -73,7 +73,7 @@ namespace ompl
         */
 
         /** \brief Optimal Rapidly-exploring Random Trees */
-        class RRTstar : public base::Planner
+        class OMPL_EXPORT RRTstar : public base::Planner
         {
         public:
             RRTstar(const base::SpaceInformationPtr &si);
@@ -332,7 +332,7 @@ namespace ompl
 
         protected:
             /** \brief Representation of a motion */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 /** \brief Constructor that allocates memory for the state. This constructor automatically allocates
@@ -373,7 +373,7 @@ namespace ompl
             void freeMemory();
 
             // For sorting a list of costs and getting only their sorted indices
-            struct CostIndexCompare
+            struct OMPL_EXPORT CostIndexCompare
             {
                 CostIndexCompare(const std::vector<base::Cost> &costs, const base::OptimizationObjective &opt)
                   : costs_(costs), opt_(opt)

@@ -37,6 +37,7 @@
 #ifndef OMPL_BASE_STATE_
 #define OMPL_BASE_STATE_
 
+#include "ompl/export.h"
 #include <boost/concept_check.hpp>
 
 namespace ompl
@@ -46,7 +47,7 @@ namespace ompl
         /** \brief Definition of an abstract state.
 
             See \ref stateAlloc and \ref stateOps. */
-        class State
+        class OMPL_EXPORT State
         {
         private:
             /** \brief Disable copy-constructor */
@@ -83,7 +84,7 @@ namespace ompl
         };
 
         /** \brief Definition of a compound state */
-        class CompoundState : public State
+        class OMPL_EXPORT CompoundState : public State
         {
         public:
             CompoundState() = default;

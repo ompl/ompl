@@ -60,7 +60,7 @@ namespace ompl
 
         */
 
-        class BridgeTestValidStateSampler : public ValidStateSampler
+        class OMPL_EXPORT BridgeTestValidStateSampler : public ValidStateSampler
         {
         public:
             /** \brief Constructor */

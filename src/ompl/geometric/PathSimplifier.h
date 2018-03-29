@@ -62,7 +62,7 @@ namespace ompl
 
             Some of these are in fact routines that shorten the path, and do not
             necessarily make it smoother. */
-        class PathSimplifier
+        class OMPL_EXPORT PathSimplifier
         {
         public:
             /** \brief Create an instance for a specified space information.

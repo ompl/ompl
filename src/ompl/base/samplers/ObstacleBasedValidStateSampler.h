@@ -54,7 +54,7 @@ namespace ompl
            workspaces, in <em> Third Workshop on the Algorithmic Foundations of Robotics</em>, pp. 155-168, 1998.
            [[URL]](https://parasol.tamu.edu/groups/amatogroup/research/OBPRM/)
         */
-        class ObstacleBasedValidStateSampler : public ValidStateSampler
+        class OMPL_EXPORT ObstacleBasedValidStateSampler : public ValidStateSampler
         {
         public:
             /** \brief Constructor */

@@ -70,7 +70,7 @@ namespace ompl
         */
 
         /** \brief Expansive Space Trees */
-        class EST : public base::Planner
+        class OMPL_EXPORT EST : public base::Planner
         {
         public:
             /** \brief Constructor */
@@ -145,7 +145,7 @@ namespace ompl
 
                 This only contains pointers to parent motions as we
                 only need to go backwards in the tree. */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;
@@ -171,7 +171,7 @@ namespace ompl
                 Motion *parent{nullptr};
             };
 
-            struct MotionInfo;
+            struct OMPL_EXPORT MotionInfo;
 
             /** \brief A grid cell */
             typedef Grid<MotionInfo>::Cell GridCell;
@@ -180,7 +180,7 @@ namespace ompl
             typedef PDF<GridCell *> CellPDF;
 
             /** \brief A struct containing an array of motions and a corresponding PDF element */
-            struct MotionInfo
+            struct OMPL_EXPORT MotionInfo
             {
                 Motion *operator[](unsigned int i)
                 {
@@ -207,7 +207,7 @@ namespace ompl
             };
 
             /** \brief The data contained by a tree of exploration */
-            struct TreeData
+            struct OMPL_EXPORT TreeData
             {
                 TreeData() = default;
 

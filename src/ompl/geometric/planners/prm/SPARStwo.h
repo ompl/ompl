@@ -74,7 +74,7 @@ namespace ompl
         */
 
         /** \brief <b> SPArse Roadmap Spanner Version 2.0 </b> */
-        class SPARStwo : public base::Planner
+        class OMPL_EXPORT SPARStwo : public base::Planner
         {
         public:
             /** \brief Enumeration which specifies the reason a guard is added to the spanner. */
@@ -95,7 +95,7 @@ namespace ompl
             typedef std::pair<VertexIndexType, VertexIndexType> VertexPair;
 
             /** \brief Interface information storage class, which does bookkeeping for criterion four. */
-            struct InterfaceData
+            struct OMPL_EXPORT InterfaceData
             {
                 /** \brief States which lie inside the visibility region of a vertex and support an interface. */
                 base::State *pointA_{nullptr};
@@ -171,17 +171,17 @@ namespace ompl
             /** \brief the hash which maps pairs of neighbor points to pairs of states */
             typedef std::unordered_map<VertexPair, InterfaceData> InterfaceHash;
 
-            struct vertex_state_t
+            struct OMPL_EXPORT vertex_state_t
             {
                 typedef boost::vertex_property_tag kind;
             };
 
-            struct vertex_color_t
+            struct OMPL_EXPORT vertex_color_t
             {
                 typedef boost::vertex_property_tag kind;
             };
 
-            struct vertex_interface_data_t
+            struct OMPL_EXPORT vertex_interface_data_t
             {
                 typedef boost::vertex_property_tag kind;
             };

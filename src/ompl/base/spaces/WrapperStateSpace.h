@@ -47,7 +47,7 @@ namespace ompl
     {
         /** \brief A state sampler that wraps around another state sampler.
          */
-        class WrapperStateSampler : public StateSampler
+        class OMPL_EXPORT WrapperStateSampler : public StateSampler
         {
         public:
             /** \brief Constructor. Requires the wrapper state space \a space
@@ -74,11 +74,11 @@ namespace ompl
         /** \brief State space wrapper that transparently passes state space
          * operations through to the underlying space. Allows augmentation of
          * state spaces with additional information. */
-        class WrapperStateSpace : public StateSpace
+        class OMPL_EXPORT WrapperStateSpace : public StateSpace
         {
         public:
             /** \brief Wrapper state type. Contains a reference to an underlying state. */
-            class StateType : public State
+            class OMPL_EXPORT StateType : public State
             {
             public:
                 /** \brief Constructor. Takes a reference \a state to the underlying state. */

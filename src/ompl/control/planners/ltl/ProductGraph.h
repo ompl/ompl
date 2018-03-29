@@ -63,14 +63,14 @@ namespace ompl
             Cartesian product of a PropositionalDecomposition object,
             an Automaton corresponding to a co-safe LTL specification,
             and an Automaton corresponding to a safe LTL specification. */
-        class ProductGraph
+        class OMPL_EXPORT ProductGraph
         {
         public:
-            class State;
+            class OMPL_EXPORT State;
 
             /// @cond IGNORE
             /** \brief Hash function for State to be used in std::unordered_map */
-            struct HashState
+            struct OMPL_EXPORT HashState
             {
                 std::size_t operator()(const State &s) const;
             };
@@ -80,7 +80,7 @@ namespace ompl
                 Cartesian product represented by the ProductGraph.
                 A State is simply a tuple consisting of a PropositionalDecomposition region,
                 a co-safe Automaton state, and a safe Automaton state. */
-            class State
+            class OMPL_EXPORT State
             {
                 friend class ProductGraph;
 
@@ -227,7 +227,7 @@ namespace ompl
             static void noInit(State *s)
             {
             }
-            struct Edge
+            struct OMPL_EXPORT Edge
             {
                 double cost;
             };

@@ -37,6 +37,7 @@
 #ifndef OMPL_BASE_GENERIC_PARAM_
 #define OMPL_BASE_GENERIC_PARAM_
 
+#include "ompl/export.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
 #include <functional>
@@ -61,7 +62,7 @@ namespace ompl
             biasing). Motion planners (and some of their components)
             use this class to declare what the parameters are, in a
             generic way, so that they can be set externally. */
-        class GenericParam
+        class OMPL_EXPORT GenericParam
         {
         public:
             /** \brief The constructor of a parameter takes the name of the parameter (\e name) */
@@ -151,7 +152,7 @@ namespace ompl
 
         /** \brief This is a helper class that instantiates parameters with different data types. */
         template <typename T>
-        class SpecificParam : public GenericParam
+        class OMPL_EXPORT SpecificParam : public GenericParam
         {
         public:
             /** \brief The type for the 'setter' function for this parameter */
@@ -223,7 +224,7 @@ namespace ompl
         /// @endcond
 
         /** \brief Maintain a set of parameters */
-        class ParamSet
+        class OMPL_EXPORT ParamSet
         {
         public:
             /** \brief This function declares a parameter \e name, and specifies the \e setter and \e getter functions.

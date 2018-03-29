@@ -73,7 +73,7 @@ namespace ompl
         */
 
         /** \brief The Thunder Framework's Retrieve-Repair component */
-        class ThunderRetrieveRepair : public base::Planner
+        class OMPL_EXPORT ThunderRetrieveRepair : public base::Planner
         {
         public:
             /** \brief Constructor */

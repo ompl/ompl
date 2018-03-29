@@ -42,6 +42,7 @@
 #error OpenDE extension not built
 #endif
 
+#include "ompl/export.h"
 #include "ompl/util/ClassForward.h"
 
 #include <ode/ode.h>
@@ -63,7 +64,7 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::control::OpenDEEnvironment */
 
         /** \brief This class contains the OpenDE constructs OMPL needs to know about when planning. */
-        class OpenDEEnvironment
+        class OMPL_EXPORT OpenDEEnvironment
         {
         public:
             /** \brief The OpenDE world where the simulation is performed */

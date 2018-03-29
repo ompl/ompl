@@ -50,7 +50,7 @@ namespace ompl
         In general, direct sampling of the informed subset is much better, but this is a general default.
 
         */
-        class RejectionInfSampler : public InformedSampler
+        class OMPL_EXPORT RejectionInfSampler : public InformedSampler
         {
         public:
             /** \brief Construct a rejection sampler that only generates states with a heuristic solution estimate that

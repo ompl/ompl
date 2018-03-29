@@ -37,18 +37,23 @@
 #ifndef OMPL_UTIL_GEOMETRIC_EQUATIONS
 #define OMPL_UTIL_GEOMETRIC_EQUATIONS
 
+#include "ompl/export.h"
+
 namespace ompl
 {
     /* A collection of general geometric equations. */
 
     /** \brief The Lebesgue measure (i.e., "volume") of an n-dimensional ball of given radius. */
+    OMPL_EXPORT
     double nBallMeasure(unsigned int N, double r);
 
     /** \brief The Lebesgue measure (i.e., "volume") of an n-dimensional ball with a unit radius. */
+    OMPL_EXPORT
     double unitNBallMeasure(unsigned int N);
 
     /** \brief The Lebesgue measure (i.e., "volume") of an n-dimensional prolate hyperspheroid (a symmetric
      * hyperellipse) given as the distance between the foci and the transverse diameter */
+    OMPL_EXPORT
     double prolateHyperspheroidMeasure(unsigned int N, double dFoci, double dTransverse);
 }  // ompl
 

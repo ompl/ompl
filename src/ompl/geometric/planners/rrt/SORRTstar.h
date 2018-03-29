@@ -53,7 +53,7 @@ namespace ompl
         */
 
         /** \brief SORRT* */
-        class SORRTstar : public InformedRRTstar
+        class OMPL_EXPORT SORRTstar : public InformedRRTstar
         {
         public:
             /** \brief Constructor */

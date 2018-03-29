@@ -70,25 +70,25 @@ namespace ompl
         */
 
         /** \brief Lazy Probabilistic RoadMap planner */
-        class LazyPRM : public base::Planner
+        class OMPL_EXPORT LazyPRM : public base::Planner
         {
         public:
-            struct vertex_state_t
+            struct OMPL_EXPORT vertex_state_t
             {
                 typedef boost::vertex_property_tag kind;
             };
 
-            struct vertex_flags_t
+            struct OMPL_EXPORT vertex_flags_t
             {
                 typedef boost::vertex_property_tag kind;
             };
 
-            struct vertex_component_t
+            struct OMPL_EXPORT vertex_component_t
             {
                 typedef boost::vertex_property_tag kind;
             };
 
-            struct edge_flags_t
+            struct OMPL_EXPORT edge_flags_t
             {
                 typedef boost::edge_property_tag kind;
             };

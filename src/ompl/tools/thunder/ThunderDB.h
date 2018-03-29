@@ -67,7 +67,7 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::tools::ThunderDB */
 
         /** \brief Save and load entire paths from file */
-        class ThunderDB
+        class OMPL_EXPORT ThunderDB
         {
         public:
             /** \brief Constructor needs the state space used for planning.

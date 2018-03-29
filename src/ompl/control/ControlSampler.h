@@ -65,7 +65,7 @@ namespace ompl
             from this class. Planners should call the versions of
             sample() and sampleNext() with most arguments, whenever
             this information is available. */
-        class ControlSampler
+        class OMPL_EXPORT ControlSampler
         {
         public:
             // non-copyable
@@ -125,7 +125,7 @@ namespace ompl
 
         /** \brief Definition of a compound control sampler. This is useful to construct samplers for compound controls.
          */
-        class CompoundControlSampler : public ControlSampler
+        class OMPL_EXPORT CompoundControlSampler : public ControlSampler
         {
         public:
             /** \brief Constructor */

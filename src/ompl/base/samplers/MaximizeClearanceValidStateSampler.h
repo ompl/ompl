@@ -45,7 +45,7 @@ namespace ompl
     namespace base
     {
         /** \brief Generate valid samples randomly, but with a bias towards higher clearance. */
-        class MaximizeClearanceValidStateSampler : public ValidStateSampler
+        class OMPL_EXPORT MaximizeClearanceValidStateSampler : public ValidStateSampler
         {
         public:
             /** \brief Constructor */

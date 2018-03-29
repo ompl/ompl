@@ -55,7 +55,7 @@ namespace ompl
         /// derived classes must implement the clone and equivalence operators.
         /// It is assumed that each vertex in the PlannerData structure is
         /// unique (i.e. no duplicates allowed).
-        class PlannerDataVertex
+        class OMPL_EXPORT PlannerDataVertex
         {
         public:
             /// \brief Constructor.  Takes a state pointer and an optional integer tag.
@@ -123,7 +123,7 @@ namespace ompl
         };
 
         /// \brief Base class for a PlannerData edge.
-        class PlannerDataEdge
+        class OMPL_EXPORT PlannerDataEdge
         {
         public:
             PlannerDataEdge() = default;
@@ -160,7 +160,7 @@ namespace ompl
         OMPL_CLASS_FORWARD(PlannerData);
 
         // Forward declaration for PlannerData::computeEdgeWeights
-        class OptimizationObjective;
+        class OMPL_EXPORT OptimizationObjective;
         /// @endcond
 
         /** \class ompl::base::PlannerDataPtr
@@ -171,10 +171,10 @@ namespace ompl
         /// edge connects two vertices.
         /// \note The storage for states this class maintains belongs to the planner
         /// instance that filled the data (by default; see PlannerData::decoupleFromPlanner())
-        class PlannerData
+        class OMPL_EXPORT PlannerData
         {
         public:
-            class Graph;
+            class OMPL_EXPORT Graph;
 
             /// \brief Representation for a non-existant edge
             static const PlannerDataEdge NO_EDGE;

@@ -37,6 +37,7 @@
 #ifndef OMPL_CONTROL_CONTROL_
 #define OMPL_CONTROL_CONTROL_
 
+#include "ompl/export.h"
 #include <boost/concept_check.hpp>
 
 namespace ompl
@@ -44,7 +45,7 @@ namespace ompl
     namespace control
     {
         /** \brief Definition of an abstract control */
-        class Control
+        class OMPL_EXPORT Control
         {
         private:
             /** \brief Disable copy-constructor */
@@ -81,7 +82,7 @@ namespace ompl
         };
 
         /** \brief Definition of a compound control */
-        class CompoundControl : public Control
+        class OMPL_EXPORT CompoundControl : public Control
         {
         public:
             CompoundControl() = default;

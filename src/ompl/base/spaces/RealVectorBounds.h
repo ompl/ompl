@@ -37,6 +37,7 @@
 #ifndef OMPL_BASE_SPACES_REAL_VECTOR_BOUNDS_
 #define OMPL_BASE_SPACES_REAL_VECTOR_BOUNDS_
 
+#include "ompl/export.h"
 #include <vector>
 
 namespace ompl
@@ -44,7 +45,7 @@ namespace ompl
     namespace base
     {
         /** \brief The lower and upper bounds for an R<sup>n</sup> space */
-        class RealVectorBounds
+        class OMPL_EXPORT RealVectorBounds
         {
         public:
             /** \brief Constructor; \e dim represents the dimension of the space these bounds are for. */

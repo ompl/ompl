@@ -55,7 +55,7 @@ namespace ompl
         A class to generate unique IDs for the \ref gVertex "Vertex" class. */
 
         /** \brief An ID generator class for vertex IDs.*/
-        class BITstar::IdGenerator
+        class OMPL_EXPORT BITstar::IdGenerator
         {
         public:
             IdGenerator() = default;

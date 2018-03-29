@@ -60,7 +60,7 @@ namespace ompl
         /** \brief A projection matrix -- it allows multiplication of
             real vectors by a specified matrix. The matrix can also be
             randomly generated. */
-        class ProjectionMatrix
+        class OMPL_EXPORT ProjectionMatrix
         {
         public:
             /** \brief Datatype for projection matrices */
@@ -130,7 +130,7 @@ namespace ompl
             sizes. Before use, the user must supply cell sizes
             for the integer grid (setCellSizes()). The
             implementation of this class is thread safe. */
-        class ProjectionEvaluator
+        class OMPL_EXPORT ProjectionEvaluator
         {
         public:
             // non-copyable
@@ -297,7 +297,7 @@ namespace ompl
             supposed to be the same as the one for one of its included
             subspaces, this class facilitates selecting a projection
             of that subspace. */
-        class SubspaceProjectionEvaluator : public ProjectionEvaluator
+        class OMPL_EXPORT SubspaceProjectionEvaluator : public ProjectionEvaluator
         {
         public:
             /** \brief The constructor states that for space \e space,

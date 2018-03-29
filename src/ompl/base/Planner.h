@@ -46,7 +46,6 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/Time.h"
 #include "ompl/util/ClassForward.h"
-#include "ompl/util/Deprecation.h"
 #include <functional>
 #include <boost/concept_check.hpp>
 #include <string>
@@ -75,7 +74,7 @@ namespace ompl
             adding of starring states or adding of goal states for
             instances inherited from
             ompl::base::GoalSampleableRegion. */
-        class PlannerInputStates
+        class OMPL_EXPORT PlannerInputStates
         {
         public:
             /** \brief Default constructor. No work is performed. */
@@ -189,7 +188,7 @@ namespace ompl
         };
 
         /** \brief Properties that planners may have */
-        struct PlannerSpecs
+        struct OMPL_EXPORT PlannerSpecs
         {
             PlannerSpecs() = default;
 
@@ -220,7 +219,7 @@ namespace ompl
         };
 
         /** \brief Base class for a planner */
-        class Planner
+        class OMPL_EXPORT Planner
         {
         public:
             // non-copyable

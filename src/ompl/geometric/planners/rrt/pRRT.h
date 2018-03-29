@@ -65,7 +65,7 @@ namespace ompl
         */
 
         /** \brief Parallel RRT */
-        class pRRT : public base::Planner
+        class OMPL_EXPORT pRRT : public base::Planner
         {
         public:
             pRRT(const base::SpaceInformationPtr &si);
@@ -136,7 +136,7 @@ namespace ompl
             void setup() override;
 
         protected:
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;
@@ -151,7 +151,7 @@ namespace ompl
                 Motion *parent{nullptr};
             };
 
-            struct SolutionInfo
+            struct OMPL_EXPORT SolutionInfo
             {
                 Motion *solution;
                 Motion *approxsol;

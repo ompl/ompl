@@ -60,7 +60,7 @@ namespace ompl
             car-like robot,” IEEE Trans. on Automatic Control, 41(5):672–688,
             May 1996.
             */
-        class ReedsSheppStateSpace : public SE2StateSpace
+        class OMPL_EXPORT ReedsSheppStateSpace : public SE2StateSpace
         {
         public:
             /** \brief The Reeds-Shepp path segment types */
@@ -74,7 +74,7 @@ namespace ompl
             /** \brief Reeds-Shepp path types */
             static const ReedsSheppPathSegmentType reedsSheppPathType[18][5];
             /** \brief Complete description of a ReedsShepp path */
-            class ReedsSheppPath
+            class OMPL_EXPORT ReedsSheppPath
             {
             public:
                 ReedsSheppPath(const ReedsSheppPathSegmentType *type = reedsSheppPathType[0],
@@ -126,7 +126,7 @@ namespace ompl
             This motion validator is almost identical to the DiscreteMotionValidator
             except that it remembers the optimal ReedsSheppPath between different calls to
             interpolate. */
-        class ReedsSheppMotionValidator : public MotionValidator
+        class OMPL_EXPORT ReedsSheppMotionValidator : public MotionValidator
         {
         public:
             ReedsSheppMotionValidator(SpaceInformation *si) : MotionValidator(si)

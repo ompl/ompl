@@ -53,7 +53,7 @@ dynamic graph problems, Theor. Comput. Sci., vol. 158, no. 1&2, pp.
 
 namespace ompl
 {
-    class DynamicSSSP
+    class OMPL_EXPORT DynamicSSSP
     {
     public:
         DynamicSSSP()
@@ -250,7 +250,7 @@ namespace ompl
 
         static const int NO_ID = -1;
 
-        class IsLessThan
+        class OMPL_EXPORT IsLessThan
         {
         public:
             IsLessThan(std::vector<double> &cost) : cost_(cost)

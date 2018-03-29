@@ -44,7 +44,7 @@ namespace ompl
     namespace base
     {
         /** \brief Definition of a goal region */
-        class GoalRegion : public Goal
+        class OMPL_EXPORT GoalRegion : public Goal
         {
         public:
             /** \brief Create a goal region */

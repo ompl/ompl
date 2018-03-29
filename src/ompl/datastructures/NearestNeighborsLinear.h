@@ -53,7 +53,7 @@ namespace ompl
         \li Removing an element from the datastructure O(n).
     */
     template <typename _T>
-    class NearestNeighborsLinear : public NearestNeighbors<_T>
+    class OMPL_EXPORT NearestNeighborsLinear : public NearestNeighbors<_T>
     {
     public:
         NearestNeighborsLinear() : NearestNeighbors<_T>()
@@ -156,7 +156,7 @@ namespace ompl
         std::vector<_T> data_;
 
     private:
-        struct ElemSort
+        struct OMPL_EXPORT ElemSort
         {
             ElemSort(const _T &e, const typename NearestNeighbors<_T>::DistanceFunction &df) : e_(e), df_(df)
             {

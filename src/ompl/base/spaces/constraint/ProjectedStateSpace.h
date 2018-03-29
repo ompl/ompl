@@ -57,7 +57,7 @@ namespace ompl
         /// @endcond
 
         /** \brief StateSampler for use for a projection-based state space. */
-        class ProjectedStateSampler : public WrapperStateSampler
+        class OMPL_EXPORT ProjectedStateSampler : public WrapperStateSampler
         {
         public:
             /** \brief Constructor. */
@@ -101,7 +101,7 @@ namespace ompl
 
         /** \brief ConstrainedStateSpace encapsulating a projection-based
          * methodology for planning with constraints. */
-        class ProjectedStateSpace : public ConstrainedStateSpace
+        class OMPL_EXPORT ProjectedStateSpace : public ConstrainedStateSpace
         {
         public:
             /** \brief Construct an atlas with the specified dimensions. */

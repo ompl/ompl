@@ -48,7 +48,7 @@ namespace ompl
     {
         /** \brief Extended state sampler to use with the CForest planning algorithm. It wraps the user-specified
             state sampler.*/
-        class CForestStateSampler : public StateSampler
+        class OMPL_EXPORT CForestStateSampler : public StateSampler
         {
         public:
             /** \brief Constructor */

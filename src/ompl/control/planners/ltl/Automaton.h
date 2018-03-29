@@ -66,14 +66,14 @@ namespace ompl
             An automaton is meant to be run in a read-only fashion, i.e.,
             it does not keep track of an internal state and can be thought of
             as a lookup table. */
-        class Automaton
+        class OMPL_EXPORT Automaton
         {
         public:
             /** \brief Each automaton state has a transition map, which maps from a
                 World to another automaton state.
                 A set \f$P\f$ of true propositions correponds to the formula
                 \f$\bigwedge_{p\in P} p\f$. */
-            struct TransitionMap
+            struct OMPL_EXPORT TransitionMap
             {
                 /** \brief Returns the automaton state corresponding to a given
                     World in this transition map.

@@ -46,7 +46,7 @@ namespace ompl
     {
         /** \brief Representation of controls applied in OpenDE
             environments. This is an array of double values. */
-        class OpenDEControlSpace : public RealVectorControlSpace
+        class OMPL_EXPORT OpenDEControlSpace : public RealVectorControlSpace
         {
         public:
             /** \brief Construct a representation of controls passed

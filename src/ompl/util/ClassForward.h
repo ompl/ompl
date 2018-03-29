@@ -43,7 +43,7 @@
     shared pointers to the class. For example OMPL_CLASS_FORWARD(MyType);
     will produce type definitions for MyType and MyTypePtr. */
 #define OMPL_CLASS_FORWARD(C)                                                                                          \
-    class C;                                                                                                           \
+    class OMPL_EXPORT C;                                                                                                           \
     typedef std::shared_ptr<C> C##Ptr
 
 #endif

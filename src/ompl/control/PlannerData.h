@@ -57,7 +57,7 @@ namespace ompl
         /// ...
         /// BOOST_CLASS_EXPORT(ompl::control::PlannerDataEdgeControl);
         /// \endcode
-        class PlannerDataEdgeControl : public base::PlannerDataEdge
+        class OMPL_EXPORT PlannerDataEdgeControl : public base::PlannerDataEdge
         {
         public:
             /// \brief Constructor.  Accepts a control pointer and a duration.
@@ -118,7 +118,7 @@ namespace ompl
         /// \copydoc ompl::base::PlannerData
         /// \brief This class assumes edges are derived from PlannerDataEdgeControl.
         /// If this is not the case, see base::PlannerData.
-        class PlannerData : public base::PlannerData
+        class OMPL_EXPORT PlannerData : public base::PlannerData
         {
         public:
             /// \brief Constructor.  Accepts a SpaceInformationPtr for the space planned in.

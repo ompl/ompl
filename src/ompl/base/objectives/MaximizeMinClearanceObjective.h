@@ -44,7 +44,7 @@ namespace ompl
     namespace base
     {
         /** \brief Objective for attempting to maximize the minimum clearance along a path. */
-        class MaximizeMinClearanceObjective : public MinimaxObjective
+        class OMPL_EXPORT MaximizeMinClearanceObjective : public MinimaxObjective
         {
         public:
             MaximizeMinClearanceObjective(const SpaceInformationPtr &si);

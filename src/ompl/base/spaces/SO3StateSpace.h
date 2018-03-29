@@ -44,7 +44,7 @@ namespace ompl
     namespace base
     {
         /** \brief State space sampler for SO(3), using quaternion representation  */
-        class SO3StateSampler : public StateSampler
+        class OMPL_EXPORT SO3StateSampler : public StateSampler
         {
         public:
             /** \brief Constructor */
@@ -79,7 +79,7 @@ namespace ompl
             representation is done with quaternions. The distance
             between states is the angle between quaternions and
             interpolation is done with slerp. */
-        class SO3StateSpace : public StateSpace
+        class OMPL_EXPORT SO3StateSpace : public StateSpace
         {
         public:
             /** \brief The definition of a state in SO(3) represented as a unit quaternion
@@ -87,7 +87,7 @@ namespace ompl
                 \note The order of the elements matters in this
                 definition for the SO3StateUniformSampler::sample()
                 function. */
-            class StateType : public State
+            class OMPL_EXPORT StateType : public State
             {
             public:
                 /** \brief Set the quaternion from axis-angle representation.  The angle is given in radians. */

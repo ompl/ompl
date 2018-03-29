@@ -37,6 +37,7 @@
 #ifndef OMPL_BASE_PLANNER_STATUS_
 #define OMPL_BASE_PLANNER_STATUS_
 
+#include "ompl/export.h"
 #include <string>
 #include <ostream>
 
@@ -45,7 +46,7 @@ namespace ompl
     namespace base
     {
         /// A class to store the exit status of Planner::solve()
-        struct PlannerStatus
+        struct OMPL_EXPORT PlannerStatus
         {
             /// The possible values of the status returned by a planner
             enum StatusType

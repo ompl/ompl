@@ -68,14 +68,14 @@ namespace ompl
         [[PDF]](http://kavrakilab.org/sites/default/files/2013%20resolution%20independent%20density%20estimation%20for%20motion.pdf)
     */
     template <typename _T>
-    class NearestNeighborsGNATNoThreadSafety : public NearestNeighbors<_T>
+    class OMPL_EXPORT NearestNeighborsGNATNoThreadSafety : public NearestNeighbors<_T>
     {
     protected:
         /// \cond IGNORE
         // internally, we use a priority queue for nearest neighbors, paired
         // with their distance to the query point
         using DataDist = std::pair<const _T *, double>;
-        struct DataDistCompare
+        struct OMPL_EXPORT DataDistCompare
         {
             bool operator()(const DataDist &d0, const DataDist &d1)
             {
@@ -383,7 +383,7 @@ namespace ompl
         }
 
         /// The class used internally to define the GNAT.
-        class Node
+        class OMPL_EXPORT Node
         {
         public:
             /// \brief Construct a node of given degree with at most
@@ -756,7 +756,7 @@ namespace ompl
         /// \cond IGNORE
         // another internal data structure is a priority queue of nodes to
         // check next for possible nearest neighbors
-        struct NodeCompare
+        struct OMPL_EXPORT NodeCompare
         {
             bool operator()(const Node *n0, const Node *n1) const
             {

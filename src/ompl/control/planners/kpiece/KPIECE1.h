@@ -72,7 +72,7 @@ namespace ompl
         */
 
         /** \brief Kinodynamic Planning by Interior-Exterior Cell Exploration */
-        class KPIECE1 : public base::Planner
+        class OMPL_EXPORT KPIECE1 : public base::Planner
         {
         public:
             /** \brief Constructor */
@@ -197,7 +197,7 @@ namespace ompl
 
         protected:
             /** \brief Representation of a motion for this algorithm */
-            struct Motion
+            struct OMPL_EXPORT Motion
             {
                 Motion() = default;
 
@@ -223,7 +223,7 @@ namespace ompl
             };
 
             /** \brief The data held by a cell in the grid of motions */
-            struct CellData
+            struct OMPL_EXPORT CellData
             {
                 CellData() = default;
 
@@ -255,7 +255,7 @@ namespace ompl
 
             /** \brief Definintion of an operator passed to the Grid
                 structure, to order cells by importance */
-            struct OrderCellsByImportance
+            struct OMPL_EXPORT OrderCellsByImportance
             {
                 bool operator()(const CellData *const a, const CellData *const b) const
                 {
@@ -267,7 +267,7 @@ namespace ompl
             typedef GridB<CellData *, OrderCellsByImportance> Grid;
 
             /** \brief Information about a known good sample (closer to the goal than others) */
-            struct CloseSample
+            struct OMPL_EXPORT CloseSample
             {
                 /** \brief Constructor fully initializes the content of this structure */
                 CloseSample(Grid::Cell *c, Motion *m, double d) : cell(c), motion(m), distance(d)
@@ -292,7 +292,7 @@ namespace ompl
             };
 
             /** \brief Bounded set of good samples */
-            struct CloseSamples
+            struct OMPL_EXPORT CloseSamples
             {
                 /** \brief Construct an object to maintain a set of at most \e size samples */
                 CloseSamples(unsigned int size) : maxSize(size)
@@ -327,7 +327,7 @@ namespace ompl
             };
 
             /** \brief The data defining a tree of motions for this algorithm */
-            struct TreeData
+            struct OMPL_EXPORT TreeData
             {
                 TreeData() = default;
 

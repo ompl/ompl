@@ -44,7 +44,7 @@ namespace ompl
     namespace control
     {
         /** \brief Control space sampler for discrete controls */
-        class DiscreteControlSampler : public ControlSampler
+        class OMPL_EXPORT DiscreteControlSampler : public ControlSampler
         {
         public:
             /** \brief Constructor */
@@ -59,11 +59,11 @@ namespace ompl
             are a small number of discrete controls the system can react to.
             Controls are represented as integers [lowerBound, upperBound],
             where lowerBound and upperBound are inclusive. */
-        class DiscreteControlSpace : public ControlSpace
+        class OMPL_EXPORT DiscreteControlSpace : public ControlSpace
         {
         public:
             /** \brief The definition of a discrete control */
-            class ControlType : public Control
+            class OMPL_EXPORT ControlType : public Control
             {
             public:
                 /** \brief The current control - an int in range [lowerBound, upperBound] */

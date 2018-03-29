@@ -82,7 +82,7 @@ namespace ompl
         */
 
         /** \brief <b> SPArse Roadmap Spanner Version 2.0 </b> */
-        class SPARSdb : public base::Planner
+        class OMPL_EXPORT SPARSdb : public base::Planner
         {
         public:
             /** \brief Enumeration which specifies the reason a guard is added to the spanner. */
@@ -108,7 +108,7 @@ namespace ompl
 
             ////////////////////////////////////////////////////////////////////////////////////////
             /** \brief Interface information storage class, which does bookkeeping for criterion four. */
-            struct InterfaceData
+            struct OMPL_EXPORT InterfaceData
             {
                 /** \brief States which lie inside the visibility region of a vertex and support an interface. */
                 base::State *pointA_{nullptr};
@@ -189,7 +189,7 @@ namespace ompl
             // GCC 4.6 with Boost 1.48.  An implicit assignment operator overload does not compile with these
             // components, so an explicit overload is given here.
             // Remove this struct when the minimum Boost requirement is > v1.48.
-            struct InterfaceHashStruct
+            struct OMPL_EXPORT InterfaceHashStruct
             {
                 InterfaceHashStruct &operator=(const InterfaceHashStruct &rhs) = default;
                 InterfaceHash interfaceHash;
@@ -198,17 +198,17 @@ namespace ompl
             ////////////////////////////////////////////////////////////////////////////////////////
             // Vertex properties
 
-            struct vertex_state_t
+            struct OMPL_EXPORT vertex_state_t
             {
                 using kind = boost::vertex_property_tag;
             };
 
-            struct vertex_color_t
+            struct OMPL_EXPORT vertex_color_t
             {
                 using kind = boost::vertex_property_tag;
             };
 
-            struct vertex_interface_data_t
+            struct OMPL_EXPORT vertex_interface_data_t
             {
                 using kind = boost::vertex_property_tag;
             };
@@ -216,7 +216,7 @@ namespace ompl
             ////////////////////////////////////////////////////////////////////////////////////////
             // Edge properties
 
-            struct edge_collision_state_t
+            struct OMPL_EXPORT edge_collision_state_t
             {
                 using kind = boost::edge_property_tag;
             };
@@ -230,7 +230,7 @@ namespace ompl
             };
 
             /** \brief Struct for passing around partially solved solutions */
-            struct CandidateSolution
+            struct OMPL_EXPORT CandidateSolution
             {
                 bool isApproximate_;
                 base::PathPtr path_;
@@ -308,7 +308,7 @@ namespace ompl
              * Used to artifically supress edges during A* search.
              * @implements ReadablePropertyMapConcept
              */
-            class edgeWeightMap
+            class OMPL_EXPORT edgeWeightMap
             {
             private:
                 const Graph &g_;  // Graph used
@@ -342,7 +342,7 @@ namespace ompl
             /**
              * Thrown to stop the A* search when finished.
              */
-            class foundGoalException
+            class OMPL_EXPORT foundGoalException
             {
             };
 
@@ -351,7 +351,7 @@ namespace ompl
              * Vertex visitor to check if A* search is finished.
              * @implements AStarVisitorConcept
              */
-            class CustomVisitor : public boost::default_astar_visitor
+            class OMPL_EXPORT CustomVisitor : public boost::default_astar_visitor
             {
             private:
                 Vertex goal;  // Goal Vertex of the search

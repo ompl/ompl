@@ -62,7 +62,7 @@ namespace ompl
         */
 
         /** \brief PRM* planner */
-        class PRMstar : public PRM
+        class OMPL_EXPORT PRMstar : public PRM
         {
         public:
             /** \brief Constructor */

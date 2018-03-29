@@ -62,7 +62,7 @@ namespace ompl
         */
 
         /** \brief Rapidly-exploring Random Tree */
-        class RRT : public base::Planner
+        class OMPL_EXPORT RRT : public base::Planner
         {
         public:
             /** \brief Constructor */
@@ -130,7 +130,7 @@ namespace ompl
 
                 This only contains pointers to parent motions as we
                 only need to go backwards in the tree. */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;

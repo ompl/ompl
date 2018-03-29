@@ -49,7 +49,7 @@ namespace ompl
         /**
          * Optimization objective that computes the upstream criterion between two states.
          */
-        class VFUpstreamCriterionOptimizationObjective : public ompl::base::OptimizationObjective
+        class OMPL_EXPORT VFUpstreamCriterionOptimizationObjective : public ompl::base::OptimizationObjective
         {
         public:
             /** Constructor. */

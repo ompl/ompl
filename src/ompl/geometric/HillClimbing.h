@@ -57,7 +57,7 @@ namespace ompl
         */
 
         /** \brief Hill Climbing search */
-        class HillClimbing
+        class OMPL_EXPORT HillClimbing
         {
         public:
             /** \brief Constructor */

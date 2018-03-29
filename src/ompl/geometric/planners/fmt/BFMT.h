@@ -79,7 +79,7 @@ namespace ompl
        */
         /** @brief Bidirectional Asymptotically Optimal Fast Marching Tree algorithm developed
             by J. Starek, J.V. Gomez, et al. */
-        class BFMT : public ompl::base::Planner
+        class OMPL_EXPORT BFMT : public ompl::base::Planner
         {
         public:
             /** \brief Tree identifier */
@@ -270,7 +270,7 @@ namespace ompl
             }
 
             /** \brief Representation of a bidirectional motion. */
-            class BiDirMotion
+            class OMPL_EXPORT BiDirMotion
             {
             public:
                 /** \brief The FMT* planner begins with all nodes included in
@@ -452,7 +452,7 @@ namespace ompl
 
         protected:
             /** \brief Comparator used to order motions in a binary heap */
-            struct BiDirMotionCompare
+            struct OMPL_EXPORT BiDirMotionCompare
             {
                 bool operator()(const BiDirMotion *p1, const BiDirMotion *p2) const
                 {
@@ -625,7 +625,7 @@ namespace ompl
             bool extendedFMT_{true};
 
             // For sorting a list of costs and getting only their sorted indices
-            struct CostIndexCompare
+            struct OMPL_EXPORT CostIndexCompare
             {
                 CostIndexCompare(const std::vector<base::Cost> &costs, const base::OptimizationObjective &opt)
                   : costs_(costs), opt_(opt)

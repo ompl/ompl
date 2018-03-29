@@ -49,14 +49,14 @@ namespace ompl
     {
         /** \brief Tangent space and bounding polytope approximating some patch
          * of the manifold. */
-        class AtlasChart
+        class OMPL_EXPORT AtlasChart
         {
         private:
             /** \brief Halfspace equation on a chart. \note Use
              * AtlasChart::generateHalfspace to create new halfspace objects.
              * Since each halfspace is associated to exactly one chart, we let
              * the chart be responsible for deleting it. */
-            class Halfspace
+            class OMPL_EXPORT Halfspace
             {
             public:
                 // non-copyable

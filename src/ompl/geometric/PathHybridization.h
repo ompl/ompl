@@ -66,7 +66,7 @@ namespace ompl
             DOI: [10.1109/TRO.2010.2098622](http://dx.doi.org/10.1109/TRO.2010.2098622)<br>
             [[PDF]](http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5686946)
         */
-        class PathHybridization
+        class OMPL_EXPORT PathHybridization
         {
         public:
             /** \brief The constructor needs to know about the space information of the paths it will operate on */
@@ -106,7 +106,7 @@ namespace ompl
 
         private:
             /// @cond IGNORE
-            struct vertex_state_t
+            struct OMPL_EXPORT vertex_state_t
             {
                 typedef boost::vertex_property_tag kind;
             };
@@ -122,7 +122,7 @@ namespace ompl
             typedef boost::graph_traits<HGraph>::vertex_descriptor Vertex;
             typedef boost::graph_traits<HGraph>::edge_descriptor Edge;
 
-            struct PathInfo
+            struct OMPL_EXPORT PathInfo
             {
                 PathInfo(const base::PathPtr &path)
                   : path_(path), states_(static_cast<PathGeometric *>(path.get())->getStates()), length_(0.0)

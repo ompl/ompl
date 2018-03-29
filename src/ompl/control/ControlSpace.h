@@ -60,7 +60,7 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::control::ControlSpace */
 
         /** \brief A control space representing the space of applicable controls */
-        class ControlSpace
+        class OMPL_EXPORT ControlSpace
         {
         public:
             // non-copyable
@@ -195,7 +195,7 @@ namespace ompl
         };
 
         /** \brief A control space to allow the composition of control spaces */
-        class CompoundControlSpace : public ControlSpace
+        class OMPL_EXPORT CompoundControlSpace : public ControlSpace
         {
         public:
             /** \brief Define the type of control allocated by this control space */

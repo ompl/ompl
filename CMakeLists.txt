@@ -3,6 +3,9 @@ cmake_policy(SET CMP0017 NEW)
 if(NOT ${CMAKE_VERSION} VERSION_LESS 3.0.0)
     cmake_policy(SET CMP0042 NEW)
 endif()
+if(NOT ${CMAKE_VERSION} VERSION_LESS 3.3.0)
+    cmake_policy(SET CMP0063 NEW)
+endif()
 project(ompl CXX C)
 
 # set the default build type
@@ -32,6 +35,7 @@ include(GNUInstallDirs)
 include(CompilerSettings)
 include(OMPLVersion)
 include(OMPLUtils)
+include(GenerateExportHeader)
 
 set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin")
 set(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/lib")
@@ -42,7 +46,8 @@ set(OMPL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(OMPL_DEMO_INSTALL_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ompl/demos"
     CACHE STRING "Relative path to directory where demos will be installed")
 
-include_directories("${OMPL_INCLUDE_DIR}")
+include_directories(BEFORE "${OMPL_INCLUDE_DIR}")
+include_directories(BEFORE "${CMAKE_BINARY_DIR}/src")
 
 if(MSVC)
     add_definitions(-DBOOST_ALL_NO_LIB)

@@ -46,7 +46,7 @@ namespace ompl
     {
         /** \brief A motion validator that only uses the state validity checker. Motions are checked for validity at a
          * specified resolution. */
-        class DiscreteMotionValidator : public MotionValidator
+        class OMPL_EXPORT DiscreteMotionValidator : public MotionValidator
         {
         public:
             /** \brief Constructor */

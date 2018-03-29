@@ -48,7 +48,7 @@ namespace ompl
     namespace base
     {
         /** \brief State sampler for the R<sup>n</sup> state space */
-        class RealVectorStateSampler : public StateSampler
+        class OMPL_EXPORT RealVectorStateSampler : public StateSampler
         {
         public:
             /** \brief Constructor */
@@ -70,11 +70,11 @@ namespace ompl
         };
 
         /** \brief A state space representing R<sup>n</sup>. The distance function is the L2 norm. */
-        class RealVectorStateSpace : public StateSpace
+        class OMPL_EXPORT RealVectorStateSpace : public StateSpace
         {
         public:
             /** \brief The definition of a state in R<sup>n</sup> */
-            class StateType : public State
+            class OMPL_EXPORT StateType : public State
             {
             public:
                 StateType() = default;

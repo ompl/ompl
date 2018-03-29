@@ -77,20 +77,20 @@ namespace ompl
         */
 
         /** \brief Probabilistic RoadMap planner */
-        class PRM : public base::Planner
+        class OMPL_EXPORT PRM : public base::Planner
         {
         public:
-            struct vertex_state_t
+            struct OMPL_EXPORT vertex_state_t
             {
                 typedef boost::vertex_property_tag kind;
             };
 
-            struct vertex_total_connection_attempts_t
+            struct OMPL_EXPORT vertex_total_connection_attempts_t
             {
                 typedef boost::vertex_property_tag kind;
             };
 
-            struct vertex_successful_connection_attempts_t
+            struct OMPL_EXPORT vertex_successful_connection_attempts_t
             {
                 typedef boost::vertex_property_tag kind;
             };

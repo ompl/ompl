@@ -51,13 +51,13 @@ namespace ompl
             This struct will provide that allocation routine,
             depending on the template argument of ompl::base::SamplerType.*/
         template <typename T>
-        struct SamplerSelector
+        struct OMPL_EXPORT SamplerSelector
         {
         };
 
         /** \cond IGNORE */
         template <>
-        struct SamplerSelector<StateSampler>
+        struct OMPL_EXPORT SamplerSelector<StateSampler>
         {
             typedef StateSampler Sampler;
             typedef StateSamplerPtr SamplerPtr;
@@ -69,7 +69,7 @@ namespace ompl
         };
 
         template <>
-        struct SamplerSelector<ValidStateSampler>
+        struct OMPL_EXPORT SamplerSelector<ValidStateSampler>
         {
             typedef ValidStateSampler Sampler;
             typedef ValidStateSamplerPtr SamplerPtr;
@@ -84,7 +84,7 @@ namespace ompl
         /** \brief Class to ease the creation of a set of samplers. This is especially useful for multi-threaded
          * planners. */
         template <typename T>
-        class StateSamplerArray
+        class OMPL_EXPORT StateSamplerArray
         {
         public:
             /** \brief Pointer to the type of sampler allocated */

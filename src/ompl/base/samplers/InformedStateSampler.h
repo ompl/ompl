@@ -57,7 +57,7 @@ namespace ompl
         /** \brief An abstract class for the concept of using information about the state space
         and the current solution cost to limit future search to a planning
         subproblem that contains all possibly better solutions. */
-        class InformedSampler
+        class OMPL_EXPORT InformedSampler
         {
         public:
             // non-copyable
@@ -120,7 +120,7 @@ namespace ompl
         };
 
         /** \brief A wrapper class that allows an InformedSampler to be used as a StateSampler. */
-        class InformedStateSampler : public StateSampler
+        class OMPL_EXPORT InformedStateSampler : public StateSampler
         {
         public:
             /** \brief The definition of a function pointer for querying the current solution cost. */

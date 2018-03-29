@@ -47,7 +47,7 @@ namespace ompl
 {
     namespace base
     {
-        class GoalLazySamples;
+        class OMPL_EXPORT GoalLazySamples;
 
         /** \brief Goal sampling function. Returns false when no further calls should be made to it.
             Fills its second argument (the state) with the sampled goal state. This function need not
@@ -68,7 +68,7 @@ namespace ompl
          (GIL) is very tricky. See ompl/py-bindings/generate_bindings.py for
          an initial attempt to make this work.
          */
-        class GoalLazySamples : public GoalStates
+        class OMPL_EXPORT GoalLazySamples : public GoalStates
         {
         public:
             /** \brief When new samples are generated and added to the

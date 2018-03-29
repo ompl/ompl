@@ -77,7 +77,7 @@ namespace ompl
 
         /** \brief ConstrainedStateSpace encapsulating a planner-agnostic lazy
          * atlas algorithm for planning on a constraint manifold. */
-        class TangentBundleStateSpace : public AtlasStateSpace
+        class OMPL_EXPORT TangentBundleStateSpace : public AtlasStateSpace
         {
         public:
             TangentBundleStateSpace(const StateSpacePtr &ambientSpace, const ConstraintPtr &constraint);

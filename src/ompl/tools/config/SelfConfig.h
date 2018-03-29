@@ -56,7 +56,7 @@ namespace ompl
         /** \brief This class contains methods that automatically
             configure various parameters for motion planning. If expensive
             computation is performed, the results are cached. */
-        class SelfConfig
+        class OMPL_EXPORT SelfConfig
         {
         public:
             /** \brief Construct an instance that can configure the space
@@ -112,7 +112,7 @@ namespace ompl
 
         private:
             /// @cond IGNORE
-            class SelfConfigImpl;
+            class OMPL_EXPORT SelfConfigImpl;
 
             SelfConfigImpl *impl_;
             std::string context_;

@@ -60,7 +60,7 @@ namespace ompl
         /** \brief A propositional decomposition wraps a given Decomposition
             with a region-to-proposition assignment operator.
             Each region in the decomposition has a corresponding World. */
-        class PropositionalDecomposition : public Decomposition
+        class OMPL_EXPORT PropositionalDecomposition : public Decomposition
         {
         public:
             /** \brief Creates a propositional decomposition wrapped around a given decomposition

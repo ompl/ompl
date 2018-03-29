@@ -49,7 +49,7 @@ namespace ompl
         /** \brief SyclopRRT is Syclop with RRT as its low-level tree planner.
             \anchor cSyclopRRT
         */
-        class SyclopRRT : public Syclop
+        class OMPL_EXPORT SyclopRRT : public Syclop
         {
         public:
             /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */

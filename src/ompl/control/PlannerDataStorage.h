@@ -49,7 +49,7 @@ namespace ompl
         /// \brief It is assumed that the edges in stored/loaded PlannerData can
         /// be cast to PlannerDataEdgeControl in this class.  If this is not the
         /// case, see ompl::base::PlannerDataStorage.
-        class PlannerDataStorage : public base::PlannerDataStorage
+        class OMPL_EXPORT PlannerDataStorage : public base::PlannerDataStorage
         {
         public:
             /// \brief Default constructor
@@ -76,7 +76,7 @@ namespace ompl
         protected:
             /// @cond IGNORE
             // Information stored at the beginning of the PlannerData archive
-            struct Header : base::PlannerDataStorage::Header
+            struct OMPL_EXPORT Header : base::PlannerDataStorage::Header
             {
                 /// \brief Signature of control space that allocated the saved states in the vertices (see
                 /// ompl::base::StateSpace::computeSignature()) */
@@ -92,7 +92,7 @@ namespace ompl
             };
 
             // The object containing all control edge data that will be stored
-            struct PlannerDataEdgeControlData : base::PlannerDataStorage::PlannerDataEdgeData
+            struct OMPL_EXPORT PlannerDataEdgeControlData : base::PlannerDataStorage::PlannerDataEdgeData
             {
                 template <typename Archive>
                 void serialize(Archive &ar, const unsigned int /*version*/)

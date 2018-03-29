@@ -72,7 +72,7 @@ namespace ompl
         */
 
         /** \brief Coupled Forest of Random Engrafting Search Trees */
-        class CForest : public base::Planner
+        class OMPL_EXPORT CForest : public base::Planner
         {
         public:
             CForest(const base::SpaceInformationPtr &si);

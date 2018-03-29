@@ -67,7 +67,7 @@ namespace ompl
             are defined.
 
             See \ref implementingStateSpaces. */
-        class StateSpace
+        class OMPL_EXPORT StateSpace
         {
         public:
             // non-copyable
@@ -104,7 +104,7 @@ namespace ompl
 
             /** \brief Representation of the address of a substate in a state. This structure stores the indexing
              * information needed to access a particular substate of a state */
-            struct SubstateLocation
+            struct OMPL_EXPORT SubstateLocation
             {
                 /** \brief In a complex state space there may be multiple
                     compound state spaces that make up an even larger
@@ -119,7 +119,7 @@ namespace ompl
 
             /** \brief Representation of the address of a value in a state. This structure stores the indexing
              * information needed to access elements of a state (no pointer values are stored) */
-            struct ValueLocation
+            struct OMPL_EXPORT ValueLocation
             {
                 /** \brief Location of the substate that contains the pointed to value */
                 SubstateLocation stateLocation;
@@ -570,7 +570,7 @@ namespace ompl
         };
 
         /** \brief A space to allow the composition of state spaces */
-        class CompoundStateSpace : public StateSpace
+        class OMPL_EXPORT CompoundStateSpace : public StateSpace
         {
         public:
             /** \brief Define the type of state allocated by this state space */
@@ -759,6 +759,7 @@ namespace ompl
             for and added only once. If the compound state space would
             end up containing solely one component, that component is returned
             instead. */
+        OMPL_EXPORT
         StateSpacePtr operator+(const StateSpacePtr &a, const StateSpacePtr &b);
 
         /** \brief Construct a compound state space that contains
@@ -767,14 +768,17 @@ namespace ompl
             and the remaining components are returned as a compound
             state space. If the compound space would end up containing solely
             one component, that component is returned instead. */
+        OMPL_EXPORT
         StateSpacePtr operator-(const StateSpacePtr &a, const StateSpacePtr &b);
 
         /** \brief Construct a compound state space that contains
             subspaces only from \e a, except for maybe the one named \e name */
+        OMPL_EXPORT
         StateSpacePtr operator-(const StateSpacePtr &a, const std::string &name);
 
         /** \brief Construct a compound state space that contains
             subspaces that are in both \e a and \e b */
+        OMPL_EXPORT
         StateSpacePtr operator*(const StateSpacePtr &a, const StateSpacePtr &b);
         /** @} */
 
@@ -802,6 +806,7 @@ namespace ompl
             whose name matches any subspace of the state space \e
             sourceS, the corresponding state components are
             copied. */
+        OMPL_EXPORT
         AdvancedStateCopyOperation copyStateData(const StateSpacePtr &destS, State *dest, const StateSpacePtr &sourceS,
                                                  const State *source);
 
@@ -812,6 +817,7 @@ namespace ompl
             whose name matches any subspace of the state space \e
             sourceS, the corresponding state components are
             copied. */
+        OMPL_EXPORT
         AdvancedStateCopyOperation copyStateData(const StateSpace *destS, State *dest, const StateSpace *sourceS,
                                                  const State *source);
 
@@ -821,6 +827,7 @@ namespace ompl
             uses StateSpace::getSubstateLocationsByName().
             \note For efficiency reasons it is a good idea usually to make sure the elements of \e subspaces are not
            subspaces of each other */
+        OMPL_EXPORT
         AdvancedStateCopyOperation copyStateData(const StateSpacePtr &destS, State *dest, const StateSpacePtr &sourceS,
                                                  const State *source, const std::vector<std::string> &subspaces);
 
@@ -830,6 +837,7 @@ namespace ompl
             uses StateSpace::getSubstateLocationsByName().
             \note For efficiency reasons it is a good idea usually to make sure the elements of \e subspaces are not
            subspaces of each other */
+        OMPL_EXPORT
         AdvancedStateCopyOperation copyStateData(const StateSpace *destS, State *dest, const StateSpace *sourceS,
                                                  const State *source, const std::vector<std::string> &subspaces);
         /** @} */

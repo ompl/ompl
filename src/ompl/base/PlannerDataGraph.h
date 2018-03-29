@@ -69,7 +69,7 @@ using PlannerDataGraph =
 
 /// \brief Wrapper class for the Boost.Graph representation of the PlannerData.
 /// This class inherits from a boost::adjacency_list Graph structure.
-class ompl::base::PlannerData::Graph : public PlannerDataGraph
+class OMPL_EXPORT ompl::base::PlannerData::Graph : public PlannerDataGraph
 {
 public:
     /// \brief Data type for the Boost.Graph representation.

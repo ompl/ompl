@@ -37,16 +37,17 @@
 #ifndef OMPL_UTIL_PPM_
 #define OMPL_UTIL_PPM_
 
+#include "ompl/export.h"
 #include <vector>
 
 namespace ompl
 {
     /** \brief Load and save .ppm files - "portable pixmap format" an image file formats designed
         to be easily exchanged between platforms. */
-    class PPM
+    class OMPL_EXPORT PPM
     {
     public:
-        struct Color
+        struct OMPL_EXPORT Color
         {
             unsigned char red, green, blue;
 

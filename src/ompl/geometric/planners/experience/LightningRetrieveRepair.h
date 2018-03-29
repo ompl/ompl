@@ -73,7 +73,7 @@ namespace ompl
         */
 
         /** \brief The Lightning Framework's Retrieve-Repair component */
-        class LightningRetrieveRepair : public base::Planner
+        class OMPL_EXPORT LightningRetrieveRepair : public base::Planner
         {
         public:
             /** \brief Constructor */

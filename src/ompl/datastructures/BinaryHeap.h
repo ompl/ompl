@@ -37,6 +37,7 @@
 #ifndef OMPL_DATASTRUCTURES_BINARY_HEAP_
 #define OMPL_DATASTRUCTURES_BINARY_HEAP_
 
+#include "ompl/export.h"
 #include <functional>
 #include <utility>
 #include <vector>
@@ -49,14 +50,14 @@ namespace ompl
         track of the BinaryHeap::Element* type, however, it should be
         as fast as it gets with an updatable heap. */
     template <typename _T, class LessThan = std::less<_T>>
-    class BinaryHeap
+    class OMPL_EXPORT BinaryHeap
     {
     public:
         /** \brief When an element is added to the heap, an instance
             of Element* is created. This instance contains the data
             that was added and internal information about the position
             of the data in the heap's internal storage. */
-        class Element
+        class OMPL_EXPORT Element
         {
             friend class BinaryHeap;
 

@@ -58,7 +58,7 @@ namespace ompl
         */
 
         /** \brief RRT-Connect (RRTConnect) */
-        class RRTConnect : public base::Planner
+        class OMPL_EXPORT RRTConnect : public base::Planner
         {
         public:
             /** \brief Constructor */
@@ -118,7 +118,7 @@ namespace ompl
 
         protected:
             /** \brief Representation of a motion */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;
@@ -138,7 +138,7 @@ namespace ompl
             typedef std::shared_ptr<NearestNeighbors<Motion *>> TreeData;
 
             /** \brief Information attached to growing a tree of motions (used internally) */
-            struct TreeGrowingInfo
+            struct OMPL_EXPORT TreeGrowingInfo
             {
                 base::State *xstate;
                 Motion *xmotion;

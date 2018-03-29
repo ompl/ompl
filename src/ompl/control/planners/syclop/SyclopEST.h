@@ -48,7 +48,7 @@ namespace ompl
         /** \brief SyclopEST is Syclop with EST as its low-level tree planner.
             \anchor cSyclopEST
         */
-        class SyclopEST : public Syclop
+        class OMPL_EXPORT SyclopEST : public Syclop
         {
         public:
             /** \brief Constructor. Requires a Decomposition, which Syclop uses to create high-level leads. */

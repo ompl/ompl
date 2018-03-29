@@ -53,7 +53,7 @@ namespace ompl
            heuristic.
 
         */
-        class OrderedInfSampler : public InformedSampler
+        class OMPL_EXPORT OrderedInfSampler : public InformedSampler
         {
         public:
             /** \brief Construct an ordering wrapper around the provided informed sampler. */

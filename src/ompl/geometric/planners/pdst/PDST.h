@@ -74,7 +74,7 @@ namespace ompl
         */
 
         /// \brief Path-Directed Subdivision Tree
-        class PDST : public base::Planner
+        class OMPL_EXPORT PDST : public base::Planner
         {
         public:
             PDST(const base::SpaceInformationPtr &si);
@@ -124,11 +124,11 @@ namespace ompl
             }
 
         protected:
-            struct Cell;
-            struct Motion;
+            struct OMPL_EXPORT Cell;
+            struct OMPL_EXPORT Motion;
 
             /// Comparator used to order motions in the priority queue
-            struct MotionCompare
+            struct OMPL_EXPORT MotionCompare
             {
                 /// returns true if m1 is lower priority than m2
                 bool operator()(Motion *p1, Motion *p2) const
@@ -139,7 +139,7 @@ namespace ompl
             };
 
             /// Class representing the tree of motions exploring the state space
-            struct Motion
+            struct OMPL_EXPORT Motion
             {
             public:
                 Motion(base::State *startState, base::State *endState, double priority, Motion *parent)
@@ -198,7 +198,7 @@ namespace ompl
             };
 
             /// Cell is a Binary Space Partition
-            struct Cell
+            struct OMPL_EXPORT Cell
             {
                 Cell(double volume, ompl::base::RealVectorBounds bounds, unsigned int splitDimension = 0)
                   : volume_(volume)

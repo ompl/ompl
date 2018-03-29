@@ -57,7 +57,7 @@ namespace ompl
         /** \brief Definition of a geometric path.
 
             This is the type of path computed by geometric planners. */
-        class PathGeometric : public base::Path
+        class OMPL_EXPORT PathGeometric : public base::Path
         {
         public:
             /** \brief Construct a path instance for a given space information */

@@ -63,7 +63,7 @@ namespace ompl
 
         /** \brief Constrained configuration space specific implementation of
          * checkMotion() that uses discreteGeodesic(). */
-        class ConstrainedMotionValidator : public MotionValidator
+        class OMPL_EXPORT ConstrainedMotionValidator : public MotionValidator
         {
         public:
             /** \brief Constructor. */
@@ -128,7 +128,7 @@ namespace ompl
          * constraint is used to inform any manifold related operations.
          * setSpaceInformation() must be called in order for collision checking
          * to be done in tandem with manifold traversal. */
-        class ConstrainedStateSpace : public WrapperStateSpace
+        class OMPL_EXPORT ConstrainedStateSpace : public WrapperStateSpace
         {
         public:
             /** \brief Flags used in a bit mask for constrained state space
@@ -163,7 +163,7 @@ namespace ompl
              * vector into an Eigen::VectorXd. Note that this state type
              * inherits from WrapperStateSpace::StateType, and as such the
              * underlying state can be accessed by getState(). */
-            class StateType : public WrapperStateSpace::StateType, public Eigen::Map<Eigen::VectorXd>
+            class OMPL_EXPORT StateType : public WrapperStateSpace::StateType, public Eigen::Map<Eigen::VectorXd>
             {
             public:
                 /** \brief Constructor. Requires \a space to setup information about underlying state. */

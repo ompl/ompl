@@ -37,13 +37,14 @@
 #ifndef OMPL_UTIL_EXCEPTION_
 #define OMPL_UTIL_EXCEPTION_
 
+#include "ompl/export.h"
 #include <stdexcept>
 #include <string>
 
 namespace ompl
 {
     /** \brief The exception type for ompl */
-    class Exception : public std::runtime_error
+    class OMPL_EXPORT Exception : public std::runtime_error
     {
     public:
         /** \brief This is just a wrapper on std::runtime_error */

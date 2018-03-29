@@ -68,7 +68,7 @@ namespace ompl
         */
 
         /** \brief Kinematic Planning by Interior-Exterior Cell Exploration */
-        class KPIECE1 : public base::Planner
+        class OMPL_EXPORT KPIECE1 : public base::Planner
         {
         public:
             /** \brief Constructor */
@@ -193,7 +193,7 @@ namespace ompl
 
         protected:
             /** \brief Representation of a motion for this algorithm */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;

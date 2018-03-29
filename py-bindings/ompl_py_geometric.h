@@ -51,13 +51,17 @@ namespace ompl
 {
     namespace geometric
     {
+        OMPL_EXPORT
         inline int dummyFn() { return 1; }
+
+        OMPL_EXPORT
         inline int dummyConnectionStrategy()
         {
             NearestNeighborsLinear<PRM::Vertex> nn;
             std::shared_ptr<NearestNeighbors<PRM::Vertex> > nnPtr(&nn);
             return sizeof(KStrategy<PRM::Vertex>(1, nnPtr)) + sizeof(KStarStrategy<PRM::Vertex>(dummyFn, nnPtr, 1)) + sizeof(nn);
         }
+        OMPL_EXPORT
         inline int dummySTLContainerSize()
         {
             return sizeof(std::deque<ompl::base::State*>) +

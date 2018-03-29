@@ -57,7 +57,7 @@ namespace ompl
            20, pp. 378–400, May 2001. DOI: [10.1177/02783640122067453](http://dx.doi.org/10.1177/02783640122067453)<br>
            [[PDF]](http://ijr.sagepub.com/content/20/5/378.full.pdf)
            [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html) */
-        class SimpleDirectedControlSampler : public DirectedControlSampler
+        class OMPL_EXPORT SimpleDirectedControlSampler : public DirectedControlSampler
         {
         public:
             /** \brief Constructor takes the state space to construct samples for as argument

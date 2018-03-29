@@ -61,7 +61,7 @@ namespace ompl
             The classification scheme described there is not actually used,
             since it only applies to “long” paths.
             */
-        class DubinsStateSpace : public SE2StateSpace
+        class OMPL_EXPORT DubinsStateSpace : public SE2StateSpace
         {
         public:
             /** \brief The Dubins path segment type */
@@ -74,7 +74,7 @@ namespace ompl
             /** \brief Dubins path types */
             static const DubinsPathSegmentType dubinsPathType[6][3];
             /** \brief Complete description of a Dubins path */
-            class DubinsPath
+            class OMPL_EXPORT DubinsPath
             {
             public:
                 DubinsPath(const DubinsPathSegmentType *type = dubinsPathType[0], double t = 0.,
@@ -162,7 +162,7 @@ namespace ompl
             This motion validator is almost identical to the DiscreteMotionValidator
             except that it remembers the optimal DubinsPath between different calls to
             interpolate. */
-        class DubinsMotionValidator : public MotionValidator
+        class OMPL_EXPORT DubinsMotionValidator : public MotionValidator
         {
         public:
             DubinsMotionValidator(SpaceInformation *si) : MotionValidator(si)

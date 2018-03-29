@@ -65,7 +65,7 @@ namespace ompl
         */
 
         /** \brief Informed RRT* */
-        class InformedRRTstar : public RRTstar
+        class OMPL_EXPORT InformedRRTstar : public RRTstar
         {
         public:
             /** \brief Constructor */

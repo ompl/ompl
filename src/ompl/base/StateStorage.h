@@ -58,7 +58,7 @@ namespace ompl
             \deprecated This class is deprecated and will be removed in the future. Please use the improved
            PlannerDataStorage.
          */
-        class StateStorage
+        class OMPL_EXPORT StateStorage
         {
         public:
             /** \brief The state space to store states for is specified as argument */
@@ -155,7 +155,7 @@ namespace ompl
 
         protected:
             /** \brief Information stored at the beginning of the archive */
-            struct Header
+            struct OMPL_EXPORT Header
             {
                 /** \brief OMPL specific marker (fixed value) */
                 boost::uint32_t marker;
@@ -183,7 +183,7 @@ namespace ompl
             /** \brief Load the state metadata from a binary archive
                 \e ia, given the loaded header is \e h. No metadata is
                 actually loaded unless the StateStorageWithMetadata
-                class is used.*/
+                class OMPL_EXPORT is used.*/
             virtual void loadMetadata(const Header &h, boost::archive::binary_iarchive &ia);
 
             /** \brief Store the states to a binary archive \e oa, given the stored header is \e h */
@@ -192,7 +192,7 @@ namespace ompl
             /** \brief Save the state metadata to a binary archive
                 \e oa, given the stored header is \e h. No metadata is
                 actually saved unless the StateStorageWithMetadata
-                class is used.*/
+                class OMPL_EXPORT is used.*/
             virtual void storeMetadata(const Header &h, boost::archive::binary_oarchive &oa);
 
             /** \brief Free the memory allocated for states */
@@ -211,7 +211,7 @@ namespace ompl
         /** \brief State storage that allows storing state metadata as well
             \tparam M the datatype for the stored metadata. boost::serialization operation needs to be defined */
         template <typename M>
-        class StateStorageWithMetadata : public StateStorage
+        class OMPL_EXPORT StateStorageWithMetadata : public StateStorage
         {
         public:
             /** \brief the datatype of the metadata */

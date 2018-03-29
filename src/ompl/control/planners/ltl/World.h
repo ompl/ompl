@@ -37,6 +37,7 @@
 #ifndef OMPL_CONTROL_PLANNERS_LTL_WORLD_
 #define OMPL_CONTROL_PLANNERS_LTL_WORLD_
 
+#include "ompl/export.h"
 #include <unordered_map>
 #include <string>
 
@@ -44,7 +45,7 @@ namespace ompl
 {
     namespace control
     {
-        class World;
+        class OMPL_EXPORT World;
     }
 }
 
@@ -53,7 +54,7 @@ namespace ompl
 namespace std
 {
     template <>
-    struct hash<ompl::control::World>
+    struct OMPL_EXPORT hash<ompl::control::World>
     {
         size_t operator()(const ompl::control::World &w) const;
     };
@@ -68,7 +69,7 @@ namespace ompl
             A World can be partially restrictive, i.e., some propositions do not have to
             be assigned a value, in which case it can take on any value.
             Our notion of a World is similar to a set of truth assignments in propositional logic. */
-        class World
+        class OMPL_EXPORT World
         {
         public:
             /** \brief Initializes a world with a given number of propositions. */

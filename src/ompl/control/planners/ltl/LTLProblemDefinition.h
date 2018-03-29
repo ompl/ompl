@@ -52,7 +52,7 @@ namespace ompl
 
         /** \class ompl::control::LTLProblemDefinitionPtr
             \brief A shared pointer wrapper for ompl::control::LTLProblemDefinition */
-        class LTLProblemDefinition : public base::ProblemDefinition
+        class OMPL_EXPORT LTLProblemDefinition : public base::ProblemDefinition
         {
         public:
             LTLProblemDefinition(const control::LTLSpaceInformationPtr &ltlsi);

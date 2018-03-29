@@ -44,7 +44,7 @@ namespace ompl
     namespace base
     {
         /** \brief State space sampler for SO(2) */
-        class SO2StateSampler : public StateSampler
+        class OMPL_EXPORT SO2StateSampler : public StateSampler
         {
         public:
             /** \brief Constructor */
@@ -60,11 +60,11 @@ namespace ompl
         /** \brief A state space representing SO(2). The distance
             function and interpolation take into account angle
             wrapping. */
-        class SO2StateSpace : public StateSpace
+        class OMPL_EXPORT SO2StateSpace : public StateSpace
         {
         public:
             /** \brief The definition of a state in SO(2) */
-            class StateType : public State
+            class OMPL_EXPORT StateType : public State
             {
             public:
                 /** \brief Set the state to identity -- no rotation (value = 0.0) */

@@ -45,14 +45,14 @@ namespace ompl
 {
     namespace geometric
     {
-        class CForest;
+        class OMPL_EXPORT CForest;
     }
 
     namespace base
     {
         /** \brief State space wrapper to use together with CForest. It adds some functionalities
            to the regular state spaces necessary to CForest. */
-        class CForestStateSpaceWrapper : public StateSpace
+        class OMPL_EXPORT CForestStateSpaceWrapper : public StateSpace
         {
         public:
             CForestStateSpaceWrapper(geometric::CForest *cforest, base::StateSpace *space)

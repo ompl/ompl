@@ -53,7 +53,7 @@ namespace ompl
             The state is then freed when the instance goes out of
             scope using the corresponding free mechanism. */
         template <class T = StateSpace>
-        class ScopedState
+        class OMPL_EXPORT ScopedState
         {
             /** \brief Make sure the type we are allocating is indeed from a state space */
             BOOST_CONCEPT_ASSERT((boost::Convertible<T *, StateSpace *>));

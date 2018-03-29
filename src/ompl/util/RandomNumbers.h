@@ -53,7 +53,7 @@ namespace ompl
         different instances can be used safely in any number of
         threads. It is also guaranteed that all created instances will
         have a different random seed. */
-    class RNG
+    class OMPL_EXPORT RNG
     {
     public:
         /** \brief Constructor. Always sets a different random seed */
@@ -178,7 +178,7 @@ namespace ompl
     private:
         /** \brief A forward declaration to a data structure class holding data for spherical distributions of various
          * dimension. */
-        class SphericalData;
+        class OMPL_EXPORT SphericalData;
 
         /** \brief The seed used for the instance of a RNG */
         std::uint_fast32_t localSeed_;

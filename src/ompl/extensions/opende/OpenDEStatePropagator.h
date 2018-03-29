@@ -57,7 +57,7 @@ namespace ompl
             set based on the information returned by contact
             computation. Certain collisions (contacts) are allowed, as
             indicated by OpenDEEnvironment::isValidCollision(). */
-        class OpenDEStatePropagator : public StatePropagator
+        class OMPL_EXPORT OpenDEStatePropagator : public StatePropagator
         {
         public:
             /** \brief Construct a representation of OpenDE state propagator.

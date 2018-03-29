@@ -74,7 +74,7 @@ namespace ompl
         /// @endcond
 
         /** \brief StateSampler for use on an atlas. */
-        class AtlasStateSampler : public StateSampler
+        class OMPL_EXPORT AtlasStateSampler : public StateSampler
         {
         public:
             AtlasStateSampler(const AtlasStateSpace *space);
@@ -125,7 +125,7 @@ namespace ompl
 
         /** \brief ConstrainedStateSpace encapsulating a planner-agnostic atlas
          * algorithm for planning on a constraint manifold. */
-        class AtlasStateSpace : public ConstrainedStateSpace
+        class OMPL_EXPORT AtlasStateSpace : public ConstrainedStateSpace
         {
         public:
             typedef std::function<double(AtlasChart *)> AtlasChartBiasFunction;
@@ -133,7 +133,7 @@ namespace ompl
 
             /** \brief A state in an atlas represented as a real vector in
              * ambient space and a chart that it belongs to. */
-            class StateType : public ConstrainedStateSpace::StateType
+            class OMPL_EXPORT StateType : public ConstrainedStateSpace::StateType
             {
             public:
                 /** \brief Construct state of size \a n. */

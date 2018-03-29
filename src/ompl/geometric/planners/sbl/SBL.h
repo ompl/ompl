@@ -81,7 +81,7 @@ namespace ompl
 
         /** \brief Single-Query Bi-Directional Probabilistic Roadmap
            Planner with Lazy Collision Checking */
-        class SBL : public base::Planner
+        class OMPL_EXPORT SBL : public base::Planner
         {
         public:
             /** \brief The constructor needs the instance of the space information */
@@ -134,7 +134,7 @@ namespace ompl
             void getPlannerData(base::PlannerData &data) const override;
 
         protected:
-            struct MotionInfo;
+            struct OMPL_EXPORT MotionInfo;
 
             /** \brief A grid cell */
             typedef Grid<MotionInfo>::Cell GridCell;
@@ -143,7 +143,7 @@ namespace ompl
             typedef PDF<GridCell *> CellPDF;
 
             /** \brief Representation of a motion */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 /** \brief Default constructor. Allocates no memory */
@@ -172,7 +172,7 @@ namespace ompl
             };
 
             /** \brief A struct containing an array of motions and a corresponding PDF element */
-            struct MotionInfo
+            struct OMPL_EXPORT MotionInfo
             {
                 Motion *operator[](unsigned int i)
                 {
@@ -204,7 +204,7 @@ namespace ompl
             };
 
             /** \brief Representation of a search tree. Two instances will be used. One for start and one for goal */
-            struct TreeData
+            struct OMPL_EXPORT TreeData
             {
                 TreeData() = default;
 

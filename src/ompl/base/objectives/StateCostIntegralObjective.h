@@ -47,7 +47,7 @@ namespace ompl
             be represented as a path integral over a cost function
             defined over the state space. This cost function is
             specified by implementing the stateCost() method. */
-        class StateCostIntegralObjective : public OptimizationObjective
+        class OMPL_EXPORT StateCostIntegralObjective : public OptimizationObjective
         {
         public:
             /** \brief If enableMotionCostInterpolation is set to

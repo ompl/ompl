@@ -63,7 +63,7 @@ namespace ompl
         */
 
         /** \brief PRM* planner */
-        class LazyPRMstar : public LazyPRM
+        class OMPL_EXPORT LazyPRMstar : public LazyPRM
         {
         public:
             /** \brief Constructor */

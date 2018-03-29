@@ -55,7 +55,7 @@ namespace ompl
 namespace std
 {
     template <class U, class V>
-    struct hash<std::pair<U, V>>
+    struct OMPL_EXPORT hash<std::pair<U, V>>
     {
         using argument_type = std::pair<U, V>;
         using result_type = std::size_t;

@@ -49,7 +49,7 @@ namespace ompl
         /**
          * Optimization objective that computes mechanical work between two states by following a vector field.
          */
-        class VFMechanicalWorkOptimizationObjective : public ompl::base::MechanicalWorkOptimizationObjective
+        class OMPL_EXPORT VFMechanicalWorkOptimizationObjective : public ompl::base::MechanicalWorkOptimizationObjective
         {
         public:
             /** Constructor. */

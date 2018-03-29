@@ -54,7 +54,7 @@ namespace ompl
         \li Removing an element from the datastructure O(n).
     */
     template <typename _T>
-    class NearestNeighborsSqrtApprox : public NearestNeighborsLinear<_T>
+    class OMPL_EXPORT NearestNeighborsSqrtApprox : public NearestNeighborsLinear<_T>
     {
     public:
         NearestNeighborsSqrtApprox() = default;

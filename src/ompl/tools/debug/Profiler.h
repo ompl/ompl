@@ -58,6 +58,7 @@
 #include <thread>
 #include <mutex>
 
+#include "ompl/export.h"
 #include "ompl/util/Time.h"
 
 namespace ompl
@@ -69,7 +70,7 @@ namespace ompl
             external profiling tools in that it allows the user to count
             time spent in various bits of code (sub-function granularity)
             or count how many times certain pieces of code are executed.*/
-        class Profiler
+        class OMPL_EXPORT Profiler
         {
         public:
             // non-copyable
@@ -78,7 +79,7 @@ namespace ompl
 
             /** \brief This instance will call Profiler::begin() when constructed and Profiler::end() when it goes out
              * of scope. */
-            class ScopedBlock
+            class OMPL_EXPORT ScopedBlock
             {
             public:
                 /** \brief Start counting time for the block named \e name of the profiler \e prof */
@@ -100,7 +101,7 @@ namespace ompl
             /** \brief This instance will call Profiler::start() when constructed and Profiler::stop() when it goes out
                of scope.
                 If the profiler was already started, this block's constructor and destructor take no action */
-            class ScopedStart
+            class OMPL_EXPORT ScopedStart
             {
             public:
                 /** \brief Take as argument the profiler instance to operate on (\e prof) */
@@ -125,7 +126,7 @@ namespace ompl
             static Profiler &Instance();
 
             /** \brief Constructor. It is allowed to separately instantiate this
-                class (not only as a singleton) */
+                class OMPL_EXPORT (not only as a singleton) */
             Profiler(bool printOnDestroy = false, bool autoStart = false)
               : running_(false), printOnDestroy_(printOnDestroy)
             {
@@ -241,7 +242,7 @@ namespace ompl
 
         private:
             /** \brief Information about time spent in a section of the code */
-            struct TimeInfo
+            struct OMPL_EXPORT TimeInfo
             {
                 TimeInfo()
                   : total(time::seconds(0.)), shortest(time::duration::max()), longest(time::duration::min()), parts(0)
@@ -283,7 +284,7 @@ namespace ompl
             };
 
             /** \brief Information maintained about averaged values */
-            struct AvgInfo
+            struct OMPL_EXPORT AvgInfo
             {
                 /** \brief The sum of the values to average */
                 double total;
@@ -296,7 +297,7 @@ namespace ompl
             };
 
             /** \brief Information to be maintained for each thread */
-            struct PerThread
+            struct OMPL_EXPORT PerThread
             {
                 /** \brief The stored events */
                 std::map<std::string, unsigned long int> events;
@@ -321,6 +322,7 @@ namespace ompl
 
 #else
 
+#include "ompl/export.h"
 #include <string>
 #include <iostream>
 
@@ -330,10 +332,10 @@ namespace ompl
 {
     namespace tools
     {
-        class Profiler
+        class OMPL_EXPORT Profiler
         {
         public:
-            class ScopedBlock
+            class OMPL_EXPORT ScopedBlock
             {
             public:
                 ScopedBlock(const std::string &, Profiler & = Profiler::Instance())
@@ -343,7 +345,7 @@ namespace ompl
                 ~ScopedBlock() = default;
             };
 
-            class ScopedStart
+            class OMPL_EXPORT ScopedStart
             {
             public:
                 ScopedStart(Profiler & = Profiler::Instance())

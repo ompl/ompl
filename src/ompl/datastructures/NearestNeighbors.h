@@ -45,7 +45,7 @@ namespace ompl
 {
     /** \brief Abstract representation of a container that can perform nearest neighbors queries */
     template <typename _T>
-    class NearestNeighbors
+    class OMPL_EXPORT NearestNeighbors
     {
     public:
         /** \brief The definition of a distance function */

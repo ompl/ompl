@@ -59,7 +59,7 @@ namespace ompl
             from this class. Planners should call the versions of sampleTo() with most arguments, whenever this
            information is available.
             If no direction information is available, the use of a ControlSampler is perhaps more appropriate. */
-        class DirectedControlSampler
+        class OMPL_EXPORT DirectedControlSampler
         {
         public:
             // non-copyable

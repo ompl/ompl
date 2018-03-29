@@ -55,7 +55,7 @@ namespace ompl
             obstacles and respects propositional regions of interest. Practically speaking,
             it is both a TriangularDecomposition and a PropositionalDecomposition, but it is
             implemented without using multiple inheritance. */
-        class PropositionalTriangularDecomposition : public PropositionalDecomposition
+        class OMPL_EXPORT PropositionalTriangularDecomposition : public PropositionalDecomposition
         {
         public:
             using Polygon = TriangularDecomposition::Polygon;

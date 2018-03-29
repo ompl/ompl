@@ -37,6 +37,7 @@
 #ifndef OMPL_UTIL_CONSOLE_
 #define OMPL_UTIL_CONSOLE_
 
+#include "ompl/export.h"
 #include <string>
 
 /** \file Console.h
@@ -99,7 +100,7 @@ namespace ompl
             ways, an implementation of this class needs to be
             provided. This instance can be set with the useOutputHandler
             function. */
-        class OutputHandler
+        class OMPL_EXPORT OutputHandler
         {
         public:
             OutputHandler() = default;
@@ -113,7 +114,7 @@ namespace ompl
 
         /** \brief Default implementation of OutputHandler. This sends
             the information to the console. */
-        class OutputHandlerSTD : public OutputHandler
+        class OMPL_EXPORT OutputHandlerSTD : public OutputHandler
         {
         public:
             OutputHandlerSTD() = default;
@@ -122,7 +123,7 @@ namespace ompl
         };
 
         /** \brief Implementation of OutputHandler that saves messages in a file. */
-        class OutputHandlerFile : public OutputHandler
+        class OMPL_EXPORT OutputHandlerFile : public OutputHandler
         {
         public:
             /** \brief The name of the file in which to save the message data */
@@ -139,29 +140,36 @@ namespace ompl
 
         /** \brief This function instructs ompl that no messages should be outputted. Equivalent to
          * useOutputHandler(nullptr) */
+        OMPL_EXPORT
         void noOutputHandler();
 
         /** \brief Restore the output handler that was previously in use (if any) */
+        OMPL_EXPORT
         void restorePreviousOutputHandler();
 
         /** \brief Specify the instance of the OutputHandler to use. By default, this is OutputHandlerSTD */
+        OMPL_EXPORT
         void useOutputHandler(OutputHandler *oh);
 
         /** \brief Get the instance of the OutputHandler currently used. This is nullptr in case there is no output
          * handler. */
+        OMPL_EXPORT
         OutputHandler *getOutputHandler();
 
         /** \brief Set the minimum level of logging data to output.  Messages
             with lower logging levels will not be recorded. */
+        OMPL_EXPORT
         void setLogLevel(LogLevel level);
 
         /** \brief Retrieve the current level of logging data.  Messages
             with lower logging levels will not be recorded. */
+        OMPL_EXPORT
         LogLevel getLogLevel();
 
         /** \brief Root level logging function.  This should not be invoked directly,
             but rather used via a \ref logging "logging macro".  Formats the message
             string given the arguments and forwards the string to the output handler */
+        OMPL_EXPORT
         void log(const char *file, int line, LogLevel level, const char *m, ...);
     }
 }

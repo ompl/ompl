@@ -52,7 +52,7 @@ namespace ompl
         /// @endcond
 
         /** \brief Generate valid samples randomly with extra requirement of min for clearance to nearest obstacle */
-        class MinimumClearanceValidStateSampler : public ValidStateSampler
+        class OMPL_EXPORT MinimumClearanceValidStateSampler : public ValidStateSampler
         {
         public:
             /** \brief Constructor */

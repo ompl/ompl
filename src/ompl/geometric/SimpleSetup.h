@@ -45,7 +45,6 @@
 #include "ompl/geometric/PathSimplifier.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
-#include "ompl/util/Deprecation.h"
 
 namespace ompl
 {
@@ -60,7 +59,7 @@ namespace ompl
 
         /** \brief Create the set of classes typically needed to solve a
             geometric problem */
-        class SimpleSetup
+        class OMPL_EXPORT SimpleSetup
         {
         public:
             /** \brief Constructor needs the state space used for planning. */

@@ -49,7 +49,7 @@ namespace ompl
         /** \brief Abstract definition of a steered control sampler. It uses the
             steering function in a state propagator to find the controls that
             drive from one state to another. */
-        class SteeredControlSampler : public DirectedControlSampler
+        class OMPL_EXPORT SteeredControlSampler : public DirectedControlSampler
         {
         public:
             /** \brief Constructor takes the state space to construct samples for as argument */

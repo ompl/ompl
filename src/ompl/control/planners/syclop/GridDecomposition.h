@@ -50,7 +50,7 @@ namespace ompl
     namespace control
     {
         /** \brief A GridDecomposition is a Decomposition implemented using a grid. */
-        class GridDecomposition : public Decomposition
+        class OMPL_EXPORT GridDecomposition : public Decomposition
         {
         public:
             /** \brief Constructor. Creates a GridDecomposition as a hypercube with a given dimension, side length, and

@@ -71,6 +71,12 @@ else(MSVC)
   set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" SOVERSION "${OMPL_ABI_VERSION}")
 endif(MSVC)
 
+# generate export header
+generate_export_header(ompl EXPORT_FILE_NAME export.h)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/export.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/fcl)
+
+
 # install the library
 install(TARGETS ompl
     DESTINATION ${CMAKE_INSTALL_LIBDIR}

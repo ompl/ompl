@@ -56,7 +56,7 @@ namespace ompl
            Asymptotically Optimal Sampling-based Kinodynamic Planning.
            [[PDF]](http://arxiv.org/abs/1407.2896)
         */
-        class SST : public base::Planner
+        class OMPL_EXPORT SST : public base::Planner
         {
         public:
             /** \brief Constructor */
@@ -151,7 +151,7 @@ namespace ompl
 
                 This only contains pointers to parent motions as we
                 only need to go backwards in the tree. */
-            class Motion
+            class OMPL_EXPORT Motion
             {
             public:
                 Motion() = default;
@@ -194,7 +194,7 @@ namespace ompl
                 bool inactive_{false};
             };
 
-            class Witness : public Motion
+            class OMPL_EXPORT Witness : public Motion
             {
             public:
                 Witness() = default;

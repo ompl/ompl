@@ -48,7 +48,7 @@ namespace ompl
     {
         /** \brief Create the set of classes typically needed to solve a
             control problem when forward propagation is computed with OpenDE. */
-        class OpenDESimpleSetup : public SimpleSetup
+        class OMPL_EXPORT OpenDESimpleSetup : public SimpleSetup
         {
         public:
             /** \brief Constructor needs the control space needed for planning. */

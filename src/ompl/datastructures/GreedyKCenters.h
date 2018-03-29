@@ -47,7 +47,7 @@ namespace ompl
         number of representatives from a set of data points that are all far
         apart from each other. */
     template <typename _T>
-    class GreedyKCenters
+    class OMPL_EXPORT GreedyKCenters
     {
     public:
         /** \brief The definition of a distance function */

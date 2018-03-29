@@ -37,6 +37,7 @@
 #ifndef OMPL_DATASTRUCTURES_GRID_
 #define OMPL_DATASTRUCTURES_GRID_
 
+#include "ompl/export.h"
 #include <vector>
 #include <iostream>
 #include <cstdlib>
@@ -47,14 +48,14 @@ namespace ompl
 {
     /** \brief Representation of a simple grid */
     template <typename _T>
-    class Grid
+    class OMPL_EXPORT Grid
     {
     public:
         /// Definition of a coordinate within this grid
         using Coord = std::vector<int>;
 
         /// Definition of a cell in this grid
-        struct Cell
+        struct OMPL_EXPORT Cell
         {
             /// The data we store in the cell
             _T data;
@@ -318,7 +319,7 @@ namespace ompl
 
         /// Hash function for coordinates; see
         /// http://www.cs.hmc.edu/~geoff/classes/hmc.cs070.200101/homework10/hashfuncs.html
-        struct HashFunCoordPtr
+        struct OMPL_EXPORT HashFunCoordPtr
         {
             /// Hash function for coordinates
             std::size_t operator()(const Coord *const s) const
@@ -336,7 +337,7 @@ namespace ompl
         };
 
         /// Equality operator for coordinate pointers
-        struct EqualCoordPtr
+        struct OMPL_EXPORT EqualCoordPtr
         {
             /// Equality operator for coordinate pointers
             bool operator()(const Coord *const c1, const Coord *const c2) const
@@ -349,7 +350,7 @@ namespace ompl
         using CoordHash = std::unordered_map<Coord *, Cell *, HashFunCoordPtr, EqualCoordPtr>;
 
         /// Helper to sort components by size
-        struct SortComponents
+        struct OMPL_EXPORT SortComponents
         {
             /// Helper to sort components by size
             bool operator()(const std::vector<Cell *> &a, const std::vector<Cell *> &b) const

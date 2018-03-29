@@ -64,7 +64,7 @@ namespace ompl
         */
 
         /** \brief Optimal Rapidly-exploring Random Trees Maintaining An Optimal Tree*/
-        class RRTsharp : public RRTXstatic
+        class OMPL_EXPORT RRTsharp : public RRTXstatic
         {
         public:
             RRTsharp(const base::SpaceInformationPtr &si);
