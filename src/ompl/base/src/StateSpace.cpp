@@ -327,7 +327,7 @@ ompl::base::StateSpace::getValueLocationsByName() const
 
 void ompl::base::StateSpace::copyToReals(std::vector<double> &reals, const State *source) const
 {
-    auto locations = getValueLocations();
+    const auto &locations = getValueLocations();
     reals.resize(locations.size());
     for (std::size_t i = 0; i < locations.size(); ++i)
         reals[i] = *getValueAddressAtLocation(source, locations[i]);
@@ -335,7 +335,7 @@ void ompl::base::StateSpace::copyToReals(std::vector<double> &reals, const State
 
 void ompl::base::StateSpace::copyFromReals(State *destination, const std::vector<double> &reals) const
 {
-    auto locations = getValueLocations();
+    const auto &locations = getValueLocations();
     assert(reals.size() == locations.size());
     for (std::size_t i = 0; i < reals.size(); ++i)
         *getValueAddressAtLocation(destination, locations[i]) = reals[i];
@@ -359,14 +359,14 @@ const double *ompl::base::StateSpace::getValueAddressAtLocation(const State *sta
 
 double *ompl::base::StateSpace::getValueAddressAtName(State *state, const std::string &name) const
 {
-    auto locations = getValueLocationsByName();
+    const auto &locations = getValueLocationsByName();
     auto it = locations.find(name);
     return (it != locations.end()) ? getValueAddressAtLocation(state, it->second) : nullptr;
 }
 
 const double *ompl::base::StateSpace::getValueAddressAtName(const State *state, const std::string &name) const
 {
-    auto locations = getValueLocationsByName();
+    const auto &locations = getValueLocationsByName();
     auto it = locations.find(name);
     return (it != locations.end()) ? getValueAddressAtLocation(state, it->second) : nullptr;
 }
