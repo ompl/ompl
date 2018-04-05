@@ -28,7 +28,6 @@
 # QUIET argument:
 #   find_python_module(numpy QUIET)
 
-message("test")
 include(FindPackageHandleStandardArgs)
 
 # allow specifying which Python installation to use
