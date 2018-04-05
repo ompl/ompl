@@ -87,9 +87,9 @@ public:
         if (links_ == 7)
         {
             Eigen::VectorXd nstep = offset_ * length_;
-            Eigen::VectorXd estep = Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_ * length_;
-            Eigen::VectorXd sstep = Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()) * offset_ * length_;
-            Eigen::VectorXd wstep = Eigen::AngleAxisd(3 * M_PI / 2, Eigen::Vector3d::UnitZ()) * offset_ * length_;
+            Eigen::VectorXd estep = Eigen::AngleAxisd(boost::math::constants::pi<double>() / 2, Eigen::Vector3d::UnitZ()) * offset_ * length_;
+            Eigen::VectorXd sstep = Eigen::AngleAxisd(boost::math::constants::pi<double>(), Eigen::Vector3d::UnitZ()) * offset_ * length_;
+            Eigen::VectorXd wstep = Eigen::AngleAxisd(3 * boost::math::constants::pi<double>() / 2, Eigen::Vector3d::UnitZ()) * offset_ * length_;
 
             Eigen::VectorXd joint = offset_ + nstep;
             x.segment(3 * 0 + offset, 3) = joint;
@@ -239,7 +239,7 @@ public:
         for (unsigned int i = 0; i < chains_; ++i)
         {
             addConstraint(new ParallelChain(chains * links * 3, offset, links, i, length, jointRadius));
-            offset = Eigen::AngleAxisd(2 * M_PI / (double)chains, Eigen::Vector3d::UnitZ()) * offset;
+            offset = Eigen::AngleAxisd(2 * boost::math::constants::pi<double>() / (double)chains, Eigen::Vector3d::UnitZ()) * offset;
         }
 
         addConstraint(new ParallelPlatform(links, chains, radius));

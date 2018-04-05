@@ -28,6 +28,7 @@
 # QUIET argument:
 #   find_python_module(numpy QUIET)
 
+message("test")
 include(FindPackageHandleStandardArgs)
 
 # allow specifying which Python installation to use
@@ -38,6 +39,8 @@ endif (NOT PYTHON_EXEC)
 if (NOT PYTHON_EXEC)
     find_program(PYTHON_EXEC "python${Python_FIND_VERSION}"
         PATHS
+        [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.6\\InstallPath]
+        [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.5\\InstallPath]
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.4\\InstallPath]
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.3\\InstallPath]
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.2\\InstallPath]
@@ -55,6 +58,11 @@ if (NOT PYTHON_EXEC)
     function(find_python_module module)
         return()
     endfunction(find_python_module)
+
+    macro(find_boost_python)
+        # do nothing
+    endmacro(find_boost_python)
+
     return()
 endif()
 

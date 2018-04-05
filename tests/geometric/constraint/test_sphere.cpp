@@ -155,12 +155,6 @@ public:
     virtual ~TestPlanner() = default;
     virtual ob::PlannerPtr newPlanner(const ob::SpaceInformationPtr &si) = 0;
 
-    template <SPACE_TYPE N>
-    enum SPACE_TYPE getType()
-    {
-        return N;
-    };
-
     void setupSpace()
     {
         switch (type)
