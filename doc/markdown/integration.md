@@ -114,7 +114,9 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
     [The EXOTica library](https://github.com/ipab-slmc/exotica) is a generic Optimization Toolset for Robotics platforms, written in C++. Its motivation is to provide a more streamlined process for developing algorithms for such tasks as Inverse-Kinematics and Trajectory Optimisation.  Its design advocates modularity, extensibility, and integration with ROS. The library itself consists of two major specifications, both of which are abstract classes. The first is the Problem Solver which defines the way optimization should proceed: current implementation include iLQG, AICO, Jacobian pseudo-inverse IK, and a range of sampling based solvers from the OMPL library. The other is the Task Definition which describes the task itself by providing two necessary functions to compute the forward map from Configuration space (say joint angles in IK) to Task space (say end-effector positions in IK). The tasks themselves can describe a complete trajectory. Using the library then involves passing in an initial state and requesting a solution to the problem, which may consist of a single configuration or complete trajectory.
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
-    <img src="http://wcms.inf.ed.ac.uk/ipab/slmc/research/EXOTica/images-storage/diagram.png/image_large" width="100%">
+    <div class="embed-responsive embed-responsive-16by9">
+      \htmlonly<iframe src="https://www.youtube.com/embed/AZQY_QOX0Pw"></iframe>\endhtmlonly
+    </div>
   </div>
 </div>
 
