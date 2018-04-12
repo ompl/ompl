@@ -356,7 +356,8 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount)
 
                 // compute intermediate states
                 std::vector<base::State *> block;
-                unsigned int ans = si_->getMotionStates(s1, s2, block, ns, false, true);
+                si_->getMotionStates(s1, s2, block, ns, false, true);
+                //unsigned int ans = si_->getMotionStates(s1, s2, block, ns, false, true);
                 // sanity checks
                 // if ((int)ans != ns || block.size() != ans)
                 //     throw Exception("Internal error in path interpolation. Incorrect number of intermediate states. "
