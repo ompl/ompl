@@ -1,48 +1,45 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
-// We need this to create a temporary uBLAS vector from a C-style array without copying data
-#define BOOST_UBLAS_SHALLOW_ARRAY_ADAPTOR
 #include "ompl/base/StateSpace.h"
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/tools/config/MagicConstants.h"
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/io.hpp>
+#include <Eigen/SVD>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -52,32 +49,19 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
                                                                                  const unsigned int to,
                                                                                  const std::vector<double> &scale)
 {
-    namespace nu = boost::numeric::ublas;
-
     RNG rng;
     Matrix projection(to, from);
 
     for (unsigned int j = 0; j < from; ++j)
     {
         if (scale.size() == from && fabs(scale[j]) < std::numeric_limits<double>::epsilon())
-            nu::column(projection, j) = nu::zero_vector<double>(to);
+            projection.col(j).setZero();
         else
             for (unsigned int i = 0; i < to; ++i)
                 projection(i, j) = rng.gaussian01();
     }
 
-    for (unsigned int i = 0; i < to; ++i)
-    {
-        nu::matrix_row<Matrix> row(projection, i);
-        for (unsigned int j = 0; j < i; ++j)
-        {
-            nu::matrix_row<Matrix> prevRow(projection, j);
-            // subtract projection
-            row -= inner_prod(row, prevRow) * prevRow;
-        }
-        // normalize
-        row /= norm_2(row);
-    }
+    projection = Eigen::JacobiSVD<Eigen::MatrixXd>(projection, Eigen::ComputeThinV).matrixV().transpose();
 
     assert(scale.size() == from || scale.size() == 0);
     if (scale.size() == from)
@@ -88,7 +72,7 @@ ompl::base::ProjectionMatrix::Matrix ompl::base::ProjectionMatrix::ComputeRandom
             if (fabs(scale[i]) < std::numeric_limits<double>::epsilon())
                 z++;
             else
-                nu::column(projection, i) /= scale[i];
+                projection.col(i) /= scale[i];
         }
         if (z == from)
             OMPL_WARN("Computed projection matrix is all 0s");
@@ -113,13 +97,9 @@ void ompl::base::ProjectionMatrix::computeRandom(const unsigned int from, const 
     mat = ComputeRandom(from, to);
 }
 
-void ompl::base::ProjectionMatrix::project(const double *from, EuclideanProjection &to) const
+void ompl::base::ProjectionMatrix::project(const double *from, Eigen::Ref<Eigen::VectorXd> to) const
 {
-    namespace nu = boost::numeric::ublas;
-    // create a temporary uBLAS vector from a C-style array without copying data
-    nu::shallow_array_adaptor<const double> tmp1(mat.size2(), from);
-    nu::vector<double, nu::shallow_array_adaptor<const double>> tmp2(mat.size2(), tmp1);
-    to = prod(mat, tmp2);
+    to = mat * Eigen::Map<const Eigen::VectorXd>(from, mat.cols());
 }
 
 void ompl::base::ProjectionMatrix::print(std::ostream &out) const
@@ -130,19 +110,13 @@ void ompl::base::ProjectionMatrix::print(std::ostream &out) const
 ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpace *space)
   : space_(space), bounds_(0), estimatedBounds_(0), defaultCellSizes_(true), cellSizesWereInferred_(false)
 {
-    params_.declareParam<double>("cellsize_factor", [this](double factor)
-                                 {
-                                     mulCellSizes(factor);
-                                 });
+    params_.declareParam<double>("cellsize_factor", [this](double factor) { mulCellSizes(factor); });
 }
 
 ompl::base::ProjectionEvaluator::ProjectionEvaluator(const StateSpacePtr &space)
   : space_(space.get()), bounds_(0), estimatedBounds_(0), defaultCellSizes_(true), cellSizesWereInferred_(false)
 {
-    params_.declareParam<double>("cellsize_factor", [this](double factor)
-                                 {
-                                     mulCellSizes(factor);
-                                 });
+    params_.declareParam<double>("cellsize_factor", [this](double factor) { mulCellSizes(factor); });
 }
 
 ompl::base::ProjectionEvaluator::~ProjectionEvaluator() = default;
@@ -222,15 +196,16 @@ namespace ompl
     namespace base
     {
         static inline void computeCoordinatesHelper(const std::vector<double> &cellSizes,
-                                                    const EuclideanProjection &projection, ProjectionCoordinates &coord)
+                                                    const Eigen::Ref<Eigen::VectorXd> &projection,
+                                                    Eigen::Ref<Eigen::VectorXi> coord)
         {
-            const std::size_t dim = cellSizes.size();
-            coord.resize(dim);
-            for (unsigned int i = 0; i < dim; ++i)
-                coord[i] = (int)floor(projection(i) / cellSizes[i]);
+            // compute floor(projection ./ cellSizes)
+            coord = projection.cwiseQuotient(Eigen::Map<const Eigen::VectorXd>(cellSizes.data(), cellSizes.size()))
+                        .unaryExpr((double (*)(double))std::floor)
+                        .cast<int>();
         }
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 /// @endcond
 
 void ompl::base::ProjectionEvaluator::inferBounds()
@@ -248,7 +223,7 @@ void ompl::base::ProjectionEvaluator::estimateBounds()
     {
         StateSamplerPtr sampler = space_->allocStateSampler();
         State *s = space_->allocState();
-        EuclideanProjection proj(dim);
+        Eigen::VectorXd proj(dim);
 
         estimatedBounds_.setLow(std::numeric_limits<double>::infinity());
         estimatedBounds_.setHigh(-std::numeric_limits<double>::infinity());
@@ -311,18 +286,12 @@ void ompl::base::ProjectionEvaluator::setup()
     unsigned int dim = getDimension();
     for (unsigned int i = 0; i < dim; ++i)
         params_.declareParam<double>("cellsize." + std::to_string(i),
-                                     [this, i](double cellsize)
-                                     {
-                                         setCellSizes(i, cellsize);
-                                     },
-                                     [this, i]
-                                     {
-                                         return getCellSizes(i);
-                                     });
+                                     [this, i](double cellsize) { setCellSizes(i, cellsize); },
+                                     [this, i] { return getCellSizes(i); });
 }
 
-void ompl::base::ProjectionEvaluator::computeCoordinates(const EuclideanProjection &projection,
-                                                         ProjectionCoordinates &coord) const
+void ompl::base::ProjectionEvaluator::computeCoordinates(const Eigen::Ref<Eigen::VectorXd> &projection,
+                                                         Eigen::Ref<Eigen::VectorXi> coord) const
 {
     computeCoordinatesHelper(cellSizes_, projection, coord);
 }
@@ -350,7 +319,8 @@ void ompl::base::ProjectionEvaluator::printSettings(std::ostream &out) const
     out << ']' << std::endl;
 }
 
-void ompl::base::ProjectionEvaluator::printProjection(const EuclideanProjection &projection, std::ostream &out) const
+void ompl::base::ProjectionEvaluator::printProjection(const Eigen::Ref<Eigen::VectorXd> &projection,
+                                                      std::ostream &out) const
 {
     out << projection << std::endl;
 }
@@ -384,7 +354,7 @@ unsigned int ompl::base::SubspaceProjectionEvaluator::getDimension() const
     return proj_->getDimension();
 }
 
-void ompl::base::SubspaceProjectionEvaluator::project(const State *state, EuclideanProjection &projection) const
+void ompl::base::SubspaceProjectionEvaluator::project(const State *state, Eigen::Ref<Eigen::VectorXd> projection) const
 {
     proj_->project(state->as<CompoundState>()->components[index_], projection);
 }

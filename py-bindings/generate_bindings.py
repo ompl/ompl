@@ -91,7 +91,7 @@ class ompl_base_generator_t(code_generator_t):
         # A C++ call like "foo.printProjection(projection, std::cout)" will be replaced with
         # something more pythonesque: "print(foo.projection())"
         replacement['printProjection'] = ('def("projection", &__printProjection)', """
-        std::string __printProjection(%s* obj, const ompl::base::EuclideanProjection &projection)
+        std::string __printProjection(%s* obj, const Eigen::Ref<Eigen::VectorXd> &projection)
         {
             std::ostringstream s;
             obj->printProjection(projection, s);
@@ -335,16 +335,6 @@ class ompl_base_generator_t(code_generator_t):
 
         # add array indexing to the RealVectorState
         self.add_array_access(self.ompl_ns.class_('RealVectorStateSpace').class_('StateType'))
-        # typedef's are not handled by Py++, so we need to explicitly rename uBLAS vector to
-        # EuclideanProjection
-        cls = self.mb.namespace('ublas').class_(
-            'vector<double, boost::numeric::ublas::unbounded_array<double, ' \
-            'std::allocator<double> > >')
-        cls.include()
-        cls.rename('EuclideanProjection')
-        cls.member_functions().exclude()
-        cls.operators().exclude()
-        self.add_array_access(cls, 'double')
         # make objects printable that have a print function
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
         # handle special case (abstract base class with pure virtual method)

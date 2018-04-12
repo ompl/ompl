@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2010, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2010, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -46,17 +46,12 @@
 #include <vector>
 #include <valarray>
 #include <iostream>
-#include <boost/numeric/ublas/matrix.hpp>
+#include <Eigen/Core>
 
 namespace ompl
 {
     namespace base
     {
-        /** \brief Grid cells corresponding to a projection value are described in terms of their coordinates. */
-        typedef std::vector<int> ProjectionCoordinates;
-
-        /** \brief The datatype for state projections. This class contains a real vector. */
-        typedef boost::numeric::ublas::vector<double> EuclideanProjection;
         /** \brief A projection matrix -- it allows multiplication of
             real vectors by a specified matrix. The matrix can also be
             randomly generated. */
@@ -64,7 +59,7 @@ namespace ompl
         {
         public:
             /** \brief Datatype for projection matrices */
-            typedef boost::numeric::ublas::matrix<double> Matrix;
+            typedef Eigen::MatrixXd Matrix;
 
             /** \brief Compute a random projection matrix with \e from
                 columns and \e to rows. A vector with \e from elements
@@ -82,8 +77,7 @@ namespace ompl
                 Each element is sampled with a Gaussian distribution
                 with mean 0 and variance 1 and the matrix rows are
                 made orthonormal. */
-            static Matrix ComputeRandom(unsigned int from, unsigned int to,
-                                        const std::vector<double> &scale);
+            static Matrix ComputeRandom(unsigned int from, unsigned int to, const std::vector<double> &scale);
 
             /** \brief Compute a random projection matrix with \e from
                 columns and \e to rows. A vector with \e from elements
@@ -103,7 +97,7 @@ namespace ompl
             void computeRandom(unsigned int from, unsigned int to);
 
             /** \brief Multiply the vector \e from by the contained projection matrix to obtain the vector \e to. */
-            void project(const double *from, EuclideanProjection &to) const;
+            void project(const double *from, Eigen::Ref<Eigen::VectorXd> to) const;
 
             /** \brief Print the contained projection matrix to a stram */
             void print(std::ostream &out = std::cout) const;
@@ -149,7 +143,7 @@ namespace ompl
             virtual unsigned int getDimension() const = 0;
 
             /** \brief Compute the projection as an array of double values */
-            virtual void project(const State *state, EuclideanProjection &projection) const = 0;
+            virtual void project(const State *state, Eigen::Ref<Eigen::VectorXd> projection) const = 0;
 
             /** \brief Define the size (in each dimension) of a grid
                 cell. The number of sizes set here must be the
@@ -231,12 +225,13 @@ namespace ompl
             virtual void setup();
 
             /** \brief Compute integer coordinates for a projection */
-            void computeCoordinates(const EuclideanProjection &projection, ProjectionCoordinates &coord) const;
+            void computeCoordinates(const Eigen::Ref<Eigen::VectorXd> &projection,
+                                    Eigen::Ref<Eigen::VectorXi> coord) const;
 
             /** \brief Compute integer coordinates for a state */
-            void computeCoordinates(const State *state, ProjectionCoordinates &coord) const
+            void computeCoordinates(const State *state, Eigen::Ref<Eigen::VectorXi> coord) const
             {
-                EuclideanProjection projection(getDimension());
+                Eigen::VectorXd projection(getDimension());
                 project(state, projection);
                 computeCoordinates(projection, coord);
             }
@@ -257,7 +252,8 @@ namespace ompl
             virtual void printSettings(std::ostream &out = std::cout) const;
 
             /** \brief Print a euclidean projection */
-            virtual void printProjection(const EuclideanProjection &projection, std::ostream &out = std::cout) const;
+            virtual void printProjection(const Eigen::Ref<Eigen::VectorXd> &projection,
+                                         std::ostream &out = std::cout) const;
 
         protected:
             /** \brief Fill estimatedBounds_ with an approximate bounding box for the projection space (via sampling) */
@@ -313,7 +309,7 @@ namespace ompl
 
             unsigned int getDimension() const override;
 
-            void project(const State *state, EuclideanProjection &projection) const override;
+            void project(const State *state, Eigen::Ref<Eigen::VectorXd> projection) const override;
 
         protected:
             /** \brief The index of the subspace from which to project */
@@ -329,7 +325,7 @@ namespace ompl
              * projToUse) */
             ProjectionEvaluatorPtr specifiedProj_;
         };
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 
 #endif

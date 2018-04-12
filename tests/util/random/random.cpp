@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2008, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2008, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -72,9 +72,9 @@ BOOST_AUTO_TEST_CASE(DifferentSeeds)
 {
     RNG r1, r2, r3, r4;
     int same = 0;
-    int eq   = 0;
+    int eq = 0;
     const int N = 100;
-    for (int i = 0 ; i < N ; ++i)
+    for (int i = 0; i < N; ++i)
     {
         int v1 = r1.uniformInt(0, 100);
         int v2 = r2.uniformInt(0, 100);
@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(ValidRangeInts)
     const int N = 100;
     const int V = 10000 * N;
     std::vector<int> c(N + 1, 0);
-    for (int i = 0 ; i < V ; ++i)
+    for (int i = 0; i < V; ++i)
     {
         int v = r.uniformInt(0, N);
         BOOST_CHECK(v >= 0);
@@ -111,10 +111,10 @@ BOOST_AUTO_TEST_CASE(ValidRangeInts)
     }
 
     for (int i : c)
-        BOOST_CHECK(i > V/N/3);
+        BOOST_CHECK(i > V / N / 3);
 }
 
-static const double NUM_INT_SAMPLES =  1000000;
+static const double NUM_INT_SAMPLES = 1000000;
 static const double NUM_REAL_SAMPLES = 1000000;
 /* The following widening factor is multiplied by the standard error of the mean
  * in errUniformInt() and errUniformReal() to obtain a reasonable range to pass to BOOST_CHECK_CLOSE().
@@ -125,7 +125,7 @@ static double avgIntsN(int s, int l, const int N)
 {
     RNG r;
     double sum = 0.0;
-    for (int i = 0 ; i < N ; ++i)
+    for (int i = 0; i < N; ++i)
         sum += r.uniformInt(s, l);
     return sum / (double)N;
 }
@@ -137,29 +137,29 @@ static double avgInts(int s, int l)
 
 static double errUniformInt(int s, int l)
 {
-    const int length = l-s+1;
+    const int length = l - s + 1;
     // standard error of mean for discrete uniform distribution over {s,s+1,...,l}
-    const double stdErr = sqrt((length*length-1)/(12.0*NUM_INT_SAMPLES));
+    const double stdErr = sqrt((length * length - 1) / (12.0 * NUM_INT_SAMPLES));
     return stdErr * STDERR_WIDENING_FACTOR + std::numeric_limits<double>::epsilon();
 }
 
 BOOST_AUTO_TEST_CASE(AvgInts)
 {
-    BOOST_OMPL_EXPECT_NEAR(avgInts(0, 1), 0.5, errUniformInt(0,1));
-    BOOST_OMPL_EXPECT_NEAR(avgInts(0, 10), 5.0, errUniformInt(0,10));
-    BOOST_OMPL_EXPECT_NEAR(avgInts(-1, 1), 0.0, errUniformInt(-1,1));
-    BOOST_OMPL_EXPECT_NEAR(avgInts(-1, 0), -0.5, errUniformInt(-1,0));
-    BOOST_OMPL_EXPECT_NEAR(avgInts(-2, 4), 1.0, errUniformInt(-2,4));
-    BOOST_OMPL_EXPECT_NEAR(avgInts(2, 4), 3.0, errUniformInt(2,4));
-    BOOST_OMPL_EXPECT_NEAR(avgInts(-6, -2), -4.0, errUniformInt(-6,-2));
-    BOOST_OMPL_EXPECT_NEAR(avgIntsN(0, 0, 1000), 0.0, errUniformInt(0,0));
+    BOOST_OMPL_EXPECT_NEAR(avgInts(0, 1), 0.5, errUniformInt(0, 1));
+    BOOST_OMPL_EXPECT_NEAR(avgInts(0, 10), 5.0, errUniformInt(0, 10));
+    BOOST_OMPL_EXPECT_NEAR(avgInts(-1, 1), 0.0, errUniformInt(-1, 1));
+    BOOST_OMPL_EXPECT_NEAR(avgInts(-1, 0), -0.5, errUniformInt(-1, 0));
+    BOOST_OMPL_EXPECT_NEAR(avgInts(-2, 4), 1.0, errUniformInt(-2, 4));
+    BOOST_OMPL_EXPECT_NEAR(avgInts(2, 4), 3.0, errUniformInt(2, 4));
+    BOOST_OMPL_EXPECT_NEAR(avgInts(-6, -2), -4.0, errUniformInt(-6, -2));
+    BOOST_OMPL_EXPECT_NEAR(avgIntsN(0, 0, 1000), 0.0, errUniformInt(0, 0));
 }
 
 static double avgRealsN(double s, double l, const int N)
 {
     RNG r;
     double sum = 0.0;
-    for (int i = 0 ; i < N ; ++i)
+    for (int i = 0; i < N; ++i)
         sum += r.uniformReal(s, l);
     return sum / (double)N;
 }
@@ -172,28 +172,28 @@ static double avgReals(double s, double l)
 static double errUniformReal(double s, double l)
 {
     // standard error of mean for continuous uniform distribution over real interval [s,l].
-    const double stdErr = (l-s)*sqrt(1.0/(12.0*NUM_REAL_SAMPLES));
+    const double stdErr = (l - s) * sqrt(1.0 / (12.0 * NUM_REAL_SAMPLES));
     return stdErr * STDERR_WIDENING_FACTOR + std::numeric_limits<double>::epsilon();
 }
 
 BOOST_AUTO_TEST_CASE(AvgReals)
 {
-    BOOST_OMPL_EXPECT_NEAR(avgReals(-0.1, 0.3), 0.1, errUniformReal(-0.1,0.3));
-    BOOST_OMPL_EXPECT_NEAR(avgReals(0, 1), 0.5, errUniformReal(0,1));
-    BOOST_OMPL_EXPECT_NEAR(avgReals(0, 10), 5.0, errUniformReal(0,10));
-    BOOST_OMPL_EXPECT_NEAR(avgReals(-1, 1), 0.0, errUniformReal(-1,1));
-    BOOST_OMPL_EXPECT_NEAR(avgReals(-1, 0), -0.5, errUniformReal(-1,0));
-    BOOST_OMPL_EXPECT_NEAR(avgReals(-2, 4), 1.0, errUniformReal(-2,4));
-    BOOST_OMPL_EXPECT_NEAR(avgReals(2, 4), 3.0, errUniformReal(2,4));
-    BOOST_OMPL_EXPECT_NEAR(avgReals(-6, -2), -4.0, errUniformReal(-6,-2));
-    BOOST_OMPL_EXPECT_NEAR(avgRealsN(0, 0, 1000), 0.0, errUniformReal(0,0));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(-0.1, 0.3), 0.1, errUniformReal(-0.1, 0.3));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(0, 1), 0.5, errUniformReal(0, 1));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(0, 10), 5.0, errUniformReal(0, 10));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(-1, 1), 0.0, errUniformReal(-1, 1));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(-1, 0), -0.5, errUniformReal(-1, 0));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(-2, 4), 1.0, errUniformReal(-2, 4));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(2, 4), 3.0, errUniformReal(2, 4));
+    BOOST_OMPL_EXPECT_NEAR(avgReals(-6, -2), -4.0, errUniformReal(-6, -2));
+    BOOST_OMPL_EXPECT_NEAR(avgRealsN(0, 0, 1000), 0.0, errUniformReal(0, 0));
 }
 
 static double avgNormalRealsN(double mean, double stddev, const int N)
 {
     RNG r;
     double sum = 0.0;
-    for (int i = 0 ; i < N ; ++i)
+    for (int i = 0; i < N; ++i)
         sum += r.gaussian(mean, stddev);
     return sum / (double)N;
 }
@@ -224,7 +224,7 @@ BOOST_AUTO_TEST_CASE(SampleUnitSphere)
     // The number of samples to test per dimension
     unsigned int numSamples = 1000u;
     // The testing tolerance
-    double testTol = 10.0*std::numeric_limits<double>::epsilon();
+    double testTol = 10.0 * std::numeric_limits<double>::epsilon();
 
     // Iterate over a sequence of dimensions
     for (unsigned int dim = DIMSTART; dim <= numDims; ++dim)
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE(SampleUnitSphere)
             double magnitude;
 
             // Get the random sample
-            rng.uniformNormalVector(dim, &xRand[0]);
+            rng.uniformNormalVector(xRand);
 
             // Calculate the magnitude
             magnitude = 0.0;
@@ -285,7 +285,7 @@ BOOST_AUTO_TEST_CASE(SampleBall)
             double magnitude;
 
             // Get the random sample
-            rng.uniformInBall(radius, dim, &xRand[0]);
+            rng.uniformInBall(radius, xRand);
 
             // Calculate the magnitude
             magnitude = 0.0;
@@ -311,7 +311,7 @@ BOOST_AUTO_TEST_CASE(SamplePhsSurface)
     // The number of samples to test per dimension
     unsigned int numSamples = 1000u;
     // The testing tolerance
-    double testTol = 1E5*std::numeric_limits<double>::epsilon();
+    double testTol = 1E5 * std::numeric_limits<double>::epsilon();
 
     // Iterate over a sequence of dimensions
     for (unsigned int dim = DIMSTART; dim <= numDims; ++dim)
@@ -336,7 +336,8 @@ BOOST_AUTO_TEST_CASE(SamplePhsSurface)
         phsPtr = std::make_shared<ompl::ProlateHyperspheroid>(dim, &v1[0], &v2[0]);
 
         // Pick a random transverse diameter
-        tDiameter = rng.uniformReal(1.01*phsPtr->getMinTransverseDiameter(), 2.5*phsPtr->getMinTransverseDiameter());
+        tDiameter =
+            rng.uniformReal(1.01 * phsPtr->getMinTransverseDiameter(), 2.5 * phsPtr->getMinTransverseDiameter());
 
         // Set
         phsPtr->setTransverseDiameter(tDiameter);
@@ -390,7 +391,7 @@ BOOST_AUTO_TEST_CASE(SampleInPhs)
         phsPtr = std::make_shared<ompl::ProlateHyperspheroid>(dim, &v1[0], &v2[0]);
 
         // Pick a random transverse diameter
-        tDiameter = rng.uniformReal(1.1*phsPtr->getMinTransverseDiameter(), 2.5*phsPtr->getMinTransverseDiameter());
+        tDiameter = rng.uniformReal(1.1 * phsPtr->getMinTransverseDiameter(), 2.5 * phsPtr->getMinTransverseDiameter());
 
         // Set
         phsPtr->setTransverseDiameter(tDiameter);
@@ -407,7 +408,7 @@ BOOST_AUTO_TEST_CASE(SampleInPhs)
 
             // Check that the point lies within the shape
             BOOST_CHECK_GE(phsPtr->getPathLength(&xRand[0]) + std::numeric_limits<float>::epsilon(),
-                phsPtr->getMinTransverseDiameter());
+                           phsPtr->getMinTransverseDiameter());
             BOOST_CHECK_LT(phsPtr->getPathLength(&xRand[0]), tDiameter);
         }
     }

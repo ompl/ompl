@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2008, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2008, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -64,8 +64,8 @@ static const bool VERBOSE = true;
 class myStateValidityChecker : public base::StateValidityChecker
 {
 public:
-
-    myStateValidityChecker(base::SpaceInformation *si, const std::vector< std::vector<int> > &grid) : base::StateValidityChecker(si)
+    myStateValidityChecker(base::SpaceInformation *si, const std::vector<std::vector<int>> &grid)
+      : base::StateValidityChecker(si)
     {
         setGrid(grid);
     }
@@ -79,10 +79,10 @@ public:
         if (x < 0 || y < 0 || x >= w_ || y >= h_)
             return false;
 
-        return grid_[x][y] == 0; // 0 means valid state
+        return grid_[x][y] == 0;  // 0 means valid state
     }
 
-    void setGrid(const std::vector< std::vector<int> > &grid)
+    void setGrid(const std::vector<std::vector<int>> &grid)
     {
         grid_ = grid;
         w_ = grid_.size();
@@ -90,16 +90,13 @@ public:
     }
 
 protected:
-
-    std::vector< std::vector<int> > grid_;
+    std::vector<std::vector<int>> grid_;
     int w_, h_;
-
 };
 
 class myStateSpace : public base::RealVectorStateSpace
 {
 public:
-
     myStateSpace() : base::RealVectorStateSpace(4)
     {
     }
@@ -120,20 +117,24 @@ public:
 class myStatePropagator : public control::StatePropagator
 {
 public:
-
     myStatePropagator(const control::SpaceInformationPtr &si) : control::StatePropagator(si)
     {
     }
 
-    void propagate(const base::State *state, const control::Control* control, const double duration, base::State *result) const override
+    void propagate(const base::State *state, const control::Control *control, const double duration,
+                   base::State *result) const override
     {
         result->as<base::RealVectorStateSpace::StateType>()->values[0] =
-            state->as<base::RealVectorStateSpace::StateType>()->values[0] + duration * control->as<control::RealVectorControlSpace::ControlType>()->values[0];
+            state->as<base::RealVectorStateSpace::StateType>()->values[0] +
+            duration * control->as<control::RealVectorControlSpace::ControlType>()->values[0];
         result->as<base::RealVectorStateSpace::StateType>()->values[1] =
-            state->as<base::RealVectorStateSpace::StateType>()->values[1] + duration * control->as<control::RealVectorControlSpace::ControlType>()->values[1];
+            state->as<base::RealVectorStateSpace::StateType>()->values[1] +
+            duration * control->as<control::RealVectorControlSpace::ControlType>()->values[1];
 
-        result->as<base::RealVectorStateSpace::StateType>()->values[2] = control->as<control::RealVectorControlSpace::ControlType>()->values[0];
-        result->as<base::RealVectorStateSpace::StateType>()->values[3] = control->as<control::RealVectorControlSpace::ControlType>()->values[1];
+        result->as<base::RealVectorStateSpace::StateType>()->values[2] =
+            control->as<control::RealVectorControlSpace::ControlType>()->values[0];
+        result->as<base::RealVectorStateSpace::StateType>()->values[3] =
+            control->as<control::RealVectorControlSpace::ControlType>()->values[1];
         si_->getStateSpace()->enforceBounds(result);
     }
 };
@@ -141,11 +142,12 @@ public:
 class myProjectionEvaluator : public base::ProjectionEvaluator
 {
 public:
-    myProjectionEvaluator(const base::StateSpacePtr &space, const std::vector<double> &cellSizes) : base::ProjectionEvaluator(space)
+    myProjectionEvaluator(const base::StateSpacePtr &space, const std::vector<double> &cellSizes)
+      : base::ProjectionEvaluator(space)
     {
         setCellSizes(cellSizes);
         bounds_.resize(2);
-        const base::RealVectorBounds& spacebounds = space->as<base::RealVectorStateSpace>()->getBounds();
+        const base::RealVectorBounds &spacebounds = space->as<base::RealVectorStateSpace>()->getBounds();
         bounds_.setLow(0, spacebounds.low[0]);
         bounds_.setLow(1, spacebounds.low[1]);
         bounds_.setHigh(0, spacebounds.high[0]);
@@ -157,7 +159,7 @@ public:
         return 2;
     }
 
-    void project(const base::State *state, base::EuclideanProjection &projection) const override
+    void project(const base::State *state, Eigen::Ref<Eigen::VectorXd> projection) const override
     {
         projection(0) = state->as<base::RealVectorStateSpace::StateType>()->values[0];
         projection(1) = state->as<base::RealVectorStateSpace::StateType>()->values[1];
@@ -210,7 +212,6 @@ control::SpaceInformationPtr mySpaceInformation(Environment2D &env)
     return si;
 }
 
-
 /** A base class for testing planners */
 class TestPlanner
 {
@@ -251,7 +252,7 @@ public:
         gstate->values[2] = 0.0;
         gstate->values[3] = 0.0;
         goal->setState(gstate);
-        goal->setThreshold(1e-3); // this is basically 0, but we want to account for numerical instabilities
+        goal->setThreshold(1e-3);  // this is basically 0, but we want to account for numerical instabilities
         pdef->setGoal(goal);
 
         planner->getProblemDefinition()->isStraightLinePathValid();
@@ -268,7 +269,7 @@ public:
             if (show)
                 printf("Found solution in %f seconds!\n", ompl::time::seconds(elapsed));
 
-            control::PathControl *path = static_cast<control::PathControl*>(pdef->getSolutionPath().get());
+            control::PathControl *path = static_cast<control::PathControl *>(pdef->getSolutionPath().get());
             path->interpolate();
 
             if (!path->check())
@@ -290,7 +291,7 @@ public:
 
             Environment2D temp = env;
             /* display the solution */
-            for (unsigned int i = 0 ; i < path->getStateCount() ; ++i)
+            for (unsigned int i = 0; i < path->getStateCount(); ++i)
             {
                 auto x = (int)(path->getState(i)->as<base::RealVectorStateSpace::StateType>()->values[0]);
                 auto y = (int)(path->getState(i)->as<base::RealVectorStateSpace::StateType>()->values[1]);
@@ -313,15 +314,12 @@ public:
     }
 
 protected:
-
     virtual base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si) = 0;
-
 };
 
 class RRTTest : public TestPlanner
 {
 protected:
-
     base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si) override
     {
         auto rrt(std::make_shared<control::RRT>(si));
@@ -333,7 +331,6 @@ protected:
 class RRTIntermediateTest : public TestPlanner
 {
 protected:
-
     base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si) override
     {
         auto rrt(std::make_shared<control::RRT>(si));
@@ -345,25 +342,28 @@ protected:
 // A 2D workspace grid-decomposition for Syclop planners
 class SyclopDecomposition : public control::GridDecomposition
 {
-    public:
-        SyclopDecomposition(const int len, const base::RealVectorBounds& b) : GridDecomposition(len, 2, b) {}
+public:
+    SyclopDecomposition(const int len, const base::RealVectorBounds &b) : GridDecomposition(len, 2, b)
+    {
+    }
 
-        void project(const base::State* s, std::vector<double>& coord) const override
-        {
-            coord.resize(2);
-            coord[0] = s->as<base::RealVectorStateSpace::StateType>()->values[0];
-            coord[1] = s->as<base::RealVectorStateSpace::StateType>()->values[1];
-        }
+    void project(const base::State *s, std::vector<double> &coord) const override
+    {
+        coord.resize(2);
+        coord[0] = s->as<base::RealVectorStateSpace::StateType>()->values[0];
+        coord[1] = s->as<base::RealVectorStateSpace::StateType>()->values[1];
+    }
 
-        void sampleFullState(const base::StateSamplerPtr& sampler, const std::vector<double>& coord, base::State* s) const override
-        {
-            sampler->sampleUniform(s);
-            s->as<base::RealVectorStateSpace::StateType>()->values[0] = coord[0];
-            s->as<base::RealVectorStateSpace::StateType>()->values[1] = coord[1];
-        }
+    void sampleFullState(const base::StateSamplerPtr &sampler, const std::vector<double> &coord,
+                         base::State *s) const override
+    {
+        sampler->sampleUniform(s);
+        s->as<base::RealVectorStateSpace::StateType>()->values[0] = coord[0];
+        s->as<base::RealVectorStateSpace::StateType>()->values[1] = coord[1];
+    }
 
-    private:
-        ompl::RNG rng_;
+private:
+    ompl::RNG rng_;
 };
 
 class SyclopRRTTest : public TestPlanner
@@ -372,7 +372,7 @@ class SyclopRRTTest : public TestPlanner
     {
         base::RealVectorBounds bounds(2);
 
-        const base::RealVectorBounds& spacebounds = si->getStateSpace()->as<base::RealVectorStateSpace>()->getBounds();
+        const base::RealVectorBounds &spacebounds = si->getStateSpace()->as<base::RealVectorStateSpace>()->getBounds();
         bounds.setLow(0, spacebounds.low[0]);
         bounds.setLow(1, spacebounds.low[1]);
         bounds.setHigh(0, spacebounds.high[0]);
@@ -396,7 +396,7 @@ class SyclopESTTest : public TestPlanner
     {
         base::RealVectorBounds bounds(2);
 
-        const base::RealVectorBounds& spacebounds = si->getStateSpace()->as<base::RealVectorStateSpace>()->getBounds();
+        const base::RealVectorBounds &spacebounds = si->getStateSpace()->as<base::RealVectorStateSpace>()->getBounds();
         bounds.setLow(0, spacebounds.low[0]);
         bounds.setLow(1, spacebounds.low[1]);
         bounds.setHigh(0, spacebounds.high[0]);
@@ -417,14 +417,12 @@ class SyclopESTTest : public TestPlanner
 class KPIECETest : public TestPlanner
 {
 protected:
-
     base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si) override
     {
         auto kpiece(std::make_shared<control::KPIECE1>(si));
 
         std::vector<double> cdim = {1, 1};
-        kpiece->setProjectionEvaluator(std::make_shared<myProjectionEvaluator>(
-            si->getStateSpace(), cdim));
+        kpiece->setProjectionEvaluator(std::make_shared<myProjectionEvaluator>(si->getStateSpace(), cdim));
 
         return kpiece;
     }
@@ -433,14 +431,12 @@ protected:
 class ESTTest : public TestPlanner
 {
 protected:
-
     base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si) override
     {
         auto est(std::make_shared<control::EST>(si));
 
         std::vector<double> cdim = {1, 1};
-        est->setProjectionEvaluator(std::make_shared<myProjectionEvaluator>(
-            si->getStateSpace(), cdim));
+        est->setProjectionEvaluator(std::make_shared<myProjectionEvaluator>(si->getStateSpace(), cdim));
 
         return est;
     }
@@ -449,14 +445,12 @@ protected:
 class PDSTTest : public TestPlanner
 {
 protected:
-
     base::PlannerPtr newPlanner(const control::SpaceInformationPtr &si) override
     {
         auto pdst(std::make_shared<control::PDST>(si));
 
         std::vector<double> cdim = {1, 1};
-        pdst->setProjectionEvaluator(std::make_shared<myProjectionEvaluator>(
-            si->getStateSpace(), cdim));
+        pdst->setProjectionEvaluator(std::make_shared<myProjectionEvaluator>(si->getStateSpace(), cdim));
 
         return pdst;
     }
@@ -465,21 +459,20 @@ protected:
 class PlanTest
 {
 public:
-
     void runPlanTest(TestPlanner *p, double *success, double *avgruntime, double *avglength)
     {
-        double time   = 0.0;
+        double time = 0.0;
         double length = 0.0;
-        int    good   = 0;
-        int    N      = 100;
+        int good = 0;
+        int N = 100;
 
-        for (int i = 0 ; i < N ; ++i)
+        for (int i = 0; i < N; ++i)
             if (p->execute(env, false, &time, &length))
                 good++;
 
-        *success    = 100.0 * (double)good / (double)N;
+        *success = 100.0 * (double)good / (double)N;
         *avgruntime = time / (double)N;
-        *avglength  = length / (double)N;
+        *avglength = length / (double)N;
 
         if (verbose)
         {
@@ -489,12 +482,12 @@ public:
         }
     }
 
-    template<typename T>
+    template <typename T>
     void runAllTests(double min_success, double max_avgtime)
     {
-        double success    = 0.0;
+        double success = 0.0;
         double avgruntime = 0.0;
-        double avglength  = 0.0;
+        double avglength = 0.0;
 
         TestPlanner *p = new T();
         runPlanTest(p, &success, &avgruntime, &avglength);
@@ -506,7 +499,6 @@ public:
     }
 
 protected:
-
     PlanTest()
     {
         verbose = true;
@@ -516,12 +508,12 @@ protected:
 
         if (env.width * env.height == 0)
         {
-            BOOST_FAIL( "The environment has a 0 dimension. Cannot continue" );
+            BOOST_FAIL("The environment has a 0 dimension. Cannot continue");
         }
     }
 
     Environment2D env;
-    bool          verbose;
+    bool verbose;
 };
 
 BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
@@ -529,14 +521,14 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 #define MACHINE_SPEED_FACTOR 1.0
 
 // define boost tests for a planner assuming the naming convention is followed
-#define OMPL_PLANNER_TEST(Name, MinSuccess, MaxAvgTime)                 \
-    BOOST_AUTO_TEST_CASE(control_##Name)                                \
-    {                                                                        \
-        if (VERBOSE)                                                        \
-            printf("\n\n\n*****************************\nTesting %s ...\n", #Name); \
-        runAllTests<Name##Test>(MinSuccess, MaxAvgTime * MACHINE_SPEED_FACTOR); \
-        if (VERBOSE)                                                        \
-            printf("Done with %s.\n", #Name);                                \
+#define OMPL_PLANNER_TEST(Name, MinSuccess, MaxAvgTime)                                                                \
+    BOOST_AUTO_TEST_CASE(control_##Name)                                                                               \
+    {                                                                                                                  \
+        if (VERBOSE)                                                                                                   \
+            printf("\n\n\n*****************************\nTesting %s ...\n", #Name);                                    \
+        runAllTests<Name##Test>(MinSuccess, MaxAvgTime * MACHINE_SPEED_FACTOR);                                        \
+        if (VERBOSE)                                                                                                   \
+            printf("Done with %s.\n", #Name);                                                                          \
     }
 
 OMPL_PLANNER_TEST(RRT, 99.0, 0.05)

@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2010, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2010, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -49,7 +49,6 @@ namespace oc = ompl::control;
 class RigidBodyEnvironment : public oc::OpenDEEnvironment
 {
 public:
-
     RigidBodyEnvironment()
     {
         createWorld();
@@ -88,7 +87,7 @@ public:
         dBodyAddForce(boxBody, control[0], control[1], control[2]);
     }
 
-    bool isValidCollision(dGeomID /*geom1*/, dGeomID /*geom2*/, const dContact& /*contact*/) const override
+    bool isValidCollision(dGeomID /*geom1*/, dGeomID /*geom2*/, const dContact & /*contact*/) const override
     {
         return false;
     }
@@ -101,7 +100,6 @@ public:
     }
 
     /**************************************************/
-
 
     // OMPL does not require this function here; we implement it here
     // for convenience. This function is only OpenDE code to create a
@@ -124,22 +122,19 @@ public:
     dSpaceID space;
 
     // the car mass
-    dMass    m;
+    dMass m;
 
     // the body geom
-    dGeomID  boxGeom;
+    dGeomID boxGeom;
 
     // the body
-    dBodyID  boxBody;
-
+    dBodyID boxBody;
 };
-
 
 // Define the goal we want to reach
 class RigidBodyGoal : public ob::GoalRegion
 {
 public:
-
     RigidBodyGoal(const ob::SpaceInformationPtr &si) : ob::GoalRegion(si)
     {
         threshold_ = 0.5;
@@ -153,15 +148,12 @@ public:
         double dz = fabs(pos[2] - 35);
         return sqrt(dx * dx + dy * dy + dz * dz);
     }
-
 };
-
 
 // Define how we project a state
 class RigidBodyStateProjectionEvaluator : public ob::ProjectionEvaluator
 {
 public:
-
     RigidBodyStateProjectionEvaluator(const ob::StateSpace *space) : ob::ProjectionEvaluator(space)
     {
     }
@@ -179,21 +171,19 @@ public:
         cellSizes_[2] = 1;
     }
 
-    void project(const ob::State *state, ob::EuclideanProjection &projection) const override
+    void project(const ob::State *state, Eigen::Ref<Eigen::VectorXd> projection) const override
     {
         const double *pos = state->as<oc::OpenDEStateSpace::StateType>()->getBodyPosition(0);
         projection[0] = pos[0];
         projection[1] = pos[1];
         projection[2] = pos[2];
     }
-
 };
 
 // Define our own space, to include a distance function we want and register a default projection
 class RigidBodyStateSpace : public oc::OpenDEStateSpace
 {
 public:
-
     RigidBodyStateSpace(const oc::OpenDEEnvironmentPtr &env) : oc::OpenDEStateSpace(env)
     {
     }
@@ -210,10 +200,8 @@ public:
 
     void registerProjections() override
     {
-        registerDefaultProjection(
-            std::make_shared<RigidBodyStateProjectionEvaluator>(this));
+        registerDefaultProjection(std::make_shared<RigidBodyStateProjectionEvaluator>(this));
     }
-
 };
 
 /// @endcond
@@ -229,7 +217,8 @@ int main(int /*argc*/, char ** /*argv*/)
     // create the state space and the control space for planning
     auto stateSpace = std::make_shared<RigidBodyStateSpace>(env);
 
-    // this will take care of setting a proper collision checker and the starting state for the planner as the initial OpenDE state
+    // this will take care of setting a proper collision checker and the starting state for the planner as the initial
+    // OpenDE state
     oc::OpenDESimpleSetup ss(stateSpace);
 
     // set the goal we would like to reach
@@ -255,13 +244,6 @@ int main(int /*argc*/, char ** /*argv*/)
 
     return 0;
 }
-
-
-
-
-
-
-
 
 /// @cond IGNORE
 
