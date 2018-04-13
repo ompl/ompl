@@ -480,6 +480,9 @@ class ompl_control_generator_t(code_generator_t):
         # the argument type (Grid::Cell) is protected
         self.ompl_ns.member_functions('computeImportance').exclude()
 
+        # this method requires ompl::Grid::Coord (aka Eigen::VectorXi) to be exported
+        self.ompl_ns.class_('KPIECE1').member_function('findNextMotion').exclude()
+
         # export pure virtual member functions, otherwise code doesn't compile
         syclop = self.ompl_ns.class_('Syclop')
         syclop.add_wrapper_code("""
