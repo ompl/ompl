@@ -38,6 +38,7 @@
 #define OMPL_GEOMETRIC_PATH_HYBRIDIZATION_
 
 #include "ompl/base/SpaceInformation.h"
+#include "ompl/base/OptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -71,12 +72,17 @@ namespace ompl
         public:
             /** \brief The constructor needs to know about the space information of the paths it will operate on */
             PathHybridization(base::SpaceInformationPtr si);
+
+            /** \brief This constructor also takes an alternative Optimization Objective to find lower costs for
+             *         arbitrary objectives. */
+            PathHybridization(base::SpaceInformationPtr si, base::OptimizationObjectivePtr obj);
+
             ~PathHybridization();
 
             /** \brief Get the currently computed hybrid path. computeHybridPath() needs to have been called before. */
             const base::PathPtr &getHybridPath() const;
 
-            /** \brief Run Dijkstra's algorithm to find out the shortest path among the mixed ones */
+            /** \brief Run Dijkstra's algorithm to find out the lowest-cost path among the mixed ones */
             void computeHybridPath();
 
             /** \brief Add a path to the hybridization. If \e matchAcrossGaps is true, more possible edge connections
@@ -125,7 +131,7 @@ namespace ompl
             struct PathInfo
             {
                 PathInfo(const base::PathPtr &path)
-                  : path_(path), states_(static_cast<PathGeometric *>(path.get())->getStates()), length_(0.0)
+                  : path_(path), states_(static_cast<PathGeometric *>(path.get())->getStates()), cost_(0.0)
                 {
                     vertices_.reserve(states_.size());
                 }
@@ -142,7 +148,7 @@ namespace ompl
 
                 base::PathPtr path_;
                 const std::vector<base::State *> &states_;
-                double length_;
+                double cost_;
                 std::vector<Vertex> vertices_;
             };
             /// @endcond
@@ -150,6 +156,7 @@ namespace ompl
             void attemptNewEdge(const PathInfo &p, const PathInfo &q, int indexP, int indexQ);
 
             base::SpaceInformationPtr si_;
+            base::OptimizationObjectivePtr obj_;
             HGraph g_;
             boost::property_map<HGraph, vertex_state_t>::type stateProperty_;
             Vertex root_;

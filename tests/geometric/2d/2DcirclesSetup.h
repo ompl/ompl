@@ -41,6 +41,7 @@
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
+#include "ompl/geometric/PathGeometric.h"
 
 #include "../../resources/config.h"
 #include "../../resources/circles2D.h"
@@ -83,7 +84,43 @@ namespace ompl
             return si;
         }
 
-
+        static std::vector<geometric::PathGeometric *> readPathsFromFile(const base::SpaceInformationPtr si, std::string filename)
+        {
+            std::vector<geometric::PathGeometric *> toReturn;
+            geometric::PathGeometric *path = new geometric::PathGeometric(si);
+            std::ifstream fin(filename.c_str());
+            // ignore the first two lines.
+            char dummy[4096];
+            fin.getline(dummy, sizeof(dummy));
+            fin.getline(dummy, sizeof(dummy));
+            std::string line;
+            while (getline(fin, line))
+            {
+                if (line.empty())
+                {
+                    // Add states to a path, add path, clear states.
+                    toReturn.push_back(path);
+                    path = new geometric::PathGeometric(si);
+                }
+                else
+                {
+                    std::istringstream tmp(line);
+                    double x, y;
+                    tmp >> x >> y;
+                    base::State* state = si->allocState();
+                    double* xy = state->as<base::RealVectorStateSpace::StateType>()->values;
+                    xy[0] = x;
+                    xy[1] = y;
+                    path->append(state);
+                }
+            }
+            if (path->getStateCount() != 0)
+            {
+                toReturn.push_back(path);
+            }
+            return toReturn;
+        }
+   
     }
 }
 

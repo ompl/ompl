@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl/geometric/PathHybridization.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <utility>
 
@@ -48,8 +49,18 @@ namespace ompl
 }
 
 ompl::geometric::PathHybridization::PathHybridization(base::SpaceInformationPtr si)
-  : si_(std::move(si)), stateProperty_(boost::get(vertex_state_t(), g_)), name_("PathHybridization")
+  : si_(std::move(si)), obj_(new base::PathLengthOptimizationObjective(si_)), stateProperty_(boost::get(vertex_state_t(), g_)), name_("PathHybridization")
 {
+    root_ = boost::add_vertex(g_);
+    stateProperty_[root_] = nullptr;
+    goal_ = boost::add_vertex(g_);
+    stateProperty_[goal_] = nullptr;
+}
+
+ompl::geometric::PathHybridization::PathHybridization(base::SpaceInformationPtr si, base::OptimizationObjectivePtr obj)
+  : si_(std::move(si)), obj_(std::move(obj)), stateProperty_(boost::get(vertex_state_t(), g_)), name_("PathHybridization")
+{
+    // TODO(brycew): See if we should add Opt Obj name to the hybrization name.
     root_ = boost::add_vertex(g_);
     stateProperty_[root_] = nullptr;
     goal_ = boost::add_vertex(g_);
@@ -75,9 +86,9 @@ void ompl::geometric::PathHybridization::print(std::ostream &out) const
     out << "Path hybridization is aware of " << paths_.size() << " paths" << std::endl;
     int i = 1;
     for (auto it = paths_.begin(); it != paths_.end(); ++it, ++i)
-        out << "  path " << i << " of length " << it->length_ << std::endl;
+        out << "  path " << i << " of cost " << it->cost_ << std::endl;
     if (hpath_)
-        out << "Hybridized path of length " << hpath_->length() << std::endl;
+        out << "Hybridized path of cost " << hpath_->cost(obj_) << std::endl;
 }
 
 const std::string &ompl::geometric::PathHybridization::getName() const
@@ -138,32 +149,32 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
     pi.vertices_.push_back(v0);
 
     // add all the vertices of the path, and the edges between them, to the HGraph
-    // also compute the path length for future use (just for computational savings)
+    // also compute the path cost for future use (just for computational savings)
     const HGraph::edge_property_type prop0(0.0);
     boost::add_edge(root_, v0, prop0, g_);
-    double length = 0.0;
+    double cost = 0.0;
     for (std::size_t j = 1; j < pi.states_.size(); ++j)
     {
         Vertex v1 = boost::add_vertex(g_);
         stateProperty_[v1] = pi.states_[j];
-        double weight = si_->distance(pi.states_[j - 1], pi.states_[j]);
+        double weight = obj_->motionCost(pi.states_[j - 1], pi.states_[j]).value();
         const HGraph::edge_property_type properties(weight);
         boost::add_edge(v0, v1, properties, g_);
-        length += weight;
+        cost += weight;
         pi.vertices_.push_back(v1);
         v0 = v1;
     }
 
     // connect to virtual goal
     boost::add_edge(v0, goal_, prop0, g_);
-    pi.length_ = length;
+    pi.cost_ = cost;
 
     // find matches with previously added paths
     for (const auto &path : paths_)
     {
         const auto *q = static_cast<const PathGeometric *>(path.path_.get());
         std::vector<int> indexP, indexQ;
-        matchPaths(*p, *q, (pi.length_ + path.length_) / (2.0 / magic::GAP_COST_FRACTION), indexP, indexQ);
+        matchPaths(*p, *q, (pi.cost_ + path.cost_) / (2.0 / magic::GAP_COST_FRACTION), indexP, indexQ);
 
         if (matchAcrossGaps)
         {
@@ -245,7 +256,7 @@ void ompl::geometric::PathHybridization::attemptNewEdge(const PathInfo &p, const
 {
     if (si_->checkMotion(p.states_[indexP], q.states_[indexQ]))
     {
-        double weight = si_->distance(p.states_[indexP], q.states_[indexQ]);
+        double weight = obj_->motionCost(p.states_[indexP], q.states_[indexQ]).value();
         const HGraph::edge_property_type properties(weight);
         boost::add_edge(p.vertices_[indexP], q.vertices_[indexQ], properties, g_);
     }
@@ -270,7 +281,7 @@ void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, cons
         {
             // as far as I can tell, there is a bug in the algorithm as presented in the paper
             // so I am doing things slightly differently ...
-            double match = si_->distance(p.getState(i), q.getState(j)) + ((i > 0 && j > 0) ? C[i - 1][j - 1] : 0.0);
+            double match = obj_->motionCost(p.getState(i), q.getState(j)).value() + ((i > 0 && j > 0) ? C[i - 1][j - 1] : 0.0);
             double up = gapCost + (i > 0 ? C[i - 1][j] : 0.0);
             double left = gapCost + (j > 0 ? C[i][j - 1] : 0.0);
             if (match <= up && match <= left)
