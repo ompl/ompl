@@ -58,6 +58,52 @@ namespace ompl
         OMPL_CLASS_FORWARD(ConstrainedSpaceInformation);
         /// @endcond
 
+        /** \brief Valid state sampler for constrained state spaces. */
+        class ConstrainedValidStateSampler : public ValidStateSampler
+        {
+        public:
+            /** \brief Constructor. Create a valid state sampler for a
+             * constrained state space. */
+            ConstrainedValidStateSampler(const SpaceInformation *si)
+              : ValidStateSampler(si)
+              , sampler_(si->getStateSpace()->allocStateSampler())
+              , constraint_(si->getStateSpace()->as<ompl::base::ConstrainedStateSpace>()->getConstraint())
+            {
+            }
+
+            bool sample(State *state)
+            {
+                // Rejection sample for at most attempts_ tries.
+                unsigned int tries = 0;
+                bool valid;
+
+                do
+                    sampler_->sampleUniform(state);
+                while (!(valid = si_->isValid(state) && constraint_->isSatisfied(state)) && ++tries < attempts_);
+
+                return valid;
+            }
+
+            bool sampleNear(State *state, const State *near, const double distance)
+            {
+                // Rejection sample for at most attempts_ tries.
+                unsigned int tries = 0;
+                bool valid;
+                do
+                    sampler_->sampleUniformNear(state, near, distance);
+                while (!(valid = si_->isValid(state) && constraint_->isSatisfied(state)) && ++tries < attempts_);
+
+                return valid;
+            }
+
+        private:
+            /** \brief Underlying constrained state sampler. */
+            StateSamplerPtr sampler_;
+
+            /** \brief Constraint function. */
+            const ConstraintPtr constraint_;
+        };
+
         /** \brief Space information for a constrained state space. Implements
          * more direct for getting motion states. */
         class ConstrainedSpaceInformation : public SpaceInformation
@@ -67,6 +113,9 @@ namespace ompl
             ConstrainedSpaceInformation(StateSpacePtr space) : SpaceInformation(std::move(space))
             {
                 stateSpace_->as<ConstrainedStateSpace>()->setSpaceInformation(this);
+                setValidStateSamplerAllocator([](const SpaceInformation *si) -> std::shared_ptr<ValidStateSampler> {
+                    return std::make_shared<ConstrainedValidStateSampler>(si);
+                });
             }
 
             /** \brief Get \e count states that make up a motion between \e s1
