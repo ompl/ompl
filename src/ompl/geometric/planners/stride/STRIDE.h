@@ -270,10 +270,10 @@ namespace ompl
             double projectedDistanceFunction(const Motion *a, const Motion *b) const
             {
                 unsigned int num_dims = projectionEvaluator_->getDimension();
-                ompl::base::EuclideanProjection aproj(num_dims), bproj(num_dims);
+                Eigen::VectorXd aproj(num_dims), bproj(num_dims);
                 projectionEvaluator_->project(a->state, aproj);
                 projectionEvaluator_->project(b->state, bproj);
-                return boost::numeric::ublas::norm_2(aproj - bproj);
+                return (aproj - bproj).norm();
             }
 
             /** \brief Add a motion to the exploration tree */
@@ -321,7 +321,7 @@ namespace ompl
             /** \brief The random number generator */
             RNG rng_;
         };
-    }
-}
+    }  // namespace geometric
+}  // namespace ompl
 
 #endif

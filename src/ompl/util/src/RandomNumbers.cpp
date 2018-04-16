@@ -1,41 +1,38 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2008, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2008, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan, Jonathan Gammell*/
-
-// Enable the use of shallow_array_adaptor to create a uBLAS-vector-view of C-style array without copying data
-#define BOOST_UBLAS_SHALLOW_ARRAY_ADAPTOR
 
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/Exception.h"
@@ -46,8 +43,7 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/random/uniform_on_sphere.hpp>
 #include <boost/random/variate_generator.hpp>
-// For boost::numeric::ublas::shallow_array_adaptor:
-#include <boost/numeric/ublas/vector.hpp>
+#include <Eigen/Core>
 
 /// @cond IGNORE
 namespace
@@ -60,7 +56,8 @@ namespace
     public:
         RNGSeedGenerator()
           : firstSeed_(std::chrono::duration_cast<std::chrono::microseconds>(
-                           std::chrono::system_clock::now() - std::chrono::system_clock::time_point::min()).count())
+                           std::chrono::system_clock::now() - std::chrono::system_clock::time_point::min())
+                           .count())
           , sGen_(firstSeed_)
           , sDist_(1, 1000000000)
         {
@@ -136,8 +133,8 @@ namespace
 class ompl::RNG::SphericalData
 {
 public:
-    /** \brief The container type for the variate generators. Allows for a vector "view" of an underlying array. */
-    using container_type_t = boost::numeric::ublas::shallow_array_adaptor<double>;
+    /** \brief The container type for the variate generators. */
+    using container_type_t = std::vector<double>;
 
     /** \brief The uniform_on_sphere distribution type. */
     using spherical_dist_t = boost::uniform_on_sphere<double, container_type_t>;
@@ -166,15 +163,11 @@ public:
     {
         // Iterate over each dimension
         for (auto &i : dimVector_)
-        {
             // Check if the variate_generator is allocated
             if (bool(i.first))
-            {
                 // It is, reset THE DATA (not the pointer)
                 i.first->reset();
-            }
-            // No else, this is an uninitialized dimension.
-        }
+        // No else, this is an uninitialized dimension.
     };
 
 private:
@@ -192,10 +185,8 @@ private:
     {
         // Iterate until the index associated with this dimension is in the vector
         while (dim >= dimVector_.size())
-        {
             // Create a pair of empty pointers:
             dimVector_.emplace_back();
-        }
     };
 
     /** \brief Assure that a distribution/generator is allocated for the specified index. */
@@ -233,9 +224,7 @@ ompl::RNG::RNG()
 }
 
 ompl::RNG::RNG(std::uint_fast32_t localSeed)
-  : localSeed_(localSeed)
-  , generator_(localSeed_)
-  , sphericalDataPtr_(std::make_shared<SphericalData>(&generator_))
+  : localSeed_(localSeed), generator_(localSeed_), sphericalDataPtr_(std::make_shared<SphericalData>(&generator_))
 {
 }
 
@@ -296,30 +285,24 @@ void ompl::RNG::eulerRPY(double value[3])
     value[2] = boost::math::constants::pi<double>() * (-2.0 * uniDist_(generator_) + 1.0);
 }
 
-void ompl::RNG::uniformNormalVector(unsigned int n, double value[])
+void ompl::RNG::uniformNormalVector(std::vector<double> &v)
 {
-    // Create a uBLAS-vector-view of the C-style array without copying data
-    SphericalData::container_type_t rVector(n, value);
-
     // Generate a random value, the variate_generator is returning a shallow_array_adaptor, which will modify the value
     // array:
-    rVector = sphericalDataPtr_->generate(n);
+    v = sphericalDataPtr_->generate(v.size());
 }
 
 // See: http://math.stackexchange.com/a/87238
-void ompl::RNG::uniformInBall(double r, unsigned int n, double value[])
+void ompl::RNG::uniformInBall(double r, std::vector<double> &v)
 {
     // Draw a random point on the unit sphere
-    uniformNormalVector(n, value);
+    uniformNormalVector(v);
 
     // Draw a random radius scale
-    double radiusScale = r * std::pow(uniformReal(0.0, 1.0), 1.0 / static_cast<double>(n));
+    double radiusScale = r * std::pow(uniformReal(0.0, 1.0), 1.0 / static_cast<double>(v.size()));
 
     // Scale the point on the unit sphere
-    for (unsigned int i = 0u; i < n; ++i)
-    {
-        value[i] *= radiusScale;
-    }
+    std::transform(v.begin(), v.end(), v.begin(), [radiusScale](double x) { return radiusScale * x; });
 }
 
 void ompl::RNG::uniformProlateHyperspheroidSurface(const std::shared_ptr<const ProlateHyperspheroid> &phsPtr,
@@ -330,7 +313,7 @@ void ompl::RNG::uniformProlateHyperspheroidSurface(const std::shared_ptr<const P
     std::vector<double> sphere(phsPtr->getDimension());
 
     // Get a random point on the sphere
-    uniformNormalVector(phsPtr->getDimension(), &sphere[0]);
+    uniformNormalVector(sphere);
 
     // Transform to the PHS
     phsPtr->transform(&sphere[0], value);
@@ -343,7 +326,7 @@ void ompl::RNG::uniformProlateHyperspheroid(const std::shared_ptr<const ProlateH
     std::vector<double> sphere(phsPtr->getDimension());
 
     // Get a random point in the sphere
-    uniformInBall(1.0, phsPtr->getDimension(), &sphere[0]);
+    uniformInBall(1.0, sphere);
 
     // Transform to the PHS
     phsPtr->transform(&sphere[0], value);

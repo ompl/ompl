@@ -38,6 +38,8 @@ endif (NOT PYTHON_EXEC)
 if (NOT PYTHON_EXEC)
     find_program(PYTHON_EXEC "python${Python_FIND_VERSION}"
         PATHS
+        [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.6\\InstallPath]
+        [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.5\\InstallPath]
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.4\\InstallPath]
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.3\\InstallPath]
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Python\\PythonCore\\3.2\\InstallPath]
@@ -55,6 +57,11 @@ if (NOT PYTHON_EXEC)
     function(find_python_module module)
         return()
     endfunction(find_python_module)
+
+    macro(find_boost_python)
+        # do nothing
+    endmacro(find_boost_python)
+
     return()
 endif()
 
@@ -172,6 +179,7 @@ macro(find_boost_python)
     if (PYTHON_FOUND)
         foreach(_bp_libname
             "python-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}"
+            "python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}"
             "python${PYTHON_VERSION_MAJOR}" "python")
             string(TOUPPER ${_bp_libname} _bp_upper)
             set(_Boost_${_bp_upper}_HEADERS "boost/python.hpp")
@@ -184,6 +192,26 @@ macro(find_boost_python)
         endforeach()
     endif()
 endmacro(find_boost_python)
+
+# macro to attempt to find the *correct* Boost.Numpy library (i.e., the
+# one that matches the version number of the python interpreter that was
+# found).
+macro(find_boost_numpy)
+    if (PYTHON_FOUND)
+        foreach(_bn_libname
+            "numpy${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}"
+            "numpy${PYTHON_VERSION_MAJOR}" "numpy")
+            string(TOUPPER ${_bn_libname} _bn_upper)
+            set(_Boost_${_bn_upper}_HEADERS "boost/numpy.hpp")
+            find_package(Boost COMPONENTS ${_bn_libname} QUIET)
+            set(_bnlib "${Boost_${_bn_upper}_LIBRARY}")
+            if (_bnlib)
+                set(Boost_NUMPY_LIBRARY "${_bnlib}")
+                break()
+            endif()
+        endforeach()
+    endif()
+endmacro(find_boost_numpy)
 
 set(PYTHON_ARCH "unknown")
 if(APPLE)

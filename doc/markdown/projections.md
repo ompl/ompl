@@ -1,8 +1,8 @@
 # Use of Projections in OMPL
 
-Most planning algorithms use a data structure (in addition to the tree/graph of motions) for guiding the exploration of the space. In many cases, this data structure is in the form of a discretization of the state space. For practical purposes, discretizing the state space itself is not feasible, due to its high dimensionality. An approach taken by many algorithms is to use projections from the state space to a low dimensional Euclidean space (R<sup>k</sup>, k usually around 2 or 3), and discretize that Euclidean space instead. This includes algorithms such as ompl::geometric::EST, ompl::geometric::SBL, ompl::geometric::KPIECE1. This projection can also be thought of as a hash function that maps states to cells in a low dimensional Euclidean space.
+Most planning algorithms use a data structure (in addition to the tree/graph of motions) for guiding the exploration of the space. In many cases, this data structure is in the form of a discretization of the state space. For practical purposes, discretizing the state space itself is not feasible, due to its high dimensionality. An approach taken by many algorithms is to use projections from the state space to a low dimensional Euclidean space (R<sup>k</sup>, k usually around 2 or 3), and discretize that Euclidean space instead. This includes algorithms such as ompl::geometric::ProjEST, ompl::geometric::SBL, ompl::geometric::KPIECE1. This projection can also be thought of as a hash function that maps states to cells in a low dimensional Euclidean space.
 
-To support this notion of projections, OMPL includes ompl::base::ProjectionEvaluator. This is an abstract class whose main operation is ompl::base::ProjectionEvaluator::project(), which takes a ompl::base::State* and produces a ompl::base::EuclideanProjection (this is a representation of an array of real numbers).
+To support this notion of projections, OMPL includes ompl::base::ProjectionEvaluator. This is an abstract class whose main operation is ompl::base::ProjectionEvaluator::project(), which takes a ompl::base::State* and produces an Eigen::VectorXd (this is a representation of a vector of real numbers).
 
 ompl::base::ProjectionEvaluator also includes utilities for discretizing the projected space (the low dimensional, Euclidean one). In particular, grids can be implicitly imposed on the projection space by setting cell sizes (a real value for each dimension of the Euclidean space), using ompl::base::ProjectionEvaluator::setCellSizes(). The coordinates in the grid that correspond to a specific projection can be computed using ompl::base::ProjectionEvaluator::computeCoordinates(). If the sizes of cells for the grid have not been set, ompl::base::ProjectionEvaluator::setup() uses sampling to identify sizes such that each dimension of the projection space is split into roughly 20 parts. This is merely a default and the user is encouraged to set desired cell sizes.
 
@@ -33,7 +33,7 @@ virtual void defaultCellSizes(void)
     cellSizes_[1] = 0.25;
 }
 
-virtual void project(const base::State *state, base::EuclideanProjection &projection) const
+virtual void project(const base::State *state, Eigen::Ref<Eigen::VectorXd> projection) const
 {
     const double *values = state->as<base::RealVectorStateSpace::StateType>()->values;
     projection(0) = (values[0] + values[1]) / 2.0;

@@ -32,7 +32,7 @@ install_python_binding_dependencies()
 {
     sudo apt-get -y install python${PYTHONV}-dev python${PYTHONV}-pip
     # install additional python dependencies via pip
-    sudo -H pip${PYTHONV} install -vU pygccxml https://bitbucket.org/ompl/pyplusplus/get/1.8.0.tar.gz
+    sudo -H pip${PYTHONV} install -vU pygccxml pyplusplus
     # install castxml
     if [[ $ubuntu_version > 1410 ]]; then
         sudo apt-get -y install castxml
@@ -82,7 +82,7 @@ install_ompl()
     cd $OMPL-@OMPL_VERSION@-Source
     mkdir -p build/Release
     cd build/Release
-    cmake ../..
+    cmake ../.. -DPYTHON_EXEC=/usr/bin/python${PYTHONV}
     if [ ! -z $1 ]; then
         make update_bindings
     fi

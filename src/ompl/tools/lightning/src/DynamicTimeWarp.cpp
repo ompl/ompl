@@ -48,7 +48,7 @@ namespace  // anonymous
     {
         return std::min(n1, std::min(n2, n3));
     }
-}
+}  // namespace
 
 ompl::tools::DynamicTimeWarp::DynamicTimeWarp(base::SpaceInformationPtr si) : si_(std::move(si)), table_(1, 1)
 {
@@ -61,12 +61,12 @@ double ompl::tools::DynamicTimeWarp::calcDTWDistance(const og::PathGeometric &pa
     // Get lengths
     std::size_t n = path1.getStateCount();
     std::size_t m = path2.getStateCount();
-    std::size_t nrows = table_.size1(), ncols = table_.size2();
+    std::size_t nrows = table_.rows(), ncols = table_.cols();
 
     // Intialize table
     if (nrows <= n || ncols <= m)
     {
-        table_.resize(n + 1, m + 1, false);
+        table_.resize(n + 1, m + 1);
         for (std::size_t i = nrows; i <= n; ++i)
             table_(i, 0) = std::numeric_limits<double>::infinity();
         for (std::size_t i = ncols; i <= m; ++i)

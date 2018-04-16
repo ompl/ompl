@@ -23,6 +23,7 @@ set(CPACK_COMPONENT_OMPL_REQUIRED TRUE)
 
 set(CPACK_SOURCE_IGNORE_FILES
     "/.hg"
+    "/.vscode"
     "/build/"
     ".pyc$"
     ".pyo$"
