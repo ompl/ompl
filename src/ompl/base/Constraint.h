@@ -84,10 +84,10 @@ namespace ompl
             \f]
             \a ambientDim will be 3, and \a coDim will be 1.
             */
-            Constraint(const unsigned int ambientDim, const unsigned int coDim)
+            Constraint(const unsigned int ambientDim, const unsigned int coDim, double tolerance = magic::CONSTRAINT_PROJECTION_TOLERANCE)
               : n_(ambientDim)
               , k_(ambientDim - coDim)
-              , tolerance_(magic::CONSTRAINT_PROJECTION_TOLERANCE)
+              , tolerance_(tolerance)
               , maxIterations_(magic::CONSTRAINT_PROJECTION_MAX_ITERATIONS)
             {
                 if (n_ <= 0 || k_ <= 0)

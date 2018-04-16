@@ -30,15 +30,18 @@ However, this assumption prevents the `ompl::base::CompoundStateSpace` from bein
 
 In general, your constraint function should be a _continuous_ and _differentiable_ function of the robot's state. Singularities in the constraint function can cause bad behavior by the underlying constraint satisfaction methods. `ompl::base::AtlasStateSpace` and `ompl::base::TangentBundleStateSpace` both will treat singularities as obstacles in the planning process.
 
+### Required Interpolation
+
+If you want a path that satisfies constraints _and_ is potentially executable by a real system, you will want to interpolate whatever path (simplified or un-simplified) you find.
+This can be done by simply calling `ompl::geometric::PathGeometric::interpolate()`.
+The interpolated path will be constraint satisfying, as the interpolate routine uses the primitives afforded by the constrained state space.
+However, there can potentially be issues at this step, as interpolation can fail.
+
 ### Interpolation Failures
 
 Currently, each of the constrained state spaces implements interpolation on the constraint submanifold via computing a _discrete geodesic_ between the two query points. The discrete geodesic is a sequence of close (to approximate continuity), constraint satisfying states between two query points. The distance between each point in the discrete geodesic is tuned by the "delta" parameter in `ompl::base::ConstrainedStateSpace::setDelta()`. How this discrete geodesic is computed is key to how constrained state space operates, as it is used ubiquitously throughout the code (e.g., interpolation, collision checking, motion validation, and others).
 
-Due to the nature of how these routines are implemented, it is possible for computation of the discrete geodesic to _fail_, thus causing potentially unexpected results from whatever overlying routine requested a discrete geodesic. These failures can be the result of singularities in the constraint, high curvature of the submanifold, and various other issues. However, interpolation in "regular" state spaces does not generally fail as they are analytic, such as linear interpolation in `ompl::base::RealVectorStateSpace`; hence, `ompl::base::StateStace::interpolate` is assumed to always be successful. As a result, some unexpected behavior can be seen if interpolation fails during planning with a constrained state space. Increasing or decreasing the "delta" parameter in `ompl::base::ConstrainedStateSpace`, increasing or decreasing the constraint satisfaction tolerance, and other hyperparameter tuning can fix these problems.
-
-#### Path Continuity
-
-On the topic of interpolation, if you want a path that satisfies constraints _and_ is potentially executable by a real system, you will want to interpolate whatever path (simplified or un-simplified) you find.
+Due to the nature of how these routines are implemented, it is possible for computation of the discrete geodesic to _fail_, thus causing potentially unexpected results from whatever overlying routine requested a discrete geodesic. These failures can be the result of singularities in the constraint, high curvature of the submanifold, and various other issues. However, interpolation in "regular" state spaces does not generally fail as they are analytic, such as linear interpolation in `ompl::base::RealVectorStateSpace`; hence, `ompl::base::StateStace::interpolate()` is assumed to always be successful. As a result, some unexpected behavior can be seen if interpolation fails during planning with a constrained state space. Increasing or decreasing the "delta" parameter in `ompl::base::ConstrainedStateSpace`, increasing or decreasing the constraint satisfaction tolerance, and other hyperparameter tuning can fix these problems.
 
 ### Hyperparameter Sensitivity
 
@@ -51,6 +54,17 @@ The constrained state spaces, in general, are sensitive to the tuning of their v
 - Generally, the step size for manifold traversal is related to the relative _curvature_ of the underlying constraint submanifold. Less curvy submanifolds can permit larger step sizes (i.e., if the constraint defines a hyperplane, you can use a large step size). Play around with this value if speed is a concern, as the larger the step size is, the less time is spent traversing the manifold.
 - For the atlas- and tangent bundle-based spaces, planners that rely on uniform sampling of the space may require a high exploration parameter so the constraint submanifold becomes covered quicker (e.g., BIT*). Additionally, planners that rely on `ompl::base::StateSampler::samplerNear()` may also require a high exploration or \f$\rho\f$ parameter in order to expand effectively.
 - And many others! In general, the projection-based space is less sensitive to poor parameter tuning than atlas- or tangent bundle-based space, and as such is a good starting point to validate whether a constrained planning problem is feasible.
+
+## Additional Notes
+
+### Constraint Projection versus Projection Evaluator
+
+You might notice that within OMPL there exists `ompl::base::ProjectionEvaluator`, which has a method `ompl::base::ProjectionEvaluator::project()`.
+This method is used by a few planners to estimate the coverage of the free space (see [this tutorial for more information](projections.html)), as it is a "projection" into a lower-dimensional space.
+Although similar sounding, this concept is orthogonal to the concept of projection as used in `ompl::base::Constraint`, which projects states into the lower-dimensional constraint manifold.
+In fact, one can use planners that use a `ompl::base::ProjectionEvaluator` (e.g., `ompl::geometric::KPIECE1`, `ompl::geometric::ProjEST`) in tandem with the constrained planning framework.
+Each of the constrained planning demos has an example of a projection evaluator that can be used with constrained planning (e.g., `SphereProjection`, in [ConstrainedPlanningSphere](ConstrainedPlanningSphere_8cpp_source.html)).
+
 
 ## Want to learn more?
 
