@@ -284,7 +284,7 @@ public:
         double time = 0.0;
         double length = 0.0;
         int good = 0;
-        int N = 100;
+        int N = 10;
 
         for (int i = 0; i < N; ++i)
             if (p->testSphereEnv(type, &time, &length))
@@ -317,7 +317,7 @@ public:
         runSphereTest(p, N, &success, &avgruntime, &avglength);
         BOOST_CHECK(success >= min_success);
         BOOST_CHECK(avgruntime < max_avgtime);
-        BOOST_CHECK(avglength < 7.0);
+        BOOST_CHECK(avglength < 8.0);
 
         delete p;
     }
