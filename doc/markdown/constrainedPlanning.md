@@ -59,10 +59,17 @@ The constrained state spaces, in general, are sensitive to the tuning of their v
 
 ### Constraint Projection versus Projection Evaluator
 
-You might notice that within OMPL there exists `ompl::base::ProjectionEvaluator`, which has a method `ompl::base::ProjectionEvaluator::project()`.
+Within `ompl::base::Constraint`, there is a projection function `ompl::base::Constraint::project()` which maps a potentially constraint unsatisfying configuration to the constraint manifold.
+By default, `ompl::base::Constraint::project()` implements a Newton's method which performs well in most circumstances.
+Note that it is possible to override this method with your own projection routine, e.g., inverse kinematics.
+
+You might notice that there also exists `ompl::base::ProjectionEvaluator::project()`
 This method is used by a few planners to estimate the coverage of the free space (see [this tutorial for more information](projections.html)), as it is a "projection" into a lower-dimensional space.
 Although similar sounding, this concept is orthogonal to the concept of projection as used in `ompl::base::Constraint`, which projects states into the lower-dimensional constraint manifold.
 In fact, one can use planners that use a `ompl::base::ProjectionEvaluator` (e.g., `ompl::geometric::KPIECE1`, `ompl::geometric::ProjEST`) in tandem with the constrained planning framework.
+
+By default, the constrained state spaces will use `ompl::base::WrapperProjectionEvaluator` to access the underlying state space's default projection evaluator.
+However, if you know anything about the structure of you problem, you should implement your own projection evaluator for performance.
 Each of the constrained planning demos has an example of a projection evaluator that can be used with constrained planning (e.g., `SphereProjection`, in [ConstrainedPlanningSphere](ConstrainedPlanningSphere_8cpp_source.html)).
 
 
