@@ -45,8 +45,12 @@ namespace ompl
 {
     namespace base
     {
-        /** \brief A state sampler that wraps around another state sampler.
-         */
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::WrapperStateSpace */
+        OMPL_CLASS_FORWARD(WrapperStateSpace);
+        /// @endcond
+
+        /** \brief A state sampler that wraps around another state sampler. */
         class WrapperStateSampler : public StateSampler
         {
         public:
@@ -69,6 +73,24 @@ namespace ompl
         protected:
             /** \brief Underlying state sampler. */
             StateSamplerPtr sampler_;
+        };
+
+        /** \brief A projection evaluator that wraps around another projection
+         * evaluator. */
+        class WrapperProjectionEvaluator : public ProjectionEvaluator
+        {
+        public:
+            WrapperProjectionEvaluator(const WrapperStateSpace *space);
+
+            void setup() override;
+
+            unsigned int getDimension() const override;
+
+            void project(const State *state, Eigen::Ref<Eigen::VectorXd> projection) const override;
+
+        private:
+            /** \brief Projection from wrapped space. */
+            ProjectionEvaluatorPtr projection_;
         };
 
         /** \brief State space wrapper that transparently passes state space
@@ -247,13 +269,6 @@ namespace ompl
             void copyState(State *destination, const State *source) const override
             {
                 space_->copyState(destination->as<StateType>()->getState(), source->as<StateType>()->getState());
-            }
-
-            State *cloneState(const State *source) const
-            {
-                auto *clone = allocState()->as<StateType>();
-                copyState(clone, source);
-                return clone;
             }
 
             double distance(const State *state1, const State *state2) const override

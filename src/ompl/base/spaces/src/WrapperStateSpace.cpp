@@ -53,6 +53,27 @@ void ompl::base::WrapperStateSampler::sampleGaussian(State *state, const State *
                              mean->as<ompl::base::WrapperStateSpace::StateType>()->getState(), stdDev);
 }
 
+ompl::base::WrapperProjectionEvaluator::WrapperProjectionEvaluator(const ompl::base::WrapperStateSpace *space)
+  : ompl::base::ProjectionEvaluator(space), projection_(space->getSpace()->getDefaultProjection())
+{
+}
+
+void ompl::base::WrapperProjectionEvaluator::setup()
+{
+    cellSizes_ = projection_->getCellSizes();
+    ProjectionEvaluator::setup();
+}
+
+unsigned int ompl::base::WrapperProjectionEvaluator::getDimension() const
+{
+    return projection_->getDimension();
+}
+
+void ompl::base::WrapperProjectionEvaluator::project(const State *state, Eigen::Ref<Eigen::VectorXd> projection) const
+{
+    projection_->project(state->as<ompl::base::WrapperStateSpace::StateType>()->getState(), projection);
+}
+
 void ompl::base::WrapperStateSpace::setup()
 {
     space_->setup();
@@ -66,4 +87,6 @@ void ompl::base::WrapperStateSpace::setup()
     valueLocationsInOrder_ = space_->getValueLocations();
     valueLocationsByName_ = space_->getValueLocationsByName();
     substateLocationsByName_ = space_->getSubstateLocationsByName();
+
+    registerDefaultProjection(std::make_shared<WrapperProjectionEvaluator>(this));
 }
