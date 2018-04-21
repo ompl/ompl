@@ -71,7 +71,7 @@ namespace ompl
             {
             }
 
-            bool sample(State *state)
+            bool sample(State *state) override
             {
                 // Rejection sample for at most attempts_ tries.
                 unsigned int tries = 0;
@@ -84,7 +84,7 @@ namespace ompl
                 return valid;
             }
 
-            bool sampleNear(State *state, const State *near, const double distance)
+            bool sampleNear(State *state, const State *near, double distance) override
             {
                 // Rejection sample for at most attempts_ tries.
                 unsigned int tries = 0;
