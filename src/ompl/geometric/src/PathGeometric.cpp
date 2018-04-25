@@ -332,7 +332,7 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount)
         base::State *s1 = states_[i];
         base::State *s2 = states_[i + 1];
 
-        newStates.push_back(s1);
+        newStates.push_back(si_->cloneState(s1));
 
         // the maximum number of states that can be added on the current motion (without its endpoints)
         // such that we can at least fit the remaining states
@@ -357,12 +357,6 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount)
                 // compute intermediate states
                 std::vector<base::State *> block;
                 si_->getMotionStates(s1, s2, block, ns, false, true);
-                //unsigned int ans = si_->getMotionStates(s1, s2, block, ns, false, true);
-                // sanity checks
-                // if ((int)ans != ns || block.size() != ans)
-                //     throw Exception("Internal error in path interpolation. Incorrect number of intermediate states. "
-                //                     "Please contact the developers.");
-
                 newStates.insert(newStates.end(), block.begin(), block.end());
             }
             else
@@ -377,11 +371,11 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount)
     }
 
     // add the last state
-    newStates.push_back(states_[n1]);
+    newStates.push_back(si_->cloneState(states_[n1]));
     states_.swap(newStates);
-    // if (requestCount != states_.size())
-    //     throw Exception("Internal error in path interpolation. This should never happen. Please contact the "
-    //                     "developers.");
+
+    for (auto &state : newStates)
+        si_->freeState(state);
 }
 
 void ompl::geometric::PathGeometric::reverse()
