@@ -428,8 +428,9 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
             unsigned int times = 0;
             do
             {
-                bool shortcut = shortcutPath(path);                           // split path segments, not just vertices
-                bool better_goal = gsr_ ? findBetterGoal(path, ptc) : false;  // Try to connect the path to a closer goal
+                bool shortcut = shortcutPath(path);  // split path segments, not just vertices
+                bool better_goal =
+                    gsr_ ? findBetterGoal(path, ptc) : false;  // Try to connect the path to a closer goal
 
                 metricTryMore = shortcut || better_goal;
             } while (ptc == false && metricTryMore && ++times <= 5);
@@ -442,10 +443,11 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
             if (!p.second)
                 OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
             else if (!p.first)
-                OMPL_DEBUG("The solution path was slightly touching on an invalid region of the state space, but it was "
-                           "successfully fixed.");
+                OMPL_DEBUG(
+                    "The solution path was slightly touching on an invalid region of the state space, but it was "
+                    "successfully fixed.");
         }
-        
+
         tryMore = reduceVertices(path);
 
         // try to collapse close-by vertices
@@ -457,6 +459,8 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
             tryMore = reduceVertices(path);
     }
 }
+
+/* Old Simplification Code
 void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc)
 {
     if (path.getStateCount() < 3)
@@ -502,6 +506,7 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
                        "successfully fixed.");
     }
 }
+*/
 
 bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, double maxTime, unsigned int samplingAttempts,
                                                      double rangeRatio, double snapToVertex)
