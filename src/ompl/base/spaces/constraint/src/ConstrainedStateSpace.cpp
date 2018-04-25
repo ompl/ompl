@@ -288,7 +288,7 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::geodesicInterpolate(const 
                                                                           const double t) const
 {
     unsigned int n = geodesic.size();
-    double *d = new double[n];
+    double d[n];
 
     // Compute partial sums of distances between intermediate states.
     d[0] = 0.;
@@ -311,6 +311,4 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::geodesicInterpolate(const 
 
         return (t1 < t2) ? geodesic[i] : geodesic[i + 1];
     }
-
-    delete[] d;
 }
