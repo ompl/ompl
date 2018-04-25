@@ -65,7 +65,7 @@ void ompl::base::MorseProjection::defaultCellSizes()
     }
 }
 
-void ompl::base::MorseProjection::project(const State *state, EuclideanProjection &projection) const
+void ompl::base::MorseProjection::project(const State *state, Eigen::Ref<Eigen::VectorXd> projection) const
 {
     // this projection uses the x and y coordinates of every rigid body
     const MorseStateSpace::StateType *mstate = state->as<MorseStateSpace::StateType>();
