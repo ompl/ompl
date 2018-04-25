@@ -60,197 +60,148 @@ namespace ompl
 
         /** \brief This class contains routines that attempt to simplify geometric paths.
 
-            Some of these are in fact routines that shorten the path, and do not
-            necessarily make it smoother. */
+            Some of these are in fact routines that shorten the path, and do not necessarily make it smoother. */
         class PathSimplifier
         {
         public:
-            /** \brief Create an instance for a specified space information.
-            Optionally, a GoalSampleableRegion may be passed in to attempt
-            improvements at the end of the path as well. */
+            /** \brief Create an instance for a specified space information. Optionally, a GoalSampleableRegion may be
+            passed in to attempt improvements at the end of the path as well. */
             PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr &goal = ompl::base::GoalPtr());
 
             virtual ~PathSimplifier() = default;
 
-            /** \brief Given a path, attempt to remove vertices from
-                it while keeping the path valid. This is an iterative
-                process that attempts to do "short-cutting" on the
-                path.  Connection is attempted between non-consecutive
-                way-points on the path. If the connection is
-                successful, the path is shortened by removing the
-                in-between way-points. This function returns true if
-                changes were made to the path.
+            /** \brief Given a path, attempt to remove vertices from it while keeping the path valid. This is an
+                iterative process that attempts to do "short-cutting" on the path. Connection is attempted between
+                non-consecutive way-points on the path. If the connection is successful, the path is shortened by
+                removing the in-between way-points. This function returns true if changes were made to the path.
 
                 \param path the path to reduce vertices from
 
-                \param maxSteps the maximum number of attempts to
-                "short-cut" the path.  If this value is set to 0 (the
-                default), the number of attempts made is equal to the
-                number of states in \e path.
+                \param maxSteps the maximum number of attempts to "short-cut" the path. If this value is set to 0 (the
+                default), the number of attempts made is equal to the number of states in \e path.
 
-                \param maxEmptySteps not all iterations of this function
-                produce a simplification. If an iteration does not
-                produce a simplification, it is called an empty
-                step. \e maxEmptySteps denotes the maximum number of
-                consecutive empty steps before the simplification
-                process terminates. If this value is set to 0 (the
-                default), the number of attempts made is equal to the
-                number of states in \e path.
+                \param maxEmptySteps not all iterations of this function produce a simplification. If an iteration does
+                not produce a simplification, it is called an empty step. \e maxEmptySteps denotes the maximum number of
+                consecutive empty steps before the simplification process terminates. If this value is set to 0 (the
+                default), the number of attempts made is equal to the number of states in \e path.
 
-                \param rangeRatio the maximum distance between states
-                a connection is attempted, as a fraction relative to
-                the total number of states (between 0 and 1).
+                \param rangeRatio the maximum distance between states a connection is attempted, as a fraction relative
+                to the total number of states (between 0 and 1).
 
             */
             bool reduceVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0,
                                 double rangeRatio = 0.33);
 
-            /** \brief Given a path, attempt to shorten it while
-                maintaining its validity. This is an iterative process
-                that attempts to do "short-cutting" on the path.
-                Connection is attempted between random points along
-                the path segments. Unlike the reduceVertices()
-                function, this function does not sample only vertices
-                produced by the planner, but intermediate points on
-                the path. If the connection is successful, the path is
-                shortened by removing the in-between states (and new
-                vertices are created when needed). This function returns
-                true if changes were made to the path.
+            /** \brief Given a path, attempt to shorten it while maintaining its validity. This is an iterative process
+                that attempts to do "short-cutting" on the path. Connection is attempted between random points along the
+                path segments. Unlike the reduceVertices() function, this function does not sample only vertices
+                produced by the planner, but intermediate points on the path. If the connection is successful, the path
+                is shortened by removing the in-between states (and new vertices are created when needed). This function
+                returns true if changes were made to the path.
 
                 \param path the path to reduce vertices from
 
-                \param maxSteps the maximum number of attempts to
-                "short-cut" the path.  If this value is set to 0 (the
-                default), the number of attempts made is equal to the
-                number of states in \e path.
+                \param maxSteps the maximum number of attempts to "short-cut" the path. If this value is set to 0 (the
+                default), the number of attempts made is equal to the number of states in \e path.
 
-                \param maxEmptySteps not all iterations of this function
-                produce a simplification. If an iteration does not
-                produce a simplification, it is called an empty
-                step. \e maxEmptySteps denotes the maximum number of
-                consecutive empty steps before the simplification
-                process terminates. If this value is set to 0 (the
-                default), the number of attempts made is equal to the
-                number of states in \e path.
+                \param maxEmptySteps not all iterations of this function produce a simplification. If an iteration does
+                not produce a simplification, it is called an empty step. \e maxEmptySteps denotes the maximum number of
+                consecutive empty steps before the simplification process terminates. If this value is set to 0 (the
+                default), the number of attempts made is equal to the number of states in \e path.
 
-                \param rangeRatio the maximum distance between states
-                a connection is attempted, as a fraction relative to
-                the total length of the path (between 0 and 1).
+                \param rangeRatio the maximum distance between states a connection is attempted, as a fraction relative
+                to the total length of the path (between 0 and 1).
 
-                \param snapToVertex While sampling random points on
-                the path, sometimes the points may be close to
-                vertices on the original path (way-points).  This
-                function will then "snap to the near vertex", if the
-                distance is less than \e snapToVertex fraction of the
-                total path length. This should usually be a small
-                value (e.g., one percent of the total path length:
-                0.01; the default is half a percent)
+                \param snapToVertex While sampling random points on the path, sometimes the points may be close to
+                vertices on the original path (way-points). This function will then "snap to the near vertex", if the
+                distance is less than \e snapToVertex fraction of the total path length. This should usually be a small
+                value (e.g., one percent of the total path length: 0.01; the default is half a percent)
 
                 \note This function assumes the triangle inequality holds and should not be run on non-metric spaces.
             */
             bool shortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0,
                               double rangeRatio = 0.33, double snapToVertex = 0.005);
 
-            /** \brief Given a path, attempt to remove vertices from
-                it while keeping the path valid. This is an iterative
-                process that attempts to do "short-cutting" on the
-                path.  Connection is attempted between non-consecutive
-                states that are close along the path. If the
-                connection is successful, the path is shortened by
-                removing the in-between states. This function returns
-                true if changes were made to the path.
+            /** \brief Given a path, attempt to remove vertices from it while keeping the path valid. This is an
+                iterative process that attempts to do "short-cutting" on the path. Connection is attempted between
+                non-consecutive states that are close along the path. If the connection is successful, the path is
+                shortened by removing the in-between states. This function returns true if changes were made to the
+                path.
 
                 \param path the path to reduce vertices from
 
-                \param maxSteps the maximum number of attempts to
-                "short-cut" the path.  If this value is set to 0 (the
-                default), the number of attempts made is equal to the
-                number of states in \e path. If this value is set to 0 (the
-                default), the number of attempts made is equal to the
-                number of states in \e path.
+                \param maxSteps the maximum number of attempts to "short-cut" the path. If this value is set to 0 (the
+                default), the number of attempts made is equal to the number of states in \e path. If this value is set
+                to 0 (the default), the number of attempts made is equal to the number of states in \e path.
 
-                \param maxEmptySteps not all iterations of this function
-                produce a simplification. If an iteration does not
-                produce a simplification, it is called an empty
-                step. \e maxEmptySteps denotes the maximum number of
-                consecutive empty steps before the simplification
-                process terminates.
+                \param maxEmptySteps not all iterations of this function produce a simplification. If an iteration does
+                not produce a simplification, it is called an empty step. \e maxEmptySteps denotes the maximum number of
+                consecutive empty steps before the simplification process terminates.
             */
             bool collapseCloseVertices(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0);
 
-            /** \brief Given a path, attempt to smooth it (the
-                validity of the path is maintained).
+            /** \brief Given a path, attempt to smooth it (the validity of the path is maintained).
 
-                This function applies \e maxSteps steps of smoothing
-                with B-Splines. Fewer steps are applied if no progress
-                is detected: states are either not updated or their
-                update is smaller than \e minChange.  At each step the
-                path is subdivided and states along it are updated
-                such that the smoothness is improved.
+                This function applies \e maxSteps steps of smoothing with B-Splines. Fewer steps are applied if no
+                progress is detected: states are either not updated or their update is smaller than \e minChange. At
+                each step the path is subdivided and states along it are updated such that the smoothness is improved.
 
-                \note This function may significantly increase the number of states along the solution path.
-                \note This function assumes the triangle inequality holds and should not be run on non-metric spaces.
+                \note This function may significantly increase the number of states along the solution path. \note This
+                function assumes the triangle inequality holds and should not be run on non-metric spaces.
                 */
             void smoothBSpline(PathGeometric &path, unsigned int maxSteps = 5,
                                double minChange = std::numeric_limits<double>::epsilon());
 
-            /** \brief Given a path, attempt to remove vertices from it while keeping the path valid.  Then, try to
-               smooth
-                the path. This function applies the same set of default operations to the path, except in non-metric
-               spaces,
-                with the intention of simplifying it. In non-metric spaces, some operations are skipped because they do
-                not work correctly when the triangle inequality may not hold. */
+            /** \brief Given a path, attempt to remove vertices from it while keeping the path valid. Then, try to
+               smooth the path. This function applies the same set of default operations to the path, except in
+               non-metric spaces, with the intention of simplifying it. In non-metric spaces, some operations are
+               skipped because they do not work correctly when the triangle inequality may not hold. */
             void simplifyMax(PathGeometric &path);
 
-            /** \brief Run simplification algorithms on the path for at most \e maxTime seconds */
-            void simplify(PathGeometric &path, double maxTime);
+            /** \brief Run simplification algorithms on the path for at most \e maxTime seconds, and at least once if \e
+             * atLeastOnce */
+            void simplify(PathGeometric &path, double maxTime, bool atLeastOnce = true);
 
             /** \brief Run simplification algorithms on the path as long as the termination condition does not become
-             * true */
-            void simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc);
+             * true, and at least once if \e atLeastOnce */
+            void simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc, bool atLeastOnce = true);
 
-            /** \brief Attempt to improve the solution path by sampling a new
-                goal state and connecting this state to the solution path for
-                at most \e maxTime seconds.
+            /** \brief Attempt to improve the solution path by sampling a new goal state and connecting this state to
+                the solution path for at most \e maxTime seconds.
 
-                \param sampingAttempts The maximum number of attempts to
-                connect a candidate goal state to a part of \e path
+                \param sampingAttempts The maximum number of attempts to connect a candidate goal state to a part of \e
+                path
 
-                \param rangeRatio The fraction of the end of the path to
-                consider for connection to a candidate goal state, in (0,1].
+                \param rangeRatio The fraction of the end of the path to consider for connection to a candidate goal
+                state, in (0,1].
 
-                \param snapToVertex The percentage of the total path length to
-                consider as "close enough" to an existing state in the path for
-                the method to "snap" the connection to that particular state.
-                This prevents states in the path that are very close to each
-                other.
+                \param snapToVertex The percentage of the total path length to consider as "close enough" to an existing
+                state in the path for the method to "snap" the connection to that particular state. This prevents states
+                in the path that are very close to each other.
             */
             bool findBetterGoal(PathGeometric &path, double maxTime, unsigned int samplingAttempts = 10,
                                 double rangeRatio = 0.33, double snapToVertex = 0.005);
 
-            /** \brief Attempt to improve the solution path by sampling a new
-                goal state and connecting this state to the solution path
-                while the termination condition is not met.
+            /** \brief Attempt to improve the solution path by sampling a new goal state and connecting this state to
+                the solution path while the termination condition is not met.
 
-                \param sampingAttempts The maximum number of attempts to
-                connect a candidate goal state to a part of \e path
+                \param sampingAttempts The maximum number of attempts to connect a candidate goal state to a part of \e
+                path
 
-                \param rangeRatio The fraction of the end of the path to
-                consider for connection to a candidate goal state, in (0,1].
+                \param rangeRatio The fraction of the end of the path to consider for connection to a candidate goal
+                state, in (0,1].
 
-                \param snapToVertex The percentage of the total path length to
-                consider as "close enough" to an existing state in the path for
-                the method to "snap" the connection to that particular state.
-                This prevents states in the path that are very close to each
-                other.
+                \param snapToVertex The percentage of the total path length to consider as "close enough" to an existing
+                state in the path for the method to "snap" the connection to that particular state. This prevents states
+                in the path that are very close to each other.
             */
             bool findBetterGoal(PathGeometric &path, const base::PlannerTerminationCondition &ptc,
                                 unsigned int samplingAttempts = 10, double rangeRatio = 0.33,
                                 double snapToVertex = 0.005);
 
             /** \brief Set this flag to false to avoid freeing the memory allocated for states that are removed from a
-               path during simplification.
-                Setting this to true makes this free memory. Memory is freed by default (flag is true by default) */
+               path during simplification. Setting this to true makes this free memory. Memory is freed by default (flag
+               is true by default) */
             void freeStates(bool flag);
 
             /** \brief Return true if the memory of states is freed when they are removed from a path during
