@@ -65,7 +65,7 @@ namespace ompl
             void defaultCellSizes() override;
 
             /** \brief Compute the projection as an array of double values */
-            void project(const State *state, EuclideanProjection &projection) const override;
+            void project(const State *state, Eigen::Ref<Eigen::VectorXd> projection) const override;
 
         protected:
             /** \brief The state space this projection operates on */
