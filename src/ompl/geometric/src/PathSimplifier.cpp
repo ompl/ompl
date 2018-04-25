@@ -406,19 +406,19 @@ void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
     simplify(path, neverTerminate);
 }
 
-void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, double maxTime)
+void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, double maxTime, bool atLeastOnce)
 {
     simplify(path, base::timedPlannerTerminationCondition(maxTime));
 }
 
-void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc)
+void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc,
+                                               bool atLeastOnce)
 {
     if (path.getStateCount() < 3)
         return;
 
-    // try a randomized step of connecting vertices
     bool tryMore = true;
-    while (ptc == false && tryMore)
+    while ((ptc == false || atLeastOnce) && tryMore)
     {
         // if the space is metric, we can do some additional smoothing
         if (si_->getStateSpace()->isMetricSpace())
@@ -432,10 +432,11 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
                     gsr_ ? findBetterGoal(path, ptc) : false;  // Try to connect the path to a closer goal
 
                 metricTryMore = shortcut || better_goal;
-            } while (ptc == false && metricTryMore && ++times <= 5);
+            } while ((ptc == false || atLeastOnce) && ++times <= 5 && metricTryMore);
 
             // smooth the path with BSpline interpolation
-            smoothBSpline(path, 3, path.length() / 100.0);
+            if (ptc == false || atLeastOnce)
+                smoothBSpline(path, 3, path.length() / 100.0);
 
             // we always run this if the metric-space algorithms were run.  In non-metric spaces this does not work.
             const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
@@ -447,15 +448,20 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
                     "successfully fixed.");
         }
 
-        tryMore = reduceVertices(path);
+        // try a randomized step of connecting vertices
+        if (ptc == false || atLeastOnce)
+            tryMore = reduceVertices(path);
 
         // try to collapse close-by vertices
-        collapseCloseVertices(path);
+        if (ptc == false || atLeastOnce)
+            collapseCloseVertices(path);
 
         // try to reduce verices some more, if there is any point in doing so
         unsigned int times = 0;
-        while (tryMore && ++times <= 5)
+        while ((ptc == false || atLeastOnce) && tryMore && ++times <= 5)
             tryMore = reduceVertices(path);
+
+        atLeastOnce = false;
     }
 }
 
