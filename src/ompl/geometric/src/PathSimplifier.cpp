@@ -408,7 +408,7 @@ void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
 
 void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, double maxTime, bool atLeastOnce)
 {
-    simplify(path, base::timedPlannerTerminationCondition(maxTime));
+    simplify(path, base::timedPlannerTerminationCondition(maxTime), atLeastOnce);
 }
 
 void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc,
