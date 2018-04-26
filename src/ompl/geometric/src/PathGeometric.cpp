@@ -332,7 +332,7 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount)
         base::State *s1 = states_[i];
         base::State *s2 = states_[i + 1];
 
-        newStates.push_back(si_->cloneState(s1));
+        newStates.push_back(s1);
 
         // the maximum number of states that can be added on the current motion (without its endpoints)
         // such that we can at least fit the remaining states
@@ -371,11 +371,8 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount)
     }
 
     // add the last state
-    newStates.push_back(si_->cloneState(states_[n1]));
+    newStates.push_back(states_[n1]);
     states_.swap(newStates);
-
-    for (auto &state : newStates)
-        si_->freeState(state);
 }
 
 void ompl::geometric::PathGeometric::reverse()
