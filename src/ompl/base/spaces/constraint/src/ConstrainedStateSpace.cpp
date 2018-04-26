@@ -298,8 +298,10 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::geodesicInterpolate(const 
     // Find the two adjacent states that t lies between, and return the closer.
     const double last = d[n - 1];
     if (last <= std::numeric_limits<double>::epsilon())
+    {
+        delete[] d;
         return geodesic[0];
-
+    }
     else
     {
         unsigned int i = 0;
@@ -309,8 +311,7 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::geodesicInterpolate(const 
         const double t1 = d[i] / last - t;
         const double t2 = (i <= n - 2) ? d[i + 1] / last - t : 1;
 
+        delete[] d;
         return (t1 < t2) ? geodesic[i] : geodesic[i + 1];
     }
-
-    delete[] d;
 }

@@ -421,7 +421,7 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
     while ((ptc == false || atLeastOnce) && tryMore)
     {
         // if the space is metric, we can do some additional smoothing
-        if (si_->getStateSpace()->isMetricSpace())
+        if ((ptc == false || atLeastOnce) && si_->getStateSpace()->isMetricSpace())
         {
             bool metricTryMore = true;
             unsigned int times = 0;
@@ -438,14 +438,17 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
             if (ptc == false || atLeastOnce)
                 smoothBSpline(path, 3, path.length() / 100.0);
 
-            // we always run this if the metric-space algorithms were run.  In non-metric spaces this does not work.
-            const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
-            if (!p.second)
-                OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
-            else if (!p.first)
-                OMPL_DEBUG(
-                    "The solution path was slightly touching on an invalid region of the state space, but it was "
-                    "successfully fixed.");
+            if (ptc == false || atLeastOnce)
+            {
+                // we always run this if the metric-space algorithms were run.  In non-metric spaces this does not work.
+                const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
+                if (!p.second)
+                    OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
+                else if (!p.first)
+                    OMPL_DEBUG(
+                        "The solution path was slightly touching on an invalid region of the state space, but it was "
+                        "successfully fixed.");
+            }
         }
 
         // try a randomized step of connecting vertices
@@ -460,6 +463,18 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
         unsigned int times = 0;
         while ((ptc == false || atLeastOnce) && tryMore && ++times <= 5)
             tryMore = reduceVertices(path);
+
+        if ((ptc == false || atLeastOnce) && si_->getStateSpace()->isMetricSpace())
+        {
+            // we always run this if the metric-space algorithms were run.  In non-metric spaces this does not work.
+            const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
+            if (!p.second)
+                OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
+            else if (!p.first)
+                OMPL_DEBUG(
+                    "The solution path was slightly touching on an invalid region of the state space, but it was "
+                    "successfully fixed.");
+        }
 
         atLeastOnce = false;
     }

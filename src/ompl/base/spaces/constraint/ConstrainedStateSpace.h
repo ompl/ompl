@@ -219,6 +219,13 @@ namespace ompl
             /** \brief Perform both constrained and regular sanity checks. */
             void sanityChecks() const override;
 
+            /** \brief Return the valid segment count on the manifold, as valid
+             * segment count is determined by \e delta_ and \e lambda_. */
+            virtual unsigned int validSegmentCount(const State* s1, const State* s2) const override
+            {
+                return distance(s1, s2) * (1. / delta_) * lambda_;
+            }
+
             /** @} */
 
             /** @name Constrained Planning

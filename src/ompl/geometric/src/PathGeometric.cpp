@@ -306,11 +306,23 @@ void ompl::geometric::PathGeometric::subdivide()
 
 void ompl::geometric::PathGeometric::interpolate()
 {
-    unsigned int n = 0;
-    const int n1 = states_.size() - 1;
-    for (int i = 0; i < n1; ++i)
-        n += si_->getStateSpace()->validSegmentCount(states_[i], states_[i + 1]);
-    interpolate(n);
+    std::vector<base::State *> newStates;
+    const int segments = states_.size() - 1;
+
+    for (int i = 0; i < segments; ++i)
+    {
+        base::State *s1 = states_[i];
+        base::State *s2 = states_[i + 1];
+
+        newStates.push_back(s1);
+        unsigned int n = si_->getStateSpace()->validSegmentCount(s1, s2);
+
+        std::vector<base::State *> block;
+        si_->getMotionStates(s1, s2, block, n - 1, false, true);
+        newStates.insert(newStates.end(), block.begin(), block.end());
+    }
+    newStates.push_back(states_[segments]);
+    states_.swap(newStates);
 }
 
 void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount)
@@ -357,12 +369,6 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount)
                 // compute intermediate states
                 std::vector<base::State *> block;
                 si_->getMotionStates(s1, s2, block, ns, false, true);
-                //unsigned int ans = si_->getMotionStates(s1, s2, block, ns, false, true);
-                // sanity checks
-                // if ((int)ans != ns || block.size() != ans)
-                //     throw Exception("Internal error in path interpolation. Incorrect number of intermediate states. "
-                //                     "Please contact the developers.");
-
                 newStates.insert(newStates.end(), block.begin(), block.end());
             }
             else
@@ -379,9 +385,6 @@ void ompl::geometric::PathGeometric::interpolate(unsigned int requestCount)
     // add the last state
     newStates.push_back(states_[n1]);
     states_.swap(newStates);
-    // if (requestCount != states_.size())
-    //     throw Exception("Internal error in path interpolation. This should never happen. Please contact the "
-    //                     "developers.");
 }
 
 void ompl::geometric::PathGeometric::reverse()
