@@ -93,7 +93,7 @@ namespace ompl
             centers.push_back(rng_.uniformInt(0, data.size() - 1));
             for (unsigned i = 1; i < k; ++i)
             {
-                unsigned ind;
+                unsigned ind = 0;
                 const _T &center = data[centers[i - 1]];
                 double maxDist = -std::numeric_limits<double>::infinity();
                 for (unsigned j = 0; j < data.size(); ++j)
