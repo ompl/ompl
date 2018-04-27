@@ -59,7 +59,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         OUTPUT_VARIABLE UBUNTU_RELEASE
         OUTPUT_STRIP_TRAILING_WHITESPACE)
     set(CPACK_PACKAGE_FILE_NAME "omplapp_${OMPL_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}-Ubuntu${UBUNTU_RELEASE}")
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "python${PYTHON_VERSION}, libboost-all-dev, libode-dev, libtriangle-dev")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "python${PYTHON_VERSION}, libboost-serialization-dev, libboost-filesystem-dev, libboost-system-dev, libboost-program-options-dev, libboost-test-dev, libode-dev, libtriangle-dev")
 endif()
 
 if(APPLE)

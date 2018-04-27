@@ -15,14 +15,14 @@ install_common_dependencies()
     # against libstdc++. In case `c++` corresponds to `clang++`, code will not build, even
     # if we would pass the flag `-stdlib=libstdc++` to `clang++`.
     if [[ $ubuntu_version > 1410 ]]; then
-        sudo apt-get -y install cmake pkg-config libboost-all-dev libeigen3-dev libode-dev
+        sudo apt-get -y install cmake pkg-config libboost-serialization-dev libboost-filesystem-dev libboost-system-dev libboost-program-options-dev libboost-test-dev libeigen3-dev libode-dev
         export CXX=g++
     else
         # needed for the add-apt-repository command, which was not part of early Trusty releases
         sudo apt-get -y install software-properties-common
         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
         sudo apt-get -y update
-        sudo apt-get -y install g++-5 cmake pkg-config libboost1.55-all-dev libeigen3-dev libode-dev
+        sudo apt-get -y install g++-5 cmake pkg-config libboost1.55-serialization-dev libboost1.55-filesystem-dev libboost1.55-system-dev libboost1.55-program-options-dev libboost1.55-test-dev libeigen3-dev libode-dev
         export CXX=g++-5
     fi
     export MAKEFLAGS="-j `nproc`"
@@ -35,8 +35,12 @@ install_python_binding_dependencies()
     sudo -H pip${PYTHONV} install -vU pygccxml pyplusplus
     # install castxml
     if [[ $ubuntu_version > 1410 ]]; then
-        sudo apt-get -y install castxml
+        sudo apt-get -y install libboost-python-dev castxml
+        if [[ $ubuntu_version >= 1804 ]]; then
+            sudo apt-get -y install libboost-numpy-dev python${PYTHONV}-numpy
+        fi
     else
+        sudo apt-get -y install libboost1.55-python-dev
         wget -O - https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar zxf - -C $HOME
         export PATH=$HOME/castxml/bin:$PATH
     fi
