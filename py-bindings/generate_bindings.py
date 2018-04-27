@@ -464,11 +464,11 @@ class ompl_control_generator_t(code_generator_t):
         # print paths as matrices
         self.replace_member_functions(self.ompl_ns.member_functions('printAsMatrix'))
         # export ODESolver-derived classes that use Boost.OdeInt
-        planners = [p.related_class for p in self.ompl_ns.class_('ODESolver').recursive_derived]
-        for planner in planners:
-            print(planner.name)
         for odesolver in ['ODEBasicSolver', 'ODEErrorSolver', 'ODEAdaptiveSolver']:
-            self.ompl_ns.class_(lambda cls, slv=odesolver: cls.name.startswith(slv)).rename(odesolver)
+            cls = self.ompl_ns.class_(lambda cls, slv=odesolver: cls.name.startswith(slv))
+            cls.rename(odesolver)
+            if cls=='ODEAdaptiveSolver':
+                cls.include_files.append('boost/numeric/odeint/stepper/generation/generation_runge_kutta_cash_karp54.hpp')
         self.add_function_wrapper(
             'void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ' \
             'ompl::control::ODESolver::StateType &)',
