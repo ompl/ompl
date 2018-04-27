@@ -102,7 +102,7 @@ cmake ../..</pre></li>
   <!-- Windows -->
   <div role="tabpanel" class="tab-pane" id="windows">
     <h2>MS Windows</h2>
-    Installation on Windows is possible, but not supported at this time. Our configuration files for compiling <a href="https://bitbucket.org/ompl/ompl/src/tip/.appveyor.yml">OMPL</a> using AppVeyor's Windows Continuous Integration servers might serve as a useful starting point.
+    It is recommended to use <a href="https://vcpkg.readthedocs.io/en/latest/">vcpkg</a>, a Microsoft-supported package manager for open source software. Use <a href="https://bitbucket.org/ompl/ompl/src/tip/.appveyor.yml">our Appveyor configuration file</a> for a list of packages to install and build instructions.
   </div>
 </div>
 \endhtmlonly
