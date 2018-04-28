@@ -36,7 +36,7 @@ install_python_binding_dependencies()
     # install castxml
     if [[ $ubuntu_version > 1410 ]]; then
         sudo apt-get -y install libboost-python-dev castxml
-        if [[ $ubuntu_version >= 1804 ]]; then
+        if [[ $ubuntu_version > 1710 ]]; then
             sudo apt-get -y install libboost-numpy-dev python${PYTHONV}-numpy
         fi
     else
