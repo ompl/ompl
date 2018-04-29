@@ -403,21 +403,21 @@ bool ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
 void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
 {
     ompl::base::PlannerTerminationCondition neverTerminate = base::plannerNonTerminatingCondition();
-    simplify(path, neverTerminate);
+    return simplify(path, neverTerminate);
 }
 
 void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, double maxTime, bool atLeastOnce)
 {
-    simplify(path, base::timedPlannerTerminationCondition(maxTime), atLeastOnce);
+    return simplify(path, base::timedPlannerTerminationCondition(maxTime), atLeastOnce);
 }
 
 void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc,
                                                bool atLeastOnce)
 {
     if (path.getStateCount() < 3)
-        return;
+        return true;
 
-    bool tryMore = true;
+    bool tryMore = true, valid = true;
     while ((ptc == false || atLeastOnce) && tryMore)
     {
         // if the space is metric, we can do some additional smoothing
@@ -443,7 +443,10 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
                 // we always run this if the metric-space algorithms were run.  In non-metric spaces this does not work.
                 const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
                 if (!p.second)
+                {
+                    valid = false;
                     OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
+                }
                 else if (!p.first)
                     OMPL_DEBUG(
                         "The solution path was slightly touching on an invalid region of the state space, but it was "
@@ -469,7 +472,10 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
             // we always run this if the metric-space algorithms were run.  In non-metric spaces this does not work.
             const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
             if (!p.second)
+            {
+                valid = false;
                 OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
+            }
             else if (!p.first)
                 OMPL_DEBUG(
                     "The solution path was slightly touching on an invalid region of the state space, but it was "
@@ -478,6 +484,7 @@ void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
 
         atLeastOnce = false;
     }
+    return valid;
 }
 
 bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, double maxTime, unsigned int samplingAttempts,
