@@ -400,18 +400,18 @@ bool ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
     return result;
 }
 
-void ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
+bool ompl::geometric::PathSimplifier::simplifyMax(PathGeometric &path)
 {
     ompl::base::PlannerTerminationCondition neverTerminate = base::plannerNonTerminatingCondition();
     return simplify(path, neverTerminate);
 }
 
-void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, double maxTime, bool atLeastOnce)
+bool ompl::geometric::PathSimplifier::simplify(PathGeometric &path, double maxTime, bool atLeastOnce)
 {
     return simplify(path, base::timedPlannerTerminationCondition(maxTime), atLeastOnce);
 }
 
-void ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc,
+bool ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc,
                                                bool atLeastOnce)
 {
     if (path.getStateCount() < 3)
