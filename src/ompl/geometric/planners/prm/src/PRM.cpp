@@ -78,7 +78,7 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
   , disjointSets_(boost::get(boost::vertex_rank, g_), boost::get(boost::vertex_predecessor, g_))
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
-    specs_.approximateSolutions = false;
+    specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;
     specs_.multithreaded = true;
 
@@ -478,6 +478,13 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
         psol.setOptimized(opt_, bestCost_, addedNewSolution());
         pdef_->addSolutionPath(psol);
     }
+    else
+    {
+        // Return an approximate solution.
+        double diff = constructApproximateSolution(startM_, goalM_, sol);
+        pdef_->addSolutionPath(sol, true, diff, getName());
+        return base::PlannerStatus::APPROXIMATE_SOLUTION;
+    }
 
     return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
@@ -558,6 +565,73 @@ void ompl::geometric::PRM::uniteComponents(Vertex m1, Vertex m2)
 bool ompl::geometric::PRM::sameComponent(Vertex m1, Vertex m2)
 {
     return boost::same_component(m1, m2, disjointSets_);
+}
+
+double ompl::geometric::PRM::constructApproximateSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
+{
+    std::lock_guard<std::mutex> _(graphMutex_);
+    base::Goal *g = pdef_->getGoal().get();
+    base::Cost sol_cost(opt_->infiniteCost());
+
+    double closestVal = std::numeric_limits<double>::infinity();
+    foreach (Vertex start, starts)
+    {
+        foreach(Vertex goal, goals)
+        {
+            if (!g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
+            {
+                continue;
+            }
+            base::PathPtr p;
+            boost::vector_property_map<Vertex> prev(boost::num_vertices(g_));
+            boost::vector_property_map<base::Cost> dist(boost::num_vertices(g_));
+            boost::vector_property_map<base::Cost> rank(boost::num_vertices(g_));
+
+            try
+            {
+                // Consider using a persistent distance_map if it's slow
+                boost::astar_search(
+                    g_, start, [this, goal](Vertex v) { return costHeuristic(v, goal); },
+                    boost::predecessor_map(prev)
+                        .distance_map(dist)
+                        .rank_map(rank)
+                        .distance_compare(
+                            [this](base::Cost c1, base::Cost c2) { return opt_->isCostBetterThan(c1, c2); })
+                        .distance_combine([this](base::Cost c1, base::Cost c2) { return opt_->combineCosts(c1, c2); })
+                        .distance_inf(opt_->infiniteCost())
+                        .distance_zero(opt_->identityCost())
+                        .visitor(AStarGoalVisitor<Vertex>(goal)));
+            }
+            catch (AStarFoundGoal &)
+            {
+            }
+
+            Vertex closeToGoal = start;
+            for (auto vp = vertices(g_); vp.first != vp.second; vp.first++)
+            {
+                // We want to get the distance of each vertex to the goal.
+                // Boost lets us get cost-to-come, cost-to-come+dist-to-goal,
+                // but not just dist-to-goal.
+                double dist_to_goal = rank[*vp.first].value() - dist[*vp.first].value();
+                if (dist_to_goal < closestVal)
+                {
+                    closeToGoal = *vp.first;
+                    closestVal = dist_to_goal;
+                }
+            }
+            if (closeToGoal != start)
+            {
+                auto p(std::make_shared<PathGeometric>(si_));
+                for (Vertex pos = closeToGoal; prev[pos] != pos; pos = prev[pos])
+                    p->append(stateProperty_[pos]);
+                p->append(stateProperty_[start]);
+                p->reverse();
+
+                solution = p;
+            }
+        }
+    }
+    return closestVal;
 }
 
 ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start, const Vertex &goal)

@@ -313,6 +313,10 @@ namespace ompl
             bool maybeConstructSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals,
                                         base::PathPtr &solution);
 
+            /** \brief (Assuming that there is always an approximate solution), finds an
+             * approximate solution. */
+            double constructApproximateSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution);
+
             /** \brief Returns the value of the addedNewSolution_ member. */
             bool addedNewSolution() const;
 
