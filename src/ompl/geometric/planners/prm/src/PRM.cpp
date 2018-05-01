@@ -482,6 +482,12 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     {
         // Return an approximate solution.
         double diff = constructApproximateSolution(startM_, goalM_, sol);
+        if (diff == -1.0)
+        {
+            OMPL_INFORM("Closest path is still start and goal");
+            return base::PlannerStatus::TIMEOUT;
+        }
+        OMPL_INFORM("Using approximate solution, distance is %f", diff);
         pdef_->addSolutionPath(sol, true, diff, getName());
         return base::PlannerStatus::APPROXIMATE_SOLUTION;
     }
@@ -574,10 +580,16 @@ double ompl::geometric::PRM::constructApproximateSolution(const std::vector<Vert
     base::Cost sol_cost(opt_->infiniteCost());
 
     double closestVal = std::numeric_limits<double>::infinity();
+    bool approxPathJustStart = true;
     foreach (Vertex start, starts)
     {
         foreach(Vertex goal, goals)
         {
+            if (costHeuristic(start, goal).value() < closestVal)
+            {
+                closestVal = costHeuristic(start, goal).value();
+                approxPathJustStart = true;
+            }
             if (!g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
             {
                 continue;
@@ -617,6 +629,7 @@ double ompl::geometric::PRM::constructApproximateSolution(const std::vector<Vert
                 {
                     closeToGoal = *vp.first;
                     closestVal = dist_to_goal;
+                    approxPathJustStart = false;
                 }
             }
             if (closeToGoal != start)
@@ -630,6 +643,10 @@ double ompl::geometric::PRM::constructApproximateSolution(const std::vector<Vert
                 solution = p;
             }
         }
+    }
+    if (approxPathJustStart)
+    {
+        return -1.0;
     }
     return closestVal;
 }

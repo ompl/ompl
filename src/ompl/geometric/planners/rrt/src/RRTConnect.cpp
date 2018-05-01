@@ -373,7 +373,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
     OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), tStart_->size() + tGoal_->size(),
                 tStart_->size(), tGoal_->size());
 
-    if (approxsol)
+    if (approxsol && !solved)
     {
         /* construct the solution path */
         std::vector<Motion *> mpath;
