@@ -484,7 +484,7 @@ bool ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
 
         atLeastOnce = false;
     }
-    return valid;
+    return valid || path.check();
 }
 
 bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, double maxTime, unsigned int samplingAttempts,

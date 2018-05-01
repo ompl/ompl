@@ -156,16 +156,15 @@ namespace ompl
                smooth the path. This function applies the same set of default operations to the path, except in
                non-metric spaces, with the intention of simplifying it. In non-metric spaces, some operations are
                skipped because they do not work correctly when the triangle inequality may not hold. Return
-               \e false iff the simplified path may no longer be valid. */
+               \e false iff the simplified path is not valid. */
             bool simplifyMax(PathGeometric &path);
 
             /** \brief Run simplification algorithms on the path for at most \e maxTime seconds, and at least once if \e
-               atLeastOnce. Return false iff the simplified path may no longer be valid. */
+               atLeastOnce. Return false iff the simplified path is not valid. */
             bool simplify(PathGeometric &path, double maxTime, bool atLeastOnce = true);
 
             /** \brief Run simplification algorithms on the path as long as the termination condition does not become
-               true, and at least once if \e atLeastOnce. Return \e false iff the simplified path may no longer be
-               valid. */
+               true, and at least once if \e atLeastOnce. Return \e false iff the simplified path is not valid. */
             bool simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc, bool atLeastOnce = true);
 
             /** \brief Attempt to improve the solution path by sampling a new goal state and connecting this state to
