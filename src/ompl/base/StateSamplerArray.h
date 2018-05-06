@@ -119,7 +119,6 @@ namespace ompl
                     samplers_.resize(count);
                 else if (samplers_.size() < count)
                 {
-                    std::size_t c = samplers_.size();
                     samplers_.resize(count);
                     for (auto &sampler : samplers_)
                         sampler = ss_.allocStateSampler(si_);

@@ -121,7 +121,7 @@ namespace ompl
                     if (bound == std::numeric_limits<double>::infinity())
                         bound = std::numeric_limits<double>::max() / 2;
                     else if (bound == -std::numeric_limits<double>::infinity())
-                        bounds = -std::numeric_limits<double>::max() / 2;
+                        bound = -std::numeric_limits<double>::max() / 2;
                 }
                 for (auto &bound : linvelBounds_)
                 {
