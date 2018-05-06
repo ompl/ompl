@@ -80,8 +80,8 @@ namespace ompl
         /** \brief Add a vector of points */
         virtual void add(const std::vector<_T> &data)
         {
-            for (auto elt = data.begin(); elt != data.end(); ++elt)
-                add(*elt);
+            for (const auto &elt : data)
+                add(elt);
         }
 
         /** \brief Remove an element from the datastructure */

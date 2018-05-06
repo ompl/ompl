@@ -64,11 +64,11 @@ unsigned int ompl::control::World::numProps() const
 
 bool ompl::control::World::satisfies(const World &w) const
 {
-    std::unordered_map<unsigned int, bool>::const_iterator p, q;
-    for (p = w.props_.begin(); p != w.props_.end(); ++p)
+    std::unordered_map<unsigned int, bool>::const_iterator q;
+    for (const auto &p : w.props_)
     {
-        q = props_.find(p->first);
-        if (q == props_.end() || *q != *p)
+        q = props_.find(p.first);
+        if (q == props_.end() || *q != p)
             return false;
     }
     return true;

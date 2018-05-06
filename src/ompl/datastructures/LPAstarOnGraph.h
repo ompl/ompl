@@ -395,11 +395,8 @@ namespace ompl
 
         void clear()
         {
-            for (auto iter = idNodeMap_.begin(); iter != idNodeMap_.end(); ++iter)
-            {
-                Node *n = iter->second;
-                delete n;
-            }
+            for (auto &id : idNodeMap_)
+                delete id.second;
         }
 
         Heuristic &costEstimator_;

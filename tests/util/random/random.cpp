@@ -243,10 +243,8 @@ BOOST_AUTO_TEST_CASE(SampleUnitSphere)
 
             // Calculate the magnitude
             magnitude = 0.0;
-            for (std::vector<double>::const_iterator iter = xRand.begin(); iter != xRand.end(); ++iter)
-            {
-                magnitude = magnitude + *iter * *iter;
-            }
+            for (const auto &x : xRand)
+                magnitude = magnitude + x * x;
             magnitude = std::sqrt(magnitude);
 
             // Check that it's close enough to 1.0
@@ -289,10 +287,8 @@ BOOST_AUTO_TEST_CASE(SampleBall)
 
             // Calculate the magnitude
             magnitude = 0.0;
-            for (std::vector<double>::const_iterator iter = xRand.begin(); iter != xRand.end(); ++iter)
-            {
-                magnitude = magnitude + *iter * *iter;
-            }
+            for (const auto &x : xRand)
+                magnitude = magnitude + x * x;
             magnitude = std::sqrt(magnitude);
 
             // Check that it's close enough to 1.0

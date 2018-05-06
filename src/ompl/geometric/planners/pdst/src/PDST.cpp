@@ -250,13 +250,13 @@ void ompl::geometric::PDST::freeMemory()
     std::vector<Motion *> motions;
     motions.reserve(priorityQueue_.size());
     priorityQueue_.getContent(motions);
-    for (auto it = motions.begin(); it < motions.end(); ++it)
+    for (auto &motion : motions)
     {
-        if ((*it)->startState_ != (*it)->endState_)
-            si_->freeState((*it)->startState_);
-        if (!(*it)->isSplit_)
-            si_->freeState((*it)->endState_);
-        delete *it;
+        if (motion->startState_ != motion->endState_)
+            si_->freeState(motion->startState_);
+        if (!motion->isSplit_)
+            si_->freeState(motion->endState_);
+        delete motion;
     }
     priorityQueue_.clear();  // clears the Element objects in the priority queue
     delete bsp_;
@@ -289,10 +289,10 @@ void ompl::geometric::PDST::getPlannerData(ompl::base::PlannerData &data) const
     if (lastGoalMotion_ != nullptr)
         data.addGoalVertex(lastGoalMotion_->endState_);
 
-    for (auto it = motions.begin(); it < motions.end(); ++it)
-        if (!(*it)->isSplit_)
+    for (const auto &cur : motions)
+        if (!cur->isSplit_)
         {
-            Motion *cur = *it, *ancestor = cur->ancestor();
+            Motion *ancestor = cur->ancestor();
             if (cur->parent_ == nullptr)
                 data.addStartVertex(base::PlannerDataVertex(cur->endState_));
             else

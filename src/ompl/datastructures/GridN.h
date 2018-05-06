@@ -143,8 +143,8 @@ namespace ompl
             BaseCellArray baselist;
             Grid<_T>::neighbors(coord, baselist);
             list.reserve(list.size() + baselist.size());
-            for (unsigned int i = 0; i < baselist.size(); ++i)
-                list.push_back(static_cast<Cell *>(baselist[i]));
+            for (const auto &c : baselist)
+                list.push_back(static_cast<Cell *>(c));
         }
 
         /// Instantiate a new cell at given coordinates;
@@ -207,8 +207,8 @@ namespace ompl
         /// Get the set of instantiated cells in the grid
         void getCells(CellArray &cells) const
         {
-            for (auto i = Grid<_T>::hash_.begin(); i != Grid<_T>::hash_.end(); ++i)
-                cells.push_back(static_cast<Cell *>(i->second));
+            for (const auto &h : Grid<_T>::hash_)
+                cells.push_back(static_cast<Cell *>(h.second));
         }
 
     protected:

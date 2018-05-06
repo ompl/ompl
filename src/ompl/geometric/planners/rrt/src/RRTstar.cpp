@@ -848,12 +848,9 @@ int ompl::geometric::RRTstar::pruneTree(const base::Cost &pruneTreeCost)
 
         // Now finally add back any vertices left in chainsToReheck.
         // These are chain vertices that have descendents that we want to keep
-        for (std::list<Motion *>::const_iterator mIter = chainsToRecheck.begin(); mIter != chainsToRecheck.end();
-             ++mIter)
-        {
+        for (const auto &r : chainsToRecheck)
             // Add the motion back to the NN struct:
-            nn_->add(*mIter);
-        }
+            nn_->add(r);
 
         // All done pruning.
         // Update the cost at which we've pruned:

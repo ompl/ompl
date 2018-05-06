@@ -135,9 +135,9 @@ namespace ompl
         void nearestR(const _T &data, double radius, std::vector<_T> &nbh) const override
         {
             nbh.clear();
-            for (std::size_t i = 0; i < data_.size(); ++i)
-                if (NearestNeighbors<_T>::distFun_(data_[i], data) <= radius)
-                    nbh.push_back(data_[i]);
+            for (const auto &d : data_)
+                if (NearestNeighbors<_T>::distFun_(d, data) <= radius)
+                    nbh.push_back(d);
             std::sort(nbh.begin(), nbh.end(), ElemSort(data, NearestNeighbors<_T>::distFun_));
         }
 

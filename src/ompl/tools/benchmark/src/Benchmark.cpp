@@ -668,9 +668,8 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 run["graph states INTEGER"] = std::to_string(pd.numVertices());
                 run["graph motions INTEGER"] = std::to_string(pd.numEdges());
 
-                for (std::map<std::string, std::string>::const_iterator it = pd.properties.begin();
-                     it != pd.properties.end(); ++it)
-                    run[it->first] = it->second;
+                for (const auto &prop : pd.properties)
+                    run[prop.first] = prop.second;
 
                 // execute post-run event, if set
                 try

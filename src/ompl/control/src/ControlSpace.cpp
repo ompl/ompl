@@ -163,17 +163,17 @@ const ompl::control::ControlSpacePtr &ompl::control::CompoundControlSpace::getSu
 
 const ompl::control::ControlSpacePtr &ompl::control::CompoundControlSpace::getSubspace(const std::string &name) const
 {
-    for (unsigned int i = 0; i < componentCount_; ++i)
-        if (components_[i]->getName() == name)
-            return components_[i];
+    for (const auto &component : components_)
+        if (component->getName() == name)
+            return component;
     throw Exception("Subspace " + name + " does not exist");
 }
 
 unsigned int ompl::control::CompoundControlSpace::getDimension() const
 {
     unsigned int dim = 0;
-    for (unsigned int i = 0; i < componentCount_; ++i)
-        dim += components_[i]->getDimension();
+    for (const auto &component : components_)
+        dim += component->getDimension();
     return dim;
 }
 
@@ -223,8 +223,8 @@ void ompl::control::CompoundControlSpace::nullControl(Control *control) const
 ompl::control::ControlSamplerPtr ompl::control::CompoundControlSpace::allocDefaultControlSampler() const
 {
     auto ss(std::make_shared<CompoundControlSampler>(this));
-    for (unsigned int i = 0; i < componentCount_; ++i)
-        ss->addSampler(components_[i]->allocControlSampler());
+    for (const auto &component : components_)
+        ss->addSampler(component->allocControlSampler());
     return ss;
 }
 
@@ -273,16 +273,16 @@ void ompl::control::CompoundControlSpace::printSettings(std::ostream &out) const
 
 void ompl::control::CompoundControlSpace::setup()
 {
-    for (unsigned int i = 0; i < componentCount_; ++i)
-        components_[i]->setup();
+    for (const auto &component : components_)
+        component->setup();
     ControlSpace::setup();
 }
 
 unsigned int ompl::control::CompoundControlSpace::getSerializationLength() const
 {
     unsigned int l = 0;
-    for (unsigned int i = 0; i < componentCount_; ++i)
-        l += components_[i]->getSerializationLength();
+    for (const auto &component : components_)
+        l += component->getSerializationLength();
     return l;
 }
 

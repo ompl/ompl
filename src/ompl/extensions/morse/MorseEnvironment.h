@@ -116,26 +116,26 @@ namespace ompl
               , simRunning_(true)
             {
                 // Replace infinite bounds with very large bounds, so, e.g., sampling can still work
-                for (unsigned int i = 0; i < positionBounds_.size(); i++)
+                for (auto &bound : positionBounds_)
                 {
-                    if (positionBounds_[i] == std::numeric_limits<double>::infinity())
-                        positionBounds_[i] = std::numeric_limits<double>::max() / 2;
-                    else if (positionBounds_[i] == -std::numeric_limits<double>::infinity())
-                        positionBounds_[i] = -std::numeric_limits<double>::max() / 2;
+                    if (bound == std::numeric_limits<double>::infinity())
+                        bound = std::numeric_limits<double>::max() / 2;
+                    else if (bound == -std::numeric_limits<double>::infinity())
+                        bounds = -std::numeric_limits<double>::max() / 2;
                 }
-                for (unsigned int i = 0; i < linvelBounds_.size(); i++)
+                for (auto &bound : linvelBounds_)
                 {
-                    if (linvelBounds_[i] == std::numeric_limits<double>::infinity())
-                        linvelBounds_[i] = std::numeric_limits<double>::max() / 2;
-                    else if (linvelBounds_[i] == -std::numeric_limits<double>::infinity())
-                        linvelBounds_[i] = -std::numeric_limits<double>::max() / 2;
+                    if (bound == std::numeric_limits<double>::infinity())
+                        bound = std::numeric_limits<double>::max() / 2;
+                    else if (bound == -std::numeric_limits<double>::infinity())
+                        bound = -std::numeric_limits<double>::max() / 2;
                 }
-                for (unsigned int i = 0; i < angvelBounds_.size(); i++)
+                for (auto &bound : angvelBounds_)
                 {
-                    if (angvelBounds_[i] == std::numeric_limits<double>::infinity())
-                        angvelBounds_[i] = std::numeric_limits<double>::max() / 2;
-                    else if (angvelBounds_[i] == -std::numeric_limits<double>::infinity())
-                        angvelBounds_[i] = -std::numeric_limits<double>::max() / 2;
+                    if (bound == std::numeric_limits<double>::infinity())
+                        bound = std::numeric_limits<double>::max() / 2;
+                    else if (bound == -std::numeric_limits<double>::infinity())
+                        bound = -std::numeric_limits<double>::max() / 2;
                 }
             }
 

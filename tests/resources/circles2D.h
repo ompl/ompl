@@ -134,11 +134,11 @@ struct Circles2D
 
     bool noOverlap(double x, double y) const
     {
-        for (std::size_t i = 0 ; i < circles_.size() ; ++i)
+        for (const auto &circle : circles_)
         {
-            double dx = circles_[i].x_ - x;
-            double dy = circles_[i].y_ - y;
-            if (dx * dx + dy * dy < circles_[i].r2_)
+            double dx = circle.x_ - x;
+            double dy = circle.y_ - y;
+            if (dx * dx + dy * dy < circle.r2_)
                 return false;
         }
         return true;

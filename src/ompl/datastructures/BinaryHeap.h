@@ -111,8 +111,8 @@ namespace ompl
         /** \brief Clear the heap */
         void clear()
         {
-            for (auto i = vector_.begin(); i != vector_.end(); ++i)
-                delete *i;
+            for (auto &element : vector_)
+                delete element;
             vector_.clear();
         }
 
@@ -206,8 +206,8 @@ namespace ompl
         /** \brief Get the data stored in this heap */
         void getContent(std::vector<_T> &content) const
         {
-            for (auto i = vector_.begin(); i != vector_.end(); ++i)
-                content.push_back((*i)->data);
+            for (auto &element : vector_)
+                content.push_back(element->data);
         }
 
         /** \brief Sort an array of elements. This does not affect the content of the heap */

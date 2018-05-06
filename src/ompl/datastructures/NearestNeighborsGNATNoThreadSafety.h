@@ -165,8 +165,7 @@ namespace ompl
 #ifdef GNAT_SAMPLER
                 tree_->subtreeSize_ = data.size();
 #endif
-                for (unsigned int i = 1; i < data.size(); ++i)
-                    tree_->data_.push_back(data[i]);
+                tree_->data_.insert(tree_->data_.end(), data.begin() + 1, data.end());
                 size_ += data.size();
                 if (tree_->needToSplit(*this))
                     tree_->split(*this);
@@ -278,9 +277,8 @@ namespace ompl
                 if (!gnat.removed_.empty())
                 {
                     out << "Elements marked for removal:\n";
-                    for (typename std::unordered_set<const _T *>::const_iterator it = gnat.removed_.begin();
-                         it != gnat.removed_.end(); it++)
-                        out << **it << '\t';
+                    for (const auto &elt : gnat.removed_)
+                        out << *elt << '\t';
                     out << std::endl;
                 }
             }
@@ -296,18 +294,18 @@ namespace ompl
             removed_.swap(tmp);
             list(lst);
             // check if every element marked for removal is also in the tree
-            for (typename std::unordered_set<const _T *>::iterator it = tmp.begin(); it != tmp.end(); it++)
+            for (const auto &elt : tmp)
             {
                 unsigned int i;
                 for (i = 0; i < lst.size(); ++i)
-                    if (lst[i] == **it)
+                    if (lst[i] == *elt)
                         break;
                 if (i == lst.size())
                 {
                     // an element marked for removal is not actually in the tree
                     std::cout << "***** FAIL!! ******\n" << *this << '\n';
-                    for (unsigned int j = 0; j < lst.size(); ++j)
-                        std::cout << lst[j] << '\t';
+                    for (const auto &l : lst)
+                        std::cout << l << '\t';
                     std::cout << std::endl;
                 }
                 assert(i != lst.size());
@@ -406,8 +404,8 @@ namespace ompl
 
             ~Node()
             {
-                for (unsigned int i = 0; i < children_.size(); ++i)
-                    delete children_[i];
+                for (auto &child : children_)
+                    delete child;
             }
 
             /// \brief Update minRadius_ and maxRadius_, given that an element
@@ -514,28 +512,28 @@ namespace ompl
                         children_[i]->updateRange(k, dists(j, i));
                 }
 
-                for (unsigned int i = 0; i < degree_; ++i)
+                for (auto &child : children_)
                 {
                     // make sure degree lies between minDegree_ and maxDegree_
-                    children_[i]->degree_ =
-                        std::min(std::max((unsigned int)((degree_ * children_[i]->data_.size()) / data_.size()),
+                    child->degree_ =
+                        std::min(std::max((unsigned int)((degree_ * child->data_.size()) / data_.size()),
                                           gnat.minDegree_),
                                  gnat.maxDegree_);
                     // singleton
-                    if (children_[i]->minRadius_ >= std::numeric_limits<double>::infinity())
-                        children_[i]->minRadius_ = children_[i]->maxRadius_ = 0.;
+                    if (child->minRadius_ >= std::numeric_limits<double>::infinity())
+                        child->minRadius_ = child->maxRadius_ = 0.;
 #ifdef GNAT_SAMPLER
                     // set subtree size
-                    children_[i]->subtreeSize_ = children_[i]->data_.size() + 1;
+                    child->subtreeSize_ = child->data_.size() + 1;
 #endif
                 }
                 // this does more than clear(); it also sets capacity to 0 and frees the memory
                 std::vector<_T> tmp;
                 data_.swap(tmp);
                 // check if new leaves need to be split
-                for (unsigned int i = 0; i < degree_; ++i)
-                    if (children_[i]->needToSplit(gnat))
-                        children_[i]->split(gnat);
+                for (auto &child : children_)
+                    if (child->needToSplit(gnat))
+                        child->split(gnat);
             }
 
             /// Insert data in nbh if it is a near neighbor. Return true iff data was added to nbh.
@@ -562,10 +560,10 @@ namespace ompl
             void nearestK(const GNAT &gnat, const _T &data, std::size_t k, bool &isPivot) const
             {
                 NearQueue &nbh = gnat.nearQueue_;
-                for (unsigned int i = 0; i < data_.size(); ++i)
-                    if (!gnat.isRemoved(data_[i]))
+                for (const auto &d : data_)
+                    if (!gnat.isRemoved(d))
                     {
-                        if (insertNeighborK(nbh, k, data_[i], data, gnat.distFun_(data, data_[i])))
+                        if (insertNeighborK(nbh, k, d, data, gnat.distFun_(data, d)))
                             isPivot = false;
                     }
                 if (!children_.empty())
@@ -616,9 +614,9 @@ namespace ompl
                 NearQueue &nbh = gnat.nearQueue_;
                 double dist = r;  // note difference with nearestK
 
-                for (unsigned int i = 0; i < data_.size(); ++i)
-                    if (!gnat.isRemoved(data_[i]))
-                        insertNeighborR(nbh, r, data_[i], gnat.distFun_(data, data_[i]));
+                for (const auto &d : data_)
+                    if (!gnat.isRemoved(d))
+                        insertNeighborR(nbh, r, d, gnat.distFun_(data, d));
                 if (!children_.empty())
                 {
                     Node *child;
@@ -682,11 +680,11 @@ namespace ompl
             {
                 if (!gnat.isRemoved(pivot_))
                     data.push_back(pivot_);
-                for (unsigned int i = 0; i < data_.size(); ++i)
-                    if (!gnat.isRemoved(data_[i]))
-                        data.push_back(data_[i]);
-                for (unsigned int i = 0; i < children_.size(); ++i)
-                    children_[i]->list(gnat, data);
+                for (const auto &d : data_)
+                    if (!gnat.isRemoved(d))
+                        data.push_back(d);
+                for (const auto &child : children_)
+                    child->list(gnat, data);
             }
 
             friend std::ostream &operator<<(std::ostream &out, const Node &node)
@@ -695,26 +693,26 @@ namespace ompl
                 out << "\nminRadius:\t" << node.minRadius_;
                 out << "\nmaxRadius:\t" << node.maxRadius_;
                 out << "\nminRange:\t";
-                for (unsigned int i = 0; i < node.minRange_.size(); ++i)
-                    out << node.minRange_[i] << '\t';
+                for (auto minR : node.minRange_)
+                    out << minR << '\t';
                 out << "\nmaxRange: ";
-                for (unsigned int i = 0; i < node.maxRange_.size(); ++i)
-                    out << node.maxRange_[i] << '\t';
+                for (auto maxR : node.maxRange_)
+                    out << maxR << '\t';
                 out << "\npivot:\t" << node.pivot_;
                 out << "\ndata: ";
-                for (unsigned int i = 0; i < node.data_.size(); ++i)
-                    out << node.data_[i] << '\t';
+                for (auto &data : node.data_)
+                    out << data << '\t';
                 out << "\nthis:\t" << &node;
 #ifdef GNAT_SAMPLER
                 out << "\nsubtree size:\t" << node.subtreeSize_;
                 out << "\nactivity:\t" << node.activity_;
 #endif
                 out << "\nchildren:\n";
-                for (unsigned int i = 0; i < node.children_.size(); ++i)
-                    out << node.children_[i] << '\t';
+                for (auto &child : node.children_)
+                    out << child << '\t';
                 out << '\n';
-                for (unsigned int i = 0; i < node.children_.size(); ++i)
-                    out << *node.children_[i] << '\n';
+                for (auto &child : node.children_)
+                    out << *child << '\n';
                 return out;
             }
 
