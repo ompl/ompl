@@ -481,14 +481,14 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     else
     {
         // Return an approximate solution.
-        double diff = constructApproximateSolution(startM_, goalM_, sol);
-        if (diff == -1.0)
+        ompl::base::Cost diff = constructApproximateSolution(startM_, goalM_, sol);
+        if (opt_->isFinite(diff))
         {
             OMPL_INFORM("Closest path is still start and goal");
             return base::PlannerStatus::TIMEOUT;
         }
-        OMPL_INFORM("Using approximate solution, distance is %f", diff);
-        pdef_->addSolutionPath(sol, true, diff, getName());
+        OMPL_INFORM("Using approximate solution, heuristic cost-to-go is %f", diff);
+        pdef_->addSolutionPath(sol, true, diff.value(), getName());
         return base::PlannerStatus::APPROXIMATE_SOLUTION;
     }
 
@@ -573,21 +573,21 @@ bool ompl::geometric::PRM::sameComponent(Vertex m1, Vertex m2)
     return boost::same_component(m1, m2, disjointSets_);
 }
 
-double ompl::geometric::PRM::constructApproximateSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
+ompl::base::Cost ompl::geometric::PRM::constructApproximateSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
 {
     std::lock_guard<std::mutex> _(graphMutex_);
     base::Goal *g = pdef_->getGoal().get();
-    base::Cost sol_cost(opt_->infiniteCost());
-
-    double closestVal = std::numeric_limits<double>::infinity();
+    base::Cost closestVal(opt_->infiniteCost());
     bool approxPathJustStart = true;
+
     foreach (Vertex start, starts)
     {
         foreach(Vertex goal, goals)
         {
-            if (costHeuristic(start, goal).value() < closestVal)
+            base::Cost heuristicCost(costHeuristic(start, goal));
+            if (opt_->isCostBetterThan(heuristCost, closestVal)
             {
-                closestVal = costHeuristic(start, goal).value();
+                closestVal = heuristicCost;
                 approxPathJustStart = true;
             }
             if (!g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
@@ -624,8 +624,8 @@ double ompl::geometric::PRM::constructApproximateSolution(const std::vector<Vert
                 // We want to get the distance of each vertex to the goal.
                 // Boost lets us get cost-to-come, cost-to-come+dist-to-goal,
                 // but not just dist-to-goal.
-                double dist_to_goal = rank[*vp.first].value() - dist[*vp.first].value();
-                if (dist_to_goal < closestVal)
+                ompl::base::Cost dist_to_goal (costHeuristic(*vp.first, goal));
+                if (opt_->isCostBetter(dist_to_goal, closestVal)
                 {
                     closeToGoal = *vp.first;
                     closestVal = dist_to_goal;
@@ -646,7 +646,7 @@ double ompl::geometric::PRM::constructApproximateSolution(const std::vector<Vert
     }
     if (approxPathJustStart)
     {
-        return -1.0;
+        return opt_->infiniteCost();
     }
     return closestVal;
 }
