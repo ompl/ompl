@@ -242,6 +242,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
     TreeGrowingInfo tgi;
     tgi.xstate = si_->allocState();
 
+    Motion *approxsol = nullptr;
+    double approxdif = std::numeric_limits<double>::infinity();
     auto *rmotion = new Motion(si_);
     base::State *rstate = rmotion->state;
     bool startTree = true;
@@ -345,6 +347,22 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
                 solved = true;
                 break;
             }
+            else
+            {
+                // We didn't reach the goal, but if we were extending the start
+                // tree, then we can mark/improve the approximate path so far.
+                if (!startTree)
+                {
+                    // We were working from the startTree.
+                    double dist = 0.0;
+                    goal->isSatisfied(tgi.xmotion->state, &dist);
+                    if (dist < approxdif)
+                    {
+                        approxdif = dist;
+                        approxsol = tgi.xmotion;
+                    }
+                }
+            }
         }
     }
 
@@ -354,6 +372,23 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
     OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), tStart_->size() + tGoal_->size(),
                 tStart_->size(), tGoal_->size());
+
+    if (approxsol && !solved)
+    {
+        /* construct the solution path */
+        std::vector<Motion *> mpath;
+        while (approxsol != nullptr)
+        {
+            mpath.push_back(approxsol);
+            approxsol = approxsol->parent;
+        }
+
+        auto path(std::make_shared<PathGeometric>(si_));
+        for (int i = mpath.size() - 1; i >= 0; --i)
+            path->append(mpath[i]->state);
+        pdef_->addSolutionPath(path, true, approxdif, getName());
+        return base::PlannerStatus::APPROXIMATE_SOLUTION;
+    }
 
     return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
