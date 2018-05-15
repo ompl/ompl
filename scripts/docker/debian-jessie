@@ -5,8 +5,14 @@ COPY . /root/ompl
 RUN /root/ompl/scripts/docker/apt-retry.sh \
        build-essential  \
        cmake \
+       castxml \
        pkg-config \
-       libboost-all-dev \
+       libboost-serialization-dev \
+       libboost-filesystem-dev \
+       libboost-system-dev \
+       libboost-program-options-dev \
+       libboost-python-dev \
+       libboost-test-dev
        libflann-dev \
        python-dev \
        libode-dev \

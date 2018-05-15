@@ -10,7 +10,11 @@ matrix:
       addons:
         apt:
           packages:
-            - libboost1.55-all-dev
+            - libboost1.55-serialization-dev
+            - libboost1.55-filesystem-dev
+            - libboost1.55-system-dev
+            - libboost1.55-program-options-dev
+            - libboost1.55-test-dev
             - libode-dev
             - libeigen3-dev
       cache:
@@ -28,12 +32,17 @@ matrix:
       sudo: required
       services:
         - docker
-      env: DOCKERFILE="debian-jessie" JOBS=4
+      env: DOCKERFILE="debian-jessie" JOBS=4 PYTHON=/usr/bin/python
     - os: linux
       sudo: required
       services:
         - docker
-      env: DOCKERFILE="ubuntu-xenial" JOBS=4
+      env: DOCKERFILE="ubuntu-xenial" JOBS=4 PYTHON=/usr/bin/python
+    - os: linux
+      sudo: required
+      services:
+        - docker
+      env: DOCKERFILE="ubuntu-bionic" JOBS=4 PYTHON=/usr/bin/python3
 
 install:
   - if [ -n "$DOCKERFILE" ]; then
@@ -52,7 +61,7 @@ install:
 
 script:
   - if [ -n "$DOCKERFILE" ]; then
-      docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. && make -j $JOBS && ctest";
+      docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DPYTHON_EXEC=$PYTHON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. && make -j $JOBS && ctest";
     else
       mkdir -p build &&
       cd build &&
