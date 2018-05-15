@@ -121,7 +121,7 @@ namespace ompl
             /** Clone a state of the proper type. */
             StateType *cloneTypedState(const StateType *source) const
             {
-                return this->cloneState()->template as<StateType>();
+                return this->cloneState(source)->template as<StateType>();
             }
 
             static StateType *state_as(ompl::base::State *s)
