@@ -24,6 +24,7 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 - [Ryan Luna](http://www.ryanluna.com), Rice University (now at Google[X])
 - Matt Maly, Rice University (now at Google)
 - [James Marble](http://www.cse.unr.edu/robotics/pracsys/marble), Kostas Bekris' [Physics-aware Research for Autonomous Computational SYStems group](http://www.cse.unr.edu/robotics/pracsys), University of Nevada, Reno
+- Andreas Orthey, National Institute of Advanced Industrial Science and Technology (AIST)
 - [Scott Paulin](http://www.scottpaulin.info), University of Canterbury, New Zealand
 - [Alejandro Perez](http://people.csail.mit.edu/aperez/www), Seth Teller's [Robotics, Vision, and Sensor Networks Group](http://rvsn.csail.mit.edu), MIT
 - [Oren Salzman](http://acg.cs.tau.ac.il/people/oren-salzman/oren-salzman), Dan Halperin's [Computational Geometry Lab](http://acg.cs.tau.ac.il), Tel Aviv University
@@ -32,5 +33,6 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 - Sonny Tarbouriech, University of Sherbrooke
 - [Luis Torres](http://luis.web.unc.edu), Ron Alterovitz' [Computational Robotics Group](http://robotics.cs.unc.edu), University of North Carolina at Chapel Hill (now at Google)
 - [Caleb Voss](http://calebvoss.com), Rice University (now at Georgia Tech)
+- Bryce Willey, Rice University
 
 Click [here](thirdparty.html) for a detailed description of some of the third-party contributions.
