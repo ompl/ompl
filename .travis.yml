@@ -32,7 +32,7 @@ matrix:
       sudo: required
       services:
         - docker
-      env: DOCKERFILE="debian-jessie" JOBS=4 PYTHON=/usr/bin/python
+      env: DOCKERFILE="debian-stretch" JOBS=4 PYTHON=/usr/bin/python
     - os: linux
       sudo: required
       services:
