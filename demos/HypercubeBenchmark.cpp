@@ -67,7 +67,7 @@ bool isStateValid(const ompl::base::State *state)
         }
         else if ((*s)[i] < (1. - edgeWidth))
             return false;
-        return true;
+    return true;
 }
 
 void addPlanner(ompl::tools::Benchmark& benchmark, const ompl::base::PlannerPtr& planner, double range)
