@@ -12,7 +12,7 @@ RUN /root/ompl/scripts/docker/apt-retry.sh \
        libboost-system-dev \
        libboost-program-options-dev \
        libboost-python-dev \
-       libboost-test-dev
+       libboost-test-dev \
        libflann-dev \
        python-dev \
        libode-dev \

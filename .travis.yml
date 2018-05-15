@@ -10,11 +10,11 @@ matrix:
       addons:
         apt:
           packages:
-            - libboost1.55-serialization-dev
-            - libboost1.55-filesystem-dev
-            - libboost1.55-system-dev
-            - libboost1.55-program-options-dev
-            - libboost1.55-test-dev
+            - libboost-serialization1.55-dev
+            - libboost-filesystem1.55-dev
+            - libboost-system1.55-dev
+            - libboost-program-options1.55-dev
+            - libboost-test1.55-dev
             - libode-dev
             - libeigen3-dev
       cache:

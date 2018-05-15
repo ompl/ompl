@@ -11,7 +11,7 @@ RUN apt-get -y update && \
        libboost-system-dev \
        libboost-program-options-dev \
        libboost-python-dev \
-       libboost-test-dev
+       libboost-test-dev \
        libflann-dev \
        python-dev \
        libode-dev \
