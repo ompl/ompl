@@ -41,11 +41,11 @@ ompl::base::PlannerStatus PRM_wrapper::default_solve(const ompl::base::PlannerTe
     checkValidity();
 
     static const unsigned int MAX_RANDOM_BOUNCE_STEPS   = 5;
-    base::GoalSampleableRegion *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalSampleableRegion*>(pdef_->getGoal().get());
 
     if (!goal)
     {
-        OMPL_ERROR("Goal undefined or unknown type of goal");
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
@@ -53,15 +53,15 @@ ompl::base::PlannerStatus PRM_wrapper::default_solve(const ompl::base::PlannerTe
     while (const base::State *st = pis_.nextStart())
         startM_.push_back(addMilestone(si_->cloneState(st)));
 
-    if (startM_.size() == 0)
+    if (startM_.empty())
     {
-        OMPL_ERROR("There are no valid initial states!");
+        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
     }
 
     if (!goal->couldSample())
     {
-        OMPL_ERROR("Insufficient states in sampleable goal region");
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
 
@@ -69,12 +69,12 @@ ompl::base::PlannerStatus PRM_wrapper::default_solve(const ompl::base::PlannerTe
     if (goal->maxSampleCount() > goalM_.size() || goalM_.empty())
     {
         const base::State *st = goalM_.empty() ? pis_.nextGoal(ptc) : pis_.nextGoal();
-        if (st)
+        if (st != nullptr)
             goalM_.push_back(addMilestone(si_->cloneState(st)));
 
         if (goalM_.empty())
         {
-            OMPL_ERROR("Unable to find any valid goal states");
+            OMPL_ERROR("%s: Unable to find any valid goal states", getName().c_str());
             return base::PlannerStatus::INVALID_GOAL;
         }
     }
@@ -84,8 +84,8 @@ ompl::base::PlannerStatus PRM_wrapper::default_solve(const ompl::base::PlannerTe
     if (!simpleSampler_)
         simpleSampler_ = si_->allocStateSampler();
 
-    unsigned int nrStartStates = boost::num_vertices(g_);
-    OMPL_INFORM("Starting with %u states", nrStartStates);
+    unsigned long int nrStartStates = boost::num_vertices(g_);
+    OMPL_INFORM("%s: Starting planning with %lu states already in datastructure", getName().c_str(), nrStartStates);
 
     std::vector<base::State*> xstates(MAX_RANDOM_BOUNCE_STEPS);
     si_->allocStates(xstates);
@@ -93,8 +93,8 @@ ompl::base::PlannerStatus PRM_wrapper::default_solve(const ompl::base::PlannerTe
 
     // Reset addedNewSolution_ member
     addedNewSolution_ = false;
-    base::PathPtr sln;
-    sln.reset();
+    base::PathPtr sol;
+    sol.reset();
 
     double roadmap_build_time = 0.05;
     while (ptc == false && !addedNewSolution_)
@@ -116,22 +116,33 @@ ompl::base::PlannerStatus PRM_wrapper::default_solve(const ompl::base::PlannerTe
         grow = !grow;
 
         // Check for a solution
-        addedNewSolution_ = maybeConstructSolution (startM_, goalM_, sln);
+        addedNewSolution_ = maybeConstructSolution (startM_, goalM_, sol);
     }
 
-    OMPL_INFORM("Created %u states", boost::num_vertices(g_) - nrStartStates);
+    OMPL_INFORM("%s: Created %u states", getName().c_str(), boost::num_vertices(g_) - nrStartStates);
 
-    if (sln)
+    if (sol)
     {
-        if(addedNewSolution_)
-            pdef_->addSolutionPath (sln);
-        else
-            // the solution is exact, but not as short as we'd like it to be
-            pdef_->addSolutionPath (sln, true, 0.0);
+        base::PlannerSolution psol(sol);
+        psol.setPlannerName(getName());
+        // if the solution was optimized, we mark it as such
+        psol.setOptimized(opt_, bestCost_, addedNewSolution());
+        pdef_->addSolutionPath(psol);
     }
-
+    else
+    {
+        // Return an approximate solution.
+        ompl::base::Cost diff = ompl::geometric::PRM::constructApproximateSolution(startM_, goalM_, sol);
+        if (opt_->isFinite(diff))
+        {
+            OMPL_INFORM("Closest path is still start and goal");
+            return base::PlannerStatus::TIMEOUT;
+        }
+        OMPL_INFORM("Using approximate solution, heuristic cost-to-go is %f", diff);
+        pdef_->addSolutionPath(sol, true, diff.value(), getName());
+        return base::PlannerStatus::APPROXIMATE_SOLUTION;
+    }
     si_->freeStates(xstates);
 
-    // Return true if any solution was found.
-    return sln ? (addedNewSolution_ ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::APPROXIMATE_SOLUTION) : base::PlannerStatus::TIMEOUT;
+    return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

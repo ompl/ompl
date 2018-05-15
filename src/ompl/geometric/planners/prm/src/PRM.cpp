@@ -482,7 +482,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     {
         // Return an approximate solution.
         ompl::base::Cost diff = constructApproximateSolution(startM_, goalM_, sol);
-        if (opt_->isFinite(diff))
+        if (!opt_->isFinite(diff))
         {
             OMPL_INFORM("Closest path is still start and goal");
             return base::PlannerStatus::TIMEOUT;
@@ -624,8 +624,8 @@ ompl::base::Cost ompl::geometric::PRM::constructApproximateSolution(const std::v
                 // We want to get the distance of each vertex to the goal.
                 // Boost lets us get cost-to-come, cost-to-come+dist-to-goal,
                 // but not just dist-to-goal.
-                ompl::base::Cost dist_to_goal (costHeuristic(*vp.first, goal));
-                if (opt_->isCostBetterThan(dist_to_goal, closestVal))
+                ompl::base::Cost dist_to_goal(costHeuristic(*vp.first, goal));
+                if (opt_->isFinite(rank[*vp.first]) && opt_->isCostBetterThan(dist_to_goal, closestVal))
                 {
                     closeToGoal = *vp.first;
                     closestVal = dist_to_goal;
