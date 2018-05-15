@@ -585,7 +585,7 @@ ompl::base::Cost ompl::geometric::PRM::constructApproximateSolution(const std::v
         foreach(Vertex goal, goals)
         {
             base::Cost heuristicCost(costHeuristic(start, goal));
-            if (opt_->isCostBetterThan(heuristCost, closestVal)
+            if (opt_->isCostBetterThan(heuristicCost, closestVal))
             {
                 closestVal = heuristicCost;
                 approxPathJustStart = true;
@@ -625,7 +625,7 @@ ompl::base::Cost ompl::geometric::PRM::constructApproximateSolution(const std::v
                 // Boost lets us get cost-to-come, cost-to-come+dist-to-goal,
                 // but not just dist-to-goal.
                 ompl::base::Cost dist_to_goal (costHeuristic(*vp.first, goal));
-                if (opt_->isCostBetter(dist_to_goal, closestVal)
+                if (opt_->isCostBetterThan(dist_to_goal, closestVal))
                 {
                     closeToGoal = *vp.first;
                     closestVal = dist_to_goal;
