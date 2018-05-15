@@ -1,6 +1,6 @@
 # Developers
 
-OMPL is developed and maintained by the [Physical and Biological Computing Group](http://www.kavrakilab.org) at Rice University, led by [Dr. Lydia Kavraki](http://www.cs.rice.edu/~kavraki). The development is coordinated by [Dr. Mark Moll](http://mmoll.rice.edu), [Dr. Lydia Kavraki](http://www.cs.rice.edu/~kavraki) (Rice) and [Dr. Ioan Șucan](http://ioan.sucan.ro) (Google\[X\], formerly Rice). Many others have contributed to OMPL as well, as can be seen below.
+OMPL is developed and maintained by the [Physical and Biological Computing Group](http://www.kavrakilab.org) at Rice University, led by [Dr. Lydia Kavraki](http://www.cs.rice.edu/~kavraki). The development is coordinated by [Dr. Mark Moll](http://mmoll.rice.edu), [Dr. Lydia Kavraki](http://www.cs.rice.edu/~kavraki) (Rice) and [Dr. Ioan Șucan](http://ioan.sucan.ro) (Waymo, formerly Rice). Many others have contributed to OMPL as well, as can be seen below.
 
 ## Contributors (in alphabetical order)
 
@@ -21,7 +21,7 @@ OMPL is developed and maintained by the [Physical and Biological Computing Group
 - Gil Jones, Google
 - [Sertac Karaman](http://sertac.scripts.mit.edu/web), Emilio Frazzoli's [Aerospace Robotics and Embedded Systems Laboratory](http://ares.lids.mit.edu), MIT
 - [Zachary Kingston](http://zkingston.com), Rice University
-- [Ryan Luna](http://www.ryanluna.com), Rice University (now at Google[X])
+- [Ryan Luna](http://www.ryanluna.com), Rice University (now at Waymo)
 - Matt Maly, Rice University (now at Google)
 - [James Marble](http://www.cse.unr.edu/robotics/pracsys/marble), Kostas Bekris' [Physics-aware Research for Autonomous Computational SYStems group](http://www.cse.unr.edu/robotics/pracsys), University of Nevada, Reno
 - Andreas Orthey, National Institute of Advanced Industrial Science and Technology (AIST)
