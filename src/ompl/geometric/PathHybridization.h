@@ -98,7 +98,7 @@ namespace ompl
                 is considered to be \e gapCost. The output of the computation is two arrays \e indexP and \e indexQ of
                 equal length, such that these arrays contain matching index positions from the states in \e p and \e q,
                 respectively. Gaps are marked by -1. */
-            void matchPaths(const geometric::PathGeometric &p, const geometric::PathGeometric &q, double gapCost,
+            void matchPaths(const geometric::PathGeometric &p, const geometric::PathGeometric &q, double gapValue,
                             std::vector<int> &indexP, std::vector<int> &indexQ) const;
 
             /** \brief Clear all the stored paths */
@@ -121,8 +121,8 @@ namespace ompl
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property<vertex_state_t, base::State *,
                                 boost::property<boost::vertex_predecessor_t, unsigned long int,
-                                                boost::property<boost::vertex_rank_t, unsigned long int>>>,
-                boost::property<boost::edge_weight_t, double>>
+                                                boost::property<boost::vertex_rank_t, base::Cost>>>,
+                boost::property<boost::edge_weight_t, base::Cost>>
                 HGraph;
 
             typedef boost::graph_traits<HGraph>::vertex_descriptor Vertex;
@@ -131,7 +131,7 @@ namespace ompl
             struct PathInfo
             {
                 PathInfo(const base::PathPtr &path)
-                  : path_(path), states_(static_cast<PathGeometric *>(path.get())->getStates()), cost_(0.0)
+                  : path_(path), states_(static_cast<PathGeometric *>(path.get())->getStates()), cost_(base::Cost())
                 {
                     vertices_.reserve(states_.size());
                 }
@@ -148,7 +148,7 @@ namespace ompl
 
                 base::PathPtr path_;
                 const std::vector<base::State *> &states_;
-                double cost_;
+                base::Cost cost_;
                 std::vector<Vertex> vertices_;
             };
             /// @endcond

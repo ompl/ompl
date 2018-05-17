@@ -40,6 +40,7 @@
 #include "2DcirclesSetup.h"
 #include <iostream>
 
+#include "ompl/base/Goal.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/geometric/PathSimplifier.h"
 #include "ompl/geometric/PathHybridization.h"
@@ -72,8 +73,8 @@ public:
     {
         base::OptimizationObjectivePtr obj(new T(si_));
         // Just use the first of the paths.
-        geometric::PathSimplifier simplifier(si_);
-        for (int path_idx = 0; path_idx < 3; path_idx++)
+        geometric::PathSimplifier simplifier(si_, ompl::base::GoalPtr(), obj);
+        for (int path_idx = 0; path_idx < 2; path_idx++)
         {
             double avg_length = 0.0;
             double avg_costs = 0.0;
@@ -83,7 +84,7 @@ public:
             for (int i = 0; i < runs; i++)
             {
                 path = new geometric::PathGeometric(*paths_[path_idx]);
-                simplifier.shortcutPath(*path, 100, 100, 0.33, 0.005, obj); 
+                simplifier.shortcutPath(*path, 100, 100, 0.33, 0.005); 
                 avg_costs += path->cost(obj).value();
                 avg_length += path->length();
                 avg_clearance += path->cost(obj_clearance).value();
@@ -103,11 +104,12 @@ public:
     {
         base::OptimizationObjectivePtr obj(new T(si_));
         geometric::PathHybridization hybrid(si_, obj);
-        base::PathPtr path1(paths_[1]);
-        base::PathPtr path2(paths_[2]);
+        base::PathPtr path1(paths_[0]);
+        base::PathPtr path2(paths_[1]);
         hybrid.recordPath(path1, true);
         hybrid.recordPath(path2, true);
         hybrid.computeHybridPath();
+        hybrid.print(std::cout);
         const base::PathPtr final_path = hybrid.getHybridPath();
         final_path->as<geometric::PathGeometric>()->printAsMatrix(std::cout);
     }

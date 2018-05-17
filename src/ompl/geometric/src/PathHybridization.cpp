@@ -86,7 +86,7 @@ void ompl::geometric::PathHybridization::print(std::ostream &out) const
     out << "Path hybridization is aware of " << paths_.size() << " paths" << std::endl;
     int i = 1;
     for (auto it = paths_.begin(); it != paths_.end(); ++it, ++i)
-        out << "  path " << i << " of cost " << it->cost_ << std::endl;
+        out << "  path " << i << " of cost " << it->cost_.value() << std::endl;
     if (hpath_)
         out << "Hybridized path of cost " << hpath_->cost(obj_) << std::endl;
 }
@@ -99,7 +99,13 @@ const std::string &ompl::geometric::PathHybridization::getName() const
 void ompl::geometric::PathHybridization::computeHybridPath()
 {
     boost::vector_property_map<Vertex> prev(boost::num_vertices(g_));
-    boost::dijkstra_shortest_paths(g_, root_, boost::predecessor_map(prev));
+    boost::dijkstra_shortest_paths(g_, root_, 
+            boost::predecessor_map(prev)
+                .distance_compare(
+                    [this](base::Cost c1, base::Cost c2) { return obj_->isCostBetterThan(c1, c2); })
+                .distance_combine([this](base::Cost c1, base::Cost c2) {return obj_->combineCosts(c1, c2); })
+                .distance_inf(obj_->infiniteCost())
+                .distance_zero(obj_->identityCost()));
     if (prev[goal_] != goal_)
     {
         auto h(std::make_shared<PathGeometric>(si_));
@@ -107,6 +113,10 @@ void ompl::geometric::PathHybridization::computeHybridPath()
             h->append(stateProperty_[pos]);
         h->reverse();
         hpath_ = h;
+    }
+    else
+    {
+        OMPL_WARN("No path to goal was found, returning 0");
     }
 }
 
@@ -150,17 +160,17 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
 
     // add all the vertices of the path, and the edges between them, to the HGraph
     // also compute the path cost for future use (just for computational savings)
-    const HGraph::edge_property_type prop0(0.0);
+    const HGraph::edge_property_type prop0(obj_->identityCost());
     boost::add_edge(root_, v0, prop0, g_);
-    double cost = 0.0;
+    base::Cost cost = obj_->identityCost();
     for (std::size_t j = 1; j < pi.states_.size(); ++j)
     {
         Vertex v1 = boost::add_vertex(g_);
         stateProperty_[v1] = pi.states_[j];
-        double weight = obj_->motionCost(pi.states_[j - 1], pi.states_[j]).value();
+        base::Cost weight = obj_->motionCost(pi.states_[j - 1], pi.states_[j]);
         const HGraph::edge_property_type properties(weight);
         boost::add_edge(v0, v1, properties, g_);
-        cost += weight;
+        cost = obj_->combineCosts(cost, weight);
         pi.vertices_.push_back(v1);
         v0 = v1;
     }
@@ -174,7 +184,7 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
     {
         const auto *q = static_cast<const PathGeometric *>(path.path_.get());
         std::vector<int> indexP, indexQ;
-        matchPaths(*p, *q, (pi.cost_ + path.cost_) / (2.0 / magic::GAP_COST_FRACTION), indexP, indexQ);
+        matchPaths(*p, *q, obj_->combineCosts(pi.cost_, path.cost_).value() / (2.0 / magic::GAP_COST_FRACTION), indexP, indexQ);
 
         if (matchAcrossGaps)
         {
@@ -184,6 +194,7 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
             int gapStartQ = -1;
             bool gapP = false;
             bool gapQ = false;
+            std::cout << "IndexP.size(): " << indexP.size() << std::endl;
             for (std::size_t i = 0; i < indexP.size(); ++i)
             {
                 // a gap is found in p
@@ -256,9 +267,14 @@ void ompl::geometric::PathHybridization::attemptNewEdge(const PathInfo &p, const
 {
     if (si_->checkMotion(p.states_[indexP], q.states_[indexQ]))
     {
-        double weight = obj_->motionCost(p.states_[indexP], q.states_[indexQ]).value();
+        base::Cost weight = obj_->motionCost(p.states_[indexP], q.states_[indexQ]);
         const HGraph::edge_property_type properties(weight);
         boost::add_edge(p.vertices_[indexP], q.vertices_[indexQ], properties, g_);
+        std::cout << "Motion between state " << indexP << " and " << indexQ << " was valid!" << std::endl;
+    }
+    else
+    {
+        std::cout << "Motion between state " << indexP << " and " << indexQ << " was invalid." << std::endl;
     }
 }
 
@@ -267,29 +283,41 @@ std::size_t ompl::geometric::PathHybridization::pathCount() const
     return paths_.size();
 }
 
-void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, const PathGeometric &q, double gapCost,
+void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, const PathGeometric &q, double gapValue,
                                                     std::vector<int> &indexP, std::vector<int> &indexQ) const
 {
-    std::vector<std::vector<double>> C(p.getStateCount());
+    std::vector<std::vector<base::Cost>> C(p.getStateCount());
     std::vector<std::vector<char>> T(p.getStateCount());
 
+    base::Cost gapCost(gapValue);
     for (std::size_t i = 0; i < p.getStateCount(); ++i)
     {
-        C[i].resize(q.getStateCount(), 0.0);
+        C[i].resize(q.getStateCount(), obj_->identityCost());
         T[i].resize(q.getStateCount(), '\0');
         for (std::size_t j = 0; j < q.getStateCount(); ++j)
         {
             // as far as I can tell, there is a bug in the algorithm as presented in the paper
             // so I am doing things slightly differently ...
-            double match = obj_->motionCost(p.getState(i), q.getState(j)).value() + ((i > 0 && j > 0) ? C[i - 1][j - 1] : 0.0);
-            double up = gapCost + (i > 0 ? C[i - 1][j] : 0.0);
-            double left = gapCost + (j > 0 ? C[i][j - 1] : 0.0);
-            if (match <= up && match <= left)
+            base::Cost match = obj_->combineCosts(
+                obj_->motionCost(p.getState(i), q.getState(j)), 
+                ((i > 0 && j > 0) ? C[i - 1][j - 1] : obj_->identityCost())
+            );
+            base::Cost up = obj_->combineCosts(
+                gapCost, 
+                (i > 0 ? C[i - 1][j] : obj_->identityCost())
+            );
+            base::Cost left = obj_->combineCosts(
+                gapCost, 
+                (j > 0 ? C[i][j - 1] : obj_->identityCost())
+            );
+            //if (not (obj_->isCostBetterThan(up, match) || obj_->isCostBetterThan(left, match)))
+            if (match.value() <= up.value() && match.value() <= left.value())
             {
                 C[i][j] = match;
                 T[i][j] = 'm';
             }
-            else if (up <= match && up <= left)
+            //else if (not (obj_->isCostBetterThan(match, up) || obj_->isCostBetterThan(left,  up)))
+            else if (up.value() <= match.value() && up.value() <= left.value())
             {
                 C[i][j] = up;
                 T[i][j] = 'u';

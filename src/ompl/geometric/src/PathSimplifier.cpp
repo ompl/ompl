@@ -44,7 +44,7 @@
 #include <map>
 #include <utility>
 
-ompl::geometric::PathSimplifier::PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr &goal)
+ompl::geometric::PathSimplifier::PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr &goal, base::OptimizationObjectivePtr obj)
   : si_(std::move(si)), freeStates_(true)
 {
     if (goal)
@@ -53,6 +53,14 @@ ompl::geometric::PathSimplifier::PathSimplifier(base::SpaceInformationPtr si, co
         if (!gsr_)
             OMPL_WARN("%s: Goal could not be cast to GoalSampleableRegion.  Goal simplification will not be performed.",
                       __FUNCTION__);
+    }
+    if (obj)
+    {
+        obj_ = obj;
+    }
+    else
+    {
+        obj_ = std::make_shared<base::PathLengthOptimizationObjective>(si);
     }
 }
 
@@ -175,7 +183,7 @@ bool ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
 }
 
 bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned int maxSteps,
-                                                   unsigned int maxEmptySteps, double rangeRatio, double snapToVertex, base::OptimizationObjectivePtr obj)
+                                                   unsigned int maxEmptySteps, double rangeRatio, double snapToVertex)
 {
     if (path.getStateCount() < 3)
         return false;
@@ -189,16 +197,12 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
     std::vector<base::State *> &states = path.getStates();
 
-    if (obj == nullptr)
-        // Use path length by default.
-        obj = std::shared_ptr<base::PathLengthOptimizationObjective>();
-
     // costs[i] contains the cumulative cost of the path up to and including state i
-    std::vector<ompl::base::Cost> costs(states.size(), obj->identityCost());
+    std::vector<ompl::base::Cost> costs(states.size(), obj_->identityCost());
     std::vector<double> dists(states.size(), 0.0);
     for (unsigned int i = 1; i < costs.size(); ++i)
     {
-        costs[i] = obj->combineCosts(costs[i - 1], obj->motionCost(states[i - 1], states[i]));
+        costs[i] = obj_->combineCosts(costs[i - 1], obj_->motionCost(states[i - 1], states[i]));
         dists[i] = dists[i - 1] + si->distance(states[i - 1], states[i]);
     }
     // Sampled states closer than 'threshold' distance to any existing state in the path
@@ -297,17 +301,17 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
 
             // Now that states are in the right order, make sure the cost actually decreases.
             // TODO: get the cost along the path from s0 to s1.
-            base::Cost s0PartialCost = (index0 >= 0) ? obj->identityCost() : obj->motionCost(s0, states[pos0 + 1]);
-            base::Cost s1PartialCost = (index1 >= 0) ? obj->identityCost() : obj->motionCost(states[pos1], s1);
+            base::Cost s0PartialCost = (index0 >= 0) ? obj_->identityCost() : obj_->motionCost(s0, states[pos0 + 1]);
+            base::Cost s1PartialCost = (index1 >= 0) ? obj_->identityCost() : obj_->motionCost(states[pos1], s1);
             base::Cost alongPath = s0PartialCost;
             int posTemp = pos0 + 1;
             while (posTemp < pos1)
             {
-                alongPath = obj->combineCosts(alongPath, obj->motionCost(states[posTemp], states[posTemp + 1]));
+                alongPath = obj_->combineCosts(alongPath, obj_->motionCost(states[posTemp], states[posTemp + 1]));
                 posTemp++;
             }
-            alongPath = obj->combineCosts(alongPath, s1PartialCost);
-            if (obj->isCostBetterThan(alongPath, obj->motionCost(s0, s1)))
+            alongPath = obj_->combineCosts(alongPath, s1PartialCost);
+            if (obj_->isCostBetterThan(alongPath, obj_->motionCost(s0, s1)))
             {
                 // The cost along the path from state 0 to 1 is better than the straight line motion cost between the two.
                 continue;
@@ -358,10 +362,10 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
 
             // fix the helper variables
             dists.resize(states.size(), 0.0);
-            costs.resize(states.size(), obj->identityCost());
+            costs.resize(states.size(), obj_->identityCost());
             for (unsigned int j = pos0 + 1; j < costs.size(); ++j)
             {
-                costs[j] = obj->combineCosts(costs[j - 1], obj->motionCost(states[j - 1], states[j]));
+                costs[j] = obj_->combineCosts(costs[j - 1], obj_->motionCost(states[j - 1], states[j]));
                 dists[j] = dists[j - 1] + si->distance(states[j - 1], states[j]);
             }
             threshold = dists.back() * snapToVertex;
@@ -374,6 +378,32 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
     si->freeState(temp1);
     si->freeState(temp0);
     return result;
+}
+
+bool ompl::geometric::PathSimplifier::pertubPath(PathGeometric &path, double stepSize, unsigned int maxSteps, unsigned int maxEmptySteps)
+{
+    if (maxSteps == 0)
+        maxSteps = path.getStateCount();
+    
+    if (maxEmptySteps == 0)
+        maxEmptySteps = path.getStateCount();
+    
+    const base::SpaceInformationPtr &si = path.getSpaceInformation();
+    std::vector<base::State *> &states = path.getStates();
+
+    // TODO(brycew): actually write.
+    // Pseudocode
+    // select a configuration on the path, biased towards high cost segments.
+    //     biasing is kinda hard, for now, just do the same random selection as shortcut.
+    // Then pick a random direction to extend and go that way.
+    //     Can just get a random configuration, distance from it and q_perturb, and
+    //         interpolate stepSize / distance (see RRT, 135)
+    // Then get qnear1 and qnear2: the next state that is within stepsize of either size, or
+    //     if stepsize isn't that big, another new state along that segment.
+    // Then make 2 new segments from qnear1 to qnew and qnew to qnear2. Stop early if either
+    //     is in collision, and stop if the segment added is higher cost than the original
+    //     path.
+    return false;
 }
 
 bool ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path, unsigned int maxSteps,
