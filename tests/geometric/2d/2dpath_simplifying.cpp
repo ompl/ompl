@@ -68,16 +68,34 @@ public:
     }
 
     template<typename T>
-    void run_simplifier()
+    void run_simplifier(int runs)
     {
         base::OptimizationObjectivePtr obj(new T(si_));
         // Just use the first of the paths.
-        geometric::PathGeometric *path = paths_[0];
-        // TODO: make general to costs.
         geometric::PathSimplifier simplifier(si_);
-        simplifier.simplify(*path, 5.0); // simplify for 10 seconds.
-        // Output the new path.
-        path->printAsMatrix(std::cout);
+        for (int path_idx = 0; path_idx < 3; path_idx++)
+        {
+            double avg_length = 0.0;
+            double avg_costs = 0.0;
+            base::OptimizationObjectivePtr obj_clearance(new base::MaximizeMinClearanceObjective(si_));
+            double avg_clearance = 0.0;
+            geometric::PathGeometric *path;
+            for (int i = 0; i < runs; i++)
+            {
+                path = new geometric::PathGeometric(*paths_[path_idx]);
+                simplifier.shortcutPath(*path, 100, 100, 0.33, 0.005, obj); 
+                avg_costs += path->cost(obj).value();
+                avg_length += path->length();
+                avg_clearance += path->cost(obj_clearance).value();
+            }
+            avg_costs /= runs;
+            avg_length /= runs;
+            avg_clearance /= runs;
+            printf("Avg Cost %d wrt Length: %f\n", path_idx, avg_length);
+            printf("Avg Cost %d wrt Clearance: %f\n", path_idx, avg_clearance);
+            path->printAsMatrix(std::cout);
+        }
+        
     }
 
     template<typename T>
@@ -107,7 +125,7 @@ BOOST_AUTO_TEST_CASE(geometric_PathLengthSimplifier)
 {
     if (VERBOSE)
         printf("\n\n\n**************************************************\nTesting path length simplifier\n");
-    run_simplifier<base::PathLengthOptimizationObjective>();
+    run_simplifier<base::PathLengthOptimizationObjective>(20);
     if (VERBOSE)
         printf("Done with path length simplifier\n");
 }
@@ -116,19 +134,28 @@ BOOST_AUTO_TEST_CASE(geomtric_PathLengthHybridization)
 {
     if (VERBOSE)
         printf("\n\n\n**************************************************\nTesting path length hybridization\n");
-    run_simplifier<base::PathLengthOptimizationObjective>();
+    run_hybridizer<base::PathLengthOptimizationObjective>();
     if (VERBOSE)
-        printf("Done with path clearance hybridization\n");
+        printf("Done with path length hybridization\n");
 }
 
 BOOST_AUTO_TEST_CASE(geomtric_PathClearanceHybridization)
 {
     if (VERBOSE)
         printf("\n\n\n**************************************************\nTesting path clearance hybridization\n");
-    run_simplifier<base::MaximizeMinClearanceObjective>();
+    run_hybridizer<base::MaximizeMinClearanceObjective>();
     if (VERBOSE)
-        printf("Done with path clearance hybridization\n");
+        printf("Done with path clerance hybridization\n");
 }
 
+BOOST_AUTO_TEST_CASE(geometric_PathClearanceShortcutting)
+{
+    if (VERBOSE)
+        printf("\n\n\n**************************************************\nTesting path clearance shorcutting\n");
+    run_simplifier<base::MaximizeMinClearanceObjective>(20);
+    if (VERBOSE)
+        printf("Done with path clearance shortcutting\n");
+
+}
 
 BOOST_AUTO_TEST_SUITE_END()

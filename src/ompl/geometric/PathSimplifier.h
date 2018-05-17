@@ -40,6 +40,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/PlannerTerminationCondition.h"
+#include "ompl/base/OptimizationObjective.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/RandomNumbers.h"
@@ -120,7 +121,7 @@ namespace ompl
                 \note This function assumes the triangle inequality holds and should not be run on non-metric spaces.
             */
             bool shortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0,
-                              double rangeRatio = 0.33, double snapToVertex = 0.005);
+                              double rangeRatio = 0.33, double snapToVertex = 0.005, base::OptimizationObjectivePtr obj=nullptr);
 
             /** \brief Given a path, attempt to remove vertices from it while keeping the path valid. This is an
                 iterative process that attempts to do "short-cutting" on the path. Connection is attempted between

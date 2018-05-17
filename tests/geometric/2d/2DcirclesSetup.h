@@ -61,10 +61,16 @@ namespace ompl
             {
             }
 
-            virtual bool isValid(const base::State *state) const
+            bool isValid(const base::State *state) const override
             {
                 const double *xy = state->as<base::RealVectorStateSpace::StateType>()->values;
                 return circles_.noOverlap(xy[0], xy[1]);
+            }
+
+            double clearance(const base::State *state) const override
+            {
+                const double *xy = state->as<base::RealVectorStateSpace::StateType>()->values;
+                return circles_.signedDistance(xy[0], xy[1]);
             }
 
         private:

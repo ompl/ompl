@@ -36,6 +36,7 @@
 
 #include "ompl/geometric/PathSimplifier.h"
 #include "ompl/tools/config/MagicConstants.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include <algorithm>
 #include <limits>
 #include <cstdlib>
@@ -174,7 +175,7 @@ bool ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
 }
 
 bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned int maxSteps,
-                                                   unsigned int maxEmptySteps, double rangeRatio, double snapToVertex)
+                                                   unsigned int maxEmptySteps, double rangeRatio, double snapToVertex, base::OptimizationObjectivePtr obj)
 {
     if (path.getStateCount() < 3)
         return false;
@@ -188,10 +189,18 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
     std::vector<base::State *> &states = path.getStates();
 
-    // dists[i] contains the cumulative length of the path up to and including state i
+    if (obj == nullptr)
+        // Use path length by default.
+        obj = std::shared_ptr<base::PathLengthOptimizationObjective>();
+
+    // costs[i] contains the cumulative cost of the path up to and including state i
+    std::vector<ompl::base::Cost> costs(states.size(), obj->identityCost());
     std::vector<double> dists(states.size(), 0.0);
-    for (unsigned int i = 1; i < dists.size(); ++i)
+    for (unsigned int i = 1; i < costs.size(); ++i)
+    {
+        costs[i] = obj->combineCosts(costs[i - 1], obj->motionCost(states[i - 1], states[i]));
         dists[i] = dists[i - 1] + si->distance(states[i - 1], states[i]);
+    }
     // Sampled states closer than 'threshold' distance to any existing state in the path
     // are snapped to the close state
     double threshold = dists.back() * snapToVertex;
@@ -210,18 +219,19 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
         base::State *s0 = nullptr;
         int index0 = -1;
         double t0 = 0.0;
-        double p0 = rng_.uniformReal(0.0, dists.back());              // sample a random point (p0) along the path
-        auto pit = std::lower_bound(dists.begin(), dists.end(), p0);  // find the NEXT waypoint after the random point
+        double distTo0 = rng_.uniformReal(0.0, dists.back());              // sample a random point (p0) along the path
+        auto pit = std::lower_bound(dists.begin(), dists.end(), distTo0);  // find the NEXT waypoint after the random point
         int pos0 = pit == dists.end() ? dists.size() - 1 :
                                         pit - dists.begin();  // get the index of the NEXT waypoint after the point
 
-        if (pos0 == 0 || dists[pos0] - p0 < threshold)  // snap to the NEXT waypoint
+        base::Cost costTo0;
+        if (pos0 == 0 || dists[pos0] - distTo0 < threshold) // snap to the NEXT waypoint
             index0 = pos0;
         else
         {
-            while (pos0 > 0 && p0 < dists[pos0])
+            while (pos0 > 0 && distTo0 < dists[pos0])
                 --pos0;
-            if (p0 - dists[pos0] < threshold)  // snap to the PREVIOUS waypoint
+            if (distTo0 - dists[pos0] < threshold)  // snap to the PREVIOUS waypoint
                 index0 = pos0;
         }
 
@@ -229,19 +239,19 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
         base::State *s1 = nullptr;
         int index1 = -1;
         double t1 = 0.0;
-        double p1 = rng_.uniformReal(std::max(0.0, p0 - rd),
-                                     std::min(p0 + rd, dists.back()));  // sample a random point (p1) near p0
-        pit = std::lower_bound(dists.begin(), dists.end(), p1);         // find the NEXT waypoint after the random point
+        double distTo1 = rng_.uniformReal(std::max(0.0, distTo0 - rd),
+                                     std::min(distTo0 + rd, dists.back()));  // sample a random point (distTo1) near s0
+        pit = std::lower_bound(dists.begin(), dists.end(), distTo1);         // find the NEXT waypoint after the random point
         int pos1 = pit == dists.end() ? dists.size() - 1 :
                                         pit - dists.begin();  // get the index of the NEXT waypoint after the point
 
-        if (pos1 == 0 || dists[pos1] - p1 < threshold)  // snap to the NEXT waypoint
+        if (pos1 == 0 || dists[pos1] - distTo1 < threshold)  // snap to the NEXT waypoint
             index1 = pos1;
         else
         {
-            while (pos1 > 0 && p1 < dists[pos1])
+            while (pos1 > 0 && distTo1 < dists[pos1])
                 --pos1;
-            if (p1 - dists[pos1] < threshold)  // snap to the PREVIOUS waypoint
+            if (distTo1 - dists[pos1] < threshold)  // snap to the PREVIOUS waypoint
                 index1 = pos1;
         }
 
@@ -250,22 +260,26 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
             (index0 >= 0 && index1 >= 0 && abs(index0 - index1) < 2))
             continue;
 
-        // Get the state pointer for p0
+        // Get the state pointer for costTo0
         if (index0 >= 0)
+        {
             s0 = states[index0];
+        }
         else
         {
-            t0 = (p0 - dists[pos0]) / (dists[pos0 + 1] - dists[pos0]);
+            t0 = (distTo0 - dists[pos0]) / (dists[pos0 + 1] - dists[pos0]);
             si->getStateSpace()->interpolate(states[pos0], states[pos0 + 1], t0, temp0);
             s0 = temp0;
         }
 
-        // Get the state pointer for p1
+        // Get the state pointer for costTo1
         if (index1 >= 0)
+        {
             s1 = states[index1];
+        }
         else
         {
-            t1 = (p1 - dists[pos1]) / (dists[pos1 + 1] - dists[pos1]);
+            t1 = (distTo1 - dists[pos1]) / (dists[pos1 + 1] - dists[pos1]);
             si->getStateSpace()->interpolate(states[pos1], states[pos1 + 1], t1, temp1);
             s1 = temp1;
         }
@@ -280,6 +294,25 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
                 std::swap(s0, s1);
                 std::swap(t0, t1);
             }
+
+            // Now that states are in the right order, make sure the cost actually decreases.
+            // TODO: get the cost along the path from s0 to s1.
+            base::Cost s0PartialCost = (index0 >= 0) ? obj->identityCost() : obj->motionCost(s0, states[pos0 + 1]);
+            base::Cost s1PartialCost = (index1 >= 0) ? obj->identityCost() : obj->motionCost(states[pos1], s1);
+            base::Cost alongPath = s0PartialCost;
+            int posTemp = pos0 + 1;
+            while (posTemp < pos1)
+            {
+                alongPath = obj->combineCosts(alongPath, obj->motionCost(states[posTemp], states[posTemp + 1]));
+                posTemp++;
+            }
+            alongPath = obj->combineCosts(alongPath, s1PartialCost);
+            if (obj->isCostBetterThan(alongPath, obj->motionCost(s0, s1)))
+            {
+                // The cost along the path from state 0 to 1 is better than the straight line motion cost between the two.
+                continue;
+            }
+            // Otherwise, shortcut cost is better!
 
             // Modify the path with the new, shorter result
             if (index0 < 0 && index1 < 0)
@@ -325,8 +358,12 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
 
             // fix the helper variables
             dists.resize(states.size(), 0.0);
-            for (unsigned int j = pos0 + 1; j < dists.size(); ++j)
+            costs.resize(states.size(), obj->identityCost());
+            for (unsigned int j = pos0 + 1; j < costs.size(); ++j)
+            {
+                costs[j] = obj->combineCosts(costs[j - 1], obj->motionCost(states[j - 1], states[j]));
                 dists[j] = dists[j - 1] + si->distance(states[j - 1], states[j]);
+            }
             threshold = dists.back() * snapToVertex;
             rd = rangeRatio * dists.back();
             result = true;
