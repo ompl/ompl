@@ -37,6 +37,7 @@
 #include "ompl/geometric/PathSimplifier.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include "ompl/base/StateSampler.h"
 #include <algorithm>
 #include <limits>
 #include <cstdlib>
@@ -228,7 +229,6 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
         int pos0 = pit == dists.end() ? dists.size() - 1 :
                                         pit - dists.begin();  // get the index of the NEXT waypoint after the point
 
-        base::Cost costTo0;
         if (pos0 == 0 || dists[pos0] - distTo0 < threshold) // snap to the NEXT waypoint
             index0 = pos0;
         else
@@ -380,7 +380,7 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
     return result;
 }
 
-bool ompl::geometric::PathSimplifier::pertubPath(PathGeometric &path, double stepSize, unsigned int maxSteps, unsigned int maxEmptySteps)
+bool ompl::geometric::PathSimplifier::pertubPath(PathGeometric &path, double stepSize, unsigned int maxSteps, unsigned int maxEmptySteps, double snapToVertex)
 {
     if (maxSteps == 0)
         maxSteps = path.getStateCount();
@@ -391,19 +391,150 @@ bool ompl::geometric::PathSimplifier::pertubPath(PathGeometric &path, double ste
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
     std::vector<base::State *> &states = path.getStates();
 
-    // TODO(brycew): actually write.
-    // Pseudocode
-    // select a configuration on the path, biased towards high cost segments.
-    //     biasing is kinda hard, for now, just do the same random selection as shortcut.
-    // Then pick a random direction to extend and go that way.
-    //     Can just get a random configuration, distance from it and q_perturb, and
-    //         interpolate stepSize / distance (see RRT, 135)
-    // Then get qnear1 and qnear2: the next state that is within stepsize of either size, or
-    //     if stepsize isn't that big, another new state along that segment.
-    // Then make 2 new segments from qnear1 to qnew and qnew to qnear2. Stop early if either
-    //     is in collision, and stop if the segment added is higher cost than the original
-    //     path.
-    return false;
+    std::vector<double> dists(states.size(), 0.0);
+    for (unsigned int i = 1; i < dists.size(); i++)
+    {
+        dists[i] = dists[i - 1] + si->distance(states[i - 1], states[i]);
+    }
+    
+    double threshold = dists.back() * snapToVertex;
+
+    bool result = false;
+    unsigned int nochange = 0;
+
+    base::StateSamplerPtr sampler = si->allocStateSampler();
+
+    // Attempt perturbing maxSteps times or when no improvement is found after
+    // maxEmptySteps attempts, whichever comes first.
+    for (unsigned int i = 0; i < maxSteps && nochange < maxEmptySteps; i++, nochange++)
+    {
+        // select a configuration on the path, biased towards high cost segments.
+        //     biasing is kinda hard, for now, just do the same random selection as shortcut.
+        base::State *perturb_state = si->allocState();
+
+        base::State *new_state = si->allocState();
+
+        double distTo = rng_.uniformReal(0.0, dists.back());
+        int pos, pos_before, pos_after;
+        int index = selectAlongPath(dists, states, distTo, threshold, perturb_state, pos);
+
+        // Get before state and after state, that are around stepsize/2 on either side of perturb state.
+        base::State *before_state =si->allocState();
+        int index_before = selectAlongPath(dists, states, distTo - stepSize, threshold, before_state, pos_before);
+
+        base::State *after_state = si->allocState();
+        int index_after = selectAlongPath(dists, states, distTo + stepSize, threshold, after_state, pos_after);
+
+        if (index_before >= 0 && index_after >= 0 && index_before == index_after)
+        {
+            continue;
+        }
+
+        // Pick a random direction to extend and take a stepSize step in that direction.
+        base::State *random_state = si->allocState();
+        sampler->sampleUniform(random_state);
+
+        double dist = si->distance(perturb_state, random_state);
+        si->getStateSpace()->interpolate(perturb_state, random_state, dist / stepSize, new_state);
+
+        // Check for validity of the new path to the new state.
+        if (si->checkMotion(before_state, new_state) && si->checkMotion(new_state, after_state))
+        {
+            // Now check for improved cost. Get the original cost along the path.
+            base::Cost beforePartialCost = (index_before >= 0) ? obj_->identityCost() : obj_->motionCost(before_state, states[pos_before + 1]);
+            base::Cost afterPartialCost = (index_after >= 0) ? obj_->identityCost() : obj_->motionCost(states[pos_after], after_state);
+            base::Cost alongPath = beforePartialCost;
+            int posTemp = pos_before + 1;
+            while (posTemp < pos_after)
+            {
+                alongPath = obj_->combineCosts(alongPath, obj_->motionCost(states[posTemp], states[posTemp + 1]));
+                posTemp++;
+            }
+            alongPath = obj_->combineCosts(alongPath, afterPartialCost);
+            base::Cost newCost = obj_->combineCosts(obj_->motionCost(before_state, new_state), obj_->motionCost(new_state, after_state));
+            if (obj_->isCostBetterThan(alongPath, newCost))
+            {
+                // Cost along the current path is better than the perturbed path.
+                continue;
+            }
+
+            // Modify the path with the new state.
+            if (index_before < 0 && index_after < 0)
+            {
+                if (pos_before == pos_after)
+                {
+                    // Insert all 3 states in reverse order.
+                    states.insert(states.begin() + pos_before + 1, si->cloneState(after_state));
+                    states.insert(states.begin() + pos_before + 1, si->cloneState(new_state));
+                    states.insert(states.begin() + pos_before + 1, si->cloneState(before_state));
+                }
+                else if (pos_before + 1 == pos_after)
+                {
+                    si->copyState(states[pos_after], before_state);
+                    states.insert(states.begin() + pos_after + 1, si->cloneState(after_state));
+                    states.insert(states.begin() + pos_after + 1, si->cloneState(new_state));
+                }
+                else if (pos_before + 2 == pos_after)
+                {
+                    si->copyState(states[pos_before + 1], before_state);
+                    si->copyState(states[pos_after], new_state);
+                    states.insert(states.begin() + pos_after + 1, si->cloneState(after_state));
+                }
+                else
+                {
+                    if (freeStates_)
+                        for (int j = pos_before + 3; j < pos_after; ++j)
+                            si->freeState(states[j]);
+                    si->copyState(states[pos_before + 1], before_state);
+                    si->copyState(states[pos_before + 2], new_state);
+                    si->copyState(states[pos_after], after_state);
+                    states.erase(states.begin() + pos_before + 3, states.begin() + pos_after);
+                }
+            }
+            else if (index_before >= 0 && index_after >= 0)
+            {
+                if (freeStates_)
+                    for (int j = index_before + 1; j < index_after; ++j)
+                        si->freeState(states[j]);
+                states.erase(states.begin() + index_before + 1, states.begin() + index_after);
+                states.insert(states.begin() + index_before + 1, new_state);
+            }
+            else if (index_before < 0 && index_after >= 0)
+            {
+                if (freeStates_)
+                    for (int j = pos_before + 2; j < index_after; ++j)
+                        si->freeState(states[j]);
+                si->copyState(states[pos_before + 1], before_state);
+                states.erase(states.begin() + pos_before + 2, states.begin() + index_after);
+                states.insert(states.begin() + pos_before + 2, si->cloneState(new_state));
+            }
+            else if (index_before >= 0 && index_after < 0)
+            {
+                if (freeStates_)
+                    for (int j = index_before + 1; j < pos_after; ++j)
+                        si->freeState(states[j]);
+                si->copyState(states[pos_after], new_state);
+                states.erase(states.begin() + index_before + 1, states.begin() + pos_after);
+                states.insert(states.begin() + pos_after + 1, si->cloneState(after_state));
+            }
+            
+            // fix the helper variables
+            dists.resize(states.size(), 0.0);
+            for (unsigned int j = pos_before + 1; j < dists.size(); ++j)
+            {
+                dists[j] = dists[j - 1] + si->distance(states[j - 1], states[j]);
+            }
+            threshold = dists.back() * snapToVertex;
+            result = true;
+            nochange = 0;
+
+            si->freeState(perturb_state);
+            si->freeState(new_state);
+        }
+    }
+
+
+    return result;
 }
 
 bool ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path, unsigned int maxSteps,
@@ -697,4 +828,39 @@ bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, const 
     si_->freeState(tempGoal);
 
     return betterGoal;
+}
+
+int ompl::geometric::PathSimplifier::selectAlongPath(std::vector<double> dists, std::vector<base::State *> states, 
+        double distTo, double threshold, base::State *select_state, int &pos)
+{
+    if (distTo < 0)
+        distTo = 0;
+    else if (distTo > dists.back())
+        distTo = dists.back();
+
+    int index = -1;
+    auto pit = std::lower_bound(dists.begin(), dists.end(), distTo);
+    pos = pit == dists.end() ? dists.size() - 1 : pit - dists.begin();
+
+    if (pos == 0 || dists[pos] - distTo < threshold)
+        index = pos;
+    else
+    {
+        while (pos > 0 && distTo < dists[pos])
+            --pos;
+        if (distTo - dists[pos] < threshold)
+            index = pos;
+    }
+
+    if (index >= 0)
+    {
+        si_->copyState(select_state, states[index]);
+        return index;
+    }
+    else
+    {
+        double t = (distTo - dists[pos]) / (dists[pos + 1] - dists[pos]);
+        si_->getStateSpace()->interpolate(states[pos], states[pos + 1], t, select_state);
+        return -1;
+    }
 }

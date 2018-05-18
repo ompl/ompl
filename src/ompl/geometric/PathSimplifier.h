@@ -153,7 +153,7 @@ namespace ompl
                 DOI: [10.1109/ICRA.2011.5980048](http://dx.doi.org/10.1109/ICRA.2011.5980048)<br>
                 [[PDF]](http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5980048)
             */
-            bool pertubPath(PathGeometric &path, double stepSize, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0);
+            bool pertubPath(PathGeometric &path, double stepSize, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double snapToVertex = 0.005);
 
             /** \brief Given a path, attempt to remove vertices from it while keeping the path valid. This is an
                 iterative process that attempts to do "short-cutting" on the path. Connection is attempted between
@@ -242,6 +242,10 @@ namespace ompl
             bool freeStates() const;
 
         protected:
+
+            int selectAlongPath(std::vector<double> dists, std::vector<base::State *> states,
+                    double distTo, double threshold, base::State *select_state, int &pos);
+
             /** \brief The space information this path simplifier uses */
             base::SpaceInformationPtr si_;
 
