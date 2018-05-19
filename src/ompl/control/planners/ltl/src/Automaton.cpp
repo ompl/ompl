@@ -82,7 +82,7 @@ ompl::control::Automaton::Automaton(unsigned int numProps, unsigned int numState
 {
 }
 
-#if 1 //OMPL_HAVE_SPOT
+#if OMPL_HAVE_SPOT
 ompl::control::Automaton::Automaton(unsigned numProps, std::string formula, bool isCosafe)
   : Automaton::Automaton(numProps)
 {
