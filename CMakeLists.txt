@@ -178,7 +178,7 @@ if (NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
     set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
     configure_package_config_file(omplConfig.cmake.in
         ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
-        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/ompl/cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
         PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
         NO_CHECK_REQUIRED_COMPONENTS_MACRO)
     write_basic_package_version_file(
@@ -187,7 +187,7 @@ if (NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
         COMPATIBILITY SameMajorVersion)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
-        DESTINATION ${LIB_INSTALL_DIR}/cmake/ompl
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
         COMPONENT ompl)
 endif()
 
@@ -220,4 +220,10 @@ if (OMPL_REGISTRATION)
                 OUTPUT_QUIET ERROR_QUIET)
         endif()
     endif()
+endif()
+
+# needed for ROS installation
+if (EXISTS "package.xml")
+    # install catkin package.xml
+    install(FILES package.xml DESTINATION "share/ompl")
 endif()
