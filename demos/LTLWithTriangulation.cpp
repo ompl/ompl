@@ -199,17 +199,21 @@ void plan()
     si->setPropagationStepSize(0.025);
 
     //LTL co-safety sequencing formula: visit p2,p0 in that order
-    std::vector<unsigned int> sequence(2);
-    sequence[0] = 2;
-    sequence[1] = 0;
-    oc::AutomatonPtr cosafety = oc::Automaton::SequenceAutomaton(3, sequence);
-
+#if OMPL_HAVE_SPOT
+    // This shows off the capability to construct an automaton from LTL-cosafe formula using Spot
+    auto cosafety = std::make_shared<oc::Automaton>(3, "! p0 U ((p2 & !p0) & XF p0)");
+#else
+    auto cosafety = oc::Automaton::SequenceAutomaton(3, {2, 0});
+#endif
     //LTL safety avoidance formula: never visit p1
-    std::vector<unsigned int> toAvoid(1);
-    toAvoid[0] = 1;
-    oc::AutomatonPtr safety = oc::Automaton::AvoidanceAutomaton(3, toAvoid);
+#if OMPL_HAVE_SPOT
+    // This shows off the capability to construct an automaton from LTL-safe formula using Spot
+    auto safety = std::make_shared<oc::Automaton>(3, "G ! p1", false);
+#else
+    auto safety = oc::Automaton::AvoidanceAutomaton(3, {1});
+#endif
 
-    //construct product graph (propDecomp x A_{cosafety} x A_{safety})
+    // construct product graph (propDecomp x A_{cosafety} x A_{safety})
     auto product(std::make_shared<oc::ProductGraph>(ptd, cosafety, safety));
 
     // LTLSpaceInformation creates a hybrid space of robot state space x product graph.
@@ -252,7 +256,7 @@ void plan()
         // The path returned by LTLProblemDefinition is through hybrid space.
         // getLowerSolutionPath() projects it down into the original robot state space
         // that we handed to LTLSpaceInformation.
-        pdef->getLowerSolutionPath()->print(std::cout);
+        static_cast<oc::PathControl &>(*pdef->getLowerSolutionPath()).printAsMatrix(std::cout);
     }
     else
         std::cout << "No solution found" << std::endl;

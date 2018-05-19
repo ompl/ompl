@@ -32,10 +32,20 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Matt Maly */
+/* Author: Matt Maly, Keliang He */
 
 #include "ompl/control/planners/ltl/Automaton.h"
 #include "ompl/control/planners/ltl/World.h"
+#if OMPL_HAVE_SPOT
+#include <spot/tl/parse.hh>
+#include <spot/tl/print.hh>
+#include <spot/twaalgos/translate.hh>
+#include <spot/twa/bddprint.hh>
+#include <spot/misc/minato.hh>
+#include <spot/twa/formula2bdd.hh>
+#include <typeinfo>
+#include <boost/lexical_cast.hpp>
+#endif
 #include <boost/range/irange.hpp>
 #include <unordered_map>
 #include <unordered_set>
@@ -72,12 +82,91 @@ ompl::control::Automaton::Automaton(unsigned int numProps, unsigned int numState
 {
 }
 
+#if 1 //OMPL_HAVE_SPOT
+ompl::control::Automaton::Automaton(unsigned numProps, std::string formula, bool isCosafe)
+  : Automaton::Automaton(numProps)
+{
+    if (!isCosafe)
+        formula = "! (" + formula + ")";
+
+    spot::formula f = spot::parse_formula(formula);
+    spot::translator trans;
+
+    // We want deterministic output (dfa)
+    trans.set_pref(spot::postprocessor::Deterministic);
+    // Apply all optimizations - will be slowest
+    trans.set_level(spot::postprocessor::High);
+    trans.set_type(spot::postprocessor::BA);
+    spot::twa_graph_ptr au = trans.run(f);
+
+    const auto &dict = au->get_dict();
+    unsigned int n = au->num_states();
+    for (unsigned int s = 0; s < n; ++s)
+        addState(false);
+    for (unsigned int s = 0; s < n; ++s)
+    {
+        // The out(s) method returns a fake container that can be
+        // iterated over as if the contents was the edges going
+        // out of s.  Each of these edge is a quadruplet
+        // (src,dst,cond,acc).  Note that because this returns
+        // a reference, the edge can also be modified.
+        for (auto &t : au->out(s))
+        {
+            if (t.acc)
+                setAccepting(s, true);
+
+            // Parse the formula
+            spot::minato_isop isop(t.cond);
+            bdd clause = isop.next();
+            if (clause == bddfalse)
+                addTransition(s, numProps, t.dst);
+            else
+            {
+                while (clause != bddfalse)
+                {
+                    ompl::control::World edgeLabel(numProps);
+                    while (clause != bddtrue)
+                    {
+                        int var = bdd_var(clause);
+                        const spot::bdd_dict::bdd_info &i = dict->bdd_map[var];
+                        assert(i.type == spot::bdd_dict::var);
+                        auto index = boost::lexical_cast<unsigned int>(i.f.ap_name().substr(1));
+                        bdd high = bdd_high(clause);
+                        assert(index < numProps);
+                        if (high == bddfalse)
+                        {
+                            edgeLabel[index] = false;
+                            clause = bdd_low(clause);
+                        }
+                        else
+                        {
+                            assert(bdd_low(clause) == bddfalse);
+                            edgeLabel[index] = true;
+                            clause = high;
+                        }
+                    }
+                    addTransition(s, edgeLabel, t.dst);
+
+                    clause = isop.next();
+                }
+            }
+        }
+    }
+
+    setStartState(au->get_init_state_number());
+
+    if (!isCosafe)
+        accepting_.flip();
+}
+#endif
+
 unsigned int ompl::control::Automaton::addState(bool accepting)
 {
     ++numStates_;
     accepting_.resize(numStates_);
     accepting_[numStates_ - 1] = accepting;
     transitions_.resize(numStates_);
+    distances_.resize(numStates_, std::numeric_limits<unsigned int>::max());
     return numStates_ - 1;
 }
 
@@ -306,6 +395,7 @@ ompl::control::AutomatonPtr ompl::control::Automaton::CoverageAutomaton(unsigned
     const boost::integer_range<unsigned int> props = boost::irange(0u, numProps);
     return CoverageAutomaton(numProps, std::vector<unsigned int>(props.begin(), props.end()));
 }
+
 
 ompl::control::AutomatonPtr ompl::control::Automaton::SequenceAutomaton(unsigned int numProps)
 {

@@ -61,6 +61,10 @@ target_link_libraries(ompl
   ${Boost_CHRONO_LIBRARY}
   ${CMAKE_THREAD_LIBS_INIT})
 
+if (OMPL_HAVE_SPOT)
+  target_link_libraries(ompl ${SPOT_LIBRARIES})
+endif()
+
 if(MSVC)
   set_target_properties(ompl PROPERTIES VERSION "${OMPL_VERSION}" STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")
 else(MSVC)

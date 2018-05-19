@@ -138,6 +138,14 @@ if (FLANN_FOUND)
     link_directories(${FLANN_LIBRARY_DIRS})
 endif()
 
+# If Spot is installed, we enable suppport for constructing finite automata from LTL formulae
+find_package(spot)
+if (SPOT_FOUND)
+    set(OMPL_HAVE_SPOT 1)
+    include_directories("${SPOT_INCLUDE_DIRS}")
+    link_directories(${SPOT_LIBRARY_DIRS})
+endif()
+
 # Numpy is used to convert Eigen matrices/vectors to numpy arrays
 if(PYTHON_FOUND)
     find_python_module(numpy)

@@ -32,13 +32,14 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Matt Maly */
+/* Author: Matt Maly, Keliang He */
 
 #ifndef OMPL_CONTROL_PLANNERS_LTL_AUTOMATON_
 #define OMPL_CONTROL_PLANNERS_LTL_AUTOMATON_
 
 #include "ompl/control/planners/ltl/World.h"
 #include "ompl/util/ClassForward.h"
+#include "ompl/config.h"
 #include <unordered_map>
 #include <limits>
 #include <ostream>
@@ -87,6 +88,14 @@ namespace ompl
 
             /** \brief Creates an automaton with a given number of propositions and states. */
             Automaton(unsigned int numProps, unsigned int numStates = 0);
+
+#if OMPL_HAVE_SPOT
+            /** \brief Creates an automaton with a given number of propositions from an LTL
+                formula using Spot. By default, formulas are assumed to be co-safe LTL
+                formulas. If isCosafe is set to false, the formula is assumed to be a safe
+                LTL formula. */
+            Automaton(unsigned numProps, std::string formula, bool isCosafe = true);
+#endif
 
             /** \brief Adds a new state to the automaton and returns an ID for it. */
             unsigned int addState(bool accepting = false);

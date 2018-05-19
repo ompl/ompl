@@ -57,6 +57,9 @@
 /** \brief Whether FLANN is installed */
 #cmakedefine01 OMPL_HAVE_FLANN
 
+/** \brief Whether SPOT is installed */
+#cmakedefine01 OMPL_HAVE_SPOT
+
 /** \brief Whether Numpy and Boost.Numpy are installed */
 #cmakedefine01 OMPL_HAVE_NUMPY
 
