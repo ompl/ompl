@@ -115,7 +115,7 @@ void ompl::control::OpenDEStatePropagator::propagate(const base::State *state, c
         dSpaceCollide(collisionSpace, &cp, &nearCallback);
 
     // propagate one step forward
-    dWorldQuickStep(env_->world_, (const dReal)duration);
+    dWorldQuickStep(env_->world_, (dReal)duration);
 
     // remove created contacts
     dJointGroupEmpty(env_->contactGroup_);
