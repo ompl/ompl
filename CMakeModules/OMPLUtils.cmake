@@ -44,7 +44,7 @@ function(target_link_flags)
                     string(REPLACE ${CMAKE_SHARED_LIBRARY_PREFIX} "" _libname ${_basename})
                     list(APPEND _link_flags "-l${_libname}")
                 else()
-                    # OS X frameworks, which are also dynamic libraries
+                    # macOS frameworks, which are also dynamic libraries
                     if (_ext STREQUAL ".framework")
                         list(APPEND _link_flags "-framework ${_basename}")
                     else()
@@ -77,6 +77,7 @@ function(target_link_flags)
 endfunction()
 
 option(OMPL_VERSIONED_INSTALL "Install header files in include/ompl-X.Y/ompl, where X and Y are the major and minor version numbers" OFF)
+add_feature_info(OMPL_VERSIONED_INSTALL "${OMPL_VERSIONED_INSTALL}" "Whether to install header files in\n   <prefix>/include/ompl-X.Y/ompl, where X and Y are the major and minor\n   version numbers")
 if (OMPL_VERSIONED_INSTALL)
     set(CMAKE_INSTALL_INCLUDEDIR "include/ompl-${OMPL_MAJOR_VERSION}.${OMPL_MINOR_VERSION}")
 endif()

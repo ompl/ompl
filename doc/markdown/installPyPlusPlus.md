@@ -11,9 +11,9 @@ The pygccxml and Py++ packages can be installed with `pip` (a package manager sp
     sudo apt-get install pip
     sudo -H pip install -vU pygccxml pyplusplus
 
-## OS X
+## macOS
 
-If you use MacPorts on OS X, then Py++ and its dependencies can be installed like so:
+If you use MacPorts on macOS, then Py++ and its dependencies can be installed like so:
 
     sudo port install py27-pyplusplus # if you use python2.7
     sudo port install py36-pyplusplus # if you use python3.6

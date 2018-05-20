@@ -29,6 +29,7 @@ set(CMAKE_MODULE_PATH
     "${CMAKE_ROOT_DIR}/cmake/Modules"
     "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 include(GNUInstallDirs)
+include(FeatureSummary)
 include(CompilerSettings)
 include(OMPLVersion)
 include(OMPLUtils)
@@ -55,7 +56,10 @@ else(IS_ICPC)
     add_definitions(-DBOOST_TEST_DYN_LINK)
 endif(IS_ICPC)
 
-find_package(Boost 1.54 COMPONENTS serialization filesystem system program_options REQUIRED)
+set_package_properties(Boost PROPERTIES
+    URL "http://boost.org"
+    PURPOSE "Used throughout OMPL for data serialization, graphs, etc.")
+find_package(Boost 1.54 QUIET REQUIRED COMPONENTS serialization filesystem system program_options)
 include_directories(${Boost_INCLUDE_DIR})
 
 # Add support in Boost::Python for std::shared_ptr
@@ -66,7 +70,7 @@ if(Boost_VERSION VERSION_LESS "106300")
 endif()
 
 
-# on OS X we need to check whether to use libc++ or libstdc++ with clang++
+# on macOS we need to check whether to use libc++ or libstdc++ with clang++
 if(APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     include(GetPrerequisites)
     get_prerequisites("${Boost_SYSTEM_LIBRARY}" _libs 0 0 "/" "")
@@ -83,40 +87,41 @@ if(APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     endif()
 endif()
 
-
-# pthread is sometimes needed, depending on OS / compiler
+set_package_properties(Threads PROPERTIES
+    URL "https://en.wikipedia.org/wiki/POSIX_Threads"
+    PURPOSE "Pthreads is sometimes needed, depending on OS / compiler.")
 find_package(Threads QUIET)
 
 enable_testing()
 
+set_package_properties(Python PROPERTIES
+    URL "http://python.org"
+    PURPOSE "Used for python bindings.")
 find_package(Python QUIET)
 find_boost_python()
 
 if(PYTHON_FOUND)
-    # PyPy is more than an order of magnitude faster in generating the Python
-    # bindings than CPython, so use it if available.
-    find_program(PYPY NAMES pypy${PYTHON_VERSION_MAJOR} pypy)
-    if(PYPY)
-        option(OMPL_USE_PYPY "Use PyPy for generating Python bindings" ON)
-    else()
-        option(OMPL_USE_PYPY "Use PyPy for generating Python bindings" OFF)
-    endif()
-    if(OMPL_USE_PYPY)
-        set(PYTHON_BINDING_EXEC "${PYPY}")
-    else()
-        set(PYTHON_BINDING_EXEC "${PYTHON_EXEC}")
-    endif()
+    set_package_properties(pypy PROPERTIES
+        URL "http://pypy.org"
+        PURPOSE "Used to speed up the generation of python bindings.")
+    find_package(pypy QUIET)
 endif()
 
-# Eigen is needed for constrained planning, the InformedStateSampler, and VFRRT
+set_package_properties(Eigen3 PROPERTIES
+    URL "http://eigen.tuxfamily.org"
+    PURPOSE "A linear algebra library used throughout OMPL.")
 find_package(Eigen3 REQUIRED)
 include_directories("${EIGEN3_INCLUDE_DIR}")
 
-# MORSE is only needed for Modular OpenRobots Simulation Engine bindings
+set_package_properties(MORSE PROPERTIES
+    URL "https://www.openrobots.org/wiki/morse"
+    PURPOSE "OMPL includes a plugin for the MORSE Robot Simulation engine.")
 find_package(MORSE QUIET)
 set(OMPL_EXTENSION_MORSE ${MORSE_FOUND})
 
-# OpenDE is only needed for Open Dynamics Engine bindings
+set_package_properties(OpenDE PROPERTIES
+    URL "http://ode.org"
+    PURPOSE "The Open Dynamics Engine can be used as a \"black box\" for kinodynamic planning.")
 find_package(OpenDE QUIET)
 set(OMPL_EXTENSION_OPENDE ${OPENDE_FOUND})
 if (OPENDE_FOUND)
@@ -124,13 +129,18 @@ if (OPENDE_FOUND)
   include_directories(${OPENDE_INCLUDE_DIR})
 endif()
 
+set_package_properties(Triangle PROPERTIES
+    URL "http://www.cs.cmu.edu/~quake/triangle.html"
+    PURPOSE "Used to create triangular decompositions of polygonal 2D environments.")
 find_package(Triangle QUIET)
 set(OMPL_EXTENSION_TRIANGLE ${TRIANGLE_FOUND})
 if (TRIANGLE_FOUND)
   include_directories(${TRIANGLE_INCLUDE_DIR})
 endif()
 
-# If FLANN is installed, a wrapper for its nearest neighbor data structures can be used
+set_package_properties(flann PROPERTIES
+    URL "https://github.com/mariusmuja/flann"
+    PURPOSE "If detetected, FLANN can be used for nearest neighbor queries by OMPL.")
 find_package(flann 1.8.3 QUIET)
 if (FLANN_FOUND)
     set(OMPL_HAVE_FLANN 1)
@@ -138,7 +148,9 @@ if (FLANN_FOUND)
     link_directories(${FLANN_LIBRARY_DIRS})
 endif()
 
-# If Spot is installed, we enable suppport for constructing finite automata from LTL formulae
+set_package_properties(spot PROPERTIES
+    URL "http://spot.lrde.epita.fr"
+    PURPOSE "Used for constructing finite automata from LTL formulae.")
 find_package(spot)
 if (SPOT_FOUND)
     set(OMPL_HAVE_SPOT 1)
@@ -235,3 +247,11 @@ if (EXISTS "package.xml")
     # install catkin package.xml
     install(FILES package.xml DESTINATION "share/ompl")
 endif()
+
+set_package_properties(PkgConfig PROPERTIES
+    URL "https://www.freedesktop.org/wiki/Software/pkg-config/"
+    PURPOSE "Used to find (compilation flags for) dependencies.")
+set_package_properties(castxml PROPERTIES
+    URL "https://github.com/CastXML/CastXML"
+    PURPOSE "Used to generate Python bindings.")
+feature_summary(DESCRIPTION INCLUDE_QUIET_PACKAGES WHAT ALL)

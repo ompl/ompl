@@ -1,3 +1,6 @@
+set_package_properties(Doxygen PROPERTIES
+    URL "http://doxygen.org"
+    PURPOSE "Used to create the OMPL documentation (i.e., http://ompl.kavrakilab.org).")
 find_package(Doxygen QUIET)
 
 if(DOXYGEN)

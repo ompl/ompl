@@ -1,4 +1,5 @@
 option(OMPL_BUILD_DEMOS "Build OMPL demos" ON)
+add_feature_info(OMPL_BUILD_DEMOS "${OMPL_BUILD_DEMOS}" "Whether to build the OMPL demo programs.")
 
 if (OMPL_BUILD_DEMOS)
 

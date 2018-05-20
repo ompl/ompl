@@ -1,4 +1,5 @@
 option(OMPL_BUILD_TESTS "Build OMPL tests" ON)
+add_feature_info(OMPL_BUILD_TESTS "${OMPL_BUILD_TESTS}" "Whether to build the unit tests.")
 
 # configure location of resources (which are used by some demos, so this needs
 # to be outside of if-statement below)
@@ -10,7 +11,7 @@ endif(WIN32)
 configure_file("${TEST_RESOURCES_DIR}/config.h.in" "${TEST_RESOURCES_DIR}/config.h")
 
 if (OMPL_BUILD_TESTS)
-    find_package(Boost 1.54 COMPONENTS unit_test_framework REQUIRED)
+    find_package(Boost 1.54 QUIET REQUIRED COMPONENTS unit_test_framework)
 
     # Test datastructures implementation
     add_ompl_test(test_heap datastructures/heap.cpp)

@@ -1,5 +1,7 @@
 option(OMPL_BUILD_PYBINDINGS "Build OMPL Python bindings" ON)
-option(OMPL_BUILD_PYTESTS "Build OMPL Python tests" ON)
+add_feature_info(OMPL_BUILD_PYBINDINGS "${OMPL_BUILD_PYBINDINGS}" "Whether to build the Python bindings.")
+option(OMPL_BUILD_PYTESTS "Build/run OMPL Python tests" ON)
+add_feature_info(OMPL_BUILD_PYTESTS "${OMPL_BUILD_PYTESTS}" "Whether to build/run the python binding unit tests.")
 
 if (OMPL_BUILD_PYBINDINGS)
 

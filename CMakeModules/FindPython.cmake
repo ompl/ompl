@@ -52,7 +52,7 @@ if (NOT PYTHON_EXEC)
         DOC "Location of python executable to use")
 endif(NOT PYTHON_EXEC)
 
-# On OS X the python executable might be symlinked to the "real" location
+# On macOS the python executable might be symlinked to the "real" location
 # of the python executable. The header files and libraries are found relative
 # to that path.
 # For CMake 2.6 and below, the REALPATH option is included in the ABSOLUTE option

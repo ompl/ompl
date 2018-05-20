@@ -9,7 +9,7 @@
       <li role="presentation" class="active"><a href="#ubuntu" aria-controls="ubuntu" role="tab" data-toggle="pill">Ubuntu</a></li>
       <li role="presentation"><a href="#fedora" aria-controls="fedora" role="tab" data-toggle="pill">Fedora</a></li>
       <li role="presentation"><a href="#linux" aria-controls="linux" role="tab" data-toggle="pill">Linux (generic)</a></li>
-      <li role="presentation"><a href="#osx" aria-controls="osx" role="tab" data-toggle="pill">OS X</a></li>
+      <li role="presentation"><a href="#osx" aria-controls="osx" role="tab" data-toggle="pill">macOS</a></li>
       <li role="presentation"><a href="#windows" aria-controls="windows" role="tab" data-toggle="pill">MS Windows</a></li>
     </ul>
   </div>
@@ -80,9 +80,9 @@ cmake ../..</pre></li>
     <p>The build system includes a <a href="buildOptions.html">number of options</a> that you can enable or disable.</p>
   </div>
 
-  <!-- OS X -->
+  <!-- macOS -->
   <div role="tabpanel" class="tab-pane" id="osx">
-    <h2>OS X</h2>
+    <h2>macOS</h2>
     <ul class="nav nav-tabs" role="tablist">
       <li role="presentation" class="active"><a href="#osxmacports" aria-controls="osxmacports" role="tab" data-toggle="tab">MacPorts</a></li>
       <li role="presentation"><a href="#osxhomebrew" aria-controls="osxhomebrew" role="tab" data-toggle="tab">Homebrew</a></li>
