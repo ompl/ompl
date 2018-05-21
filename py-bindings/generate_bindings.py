@@ -468,7 +468,7 @@ class ompl_control_generator_t(code_generator_t):
             cls = self.ompl_ns.class_(lambda cls, slv=odesolver: cls.name.startswith(slv))
             cls.rename(odesolver)
             if odesolver=='ODEAdaptiveSolver':
-                cls.include_files.append('boost/numeric/odeint/stepper/generation/generation_runge_kutta_cash_karp54.hpp')
+                cls.include_files.append('boost/numeric/odeint.hpp')
         self.add_function_wrapper(
             'void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ' \
             'ompl::control::ODESolver::StateType &)',
