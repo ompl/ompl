@@ -18,14 +18,9 @@ matrix:
             - libeigen3-dev
       cache:
         apt: true
-        directories:
-          - /usr/local
     - os: osx
       osx_image: xcode9.1
       compiler: clang
-      cache:
-        directories:
-          - /usr/local
     - os: linux
       sudo: required
       services:
