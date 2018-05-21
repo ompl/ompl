@@ -60,7 +60,7 @@ ompl::geometric::PathSimplifier::PathSimplifier(base::SpaceInformationPtr si, co
     }
     else
     {
-        obj_ = std::make_shared<base::PathLengthOptimizationObjective>(si);
+        obj_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
     }
 }
 
@@ -198,7 +198,7 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
     std::vector<base::State *> &states = path.getStates();
 
     // costs[i] contains the cumulative cost of the path up to and including state i
-    std::vector<ompl::base::Cost> costs(states.size(), obj_->identityCost());
+    std::vector<base::Cost> costs(states.size(), obj_->identityCost());
     std::vector<double> dists(states.size(), 0.0);
     for (unsigned int i = 1; i < costs.size(); ++i)
     {
@@ -300,7 +300,6 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
             }
 
             // Now that states are in the right order, make sure the cost actually decreases.
-            // TODO: get the cost along the path from s0 to s1.
             base::Cost s0PartialCost = (index0 >= 0) ? obj_->identityCost() : obj_->motionCost(s0, states[pos0 + 1]);
             base::Cost s1PartialCost = (index1 >= 0) ? obj_->identityCost() : obj_->motionCost(states[pos1], s1);
             base::Cost alongPath = s0PartialCost;
@@ -582,9 +581,13 @@ bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, const 
     std::vector<base::State *> &states = path.getStates();
 
     // dists[i] contains the cumulative length of the path up to and including state i
+    std::vector<base::Cost> costs(states.size(), obj_->identityCost());
     std::vector<double> dists(states.size(), 0.0);
     for (unsigned int i = 1; i < dists.size(); ++i)
+    {
+        costs[i] = obj_->combineCosts(costs[i - 1], obj_->motionCost(states[i - 1], states[i]));
         dists[i] = dists[i - 1] + si_->distance(states[i - 1], states[i]);
+    }
 
     // Sampled states closer than 'threshold' distance to any existing state in the path
     // are snapped to the close state
@@ -625,7 +628,7 @@ bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, const 
                 startIndex = endIndex;
 
             // Compute the state value and the accumulated cost up to that state
-            double costToCome = dists[startIndex];
+            base::Cost costToCome = costs[startIndex];
             base::State *state;
             if (startIndex == endIndex)
             {
@@ -637,14 +640,14 @@ bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, const 
                 ss->interpolate(states[startIndex], states[endIndex], tSeg, temp);
                 state = temp;
 
-                costToCome += si_->distance(states[startIndex], state);
+                costToCome = obj_->combineCosts(costToCome, obj_->motionCost(states[startIndex], state));
             }
 
-            double costToGo = si_->distance(state, tempGoal);
-            double candidateCost = costToCome + costToGo;
+            base::Cost costToGo = obj_->motionCost(state, tempGoal);
+            base::Cost candidateCost = obj_->combineCosts(costToCome, costToGo);
 
             // Make sure we improve before attempting validation
-            if (dists.back() - candidateCost > std::numeric_limits<float>::epsilon() &&
+            if (obj_->isCostBetterThan(candidateCost, costs.back()) &&
                 si_->checkMotion(state, tempGoal))
             {
                 // insert the new states
@@ -684,9 +687,13 @@ bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, const 
                 }
 
                 // fix the helper variables
+                costs.resize(states.size(), obj_->identityCost());
                 dists.resize(states.size(), 0.0);
                 for (unsigned int j = std::max(1u, startIndex); j < dists.size(); ++j)
+                {
+                    costs[j] = obj_->combineCosts(costs[j - 1], obj_->motionCost(states[j - 1], states[j]));
                     dists[j] = dists[j - 1] + si_->distance(states[j - 1], states[j]);
+                }
 
                 betterGoal = true;
             }
