@@ -6,7 +6,6 @@ matrix:
       dist: trusty
       sudo: required
       compiler: gcc
-      env: JOBS=4
       addons:
         apt:
           packages:
@@ -24,7 +23,6 @@ matrix:
     - os: osx
       osx_image: xcode9.1
       compiler: clang
-      env: JOBS=2
       cache:
         directories:
           - /usr/local
@@ -32,17 +30,17 @@ matrix:
       sudo: required
       services:
         - docker
-      env: DOCKERFILE="debian-stretch" JOBS=4 PYTHON=/usr/bin/python
+      env: DOCKERFILE="debian-stretch" PYTHON=/usr/bin/python
     - os: linux
       sudo: required
       services:
         - docker
-      env: DOCKERFILE="ubuntu-xenial" JOBS=4 PYTHON=/usr/bin/python
+      env: DOCKERFILE="ubuntu-xenial" PYTHON=/usr/bin/python
     - os: linux
       sudo: required
       services:
         - docker
-      env: DOCKERFILE="ubuntu-bionic" JOBS=4 PYTHON=/usr/bin/python3
+      env: DOCKERFILE="ubuntu-bionic" PYTHON=/usr/bin/python3
 
 install:
   - if [ -n "$DOCKERFILE" ]; then
@@ -61,11 +59,11 @@ install:
 
 script:
   - if [ -n "$DOCKERFILE" ]; then
-      docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DPYTHON_EXEC=$PYTHON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. && make -j $JOBS && ctest";
+      docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DPYTHON_EXEC=$PYTHON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. && make -j `nproc` && ctest";
     else
       mkdir -p build &&
       cd build &&
       cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. &&
-      make -j $JOBS &&
+      make -j `nproc 2>/dev/null || sysctl -n hw.ncpu` &&
       ctest;
     fi
