@@ -72,30 +72,23 @@ public:
     void run_simplifier(int runs)
     {
         base::OptimizationObjectivePtr obj(new T(si_));
-        // Just use the first of the paths.
         geometric::PathSimplifier simplifier(si_, ompl::base::GoalPtr(), obj);
         for (int path_idx = 0; path_idx < 2; path_idx++)
         {
-            double avg_length = 0.0;
             double avg_costs = 0.0;
-            base::OptimizationObjectivePtr obj_clearance(new base::MaximizeMinClearanceObjective(si_));
-            double avg_clearance = 0.0;
+            base::Cost original_cost = paths_[path_idx]->cost(obj);
             geometric::PathGeometric *path;
             for (int i = 0; i < runs; i++)
             {
                 path = new geometric::PathGeometric(*paths_[path_idx]);
                 simplifier.shortcutPath(*path, 100, 100, 0.33, 0.005); 
                 avg_costs += path->cost(obj).value();
-                avg_length += path->length();
-                avg_clearance += path->cost(obj_clearance).value();
             }
             avg_costs /= runs;
-            avg_length /= runs;
-            avg_clearance /= runs;
-            printf("Avg Cost %d wrt Length: %f\n", path_idx, avg_length);
-            printf("Avg Cost %d wrt Clearance: %f\n", path_idx, avg_clearance);
+            printf("Average cost: %f, original cost: %f\n", avg_costs, original_cost.value()); 
+            BOOST_CHECK(obj->isCostBetterThan(base::Cost(avg_costs), original_cost) ||
+                        obj->isCostEquivalentTo(base::Cost(avg_costs), original_cost));
         }
-        
     }
 
     template<typename T>
@@ -108,8 +101,15 @@ public:
         hybrid.recordPath(path1, true);
         hybrid.recordPath(path2, true);
         hybrid.computeHybridPath();
-        hybrid.print(std::cout);
+        // Output path should be greater than both inputs.
         const base::PathPtr final_path = hybrid.getHybridPath();
+        base::Cost final_cost = final_path->cost(obj);
+        base::Cost first_cost = path1->cost(obj);
+        base::Cost second_cost = path2->cost(obj);
+        BOOST_CHECK(obj->isCostBetterThan(final_cost, first_cost) ||
+                    obj->isCostEquivalentTo(final_cost, first_cost)); 
+        BOOST_CHECK(obj->isCostBetterThan(final_cost, second_cost) ||
+                    obj->isCostEquivalentTo(final_cost, second_cost));
     }
 
     template<typename T>
@@ -117,26 +117,22 @@ public:
     {
         base::OptimizationObjectivePtr obj(new T(si_));
         geometric::PathSimplifier simplifier(si_, ompl::base::GoalPtr(), obj);
+        
         for (int path_idx = 0; path_idx < 2; path_idx++)
         {
-            double avg_length = 0.0;
             double avg_costs = 0.0;
-            base::OptimizationObjectivePtr obj_clearance(new base::MaximizeMinClearanceObjective(si_));
-            double avg_clearance = 0.0;
+            base::Cost original_cost = paths_[path_idx]->cost(obj);
             geometric::PathGeometric *path;
             for (int i = 0; i < runs; i++)
             {
                 path = new geometric::PathGeometric(*paths_[path_idx]);
                 simplifier.perturbPath(*path, 2.0, 100, 100, 0.005); 
                 avg_costs += path->cost(obj).value();
-                avg_length += path->length();
-                avg_clearance += path->cost(obj_clearance).value();
             }
             avg_costs /= runs;
-            avg_length /= runs;
-            avg_clearance /= runs;
-            printf("Avg Cost %d wrt Length: %f\n", path_idx, avg_length);
-            printf("Avg Cost %d wrt Clearance: %f\n", path_idx, avg_clearance);
+            printf("Average cost: %f, original cost: %f\n", avg_costs, original_cost.value()); 
+            BOOST_CHECK(obj->isCostBetterThan(base::Cost(avg_costs), original_cost) ||
+                        obj->isCostEquivalentTo(base::Cost(avg_costs), original_cost));
         }
     }
 
@@ -157,16 +153,6 @@ BOOST_AUTO_TEST_CASE(geometric_PathLengthSimplifier)
     run_simplifier<base::PathLengthOptimizationObjective>(20);
     if (VERBOSE)
         printf("Done with path length simplifier\n");
-}
-
-BOOST_AUTO_TEST_CASE(geometric_PathLengthPerturber)
-{
-    if (VERBOSE)
-        printf("\n\n\n**************************************************\n"
-               "Testing path length perturbation\n");
-    run_perturber<base::PathLengthOptimizationObjective>(20);
-    if (VERBOSE)
-        printf("Done with path length perturbation\n");
 }
 
 BOOST_AUTO_TEST_CASE(geomtric_PathLengthHybridization)
