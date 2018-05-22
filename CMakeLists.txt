@@ -159,9 +159,9 @@ if (SPOT_FOUND)
 endif()
 
 # Numpy is used to convert Eigen matrices/vectors to numpy arrays
-if(PYTHON_FOUND)
+if(PYTHON_FOUND AND NOT Boost_VERSION VERSION_LESS "106300")
     find_python_module(numpy)
-    if (PY_NUMPY AND NOT Boost_VERSION VERSION_LESS "106300")
+    if (PY_NUMPY)
         find_boost_numpy()
         if(Boost_NUMPY_LIBRARY)
             set(OMPL_HAVE_NUMPY 1)
@@ -255,3 +255,16 @@ set_package_properties(castxml PROPERTIES
     URL "https://github.com/CastXML/CastXML"
     PURPOSE "Used to generate Python bindings.")
 feature_summary(DESCRIPTION INCLUDE_QUIET_PACKAGES WHAT ALL)
+# additional feature info: show which Python modules were found and weren't found
+get_property(PY_MODULES_FOUND GLOBAL PROPERTY PY_MODULES_FOUND)
+if(PY_MODULES_FOUND)
+    list(REMOVE_DUPLICATES PY_MODULES_FOUND)
+    string(REPLACE ";" " " PY_MODULES_FOUND_STR "${PY_MODULES_FOUND}")
+    message(STATUS "The following Python modules were found:\n\n * ${PY_MODULES_FOUND_STR}\n")
+endif()
+get_property(PY_MODULES_NOTFOUND GLOBAL PROPERTY PY_MODULES_NOTFOUND)
+if(PY_MODULES_NOTFOUND)
+    list(REMOVE_DUPLICATES PY_MODULES_NOTFOUND)
+    string(REPLACE ";" " " PY_MODULES_NOTFOUND_STR "${PY_MODULES_NOTFOUND}")
+    message(STATUS "The following Python modules were NOT found:\n\n * ${PY_MODULES_NOTFOUND_STR}\n")
+endif()
