@@ -194,7 +194,6 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
             int gapStartQ = -1;
             bool gapP = false;
             bool gapQ = false;
-            std::cout << "IndexP.size(): " << indexP.size() << std::endl;
             for (std::size_t i = 0; i < indexP.size(); ++i)
             {
                 // a gap is found in p
@@ -270,11 +269,6 @@ void ompl::geometric::PathHybridization::attemptNewEdge(const PathInfo &p, const
         base::Cost weight = obj_->motionCost(p.states_[indexP], q.states_[indexQ]);
         const HGraph::edge_property_type properties(weight);
         boost::add_edge(p.vertices_[indexP], q.vertices_[indexQ], properties, g_);
-        std::cout << "Motion between state " << indexP << " and " << indexQ << " was valid!" << std::endl;
-    }
-    else
-    {
-        std::cout << "Motion between state " << indexP << " and " << indexQ << " was invalid." << std::endl;
     }
 }
 

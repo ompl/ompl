@@ -114,6 +114,35 @@ public:
         final_path->as<geometric::PathGeometric>()->printAsMatrix(std::cout);
     }
 
+    template<typename T>
+    void run_perturber(int runs)
+    {
+        base::OptimizationObjectivePtr obj(new T(si_));
+        geometric::PathSimplifier simplifier(si_, ompl::base::GoalPtr(), obj);
+        for (int path_idx = 0; path_idx < 2; path_idx++)
+        {
+            double avg_length = 0.0;
+            double avg_costs = 0.0;
+            base::OptimizationObjectivePtr obj_clearance(new base::MaximizeMinClearanceObjective(si_));
+            double avg_clearance = 0.0;
+            geometric::PathGeometric *path;
+            for (int i = 0; i < runs; i++)
+            {
+                path = new geometric::PathGeometric(*paths_[path_idx]);
+                simplifier.perturbPath(*path, 3.0, 20, 20, 0.005); 
+                avg_costs += path->cost(obj).value();
+                avg_length += path->length();
+                avg_clearance += path->cost(obj_clearance).value();
+            }
+            avg_costs /= runs;
+            avg_length /= runs;
+            avg_clearance /= runs;
+            printf("Avg Cost %d wrt Length: %f\n", path_idx, avg_length);
+            printf("Avg Cost %d wrt Clearance: %f\n", path_idx, avg_clearance);
+            path->printAsMatrix(std::cout);
+        }
+    }
+
 protected:
     bool verbose_;
     Circles2D circles_;
@@ -126,38 +155,61 @@ BOOST_FIXTURE_TEST_SUITE(MySimplifierTestFixture, SimplifyTest)
 BOOST_AUTO_TEST_CASE(geometric_PathLengthSimplifier)
 {
     if (VERBOSE)
-        printf("\n\n\n**************************************************\nTesting path length simplifier\n");
+        printf("\n\n\n**************************************************\n"
+               "Testing path length simplifier\n");
     run_simplifier<base::PathLengthOptimizationObjective>(20);
     if (VERBOSE)
         printf("Done with path length simplifier\n");
 }
 
+BOOST_AUTO_TEST_CASE(geometric_PathLengthPerturber)
+{
+    if (VERBOSE)
+        printf("\n\n\n**************************************************\n"
+               "Testing path length perturbation\n");
+    run_perturber<base::PathLengthOptimizationObjective>(20);
+    if (VERBOSE)
+        printf("Done with path length perturbation\n");
+}
+
 BOOST_AUTO_TEST_CASE(geomtric_PathLengthHybridization)
 {
     if (VERBOSE)
-        printf("\n\n\n**************************************************\nTesting path length hybridization\n");
+        printf("\n\n\n**************************************************\n"
+               "Testing path length hybridization\n");
     run_hybridizer<base::PathLengthOptimizationObjective>();
     if (VERBOSE)
         printf("Done with path length hybridization\n");
 }
 
-BOOST_AUTO_TEST_CASE(geomtric_PathClearanceHybridization)
-{
-    if (VERBOSE)
-        printf("\n\n\n**************************************************\nTesting path clearance hybridization\n");
-    run_hybridizer<base::MaximizeMinClearanceObjective>();
-    if (VERBOSE)
-        printf("Done with path clerance hybridization\n");
-}
-
 BOOST_AUTO_TEST_CASE(geometric_PathClearanceShortcutting)
 {
     if (VERBOSE)
-        printf("\n\n\n**************************************************\nTesting path clearance shorcutting\n");
+        printf("\n\n\n**************************************************\n"
+               "Testing path clearance shorcutting\n");
     run_simplifier<base::MaximizeMinClearanceObjective>(20);
     if (VERBOSE)
         printf("Done with path clearance shortcutting\n");
+}
 
+BOOST_AUTO_TEST_CASE(geometric_PathClearancePerturber)
+{
+    if (VERBOSE)
+        printf("\n\n\n**************************************************\n"
+               "Testing path clearance perturbation\n");
+    run_perturber<base::MaximizeMinClearanceObjective>(20);
+    if (VERBOSE)
+        printf("Done with path clearance perturbation\n");
+}
+
+BOOST_AUTO_TEST_CASE(geomtric_PathClearanceHybridization)
+{
+    if (VERBOSE)
+        printf("\n\n\n**************************************************\n"
+               "Testing path clearance hybridization\n");
+    run_hybridizer<base::MaximizeMinClearanceObjective>();
+    if (VERBOSE)
+        printf("Done with path clerance hybridization\n");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
