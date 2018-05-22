@@ -393,6 +393,18 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
     std::vector<double> dists(states.size(), 0.0);
     for (unsigned int i = 1; i < dists.size(); i++)
         dists[i] = dists[i - 1] + si->distance(states[i - 1], states[i]);
+
+    std::vector<std::tuple<double, base::Cost, unsigned int>> distCostIndices; 
+    for (unsigned int i = 0; i < states.size() - 1; i++)
+        distCostIndices.push_back(std::make_tuple(si->distance(states[i], states[i + 1]), obj_->motionCost(states[i], states[i + 1]), i));
+
+    // Sort so highest costs are first
+    std::sort(distCostIndices.begin(), distCostIndices.end(), 
+            [this](std::tuple<double, base::Cost, unsigned int> a, std::tuple<double, base::Cost, unsigned int> b) {
+                return obj_->isCostBetterThan(std::get<1>(b), std::get<1>(a));
+            }
+    );
+    
     double threshold = dists.back() * snapToVertex;
 
     bool result = false;
@@ -410,11 +422,28 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
     for (unsigned int i = 0; i < maxSteps && nochange < maxEmptySteps; i++, nochange++)
     {
         // select a configuration on the path, biased towards high cost segments.
-        //     biasing is kinda hard, for now, just do the same random selection as shortcut.
         base::State *perturb_state = si->allocState();
 
-        double distTo = rng_.uniformReal(0.0, dists.back());
+        // Get a random real from 0 to the path length, biased towards 0.
+        double costBias = -1 * rng_.halfNormalReal(-dists.back(), 0.0, 20.0);
+        unsigned int z = 0;
+        if (costBias >= dists.back())
+        {
+            z = distCostIndices.size() - 1;
+            costBias = std::get<0>(distCostIndices[z]);
+        }
+        else
+        {
+            // Using our sorted cost vector, find the segment we want to use.
+            while (costBias - std::get<0>(distCostIndices[z]) > std::numeric_limits<double>::epsilon())
+            {
+                costBias -= std::get<0>(distCostIndices[z]);
+                z++;
+            }
+        }
+
         int pos, pos_before, pos_after;
+        double distTo = dists[std::get<2>(distCostIndices[z])] + costBias;
         selectAlongPath(dists, states, distTo, threshold, perturb_state, pos);
 
         // Get before state and after state, that are around stepsize/2 on either side of perturb state.
@@ -544,6 +573,16 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
             {
                 dists[j] = dists[j - 1] + si->distance(states[j - 1], states[j]);
             }
+            distCostIndices.clear();
+            for (unsigned int i = 0; i < states.size() - 1; i++)
+                distCostIndices.push_back(std::make_tuple(si->distance(states[i], states[i + 1]), obj_->motionCost(states[i], states[i + 1]), i));
+
+            // Sort so highest costs are first
+            std::sort(distCostIndices.begin(), distCostIndices.end(), 
+                    [this](std::tuple<double, base::Cost, unsigned int> a, std::tuple<double, base::Cost, unsigned int> b) {
+                        return obj_->isCostBetterThan(std::get<1>(b), std::get<1>(a));
+                    }
+            );
             threshold = dists.back() * snapToVertex;
             result = true;
             nochange = 0;

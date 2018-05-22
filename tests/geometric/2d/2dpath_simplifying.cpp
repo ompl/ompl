@@ -127,7 +127,7 @@ public:
             for (int i = 0; i < runs; i++)
             {
                 path = new geometric::PathGeometric(*paths_[path_idx]);
-                simplifier.perturbPath(*path, 1.5, 100, 100, 0.005); 
+                simplifier.perturbPath(*path, 2.0, 100, 100, 0.005); 
                 avg_costs += path->cost(obj).value();
                 avg_length += path->length();
                 avg_clearance += path->cost(obj_clearance).value();
