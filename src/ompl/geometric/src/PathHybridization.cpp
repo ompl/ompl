@@ -60,7 +60,9 @@ ompl::geometric::PathHybridization::PathHybridization(base::SpaceInformationPtr 
 ompl::geometric::PathHybridization::PathHybridization(base::SpaceInformationPtr si, base::OptimizationObjectivePtr obj)
   : si_(std::move(si)), obj_(std::move(obj)), stateProperty_(boost::get(vertex_state_t(), g_)), name_("PathHybridization")
 {
-    // TODO(brycew): See if we should add Opt Obj name to the hybrization name.
+    std::stringstream ss;
+    ss << "PathHybridization over " << obj_->getDescription() << " cost";
+    name_ = ss.str();
     root_ = boost::add_vertex(g_);
     stateProperty_[root_] = nullptr;
     goal_ = boost::add_vertex(g_);

@@ -253,8 +253,7 @@ namespace ompl
             std::shared_ptr<base::GoalSampleableRegion> gsr_;
 
             /** \brief The optimization objective to use when making improvements. Will be used on all methods except
-                reduce vertices (whose goal is not necessary to improve the solution).
-                TODO: actually use it on other improvements. */
+                reduce vertices (whose goal is not necessary to improve the solution). */
             base::OptimizationObjectivePtr obj_;
 
             /** \brief Flag indicating whether the states removed from a motion should be freed */
