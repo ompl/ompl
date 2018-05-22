@@ -392,16 +392,18 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
 
     std::vector<double> dists(states.size(), 0.0);
     for (unsigned int i = 1; i < dists.size(); i++)
-    {
         dists[i] = dists[i - 1] + si->distance(states[i - 1], states[i]);
-    }
-    
     double threshold = dists.back() * snapToVertex;
 
     bool result = false;
     unsigned int nochange = 0;
 
     base::StateSamplerPtr sampler = si->allocStateSampler();
+
+    base::State *perturb_state = si->allocState();
+    base::State *before_state = si->allocState();
+    base::State *after_state = si->allocState();
+    base::State *new_state = si->allocState();
 
     // Attempt perturbing maxSteps times or when no improvement is found after
     // maxEmptySteps attempts, whichever comes first.
@@ -411,18 +413,13 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
         //     biasing is kinda hard, for now, just do the same random selection as shortcut.
         base::State *perturb_state = si->allocState();
 
-        base::State *new_state = si->allocState();
-
         double distTo = rng_.uniformReal(0.0, dists.back());
         int pos, pos_before, pos_after;
-        int index = selectAlongPath(dists, states, distTo, threshold, perturb_state, pos);
+        selectAlongPath(dists, states, distTo, threshold, perturb_state, pos);
 
         // Get before state and after state, that are around stepsize/2 on either side of perturb state.
-        base::State *before_state =si->allocState();
-        int index_before = selectAlongPath(dists, states, distTo - stepSize, threshold, before_state, pos_before);
-
-        base::State *after_state = si->allocState();
-        int index_after = selectAlongPath(dists, states, distTo + stepSize, threshold, after_state, pos_after);
+        int index_before = selectAlongPath(dists, states, distTo - stepSize/2.0, threshold, before_state, pos_before);
+        int index_after = selectAlongPath(dists, states, distTo + stepSize/2.0, threshold, after_state, pos_after);
 
         if (index_before >= 0 && index_after >= 0 && index_before == index_after)
         {
@@ -430,11 +427,9 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
         }
 
         // Pick a random direction to extend and take a stepSize step in that direction.
-        base::State *random_state = si->allocState();
-        sampler->sampleUniform(random_state);
-
-        double dist = si->distance(perturb_state, random_state);
-        si->getStateSpace()->interpolate(perturb_state, random_state, stepSize / dist, new_state);
+        sampler->sampleUniform(new_state);
+        double dist = si->distance(perturb_state, new_state);
+        si->getStateSpace()->interpolate(perturb_state, new_state, stepSize / dist, new_state);
 
         // Check for validity of the new path to the new state.
         if (si->checkMotion(before_state, new_state) && si->checkMotion(new_state, after_state))
@@ -447,15 +442,15 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
             }
             else
             {
-                base::Cost beforePartialCost = (index_before >= 0) ? obj_->identityCost() : obj_->motionCost(before_state, states[pos_before + 1]);
-                base::Cost afterPartialCost = (index_after >= 0) ? obj_->identityCost() : obj_->motionCost(states[pos_after], after_state);
-                alongPath = beforePartialCost;
+                // The partial cost from before_state to the first waypoint.
+                alongPath = (index_before >= 0) ? obj_->identityCost() : obj_->motionCost(before_state, states[pos_before + 1]);
                 int posTemp = (index_before >= 0) ? index_before: pos_before + 1;
                 while (posTemp < pos_after)
                 {
                     alongPath = obj_->combineCosts(alongPath, obj_->motionCost(states[posTemp], states[posTemp + 1]));
                     posTemp++;
                 }
+                base::Cost afterPartialCost = (index_after >= 0) ? obj_->identityCost() : obj_->motionCost(states[pos_after], after_state);
                 alongPath = obj_->combineCosts(alongPath, afterPartialCost);
             }
 
@@ -471,7 +466,8 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
             {
                 if (pos_before == pos_after)
                 {
-                    // Insert all 3 states in reverse order.
+                    // Insert all 3 states; new_state goes before after_state, and before_state
+                    // goes before new_state.
                     states.insert(states.begin() + pos_before + 1, si->cloneState(after_state));
                     states.insert(states.begin() + pos_before + 1, si->cloneState(new_state));
                     states.insert(states.begin() + pos_before + 1, si->cloneState(before_state));
@@ -490,32 +486,32 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
                 }
                 else
                 {
-                    if (freeStates_)
-                        for (int j = pos_before + 4; j < pos_after; ++j)
-                            si->freeState(states[j]);
                     si->copyState(states[pos_before + 1], before_state);
                     si->copyState(states[pos_before + 2], new_state);
                     si->copyState(states[pos_before + 3], after_state);
+                    if (freeStates_)
+                        for (int j = pos_before + 4; j < pos_after + 1; ++j)
+                            si->freeState(states[j]);
                     states.erase(states.begin() + pos_before + 4, states.begin() + pos_after + 1);
                 }
             }
             else if (index_before >= 0 && index_after >= 0)
             {
-                //if (freeStates_)
-                    //for (int j = index_before + 1; j < index_after; ++j)
-                        //si->freeState(states[j]);
                 states.insert(states.begin() + index_before + 1, si->cloneState(new_state));
+                if (freeStates_)
+                    for (int j = index_before + 2; j < index_after + 1; ++j)
+                        si->freeState(states[j]);
                 states.erase(states.begin() + index_before + 2, states.begin() + index_after + 1);
             }
             else if (index_before < 0 && index_after >= 0)
             {
-                //if (freeStates_)
-                    //for (int j = pos_before + 2; j < index_after; ++j)
-                        //si->freeState(states[j]);
                 if (index_after > pos_before + 1)
                 {
                     si->copyState(states[pos_before + 1], before_state);
                     states.insert(states.begin() + pos_before + 2, si->cloneState(new_state));
+                    if (freeStates_)
+                        for (int j = pos_before + 3; j < index_after + 1; ++j)
+                            si->freeState(states[j]);
                     states.erase(states.begin() + pos_before + 3, states.begin() + index_after + 1);
                 }
                 else
@@ -526,18 +522,17 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
             }
             else if (index_before >= 0 && index_after < 0)
             {
-                //if (freeStates_)
-                    //for (int j = index_before + 1; j < pos_after; ++j)
-                        //si->freeState(states[j]);
                 if (pos_after > index_before)
                 {
                     si->copyState(states[pos_after], new_state);
                     states.insert(states.begin() + pos_after + 1, si->cloneState(after_state));
+                    if (freeStates_)
+                        for (int j = index_before + 1; j < pos_after; ++j)
+                            si->freeState(states[j]);
                     states.erase(states.begin() + index_before + 1, states.begin() + pos_after);
                 }
                 else
                 {
-                    // Insert all 3 states in reverse order.
                     states.insert(states.begin() + index_before + 1, si->cloneState(after_state));
                     states.insert(states.begin() + index_before + 1, si->cloneState(new_state));
                 }
@@ -553,11 +548,12 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
             result = true;
             nochange = 0;
 
-            si->freeState(perturb_state);
-            si->freeState(new_state);
         }
     }
-
+    si->freeState(perturb_state);
+    si->freeState(before_state);
+    si->freeState(after_state);
+    si->freeState(new_state);
 
     return result;
 }

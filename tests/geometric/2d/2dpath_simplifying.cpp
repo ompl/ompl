@@ -94,7 +94,6 @@ public:
             avg_clearance /= runs;
             printf("Avg Cost %d wrt Length: %f\n", path_idx, avg_length);
             printf("Avg Cost %d wrt Clearance: %f\n", path_idx, avg_clearance);
-            path->printAsMatrix(std::cout);
         }
         
     }
@@ -111,7 +110,6 @@ public:
         hybrid.computeHybridPath();
         hybrid.print(std::cout);
         const base::PathPtr final_path = hybrid.getHybridPath();
-        final_path->as<geometric::PathGeometric>()->printAsMatrix(std::cout);
     }
 
     template<typename T>
@@ -129,7 +127,7 @@ public:
             for (int i = 0; i < runs; i++)
             {
                 path = new geometric::PathGeometric(*paths_[path_idx]);
-                simplifier.perturbPath(*path, 3.0, 20, 20, 0.005); 
+                simplifier.perturbPath(*path, 1.5, 100, 100, 0.005); 
                 avg_costs += path->cost(obj).value();
                 avg_length += path->length();
                 avg_clearance += path->cost(obj_clearance).value();
@@ -139,7 +137,6 @@ public:
             avg_clearance /= runs;
             printf("Avg Cost %d wrt Length: %f\n", path_idx, avg_length);
             printf("Avg Cost %d wrt Clearance: %f\n", path_idx, avg_clearance);
-            path->printAsMatrix(std::cout);
         }
     }
 
