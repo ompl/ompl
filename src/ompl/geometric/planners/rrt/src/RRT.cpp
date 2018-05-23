@@ -47,6 +47,7 @@ ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, bool addIntermedi
 
     Planner::declareParam<double>("range", this, &RRT::setRange, &RRT::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias, "0.:.05:1.");
+    Planner::declareParam<bool>("intermediate_states", this, &RRT::setIntermediateStates, &RRT::getIntermediateStates);
 
     addIntermediateStates_ = addIntermediateStates;
 }
@@ -146,21 +147,29 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
         if (addIntermediateStates_)
         {
             std::vector<base::State *> states;
-            const unsigned int count =
-                1 + si_->distance(nmotion->state, dstate) / si_->getStateValidityCheckingResolution();
+            const unsigned int count = si_->getStateSpace()->validSegmentCount(nmotion->state, dstate);
             si_->getMotionStates(nmotion->state, dstate, states, count, true, true);
-            Motion *motion;
-            si_->freeState(states[0]);
-            for (std::size_t i = 1; i < states.size(); i++)
-            {
-                /* create a motion */
-                motion = new Motion;
-                motion->state = states[i];
-                motion->parent = nmotion;
 
+            std::size_t i = 1;
+            for (; i < states.size(); ++i)
+            {
+                base::State *cstate = states[i];
+                if (!si_->isValid(cstate) || !si_->checkMotion(nmotion->state, cstate))
+                    break;
+
+                Motion *motion = new Motion;
+                motion->state = cstate;
+                motion->parent = nmotion;
                 nn_->add(motion);
+
                 nmotion = motion;
             }
+
+            if (states.size() >= 1)
+                si_->freeState(states[0]);
+
+            for (; i < states.size(); ++i)
+                si_->freeState(states[i]);
 
             double dist = 0.0;
             bool sat = goal->isSatisfied(nmotion->state, &dist);
