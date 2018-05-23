@@ -112,7 +112,9 @@ void addSpaceOption(po::options_description &desc, enum SPACE_TYPE *space)
 enum PLANNER_TYPE
 {
     RRT,
+    RRT_I,
     RRTConnect,
+    RRTConnect_I,
     RRTstar,
     EST,
     BiEST,
@@ -130,8 +132,12 @@ std::istream &operator>>(std::istream &in, enum PLANNER_TYPE &type)
     in >> token;
     if (token == "RRT")
         type = RRT;
+    else if (token == "RRT_I")
+        type = RRT_I;
     else if (token == "RRTConnect")
         type = RRTConnect;
+    else if (token == "RRTConnect_I")
+        type = RRTConnect_I;
     else if (token == "RRTstar")
         type = RRTstar;
     else if (token == "EST")
@@ -345,9 +351,32 @@ public:
     }
 
     template <typename _T>
+    std::shared_ptr<_T> createPlannerIntermediate()
+    {
+        auto &&planner = std::make_shared<_T>(csi, true);
+        return planner;
+    }
+
+    template <typename _T>
     std::shared_ptr<_T> createPlannerRange()
     {
         auto &&planner = createPlanner<_T>();
+
+        if (c_opt.range == 0)
+        {
+            if (type == AT || type == TB)
+                planner->setRange(css->as<ob::AtlasStateSpace>()->getRho_s());
+        }
+        else
+            planner->setRange(c_opt.range);
+
+        return planner;
+    }
+
+    template <typename _T>
+    std::shared_ptr<_T> createPlannerRange(bool intermediate)
+    {
+        auto &&planner = createPlannerIntermediate<_T>();
 
         if (c_opt.range == 0)
         {
@@ -380,8 +409,14 @@ public:
             case RRT:
                 p = createPlannerRange<og::RRT>();
                 break;
+            case RRT_I:
+                p = createPlannerRange<og::RRT>(true);
+                break;
             case RRTConnect:
                 p = createPlannerRange<og::RRTConnect>();
+                break;
+            case RRTConnect_I:
+                p = createPlannerRange<og::RRTConnect>(true);
                 break;
             case RRTstar:
                 p = createPlannerRange<og::RRTstar>();
