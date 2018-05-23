@@ -165,7 +165,7 @@ std::istream &operator>>(std::istream &in, enum PLANNER_TYPE &type)
 void addPlannerOption(po::options_description &desc, std::vector<enum PLANNER_TYPE> *planners)
 {
     auto planner_msg = "List of which motion planner to use (multiple if benchmarking, one if planning). Choose from:\n"
-                       "RRT (Default), RRTConnect, RRTstar, "
+                       "RRT (Default), RRT_I, RRTConnect, RRTConnect_I, RRTstar, "
                        "EST, BiEST, ProjEST, "
                        "BITstar, "
                        "PRM, SPARS, "
