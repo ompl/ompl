@@ -45,6 +45,9 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, boo
     specs_.directed = true;
 
     Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange, "0.:1.:10000.");
+    Planner::declareParam<bool>("intermediate_states", this, &RRTConnect::setIntermediateStates,
+                                &RRTConnect::getIntermediateStates);
+
     connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
     addIntermediateStates_ = addIntermediateStates;
@@ -124,57 +127,60 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
     if (d > maxDistance_)
     {
         si_->getStateSpace()->interpolate(nmotion->state, rmotion->state, maxDistance_ / d, tgi.xstate);
-
-        /* check if we have moved at all */
-        if (si_->distance(nmotion->state, tgi.xstate) < std::numeric_limits<double>::epsilon())
-            return TRAPPED;
-
         dstate = tgi.xstate;
         reach = false;
     }
-    // if we are in the start tree, we just check the motion like we normally do;
-    // if we are in the goal tree, we need to check the motion in reverse, but checkMotion() assumes the first state it
-    // receives as argument is valid,
-    // so we check that one first
+
     if (addIntermediateStates_)
     {
         std::vector<base::State *> states;
-        const unsigned int count =
-            1 + si_->distance(nmotion->state, dstate) / si_->getStateValidityCheckingResolution();
-        ompl::base::State *nstate = nmotion->state;
+        base::State *nstate = nmotion->state;
+        const unsigned int count = si_->getStateSpace()->validSegmentCount(nstate, dstate);
+
+        /* check motion as usual */
         if (tgi.start)
             si_->getMotionStates(nstate, dstate, states, count, true, true);
+
+        /* need to check motion in reverse, and check that first state is valid */
         else
-            si_->getStateValidityChecker()->isValid(dstate) &&
-                si_->getMotionStates(dstate, nstate, states, count, true, true);
-        if (states.empty())
+            si_->isValid(dstate) && si_->getMotionStates(dstate, nstate, states, count, true, true);
+
+        if (states.size() >= 1)
+            si_->freeState(states[0]);
+
+        if (states.size() <= 1)
             return TRAPPED;
-        bool adv = si_->distance(states.back(), tgi.start ? dstate : nstate) <= 0.01;
-        reach = reach && adv;
-        si_->freeState(states[0]);
-        Motion *motion;
-        for (std::size_t i = 1; i < states.size(); i++)
+
+        std::size_t i = 1;
+        base::State *previous = tgi.start ? nstate : dstate;
+        for (; i < states.size(); ++i)
         {
-            if (adv)
-            {
-                /* create a motion */
-                motion = new Motion;
-                motion->state = states[i];
-                motion->parent = nmotion;
-                motion->root = nmotion->root;
-                tgi.xmotion = motion;
-                nmotion = motion;
-                tree->add(motion);
-            }
-            else
-                si_->freeState(states[i]);
+            base::State *cstate = states[i];
+            if (!si_->isValid(cstate) || !si_->checkMotion(previous, cstate))
+                break;
+
+            Motion *motion = new Motion;
+            motion->state = cstate;
+            motion->parent = nmotion;
+            motion->root = nmotion->root;
+            tree->add(motion);
+
+            nmotion = motion;
+            previous = cstate;
         }
-        if (reach)
-            return REACHED;
-        else if (adv)
-            return ADVANCED;
-        else
-            return TRAPPED;
+
+        tgi.xmotion = nmotion;
+
+        bool adv = i == states.size() && si_->equalStates(nmotion->state, tgi.start ? dstate : nstate);
+
+        GrowState result = adv ? (reach ? REACHED : ADVANCED) : TRAPPED;
+        OMPL_INFORM("%d, %d, %s, %s, %s", states.size(), i, adv ? "YES" : "NO", reach ? "YES" : "NO",
+                    result == REACHED ? "REACHED" : (result == ADVANCED ? "ADVANCED" : "TRAPPED"));
+
+        for (; i < states.size(); ++i)
+            si_->freeState(states[i]);
+
+        return result;
     }
     else
     {
