@@ -141,53 +141,46 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
         base::State *astate = tgi.start ? nmotion->state : dstate;
         base::State *bstate = tgi.start ? dstate : nmotion->state;
 
-        if (si_->checkMotion(astate, bstate))
+        if (!si_->checkMotion(astate, bstate))
+            return TRAPPED;
+
+        std::vector<base::State *> states;
+        const unsigned int count = si_->getStateSpace()->validSegmentCount(astate, bstate);
+        si_->getMotionStates(astate, bstate, states, count, true, true);
+
+        if (states.size() >= 1)
+            si_->freeState(states[0]);
+
+        for (std::size_t i = 1; i < states.size(); ++i)
         {
-            std::vector<base::State *> states;
-            const unsigned int count = si_->getStateSpace()->validSegmentCount(astate, bstate);
-            si_->getMotionStates(astate, bstate, states, count, true, true);
+            Motion *motion = new Motion;
+            motion->state = states[i];
+            motion->parent = nmotion;
+            motion->root = nmotion->root;
+            tree->add(motion);
 
-            if (states.size() >= 1)
-                si_->freeState(states[0]);
-
-            for (std::size_t i = 1; i < states.size(); ++i)
-            {
-                Motion *motion = new Motion
-                motion->state = states[i];
-                motion->parent = nmotion;
-                motion->root = nmotion->root;
-                tree->add(motion);
-
-                nmotion = motion;
-            }
-
-            tgi.xmotion = nmotion;
-            return reach ? REACHED : ADVANCED;
+            nmotion = motion;
         }
 
-        return TRAPPED;
+        tgi.xmotion = nmotion;
+        return reach ? REACHED : ADVANCED;
     }
     else
     {
-        bool validMotion =
-            tgi.start ? si_->checkMotion(nmotion->state, dstate) :
-                        si_->isValid(dstate) && si_->checkMotion(dstate, nmotion->state);
+        bool validMotion = tgi.start ? si_->checkMotion(nmotion->state, dstate) :
+                                       si_->isValid(dstate) && si_->checkMotion(dstate, nmotion->state);
 
-        if (validMotion)
-        {
-            /* create a motion */
-            Motion *motion = new Motion(si_);
-            si_->copyState(motion->state, dstate);
-            motion->parent = nmotion;
-            motion->root = nmotion->root;
-            tgi.xmotion = motion;
-
-            tree->add(motion);
-
-            return reach ? REACHED : ADVANCED;
-        }
-        else
+        if (!validMotion)
             return TRAPPED;
+
+        Motion *motion = new Motion(si_);
+        si_->copyState(motion->state, dstate);
+        motion->parent = nmotion;
+        motion->root = nmotion->root;
+        tree->add(motion);
+
+        tgi.xmotion = motion;
+        return reach ? REACHED : ADVANCED;
     }
 }
 
