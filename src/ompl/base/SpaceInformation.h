@@ -367,7 +367,7 @@ namespace ompl
             bool checkMotion(const std::vector<State *> &states, unsigned int count) const;
 
             /** \brief Get \e count states that make up a motion between \e s1 and \e s2. Returns the number of states
-               that were added to \e states.
+               that were added to \e states. These states are not checked for validity.
                 If \e states.size() >= count or \e alloc is true, the returned value is equal to \e count (or \e count +
                2, if \e endpoints is true).
                 Otherwise, fewer states can be returned.

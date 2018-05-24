@@ -45,6 +45,9 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, boo
     specs_.directed = true;
 
     Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange, "0.:1.:10000.");
+    Planner::declareParam<bool>("intermediate_states", this, &RRTConnect::setIntermediateStates,
+                                &RRTConnect::getIntermediateStates, "0,1");
+
     connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
     addIntermediateStates_ = addIntermediateStates;
@@ -124,82 +127,52 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
     if (d > maxDistance_)
     {
         si_->getStateSpace()->interpolate(nmotion->state, rmotion->state, maxDistance_ / d, tgi.xstate);
-
-        /* check if we have moved at all */
-        if (si_->distance(nmotion->state, tgi.xstate) < std::numeric_limits<double>::epsilon())
-            return TRAPPED;
-
         dstate = tgi.xstate;
         reach = false;
     }
-    // if we are in the start tree, we just check the motion like we normally do;
-    // if we are in the goal tree, we need to check the motion in reverse, but checkMotion() assumes the first state it
-    // receives as argument is valid,
-    // so we check that one first
+
+    bool validMotion = tgi.start ? si_->checkMotion(nmotion->state, dstate) :
+                                   si_->isValid(dstate) && si_->checkMotion(dstate, nmotion->state);
+
+    if (!validMotion)
+        return TRAPPED;
+
     if (addIntermediateStates_)
     {
+        const base::State *astate = tgi.start ? nmotion->state : dstate;
+        const base::State *bstate = tgi.start ? dstate : nmotion->state;
+
         std::vector<base::State *> states;
-        const unsigned int count =
-            1 + si_->distance(nmotion->state, dstate) / si_->getStateValidityCheckingResolution();
-        ompl::base::State *nstate = nmotion->state;
-        if (tgi.start)
-            si_->getMotionStates(nstate, dstate, states, count, true, true);
-        else
-            si_->getStateValidityChecker()->isValid(dstate) &&
-                si_->getMotionStates(dstate, nstate, states, count, true, true);
-        if (states.empty())
-            return TRAPPED;
-        bool adv = si_->distance(states.back(), tgi.start ? dstate : nstate) <= 0.01;
-        reach = reach && adv;
-        si_->freeState(states[0]);
-        Motion *motion;
-        for (std::size_t i = 1; i < states.size(); i++)
+        const unsigned int count = si_->getStateSpace()->validSegmentCount(astate, bstate);
+
+        if (si_->getMotionStates(astate, bstate, states, count, true, true))
+            si_->freeState(states[0]);
+
+        for (std::size_t i = 1; i < states.size(); ++i)
         {
-            if (adv)
-            {
-                /* create a motion */
-                motion = new Motion;
-                motion->state = states[i];
-                motion->parent = nmotion;
-                motion->root = nmotion->root;
-                tgi.xmotion = motion;
-                nmotion = motion;
-                tree->add(motion);
-            }
-            else
-                si_->freeState(states[i]);
+            Motion *motion = new Motion;
+            motion->state = states[i];
+            motion->parent = nmotion;
+            motion->root = nmotion->root;
+            tree->add(motion);
+
+            nmotion = motion;
         }
-        if (reach)
-            return REACHED;
-        else if (adv)
-            return ADVANCED;
-        else
-            return TRAPPED;
+
+        tgi.xmotion = nmotion;
     }
     else
     {
-        bool validMotion =
-            tgi.start ? si_->checkMotion(nmotion->state, dstate) :
-                        si_->getStateValidityChecker()->isValid(dstate) && si_->checkMotion(dstate, nmotion->state);
+        Motion *motion = new Motion(si_);
+        si_->copyState(motion->state, dstate);
+        motion->parent = nmotion;
+        motion->root = nmotion->root;
+        tree->add(motion);
 
-        if (validMotion)
-        {
-            /* create a motion */
-            Motion *motion = new Motion(si_);
-            si_->copyState(motion->state, dstate);
-            motion->parent = nmotion;
-            motion->root = nmotion->root;
-            tgi.xmotion = motion;
-
-            tree->add(motion);
-            if (reach)
-                return REACHED;
-            else
-                return ADVANCED;
-        }
-        else
-            return TRAPPED;
+        tgi.xmotion = motion;
     }
+
+    return reach ? REACHED : ADVANCED;
 }
 
 ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition &ptc)

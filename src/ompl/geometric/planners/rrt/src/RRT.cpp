@@ -47,6 +47,8 @@ ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, bool addIntermedi
 
     Planner::declareParam<double>("range", this, &RRT::setRange, &RRT::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias, "0.:.05:1.");
+    Planner::declareParam<bool>("intermediate_states", this, &RRT::setIntermediateStates, &RRT::getIntermediateStates,
+                                "0,1");
 
     addIntermediateStates_ = addIntermediateStates;
 }
@@ -143,22 +145,33 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
             dstate = xstate;
         }
 
-        if (addIntermediateStates_)
+        if (si_->checkMotion(nmotion->state, dstate))
         {
-            std::vector<base::State *> states;
-            const unsigned int count =
-                1 + si_->distance(nmotion->state, dstate) / si_->getStateValidityCheckingResolution();
-            si_->getMotionStates(nmotion->state, dstate, states, count, true, true);
-            Motion *motion;
-            si_->freeState(states[0]);
-            for (std::size_t i = 1; i < states.size(); i++)
+            if (addIntermediateStates_)
             {
-                /* create a motion */
-                motion = new Motion;
-                motion->state = states[i];
-                motion->parent = nmotion;
+                std::vector<base::State *> states;
+                const unsigned int count = si_->getStateSpace()->validSegmentCount(nmotion->state, dstate);
 
+                if (si_->getMotionStates(nmotion->state, dstate, states, count, true, true))
+                    si_->freeState(states[0]);
+
+                for (std::size_t i = 1; i < states.size(); ++i)
+                {
+                    Motion *motion = new Motion;
+                    motion->state = states[i];
+                    motion->parent = nmotion;
+                    nn_->add(motion);
+
+                    nmotion = motion;
+                }
+            }
+            else
+            {
+                Motion *motion = new Motion(si_);
+                si_->copyState(motion->state, dstate);
+                motion->parent = nmotion;
                 nn_->add(motion);
+
                 nmotion = motion;
             }
 
@@ -174,31 +187,6 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
             {
                 approxdif = dist;
                 approxsol = nmotion;
-            }
-        }
-        else
-        {
-            if (si_->checkMotion(nmotion->state, dstate))
-            {
-                /* create a motion */
-                Motion *motion = new Motion(si_);
-                si_->copyState(motion->state, dstate);
-                motion->parent = nmotion;
-
-                nn_->add(motion);
-                double dist = 0.0;
-                bool sat = goal->isSatisfied(motion->state, &dist);
-                if (sat)
-                {
-                    approxdif = dist;
-                    solution = motion;
-                    break;
-                }
-                if (dist < approxdif)
-                {
-                    approxdif = dist;
-                    approxsol = motion;
-                }
             }
         }
     }
