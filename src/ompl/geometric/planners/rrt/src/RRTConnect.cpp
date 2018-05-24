@@ -133,60 +133,45 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
 
     if (addIntermediateStates_)
     {
-        std::vector<base::State *> states;
-        base::State *nstate = nmotion->state;
-        const unsigned int count = si_->getStateSpace()->validSegmentCount(nstate, dstate);
-
-        /* check motion as usual */
-        if (tgi.start)
-            si_->getMotionStates(nstate, dstate, states, count, true, true);
-
-        /* need to check motion in reverse, and check that first state is valid */
-        else
-            si_->isValid(dstate) && si_->getMotionStates(dstate, nstate, states, count, true, true);
-
-        if (states.size() >= 1)
-            si_->freeState(states[0]);
-
-        if (states.size() <= 1)
+        /* if adding to goal tree, need to check motion in reverse. dstate could possibly be invalid, so check here and
+         * exit early */
+        if (!tgi.start && !si_->isValid(dstate))
             return TRAPPED;
 
-        std::size_t i = 1;
-        base::State *previous = tgi.start ? nstate : dstate;
-        for (; i < states.size(); ++i)
+        base::State *astate = tgi.start ? nmotion->state : dstate;
+        base::State *bstate = tgi.start ? dstate : nmotion->state;
+
+        if (si_->checkMotion(astate, bstate))
         {
-            base::State *cstate = states[i];
-            if (!si_->isValid(cstate) || !si_->checkMotion(previous, cstate))
-                break;
+            std::vector<base::State *> states;
+            const unsigned int count = si_->getStateSpace()->validSegmentCount(astate, bstate);
+            si_->getMotionStates(astate, bstate, states, count, true, true);
 
-            Motion *motion = new Motion;
-            motion->state = cstate;
-            motion->parent = nmotion;
-            motion->root = nmotion->root;
-            tree->add(motion);
+            if (states.size() >= 1)
+                si_->freeState(states[0]);
 
-            nmotion = motion;
-            previous = cstate;
+            for (std::size_t i = 1; i < states.size(); ++i)
+            {
+                Motion *motion = new Motion
+                motion->state = states[i];
+                motion->parent = nmotion;
+                motion->root = nmotion->root;
+                tree->add(motion);
+
+                nmotion = motion;
+            }
+
+            tgi.xmotion = nmotion;
+            return reach ? REACHED : ADVANCED;
         }
 
-        tgi.xmotion = nmotion;
-
-        bool adv = i == states.size() && si_->equalStates(nmotion->state, tgi.start ? dstate : nstate);
-
-        GrowState result = adv ? (reach ? REACHED : ADVANCED) : TRAPPED;
-        OMPL_INFORM("%d, %d, %s, %s, %s", states.size(), i, adv ? "YES" : "NO", reach ? "YES" : "NO",
-                    result == REACHED ? "REACHED" : (result == ADVANCED ? "ADVANCED" : "TRAPPED"));
-
-        for (; i < states.size(); ++i)
-            si_->freeState(states[i]);
-
-        return result;
+        return TRAPPED;
     }
     else
     {
         bool validMotion =
             tgi.start ? si_->checkMotion(nmotion->state, dstate) :
-                        si_->getStateValidityChecker()->isValid(dstate) && si_->checkMotion(dstate, nmotion->state);
+                        si_->isValid(dstate) && si_->checkMotion(dstate, nmotion->state);
 
         if (validMotion)
         {
@@ -198,10 +183,8 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
             tgi.xmotion = motion;
 
             tree->add(motion);
-            if (reach)
-                return REACHED;
-            else
-                return ADVANCED;
+
+            return reach ? REACHED : ADVANCED;
         }
         else
             return TRAPPED;
