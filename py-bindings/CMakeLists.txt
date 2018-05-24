@@ -1,12 +1,15 @@
-option(OMPL_BUILD_PYBINDINGS "Build OMPL Python bindings" ON)
+include(PythonBindingsUtils)
+if(PY_PYPLUSPLUS AND PY_PYGCCXML AND CASTXML_FOUND)
+    option(OMPL_BUILD_PYBINDINGS "Build OMPL Python bindings" ON)
+    option(OMPL_BUILD_PYTESTS "Build/run OMPL Python tests" ON)
+else()
+    option(OMPL_BUILD_PYBINDINGS "Build OMPL Python bindings" OFF)
+    option(OMPL_BUILD_PYTESTS "Build/run OMPL Python tests" OFF)
+endif()
 add_feature_info(OMPL_BUILD_PYBINDINGS "${OMPL_BUILD_PYBINDINGS}" "Whether to build the Python bindings.")
-option(OMPL_BUILD_PYTESTS "Build/run OMPL Python tests" ON)
 add_feature_info(OMPL_BUILD_PYTESTS "${OMPL_BUILD_PYTESTS}" "Whether to build/run the python binding unit tests.")
 
 if (OMPL_BUILD_PYBINDINGS)
-
-    include(PythonBindingsUtils)
-
     if(WIN32)
         # omit StateStorage class bindings on Windows;
         # Boost.Serialization does nasty things that break the bindings.
