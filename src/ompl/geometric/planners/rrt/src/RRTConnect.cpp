@@ -131,18 +131,16 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
         reach = false;
     }
 
+    bool validMotion = tgi.start ? si_->checkMotion(nmotion->state, dstate) :
+                                   si_->isValid(dstate) && si_->checkMotion(dstate, nmotion->state);
+
+    if (!validMotion)
+        return TRAPPED;
+
     if (addIntermediateStates_)
     {
-        /* if adding to goal tree, need to check motion in reverse. dstate could possibly be invalid, so check here and
-         * exit early */
-        if (!tgi.start && !si_->isValid(dstate))
-            return TRAPPED;
-
         const base::State *astate = tgi.start ? nmotion->state : dstate;
         const base::State *bstate = tgi.start ? dstate : nmotion->state;
-
-        if (!si_->checkMotion(astate, bstate))
-            return TRAPPED;
 
         std::vector<base::State *> states;
         const unsigned int count = si_->getStateSpace()->validSegmentCount(astate, bstate);
@@ -166,12 +164,6 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
     }
     else
     {
-        bool validMotion = tgi.start ? si_->checkMotion(nmotion->state, dstate) :
-                                       si_->isValid(dstate) && si_->checkMotion(dstate, nmotion->state);
-
-        if (!validMotion)
-            return TRAPPED;
-
         Motion *motion = new Motion(si_);
         si_->copyState(motion->state, dstate);
         motion->parent = nmotion;
