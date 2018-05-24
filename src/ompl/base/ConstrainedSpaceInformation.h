@@ -180,7 +180,7 @@ namespace ompl
                 auto &&atlas = stateSpace_->as<TangentBundleStateSpace>();
 
                 std::vector<State *> temp;
-                bool success = atlas->discreteGeodesic(s1, s2, false, &temp);
+                bool success = atlas->discreteGeodesic(s1, s2, true, &temp);
 
                 if (!success && temp.size() == 0)
                     temp.push_back(cloneState(s1));

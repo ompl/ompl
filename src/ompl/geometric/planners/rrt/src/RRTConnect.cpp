@@ -127,6 +127,13 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
     if (d > maxDistance_)
     {
         si_->getStateSpace()->interpolate(nmotion->state, rmotion->state, maxDistance_ / d, tgi.xstate);
+
+        /* Check if we have moved at all. Due to some stranger state spaces (e.g., the constrained state spaces),
+         * interpolate can fail and no progress is made. Without this check, the algorithm gets stuck in a loop as it
+         * thinks it is making progress, when none is actually occurring. */
+        if (si_->equalStates(nmotion->state, tgi.xstate))
+            return TRAPPED;
+
         dstate = tgi.xstate;
         reach = false;
     }
