@@ -160,7 +160,6 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
         }
 
         tgi.xmotion = nmotion;
-        return reach ? REACHED : ADVANCED;
     }
     else
     {
@@ -171,8 +170,9 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
         tree->add(motion);
 
         tgi.xmotion = motion;
-        return reach ? REACHED : ADVANCED;
     }
+
+    return reach ? REACHED : ADVANCED;
 }
 
 ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition &ptc)

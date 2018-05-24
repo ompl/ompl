@@ -166,7 +166,6 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
             }
             else
             {
-                /* create a motion */
                 Motion *motion = new Motion(si_);
                 si_->copyState(motion->state, dstate);
                 motion->parent = nmotion;
