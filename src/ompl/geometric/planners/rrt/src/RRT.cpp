@@ -150,9 +150,8 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
             {
                 std::vector<base::State *> states;
                 const unsigned int count = si_->getStateSpace()->validSegmentCount(nmotion->state, dstate);
-                si_->getMotionStates(nmotion->state, dstate, states, count, true, true);
 
-                if (states.size() >= 1)
+                if (si_->getMotionStates(nmotion->state, dstate, states, count, true, true))
                     si_->freeState(states[0]);
 
                 for (std::size_t i = 1; i < states.size(); ++i)

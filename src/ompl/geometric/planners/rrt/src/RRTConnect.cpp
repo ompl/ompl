@@ -138,17 +138,16 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
         if (!tgi.start && !si_->isValid(dstate))
             return TRAPPED;
 
-        base::State *astate = tgi.start ? nmotion->state : dstate;
-        base::State *bstate = tgi.start ? dstate : nmotion->state;
+        const base::State *astate = tgi.start ? nmotion->state : dstate;
+        const base::State *bstate = tgi.start ? dstate : nmotion->state;
 
         if (!si_->checkMotion(astate, bstate))
             return TRAPPED;
 
         std::vector<base::State *> states;
         const unsigned int count = si_->getStateSpace()->validSegmentCount(astate, bstate);
-        si_->getMotionStates(astate, bstate, states, count, true, true);
 
-        if (states.size() >= 1)
+        if (si_->getMotionStates(astate, bstate, states, count, true, true))
             si_->freeState(states[0]);
 
         for (std::size_t i = 1; i < states.size(); ++i)
