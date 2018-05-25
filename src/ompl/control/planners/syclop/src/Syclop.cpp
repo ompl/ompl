@@ -291,7 +291,10 @@ void ompl::control::Syclop::initEdge(Adjacency &adj, const Region *source, const
 
 void ompl::control::Syclop::setupEdgeEstimates()
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
     EdgeIter ei, eend;
+#pragma GCC diagnostic pop
     for (boost::tie(ei, eend) = boost::edges(graph_); ei != eend; ++ei)
     {
         Adjacency &adj = graph_[*ei];
@@ -365,7 +368,10 @@ void ompl::control::Syclop::clearGraphDetails()
     VertexIter vi, vend;
     for (boost::tie(vi, vend) = boost::vertices(graph_); vi != vend; ++vi)
         graph_[*vi].clear();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
     EdgeIter ei, eend;
+#pragma GCC diagnostic pop
     for (boost::tie(ei, eend) = boost::edges(graph_); ei != eend; ++ei)
         graph_[*ei].clear();
     graphReady_ = false;
