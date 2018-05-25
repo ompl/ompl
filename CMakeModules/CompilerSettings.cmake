@@ -18,6 +18,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
                     -Winit-self -Wredundant-decls
                     -Wno-unused-parameter -Wno-unused-function
                     -fext-numeric-literals
+                    -Wno-noexcept-type
                     -Wno-deprecated-declarations)
     # prepend optimizion flag (in case the default setting doesn't include one)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")

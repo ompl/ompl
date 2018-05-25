@@ -238,9 +238,6 @@ int ompl::control::TriangularDecomposition::createTriangles()
     in.numberofpoints = 4;
     in.numberofsegments = 4;
 
-    using PolyIter = std::vector<Polygon>::const_iterator;
-    using VertexIter = std::vector<Vertex>::const_iterator;
-
     // Run through obstacle vertices in holes_, and tally point and segment counters
     for (auto &p : holes_)
     {

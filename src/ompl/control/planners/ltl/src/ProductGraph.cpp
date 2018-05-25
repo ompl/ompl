@@ -136,7 +136,10 @@ std::vector<ompl::control::ProductGraph::State *> ompl::control::ProductGraph::c
 {
     std::vector<GraphType::vertex_descriptor> parents(boost::num_vertices(graph_));
     std::vector<double> distances(boost::num_vertices(graph_));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
     EdgeIter ei, eend;
+#pragma GCC diagnostic pop
     // first build up the edge weights
     for (boost::tie(ei, eend) = boost::edges(graph_); ei != eend; ++ei)
     {
