@@ -1,4 +1,4 @@
-# Citations
+# Citations {#citations}
 
 If you use OMPL in your research, we kindly ask you to include the following citation in your publications:
 

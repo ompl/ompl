@@ -1,4 +1,4 @@
-# OMPL Planner Arena
+# OMPL Planner Arena {#plannerarena}
 
 The OMPL Planner Arena code allows you to easily create plots from a benchmark database produced from benchmark log files. See also <http://plannerarena.org> and the [benchmarking tutorial](benchmark.html).
 

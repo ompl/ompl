@@ -1,4 +1,4 @@
-# Integrate Your Own Code with OMPL's Build System
+# Integrate Your Own Code with OMPL's Build System {#buildSystem}
 
 When developing your own code that relies on OMPL, you have several options:
 

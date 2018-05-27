@@ -1,4 +1,4 @@
-# Integration of OMPL in Other Systems
+# Integration of OMPL in Other Systems {#integration}
 
 OMPL provides a high level of abstraction to make it easier to integrate it into larger robot software systems. By design, the core OMPL library does not include any code for representing geometry and kinematics. However, to solve motion planning problems, we _do_ need to pick a particular representation for robots and the environment. Below we have listed a number of projects that have done this in very different ways.
 

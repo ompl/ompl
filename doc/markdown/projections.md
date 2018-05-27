@@ -1,4 +1,4 @@
-# Use of Projections in OMPL
+# Use of Projections in OMPL {#projections}
 
 Most planning algorithms use a data structure (in addition to the tree/graph of motions) for guiding the exploration of the space. In many cases, this data structure is in the form of a discretization of the state space. For practical purposes, discretizing the state space itself is not feasible, due to its high dimensionality. An approach taken by many algorithms is to use projections from the state space to a low dimensional Euclidean space (R<sup>k</sup>, k usually around 2 or 3), and discretize that Euclidean space instead. This includes algorithms such as ompl::geometric::ProjEST, ompl::geometric::SBL, ompl::geometric::KPIECE1. This projection can also be thought of as a hash function that maps states to cells in a low dimensional Euclidean space.
 

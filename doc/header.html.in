@@ -5,30 +5,21 @@
   <title>$title</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="author" content="Ioan A. Șucan, Mark Moll, Lydia E. Kavraki">
-
-  <link href="css/tabs.css" rel="stylesheet">
-  <link href="css/doxygen.css" rel="stylesheet">
-  <link href="css/search.css" rel="stylesheet">
-  <link href="css/bootstrap.min.css" rel="stylesheet">
-  <link href="css/bootstrap-theme.min.css" rel="stylesheet">
-  <link href="css/ompl.css" rel="stylesheet">
-
-  <!--[if lt IE 9]>
-  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-  <![endif]-->
-  <script src="search/searchdata.js"></script>
-  <script src="search/search.js"></script>
-  <script type="text/x-mathjax-config">
-    MathJax.Hub.Config({
-      extensions: ["tex2jax.js", "TeX/AMSmath.js", "TeX/AMSsymbols.js"],
-      jax: ["input/TeX","output/HTML-CSS"],
-  });
-  </script>
-  <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
+  <meta name="generator" content="Doxygen $doxygenversion"/>
+  <link href="$relpath^tabs.css" rel="stylesheet" type="text/css"/>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-powertip/1.2.0/jquery.powertip.min.js"></script>
+  <script type="text/javascript" src="$relpath^dynsections.js"></script>
+  $search
+  $mathjax
+  <link href="$relpath^$stylesheet" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+  <link href="ompl.css" rel="stylesheet">
 </head>
 <body>
-  <nav class="navbar navbar-inverse navbar-fixed-top" id="top" role="navigation">
+  <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+    <nav class="navbar navbar-inverse navbar-fixed-top" id="top" role="navigation">
     <div class="container">
       <!-- Brand and toggle get grouped for better mobile display -->
       <div class="navbar-header">
@@ -115,40 +106,12 @@
           </li>
           <li><a href="http://ompl.kavrakilab.org/blog.html">Blog</a></li>
 
-          <!-- Doxygen API search box -->
-          <div id="searchli">
-            <div id="MSearchBox" class="MSearchBoxInactive">
-              <span class="left">
-                <img id="MSearchSelect" src="search/mag_sel.png"
-                onmouseover="return searchBox.OnSearchSelectShow()"
-                onmouseout="return searchBox.OnSearchSelectHide()"
-                alt=""/>
-                <input type="text" id="MSearchField" value="Search API" accesskey="S"
-                onfocus="searchBox.OnSearchFieldFocus(true)"
-                onblur="searchBox.OnSearchFieldFocus(false)"
-                onkeyup="searchBox.OnSearchFieldChange(event)"/>
-              </span><span class="right">
-                <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
-              </span>
-            </div>
-          </div>
+          $searchbox
 
         </ul>
       </div>
     </div>
   </nav>
-
-  <!-- window showing the filter options -->
-  <div id="MSearchSelectWindow"
-  onmouseover="return searchBox.OnSearchSelectShow()"
-  onmouseout="return searchBox.OnSearchSelectHide()"
-  onkeydown="return searchBox.OnSearchSelectKey(event)">
-  <a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Friends</a></div>
-
-  <!-- iframe showing the search results (closed by default) -->
-  <div id="MSearchResultsWindow">
-    <iframe src="" frameborder="0"name="MSearchResults" id="MSearchResults"></iframe>
-  </div>
 
   <div class="container" role="main">
     <div>

@@ -1,4 +1,4 @@
-# Optimization Objectives Tutorial
+# Optimization Objectives Tutorial {#optimizationObjectivesTutorial}
 
 In this tutorial, we'll discuss how to implement your own customized optimization objectives for optimizing planners. We'll continue using the [previous tutorial](optimalPlanningTutorial.html)'s example planning problem with the 2D robot and circular obstacle.
 
@@ -113,7 +113,7 @@ bool MaximizeMinClearance::isCostBetterThan(ob::Cost c1, ob::Cost c2) const
 
 Optimizing planners use this method to decide whether one path is better than another. It takes two cost values, `c1` and `c2`, and returns `true` if `c1` is considered a better cost than `c2` by some threshold. The objects of type `ompl::base::Cost` are simply wrappers for `double` values which can be accessed with `ompl::base::Cost::v`; so, cost `c1` is considered better than cost `c2` if `c1`'s value (path clearance) is greater than that of `c2`. We add the threshold `ompl::magic::BETTER_PATH_COST_MARGIN` to ensure numerical robustness in the optimizing planners. We recommend you use this threshold too if you override `ompl::base::OptimizationObjective::isCostBetterThan`.
 
-> Note: You might be wondering why we took the trouble of wrapping `double` values in a class to represent costs (instead of using a `typedef` for instance). The reason why is _type safety_. If `ompl::base::Cost` were simply a `typedef` of `double`, a user might accidentally use the `<` operator instead of `ompl::base::OptimizationObjective::isCostBetterThan`, which could cause some hard-to-find errors (this author knows from experience!). By using an object to represent costs, this mistake will be caught by the compiler.
+\note You might be wondering why we took the trouble of wrapping `double` values in a class to represent costs (instead of using a `typedef` for instance). The reason why is _type safety_. If `ompl::base::Cost` were simply a `typedef` of `double`, a user might accidentally use the `<` operator instead of `ompl::base::OptimizationObjective::isCostBetterThan`, which could cause some hard-to-find errors (this author knows from experience!). By using an object to represent costs, this mistake will be caught by the compiler.
 
 In a way, maximizing minimum clearance can be formulated similarly to the previous objectives. Your path is a sequence of states, and the path cost can still be represented as a special combination of the state costs along the path; while in the previous cases, this combination was addition, in the case of minimum clearance, the combination is the _min_ function. We can therefore specify this functionality for our objective by overriding the `ompl::base::OptimizationObjective::combineCosts` method:
 

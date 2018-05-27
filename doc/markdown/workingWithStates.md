@@ -1,4 +1,4 @@
-# Working with States and State Spaces
+# Working with States and State Spaces {#workingWithStates}
 
 # Allocating memory for states {#stateAlloc}
 

@@ -1,4 +1,4 @@
-# Demos
+# Demos {#demos}
 
 \defgroup demos Demos
 \ingroup demos

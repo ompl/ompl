@@ -1,4 +1,4 @@
-# Optimal Planning Tutorial
+# Optimal Planning Tutorial {#optimalPlanningTutorial}
 
 Defining an optimal motion planning problem is almost exactly the same as defining a regular motion planning problem, with two main differences:
 1. You need to specify an optimization objective to `ompl::base::ProblemDefinition`.

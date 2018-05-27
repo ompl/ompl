@@ -1,4 +1,4 @@
-# Frequently Asked Questions
+# Frequently Asked Questions {#FAQ}
 
 - Q: _Why are the Python bindings not built?_
 

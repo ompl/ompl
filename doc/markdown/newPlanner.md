@@ -1,4 +1,4 @@
-# Implementing a New Motion Planner
+# Implementing a New Motion Planner {#newPlanner}
 
 # Strict Requirements
 

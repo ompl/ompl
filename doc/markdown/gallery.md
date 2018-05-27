@@ -1,4 +1,4 @@
-# Gallery
+# Gallery {#gallery}
 
 # MoveIt!
 

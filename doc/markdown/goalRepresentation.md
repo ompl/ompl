@@ -1,4 +1,4 @@
-# Representing Goals in OMPL
+# Representing Goals in OMPL {#goalRepresentation}
 
 
 # Setting the Goal

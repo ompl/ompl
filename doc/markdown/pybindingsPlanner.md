@@ -1,4 +1,4 @@
-# Creating Python Bindings for a New Planner
+# Creating Python Bindings for a New Planner {#pybindingsPlanner}
 
 It is often convenient to test a planner through either the OMPL.app GUI or by using a minimal Python program that defines a simple motion planning problem of interest. In both cases you need to create Python bindings for your planner. At a high level, the steps are:
 

@@ -1,4 +1,4 @@
-# Available Spaces
+# Available Spaces {#spaces}
 
 ## State Spaces
 

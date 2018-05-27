@@ -1,4 +1,4 @@
-# Geometric Planning for a Rigid Body in 3D
+# Geometric Planning for a Rigid Body in 3D {#geometricPlanningSE3}
 
 This tutorial shows how to plan for a rigid body in 3D. We show how to do this in two ways: [with](#geometricSimpleSetup) and [without](#withoutGeometricSimpleSetup) the ompl::geometric::SimpleSetup class. The main difference is that in the latter case ompl::base::SpaceInformation and ompl::base::ProblemDefinition need to be explicitly instantiated. Furthermore, the planner to be used must be explicitly instantiated as well. The recommended approach is using ompl::geometric::SimpleSetup as this is less bug prone and does not limit the functionality of the code in any way.
 

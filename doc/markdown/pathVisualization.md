@@ -1,4 +1,4 @@
-# Path Visualization
+# Path Visualization {#pathVisualization}
 
 OMPL does not contain any built-in visualization tools, but it is usually not too difficult to visualize paths with external software. The basic idea is to print the path as a matrix, save it to a text file, and open this file in an external program. In OMPL there are two different kinds of paths: ompl::geometric::PathGeometric and ompl::control::PathControl. Both classes have a method called `printAsMatrix()`. For ompl::geometric::PathGeometric the matrix consists of all the states along the path, one per row. For ompl::control::PathControl each row also contains the controls and control duration needed to reach the state in this row starting from the state in the previous row (the controls and duration in the first row are all zeros). The basic usage is as follows.
 

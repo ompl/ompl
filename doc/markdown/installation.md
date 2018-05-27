@@ -1,4 +1,4 @@
-# Installation
+# Installation {#installation}
 
 \htmlonly
 <div class="panel panel-default">

@@ -1,5 +1,4 @@
-# Using OMPL with Morse
-
+# Using OMPL with Morse {#morse}
 
 Table of Contents:
 - \ref morseInstallation

@@ -1,4 +1,4 @@
-# Developers
+# Developers {#developers}
 
 OMPL is developed and maintained by the [Physical and Biological Computing Group](http://www.kavrakilab.org) at Rice University, led by [Dr. Lydia Kavraki](http://www.cs.rice.edu/~kavraki). The development is coordinated by [Dr. Mark Moll](http://mmoll.rice.edu), [Dr. Lydia Kavraki](http://www.cs.rice.edu/~kavraki) (Rice) and [Dr. Ioan Șucan](http://ioan.sucan.ro) (Waymo, formerly Rice). Many others have contributed to OMPL as well, as can be seen below.
 

@@ -1,4 +1,4 @@
-# Submit Your Contribution
+# Submit Your Contribution {#contrib}
 
 We welcome external contributions. If you would like us to list your contribution on our [page](thirdparty.html), please [contact us](contact.html). If you would like us to include your code in OMPL, please read on. We want to make the process of contributing code as easy as possible. To this end we came up with the following guidelines:
 

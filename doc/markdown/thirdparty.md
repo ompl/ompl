@@ -1,4 +1,4 @@
-# Contributions
+# Contributions {#thirdparty}
 
 This page includes a list of extensions to OMPL provided by the community. Please read the [directions on writing a contribution](contrib.html) and the suggested [style guide](styleGuide.html) if you would like to submit your own contribution.
 

@@ -1,4 +1,4 @@
-# Release Notes
+# Release Notes {#releaseNotes}
 
 # OMPL 1.4.0 (????)
 

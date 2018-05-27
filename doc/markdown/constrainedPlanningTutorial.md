@@ -1,4 +1,4 @@
-# Constrained Planning Tutorial
+# Constrained Planning Tutorial {#constrainedPlanningTutorial}
 
 Defining a constrained motion planning problem is easy and very similar to defining an unconstrained planning problem. The primary difference is the need to define a _constraint_, and the use of a _constrained state space_, which wraps around an ambient state space. In this example, we will walk through defining a simple constrained planning problem: a point in \f$\mathbb{R}^3\f$ that is constrained to be on the surface of a sphere, giving a constraint function \f$f(q) = \lVert q \rVert - 1\f$. This is very similar to the problem defined by the demo [ConstrainedPlanningSphere](ConstrainedPlanningSphere_8cpp_source.html).
 

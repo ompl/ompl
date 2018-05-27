@@ -1,4 +1,4 @@
-# Registration
+# Registration {#register}
 
 Registration for OMPL is completely voluntary. We will not spam you with emails. Work on OMPL is funded in part by the National Science Foundation (NSF). It is extremely helpful for us if we can report to the NSF where and how our work is being used. Your cooperation would be highly appreciated.
 

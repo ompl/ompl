@@ -1,4 +1,4 @@
-# OMPL Style Guide
+# OMPL Style Guide {#styleGuide}
 
 This document provides a brief overview of OMPL coding standards. It is meant to assist developers who are contributing code to OMPL.
 

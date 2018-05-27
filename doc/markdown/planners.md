@@ -1,4 +1,4 @@
-# Available Planners
+# Available Planners {#planners}
 
 All implementations listed below are considered fully functional. Within OMPL planners are divided into two categories:
 - \ref geometric_planners
