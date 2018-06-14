@@ -39,7 +39,6 @@
 
 #include <vector>
 #include <functional>
-#include <ompl/base/StateSpace.h>
 
 namespace ompl
 {

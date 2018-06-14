@@ -74,15 +74,7 @@ namespace ompl
         /// \cond IGNORE
         // internally, we use a priority queue for nearest neighbors, paired
         // with their distance to the query point
-        using DataDist = std::pair<const _T *, double>;
-        struct DataDistCompare
-        {
-            bool operator()(const DataDist &d0, const DataDist &d1)
-            {
-                return d0.second < d1.second;
-            }
-        };
-        using NearQueue = std::priority_queue<DataDist, std::vector<DataDist>, DataDistCompare>;
+        using NearQueue = std::priority_queue<std::pair<double, const _T *>>;
         /// \endcond
 
     public:
@@ -190,7 +182,7 @@ namespace ompl
                 return false;
             // find data in tree
             bool isPivot = nearestKInternal(data, 1);
-            const _T *d = nearQueue_.top().first;
+            const _T *d = nearQueue_.top().second;
             nearQueue_.pop();
             if (*d != data)
                 return false;
@@ -210,7 +202,7 @@ namespace ompl
                 nearestKInternal(data, 1);
                 if (!nearQueue_.empty())
                 {
-                    _T result = *nearQueue_.top().first;
+                    _T result = *nearQueue_.top().second;
                     nearQueue_.pop();
                     return result;
                 }
@@ -342,7 +334,7 @@ namespace ompl
             tree_->nearestK(*this, data, k, isPivot);
             while (!nodeQueue_.empty())
             {
-                dist = nearQueue_.top().second;  // note the difference with nearestRInternal
+                dist = nearQueue_.top().first;  // note the difference with nearestRInternal
                 node = nodeQueue_.top();
                 nodeQueue_.pop();
                 if (nearQueue_.size() == k &&
@@ -377,7 +369,7 @@ namespace ompl
             typename std::vector<_T>::reverse_iterator it;
             nbh.resize(nearQueue_.size());
             for (it = nbh.rbegin(); it != nbh.rend(); it++, nearQueue_.pop())
-                *it = *nearQueue_.top().first;
+                *it = *nearQueue_.top().second;
         }
 
         /// The class used internally to define the GNAT.
@@ -541,13 +533,13 @@ namespace ompl
             {
                 if (nbh.size() < k)
                 {
-                    nbh.push(std::make_pair(&data, dist));
+                    nbh.push(std::make_pair(dist, &data));
                     return true;
                 }
-                if (dist < nbh.top().second || (dist < std::numeric_limits<double>::epsilon() && data == key))
+                if (dist < nbh.top().first || (dist < std::numeric_limits<double>::epsilon() && data == key))
                 {
                     nbh.pop();
-                    nbh.push(std::make_pair(&data, dist));
+                    nbh.push(std::make_pair(dist, &data));
                     return true;
                 }
                 return false;
@@ -582,7 +574,7 @@ namespace ompl
                                 isPivot = true;
                             if (nbh.size() == k)
                             {
-                                dist = nbh.top().second;  // note difference with nearestR
+                                dist = nbh.top().first;  // note difference with nearestR
                                 for (unsigned int j = 0; j < children_.size(); ++j)
                                     if (permutation[j] >= 0 && i != j &&
                                         (child->distToPivot_ - dist > child->maxRange_[permutation[j]] ||
@@ -591,7 +583,7 @@ namespace ompl
                             }
                         }
 
-                    dist = nbh.top().second;
+                    dist = nbh.top().first;
                     for (unsigned int i = 0; i < children_.size(); ++i)
                         if (permutation[i] >= 0)
                         {
@@ -606,7 +598,7 @@ namespace ompl
             void insertNeighborR(NearQueue &nbh, double r, const _T &data, double dist) const
             {
                 if (dist <= r)
-                    nbh.push(std::make_pair(&data, dist));
+                    nbh.push(std::make_pair(dist, &data));
             }
             /// \brief Return all elements that are within distance r in nbh.
             void nearestR(const GNAT &gnat, const _T &data, double r) const
