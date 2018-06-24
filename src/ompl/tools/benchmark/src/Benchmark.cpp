@@ -333,8 +333,8 @@ bool ompl::tools::Benchmark::saveResultsToStream(std::ostream &out) const
 
         // print the property names
         out << properties.size() << " properties for each run" << std::endl;
-        for (auto &propertie : properties)
-            out << propertie << std::endl;
+        for (auto &property : properties)
+            out << property << std::endl;
 
         // print the data for each run
         out << planner.runs.size() << " runs" << std::endl;
