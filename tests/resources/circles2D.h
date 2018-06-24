@@ -39,6 +39,10 @@
 
 #include <fstream>
 #include <vector>
+#include <limits>
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <functional>
 
 struct Circles2D
 {
@@ -142,6 +146,144 @@ struct Circles2D
                 return false;
         }
         return true;
+    }
+
+        /**
+     * Gets the circle that the point is in collision with, if any.
+     * If returns false, then the circle index (of the first circle)
+     * is stored in cir.
+     * Used for object bookeeping in signed distance field
+     * calculations.
+     */
+    bool noOverlap(double x, double y, int &cir) const
+    {
+        for (std::size_t i = 0 ; i < circles_.size() ; ++i)
+        {
+            double dx = circles_[i].x_ - x;
+            double dy = circles_[i].y_ - y;
+            if (dx * dx + dy * dy < circles_[i].r2_)
+            {
+                cir = (int)i;
+                return false;
+            }
+        }
+        return true;
+    }
+
+    double signedDistance(double x, double y) const
+    {
+        double minDist = std::numeric_limits<double>::infinity();
+        for (std::size_t i = 0; i < circles_.size(); ++i)
+        {
+            double dx = circles_[i].x_ - x;
+            double dy = circles_[i].y_ - y;
+            double distToI = sqrt(dx * dx + dy * dy) - circles_[i].r_;
+            if (distToI  < minDist)
+            {
+                minDist = distToI;
+            }
+        }
+        return minDist;
+    }
+
+    Eigen::Vector2d lineClosestPoint(double x1, double y1, double x2, double y2, std::size_t i) const
+    {
+        Eigen::Vector2d b(circles_[i].x_ - x1, circles_[i].y_ - y1);
+        double deltaY = y2 - y1;
+        double deltaX = x2 - x1;
+        Eigen::Matrix2d A;
+        A << deltaY, deltaX, -deltaX, deltaY;
+        // Solves the system of eqn.
+        Eigen::Vector2d z = A.colPivHouseholderQr().solve(b);
+        if (z[1] <= 0) {
+            // outside the line, choose the first end point.
+            Eigen::Vector2d out(x1, y1);
+            return out;
+        } else if (z[1] >= 1) {
+            Eigen::Vector2d out(x2, y2);
+            return out;
+        } else {
+            // Inside the line, return the closest point.
+            Eigen::Vector2d out(x1 + z[1]*deltaX, y1 + z[1]*deltaY);
+            return out;
+        }
+    }
+
+    bool lineNoOverlap(double x1, double y1, double x2, double y2) const
+    {
+        for (std::size_t i = 0; i < circles_.size(); i++) {
+            Eigen::Vector2d ipoint = lineClosestPoint(x1, y1, x2, y2, i);
+            double dx = circles_[i].x_ - ipoint[0];
+            double dy = circles_[i].y_ - ipoint[1];
+            if (dx * dx + dy * dy < circles_[i].r2_)
+            {
+                return false;
+            }
+        }
+        return true;
+
+    }
+
+    double lineSignedDistance(double x1, double y1, double x2, double y2, Eigen::Vector2d& point) const
+    {
+        double minDist = std::numeric_limits<double>::infinity();
+        for (std::size_t i = 0; i < circles_.size(); i++) {
+            Eigen::Vector2d ipoint = lineClosestPoint(x1, y1, x2, y2, i);
+            double dx = circles_[i].x_ - ipoint[0];
+            double dy = circles_[i].y_ - ipoint[1];
+            double distToI = sqrt(dx * dx + dy * dy) - circles_[i].r_;
+            if (distToI < minDist)
+            {
+                minDist = distToI;
+                point = ipoint;
+            }
+        }
+        return minDist;
+    }
+
+    Eigen::Vector3d minimalTranslationNormal(double x, double y) const
+    {
+        double minDist = std::numeric_limits<double>::infinity();
+        std::size_t bestI = 0;
+        for (std::size_t i = 0; i < circles_.size(); ++i)
+        {
+            double dx = circles_[i].x_ - x;
+            double dy = circles_[i].y_ - y;
+            double distToI = sqrt(dx * dx + dy * dy) - circles_[i].r_;
+            if (distToI  < minDist)
+            {
+                minDist = distToI;
+                bestI = i;
+            }
+        }
+        Eigen::Vector3d out(x - circles_[bestI].x_, y - circles_[bestI].y_, 0);
+        return out.normalized();
+    }
+
+    double obstacleDistanceGradient(double x, double y, Eigen::MatrixXd& grad) const
+    {
+        static double resolution = 0.02;
+        double inv_twice_resolution = 1.0 / (2.0 * resolution);
+        grad(0, 0) =  (signedDistance(x + resolution, y) - signedDistance(x - resolution, y)) * inv_twice_resolution;
+        grad(0, 1) = (signedDistance(x, y + resolution) - signedDistance(x, y - resolution)) * inv_twice_resolution;
+        return signedDistance(x, y);
+    }
+
+    double getMaxDistance(double resolution) const
+    {
+        double max = -1 * std::numeric_limits<double>::infinity();
+        for (double x = minX_; x < maxX_; x += resolution)
+        {
+            for (double y = minY_; y < maxY_; y+= resolution)
+            {
+                double dist = signedDistance(x, y);
+                if (dist > max)
+                {
+                    max = dist;
+                }
+            }
+        }
+        return max;
     }
 
     std::vector<Circle> circles_;

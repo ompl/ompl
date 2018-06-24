@@ -42,6 +42,7 @@ ompl::base::MaximizeMinClearanceObjective::MaximizeMinClearanceObjective(const S
   : MinimaxObjective(si)
 {
     this->setCostThreshold(Cost(std::numeric_limits<double>::infinity()));
+    description_ = "Maximizing Minimum Clearance";
 }
 
 ompl::base::Cost ompl::base::MaximizeMinClearanceObjective::stateCost(const State *s) const

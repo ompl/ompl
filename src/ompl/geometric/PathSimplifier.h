@@ -40,6 +40,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/PlannerTerminationCondition.h"
+#include "ompl/base/OptimizationObjective.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/RandomNumbers.h"
@@ -66,7 +67,7 @@ namespace ompl
         public:
             /** \brief Create an instance for a specified space information. Optionally, a GoalSampleableRegion may be
             passed in to attempt improvements at the end of the path as well. */
-            PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr &goal = ompl::base::GoalPtr());
+            PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr &goal = ompl::base::GoalPtr(), base::OptimizationObjectivePtr obj=nullptr);
 
             virtual ~PathSimplifier() = default;
 
@@ -117,10 +118,46 @@ namespace ompl
                 distance is less than \e snapToVertex fraction of the total path length. This should usually be a small
                 value (e.g., one percent of the total path length: 0.01; the default is half a percent)
 
-                \note This function assumes the triangle inequality holds and should not be run on non-metric spaces.
+                \note This function assumes that improvements are only made within the convex hull of the path. If the
+                triangle inequality does not holds for the optimization objective, this will not perform well without
+                being run with conjunction with perturbPath.
             */
             bool shortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0,
                               double rangeRatio = 0.33, double snapToVertex = 0.005);
+
+            /** \brief Given a path, attempt to improve the cost by randomly perturbing a randomly selected point on
+                the path. This is an iterative process that should ideally be run in conjunction with shortcutPath.
+                This function is not called by any of the 'simplify*' funcions because it is only effective when used
+                with a non-metric cost. The default cost used is path length, on which perturbPath is not as performant.
+                This function returns true if changes were make to the path.
+
+                \param path the path to reduce vertices from
+
+                \param stepSize the size of the pertubations, i.e. the distance from a randomly selected configuration
+                and its position after perbutation. Also used to determine how far the points on either side of the
+                selected configuration are (stepSize / 2).
+
+                \param maxSteps the maximum number of attemps to perturb the path. If this value is set to 0 (the default),
+                the number of attempts made is equal to the sumber of of states in the \e path (not suggested).
+
+                \param maxEmptySteps not all iterations of this function produce an improvement. If an iteration does
+                not produce an improvement, it is called an empty step. \e maxEmptySteps denotes the maximum
+                number of consecutive empty steps before the simplification process terminates.
+
+                \param snapToVertex While sampling random points on the path, sometimes the points may be close to
+                vertices on the original path (way-points). This function will then "snap to the near vertex", if the
+                distance is less than \e snapToVertex fraction of the total path length. This should usually be a small
+                value (e.g., one percent of the total path length: 0.01; the default is half a percent)
+
+                @par External Documentation
+
+                J. Mainprice, E. Sisbot, L. Jaillet, J. Cortes, R. Alami, T. Simeon
+                Planning human-aware motions using a sampling-based costmap planner,
+                <em>Robotics and Automation (ICRA)</em>, August 2011.
+                DOI: [10.1109/ICRA.2011.5980048](http://dx.doi.org/10.1109/ICRA.2011.5980048)<br>
+                [[PDF]](http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5980048)
+            */
+            bool perturbPath(PathGeometric &path, double stepSize, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double snapToVertex = 0.005);
 
             /** \brief Given a path, attempt to remove vertices from it while keeping the path valid. This is an
                 iterative process that attempts to do "short-cutting" on the path. Connection is attempted between
@@ -131,8 +168,7 @@ namespace ompl
                 \param path the path to reduce vertices from
 
                 \param maxSteps the maximum number of attempts to "short-cut" the path. If this value is set to 0 (the
-                default), the number of attempts made is equal to the number of states in \e path. If this value is set
-                to 0 (the default), the number of attempts made is equal to the number of states in \e path.
+                default), the number of attempts made is equal to the number of states in \e path.
 
                 \param maxEmptySteps not all iterations of this function produce a simplification. If an iteration does
                 not produce a simplification, it is called an empty step. \e maxEmptySteps denotes the maximum number of
@@ -210,11 +246,19 @@ namespace ompl
             bool freeStates() const;
 
         protected:
+
+            int selectAlongPath(std::vector<double> dists, std::vector<base::State *> states,
+                    double distTo, double threshold, base::State *select_state, int &pos);
+
             /** \brief The space information this path simplifier uses */
             base::SpaceInformationPtr si_;
 
             /** \brief The goal object for the path simplifier.  Used for end-of-path improvements */
             std::shared_ptr<base::GoalSampleableRegion> gsr_;
+
+            /** \brief The optimization objective to use when making improvements. Will be used on all methods except
+                reduce vertices (whose goal is not necessary to improve the solution). */
+            base::OptimizationObjectivePtr obj_;
 
             /** \brief Flag indicating whether the states removed from a motion should be freed */
             bool freeStates_;
