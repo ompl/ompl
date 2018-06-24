@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -38,6 +38,7 @@
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <utility>
+#include <Eigen/Core>
 
 namespace ompl
 {
@@ -45,11 +46,14 @@ namespace ompl
     {
         /** \brief The fraction of the path length to consider as gap cost when aligning paths to be hybridized. */
         static const double GAP_COST_FRACTION = 0.05;
-    }
-}
+    }  // namespace magic
+}  // namespace ompl
 
 ompl::geometric::PathHybridization::PathHybridization(base::SpaceInformationPtr si)
-  : si_(std::move(si)), obj_(new base::PathLengthOptimizationObjective(si_)), stateProperty_(boost::get(vertex_state_t(), g_)), name_("PathHybridization")
+  : si_(std::move(si))
+  , obj_(new base::PathLengthOptimizationObjective(si_))
+  , stateProperty_(boost::get(vertex_state_t(), g_))
+  , name_("PathHybridization")
 {
     root_ = boost::add_vertex(g_);
     stateProperty_[root_] = nullptr;
@@ -58,7 +62,10 @@ ompl::geometric::PathHybridization::PathHybridization(base::SpaceInformationPtr 
 }
 
 ompl::geometric::PathHybridization::PathHybridization(base::SpaceInformationPtr si, base::OptimizationObjectivePtr obj)
-  : si_(std::move(si)), obj_(std::move(obj)), stateProperty_(boost::get(vertex_state_t(), g_)), name_("PathHybridization")
+  : si_(std::move(si))
+  , obj_(std::move(obj))
+  , stateProperty_(boost::get(vertex_state_t(), g_))
+  , name_("PathHybridization")
 {
     std::stringstream ss;
     ss << "PathHybridization over " << obj_->getDescription() << " cost";
@@ -101,13 +108,13 @@ const std::string &ompl::geometric::PathHybridization::getName() const
 void ompl::geometric::PathHybridization::computeHybridPath()
 {
     boost::vector_property_map<Vertex> prev(boost::num_vertices(g_));
-    boost::dijkstra_shortest_paths(g_, root_, 
-            boost::predecessor_map(prev)
-                .distance_compare(
-                    [this](base::Cost c1, base::Cost c2) { return obj_->isCostBetterThan(c1, c2); })
-                .distance_combine([this](base::Cost c1, base::Cost c2) {return obj_->combineCosts(c1, c2); })
-                .distance_inf(obj_->infiniteCost())
-                .distance_zero(obj_->identityCost()));
+    boost::dijkstra_shortest_paths(
+        g_, root_,
+        boost::predecessor_map(prev)
+            .distance_compare([this](base::Cost c1, base::Cost c2) { return obj_->isCostBetterThan(c1, c2); })
+            .distance_combine([this](base::Cost c1, base::Cost c2) { return obj_->combineCosts(c1, c2); })
+            .distance_inf(obj_->infiniteCost())
+            .distance_zero(obj_->identityCost()));
     if (prev[goal_] != goal_)
     {
         auto h(std::make_shared<PathGeometric>(si_));
@@ -186,7 +193,8 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
     {
         const auto *q = static_cast<const PathGeometric *>(path.path_.get());
         std::vector<int> indexP, indexQ;
-        matchPaths(*p, *q, obj_->combineCosts(pi.cost_, path.cost_).value() / (2.0 / magic::GAP_COST_FRACTION), indexP, indexQ);
+        matchPaths(*p, *q, obj_->combineCosts(pi.cost_, path.cost_).value() / (2.0 / magic::GAP_COST_FRACTION), indexP,
+                   indexQ);
 
         if (matchAcrossGaps)
         {
@@ -282,44 +290,36 @@ std::size_t ompl::geometric::PathHybridization::pathCount() const
 void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, const PathGeometric &q, double gapValue,
                                                     std::vector<int> &indexP, std::vector<int> &indexQ) const
 {
-    std::vector<std::vector<base::Cost>> C(p.getStateCount());
-    std::vector<std::vector<char>> T(p.getStateCount());
+    using CostMatrix = Eigen::Matrix<base::Cost, Eigen::Dynamic, Eigen::Dynamic>;
+    using TMatrix = Eigen::Matrix<char, Eigen::Dynamic, Eigen::Dynamic>;
+    CostMatrix C = CostMatrix::Constant(p.getStateCount(), q.getStateCount(), obj_->identityCost());
+    TMatrix T = TMatrix::Constant(p.getStateCount(), q.getStateCount(), '\0');
 
     base::Cost gapCost(gapValue);
     for (std::size_t i = 0; i < p.getStateCount(); ++i)
     {
-        C[i].resize(q.getStateCount(), obj_->identityCost());
-        T[i].resize(q.getStateCount(), '\0');
         for (std::size_t j = 0; j < q.getStateCount(); ++j)
         {
             // as far as I can tell, there is a bug in the algorithm as presented in the paper
             // so I am doing things slightly differently ...
-            base::Cost match = obj_->combineCosts(
-                obj_->motionCost(p.getState(i), q.getState(j)),
-                ((i > 0 && j > 0) ? C[i - 1][j - 1] : obj_->identityCost())
-            );
-            base::Cost up = obj_->combineCosts(
-                gapCost,
-                (i > 0 ? C[i - 1][j] : obj_->identityCost())
-            );
-            base::Cost left = obj_->combineCosts(
-                gapCost,
-                (j > 0 ? C[i][j - 1] : obj_->identityCost())
-            );
-            if (not (obj_->isCostBetterThan(up, match) || obj_->isCostBetterThan(left, match)))
+            base::Cost match = obj_->combineCosts(obj_->motionCost(p.getState(i), q.getState(j)),
+                                                  ((i > 0 && j > 0) ? C(i - 1, j - 1) : obj_->identityCost()));
+            base::Cost up = obj_->combineCosts(gapCost, (i > 0 ? C(i - 1, j) : obj_->identityCost()));
+            base::Cost left = obj_->combineCosts(gapCost, (j > 0 ? C(i, j - 1) : obj_->identityCost()));
+            if (not(obj_->isCostBetterThan(up, match) || obj_->isCostBetterThan(left, match)))
             {
-                C[i][j] = match;
-                T[i][j] = 'm';
+                C(i, j) = match;
+                T(i, j) = 'm';
             }
-            else if (not (obj_->isCostBetterThan(match, up) || obj_->isCostBetterThan(left,  up)))
+            else if (not(obj_->isCostBetterThan(match, up) || obj_->isCostBetterThan(left, up)))
             {
-                C[i][j] = up;
-                T[i][j] = 'u';
+                C(i, j) = up;
+                T(i, j) = 'u';
             }
             else
             {
-                C[i][j] = left;
-                T[i][j] = 'l';
+                C(i, j) = left;
+                T(i, j) = 'l';
             }
         }
     }
@@ -334,14 +334,14 @@ void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, cons
 
     while (n >= 0 && m >= 0)
     {
-        if (T[m][n] == 'm')
+        if (T(m, n) == 'm')
         {
             indexP.push_back(m);
             indexQ.push_back(n);
             --m;
             --n;
         }
-        else if (T[m][n] == 'u')
+        else if (T(m, n) == 'u')
         {
             indexP.push_back(m);
             indexQ.push_back(-1);

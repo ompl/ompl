@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Rice University, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Rice University, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan, Ryan Luna */
 
@@ -45,7 +45,8 @@
 #include <map>
 #include <utility>
 
-ompl::geometric::PathSimplifier::PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr &goal, base::OptimizationObjectivePtr obj)
+ompl::geometric::PathSimplifier::PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr &goal,
+                                                base::OptimizationObjectivePtr obj)
   : si_(std::move(si)), freeStates_(true)
 {
     if (goal)
@@ -224,12 +225,13 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
         base::State *s0 = nullptr;
         int index0 = -1;
         double t0 = 0.0;
-        double distTo0 = rng_.uniformReal(0.0, dists.back());              // sample a random point (p0) along the path
-        auto pit = std::lower_bound(dists.begin(), dists.end(), distTo0);  // find the NEXT waypoint after the random point
+        double distTo0 = rng_.uniformReal(0.0, dists.back());  // sample a random point (p0) along the path
+        auto pit =
+            std::lower_bound(dists.begin(), dists.end(), distTo0);  // find the NEXT waypoint after the random point
         int pos0 = pit == dists.end() ? dists.size() - 1 :
                                         pit - dists.begin();  // get the index of the NEXT waypoint after the point
 
-        if (pos0 == 0 || dists[pos0] - distTo0 < threshold) // snap to the NEXT waypoint
+        if (pos0 == 0 || dists[pos0] - distTo0 < threshold)  // snap to the NEXT waypoint
             index0 = pos0;
         else
         {
@@ -243,9 +245,10 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
         base::State *s1 = nullptr;
         int index1 = -1;
         double t1 = 0.0;
-        double distTo1 = rng_.uniformReal(std::max(0.0, distTo0 - rd),
-                                     std::min(distTo0 + rd, dists.back()));  // sample a random point (distTo1) near s0
-        pit = std::lower_bound(dists.begin(), dists.end(), distTo1);         // find the NEXT waypoint after the random point
+        double distTo1 =
+            rng_.uniformReal(std::max(0.0, distTo0 - rd),
+                             std::min(distTo0 + rd, dists.back()));   // sample a random point (distTo1) near s0
+        pit = std::lower_bound(dists.begin(), dists.end(), distTo1);  // find the NEXT waypoint after the random point
         int pos1 = pit == dists.end() ? dists.size() - 1 :
                                         pit - dists.begin();  // get the index of the NEXT waypoint after the point
 
@@ -312,7 +315,8 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
             alongPath = obj_->combineCosts(alongPath, s1PartialCost);
             if (obj_->isCostBetterThan(alongPath, obj_->motionCost(s0, s1)))
             {
-                // The cost along the path from state 0 to 1 is better than the straight line motion cost between the two.
+                // The cost along the path from state 0 to 1 is better than the straight line motion cost between the
+                // two.
                 continue;
             }
             // Otherwise, shortcut cost is better!
@@ -379,7 +383,8 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
     return result;
 }
 
-bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double stepSize, unsigned int maxSteps, unsigned int maxEmptySteps, double snapToVertex)
+bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double stepSize, unsigned int maxSteps,
+                                                  unsigned int maxEmptySteps, double snapToVertex)
 {
     if (maxSteps == 0)
         maxSteps = path.getStateCount();
@@ -396,14 +401,14 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
 
     std::vector<std::tuple<double, base::Cost, unsigned int>> distCostIndices;
     for (unsigned int i = 0; i < states.size() - 1; i++)
-        distCostIndices.push_back(std::make_tuple(si->distance(states[i], states[i + 1]), obj_->motionCost(states[i], states[i + 1]), i));
+        distCostIndices.push_back(
+            std::make_tuple(si->distance(states[i], states[i + 1]), obj_->motionCost(states[i], states[i + 1]), i));
 
     // Sort so highest costs are first
     std::sort(distCostIndices.begin(), distCostIndices.end(),
-            [this](std::tuple<double, base::Cost, unsigned int> a, std::tuple<double, base::Cost, unsigned int> b) {
-                return obj_->isCostBetterThan(std::get<1>(b), std::get<1>(a));
-            }
-    );
+              [this](std::tuple<double, base::Cost, unsigned int> a, std::tuple<double, base::Cost, unsigned int> b) {
+                  return obj_->isCostBetterThan(std::get<1>(b), std::get<1>(a));
+              });
 
     double threshold = dists.back() * snapToVertex;
 
@@ -445,8 +450,8 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
         selectAlongPath(dists, states, distTo, threshold, perturb_state, pos);
 
         // Get before state and after state, that are around stepsize/2 on either side of perturb state.
-        int index_before = selectAlongPath(dists, states, distTo - stepSize/2.0, threshold, before_state, pos_before);
-        int index_after = selectAlongPath(dists, states, distTo + stepSize/2.0, threshold, after_state, pos_after);
+        int index_before = selectAlongPath(dists, states, distTo - stepSize / 2.0, threshold, before_state, pos_before);
+        int index_after = selectAlongPath(dists, states, distTo + stepSize / 2.0, threshold, after_state, pos_after);
 
         if (index_before >= 0 && index_after >= 0 && index_before == index_after)
         {
@@ -463,25 +468,28 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
         {
             // Now check for improved cost. Get the original cost along the path.
             base::Cost alongPath;
-            if (pos_before == pos_after) 
+            if (pos_before == pos_after)
             {
                 alongPath = obj_->motionCost(before_state, after_state);
             }
             else
             {
                 // The partial cost from before_state to the first waypoint.
-                alongPath = (index_before >= 0) ? obj_->identityCost() : obj_->motionCost(before_state, states[pos_before + 1]);
-                int posTemp = (index_before >= 0) ? index_before: pos_before + 1;
+                alongPath =
+                    (index_before >= 0) ? obj_->identityCost() : obj_->motionCost(before_state, states[pos_before + 1]);
+                int posTemp = (index_before >= 0) ? index_before : pos_before + 1;
                 while (posTemp < pos_after)
                 {
                     alongPath = obj_->combineCosts(alongPath, obj_->motionCost(states[posTemp], states[posTemp + 1]));
                     posTemp++;
                 }
-                base::Cost afterPartialCost = (index_after >= 0) ? obj_->identityCost() : obj_->motionCost(states[pos_after], after_state);
+                base::Cost afterPartialCost =
+                    (index_after >= 0) ? obj_->identityCost() : obj_->motionCost(states[pos_after], after_state);
                 alongPath = obj_->combineCosts(alongPath, afterPartialCost);
             }
 
-            base::Cost newCost = obj_->combineCosts(obj_->motionCost(before_state, new_state), obj_->motionCost(new_state, after_state));
+            base::Cost newCost =
+                obj_->combineCosts(obj_->motionCost(before_state, new_state), obj_->motionCost(new_state, after_state));
             if (obj_->isCostBetterThan(alongPath, newCost) || obj_->isCostEquivalentTo(alongPath, newCost))
             {
                 // Cost along the current path is better than the perturbed path.
@@ -573,18 +581,18 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
             }
             distCostIndices.clear();
             for (unsigned int i = 0; i < states.size() - 1; i++)
-                distCostIndices.push_back(std::make_tuple(si->distance(states[i], states[i + 1]), obj_->motionCost(states[i], states[i + 1]), i));
+                distCostIndices.push_back(std::make_tuple(si->distance(states[i], states[i + 1]),
+                                                          obj_->motionCost(states[i], states[i + 1]), i));
 
             // Sort so highest costs are first
-            std::sort(distCostIndices.begin(), distCostIndices.end(), 
-                    [this](std::tuple<double, base::Cost, unsigned int> a, std::tuple<double, base::Cost, unsigned int> b) {
-                        return obj_->isCostBetterThan(std::get<1>(b), std::get<1>(a));
-                    }
-            );
+            std::sort(
+                distCostIndices.begin(), distCostIndices.end(),
+                [this](std::tuple<double, base::Cost, unsigned int> a, std::tuple<double, base::Cost, unsigned int> b) {
+                    return obj_->isCostBetterThan(std::get<1>(b), std::get<1>(a));
+                });
             threshold = dists.back() * snapToVertex;
             result = true;
             nochange = 0;
-
         }
     }
     si->freeState(perturb_state);
@@ -704,9 +712,9 @@ bool ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
                     OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
                 }
                 else if (!p.first)
-                    OMPL_DEBUG(
-                        "The solution path was slightly touching on an invalid region of the state space, but it was "
-                        "successfully fixed.");
+                    OMPL_DEBUG("The solution path was slightly touching on an invalid region of the state space, but "
+                               "it was "
+                               "successfully fixed.");
             }
         }
 
@@ -733,9 +741,9 @@ bool ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
                 OMPL_WARN("Solution path may slightly touch on an invalid region of the state space");
             }
             else if (!p.first)
-                OMPL_DEBUG(
-                    "The solution path was slightly touching on an invalid region of the state space, but it was "
-                    "successfully fixed.");
+                OMPL_DEBUG("The solution path was slightly touching on an invalid region of the state space, but it "
+                           "was "
+                           "successfully fixed.");
         }
 
         atLeastOnce = false;
@@ -837,8 +845,7 @@ bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, const 
             base::Cost candidateCost = obj_->combineCosts(costToCome, costToGo);
 
             // Make sure we improve before attempting validation
-            if (obj_->isCostBetterThan(candidateCost, costs.back()) &&
-                si_->checkMotion(state, tempGoal))
+            if (obj_->isCostBetterThan(candidateCost, costs.back()) && si_->checkMotion(state, tempGoal))
             {
                 // insert the new states
                 if (startIndex == endIndex)
@@ -896,8 +903,9 @@ bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, const 
     return betterGoal;
 }
 
-int ompl::geometric::PathSimplifier::selectAlongPath(std::vector<double> dists, std::vector<base::State *> states, 
-        double distTo, double threshold, base::State *select_state, int &pos)
+int ompl::geometric::PathSimplifier::selectAlongPath(std::vector<double> dists, std::vector<base::State *> states,
+                                                     double distTo, double threshold, base::State *select_state,
+                                                     int &pos)
 {
     if (distTo < 0)
         distTo = 0;
