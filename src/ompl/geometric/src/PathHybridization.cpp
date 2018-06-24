@@ -118,7 +118,7 @@ void ompl::geometric::PathHybridization::computeHybridPath()
     }
     else
     {
-        OMPL_WARN("No path to goal was found, returning 0");
+        OMPL_WARN("No path to goal was found");
     }
 }
 
@@ -295,25 +295,23 @@ void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, cons
             // as far as I can tell, there is a bug in the algorithm as presented in the paper
             // so I am doing things slightly differently ...
             base::Cost match = obj_->combineCosts(
-                obj_->motionCost(p.getState(i), q.getState(j)), 
+                obj_->motionCost(p.getState(i), q.getState(j)),
                 ((i > 0 && j > 0) ? C[i - 1][j - 1] : obj_->identityCost())
             );
             base::Cost up = obj_->combineCosts(
-                gapCost, 
+                gapCost,
                 (i > 0 ? C[i - 1][j] : obj_->identityCost())
             );
             base::Cost left = obj_->combineCosts(
-                gapCost, 
+                gapCost,
                 (j > 0 ? C[i][j - 1] : obj_->identityCost())
             );
-            //if (not (obj_->isCostBetterThan(up, match) || obj_->isCostBetterThan(left, match)))
-            if (match.value() <= up.value() && match.value() <= left.value())
+            if (not (obj_->isCostBetterThan(up, match) || obj_->isCostBetterThan(left, match)))
             {
                 C[i][j] = match;
                 T[i][j] = 'm';
             }
-            //else if (not (obj_->isCostBetterThan(match, up) || obj_->isCostBetterThan(left,  up)))
-            else if (up.value() <= match.value() && up.value() <= left.value())
+            else if (not (obj_->isCostBetterThan(match, up) || obj_->isCostBetterThan(left,  up)))
             {
                 C[i][j] = up;
                 T[i][j] = 'u';

@@ -126,7 +126,10 @@ namespace ompl
                               double rangeRatio = 0.33, double snapToVertex = 0.005);
 
             /** \brief Given a path, attempt to improve the cost by randomly perturbing a randomly selected point on
-                the path. This is an iterative process that should ideally be run in conjunction with shortcutPath. This function returns true if changes were make to the path.
+                the path. This is an iterative process that should ideally be run in conjunction with shortcutPath.
+                This function is not called by any of the 'simplify*' funcions because it is only effective when used
+                with a non-metric cost. The default cost used is path length, on which perturbPath is not as performant.
+                This function returns true if changes were make to the path.
 
                 \param path the path to reduce vertices from
 
@@ -134,10 +137,11 @@ namespace ompl
                 and its position after perbutation. Also used to determine how far the points on either side of the
                 selected configuration are (stepSize / 2).
 
-                \param maxSteps the maximum number of attemps to perturb the path. If this value is set to 0 (the default), the number of attempts made is equal to the sumber of of states in the \e path (not suggested).
+                \param maxSteps the maximum number of attemps to perturb the path. If this value is set to 0 (the default),
+                the number of attempts made is equal to the sumber of of states in the \e path (not suggested).
 
                 \param maxEmptySteps not all iterations of this function produce an improvement. If an iteration does
-                not produce an improvement, it is called an empty step. \e maxEmptySteps denotes the maximum 
+                not produce an improvement, it is called an empty step. \e maxEmptySteps denotes the maximum
                 number of consecutive empty steps before the simplification process terminates.
 
                 \param snapToVertex While sampling random points on the path, sometimes the points may be close to
@@ -164,7 +168,7 @@ namespace ompl
                 \param path the path to reduce vertices from
 
                 \param maxSteps the maximum number of attempts to "short-cut" the path. If this value is set to 0 (the
-                default), the number of attempts made is equal to the number of states in \e path. 
+                default), the number of attempts made is equal to the number of states in \e path.
 
                 \param maxEmptySteps not all iterations of this function produce a simplification. If an iteration does
                 not produce a simplification, it is called an empty step. \e maxEmptySteps denotes the maximum number of

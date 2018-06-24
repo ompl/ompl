@@ -383,10 +383,10 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
 {
     if (maxSteps == 0)
         maxSteps = path.getStateCount();
-    
+
     if (maxEmptySteps == 0)
         maxEmptySteps = path.getStateCount();
-    
+
     const base::SpaceInformationPtr &si = path.getSpaceInformation();
     std::vector<base::State *> &states = path.getStates();
 
@@ -394,17 +394,17 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
     for (unsigned int i = 1; i < dists.size(); i++)
         dists[i] = dists[i - 1] + si->distance(states[i - 1], states[i]);
 
-    std::vector<std::tuple<double, base::Cost, unsigned int>> distCostIndices; 
+    std::vector<std::tuple<double, base::Cost, unsigned int>> distCostIndices;
     for (unsigned int i = 0; i < states.size() - 1; i++)
         distCostIndices.push_back(std::make_tuple(si->distance(states[i], states[i + 1]), obj_->motionCost(states[i], states[i + 1]), i));
 
     // Sort so highest costs are first
-    std::sort(distCostIndices.begin(), distCostIndices.end(), 
+    std::sort(distCostIndices.begin(), distCostIndices.end(),
             [this](std::tuple<double, base::Cost, unsigned int> a, std::tuple<double, base::Cost, unsigned int> b) {
                 return obj_->isCostBetterThan(std::get<1>(b), std::get<1>(a));
             }
     );
-    
+
     double threshold = dists.back() * snapToVertex;
 
     bool result = false;
@@ -422,8 +422,6 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
     for (unsigned int i = 0; i < maxSteps && nochange < maxEmptySteps; i++, nochange++)
     {
         // select a configuration on the path, biased towards high cost segments.
-        base::State *perturb_state = si->allocState();
-
         // Get a random real from 0 to the path length, biased towards 0.
         double costBias = -1 * rng_.halfNormalReal(-dists.back(), 0.0, 20.0);
         unsigned int z = 0;
@@ -566,7 +564,7 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
                     states.insert(states.begin() + index_before + 1, si->cloneState(new_state));
                 }
             }
-            
+
             // fix the helper variables
             dists.resize(states.size(), 0.0);
             for (unsigned int j = pos_before + 1; j < dists.size(); ++j)
