@@ -306,12 +306,12 @@ void ompl::geometric::PathHybridization::matchPaths(const PathGeometric &p, cons
                                                   ((i > 0 && j > 0) ? C(i - 1, j - 1) : obj_->identityCost()));
             base::Cost up = obj_->combineCosts(gapCost, (i > 0 ? C(i - 1, j) : obj_->identityCost()));
             base::Cost left = obj_->combineCosts(gapCost, (j > 0 ? C(i, j - 1) : obj_->identityCost()));
-            if (not(obj_->isCostBetterThan(up, match) || obj_->isCostBetterThan(left, match)))
+            if (!(obj_->isCostBetterThan(up, match) || obj_->isCostBetterThan(left, match)))
             {
                 C(i, j) = match;
                 T(i, j) = 'm';
             }
-            else if (not(obj_->isCostBetterThan(match, up) || obj_->isCostBetterThan(left, up)))
+            else if (!(obj_->isCostBetterThan(match, up) || obj_->isCostBetterThan(left, up)))
             {
                 C(i, j) = up;
                 T(i, j) = 'u';
