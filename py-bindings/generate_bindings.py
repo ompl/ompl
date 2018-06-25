@@ -624,6 +624,11 @@ class ompl_geometric_generator_t(code_generator_t):
         # exclude deprecated API function
         self.ompl_ns.free_function('getDefaultPlanner').exclude()
 
+        # Using nullptr as a default value in method arguments causes
+        # problems with Boost.Python.
+        # See https://github.com/boostorg/python/issues/60
+        self.ompl_ns.class_('PathSimplifier').add_declaration_code('#define nullptr NULL\n')
+
         # Py++ seems to get confused by some methods declared in one module
         # that are *not* overridden in a derived class in another module. The
         # Planner class is defined in ompl::base and two of its virtual methods,

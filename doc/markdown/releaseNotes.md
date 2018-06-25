@@ -1,6 +1,6 @@
 # Release Notes {#releaseNotes}
 
-# OMPL 1.4.0 (????)
+# OMPL 1.4.0 (June 25, 2018)
 
 - There is a new framework for planning with constraints that unifies and generalizes prior proposed algorithms such as CBiRRT2, AtlasRRT and TangentBundle-RRT. The framework decouples the methodology used for computing configurations that satisfy constraints from the high-level planning strategy. This allows the user to use any sampling-based planning algorithm in OMPL with arbitrary geometric constraints. See the [overview](constrainedPlanning.html), [tutorial](constrainedPlanningTutorial.html) and various [demos](group__demos.html) in `ompl/demos/constraint`.
 - Eigen3 is now a required dependency.
