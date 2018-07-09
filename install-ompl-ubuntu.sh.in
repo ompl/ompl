@@ -22,7 +22,7 @@ install_common_dependencies()
         sudo apt-get -y install software-properties-common
         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
         sudo apt-get -y update
-        sudo apt-get -y install g++-5 cmake pkg-config libboost1.55-serialization-dev libboost1.55-filesystem-dev libboost1.55-system-dev libboost1.55-program-options-dev libboost1.55-test-dev libeigen3-dev libode-dev
+        sudo apt-get -y install g++-5 cmake pkg-config libboost-serialization1.55-dev libboost-filesystem1.55-dev libboost-system1.55-dev libboost-program-options1.55-dev libboost-test1.55-dev libeigen3-dev libode-dev
         export CXX=g++-5
     fi
     export MAKEFLAGS="-j `nproc`"

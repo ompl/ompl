@@ -34,7 +34,7 @@
            <li><code>./install-ompl-ubuntu.sh --python</code> will install OMPL with Python bindings</li>
            <li><code>./install-ompl-ubuntu.sh --app</code> will install OMPL.app with Python bindings</li>
          </ul>
-         The script downloads and installs OMPL and all dependencies via <code>apt-get</code> &amp; <code>pip</code> and from source. It will ask for your password to install things. The script has been tested on vanilla installs of Ubuntu 14.04 (Trusty), 15.10 (Wily), 16.04 (Xenial), and 17.10 (Artful).
+         The script downloads and installs OMPL and all dependencies via <code>apt-get</code> &amp; <code>pip</code> and from source. It will ask for your password to install things. The script has been tested on vanilla installs of Ubuntu 14.04 (Trusty), 15.10 (Wily), 16.04 (Xenial), 17.10 (Artful), and 18.04 (Bionic).
       </div>
       <div role="tabpanel" class="tab-pane" id="ubuntubinary">
         Simply type:
