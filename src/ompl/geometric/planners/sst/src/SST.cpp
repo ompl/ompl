@@ -209,6 +209,7 @@ ompl::base::State *ompl::geometric::SST::monteCarloProp(Motion *m)
     // take a step of length step towards the random state
     double d = si_->distance(m->state_, xstate);
     si_->getStateSpace()->interpolate(m->state_, xstate, step / d, xstate);
+    si_->enforceBounds(xstate);
 
     return xstate;
 }
@@ -348,12 +349,14 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
 
                 if (oldRep != rmotion)
                 {
-                    oldRep->inactive_ = true;
-                    nn_->remove(oldRep);
                     while (oldRep->inactive_ && oldRep->numChildren_ == 0)
                     {
+                        oldRep->inactive_ = true;
+                        nn_->remove(oldRep);
+
                         if (oldRep->state_)
                             si_->freeState(oldRep->state_);
+
                         oldRep->state_ = nullptr;
                         oldRep->parent_->numChildren_--;
                         Motion *oldRepParent = oldRep->parent_;

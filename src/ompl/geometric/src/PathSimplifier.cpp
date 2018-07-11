@@ -785,6 +785,11 @@ bool ompl::geometric::PathSimplifier::findBetterGoal(PathGeometric &path, const 
     {
         costs[i] = obj_->combineCosts(costs[i - 1], obj_->motionCost(states[i - 1], states[i]));
         dists[i] = dists[i - 1] + si_->distance(states[i - 1], states[i]);
+        if (dists[i] < 0)
+        {
+            OMPL_WARN("%s: Somehow computed negative distance!.", "PathSimplifier::findBetterGoal");
+            return false;
+        }
     }
 
     // Sampled states closer than 'threshold' distance to any existing state in the path

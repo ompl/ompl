@@ -344,10 +344,11 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
 
                 if (oldRep != rmotion)
                 {
-                    oldRep->inactive_ = true;
-                    nn_->remove(oldRep);
                     while (oldRep->inactive_ && oldRep->numChildren_ == 0)
                     {
+                        oldRep->inactive_ = true;
+                        nn_->remove(oldRep);
+
                         if (oldRep->state_)
                             si_->freeState(oldRep->state_);
                         if (oldRep->control_)
