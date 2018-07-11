@@ -40,7 +40,7 @@ install_python_binding_dependencies()
             sudo apt-get -y install libboost-numpy-dev python${PYTHONV}-numpy
         fi
     else
-        sudo apt-get -y install libboost1.55-python-dev
+        sudo apt-get -y install libboost-python1.55-dev
         wget -O - https://midas3.kitware.com/midas/download/item/318227/castxml-linux.tar.gz | tar zxf - -C $HOME
         export PATH=$HOME/castxml/bin:$PATH
     fi
