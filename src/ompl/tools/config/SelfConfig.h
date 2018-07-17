@@ -92,7 +92,16 @@ namespace ompl
             /** \brief Print the computed configuration parameters */
             void print(std::ostream &out = std::cout) const;
 
-            /** \brief Select a default nearest neighbor datastructure for the given space */
+            /** \brief Select a default nearest neighbor datastructure for the given space
+             *
+             * The default depends on the planning algorithm and the space the planner operates in:
+             * - If the space is a metric space and the planner is single-threaded,
+             *   then the default is ompl::NearestNeighborsGNATNoThreadSafety.
+             * - If the space is a metric space and the planner is multi-threaded,
+             *   then the default is ompl::NearestNeighborsGNAT.
+             * - If the space is a not a metric space,
+             *   then the default is ompl::NearestNeighborsSqrtApprox.
+             */
             template <typename _T>
             static NearestNeighbors<_T> *getDefaultNearestNeighbors(const base::Planner *planner)
             {
