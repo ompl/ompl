@@ -111,7 +111,8 @@ void ompl::control::SST::clear()
         nn_->clear();
     if (witnesses_)
         witnesses_->clear();
-    prevSolutionCost_ = opt_->infiniteCost();
+    if (opt_)
+        prevSolutionCost_ = opt_->infiniteCost();
 }
 
 void ompl::control::SST::freeMemory()

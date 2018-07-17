@@ -108,7 +108,8 @@ void ompl::geometric::SST::clear()
         nn_->clear();
     if (witnesses_)
         witnesses_->clear();
-    prevSolutionCost_ = opt_->infiniteCost();
+    if (opt_)
+        prevSolutionCost_ = opt_->infiniteCost();
 }
 
 void ompl::geometric::SST::freeMemory()
