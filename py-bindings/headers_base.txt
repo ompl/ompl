@@ -58,6 +58,7 @@ src/ompl/base/ConstrainedSpaceInformation.h
 src/ompl/base/spaces/constraint/ProjectedStateSpace.h
 src/ompl/base/samplers/BridgeTestValidStateSampler.h
 src/ompl/base/samplers/GaussianValidStateSampler.h
+src/ompl/base/samplers/MinimumClearanceValidStateSampler.h
 src/ompl/base/samplers/MaximizeClearanceValidStateSampler.h
 src/ompl/base/samplers/ObstacleBasedValidStateSampler.h
 src/ompl/base/samplers/UniformValidStateSampler.h
