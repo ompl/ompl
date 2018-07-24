@@ -357,7 +357,8 @@ public:
     // increases, the state cost decreases.
     ob::Cost stateCost(const ob::State* s) const override
     {
-        return ob::Cost(1 / si_->getStateValidityChecker()->clearance(s));
+        return ob::Cost(1 / (si_->getStateValidityChecker()->clearance(s) +
+            std::numeric_limits<double>::min()));
     }
 };
 

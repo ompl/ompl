@@ -36,6 +36,7 @@
 
 # Author: Luis G. Torres, Mark Moll
 
+import sys
 try:
     from ompl import util as ou
     from ompl import base as ob
@@ -44,7 +45,6 @@ except ImportError:
     # if the ompl module is not in the PYTHONPATH assume it is installed in a
     # subdirectory of the parent directory called "py-bindings."
     from os.path import abspath, dirname, join
-    import sys
     sys.path.insert(0, join(dirname(dirname(abspath(__file__))), 'py-bindings'))
     from ompl import util as ou
     from ompl import base as ob
@@ -113,7 +113,8 @@ class ClearanceObjective(ob.StateCostIntegralObjective):
     # reciprocal of its clearance, so that as state clearance
     # increases, the state cost decreases.
     def stateCost(self, s):
-        return ob.Cost(1 / self.si_.getStateValidityChecker().clearance(s))
+        return ob.Cost(1 / (self.si_.getStateValidityChecker().clearance(s) +
+            sys.float_info.min))
 
 ## Return an optimization objective which attempts to steer the robot
 #  away from obstacles.
