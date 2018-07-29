@@ -39,7 +39,7 @@
 
 #include "ompl/util/Exception.h"
 
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 
 #include <cmath>
 

@@ -41,7 +41,7 @@
 #include "ompl/datastructures/PDF.h"
 
 #include <vector>
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 
 namespace ompl
 {

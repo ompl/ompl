@@ -44,7 +44,7 @@
 #include "ompl/base/spaces/WrapperStateSpace.h"
 #include "ompl/base/SpaceInformation.h"
 
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 
 namespace ompl
 {
