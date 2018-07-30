@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Oren Salzman, Sertac Karaman, Ioan Sucan, Mark Moll */
+/* Author: Oren Salzman, Aditya Mandalika, Sertac Karaman, Ioan Sucan, Mark Moll */
 
 #include "ompl/geometric/planners/rrt/LBTRRT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
@@ -74,6 +74,7 @@ void ompl::geometric::LBTRRT::clear()
     freeMemory();
     if (nn_)
         nn_->clear();
+    lowerBoundGraph_.clear();
     lastGoalMotion_ = nullptr;
 
     iterations_ = 0;
@@ -105,6 +106,7 @@ void ompl::geometric::LBTRRT::freeMemory()
             delete i;
         }
     }
+    idToMotionMap_.clear();
 }
 
 ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerminationCondition &ptc)
