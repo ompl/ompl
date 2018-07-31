@@ -257,6 +257,9 @@ class ompl_base_generator_t(code_generator_t):
         self.ompl_ns.member_functions('getValueLocations').exclude()
         # don't export map<std::string, ValueLocation>
         self.ompl_ns.member_functions('getValueLocationsByName').exclude()
+        # exclude member function for which there are multiple signatures
+        self.ompl_ns.class_('Goal').member_function('isSatisfied', arg_types=['::ompl::base::State const *', 'double *']).exclude()
+
         # don't expose double*
         self.ompl_ns.class_('RealVectorStateSpace').class_(
             'StateType').variable('values').exclude()
