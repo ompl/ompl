@@ -43,6 +43,11 @@ if (OMPL_EXTENSION_TRIANGLE)
   list(APPEND OMPL_LINK_LIBRARIES ${TRIANGLE_LIBRARY})
 endif()
 
+if (OMPL_HAVE_SPOT)
+  set_source_files_properties(control/planners/ltl/src/Automaton.cpp
+    PROPERTIES COMPILE_FLAGS -std=c++14)
+endif()
+
 #############################################
 # Build and install the library             #
 #############################################
