@@ -1,98 +1,99 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Willow Garage
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Willow Garage
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
 #include "ompl/base/GenericParam.h"
 #include "ompl/util/Exception.h"
 
-template <>
-bool ompl::base::SpecificParam<bool>::lexical_cast(const std::string &value)
+namespace ompl
 {
-    return !(value.empty() || value == "0" || value == "false" || value == "FALSE" || value == "False" ||
-            value == "f" || value == "F");
-}
-template <>
-int ompl::base::SpecificParam<int>::lexical_cast(const std::string &value)
-{
-    return std::stoi(value);
-}
-template <>
-long ompl::base::SpecificParam<long>::lexical_cast(const std::string &value)
-{
-    return std::stol(value);
-}
-template <>
-long long ompl::base::SpecificParam<long long>::lexical_cast(const std::string &value)
-{
-    return std::stoll(value);
-}
-template <>
-unsigned int ompl::base::SpecificParam<unsigned int>::lexical_cast(const std::string &value)
-{
-    return std::stoul(value);
-}
-template <>
-unsigned long ompl::base::SpecificParam<unsigned long>::lexical_cast(const std::string &value)
-{
-    return std::stoul(value);
-}
-template <>
-unsigned long long ompl::base::SpecificParam<unsigned long long>::lexical_cast(const std::string &value)
-{
-    return std::stoull(value);
-}
-template <>
-float ompl::base::SpecificParam<float>::lexical_cast(const std::string &value)
-{
-    return std::stof(value);
-}
-template <>
-double ompl::base::SpecificParam<double>::lexical_cast(const std::string &value)
-{
-    return std::stod(value);
-}
-template <>
-long double ompl::base::SpecificParam<long double>::lexical_cast(const std::string &value)
-{
-    return std::stold(value);
-}
-template <>
-std::string ompl::base::SpecificParam<std::string>::lexical_cast(const std::string &value)
-{
-    return value;
-}
+    namespace base
+    {
+        template <>
+        bool SpecificParam<bool>::lexical_cast(const std::string &value) const
+        {
+            return !(value.empty() || value == "0" || value == "false" || value == "FALSE" || value == "False" ||
+                     value == "f" || value == "F");
+        }
+        template <>
+        int SpecificParam<int>::lexical_cast(const std::string &value) const
+        {
+            return std::stoi(value);
+        }
+        template <>
+        long SpecificParam<long>::lexical_cast(const std::string &value) const
+        {
+            return std::stol(value);
+        }
+        template <>
+        long long SpecificParam<long long>::lexical_cast(const std::string &value) const
+        {
+            return std::stoll(value);
+        }
+        template <>
+        unsigned int SpecificParam<unsigned int>::lexical_cast(const std::string &value) const
+        {
+            return std::stoul(value);
+        }
+        template <>
+        unsigned long SpecificParam<unsigned long>::lexical_cast(const std::string &value) const
+        {
+            return std::stoul(value);
+        }
+        template <>
+        unsigned long long SpecificParam<unsigned long long>::lexical_cast(const std::string &value) const
+        {
+            return std::stoull(value);
+        }
+        template <>
+        float SpecificParam<float>::lexical_cast(const std::string &value) const
+        {
+            return std::stof(value);
+        }
+        template <>
+        double SpecificParam<double>::lexical_cast(const std::string &value) const
+        {
+            return std::stod(value);
+        }
+        template <>
+        long double SpecificParam<long double>::lexical_cast(const std::string &value) const
+        {
+            return std::stold(value);
+        }
+    }  // namespace base
+}  // namespace ompl
 
 bool ompl::base::ParamSet::setParam(const std::string &key, const std::string &value)
 {
