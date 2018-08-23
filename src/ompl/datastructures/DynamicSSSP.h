@@ -47,6 +47,7 @@ dynamic graph problems, Theor. Comput. Sci., vol. 158, no. 1&2, pp.
 #include <vector>
 #include <limits>
 
+#include <boost/functional/hash.hpp> // fix for Boost < 1.68
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <unordered_set>

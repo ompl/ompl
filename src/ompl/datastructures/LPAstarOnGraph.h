@@ -58,6 +58,7 @@ Lifelong Planning A. Artif. Intell. 155(1-2): 93-146 (2004)
 #include <boost/type_traits/ice.hpp>
 #endif
 
+#include <boost/functional/hash.hpp> // fix for Boost < 1.68
 #include <boost/graph/adjacency_matrix.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
