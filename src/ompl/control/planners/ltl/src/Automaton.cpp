@@ -44,7 +44,6 @@
 #include <spot/misc/minato.hh>
 #include <spot/twa/formula2bdd.hh>
 #include <typeinfo>
-#include <boost/lexical_cast.hpp>
 #endif
 #include <boost/range/irange.hpp>
 #include <unordered_map>
@@ -130,7 +129,7 @@ ompl::control::Automaton::Automaton(unsigned numProps, std::string formula, bool
                         int var = bdd_var(clause);
                         const spot::bdd_dict::bdd_info &i = dict->bdd_map[var];
                         assert(i.type == spot::bdd_dict::var);
-                        auto index = boost::lexical_cast<unsigned int>(i.f.ap_name().substr(1));
+                        auto index = std::stoul(i.f.ap_name().substr(1));
                         bdd high = bdd_high(clause);
                         assert(index < numProps);
                         if (high == bddfalse)

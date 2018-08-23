@@ -81,7 +81,7 @@ void addPlanner(ompl::tools::Benchmark& benchmark, const ompl::base::PlannerPtr&
 int main(int argc, char **argv)
 {
     if(argc > 1)
-        ndim = boost::lexical_cast<size_t>(argv[1]);
+        ndim = std::stoul(argv[1]);
 
     double range = edgeWidth * 0.5;
     auto space(std::make_shared<ompl::base::RealVectorStateSpace>(ndim));

@@ -410,5 +410,5 @@ void ompl::geometric::RRTConnect::getPlannerData(base::PlannerData &data) const
     data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 
     // Add some info.
-    data.properties["approx goal distance REAL"] = boost::lexical_cast<std::string>(distanceBetweenTrees_);
+    data.properties["approx goal distance REAL"] = std::to_string(distanceBetweenTrees_);
 }

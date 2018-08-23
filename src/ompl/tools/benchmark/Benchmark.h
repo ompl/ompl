@@ -140,7 +140,7 @@ namespace ompl
                 std::string setupInfo;
 
                 /// The random seed that was used at the start of the benchmark program
-                boost::uint32_t seed;
+                std::uint_fast32_t seed;
 
                 /// Hostname that identifies the machine the benchmark ran on
                 std::string host;

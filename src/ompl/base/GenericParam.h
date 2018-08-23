@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Willow Garage
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Willow Garage
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -40,7 +40,6 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
 #include <functional>
-#include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -94,14 +93,7 @@ namespace ompl
             template <typename T>
             GenericParam &operator=(const T &value)
             {
-                try
-                {
-                    setValue(boost::lexical_cast<std::string>(value));
-                }
-                catch (boost::bad_lexical_cast &e)
-                {
-                    OMPL_WARN("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
-                }
+                setValue(std::to_string(value));
                 return *this;
             }
 
@@ -118,14 +110,6 @@ namespace ompl
             }
 
         protected:
-            /** \brief Bool values such as "false" cannot be converted to bool using lexical_cast. We need to
-                map those to "0" or "1". */
-            template <typename T>
-            const std::string &maybeWrapBool(const std::string &value) const
-            {
-                return boost::is_same<T, bool>::value ? truthValueTo01Str(value) : value;
-            }
-
             /** \brief The name of the parameter */
             std::string name_;
 
@@ -143,10 +127,6 @@ namespace ompl
                   deduced correctly.
             */
             std::string rangeSuggestion_;
-
-        private:
-            /** \brief Map "false", "False", "FALSE",  "F", "f", "0" to "0" and everything else to "1". */
-            static const std::string &truthValueTo01Str(const std::string &value);
         };
 
         /** \brief This is a helper class that instantiates parameters with different data types. */
@@ -178,9 +158,9 @@ namespace ompl
                 try
                 {
                     if (setter_)
-                        setter_(boost::lexical_cast<T>(GenericParam::maybeWrapBool<T>(value)));
+                        setter_(lexical_cast(value));
                 }
-                catch (boost::bad_lexical_cast &e)
+                catch (std::invalid_argument &e)
                 {
                     result = false;
                     OMPL_WARN("Invalid value format specified for parameter '%s': %s", name_.c_str(), e.what());
@@ -196,20 +176,19 @@ namespace ompl
             std::string getValue() const override
             {
                 if (getter_)
-                    try
-                    {
-                        return boost::lexical_cast<std::string>(getter_());
-                    }
-                    catch (boost::bad_lexical_cast &e)
-                    {
-                        OMPL_WARN("Unable to parameter '%s' to string: %s", name_.c_str(), e.what());
-                        return "";
-                    }
+                    return std::to_string(getter_());
                 else
                     return "";
             }
 
         protected:
+            /** \brief Helper function to convert strings into objects of type T
+             *
+             * Supported types are: bool, int, long, long long, unsigned int, unsigned long, unsigned long long, float,
+             * double, long double, std::string.
+             */
+            T lexical_cast(const std::string &value);
+
             /** \brief The setter function for this parameter */
             SetterFn setter_;
 
@@ -310,7 +289,7 @@ namespace ompl
         private:
             std::map<std::string, GenericParamPtr> params_;
         };
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 
 #endif

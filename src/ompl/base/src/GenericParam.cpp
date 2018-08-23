@@ -37,14 +37,61 @@
 #include "ompl/base/GenericParam.h"
 #include "ompl/util/Exception.h"
 
-const std::string &ompl::base::GenericParam::truthValueTo01Str(const std::string &value)
+template <>
+bool ompl::base::SpecificParam<bool>::lexical_cast(const std::string &value)
 {
-    static const std::string falseValue = "0";
-    static const std::string trueValue = "1";
-    return (value.empty() || value == falseValue || value == "false" || value == "FALSE" || value == "False" ||
-            value == "f" || value == "F") ?
-               falseValue :
-               trueValue;
+    return !(value.empty() || value == "0" || value == "false" || value == "FALSE" || value == "False" ||
+            value == "f" || value == "F");
+}
+template <>
+int ompl::base::SpecificParam<int>::lexical_cast(const std::string &value)
+{
+    return std::stoi(value);
+}
+template <>
+long ompl::base::SpecificParam<long>::lexical_cast(const std::string &value)
+{
+    return std::stol(value);
+}
+template <>
+long long ompl::base::SpecificParam<long long>::lexical_cast(const std::string &value)
+{
+    return std::stoll(value);
+}
+template <>
+unsigned int ompl::base::SpecificParam<unsigned int>::lexical_cast(const std::string &value)
+{
+    return std::stoul(value);
+}
+template <>
+unsigned long ompl::base::SpecificParam<unsigned long>::lexical_cast(const std::string &value)
+{
+    return std::stoul(value);
+}
+template <>
+unsigned long long ompl::base::SpecificParam<unsigned long long>::lexical_cast(const std::string &value)
+{
+    return std::stoull(value);
+}
+template <>
+float ompl::base::SpecificParam<float>::lexical_cast(const std::string &value)
+{
+    return std::stof(value);
+}
+template <>
+double ompl::base::SpecificParam<double>::lexical_cast(const std::string &value)
+{
+    return std::stod(value);
+}
+template <>
+long double ompl::base::SpecificParam<long double>::lexical_cast(const std::string &value)
+{
+    return std::stold(value);
+}
+template <>
+std::string ompl::base::SpecificParam<std::string>::lexical_cast(const std::string &value)
+{
+    return value;
 }
 
 bool ompl::base::ParamSet::setParam(const std::string &key, const std::string &value)

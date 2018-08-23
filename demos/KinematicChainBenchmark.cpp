@@ -44,7 +44,7 @@ int main(int argc, char **argv)
         exit(0);
     }
 
-    auto numLinks = boost::lexical_cast<unsigned int>(std::string(argv[1]));
+    auto numLinks = std::stoul(argv[1]);
     Environment env = createHornEnvironment(numLinks, log((double)numLinks) / (double)numLinks);
     auto chain(std::make_shared<KinematicChainSpace>(numLinks, 1. / (double)numLinks, &env));
     ompl::geometric::SimpleSetup ss(chain);

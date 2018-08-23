@@ -105,7 +105,7 @@ namespace ompl
             struct Header
             {
                 /// \brief OMPL PlannerData specific marker (fixed value)
-                boost::uint32_t marker;
+                std::uint_fast32_t marker;
 
                 /// \brief Number of vertices stored in the archive
                 std::size_t vertex_count;

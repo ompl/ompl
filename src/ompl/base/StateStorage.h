@@ -158,7 +158,7 @@ namespace ompl
             struct Header
             {
                 /** \brief OMPL specific marker (fixed value) */
-                boost::uint32_t marker;
+                std::uint_fast32_t marker;
 
                 /** \brief Number of states stored in the archive */
                 std::size_t state_count;

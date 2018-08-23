@@ -68,7 +68,7 @@ static ompl::base::StateSamplerPtr allocPrecomputedStateSampler(const ompl::base
     return std::make_shared<ompl::base::PrecomputedStateSampler>(space, *states, minIndex, maxIndex);
 }
 
-static const boost::uint32_t OMPL_ARCHIVE_MARKER = 0x4C504D4F;  // this spells OMPL
+static const std::uint_fast32_t OMPL_ARCHIVE_MARKER = 0x4C504D4F;  // this spells OMPL
 /// @endcond
 
 ompl::base::StateStorage::StateStorage(StateSpacePtr space) : space_(std::move(space)), hasMetadata_(false)
