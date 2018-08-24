@@ -196,6 +196,9 @@ namespace ompl
             GetterFn getter_;
         };
 
+        template <>
+        std::string ompl::base::SpecificParam<std::string>::getValue() const;
+
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ParamSet */
         OMPL_CLASS_FORWARD(ParamSet);
