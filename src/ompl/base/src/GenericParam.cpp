@@ -36,6 +36,7 @@
 
 #include "ompl/base/GenericParam.h"
 #include "ompl/util/Exception.h"
+#include <limits>
 
 namespace ompl
 {
