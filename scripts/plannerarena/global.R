@@ -42,7 +42,8 @@ library(ggplot2)
 
 # set default max upload size to 50MB
 options(shiny.maxRequestSize = getOption("shiny.maxRequestSize", 50000000))
-options(shiny.reactlog = TRUE)
+#options(shiny.reactlog = TRUE)
+#options(shiny.trace = TRUE)
 
 # see https://groups.google.com/d/msg/shiny-discuss/uSetp4TtW-s/Jktu3fS60RAJ
 disable <- function(x) {

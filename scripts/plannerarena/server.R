@@ -35,6 +35,8 @@
 # Author: Mark Moll
 
 defaultDatabase <- "www/benchmark.db"
+defaultDatabase <- "/Users/mmoll/Downloads/Konstaninos-benchmark.db"
+
 noDatabaseText <- "No database loaded yet. Upload one by clicking on “Change database”."
 notReadyText <- "The benchmarking results are not available yet, check back later."
 sessionsFolder <- "/tmp/omplweb_sessions"
@@ -44,7 +46,7 @@ problemParamsSeparateText <- "all (separate)"
 problemSelectWidget <- function(problems, widgetName) {
     widget <- selectInput(widgetName,
         label = h4("Motion planning problem"),
-        choices = problems)
+        choices = problems, selected = NULL)
     conditionalDisable(widget, length(problems) < 2)
 }
 
@@ -91,8 +93,8 @@ problemParamGroupBy <- function(values) {
 # create a widget for a given benchmark parameter
 problemParamSelectWidget <- function(name, experiments, prefix, problem, version) {
     values <- (experiments %>%
-        filter(name == problem & version == version) %>%
-        select_(name) %>% distinct() %>% collect())[[name]]
+        filter(name == !!problem & version == !!version) %>%
+        select(!!name) %>% distinct() %>% collect())[[name]]
     dispName <- gsub("_", " ", name)
     internalName <- paste0(prefix, "problemParam", name)
     if (length(values)==1)
@@ -112,8 +114,6 @@ problemParamSelectWidget <- function(name, experiments, prefix, problem, version
 problemParamSelectWidgets <- function(experiments, prefix, problem, version) {
     params <- problemParams(experiments)
     if (!is.null(params))
-        # eparams <- paste0("experiment.", params)
-        # names(eparams) <- gsub("_", " ", params)
         div(class="well well-light",
             h5("Problem parameters"),
             lapply(params, problemParamSelectWidget,
@@ -200,28 +200,21 @@ shinyServer(function(input, output, session) {
 
     # create variables for tables in database
     experiments <- reactive({
-        con() %>%
-        tbl("experiments") %>%
-        rename(experiment.id = id) %>%
-        rename(experiment = name)
+        con() %>% tbl("experiments") %>% rename(experiment.id = id, experiment = name)
     })
     plannerConfigs <- reactive({
-        con() %>%
-        tbl("plannerConfigs") %>%
-        rename(planner.id = id) %>%
-        rename(planner = name)
+        con() %>% tbl("plannerConfigs") %>% rename(planner.id = id, planner = name)
     })
-    runs <- reactive({con() %>% tbl("runs") %>% rename(run.id = id)})
+    runs <- reactive({
+        con() %>% tbl("runs") %>% rename(run.id = id)
+    })
     attrs.names <- reactive({
         rnames <- tbl_vars(runs())
         names(rnames) <- gsub("_", " ", rnames)
         rnames
     })
     progress <- reactive({
-        con() %>%
-        tbl("progress") %>%
-        rename(progress.time = time) %>%
-        rename(progress.best_cost = best_cost)
+        con() %>% tbl("progress") %>% rename(progress.time = time, progress.best_cost = best_cost)
     })
     progAttrs.names <- reactive({
         rnames <- tbl_vars(progress())
@@ -229,19 +222,20 @@ shinyServer(function(input, output, session) {
         rnames
     })
     enums <- reactive({con() %>% tbl("enums")})
-    runs_ext <- reactive({plannerConfigs() %>%
+    runs_ext <- reactive({
+        plannerConfigs() %>%
         inner_join(runs(), c("planner.id" = "plannerid"), suffix = c(".planner", ".run")) %>%
         inner_join(experiments(), c("experimentid" = "experiment.id"), suffix = c(".plannerrun", ".experiment"))
     })
-    performance <- reactive({runs_ext() %>%
-        filter(experiment == input$perfProblem & version == input$perfVersion)
+    performance <- reactive({
+        runs_ext() %>% filter(experiment == input$perfProblem & version == input$perfVersion)
     })
-    progPerf <- reactive({runs_ext() %>%
-        inner_join(progress(), c("run.id" = "runid")) %>%
+    progPerf <- reactive({
+        runs_ext() %>% inner_join(progress(), c("run.id" = "runid")) %>%
         filter(experiment == input$progProblem & version == input$progVersion)
     })
-    regrPerf <- reactive({runs_ext() %>%
-        filter(experiment == input$regrProblem & version %in% input$regrVersions)
+    regrPerf <- reactive({
+        runs_ext() %>% filter(experiment == input$regrProblem & version %in% input$regrVersions)
     })
 
     # Go straight to the database upload page if there is no default database
@@ -251,7 +245,8 @@ shinyServer(function(input, output, session) {
     })
 
     problemNames <- reactive({
-        (experiments() %>% select(experiment) %>% distinct() %>% collect())$experiment })
+        (experiments() %>% select(experiment) %>% distinct() %>% collect())$experiment
+    })
     output$perfProblemSelect <- renderUI({ problemSelectWidget(problemNames(), "perfProblem") })
     output$progProblemSelect <- renderUI({ problemSelectWidget(problemNames(), "progProblem") })
     output$regrProblemSelect <- renderUI({ problemSelectWidget(problemNames(), "regrProblem") })
@@ -375,19 +370,19 @@ shinyServer(function(input, output, session) {
         # compute the selection of columns and their new names
         selection <- c(planner = "planner", attr = attr)
         if (includeSimplifiedAttr)
-            selection <- c(selection, "simplifiedAttr" = simplifiedAttr)
+            selection <- c(selection, simplifiedAttr = simplifiedAttr)
         if (!is.null(grouping))
-            selection <- c(selection, "grouping" = grouping)
+            selection <- c(selection, grouping = grouping)
         # compute selection of rows (add empty string to work around bug if there is only one planner selected)
-        filter_expr <- c(~ planner %in% c(input$perfPlanners,''))
+        filter_expr <- expr(planner %in% input$perfPlanners)
         # for parametrized benchmarks we want only the data that matches all parameters exactly
         if (length(paramValues) > 0)
             filter_expr <- c(filter_expr, paste(mapply(
                 problemParamSelect, names(paramValues), paramValues), collapse= " & "))
         # extract the data to be plotted
         data <- performance() %>%
-            filter_(.dots = filter_expr) %>%
-            select_(.dots = selection) %>%
+            filter(!!filter_expr) %>%
+            select(selection) %>%
             collect()
         # turn the planner and grouping columns into factors ordered in the same way that they occur in the database.
         uplanner <- unique(data$planner)
@@ -437,13 +432,13 @@ shinyServer(function(input, output, session) {
                         # labels
                         ylab(dispAttr) +
                         theme(legend.title = element_blank(), text = fontSelection()) +
-                        geom_boxplot(outlier.shape = outlier.shape) +
+                        geom_boxplot(outlier.shape = outlier.shape, na.rm = TRUE) +
                         scale_fill_manual(values = c("#99c9eb", "#ebc999"),
                             labels = c("before simplification", "after simplification")) +
                         scale_color_manual(values =c("#3073ba", "#ba7330"),
                             labels = c("before simplification", "after simplification"))
                     if (input$perfHideOutliers)
-                        lims <- quantile(data$value, c(0.2, 0.8))
+                        lims <- quantile(data$value, c(0.2, 0.8), TRUE)
                     else
                         lims <- c(NA, NA)
                     if (input$perfYLogScale)
@@ -475,11 +470,11 @@ shinyServer(function(input, output, session) {
                             ylab(dispAttr) +
                             theme(legend.position = "none", text = fontSelection()) +
                             # box plots for boolean, integer, and real-valued attributes
-                            geom_boxplot(color = I("#3073ba"), fill = I("#99c9eb"), outlier.shape = outlier.shape)
+                            geom_boxplot(color = I("#3073ba"), fill = I("#99c9eb"), outlier.shape = outlier.shape, na.rm = TRUE)
                         if (!is.null(grouping))
                             p <- p + facet_grid(. ~ grouping)
                         if (input$perfHideOutliers)
-                            lims <- quantile(data$value, c(0.2, 0.8))
+                            lims <- quantile(data$attr, c(0.2, 0.8), TRUE)
                         else
                             lims <- c(NA, NA)
                     } else {
@@ -487,10 +482,10 @@ shinyServer(function(input, output, session) {
                             # labels
                             ylab(dispAttr) +
                             theme(legend.title = element_blank(), text = fontSelection()) +
-                            geom_boxplot(position = "dodge", outlier.shape = outlier.shape) +
+                            geom_boxplot(position = "dodge", outlier.shape = outlier.shape, na.rm = TRUE) +
                             scale_x_discrete(expand=c(0.05,0))
                             if (input$perfHideOutliers)
-                                lims <- quantile(data$attr, c(0.2, 0.8))
+                                lims <- quantile(data$attr, c(0.2, 0.8), TRUE)
                             else
                                 lims <- c(NA, NA)
                     }
@@ -536,16 +531,16 @@ shinyServer(function(input, output, session) {
         paramValues <- problemParamValues(experiments(), "perf", input)
         grouping <- problemParamGroupBy(paramValues)
         if (!is.null(grouping))
-            group_order <- c("planner", grouping)
+            group_order <- c(expr(planner), grouping)
         else
-            group_order <- c("planner")
+            group_order <- expr(planner)
         data <- performance() %>%
             # add empty string to work around bug if there is only one planner selected
-            filter_(.dots = ~ planner %in% c(input$perfPlanners,'')) %>%
-            group_by_(.dots = group_order) %>%
-            select_(.dots = c("attr" = attr)) %>%
-            mutate_(missing = ~ is.na(attr)) %>%
-            summarise(missing = sum(missing), total = n()) %>%
+            filter(planner %in% c(input$perfPlanners,'')) %>%
+            group_by(group_order) %>%
+            select(attr = attr) %>%
+            mutate(missing = is.na(attr)) %>%
+            summarise(missing = sum(missing, TRUE), total = n()) %>%
             collect()
         data$planner <- factor(data$planner, unique(data$planner), labels = sapply(unique(data$planner), plannerNameMapping))
         data
@@ -780,5 +775,3 @@ shinyServer(function(input, output, session) {
         )
     })
 })
-
-

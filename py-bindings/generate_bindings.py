@@ -183,7 +183,6 @@ class ompl_base_generator_t(code_generator_t):
         pairStateDouble.include()
         # this operator seems to cause problems with g++-6
         pairStateDouble.operators('=').exclude()
-        self.ompl_ns.member_functions('maybeWrapBool').exclude()
         # rename some templated types
         self.ompl_ns.class_('SpecificParam< bool >').rename('SpecificParamBool')
         self.ompl_ns.class_('SpecificParam< char >').rename('SpecificParamChar')
