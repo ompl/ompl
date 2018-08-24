@@ -92,6 +92,30 @@ namespace ompl
         {
             return std::stold(value);
         }
+        template <>
+        char SpecificParam<char>::lexical_cast(const std::string &value) const
+        {
+            static const int minChar = std::numeric_limits<char>::min(), maxChar = std::numeric_limits<char>::max();
+            int val = std::stoi(value);
+            if (val < minChar || val > maxChar)
+                throw std::invalid_argument("character value out of range");
+            return val;
+        }
+        template <>
+        std::string SpecificParam<std::string>::lexical_cast(const std::string &value) const
+        {
+            return value;
+        }
+
+        template <>
+        std::string ompl::base::SpecificParam<std::string>::getValue() const
+        {
+            if (getter_)
+                return getter_();
+            else
+                return "";
+        }
+
     }  // namespace base
 }  // namespace ompl
 

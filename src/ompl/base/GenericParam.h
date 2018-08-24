@@ -185,7 +185,7 @@ namespace ompl
             /** \brief Helper function to convert strings into objects of type T
              *
              * Supported types are: bool, int, long, long long, unsigned int, unsigned long, unsigned long long, float,
-             * double, long double.
+             * double, long double, char, std::string.
              */
             T lexical_cast(const std::string &value) const;
 
