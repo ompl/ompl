@@ -560,8 +560,11 @@ namespace ompl
             // add nodes in Open_new to Open
             for (auto &i : Open_new)
             {
-                Open_elements[tree_][i] = Open_[tree_].insert(i);
-                i->setCurrentSet(BiDirMotion::SET_OPEN);
+                if(Open_elements[tree_][i] == nullptr)
+                {
+                    Open_elements[tree_][i] = Open_[tree_].insert(i);
+                    i->setCurrentSet(BiDirMotion::SET_OPEN);
+                }
             }
         }
 
