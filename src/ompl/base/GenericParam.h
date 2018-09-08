@@ -212,7 +212,7 @@ namespace ompl
              */
             template <typename T>
             void declareParam(const std::string &name, const typename SpecificParam<T>::SetterFn &setter,
-                              const typename SpecificParam<T>::GetterFn &getter = typename SpecificParam<T>::GetterFn())
+                              const typename SpecificParam<T>::GetterFn &getter = [] { return T(); })
             {
                 params_[name] = std::make_shared<SpecificParam<T>>(name, setter, getter);
             }
