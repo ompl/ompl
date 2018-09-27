@@ -347,14 +347,14 @@ public:
     std::shared_ptr<_T> createPlanner()
     {
         auto &&planner = std::make_shared<_T>(csi);
-        return planner;
+        return std::move(planner);
     }
 
     template <typename _T>
     std::shared_ptr<_T> createPlannerIntermediate()
     {
         auto &&planner = std::make_shared<_T>(csi, true);
-        return planner;
+        return std::move(planner);
     }
 
     template <typename _T>
@@ -370,7 +370,7 @@ public:
         else
             planner->setRange(c_opt.range);
 
-        return planner;
+        return std::move(planner);
     }
 
     template <typename _T>
@@ -386,7 +386,7 @@ public:
         else
             planner->setRange(c_opt.range);
 
-        return planner;
+        return std::move(planner);
     }
 
     template <typename _T>
@@ -398,7 +398,7 @@ public:
         if (isProj)
             planner->setProjectionEvaluator(projection);
 
-        return planner;
+        return std::move(planner);
     }
 
     ob::PlannerPtr getPlanner(enum PLANNER_TYPE planner, const std::string &projection = "")
