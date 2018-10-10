@@ -95,9 +95,8 @@ find_path(PYTHON_INCLUDE_DIRS "Python.h"
 
 execute_process(COMMAND "${PYTHON_EXEC}" "-c"
     "from distutils.sysconfig import get_python_lib; print(get_python_lib())"
-    OUTPUT_VARIABLE PYTHON_SITE_MODULES_
+    OUTPUT_VARIABLE PYTHON_SITE_MODULES
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-string(REGEX REPLACE "^${PYTHON_PREFIX2}/" "" PYTHON_SITE_MODULES "${PYTHON_SITE_MODULES_}")
 
 function(find_python_module module)
     string(TOUPPER ${module} module_upper)
