@@ -714,7 +714,6 @@ shinyServer(function(input, output, session) {
     )
 
     output$performancePage <- renderUI({
-        validate(need(performance(), noDatabaseText))
         sidebarLayout(
             sidebarPanel(
                 uiOutput("perfProblemSelect"),
@@ -780,5 +779,3 @@ shinyServer(function(input, output, session) {
         )
     })
 })
-
-
