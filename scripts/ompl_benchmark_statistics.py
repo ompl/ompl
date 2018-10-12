@@ -122,7 +122,7 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
         (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512),
         totaltime REAL, timelimit REAL, memorylimit REAL, runcount INTEGER,
         version VARCHAR(128), hostname VARCHAR(1024), cpuinfo TEXT,
-        date DATETIME, seed INTEGER, setup TEXT);
+        date DATETIME, seed VARCHAR(24), setup TEXT);
         CREATE TABLE IF NOT EXISTS plannerConfigs
         (id INTEGER PRIMARY KEY AUTOINCREMENT,
         name VARCHAR(512) NOT NULL, settings TEXT);
@@ -174,15 +174,15 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
         if moveitformat:
             expsetup = readRequiredLogValue("goal name", logfile, -1, {0: "Goal", 1: "name"})
             cpuinfo = None
-            rseed = 0
+            rseed = '0'
             timelimit = float(readRequiredLogValue("time limit", logfile, 0, \
                 {-3 : "seconds", -2 : "per", -1 : "run"}))
             memorylimit = 0
         else:
             expsetup = readRequiredMultilineValue(logfile)
             cpuinfo = readOptionalMultilineValue(logfile)
-            rseed = int(readRequiredLogValue("random seed", logfile, 0, \
-                {-2 : "random", -1 : "seed"}))
+            rseed = readRequiredLogValue("random seed", logfile, 0, \
+                {-2 : "random", -1 : "seed"})
             timelimit = float(readRequiredLogValue("time limit", logfile, 0, \
                 {-3 : "seconds", -2 : "per", -1 : "run"}))
             memorylimit = float(readRequiredLogValue("memory limit", logfile, 0, \
@@ -261,6 +261,7 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
                     [None if not x or x == 'nan' or x == 'inf' else x \
                     for x in logfile.readline().split('; ')[:-1]])
 
+                print(insertFmtStr, values)
                 c.execute(insertFmtStr, values)
                 # extract primary key of each run row so we can reference them
                 # in the planner progress data table if needed
