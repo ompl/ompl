@@ -13,11 +13,11 @@ matrix:
         - ubuntu-toolchain-r-test
         packages:
         - g++5
-        - libboost-serialization1.55-dev
-        - libboost-filesystem1.55-dev
-        - libboost-system1.55-dev
-        - libboost-program-options1.55-dev
-        - libboost-test1.55-dev
+        - libboost-serialization-dev
+        - libboost-filesystem-dev
+        - libboost-system-dev
+        - libboost-program-options-dev
+        - libboost-test-dev
         - libode-dev
         - libeigen3-dev
     cache:
