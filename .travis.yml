@@ -6,13 +6,9 @@ matrix:
     dist: xenial
     sudo: required
     compiler: gcc
-    env: CXX=g++-5
     addons:
       apt:
-        sources:
-        - ubuntu-toolchain-r-test
         packages:
-        - g++5
         - libboost-serialization-dev
         - libboost-filesystem-dev
         - libboost-system-dev
