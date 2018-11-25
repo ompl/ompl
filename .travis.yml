@@ -16,7 +16,6 @@ matrix:
         - libboost-test-dev
         - libode-dev
         - libeigen3-dev
-    env: PYTHON=/usr/bin/python
   - os: osx
     osx_image: xcode10.1
     compiler: clang
@@ -24,13 +23,8 @@ matrix:
       homebrew:
         packages:
         - eigen
-        - castxml
-        - numpy
-        - boost-python3
-        - pypy3
         - flann
         update: true
-    env: PYTHON=/usr/local/bin/python3
   - os: linux
     sudo: required
     services:
@@ -48,16 +42,12 @@ before_install:
     fi
 
 script:
-  - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
-      pip3 install pyplusplus;
-    fi
   - if [ -n "$DOCKERFILE" ]; then
       docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DPYTHON_EXEC=$PYTHON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. && make -j `nproc` && ctest";
     else
       mkdir -p build &&
       cd build &&
-      cmake -DPYTHON_EXEC=$PYTHON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. &&
-      if [ "${TRAVIS_OS_NAME}" = "osx" ]; then make -j `sysctl -n hw.ncpu` update_bindings; fi &&
+      cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. &&
       make -j `nproc 2>/dev/null || sysctl -n hw.ncpu` &&
       ctest;
     fi
