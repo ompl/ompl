@@ -70,7 +70,7 @@ class ompl_base_generator_t(code_generator_t):
         """)
         # A C++ call like "foo.printProperties(std::cout)" will be replaced with
         # something more pythonesque: "print(foo.properties())"
-        default_replacement['printProperties'] = ('def("properties", &__printProperties)', """
+        replacement['printProperties'] = ('def("properties", &__printProperties)', """
         std::string __printProperties(%s* obj)
         {
             std::ostringstream s;
