@@ -261,7 +261,6 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
                     [None if not x or x == 'nan' or x == 'inf' else x \
                     for x in logfile.readline().split('; ')[:-1]])
 
-                print(insertFmtStr, values)
                 c.execute(insertFmtStr, values)
                 # extract primary key of each run row so we can reference them
                 # in the planner progress data table if needed
