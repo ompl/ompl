@@ -46,6 +46,14 @@ compiler_path=${CMAKE_CXX_COMPILER}
             "${_path}/lib/gcc/mingw32/${_version}/include/c++"
             "${_path}/lib/gcc/mingw32/${_version}/include/c++/mingw32")
     endif()
+    if(APPLE)
+        execute_process(COMMAND "xcrun" "--show-sdk-path"
+            RESULT_VARIABLE _xcrunstatus
+            OUTPUT_VARIABLE _sdkpath OUTPUT_STRIP_TRAILING_WHITESPACE)
+        if(_xcrunstatus EQUAL 0)
+            list(APPEND _candidate_include_path "${_sdkpath}/usr/include")
+        endif()
+    endif()
     list(REMOVE_DUPLICATES _candidate_include_path)
     set(CASTXMLINCLUDEPATH ".")
     foreach(dir ${_candidate_include_path})
