@@ -35,29 +35,28 @@
 # Author: Mark Moll
 
 library(shiny)
-library(shinyjs, warn.conflicts=FALSE)
-library(dplyr, warn.conflicts=FALSE)
-library(tidyr)
-library(ggplot2)
+library(shinyjs, warn.conflicts = FALSE)
 
 # set default max upload size to 50MB
 options(shiny.maxRequestSize = getOption("shiny.maxRequestSize", 50000000))
-options(shiny.reactlog = TRUE)
+#options(shiny.reactlog = TRUE)
+#options(shiny.trace = TRUE)
 
 # see https://groups.google.com/d/msg/shiny-discuss/uSetp4TtW-s/Jktu3fS60RAJ
 disable <- function(x) {
-  if (inherits(x, 'shiny.tag')) {
-    if (x$name %in% c('input', 'select', 'label'))
-      x$attribs$disabled <- 'disabled'
-    x$children <- disable(x$children)
-  }
-  else if (is.list(x) && length(x) > 0) {
-    for (i in 1:length(x))
-      x[[i]] <- disable(x[[i]])
-  }
-  x
+    if (inherits(x, "shiny.tag")) {
+        if (x$name %in% c("input", "select", "label"))
+            x$attribs$disabled <- "disabled"
+        x$children <- disable(x$children)
+    }
+    else if (is.list(x) && length(x) > 0) {
+        for (i in 1:length(x))
+            x[[i]] <- disable(x[[i]])
+    }
+    x
 }
-conditionalDisable <- function(widget, condition) {
+
+conditional_disable <- function(widget, condition) {
     if (condition)
         disable(widget)
     else
