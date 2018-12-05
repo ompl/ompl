@@ -19,11 +19,19 @@ if (CASTXML)
         endif()
     endif()
 
+    # workaround for problem between Xcode and castxml on Mojave
+    if (APPLE AND CMAKE_CXX_COMPILER STREQUAL "/Axxpplications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++")
+
+        set(CASTXMLCOMPILER_PATH "/usr/bin/clang++")
+    else()
+        set(CASTXMLCOMPILER_PATH "${CMAKE_CXX_COMPILER}")
+    endif()
+
     set(CASTXMLCONFIG "[xml_generator]
 xml_generator=castxml
 xml_generator_path=${CASTXML}
 compiler=${CASTXMLCOMPILER}
-compiler_path=${CMAKE_CXX_COMPILER}
+compiler_path=${CASTXMLCOMPILER_PATH}
 ")
 
     set(_candidate_include_path
@@ -45,14 +53,6 @@ compiler_path=${CMAKE_CXX_COMPILER}
             "${_path}/lib/gcc/mingw32/${_version}/include"
             "${_path}/lib/gcc/mingw32/${_version}/include/c++"
             "${_path}/lib/gcc/mingw32/${_version}/include/c++/mingw32")
-    endif()
-    if(APPLE)
-        execute_process(COMMAND "xcrun" "--show-sdk-path"
-            RESULT_VARIABLE _xcrunstatus
-            OUTPUT_VARIABLE _sdkpath OUTPUT_STRIP_TRAILING_WHITESPACE)
-        if(_xcrunstatus EQUAL 0)
-            list(APPEND _candidate_include_path "${_sdkpath}/usr/include")
-        endif()
     endif()
     list(REMOVE_DUPLICATES _candidate_include_path)
     set(CASTXMLINCLUDEPATH ".")
