@@ -5,11 +5,11 @@ The OMPL Planner Arena code allows you to easily create plots from a benchmark d
 ## Dependencies
 
 - R 3.1.0 or higher
-  \note The R packages on Ubuntu (and likely other Linux distributions) are too old. See the [CRAN Ubuntu page](https://cran.r-project.org/bin/linux/ubuntu/README.html) for details on how to get packages for the latest version of R.
+  \note The R packages on Ubuntu 14.04 (and likely other Linux distributions) are too old. See the [CRAN Ubuntu page](https://cran.r-project.org/bin/linux/ubuntu/README.html) for details on how to get packages for the latest version of R.
 - On Ubuntu you need to install libv8-dev.
-- The following R packages: shiny, shinyjs, V8, dplyr, dbply, tidyr, ggplot2, Hmisc, RSQLite, and markdown. These packages can be installed like so:
+- The following R packages: shinyjs, V8, tidyverse, Hmisc, RSQLite, and markdown. These packages can be installed like so:
 
-      sudo R -e "install.packages(c('shiny', 'shinyjs', 'V8', 'dplyr', 'dbplyr', 'tidyr', 'ggplot2', 'Hmisc', 'RSQLite', 'markdown'), repos='http://cran.r-project.org')"
+      R -e "install.packages(c('shinyjs', 'V8', 'tidyverse', 'Hmisc', 'RSQLite', 'markdown'), repos='http://cran.r-project.org')"
 
 ## Running
 

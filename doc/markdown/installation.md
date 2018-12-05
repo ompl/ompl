@@ -90,11 +90,16 @@ cmake ../..</pre></li>
     <div class="tab-content">
       <div role="tabpanel" class="tab-pane active" id="osxmacports">
         Install <a href="http://www.macports.org">MacPorts</a> and type:<pre class="fragment">sudo port sync \; install ompl</pre>
+        If you want to build OMPL from source, you can install just the OMPL dependencies like so:
+        <pre class="fragment">sudo port install `port -q info --depends ompl | sed 's/,//g'`</pre>
       </div>
       <div role="tabpanel" class="tab-pane" id="osxhomebrew">
         Install <a href="http://brew.sh">Homebrew</a> and type:
         <pre class="fragment">brew install ompl</pre>
-        Note that the <a href="http://braumeister.org/formula/ompl">Homebrew formula</a> does not include Python bindings.
+        Note that the <a href="http://braumeister.org/formula/ompl">Homebrew formula</a> does not include Python bindings. You could install all the dependencies for OMPL and the python bindings and build OMPL from source:
+        <pre class="fragment">brew install eigen castxml numpy boost-python3 pypy3 flann</pre>
+        Make sure to use Homebrew's python3 in that case by calling <code>cmake</code> like so:
+        <pre class="fragment">cmake -DPYTHON_EXEC=/usr/local/bin/python3 ...</pre>
       </div>
     </div>
   </div>
