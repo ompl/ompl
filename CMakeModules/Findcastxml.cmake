@@ -20,7 +20,7 @@ if (CASTXML)
     endif()
 
     # workaround for problem between Xcode and castxml on Mojave
-    if (APPLE AND CMAKE_CXX_COMPILER STREQUAL "/Axxpplications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++")
+    if (APPLE AND CMAKE_CXX_COMPILER MATCHES "/Applications/Xcode.app/Contents/Developer/Toolchains/.*")
 
         set(CASTXMLCOMPILER_PATH "/usr/bin/clang++")
     else()
