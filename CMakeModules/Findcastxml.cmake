@@ -41,7 +41,8 @@ compiler_path=${CASTXMLCOMPILER_PATH}
         "${Boost_INCLUDE_DIR}"
         "${ASSIMP_INCLUDE_DIRS}"
         "${EIGEN3_INCLUDE_DIR}"
-        "${OMPL_INCLUDE_DIR}/../py-bindings")
+        "${CMAKE_SOURCE_DIR}/py-bindings"
+        "${CMAKE_SOURCE_DIR}/ompl/py-bindings")
     if(MINGW)
         execute_process(COMMAND "${CMAKE_CXX_COMPILER}" "-dumpversion"
             OUTPUT_VARIABLE _version OUTPUT_STRIP_TRAILING_WHITESPACE)

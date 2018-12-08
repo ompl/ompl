@@ -29,11 +29,11 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 
 set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
     CACHE FILEPATH "Path to directory with auxiliary CMake scripts for OMPL")
-set(OMPL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(OMPL_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src;${CMAKE_CURRENT_BINARY_DIR}/src")
 set(OMPL_DEMO_INSTALL_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ompl/demos"
     CACHE STRING "Relative path to directory where demos will be installed")
 
-include_directories("${OMPL_INCLUDE_DIR}")
+include_directories("${OMPL_INCLUDE_DIRS}")
 
 if(MSVC)
     add_definitions(-DBOOST_ALL_NO_LIB)
@@ -175,16 +175,18 @@ add_subdirectory(demos)
 add_subdirectory(scripts)
 add_subdirectory(doc)
 
-target_link_flags(ompl)
-set(PKG_NAME "ompl")
-set(PKG_DESC "The Open Motion Planning Library")
-set(PKG_EXTERNAL_DEPS "${ompl_PKG_DEPS}")
-set(PKG_OMPL_LIBS "-lompl ${ompl_LINK_FLAGS}")
-set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
-configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
-install(FILES "${pkg_conf_file}"
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
-  COMPONENT ompl)
+if(NOT MSVC)
+    target_link_flags(ompl)
+    set(PKG_NAME "ompl")
+    set(PKG_DESC "The Open Motion Planning Library")
+    set(PKG_EXTERNAL_DEPS "${ompl_PKG_DEPS}")
+    set(PKG_OMPL_LIBS "-lompl ${ompl_LINK_FLAGS}")
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc.in"
+                   "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc" @ONLY)
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+        COMPONENT ompl)
+endif()
 
 include(CMakePackageConfigHelpers)
 set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR})
