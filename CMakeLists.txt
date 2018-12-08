@@ -1,9 +1,6 @@
-cmake_minimum_required(VERSION 2.8)
-cmake_policy(SET CMP0017 NEW)
-if(NOT ${CMAKE_VERSION} VERSION_LESS 3.0.0)
-    cmake_policy(SET CMP0042 NEW)
-endif()
-project(ompl CXX C)
+cmake_minimum_required(VERSION 3.5)
+project(omplapp VERSION 1.5.0 LANGUAGES CXX)
+set(OMPL_ABI_VERSION 16)
 
 # set the default build type
 if (NOT CMAKE_BUILD_TYPE)
@@ -16,13 +13,7 @@ if (NOT CMAKE_BUILD_TYPE)
     endif()
 endif()
 
-message(STATUS "Building ${CMAKE_BUILD_TYPE}")
-
-# This shouldn't be necessary, but there has been trouble
-# with MSVC being set off, but MSVCXX ON.
-if(MSVC OR MSVC90 OR MSVC10)
-    set(MSVC ON)
-endif (MSVC OR MSVC90 OR MSVC10)
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_MODULE_PATH
     "${CMAKE_MODULE_PATH}"
@@ -31,11 +22,10 @@ set(CMAKE_MODULE_PATH
 include(GNUInstallDirs)
 include(FeatureSummary)
 include(CompilerSettings)
-include(OMPLVersion)
 include(OMPLUtils)
 
-set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin")
-set(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 
 set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
     CACHE FILEPATH "Path to directory with auxiliary CMake scripts for OMPL")
@@ -59,7 +49,7 @@ endif(IS_ICPC)
 set_package_properties(Boost PROPERTIES
     URL "http://boost.org"
     PURPOSE "Used throughout OMPL for data serialization, graphs, etc.")
-find_package(Boost 1.54 QUIET REQUIRED COMPONENTS serialization filesystem system program_options)
+find_package(Boost 1.58 QUIET REQUIRED COMPONENTS serialization filesystem system program_options)
 include_directories(${Boost_INCLUDE_DIR})
 
 # Add support in Boost::Python for std::shared_ptr
@@ -158,6 +148,11 @@ if (SPOT_FOUND)
     link_directories(${SPOT_LIBRARY_DIRS})
 endif()
 
+set_package_properties(Doxygen PROPERTIES
+    URL "http://doxygen.org"
+    PURPOSE "Used to create the OMPL documentation (i.e., http://ompl.kavrakilab.org).")
+find_package(Doxygen)
+
 # Numpy is used to convert Eigen matrices/vectors to numpy arrays
 if(PYTHON_FOUND AND NOT Boost_VERSION VERSION_LESS "106300")
     find_python_module(numpy)
@@ -189,27 +184,24 @@ set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc")
 configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
 install(FILES "${pkg_conf_file}"
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
-  COMPONENT ompl
-  RENAME "ompl.pc")
+  COMPONENT ompl)
 
-if (NOT ${CMAKE_VERSION} VERSION_LESS 2.8.8)
-    include(CMakePackageConfigHelpers)
-    set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR})
-    set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
-    configure_package_config_file(omplConfig.cmake.in
-        ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
-        INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
-        PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
-        NO_CHECK_REQUIRED_COMPONENTS_MACRO)
-    write_basic_package_version_file(
-        ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
-        VERSION ${OMPL_VERSION}
-        COMPATIBILITY SameMajorVersion)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
-        COMPONENT ompl)
-endif()
+include(CMakePackageConfigHelpers)
+set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR})
+set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
+configure_package_config_file(omplConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
+    PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
+    NO_CHECK_REQUIRED_COMPONENTS_MACRO)
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
+    VERSION ${OMPL_VERSION}
+    COMPATIBILITY SameMajorVersion)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
+    COMPONENT ompl)
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ompl.conf"
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl"
@@ -217,7 +209,7 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ompl.conf"
 
 # script to install ompl on Ubuntu
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/install-ompl-ubuntu.sh.in"
-  "${CMAKE_CURRENT_SOURCE_DIR}/install-ompl-ubuntu.sh" @ONLY)
+  "${CMAKE_CURRENT_BINARY_DIR}/install-ompl-ubuntu.sh" @ONLY)
 
 # uninstall target
 configure_file(

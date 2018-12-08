@@ -5,7 +5,7 @@ if(NOT CASTXML)
 endif()
 
 if (CASTXML)
-    set(CASTXMLCFLAGS "-std=c++11 $ENV{CASTXMLCFLAGS}")
+    set(CASTXMLCFLAGS "-std=c++14 $ENV{CASTXMLCFLAGS}")
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         set(CASTXMLCOMPILER "g++")
@@ -35,12 +35,11 @@ compiler_path=${CASTXMLCOMPILER_PATH}
 ")
 
     set(_candidate_include_path
-        "${OMPL_INCLUDE_DIR}"
-        "${OMPLAPP_INCLUDE_DIR}"
+        "${OMPL_INCLUDE_DIRS}"
+        "${OMPLAPP_INCLUDE_DIRS}"
         "${PYTHON_INCLUDE_DIRS}"
         "${Boost_INCLUDE_DIR}"
         "${ASSIMP_INCLUDE_DIRS}"
-        "${ODEINT_INCLUDE_DIR}"
         "${EIGEN3_INCLUDE_DIR}"
         "${OMPL_INCLUDE_DIR}/../py-bindings")
     if(MINGW)

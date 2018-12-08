@@ -1,4 +1,4 @@
-find_package(Boost 1.54 QUIET COMPONENTS unit_test_framework)
+find_package(Boost 1.58 QUIET COMPONENTS unit_test_framework)
 if(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
     option(OMPL_BUILD_TESTS "Build OMPL tests" ON)
 else()
@@ -6,16 +6,10 @@ else()
 endif()
 add_feature_info(OMPL_BUILD_TESTS "${OMPL_BUILD_TESTS}" "Whether to build the unit tests.")
 
-# configure location of resources (which are used by some demos, so this needs
-# to be outside of if-statement below)
-file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/resources" TEST_RESOURCES_DIR)
-if(WIN32)
-    # Correct directory separator for Windows
-    string(REPLACE "\\" "\\\\" TEST_RESOURCES_DIR "${TEST_RESOURCES_DIR}")
-endif(WIN32)
-configure_file("${TEST_RESOURCES_DIR}/config.h.in" "${TEST_RESOURCES_DIR}/config.h")
-
 if (OMPL_BUILD_TESTS)
+    file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/resources" TEST_RESOURCES_DIR)
+    add_definitions(-DTEST_RESOURCES_DIR=\"${TEST_RESOURCES_DIR}\")
+
     # Test datastructures implementation
     add_ompl_test(test_heap datastructures/heap.cpp)
     add_ompl_test(test_grid datastructures/grid.cpp)

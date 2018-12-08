@@ -4,7 +4,7 @@
 
 ## Ubuntu
 
-For Ubuntu 15.10 and newer you can install `castxml` with `sudo apt-get install castxml`.
+Install `castxml` with `sudo apt-get install castxml`.
 
 The pygccxml and Py++ packages can be installed with `pip` (a package manager specifically for Python packages):
 

@@ -28,7 +28,7 @@ CForest is designed to be used with any random tree algorithm under the followin
 
 CForest has been included into OMPL as a new [optimizing planner](optimalPlanning.html) called ompl::geometric::CForest.
 
-\Note CForest is designed to optimize path lengths. In OMPL, it is possible to optimize with respect to an arbitrary optimization objective. Therefore, the requirements for CForest in OMPL are not for the _state space_ but for the _optimization objective_. It requires an optimization objective with an admissible heuristic. Since this is complex to check, a warning is shown if the state space is not a metric space (although this does not mean that the optimization objective is not valid to be used with CForest).
+\note CForest is designed to optimize path lengths. In OMPL, it is possible to optimize with respect to an arbitrary optimization objective. Therefore, the requirements for CForest in OMPL are not for the _state space_ but for the _optimization objective_. It requires an optimization objective with an admissible heuristic. Since this is complex to check, a warning is shown if the state space is not a metric space (although this does not mean that the optimization objective is not valid to be used with CForest).
 
 Currently RRT* (ompl::geometric::RRTstar) is the only underlying planner available, since it is the only single-query, incremental, asympotically optimal planning algorithm implemented in OMPL.
 

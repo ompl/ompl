@@ -47,7 +47,6 @@
 
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 
-#include "../../resources/config.h"
 #include "../../resources/environment2D.h"
 
 namespace ompl

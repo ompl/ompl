@@ -1,16 +1,6 @@
-if (CMAKE_VERSION VERSION_LESS "3.1")
-    # force C++11 mode (MS Visual Studio doesn't know about this flag)
-    if(NOT MSVC)
-        add_definitions(-std=c++11)
-    endif()
-else()
-    set(CMAKE_CXX_STANDARD 11)
-    set(CMAKE_CXX_STANDARD_REQUIRED ON)
-    set(CMAKE_CXX_EXTENSIONS OFF)
-    # this next line shouldn't be necessary, but doesn't always get added by cmake (e.g., for clang++-5)
-    add_definitions(-std=c++11)
-endif()
-
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-W -Wall -Wextra #-Wconversion
@@ -29,9 +19,9 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
 endif()
 
-if(MSVC OR MSVC90 OR MSVC10)
+if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /W1 -DNOMINMAX")
-endif(MSVC OR MSVC90 OR MSVC10)
+endif(MSVC)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     set(IS_ICPC 1)

@@ -43,7 +43,6 @@
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/geometric/PathGeometric.h"
 
-#include "../../resources/config.h"
 #include "../../resources/circles2D.h"
 
 namespace ompl
@@ -126,7 +125,7 @@ namespace ompl
             }
             return toReturn;
         }
-   
+
     }
 }
 

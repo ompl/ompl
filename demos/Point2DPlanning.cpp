@@ -41,7 +41,6 @@
 #include <ompl/util/PPM.h>
 
 #include <ompl/config.h>
-#include <../tests/resources/config.h>
 
 #include <boost/filesystem.hpp>
 #include <iostream>
@@ -110,7 +109,7 @@ public:
             ss_->getPathSimplifier()->smoothBSpline(p);
             return true;
         }
-        
+
             return false;
     }
 

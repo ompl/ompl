@@ -43,7 +43,6 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/ClassForward.h"
 
-#include <boost/version.hpp>
 #include <boost/numeric/odeint/stepper/runge_kutta4.hpp>
 #include <boost/numeric/odeint/stepper/runge_kutta_cash_karp54.hpp>
 #include <boost/numeric/odeint/stepper/controlled_runge_kutta.hpp>
@@ -313,14 +312,7 @@ namespace ompl
             void solve(StateType &state, const Control *control, double duration) const override
             {
                 ODESolver::ODEFunctor odefunc(ode_, control);
-
-#if BOOST_VERSION < 105600
-                odeint::controlled_runge_kutta<Solver> solver(
-                    odeint::default_error_checker<double>(maxError_, maxEpsilonError_));
-#else
-                typename boost::numeric::odeint::result_of::make_controlled<Solver>::type solver =
-                    make_controlled(1.0e-6, 1.0e-6, Solver());
-#endif
+                auto solver = make_controlled(1.0e-6, 1.0e-6, Solver());
                 odeint::integrate_adaptive(solver, odefunc, state, 0.0, duration, intStep_);
             }
 
