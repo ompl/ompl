@@ -49,7 +49,7 @@
 
 // This is a convenient macro to cast the void* graph pointer as the
 // Boost.Graph structure from PlannerDataGraph.h
-#define graph_ reinterpret_cast<ompl::base::PlannerData::Graph *>(graphRaw_)
+#define graph_ (reinterpret_cast<ompl::base::PlannerData::Graph *>(graphRaw_))
 
 const ompl::base::PlannerDataEdge ompl::base::PlannerData::NO_EDGE = ompl::base::PlannerDataEdge();
 const ompl::base::PlannerDataVertex ompl::base::PlannerData::NO_VERTEX = ompl::base::PlannerDataVertex(nullptr);

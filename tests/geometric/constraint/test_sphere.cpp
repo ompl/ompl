@@ -419,7 +419,7 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
     {                                                                                                                  \
         if (VERBOSE)                                                                                                   \
             printf("\n\n\n*****************************\nTesting %s %s ...\n", #Type, #Name);                          \
-        runAllTests<Name##Test, Type>(MinSuccess, MaxAvgTime * MACHINE_SPEED_FACTOR);                                  \
+        runAllTests<Name##Test, Type>(MinSuccess, (MaxAvgTime) * MACHINE_SPEED_FACTOR);                                  \
         if (VERBOSE)                                                                                                   \
             printf("Done with %s.\n", #Name);                                                                          \
     }
