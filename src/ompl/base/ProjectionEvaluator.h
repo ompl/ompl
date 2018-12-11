@@ -59,7 +59,7 @@ namespace ompl
         {
         public:
             /** \brief Datatype for projection matrices */
-            typedef Eigen::MatrixXd Matrix;
+            using Matrix = Eigen::MatrixXd;
 
             /** \brief Compute a random projection matrix with \e from
                 columns and \e to rows. A vector with \e from elements

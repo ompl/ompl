@@ -163,19 +163,19 @@ namespace detail {
     template <typename T, bool B>
     struct wrapHelper
     {
-        typedef boost::reference_wrapper<typename boost::remove_reference<T>::type> return_type;
+        using return_type = boost::reference_wrapper<typename boost::remove_reference<T>::type>;
         static inline return_type wrap(T t) { return boost::ref(t); }
     };
     template<typename T>
     struct wrapHelper<T, true>
     {
-        typedef typename boost::remove_reference<T>::type return_type;
+        using return_type = typename boost::remove_reference<T>::type;
         static inline return_type wrap(T t) { return t; }
     };
     template <typename T>
     struct wrapType<T, false, true>
     {
-        typedef boost::is_fundamental<typename boost::remove_cv<typename boost::remove_reference<T>::type>::type> isFunType;
+        using isFunType = boost::is_fundamental<typename boost::remove_cv<typename boost::remove_reference<T>::type>::type>;
 
         static inline typename wrapHelper<T, isFunType::value>::return_type wrap(T t)
         {
@@ -233,7 +233,7 @@ void def_function(const char* func_name, const char* func_doc)
 {
     BOOST_STATIC_ASSERT( boost::function_types::is_function< FT >::value ) ;
     namespace bp = boost::python;
-    typedef std::function<FT> function_t;
+    using function_t = std::function<FT>;
     bp::class_< function_t >
     (func_name, func_doc, bp::no_init)
         .def("__call__", &function_t::operator() )

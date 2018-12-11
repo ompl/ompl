@@ -73,7 +73,7 @@ namespace ompl
         /** \brief If no state validity checking class is specified
             (StateValidityChecker), a std::function can be specified
             instead */
-        typedef std::function<bool(const State *)> StateValidityCheckerFn;
+        using StateValidityCheckerFn = std::function<bool(const State *)>;
 
         /** \brief The base class for space information. This contains
             all the information about the space planning is done in.

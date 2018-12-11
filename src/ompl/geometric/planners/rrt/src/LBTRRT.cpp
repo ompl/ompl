@@ -324,7 +324,7 @@ void ompl::geometric::LBTRRT::considerEdge(Motion *parent, Motion *child, double
     // insert them into a priority queue ordered according to the lb cost
     std::list<std::size_t>::iterator iter;
     IsLessThanLB isLessThanLB(this);
-    Lb_queue queue(isLessThanLB);
+    std::set<Motion *, IsLessThanLB> queue(isLessThanLB);
 
     for (iter = affected.begin(); iter != affected.end(); ++iter)
     {

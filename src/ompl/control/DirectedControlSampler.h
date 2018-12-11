@@ -100,7 +100,7 @@ namespace ompl
         };
 
         /** \brief Definition of a function that can allocate a directed control sampler */
-        typedef std::function<DirectedControlSamplerPtr(const SpaceInformation *)> DirectedControlSamplerAllocator;
+        using DirectedControlSamplerAllocator = std::function<DirectedControlSamplerPtr(const SpaceInformation *)>;
     }
 }
 

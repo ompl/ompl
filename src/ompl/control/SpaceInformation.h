@@ -62,8 +62,8 @@ namespace ompl
             \brief A shared pointer wrapper for ompl::control::SpaceInformation */
 
         /** \brief A function that achieves state propagation.*/
-        typedef std::function<void(const base::State *, const Control *, const double, base::State *)>
-            StatePropagatorFn;
+        using StatePropagatorFn =
+            std::function<void(const base::State *, const Control *, const double, base::State *)>;
 
         /** \brief Space information containing necessary information for planning with controls. setup() needs to be
          * called before use. */

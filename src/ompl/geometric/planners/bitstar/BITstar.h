@@ -121,30 +121,30 @@ namespace ompl
             class SearchQueue;
             // Helpful alias declarations:
             /** \brief A vertex shared pointer. */
-            typedef std::shared_ptr<Vertex> VertexPtr;
+            using VertexPtr = std::shared_ptr<Vertex>;
             /** \brief A \e constant vertex shared pointer. */
-            typedef std::shared_ptr<const Vertex> VertexConstPtr;
+            using VertexConstPtr = std::shared_ptr<const Vertex>;
             /** \brief A vertex weak pointer. */
-            typedef std::weak_ptr<Vertex> VertexWeakPtr;
+            using VertexWeakPtr = std::weak_ptr<Vertex>;
             /** \brief A vector of shared pointers. */
-            typedef std::vector<VertexPtr> VertexPtrVector;
+            using VertexPtrVector = std::vector<VertexPtr>;
             /** \brief A vector of shared const pointers. */
-            typedef std::vector<VertexConstPtr> VertexConstPtrVector;
+            using VertexConstPtrVector = std::vector<VertexConstPtr>;
             /** \brief The vertex id type */
-            typedef unsigned int VertexId;
+            using VertexId = unsigned int;
             /** \brief A pair of vertices, i.e., an edge. */
-            typedef std::pair<VertexPtr, VertexPtr> VertexPtrPair;
+            using VertexPtrPair = std::pair<VertexPtr, VertexPtr>;
             /** \brief A pair of const vertices, i.e., an edge. */
-            typedef std::pair<VertexConstPtr, VertexConstPtr> VertexConstPtrPair;
+            using VertexConstPtrPair = std::pair<VertexConstPtr, VertexConstPtr>;
             /** \brief A vector of pairs of vertices, i.e., a vector of edges. */
-            typedef std::vector<VertexPtrPair> VertexPtrPairVector;
+            using VertexPtrPairVector = std::vector<VertexPtrPair>;
             /** \brief A vector of pairs of const vertices, i.e., a vector of edges. */
-            typedef std::vector<VertexConstPtrPair> VertexConstPtrPairVector;
+            using VertexConstPtrPairVector = std::vector<VertexConstPtrPair>;
             /** \brief The OMPL::NearestNeighbors structure. */
-            typedef std::shared_ptr<NearestNeighbors<VertexPtr>> VertexPtrNNPtr;
+            using VertexPtrNNPtr = std::shared_ptr<NearestNeighbors<VertexPtr>>;
 
             /** \brief A utility functor for ImplicitGraph and SearchQueue */
-            typedef std::function<std::string()> NameFunc;
+            using NameFunc = std::function<std::string()>;
 
             /** \brief Construct! */
             BITstar(const base::SpaceInformationPtr &si, const std::string &name = "BITstar");

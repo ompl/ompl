@@ -44,6 +44,6 @@
     will produce type definitions for MyType and MyTypePtr. */
 #define OMPL_CLASS_FORWARD(C)                                                                                          \
     class C;                                                                                                           \
-    typedef std::shared_ptr<C> C##Ptr
+    using C##Ptr = std::shared_ptr<C>
 
 #endif

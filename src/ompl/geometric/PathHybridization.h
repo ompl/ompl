@@ -114,19 +114,18 @@ namespace ompl
             /// @cond IGNORE
             struct vertex_state_t
             {
-                typedef boost::vertex_property_tag kind;
+                using kind = boost::vertex_property_tag;
             };
 
-            typedef boost::adjacency_list<
+            using HGraph = boost::adjacency_list<
                 boost::vecS, boost::vecS, boost::undirectedS,
                 boost::property<vertex_state_t, base::State *,
                                 boost::property<boost::vertex_predecessor_t, unsigned long int,
                                                 boost::property<boost::vertex_rank_t, base::Cost>>>,
-                boost::property<boost::edge_weight_t, base::Cost>>
-                HGraph;
+                boost::property<boost::edge_weight_t, base::Cost>>;
 
-            typedef boost::graph_traits<HGraph>::vertex_descriptor Vertex;
-            typedef boost::graph_traits<HGraph>::edge_descriptor Edge;
+            using Vertex = boost::graph_traits<HGraph>::vertex_descriptor;
+            using Edge = boost::graph_traits<HGraph>::edge_descriptor;
 
             struct PathInfo
             {

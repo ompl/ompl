@@ -264,7 +264,7 @@ namespace ompl
             };
 
             /** \brief The datatype for the maintained grid datastructure */
-            typedef GridB<CellData *, OrderCellsByImportance> Grid;
+            using Grid = GridB<CellData *, OrderCellsByImportance>;
 
             /** \brief Information about a known good sample (closer to the goal than others) */
             struct CloseSample

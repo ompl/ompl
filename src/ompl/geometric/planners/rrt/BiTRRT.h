@@ -212,7 +212,7 @@ namespace ompl
 
             /// \brief The nearest-neighbors data structure that contains the
             /// entire the tree of motions generated during planning.
-            typedef std::shared_ptr<NearestNeighbors<Motion *>> TreeData;
+            using TreeData = std::shared_ptr<NearestNeighbors<Motion *>>;
 
             /// \brief Add a state to the given tree.  The motion created
             /// is returned.

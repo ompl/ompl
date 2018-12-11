@@ -539,8 +539,8 @@ namespace ompl
             {
                 // Variable:
                 // The container ordered on vertex depth:
-                typedef std::unordered_map<BITstar::VertexId, VertexPtr> VertexIdToVertexPtrUMap;
-                typedef std::map<unsigned int, VertexIdToVertexPtrUMap> DepthToUMapMap;
+                using VertexIdToVertexPtrUMap = std::unordered_map<BITstar::VertexId, VertexPtr>;
+                using DepthToUMapMap = std::map<unsigned int, VertexIdToVertexPtrUMap>;
                 DepthToUMapMap uniqueResorts;
                 // The number of vertices and samples pruned, respectively:
                 std::pair<unsigned int, unsigned int> numPruned(0u, 0u);

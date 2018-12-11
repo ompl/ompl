@@ -421,7 +421,7 @@ namespace ompl
 
             /** \brief A binary heap for storing explored motions in
                 cost-to-come sorted order */
-            typedef ompl::BinaryHeap<Motion *, MotionCompare> MotionBinHeap;
+            using MotionBinHeap = ompl::BinaryHeap<Motion *, MotionCompare>;
 
             /** \brief A binary heap for storing explored motions in
                 cost-to-come sorted order. The motions in Open have been explored,

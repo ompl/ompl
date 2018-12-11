@@ -66,7 +66,7 @@ namespace ompl
         class VFRRT : public RRT
         {
         public:
-            typedef std::function<Eigen::VectorXd(const base::State *)> VectorField;
+            using VectorField = std::function<Eigen::VectorXd(const base::State *)>;
 
             /** Constructor. */
             VFRRT(const base::SpaceInformationPtr &si, VectorField vf, double exploration, double initial_lambda,
