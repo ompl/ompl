@@ -110,7 +110,7 @@ ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr &sp
 
 void ompl::base::ConstrainedStateSpace::constrainedSanityChecks(unsigned int flags) const
 {
-    StateType *s1 = allocState()->as<StateType>();
+    auto *s1 = allocState()->as<StateType>();
     State *s2 = allocState();
     StateSamplerPtr ss = allocStateSampler();
 
@@ -288,7 +288,7 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::geodesicInterpolate(const 
                                                                           const double t) const
 {
     unsigned int n = geodesic.size();
-    double *d = new double[n];
+    auto *d = new double[n];
 
     // Compute partial sums of distances between intermediate states.
     d[0] = 0.;

@@ -597,7 +597,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 getName().c_str(), statesGenerated, rewireTest, goalMotions_.size(), bestCost_.value());
 
     // We've added a solution if newSolution == true, and it is an approximate solution if bestGoalMotion_ == false
-    return base::PlannerStatus(newSolution != nullptr, bestGoalMotion_ == nullptr);
+    return {newSolution != nullptr, bestGoalMotion_ == nullptr};
 }
 
 void ompl::geometric::RRTstar::getNeighbors(Motion *motion, std::vector<Motion *> &nbh) const

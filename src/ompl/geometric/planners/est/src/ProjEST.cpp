@@ -185,7 +185,7 @@ ompl::base::PlannerStatus ompl::geometric::ProjEST::solve(const base::PlannerTer
 
     OMPL_INFORM("%s: Created %u states in %u cells", getName().c_str(), tree_.size, tree_.grid.size());
 
-    return base::PlannerStatus(solved, approximate);
+    return {solved, approximate};
 }
 
 ompl::geometric::ProjEST::Motion *ompl::geometric::ProjEST::selectMotion()

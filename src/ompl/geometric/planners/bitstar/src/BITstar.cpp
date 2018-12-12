@@ -400,8 +400,8 @@ namespace ompl
             // Our returned solution will only be approximate if it is not exact and we are finding approximate
             // solutions.
             // PlannerStatus(addedSolution, approximate)
-            return ompl::base::PlannerStatus(hasExactSolution_ || graphPtr_->getTrackApproximateSolutions(),
-                                             !hasExactSolution_ && graphPtr_->getTrackApproximateSolutions());
+            return {hasExactSolution_ || graphPtr_->getTrackApproximateSolutions(),
+                                             !hasExactSolution_ && graphPtr_->getTrackApproximateSolutions()};
         }
 
         void BITstar::getPlannerData(ompl::base::PlannerData &data) const

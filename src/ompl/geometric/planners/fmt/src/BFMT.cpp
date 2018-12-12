@@ -441,7 +441,7 @@ namespace ompl
             }
 
             // Planner terminated without accomplishing goal
-            return base::PlannerStatus(false, false);
+            return {false, false};
         }
 
         void BFMT::expandTreeFromNode(BiDirMotion *&z, BiDirMotion *&connection_point)

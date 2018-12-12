@@ -164,7 +164,7 @@ ompl::base::PlannerStatus ompl::geometric::PDST::solve(const base::PlannerTermin
 
     OMPL_INFORM("%s: Created %u states and %u cells", getName().c_str(), priorityQueue_.size(), bsp_->size());
 
-    return base::PlannerStatus(hasSolution, isApproximate);
+    return {hasSolution, isApproximate};
 }
 
 ompl::geometric::PDST::Motion *ompl::geometric::PDST::propagateFrom(Motion *motion, base::State *start,

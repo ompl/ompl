@@ -401,8 +401,7 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
 
     std::vector<std::tuple<double, base::Cost, unsigned int>> distCostIndices;
     for (unsigned int i = 0; i < states.size() - 1; i++)
-        distCostIndices.push_back(
-            std::make_tuple(si->distance(states[i], states[i + 1]), obj_->motionCost(states[i], states[i + 1]), i));
+        distCostIndices.emplace_back(si->distance(states[i], states[i + 1]), obj_->motionCost(states[i], states[i + 1]), i);
 
     // Sort so highest costs are first
     std::sort(distCostIndices.begin(), distCostIndices.end(),
@@ -581,8 +580,8 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
             }
             distCostIndices.clear();
             for (unsigned int i = 0; i < states.size() - 1; i++)
-                distCostIndices.push_back(std::make_tuple(si->distance(states[i], states[i + 1]),
-                                                          obj_->motionCost(states[i], states[i + 1]), i));
+                distCostIndices.emplace_back(si->distance(states[i], states[i + 1]),
+                                                          obj_->motionCost(states[i], states[i + 1]), i);
 
             // Sort so highest costs are first
             std::sort(

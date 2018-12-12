@@ -859,7 +859,6 @@ ompl::base::CompoundStateSpace::CompoundStateSpace()
 
 ompl::base::CompoundStateSpace::CompoundStateSpace(const std::vector<StateSpacePtr> &components,
                                                    const std::vector<double> &weights)
-  : StateSpace(), componentCount_(0), weightSum_(0.0), locked_(false)
 {
     if (components.size() != weights.size())
         throw Exception("Number of component spaces and weights are not the same");

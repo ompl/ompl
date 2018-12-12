@@ -105,15 +105,15 @@ namespace ompl
         public:
             RRTXstatic(const base::SpaceInformationPtr &si);
 
-            virtual ~RRTXstatic();
+            ~RRTXstatic() override;
 
-            virtual void getPlannerData(base::PlannerData &data) const;
+            void getPlannerData(base::PlannerData &data) const override;
 
-            virtual base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            virtual void clear();
+            void clear() override;
 
-            virtual void setup();
+            void setup() override;
 
             /** \brief Set the goal bias
 

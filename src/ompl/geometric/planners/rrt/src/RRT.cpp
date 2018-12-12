@@ -157,7 +157,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 
                 for (std::size_t i = 1; i < states.size(); ++i)
                 {
-                    Motion *motion = new Motion;
+                    auto *motion = new Motion;
                     motion->state = states[i];
                     motion->parent = nmotion;
                     nn_->add(motion);
@@ -167,7 +167,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
             }
             else
             {
-                Motion *motion = new Motion(si_);
+                auto *motion = new Motion(si_);
                 si_->copyState(motion->state, dstate);
                 motion->parent = nmotion;
                 nn_->add(motion);
@@ -226,7 +226,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
 
-    return base::PlannerStatus(solved, approximate);
+    return {solved, approximate};
 }
 
 void ompl::geometric::RRT::getPlannerData(base::PlannerData &data) const

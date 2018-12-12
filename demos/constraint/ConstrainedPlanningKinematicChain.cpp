@@ -109,7 +109,7 @@ bool chainPlanningBench(ConstrainedProblem &cp, std::vector<enum PLANNER_TYPE> &
     cp.bench->addExperimentParameter("links", "INTEGER", std::to_string(cp.constraint->getAmbientDimension()));
 
     cp.runBenchmark();
-    return 0;
+    return false;
 }
 
 bool chainPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_TYPE> &planners, unsigned int links,

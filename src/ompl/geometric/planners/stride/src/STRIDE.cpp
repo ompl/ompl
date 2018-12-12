@@ -226,7 +226,7 @@ ompl::base::PlannerStatus ompl::geometric::STRIDE::solve(const base::PlannerTerm
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), tree_->size());
 
-    return base::PlannerStatus(solved, approximate);
+    return {solved, approximate};
 }
 
 void ompl::geometric::STRIDE::addMotion(Motion *motion)

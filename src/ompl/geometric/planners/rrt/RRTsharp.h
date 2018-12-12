@@ -72,7 +72,7 @@ namespace ompl
             /** \brief Overwrite of RRTXstatic setEpsilon. It does nothing but warn the user that this parameter cannot
              * be
              * changed */
-            void setEpsilon(double /*epsilon*/)
+            void setEpsilon(double /*epsilon*/) override
             {
                 OMPL_WARN("The parameter epsilon is 0 for the %s algorithm, it cannot be changed.", getName().c_str());
             }

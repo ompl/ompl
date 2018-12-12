@@ -472,7 +472,7 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
     }  // if plannerSuccess
 
     // Planner terminated without accomplishing goal
-    return base::PlannerStatus(false, false);
+    return {false, false};
 }
 
 void ompl::geometric::FMT::traceSolutionPathThroughTree(Motion *goalMotion)

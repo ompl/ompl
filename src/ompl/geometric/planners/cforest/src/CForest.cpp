@@ -206,7 +206,7 @@ ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTer
     // restore callback
     getProblemDefinition()->setIntermediateSolutionCallback(prevSolutionCallback);
     OMPL_INFORM("Solution found in %f seconds", time::seconds(time::now() - start));
-    return base::PlannerStatus(pdef_->hasSolution(), pdef_->hasApproximateSolution());
+    return {pdef_->hasSolution(), pdef_->hasApproximateSolution()};
 }
 
 std::string ompl::geometric::CForest::getBestCost() const

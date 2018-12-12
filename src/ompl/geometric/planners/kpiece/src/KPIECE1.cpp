@@ -206,7 +206,7 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
                 disc_.getMotionCount(), disc_.getCellCount(), disc_.getGrid().countInternal(),
                 disc_.getGrid().countExternal());
 
-    return base::PlannerStatus(solved, approximate);
+    return {solved, approximate};
 }
 
 void ompl::geometric::KPIECE1::getPlannerData(base::PlannerData &data) const

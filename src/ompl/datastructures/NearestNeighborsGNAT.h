@@ -42,12 +42,13 @@
 #ifdef GNAT_SAMPLER
 #include "ompl/datastructures/PDF.h"
 #endif
-#include "ompl/util/Exception.h"
-#include <unordered_set>
-#include <queue>
 #include <algorithm>
-#include <utility>
 #include <iostream>
+#include <queue>
+#include <random>
+#include <unordered_set>
+#include <utility>
+#include "ompl/util/Exception.h"
 
 namespace ompl
 {
@@ -581,7 +582,7 @@ namespace ompl
                     for (unsigned int i = 0; i < permutation.size(); ++i)
                         permutation[i] = i;
                     // for one-time use this is faster than using ompl::Permutation
-                    std::random_shuffle(permutation.begin(), permutation.end());
+                    std::shuffle(permutation.begin(), permutation.end(), std::mt19937(std::random_device()()));
 
                     for (unsigned int i = 0; i < children_.size(); ++i)
                         if (permutation[i] >= 0)
@@ -636,7 +637,7 @@ namespace ompl
                     for (unsigned int i = 0; i < permutation.size(); ++i)
                         permutation[i] = i;
                     // for one-time use this is faster than using ompl::Permutation
-                    std::random_shuffle(permutation.begin(), permutation.end());
+                    std::shuffle(permutation.begin(), permutation.end(), std::mt19937(std::random_device()()));
 
                     for (unsigned int i = 0; i < children_.size(); ++i)
                         if (permutation[i] >= 0)

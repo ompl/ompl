@@ -224,7 +224,7 @@ ompl::base::PlannerStatus ompl::geometric::EST::solve(const base::PlannerTermina
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), motions_.size());
 
-    return base::PlannerStatus(solved, approximate);
+    return {solved, approximate};
 }
 
 void ompl::geometric::EST::addMotion(Motion *motion, const std::vector<Motion *> &neighbors)

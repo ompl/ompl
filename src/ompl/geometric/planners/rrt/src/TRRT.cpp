@@ -359,7 +359,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nearestNeighbors_->size());
 
-    return base::PlannerStatus(solved, approximate);
+    return {solved, approximate};
 }
 
 void ompl::geometric::TRRT::getPlannerData(base::PlannerData &data) const

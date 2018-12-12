@@ -307,19 +307,19 @@ public:
             {
             }
 
-            unsigned int getDimension(void) const
+            unsigned int getDimension() const override
             {
                 return 2;
             }
 
-            void defaultCellSizes(void)
+            void defaultCellSizes() override
             {
                 cellSizes_.resize(2);
                 cellSizes_[0] = 0.1;
                 cellSizes_[1] = 0.1;
             }
 
-            void project(const ob::State *state, Eigen::Ref<Eigen::VectorXd> projection) const
+            void project(const ob::State *state, Eigen::Ref<Eigen::VectorXd> projection) const override
             {
                 auto &&x = *state->as<ob::ConstrainedStateSpace::StateType>();
                 const unsigned int s = 3 * (links_ - 1);
@@ -395,7 +395,7 @@ bool chainPlanningBench(ConstrainedProblem &cp, std::vector<enum PLANNER_TYPE> &
 
     cp.runBenchmark();
 
-    return 0;
+    return false;
 }
 
 bool chainPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_TYPE> &planners, unsigned int links,

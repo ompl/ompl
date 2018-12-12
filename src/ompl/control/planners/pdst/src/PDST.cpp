@@ -167,7 +167,7 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
 
     OMPL_INFORM("%s: Created %u states and %u cells", getName().c_str(), priorityQueue_.size(), bsp_->size());
 
-    return base::PlannerStatus(hasSolution, isApproximate);
+    return {hasSolution, isApproximate};
 }
 
 ompl::control::PDST::Motion *ompl::control::PDST::propagateFrom(Motion *motion, base::State *start, base::State *rnd)

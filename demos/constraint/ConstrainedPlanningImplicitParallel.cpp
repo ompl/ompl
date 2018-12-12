@@ -34,6 +34,8 @@
 
 /* Author: Zachary Kingston */
 
+#include <utility>
+
 #include "ConstrainedPlanningCommon.h"
 
 class ParallelBase
@@ -49,7 +51,7 @@ public:
     ParallelChain(const unsigned int n, Eigen::Vector3d offset, unsigned int links, unsigned int chainNum,
                   double length = 1, double jointRadius = 0.2)
       : ob::Constraint(n, links)
-      , offset_(offset)
+      , offset_(std::move(offset))
       , links_(links)
       , chainNum_(chainNum)
       , length_(length)
@@ -255,15 +257,15 @@ public:
     void getStart(Eigen::VectorXd &x) override
     {
         x = Eigen::VectorXd(3 * links_ * chains_);
-        for (unsigned int i = 0; i < constraints_.size(); ++i)
-            dynamic_cast<ParallelBase *>(constraints_[i])->getStart(x);
+        for (auto & constraint : constraints_)
+            dynamic_cast<ParallelBase *>(constraint)->getStart(x);
     }
 
     void getGoal(Eigen::VectorXd &x) override
     {
         x = Eigen::VectorXd(3 * links_ * chains_);
-        for (unsigned int i = 0; i < constraints_.size(); ++i)
-            dynamic_cast<ParallelBase *>(constraints_[i])->getGoal(x);
+        for (auto & constraint : constraints_)
+            dynamic_cast<ParallelBase *>(constraint)->getGoal(x);
     }
 
     ob::StateSpacePtr createSpace() const
@@ -326,18 +328,18 @@ public:
             {
             }
 
-            unsigned int getDimension(void) const
+            unsigned int getDimension() const override
             {
                 return 1;
             }
 
-            void defaultCellSizes(void)
+            void defaultCellSizes() override
             {
                 cellSizes_.resize(1);
                 cellSizes_[0] = 0.1;
             }
 
-            void project(const ob::State *state, Eigen::Ref<Eigen::VectorXd> projection) const
+            void project(const ob::State *state, Eigen::Ref<Eigen::VectorXd> projection) const override
             {
                 auto &&x = *state->as<ob::ConstrainedStateSpace::StateType>();
 
@@ -408,7 +410,7 @@ bool parallelPlanningBench(ConstrainedProblem &cp, std::vector<enum PLANNER_TYPE
 
     cp.runBenchmark();
 
-    return 0;
+    return false;
 }
 
 bool parallelPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_TYPE> &planners, unsigned int links,

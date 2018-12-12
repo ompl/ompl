@@ -346,7 +346,7 @@ ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTermi
     OMPL_INFORM("%s: Created %u states in %u cells (%u internal + %u external)", getName().c_str(), tree_.size,
                 tree_.grid.size(), tree_.grid.countInternal(), tree_.grid.countExternal());
 
-    return base::PlannerStatus(solved, approximate);
+    return {solved, approximate};
 }
 
 bool ompl::control::KPIECE1::selectMotion(Motion *&smotion, Grid::Cell *&scell)

@@ -72,7 +72,7 @@ namespace
             assert(mod2pi(alpha + t + q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
             return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType[0], t, p, q);
         }
-        return DubinsStateSpace::DubinsPath();
+        return {};
     }
 
     DubinsStateSpace::DubinsPath dubinsRSR(double d, double alpha, double beta)
@@ -90,7 +90,7 @@ namespace
             assert(mod2pi(alpha - t - q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
             return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType[1], t, p, q);
         }
-        return DubinsStateSpace::DubinsPath();
+        return {};
     }
 
     DubinsStateSpace::DubinsPath dubinsRSL(double d, double alpha, double beta)
@@ -108,7 +108,7 @@ namespace
             assert(mod2pi(alpha - t + q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
             return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType[2], t, p, q);
         }
-        return DubinsStateSpace::DubinsPath();
+        return {};
     }
 
     DubinsStateSpace::DubinsPath dubinsLSR(double d, double alpha, double beta)
@@ -126,7 +126,7 @@ namespace
             assert(mod2pi(alpha + t - q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
             return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType[3], t, p, q);
         }
-        return DubinsStateSpace::DubinsPath();
+        return {};
     }
 
     DubinsStateSpace::DubinsPath dubinsRLR(double d, double alpha, double beta)
@@ -144,7 +144,7 @@ namespace
             assert(mod2pi(alpha - t + p - q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
             return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType[4], t, p, q);
         }
-        return DubinsStateSpace::DubinsPath();
+        return {};
     }
 
     DubinsStateSpace::DubinsPath dubinsLRL(double d, double alpha, double beta)
@@ -162,13 +162,13 @@ namespace
             assert(mod2pi(alpha + t - p + q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
             return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType[5], t, p, q);
         }
-        return DubinsStateSpace::DubinsPath();
+        return {};
     }
 
     DubinsStateSpace::DubinsPath dubins(double d, double alpha, double beta)
     {
         if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
-            return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType[0], 0, d, 0);
+            return {DubinsStateSpace::dubinsPathType[0], 0, d, 0};
 
         DubinsStateSpace::DubinsPath path(dubinsLSL(d, alpha, beta)), tmp(dubinsRSR(d, alpha, beta));
         double len, minLength = path.length();

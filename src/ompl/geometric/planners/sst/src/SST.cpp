@@ -396,7 +396,7 @@ ompl::base::PlannerStatus ompl::geometric::SST::solve(const base::PlannerTermina
 
     OMPL_INFORM("%s: Created %u states in %u iterations", getName().c_str(), nn_->size(), iterations);
 
-    return base::PlannerStatus(solved, approximate);
+    return {solved, approximate};
 }
 
 void ompl::geometric::SST::getPlannerData(base::PlannerData &data) const

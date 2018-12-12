@@ -213,7 +213,7 @@ ompl::base::PlannerStatus ompl::control::EST::solve(const base::PlannerTerminati
 
     OMPL_INFORM("%s: Created %u states in %u cells", getName().c_str(), tree_.size, tree_.grid.size());
 
-    return base::PlannerStatus(solved, approximate);
+    return {solved, approximate};
 }
 
 ompl::control::EST::Motion *ompl::control::EST::selectMotion()

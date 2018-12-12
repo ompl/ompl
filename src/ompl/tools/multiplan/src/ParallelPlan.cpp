@@ -139,7 +139,7 @@ ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTe
         OMPL_WARN("ParallelPlan::solve(): Unable to find solution by any of the threads in %f seconds",
                   time::seconds(time::now() - start));
 
-    return base::PlannerStatus(pdef_->hasSolution(), pdef_->hasApproximateSolution());
+    return {pdef_->hasSolution(), pdef_->hasApproximateSolution()};
 }
 
 void ompl::tools::ParallelPlan::solveOne(base::Planner *planner, std::size_t minSolCount,

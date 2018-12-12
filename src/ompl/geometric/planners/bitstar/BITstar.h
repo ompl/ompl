@@ -150,7 +150,7 @@ namespace ompl
             BITstar(const base::SpaceInformationPtr &si, const std::string &name = "BITstar");
 
             /** \brief Destruct! */
-            virtual ~BITstar() override = default;
+            ~BITstar() override = default;
 
             /** \brief Setup */
             void setup() override;

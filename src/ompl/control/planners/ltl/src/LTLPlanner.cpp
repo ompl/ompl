@@ -141,7 +141,7 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
     }
 
     OMPL_INFORM("Created %u states", motions_.size());
-    return base::PlannerStatus(solved, false);
+    return {solved, false};
 }
 
 void ompl::control::LTLPlanner::getTree(std::vector<base::State *> &tree) const

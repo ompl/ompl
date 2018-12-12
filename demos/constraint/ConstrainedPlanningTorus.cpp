@@ -182,7 +182,7 @@ bool torusPlanningBench(ConstrainedProblem &cp, std::vector<enum PLANNER_TYPE> &
 {
     cp.setupBenchmark(planners, "torus");
     cp.runBenchmark();
-    return 0;
+    return false;
 }
 
 bool torusPlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_TYPE> &planners,

@@ -253,7 +253,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
 
-    return base::PlannerStatus(solved, !solved);
+    return {solved, !solved};
 }
 
 std::tuple<ompl::geometric::LazyLBTRRT::Motion *, ompl::base::State *, double> ompl::geometric::LazyLBTRRT::rrtExtend(

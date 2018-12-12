@@ -291,5 +291,5 @@ ompl::base::PlannerStatus ompl::geometric::VFRRT::solve(const base::PlannerTermi
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
 
-    return base::PlannerStatus(solved, approximate);
+    return {solved, approximate};
 }

@@ -328,7 +328,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTXstatic::solve(const base::Planner
             // Update neighbor motions neighbor datastructure
             for (auto it = motion->nbh.begin(); it != motion->nbh.end(); ++it)
             {
-                it->first->nbh.push_back(std::make_pair(motion, it->second));
+                it->first->nbh.emplace_back(motion, it->second);
             }
 
             // add motion to the tree
@@ -554,7 +554,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTXstatic::solve(const base::Planner
                 "%.3f",
                 getName().c_str(), statesGenerated, rewireTest, goalMotions_.size(), bestCost_.value());
 
-    return base::PlannerStatus(addedSolution, approximate);
+    return {addedSolution, approximate};
 }
 
 void ompl::geometric::RRTXstatic::updateQueue(Motion *x)

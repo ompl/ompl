@@ -346,10 +346,10 @@ ompl::base::AtlasChart *ompl::base::AtlasStateSpace::owningChart(const StateType
 
     double best = epsilon_;
     AtlasChart *chart = nullptr;
-    for (auto near = nearby.begin(); near != nearby.end(); ++near)
+    for (auto & near : nearby)
     {
         // The point must lie in the chart's validity region and polytope
-        auto owner = charts_[near->second];
+        auto owner = charts_[near.second];
         owner->psiInverse(*state, u_t);
         owner->phi(u_t, *temp);
 

@@ -735,7 +735,7 @@ namespace ompl
             std::vector<StateSpacePtr> components_;
 
             /** \brief The number of components */
-            unsigned int componentCount_{0};
+            unsigned int componentCount_{0u};
 
             /** \brief The weight assigned to each component of the state space when computing the compound distance */
             std::vector<double> weights_;

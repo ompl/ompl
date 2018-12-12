@@ -183,7 +183,7 @@ namespace ompl
 
             pdef_->addSolutionPath(candidateSolution.path_, approximate, approxdif, getName());
             solved = true;
-            return base::PlannerStatus(solved, approximate);
+            return {solved, approximate};
         }
 
         bool ThunderRetrieveRepair::repairPath(const base::PlannerTerminationCondition &ptc, PathGeometric &primaryPath)

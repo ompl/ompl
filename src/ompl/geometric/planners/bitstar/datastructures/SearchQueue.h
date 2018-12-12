@@ -97,29 +97,29 @@ namespace ompl
             // Types for the vertex queue:
             /** \brief A pair of costs, i.e., the vertex queue sorting key. Done as an array instead
              * of a pair for consistency with the EdgeQueue */
-            typedef std::array<ompl::base::Cost, 2u> CostDouble;
+            using CostDouble = std::array<ompl::base::Cost, 2u>;
             /** \brief The function signature of the sorting function for the Vertex Queue*/
-            typedef std::function<bool(const CostDouble &, const CostDouble &)> VertexQueueSortFunc;
+            using VertexQueueSortFunc = std::function<bool(const CostDouble &, const CostDouble &)>;
             /** \brief The underlying vertex queue.  The advantage of a multimap over a multiset is that a copy
              * of the key is stored with the value, which guarantees that the ordering remains sane
              * even if the data inherently behind the queue value changes. In such a case the queue
              * will remain sorted by the old key until manually updated */
-            typedef std::multimap<CostDouble, VertexPtr, VertexQueueSortFunc> VertexQueueAsMMap;
+            using VertexQueueAsMMap = std::multimap<CostDouble, VertexPtr, VertexQueueSortFunc>;
             /** \brief An iterator into the vertex queue multimap */
-            typedef VertexQueueAsMMap::iterator VertexQueueIter;
+            using VertexQueueIter = VertexQueueAsMMap::iterator;
             // Types for the edge queue
             /** \brief A triplet of costs, i.e., the edge queue sorting key. */
-            typedef std::array<ompl::base::Cost, 3u> CostTriple;
+            using CostTriple = std::array<ompl::base::Cost, 3u>;
             /** \brief The data stored in the edge-queue binary heap. */
-            typedef std::pair<CostTriple, VertexPtrPair> CostTripleAndVertexPtrPair;
+            using CostTripleAndVertexPtrPair = std::pair<CostTriple, VertexPtrPair>;
             /** \brief The function signature of the sorting function for the Edge Queue*/
-            typedef std::function<bool(const CostTripleAndVertexPtrPair &, const CostTripleAndVertexPtrPair &)> EdgeQueueSortFunc;
+            using EdgeQueueSortFunc = std::function<bool(const CostTripleAndVertexPtrPair &, const CostTripleAndVertexPtrPair &)>;
             /** \brief The underlying edge queue. Using static keys for the same reason as the Vertex Queue */
-            typedef ompl::BinaryHeap<CostTripleAndVertexPtrPair, EdgeQueueSortFunc> EdgeQueueAsPairBinHeap;
+            using EdgeQueueAsPairBinHeap = ompl::BinaryHeap<CostTripleAndVertexPtrPair, EdgeQueueSortFunc>;
             /** \brief An element pointer into the edge queue binary heap */
-            typedef EdgeQueueAsPairBinHeap::Element* EdgeQueueElemPtr;
+            using EdgeQueueElemPtr = EdgeQueueAsPairBinHeap::Element*;
             /** \brief A vector of edge queue pointers */
-            typedef std::vector<EdgeQueueElemPtr> EdgeQueueElemPtrVector;
+            using EdgeQueueElemPtrVector = std::vector<EdgeQueueElemPtr>;
             ////////////////////////////////
 
             ////////////////////////////////

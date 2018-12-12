@@ -134,7 +134,7 @@ bool spherePlanningBench(ConstrainedProblem &cp, std::vector<enum PLANNER_TYPE> 
 {
     cp.setupBenchmark(planners, "sphere");
     cp.runBenchmark();
-    return 0;
+    return false;
 }
 
 bool spherePlanning(bool output, enum SPACE_TYPE space, std::vector<enum PLANNER_TYPE> &planners,

@@ -301,7 +301,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), statesGenerated);
 
-    return base::PlannerStatus(solved, approximate);
+    return {solved, approximate};
 }
 
 void ompl::geometric::LBTRRT::considerEdge(Motion *parent, Motion *child, double c)

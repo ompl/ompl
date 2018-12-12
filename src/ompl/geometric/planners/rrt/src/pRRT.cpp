@@ -246,7 +246,7 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
 
-    return base::PlannerStatus(solved, approximate);
+    return {solved, approximate};
 }
 
 void ompl::geometric::pRRT::getPlannerData(base::PlannerData &data) const

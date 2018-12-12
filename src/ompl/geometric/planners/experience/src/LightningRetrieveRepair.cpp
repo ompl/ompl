@@ -192,7 +192,7 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     // Finished
     pdef_->addSolutionPath(primaryPath, false, 0., getName());
     solved = true;
-    return base::PlannerStatus(solved, false);
+    return {solved, false};
 }
 
 bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *startState, const base::State *goalState,
