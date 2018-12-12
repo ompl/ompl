@@ -2,7 +2,9 @@
 # Construct configuration file              #
 #############################################
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/config.h")
-
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/config.h"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ompl"
+    COMPONENT ompl)
 #############################################
 # recursively find all *.cpp files that     #
 # correspond to the basic ompl library      #
