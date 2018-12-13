@@ -57,8 +57,8 @@ install_ompl()
     else
         OMPL="omplapp"
     fi
-    wget -O - https://bitbucket.org/ompl/ompl/downloads/$OMPL-@OMPL_VERSION@-Source.tar.gz | tar zxf -
-    cd $OMPL-@OMPL_VERSION@-Source
+    wget -O - https://bitbucket.org/ompl/ompl/downloads/$OMPL-@PROJECT_VERSION@-Source.tar.gz | tar zxf -
+    cd $OMPL-@PROJECT_VERSION@-Source
     mkdir -p build/Release
     cd build/Release
     cmake ../.. -DPYTHON_EXEC=/usr/bin/python${PYTHONV}
