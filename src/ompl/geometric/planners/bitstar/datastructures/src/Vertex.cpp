@@ -153,7 +153,7 @@ namespace ompl
             ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
-            if (this->isRoot() == false && this->hasParent() == false)
+            if (!this->isRoot() && !this->hasParent())
             {
                 throw ompl::Exception("Attempting to get the depth of a vertex that does not have a parent yet is not "
                                       "root.");
@@ -168,9 +168,9 @@ namespace ompl
             ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
-            if (this->hasParent() == false)
+            if (!this->hasParent())
             {
-                if (this->isRoot() == true)
+                if (this->isRoot())
                 {
                     throw ompl::Exception("Attempting to access the parent of the root vertex.");
                 }
@@ -189,9 +189,9 @@ namespace ompl
             ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
-            if (this->hasParent() == false)
+            if (!this->hasParent())
             {
-                if (this->isRoot() == true)
+                if (this->isRoot())
                 {
                     throw ompl::Exception("Attempting to access the parent of the root vertex.");
                 }
@@ -213,11 +213,11 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert I can take a parent
-            if (this->isRoot() == true)
+            if (this->isRoot())
             {
                 throw ompl::Exception("Attempting to add a parent to the root vertex, which cannot have a parent.");
             }
-            if (this->hasParent() == true)
+            if (this->hasParent())
             {
                 throw ompl::Exception("Attempting to add a parent to a vertex that already has one.");
             }
@@ -240,12 +240,12 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert I have a parent
-            if (this->isRoot() == true)
+            if (this->isRoot())
             {
                 throw ompl::Exception("Attempting to remove the parent of the root vertex, which cannot have a "
                                       "parent.");
             }
-            if (this->hasParent() == false)
+            if (!this->hasParent())
             {
                 throw ompl::Exception("Attempting to remove the parent of a vertex that does not have a parent.");
             }
@@ -275,7 +275,7 @@ namespace ompl
             {
 #ifdef BITSTAR_DEBUG
                 // Check that the weak pointer hasn't expired
-                if (childWPtr.expired() == true)
+                if (childWPtr.expired())
                 {
                     throw ompl::Exception("A (weak) pointer to a child was found to have expired while collecting the "
                                           "children of a vertex.");
@@ -297,7 +297,7 @@ namespace ompl
             {
 #ifdef BITSTAR_DEBUG
                 // Check that the weak pointer hasn't expired
-                if (childWPtr.expired() == true)
+                if (childWPtr.expired())
                 {
                     throw ompl::Exception("A (weak) pointer to a child was found to have expired while collecting the "
                                           "children of a vertex.");
@@ -368,7 +368,7 @@ namespace ompl
             {
 #ifdef BITSTAR_DEBUG
                 // Check that the weak pointer hasn't expired
-                if (childIter->expired() == true)
+                if (childIter->expired())
                 {
                     throw ompl::Exception("A (weak) pointer to a child was found to have expired while removing a "
                                           "child from a vertex.");
@@ -394,7 +394,7 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Throw if we did not find the child
-            if (foundChild == false)
+            if (!foundChild)
             {
                 throw ompl::Exception("Attempting to remove a child vertex not present in the vector of children "
                                       "stored in the (supposed) parent vertex.");
@@ -414,7 +414,7 @@ namespace ompl
             ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
-            if (this->hasParent() == false)
+            if (!this->hasParent())
             {
                 throw ompl::Exception("Attempting to access the incoming-edge cost of a vertex without a parent.");
             }
@@ -523,7 +523,7 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert available
-            if (isVertexQueueSet_ == false)
+            if (!isVertexQueueSet_)
             {
                 throw ompl::Exception("Attempting to access an iterator to the vertex queue before one is set.");
             }
@@ -538,7 +538,7 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert not already set
-            if (isVertexQueueSet_ == true)
+            if (isVertexQueueSet_)
             {
                 throw ompl::Exception("Attempting to change an iterator to the vertex queue.");
             }
@@ -874,7 +874,7 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
                 // Assert that I have not been asked to cascade this bad data to my children:
-                if (this->hasChildren() == true && cascadeUpdates == true)
+                if (this->hasChildren() && cascadeUpdates)
                 {
                     throw ompl::Exception("Attempting to update descendants' costs and depths of a vertex that does "
                                           "not have a parent and is not root. This information would therefore be "
@@ -899,7 +899,7 @@ namespace ompl
                 {
 #ifdef BITSTAR_DEBUG
                     // Check that it hasn't expired
-                    if (childWPtr.expired() == true)
+                    if (childWPtr.expired())
                     {
                         throw ompl::Exception("A (weak) pointer to a child has was found to have expired while "
                                               "updating the costs and depths of descendant vertices.");
@@ -1034,7 +1034,7 @@ namespace ompl
 
         void BITstar::Vertex::assertNotPruned() const
         {
-            if (isPruned_ == true)
+            if (isPruned_)
             {
                 std::cout << std::endl << "vId: " << vId_ << std::endl;
                 throw ompl::Exception("Attempting to access a pruned vertex.");

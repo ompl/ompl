@@ -115,8 +115,7 @@ namespace ompl
 
         ~NearestNeighborsGNAT() override
         {
-            if (tree_)
-                delete tree_;
+            delete tree_;
         }
         /// \brief Set the distance function to use
         void setDistanceFunction(const typename NearestNeighbors<_T>::DistanceFunction &distFun) override

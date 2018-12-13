@@ -52,7 +52,7 @@
 
 using namespace ompl;
 
-static const double VERBOSE = true;
+static const bool VERBOSE = true;
 
 
 class SimplifyTest
@@ -81,11 +81,11 @@ public:
             for (int i = 0; i < runs; i++)
             {
                 path = new geometric::PathGeometric(*paths_[path_idx]);
-                simplifier.shortcutPath(*path, 100, 100, 0.33, 0.005); 
+                simplifier.shortcutPath(*path, 100, 100, 0.33, 0.005);
                 avg_costs += path->cost(obj).value();
             }
             avg_costs /= runs;
-            printf("Average cost: %f, original cost: %f\n", avg_costs, original_cost.value()); 
+            printf("Average cost: %f, original cost: %f\n", avg_costs, original_cost.value());
             BOOST_CHECK(obj->isCostBetterThan(base::Cost(avg_costs), original_cost) ||
                         obj->isCostEquivalentTo(base::Cost(avg_costs), original_cost));
         }
@@ -108,7 +108,7 @@ public:
         base::Cost first_cost = path1->cost(obj);
         base::Cost second_cost = path2->cost(obj);
         BOOST_CHECK(obj->isCostBetterThan(final_cost, first_cost) ||
-                    obj->isCostEquivalentTo(final_cost, first_cost)); 
+                    obj->isCostEquivalentTo(final_cost, first_cost));
         BOOST_CHECK(obj->isCostBetterThan(final_cost, second_cost) ||
                     obj->isCostEquivalentTo(final_cost, second_cost));
     }
@@ -118,7 +118,7 @@ public:
     {
         base::OptimizationObjectivePtr obj(new T(si_));
         geometric::PathSimplifier simplifier(si_, ompl::base::GoalPtr(), obj);
-        
+
         for (int path_idx = 0; path_idx < 2; path_idx++)
         {
             double avg_costs = 0.0;
@@ -127,11 +127,11 @@ public:
             for (int i = 0; i < runs; i++)
             {
                 path = new geometric::PathGeometric(*paths_[path_idx]);
-                simplifier.perturbPath(*path, 2.0, 100, 100, 0.005); 
+                simplifier.perturbPath(*path, 2.0, 100, 100, 0.005);
                 avg_costs += path->cost(obj).value();
             }
             avg_costs /= runs;
-            printf("Average cost: %f, original cost: %f\n", avg_costs, original_cost.value()); 
+            printf("Average cost: %f, original cost: %f\n", avg_costs, original_cost.value());
             BOOST_CHECK(obj->isCostBetterThan(base::Cost(avg_costs), original_cost) ||
                         obj->isCostEquivalentTo(base::Cost(avg_costs), original_cost));
         }

@@ -125,7 +125,7 @@ namespace ompl
                 State *state_;
             };
 
-            WrapperStateSpace(const StateSpacePtr &space) : StateSpace(), space_(space)
+            WrapperStateSpace(const StateSpacePtr &space) : space_(space)
             {
             }
 

@@ -137,7 +137,7 @@ namespace ompl
 
                 if (endpoints)
                 {
-                    if (!success && states.size() == 0)
+                    if (!success && states.empty())
                         states.push_back(cloneState(s1));
 
                     if (success)
@@ -182,7 +182,7 @@ namespace ompl
                 std::vector<State *> temp;
                 bool success = atlas->discreteGeodesic(s1, s2, true, &temp);
 
-                if (!success && temp.size() == 0)
+                if (!success && temp.empty())
                     temp.push_back(cloneState(s1));
 
                 auto it = temp.begin();
@@ -218,7 +218,7 @@ namespace ompl
                 auto &&atlas = stateSpace_->as<TangentBundleStateSpace>();
                 bool valid = motionValidator_->checkMotion(s1, s2, lastValid);
 
-                if (lastValid.first)
+                if (lastValid.first != nullptr)
                 {
                     auto astate = lastValid.first->as<AtlasStateSpace::StateType>();
                     if (!atlas->project(astate))

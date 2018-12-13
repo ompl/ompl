@@ -55,9 +55,7 @@ private:
          * the wall. */
         bool within(double x) const
         {
-            if (x < (offset_ - thickness_) || x > (offset_ + thickness_))
-                return false;
-            return true;
+            return !(x < (offset_ - thickness_) || x > (offset_ + thickness_));
         }
 
         bool checkJoint(const Eigen::Ref<const Eigen::VectorXd> &v) const
@@ -465,7 +463,7 @@ int main(int argc, char **argv)
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
 
-    if (vm.count("help"))
+    if (vm.count("help") != 0u)
     {
         std::cout << desc << std::endl;
         return 1;

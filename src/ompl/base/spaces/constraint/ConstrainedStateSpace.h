@@ -264,7 +264,7 @@ namespace ompl
             /** \brief Set \a delta, the step size for traversing the manifold
              * and collision checking. Default defined by
              * ompl::magic::CONSTRAINED_STATE_SPACE_DELTA. */
-            void setDelta(const double delta);
+            void setDelta(double delta);
 
             /** \brief Set \a lambda, where lambda * distance(x, y) is the
              * maximum length of the geodesic x to y. Additionally, lambda *

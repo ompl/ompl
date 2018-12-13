@@ -273,11 +273,11 @@ namespace ompl
             ASSERT_SETUP
 
 #ifdef BITSTAR_DEBUG
-            if (static_cast<bool>(a->stateConst()) == false)
+            if (!static_cast<bool>(a->stateConst()))
             {
                 throw ompl::Exception("a->state is unallocated");
             }
-            if (static_cast<bool>(b->stateConst()) == false)
+            if (!static_cast<bool>(b->stateConst()))
             {
                 throw ompl::Exception("b->state is unallocated");
             }
@@ -705,7 +705,7 @@ namespace ompl
             ASSERT_SETUP
 
 #ifdef BITSTAR_DEBUG
-            if (hasExactSolution_ == false)
+            if (!hasExactSolution_)
             {
                 throw ompl::Exception("A graph cannot be pruned until a solution is found");
             }
@@ -784,7 +784,7 @@ namespace ompl
 #ifdef BITSTAR_DEBUG
             // Make sure it's connected first, so that the queue gets updated properly.
             // This is a day of debugging I'll never get back
-            if (newVertex->isInTree() == false)
+            if (!newVertex->isInTree())
             {
                 throw ompl::Exception("Vertices must be connected to the graph before adding");
             }
@@ -1339,7 +1339,7 @@ namespace ompl
 
         void BITstar::ImplicitGraph::assertSetup() const
         {
-            if (isSetup_ == false)
+            if (!isSetup_)
             {
                 throw ompl::Exception("BITstar::ImplicitGraph was used before it was setup.");
             }
@@ -1396,7 +1396,7 @@ namespace ompl
         BITstar::VertexConstPtr BITstar::ImplicitGraph::closestVertexToGoal() const
         {
 #ifdef BITSTAR_DEBUG
-            if (findApprox_ == false)
+            if (!findApprox_)
             {
                 throw ompl::Exception("Approximate solutions are not being tracked.");
             }
@@ -1407,7 +1407,7 @@ namespace ompl
         double BITstar::ImplicitGraph::smallestDistanceToGoal() const
         {
 #ifdef BITSTAR_DEBUG
-            if (findApprox_ == false)
+            if (!findApprox_)
             {
                 throw ompl::Exception("Approximate solutions are not being tracked.");
             }
@@ -1418,7 +1418,7 @@ namespace ompl
         unsigned int BITstar::ImplicitGraph::getConnectivityK() const
         {
 #ifdef BITSTAR_DEBUG
-            if (useKNearest_ == false)
+            if (!useKNearest_)
             {
                 throw ompl::Exception("Using an r-disc graph.");
             }
@@ -1429,7 +1429,7 @@ namespace ompl
         double BITstar::ImplicitGraph::getConnectivityR() const
         {
 #ifdef BITSTAR_DEBUG
-            if (useKNearest_ == true)
+            if (useKNearest_)
             {
                 throw ompl::Exception("Using a k-nearest graph.");
             }

@@ -264,7 +264,7 @@ namespace ompl
                                            const ompl::base::Cost &refCost) const
             {
                 // If the old cost is not finite, than we call that infinite percent improvement
-                if (this->isFinite(oldCost) == false)
+                if (!this->isFinite(oldCost))
                 {
                     // Return infinity (but not beyond)
                     return std::numeric_limits<double>::infinity();

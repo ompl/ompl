@@ -267,5 +267,5 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    return torusPlanning(output, space, planners, c_opt, a_opt, bench, outer, inner, maze);
+    return static_cast<int>(torusPlanning(output, space, planners, c_opt, a_opt, bench, outer, inner, maze));
 }

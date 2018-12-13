@@ -176,11 +176,11 @@ int main(int argc, char **argv)
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
 
-    if (vm.count("help"))
+    if (vm.count("help") != 0u)
     {
         std::cout << desc << std::endl;
         return 1;
     }
 
-    return chainPlanning(output, space, planners, links, c_opt, a_opt, bench);
+    return static_cast<int>(chainPlanning(output, space, planners, links, c_opt, a_opt, bench));
 }
