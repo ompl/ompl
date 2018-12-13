@@ -302,7 +302,7 @@ public:
         class ChainProjection : public ob::ProjectionEvaluator
         {
         public:
-            ChainProjection(ob::StateSpacePtr space, unsigned int links, double radius)
+            ChainProjection(const ob::StateSpacePtr &space, unsigned int links, double radius)
               : ob::ProjectionEvaluator(space), links_(links), radius_(radius)
             {
             }

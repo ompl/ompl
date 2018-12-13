@@ -101,7 +101,7 @@ bool ompl::base::ConstrainedMotionValidator::checkMotion(const State *s1, const 
 
 ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr &space, const ConstraintPtr &constraint)
   : WrapperStateSpace(space)
-  , constraint_(std::move(constraint))
+  , constraint_(constraint)
   , n_(space->getDimension())
   , k_(constraint_->getManifoldDimension())
 {

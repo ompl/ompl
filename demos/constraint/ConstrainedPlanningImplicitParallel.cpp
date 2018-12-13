@@ -323,7 +323,7 @@ public:
         class ParallelProjection : public ob::ProjectionEvaluator
         {
         public:
-            ParallelProjection(ob::StateSpacePtr space, unsigned int links, unsigned int chains)
+            ParallelProjection(const ob::StateSpacePtr &space, unsigned int links, unsigned int chains)
               : ob::ProjectionEvaluator(space), chains_(chains), links_(links)
             {
             }

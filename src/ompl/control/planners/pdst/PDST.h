@@ -228,7 +228,7 @@ namespace ompl
                 void subdivide(unsigned int spaceDimension);
 
                 /// Locates the cell that this motion begins in
-                Cell *stab(const Eigen::Ref<Eigen::VectorXd> projection) const
+                Cell *stab(const Eigen::Ref<Eigen::VectorXd>& projection) const
                 {
                     auto *containingCell = const_cast<Cell *>(this);
                     while (containingCell->left_ != nullptr)
