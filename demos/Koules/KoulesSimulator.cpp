@@ -247,7 +247,7 @@ void KoulesSimulator::computeCollisionEvent(unsigned int i, unsigned int j)
     }
     t += time_;
     if (t >= time_ && t <= endTime_)
-        collisionEvents_.push(std::make_tuple(t, i, j));
+        collisionEvents_.emplace(t, i, j);
 }
 
 void KoulesSimulator::elasticCollision(unsigned int i, unsigned int j)

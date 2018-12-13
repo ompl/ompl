@@ -533,13 +533,13 @@ namespace ompl
             {
                 if (nbh.size() < k)
                 {
-                    nbh.push(std::make_pair(dist, &data));
+                    nbh.emplace(dist, &data);
                     return true;
                 }
                 if (dist < nbh.top().first || (dist < std::numeric_limits<double>::epsilon() && data == key))
                 {
                     nbh.pop();
-                    nbh.push(std::make_pair(dist, &data));
+                    nbh.emplace(dist, &data);
                     return true;
                 }
                 return false;
@@ -598,7 +598,7 @@ namespace ompl
             void insertNeighborR(NearQueue &nbh, double r, const _T &data, double dist) const
             {
                 if (dist <= r)
-                    nbh.push(std::make_pair(dist, &data));
+                    nbh.emplace(dist, &data);
             }
             /// \brief Return all elements that are within distance r in nbh.
             void nearestR(const GNAT &gnat, const _T &data, double r) const
@@ -799,7 +799,7 @@ namespace ompl
         mutable std::vector<unsigned int> pivots_;
         /// \brief Matrix of distances to pivots
         mutable typename GreedyKCenters<_T>::Matrix distances_;
-/// \}
+        /// \}
 
 #ifdef GNAT_SAMPLER
         /// \brief Estimated dimension of the local free space.

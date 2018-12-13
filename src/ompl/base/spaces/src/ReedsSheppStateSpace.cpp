@@ -670,7 +670,7 @@ bool ompl::base::ReedsSheppMotionValidator::checkMotion(const State *s1, const S
     std::queue<std::pair<int, int>> pos;
     if (nd >= 2)
     {
-        pos.push(std::make_pair(1, nd - 1));
+        pos.emplace(1, nd - 1);
 
         /* temporary storage for the checked state */
         State *test = si_->allocState();
@@ -692,9 +692,9 @@ bool ompl::base::ReedsSheppMotionValidator::checkMotion(const State *s1, const S
             pos.pop();
 
             if (x.first < mid)
-                pos.push(std::make_pair(x.first, mid - 1));
+                pos.emplace(x.first, mid - 1);
             if (x.second > mid)
-                pos.push(std::make_pair(mid + 1, x.second));
+                pos.emplace(mid + 1, x.second);
         }
 
         si_->freeState(test);

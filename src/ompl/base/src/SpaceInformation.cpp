@@ -301,7 +301,7 @@ bool ompl::base::SpaceInformation::checkMotion(const std::vector<State *> &state
             if (count > 2)
             {
                 std::queue<std::pair<int, int>> pos;
-                pos.push(std::make_pair(0, count - 1));
+                pos.emplace(0, count - 1);
 
                 while (!pos.empty())
                 {
@@ -314,9 +314,9 @@ bool ompl::base::SpaceInformation::checkMotion(const std::vector<State *> &state
                     pos.pop();
 
                     if (x.first < mid - 1)
-                        pos.push(std::make_pair(x.first, mid));
+                        pos.emplace(x.first, mid);
                     if (x.second > mid + 1)
-                        pos.push(std::make_pair(mid, x.second));
+                        pos.emplace(mid, x.second);
                 }
             }
         }
