@@ -355,11 +355,11 @@ namespace ompl
 
             /** \brief The samples as a nearest-neighbours datastructure. Sorted by nnDistance. Size accessible via
              * numFreeSamples */
-            VertexPtrNNPtr freeStateNN_{nullptr};
+            VertexPtrNNPtr samples_{nullptr};
 
             /** \brief The vertices as a nearest-neighbours data structure. Sorted by nnDistance. Size accessible via
              * numConnectedVertices */
-            VertexPtrNNPtr vertexNN_{nullptr};
+            VertexPtrNNPtr vertices_{nullptr};
 
             /** \brief The number of samples in this batch */
             unsigned int samplesInThisBatch_{0u};

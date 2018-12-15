@@ -106,15 +106,15 @@ namespace ompl
             // Configure the nearest-neighbour constructs.
             // Only allocate if they are empty (as they can be set to a specific version by a call to
             // setNearestNeighbors)
-            if (!static_cast<bool>(freeStateNN_))
+            if (!static_cast<bool>(samples_))
             {
-                freeStateNN_.reset(ompl::tools::SelfConfig::getDefaultNearestNeighbors<VertexPtr>(plannerPtr));
+                samples_.reset(ompl::tools::SelfConfig::getDefaultNearestNeighbors<VertexPtr>(plannerPtr));
             }
             // No else, already allocated (by a call to setNearestNeighbors())
 
-            if (!static_cast<bool>(vertexNN_))
+            if (!static_cast<bool>(vertices_))
             {
-                vertexNN_.reset(ompl::tools::SelfConfig::getDefaultNearestNeighbors<VertexPtr>(plannerPtr));
+                vertices_.reset(ompl::tools::SelfConfig::getDefaultNearestNeighbors<VertexPtr>(plannerPtr));
             }
             // No else, already allocated (by a call to setNearestNeighbors())
 
@@ -124,8 +124,8 @@ namespace ompl
                 {
                     return distanceFunction(a, b);
                 });
-            freeStateNN_->setDistanceFunction(distfun);
-            vertexNN_->setDistanceFunction(distfun);
+            samples_->setDistanceFunction(distfun);
+            vertices_->setDistanceFunction(distfun);
 
             // Set the min, max and sampled cost to the proper objective-based values:
             minCost_ = costHelpPtr_->infiniteCost();
@@ -222,18 +222,18 @@ namespace ompl
             recycledSamples_.clear();
 
             // The set of samples
-            if (static_cast<bool>(freeStateNN_))
+            if (static_cast<bool>(samples_))
             {
-                freeStateNN_->clear();
-                freeStateNN_.reset();
+                samples_->clear();
+                samples_.reset();
             }
             // No else, not allocated
 
             // The set of vertices
-            if (static_cast<bool>(vertexNN_))
+            if (static_cast<bool>(vertices_))
             {
-                vertexNN_->clear();
-                vertexNN_.reset();
+                vertices_->clear();
+                vertices_.reset();
             }
 
             // The various calculations and tracked values, same as in the header
@@ -301,11 +301,11 @@ namespace ompl
 
             if (useKNearest_)
             {
-                freeStateNN_->nearestK(vertex, k_, *neighbourSamples);
+                samples_->nearestK(vertex, k_, *neighbourSamples);
             }
             else
             {
-                freeStateNN_->nearestR(vertex, r_, *neighbourSamples);
+                samples_->nearestR(vertex, r_, *neighbourSamples);
             }
         }
 
@@ -318,11 +318,11 @@ namespace ompl
 
             if (useKNearest_)
             {
-                vertexNN_->nearestK(vertex, k_, *neighbourVertices);
+                vertices_->nearestK(vertex, k_, *neighbourVertices);
             }
             else
             {
-                vertexNN_->nearestR(vertex, r_, *neighbourVertices);
+                vertices_->nearestR(vertex, r_, *neighbourVertices);
             }
         }
 
@@ -331,14 +331,14 @@ namespace ompl
             ASSERT_SETUP
 
             // Add samples
-            if (static_cast<bool>(freeStateNN_))
+            if (static_cast<bool>(samples_))
             {
                 // Variables:
                 // The vector of unused samples:
                 VertexPtrVector samples;
 
                 // Get the vector of samples
-                freeStateNN_->list(samples);
+                samples_->list(samples);
 
                 // Iterate through it turning each into a disconnected vertex
                 for (const auto &freeSample : samples)
@@ -350,14 +350,14 @@ namespace ompl
             // No else.
 
             // Add vertices
-            if (static_cast<bool>(vertexNN_))
+            if (static_cast<bool>(vertices_))
             {
                 // Variables:
                 // The vector of vertices in the graph:
                 VertexPtrVector vertices;
 
                 // Get the vector of vertices
-                vertexNN_->list(vertices);
+                vertices_->list(vertices);
 
                 // Iterate through it turning each into a vertex with an edge:
                 for (const auto &vertex : vertices)
@@ -741,7 +741,7 @@ namespace ompl
             newSamples_.push_back(newSample);
 
             // Add to the NN structure:
-            freeStateNN_->add(newSample);
+            samples_->add(newSample);
         }
 
         void BITstar::ImplicitGraph::removeSample(const VertexPtr &oldSample)
@@ -771,7 +771,7 @@ namespace ompl
             ++numFreeStatesPruned_;
 
             // Remove from the set of samples
-            freeStateNN_->remove(sampleToDelete);
+            samples_->remove(sampleToDelete);
 
             // Mark the sample as pruned
             sampleToDelete->markPruned();
@@ -796,12 +796,12 @@ namespace ompl
             // Remove the vertex from the set of samples (if it even existed)
             if (removeFromFree)
             {
-                freeStateNN_->remove(newVertex);
+                samples_->remove(newVertex);
             }
             // No else
 
             // Add to the NN structure:
-            vertexNN_->add(newVertex);
+            vertices_->add(newVertex);
 
             // Update the nearest vertex to the goal (if tracking)
             if (!hasExactSolution_ && findApprox_)
@@ -837,7 +837,7 @@ namespace ompl
             ++numVerticesDisconnected_;
 
             // Remove from the nearest-neighbour structure
-            vertexNN_->remove(vertexToDelete);
+            vertices_->remove(vertexToDelete);
 
             // Add back as sample, if that would be beneficial
             if (moveToFree && !queuePtr_->samplePruneCondition(vertexToDelete))
@@ -982,14 +982,14 @@ namespace ompl
 
         void BITstar::ImplicitGraph::findVertexClosestToGoal()
         {
-            if (static_cast<bool>(vertexNN_))
+            if (static_cast<bool>(vertices_))
             {
                 // Variable
                 // The vertices in the graph
                 VertexPtrVector vertices;
 
                 // Get the vector of vertices
-                vertexNN_->list(vertices);
+                vertices_->list(vertices);
 
                 // Iterate through them testing which is the closest to the goal.
                 for (const auto &vertex : vertices)
@@ -1156,13 +1156,13 @@ namespace ompl
             if (dropSamplesOnPrune_)
             {
                 // We are, store the number pruned
-                numPruned = freeStateNN_->size();
+                numPruned = samples_->size();
 
                 // and the number of uniform samples
                 numUniformStates_ = 0u;
 
                 // Then remove all of the samples
-                freeStateNN_->clear();
+                samples_->clear();
 
                 // and increasing our global counter
                 numFreeStatesPruned_ = numFreeStatesPruned_ + numPruned;
@@ -1174,7 +1174,7 @@ namespace ompl
                 VertexPtrVector samples;
 
                 // Get the vector of samples
-                freeStateNN_->list(samples);
+                samples_->list(samples);
 
                 // Iterate through the vector and remove any samples that should not be in the queue
                 for (const auto &freeSample : samples)
@@ -1247,7 +1247,7 @@ namespace ompl
             else
             {
                 // We are not, so then all vertices and samples are uniform, use that
-                N = vertexNN_->size() + freeStateNN_->size();
+                N = vertices_->size() + samples_->size();
             }
 
             // If this is the first batch, we will be calculating the connection limits from only the starts and goals
@@ -1582,19 +1582,19 @@ namespace ompl
             else
             {
                 // The problem isn't setup yet, create NN structs of the specified type:
-                freeStateNN_ = std::make_shared<NN<VertexPtr>>();
-                vertexNN_ = std::make_shared<NN<VertexPtr>>();
+                samples_ = std::make_shared<NN<VertexPtr>>();
+                vertices_ = std::make_shared<NN<VertexPtr>>();
             }
         }
 
         unsigned int BITstar::ImplicitGraph::numFreeSamples() const
         {
-            return freeStateNN_->size();
+            return samples_->size();
         }
 
         unsigned int BITstar::ImplicitGraph::numConnectedVertices() const
         {
-            return vertexNN_->size();
+            return vertices_->size();
         }
 
         unsigned int BITstar::ImplicitGraph::numStatesGenerated() const
