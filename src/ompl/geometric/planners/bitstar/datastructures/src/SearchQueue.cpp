@@ -164,7 +164,7 @@ namespace ompl
             EdgeQueueElemPtr edgeElemPtr;
 
             // Insert into the edge queue, getting the element pointer
-            edgeElemPtr = edgeQueue_.insert(std::make_pair(this->edgeQueueValue(newEdge), newEdge));
+            edgeElemPtr = edgeQueue_.insert(std::make_pair(this->sortKey(newEdge), newEdge));
 
             // Push the newly created edge back on the vector of edges from the parent.
             newEdge.first->addOutgoingEdgeQueuePtr(edgeElemPtr, numQueueResets_);
@@ -1238,7 +1238,7 @@ namespace ompl
                       ++edgePtr)
                 {
                     // Update the queue value
-                    (*edgePtr)->data.first = this->edgeQueueValue((*edgePtr)->data.second);
+                    (*edgePtr)->data.first = this->sortKey((*edgePtr)->data.second);
 
                     // Update the entry in the queue
                     edgeQueue_.update(*edgePtr);
@@ -1322,7 +1322,7 @@ namespace ompl
             }
 
             // Insert into the order map, getting the iterator
-            vertexIter = vertexQueue_.insert(std::make_pair(this->vertexQueueValue(newVertex), newVertex));
+            vertexIter = vertexQueue_.insert(std::make_pair(this->sortKey(newVertex), newVertex));
 
             // Store the iterator.
             newVertex->setVertexQueueIter(vertexIter);
@@ -1464,15 +1464,15 @@ namespace ompl
             return deleted;
         }
 
-        BITstar::SearchQueue::CostDouble BITstar::SearchQueue::vertexQueueValue(const VertexPtr &vertex) const
+        BITstar::SearchQueue::CostDouble BITstar::SearchQueue::sortKey(const VertexPtr &vertex) const
         {
-            // Construct and return an array
+            // The sort key of a vertex v is [ g_t(v) + h^hat(v); g_t(v) ].
             return {{costHelpPtr_->currentHeuristicVertex(vertex), vertex->getCost()}};
         }
 
-        BITstar::SearchQueue::CostTriple BITstar::SearchQueue::edgeQueueValue(const VertexPtrPair &edge) const
+        BITstar::SearchQueue::CostTriple BITstar::SearchQueue::sortKey(const VertexPtrPair &edge) const
         {
-            // Construct and return an array
+            // The sort key of an edge (u, v) is [ g_t(u) + c^hat(u, v) + h^hat(v); g_t(u) + c^hat(u, v); g_t(u) ].
             return {{costHelpPtr_->currentHeuristicEdge(edge), costHelpPtr_->currentHeuristicToTarget(edge),
                               edge.first->getCost()}};
         }

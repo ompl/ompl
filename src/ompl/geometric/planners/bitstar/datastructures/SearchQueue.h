@@ -368,10 +368,10 @@ namespace ompl
             ////////////////////////////////
             // Base-queue basic helper functions:
             /** \brief A convenience function for the value of a vertex in the queue */
-            CostDouble vertexQueueValue(const VertexPtr &vertex) const;
+            CostDouble sortKey(const VertexPtr &vertex) const;
 
             /** \brief A convenience function for the value of an edge in the queue */
-            CostTriple edgeQueueValue(const VertexPtrPair &edge) const;
+            CostTriple sortKey(const VertexPtrPair &edge) const;
 
             /** A lexicographical comparison function for the std::arrays of costs. This is the sorting function for
              * both the vertex and edge queues and is just a wrapper to std::lexicographical_compare.*/
