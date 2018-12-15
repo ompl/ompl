@@ -167,10 +167,10 @@ namespace ompl
             edgeElemPtr = edgeQueue_.insert(std::make_pair(this->sortKey(newEdge), newEdge));
 
             // Push the newly created edge back on the vector of edges from the parent.
-            newEdge.first->addOutgoingEdgeQueuePtr(edgeElemPtr, numQueueResets_);
+            newEdge.first->insertInEdgeQueueOutLookup(edgeElemPtr, numQueueResets_);
 
             // Push the newly created edge back on the vector of edges to the child.
-            newEdge.second->addIncomingEdgeQueuePtr(edgeElemPtr, numQueueResets_);
+            newEdge.second->insertInEdgeQueueInLookup(edgeElemPtr, numQueueResets_);
         }
 
         void BITstar::SearchQueue::enqueueEdge(const VertexPtr &sourceVertex, const VertexPtr &targetVertex)
@@ -299,8 +299,8 @@ namespace ompl
             *bestEdge = bestElemPtr->data.second;
 
             // Remove the lookups to the element
-            bestElemPtr->data.second.first->rmOutgoingEdgeQueuePtr(bestElemPtr, numQueueResets_);
-            bestElemPtr->data.second.second->rmIncomingEdgeQueuePtr(bestElemPtr, numQueueResets_);
+            bestElemPtr->data.second.first->removeFromEdgeQueueOutLookup(bestElemPtr, numQueueResets_);
+            bestElemPtr->data.second.second->removeFromEdgeQueueInLookup(bestElemPtr, numQueueResets_);
 
             // Finally, remove from the queue itself
             edgeQueue_.remove(bestElemPtr);
@@ -338,20 +338,20 @@ namespace ompl
             if (!edgeQueue_.empty())
             {
                 // Iterate over the vector of incoming edges to this vertex and remove them from the queue (and clean up their other lookup)
-                for (auto inQueueElemIter = cVertex->incomingEdgeQueuePtrsBeginConst(numQueueResets_);
-                      inQueueElemIter != cVertex->incomingEdgeQueuePtrsEndConst(numQueueResets_);
+                for (auto inQueueElemIter = cVertex->edgeQueueInLookupConstBegin(numQueueResets_);
+                      inQueueElemIter != cVertex->edgeQueueInLookupConstEnd(numQueueResets_);
                       ++inQueueElemIter)
                 {
                     // Remove the edge from the *other* lookup (by value since this is NOT an iter to THAT container).
                     // No need to remove from this lookup, as that's being cleared:
-                    (*inQueueElemIter)->data.second.first->rmOutgoingEdgeQueuePtr(*inQueueElemIter, numQueueResets_);
+                    (*inQueueElemIter)->data.second.first->removeFromEdgeQueueOutLookup(*inQueueElemIter, numQueueResets_);
 
                     // Finally remove it from the queue
                     edgeQueue_.remove(*inQueueElemIter);
                 }
 
                 // Clear the list:
-                cVertex->clearIncomingEdgeQueuePtrs();
+                cVertex->clearEdgeQueueInLookup();
             }
             // No else, nothing to remove_to
         }
@@ -363,20 +363,20 @@ namespace ompl
             if (!edgeQueue_.empty())
             {
                 // Iterate over the vector of outgoing edges to this vertex and remove them from the queue (and clean up their other lookup)
-                for (auto outQueueElemIter = pVertex->outgoingEdgeQueuePtrsBeginConst(numQueueResets_);
-                  outQueueElemIter != pVertex->outgoingEdgeQueuePtrsEndConst(numQueueResets_);
+                for (auto outQueueElemIter = pVertex->edgeQueueOutLookupConstBegin(numQueueResets_);
+                  outQueueElemIter != pVertex->edgeQueueOutLookupConstEnd(numQueueResets_);
                   ++outQueueElemIter)
                 {
                     // Remove the edge from the *other* lookup (by value since this is NOT an iter to THAT container).
                     // No need to remove from this lookup, as that's being cleared:
-                    (*outQueueElemIter)->data.second.second->rmIncomingEdgeQueuePtr(*outQueueElemIter, numQueueResets_);
+                    (*outQueueElemIter)->data.second.second->removeFromEdgeQueueInLookup(*outQueueElemIter, numQueueResets_);
 
                     // Finally, remove it from the queue
                     edgeQueue_.remove(*outQueueElemIter);
                 }
 
                 // Clear the list:
-                pVertex->clearOutgoingEdgeQueuePtrs();
+                pVertex->clearEdgeQueueOutLookup();
             }
             // No else, nothing to remove_from
         }
@@ -392,8 +392,8 @@ namespace ompl
                 std::vector<EdgeQueueElemPtrVector::const_iterator> inItersToDelete;
 
                 // Iterate over the incoming edges and record those that are to be deleted
-                for (auto inQueueElemIter = cVertex->incomingEdgeQueuePtrsBeginConst(numQueueResets_);
-                     inQueueElemIter != cVertex->incomingEdgeQueuePtrsEndConst(numQueueResets_);
+                for (auto inQueueElemIter = cVertex->edgeQueueInLookupConstBegin(numQueueResets_);
+                     inQueueElemIter != cVertex->edgeQueueInLookupConstEnd(numQueueResets_);
                      ++inQueueElemIter)
                 {
                     // Check if it would have been inserted
@@ -409,14 +409,14 @@ namespace ompl
                 for (const auto &inVectorIter : inItersToDelete)
                 {
                     // Remove the entry in the other lookup (by value since this is NOT an iter to THAT container)
-                    (*inVectorIter)->data.second.first->rmOutgoingEdgeQueuePtr(*inVectorIter, numQueueResets_);
+                    (*inVectorIter)->data.second.first->removeFromEdgeQueueOutLookup(*inVectorIter, numQueueResets_);
 
                     // Remove from the queue itself
                     edgeQueue_.remove(*inVectorIter);
 
                     // And finally erase the lookup iterator from my lookup. If this was done first, the
                     // iterator would have been invalidated for the above.
-                    cVertex->rmIncomingEdgeQueuePtrByIter(inVectorIter, numQueueResets_);
+                    cVertex->removeFromEdgeQueueInLookup(inVectorIter, numQueueResets_);
                 }
             }
             // No else, nothing to prune_to
@@ -433,8 +433,8 @@ namespace ompl
                 std::vector<EdgeQueueElemPtrVector::const_iterator> outItersToDelete;
 
                 // Iterate over the incoming edges and record those that are to be deleted
-                for (auto outQueueElemIter = pVertex->outgoingEdgeQueuePtrsBeginConst(numQueueResets_);
-                  outQueueElemIter != pVertex->outgoingEdgeQueuePtrsEndConst(numQueueResets_);
+                for (auto outQueueElemIter = pVertex->edgeQueueOutLookupConstBegin(numQueueResets_);
+                  outQueueElemIter != pVertex->edgeQueueOutLookupConstEnd(numQueueResets_);
                   ++outQueueElemIter)
                 {
                     // Check if it would have been inserted
@@ -450,14 +450,14 @@ namespace ompl
                 for (const auto &outVectorIter : outItersToDelete)
                 {
                     // Remove the entry in the other lookup (by value since this is NOT an iter to THAT container)
-                    (*outVectorIter)->data.second.second->rmIncomingEdgeQueuePtr(*outVectorIter, numQueueResets_);
+                    (*outVectorIter)->data.second.second->removeFromEdgeQueueInLookup(*outVectorIter, numQueueResets_);
 
                     // Remove from the queue itself
                     edgeQueue_.remove(*outVectorIter);
 
                     // And finally erase the lookup iterator from my lookup. If this was done first, the
                     // iterator would have been invalidated for the above.
-                    pVertex->rmOutgoingEdgeQueuePtrByIter(outVectorIter, numQueueResets_);
+                    pVertex->removeFromEdgeQueueOutLookup(outVectorIter, numQueueResets_);
                 }
             }
             // No else, nothing to prune_from
@@ -813,7 +813,7 @@ namespace ompl
             this->updateQueue();
 
             // Return:
-            return cVertex->getNumIncomingEdgeQueuePtrs(numQueueResets_);
+            return cVertex->edgeQueueInLookupSize(numQueueResets_);
         }
 
         unsigned int BITstar::SearchQueue::numEdgesFrom(const VertexPtr &pVertex)
@@ -824,7 +824,7 @@ namespace ompl
             this->updateQueue();
 
             // Return:
-            return pVertex->getNumOutgoingEdgeQueuePtrs(numQueueResets_);
+            return pVertex->edgeQueueOutLookupSize(numQueueResets_);
         }
 
         unsigned int BITstar::SearchQueue::numUnsorted() const
@@ -1233,8 +1233,8 @@ namespace ompl
             {
                 // I have been previously expanded.
                 // Iterate over my outgoing edges and update them in the edge queue:
-                for (auto edgePtr = unorderedVertex->outgoingEdgeQueuePtrsBeginConst(numQueueResets_);
-                      edgePtr != unorderedVertex->outgoingEdgeQueuePtrsEndConst(numQueueResets_);
+                for (auto edgePtr = unorderedVertex->edgeQueueOutLookupConstBegin(numQueueResets_);
+                      edgePtr != unorderedVertex->edgeQueueOutLookupConstEnd(numQueueResets_);
                       ++edgePtr)
                 {
                     // Update the queue value

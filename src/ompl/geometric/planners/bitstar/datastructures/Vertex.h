@@ -206,55 +206,49 @@ namespace ompl
             //////////////
             // Edge queue info (incoming edges):
             /** \brief Add to the list of the edge queue entries that point in to this vertex. Will clear existing in/out lookups if they were added under a different id.*/
-            void addIncomingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &newInPtr, unsigned int vertexQueueResetNum);
+            void insertInEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtr &newInPtr, unsigned int vertexQueueResetNum);
 
             /** \brief Remove an incoming edge queue entry by value to the member vector.*/
-            void rmIncomingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &elemToDelete, unsigned int vertexQueueResetNum);
+            void removeFromEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtr &elemToDelete, unsigned int vertexQueueResetNum);
 
             /** \brief Remove an incoming edge queue entry by iterator to the member vector.*/
-            void rmIncomingEdgeQueuePtrByIter(const SearchQueue::EdgeQueueElemPtrVector::const_iterator &constIterToDelete, unsigned int vertexQueueResetNum);
+            void removeFromEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtrVector::const_iterator &constIterToDelete, unsigned int vertexQueueResetNum);
 
             /** \brief Clear the pointers to all of the incoming edge queue entries */
-            void clearIncomingEdgeQueuePtrs();
+            void clearEdgeQueueInLookup();
 
             /** \brief Get an iterator to the front of the incoming edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
-            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator incomingEdgeQueuePtrsBeginConst(unsigned int vertexQueueResetNum);
+            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator edgeQueueInLookupConstBegin(unsigned int vertexQueueResetNum);
 
             /** \brief Get an iterator to the end of the incoming edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
-            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator incomingEdgeQueuePtrsEndConst(unsigned int vertexQueueResetNum);
+            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator edgeQueueInLookupConstEnd(unsigned int vertexQueueResetNum);
 
             /** \brief Get the number of edge queue entries incoming to this vertex. Will clear existing in/out lookups if they were added under a different id. */
-            unsigned int getNumIncomingEdgeQueuePtrs(unsigned int vertexQueueResetNum);
-
-            /** \brief Return true if the vertex has links to incoming entries in the Edge Queue. Will clear existing in/out lookups if they were added under a different id. */
-            bool hasIncomingEdgeQueueEntries(unsigned int vertexQueueResetNum);
+            unsigned int edgeQueueInLookupSize(unsigned int vertexQueueResetNum);
             //////////////
 
             //////////////
             // Edge queue info (outgoing edges):
             /** \brief Add to the list of the edge queue entries that point out of this vertex. Will clear existing in/out lookups if they were added under a different id.*/
-            void addOutgoingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &newOutPtr, unsigned int vertexQueueResetNum);
+            void insertInEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtr &newOutPtr, unsigned int vertexQueueResetNum);
 
             /** \brief Remove an outgoing edge queue entry by value.*/
-            void rmOutgoingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &elemToDelete, unsigned int vertexQueueResetNum);
+            void removeFromEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtr &elemToDelete, unsigned int vertexQueueResetNum);
 
             /** \brief Remove an outgoing edge queue entry by iterator to the member vector.*/
-            void rmOutgoingEdgeQueuePtrByIter(const SearchQueue::EdgeQueueElemPtrVector::const_iterator &constIterToDelete, unsigned int vertexQueueResetNum);
+            void removeFromEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtrVector::const_iterator &constIterToDelete, unsigned int vertexQueueResetNum);
 
             /** \brief Clear the pointers to all of the outgoing edge queue entries */
-            void clearOutgoingEdgeQueuePtrs();
+            void clearEdgeQueueOutLookup();
 
             /** \brief Get an iterator to the front of the outgoing edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
-            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator outgoingEdgeQueuePtrsBeginConst(unsigned int vertexQueueResetNum);
+            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator edgeQueueOutLookupConstBegin(unsigned int vertexQueueResetNum);
 
             /** \brief Get an iterator to the end of the outgoing edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
-            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator outgoingEdgeQueuePtrsEndConst(unsigned int vertexQueueResetNum);
+            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator edgeQueueOutLookupConstEnd(unsigned int vertexQueueResetNum);
 
             /** \brief Get the number of edge queue entries outgoing from this vertex. Will clear existing in/out lookups if they were added under a different id. */
-            unsigned int getNumOutgoingEdgeQueuePtrs(unsigned int vertexQueueResetNum);
-
-            /** \brief Return true if the vertex has links to outgoing entries in the Edge Queue. Will clear existing in/out lookups if they were added under a different id. */
-            bool hasOutgoingEdgeQueueEntries(unsigned int vertexQueueResetNum);
+            unsigned int edgeQueueOutLookupSize(unsigned int vertexQueueResetNum);
             //////////////
             ////////////////////////////
             ////////////////////////////////////////////////////
@@ -313,26 +307,26 @@ namespace ompl
             SearchQueue::VertexQueueIter vertexQueueIter_;
 
             /** \brief Whether a valid iterator the vertex queue exists (as iterators have no equivalent to NULL) */
-            bool isVertexQueueSet_{false};
+            bool hasVertexQueueIter_{false};
 
             /** \brief A list of pointers to elements in the edge queue that point in to this vertex */
-            SearchQueue::EdgeQueueElemPtrVector edgeQueueInPtrs_;
+            SearchQueue::EdgeQueueElemPtrVector edgeQueueInLookup_;
 
             /** \brief A list of pointers to elements in the edge queue that point out from this vertex */
-            SearchQueue::EdgeQueueElemPtrVector edgeQueueOutPtrs_;
+            SearchQueue::EdgeQueueElemPtrVector edgeQueueOutLookup_;
 
             /** \brief The id-number associated with the currently stored edge lookups. This is used to reset existing
             * lookups when on the next pass through the vertex queue. */
-            unsigned int edgeLookupPass_{0u};
+            unsigned int lookupApproximationId_{0u};
 
             /** \brief A helper function to clear the given incoming lookup (and in debug mode assert it existed) */
-            void rmIncomingHelper(const SearchQueue::EdgeQueueElemPtrVector::iterator &iterToDelete);
+            void removeFromEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtrVector::iterator &iterToDelete);
 
             /** \brief A helper function to clear the given outgoing lookup (and in debug mode assert it existed) */
-            void rmOutgoingHelper(const SearchQueue::EdgeQueueElemPtrVector::iterator &iterToDelete);
+            void removeFromEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtrVector::iterator &iterToDelete);
 
             /** \brief A helper function to clear existing lookups if they are out of date (i.e., created at a different id than the one given) */
-            void clearOldLookups(unsigned int vertexQueueResetNum);
+            void clearLookupsIfOutdated(unsigned int vertexQueueResetNum);
 
             /** \brief A helper function to check that the vertex is not pruned and throw if so */
             void assertNotPruned() const;
