@@ -376,7 +376,7 @@ namespace ompl
             /** A lexicographical comparison function for the std::arrays of costs. This is the sorting function for
              * both the vertex and edge queues and is just a wrapper to std::lexicographical_compare.*/
             template <std::size_t SIZE>
-            bool queueComparison(const std::array<ompl::base::Cost, SIZE> &lhs,
+            bool lexicographicalBetterThan(const std::array<ompl::base::Cost, SIZE> &lhs,
                                  const std::array<ompl::base::Cost, SIZE> &rhs) const;
             ////////////////////////////////
 

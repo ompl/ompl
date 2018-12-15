@@ -76,12 +76,12 @@ namespace ompl
           : nameFunc_(std::move(nameFunc))
           , vertexQueue_([this](const CostDouble &lhs, const CostDouble &rhs)
                          {
-                             return queueComparison(lhs, rhs);
+                             return lexicographicalBetterThan(lhs, rhs);
                          })  // This tells the vertexQueue_ to use the queueComparison for sorting
           , vertexToExpand_(vertexQueue_.begin())
           , edgeQueue_([this](const CostTripleAndVertexPtrPair &lhs, const CostTripleAndVertexPtrPair &rhs)
                        {
-                           return queueComparison(lhs.first, rhs.first);
+                           return lexicographicalBetterThan(lhs.first, rhs.first);
                        })  // This tells the edgeQueue_ to use the queueComparison for sorting
         {
         }
@@ -888,7 +888,7 @@ namespace ompl
             // By virtue of the vertex expansion rules, the token will always sit at the front of a group of
             // equivalent cost vertices (that is to say, all vertices with the same cost get expanded at the same
             // time). Therefore, the vertex is expanded if it's cost is strictly better than the token.
-            return this->queueComparison(vertex->getVertexQueueIter()->first, vertexToExpand_->first);
+            return this->lexicographicalBetterThan(vertex->getVertexQueueIter()->first, vertexToExpand_->first);
         }
 
         void BITstar::SearchQueue::getVertices(VertexConstPtrVector *vertexQueue)
@@ -1201,7 +1201,7 @@ namespace ompl
                 // The token is at the end, therefore this vertex is in front of it:
                 alreadyExpanded = true;
             }
-            else if (this->queueComparison(unorderedVertex->getVertexQueueIter()->first, vertexToExpand_->first))
+            else if (this->lexicographicalBetterThan(unorderedVertex->getVertexQueueIter()->first, vertexToExpand_->first))
             {
                 // This vertex is currently in the queue with a cost that is in front of the current token. It has been expanded:
                 alreadyExpanded = true;
@@ -1391,7 +1391,7 @@ namespace ompl
                     {
                         // The token is not at the end. That means we can safely dereference it:
                         // Are we in front of it (2b)?
-                        if (this->queueComparison(vertexIter->first, vertexToExpand_->first))
+                        if (this->lexicographicalBetterThan(vertexIter->first, vertexToExpand_->first))
                         {
                             // We're before it, so expand it:
                             this->expandVertex(newVertex);
@@ -1478,8 +1478,8 @@ namespace ompl
         }
 
         template <std::size_t SIZE>
-        bool BITstar::SearchQueue::queueComparison(const std::array<ompl::base::Cost, SIZE> &lhs,
-                                                   const std::array<ompl::base::Cost, SIZE> &rhs) const
+        bool BITstar::SearchQueue::lexicographicalBetterThan(const std::array<ompl::base::Cost, SIZE> &lhs,
+                                                             const std::array<ompl::base::Cost, SIZE> &rhs) const
         {
             return std::lexicographical_compare(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend(),
                                                 [this](const ompl::base::Cost &a, const ompl::base::Cost &b)
