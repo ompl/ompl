@@ -78,7 +78,7 @@ namespace ompl
                          {
                              return lexicographicalBetterThan(lhs, rhs);
                          })  // This tells the vertexQueue_ to use the queueComparison for sorting
-          , vertexToExpand_(vertexQueue_.begin())
+          , vertexQueueToken_(vertexQueue_.begin())
           , edgeQueue_([this](const CostTripleAndVertexPtrPair &lhs, const CostTripleAndVertexPtrPair &rhs)
                        {
                            return lexicographicalBetterThan(lhs.first, rhs.first);
@@ -113,7 +113,7 @@ namespace ompl
 
             // The vertex queue:
             vertexQueue_.clear();
-            vertexToExpand_ = vertexQueue_.begin();
+            vertexQueueToken_ = vertexQueue_.begin();
 
             // The edge queue:
             edgeQueue_.clear();
@@ -654,7 +654,7 @@ namespace ompl
                 ++numQueueResets_;
 
                 // Move the token to the end:
-                vertexToExpand_ = vertexQueue_.end();
+                vertexQueueToken_ = vertexQueue_.end();
             }
         }
 
@@ -679,7 +679,7 @@ namespace ompl
             resortVertices_.clear();
 
             // Restart the expansion queue:
-            vertexToExpand_ = vertexQueue_.begin();
+            vertexQueueToken_ = vertexQueue_.begin();
         }
 
         bool BITstar::SearchQueue::vertexInsertCondition(const VertexPtr &state) const
@@ -795,7 +795,7 @@ namespace ompl
             numToExpand = 0u;
 
             // Iterate until the end:
-            for (VertexQueueAsMMap::const_iterator vIter = vertexToExpand_; vIter != vertexQueue_.end(); ++vIter)
+            for (VertexQueueAsMMap::const_iterator vIter = vertexQueueToken_; vIter != vertexQueue_.end(); ++vIter)
             {
                 // Increment counter:
                 ++numToExpand;
@@ -845,7 +845,7 @@ namespace ompl
         {
             ASSERT_SETUP
 
-            return (vertexToExpand_ == vertexQueue_.begin() && edgeQueue_.empty());
+            return (vertexQueueToken_ == vertexQueue_.begin() && edgeQueue_.empty());
         }
 
         bool BITstar::SearchQueue::isEmpty()
@@ -856,7 +856,7 @@ namespace ompl
             this->updateQueue();
 
             // Expand if the edge queue is empty but the vertex queue is not:
-            while (edgeQueue_.empty() && vertexToExpand_ != vertexQueue_.end())
+            while (edgeQueue_.empty() && vertexQueueToken_ != vertexQueue_.end())
             {
                 // Expand the next vertex, this pushes the token:
                 this->expandNextVertex();
@@ -878,7 +878,7 @@ namespace ompl
             ASSERT_SETUP
 
             // Compare the value used to currently sort the vertex in the queue to the value of the token.
-            if (vertexToExpand_ == vertexQueue_.end())
+            if (vertexQueueToken_ == vertexQueue_.end())
             {
                 // If the token is at the end of the queue, obviously the vertex is expanded:
                 return true;
@@ -888,7 +888,7 @@ namespace ompl
             // By virtue of the vertex expansion rules, the token will always sit at the front of a group of
             // equivalent cost vertices (that is to say, all vertices with the same cost get expanded at the same
             // time). Therefore, the vertex is expanded if it's cost is strictly better than the token.
-            return this->lexicographicalBetterThan(vertex->getVertexQueueIter()->first, vertexToExpand_->first);
+            return this->lexicographicalBetterThan(vertex->getVertexQueueIter()->first, vertexQueueToken_->first);
         }
 
         void BITstar::SearchQueue::getVertices(VertexConstPtrVector *vertexQueue)
@@ -902,7 +902,7 @@ namespace ompl
             vertexQueue->clear();
 
             // Iterate until the end, pushing back:
-            for (VertexQueueAsMMap::const_iterator vIter = vertexToExpand_; vIter != vertexQueue_.end(); ++vIter)
+            for (VertexQueueAsMMap::const_iterator vIter = vertexQueueToken_; vIter != vertexQueue_.end(); ++vIter)
             {
                 // Push back:
                 vertexQueue->push_back(vIter->second);
@@ -953,7 +953,7 @@ namespace ompl
             while (expand)
             {
                 // Check if there are any vertices to expand:
-                if (vertexToExpand_ != vertexQueue_.end())
+                if (vertexQueueToken_ != vertexQueue_.end())
                 {
                     // Expand a vertex if the edge queue is empty, or the vertex could place a better edge into it:
                     if (edgeQueue_.empty())
@@ -963,7 +963,7 @@ namespace ompl
                     }
                     // This is isCostBetterThanOrEquivalentTo because of the second ordering criteria. The vertex
                     // expanded could match the edge in queue on total cost, but have less cost-to-come.
-                    else if (costHelpPtr_->isCostBetterThanOrEquivalentTo(vertexToExpand_->first.at(0u),
+                    else if (costHelpPtr_->isCostBetterThanOrEquivalentTo(vertexQueueToken_->first.at(0u),
                                                                           edgeQueue_.top()->data.first.at(0u)))
                     {
                         // The vertex *could* give a better edge than our current best edge:
@@ -986,18 +986,18 @@ namespace ompl
         void BITstar::SearchQueue::expandNextVertex()
         {
             // Should we expand the next vertex?
-            if (this->vertexInsertCondition(vertexToExpand_->second))
+            if (this->vertexInsertCondition(vertexQueueToken_->second))
             {
                 // Expand the vertex in the front:
-                this->expandVertex(vertexToExpand_->second);
+                this->expandVertex(vertexQueueToken_->second);
 
                 // Increment the vertex token:
-                ++vertexToExpand_;
+                ++vertexQueueToken_;
             }
             else
             {
                 // The next vertex would get pruned, so just jump to the end:
-                vertexToExpand_ = vertexQueue_.end();
+                vertexQueueToken_ = vertexQueue_.end();
             }
         }
 
@@ -1196,12 +1196,12 @@ namespace ompl
             bool alreadyExpanded;
 
             // Test if it I am currently expanded.
-            if (vertexToExpand_ == vertexQueue_.end())
+            if (vertexQueueToken_ == vertexQueue_.end())
             {
                 // The token is at the end, therefore this vertex is in front of it:
                 alreadyExpanded = true;
             }
-            else if (this->lexicographicalBetterThan(unorderedVertex->getVertexQueueIter()->first, vertexToExpand_->first))
+            else if (this->lexicographicalBetterThan(unorderedVertex->getVertexQueueIter()->first, vertexQueueToken_->first))
             {
                 // This vertex is currently in the queue with a cost that is in front of the current token. It has been expanded:
                 alreadyExpanded = true;
@@ -1332,7 +1332,7 @@ namespace ompl
             {
                 // If the vertex queue is now of size 1, that means that this was the first vertex. Set the token to it
                 // and don't even think of expanding anything:
-                vertexToExpand_ = vertexQueue_.begin();
+                vertexQueueToken_ = vertexQueue_.begin();
             }
             else if (expandIfBeforeToken)
             {
@@ -1366,7 +1366,7 @@ namespace ompl
                 VertexQueueIter preToken;
 
                 // Get the vertex before the current token:
-                preToken = vertexToExpand_;
+                preToken = vertexQueueToken_;
                 --preToken;
 
                 // Check if we are immediately before: (1a & 1b)
@@ -1374,14 +1374,14 @@ namespace ompl
                 {
                     // The vertex before the token is the newly added vertex. Therefore we can just move the token up to
                     // the newly added vertex:
-                    vertexToExpand_ = vertexIter;
+                    vertexQueueToken_ = vertexIter;
                 }
                 else
                 {
                     // We are not immediately before the token.
 
                     // Check if the token is at the end (2a)
-                    if (vertexToExpand_ == vertexQueue_.end())
+                    if (vertexQueueToken_ == vertexQueue_.end())
                     {
                         // It is. We've expanded the whole queue, and the new vertex isn't at the end of the queue.
                         // Expand!
@@ -1391,7 +1391,7 @@ namespace ompl
                     {
                         // The token is not at the end. That means we can safely dereference it:
                         // Are we in front of it (2b)?
-                        if (this->lexicographicalBetterThan(vertexIter->first, vertexToExpand_->first))
+                        if (this->lexicographicalBetterThan(vertexIter->first, vertexQueueToken_->first))
                         {
                             // We're before it, so expand it:
                             this->expandVertex(newVertex);
@@ -1439,10 +1439,10 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
 
             // Check if we need to move the expansion token:
-            if (vertexToDelete->getVertexQueueIter() == vertexToExpand_)
+            if (vertexToDelete->getVertexQueueIter() == vertexQueueToken_)
             {
                 // The token is this vertex, move it to the next:
-                ++vertexToExpand_;
+                ++vertexQueueToken_;
             }
             // No else, not the token.
 

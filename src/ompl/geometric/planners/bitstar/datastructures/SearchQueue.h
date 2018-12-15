@@ -405,7 +405,7 @@ namespace ompl
             VertexQueueAsMMap vertexQueue_;
 
             /** \brief The next vertex in the expansion queue to expand*/
-            VertexQueueIter vertexToExpand_;
+            VertexQueueIter vertexQueueToken_;
 
             /** \brief The underlying queue of edges. Sorted by edgeQueueComparison. */
             EdgeQueueAsPairBinHeap edgeQueue_;
