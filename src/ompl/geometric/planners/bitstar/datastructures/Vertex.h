@@ -121,7 +121,7 @@ namespace ompl
 
             /** \brief Set the parent of this vertex, cannot be used to replace a previous parent. Will always update
              * this vertex's cost, and can update descendent costs */
-            void addParent(const VertexPtr &newParent, const ompl::base::Cost &edgeInCost, bool updateChildCosts);
+            void addParent(const VertexPtr &newParent, const ompl::base::Cost &edgeInCost);
 
             /** \brief Remove the parent of this vertex. Will always update this vertex's cost, and can update the descendent costs */
             void removeParent(bool updateChildCosts);

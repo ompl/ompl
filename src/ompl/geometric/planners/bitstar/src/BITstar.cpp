@@ -773,27 +773,22 @@ namespace ompl
             }
 #endif  // BITSTAR_DEBUG
 
-            // Variables
-            // The edge is a rewiring if it is current in the tree:
-            bool isRewiring = newEdge.second->hasParent();
-
-            // Perform a rewiring?
-            if (isRewiring)
+            // If the child already has a parent, this is a rewiring.
+            if (newEdge.second->hasParent())
             {
-                // Replace the edge
+                // Replace the old parent.
                 this->replaceParent(newEdge, edgeCost);
-            }
+            } // If not, we add the vertex without replaceing a parent.
             else
             {
 #ifdef BITSTAR_DEBUG
                 graphPtr_->assertValidSample(newEdge.second, false);
 #endif  // BITSTAR_DEBUG
-                // If not, we just add the vertex
 
-                // Add a parent to the child, updating descendant costs:
-                newEdge.second->addParent(newEdge.first, edgeCost, true);
+                // Add a parent to the child.
+                newEdge.second->addParent(newEdge.first, edgeCost);
 
-                // Add a child to the parent:
+                // Add a child to the parent.
                 newEdge.first->addChild(newEdge.second);
 
                 // Then enqueue the vertex, moving it from the free set to the vertex set.
@@ -825,7 +820,7 @@ namespace ompl
             newEdge.second->removeParent(false);
 
             // Add the parent to the child. updating the downstream costs.
-            newEdge.second->addParent(newEdge.first, edgeCost, true);
+            newEdge.second->addParent(newEdge.first, edgeCost);
 
             // Add the child to the parent.
             newEdge.first->addChild(newEdge.second);

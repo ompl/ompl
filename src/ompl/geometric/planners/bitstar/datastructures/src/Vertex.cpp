@@ -228,8 +228,7 @@ namespace ompl
             return parentSPtr_;
         }
 
-        void BITstar::Vertex::addParent(const VertexPtr &newParent, const ompl::base::Cost &edgeInCost,
-                                        bool updateChildCosts)
+        void BITstar::Vertex::addParent(const VertexPtr &newParent, const ompl::base::Cost &edgeInCost)
         {
             PRINT_VERTEX_CHANGE
             ASSERT_NOT_PRUNED
@@ -246,14 +245,14 @@ namespace ompl
             }
 #endif  // BITSTAR_DEBUG
 
-            // Store the parent
+            // Store the parent.
             parentSPtr_ = newParent;
 
-            // Store the edge cost
+            // Store the edge cost.
             edgeCost_ = edgeInCost;
 
-            // Update my cost and possibly the cost of my descendants:
-            this->updateCostAndDepth(updateChildCosts);
+            // Update my cost and that of my children.
+            this->updateCostAndDepth(true);
         }
 
         void BITstar::Vertex::removeParent(bool updateChildCosts)
