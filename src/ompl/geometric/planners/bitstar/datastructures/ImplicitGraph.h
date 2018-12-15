@@ -362,7 +362,7 @@ namespace ompl
             VertexPtrNNPtr vertices_{nullptr};
 
             /** \brief The number of samples in this batch */
-            unsigned int samplesInThisBatch_{0u};
+            unsigned int numNewSamplesInCurrentBatch_{0u};
 
             /** \brief The number of states (vertices or samples) that were generated from a uniform distribution. Only
              * valid when refreshSamplesOnPrune_ is true, in which case it's used to calculate the RGG term of the

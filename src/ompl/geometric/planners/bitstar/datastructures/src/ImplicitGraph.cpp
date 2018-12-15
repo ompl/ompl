@@ -237,7 +237,7 @@ namespace ompl
             }
 
             // The various calculations and tracked values, same as in the header
-            samplesInThisBatch_ = 0u;
+            numNewSamplesInCurrentBatch_ = 0u;
             numUniformStates_ = 0u;
             r_ = 0.0;
             k_rgg_ = 0.0;  // This is a double for better rounding later
@@ -663,7 +663,7 @@ namespace ompl
             costSampled_ = minCost_;
 
             // Store the number of samples being used in this batch
-            samplesInThisBatch_ = numSamples;
+            numNewSamplesInCurrentBatch_ = numSamples;
 
             // Update the nearest-neighbour terms for the number of samples we *will* have.
             this->updateNearestTerms();
@@ -926,7 +926,7 @@ namespace ompl
 
                     // Calculate the sample density given the number of samples per batch and the measure of this batch
                     // by assuming that this batch will fill the same measure as the previous
-                    sampleDensity = static_cast<double>(samplesInThisBatch_) / approximationMeasure_;
+                    sampleDensity = static_cast<double>(numNewSamplesInCurrentBatch_) / approximationMeasure_;
 
                     // Convert that into the number of samples needed for this slice.
                     dblNum = sampleDensity * sampler_->getInformedMeasure(costSampled_, costReqd);
@@ -945,7 +945,7 @@ namespace ompl
                 else
                 {
                     // We're generating all our samples in one batch. Do it to it.
-                    totalReqdSamples = numSamples_ + samplesInThisBatch_;
+                    totalReqdSamples = numSamples_ + numNewSamplesInCurrentBatch_;
                 }
 
                 // Actually generate the new samples
@@ -1256,7 +1256,7 @@ namespace ompl
             // the radius, which RRT* does with it's min(maxEdgeLength, RGG-radius).
             if (N == (startVertices_.size() + goalVertices_.size()))
             {
-                N = N + samplesInThisBatch_;
+                N = N + numNewSamplesInCurrentBatch_;
             }
 
             // Now update the appropriate term
