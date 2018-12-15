@@ -1067,7 +1067,7 @@ namespace ompl
 
                     // Iterate over the vector of connected targets and add only those who could ever provide a better
                     // solution:
-                    this->enqueueVertices(vertex, neighbourVertices);
+                    this->enqueueEdgesToVertices(vertex, neighbourVertices);
                 }
                 // No else
             }
@@ -1092,7 +1092,7 @@ namespace ompl
             vertex->markExpandedToSamples();
         }
 
-        void BITstar::SearchQueue::enqueueVertices(const VertexPtr &vertex, const VertexPtrVector& neighbourVertices)
+        void BITstar::SearchQueue::enqueueEdgesToVertices(const VertexPtr &vertex, const VertexPtrVector& neighbourVertices)
         {
             // Iterate over the vector of connected targets and add only those who could ever provide a better
             // solution:
