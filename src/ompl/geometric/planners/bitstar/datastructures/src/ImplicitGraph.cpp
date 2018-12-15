@@ -98,8 +98,8 @@ namespace ompl
             isSetup_ = true;
 
             // Store arguments
-            si_ = si;
-            pdef_ = pdef;
+            spaceInformation_ = si;
+            problemDefinition_ = pdef;
             costHelpPtr_ = costHelper;
             queuePtr_ = searchQueue;
 
@@ -136,7 +136,7 @@ namespace ompl
             this->updateStartAndGoalStates(pis, ompl::base::plannerAlwaysTerminatingCondition());
 
             // Get the measure of the problem
-            approximationMeasure_ = si_->getSpaceMeasure();
+            approximationMeasure_ = spaceInformation_->getSpaceMeasure();
 
             // Does the problem have finite boundaries?
             if (!std::isfinite(approximationMeasure_))
@@ -175,12 +175,12 @@ namespace ompl
                 {
                     for (const auto &goalVertex : goalVertices_)
                     {
-                        maxDist = std::max(maxDist, si_->distance(startVertex->stateConst(), goalVertex->stateConst()));
+                        maxDist = std::max(maxDist, spaceInformation_->distance(startVertex->stateConst(), goalVertex->stateConst()));
                     }
                 }
 
                 // Calculate an estimate of the problem measure by (hyper)cubing the max distance
-                approximationMeasure_ = std::pow(distScale * maxDist, si_->getStateDimension());
+                approximationMeasure_ = std::pow(distScale * maxDist, spaceInformation_->getStateDimension());
             }
             // No else, finite problem dimension
 
@@ -204,8 +204,8 @@ namespace ompl
             isSetup_ = false;
 
             // Pointers given at setup
-            si_.reset();
-            pdef_.reset();
+            spaceInformation_.reset();
+            problemDefinition_.reset();
             costHelpPtr_ = nullptr;
             queuePtr_ = nullptr;
 
@@ -286,7 +286,7 @@ namespace ompl
             // Using RRTstar as an example, this order gives us the distance FROM the queried state TO the other
             // neighbours in the structure.
             // The distance function between two states
-            return si_->distance(b->stateConst(), a->stateConst());
+            return spaceInformation_->distance(b->stateConst(), a->stateConst());
         }
 
         void BITstar::ImplicitGraph::nearestSamples(const VertexPtr &vertex, VertexPtrVector *neighbourSamples)
@@ -431,10 +431,10 @@ namespace ompl
                     rebuildQueue = (!startVertices_.empty());
 
                     // Allocate the vertex pointer
-                    goalVertices_.push_back(std::make_shared<Vertex>(si_, costHelpPtr_));
+                    goalVertices_.push_back(std::make_shared<Vertex>(spaceInformation_, costHelpPtr_));
 
                     // Copy the value into the state
-                    si_->copyState(goalVertices_.back()->state(), newGoal);
+                    spaceInformation_->copyState(goalVertices_.back()->state(), newGoal);
 
                     // And add this goal to the set of samples:
                     this->addSample(goalVertices_.back());
@@ -462,10 +462,10 @@ namespace ompl
                 if (static_cast<bool>(newStart))
                 {
                     // Allocate the vertex pointer:
-                    startVertices_.push_back(std::make_shared<Vertex>(si_, costHelpPtr_, true));
+                    startVertices_.push_back(std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, true));
 
                     // Copy the value into the state:
-                    si_->copyState(startVertices_.back()->state(), newStart);
+                    spaceInformation_->copyState(startVertices_.back()->state(), newStart);
 
                     // Add this start vertex to the queue. It is not a sample, so skip that step:
                     queuePtr_->enqueueVertex(startVertices_.back(), false);
@@ -615,7 +615,7 @@ namespace ompl
                 {
                     // There is a start and goal, allocate
                     sampler_ = costHelpPtr_->getOptObj()->allocInformedStateSampler(
-                        pdef_, std::numeric_limits<unsigned int>::max());
+                        problemDefinition_, std::numeric_limits<unsigned int>::max());
                 }
                 // No else, this will get allocated when we get the updated start/goal.
 
@@ -953,14 +953,14 @@ namespace ompl
                 {
                     // Variable
                     // The new state:
-                    auto newState = std::make_shared<Vertex>(si_, costHelpPtr_);
+                    auto newState = std::make_shared<Vertex>(spaceInformation_, costHelpPtr_);
 
                     // Sample in the interval [costSampled_, costReqd):
                     sampler_->sampleUniform(newState->state(), costSampled_, costReqd);
 
                     // If the state is collision free, add it to the set of free states
                     ++numStateCollisionChecks_;
-                    if (si_->isValid(newState->stateConst()))
+                    if (spaceInformation_->isValid(newState->stateConst()))
                     {
                         // Add the new state as a sample
                         this->addSample(newState);
@@ -1202,7 +1202,7 @@ namespace ompl
             double distFromGoal;
 
             // Find the shortest distance between the given vertex and a goal
-            pdef_->getGoal()->isSatisfied(newVertex->stateConst(), &distFromGoal);
+            problemDefinition_->getGoal()->isSatisfied(newVertex->stateConst(), &distFromGoal);
 
             // Compare to the current best approximate solution
             if (distFromGoal < closestDistToGoal_)
@@ -1274,7 +1274,7 @@ namespace ompl
         {
             // Variables
             // The dimension cast as a double for readibility;
-            auto dimDbl = static_cast<double>(si_->getStateDimension());
+            auto dimDbl = static_cast<double>(spaceInformation_->getStateDimension());
             // The size of the graph
             auto cardDbl = static_cast<double>(N);
 
@@ -1292,13 +1292,13 @@ namespace ompl
         {
             // Variables
             // The dimension cast as a double for readibility;
-            auto dimDbl = static_cast<double>(si_->getStateDimension());
+            auto dimDbl = static_cast<double>(spaceInformation_->getStateDimension());
 
             // Calculate the term and return
             // RRT*
             return std::pow(2.0 * (1.0 + 1.0 / dimDbl) *
                                   (approximationMeasure_ /
-                                    unitNBallMeasure(si_->getStateDimension())),
+                                    unitNBallMeasure(spaceInformation_->getStateDimension())),
                             1.0 / dimDbl);
 
             // Relevant work on calculating the minimum radius:
@@ -1330,7 +1330,7 @@ namespace ompl
         {
             // Variables
             // The dimension cast as a double for readibility;
-            auto dimDbl = static_cast<double>(si_->getStateDimension());
+            auto dimDbl = static_cast<double>(spaceInformation_->getStateDimension());
 
             // Calculate the term and return
             return boost::math::constants::e<double>() +

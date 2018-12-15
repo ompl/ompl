@@ -314,10 +314,10 @@ namespace ompl
             bool isSetup_{false};
 
             /** \brief The state space used by the planner */
-            ompl::base::SpaceInformationPtr si_{nullptr};
+            ompl::base::SpaceInformationPtr spaceInformation_{nullptr};
 
             /** \brief The problem definition */
-            ompl::base::ProblemDefinitionPtr pdef_{nullptr};
+            ompl::base::ProblemDefinitionPtr problemDefinition_{nullptr};
 
             /** \brief A cost/heuristic helper class. As this is a copy of the version owned by BITstar.cpp it can be
              * reset in a clear(). */
