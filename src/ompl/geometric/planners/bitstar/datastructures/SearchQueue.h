@@ -328,7 +328,7 @@ namespace ompl
 
             /** \brief Iterate through the list of neighbouring unconnected vertices and add potential edges to
             * the queue if the vertex is marked as new *or* we're adding all of them. */
-            void enqueueSamples(const VertexPtr &vertex, const VertexPtrVector& neighbourSamples, bool addAll);
+            void enqueueEdgesToSamples(const VertexPtr &vertex, const VertexPtrVector& neighbourSamples, bool addAll);
 
             /** \brief Iterate through the list of neighbouring vertices and add potential edges to the queue. */
             void enqueueVertices(const VertexPtr &vertex, const VertexPtrVector& neighbourVertices);

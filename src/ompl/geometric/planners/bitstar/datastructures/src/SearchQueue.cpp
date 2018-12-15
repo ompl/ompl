@@ -1044,13 +1044,13 @@ namespace ompl
                 if (!vertex->hasBeenExpandedToSamples())
                 {
                     // It has not, that means none of its outgoing edges have been considered. Add them all
-                    this->enqueueSamples(vertex, neighbourSamples, true);
+                    this->enqueueEdgesToSamples(vertex, neighbourSamples, true);
                 }
                 else
                 {
                     // It has, which means that outgoing edges to old unconnected vertices have already been considered.
                     // Only add those that lead to new vertices
-                    this->enqueueSamples(vertex, neighbourSamples, false);
+                    this->enqueueEdgesToSamples(vertex, neighbourSamples, false);
                 }
 
                 // If the vertex has never been expanded into possible rewiring edges *and* either we're not delaying
@@ -1074,7 +1074,7 @@ namespace ompl
             // No else
         }
 
-        void BITstar::SearchQueue::enqueueSamples(const VertexPtr &vertex, const VertexPtrVector& neighbourSamples, bool addAll)
+        void BITstar::SearchQueue::enqueueEdgesToSamples(const VertexPtr &vertex, const VertexPtrVector& neighbourSamples, bool addAll)
         {
             // Iterate through the samples and add each one
             for (auto &targetSample : neighbourSamples)
