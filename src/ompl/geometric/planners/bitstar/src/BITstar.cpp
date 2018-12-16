@@ -418,12 +418,12 @@ namespace ompl
             if (hasExactSolution_)
             {
                 // Exact solution
-                data.markGoalState(curGoalVertex_->stateConst());
+                data.markGoalState(curGoalVertex_->state());
             }
             else if (!hasExactSolution_ && graphPtr_->getTrackApproximateSolutions())
             {
                 // Approximate solution
-                data.markGoalState(graphPtr_->closestVertexToGoal()->stateConst());
+                data.markGoalState(graphPtr_->closestVertexToGoal()->state());
             }
             // No else, no solution
         }
@@ -441,7 +441,7 @@ namespace ompl
                 VertexConstPtrPair frontEdge = queuePtr_->frontEdge();
 
                 // The next edge in the queue:
-                nextEdge = std::make_pair(frontEdge.first->stateConst(), frontEdge.second->stateConst());
+                nextEdge = std::make_pair(frontEdge.first->state(), frontEdge.second->state());
             }
             else
             {
@@ -730,7 +730,7 @@ namespace ompl
             }
 
             // Insert the goal into the path
-            reversePath.push_back(curVertex->stateConst());
+            reversePath.push_back(curVertex->state());
 
             // Then, use the vertex pointer like an iterator. Starting at the goal, we iterate up the chain pushing the
             // *parent* of the iterator into the vector until the vertex has no parent.
@@ -749,7 +749,7 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
 
                 // Push back the parent into the vector as a state pointer:
-                reversePath.push_back(curVertex->getParent()->stateConst());
+                reversePath.push_back(curVertex->getParent()->state());
             }
             return reversePath;
         }
@@ -757,7 +757,7 @@ namespace ompl
         bool BITstar::checkEdge(const VertexConstPtrPair &edge)
         {
             ++numEdgeCollisionChecks_;
-            return Planner::si_->checkMotion(edge.first->stateConst(), edge.second->stateConst());
+            return Planner::si_->checkMotion(edge.first->state(), edge.second->state());
         }
 
         void BITstar::addEdge(const VertexPtrPair &newEdge, const ompl::base::Cost &edgeCost)

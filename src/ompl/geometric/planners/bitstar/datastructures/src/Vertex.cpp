@@ -133,7 +133,7 @@ namespace ompl
             return vId_;
         }
 
-        ompl::base::State const *BITstar::Vertex::stateConst() const
+        ompl::base::State const *BITstar::Vertex::state() const
         {
             ASSERT_NOT_PRUNED
 

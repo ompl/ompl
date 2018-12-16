@@ -92,7 +92,7 @@ namespace ompl
             BITstar::VertexId getId() const;
 
             /** \brief The state of a vertex as a constant pointer */
-            ompl::base::State const *stateConst() const;
+            ompl::base::State const *state() const;
 
             /** \brief The state of a vertex as a mutable pointer*/
             ompl::base::State *state();

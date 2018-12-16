@@ -161,7 +161,7 @@ namespace ompl
                 {
                     // Update the cost-to-come as the better of the best so far and the new one
                     curBest = this->betterCost(curBest,
-                                               this->motionCostHeuristic((*startIter)->stateConst(), vertex->stateConst()));
+                                               this->motionCostHeuristic((*startIter)->state(), vertex->state()));
                 }
 
                 // Return
@@ -171,7 +171,7 @@ namespace ompl
             /** \brief Calculate a heuristic estimate of the cost of an edge between two Vertices */
             inline ompl::base::Cost edgeCostHeuristic(const VertexConstPtrPair &edgePair) const
             {
-                return this->motionCostHeuristic(edgePair.first->stateConst(), edgePair.second->stateConst());
+                return this->motionCostHeuristic(edgePair.first->state(), edgePair.second->state());
             };
 
             /** \brief Calculate a heuristic estimate of the cost-to-go for a Vertex */
@@ -187,7 +187,7 @@ namespace ompl
                 {
                     // Update the cost-to-go as the better of the best so far and the new one
                     curBest = this->betterCost(curBest,
-                                               this->motionCostHeuristic(vertex->stateConst(), (*goalIter)->stateConst()));
+                                               this->motionCostHeuristic(vertex->state(), (*goalIter)->state()));
                 }
 
                 // Return
@@ -200,7 +200,7 @@ namespace ompl
             /** \brief The true cost of an edge, including constraints.*/
             inline ompl::base::Cost trueEdgeCost(const VertexConstPtrPair &edgePair) const
             {
-                return this->motionCost(edgePair.first->stateConst(), edgePair.second->stateConst());
+                return this->motionCost(edgePair.first->state(), edgePair.second->state());
             };
 
             /** \brief Combine 3 costs */

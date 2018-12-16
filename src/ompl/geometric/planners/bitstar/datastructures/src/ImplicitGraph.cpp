@@ -175,7 +175,7 @@ namespace ompl
                 {
                     for (const auto &goalVertex : goalVertices_)
                     {
-                        maxDist = std::max(maxDist, spaceInformation_->distance(startVertex->stateConst(), goalVertex->stateConst()));
+                        maxDist = std::max(maxDist, spaceInformation_->distance(startVertex->state(), goalVertex->state()));
                     }
                 }
 
@@ -286,7 +286,7 @@ namespace ompl
             // Using RRTstar as an example, this order gives us the distance FROM the queried state TO the other
             // neighbours in the structure.
             // The distance function between two states
-            return spaceInformation_->distance(b->stateConst(), a->stateConst());
+            return spaceInformation_->distance(b->state(), a->state());
         }
 
         void BITstar::ImplicitGraph::nearestSamples(const VertexPtr &vertex, VertexPtrVector *neighbourSamples)
@@ -344,7 +344,7 @@ namespace ompl
                 for (const auto &freeSample : samples)
                 {
                     // No, add as a regular vertex:
-                    data.addVertex(ompl::base::PlannerDataVertex(freeSample->stateConst()));
+                    data.addVertex(ompl::base::PlannerDataVertex(freeSample->state()));
                 }
             }
             // No else.
@@ -366,16 +366,16 @@ namespace ompl
                     if (vertex->isRoot())
                     {
                         // Yes, add as a start vertex:
-                        data.addStartVertex(ompl::base::PlannerDataVertex(vertex->stateConst()));
+                        data.addStartVertex(ompl::base::PlannerDataVertex(vertex->state()));
                     }
                     else
                     {
                         // No, add as a regular vertex:
-                        data.addVertex(ompl::base::PlannerDataVertex(vertex->stateConst()));
+                        data.addVertex(ompl::base::PlannerDataVertex(vertex->state()));
 
                         // And as an incoming edge
-                        data.addEdge(ompl::base::PlannerDataVertex(vertex->getParent()->stateConst()),
-                                     ompl::base::PlannerDataVertex(vertex->stateConst()));
+                        data.addEdge(ompl::base::PlannerDataVertex(vertex->getParent()->state()),
+                                     ompl::base::PlannerDataVertex(vertex->state()));
                     }
                 }
             }
@@ -960,7 +960,7 @@ namespace ompl
 
                     // If the state is collision free, add it to the set of free states
                     ++numStateCollisionChecks_;
-                    if (spaceInformation_->isValid(newState->stateConst()))
+                    if (spaceInformation_->isValid(newState->state()))
                     {
                         // Add the new state as a sample
                         this->addSample(newState);
@@ -1202,7 +1202,7 @@ namespace ompl
             double distFromGoal;
 
             // Find the shortest distance between the given vertex and a goal
-            problemDefinition_->getGoal()->isSatisfied(newVertex->stateConst(), &distFromGoal);
+            problemDefinition_->getGoal()->isSatisfied(newVertex->state(), &distFromGoal);
 
             // Compare to the current best approximate solution
             if (distFromGoal < closestDistToGoal_)
