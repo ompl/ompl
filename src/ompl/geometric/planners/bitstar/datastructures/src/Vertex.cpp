@@ -545,7 +545,7 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert available
-            if (!isVertexQueueSet_)
+            if (!hasVertexQueueIter_)
             {
                 throw ompl::Exception("Attempting to access an iterator to the vertex queue before one is set.");
             }
@@ -560,7 +560,7 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert not already set
-            if (isVertexQueueSet_)
+            if (hasVertexQueueIter_)
             {
                 throw ompl::Exception("Attempting to change an iterator to the vertex queue.");
             }
@@ -610,7 +610,7 @@ namespace ompl
                 throw ompl::Exception("Attempted to add an incoming queue edge to the wrong vertex.");
             }
             // Assert that an edge from this source does not already exist
-            for (const auto &elemPtrs : edgeQueueInPtrs_)
+            for (const auto &elemPtrs : edgeQueueInLookup_)
             {
                 if (newInPtr->data.second.first->getId() == elemPtrs->data.second.first->getId())
                 {
@@ -630,7 +630,7 @@ namespace ompl
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
             // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
-            if (vertexQueueResetNum != edgeLookupPass_)
+            if (vertexQueueResetNum != vertexQueueResetNum_)
             {
                 throw ompl::Exception("Attempted to remove an incoming queue edge added under a different expansion id.");
             }
@@ -670,7 +670,7 @@ namespace ompl
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
             // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
-            if (vertexQueueResetNum != edgeLookupPass_)
+            if (vertexQueueResetNum != vertexQueueResetNum_)
             {
                 throw ompl::Exception("Attempted to remove an incoming queue edge added under a different expansion id.");
             }
@@ -740,7 +740,7 @@ namespace ompl
                 throw ompl::Exception("Attempted to add a cyclic outgoing queue edge.");
             }
             // Assert that an edge to this target does not already exist
-            for (const auto &elemPtrs : edgeQueueOutPtrs_)
+            for (const auto &elemPtrs : edgeQueueOutLookup_)
             {
                 if (newOutPtr->data.second.second->getId() == elemPtrs->data.second.second->getId())
                 {
@@ -760,7 +760,7 @@ namespace ompl
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
             // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
-            if (vertexQueueResetNum != edgeLookupPass_)
+            if (vertexQueueResetNum != vertexQueueResetNum_)
             {
                 throw ompl::Exception("Attempted to remove an incoming queue edge added under a different expansion id.");
             }
@@ -800,7 +800,7 @@ namespace ompl
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
             // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
-            if (vertexQueueResetNum != edgeLookupPass_)
+            if (vertexQueueResetNum != vertexQueueResetNum_)
             {
                 throw ompl::Exception("Attempted to remove an outgoing queue edge added under a different expansion id.");
             }
@@ -933,13 +933,13 @@ namespace ompl
                 throw ompl::Exception("Attempted to remove an incoming queue edge from the wrong vertex.");
             }
             // Assert that it could exist
-            if (edgeQueueInPtrs_.empty())
+            if (edgeQueueInLookup_.empty())
             {
                 throw ompl::Exception("Attempted to remove an incoming queue edge from a vertex with an empty list.");
             }
             // Assert that this edge actually exists
             bool found = false;
-            for (SearchQueue::EdgeQueueElemPtrVector::iterator ptrIter = edgeQueueInPtrs_.begin(); ptrIter != edgeQueueInPtrs_.end() && !found; ++ptrIter)
+            for (SearchQueue::EdgeQueueElemPtrVector::iterator ptrIter = edgeQueueInLookup_.begin(); ptrIter != edgeQueueInLookup_.end() && !found; ++ptrIter)
             {
                 found = ((*ptrIter)->data.second.first->getId() == rmSrc);
             }
@@ -957,7 +957,7 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert that it's now gone.
-            for (const auto &edgePtr : edgeQueueInPtrs_)
+            for (const auto &edgePtr : edgeQueueInLookup_)
             {
                 if (edgePtr->data.second.first->getId() == rmSrc)
                 {
@@ -983,13 +983,13 @@ namespace ompl
                 throw ompl::Exception("Attempted to remove a cyclic outgoing queue edge.");
             }
             // Assert that it could exist
-            if (edgeQueueOutPtrs_.empty())
+            if (edgeQueueOutLookup_.empty())
             {
                 throw ompl::Exception("Attempted to remove an outgoing queue edge from a vertex with an empty list.");
             }
             // Assert that this edge actually exists
             bool found = false;
-            for (SearchQueue::EdgeQueueElemPtrVector::iterator ptrIter = edgeQueueOutPtrs_.begin(); ptrIter != edgeQueueOutPtrs_.end() && !found; ++ptrIter)
+            for (SearchQueue::EdgeQueueElemPtrVector::iterator ptrIter = edgeQueueOutLookup_.begin(); ptrIter != edgeQueueOutLookup_.end() && !found; ++ptrIter)
             {
                 found = ((*ptrIter)->data.second.second->getId() == rmTrgt);
             }
@@ -1007,7 +1007,7 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert that it's now gone.
-            for (const auto &edgePtr : edgeQueueOutPtrs_)
+            for (const auto &edgePtr : edgeQueueOutLookup_)
             {
                 if (edgePtr->data.second.second->getId() == rmTrgt)
                 {
@@ -1020,14 +1020,14 @@ namespace ompl
         void BITstar::Vertex::clearLookupsIfOutdated(unsigned int vertexQueueResetNum)
         {
             // Clean up any old lookups
-            if (vertexQueueResetNum != lookupApproximationId_)
+            if (vertexQueueResetNum != vertexQueueResetNum_)
             {
                 // Clear the existing entries
                 this->clearEdgeQueueInLookup();
                 this->clearEdgeQueueOutLookup();
 
                 // Update the counter
-                lookupApproximationId_ = vertexQueueResetNum;
+                vertexQueueResetNum_ = vertexQueueResetNum;
             }
             // No else, this is the same pass through the vertex queue
         }

@@ -60,7 +60,7 @@
 // included in the source file (.cpp) as they are member classes of BITstar.
 
 // Debug setting. Defining BITSTAR_DEBUG enables (significant) debug output. Do not enable unless necessary.
-//#define BITSTAR_DEBUG
+// #define BITSTAR_DEBUG
 
 namespace ompl
 {

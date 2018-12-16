@@ -719,28 +719,6 @@ namespace ompl
             return numToExpand;
         }
 
-        unsigned int BITstar::SearchQueue::numEdgesTo(const VertexPtr &cVertex)
-        {
-            ASSERT_SETUP
-
-            // Update the queue:
-            this->updateQueue();
-
-            // Return:
-            return cVertex->edgeQueueInLookupSize(numQueueResets_);
-        }
-
-        unsigned int BITstar::SearchQueue::numEdgesFrom(const VertexPtr &pVertex)
-        {
-            ASSERT_SETUP
-
-            // Update the queue:
-            this->updateQueue();
-
-            // Return:
-            return pVertex->edgeQueueOutLookupSize(numQueueResets_);
-        }
-
         unsigned int BITstar::SearchQueue::numUnsorted() const
         {
             ASSERT_SETUP
@@ -919,7 +897,7 @@ namespace ompl
         {
 #ifdef BITSTAR_DEBUG
             // Assert that this vertex has no outgoing edge queue entries.
-            if (vertex->hasOutgoingEdgeQueueEntries(numQueueResets_))
+            if (vertex->edgeQueueOutLookupSize(numQueueResets_) != 0u)
             {
                 std::cout << std::endl << "vId: " << vertex->getId() << std::endl;
                 throw ompl::Exception("Unexpanded vertex already has outgoing entries in the edge queue.");
@@ -929,61 +907,24 @@ namespace ompl
             // Should we expand this vertex?
             if (this->canPossiblyImproveCurrentSolution(vertex))
             {
-                // Variables:
-                // The vector of nearby samples (either within r or the k-nearest)
+                // Get the neighbouring samples.
                 VertexPtrVector neighbourSamples;
-                // The vector of nearby vertices
-                VertexPtrVector neighbourVertices;
-
-                // Get the set of nearby free states
                 graphPtr_->nearestSamples(vertex, &neighbourSamples);
 
-                // If we're usjng k-nearest, we technically need to be doing to combined k-nearest.
-                // So get the nearestVertices and do some post-processing
+                // Get the neighbouring vertices.
+                VertexPtrVector neighbourVertices;
+                graphPtr_->nearestVertices(vertex, &neighbourVertices);
+
+                // If we're using k-nearest, we technically need to be doing to combined k-nearest.
                 if (graphPtr_->getUseKNearest())
                 {
-                    // Get the set of nearby vertices
-                    graphPtr_->nearestVertices(vertex, &neighbourVertices);
-
-                    // Post process them:
                     this->processKNearest(vertex, &neighbourSamples, &neighbourVertices);
                 }
-                // No else
+                // No else, if we're using r-disc, we keep both sets.
 
-                // Add potential edges from the vertex to nearby states.
-                // Do so intelligently to avoid repeatedly considering the same failed edges (likely due to collision).
-
-                // Add edges to unconnected targets who could ever provide a better solution:
-                // Has the vertex been expanded into edges towards unconnected samples before?
-                if (!vertex->hasBeenExpandedToSamples())
-                {
-                    // It has not, that means none of its outgoing edges have been considered. Add them all
-                    this->enqueueEdgesToSamples(vertex, neighbourSamples, true);
-                }
-                else
-                {
-                    // It has, which means that outgoing edges to old unconnected vertices have already been considered.
-                    // Only add those that lead to new vertices
-                    this->enqueueEdgesToSamples(vertex, neighbourSamples, false);
-                }
-
-                // If the vertex has never been expanded into possible rewiring edges *and* either we're not delaying
-                // rewiring or we have a solution, we add those rewiring candidates:
-                if (!vertex->hasBeenExpandedToVertices() && (!delayRewiring_ || hasExactSolution_))
-                {
-                    // If we're using an r-disc RGG, we will not have gotten the neighbour vertices yet, get them now
-                    if (!graphPtr_->getUseKNearest())
-                    {
-                        // Get the set of nearby vertices
-                        graphPtr_->nearestVertices(vertex, &neighbourVertices);
-                    }
-                    // No else
-
-                    // Iterate over the vector of connected targets and add only those who could ever provide a better
-                    // solution:
-                    this->enqueueEdgesToVertices(vertex, neighbourVertices);
-                }
-                // No else
+                // Add all outgoing edges.
+                this->enqueueEdgesToSamples(vertex, neighbourSamples, true);
+                this->enqueueEdgesToVertices(vertex, neighbourVertices);
             }
             // No else
         }
@@ -1128,7 +1069,7 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert that unexpanded vertices have no outgoing edges in the queue
-            if (!alreadyExpanded && unorderedVertex->hasOutgoingEdgeQueueEntries(numQueueResets_))
+            if (!alreadyExpanded && unorderedVertex->edgeQueueOutLookupSize(numQueueResets_) != 0u)
             {
                 throw ompl::Exception("Unexpanded vertex has outgoing queue edges during a resort.");
             }

@@ -317,7 +317,7 @@ namespace ompl
 
             /** \brief The id-number associated with the currently stored edge lookups. This is used to reset existing
             * lookups when on the next pass through the vertex queue. */
-            unsigned int lookupApproximationId_{0u};
+            unsigned int vertexQueueResetNum_{0u};
 
             /** \brief A helper function to clear the given incoming lookup (and in debug mode assert it existed) */
             void removeFromEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtrVector::iterator &iterToDelete);

@@ -78,7 +78,7 @@ namespace ompl
         places in the edge queue. Edges are removed from the edge queue for processing by \ref gBITstar "BIT*". The
         vertex queue is implemented as a static ordered list of the vertices in the graph with a token (i.e., an
         iterator) pointing to the next vertex that needs to be expanded. This is specifically a multimap ordered on
-        ompl::base::Cost. The edge queue is implemented as an ordered list of potential edges. It is filled by the
+        a search key. The edge queue is implemented as an ordered list of potential edges. It is filled by the
         vertex queue and emptied by popping the best value off the front. It is specifically a multimap ordered on
         std::pair<ompl::base::Cost, ompl::base::Cost>
 
@@ -244,14 +244,6 @@ namespace ompl
             /** \brief Returns the number of vertices left to expand. This has nontrivial cost, as the token must be
              * moved through the vector to count.  Will resort/expand the queue if necessary. */
             unsigned int numVertices();
-
-            /** \brief Get the number of edges in the queue pointing to a specific vertex. Will resort/expand the queue
-             * if necessary. */
-            unsigned int numEdgesTo(const VertexPtr &cVertex);
-
-            /** \brief Get the number of edges in the queue coming from a specific vertex. Will resort/expand the queue
-             * if necessary. */
-            unsigned int numEdgesFrom(const VertexPtr &pVertex);
 
             /** \brief Return the number of vertices marked as unsorted */
             unsigned int numUnsorted() const;

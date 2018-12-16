@@ -273,11 +273,11 @@ namespace ompl
             ASSERT_SETUP
 
 #ifdef BITSTAR_DEBUG
-            if (!static_cast<bool>(a->stateConst()))
+            if (!static_cast<bool>(a->state()))
             {
                 throw ompl::Exception("a->state is unallocated");
             }
-            if (!static_cast<bool>(b->stateConst()))
+            if (!static_cast<bool>(b->state()))
             {
                 throw ompl::Exception("b->state is unallocated");
             }
