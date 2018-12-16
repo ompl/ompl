@@ -182,7 +182,7 @@ namespace ompl
             //////////////////
             // Queue maintenance
             /** \brief Mark that a solution has been found */
-            void hasSolution(const ompl::base::Cost &solnCost);
+            void registerSolutionCost(const ompl::base::Cost &solutionCost);
 
             /** \brief Erase all edges in the edge queue that lead to the given vertex */
             void removeEdgesTo(const VertexPtr &cVertex);
@@ -414,7 +414,7 @@ namespace ompl
             VertexPtrVector resortVertices_;
 
             /** \brief The cost of the best solution, which is the maximum heuristic value allowed for vertices/edges in the queue.*/
-            ompl::base::Cost solnCost_{std::numeric_limits<double>::infinity()};
+            ompl::base::Cost solutionCost_{std::numeric_limits<double>::infinity()};
 
             /** \brief Whether the problem has a solution */
             bool hasExactSolution_{false};

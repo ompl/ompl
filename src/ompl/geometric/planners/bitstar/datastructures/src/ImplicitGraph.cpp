@@ -129,7 +129,7 @@ namespace ompl
 
             // Set the min, max and sampled cost to the proper objective-based values:
             minCost_ = costHelpPtr_->infiniteCost();
-            maxCost_ = costHelpPtr_->infiniteCost();
+            solutionCost_ = costHelpPtr_->infiniteCost();
             costSampled_ = costHelpPtr_->infiniteCost();
 
             // Add any start and goals vertices that exist to the queue, but do NOT wait for any more goals:
@@ -245,7 +245,7 @@ namespace ompl
 
             approximationMeasure_ = 0.0;
             minCost_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
-            maxCost_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
+            solutionCost_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
             costSampled_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
             hasExactSolution_ = false;
             closestVertexToGoal_.reset();
@@ -382,7 +382,7 @@ namespace ompl
             // No else.
         }
 
-        void BITstar::ImplicitGraph::hasSolution(const ompl::base::Cost &solnCost)
+        void BITstar::ImplicitGraph::registerSolutionCost(const ompl::base::Cost &solutionCost)
         {
             ASSERT_SETUP
 
@@ -390,7 +390,7 @@ namespace ompl
             hasExactSolution_ = true;
 
             // Store it's cost as the maximum we'd ever want to sample
-            maxCost_ = solnCost;
+            solutionCost_ = solutionCost;
 
             // Clear the approximate solution
             closestDistToGoal_ = std::numeric_limits<double>::infinity();
@@ -1224,12 +1224,12 @@ namespace ompl
                 // There is no point generating samples worse the best solution (maxCost_) even if those samples are in
                 // this vertex's neighbourhood.
                 return costHelpPtr_->betterCost(
-                    maxCost_, costHelpPtr_->combineCosts(costHelpPtr_->lowerBoundHeuristicVertex(vertex),
+                    solutionCost_, costHelpPtr_->combineCosts(costHelpPtr_->lowerBoundHeuristicVertex(vertex),
                                                          ompl::base::Cost(2.0 * r_)));
             }
 
             // We are not, return the maximum cost we'd ever want to sample
-            return maxCost_;
+            return solutionCost_;
         }
 
         void BITstar::ImplicitGraph::updateNearestTerms()

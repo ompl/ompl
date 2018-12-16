@@ -105,7 +105,7 @@ namespace ompl
             /** \brief Get whether this vertex has a parent */
             bool hasParent() const;
 
-            /** \brief Get whether a vertex is "in the graph" or not. This returns true if the vertex is the graph root
+            /** \brief Get whether a vertex is in the search tree or a free sample (i.e., a vertex of the RRG). This returns true if the vertex is the graph root
              * or is connected to a parent. */
             bool isInTree() const;
 

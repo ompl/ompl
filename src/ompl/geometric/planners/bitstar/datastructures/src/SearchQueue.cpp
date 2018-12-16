@@ -96,7 +96,7 @@ namespace ompl
             graphPtr_ = graphPtr;
 
             // Set the the cost threshold to infinity to start:
-            solnCost_ = costHelpPtr_->infiniteCost();
+            solutionCost_ = costHelpPtr_->infiniteCost();
         }
 
         void BITstar::SearchQueue::clear()
@@ -125,7 +125,7 @@ namespace ompl
             resortVertices_.clear();
 
             // The cost threshold:
-            solnCost_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
+            solutionCost_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
 
             // The existence of a solution:
             hasExactSolution_ = false;
@@ -320,7 +320,7 @@ namespace ompl
             return rval;
         }
 
-        void BITstar::SearchQueue::hasSolution(const ompl::base::Cost &solnCost)
+        void BITstar::SearchQueue::registerSolutionCost(const ompl::base::Cost &solutionCost)
         {
             ASSERT_SETUP
 
@@ -328,7 +328,7 @@ namespace ompl
             hasExactSolution_ = true;
 
             // Store
-            solnCost_ = solnCost;
+            solutionCost_ = solutionCost;
         }
 
         void BITstar::SearchQueue::removeEdgesTo(const VertexPtr &cVertex)
@@ -692,7 +692,7 @@ namespace ompl
             // Just in case we're using a vertex that is exactly optimally connected
             // g^(v) + h^(v) <= g_t(x_g)?
             return costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicVertex(state),
-                                                                solnCost_);
+                                                                solutionCost_);
         }
 
         bool BITstar::SearchQueue::edgeInsertCondition(const VertexPtrPair &edge) const
@@ -705,7 +705,7 @@ namespace ompl
             // optimally connected
             // g^(v) + c^(v,x) + h^(x) <= g_t(x_g)?
             rval = costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicEdge(edge),
-                                                                solnCost_);
+                                                                solutionCost_);
 
             // If the child is connected already, we need to check if we could do better than it's current connection.
             // But only if we're inserting the edge
@@ -730,7 +730,7 @@ namespace ompl
             // Prune the vertex if it could cannot part of a better solution in the current graph.  Greater-than just in
             // case we're using an edge that is exactly optimally connected.
             // g_t(v) + h^(v) > g_t(x_g)?
-            return costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicVertex(state), solnCost_);
+            return costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicVertex(state), solutionCost_);
         }
 
         bool BITstar::SearchQueue::samplePruneCondition(const VertexPtr &state) const
@@ -741,7 +741,7 @@ namespace ompl
             // Prune the unconnected sample if it could never be better of a better solution.
             // g^(v) + h^(v) >= g_t(x_g)?
             return costHelpPtr_->isCostWorseThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicVertex(state),
-                                                               solnCost_);
+                                                               solutionCost_);
         }
 
         bool BITstar::SearchQueue::edgePruneCondition(const VertexPtrPair &edge) const
@@ -754,7 +754,7 @@ namespace ompl
             // Prune the edge if it could cannot part of a better solution in the current graph.  Greater-than just in
             // case we're using an edge that is exactly optimally connected.
             // g_t(v) + c^(v,x) + h^(x) > g_t(x_g)?
-            rval = costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicEdge(edge), solnCost_);
+            rval = costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicEdge(edge), solutionCost_);
 
             // If the child is connected already, we need to check if we could do better than it's current connection.
             // But only if we're not pruning based on the first check

@@ -142,7 +142,7 @@ namespace ompl
             // Graph modification:
             /** \brief Mark that a solution has been found and that the graph should be limited to the given heuristic
              * value */
-            void hasSolution(const ompl::base::Cost &solnCost);
+            void registerSolutionCost(const ompl::base::Cost &solutionCost);
 
             /** \brief Adds any new goals or starts that have appeared in the problem definition to the vector of
              * vertices and the queue. Creates a new informed sampler if necessary. */
@@ -387,7 +387,7 @@ namespace ompl
             ompl::base::Cost minCost_{std::numeric_limits<double>::infinity()};
 
             /** \brief The maximum heuristic cost to sample (i.e., the best solution found to date). */
-            ompl::base::Cost maxCost_{std::numeric_limits<double>::infinity()};
+            ompl::base::Cost solutionCost_{std::numeric_limits<double>::infinity()};
 
             /** \brief The total-heuristic cost up to which we've sampled */
             ompl::base::Cost costSampled_{std::numeric_limits<double>::infinity()};

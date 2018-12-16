@@ -905,8 +905,8 @@ namespace ompl
                 bestLength_ = curGoalVertex_->getDepth() + 1u;
 
                 // Tell everyone else about it.
-                queuePtr_->hasSolution(bestCost_);
-                graphPtr_->hasSolution(bestCost_);
+                queuePtr_->registerSolutionCost(bestCost_);
+                graphPtr_->registerSolutionCost(bestCost_);
 
                 // Stop the solution loop if enabled:
                 stopLoop_ = stopOnSolnChange_;
