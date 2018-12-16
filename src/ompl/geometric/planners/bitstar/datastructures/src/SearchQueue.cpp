@@ -942,9 +942,6 @@ namespace ompl
                 }
                 // No else, we've considered this edge before and we're being selective.
             }
-
-            // Mark it as expanded
-            vertex->markExpandedToSamples();
         }
 
         void BITstar::SearchQueue::enqueueEdgesToVertices(const VertexPtr &vertex, const VertexPtrVector& neighbourVertices)
@@ -976,26 +973,26 @@ namespace ompl
                 }
                 // No else
             }
-
-            // Mark the vertex as expanded into rewirings
-            vertex->markExpandedToVertices();
         }
 
         void BITstar::SearchQueue::enqueueEdgeConditionally(const VertexPtr &parent, const VertexPtr &child)
         {
-            // Variable:
-            // The edge:
-            VertexPtrPair newEdge;
-
-            // Make the edge
-            newEdge = std::make_pair(parent, child);
-
-            // Should this edge be in the queue?
-            if (this->canPossiblyImproveCurrentSolution(newEdge))
+            // Don't enqueue the edge if it's blacklisted.
+            if (parent->isBlacklistedAsChild(child))
             {
-                this->enqueueEdge(newEdge);
+                return;
             }
-            // No else, it can never provide a better solution
+            else
+            {
+                // Create the edge object.
+                VertexPtrPair newEdge = std::make_pair(parent, child);
+
+                // Enqueue the edge only if it can possibly improve the current solution.
+                if (this->canPossiblyImproveCurrentSolution(newEdge))
+                {
+                    this->enqueueEdge(newEdge);
+                }
+            }
         }
 
         void BITstar::SearchQueue::processKNearest(const VertexConstPtr &vertex, VertexPtrVector *kNearSamples,

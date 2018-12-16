@@ -301,6 +301,9 @@ namespace ompl
             /** \brief Prune the problem. Returns true if pruning was done. */
             void prune();
 
+            /** \brief Blacklists an edge (useful if an edge is in collision). */
+            void blacklistEdge(const VertexPtrPair &edge) const;
+
             /** \brief Publish the found solution to the ProblemDefinition*/
             void publishSolution();
             ///////////////////////////////////////////////////////////////////

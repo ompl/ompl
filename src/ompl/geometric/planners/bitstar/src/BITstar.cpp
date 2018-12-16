@@ -576,7 +576,10 @@ namespace ompl
                                 }
                                 // No else, this edge may be useful at some later date.
                             }
-                            // No else, we failed
+                            else // Remember that this edge is in collision.
+                            {
+                                this->blacklistEdge(bestEdge);
+                            }
                         }
                         // No else, we failed
                     }
@@ -667,6 +670,12 @@ namespace ompl
                 // No else, it's not worth the work to prune...
             }
             // No else, why was I called?
+        }
+
+        void BITstar::blacklistEdge(const VertexPtrPair &edge) const
+        {
+            // We store the actual blacklist with the parent vertex for efficient lookup.
+            edge.first->blacklistChild(edge.second, graphPtr_->distance(edge));
         }
 
         void BITstar::publishSolution()

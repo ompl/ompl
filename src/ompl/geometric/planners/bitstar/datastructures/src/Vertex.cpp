@@ -424,6 +424,17 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
         }
 
+        void BITstar::Vertex::blacklistChild(const VertexConstPtr &vertex, double distance)
+        {
+            childIdBlacklist_.emplace(vertex->getId());
+        }
+
+        bool BITstar::Vertex::isBlacklistedAsChild(const VertexConstPtr &vertex) const
+        {
+            // TODO: Prune the blacklist as the connectivity criteria changes.
+            return childIdBlacklist_.find(vertex->getId()) != childIdBlacklist_.end();
+        }
+
         ompl::base::Cost BITstar::Vertex::getCost() const
         {
             ASSERT_NOT_PRUNED
