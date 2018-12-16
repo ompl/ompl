@@ -331,15 +331,15 @@ namespace ompl
             solutionCost_ = solutionCost;
         }
 
-        void BITstar::SearchQueue::removeEdgesTo(const VertexPtr &cVertex)
+        void BITstar::SearchQueue::removeInEdgesFromQueue(const VertexPtr &vertex)
         {
             ASSERT_SETUP
 
             if (!edgeQueue_.empty())
             {
                 // Iterate over the vector of incoming edges to this vertex and remove them from the queue (and clean up their other lookup)
-                for (auto inQueueElemIter = cVertex->edgeQueueInLookupConstBegin(numQueueResets_);
-                      inQueueElemIter != cVertex->edgeQueueInLookupConstEnd(numQueueResets_);
+                for (auto inQueueElemIter = vertex->edgeQueueInLookupConstBegin(numQueueResets_);
+                      inQueueElemIter != vertex->edgeQueueInLookupConstEnd(numQueueResets_);
                       ++inQueueElemIter)
                 {
                     // Remove the edge from the *other* lookup (by value since this is NOT an iter to THAT container).
@@ -351,20 +351,20 @@ namespace ompl
                 }
 
                 // Clear the list:
-                cVertex->clearEdgeQueueInLookup();
+                vertex->clearEdgeQueueInLookup();
             }
             // No else, nothing to remove_to
         }
 
-        void BITstar::SearchQueue::removeEdgesFrom(const VertexPtr &pVertex)
+        void BITstar::SearchQueue::removeOutEdgesFromQueue(const VertexPtr &vertex)
         {
             ASSERT_SETUP
 
             if (!edgeQueue_.empty())
             {
                 // Iterate over the vector of outgoing edges to this vertex and remove them from the queue (and clean up their other lookup)
-                for (auto outQueueElemIter = pVertex->edgeQueueOutLookupConstBegin(numQueueResets_);
-                  outQueueElemIter != pVertex->edgeQueueOutLookupConstEnd(numQueueResets_);
+                for (auto outQueueElemIter = vertex->edgeQueueOutLookupConstBegin(numQueueResets_);
+                  outQueueElemIter != vertex->edgeQueueOutLookupConstEnd(numQueueResets_);
                   ++outQueueElemIter)
                 {
                     // Remove the edge from the *other* lookup (by value since this is NOT an iter to THAT container).
@@ -376,91 +376,9 @@ namespace ompl
                 }
 
                 // Clear the list:
-                pVertex->clearEdgeQueueOutLookup();
+                vertex->clearEdgeQueueOutLookup();
             }
             // No else, nothing to remove_from
-        }
-
-        void BITstar::SearchQueue::removeExtraEdgesTo(const VertexPtr &cVertex)
-        {
-            ASSERT_SETUP
-
-            if (!edgeQueue_.empty())
-            {
-                // Variable
-                // The vector of edges to delete in the vector:
-                std::vector<EdgeQueueElemPtrVector::const_iterator> inItersToDelete;
-
-                // Iterate over the incoming edges and record those that are to be deleted
-                for (auto inQueueElemIter = cVertex->edgeQueueInLookupConstBegin(numQueueResets_);
-                     inQueueElemIter != cVertex->edgeQueueInLookupConstEnd(numQueueResets_);
-                     ++inQueueElemIter)
-                {
-                    // Check if it would have been inserted
-                    if (!this->canPossiblyImproveCurrentSolution((*inQueueElemIter)->data.second))
-                    {
-                        // It would not, delete
-                        inItersToDelete.push_back(inQueueElemIter);
-                    }
-                    // No else, we're not deleting this iterator
-                }
-
-                // Now, iterate over the vector of iterators to delete and remove them from the queue and their lookups
-                for (const auto &inVectorIter : inItersToDelete)
-                {
-                    // Remove the entry in the other lookup (by value since this is NOT an iter to THAT container)
-                    (*inVectorIter)->data.second.first->removeFromEdgeQueueOutLookup(*inVectorIter, numQueueResets_);
-
-                    // Remove from the queue itself
-                    edgeQueue_.remove(*inVectorIter);
-
-                    // And finally erase the lookup iterator from my lookup. If this was done first, the
-                    // iterator would have been invalidated for the above.
-                    cVertex->removeFromEdgeQueueInLookup(inVectorIter, numQueueResets_);
-                }
-            }
-            // No else, nothing to prune_to
-        }
-
-        void BITstar::SearchQueue::removeExtraEdgesFrom(const VertexPtr &pVertex)
-        {
-            ASSERT_SETUP
-
-            if (!edgeQueue_.empty())
-            {
-                // Variable
-                // The vector of edges to delete in the vector:
-                std::vector<EdgeQueueElemPtrVector::const_iterator> outItersToDelete;
-
-                // Iterate over the incoming edges and record those that are to be deleted
-                for (auto outQueueElemIter = pVertex->edgeQueueOutLookupConstBegin(numQueueResets_);
-                  outQueueElemIter != pVertex->edgeQueueOutLookupConstEnd(numQueueResets_);
-                  ++outQueueElemIter)
-                {
-                    // Check if it would have been inserted
-                    if (!this->canPossiblyImproveCurrentSolution((*outQueueElemIter)->data.second))
-                    {
-                        // It would not, delete
-                        outItersToDelete.push_back(outQueueElemIter);
-                    }
-                    // No else, we're not deleting this iterator
-                }
-
-                // Now, iterate over the vector of iterators to delete and remove them from the queue and their lookups
-                for (const auto &outVectorIter : outItersToDelete)
-                {
-                    // Remove the entry in the other lookup (by value since this is NOT an iter to THAT container)
-                    (*outVectorIter)->data.second.second->removeFromEdgeQueueInLookup(*outVectorIter, numQueueResets_);
-
-                    // Remove from the queue itself
-                    edgeQueue_.remove(*outVectorIter);
-
-                    // And finally erase the lookup iterator from my lookup. If this was done first, the
-                    // iterator would have been invalidated for the above.
-                    pVertex->removeFromEdgeQueueOutLookup(outVectorIter, numQueueResets_);
-                }
-            }
-            // No else, nothing to prune_from
         }
 
         void BITstar::SearchQueue::markVertexUnsorted(const VertexPtr &vertex)
@@ -1449,8 +1367,8 @@ namespace ompl
             // Remove from lookups map as requested
             if (fullyRemove)
             {
-                this->removeEdgesFrom(vertexToDelete);
-                this->removeEdgesTo(vertexToDelete);
+                this->removeOutEdgesFromQueue(vertexToDelete);
+                this->removeInEdgesFromQueue(vertexToDelete);
 
                 // Remove myself from the set of connected vertices, this will recycle if necessary.
                 deleted = graphPtr_->removeVertex(vertexToDelete, true);
