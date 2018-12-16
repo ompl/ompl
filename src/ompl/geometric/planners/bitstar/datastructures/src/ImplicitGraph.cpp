@@ -374,7 +374,7 @@ namespace ompl
                         data.addVertex(ompl::base::PlannerDataVertex(vertex->stateConst()));
 
                         // And as an incoming edge
-                        data.addEdge(ompl::base::PlannerDataVertex(vertex->getParentConst()->stateConst()),
+                        data.addEdge(ompl::base::PlannerDataVertex(vertex->getParent()->stateConst()),
                                      ompl::base::PlannerDataVertex(vertex->stateConst()));
                     }
                 }

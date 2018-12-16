@@ -161,7 +161,7 @@ namespace ompl
         {
             ASSERT_NOT_PRUNED
 
-            return static_cast<bool>(parentSPtr_);
+            return static_cast<bool>(parentPtr_);
         }
 
         bool BITstar::Vertex::isInTree() const
@@ -186,7 +186,7 @@ namespace ompl
             return depth_;
         }
 
-        BITstar::VertexConstPtr BITstar::Vertex::getParentConst() const
+        BITstar::VertexConstPtr BITstar::Vertex::getParent() const
         {
             ASSERT_NOT_PRUNED
 
@@ -204,7 +204,7 @@ namespace ompl
             }
 #endif  // BITSTAR_DEBUG
 
-            return parentSPtr_;
+            return parentPtr_;
         }
 
         BITstar::VertexPtr BITstar::Vertex::getParent()
@@ -225,7 +225,7 @@ namespace ompl
             }
 #endif  // BITSTAR_DEBUG
 
-            return parentSPtr_;
+            return parentPtr_;
         }
 
         void BITstar::Vertex::addParent(const VertexPtr &newParent, const ompl::base::Cost &edgeInCost)
@@ -246,7 +246,7 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
 
             // Store the parent.
-            parentSPtr_ = newParent;
+            parentPtr_ = newParent;
 
             // Store the edge cost.
             edgeCost_ = edgeInCost;
@@ -274,7 +274,7 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
 
             // Clear my parent
-            parentSPtr_.reset();
+            parentPtr_.reset();
 
             // Update my cost and possibly the cost of my descendants:
             this->updateCostAndDepth(updateChildCosts);
@@ -284,7 +284,7 @@ namespace ompl
         {
             ASSERT_NOT_PRUNED
 
-            return !childWPtrs_.empty();
+            return !childPtrs_.empty();
         }
 
         void BITstar::Vertex::getChildren(VertexConstPtrVector *children) const
@@ -293,7 +293,7 @@ namespace ompl
 
             children->clear();
 
-            for (const auto &childWPtr : childWPtrs_)
+            for (const auto &childWPtr : childPtrs_)
             {
 #ifdef BITSTAR_DEBUG
                 // Check that the weak pointer hasn't expired
@@ -315,7 +315,7 @@ namespace ompl
 
             children->clear();
 
-            for (const auto &childWPtr : childWPtrs_)
+            for (const auto &childWPtr : childPtrs_)
             {
 #ifdef BITSTAR_DEBUG
                 // Check that the weak pointer hasn't expired
@@ -353,7 +353,7 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
 
             // Push back the shared_ptr into the vector of weak_ptrs, this makes a weak_ptr copy
-            childWPtrs_.push_back(newChild);
+            childPtrs_.push_back(newChild);
 
             // Leave the costs of the child out of date.
         }
@@ -385,7 +385,7 @@ namespace ompl
 
             // Iterate over the vector of children pointers until the child is found. Iterators make erase easier
             foundChild = false;
-            for (auto childIter = childWPtrs_.begin(); childIter != childWPtrs_.end() && !foundChild;
+            for (auto childIter = childPtrs_.begin(); childIter != childPtrs_.end() && !foundChild;
                  ++childIter)
             {
 #ifdef BITSTAR_DEBUG
@@ -407,7 +407,7 @@ namespace ompl
                     childIter->reset();
 
                     // Then remove that entry from the vector efficiently
-                    swapPopBack(childIter, &childWPtrs_);
+                    swapPopBack(childIter, &childPtrs_);
                 }
                 // No else, move on
             }
@@ -885,17 +885,17 @@ namespace ompl
             else
             {
                 // I have a parent, so my cost is my parent cost + my edge cost to the parent
-                cost_ = costHelpPtr_->combineCosts(parentSPtr_->getCost(), edgeCost_);
+                cost_ = costHelpPtr_->combineCosts(parentPtr_->getCost(), edgeCost_);
 
                 // I am one more than my parent's depth:
-                depth_ = (parentSPtr_->getDepth() + 1u);
+                depth_ = (parentPtr_->getDepth() + 1u);
             }
 
             // Am I updating my children?
             if (cascadeUpdates)
             {
                 // Now, iterate over my vector of children and tell each one to update its own damn cost:
-                for (auto &childWPtr : childWPtrs_)
+                for (auto &childWPtr : childPtrs_)
                 {
 #ifdef BITSTAR_DEBUG
                     // Check that it hasn't expired

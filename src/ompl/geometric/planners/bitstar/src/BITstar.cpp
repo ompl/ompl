@@ -737,7 +737,7 @@ namespace ompl
             // This will allows us to add the start (as the parent of the first child) and then stop when we get to the
             // start itself, avoiding trying to find its nonexistent child
             for (/*Already allocated & initialized*/; !curVertex->isRoot();
-                 curVertex = curVertex->getParentConst())
+                 curVertex = curVertex->getParent())
             {
 #ifdef BITSTAR_DEBUG
                 // Check the case where the chain ends incorrectly.
@@ -749,7 +749,7 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
 
                 // Push back the parent into the vector as a state pointer:
-                reversePath.push_back(curVertex->getParentConst()->stateConst());
+                reversePath.push_back(curVertex->getParent()->stateConst());
             }
             return reversePath;
         }

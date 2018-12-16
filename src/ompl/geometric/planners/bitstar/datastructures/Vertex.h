@@ -114,7 +114,7 @@ namespace ompl
             unsigned int getDepth() const;
 
             /** \brief Get the parent of a vertex as a constant pointer */
-            VertexConstPtr getParentConst() const;
+            VertexConstPtr getParent() const;
 
             /** \brief Get the parent of a vertex as a mutable pointer*/
             VertexPtr getParent();
@@ -291,7 +291,7 @@ namespace ompl
 
             /** \brief The parent state as a shared pointer such that the parent will not be deleted until all the
              * children are. */
-            VertexPtr parentSPtr_;
+            VertexPtr parentPtr_;
 
             /** \brief The incremental cost to get to the state. I.e., the cost of the parent -> state edge */
             ompl::base::Cost edgeCost_;
@@ -301,7 +301,7 @@ namespace ompl
 
             /** \brief The child states as weak pointers, such that the ownership loop is broken and a state can be
              * deleted once it's children are.*/
-            std::vector<VertexWeakPtr> childWPtrs_;
+            std::vector<VertexWeakPtr> childPtrs_;
 
             /** \brief A pointer to this vertex in the vertex queue */
             SearchQueue::VertexQueueIter vertexQueueIter_;
