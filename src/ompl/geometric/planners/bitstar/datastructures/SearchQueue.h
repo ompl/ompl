@@ -316,7 +316,7 @@ namespace ompl
             void expandNextVertex();
 
             /** \brief Update the edge queue by adding all the potential edges from the vertex to nearby states. */
-            void expandVertex(const VertexPtr &vertex);
+            void expand(const VertexPtr &vertex);
 
             /** \brief Iterate through the list of neighbouring unconnected vertices and add potential edges to
             * the queue if the vertex is marked as new *or* we're adding all of them. */

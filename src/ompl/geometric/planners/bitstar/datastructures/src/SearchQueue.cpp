@@ -903,7 +903,7 @@ namespace ompl
             if (this->canPossiblyImproveCurrentSolution(vertexQueueToken_->second))
             {
                 // Expand the vertex in the front:
-                this->expandVertex(vertexQueueToken_->second);
+                this->expand(vertexQueueToken_->second);
 
                 // Increment the vertex token:
                 ++vertexQueueToken_;
@@ -915,7 +915,7 @@ namespace ompl
             }
         }
 
-        void BITstar::SearchQueue::expandVertex(const VertexPtr &vertex)
+        void BITstar::SearchQueue::expand(const VertexPtr &vertex)
         {
 #ifdef BITSTAR_DEBUG
             // Assert that this vertex has no outgoing edge queue entries.
@@ -1299,7 +1299,7 @@ namespace ompl
                     {
                         // It is. We've expanded the whole queue, and the new vertex isn't at the end of the queue.
                         // Expand!
-                        this->expandVertex(newVertex);
+                        this->expand(newVertex);
                     }
                     else
                     {
@@ -1308,7 +1308,7 @@ namespace ompl
                         if (this->lexicographicalBetterThan(vertexIter->first, vertexQueueToken_->first))
                         {
                             // We're before it, so expand it:
-                            this->expandVertex(newVertex);
+                            this->expand(newVertex);
                         }
                         // No else, the vertex is behind the current token (3) and will get expanded as necessary.
                     }
