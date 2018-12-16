@@ -493,7 +493,7 @@ namespace ompl
                     (*prunedGoalIter)->markUnpruned();
 
                     // Check if it should be readded (i.e., would it be pruned *now*?)
-                    if (queuePtr_->vertexPruneCondition(*prunedGoalIter))
+                    if (queuePtr_->canVertexBePruned(*prunedGoalIter))
                     {
                         // It would be pruned, so remark as pruned
                         (*prunedGoalIter)->markPruned();
@@ -557,7 +557,7 @@ namespace ompl
                     (*prunedStartIter)->markUnpruned();
 
                     // Check if it should be readded (i.e., would it be pruned *now*?)
-                    if (queuePtr_->vertexPruneCondition(*prunedStartIter))
+                    if (queuePtr_->canVertexBePruned(*prunedStartIter))
                     {
                         // It would be pruned, so remark as pruned
                         (*prunedStartIter)->markPruned();
@@ -840,7 +840,7 @@ namespace ompl
             vertices_->remove(vertexToDelete);
 
             // Add back as sample, if that would be beneficial
-            if (moveToFree && !queuePtr_->samplePruneCondition(vertexToDelete))
+            if (moveToFree && !queuePtr_->canSampleBePruned(vertexToDelete))
             {
                 // Yes, the vertex is still useful as a sample. Track as recycled so they are reused as samples in the
                 // next batch.
@@ -1022,7 +1022,7 @@ namespace ompl
                 while (startIter != startEnd)
                 {
                     // Check if this start has met the criteria to be pruned
-                    if (queuePtr_->vertexPruneCondition(*startIter))
+                    if (queuePtr_->canVertexBePruned(*startIter))
                     {
                         // It has, remove the start vertex DO NOT consider it as a sample. It is marked as a root node,
                         // so having it as a sample would cause all kinds of problems, also it shouldn't be possible for
@@ -1082,8 +1082,8 @@ namespace ompl
                 // Run until at the end:
                 while (goalIter != goalEnd)
                 {
-                    // Check if this goal has met the criteria to be pruned
-                    if (queuePtr_->samplePruneCondition(*goalIter))
+                    // Check if this start has met the criteria to be pruned
+                    if (queuePtr_->canSampleBePruned(*goalIter))
                     {
                         // It has, remove the goal vertex completely
                         // Check if this vertex is in the tree
@@ -1180,7 +1180,7 @@ namespace ompl
                 for (const auto &freeSample : samples)
                 {
                     // Check if this state should be pruned:
-                    if (queuePtr_->samplePruneCondition(freeSample))
+                    if (queuePtr_->canSampleBePruned(freeSample))
                     {
                         // Yes, remove it
                         this->removeSample(freeSample);

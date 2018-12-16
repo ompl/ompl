@@ -504,7 +504,7 @@ namespace ompl
             while (queueIter != vertexQueue_.end())
             {
                 // Check if it should be pruned (value) or has lost its parent.
-                if (this->vertexPruneCondition(queueIter->second))
+                if (this->canVertexBePruned(queueIter->second))
                 {
                     // The vertex should be pruned.
                     // Variables
@@ -699,29 +699,25 @@ namespace ompl
         {
             ASSERT_SETUP
 
-            bool rval;
-
             // Can it ever be a better solution? Less-than-equal to just in case we're using an edge that is exactly
             // optimally connected
             // g^(v) + c^(v,x) + h^(x) <= g_t(x_g)?
-            rval = costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicEdge(edge),
-                                                                solutionCost_);
+            bool canImprove = costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicEdge(edge), solutionCost_);
 
             // If the child is connected already, we need to check if we could do better than it's current connection.
             // But only if we're inserting the edge
-            if (edge.second->hasParent() && rval)
+            if (edge.second->hasParent() && canImprove)
             {
                 // Can it ever be a better path to the vertex? Less-than-equal to just in case we're using an edge that
                 // is exactly optimally connected
                 // g^(v) + c^(v,x) <= g_t(x)?
-                rval = costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicToTarget(edge),
-                                                                    edge.second->getCost());  // Ever rewire?
+                canImprove = costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicToTarget(edge), edge.second->getCost());  // Ever rewire?
             }
 
-            return rval;
+            return canImprove;
         }
 
-        bool BITstar::SearchQueue::vertexPruneCondition(const VertexPtr &state) const
+        bool BITstar::SearchQueue::canVertexBePruned(const VertexPtr &state) const
         {
             ASSERT_SETUP
 
@@ -733,7 +729,7 @@ namespace ompl
             return costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicVertex(state), solutionCost_);
         }
 
-        bool BITstar::SearchQueue::samplePruneCondition(const VertexPtr &state) const
+        bool BITstar::SearchQueue::canSampleBePruned(const VertexPtr &state) const
         {
             ASSERT_SETUP
 
@@ -744,7 +740,7 @@ namespace ompl
                                                                solutionCost_);
         }
 
-        bool BITstar::SearchQueue::edgePruneCondition(const VertexPtrPair &edge) const
+        bool BITstar::SearchQueue::canEdgeBePruned(const VertexPtrPair &edge) const
         {
             ASSERT_SETUP
 
