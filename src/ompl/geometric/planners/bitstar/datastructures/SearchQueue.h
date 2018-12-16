@@ -206,7 +206,7 @@ namespace ompl
             /** \brief Finish the queue if it is sorted, if not resort the queue. Finishing the queue clears all the
              * edge containers and moves the vertex expansion token to the end. After calling finish() ON A SORTED QUEUE,
              * isEmpty() will return true. Keeps threshold, etc.*/
-            void finish();
+            void resortOrClear();
 
             /** \brief Reset the queue, clearing all the edge containers and moving the vertex expansion token to the
              * start. After a call to reset, isEmpty() will return false (unless there is no data in the queue of

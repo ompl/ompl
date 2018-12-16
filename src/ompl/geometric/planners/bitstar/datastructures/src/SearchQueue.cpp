@@ -550,7 +550,7 @@ namespace ompl
             // No else, nothing to resort
         }
 
-        void BITstar::SearchQueue::finish()
+        void BITstar::SearchQueue::resortOrClear()
         {
             ASSERT_SETUP
 

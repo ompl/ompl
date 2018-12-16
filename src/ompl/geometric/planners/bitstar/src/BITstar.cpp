@@ -586,7 +586,7 @@ namespace ompl
                 {
                     // The edge cannot improve our solution, and therefore neither can any other edge in the queue. Give
                     // up on the batch:
-                    queuePtr_->finish();
+                    queuePtr_->resortOrClear();
                 }
             }  // Search queue not empty.
         }
