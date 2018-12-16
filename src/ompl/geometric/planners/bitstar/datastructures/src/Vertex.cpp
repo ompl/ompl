@@ -287,7 +287,7 @@ namespace ompl
             return !childWPtrs_.empty();
         }
 
-        void BITstar::Vertex::getChildrenConst(VertexConstPtrVector *children) const
+        void BITstar::Vertex::getChildren(VertexConstPtrVector *children) const
         {
             ASSERT_NOT_PRUNED
 

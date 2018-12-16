@@ -130,7 +130,7 @@ namespace ompl
             bool hasChildren() const;
 
             /** \brief Get the children of a vertex as constant pointers */
-            void getChildrenConst(VertexConstPtrVector *children) const;
+            void getChildren(VertexConstPtrVector *children) const;
 
             /** \brief Get the children of a vertex as mutable pointers */
             void getChildren(VertexPtrVector *children);
