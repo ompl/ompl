@@ -226,11 +226,11 @@ namespace ompl
             // Queue info:
             /** \brief The condition used to insert vertices into the queue. Compares lowerBoundHeuristicVertex to the
              * given threshold. Returns true if the vertex's best cost is lower than the internally set threshold.*/
-            bool vertexInsertCondition(const VertexPtr &state) const;
+            bool canPossiblyImproveCurrentSolution(const VertexPtr &state) const;
 
             /** \brief The condition used to insert edges into the queue. Compares lowerBoundHeuristicEdge to the given
              * threshold. Returns true if the edge's best cost is lower than the internally set threshold.*/
-            bool edgeInsertCondition(const VertexPtrPair &edge) const;
+            bool canPossiblyImproveCurrentSolution(const VertexPtrPair &edge) const;
 
             /** \brief The condition used to prune vertices out of the queue. Compares currentHeuristicVertex to the
              * given threshold. Returns true if the vertex's best cost is greater than the internally set threshold.*/

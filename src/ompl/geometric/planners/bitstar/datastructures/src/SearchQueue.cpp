@@ -397,7 +397,7 @@ namespace ompl
                      ++inQueueElemIter)
                 {
                     // Check if it would have been inserted
-                    if (!this->edgeInsertCondition((*inQueueElemIter)->data.second))
+                    if (!this->canPossiblyImproveCurrentSolution((*inQueueElemIter)->data.second))
                     {
                         // It would not, delete
                         inItersToDelete.push_back(inQueueElemIter);
@@ -438,7 +438,7 @@ namespace ompl
                   ++outQueueElemIter)
                 {
                     // Check if it would have been inserted
-                    if (!this->edgeInsertCondition((*outQueueElemIter)->data.second))
+                    if (!this->canPossiblyImproveCurrentSolution((*outQueueElemIter)->data.second))
                     {
                         // It would not, delete
                         outItersToDelete.push_back(outQueueElemIter);
@@ -575,7 +575,7 @@ namespace ompl
                                 // If this was a new vertex, would we *not* insert it in the queue (and do we have
                                 // "permission" not to do so)?
                                 if (pruneDuringResort_ &&
-                                    !this->vertexInsertCondition(vIdAndPtrPair.second))
+                                    !this->canPossiblyImproveCurrentSolution(vIdAndPtrPair.second))
                                 {
                                     // The vertex should just be pruned and forgotten about.
                                     // Prune the branch:
@@ -682,7 +682,7 @@ namespace ompl
             vertexQueueToken_ = vertexQueue_.begin();
         }
 
-        bool BITstar::SearchQueue::vertexInsertCondition(const VertexPtr &state) const
+        bool BITstar::SearchQueue::canPossiblyImproveCurrentSolution(const VertexPtr &state) const
         {
             ASSERT_SETUP
 
@@ -695,7 +695,7 @@ namespace ompl
                                                                 solutionCost_);
         }
 
-        bool BITstar::SearchQueue::edgeInsertCondition(const VertexPtrPair &edge) const
+        bool BITstar::SearchQueue::canPossiblyImproveCurrentSolution(const VertexPtrPair &edge) const
         {
             ASSERT_SETUP
 
@@ -986,7 +986,7 @@ namespace ompl
         void BITstar::SearchQueue::expandNextVertex()
         {
             // Should we expand the next vertex?
-            if (this->vertexInsertCondition(vertexQueueToken_->second))
+            if (this->canPossiblyImproveCurrentSolution(vertexQueueToken_->second))
             {
                 // Expand the vertex in the front:
                 this->expandVertex(vertexQueueToken_->second);
@@ -1013,7 +1013,7 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
 
             // Should we expand this vertex?
-            if (this->vertexInsertCondition(vertex))
+            if (this->canPossiblyImproveCurrentSolution(vertex))
             {
                 // Variables:
                 // The vector of nearby samples (either within r or the k-nearest)
@@ -1136,7 +1136,7 @@ namespace ompl
             newEdge = std::make_pair(parent, child);
 
             // Should this edge be in the queue?
-            if (this->edgeInsertCondition(newEdge))
+            if (this->canPossiblyImproveCurrentSolution(newEdge))
             {
                 this->enqueueEdge(newEdge);
             }
