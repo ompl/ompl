@@ -1170,8 +1170,8 @@ namespace ompl
                 else
                 {
                     // Both are left, which is closest?
-                    if (graphPtr_->distanceFunction(kNearVertices->at(vertexPos), vertex) <
-                        graphPtr_->distanceFunction(kNearSamples->at(samplePos), vertex))
+                    if (graphPtr_->distance(kNearVertices->at(vertexPos), vertex) <
+                        graphPtr_->distance(kNearSamples->at(samplePos), vertex))
                     {
                         // The vertex is closer than the sample, move that token:
                         ++vertexPos;

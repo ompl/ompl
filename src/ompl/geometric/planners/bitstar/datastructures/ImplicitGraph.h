@@ -113,7 +113,7 @@ namespace ompl
 
             /** \brief The distance function. Calculates the distance directionally from the given state to all the
              * other states (can be used on states either in our out of the graph).*/
-            double distanceFunction(const VertexConstPtr &a, const VertexConstPtr &b) const;
+            double distance(const VertexConstPtr &a, const VertexConstPtr &b) const;
 
             /** \brief Get the nearest unconnected samples using the appropriate "near" definition (i.e., k or r). */
             void nearestSamples(const VertexPtr &vertex, VertexPtrVector *neighbourSamples);

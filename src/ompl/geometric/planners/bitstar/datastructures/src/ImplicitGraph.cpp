@@ -122,7 +122,7 @@ namespace ompl
             NearestNeighbors<VertexPtr>::DistanceFunction distfun(
                 [this](const VertexConstPtr &a, const VertexConstPtr &b)
                 {
-                    return distanceFunction(a, b);
+                    return distance(a, b);
                 });
             samples_->setDistanceFunction(distfun);
             vertices_->setDistanceFunction(distfun);
@@ -268,7 +268,7 @@ namespace ompl
             // findApprox_
         }
 
-        double BITstar::ImplicitGraph::distanceFunction(const VertexConstPtr &a, const VertexConstPtr &b) const
+        double BITstar::ImplicitGraph::distance(const VertexConstPtr &a, const VertexConstPtr &b) const
         {
             ASSERT_SETUP
 
