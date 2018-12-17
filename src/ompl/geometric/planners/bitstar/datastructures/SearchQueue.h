@@ -262,9 +262,6 @@ namespace ompl
              * vertices to expand. */
             bool isEmpty();
 
-            /** \brief Returns whether a given vertex has been expanded or not */
-            bool isVertexExpanded(const VertexConstPtr &vertex) const;
-
             /** \brief Get a copy of the vertices in the vertex queue that are left to be expanded. This is expensive
              * and is only meant for animations/debugging. */
             void getVertices(VertexConstPtrVector *vertexQueue);

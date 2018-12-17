@@ -731,24 +731,6 @@ namespace ompl
             return edgeQueue_.empty();
         }
 
-        bool BITstar::SearchQueue::isVertexExpanded(const VertexConstPtr &vertex) const
-        {
-            ASSERT_SETUP
-
-            // Compare the value used to currently sort the vertex in the queue to the value of the token.
-            if (vertexQueueToken_ == vertexQueue_.end())
-            {
-                // If the token is at the end of the queue, obviously the vertex is expanded:
-                return true;
-            }
-            // else:
-
-            // By virtue of the vertex expansion rules, the token will always sit at the front of a group of
-            // equivalent cost vertices (that is to say, all vertices with the same cost get expanded at the same
-            // time). Therefore, the vertex is expanded if it's cost is strictly better than the token.
-            return this->lexicographicalBetterThan(vertex->getVertexQueueIter()->first, vertexQueueToken_->first);
-        }
-
         void BITstar::SearchQueue::getVertices(VertexConstPtrVector *vertexQueue)
         {
             ASSERT_SETUP
