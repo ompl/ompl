@@ -429,9 +429,19 @@ namespace ompl
             childIdBlacklist_.emplace(vertex->getId());
         }
 
+        void BITstar::Vertex::whitelistChild(const VertexConstPtr &vertex)
+        {
+            childIdWhitelist_.emplace(vertex->getId());
+        }
+
         bool BITstar::Vertex::isBlacklistedAsChild(const VertexConstPtr &vertex) const
         {
             return childIdBlacklist_.find(vertex->getId()) != childIdBlacklist_.end();
+        }
+
+        bool BITstar::Vertex::isWhitelistedAsChild(const VertexConstPtr &vertex) const
+        {
+            return childIdWhitelist_.find(vertex->getId()) != childIdWhitelist_.end();
         }
 
         ompl::base::Cost BITstar::Vertex::getCost() const

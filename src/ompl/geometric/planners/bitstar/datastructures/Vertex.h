@@ -146,8 +146,14 @@ namespace ompl
             /** \brief Put the vertex on the blacklist of children. */
             void blacklistChild(const VertexConstPtr &vertex);
 
+            /** \brief Put the vertex on the whitelist of children. */
+            void whitelistChild(const VertexConstPtr &vertex);
+
             /** \brief Returns true if the vertex is blacklisted as a child of this vertex. */
             bool isBlacklistedAsChild(const VertexConstPtr &vertex) const;
+
+            /** \brief Returns true if the vertex is blacklisted as a child of this vertex. */
+            bool isWhitelistedAsChild(const VertexConstPtr &vertex) const;
 
             /** \brief Get the cost-to-come of a vertex. Return infinity if the edge is disconnected */
             ompl::base::Cost getCost() const;
@@ -287,6 +293,9 @@ namespace ompl
 
             /** \brief A collection of potential child vertex ids that are blacklisted for edges (due to a collision). */
             std::set<BITstar::VertexId> childIdBlacklist_;
+
+            /** \brief A collection of potential child vertex ids that are whitelisted for edges. */
+            std::set<BITstar::VertexId> childIdWhitelist_;
 
             /** \brief The id-number associated with the currently stored edge lookups. This is used to reset existing
             * lookups when on the next pass through the vertex queue. */

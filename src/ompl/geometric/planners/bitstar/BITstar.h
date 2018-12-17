@@ -304,6 +304,9 @@ namespace ompl
             /** \brief Blacklists an edge (useful if an edge is in collision). */
             void blacklistEdge(const VertexPtrPair &edge) const;
 
+            /** \brief Blacklists an edge (useful if an edge not in collision). */
+            void whitelistEdge(const VertexPtrPair &edge) const;
+
             /** \brief Publish the found solution to the ProblemDefinition*/
             void publishSolution();
             ///////////////////////////////////////////////////////////////////

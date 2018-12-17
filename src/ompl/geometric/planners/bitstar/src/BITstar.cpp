@@ -551,6 +551,9 @@ namespace ompl
                             // Does this edge have a collision?
                             if (this->checkEdge(bestEdge))
                             {
+                                // Remember that this edge has passed the collision checks.
+                                this->whitelistEdge(bestEdge);
+
                                 // Does the current edge improve our graph?
                                 // g_t(v) + c(v,x) < g_t(x)?
                                 if (costHelpPtr_->isCostBetterThan(
@@ -678,6 +681,12 @@ namespace ompl
             edge.first->blacklistChild(edge.second);
         }
 
+        void BITstar::whitelistEdge(const VertexPtrPair &edge) const
+        {
+            // We store the actual whitelist with the parent vertex for efficient lookup.
+            edge.first->whitelistChild(edge.second);
+        }
+
         void BITstar::publishSolution()
         {
             // Variable
@@ -765,8 +774,22 @@ namespace ompl
 
         bool BITstar::checkEdge(const VertexConstPtrPair &edge)
         {
-            ++numEdgeCollisionChecks_;
-            return Planner::si_->checkMotion(edge.first->state(), edge.second->state());
+#ifdef BITSTAR_DEBUG
+            if (edge.first->isBlacklistedAsChild(edge.second))
+                {
+                    throw ompl::Exception("A blacklisted edge made it into the edge queue.");
+                }
+#endif // BITSTAR_DEBUG
+            // If this is a whitelisted edge, there's no need to do (repeat) the collision checking.
+            if (edge.first->isWhitelistedAsChild(edge.second))
+            {
+                return true;
+            }
+            else // This is a new edge, we need to check whether it is feasible.
+            {
+                ++numEdgeCollisionChecks_;
+                return Planner::si_->checkMotion(edge.first->state(), edge.second->state());
+            }
         }
 
         void BITstar::addEdge(const VertexPtrPair &edge, const ompl::base::Cost &edgeCost)
