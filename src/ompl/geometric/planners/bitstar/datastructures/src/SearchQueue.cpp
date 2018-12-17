@@ -1082,16 +1082,20 @@ namespace ompl
         }
 
         void BITstar::SearchQueue::vertexInsertHelper(const VertexPtr &vertex, bool expandIfBeforeToken,
-                                                      bool removeFromFree, bool addToNNStruct)
+                                                      bool removeFromSamples, bool addToVertices)
         {
             // Variable:
             // The iterator to the new edge in the queue:
             VertexQueueIter vertexQueueIter;
 
             // Add the vertex to the graph
-            if (addToNNStruct)
+            if (addToVertices)
             {
-                graphPtr_->addToVertices(vertex, removeFromFree);
+                graphPtr_->addToVertices(vertex);
+                if (removeFromSamples)
+                {
+                    graphPtr_->removeFromSamples(vertex);
+                }
             }
 
             // Insert into the order map, getting the iterator

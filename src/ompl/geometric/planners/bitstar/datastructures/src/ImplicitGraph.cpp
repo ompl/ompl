@@ -733,6 +733,14 @@ namespace ompl
         {
             ASSERT_SETUP
 
+            // Remove from the set of samples
+            samples_->remove(sample);
+        }
+
+        void BITstar::ImplicitGraph::pruneSample(const VertexPtr &sample)
+        {
+            ASSERT_SETUP
+
             // Variable:
 #ifdef BITSTAR_DEBUG
             // The use count of the passed shared pointer. Used in debug mode to assert that we took ownership of our own copy.
@@ -752,17 +760,17 @@ namespace ompl
             }
 #endif  // BITSTAR_DEBUG
 
-            // Increment our counter
-            ++numFreeStatesPruned_;
-
             // Remove from the set of samples
             samples_->remove(sampleCopy);
+
+            // Increment our counter
+            ++numFreeStatesPruned_;
 
             // Mark the sample as pruned
             sampleCopy->markPruned();
         }
 
-        void BITstar::ImplicitGraph::addToVertices(const VertexPtr &vertex, bool removeFromFree)
+        void BITstar::ImplicitGraph::addToVertices(const VertexPtr &vertex)
         {
             ASSERT_SETUP
 
@@ -777,13 +785,6 @@ namespace ompl
 
             // Increment the number of vertices added:
             ++numVertices_;
-
-            // Remove the vertex from the set of samples (if it even existed)
-            if (removeFromFree)
-            {
-                samples_->remove(vertex);
-            }
-            // No else
 
             // Add to the NN structure:
             vertices_->add(vertex);
@@ -1061,7 +1062,7 @@ namespace ompl
                         else
                         {
                             // It is not, so just it like a sample
-                            this->removeFromSamples(*goalIter);
+                            this->pruneSample(*goalIter);
 
                             // Count a pruned sample
                             ++numPruned.second;
@@ -1140,7 +1141,7 @@ namespace ompl
                     if (queuePtr_->canSampleBePruned(sample))
                     {
                         // Yes, remove it
-                        this->removeFromSamples(sample);
+                        this->pruneSample(sample);
 
                         // and increment the counter
                         ++numPruned;

@@ -166,11 +166,14 @@ namespace ompl
             /** \brief Add an unconnected sample */
             void addToSamples(const VertexPtr &newSample);
 
+            /** \brief Remove a sample from the sample set. */
+            void removeFromSamples(const VertexPtr &sample);
+
             /** \brief Remove an unconnected sample.*/
-            void removeFromSamples(const VertexPtr &oldSample);
+            void pruneSample(const VertexPtr &oldSample);
 
             /** \brief Add a vertex to the tree, optionally moving it from the set of unconnected samples. */
-            void addToVertices(const VertexPtr &newVertex, bool removeFromFree);
+            void addToVertices(const VertexPtr &newVertex);
 
             /** \brief Remove a vertex from the tree, can optionally be allowed to move it to the set of unconnected
              * samples if may still be useful. */
