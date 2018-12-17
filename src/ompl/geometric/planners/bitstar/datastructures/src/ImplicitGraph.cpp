@@ -289,6 +289,11 @@ namespace ompl
             return spaceInformation_->distance(b->state(), a->state());
         }
 
+        double BITstar::ImplicitGraph::distance(const VertexConstPtrPair &vertices) const
+        {
+            return this->distance(vertices.first, vertices.second);
+        }
+
         void BITstar::ImplicitGraph::nearestSamples(const VertexPtr &vertex, VertexPtrVector *neighbourSamples)
         {
             ASSERT_SETUP

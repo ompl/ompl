@@ -675,7 +675,7 @@ namespace ompl
         void BITstar::blacklistEdge(const VertexPtrPair &edge) const
         {
             // We store the actual blacklist with the parent vertex for efficient lookup.
-            edge.first->blacklistChild(edge.second, graphPtr_->distance(edge));
+            edge.first->blacklistChild(edge.second);
         }
 
         void BITstar::publishSolution()

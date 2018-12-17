@@ -144,7 +144,7 @@ namespace ompl
             void removeChild(const VertexPtr &oldChild);
 
             /** \brief Put the vertex on the blacklist of children. */
-            void blacklistChild(const VertexConstPtr &vertex, double distance);
+            void blacklistChild(const VertexConstPtr &vertex);
 
             /** \brief Returns true if the vertex is blacklisted as a child of this vertex. */
             bool isBlacklistedAsChild(const VertexConstPtr &vertex) const;
@@ -323,7 +323,6 @@ namespace ompl
 
             /** \brief A collection of potential child vertex ids that are blacklisted for edges (due to a collision). */
             std::set<BITstar::VertexId> childIdBlacklist_;
-
 
             /** \brief The id-number associated with the currently stored edge lookups. This is used to reset existing
             * lookups when on the next pass through the vertex queue. */
