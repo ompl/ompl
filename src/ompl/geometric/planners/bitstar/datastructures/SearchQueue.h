@@ -142,20 +142,22 @@ namespace ompl
             /** \brief Insert a vertex into the vertex expansion queue. Vertices remain in the vertex queue until pruned
              * or manually removed. A moving token marks the line between expanded and not expanded vertices. Will
              * instruct the ImplicitGraph to move the vertex between sets, as necessary.*/
-            void enqueueVertex(const VertexPtr &newVertex, bool removeFromFree);
+            void enqueueVertex(const VertexPtr &vertex, bool removeFromFree);
 
             /** \brief Insert an edge into the edge processing queue. The source vertex of this edge must be in the
              * expansion queue (although it may already be expanded). */
-            void enqueueEdge(const VertexPtrPair &newEdge);
+            void enqueueEdge(const VertexPtrPair &edge);
 
             /** \brief Insert an edge into the edge processing queue. The source vertex of this edge must be in the
              * expansion queue (although it may already be expanded). */
-            void enqueueEdge(const VertexPtr &sourceVertex, const VertexPtr &targetVertex);
+            void enqueueEdge(const VertexPtr &parentVertex, const VertexPtr &childVertex);
+
+            void enqueueOutgoingEdges(const VertexPtr &vertex);
 
             /** \brief Erase a vertex from the vertex expansion queue. Will disconnect the vertex from its parent and
              * remove the associated incoming and outgoing edges from the edge queue. Will instruct the ImplicitGraph to
              * move the vertex between sets, as necessary.*/
-            void unqueueVertex(const VertexPtr &oldVertex);
+            void unqueueVertex(const VertexPtr &vertex);
             //////////////////
 
             //////////////////
@@ -185,10 +187,10 @@ namespace ompl
             void registerSolutionCost(const ompl::base::Cost &solutionCost);
 
             /** \brief Erase all edges in the edge queue that lead to the given vertex */
-            void removeInEdgesFromQueue(const VertexPtr &cVertex);
+            void removeInEdgesFromQueue(const VertexPtr &vertex);
 
             /** \brief Erase all edges in the edge queue that leave from the given vertex */
-            void removeOutEdgesFromQueue(const VertexPtr &pVertex);
+            void removeOutEdgesFromQueue(const VertexPtr &vertex);
 
             /** \brief Mark the queue as requiring resorting downstream of the specified vertex */
             void markVertexUnsorted(const VertexPtr &vertex);
@@ -226,7 +228,7 @@ namespace ompl
 
             /** \brief The condition used to prune vertices out of the queue. Compares currentHeuristicVertex to the
              * given threshold. Returns true if the vertex's best cost is greater than the internally set threshold.*/
-            bool canVertexBePruned(const VertexPtr &state) const;
+            bool canVertexBePruned(const VertexPtr &vertex) const;
 
             /** \brief The condition used to prune disconnected samples from the free set. Compares
              * lowerBoundHeuristicVertex to the given threshold. Returns true if the vertex's best cost is greater than
@@ -312,7 +314,7 @@ namespace ompl
 
             /** \brief Iterate through the list of neighbouring unconnected vertices and add potential edges to
             * the queue if the vertex is marked as new *or* we're adding all of them. */
-            void enqueueEdgesToSamples(const VertexPtr &vertex, const VertexPtrVector& neighbourSamples, bool addAll);
+            void enqueueEdgesToSamples(const VertexPtr &vertex, const VertexPtrVector& neighbourSamples);
 
             /** \brief Iterate through the list of neighbouring vertices and add potential edges to the queue. */
             void enqueueEdgesToVertices(const VertexPtr &vertex, const VertexPtrVector& neighbourVertices);
@@ -337,16 +339,16 @@ namespace ompl
 
             /** \brief Disconnect a vertex from its parent by removing the edges stored in itself, and its parents.
              * Cascades cost updates if requested.*/
-            void disconnectParent(const VertexPtr &oldVertex, bool cascadeCostUpdates);
+            void disconnectParent(const VertexPtr &vertex, bool cascadeCostUpdates);
 
             /** \brief Insert a vertex into the queue and lookups. Expands vertex into edges if it comes before the
              * expansion token and expandIfBeforeToken is true. */
-            void vertexInsertHelper(const VertexPtr &newVertex, bool expandIfBeforeToken, bool removeFromFree,
+            void vertexInsertHelper(const VertexPtr &vertex, bool expandIfBeforeToken, bool removeFromFree,
                                     bool addToNNStruct);
 
             /** \brief Remove a vertex from the vertex queue and optionally also its edge queue and NN entries.
              * Returns the number of vertices that are completely deleted. */
-            unsigned int vertexRemoveHelper(const VertexPtr &oldVertex, bool fullyRemove);
+            unsigned int vertexRemoveHelper(const VertexPtr &vertex, bool fullyRemove);
             ////////////////////////////////
 
             ////////////////////////////////

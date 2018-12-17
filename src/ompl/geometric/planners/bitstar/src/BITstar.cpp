@@ -769,7 +769,7 @@ namespace ompl
             return Planner::si_->checkMotion(edge.first->state(), edge.second->state());
         }
 
-        void BITstar::addEdge(const VertexPtrPair &newEdge, const ompl::base::Cost &edgeCost)
+        void BITstar::addEdge(const VertexPtrPair &edge, const ompl::base::Cost &edgeCost)
         {
 #ifdef BITSTAR_DEBUG
             if (newEdge.first->isInTree() == false)
@@ -783,10 +783,10 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
 
             // If the child already has a parent, this is a rewiring.
-            if (newEdge.second->hasParent())
+            if (edge.second->hasParent())
             {
                 // Replace the old parent.
-                this->replaceParent(newEdge, edgeCost);
+                this->replaceParent(edge, edgeCost);
             } // If not, we add the vertex without replaceing a parent.
             else
             {
@@ -795,17 +795,17 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
 
                 // Add a parent to the child.
-                newEdge.second->addParent(newEdge.first, edgeCost);
+                edge.second->addParent(edge.first, edgeCost);
 
                 // Add a child to the parent.
-                newEdge.first->addChild(newEdge.second);
+                edge.first->addChild(edge.second);
 
                 // Then enqueue the vertex, moving it from the free set to the vertex set.
-                queuePtr_->enqueueVertex(newEdge.second, true);
+                queuePtr_->enqueueVertex(edge.second, true);
             }
         }
 
-        void BITstar::replaceParent(const VertexPtrPair &newEdge, const ompl::base::Cost &edgeCost)
+        void BITstar::replaceParent(const VertexPtrPair &edge, const ompl::base::Cost &edgeCost)
         {
 #ifdef BITSTAR_DEBUG
             if (newEdge.second->getParent()->getId() == newEdge.first->getId())
@@ -823,19 +823,19 @@ namespace ompl
             ++numRewirings_;
 
             // Remove the child from the parent, not updating costs
-            newEdge.second->getParent()->removeChild(newEdge.second);
+            edge.second->getParent()->removeChild(edge.second);
 
             // Remove the parent from the child, not updating costs
-            newEdge.second->removeParent(false);
+            edge.second->removeParent(false);
 
             // Add the parent to the child. updating the downstream costs.
-            newEdge.second->addParent(newEdge.first, edgeCost);
+            edge.second->addParent(edge.first, edgeCost);
 
             // Add the child to the parent.
-            newEdge.first->addChild(newEdge.second);
+            edge.first->addChild(edge.second);
 
             // Mark the queues as unsorted below this child
-            queuePtr_->markVertexUnsorted(newEdge.second);
+            queuePtr_->markVertexUnsorted(edge.second);
         }
 
         void BITstar::updateGoalVertex()
@@ -849,26 +849,25 @@ namespace ompl
             ompl::base::Cost newCost = bestCost_;
 
             // Iterate through the vector of goals, and see if the solution has changed
-            for (auto goalIter = graphPtr_->goalVerticesBeginConst(); goalIter != graphPtr_->goalVerticesEndConst();
-                 ++goalIter)
+            for (auto it = graphPtr_->goalVerticesBeginConst(); it != graphPtr_->goalVerticesEndConst(); ++it)
             {
                 // First, is this goal even in the tree?
-                if ((*goalIter)->isInTree())
+                if ((*it)->isInTree())
                 {
                     // Next, is there currently a solution?
                     if (static_cast<bool>(newBestGoal))
                     {
                         // There is already a solution, is it to this goal?
-                        if ((*goalIter)->getId() == newBestGoal->getId())
+                        if ((*it)->getId() == newBestGoal->getId())
                         {
                             // Ah-ha, We meet again! Are we doing any better? We check the length as sometimes the path
                             // length changes with minimal change in cost.
-                            if (!costHelpPtr_->isCostEquivalentTo((*goalIter)->getCost(), newCost) ||
-                                ((*goalIter)->getDepth() + 1u) != bestLength_)
+                            if (!costHelpPtr_->isCostEquivalentTo((*it)->getCost(), newCost) ||
+                                ((*it)->getDepth() + 1u) != bestLength_)
                             {
                                 // The path to the current best goal has changed, so we need to update it.
                                 goalUpdated = true;
-                                newBestGoal = *goalIter;
+                                newBestGoal = *it;
                                 newCost = newBestGoal->getCost();
                             }
                             // No else, no change
@@ -877,11 +876,11 @@ namespace ompl
                         {
                             // It is not to this goal, we have a second solution! What an easy problem... but is it
                             // better?
-                            if (costHelpPtr_->isCostBetterThan((*goalIter)->getCost(), newCost))
+                            if (costHelpPtr_->isCostBetterThan((*it)->getCost(), newCost))
                             {
                                 // It is! Save this as a better goal:
                                 goalUpdated = true;
-                                newBestGoal = *goalIter;
+                                newBestGoal = *it;
                                 newCost = newBestGoal->getCost();
                             }
                             // No else, not a better solution
@@ -891,7 +890,7 @@ namespace ompl
                     {
                         // There isn't a preexisting solution, that means that any goal is an update:
                         goalUpdated = true;
-                        newBestGoal = *goalIter;
+                        newBestGoal = *it;
                         newCost = newBestGoal->getCost();
                     }
                 }
@@ -918,7 +917,7 @@ namespace ompl
                 graphPtr_->registerSolutionCost(bestCost_);
 
                 // Stop the solution loop if enabled:
-                stopLoop_ = stopOnSolnChange_;
+                stopLoop_ = stopOnSolutionChange_;
 
                 // Brag:
                 this->goalMessage();
@@ -1064,9 +1063,9 @@ namespace ompl
             return graphPtr_->getRewireFactor();
         }
 
-        void BITstar::setSamplesPerBatch(unsigned int n)
+        void BITstar::setSamplesPerBatch(unsigned int samplesPerBatch)
         {
-            samplesPerBatch_ = n;
+            samplesPerBatch_ = samplesPerBatch;
         }
 
         unsigned int BITstar::getSamplesPerBatch() const
@@ -1108,15 +1107,15 @@ namespace ompl
             return queuePtr_->getStrictQueueOrdering();
         }
 
-        void BITstar::setPruning(bool prune)
+        void BITstar::setPruning(bool usePruning)
         {
-            if (!prune)
+            if (!usePruning)
             {
                 OMPL_WARN("%s: Turning pruning off has never really been tested.", Planner::getName().c_str());
             }
 
             // Store
-            usePruning_ = prune;
+            usePruning_ = usePruning;
 
             // Pass the setting onto the queue
             queuePtr_->setPruneDuringResort(usePruning_);
@@ -1174,12 +1173,12 @@ namespace ompl
 
         void BITstar::setStopOnSolnImprovement(bool stopOnChange)
         {
-            stopOnSolnChange_ = stopOnChange;
+            stopOnSolutionChange_ = stopOnChange;
         }
 
         bool BITstar::getStopOnSolnImprovement() const
         {
-            return stopOnSolnChange_;
+            return stopOnSolutionChange_;
         }
 
         void BITstar::setConsiderApproximateSolutions(bool findApproximate)

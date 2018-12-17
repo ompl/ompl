@@ -74,9 +74,9 @@ namespace ompl
 
             /** \brief Setup the ImplicitGraph, must be called before use. Does not take a copy of the
              * PlannerInputStates, but checks it for starts/goals. */
-            void setup(const ompl::base::SpaceInformationPtr &si, const ompl::base::ProblemDefinitionPtr &pdef,
+            void setup(const ompl::base::SpaceInformationPtr &spaceInformation, const ompl::base::ProblemDefinitionPtr &problemDefinition,
                        CostHelper *costHelper, SearchQueue *searchQueue,
-                       const ompl::base::Planner *plannerPtr, ompl::base::PlannerInputStates &pis);
+                       const ompl::base::Planner *plannerPtr, ompl::base::PlannerInputStates &inputStates);
 
             /** \brief Clear the graph to the state of construction. */
             void clear();
@@ -148,8 +148,8 @@ namespace ompl
 
             /** \brief Adds any new goals or starts that have appeared in the problem definition to the vector of
              * vertices and the queue. Creates a new informed sampler if necessary. */
-            void updateStartAndGoalStates(ompl::base::PlannerInputStates &pis,
-                                          const base::PlannerTerminationCondition &ptc);
+            void updateStartAndGoalStates(ompl::base::PlannerInputStates &inputStates,
+                                          const base::PlannerTerminationCondition &terminationCondition);
 
             /** \brief Increase the resolution of the graph-based approximation of the continuous search domain by
              * adding a batch of new samples. */
@@ -174,7 +174,7 @@ namespace ompl
 
             /** \brief Remove a vertex from the tree, can optionally be allowed to move it to the set of unconnected
              * samples if may still be useful. */
-            unsigned int removeVertex(const VertexPtr &oldSample, bool moveToFree);
+            unsigned int removeVertex(const VertexPtr &sample, bool moveToFree);
             //////////////////
 
             //////////////////
@@ -264,7 +264,7 @@ namespace ompl
             /** \brief Prune any starts/goals that provably cannot provide a better solution than the current best
              * solution. This is done via the prune conditions of the SearchQueue. Returns the number of vertices
              * disconnected and the number of samples removed. */
-            std::pair<unsigned int, unsigned int> pruneStartsGoals();
+            std::pair<unsigned int, unsigned int> pruneStartAndGoalVertices();
 
             /** \brief Prune any samples that provably cannot provide a better solution than the current best solution.
              * This is done via the prune conditions of the SearchQueue. Removes the number of samples removed.*/
@@ -275,7 +275,7 @@ namespace ompl
             // Low-level random geometric graph helper and calculations
             /** \brief Tests and updates whether the given vertex is closer to the goal than the known-closest vertex.
              * This is only necessary to find approximate solutions and should otherwise not be called. */
-            void testClosestToGoal(const VertexConstPtr &newVertex);
+            void testClosestToGoal(const VertexConstPtr &vertex);
 
             /** \brief Calculate the max req'd cost to define a neighbourhood around a state. Currently only implemented
              * for path-length problems, for which the neighbourhood cost is the f-value of the vertex plus 2r. */
@@ -285,10 +285,10 @@ namespace ompl
             virtual void updateNearestTerms();
 
             /** \brief Calculate the r for r-disc nearest neighbours, a function of the current graph */
-            double calculateR(unsigned int N) const;
+            double calculateR(unsigned int numUniformSamples) const;
 
             /** \brief Calculate the k for k-nearest neighours, a function of the current graph */
-            unsigned int calculateK(unsigned int N) const;
+            unsigned int calculateK(unsigned int numUniformSamples) const;
 
             /** \brief Calculate the lower-bounding radius RGG term for asymptotic almost-sure convergence to the
              * optimal path (i.e., r_rrg* in Karaman and Frazzoli IJRR 11). This is a function of the size of the
@@ -392,7 +392,7 @@ namespace ompl
             ompl::base::Cost solutionCost_{std::numeric_limits<double>::infinity()};
 
             /** \brief The total-heuristic cost up to which we've sampled */
-            ompl::base::Cost costSampled_{std::numeric_limits<double>::infinity()};
+            ompl::base::Cost sampledCost_{std::numeric_limits<double>::infinity()};
 
             /** \brief If we've found an exact solution yet */
             bool hasExactSolution_{false};
@@ -402,7 +402,7 @@ namespace ompl
 
             /** \brief IF BEING TRACKED, the smallest distance of vertices in the tree to a goal (this represents
              * tolerance of an "approximate" solution) */
-            double closestDistToGoal_{std::numeric_limits<double>::infinity()};
+            double closestDistanceToGoal_{std::numeric_limits<double>::infinity()};
             ///////////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////////////////////

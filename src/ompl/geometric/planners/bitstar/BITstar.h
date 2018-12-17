@@ -487,7 +487,7 @@ namespace ompl
             double pruneFraction_{0.05};
 
             /** \brief Whether to stop the planner as soon as the path changes (param) */
-            bool stopOnSolnChange_{false};
+            bool stopOnSolutionChange_{false};
             ///////////////////////////////////////////////////////////////////
         };  // class: BITstar
     }  // geometric
