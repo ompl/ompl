@@ -164,17 +164,17 @@ namespace ompl
             //////////////////
             // Adding/remove individual states:
             /** \brief Add an unconnected sample */
-            void addSample(const VertexPtr &newSample);
+            void addToSamples(const VertexPtr &newSample);
 
             /** \brief Remove an unconnected sample.*/
-            void removeSample(const VertexPtr &oldSample);
+            void removeFromSamples(const VertexPtr &oldSample);
 
             /** \brief Add a vertex to the tree, optionally moving it from the set of unconnected samples. */
-            void addVertex(const VertexPtr &newVertex, bool removeFromFree);
+            void addToVertices(const VertexPtr &newVertex, bool removeFromFree);
 
             /** \brief Remove a vertex from the tree, can optionally be allowed to move it to the set of unconnected
              * samples if may still be useful. */
-            unsigned int removeVertex(const VertexPtr &sample, bool moveToFree);
+            unsigned int removeFromVertices(const VertexPtr &sample, bool moveToFree);
             //////////////////
 
             //////////////////

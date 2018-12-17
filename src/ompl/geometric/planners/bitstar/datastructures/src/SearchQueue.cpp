@@ -77,12 +77,12 @@ namespace ompl
           , vertexQueue_([this](const CostDouble &lhs, const CostDouble &rhs)
                          {
                              return lexicographicalBetterThan(lhs, rhs);
-                         })  // This tells the vertexQueue_ to use the queueComparison for sorting
+                         })  // Tell the vertexQueue_ to use lexicographical comparison for sorting.
           , vertexQueueToken_(vertexQueue_.begin())
           , edgeQueue_([this](const CostTripleAndVertexPtrPair &lhs, const CostTripleAndVertexPtrPair &rhs)
                        {
                            return lexicographicalBetterThan(lhs.first, rhs.first);
-                       })  // This tells the edgeQueue_ to use the queueComparison for sorting
+                       })  // This tells the edgeQueue_ to use lexicographical comparison for sorting.
         {
         }
 
@@ -1091,7 +1091,7 @@ namespace ompl
             // Add the vertex to the graph
             if (addToNNStruct)
             {
-                graphPtr_->addVertex(vertex, removeFromFree);
+                graphPtr_->addToVertices(vertex, removeFromFree);
             }
 
             // Insert into the order map, getting the iterator
@@ -1230,7 +1230,7 @@ namespace ompl
                 this->removeInEdgesFromQueue(vertexCopy);
 
                 // Remove myself from the set of connected vertices, this will recycle if necessary.
-                deleted = graphPtr_->removeVertex(vertexCopy, true);
+                deleted = graphPtr_->removeFromVertices(vertexCopy, true);
             }
 
             // Return if the sample was deleted:

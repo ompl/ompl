@@ -442,7 +442,7 @@ namespace ompl
                     spaceInformation_->copyState(goalVertices_.back()->state(), newGoal);
 
                     // And add this goal to the set of samples:
-                    this->addSample(goalVertices_.back());
+                    this->addToSamples(goalVertices_.back());
 
                     // Mark that we've added:
                     addedGoal = true;
@@ -513,7 +513,7 @@ namespace ompl
                         goalVertices_.push_back(*prunedGoalIter);
 
                         // Add as a sample
-                        this->addSample(*prunedGoalIter);
+                        this->addToSamples(*prunedGoalIter);
 
                         // Mark what we've added:
                         addedGoal = true;
@@ -711,7 +711,7 @@ namespace ompl
             return numPruned;
         }
 
-        void BITstar::ImplicitGraph::addSample(const VertexPtr &sample)
+        void BITstar::ImplicitGraph::addToSamples(const VertexPtr &sample)
         {
             ASSERT_SETUP
 
@@ -729,7 +729,7 @@ namespace ompl
             samples_->add(sample);
         }
 
-        void BITstar::ImplicitGraph::removeSample(const VertexPtr &sample)
+        void BITstar::ImplicitGraph::removeFromSamples(const VertexPtr &sample)
         {
             ASSERT_SETUP
 
@@ -762,7 +762,7 @@ namespace ompl
             sampleCopy->markPruned();
         }
 
-        void BITstar::ImplicitGraph::addVertex(const VertexPtr &vertex, bool removeFromFree)
+        void BITstar::ImplicitGraph::addToVertices(const VertexPtr &vertex, bool removeFromFree)
         {
             ASSERT_SETUP
 
@@ -795,7 +795,7 @@ namespace ompl
             }
         }
 
-        unsigned int BITstar::ImplicitGraph::removeVertex(const VertexPtr &vertex, bool moveToFree)
+        unsigned int BITstar::ImplicitGraph::removeFromVertices(const VertexPtr &vertex, bool moveToFree)
         {
             ASSERT_SETUP
 
@@ -925,7 +925,7 @@ namespace ompl
                     if (spaceInformation_->isValid(newState->state()))
                     {
                         // Add the new state as a sample
-                        this->addSample(newState);
+                        this->addToSamples(newState);
 
                         // Update the number of uniformly distributed states
                         ++numUniformStates_;
@@ -986,7 +986,7 @@ namespace ompl
                         // It has, remove the start vertex DO NOT consider it as a sample. It is marked as a root node,
                         // so having it as a sample would cause all kinds of problems, also it shouldn't be possible for
                         // it to ever be useful as a sample anyway, unless there is a very weird cost function in play.
-                        numPruned.second = numPruned.second + this->removeVertex(*startIter, false);
+                        numPruned.second = numPruned.second + this->removeFromVertices(*startIter, false);
 
                         // Count as a disconnected vertex
                         ++numPruned.first;
@@ -1053,7 +1053,7 @@ namespace ompl
                             queuePtr_->unqueueVertex(*goalIter);
 
                             // and as a vertex, allowing it to move to the set of samples.
-                            numPruned.second = numPruned.second + this->removeVertex(*goalIter, true);
+                            numPruned.second = numPruned.second + this->removeFromVertices(*goalIter, true);
 
                             // Count it as a disconnected vertex
                             ++numPruned.first;
@@ -1061,7 +1061,7 @@ namespace ompl
                         else
                         {
                             // It is not, so just it like a sample
-                            this->removeSample(*goalIter);
+                            this->removeFromSamples(*goalIter);
 
                             // Count a pruned sample
                             ++numPruned.second;
@@ -1140,7 +1140,7 @@ namespace ompl
                     if (queuePtr_->canSampleBePruned(sample))
                     {
                         // Yes, remove it
-                        this->removeSample(sample);
+                        this->removeFromSamples(sample);
 
                         // and increment the counter
                         ++numPruned;
