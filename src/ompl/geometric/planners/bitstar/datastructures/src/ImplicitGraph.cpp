@@ -719,7 +719,7 @@ namespace ompl
 
             // Assert the state of the sample
 #ifdef BITSTAR_DEBUG
-            this->assertValidSample(newSample, true);
+            this->assertValidSample(sample, true);
 #endif  // BITSTAR_DEBUG
 
             // Add to the vector of new samples

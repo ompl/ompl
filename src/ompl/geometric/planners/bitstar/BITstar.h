@@ -304,7 +304,7 @@ namespace ompl
             /** \brief Blacklists an edge (useful if an edge is in collision). */
             void blacklistEdge(const VertexPtrPair &edge) const;
 
-            /** \brief Blacklists an edge (useful if an edge not in collision). */
+            /** \brief Whitelists an edge (useful if an edge not in collision). */
             void whitelistEdge(const VertexPtrPair &edge) const;
 
             /** \brief Publish the found solution to the ProblemDefinition*/
@@ -323,10 +323,10 @@ namespace ompl
 
             /** \brief Add an edge from the edge queue to the tree. Will add the state to the vertex queue if it's new
              * to the tree or otherwise replace the parent. Updates solution information if the solution improves. */
-            void addEdge(const VertexPtrPair &newEdge, const ompl::base::Cost &edgeCost);
+            void addEdge(const VertexPtrPair &edge, const ompl::base::Cost &edgeCost);
 
             /** \brief Replace the parent edge with the given new edge and cost */
-            void replaceParent(const VertexPtrPair &newEdge, const ompl::base::Cost &edgeCost);
+            void replaceParent(const VertexPtrPair &edge, const ompl::base::Cost &edgeCost);
 
             /** \brief The special work that needs to be done to update the goal vertex if the solution has changed. */
             void updateGoalVertex();
@@ -344,7 +344,7 @@ namespace ompl
             void endFailureMessage() const;
 
             /** \brief A detailed status message format with debug info. */
-            void statusMessage(const ompl::msg::LogLevel &msgLevel, const std::string &status) const;
+            void statusMessage(const ompl::msg::LogLevel &logLevel, const std::string &status) const;
             ///////////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////////////////////

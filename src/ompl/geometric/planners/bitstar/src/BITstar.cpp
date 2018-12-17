@@ -795,11 +795,11 @@ namespace ompl
         void BITstar::addEdge(const VertexPtrPair &edge, const ompl::base::Cost &edgeCost)
         {
 #ifdef BITSTAR_DEBUG
-            if (newEdge.first->isInTree() == false)
+            if (edge.first->isInTree() == false)
             {
                 throw ompl::Exception("Adding an edge from a vertex not connected to the graph");
             }
-            if (costHelpPtr_->isCostEquivalentTo(costHelpPtr_->trueEdgeCost(newEdge), edgeCost) == false)
+            if (costHelpPtr_->isCostEquivalentTo(costHelpPtr_->trueEdgeCost(edge), edgeCost) == false)
             {
                 throw ompl::Exception("You have passed the wrong edge cost to addEdge.");
             }
@@ -814,7 +814,7 @@ namespace ompl
             else
             {
 #ifdef BITSTAR_DEBUG
-                graphPtr_->assertValidSample(newEdge.second, false);
+                graphPtr_->assertValidSample(edge.second, false);
 #endif  // BITSTAR_DEBUG
 
                 // Add a parent to the child.
@@ -831,12 +831,12 @@ namespace ompl
         void BITstar::replaceParent(const VertexPtrPair &edge, const ompl::base::Cost &edgeCost)
         {
 #ifdef BITSTAR_DEBUG
-            if (newEdge.second->getParent()->getId() == newEdge.first->getId())
+            if (edge.second->getParent()->getId() == edge.first->getId())
             {
                 throw ompl::Exception("The new and old parents of the given rewiring are the same.");
             }
-            if (costHelpPtr_->isCostBetterThan(newEdge.second->getCost(),
-                                               costHelpPtr_->combineCosts(newEdge.first->getCost(), edgeCost)) == true)
+            if (costHelpPtr_->isCostBetterThan(edge.second->getCost(),
+                                               costHelpPtr_->combineCosts(edge.first->getCost(), edgeCost)) == true)
             {
                 throw ompl::Exception("The new edge will increase the cost-to-come of the vertex!");
             }
@@ -1004,10 +1004,10 @@ namespace ompl
             }
         }
 
-        void BITstar::statusMessage(const ompl::msg::LogLevel &msgLevel, const std::string &status) const
+        void BITstar::statusMessage(const ompl::msg::LogLevel &logLevel, const std::string &status) const
         {
             // Check if we need to create the message
-            if (msgLevel >= ompl::msg::getLogLevel())
+            if (logLevel >= ompl::msg::getLogLevel())
             {
                 // Variable
                 // The message as a stream:
@@ -1049,19 +1049,19 @@ namespace ompl
                 // The message:
                 outputStream << status;
 
-                if (msgLevel == ompl::msg::LOG_DEBUG)
+                if (logLevel == ompl::msg::LOG_DEBUG)
                 {
                     OMPL_DEBUG("%s: ", outputStream.str().c_str());
                 }
-                else if (msgLevel == ompl::msg::LOG_INFO)
+                else if (logLevel == ompl::msg::LOG_INFO)
                 {
                     OMPL_INFORM("%s: ", outputStream.str().c_str());
                 }
-                else if (msgLevel == ompl::msg::LOG_WARN)
+                else if (logLevel == ompl::msg::LOG_WARN)
                 {
                     OMPL_WARN("%s: ", outputStream.str().c_str());
                 }
-                else if (msgLevel == ompl::msg::LOG_ERROR)
+                else if (logLevel == ompl::msg::LOG_ERROR)
                 {
                     OMPL_ERROR("%s: ", outputStream.str().c_str());
                 }
