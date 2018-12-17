@@ -673,28 +673,6 @@ namespace ompl
             // Update the nearest-neighbour terms for the number of samples we *will* have.
             this->updateNearestTerms();
 
-            // Relabel all the previous samples as old
-            for (auto &freeSample : newSamples_)
-            {
-                // If the sample still exists, mark as old. It can get pruned during a resort.
-                if (!freeSample->isPruned())
-                {
-                    freeSample->markOld();
-                }
-                // No else, this sample has been pruned and will shortly disappear
-            }
-
-            // Reuse the recycled samples as new samples
-            for (auto &sample : recycledSamples_)
-            {
-                // Reset the recycled vertex to a new sample
-                sample->markNew();
-                sample->markUnexpandedToSamples();
-                sample->markUnexpandedToVertices();
-
-                // Add it
-                this->addSample(sample);
-            }
 
             // These recycled samples are our only new samples
             newSamples_ = recycledSamples_;
@@ -881,21 +859,6 @@ namespace ompl
             {
                 std::cout << std::endl << "vId: " << sample->getId() << std::endl;
                 throw ompl::Exception("Sample already has children.");
-            }
-            if (mustBeNew && !sample->isNew())
-            {
-                std::cout << std::endl << "vId: " << sample->getId() << std::endl;
-                throw ompl::Exception("Sample is not marked new (as specified).");
-            }
-            if (sample->hasBeenExpandedToSamples())
-            {
-                std::cout << std::endl << "vId: " << sample->getId() << std::endl;
-                throw ompl::Exception("Sample is already marked as expanded to samples.");
-            }
-            if (sample->hasBeenExpandedToVertices())
-            {
-                std::cout << std::endl << "vId: " << sample->getId() << std::endl;
-                throw ompl::Exception("Sample is already marked as expanded to vertices.");
             }
             if (sample->hasVertexQueueEntry())
             {
