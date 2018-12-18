@@ -202,7 +202,7 @@ namespace ompl
             }
 
             // Remove it from vertex queue and lookup, and edge queues.
-            this->vertexRemoveHelper(vertex);
+            this->removeFromVertexQueue(vertex);
 
             // Remove the edges that are connected to this vertex from the edge queue.
             this->removeAllEdgesConnectedToVertexFromQueue(vertex);
@@ -1015,7 +1015,7 @@ namespace ompl
 
             // Update my place in the vertex queue by removing and adding myself:
             // Remove myself, not touching my edge-queue entries
-            this->vertexRemoveHelper(vertex);
+            this->removeFromVertexQueue(vertex);
 
             // Insert the vertex into the queue.
             this->insertIntoQueue(vertex);
@@ -1068,7 +1068,7 @@ namespace ompl
             std::pair<unsigned int, unsigned int> numPruned(1u, 0u);
 
             // Remove the root of the branch from everything.
-            this->vertexRemoveHelper(branchRoot);
+            this->removeFromVertexQueue(branchRoot);
 
             this->removeAllEdgesConnectedToVertexFromQueue(branchRoot);
 
@@ -1200,7 +1200,7 @@ namespace ompl
             }
         }
 
-        void BITstar::SearchQueue::vertexRemoveHelper(const VertexPtr &vertex)
+        void BITstar::SearchQueue::removeFromVertexQueue(const VertexPtr &vertex)
         {
 #ifdef BITSTAR_DEBUG
             // The use count of the passed shared pointer. Used in debug mode to assert that we took ownership of our own copy.

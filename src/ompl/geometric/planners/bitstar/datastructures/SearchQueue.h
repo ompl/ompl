@@ -348,7 +348,7 @@ namespace ompl
 
             /** \brief Remove a vertex from the vertex queue and optionally also its edge queue and NN entries.
              * Returns the number of vertices that are completely deleted. */
-            void vertexRemoveHelper(const VertexPtr &vertex);
+            void removeFromVertexQueue(const VertexPtr &vertex);
             ////////////////////////////////
 
             ////////////////////////////////
