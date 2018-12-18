@@ -868,8 +868,8 @@ namespace ompl
             // Add the child to the parent.
             edge.first->addChild(edge.second);
 
-            // Mark the queues as unsorted below this child
-            queuePtr_->markVertexUnsorted(edge.second);
+            // // Mark the queues as unsorted below this child
+            // queuePtr_->markVertexUnsorted(edge.second);
         }
 
         void BITstar::updateGoalVertex()
