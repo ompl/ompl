@@ -37,10 +37,12 @@
 // My definition:
 #include "ompl/geometric/planners/bitstar/datastructures/SearchQueue.h"
 
-// For std::move
-#include <utility>
 // For std::lexicographical_compare and the std::*_heap functions.
 #include <algorithm>
+// For std::advance.
+#include <iterator>
+// For std::move.
+#include <utility>
 
 // OMPL:
 // For OMPL_INFORM et al.
@@ -339,7 +341,7 @@ namespace ompl
             solutionCost_ = solutionCost;
         }
 
-        void BITstar::SearchQueue::removeInEdgesFromQueue(const VertexPtr &vertex)
+        void BITstar::SearchQueue::removeInEdgesConnectedToVertexFromQueue(const VertexPtr &vertex)
         {
             ASSERT_SETUP
 
@@ -362,7 +364,7 @@ namespace ompl
             // No else, nothing to remove_to
         }
 
-        void BITstar::SearchQueue::removeOutEdgesFromQueue(const VertexPtr &vertex)
+        void BITstar::SearchQueue::removeOutEdgesConnectedToVertexFromQueue(const VertexPtr &vertex)
         {
             ASSERT_SETUP
 
@@ -383,6 +385,12 @@ namespace ompl
                 vertex->clearEdgeQueueOutLookup();
             }
             // No else, nothing to remove_from
+        }
+
+        void BITstar::SearchQueue::removeAllEdgesConnectedToVertexFromQueue(const VertexPtr &vertex)
+        {
+            this->removeOutEdgesConnectedToVertexFromQueue(vertex);
+            this->removeInEdgesConnectedToVertexFromQueue(vertex);
         }
 
         void BITstar::SearchQueue::markVertexUnsorted(const VertexPtr &vertex)
@@ -1231,8 +1239,7 @@ namespace ompl
             // Remove from lookups map as requested
             if (fullyRemove)
             {
-                this->removeOutEdgesFromQueue(vertexCopy);
-                this->removeInEdgesFromQueue(vertexCopy);
+                this->removeAllEdgesConnectedToVertexFromQueue(vertexCopy);
 
                 // Remove myself from the set of connected vertices, this will recycle if necessary.
                 deleted = graphPtr_->removeFromVertices(vertexCopy, true);

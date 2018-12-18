@@ -60,11 +60,16 @@
     #define PRINT_VERTEX_CHANGE \
         if (vId_ == TRACK_VERTEX_ID) \
         { \
-            std::cout << "vId " << vId_ << ": " << __func__ << "()" << std::endl; \
+            std::cout << "Vertex " << vId_ << ": " << __func__ << "" << std::endl; \
         }
 
     /** \brief A debug-only call to assert that the vertex is not pruned. */
-    #define ASSERT_NOT_PRUNED this->assertNotPruned();
+    #define ASSERT_NOT_PRUNED \
+        if (this->isPruned_) \
+        { \
+            std::cout << "Vertex " << vId_ << ": " << __func__ << std::endl; \
+            throw ompl::Exception("Attempting to access a pruned vertex."); \
+        }
 #else
     #define PRINT_VERTEX_CHANGE
     #define ASSERT_NOT_PRUNED
@@ -541,6 +546,14 @@ namespace ompl
         /////////////////////////
 
         /////////////////////////
+        // Edge queue info (all edges):
+        void BITstar::Vertex::clearEdgeQueueLookups()
+        {
+            this->clearEdgeQueueOutLookup();
+            this->clearEdgeQueueInLookup();
+        }
+
+        /////////////////////////
         // Edge queue info (incoming edges):
         void BITstar::Vertex::insertInEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtr& newInPtr, unsigned int vertexQueueResetNum)
         {
@@ -981,15 +994,6 @@ namespace ompl
                 vertexQueueResetNum_ = vertexQueueResetNum;
             }
             // No else, this is the same pass through the vertex queue
-        }
-
-        void BITstar::Vertex::assertNotPruned() const
-        {
-            if (isPruned_)
-            {
-                std::cout << std::endl << "vId: " << vId_ << std::endl;
-                throw ompl::Exception("Attempting to access a pruned vertex.");
-            }
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
     }  // geometric

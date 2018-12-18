@@ -189,6 +189,10 @@ namespace ompl
             //////////////
 
             //////////////
+            // Edge queue info (all edges):
+            /** \brief Clear both in and out edge queue lookups. */
+            void clearEdgeQueueLookups();
+
             // Edge queue info (incoming edges):
             /** \brief Add to the list of the edge queue entries that point in to this vertex. Will clear existing in/out lookups if they were added under a different id.*/
             void insertInEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtr &newInPtr, unsigned int vertexQueueResetNum);

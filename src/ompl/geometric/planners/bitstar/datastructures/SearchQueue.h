@@ -186,10 +186,13 @@ namespace ompl
             void registerSolutionCost(const ompl::base::Cost &solutionCost);
 
             /** \brief Erase all edges in the edge queue that lead to the given vertex */
-            void removeInEdgesFromQueue(const VertexPtr &vertex);
+            void removeInEdgesConnectedToVertexFromQueue(const VertexPtr &vertex);
 
             /** \brief Erase all edges in the edge queue that leave from the given vertex */
-            void removeOutEdgesFromQueue(const VertexPtr &vertex);
+            void removeOutEdgesConnectedToVertexFromQueue(const VertexPtr &vertex);
+
+            /** 'brief Erase all edges in the edge queue that are connected to the given vertex. */
+            void removeAllEdgesConnectedToVertexFromQueue(const VertexPtr &vertex);
 
             /** \brief Mark the queue as requiring resorting downstream of the specified vertex */
             void markVertexUnsorted(const VertexPtr &vertex);
