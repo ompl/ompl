@@ -527,9 +527,13 @@ namespace ompl
                 // Pop the minimum edge
                 queuePtr_->popFrontEdge(&bestEdge);
 
+                if (bestEdge.first->hasParent() && bestEdge.first->getParent()->getId() == bestEdge.second->getId())
+                {
+                    queuePtr_->enqueueOutgoingEdges(bestEdge.second);
+                }
                 // In the best case, can this edge improve our solution given the current graph?
                 // g_t(v) + c_hat(v,x) + h_hat(x) < g_t(x_g)?
-                if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicEdge(bestEdge), bestCost_))
+                else if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicEdge(bestEdge), bestCost_))
                 {
                     // What about improving the current graph?
                     // g_t(v) + c_hat(v,x)  < g_t(x)?
@@ -607,9 +611,6 @@ namespace ompl
             // Info:
             ++numBatches_;
 
-            // Reset the queue:
-            queuePtr_->reset();
-
             // Do we need to update our starts or goals?
             if (Planner::pis_.haveMoreStartStates() || Planner::pis_.haveMoreGoalStates())
             {
@@ -623,6 +624,9 @@ namespace ompl
 
             // Add a new batch of samples
             graphPtr_->addNewSamples(samplesPerBatch_);
+
+            // Reset the queue:
+            queuePtr_->reset();
         }
 
         void BITstar::prune()
