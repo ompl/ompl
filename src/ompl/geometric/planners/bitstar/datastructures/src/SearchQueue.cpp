@@ -139,15 +139,12 @@ namespace ompl
             // pruneDuringResort_
         }
 
-        void BITstar::SearchQueue::registerVertex(const VertexPtr &vertex)
+        void BITstar::SearchQueue::enqueueVertex(const VertexPtr &vertex)
         {
             ASSERT_SETUP
 
-            // Add the vertex to the set of vertices.
-            graphPtr_->addToVertices(vertex);
-
             // Insert it into the queue.
-            this->enqueueVertex(vertex);
+            this->insertIntoQueue(vertex);
 
             // Expand it if it's before the token.
             this->expandIfBeforeToken(vertex);
@@ -1006,20 +1003,17 @@ namespace ompl
             // Remove myself, not touching my edge-queue entries
             this->vertexRemoveHelper(vertex, false);
 
-            // Reinsert myself, expanding if I cross the token if I am not already expanded but not removing/adding
-            // either NN struct
-            this->enqueueVertex(vertex);
+            // Insert the vertex into the queue.
+            this->insertIntoQueue(vertex);
 
             // If it wasn't already expanded, we need to expand it if it's before the token.
             if (!alreadyExpanded)
             {
                 expandIfBeforeToken(vertex);
             }
-
-            // If I was already expanded my edge-queue entries are out of date
-            if (alreadyExpanded == true)
+            else
             {
-                // I have been previously expanded.
+                // I have been previously expanded, my edge queue entries are out of date.
                 // Iterate over my outgoing edges and update them in the edge queue:
                 for (auto it = vertex->edgeQueueOutLookupConstBegin(numQueueResets_); it != vertex->edgeQueueOutLookupConstEnd(numQueueResets_); ++it)
                 {
@@ -1093,7 +1087,7 @@ namespace ompl
             vertex->removeParent(cascadeCostUpdates);
         }
 
-        void BITstar::SearchQueue::enqueueVertex(const VertexPtr &vertex)
+        void BITstar::SearchQueue::insertIntoQueue(const VertexPtr &vertex)
         {
             // Insert into the order map, getting the iterator
             auto vertexQueueIter = vertexQueue_.insert(std::make_pair(this->sortKey(vertex), vertex));

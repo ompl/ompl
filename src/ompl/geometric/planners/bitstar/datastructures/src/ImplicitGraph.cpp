@@ -473,7 +473,10 @@ namespace ompl
                     spaceInformation_->copyState(startVertices_.back()->state(), newStart);
 
                     // Register this start vertex.
-                    queuePtr_->registerVertex(startVertices_.back());
+                    queuePtr_->enqueueVertex(startVertices_.back());
+
+                    // Add the vertex to the set of vertices.
+                    this->addToVertices(startVertices_.back());
 
                     // Mark that we've added:
                     addedStart = true;
@@ -576,8 +579,11 @@ namespace ompl
                         // Add it back to the vector
                         startVertices_.push_back(*prunedStartIter);
 
-                        // Register this start vertex.
-                        queuePtr_->registerVertex(*prunedStartIter);
+                        // Add this vertex to the queue.
+                        queuePtr_->enqueueVertex(*prunedStartIter);
+
+                        // Add the vertex to the set of vertices.
+                        this->addToVertices(*prunedStartIter);
 
                         // Mark what we've added:
                         addedStart = true;

@@ -139,9 +139,9 @@ namespace ompl
 
             //////////////////
             // Insert and erase
-            /** \brief Registering a sample as a vertex adds it the the set of vertices, inserts it into the vertex queue,
+            /** \brief Enqueueing a vertex inserts it into the vertex queue,
              * and expands it into edges if it's place in the queue is before the token. */
-            void registerVertex(const VertexPtr &vertex);
+            void enqueueVertex(const VertexPtr &vertex);
 
             /** \brief Insert an edge into the edge processing queue. The source vertex of this edge must be in the
              * expansion queue (although it may already be expanded). */
@@ -338,7 +338,7 @@ namespace ompl
             void disconnectParent(const VertexPtr &vertex, bool cascadeCostUpdates);
 
             /** \brief Insert a vertex into the queue. */
-            void enqueueVertex(const VertexPtr &vertex);
+            void insertIntoQueue(const VertexPtr &vertex);
 
             /** \brief Explicitly expands a vertex if it's value is better than the value of the vertex pointed to by the token. */
             void expandIfBeforeToken(const VertexPtr &vertex);
