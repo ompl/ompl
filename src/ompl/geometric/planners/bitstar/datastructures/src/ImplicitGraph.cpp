@@ -472,9 +472,6 @@ namespace ompl
                     // Copy the value into the state.
                     spaceInformation_->copyState(startVertices_.back()->state(), newStart);
 
-                    // Put this vertex into the vertex queue.
-                    queuePtr_->enqueueVertex(startVertices_.back());
-
                     // Add the vertex to the set of vertices.
                     this->addToVertices(startVertices_.back());
 
@@ -580,7 +577,7 @@ namespace ompl
                         startVertices_.push_back(*prunedStartIter);
 
                         // Add this vertex to the queue.
-                        queuePtr_->enqueueVertex(*prunedStartIter);
+                        // queuePtr_->enqueueVertex(*prunedStartIter);
 
                         // Add the vertex to the set of vertices.
                         this->addToVertices(*prunedStartIter);
@@ -1031,8 +1028,8 @@ namespace ompl
                             this->removeEdgeBetweenVertexAndParent(*startIter, true);
                         }
 
-                        // Remove it from the queue
-                        queuePtr_->unqueueVertex(*startIter);
+                        // // Remove it from the vertex queue.
+                        // queuePtr_->unqueueVertex(*startIter);
 
                         // Remove it from the set of vertices, recycling if necessary.
                         this->removeFromVertices(*startIter, true);
@@ -1098,8 +1095,8 @@ namespace ompl
                                 this->removeEdgeBetweenVertexAndParent(*goalIter, true);
                             }
 
-                            // It is, remove it from the queue
-                            queuePtr_->unqueueVertex(*goalIter);
+                            // // It is, remove it from the vertex queue.
+                            // queuePtr_->unqueueVertex(*goalIter);
 
                             // Remove it from the set of vertices, recycling if necessary.
                             this->removeFromVertices(*goalIter, true);

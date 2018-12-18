@@ -156,20 +156,8 @@ namespace ompl
         {
             ASSERT_SETUP
 
-#ifdef BITSTAR_DEBUG
-            // Assert that the parent vertex is in the vertex queue
-            if (!edge.first->hasVertexQueueEntry())
-            {
-                throw ompl::Exception("Attempted to enqueue an edge from a vertex not in the vertex queue.");
-            }
-#endif  // BITSTAR_DEBUG
-
-            // Variable:
-            // The iterator to the new edge in the queue:
-            EdgeQueueElemPtr edgeElemPtr;
-
             // Insert into the edge queue, getting the element pointer
-            edgeElemPtr = edgeQueue_.insert(std::make_pair(this->sortKey(edge), edge));
+            auto edgeElemPtr = edgeQueue_.insert(std::make_pair(this->sortKey(edge), edge));
 
             // Push the newly created edge back on the vector of edges from the parent.
             edge.first->insertInEdgeQueueOutLookup(edgeElemPtr, numQueueResets_);
@@ -421,19 +409,19 @@ namespace ompl
             // The number of vertices and samples pruned.
             std::pair<unsigned int, unsigned int> numPruned(0u, 0u);
 
-            // Iterate through to the end of the queue
-            for (auto it = vertex->getVertexQueueIter(); it != vertexQueue_.end(); ++it)
-            {
-                // Check if it should be pruned (value) or has lost its parent.
-                if (this->canVertexBePruned(it->second))
-                {
-                    // Copy the iterator to prune, and move the iterator to the next valid vertex after pruning.
-                    auto pruneIter = it--;
+            // // Iterate through to the end of the queue
+            // for (auto it = vertex->getVertexQueueIter(); it != vertexQueue_.end(); ++it)
+            // {
+            //     // Check if it should be pruned (value) or has lost its parent.
+            //     if (this->canVertexBePruned(it->second))
+            //     {
+            //         // Copy the iterator to prune, and move the iterator to the next valid vertex after pruning.
+            //         auto pruneIter = it--;
 
-                    // Prune the branch:
-                    numPruned = numPruned + this->pruneBranch(pruneIter->second);
-                }
-            }
+            //         // Prune the branch:
+            //         numPruned = numPruned + this->pruneBranch(pruneIter->second);
+            //     }
+            // }
 
             // Return the number of vertices and samples pruned.
             return numPruned;
@@ -589,6 +577,12 @@ namespace ompl
 
             // Restart the expansion queue:
             vertexQueueToken_ = vertexQueue_.begin();
+
+            // Insert the outgoing edges of the start vertices.
+            for (auto it = graphPtr_->startVerticesBeginConst(); it != graphPtr_->startVerticesEndConst(); ++it)
+            {
+                this->enqueueOutgoingEdges(*it);
+            }
         }
 
         bool BITstar::SearchQueue::canPossiblyImproveCurrentSolution(const VertexPtr &state) const
@@ -728,13 +722,6 @@ namespace ompl
                 this->expandNextVertex();
             }
 
-            // If the edge queue is actually empty, than use this opportunity to resort any unsorted vertices
-            if (edgeQueue_.empty())
-            {
-                this->resort();
-            }
-            // No else
-
             // Return whether the edge queue is empty:
             return edgeQueue_.empty();
         }
@@ -786,13 +773,6 @@ namespace ompl
         // Private functions:
         void BITstar::SearchQueue::updateQueue()
         {
-            // If we are using strict queue ordering, we must resort the queue before we update it.
-            if (useStrictQueueOrdering_)
-            {
-                // Resort and vertices that have been rewired.
-                this->resort();
-            }
-
             // Unless the vertex queue token points past the last vertex, there's a possibility to expand.
             while (vertexQueueToken_ != vertexQueue_.end())
             {
