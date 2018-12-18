@@ -108,6 +108,9 @@ namespace ompl
             /** Helper for the OrderedInfSampler wrapper */
             unsigned int getMaxNumberOfIters() const;
 
+            /** Set the seeds of the underlying RNGs */
+            virtual void setLocalSeed(std::uint_fast32_t localSeed) = 0;
+
         protected:
             /** \brief A copy of the problem definition */
             ProblemDefinitionPtr probDefn_;

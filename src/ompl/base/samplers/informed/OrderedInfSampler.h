@@ -77,6 +77,12 @@ namespace ompl
              * searched. Passes through to the wrapper sampler. */
             double getInformedMeasure(const Cost &currentCost) const override;
 
+            /** Set the seeds of the underlying RNGs */
+            void setLocalSeed(std::uint_fast32_t localSeed) override
+            {
+                infSampler_->setLocalSeed(localSeed);
+            };
+
         private:
             // Variables
             /** \brief The informed sampler to use. */

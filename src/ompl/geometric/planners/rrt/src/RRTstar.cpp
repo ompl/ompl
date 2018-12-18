@@ -1121,6 +1121,11 @@ void ompl::geometric::RRTstar::allocSampler()
         infSampler_ = std::make_shared<base::OrderedInfSampler>(infSampler_, batchSize_);
     }
     // No else
+
+    if (localSeedSet_)
+    {
+        this->setLocalSeed(localSeed_);
+    }
 }
 
 bool ompl::geometric::RRTstar::sampleUniform(base::State *statePtr)

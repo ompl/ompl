@@ -81,6 +81,12 @@ namespace ompl
              * informed space is always the measure of the entire space. */
             double getInformedMeasure(const Cost & /*minCost*/, const Cost & /*maxCost*/) const override;
 
+            /** Set the seeds of the underlying RNGs */
+            void setLocalSeed(std::uint_fast32_t localSeed) override
+            {
+                baseSampler_->setLocalSeed(localSeed);
+            };
+
         private:
             // Variables
             /** \brief The basic raw sampler used to generate samples to keep/reject. */

@@ -99,6 +99,12 @@ namespace ompl
             */
             virtual void sampleGaussian(State *state, const State *mean, double stdDev) = 0;
 
+            /** \brief Set the seed of the underlying RNG */
+            void setLocalSeed(std::uint_fast32_t localSeed)
+            {
+                rng_.setLocalSeed(localSeed);
+            };
+
         protected:
             /** \brief The state space this sampler samples */
             const StateSpace *space_;
