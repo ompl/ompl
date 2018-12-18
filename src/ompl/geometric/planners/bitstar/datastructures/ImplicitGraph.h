@@ -172,6 +172,9 @@ namespace ompl
             /** \brief Remove an unconnected sample.*/
             void pruneSample(const VertexPtr &sample);
 
+            /** \brief Insert a sample into the set for recycled samples.*/
+            void recycleSample(const VertexPtr &sample);
+
             /** \brief Add a vertex to the tree, optionally moving it from the set of unconnected samples. */
             void addToVertices(const VertexPtr &vertex);
 

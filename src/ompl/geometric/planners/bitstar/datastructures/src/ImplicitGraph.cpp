@@ -776,6 +776,13 @@ namespace ompl
             sampleCopy->markPruned();
         }
 
+        void BITstar::ImplicitGraph::recycleSample(const VertexPtr &sample)
+        {
+            ASSERT_SETUP
+
+            recycledSamples_.push_back(sample);
+        }
+
         void BITstar::ImplicitGraph::addToVertices(const VertexPtr &vertex)
         {
             ASSERT_SETUP
