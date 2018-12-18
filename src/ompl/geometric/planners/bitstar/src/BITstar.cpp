@@ -824,7 +824,8 @@ namespace ompl
                 edge.first->addChild(edge.second);
 
                 // Then enqueue the vertex, moving it from the free set to the vertex set.
-                queuePtr_->enqueueVertex(edge.second, true);
+                queuePtr_->registerVertex(edge.second);
+                graphPtr_->removeFromSamples(edge.second);
             }
         }
 

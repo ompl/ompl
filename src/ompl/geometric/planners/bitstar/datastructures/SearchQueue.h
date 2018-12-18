@@ -139,10 +139,9 @@ namespace ompl
 
             //////////////////
             // Insert and erase
-            /** \brief Insert a vertex into the vertex expansion queue. Vertices remain in the vertex queue until pruned
-             * or manually removed. A moving token marks the line between expanded and not expanded vertices. Will
-             * instruct the ImplicitGraph to move the vertex between sets, as necessary.*/
-            void enqueueVertex(const VertexPtr &vertex, bool removeFromFree);
+            /** \brief Registering a sample as a vertex adds it the the set of vertices, inserts it into the vertex queue,
+             * and expands it into edges if it's place in the queue is before the token. */
+            void registerVertex(const VertexPtr &vertex);
 
             /** \brief Insert an edge into the edge processing queue. The source vertex of this edge must be in the
              * expansion queue (although it may already be expanded). */
@@ -338,10 +337,11 @@ namespace ompl
              * Cascades cost updates if requested.*/
             void disconnectParent(const VertexPtr &vertex, bool cascadeCostUpdates);
 
-            /** \brief Insert a vertex into the queue and lookups. Expands vertex into edges if it comes before the
-             * expansion token and expandIfBeforeToken is true. */
-            void vertexInsertHelper(const VertexPtr &vertex, bool expandIfBeforeToken, bool removeFromFree,
-                                    bool addToNNStruct);
+            /** \brief Insert a vertex into the queue. */
+            void enqueueVertex(const VertexPtr &vertex);
+
+            /** \brief Explicitly expands a vertex if it's value is better than the value of the vertex pointed to by the token. */
+            void expandIfBeforeToken(const VertexPtr &vertex);
 
             /** \brief Remove a vertex from the vertex queue and optionally also its edge queue and NN entries.
              * Returns the number of vertices that are completely deleted. */

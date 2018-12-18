@@ -139,12 +139,18 @@ namespace ompl
             // pruneDuringResort_
         }
 
-        void BITstar::SearchQueue::enqueueVertex(const VertexPtr &vertex, bool removeFromFree)
+        void BITstar::SearchQueue::registerVertex(const VertexPtr &vertex)
         {
             ASSERT_SETUP
 
-            // Insert the vertex:
-            this->vertexInsertHelper(vertex, true, removeFromFree, true);
+            // Add the vertex to the set of vertices.
+            graphPtr_->addToVertices(vertex);
+
+            // Insert it into the queue.
+            this->enqueueVertex(vertex);
+
+            // Expand it if it's before the token.
+            this->expandIfBeforeToken(vertex);
         }
 
         void BITstar::SearchQueue::enqueueEdge(const VertexPtrPair &edge)
@@ -1002,7 +1008,13 @@ namespace ompl
 
             // Reinsert myself, expanding if I cross the token if I am not already expanded but not removing/adding
             // either NN struct
-            this->vertexInsertHelper(vertex, !alreadyExpanded, false, false);
+            this->enqueueVertex(vertex);
+
+            // If it wasn't already expanded, we need to expand it if it's before the token.
+            if (!alreadyExpanded)
+            {
+                expandIfBeforeToken(vertex);
+            }
 
             // If I was already expanded my edge-queue entries are out of date
             if (alreadyExpanded == true)
@@ -1081,70 +1093,66 @@ namespace ompl
             vertex->removeParent(cascadeCostUpdates);
         }
 
-        void BITstar::SearchQueue::vertexInsertHelper(const VertexPtr &vertex, bool expandIfBeforeToken,
-                                                      bool removeFromSamples, bool addToVertices)
+        void BITstar::SearchQueue::enqueueVertex(const VertexPtr &vertex)
         {
-            // Variable:
-            // The iterator to the new edge in the queue:
-            VertexQueueIter vertexQueueIter;
-
-            // Add the vertex to the graph
-            if (addToVertices)
-            {
-                graphPtr_->addToVertices(vertex);
-                if (removeFromSamples)
-                {
-                    graphPtr_->removeFromSamples(vertex);
-                }
-            }
-
             // Insert into the order map, getting the iterator
-            vertexQueueIter = vertexQueue_.insert(std::make_pair(this->sortKey(vertex), vertex));
+            auto vertexQueueIter = vertexQueue_.insert(std::make_pair(this->sortKey(vertex), vertex));
 
             // Store the iterator.
             vertex->setVertexQueueIter(vertexQueueIter);
 
-            // Check if we are in front of the token and expand if so:
+            // Check if this is the first vertex in the queue, set the token to it if so.
             if (vertexQueue_.size() == 1u)
             {
-                // If the vertex queue is now of size 1, that means that this was the first vertex. Set the token to it
-                // and don't even think of expanding anything:
                 vertexQueueToken_ = vertexQueue_.begin();
             }
-            else if (expandIfBeforeToken)
+        }
+
+        void BITstar::SearchQueue::expandIfBeforeToken(const VertexPtr &vertex)
+        {
+            /*
+            There are 3ish cases:
+                1 The new vertex is immediately before the token.
+                    a The token is not at the end: Don't expand and shift the token to the new vertex.
+                    b The token is at the end: Don't expand and shift the token to the new vertex.
+                2 The new vertex is before the token, but *not* immediately (i.e., there are vertices between it):
+                    a The token is at the end: Expand the vertex
+                    b The token is not at the end: Expand the vertex
+                3 The new vertex is after the token: Don't expand. It cleanly goes into the vector of vertices to
+            expand
+            Note: By shifting the token, we assure that if the new vertex is better than the best edge, it will get
+            expanded on the next pop.
+
+            The cases look like this (-: expanded vertex, x: unexpanded vertex, X: token (next to expand), *: new
+            vertex):
+            We represent the token at the end with no X in the line:
+
+                1a: ---*Xxx   ->   ---Xxxx
+                1b: ------*   ->   ------X
+                2a: ---*---   ->   -------
+                2b: --*-Xxx   ->   ----Xxx
+                3: ---Xx*x   ->   ---Xxxx
+            */
+
+#ifdef BITSTAR_DEBUG
+            if (!vertex->hasVertexQueueEntry())
             {
-                /*
-                There are 3ish cases:
-                    1 The new vertex is immediately before the token.
-                        a The token is not at the end: Don't expand and shift the token to the new vertex.
-                        b The token is at the end: Don't expand and shift the token to the new vertex.
-                    2 The new vertex is before the token, but *not* immediately (i.e., there are vertices between it):
-                        a The token is at the end: Expand the vertex
-                        b The token is not at the end: Expand the vertex
-                    3 The new vertex is after the token: Don't expand. It cleanly goes into the vector of vertices to
-                expand
-                Note: By shifting the token, we assure that if the new vertex is better than the best edge, it will get
-                expanded on the next pop.
+                throw ompl::Exception("Cannot expand a vertex that's not in the queue.");
+            }
+#endif // BITSTAR_DEBUG
 
-                The cases look like this (-: expanded vertex, x: unexpanded vertex, X: token (next to expand), *: new
-                vertex):
-                We represent the token at the end with no X in the line:
+            // Get this vertex' iter into the vertex queue.
+            auto vertexQueueIter = vertex->getVertexQueueIter();
 
-                    1a: ---*Xxx   ->   ---Xxxx
-                    1b: ------*   ->   ------X
-                    2a: ---*---   ->   -------
-                    2b: --*-Xxx   ->   ----Xxx
-                    3: ---Xx*x   ->   ---Xxxx
-                */
-
-                // Variable:
-                // The vertex before the token. Remember that since we have already added the new vertex, this could be
-                // ourselves:
-                VertexQueueIter preToken;
-
-                // Get the vertex before the current token:
-                preToken = vertexQueueToken_;
-                --preToken;
+            // If this is the only vertex in the queue, set the token to it and return.
+            if (vertexQueue_.size() == 1u)
+            {
+                vertexQueueToken_ = vertexQueueIter;
+            }
+            else // Otherwise we need to do some checks.
+            {
+                // Get the vertex before the current token.
+                auto preToken = std::prev(vertexQueueToken_);
 
                 // Check if we are immediately before: (1a & 1b)
                 if (preToken == vertexQueueIter)
@@ -1177,7 +1185,6 @@ namespace ompl
                     }
                 }
             }
-            // No else, this vertex must have already been expanded
         }
 
         unsigned int BITstar::SearchQueue::vertexRemoveHelper(const VertexPtr &vertex, bool fullyRemove)

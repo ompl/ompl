@@ -469,11 +469,11 @@ namespace ompl
                     // Allocate the vertex pointer:
                     startVertices_.push_back(std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, true));
 
-                    // Copy the value into the state:
+                    // Copy the value into the state.
                     spaceInformation_->copyState(startVertices_.back()->state(), newStart);
 
-                    // Add this start vertex to the queue. It is not a sample, so skip that step:
-                    queuePtr_->enqueueVertex(startVertices_.back(), false);
+                    // Register this start vertex.
+                    queuePtr_->registerVertex(startVertices_.back());
 
                     // Mark that we've added:
                     addedStart = true;
@@ -576,8 +576,8 @@ namespace ompl
                         // Add it back to the vector
                         startVertices_.push_back(*prunedStartIter);
 
-                        // Add this start vertex to the queue. It is not a sample, so skip that step:
-                        queuePtr_->enqueueVertex(*prunedStartIter, false);
+                        // Register this start vertex.
+                        queuePtr_->registerVertex(*prunedStartIter);
 
                         // Mark what we've added:
                         addedStart = true;
