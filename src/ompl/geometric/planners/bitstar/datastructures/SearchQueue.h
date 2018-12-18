@@ -139,8 +139,8 @@ namespace ompl
 
             //////////////////
             // Insert and erase
-            /** \brief Enqueueing a vertex inserts it into the vertex queue,
-             * and expands it into edges if it's place in the queue is before the token. */
+            /** \brief Enqueueing a vertex inserts it into the vertex queue and expands it into edges if it's place
+             * in the queue is before the token. */
             void enqueueVertex(const VertexPtr &vertex);
 
             /** \brief Insert an edge into the edge processing queue. The source vertex of this edge must be in the

@@ -472,7 +472,7 @@ namespace ompl
                     // Copy the value into the state.
                     spaceInformation_->copyState(startVertices_.back()->state(), newStart);
 
-                    // Register this start vertex.
+                    // Put this vertex into the vertex queue.
                     queuePtr_->enqueueVertex(startVertices_.back());
 
                     // Add the vertex to the set of vertices.
