@@ -51,7 +51,7 @@
 // The cost-helper class:
 #include "ompl/geometric/planners/bitstar/datastructures/CostHelper.h"
 
-// Debug macros
+// Debug macros.
 #ifdef BITSTAR_DEBUG
     // Debug setting. The id number of a vertex to track. Requires BITSTAR_DEBUG to be defined in BITstar.h
     #define TRACK_VERTEX_ID 0
@@ -63,7 +63,7 @@
             std::cout << "Vertex " << vId_ << ": " << __func__ << "" << std::endl; \
         }
 
-    /** \brief A debug-only call to assert that the vertex is not pruned. */
+    /** \brief Assert that the vertex is not pruned. */
     #define ASSERT_NOT_PRUNED \
         if (this->isPruned_) \
         { \

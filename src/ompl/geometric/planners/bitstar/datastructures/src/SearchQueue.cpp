@@ -195,14 +195,20 @@ namespace ompl
         {
             ASSERT_SETUP
 
-            // Disconnect from parent if necessary, cascading cost updates:
+            // Disconnect from parent if necessary, cascading cost updates.
             if (vertex->hasParent())
             {
                 this->disconnectParent(vertex, true);
             }
 
-            // Remove it from vertex queue and lookup, and edge queues:
-            this->vertexRemoveHelper(vertex, true);
+            // Remove it from vertex queue and lookup, and edge queues.
+            this->vertexRemoveHelper(vertex);
+
+            // Remove the edges that are connected to this vertex from the edge queue.
+            this->removeAllEdgesConnectedToVertexFromQueue(vertex);
+
+            // Remove myself from the set of connected vertices, this will recycle if necessary.
+            graphPtr_->removeFromVertices(vertex, true);
         }
 
         BITstar::VertexPtr BITstar::SearchQueue::frontVertex()
@@ -1009,7 +1015,7 @@ namespace ompl
 
             // Update my place in the vertex queue by removing and adding myself:
             // Remove myself, not touching my edge-queue entries
-            this->vertexRemoveHelper(vertex, false);
+            this->vertexRemoveHelper(vertex);
 
             // Insert the vertex into the queue.
             this->insertIntoQueue(vertex);
@@ -1062,7 +1068,12 @@ namespace ompl
             std::pair<unsigned int, unsigned int> numPruned(1u, 0u);
 
             // Remove the root of the branch from everything.
-            numPruned.second = this->vertexRemoveHelper(branchRoot, true);
+            this->vertexRemoveHelper(branchRoot);
+
+            this->removeAllEdgesConnectedToVertexFromQueue(branchRoot);
+
+            // Remove myself from the set of connected vertices, this will recycle if necessary.
+            numPruned.second = graphPtr_->removeFromVertices(branchRoot, true);
 
             // Prune my children:
             for (auto &child : children)
@@ -1189,11 +1200,8 @@ namespace ompl
             }
         }
 
-        unsigned int BITstar::SearchQueue::vertexRemoveHelper(const VertexPtr &vertex, bool fullyRemove)
+        void BITstar::SearchQueue::vertexRemoveHelper(const VertexPtr &vertex)
         {
-            // Variables
-            // The number of samples deleted (i.e., if this vertex is NOT recycled as a sample, this is a 1)
-            unsigned int deleted = 0u;
 #ifdef BITSTAR_DEBUG
             // The use count of the passed shared pointer. Used in debug mode to assert that we took ownership of our own copy.
             unsigned int initCount = vertex.use_count();
@@ -1210,14 +1218,8 @@ namespace ompl
                                       "from taking it's own copy of the given shared pointer. See "
                                       "https://bitbucket.org/ompl/ompl/issues/364/code-cleanup-breaking-bit");
             }
-            // Check that the vertex is not connected to a parent:
-            if (vertexCopy->hasParent() == true && fullyRemove == true)
-            {
-                throw ompl::Exception("Cannot delete a vertex connected to a parent unless the vertex is being "
-                                      "immediately reinserted, in which case fullyRemove should be false.");
-            }
             // Assert there is something to delete:
-            if (vertexQueue_.empty() == true)
+            if (vertexQueue_.empty())
             {
                 std::cout << std::endl << "vId: " << vertexCopy->getId() << std::endl;
                 throw ompl::Exception("Removing a nonexistent vertex. Something went wrong.");
@@ -1235,18 +1237,6 @@ namespace ompl
             // Remove myself from the vertex queue:
             vertexQueue_.erase(vertexCopy->getVertexQueueIter());
             vertexCopy->clearVertexQueueIter();
-
-            // Remove from lookups map as requested
-            if (fullyRemove)
-            {
-                this->removeAllEdgesConnectedToVertexFromQueue(vertexCopy);
-
-                // Remove myself from the set of connected vertices, this will recycle if necessary.
-                deleted = graphPtr_->removeFromVertices(vertexCopy, true);
-            }
-
-            // Return if the sample was deleted:
-            return deleted;
         }
 
         BITstar::SearchQueue::CostDouble BITstar::SearchQueue::sortKey(const VertexPtr &vertex) const
