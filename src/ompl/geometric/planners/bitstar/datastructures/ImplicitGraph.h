@@ -178,6 +178,10 @@ namespace ompl
             /** \brief Remove a vertex from the tree, can optionally be allowed to move it to the set of unconnected
              * samples if may still be useful. */
             unsigned int removeFromVertices(const VertexPtr &sample, bool moveToFree);
+
+            /** \brief Disconnect a vertex from its parent by removing the edges stored in itself, and its parents.
+             * Cascades cost updates if requested.*/
+            void removeEdgeBetweenVertexAndParent(const VertexPtr &child, bool cascadeCostUpdates);
             //////////////////
 
             //////////////////

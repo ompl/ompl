@@ -195,20 +195,11 @@ namespace ompl
         {
             ASSERT_SETUP
 
-            // Disconnect from parent if necessary, cascading cost updates.
-            if (vertex->hasParent())
-            {
-                this->disconnectParent(vertex, true);
-            }
-
             // Remove it from vertex queue and lookup, and edge queues.
             this->removeFromVertexQueue(vertex);
 
             // Remove the edges that are connected to this vertex from the edge queue.
             this->removeAllEdgesConnectedToVertexFromQueue(vertex);
-
-            // Remove myself from the set of connected vertices, this will recycle if necessary.
-            graphPtr_->removeFromVertices(vertex, true);
         }
 
         BITstar::VertexPtr BITstar::SearchQueue::frontVertex()
@@ -1058,7 +1049,7 @@ namespace ompl
 
 
             // Disconnect myself from my parent, not cascading costs as I know my children are also being disconnected:
-            this->disconnectParent(branchRoot, false);
+            graphPtr_->removeEdgeBetweenVertexAndParent(branchRoot, false);
 
             // Get the vector of children
             VertexPtrVector children;
@@ -1084,26 +1075,6 @@ namespace ompl
 
             // Return the number pruned
             return numPruned;
-        }
-
-        void BITstar::SearchQueue::disconnectParent(const VertexPtr &vertex, bool cascadeCostUpdates)
-        {
-#ifdef BITSTAR_DEBUG
-            if (vertex->hasParent() == false)
-            {
-                throw ompl::Exception("An orphaned vertex has been passed for disconnection. Something went wrong.");
-            }
-#endif  // BITSTAR_DEBUG
-
-            // Check if my parent has already been pruned. This can occur if we're cascading vertex disconnections.
-            if (!vertex->getParent()->isPruned())
-            {
-                // If not, remove myself from my parent's vector of children, not updating down-stream costs
-                vertex->getParent()->removeChild(vertex);
-            }
-
-            // Remove my parent link, cascading cost updates if requested:
-            vertex->removeParent(cascadeCostUpdates);
         }
 
         void BITstar::SearchQueue::insertIntoQueue(const VertexPtr &vertex)

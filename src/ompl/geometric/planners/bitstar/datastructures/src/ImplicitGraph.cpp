@@ -852,6 +852,26 @@ namespace ompl
             }
         }
 
+        void BITstar::ImplicitGraph::removeEdgeBetweenVertexAndParent(const VertexPtr &child, bool cascadeCostUpdates)
+        {
+#ifdef BITSTAR_DEBUG
+            if (!child->hasParent())
+            {
+                throw ompl::Exception("An orphaned vertex has been passed for disconnection. Something went wrong.");
+            }
+#endif  // BITSTAR_DEBUG
+
+            // Check if my parent has already been pruned. This can occur if we're cascading child disconnections.
+            if (!child->getParent()->isPruned())
+            {
+                // If not, remove myself from my parent's vector of children, not updating down-stream costs
+                child->getParent()->removeChild(child);
+            }
+
+            // Remove my parent link, cascading cost updates if requested:
+            child->removeParent(cascadeCostUpdates);
+        }
+
         void BITstar::ImplicitGraph::assertValidSample(const VertexConstPtr &sample, bool mustBeNew)
         {
             if (sample->isRoot())
@@ -998,8 +1018,17 @@ namespace ompl
                         // Count as a disconnected vertex
                         ++numPruned.first;
 
+                        // Disconnect from parent if necessary, cascading cost updates.
+                        if ((*startIter)->hasParent())
+                        {
+                            this->removeEdgeBetweenVertexAndParent(*startIter, true);
+                        }
+
                         // Remove it from the queue
                         queuePtr_->unqueueVertex(*startIter);
+
+                        // Remove it from the set of vertices, recycling if necessary.
+                        this->removeFromVertices(*startIter, true);
 
                         // Store the start vertex in the pruned vector, in case it later needs to be readded:
                         prunedStartVertices_.push_back(*startIter);
@@ -1056,8 +1085,17 @@ namespace ompl
                         // Check if this vertex is in the tree
                         if ((*goalIter)->isInTree())
                         {
+                            // Disconnect from parent if necessary, cascading cost updates.
+                            if ((*goalIter)->hasParent())
+                            {
+                                this->removeEdgeBetweenVertexAndParent(*goalIter, true);
+                            }
+
                             // It is, remove it from the queue
                             queuePtr_->unqueueVertex(*goalIter);
+
+                            // Remove it from the set of vertices, recycling if necessary.
+                            this->removeFromVertices(*goalIter, true);
 
                             // and as a vertex, allowing it to move to the set of samples.
                             numPruned.second = numPruned.second + this->removeFromVertices(*goalIter, true);

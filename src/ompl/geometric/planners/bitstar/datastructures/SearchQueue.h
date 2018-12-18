@@ -336,10 +336,6 @@ namespace ompl
              * vertices that are completely thrown away (i.e., are not even useful as a sample) */
             std::pair<unsigned int, unsigned int> pruneBranch(const VertexPtr &branchBase);
 
-            /** \brief Disconnect a vertex from its parent by removing the edges stored in itself, and its parents.
-             * Cascades cost updates if requested.*/
-            void disconnectParent(const VertexPtr &vertex, bool cascadeCostUpdates);
-
             /** \brief Insert a vertex into the queue. */
             void insertIntoQueue(const VertexPtr &vertex);
 
