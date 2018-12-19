@@ -161,14 +161,8 @@ namespace ompl
 
             //////////////////
             // Access the queue
-            /** \brief Get the best vertex on the queue, leaving it at the front of the vertex queue. */
-            VertexPtr frontVertex();
-
             /** \brief Get the best edge on the queue, leaving it at the front of the edge queue. */
             VertexPtrPair frontEdge();
-
-            /** \brief Get the value of the best vertex on the queue, leaving it at the front of the vertex queue. */
-            CostDouble frontVertexValue();
 
             /** \brief Get the value of the best edge on the queue, leaving it at the front of the edge queue. */
             CostTriple frontEdgeValue();
@@ -252,21 +246,10 @@ namespace ompl
             /** \brief Return the number of vertices marked as unsorted */
             unsigned int numUnsorted() const;
 
-            /** \brief Return whether the queue is still sorted */
-            bool isSorted() const;
-
-            /** \brief Returns true if the queue is reset. This means that no edges have been expanded and the vertex
-             * expansion token is pointing at the start. */
-            bool isReset() const;
-
             /** \brief Returns true if the queue is empty. In the case where the edge queue is empty but the vertex
              * queue is not, this function will expand vertices *until* the edge queue is not empty or there are no
              * vertices to expand. */
             bool isEmpty();
-
-            /** \brief Get a copy of the vertices in the vertex queue that are left to be expanded. This is expensive
-             * and is only meant for animations/debugging. */
-            void getVertices(VertexConstPtrVector *vertexQueue);
 
             /** \brief Get a copy of the edge queue. This is expensive and is only meant for animations/debugging. */
             void getEdges(VertexConstPtrPairVector *edgeQueue);

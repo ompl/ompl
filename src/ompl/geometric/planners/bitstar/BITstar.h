@@ -178,9 +178,6 @@ namespace ompl
             /** \brief Get the whole messy set of edges in the queue. Expensive but helpful for some videos */
             void getEdgeQueue(VertexConstPtrPairVector *edgesInQueue);
 
-            /** \brief Get the whole set of vertices to be expanded. Expensive but helpful for some videos */
-            void getVertexQueue(VertexConstPtrVector *verticesInQueue);
-
             /** \brief Get the number of iterations completed */
             unsigned int numIterations() const;
 

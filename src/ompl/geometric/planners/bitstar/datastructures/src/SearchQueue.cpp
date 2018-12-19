@@ -190,24 +190,6 @@ namespace ompl
             this->removeAllEdgesConnectedToVertexFromQueue(vertex);
         }
 
-        BITstar::VertexPtr BITstar::SearchQueue::frontVertex()
-        {
-            ASSERT_SETUP
-
-#ifdef BITSTAR_DEBUG
-            if (this->isEmpty() == true)
-            {
-                throw ompl::Exception("Attempted to access the first element in an empty SearchQueue.");
-            }
-#endif  // BITSTAR_DEBUG
-
-            // Update the queue:
-            this->updateQueue();
-
-            // Return the front edge
-            return vertexQueue_.begin()->second;
-        }
-
         BITstar::VertexPtrPair BITstar::SearchQueue::frontEdge()
         {
             ASSERT_SETUP
@@ -224,24 +206,6 @@ namespace ompl
 
             // Return the front edge
             return edgeQueue_.top()->data.second;
-        }
-
-        BITstar::SearchQueue::CostDouble BITstar::SearchQueue::frontVertexValue()
-        {
-            ASSERT_SETUP
-
-#ifdef BITSTAR_DEBUG
-            if (this->isEmpty() == true)
-            {
-                throw ompl::Exception("Attempted to access the first element in an empty SearchQueue.");
-            }
-#endif  // BITSTAR_DEBUG
-
-            // Update the queue:
-            this->updateQueue();
-
-            // Return the front value
-            return vertexQueue_.begin()->first;
         }
 
         BITstar::SearchQueue::CostTriple BITstar::SearchQueue::frontEdgeValue()
@@ -724,24 +688,6 @@ namespace ompl
 
             // Return whether the edge queue is empty:
             return edgeQueue_.empty();
-        }
-
-        void BITstar::SearchQueue::getVertices(VertexConstPtrVector *vertexQueue)
-        {
-            ASSERT_SETUP
-
-            // Update the queue:
-            this->updateQueue();
-
-            // Clear the given vector:
-            vertexQueue->clear();
-
-            // Iterate until the end, pushing back:
-            for (auto it = vertexQueueToken_; it != vertexQueue_.end(); ++it)
-            {
-                // Push back:
-                vertexQueue->push_back(it->second);
-            }
         }
 
         void BITstar::SearchQueue::getEdges(VertexConstPtrPairVector *edgeQueue)
