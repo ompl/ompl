@@ -36,11 +36,11 @@
 
 # Author: Mark Moll
 from __future__ import print_function
-from ConstrainedPlanningCommon import *
 import argparse
 import math
 from functools import partial
 import numpy as np
+from ConstrainedPlanningCommon import *
 
 
 def normalize(x):
@@ -109,8 +109,9 @@ class ChainConstraint(ob.Constraint):
         self.obstacles = obstacles
         self.extra = extra
         step = 2. * self.radius / (obstacles + 1.)
-        self.walls = [ChainConstraint.Wall(-self.radius + i * step, self.radius /
-                                           8., self.width, self.jointRadius, i % 2) for i in range(obstacles)]
+        self.walls = [ChainConstraint.Wall(-self.radius + i * step, self.radius / 8.,
+                                           self.width, self.jointRadius, i % 2)
+                      for i in range(obstacles)]
 
     def function(self, x, out):
         joint1 = np.zeros(3)
@@ -341,17 +342,21 @@ def chainPlanning(options):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--output", action="store_true",
-                        help="Dump found solution path (if one exists) in plain text and planning graph in GraphML to "
-                        "`torus_path.txt` and `torus_graph.graphml` respectively.")
+                        help="Dump found solution path (if one exists) in plain text and planning "
+                        "graph in GraphML to `torus_path.txt` and `torus_graph.graphml` "
+                        "respectively.")
     parser.add_argument("--bench", action="store_true",
                         help="Do benchmarking on provided planner list.")
     parser.add_argument("-l", "--links", type=int, default=5,
                         help="Number of links in the kinematic chain. Minimum is 4.")
     parser.add_argument("-x", "--obstacles", type=int, default=0, choices=[0, 1, 2],
-                        help="Number of `wall' obstacles on the surface of the sphere. Ranges from [0, 2]")
+                        help="Number of `wall' obstacles on the surface of the sphere. Ranges from "
+                        "[0, 2]")
     parser.add_argument("-e", "--extra", type=int, default=1,
-                        help="Number of extra constraints to add to the chain. Extra constraints are as follows:\n"
-                        "1: End-effector is constrained to be on the surface of a sphere of radius links - 2\n"
+                        help="Number of extra constraints to add to the chain. Extra constraints "
+                        "are as follows:\n"
+                        "1: End-effector is constrained to be on the surface of a sphere of radius "
+                        "links - 2\n"
                         "2: (links-5)th and (links-4)th ball have the same z-value\n"
                         "3: (links-4)th and (links-3)th ball have the same x-value\n"
                         "4: (links-3)th and (links-2)th ball have the same z-value")

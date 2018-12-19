@@ -257,7 +257,9 @@ class ompl_base_generator_t(code_generator_t):
         # don't export map<std::string, ValueLocation>
         self.ompl_ns.member_functions('getValueLocationsByName').exclude()
         # exclude member function for which there are multiple signatures
-        self.ompl_ns.class_('Goal').member_function('isSatisfied', arg_types=['::ompl::base::State const *', 'double *']).exclude()
+        self.ompl_ns.class_('Goal').member_function(
+            'isSatisfied',
+            arg_types=['::ompl::base::State const *', 'double *']).exclude()
 
         # don't expose double*
         self.ompl_ns.class_('RealVectorStateSpace').class_(
@@ -293,8 +295,10 @@ class ompl_base_generator_t(code_generator_t):
                 'ProjectedStateSpace', 'TangentBundleStateSpace']:
                 self.ompl_ns.class_(cls).add_declaration_code('#define nullptr NULL\n')
             self.ompl_ns.class_('AtlasChart').member_function('toPolygon').exclude()
-            self.replace_member_function(self.ompl_ns.class_('AtlasStateSpace').member_function('printPLY'))
-            self.add_function_wrapper('double(ompl::base::AtlasChart *)', 'AtlasChartBiasFunction',
+            self.replace_member_function(self.ompl_ns.class_(
+                'AtlasStateSpace').member_function('printPLY'))
+            self.add_function_wrapper(
+                'double(ompl::base::AtlasChart *)', 'AtlasChartBiasFunction',
                 'Bias function for sampling a chart from an atlas.')
                     # add code for numpy.array <-> Eigen conversions
             self.mb.add_declaration_code(open(join(dirname(__file__), \
@@ -304,17 +308,23 @@ class ompl_base_generator_t(code_generator_t):
                 EIGEN_ARRAY_CONVERTER(Eigen::VectorXd, 1)
             """)
             self.mb.add_registration_code('np::initialize();', tail=False)
-            self.add_array_access(self.ompl_ns.class_('ConstrainedStateSpace').class_('StateType'), 'double')
-            for cls in [self.ompl_ns.class_('Constraint'), self.ompl_ns.class_('ConstraintIntersection')]:
+            self.add_array_access(self.ompl_ns.class_(
+                'ConstrainedStateSpace').class_('StateType'), 'double')
+            for cls in [self.ompl_ns.class_('Constraint'),
+                        self.ompl_ns.class_('ConstraintIntersection')]:
                 for method in ['function', 'jacobian']:
                     cls.member_function(method, arg_types=[
-                        '::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, 0, Eigen::InnerStride<1> > const &',
+                        '::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, '
+                        '0, Eigen::InnerStride<1> > const &',
                         None]).add_transformation(FT.input(0))
             cls = self.ompl_ns.class_('Constraint')
             for method in ['distance', 'isSatisfied']:
-                cls.member_function(method, arg_types=['::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, 0, Eigen::InnerStride<1> > const &']).add_transformation(FT.input(0))
+                cls.member_function(method, arg_types=[
+                    '::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, '
+                    '0, Eigen::InnerStride<1> > const &']).add_transformation(FT.input(0))
         except:
-            # python bindings for constrained planning code is only generated if boost.numpy was found
+            # python bindings for constrained planning code is only generated
+            # if boost.numpy was found
             pass
 
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now
@@ -469,7 +479,7 @@ class ompl_control_generator_t(code_generator_t):
         for odesolver in ['ODEBasicSolver', 'ODEErrorSolver', 'ODEAdaptiveSolver']:
             cls = self.ompl_ns.class_(lambda cls, slv=odesolver: cls.name.startswith(slv))
             cls.rename(odesolver)
-            if odesolver=='ODEAdaptiveSolver':
+            if odesolver == 'ODEAdaptiveSolver':
                 cls.include_files.append('boost/numeric/odeint.hpp')
         self.add_function_wrapper(
             'void(const ompl::control::ODESolver::StateType &, const ompl::control::Control*, ' \
@@ -509,11 +519,9 @@ class ompl_control_generator_t(code_generator_t):
         self.add_function_wrapper(
             'ompl::control::DirectedControlSamplerPtr(const ompl::control::SpaceInformation*)',
             'DirectedControlSamplerAllocator', 'Directed control sampler allocator')
-        # same type as StatePropagatorFn, so no need to export this. Instead, we just define a type alias in the python module.
-        #self.add_function_wrapper('void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',
-        #    'PostPropagationEvent','Post-propagation event')
         self.add_function_wrapper(
-            'void(const ompl::base::State*, const ompl::control::Control*, const double, ompl::base::State*)',
+            'void(const ompl::base::State*, const ompl::control::Control*, const double, '
+            'ompl::base::State*)',
             'StatePropagatorFn', 'State propagator function')
         self.add_function_wrapper('double(int, int)', 'EdgeCostFactorFn', \
             'Syclop edge cost factor function')
@@ -647,7 +655,8 @@ class ompl_geometric_generator_t(code_generator_t):
                 # PRM overrides setProblemDefinition, so we don't need to add this code
                 planner.add_registration_code("""
                 def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
-                    &%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" % planner.name)
+                    &%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" %
+                                              planner.name)
             planner.add_registration_code("""
             def("checkValidity",&::ompl::base::Planner::checkValidity,
                 &%s_wrapper::default_checkValidity )""" % planner.name)
@@ -660,7 +669,8 @@ class ompl_geometric_generator_t(code_generator_t):
         PRM_cls = self.ompl_ns.class_('PRM')
         PRM_cls.member_function('solve').exclude()
         PRM_cls.add_wrapper_code("""
-            virtual ::ompl::base::PlannerStatus solve( ::ompl::base::PlannerTerminationCondition const & ptc ) {
+            virtual ::ompl::base::PlannerStatus solve(
+                ::ompl::base::PlannerTerminationCondition const & ptc ) {
                 if( bp::override func_solve = this->get_override( "solve" ) )
                     return func_solve( boost::ref(ptc) );
                 else{
@@ -668,16 +678,20 @@ class ompl_geometric_generator_t(code_generator_t):
                 }
             }
 
-            ::ompl::base::PlannerStatus default_solve( ::ompl::base::PlannerTerminationCondition const & ptc );
+            ::ompl::base::PlannerStatus default_solve(
+                ::ompl::base::PlannerTerminationCondition const & ptc );
             """)
         PRM_cls.add_declaration_code(open(join(dirname(__file__), \
             'PRM.SingleThreadSolve.cpp'), 'r').read())
         # This needs to be the last registration code added to the PRM_cls to the ugly hack below.
         PRM_cls.add_registration_code("""def("solve",
-            (::ompl::base::PlannerStatus(::ompl::geometric::PRM::*)( ::ompl::base::PlannerTerminationCondition const &))(&PRM_wrapper::solve),
-            (::ompl::base::PlannerStatus(PRM_wrapper::*)( ::ompl::base::PlannerTerminationCondition const & ))(&PRM_wrapper::default_solve), bp::arg("ptc") );
+            (::ompl::base::PlannerStatus(::ompl::geometric::PRM::*)(
+                ::ompl::base::PlannerTerminationCondition const &))(&PRM_wrapper::solve),
+            (::ompl::base::PlannerStatus(PRM_wrapper::*)(
+                ::ompl::base::PlannerTerminationCondition const & ))(&PRM_wrapper::default_solve), bp::arg("ptc") );
 
-            // HACK ALERT: closing brace destroys bp::scope, so that PRMstar is not a nested class of PRM
+            // HACK ALERT: closing brace destroys bp::scope,
+            // so that PRMstar is not a nested class of PRM
             }
             {
                 // wrapper for PRMstar, derived from single-threaded PRM_wrapper
@@ -748,7 +762,8 @@ class ompl_geometric_generator_t(code_generator_t):
 class ompl_tools_generator_t(code_generator_t):
     def __init__(self):
         replacement = default_replacement
-        replacement['::ompl::tools::Benchmark::benchmark'] = ('def("benchmark", &benchmarkWrapper)', \
+        replacement['::ompl::tools::Benchmark::benchmark'] = (
+            'def("benchmark", &benchmarkWrapper)', \
         """
         void benchmarkWrapper(%s* obj, const ompl::tools::Benchmark::Request& request)
         {
@@ -781,7 +796,8 @@ class ompl_tools_generator_t(code_generator_t):
             return s.str();
         }
         """)
-        replacement['setPlannerSwitchEvent'] = ('def("setPlannerSwitchEvent", &__setPlannerSwitchEvent)', """
+        replacement['setPlannerSwitchEvent'] = (
+            'def("setPlannerSwitchEvent", &__setPlannerSwitchEvent)', """
         void __setPlannerSwitchEvent(%s* obj, std::function<void(ompl::base::PlannerPtr)> event)
         {
             obj->setPlannerSwitchEvent(event);
@@ -794,7 +810,8 @@ class ompl_tools_generator_t(code_generator_t):
         }
         """)
         replacement['setPostRunEvent'] = ('def("setPostRunEvent", &__setPostRunEvent)', """
-        void __setPostRunEvent(%s* obj, std::function<void(ompl::base::PlannerPtr, ompl::tools::Benchmark::RunProperties &)> event)
+        void __setPostRunEvent(%s* obj,
+        std::function<void(ompl::base::PlannerPtr, ompl::tools::Benchmark::RunProperties &)> event)
         {
             obj->setPostRunEvent(event);
         }
@@ -806,8 +823,10 @@ class ompl_tools_generator_t(code_generator_t):
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
         # rename STL vectors/maps of certain types
-        self.std_ns.class_('vector< ompl::tools::Benchmark::PlannerExperiment >').rename('vectorPlannerExperiment')
-        self.std_ns.class_('vector< std::vector< std::map<std::string, std::string> > >').rename('vectorRunProgressData')
+        self.std_ns.class_('vector< ompl::tools::Benchmark::PlannerExperiment >').rename(
+            'vectorPlannerExperiment')
+        self.std_ns.class_('vector< std::vector< std::map<std::string, std::string> > >').rename(
+            'vectorRunProgressData')
         # make objects printable that have a print function
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
 
@@ -889,11 +908,13 @@ class ompl_morse_generator_t(code_generator_t):
         state.operator('=', arg_types=['::ompl::base::State const &']).exclude()
         # add a constructor that allows a MorseState to be constructed from a State
         state.add_registration_code(
-            'def(bp::init<ompl::base::ScopedState<ompl::base::StateSpace> const &>(( bp::arg("other") )))')
+            'def(bp::init<ompl::base::ScopedState<ompl::base::StateSpace> const &>(( '
+            'bp::arg("other") )))')
         # add a constructor that allows, e.g., a State to be constructed from a MorseState
         bstate = self.ompl_ns.class_('ScopedState< ompl::base::StateSpace >')
         bstate.add_registration_code(
-            'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateSpace> const &>(( bp::arg("other") )))' % stype)
+            'def(bp::init<ompl::base::ScopedState<ompl::base::%sStateSpace> const &>(( '
+            'bp::arg("other") )))' % stype)
         # add array access to double components of state
         self.add_array_access(state, 'double')
 

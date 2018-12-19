@@ -144,7 +144,7 @@ class code_generator_t(object):
         self.ompl_ns = self.mb.namespace('ompl')
         self.call_policies()
         self.filter_declarations()
-        if deps != None:
+        if deps is not None:
             for dep in deps:
                 self.mb.register_module_dependency(dep)
         self.mb.build_code_creator(module_name='_' + name)
@@ -201,7 +201,7 @@ class code_generator_t(object):
             op.exclude()
         except:
             pass
-        self.mb.logger.info('Adding array access to class ' + cls.decl_string)
+        self.mb.logger.info('Adding array access to class %s', cls.decl_string)
         (reg, wrapper) = self.replacement['array_read_access']
         cls.add_registration_code(reg)
         if not rettype:

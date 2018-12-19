@@ -26,7 +26,7 @@ class Constraint:
     def __init__(self, name, n):
         self.name_ = name
         # Generate an array of variables to use.
-        self.variables_ = [sp.Symbol("x[{:d}]".format(i), real = True) for i in range(n)]
+        self.variables_ = [sp.Symbol("x[{:d}]".format(i), real=True) for i in range(n)]
         self.constraints_ = []
 
     def __getitem__(self, index):
@@ -53,7 +53,8 @@ class Constraint:
         ss = ""
         for i in range(len(self.constraints_)):
             ss += ' ' * 8
-            ss += sp.printing.cxxcode(sp.simplify(self.constraints_[i]), assign_to="out[{:d}]".format(i))
+            ss += sp.printing.cxxcode(sp.simplify(self.constraints_[i]),
+                                      assign_to="out[{:d}]".format(i))
             ss += "\n"
         return ss
 
@@ -63,16 +64,17 @@ class Constraint:
         for i in range(jac.shape[0]):
             for j in range(jac.shape[1]):
                 ss += ' ' * 8
-                ss += sp.printing.cxxcode(sp.simplify(jac[i, j]), assign_to="out({:d}, {:d})".format(i, j))
+                ss += sp.printing.cxxcode(sp.simplify(jac[i, j]),
+                                          assign_to="out({:d}, {:d})".format(i, j))
                 ss += "\n"
         return ss
 
     def toCode(self):
-        return template.format(name = self.name_,
-                               ambientDim = len(self.variables_),
-                               constraintDim = len(self.constraints_),
-                               funcCode = self.funcCode(),
-                               jacCode = self.jacCode())
+        return template.format(name=self.name_,
+                               ambientDim=len(self.variables_),
+                               constraintDim=len(self.constraints_),
+                               funcCode=self.funcCode(),
+                               jacCode=self.jacCode())
 
 if __name__ == "__main__":
     # Sphere constraint
