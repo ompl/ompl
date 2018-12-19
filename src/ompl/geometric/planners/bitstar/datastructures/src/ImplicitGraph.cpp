@@ -491,7 +491,7 @@ namespace ompl
                     (*prunedGoalIter)->markUnpruned();
 
                     // Check if it should be readded (i.e., would it be pruned *now*?)
-                    if (queuePtr_->canVertexBePruned(*prunedGoalIter))
+                    if (this->canVertexBePruned(*prunedGoalIter))
                     {
                         // It would be pruned, so remark as pruned
                         (*prunedGoalIter)->markPruned();
@@ -551,7 +551,7 @@ namespace ompl
                     (*prunedStartIter)->markUnpruned();
 
                     // Check if it should be readded (i.e., would it be pruned *now*?)
-                    if (queuePtr_->canVertexBePruned(*prunedStartIter))
+                    if (this->canVertexBePruned(*prunedStartIter))
                     {
                         // It would be pruned, so remark as pruned
                         (*prunedStartIter)->markPruned();
@@ -906,11 +906,6 @@ namespace ompl
                 std::cout << std::endl << "vId: " << sample->getId() << std::endl;
                 throw ompl::Exception("Sample already has children.");
             }
-            if (sample->hasVertexQueueEntry())
-            {
-                std::cout << std::endl << "vId: " << sample->getId() << std::endl;
-                throw ompl::Exception("Sample already has an entry in the vertex queue.");
-            }
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1025,7 +1020,7 @@ namespace ompl
                 while (startIter != startEnd)
                 {
                     // Check if this start has met the criteria to be pruned
-                    if (queuePtr_->canVertexBePruned(*startIter))
+                    if (this->canVertexBePruned(*startIter))
                     {
                         // It has, remove the start vertex DO NOT consider it as a sample. It is marked as a root node,
                         // so having it as a sample would cause all kinds of problems, also it shouldn't be possible for
@@ -1092,8 +1087,8 @@ namespace ompl
                 // Run until at the end:
                 while (goalIter != goalEnd)
                 {
-                    // Check if this start has met the criteria to be pruned
-                    if (queuePtr_->canSampleBePruned(*goalIter))
+                    // Check if this goal has met the criteria to be pruned
+                    if (this->canSampleBePruned(*goalIter))
                     {
                         // It has, remove the goal vertex completely
                         // Check if this vertex is in the tree
@@ -1104,9 +1099,6 @@ namespace ompl
                             {
                                 this->removeEdgeBetweenVertexAndParent(*goalIter, true);
                             }
-
-                            // // It is, remove it from the vertex queue.
-                            // queuePtr_->unqueueVertex(*goalIter);
 
                             // Remove it from the set of vertices, recycling if necessary.
                             this->removeFromVertices(*goalIter, true);

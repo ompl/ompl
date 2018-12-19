@@ -37,30 +37,16 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_BITSTAR_
 #define OMPL_GEOMETRIC_PLANNERS_BITSTAR_BITSTAR_
 
-// STL:
-// std::string
 #include <string>
-// std::pair
 #include <utility>
-// std::vector
 #include <vector>
 
-// OMPL:
-// The base-class of planners:
 #include "ompl/base/Planner.h"
-// The nearest neighbours structure
-#include "ompl/datastructures/NearestNeighbors.h"
-// The informed sampler structure
 #include "ompl/base/samplers/InformedStateSampler.h"
-// Planner includes:
-//#include "ompl/geometric/planners/PlannerIncludes.h"
+#include "ompl/datastructures/NearestNeighbors.h"
 
-// BIT*:
-// The helper data classes, Vertex.h, CostHelper.h, ImplicitGraph.h, and SearchQueue.h are forward declared and then
-// included in the source file (.cpp) as they are member classes of BITstar.
-
-// Debug setting. Defining BITSTAR_DEBUG enables (significant) debug output. Do not enable unless necessary.
-// #define BITSTAR_DEBUG
+// Defining BITSTAR_DEBUG enables (significant) debug output. Do not enable unless necessary.
+#define BITSTAR_DEBUG
 
 namespace ompl
 {
@@ -107,7 +93,10 @@ namespace ompl
         class BITstar : public ompl::base::Planner
         {
         public:
-            // Forward declarations so that the classes belong to BIT*:
+            // ---
+            // Forward declarations.
+            // ---
+
             /** \brief The vertex of implicit and explicit graphs. */
             class Vertex;
             /** \brief A generator of unique vertex IDs. */
@@ -119,27 +108,41 @@ namespace ompl
             /** \brief The queue of edges to process as a dual-stage queue (tracks both the expansion of vertices and
              * the resulting edges) */
             class SearchQueue;
-            // Helpful alias declarations:
-            /** \brief A vertex shared pointer. */
+
+            // ---
+            // Aliases.
+            // ---
+
+            /** \brief A shared pointer to a vertex. */
             using VertexPtr = std::shared_ptr<Vertex>;
-            /** \brief A \e constant vertex shared pointer. */
+
+            /** \brief A shared pointer to a \e const vertex. */
             using VertexConstPtr = std::shared_ptr<const Vertex>;
-            /** \brief A vertex weak pointer. */
+
+            /** \brief A weak pointer to a vertex. */
             using VertexWeakPtr = std::weak_ptr<Vertex>;
-            /** \brief A vector of shared pointers. */
+
+            /** \brief A vector of shared pointers to vertices. */
             using VertexPtrVector = std::vector<VertexPtr>;
-            /** \brief A vector of shared const pointers. */
+
+            /** \brief A vector of shared pointers to \e const vertices. */
             using VertexConstPtrVector = std::vector<VertexConstPtr>;
-            /** \brief The vertex id type */
+
+            /** \brief The vertex id type. */
             using VertexId = unsigned int;
+
             /** \brief A pair of vertices, i.e., an edge. */
             using VertexPtrPair = std::pair<VertexPtr, VertexPtr>;
+
             /** \brief A pair of const vertices, i.e., an edge. */
             using VertexConstPtrPair = std::pair<VertexConstPtr, VertexConstPtr>;
+
             /** \brief A vector of pairs of vertices, i.e., a vector of edges. */
             using VertexPtrPairVector = std::vector<VertexPtrPair>;
+
             /** \brief A vector of pairs of const vertices, i.e., a vector of edges. */
             using VertexConstPtrPairVector = std::vector<VertexConstPtrPair>;
+
             /** \brief The OMPL::NearestNeighbors structure. */
             using VertexPtrNNPtr = std::shared_ptr<NearestNeighbors<VertexPtr>>;
 

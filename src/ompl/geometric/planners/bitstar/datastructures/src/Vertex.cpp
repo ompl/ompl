@@ -58,16 +58,16 @@
 
     /** \brief A helper function to print out every function called on vertex "TRACK_VERTEX_ID" that changes it */
     #define PRINT_VERTEX_CHANGE \
-        if (vId_ == TRACK_VERTEX_ID) \
+        if (id_ == TRACK_VERTEX_ID) \
         { \
-            std::cout << "Vertex " << vId_ << ": " << __func__ << "" << std::endl; \
+            std::cout << "Vertex " << id_ << ": " << __func__ << "" << std::endl; \
         }
 
     /** \brief Assert that the vertex is not pruned. */
     #define ASSERT_NOT_PRUNED \
         if (this->isPruned_) \
         { \
-            std::cout << "Vertex " << vId_ << ": " << __func__ << std::endl; \
+            std::cout << "Vertex " << id_ << ": " << __func__ << std::endl; \
             throw ompl::Exception("Attempting to access a pruned vertex."); \
         }
 #else
@@ -106,7 +106,7 @@ namespace ompl
         // Public functions:
         BITstar::Vertex::Vertex(ompl::base::SpaceInformationPtr si, const CostHelper *const costHelpPtr,
                                 bool root /*= false*/)
-          : vId_(getIdGenerator().getNewId())
+          : id_(getIdGenerator().getNewId())
           , si_(std::move(si))
           , costHelpPtr_(std::move(costHelpPtr))
           , state_(si_->allocState())
@@ -135,7 +135,7 @@ namespace ompl
         {
             ASSERT_NOT_PRUNED
 
-            return vId_;
+            return id_;
         }
 
         ompl::base::State const *BITstar::Vertex::state() const
@@ -351,7 +351,7 @@ namespace ompl
             {
                 throw ompl::Exception("Attempted to add child that does not have a listed parent.");
             }
-            if (newChild->getParent()->getId() != vId_)
+            if (newChild->getParent()->getId() != id_)
             {
                 throw ompl::Exception("Attempted to add someone else's child as mine.");
             }
@@ -378,7 +378,7 @@ namespace ompl
             {
                 throw ompl::Exception("Attempted to remove a child that does not have a listed parent.");
             }
-            if (oldChild->getParent()->getId() != vId_)
+            if (oldChild->getParent()->getId() != id_)
             {
                 throw ompl::Exception("Attempted to remove a child vertex from the wrong parent.");
             }
@@ -491,60 +491,6 @@ namespace ompl
         }
         /////////////////////////////////////////////
 
-        /////////////////////////////////////////////
-        // Functions for the vertex's SearchQueue data
-        /////////////////////////
-        // Vertex queue info:
-        BITstar::SearchQueue::VertexQueueIter BITstar::Vertex::getVertexQueueIter() const
-        {
-            ASSERT_NOT_PRUNED
-
-#ifdef BITSTAR_DEBUG
-            // Assert available
-            if (!hasVertexQueueIter_)
-            {
-                throw ompl::Exception("Attempting to access an iterator to the vertex queue before one is set.");
-            }
-#endif  // BITSTAR_DEBUG
-
-            return vertexQueueIter_;
-        }
-
-        void BITstar::Vertex::setVertexQueueIter(const SearchQueue::VertexQueueIter& newPtr)
-        {
-            ASSERT_NOT_PRUNED
-
-#ifdef BITSTAR_DEBUG
-            // Assert not already set
-            if (hasVertexQueueIter_)
-            {
-                throw ompl::Exception("Attempting to change an iterator to the vertex queue.");
-            }
-#endif  // BITSTAR_DEBUG
-
-            // Record that it's set
-            hasVertexQueueIter_ = true;
-
-            // Store
-            vertexQueueIter_ = newPtr;
-        }
-
-        void BITstar::Vertex::clearVertexQueueIter()
-        {
-            ASSERT_NOT_PRUNED
-
-            // Reset to unset
-            hasVertexQueueIter_ = false;
-        }
-
-        bool BITstar::Vertex::hasVertexQueueEntry() const
-        {
-            ASSERT_NOT_PRUNED
-
-            return hasVertexQueueIter_;
-        }
-        /////////////////////////
-
         /////////////////////////
         // Edge queue info (all edges):
         void BITstar::Vertex::clearEdgeQueueLookups()
@@ -564,12 +510,12 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert that this edge is NOT _from_ this vertex
-            if (newInPtr->data.second.first->getId() == vId_)
+            if (newInPtr->data.second.first->getId() == id_)
             {
                 throw ompl::Exception("Attempted to add a cyclic incoming queue edge.");
             }
             // Assert that this edge is _to_ this vertex
-            if (newInPtr->data.second.second->getId() != vId_)
+            if (newInPtr->data.second.second->getId() != id_)
             {
                 throw ompl::Exception("Attempted to add an incoming queue edge to the wrong vertex.");
             }
@@ -694,12 +640,12 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert that this edge is _from_ this vertex
-            if (newOutPtr->data.second.first->getId() != vId_)
+            if (newOutPtr->data.second.first->getId() != id_)
             {
                 throw ompl::Exception("Attempted to add an outgoing queue edge to the wrong vertex.");
             }
             // Assert that this edge is NOT _to_ this vertex
-            if (newOutPtr->data.second.second->getId() == vId_)
+            if (newOutPtr->data.second.second->getId() == id_)
             {
                 throw ompl::Exception("Attempted to add a cyclic outgoing queue edge.");
             }
@@ -887,12 +833,12 @@ namespace ompl
             // Store the source id of the edge we're removing
             VertexId rmSrc = (*iterToDelete)->data.second.first->getId();
             // Assert that this edge is NOT _from_ this vertex
-            if (rmSrc == vId_)
+            if (rmSrc == id_)
             {
                 throw ompl::Exception("Attempted to remove a cyclic incoming queue edge.");
             }
             // Assert that this edge is _to_ this vertex
-            if ((*iterToDelete)->data.second.second->getId() != vId_)
+            if ((*iterToDelete)->data.second.second->getId() != id_)
             {
                 throw ompl::Exception("Attempted to remove an incoming queue edge from the wrong vertex.");
             }
@@ -937,12 +883,12 @@ namespace ompl
             // Store the target id of the edge we're removing
             VertexId rmTrgt = (*iterToDelete)->data.second.second->getId();
             // Assert that this edge is _from_ this vertex
-            if ((*iterToDelete)->data.second.first->getId() != vId_)
+            if ((*iterToDelete)->data.second.first->getId() != id_)
             {
                 throw ompl::Exception("Attempted to remove an outgoing queue edge from the wrong vertex.");
             }
             // Assert that this edge is NOT _to_ this vertex
-            if (rmTrgt == vId_)
+            if (rmTrgt == id_)
             {
                 throw ompl::Exception("Attempted to remove a cyclic outgoing queue edge.");
             }
