@@ -262,7 +262,7 @@ namespace ompl
 
             /// \brief The factor by which the temperature is increased after
             /// a failed transition test.
-            double tempChangeFactor_{};
+            double tempChangeFactor_;
 
             /// \brief The most desirable (e.g., minimum) cost value in the search tree
             base::Cost bestCost_;
@@ -284,17 +284,17 @@ namespace ompl
             double frontierNodeRatio_{.1};
 
             /// \brief The current temperature
-            double temp_{};
+            double temp_;
 
             /// \brief A count of the number of non-frontier nodes in the trees
-            double nonfrontierCount_{};
+            double nonfrontierCount_;
 
             /// \brief A count of the number of frontier nodes in the trees
-            double frontierCount_{};
+            double frontierCount_;
 
             /// \brief The range at which the algorithm will attempt to connect
             /// the two trees.
-            double connectionRange_{};
+            double connectionRange_;
 
             /// \brief The most recent connection point for the two trees.
             /// Used for PlannerData computation.

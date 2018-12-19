@@ -175,7 +175,7 @@ namespace ompl
             std::vector<PathGeometric> nearestPaths_;
 
             /** \brief the ID within nearestPaths_ of the path that was chosen for repair */
-            std::size_t nearestPathsChosenID_{};
+            std::size_t nearestPathsChosenID_;
 
             /** \brief A secondary planner for replanning */
             base::PlannerPtr repairPlanner_;

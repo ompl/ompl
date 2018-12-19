@@ -122,25 +122,25 @@ namespace ompl
                 std::vector<PlannerExperiment> planners;
 
                 /// The maximum allowed time for planner computation during the experiment (seconds)
-                double maxTime{};{}{}{}{}{}{}{}{}{}{};
+                double maxTime;
 
                 /// The maximum allowed memory for planner computation during the experiment (MB)
-                double maxMem{};{}{}{}{}{}{}{}{}{}{};
+                double maxMem;
 
                 /// The number of runs to execute for each planner
-                unsigned int runCount{};{}{}{}{}{}{}{}{}{}{};
+                unsigned int runCount;
 
                 /// The point in time when the experiment was started
                 time::point startTime;
 
                 /// The amount of time spent to collect the information in this structure (seconds)
-                double totalDuration{};{}{}{}{}{}{}{}{}{}{};
+                double totalDuration;
 
                 /// The output of SimpleSetup::print() before the experiment was started
                 std::string setupInfo;
 
                 /// The random seed that was used at the start of the benchmark program
-                std::uint_fast32_t seed{};{}{}{}{}{}{}{}{}{}{};
+                std::uint_fast32_t seed;
 
                 /// Hostname that identifies the machine the benchmark ran on
                 std::string host;

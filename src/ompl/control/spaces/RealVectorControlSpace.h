@@ -80,7 +80,7 @@ namespace ompl
                 }
 
                 /** \brief An array of length \e n, representing the value of the control */
-                double *values{};
+                double *values;
             };
 
             /** \brief Constructor takes the state space the controls correspond to and the dimension of the space of

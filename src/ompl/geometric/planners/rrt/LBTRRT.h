@@ -175,13 +175,13 @@ namespace ompl
                 /** \brief The state contained by the motion */
                 base::State *state_{nullptr};
                 /** \brief unique id of the motion */
-                std::size_t id_{}{};
+                std::size_t id_;
                 /** \brief The lower bound cost of the motion
                 while it is stored in the lowerBoundGraph_ and this may seem redundant,
                 the cost in lowerBoundGraph_ may change causing ordering according to it
                 inconsistencies
                 */
-                double costLb_{}{};
+                double costLb_;
                 /** \brief The parent motion in the approximation tree */
                 Motion *parentApx_{nullptr};
                 /** \brief The approximation cost */
@@ -296,7 +296,7 @@ namespace ompl
             /** \brief Number of iterations the algorithm performed */
             unsigned int iterations_{0u};
             /** \brief Best cost found so far by algorithm */
-            double bestCost_{};
+            double bestCost_;
         };
     }
 }

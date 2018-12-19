@@ -127,17 +127,17 @@ void ompl::tools::Profiler::status(std::ostream &out, bool merge)
         PerThread combined;
         for (std::map<std::thread::id, PerThread>::const_iterator it = data_.begin(); it != data_.end(); ++it)
         {
-            for (auto iev = it->second.events.begin();
+            for (std::map<std::string, unsigned long int>::const_iterator iev = it->second.events.begin();
                  iev != it->second.events.end(); ++iev)
                 combined.events[iev->first] += iev->second;
-            for (auto iavg = it->second.avg.begin();
+            for (std::map<std::string, AvgInfo>::const_iterator iavg = it->second.avg.begin();
                  iavg != it->second.avg.end(); ++iavg)
             {
                 combined.avg[iavg->first].total += iavg->second.total;
                 combined.avg[iavg->first].totalSqr += iavg->second.totalSqr;
                 combined.avg[iavg->first].parts += iavg->second.parts;
             }
-            for (auto itm = it->second.time.begin();
+            for (std::map<std::string, TimeInfo>::const_iterator itm = it->second.time.begin();
                  itm != it->second.time.end(); ++itm)
             {
                 TimeInfo &tc = combined.time[itm->first];
@@ -206,7 +206,7 @@ void ompl::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread &
     double total = time::seconds(tinfo_.total);
 
     std::vector<dataIntVal> events;
-    for (auto iev = data.events.begin(); iev != data.events.end();
+    for (std::map<std::string, unsigned long int>::const_iterator iev = data.events.begin(); iev != data.events.end();
          ++iev)
     {
         dataIntVal next = {iev->first, iev->second};
@@ -219,7 +219,7 @@ void ompl::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread &
         out << events[i].name << ": " << events[i].value << std::endl;
 
     std::vector<dataDoubleVal> avg;
-    for (auto ia = data.avg.begin(); ia != data.avg.end(); ++ia)
+    for (std::map<std::string, AvgInfo>::const_iterator ia = data.avg.begin(); ia != data.avg.end(); ++ia)
     {
         dataDoubleVal next = {ia->first, ia->second.total / (double)ia->second.parts};
         avg.push_back(next);
@@ -237,7 +237,7 @@ void ompl::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread &
 
     std::vector<dataDoubleVal> time;
 
-    for (auto itm = data.time.begin(); itm != data.time.end(); ++itm)
+    for (std::map<std::string, TimeInfo>::const_iterator itm = data.time.begin(); itm != data.time.end(); ++itm)
     {
         dataDoubleVal next = {itm->first, time::seconds(itm->second.total)};
         time.push_back(next);

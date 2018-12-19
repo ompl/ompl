@@ -113,7 +113,7 @@ namespace ompl
             bool regionalNN_;
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion *lastGoalMotion_{}{}{};
+            Motion *lastGoalMotion_;
         };
     }
 }

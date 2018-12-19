@@ -288,7 +288,7 @@ namespace ompl
             /** \brief Temperature parameter used to control the difficulty level of transition tests. Low temperatures
                 limit the expansion to a slightly positive slopes, high temps enable to climb the steeper slopes.
                 Dynamically tuned according to the information acquired during exploration */
-            double temp_{};
+            double temp_;
 
             /** \brief The most desirable (e.g., minimum) cost value in the search tree */
             base::Cost bestCost_;
@@ -301,7 +301,7 @@ namespace ompl
 
             /** \brief The value of the expression exp^T_rate.  The temperature
                  is increased by this factor whenever the transition test fails. */
-            double tempChangeFactor_{};
+            double tempChangeFactor_;
 
             /** \brief The initial value of \e temp_ */
             double initTemperature_;
@@ -309,9 +309,9 @@ namespace ompl
             // Minimum Expansion Control --------------------------------------------------------------
 
             /** \brief The number of non-frontier nodes in the search tree */
-            double nonfrontierCount_{};
+            double nonfrontierCount_;
             /** \brief The number of frontier nodes in the search tree */
-            double frontierCount_{};
+            double frontierCount_;
 
             /** \brief The distance between an old state and a new state that
                 qualifies it as a frontier state */

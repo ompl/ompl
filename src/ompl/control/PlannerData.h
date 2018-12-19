@@ -112,7 +112,7 @@ namespace ompl
             }
 
             const Control *c_{nullptr};
-            double duration_{};{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{};
+            double duration_;
         };
 
         /// \copydoc ompl::base::PlannerData

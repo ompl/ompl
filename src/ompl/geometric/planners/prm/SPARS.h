@@ -501,10 +501,10 @@ namespace ompl
             std::vector<SparseVertex> goalM_;
 
             /** \brief DenseVertex for performing nearest neighbor queries on the SPARSE roadmap. */
-            DenseVertex sparseQueryVertex_{};
+            DenseVertex sparseQueryVertex_;
 
             /** \brief Vertex for performing nearest neighbor queries on the DENSE graph. */
-            DenseVertex queryVertex_{};
+            DenseVertex queryVertex_;
 
             /** \brief Geometric Path variable used for smoothing out paths. */
             PathGeometric geomPath_;

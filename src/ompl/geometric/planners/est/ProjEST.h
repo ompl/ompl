@@ -192,7 +192,7 @@ namespace ompl
                     return motions_.empty();
                 }
                 std::vector<Motion *> motions_;
-                CellPDF::Element *elem_{};{}{}{}{};
+                CellPDF::Element *elem_;
             };
 
             /** \brief The data contained by a tree of exploration */

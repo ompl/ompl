@@ -115,7 +115,7 @@ namespace ompl
             }
 
             /** \brief The components that make up a compound control */
-            Control **components{};;{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{};
+            Control **components;
         };
     }
 }

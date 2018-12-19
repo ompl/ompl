@@ -66,7 +66,7 @@ namespace ompl
                 ~CellData() = default;
 
                 /** \brief The set of motions contained in this grid cell */
-                std::vector<Motion *> motions{};
+                std::vector<Motion *> motions;
 
                 /** \brief A measure of coverage for this cell. For
                     this implementation, this is the sum of motion
@@ -329,7 +329,7 @@ namespace ompl
 
             /** \brief A grid containing motions, imposed on a
                 projection of the state space */
-            Grid grid_{};
+            Grid grid_;
 
             /** \brief The total number of motions (there can be
                 multiple per cell) in the grid */
@@ -339,7 +339,7 @@ namespace ompl
             unsigned int iteration_;
 
             /** \brief The most recently created cell */
-            Cell *recentCell_{};
+            Cell *recentCell_;
 
             /** \brief Method that can free the memory for a stored motion */
             FreeMotionFn freeMotion_;

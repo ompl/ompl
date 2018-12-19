@@ -74,7 +74,7 @@ namespace ompl
                 }
 
                 /** \brief The value of the angle in the interval (-Pi, Pi] */
-                double value{};
+                double value;
             };
 
             SO2StateSpace()

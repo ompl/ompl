@@ -195,7 +195,7 @@ namespace ompl
             void copyBounds();
 
             /** \brief The amount of data to copy from projection to state */
-            std::size_t copySize_{};;{}{}{};
+            std::size_t copySize_;
         };
     }  // namespace base
 }  // namespace ompl

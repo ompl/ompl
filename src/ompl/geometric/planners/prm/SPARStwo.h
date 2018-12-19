@@ -465,7 +465,7 @@ namespace ompl
             std::vector<Vertex> goalM_;
 
             /** \brief Vertex for performing nearest neighbor queries. */
-            Vertex queryVertex_{};
+            Vertex queryVertex_;
 
             /** \brief Stretch Factor as per graph spanner literature (multiplicative bound on path quality) */
             double stretchFactor_{3.};

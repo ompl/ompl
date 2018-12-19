@@ -58,7 +58,7 @@ namespace ompl
         struct Cell
         {
             /// The data we store in the cell
-            _T data{};{}{}{};
+            _T data;
 
             /// The coordinate of the cell
             Coord coord;
@@ -377,10 +377,10 @@ namespace ompl
 
     protected:
         /// The dimension of the grid
-        unsigned int dimension_{};{}{}{}{}{}{}{}{}{}{};
+        unsigned int dimension_;
 
         /// The maximum number of neighbors a cell can have (2 * dimension)
-        unsigned int maxNeighbors_{};{}{}{}{}{}{}{}{}{}{};
+        unsigned int maxNeighbors_;
 
         /// The hash holding the cells
         CoordHash hash_;

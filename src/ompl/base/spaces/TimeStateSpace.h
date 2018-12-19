@@ -74,7 +74,7 @@ namespace ompl
             {
             public:
                 /** \brief The position in time */
-                double position{};
+                double position;
             };
 
             TimeStateSpace()

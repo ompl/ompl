@@ -158,10 +158,10 @@ namespace ompl
             struct Header
             {
                 /** \brief OMPL specific marker (fixed value) */
-                std::uint_fast32_t marker{};
+                std::uint_fast32_t marker;
 
                 /** \brief Number of states stored in the archive */
-                std::size_t state_count{};
+                std::size_t state_count;
 
                 /** \brief Signature of state space that allocated the saved states (see
                  * ompl::base::StateSpace::computeSignature()) */

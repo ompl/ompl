@@ -189,7 +189,7 @@ namespace ompl
                 bool valid{false};
 
                 /** \brief The set of motions descending from the current motion */
-                std::vector<Motion *> children{}{};
+                std::vector<Motion *> children;
             };
 
             /** \brief Free the memory for a motion */

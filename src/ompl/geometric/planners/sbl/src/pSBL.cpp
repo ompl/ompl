@@ -349,7 +349,7 @@ bool ompl::geometric::pSBL::isPathValid(TreeData &tree, Motion *motion)
             else
             {
                 // remember we need to remove this motion
-                PendingRemoveMotion prm{};
+                PendingRemoveMotion prm;
                 prm.tree = &tree;
                 prm.motion = mpath[i];
                 removeList_.lock.lock();

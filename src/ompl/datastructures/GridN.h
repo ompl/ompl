@@ -237,7 +237,7 @@ namespace ompl
         /// By default, cells are considered on the border if 2n
         /// neighbors are created, for a space of dimension n.
         /// this value is overridden and set in this member variable
-        unsigned int interiorCellNeighborsLimit_{};{}{}{}{}{}{}{}{}{}{};
+        unsigned int interiorCellNeighborsLimit_;
 
         /// Flag indicating whether the neighbor count used to determine whether
         /// a cell is on the border or not

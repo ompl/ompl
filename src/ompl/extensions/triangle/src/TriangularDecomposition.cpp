@@ -216,7 +216,7 @@ int ompl::control::TriangularDecomposition::createTriangles()
     const base::RealVectorBounds &bounds = getBounds();
     const double maxTriangleArea = bounds.getVolume() * triAreaPct_;
     std::string triswitches = "pDznQA -a" + std::to_string(maxTriangleArea);
-    struct triangulateio in{};
+    struct triangulateio in;
 
     /* Some vertices may be duplicates, such as when an obstacle has a vertex equivalent
        to one at the corner of the bounding box of the decomposition.
@@ -363,7 +363,7 @@ int ompl::control::TriangularDecomposition::createTriangles()
     in.pointmarkerlist = nullptr;
 
     // initialize output libtriangle structure, which will hold the results of the triangulation
-    struct triangulateio out{};
+    struct triangulateio out;
     out.pointlist = (REAL *)nullptr;
     out.pointattributelist = (REAL *)nullptr;
     out.pointmarkerlist = (int *)nullptr;
@@ -499,7 +499,7 @@ bool ompl::control::TriangularDecomposition::triContains(const Triangle &tri, co
 ompl::control::TriangularDecomposition::Vertex
 ompl::control::TriangularDecomposition::getPointInPoly(const Polygon &poly)
 {
-    Vertex p{};
+    Vertex p;
     p.x = 0.;
     p.y = 0.;
     for (auto pt : poly.pts)

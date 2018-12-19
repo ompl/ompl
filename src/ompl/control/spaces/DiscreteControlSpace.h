@@ -67,7 +67,7 @@ namespace ompl
             {
             public:
                 /** \brief The current control - an int in range [lowerBound, upperBound] */
-                int value{};
+                int value;
             };
 
             /** \brief Construct a discrete space in wich controls can take values in the set [\e lowerBound, \e

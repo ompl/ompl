@@ -219,7 +219,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
     OMPL_INFORM("%s: Starting planning with %d states already in datastructure", getName().c_str(),
                 (int)(tStart_->size() + tGoal_->size()));
 
-    TreeGrowingInfo tgi{};
+    TreeGrowingInfo tgi;
     tgi.xstate = si_->allocState();
 
     Motion *approxsol = nullptr;

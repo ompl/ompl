@@ -446,10 +446,10 @@ namespace ompl
             bool updateChildren_{true};
 
             /** \brief Current value of the radius used for the neighbors */
-            double rrg_r_{};
+            double rrg_r_;
 
             /** \brief Current value of the number of neighbors used */
-            unsigned int rrg_k_{};
+            unsigned int rrg_k_;
 
             /** \brief Variant used for rejection sampling */
             int variant_{0};

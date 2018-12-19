@@ -225,7 +225,7 @@ namespace ompl
             Benchmark::RunProgressData runProgressData_;
 
             // variables needed for progress property collection
-            bool solved_{};
+            bool solved_;
             std::mutex solvedFlag_;
             std::condition_variable solvedCondition_;
         };

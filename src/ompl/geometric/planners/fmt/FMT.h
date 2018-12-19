@@ -449,10 +449,10 @@ namespace ompl
             bool heuristics_{false};
 
             /** \brief Radius employed in the nearestR strategy. */
-            double NNr_{};
+            double NNr_;
 
             /** \brief K used in the nearestK strategy */
-            unsigned int NNk_{};
+            unsigned int NNk_;
 
             /** \brief The volume of the free configuration space, computed
                 as an upper bound with 95% confidence */
@@ -483,7 +483,7 @@ namespace ompl
             Motion *lastGoalMotion_;
 
             /** \brief Goal state caching to accelerate cost to go heuristic computation */
-            base::State *goalState_{};
+            base::State *goalState_;
 
             /** \brief Add new samples if the tree was not able to find a solution. */
             bool extendedFMT_{true};

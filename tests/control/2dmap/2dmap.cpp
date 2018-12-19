@@ -89,8 +89,8 @@ public:
     }
 
 protected:
-    std::vector<std::vector<int>> grid_{};
-    int w_{}, h_{};
+    std::vector<std::vector<int>> grid_;
+    int w_, h_;
 };
 
 class myStateSpace : public base::RealVectorStateSpace
@@ -511,7 +511,7 @@ protected:
         }
     }
 
-    Environment2D env{};
+    Environment2D env;
     bool verbose;
 };
 

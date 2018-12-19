@@ -230,7 +230,7 @@ namespace ompl
                 ~CellData() = default;
 
                 /** \brief The set of motions contained in this grid cell */
-                std::vector<Motion *> motions{};
+                std::vector<Motion *> motions;
 
                 /** \brief A measure of coverage for this cell. For
                     this implementation, this is the sum of motion
@@ -275,7 +275,7 @@ namespace ompl
                 }
 
                 /** \brief The cell of the motion that is close to the goal */
-                Grid::Cell *cell{};
+                Grid::Cell *cell;
 
                 /** \brief The motion that is close to the goal */
                 Motion *motion;
@@ -323,7 +323,7 @@ namespace ompl
                 unsigned int maxSize;
 
                 /** \brief The maintained samples */
-                std::set<CloseSample> samples{};
+                std::set<CloseSample> samples;
             };
 
             /** \brief The data defining a tree of motions for this algorithm */

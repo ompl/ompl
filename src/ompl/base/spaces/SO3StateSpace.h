@@ -97,16 +97,16 @@ namespace ompl
                 void setIdentity();
 
                 /** \brief X component of quaternion vector */
-                double x{};
+                double x;
 
                 /** \brief Y component of quaternion vector */
-                double y{};
+                double y;
 
                 /** \brief Z component of quaternion vector */
-                double z{};
+                double z;
 
                 /** \brief scalar component of quaternion */
-                double w{};
+                double w;
             };
 
             SO3StateSpace()

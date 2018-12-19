@@ -96,7 +96,7 @@ namespace ompl
                 /** Path segment types */
                 const DubinsPathSegmentType *type_;
                 /** Path segment lengths */
-                double length_[3]{};;{};
+                double length_[3];
                 /** Whether the path should be followed "in reverse" */
                 bool reverse_{false};
             };
@@ -178,7 +178,7 @@ namespace ompl
             bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
 
         private:
-            DubinsStateSpace *stateSpace_{};;{}{}{};
+            DubinsStateSpace *stateSpace_;
             void defaultSettings();
         };
     }

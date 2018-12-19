@@ -56,15 +56,15 @@
 struct ompl::ProlateHyperspheroid::PhsData
 {
     /** \brief The dimension of the prolate hyperspheroid.*/
-    unsigned int dim_{};
+    unsigned int dim_;
     /** \brief Whether the transformation is up to date */
-    bool isTransformUpToDate_{};
+    bool isTransformUpToDate_;
     /** \brief The minimum possible transverse diameter of the PHS. Defined as the distance between the two foci*/
-    double minTransverseDiameter_{};
+    double minTransverseDiameter_;
     /** \brief The transverse diameter of the PHS. */
-    double transverseDiameter_{};
+    double transverseDiameter_;
     /** \brief The measure of the PHS. */
-    double phsMeasure_{};
+    double phsMeasure_;
     /** \brief The first focus of the PHS (i.e., the start state of the planning problem). Unlike other parts of Eigen,
      * variably sized matrices do not require special allocators. */
     Eigen::VectorXd xFocus1_;

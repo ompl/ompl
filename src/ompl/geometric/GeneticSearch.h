@@ -197,7 +197,7 @@ namespace ompl
             unsigned int poolMutation_;
             unsigned int poolRandom_;
             unsigned int generations_;
-            bool checkValidity_{};
+            bool checkValidity_;
             bool tryImprove_;
 
             double maxDistance_;

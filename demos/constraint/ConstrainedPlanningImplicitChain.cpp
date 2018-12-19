@@ -443,8 +443,8 @@ int main(int argc, char **argv)
     unsigned int obstacles = 0;
     unsigned int extra = 1;
 
-    struct ConstrainedOptions c_opt{};
-    struct AtlasOptions a_opt{};
+    struct ConstrainedOptions c_opt;
+    struct AtlasOptions a_opt;
 
     po::options_description desc("Options");
     desc.add_options()("help,h", help_msg);

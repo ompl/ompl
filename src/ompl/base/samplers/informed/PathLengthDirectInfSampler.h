@@ -162,7 +162,7 @@ namespace ompl
             std::list<ompl::ProlateHyperspheroidPtr> listPhsPtrs_;
 
             /** \brief The summed measure of all the start-goal pairs */
-            double summedMeasure_{};
+            double summedMeasure_;
 
             /** \brief The index of the subspace of a compound StateSpace for which we can do informed sampling. Unused
              * if the StateSpace is not compound. */

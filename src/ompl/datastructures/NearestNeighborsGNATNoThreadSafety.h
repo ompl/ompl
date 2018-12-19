@@ -729,7 +729,7 @@ namespace ompl
             std::vector<Node *> children_;
 
             /// \brief Scratch space to store distance to pivot during nearest neighbor queries
-            mutable double distToPivot_{};{}{};
+            mutable double distToPivot_;
 
 #ifdef GNAT_SAMPLER
             /// Number of elements stored in the subtree rooted at this Node
@@ -763,12 +763,12 @@ namespace ompl
         /// the default degree times the fraction of data elements from the
         /// original node that got assigned to that child Node. However, its
         /// degree can be no less than minDegree_.
-        unsigned int minDegree_{};
+        unsigned int minDegree_;
         /// \brief After splitting a Node, each child Node has degree equal to
         /// the default degree times the fraction of data elements from the
         /// original node that got assigned to that child Node. However, its
         /// degree can be no larger than maxDegree_.
-        unsigned int maxDegree_{};
+        unsigned int maxDegree_;
         /// \brief Maximum number of elements allowed to be stored in a Node before
         /// it needs to be split into several nodes.
         unsigned int maxNumPtsPerLeaf_;
@@ -784,18 +784,18 @@ namespace ompl
         /// \brief The data structure used to split data into subtrees.
         GreedyKCenters<_T> pivotSelector_;
         /// \brief Cache of removed elements.
-        std::unordered_set<const _T *> removed_{};
+        std::unordered_set<const _T *> removed_;
 
         /// \name Internal scratch space
         /// \{
         /// \brief Internal data structure to store nearest neighbors
         mutable NearQueue nearQueue_;
         /// \brief Nodes yet to be processed for possible nearest neighbors
-        mutable NodeQueue nodeQueue_{};
+        mutable NodeQueue nodeQueue_;
         /// \brief Permutation of indices to process children of a node in random order
         mutable Permutation permutation_;
         /// \brief Pivot indices within a vector of elements as selected by GreedyKCenters
-        mutable std::vector<unsigned int> pivots_{};
+        mutable std::vector<unsigned int> pivots_;
         /// \brief Matrix of distances to pivots
         mutable typename GreedyKCenters<_T>::Matrix distances_;
         /// \}
