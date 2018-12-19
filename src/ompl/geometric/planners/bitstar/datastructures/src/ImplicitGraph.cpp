@@ -862,6 +862,9 @@ namespace ompl
                 this->removeEdgeBetweenVertexAndParent(vertexCopy, false);
             }
 
+            // Remove any edges still in the queue.
+            queuePtr_->removeAllEdgesConnectedToVertexFromQueue(vertexCopy);
+
             // Mark the sample as pruned
             vertexCopy->markPruned();
         }

@@ -139,24 +139,18 @@ namespace ompl
 
             //////////////////
             // Insert and erase
-            /** \brief Insert an edge into the edge processing queue. The source vertex of this edge must be in the
-             * expansion queue (although it may already be expanded). */
-            void enqueueEdge(const VertexPtrPair &edge);
+            /** \brief Update the edge queue by adding all the potential edges from the vertex to nearby states. */
+            void expand(const VertexPtr &vertex);
 
-            /** \brief Insert an edge into the edge processing queue. The source vertex of this edge must be in the
-             * expansion queue (although it may already be expanded). */
-            void enqueueEdge(const VertexPtr &parentVertex, const VertexPtr &childVertex);
-
-            void enqueueOutgoingEdges(const VertexPtr &vertex);
             //////////////////
 
             //////////////////
             // Access the queue
             /** \brief Get the best edge on the queue, leaving it at the front of the edge queue. */
-            VertexPtrPair frontEdge();
+            VertexPtrPair getFrontEdge();
 
             /** \brief Get the value of the best edge on the queue, leaving it at the front of the edge queue. */
-            CostTriple frontEdgeValue();
+            CostTriple getFrontEdgeValue();
 
             /** \brief Pop the best edge off the queue, removing it from the front of the edge queue in the process. */
             VertexPtrPair popFrontEdge();
@@ -231,9 +225,6 @@ namespace ompl
         private:
             ////////////////////////////////
             // High level primitives:
-            /** \brief Update the edge queue by adding all the potential edges from the vertex to nearby states. */
-            void expand(const VertexPtr &vertex);
-
             /** \brief Iterate through the list of neighbouring unconnected vertices and add potential edges to
             * the queue if the vertex is marked as new *or* we're adding all of them. */
             void enqueueEdgesToSamples(const VertexPtr &vertex, const VertexPtrVector& neighbourSamples);
@@ -243,6 +234,10 @@ namespace ompl
 
             /** \brief Attempt to add an edge to the queue. Checks that the edge meets the queueing condition. */
             void enqueueEdgeConditionally(const VertexPtr &parent, const VertexPtr &child);
+
+            /** \brief Insert an edge into the edge processing queue. The source vertex of this edge must be in the
+             * expansion queue (although it may already be expanded). */
+            void enqueueEdge(const VertexPtrPair &edge);
 
             /** \brief Given two subsets containing (up to) the k-nearest members of each, finds the k-nearest of the
              * union */

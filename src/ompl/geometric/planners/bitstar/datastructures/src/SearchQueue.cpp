@@ -133,30 +133,17 @@ namespace ompl
         {
             ASSERT_SETUP
 
-            // Insert into the edge queue, getting the element pointer
+            // Insert into the edge queue, getting the pointer to the element.
             auto edgeElemPtr = edgeQueue_.insert(std::make_pair(this->sortKey(edge), edge));
 
-            // Push the newly created edge back on the vector of edges from the parent.
+            // Make the parent aware that this edge is now in the queue.
             edge.first->insertInEdgeQueueOutLookup(edgeElemPtr, numQueueResets_);
 
-            // Push the newly created edge back on the vector of edges to the child.
+            // Make the child aware that this edge is now in the queue.
             edge.second->insertInEdgeQueueInLookup(edgeElemPtr, numQueueResets_);
         }
 
-        void BITstar::SearchQueue::enqueueEdge(const VertexPtr &parent, const VertexPtr &child)
-        {
-            ASSERT_SETUP
-
-            // Call my helper function:
-            this->enqueueEdge(std::make_pair(parent, child));
-        }
-
-        void BITstar::SearchQueue::enqueueOutgoingEdges(const VertexPtr &vertex)
-        {
-            this->expand(vertex);
-        }
-
-        BITstar::VertexPtrPair BITstar::SearchQueue::frontEdge()
+        BITstar::VertexPtrPair BITstar::SearchQueue::getFrontEdge()
         {
             ASSERT_SETUP
 
@@ -171,7 +158,7 @@ namespace ompl
             return edgeQueue_.top()->data.second;
         }
 
-        BITstar::SearchQueue::CostTriple BITstar::SearchQueue::frontEdgeValue()
+        BITstar::SearchQueue::CostTriple BITstar::SearchQueue::getFrontEdgeValue()
         {
             ASSERT_SETUP
 
@@ -294,7 +281,7 @@ namespace ompl
             // Insert the outgoing edges of the start vertices.
             for (auto it = graphPtr_->startVerticesBeginConst(); it != graphPtr_->startVerticesEndConst(); ++it)
             {
-                this->enqueueOutgoingEdges(*it);
+                this->expand(*it);
             }
         }
 
@@ -444,7 +431,7 @@ namespace ompl
                 }
                 // No else, if we're using r-disc, we keep both sets.
 
-                // Add all outgoing edges.
+                // Add all outgoing edges to neighbouring vertices and samples.
                 this->enqueueEdgesToSamples(vertex, neighbourSamples);
                 this->enqueueEdgesToVertices(vertex, neighbourVertices);
             }
@@ -481,7 +468,7 @@ namespace ompl
                         }
                         else if (neighbourVertex->getId() != vertex->getParent()->getId())
                         {
-                            // The neighbour is not my parent, attempt to queue the edge:
+                            // The neighbour is not my parent, attempt to queue the edge.
                             this->enqueueEdgeConditionally(vertex, neighbourVertex);
                         }
                         // No else, this vertex is my parent.

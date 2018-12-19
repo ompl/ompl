@@ -442,7 +442,7 @@ namespace ompl
             {
                 // Variable
                 // The edge in the front of the queue
-                VertexConstPtrPair frontEdge = queuePtr_->frontEdge();
+                VertexConstPtrPair frontEdge = queuePtr_->getFrontEdge();
 
                 // The next edge in the queue:
                 nextEdge = std::make_pair(frontEdge.first->state(), frontEdge.second->state());
@@ -465,7 +465,7 @@ namespace ompl
             if (!queuePtr_->isEmpty())
             {
                 // The next cost in the queue:
-                nextCost = queuePtr_->frontEdgeValue().at(0u);
+                nextCost = queuePtr_->getFrontEdgeValue().at(0u);
             }
             else
             {
@@ -520,7 +520,7 @@ namespace ompl
 
                 if (bestEdge.first->hasParent() && bestEdge.first->getParent()->getId() == bestEdge.second->getId())
                 {
-                    queuePtr_->enqueueOutgoingEdges(bestEdge.second);
+                    queuePtr_->expand(bestEdge.second);
                 }
                 // In the best case, can this edge improve our solution given the current graph?
                 // g_t(v) + c_hat(v,x) + h_hat(x) < g_t(x_g)?
@@ -828,7 +828,7 @@ namespace ompl
             }
 
             // Enqueue the outgoing edges.
-            queuePtr_->enqueueOutgoingEdges(edge.second);
+            queuePtr_->expand(edge.second);
         }
 
         void BITstar::replaceParent(const VertexPtrPair &edge, const ompl::base::Cost &edgeCost)
