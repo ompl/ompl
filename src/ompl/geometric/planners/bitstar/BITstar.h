@@ -364,10 +364,6 @@ namespace ompl
              * connected states in graphPtr_) */
             std::string currentVertexProgressProperty() const;
 
-            /** \brief Retrieve the current number of vertices in the expansion queue as a planner-progress property.
-             * (The position of the vertex subqueue of queuePtr_) Calculating this value has nontrivial cost. */
-            std::string vertexQueueSizeProgressProperty() const;
-
             /** \brief Retrieve the current number of edges in the search queue as a planner-progress property. (The
              * size of the edge subqueue of queuePtr_) */
             std::string edgeQueueSizeProgressProperty() const;

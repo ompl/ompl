@@ -139,10 +139,6 @@ namespace ompl
 
             //////////////////
             // Insert and erase
-            /** \brief Enqueueing a vertex inserts it into the vertex queue and expands it into edges if it's place
-             * in the queue is before the token. */
-            void enqueueVertex(const VertexPtr &vertex);
-
             /** \brief Insert an edge into the edge processing queue. The source vertex of this edge must be in the
              * expansion queue (although it may already be expanded). */
             void enqueueEdge(const VertexPtrPair &edge);
@@ -152,11 +148,6 @@ namespace ompl
             void enqueueEdge(const VertexPtr &parentVertex, const VertexPtr &childVertex);
 
             void enqueueOutgoingEdges(const VertexPtr &vertex);
-
-            /** \brief Erase a vertex from the vertex expansion queue. Will disconnect the vertex from its parent and
-             * remove the associated incoming and outgoing edges from the edge queue. Will instruct the ImplicitGraph to
-             * move the vertex between sets, as necessary.*/
-            void unqueueVertex(const VertexPtr &vertex);
             //////////////////
 
             //////////////////
@@ -166,9 +157,6 @@ namespace ompl
 
             /** \brief Get the value of the best edge on the queue, leaving it at the front of the edge queue. */
             CostTriple frontEdgeValue();
-
-            /** \brief Pop the best edge off the queue, removing it from the front of the edge queue in the process. */
-            void popFrontEdge(VertexPtrPair *bestEdge);
 
             /** \brief Pop the best edge off the queue, removing it from the front of the edge queue in the process. */
             VertexPtrPair popFrontEdge();
@@ -187,19 +175,6 @@ namespace ompl
 
             /** 'brief Erase all edges in the edge queue that are connected to the given vertex. */
             void removeAllEdgesConnectedToVertexFromQueue(const VertexPtr &vertex);
-
-            /** \brief Mark the queue as requiring resorting downstream of the specified vertex */
-            void markVertexUnsorted(const VertexPtr &vertex);
-
-            /** \brief Prune the vertex queue of vertices whose their lower-bound heuristic is greater then the
-             * threshold. Descendents of pruned vertices that are not pruned themselves are returned to the set of free
-             * states. Returns the number of vertices removed, and the number of said vertices that are completely
-             * thrown away (i.e., are not even useful as a sample) */
-            std::pair<unsigned int, unsigned int> prune(const VertexConstPtr &vertex);
-
-            /** \brief Resort the queue around the marked unsorted vertices. If allowed, will remove any vertices
-             * that need to be resorted but would later be pruned. */
-            void resort();
 
             /** \brief Finish the queue if it is sorted, if not resort the queue. Finishing the queue clears all the
              * edge containers and moves the vertex expansion token to the end. After calling finish() ON A SORTED QUEUE,
@@ -239,13 +214,6 @@ namespace ompl
             /** \brief Returns the number of edges in the queue. Will resort/expand the queue if necessary. */
             unsigned int numEdges();
 
-            /** \brief Returns the number of vertices left to expand. This has nontrivial cost, as the token must be
-             * moved through the vector to count.  Will resort/expand the queue if necessary. */
-            unsigned int numVertices();
-
-            /** \brief Return the number of vertices marked as unsorted */
-            unsigned int numUnsorted() const;
-
             /** \brief Returns true if the queue is empty. In the case where the edge queue is empty but the vertex
              * queue is not, this function will expand vertices *until* the edge queue is not empty or there are no
              * vertices to expand. */
@@ -256,27 +224,6 @@ namespace ompl
             //////////////////
 
             //////////////////
-            // Queue settings:
-            /** \brief Set the queue to stay strictly sorted with each rewiring. */
-            void setStrictQueueOrdering(bool beStrict);
-
-            /** \brief Get whether the queue stays strictly sorted with each rewiring. */
-            bool getStrictQueueOrdering() const;
-
-            /** \brief Delay considering rewiring edges until an initial solution is found. */
-            void setDelayedRewiring(bool delayRewiring);
-
-            /** \brief Get whether BIT* is delaying rewiring until a solution is found. */
-            bool getDelayedRewiring() const;
-
-            /** \brief Prune during resorts */
-            void setPruneDuringResort(bool prune);
-
-            /** \brief Prune during resorts */
-            bool getPruneDuringResort() const;
-            //////////////////
-
-            //////////////////
             // Get the progress property counters
             /** \brief The number of edges popped off the queue for processing (numEdgesPopped_). */
             unsigned int numEdgesPopped() const;
@@ -284,13 +231,6 @@ namespace ompl
         private:
             ////////////////////////////////
             // High level primitives:
-            /** \brief Make sure that all vertices in our tree with a cost-to-come less than the minimum cost in our
-             * edge queue has been expanded. Calls expandVertex() for each such vertex. */
-            void updateQueue();
-
-            /** \brief Update the edge queue by expanding the next vertex. */
-            void expandNextVertex();
-
             /** \brief Update the edge queue by adding all the potential edges from the vertex to nearby states. */
             void expand(const VertexPtr &vertex);
 
@@ -311,38 +251,14 @@ namespace ompl
             ////////////////////////////////
 
             ////////////////////////////////
-            // Vertex helper functions:
-            /** \brief Resort a vertex and its associated edges in the various queues. This is the main workhorse of resorting. */
-            void resortVertex(const VertexPtr &unorderedVertex);
-
-            /** \brief Prune a branch of the graph. Returns the number of vertices removed, and the number of said
-             * vertices that are completely thrown away (i.e., are not even useful as a sample) */
-            std::pair<unsigned int, unsigned int> pruneBranch(const VertexPtr &branchBase);
-
-            /** \brief Insert a vertex into the queue. */
-            void insertIntoQueue(const VertexPtr &vertex);
-
-            /** \brief Explicitly expands a vertex if it's value is better than the value of the vertex pointed to by the token. */
-            void expandIfBeforeToken(const VertexPtr &vertex);
-
-            /** \brief Remove a vertex from the vertex queue and optionally also its edge queue and NN entries.
-             * Returns the number of vertices that are completely deleted. */
-            void removeFromVertexQueue(const VertexPtr &vertex);
-            ////////////////////////////////
-
-            ////////////////////////////////
             // Base-queue basic helper functions:
-            /** \brief A convenience function for the value of a vertex in the queue */
-            CostDouble sortKey(const VertexPtr &vertex) const;
-
             /** \brief A convenience function for the value of an edge in the queue */
             CostTriple sortKey(const VertexPtrPair &edge) const;
 
             /** A lexicographical comparison function for the std::arrays of costs. This is the sorting function for
              * both the vertex and edge queues and is just a wrapper to std::lexicographical_compare.*/
-            template <std::size_t SIZE>
-            bool lexicographicalBetterThan(const std::array<ompl::base::Cost, SIZE> &lhs,
-                                 const std::array<ompl::base::Cost, SIZE> &rhs) const;
+            bool lexicographicalBetterThan(const std::array<ompl::base::Cost, 3> &lhs,
+                                 const std::array<ompl::base::Cost, 3> &rhs) const;
             ////////////////////////////////
 
             ////////////////////////////////
@@ -366,17 +282,8 @@ namespace ompl
             /** \brief The samples represented as an edge-implicit graph */
             ImplicitGraph *graphPtr_{nullptr};
 
-            /** \brief The underlying queue of vertices. Sorted by vertexQueueComparison. */
-            VertexQueueAsMMap vertexQueue_;
-
-            /** \brief The next vertex in the expansion queue to expand*/
-            VertexQueueIter vertexQueueToken_;
-
             /** \brief The underlying queue of edges. Sorted by edgeQueueComparison. */
             EdgeQueueAsPairBinHeap edgeQueue_;
-
-            /** \brief A vector of vertices that we will need to process when resorting the queue: */
-            VertexPtrVector resortVertices_;
 
             /** \brief The cost of the best solution, which is the maximum heuristic value allowed for vertices/edges in the queue.*/
             ompl::base::Cost solutionCost_{std::numeric_limits<double>::infinity()};

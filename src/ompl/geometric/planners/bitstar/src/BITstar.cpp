@@ -104,7 +104,6 @@ namespace ompl
                                                       {
                                                           return getName();
                                                       });
-            queuePtr_->setPruneDuringResort(usePruning_);
 
             // Make sure the default name reflects the default k-nearest setting
             if (graphPtr_->getUseKNearest() && Planner::getName() == "BITstar")
@@ -482,11 +481,6 @@ namespace ompl
             queuePtr_->getEdges(edgesInQueue);
         }
 
-        void BITstar::getVertexQueue(VertexConstPtrVector *verticesInQueue)
-        {
-            queuePtr_->getVertices(verticesInQueue);
-        }
-
         unsigned int BITstar::numIterations() const
         {
             return numIterations_;
@@ -522,10 +516,7 @@ namespace ompl
 
                 // Variables:
                 // The current edge:
-                VertexPtrPair bestEdge;
-
-                // Pop the minimum edge
-                queuePtr_->popFrontEdge(&bestEdge);
+                VertexPtrPair bestEdge = queuePtr_->popFrontEdge();
 
                 if (bestEdge.first->hasParent() && bestEdge.first->getParent()->getId() == bestEdge.second->getId())
                 {
@@ -666,9 +657,6 @@ namespace ompl
 
                     // Prune the graph
                     numPruned = numPruned + graphPtr_->prune(informedMeasure);
-
-                    // Prune the search.
-                    numPruned = numPruned + queuePtr_->prune(curGoalVertex_);
 
                     // Store the cost at which we pruned:
                     prunedCost_ = bestCost_;
@@ -1137,12 +1125,13 @@ namespace ompl
 
         void BITstar::setStrictQueueOrdering(bool beStrict)
         {
-            queuePtr_->setStrictQueueOrdering(beStrict);
+            OMPL_WARN("%s: This option no longer has any effect; The queue is always strictly ordered.", Planner::getName().c_str());
         }
 
         bool BITstar::getStrictQueueOrdering() const
         {
-            return queuePtr_->getStrictQueueOrdering();
+            OMPL_WARN("%s: This option no longer has any effect; The queue is always strictly ordered.", Planner::getName().c_str());
+            return true;
         }
 
         void BITstar::setPruning(bool usePruning)
@@ -1154,9 +1143,6 @@ namespace ompl
 
             // Store
             usePruning_ = usePruning;
-
-            // Pass the setting onto the queue
-            queuePtr_->setPruneDuringResort(usePruning_);
         }
 
         bool BITstar::getPruning() const
@@ -1181,12 +1167,13 @@ namespace ompl
 
         void BITstar::setDelayRewiringUntilInitialSolution(bool delayRewiring)
         {
-            queuePtr_->setDelayedRewiring(delayRewiring);
+            OMPL_WARN("%s: This option no longer has any effect; Rewiring is never delayed.", Planner::getName().c_str());
         }
 
         bool BITstar::getDelayRewiringUntilInitialSolution() const
         {
-            return queuePtr_->getDelayedRewiring();
+            OMPL_WARN("%s: This option no longer has any effect; Rewiring is never delayed.", Planner::getName().c_str());
+            return false;
         }
 
         void BITstar::setJustInTimeSampling(bool useJit)
@@ -1268,11 +1255,6 @@ namespace ompl
         std::string BITstar::currentVertexProgressProperty() const
         {
             return std::to_string(graphPtr_->numConnectedVertices());
-        }
-
-        std::string BITstar::vertexQueueSizeProgressProperty() const
-        {
-            return std::to_string(queuePtr_->numVertices());
         }
 
         std::string BITstar::edgeQueueSizeProgressProperty() const

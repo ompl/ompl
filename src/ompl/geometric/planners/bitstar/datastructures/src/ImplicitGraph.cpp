@@ -411,9 +411,6 @@ namespace ompl
             // Whether we've added a start or goal:
             bool addedGoal = false;
             bool addedStart = false;
-            // Whether we have to rebuid the queue, i.e.. whether we've called updateStartAndGoalStates before
-            bool rebuildQueue = false;
-
             /*
             Add the new starts and goals to the vectors of said vertices. Do goals first, as they are only added as
             samples. We do this as nested conditions so we always call nextGoal(ptc) at least once (regardless of
@@ -431,10 +428,6 @@ namespace ompl
                 // Check if it's valid
                 if (static_cast<bool>(newGoal))
                 {
-                    // It is valid and we are adding a goal, we will need to rebuild the queue if any starts have
-                    // previously been added as their (and any descendents') heuristic cost-to-go may change:
-                    rebuildQueue = (!startVertices_.empty());
-
                     // Allocate the vertex pointer
                     goalVertices_.push_back(std::make_shared<Vertex>(spaceInformation_, costHelpPtr_));
 
@@ -530,10 +523,6 @@ namespace ompl
 
                         // Leave the iterator where it is, as we need to recheck this element that we pulled from the
                         // back
-
-                        // Just like the other new goals, we will need to rebuild the queue if any starts have
-                        // previously been added. Which was a condition to be here in the first place
-                        rebuildQueue = true;
                     }
                 }
 
@@ -626,24 +615,6 @@ namespace ompl
                         problemDefinition_, std::numeric_limits<unsigned int>::max());
                 }
                 // No else, this will get allocated when we get the updated start/goal.
-
-                // Was there an existing queue that needs to be rebuilt?
-                if (rebuildQueue)
-                {
-                    // There was, inform
-                    OMPL_INFORM("%s: Added new starts and/or goals to the problem. Rebuilding the queue.",
-                                nameFunc_().c_str());
-
-                    // Flag the queue as unsorted downstream from every existing start.
-                    for (const auto &startVertex : startVertices_)
-                    {
-                        queuePtr_->markVertexUnsorted(startVertex);
-                    }
-
-                    // Resort the queue.
-                    queuePtr_->resort();
-                }
-                // No else
 
                 // Iterate through the existing vertices and find the current best approximate solution (if enabled)
                 if (!hasExactSolution_ && findApprox_)
