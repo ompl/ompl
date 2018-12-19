@@ -402,11 +402,18 @@ namespace ompl
 
         void BITstar::SearchQueue::enqueueEdgesToVertices(const VertexPtr &vertex, const VertexPtrVector& neighbourVertices)
         {
-            // Iterate over the vector of connected targets and add only those who could ever provide a better
-            // solution:
+            // Start with this vertex' current kids.
+            VertexPtrVector children;
+            vertex->getChildren(&children);
+            for (const auto &child : children)
+            {
+                this->enqueueEdgeConditionally(vertex, child);
+            }
+
+            // Now consider all neighbouring vertices that are not already my kids.
             for (auto &neighbourVertex : neighbourVertices)
             {
-                // Make sure it is not the root or myself.
+                // Make sure the child is not the root and distinct from this vertex (which is the parent).
                 if (!neighbourVertex->isRoot() && neighbourVertex->getId() != vertex->getId())
                 {
                     // Make sure I am not already the parent
