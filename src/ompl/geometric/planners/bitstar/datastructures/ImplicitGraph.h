@@ -37,18 +37,9 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IMPLICITGRAPH_
 #define OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IMPLICITGRAPH_
 
-// OMPL:
-// The cost class:
 #include "ompl/base/Cost.h"
-// The optimization objective class:
 #include "ompl/base/OptimizationObjective.h"
-// The nearest neighbours structure
 #include "ompl/datastructures/NearestNeighbors.h"
-
-// BIT*:
-// I am member class of the BITstar class (i.e., I am in it's namespace), so I need to include it's definition to be
-// aware of the class BITstar. It has a forward declaration to me and the other helper classes but I will need to
-// include any I use in my .cpp (to avoid dependency loops).
 #include "ompl/geometric/planners/bitstar/BITstar.h"
 
 namespace ompl
@@ -58,48 +49,53 @@ namespace ompl
         /** @anchor ImplicitGraph
         \par Short Description
         An edge-implicit representation of a random geometric graph.
+        TODO(Marlin): Separating the search tree from the RGG seems conceptually cleaner. Think about its implications.
         */
 
         /** \brief A conceptual representation of samples as an edge-implicit random geometric graph. */
         class BITstar::ImplicitGraph
         {
         public:
-            ////////////////////////////////
-            // Public functions:
-            // Construction and initialization
+            // ---
+            // Construction, initialization and destruction.
+            // ---
+
             /** \brief Construct an implicit graph. */
             ImplicitGraph(NameFunc nameFunc);
 
+            /** \brief Destruct the graph using default destruction. */
             virtual ~ImplicitGraph() = default;
 
             /** \brief Setup the ImplicitGraph, must be called before use. Does not take a copy of the
              * PlannerInputStates, but checks it for starts/goals. */
-            void setup(const ompl::base::SpaceInformationPtr &spaceInformation, const ompl::base::ProblemDefinitionPtr &problemDefinition,
+            void setup(const ompl::base::SpaceInformationPtr &spaceInformation,
+                       const ompl::base::ProblemDefinitionPtr &problemDefinition,
                        CostHelper *costHelper, SearchQueue *searchQueue,
                        const ompl::base::Planner *plannerPtr, ompl::base::PlannerInputStates &inputStates);
 
-            /** \brief Clear the graph to the state of construction. */
+            /** \brief Reset the graph to the state of construction. */
             void reset();
-            //////////////////
 
-            //////////////////
-            // Graph access:
+            // ---
+            // Information access.
+            // ---
+
             /** \brief Gets whether the graph contains a start or not. */
             bool hasAStart() const;
 
             /** \brief Gets whether the graph contains a goal or not. */
             bool hasAGoal() const;
 
-            /** \brief Returns a const-iterator to the front of the start-vertex vector */
+            /** \brief Returns a const-iterator to the front of the start-vertex vector. */
             VertexPtrVector::const_iterator startVerticesBeginConst() const;
 
-            /** \brief Returns a const-iterator to the end of the start-vertex vector */
+            /** \brief Returns a const-iterator to the end of the start-vertex vector. */
             VertexPtrVector::const_iterator startVerticesEndConst() const;
 
-            /** \brief Returns a const-iterator to the front of the goal-vertex vector */
+            /** \brief Returns a const-iterator to the front of the goal-vertex vector. */
             VertexPtrVector::const_iterator goalVerticesBeginConst() const;
 
-            /** \brief Returns a const-iterator to the end of the goal-vertex vector */
+            /** \brief Returns a const-iterator to the end of the goal-vertex vector. */
             VertexPtrVector::const_iterator goalVerticesEndConst() const;
 
             /** \brief Get the minimum cost solution possible for this problem. */
@@ -124,7 +120,7 @@ namespace ompl
              * r). */
             void nearestVertices(const VertexPtr &vertex, VertexPtrVector *neighbourVertices);
 
-            /** \brief Adds the graph to the given PlannerData struct */
+            /** \brief Adds the graph to the given PlannerData struct. */
             void getGraphAsPlannerData(ompl::base::PlannerData &data) const;
 
             /** \brief IF BEING TRACKED, returns the closest vertex in the tree to the goal. */
@@ -138,12 +134,13 @@ namespace ompl
 
             /** \brief Get the radius of this r-disc RGG. */
             double getConnectivityR() const;
-            //////////////////
 
-            //////////////////
-            // Graph modification:
+            // ---
+            // Modification.
+            // ---
+
             /** \brief Mark that a solution has been found and that the graph should be limited to the given heuristic
-             * value */
+             * value. */
             void registerSolutionCost(const ompl::base::Cost &solutionCost);
 
             /** \brief Adds any new goals or starts that have appeared in the problem definition to the vector of
@@ -159,11 +156,8 @@ namespace ompl
              * conditions of the SearchQueue. Returns the number of vertices disconnected and the number of samples
              * removed. */
             std::pair<unsigned int, unsigned int> prune(double prunedMeasure);
-            //////////////////
 
-            //////////////////
-            // Adding/remove individual states:
-            /** \brief Add an unconnected sample */
+            /** \brief Add an unconnected sample. */
             void addToSamples(const VertexPtr &sample);
 
             /** \brief Remove a sample from the sample set. */
@@ -188,16 +182,12 @@ namespace ompl
             /** \brief Disconnect a vertex from its parent by removing the edges stored in itself, and its parents.
              * Cascades cost updates if requested.*/
             void removeEdgeBetweenVertexAndParent(const VertexPtr &child, bool cascadeCostUpdates);
-            //////////////////
 
-            //////////////////
-            // General helper functions
-            void assertValidSample(const VertexConstPtr &sample, bool mustBeNew);
-            //////////////////
+            // ---
+            // Settings.
+            // ---
 
-            //////////////////
-            // Graph settings:
-            /** \brief Set the rewiring scale factor, s, such that r_rrg = s \times r_rrg* */
+            /** \brief Set the rewiring scale factor, s, such that r_rrg = s \times r_rrg*. */
             void setRewireFactor(double rewireFactor);
 
             /** \brief Get the rewiring scale factor. */
@@ -212,7 +202,7 @@ namespace ompl
             /** Enable sampling "just-in-time", i.e., only when necessary for a nearest-neighbour search. */
             void setJustInTimeSampling(bool useJit);
 
-            /** \brief Get whether we're using just-in-time sampling */
+            /** \brief Get whether we're using just-in-time sampling. */
             bool getJustInTimeSampling() const;
 
             /** \brief Set whether unconnected samples are dropped on pruning. */
@@ -227,13 +217,14 @@ namespace ompl
             /** \brief Get whether approximate solutions are tracked during the search. */
             bool getTrackApproximateSolutions() const;
 
-            /** \brief Set a different nearest neighbours datastructure */
+            /** \brief Set a different nearest neighbours datastructure. */
             template <template <typename T> class NN>
             void setNearestNeighbors();
-            //////////////////
 
-            //////////////////
-            // Get the progress property counters
+            // ---
+            // Progress counters.
+            // ---
+
             /** \brief The number of free samples (size of freeStateNN_). */
             unsigned int numFreeSamples() const;
 
@@ -257,8 +248,13 @@ namespace ompl
 
             /** \brief The number of state collision checks (numStateCollisionChecks_). */
             unsigned int numStateCollisionChecks() const;
-            //////////////////
-            ////////////////////////////////
+
+            // ---
+            // General helper functions.
+            // ---
+
+            /** \brief Performs a couple of checks on a sample, throws if something smells funny. */
+            void assertSampleSanity(const VertexConstPtr &sample, bool mustBeNew);
 
             /** \brief Set the seed used by the RNG and the StateSampler. The state sampler must already be allocated, as a new state sampler will *not* take this seed. */
             void setLocalSeed(std::uint_fast32_t localSeed)
@@ -274,19 +270,22 @@ namespace ompl
             };
 
         private:
-            ////////////////////////////////
-            // High-level primitives updating the graph:
+            // ---
+            // High-level primitives updating the graph.
+            // ---
+
             /** \brief Update the set of free samples such that the neighbourhood of the given vertex is sufficiently
              * sampled. */
             void updateSamples(const VertexConstPtr &vertex);
 
             /** \brief Iterates through all the vertices in the tree and finds the one that is closes to the goal. This
              * is only necessary to find approximate solutions and should otherwise not be called. */
-            void findVertexClosestToGoal();
-            ////////////////////////////////
+            void updateVertexClosestToGoal();
 
-            ////////////////////////////////
-            // High-level primitives pruning the graph:
+            // ---
+            // High-level primitives pruning the graph.
+            // ---
+
             /** \brief Prune any starts/goals that provably cannot provide a better solution than the current best
              * solution. This is done via the prune conditions of the SearchQueue. Returns the number of vertices
              * disconnected and the number of samples removed. */
@@ -307,56 +306,59 @@ namespace ompl
             /** \brief Returns whether the sample can be pruned, i.e., whether it could ever provide a better solution.
              * The check should always be g^(v) + h^(v) >= g_t(x_g). */
             bool canSampleBePruned(const VertexPtr &sample) const;
-            ////////////////////////////////
 
-            ////////////////////////////////
+            // ---
             // Low-level random geometric graph helper and calculations
+            // ---
+
             /** \brief Tests and updates whether the given vertex is closer to the goal than the known-closest vertex.
              * This is only necessary to find approximate solutions and should otherwise not be called. */
             void testClosestToGoal(const VertexConstPtr &vertex);
 
             /** \brief Calculate the max req'd cost to define a neighbourhood around a state. Currently only implemented
              * for path-length problems, for which the neighbourhood cost is the f-value of the vertex plus 2r. */
-            ompl::base::Cost neighbourhoodCost(const VertexConstPtr &vertex) const;
+            ompl::base::Cost calculateNeighbourhoodCost(const VertexConstPtr &vertex) const;
 
             /** \brief Update the appropriate nearest-neighbour terms, r_ and k_. */
             virtual void updateNearestTerms();
 
-            /** \brief Calculate the r for r-disc nearest neighbours, a function of the current graph */
+            /** \brief Calculate the r for r-disc nearest neighbours, a function of the current graph. */
             double calculateR(unsigned int numUniformSamples) const;
 
-            /** \brief Calculate the k for k-nearest neighours, a function of the current graph */
+            /** \brief Calculate the k for k-nearest neighours, a function of the current graph. */
             unsigned int calculateK(unsigned int numUniformSamples) const;
 
             /** \brief Calculate the lower-bounding radius RGG term for asymptotic almost-sure convergence to the
              * optimal path (i.e., r_rrg* in Karaman and Frazzoli IJRR 11). This is a function of the size of the
              * problem domain. */
-            double minimumRggR() const;
+            double calculateMinimumRggR() const;
 
             /** \brief Calculate the lower-bounding k-nearest RGG term for asymptotic almost-sure convergence to the
              * optimal path (i.e., k_rrg* in Karaman and Frazzoli IJRR 11). This is a function of the state dimension
-             * and is left as a double for later accuracy in calculate k */
-            double minimumRggK() const;
-            ////////////////////////////////
+             * and is left as a double for later accuracy in calculate k. */
+            double calculateMinimumRggK() const;
 
-            ////////////////////////////////
-            // Debug
+            // ---
+            // Debug helpers.
+            // ---
+
             /** \brief Test if the class is setup and throw if not. */
             void assertSetup() const;
-            ////////////////////////////////
 
-            ////////////////////////////////
-            // Variables -- Make sure every one is configured in setup() and reset in clear():
-            /** \brief A function pointer to the planner name, for better OMPL_INFO, etc. output */
+            // ---
+            // Member variables (Make all are configured in setup() and reset in reset()).
+            // ---
+
+            /** \brief A function pointer to the planner name, for better OMPL_INFO, etc. output. */
             NameFunc nameFunc_;
 
-            /** \brief Whether the class is setup */
+            /** \brief Whether the class is setup. */
             bool isSetup_{false};
 
-            /** \brief The state space used by the planner */
+            /** \brief The state space used by the planner. */
             ompl::base::SpaceInformationPtr spaceInformation_{nullptr};
 
-            /** \brief The problem definition */
+            /** \brief The problem definition. */
             ompl::base::ProblemDefinitionPtr problemDefinition_{nullptr};
 
             /** \brief A cost/heuristic helper class. As this is a copy of the version owned by BITstar.cpp it can be
@@ -367,56 +369,56 @@ namespace ompl
              * clear(). */
             SearchQueue *queuePtr_{nullptr};
 
-            /** \brief An instance of a random number generator */
+            /** \brief An instance of a random number generator. */
             ompl::RNG rng_;
 
             /** \brief State sampler */
             ompl::base::InformedSamplerPtr sampler_{nullptr};
 
             /** \brief The start states of the problem as vertices. Constructed as a shared_ptr to give easy access to
-             * helper classes */
+             * helper classes. */
             VertexPtrVector startVertices_;
 
             /** \brief The goal states of the problem as vertices. Constructed as a shared_ptr to give easy access to
-             * helper classes */
+             * helper classes. */
             VertexPtrVector goalVertices_;
 
-            /** \brief Any start states of the problem that have been pruned */
+            /** \brief Any start states of the problem that have been pruned. */
             VertexPtrVector prunedStartVertices_;
 
-            /** \brief Any goal states of the problem that have been pruned */
+            /** \brief Any goal states of the problem that have been pruned. */
             VertexPtrVector prunedGoalVertices_;
 
-            /** \brief A copy of the new samples from this batch */
+            /** \brief A copy of the new samples of the most recently added batch. */
             VertexPtrVector newSamples_;
 
-            /** \brief A copy of the vertices recycled into samples during this batch */
+            /** \brief A copy of the vertices recycled into samples during the most recently added batch. */
             VertexPtrVector recycledSamples_;
 
             /** \brief The samples as a nearest-neighbours datastructure. Sorted by nnDistance. Size accessible via
-             * numFreeSamples */
+             * numFreeSamples. */
             VertexPtrNNPtr samples_{nullptr};
 
             /** \brief The vertices as a nearest-neighbours data structure. Sorted by nnDistance. Size accessible via
-             * numConnectedVertices */
+             * numConnectedVertices. */
             VertexPtrNNPtr vertices_{nullptr};
 
-            /** \brief The number of samples in this batch */
+            /** \brief The number of samples in this batch. */
             unsigned int numNewSamplesInCurrentBatch_{0u};
 
             /** \brief The number of states (vertices or samples) that were generated from a uniform distribution. Only
              * valid when refreshSamplesOnPrune_ is true, in which case it's used to calculate the RGG term of the
-             * uniform subgraph.*/
+             * uniform subgraph. */
             unsigned int numUniformStates_{0u};
 
-            /** \brief The current r-disc RGG connection radius */
+            /** \brief The current r-disc RGG connection radius. */
             double r_{0.};
 
             /** \brief The minimum k-nearest RGG connection term. Only a function of state dimension, so can be
-             * calculated once. Left as a double for later accuracy in calculate k */
+             * calculated once. Left as a double for later accuracy in calculate k. */
             double k_rgg_{0.};
 
-            /** \brief The current k-nearest RGG connection number */
+            /** \brief The current k-nearest RGG connection number. */
             unsigned int k_{0u};
 
             /** \brief The measure of the continuous problem domain which we are approximating with samples. This is
@@ -429,59 +431,57 @@ namespace ompl
             /** \brief The maximum heuristic cost to sample (i.e., the best solution found to date). */
             ompl::base::Cost solutionCost_{std::numeric_limits<double>::infinity()};
 
-            /** \brief The total-heuristic cost up to which we've sampled */
+            /** \brief The total-heuristic cost up to which we've sampled. */
             ompl::base::Cost sampledCost_{std::numeric_limits<double>::infinity()};
 
-            /** \brief If we've found an exact solution yet */
+            /** \brief If we've found an exact solution yet. */
             bool hasExactSolution_{false};
 
-            /** \brief IF BEING TRACKED, the vertex closest to the goal (this represents an "approximate" solution) */
+            /** \brief IF BEING TRACKED, the vertex closest to the goal (this represents an "approximate" solution). */
             VertexConstPtr closestVertexToGoal_{nullptr};
 
             /** \brief IF BEING TRACKED, the smallest distance of vertices in the tree to a goal (this represents
-             * tolerance of an "approximate" solution) */
+             * tolerance of an "approximate" solution). */
             double closestDistanceToGoal_{std::numeric_limits<double>::infinity()};
-            ///////////////////////////////////////////////////////////////////
 
-            ///////////////////////////////////////////////////////////////////
-            // Informational variables - Make sure initialized in setup and reset in clear
-            /** \brief The number of states generated through sampling. Accessible via numStatesGenerated */
+            /** \brief The number of states generated through sampling. Accessible via numStatesGenerated. */
             unsigned int numSamples_{0u};
 
-            /** \brief The number of vertices ever added to the tree. Accessible via numVerticesConnected */
+            /** \brief The number of vertices ever added to the tree. Accessible via numVerticesConnected. */
             unsigned int numVertices_{0u};
 
-            /** \brief The number of free states that have been pruned. Accessible via numStatesPruned */
+            /** \brief The number of free states that have been pruned. Accessible via numStatesPruned. */
             unsigned int numFreeStatesPruned_{0u};
 
-            /** \brief The number of graph vertices that get disconnected. Accessible via numVerticesDisconnected */
+            /** \brief The number of graph vertices that get disconnected. Accessible via numVerticesDisconnected. */
             unsigned int numVerticesDisconnected_{0u};
 
-            /** \brief The number of nearest neighbour calls. Accessible via numNearestLookups */
+            /** \brief The number of nearest neighbour calls. Accessible via numNearestLookups. */
             unsigned int numNearestNeighbours_{0u};
 
-            /** \brief The number of state collision checks. Accessible via numStateCollisionChecks */
+            /** \brief The number of state collision checks. Accessible via numStateCollisionChecks. */
             unsigned int numStateCollisionChecks_{0u};
-            ///////////////////////////////////////////////////////////////////
 
-            ///////////////////////////////////////////////////////////////////
+            // ---
             // Parameters - Set defaults in construction/setup and DO NOT reset in clear.
-            /** \brief The rewiring factor, s, so that r_rgg = s \times r_rgg* > r_rgg* (param) */
+            // ---
+
+            /** \brief The rewiring factor, s, so that r_rgg = s \times r_rgg* > r_rgg*. */
             double rewireFactor_{1.1};
 
-            /** \brief Option to use k-nearest search for rewiring (param) */
+            /** \brief Option to use k-nearest search for rewiring. */
             bool useKNearest_{true};
 
-            /** \brief Whether to use just-in-time sampling (param) */
+            /** \brief Whether to use just-in-time sampling. */
             bool useJustInTimeSampling_{false};
 
-            /** \brief Whether to refresh (i.e., forget) unconnected samples on pruning (param) */
+            /** \brief Whether to refresh (i.e., forget) unconnected samples on pruning. */
             bool dropSamplesOnPrune_{false};
 
-            /** \brief Whether to consider approximate solutions (param) */
+            /** \brief Whether to consider approximate solutions. */
             bool findApprox_{false};
-            ///////////////////////////////////////////////////////////////////
-        };  // class: ImplicitGraph
-    }       // geometric
-}  // ompl
+        }; // class ImplicitGraph
+    } // namespace geometric
+} // namespace ompl
+
 #endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IMPLICITGRAPH_

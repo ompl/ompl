@@ -76,7 +76,7 @@ namespace ompl
         // Public functions:
         BITstar::SearchQueue::SearchQueue(NameFunc nameFunc)
           : nameFunc_(std::move(nameFunc))
-          , edgeQueue_([this](const CostTripleAndVertexPtrPair &lhs, const CostTripleAndVertexPtrPair &rhs)
+          , edgeQueue_([this](const SortKeyAndVertexPtrPair &lhs, const SortKeyAndVertexPtrPair &rhs)
                        {
                            return lexicographicalBetterThan(lhs.first, rhs.first);
                        })  // This tells the edgeQueue_ to use lexicographical comparison for sorting.
@@ -134,7 +134,7 @@ namespace ompl
             ASSERT_SETUP
 
             // Insert into the edge queue, getting the pointer to the element.
-            auto edgeElemPtr = edgeQueue_.insert(std::make_pair(this->sortKey(edge), edge));
+            auto edgeElemPtr = edgeQueue_.insert(std::make_pair(this->createSortKey(edge), edge));
 
             // Make the parent aware that this edge is now in the queue.
             edge.first->insertInEdgeQueueOutLookup(edgeElemPtr, numQueueResets_);
@@ -158,7 +158,7 @@ namespace ompl
             return edgeQueue_.top()->data.second;
         }
 
-        BITstar::SearchQueue::CostTriple BITstar::SearchQueue::getFrontEdgeValue()
+        BITstar::SearchQueue::SortKey BITstar::SearchQueue::getFrontEdgeValue()
         {
             ASSERT_SETUP
 
@@ -281,7 +281,7 @@ namespace ompl
             // Insert the outgoing edges of the start vertices.
             for (auto it = graphPtr_->startVerticesBeginConst(); it != graphPtr_->startVerticesEndConst(); ++it)
             {
-                this->expand(*it);
+                this->insertOutgoingEdges(*it);
             }
         }
 
@@ -341,7 +341,7 @@ namespace ompl
             edgeQueue->clear();
 
             // Get the contents on the binary heap (key and edge).
-            std::vector<CostTripleAndVertexPtrPair> queueContents;
+            std::vector<SortKeyAndVertexPtrPair> queueContents;
             edgeQueue_.getContent(queueContents);
 
             // Fill the inout argument.
@@ -354,7 +354,7 @@ namespace ompl
 
         /////////////////////////////////////////////////////////////////////////////////////////////
         // Private functions:
-        void BITstar::SearchQueue::expand(const VertexPtr &vertex)
+        void BITstar::SearchQueue::insertOutgoingEdges(const VertexPtr &vertex)
         {
 #ifdef BITSTAR_DEBUG
             // Assert that this vertex has no outgoing edge queue entries.
@@ -504,7 +504,7 @@ namespace ompl
             kNearVertices->resize(vertexPos);
         }
 
-        BITstar::SearchQueue::CostTriple BITstar::SearchQueue::sortKey(const VertexPtrPair &edge) const
+        BITstar::SearchQueue::SortKey BITstar::SearchQueue::createSortKey(const VertexPtrPair &edge) const
         {
             // The sort key of an edge (u, v) is [ g_t(u) + c^hat(u, v) + h^hat(v); g_t(u) + c^hat(u, v); g_t(u) ].
             return {{costHelpPtr_->currentHeuristicEdge(edge), costHelpPtr_->currentHeuristicToTarget(edge),

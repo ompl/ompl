@@ -520,7 +520,7 @@ namespace ompl
 
                 if (bestEdge.first->hasParent() && bestEdge.first->getParent()->getId() == bestEdge.second->getId())
                 {
-                    queuePtr_->expand(bestEdge.second);
+                    queuePtr_->insertOutgoingEdges(bestEdge.second);
                 }
                 // In the best case, can this edge improve our solution given the current graph?
                 // g_t(v) + c_hat(v,x) + h_hat(x) < g_t(x_g)?
@@ -811,7 +811,7 @@ namespace ompl
             else
             {
 #ifdef BITSTAR_DEBUG
-                graphPtr_->assertValidSample(edge.second, false);
+                graphPtr_->assertSampleSanity(edge.second, false);
 #endif  // BITSTAR_DEBUG
 
                 // Add a parent to the child.
@@ -828,7 +828,7 @@ namespace ompl
             }
 
             // Enqueue the outgoing edges.
-            queuePtr_->expand(edge.second);
+            queuePtr_->insertOutgoingEdges(edge.second);
         }
 
         void BITstar::replaceParent(const VertexPtrPair &edge, const ompl::base::Cost &edgeCost)

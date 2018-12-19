@@ -186,7 +186,7 @@ namespace ompl
 
             // Finally initialize the nearestNeighbour terms:
             // Calculate the k-nearest constant
-            k_rgg_ = this->minimumRggK();
+            k_rgg_ = this->calculateMinimumRggK();
 
             // Make the initial k all vertices:
             k_ = startVertices_.size() + goalVertices_.size();
@@ -619,7 +619,7 @@ namespace ompl
                 // Iterate through the existing vertices and find the current best approximate solution (if enabled)
                 if (!hasExactSolution_ && findApprox_)
                 {
-                    this->findVertexClosestToGoal();
+                    this->updateVertexClosestToGoal();
                 }
             }
             // No else, why were we called?
@@ -696,7 +696,7 @@ namespace ompl
 
             // Assert the state of the sample
 #ifdef BITSTAR_DEBUG
-            this->assertValidSample(sample, true);
+            this->assertSampleSanity(sample, true);
 #endif  // BITSTAR_DEBUG
 
             // Add to the vector of new samples
@@ -889,7 +889,7 @@ namespace ompl
             child->removeParent(cascadeCostUpdates);
         }
 
-        void BITstar::ImplicitGraph::assertValidSample(const VertexConstPtr &sample, bool mustBeNew)
+        void BITstar::ImplicitGraph::assertSampleSanity(const VertexConstPtr &sample, bool mustBeNew)
         {
             if (sample->isRoot())
             {
@@ -919,7 +919,7 @@ namespace ompl
         void BITstar::ImplicitGraph::updateSamples(const VertexConstPtr &vertex)
         {
             // The required cost to contain the neighbourhood of this vertex.
-            ompl::base::Cost requiredCost = this->neighbourhoodCost(vertex);
+            ompl::base::Cost requiredCost = this->calculateNeighbourhoodCost(vertex);
 
             // Check if we need to generate new samples inorder to completely cover the neighbourhood of the vertex
             if (costHelpPtr_->isCostBetterThan(sampledCost_, requiredCost))
@@ -986,7 +986,7 @@ namespace ompl
             // No else, the samples are up to date
         }
 
-        void BITstar::ImplicitGraph::findVertexClosestToGoal()
+        void BITstar::ImplicitGraph::updateVertexClosestToGoal()
         {
             if (static_cast<bool>(vertices_))
             {
@@ -1276,7 +1276,7 @@ namespace ompl
             // No else, don't update if worse.
         }
 
-        ompl::base::Cost BITstar::ImplicitGraph::neighbourhoodCost(const VertexConstPtr &vertex) const
+        ompl::base::Cost BITstar::ImplicitGraph::calculateNeighbourhoodCost(const VertexConstPtr &vertex) const
         {
             // Are we using JIT sampling?
             if (useJustInTimeSampling_)
@@ -1338,7 +1338,7 @@ namespace ompl
             auto graphCardinality = static_cast<double>(numUniformSamples);
 
             // Calculate the term and return.
-            return rewireFactor_ * this->minimumRggR() * std::pow(std::log(graphCardinality) / graphCardinality, 1.0 / stateDimension);
+            return rewireFactor_ * this->calculateMinimumRggR() * std::pow(std::log(graphCardinality) / graphCardinality, 1.0 / stateDimension);
         }
 
         unsigned int BITstar::ImplicitGraph::calculateK(unsigned int numUniformSamples) const
@@ -1347,7 +1347,7 @@ namespace ompl
             return std::ceil(rewireFactor_ * k_rgg_ * std::log(static_cast<double>(numUniformSamples)));
         }
 
-        double BITstar::ImplicitGraph::minimumRggR() const
+        double BITstar::ImplicitGraph::calculateMinimumRggR() const
         {
             // Variables
             // The dimension cast as a double for readibility;
@@ -1385,7 +1385,7 @@ namespace ompl
             */
         }
 
-        double BITstar::ImplicitGraph::minimumRggK() const
+        double BITstar::ImplicitGraph::calculateMinimumRggK() const
         {
             // The dimension cast as a double for readibility.
             auto stateDimension = static_cast<double>(spaceInformation_->getStateDimension());
@@ -1613,7 +1613,7 @@ namespace ompl
                     if (!hasExactSolution_)
                     {
                         // We don't, find our current best approximate solution:
-                        this->findVertexClosestToGoal();
+                        this->updateVertexClosestToGoal();
                     }
                     // No else, exact is better than approximate.
                 }
