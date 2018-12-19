@@ -810,7 +810,7 @@ namespace ompl
             vertices_->remove(vertexCopy);
 
             // Add back as sample, if that would be beneficial
-            if (moveToFree && !queuePtr_->canSampleBePruned(vertexCopy))
+            if (moveToFree && !this->canSampleBePruned(vertexCopy))
             {
                 // Yes, the vertex is still useful as a sample. Track as recycled so they are reused as samples in the
                 // next batch.
@@ -1196,7 +1196,7 @@ namespace ompl
                 for (const auto &sample : samples)
                 {
                     // Check if this state should be pruned:
-                    if (queuePtr_->canSampleBePruned(sample))
+                    if (this->canSampleBePruned(sample))
                     {
                         // Yes, remove it
                         this->pruneSample(sample);
@@ -1224,7 +1224,7 @@ namespace ompl
             for (const auto &vertex : vertices)
             {
                 // Check if this state should be pruned:
-                if (queuePtr_->canVertexBePruned(vertex))
+                if (this->canVertexBePruned(vertex))
                 {
                     // Yes, remove it
                     this->pruneVertex(vertex);
@@ -1236,6 +1236,28 @@ namespace ompl
             }
 
             return numPruned;
+        }
+
+        bool BITstar::ImplicitGraph::canVertexBePruned(const VertexPtr &vertex) const
+        {
+            ASSERT_SETUP
+
+            // Threshold should always be g_t(x_g)
+
+            // Prune the vertex if it could cannot part of a better solution in the current graph.  Greater-than just in
+            // case we're using an edge that is exactly optimally connected.
+            // g_t(v) + h^(v) > g_t(x_g)?
+            return costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicVertex(vertex), solutionCost_);
+        }
+
+        bool BITstar::ImplicitGraph::canSampleBePruned(const VertexPtr &vertex) const
+        {
+            ASSERT_SETUP
+
+            // Threshold should always be g_t(x_g)
+            // Prune the unconnected sample if it could never be better of a better solution.
+            // g^(v) + h^(v) >= g_t(x_g)?
+            return costHelpPtr_->isCostWorseThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicVertex(vertex), solutionCost_);
         }
 
         void BITstar::ImplicitGraph::testClosestToGoal(const VertexConstPtr &vertex)

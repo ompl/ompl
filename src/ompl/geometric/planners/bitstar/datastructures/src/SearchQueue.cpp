@@ -319,54 +319,6 @@ namespace ompl
             return canImprove;
         }
 
-        bool BITstar::SearchQueue::canVertexBePruned(const VertexPtr &vertex) const
-        {
-            ASSERT_SETUP
-
-            // Threshold should always be g_t(x_g)
-
-            // Prune the vertex if it could cannot part of a better solution in the current graph.  Greater-than just in
-            // case we're using an edge that is exactly optimally connected.
-            // g_t(v) + h^(v) > g_t(x_g)?
-            return costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicVertex(vertex), solutionCost_);
-        }
-
-        bool BITstar::SearchQueue::canSampleBePruned(const VertexPtr &vertex) const
-        {
-            ASSERT_SETUP
-
-            // Threshold should always be g_t(x_g)
-            // Prune the unconnected sample if it could never be better of a better solution.
-            // g^(v) + h^(v) >= g_t(x_g)?
-            return costHelpPtr_->isCostWorseThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicVertex(vertex), solutionCost_);
-        }
-
-        bool BITstar::SearchQueue::canEdgeBePruned(const VertexPtrPair &edge) const
-        {
-            ASSERT_SETUP
-
-            bool rval;
-            // Threshold should always be g_t(x_g)
-
-            // Prune the edge if it could cannot part of a better solution in the current graph.  Greater-than just in
-            // case we're using an edge that is exactly optimally connected.
-            // g_t(v) + c^(v,x) + h^(x) > g_t(x_g)?
-            rval = costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicEdge(edge), solutionCost_);
-
-            // If the child is connected already, we need to check if we could do better than it's current connection.
-            // But only if we're not pruning based on the first check
-            if (edge.second->hasParent() && !rval)
-            {
-                // Can it ever be a better path to the vertex in the current graph? Greater-than to just in case we're
-                // using an edge that is exactly optimally connected
-                // g_t(v) + c^(v,x) > g_t(x)?
-                rval = costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicToTarget(edge),
-                                                     edge.second->getCost());  // Currently rewire?
-            }
-
-            return rval;
-        }
-
         unsigned int BITstar::SearchQueue::numEdges()
         {
             ASSERT_SETUP

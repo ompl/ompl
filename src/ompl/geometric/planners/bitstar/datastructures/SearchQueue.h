@@ -191,20 +191,6 @@ namespace ompl
              * threshold. Returns true if the edge's best cost is lower than the internally set threshold.*/
             bool canPossiblyImproveCurrentSolution(const VertexPtrPair &edge) const;
 
-            /** \brief The condition used to prune vertices out of the queue. Compares currentHeuristicVertex to the
-             * given threshold. Returns true if the vertex's best cost is greater than the internally set threshold.*/
-            bool canVertexBePruned(const VertexPtr &vertex) const;
-
-            /** \brief The condition used to prune disconnected samples from the free set. Compares
-             * lowerBoundHeuristicVertex to the given threshold. Returns true if the vertex's best cost is greater than
-             * or equal to the internally set threshold.*/
-            bool canSampleBePruned(const VertexPtr &state) const;
-
-            /** \brief The condition used to prune edge (i.e., vertex-pair) out of the queue. Compares
-             * currentHeuristicEdge to the given threshold. Returns true if the edge's best cost is greater than the
-             * internally set threshold.*/
-            bool canEdgeBePruned(const VertexPtrPair &edge) const;
-
             /** \brief Returns the number of edges in the queue. Will resort/expand the queue if necessary. */
             unsigned int numEdges();
 

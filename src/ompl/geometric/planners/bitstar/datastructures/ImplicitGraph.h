@@ -293,9 +293,20 @@ namespace ompl
             std::pair<unsigned int, unsigned int> pruneStartAndGoalVertices();
 
             /** \brief Prune any samples that provably cannot provide a better solution than the current best solution.
-             * This is done via the prune conditions of the SearchQueue. Removes the number of samples removed.*/
+             * Returns the number of samples removed. */
             unsigned int pruneSamples();
+
+            /** \brief Prune any vertices that provably cannot provide a better solution than the current best solution.
+             * Returns the number of vertices removed. */
             unsigned int pruneVertices();
+
+            /** \brief Returns whether the vertex can be pruned, i.e., whether it could provide a better solution given.
+             * the current graph. The check should always be g_t(v) + h^(v) >= g_t(x_g). */
+            bool canVertexBePruned(const VertexPtr &vertex) const;
+
+            /** \brief Returns whether the sample can be pruned, i.e., whether it could ever provide a better solution.
+             * The check should always be g^(v) + h^(v) >= g_t(x_g). */
+            bool canSampleBePruned(const VertexPtr &sample) const;
             ////////////////////////////////
 
             ////////////////////////////////
