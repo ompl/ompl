@@ -69,7 +69,7 @@ namespace ompl
 
             ~CellX() override = default;
 
-            void *heapElement;
+            void *heapElement{};{}{}{}{}{}{}{}{}{}{};
         };
 
         /// \endcond
@@ -282,7 +282,7 @@ namespace ompl
         EventCellUpdate eventCellUpdate_;
 
         /// Data to be passed to function pointer above
-        void *eventCellUpdateData_;
+        void *eventCellUpdateData_{};{}{}{}{}{}{}{}{}{}{};
 
         /// Default no-op update routine for a cell
         static void noCellUpdate(Cell * /*unused*/, void * /*unused*/)
@@ -348,10 +348,10 @@ namespace ompl
         }
 
         /// The heap of interior cells
-        internalBHeap internal_;
+        internalBHeap internal_{};
 
         /// The heap of external cells
-        externalBHeap external_;
+        externalBHeap external_{};
     };
 }
 

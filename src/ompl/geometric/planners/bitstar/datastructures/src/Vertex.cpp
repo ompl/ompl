@@ -80,7 +80,7 @@ namespace ompl
                                 bool root /*= false*/)
           : vId_(getIdGenerator().getNewId())
           , si_(std::move(si))
-          , costHelpPtr_(std::move(costHelpPtr))
+          , costHelpPtr_(costHelpPtr)
           , state_(si_->allocState())
           , isRoot_(root)
           , edgeCost_(costHelpPtr_->infiniteCost())

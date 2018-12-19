@@ -327,7 +327,7 @@ namespace ompl
 
             /** \brief A local pointer to the samples/vertices viewed as an implicit graph. As this is a copy of the
              * version owned by BITstar.cpp it can be reset in a clear(). */
-            ImplicitGraph *graphPtr_;
+            ImplicitGraph *graphPtr_{}{}{}{}{};
             ////////////////////////////////
         };  // class CostHelper
     }       // geometric

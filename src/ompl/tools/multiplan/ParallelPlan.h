@@ -151,7 +151,7 @@ namespace ompl
 
         private:
             /** \brief Number of solutions found during a particular run */
-            unsigned int foundSolCount_;
+            unsigned int foundSolCount_{};
 
             /** \brief Lock for phybrid_ */
             std::mutex foundSolCountLock_;

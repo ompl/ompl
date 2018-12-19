@@ -68,7 +68,7 @@ namespace ompl
             bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
 
         private:
-            StateSpace *stateSpace_;
+            StateSpace *stateSpace_{}{}{}{};
 
             void defaultSettings();
         };

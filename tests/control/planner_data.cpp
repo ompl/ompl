@@ -81,7 +81,7 @@ public:
         return static_cast<ompl::base::PlannerDataVertex*>(new PlannerDataTestVertex(*this));
     }
 
-    int tag2_;
+    int tag2_{}{};
 
 protected:
     PlannerDataTestVertex() = default;
@@ -121,7 +121,7 @@ public:
         return false;
     }
 
-    int id_;
+    int id_{}{};
 
 protected:
     PlannerDataTestEdge() = default;

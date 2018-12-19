@@ -242,7 +242,7 @@ namespace ompl
             AutomatonPtr cosafety_;
             AutomatonPtr safety_;
             GraphType graph_;
-            State *startState_;
+            State *startState_{}{};
             std::vector<State *> solutionStates_;
 
             /* Only one State pointer will be allocated for each possible State

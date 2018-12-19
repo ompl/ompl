@@ -82,7 +82,7 @@ namespace ompl
                 }
                 ~Triangle() override = default;
                 std::vector<int> neighbors;
-                double volume;
+                double volume{};;{};
             };
 
             /** \brief Creates a TriangularDecomposition over the given bounds, which must be 2-dimensional.

@@ -150,7 +150,7 @@ namespace ompl
                 ~Motion() = default;
 
                 /** \brief The id of the motion */
-                std::size_t id_;
+                std::size_t id_{}{};
 
                 /** \brief The state contained by the motion */
                 base::State *state_{nullptr};
@@ -182,7 +182,7 @@ namespace ompl
 
             private:
                 LazyLBTRRT *alg_;
-                Motion *target_;
+                Motion *target_{};
             };  // CostEstimatorApx
 
             class CostEstimatorLb
@@ -315,7 +315,7 @@ namespace ompl
 
             BoostGraph graphLb_;
             BoostGraph graphApx_;
-            Motion *startMotion_;
+            Motion *startMotion_{};
             Motion *goalMotion_{nullptr};  // root of LPAstarApx_
             LPAstarApx *LPAstarApx_{nullptr};  // rooted at target
             LPAstarLb *LPAstarLb_{nullptr};  // rooted at source
@@ -326,7 +326,7 @@ namespace ompl
             /** \brief Number of iterations the algorithm performed */
             unsigned int iterations_{0};
             /** \brief Best cost found so far by algorithm */
-            double bestCost_;
+            double bestCost_{};
         };
     }
 }

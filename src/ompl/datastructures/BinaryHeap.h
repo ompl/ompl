@@ -64,11 +64,11 @@ namespace ompl
             Element() = default;
             ~Element() = default;
             /** \brief The location of the data in the heap's storage */
-            unsigned int position;
+            unsigned int position{};;{}{}{}{}{}{}{}{}{}{}{}{};
 
         public:
             /** \brief The data of this element */
-            _T data;
+            _T data{};
         };
 
         /** \brief Event that gets called after an insertion */
@@ -242,9 +242,9 @@ namespace ompl
         std::vector<Element *> vector_;
 
         EventAfterInsert eventAfterInsert_;
-        void *eventAfterInsertData_;
+        void *eventAfterInsertData_{};;{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{};
         EventBeforeRemove eventBeforeRemove_;
-        void *eventBeforeRemoveData_;
+        void *eventBeforeRemoveData_{};;{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{};
 
         void removePos(unsigned int pos)
         {

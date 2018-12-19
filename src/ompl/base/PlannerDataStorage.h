@@ -105,13 +105,13 @@ namespace ompl
             struct Header
             {
                 /// \brief OMPL PlannerData specific marker (fixed value)
-                std::uint_fast32_t marker;
+                std::uint_fast32_t marker{};
 
                 /// \brief Number of vertices stored in the archive
-                std::size_t vertex_count;
+                std::size_t vertex_count{};
 
                 /// \brief Number of edges stored in the archive
-                std::size_t edge_count;
+                std::size_t edge_count{};
 
                 /// \brief Signature of state space that allocated the saved states in the vertices (see
                 /// ompl::base::StateSpace::computeSignature()) */
@@ -146,7 +146,7 @@ namespace ompl
                     ar &type_;
                 }
 
-                const PlannerDataVertex *v_;
+                const PlannerDataVertex *v_{};{};
                 std::vector<unsigned char> state_;
                 VertexType type_;
             };
@@ -162,9 +162,9 @@ namespace ompl
                     ar &weight_;
                 }
 
-                const PlannerDataEdge *e_;
+                const PlannerDataEdge *e_{};{};
                 std::pair<unsigned int, unsigned int> endpoints_;
-                double weight_;
+                double weight_{};{};
             };
 
             /// \brief Read \e numVertices from the binary input \e ia and store them as PlannerData.

@@ -463,7 +463,7 @@ public:
         return static_cast<ompl::base::PlannerDataVertex*>(new PlannerDataTestVertex(*this));
     }
 
-    int tag2_;
+    int tag2_{}{};
 
 protected:
     PlannerDataTestVertex() = default;

@@ -318,13 +318,13 @@ namespace ompl
                 base::State *state_;
 
                 /** \brief The parent motion in the exploration tree  */
-                BiDirMotion *parent_[2];
+                BiDirMotion *parent_[2]{};{};
 
                 /** \brief The set of motions descending from the current motion  */
                 BiDirMotionPtrs children_[2];
 
                 /** \brief Current set in which the motion is included.  */
-                SetType currentSet_[2];
+                SetType currentSet_[2]{};{};
 
                 /** \brief Tree identifier  */
                 TreeType *tree_;
@@ -616,7 +616,7 @@ namespace ompl
             bool heuristics_{true};
 
             /** \brief Goal state caching to accelerate cost to go heuristic computation */
-            base::State *heurGoalState_[2];
+            base::State *heurGoalState_[2]{};
 
             /** \brief Flag to activate the collision check caching */
             bool cacheCC_{true};

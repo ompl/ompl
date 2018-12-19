@@ -152,7 +152,7 @@ namespace ompl
 
         private:
             /** \brief Number of sampler instances */
-            unsigned int samplerCount_;
+            unsigned int samplerCount_{};;{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{};
         };
 
         /** \brief Definition of a function that can allocate a control sampler */

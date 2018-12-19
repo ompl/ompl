@@ -454,8 +454,8 @@ int main(int argc, char **argv)
     unsigned int links = 3;
     unsigned int chains = 4;
 
-    struct ConstrainedOptions c_opt;
-    struct AtlasOptions a_opt;
+    struct ConstrainedOptions c_opt{};
+    struct AtlasOptions a_opt{};
 
     po::options_description desc("Options");
     desc.add_options()("help,h", help_msg);

@@ -156,8 +156,8 @@ int main(int argc, char **argv)
     enum SPACE_TYPE space = PJ;
     std::vector<enum PLANNER_TYPE> planners = {RRT};
 
-    struct ConstrainedOptions c_opt;
-    struct AtlasOptions a_opt;
+    struct ConstrainedOptions c_opt{};
+    struct AtlasOptions a_opt{};
 
     unsigned int links;
 

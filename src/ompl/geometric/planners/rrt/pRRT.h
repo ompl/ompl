@@ -153,9 +153,9 @@ namespace ompl
 
             struct SolutionInfo
             {
-                Motion *solution;
-                Motion *approxsol;
-                double approxdif;
+                Motion *solution{};
+                Motion *approxsol{};
+                double approxdif{};
                 std::mutex lock;
             };
 
@@ -171,7 +171,7 @@ namespace ompl
             std::shared_ptr<NearestNeighbors<Motion *>> nn_;
             std::mutex nnLock_;
 
-            unsigned int threadCount_;
+            unsigned int threadCount_{};
 
             double goalBias_{.05};
             double maxDistance_{0.};

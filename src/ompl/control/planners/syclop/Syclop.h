@@ -304,21 +304,21 @@ namespace ompl
                 /** \brief The tree motions contained in this region */
                 std::vector<Motion *> motions;
                 /** \brief The volume of this region */
-                double volume;
+                double volume{};;;{}{};
                 /** \brief The free volume of this region */
-                double freeVolume;
+                double freeVolume{};;;{}{};
                 /** \brief The percent of free volume of this region */
-                double percentValidCells;
+                double percentValidCells{};;;{}{};
                 /** \brief The probabilistic weight of this region, used when sampling from PDF */
-                double weight;
+                double weight{};;;{}{};
                 /** \brief The coefficient contributed by this region to edge weights in lead computations */
-                double alpha;
+                double alpha{};;;{}{};
                 /** \brief The index of the graph node corresponding to this region */
-                int index;
+                int index{};;;{}{};
                 /** \brief The number of times this region has been selected for expansion */
-                unsigned int numSelections;
+                unsigned int numSelections{};;;{}{};
                 /** \brief The Element corresponding to this region in the PDF of available regions. */
-                PDF<int>::Element *pdfElem;
+                PDF<int>::Element *pdfElem{};;;{}{};
             };
 #pragma pack(pop)  // Restoring default byte alignment
 
@@ -339,19 +339,19 @@ namespace ompl
                     direct connections along this adjacency */
                 std::set<int> covGridCells;
                 /** \brief The source region of this adjacency edge */
-                const Region *source;
+                const Region *source{};;;{}{};
                 /** \brief The target region of this adjacency edge */
-                const Region *target;
+                const Region *target{}{}{};
                 /** \brief The cost of this adjacency edge, used in lead computations */
-                double cost;
+                double cost{}{}{};
                 /** \brief The number of times this adjacency has been included in a lead */
-                int numLeadInclusions;
+                int numLeadInclusions{}{}{};
                 /** \brief The number of times the low-level tree planner has selected motions from the source region
                     when attempting to extend the tree toward the target region. */
-                int numSelections;
+                int numSelections{}{}{};
                 /** \brief This value is true if and only if this adjacency's source and target regions both contain
                  * zero tree motions. */
-                bool empty;
+                bool empty{}{}{};
             };
 #pragma pack(pop)  // Restoring default byte alignment
 
@@ -578,20 +578,20 @@ namespace ompl
             /** \brief Lead computaton std::function object */
             LeadComputeFn leadComputeFn;
             /** \brief The current computed lead */
-            std::vector<int> lead_;
+            std::vector<int> lead_{}{}{};
             /** \brief Used to sample regions in which to promote expansion */
             PDF<int> availDist_;
             /** \brief Stores all factor functions used to compute adjacency edge cost for lead computation */
-            std::vector<EdgeCostFactorFn> edgeCostFactors_;
+            std::vector<EdgeCostFactorFn> edgeCostFactors_{}{}{};
             /** \brief An underlying grid used to estimate coverage */
             CoverageGrid covGrid_;
             /** \brief A graph structure whose nodes and edges correspond to regions and adjacencies in the given
              * Decomposition */
-            RegionGraph graph_;
+            RegionGraph graph_{}{}{};
             /** \brief This value stores whether the graph structure has been built */
             bool graphReady_{false};
             /** \brief Maps pairs of regions to adjacency objects */
-            std::unordered_map<std::pair<int, int>, Adjacency *, HashRegionPair> regionsToEdge_;
+            std::unordered_map<std::pair<int, int>, Adjacency *, HashRegionPair> regionsToEdge_{}{}{};
             /** \brief The total number of motions in the low-level tree */
             unsigned int numMotions_{0};
             /** \brief The set of all regions that contain start states */

@@ -403,16 +403,16 @@ namespace ompl
             double epsilon_{ompl::magic::ATLAS_STATE_SPACE_EPSILON};
 
             /** \brief Maximum radius of chart validity region. */
-            double rho_;
+            double rho_{};
 
             /** \brief Cosine of the maximum angle between a chart and the manifold inside its validity region. */
-            double cos_alpha_;
+            double cos_alpha_{};
 
             /** \brief Balance between explorationa and refinement. */
-            double exploration_;
+            double exploration_{};
 
             /** \brief Sampling radius within a chart. Inferred from rho and exploration parameters. */
-            mutable double rho_s_;
+            mutable double rho_s_{};
 
             /** \brief Step size reduction factor during manifold traversal. */
             double backoff_{ompl::magic::ATLAS_STATE_SPACE_BACKOFF};

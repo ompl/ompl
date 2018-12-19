@@ -122,10 +122,10 @@ namespace ompl
                 Eigen::VectorXd u_;
 
                 /** \brief Precomputed squared norm of u_ */
-                double usqnorm_;
+                double usqnorm_{};
 
                 /** \brief Precomputed right-hand side of the inequality. */
-                double rhs_;
+                double rhs_{};
 
                 /** \brief Generate the linear inequality. We will divide the
                  * space in half between \a u and 0, and 0 will lie inside. */

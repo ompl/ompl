@@ -88,7 +88,7 @@ namespace ompl
                 /** Path segment types */
                 const ReedsSheppPathSegmentType *type_;
                 /** Path segment lengths */
-                double length_[5];
+                double length_[5]{};
                 /** Total length */
                 double totalLength_;
             };
@@ -142,7 +142,7 @@ namespace ompl
             bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
 
         private:
-            ReedsSheppStateSpace *stateSpace_;
+            ReedsSheppStateSpace *stateSpace_{};;{}{}{};
             void defaultSettings();
         };
     }

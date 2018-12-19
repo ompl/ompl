@@ -72,7 +72,7 @@ namespace ompl
             {
             public:
                 /** \brief The current state - an int in range [lowerBound, upperBound] */
-                int value;
+                int value{};
             };
 
             /** \brief Construct a discrete space in wich states can take values in the set [\e lowerBound, \e

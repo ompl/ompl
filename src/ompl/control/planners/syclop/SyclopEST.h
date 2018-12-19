@@ -74,10 +74,10 @@ namespace ompl
 
             base::StateSamplerPtr sampler_;
             ControlSamplerPtr controlSampler_;
-            std::vector<Motion *> motions_;
+            std::vector<Motion *> motions_{};
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
-            Motion *lastGoalMotion_;
+            Motion *lastGoalMotion_{}{}{};
         };
     }
 }

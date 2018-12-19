@@ -94,7 +94,7 @@ namespace ompl
                 }
 
                 /** \brief The value of the actual vector in R<sup>n</sup> */
-                double *values;
+                double *values{};{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{};
             };
 
             /** \brief Constructor. The dimension of of the space needs to be specified. A space representing

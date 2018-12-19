@@ -217,7 +217,7 @@ namespace ompl
             struct SolutionInfo
             {
                 std::vector<Motion *> solution;
-                bool found;
+                bool found{};
                 std::mutex lock;
             };
 
@@ -259,11 +259,11 @@ namespace ompl
             MotionsToBeRemoved removeList_;
             std::mutex loopLock_;
             std::mutex loopLockCounter_;
-            unsigned int loopCounter_;
+            unsigned int loopCounter_{};
 
             double maxDistance_{0.};
 
-            unsigned int threadCount_;
+            unsigned int threadCount_{};
 
             /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
             std::pair<base::State *, base::State *> connectionPoint_{nullptr, nullptr};

@@ -325,7 +325,7 @@ namespace ompl
             const unsigned int k_;
 
             /** \brief Step size when traversing the manifold and collision checking. */
-            double delta_;
+            double delta_{};
 
             /** \brief Manifold traversal from x to y is stopped if accumulated
              * distance is greater than d(x,y) times this. Additionally, if d(x,

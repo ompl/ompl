@@ -168,7 +168,7 @@ namespace ompl
             double maxDistance_{0.};
 
             /// \brief The radius considered for neighborhood
-            double nbrhoodRadius_;
+            double nbrhoodRadius_{};
 
             /** \brief The random number generator */
             RNG rng_;

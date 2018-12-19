@@ -93,9 +93,9 @@ protected:
     // A vector of flags indicating which objects are dead.
     std::vector<bool> dead_;
     // The current time in the simulation.
-    double time_;
+    double time_{};
     // The time to stop the simulation.
-    double endTime_;
+    double endTime_{};
     // A queue of collision events.
     CollisionEventQueue collisionEvents_;
 };

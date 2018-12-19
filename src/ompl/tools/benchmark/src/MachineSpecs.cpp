@@ -97,7 +97,7 @@ std::string getCPUInfoAux()
 
 ompl::machine::MemUsage_t getProcessMemoryUsageAux()
 {
-    task_basic_info info;
+    task_basic_info info{};
     kern_return_t rval = 0;
     mach_port_t task = mach_task_self();
     mach_msg_type_number_t tcnt = TASK_BASIC_INFO_COUNT;

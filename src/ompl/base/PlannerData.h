@@ -114,9 +114,9 @@ namespace ompl
             }
 
             /// \brief The state represented by this vertex
-            const State *state_;
+            const State *state_{};;;;;{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{};
             /// \brief A generic integer tag for this state.  Not used for equivalence checking.
-            int tag_;
+            int tag_{};;;;;{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{};
 
             friend class PlannerData;
             friend class PlannerDataStorage;

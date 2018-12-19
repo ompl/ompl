@@ -116,19 +116,19 @@ public:
     void setPlanningParameters();
 
     // the simulation world
-    dWorldID bodyWorld;
+    dWorldID bodyWorld{};
 
     // the space for all objects
-    dSpaceID space;
+    dSpaceID space{};
 
     // the car mass
     dMass m;
 
     // the body geom
-    dGeomID boxGeom;
+    dGeomID boxGeom{};
 
     // the body
-    dBodyID boxBody;
+    dBodyID boxBody{};
 };
 
 // Define the goal we want to reach

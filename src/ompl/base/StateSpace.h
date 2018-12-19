@@ -114,7 +114,7 @@ namespace ompl
                 std::vector<std::size_t> chain;
 
                 /** \brief The space that is reached if the chain above is followed on the state space */
-                const StateSpace *space;
+                const StateSpace *space{};
             };
 
             /** \brief Representation of the address of a value in a state. This structure stores the indexing
@@ -125,7 +125,7 @@ namespace ompl
                 SubstateLocation stateLocation;
 
                 /** \brief The index of the value to be accessed, within the substate location above */
-                std::size_t index;
+                std::size_t index{};;;;{}{}{}{}{};
             };
 
             /** \brief Flags to use in a bit mask for state space sanity checks. Some basic checks do not have flags

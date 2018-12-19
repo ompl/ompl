@@ -232,7 +232,7 @@ namespace ompl
             /** \brief Struct for passing around partially solved solutions */
             struct CandidateSolution
             {
-                bool isApproximate_;
+                bool isApproximate_{};
                 base::PathPtr path_;
                 // Edge 0 is edge from vertex 0 to vertex 1. Thus, there is n-1 edges for n vertices
                 std::vector<EdgeCollisionState> edgeCollisionStatus_;
@@ -715,7 +715,7 @@ namespace ompl
             std::vector<Vertex> goalM_;
 
             /** \brief Vertex for performing nearest neighbor queries. */
-            Vertex queryVertex_;
+            Vertex queryVertex_{};
 
             /** \brief Stretch Factor as per graph spanner literature (multiplicative bound on path quality) */
             double stretchFactor_{3.};
