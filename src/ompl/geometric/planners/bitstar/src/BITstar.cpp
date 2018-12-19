@@ -297,9 +297,9 @@ namespace ompl
             // Keep this in the order of the constructors:
 
             // The various helper classes. DO NOT reset the pointers, they hold configuration parameters:
-            costHelpPtr_->clear();
-            graphPtr_->clear();
-            queuePtr_->clear();
+            costHelpPtr_->reset();
+            graphPtr_->reset();
+            queuePtr_->reset();
 
             // Reset the various calculations and convenience containers. Will be recalculated on setup
             curGoalVertex_.reset();
@@ -601,7 +601,7 @@ namespace ompl
                 {
                     // The edge cannot improve our solution, and therefore neither can any other edge in the queue. Give
                     // up on the batch:
-                    queuePtr_->resortOrClear();
+                    queuePtr_->clear();
                 }
             }  // Search queue not empty.
         }
@@ -626,7 +626,7 @@ namespace ompl
             graphPtr_->addNewSamples(samplesPerBatch_);
 
             // Reset the queue:
-            queuePtr_->reset();
+            queuePtr_->restart();
         }
 
         void BITstar::prune()

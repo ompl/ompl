@@ -195,7 +195,7 @@ namespace ompl
             r_ = std::numeric_limits<double>::infinity();
         }
 
-        void BITstar::ImplicitGraph::clear()
+        void BITstar::ImplicitGraph::reset()
         {
             // Reset everything to the state of construction OTHER than planner name and settings/parameters
             // Keep this in the order of the constructors for easy verification:

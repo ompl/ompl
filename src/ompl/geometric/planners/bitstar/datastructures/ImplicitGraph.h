@@ -79,7 +79,7 @@ namespace ompl
                        const ompl::base::Planner *plannerPtr, ompl::base::PlannerInputStates &inputStates);
 
             /** \brief Clear the graph to the state of construction. */
-            void clear();
+            void reset();
             //////////////////
 
             //////////////////

@@ -101,7 +101,7 @@ namespace ompl
             solutionCost_ = costHelpPtr_->infiniteCost();
         }
 
-        void BITstar::SearchQueue::clear()
+        void BITstar::SearchQueue::reset()
         {
             // Reset everything to the state of construction OTHER than planner name and settings/parameters
             // Keep this in the order of the constructors for easy verification:
@@ -529,7 +529,7 @@ namespace ompl
             // No else, nothing to resort
         }
 
-        void BITstar::SearchQueue::resortOrClear()
+        void BITstar::SearchQueue::clear()
         {
             ASSERT_SETUP
 
@@ -555,7 +555,7 @@ namespace ompl
             }
         }
 
-        void BITstar::SearchQueue::reset()
+        void BITstar::SearchQueue::restart()
         {
             ASSERT_SETUP
 

@@ -83,8 +83,8 @@ namespace ompl
                 graphPtr_ = graph;
             };
 
-            /** \brief Clear the CostHelper, returns to state at construction*/
-            inline void clear()
+            /** \brief Reset the CostHelper, returns to state at construction. */
+            inline void reset()
             {
                 opt_.reset();
                 graphPtr_ = nullptr;
