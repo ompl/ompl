@@ -40,13 +40,15 @@ from os.path import exists
 import os
 import sqlite3
 import sys
-from optparse import OptionParser
+import argparse
+from pathlib import Path
+from warnings import warn
 plottingEnabled = True
 try:
     import matplotlib
     matplotlib.use('pdf')
-    from matplotlib import __version__ as matplotlibversion
     from matplotlib.backends.backend_pdf import PdfPages
+    from matplotlib.cm import viridis
     import matplotlib.pyplot as plt
     import numpy as np
     from math import floor
@@ -60,17 +62,18 @@ except ImportError:
 def readLogValue(filevar, desired_token_index, expected_tokens):
     start_pos = filevar.tell()
     tokens = filevar.readline().split()
-    for token_index in expected_tokens:
-        if not tokens[token_index] == expected_tokens[token_index]:
-            # undo the read, if we failed to parse.
-            filevar.seek(start_pos)
-            return None
+    if expected_tokens:
+        for token_index in expected_tokens:
+            if not tokens[token_index] == expected_tokens[token_index]:
+                # undo the read, if we failed to parse.
+                filevar.seek(start_pos)
+                return None
     return tokens[desired_token_index]
 
-def readOptionalLogValue(filevar, desired_token_index, expected_tokens={}):
+def readOptionalLogValue(filevar, desired_token_index, expected_tokens=None):
     return readLogValue(filevar, desired_token_index, expected_tokens)
 
-def readRequiredLogValue(name, filevar, desired_token_index, expected_tokens={}):
+def readRequiredLogValue(name, filevar, desired_token_index, expected_tokens=None):
     result = readLogValue(filevar, desired_token_index, expected_tokens)
     if result is None:
         raise Exception("Unable to read " + name)
@@ -157,9 +160,9 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
             {-2: "experiment", -1: "properties"}) or 0)
         expprops = {}
         for _ in range(nrexpprops):
-            entry = logfile.readline().strip().split('=')
+            entry = logfile.readline().strip().split(' = ')
             nameAndType = entry[0].split(' ')
-            expprops[nameAndType[0]] = (entry[1], nameAndType[1])
+            expprops[''.join(nameAndType[:-1]).replace('-', '_')] = (entry[1], nameAndType[-1])
 
         # adding columns to experiments table
         c.execute('PRAGMA table_info(experiments)')
@@ -190,13 +193,13 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
         nrrunsOrNone = readOptionalLogValue(logfile, 0, \
             {-3 : "runs", -2 : "per", -1 : "planner"})
         nrruns = -1
-        if nrrunsOrNone != None:
+        if nrrunsOrNone is not None:
             nrruns = int(nrrunsOrNone)
         totaltime = float(readRequiredLogValue("total time", logfile, 0, \
             {-3 : "collect", -2 : "the", -1 : "data"}))
         numEnums = 0
         numEnumsOrNone = readOptionalLogValue(logfile, 0, {-2 : "enum"})
-        if numEnumsOrNone != None:
+        if numEnumsOrNone is not None:
             numEnums = int(numEnumsOrNone)
         for _ in range(numEnums):
             enum = logfile.readline()[:-1].split('|')
@@ -207,12 +210,15 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
                         (enum[0], j, enum[j + 1]))
 
         # Creating entry in experiments table
-        experimentEntries = [None, expname, totaltime, timelimit, memorylimit, nrruns, version,
+        expColNames = ['name', 'totaltime', 'timelimit', 'memorylimit', 'runcount', 'version',
+                       'hostname', 'cpuinfo', 'date', 'seed', 'setup']
+        experimentEntries = [expname, totaltime, timelimit, memorylimit, nrruns, version,
                              hostname, cpuinfo, date, rseed, expsetup]
-        for name in sorted(expprops.keys()): # sort to ensure correct order
-            experimentEntries.append(expprops[name][0])
-        c.execute('INSERT INTO experiments VALUES (' + ','.join(
-            '?' for i in experimentEntries) + ')', experimentEntries)
+        expProps = expprops.keys()
+        expColNames += expProps
+        experimentEntries += [expprops[name][0] for name in expProps]
+        c.execute('INSERT INTO experiments (' + ','.join(expColNames) + ') VALUES (' +
+                  ','.join('?'*len(experimentEntries)) + ')', experimentEntries)
         experimentId = c.lastrowid
 
         numPlanners = int(readRequiredLogValue("planner count", logfile, 0, {-1 : "planners"}))
@@ -277,7 +283,7 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
                 # read progress properties and add columns as necesary
                 numProgressProperties = int(nextLine.split()[0])
                 progressPropertyNames = ['runid']
-                for i in range(numProgressProperties):
+                for _ in range(numProgressProperties):
                     field = logfile.readline().split()
                     progressPropertyType = field[-1]
                     progressPropertyName = "_".join(field[:-1])
@@ -320,7 +326,7 @@ def plotAttribute(cur, planners, attribute, typename):
     for planner in planners:
         cur.execute('SELECT %s FROM runs WHERE plannerid = %s AND %s IS NOT NULL' \
             % (attribute, planner[0], attribute))
-        measurement = [t[0] for t in cur.fetchall() if t[0] != None]
+        measurement = [t[0] for t in cur.fetchall() if t[0] is not None]
         if measurement:
             cur.execute('SELECT count(*) FROM runs WHERE plannerid = %s AND %s IS NULL' \
                 % (planner[0], attribute))
@@ -347,7 +353,7 @@ def plotAttribute(cur, planners, attribute, typename):
         ind = range(measurements.shape[1])
         for i in rows:
             plt.bar(ind, measurements[i], width, bottom=heights[0], \
-                color=matplotlib.cm.hot(int(floor(i * 256 / numValues))), \
+                color=viridis(int(floor(i * 256 / numValues))), \
                 label=descriptions[i])
             heights = heights + measurements[i]
         xtickNames = plt.xticks([x+width/2. for x in ind], labels, rotation=30)
@@ -365,10 +371,7 @@ def plotAttribute(cur, planners, attribute, typename):
         xtickNames = plt.xticks([x + width / 2. for x in ind], labels, rotation=30)
         ax.set_ylabel(attribute.replace('_', ' ') + ' (%)')
     else:
-        if int(matplotlibversion.split('.')[0]) < 1:
-            plt.boxplot(measurements, notch=0, sym='k+', vert=1, whis=1.5)
-        else:
-            plt.boxplot(measurements, notch=0, sym='k+', vert=1, whis=1.5, bootstrap=1000)
+        plt.boxplot(measurements, notch=0, sym='k+', vert=1, whis=1.5, bootstrap=1000)
         ax.set_ylabel(attribute.replace('_', ' '))
         xtickNames = plt.setp(ax, xticklabels=labels)
         plt.setp(xtickNames, rotation=25)
@@ -432,8 +435,11 @@ each planner."""
     else:
         plt.clf()
 
-def plotStatistics(dbname, fname):
+def plotStatistics(dbname):
     """Create a PDF file with box plots for all attributes."""
+    warn('\n\n\tThis functionality is considered deprecated and might be removed '
+         'in a future version.\n\tConsider using Planner Arena, '
+         'http://plannerarena.org.\n')
     print("Generating plots...")
     conn = sqlite3.connect(dbname)
     c = conn.cursor()
@@ -444,95 +450,92 @@ def plotStatistics(dbname, fname):
     c.execute('PRAGMA table_info(runs)')
     colInfo = c.fetchall()[3:]
 
-    pp = PdfPages(fname)
-    for col in colInfo:
-        if col[2] == 'BOOLEAN' or col[2] == 'ENUM' or \
-           col[2] == 'INTEGER' or col[2] == 'REAL':
-            plotAttribute(c, planners, col[1], col[2])
+    with PdfPages(Path(dbname).with_suffix('.pdf')) as pp:
+        for col in colInfo:
+            if col[2] == 'BOOLEAN' or col[2] == 'ENUM' or \
+               col[2] == 'INTEGER' or col[2] == 'REAL':
+                plotAttribute(c, planners, col[1], col[2])
+                pp.savefig(plt.gcf())
+
+        c.execute('PRAGMA table_info(progress)')
+        colInfo = c.fetchall()[2:]
+        for col in colInfo:
+            plotProgressAttribute(c, planners, col[1])
             pp.savefig(plt.gcf())
+        plt.clf()
 
-    c.execute('PRAGMA table_info(progress)')
-    colInfo = c.fetchall()[2:]
-    for col in colInfo:
-        plotProgressAttribute(c, planners, col[1])
+        pagey = 0.9
+        pagex = 0.06
+        c.execute("""SELECT id, name, timelimit, memorylimit FROM experiments""")
+        experiments = c.fetchall()
+        for experiment in experiments:
+            c.execute("""SELECT count(*) FROM runs WHERE runs.experimentid = %d
+                GROUP BY runs.plannerid""" % experiment[0])
+            numRuns = [run[0] for run in c.fetchall()]
+            numRuns = numRuns[0] if len(set(numRuns)) == 1 else ','.join(numRuns)
+
+            plt.figtext(pagex, pagey, 'Experiment "%s"' % experiment[1])
+            plt.figtext(pagex, pagey-0.05, 'Number of averaged runs: %d' % numRuns)
+            plt.figtext(pagex, pagey-0.10, "Time limit per run: %g seconds" % experiment[2])
+            plt.figtext(pagex, pagey-0.15, "Memory limit per run: %g MB" % experiment[3])
+
+        plt.show()
         pp.savefig(plt.gcf())
-    plt.clf()
 
-    pagey = 0.9
-    pagex = 0.06
-    c.execute("""SELECT id, name, timelimit, memorylimit FROM experiments""")
-    experiments = c.fetchall()
-    for experiment in experiments:
-        c.execute("""SELECT count(*) FROM runs WHERE runs.experimentid = %d
-            GROUP BY runs.plannerid""" % experiment[0])
-        numRuns = [run[0] for run in c.fetchall()]
-        numRuns = numRuns[0] if len(set(numRuns)) == 1 else ','.join(numRuns)
-
-        plt.figtext(pagex, pagey, 'Experiment "%s"' % experiment[1])
-        plt.figtext(pagex, pagey-0.05, 'Number of averaged runs: %d' % numRuns)
-        plt.figtext(pagex, pagey-0.10, "Time limit per run: %g seconds" % experiment[2])
-        plt.figtext(pagex, pagey-0.15, "Memory limit per run: %g MB" % experiment[3])
-
-    plt.show()
-    pp.savefig(plt.gcf())
-    pp.close()
-
-def saveAsMysql(dbname, mysqldump):
+def saveAsMysql(dbname):
     # See http://stackoverflow.com/questions/1067060/perl-to-python
     import re
     print("Saving as MySQL dump file...")
 
     conn = sqlite3.connect(dbname)
-    mysqldump = open(mysqldump, 'w')
+    with open(Path(dbname).with_suffix('.mysql'), 'w') as mysqldump:
+        # make sure all tables are dropped in an order that keepd foreign keys valid
+        c = conn.cursor()
+        c.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        table_names = [str(t[0]) for t in c.fetchall()]
+        c.close()
+        last = ['experiments', 'planner_configs']
+        for table in table_names:
+            if table.startswith("sqlite"):
+                continue
+            if not table in last:
+                mysqldump.write("DROP TABLE IF EXISTS `%s`;\n" % table)
+        for table in last:
+            if table in table_names:
+                mysqldump.write("DROP TABLE IF EXISTS `%s`;\n" % table)
 
-    # make sure all tables are dropped in an order that keepd foreign keys valid
-    c = conn.cursor()
-    c.execute("SELECT name FROM sqlite_master WHERE type='table'")
-    table_names = [str(t[0]) for t in c.fetchall()]
-    c.close()
-    last = ['experiments', 'planner_configs']
-    for table in table_names:
-        if table.startswith("sqlite"):
-            continue
-        if not table in last:
-            mysqldump.write("DROP TABLE IF EXISTS `%s`;\n" % table)
-    for table in last:
-        if table in table_names:
-            mysqldump.write("DROP TABLE IF EXISTS `%s`;\n" % table)
-
-    for line in conn.iterdump():
-        process = False
-        for nope in ('BEGIN TRANSACTION', 'COMMIT', \
-            'sqlite_sequence', 'CREATE UNIQUE INDEX', 'CREATE VIEW'):
-            if nope in line:
-                break
-        else:
-            process = True
-        if not process:
-            continue
-        line = re.sub(r"[\n\r\t ]+", " ", line)
-        m = re.search('CREATE TABLE ([a-zA-Z0-9_]*)(.*)', line)
-        if m:
-            name, sub = m.groups()
-            sub = sub.replace('"', '`')
-            line = '''CREATE TABLE IF NOT EXISTS %(name)s%(sub)s'''
-            line = line % dict(name=name, sub=sub)
-            # make sure we use an engine that supports foreign keys
-            line = line.rstrip("\n\t ;") + " ENGINE = InnoDB;\n"
-        else:
-            m = re.search('INSERT INTO "([a-zA-Z0-9_]*)"(.*)', line)
+        for line in conn.iterdump():
+            process = False
+            for nope in ('BEGIN TRANSACTION', 'COMMIT', \
+                'sqlite_sequence', 'CREATE UNIQUE INDEX', 'CREATE VIEW'):
+                if nope in line:
+                    break
+            else:
+                process = True
+            if not process:
+                continue
+            line = re.sub(r"[\n\r\t ]+", " ", line)
+            m = re.search('CREATE TABLE ([a-zA-Z0-9_]*)(.*)', line)
             if m:
-                line = 'INSERT INTO %s%s\n' % m.groups()
-                line = line.replace('"', r'\"')
-                line = line.replace('"', "'")
+                name, sub = m.groups()
+                sub = sub.replace('"', '`')
+                line = '''CREATE TABLE IF NOT EXISTS %(name)s%(sub)s'''
+                line = line % dict(name=name, sub=sub)
+                # make sure we use an engine that supports foreign keys
+                line = line.rstrip("\n\t ;") + " ENGINE = InnoDB;\n"
+            else:
+                m = re.search('INSERT INTO "([a-zA-Z0-9_]*)"(.*)', line)
+                if m:
+                    line = 'INSERT INTO %s%s\n' % m.groups()
+                    line = line.replace('"', r'\"')
+                    line = line.replace('"', "'")
 
-        line = re.sub(r"([^'])'t'(.)", "\\1THIS_IS_TRUE\\2", line)
-        line = line.replace('THIS_IS_TRUE', '1')
-        line = re.sub(r"([^'])'f'(.)", "\\1THIS_IS_FALSE\\2", line)
-        line = line.replace('THIS_IS_FALSE', '0')
-        line = line.replace('AUTOINCREMENT', 'AUTO_INCREMENT')
-        mysqldump.write(line)
-    mysqldump.close()
+            line = re.sub(r"([^'])'t'(.)", "\\1THIS_IS_TRUE\\2", line)
+            line = line.replace('THIS_IS_TRUE', '1')
+            line = re.sub(r"([^'])'f'(.)", "\\1THIS_IS_FALSE\\2", line)
+            line = line.replace('THIS_IS_FALSE', '0')
+            line = line.replace('AUTOINCREMENT', 'AUTO_INCREMENT')
+            mysqldump.write(line)
 
 def computeViews(dbname, moveitformat):
     conn = sqlite3.connect(dbname)
@@ -540,27 +543,33 @@ def computeViews(dbname, moveitformat):
     c.execute('PRAGMA FOREIGN_KEYS = ON')
     c.execute('PRAGMA table_info(runs)')
     if moveitformat:
-        s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid, solved, total_time
+        s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid,
+            solved, total_time
             FROM plannerConfigs INNER JOIN experiments INNER JOIN runs
             ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid"""
     # kinodynamic paths cannot be simplified (or least not easily),
     # so simplification_time may not exist as a database column
     elif 'simplification_time' in [col[1] for col in c.fetchall()]:
-        s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid, solved, time + simplification_time AS total_time
+        s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid,
+            solved, time + simplification_time AS total_time
             FROM plannerConfigs INNER JOIN experiments INNER JOIN runs
             ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid"""
     else:
-        s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid, solved, time AS total_time
+        s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid,
+            solved, time AS total_time
             FROM plannerConfigs INNER JOIN experiments INNER JOIN runs
             ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid"""
-    s1 = """SELECT plannerid, plannerName, experimentid, AVG(solved) AS avg_solved, AVG(total_time) AS avg_total_time
+    s1 = """SELECT plannerid, plannerName, experimentid, AVG(solved) AS avg_solved,
+        AVG(total_time) AS avg_total_time
         FROM (%s) GROUP BY plannerid, experimentid""" % s0
     s2 = """SELECT plannerid, experimentid, MIN(avg_solved) AS avg_solved, avg_total_time
-        FROM (%s) GROUP BY plannerName, experimentid ORDER BY avg_solved DESC, avg_total_time ASC""" % s1
+        FROM (%s) GROUP BY plannerName, experimentid ORDER BY avg_solved DESC,
+        avg_total_time ASC""" % s1
     c.execute('DROP VIEW IF EXISTS bestPlannerConfigsPerExperiment')
     c.execute('CREATE VIEW IF NOT EXISTS bestPlannerConfigsPerExperiment AS %s' % s2)
 
-    s1 = """SELECT plannerid, plannerName, AVG(solved) AS avg_solved, AVG(total_time) AS avg_total_time
+    s1 = """SELECT plannerid, plannerName, AVG(solved) AS avg_solved,
+        AVG(total_time) AS avg_total_time
         FROM (%s) GROUP BY plannerid""" % s0
     s2 = """SELECT plannerid, MIN(avg_solved) AS avg_solved, avg_total_time
         FROM (%s) GROUP BY plannerName ORDER BY avg_solved DESC, avg_total_time ASC""" % s1
@@ -570,37 +579,38 @@ def computeViews(dbname, moveitformat):
     conn.commit()
     c.close()
 
-if __name__ == "__main__":
-    usage = """%prog [options] [<benchmark.log> ...]"""
-    parser = OptionParser(usage)
-    parser.add_option("-d", "--database", dest="dbname", default="benchmark.db", \
-        help="Filename of benchmark database [default: %default]")
-    parser.add_option("-a", "--append", action="store_true", dest="append", default=False, \
-        help="Append data to database (as opposed to overwriting an existing database)")
-    parser.add_option("-v", "--view", action="store_true", dest="view", default=False, \
-        help="Compute the views for best planner configurations")
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Process benchmark logs and create an SQLite3 database.')
+    parser.add_argument('-d', '--database', default='benchmark.db', \
+        help='Filename of benchmark database')
+    parser.add_argument('-a', '--append', action='store_true', default=False, \
+        help='Append data to database (as opposed to overwriting an existing database)')
+    parser.add_argument('-v', '--view', action='store_true', default=False, \
+        help='Compute the views for best planner configurations')
     if plottingEnabled:
-        parser.add_option("-p", "--plot", dest="plot", default=None, \
-            help="Create a PDF of plots")
-    parser.add_option("-m", "--mysql", dest="mysqldb", default=None, \
-        help="Save SQLite3 database as a MySQL dump file")
-    parser.add_option("--moveit", action="store_true", dest="moveit", default=False, \
-        help="Log files are produced by MoveIt!")
-    (options, args) = parser.parse_args()
+        parser.add_argument('-p', '--plot', action='store_true', default=False, \
+            help='Create a PDF of plots')
+    parser.add_argument('-m', '--mysql', action='store_true', default=False, \
+        help='Save SQLite3 database as a MySQL dump file')
+    parser.add_argument('--moveit', action='store_true', default=False, \
+        help='Log files are produced by MoveIt!')
+    parser.add_argument('logfile', nargs='*')
+    args = parser.parse_args()
 
-    if not options.append and exists(options.dbname) and args:
-        os.remove(options.dbname)
+    if not args.append and exists(args.database) and args.logfile:
+        os.remove(args.database)
 
-    if args:
-        readBenchmarkLog(options.dbname, args, options.moveit)
+    if args.logfile:
+        readBenchmarkLog(args.database, args.logfile, args.moveit)
         # If we update the database, we recompute the views as well
-        options.view = True
+        args.view = True
 
-    if options.view:
-        computeViews(options.dbname, options.moveit)
+    if args.view:
+        computeViews(args.database, args.moveit)
 
-    if plottingEnabled and options.plot:
-        plotStatistics(options.dbname, options.plot)
+    if plottingEnabled and args.plot:
+        plotStatistics(args.database)
 
-    if options.mysqldb:
-        saveAsMysql(options.dbname, options.mysqldb)
+    if args.mysql:
+        saveAsMysql(args.database)
