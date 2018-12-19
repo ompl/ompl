@@ -182,6 +182,9 @@ namespace ompl
              * samples if may still be useful. */
             unsigned int removeFromVertices(const VertexPtr &sample, bool moveToFree);
 
+            /** \brief Remove a vertex and mark as pruned. */
+            void pruneVertex(const VertexPtr &vertex);
+
             /** \brief Disconnect a vertex from its parent by removing the edges stored in itself, and its parents.
              * Cascades cost updates if requested.*/
             void removeEdgeBetweenVertexAndParent(const VertexPtr &child, bool cascadeCostUpdates);
@@ -292,6 +295,7 @@ namespace ompl
             /** \brief Prune any samples that provably cannot provide a better solution than the current best solution.
              * This is done via the prune conditions of the SearchQueue. Removes the number of samples removed.*/
             unsigned int pruneSamples();
+            unsigned int pruneVertices();
             ////////////////////////////////
 
             ////////////////////////////////

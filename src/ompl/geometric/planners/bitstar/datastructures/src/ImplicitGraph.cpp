@@ -708,8 +708,11 @@ namespace ompl
             // Prune the starts/goals
             numPruned = numPruned + this->pruneStartAndGoalVertices();
 
-            // Prune the samples
+            // Prune the samples.
             numPruned.second = numPruned.second + this->pruneSamples();
+
+            // Prune the vertices as well.
+            this->pruneVertices();
 
             return numPruned;
         }
@@ -854,6 +857,42 @@ namespace ompl
                 // Return that the vertex was completely pruned
                 return 1u;
             }
+        }
+
+        void BITstar::ImplicitGraph::pruneVertex(const VertexPtr &vertex)
+        {
+            ASSERT_SETUP
+
+            // Variable:
+#ifdef BITSTAR_DEBUG
+            // The use count of the passed shared pointer. Used in debug mode to assert that we took ownership of our own copy.
+            unsigned int initCount = vertex.use_count();
+#endif  // BITSTAR_DEBUG
+            // A copy of the sample pointer to be removed so we can't delete it out from under ourselves (occurs when
+            // this function is given an element of the maintained set as the argument)
+            VertexPtr vertexCopy(vertex);
+
+#ifdef BITSTAR_DEBUG
+            // Assert that the vertexToDelete took it's own copy
+            if (vertexCopy.use_count() <= initCount)
+            {
+                throw ompl::Exception("A code change has prevented ImplicitGraph::removeSample() "
+                                      "from taking it's own copy of the given shared pointer. See "
+                                      "https://bitbucket.org/ompl/ompl/issues/364/code-cleanup-breaking-bit");
+            }
+#endif  // BITSTAR_DEBUG
+
+            // Remove from the set of samples
+            vertices_->remove(vertexCopy);
+
+            // Disconnect from parent if necessary, not cascading cost updates.
+            if (vertexCopy->hasParent())
+            {
+                this->removeEdgeBetweenVertexAndParent(vertexCopy, false);
+            }
+
+            // Mark the sample as pruned
+            vertexCopy->markPruned();
         }
 
         void BITstar::ImplicitGraph::removeEdgeBetweenVertexAndParent(const VertexPtr &child, bool cascadeCostUpdates)
@@ -1031,9 +1070,6 @@ namespace ompl
                         // // Remove it from the vertex queue.
                         // queuePtr_->unqueueVertex(*startIter);
 
-                        // Remove it from the set of vertices, recycling if necessary.
-                        this->removeFromVertices(*startIter, true);
-
                         // Store the start vertex in the pruned vector, in case it later needs to be readded:
                         prunedStartVertices_.push_back(*startIter);
 
@@ -1196,6 +1232,33 @@ namespace ompl
                     }
                     // No else, keep sample.
                 }
+            }
+
+            return numPruned;
+        }
+
+        unsigned int BITstar::ImplicitGraph::pruneVertices()
+        {
+            // The number of samples pruned in this pass:
+            unsigned int numPruned = 0u;
+
+            // Get the vector of samples
+            VertexPtrVector vertices;
+            vertices_->list(vertices);
+
+            // Iterate through the vector and remove any vertexs that should not be in the queue
+            for (const auto &vertex : vertices)
+            {
+                // Check if this state should be pruned:
+                if (queuePtr_->canVertexBePruned(vertex))
+                {
+                    // Yes, remove it
+                    this->pruneVertex(vertex);
+
+                    // and increment the counter
+                    ++numPruned;
+                }
+                // No else, keep vertex.
             }
 
             return numPruned;
