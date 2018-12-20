@@ -203,19 +203,12 @@ namespace ompl
                 return this->motionCost(edgePair.first->state(), edgePair.second->state());
             };
 
-            /** \brief Combine 3 costs */
-            inline ompl::base::Cost combineCosts(const ompl::base::Cost &a, const ompl::base::Cost &b,
-                                                 const ompl::base::Cost &c) const
+            /** \brief Combine multimple costs. */
+            template <typename... Costs>
+            inline ompl::base::Cost combineCosts(const ompl::base::Cost &cost, Costs... costs) const
             {
-                return this->combineCosts(a, this->combineCosts(b, c));
-            };
-
-            /** \brief Combine 4 costs */
-            inline ompl::base::Cost combineCosts(const ompl::base::Cost &a, const ompl::base::Cost &b,
-                                                 const ompl::base::Cost &c, const ompl::base::Cost &d) const
-            {
-                return this->combineCosts(a, this->combineCosts(b, c, d));
-            };
+                return this->combineCosts(cost, this->combineCosts(costs...));
+            }
             ////////////////////////////////
 
             //////////////////
