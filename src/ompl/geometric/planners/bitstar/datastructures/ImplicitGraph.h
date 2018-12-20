@@ -437,10 +437,10 @@ namespace ompl
             /** \brief If we've found an exact solution yet. */
             bool hasExactSolution_{false};
 
-            /** \brief IF BEING TRACKED, the vertex closest to the goal (this represents an "approximate" solution). */
+            /** \brief If being tracked, the vertex closest to the goal (this represents an "approximate" solution). */
             VertexConstPtr closestVertexToGoal_{nullptr};
 
-            /** \brief IF BEING TRACKED, the smallest distance of vertices in the tree to a goal (this represents
+            /** \brief If being tracked, the smallest distance of vertices in the tree to a goal (this represents
              * tolerance of an "approximate" solution). */
             double closestDistanceToGoal_{std::numeric_limits<double>::infinity()};
 
@@ -463,7 +463,7 @@ namespace ompl
             unsigned int numStateCollisionChecks_{0u};
 
             // ---
-            // Parameters - Set defaults in construction/setup and DO NOT reset in clear.
+            // Parameters - Set defaults in construction/setup and do not reset in clear.
             // ---
 
             /** \brief The rewiring factor, s, so that r_rgg = s \times r_rgg* > r_rgg*. */

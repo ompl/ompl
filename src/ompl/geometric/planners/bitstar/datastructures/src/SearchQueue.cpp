@@ -85,48 +85,43 @@ namespace ompl
 
         void BITstar::SearchQueue::setup(CostHelper *costHelpPtr, ImplicitGraph *graphPtr)
         {
-            // Store that I am setup
+            // Store that I am setup.
             isSetup_ = true;
 
-            // Get my copies
+            // Get access to the cost helper and the graph.
             costHelpPtr_ = costHelpPtr;
             graphPtr_ = graphPtr;
 
-            // Set the the cost threshold to infinity to start:
+            // Set the the cost threshold to infinity to start.
             solutionCost_ = costHelpPtr_->infiniteCost();
         }
 
         void BITstar::SearchQueue::reset()
         {
-            // Reset everything to the state of construction OTHER than planner name and settings/parameters
-            // Keep this in the order of the constructors for easy verification:
+            // Reset everything to the state of construction except for the planner name.
+            // Keep this in the order of the constructors for easy verification.
 
-            // Mark as cleared
+            // The queue is not ready for handling data after resetting.
             isSetup_ = false;
 
-            // The pointers
+            // Reset the pointers to external information.
             costHelpPtr_ = nullptr;
             graphPtr_ = nullptr;
 
-            // The edge queue:
+            // Clear the queue.
             edgeQueue_.clear();
 
-            // The number of times we're gone through the vertex queue:
+            // Reset the number of queues that have been searched.
             numQueueResets_ = 0u;
 
-            // The cost threshold:
+            // Reset the cost threshold to infinite cost.
             solutionCost_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
 
-            // The existence of a solution:
+            // Make sure the queue doesn't think it has a solution.
             hasExactSolution_ = false;
 
-            // Progress properties
+            // Finally, reset the progress info.
             numEdgesPopped_ = 0u;
-
-            // DO NOT reset the settings:
-            // useStrictQueueOrdering_
-            // delayRewiring_
-            // pruneDuringResort_
         }
 
         void BITstar::SearchQueue::enqueueEdge(const VertexPtrPair &edge)
@@ -217,21 +212,21 @@ namespace ompl
 
             if (!edgeQueue_.empty())
             {
-                // Iterate over the vector of incoming edges to this vertex and remove them from the queue (and clean up their other lookup)
+                // Iterate over the vector of incoming edges to this vertex and remove them from the queue (and clean up their other lookup).
                 for (auto it = vertex->edgeQueueInLookupConstBegin(numQueueResets_); it != vertex->edgeQueueInLookupConstEnd(numQueueResets_); ++it)
                 {
                     // Remove the edge from the *other* lookup (by value since this is NOT an iter to THAT container).
-                    // No need to remove from this lookup, as that's being cleared:
+                    // No need to remove from this lookup, as that's being cleared.
                     (*it)->data.second.first->removeFromEdgeQueueOutLookup(*it, numQueueResets_);
 
                     // Finally remove it from the queue
                     edgeQueue_.remove(*it);
                 }
 
-                // Clear the list:
+                // Clear the list.
                 vertex->clearEdgeQueueInLookup();
             }
-            // No else, nothing to remove_to
+            // No else, nothing to remove from.
         }
 
         void BITstar::SearchQueue::removeOutEdgesConnectedToVertexFromQueue(const VertexPtr &vertex)
@@ -240,21 +235,21 @@ namespace ompl
 
             if (!edgeQueue_.empty())
             {
-                // Iterate over the vector of outgoing edges to this vertex and remove them from the queue (and clean up their other lookup)
+                // Iterate over the vector of outgoing edges to this vertex and remove them from the queue (and clean up their other lookup).
                 for (auto it = vertex->edgeQueueOutLookupConstBegin(numQueueResets_); it != vertex->edgeQueueOutLookupConstEnd(numQueueResets_); ++it)
                 {
                     // Remove the edge from the *other* lookup (by value since this is NOT an iter to THAT container).
-                    // No need to remove from this lookup, as that's being cleared:
+                    // No need to remove from this lookup, as that's being cleared.
                     (*it)->data.second.second->removeFromEdgeQueueInLookup(*it, numQueueResets_);
 
-                    // Finally, remove it from the queue
+                    // Finally, remove it from the queue.
                     edgeQueue_.remove(*it);
                 }
 
-                // Clear the list:
+                // Clear the list.
                 vertex->clearEdgeQueueOutLookup();
             }
-            // No else, nothing to remove_from
+            // No else, nothing to remove from.
         }
 
         void BITstar::SearchQueue::removeAllEdgesConnectedToVertexFromQueue(const VertexPtr &vertex)
