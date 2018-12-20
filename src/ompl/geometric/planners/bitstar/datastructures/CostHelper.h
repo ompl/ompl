@@ -203,13 +203,18 @@ namespace ompl
                 return this->motionCost(edgePair.first->state(), edgePair.second->state());
             };
 
-            /** \brief Combine multimple costs. */
+            /** \brief Combine multiple costs. */
             template <typename... Costs>
             inline ompl::base::Cost combineCosts(const ompl::base::Cost &cost, Costs... costs) const
             {
                 return this->combineCosts(cost, this->combineCosts(costs...));
             }
-            ////////////////////////////////
+
+            /** \brief Inflate a cost by a given factor. */
+            inline ompl::base::Cost inflateCost(const ompl::base::Cost &cost, double factor) const
+            {
+                return ompl::base::Cost(factor * cost.value());
+            }
 
             //////////////////
             // Cost-comparison functions

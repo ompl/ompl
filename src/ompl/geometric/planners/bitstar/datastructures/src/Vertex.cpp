@@ -113,6 +113,7 @@ namespace ompl
           , isRoot_(root)
           , edgeCost_(costHelpPtr_->infiniteCost())
           , cost_(costHelpPtr_->infiniteCost())
+          , costAtLastExpansion_(costHelpPtr_->infiniteCost())
         {
             PRINT_VERTEX_CHANGE
 
@@ -446,6 +447,11 @@ namespace ompl
             return childIdWhitelist_.find(vertex->getId()) != childIdWhitelist_.end();
         }
 
+        void BITstar::Vertex::setCostAtExpansion(const ompl::base::Cost &cost)
+        {
+            costAtLastExpansion_ = cost;
+        }
+
         ompl::base::Cost BITstar::Vertex::getCost() const
         {
             ASSERT_NOT_PRUNED
@@ -465,6 +471,11 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
 
             return edgeCost_;
+        }
+
+        bool BITstar::Vertex::isConsistent() const
+        {
+            return cost_.value() == costAtLastExpansion_.value();
         }
 
         bool BITstar::Vertex::isPruned() const

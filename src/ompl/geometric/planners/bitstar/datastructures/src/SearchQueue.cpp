@@ -111,6 +111,9 @@ namespace ompl
             // Clear the queue.
             edgeQueue_.clear();
 
+            // Reset the inflation factor.
+            inflationFactor_ = 1.0;
+
             // Reset the number of queues that have been searched.
             numQueueResets_ = 0u;
 
@@ -128,14 +131,46 @@ namespace ompl
         {
             ASSERT_SETUP
 
-            // Insert into the edge queue, getting the pointer to the element.
-            auto edgeElemPtr = edgeQueue_.insert(std::make_pair(this->createSortKey(edge), edge));
+            // Create convenience aliases.
+            const VertexPtr &parent = edge.first;
+            const VertexPtr &child = edge.second;
 
-            // Make the parent aware that this edge is now in the queue.
-            edge.first->insertInEdgeQueueOutLookup(edgeElemPtr, numQueueResets_);
+            // If we already have the edge in the queue, we need to update its value.
+            EdgeQueueElemPtr updateEdge = nullptr;
+            for (auto it = child->edgeQueueInLookupConstBegin(searchId_); it != child->edgeQueueInLookupConstEnd(searchId_); ++it)
+            {
+                if ((*it)->data.second.first->getId() == parent->getId())
+                {
+                    updateEdge = (*it);
+                    break;
+                }
+            }
 
-            // Make the child aware that this edge is now in the queue.
-            edge.second->insertInEdgeQueueInLookup(edgeElemPtr, numQueueResets_);
+            if (updateEdge) // The edge is already in the queue, we need to update it's sort key (presumably because the cost-to-come to the source changed).
+            {
+#ifdef BITSTAR_DEBUG
+                if (updateEdge->data.second.first->getId() != edge.first->getId() || updateEdge->data.second.second->getId() != edge.second->getId())
+                {
+                    throw ompl::Exception("Updating the wrong edge.");
+                }
+#endif // BITSTAR_DEBUG
+                updateEdge->data.first = this->createSortKey(edge);
+                edgeQueue_.update(updateEdge);
+            }
+            else // This edge is not yet in the queue.
+            {
+                // The iterator to the new edge in the queue:
+                EdgeQueueElemPtr edgeElemPtr;
+
+                // Insert into the edge queue, getting the element pointer
+                edgeElemPtr = edgeQueue_.insert(std::make_pair(this->createSortKey(edge), edge));
+
+                // Push the newly created edge back on the vector of edges from the parent.
+                parent->insertInEdgeQueueOutLookup(edgeElemPtr, searchId_);
+
+                // Push the newly created edge back on the vector of edges to the child.
+                child->insertInEdgeQueueInLookup(edgeElemPtr, searchId_);
+            }
         }
 
         BITstar::VertexPtrPair BITstar::SearchQueue::getFrontEdge()
@@ -278,6 +313,16 @@ namespace ompl
             {
                 this->insertOutgoingEdges(*it);
             }
+        }
+
+        void BITstar::SearchQueue::setInflationFactor(double factor)
+        {
+            inflationFactor_ = factor;
+        }
+
+        double BITstar::SearchQueue::getInflationFactor() const
+        {
+            return inflationFactor_;
         }
 
         bool BITstar::SearchQueue::canPossiblyImproveCurrentSolution(const VertexPtr &state) const
@@ -501,9 +546,10 @@ namespace ompl
 
         BITstar::SearchQueue::SortKey BITstar::SearchQueue::createSortKey(const VertexPtrPair &edge) const
         {
-            // The sort key of an edge (u, v) is [ g_t(u) + c^hat(u, v) + h^hat(v); g_t(u) + c^hat(u, v); g_t(u) ].
-            return {{costHelpPtr_->currentHeuristicEdge(edge), costHelpPtr_->currentHeuristicToTarget(edge),
-                              edge.first->getCost()}};
+            // The sort key of an edge (u, v) is [ g_t(u) + c^hat(u, v) + epsilon_s * h^hat(v); g_t(u) + c^hat(u, v); g_t(u) ].
+            return {{costHelpPtr_->combineCosts(costHelpPtr_->currentHeuristicToTarget(edge), costHelpPtr_->inflateCost(costHelpPtr_->costToGoHeuristic(edge.second), inflationFactor_)),
+                     costHelpPtr_->currentHeuristicToTarget(edge),
+                     edge.first->getCost()}};
         }
 
         bool BITstar::SearchQueue::lexicographicalBetterThan(const std::array<ompl::base::Cost, 3> &lhs,

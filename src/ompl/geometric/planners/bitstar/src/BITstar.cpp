@@ -129,6 +129,8 @@ namespace ompl
             Planner::specs_.canReportIntermediateSolutions = true;
 
             // Register my setting callbacks
+            Planner::declareParam<double>("initial_inflation_factor", this, &BITstar::setInitialInflationFactor, &BITstar::getInitialInflationFactor,
+                                          "1.0:0.01:1000.0");
             Planner::declareParam<double>("rewire_factor", this, &BITstar::setRewireFactor, &BITstar::getRewireFactor,
                                           "1.0:0.01:3.0");
             Planner::declareParam<unsigned int>("samples_per_batch", this, &BITstar::setSamplesPerBatch,
@@ -507,17 +509,38 @@ namespace ompl
             // Is the edge queue empty
             if (queuePtr_->isEmpty())
             {
-                // Yes, we must have just finished a batch. Increase the resolution of the graph and restart the queue.
-                this->newBatch();
+                // Check whether we've exhausted the current approximation.
+                if (queuePtr_->getInflationFactor() == 1.0 || !hasExactSolution_)
+                {
+                    // Add a new batch.
+                    this->newBatch();
+
+                    // If the optimality bound is infinity, it means we haven't found a solution, so just add
+                    // a new batch without touching the inflation factor.
+                    double optimalityBound = this->computeOptimalityBound();
+                    if (optimalityBound != std::numeric_limits<double>::infinity())
+                    {
+                        queuePtr_->setInflationFactor(optimalityBound);
+                    }
+                    // No else.
+                }
+                else
+                {
+                    // Exhaust the current approximation by performing an uninflated search.
+                    queuePtr_->setInflationFactor(1.0);
+                }
+
+                // Restart the queue, adding the outgoing edges of the start vertices to the queue.
+                queuePtr_->restart();
             }
             else
             {
                 // If the edge queue is not empty, then there is work to do!
 
-                // Variables:
-                // The current edge:
+                // Get the most promising edge.
                 VertexPtrPair bestEdge = queuePtr_->popFrontEdge();
 
+                // If this edge is already part of the search tree it's a freebie.
                 if (bestEdge.first->hasParent() && bestEdge.first->getParent()->getId() == bestEdge.second->getId())
                 {
                     queuePtr_->insertOutgoingEdges(bestEdge.second);
@@ -599,7 +622,7 @@ namespace ompl
 
         void BITstar::newBatch()
         {
-            // Info:
+            // Increment the batch counter.
             ++numBatches_;
 
             // Do we need to update our starts or goals?
@@ -610,14 +633,11 @@ namespace ompl
             }
             // No else, we have enough of a problem to do some work, and everything's up to date.
 
-            // Prune the graph (if enabled)
+            // Prune the graph (if enabled).
             this->prune();
 
-            // Add a new batch of samples
+            // Add a new batch of samples.
             graphPtr_->addNewSamples(samplesPerBatch_);
-
-            // Reset the queue:
-            queuePtr_->restart();
         }
 
         void BITstar::prune()
@@ -859,9 +879,30 @@ namespace ompl
 
             // Add the child to the parent.
             edge.first->addChild(edge.second);
+        }
 
-            // // Mark the queues as unsorted below this child
-            // queuePtr_->markVertexUnsorted(edge.second);
+        void BITstar::updateInflationFactor()
+        {
+            if (queuePtr_->getInflationFactor() == 1.0)
+            {
+                queuePtr_->setInflationFactor(this->computeOptimalityBound());
+            }
+            else
+            {
+                queuePtr_->setInflationFactor(1.0);
+            }
+        }
+
+        double BITstar::computeOptimalityBound() const
+        {
+            if (bestCost_.value() == std::numeric_limits<double>::infinity())
+            {
+                return std::numeric_limits<double>::infinity();
+            }
+            else
+            {
+                return bestCost_.value() / graphPtr_->minCost().value();
+            }
         }
 
         void BITstar::updateGoalVertex()
@@ -1079,6 +1120,22 @@ namespace ompl
 
         /////////////////////////////////////////////////////////////////////////////////////////////
         // Boring sets/gets (Public) and progress properties (Protected):
+        void BITstar::setInitialInflationFactor(double factor)
+        {
+            initialInflationFactor_ = factor;
+            queuePtr_->setInflationFactor(factor);
+        }
+
+        double BITstar::getInitialInflationFactor() const
+        {
+            return initialInflationFactor_;
+        }
+
+        double BITstar::getCurrentInflationFactor() const
+        {
+            return queuePtr_->getInflationFactor();
+        }
+
         void BITstar::setRewireFactor(double rewireFactor)
         {
             graphPtr_->setRewireFactor(rewireFactor);

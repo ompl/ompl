@@ -196,6 +196,15 @@ namespace ompl
             // Settings.
             // ---
 
+            /** \brief Set the inflation factor for the initial search. */
+            void setInitialInflationFactor(double factor);
+
+            /** \brief Get the inflation factor for the initial search. */
+            double getInitialInflationFactor() const;
+
+            /** \brief Get the inflation factor for the current search. */
+            double getCurrentInflationFactor() const;
+
             /** \brief Set the rewiring scale factor, s, such that r_rrg = s \times r_rrg*. */
             void setRewireFactor(double rewireFactor);
 
@@ -337,6 +346,11 @@ namespace ompl
             /** \brief Replace the parent edge with the given new edge and cost */
             void replaceParent(const VertexPtrPair &edge, const ompl::base::Cost &edgeCost);
 
+            /** \brief Updates the infaltion factor. */
+            void updateInflationFactor();
+
+            double computeOptimalityBound() const;
+
             /** \brief The special work that needs to be done to update the goal vertex if the solution has changed. */
             void updateGoalVertex();
 
@@ -439,6 +453,9 @@ namespace ompl
              * solution cost. Remaining vertex queue "size" and edge queue size are accessible via
              * vertexQueueSizeProgressProperty and edgeQueueSizeProgressProperty, respectively. */
             std::shared_ptr<SearchQueue> queuePtr_{nullptr};
+
+            /** \brief The inflation factor for the initial search. */
+            double initialInflationFactor_{1.0};
 
             /** \brief The goal vertex of the current best solution. */
             VertexConstPtr curGoalVertex_{nullptr};

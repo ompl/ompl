@@ -126,6 +126,19 @@ namespace ompl
             // Modification.
             // ---
 
+            /** \brief Finish the queue if it is sorted, if not resort the queue. Finishing the queue clears all the
+             * edge containers and moves the vertex expansion token to the end. After calling finish() ON A SORTED QUEUE,
+             * isEmpty() will return true. Keeps threshold, etc.*/
+            void clear();
+
+            /** \brief Reset the queue, clearing all the edge containers and moving the vertex expansion token to the
+             * start. After a call to reset, isEmpty() will return false (unless there is no data in the queue of
+             * course). Keeps threshold, list of unsorted vertices, etc.*/
+            void restart();
+
+            /** \brief Set the cost-to-go inflation factor. */
+            void setInflationFactor(double factor);
+
             /** \brief Mark that a solution has been found */
             void registerSolutionCost(const ompl::base::Cost &solutionCost);
 
@@ -138,19 +151,12 @@ namespace ompl
             /** 'brief Erase all edges in the edge queue that are connected to the given vertex. */
             void removeAllEdgesConnectedToVertexFromQueue(const VertexPtr &vertex);
 
-            /** \brief Finish the queue if it is sorted, if not resort the queue. Finishing the queue clears all the
-             * edge containers and moves the vertex expansion token to the end. After calling finish() ON A SORTED QUEUE,
-             * isEmpty() will return true. Keeps threshold, etc.*/
-            void clear();
-
-            /** \brief Reset the queue, clearing all the edge containers and moving the vertex expansion token to the
-             * start. After a call to reset, isEmpty() will return false (unless there is no data in the queue of
-             * course). Keeps threshold, list of unsorted vertices, etc.*/
-            void restart();
-
             // ---
             // Information access.
             // ---
+
+            /** \brief Get the cost-to-go inflation factor. */
+            double getInflationFactor() const;
 
             /** \brief The condition used to insert vertices into the queue. Compares lowerBoundHeuristicVertex to the
              * given threshold. Returns true if the vertex's best cost is lower than the internally set threshold.*/
@@ -236,6 +242,9 @@ namespace ompl
 
             /** \brief The underlying queue of edges. Sorted by edgeQueueComparison. */
             EdgeQueue edgeQueue_;
+
+            /** \brief The factor by which the cost-to-go heuristic is inflated. */
+            double inflationFactor_{1.0};
 
             /** \brief The cost of the best solution, which is the maximum heuristic value allowed for vertices/edges in the queue. */
             ompl::base::Cost solutionCost_{std::numeric_limits<double>::infinity()};
