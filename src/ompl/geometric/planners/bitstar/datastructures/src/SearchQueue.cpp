@@ -80,6 +80,7 @@ namespace ompl
                        {
                            return lexicographicalBetterThan(lhs.first, rhs.first);
                        })  // This tells the edgeQueue_ to use lexicographical comparison for sorting.
+          , searchId_(std::make_shared<unsigned int>(1u))
         {
         }
 
@@ -115,7 +116,7 @@ namespace ompl
             inflationFactor_ = 1.0;
 
             // Reset the number of queues that have been searched.
-            numQueueResets_ = 0u;
+            *searchId_ = 1u;
 
             // Reset the cost threshold to infinite cost.
             solutionCost_ = ompl::base::Cost(std::numeric_limits<double>::infinity());
@@ -137,7 +138,7 @@ namespace ompl
 
             // If we already have the edge in the queue, we need to update its value.
             EdgeQueueElemPtr updateEdge = nullptr;
-            for (auto it = child->edgeQueueInLookupConstBegin(searchId_); it != child->edgeQueueInLookupConstEnd(searchId_); ++it)
+            for (auto it = child->edgeQueueInLookupConstBegin(); it != child->edgeQueueInLookupConstEnd(); ++it)
             {
                 if ((*it)->data.second.first->getId() == parent->getId())
                 {
@@ -166,10 +167,10 @@ namespace ompl
                 edgeElemPtr = edgeQueue_.insert(std::make_pair(this->createSortKey(edge), edge));
 
                 // Push the newly created edge back on the vector of edges from the parent.
-                parent->insertInEdgeQueueOutLookup(edgeElemPtr, searchId_);
+                parent->insertInEdgeQueueOutLookup(edgeElemPtr);
 
                 // Push the newly created edge back on the vector of edges to the child.
-                child->insertInEdgeQueueInLookup(edgeElemPtr, searchId_);
+                child->insertInEdgeQueueInLookup(edgeElemPtr);
             }
         }
 
@@ -220,8 +221,8 @@ namespace ompl
             EdgeQueueElemPtr frontEdgeQueueElement = edgeQueue_.top();
 
             // Remove the edge from the respective vertex lookups.
-            frontEdgeQueueElement->data.second.first->removeFromEdgeQueueOutLookup(frontEdgeQueueElement, numQueueResets_);
-            frontEdgeQueueElement->data.second.second->removeFromEdgeQueueInLookup(frontEdgeQueueElement, numQueueResets_);
+            frontEdgeQueueElement->data.second.first->removeFromEdgeQueueOutLookup(frontEdgeQueueElement);
+            frontEdgeQueueElement->data.second.second->removeFromEdgeQueueInLookup(frontEdgeQueueElement);
 
             // Remove it from the queue.
             edgeQueue_.pop();
@@ -248,11 +249,11 @@ namespace ompl
             if (!edgeQueue_.empty())
             {
                 // Iterate over the vector of incoming edges to this vertex and remove them from the queue (and clean up their other lookup).
-                for (auto it = vertex->edgeQueueInLookupConstBegin(numQueueResets_); it != vertex->edgeQueueInLookupConstEnd(numQueueResets_); ++it)
+                for (auto it = vertex->edgeQueueInLookupConstBegin(); it != vertex->edgeQueueInLookupConstEnd(); ++it)
                 {
                     // Remove the edge from the *other* lookup (by value since this is NOT an iter to THAT container).
                     // No need to remove from this lookup, as that's being cleared.
-                    (*it)->data.second.first->removeFromEdgeQueueOutLookup(*it, numQueueResets_);
+                    (*it)->data.second.first->removeFromEdgeQueueOutLookup(*it);
 
                     // Finally remove it from the queue
                     edgeQueue_.remove(*it);
@@ -271,11 +272,11 @@ namespace ompl
             if (!edgeQueue_.empty())
             {
                 // Iterate over the vector of outgoing edges to this vertex and remove them from the queue (and clean up their other lookup).
-                for (auto it = vertex->edgeQueueOutLookupConstBegin(numQueueResets_); it != vertex->edgeQueueOutLookupConstEnd(numQueueResets_); ++it)
+                for (auto it = vertex->edgeQueueOutLookupConstBegin(); it != vertex->edgeQueueOutLookupConstEnd(); ++it)
                 {
                     // Remove the edge from the *other* lookup (by value since this is NOT an iter to THAT container).
                     // No need to remove from this lookup, as that's being cleared.
-                    (*it)->data.second.second->removeFromEdgeQueueInLookup(*it, numQueueResets_);
+                    (*it)->data.second.second->removeFromEdgeQueueInLookup(*it);
 
                     // Finally, remove it from the queue.
                     edgeQueue_.remove(*it);
@@ -301,7 +302,7 @@ namespace ompl
             edgeQueue_.clear();
 
             // Increment the queue processing number.
-            ++numQueueResets_;
+            ++(*searchId_);
         }
 
         void BITstar::SearchQueue::restart()
@@ -323,6 +324,11 @@ namespace ompl
         double BITstar::SearchQueue::getInflationFactor() const
         {
             return inflationFactor_;
+        }
+
+        std::shared_ptr<const unsigned int> BITstar::SearchQueue::getSearchId() const
+        {
+            return searchId_;
         }
 
         bool BITstar::SearchQueue::canPossiblyImproveCurrentSolution(const VertexPtr &state) const
@@ -396,17 +402,12 @@ namespace ompl
         // Private functions:
         void BITstar::SearchQueue::insertOutgoingEdges(const VertexPtr &vertex)
         {
-#ifdef BITSTAR_DEBUG
-            // Assert that this vertex has no outgoing edge queue entries.
-            if (vertex->edgeQueueOutLookupSize(numQueueResets_) != 0u)
-            {
-                std::cout << std::endl << "vId: " << vertex->getId() << std::endl;
-                throw ompl::Exception("Unexpanded vertex already has outgoing entries in the edge queue.");
-            }
-#endif  // BITSTAR_DEBUG
-
             // Should we expand this vertex?
-            if (this->canPossiblyImproveCurrentSolution(vertex))
+            if (vertex->isConsistent() && vertex->isExpandedOnCurrentApproximation())
+            {
+                    return;
+            }
+            else if (this->canPossiblyImproveCurrentSolution(vertex))
             {
                 // Get the neighbouring samples.
                 VertexPtrVector neighbourSamples;

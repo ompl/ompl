@@ -85,6 +85,7 @@ namespace ompl
         // Public functions:
         BITstar::ImplicitGraph::ImplicitGraph(NameFunc nameFunc)
           : nameFunc_(std::move(nameFunc))
+          , approximationId_(std::make_shared<unsigned int>(1u))
         {
         }
 
@@ -429,7 +430,7 @@ namespace ompl
                 if (static_cast<bool>(newGoal))
                 {
                     // Allocate the vertex pointer
-                    goalVertices_.push_back(std::make_shared<Vertex>(spaceInformation_, costHelpPtr_));
+                    goalVertices_.push_back(std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_->getSearchId(), approximationId_));
 
                     // Copy the value into the state
                     spaceInformation_->copyState(goalVertices_.back()->state(), newGoal);
@@ -460,7 +461,7 @@ namespace ompl
                 if (static_cast<bool>(newStart))
                 {
                     // Allocate the vertex pointer:
-                    startVertices_.push_back(std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, true));
+                    startVertices_.push_back(std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_->getSearchId(), approximationId_, true));
 
                     // Copy the value into the state.
                     spaceInformation_->copyState(startVertices_.back()->state(), newStart);
@@ -655,6 +656,9 @@ namespace ompl
 
             // And there are no longer and recycled samples.
             recycledSamples_.clear();
+
+            // Increment the approximation id.
+            ++(*approximationId_);
 
             // We don't add actual *new* samples until the next time "nearestSamples" is called. This is to support JIT sampling.
         }
@@ -954,7 +958,7 @@ namespace ompl
                 {
                     // Variable
                     // The new state:
-                    auto newState = std::make_shared<Vertex>(spaceInformation_, costHelpPtr_);
+                    auto newState = std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_->getSearchId(), approximationId_);
 
                     // Sample in the interval [costSampled_, costReqd):
                     sampler_->sampleUniform(newState->state(), sampledCost_, requiredCost);

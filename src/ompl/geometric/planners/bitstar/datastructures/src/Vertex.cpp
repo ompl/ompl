@@ -105,6 +105,8 @@ namespace ompl
         /////////////////////////////////////////////////////////////////////////////////////////////
         // Public functions:
         BITstar::Vertex::Vertex(ompl::base::SpaceInformationPtr si, const CostHelper *const costHelpPtr,
+                                const std::shared_ptr<const unsigned int> &searchId,
+                                const std::shared_ptr<const unsigned int> &approximationId,
                                 bool root /*= false*/)
           : id_(getIdGenerator().getNewId())
           , si_(std::move(si))
@@ -114,6 +116,8 @@ namespace ompl
           , edgeCost_(costHelpPtr_->infiniteCost())
           , cost_(costHelpPtr_->infiniteCost())
           , costAtLastExpansion_(costHelpPtr_->infiniteCost())
+          , currentSearchId_(searchId)
+          , currentApproximationId_(approximationId)
         {
             PRINT_VERTEX_CHANGE
 
@@ -483,6 +487,22 @@ namespace ompl
             return isPruned_;
         }
 
+        bool BITstar::Vertex::isExpandedOnCurrentApproximation() const
+        {
+            return expansionApproximationId_ == *currentApproximationId_;
+        }
+
+        bool BITstar::Vertex::isExpandedOnCurrentSearch() const
+        {
+            return expansionSearchId_ == *currentSearchId_;
+        }
+
+        void BITstar::Vertex::markExpanded()
+        {
+            expansionApproximationId_ = *currentApproximationId_;
+            expansionSearchId_ = *currentSearchId_;
+        }
+
         void BITstar::Vertex::markPruned()
         {
             PRINT_VERTEX_CHANGE
@@ -498,12 +518,12 @@ namespace ompl
             isPruned_ = false;
         }
 
-        void BITstar::Vertex::insertInEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtr &element, unsigned int vertexQueueResetNum)
+        void BITstar::Vertex::insertInEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtr &element)
         {
             ASSERT_NOT_PRUNED
 
             // Conditionally clear any existing lookups.
-            this->clearLookupsIfOutdated(vertexQueueResetNum);
+            this->clearLookupsIfOutdated();
 
 #ifdef BITSTAR_DEBUG
             // Assert that this edge is NOT _from_ this vertex.
@@ -530,14 +550,14 @@ namespace ompl
             edgeQueueInLookup_.push_back(element);
         }
 
-        void BITstar::Vertex::removeFromEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtr &element, unsigned int vertexQueueResetNum)
+        void BITstar::Vertex::removeFromEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtr &element)
         {
             ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
             // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
-            if (vertexQueueResetNum != vertexQueueResetNum_)
+            if (*currentSearchId_ != lookupSearchId_)
             {
                 throw ompl::Exception("Attempted to remove an incoming queue edge added under a different expansion id.");
             }
@@ -570,14 +590,14 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
         }
 
-        void BITstar::Vertex::removeFromEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtrVector::const_iterator& element, unsigned int vertexQueueResetNum)
+        void BITstar::Vertex::removeFromEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtrVector::const_iterator& element)
         {
             ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
             // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
-            if (vertexQueueResetNum != vertexQueueResetNum_)
+            if (*currentSearchId_ != lookupSearchId_)
             {
                 throw ompl::Exception("Attempted to remove an incoming queue edge added under a different expansion id.");
             }
@@ -595,42 +615,42 @@ namespace ompl
             edgeQueueInLookup_.clear();
         }
 
-        BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator BITstar::Vertex::edgeQueueInLookupConstBegin(unsigned int vertexQueueResetNum)
+        BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator BITstar::Vertex::edgeQueueInLookupConstBegin()
         {
             ASSERT_NOT_PRUNED
 
             // Conditionally clear any existing lookups
-            this->clearLookupsIfOutdated(vertexQueueResetNum);
+            this->clearLookupsIfOutdated();
 
             return edgeQueueInLookup_.cbegin();
         }
 
-        BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator BITstar::Vertex::edgeQueueInLookupConstEnd(unsigned int vertexQueueResetNum)
+        BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator BITstar::Vertex::edgeQueueInLookupConstEnd()
         {
             ASSERT_NOT_PRUNED
 
             // Conditionally clear any existing lookups
-            this->clearLookupsIfOutdated(vertexQueueResetNum);
+            this->clearLookupsIfOutdated();
 
             return edgeQueueInLookup_.cend();
         }
 
-        unsigned int BITstar::Vertex::edgeQueueInLookupSize(unsigned int vertexQueueResetNum)
+        unsigned int BITstar::Vertex::edgeQueueInLookupSize()
         {
             ASSERT_NOT_PRUNED
 
             // Conditionally clear any existing lookups
-            this->clearLookupsIfOutdated(vertexQueueResetNum);
+            this->clearLookupsIfOutdated();
 
             return edgeQueueInLookup_.size();
         }
 
-        void BITstar::Vertex::insertInEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtr& element, unsigned int vertexQueueResetNum)
+        void BITstar::Vertex::insertInEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtr& element)
         {
             ASSERT_NOT_PRUNED
 
             // Conditionally clear any existing lookups
-            this->clearLookupsIfOutdated(vertexQueueResetNum);
+            this->clearLookupsIfOutdated();
 
 #ifdef BITSTAR_DEBUG
             // Assert that this edge is _from_ this vertex
@@ -657,14 +677,14 @@ namespace ompl
             edgeQueueOutLookup_.push_back(element);
         }
 
-        void BITstar::Vertex::removeFromEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtr &element, unsigned int vertexQueueResetNum)
+        void BITstar::Vertex::removeFromEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtr &element)
         {
             ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
             // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
-            if (vertexQueueResetNum != vertexQueueResetNum_)
+            if (*currentSearchId_ != lookupSearchId_)
             {
                 throw ompl::Exception("Attempted to remove an incoming queue edge added under a different expansion id.");
             }
@@ -697,14 +717,14 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
         }
 
-        void BITstar::Vertex::removeFromEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtrVector::const_iterator& element, unsigned int vertexQueueResetNum)
+        void BITstar::Vertex::removeFromEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtrVector::const_iterator& element)
         {
             ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
             // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
-            if (vertexQueueResetNum != vertexQueueResetNum_)
+            if (*currentSearchId_ != lookupSearchId_)
             {
                 throw ompl::Exception("Attempted to remove an outgoing queue edge added under a different expansion id.");
             }
@@ -722,32 +742,32 @@ namespace ompl
             edgeQueueOutLookup_.clear();
         }
 
-        BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator BITstar::Vertex::edgeQueueOutLookupConstBegin(unsigned int vertexQueueResetNum)
+        BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator BITstar::Vertex::edgeQueueOutLookupConstBegin()
         {
             ASSERT_NOT_PRUNED
 
             // Make sure the lookups aren't out of date.
-            this->clearLookupsIfOutdated(vertexQueueResetNum);
+            this->clearLookupsIfOutdated();
 
             return edgeQueueOutLookup_.cbegin();
         }
 
-        BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator BITstar::Vertex::edgeQueueOutLookupConstEnd(unsigned int vertexQueueResetNum)
+        BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator BITstar::Vertex::edgeQueueOutLookupConstEnd()
         {
             ASSERT_NOT_PRUNED
 
             // Make sure the lookups aren't out of date.
-            this->clearLookupsIfOutdated(vertexQueueResetNum);
+            this->clearLookupsIfOutdated();
 
             return edgeQueueOutLookup_.cend();
         }
 
-        unsigned int BITstar::Vertex::edgeQueueOutLookupSize(unsigned int vertexQueueResetNum)
+        unsigned int BITstar::Vertex::edgeQueueOutLookupSize()
         {
             ASSERT_NOT_PRUNED
 
             // Make sure the lookups aren't out of date.
-            this->clearLookupsIfOutdated(vertexQueueResetNum);
+            this->clearLookupsIfOutdated();
 
             return edgeQueueOutLookup_.size();
         }
@@ -917,17 +937,17 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
         }
 
-        void BITstar::Vertex::clearLookupsIfOutdated(unsigned int vertexQueueResetNum)
+        void BITstar::Vertex::clearLookupsIfOutdated()
         {
             // Clean up any old lookups.
-            if (vertexQueueResetNum != vertexQueueResetNum_)
+            if (lookupSearchId_ != *currentSearchId_)
             {
                 // Clear the existing entries.
                 this->clearEdgeQueueInLookup();
                 this->clearEdgeQueueOutLookup();
 
                 // Update the counter.
-                vertexQueueResetNum_ = vertexQueueResetNum;
+                lookupSearchId_ = *currentSearchId_;
             }
             // No else, this is the same pass through the vertex queue.
         }

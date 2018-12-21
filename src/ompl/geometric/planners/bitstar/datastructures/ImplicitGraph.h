@@ -462,6 +462,9 @@ namespace ompl
             /** \brief The number of state collision checks. Accessible via numStateCollisionChecks. */
             unsigned int numStateCollisionChecks_{0u};
 
+            /** \brief The current approximation id. */
+            const std::shared_ptr<unsigned int> approximationId_;
+
             // ---
             // Parameters - Set defaults in construction/setup and do not reset in clear.
             // ---

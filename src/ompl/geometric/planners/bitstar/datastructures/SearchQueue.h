@@ -158,6 +158,9 @@ namespace ompl
             /** \brief Get the cost-to-go inflation factor. */
             double getInflationFactor() const;
 
+            /** \brief Allow access to the current search id. */
+            std::shared_ptr<const unsigned int> getSearchId() const;
+
             /** \brief The condition used to insert vertices into the queue. Compares lowerBoundHeuristicVertex to the
              * given threshold. Returns true if the vertex's best cost is lower than the internally set threshold.*/
             bool canPossiblyImproveCurrentSolution(const VertexPtr &state) const;
@@ -253,7 +256,7 @@ namespace ompl
             bool hasExactSolution_{false};
 
             /** \brief A counter for the number of times we've reset the vertex queue. Used to efficiently reset the edge queue lookups stored in vertices. */
-            unsigned int numQueueResets_{0u};
+            const std::shared_ptr<unsigned int> searchId_;
 
             /** \brief The number of edges processed, in one way or other, from the queue. Accessible via numEdgesPopped
              */
