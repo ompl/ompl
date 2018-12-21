@@ -515,6 +515,9 @@ namespace ompl
                     // Add a new batch.
                     this->newBatch();
 
+                    // Prune the graph (if enabled).
+                    this->prune();
+
                     // If the optimality bound is infinity, it means we haven't found a solution, so just add
                     // a new batch without touching the inflation factor.
                     double optimalityBound = this->computeOptimalityBound();
@@ -639,9 +642,6 @@ namespace ompl
                 graphPtr_->updateStartAndGoalStates(Planner::pis_, ompl::base::plannerAlwaysTerminatingCondition());
             }
             // No else, we have enough of a problem to do some work, and everything's up to date.
-
-            // Prune the graph (if enabled).
-            this->prune();
 
             // Add a new batch of samples.
             graphPtr_->addNewSamples(samplesPerBatch_);
