@@ -167,9 +167,6 @@ namespace ompl
             /** \brief Returns true if the vertex is blacklisted as a child of this vertex. */
             bool isWhitelistedAsChild(const VertexConstPtr &vertex) const;
 
-            /** \brief Set the cost at the time of its last expansion */
-            void setCostAtExpansion(const ompl::base::Cost &cost);
-
             /** \brief Get the cost-to-come of a vertex. Return infinity if the edge is disconnected. */
             ompl::base::Cost getCost() const;
 
@@ -177,7 +174,7 @@ namespace ompl
             ompl::base::Cost getEdgeInCost() const;
 
             /** \brief Mark the vertex as expanded. */
-            void markExpanded();
+            void registerExpansion();
 
             /** \brief Mark the vertex as pruned. */
             void markPruned();
@@ -276,7 +273,7 @@ namespace ompl
             ompl::base::Cost cost_;
 
             /** \brief The cost-to-come to this vertex at the time of its last expansion. */
-            ompl::base::Cost costAtLastExpansion_;
+            ompl::base::Cost costAtExpansion_;
 
             /** \brief The child states as weak pointers, such that the ownership loop is broken and a state can be
              * deleted once it's children are. */
@@ -295,7 +292,7 @@ namespace ompl
             std::set<BITstar::VertexId> childIdWhitelist_;
 
             /** \brief The id number associated with the search in which the lookups are up to date. */
-            unsigned int lookupSearchId_{0u};
+            unsigned int lookupApproximationId_{0u};
 
             /** \brief The id number associated with the approximation on which this vertex was last expanded. */
             unsigned int expansionApproximationId_{0u};

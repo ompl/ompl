@@ -482,6 +482,9 @@ namespace ompl
             /** \brief If we've found an exact solution yet. */
             bool hasExactSolution_{false};
 
+            /** \brief The flag whether the current search is done. */
+            bool isSearchDone_{false};
+
             /** \brief A manual stop on the solve loop. */
             bool stopLoop_{false};
 

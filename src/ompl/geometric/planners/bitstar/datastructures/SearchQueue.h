@@ -109,6 +109,15 @@ namespace ompl
             /** \brief Update the edge queue by adding all the potential edges from the vertex to nearby states. */
             void insertOutgoingEdges(const VertexPtr &vertex);
 
+            /** \brief Insert the outgoing edges of all start vertices.*/
+            void insertOutgoingEdgesOfStartVertices();
+
+            /** \brief Insert the outgoing edges of all inconsistent vertices. */
+            void insertOutgoingEdgesOfInconsistentVertices();
+
+            /** \brief Add a vertex to the set of inconsistent vertices. */
+            void addToInconsistentSet(const VertexPtr &vertex);
+
             // ---
             // Access.
             // ---
@@ -131,10 +140,11 @@ namespace ompl
              * isEmpty() will return true. Keeps threshold, etc.*/
             void clear();
 
-            /** \brief Reset the queue, clearing all the edge containers and moving the vertex expansion token to the
-             * start. After a call to reset, isEmpty() will return false (unless there is no data in the queue of
-             * course). Keeps threshold, list of unsorted vertices, etc.*/
-            void restart();
+            /** \brief Clear the set of inconsistent vertices. */
+            void clearInconsistentVertices();
+
+            /** \brief Update all the sort keys of the edges in the queue. */
+            void updateSortKeysOfEdgesInQueue();
 
             /** \brief Set the cost-to-go inflation factor. */
             void setInflationFactor(double factor);
@@ -148,7 +158,7 @@ namespace ompl
             /** \brief Erase all edges in the edge queue that leave from the given vertex */
             void removeOutEdgesConnectedToVertexFromQueue(const VertexPtr &vertex);
 
-            /** 'brief Erase all edges in the edge queue that are connected to the given vertex. */
+            /** \brief Erase all edges in the edge queue that are connected to the given vertex. */
             void removeAllEdgesConnectedToVertexFromQueue(const VertexPtr &vertex);
 
             // ---
@@ -245,6 +255,9 @@ namespace ompl
 
             /** \brief The underlying queue of edges. Sorted by edgeQueueComparison. */
             EdgeQueue edgeQueue_;
+
+            /** \brief A copy of the vertices found inconsistent by the most recent search. */
+            VertexPtrVector inconsistentVertices_;
 
             /** \brief The factor by which the cost-to-go heuristic is inflated. */
             double inflationFactor_{1.0};

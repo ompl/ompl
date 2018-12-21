@@ -115,7 +115,7 @@ namespace ompl
           , isRoot_(root)
           , edgeCost_(costHelpPtr_->infiniteCost())
           , cost_(costHelpPtr_->infiniteCost())
-          , costAtLastExpansion_(costHelpPtr_->infiniteCost())
+          , costAtExpansion_(costHelpPtr_->infiniteCost())
           , currentSearchId_(searchId)
           , currentApproximationId_(approximationId)
         {
@@ -451,11 +451,6 @@ namespace ompl
             return childIdWhitelist_.find(vertex->getId()) != childIdWhitelist_.end();
         }
 
-        void BITstar::Vertex::setCostAtExpansion(const ompl::base::Cost &cost)
-        {
-            costAtLastExpansion_ = cost;
-        }
-
         ompl::base::Cost BITstar::Vertex::getCost() const
         {
             ASSERT_NOT_PRUNED
@@ -479,7 +474,7 @@ namespace ompl
 
         bool BITstar::Vertex::isConsistent() const
         {
-            return cost_.value() == costAtLastExpansion_.value();
+            return cost_.value() == costAtExpansion_.value();
         }
 
         bool BITstar::Vertex::isPruned() const
@@ -497,8 +492,12 @@ namespace ompl
             return expansionSearchId_ == *currentSearchId_;
         }
 
-        void BITstar::Vertex::markExpanded()
+        void BITstar::Vertex::registerExpansion()
         {
+            // Store the cost-to-come at expansion.
+            costAtExpansion_ = cost_;
+
+            // Remember the search and approximation ids.
             expansionApproximationId_ = *currentApproximationId_;
             expansionSearchId_ = *currentSearchId_;
         }
@@ -557,7 +556,7 @@ namespace ompl
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
             // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
-            if (*currentSearchId_ != lookupSearchId_)
+            if (*currentApproximationId_ != lookupApproximationId_)
             {
                 throw ompl::Exception("Attempted to remove an incoming queue edge added under a different expansion id.");
             }
@@ -597,7 +596,7 @@ namespace ompl
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
             // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
-            if (*currentSearchId_ != lookupSearchId_)
+            if (*currentApproximationId_ != lookupApproximationId_)
             {
                 throw ompl::Exception("Attempted to remove an incoming queue edge added under a different expansion id.");
             }
@@ -684,7 +683,7 @@ namespace ompl
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
             // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
-            if (*currentSearchId_ != lookupSearchId_)
+            if (*currentApproximationId_ != lookupApproximationId_)
             {
                 throw ompl::Exception("Attempted to remove an incoming queue edge added under a different expansion id.");
             }
@@ -724,7 +723,7 @@ namespace ompl
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
             // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
-            if (*currentSearchId_ != lookupSearchId_)
+            if (*currentApproximationId_ != lookupApproximationId_)
             {
                 throw ompl::Exception("Attempted to remove an outgoing queue edge added under a different expansion id.");
             }
@@ -940,14 +939,14 @@ namespace ompl
         void BITstar::Vertex::clearLookupsIfOutdated()
         {
             // Clean up any old lookups.
-            if (lookupSearchId_ != *currentSearchId_)
+            if (lookupApproximationId_ != *currentApproximationId_)
             {
                 // Clear the existing entries.
                 this->clearEdgeQueueInLookup();
                 this->clearEdgeQueueOutLookup();
 
                 // Update the counter.
-                lookupSearchId_ = *currentSearchId_;
+                lookupApproximationId_ = *currentApproximationId_;
             }
             // No else, this is the same pass through the vertex queue.
         }

@@ -507,7 +507,7 @@ namespace ompl
             ++numIterations_;
 
             // Is the edge queue empty
-            if (queuePtr_->isEmpty())
+            if (isSearchDone_ || queuePtr_->isEmpty())
             {
                 // Check whether we've exhausted the current approximation.
                 if (queuePtr_->getInflationFactor() == 1.0 || !hasExactSolution_)
@@ -520,91 +520,96 @@ namespace ompl
                     double optimalityBound = this->computeOptimalityBound();
                     if (optimalityBound != std::numeric_limits<double>::infinity())
                     {
-                        queuePtr_->setInflationFactor(optimalityBound);
+                        queuePtr_->setInflationFactor(initialInflationFactor_);
                     }
                     // No else.
+
+                    // Restart the queue, adding the outgoing edges of the start vertices to the queue.
+                    queuePtr_->insertOutgoingEdgesOfStartVertices();
                 }
                 else
                 {
                     // Exhaust the current approximation by performing an uninflated search.
                     queuePtr_->setInflationFactor(1.0);
+                    queuePtr_->updateSortKeysOfEdgesInQueue();
+                    queuePtr_->insertOutgoingEdgesOfInconsistentVertices();
+                    queuePtr_->clearInconsistentVertices();
                 }
 
-                // Restart the queue, adding the outgoing edges of the start vertices to the queue.
-                queuePtr_->restart();
+                isSearchDone_ = false;
             }
             else
             {
                 // If the edge queue is not empty, then there is work to do!
 
                 // Get the most promising edge.
-                VertexPtrPair bestEdge = queuePtr_->popFrontEdge();
+                VertexPtrPair edge = queuePtr_->popFrontEdge();
 
                 // If this edge is already part of the search tree it's a freebie.
-                if (bestEdge.first->hasParent() && bestEdge.first->getParent()->getId() == bestEdge.second->getId())
+                if (edge.first->hasParent() && edge.first->getParent()->getId() == edge.second->getId())
                 {
-                    queuePtr_->insertOutgoingEdges(bestEdge.second);
+                    if (!edge.first->isExpandedOnCurrentSearch())
+                    {
+                        edge.first->registerExpansion();
+                    }
+                    queuePtr_->insertOutgoingEdges(edge.second);
                 }
                 // In the best case, can this edge improve our solution given the current graph?
                 // g_t(v) + c_hat(v,x) + h_hat(x) < g_t(x_g)?
-                else if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicEdge(bestEdge), bestCost_))
+                else if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicEdge(edge), bestCost_))
                 {
                     // What about improving the current graph?
                     // g_t(v) + c_hat(v,x)  < g_t(x)?
-                    if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicToTarget(bestEdge),
-                                                       bestEdge.second->getCost()))
+                    if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicToTarget(edge),
+                                                       edge.second->getCost()))
                     {
                         // Ok, so it *could* be a useful edge. Do the work of calculating its cost for real
 
-                        // Variables:
-                        // The true cost of the edge:
-                        ompl::base::Cost trueEdgeCost;
-
                         // Get the true cost of the edge
-                        trueEdgeCost = costHelpPtr_->trueEdgeCost(bestEdge);
+                        ompl::base::Cost trueEdgeCost = costHelpPtr_->trueEdgeCost(edge);
 
                         // Can this actual edge ever improve our solution?
                         // g_hat(v) + c(v,x) + h_hat(x) < g_t(x_g)?
                         if (costHelpPtr_->isCostBetterThan(
-                                costHelpPtr_->combineCosts(costHelpPtr_->costToComeHeuristic(bestEdge.first),
+                                costHelpPtr_->combineCosts(costHelpPtr_->costToComeHeuristic(edge.first),
                                                            trueEdgeCost,
-                                                           costHelpPtr_->costToGoHeuristic(bestEdge.second)),
+                                                           costHelpPtr_->costToGoHeuristic(edge.second)),
                                 bestCost_))
                         {
                             // Does this edge have a collision?
-                            if (this->checkEdge(bestEdge))
+                            if (this->checkEdge(edge))
                             {
                                 // Remember that this edge has passed the collision checks.
-                                this->whitelistEdge(bestEdge);
+                                this->whitelistEdge(edge);
 
                                 // Does the current edge improve our graph?
                                 // g_t(v) + c(v,x) < g_t(x)?
                                 if (costHelpPtr_->isCostBetterThan(
-                                        costHelpPtr_->combineCosts(bestEdge.first->getCost(), trueEdgeCost),
-                                        bestEdge.second->getCost()))
+                                        costHelpPtr_->combineCosts(edge.first->getCost(), trueEdgeCost),
+                                        edge.second->getCost()))
                                 {
                                     // YAAAAH. Add the edge! Allowing for the sample to be removed from free if it is
                                     // not currently connected and otherwise propagate cost updates to descendants.
                                     // addEdge will update the queue and handle the extra work that occurs if this edge
                                     // improves the solution.
-                                    this->addEdge(bestEdge, trueEdgeCost);
+                                    this->addEdge(edge, trueEdgeCost);
 
                                     // If the path to the goal has changed, we will need to update the cached info about
                                     // the solution cost or solution length:
                                     this->updateGoalVertex();
 
-                                    /*
-                                    //Remove any unnecessary incoming edges in the edge queue
-                                    queuePtr_->removeExtraEdgesTo(bestEdge.second);
-                                    */
-
-                                    // We will only prune the whole graph/samples on a new batch.
+                                    // If this is the first edge that's being expanded in the current search, remember the
+                                    // cost-to-come and the search / approximation ids.
+                                    if (!edge.first->isExpandedOnCurrentSearch())
+                                    {
+                                        edge.first->registerExpansion();
+                                    }
                                 }
                                 // No else, this edge may be useful at some later date.
                             }
                             else // Remember that this edge is in collision.
                             {
-                                this->blacklistEdge(bestEdge);
+                                this->blacklistEdge(edge);
                             }
                         }
                         // No else, we failed
@@ -613,9 +618,11 @@ namespace ompl
                 }
                 else
                 {
-                    // The edge cannot improve our solution, and therefore neither can any other edge in the queue. Give
-                    // up on the batch:
-                    queuePtr_->clear();
+                    if (queuePtr_->getInflationFactor() == 1.0)
+                    {
+                        queuePtr_->clear();
+                    }
+                    isSearchDone_ = true;
                 }
             }  // Search queue not empty.
         }
@@ -847,8 +854,15 @@ namespace ompl
                 graphPtr_->removeFromSamples(edge.second);
             }
 
-            // Enqueue the outgoing edges.
-            queuePtr_->insertOutgoingEdges(edge.second);
+            // If the vertex hasn't already been expanded, insert its outgoing edges
+            if (!edge.second->isExpandedOnCurrentSearch())
+            {
+                queuePtr_->insertOutgoingEdges(edge.second);
+            }
+            else // If the vertex has already been expanded, remember it as inconsistent.
+            {
+                queuePtr_->addToInconsistentSet(edge.second);
+            }
         }
 
         void BITstar::replaceParent(const VertexPtrPair &edge, const ompl::base::Cost &edgeCost)

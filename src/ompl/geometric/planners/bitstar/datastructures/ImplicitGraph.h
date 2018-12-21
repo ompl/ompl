@@ -392,16 +392,14 @@ namespace ompl
             /** \brief A copy of the new samples of the most recently added batch. */
             VertexPtrVector newSamples_;
 
-            /** \brief A copy of the vertices recycled into samples during the most recently added batch. */
-            VertexPtrVector recycledSamples_;
-
-            /** \brief The samples as a nearest-neighbours datastructure. Sorted by nnDistance. Size accessible via
-             * numFreeSamples. */
+            /** \brief The samples as a nearest-neighbours datastructure. Sorted by nnDistance. */
             VertexPtrNNPtr samples_{nullptr};
 
-            /** \brief The vertices as a nearest-neighbours data structure. Sorted by nnDistance. Size accessible via
-             * numConnectedVertices. */
+            /** \brief The vertices as a nearest-neighbours data structure. Sorted by nnDistance. */
             VertexPtrNNPtr vertices_{nullptr};
+
+            /** \brief A copy of the vertices recycled into samples during the most recently added batch. */
+            VertexPtrVector recycledSamples_;
 
             /** \brief The number of samples in this batch. */
             unsigned int numNewSamplesInCurrentBatch_{0u};

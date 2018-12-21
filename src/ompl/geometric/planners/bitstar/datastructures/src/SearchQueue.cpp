@@ -305,7 +305,7 @@ namespace ompl
             ++(*searchId_);
         }
 
-        void BITstar::SearchQueue::restart()
+        void BITstar::SearchQueue::insertOutgoingEdgesOfStartVertices()
         {
             ASSERT_SETUP
 
@@ -403,11 +403,7 @@ namespace ompl
         void BITstar::SearchQueue::insertOutgoingEdges(const VertexPtr &vertex)
         {
             // Should we expand this vertex?
-            if (vertex->isConsistent() && vertex->isExpandedOnCurrentApproximation())
-            {
-                    return;
-            }
-            else if (this->canPossiblyImproveCurrentSolution(vertex))
+            if (this->canPossiblyImproveCurrentSolution(vertex))
             {
                 // Get the neighbouring samples.
                 VertexPtrVector neighbourSamples;
@@ -429,6 +425,67 @@ namespace ompl
                 this->enqueueEdgesToVertices(vertex, neighbourVertices);
             }
             // No else
+        }
+
+        void BITstar::SearchQueue::insertOutgoingEdgesOfInconsistentVertices()
+        {
+            // Insert all outgoing edges of the inconsistent vertices.
+            for (const auto &vertex : inconsistentVertices_)
+            {
+                this->insertOutgoingEdges(vertex);
+            }
+        }
+
+        void BITstar::SearchQueue::clearInconsistentVertices()
+        {
+            inconsistentVertices_.clear();
+        }
+
+        void BITstar::SearchQueue::updateSortKeysOfEdgesInQueue()
+        {
+            // Ok this is going to be really dirty. We would like to have access to the actual underlying
+            // std::vector of the binary heap, but its interface only provides a copy. Now, we can still access
+            // the actual the elements because we stored their pointers upon insertion. But it's a mess
+            // (and suggests a flawed encapsulation or incomplete interface of the bin heap class?)
+
+            // Get a copy of the contents.
+            std::vector<SortKeyAndVertexPtrPair> contentCopy;
+            edgeQueue_.getContent(contentCopy);
+
+            // Let's rebuild the vector with the original pointers.
+
+            // First, get the parent vertices of all the edges still in the queue.
+            std::set<VertexPtr> parents;
+            for (const auto &element : contentCopy)
+            {
+                parents.insert(element.second.first);
+            }
+
+            // We could now rebuild the content. But it suffices to just update the values of all outgoing edges of all parents.
+            for (const auto &parent : parents)
+            {
+                for (auto it = parent->edgeQueueOutLookupConstBegin(); it != parent->edgeQueueOutLookupConstEnd(); ++it)
+                {
+                    (*it)->data.first = this->createSortKey((*it)->data.second);
+                    edgeQueue_.update(*it);
+                }
+            }
+        }
+
+        void BITstar::SearchQueue::addToInconsistentSet(const VertexPtr &vertex)
+        {
+#ifdef BITSTAR_DEBUG
+            if (vertex->isConsistent())
+            {
+                ompl::Exception("Attempted to add a consistent vertex to the inconsistent set.");
+            }
+            if (!vertex->isExpandedOnCurrentSearch())
+            {
+                ompl::Exception("Attempted to add an unexpanded vertex to the inconsistent set.");
+            }
+#endif // BITSTAR_DEBUG
+
+            inconsistentVertices_.push_back(vertex);
         }
 
         void BITstar::SearchQueue::enqueueEdgesToSamples(const VertexPtr &vertex, const VertexPtrVector& neighbourSamples)
