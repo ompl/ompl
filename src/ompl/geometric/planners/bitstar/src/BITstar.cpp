@@ -549,7 +549,7 @@ namespace ompl
                 VertexPtrPair edge = queuePtr_->popFrontEdge();
 
                 // If this edge is already part of the search tree it's a freebie.
-                if (edge.first->hasParent() && edge.first->getParent()->getId() == edge.second->getId())
+                if (edge.second->hasParent() && edge.second->getParent()->getId() == edge.first->getId())
                 {
                     if (!edge.first->isExpandedOnCurrentSearch())
                     {
