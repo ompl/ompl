@@ -144,7 +144,7 @@ namespace ompl
             void clearInconsistentVertices();
 
             /** \brief Update all the sort keys of the edges in the queue. */
-            void updateSortKeysOfEdgesInQueue();
+            void rebuildEdgeQueue();
 
             /** \brief Set the cost-to-go inflation factor. */
             void setInflationFactor(double factor);

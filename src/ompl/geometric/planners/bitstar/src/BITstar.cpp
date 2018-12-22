@@ -534,7 +534,7 @@ namespace ompl
                 {
                     // Exhaust the current approximation by performing an uninflated search.
                     queuePtr_->setInflationFactor(1.0);
-                    queuePtr_->updateSortKeysOfEdgesInQueue();
+                    queuePtr_->rebuildEdgeQueue();
                     queuePtr_->insertOutgoingEdgesOfInconsistentVertices();
                     queuePtr_->clearInconsistentVertices();
                 }

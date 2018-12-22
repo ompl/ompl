@@ -441,35 +441,37 @@ namespace ompl
             inconsistentVertices_.clear();
         }
 
-        void BITstar::SearchQueue::updateSortKeysOfEdgesInQueue()
+        void BITstar::SearchQueue::rebuildEdgeQueue()
         {
             // Ok this is going to be really dirty. We would like to have access to the actual underlying
-            // std::vector of the binary heap, but its interface only provides a copy. Now, we can still access
-            // the actual the elements because we stored their pointers upon insertion. But it's a mess
-            // (and suggests a flawed encapsulation or incomplete interface of the bin heap class?)
+            // std::vector of the binary heap, holding pointers to the elements in the heap.
+            // Unfortunately, the binary heap interface only provides access to a copy. Now, we can still
+            // access get the pointers to the elements because we stored tehem upon insertion. But it's a mess
+            // (and kinda suggests a flawed encapsulation or incomplete interface of the bin heap class?)
 
             // Get a copy of the contents.
             std::vector<SortKeyAndVertexPtrPair> contentCopy;
             edgeQueue_.getContent(contentCopy);
 
-            // Let's rebuild the vector with the original pointers.
-
-            // First, get the parent vertices of all the edges still in the queue.
+            // Now, get the parent vertices of all the edges still in the queue.
             std::set<VertexPtr> parents;
             for (const auto &element : contentCopy)
             {
                 parents.insert(element.second.first);
             }
 
-            // We could now rebuild the content. But it suffices to just update the values of all outgoing edges of all parents.
+            // Update the sort keys of all outgoing edges of all vertices that have outgoing edges in the queue.
             for (const auto &parent : parents)
             {
                 for (auto it = parent->edgeQueueOutLookupConstBegin(); it != parent->edgeQueueOutLookupConstEnd(); ++it)
                 {
                     (*it)->data.first = this->createSortKey((*it)->data.second);
-                    edgeQueue_.update(*it);
                 }
             }
+
+            // All edges have an updated key, let's rebuild the queue. Presumably this is more efficient than calling
+            // EdgeQueue::update() on each edge individually while looping?
+            edgeQueue_.rebuild();
         }
 
         void BITstar::SearchQueue::addToInconsistentSet(const VertexPtr &vertex)
