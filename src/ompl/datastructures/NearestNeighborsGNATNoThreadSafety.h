@@ -365,9 +365,8 @@ namespace ompl
         /// to the vector that NearestNeighbor API requires.
         void postprocessNearest(std::vector<_T> &nbh) const
         {
-            typename std::vector<_T>::reverse_iterator it;
             nbh.resize(nearQueue_.size());
-            for (it = nbh.rbegin(); it != nbh.rend(); it++, nearQueue_.pop())
+            for (auto it = nbh.rbegin(); it != nbh.rend(); it++, nearQueue_.pop())
                 *it = *nearQueue_.top().second;
         }
 

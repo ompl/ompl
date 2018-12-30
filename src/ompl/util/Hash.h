@@ -61,7 +61,7 @@ namespace std
         using result_type = std::size_t;
         result_type operator()(argument_type const &p) const
         {
-            result_type h = std::hash<typename std::remove_cv<U>::type>()(p.first);
+            result_type h = std::hash<std::remove_cv_t<U>>()(p.first);
             ompl::hash_combine(h, p.second);
             return h;
         }

@@ -170,17 +170,16 @@ namespace ompl
             {
             }
 
-            const std::vector<Milestone> &operator()(const Milestone &m)
+            const auto &operator()(const Milestone &m)
             {
-                std::vector<Milestone> &result = KStrategy<Milestone>::neighbors_;
+                auto &result = KStrategy<Milestone>::neighbors_;
                 KStrategy<Milestone>::nn_->nearestK(m, KStrategy<Milestone>::k_, result);
                 if (result.empty())
                     return result;
-                const typename NearestNeighbors<Milestone>::DistanceFunction &dist =
-                    KStrategy<Milestone>::nn_->getDistanceFunction();
+                const auto &dist = KStrategy<Milestone>::nn_->getDistanceFunction();
                 if (!KStrategy<Milestone>::nn_->reportsSortedResults())
                     std::sort(result.begin(), result.end(), dist);
-                std::size_t newCount = result.size();
+                auto newCount = result.size();
                 while (newCount > 0 && dist(result[newCount - 1], m) > bound_)
                     --newCount;
                 result.resize(newCount);
