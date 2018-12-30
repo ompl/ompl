@@ -55,12 +55,14 @@ if (OMPL_BUILD_TESTS)
     endif(OMPL_EXTENSION_MORSE)
 
     # Python unit tests
-    if(PYTHON_FOUND AND OMPL_BUILD_PYTESTS AND EXISTS "${CMAKE_CURRENT_BINARY_DIR}/../py-bindings/bindings")
-        add_ompl_python_test(util/test_util.py)
-        add_ompl_python_test(base/test_base.py)
-        add_ompl_python_test(geometric/test_geometric.py)
-        add_ompl_python_test(geometric/test_geometric_compoundstate.py)
-        add_ompl_python_test(control/test_control.py)
+    if(PYTHON_FOUND AND OMPL_BUILD_PYTESTS)
+        if (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/../py-bindings/bindings")
+            add_ompl_python_test(util/test_util.py)
+            add_ompl_python_test(base/test_base.py)
+            add_ompl_python_test(geometric/test_geometric.py)
+            add_ompl_python_test(geometric/test_geometric_compoundstate.py)
+            add_ompl_python_test(control/test_control.py)
+        endif()
 
         # test the python function to std::function conversion utility functions
         include_directories(${PYTHON_INCLUDE_DIRS})
