@@ -46,12 +46,6 @@ struct IntClass
     int value;
 };
 
-PYDECLARE_FUNCTION(IntClass(IntClass,int),         IntClassFun0_t)
-PYDECLARE_FUNCTION(IntClass(IntClass&,int),        IntClassFun1_t)
-PYDECLARE_FUNCTION(IntClass(const IntClass&,int),  IntClassFun2_t)
-PYDECLARE_FUNCTION(IntClass(IntClass&,int&),       IntClassFun3_t)
-PYDECLARE_FUNCTION(void(IntClass*,int),            IntClassFun4_t)
-
 IntClass intClassFun0(IntClass i, int j) { i.value = j; return i; }
 IntClass intClassFun1(IntClass& i, int j) { i.value = j; return i; }
 IntClass intClassFun2(const IntClass& i, int j) { IntClass i2(i); i2.value = j; return i2; }
