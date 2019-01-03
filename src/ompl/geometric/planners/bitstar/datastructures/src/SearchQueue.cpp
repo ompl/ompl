@@ -219,16 +219,17 @@ namespace ompl
 
             // Get the front element in the edge queue.
             EdgeQueueElemPtr frontEdgeQueueElement = edgeQueue_.top();
+            VertexPtrPair frontEdge = frontEdgeQueueElement->data.second;
 
             // Remove the edge from the respective vertex lookups.
-            frontEdgeQueueElement->data.second.first->removeFromEdgeQueueOutLookup(frontEdgeQueueElement);
-            frontEdgeQueueElement->data.second.second->removeFromEdgeQueueInLookup(frontEdgeQueueElement);
+            frontEdge.first->removeFromEdgeQueueOutLookup(frontEdgeQueueElement);
+            frontEdge.second->removeFromEdgeQueueInLookup(frontEdgeQueueElement);
 
             // Remove it from the queue.
             edgeQueue_.pop();
 
             // Return the edge.
-            return frontEdgeQueueElement->data.second;
+            return frontEdge;
         }
 
         void BITstar::SearchQueue::registerSolutionCost(const ompl::base::Cost &solutionCost)
