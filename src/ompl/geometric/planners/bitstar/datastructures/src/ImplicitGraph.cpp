@@ -260,6 +260,9 @@ namespace ompl
             numNearestNeighbours_ = 0u;
             numStateCollisionChecks_ = 0u;
 
+            // The approximation id.
+            *approximationId_ = 1u;
+
             // The various convenience pointers:
             // DO NOT reset the parameters:
             // rewireFactor_
