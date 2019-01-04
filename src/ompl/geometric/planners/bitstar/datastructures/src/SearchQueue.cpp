@@ -221,6 +221,13 @@ namespace ompl
             EdgeQueueElemPtr frontEdgeQueueElement = edgeQueue_.top();
             VertexPtrPair frontEdge = frontEdgeQueueElement->data.second;
 
+#ifdef BITSTAR_DEBUG
+            if (frontEdge.first->isPruned() || frontEdge.second->isPruned())
+                {
+                    throw ompl::Exception("The edge queue contains an edge with a pruned vertex.");
+                }
+#endif // BITSTAR_DEBUG
+
             // Remove the edge from the respective vertex lookups.
             frontEdge.first->removeFromEdgeQueueOutLookup(frontEdgeQueueElement);
             frontEdge.second->removeFromEdgeQueueInLookup(frontEdgeQueueElement);
@@ -313,6 +320,12 @@ namespace ompl
             // Insert the outgoing edges of the start vertices.
             for (auto it = graphPtr_->startVerticesBeginConst(); it != graphPtr_->startVerticesEndConst(); ++it)
             {
+#ifdef BITSTAR_DEBUG
+                if ((*it)->isPruned())
+                {
+                    throw ompl::Exception("Inserting outgoing edges of a pruned start vertex.");
+                }
+#endif // BITSTAR_DEBUG
                 this->insertOutgoingEdges(*it);
             }
         }
@@ -335,6 +348,13 @@ namespace ompl
         bool BITstar::SearchQueue::canPossiblyImproveCurrentSolution(const VertexPtr &state) const
         {
             ASSERT_SETUP
+
+#ifdef BITSTAR_DEBUG
+            if (state->isPruned())
+            {
+                throw ompl::Exception("Asking whether pruned state can possibly improve current solution.");
+            }
+#endif // BITSTAR_DEBUG
 
             // Threshold should always be g_t(x_g)
 
@@ -403,6 +423,12 @@ namespace ompl
         // Private functions:
         void BITstar::SearchQueue::insertOutgoingEdges(const VertexPtr &vertex)
         {
+#ifdef BITSTAR_DEBUG
+            if (vertex->isPruned())
+            {
+                throw ompl::Exception("Inserting outgoing edges of pruned vertex.");
+            }
+#endif // BITSTAR_DEBUG
             // Should we expand this vertex?
             if (this->canPossiblyImproveCurrentSolution(vertex))
             {
@@ -433,6 +459,13 @@ namespace ompl
             // Insert all outgoing edges of the inconsistent vertices.
             for (const auto &vertex : inconsistentVertices_)
             {
+#ifdef BITSTAR_DEBUG
+                if (vertex->isPruned())
+                {
+                    throw ompl::Exception("Attempting to insert outgoing edges of an inconsistent "
+                                          "vertex that has been pruned.");
+                }
+#endif // BITSTAR_DEBUG
                 this->insertOutgoingEdges(vertex);
             }
         }

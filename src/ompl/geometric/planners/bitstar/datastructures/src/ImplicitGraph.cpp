@@ -739,6 +739,10 @@ namespace ompl
                                       "from taking it's own copy of the given shared pointer. See "
                                       "https://bitbucket.org/ompl/ompl/issues/364/code-cleanup-breaking-bit");
             }
+            if (sampleCopy->edgeQueueOutLookupSize() != 0u)
+            {
+                throw ompl::Exception("Encountered a sample with outgoing edges in the queue.");
+            }
 #endif  // BITSTAR_DEBUG
 
             // Remove all incoming edges from the search queue.
@@ -1212,7 +1216,7 @@ namespace ompl
 
         unsigned int BITstar::ImplicitGraph::pruneVertices()
         {
-            // The number of samples pruned in this pass:
+            // The number of samples pruned in this pass.
             unsigned int numPruned = 0u;
 
             // Get the vector of samples
@@ -1249,14 +1253,21 @@ namespace ompl
             return costHelpPtr_->isCostWorseThan(costHelpPtr_->currentHeuristicVertex(vertex), solutionCost_);
         }
 
-        bool BITstar::ImplicitGraph::canSampleBePruned(const VertexPtr &vertex) const
+        bool BITstar::ImplicitGraph::canSampleBePruned(const VertexPtr &sample) const
         {
             ASSERT_SETUP
+
+#ifdef BITSTAR_DEBUG
+            if (sample->isPruned())
+            {
+                throw ompl::Exception("Asking whether a pruned sample can be pruned.");
+            }
+#endif // BITSTAR_DEBUG
 
             // Threshold should always be g_t(x_g)
             // Prune the unconnected sample if it could never be better of a better solution.
             // g^(v) + h^(v) >= g_t(x_g)?
-            return costHelpPtr_->isCostWorseThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicVertex(vertex), solutionCost_);
+            return costHelpPtr_->isCostWorseThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicVertex(sample), solutionCost_);
         }
 
         void BITstar::ImplicitGraph::testClosestToGoal(const VertexConstPtr &vertex)
@@ -1277,6 +1288,12 @@ namespace ompl
 
         ompl::base::Cost BITstar::ImplicitGraph::calculateNeighbourhoodCost(const VertexConstPtr &vertex) const
         {
+#ifdef BITSTAR_DEBUG
+            if (vertex->isPruned())
+            {
+                throw ompl::Exception("Calculating the neighbourhood cost of a pruned vertex.");
+            }
+#endif // BITSTAR_DEBUG
             // Are we using JIT sampling?
             if (useJustInTimeSampling_)
             {

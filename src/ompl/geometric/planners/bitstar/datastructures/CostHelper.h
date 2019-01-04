@@ -103,6 +103,12 @@ namespace ompl
              * cost-to-go. */
             inline ompl::base::Cost lowerBoundHeuristicVertex(const VertexConstPtr &vertex) const
             {
+#ifdef BITSTAR_DEBUG
+                if (vertex->isPruned())
+                {
+                    throw ompl::Exception("Computing the lower bound heuristic through a pruned vertex.");
+                }
+#endif // BITSTAR_DEBUG
                 return this->combineCosts(this->costToComeHeuristic(vertex), this->costToGoHeuristic(vertex));
             };
 
@@ -151,6 +157,12 @@ namespace ompl
             /** \brief Calculate a heuristic estimate of the cost-to-come for a Vertex */
             inline ompl::base::Cost costToComeHeuristic(const VertexConstPtr &vertex) const
             {
+#ifdef BITSTAR_DEBUG
+                if (vertex->isPruned())
+                {
+                    throw ompl::Exception("Computing the cost to come heuristic to a pruned vertex.");
+                }
+#endif // BITSTAR_DEBUG
                 // Variable
                 // The current best cost to the state, initialize to infinity
                 ompl::base::Cost curBest = this->infiniteCost();
