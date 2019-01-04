@@ -369,6 +369,9 @@ namespace ompl
             }
             // No else, there's a goal to all of this
 
+            // Insert the outgoing edges of the start vertices.
+            queuePtr_->insertOutgoingEdgesOfStartVertices();
+
             /* Iterate as long as:
               - We're allowed (ptc == false && stopLoop_ == false), AND
               - We haven't found a good enough solution (costHelpPtr_->isSatisfied(bestCost) == false),
