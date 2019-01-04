@@ -741,6 +741,9 @@ namespace ompl
             }
 #endif  // BITSTAR_DEBUG
 
+            // Remove all incoming edges from the search queue.
+            queuePtr_->removeInEdgesConnectedToVertexFromQueue(sampleCopy);
+
             // Remove from the set of samples
             samples_->remove(sampleCopy);
 
