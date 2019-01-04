@@ -503,10 +503,10 @@ namespace ompl
         // Protected functions:
         void BITstar::iterate()
         {
-            // Info:
+            // Keep track of how many iterations we've performed.
             ++numIterations_;
 
-            // Is the edge queue empty
+            // If the search is done or the queue is empty, we need to populate the queue.
             if (isSearchDone_ || queuePtr_->isEmpty())
             {
                 // Check whether we've exhausted the current approximation.
