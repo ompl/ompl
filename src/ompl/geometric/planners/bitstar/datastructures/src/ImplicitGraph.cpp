@@ -864,7 +864,13 @@ namespace ompl
             }
 #endif  // BITSTAR_DEBUG
 
-            // Remove from the set of samples
+            // Remove from the set of inconsistent vertices if the vertex is inconsistent.
+            if (!vertexCopy->isConsistent())
+            {
+                queuePtr_->removeFromInconsistentSet(vertexCopy);
+            }
+
+            // Remove from the set of vertices.
             vertices_->remove(vertexCopy);
 
             // Disconnect from parent if necessary, not cascading cost updates.
@@ -873,11 +879,29 @@ namespace ompl
                 this->removeEdgeBetweenVertexAndParent(vertexCopy, false);
             }
 
+            // Remove all children and let them know that their parent is pruned.
+            VertexPtrVector children;
+            vertexCopy->getChildren(&children);
+            for (const auto &child : children)
+            {
+                vertexCopy->removeChild(child);
+                child->removeParent(false);
+            }
+
             // Remove any edges still in the queue.
             queuePtr_->removeAllEdgesConnectedToVertexFromQueue(vertexCopy);
 
-            // Mark the sample as pruned
-            vertexCopy->markPruned();
+            // This state is now no longer considered a vertex, but could still be useful as sample.
+            if (this->canSampleBePruned(vertexCopy))
+            {
+                // It's not even useful as sample, mark it as pruned.
+                vertexCopy->markPruned();
+            }
+            else
+            {
+                // It is useful as sample, so add it as such.
+                this->addToSamples(vertexCopy);
+            }
         }
 
         void BITstar::ImplicitGraph::removeEdgeBetweenVertexAndParent(const VertexPtr &child, bool cascadeCostUpdates)

@@ -141,7 +141,7 @@ namespace ompl
             void clear();
 
             /** \brief Clear the set of inconsistent vertices. */
-            void clearInconsistentVertices();
+            void clearInconsistentSet();
 
             /** \brief Update all the sort keys of the edges in the queue. */
             void rebuildEdgeQueue();
@@ -160,6 +160,9 @@ namespace ompl
 
             /** \brief Erase all edges in the edge queue that are connected to the given vertex. */
             void removeAllEdgesConnectedToVertexFromQueue(const VertexPtr &vertex);
+
+            /** \brief Remove a vertex from the set of inconsistent vertices. */
+            void removeFromInconsistentSet(const VertexPtr &vertex);
 
             // ---
             // Information access.

@@ -536,7 +536,7 @@ namespace ompl
                     queuePtr_->setInflationFactor(1.0);
                     queuePtr_->rebuildEdgeQueue();
                     queuePtr_->insertOutgoingEdgesOfInconsistentVertices();
-                    queuePtr_->clearInconsistentVertices();
+                    queuePtr_->clearInconsistentSet();
                 }
 
                 isSearchDone_ = false;

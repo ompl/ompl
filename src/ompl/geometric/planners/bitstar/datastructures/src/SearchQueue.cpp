@@ -302,6 +302,21 @@ namespace ompl
             this->removeInEdgesConnectedToVertexFromQueue(vertex);
         }
 
+        void BITstar::SearchQueue::removeFromInconsistentSet(const VertexPtr &vertex)
+        {
+#ifdef BITSTAR_DEBUG
+            if (vertex->isConsistent())
+            {
+                throw ompl::Exception("Attempting to remove a consistent vertex from the set of inconsistent vertices.");
+            }
+#endif // BITSTAR_DEBUG
+            inconsistentVertices_.erase(std::remove_if(inconsistentVertices_.begin(), inconsistentVertices_.end(),
+                                             [vertex](const VertexPtr &element) {
+                                                 return vertex->getId() == element->getId();
+                                             }),
+                                        inconsistentVertices_.end());
+        }
+
         void BITstar::SearchQueue::clear()
         {
             ASSERT_SETUP
@@ -470,7 +485,7 @@ namespace ompl
             }
         }
 
-        void BITstar::SearchQueue::clearInconsistentVertices()
+        void BITstar::SearchQueue::clearInconsistentSet()
         {
             inconsistentVertices_.clear();
         }
