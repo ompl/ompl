@@ -527,6 +527,9 @@ namespace ompl
                     }
                     // No else.
 
+                    // Clear the search queue.
+                    queuePtr_->clear();
+
                     // Restart the queue, adding the outgoing edges of the start vertices to the queue.
                     queuePtr_->insertOutgoingEdgesOfStartVertices();
                 }
