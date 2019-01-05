@@ -370,7 +370,10 @@ namespace ompl
             // No else, there's a goal to all of this
 
             // Insert the outgoing edges of the start vertices.
-            queuePtr_->insertOutgoingEdgesOfStartVertices();
+            if (numIterations_ == 0u)
+            {
+                queuePtr_->insertOutgoingEdgesOfStartVertices();
+            }
 
             /* Iterate as long as:
               - We're allowed (ptc == false && stopLoop_ == false), AND
@@ -549,8 +552,6 @@ namespace ompl
             }
             else
             {
-                // If the edge queue is not empty, then there is work to do!
-
                 // Get the most promising edge.
                 VertexPtrPair edge = queuePtr_->popFrontEdge();
 
