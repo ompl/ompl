@@ -451,6 +451,16 @@ namespace ompl
             return childIdWhitelist_.find(vertex->getId()) != childIdWhitelist_.end();
         }
 
+        void BITstar::Vertex::clearBlacklist()
+        {
+            childIdBlacklist_.clear();
+        }
+
+        void BITstar::Vertex::clearWhitelist()
+        {
+            childIdWhitelist_.clear();
+        }
+
         ompl::base::Cost BITstar::Vertex::getCost() const
         {
             ASSERT_NOT_PRUNED

@@ -73,7 +73,7 @@ namespace ompl
 
             /** \brief Construct a vertex using space information, and helpers to compute various costs. */
             Vertex(ompl::base::SpaceInformationPtr spaceInformation, const CostHelper *const costHelpPtr,
-                   const std::shared_ptr<const unsigned int> &SearchId,
+                   const std::shared_ptr<const unsigned int> &searchId,
                    const std::shared_ptr<const unsigned int> &approximationId, bool root = false);
 
             /** \brief Destruct a vertex. */
@@ -166,6 +166,12 @@ namespace ompl
 
             /** \brief Returns true if the vertex is blacklisted as a child of this vertex. */
             bool isWhitelistedAsChild(const VertexConstPtr &vertex) const;
+
+            /** \brief Clears the blacklist. */
+            void clearBlacklist();
+
+            /** \brief Clears the whitelist. */
+            void clearWhitelist();
 
             /** \brief Get the cost-to-come of a vertex. Return infinity if the edge is disconnected. */
             ompl::base::Cost getCost() const;

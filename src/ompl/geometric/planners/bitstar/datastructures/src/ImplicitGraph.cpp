@@ -263,6 +263,24 @@ namespace ompl
             // The approximation id.
             *approximationId_ = 1u;
 
+            // The lookups and white-/blacklists of the start vertices.
+            for (const auto &vertex : startVertices_)
+            {
+                vertex->clearEdgeQueueInLookup();
+                vertex->clearEdgeQueueOutLookup();
+                vertex->clearBlacklist();
+                vertex->clearWhitelist();
+            }
+
+            // The lookups and white-/blacklists of the goal vertices.
+            for (const auto &vertex : goalVertices_)
+            {
+                vertex->clearEdgeQueueInLookup();
+                vertex->clearEdgeQueueOutLookup();
+                vertex->clearBlacklist();
+                vertex->clearWhitelist();
+            }
+
             // The various convenience pointers:
             // DO NOT reset the parameters:
             // rewireFactor_
