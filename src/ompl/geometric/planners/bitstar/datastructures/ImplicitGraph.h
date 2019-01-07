@@ -152,9 +152,8 @@ namespace ompl
              * adding a batch of new samples. */
             void addNewSamples(const unsigned int &numSamples);
 
-            /** \brief Prune the samples to the subproblem of the given measure. Pruning is performed by using the prune
-             * conditions of the SearchQueue. Returns the number of vertices disconnected and the number of samples
-             * removed. */
+            /** \brief Prune the samples to the subproblem of the given measure. Returns the number of vertices
+             * disconnected and the number of samples removed. */
             std::pair<unsigned int, unsigned int> prune(double prunedMeasure);
 
             /** \brief Add an unconnected sample. */
@@ -177,7 +176,7 @@ namespace ompl
             unsigned int removeFromVertices(const VertexPtr &sample, bool moveToFree);
 
             /** \brief Remove a vertex and mark as pruned. */
-            void pruneVertex(const VertexPtr &vertex);
+            std::pair<unsigned int, unsigned int> pruneVertex(const VertexPtr &vertex);
 
             /** \brief Disconnect a vertex from its parent by removing the edges stored in itself, and its parents.
              * Cascades cost updates if requested.*/
@@ -297,7 +296,7 @@ namespace ompl
 
             /** \brief Prune any vertices that provably cannot provide a better solution than the current best solution.
              * Returns the number of vertices removed. */
-            unsigned int pruneVertices();
+            std::pair<unsigned int, unsigned int> pruneVertices();
 
             /** \brief Returns whether the vertex can be pruned, i.e., whether it could provide a better solution given.
              * the current graph. The check should always be g_t(v) + h^(v) >= g_t(x_g). */

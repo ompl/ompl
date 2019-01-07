@@ -315,7 +315,7 @@ namespace ompl
             /** \brief Initialize variables for a new batch. */
             void newBatch();
 
-            /** \brief Prune the problem. Returns true if pruning was done. */
+            /** \brief Prune the problem. */
             void prune();
 
             /** \brief Publish the found solution to the ProblemDefinition. */

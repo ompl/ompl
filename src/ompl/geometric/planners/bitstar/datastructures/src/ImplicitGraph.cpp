@@ -695,14 +695,11 @@ namespace ompl
             }
 #endif  // BITSTAR_DEBUG
 
-            // Variable
-            std::pair<unsigned int, unsigned int> numPruned(0u, 0u);
-
             // Store the measure of the problem I'm approximating
             approximationMeasure_ = prunedMeasure;
 
             // Prune the starts/goals
-            numPruned = numPruned + this->pruneStartAndGoalVertices();
+            std::pair<unsigned int, unsigned int> numPruned = this->pruneStartAndGoalVertices();
 
             // Prune the samples.
             numPruned.second = numPruned.second + this->pruneSamples();
@@ -862,7 +859,7 @@ namespace ompl
             }
         }
 
-        void BITstar::ImplicitGraph::pruneVertex(const VertexPtr &vertex)
+        std::pair<unsigned int, unsigned int> BITstar::ImplicitGraph::pruneVertex(const VertexPtr &vertex)
         {
             ASSERT_SETUP
 
@@ -917,11 +914,13 @@ namespace ompl
             {
                 // It's not even useful as sample, mark it as pruned.
                 vertexCopy->markPruned();
+                return { 0, 1 }; // The vertex is actually removed.
             }
             else
             {
                 // It is useful as sample, so add it as such.
                 this->addToSamples(vertexCopy);
+                return { 1, 0 }; // The vertex is only disconnected and recycled as sample.
             }
         }
 
@@ -1259,10 +1258,10 @@ namespace ompl
             return numPruned;
         }
 
-        unsigned int BITstar::ImplicitGraph::pruneVertices()
+        std::pair<unsigned int, unsigned int> BITstar::ImplicitGraph::pruneVertices()
         {
             // The number of samples pruned in this pass.
-            unsigned int numPruned = 0u;
+            std::pair<unsigned int, unsigned int> numPruned { 0u, 0u };
 
             // Get the vector of samples
             VertexPtrVector vertices;
@@ -1274,11 +1273,8 @@ namespace ompl
                 // Check if this state should be pruned:
                 if (this->canVertexBePruned(vertex))
                 {
-                    // Yes, remove it
-                    this->pruneVertex(vertex);
-
-                    // and increment the counter
-                    ++numPruned;
+                    // Prune it. This recycles if possible (sorry, not the most expressive method name).
+                    numPruned = numPruned + this->pruneVertex(vertex);
                 }
                 // No else, keep vertex.
             }
