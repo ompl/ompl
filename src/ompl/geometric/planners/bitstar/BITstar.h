@@ -511,7 +511,7 @@ namespace ompl
             unsigned int samplesPerBatch_{100u};
 
             /** \brief Whether to use graph pruning. */
-            bool usePruning_{true};
+            bool isPruningEnabled_{true};
 
             /** \brief The fractional decrease in solution cost required to trigger pruning. */
             double pruneFraction_{0.05};

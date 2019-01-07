@@ -521,17 +521,14 @@ namespace ompl
                     // Add a new batch.
                     this->newBatch();
 
-                    // Prune the graph (if enabled).
-                    this->prune();
-
-                    // If the optimality bound is infinity, it means we haven't found a solution, so just add
-                    // a new batch without touching the inflation factor.
-                    double optimalityBound = this->computeOptimalityBound();
-                    if (optimalityBound != std::numeric_limits<double>::infinity())
+                    // Prune the graph if enabled.
+                    if (isPruningEnabled_)
                     {
-                        queuePtr_->setInflationFactor(initialInflationFactor_);
+                        this->prune();
                     }
-                    // No else.
+
+                    // Set the inflation factor to an initial value.
+                    queuePtr_->setInflationFactor(initialInflationFactor_);
 
                     // Clear the search queue.
                     queuePtr_->clear();
@@ -1214,18 +1211,12 @@ namespace ompl
 
         void BITstar::setPruning(bool usePruning)
         {
-            if (!usePruning)
-            {
-                OMPL_WARN("%s: Turning pruning off has never really been tested.", Planner::getName().c_str());
-            }
-
-            // Store
-            usePruning_ = usePruning;
+            isPruningEnabled_ = usePruning;
         }
 
         bool BITstar::getPruning() const
         {
-            return usePruning_;
+            return isPruningEnabled_;
         }
 
         void BITstar::setPruneThresholdFraction(double fractionalChange)
