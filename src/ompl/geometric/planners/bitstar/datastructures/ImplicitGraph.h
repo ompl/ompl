@@ -231,10 +231,10 @@ namespace ompl
             // ---
 
             /** \brief The number of free samples (size of freeStateNN_). */
-            unsigned int numFreeSamples() const;
+            unsigned int numSamples() const;
 
             /** \brief The number of vertices in the tree (Size of vertexNN_). */
-            unsigned int numConnectedVertices() const;
+            unsigned int numVertices() const;
 
             /** \brief The \e total number of states generated (numSamples_). */
             unsigned int numStatesGenerated() const;

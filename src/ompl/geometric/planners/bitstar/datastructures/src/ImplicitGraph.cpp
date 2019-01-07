@@ -1716,12 +1716,12 @@ namespace ompl
             }
         }
 
-        unsigned int BITstar::ImplicitGraph::numFreeSamples() const
+        unsigned int BITstar::ImplicitGraph::numSamples() const
         {
             return samples_->size();
         }
 
-        unsigned int BITstar::ImplicitGraph::numConnectedVertices() const
+        unsigned int BITstar::ImplicitGraph::numVertices() const
         {
             return vertices_->size();
         }

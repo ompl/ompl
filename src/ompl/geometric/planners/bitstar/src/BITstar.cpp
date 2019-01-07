@@ -1029,7 +1029,7 @@ namespace ompl
                         "currently has %u vertices.",
                         Planner::getName().c_str(), numIterations_, bestCost_.value(), bestLength_,
                         graphPtr_->numStatesGenerated(), queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_,
-                        graphPtr_->numVerticesConnected(), numRewirings_, graphPtr_->numConnectedVertices());
+                        graphPtr_->numVerticesConnected(), numRewirings_, graphPtr_->numVertices());
         }
 
         void BITstar::endSuccessMessage() const
@@ -1039,7 +1039,7 @@ namespace ompl
                         "graph has %u vertices.",
                         Planner::getName().c_str(), bestCost_.value(), bestLength_, graphPtr_->numStatesGenerated(),
                         queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_, graphPtr_->numVerticesConnected(),
-                        numRewirings_, graphPtr_->numConnectedVertices());
+                        numRewirings_, graphPtr_->numVertices());
         }
 
         void BITstar::endFailureMessage() const
@@ -1052,7 +1052,7 @@ namespace ompl
                             "%.4f.",
                             Planner::getName().c_str(), numIterations_, graphPtr_->numStatesGenerated(),
                             queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_, graphPtr_->numVerticesConnected(),
-                            numRewirings_, graphPtr_->numConnectedVertices(), graphPtr_->smallestDistanceToGoal(),
+                            numRewirings_, graphPtr_->numVertices(), graphPtr_->smallestDistanceToGoal(),
                             graphPtr_->closestVertexToGoal()->getCost().value());
             }
             else
@@ -1062,7 +1062,7 @@ namespace ompl
                             "has %u vertices.",
                             Planner::getName().c_str(), numIterations_, graphPtr_->numStatesGenerated(),
                             queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_, graphPtr_->numVerticesConnected(),
-                            numRewirings_, graphPtr_->numConnectedVertices());
+                            numRewirings_, graphPtr_->numVertices());
             }
         }
 
@@ -1086,9 +1086,9 @@ namespace ompl
                 // The number of iterations
                 outputStream << ", i: " << std::setw(5) << std::setfill(' ') << numIterations_;
                 // The number of states current in the graph
-                outputStream << ", g: " << std::setw(5) << std::setfill(' ') << graphPtr_->numConnectedVertices();
+                outputStream << ", g: " << std::setw(5) << std::setfill(' ') << graphPtr_->numVertices();
                 // The number of free states
-                outputStream << ", f: " << std::setw(5) << std::setfill(' ') << graphPtr_->numFreeSamples();
+                outputStream << ", f: " << std::setw(5) << std::setfill(' ') << graphPtr_->numSamples();
                 // The number edges in the queue:
                 outputStream << ", q: " << std::setw(5) << std::setfill(' ') << queuePtr_->numEdges();
                 // The total number of edges taken out of the queue:
@@ -1318,12 +1318,12 @@ namespace ompl
 
         std::string BITstar::currentFreeProgressProperty() const
         {
-            return std::to_string(graphPtr_->numFreeSamples());
+            return std::to_string(graphPtr_->numSamples());
         }
 
         std::string BITstar::currentVertexProgressProperty() const
         {
-            return std::to_string(graphPtr_->numConnectedVertices());
+            return std::to_string(graphPtr_->numVertices());
         }
 
         std::string BITstar::edgeQueueSizeProgressProperty() const
