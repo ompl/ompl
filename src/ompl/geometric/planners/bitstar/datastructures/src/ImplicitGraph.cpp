@@ -1552,6 +1552,20 @@ namespace ompl
             return r_;
         }
 
+        BITstar::VertexPtrVector BITstar::ImplicitGraph::getCopyOfSamples() const
+        {
+                VertexPtrVector samples;
+                samples_->list(samples);
+                return samples;
+        }
+
+        BITstar::VertexPtrVector BITstar::ImplicitGraph::getCopyOfVertices() const
+        {
+                VertexPtrVector vertices;
+                vertices_->list(vertices);
+                return vertices;
+        }
+
         void BITstar::ImplicitGraph::setRewireFactor(double rewireFactor)
         {
             // Store

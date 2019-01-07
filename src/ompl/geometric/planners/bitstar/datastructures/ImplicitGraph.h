@@ -135,6 +135,12 @@ namespace ompl
             /** \brief Get the radius of this r-disc RGG. */
             double getConnectivityR() const;
 
+            /** \brief Get a copy of all samples. */
+            VertexPtrVector getCopyOfSamples() const;
+
+            /** \brief Get a copy of all vertices. */
+            VertexPtrVector getCopyOfVertices() const;
+
             // ---
             // Modification.
             // ---
