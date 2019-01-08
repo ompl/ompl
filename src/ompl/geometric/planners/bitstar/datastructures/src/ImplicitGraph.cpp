@@ -513,7 +513,7 @@ namespace ompl
                     (*prunedGoalIter)->markUnpruned();
 
                     // Check if it should be readded (i.e., would it be pruned *now*?)
-                    if (this->canVertexBePruned(*prunedGoalIter))
+                    if (this->canVertexBeDisconnected(*prunedGoalIter))
                     {
                         // It would be pruned, so remark as pruned
                         (*prunedGoalIter)->markPruned();
@@ -573,7 +573,7 @@ namespace ompl
                     (*prunedStartIter)->markUnpruned();
 
                     // Check if it should be readded (i.e., would it be pruned *now*?)
-                    if (this->canVertexBePruned(*prunedStartIter))
+                    if (this->canVertexBeDisconnected(*prunedStartIter))
                     {
                         // It would be pruned, so remark as pruned
                         (*prunedStartIter)->markPruned();
@@ -1075,7 +1075,7 @@ namespace ompl
                 while (startIter != startEnd)
                 {
                     // Check if this start has met the criteria to be pruned
-                    if (this->canVertexBePruned(*startIter))
+                    if (this->canVertexBeDisconnected(*startIter))
                     {
                         // It has, remove the start vertex DO NOT consider it as a sample. It is marked as a root node,
                         // so having it as a sample would cause all kinds of problems, also it shouldn't be possible for
@@ -1235,20 +1235,20 @@ namespace ompl
             }
             else
             {
-                // Get the vector of samples
+                // Get the vector of samples.
                 VertexPtrVector samples;
                 samples_->list(samples);
 
-                // Iterate through the vector and remove any samples that should not be in the queue
+                // Iterate through the vector and remove any samples that should not be in the queue.
                 for (const auto &sample : samples)
                 {
-                    // Check if this state should be pruned:
+                    // Check if this state should be pruned.
                     if (this->canSampleBePruned(sample))
                     {
-                        // Yes, remove it
+                        // It should, remove the sample from the NN structure.
                         this->pruneSample(sample);
 
-                        // and increment the counter
+                        // Keep track of how many are pruned.
                         ++numPruned;
                     }
                     // No else, keep sample.
@@ -1271,7 +1271,7 @@ namespace ompl
             for (const auto &vertex : vertices)
             {
                 // Check if this state should be pruned:
-                if (this->canVertexBePruned(vertex))
+                if (this->canVertexBeDisconnected(vertex))
                 {
                     // Prune it. This recycles if possible (sorry, not the most expressive method name).
                     numPruned = numPruned + this->pruneVertex(vertex);
@@ -1282,7 +1282,7 @@ namespace ompl
             return numPruned;
         }
 
-        bool BITstar::ImplicitGraph::canVertexBePruned(const VertexPtr &vertex) const
+        bool BITstar::ImplicitGraph::canVertexBeDisconnected(const VertexPtr &vertex) const
         {
             ASSERT_SETUP
 
