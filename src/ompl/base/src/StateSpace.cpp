@@ -36,6 +36,7 @@
 #include "ompl/util/Exception.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
+#include "ompl/util/String.h"
 #include <mutex>
 #include <boost/scoped_ptr.hpp>
 #include <numeric>
@@ -568,7 +569,7 @@ void ompl::base::StateSpace::diagram(std::ostream &out) const
                 const StateSpace *s = m->as<CompoundStateSpace>()->getSubspace(i).get();
                 q.push(s);
                 out << '"' << m->getName() << R"(" -> ")" << s->getName() << R"(" [label=")"
-                    << std::to_string(m->as<CompoundStateSpace>()->getSubspaceWeight(i)) << R"("];)" << std::endl;
+                    << ompl::toString(m->as<CompoundStateSpace>()->getSubspaceWeight(i)) << R"("];)" << std::endl;
             }
         }
     }
@@ -589,7 +590,7 @@ void ompl::base::StateSpace::Diagram(std::ostream &out)
             {
                 if ((*it)->isCompound() && (*it)->as<CompoundStateSpace>()->hasSubspace((*jt)->getName()))
                     out << '"' << (*it)->getName() << R"(" -> ")" << (*jt)->getName() << R"(" [label=")"
-                        << std::to_string((*it)->as<CompoundStateSpace>()->getSubspaceWeight((*jt)->getName())) <<
+                        << ompl::toString((*it)->as<CompoundStateSpace>()->getSubspaceWeight((*jt)->getName())) <<
                         R"("];)" << std::endl;
                 else if (!StateSpaceIncludes(*it, *jt) && StateSpaceCovers(*it, *jt))
                     out << '"' << (*it)->getName() << R"(" -> ")" << (*jt)->getName() << R"(" [style=dashed];)"
@@ -651,14 +652,14 @@ void ompl::base::StateSpace::sanityChecks(double zero, double eps, unsigned int 
                     throw Exception("Distance between different states should be above 0");
                 double d21 = distance(s2, s1);
                 if ((flags & STATESPACE_DISTANCE_SYMMETRIC) && fabs(d12 - d21) > eps)
-                    throw Exception("The distance function should be symmetric (A->B=" + std::to_string(d12) +
-                                    ", B->A=" + std::to_string(d21) + ", difference is " +
-                                    std::to_string(fabs(d12 - d21)) + ")");
+                    throw Exception("The distance function should be symmetric (A->B=" + ompl::toString(d12) +
+                                    ", B->A=" + ompl::toString(d21) + ", difference is " +
+                                    ompl::toString(fabs(d12 - d21)) + ")");
                 if (flags & STATESPACE_DISTANCE_BOUND)
                     if (d12 > maxExt + zero)
                         throw Exception("The distance function should not report values larger than the maximum extent "
                                         "(" +
-                                        std::to_string(d12) + " > " + std::to_string(maxExt) + ")");
+                                        ompl::toString(d12) + " > " + ompl::toString(maxExt) + ")");
             }
         }
         if (serialization)
@@ -694,7 +695,7 @@ void ompl::base::StateSpace::sanityChecks(double zero, double eps, unsigned int 
             if ((flags & STATESPACE_TRIANGLE_INEQUALITY) && fabs(diff) > eps)
                 throw Exception("Interpolation to midpoint state does not lead to distances that satisfy the triangle "
                                 "inequality (" +
-                                std::to_string(diff) + " difference)");
+                                ompl::toString(diff) + " difference)");
 
             interpolate(s3, s2, 0.5, s3);
             interpolate(s1, s2, 0.75, s2);
