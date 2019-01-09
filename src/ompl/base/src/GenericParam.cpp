@@ -37,6 +37,7 @@
 #include "ompl/base/GenericParam.h"
 #include "ompl/util/Exception.h"
 #include <limits>
+#include <sstream>
 
 namespace ompl
 {
@@ -78,20 +79,34 @@ namespace ompl
         {
             return std::stoull(value);
         }
+
+        template <class OutType>
+        OutType toRealImpl(const std::string& s)
+        {
+            // convert from string using no locale
+            std::istringstream stream(s);
+            stream.imbue(std::locale::classic());
+            OutType result;
+            stream >> result;
+            if (stream.fail() || !stream.eof())
+                throw std::runtime_error("Failed converting string to real number");
+            return result;
+        }
+
         template <>
         float SpecificParam<float>::lexical_cast(const std::string &value) const
         {
-            return std::stof(value);
+            return toRealImpl<float>(value);
         }
         template <>
         double SpecificParam<double>::lexical_cast(const std::string &value) const
         {
-            return std::stod(value);
+            return toRealImpl<double>(value);
         }
         template <>
         long double SpecificParam<long double>::lexical_cast(const std::string &value) const
         {
-            return std::stold(value);
+            return toRealImpl<long double>(value);
         }
         template <>
         char SpecificParam<char>::lexical_cast(const std::string &value) const
