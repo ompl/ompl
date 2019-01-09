@@ -177,13 +177,7 @@ namespace ompl
             std::string getValue() const override
             {
                 if (getter_)
-                {
-                    // convert to string using classic "C" locale semantics
-                    std::ostringstream stream;
-                    stream.imbue(std::locale::classic());
-                    stream << getter_();
-                    return stream.str();
-                }
+                    return std::to_string(getter_());
                 else
                     return "";
             }
@@ -203,6 +197,12 @@ namespace ompl
             GetterFn getter_;
         };
 
+        template <>
+        std::string ompl::base::SpecificParam<float>::getValue() const;
+        template <>
+        std::string ompl::base::SpecificParam<double>::getValue() const;
+        template <>
+        std::string ompl::base::SpecificParam<long double>::getValue() const;
         template <>
         std::string ompl::base::SpecificParam<std::string>::getValue() const;
 

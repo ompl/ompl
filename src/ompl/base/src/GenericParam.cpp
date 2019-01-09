@@ -110,6 +110,33 @@ namespace ompl
         }
 
         template <>
+        std::string ompl::base::SpecificParam<float>::getValue() const
+        {
+            if (getter_)
+                return ompl::toString(getter_());
+            else
+                return "";
+        }
+
+        template <>
+        std::string ompl::base::SpecificParam<double>::getValue() const
+        {
+            if (getter_)
+                return ompl::toString(getter_());
+            else
+                return "";
+        }
+
+        template <>
+        std::string ompl::base::SpecificParam<long double>::getValue() const
+        {
+            if (getter_)
+                return ompl::toString(getter_());
+            else
+                return "";
+        }
+
+        template <>
         std::string ompl::base::SpecificParam<std::string>::getValue() const
         {
             if (getter_)
