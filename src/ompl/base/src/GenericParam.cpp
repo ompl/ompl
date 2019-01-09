@@ -36,6 +36,7 @@
 
 #include "ompl/base/GenericParam.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/String.h"
 #include <limits>
 
 namespace ompl
@@ -81,17 +82,17 @@ namespace ompl
         template <>
         float SpecificParam<float>::lexical_cast(const std::string &value) const
         {
-            return std::stof(value);
+            return ompl::stof(value);
         }
         template <>
         double SpecificParam<double>::lexical_cast(const std::string &value) const
         {
-            return std::stod(value);
+            return ompl::stod(value);
         }
         template <>
         long double SpecificParam<long double>::lexical_cast(const std::string &value) const
         {
-            return std::stold(value);
+            return ompl::stold(value);
         }
         template <>
         char SpecificParam<char>::lexical_cast(const std::string &value) const

@@ -42,6 +42,7 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <utility>
 #include <vector>
 #include <map>
@@ -176,7 +177,13 @@ namespace ompl
             std::string getValue() const override
             {
                 if (getter_)
-                    return std::to_string(getter_());
+                {
+                    // convert to string using classic "C" locale semantics
+                    std::ostringstream stream;
+                    stream.imbue(std::locale::classic());
+                    stream << getter_();
+                    return stream.str();
+                }
                 else
                     return "";
             }

@@ -50,6 +50,8 @@
 #include "ompl/util/Console.h"
 // For exceptions:
 #include "ompl/util/Exception.h"
+// For toString
+#include "ompl/util/String.h"
 // For ompl::geometric::path
 #include "ompl/geometric/PathGeometric.h"
 // For the default optimization objective:
@@ -1209,7 +1211,7 @@ namespace ompl
 
         std::string BITstar::bestCostProgressProperty() const
         {
-            return std::to_string(this->bestCost().value());
+            return ompl::toString(this->bestCost().value());
         }
 
         std::string BITstar::bestLengthProgressProperty() const

@@ -38,6 +38,7 @@
 #include "ompl/tools/benchmark/MachineSpecs.h"
 #include "ompl/util/Time.h"
 #include "ompl/config.h"
+#include "ompl/util/String.h"
 #include <boost/scoped_ptr.hpp>
 #include <boost/progress.hpp>
 #include <thread>
@@ -205,7 +206,7 @@ namespace ompl
                     else
                     {
                         double timeInSeconds = time::seconds(time::now() - timeStart);
-                        std::string timeStamp = std::to_string(timeInSeconds);
+                        std::string timeStamp = ompl::toString(timeInSeconds);
                         std::map<std::string, std::string> data;
                         data["time REAL"] = timeStamp;
                         for (const auto &property : properties)
@@ -590,20 +591,20 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             {
                 RunProperties run;
 
-                run["time REAL"] = std::to_string(rp.getTimeUsed());
-                run["memory REAL"] = std::to_string((double)rp.getMemUsed() / (1024.0 * 1024.0));
+                run["time REAL"] = ompl::toString(rp.getTimeUsed());
+                run["memory REAL"] = ompl::toString((double)rp.getMemUsed() / (1024.0 * 1024.0));
                 run["status ENUM"] = std::to_string((int)static_cast<base::PlannerStatus::StatusType>(rp.getStatus()));
                 if (gsetup_)
                 {
                     run["solved BOOLEAN"] = std::to_string(gsetup_->haveExactSolutionPath());
                     run["valid segment fraction REAL"] =
-                        std::to_string(gsetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
+                        ompl::toString(gsetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
                 }
                 else
                 {
                     run["solved BOOLEAN"] = std::to_string(csetup_->haveExactSolutionPath());
                     run["valid segment fraction REAL"] =
-                        std::to_string(csetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
+                        ompl::toString(csetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
                 }
 
                 if (solved)
@@ -613,10 +614,10 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                         run["approximate solution BOOLEAN"] =
                             std::to_string(gsetup_->getProblemDefinition()->hasApproximateSolution());
                         run["solution difference REAL"] =
-                            std::to_string(gsetup_->getProblemDefinition()->getSolutionDifference());
-                        run["solution length REAL"] = std::to_string(gsetup_->getSolutionPath().length());
-                        run["solution smoothness REAL"] = std::to_string(gsetup_->getSolutionPath().smoothness());
-                        run["solution clearance REAL"] = std::to_string(gsetup_->getSolutionPath().clearance());
+                            ompl::toString(gsetup_->getProblemDefinition()->getSolutionDifference());
+                        run["solution length REAL"] = ompl::toString(gsetup_->getSolutionPath().length());
+                        run["solution smoothness REAL"] = ompl::toString(gsetup_->getSolutionPath().smoothness());
+                        run["solution clearance REAL"] = ompl::toString(gsetup_->getSolutionPath().clearance());
                         run["solution segments INTEGER"] =
                             std::to_string(gsetup_->getSolutionPath().getStateCount() - 1);
                         run["correct solution BOOLEAN"] = std::to_string(gsetup_->getSolutionPath().check());
@@ -632,13 +633,13 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                             time::point timeStart = time::now();
                             gsetup_->simplifySolution();
                             double timeUsed = time::seconds(time::now() - timeStart);
-                            run["simplification time REAL"] = std::to_string(timeUsed);
+                            run["simplification time REAL"] = ompl::toString(timeUsed);
                             run["simplified solution length REAL"] =
-                                std::to_string(gsetup_->getSolutionPath().length());
+                                ompl::toString(gsetup_->getSolutionPath().length());
                             run["simplified solution smoothness REAL"] =
-                                std::to_string(gsetup_->getSolutionPath().smoothness());
+                                ompl::toString(gsetup_->getSolutionPath().smoothness());
                             run["simplified solution clearance REAL"] =
-                                std::to_string(gsetup_->getSolutionPath().clearance());
+                                ompl::toString(gsetup_->getSolutionPath().clearance());
                             run["simplified solution segments INTEGER"] =
                                 std::to_string(gsetup_->getSolutionPath().getStateCount() - 1);
                             run["simplified correct solution BOOLEAN"] =
@@ -654,10 +655,10 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                         run["approximate solution BOOLEAN"] =
                             std::to_string(csetup_->getProblemDefinition()->hasApproximateSolution());
                         run["solution difference REAL"] =
-                            std::to_string(csetup_->getProblemDefinition()->getSolutionDifference());
-                        run["solution length REAL"] = std::to_string(csetup_->getSolutionPath().length());
+                            ompl::toString(csetup_->getProblemDefinition()->getSolutionDifference());
+                        run["solution length REAL"] = ompl::toString(csetup_->getSolutionPath().length());
                         run["solution clearance REAL"] =
-                            std::to_string(csetup_->getSolutionPath().asGeometric().clearance());
+                            ompl::toString(csetup_->getSolutionPath().asGeometric().clearance());
                         run["solution segments INTEGER"] = std::to_string(csetup_->getSolutionPath().getControlCount());
                         run["correct solution BOOLEAN"] = std::to_string(csetup_->getSolutionPath().check());
                     }

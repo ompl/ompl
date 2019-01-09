@@ -42,6 +42,7 @@
 #include "ompl/control/planners/syclop/GridDecomposition.h"
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/Hash.h"
+#include "ompl/util/String.h"
 #include <ostream>
 #include <utility>
 #include <vector>
@@ -215,7 +216,7 @@ int ompl::control::TriangularDecomposition::createTriangles()
        the total area of the decomposition space */
     const base::RealVectorBounds &bounds = getBounds();
     const double maxTriangleArea = bounds.getVolume() * triAreaPct_;
-    std::string triswitches = "pDznQA -a" + std::to_string(maxTriangleArea);
+    std::string triswitches = "pDznQA -a" + ompl::toString(maxTriangleArea);
     struct triangulateio in;
 
     /* Some vertices may be duplicates, such as when an obstacle has a vertex equivalent

@@ -39,6 +39,7 @@
 #include "ompl/geometric/PathSimplifier.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include "ompl/util/String.h"
 
 #include <thread>
 
@@ -304,5 +305,5 @@ std::string ompl::geometric::AnytimePathShortening::getBestCost() const
     base::Cost bestCost(std::numeric_limits<double>::quiet_NaN());
     if (pdef_ && pdef_->getSolutionCount() > 0)
         bestCost = base::Cost(pdef_->getSolutionPath()->length());
-    return std::to_string(bestCost.value());
+    return ompl::toString(bestCost.value());
 }
