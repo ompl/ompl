@@ -230,28 +230,28 @@ namespace ompl
             // Progress counters.
             // ---
 
-            /** \brief The number of free samples (size of freeStateNN_). */
+            /** \brief The number of samples. */
             unsigned int numSamples() const;
 
-            /** \brief The number of vertices in the tree (Size of vertexNN_). */
+            /** \brief The number of vertices in the search tree. */
             unsigned int numVertices() const;
 
-            /** \brief The \e total number of states generated (numSamples_). */
+            /** \brief The \e total number of states generated. */
             unsigned int numStatesGenerated() const;
 
-            /** \brief The \e total number of vertices added to the graph (numVertices_). */
+            /** \brief The \e total number of vertices added to the graph. */
             unsigned int numVerticesConnected() const;
 
-            /** \brief The number of states pruned (numFreeStatesPruned_). */
+            /** \brief The number of states pruned. */
             unsigned int numFreeStatesPruned() const;
 
-            /** \brief The number of tree vertices disconnected (numVerticesDisconnected_). */
+            /** \brief The number of tree vertices disconnected. */
             unsigned int numVerticesDisconnected() const;
 
-            /** \brief The number of nearest neighbour calls (numNearestNeighbours_). */
+            /** \brief The number of nearest neighbour calls. */
             unsigned int numNearestLookups() const;
 
-            /** \brief The number of state collision checks (numStateCollisionChecks_). */
+            /** \brief The number of state collision checks. */
             unsigned int numStateCollisionChecks() const;
 
             // ---

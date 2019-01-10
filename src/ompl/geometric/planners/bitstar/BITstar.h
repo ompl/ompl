@@ -479,6 +479,8 @@ namespace ompl
              // Gets set in setup with the proper call to Planner::si_->getSpaceMeasure()
             double prunedMeasure_{0.0};
 
+            bool isFinalSearchOnBatch_{false};
+
             /** \brief If we've found an exact solution yet. */
             bool hasExactSolution_{false};
 

@@ -516,7 +516,7 @@ namespace ompl
             if (isSearchDone_ || queuePtr_->isEmpty())
             {
                 // Check whether we've exhausted the current approximation.
-                if (queuePtr_->getInflationFactor() == 1.0 || !hasExactSolution_)
+                if (queuePtr_->getInflationFactor() == 1.0 || isFinalSearchOnBatch_ || !hasExactSolution_)
                 {
                     // Add a new batch.
                     this->newBatch();
@@ -535,14 +535,18 @@ namespace ompl
 
                     // Restart the queue, adding the outgoing edges of the start vertices to the queue.
                     queuePtr_->insertOutgoingEdgesOfStartVertices();
+
+                    // Set flag to false.
+                    isFinalSearchOnBatch_ = false;
                 }
                 else
                 {
                     // Exhaust the current approximation by performing an uninflated search.
-                    queuePtr_->setInflationFactor(1.0);
+                    queuePtr_->setInflationFactor(1.0 + 10.0 / (static_cast<float>(graphPtr_->numVertices() + graphPtr_->numSamples())));
                     queuePtr_->rebuildEdgeQueue();
                     queuePtr_->insertOutgoingEdgesOfInconsistentVertices();
                     queuePtr_->clearInconsistentSet();
+                    isFinalSearchOnBatch_ = true;
                 }
 
                 isSearchDone_ = false;

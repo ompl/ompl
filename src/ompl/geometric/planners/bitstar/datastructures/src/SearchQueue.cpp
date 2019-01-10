@@ -432,10 +432,7 @@ namespace ompl
                 edgeQueue->push_back(queueElement.second);
             }
         }
-        /////////////////////////////////////////////////////////////////////////////////////////////
 
-        /////////////////////////////////////////////////////////////////////////////////////////////
-        // Private functions:
         void BITstar::SearchQueue::insertOutgoingEdges(const VertexPtr &vertex)
         {
 #ifdef BITSTAR_DEBUG
@@ -492,11 +489,11 @@ namespace ompl
 
         void BITstar::SearchQueue::rebuildEdgeQueue()
         {
-            // Ok this is going to be really dirty. We would like to have access to the actual underlying
+            // Ok this is going to be kinda dirty. We would like to have access to the actual underlying
             // std::vector of the binary heap, holding pointers to the elements in the heap.
             // Unfortunately, the binary heap interface only provides access to a copy. Now, we can still
-            // access get the pointers to the elements because we stored tehem upon insertion. But it's a mess
-            // (and kinda suggests a flawed encapsulation or incomplete interface of the bin heap class?)
+            // access get the pointers to the elements because we stored them upon insertion. But it's a mess
+            // (and suggests a flawed encapsulation or incomplete interface of the bin heap class?).
 
             // Get a copy of the contents.
             std::vector<SortKeyAndVertexPtrPair> contentCopy;
@@ -678,14 +675,11 @@ namespace ompl
                 throw ompl::Exception("BITstar::SearchQueue was used before it was setup.");
             }
         }
-        /////////////////////////////////////////////////////////////////////////////////////////////
 
-        /////////////////////////////////////////////////////////////////////////////////////////////
-        // Boring sets/gets (Public):
         unsigned int BITstar::SearchQueue::numEdgesPopped() const
         {
             return numEdgesPopped_;
         }
-        /////////////////////////////////////////////////////////////////////////////////////////////
-    }  // geometric
-}  // ompl
+
+    }  // namespace geometric
+}  // namespace ompl
