@@ -368,10 +368,10 @@ namespace ompl
                 samples_->list(samples);
 
                 // Iterate through it turning each into a disconnected vertex
-                for (const auto &freeSample : samples)
+                for (const auto &sample : samples)
                 {
                     // No, add as a regular vertex:
-                    data.addVertex(ompl::base::PlannerDataVertex(freeSample->state()));
+                    data.addVertex(ompl::base::PlannerDataVertex(sample->state(), sample->getId()));
                 }
             }
             // No else.
@@ -393,16 +393,16 @@ namespace ompl
                     if (vertex->isRoot())
                     {
                         // Yes, add as a start vertex:
-                        data.addStartVertex(ompl::base::PlannerDataVertex(vertex->state()));
+                        data.addStartVertex(ompl::base::PlannerDataVertex(vertex->state(), vertex->getId()));
                     }
                     else
                     {
                         // No, add as a regular vertex:
-                        data.addVertex(ompl::base::PlannerDataVertex(vertex->state()));
+                        data.addVertex(ompl::base::PlannerDataVertex(vertex->state(), vertex->getId()));
 
                         // And as an incoming edge
-                        data.addEdge(ompl::base::PlannerDataVertex(vertex->getParent()->state()),
-                                     ompl::base::PlannerDataVertex(vertex->state()));
+                        data.addEdge(ompl::base::PlannerDataVertex(vertex->getParent()->state(), vertex->getParent()->getId()),
+                                     ompl::base::PlannerDataVertex(vertex->state(), vertex->getId()));
                     }
                 }
             }
