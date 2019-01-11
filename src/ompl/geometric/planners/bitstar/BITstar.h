@@ -205,6 +205,9 @@ namespace ompl
             /** \brief Get the inflation factor for the current search. */
             double getCurrentInflationFactor() const;
 
+            /** \brief Get the truncation factor for the current search. */
+            double getCurrentTruncationFactor() const;
+
             /** \brief Set the rewiring scale factor, s, such that r_rrg = s \times r_rrg*. */
             void setRewireFactor(double rewireFactor);
 
@@ -456,6 +459,9 @@ namespace ompl
 
             /** \brief The inflation factor for the initial search. */
             double initialInflationFactor_{1.0};
+
+            /** \brief The truncation factor for the search. */
+            double truncationFactor_{1.0};
 
             /** \brief The goal vertex of the current best solution. */
             VertexConstPtr curGoalVertex_{nullptr};

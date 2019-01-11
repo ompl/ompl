@@ -567,7 +567,7 @@ namespace ompl
                 }
                 // In the best case, can this edge improve our solution given the current graph?
                 // g_t(v) + c_hat(v,x) + h_hat(x) < g_t(x_g)?
-                else if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicEdge(edge), bestCost_))
+                else if (costHelpPtr_->isCostBetterThan(costHelpPtr_->inflateCost(costHelpPtr_->currentHeuristicEdge(edge), truncationFactor_), bestCost_))
                 {
                     // What about improving the current graph?
                     // g_t(v) + c_hat(v,x)  < g_t(x)?
@@ -581,8 +581,7 @@ namespace ompl
 
                         // Can this actual edge ever improve our solution?
                         // g_hat(v) + c(v,x) + h_hat(x) < g_t(x_g)?
-                        if (costHelpPtr_->isCostBetterThan(
-                                costHelpPtr_->combineCosts(costHelpPtr_->costToComeHeuristic(edge.first),
+                        if (costHelpPtr_->isCostBetterThan(costHelpPtr_->combineCosts(costHelpPtr_->costToComeHeuristic(edge.first),
                                                            trueEdgeCost,
                                                            costHelpPtr_->costToGoHeuristic(edge.second)),
                                 bestCost_))
@@ -1156,6 +1155,11 @@ namespace ompl
         double BITstar::getCurrentInflationFactor() const
         {
             return queuePtr_->getInflationFactor();
+        }
+
+        double BITstar::getCurrentTruncationFactor() const
+        {
+            return truncationFactor_;
         }
 
         void BITstar::setRewireFactor(double rewireFactor)
