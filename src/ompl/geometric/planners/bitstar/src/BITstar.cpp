@@ -628,10 +628,6 @@ namespace ompl
                 }
                 else
                 {
-                    if (queuePtr_->getInflationFactor() == 1.0)
-                    {
-                        queuePtr_->clear();
-                    }
                     isSearchDone_ = true;
                 }
             }  // Search queue not empty.
