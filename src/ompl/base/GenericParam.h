@@ -38,6 +38,7 @@
 #define OMPL_BASE_GENERIC_PARAM_
 
 #include "ompl/util/Console.h"
+#include "ompl/util/String.h"
 #include "ompl/util/ClassForward.h"
 #include <functional>
 #include <iostream>
@@ -176,10 +177,7 @@ namespace ompl
 
             std::string getValue() const override
             {
-                if (getter_)
-                    return std::to_string(getter_());
-                else
-                    return "";
+                return getter_ ? std::to_string(getter_()) : "";
             }
 
         protected:
@@ -198,13 +196,25 @@ namespace ompl
         };
 
         template <>
-        std::string ompl::base::SpecificParam<float>::getValue() const;
+        inline std::string ompl::base::SpecificParam<float>::getValue() const
+        {
+            return getter_ ? ompl::toString(getter_()) : "";
+        }
         template <>
-        std::string ompl::base::SpecificParam<double>::getValue() const;
+        inline std::string ompl::base::SpecificParam<double>::getValue() const
+        {
+            return getter_ ? ompl::toString(getter_()) : "";
+        }
         template <>
-        std::string ompl::base::SpecificParam<long double>::getValue() const;
+        inline std::string ompl::base::SpecificParam<long double>::getValue() const
+        {
+            return getter_ ? ompl::toString(getter_()) : "";
+        }
         template <>
-        std::string ompl::base::SpecificParam<std::string>::getValue() const;
+        inline std::string ompl::base::SpecificParam<std::string>::getValue() const
+        {
+            return getter_ ? getter_() : "";
+        }
 
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::base::ParamSet */
