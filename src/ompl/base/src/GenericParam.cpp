@@ -36,7 +36,6 @@
 
 #include "ompl/base/GenericParam.h"
 #include "ompl/util/Exception.h"
-#include "ompl/util/String.h"
 #include <limits>
 
 namespace ompl
@@ -107,42 +106,6 @@ namespace ompl
         std::string SpecificParam<std::string>::lexical_cast(const std::string &value) const
         {
             return value;
-        }
-
-        template <>
-        std::string ompl::base::SpecificParam<float>::getValue() const
-        {
-            if (getter_)
-                return ompl::toString(getter_());
-            else
-                return "";
-        }
-
-        template <>
-        std::string ompl::base::SpecificParam<double>::getValue() const
-        {
-            if (getter_)
-                return ompl::toString(getter_());
-            else
-                return "";
-        }
-
-        template <>
-        std::string ompl::base::SpecificParam<long double>::getValue() const
-        {
-            if (getter_)
-                return ompl::toString(getter_());
-            else
-                return "";
-        }
-
-        template <>
-        std::string ompl::base::SpecificParam<std::string>::getValue() const
-        {
-            if (getter_)
-                return getter_();
-            else
-                return "";
         }
 
     }  // namespace base
