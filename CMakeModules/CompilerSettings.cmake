@@ -3,13 +3,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    add_definitions(-W -Wall -Wextra #-Wconversion
-                    -Wcast-qual -Wwrite-strings -Wunreachable-code -Wpointer-arith
-                    -Winit-self -Wredundant-decls
-                    -Wno-unused-parameter -Wno-unused-function
-                    -fext-numeric-literals
-                    -Wno-noexcept-type
-                    -Wno-deprecated-declarations)
+    add_definitions(-W -Wall -Wextra -Wno-system-headers)
     # prepend optimizion flag (in case the default setting doesn't include one)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
 endif(CMAKE_COMPILER_IS_GNUCXX)

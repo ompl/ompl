@@ -102,6 +102,9 @@ function(create_module_target module)
             if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
                 target_compile_options(py_ompl_${module} PRIVATE -Wno-unused-local-typedef)
             endif()
+            if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+                target_compile_options(py_ompl_${module} PRIVATE -Wno-unused-local-typedefs)
+            endif()
         endif(WIN32)
 
         target_link_libraries(py_ompl_${module}
