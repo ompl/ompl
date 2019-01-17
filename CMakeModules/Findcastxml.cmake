@@ -10,7 +10,7 @@ if (CASTXML)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         set(CASTXMLCOMPILER "g++")
     else()
-        if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
             set(CASTXMLCOMPILER "clang++")
         else()
             if (MSVC)
@@ -21,7 +21,6 @@ if (CASTXML)
 
     # workaround for problem between Xcode and castxml on Mojave
     if (APPLE AND CMAKE_CXX_COMPILER MATCHES "/Applications/Xcode.app/Contents/Developer/Toolchains/.*")
-
         set(CASTXMLCOMPILER_PATH "/usr/bin/clang++")
     else()
         set(CASTXMLCOMPILER_PATH "${CMAKE_CXX_COMPILER}")

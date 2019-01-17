@@ -80,26 +80,5 @@ namespace ompl
     }  // geometric
 }  // ompl
 
-// An anonymous namespace to hide the instance:
-namespace
-{
-    // Global variables:
-    // The initialization flag stating that the ID generator has been created:
-    std::once_flag g_IdInited;
-    // A pointer to the actual ID generator
-    boost::scoped_ptr<ompl::geometric::BITstar::IdGenerator> g_IdGenerator;
 
-    // A function to initialize the ID generator pointer:
-    void initIdGenerator()
-    {
-        g_IdGenerator.reset(new ompl::geometric::BITstar::IdGenerator());
-    }
-
-    // A function to get the current ID generator:
-    ompl::geometric::BITstar::IdGenerator &getIdGenerator()
-    {
-        std::call_once(g_IdInited, &initIdGenerator);
-        return *g_IdGenerator;
-    }
-}
 #endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IDGENERATOR_

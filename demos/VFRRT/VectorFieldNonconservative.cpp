@@ -58,7 +58,7 @@ Eigen::VectorXd field(const ob::State *state)
     return v;
 }
 
-int main(int argc, char **argv)
+int main(int, char **)
 {
     // construct the state space we are planning in
     auto space(std::make_shared<ob::RealVectorStateSpace>(2));

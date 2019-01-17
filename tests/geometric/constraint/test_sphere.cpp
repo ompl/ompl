@@ -64,7 +64,6 @@ namespace og = ompl::geometric;
 
 static const double SOLUTION_TIME = 5.0;
 static const bool VERBOSE = true;
-static const unsigned int TRIALS = 10;
 
 class Sphere : public ob::Constraint
 {

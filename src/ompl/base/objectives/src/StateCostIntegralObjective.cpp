@@ -43,7 +43,7 @@ ompl::base::StateCostIntegralObjective::StateCostIntegralObjective(const SpaceIn
     description_ = "State Cost Integral";
 }
 
-ompl::base::Cost ompl::base::StateCostIntegralObjective::stateCost(const State *s) const
+ompl::base::Cost ompl::base::StateCostIntegralObjective::stateCost(const State *) const
 {
     return Cost(1.0);
 }
@@ -81,7 +81,7 @@ ompl::base::Cost ompl::base::StateCostIntegralObjective::motionCost(const State 
 
         return totalCost;
     }
-    
+
         return this->trapezoid(this->stateCost(s1), this->stateCost(s2), si_->distance(s1, s2));
 }
 

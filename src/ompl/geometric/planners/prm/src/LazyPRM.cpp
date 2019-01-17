@@ -118,17 +118,7 @@ void ompl::geometric::LazyPRM::setup()
                                  });
     }
     if (!connectionStrategy_)
-    {
-        if (starStrategy_)
-            connectionStrategy_ = KStarStrategy<Vertex>(
-                [this]
-                {
-                    return milestoneCount();
-                },
-                nn_, si_->getStateDimension());
-        else
-            connectionStrategy_ = KBoundedStrategy<Vertex>(magic::DEFAULT_NEAREST_NEIGHBORS_LAZY, maxDistance_, nn_);
-    }
+        setDefaultConnectionStrategy();
     if (!connectionFilter_)
         connectionFilter_ = [](const Vertex &, const Vertex &)
         {
@@ -164,7 +154,7 @@ void ompl::geometric::LazyPRM::setRange(double distance)
 {
     maxDistance_ = distance;
     if (!userSetConnectionStrategy_)
-        connectionStrategy_ = ConnectionStrategy();
+        setDefaultConnectionStrategy();
     if (isSetup())
         setup();
 }
@@ -182,9 +172,17 @@ void ompl::geometric::LazyPRM::setMaxNearestNeighbors(unsigned int k)
                                  });
     }
     if (!userSetConnectionStrategy_)
-        connectionStrategy_ = ConnectionStrategy();
+        connectionStrategy_ = KBoundedStrategy<Vertex>(k, maxDistance_, nn_);
     if (isSetup())
         setup();
+}
+
+void ompl::geometric::LazyPRM::setDefaultConnectionStrategy()
+{
+    if (starStrategy_)
+        connectionStrategy_ = KStarStrategy<Vertex>([this] { return milestoneCount(); }, nn_, si_->getStateDimension());
+    else
+        connectionStrategy_ = KBoundedStrategy<Vertex>(magic::DEFAULT_NEAREST_NEIGHBORS_LAZY, maxDistance_, nn_);
 }
 
 void ompl::geometric::LazyPRM::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)

@@ -13,8 +13,8 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     # prepend optimizion flag (in case the default setting doesn't include one)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
 endif(CMAKE_COMPILER_IS_GNUCXX)
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    add_definitions(-W -Wall -Wextra -Wno-missing-field-initializers -Wno-unused -Wno-unused-parameter -Wno-delete-non-virtual-dtor -Wno-overloaded-virtual -Wno-unknown-pragmas -Qunused-arguments -Wno-deprecated-register -Wno-mismatched-tags -Wno-deprecated-declarations)
+if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
+    add_definitions(-W -Wall -Wextra -Wno-system-headers)
     # prepend optimizion flag (in case the default setting doesn't include one)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
 endif()
@@ -56,11 +56,11 @@ endif((CMAKE_COMPILER_IS_GNUCXX OR IS_ICPC) AND NOT MINGW)
 
 option(OMPL_SKIP_RPATH "Don't set RPATH to the OMPL library" OFF)
 if(NOT OMPL_SKIP_RPATH)
-    # Set rpath http://www.paraview.org/Wiki/CMake_RPATH_handling
-    set(CMAKE_SKIP_BUILD_RPATH FALSE)
-    set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+    # Set rpath, see https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
+    set(CMAKE_SKIP_BUILD_RPATH OFF)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH OFF)
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
 endif()
 
 # no prefix needed for python modules

@@ -145,8 +145,7 @@ namespace ompl
 
             /** \brief Returns the shortest number of transitions from a given state to
                 an accepting state. */
-            unsigned int distFromAccepting(unsigned int s,
-                                           unsigned int maxDist = std::numeric_limits<unsigned int>::max()) const;
+            unsigned int distFromAccepting(unsigned int s) const;
 
             /** \brief Returns a single-state automaton that accepts on all inputs. */
             static AutomatonPtr AcceptingAutomaton(unsigned int numProps);

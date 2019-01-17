@@ -191,7 +191,7 @@ void ompl::geometric::SPARSdb::freeMemory()
         nn_->clear();
 }
 
-bool ompl::geometric::SPARSdb::getSimilarPaths(int nearestK, const base::State *start, const base::State *goal,
+bool ompl::geometric::SPARSdb::getSimilarPaths(int /*nearestK*/, const base::State *start, const base::State *goal,
                                                CandidateSolution &candidateSolution,
                                                const base::PlannerTerminationCondition &ptc)
 {
@@ -1056,7 +1056,7 @@ void ompl::geometric::SPARSdb::checkQueryStateInitialization()
     }
 }
 
-ompl::base::PlannerStatus ompl::geometric::SPARSdb::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::SPARSdb::solve(const base::PlannerTerminationCondition &)
 {
     // Disabled
     return base::PlannerStatus::TIMEOUT;

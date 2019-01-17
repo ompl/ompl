@@ -43,7 +43,10 @@
 #endif
 
 // This is copied from the latest version.
+#include "ompl/util/DisableCompilerWarning.h"
+OMPL_PUSH_DISABLE_CLANG_WARNING(-Wunused-function)
 #include "../geometric/2d/2DcirclesSetup.h"
+OMPL_POP_CLANG
 
 #include "ompl/tools/benchmark/Benchmark.h"
 
@@ -159,7 +162,7 @@ void runProblem(double runtime_limit, double memory_limit, int run_count)
     }
 }
 
-int main(int argc, char **argv)
+int main(int, char **)
 {
     double runtime_limit = 1, memory_limit = 4096;
     int run_count = 1000;

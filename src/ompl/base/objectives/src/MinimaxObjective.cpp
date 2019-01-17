@@ -40,7 +40,7 @@ ompl::base::MinimaxObjective::MinimaxObjective(const SpaceInformationPtr &si) : 
 {
 }
 
-ompl::base::Cost ompl::base::MinimaxObjective::stateCost(const State *s) const
+ompl::base::Cost ompl::base::MinimaxObjective::stateCost(const State *) const
 {
     return Cost(1.0);
 }

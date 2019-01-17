@@ -47,7 +47,7 @@ ompl::base::PathLengthOptimizationObjective::PathLengthOptimizationObjective(con
     setCostToGoHeuristic(base::goalRegionCostToGo);
 }
 
-ompl::base::Cost ompl::base::PathLengthOptimizationObjective::stateCost(const State *s) const
+ompl::base::Cost ompl::base::PathLengthOptimizationObjective::stateCost(const State *) const
 {
     return identityCost();
 }

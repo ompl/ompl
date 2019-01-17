@@ -509,7 +509,7 @@ namespace ompl
 
             /** \brief Save the neighbors within a neighborhood of a given state. The strategy
                 used (nearestK or nearestR depends on the planner configuration */
-            void saveNeighborhood(const std::shared_ptr<NearestNeighbors<BiDirMotion *>> &nn, BiDirMotion *m);
+            void saveNeighborhood(BiDirMotion *m);
 
             /** \brief Sample a state from the free configuration space and save
                 it into the nearest neighbors data structure */

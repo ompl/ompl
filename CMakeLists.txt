@@ -50,7 +50,7 @@ set_package_properties(Boost PROPERTIES
     URL "http://boost.org"
     PURPOSE "Used throughout OMPL for data serialization, graphs, etc.")
 find_package(Boost 1.58 QUIET REQUIRED COMPONENTS serialization filesystem system program_options)
-include_directories(${Boost_INCLUDE_DIR})
+include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 # Add support in Boost::Python for std::shared_ptr
 # This is a hack that replaces boost::shared_ptr related code with std::shared_ptr.
@@ -61,7 +61,7 @@ endif()
 
 
 # on macOS we need to check whether to use libc++ or libstdc++ with clang++
-if(APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
     include(GetPrerequisites)
     get_prerequisites("${Boost_SYSTEM_LIBRARY}" _libs 0 0 "/" "")
     set(CXXSTDLIB "")

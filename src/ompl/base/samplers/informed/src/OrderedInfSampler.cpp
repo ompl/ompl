@@ -96,7 +96,7 @@ namespace ompl
             return found;
         }
 
-        bool OrderedInfSampler::sampleUniform(State *statePtr, const Cost &minCost, const Cost &maxCost)
+        bool OrderedInfSampler::sampleUniform(State *, const Cost &, const Cost &)
         {
             throw ompl::Exception("Not implemented");
 
@@ -135,7 +135,7 @@ namespace ompl
             }
         }
 
-        void OrderedInfSampler::createBatch(const Cost &minCost, const Cost &maxCost)
+        void OrderedInfSampler::createBatch(const Cost &, const Cost &)
         {
             throw ompl::Exception("Not implemented");
         }

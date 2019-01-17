@@ -200,7 +200,7 @@ void ompl::base::AtlasStateSampler::sampleGaussian(State *state, const State *me
 ompl::base::AtlasStateSpace::AtlasStateSpace(const StateSpacePtr &ambientSpace, const ConstraintPtr &constraint,
                                              bool separate)
   : ConstrainedStateSpace(ambientSpace, constraint)
-  , biasFunction_([](AtlasChart *c) -> double { return 1; })
+  , biasFunction_([](AtlasChart *) -> double { return 1; })
   , separate_(separate)
 {
     setRho(delta_ * ompl::magic::ATLAS_STATE_SPACE_RHO_MULTIPLIER);

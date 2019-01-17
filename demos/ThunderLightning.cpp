@@ -149,7 +149,7 @@ private:
     ompl::PPM ppm_;
 };
 
-int main(int argc, char *argv[])
+int main(int argc, char **)
 {
     std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 

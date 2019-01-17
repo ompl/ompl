@@ -182,7 +182,6 @@ namespace ompl
 
             private:
                 LazyLBTRRT *alg_;
-                Motion *target_;
             };  // CostEstimatorApx
 
             class CostEstimatorLb

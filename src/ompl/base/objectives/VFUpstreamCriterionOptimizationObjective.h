@@ -61,13 +61,13 @@ namespace ompl
             }
 
             /** Assume we can always do better. */
-            bool isSatisfied(ompl::base::Cost c) const override
+            bool isSatisfied(ompl::base::Cost) const override
             {
                 return false;
             }
 
             /** \brief Returns a cost with a value of 0. */
-            Cost stateCost(const State *s) const override
+            Cost stateCost(const State *) const override
             {
                 return Cost(0.);
             }

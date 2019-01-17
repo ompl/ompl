@@ -48,7 +48,9 @@ namespace
 
     const double pi = boost::math::constants::pi<double>();
     const double twopi = 2. * pi;
+#ifndef NDEBUG
     const double RS_EPS = 1e-6;
+#endif
     const double ZERO = 10 * std::numeric_limits<double>::epsilon();
 
     inline double mod2pi(double x)

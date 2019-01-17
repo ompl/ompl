@@ -249,7 +249,6 @@ namespace ompl
             };
 
         protected:
-#pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
                        /** \brief Representation of a motion
 
                            A motion contains pointers to its state, its parent motion, and the control
@@ -273,10 +272,8 @@ namespace ompl
                 const Motion *parent{nullptr};
                 /** \brief The number of steps for which the control is applied */
                 unsigned int steps{0};
-            };
-#pragma pack(pop)  // Restoring default byte alignment
+            } __attribute__((aligned(4)));
 
-#pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
             /** \brief Representation of a region in the Decomposition assigned to Syclop. */
             class Region
             {
@@ -319,12 +316,10 @@ namespace ompl
                 unsigned int numSelections;
                 /** \brief The Element corresponding to this region in the PDF of available regions. */
                 PDF<int>::Element *pdfElem;
-            };
-#pragma pack(pop)  // Restoring default byte alignment
+            }  __attribute__((aligned(4)));
 
-#pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
-                       /** \brief Representation of an adjacency (a directed edge) between two regions
-                           in the Decomposition assigned to Syclop. */
+            /** \brief Representation of an adjacency (a directed edge) between two regions
+                in the Decomposition assigned to Syclop. */
             class Adjacency
             {
             public:
@@ -352,8 +347,7 @@ namespace ompl
                 /** \brief This value is true if and only if this adjacency's source and target regions both contain
                  * zero tree motions. */
                 bool empty;
-            };
-#pragma pack(pop)  // Restoring default byte alignment
+            }  __attribute__((aligned(4)));
 
             /** \brief Add State s as a new root in the low-level tree, and return the Motion corresponding to s. */
             virtual Motion *addRoot(const base::State *s) = 0;

@@ -38,7 +38,10 @@
 #include <boost/test/unit_test.hpp>
 
 #include "2DmapSetup.h"
+#include "ompl/util/DisableCompilerWarning.h"
+OMPL_PUSH_DISABLE_CLANG_WARNING(-Wunused-function)
 #include "2DcirclesSetup.h"
+OMPL_POP_CLANG
 #include <iostream>
 
 #include "ompl/base/spaces/RealVectorStateProjections.h"

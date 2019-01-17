@@ -1,15 +1,10 @@
-#############################################
-# Construct configuration file              #
-#############################################
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/config.h")
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/config.h"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ompl"
     COMPONENT ompl)
-#############################################
-# recursively find all *.cpp files that     #
-# correspond to the basic ompl library      #
-#############################################
+
 file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp geometric/*.cpp control/*.cpp tools/*.cpp)
+file(GLOB_RECURSE OMPL_HEADERS datastructures/*.h util/*.h base/*.h geometric/*.h control/*.h tools/*.h)
 
 #############################################
 # Add enabled extensions to the source code #
@@ -27,24 +22,31 @@ file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp ge
 
 if (OMPL_EXTENSION_MORSE)
     file(GLOB_RECURSE OMPL_MORSE_EXTENSION_SOURCE_CODE extensions/morse/*.cpp)
+    file(GLOB_RECURSE OMPL_MORSE_EXTENSION_HEADERS extensions/morse/*.h)
     set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_MORSE_EXTENSION_SOURCE_CODE})
+    set(OMPL_HEADERS ${OMPL_HEADERS} ${OMPL_MORSE_EXTENSION_HEADERS})
 endif()
 
 if (OMPL_EXTENSION_OPENDE)
     file(GLOB_RECURSE OMPL_OPENDE_EXTENSION_SOURCE_CODE extensions/opende/*.cpp)
+    file(GLOB_RECURSE OMPL_OPENDE_EXTENSION_HEADERS extensions/opende/*.h)
     set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_OPENDE_EXTENSION_SOURCE_CODE})
+    set(OMPL_HEADERS ${OMPL_HEADERS} ${OMPL_OPENDE_EXTENSION_HEADERS})
     list(APPEND OMPL_LINK_LIBRARIES "${OPENDE_LIBRARY}")
 endif()
 
 if (OMPL_EXTENSION_TRIANGLE)
     file(GLOB_RECURSE OMPL_TRIANGLE_EXTENSION_SOURCE_CODE extensions/triangle/*.cpp)
+    file(GLOB_RECURSE OMPL_TRIANGLE_EXTENSION_HEADERS extensions/triangle/*.h)
     set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_TRIANGLE_EXTENSION_SOURCE_CODE})
+    set(OMPL_HEADERS ${OMPL_HEADERS} ${OMPL_TRIANGLE_EXTENSION_HEADERS})
     list(APPEND OMPL_LINK_LIBRARIES "${TRIANGLE_LIBRARY}")
 endif()
 
-#############################################
-# Build and install the library             #
-#############################################
+source_group("OMPL Source" FILES "${OMPL_SOURCE_CODE}")
+source_group("OMPL Headers" FILES "${OMPL_HEADERS}")
+
+# build the library
 if(MSVC OR IS_ICPC)
     add_library(ompl STATIC ${OMPL_SOURCE_CODE})
 else(MSVC OR IS_ICPC)

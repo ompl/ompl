@@ -257,7 +257,7 @@ void ompl::control::Automaton::print(std::ostream &out) const
     out << "}" << std::endl;
 }
 
-unsigned int ompl::control::Automaton::distFromAccepting(unsigned int s, unsigned int maxDist) const
+unsigned int ompl::control::Automaton::distFromAccepting(unsigned int s) const
 {
     if (distances_[s] < std::numeric_limits<unsigned int>::max())
         return distances_[s];

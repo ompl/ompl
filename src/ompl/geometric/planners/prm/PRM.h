@@ -165,6 +165,9 @@ namespace ompl
                 connectionStrategy_ = connectionStrategy;
                 userSetConnectionStrategy_ = true;
             }
+            /** Set default strategy for connecting to nearest neighbors */
+            void setDefaultConnectionStrategy();
+
             /** \brief Convenience function that sets the connection strategy to the
              default one with k nearest neighbors.
              */
@@ -247,7 +250,7 @@ namespace ompl
                 clear();
                 nn_ = std::make_shared<NN<Vertex>>();
                 if (!userSetConnectionStrategy_)
-                    connectionStrategy_ = ConnectionStrategy();
+                    setDefaultConnectionStrategy();
                 if (isSetup())
                     setup();
             }

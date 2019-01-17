@@ -103,12 +103,12 @@ ompl::base::Cost ompl::base::OptimizationObjective::infiniteCost() const
     return Cost(std::numeric_limits<double>::infinity());
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::initialCost(const State *s) const
+ompl::base::Cost ompl::base::OptimizationObjective::initialCost(const State *) const
 {
     return identityCost();
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::terminalCost(const State *s) const
+ompl::base::Cost ompl::base::OptimizationObjective::terminalCost(const State *) const
 {
     return identityCost();
 }
@@ -153,7 +153,7 @@ ompl::base::Cost ompl::base::OptimizationObjective::costToGo(const State *state,
     return identityCost();  // assumes that identity < all costs
 }
 
-ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const State *s1, const State *s2) const
+ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const State *, const State *) const
 {
     return identityCost();  // assumes that identity < all costs
 }

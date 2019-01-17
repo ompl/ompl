@@ -76,51 +76,15 @@ namespace ompl
         class RunPlanner
         {
         public:
-            RunPlanner(const Benchmark *benchmark, bool useThreads)
-              : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), useThreads_(useThreads)
+            RunPlanner(const Benchmark *benchmark)
+              : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0)
             {
             }
 
             void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart,
                      const machine::MemUsage_t maxMem, const double maxTime, const double timeBetweenUpdates)
             {
-                // if (!useThreads_)
-                // {
                 runThread(planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates));
-                //     return;
-                // }
-
-                // std::thread t([planner, memStart, maxMem, maxTime, timeBetweenUpdates]
-                //      {
-                //          runThread(planner, memStart + maxMem, time::seconds(maxTime),
-                //          time::seconds(timeBetweenUpdates)); });
-                //      }
-
-                // allow 25% more time than originally specified, in order to detect planner termination
-                // if (!t.try_join_for(time::seconds(maxTime * 1.25)))
-                // {
-                //     status_ = base::PlannerStatus::CRASH;
-                //
-                //     std::stringstream es;
-                //     es << "Planner " << benchmark_->getStatus().activePlanner << " did not complete run " <<
-                //     benchmark_->getStatus().activeRun
-                //        << " within the specified amount of time (possible crash). Attempting to force termination of
-                //        planning thread ..." << std::endl;
-                //     std::cerr << es.str();
-                //     OMPL_ERROR(es.str().c_str());
-                //
-                //     t.interrupt();
-                //     t.join();
-                //
-                //     std::string m = "Planning thread cancelled";
-                //     std::cerr << m << std::endl;
-                //     OMPL_ERROR(m.c_str());
-                // }
-
-                // if (memStart < memUsed_)
-                //     memUsed_ -= memStart;
-                // else
-                //     memUsed_ = 0;
             }
 
             double getTimeUsed() const
@@ -222,7 +186,6 @@ namespace ompl
             double timeUsed_;
             machine::MemUsage_t memUsed_;
             base::PlannerStatus status_;
-            bool useThreads_;
             Benchmark::RunProgressData runProgressData_;
 
             // variables needed for progress property collection
@@ -582,7 +545,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 OMPL_ERROR(es.str().c_str());
             }
 
-            RunPlanner rp(this, req.useThreads);
+            RunPlanner rp(this);
             rp.run(planners_[i], memStart, maxMemBytes, req.maxTime, req.timeBetweenUpdates);
             bool solved = gsetup_ ? gsetup_->haveSolutionPath() : csetup_->haveSolutionPath();
 

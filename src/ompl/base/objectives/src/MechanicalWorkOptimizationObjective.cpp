@@ -48,7 +48,7 @@ double ompl::base::MechanicalWorkOptimizationObjective::getPathLengthWeight() co
     return pathLengthWeight_;
 }
 
-ompl::base::Cost ompl::base::MechanicalWorkOptimizationObjective::stateCost(const State *s) const
+ompl::base::Cost ompl::base::MechanicalWorkOptimizationObjective::stateCost(const State *) const
 {
     return Cost(1.0);
 }

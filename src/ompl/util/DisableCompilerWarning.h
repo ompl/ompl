@@ -40,7 +40,7 @@
 #define OMPL_PRAGMA_HELPER0(x) #x
 #define OMPL_PRAGMA_HELPER1(x, y) OMPL_PRAGMA_HELPER0(x diagnostic ignored y)
 
-// do nothing 
+// do nothing
 #define OMPL_PUSH_DISABLE_GCC_WARNING(warning)
 #define OMPL_POP_GCC
 #define OMPL_PUSH_DISABLE_CLANG_WARNING(warning)
@@ -49,10 +49,10 @@
 #if defined(__clang__)
     #undef OMPL_PUSH_DISABLE_CLANG_WARNING
     #undef OMPL_POP_CLANG
-    #define OMPL_PUSH_DISABLE_CLANG_WARNING(warning)
+    #define OMPL_PUSH_DISABLE_CLANG_WARNING(warning) \
         _Pragma("clang diagnostic push") \
         _Pragma(OMPL_PRAGMA_HELPER1(clang, OMPL_PRAGMA_HELPER0(warning)))
-    #define OMPL_POP_CLANG
+    #define OMPL_POP_CLANG \
         _Pragma("GCC diagnostic pop")
 #elif defined __GNUC__
     #undef OMPL_PUSH_DISABLE_GCC_WARNING
@@ -60,7 +60,7 @@
     #define OMPL_PUSH_DISABLE_GCC_WARNING(warning) \
         _Pragma("GCC diagnostic push") \
         _Pragma(OMPL_PRAGMA_HELPER1(GCC, OMPL_PRAGMA_HELPER0(warning)))
-    #define OMPL_POP_GCC                            \
+    #define OMPL_POP_GCC \
         _Pragma("GCC diagnostic pop")
 #endif
 

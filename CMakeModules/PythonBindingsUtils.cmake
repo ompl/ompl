@@ -99,6 +99,9 @@ function(create_module_target module)
         else(WIN32)
             add_library(py_ompl_${module} MODULE ${PY${module}BINDINGS})
             set_target_properties(py_ompl_${module} PROPERTIES OUTPUT_NAME _${module})
+            if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
+                target_compile_options(py_ompl_${module} PRIVATE -Wno-unused-local-typedef)
+            endif()
         endif(WIN32)
 
         target_link_libraries(py_ompl_${module}

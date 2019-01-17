@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan, James D. Marble, Ryan Luna */
 
@@ -65,8 +65,8 @@ namespace ompl
         /** \brief The number of nearest neighbors to consider by
             default in the construction of the PRM roadmap */
         static const unsigned int DEFAULT_NEAREST_NEIGHBORS = 10;
-    }
-}
+    }  // namespace magic
+}  // namespace ompl
 
 ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy)
   : base::Planner(si, "PRM")
@@ -86,22 +86,10 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
         Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors,
                                             std::string("8:1000"));
 
-    addPlannerProgressProperty("iterations INTEGER", [this]
-                               {
-                                   return getIterationCount();
-                               });
-    addPlannerProgressProperty("best cost REAL", [this]
-                               {
-                                   return getBestCost();
-                               });
-    addPlannerProgressProperty("milestone count INTEGER", [this]
-                               {
-                                   return getMilestoneCountString();
-                               });
-    addPlannerProgressProperty("edge count INTEGER", [this]
-                               {
-                                   return getEdgeCountString();
-                               });
+    addPlannerProgressProperty("iterations INTEGER", [this] { return getIterationCount(); });
+    addPlannerProgressProperty("best cost REAL", [this] { return getBestCost(); });
+    addPlannerProgressProperty("milestone count INTEGER", [this] { return getMilestoneCountString(); });
+    addPlannerProgressProperty("edge count INTEGER", [this] { return getEdgeCountString(); });
 }
 
 ompl::geometric::PRM::~PRM()
@@ -117,28 +105,12 @@ void ompl::geometric::PRM::setup()
         specs_.multithreaded = false;  // temporarily set to false since nn_ is used only in single thread
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
         specs_.multithreaded = true;
-        nn_->setDistanceFunction([this](const Vertex a, const Vertex b)
-                                 {
-                                     return distanceFunction(a, b);
-                                 });
+        nn_->setDistanceFunction([this](const Vertex a, const Vertex b) { return distanceFunction(a, b); });
     }
     if (!connectionStrategy_)
-    {
-        if (starStrategy_)
-            connectionStrategy_ = KStarStrategy<Vertex>(
-                [this]
-                {
-                    return milestoneCount();
-                },
-                nn_, si_->getStateDimension());
-        else
-            connectionStrategy_ = KStrategy<Vertex>(magic::DEFAULT_NEAREST_NEIGHBORS, nn_);
-    }
+        setDefaultConnectionStrategy();
     if (!connectionFilter_)
-        connectionFilter_ = [](const Vertex &, const Vertex &)
-        {
-            return true;
-        };
+        connectionFilter_ = [](const Vertex &, const Vertex &) { return true; };
 
     // Setup optimization objective
     //
@@ -172,15 +144,20 @@ void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
         specs_.multithreaded = false;  // temporarily set to false since nn_ is used only in single thread
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
         specs_.multithreaded = true;
-        nn_->setDistanceFunction([this](const Vertex a, const Vertex b)
-                                 {
-                                     return distanceFunction(a, b);
-                                 });
+        nn_->setDistanceFunction([this](const Vertex a, const Vertex b) { return distanceFunction(a, b); });
     }
     if (!userSetConnectionStrategy_)
-        connectionStrategy_ = ConnectionStrategy();
+        connectionStrategy_ = KStrategy<Vertex>(k, nn_);
     if (isSetup())
         setup();
+}
+
+void ompl::geometric::PRM::setDefaultConnectionStrategy()
+{
+    if (starStrategy_)
+        connectionStrategy_ = KStarStrategy<Vertex>([this] { return milestoneCount(); }, nn_, si_->getStateDimension());
+    else
+        connectionStrategy_ = KStrategy<Vertex>(magic::DEFAULT_NEAREST_NEIGHBORS, nn_);
 }
 
 void ompl::geometric::PRM::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
@@ -452,16 +429,10 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
     // Reset addedNewSolution_ member and create solution checking thread
     addedNewSolution_ = false;
     base::PathPtr sol;
-    std::thread slnThread([this, &ptc, &sol]
-                          {
-                              checkForSolution(ptc, sol);
-                          });
+    std::thread slnThread([this, &ptc, &sol] { checkForSolution(ptc, sol); });
 
     // construct new planner termination condition that fires when the given ptc is true, or a solution is found
-    base::PlannerTerminationCondition ptcOrSolutionFound([this, &ptc]
-                                                         {
-                                                             return ptc || addedNewSolution();
-                                                         });
+    base::PlannerTerminationCondition ptcOrSolutionFound([this, &ptc] { return ptc || addedNewSolution(); });
 
     constructRoadmap(ptcOrSolutionFound);
 
@@ -573,7 +544,9 @@ bool ompl::geometric::PRM::sameComponent(Vertex m1, Vertex m2)
     return boost::same_component(m1, m2, disjointSets_);
 }
 
-ompl::base::Cost ompl::geometric::PRM::constructApproximateSolution(const std::vector<Vertex> &starts, const std::vector<Vertex> &goals, base::PathPtr &solution)
+ompl::base::Cost ompl::geometric::PRM::constructApproximateSolution(const std::vector<Vertex> &starts,
+                                                                    const std::vector<Vertex> &goals,
+                                                                    base::PathPtr &solution)
 {
     std::lock_guard<std::mutex> _(graphMutex_);
     base::Goal *g = pdef_->getGoal().get();
@@ -582,7 +555,7 @@ ompl::base::Cost ompl::geometric::PRM::constructApproximateSolution(const std::v
 
     foreach (Vertex start, starts)
     {
-        foreach(Vertex goal, goals)
+        foreach (Vertex goal, goals)
         {
             base::Cost heuristicCost(costHeuristic(start, goal));
             if (opt_->isCostBetterThan(heuristicCost, closestVal))
@@ -659,23 +632,14 @@ ompl::base::PathPtr ompl::geometric::PRM::constructSolution(const Vertex &start,
     try
     {
         // Consider using a persistent distance_map if it's slow
-        boost::astar_search(g_, start,
-                            [this, goal](Vertex v)
-                            {
-                                return costHeuristic(v, goal);
-                            },
-                            boost::predecessor_map(prev)
-                                .distance_compare([this](base::Cost c1, base::Cost c2)
-                                                  {
-                                                      return opt_->isCostBetterThan(c1, c2);
-                                                  })
-                                .distance_combine([this](base::Cost c1, base::Cost c2)
-                                                  {
-                                                      return opt_->combineCosts(c1, c2);
-                                                  })
-                                .distance_inf(opt_->infiniteCost())
-                                .distance_zero(opt_->identityCost())
-                                .visitor(AStarGoalVisitor<Vertex>(goal)));
+        boost::astar_search(
+            g_, start, [this, goal](Vertex v) { return costHeuristic(v, goal); },
+            boost::predecessor_map(prev)
+                .distance_compare([this](base::Cost c1, base::Cost c2) { return opt_->isCostBetterThan(c1, c2); })
+                .distance_combine([this](base::Cost c1, base::Cost c2) { return opt_->combineCosts(c1, c2); })
+                .distance_inf(opt_->infiniteCost())
+                .distance_zero(opt_->identityCost())
+                .visitor(AStarGoalVisitor<Vertex>(goal)));
     }
     catch (AStarFoundGoal &)
     {

@@ -60,7 +60,7 @@ namespace ompl
             }
 
             /** Assume we can always do better. */
-            bool isSatisfied(ompl::base::Cost c) const override
+            bool isSatisfied(ompl::base::Cost) const override
             {
                 return false;
             }

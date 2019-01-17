@@ -139,7 +139,7 @@ std::string problemName(PlannerType plannerType)
     }
 }
 
-int main(int argc, char **argv)
+int main(int, char **)
 {
     // Run all three problems
     for (unsigned int n = 0; n < 3; n++)
