@@ -60,11 +60,9 @@ namespace ompl
            guaranteed to converge to an optimal solution, while its
            running time is guaranteed to be a constant factor of the
            running time of the \ref gRRT "RRT". The notion of optimality is with
-           respect to the distance function defined on the state space
-           we are operating on. See ompl::base::Goal::setMaximumPathLength() for
-           how to set the maximally allowed path length to reach the goal.
-           If a solution path that is shorter than ompl::base::Goal::getMaximumPathLength() is
-           found, the algorithm terminates before the elapsed time.
+           respect to a specified OptimizationObjective (set in the ProblemDefinition).
+           If a solution path's cost is within a user-specified cost-threshold,
+           the algorithm terminates before the elapsed time.
            @par External documentation
            S. Karaman and E. Frazzoli, Sampling-based
            Algorithms for Optimal Motion Planning, International Journal of Robotics

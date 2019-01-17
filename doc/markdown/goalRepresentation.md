@@ -93,5 +93,3 @@ public:
 Planners cast the specified goal representation into the minimal representation they can use. For uni-directional planners, ompl::base::Goal is fine. For bi-directional planners however, this needs to be ompl::base::GoalSampleableRegion.
 
 If the planner can use the goal specification, it will compute a motion plan. If successful, the found path is stored in the goal region. Flags indicating whether the solution was approximate are also set. The user can query all the information the planner has set using accessors from ompl::base::Goal.
-
-Planners that include the notion of path length, and attempt to find solution paths that are shorter, also make use of a third version of ompl::base::Goal::isSatisfied(), the one that takes a path length as argument as well. This version decides whether a maximum path length is met. The user can set this maximum length by calling ompl::base::Goal::setMaximumPathLength().

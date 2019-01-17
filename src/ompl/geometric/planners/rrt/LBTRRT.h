@@ -56,10 +56,7 @@ namespace ompl
            algorithm is guaranteed to converge to a solution that is within a constant
            factor of the optimal solution. The notion of optimality is with
            respect to the distance function defined on the state space
-           we are operating on. See ompl::base::Goal::setMaximumPathLength() for
-           how to set the maximally allowed path length to reach the goal.
-           If a solution path that is shorter than ompl::base::Goal::getMaximumPathLength() is
-           found, the algorithm terminates before the elapsed time.
+           we are operating on.
 
            @par External documentation
            O. Salzman and D. Halperin, Sampling-based
