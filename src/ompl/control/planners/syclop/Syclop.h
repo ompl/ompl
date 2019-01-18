@@ -272,7 +272,7 @@ namespace ompl
                 const Motion *parent{nullptr};
                 /** \brief The number of steps for which the control is applied */
                 unsigned int steps{0};
-            } __attribute__((aligned(4)));
+            };
 
             /** \brief Representation of a region in the Decomposition assigned to Syclop. */
             class Region
@@ -281,12 +281,10 @@ namespace ompl
                 Region() = default;
                 virtual ~Region() = default;
 
-#if __cplusplus >= 201103L
                 Region(const Region &) = default;
                 Region &operator=(const Region &) = default;
                 Region(Region &&) = default;
                 Region &operator=(Region &&) = default;
-#endif
 
                 /** \brief Clears motions and coverage information from this region. */
                 void clear()
@@ -316,7 +314,7 @@ namespace ompl
                 unsigned int numSelections;
                 /** \brief The Element corresponding to this region in the PDF of available regions. */
                 PDF<int>::Element *pdfElem;
-            }  __attribute__((aligned(4)));
+            };
 
             /** \brief Representation of an adjacency (a directed edge) between two regions
                 in the Decomposition assigned to Syclop. */
@@ -347,7 +345,7 @@ namespace ompl
                 /** \brief This value is true if and only if this adjacency's source and target regions both contain
                  * zero tree motions. */
                 bool empty;
-            }  __attribute__((aligned(4)));
+            };
 
             /** \brief Add State s as a new root in the low-level tree, and return the Motion corresponding to s. */
             virtual Motion *addRoot(const base::State *s) = 0;

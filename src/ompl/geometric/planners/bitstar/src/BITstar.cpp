@@ -939,7 +939,7 @@ namespace ompl
             OMPL_INFORM("%s (%u iters): Found a solution of cost %.4f (%u vertices) from %u samples by processing %u "
                         "edges (%u collision checked) to create %u vertices and perform %u rewirings. The graph "
                         "currently has %u vertices.",
-                        Planner::getName().c_str(), numIterations_, bestCost_, bestLength_,
+                        Planner::getName().c_str(), numIterations_, bestCost_.value(), bestLength_,
                         graphPtr_->numStatesGenerated(), queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_,
                         graphPtr_->numVerticesConnected(), numRewirings_, graphPtr_->numConnectedVertices());
         }
@@ -949,7 +949,7 @@ namespace ompl
             OMPL_INFORM("%s: Finished with a solution of cost %.4f (%u vertices) found from %u samples by processing "
                         "%u edges (%u collision checked) to create %u vertices and perform %u rewirings. The final "
                         "graph has %u vertices.",
-                        Planner::getName().c_str(), bestCost_, bestLength_, graphPtr_->numStatesGenerated(),
+                        Planner::getName().c_str(), bestCost_.value(), bestLength_, graphPtr_->numStatesGenerated(),
                         queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_, graphPtr_->numVerticesConnected(),
                         numRewirings_, graphPtr_->numConnectedVertices());
         }

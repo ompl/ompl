@@ -458,7 +458,7 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
             OMPL_INFORM("Closest path is still start and goal");
             return base::PlannerStatus::TIMEOUT;
         }
-        OMPL_INFORM("Using approximate solution, heuristic cost-to-go is %f", diff);
+        OMPL_INFORM("Using approximate solution, heuristic cost-to-go is %f", diff.value());
         pdef_->addSolutionPath(sol, true, diff.value(), getName());
         return base::PlannerStatus::APPROXIMATE_SOLUTION;
     }

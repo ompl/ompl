@@ -230,7 +230,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
     if (bestGoalMotion_)
         OMPL_INFORM("%s: Starting planning with existing solution of cost %.5f", getName().c_str(),
-                    bestCost_);
+                    bestCost_.value());
 
     if (useKNearest_)
         OMPL_INFORM("%s: Initial k-nearest value of %u", getName().c_str(),
@@ -479,7 +479,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
                     OMPL_INFORM("%s: Found an initial solution with a cost of %.2f in %u iterations (%u "
                                 "vertices in the graph)",
-                                getName().c_str(), bestCost_, iterations_, nn_->size());
+                                getName().c_str(), bestCost_.value(), iterations_, nn_->size());
                 }
                 else
                 {

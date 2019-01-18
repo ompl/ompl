@@ -9,7 +9,7 @@ find_python_module(pygccxml 1.7.2)
 find_package(castxml)
 
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
-    include_directories(${PYTHON_INCLUDE_DIRS})
+    include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
     # make sure target is defined only once
     if(NOT TARGET py_ompl)
         # top-level target for compiling python modules
