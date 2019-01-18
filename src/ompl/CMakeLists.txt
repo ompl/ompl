@@ -47,11 +47,11 @@ source_group("OMPL Source" FILES "${OMPL_SOURCE_CODE}")
 source_group("OMPL Headers" FILES "${OMPL_HEADERS}")
 
 # build the library
-if(MSVC OR IS_ICPC)
+if(MSVC)
     add_library(ompl STATIC ${OMPL_SOURCE_CODE})
-else(MSVC OR IS_ICPC)
+else(MSVC)
     add_library(ompl SHARED ${OMPL_SOURCE_CODE})
-endif(MSVC OR IS_ICPC)
+endif(MSVC)
 target_link_libraries(ompl
     ${OMPL_LINK_LIBRARIES}
     ${Boost_DATE_TIME_LIBRARY}

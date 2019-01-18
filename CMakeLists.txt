@@ -39,12 +39,8 @@ if(MSVC)
     add_definitions(-DBOOST_ALL_NO_LIB)
     add_definitions(-DBOOST_PROGRAM_OPTIONS_DYN_LINK)
 endif(MSVC)
-if(IS_ICPC)
-    set(Boost_USE_STATIC_LIBS ON CACHE STRING "Use statically linked Boost libraries")
-else(IS_ICPC)
-    # Ensure dynamic linking with boost unit_test_framework
-    add_definitions(-DBOOST_TEST_DYN_LINK)
-endif(IS_ICPC)
+# Ensure dynamic linking with boost unit_test_framework
+add_definitions(-DBOOST_TEST_DYN_LINK)
 
 set_package_properties(Boost PROPERTIES
     URL "http://boost.org"
