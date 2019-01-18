@@ -1,5 +1,9 @@
 # Release Notes {#releaseNotes}
 
+# OMPL 1.4.2 (January 18, 2019)
+
+- Misc. small bug fixes.
+
 # OMPL 1.4.1 (December 5, 2018)
 
 - Made PlannerArena work with latest versions of R packages.
