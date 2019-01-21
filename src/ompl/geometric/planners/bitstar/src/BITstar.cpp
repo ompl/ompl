@@ -540,12 +540,12 @@ namespace ompl
                     isFinalSearchOnBatch_ = false;
 
                     // Set the new truncation factor.
-                    truncationFactor_ = 1.0 + 1.0 / (static_cast<float>(graphPtr_->numVertices() + graphPtr_->numSamples()));
+                    truncationFactor_ = 1.0 + truncationFactorParameter_ / (static_cast<float>(graphPtr_->numVertices() + graphPtr_->numSamples()));
                 }
                 else
                 {
                     // Exhaust the current approximation by performing an uninflated search.
-                    queuePtr_->setInflationFactor(1.0 + 100.0 / (static_cast<float>(graphPtr_->numVertices() + graphPtr_->numSamples())));
+                    queuePtr_->setInflationFactor(1.0 + inflationFactorParameter_ / (static_cast<float>(graphPtr_->numVertices() + graphPtr_->numSamples())));
                     queuePtr_->rebuildEdgeQueue();
                     queuePtr_->insertOutgoingEdgesOfInconsistentVertices();
                     queuePtr_->clearInconsistentSet();
@@ -1144,6 +1144,16 @@ namespace ompl
         {
             initialInflationFactor_ = factor;
             queuePtr_->setInflationFactor(factor);
+        }
+
+        void BITstar::setInflationFactorParameter(double parameter)
+        {
+            inflationFactorParameter_ = parameter;
+        }
+
+        void BITstar::setTruncationFactorParameter(double parameter)
+        {
+            truncationFactorParameter_ = parameter;
         }
 
         double BITstar::getInitialInflationFactor() const

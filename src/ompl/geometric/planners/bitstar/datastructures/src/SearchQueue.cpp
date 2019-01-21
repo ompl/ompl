@@ -548,7 +548,7 @@ namespace ompl
 
         void BITstar::SearchQueue::enqueueEdgesToVertices(const VertexPtr &vertex, const VertexPtrVector& neighbourVertices)
         {
-            // Start with this vertex' current kids.
+            // Start with this vertex' current kiddos.
             VertexPtrVector children;
             vertex->getChildren(&children);
             for (const auto &child : children)

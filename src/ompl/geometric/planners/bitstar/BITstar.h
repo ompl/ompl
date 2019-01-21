@@ -199,6 +199,12 @@ namespace ompl
             /** \brief Set the inflation factor for the initial search. */
             void setInitialInflationFactor(double factor);
 
+            /** \brief Set the parameter for the inflation factor update policy. */
+            void setInflationFactorParameter(double parameter);
+
+            /** \brief Set the parameter for the truncation factor update policy. */
+            void setTruncationFactorParameter(double parameter);
+
             /** \brief Get the inflation factor for the initial search. */
             double getInitialInflationFactor() const;
 
@@ -462,6 +468,12 @@ namespace ompl
 
             /** \brief The truncation factor for the search. */
             double truncationFactor_{1.0};
+
+            /** \brief The truncation factor parameter for the update policy. */
+            double truncationFactorParameter_{0.0};
+
+            /** \brief The inflation factor parameter for the update policy. */
+            double inflationFactorParameter_{0.0};
 
             /** \brief The goal vertex of the current best solution. */
             VertexConstPtr curGoalVertex_{nullptr};
