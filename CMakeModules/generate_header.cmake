@@ -1,3 +1,4 @@
+string(REPLACE "\\\ " " " dir "${dir}")
 file(READ "${dir}/py-bindings/headers_${module}.txt" headers_string)
 separate_arguments(headers UNIX_COMMAND "${headers_string}")
 set(module_header "bindings/${module}.h")
