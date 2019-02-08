@@ -40,6 +40,7 @@
 #include "2DmapSetup.h"
 #include "ompl/util/DisableCompilerWarning.h"
 OMPL_PUSH_DISABLE_CLANG_WARNING(-Wunused-function)
+OMPL_PUSH_DISABLE_GCC_WARNING(-Wunused-function)
 #include "2DcirclesSetup.h"
 OMPL_POP_CLANG
 #include <iostream>
