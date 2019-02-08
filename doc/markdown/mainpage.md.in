@@ -24,7 +24,7 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 \endif
 \htmlonly
 
-<a href="download.html" class="btn btn-primary">Current version: @OMPL_VERSION@
+<a href="download.html" class="btn btn-primary">Current version: @PROJECT_VERSION@
 <br>
 <small>Released: @OMPL_RELEASE_DATE@</small></a>
 

@@ -2,10 +2,10 @@
 
 # Releases
 
-- __OMPL__ @OMPL_VERSION@, released @OMPL_RELEASE_DATE@ ([release notes](releaseNotes.html))
+- __OMPL__ @PROJECT_VERSION@, released @OMPL_RELEASE_DATE@ ([release notes](releaseNotes.html))
 
-  <a href="https://bitbucket.org/ompl/ompl/downloads/ompl-@OMPL_VERSION@-Source.tar.gz" class="btn btn-primary btn-sm">TGZ</a>
-  <a href="https://bitbucket.org/ompl/ompl/downloads/ompl-@OMPL_VERSION@-Source.zip" class="btn btn-primary btn-sm">ZIP</a><br><br>
+  <a href="https://bitbucket.org/ompl/ompl/downloads/ompl-@PROJECT_VERSION@-Source.tar.gz" class="btn btn-primary btn-sm">TGZ</a>
+  <a href="https://bitbucket.org/ompl/ompl/downloads/ompl-@PROJECT_VERSION@-Source.zip" class="btn btn-primary btn-sm">ZIP</a><br><br>
 
   OMPL is also available through through several package managers:
   - [Debian](https://packages.debian.org/sid/libompl-dev),

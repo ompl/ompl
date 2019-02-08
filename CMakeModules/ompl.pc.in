@@ -6,7 +6,7 @@ includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
 Name: @PKG_NAME@
 Description: @PKG_DESC@
-Version: @OMPL_VERSION@
+Version: @PROJECT_VERSION@
 Requires: @PKG_EXTERNAL_DEPS@
 Libs: -L${libdir} @PKG_OMPL_LIBS@
 Cflags: -I${includedir}
