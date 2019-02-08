@@ -48,6 +48,7 @@ except ImportError:
     import sys
     sys.path.insert(0, join(dirname(dirname(abspath(__file__))), 'py-bindings'))
     from ompl import base as ob
+    from ompl import geometric as og # needed for asGeometric()
     from ompl import control as oc
 
 def kinematicCarODE(q, u, qdot):
