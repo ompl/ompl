@@ -13,3 +13,4 @@ RUN apt-get update && \
         libode-dev \
         pkg-config
 COPY . /root/ompl
+WORKDIR /root/ompl/build

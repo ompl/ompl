@@ -29,12 +29,12 @@ matrix:
     sudo: required
     services:
       - docker
-    env: DOCKERFILE="debian-stretch" PYTHON=/usr/bin/python
+    env: DOCKERFILE="debian-stretch"
   - os: linux
     sudo: required
     services:
       - docker
-    env: DOCKERFILE="ubuntu-bionic" PYTHON=/usr/bin/python3
+    env: DOCKERFILE="ubuntu-bionic"
 
 before_install:
   - if [ -n "$DOCKERFILE" ]; then
@@ -43,11 +43,11 @@ before_install:
 
 script:
   - if [ -n "$DOCKERFILE" ]; then
-      docker run "$DOCKERFILE"  /bin/sh -c "mkdir /root/ompl/build && cd /root/ompl/build && cmake -DPYTHON_EXEC=$PYTHON -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. && make -j `nproc` && ctest";
+      docker run "$DOCKERFILE"  /bin/sh -c "cmake -DOMPL_REGISTRATION=OFF .. && make -j `nproc` && ctest";
     else
       mkdir -p build &&
       cd build &&
-      cmake -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=tmp .. &&
+      cmake -DOMPL_REGISTRATION=OFF .. &&
       make -j `nproc 2>/dev/null || sysctl -n hw.ncpu` &&
       ctest;
     fi
