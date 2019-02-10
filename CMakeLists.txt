@@ -164,8 +164,8 @@ endif()
 # R is needed for running Planner Arena locally
 find_program(R_EXEC R)
 
-add_subdirectory(py-bindings)
 add_subdirectory(src)
+add_subdirectory(py-bindings)
 add_subdirectory(tests)
 add_subdirectory(demos)
 add_subdirectory(scripts)
@@ -200,10 +200,6 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
     COMPONENT ompl)
-
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ompl.conf"
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl"
-  COMPONENT ompl)
 
 # script to install ompl on Ubuntu
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/install-ompl-ubuntu.sh.in"
@@ -258,3 +254,8 @@ if(PY_MODULES_NOTFOUND)
     string(REPLACE ";" " " PY_MODULES_NOTFOUND_STR "${PY_MODULES_NOTFOUND}")
     message(STATUS "The following Python modules were NOT found:\n\n * ${PY_MODULES_NOTFOUND_STR}\n")
 endif()
+
+# Create targets for building docker images
+# See CMakeModules/OMPLUtils.cmake and scripts/docker for details
+add_docker_target(ompl)
+add_docker_target(plannerarena scripts)

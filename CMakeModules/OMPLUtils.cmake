@@ -81,3 +81,25 @@ add_feature_info(OMPL_VERSIONED_INSTALL "${OMPL_VERSIONED_INSTALL}" "Whether to 
 if (OMPL_VERSIONED_INSTALL)
     set(CMAKE_INSTALL_INCLUDEDIR "include/ompl-${OMPL_MAJOR_VERSION}.${OMPL_MINOR_VERSION}")
 endif()
+
+find_program(DOCKER docker NO_CMAKE_SYSTEM_PATH)
+find_path(DOCKERFILE_PATH ompl.Dockerfile
+    PATHS "${CMAKE_SOURCE_DIR}/scripts/docker" "${CMAKE_SOURCE_DIR}/ompl/scripts/docker"
+    NO_DEFAULT_PATH)
+if (DOCKER)
+    add_custom_target(docker)
+    macro(add_docker_target name)
+        if(ARGC GREATER 1)
+            get_filename_component(_path "${ARGV1}" ABSOLUTE)
+        else()
+            set(_path "${CMAKE_CURRENT_SOURCE_DIR}")
+        endif()
+        add_custom_target(docker-${name}
+            COMMAND ${DOCKER} build -t "${name}:${PROJECT_VERSION}" -f ${DOCKERFILE_PATH}/${name}.Dockerfile "${_path}")
+        add_dependencies(docker docker-${name})
+    endmacro()
+else()
+    macro(add_docker_target name)
+        # do nothing
+    endmacro()
+endif()

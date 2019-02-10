@@ -38,7 +38,7 @@ matrix:
 
 before_install:
   - if [ -n "$DOCKERFILE" ]; then
-      docker build -t "$DOCKERFILE" -f "scripts/docker/$DOCKERFILE" .;
+      docker build -t "$DOCKERFILE" -f "scripts/docker/$DOCKERFILE.Dockerfile" .;
     fi
 
 script:
