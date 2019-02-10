@@ -38,7 +38,7 @@ library(shiny)
 library(shinyjs, warn.conflicts = FALSE)
 
 # set default max upload size to 50MB
-options(shiny.maxRequestSize = getOption("shiny.maxRequestSize", 50000000))
+options(shiny.maxRequestSize = strtoi(Sys.getenv("OMPL_PLANNERARENA_MAX_DB_SIZE", "50000000")))
 #options(shiny.reactlog = TRUE)
 #options(shiny.trace = TRUE)
 
