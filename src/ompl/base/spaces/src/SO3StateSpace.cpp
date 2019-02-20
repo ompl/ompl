@@ -121,7 +121,7 @@ void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State *mean
     // between the sampled state and the mean state is stdDev. The factor 2 is
     // due to the way we define distance (see also Matt Mason's lecture notes
     // on quaternions at
-    // http://www.cs.cmu.edu/afs/cs/academic/class/16741-s07/www/lecture7.pdf).
+    // http://www.cs.cmu.edu/afs/cs/academic/class/16741-s07/www/lectures/Lecture8.pdf).
     // The 1/sqrt(3) factor is necessary because the distribution in the tangent
     // space is a 3-dimensional Gaussian, so that the *length* of a tangent
     // vector needs to be scaled by 1/sqrt(3).
