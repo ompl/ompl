@@ -78,7 +78,8 @@ RUN apt-get update && \
         python3-numpy \
         python3-opengl \
         python3-pip \
-        python3-pyqt5.qtopengl
+        python3-pyqt5.qtopengl \
+        uwsgi-plugin-python3
 COPY --from=builder /usr /usr
 RUN useradd -ms /bin/bash ompl
 USER ompl
