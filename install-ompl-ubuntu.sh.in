@@ -23,6 +23,7 @@ install_python_binding_dependencies()
     sudo -H pip${PYTHONV} install -vU pygccxml pyplusplus
     # install castxml
     wget -q -O- https://data.kitware.com/api/v1/file/5b68c2c28d777f06857c1f48/download | tar zxf - -C ${HOME}
+    export PATH=${HOME}/castxml/bin/castxml:${PATH}
     sudo apt-get -y install libboost-python-dev
     if [[ $ubuntu_version > 1710 ]]; then
         sudo apt-get -y install libboost-numpy-dev python${PYTHONV}-numpy
