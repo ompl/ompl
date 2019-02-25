@@ -102,7 +102,7 @@ namespace ompl
 
             /** \brief Compute the constraint function at \a state. Result is
              returned in \a out, which should be allocated to size \a coDim. */
-            void function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const;
+            virtual void function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const;
 
             /** \brief Compute the constraint function at \a x. Result is
                 returned in \a out, which should be allocated to size \a coDim. */
@@ -114,7 +114,7 @@ namespace ompl
              size \a coDim by \a ambientDim. Default implementation performs the
              differentiation numerically with a seven-point central difference
              stencil. It is best to provide an analytic formulation. */
-            void jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const;
+            virtual void jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const;
 
             /** \brief Compute the Jacobian of the constraint function at \a x.
               Result is returned in \a out, which should be allocated to size \a
@@ -131,7 +131,7 @@ namespace ompl
             /** \brief Project a state \a state given the constraints. If a
              valid projection cannot be found, this method will return false.
              Even if this method fails, \a state will be modified. */
-            bool project(State *state) const;
+            virtual bool project(State *state) const;
 
             /** \brief Project a state \a x given the constraints. If a valid
                 projection cannot be found, this method will return false. */
@@ -139,14 +139,14 @@ namespace ompl
 
             /** \brief Returns the distance of \a state to the constraint
              * manifold. */
-            double distance(const State *state) const;
+            virtual double distance(const State *state) const;
 
             /** \brief Returns the distance of \a x to the constraint manifold. */
             virtual double distance(const Eigen::Ref<const Eigen::VectorXd> &x) const;
 
             /** \brief Check whether a state \a state satisfies the
              * constraints */
-            bool isSatisfied(const State *state) const;
+            virtual bool isSatisfied(const State *state) const;
 
             /** \brief Check whether a state \a x satisfies the constraints */
             virtual bool isSatisfied(const Eigen::Ref<const Eigen::VectorXd> &x) const;
