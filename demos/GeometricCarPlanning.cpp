@@ -38,6 +38,7 @@
 #include <ompl/base/spaces/ReedsSheppStateSpace.h>
 #include <ompl/base/ScopedState.h>
 #include <ompl/geometric/SimpleSetup.h>
+#include <ompl/geometric/planners/rrt/RRT.h>
 #include <boost/program_options.hpp>
 
 namespace ob = ompl::base;
@@ -71,7 +72,7 @@ void plan(const ob::StateSpacePtr& space, bool easy)
     else
     {
         bounds.high[0] = 6;
-        bounds.high[1] = .6;
+        bounds.high[1] = .5;
     }
     space->as<ob::SE2StateSpace>()->setBounds(bounds);
 
@@ -101,6 +102,7 @@ void plan(const ob::StateSpacePtr& space, bool easy)
 
     // this call is optional, but we put it in to get more output information
     ss.getSpaceInformation()->setStateValidityCheckingResolution(0.005);
+    ss.setPlanner(std::make_shared<ompl::geometric::RRT>(ss.getSpaceInformation()));
     ss.setup();
     ss.print();
 

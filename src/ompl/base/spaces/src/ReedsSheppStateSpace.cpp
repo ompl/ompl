@@ -596,13 +596,22 @@ void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const Reed
 ompl::base::ReedsSheppStateSpace::ReedsSheppPath ompl::base::ReedsSheppStateSpace::reedsShepp(const State *state1,
                                                                                               const State *state2) const
 {
+    {
+        std::lock_guard<std::mutex> slock(lock_);
+        if (state1 == std::get<0>(cachedPath_) && state2 == std::get<1>(cachedPath_))
+            return std::get<2>(cachedPath_);
+    }
+
     const auto *s1 = static_cast<const StateType *>(state1);
     const auto *s2 = static_cast<const StateType *>(state2);
     double x1 = s1->getX(), y1 = s1->getY(), th1 = s1->getYaw();
     double x2 = s2->getX(), y2 = s2->getY(), th2 = s2->getYaw();
     double dx = x2 - x1, dy = y2 - y1, c = cos(th1), s = sin(th1);
     double x = c * dx + s * dy, y = -s * dx + c * dy, phi = th2 - th1;
-    return ::reedsShepp(x / rho_, y / rho_, phi);
+
+    std::lock_guard<std::mutex> slock(lock_);
+    cachedPath_ = std::make_tuple(state1, state2, ::reedsShepp(x / rho_, y / rho_, phi));
+    return std::get<2>(cachedPath_);
 }
 
 void ompl::base::ReedsSheppMotionValidator::defaultSettings()
