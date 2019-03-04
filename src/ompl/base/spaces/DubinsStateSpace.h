@@ -40,6 +40,7 @@
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/MotionValidator.h"
 #include <boost/math/constants/constants.hpp>
+#include <mutex>
 
 namespace ompl
 {
