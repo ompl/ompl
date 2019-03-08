@@ -40,7 +40,6 @@
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/MotionValidator.h"
 #include <boost/math/constants/constants.hpp>
-#include <mutex>
 
 namespace ompl
 {
@@ -155,12 +154,6 @@ namespace ompl
                 isSymmetric_ is true, then the distance no longer satisfies the
                 triangle inequality. */
             bool isSymmetric_;
-
-            /** \brief Mutex for changing cached state pointers */
-            mutable std::mutex lock_;
-
-            /** \brief cached arguments and return value of last call to reedsShepp() */
-            mutable std::tuple<const State*, const State*, DubinsPath> cachedPath_;
         };
 
         /** \brief A Dubins motion validator that only uses the state validity checker.

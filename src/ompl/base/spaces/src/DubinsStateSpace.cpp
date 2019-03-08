@@ -321,22 +321,13 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const DubinsPa
 ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(const State *state1,
                                                                               const State *state2) const
 {
-    {
-        std::lock_guard<std::mutex> slock(lock_);
-        if (state1 == std::get<0>(cachedPath_) && state2 == std::get<1>(cachedPath_))
-            return std::get<2>(cachedPath_);
-    }
-
     const auto *s1 = static_cast<const StateType *>(state1);
     const auto *s2 = static_cast<const StateType *>(state2);
     double x1 = s1->getX(), y1 = s1->getY(), th1 = s1->getYaw();
     double x2 = s2->getX(), y2 = s2->getY(), th2 = s2->getYaw();
     double dx = x2 - x1, dy = y2 - y1, d = sqrt(dx * dx + dy * dy) / rho_, th = atan2(dy, dx);
     double alpha = mod2pi(th1 - th), beta = mod2pi(th2 - th);
-
-    std::lock_guard<std::mutex> slock(lock_);
-    cachedPath_ = std::make_tuple(state1, state2, ::dubins(d, alpha, beta));
-    return std::get<2>(cachedPath_);
+    return ::dubins(d, alpha, beta);
 }
 
 void ompl::base::DubinsMotionValidator::defaultSettings()

@@ -40,7 +40,6 @@
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/MotionValidator.h"
 #include <boost/math/constants/constants.hpp>
-#include <mutex>
 
 namespace ompl
 {
@@ -119,12 +118,6 @@ namespace ompl
 
             /** \brief Turning radius */
             double rho_;
-
-            /** \brief Mutex for changing cached state pointers */
-            mutable std::mutex lock_;
-
-            /** \brief cached arguments and return value of last call to reedsShepp() */
-            mutable std::tuple<const State*, const State*, ReedsSheppPath> cachedPath_;
         };
 
         /** \brief A Reeds-Shepp motion validator that only uses the state validity checker.
