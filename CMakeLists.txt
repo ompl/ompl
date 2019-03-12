@@ -17,6 +17,7 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_MODULE_PATH
     "${CMAKE_MODULE_PATH}"
+	"$ENV{DEV_ROOT}/cmake/modules"
     "${CMAKE_ROOT_DIR}/cmake/Modules"
     "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 include(GNUInstallDirs)
