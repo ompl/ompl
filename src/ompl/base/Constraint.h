@@ -246,17 +246,26 @@ namespace ompl
         public:
             /** \brief Constructor. If constraints is empty assume it will be
              * filled later. */
+            ConstraintIntersection(const unsigned int ambientDim, std::vector<ConstraintPtr> constraints)
+              : Constraint(ambientDim, 0)
+            {
+                for (const auto &constraint : constraints)
+                    addConstraint(constraint);
+            }
+
+            /** \brief Constructor. If constraints is empty assume it will be
+             * filled later. */
             ConstraintIntersection(const unsigned int ambientDim, std::initializer_list<ConstraintPtr> constraints)
               : Constraint(ambientDim, 0)
             {
-                for (auto constraint : constraints)
+                for (const auto &constraint : constraints)
                     addConstraint(constraint);
             }
 
             void function(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::VectorXd> out) const override
             {
                 unsigned int i = 0;
-                for (auto constraint : constraints_)
+                for (const auto &constraint : constraints_)
                 {
                     constraint->function(x, out.segment(i, constraint->getCoDimension()));
                     i += constraint->getCoDimension();
@@ -266,7 +275,7 @@ namespace ompl
             void jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const override
             {
                 unsigned int i = 0;
-                for (auto constraint : constraints_)
+                for (const auto &constraint : constraints_)
                 {
                     constraint->jacobian(x, out.block(i, 0, constraint->getCoDimension(), n_));
                     i += constraint->getCoDimension();
@@ -274,7 +283,7 @@ namespace ompl
             }
 
         protected:
-            void addConstraint(ConstraintPtr constraint)
+            void addConstraint(const ConstraintPtr &constraint)
             {
                 setManifoldDimension(k_ - constraint->getCoDimension());
                 constraints_.push_back(constraint);
