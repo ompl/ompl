@@ -655,13 +655,15 @@ namespace ompl
 
         void BITstar::prune()
         {
-            /* Test if we should we do a little tidying up:
-              - Is pruning enabled?
-              - Do we have an exact solution?
-              - Has the solution changed more than the specified pruning threshold?
-            */
-            if ((usePruning_) && (hasExactSolution_) &&
-                (std::abs(costHelpPtr_->fractionalChange(bestCost_, prunedCost_)) > pruneFraction_))
+#ifdef BITSTAR_DEBUG
+            if (!isPruningEnabled_)
+            {
+                throw ompl::Exception("Pruning is not enabled, but prune() is called nonetheless.");
+            }
+#endif // BITSTAR_DEBUG
+
+            // If we don't have an exact solution, we can't prune sensibly.
+            if (hasExactSolution_)
             {
                 // Variables:
                 // The number of vertices and samples pruned:
