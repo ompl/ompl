@@ -728,6 +728,27 @@ namespace ompl
             samples_->add(sample);
         }
 
+        void BITstar::ImplicitGraph::addToSamples(const VertexPtrVector &samples)
+        {
+            ASSERT_SETUP
+
+            // NO COUNTER. generated samples are counted at the sampler.
+
+            // Assert the state of the sample
+#ifdef BITSTAR_DEBUG
+            for (const auto &sample : samples)
+            {
+                this->assertSampleSanity(sample, true);
+            }
+#endif  // BITSTAR_DEBUG
+
+            // Add to the vector of new samples
+            newSamples_.insert(newSamples_.end(), samples.begin(), samples.end());
+
+            // Add to the NN structure:
+            samples_->add(samples);
+        }
+
         void BITstar::ImplicitGraph::removeFromSamples(const VertexPtr &sample)
         {
             ASSERT_SETUP
@@ -1005,6 +1026,8 @@ namespace ompl
                 }
 
                 // Actually generate the new samples
+                VertexPtrVector newStates { };
+                newStates.reserve(numRequiredSamples);
                 while (numSamples_ < numRequiredSamples)
                 {
                     // Variable
@@ -1018,8 +1041,7 @@ namespace ompl
                     ++numStateCollisionChecks_;
                     if (spaceInformation_->isValid(newState->state()))
                     {
-                        // Add the new state as a sample
-                        this->addToSamples(newState);
+                        newStates.push_back(newState);
 
                         // Update the number of uniformly distributed states
                         ++numUniformStates_;
@@ -1029,6 +1051,9 @@ namespace ompl
                     }
                     // No else
                 }
+
+                // Add the new state as a sample.
+                this->addToSamples(newStates);
 
                 // Record the sampled cost space
                 sampledCost_ = requiredCost;

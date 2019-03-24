@@ -165,6 +165,9 @@ namespace ompl
             /** \brief Add an unconnected sample. */
             void addToSamples(const VertexPtr &sample);
 
+            /** \brief Add a vector of unconnected samples. */
+            void addToSamples(const VertexPtrVector &samples);
+
             /** \brief Remove a sample from the sample set. */
             void removeFromSamples(const VertexPtr &sample);
 
