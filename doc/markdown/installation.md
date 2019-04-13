@@ -96,7 +96,7 @@ cmake ../..</pre></li>
       <div role="tabpanel" class="tab-pane" id="osxhomebrew">
         Install <a href="http://brew.sh">Homebrew</a> and type:
         <pre class="fragment">brew install ompl</pre>
-        Note that the <a href="http://braumeister.org/formula/ompl">Homebrew formula</a> does not include Python bindings. You could install all the dependencies for OMPL and the python bindings and build OMPL from source:
+        Note that the <a href="http://braumeister.org/formula/ompl">Homebrew formula</a> does not include Python bindings. You could install all the dependencies for OMPL and the Python bindings and build OMPL from source:
         <pre class="fragment">brew install eigen castxml numpy boost-python3 pypy3 flann</pre>
         Make sure to use Homebrew's python3 in that case by calling <code>cmake</code> like so:
         <pre class="fragment">cmake -DPYTHON_EXEC=/usr/local/bin/python3 ...</pre>
@@ -107,7 +107,9 @@ cmake ../..</pre></li>
   <!-- Windows -->
   <div role="tabpanel" class="tab-pane" id="windows">
     <h2>MS Windows</h2>
-    It is recommended to use <a href="https://vcpkg.readthedocs.io/en/latest/">vcpkg</a>, a Microsoft-supported package manager for open source software. Use <a href="https://bitbucket.org/ompl/ompl/src/tip/.appveyor.yml">our Appveyor configuration file</a> for a list of packages to install and build instructions.
+    It is recommended to use <a href="https://vcpkg.readthedocs.io/en/latest/">vcpkg</a>, a Microsoft-supported package manager for open source software. Once you have vcpkg installed, you can install OMPL like so:
+    <pre class="fragment">vcpkg install ompl</pre>
+    Note that the vcpkg installation does not include Python bindings.
   </div>
 </div>
 \endhtmlonly
