@@ -34,7 +34,7 @@
            <li><code>./install-ompl-ubuntu.sh --python</code> will install OMPL with Python bindings</li>
            <li><code>./install-ompl-ubuntu.sh --app</code> will install OMPL.app with Python bindings</li>
          </ul>
-         The script downloads and installs OMPL and all dependencies via <code>apt-get</code> &amp; <code>pip</code> and from source. It will ask for your password to install things. The script has been tested on vanilla installs of Ubuntu 14.04 (Trusty), 15.10 (Wily), 16.04 (Xenial), 17.10 (Artful), and 18.04 (Bionic).
+         The script downloads and installs OMPL and all dependencies via <code>apt-get</code> &amp; <code>pip</code> and from source. It will ask for your password to install things. The script has been tested on vanilla installs of 16.04 (Xenial) and higher. The Python binding generation requires a lot of RAM; having 6GB or more available is recommended.
       </div>
       <div role="tabpanel" class="tab-pane" id="ubuntubinary">
         Simply type:
@@ -73,7 +73,7 @@ sudo apt-get install ros-`rosversion -d`-ompl</pre>
 mkdir -p build/Release
 cd build/Release
 cmake ../..</pre></li>
-    <li>Optionally, generate the Python bindings with <code>make -j 4 update_bindings</code>.</li>
+    <li>Optionally, generate the Python bindings with <code>make -j 4 update_bindings</code>. The Python binding generation requires a lot of RAM; having 6GB or more available is recommended.</li>
     <li>Optionally, run the test programs by typing <code>make test</code>.</li>
     <li>Optionally, generate the documentation (i.e., a local copy of this web site) by typing <code>make doc</code> (requires <a href="http://www.doxygen.org">Doxygen</a> and <a href="http://www.graphviz.org">Graphviz</a> to be installed).</li>
     </ul>
