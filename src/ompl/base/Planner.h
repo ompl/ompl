@@ -265,21 +265,21 @@ namespace ompl
             /** \brief Set the problem definition for the planner. The
                 problem needs to be set before calling solve(). Note:
                 If this problem definition replaces a previous one, it
-                may also be necessary to call clear(). */
+                may also be necessary to call clear() or clearQuery(). */
             virtual void setProblemDefinition(const ProblemDefinitionPtr &pdef);
 
-            /** \brief Function that can solve the motion planning
-                problem. This function can be called multiple times on
-                the same problem, without calling clear() in
-                between. This allows the planner to continue work for more
-                time on an unsolved problem, for example. If this
-                option is used, it is assumed the problem definition
-                is not changed (unpredictable results otherwise). The
-                only change in the problem definition that is
-                accounted for is the addition of starting or goal
-                states (but not changing previously added start/goal
-                states). The function terminates if the call to \e ptc
-                returns true. */
+            /** \brief Function that can solve the motion planning problem. This
+                function can be called multiple times on the same problem,
+                without calling clear() in between. This allows the planner to
+                continue work for more time on an unsolved problem, for example.
+                If this option is used, it is assumed the problem definition is
+                not changed (unpredictable results otherwise). The only change
+                in the problem definition that is accounted for is the addition
+                of starting or goal states (but not changing previously added
+                start/goal states). If clearQuery() is called, the planner may
+                retain prior datastructures generated from a previous query on a
+                new problem definition. The function terminates if the call to
+                \e ptc returns true. */
             virtual PlannerStatus solve(const PlannerTerminationCondition &ptc) = 0;
 
             /** \brief Same as above except the termination condition
@@ -295,6 +295,15 @@ namespace ompl
                 settings are not affected. Subsequent calls to solve()
                 will ignore all previous work. */
             virtual void clear();
+
+            /** \brief Clears internal datastructures of any query-specific
+                information from the previous query. Planner settings are not
+                affected. The planner, if able, should retain all datastructures
+                generated from previous queries that can be used to help solve
+                the next query. Note that clear() should also clear all
+                query-specific information along with all other datastructures
+                in the planner. By default clearQuery() calls clear(). */
+            virtual void clearQuery();
 
             /** \brief Get information about the current run of the
                 motion planner. Repeated calls to this function will
