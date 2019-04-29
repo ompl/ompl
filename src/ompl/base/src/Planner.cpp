@@ -116,6 +116,11 @@ void ompl::base::Planner::clear()
     pis_.update();
 }
 
+void ompl::base::Planner::clearQuery()
+{
+    clear();
+}
+
 void ompl::base::Planner::getPlannerData(PlannerData &data) const
 {
     for (const auto &plannerProgressProperty : plannerProgressProperties_)
