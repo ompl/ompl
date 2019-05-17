@@ -99,7 +99,7 @@ find_path(DOCKERFILE_PATH ompl.Dockerfile
 if (DOCKER AND UNIX)
     add_custom_target(docker)
     macro(add_docker_target name)
-        if(ARGC GREATER 1)
+        if(${ARGC} GREATER 1)
             get_filename_component(_path "${ARGV1}" ABSOLUTE)
         else()
             set(_path "${CMAKE_CURRENT_SOURCE_DIR}")

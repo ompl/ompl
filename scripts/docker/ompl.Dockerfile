@@ -25,7 +25,7 @@ RUN apt-get update && \
     wget -q -O - https://www.lrde.epita.fr/repo/debian.gpg | apt-key add - && \
     echo 'deb http://www.lrde.epita.fr/repo/debian/ stable/' >> /etc/apt/sources.list && \
     apt-get update && \
-    apt-get install libspot-dev && \
+    apt-get install -y libspot-dev && \
     # Install newer version of castxml than is available via apt-get:
     wget -q -O- https://data.kitware.com/api/v1/file/5b68c2c28d777f06857c1f48/download | tar zxf - && \
     # Install pypy3:
@@ -68,7 +68,7 @@ RUN apt-get update && \
     wget -q -O - https://www.lrde.epita.fr/repo/debian.gpg | apt-key add - && \
     echo 'deb http://www.lrde.epita.fr/repo/debian/ stable/' >> /etc/apt/sources.list && \
     apt-get update && \
-    apt-get install libspot-dev
+    apt-get install -y libspot-dev
 
 COPY --from=builder /usr /usr
 RUN useradd -ms /bin/bash ompl
