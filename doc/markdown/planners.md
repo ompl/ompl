@@ -33,7 +33,7 @@ Planners in this category only accounts for the geometric and kinematic constrai
     - [RRT Connect (RRTConnect)](\ref gRRTC)<br>
       This planner is a bidirectional version of RRT (i.e., it grows two trees). It usually outperforms the original RRT algorithm.
     - [RRT*](\ref gRRTstar)<br>
-      An asymptotically optimal version of RRT: the algorithm converges on the optimal path as a function of time. This was the first provably asymptotically planner (together with PRM). Since its publication, several other algorithms have appeared that improve on RRT*'s convergence rate, such as [RRT#](\ref gRRTsharp) and [RRTX](\ref gRRTX).
+      An asymptotically optimal version of RRT: the algorithm converges on the optimal path as a function of time. This was the first provably asymptotically planner (together with PRM). Since its publication, several other algorithms have appeared that improve on RRT*'s convergence rate, such as [RRT#](\ref gRRTsharp) and [RRTX](\ref gRRTXstatic).
     - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT)<br>
       LBTRRT is a asymptotically near-optimal version of RRT: it is guaranteed to converge to a solution that is within a constant factor of the optimal solution.
     - [Sparse Stable RRT](\ref gSST)<br>
@@ -73,7 +73,7 @@ Planners in this category only accounts for the geometric and kinematic constrai
   - [LazyPRM*](\ref gLazyPRMstar)<br> Lazy version of PRM*; _uses the general cost framework._
   - [RRT*](\ref gRRTstar)<br> An asymptotically optimal version of RRT; _uses the general cost framework._
   - [RRT#](\ref gRRTsharp)<br> A variant of RRT* with an improved convergence rate. _It uses the general cost framework._
-  - [RRTX](\ref gRRTX)<br> A variant of RRT* with an improved convergence rate. _It uses the general cost framework._
+  - [RRTX](\ref gRRTXstatic)<br> A variant of RRT* with an improved convergence rate. _It uses the general cost framework._
   - [Informed RRT*](\ref gInformedRRTstar)<br> A variant of RRT* that uses heuristics to bound the search for optimal solutions. _It uses the general cost framework._
   - [Batch Informed Trees (BIT*)](\ref gBITstar)<br> An anytime asymptotically optimal algorithm that uses heuristics to order and bound the search for optimal solutions. _It uses the general cost framework._
   - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT)<br> An asymptotically near-optimal version of RRT.
