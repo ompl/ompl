@@ -82,10 +82,15 @@ namespace ompl
 
             QRRT(const ob::SpaceInformationPtr &si, Quotient *parent_);
             virtual ~QRRT() override;
-            virtual void grow(double t) override;
+            /// One iteration of RRT with adjusted sampling function
+            virtual void grow() override;
             virtual bool getSolution(ob::PathPtr &solution) override;
+            /// Importance based on how many vertices the tree has
             double getImportance() const override;
+            /// Uniform sampling
             virtual bool sample(ob::State *q_random) override;
+            /// \brief Quotient-Space sampling by choosing a random vertex from parent
+            /// class tree
             virtual bool sampleQuotient(ob::State*) override;
 
             virtual void setup() override;
@@ -98,12 +103,17 @@ namespace ompl
 
         protected:
 
+            /// Random configuration placeholder
             Configuration *qRandom_{nullptr};
+            /// Current shortest path on tree
             std::vector<Vertex> shortestPathVertices_;
 
+            /// Maximum distance of expanding the tree
             double maxDistance_{.0};
+            /// Goal bias similar to RRT
             double goalBias_{.05};
 
+            /// Goal state or goal region
             ob::Goal *goal_;
         };
 

@@ -36,6 +36,7 @@
 /* Author: Andreas Orthey */
 #include "PlannerdataVertexAnnotated.h"
 
+using namespace ob;
 using FeasibilityType = PlannerDataVertexAnnotated::FeasibilityType;
 
 PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const ob::State *st, int tag):

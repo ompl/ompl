@@ -40,57 +40,64 @@
 
 #include <ompl/base/PlannerData.h>
 #include <boost/serialization/export.hpp>
+
 namespace ob = ompl::base;
 
-class PlannerDataVertexAnnotated: public ob::PlannerDataVertex
+namespace ompl
 {
-//If new elements are added, 
-//you need to update the clone/getstate functions!
-public:
-    enum class FeasibilityType{
-        FEASIBLE, INFEASIBLE, SUFFICIENT_FEASIBLE};
-
-    PlannerDataVertexAnnotated(const ob::State *st, int tag=0);
-    PlannerDataVertexAnnotated (const PlannerDataVertexAnnotated &rhs);
-    virtual PlannerDataVertex *clone() const override;
-
-    void setOpenNeighborhoodDistance(double d_);
-    double getOpenNeighborhoodDistance() const;
-
-    void setLevel(uint level_);
-    uint getLevel() const;
-
-    void setMaxLevel(uint level_);
-    uint getMaxLevel() const;
-
-    void setComponent(uint component_);
-    uint getComponent() const;
-
-    void setState(ob::State *s);
-    void setQuotientState(const ob::State *s);
-    virtual const ob::State *getState() const override;
-    virtual const ob::State *getQuotientState() const;
-
-    virtual bool operator==(const PlannerDataVertex &rhs) const override
+    namespace base
     {
-        const PlannerDataVertexAnnotated &v = 
-            static_cast<const PlannerDataVertexAnnotated&>(rhs);
-        return (level_ == v.getLevel() && state_ == v.getState());
+        /// \brief An annotated vertex, adding information about its level in the
+        /// quotient-space hiearchy, the maxlevel of quotientspaces and the component it
+        /// belongs to
+        class PlannerDataVertexAnnotated: public ob::PlannerDataVertex
+        {
+        //If new elements are added, 
+        //you need to update the clone/getstate functions!
+        public:
+            enum class FeasibilityType{
+                FEASIBLE, INFEASIBLE, SUFFICIENT_FEASIBLE};
+
+            PlannerDataVertexAnnotated(const ob::State *st, int tag=0);
+            PlannerDataVertexAnnotated (const PlannerDataVertexAnnotated &rhs);
+            virtual PlannerDataVertex *clone() const override;
+
+            void setLevel(uint level_);
+            uint getLevel() const;
+
+            void setMaxLevel(uint level_);
+            uint getMaxLevel() const;
+
+            void setComponent(uint component_);
+            uint getComponent() const;
+
+            void setState(ob::State *s);
+            void setQuotientState(const ob::State *s);
+            virtual const ob::State *getState() const override;
+            virtual const ob::State *getQuotientState() const;
+
+            virtual bool operator==(const PlannerDataVertex &rhs) const override
+            {
+                const PlannerDataVertexAnnotated &v = 
+                    static_cast<const PlannerDataVertexAnnotated&>(rhs);
+                return (level_ == v.getLevel() && state_ == v.getState());
+            }
+
+            friend std::ostream& operator<< 
+                (std::ostream&, const PlannerDataVertexAnnotated&);
+
+        protected:
+
+            bool infeasible_{false};
+            uint level_{0};
+            uint maxLevel_{1};
+
+            uint component_{0};
+            const ob::State *stateQuotientSpace_{nullptr};
+
+        };
+
+        //BOOST_CLASS_EXPORT(PlannerDataVertexAnnotated);
     }
-
-    friend std::ostream& operator<< 
-        (std::ostream&, const PlannerDataVertexAnnotated&);
-
-protected:
-
-    bool infeasible_{false};
-    uint level_{0};
-    uint maxLevel_{1};
-
-    uint component_{0};
-    const ob::State *stateQuotientSpace_{nullptr};
-
-};
-
-//BOOST_CLASS_EXPORT(PlannerDataVertexAnnotated);
+}
 #endif

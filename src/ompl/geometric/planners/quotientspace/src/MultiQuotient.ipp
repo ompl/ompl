@@ -41,6 +41,7 @@
 #include <queue>
 
 using namespace og;
+using namespace ob;
 
 template <class T, class Tlast>
 MultiQuotient<T,Tlast>::MultiQuotient(
@@ -155,8 +156,6 @@ template <class T, class Tlast>
 ob::PlannerStatus MultiQuotient<T,Tlast>::solve(const base::PlannerTerminationCondition &ptc)
 {
     
-    static const double T_GROW = 0.01; //time to grow before Checking if solution exists
-
     ompl::time::point t_start = ompl::time::now();
 
     for(uint k = currentQuotientLevel_; k < stopAtLevel_; k++){
@@ -171,7 +170,7 @@ ob::PlannerStatus MultiQuotient<T,Tlast>::solve(const base::PlannerTerminationCo
         {
             og::Quotient* jQuotient = priorityQueue_.top();
             priorityQueue_.pop();
-            jQuotient->grow(T_GROW);
+            jQuotient->grow();
 
             bool hasSolution = quotientSpaces_.at(k)->hasSolution();
             if(hasSolution){

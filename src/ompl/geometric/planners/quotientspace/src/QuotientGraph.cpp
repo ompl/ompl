@@ -53,6 +53,7 @@
 
 #define foreach BOOST_FOREACH
 using namespace og;
+using namespace ob;
 typedef QuotientGraph::Configuration Configuration;
 
 QuotientGraph::QuotientGraph(const ob::SpaceInformationPtr &si, Quotient *parent_)

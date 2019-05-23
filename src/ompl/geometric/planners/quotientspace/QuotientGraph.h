@@ -30,12 +30,14 @@ namespace ompl
     }
     namespace geometric {
 
+        /// \brief A graph on a quotient-space
         class QuotientGraph : public og::Quotient {
             typedef og::Quotient BaseT;
 
         public:
             typedef int normalized_index_type;
 
+            /// A configuration in quotient-space 
             class Configuration {
             public:
                 Configuration() = delete;
@@ -61,6 +63,7 @@ namespace ompl
                 normalized_index_type index{-1}; // in [0,num_vertices(graph)]
             };
 
+            /// An edge in quotient-space 
             class EdgeInternalState {
             public:
                 EdgeInternalState() = default;
@@ -81,9 +84,15 @@ namespace ompl
             struct GraphBundle {
                 std::string name{"quotient_graph"};
             };
-            typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
-                                                                        Configuration *, EdgeInternalState,
-                                                                        GraphBundle> Graph;
+            /// A quotient-graph structure using boost::adjacency_list bundles
+            typedef boost::adjacency_list<
+                boost::vecS, 
+                boost::vecS, 
+                boost::undirectedS,
+                Configuration*, 
+                EdgeInternalState, 
+                GraphBundle
+            > Graph;
 
             typedef boost::graph_traits<Graph> BGT;
             typedef BGT::vertex_descriptor Vertex;
@@ -105,11 +114,15 @@ namespace ompl
             virtual uint getNumberOfVertices() const;
             virtual uint getNumberOfEdges() const;
 
-            virtual void grow(double t) = 0;
+            virtual void grow() = 0;
             virtual bool sampleQuotient(ob::State *) override;
             virtual bool getSolution(ob::PathPtr &solution) override;
 
+            /// \brief Return plannerdata structure, whereby each vertex is marked
+            /// depending to which component it belongs (start/goal/non-connected)
             virtual void getPlannerData(ob::PlannerData &data) const override;
+            /// \brief Importance of quotient-space depending on number of
+            /// vertices in quotient-graph
             virtual double getImportance() const override;
             void init();
 
@@ -145,20 +158,22 @@ namespace ompl
             const RoadmapNeighborsPtr &getRoadmapNeighborsPtr() const;
 
             virtual void print(std::ostream &out) const override;
+            /// Print configuration to std::cout
             void printConfiguration(const Configuration *) const;
 
         protected:
             virtual double
-            distance(const Configuration *a,
-                             const Configuration *b) const; // standard si->distance
+            distance(const Configuration *a, const Configuration *b) const;
 
             virtual Vertex addConfiguration(Configuration *q);
             void addEdge(const Vertex a, const Vertex b);
 
             ob::Cost costHeuristic(Vertex u, Vertex v) const;
 
+            /// Shortest path on quotient-graph
             ob::PathPtr getPath(const Vertex &start, const Vertex &goal);
 
+            /// Nearest neighbor structure for quotient space configurations
             RoadmapNeighborsPtr nearestDatastructure_;
             Graph graph_;
             ob::PathPtr solutionPath_;
@@ -166,6 +181,8 @@ namespace ompl
             typedef boost::minstd_rand RNGType;
             RNGType rng_boost;
 
+            /// \brief Length of graph (useful for determing importance of 
+            /// quotient-space
             double graphLength_{0.0};
         };
     }

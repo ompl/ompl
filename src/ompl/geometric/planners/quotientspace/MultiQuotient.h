@@ -48,6 +48,7 @@ namespace ompl
 {
     namespace geometric
     {
+        /// \brief A sequence of multiple quotient-spaces
         template <class T, typename Tlast=T>
         class MultiQuotient: public ob::Planner
         {
@@ -68,6 +69,7 @@ namespace ompl
             void clear() override;
             void setProblemDefinition(const ob::ProblemDefinitionPtr &pdef) override;
 
+            /// Number of quotient-spaces
             int getLevels() const;
             std::vector<int> getFeasibleNodes() const;
             std::vector<int> getNodes() const;
@@ -76,15 +78,22 @@ namespace ompl
 
         protected:
             std::vector<base::PathPtr> solutions_;
+            /// Vector of quotient-spaces
             std::vector<og::Quotient*> quotientSpaces_;
 
+            /// If a solution has been found on the current quotient-spaces
             bool foundKLevelSolution_{false};
+            /// Current level on which we have not yet found a path
             uint currentQuotientLevel_{0};
+            /// \brief Sometimes we only want to plan until a certain quotient-space
+            /// level (for debugging for example). This variable sets the stopping
+            /// level.
             uint stopAtLevel_;
 
             std::vector<ob::SpaceInformationPtr> siVec_;
             std::vector<ob::ProblemDefinitionPtr> pdefVec_;
 
+            /// Compare function for priority queue 
             struct CmpQuotientSpacePtrs
             {
                 // ">" operator: smallest value is top in queue
@@ -94,6 +103,8 @@ namespace ompl
                      return lhs->getImportance() < rhs->getImportance();
                 }
             };
+            /// \brief Priority queue of quotient-spaces which keeps track of how often
+            /// every tree on each space has been expanded.
             typedef std::priority_queue<og::Quotient*, std::vector<og::Quotient*>, CmpQuotientSpacePtrs> QuotientSpacePriorityQueue;
             QuotientSpacePriorityQueue priorityQueue_;
         };
