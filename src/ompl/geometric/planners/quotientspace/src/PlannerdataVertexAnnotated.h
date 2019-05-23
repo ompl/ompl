@@ -33,29 +33,59 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Based on examples from BGL documentation  */
+/* Author: Andreas Orthey */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_GOALVISITOR_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_GOALVISITOR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_SRC_VERTEX_ANNOTATED_
+#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_SRC_VERTEX_ANNOTATED_
 
-#include <boost/graph/astar_search.hpp>
+#include <ompl/base/PlannerData.h>
+#include <boost/serialization/export.hpp>
+namespace ob = ompl::base;
 
-namespace {
-struct AStarFoundGoal {};
-
-template <typename V>
-class AStarGoalVisitor : public boost::default_astar_visitor {
+class PlannerDataVertexAnnotated : public ob::PlannerDataVertex {
+  // If new elements are added,
+  // you need to update the clone/getstate functions!
 public:
-  AStarGoalVisitor(const V &goal) : goal_(goal) {}
+  enum class FeasibilityType { FEASIBLE, INFEASIBLE, SUFFICIENT_FEASIBLE };
 
-  template <typename G> void examine_vertex(const V &u, const G &) {
-    if (u == goal_) {
-      throw AStarFoundGoal();
-    }
+  PlannerDataVertexAnnotated(const ob::State *st, int tag = 0);
+  PlannerDataVertexAnnotated(const PlannerDataVertexAnnotated &rhs);
+  virtual PlannerDataVertex *clone() const override;
+
+  void SetOpenNeighborhoodDistance(double d_);
+  double GetOpenNeighborhoodDistance() const;
+
+  void SetLevel(uint level_);
+  uint GetLevel() const;
+
+  void SetMaxLevel(uint level_);
+  uint GetMaxLevel() const;
+
+  void SetComponent(uint component_);
+  uint GetComponent() const;
+
+  void setState(ob::State *s);
+  void setQuotientState(const ob::State *s);
+  virtual const ob::State *getState() const override;
+  virtual const ob::State *getQuotientState() const;
+
+  virtual bool operator==(const PlannerDataVertex &rhs) const override {
+    const PlannerDataVertexAnnotated &v =
+        static_cast<const PlannerDataVertexAnnotated &>(rhs);
+    return (level == v.GetLevel() && state_ == v.getState());
   }
 
-private:
-  V goal_;
+  friend std::ostream &operator<<(std::ostream &,
+                                  const PlannerDataVertexAnnotated &);
+
+protected:
+  bool infeasible{false};
+  uint level{0};
+  uint max_level{1};
+
+  uint component{0};
+  const ob::State *state_quotient_space{nullptr};
 };
-}
+
+// BOOST_CLASS_EXPORT(PlannerDataVertexAnnotated);
 #endif

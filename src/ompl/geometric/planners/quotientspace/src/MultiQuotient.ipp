@@ -8,16 +8,16 @@
 *  modification, are permitted provided that the following conditions
 *  are met:
 *
-*       * Redistributions of source code must retain the above copyright
-*           notice, this list of conditions and the following disclaimer.
-*       * Redistributions in binary form must reproduce the above
-*           copyright notice, this list of conditions and the following
-*           disclaimer in the documentation and/or other materials provided
-*           with the distribution.
-*       * Neither the name of the University of Stuttgart nor the names 
-*           of its contributors may be used to endorse or promote products 
-*           derived from this software without specific prior written 
-*           permission.
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the University of Stuttgart nor the names 
+*     of its contributors may be used to endorse or promote products 
+*     derived from this software without specific prior written 
+*     permission.
 *
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -34,7 +34,7 @@
 *********************************************************************/
 
 /* Author: Andreas Orthey */
-#include "plannerdata_vertex_annotated.h"
+#include "PlannerdataVertexAnnotated.h"
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/util/Time.h>
@@ -197,7 +197,8 @@ ob::PlannerStatus MultiQuotient<T,Tlast>::solve(const base::PlannerTerminationCo
             Q.push(jQuotient);
         }
 
-        if(!foundKLevelSolution){
+        if(!foundKLevelSolution)
+        {
             if(DEBUG){
                 std::cout << std::string(80, '#') << std::endl;
                 for(uint i = 0; i < k+1; i++){
@@ -286,7 +287,8 @@ void MultiQuotient<T,Tlast>::getPlannerData(ob::PlannerData &data) const
             for(uint m = k+1; m < quotientSpaces.size(); m++){
                 og::Quotient *Qm = quotientSpaces.at(m);
 
-                if(Qm->GetX1() != nullptr){
+                if(Qm->GetX1() != nullptr)
+                {
                     ob::State *s_X1 = Qm->GetX1()->allocState();
                     ob::State *s_Q1 = Qm->getSpaceInformation()->allocState();
                     if(Qm->GetX1()->getStateSpace()->getType() == ob::STATE_SPACE_SO3) {
