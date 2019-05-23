@@ -14,9 +14,9 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the University of Stuttgart nor the names
-*     of its contributors may be used to endorse or promote products
-*     derived from this software without specific prior written
+*   * Neither the name of the University of Stuttgart nor the names 
+*     of its contributors may be used to endorse or promote products 
+*     derived from this software without specific prior written 
 *     permission.
 *
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -38,54 +38,78 @@
 
 using FeasibilityType = PlannerDataVertexAnnotated::FeasibilityType;
 
-PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const ob::State *st,
-                                                       int tag)
-    : ob::PlannerDataVertex(st, tag) {}
-
-PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(
-    const PlannerDataVertexAnnotated &rhs)
-    : ob::PlannerDataVertex(rhs.state_, rhs.tag_) {
-  level = rhs.GetLevel();
-  max_level = rhs.GetMaxLevel();
-  component = rhs.GetComponent();
-  state_quotient_space = rhs.getQuotientState();
+PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const ob::State *st, int tag):
+            ob::PlannerDataVertex(st,tag)
+{
 }
 
-ob::PlannerDataVertex *PlannerDataVertexAnnotated::clone() const {
-  return new PlannerDataVertexAnnotated(*this);
+PlannerDataVertexAnnotated::PlannerDataVertexAnnotated (const PlannerDataVertexAnnotated &rhs): 
+    ob::PlannerDataVertex(rhs.state_, rhs.tag_)
+{
+    level_ = rhs.getLevel();
+    maxLevel_ = rhs.getMaxLevel();
+    component_ = rhs.getComponent();
+    stateQuotientSpace_ = rhs.getQuotientState();
+}
+
+ob::PlannerDataVertex *PlannerDataVertexAnnotated::clone() const 
+{
+    return new PlannerDataVertexAnnotated(*this);
 }
 
 //##############################################################################
-void PlannerDataVertexAnnotated::SetComponent(uint component_) {
-  component = component_;
+void PlannerDataVertexAnnotated::setComponent(uint component)
+{
+    component_ = component;
 }
-uint PlannerDataVertexAnnotated::GetComponent() const { return component; }
+uint PlannerDataVertexAnnotated::getComponent() const
+{
+    return component_;
+}
 
 //##############################################################################
-void PlannerDataVertexAnnotated::SetLevel(uint level_) { level = level_; }
-uint PlannerDataVertexAnnotated::GetLevel() const { return level; }
+void PlannerDataVertexAnnotated::setLevel(uint level)
+{
+    level_ = level;
+}
+uint PlannerDataVertexAnnotated::getLevel() const
+{
+    return level_;
+}
 
 //##############################################################################
-void PlannerDataVertexAnnotated::SetMaxLevel(uint level_) {
-  max_level = level_;
+void PlannerDataVertexAnnotated::setMaxLevel(uint level)
+{
+    maxLevel_ = level;
 }
-uint PlannerDataVertexAnnotated::GetMaxLevel() const { return max_level; }
+uint PlannerDataVertexAnnotated::getMaxLevel() const
+{
+    return maxLevel_;
+}
 
 //##############################################################################
-const ob::State *PlannerDataVertexAnnotated::getState() const { return state_; }
-const ob::State *PlannerDataVertexAnnotated::getQuotientState() const {
-  return state_quotient_space;
+const ob::State *PlannerDataVertexAnnotated::getState() const 
+{
+    return state_;
 }
-void PlannerDataVertexAnnotated::setQuotientState(const ob::State *s) {
-  state_quotient_space = s;
+const ob::State *PlannerDataVertexAnnotated::getQuotientState() const
+{
+    return stateQuotientSpace_;
 }
-void PlannerDataVertexAnnotated::setState(ob::State *s) { state_ = s; }
+void PlannerDataVertexAnnotated::setQuotientState(const ob::State *s)
+{
+    stateQuotientSpace_ = s;
+}
+void PlannerDataVertexAnnotated::setState(ob::State *s)
+{
+    state_ = s;
+}
 
-std::ostream &operator<<(std::ostream &out,
-                         const PlannerDataVertexAnnotated &v) {
-  out << "AnnotatedVertex";
-  out << " ->level " << v.GetLevel() << "/" << v.GetMaxLevel();
-  out << " ->component " << v.GetComponent();
-  out << std::endl;
-  return out;
+std::ostream& operator<< (std::ostream& out, const PlannerDataVertexAnnotated& v)
+{
+    out << "AnnotatedVertex";
+    out << " ->level " << v.getLevel() << "/" << v.getMaxLevel();
+    out << " ->component " << v.getComponent();
+    out << std::endl;
+    return out;
 }

@@ -1,40 +1,3 @@
-/*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2019, University of Stuttgart
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Stuttgart nor the names
-*     of its contributors may be used to endorse or promote products
-*     derived from this software without specific prior written
-*     permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
-
-/* Author: Andreas Orthey */
-/* Author: Based in parts on prm/PRM.h */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QUOTIENTGRAPH_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QUOTIENTGRAPH_
@@ -59,151 +22,153 @@ namespace ob = ompl::base;
 namespace og = ompl::geometric;
 const double dInf = std::numeric_limits<double>::infinity();
 
-namespace ompl {
-namespace base {
-OMPL_CLASS_FORWARD(OptimizationObjective);
-}
-namespace geometric {
-
-class QuotientGraph : public og::Quotient {
-  typedef og::Quotient BaseT;
-
-public:
-  typedef int normalized_index_type;
-
-  class Configuration {
-  public:
-    Configuration() = delete;
-    Configuration(const ob::SpaceInformationPtr &si);
-    Configuration(const ob::SpaceInformationPtr &si, const ob::State *state_);
-    ob::State *state{nullptr};
-    uint total_connection_attempts{0};
-    uint successful_connection_attempts{0};
-    bool on_shortest_path{false};
-
-    void *pdf_element;
-    void SetPDFElement(void *element_) { pdf_element = element_; }
-    void *GetPDFElement() { return pdf_element; }
-
-    unsigned long int associated_target{0};
-    unsigned long int associated_source{0};
-    double associated_t{-1};
-
-    bool isStart{false};
-    bool isGoal{false};
-    bool isFeasible{false};
-
-    normalized_index_type index{-1}; // in [0,num_vertices(graph)]
-  };
-
-  class EdgeInternalState {
-  public:
-    EdgeInternalState() = default;
-    EdgeInternalState(ob::Cost cost_) : cost(cost_), original_cost(cost_){};
-    EdgeInternalState(const EdgeInternalState &eis) {
-      cost = eis.cost;
-      original_cost = eis.original_cost;
+namespace ompl 
+{
+    namespace base 
+    {
+        OMPL_CLASS_FORWARD(OptimizationObjective);
     }
-    void setWeight(double d) { cost = ob::Cost(d); }
-    ob::Cost getCost() { return cost; }
-    void setOriginalWeight() { cost = original_cost; }
+    namespace geometric {
 
-  private:
-    ob::Cost cost{+dInf};
-    ob::Cost original_cost{+dInf};
-  };
+        class QuotientGraph : public og::Quotient {
+            typedef og::Quotient BaseT;
 
-  struct GraphBundle {
-    std::string name{"quotient_graph"};
-  };
-  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
-                                Configuration *, EdgeInternalState,
-                                GraphBundle> Graph;
+        public:
+            typedef int normalized_index_type;
 
-  typedef boost::graph_traits<Graph> BGT;
-  typedef BGT::vertex_descriptor Vertex;
-  typedef BGT::edge_descriptor Edge;
-  typedef BGT::vertices_size_type VertexIndex;
-  typedef BGT::in_edge_iterator IEIterator;
-  typedef BGT::out_edge_iterator OEIterator;
-  typedef Vertex *VertexParent;
-  typedef VertexIndex *VertexRank;
-  typedef std::shared_ptr<NearestNeighbors<Configuration *>>
-      RoadmapNeighborsPtr;
-  typedef ompl::PDF<Configuration *> PDF;
-  typedef PDF::Element PDF_Element;
+            class Configuration {
+            public:
+                Configuration() = delete;
+                Configuration(const ob::SpaceInformationPtr &si);
+                Configuration(const ob::SpaceInformationPtr &si, const ob::State *state_);
+                ob::State *state{nullptr};
+                uint total_connection_attempts{0};
+                uint successful_connection_attempts{0};
+                bool on_shortest_path{false};
 
-public:
-  QuotientGraph(const ob::SpaceInformationPtr &si, Quotient *parent = nullptr);
-  ~QuotientGraph();
+                void *pdf_element;
+                void setPDFElement(void *element_) { pdf_element = element_; }
+                void *getPDFElement() { return pdf_element; }
 
-  virtual uint GetNumberOfVertices() const;
-  virtual uint GetNumberOfEdges() const;
+                unsigned long int associated_target{0};
+                unsigned long int associated_source{0};
+                double associated_t{-1};
 
-  virtual void Grow(double t) = 0;
-  virtual bool SampleQuotient(ob::State *) override;
-  virtual bool GetSolution(ob::PathPtr &solution) override;
+                bool isStart{false};
+                bool isGoal{false};
+                bool isFeasible{false};
 
-  virtual void getPlannerData(ob::PlannerData &data) const override;
-  virtual double GetImportance() const override;
-  void Init();
+                normalized_index_type index{-1}; // in [0,num_vertices(graph)]
+            };
 
-  virtual void setup() override;
-  virtual void clear() override;
-  void clearQuery();
-  virtual void ClearVertices();
-  void DeleteConfiguration(Configuration *q);
+            class EdgeInternalState {
+            public:
+                EdgeInternalState() = default;
+                EdgeInternalState(ob::Cost cost_) : cost(cost_), original_cost(cost_){};
+                EdgeInternalState(const EdgeInternalState &eis) {
+                    cost = eis.cost;
+                    original_cost = eis.original_cost;
+                }
+                void setWeight(double d) { cost = ob::Cost(d); }
+                ob::Cost getCost() { return cost; }
+                void setOriginalWeight() { cost = original_cost; }
 
-  template <template <typename T> class NN> void setNearestNeighbors();
-  void uniteComponents(Vertex m1, Vertex m2);
-  bool sameComponent(Vertex m1, Vertex m2);
-  std::map<Vertex, VertexRank> vrank;
-  std::map<Vertex, Vertex> vparent;
-  boost::disjoint_sets<
-      boost::associative_property_map<std::map<Vertex, VertexRank>>,
-      boost::associative_property_map<std::map<Vertex, Vertex>>> disjointSets_{
-      boost::make_assoc_property_map(vrank),
-      boost::make_assoc_property_map(vparent)};
+            private:
+                ob::Cost cost{+dInf};
+                ob::Cost original_cost{+dInf};
+            };
 
-  const Configuration *Nearest(const Configuration *s) const;
+            struct GraphBundle {
+                std::string name{"quotient_graph"};
+            };
+            typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
+                                                                        Configuration *, EdgeInternalState,
+                                                                        GraphBundle> Graph;
 
-  ob::Cost bestCost_{+dInf};
-  Configuration *q_start;
-  Configuration *q_goal;
-  Vertex v_start;
-  Vertex v_goal;
-  std::vector<Vertex> shortestVertexPath_;
-  std::vector<Vertex> startGoalVertexPath_;
+            typedef boost::graph_traits<Graph> BGT;
+            typedef BGT::vertex_descriptor Vertex;
+            typedef BGT::edge_descriptor Edge;
+            typedef BGT::vertices_size_type VertexIndex;
+            typedef BGT::in_edge_iterator IEIterator;
+            typedef BGT::out_edge_iterator OEIterator;
+            typedef Vertex *VertexParent;
+            typedef VertexIndex *VertexRank;
+            typedef std::shared_ptr<NearestNeighbors<Configuration *>>
+                    RoadmapNeighborsPtr;
+            typedef ompl::PDF<Configuration *> PDF;
+            typedef PDF::Element PDF_Element;
 
-  const Graph &GetGraph() const;
-  double GetGraphLength() const;
-  const RoadmapNeighborsPtr &GetRoadmapNeighborsPtr() const;
+        public:
+            QuotientGraph(const ob::SpaceInformationPtr &si, Quotient *parent = nullptr);
+            ~QuotientGraph();
 
-  virtual void Print(std::ostream &out) const override;
-  void PrintConfiguration(const Configuration *) const;
+            virtual uint getNumberOfVertices() const;
+            virtual uint getNumberOfEdges() const;
 
-protected:
-  virtual double
-  Distance(const Configuration *a,
-           const Configuration *b) const; // standard si->distance
+            virtual void grow(double t) = 0;
+            virtual bool sampleQuotient(ob::State *) override;
+            virtual bool getSolution(ob::PathPtr &solution) override;
 
-  virtual Vertex AddConfiguration(Configuration *q);
-  void AddEdge(const Vertex a, const Vertex b);
+            virtual void getPlannerData(ob::PlannerData &data) const override;
+            virtual double getImportance() const override;
+            void init();
 
-  ob::Cost costHeuristic(Vertex u, Vertex v) const;
+            virtual void setup() override;
+            virtual void clear() override;
+            void clearQuery();
+            virtual void clearVertices();
+            void deleteConfiguration(Configuration *q);
 
-  ob::PathPtr GetPath(const Vertex &start, const Vertex &goal);
+            template <template <typename T> class NN> void setNearestNeighbors();
+            void uniteComponents(Vertex m1, Vertex m2);
+            bool sameComponent(Vertex m1, Vertex m2);
+            std::map<Vertex, VertexRank> vrank;
+            std::map<Vertex, Vertex> vparent;
+            boost::disjoint_sets<
+                    boost::associative_property_map<std::map<Vertex, VertexRank>>,
+                    boost::associative_property_map<std::map<Vertex, Vertex>>> disjointSets_{
+                    boost::make_assoc_property_map(vrank),
+                    boost::make_assoc_property_map(vparent)};
 
-  RoadmapNeighborsPtr nearest_datastructure;
-  Graph G;
-  ob::PathPtr solution_path;
-  RNG rng_;
-  typedef boost::minstd_rand RNGType;
-  RNGType rng_boost;
+            const Configuration *nearest(const Configuration *s) const;
 
-  double graphLength{0.0};
-};
-}
+            ob::Cost bestCost_{+dInf};
+            Configuration *qStart_;
+            Configuration *qGoal_;
+            Vertex vStart_;
+            Vertex vGoal_;
+            std::vector<Vertex> shortestVertexPath_;
+            std::vector<Vertex> startGoalVertexPath_;
+
+            const Graph &getGraph() const;
+            double getGraphLength() const;
+            const RoadmapNeighborsPtr &getRoadmapNeighborsPtr() const;
+
+            virtual void print(std::ostream &out) const override;
+            void printConfiguration(const Configuration *) const;
+
+        protected:
+            virtual double
+            distance(const Configuration *a,
+                             const Configuration *b) const; // standard si->distance
+
+            virtual Vertex addConfiguration(Configuration *q);
+            void addEdge(const Vertex a, const Vertex b);
+
+            ob::Cost costHeuristic(Vertex u, Vertex v) const;
+
+            ob::PathPtr getPath(const Vertex &start, const Vertex &goal);
+
+            RoadmapNeighborsPtr nearestDatastructure_;
+            Graph graph_;
+            ob::PathPtr solutionPath_;
+            RNG rng_;
+            typedef boost::minstd_rand RNGType;
+            RNGType rng_boost;
+
+            double graphLength_{0.0};
+        };
+    }
 }
 
 #endif

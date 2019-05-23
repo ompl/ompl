@@ -44,50 +44,50 @@ using namespace og;
 
 template <class T, class Tlast>
 MultiQuotient<T,Tlast>::MultiQuotient(
-        std::vector<ob::SpaceInformationPtr> &si_vec_, std::string type)
-    : ob::Planner(si_vec_.back(), type), 
-    si_vec(si_vec_)
+        std::vector<ob::SpaceInformationPtr> &siVec, std::string type)
+    : ob::Planner(siVec.back(), type), 
+    siVec_(siVec)
 {
     T::resetCounter();
-    for(uint k = 0; k < si_vec.size(); k++){
+    for(uint k = 0; k < siVec_.size(); k++){
         og::Quotient* parent = nullptr;
-        if(k>0) parent = quotientSpaces.back();
+        if(k>0) parent = quotientSpaces_.back();
 
-        if(k>0 && k>=si_vec.size()-1){
-            Tlast* ss = new Tlast(si_vec.at(k), parent);
-            quotientSpaces.push_back(ss);
+        if(k>0 && k>=siVec_.size()-1){
+            Tlast* ss = new Tlast(siVec_.at(k), parent);
+            quotientSpaces_.push_back(ss);
         }else{
-            T* ss = new T(si_vec.at(k), parent);
-            quotientSpaces.push_back(ss);
+            T* ss = new T(siVec_.at(k), parent);
+            quotientSpaces_.push_back(ss);
         }
-        quotientSpaces.back()->SetLevel(k);
+        quotientSpaces_.back()->setLevel(k);
     }
-    stopAtLevel = quotientSpaces.size();
+    stopAtLevel_ = quotientSpaces_.size();
     if(DEBUG) std::cout << "Created hierarchy with " 
-        << si_vec.size() << " levels." << std::endl;
+        << siVec_.size() << " levels." << std::endl;
 }
 
 template <class T, class Tlast>
-int MultiQuotient<T,Tlast>::GetLevels() const
+int MultiQuotient<T,Tlast>::getLevels() const
 {
-    return stopAtLevel;
+    return stopAtLevel_;
 }
 template <class T, class Tlast>
-std::vector<int> MultiQuotient<T,Tlast>::GetNodes() const
+std::vector<int> MultiQuotient<T,Tlast>::getNodes() const
 {
     std::vector<int> nodesPerLevel;
-    for(uint k = 0; k < stopAtLevel; k++){
-        uint Nk = quotientSpaces.at(k)->GetTotalNumberOfSamples();
+    for(uint k = 0; k < stopAtLevel_; k++){
+        uint Nk = quotientSpaces_.at(k)->getTotalNumberOfSamples();
         nodesPerLevel.push_back(Nk);
     }
     return nodesPerLevel;
 }
 template <class T, class Tlast>
-std::vector<int> MultiQuotient<T,Tlast>::GetFeasibleNodes() const
+std::vector<int> MultiQuotient<T,Tlast>::getFeasibleNodes() const
 {
     std::vector<int> feasibleNodesPerLevel;
-    for(uint k = 0; k < quotientSpaces.size(); k++){
-        uint Nk = quotientSpaces.at(k)->GetTotalNumberOfFeasibleSamples();
+    for(uint k = 0; k < quotientSpaces_.size(); k++){
+        uint Nk = quotientSpaces_.at(k)->getTotalNumberOfFeasibleSamples();
         feasibleNodesPerLevel.push_back(Nk);
     }
     return feasibleNodesPerLevel;
@@ -95,11 +95,11 @@ std::vector<int> MultiQuotient<T,Tlast>::GetFeasibleNodes() const
 
 
 template <class T, class Tlast>
-std::vector<int> MultiQuotient<T,Tlast>::GetDimensionsPerLevel() const
+std::vector<int> MultiQuotient<T,Tlast>::getDimensionsPerLevel() const
 {
     std::vector<int> dimensionsPerLevel;
-    for(uint k = 0; k < quotientSpaces.size(); k++){
-        uint Nk = quotientSpaces.at(k)->GetDimension();
+    for(uint k = 0; k < quotientSpaces_.size(); k++){
+        uint Nk = quotientSpaces_.at(k)->getDimension();
         dimensionsPerLevel.push_back(Nk);
     }
     return dimensionsPerLevel;
@@ -114,40 +114,40 @@ template <class T, class Tlast>
 void MultiQuotient<T,Tlast>::setup(){
 
     Planner::setup();
-    for(uint k = 0; k < stopAtLevel; k++){
-        quotientSpaces.at(k)->setup();
+    for(uint k = 0; k < stopAtLevel_; k++){
+        quotientSpaces_.at(k)->setup();
     }
-    currentQuotientLevel = 0;
+    currentQuotientLevel_ = 0;
 }
 
 template <class T, class Tlast>
-void MultiQuotient<T,Tlast>::SetStopLevel(uint level_)
+void MultiQuotient<T,Tlast>::setStopLevel(uint level_)
 {
-    if(level_ > quotientSpaces.size()){
-        stopAtLevel = quotientSpaces.size();
+    if(level_ > quotientSpaces_.size()){
+        stopAtLevel_ = quotientSpaces_.size();
     }else{
-        stopAtLevel = level_;
+        stopAtLevel_ = level_;
     }
-    std::cout << "new stop level: " << stopAtLevel 
-        << " from " << quotientSpaces.size() << std::endl;
+    std::cout << "new stop level: " << stopAtLevel_ 
+        << " from " << quotientSpaces_.size() << std::endl;
 }
 
 template <class T, class Tlast>
 void MultiQuotient<T,Tlast>::clear(){
     Planner::clear();
 
-    for(uint k = 0; k < quotientSpaces.size(); k++){
-        quotientSpaces.at(k)->clear();
+    for(uint k = 0; k < quotientSpaces_.size(); k++){
+        quotientSpaces_.at(k)->clear();
     }
-    currentQuotientLevel = 0;
+    currentQuotientLevel_ = 0;
 
-    while(!Q.empty()) Q.pop();
-    foundKLevelSolution = false;
+    while(!priorityQueue_.empty()) priorityQueue_.pop();
+    foundKLevelSolution_ = false;
 
-    solutions.clear();
+    solutions_.clear();
     pdef_->clearSolutionPaths();
-    for(uint k = 0; k < pdef_vec.size(); k++){
-        pdef_vec.at(k)->clearSolutionPaths();
+    for(uint k = 0; k < pdefVec_.size(); k++){
+        pdefVec_.at(k)->clearSolutionPaths();
     }
 }
 
@@ -159,50 +159,50 @@ ob::PlannerStatus MultiQuotient<T,Tlast>::solve(const base::PlannerTerminationCo
 
     ompl::time::point t_start = ompl::time::now();
 
-    for(uint k = currentQuotientLevel; k < stopAtLevel; k++){
-        foundKLevelSolution = false;
+    for(uint k = currentQuotientLevel_; k < stopAtLevel_; k++){
+        foundKLevelSolution_ = false;
 
-        if(Q.size()<=currentQuotientLevel) Q.push(quotientSpaces.at(k));
+        if(priorityQueue_.size()<=currentQuotientLevel_) priorityQueue_.push(quotientSpaces_.at(k));
 
         base::PlannerTerminationCondition ptcOrSolutionFound([this, &ptc]
-                                                                     { return ptc || foundKLevelSolution; });
+                                                                     { return ptc || foundKLevelSolution_; });
 
         while (!ptcOrSolutionFound())
         {
-            og::Quotient* jQuotient = Q.top();
-            Q.pop();
-            jQuotient->Grow(T_GROW);
+            og::Quotient* jQuotient = priorityQueue_.top();
+            priorityQueue_.pop();
+            jQuotient->grow(T_GROW);
 
-            bool hasSolution = quotientSpaces.at(k)->HasSolution();
+            bool hasSolution = quotientSpaces_.at(k)->hasSolution();
             if(hasSolution){
                 base::PathPtr sol_k;
-                quotientSpaces.at(k)->GetSolution(sol_k);
-                solutions.push_back(sol_k);
+                quotientSpaces_.at(k)->getSolution(sol_k);
+                solutions_.push_back(sol_k);
                 if(DEBUG){
                     double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
                     std::cout << std::string(80, '#') << std::endl;
                     std::cout << "Found Solution on Level " << k 
                         << " after " << t_k_end << " seconds." << std::endl;
-                    std::cout << *quotientSpaces.at(k) << std::endl;
+                    std::cout << *quotientSpaces_.at(k) << std::endl;
                 }
-                foundKLevelSolution = true;
-                currentQuotientLevel = k+1;
+                foundKLevelSolution_ = true;
+                currentQuotientLevel_ = k+1;
 
                 //add solution to pdef 
                 base::PlannerSolution psol(sol_k);
                 std::string lvl_name = getName()+" LvL"+std::to_string(k);
                 psol.setPlannerName(lvl_name);
-                pdef_vec.at(k)->addSolutionPath(psol);
+                pdefVec_.at(k)->addSolutionPath(psol);
             }
-            Q.push(jQuotient);
+            priorityQueue_.push(jQuotient);
         }
 
-        if(!foundKLevelSolution)
+        if(!foundKLevelSolution_)
         {
             if(DEBUG){
                 std::cout << std::string(80, '#') << std::endl;
                 for(uint i = 0; i < k+1; i++){
-                    std::cout << *quotientSpaces.at(i) << std::endl;
+                    std::cout << *quotientSpaces_.at(i) << std::endl;
                 }
             }
             return ob::PlannerStatus::TIMEOUT;
@@ -217,7 +217,7 @@ ob::PlannerStatus MultiQuotient<T,Tlast>::solve(const base::PlannerTerminationCo
     }
 
     base::PathPtr sol;
-    if(quotientSpaces.at(currentQuotientLevel-1)->GetSolution(sol))
+    if(quotientSpaces_.at(currentQuotientLevel_-1)->getSolution(sol))
     {
         base::PlannerSolution psol(sol);
         psol.setPlannerName(getName());
@@ -232,10 +232,10 @@ ob::PlannerStatus MultiQuotient<T,Tlast>::solve(const base::PlannerTerminationCo
 template <class T, class Tlast>
 void MultiQuotient<T,Tlast>::setProblemDefinition(std::vector<ob::ProblemDefinitionPtr> &pdef_)
 {
-    pdef_vec = pdef_;
-    ob::Planner::setProblemDefinition(pdef_vec.back());
-    for(uint k = 0; k < pdef_vec.size(); k++){
-        quotientSpaces.at(k)->setProblemDefinition(pdef_vec.at(k));
+    pdefVec_ = pdef_;
+    ob::Planner::setProblemDefinition(pdefVec_.back());
+    for(uint k = 0; k < pdefVec_.size(); k++){
+        quotientSpaces_.at(k)->setProblemDefinition(pdefVec_.at(k));
     }
 }
 
@@ -255,11 +255,11 @@ void MultiQuotient<T,Tlast>::getPlannerData(ob::PlannerData &data) const
         exit(0);
     }
 
-    uint K = std::min(solutions.size()+1,quotientSpaces.size());
-    K = std::min(K, stopAtLevel);
+    uint K = std::min(solutions_.size()+1,quotientSpaces_.size());
+    K = std::min(K, stopAtLevel_);
 
-    std::vector<int> fn = GetFeasibleNodes();
-    std::vector<int> n = GetNodes();
+    std::vector<int> fn = getFeasibleNodes();
+    std::vector<int> n = getNodes();
     int fn_sum = 0;
     int n_sum = 0;
     for(uint k = 0; k < fn.size(); k++){
@@ -271,37 +271,37 @@ void MultiQuotient<T,Tlast>::getPlannerData(ob::PlannerData &data) const
     std::cout << fn_sum << "/" << n_sum << std::endl;
 
     for(uint k = 0; k < K; k++){
-        og::Quotient *Qk = quotientSpaces.at(k);
+        og::Quotient *Qk = quotientSpaces_.at(k);
         Qk->getPlannerData(data);
 
         //label all new vertices
         uint ctr = 0;
         for(uint vidx = Nvertices; vidx < data.numVertices(); vidx++){
             PlannerDataVertexAnnotated &v = *static_cast<PlannerDataVertexAnnotated*>(&data.getVertex(vidx));
-            v.SetLevel(k);
-            v.SetMaxLevel(K);
+            v.setLevel(k);
+            v.setMaxLevel(K);
 
             ob::State *s_lift = Qk->getSpaceInformation()->cloneState(v.getState());
             v.setQuotientState(s_lift);
 
-            for(uint m = k+1; m < quotientSpaces.size(); m++){
-                og::Quotient *Qm = quotientSpaces.at(m);
+            for(uint m = k+1; m < quotientSpaces_.size(); m++){
+                og::Quotient *Qm = quotientSpaces_.at(m);
 
-                if(Qm->GetX1() != nullptr)
+                if(Qm->getX1() != nullptr)
                 {
-                    ob::State *s_X1 = Qm->GetX1()->allocState();
+                    ob::State *s_X1 = Qm->getX1()->allocState();
                     ob::State *s_Q1 = Qm->getSpaceInformation()->allocState();
-                    if(Qm->GetX1()->getStateSpace()->getType() == ob::STATE_SPACE_SO3) {
+                    if(Qm->getX1()->getStateSpace()->getType() == ob::STATE_SPACE_SO3) {
                         static_cast<ob::SO3StateSpace::StateType*>(s_X1)->setIdentity();
                     }
-                    if(Qm->GetX1()->getStateSpace()->getType() == ob::STATE_SPACE_SO2) {
+                    if(Qm->getX1()->getStateSpace()->getType() == ob::STATE_SPACE_SO2) {
                         static_cast<ob::SO2StateSpace::StateType*>(s_X1)->setIdentity();
                     }
-                    Qm->MergeStates(s_lift, s_X1, s_Q1);
+                    Qm->mergeStates(s_lift, s_X1, s_Q1);
                     s_lift = Qm->getSpaceInformation()->cloneState(s_Q1);
 
-                    Qm->GetX1()->freeState(s_X1);
-                    Qm->GetQ1()->freeState(s_Q1);
+                    Qm->getX1()->freeState(s_X1);
+                    Qm->getQ1()->freeState(s_Q1);
                 }
             }
             v.setState(s_lift);

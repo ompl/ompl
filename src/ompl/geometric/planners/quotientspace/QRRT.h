@@ -14,9 +14,9 @@
 *    copyright notice, this list of conditions and the following
 *    disclaimer in the documentation and/or other materials provided
 *    with the distribution.
-*  * Neither the name of the University of Stuttgart nor the names
-*    of its contributors may be used to endorse or promote products
-*    derived from this software without specific prior written
+*  * Neither the name of the University of Stuttgart nor the names 
+*    of its contributors may be used to endorse or promote products 
+*    derived from this software without specific prior written 
 *    permission.
 *
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -43,71 +43,71 @@
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-namespace ompl {
-namespace base {
-OMPL_CLASS_FORWARD(OptimizationObjective);
-}
-namespace geometric {
-/**
-     @anchor QRRT
-     @par Short description
-     QRRT is a planner using different abstractions levels, each described by
-     a quotient-space, and grows trees both sequentially and simultaneously on
-     them. The growing of each tree is similar to the RRT algorithm, but it
-     differs that (1) a tree is only started if there exists a solution on a
-     lower-dimensional quotient-space, and (2) a sample is not drawn
-     uniformly, but constraint to the tree of the lower-dimensional
-     quotient-space. The algorithm stops if a planner terminate condition (ptc)
-   is
-     reached, or if a solution has been found on the last quotient-space,
-     which is equivalent to the configuration space.
-     @par External documentation
-     A. Orthey and M. Toussaint,
-     Rapidly-Exploring Quotient-Space Trees: Motion Planning using Sequential
-   Simplifications,
-     [[PDF]]()
-     A. Orthey and A. Escande and E. Yoshida,
-     Quotient-Space Motion Planning,
-     <em>International Conference on Robotics and Intelligent Systems</em>, 2018
-     [[PDF]](https://arxiv.org/pdf/1807.09468.pdf)
-*/
+namespace ompl
+{
+    namespace base
+    {
+        OMPL_CLASS_FORWARD(OptimizationObjective);
+    }
+    namespace geometric
+    {
+        /**
+             @anchor QRRT
+             @par Short description
+             QRRT is a planner using different abstractions levels, each described by
+             a quotient-space, and grows trees both sequentially and simultaneously on
+             them. The growing of each tree is similar to the RRT algorithm, but it
+             differs that (1) a tree is only started if there exists a solution on a
+             lower-dimensional quotient-space, and (2) a sample is not drawn
+             uniformly, but constraint to the tree of the lower-dimensional
+             quotient-space. The algorithm stops if a planner terminate condition (ptc) is
+             reached, or if a solution has been found on the last quotient-space,
+             which is equivalent to the configuration space.
+             @par External documentation
+             A. Orthey and M. Toussaint,
+             Rapidly-Exploring Quotient-Space Trees: Motion Planning using Sequential Simplifications,
+             [[PDF]]()
+             A. Orthey and A. Escande and E. Yoshida,
+             Quotient-Space Motion Planning,
+             <em>International Conference on Robotics and Intelligent Systems</em>, 2018
+             [[PDF]](https://arxiv.org/pdf/1807.09468.pdf)
+        */
 
-/** \brief Rapidly Exploring Quotient-Space Tree Algorithm*/
-class QRRT : public og::QuotientGraph {
+        /** \brief Rapidly Exploring Quotient-Space Tree Algorithm*/
+        class QRRT: public og::QuotientGraph
+        {
 
-  typedef og::QuotientGraph BaseT;
+        typedef og::QuotientGraph BaseT;
+        public:
 
-public:
-  QRRT(const ob::SpaceInformationPtr &si, Quotient *parent_);
-  virtual ~QRRT() override;
-  virtual void Grow(double t) override;
-  virtual bool GetSolution(ob::PathPtr &solution) override;
-  double GetImportance() const override;
-  virtual bool Sample(ob::State *q_random) override;
+            QRRT(const ob::SpaceInformationPtr &si, Quotient *parent_);
+            virtual ~QRRT() override;
+            virtual void grow(double t) override;
+            virtual bool getSolution(ob::PathPtr &solution) override;
+            double getImportance() const override;
+            virtual bool sample(ob::State *q_random) override;
+            virtual bool sampleQuotient(ob::State*) override;
 
-  virtual void setup() override;
-  virtual void clear() override;
+            virtual void setup() override;
+            virtual void clear() override;
 
-  void setGoalBias(double goalBias);
-  double getGoalBias() const;
-  void setRange(double distance);
-  double getRange() const;
+            void setGoalBias(double goalBias);
+            double getGoalBias() const;
+            void setRange(double distance);
+            double getRange() const;
 
-  Configuration *q_random{nullptr};
+        protected:
 
-protected:
-  std::vector<Vertex> shortestPathVertices;
+            Configuration *qRandom_{nullptr};
+            std::vector<Vertex> shortestPathVertices_;
 
-  double maxDistance{.0};
-  double goalBias{.05};
-  double shortestPathBias{.05};
-  double epsilon{.0};
+            double maxDistance_{.0};
+            double goalBias_{.05};
 
-  ob::Goal *goal;
+            ob::Goal *goal_;
+        };
 
-  virtual bool SampleQuotient(ob::State *) override;
-};
-}
+    }
 }
 
 #endif

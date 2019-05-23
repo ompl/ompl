@@ -14,9 +14,9 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the University of Stuttgart nor the names
-*     of its contributors may be used to endorse or promote products
-*     derived from this software without specific prior written
+*   * Neither the name of the University of Stuttgart nor the names 
+*     of its contributors may be used to endorse or promote products 
+*     derived from this software without specific prior written 
 *     permission.
 *
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -42,50 +42,55 @@
 #include <boost/serialization/export.hpp>
 namespace ob = ompl::base;
 
-class PlannerDataVertexAnnotated : public ob::PlannerDataVertex {
-  // If new elements are added,
-  // you need to update the clone/getstate functions!
+class PlannerDataVertexAnnotated: public ob::PlannerDataVertex
+{
+//If new elements are added, 
+//you need to update the clone/getstate functions!
 public:
-  enum class FeasibilityType { FEASIBLE, INFEASIBLE, SUFFICIENT_FEASIBLE };
+    enum class FeasibilityType{
+        FEASIBLE, INFEASIBLE, SUFFICIENT_FEASIBLE};
 
-  PlannerDataVertexAnnotated(const ob::State *st, int tag = 0);
-  PlannerDataVertexAnnotated(const PlannerDataVertexAnnotated &rhs);
-  virtual PlannerDataVertex *clone() const override;
+    PlannerDataVertexAnnotated(const ob::State *st, int tag=0);
+    PlannerDataVertexAnnotated (const PlannerDataVertexAnnotated &rhs);
+    virtual PlannerDataVertex *clone() const override;
 
-  void SetOpenNeighborhoodDistance(double d_);
-  double GetOpenNeighborhoodDistance() const;
+    void setOpenNeighborhoodDistance(double d_);
+    double getOpenNeighborhoodDistance() const;
 
-  void SetLevel(uint level_);
-  uint GetLevel() const;
+    void setLevel(uint level_);
+    uint getLevel() const;
 
-  void SetMaxLevel(uint level_);
-  uint GetMaxLevel() const;
+    void setMaxLevel(uint level_);
+    uint getMaxLevel() const;
 
-  void SetComponent(uint component_);
-  uint GetComponent() const;
+    void setComponent(uint component_);
+    uint getComponent() const;
 
-  void setState(ob::State *s);
-  void setQuotientState(const ob::State *s);
-  virtual const ob::State *getState() const override;
-  virtual const ob::State *getQuotientState() const;
+    void setState(ob::State *s);
+    void setQuotientState(const ob::State *s);
+    virtual const ob::State *getState() const override;
+    virtual const ob::State *getQuotientState() const;
 
-  virtual bool operator==(const PlannerDataVertex &rhs) const override {
-    const PlannerDataVertexAnnotated &v =
-        static_cast<const PlannerDataVertexAnnotated &>(rhs);
-    return (level == v.GetLevel() && state_ == v.getState());
-  }
+    virtual bool operator==(const PlannerDataVertex &rhs) const override
+    {
+        const PlannerDataVertexAnnotated &v = 
+            static_cast<const PlannerDataVertexAnnotated&>(rhs);
+        return (level_ == v.getLevel() && state_ == v.getState());
+    }
 
-  friend std::ostream &operator<<(std::ostream &,
-                                  const PlannerDataVertexAnnotated &);
+    friend std::ostream& operator<< 
+        (std::ostream&, const PlannerDataVertexAnnotated&);
 
 protected:
-  bool infeasible{false};
-  uint level{0};
-  uint max_level{1};
 
-  uint component{0};
-  const ob::State *state_quotient_space{nullptr};
+    bool infeasible_{false};
+    uint level_{0};
+    uint maxLevel_{1};
+
+    uint component_{0};
+    const ob::State *stateQuotientSpace_{nullptr};
+
 };
 
-// BOOST_CLASS_EXPORT(PlannerDataVertexAnnotated);
+//BOOST_CLASS_EXPORT(PlannerDataVertexAnnotated);
 #endif

@@ -14,9 +14,9 @@
 *    copyright notice, this list of conditions and the following
 *    disclaimer in the documentation and/or other materials provided
 *    with the distribution.
-*  * Neither the name of the University of Stuttgart nor the names
-*    of its contributors may be used to endorse or promote products
-*    derived from this software without specific prior written
+*  * Neither the name of the University of Stuttgart nor the names 
+*    of its contributors may be used to endorse or promote products 
+*    derived from this software without specific prior written 
 *    permission.
 *
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -44,60 +44,60 @@
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-namespace ompl {
-namespace geometric {
-template <class T, typename Tlast = T>
-class MultiQuotient : public ob::Planner {
+namespace ompl
+{
+    namespace geometric
+    {
+        template <class T, typename Tlast=T>
+        class MultiQuotient: public ob::Planner
+        {
 
-  static_assert(std::is_base_of<og::Quotient, T>::value,
-                "Template must inherit from Quotient");
-  static_assert(std::is_base_of<og::Quotient, Tlast>::value,
-                "Template must inherit from Quotient");
+        static_assert(std::is_base_of<og::Quotient, T>::value, "Template must inherit from Quotient");
+        static_assert(std::is_base_of<og::Quotient, Tlast>::value, "Template must inherit from Quotient");
 
-public:
-  const bool DEBUG{false};
-  MultiQuotient(std::vector<ob::SpaceInformationPtr> &si_vec,
-                std::string type = "QuotientPlanner");
-  void setProblemDefinition(std::vector<ob::ProblemDefinitionPtr> &pdef_vec_);
+        public:
+            const bool DEBUG{false};
+            MultiQuotient(std::vector<ob::SpaceInformationPtr> &si_vec, std::string type = "QuotientPlanner");
+            void setProblemDefinition(std::vector<ob::ProblemDefinitionPtr> &pdef_vec_);
 
-  virtual ~MultiQuotient() override;
+            virtual ~MultiQuotient() override;
 
-  void getPlannerData(base::PlannerData &data) const override;
-  ob::PlannerStatus
-  solve(const base::PlannerTerminationCondition &ptc) override;
-  void setup() override;
-  void clear() override;
-  void setProblemDefinition(const ob::ProblemDefinitionPtr &pdef) override;
+            void getPlannerData(base::PlannerData &data) const override;
+            ob::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
+            void setup() override;
+            void clear() override;
+            void setProblemDefinition(const ob::ProblemDefinitionPtr &pdef) override;
 
-  int GetLevels() const;
-  std::vector<int> GetFeasibleNodes() const;
-  std::vector<int> GetNodes() const;
-  std::vector<int> GetDimensionsPerLevel() const;
-  void SetStopLevel(uint level_);
+            int getLevels() const;
+            std::vector<int> getFeasibleNodes() const;
+            std::vector<int> getNodes() const;
+            std::vector<int> getDimensionsPerLevel() const;
+            void setStopLevel(uint level_);
 
-protected:
-  std::vector<base::PathPtr> solutions;
-  std::vector<og::Quotient *> quotientSpaces;
+        protected:
+            std::vector<base::PathPtr> solutions_;
+            std::vector<og::Quotient*> quotientSpaces_;
 
-  bool foundKLevelSolution{false};
-  uint currentQuotientLevel{0};
-  uint stopAtLevel;
+            bool foundKLevelSolution_{false};
+            uint currentQuotientLevel_{0};
+            uint stopAtLevel_;
 
-  std::vector<ob::SpaceInformationPtr> si_vec;
-  std::vector<ob::ProblemDefinitionPtr> pdef_vec;
+            std::vector<ob::SpaceInformationPtr> siVec_;
+            std::vector<ob::ProblemDefinitionPtr> pdefVec_;
 
-  struct CmpQuotientSpacePtrs {
-    // ">" operator: smallest value is top in queue
-    // "<" operator: largest value is top in queue (default)
-    bool operator()(const Quotient *lhs, const Quotient *rhs) const {
-      return lhs->GetImportance() < rhs->GetImportance();
+            struct CmpQuotientSpacePtrs
+            {
+                // ">" operator: smallest value is top in queue
+                // "<" operator: largest value is top in queue (default)
+                bool operator()(const Quotient* lhs, const Quotient* rhs) const
+                {
+                     return lhs->getImportance() < rhs->getImportance();
+                }
+            };
+            typedef std::priority_queue<og::Quotient*, std::vector<og::Quotient*>, CmpQuotientSpacePtrs> QuotientSpacePriorityQueue;
+            QuotientSpacePriorityQueue priorityQueue_;
+        };
     }
-  };
-  typedef std::priority_queue<og::Quotient *, std::vector<og::Quotient *>,
-                              CmpQuotientSpacePtrs> QuotientSpacePriorityQueue;
-  QuotientSpacePriorityQueue Q;
-};
-}
 }
 #include "src/MultiQuotient.ipp"
 #endif
