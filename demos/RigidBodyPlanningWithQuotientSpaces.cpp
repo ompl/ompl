@@ -48,11 +48,12 @@
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
+//Path Planning in SE2 = R2 \times SO2
+//using quotient-spaces R2 and SE2
 bool isStateValid_SE2(const ob::State *state) 
 {
-    // disallow going through the middle to make it more interesting (R2 path
-    // might
-    // be invalid)
+    // disallow going through the middle to make it more interesting 
+    // (R2 path might be invalid)
     const auto *SE2state = state->as<ob::SE2StateSpace::StateType>();
     const auto *R2 = SE2state->as<ob::RealVectorStateSpace::StateType>(0);
     const auto *SO2 = SE2state->as<ob::SO2StateSpace::StateType>(1);
@@ -89,13 +90,10 @@ int main(int argc, const char **argv)
     si_vec.push_back(si_R2);
     si_vec.push_back(si_SE2);
 
-    // Create vector of ProblemDefinitionPtr
-    std::vector<ob::ProblemDefinitionPtr> pdef_vec;
-
-    typedef ob::ScopedState<ob::SE2StateSpace> SE2State;
-    typedef ob::ScopedState<ob::RealVectorStateSpace> R2State;
 
     // Define Planning Problem
+    typedef ob::ScopedState<ob::SE2StateSpace> SE2State;
+    typedef ob::ScopedState<ob::RealVectorStateSpace> R2State;
     SE2State start_SE2(SE2);
     SE2State goal_SE2(SE2);
     start_SE2->setXY(0, 0);
@@ -108,6 +106,8 @@ int main(int argc, const char **argv)
     start_R2[0] = start_R2[1] = 0;
     goal_R2[0] = goal_R2[1] = 1;
 
+    // Create vector of ProblemDefinitionPtr
+    std::vector<ob::ProblemDefinitionPtr> pdef_vec;
     ob::ProblemDefinitionPtr pdef_SE2 =
             std::make_shared<ob::ProblemDefinition>(si_SE2);
     pdef_SE2->setStartAndGoalStates(start_SE2, goal_SE2);

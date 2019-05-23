@@ -46,6 +46,8 @@ Planners in this category only accounts for the geometric and kinematic constrai
       Many different parallelization schemes have been proposed for sampling-based planners, including RRT. In this implementation, several threads simultaneously add states to the same tree. Once a solution is found, all threads terminate.
     - [Lazy RRT (LazyRRT)](\ref gLazyRRT)<br>
       This planner performs lazy state validity checking (similar to LazyPRM). It is not experimental, but in our experience it does not seem to outperform other planners by a significant margin on any class of problems.
+    - [Quotient-Space RRT (QRRT)](\ref QRRT)<br>
+      A generalization of RRT to plan on different abstraction levels. The abstraction levels are represented by quotient-spaces, and QRRT grows trees sequentially and simultaneously on each.
   - [Expansive Space Trees (EST)](\ref gEST)<br>
     This planner was published around the same time as RRT. In our experience it is not as sensitive to having a good distance measure, which can be difficult to define for complex high-dimensional state spaces. There are actually three versions of EST: the [original version](\ref gEST) that is close to the first publication, [a bidirectional version](\ref gBiEST), and a [projection-based version](\ref gProjEST). The low-dimensional projection is used to keep track of how the state space has been explored. Most of the time OMPL can automatically determine a reasonable projection. We have implemented a few planners that not necessarily simple variants of EST, but do share the same expansion strategy:
     - [Single-query Bi-directional Lazy collision checking planner (SBL)](\ref gSBL)<br>
