@@ -43,8 +43,8 @@
 using namespace og;
 using namespace ob;
 
-template <class T, class Tlast>
-MultiQuotient<T,Tlast>::MultiQuotient(
+template <class T>
+MultiQuotient<T>::MultiQuotient(
         std::vector<ob::SpaceInformationPtr> &siVec, std::string type)
     : ob::Planner(siVec.back(), type), 
     siVec_(siVec)
@@ -54,13 +54,8 @@ MultiQuotient<T,Tlast>::MultiQuotient(
         og::Quotient* parent = nullptr;
         if(k>0) parent = quotientSpaces_.back();
 
-        if(k>0 && k>=siVec_.size()-1){
-            Tlast* ss = new Tlast(siVec_.at(k), parent);
-            quotientSpaces_.push_back(ss);
-        }else{
-            T* ss = new T(siVec_.at(k), parent);
-            quotientSpaces_.push_back(ss);
-        }
+        T* ss = new T(siVec_.at(k), parent);
+        quotientSpaces_.push_back(ss);
         quotientSpaces_.back()->setLevel(k);
     }
     stopAtLevel_ = quotientSpaces_.size();
@@ -68,13 +63,13 @@ MultiQuotient<T,Tlast>::MultiQuotient(
         << siVec_.size() << " levels." << std::endl;
 }
 
-template <class T, class Tlast>
-int MultiQuotient<T,Tlast>::getLevels() const
+template <class T>
+int MultiQuotient<T>::getLevels() const
 {
     return stopAtLevel_;
 }
-template <class T, class Tlast>
-std::vector<int> MultiQuotient<T,Tlast>::getNodes() const
+template <class T>
+std::vector<int> MultiQuotient<T>::getNodes() const
 {
     std::vector<int> nodesPerLevel;
     for(uint k = 0; k < stopAtLevel_; k++){
@@ -83,8 +78,8 @@ std::vector<int> MultiQuotient<T,Tlast>::getNodes() const
     }
     return nodesPerLevel;
 }
-template <class T, class Tlast>
-std::vector<int> MultiQuotient<T,Tlast>::getFeasibleNodes() const
+template <class T>
+std::vector<int> MultiQuotient<T>::getFeasibleNodes() const
 {
     std::vector<int> feasibleNodesPerLevel;
     for(uint k = 0; k < quotientSpaces_.size(); k++){
@@ -95,8 +90,8 @@ std::vector<int> MultiQuotient<T,Tlast>::getFeasibleNodes() const
 }
 
 
-template <class T, class Tlast>
-std::vector<int> MultiQuotient<T,Tlast>::getDimensionsPerLevel() const
+template <class T>
+std::vector<int> MultiQuotient<T>::getDimensionsPerLevel() const
 {
     std::vector<int> dimensionsPerLevel;
     for(uint k = 0; k < quotientSpaces_.size(); k++){
@@ -107,12 +102,12 @@ std::vector<int> MultiQuotient<T,Tlast>::getDimensionsPerLevel() const
 }
 
 
-template <class T, class Tlast>
-MultiQuotient<T,Tlast>::~MultiQuotient(){
+template <class T>
+MultiQuotient<T>::~MultiQuotient(){
 }
 
-template <class T, class Tlast>
-void MultiQuotient<T,Tlast>::setup(){
+template <class T>
+void MultiQuotient<T>::setup(){
 
     Planner::setup();
     for(uint k = 0; k < stopAtLevel_; k++){
@@ -121,8 +116,8 @@ void MultiQuotient<T,Tlast>::setup(){
     currentQuotientLevel_ = 0;
 }
 
-template <class T, class Tlast>
-void MultiQuotient<T,Tlast>::setStopLevel(uint level_)
+template <class T>
+void MultiQuotient<T>::setStopLevel(uint level_)
 {
     if(level_ > quotientSpaces_.size()){
         stopAtLevel_ = quotientSpaces_.size();
@@ -133,8 +128,8 @@ void MultiQuotient<T,Tlast>::setStopLevel(uint level_)
         << " from " << quotientSpaces_.size() << std::endl;
 }
 
-template <class T, class Tlast>
-void MultiQuotient<T,Tlast>::clear(){
+template <class T>
+void MultiQuotient<T>::clear(){
     Planner::clear();
 
     for(uint k = 0; k < quotientSpaces_.size(); k++){
@@ -152,8 +147,8 @@ void MultiQuotient<T,Tlast>::clear(){
     }
 }
 
-template <class T, class Tlast>
-ob::PlannerStatus MultiQuotient<T,Tlast>::solve(const base::PlannerTerminationCondition &ptc)
+template <class T>
+ob::PlannerStatus MultiQuotient<T>::solve(const base::PlannerTerminationCondition &ptc)
 {
     
     ompl::time::point t_start = ompl::time::now();
@@ -228,8 +223,8 @@ ob::PlannerStatus MultiQuotient<T,Tlast>::solve(const base::PlannerTerminationCo
 
 
 
-template <class T, class Tlast>
-void MultiQuotient<T,Tlast>::setProblemDefinition(std::vector<ob::ProblemDefinitionPtr> &pdef_)
+template <class T>
+void MultiQuotient<T>::setProblemDefinition(std::vector<ob::ProblemDefinitionPtr> &pdef_)
 {
     pdefVec_ = pdef_;
     ob::Planner::setProblemDefinition(pdefVec_.back());
@@ -238,14 +233,14 @@ void MultiQuotient<T,Tlast>::setProblemDefinition(std::vector<ob::ProblemDefinit
     }
 }
 
-template <class T, class Tlast>
-void MultiQuotient<T,Tlast>::setProblemDefinition(const ob::ProblemDefinitionPtr &pdef)
+template <class T>
+void MultiQuotient<T>::setProblemDefinition(const ob::ProblemDefinitionPtr &pdef)
 {
     this->Planner::setProblemDefinition(pdef);
 }
 
-template <class T, class Tlast>
-void MultiQuotient<T,Tlast>::getPlannerData(ob::PlannerData &data) const
+template <class T>
+void MultiQuotient<T>::getPlannerData(ob::PlannerData &data) const
 {
     uint Nvertices = data.numVertices();
     if(Nvertices>0){

@@ -1,3 +1,39 @@
+/*********************************************************************
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2019, University of Stuttgart
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the University of Stuttgart nor the names 
+*     of its contributors may be used to endorse or promote products 
+*     derived from this software without specific prior written 
+*     permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
+
+/* Author: Andreas Orthey */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QUOTIENTGRAPH_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QUOTIENTGRAPH_
@@ -48,19 +84,21 @@ namespace ompl
                 uint successful_connection_attempts{0};
                 bool on_shortest_path{false};
 
+                /// \brief Element of Probability Density Function (needed to update
+                ///  probability)
                 void *pdf_element;
                 void setPDFElement(void *element_) { pdf_element = element_; }
                 void *getPDFElement() { return pdf_element; }
 
-                unsigned long int associated_target{0};
-                unsigned long int associated_source{0};
-                double associated_t{-1};
-
                 bool isStart{false};
                 bool isGoal{false};
-                bool isFeasible{false};
 
-                normalized_index_type index{-1}; // in [0,num_vertices(graph)]
+                /// \brief Index of configuration in boost::graph. Usually in 
+                /// the interval [0,num_vertices(graph)], but if vertices are
+                /// deleted or graphs are copied, we sometimes need to map them
+                /// back to [0,num_vertices(graph)] (because otherwise all the
+                /// graph search algorithm cannot find a solution)
+                normalized_index_type index{-1};
             };
 
             /// An edge in quotient-space 

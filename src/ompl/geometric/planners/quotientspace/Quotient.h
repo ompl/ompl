@@ -88,10 +88,17 @@ namespace ompl
 
             virtual double getImportance() const;
 
-            /// reset number of levels
+            /// reset counter for number of levels
             static void resetCounter();
+
+            /// \brief Get SpaceInformationPtr for X1 
+            ///  (Note: X1 is the second component of Q1 = Q0 x X1)
             const ob::SpaceInformationPtr &getX1() const;
+            /// \brief Get SpaceInformationPtr for Q1
+            ///  (Note: Q1 is the product space Q1 = Q0 x X1)
             const ob::SpaceInformationPtr &getQ1() const;
+            /// \brief Get SpaceInformationPtr for Q0 
+            ///  (Note: Q0 is the first component of Q1 = Q0 x X1)
             const ob::SpaceInformationPtr &getQ0() const;
 
             /// Dimension of space X1
@@ -114,18 +121,19 @@ namespace ompl
             Quotient* getChild() const;
             /// Level in abstraction hierarchy of quotient-spaces
             uint getLevel() const;
+            /// Change abstraction level
             void setLevel(uint);
             /// Type of quotient-space
             QuotientSpaceType getType() const;
+            /// Set pointer to less simplified quotient-space (if any)
             void setChild(Quotient *child_);
+            /// Set pointer to more simplified quotient-space (if any)
             void setParent(Quotient *parent_);
 
-            /// Number of samples drawn on quotient-space Q1
+            /// Number of samples drawn on space Q1
             uint getTotalNumberOfSamples() const;
-            /// Number of feasible samples drawn on quotient-space Q1
+            /// Number of feasible samples drawn on space Q1
             uint getTotalNumberOfFeasibleSamples() const;
-            friend std::ostream& operator<< (std::ostream& out, const ompl::geometric::Quotient& qtnt);
-            virtual void print(std::ostream& out) const;
 
             /// \brief Quotient Space Projection Operator onto second component
             /// ProjectX1Subspace: Q0 \times X1 \rightarrow X1
@@ -141,7 +149,14 @@ namespace ompl
 
             ob::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 
+            /// \brief Write class to stream (use as std::cout << *this << std::endl)
+            ///  Actual implementation is in void print(std::ostream& out),
+            ///  which can be inherited.
+            friend std::ostream& operator<< (std::ostream& out, const ompl::geometric::Quotient& qtnt);
+
         protected:
+            /// Internal function implementing actual printing to stream
+            virtual void print(std::ostream& out) const;
 
             ///  \brief Compute the quotient Q1 / Q0 between two given spaces.
             ///  The following cases are currently implemented
@@ -182,7 +197,9 @@ namespace ompl
             uint X1_dimension_{0};
 
             static uint counter_;
+            /// Identity of space (to keep track of number of quotient-spaces created)
             uint id_{0};
+            /// Level in sequence of quotient-spaces
             uint level_{0};
 
             bool hasSolution_{false};
