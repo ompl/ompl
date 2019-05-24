@@ -65,11 +65,21 @@ namespace ompl
 
         public:
             const bool DEBUG{false};
+
+            /// \brief Constructor taking a sequence of ob::SpaceInformationPtr
+            ///  and computing the quotient-spaces for each pair in the sequence
             MultiQuotient(std::vector<ob::SpaceInformationPtr> &si_vec, std::string type = "QuotientPlanner");
+            /** \brief Sequence of Problemdefinition, containing projected start and
+                goal configuration for each ob::SpaceInformationPtr
+                 Example usage:
+                std::static_pointer_cast<MultiQuotient<og::QRRT>>(planner)
+                          ->setProblemDefinition(pdef_vec); */
+              
             void setProblemDefinition(std::vector<ob::ProblemDefinitionPtr> &pdef_vec_);
 
             virtual ~MultiQuotient() override;
 
+            /// Return annotated vertices (with information about level)
             void getPlannerData(base::PlannerData &data) const override;
             ob::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
             void setup() override;
@@ -80,6 +90,7 @@ namespace ompl
             int getLevels() const;
             std::vector<int> getFeasibleNodes() const;
             std::vector<int> getNodes() const;
+            /// Get all dimensions of the quotient-spaces in the sequence
             std::vector<int> getDimensionsPerLevel() const;
             void setStopLevel(uint level_);
 

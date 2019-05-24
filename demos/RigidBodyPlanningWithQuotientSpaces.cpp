@@ -52,8 +52,8 @@ namespace og = ompl::geometric;
 //using quotient-spaces R2 and SE2
 bool isStateValid_SE2(const ob::State *state) 
 {
-    // disallow going through the middle to make it more interesting 
-    // (R2 path might be invalid)
+    // disallow going through the middle of the square [0,1]x[0,1]
+    // to make it more interesting (i.e. an R2 path might be invalid)
     const auto *SE2state = state->as<ob::SE2StateSpace::StateType>();
     const auto *R2 = SE2state->as<ob::RealVectorStateSpace::StateType>(0);
     const auto *SO2 = SE2state->as<ob::SO2StateSpace::StateType>(1);
@@ -89,7 +89,6 @@ int main(int argc, const char **argv)
     std::vector<ob::SpaceInformationPtr> si_vec;
     si_vec.push_back(si_R2);
     si_vec.push_back(si_SE2);
-
 
     // Define Planning Problem
     typedef ob::ScopedState<ob::SE2StateSpace> SE2State;
@@ -139,6 +138,15 @@ int main(int argc, const char **argv)
         std::cout << "Quotient-Space Path (R2):" << std::endl;
         std::cout << std::string(80, '-') << std::endl;
         pdef_vec.front()->getSolutionPath()->print(std::cout);
+
+        std::vector<int> nodes =
+          std::static_pointer_cast<MultiQuotient>(planner)->getFeasibleNodes();
+
+        std::cout << std::string(80, '-') << std::endl;
+        for(uint k = 0; k < nodes.size(); k++)
+        {
+            std::cout << "QuotientSpace" << k << " has " << nodes.at(k) << " nodes." << std::endl;
+        }
     }
     return 0;
 }

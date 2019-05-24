@@ -226,6 +226,10 @@ ob::PlannerStatus MultiQuotient<T>::solve(const base::PlannerTerminationConditio
 template <class T>
 void MultiQuotient<T>::setProblemDefinition(std::vector<ob::ProblemDefinitionPtr> &pdef_)
 {
+    if(siVec_.size() != pdef_.size()){
+        OMPL_ERROR("Number of ProblemDefinitionPtr is %d but we have %d SpaceInformationPtr.", pdef_.size(), siVec_.size());
+        exit(0);
+    }
     pdefVec_ = pdef_;
     ob::Planner::setProblemDefinition(pdefVec_.back());
     for(uint k = 0; k < pdefVec_.size(); k++){
@@ -236,7 +240,12 @@ void MultiQuotient<T>::setProblemDefinition(std::vector<ob::ProblemDefinitionPtr
 template <class T>
 void MultiQuotient<T>::setProblemDefinition(const ob::ProblemDefinitionPtr &pdef)
 {
-    this->Planner::setProblemDefinition(pdef);
+    if(siVec_.size() == 1){
+        this->Planner::setProblemDefinition(pdef);
+    }else{
+        OMPL_ERROR("You need to provide a ProblemDefinitionPtr for each SpaceInformationPtr.");
+        exit(0);
+    }
 }
 
 template <class T>

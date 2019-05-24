@@ -56,21 +56,23 @@ namespace ompl
 
         public:
 
-            ///  \brief Quotient Space contains three OMPL spaces, which we call Q1, Q0 and X1.
-            ///
-            ///  Q1 = Q0 x X1 is a product space of Q0 and X1 and is called the configuration space,
-            ///  Q0 is the next lower-dimensional quotient-space and
-            ///  X1 is the quotient Q1 / Q0.
-            ///
-            ///  We can visualize the relationships in the following diagram
-            ///
-            ///  [     ][ Q0 ]
-            ///  [ Q1  ][____]
-            ///  [     ][ X1 ]
-            ///  [     ][    ]
-            ///
-            ///  We assume that Q1 and Q0 have been given (as ob::SpaceInformationPtr), 
-            ///  and we compute the inverse of the quotient map, i.e. X1 = Q1/Q0. 
+            /**  \brief Quotient Space contains three OMPL spaces, which we call Q1, Q0 and X1.
+               
+                 Q1 = Q0 x X1 is a product space of Q0 and X1 and 
+                      is the main quotient-space of this class
+                 Q0 is a pointer to the next lower-dimensional quotient-space and
+                 X1 is the quotient-space  Q1 / Q0.
+               
+                 We can visualize the relationships in the following diagram
+               
+                 [     ][ Q0 ]
+                 [ Q1  ][____]
+                 [     ][ X1 ]
+                 [     ][    ]
+               
+                 We assume that Q1 and Q0 have been given (as ob::SpaceInformationPtr), 
+                 and we compute the inverse of the quotient map, i.e. X1 = Q1/Q0. */
+
             Quotient(const ob::SpaceInformationPtr &si, Quotient *parent_ = nullptr);
             ~Quotient();
 

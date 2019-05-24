@@ -159,9 +159,13 @@ namespace ompl
             /// \brief Return plannerdata structure, whereby each vertex is marked
             /// depending to which component it belongs (start/goal/non-connected)
             virtual void getPlannerData(ob::PlannerData &data) const override;
+
             /// \brief Importance of quotient-space depending on number of
             /// vertices in quotient-graph
             virtual double getImportance() const override;
+
+            /// \brief Initialization methods for the first iteration 
+            ///  (adding start configuration and doing sanity checks)
             void init();
 
             virtual void setup() override;
