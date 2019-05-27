@@ -14,9 +14,9 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the University of Stuttgart nor the names 
-*     of its contributors may be used to endorse or promote products 
-*     derived from this software without specific prior written 
+*   * Neither the name of the University of Stuttgart nor the names
+*     of its contributors may be used to endorse or promote products
+*     derived from this software without specific prior written
 *     permission.
 *
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -74,12 +74,11 @@ namespace ompl
         */
 
         /** \brief Rapidly Exploring Quotient-Space Tree Algorithm*/
-        class QRRT: public og::QuotientGraph
+        class QRRT : public og::QuotientGraph
         {
+            typedef og::QuotientGraph BaseT;
 
-        typedef og::QuotientGraph BaseT;
         public:
-
             QRRT(const ob::SpaceInformationPtr &si, Quotient *parent_);
             virtual ~QRRT() override;
             /// One iteration of RRT with adjusted sampling function
@@ -91,7 +90,7 @@ namespace ompl
             virtual bool sample(ob::State *q_random) override;
             /// \brief Quotient-Space sampling by choosing a random vertex from parent
             /// class tree
-            virtual bool sampleQuotient(ob::State*) override;
+            virtual bool sampleQuotient(ob::State *) override;
 
             virtual void setup() override;
             virtual void clear() override;
@@ -102,7 +101,6 @@ namespace ompl
             double getRange() const;
 
         protected:
-
             /// Random configuration placeholder
             Configuration *qRandom_{nullptr};
             /// Current shortest path on tree
@@ -116,7 +114,6 @@ namespace ompl
             /// Goal state or goal region
             ob::Goal *goal_;
         };
-
     }
 }
 

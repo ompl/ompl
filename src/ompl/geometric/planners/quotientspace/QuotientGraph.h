@@ -14,9 +14,9 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the University of Stuttgart nor the names 
-*     of its contributors may be used to endorse or promote products 
-*     derived from this software without specific prior written 
+*   * Neither the name of the University of Stuttgart nor the names
+*     of its contributors may be used to endorse or promote products
+*     derived from this software without specific prior written
 *     permission.
 *
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -58,23 +58,25 @@ namespace ob = ompl::base;
 namespace og = ompl::geometric;
 const double dInf = std::numeric_limits<double>::infinity();
 
-namespace ompl 
+namespace ompl
 {
-    namespace base 
+    namespace base
     {
         OMPL_CLASS_FORWARD(OptimizationObjective);
     }
-    namespace geometric {
-
+    namespace geometric
+    {
         /// \brief A graph on a quotient-space
-        class QuotientGraph : public og::Quotient {
+        class QuotientGraph : public og::Quotient
+        {
             typedef og::Quotient BaseT;
 
         public:
             typedef int normalized_index_type;
 
-            /// A configuration in quotient-space 
-            class Configuration {
+            /// A configuration in quotient-space
+            class Configuration
+            {
             public:
                 Configuration() = delete;
                 Configuration(const ob::SpaceInformationPtr &si);
@@ -87,13 +89,19 @@ namespace ompl
                 /// \brief Element of Probability Density Function (needed to update
                 ///  probability)
                 void *pdf_element;
-                void setPDFElement(void *element_) { pdf_element = element_; }
-                void *getPDFElement() { return pdf_element; }
+                void setPDFElement(void *element_)
+                {
+                    pdf_element = element_;
+                }
+                void *getPDFElement()
+                {
+                    return pdf_element;
+                }
 
                 bool isStart{false};
                 bool isGoal{false};
 
-                /// \brief Index of configuration in boost::graph. Usually in 
+                /// \brief Index of configuration in boost::graph. Usually in
                 /// the interval [0,num_vertices(graph)], but if vertices are
                 /// deleted or graphs are copied, we sometimes need to map them
                 /// back to [0,num_vertices(graph)] (because otherwise all the
@@ -101,36 +109,43 @@ namespace ompl
                 normalized_index_type index{-1};
             };
 
-            /// An edge in quotient-space 
-            class EdgeInternalState {
+            /// An edge in quotient-space
+            class EdgeInternalState
+            {
             public:
                 EdgeInternalState() = default;
                 EdgeInternalState(ob::Cost cost_) : cost(cost_), original_cost(cost_){};
-                EdgeInternalState(const EdgeInternalState &eis) {
+                EdgeInternalState(const EdgeInternalState &eis)
+                {
                     cost = eis.cost;
                     original_cost = eis.original_cost;
                 }
-                void setWeight(double d) { cost = ob::Cost(d); }
-                ob::Cost getCost() { return cost; }
-                void setOriginalWeight() { cost = original_cost; }
+                void setWeight(double d)
+                {
+                    cost = ob::Cost(d);
+                }
+                ob::Cost getCost()
+                {
+                    return cost;
+                }
+                void setOriginalWeight()
+                {
+                    cost = original_cost;
+                }
 
             private:
                 ob::Cost cost{+dInf};
                 ob::Cost original_cost{+dInf};
             };
 
-            struct GraphBundle {
+            struct GraphBundle
+            {
                 std::string name{"quotient_graph"};
             };
             /// A quotient-graph structure using boost::adjacency_list bundles
-            typedef boost::adjacency_list<
-                boost::vecS, 
-                boost::vecS, 
-                boost::undirectedS,
-                Configuration*, 
-                EdgeInternalState, 
-                GraphBundle
-            > Graph;
+            typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Configuration *,
+                                          EdgeInternalState, GraphBundle>
+                Graph;
 
             typedef boost::graph_traits<Graph> BGT;
             typedef BGT::vertex_descriptor Vertex;
@@ -140,8 +155,7 @@ namespace ompl
             typedef BGT::out_edge_iterator OEIterator;
             typedef Vertex *VertexParent;
             typedef VertexIndex *VertexRank;
-            typedef std::shared_ptr<NearestNeighbors<Configuration *>>
-                    RoadmapNeighborsPtr;
+            typedef std::shared_ptr<NearestNeighbors<Configuration *>> RoadmapNeighborsPtr;
             typedef ompl::PDF<Configuration *> PDF;
             typedef PDF::Element PDF_Element;
 
@@ -164,7 +178,7 @@ namespace ompl
             /// vertices in quotient-graph
             virtual double getImportance() const override;
 
-            /// \brief Initialization methods for the first iteration 
+            /// \brief Initialization methods for the first iteration
             ///  (adding start configuration and doing sanity checks)
             void init();
 
@@ -174,16 +188,15 @@ namespace ompl
             virtual void clearVertices();
             void deleteConfiguration(Configuration *q);
 
-            template <template <typename T> class NN> void setNearestNeighbors();
+            template <template <typename T> class NN>
+            void setNearestNeighbors();
             void uniteComponents(Vertex m1, Vertex m2);
             bool sameComponent(Vertex m1, Vertex m2);
             std::map<Vertex, VertexRank> vrank;
             std::map<Vertex, Vertex> vparent;
-            boost::disjoint_sets<
-                    boost::associative_property_map<std::map<Vertex, VertexRank>>,
-                    boost::associative_property_map<std::map<Vertex, Vertex>>> disjointSets_{
-                    boost::make_assoc_property_map(vrank),
-                    boost::make_assoc_property_map(vparent)};
+            boost::disjoint_sets<boost::associative_property_map<std::map<Vertex, VertexRank>>,
+                                 boost::associative_property_map<std::map<Vertex, Vertex>>>
+                disjointSets_{boost::make_assoc_property_map(vrank), boost::make_assoc_property_map(vparent)};
 
             const Configuration *nearest(const Configuration *s) const;
 
@@ -204,8 +217,7 @@ namespace ompl
             void printConfiguration(const Configuration *) const;
 
         protected:
-            virtual double
-            distance(const Configuration *a, const Configuration *b) const;
+            virtual double distance(const Configuration *a, const Configuration *b) const;
 
             virtual Vertex addConfiguration(Configuration *q);
             void addEdge(const Vertex a, const Vertex b);
@@ -223,7 +235,7 @@ namespace ompl
             typedef boost::minstd_rand RNGType;
             RNGType rng_boost;
 
-            /// \brief Length of graph (useful for determing importance of 
+            /// \brief Length of graph (useful for determing importance of
             /// quotient-space
             double graphLength_{0.0};
         };

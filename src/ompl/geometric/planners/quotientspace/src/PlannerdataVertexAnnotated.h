@@ -14,9 +14,9 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the University of Stuttgart nor the names 
-*     of its contributors may be used to endorse or promote products 
-*     derived from this software without specific prior written 
+*   * Neither the name of the University of Stuttgart nor the names
+*     of its contributors may be used to endorse or promote products
+*     derived from this software without specific prior written
 *     permission.
 *
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -50,16 +50,20 @@ namespace ompl
         /// \brief An annotated vertex, adding information about its level in the
         /// quotient-space hiearchy, the maxlevel of quotientspaces and the component it
         /// belongs to
-        class PlannerDataVertexAnnotated: public ob::PlannerDataVertex
+        class PlannerDataVertexAnnotated : public ob::PlannerDataVertex
         {
-        //If new elements are added, 
-        //you need to update the clone/getstate functions!
+            // If new elements are added,
+            // you need to update the clone/getstate functions!
         public:
-            enum class FeasibilityType{
-                FEASIBLE, INFEASIBLE, SUFFICIENT_FEASIBLE};
+            enum class FeasibilityType
+            {
+                FEASIBLE,
+                INFEASIBLE,
+                SUFFICIENT_FEASIBLE
+            };
 
-            PlannerDataVertexAnnotated(const ob::State *st, int tag=0);
-            PlannerDataVertexAnnotated (const PlannerDataVertexAnnotated &rhs);
+            PlannerDataVertexAnnotated(const ob::State *st, int tag = 0);
+            PlannerDataVertexAnnotated(const PlannerDataVertexAnnotated &rhs);
             virtual PlannerDataVertex *clone() const override;
 
             void setLevel(uint level_);
@@ -78,26 +82,22 @@ namespace ompl
 
             virtual bool operator==(const PlannerDataVertex &rhs) const override
             {
-                const PlannerDataVertexAnnotated &v = 
-                    static_cast<const PlannerDataVertexAnnotated&>(rhs);
+                const PlannerDataVertexAnnotated &v = static_cast<const PlannerDataVertexAnnotated &>(rhs);
                 return (level_ == v.getLevel() && state_ == v.getState());
             }
 
-            friend std::ostream& operator<< 
-                (std::ostream&, const PlannerDataVertexAnnotated&);
+            friend std::ostream &operator<<(std::ostream &, const PlannerDataVertexAnnotated &);
 
         protected:
-
             bool infeasible_{false};
             uint level_{0};
             uint maxLevel_{1};
 
             uint component_{0};
             const ob::State *stateQuotientSpace_{nullptr};
-
         };
 
-        //BOOST_CLASS_EXPORT(PlannerDataVertexAnnotated);
+        // BOOST_CLASS_EXPORT(PlannerDataVertexAnnotated);
     }
 }
 #endif

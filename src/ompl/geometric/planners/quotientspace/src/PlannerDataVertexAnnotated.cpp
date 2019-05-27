@@ -14,9 +14,9 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the University of Stuttgart nor the names 
-*     of its contributors may be used to endorse or promote products 
-*     derived from this software without specific prior written 
+*   * Neither the name of the University of Stuttgart nor the names
+*     of its contributors may be used to endorse or promote products
+*     derived from this software without specific prior written
 *     permission.
 *
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -39,13 +39,12 @@
 using namespace ob;
 using FeasibilityType = PlannerDataVertexAnnotated::FeasibilityType;
 
-PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const ob::State *st, int tag):
-            ob::PlannerDataVertex(st,tag)
+PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const ob::State *st, int tag) : ob::PlannerDataVertex(st, tag)
 {
 }
 
-PlannerDataVertexAnnotated::PlannerDataVertexAnnotated (const PlannerDataVertexAnnotated &rhs): 
-    ob::PlannerDataVertex(rhs.state_, rhs.tag_)
+PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const PlannerDataVertexAnnotated &rhs)
+  : ob::PlannerDataVertex(rhs.state_, rhs.tag_)
 {
     level_ = rhs.getLevel();
     maxLevel_ = rhs.getMaxLevel();
@@ -53,7 +52,7 @@ PlannerDataVertexAnnotated::PlannerDataVertexAnnotated (const PlannerDataVertexA
     stateQuotientSpace_ = rhs.getQuotientState();
 }
 
-ob::PlannerDataVertex *PlannerDataVertexAnnotated::clone() const 
+ob::PlannerDataVertex *PlannerDataVertexAnnotated::clone() const
 {
     return new PlannerDataVertexAnnotated(*this);
 }
@@ -89,7 +88,7 @@ uint PlannerDataVertexAnnotated::getMaxLevel() const
 }
 
 //##############################################################################
-const ob::State *PlannerDataVertexAnnotated::getState() const 
+const ob::State *PlannerDataVertexAnnotated::getState() const
 {
     return state_;
 }
@@ -106,7 +105,7 @@ void PlannerDataVertexAnnotated::setState(ob::State *s)
     state_ = s;
 }
 
-std::ostream& operator<< (std::ostream& out, const PlannerDataVertexAnnotated& v)
+std::ostream &operator<<(std::ostream &out, const PlannerDataVertexAnnotated &v)
 {
     out << "AnnotatedVertex";
     out << " ->level " << v.getLevel() << "/" << v.getMaxLevel();

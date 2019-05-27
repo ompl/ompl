@@ -14,9 +14,9 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the University of Stuttgart nor the names 
-*     of its contributors may be used to endorse or promote products 
-*     derived from this software without specific prior written 
+*   * Neither the name of the University of Stuttgart nor the names
+*     of its contributors may be used to endorse or promote products
+*     derived from this software without specific prior written
 *     permission.
 *
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -42,10 +42,9 @@ using namespace og;
 using namespace ob;
 #define foreach BOOST_FOREACH
 
-QRRT::QRRT(const ob::SpaceInformationPtr &si, Quotient *parent_ ):
-    BaseT(si, parent_)
+QRRT::QRRT(const ob::SpaceInformationPtr &si, Quotient *parent_) : BaseT(si, parent_)
 {
-    setName("QRRT"+std::to_string(id_));
+    setName("QRRT" + std::to_string(id_));
     Planner::declareParam<double>("range", this, &QRRT::setRange, &QRRT::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &QRRT::setGoalBias, &QRRT::getGoalBias, "0.:.1:1.");
     qRandom_ = new Configuration(Q1);
@@ -87,56 +86,68 @@ void QRRT::clear()
 
 bool QRRT::getSolution(ob::PathPtr &solution)
 {
-    if(hasSolution_){
+    if (hasSolution_)
+    {
         bool baset_sol = BaseT::getSolution(solution);
-        if(baset_sol){
+        if (baset_sol)
+        {
             shortestPathVertices_ = shortestVertexPath_;
         }
         return baset_sol;
-    }else{
+    }
+    else
+    {
         return false;
     }
 }
 
-void QRRT::grow(){
-    if(firstRun_){
+void QRRT::grow()
+{
+    if (firstRun_)
+    {
         init();
         firstRun_ = false;
     }
 
-    if(hasSolution_){
-        //No Goal Biasing if we already found a solution on this quotient space
+    if (hasSolution_)
+    {
+        // No Goal Biasing if we already found a solution on this quotient space
         sample(qRandom_->state);
-    }else{
+    }
+    else
+    {
         double s = rng_.uniform01();
-        if(s < goalBias_){
+        if (s < goalBias_)
+        {
             Q1->copyState(qRandom_->state, qGoal_->state);
-        }else{
+        }
+        else
+        {
             sample(qRandom_->state);
         }
     }
 
     const Configuration *q_nearest = nearest(qRandom_);
     double d = Q1->distance(q_nearest->state, qRandom_->state);
-    if(d > maxDistance_)
+    if (d > maxDistance_)
     {
         Q1->getStateSpace()->interpolate(q_nearest->state, qRandom_->state, maxDistance_ / d, qRandom_->state);
     }
 
     totalNumberOfSamples_++;
-    if(Q1->checkMotion(q_nearest->state, qRandom_->state))
+    if (Q1->checkMotion(q_nearest->state, qRandom_->state))
     {
         totalNumberOfFeasibleSamples_++;
         Configuration *q_next = new Configuration(Q1, qRandom_->state);
         Vertex v_next = addConfiguration(q_next);
-        if(!hasSolution_)
+        if (!hasSolution_)
         {
-            //only add edge if no solution exists
+            // only add edge if no solution exists
             addEdge(q_nearest->index, v_next);
 
             double dist = 0.0;
             bool satisfied = goal_->isSatisfied(q_next->state, &dist);
-            if(satisfied)
+            if (satisfied)
             {
                 vGoal_ = addConfiguration(qGoal_);
                 addEdge(q_nearest->index, vGoal_);
@@ -148,7 +159,7 @@ void QRRT::grow(){
 
 double QRRT::getImportance() const
 {
-    //Should depend on
+    // Should depend on
     // (1) level : The higher the level, the more importance
     // (2) total samples: the more we already sampled, the less important it
     // becomes
@@ -157,26 +168,31 @@ double QRRT::getImportance() const
     // (4) vertices: the more vertices we have, the less important (let other
     // levels also explore)
     //
-    //exponentially more samples on level i. Should depend on ALL levels.
+    // exponentially more samples on level i. Should depend on ALL levels.
     // const double base = 2;
     // const double normalizer = powf(base, level);
-    //double N = (double)GetNumberOfVertices()/normalizer;
+    // double N = (double)GetNumberOfVertices()/normalizer;
     double N = (double)getNumberOfVertices();
-    return 1.0/(N+1);
+    return 1.0 / (N + 1);
 }
 
-//Make it faster by removing the validity check
+// Make it faster by removing the validity check
 bool QRRT::sample(ob::State *q_random)
 {
-    if(parent_ == nullptr){
+    if (parent_ == nullptr)
+    {
         Q1_sampler_->sampleUniform(q_random);
-    }else{
-        if(X1_dimension_>0)
+    }
+    else
+    {
+        if (X1_dimension_ > 0)
         {
             X1_sampler_->sampleUniform(s_X1_tmp_);
             parent_->sampleQuotient(s_Q0_tmp_);
             mergeStates(s_Q0_tmp_, s_X1_tmp_, q_random);
-        }else{
+        }
+        else
+        {
             parent_->sampleQuotient(q_random);
         }
     }
@@ -185,7 +201,7 @@ bool QRRT::sample(ob::State *q_random)
 
 bool QRRT::sampleQuotient(ob::State *q_random_graph)
 {
-    //RANDOM VERTEX SAMPLING
+    // RANDOM VERTEX SAMPLING
     const Vertex v = boost::random_vertex(graph_, rng_boost);
     Q1->getStateSpace()->copyState(q_random_graph, graph_[v]->state);
     return true;

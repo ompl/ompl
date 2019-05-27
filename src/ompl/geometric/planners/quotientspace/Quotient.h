@@ -14,9 +14,9 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the University of Stuttgart nor the names 
-*     of its contributors may be used to endorse or promote products 
-*     derived from this software without specific prior written 
+*   * Neither the name of the University of Stuttgart nor the names
+*     of its contributors may be used to endorse or promote products
+*     derived from this software without specific prior written
 *     permission.
 *
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -47,38 +47,49 @@ namespace ompl
     namespace geometric
     {
         /// \brief A single quotient-space
-        class Quotient: public ob::Planner
+        class Quotient : public ob::Planner
         {
-        typedef ob::Planner BaseT;
-        enum QuotientSpaceType{ UNKNOWN, IDENTITY_SPACE, ATOMIC_RN, 
-            RN_RM, SE2_R2, SE2RN_R2, SE2RN_SE2, SE2RN_SE2RM, 
-            SE3_R3, SE3RN_R3, SE3RN_SE3, SE3RN_SE3RM };
+            typedef ob::Planner BaseT;
+            enum QuotientSpaceType
+            {
+                UNKNOWN,
+                IDENTITY_SPACE,
+                ATOMIC_RN,
+                RN_RM,
+                SE2_R2,
+                SE2RN_R2,
+                SE2RN_SE2,
+                SE2RN_SE2RM,
+                SE3_R3,
+                SE3RN_R3,
+                SE3RN_SE3,
+                SE3RN_SE3RM
+            };
 
         public:
-
             /**  \brief Quotient Space contains three OMPL spaces, which we call Q1, Q0 and X1.
-               
-                 Q1 = Q0 x X1 is a product space of Q0 and X1 and 
+
+                 Q1 = Q0 x X1 is a product space of Q0 and X1 and
                       is the main quotient-space of this class
                  Q0 is a pointer to the next lower-dimensional quotient-space and
                  X1 is the quotient-space  Q1 / Q0.
-               
+
                  We can visualize the relationships in the following diagram
-               
+
                  [     ][ Q0 ]
                  [ Q1  ][____]
                  [     ][ X1 ]
                  [     ][    ]
-               
-                 We assume that Q1 and Q0 have been given (as ob::SpaceInformationPtr), 
+
+                 We assume that Q1 and Q0 have been given (as ob::SpaceInformationPtr),
                  and we compute the inverse of the quotient map, i.e. X1 = Q1/Q0. */
 
             Quotient(const ob::SpaceInformationPtr &si, Quotient *parent_ = nullptr);
             ~Quotient();
 
-            /// \brief solve disabled (use MultiQuotient::solve) 
+            /// \brief solve disabled (use MultiQuotient::solve)
             /// final prevents subclasses to override
-            ob::PlannerStatus solve(const ob::PlannerTerminationCondition &ptc) override final; 
+            ob::PlannerStatus solve(const ob::PlannerTerminationCondition &ptc) override final;
 
             virtual void grow() = 0;
             virtual bool getSolution(ob::PathPtr &solution) = 0;
@@ -93,13 +104,13 @@ namespace ompl
             /// reset counter for number of levels
             static void resetCounter();
 
-            /// \brief Get SpaceInformationPtr for X1 
+            /// \brief Get SpaceInformationPtr for X1
             ///  (Note: X1 is the second component of Q1 = Q0 x X1)
             const ob::SpaceInformationPtr &getX1() const;
             /// \brief Get SpaceInformationPtr for Q1
             ///  (Note: Q1 is the product space Q1 = Q0 x X1)
             const ob::SpaceInformationPtr &getQ1() const;
-            /// \brief Get SpaceInformationPtr for Q0 
+            /// \brief Get SpaceInformationPtr for Q0
             ///  (Note: Q0 is the first component of Q1 = Q0 x X1)
             const ob::SpaceInformationPtr &getQ0() const;
 
@@ -115,12 +126,12 @@ namespace ompl
             const ob::StateSamplerPtr &getX1SamplerPtr() const;
             const ob::StateSamplerPtr &getQ1SamplerPtr() const;
 
-            /// \brief Parent is a more simplified quotient-space 
+            /// \brief Parent is a more simplified quotient-space
             /// (higher in abstraction hierarchy)
-            Quotient* getParent() const;
-            /// \brief Child is a less simplified quotient-space 
+            Quotient *getParent() const;
+            /// \brief Child is a less simplified quotient-space
             /// (lower in abstraction hierarchy)
-            Quotient* getChild() const;
+            Quotient *getChild() const;
             /// Level in abstraction hierarchy of quotient-spaces
             uint getLevel() const;
             /// Change abstraction level
@@ -139,10 +150,10 @@ namespace ompl
 
             /// \brief Quotient Space Projection Operator onto second component
             /// ProjectX1Subspace: Q0 \times X1 \rightarrow X1
-            void projectX1Subspace( const ob::State* q, ob::State* qX1 ) const;
+            void projectX1Subspace(const ob::State *q, ob::State *qX1) const;
             /// \brief Quotient Space Projection Operator onto first component
             /// ProjectQ0Subspace: Q0 \times X1 \rightarrow Q0
-            void projectQ0Subspace( const ob::State* q, ob::State* qQ0 ) const;
+            void projectQ0Subspace(const ob::State *q, ob::State *qQ0) const;
             /// Merge a state from Q0 and X1 into a state on Q1 (concatenate)
             void mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::State *qQ1) const;
 
@@ -154,11 +165,11 @@ namespace ompl
             /// \brief Write class to stream (use as std::cout << *this << std::endl)
             ///  Actual implementation is in void print(std::ostream& out),
             ///  which can be inherited.
-            friend std::ostream& operator<< (std::ostream& out, const ompl::geometric::Quotient& qtnt);
+            friend std::ostream &operator<<(std::ostream &out, const ompl::geometric::Quotient &qtnt);
 
         protected:
             /// Internal function implementing actual printing to stream
-            virtual void print(std::ostream& out) const;
+            virtual void print(std::ostream &out) const;
 
             ///  \brief Compute the quotient Q1 / Q0 between two given spaces.
             ///  The following cases are currently implemented
@@ -170,7 +181,7 @@ namespace ompl
             ///   (4) Q1 SE3xRn , Q0 SE3             => X1 = Rn
             ///   (5) Q1 SE3xRn , Q0 R3              => X1 = SO3xRn
             ///   (6) Q1 SE3xRn , Q0 SE3xRm [0<m<n ] => X1 = R(n-m)
-            ///  
+            ///
             ///   (7) Q1 SE2xRn , Q0 SE2             => X1 = Rn
             ///   (8) Q1 SE2xRn , Q0 R2              => X1 = SO2xRN
             ///   (9) Q1 SE2xRn , Q0 SE2xRm [0<m<n ] => X1 = R(n-m)
@@ -212,7 +223,6 @@ namespace ompl
 
             uint totalNumberOfSamples_{0};
             uint totalNumberOfFeasibleSamples_{0};
-
         };
     }
 }
