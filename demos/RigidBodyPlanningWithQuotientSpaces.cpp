@@ -44,6 +44,8 @@
 #include <ompl/geometric/planners/quotientspace/MultiQuotient.h>
 #include <ompl/geometric/planners/quotientspace/QRRT.h>
 #include <iostream>
+#include <boost/math/constants/constants.hpp>
+
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
@@ -60,7 +62,7 @@ bool isStateValid_SE2(const ob::State *state)
     double *pos = R2->values;
     double pos_cnstr =
             sqrt((pos[0] - 0.5) * (pos[0] - 0.5) + (pos[1] - 0.5) * (pos[1] - 0.5));
-    return (pos_cnstr > 0.2) && (SO2->value < M_PI / 2.0);
+    return (pos_cnstr > 0.2) && (SO2->value < boost::math::constants::pi<double>() / 2.0);
 }
 
 bool isStateValid_R2(const ob::State *state) 
