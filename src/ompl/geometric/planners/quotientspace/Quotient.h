@@ -200,9 +200,9 @@ namespace ompl
             ob::OptimizationObjectivePtr opt_;
 
             /// A temporary state on Q0
-            base::State *s_Q0_tmp_{nullptr};
+            ob::State *s_Q0_tmp_{nullptr};
             /// A temporary state on X1
-            base::State *s_X1_tmp_{nullptr};
+            ob::State *s_X1_tmp_{nullptr};
 
             QuotientSpaceType type_;
             unsigned int Q1_dimension_{0};

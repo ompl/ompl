@@ -79,8 +79,8 @@ namespace ompl
             virtual ~MultiQuotient() override;
 
             /// Return annotated vertices (with information about level)
-            void getPlannerData(base::PlannerData &data) const override;
-            ob::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
+            void getPlannerData(ob::PlannerData &data) const override;
+            ob::PlannerStatus solve(const ob::PlannerTerminationCondition &ptc) override;
             void setup() override;
             void clear() override;
             void setProblemDefinition(const ob::ProblemDefinitionPtr &pdef) override;
@@ -94,7 +94,7 @@ namespace ompl
             void setStopLevel(unsigned int level_);
 
         protected:
-            std::vector<base::PathPtr> solutions_;
+            std::vector<ob::PathPtr> solutions_;
             /// Sequence of quotient-spaces
             std::vector<og::Quotient *> quotientSpaces_;
 

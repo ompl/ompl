@@ -157,7 +157,7 @@ void MultiQuotient<T>::clear()
 }
 
 template <class T>
-ob::PlannerStatus MultiQuotient<T>::solve(const base::PlannerTerminationCondition &ptc)
+ob::PlannerStatus MultiQuotient<T>::solve(const ob::PlannerTerminationCondition &ptc)
 {
     ompl::time::point t_start = ompl::time::now();
 
@@ -168,7 +168,7 @@ ob::PlannerStatus MultiQuotient<T>::solve(const base::PlannerTerminationConditio
         if (priorityQueue_.size() <= currentQuotientLevel_)
             priorityQueue_.push(quotientSpaces_.at(k));
 
-        base::PlannerTerminationCondition ptcOrSolutionFound([this, &ptc] { return ptc || foundKLevelSolution_; });
+        ob::PlannerTerminationCondition ptcOrSolutionFound([this, &ptc] { return ptc || foundKLevelSolution_; });
 
         while (!ptcOrSolutionFound())
         {
@@ -179,7 +179,7 @@ ob::PlannerStatus MultiQuotient<T>::solve(const base::PlannerTerminationConditio
             bool hasSolution = quotientSpaces_.at(k)->hasSolution();
             if (hasSolution)
             {
-                base::PathPtr sol_k;
+                ob::PathPtr sol_k;
                 quotientSpaces_.at(k)->getSolution(sol_k);
                 solutions_.push_back(sol_k);
                 if (DEBUG)
@@ -193,7 +193,7 @@ ob::PlannerStatus MultiQuotient<T>::solve(const base::PlannerTerminationConditio
                 currentQuotientLevel_ = k + 1;
 
                 // add solution to pdef
-                base::PlannerSolution psol(sol_k);
+                ob::PlannerSolution psol(sol_k);
                 std::string lvl_name = getName() + " LvL" + std::to_string(k);
                 psol.setPlannerName(lvl_name);
                 pdefVec_.at(k)->addSolutionPath(psol);
@@ -222,10 +222,10 @@ ob::PlannerStatus MultiQuotient<T>::solve(const base::PlannerTerminationConditio
         std::cout << std::string(80, '#') << std::endl;
     }
 
-    base::PathPtr sol;
+    ob::PathPtr sol;
     if (quotientSpaces_.at(currentQuotientLevel_ - 1)->getSolution(sol))
     {
-        base::PlannerSolution psol(sol);
+        ob::PlannerSolution psol(sol);
         psol.setPlannerName(getName());
         pdef_->addSolutionPath(psol);
     }

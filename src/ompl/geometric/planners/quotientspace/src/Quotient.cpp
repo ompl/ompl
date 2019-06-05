@@ -366,10 +366,10 @@ Quotient::QuotientSpaceType Quotient::identifyQuotientSpaceType(const StateSpace
         ///##############################################################################/
         //
         //------------------ (1) Q1 = Rn, Q0 = Rm, 0<m<n, X1 = R(n-m)
-        if (Q1->getType() == base::STATE_SPACE_REAL_VECTOR)
+        if (Q1->getType() == ob::STATE_SPACE_REAL_VECTOR)
         {
             unsigned int n = Q1->getDimension();
-            if (Q0->getType() == base::STATE_SPACE_REAL_VECTOR)
+            if (Q0->getType() == ob::STATE_SPACE_REAL_VECTOR)
             {
                 unsigned int m = Q0->getDimension();
                 if (n > m && m > 0)
@@ -411,9 +411,9 @@ Quotient::QuotientSpaceType Quotient::identifyQuotientSpaceType(const StateSpace
         //
         //------------------ (2) Q1 = SE2, Q0 = R2, X1 = SO2
         ///##############################################################################/
-        if (Q1->getType() == base::STATE_SPACE_SE2)
+        if (Q1->getType() == ob::STATE_SPACE_SE2)
         {
-            if (Q0->getType() == base::STATE_SPACE_REAL_VECTOR)
+            if (Q0->getType() == ob::STATE_SPACE_REAL_VECTOR)
             {
                 if (Q0->getDimension() == 2)
                 {
@@ -434,9 +434,9 @@ Quotient::QuotientSpaceType Quotient::identifyQuotientSpaceType(const StateSpace
         }
         //------------------ (3) Q1 = SE3, Q0 = R3, X1 = SO3
         ///##############################################################################/
-        else if (Q1->getType() == base::STATE_SPACE_SE3)
+        else if (Q1->getType() == ob::STATE_SPACE_SE3)
         {
-            if (Q0->getType() == base::STATE_SPACE_REAL_VECTOR)
+            if (Q0->getType() == ob::STATE_SPACE_REAL_VECTOR)
             {
                 if (Q0->getDimension() == 3)
                 {
@@ -464,17 +464,17 @@ Quotient::QuotientSpaceType Quotient::identifyQuotientSpaceType(const StateSpace
             unsigned int Q1_subspaces = Q1_decomposed.size();
             if (Q1_subspaces == 2)
             {
-                if (Q1_decomposed.at(0)->getType() == base::STATE_SPACE_SE3 &&
-                    Q1_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
+                if (Q1_decomposed.at(0)->getType() == ob::STATE_SPACE_SE3 &&
+                    Q1_decomposed.at(1)->getType() == ob::STATE_SPACE_REAL_VECTOR)
                 {
                     unsigned int n = Q1_decomposed.at(1)->getDimension();
-                    if (Q0->getType() == base::STATE_SPACE_SE3)
+                    if (Q0->getType() == ob::STATE_SPACE_SE3)
                     {
                         //------------------ (4) Q1 = SE3xRn, Q0 = SE3, X1 = Rn
                         ///##############################################################################/
                         type_ = SE3RN_SE3;
                     }
-                    else if (Q0->getType() == base::STATE_SPACE_REAL_VECTOR)
+                    else if (Q0->getType() == ob::STATE_SPACE_REAL_VECTOR)
                     {
                         //------------------ (5) Q1 = SE3xRn, Q0 = R3, X1 = SO3xRN
                         ///##############################################################################/
@@ -499,8 +499,8 @@ Quotient::QuotientSpaceType Quotient::identifyQuotientSpaceType(const StateSpace
                         unsigned int Q0_subspaces = Q0_decomposed.size();
                         if (Q0_subspaces == 2)
                         {
-                            if (Q1_decomposed.at(0)->getType() == base::STATE_SPACE_SE3 &&
-                                Q1_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
+                            if (Q1_decomposed.at(0)->getType() == ob::STATE_SPACE_SE3 &&
+                                Q1_decomposed.at(1)->getType() == ob::STATE_SPACE_REAL_VECTOR)
                             {
                                 unsigned int m = Q0_decomposed.at(1)->getDimension();
                                 if (m < n && m > 0)
@@ -524,17 +524,17 @@ Quotient::QuotientSpaceType Quotient::identifyQuotientSpaceType(const StateSpace
                 }
                 else
                 {
-                    if (Q1_decomposed.at(0)->getType() == base::STATE_SPACE_SE2 &&
-                        Q1_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
+                    if (Q1_decomposed.at(0)->getType() == ob::STATE_SPACE_SE2 &&
+                        Q1_decomposed.at(1)->getType() == ob::STATE_SPACE_REAL_VECTOR)
                     {
                         unsigned int n = Q1_decomposed.at(1)->getDimension();
-                        if (Q0->getType() == base::STATE_SPACE_SE2)
+                        if (Q0->getType() == ob::STATE_SPACE_SE2)
                         {
                             //------------------ (7) Q1 = SE2xRn, Q0 = SE2, X1 = Rn
                             ///##############################################################################/
                             type_ = SE2RN_SE2;
                         }
-                        else if (Q0->getType() == base::STATE_SPACE_REAL_VECTOR)
+                        else if (Q0->getType() == ob::STATE_SPACE_REAL_VECTOR)
                         {
                             //------------------ (8) Q1 = SE2xRn, Q0 = R2, X1 = SO2xRN
                             ///##############################################################################/
@@ -559,8 +559,8 @@ Quotient::QuotientSpaceType Quotient::identifyQuotientSpaceType(const StateSpace
                             unsigned int Q0_subspaces = Q0_decomposed.size();
                             if (Q0_subspaces == 2)
                             {
-                                if (Q1_decomposed.at(0)->getType() == base::STATE_SPACE_SE2 &&
-                                    Q1_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
+                                if (Q1_decomposed.at(0)->getType() == ob::STATE_SPACE_SE2 &&
+                                    Q1_decomposed.at(1)->getType() == ob::STATE_SPACE_REAL_VECTOR)
                                 {
                                     unsigned int m = Q0_decomposed.at(1)->getDimension();
                                     if (m < n && m > 0)

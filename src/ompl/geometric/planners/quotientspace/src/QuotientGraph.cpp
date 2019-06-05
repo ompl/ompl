@@ -86,7 +86,7 @@ void QuotientGraph::setup()
         }
         else
         {
-            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
+            opt_ = std::make_shared<ob::PathLengthOptimizationObjective>(si_);
         }
         firstRun_ = true;
         setup_ = true;
@@ -101,10 +101,10 @@ QuotientGraph::~QuotientGraph()
 {
     clear();
 }
-QuotientGraph::Configuration::Configuration(const base::SpaceInformationPtr &si) : state(si->allocState())
+QuotientGraph::Configuration::Configuration(const ob::SpaceInformationPtr &si) : state(si->allocState())
 {
 }
-QuotientGraph::Configuration::Configuration(const base::SpaceInformationPtr &si, const ob::State *state_)
+QuotientGraph::Configuration::Configuration(const ob::SpaceInformationPtr &si, const ob::State *state_)
   : state(si->cloneState(state_))
 {
 }
