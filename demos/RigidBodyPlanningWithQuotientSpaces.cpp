@@ -53,7 +53,7 @@ namespace og = ompl::geometric;
 bool isStateValid_SE2(const ob::State *state) 
 {
     // disallow going through the middle of the square [0,1]x[0,1]
-    // to make it more interesting (i.e. an R2 path might be invalid)
+    // to make it more interesting (i.e. an initial R2 path might be invalid)
     const auto *SE2state = state->as<ob::SE2StateSpace::StateType>();
     const auto *R2 = SE2state->as<ob::RealVectorStateSpace::StateType>(0);
     const auto *SO2 = SE2state->as<ob::SO2StateSpace::StateType>(1);
