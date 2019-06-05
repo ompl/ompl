@@ -115,13 +115,13 @@ namespace ompl
             const ob::SpaceInformationPtr &getQ0() const;
 
             /// Dimension of space X1
-            uint getX1Dimension() const;
+            unsigned int getX1Dimension() const;
             /// Dimension of space Q1
-            uint getQ1Dimension() const;
+            unsigned int getQ1Dimension() const;
             /// Dimension of space Q0
-            uint getQ0Dimension() const;
+            unsigned int getQ0Dimension() const;
             /// Dimension of space Q1
-            uint getDimension() const;
+            unsigned int getDimension() const;
 
             const ob::StateSamplerPtr &getX1SamplerPtr() const;
             const ob::StateSamplerPtr &getQ1SamplerPtr() const;
@@ -133,9 +133,9 @@ namespace ompl
             /// (lower in abstraction hierarchy)
             Quotient *getChild() const;
             /// Level in abstraction hierarchy of quotient-spaces
-            uint getLevel() const;
+            unsigned int getLevel() const;
             /// Change abstraction level
-            void setLevel(uint);
+            void setLevel(unsigned int);
             /// Type of quotient-space
             QuotientSpaceType getType() const;
             /// Set pointer to less simplified quotient-space (if any)
@@ -144,9 +144,9 @@ namespace ompl
             void setParent(Quotient *parent_);
 
             /// Number of samples drawn on space Q1
-            uint getTotalNumberOfSamples() const;
+            unsigned int getTotalNumberOfSamples() const;
             /// Number of feasible samples drawn on space Q1
-            uint getTotalNumberOfFeasibleSamples() const;
+            unsigned int getTotalNumberOfFeasibleSamples() const;
 
             /// \brief Quotient Space Projection Operator onto second component
             /// ProjectX1Subspace: Q0 \times X1 \rightarrow X1
@@ -205,15 +205,15 @@ namespace ompl
             base::State *s_X1_tmp_{nullptr};
 
             QuotientSpaceType type_;
-            uint Q1_dimension_{0};
-            uint Q0_dimension_{0};
-            uint X1_dimension_{0};
+            unsigned int Q1_dimension_{0};
+            unsigned int Q0_dimension_{0};
+            unsigned int X1_dimension_{0};
 
-            static uint counter_;
+            static unsigned int counter_;
             /// Identity of space (to keep track of number of quotient-spaces created)
-            uint id_{0};
+            unsigned int id_{0};
             /// Level in sequence of quotient-spaces
-            uint level_{0};
+            unsigned int level_{0};
 
             bool hasSolution_{false};
             bool firstRun_{true};
@@ -221,8 +221,8 @@ namespace ompl
             Quotient *parent_{nullptr};
             Quotient *child_{nullptr};
 
-            uint totalNumberOfSamples_{0};
-            uint totalNumberOfFeasibleSamples_{0};
+            unsigned int totalNumberOfSamples_{0};
+            unsigned int totalNumberOfFeasibleSamples_{0};
         };
     }
 }

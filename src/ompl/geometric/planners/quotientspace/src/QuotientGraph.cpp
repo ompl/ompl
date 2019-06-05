@@ -225,11 +225,11 @@ QuotientGraph::Vertex QuotientGraph::addConfiguration(Configuration *q)
     q->index = m;
     return m;
 }
-uint QuotientGraph::getNumberOfVertices() const
+unsigned int QuotientGraph::getNumberOfVertices() const
 {
     return num_vertices(graph_);
 }
-uint QuotientGraph::getNumberOfEdges() const
+unsigned int QuotientGraph::getNumberOfEdges() const
 {
     return num_edges(graph_);
 }
@@ -356,8 +356,8 @@ ob::PathPtr QuotientGraph::getPath(const Vertex &start, const Vertex &goal)
 
 void QuotientGraph::getPlannerData(ob::PlannerData &data) const
 {
-    uint startComponent = 0;
-    uint goalComponent = 1;
+    unsigned int startComponent = 0;
+    unsigned int goalComponent = 1;
 
     PlannerDataVertexAnnotated pstart(graph_[vStart_]->state, startComponent);
     data.addStartVertex(pstart);
@@ -368,7 +368,7 @@ void QuotientGraph::getPlannerData(ob::PlannerData &data) const
         data.addGoalVertex(pgoal);
     }
 
-    uint ctr = 0;
+    unsigned int ctr = 0;
     foreach (const Edge e, boost::edges(graph_))
     {
         const Vertex v1 = boost::source(e, graph_);
@@ -377,14 +377,14 @@ void QuotientGraph::getPlannerData(ob::PlannerData &data) const
         PlannerDataVertexAnnotated p1(graph_[v1]->state);
         PlannerDataVertexAnnotated p2(graph_[v2]->state);
 
-        uint vi1 = data.addVertex(p1);
-        uint vi2 = data.addVertex(p2);
+        unsigned int vi1 = data.addVertex(p1);
+        unsigned int vi2 = data.addVertex(p2);
         data.addEdge(p1, p2);
 
         ctr++;
 
-        uint v1Component = const_cast<QuotientGraph *>(this)->disjointSets_.find_set(v1);
-        uint v2Component = const_cast<QuotientGraph *>(this)->disjointSets_.find_set(v2);
+        unsigned int v1Component = const_cast<QuotientGraph *>(this)->disjointSets_.find_set(v1);
+        unsigned int v2Component = const_cast<QuotientGraph *>(this)->disjointSets_.find_set(v2);
         PlannerDataVertexAnnotated &v1a = *static_cast<PlannerDataVertexAnnotated *>(&data.getVertex(vi1));
         PlannerDataVertexAnnotated &v2a = *static_cast<PlannerDataVertexAnnotated *>(&data.getVertex(vi2));
 

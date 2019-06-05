@@ -58,31 +58,31 @@ ob::PlannerDataVertex *PlannerDataVertexAnnotated::clone() const
 }
 
 //##############################################################################
-void PlannerDataVertexAnnotated::setComponent(uint component)
+void PlannerDataVertexAnnotated::setComponent(unsigned int component)
 {
     component_ = component;
 }
-uint PlannerDataVertexAnnotated::getComponent() const
+unsigned int PlannerDataVertexAnnotated::getComponent() const
 {
     return component_;
 }
 
 //##############################################################################
-void PlannerDataVertexAnnotated::setLevel(uint level)
+void PlannerDataVertexAnnotated::setLevel(unsigned int level)
 {
     level_ = level;
 }
-uint PlannerDataVertexAnnotated::getLevel() const
+unsigned int PlannerDataVertexAnnotated::getLevel() const
 {
     return level_;
 }
 
 //##############################################################################
-void PlannerDataVertexAnnotated::setMaxLevel(uint level)
+void PlannerDataVertexAnnotated::setMaxLevel(unsigned int level)
 {
     maxLevel_ = level;
 }
-uint PlannerDataVertexAnnotated::getMaxLevel() const
+unsigned int PlannerDataVertexAnnotated::getMaxLevel() const
 {
     return maxLevel_;
 }

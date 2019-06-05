@@ -66,14 +66,14 @@ namespace ompl
             PlannerDataVertexAnnotated(const PlannerDataVertexAnnotated &rhs);
             virtual PlannerDataVertex *clone() const override;
 
-            void setLevel(uint level_);
-            uint getLevel() const;
+            void setLevel(unsigned int level_);
+            unsigned int getLevel() const;
 
-            void setMaxLevel(uint level_);
-            uint getMaxLevel() const;
+            void setMaxLevel(unsigned int level_);
+            unsigned int getMaxLevel() const;
 
-            void setComponent(uint component_);
-            uint getComponent() const;
+            void setComponent(unsigned int component_);
+            unsigned int getComponent() const;
 
             void setState(ob::State *s);
             void setQuotientState(const ob::State *s);
@@ -90,10 +90,10 @@ namespace ompl
 
         protected:
             bool infeasible_{false};
-            uint level_{0};
-            uint maxLevel_{1};
+            unsigned int level_{0};
+            unsigned int maxLevel_{1};
 
-            uint component_{0};
+            unsigned int component_{0};
             const ob::State *stateQuotientSpace_{nullptr};
         };
 

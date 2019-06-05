@@ -143,7 +143,7 @@ int main(int argc, const char **argv)
           std::static_pointer_cast<MultiQuotient>(planner)->getFeasibleNodes();
 
         std::cout << std::string(80, '-') << std::endl;
-        for(uint k = 0; k < nodes.size(); k++)
+        for(unsigned int k = 0; k < nodes.size(); k++)
         {
             std::cout << "QuotientSpace" << k << " has " << nodes.at(k) << " nodes." << std::endl;
         }

@@ -45,7 +45,7 @@
 using namespace ompl::geometric;
 using namespace ompl::base;
 
-const uint verbose{0};
+const unsigned int verbose{0};
 
 Quotient::Quotient(const ob::SpaceInformationPtr &si, Quotient *parent_)
   : ob::Planner(si, "QuotientSpace"), Q1(si), parent_(parent_)
@@ -186,7 +186,7 @@ ob::PlannerStatus Quotient::solve(const ob::PlannerTerminationCondition &ptc)
     exit(1);
 }
 
-uint Quotient::counter_ = 0;
+unsigned int Quotient::counter_ = 0;
 void Quotient::resetCounter()
 {
     Quotient::counter_ = 0;
@@ -216,7 +216,7 @@ const StateSpacePtr Quotient::computeQuotientSpace(const StateSpacePtr Q1, const
         }
         case RN_RM:
         {
-            uint N = Q1_dimension_ - Q0_dimension_;
+            unsigned int N = Q1_dimension_ - Q0_dimension_;
             X1 = std::make_shared<ob::RealVectorStateSpace>(N);
             X1_dimension_ = N;
 
@@ -226,7 +226,7 @@ const StateSpacePtr Quotient::computeQuotientSpace(const StateSpacePtr Q1, const
             std::vector<double> high;
             high.resize(N);
             RealVectorBounds X1_bounds(N);
-            for (uint k = 0; k < N; k++)
+            for (unsigned int k = 0; k < N; k++)
             {
                 X1_bounds.setLow(k, Q1_bounds.low.at(k + Q0_dimension_));
                 X1_bounds.setHigh(k, Q1_bounds.high.at(k + Q0_dimension_));
@@ -269,7 +269,7 @@ const StateSpacePtr Quotient::computeQuotientSpace(const StateSpacePtr Q1, const
                 Q1_decomposed.at(0)->as<ob::CompoundStateSpace>()->getSubspaces();
 
             const ob::RealVectorStateSpace *Q1_RN = Q1_decomposed.at(1)->as<ob::RealVectorStateSpace>();
-            uint N = Q1_RN->getDimension();
+            unsigned int N = Q1_RN->getDimension();
 
             ob::StateSpacePtr SO2(new ob::SO2StateSpace());
             ob::StateSpacePtr RN(new ob::RealVectorStateSpace(N));
@@ -289,7 +289,7 @@ const StateSpacePtr Quotient::computeQuotientSpace(const StateSpacePtr Q1, const
             // const ob::SE3StateSpace *Q1_SE3 = Q1_SE3_decomposed.at(0)->as<ob::SE3StateSpace>();
             // const ob::SO3StateSpace *Q1_SO3 = Q1_SE3_decomposed.at(1)->as<ob::SO3StateSpace>();
             const ob::RealVectorStateSpace *Q1_RN = Q1_decomposed.at(1)->as<ob::RealVectorStateSpace>();
-            uint N = Q1_RN->getDimension();
+            unsigned int N = Q1_RN->getDimension();
 
             ob::StateSpacePtr SO3(new ob::SO3StateSpace());
             ob::StateSpacePtr RN(new ob::RealVectorStateSpace(N));
@@ -307,8 +307,8 @@ const StateSpacePtr Quotient::computeQuotientSpace(const StateSpacePtr Q1, const
             ob::CompoundStateSpace *Q0_compound = Q0->as<ob::CompoundStateSpace>();
             const std::vector<StateSpacePtr> Q0_decomposed = Q0_compound->getSubspaces();
 
-            uint N = Q1_decomposed.at(1)->getDimension();
-            uint M = Q0_decomposed.at(1)->getDimension();
+            unsigned int N = Q1_decomposed.at(1)->getDimension();
+            unsigned int M = Q0_decomposed.at(1)->getDimension();
             X1_dimension_ = N - M;
             X1 = std::make_shared<ob::RealVectorStateSpace>(X1_dimension_);
 
@@ -319,7 +319,7 @@ const StateSpacePtr Quotient::computeQuotientSpace(const StateSpacePtr Q1, const
             std::vector<double> high;
             high.resize(X1_dimension_);
             RealVectorBounds X1_bounds(X1_dimension_);
-            for (uint k = 0; k < X1_dimension_; k++)
+            for (unsigned int k = 0; k < X1_dimension_; k++)
             {
                 X1_bounds.setLow(k, Q1_bounds.low.at(k + M));
                 X1_bounds.setHigh(k, Q1_bounds.high.at(k + M));
@@ -368,10 +368,10 @@ Quotient::QuotientSpaceType Quotient::identifyQuotientSpaceType(const StateSpace
         //------------------ (1) Q1 = Rn, Q0 = Rm, 0<m<n, X1 = R(n-m)
         if (Q1->getType() == base::STATE_SPACE_REAL_VECTOR)
         {
-            uint n = Q1->getDimension();
+            unsigned int n = Q1->getDimension();
             if (Q0->getType() == base::STATE_SPACE_REAL_VECTOR)
             {
-                uint m = Q0->getDimension();
+                unsigned int m = Q0->getDimension();
                 if (n > m && m > 0)
                 {
                     type_ = RN_RM;
@@ -461,13 +461,13 @@ Quotient::QuotientSpaceType Quotient::identifyQuotientSpaceType(const StateSpace
         {
             ob::CompoundStateSpace *Q1_compound = Q1->as<ob::CompoundStateSpace>();
             const std::vector<StateSpacePtr> Q1_decomposed = Q1_compound->getSubspaces();
-            uint Q1_subspaces = Q1_decomposed.size();
+            unsigned int Q1_subspaces = Q1_decomposed.size();
             if (Q1_subspaces == 2)
             {
                 if (Q1_decomposed.at(0)->getType() == base::STATE_SPACE_SE3 &&
                     Q1_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
                 {
-                    uint n = Q1_decomposed.at(1)->getDimension();
+                    unsigned int n = Q1_decomposed.at(1)->getDimension();
                     if (Q0->getType() == base::STATE_SPACE_SE3)
                     {
                         //------------------ (4) Q1 = SE3xRn, Q0 = SE3, X1 = Rn
@@ -478,7 +478,7 @@ Quotient::QuotientSpaceType Quotient::identifyQuotientSpaceType(const StateSpace
                     {
                         //------------------ (5) Q1 = SE3xRn, Q0 = R3, X1 = SO3xRN
                         ///##############################################################################/
-                        uint m = Q0->getDimension();
+                        unsigned int m = Q0->getDimension();
                         if (m == 3)
                         {
                             type_ = SE3RN_R3;
@@ -496,13 +496,13 @@ Quotient::QuotientSpaceType Quotient::identifyQuotientSpaceType(const StateSpace
                         ///##############################################################################/
                         ob::CompoundStateSpace *Q0_compound = Q0->as<ob::CompoundStateSpace>();
                         const std::vector<StateSpacePtr> Q0_decomposed = Q0_compound->getSubspaces();
-                        uint Q0_subspaces = Q0_decomposed.size();
+                        unsigned int Q0_subspaces = Q0_decomposed.size();
                         if (Q0_subspaces == 2)
                         {
                             if (Q1_decomposed.at(0)->getType() == base::STATE_SPACE_SE3 &&
                                 Q1_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
                             {
-                                uint m = Q0_decomposed.at(1)->getDimension();
+                                unsigned int m = Q0_decomposed.at(1)->getDimension();
                                 if (m < n && m > 0)
                                 {
                                     type_ = SE3RN_SE3RM;
@@ -527,7 +527,7 @@ Quotient::QuotientSpaceType Quotient::identifyQuotientSpaceType(const StateSpace
                     if (Q1_decomposed.at(0)->getType() == base::STATE_SPACE_SE2 &&
                         Q1_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
                     {
-                        uint n = Q1_decomposed.at(1)->getDimension();
+                        unsigned int n = Q1_decomposed.at(1)->getDimension();
                         if (Q0->getType() == base::STATE_SPACE_SE2)
                         {
                             //------------------ (7) Q1 = SE2xRn, Q0 = SE2, X1 = Rn
@@ -538,7 +538,7 @@ Quotient::QuotientSpaceType Quotient::identifyQuotientSpaceType(const StateSpace
                         {
                             //------------------ (8) Q1 = SE2xRn, Q0 = R2, X1 = SO2xRN
                             ///##############################################################################/
-                            uint m = Q0->getDimension();
+                            unsigned int m = Q0->getDimension();
                             if (m == 2)
                             {
                                 type_ = SE2RN_R2;
@@ -556,13 +556,13 @@ Quotient::QuotientSpaceType Quotient::identifyQuotientSpaceType(const StateSpace
                             ///##############################################################################/
                             ob::CompoundStateSpace *Q0_compound = Q0->as<ob::CompoundStateSpace>();
                             const std::vector<StateSpacePtr> Q0_decomposed = Q0_compound->getSubspaces();
-                            uint Q0_subspaces = Q0_decomposed.size();
+                            unsigned int Q0_subspaces = Q0_decomposed.size();
                             if (Q0_subspaces == 2)
                             {
                                 if (Q1_decomposed.at(0)->getType() == base::STATE_SPACE_SE2 &&
                                     Q1_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
                                 {
-                                    uint m = Q0_decomposed.at(1)->getDimension();
+                                    unsigned int m = Q0_decomposed.at(1)->getDimension();
                                     if (m < n && m > 0)
                                     {
                                         type_ = SE2RN_SE2RM;
@@ -622,11 +622,11 @@ void Quotient::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::State
             const ob::RealVectorStateSpace::StateType *sQ0 = qQ0->as<RealVectorStateSpace::StateType>();
             const ob::RealVectorStateSpace::StateType *sX1 = qX1->as<RealVectorStateSpace::StateType>();
 
-            for (uint k = 0; k < Q0_dimension_; k++)
+            for (unsigned int k = 0; k < Q0_dimension_; k++)
             {
                 sQ1->values[k] = sQ0->values[k];
             }
-            for (uint k = Q0_dimension_; k < Q1_dimension_; k++)
+            for (unsigned int k = Q0_dimension_; k < Q1_dimension_; k++)
             {
                 sQ1->values[k] = sX1->values[k - Q0_dimension_];
             }
@@ -679,7 +679,7 @@ void Quotient::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::State
             sQ1_SO3->z = sX1_SO3->z;
             sQ1_SO3->w = sX1_SO3->w;
 
-            for (uint k = 0; k < X1_dimension_ - 3; k++)
+            for (unsigned int k = 0; k < X1_dimension_ - 3; k++)
             {
                 sQ1_RN->values[k] = sX1_RN->values[k];
             }
@@ -699,7 +699,7 @@ void Quotient::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::State
             sQ1_SE2->setY(sQ0->getY());
             sQ1_SE2->setYaw(sQ0->getYaw());
 
-            for (uint k = 0; k < X1_dimension_; k++)
+            for (unsigned int k = 0; k < X1_dimension_; k++)
             {
                 sQ1_RN->values[k] = sX1->values[k];
             }
@@ -721,7 +721,7 @@ void Quotient::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::State
             sQ1_SE2->setY(sQ0->values[1]);
             sQ1_SE2->setYaw(sX1_SO2->value);
 
-            for (uint k = 0; k < X1_dimension_ - 1; k++)
+            for (unsigned int k = 0; k < X1_dimension_ - 1; k++)
             {
                 sQ1_RN->values[k] = sX1_RN->values[k];
             }
@@ -745,14 +745,14 @@ void Quotient::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::State
 
             //[X Y YAW] [1...M-1][M...N-1]
             // SE2               RN
-            uint M = Q1_dimension_ - X1_dimension_ - 3;
-            uint N = X1_dimension_;
+            unsigned int M = Q1_dimension_ - X1_dimension_ - 3;
+            unsigned int N = X1_dimension_;
 
-            for (uint k = 0; k < M; k++)
+            for (unsigned int k = 0; k < M; k++)
             {
                 sQ1_RN->values[k] = sQ0_RM->values[k];
             }
-            for (uint k = M; k < M + N; k++)
+            for (unsigned int k = M; k < M + N; k++)
             {
                 sQ1_RN->values[k] = sX1->values[k - M];
             }
@@ -775,7 +775,7 @@ void Quotient::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::State
             sQ1_SE3_rotation->z = sQ0_rotation->z;
             sQ1_SE3_rotation->w = sQ0_rotation->w;
 
-            for (uint k = 0; k < X1_dimension_; k++)
+            for (unsigned int k = 0; k < X1_dimension_; k++)
             {
                 sQ1_RN->values[k] = sX1->values[k];
             }
@@ -804,14 +804,14 @@ void Quotient::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::State
 
             //[X Y Z YAW PITCH ROLL] [1...M-1][M...N-1]
             // SE3                                        RN
-            uint M = Q1_dimension_ - X1_dimension_ - 6;
-            uint N = X1_dimension_;
+            unsigned int M = Q1_dimension_ - X1_dimension_ - 6;
+            unsigned int N = X1_dimension_;
 
-            for (uint k = 0; k < M; k++)
+            for (unsigned int k = 0; k < M; k++)
             {
                 sQ1_RN->values[k] = sQ0_RM->values[k];
             }
-            for (uint k = M; k < M + N; k++)
+            for (unsigned int k = M; k < M + N; k++)
             {
                 sQ1_RN->values[k] = sX1->values[k - M];
             }
@@ -834,7 +834,7 @@ void Quotient::projectX1Subspace(const ob::State *q, ob::State *qX1) const
             const ob::RealVectorStateSpace::StateType *sQ1 = q->as<RealVectorStateSpace::StateType>();
             ob::RealVectorStateSpace::StateType *sX1 = qX1->as<RealVectorStateSpace::StateType>();
 
-            for (uint k = Q0_dimension_; k < Q1_dimension_; k++)
+            for (unsigned int k = Q0_dimension_; k < Q1_dimension_; k++)
             {
                 sX1->values[k - Q0_dimension_] = sQ1->values[k];
             }
@@ -876,7 +876,7 @@ void Quotient::projectX1Subspace(const ob::State *q, ob::State *qX1) const
             sX1_SO3->y = sQ1_SO3->y;
             sX1_SO3->z = sQ1_SO3->z;
             sX1_SO3->w = sQ1_SO3->w;
-            for (uint k = 0; k < X1_dimension_ - 3; k++)
+            for (unsigned int k = 0; k < X1_dimension_ - 3; k++)
             {
                 sX1_RN->values[k] = sQ1_RN->values[k];
             }
@@ -894,7 +894,7 @@ void Quotient::projectX1Subspace(const ob::State *q, ob::State *qX1) const
                 qX1->as<ob::CompoundState>()->as<RealVectorStateSpace::StateType>(1);
 
             sX1_SO2->value = sQ1_SE2->getYaw();
-            for (uint k = 0; k < X1_dimension_ - 1; k++)
+            for (unsigned int k = 0; k < X1_dimension_ - 1; k++)
             {
                 sX1_RN->values[k] = sQ1_RN->values[k];
             }
@@ -907,8 +907,8 @@ void Quotient::projectX1Subspace(const ob::State *q, ob::State *qX1) const
 
             const ob::RealVectorStateSpace::StateType *sX1 = qX1->as<RealVectorStateSpace::StateType>();
 
-            uint N = Q1_dimension_ - X1_dimension_ - 3;
-            for (uint k = N; k < Q1_dimension_ - 3; k++)
+            unsigned int N = Q1_dimension_ - X1_dimension_ - 3;
+            for (unsigned int k = N; k < Q1_dimension_ - 3; k++)
             {
                 sX1->values[k - N] = sQ1_RN->values[k];
             }
@@ -921,7 +921,7 @@ void Quotient::projectX1Subspace(const ob::State *q, ob::State *qX1) const
                 q->as<ob::CompoundState>()->as<RealVectorStateSpace::StateType>(1);
             ob::RealVectorStateSpace::StateType *sX1 = qX1->as<RealVectorStateSpace::StateType>();
 
-            for (uint k = 0; k < X1_dimension_; k++)
+            for (unsigned int k = 0; k < X1_dimension_; k++)
             {
                 sX1->values[k] = sQ1_RN->values[k];
             }
@@ -935,8 +935,8 @@ void Quotient::projectX1Subspace(const ob::State *q, ob::State *qX1) const
 
             const ob::RealVectorStateSpace::StateType *sX1 = qX1->as<RealVectorStateSpace::StateType>();
 
-            uint N = Q1_dimension_ - X1_dimension_ - 6;
-            for (uint k = N; k < Q1_dimension_ - 6; k++)
+            unsigned int N = Q1_dimension_ - X1_dimension_ - 6;
+            for (unsigned int k = N; k < Q1_dimension_ - 6; k++)
             {
                 sX1->values[k - N] = sQ1_RN->values[k];
             }
@@ -966,7 +966,7 @@ void Quotient::projectQ0Subspace(const ob::State *q, ob::State *qQ0) const
             const ob::RealVectorStateSpace::StateType *sQ1 = q->as<RealVectorStateSpace::StateType>();
             ob::RealVectorStateSpace::StateType *sQ0 = qQ0->as<RealVectorStateSpace::StateType>();
 
-            for (uint k = 0; k < Q0_dimension_; k++)
+            for (unsigned int k = 0; k < Q0_dimension_; k++)
             {
                 sQ0->values[k] = sQ1->values[k];
             }
@@ -1013,7 +1013,7 @@ void Quotient::projectQ0Subspace(const ob::State *q, ob::State *qQ0) const
             sQ0_SE2->setY(sQ1_SE2->getY());
             sQ0_SE2->setYaw(sQ1_SE2->getYaw());
 
-            for (uint k = 0; k < Q0_dimension_ - 3; k++)
+            for (unsigned int k = 0; k < Q0_dimension_ - 3; k++)
             {
                 sQ0_RN->values[k] = sQ1_RN->values[k];
             }
@@ -1075,7 +1075,7 @@ void Quotient::projectQ0Subspace(const ob::State *q, ob::State *qQ0) const
             sQ0_rotation->z = sQ1_SE3_rotation->z;
             sQ0_rotation->w = sQ1_SE3_rotation->w;
 
-            for (uint k = 0; k < Q0_dimension_ - 6; k++)
+            for (unsigned int k = 0; k < Q0_dimension_ - 6; k++)
             {
                 sQ0_RN->values[k] = sQ1_RN->values[k];
             }
@@ -1102,19 +1102,19 @@ const ob::SpaceInformationPtr &Quotient::getQ0() const
 {
     return Q0;
 }
-uint Quotient::getX1Dimension() const
+unsigned int Quotient::getX1Dimension() const
 {
     return X1_dimension_;
 }
-uint Quotient::getQ1Dimension() const
+unsigned int Quotient::getQ1Dimension() const
 {
     return Q1->getStateDimension();
 }
-uint Quotient::getDimension() const
+unsigned int Quotient::getDimension() const
 {
     return getQ1Dimension();
 }
-uint Quotient::getQ0Dimension() const
+unsigned int Quotient::getQ0Dimension() const
 {
     return Q0_dimension_;
 }
@@ -1136,11 +1136,11 @@ bool Quotient::hasSolution()
     }
     return hasSolution_;
 }
-uint Quotient::getTotalNumberOfSamples() const
+unsigned int Quotient::getTotalNumberOfSamples() const
 {
     return totalNumberOfSamples_;
 }
-uint Quotient::getTotalNumberOfFeasibleSamples() const
+unsigned int Quotient::getTotalNumberOfFeasibleSamples() const
 {
     return totalNumberOfFeasibleSamples_;
 }
@@ -1160,11 +1160,11 @@ void Quotient::setParent(Quotient *parent)
 {
     parent_ = parent;
 }
-uint Quotient::getLevel() const
+unsigned int Quotient::getLevel() const
 {
     return level_;
 }
-void Quotient::setLevel(uint level)
+void Quotient::setLevel(unsigned int level)
 {
     level_ = level;
 }
@@ -1224,7 +1224,7 @@ double Quotient::getImportance() const
 void Quotient::print(std::ostream &out) const
 {
     out << "[QuotientSpace: id" << id_ << " |lvl" << level_ << "] ";
-    uint sublevel = std::max(1U, level_);
+    unsigned int sublevel = std::max(1U, level_);
     if (parent_ == nullptr)
     {
         out << "X" << sublevel << "=Q" << sublevel << ": ";
