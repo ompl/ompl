@@ -42,6 +42,8 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/assert.hpp>
 
+using namespace boost::math::double_constants;
+
 static const double MAX_QUATERNION_NORM_ERROR = 1e-9;
 
 /// @cond IGNORE
@@ -101,7 +103,7 @@ void ompl::base::SO3StateSampler::sampleUniform(State *state)
 
 void ompl::base::SO3StateSampler::sampleUniformNear(State *state, const State *near, const double distance)
 {
-    if (distance >= .25 * boost::math::constants::pi<double>())
+    if (distance >= .25 * pi)
     {
         sampleUniform(state);
         return;
@@ -110,7 +112,7 @@ void ompl::base::SO3StateSampler::sampleUniformNear(State *state, const State *n
     SO3StateSpace::StateType q, *qs = static_cast<SO3StateSpace::StateType *>(state);
     const auto *qnear = static_cast<const SO3StateSpace::StateType *>(near);
     computeAxisAngle(q, rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(),
-                     2. * pow(d, boost::math::constants::third<double>()) * distance);
+                     2. * pow(d, third) * distance);
     quaternionProduct(*qs, *qnear, q);
 }
 
@@ -125,7 +127,7 @@ void ompl::base::SO3StateSampler::sampleGaussian(State *state, const State *mean
     // The 1/sqrt(3) factor is necessary because the distribution in the tangent
     // space is a 3-dimensional Gaussian, so that the *length* of a tangent
     // vector needs to be scaled by 1/sqrt(3).
-    double rotDev = (2. * stdDev) / boost::math::constants::root_three<double>();
+    double rotDev = (2. * stdDev) / root_three;
 
     // CDF of N(0, 1.17) at -pi/4 is approx. .25, so there's .25 probability
     // weight in each tail. Since the maximum distance in SO(3) is pi/2, we're
@@ -163,13 +165,13 @@ unsigned int ompl::base::SO3StateSpace::getDimension() const
 
 double ompl::base::SO3StateSpace::getMaximumExtent() const
 {
-    return .5 * boost::math::constants::pi<double>();
+    return .5 * pi;
 }
 
 double ompl::base::SO3StateSpace::getMeasure() const
 {
     // half of the surface area of a unit 3-sphere
-    return boost::math::constants::pi<double>() * boost::math::constants::pi<double>();
+    return pi * pi;
 }
 
 double ompl::base::SO3StateSpace::norm(const StateType *state) const
@@ -347,9 +349,9 @@ void ompl::base::SO3StateSpace::registerProjections()
         void defaultCellSizes() override
         {
             cellSizes_.resize(3);
-            cellSizes_[0] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;
-            cellSizes_[1] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;
-            cellSizes_[2] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;
+            cellSizes_[0] = pi / magic::PROJECTION_DIMENSION_SPLITS;
+            cellSizes_[1] = pi / magic::PROJECTION_DIMENSION_SPLITS;
+            cellSizes_[2] = pi / magic::PROJECTION_DIMENSION_SPLITS;
             bounds_.resize(3);
             bounds_.setLow(-1.0);
             bounds_.setHigh(1.0);
