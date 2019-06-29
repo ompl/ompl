@@ -37,7 +37,7 @@
 #ifndef OMPL_EXTENSION_OPENDE_STATE_VALIDITY_CHECKER_
 #define OMPL_EXTENSION_OPENDE_STATE_VALIDITY_CHECKER_
 
-#include "ompl/extensions/opende/OpenDEStateSpace.h"
+#include "ompl/extensions/ode/OpenDEStateSpace.h"
 #include "ompl/control/SpaceInformation.h"
 
 namespace ompl

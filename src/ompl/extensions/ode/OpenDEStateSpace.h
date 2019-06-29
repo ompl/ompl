@@ -40,7 +40,7 @@
 #include "ompl/base/StateSpace.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/base/spaces/SO3StateSpace.h"
-#include "ompl/extensions/opende/OpenDEEnvironment.h"
+#include "ompl/extensions/ode/OpenDEEnvironment.h"
 
 namespace ompl
 {

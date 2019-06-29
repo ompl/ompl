@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/extensions/opende/OpenDEEnvironment.h"
+#include "ompl/extensions/ode/OpenDEEnvironment.h"
 
 unsigned int ompl::control::OpenDEEnvironment::getMaxContacts(dGeomID /*geom1*/, dGeomID /*geom2*/) const
 {

@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/extensions/opende/OpenDEStateSpace.h"
+#include "ompl/extensions/ode/OpenDEStateSpace.h"
 #include "ompl/util/Console.h"
 #include <limits>
 #include <queue>

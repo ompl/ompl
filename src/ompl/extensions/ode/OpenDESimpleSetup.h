@@ -38,9 +38,9 @@
 #define OMPL_EXTENSION_OPENDE_SIMPLE_SETUP_
 
 #include "ompl/control/SimpleSetup.h"
-#include "ompl/extensions/opende/OpenDEStateValidityChecker.h"
-#include "ompl/extensions/opende/OpenDEStatePropagator.h"
-#include "ompl/extensions/opende/OpenDEControlSpace.h"
+#include "ompl/extensions/ode/OpenDEStateValidityChecker.h"
+#include "ompl/extensions/ode/OpenDEStatePropagator.h"
+#include "ompl/extensions/ode/OpenDEControlSpace.h"
 
 namespace ompl
 {
