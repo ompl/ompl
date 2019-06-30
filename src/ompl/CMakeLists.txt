@@ -63,7 +63,11 @@ target_link_libraries(ompl
     ${CMAKE_THREAD_LIBS_INIT})
 
 if (OMPL_EXTENSION_ODE)
-    target_link_directories(ompl PUBLIC ${ODE_LIBRARY_DIRS})
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
+        target_link_directories(ompl PUBLIC ${ODE_LIBRARY_DIRS})
+    else()
+        link_directories(ompl ${ODE_LIBRARY_DIRS})
+    endif()
 endif()
 
 if (OMPL_HAVE_SPOT)
