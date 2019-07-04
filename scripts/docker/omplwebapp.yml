@@ -10,7 +10,7 @@ services:
       - OMPL_BACKEND_URL=rpc://broker:5672
       - PYTHONPATH=/usr/share/ompl/webapp
     entrypoint: ["uwsgi", "--ini", "/usr/share/ompl/webapp/wsgi.ini"]
-    ports:diff
+    ports:
       - "5000:5000"
     volumes:
       - benchmark-data:/tmp
