@@ -42,7 +42,7 @@ using namespace og;
 using namespace ob;
 #define foreach BOOST_FOREACH
 
-QRRT::QRRT(const ob::SpaceInformationPtr &si, Quotient *parent_) : BaseT(si, parent_)
+QRRT::QRRT(const ob::SpaceInformationPtr &si, QuotientSpace *parent_) : BaseT(si, parent_)
 {
     setName("QRRT" + std::to_string(id_));
     Planner::declareParam<double>("range", this, &QRRT::setRange, &QRRT::getRange, "0.:1.:10000.");

@@ -34,7 +34,7 @@
 *********************************************************************/
 
 /* Author: Andreas Orthey */
-#include "PlannerdataVertexAnnotated.h"
+#include "PlannerDataVertexAnnotated.h"
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/util/Time.h>
@@ -50,7 +50,7 @@ MultiQuotient<T>::MultiQuotient(std::vector<ob::SpaceInformationPtr> &siVec, std
     T::resetCounter();
     for (uint k = 0; k < siVec_.size(); k++)
     {
-        og::Quotient *parent = nullptr;
+        og::QuotientSpace *parent = nullptr;
         if (k > 0)
             parent = quotientSpaces_.back();
 
@@ -172,7 +172,7 @@ ob::PlannerStatus MultiQuotient<T>::solve(const base::PlannerTerminationConditio
 
         while (!ptcOrSolutionFound())
         {
-            og::Quotient *jQuotient = priorityQueue_.top();
+            og::QuotientSpace *jQuotient = priorityQueue_.top();
             priorityQueue_.pop();
             jQuotient->grow();
 
@@ -293,7 +293,7 @@ void MultiQuotient<T>::getPlannerData(ob::PlannerData &data) const
 
     for (uint k = 0; k < K; k++)
     {
-        og::Quotient *Qk = quotientSpaces_.at(k);
+        og::QuotientSpace *Qk = quotientSpaces_.at(k);
         Qk->getPlannerData(data);
 
         // label all new vertices
@@ -309,7 +309,7 @@ void MultiQuotient<T>::getPlannerData(ob::PlannerData &data) const
 
             for (uint m = k + 1; m < quotientSpaces_.size(); m++)
             {
-                og::Quotient *Qm = quotientSpaces_.at(m);
+                og::QuotientSpace *Qm = quotientSpaces_.at(m);
 
                 if (Qm->getX1() != nullptr)
                 {

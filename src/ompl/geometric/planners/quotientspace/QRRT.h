@@ -37,7 +37,7 @@
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRT_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRT_
-#include "QuotientGraph.h"
+#include "QuotientSpaceGraph.h"
 #include <ompl/datastructures/PDF.h>
 
 namespace ob = ompl::base;
@@ -74,12 +74,12 @@ namespace ompl
         */
 
         /** \brief Rapidly Exploring Quotient-Space Tree Algorithm*/
-        class QRRT : public og::QuotientGraph
+        class QRRT : public og::QuotientSpaceGraph
         {
-            typedef og::QuotientGraph BaseT;
+            typedef og::QuotientSpaceGraph BaseT;
 
         public:
-            QRRT(const ob::SpaceInformationPtr &si, Quotient *parent_);
+            QRRT(const ob::SpaceInformationPtr &si, QuotientSpace *parent_);
             virtual ~QRRT() override;
             /// One iteration of RRT with adjusted sampling function
             virtual void grow() override;

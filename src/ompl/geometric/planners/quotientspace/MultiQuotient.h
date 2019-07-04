@@ -37,7 +37,7 @@
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MULTIQUOTIENT_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MULTIQUOTIENT_
-#include "Quotient.h"
+#include "QuotientSpace.h"
 #include <type_traits>
 #include <queue>
 
@@ -50,7 +50,7 @@ namespace ompl
     {
         /** \brief A sequence of multiple quotient-spaces
              The class MultiQuotient can be used with any planner which inherits
-             the og::Quotient class.
+             the og::QuotientSpace class.
 
              Example usage with QRRT
              (using a sequence si_vec of ob::SpaceInformationPtr)
@@ -60,7 +60,7 @@ namespace ompl
         template <class T>
         class MultiQuotient : public ob::Planner
         {
-            static_assert(std::is_base_of<og::Quotient, T>::value, "Template must inherit from Quotient");
+            static_assert(std::is_base_of<og::QuotientSpace, T>::value, "Template must inherit from Quotient");
 
         public:
             const bool DEBUG{false};
@@ -96,7 +96,7 @@ namespace ompl
         protected:
             std::vector<base::PathPtr> solutions_;
             /// Sequence of quotient-spaces
-            std::vector<og::Quotient *> quotientSpaces_;
+            std::vector<og::QuotientSpace *> quotientSpaces_;
 
             /// Indicator if a solution has been found on the current quotient-spaces
             bool foundKLevelSolution_{false};
@@ -115,14 +115,14 @@ namespace ompl
             {
                 // ">" operator: smallest value is top in queue
                 // "<" operator: largest value is top in queue (default)
-                bool operator()(const Quotient *lhs, const Quotient *rhs) const
+                bool operator()(const QuotientSpace *lhs, const QuotientSpace *rhs) const
                 {
                     return lhs->getImportance() < rhs->getImportance();
                 }
             };
             /// \brief Priority queue of quotient-spaces which keeps track of how often
             /// every tree on each space has been expanded.
-            typedef std::priority_queue<og::Quotient *, std::vector<og::Quotient *>, CmpQuotientSpacePtrs>
+            typedef std::priority_queue<og::QuotientSpace *, std::vector<og::QuotientSpace *>, CmpQuotientSpacePtrs>
                 QuotientSpacePriorityQueue;
             QuotientSpacePriorityQueue priorityQueue_;
         };

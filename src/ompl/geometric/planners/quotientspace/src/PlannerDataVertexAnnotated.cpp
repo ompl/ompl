@@ -34,7 +34,7 @@
 *********************************************************************/
 
 /* Author: Andreas Orthey */
-#include "PlannerdataVertexAnnotated.h"
+#include "PlannerDataVertexAnnotated.h"
 
 using namespace ob;
 using FeasibilityType = PlannerDataVertexAnnotated::FeasibilityType;
