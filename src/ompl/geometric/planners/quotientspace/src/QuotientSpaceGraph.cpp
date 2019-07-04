@@ -86,7 +86,7 @@ void QuotientSpaceGraph::setup()
         }
         else
         {
-            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
+            opt_ = std::make_shared<ob::PathLengthOptimizationObjective>(si_);
         }
         firstRun_ = true;
         setup_ = true;
@@ -356,8 +356,8 @@ ob::PathPtr QuotientSpaceGraph::getPath(const Vertex &start, const Vertex &goal)
 
 void QuotientSpaceGraph::getPlannerData(ob::PlannerData &data) const
 {
-    uint startComponent = 0;
-    uint goalComponent = 1;
+    unsigned int startComponent = 0;
+    unsigned int goalComponent = 1;
 
     PlannerDataVertexAnnotated pstart(graph_[vStart_]->state, startComponent);
     data.addStartVertex(pstart);
@@ -368,7 +368,7 @@ void QuotientSpaceGraph::getPlannerData(ob::PlannerData &data) const
         data.addGoalVertex(pgoal);
     }
 
-    uint ctr = 0;
+    unsigned int ctr = 0;
     foreach (const Edge e, boost::edges(graph_))
     {
         const Vertex v1 = boost::source(e, graph_);
@@ -377,14 +377,14 @@ void QuotientSpaceGraph::getPlannerData(ob::PlannerData &data) const
         PlannerDataVertexAnnotated p1(graph_[v1]->state);
         PlannerDataVertexAnnotated p2(graph_[v2]->state);
 
-        uint vi1 = data.addVertex(p1);
-        uint vi2 = data.addVertex(p2);
+        unsigned int vi1 = data.addVertex(p1);
+        unsigned int vi2 = data.addVertex(p2);
         data.addEdge(p1, p2);
 
         ctr++;
 
-        uint v1Component = const_cast<QuotientSpaceGraph *>(this)->disjointSets_.find_set(v1);
-        uint v2Component = const_cast<QuotientSpaceGraph *>(this)->disjointSets_.find_set(v2);
+        unsigned int v1Component = const_cast<QuotientSpaceGraph *>(this)->disjointSets_.find_set(v1);
+        unsigned int v2Component = const_cast<QuotientSpaceGraph *>(this)->disjointSets_.find_set(v2);
         PlannerDataVertexAnnotated &v1a = *static_cast<PlannerDataVertexAnnotated *>(&data.getVertex(vi1));
         PlannerDataVertexAnnotated &v2a = *static_cast<PlannerDataVertexAnnotated *>(&data.getVertex(vi2));
 

@@ -66,11 +66,7 @@ namespace ompl
              @par External documentation
              A. Orthey and M. Toussaint,
              Rapidly-Exploring Quotient-Space Trees: Motion Planning using Sequential Simplifications,
-             [[PDF]]()
-             A. Orthey and A. Escande and E. Yoshida,
-             Quotient-Space Motion Planning,
-             <em>International Conference on Robotics and Intelligent Systems</em>, 2018
-             [[PDF]](https://arxiv.org/pdf/1807.09468.pdf)
+             [[PDF]](https://arxiv.org/abs/1906.01350)
         */
 
         /** \brief Rapidly Exploring Quotient-Space Tree Algorithm*/

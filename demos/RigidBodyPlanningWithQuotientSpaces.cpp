@@ -44,6 +44,8 @@
 #include <ompl/geometric/planners/quotientspace/MultiQuotient.h>
 #include <ompl/geometric/planners/quotientspace/QRRT.h>
 #include <iostream>
+#include <boost/math/constants/constants.hpp>
+
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
@@ -53,14 +55,14 @@ namespace og = ompl::geometric;
 bool isStateValid_SE2(const ob::State *state) 
 {
     // disallow going through the middle of the square [0,1]x[0,1]
-    // to make it more interesting (i.e. an R2 path might be invalid)
+    // to make it more interesting (i.e. an initial R2 path might be invalid)
     const auto *SE2state = state->as<ob::SE2StateSpace::StateType>();
     const auto *R2 = SE2state->as<ob::RealVectorStateSpace::StateType>(0);
     const auto *SO2 = SE2state->as<ob::SO2StateSpace::StateType>(1);
     double *pos = R2->values;
     double pos_cnstr =
             sqrt((pos[0] - 0.5) * (pos[0] - 0.5) + (pos[1] - 0.5) * (pos[1] - 0.5));
-    return (pos_cnstr > 0.2) && (SO2->value < M_PI / 2.0);
+    return (pos_cnstr > 0.2) && (SO2->value < boost::math::constants::pi<double>() / 2.0);
 }
 
 bool isStateValid_R2(const ob::State *state) 
@@ -143,7 +145,7 @@ int main(int argc, const char **argv)
           std::static_pointer_cast<MultiQuotient>(planner)->getFeasibleNodes();
 
         std::cout << std::string(80, '-') << std::endl;
-        for(uint k = 0; k < nodes.size(); k++)
+        for(unsigned int k = 0; k < nodes.size(); k++)
         {
             std::cout << "QuotientSpace" << k << " has " << nodes.at(k) << " nodes." << std::endl;
         }

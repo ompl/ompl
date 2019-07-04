@@ -82,8 +82,8 @@ namespace ompl
                 Configuration(const ob::SpaceInformationPtr &si);
                 Configuration(const ob::SpaceInformationPtr &si, const ob::State *state_);
                 ob::State *state{nullptr};
-                uint total_connection_attempts{0};
-                uint successful_connection_attempts{0};
+                unsigned int total_connection_attempts{0};
+                unsigned int successful_connection_attempts{0};
                 bool on_shortest_path{false};
 
                 /// \brief Element of Probability Density Function (needed to update
@@ -163,8 +163,8 @@ namespace ompl
             QuotientSpaceGraph(const ob::SpaceInformationPtr &si, QuotientSpace *parent = nullptr);
             ~QuotientSpaceGraph();
 
-            virtual uint getNumberOfVertices() const;
-            virtual uint getNumberOfEdges() const;
+            virtual unsigned int getNumberOfVertices() const;
+            virtual unsigned int getNumberOfEdges() const;
 
             virtual void grow() = 0;
             virtual bool sampleQuotient(ob::State *) override;

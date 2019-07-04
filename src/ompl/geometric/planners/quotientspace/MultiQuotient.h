@@ -79,8 +79,8 @@ namespace ompl
             virtual ~MultiQuotient() override;
 
             /// Return annotated vertices (with information about level)
-            void getPlannerData(base::PlannerData &data) const override;
-            ob::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
+            void getPlannerData(ob::PlannerData &data) const override;
+            ob::PlannerStatus solve(const ob::PlannerTerminationCondition &ptc) override;
             void setup() override;
             void clear() override;
             void setProblemDefinition(const ob::ProblemDefinitionPtr &pdef) override;
@@ -91,21 +91,21 @@ namespace ompl
             std::vector<int> getNodes() const;
             /// Get all dimensions of the quotient-spaces in the sequence
             std::vector<int> getDimensionsPerLevel() const;
-            void setStopLevel(uint level_);
+            void setStopLevel(unsigned int level_);
 
         protected:
-            std::vector<base::PathPtr> solutions_;
+            std::vector<ob::PathPtr> solutions_;
             /// Sequence of quotient-spaces
             std::vector<og::QuotientSpace *> quotientSpaces_;
 
             /// Indicator if a solution has been found on the current quotient-spaces
             bool foundKLevelSolution_{false};
             /// Current level on which we have not yet found a path
-            uint currentQuotientLevel_{0};
+            unsigned int currentQuotientLevel_{0};
             /// \brief Sometimes we only want to plan until a certain quotient-space
             /// level (for debugging for example). This variable sets the stopping
             /// level.
-            uint stopAtLevel_;
+            unsigned int stopAtLevel_;
 
             std::vector<ob::SpaceInformationPtr> siVec_;
             std::vector<ob::ProblemDefinitionPtr> pdefVec_;
