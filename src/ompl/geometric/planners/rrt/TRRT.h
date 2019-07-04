@@ -167,6 +167,7 @@ namespace ompl
             void setInitTemperature(double initTemperature)
             {
                 initTemperature_ = initTemperature;
+                temp_ = initTemperature_;
             }
 
             /** \brief Get the temperature at the start of planning. */
