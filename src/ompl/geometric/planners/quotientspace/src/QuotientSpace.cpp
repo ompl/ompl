@@ -186,7 +186,7 @@ ob::PlannerStatus QuotientSpace::solve(const ob::PlannerTerminationCondition &pt
     exit(1);
 }
 
-uint QuotientSpace::counter_ = 0;
+unsigned int QuotientSpace::counter_ = 0;
 void QuotientSpace::resetCounter()
 {
     QuotientSpace::counter_ = 0;
@@ -1102,19 +1102,19 @@ const ob::SpaceInformationPtr &QuotientSpace::getQ0() const
 {
     return Q0;
 }
-uint QuotientSpace::getX1Dimension() const
+unsigned int QuotientSpace::getX1Dimension() const
 {
     return X1_dimension_;
 }
-uint QuotientSpace::getQ1Dimension() const
+unsigned int QuotientSpace::getQ1Dimension() const
 {
     return Q1->getStateDimension();
 }
-uint QuotientSpace::getDimension() const
+unsigned int QuotientSpace::getDimension() const
 {
     return getQ1Dimension();
 }
-uint QuotientSpace::getQ0Dimension() const
+unsigned int QuotientSpace::getQ0Dimension() const
 {
     return Q0_dimension_;
 }
@@ -1136,11 +1136,11 @@ bool QuotientSpace::hasSolution()
     }
     return hasSolution_;
 }
-uint QuotientSpace::getTotalNumberOfSamples() const
+unsigned int QuotientSpace::getTotalNumberOfSamples() const
 {
     return totalNumberOfSamples_;
 }
-uint QuotientSpace::getTotalNumberOfFeasibleSamples() const
+unsigned int QuotientSpace::getTotalNumberOfFeasibleSamples() const
 {
     return totalNumberOfFeasibleSamples_;
 }
@@ -1160,11 +1160,11 @@ void QuotientSpace::setParent(QuotientSpace *parent)
 {
     parent_ = parent;
 }
-uint QuotientSpace::getLevel() const
+unsigned int QuotientSpace::getLevel() const
 {
     return level_;
 }
-void QuotientSpace::setLevel(uint level)
+void QuotientSpace::setLevel(unsigned int level)
 {
     level_ = level;
 }

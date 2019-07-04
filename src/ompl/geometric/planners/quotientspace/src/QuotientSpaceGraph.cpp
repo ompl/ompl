@@ -225,11 +225,11 @@ QuotientSpaceGraph::Vertex QuotientSpaceGraph::addConfiguration(Configuration *q
     q->index = m;
     return m;
 }
-uint QuotientSpaceGraph::getNumberOfVertices() const
+unsigned int QuotientSpaceGraph::getNumberOfVertices() const
 {
     return num_vertices(graph_);
 }
-uint QuotientSpaceGraph::getNumberOfEdges() const
+unsigned int QuotientSpaceGraph::getNumberOfEdges() const
 {
     return num_edges(graph_);
 }
