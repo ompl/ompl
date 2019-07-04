@@ -100,6 +100,9 @@ namespace ompl
             void setRange(double distance)
             {
                 maxDistance_ = distance;
+                // Make the neighborhood radius smaller than sampling range to
+                // keep probabilities relatively high for rejection sampling
+                nbrhoodRadius_ = maxDistance_ / 3.0;
             }
 
             /** \brief Get the range the planner is using */
