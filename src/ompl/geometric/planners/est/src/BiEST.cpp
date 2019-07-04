@@ -57,15 +57,12 @@ void ompl::geometric::BiEST::setup()
 {
     Planner::setup();
 
-    if (maxDistance_ < 1e-3)
-    {
-        tools::SelfConfig sc(si_, getName());
-        sc.configurePlannerRange(maxDistance_);
+    tools::SelfConfig sc(si_, getName());
+    sc.configurePlannerRange(maxDistance_);
 
-        // Make the neighborhood radius smaller than sampling range to
-        // keep probabilities relatively high for rejection sampling
-        nbrhoodRadius_ = maxDistance_ / 3.0;
-    }
+    // Make the neighborhood radius smaller than sampling range to
+    // keep probabilities relatively high for rejection sampling
+    nbrhoodRadius_ = maxDistance_ / 3.0;
 
     if (!nnStart_)
         nnStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
