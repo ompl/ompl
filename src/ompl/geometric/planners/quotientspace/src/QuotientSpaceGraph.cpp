@@ -101,10 +101,10 @@ QuotientSpaceGraph::~QuotientSpaceGraph()
 {
     clear();
 }
-QuotientSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si) : state(si->allocState())
+QuotientSpaceGraph::Configuration::Configuration(const ob::SpaceInformationPtr &si) : state(si->allocState())
 {
 }
-QuotientSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si, const ob::State *state_)
+QuotientSpaceGraph::Configuration::Configuration(const ob::SpaceInformationPtr &si, const ob::State *state_)
   : state(si->cloneState(state_))
 {
 }
