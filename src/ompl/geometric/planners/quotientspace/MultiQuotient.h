@@ -78,8 +78,9 @@ namespace ompl
 
             virtual ~MultiQuotient() override;
 
-            /// Return annotated vertices (with information about level)
+            /// Return annotated vertices (with information about QuotientSpace level)
             void getPlannerData(ob::PlannerData &data) const override;
+
             ob::PlannerStatus solve(const ob::PlannerTerminationCondition &ptc) override;
             void setup() override;
             void clear() override;
@@ -87,27 +88,40 @@ namespace ompl
 
             /// Number of quotient-spaces
             int getLevels() const;
+
+            /// Number of feasible nodes on each QuotientSpace (for DEBUGGING)
             std::vector<int> getFeasibleNodes() const;
+            /// Number of nodes on each QuotientSpace (for DEBUGGING)
             std::vector<int> getNodes() const;
+
             /// Get all dimensions of the quotient-spaces in the sequence
             std::vector<int> getDimensionsPerLevel() const;
             void setStopLevel(unsigned int level_);
 
         protected:
+            /// Solution paths on each quotient-space
             std::vector<ob::PathPtr> solutions_;
+
             /// Sequence of quotient-spaces
             std::vector<og::QuotientSpace *> quotientSpaces_;
 
             /// Indicator if a solution has been found on the current quotient-spaces
             bool foundKLevelSolution_{false};
+
             /// Current level on which we have not yet found a path
             unsigned int currentQuotientLevel_{0};
+
             /// \brief Sometimes we only want to plan until a certain quotient-space
             /// level (for debugging for example). This variable sets the stopping
             /// level.
             unsigned int stopAtLevel_;
 
+            /// Each QuotientSpace has a unique ob::SpaceInformationPtr 
             std::vector<ob::SpaceInformationPtr> siVec_;
+
+            /// \brief Each QuotientSpace has a ProblemDefinition, which contains the
+            /// projected start and goal configurations. After planning each
+            /// ProblemDefinitionPtr also contains the solution path on each QuotientSpace.
             std::vector<ob::ProblemDefinitionPtr> pdefVec_;
 
             /// Compare function for priority queue
@@ -120,7 +134,7 @@ namespace ompl
                     return lhs->getImportance() < rhs->getImportance();
                 }
             };
-            /// \brief Priority queue of quotient-spaces which keeps track of how often
+            /// \brief Priority queue of QuotientSpaces which keeps track of how often
             /// every tree on each space has been expanded.
             typedef std::priority_queue<og::QuotientSpace *, std::vector<og::QuotientSpace *>, CmpQuotientSpacePtrs>
                 QuotientSpacePriorityQueue;

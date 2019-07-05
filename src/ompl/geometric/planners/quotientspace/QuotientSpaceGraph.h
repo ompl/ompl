@@ -143,9 +143,14 @@ namespace ompl
                 std::string name{"quotient_graph"};
             };
             /// A quotient-graph structure using boost::adjacency_list bundles
-            typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Configuration *,
-                                          EdgeInternalState, GraphBundle>
-                Graph;
+            using Graph = boost::adjacency_list<
+                boost::vecS, 
+                boost::vecS,
+                boost::undirectedS, 
+                Configuration *, 
+                EdgeInternalState,
+                GraphBundle
+            >;
 
             typedef boost::graph_traits<Graph> BGT;
             typedef BGT::vertex_descriptor Vertex;
