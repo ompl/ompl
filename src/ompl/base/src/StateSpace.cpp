@@ -692,7 +692,7 @@ void ompl::base::StateSpace::sanityChecks(double zero, double eps, unsigned int 
 
             interpolate(s1, s2, 0.5, s3);
             double diff = distance(s1, s3) + distance(s3, s2) - distance(s1, s2);
-            if ((flags & STATESPACE_TRIANGLE_INEQUALITY) && fabs(diff) > eps)
+            if ((flags & STATESPACE_TRIANGLE_INEQUALITY) && diff < -eps)
                 throw Exception("Interpolation to midpoint state does not lead to distances that satisfy the triangle "
                                 "inequality (" +
                                 ompl::toString(diff) + " difference)");

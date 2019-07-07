@@ -48,7 +48,7 @@ if (OMPL_BUILD_DEMOS)
 
     add_ompl_demo(demo_QuotientSpacePlanning_RigidBody2D QuotientSpacePlanning_RigidBody2D.cpp)
 
-    if (OMPL_EXTENSION_OPENDE)
+    if (OMPL_EXTENSION_ODE)
         add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)
     endif()
 

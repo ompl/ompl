@@ -4,8 +4,6 @@
 # PYTHON_LIBRARIES     - path to the python library
 # PYTHON_INCLUDE_DIRS  - path to where Python.h is found
 # PYTHON_SITE_MODULES  - path to site-packages
-# PYTHON_ARCH          - name of architecture to be used for platform-specific
-#                        binary modules
 # PYTHON_VERSION       - version of python
 # PYTHON_VERSION_MAJOR - major version number
 # PYTHON_VERSION_MAJOR - minor version number
@@ -55,12 +53,7 @@ endif(NOT PYTHON_EXEC)
 # On macOS the python executable might be symlinked to the "real" location
 # of the python executable. The header files and libraries are found relative
 # to that path.
-# For CMake 2.6 and below, the REALPATH option is included in the ABSOLUTE option
-if (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.6)
-  get_filename_component(PYTHON_EXEC_ "${PYTHON_EXEC}" REALPATH)
-else()
-  get_filename_component(PYTHON_EXEC_ "${PYTHON_EXEC}" ABSOLUTE)
-endif()
+get_filename_component(PYTHON_EXEC_ "${PYTHON_EXEC}" REALPATH)
 set(PYTHON_EXEC "${PYTHON_EXEC_}" CACHE FILEPATH "Path to Python interpreter")
 
 string(REGEX REPLACE "/bin/python.*" "" PYTHON_PREFIX "${PYTHON_EXEC_}")
@@ -222,23 +215,6 @@ macro(install_python)
         endforeach()
     endif()
 endmacro(install_python)
-
-set(PYTHON_ARCH "unknown")
-if(APPLE)
-    set(PYTHON_ARCH "darwin")
-else(APPLE)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-            set(PYTHON_ARCH "linux2")
-        else(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-            set(PYTHON_ARCH "linux")
-        endif(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-    else(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-            set(PYTHON_ARCH "windows")
-        endif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-endif(APPLE)
 
 find_package_handle_standard_args(Python DEFAULT_MSG
     PYTHON_LIBRARIES PYTHON_INCLUDE_DIRS PYTHON_SITE_MODULES)

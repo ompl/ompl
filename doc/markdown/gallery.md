@@ -95,7 +95,7 @@ The focus is not so much on OMPL, but rather a new hybrid bounding box that allo
 
 # Planning for a Car-Like Vehicle Using ODE
 
-An example of using OMPL to plan for a robotic system simulated with [ODE](http://sourceforge.net/projects/opende). The goal is for the yellow car to reach the location of the green box without hitting the red box. The computation is performed using \ref cKPIECE1 "KPIECE". For each computed motion plan, a representation of the exploration data structure (a tree of motions) is also shown.
+An example of using OMPL to plan for a robotic system simulated with [ODE](http://ode.org). The goal is for the yellow car to reach the location of the green box without hitting the red box. The computation is performed using \ref cKPIECE1 "KPIECE". For each computed motion plan, a representation of the exploration data structure (a tree of motions) is also shown.
 
 \htmlonly
 <div class="row">

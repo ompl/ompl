@@ -105,14 +105,13 @@ set_package_properties(MORSE PROPERTIES
 find_package(MORSE QUIET)
 set(OMPL_EXTENSION_MORSE ${MORSE_FOUND})
 
-set_package_properties(OpenDE PROPERTIES
+set_package_properties(ODE PROPERTIES
     URL "http://ode.org"
     PURPOSE "The Open Dynamics Engine can be used as a \"black box\" for kinodynamic planning.")
-find_package(OpenDE QUIET)
-set(OMPL_EXTENSION_OPENDE ${OPENDE_FOUND})
-if (OPENDE_FOUND)
-  add_definitions(${OPENDE_DEFINITIONS})
-  include_directories(${OPENDE_INCLUDE_DIR})
+find_package(ODE QUIET)
+set(OMPL_EXTENSION_ODE ${ODE_FOUND})
+if (OMPL_EXTENSION_ODE)
+  include_directories(${ODE_INCLUDE_DIRS})
 endif()
 
 set_package_properties(Triangle PROPERTIES
@@ -120,7 +119,7 @@ set_package_properties(Triangle PROPERTIES
     PURPOSE "Used to create triangular decompositions of polygonal 2D environments.")
 find_package(Triangle QUIET)
 set(OMPL_EXTENSION_TRIANGLE ${TRIANGLE_FOUND})
-if (TRIANGLE_FOUND)
+if (OMPL_EXTENSION_TRIANGLE)
   include_directories(${TRIANGLE_INCLUDE_DIR})
 endif()
 
@@ -175,7 +174,10 @@ if(NOT MSVC)
     target_link_flags(ompl)
     set(PKG_NAME "ompl")
     set(PKG_DESC "The Open Motion Planning Library")
-    set(PKG_EXTERNAL_DEPS "${ompl_PKG_DEPS}")
+    set(PKG_EXTERNAL_DEPS "eigen3 ${ompl_PKG_DEPS}")
+    if(OMPL_EXTENSION_ODE)
+        set(PKG_EXTERNAL_DEPS "${PKG_EXTERNAL_DEPS}")
+    endif()
     set(PKG_OMPL_LIBS "-lompl ${ompl_LINK_FLAGS}")
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc.in"
                    "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc" @ONLY)

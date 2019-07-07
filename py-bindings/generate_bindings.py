@@ -311,8 +311,10 @@ class ompl_base_generator_t(code_generator_t):
             self.mb.add_registration_code('np::initialize();', tail=False)
             self.add_array_access(self.ompl_ns.class_(
                 'ConstrainedStateSpace').class_('StateType'), 'double')
-            for cls in [self.ompl_ns.class_('Constraint'),
-                        self.ompl_ns.class_('ConstraintIntersection')]:
+            # \todo: figure why commented-out code causes a problem.
+            self.ompl_ns.class_('ConstraintIntersection').exclude()
+            for cls in [self.ompl_ns.class_('Constraint')]: #,
+#                        self.ompl_ns.class_('ConstraintIntersection')]:
                 for method in ['function', 'jacobian']:
                     cls.member_function(method, arg_types=[
                         '::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, '

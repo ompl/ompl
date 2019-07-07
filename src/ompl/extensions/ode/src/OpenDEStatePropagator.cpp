@@ -34,9 +34,9 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/extensions/opende/OpenDEStatePropagator.h"
-#include "ompl/extensions/opende/OpenDEStateSpace.h"
-#include "ompl/extensions/opende/OpenDEControlSpace.h"
+#include "ompl/extensions/ode/OpenDEStatePropagator.h"
+#include "ompl/extensions/ode/OpenDEStateSpace.h"
+#include "ompl/extensions/ode/OpenDEControlSpace.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Console.h"
 

@@ -41,6 +41,8 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include <boost/math/constants/constants.hpp>
 
+using namespace boost::math::double_constants;
+
 // Define for boost version < 1.47
 #ifndef BOOST_ASSERT_MSG
 #define BOOST_ASSERT_MSG(expr, msg) assert(expr)
@@ -49,7 +51,7 @@
 void ompl::base::SO2StateSampler::sampleUniform(State *state)
 {
     state->as<SO2StateSpace::StateType>()->value =
-        rng_.uniformReal(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
+        rng_.uniformReal(-pi, pi);
 }
 
 void ompl::base::SO2StateSampler::sampleUniformNear(State *state, const State *near, const double distance)
@@ -72,28 +74,28 @@ unsigned int ompl::base::SO2StateSpace::getDimension() const
 
 double ompl::base::SO2StateSpace::getMaximumExtent() const
 {
-    return boost::math::constants::pi<double>();
+    return pi;
 }
 
 double ompl::base::SO2StateSpace::getMeasure() const
 {
-    return 2.0 * boost::math::constants::pi<double>();
+    return 2.0 * pi;
 }
 
 void ompl::base::SO2StateSpace::enforceBounds(State *state) const
 {
-    double v = fmod(state->as<StateType>()->value, 2.0 * boost::math::constants::pi<double>());
-    if (v < -boost::math::constants::pi<double>())
-        v += 2.0 * boost::math::constants::pi<double>();
-    else if (v >= boost::math::constants::pi<double>())
-        v -= 2.0 * boost::math::constants::pi<double>();
+    double v = fmod(state->as<StateType>()->value, 2.0 * pi);
+    if (v < -pi)
+        v += 2.0 * pi;
+    else if (v >= pi)
+        v -= 2.0 * pi;
     state->as<StateType>()->value = v;
 }
 
 bool ompl::base::SO2StateSpace::satisfiesBounds(const State *state) const
 {
-    return (state->as<StateType>()->value < boost::math::constants::pi<double>()) &&
-           (state->as<StateType>()->value >= -boost::math::constants::pi<double>());
+    return (state->as<StateType>()->value < pi) &&
+           (state->as<StateType>()->value >= -pi);
 }
 
 void ompl::base::SO2StateSpace::copyState(State *destination, const State *source) const
@@ -127,7 +129,7 @@ double ompl::base::SO2StateSpace::distance(const State *state1, const State *sta
                                                                          "PostPropagationEvent, "
                                                                          "ompl::control::StatePropagator, or "
                                                                          "ompl::base::StateValidityChecker");
-    return (d > boost::math::constants::pi<double>()) ? 2.0 * boost::math::constants::pi<double>() - d : d;
+    return (d > pi) ? 2.0 * pi - d : d;
 }
 
 bool ompl::base::SO2StateSpace::equalStates(const State *state1, const State *state2) const
@@ -139,21 +141,21 @@ bool ompl::base::SO2StateSpace::equalStates(const State *state1, const State *st
 void ompl::base::SO2StateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
 {
     double diff = to->as<StateType>()->value - from->as<StateType>()->value;
-    if (fabs(diff) <= boost::math::constants::pi<double>())
+    if (fabs(diff) <= pi)
         state->as<StateType>()->value = from->as<StateType>()->value + diff * t;
     else
     {
         double &v = state->as<StateType>()->value;
         if (diff > 0.0)
-            diff = 2.0 * boost::math::constants::pi<double>() - diff;
+            diff = 2.0 * pi - diff;
         else
-            diff = -2.0 * boost::math::constants::pi<double>() - diff;
+            diff = -2.0 * pi - diff;
         v = from->as<StateType>()->value - diff * t;
         // input states are within bounds, so the following check is sufficient
-        if (v > boost::math::constants::pi<double>())
-            v -= 2.0 * boost::math::constants::pi<double>();
-        else if (v < -boost::math::constants::pi<double>())
-            v += 2.0 * boost::math::constants::pi<double>();
+        if (v > pi)
+            v -= 2.0 * pi;
+        else if (v < -pi)
+            v += 2.0 * pi;
     }
 }
 
@@ -189,10 +191,10 @@ void ompl::base::SO2StateSpace::registerProjections()
         void defaultCellSizes() override
         {
             cellSizes_.resize(1);
-            cellSizes_[0] = boost::math::constants::pi<double>() / magic::PROJECTION_DIMENSION_SPLITS;
+            cellSizes_[0] = pi / magic::PROJECTION_DIMENSION_SPLITS;
             bounds_.resize(1);
-            bounds_.low[0] = -boost::math::constants::pi<double>();
-            bounds_.high[0] = boost::math::constants::pi<double>();
+            bounds_.low[0] = -pi;
+            bounds_.high[0] = pi;
         }
 
         void project(const State *state, Eigen::Ref<Eigen::VectorXd> projection) const override

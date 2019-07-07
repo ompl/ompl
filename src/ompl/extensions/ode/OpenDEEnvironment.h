@@ -38,7 +38,7 @@
 #define OMPL_EXTENSION_OPENDE_ENVIRONMENT_
 
 #include "ompl/config.h"
-#if OMPL_EXTENSION_OPENDE == 0
+#if OMPL_EXTENSION_ODE == 0
 #error OpenDE extension not built
 #endif
 

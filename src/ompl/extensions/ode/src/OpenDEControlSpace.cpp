@@ -34,36 +34,28 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/extensions/opende/OpenDEStateValidityChecker.h"
+#include "ompl/extensions/ode/OpenDEControlSpace.h"
 #include "ompl/util/Exception.h"
+#include "ompl/util/Console.h"
 
-ompl::control::OpenDEStateValidityChecker::OpenDEStateValidityChecker(const SpaceInformationPtr &si)
-  : base::StateValidityChecker(si)
+/// @cond IGNORE
+namespace ompl
 {
-    if (dynamic_cast<OpenDEStateSpace *>(si->getStateSpace().get()) == nullptr)
-        throw Exception("Cannot create state validity checking for OpenDE without OpenDE state space");
-    osm_ = si->getStateSpace()->as<OpenDEStateSpace>();
+    const control::OpenDEEnvironmentPtr &getOpenDEStateSpaceEnvironmentWithCheck(const base::StateSpacePtr &space)
+    {
+        if (dynamic_cast<control::OpenDEStateSpace *>(space.get()) == nullptr)
+            throw Exception("OpenDE State Space needed for creating OpenDE Control Space");
+        return space->as<control::OpenDEStateSpace>()->getEnvironment();
+    }
 }
+/// @endcond
 
-bool ompl::control::OpenDEStateValidityChecker::isValid(const base::State *state) const
+ompl::control::OpenDEControlSpace::OpenDEControlSpace(const base::StateSpacePtr &stateSpace)
+  : RealVectorControlSpace(stateSpace, getOpenDEStateSpaceEnvironmentWithCheck(stateSpace)->getControlDimension())
 {
-    const auto *s = state->as<OpenDEStateSpace::StateType>();
-
-    // if we know the value of the validity flag for this state, we return it
-    if ((s->collision & (1 << OpenDEStateSpace::STATE_VALIDITY_KNOWN_BIT)) != 0)
-        return (s->collision & (1 << OpenDEStateSpace::STATE_VALIDITY_VALUE_BIT)) != 0;
-
-    // if not, we compute it:
-    bool valid = false;
-
-    if (!osm_->evaluateCollision(state))
-        valid = osm_->satisfiesBoundsExceptRotation(s);
-
-    if (valid)
-        s->collision &= (1 << OpenDEStateSpace::STATE_VALIDITY_VALUE_BIT);
-
-    // mark the fact we know the value of the validity bit
-    s->collision &= (1 << OpenDEStateSpace::STATE_VALIDITY_KNOWN_BIT);
-
-    return valid;
+    setName("OpenDE" + getName());
+    type_ = CONTROL_SPACE_TYPE_COUNT + 1;
+    base::RealVectorBounds bounds(dimension_);
+    getEnvironment()->getControlBounds(bounds.low, bounds.high);
+    setBounds(bounds);
 }

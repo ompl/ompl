@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl/extensions/opende/OpenDESimpleSetup.h"
+#include "ompl/extensions/ode/OpenDESimpleSetup.h"
 #include "ompl/util/Exception.h"
 #include <thread>
 
