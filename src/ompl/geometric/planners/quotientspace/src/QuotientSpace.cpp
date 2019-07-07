@@ -57,14 +57,11 @@ QuotientSpace::QuotientSpace(const ob::SpaceInformationPtr &si, QuotientSpace *p
 
     const StateSpacePtr Q1_space = Q1->getStateSpace();
 
-    if (verbose > 0)
-        std::cout << "--- QuotientSpace" << id_ << std::endl;
+    OMPL_DEVMSG1("--- QuotientSpace %d", id_);
 
     if (parent_ == nullptr)
     {
-        if (verbose > 0)
-            std::cout << "Q1 dimension : " << Q1_space->getDimension() << " measure: " << Q1_space->getMeasure()
-                      << std::endl;
+        OMPL_DEVMSG1("Q1 dimension: %d measure: %f", Q1_space->getDimension(), Q1_space->getMeasure());
         type_ = ATOMIC_RN;
     }
     else
@@ -81,21 +78,15 @@ QuotientSpace::QuotientSpace(const ob::SpaceInformationPtr &si, QuotientSpace *p
             X1_sampler_ = X1->allocStateSampler();
             if (Q0_space->getDimension() + X1_space->getDimension() != Q1_space->getDimension())
             {
-                std::cout << "quotient of state spaces got dimensions wrong." << std::endl;
+                OMPL_ERROR("QuotientSpace Dimensions are wrong.");
                 exit(0);
             }
-            if (verbose > 0)
-                std::cout << "Q0 dimension : " << Q0_space->getDimension() << " measure: " << Q0_space->getMeasure()
-                          << std::endl;
-            if (verbose > 0)
-                std::cout << "X1 dimension : " << X1_space->getDimension() << " measure: " << X1_space->getMeasure()
-                          << std::endl;
-            if (verbose > 0)
-                std::cout << "Q1 dimension : " << Q1_space->getDimension() << " measure: " << Q1_space->getMeasure()
-                          << std::endl;
+            OMPL_DEVMSG1("Q0 dimension: %d measure: %f", Q0_space->getDimension(), Q0_space->getMeasure());
+            OMPL_DEVMSG1("X1 dimension: %d measure: %f", X1_space->getDimension(), X1_space->getMeasure());
+            OMPL_DEVMSG1("Q1 dimension: %d measure: %f", Q1_space->getDimension(), Q1_space->getMeasure());
             if ((Q0_space->getMeasure() <= 0) || (X1_space->getMeasure() <= 0) || (Q1_space->getMeasure() <= 0))
             {
-                std::cout << "zero-measure quotient space detected. abort." << std::endl;
+                OMPL_ERROR("Zero-measure QuotientSpace detected.");
                 exit(0);
             }
             if (!X1_sampler_)
@@ -106,12 +97,8 @@ QuotientSpace::QuotientSpace(const ob::SpaceInformationPtr &si, QuotientSpace *p
         }
         else
         {
-            if (verbose > 0)
-                std::cout << "Q0 dimension : " << Q0_space->getDimension() << " measure: " << Q0_space->getMeasure()
-                          << std::endl;
-            if (verbose > 0)
-                std::cout << "Q1 dimension : " << Q1_space->getDimension() << " measure: " << Q1_space->getMeasure()
-                          << std::endl;
+            OMPL_DEVMSG1("Q0 dimension: %d measure: %f", Q0_space->getDimension(), Q0_space->getMeasure());
+            OMPL_DEVMSG1("Q1 dimension: %d measure: %f", Q1_space->getDimension(), Q1_space->getMeasure());
         }
         checkSpaceHasFiniteMeasure(Q0_space);
     }
@@ -148,8 +135,6 @@ void QuotientSpace::setup()
         if (X1_dimension_ > 0)
             s_X1_tmp_ = X1->allocState();
     }
-    if (verbose > 0)
-        std::cout << "SETUP QUOTIENTSPACE " << id_ << std::endl;
 }
 void QuotientSpace::clear()
 {
@@ -161,20 +146,21 @@ void QuotientSpace::clear()
     firstRun_ = true;
     if (parent_ == nullptr && X1_dimension_ > 0)
         X1_sampler_.reset();
-    if (verbose > 0)
-        std::cout << "CLEAR QUOTIENTSPACE " << id_ << std::endl;
 }
 
 void QuotientSpace::checkSpaceHasFiniteMeasure(const ob::StateSpacePtr space) const
 {
     if (space->getMeasure() >= std::numeric_limits<double>::infinity())
     {
-        OMPL_ERROR("space has no bounds");
-        std::cout << "Q0 measure: " << Q0->getStateSpace()->getMeasure() << std::endl;
-        std::cout << "Q1 measure: " << Q1->getStateSpace()->getMeasure() << std::endl;
+        OMPL_ERROR("QuotientSpace has no bounds");
+        const StateSpacePtr Q0_space = Q0->getStateSpace();
+        const StateSpacePtr Q1_space = Q1->getStateSpace();
+        OMPL_ERROR("Q0 dimension: %d measure: %f", Q0_space->getDimension(), Q0_space->getMeasure());
+        OMPL_ERROR("Q1 dimension: %d measure: %f", Q1_space->getDimension(), Q1_space->getMeasure());
         if (X1 != nullptr)
         {
-            std::cout << "X1 measure: " << X1->getStateSpace()->getMeasure() << std::endl;
+            const StateSpacePtr X1_space = X1->getStateSpace();
+            OMPL_ERROR("X1 dimension: %d measure: %f", X1_space->getDimension(), X1_space->getMeasure());
         }
         exit(0);
     }
@@ -201,9 +187,9 @@ const StateSpacePtr QuotientSpace::computeQuotientSpace(const StateSpacePtr Q1, 
 
     if (Q0_dimension_ == 0 || Q1_dimension_ == 0)
     {
-        OMPL_ERROR("Detected zero-dimensional quotient space.");
-        std::cout << "Q1 has dimension " << Q1_dimension_ << std::endl;
-        std::cout << "Q0 has dimension " << Q0_dimension_ << std::endl;
+        OMPL_ERROR("Detected Zero-dimensional QuotientSpace.");
+        OMPL_ERROR("Q0 has dimension %d.", Q0_dimension_);
+        OMPL_ERROR("Q1 has dimension %d.", Q1_dimension_);
         exit(0);
     }
 
@@ -329,7 +315,7 @@ const StateSpacePtr QuotientSpace::computeQuotientSpace(const StateSpacePtr Q1, 
         }
         default:
         {
-            std::cout << "unknown type_: " << type_ << std::endl;
+            OMPL_ERROR("Unknown QuotientSpace type: %d", type_);
             exit(0);
         }
     }
@@ -384,22 +370,22 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                     }
                     else
                     {
-                        std::cout << "Not allowed: dimensionality needs to be monotonically increasing. we need "
-                                     "n>=m>0, but have "
-                                  << n << ">=" << m << ">0" << std::endl;
+                        
+                        OMPL_ERROR("Not allowed: dimensionality needs to be monotonically increasing.");
+                        OMPL_ERROR("We require n >= m > 0 but have n=%d >= m=%d > 0", n, m);
                         exit(0);
                     }
                 }
             }
             else
             {
-                std::cout << "Q1 is R^" << n << " but Q0 type_ " << Q0->getType() << " is not handled." << std::endl;
+                OMPL_ERROR( "Q1 is R^%d but Q0 type %d is not handled.", n, Q0->getType());
                 exit(0);
             }
         }
         else
         {
-            std::cout << "Q1 is non-compound state, but Q0 type_ " << Q1->getType() << " is not handled." << std::endl;
+            OMPL_ERROR("Q1 is non-compound state, but Q0 type %d is not handled.", Q1->getType());
             exit(0);
         }
     }
@@ -421,14 +407,13 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                 }
                 else
                 {
-                    std::cout << "Q1 is SE2 but Q0 type_ " << Q0->getType() << " is of dimension " << Q0->getDimension()
-                              << std::endl;
+                    OMPL_ERROR("Q1 is SE2 but Q0 type %d is of dimension %d", Q0->getType(), Q0->getDimension());
                     exit(0);
                 }
             }
             else
             {
-                std::cout << "Q1 is SE2 but Q0 type_ " << Q0->getType() << " is not handled." << std::endl;
+                OMPL_ERROR("Q1 is SE2 but Q0 type %d is not handled.", Q0->getType());
                 exit(0);
             }
         }
@@ -444,14 +429,13 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                 }
                 else
                 {
-                    std::cout << "Q1 is SE3 but Q0 type_ " << Q0->getType() << " is of dimension " << Q0->getDimension()
-                              << std::endl;
+                    OMPL_ERROR("Q1 is SE3 but Q0 type %d is of dimension %d.", Q0->getType(), Q0->getDimension());
                     exit(0);
                 }
             }
             else
             {
-                std::cout << "Q1 is SE3 but Q0 type_ " << Q0->getType() << " is not handled." << std::endl;
+                OMPL_ERROR("Q1 is SE3 but Q0 type %d is not handled.", Q0->getType());
                 exit(0);
             }
         }
@@ -485,8 +469,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                         }
                         else
                         {
-                            std::cout << "Not allowed. Q0 needs to be 3-dimensional but is " << m << " dimensional"
-                                      << std::endl;
+                            OMPL_ERROR("Not allowed. Q0 needs to be 3-dimensional but is %d dimensional", m);
                             exit(0);
                         }
                     }
@@ -509,15 +492,14 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                                 }
                                 else
                                 {
-                                    std::cout << "Not allowed: we need n>m>0, but have " << n << ">" << m << ">0"
-                                              << std::endl;
+                                    OMPL_ERROR("We require n > m > 0, but have n=%d > m=%d > 0.", n, m);
                                     exit(0);
                                 }
                             }
                         }
                         else
                         {
-                            std::cout << "State compound with " << Q0_subspaces << " not handled." << std::endl;
+                            OMPL_ERROR("State compound with %d subspaces not handled.", Q0_subspaces);
                             exit(0);
                         }
                     }
@@ -545,8 +527,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                             }
                             else
                             {
-                                std::cout << "Not allowed. Q0 needs to be 2-dimensional but is " << m << " dimensional"
-                                          << std::endl;
+                                OMPL_ERROR("Not allowed. Q0 needs to be 2-dimensional but is %d dimensional", m);
                                 exit(0);
                             }
                         }
@@ -569,31 +550,30 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                                     }
                                     else
                                     {
-                                        std::cout << "SE2RN to SE2RM: Not allowed: we need n>m>0, but have " << n << ">"
-                                                  << m << ">0" << std::endl;
+                                        OMPL_ERROR("We require n > m > 0 but have n=%d > m=%d > 0.", n, m);
                                         exit(0);
                                     }
                                 }
                             }
                             else
                             {
-                                std::cout << "SE2RN to SE2RM: QO is compound with " << Q0_subspaces
-                                          << " subspaces, but we only handle 2." << std::endl;
+                                OMPL_ERROR("QO is compound with %d subspaces, but we only handle 2.", Q0_subspaces);
                                 exit(0);
                             }
                         }
                     }
                     else
                     {
-                        std::cout << "State compound " << Q1_decomposed.at(0)->getType() << " and "
-                                  << Q1_decomposed.at(1)->getType() << " not recognized." << std::endl;
+                        OMPL_ERROR("State compound %d and %d not recognized.", 
+                            Q1_decomposed.at(0)->getType(),
+                            Q1_decomposed.at(1)->getType());
                         exit(0);
                     }
                 }
             }
             else
             {
-                std::cout << "Q1 has " << Q1_subspaces << " OMPL subspaces, but we only support 2." << std::endl;
+                OMPL_ERROR("Q1 has %d subspaces, but we only support 2.", Q1_subspaces);
                 exit(0);
             }
         }
@@ -613,7 +593,7 @@ void QuotientSpace::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::
     {
         case IDENTITY_SPACE:
         {
-            std::cout << "Cannot merge states for Identity space" << std::endl;
+            OMPL_ERROR("Cannot merge states for Identity space");
             exit(0);
         }
         case RN_RM:
@@ -819,8 +799,8 @@ void QuotientSpace::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::
         }
         default:
         {
-            std::cout << "Type : " << type_ << " not implemented." << std::endl;
-            OMPL_ERROR("cannot merge states");
+            OMPL_ERROR("Cannot merge states");
+            OMPL_ERROR("Type %d not implemented.", type_);
             exit(0);
         }
     }
@@ -944,8 +924,8 @@ void QuotientSpace::projectX1Subspace(const ob::State *q, ob::State *qX1) const
         }
         default:
         {
-            std::cout << "Type : " << type_ << " not implemented." << std::endl;
-            OMPL_ERROR("cannot project onto X1");
+            OMPL_ERROR("Cannot project onto X1.");
+            OMPL_ERROR("Type %d not implemented.", type_);
             exit(0);
         }
     }
@@ -1083,8 +1063,8 @@ void QuotientSpace::projectQ0Subspace(const ob::State *q, ob::State *qQ0) const
         }
         default:
         {
-            std::cout << "Type : " << type_ << " not implemented." << std::endl;
-            OMPL_ERROR("cannot project onto Q0");
+            OMPL_ERROR("Cannot project onto Q0.");
+            OMPL_ERROR("Type %d not implemented.", type_);
             exit(1);
         }
     }

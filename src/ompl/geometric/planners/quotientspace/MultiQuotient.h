@@ -142,5 +142,5 @@ namespace ompl
         };
     }
 }
-#include "src/MultiQuotient.ipp"
+#include "MultiQuotient.ipp"
 #endif

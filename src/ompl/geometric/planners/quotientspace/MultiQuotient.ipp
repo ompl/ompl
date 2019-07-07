@@ -34,7 +34,7 @@
 *********************************************************************/
 
 /* Author: Andreas Orthey */
-#include "PlannerDataVertexAnnotated.h"
+#include "src/PlannerDataVertexAnnotated.h"
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/util/Time.h>
@@ -59,8 +59,7 @@ MultiQuotient<T>::MultiQuotient(std::vector<ob::SpaceInformationPtr> &siVec, std
         quotientSpaces_.back()->setLevel(k);
     }
     stopAtLevel_ = quotientSpaces_.size();
-    if (DEBUG)
-        std::cout << "Created hierarchy with " << siVec_.size() << " levels." << std::endl;
+    OMPL_DEBUG("Created %d QuotientSpace levels.",siVec_.size());
 }
 
 template <class T>
@@ -130,7 +129,6 @@ void MultiQuotient<T>::setStopLevel(unsigned int level_)
     {
         stopAtLevel_ = level_;
     }
-    std::cout << "new stop level: " << stopAtLevel_ << " from " << quotientSpaces_.size() << std::endl;
 }
 
 template <class T>
@@ -182,13 +180,8 @@ ob::PlannerStatus MultiQuotient<T>::solve(const ob::PlannerTerminationCondition 
                 ob::PathPtr sol_k;
                 quotientSpaces_.at(k)->getSolution(sol_k);
                 solutions_.push_back(sol_k);
-                if (DEBUG)
-                {
-                    double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
-                    std::cout << std::string(80, '#') << std::endl;
-                    std::cout << "Found Solution on Level " << k << " after " << t_k_end << " seconds." << std::endl;
-                    std::cout << *quotientSpaces_.at(k) << std::endl;
-                }
+                double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
+                OMPL_DEBUG("Found Solution on Level %d after %f seconds.", k, t_k_end);
                 foundKLevelSolution_ = true;
                 currentQuotientLevel_ = k + 1;
 
@@ -203,24 +196,12 @@ ob::PlannerStatus MultiQuotient<T>::solve(const ob::PlannerTerminationCondition 
 
         if (!foundKLevelSolution_)
         {
-            if (DEBUG)
-            {
-                std::cout << std::string(80, '#') << std::endl;
-                for (unsigned int i = 0; i < k + 1; i++)
-                {
-                    std::cout << *quotientSpaces_.at(i) << std::endl;
-                }
-            }
+            OMPL_DEBUG("Planner failed finding solution on QuotientSpace level %d", k);
             return ob::PlannerStatus::TIMEOUT;
         }
     }
-    if (DEBUG)
-    {
-        double t_end = ompl::time::seconds(ompl::time::now() - t_start);
-        std::cout << std::string(80, '#') << std::endl;
-        std::cout << "Found exact solution after " << t_end << " seconds." << std::endl;
-        std::cout << std::string(80, '#') << std::endl;
-    }
+    double t_end = ompl::time::seconds(ompl::time::now() - t_start);
+    OMPL_DEBUG("Found exact solution after %f seconds.", t_end);
 
     ob::PathPtr sol;
     if (quotientSpaces_.at(currentQuotientLevel_ - 1)->getSolution(sol))
@@ -270,8 +251,8 @@ void MultiQuotient<T>::getPlannerData(ob::PlannerData &data) const
     unsigned int Nvertices = data.numVertices();
     if (Nvertices > 0)
     {
-        std::cout << "cannot get planner data if plannerdata is already populated" << std::endl;
-        std::cout << "PlannerData has " << Nvertices << " vertices." << std::endl;
+        OMPL_ERROR("cannot get planner data if plannerdata is already populated");
+        OMPL_ERROR("PlannerData has %d vertices.", Nvertices);
         exit(0);
     }
 
@@ -284,12 +265,9 @@ void MultiQuotient<T>::getPlannerData(ob::PlannerData &data) const
     int n_sum = 0;
     for (unsigned int k = 0; k < fn.size(); k++)
     {
-        std::cout << fn.at(k) << "/" << n.at(k) << std::endl;
         fn_sum += fn.at(k);
         n_sum += n.at(k);
     }
-    std::cout << std::string(80, '-') << std::endl;
-    std::cout << fn_sum << "/" << n_sum << std::endl;
 
     for (unsigned int k = 0; k < K; k++)
     {

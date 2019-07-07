@@ -52,6 +52,7 @@ namespace og = ompl::geometric;
 
 //Path Planning in SE2 = R2 \times SO2
 //using quotient-spaces R2 and SE2
+
 bool isStateValid_SE2(const ob::State *state) 
 {
     // disallow going through the middle of the square [0,1]x[0,1]
@@ -73,17 +74,17 @@ bool isStateValid_R2(const ob::State *state)
 int main(int argc, const char **argv) 
 {
     // Setup SE2
-    ob::StateSpacePtr SE2(std::make_shared<ob::SE2StateSpace>());
+    auto SE2(std::make_shared<ob::SE2StateSpace>());
     ob::RealVectorBounds bounds(2);
     bounds.setLow(0);
     bounds.setHigh(1);
-    std::static_pointer_cast<ob::SE3StateSpace>(SE2)->setBounds(bounds);
+    SE2->setBounds(bounds);
     ob::SpaceInformationPtr si_SE2(std::make_shared<ob::SpaceInformation>(SE2));
     si_SE2->setStateValidityChecker(isStateValid_SE2);
 
     // Setup Quotient-Space R2
-    ob::StateSpacePtr R2(std::make_shared<ob::RealVectorStateSpace>(2));
-    std::static_pointer_cast<ob::RealVectorStateSpace>(R2)->setBounds(0, 1);
+    auto R2(std::make_shared<ob::RealVectorStateSpace>(2));
+    R2->setBounds(0, 1);
     ob::SpaceInformationPtr si_R2(std::make_shared<ob::SpaceInformation>(R2));
     si_R2->setStateValidityChecker(isStateValid_R2);
 
@@ -121,9 +122,8 @@ int main(int argc, const char **argv)
 
     // Setup Planner using vector of spaceinformationptr
     typedef og::MultiQuotient<og::QRRT> MultiQuotient;
-    ob::PlannerPtr planner = std::make_shared<MultiQuotient>(si_vec);
-    std::static_pointer_cast<MultiQuotient>(planner)
-            ->setProblemDefinition(pdef_vec);
+    auto planner = std::make_shared<MultiQuotient>(si_vec);
+    planner->setProblemDefinition(pdef_vec);
 
     // Planner can be used as any other OMPL algorithm
     planner->setup();
