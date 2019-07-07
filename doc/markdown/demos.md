@@ -36,4 +36,7 @@
   * [ConstrainedPlanningImplicitParallel](ConstrainedPlanningImplicitChain_8cpp_source.html). Plan for a parallel robot made of many implicit chains. The results for this program are visualizable with the [Blender](https://www.blender.org/) file `ConstrainedPlanningImplicitParallel.blend`. Use the `-o` flag to enable output, and run the script linked inside the blender file.
   * [ConstrainedPlanningKinematicChain](ConstrainedPlanningKinematicChain_8cpp_source.html). Similar to the kinematic chain benchmark above, but with a constraint that only allows the tip of the manipulator to move along a line.
 
+- QuotientSpace Planning Demos. For more information refer to the [QuotientSpace Planning Guide](quotientSpacePlanning.html) and the [QuotientSpace Planning Tutorial](quotientSpacePlanningTutorial.html)
+  * [Quotient Space Rigid Body in 2D](QuotientSpacePlanning_RigidBody2D_8cpp_source.html). Shows a simplification of the planning space \f$SE(2)\f$ into the quotient space \f$R^2\f$. 
+
 @}
