@@ -5,49 +5,67 @@
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/tools/benchmark/Benchmark.h>
 
-const unsigned int numLinks = 7;
+const unsigned int numLinks = 15;
 const double linkLength = 1.0 / numLinks;
-const double narrowPassageWidth = 0.2;
+const double narrowPassageWidth = log((double)numLinks) / (double)numLinks;
+
+//############################################################################
+///Change QuotientSpace Sequence here. Vector indicates dimensionalities of each
+//quotientSpace. Right now we would have QuotientSpaces R3,R7 and R15
+
+//const std::vector<int> quotientSpaceSequence{3,7};
+// const std::vector<int> quotientSpaceSequence{3,5,7,9,11,13};
+const std::vector<int> quotientSpaceSequence{3}; //simple admissible 3d projection seems to be best for this scenario
+//############################################################################
 
 namespace ot = ompl::tools;
 std::vector<Environment> envs;
 
-ob::PlannerPtr GetQRRT(
-    ob::SpaceInformationPtr si, 
-    ob::ProblemDefinitionPtr pdef, 
-    std::vector<double> start, 
-    std::vector<double> goal, 
-    unsigned numLinks, 
-    Environment &env)
+void AddQuotientSequence(std::vector<int> sequenceLinks, 
+    std::vector<ob::SpaceInformationPtr> &si_vec, 
+    std::vector<ob::ProblemDefinitionPtr> &pdef_vec,
+    std::vector<double> start,
+    std::vector<double> goal)
 {
-    // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
-    std::vector<ob::SpaceInformationPtr> si_vec;
-    std::vector<ob::ProblemDefinitionPtr> pdef_vec;
-
-    for(unsigned k = 3; k < numLinks; k+=2)
+    for(unsigned k = 0; k < sequenceLinks.size(); k++)
     {
-        OMPL_INFORM("Create QuotientSpace Chain with %d links.", k);
-        Environment envk = createHornEnvironment(k, narrowPassageWidth);
-        auto chainK(std::make_shared<KinematicChainSpace>(k, linkLength, &envk));
-        envs.push_back(envk);
+        int links = sequenceLinks.at(k);
+        assert(links<numLinks);
 
-        auto siK = std::make_shared<ob::SpaceInformation>(chainK);
+        OMPL_INFORM("Create QuotientSpace Chain with %d links.", links);
+        auto spaceK(std::make_shared<KinematicChainSpace>(links, linkLength, &envs.at(links)));
+        // envs.push_back(envk);
+
+        auto siK = std::make_shared<ob::SpaceInformation>(spaceK);
         siK->setStateValidityChecker(std::make_shared<KinematicChainValidityChecker>(siK));
         ob::ProblemDefinitionPtr pdefk = std::make_shared<ob::ProblemDefinition>(siK);
 
-        unsigned clippedDofs = numLinks - k;
+        unsigned clippedDofs = numLinks - links;
         std::vector<double> startVecK(start.begin(), start.end()-clippedDofs);
         std::vector<double> goalVecK(goal.begin(), goal.end()-clippedDofs);
 
-        ompl::base::ScopedState<> startk(chainK), goalk(chainK);
-        chainK->setup();
-        chainK->copyFromReals(startk.get(), startVecK);
-        chainK->copyFromReals(goalk.get(), goalVecK);
+        ompl::base::ScopedState<> startk(spaceK), goalk(spaceK);
+        spaceK->setup();
+        spaceK->copyFromReals(startk.get(), startVecK);
+        spaceK->copyFromReals(goalk.get(), goalVecK);
         pdefk->setStartAndGoalStates(startk, goalk);
 
         si_vec.push_back(siK);
         pdef_vec.push_back(pdefk);
     }
+}
+ob::PlannerPtr GetQRRT(
+    ob::SpaceInformationPtr si, 
+    ob::ProblemDefinitionPtr pdef, 
+    std::vector<double> start, 
+    std::vector<double> goal)
+{
+    ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
+    std::vector<ob::SpaceInformationPtr> si_vec;
+    std::vector<ob::ProblemDefinitionPtr> pdef_vec;
+
+    AddQuotientSequence(quotientSpaceSequence, si_vec, pdef_vec, start, goal);
+
     OMPL_INFORM("Add Original Chain with %d links.", numLinks);
     si_vec.push_back(si);
     pdef_vec.push_back(pdef);
@@ -63,6 +81,12 @@ int main()
 {
     Environment env = createHornEnvironment(numLinks, narrowPassageWidth);
     OMPL_INFORM("Original Chain has %d links", numLinks);
+    OMPL_INFORM("Creating Horn Environment with width %f.", narrowPassageWidth);
+    envs.push_back(createHornEnvironment(1, narrowPassageWidth));
+    for(unsigned k = 1; k < numLinks; k++){
+        envs.push_back(createHornEnvironment(k, narrowPassageWidth));
+    }
+
     auto chain(std::make_shared<KinematicChainSpace>(numLinks, linkLength, &env));
     ompl::geometric::SimpleSetup ss(chain);
 
@@ -79,7 +103,7 @@ int main()
     chain->copyFromReals(goal.get(), goalVec);
     ss.setStartAndGoalStates(start, goal);
 
-    double runtime_limit = 60, memory_limit = 1024;
+    double runtime_limit = 10, memory_limit = 1024;
     int run_count = 10;
     ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, 0.5);
     ompl::tools::Benchmark b(ss, "KinematicChain");
@@ -89,14 +113,13 @@ int main()
     b.addPlanner(std::make_shared<ompl::geometric::EST>(ss.getSpaceInformation()));
     b.addPlanner(std::make_shared<ompl::geometric::KPIECE1>(ss.getSpaceInformation()));
     b.addPlanner(std::make_shared<ompl::geometric::RRT>(ss.getSpaceInformation()));
+    b.addPlanner(std::make_shared<ompl::geometric::PRM>(ss.getSpaceInformation()));
 
     ob::PlannerPtr quotientSpacePlanner = 
       GetQRRT(ss.getSpaceInformation(), 
           ss.getProblemDefinition(), 
           startVec, 
-          goalVec, 
-          numLinks, 
-          env);
+          goalVec);
 
     b.addPlanner( quotientSpacePlanner );
 
