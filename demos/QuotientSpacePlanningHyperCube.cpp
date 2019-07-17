@@ -117,7 +117,6 @@ int main(int argc, char **argv)
     bounds.setLow(0.);
     bounds.setHigh(1.);
     space->setBounds(bounds);
-    // ss.setStateValidityChecker(&isStateValid);
     ss.setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(ss.getSpaceInformation(), ndim));
     ss.getSpaceInformation()->setStateValidityCheckingResolution(0.001);
     for(unsigned int i = 0; i < ndim; ++i)
@@ -127,7 +126,6 @@ int main(int argc, char **argv)
     }
     ss.setStartAndGoalStates(start, goal);
 
-    // by default, use the Benchmark class
     double runtime_limit = 10, memory_limit = 4096;
     int run_count = 5;
     ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count);

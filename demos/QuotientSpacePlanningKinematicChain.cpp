@@ -9,24 +9,20 @@ const unsigned int numLinks = 15;
 const double linkLength = 1.0 / numLinks;
 const double narrowPassageWidth = log((double)numLinks) / (double)numLinks;
 
-//############################################################################
-///Change QuotientSpace Sequence here. Vector indicates dimensionalities of each
-//quotientSpace. Right now we would have QuotientSpaces R3,R7 and R15
-
-//const std::vector<int> quotientSpaceSequence{3,7};
-// const std::vector<int> quotientSpaceSequence{3,5,7,9,11,13};
-const std::vector<int> quotientSpaceSequence{3}; //simple admissible 3d projection seems to be best for this scenario
-//############################################################################
-
 namespace ot = ompl::tools;
 std::vector<Environment> envs;
 
-void AddQuotientSequence(std::vector<int> sequenceLinks, 
-    std::vector<ob::SpaceInformationPtr> &si_vec, 
-    std::vector<ob::ProblemDefinitionPtr> &pdef_vec,
-    std::vector<double> start,
+ob::PlannerPtr GetQRRT(
+    std::vector<int> sequenceLinks, 
+    ob::SpaceInformationPtr si, 
+    ob::ProblemDefinitionPtr pdef, 
+    std::vector<double> start, 
     std::vector<double> goal)
 {
+    // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
+    std::vector<ob::SpaceInformationPtr> si_vec;
+    std::vector<ob::ProblemDefinitionPtr> pdef_vec;
+
     for(unsigned k = 0; k < sequenceLinks.size(); k++)
     {
         int links = sequenceLinks.at(k);
@@ -34,7 +30,6 @@ void AddQuotientSequence(std::vector<int> sequenceLinks,
 
         OMPL_INFORM("Create QuotientSpace Chain with %d links.", links);
         auto spaceK(std::make_shared<KinematicChainSpace>(links, linkLength, &envs.at(links)));
-        // envs.push_back(envk);
 
         auto siK = std::make_shared<ob::SpaceInformation>(spaceK);
         siK->setStateValidityChecker(std::make_shared<KinematicChainValidityChecker>(siK));
@@ -53,18 +48,6 @@ void AddQuotientSequence(std::vector<int> sequenceLinks,
         si_vec.push_back(siK);
         pdef_vec.push_back(pdefk);
     }
-}
-ob::PlannerPtr GetQRRT(
-    ob::SpaceInformationPtr si, 
-    ob::ProblemDefinitionPtr pdef, 
-    std::vector<double> start, 
-    std::vector<double> goal)
-{
-    ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
-    std::vector<ob::SpaceInformationPtr> si_vec;
-    std::vector<ob::ProblemDefinitionPtr> pdef_vec;
-
-    AddQuotientSequence(quotientSpaceSequence, si_vec, pdef_vec, start, goal);
 
     OMPL_INFORM("Add Original Chain with %d links.", numLinks);
     si_vec.push_back(si);
@@ -73,7 +56,16 @@ ob::PlannerPtr GetQRRT(
     typedef og::MultiQuotient<og::QRRT> MultiQuotient;
     auto planner = std::make_shared<MultiQuotient>(si_vec);
     planner->setProblemDefinition(pdef_vec);
-    planner->setName("QuotientSpaceRRT");
+
+    std::string qName = "QuotientSpaceRRT[";
+    for(unsigned k = 0; k < sequenceLinks.size(); k++)
+    {
+        int links = sequenceLinks.at(k);
+        qName+=std::to_string(links)+",";
+    }
+    qName+=std::to_string(numLinks);
+    qName += "]";
+    planner->setName(qName);
     return planner;
 }
 
@@ -109,19 +101,60 @@ int main()
     ompl::tools::Benchmark b(ss, "KinematicChain");
     b.addExperimentParameter("num_links", "INTEGER", std::to_string(numLinks));
 
+    //############################################################################
+    //Compare QRRT with different QuotientSpace sequences to other OMPL planner
+    //############################################################################
     b.addPlanner(std::make_shared<ompl::geometric::STRIDE>(ss.getSpaceInformation()));
     b.addPlanner(std::make_shared<ompl::geometric::EST>(ss.getSpaceInformation()));
     b.addPlanner(std::make_shared<ompl::geometric::KPIECE1>(ss.getSpaceInformation()));
     b.addPlanner(std::make_shared<ompl::geometric::RRT>(ss.getSpaceInformation()));
     b.addPlanner(std::make_shared<ompl::geometric::PRM>(ss.getSpaceInformation()));
 
-    ob::PlannerPtr quotientSpacePlanner = 
-      GetQRRT(ss.getSpaceInformation(), 
+    b.addPlanner( GetQRRT(std::vector<int>{3}, 
+          ss.getSpaceInformation(), 
           ss.getProblemDefinition(), 
           startVec, 
-          goalVec);
-
-    b.addPlanner( quotientSpacePlanner );
+          goalVec));
+    b.addPlanner( GetQRRT(std::vector<int>{2}, 
+          ss.getSpaceInformation(), 
+          ss.getProblemDefinition(), 
+          startVec, 
+          goalVec));
+    b.addPlanner( GetQRRT(std::vector<int>{3,5,9}, 
+          ss.getSpaceInformation(), 
+          ss.getProblemDefinition(), 
+          startVec, 
+          goalVec));
+    b.addPlanner( GetQRRT(std::vector<int>{3,11}, 
+          ss.getSpaceInformation(), 
+          ss.getProblemDefinition(), 
+          startVec, 
+          goalVec));
+    b.addPlanner( GetQRRT(std::vector<int>{10}, 
+          ss.getSpaceInformation(), 
+          ss.getProblemDefinition(), 
+          startVec, 
+          goalVec));
+    b.addPlanner( GetQRRT(std::vector<int>{12}, 
+          ss.getSpaceInformation(), 
+          ss.getProblemDefinition(), 
+          startVec, 
+          goalVec));
+    b.addPlanner( GetQRRT(std::vector<int>{8,13}, 
+          ss.getSpaceInformation(), 
+          ss.getProblemDefinition(), 
+          startVec, 
+          goalVec));
+    b.addPlanner( GetQRRT(std::vector<int>{}, 
+          ss.getSpaceInformation(), 
+          ss.getProblemDefinition(), 
+          startVec, 
+          goalVec));
+    b.addPlanner( GetQRRT(std::vector<int>{2,3,4,5,6,7,8,9,10,11,12,13,14}, 
+          ss.getSpaceInformation(), 
+          ss.getProblemDefinition(), 
+          startVec, 
+          goalVec));
 
     b.benchmark(request);
     b.saveResultsToFile(boost::str(boost::format("kinematic_%i.log") % numLinks).c_str());
