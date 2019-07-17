@@ -61,14 +61,13 @@ QuotientSpace::QuotientSpace(const ob::SpaceInformationPtr &si, QuotientSpace *p
 
     if (parent_ == nullptr)
     {
-        OMPL_DEVMSG1("Q1 dimension: %d measure: %f", Q1_space->getDimension(), Q1_space->getMeasure());
+        OMPL_DEVMSG1("ATOMIC_RN dimension: %d measure: %f", Q1_space->getDimension(), Q1_space->getMeasure());
         type_ = ATOMIC_RN;
     }
     else
     {
         Q0 = parent_->getSpaceInformation();
         const StateSpacePtr Q0_space = Q0->getStateSpace();
-
         // X1 = Q1 / Q0
         const StateSpacePtr X1_space = computeQuotientSpace(Q1_space, Q0_space);
 
@@ -385,7 +384,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
         }
         else
         {
-            OMPL_ERROR("Q1 is non-compound state, but Q0 type %d is not handled.", Q1->getType());
+            OMPL_ERROR("Q1 is non-compound state, but its type %d is not handled.", Q1->getType());
             exit(0);
         }
     }

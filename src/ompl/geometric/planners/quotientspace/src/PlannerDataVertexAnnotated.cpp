@@ -34,7 +34,7 @@
 *********************************************************************/
 
 /* Author: Andreas Orthey */
-#include "PlannerDataVertexAnnotated.h"
+#include <ompl/geometric/planners/quotientspace/PlannerDataVertexAnnotated.h>
 
 using namespace ob;
 using FeasibilityType = PlannerDataVertexAnnotated::FeasibilityType;
