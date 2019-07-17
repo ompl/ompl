@@ -17,14 +17,14 @@ ob::PlannerPtr GetQRRT(
     ob::ProblemDefinitionPtr pdef, 
     std::vector<double> start, 
     std::vector<double> goal, 
-    uint numLinks, 
+    unsigned numLinks, 
     Environment &env)
 {
     // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     std::vector<ob::SpaceInformationPtr> si_vec;
     std::vector<ob::ProblemDefinitionPtr> pdef_vec;
 
-    for(uint k = 3; k < numLinks; k+=2)
+    for(unsigned k = 3; k < numLinks; k+=2)
     {
         OMPL_INFORM("Create QuotientSpace Chain with %d links.", k);
         Environment envk = createHornEnvironment(k, narrowPassageWidth);
@@ -35,7 +35,7 @@ ob::PlannerPtr GetQRRT(
         siK->setStateValidityChecker(std::make_shared<KinematicChainValidityChecker>(siK));
         ob::ProblemDefinitionPtr pdefk = std::make_shared<ob::ProblemDefinition>(siK);
 
-        uint clippedDofs = numLinks - k;
+        unsigned clippedDofs = numLinks - k;
         std::vector<double> startVecK(start.begin(), start.end()-clippedDofs);
         std::vector<double> goalVecK(goal.begin(), goal.end()-clippedDofs);
 

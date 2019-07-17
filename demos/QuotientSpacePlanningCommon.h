@@ -13,15 +13,15 @@ void PrintBenchmarkResults(const ot::Benchmark &b)
     std::vector<std::string> plannerName;
     std::map<double, std::pair<std::string, int>> plannerTimes;
 
-    for(uint k = 0; k < experiment.planners.size(); k++)
+    for(unsigned k = 0; k < experiment.planners.size(); k++)
     {
         ot::Benchmark::PlannerExperiment pk = experiment.planners.at(k);
         std::vector<ot::Benchmark::RunProperties> runs = pk.runs;
 
-        uint N = runs.size();
+        unsigned N = runs.size();
         double time = 0;
         double percentSuccess = 0.0;
-        for(uint j = 0; j < N; j++)
+        for(unsigned j = 0; j < N; j++)
         {
             ot::Benchmark::RunProperties run = runs.at(j);
             double timeJrun = std::atof(run["time REAL"].c_str());
@@ -43,7 +43,7 @@ void PrintBenchmarkResults(const ot::Benchmark &b)
     std::cout << "Finished Benchmark (Runtime:" << experiment.maxTime 
       << ", RunCount:" << experiment.runCount << ")" << std::endl;
     std::cout << "Placement <Rank> <Time (in Seconds)> <Success (in Percentage)>" << std::endl;
-    uint ctr = 1;
+    unsigned ctr = 1;
     std::cout << std::string(80, '-') << std::endl;
     for (auto const &p : plannerTimes)
     {
