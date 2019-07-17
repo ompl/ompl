@@ -5,6 +5,8 @@ Abstraction levels are defined as [QuotientSpaces](https://en.wikipedia.org/wiki
 A simple example is a rigid body in the plane with the configuration space \f$SE(2)\f$. 
 We can abstract this configuration space by projecting onto \f$R^2\f$, the QuotientSpace of positions of the rigid body. 
 
+
+
 ## Admissible QuotientSpace Projections
 
 While there are infinitely many QuotientSpace projections, we are 
@@ -70,6 +72,17 @@ particular, QRRT can deal with spurious paths. It does so by sampling random
 vertices from a lower-dimensional QuotientSpace, and projecting them into the
 configuration space. Any finite sequence of QuotientSpaces is allowed.
 
+## Why Use Quotient Space Planning
+
+Because it can be much faster compared to other planning algorithms. You just
+have to find the right QuotientSpace sequence. 
+
+Here is an example, where we use the HyperCube to show how much faster
+planning can be. [Quotient Space HyperCube](QuotientSpacePlanningHyperCube_8cpp_source.html)
+
+In the first try, we have set the dimensions of the cube to \f$6\f$ and the size of
+the narrow passage to \f$0.1\f$. Compared to other planners we got
+
 
 ## Want to learn more?
 
@@ -83,8 +96,6 @@ Check out the [demos](group__demos.html).
 
 ### Papers
 
-A Orthey, A Escande and E Yoshida, ["Quotient Space Motion Planning"](https://arxiv.org/abs/1807.09468), ICRA, 2018
+- A Orthey and M Toussaint, _Rapidly-Exploring Quotient-Space Trees: Motion Planning using Sequential Simplifications_, 2019. Also available at https://arxiv.org/abs/1906.01350.
 
-A Orthey and M Toussaint, ["Rapidly-Exploring Quotient-Space Trees: Motion Planning using Sequential Simplifications"](https://arxiv.org/abs/1906.01350), 2019
-
-L Zhang and B Zhang, ["The Quotient Space Theory of Problem Solving"](https://link.springer.com/chapter/10.1007%2F3-540-39205-X_2), Fundamenta Informaticae, 2004
+- A Orthey, A Escande and E Yoshida, _Quotient Space Motion Planning_, ICRA, 2018. Also available at https://arxiv.org/abs/1807.09468.

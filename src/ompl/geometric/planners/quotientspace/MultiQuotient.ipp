@@ -34,7 +34,7 @@
 *********************************************************************/
 
 /* Author: Andreas Orthey */
-#include "src/PlannerDataVertexAnnotated.h"
+#include <ompl/geometric/planners/quotientspace/PlannerDataVertexAnnotated.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/util/Time.h>

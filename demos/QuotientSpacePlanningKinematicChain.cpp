@@ -1,10 +1,11 @@
 #include "KinematicChain.h"
+#include "QuotientSpacePlanningCommon.h"
 #include <ompl/geometric/planners/quotientspace/MultiQuotient.h>
 #include <ompl/geometric/planners/quotientspace/QRRT.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/tools/benchmark/Benchmark.h>
 
-const unsigned int numLinks = 15;
+const unsigned int numLinks = 7;
 const double linkLength = 1.0 / numLinks;
 const double narrowPassageWidth = 0.2;
 
@@ -84,8 +85,8 @@ int main()
     ompl::tools::Benchmark b(ss, "KinematicChain");
     b.addExperimentParameter("num_links", "INTEGER", std::to_string(numLinks));
 
-    // b.addPlanner(std::make_shared<ompl::geometric::STRIDE>(ss.getSpaceInformation()));
-    // b.addPlanner(std::make_shared<ompl::geometric::EST>(ss.getSpaceInformation()));
+    b.addPlanner(std::make_shared<ompl::geometric::STRIDE>(ss.getSpaceInformation()));
+    b.addPlanner(std::make_shared<ompl::geometric::EST>(ss.getSpaceInformation()));
     b.addPlanner(std::make_shared<ompl::geometric::KPIECE1>(ss.getSpaceInformation()));
     b.addPlanner(std::make_shared<ompl::geometric::RRT>(ss.getSpaceInformation()));
 
@@ -102,44 +103,6 @@ int main()
     b.benchmark(request);
     b.saveResultsToFile(boost::str(boost::format("kinematic_%i.log") % numLinks).c_str());
 
-    ot::Benchmark::CompleteExperiment experiment = b.getRecordedExperimentData();
-
-    std::vector<double> meanTime;
-    std::vector<std::string> plannerName;
-    std::map<double, std::string> plannerTimes;
-
-    for(uint k = 0; k < experiment.planners.size(); k++)
-    {
-        ot::Benchmark::PlannerExperiment pk = experiment.planners.at(k);
-        // plannerName.push_back(pk.name);
-        std::vector<ot::Benchmark::RunProperties> runs = pk.runs;
-
-        uint N = runs.size();
-        double time = 0;
-        for(uint j = 0; j < N; j++)
-        {
-            ot::Benchmark::RunProperties run = runs.at(j);
-            time += std::atof(run["time REAL"].c_str());
-        }
-
-        time = time / (double)N;
-        pk.name.erase(0,10);
-
-        plannerTimes[time] = pk.name;
-    }
-
-    std::cout << "Finished Benchmark (Runtime:" << experiment.maxTime 
-      << ", RunCount:" << experiment.runCount << ")" << std::endl;
-    std::cout << "Placement (in Seconds)" << std::endl;
-    uint ctr = 1;
-    for (auto const &p : plannerTimes)
-    {
-        std::cout << "Place <" << ctr++ << "> Time: " << p.first 
-          << " (" <<  p.second << ")" 
-          << (ctr<2?" <-- Winner":"")<< std::endl;
-
-    }
-
-
-    exit(0);
+    PrintBenchmarkResults(b);
+    return 0;
 }

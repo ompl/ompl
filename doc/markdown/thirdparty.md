@@ -91,3 +91,14 @@ _arXiv_, 2013 [[PDF]](http://arxiv.org/pdf/1308.0189.pdf)
 ### Author: Jennifer Barry (MIT)
 
 - Generalized the implementation of RRT (with controls) so that intermediate states generated along motions are also optionally added to that tree of motions.
+
+# QuotientSpaceRRT extension
+
+### Author: Andreas Orthey (University of Stuttgart)
+
+
+  - [QRRT](\ref QRRT) A generalization of RRT to plan on different abstraction levels. The abstraction levels are represented by quotient-spaces, and QRRT grows random trees sequentially and simultaneously on each quotient-space. 
+See also our [guide](quotientSpacePlanning.html), [tutorial](quotientSpacePlanningTutorial.html) and [demos](group__demos.html).
+    - A Orthey and M Toussaint, _Rapidly-Exploring Quotient-Space Trees: Motion Planning using Sequential Simplifications_, 2019. Also available at https://arxiv.org/abs/1906.01350.
+
+    - A Orthey, A Escande and E Yoshida, _Quotient Space Motion Planning_, ICRA, 2018. Also available at https://arxiv.org/abs/1807.09468.
