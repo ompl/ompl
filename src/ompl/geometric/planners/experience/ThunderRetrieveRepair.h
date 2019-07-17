@@ -69,7 +69,7 @@ namespace ompl
            experience, in <em>Robotics and Automation (ICRA), 2012 IEEE International Conference on. IEEE</em>, 2012.
            David Coleman, Ioan A. Sucan, Mark Moll, Kei Okada, Nikolaus Correll, "Experience-Based Planning with Sparse
            Roadmap Spanners"
-           <a href="http://arxiv.org/pdf/1410.1950.pdf">[PDF]</a>
+           <a href="https://arxiv.org/pdf/1410.1950.pdf">[PDF]</a>
         */
 
         /** \brief The Thunder Framework's Retrieve-Repair component */

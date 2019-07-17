@@ -26,14 +26,14 @@ DOI: [10.1109/TRO.2013.2240176](http://dx.doi.org/10.1109/TRO.2013.2240176)<br>
 ### Authors: Ashley Clark and Wolfgang Pointner (Stanford University)
 
 [FMT∗](\ref gFMT) is a new asymptotically optimal algorithm contributed by Marco Pavone's Autonomous Systems Laboratory. The FMT∗ algorithm performs a “lazy” dynamic programming recursion on a set of probabilistically-drawn samples to grow a tree of paths, which moves outward in cost-to-come space. The algorithm is described in:
--  L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based method for optimal motion planning in many dimensions. The International Journal of Robotics Research, 34(7):883-921, 2015. DOI: [10.1177/0278364915577958](http://dx.doi.org/10.1177/0278364915577958) http://arxiv.org/pdf/1306.3532.pdf
+-  L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based method for optimal motion planning in many dimensions. The International Journal of Robotics Research, 34(7):883-921, 2015. DOI: [10.1177/0278364915577958](http://dx.doi.org/10.1177/0278364915577958) https://arxiv.org/pdf/1306.3532.pdf
 
 # Bidirectional Fast Marching Tree algorithm (BFMT∗)
 
 ### Authors: Joseph Starek (Stanford University) and Javier V Gomez (Universidad Carlos III de Madrid)
 
 [BFMT∗](\ref gBFMT) is a new asymptotically optimal algorithm contributed by Marco Pavone's Autonomous Systems Laboratory. The BFMT∗ algorithm expands two Fast Marching Trees, one from the initial state and the other from the goal, resulting in faster convergence rates are less space is explored by the trees. The algorithm is described in:
-- J. A. Starek, J. V. Gomez, E. Schmerling, L. Janson, L. Moreno, and M. Pavone, An Asymptotically-Optimal Sampling-Based Algorithm for Bi-directional Motion Planning, in IEEE/RSJ International Conference on Intelligent Robots Systems, 2015. http://arxiv.org/pdf/1507.07602.pdf
+- J. A. Starek, J. V. Gomez, E. Schmerling, L. Janson, L. Moreno, and M. Pavone, An Asymptotically-Optimal Sampling-Based Algorithm for Bi-directional Motion Planning, in IEEE/RSJ International Conference on Intelligent Robots Systems, 2015. https://arxiv.org/pdf/1507.07602.pdf
 
 # Generalized Optimal Path Planning Framework
 
@@ -47,7 +47,7 @@ Extend OMPL's support for optimal path planning. Users can plan robot paths that
 
 [LBT-RRT](\ref gLBTRRT) (Lower Bound Tree RRT) is a near-asymptotically optimal incremental sampling-based motion planning algorithm. LBT-RRT is guaranteed to converge to a solution that is within a constant factor of the optimal solution. The notion of optimality is with respect to the distance function defined on the state space we are operating on. The algorithm is described in:
 - Oren Salzman and Dan Halperin, Asymptotically near-optimal RRT for fast, high-quality, motion planning,
-_arXiv_, 2013 [[PDF]](http://arxiv.org/pdf/1308.0189.pdf)
+_arXiv_, 2013 [[PDF]](https://arxiv.org/pdf/1308.0189.pdf)
 
 # SPARS and SPARS2 implementations
 
@@ -76,7 +76,7 @@ _arXiv_, 2013 [[PDF]](http://arxiv.org/pdf/1308.0189.pdf)
 
 - [RRT*](\ref gRRTstar) (optimal [RRT](\ref gRRT)) is an asymptotically-optimal incremental sampling-based motion planning algorithm. RRT* algorithm is guaranteed to converge to an optimal solution, while its running time is guaranteed to be a constant factor of the running time of the RRT. The RRT* algorithm was introduced and analyzed in:
 
-    - S. Karaman and E. Frazzoli, _Sampling-based algorithms for optimal motion planning_ Int. Journal of Robotics Research, 2011. Also available at http://arxiv.org/abs/1105.1186.
+    - S. Karaman and E. Frazzoli, _Sampling-based algorithms for optimal motion planning_ Int. Journal of Robotics Research, 2011. Also available at https://arxiv.org/abs/1105.1186.
 
 
 # PRM extensions

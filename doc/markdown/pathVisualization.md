@@ -30,7 +30,7 @@ if (solved)
 ~~~
 Run your program and save the output of `printAsMatrix()` to a file called, say, path.txt. Let us assume the path consists of SE(3) states. This means that the first three columns represent the 3D position component of the state and the next four columns the orientation represented by a unit quaternion. Below we will describe how to visualize this path with a variety of programs.
 
-* [OMPL.app GUI](http://ompl.kavrakilab.org/gui.html): The OMPL.app GUI can be used to “play back” any path consisting of SE(2) or SE(3) paths. First, load a mesh representing the robot and (optionally) a mesh representing the environment. Next, load the path file `path.txt`. You can either let the GUI loop through the states along the path or show them all simultaneously.
+* [OMPL.app GUI](https://ompl.kavrakilab.org/gui.html): The OMPL.app GUI can be used to “play back” any path consisting of SE(2) or SE(3) paths. First, load a mesh representing the robot and (optionally) a mesh representing the environment. Next, load the path file `path.txt`. You can either let the GUI loop through the states along the path or show them all simultaneously.
 * [Matplotlib](http://matplotlib.org):
 ~~~{.py}
 from mpl_toolkits.mplot3d import Axes3D

@@ -12,7 +12,7 @@ OMPL contains a ompl::Benchmark class that facilitates solving a motion planning
 - \ref benchmark_database
 
 \ifnot OMPLAPP
-For a command line program for rigid body motion planning and basic kinodynamic motion planning, see the [ompl_benchmark](http://ompl.kavrakilab.org/benchmark.html) program in OMPL.app.
+For a command line program for rigid body motion planning and basic kinodynamic motion planning, see the [ompl_benchmark](https://ompl.kavrakilab.org/benchmark.html) program in OMPL.app.
 \endif
 
 For interactive visualization of benchmark databases, please see [plannerarena.org](http://plannerarena.org).

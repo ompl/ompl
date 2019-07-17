@@ -101,7 +101,7 @@ namespace ompl
         In Proceedings of the IEEE International Conference on Robotics and Automation (ICRA).
         Seattle, WA, USA, 26-30 May 2015.
         DOI: <a href="http://dx.doi.org/10.1109/ICRA.2015.7139620">10.1109/ICRA.2015.7139620</a>.
-        <a href="http://www.youtube.com/watch?v=MRzSfLpNBmA">Illustration video</a>.
+        <a href="https://www.youtube.com/watch?v=MRzSfLpNBmA">Illustration video</a>.
         */
         /** \brief Batch Informed Trees (BIT*)*/
         class BITstar : public ompl::base::Planner

@@ -48,7 +48,7 @@
 
 # OMPL 1.2.1 (July 1, 2016)
 
-- New simplified installation instructions. There is now also a [installation script](http://ompl.kavrakilab.org/install-ompl-ubuntu.sh) that will download and install OMPL and all its dependencies on Ubuntu 14.04, 15.10, and 16.04.
+- New simplified installation instructions. There is now also a [installation script](https://ompl.kavrakilab.org/install-ompl-ubuntu.sh) that will download and install OMPL and all its dependencies on Ubuntu 14.04, 15.10, and 16.04.
 - Fixed python bindings for gcc5. Python bindings still take a [very long time](https://github.com/gccxml/pygccxml/issues/56) to generate.
 - Misc. small bug fixes.
 
@@ -83,7 +83,7 @@
 - Added an option to turn off the path simplification in benchmarking.
 - Added support for parametrized benchmarks. Planner Arena can show performance across values for a given parameter.
 - Made it easier to get repeatable runs of an algorithm by enabling the user to set the seed of the *local* random number generators (i.e., not just the global seed).
-- The [OMPL blog](http://ompl.kavrakilab.org/blog.html) is now [Jekyll](http://www.jekyllrb.com)-based and hosted as a [repository on GitHub](https://github.com/ompl/blog). If you have a project that uses OMPL, you can send us a pull request (please check with us first whether it would be appropriate for the blog before you write content).
+- The [OMPL blog](https://ompl.kavrakilab.org/blog.html) is now [Jekyll](http://www.jekyllrb.com)-based and hosted as a [repository on GitHub](https://github.com/ompl/blog). If you have a project that uses OMPL, you can send us a pull request (please check with us first whether it would be appropriate for the blog before you write content).
 
 
 # OMPL 1.0.0 (October 26, 2014)
