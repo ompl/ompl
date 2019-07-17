@@ -28,27 +28,27 @@ The default database used by the Planner Arena server contains results for a num
 
 <div class="row" id="videocollection">
   <div class="video">
-    <iframe src="http://player.vimeo.com/video/58686592?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="216" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br>
+    <iframe src="https://player.vimeo.com/video/58686592?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="216" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br>
     <b>Cubicles</b>
   </div>
   <div class="video">
-    <iframe src="http://player.vimeo.com/video/107884951?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="265" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br>
+    <iframe src="https://player.vimeo.com/video/107884951?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="265" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br>
     <b>Abstract</b>
   </div>
   <div class="video">
-    <iframe src="http://player.vimeo.com/video/58686593?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="195" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
+    <iframe src="https://player.vimeo.com/video/58686593?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="195" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
     <b>Home</b>
   </div>
   <div class="video">
-    <iframe src="http://player.vimeo.com/video/107885658?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="258" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
+    <iframe src="https://player.vimeo.com/video/107885658?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="258" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
     <b>Pipedream – ring</b>
   </div>
   <div class="video">
-    <iframe src="http://player.vimeo.com/video/107887115?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="281" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
+    <iframe src="https://player.vimeo.com/video/107887115?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="281" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
     <b>Bugtrap – second-order car</b>
   </div>
   <div class="video">
-    <iframe src="http://player.vimeo.com/video/58686594?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="280" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
+    <iframe src="https://player.vimeo.com/video/58686594?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="280" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
     <b>Maze – kinematic car</b>
   </div>
 </div>

@@ -39,7 +39,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-16by9">
-      \htmlonly<iframe src="http://www.youtube.com/embed/6qRRbvNzHG8"></iframe>\endhtmlonly
+      \htmlonly<iframe src="https://www.youtube.com/embed/6qRRbvNzHG8"></iframe>\endhtmlonly
     </div>
   </div>
 </div>
@@ -53,7 +53,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-16by9">
-      \htmlonly<iframe src="http://www.youtube.com/embed/JAs2yciPjvM"></iframe>\endhtmlonly
+      \htmlonly<iframe src="https://www.youtube.com/embed/JAs2yciPjvM"></iframe>\endhtmlonly
     </div>
   </div>
 </div>
@@ -67,7 +67,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-16by9">
-      \htmlonly<iframe src="http://player.vimeo.com/video/71580831?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=0&amp;loop=1"></iframe>\endhtmlonly
+      \htmlonly<iframe src="https://player.vimeo.com/video/71580831?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=0&amp;loop=1"></iframe>\endhtmlonly
     </div>
   </div>
 </div>
@@ -154,7 +154,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-4by3">
-      \htmlonly<iframe src="http://player.vimeo.com/video/58686592?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=0&amp;loop=1"></iframe>\endhtmlonly
+      \htmlonly<iframe src="https://player.vimeo.com/video/58686592?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=0&amp;loop=1"></iframe>\endhtmlonly
     </div>
   </div>
 </div>
