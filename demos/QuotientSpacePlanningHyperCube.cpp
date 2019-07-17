@@ -106,7 +106,7 @@ ob::PlannerPtr GetQRRT(
 
 int main(int argc, char **argv)
 {
-    const unsigned ndim = 12;
+    const unsigned ndim = 8;
 
     double range = edgeWidth * 0.5;
     auto space(std::make_shared<ompl::base::RealVectorStateSpace>(ndim));
@@ -134,11 +134,11 @@ int main(int argc, char **argv)
     ompl::tools::Benchmark b(ss, "HyperCube");
     b.addExperimentParameter("num_dims", "INTEGER", std::to_string(ndim));
 
-    // addPlanner(b, std::make_shared<ompl::geometric::STRIDE>(ss.getSpaceInformation()), range);
-    // addPlanner(b, std::make_shared<ompl::geometric::EST>(ss.getSpaceInformation()), range);
-    // addPlanner(b, std::make_shared<ompl::geometric::KPIECE1>(ss.getSpaceInformation()), range);
-    // addPlanner(b, std::make_shared<ompl::geometric::RRT>(ss.getSpaceInformation()), range);
-    // addPlanner(b, std::make_shared<ompl::geometric::PRM>(ss.getSpaceInformation()), range);
+    addPlanner(b, std::make_shared<ompl::geometric::STRIDE>(ss.getSpaceInformation()), range);
+    addPlanner(b, std::make_shared<ompl::geometric::EST>(ss.getSpaceInformation()), range);
+    addPlanner(b, std::make_shared<ompl::geometric::KPIECE1>(ss.getSpaceInformation()), range);
+    addPlanner(b, std::make_shared<ompl::geometric::RRT>(ss.getSpaceInformation()), range);
+    addPlanner(b, std::make_shared<ompl::geometric::PRM>(ss.getSpaceInformation()), range);
 
     ob::PlannerPtr quotientSpacePlanner = 
       GetQRRT(ss.getSpaceInformation(), ss.getProblemDefinition(), ndim);
