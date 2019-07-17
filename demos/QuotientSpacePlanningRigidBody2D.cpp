@@ -35,12 +35,10 @@
 
 /* Author: Andreas Orthey */
 
-#include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/StateSpace.h>
-#include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/quotientspace/MultiQuotient.h>
 #include <ompl/geometric/planners/quotientspace/QRRT.h>
 #include <iostream>
@@ -60,9 +58,10 @@ bool isStateValid_SE2(const ob::State *state)
     const auto *SE2state = state->as<ob::SE2StateSpace::StateType>();
     const auto *R2 = SE2state->as<ob::RealVectorStateSpace::StateType>(0);
     const auto *SO2 = SE2state->as<ob::SO2StateSpace::StateType>(1);
-    double *pos = R2->values;
-    double pos_cnstr =
-            sqrt((pos[0] - 0.5) * (pos[0] - 0.5) + (pos[1] - 0.5) * (pos[1] - 0.5));
+
+    const double &x = R2->values[0]-0.5;
+    const double &y = R2->values[1]-0.5;
+    double pos_cnstr = sqrt(x*x + y*y);
     return (pos_cnstr > 0.2) && (SO2->value < boost::math::constants::pi<double>() / 2.0);
 }
 
