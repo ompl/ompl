@@ -98,7 +98,6 @@ int main(int argc, const char **argv)
     bounds.setLow(0);
     bounds.setHigh(1);
     SE3->setBounds(bounds);
-    SE3->printSettings(std::cout);
     ob::SpaceInformationPtr si_SE3(std::make_shared<ob::SpaceInformation>(SE3));
     si_SE3->setStateValidityChecker(isStateValid_SE3);
 

@@ -26,11 +26,7 @@ void PrintBenchmarkResults(const ot::Benchmark &b)
             ot::Benchmark::RunProperties run = runs.at(j);
             double timeJrun = std::atof(run["time REAL"].c_str());
             time += timeJrun;
-            if(timeJrun < experiment.maxTime)
-            {
-              percentSuccess++;
-            }
-
+            if(timeJrun < experiment.maxTime) percentSuccess++;
         }
 
         time = time / (double)N;
@@ -55,6 +51,3 @@ void PrintBenchmarkResults(const ot::Benchmark &b)
     }
     std::cout << std::string(80, '-') << std::endl;
 }
-
-
-

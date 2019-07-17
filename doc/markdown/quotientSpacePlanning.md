@@ -134,7 +134,6 @@ Place <1> Time: <9.11489> %Success: <20> (QuotientSpaceRRT[6lvl]) <-- Winner
 --------------------------------------------------------------------------------
 ~~~
 
-
 ## Want to learn more?
 
 ### Tutorials

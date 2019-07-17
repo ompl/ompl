@@ -102,4 +102,4 @@ if(v!=nullptr){
 ~~~
 ### Further Information
 
-For more information, please refer to either the general introduction to [QuotientSpace](quotientSpacePlanning.html) or the [demos](group__demos.html).
+For more information, please refer to either the general introduction to [QuotientSpaces](quotientSpacePlanning.html) or the [demos](group__demos.html).

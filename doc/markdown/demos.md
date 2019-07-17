@@ -41,5 +41,4 @@
   * [Quotient Space Rigid Body in 3D](QuotientSpacePlanningRigidBody3D_8cpp_source.html). Two-level planning for a rigid body in \f$SE(3)\f$ with quotient space \f$\mathbb{R}^3\f$. 
   * [Quotient Space HyperCube](QuotientSpacePlanningHyperCube_8cpp_source.html). N-level hypercube benchmark using a point robot moving in a cube \f$\mathbb{R}^N\f$. We use QuotientSpaces \f$\{\mathbb{R}^2,\mathbb{R}^4,\cdots,\mathbb{R}^N\f$ (This is a modified version of the [Hypercube benchmark](HypercubeBenchmark_8cpp_source.html)).
   * [Quotient Space Kinematic Chain](QuotientSpacePlanningKinematicChain_8cpp_source.html). Planning benchmark of different QuotientSpace seuqences for a kinematic chain in \f$\mathbb{R}^N\f$ (This is a modified version of the [Kinematic chain benchmark.](KinematicChainBenchmark_8cpp_source.html)).
-
 @}

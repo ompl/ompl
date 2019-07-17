@@ -87,9 +87,9 @@ int main()
     ompl::base::ScopedState<> start(chain), goal(chain);
     std::vector<double> startVec(numLinks, boost::math::constants::pi<double>() / (double)numLinks);
     std::vector<double> goalVec(numLinks, 0);
-
     startVec[0] = 0.;
     goalVec[0] = boost::math::constants::pi<double>() - .001;
+
     chain->setup();
     chain->copyFromReals(start.get(), startVec);
     chain->copyFromReals(goal.get(), goalVec);
