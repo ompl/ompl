@@ -81,7 +81,58 @@ Here is an example, where we use the HyperCube to show how much faster
 planning can be. [Quotient Space HyperCube](QuotientSpacePlanningHyperCube_8cpp_source.html)
 
 In the first try, we have set the dimensions of the cube to \f$6\f$ and the size of
-the narrow passage to \f$0.1\f$. Compared to other planners we got
+the narrow passage to \f$0.1\f$. Our results show that ompl::geometric::PRM
+performs best with \f$0.103\f$ seconds and ompl::geometric::QRRT on second place
+with \f$0.111\f$ seconds.
+
+~~~{.txt}
+Finished Benchmark (Runtime:10, RunCount:5)
+Placement <Rank> <Time (in Seconds)> <Success (in Percentage)>
+--------------------------------------------------------------------------------
+Place <1> Time: <0.103107> %Success: <100> (PRM) <-- Winner
+Place <2> Time: <0.111702> %Success: <100> (QuotientSpaceRRT[3lvl])
+Place <3> Time: <5.33306> %Success: <60> (STRIDE)
+Place <4> Time: <9.86457> %Success: <20> (RRT)
+Place <5> Time: <10.0467> %Success: <0> (KPIECE1)
+Place <6> Time: <10.069> %Success: <0> (EST)
+--------------------------------------------------------------------------------
+~~~
+
+However, if we increase the hypercube dimension to \f$8\f$ and compare only the
+two winning algorithms, we see that ompl::geometric::PRM does not scale well
+with zero solved runs, while ompl::geometric::QRRT performs well with \f$0.653\f$ seconds for solving every single run.
+
+~~~{.txt}
+Finished Benchmark (Runtime:10, RunCount:5)
+Placement <Rank> <Time (in Seconds)> <Success (in Percentage)>
+--------------------------------------------------------------------------------
+Place <1> Time: <0.65329> %Success: <100> (QuotientSpaceRRT[4lvl]) <-- Winner
+Place <2> Time: <10.0419> %Success: <0> (PRM)
+--------------------------------------------------------------------------------
+~~~
+
+
+ompl::geometric::QRRT even performs well when we increase the dimensions further
+to \f$10\f$.
+
+~~~{.txt}
+Finished Benchmark (Runtime:10, RunCount:5)
+Placement <Rank> <Time (in Seconds)> <Success (in Percentage)>
+--------------------------------------------------------------------------------
+Place <1> Time: <1.84356> %Success: <100> (QuotientSpaceRRT[5lvl]) <-- Winner
+--------------------------------------------------------------------------------
+~~~
+
+The algorithm comes to a limit when we increase the dimensionality further to
+\f$12\f$.
+
+~~~{.txt}
+Finished Benchmark (Runtime:10, RunCount:5)
+Placement <Rank> <Time (in Seconds)> <Success (in Percentage)>
+--------------------------------------------------------------------------------
+Place <1> Time: <9.11489> %Success: <20> (QuotientSpaceRRT[6lvl]) <-- Winner
+--------------------------------------------------------------------------------
+~~~
 
 
 ## Want to learn more?

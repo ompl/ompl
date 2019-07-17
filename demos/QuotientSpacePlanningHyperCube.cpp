@@ -15,7 +15,6 @@
 #include <boost/format.hpp>
 #include <fstream>
 
-const unsigned ndim = 6;
 const double edgeWidth = 0.1;
 
 // Only states near some edges of a hypercube are valid. The valid edges form a
@@ -107,6 +106,8 @@ ob::PlannerPtr GetQRRT(
 
 int main(int argc, char **argv)
 {
+    const unsigned ndim = 12;
+
     double range = edgeWidth * 0.5;
     auto space(std::make_shared<ompl::base::RealVectorStateSpace>(ndim));
     ompl::base::RealVectorBounds bounds(ndim);
@@ -133,11 +134,11 @@ int main(int argc, char **argv)
     ompl::tools::Benchmark b(ss, "HyperCube");
     b.addExperimentParameter("num_dims", "INTEGER", std::to_string(ndim));
 
-    addPlanner(b, std::make_shared<ompl::geometric::STRIDE>(ss.getSpaceInformation()), range);
-    addPlanner(b, std::make_shared<ompl::geometric::EST>(ss.getSpaceInformation()), range);
-    addPlanner(b, std::make_shared<ompl::geometric::KPIECE1>(ss.getSpaceInformation()), range);
-    addPlanner(b, std::make_shared<ompl::geometric::RRT>(ss.getSpaceInformation()), range);
-    addPlanner(b, std::make_shared<ompl::geometric::PRM>(ss.getSpaceInformation()), range);
+    // addPlanner(b, std::make_shared<ompl::geometric::STRIDE>(ss.getSpaceInformation()), range);
+    // addPlanner(b, std::make_shared<ompl::geometric::EST>(ss.getSpaceInformation()), range);
+    // addPlanner(b, std::make_shared<ompl::geometric::KPIECE1>(ss.getSpaceInformation()), range);
+    // addPlanner(b, std::make_shared<ompl::geometric::RRT>(ss.getSpaceInformation()), range);
+    // addPlanner(b, std::make_shared<ompl::geometric::PRM>(ss.getSpaceInformation()), range);
 
     ob::PlannerPtr quotientSpacePlanner = 
       GetQRRT(ss.getSpaceInformation(), ss.getProblemDefinition(), ndim);

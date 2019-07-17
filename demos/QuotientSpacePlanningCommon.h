@@ -4,6 +4,7 @@
 namespace ot = ompl::tools;
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
+
 void PrintBenchmarkResults(const ot::Benchmark &b)
 {
     ot::Benchmark::CompleteExperiment experiment = b.getRecordedExperimentData();
