@@ -17,7 +17,7 @@ __OMPL__, the Open Motion Planning Library, consists of many state-of-the-art sa
 __OMPL.app__, the front-end for [OMPL](/core), contains a lightweight wrapper for the  [FCL](http://gamma.cs.unc.edu/FCL) and [PQP](http://gamma.cs.unc.edu/SSV) collision checkers and a simple GUI based on [PyQt](http://www.riverbankcomputing.co.uk/software/pyqt/intro) / [PySide](http://www.pyside.org). The graphical front-end can be used for planning motions for rigid bodies and a few vehicle types (first-order and second-order cars, a blimp, and a quadrotor). It relies on the [Assimp](http://assimp.sf.net) library to import a large variety of mesh formats that can be used to represent the robot and its environment.
 
 \else
-The Open Motion Planning Library (__OMPL__) consists of a set of sampling-based motion planning algorithms. The content of the library is limited to these algorithms, which means there is no environment specification, no collision detection or visualization. The library is designed so it can be easily integrated into [systems that provide the additional needed components](integration.html). For examples of complete systems using OMPL, see [OMPL.app](http://ompl.kavrakilab.org) and [MoveIt!](http://moveit.ros.org). We have also developed a [educational module on motion planning](education.html) that is centered around OMPL.app. We are looking for educational partners to use and further develop the material. Please contact us for more information.
+The Open Motion Planning Library (__OMPL__) consists of a set of sampling-based motion planning algorithms. The content of the library is limited to these algorithms, which means there is no environment specification, no collision detection or visualization. The library is designed so it can be easily integrated into [systems that provide the additional needed components](integration.html). For examples of complete systems using OMPL, see [OMPL.app](https://ompl.kavrakilab.org) and [MoveIt!](http://moveit.ros.org). We have also developed a [educational module on motion planning](education.html) that is centered around OMPL.app. We are looking for educational partners to use and further develop the material. Please contact us for more information.
 
 OMPL is intended to be efficient, thread safe, easy to use, easily extensible and freely available (visit this project on [Bitbucket](https://bitbucket.org/ompl/ompl)).
 
@@ -64,7 +64,7 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
         </div>
       </div>
       <div class="item">
-        <a href="http://ompl.kavrakilab.org/gui.html"><img src="images/gui_path-small.jpg"></a>
+        <a href="https://ompl.kavrakilab.org/gui.html"><img src="images/gui_path-small.jpg"></a>
         <div class="carousel-caption">
           <h4>OMPL.app GUI</h4>
         </div>
@@ -99,7 +99,7 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 \htmlonly</div><div class="col-md-4 col-sm-6">\endhtmlonly
 ## Getting Started
 
-- The [OMPL primer](http://ompl.kavrakilab.org/OMPL_Primer.pdf) provides a brief background on sampling-based motion planning, and an overview of OMPL.
+- The [OMPL primer](https://ompl.kavrakilab.org/OMPL_Primer.pdf) provides a brief background on sampling-based motion planning, and an overview of OMPL.
 - [Download](download.html) and [install](installation.html) OMPL.
 \if OMPLAPP
 - Learn how to use the [OMPL.app GUI](gui.html).
@@ -125,9 +125,9 @@ OMPL is intended to be efficient, thread safe, easy to use, easily extensible an
 
 - [At ROSCON 2013, Sachin Chitta gave a presentation about MoveIt!](https://vimeo.com/66567049), the new  software framework for motion planning in ROS. It provides a common interface to motion planning libraries (including OMPL). The old ROS arm_navigation stack is now deprecated and all ROS users are encouraged to switch to MoveIt!.
 - [ICRA 2013 Tutorial on Motion Planning for Mobile Manipulation: State-of-the-art Methods and Tools](http://moveit.ros.org/wiki/Tutorials/ICRA2013). Both OMPL and [MoveIt!](http://moveit.ros.org) were heavily featured in this tutorial.
-- [OMPL has won the 2012 Open Source Software World Grand Challenge!](http://ompl.kavrakilab.org/blog/?p=178)
+- [OMPL has won the 2012 Open Source Software World Grand Challenge!](https://ompl.kavrakilab.org/blog/?p=178)
 - [An article about OMPL](ieee-ram-2012-ompl.pdf) has been accepted for publication in IEEE's Robotics & Automation Magazine! It will appear in the December 2012 issue.
-- [At ROSCON 2012, Sachin Chitta and Ioan Șucan gave a talk about MoveIt!](http://www.youtube.com/watch?v=r1zbuLc8RhI), the new motion planning stack in ROS. It provides a common interface to motion planning libraries in ROS (including OMPL). It will eventually replace the arm navigation stack.
+- [At ROSCON 2012, Sachin Chitta and Ioan Șucan gave a talk about MoveIt!](https://www.youtube.com/watch?v=r1zbuLc8RhI), the new motion planning stack in ROS. It provides a common interface to motion planning libraries in ROS (including OMPL). It will eventually replace the arm navigation stack.
 - [IROS 2011 Tutorial on Motion Planning for Real Robots](http://kavrakilab.org/OMPLtutorial). This hands-on tutorial described how to use the ROS and OMPL, but it also provided some background on sampling-based motion planning.
 
 \htmlonly</div></div></div>\endhtmlonly
