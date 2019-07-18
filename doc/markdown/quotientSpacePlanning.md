@@ -44,15 +44,17 @@ similar to constraint relaxations.
 
 ## Spurious Paths 
 
-Our main problem when planning with quotient spaces are spurious
-path. A spurious path is a path on a quotient space which cannot be realized
-on the configuration space (it cannot be lifted). An example is shown below. On
+Our main problem when planning with QuotientSpaces are spurious paths. A
+spurious path is a path on a quotient space which cannot be lifted to the
+configuration space (A QuotientSpace path can be lifted iff there exists a
+feasible path on the ConfigurationSpace which when projected onto the
+QuotientSpace will yield the QuotientSpace path). An example is shown below. On
 the left we have a solution path for the nested disk going below the obstacle.
-This solution path, however, cannot be lifted to the configuration space (there
-does not exists a feasible path on the configuration space which when projected
-on the QuotientSpace is equal to the solution path). The only feasible path on
-the configuration space is the one shown on the right, which goes above the
-obstacle.
+This solution path, however, cannot be lifted to the configuration space --- the
+L-shaped robot cannot pass below the obstacle. A feasible path on the
+ConfigurationSpace is shown on the right, which goes above the obstacle. This
+path is a projection of the feasible path on the 3-dimensional
+ConfigurationSpace down onto the 2-dimensional QuotientSpace.
 
 \htmlonly
 <div class="row">
@@ -65,23 +67,34 @@ obstacle.
 ## Probabilistical Completeness
 
 To plan with a sequence of QuotientSpaces, we have developed a new algorithm
-called the QuotientSpace Rapidly-exploring random tree (QRRT).
-ompl::geometric::QRRT is probabilistically complete when used with Admissible
-Projections, i.e. it can solve any planning problem which has a solution. In
+called the QuotientSpace Rapidly-exploring random tree (QRRT) algorithm.
+ompl::geometric::QRRT is probabilistically complete when used with admissible
+projections, i.e. it can solve any planning problem which has a solution. In
 particular, QRRT can deal with spurious paths. It does so by sampling random
 vertices from a lower-dimensional QuotientSpace, and projecting them into the
-configuration space. Any finite sequence of QuotientSpaces is allowed.
+configuration space. 
 
 ## Why Use Quotient Space Planning
 
-Because it can be much faster compared to other planning algorithms. You just
-have to find the right QuotientSpace sequence. 
+  - Because it is more general than lower-dimensional projections like
+    ompl::base::ProjectionEvaluator: 
+    - (1) We can handle a finite number of sequential projections instead of just one. 
+    - (2) We can guarantee probabilistic completeness when used with admissible projections
+    - (3) We can project onto many manifold spaces instead of just euclidean
+      space \f$\mathbb{R}^N\f$.
+  - Because it can be much faster compared to other planning algorithms. 
 
-Here is an example, where we use the HyperCube to show how much faster
-planning can be. [Quotient Space HyperCube](QuotientSpacePlanningHyperCube_8cpp_source.html)
+### Hypercube Benchmark
+To see how much faster QuotientSpace planning can be, we provide a hypercube
+demo, which you can run yourself using the [Quotient Space HyperCube File.](QuotientSpacePlanningHyperCube_8cpp_source.html)
 
-In the first try, we have set the dimensions of the cube to \f$6\f$ and the size of
-the narrow passage to \f$0.1\f$. Our results show that ompl::geometric::PRM
+For demonstration, we change the number of dimensions of the hypercube from
+\f$6\f$ to \f$8\f$ to \f$10\f$ and finally to \f$12\f$ (using a narrow passage
+of \f$0.1\f$). 
+
+#### \f$6\f$-dimensional HyperCube
+
+Our results show that ompl::geometric::PRM
 performs best with \f$0.103\f$ seconds and ompl::geometric::QRRT on second place
 with \f$0.111\f$ seconds.
 
@@ -98,9 +111,9 @@ Place <6> Time: <10.069> %Success: <0> (EST)
 --------------------------------------------------------------------------------
 ~~~
 
-However, if we increase the hypercube dimension to \f$8\f$ and compare only the
-two winning algorithms, we see that ompl::geometric::PRM does not scale well
-with zero solved runs, while ompl::geometric::QRRT performs well with \f$0.653\f$ seconds for solving every single run.
+#### \f$8\f$-dimensional HyperCube
+
+Comparing only the two winning algorithms, we see that ompl::geometric::PRM does not scale well to 8 dimensions with zero solved runs, while ompl::geometric::QRRT performs well with \f$0.653\f$ seconds for solving every single run.
 
 ~~~{.txt}
 Finished Benchmark (Runtime:10, RunCount:5)
@@ -112,6 +125,7 @@ Place <2> Time: <10.0419> %Success: <0> (PRM)
 ~~~
 
 
+#### \f$10\f$-dimensional HyperCube
 ompl::geometric::QRRT even performs well when we increase the dimensions further
 to \f$10\f$.
 
@@ -123,6 +137,7 @@ Place <1> Time: <1.84356> %Success: <100> (QuotientSpaceRRT[5lvl]) <-- Winner
 --------------------------------------------------------------------------------
 ~~~
 
+#### \f$12\f$-dimensional HyperCube
 The algorithm comes to a limit when we increase the dimensionality further to
 \f$12\f$.
 

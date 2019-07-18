@@ -63,13 +63,16 @@ planner->setProblemDefinition(pdef_vec);
 
 planner->setup();
 planner->solve();
-
 ~~~
 
 NOTE: The runtime of a QuotientSpace planner depends crucially on the sequence
 of QuotientSpaces defined. For some spaces, planning time can be very fast,
 while for others it is easily outperformed by classical planner such as
-ompl::geometric::RRT. Which spaces work best is still a research question.
+ompl::geometric::RRT (which is equivalent to running ompl::geometric::QRRT with
+a single configuration space). Which spaces work best is still an open research
+question. A good heuristic is to use more QuotientSpaces the more narrow
+passages we have in an environment. More information can be found in the [QRRT
+paper](https://arxiv.org/abs/1906.01350).
 
 ### AnnotatedPlannerDataVertex
 
