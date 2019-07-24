@@ -55,12 +55,6 @@ namespace ompl
             // If new elements are added,
             // you need to update the clone/getstate functions!
         public:
-            enum class FeasibilityType
-            {
-                FEASIBLE,
-                INFEASIBLE,
-                SUFFICIENT_FEASIBLE
-            };
 
             PlannerDataVertexAnnotated(const ob::State *st, int tag = 0);
             PlannerDataVertexAnnotated(const PlannerDataVertexAnnotated &rhs);
@@ -72,6 +66,9 @@ namespace ompl
             void setMaxLevel(unsigned int level_);
             unsigned int getMaxLevel() const;
 
+            void setPath(std::vector<int> path_);
+            std::vector<int> getPath() const;
+
             void setComponent(unsigned int component_);
             unsigned int getComponent() const;
 
@@ -80,18 +77,14 @@ namespace ompl
             virtual const ob::State *getState() const override;
             virtual const ob::State *getQuotientState() const;
 
-            virtual bool operator==(const PlannerDataVertex &rhs) const override
-            {
-                const PlannerDataVertexAnnotated &v = static_cast<const PlannerDataVertexAnnotated &>(rhs);
-                return (level_ == v.getLevel() && state_ == v.getState());
-            }
-
+            friend bool operator==(const PlannerDataVertexAnnotated &lhs, const PlannerDataVertexAnnotated &rhs);
             friend std::ostream &operator<<(std::ostream &, const PlannerDataVertexAnnotated &);
 
         protected:
-            bool infeasible_{false};
             unsigned int level_{0};
             unsigned int maxLevel_{1};
+
+            std::vector<int> path_;
 
             unsigned int component_{0};
             const ob::State *stateQuotientSpace_{nullptr};

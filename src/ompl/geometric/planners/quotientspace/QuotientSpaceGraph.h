@@ -56,12 +56,12 @@
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
-const double dInf = std::numeric_limits<double>::infinity();
 
 namespace ompl
 {
     namespace base
     {
+        const double dInf = std::numeric_limits<double>::infinity();
         OMPL_CLASS_FORWARD(OptimizationObjective);
     }
     namespace geometric
@@ -134,8 +134,8 @@ namespace ompl
                 }
 
             private:
-                ob::Cost cost{+dInf};
-                ob::Cost original_cost{+dInf};
+                ob::Cost cost{+ob::dInf};
+                ob::Cost original_cost{+ob::dInf};
             };
 
             struct GraphBundle
@@ -191,7 +191,7 @@ namespace ompl
             virtual void clear() override;
             void clearQuery();
             virtual void clearVertices();
-            void deleteConfiguration(Configuration *q);
+            virtual void deleteConfiguration(Configuration *q);
 
             template <template <typename T> class NN>
             void setNearestNeighbors();
@@ -205,7 +205,7 @@ namespace ompl
 
             const Configuration *nearest(const Configuration *s) const;
 
-            ob::Cost bestCost_{+dInf};
+            ob::Cost bestCost_{+ob::dInf};
             Configuration *qStart_;
             Configuration *qGoal_;
             Vertex vStart_;

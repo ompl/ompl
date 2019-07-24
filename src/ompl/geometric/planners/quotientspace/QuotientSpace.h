@@ -59,6 +59,7 @@ namespace ompl
                 SE2_R2,
                 SE2RN_R2,
                 SE2RN_SE2,
+                SO2RN_SO2,
                 SE2RN_SE2RM,
                 SE3_R3,
                 SE3RN_R3,
@@ -72,7 +73,7 @@ namespace ompl
                  Q1 = Q0 x X1 is a product space of Q0 and X1 and
                       is the main quotient-space of this class
                  Q0 is a pointer to the next lower-dimensional quotient-space and
-                 X1 is the quotient-space  Q1 / Q0.
+                 X1 is the quotient-space  Q1 / Q0
 
                  We can visualize the relationships in the following diagram
 
@@ -174,7 +175,7 @@ namespace ompl
             ///  \brief Compute the quotient Q1 / Q0 between two given spaces.
             ///  The following cases are currently implemented
             ///   ---- non-compound:
-            ///   (1) Q1 Rn     , Q0 Rm     [0<m<=n] => X1 = R(n-m) \union {0}
+            ///   (1) Q1 Rn     , Q0 Rm     [0<m<=n] => X1 = R(n-m) \union {\emptyset}
             ///   ---- compound:
             ///   (2) Q1 SE2    , Q0 R2              => X1 = SO2
             ///   (3) Q1 SE3    , Q0 R3              => X1 = SO3
@@ -185,6 +186,7 @@ namespace ompl
             ///   (7) Q1 SE2xRn , Q0 SE2             => X1 = Rn
             ///   (8) Q1 SE2xRn , Q0 R2              => X1 = SO2xRN
             ///   (9) Q1 SE2xRn , Q0 SE2xRm [0<m<n ] => X1 = R(n-m)
+            ///  (10) Q1 SO2xRn , Q0 SO2             => X1 = Rn
             const ob::StateSpacePtr computeQuotientSpace(const ob::StateSpacePtr Q1, const ob::StateSpacePtr Q0);
             /// Identify the type of the quotient Q1 / Q0
             QuotientSpaceType identifyQuotientSpaceType(const ob::StateSpacePtr Q1, const ob::StateSpacePtr Q0);

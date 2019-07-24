@@ -143,7 +143,7 @@ void QuotientSpaceGraph::clear()
     clearVertices();
     clearQuery();
     graphLength_ = 0;
-    bestCost_ = ob::Cost(dInf);
+    bestCost_ = ob::Cost(ob::dInf);
     setup_ = false;
 }
 
@@ -219,8 +219,7 @@ QuotientSpaceGraph::Vertex QuotientSpaceGraph::addConfiguration(Configuration *q
     Vertex m = boost::add_vertex(q, graph_);
     graph_[m]->total_connection_attempts = 1;
     graph_[m]->successful_connection_attempts = 0;
-    // disjointSets_.make_set(m);
-    // ConnectVertexToNeighbors(m);
+    disjointSets_.make_set(m);
     nearestDatastructure_->add(q);
     q->index = m;
     return m;
@@ -290,7 +289,7 @@ bool QuotientSpaceGraph::getSolution(ob::PathPtr &solution)
     else
     {
         ob::Goal *g = pdef_->getGoal().get();
-        bestCost_ = ob::Cost(+dInf);
+        bestCost_ = ob::Cost(+ob::dInf);
         bool same_component = sameComponent(vStart_, vGoal_);
 
         if (same_component && g->isStartGoalPairValid(graph_[vGoal_]->state, graph_[vStart_]->state))
