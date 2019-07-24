@@ -209,7 +209,8 @@ namespace ompl
             }
         }
 
-        void TBDstar::setComputeBackwardSearchHeuristic(bool computeBackwardSearchHeuristic) {
+        void TBDstar::setComputeBackwardSearchHeuristic(bool computeBackwardSearchHeuristic)
+        {
             computeBackwardSearchHeuristic_ = computeBackwardSearchHeuristic;
         }
 
@@ -252,8 +253,11 @@ namespace ompl
                 // Add the outgoing edges of the start to the queue.
                 for (const auto &start : graph_->getStartVertices())
                 {
-                    auto neighbors = graph_->getNeighbors(start);
+                    // Register the expansion on this search.
+                    start->registerExpansionDuringCurrentSearch();
 
+                    // Get the neighbors.
+                    auto neighbors = graph_->getNeighbors(start);
                     for (const auto &neighbor : neighbors)
                     {
                         if (neighbor->getId() != start->getId())
@@ -421,6 +425,9 @@ namespace ompl
                 // Remember this if it improves the cost to come from the goal.
                 if (optimizationObjective_->isCostBetterThan(tentativeChildCost, child->getCostToComeFromGoal()))
                 {
+                    // Remember the cost.
+                    child->setCostToComeFromGoal(tentativeChildCost);
+
                     // Insert the children of the child into the queue.
                     if (!child->hasBeenExpandedDuringCurrentSearch())
                     {

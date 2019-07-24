@@ -151,8 +151,14 @@ namespace ompl
                     }
                 }
 
-                return optimizationObjective_->isCostBetterThan(costToGo_, costToComeFromGoal_) ? costToComeFromGoal_ :
-                                                                                                  costToGo_;
+                if (!std::isfinite(costToComeFromGoal_.value()))
+                {
+                    return costToGo_;
+                }
+                else
+                {
+                    return costToComeFromGoal_;
+                }
             }
 
             bool Vertex::hasParent() const
@@ -175,6 +181,7 @@ namespace ompl
 
             void Vertex::setCostToComeFromGoal(const ompl::base::Cost &cost)
             {
+                backwardSearchBatchId_ = *batchId_.lock();
                 costToComeFromGoal_ = cost;
             }
 
