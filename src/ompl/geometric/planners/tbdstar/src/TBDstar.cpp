@@ -299,7 +299,16 @@ namespace ompl
                     // Insert the child's outgoing edges into the queue, if it hasn't been expanded yet.
                     if (!child->hasBeenExpandedDuringCurrentSearch())
                     {
+                        // Register that this vertex is expanded.
                         child->registerExpansionDuringCurrentSearch();
+
+                        // Insert the vertex's current children.
+                        for (const auto &grandchild : child->getChildren())
+                        {
+                            queue_->insert(tbdstar::Edge(child, grandchild, computeSortKey(child, grandchild)));
+                        }
+
+                        // Insert the vertex's neighbors.
                         for (const auto &neighbor : graph_->getNeighbors(child))
                         {
                             if (child->getId() != neighbor->getId() && !child->isChildBlacklisted(neighbor))

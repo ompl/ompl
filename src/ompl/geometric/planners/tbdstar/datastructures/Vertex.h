@@ -125,6 +125,9 @@ namespace ompl
                 /** \brief Returns the nearest neighbors, throws if not up to date. */
                 std::vector<std::shared_ptr<Vertex>> getNeighbors() const;
 
+                /** \brief Returns this vertex's children. */
+                std::vector<std::shared_ptr<Vertex>> getChildren() const;
+
                 /** \brief Returns whether the vertex has been expanded during the current search. */
                 bool hasBeenExpandedDuringCurrentSearch() const;
 

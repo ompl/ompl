@@ -262,6 +262,16 @@ namespace ompl
                 return neighbors;
             }
 
+            std::vector<std::shared_ptr<Vertex>> Vertex::getChildren() const
+            {
+                std::vector<std::shared_ptr<Vertex>> children;
+                for (const auto &child : children_)
+                {
+                    children.emplace_back(child.lock());
+                }
+                return children;
+            }
+
             bool Vertex::hasBeenExpandedDuringCurrentSearch() const
             {
                 return expandedSearchId_ == *searchId_.lock();
