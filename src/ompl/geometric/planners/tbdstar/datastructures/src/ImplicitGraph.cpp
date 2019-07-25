@@ -46,23 +46,26 @@ namespace ompl
     {
         namespace tbdstar
         {
-            ImplicitGraph::ImplicitGraph(const ompl::base::SpaceInformationPtr &spaceInformation,
-                                         const ompl::base::ProblemDefinitionPtr &problemDefinition,
-                                         const std::shared_ptr<ompl::base::Cost> &solutionCost,
-                                         const std::shared_ptr<std::size_t> &searchId)
-              : spaceInformation_(spaceInformation)
-              , problemDefinition_(problemDefinition)
-              , batchId_(std::make_shared<std::size_t>(1u))
-              , searchId_(searchId)
-              , solutionCost_(solutionCost)
-              , sampler_(problemDefinition->getOptimizationObjective()->allocInformedStateSampler(
-                    problemDefinition, std::numeric_limits<unsigned int>::max()))
+            ImplicitGraph::ImplicitGraph() : batchId_(std::make_shared<std::size_t>(1u))
             {
                 // Set the distance function to the space information distance function.
                 vertices_.setDistanceFunction(
                     [this](const std::shared_ptr<Vertex> &a, const std::shared_ptr<Vertex> &b) {
                         return spaceInformation_->distance(a->getState(), b->getState());
                     });
+            }
+
+            void ImplicitGraph::setup(const ompl::base::SpaceInformationPtr &spaceInformation,
+                                      const ompl::base::ProblemDefinitionPtr &problemDefinition,
+                                      const std::shared_ptr<ompl::base::Cost> &solutionCost,
+                                      const std::shared_ptr<std::size_t> &searchId)
+            {
+                spaceInformation_ = spaceInformation;
+                problemDefinition_ = problemDefinition;
+                solutionCost_ = solutionCost;
+                searchId_ = searchId;
+                sampler_ = problemDefinition->getOptimizationObjective()->allocInformedStateSampler(
+                    problemDefinition, std::numeric_limits<unsigned int>::max());
             }
 
             void ImplicitGraph::registerStartState(const ompl::base::State *const startState)
@@ -106,13 +109,15 @@ namespace ompl
                 while (newVertices.size() < numSamples)
                 {
                     // Create a new vertex.
-                    newVertices.emplace_back(std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_, searchId_));
+                    newVertices.emplace_back(
+                        std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_, searchId_));
 
                     // Sample the associated state uniformly within the informed set.
                     sampler_->sampleUniform(newVertices.back()->getState(), *solutionCost_.lock());
 
                     // Remove the new sample right away if it's not valid.
-                    if (!spaceInformation_->getStateValidityChecker()->isValid(newVertices.back()->getState())) {
+                    if (!spaceInformation_->getStateValidityChecker()->isValid(newVertices.back()->getState()))
+                    {
                         newVertices.pop_back();
                     }
                 }
@@ -123,8 +128,8 @@ namespace ompl
                 // We need to do some internal housekeeping.
                 ++(*batchId_);
                 radius_ = computeConnectionRadius(vertices_.size());
-                // OMPL_WARN("Need to be more careful when computing the connection radius: The number of samples should "
-                          // "reflect the ones that fall in the informed set.");
+                // OMPL_WARN("Need to be more careful when computing the connection radius: The number of samples should
+                // " "reflect the ones that fall in the informed set.");
             }
 
             std::vector<std::shared_ptr<Vertex>>

@@ -94,7 +94,7 @@ namespace ompl
             motionValidator_ = Planner::si_->getMotionValidator();
 
             // Setup a graph.
-            graph_ = std::make_unique<tbdstar::ImplicitGraph>(Planner::si_, Planner::pdef_, solutionCost_, searchId_);
+            graph_.setup(Planner::si_, Planner::pdef_, solutionCost_, searchId_);
 
             // Add the start states.
             while (Planner::pis_.haveMoreStartStates())
@@ -105,7 +105,7 @@ namespace ompl
                 // Add it if it's valid.
                 if (static_cast<bool>(startState))
                 {
-                    graph_->registerStartState(startState);
+                    graph_.registerStartState(startState);
                 }
             }
 
@@ -117,12 +117,9 @@ namespace ompl
                 // Add it if it's valid.
                 if (static_cast<bool>(goalState))
                 {
-                    graph_->registerGoalState(goalState);
+                    graph_.registerGoalState(goalState);
                 }
             }
-
-            // Setup a queue.
-            queue_ = std::make_unique<ompl::BinaryHeap<tbdstar::Edge>>();
         }
 
         ompl::base::PlannerStatus TBDstar::solve(const ompl::base::PlannerTerminationCondition &terminationCondition)
@@ -138,14 +135,14 @@ namespace ompl
             // If this is the first time solve is called, insert the outgoing edges of the start into the queue.
             if (numIterations_ == 0u)
             {
-                for (const auto &start : graph_->getStartVertices())
+                for (const auto &start : graph_.getStartVertices())
                 {
-                    auto neighbors = graph_->getNeighbors(start);
+                    auto neighbors = graph_.getNeighbors(start);
                     for (const auto &neighbor : neighbors)
                     {
                         if (neighbor->getId() != start->getId())
                         {
-                            queue_->insert(tbdstar::Edge(start, neighbor, computeSortKey(start, neighbor)));
+                            forwardQueue_.insert(tbdstar::Edge(start, neighbor, computeSortKey(start, neighbor)));
                         }
                     }
                 }
@@ -178,7 +175,7 @@ namespace ompl
             Planner::getPlannerData(data);
 
             // Get the vertices.
-            auto vertices = graph_->getVertices();
+            auto vertices = graph_.getVertices();
 
             // OMPL_WARN("Iteration %zu | num vertices %zu", numIterations_, vertices.size());
 
@@ -186,11 +183,11 @@ namespace ompl
             for (const auto &vertex : vertices)
             {
                 // Add the vertex as the right kind of vertex.
-                if (graph_->isStart(vertex))
+                if (graph_.isStart(vertex))
                 {
                     data.addStartVertex(ompl::base::PlannerDataVertex(vertex->getState(), vertex->getId()));
                 }
-                else if (graph_->isGoal(vertex))
+                else if (graph_.isGoal(vertex))
                 {
                     data.addGoalVertex(ompl::base::PlannerDataVertex(vertex->getState(), vertex->getId()));
                 }
@@ -217,15 +214,15 @@ namespace ompl
         std::vector<tbdstar::Edge> TBDstar::getEdgesInQueue() const
         {
             std::vector<tbdstar::Edge> edges;
-            queue_->getContent(edges);
+            forwardQueue_.getContent(edges);
             return edges;
         }
 
         tbdstar::Edge TBDstar::getNextEdgeInQueue() const
         {
-            if (!queue_->empty())
+            if (!forwardQueue_.empty())
             {
-                return queue_->top()->data;
+                return forwardQueue_.top()->data;
             }
 
             return {};
@@ -236,10 +233,10 @@ namespace ompl
             // Keep track of the number of iterations.
             ++numIterations_;
 
-            if (queue_->empty())
+            if (forwardQueue_.empty())
             {
                 // Add new samples.
-                graph_->addSamples(batchSize_);
+                graph_.addSamples(batchSize_);
 
                 // Compute the backward search heuristic if desired.
                 if (computeBackwardSearchHeuristic_)
@@ -251,18 +248,18 @@ namespace ompl
                 ++(*searchId_);
 
                 // Add the outgoing edges of the start to the queue.
-                for (const auto &start : graph_->getStartVertices())
+                for (const auto &start : graph_.getStartVertices())
                 {
                     // Register the expansion on this search.
                     start->registerExpansionDuringCurrentSearch();
 
                     // Get the neighbors.
-                    auto neighbors = graph_->getNeighbors(start);
+                    auto neighbors = graph_.getNeighbors(start);
                     for (const auto &neighbor : neighbors)
                     {
                         if (neighbor->getId() != start->getId())
                         {
-                            queue_->insert(tbdstar::Edge(start, neighbor, computeSortKey(start, neighbor)));
+                            forwardQueue_.insert(tbdstar::Edge(start, neighbor, computeSortKey(start, neighbor)));
                         }
                     }
                 }
@@ -270,11 +267,11 @@ namespace ompl
             else
             {
                 // Get the most promising edge.
-                auto &edge = queue_->top()->data;
+                auto &edge = forwardQueue_.top()->data;
                 auto parent = edge.getParent();
                 auto child = edge.getChild();
                 auto sortKey = edge.getSortKey();
-                queue_->pop();
+                forwardQueue_.pop();
 
                 // OMPL_WARN("Evaluating edge [%zu -> %zu] (sortkey: %f)", parent->getId(), child->getId(),
                 // sortKey[0u]);
@@ -282,7 +279,7 @@ namespace ompl
                 // If this is edge can not possibly improve our solution, the search is done.
                 if (optimizationObjective_->isCostBetterThan(*solutionCost_, ompl::base::Cost(sortKey[0])))
                 {
-                    queue_->clear();
+                    forwardQueue_.clear();
                     ++(*searchId_);
                 }
                 else if (motionValidator_->checkMotion(parent->getState(), child->getState()))
@@ -309,21 +306,21 @@ namespace ompl
                         // Insert the vertex's current children.
                         for (const auto &grandchild : child->getChildren())
                         {
-                            queue_->insert(tbdstar::Edge(child, grandchild, computeSortKey(child, grandchild)));
+                            forwardQueue_.insert(tbdstar::Edge(child, grandchild, computeSortKey(child, grandchild)));
                         }
 
                         // Insert the vertex's neighbors.
-                        for (const auto &neighbor : graph_->getNeighbors(child))
+                        for (const auto &neighbor : graph_.getNeighbors(child))
                         {
                             if (child->getId() != neighbor->getId() && !child->isChildBlacklisted(neighbor))
                             {
-                                queue_->insert(tbdstar::Edge(child, neighbor, computeSortKey(child, neighbor)));
+                                forwardQueue_.insert(tbdstar::Edge(child, neighbor, computeSortKey(child, neighbor)));
                             }
                         }
                     }
 
                     // If the child was a goal vertex, update the solution cost.
-                    if (graph_->isGoal(child))
+                    if (graph_.isGoal(child))
                     {
                         if (optimizationObjective_->isCostBetterThan(child->getCostToCome(), *solutionCost_))
                         {
@@ -357,7 +354,7 @@ namespace ompl
         {
             std::vector<const ompl::base::State *> reversePath;
             auto current = vertex;
-            while (!graph_->isStart(current))
+            while (!graph_.isStart(current))
             {
                 reversePath.emplace_back(current->getState());
                 current = current->getParent();
@@ -386,13 +383,13 @@ namespace ompl
             ompl::BinaryHeap<tbdstar::Edge> queue;
 
             // Add the outgoing edges of the goal to the queue.
-            for (const auto &goal : graph_->getGoalVertices())
+            for (const auto &goal : graph_.getGoalVertices())
             {
                 // Set the backward cost to come to zero.
                 goal->setCostToComeFromGoal(optimizationObjective_->identityCost());
 
                 // Get the neighbors.
-                auto neighbors = graph_->getNeighbors(goal);
+                auto neighbors = graph_.getNeighbors(goal);
 
                 for (const auto &neighbor : neighbors)
                 {
@@ -432,7 +429,7 @@ namespace ompl
                     if (!child->hasBeenExpandedDuringCurrentSearch())
                     {
                         child->registerExpansionDuringCurrentSearch();
-                        for (const auto &neighbor : graph_->getNeighbors(child))
+                        for (const auto &neighbor : graph_.getNeighbors(child))
                         {
                             if (child->getId() != neighbor->getId() && !child->isChildBlacklisted(neighbor))
                             {

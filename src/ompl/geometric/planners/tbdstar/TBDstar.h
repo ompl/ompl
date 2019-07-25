@@ -94,10 +94,10 @@ namespace ompl
             void computeBackwardSearchHeuristic();
 
             /** \brief The increasingly dense sampling-based approximation. */
-            std::unique_ptr<tbdstar::ImplicitGraph> graph_;
+            tbdstar::ImplicitGraph graph_;
 
-            /** \brief The edge queue. */
-            std::unique_ptr<ompl::BinaryHeap<tbdstar::Edge>> queue_;
+            /** \brief The forward queue. */
+            ompl::BinaryHeap<tbdstar::Edge> forwardQueue_{};
 
             /** \brief The id of the current search .*/
             std::shared_ptr<std::size_t> searchId_;

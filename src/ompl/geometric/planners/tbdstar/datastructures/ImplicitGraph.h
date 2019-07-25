@@ -56,13 +56,16 @@ namespace ompl
             {
             public:
                 /** \brief Constructs an implicit graph. */
-                ImplicitGraph(const ompl::base::SpaceInformationPtr &spaceInformation,
-                              const ompl::base::ProblemDefinitionPtr &problemDefinition,
-                              const std::shared_ptr<ompl::base::Cost> &solutionCost,
-                              const std::shared_ptr<std::size_t> &searchId);
+                ImplicitGraph();
 
                 /** \brief Deconstructs an implicit graph. */
                 virtual ~ImplicitGraph() = default;
+
+                /** \brief The setup method for the graph. Needed to have it on the stack. */
+                void setup(const ompl::base::SpaceInformationPtr &spaceInformation,
+                           const ompl::base::ProblemDefinitionPtr &problemDefinition,
+                           const std::shared_ptr<ompl::base::Cost> &solutionCost,
+                           const std::shared_ptr<std::size_t> &searchId);
 
                 /** \brief Adds a batch of samples. */
                 void addSamples(std::size_t numSamples);
@@ -96,10 +99,10 @@ namespace ompl
                 double computeConnectionRadius(std::size_t numSamples) const;
 
                 /** \brief The space information of the underlying planning problem. */
-                const ompl::base::SpaceInformationPtr spaceInformation_;
+                ompl::base::SpaceInformationPtr spaceInformation_;
 
                 /** \brief The definition of the planning problem. */
-                const ompl::base::ProblemDefinitionPtr problemDefinition_;
+                ompl::base::ProblemDefinitionPtr problemDefinition_;
 
                 /** \brief The id of the batch. */
                 std::shared_ptr<std::size_t> batchId_;
