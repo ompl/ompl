@@ -339,6 +339,7 @@ void QuotientGraphSparse::Rewire()
 
 void QuotientGraphSparse::AddPathToStack(std::vector<ob::State*> &path)
 {
+
   og::PathGeometric gpath(Q1);
   for(uint k = 0; k < path.size(); k++){
     gpath.append(path.at(k));
@@ -384,6 +385,7 @@ void QuotientGraphSparse::AddPathToStack(std::vector<ob::State*> &path)
   std::cout << "Check path to be in stack: " << path.size() << std::endl;
   if(!pathVisibilityChecker_->CheckValidity(gpath.getStates())){
     std::cout << "REJECTED (Infeasible)" << std::endl;
+    numberOfFailedAddingPathCalls++;
     return;
   }
 
@@ -394,6 +396,7 @@ void QuotientGraphSparse::AddPathToStack(std::vector<ob::State*> &path)
       og::PathGeometric& pathk = pathStack_.at(k);
       if(pathVisibilityChecker_->IsPathVisible(gpath.getStates(), pathk.getStates())){
         std::cout << "REJECTED (Equal to path " << k << ")" << std::endl;
+        numberOfFailedAddingPathCalls++;
         return;
       }
     }
@@ -559,6 +562,7 @@ void QuotientGraphSparse::printAllPathsUtil(
 {
   //terminate if we have enough paths in stack
     if(pathStack_.size() > Nhead) return;
+    if(numberOfFailedAddingPathCalls>10) return;
 
     // Mark the current node and store it in path[]
     visited[u] = true;
@@ -628,6 +632,7 @@ void QuotientGraphSparse::enumerateAllPaths()
     for (unsigned int i = 0; i < numberVertices; i++)
         visited[i] = false;
 
+    numberOfFailedAddingPathCalls = 0;
     printAllPathsUtil(v_start_sparse, v_goal_sparse, visited, path, path_index);
     //############################################################################
 

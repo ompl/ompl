@@ -21,8 +21,6 @@ namespace ompl
 
             MotionExplorer(std::vector<ob::SpaceInformationPtr> &si_vec, std::string type = "MotionExplorer");
 
-            // void setProblemDefinition(std::vector<ob::ProblemDefinitionPtr> &pdef_vec_);
-
             virtual ~MotionExplorer() override;
 
             void getPlannerData(ob::PlannerData &data) const override;

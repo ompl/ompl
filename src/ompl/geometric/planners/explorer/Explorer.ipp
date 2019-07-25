@@ -1,5 +1,6 @@
 #include "QuotientGraphSparse.h"
 #include <ompl/geometric/planners/quotientspace/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/quotientspace/QuotientSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/util/Time.h>
@@ -99,7 +100,8 @@ ob::PlannerStatus MotionExplorer<T>::solve(const ob::PlannerTerminationCondition
     //stop at topological phase shift
     if(Mg > M) return ob::PlannerStatus::APPROXIMATE_SOLUTION;
   }
-  std::cout << "Grow QuotientSpace " << jQuotient->getName() << " for " << ctr << " iters. Changed #paths from " << M << " to " << Mg << std::endl;
+  std::cout << "Grow QuotientSpace " << jQuotient->getName() << " for " << ctr << " iters." << std::endl;
+  std::cout << "Changed #paths from " << M << " to " << Mg << std::endl;
 
   return ob::PlannerStatus::TIMEOUT;
 }
@@ -123,8 +125,8 @@ void MotionExplorer<T>::setProblemDefinition(const ob::ProblemDefinitionPtr &pde
     quotientSpaces_.back()->setProblemDefinition(pdef);
     for (unsigned int k = siVec_.size()-1; k > 0 ; k--)
     {
-        og::QuotientGraphSparse *quotientParent = quotientSpaces_.at(k);
-        og::QuotientGraphSparse *quotientChild = quotientSpaces_.at(k-1);
+        og::QuotientSpace *quotientParent = quotientSpaces_.at(k);
+        og::QuotientSpace *quotientChild = quotientSpaces_.at(k-1);
         ob::SpaceInformationPtr sik = quotientChild->getSpaceInformation();
         ob::ProblemDefinitionPtr pdefk = std::make_shared<base::ProblemDefinition>(sik);
 

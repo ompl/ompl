@@ -277,6 +277,8 @@ bool PathVisibilityChecker::IsPathVisibleSO2(std::vector<ob::State*> &s1, std::v
 
 bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2)
 {
+  //Disable logging for Checker
+  ompl::msg::LogLevel logLevelInitial = ompl::msg::getLogLevel();
   ompl::msg::setLogLevel(ompl::msg::LOG_NONE);
   // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
 
@@ -302,8 +304,6 @@ bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State*> &s1, std::vect
   const float max__planning_time_path_path = 0.3;
   const float epsilon_goalregion = 0.01;
 
-  // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
-
   ob::RealVectorBounds bounds(2);
   bounds.setLow(0);
   bounds.setHigh(1);
@@ -322,7 +322,7 @@ bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State*> &s1, std::vect
   const ob::SpaceInformationPtr si_local = ss.getSpaceInformation();
 
   ss.setStateValidityChecker( std::make_shared<pathPathValidityChecker>(si_, si_local,  s1, s2) );
-  ob::PlannerPtr linear_homotopy_planner = std::make_shared<og::RRT>(si_local);
+  ob::PlannerPtr linear_homotopy_planner = std::make_shared<og::RRTConnect>(si_local);
   // static_pointer_cast<og::RRTConnect>(linear_homotopy_planner)->clear();
 
   ss.setStartAndGoalStates(start, goal, epsilon_goalregion);
@@ -358,8 +358,7 @@ bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State*> &s1, std::vect
   //############################################################################
 
 
-  ompl::msg::setLogLevel(ompl::msg::LOG_INFO);
-
+  ompl::msg::setLogLevel(logLevelInitial);
   return solved;
 
 }
