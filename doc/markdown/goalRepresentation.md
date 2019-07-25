@@ -1,6 +1,5 @@
 # Representing Goals in OMPL {#goalRepresentation}
 
-
 # Setting the Goal
 
 The most general representation of a goal is ompl::base::Goal. This class contains a pure virtual method, ompl::base::Goal::isSatisfied(), which takes a state as argument and returns a boolean indicating whether that state is a goal or not. No other information about the goal is given. This function can include arbitrary code deciding what is in the goal region and what is not.
@@ -86,7 +85,6 @@ public:
   - ompl::base::GoalState (inherits from ompl::base::GoalSampleableRegion) stores one state as the goal. Sampling the goal state will always return this state and the distance to the goal is implemented by calling ompl::base::StateSpace::distance() between the stored goal state and the state passed to ompl::base::GoalRegion::distanceGoal().
   - ompl::base::GoalStates (inherits from ompl::base::GoalSampleableRegion) is a generalization of ompl::base::GoalState. An array of goal states is stored. Sampling goals will cycle through the stored states. The implementation ompl::base::GoalRegion::distanceGoal() will return the minimum distance between the state passed as argument and the stored states. This computation is performed in linear time (in terms of number of stored states), so it may become costly for a large number of states.
   - ompl::base::GoalLazySamples (inherits from ompl::base::GoalStates). In case sampling of states is a time consuming process, this version of a goal allows the sampling process to take place in a separate thread, while the planner is running. As new states are found, they are added to the array of stored states. This is useful for example when performing inverse kinematics for an arm. The inverse kinematics computations can be performed while the planner is running. As more states are found, they become available to the planner.
-
 
 # Using the Goal Region
 

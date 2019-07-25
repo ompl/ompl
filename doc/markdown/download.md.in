@@ -11,8 +11,9 @@
   - [Debian](https://packages.debian.org/sid/libompl-dev),
   - [Ubuntu (14.04 and higher)](http://packages.ubuntu.com/search?keywords=libompl-dev),
   - [Fedora](https://apps.fedoraproject.org/packages/ompl),
-  - [MacPorts](https://www.macports.org), and
-  - [Homebrew](http://brew.sh).
+  - [MacPorts](https://www.macports.org),
+  - [Homebrew](http://brew.sh), and
+  - [vcpkg](https://vcpkg.readthedocs.io).
   .
   Note that these package managers may not always have the latest release.
 
@@ -22,7 +23,7 @@
 
 # Repositories {#download_repos}
 
-- The [latest source](https://bitbucket.org/ompl/ompl/src) is available via Mercurial or Git. For anonymous checkout use:
+- The [latest source](https://bitbucket.org/ompl/ompl/src) is available via Mercurial or Git:
 
       hg clone https://bitbucket.org/ompl/ompl
 

@@ -1,8 +1,7 @@
 Implementing State Spaces {#implementingStateSpaces}
 =========================
 
-
-### Combining existing state spaces
+## Combining existing state spaces
 
 The simplest way to obtain new state spaces is to combine existing ones. For example, to get the state space of a manipulator arm one could combine R<sup>5</sup> (ompl::base::RealVectorStateSpace) and SO2 (ompl::base::SO2StateSpace) to represent 5 joints that have bounds and one joint that can rotate continuously:
 
@@ -21,12 +20,11 @@ newSpace->addSubspace(ompl::base::StateSpacePtr(new ompl::base::SO2StateSpace())
 ~~~
 
 
-### Inheriting from existing state spaces
+## Inheriting from existing state spaces
 
 In order to implement a new state space it is necessary to define a class that inherits from an existing state space class (either the ompl::base::StateSpace class or an existing state space implementation). All state space specific functions (pure virtual in the ompl::base::StateSpace class) need to be implemented accordingly. If the implementation of the new state space uses a new state type (even if it inherits from an existing state type), that state type must be named __StateType__. To use the newly defined state type the ompl::base::StateSpace::allocState() and ompl::base::StateSpace::freeState() functions must be defined. The ompl::base::StateSpace::type_ member must also be set to a new (unique) value when new state types are defined. It will often be necessary to also implement ompl::base::StateSpace::copyState() and perhaps ompl::base::StateSpace::equalStates(). Optionally, if the state type includes real values, an implementation of ompl::base::StateSpace::getValueAddressAtIndex() can be provided to access those values separately. If (de)serialization of states is desired, the ompl::base::StateSpace::serialize() and ompl::base::StateSpace::deserialize() functions must also be implemented.
 
-
-### Inheriting from ompl::base::CompoundStateSpace
+## Inheriting from ompl::base::CompoundStateSpace
 
 Another option is to inherit from a ompl::base::CompoundStateSpace and call ompl::base::CompoundStateSpace::addSubspace() in the constructor of the new class for other existing state spaces. This is the easiest way to create new state spaces -- only the constructor needs to be provided. For example, see ompl::base::SE2StateSpace. Optionally, the ompl::base::CompoundStateSpace::lock() function can be called after the components have been set in order to prevent the user of the state space from adding further components.
 

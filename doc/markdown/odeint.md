@@ -4,7 +4,6 @@ OMPL provides a wrapper class for numerically solving differential equations usi
 
 The ODESolver class is particularly suited for motion planning problems. It provides the user with an object capable of solving equations of the form \f$\dot{q} = f(q,u)\f$, where \f$q\f$ is the current state of the system and \f$u\f$ is a control applied to the system at state \f$q\f$. Using the ODESolver removes the need for the user to implement numerical integration in their own code, and allows advanced users the ability to customize the method used for integration.
 
-
 # A Bit of Theory
 
 Assume that you are planning for a simplified car-like system where the velocity \f$v\f$ and steering angle \f$\phi\f$ can be directly controlled. Let the position of the car be described by (x,y,\f$\theta\f$). Then the dynamics of the system can be described by:
@@ -30,7 +29,6 @@ This shows how a given state of the car model (x,y,\f$\theta\f$) will evolve ove
 
 Computing the exact solution for the majority of non-linear differential equations is infeasible, if not impossible. However, it is easy to approximate solutions to these equations by discretizing time into small increments and reevaluating the system during each increment. This discretization, however, introduces error into the computation. Intuitively, a smaller time step generally results in a smaller error value, but takes longer to compute because there are more discrete steps. Without going into detail on the various numerical methods used to approximate solutions, suffice it to say that the "order" of a numerical method indicates the precision of the approach; the higher the order the better. For example, classical [Euler integration](http://mathworld.wolfram.com/EulerForwardMethod.html) is 1st order, indicating that the error during each time step is \f$O(t^2)\f$ and the global error is \f$O(t)\f$, where \f$t\f$ is the size of a single time step. For more information, [Wikipedia](http://en.wikipedia.org/wiki/ Numerical_ordinary_differential_equations) provides a thorough discussion on the theory of numerical integration for ordinary differential equations.
 
-
 # Using OMPL's ODESolver
 
 To use the ODESolver, a function describing the ODE of your system must be implemented.  This function must have the following signature:
@@ -40,7 +38,6 @@ void ODE(const oc::ODESolver::StateType& q, const oc::Control* u, oc::ODESolver:
 ~~~
 
 This function takes a vector q (StateType is a std::vector) that describes the current state of the system, a control u that defines the inputs applied to the system at state q, and a vector qdot to store the output of the computation. ODESolver utilizes [boost::numeric::odeint][odeint] to perform the numerical integration, and it is necessary to translate the ompl::base::State values into an iterable container of real values.  Therefore, values in the vector q directly correspond to the real valued state parameters in the ompl::base::State.  This data is analogous to the result of calling ompl::base::ScopedState::reals.
-
 
 ## Define the ODE
 
@@ -70,7 +67,6 @@ void SimpleCarODE(const oc::ODESolver::StateType& q, const oc::Control* c, oc::O
     qdot[2] = velocity * tan(steeringAngle);    // theta-dot
 }
 ~~~
-
 
 ## A Basic Example
 
@@ -107,7 +103,6 @@ Once your postPropagate method is implemented, a StatePropagator can then be cre
 ~~~{.cpp}
 si->setStatePropagator(ompl::control::ODESolver::getStatePropagator(odeSolver, &postPropagate));
 ~~~
-
 
 ## Selecting an ODESolver
 

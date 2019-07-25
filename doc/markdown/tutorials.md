@@ -2,7 +2,7 @@
 
 Below we include a number of tutorials we believe are useful for understanding how OMPL works, grouped by level of difficulty. Users are encouraged to look at the [demos](group__demos.html) as well.
 
-### Beginner
+## Beginner
 
 - [Geometric planning for a rigid body in 3D](geometricPlanningSE3.html)
 - [Setting up state validity checking](stateValidation.html)
@@ -13,7 +13,7 @@ Below we include a number of tutorials we believe are useful for understanding h
 - [Optimal planning](optimalPlanningTutorial.html)
 - [Constrained planning](constrainedPlanningTutorial.html)
 
-### Intermediate
+## Intermediate
 
 - [Generic instructions for setting up a planning context](genericPlanning.html)
 - [Implementing new state spaces](implementingStateSpaces.html)
@@ -21,8 +21,7 @@ Below we include a number of tutorials we believe are useful for understanding h
 - [Using ODESolver for Planning with Controls](odeint.html)
 - [Defining optimization objectives for optimal planning](optimizationObjectivesTutorial.html)
 
-
-### Advanced
+## Advanced
 
 - [Adding a new planner](newPlanner.html)
 - [Creating Python bindings for a new planner](pybindingsPlanner.html)

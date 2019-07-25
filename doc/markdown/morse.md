@@ -24,11 +24,9 @@ You may also need to install the Python3 libraries and headers if they aren't al
 
 At the moment, there is one Python script that should be installed as a Blender add-on. This is not done automatically. You'll find the add-on located at ${PREFIX}/share/ompl/addons/ompl_addon.py (by default, ${PREFIX} is equal to /usr/local). To install it, open Blender, navigate to File > User Preferences > Addons > Install addon... and select the ompl_addon.py file. Then enable this addon by clicking its check box. Finally, you'll want to Save As Default so that it will always be enabled when Blender starts.
 
-
 # Quickstart {#morseQuickstart}
 
 Modeling and solving a planning problem is a multi-step process. The next several sections will take you through this process from start to finish; however, you may wish to jump in a little further down so you can see some results right away. If you would like to use a pre-designed demo environment instead of modeling your own the first time, start at the section \ref morseAddingRobots, with ompl/demos/morse/rampjump_starter.blend as your environment file. If you would like to get to the planning phase immediately, you can start at the section \ref morsePlanning, with ompl/demos/morse/rampjump_complete.blend as your environment file.
-
 
 # Setting up an environment {#morseSettingUpAnEnvironment}
 

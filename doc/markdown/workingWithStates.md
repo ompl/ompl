@@ -2,7 +2,7 @@
 
 # Allocating memory for states {#stateAlloc}
 
-#### The simple version
+## The simple version
 
 ~~~{.cpp}
 ompl::base::StateSpacePtr space(new T());
@@ -18,7 +18,7 @@ ompl::base::ScopedState<T> state(si);
 
 The ompl::base::ScopedState class will do the necessary memory operations to allocate a state from the correct state space. This is the recommended way of allocating states for code other than ompl internals. Convenience operators such as = and == are provided. If a type T is provided, where T is a state space type, the maintained state is cast as T::StateType. operator= will use ompl::base::StateSpace::copyState() and operator== will use ompl::base::StateSpace::equalStates().
 
-#### The expert version
+## The expert version
 
 ~~~{.cpp}
 ompl::base::SpaceInformationPtr si(space);
@@ -35,7 +35,7 @@ See [Working with states](#stateOps) for how to fill the contents of the allocat
 
 In order for states to be useful in setting start (or goal) positions, accessing their content is needed. It is assumed the reader is familiar with [Allocating memory for states](#stateAlloc). Furthermore, [operators on states and state spaces](#stateAndSpaceOperatorsCopy) are also used.
 
-#### Simple version
+## Simple version
 
 The recommended use of states is with ompl::base::ScopedState. Given the instance of a state space, this class will allocate a state from that space. The internally maintained state is freed when the instance of ompl::base::ScopedState goes out of scope. ompl::base::ScopedState is a templated class and it inherits from T::StateType, where T is a state space type. This allows it to cast the state it maintains to the desired type and thus exhibit the functionality (the same members) as T::StateType. If no template argument is specified, the internal state is kept as ompl::base::State*.
 
@@ -127,7 +127,7 @@ fullState >> pos;
 pos >> fullState;
 ~~~
 
-#### Expert version
+## Expert version
 
 For a state space type of type T, the result of ompl::base::StateSpace::allocState() can be casted to T::StateType* to gain access to the state's members. To ease this functionality, the ompl::base::State::as() functions have been defined.
 

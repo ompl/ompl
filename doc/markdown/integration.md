@@ -3,18 +3,18 @@
 OMPL provides a high level of abstraction to make it easier to integrate it into larger robot software systems. By design, the core OMPL library does not include any code for representing geometry and kinematics. However, to solve motion planning problems, we _do_ need to pick a particular representation for robots and the environment. Below we have listed a number of projects that have done this in very different ways.
 
 \htmlonly
-<div class="btn-group">
-  <a class="btn btn-default" href="#integration_moveit">MoveIt!</a>
-  <a class="btn btn-default" href="#integration_openrave">OpenRAVE</a>
-  <a class="btn btn-default" href="#integration_vrep">V-REP</a>
-  <a class="btn btn-default" href="#integration_morse">MORSE</a>
-  <a class="btn btn-default" href="#integration_kautham">Kautham</a>
-  <a class="btn btn-default" href="#integration_verosim">VEROSIM</a>
-  <a class="btn btn-default" href="#integration_aikido">AIKIDO</a>
-  <a class="btn btn-default" href="#integration_exotica">EXOTica</a>
-  <a class="btn btn-default" href="#integration_rl">Robotics Library</a>
-  <a class="btn btn-default" href="#integration_sims">SIMS</a>
-  <a class="btn btn-default" href="#integration_omplapp">OMPL.app</a>
+<div class="btn-group btn-group-sm">
+  <a class="btn btn-primary" href="#integration_moveit">MoveIt!</a>
+  <a class="btn btn-primary" href="#integration_openrave">OpenRAVE</a>
+  <a class="btn btn-primary" href="#integration_vrep">V-REP</a>
+  <a class="btn btn-primary" href="#integration_morse">MORSE</a>
+  <a class="btn btn-primary" href="#integration_kautham">Kautham</a>
+  <a class="btn btn-primary" href="#integration_verosim">VEROSIM</a>
+  <a class="btn btn-primary" href="#integration_aikido">AIKIDO</a>
+  <a class="btn btn-primary" href="#integration_exotica">EXOTica</a>
+  <a class="btn btn-primary" href="#integration_rl">Robotics Library</a>
+  <a class="btn btn-primary" href="#integration_sims">SIMS</a>
+  <a class="btn btn-primary" href="#integration_omplapp">OMPL.app</a>
 </div>
 \endhtmlonly
 

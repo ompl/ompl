@@ -287,11 +287,11 @@ The plots show comparisons between ompl::geometric::RRTConnect, ompl::geometric:
 
 For integer and real-valued measurements the script will compute [box plots](http://en.wikipedia.org/wiki/Box_plot). For example, here is the plot for the real-valued attribute __time__ for the cubicles environment:
 
-<div class="row"><img src="images/cubicles_time.png" class="col-md-8 col-sm-10 col-md-offset-2 col-sm-offset-1 img-responsive"></div>
+<div class="row"><div class="col-md-8 col-sm-10 offset-md-2 offset-sm-1"><img src="images/cubicles_time.png" class="img-fluid"></div></div>
 
 For boolean measurements the script will create bar charts with the percentage of __true__ values. For example, here is the plot for the boolean attribute __solved__ for the Twistycool environment, a much harder problem:
 
-<div class="row"><img src="images/Twistycool_solved.png" class="col-md-8 col-sm-10 col-md-offset-2 col-sm-offset-1 img-responsive"></div>
+<div class="row"><div class="col-md-8 col-sm-10 offset-md-2 offset-sm-1"><img src="images/Twistycool_solved.png" class="img-fluid"></div></div>
 
 Whenever measurements are not always available for a particular attribute, the columns for each planner are labeled with the number of runs for which no data was available. For instance, the boolean attribute __correct solution__ is not set if a solution is not found.
 
@@ -351,7 +351,7 @@ Here, `EOL` denotes a newline character, `int` denotes an integer, `float` denot
 
 # The benchmark database schema {#benchmark_database}
 
-<div class="col-sm-4 pull-right">
+<div class="col-sm-4 float-right">
   <img src="images/benchmarkdb_schema.png" width="100%">
   <br/>
   <b>The benchmark database schema</b>
