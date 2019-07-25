@@ -53,17 +53,30 @@ public:
     path1_length_ = 0;
     path2_length_ = 0;
 
-
-
     path1_interp_state_ = si_->allocState();
     path2_interp_state_ = si_->allocState();
+
     path1_distances_.clear();
     path2_distances_.clear();
 
     computePathLength(path1_, path1_distances_, path1_length_);
     computePathLength(path2_, path2_distances_, path2_length_);
-    // std::cout << "Path1 length: " << path1_length_ << std::endl;
-    // std::cout << "Path2 length: " << path2_length_ << std::endl;
+
+    //############################################################################
+    //TODO: DEBUG
+    //############################################################################
+
+    //Compute Start and End points are the same
+    createStateAt(path1_, path1_length_, path1_distances_, 0, path1_interp_state_);
+    createStateAt(path2_, path2_length_, path2_distances_, 0, path2_interp_state_);
+
+    assert( si_->distance(path1_interp_state_, path2_interp_state_) < 1e-10);
+
+    createStateAt(path1_, path1_length_, path1_distances_, path1_length_, path1_interp_state_);
+    createStateAt(path2_, path2_length_, path2_distances_, path2_length_, path2_interp_state_);
+
+    assert( si_->distance(path1_interp_state_, path2_interp_state_) < 1e-10);
+
   }
   virtual ~pathPathValidityChecker(){
       si_->freeState(path1_interp_state_);
@@ -83,13 +96,12 @@ public:
     //############################################################################
     //DEBUG
     //############################################################################
-    CheckValidityExitOnFalse(path1_interp_state_);
-    CheckValidityExitOnFalse(path2_interp_state_);
+    // CheckValidityExitOnFalse(path1_interp_state_);
+    // CheckValidityExitOnFalse(path2_interp_state_);
     //This means we have an edge which intersects an obstacle for less than
     //discretization step distance. We like to ignore that for now.
     if(!si_->getStateValidityChecker()->isValid(path1_interp_state_)) return true;
     if(!si_->getStateValidityChecker()->isValid(path2_interp_state_)) return true;
-
 
     bool visible = si_->checkMotion(path1_interp_state_, path2_interp_state_);
     //############################################################################
@@ -124,6 +136,8 @@ public:
       if(!val){
           ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
           OMPL_WARN("State is invalid!");
+          //remove path entirely?
+
           // si_->printState(s);
           // std::cout << std::string(80, '-') << std::endl;
           // for(uint k = 0; k < path1_.size(); k++){
@@ -159,6 +173,8 @@ public:
   void createStateAt(const std::vector<ob::State*> &path, const double &pathLength, const std::vector<double> &distances, const double newPosition, ob::State* s_interpolate) const 
   {
 
+    assert( newPosition <= pathLength);
+
     int idx = -1;
     for(uint i = 0; i < distances.size(); i++) {
       if (distances.at(i) >= newPosition) {
@@ -166,19 +182,19 @@ public:
         break;
       }
     }
+    assert( idx >= 0 );
+    assert( idx <= distances.size()-1 );
 
-    double distanceIdxIdxNext = distances.at(idx);
-    if(idx > 0) distanceIdxIdxNext -= distances.at(idx-1);
+    double lastDistance = (idx > 0)? distances.at(idx-1) : 0.0;
+    double distanceIdxIdxNext = distances.at(idx) - lastDistance;
 
-    double lineFraction = (distances.at(idx) - newPosition)/distanceIdxIdxNext;
+    double lineFraction = (newPosition - lastDistance)/distanceIdxIdxNext;
     if(lineFraction < 0 || lineFraction > 1)
     {
       OMPL_ERROR("lineFraction: %f. length: %f, newPos: %f, distanceNext: %f, distanceCur: %f",
           lineFraction, pathLength, newPosition, distanceIdxIdxNext, distances.at(idx));
       exit(0);
     }
-    assert( lineFraction >= 0);
-    assert( lineFraction <= 1);
 
     si_->getStateSpace()->interpolate(path.at(idx), path.at(idx+1), lineFraction, s_interpolate);
 
@@ -216,6 +232,11 @@ bool PathVisibilityChecker::CheckValidity(const std::vector<ob::State*> &s)
   for(uint k = 0; k < s.size()-1; k++){
     ob::State *sk = s.at(k);
     ob::State *skk = s.at(k+1);
+    if(!si_->isValid(sk)){
+      OMPL_ERROR("State invalid");
+      si_->printState(sk);
+      exit(0);
+    }
     // std::pair<ob::State *, double> lastValid;
     // lastValid.first = lastValidState;
     // bool val = si_->checkMotion(sk, skk, lastValid);
@@ -257,6 +278,7 @@ bool PathVisibilityChecker::IsPathVisibleSO2(std::vector<ob::State*> &s1, std::v
 bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2)
 {
   ompl::msg::setLogLevel(ompl::msg::LOG_NONE);
+  // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
 
   //Assert Non-empty paths with at least a designated end and start 
   //configuration

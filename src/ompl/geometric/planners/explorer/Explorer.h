@@ -37,8 +37,6 @@ namespace ompl
             void setSelectedPath( std::vector<int> selectedPath);
 
         protected:
-            bool topologicalPhaseShift;
-
             double pathBias{0.8}; //[0,1]
 
             /// Sequence of quotient-spaces
