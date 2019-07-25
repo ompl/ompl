@@ -114,11 +114,10 @@ namespace ompl
             {
             public:
                 EdgeInternalState() = default;
-                EdgeInternalState(ob::Cost cost_) : cost(cost_), original_cost(cost_){};
+                EdgeInternalState(ob::Cost cost_) : cost(cost_){};
                 EdgeInternalState(const EdgeInternalState &eis)
                 {
                     cost = eis.cost;
-                    original_cost = eis.original_cost;
                 }
                 void setWeight(double d)
                 {
@@ -128,14 +127,9 @@ namespace ompl
                 {
                     return cost;
                 }
-                void setOriginalWeight()
-                {
-                    cost = original_cost;
-                }
 
             private:
                 ob::Cost cost{+ob::dInf};
-                ob::Cost original_cost{+ob::dInf};
             };
 
             struct GraphBundle
