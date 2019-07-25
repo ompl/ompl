@@ -286,6 +286,7 @@ const StateSpacePtr QuotientSpace::computeQuotientSpace(const StateSpacePtr Q1, 
             break;
         }
         case SE2RN_SE2RM:
+        case SO2RN_SO2RM:
         case SE3RN_SE3RM:
         {
             ob::CompoundStateSpace *Q1_compound = Q1->as<ob::CompoundStateSpace>();
@@ -344,6 +345,8 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
     //   (7) Q1 SE2xRn , Q0 SE2             => X1 = Rn
     //   (8) Q1 SE2xRn , Q0 R2              => X1 = SO2xRN
     //   (9) Q1 SE2xRn , Q0 SE2xRm [0<m<n ] => X1 = R(n-m)
+    //  (10) Q1 SO2xRn , Q0 SO2             => X1 = Rn
+    //  (11) Q1 SO2xRn , Q0 SO2xRm [0<m<n ] => X1 = R(n-m)
 
     if (!Q1->isCompound())
     {
@@ -439,7 +442,6 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                 exit(0);
             }
         }
-        //------------------ Q1 = SE3xRN
         ///##############################################################################/
         else
         {
@@ -569,9 +571,40 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                             //------------------ (10) Q1 = SO2xRn, Q0 = SO2, X1 = Rn
                             ///##############################################################################/
                             type_ = SO2RN_SO2;
-												}else{
-                            OMPL_ERROR("Cannot project onto type %d.", Q0->getType());
-                            exit(0);
+                        }else{
+                            //------------------ (11) Q1 = SO2xRn, Q0 = SO2xRm, X1 = R(n-m)
+                            ///##############################################################################/
+                            if(Q0->isCompound())
+                            {
+                                ob::CompoundStateSpace *Q0_compound = Q0->as<ob::CompoundStateSpace>();
+                                const std::vector<StateSpacePtr> Q0_decomposed = Q0_compound->getSubspaces();
+                                unsigned int Q0_subspaces = Q0_decomposed.size();
+                                if (Q0_subspaces == 2)
+                                {
+                                    if (Q1_decomposed.at(0)->getType() == ob::STATE_SPACE_SO2 &&
+                                        Q1_decomposed.at(1)->getType() == ob::STATE_SPACE_REAL_VECTOR)
+                                    {
+                                        unsigned int n = Q1_decomposed.at(1)->getDimension();
+                                        unsigned int m = Q0_decomposed.at(1)->getDimension();
+                                        if (m < n && m > 0){
+                                            type_ = SO2RN_SO2RM;
+                                        }else
+                                        {
+                                            OMPL_ERROR("We require n > m > 0 but have n=%d > m=%d > 0.", n, m);
+                                            exit(0);
+                                        }
+                                    }else{
+                                        OMPL_ERROR("Cannot project onto type %d.", Q1->getType());
+                                        exit(0);
+                                    }
+                                }else{
+                                    OMPL_ERROR("Q0 has %d subspaces. We can handle only 2.", Q0_subspaces);
+                                    exit(0);
+                                }
+                            }else{
+                                OMPL_ERROR("Cannot project onto type %d.", Q0->getType());
+                                exit(0);
+                            }
 												}
                     }else
                     {
@@ -589,6 +622,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
             }
         }
     }
+    std::cout << "TYPE:" << type_ << std::endl;
     return type_;
 }
 
@@ -708,6 +742,33 @@ void QuotientSpace::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::
 
             for(uint k = 0; k < X1_dimension_; k++){
               sQ1_RN->values[k] = sX1->values[k];
+            }
+            break;
+        }
+        case SO2RN_SO2RM:
+        {
+            ob::SO2StateSpace::StateType *sQ1_SO2 = qQ1->as<ob::CompoundState>()->as<SO2StateSpace::StateType>(0);
+            ob::RealVectorStateSpace::StateType *sQ1_RN =
+                qQ1->as<ob::CompoundState>()->as<RealVectorStateSpace::StateType>(1);
+
+            const ob::SO2StateSpace::StateType *sQ0_SO2 = qQ0->as<ob::CompoundState>()->as<SO2StateSpace::StateType>(0);
+            const ob::RealVectorStateSpace::StateType *sQ0_RM =
+                qQ0->as<ob::CompoundState>()->as<RealVectorStateSpace::StateType>(1);
+
+            const ob::RealVectorStateSpace::StateType *sX1 = qX1->as<RealVectorStateSpace::StateType>();
+
+            sQ1_SO2->value = sQ0_SO2->value;
+
+            unsigned int M = Q1_dimension_ - X1_dimension_ - 1;
+            unsigned int N = X1_dimension_;
+
+            for (unsigned int k = 0; k < M; k++)
+            {
+                sQ1_RN->values[k] = sQ0_RM->values[k];
+            }
+            for (unsigned int k = M; k < M + N; k++)
+            {
+                sQ1_RN->values[k] = sX1->values[k - M];
             }
             break;
         }
@@ -908,6 +969,7 @@ void QuotientSpace::projectX1Subspace(const ob::State *q, ob::State *qX1) const
             break;
         }
         case SE2RN_SE2RM:
+        case SO2RN_SO2RM:
         {
             const ob::RealVectorStateSpace::StateType *sQ1_RN =
                 q->as<ob::CompoundState>()->as<RealVectorStateSpace::StateType>(1);
@@ -1015,6 +1077,24 @@ void QuotientSpace::projectQ0Subspace(const ob::State *q, ob::State *qQ0) const
           sQ0_SO2->value = sQ1_SO2->value;
 
           break;
+        }
+        case SO2RN_SO2RM:
+        {
+            const ob::SO2StateSpace::StateType *sQ1_SO2 = q->as<ob::CompoundState>()->as<SO2StateSpace::StateType>(0);
+            const ob::RealVectorStateSpace::StateType *sQ1_RN =
+                q->as<ob::CompoundState>()->as<RealVectorStateSpace::StateType>(1);
+
+            ob::SO2StateSpace::StateType *sQ0_SO2 = qQ0->as<ob::CompoundState>()->as<SO2StateSpace::StateType>(0);
+            ob::RealVectorStateSpace::StateType *sQ0_RM =
+                qQ0->as<ob::CompoundState>()->as<RealVectorStateSpace::StateType>(1);
+
+            sQ0_SO2->value = sQ1_SO2->value;
+
+            for (unsigned int k = 0; k < Q0_dimension_ - 1; k++)
+            {
+                sQ0_RM->values[k] = sQ1_RN->values[k];
+            }
+            break;
         }
 
         case SE2RN_SE2RM:
@@ -1310,6 +1390,12 @@ void QuotientSpace::print(std::ostream &out) const
             case QuotientSpace::SE2RN_SE2RM:
             {
                 out << "SE(2)xR^" << Q0_dimension_ - 3 << " | Q" << level_ + 1 << ": SE(2)xR^" << Q1_dimension_ - 3
+                    << " | X" << level_ + 1 << ": R^" << X1_dimension_;
+                break;
+            }
+            case QuotientSpace::SO2RN_SO2RM:
+            {
+                out << "SO(2)xR^" << Q0_dimension_ - 1 << " | Q" << level_ + 1 << ": SO(2)xR^" << Q1_dimension_ - 1
                     << " | X" << level_ + 1 << ": R^" << X1_dimension_;
                 break;
             }

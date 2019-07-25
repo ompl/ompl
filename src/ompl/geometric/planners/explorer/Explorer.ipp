@@ -150,8 +150,8 @@ void MotionExplorer<T>::getPlannerData(ob::PlannerData &data) const
     unsigned int Nvertices = data.numVertices();
     if (Nvertices > 0)
     {
-        std::cout << "cannot get planner data if plannerdata is already populated" << std::endl;
-        std::cout << "PlannerData has " << Nvertices << " vertices." << std::endl;
+        OMPL_ERROR("Cannot get planner data if plannerdata is already populated");
+        OMPL_ERROR("PlannerData has %d vertices.", Nvertices);
         exit(0);
     }
 
