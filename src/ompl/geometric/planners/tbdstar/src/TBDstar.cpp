@@ -269,6 +269,9 @@ namespace ompl
                 else if (parent->isChildWhitelisted(child) ||
                          motionValidator_->checkMotion(parent->getState(), child->getState()))
                 {
+                    // Remember that this is a good edge.
+                    parent->whitelistAsChild(child);
+
                     // Compute the edge cost.
                     auto edgeCost = optimizationObjective_->motionCost(parent->getState(), child->getState());
 
