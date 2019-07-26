@@ -387,7 +387,10 @@ namespace ompl
             ++(*searchId_);
 
             // Create a queue for this search.
-            ompl::BinaryHeap<tbdstar::Edge> queue;
+            EdgeQueue queue([](const tbdstar::Edge &lhs, const tbdstar::Edge &rhs) {
+                return std::lexicographical_compare(lhs.getSortKey().begin(), lhs.getSortKey().end(),
+                                                    rhs.getSortKey().begin(), rhs.getSortKey().end());
+            });
 
             // Add the outgoing edges of the goal to the queue.
             for (const auto &goal : graph_.getGoalVertices())
@@ -432,10 +435,23 @@ namespace ompl
                     // Remember the cost.
                     child->setCostToComeFromGoal(tentativeChildCost);
 
-                    // Insert the children of the child into the queue.
                     if (!child->hasBeenExpandedDuringCurrentSearch())
                     {
                         child->registerExpansionDuringCurrentSearch();
+                        // Insert the children of the child into the queue.
+                        for (const auto &grandchild : child->getChildren())
+                        {
+                            queue.insert(
+                                tbdstar::Edge(child, grandchild,
+                                              {optimizationObjective_
+                                                   ->combineCosts(child->getCostToComeFromGoal(),
+                                                                  optimizationObjective_->motionCostHeuristic(
+                                                                      child->getState(), grandchild->getState()))
+                                                   .value(),
+                                               0.0, 0.0}));
+                        }
+
+                        // Insert the neighbors of the child into the queue.
                         for (const auto &neighbor : graph_.getNeighbors(child))
                         {
                             if (child->getId() != neighbor->getId() && !child->isChildBlacklisted(neighbor))
