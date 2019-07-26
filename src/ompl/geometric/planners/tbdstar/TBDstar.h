@@ -97,7 +97,15 @@ namespace ompl
             tbdstar::ImplicitGraph graph_;
 
             /** \brief The forward queue. */
-            ompl::BinaryHeap<tbdstar::Edge> forwardQueue_{};
+            using EdgeQueue =
+                ompl::BinaryHeap<tbdstar::Edge, std::function<bool(const tbdstar::Edge &, const tbdstar::Edge &)>>;
+            EdgeQueue forwardQueue_;
+
+            /** \brief The backward queue. */
+            using KeyVertexPair = std::pair<double, std::shared_ptr<tbdstar::Vertex>>;
+            using VertexQueue =
+                ompl::BinaryHeap<KeyVertexPair, std::function<bool(const KeyVertexPair &, const KeyVertexPair &)>>;
+            VertexQueue backwardQueue_;
 
             /** \brief The id of the current search .*/
             std::shared_ptr<std::size_t> searchId_;

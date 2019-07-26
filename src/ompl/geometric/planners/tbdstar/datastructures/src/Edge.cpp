@@ -71,11 +71,6 @@ namespace ompl
                 return sortKey_;
             }
 
-            bool operator<(const Edge &lhs, const Edge &rhs)
-            {
-                return std::lexicographical_compare(lhs.sortKey_.begin(), lhs.sortKey_.end(), rhs.sortKey_.begin(),
-                                                    rhs.sortKey_.end());
-            }
         }  // namespace tbdstar
 
     }  // namespace geometric

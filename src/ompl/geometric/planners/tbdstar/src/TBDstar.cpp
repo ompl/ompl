@@ -51,6 +51,13 @@ namespace ompl
     {
         TBDstar::TBDstar(const ompl::base::SpaceInformationPtr &spaceInformation)
           : ompl::base::Planner(spaceInformation, "TBDstar")
+          , forwardQueue_([](const tbdstar::Edge &lhs, const tbdstar::Edge &rhs) {
+              return std::lexicographical_compare(lhs.getSortKey().begin(), lhs.getSortKey().end(),
+                                                  rhs.getSortKey().begin(), rhs.getSortKey().end());
+          })
+          , backwardQueue_(
+                [](const std::pair<double, std::shared_ptr<tbdstar::Vertex>> &lhs,
+                   const std::pair<double, std::shared_ptr<tbdstar::Vertex>> &rhs) { return lhs.first < rhs.first; })
           , searchId_(std::make_shared<std::size_t>(1u))
           , solutionCost_(std::make_shared<ompl::base::Cost>(std::numeric_limits<double>::infinity()))
         {

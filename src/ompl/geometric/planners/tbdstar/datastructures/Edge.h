@@ -70,10 +70,6 @@ namespace ompl
                 /** \brief Returns the sort key associated with this edge. */
                 const std::array<double, 3u> &getSortKey() const;
 
-                /** \brief Returns true if an edge compares less than another edge using lexicographical comparison on
-                 * the sort key. */
-                friend bool operator<(const Edge &lhs, const Edge &rhs);
-
             private:
                 /** \brief The parent in this edge. */
                 std::shared_ptr<Vertex> parent_;
