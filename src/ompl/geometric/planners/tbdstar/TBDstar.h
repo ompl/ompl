@@ -93,6 +93,9 @@ namespace ompl
             /** \brief Computes the backward search heuristic. */
             void computeBackwardSearchHeuristic();
 
+            /** \brief Checks whether the cost to come of a goal vertex has been updated and updates the solution if so. */
+            void updateSolution();
+
             /** \brief The increasingly dense sampling-based approximation. */
             tbdstar::ImplicitGraph graph_;
 

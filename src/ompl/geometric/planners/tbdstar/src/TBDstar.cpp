@@ -279,35 +279,12 @@ namespace ompl
                     {
                         // It can, so we rewire the child.
                         child->setParent(parent, edgeCost);
+
+                        // Share the good news with the whole branch.
                         child->updateCostOfBranch();
 
-                        // If this has resulted in a solution cost change, we can update the solution.
-                        for (const auto &goal : graph_.getGoalVertices())
-                        {
-                            if (optimizationObjective_->isCostBetterThan(goal->getCostToCome(), *solutionCost_))
-                            {
-                                // Remember the incumbent cost.
-                                *solutionCost_ = goal->getCostToCome();
-
-                                // Create a path.
-                                auto path = std::make_shared<ompl::geometric::PathGeometric>(Planner::si_);
-                                auto reversePath = getReversePath(goal);
-                                for (const auto &state : boost::adaptors::reverse(reversePath))
-                                {
-                                    path->append(state);
-                                }
-
-                                // Convert the path to a solution.
-                                ompl::base::PlannerSolution solution(path);
-                                solution.setPlannerName(Planner::name_);
-
-                                // Set the optimized flag.
-                                solution.optimized_ = optimizationObjective_->isSatisfied(*solutionCost_);
-
-                                // Let the problem definition know that a new solution exists.
-                                Planner::pdef_->addSolutionPath(solution);
-                            }
-                        }
+                        // Check if the solution can benefit from this.
+                        updateSolution();
                     }
 
                     // Insert the child's outgoing edges into the queue, if it hasn't been expanded yet.
@@ -481,6 +458,37 @@ namespace ompl
                             }
                         }
                     }
+                }
+            }
+        }
+
+        void TBDstar::updateSolution()
+        {
+            // Check if any of the goals have a cost to come less than the current solution cost.
+            for (const auto &goal : graph_.getGoalVertices())
+            {
+                if (optimizationObjective_->isCostBetterThan(goal->getCostToCome(), *solutionCost_))
+                {
+                    // Remember the incumbent cost.
+                    *solutionCost_ = goal->getCostToCome();
+
+                    // Create a path.
+                    auto path = std::make_shared<ompl::geometric::PathGeometric>(Planner::si_);
+                    auto reversePath = getReversePath(goal);
+                    for (const auto &state : boost::adaptors::reverse(reversePath))
+                    {
+                        path->append(state);
+                    }
+
+                    // Convert the path to a solution.
+                    ompl::base::PlannerSolution solution(path);
+                    solution.setPlannerName(Planner::name_);
+
+                    // Set the optimized flag.
+                    solution.optimized_ = optimizationObjective_->isSatisfied(*solutionCost_);
+
+                    // Let the problem definition know that a new solution exists.
+                    Planner::pdef_->addSolutionPath(solution);
                 }
             }
         }
