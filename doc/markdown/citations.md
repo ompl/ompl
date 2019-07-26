@@ -3,7 +3,7 @@
 If you use OMPL in your research, we kindly ask you to include the following citation in your publications:
 
 <ul>
-<li> Ioan A. Șucan, Mark Moll, Lydia E. Kavraki, The Open Motion Planning Library, _IEEE Robotics & Automation Magazine,_ 19(4):72--82, December 2012. http://ompl.kavrakilab.org
+<li> Ioan A. Șucan, Mark Moll, Lydia E. Kavraki, The Open Motion Planning Library, _IEEE Robotics & Automation Magazine,_ 19(4):72--82, December 2012. https://ompl.kavrakilab.org
 \htmlonly
 <br><div class="btn-group btn-group-xs">
   <a class="btn btn-primary" href="ieee-ram-2012-ompl.pdf"> pdf </a>
@@ -18,7 +18,7 @@ If you use OMPL in your research, we kindly ask you to include the following cit
     Number = {4},
     Pages = {72--82},
     Title = {The {O}pen {M}otion {P}lanning {L}ibrary},
-    Note = {\url{http://ompl.kavrakilab.org}},
+    Note = {\url{https://ompl.kavrakilab.org}},
     Volume = {19},
     Year = {2012}
 }</pre></div></div></div></div>

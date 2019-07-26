@@ -8,7 +8,7 @@ An overview of [MoveIt](http://moveit.ros.org), the [ROS](http://www.ros.org) pa
 <div class="row justify-content-center">
   <div class="col-md-8 col-sm-10">
     <div class="embed-responsive embed-responsive-16by9">
-      <iframe class="embed-responsive-item" src="http://www.youtube.com/embed/vAeEEoxVhAo"></iframe>
+      <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/vAeEEoxVhAo"></iframe>
     </div>
   </div>
 </div>
@@ -22,7 +22,7 @@ OMPL has support for [motion planning subject to hard constraints](constrainedPl
 <div class="row justify-content-center">
   <div class="col-md-8 col-sm-10">
     <div class="embed-responsive embed-responsive-4by3">
-      <iframe class="embed-responsive-item" src="http://player.vimeo.com/video/261052837?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
+      <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/261052837?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
     </div>
   </div>
 </div>
@@ -36,12 +36,12 @@ Morse is a robot simulator built on top of the 3D modeling program Blender. Cale
 <div class="row">
   <div class="col-md-6 col-sm-6">
     <div class="embed-responsive embed-responsive-16by9">
-      <iframe class="embed-responsive-item" src="http://player.vimeo.com/video/71580831?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
+      <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/71580831?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
     </div>
   </div>
   <div class="col-md-6 col-sm-6">
     <div class="embed-responsive embed-responsive-16by9">
-      <iframe class="embed-responsive-item" src="http://player.vimeo.com/video/72710651?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
+      <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/72710651?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
     </div>
   </div>
 </div>
@@ -55,7 +55,7 @@ An example of using OMPL on the PR2 from Willow Garage. The robot is asked to mo
 <div class="row justify-content-center">
   <div class="col-md-8 col-sm-10">
     <div class="embed-responsive embed-responsive-16by9">
-      <iframe class="embed-responsive-item" src="http://www.youtube.com/embed/eUpvbOxrbwY"></iframe>
+      <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/eUpvbOxrbwY"></iframe>
     </div>
   </div>
 </div>
@@ -69,7 +69,7 @@ ROS-Industrial aims to bring ROS to the industrial world. Path and motion planni
 <div class="row justify-content-center">
   <div class="col-md-8 col-sm-10">
     <div class="embed-responsive embed-responsive-16by9">
-      <iframe class="embed-responsive-item" src="http://www.youtube.com/embed/h54YzGIZFt4"></iframe>
+      <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/h54YzGIZFt4"></iframe>
     </div>
   </div>
 </div>
@@ -87,7 +87,7 @@ The focus is not so much on OMPL, but rather a new hybrid bounding box that allo
 <div class="row justify-content-center">
   <div class="col-md-8 col-sm-10">
     <div class="embed-responsive embed-responsive-4by3">
-      <iframe class="embed-responsive-item" src="http://www.youtube.com/embed/HNE4dMycosE"></iframe>
+      <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/HNE4dMycosE"></iframe>
     </div>
   </div>
 </div>
@@ -101,7 +101,7 @@ An example of using OMPL to plan for a robotic system simulated with [ODE](http:
 <div class="row justify-content-center">
   <div class="col-md-8 col-sm-10">
     <div class="embed-responsive embed-responsive-4by3">
-      <iframe class="embed-responsive-item" src="http://player.vimeo.com/video/108137623?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
+      <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/108137623?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
     </div>
   </div>
 </div>
@@ -115,34 +115,34 @@ Below are some rigid body motion planning problems and corresponding solutions f
 <div class="row">
   <div class="col-md-4 col-sm-4">
     <div class="embed-responsive embed-responsive-1by1">
-      <iframe class="embed-responsive-item" src="http://player.vimeo.com/video/58686594?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
+      <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/58686594?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
     </div>
   </div>
   <div class="col-md-4 col-sm-4">
     <div class="embed-responsive embed-responsive-1by1">
-      <iframe class="embed-responsive-item" src="http://player.vimeo.com/video/58709484?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="256" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+      <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/58709484?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="256" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
     </div>
   </div>
   <div class="col-md-4 col-sm-4">
     <div class="embed-responsive embed-responsive-1by1">
-      <iframe class="embed-responsive-item" src="http://player.vimeo.com/video/58686591?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="280" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+      <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/58686591?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="280" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
     </div>
   </div>
 </div>
 <div class="row">
   <div class="col-md-4 col-sm-4">
     <div class="embed-responsive embed-responsive-1by1">
-      <iframe class="embed-responsive-item" src="http://player.vimeo.com/video/58709589?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="188" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+      <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/58709589?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="188" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
     </div>
   </div>
   <div class="col-md-4 col-sm-4">
     <div class="embed-responsive embed-responsive-1by1">
-      <iframe class="embed-responsive-item" src="http://player.vimeo.com/video/58686593?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="195" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+      <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/58686593?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="195" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
     </div>
   </div>
   <div class="col-md-4 col-sm-4">
     <div class="embed-responsive embed-responsive-1by1">
-      <iframe class="embed-responsive-item" src="http://player.vimeo.com/video/58686590?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="198" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+      <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/58686590?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="198" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
     </div>
   </div>
 </div>
@@ -156,7 +156,7 @@ In the [game of Koules](http://www.ucw.cz/~hubicka/koules/English/), there are a
 <div class="row justify-content-center">
   <div class="col-md-8 col-sm-10">
     <div class="embed-responsive embed-responsive-1by1">
-      <iframe class="embed-responsive-item" src="http://player.vimeo.com/video/68184980?byline=0&amp;portrait=0&amp;color=ffffff"></iframe>
+      <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/68184980?byline=0&amp;portrait=0&amp;color=ffffff"></iframe>
     </div>
   </div>
 </div>

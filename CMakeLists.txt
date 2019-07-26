@@ -45,7 +45,7 @@ add_definitions(-DBOOST_TEST_DYN_LINK)
 add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
 
 set_package_properties(Boost PROPERTIES
-    URL "http://boost.org"
+    URL "https://www.boost.org"
     PURPOSE "Used throughout OMPL for data serialization, graphs, etc.")
 find_package(Boost 1.58 QUIET REQUIRED COMPONENTS serialization filesystem system program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
@@ -83,14 +83,14 @@ find_package(Threads QUIET)
 enable_testing()
 
 set_package_properties(Python PROPERTIES
-    URL "http://python.org"
+    URL "https://www.python.org"
     PURPOSE "Used for python bindings.")
 find_package(Python QUIET)
 find_boost_python()
 
 if(PYTHON_FOUND)
     set_package_properties(pypy PROPERTIES
-        URL "http://pypy.org"
+        URL "https://pypy.org"
         PURPOSE "Used to speed up the generation of python bindings.")
     find_package(pypy QUIET)
 endif()
@@ -147,7 +147,7 @@ endif()
 
 set_package_properties(Doxygen PROPERTIES
     URL "http://doxygen.org"
-    PURPOSE "Used to create the OMPL documentation (i.e., http://ompl.kavrakilab.org).")
+    PURPOSE "Used to create the OMPL documentation (i.e., https://ompl.kavrakilab.org).")
 find_package(Doxygen)
 
 # Numpy is used to convert Eigen matrices/vectors to numpy arrays
@@ -226,7 +226,7 @@ if (OMPL_REGISTRATION)
         file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/.registered" "")
         find_package(Python QUIET)
         if (PYTHON_FOUND)
-            execute_process(COMMAND "${PYTHON_EXEC}" "-m" "webbrowser" "http://ompl.kavrakilab.org/core/register.html"
+            execute_process(COMMAND "${PYTHON_EXEC}" "-m" "webbrowser" "https://ompl.kavrakilab.org/core/register.html"
                 OUTPUT_QUIET ERROR_QUIET)
         endif()
     endif()
