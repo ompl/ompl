@@ -86,8 +86,14 @@ namespace ompl
                 /** \brief Returns whether this vertex has a parent. */
                 bool hasParent() const;
 
+                /** \brief Sets the parent vertex (in the forward-search tree). */
+                void setParent(const std::shared_ptr<Vertex> &vertex, const ompl::base::Cost &edgeCost);
+
                 /** \brief Returns the parent of the vertex (in the forward-search tree). */
                 std::shared_ptr<Vertex> getParent() const;
+
+                /** \brief Sets the cost to come to this vertex. */
+                void setEdgeCost(const ompl::base::Cost &cost);
 
                 /** \brief Sets the cost to come to this vertex. */
                 void setCostToCome(const ompl::base::Cost &cost);
@@ -98,8 +104,8 @@ namespace ompl
                 /** \brief Sets the cost to go heuristic of this vertex. */
                 void setCostToGo(const ompl::base::Cost &cost);
 
-                /** \brief Sets the parent vertex (in the forward-search tree). */
-                void setParent(const std::shared_ptr<Vertex> &vertex);
+                /** \brief Updates the cost to the whole branch rooted at this vertex. */
+                void updateCostOfBranch() const;
 
                 /** \brief Adds a vertex this vertex's children. */
                 void addToChildren(const std::shared_ptr<Vertex> &vertex);
@@ -109,6 +115,12 @@ namespace ompl
 
                 /** \brief Removes a vertex from this vertex's children. */
                 void removeFromChildren(const std::shared_ptr<Vertex> &vertex);
+
+                /** \brief Blacklists a child. */
+                void whitelistAsChild(const std::shared_ptr<Vertex> &vertex) const;
+
+                /** \brief Returns whether a child is blacklisted. */
+                bool isChildWhitelisted(const std::shared_ptr<Vertex> &vertex) const;
 
                 /** \brief Blacklists a child. */
                 void blacklistAsChild(const std::shared_ptr<Vertex> &vertex) const;
@@ -150,7 +162,10 @@ namespace ompl
                 /** \brief The cached neighbors of this vertex. */
                 mutable std::vector<std::weak_ptr<Vertex>> neighbors_{};
 
-                /** \brief The list of bastards. */
+                /** \brief The list of chind. */
+                mutable std::vector<std::weak_ptr<Vertex>> whitelistedChildren_{};
+
+                /** \brief The list of chegel. */
                 mutable std::vector<std::weak_ptr<Vertex>> blacklistedChildren_{};
 
                 /** \brief The parent of this vertex. */
@@ -161,6 +176,9 @@ namespace ompl
 
                 /** \brief The cost to come to this vertex. */
                 ompl::base::Cost costToCome_;
+
+                /** \brief The edge cost from the parent. */
+                ompl::base::Cost edgeCost_;
 
                 /** \brief The backward cost to come. */
                 mutable ompl::base::Cost costToComeFromGoal_;

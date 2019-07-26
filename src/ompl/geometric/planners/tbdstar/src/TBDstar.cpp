@@ -34,9 +34,11 @@
 
 // Authors: Marlin Strub
 
-#include <boost/range/adaptor/reversed.hpp>
+#include <algorithm>
 #include <cmath>
 #include <string>
+
+#include <boost/range/adaptor/reversed.hpp>
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
@@ -240,7 +242,102 @@ namespace ompl
             // Keep track of the number of iterations.
             ++numIterations_;
 
-            if (forwardQueue_.empty())
+            // If there are vertices in the backward search queue, process one of them.
+            if (!backwardQueue_.empty())
+            {
+            }  // If there are edges in the forward queue, process one of them.
+            else if (!forwardQueue_.empty())
+            {
+                // Get the most promising edge.
+                auto &edge = forwardQueue_.top()->data;
+                auto parent = edge.getParent();
+                auto child = edge.getChild();
+                auto sortKey = edge.getSortKey();
+                forwardQueue_.pop();
+
+                // If this is edge can not possibly improve our solution, the search is done.
+                if (optimizationObjective_->isCostBetterThan(*solutionCost_, ompl::base::Cost(sortKey[0])))
+                {
+                    forwardQueue_.clear();
+                    ++(*searchId_);
+                }
+                else if (optimizationObjective_->isCostBetterThan(child->getCostToCome(), ompl::base::Cost(sortKey[1])))
+                {
+                    // If the edge cannot improve the cost to come to the child, we're done processing it.
+                    return;
+                }
+                else if (parent->isChildWhitelisted(child) ||
+                         motionValidator_->checkMotion(parent->getState(), child->getState()))
+                {
+                    // Compute the edge cost.
+                    auto edgeCost = optimizationObjective_->motionCost(parent->getState(), child->getState());
+
+                    // Check if the edge can improve the cost to come to the child.
+                    if (optimizationObjective_->isCostBetterThan(
+                            optimizationObjective_->combineCosts(parent->getCostToCome(), edgeCost),
+                            child->getCostToCome()))
+                    {
+                        // It can, so we rewire the child.
+                        child->setParent(parent, edgeCost);
+                        child->updateCostOfBranch();
+
+                        // If this has resulted in a solution cost change, we can update the solution.
+                        for (const auto &goal : graph_.getGoalVertices())
+                        {
+                            if (optimizationObjective_->isCostBetterThan(goal->getCostToCome(), *solutionCost_))
+                            {
+                                // Remember the incumbent cost.
+                                *solutionCost_ = goal->getCostToCome();
+
+                                // Create a path.
+                                auto path = std::make_shared<ompl::geometric::PathGeometric>(Planner::si_);
+                                auto reversePath = getReversePath(goal);
+                                for (const auto &state : boost::adaptors::reverse(reversePath))
+                                {
+                                    path->append(state);
+                                }
+
+                                // Convert the path to a solution.
+                                ompl::base::PlannerSolution solution(path);
+                                solution.setPlannerName(Planner::name_);
+
+                                // Set the optimized flag.
+                                solution.optimized_ = optimizationObjective_->isSatisfied(*solutionCost_);
+
+                                // Let the problem definition know that a new solution exists.
+                                Planner::pdef_->addSolutionPath(solution);
+                            }
+                        }
+                    }
+
+                    // Insert the child's outgoing edges into the queue, if it hasn't been expanded yet.
+                    if (!child->hasBeenExpandedDuringCurrentSearch())
+                    {
+                        // Register that this vertex is expanded.
+                        child->registerExpansionDuringCurrentSearch();
+
+                        // Insert the vertex's current children.
+                        for (const auto &grandchild : child->getChildren())
+                        {
+                            forwardQueue_.insert(tbdstar::Edge(child, grandchild, computeSortKey(child, grandchild)));
+                        }
+
+                        // Insert the vertex's neighbors.
+                        for (const auto &neighbor : graph_.getNeighbors(child))
+                        {
+                            if (child->getId() != neighbor->getId() && !child->isChildBlacklisted(neighbor))
+                            {
+                                forwardQueue_.insert(tbdstar::Edge(child, neighbor, computeSortKey(child, neighbor)));
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    parent->blacklistAsChild(child);
+                }
+            }  // If both queues are empty, add new samples.
+            else
             {
                 // Add new samples.
                 graph_.addSamples(batchSize_);
@@ -269,89 +366,6 @@ namespace ompl
                             forwardQueue_.insert(tbdstar::Edge(start, neighbor, computeSortKey(start, neighbor)));
                         }
                     }
-                }
-            }
-            else
-            {
-                // Get the most promising edge.
-                auto &edge = forwardQueue_.top()->data;
-                auto parent = edge.getParent();
-                auto child = edge.getChild();
-                auto sortKey = edge.getSortKey();
-                forwardQueue_.pop();
-
-                // OMPL_WARN("Evaluating edge [%zu -> %zu] (sortkey: %f)", parent->getId(), child->getId(),
-                // sortKey[0u]);
-
-                // If this is edge can not possibly improve our solution, the search is done.
-                if (optimizationObjective_->isCostBetterThan(*solutionCost_, ompl::base::Cost(sortKey[0])))
-                {
-                    forwardQueue_.clear();
-                    ++(*searchId_);
-                }
-                else if (motionValidator_->checkMotion(parent->getState(), child->getState()))
-                {
-                    // Compute the edge cost.
-                    auto edgeCost = optimizationObjective_->motionCost(parent->getState(), child->getState());
-
-                    // Check if the edge can improve the cost to come to the child.
-                    if (optimizationObjective_->isCostBetterThan(
-                            optimizationObjective_->combineCosts(parent->getCostToCome(), edgeCost),
-                            child->getCostToCome()))
-                    {
-                        // It can, so we rewire the child.
-                        child->setParent(parent);
-                        child->setCostToCome(optimizationObjective_->combineCosts(parent->getCostToCome(), edgeCost));
-                    }
-
-                    // Insert the child's outgoing edges into the queue, if it hasn't been expanded yet.
-                    if (!child->hasBeenExpandedDuringCurrentSearch())
-                    {
-                        // Register that this vertex is expanded.
-                        child->registerExpansionDuringCurrentSearch();
-
-                        // Insert the vertex's current children.
-                        for (const auto &grandchild : child->getChildren())
-                        {
-                            forwardQueue_.insert(tbdstar::Edge(child, grandchild, computeSortKey(child, grandchild)));
-                        }
-
-                        // Insert the vertex's neighbors.
-                        for (const auto &neighbor : graph_.getNeighbors(child))
-                        {
-                            if (child->getId() != neighbor->getId() && !child->isChildBlacklisted(neighbor))
-                            {
-                                forwardQueue_.insert(tbdstar::Edge(child, neighbor, computeSortKey(child, neighbor)));
-                            }
-                        }
-                    }
-
-                    // If the child was a goal vertex, update the solution cost.
-                    if (graph_.isGoal(child))
-                    {
-                        if (optimizationObjective_->isCostBetterThan(child->getCostToCome(), *solutionCost_))
-                        {
-                            *solutionCost_ = child->getCostToCome();
-
-                            auto path = std::make_shared<ompl::geometric::PathGeometric>(Planner::si_);
-                            auto reversePath = getReversePath(child);
-                            for (const auto &state : boost::adaptors::reverse(reversePath))
-                            {
-                                path->append(state);
-                            }
-
-                            ompl::base::PlannerSolution solution(path);
-                            solution.setPlannerName(Planner::name_);
-
-                            solution.optimized_ = optimizationObjective_->isSatisfied(*solutionCost_);
-
-                            Planner::pdef_->addSolutionPath(solution);
-                        }
-                    }
-                }
-                else
-                {
-                    parent->blacklistAsChild(child);
                 }
             }
         }

@@ -174,6 +174,11 @@ namespace ompl
                 return parent_.lock();
             }
 
+            void Vertex::setEdgeCost(const ompl::base::Cost &cost)
+            {
+                edgeCost_ = cost;
+            }
+
             void Vertex::setCostToCome(const ompl::base::Cost &cost)
             {
                 costToCome_ = cost;
@@ -190,8 +195,19 @@ namespace ompl
                 costToGo_ = cost;
             }
 
-            void Vertex::setParent(const std::shared_ptr<Vertex> &vertex)
+            void Vertex::updateCostOfBranch() const
             {
+              // Update the cost of all children.
+              for (const auto& child : getChildren()) {
+                child->setCostToCome(optimizationObjective_->combineCosts(costToCome_, edgeCost_));
+                child->updateCostOfBranch();
+              }
+            }
+
+            void Vertex::setParent(const std::shared_ptr<Vertex> &vertex, const ompl::base::Cost &edgeCost)
+            {
+                edgeCost_ = edgeCost;
+                costToCome_ = optimizationObjective_->combineCosts(vertex->getCostToCome(), edgeCost);
                 parent_ = std::weak_ptr<Vertex>(vertex);
             }
 
@@ -223,6 +239,23 @@ namespace ompl
                 // Swap and pop.
                 std::iter_swap(it, children_.rbegin());
                 children_.pop_back();
+            }
+
+            void Vertex::whitelistAsChild(const std::shared_ptr<Vertex> &vertex) const
+            {
+                whitelistedChildren_.emplace_back(vertex);
+            }
+
+            bool Vertex::isChildWhitelisted(const std::shared_ptr<Vertex> &vertex) const
+            {
+                for (const auto &whitelistedChild : whitelistedChildren_)
+                {
+                    if (whitelistedChild.lock()->getId() == vertex->getId())
+                    {
+                        return true;
+                    }
+                }
+                return false;
             }
 
             void Vertex::blacklistAsChild(const std::shared_ptr<Vertex> &vertex) const
