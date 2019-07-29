@@ -63,19 +63,24 @@ namespace ompl
 
             Vertex::Vertex(const ompl::base::SpaceInformationPtr &spaceInformation,
                            const ompl::base::ProblemDefinitionPtr &problemDefinition,
-                           const std::shared_ptr<std::size_t> &batchId, const std::shared_ptr<std::size_t> &searchId)
+                           const std::shared_ptr<std::size_t> &batchId,
+                           const std::shared_ptr<std::size_t> &forwardSearchId,
+                           const std::shared_ptr<std::size_t> &backwardSearchId)
               : spaceInformation_(spaceInformation)
               , problemDefinition_(problemDefinition)
               , optimizationObjective_(problemDefinition->getOptimizationObjective())
-              , children_()
-              , parent_()
-              , state_(spaceInformation->allocState())  // This allocates memory for a state.
-              , costToCome_(std::numeric_limits<double>::infinity())
-              , costToComeFromGoal_(std::numeric_limits<double>::infinity())
-              , costToGo_(std::numeric_limits<double>::infinity())
+              , forwardChildren_()
+              , forwardParent_()
+              , state_(spaceInformation->allocState())  // The memory allocated here is freed in the destructor.
+              , costToComeFromStart_(optimizationObjective_->infiniteCost())
+              , edgeCostFromForwardParent_(optimizationObjective_->infiniteCost())
+              , costToComeFromGoal_(optimizationObjective_->infiniteCost())
+              , expandedCostToComeFromGoal_(optimizationObjective_->infiniteCost())
+              , costToGoToGoal_(optimizationObjective_->infiniteCost())
               , vertexId_(generateId())
               , batchId_(batchId)
-              , searchId_(searchId)
+              , forwardSearchId_(forwardSearchId)
+              , backwardSearchId_(backwardSearchId)
             {
             }
 
@@ -105,83 +110,99 @@ namespace ompl
                 return ompl::base::ScopedState<>(spaceInformation_->getStateSpace(), state_);
             }
 
-            ompl::base::Cost Vertex::getCostToCome() const
+            ompl::base::Cost Vertex::getCostToComeFromStart() const
             {
-                return costToCome_;
+                return costToComeFromStart_;
             }
 
             ompl::base::Cost Vertex::getCostToComeFromGoal() const
             {
-                if (backwardSearchBatchId_ != *batchId_.lock())
-                {
-                    costToComeFromGoal_ = optimizationObjective_->infiniteCost();
-                    backwardSearchBatchId_ = *batchId_.lock();
-                }
                 return costToComeFromGoal_;
             }
 
-            ompl::base::Cost Vertex::getCostToGo() const
+            ompl::base::Cost Vertex::getExpandedCostToComeFromGoal() const
             {
-                // If the cost to go hasn't been set, compute it.
-                if (!std::isfinite(costToGo_.value()))
-                {
-                    auto goalPtr = problemDefinition_->getGoal();
-                    if (goalPtr->hasType(ompl::base::GOAL_STATE))
-                    {
-                        costToGo_ = optimizationObjective_->motionCostHeuristic(
-                            state_, goalPtr->as<ompl::base::GoalState>()->getState());
-                    }
-                    else if (goalPtr->hasType(ompl::base::GOAL_STATES))
-                    {
-                        for (std::size_t i = 0u; i < goalPtr->as<ompl::base::GoalStates>()->getStateCount(); ++i)
-                        {
-                            ompl::base::Cost costToGoToThis = optimizationObjective_->motionCostHeuristic(
-                                state_, goalPtr->as<ompl::base::GoalStates>()->getState(i));
-                            if (optimizationObjective_->isCostBetterThan(costToGoToThis, costToGo_))
-                            {
-                                costToGo_ = costToGoToThis;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        auto msg =
-                            "TBDstar's OMPL implementation is limited to the goal types GOAL_STATE and GOAL_STATES."s;
-                        throw ompl::Exception(msg);
-                    }
-                }
-
-                if (!std::isfinite(costToComeFromGoal_.value()))
-                {
-                    return costToGo_;
-                }
-                else
-                {
-                    return costToComeFromGoal_;
-                }
+                return expandedCostToComeFromGoal_;
             }
 
-            bool Vertex::hasParent() const
+            ompl::base::Cost Vertex::getCostToGoToGoal() const
+            {
+                // // If the cost to go hasn't been set, compute it.
+                // if (!std::isfinite(costToGoToGoal_.value()))
+                // {
+                //     auto goalPtr = problemDefinition_->getGoal();
+                //     if (goalPtr->hasType(ompl::base::GOAL_STATE))
+                //     {
+                //         costToGoToGoal_ = optimizationObjective_->motionCostHeuristic(
+                //             state_, goalPtr->as<ompl::base::GoalState>()->getState());
+                //     }
+                //     else if (goalPtr->hasType(ompl::base::GOAL_STATES))
+                //     {
+                //         for (std::size_t i = 0u; i < goalPtr->as<ompl::base::GoalStates>()->getStateCount(); ++i)
+                //         {
+                //             ompl::base::Cost costToGoToThis = optimizationObjective_->motionCostHeuristic(
+                //                 state_, goalPtr->as<ompl::base::GoalStates>()->getState(i));
+                //             if (optimizationObjective_->isCostBetterThan(costToGoToThis, costToGoToGoal_))
+                //             {
+                //                 costToGoToGoal_ = costToGoToThis;
+                //             }
+                //         }
+                //     }
+                //     else
+                //     {
+                //         auto msg =
+                //             "TBDstar's OMPL implementation is limited to the goal types GOAL_STATE and GOAL_STATES."s;
+                //         throw ompl::Exception(msg);
+                //     }
+                // }
+
+                // if (!std::isfinite(costToComeFromGoal_.value()))
+                // {
+                //     return costToGoToGoal_;
+                // }
+                // else
+                // {
+                //     return costToComeFromGoal_;
+                // }
+                return costToComeFromGoal_;
+            }
+
+            ompl::base::Cost Vertex::getEdgeCostFromForwardParent() const
+            {
+                return edgeCostFromForwardParent_;
+            }
+
+            bool Vertex::hasForwardParent() const
             {
                 // See https://stackoverflow.com/questions/45507041/how-to-check-if-weak-ptr-is-empty-non-assigned.
                 // return parent_.owner_before(std::weak_ptr<Vertex>{}) &&
                 // std::weak_ptr<Vertex>{}.owner_before(parent_);
-                return static_cast<bool>(parent_.lock());
+                return static_cast<bool>(forwardParent_.lock());
             }
 
-            std::shared_ptr<Vertex> Vertex::getParent() const
+            std::shared_ptr<Vertex> Vertex::getForwardParent() const
             {
-                return parent_.lock();
+                return forwardParent_.lock();
             }
 
-            void Vertex::setEdgeCost(const ompl::base::Cost &cost)
+            bool Vertex::hasBackwardParent() const
             {
-                edgeCost_ = cost;
+                return static_cast<bool>(backwardParent_.lock());
             }
 
-            void Vertex::setCostToCome(const ompl::base::Cost &cost)
+            std::shared_ptr<Vertex> Vertex::getBackwardParent() const
             {
-                costToCome_ = cost;
+                return backwardParent_.lock();
+            }
+
+            void Vertex::setForwardEdgeCost(const ompl::base::Cost &cost)
+            {
+                edgeCostFromForwardParent_ = cost;
+            }
+
+            void Vertex::setCostToComeFromStart(const ompl::base::Cost &cost)
+            {
+                costToComeFromStart_ = cost;
             }
 
             void Vertex::setCostToComeFromGoal(const ompl::base::Cost &cost)
@@ -190,55 +211,108 @@ namespace ompl
                 costToComeFromGoal_ = cost;
             }
 
-            void Vertex::setCostToGo(const ompl::base::Cost &cost)
+            void Vertex::setExpandedCostToComeFromGoal(const ompl::base::Cost &cost)
             {
-                costToGo_ = cost;
+                expandedCostToComeFromGoal_ = cost;
             }
 
-            void Vertex::updateCostOfBranch() const
+            void Vertex::setCostToGoToGoal(const ompl::base::Cost &cost)
             {
-              // Update the cost of all children.
-              for (const auto& child : getChildren()) {
-                child->setCostToCome(optimizationObjective_->combineCosts(costToCome_, edgeCost_));
-                child->updateCostOfBranch();
-              }
+                costToGoToGoal_ = cost;
             }
 
-            void Vertex::setParent(const std::shared_ptr<Vertex> &vertex, const ompl::base::Cost &edgeCost)
+            void Vertex::updateCostOfForwardBranch() const
             {
-                edgeCost_ = edgeCost;
-                costToCome_ = optimizationObjective_->combineCosts(vertex->getCostToCome(), edgeCost);
-                parent_ = std::weak_ptr<Vertex>(vertex);
+                // Update the cost of all children.
+                for (const auto &child : getForwardChildren())
+                {
+                    child->setCostToComeFromStart(optimizationObjective_->combineCosts(
+                        costToComeFromStart_, child->getEdgeCostFromForwardParent()));
+                    child->updateCostOfForwardBranch();
+                }
             }
 
-            void Vertex::addToChildren(const std::shared_ptr<Vertex> &vertex)
+            void Vertex::setForwardParent(const std::shared_ptr<Vertex> &vertex, const ompl::base::Cost &edgeCost)
             {
-                children_.emplace_back(vertex);
+                // If this is a rewiring, remove from my parent's children.
+                if (static_cast<bool>(forwardParent_.lock()))
+                {
+                    forwardParent_.lock()->removeFromForwardChildren(vertexId_);
+                }
+
+                // Remember the edge cost.
+                edgeCostFromForwardParent_ = edgeCost;
+
+                // Remember the corresponding parent.
+                forwardParent_ = std::weak_ptr<Vertex>(vertex);
+
+                // Update the cost to come.
+                costToComeFromStart_ = optimizationObjective_->combineCosts(vertex->getCostToComeFromStart(), edgeCost);
             }
 
-            void Vertex::addToChildren(const std::vector<std::shared_ptr<Vertex>> &vertices)
+            void Vertex::setBackwardParent(const std::shared_ptr<Vertex> &vertex)
             {
-                children_.insert(children_.end(), vertices.begin(), vertices.end());
+                // If this is a rewiring, remove from my parent's children.
+                if (static_cast<bool>(backwardParent_.lock()))
+                {
+                    backwardParent_.lock()->removeFromBackwardChildren(vertexId_);
+                }
+
+                // Remember the parent.
+                backwardParent_ = std::weak_ptr<Vertex>(vertex);
             }
 
-            void Vertex::removeFromChildren(const std::shared_ptr<Vertex> &vertex)
+            void Vertex::resetBackwardParent()
+            {
+                backwardParent_.reset();
+            }
+
+            void Vertex::addToForwardChildren(const std::shared_ptr<Vertex> &vertex)
+            {
+                forwardChildren_.emplace_back(vertex);
+            }
+
+            void Vertex::removeFromForwardChildren(std::size_t vertexId)
             {
                 // Find the child.
-                auto it =
-                    std::find_if(children_.begin(), children_.end(), [vertex](const std::weak_ptr<Vertex> &child) {
-                        return vertex->getId() == child.lock()->getId();
-                    });
+                auto it = std::find_if(
+                    forwardChildren_.begin(), forwardChildren_.end(),
+                    [vertexId](const std::weak_ptr<Vertex> &child) { return vertexId == child.lock()->getId(); });
 
                 // Throw if it is not found.
-                if (it == children_.end())
+                if (it == forwardChildren_.end())
                 {
-                    auto msg = "Asked to remove vertex from children that is currently not a child."s;
+                    auto msg = "Asked to remove vertex from forward children that is currently not a child."s;
                     throw ompl::Exception(msg);
                 }
 
                 // Swap and pop.
-                std::iter_swap(it, children_.rbegin());
-                children_.pop_back();
+                std::iter_swap(it, forwardChildren_.rbegin());
+                forwardChildren_.pop_back();
+            }
+
+            void Vertex::addToBackwardChildren(const std::shared_ptr<Vertex> &vertex)
+            {
+                backwardChildren_.push_back(vertex);
+            }
+
+            void Vertex::removeFromBackwardChildren(std::size_t vertexId)
+            {
+                // Find the child.
+                auto it = std::find_if(
+                    backwardChildren_.begin(), backwardChildren_.end(),
+                    [vertexId](const std::weak_ptr<Vertex> &child) { return vertexId == child.lock()->getId(); });
+
+                // Throw if it is not found.
+                if (it == backwardChildren_.end())
+                {
+                    auto msg = "Asked to remove vertex from backward children that is currently not a child."s;
+                    throw ompl::Exception(msg);
+                }
+
+                // Swap and pop.
+                std::iter_swap(it, backwardChildren_.rbegin());
+                backwardChildren_.pop_back();
             }
 
             void Vertex::whitelistAsChild(const std::shared_ptr<Vertex> &vertex) const
@@ -246,7 +320,7 @@ namespace ompl
                 whitelistedChildren_.emplace_back(vertex);
             }
 
-            bool Vertex::isChildWhitelisted(const std::shared_ptr<Vertex> &vertex) const
+            bool Vertex::isWhitelistedAsChild(const std::shared_ptr<Vertex> &vertex) const
             {
                 for (const auto &whitelistedChild : whitelistedChildren_)
                 {
@@ -263,7 +337,7 @@ namespace ompl
                 blacklistedChildren_.emplace_back(vertex);
             }
 
-            bool Vertex::isChildBlacklisted(const std::shared_ptr<Vertex> &vertex) const
+            bool Vertex::isBlacklistedAsChild(const std::shared_ptr<Vertex> &vertex) const
             {
                 for (const auto &blacklistedChild : blacklistedChildren_)
                 {
@@ -282,44 +356,95 @@ namespace ompl
 
             void Vertex::cacheNeighbors(const std::vector<std::shared_ptr<Vertex>> &neighbors) const
             {
-                neighbors_.clear();
-                neighbors_.insert(neighbors_.begin(), neighbors.begin(), neighbors.end());
-                neighborBatchId_ = *batchId_.lock();
+                neighbors_ = neighbors;
             }
 
-            std::vector<std::shared_ptr<Vertex>> Vertex::getNeighbors() const
+            const std::vector<std::shared_ptr<Vertex>> &Vertex::getNeighbors() const
             {
                 if (neighborBatchId_ != *batchId_.lock())
                 {
                     throw ompl::Exception("Requested neighbors from vertex of outdated approximation.");
                 }
 
-                std::vector<std::shared_ptr<Vertex>> neighbors;
-                for (const auto &neighbor : neighbors_)
-                {
-                    neighbors.emplace_back(neighbor.lock());
-                }
-                return neighbors;
+                return neighbors_;
             }
 
-            std::vector<std::shared_ptr<Vertex>> Vertex::getChildren() const
+            std::vector<std::shared_ptr<Vertex>> Vertex::getForwardChildren() const
             {
                 std::vector<std::shared_ptr<Vertex>> children;
-                for (const auto &child : children_)
+                for (const auto &child : forwardChildren_)
                 {
                     children.emplace_back(child.lock());
                 }
                 return children;
             }
 
-            bool Vertex::hasBeenExpandedDuringCurrentSearch() const
+            std::vector<std::shared_ptr<Vertex>> Vertex::getBackwardChildren() const
             {
-                return expandedSearchId_ == *searchId_.lock();
+                std::vector<std::shared_ptr<Vertex>> children;
+                for (const auto &child : backwardChildren_)
+                {
+                    children.emplace_back(child.lock());
+                }
+                return children;
             }
 
-            void Vertex::registerExpansionDuringCurrentSearch()
+            void Vertex::registerExpansionDuringForwardSearch()
             {
-                expandedSearchId_ = *searchId_.lock();
+                expandedForwardSearchId_ = *forwardSearchId_.lock();
+            }
+
+            void Vertex::registerExpansionDuringBackwardSearch()
+            {
+                expandedCostToComeFromGoal_ = costToComeFromGoal_;
+                expandedBackwardSearchId_ = *backwardSearchId_.lock();
+            }
+
+            void Vertex::registerInsertionIntoQueueDuringBackwardSearch()
+            {
+                insertedIntoQueueBackwardSearchId_ = *backwardSearchId_.lock();
+            }
+
+            bool Vertex::hasBeenExpandedDuringCurrentForwardSearch() const
+            {
+                return expandedForwardSearchId_ == *forwardSearchId_.lock();
+            }
+
+            bool Vertex::hasBeenExpandedDuringCurrentBackwardSearch() const
+            {
+                return expandedBackwardSearchId_ == *backwardSearchId_.lock();
+            }
+
+            bool Vertex::hasBeenInsertedIntoQueueDuringCurrentBackwardSearch() const
+            {
+                return insertedIntoQueueBackwardSearchId_ == *backwardSearchId_.lock();
+            }
+
+            void Vertex::setBackwardQueuePointer(
+                typename ompl::BinaryHeap<
+                    std::pair<double, std::shared_ptr<Vertex>>,
+                    std::function<bool(const std::pair<double, std::shared_ptr<Vertex>> &,
+                                       const std::pair<double, std::shared_ptr<Vertex>> &)>>::Element *pointer)
+            {
+                backwardQueuePointerBackwardSearchId_ = *backwardSearchId_.lock();
+                backwardQueuePointer_ = pointer;
+            }
+
+            typename ompl::BinaryHeap<std::pair<double, std::shared_ptr<Vertex>>,
+                                      std::function<bool(const std::pair<double, std::shared_ptr<Vertex>> &,
+                                                         const std::pair<double, std::shared_ptr<Vertex>> &)>>::Element
+                *
+                Vertex::getBackwardQueuePointer() const
+            {
+                if (*backwardSearchId_.lock() != backwardQueuePointerBackwardSearchId_) {
+                    backwardQueuePointer_ = nullptr;
+                }
+                return backwardQueuePointer_;
+            }
+
+            void Vertex::resetBackwardQueuePointer()
+            {
+                backwardQueuePointer_ = nullptr;
             }
 
         }  // namespace tbdstar

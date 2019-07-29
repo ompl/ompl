@@ -71,6 +71,11 @@ namespace ompl
                 return sortKey_;
             }
 
+            void Edge::setSortKey(const std::array<double, 3u> &key)
+            {
+                sortKey_ = key;
+            }
+
         }  // namespace tbdstar
 
     }  // namespace geometric

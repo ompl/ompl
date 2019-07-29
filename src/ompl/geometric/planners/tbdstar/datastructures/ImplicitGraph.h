@@ -42,7 +42,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/ProblemDefinition.h"
 
-#include "ompl/datastructures/NearestNeighborsGNAT.h"
+#include "ompl/datastructures/NearestNeighborsGNATNoThreadSafety.h"
 
 #include "ompl/geometric/planners/tbdstar/datastructures/Vertex.h"
 
@@ -65,7 +65,8 @@ namespace ompl
                 void setup(const ompl::base::SpaceInformationPtr &spaceInformation,
                            const ompl::base::ProblemDefinitionPtr &problemDefinition,
                            const std::shared_ptr<ompl::base::Cost> &solutionCost,
-                           const std::shared_ptr<std::size_t> &searchId);
+                           const std::shared_ptr<std::size_t> &forwardSearchId,
+                           const std::shared_ptr<std::size_t> &backwardSearchId);
 
                 /** \brief Adds a batch of samples. */
                 void addSamples(std::size_t numSamples);
@@ -107,8 +108,11 @@ namespace ompl
                 /** \brief The id of the batch. */
                 std::shared_ptr<std::size_t> batchId_;
 
-                /** \brief The id of the search. */
-                std::shared_ptr<std::size_t> searchId_;
+                /** \brief The id of the forward search. */
+                std::shared_ptr<std::size_t> forwardSearchId_;
+
+                /** \brief The id of the backward search. */
+                std::shared_ptr<std::size_t> backwardSearchId_;
 
                 /** \brief The radius that defines the neighborhood of a vertex. */
                 double radius_{std::numeric_limits<double>::infinity()};
@@ -120,7 +124,7 @@ namespace ompl
                 ompl::base::InformedSamplerPtr sampler_;
 
                 /** \brief All vertices in this implicit graph. */
-                ompl::NearestNeighborsGNAT<std::shared_ptr<Vertex>> vertices_;
+                ompl::NearestNeighborsGNATNoThreadSafety<std::shared_ptr<Vertex>> vertices_;
 
                 /** \brief The start vertices in the graph. */
                 std::vector<std::shared_ptr<Vertex>> startVertices_;

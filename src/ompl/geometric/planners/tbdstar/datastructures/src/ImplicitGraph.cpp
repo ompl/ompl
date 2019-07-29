@@ -58,12 +58,14 @@ namespace ompl
             void ImplicitGraph::setup(const ompl::base::SpaceInformationPtr &spaceInformation,
                                       const ompl::base::ProblemDefinitionPtr &problemDefinition,
                                       const std::shared_ptr<ompl::base::Cost> &solutionCost,
-                                      const std::shared_ptr<std::size_t> &searchId)
+                                      const std::shared_ptr<std::size_t> &forwardSearchId,
+                                      const std::shared_ptr<std::size_t> &backwardSearchId)
             {
                 spaceInformation_ = spaceInformation;
                 problemDefinition_ = problemDefinition;
                 solutionCost_ = solutionCost;
-                searchId_ = searchId;
+                forwardSearchId_ = forwardSearchId;
+                backwardSearchId_ = backwardSearchId;
                 sampler_ = problemDefinition->getOptimizationObjective()->allocInformedStateSampler(
                     problemDefinition, std::numeric_limits<unsigned int>::max());
             }
@@ -71,13 +73,14 @@ namespace ompl
             void ImplicitGraph::registerStartState(const ompl::base::State *const startState)
             {
                 // Create a vertex corresponding to this state.
-                auto startVertex = std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_, searchId_);
+                auto startVertex = std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_,
+                                                            forwardSearchId_, backwardSearchId_);
 
                 // Copy the state into the vertex's state.
                 spaceInformation_->copyState(startVertex->getState(), startState);
 
                 // By definition, this has identity cost-to-come.
-                startVertex->setCostToCome(ompl::base::Cost(0.0));
+                startVertex->setCostToComeFromStart(ompl::base::Cost(0.0));
 
                 // Add the start vertex to the set of vertices.
                 vertices_.add(startVertex);
@@ -89,7 +92,8 @@ namespace ompl
             void ImplicitGraph::registerGoalState(const ompl::base::State *const goalState)
             {
                 // Create a vertex corresponding to this state.
-                auto goalVertex = std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_, searchId_);
+                auto goalVertex = std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_,
+                                                           forwardSearchId_, backwardSearchId_);
 
                 // Copy the state into the vertex's state.
                 spaceInformation_->copyState(goalVertex->getState(), goalState);
@@ -109,8 +113,8 @@ namespace ompl
                 while (newVertices.size() < numSamples)
                 {
                     // Create a new vertex.
-                    newVertices.emplace_back(
-                        std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_, searchId_));
+                    newVertices.emplace_back(std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_,
+                                                                      forwardSearchId_, backwardSearchId_));
 
                     // Sample the associated state uniformly within the informed set.
                     sampler_->sampleUniform(newVertices.back()->getState(), *solutionCost_.lock());

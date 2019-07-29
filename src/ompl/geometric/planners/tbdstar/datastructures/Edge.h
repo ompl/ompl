@@ -70,6 +70,9 @@ namespace ompl
                 /** \brief Returns the sort key associated with this edge. */
                 const std::array<double, 3u> &getSortKey() const;
 
+                /** \brief Sets the sort key associated with this edge. */
+                void setSortKey(const std::array<double, 3u> &key);
+
             private:
                 /** \brief The parent in this edge. */
                 std::shared_ptr<Vertex> parent_;

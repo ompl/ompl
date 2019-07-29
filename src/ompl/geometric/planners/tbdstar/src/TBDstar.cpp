@@ -60,7 +60,8 @@ namespace ompl
           , backwardQueue_(
                 [](const std::pair<double, std::shared_ptr<tbdstar::Vertex>> &lhs,
                    const std::pair<double, std::shared_ptr<tbdstar::Vertex>> &rhs) { return lhs.first < rhs.first; })
-          , searchId_(std::make_shared<std::size_t>(1u))
+          , forwardSearchId_(std::make_shared<std::size_t>(1u))
+          , backwardSearchId_(std::make_shared<std::size_t>(1u))
           , solutionCost_(std::make_shared<ompl::base::Cost>(std::numeric_limits<double>::infinity()))
         {
         }
@@ -103,7 +104,7 @@ namespace ompl
             motionValidator_ = Planner::si_->getMotionValidator();
 
             // Setup a graph.
-            graph_.setup(Planner::si_, Planner::pdef_, solutionCost_, searchId_);
+            graph_.setup(Planner::si_, Planner::pdef_, solutionCost_, forwardSearchId_, backwardSearchId_);
 
             // Add the start states.
             while (Planner::pis_.haveMoreStartStates())
@@ -144,16 +145,11 @@ namespace ompl
             // If this is the first time solve is called, insert the outgoing edges of the start into the queue.
             if (numIterations_ == 0u)
             {
-                for (const auto &start : graph_.getStartVertices())
+                for (const auto &goal : graph_.getGoalVertices())
                 {
-                    auto neighbors = graph_.getNeighbors(start);
-                    for (const auto &neighbor : neighbors)
-                    {
-                        if (neighbor->getId() != start->getId())
-                        {
-                            forwardQueue_.insert(tbdstar::Edge(start, neighbor, computeSortKey(start, neighbor)));
-                        }
-                    }
+                    goal->setCostToComeFromGoal(optimizationObjective_->identityCost());
+                    auto backwardQueuePointer = backwardQueue_.insert(std::make_pair(0.0, goal));
+                    goal->setBackwardQueuePointer(backwardQueuePointer);
                 }
             }
 
@@ -186,8 +182,6 @@ namespace ompl
             // Get the vertices.
             auto vertices = graph_.getVertices();
 
-            // OMPL_WARN("Iteration %zu | num vertices %zu", numIterations_, vertices.size());
-
             // Add the vertices and edges.
             for (const auto &vertex : vertices)
             {
@@ -206,11 +200,11 @@ namespace ompl
                 }
 
                 // If it has a parent, add the corresponding edge.
-                if (vertex->hasParent())
+                if (vertex->hasForwardParent())
                 {
-                    data.addEdge(
-                        ompl::base::PlannerDataVertex(vertex->getState(), vertex->getId()),
-                        ompl::base::PlannerDataVertex(vertex->getParent()->getState(), vertex->getParent()->getId()));
+                    data.addEdge(ompl::base::PlannerDataVertex(vertex->getState(), vertex->getId()),
+                                 ompl::base::PlannerDataVertex(vertex->getForwardParent()->getState(),
+                                                               vertex->getForwardParent()->getId()));
                 }
             }
         }
@@ -220,11 +214,39 @@ namespace ompl
             computeBackwardSearchHeuristic_ = computeBackwardSearchHeuristic;
         }
 
+        void TBDstar::rebuildForwardQueue()
+        {
+            std::vector<tbdstar::Edge> content;
+            forwardQueue_.getContent(content);
+            forwardQueue_.clear();
+
+            for (auto &edge : content)
+            {
+                forwardQueue_.insert(tbdstar::Edge(edge.getParent(), edge.getChild(),
+                                                   computeSortKey(edge.getParent(), edge.getChild())));
+            }
+        }
+
         std::vector<tbdstar::Edge> TBDstar::getEdgesInQueue() const
         {
             std::vector<tbdstar::Edge> edges;
             forwardQueue_.getContent(edges);
             return edges;
+        }
+
+        std::vector<std::shared_ptr<tbdstar::Vertex>> TBDstar::getVerticesInQueue() const
+        {
+            // Get the content from the queue.
+            std::vector<std::pair<double, std::shared_ptr<tbdstar::Vertex>>> content;
+            backwardQueue_.getContent(content);
+
+            // Return the vertices.
+            std::vector<std::shared_ptr<tbdstar::Vertex>> vertices;
+            for (const auto &pair : content)
+            {
+                vertices.emplace_back(pair.second);
+            }
+            return vertices;
         }
 
         tbdstar::Edge TBDstar::getNextEdgeInQueue() const
@@ -237,6 +259,30 @@ namespace ompl
             return {};
         }
 
+        std::shared_ptr<tbdstar::Vertex> TBDstar::getNextVertexInQueue() const
+        {
+            if (!backwardQueue_.empty())
+            {
+                return backwardQueue_.top()->data.second;
+            }
+
+            return {};
+        }
+
+        std::vector<std::shared_ptr<tbdstar::Vertex>> TBDstar::getVerticesInBackwardSearchTree() const
+        {
+            // Get all vertices from the graph.
+            auto vertices = graph_.getVertices();
+
+            // Erase the vertices that are not in the backward search tree.
+            vertices.erase(std::remove_if(vertices.begin(), vertices.end(),
+                                          [this](const std::shared_ptr<tbdstar::Vertex> &vertex) {
+                                              return !graph_.isGoal(vertex) && !vertex->hasBackwardParent();
+                                          }),
+                           vertices.end());
+            return vertices;
+        }
+
         void TBDstar::iterate()
         {
             // Keep track of the number of iterations.
@@ -245,122 +291,354 @@ namespace ompl
             // If there are vertices in the backward search queue, process one of them.
             if (!backwardQueue_.empty())
             {
-            }  // If there are edges in the forward queue, process one of them.
-            else if (!forwardQueue_.empty())
+                performBackwardSearchIteration();
+            }
+            else
             {
-                // Get the most promising edge.
-                auto &edge = forwardQueue_.top()->data;
-                auto parent = edge.getParent();
-                auto child = edge.getChild();
-                auto sortKey = edge.getSortKey();
-                forwardQueue_.pop();
-
-                // If this is edge can not possibly improve our solution, the search is done.
-                if (optimizationObjective_->isCostBetterThan(*solutionCost_, ompl::base::Cost(sortKey[0])))
+                if (!isForwardSearchStartedOnBatch_)
                 {
-                    forwardQueue_.clear();
-                    ++(*searchId_);
-                }
-                else if (optimizationObjective_->isCostBetterThan(child->getCostToCome(), ompl::base::Cost(sortKey[1])))
-                {
-                    // If the edge cannot improve the cost to come to the child, we're done processing it.
-                    return;
-                }
-                else if (parent->isChildWhitelisted(child) ||
-                         motionValidator_->checkMotion(parent->getState(), child->getState()))
-                {
-                    // Remember that this is a good edge.
-                    parent->whitelistAsChild(child);
-
-                    // Compute the edge cost.
-                    auto edgeCost = optimizationObjective_->motionCost(parent->getState(), child->getState());
-
-                    // Check if the edge can improve the cost to come to the child.
-                    if (optimizationObjective_->isCostBetterThan(
-                            optimizationObjective_->combineCosts(parent->getCostToCome(), edgeCost),
-                            child->getCostToCome()))
+                    // If no start vertex has finite cost to come from the goal, there is no need to start the
+                    // forward search.
+                    for (const auto &start : graph_.getStartVertices())
                     {
-                        // It can, so we rewire the child.
-                        child->setParent(parent, edgeCost);
+                        if (optimizationObjective_->isFinite(start->getCostToComeFromGoal()))
+                        {
+                            // Add the outgoing edges of the start to the queue.
+                            for (const auto &start : graph_.getStartVertices())
+                            {
+                                start->setCostToComeFromStart(optimizationObjective_->identityCost());
+                                insertOutgoingEdges(start);
+                            }
 
-                        // Share the good news with the whole branch.
-                        child->updateCostOfBranch();
+                            // Remember that we've started the forward search on this batch.
+                            isForwardSearchStartedOnBatch_ = true;
 
-                        // Check if the solution can benefit from this.
-                        updateSolution();
+                            // Update the forward search id.
+                            ++(*forwardSearchId_);
+
+                            // It suffices that one start has finite cost.
+                            break;
+                        }
                     }
+                }
+                else if (forwardQueueMustBeRebuilt_)
+                {
+                    rebuildForwardQueue();
+                    forwardQueueMustBeRebuilt_ = false;
+                }
+                else if (!forwardQueue_.empty())
+                {
+                    performForwardSearchIteration();
+                }  // If both queues are empty, add new samples.
+                else
+                {
+                    // Add new samples.
+                    graph_.addSamples(batchSize_);
+
+                    // This constitutes a new search.
+                    ++(*backwardSearchId_);
+
+                    // Add the goal vertices to the backward queue.
+                    for (const auto &goal : graph_.getGoalVertices())
+                    {
+                        goal->setCostToComeFromGoal(optimizationObjective_->identityCost());
+                        auto backwardQueuePointer = backwardQueue_.insert(std::make_pair(0.0, goal));
+                        goal->setBackwardQueuePointer(backwardQueuePointer);
+                    }
+
+                    // This is a new batch, so the forward search hasn't been started.
+                    isForwardSearchStartedOnBatch_ = false;
+                }
+            }
+        }
+
+        void TBDstar::performForwardSearchIteration()
+        {
+            // Get the most promising edge.
+            auto &edge = forwardQueue_.top()->data;
+            auto parent = edge.getParent();
+            auto child = edge.getChild();
+            forwardQueue_.pop();
+
+            // If this is edge can not possibly improve our solution, the search is done.
+            auto edgeCost = optimizationObjective_->motionCostHeuristic(parent->getState(), child->getState());
+            auto parentCostToGoToGoal = optimizationObjective_->combineCosts(edgeCost, child->getCostToGoToGoal());
+            auto pathThroughEdgeCost =
+                optimizationObjective_->combineCosts(parent->getCostToComeFromStart(), parentCostToGoToGoal);
+
+            if (!optimizationObjective_->isCostBetterThan(pathThroughEdgeCost, *solutionCost_))
+            {
+                forwardQueue_.clear();
+                ++(*forwardSearchId_);
+            }
+            else if (child->hasForwardParent() && child->getForwardParent()->getId() == parent->getId())
+            {
+                // This is a freebie, just insert the outgoing edges of the child.
+                if (!child->hasBeenExpandedDuringCurrentForwardSearch())
+                {
+                    insertOutgoingEdges(child);
+                }
+            }
+            else if (optimizationObjective_->isCostBetterThan(
+                         child->getCostToComeFromStart(),
+                         optimizationObjective_->combineCosts(
+                             parent->getCostToComeFromStart(),
+                             optimizationObjective_->motionCostHeuristic(parent->getState(), child->getState()))))
+            {
+                // If the edge cannot improve the cost to come to the child, we're done processing it.
+                return;
+            }
+            else if (parent->isWhitelistedAsChild(child) ||
+                     motionValidator_->checkMotion(parent->getState(), child->getState()))
+            {
+                // Remember that this is a good edge.
+                parent->whitelistAsChild(child);
+
+                // Compute the edge cost.
+                auto edgeCost = optimizationObjective_->motionCost(parent->getState(), child->getState());
+
+                // Check if the edge can improve the cost to come to the child.
+                if (optimizationObjective_->isCostBetterThan(
+                        optimizationObjective_->combineCosts(parent->getCostToComeFromStart(), edgeCost),
+                        child->getCostToComeFromStart()))
+                {
+                    // It can, so we rewire the child.
+                    child->setForwardParent(parent, edgeCost);
+
+                    // Add it to the children of the parent.
+                    parent->addToForwardChildren(child);
+
+                    // Share the good news with the whole branch.
+                    child->updateCostOfForwardBranch();
+
+                    // Check if the solution can benefit from this.
+                    updateSolution();
 
                     // Insert the child's outgoing edges into the queue, if it hasn't been expanded yet.
-                    if (!child->hasBeenExpandedDuringCurrentSearch())
+                    if (!child->hasBeenExpandedDuringCurrentForwardSearch())
                     {
-                        // Register that this vertex is expanded.
-                        child->registerExpansionDuringCurrentSearch();
+                        insertOutgoingEdges(child);
+                    }
+                }
+            }
+            else
+            {
+                parent->blacklistAsChild(child);
+                if (parent->hasBackwardParent() && parent->getBackwardParent()->getId() == child->getId())
+                {
+                    parent->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
+                    parent->resetBackwardParent();
+                    child->removeFromBackwardChildren(parent->getId());
+                    backwardSearchUpdateVertex(parent);
+                    ++(*backwardSearchId_);
+                }
+                forwardQueueMustBeRebuilt_ = true;
+            }
+        }
 
-                        // Insert the vertex's current children.
-                        for (const auto &grandchild : child->getChildren())
-                        {
-                            forwardQueue_.insert(tbdstar::Edge(child, grandchild, computeSortKey(child, grandchild)));
-                        }
+        void TBDstar::performBackwardSearchIteration()
+        {
+            // Get the most promising vertex.
+            auto vertex = backwardQueue_.top()->data.second;
 
-                        // Insert the vertex's neighbors.
-                        for (const auto &neighbor : graph_.getNeighbors(child))
+            // Remove it from the queue.
+            backwardQueue_.pop();
+            vertex->resetBackwardQueuePointer();
+
+            // If there is currently no reason to think this vertex can be on an optimal path, clear the queue.
+            if (!optimizationObjective_->isCostBetterThan(vertex->getCostToComeFromGoal(), *solutionCost_)) {
+                backwardQueue_.clear();
+                ++(*backwardSearchId_);
+                return;
+            }
+
+            // Check if the vertex is overconsistent. g(s) < v(s).
+            if (optimizationObjective_->isCostBetterThan(vertex->getCostToComeFromGoal(),
+                                                         vertex->getExpandedCostToComeFromGoal()))
+            {
+                // Remember that this vertex is about to be expanded.
+                vertex->setExpandedCostToComeFromGoal(vertex->getCostToComeFromGoal());
+
+                // Update all successors. Start with the neighbors.
+                for (const auto &neighbor : graph_.getNeighbors(vertex))
+                {
+                    if (neighbor->getId() != vertex->getId() && !neighbor->isBlacklistedAsChild(vertex) &&
+                        !vertex->isBlacklistedAsChild(neighbor))
+                    {
+                        backwardSearchUpdateVertex(neighbor);
+                    }
+                }
+
+                // We also need to update the forward search children.
+                for (const auto &child : vertex->getForwardChildren())
+                {
+                    backwardSearchUpdateVertex(child);
+                }
+
+                // We also need to update the forward search parent if it exists.
+                if (vertex->hasForwardParent())
+                {
+                    backwardSearchUpdateVertex(vertex->getForwardParent());
+                }
+            }
+            else
+            {
+                vertex->setExpandedCostToComeFromGoal(optimizationObjective_->infiniteCost());
+                backwardSearchUpdateVertex(vertex);
+                for (const auto &neighbor : graph_.getNeighbors(vertex))
+                {
+                    if (neighbor->getId() != vertex->getId() && !neighbor->isBlacklistedAsChild(vertex) &&
+                        !vertex->isBlacklistedAsChild(neighbor))
+                    {
+                        backwardSearchUpdateVertex(neighbor);
+                    }
+                }
+
+                // We also need to update the forward search children.
+                for (const auto &child : vertex->getForwardChildren())
+                {
+                    backwardSearchUpdateVertex(child);
+                }
+
+                // We also need to update the forward search parent if it exists.
+                if (vertex->hasForwardParent())
+                {
+                    backwardSearchUpdateVertex(vertex->getForwardParent());
+                }
+            }
+        }
+
+        void TBDstar::backwardSearchUpdateVertex(const std::shared_ptr<tbdstar::Vertex> &vertex)
+        {
+            if (!graph_.isGoal(vertex))
+            {
+                // Get the best parent for this vertex.
+                auto bestParent = vertex->getBackwardParent();
+                auto bestCost = optimizationObjective_->infiniteCost();
+
+                // Check all neighbors as defined by the graph.
+                for (const auto &neighbor : graph_.getNeighbors(vertex))
+                {
+                    if (neighbor->getId() != vertex->getId() && !neighbor->isBlacklistedAsChild(vertex) &&
+                        !vertex->isBlacklistedAsChild(neighbor))
+                    {
+                        auto edgeCost =
+                            optimizationObjective_->motionCostHeuristic(neighbor->getState(), vertex->getState());
+                        auto parentCost =
+                            optimizationObjective_->combineCosts(neighbor->getCostToComeFromGoal(), edgeCost);
+                        if (optimizationObjective_->isCostBetterThan(parentCost, bestCost))
                         {
-                            if (child->getId() != neighbor->getId() && !child->isChildBlacklisted(neighbor))
-                            {
-                                forwardQueue_.insert(tbdstar::Edge(child, neighbor, computeSortKey(child, neighbor)));
-                            }
+                            bestParent = neighbor;
+                            bestCost = parentCost;
                         }
                     }
+                }
+
+                // Check all children this vertex holds in the forward search.
+                for (const auto &forwardChild : vertex->getForwardChildren())
+                {
+                    auto edgeCost =
+                        optimizationObjective_->motionCostHeuristic(forwardChild->getState(), vertex->getState());
+                    auto parentCost =
+                        optimizationObjective_->combineCosts(forwardChild->getCostToComeFromGoal(), edgeCost);
+                    if (optimizationObjective_->isCostBetterThan(parentCost, bestCost))
+                    {
+                        bestParent = forwardChild;
+                        bestCost = parentCost;
+                    }
+                }
+
+                // Check the parent of this vertex in the forward search.
+                if (vertex->hasForwardParent())
+                {
+                    auto forwardParent = vertex->getForwardParent();
+                    auto edgeCost =
+                        optimizationObjective_->motionCostHeuristic(forwardParent->getState(), vertex->getState());
+                    auto parentCost =
+                        optimizationObjective_->combineCosts(forwardParent->getCostToComeFromGoal(), edgeCost);
+                    if (optimizationObjective_->isCostBetterThan(parentCost, bestCost))
+                    {
+                        bestParent = forwardParent;
+                        bestCost = parentCost;
+                    }
+                }
+
+                // If this vertex is now disconnected, take special care.
+                if (!optimizationObjective_->isFinite(bestCost))
+                {
+                    if (vertex->hasBackwardParent())
+                    {
+                        OMPL_WARN("Vertex %zu has backward parent %zu", vertex->getId(),
+                                  vertex->getBackwardParent()->getId());
+                        OMPL_WARN("Its children are:");
+                        for (const auto &child : vertex->getBackwardParent()->getBackwardChildren())
+                        {
+                            OMPL_WARN("%zu", child->getId());
+                        }
+                        vertex->getBackwardParent()->removeFromBackwardChildren(vertex->getId());
+                        OMPL_WARN("Removed child.");
+                        vertex->resetBackwardParent();
+                    }
+                    return;
+                }
+
+                // Update the backward parent.
+                vertex->setBackwardParent(bestParent);
+
+                // Update the children of the parent.
+                bestParent->addToBackwardChildren(vertex);
+
+                // Set the cost to come from the goal.
+                vertex->setCostToComeFromGoal(bestCost);
+
+                // If this has made the vertex inconsistent, insert or update it in the open queue.
+                if (!optimizationObjective_->isCostEquivalentTo(vertex->getCostToComeFromGoal(),
+                                                                vertex->getExpandedCostToComeFromGoal()))
+                {
+                    insertOrUpdateInBackwardQueue(vertex);
                 }
                 else
                 {
-                    parent->blacklistAsChild(child);
-                }
-            }  // If both queues are empty, add new samples.
-            else
-            {
-                // Add new samples.
-                graph_.addSamples(batchSize_);
-
-                // Compute the backward search heuristic if desired.
-                if (computeBackwardSearchHeuristic_)
-                {
-                    computeBackwardSearchHeuristic();
-                }
-
-                // This constitutes a new search.
-                ++(*searchId_);
-
-                // Add the outgoing edges of the start to the queue.
-                for (const auto &start : graph_.getStartVertices())
-                {
-                    // Register the expansion on this search.
-                    start->registerExpansionDuringCurrentSearch();
-
-                    // Get the neighbors.
-                    auto neighbors = graph_.getNeighbors(start);
-                    for (const auto &neighbor : neighbors)
+                    // Remove this vertex from the queue if it is in the queue.
+                    auto backwardQueuePointer = vertex->getBackwardQueuePointer();
+                    if (backwardQueuePointer)
                     {
-                        if (neighbor->getId() != start->getId())
-                        {
-                            forwardQueue_.insert(tbdstar::Edge(start, neighbor, computeSortKey(start, neighbor)));
-                        }
+                        backwardQueue_.remove(backwardQueuePointer);
                     }
                 }
             }
         }
 
-        std::vector<const ompl::base::State *>
+        void TBDstar::insertOrUpdateInBackwardQueue(const std::shared_ptr<tbdstar::Vertex> &vertex)
+        {
+            // Get the pointer to the element in the queue.
+            auto element = vertex->getBackwardQueuePointer();
+
+            // Update it if it is in the queue.
+            if (element)
+            {
+                element->data.first = vertex->getCostToComeFromGoal().value();
+                backwardQueue_.update(element);
+            }
+            else  // Insert it into the queue otherwise.
+            {
+                auto backwardQueuePointer =
+                    backwardQueue_.insert(std::make_pair(vertex->getCostToComeFromGoal().value(), vertex));
+                vertex->setBackwardQueuePointer(backwardQueuePointer);
+            }
+        }
+
+        std::vector<std::shared_ptr<tbdstar::Vertex>>
         TBDstar::getReversePath(const std::shared_ptr<tbdstar::Vertex> &vertex) const
         {
-            std::vector<const ompl::base::State *> reversePath;
+            std::vector<std::shared_ptr<tbdstar::Vertex>> reversePath;
             auto current = vertex;
             while (!graph_.isStart(current))
             {
-                reversePath.emplace_back(current->getState());
-                current = current->getParent();
+                reversePath.emplace_back(current);
+                current = current->getForwardParent();
             }
-            reversePath.emplace_back(current->getState());
+            reversePath.emplace_back(current);
             return reversePath;
         }
 
@@ -371,14 +649,37 @@ namespace ompl
             // c_hat(start, neighbor), g_T(start)].
             ompl::base::Cost edgeCostHeuristic =
                 optimizationObjective_->motionCostHeuristic(parent->getState(), child->getState());
-            return {parent->getCostToCome().value() + edgeCostHeuristic.value() + child->getCostToGo().value(),
-                    parent->getCostToCome().value() + edgeCostHeuristic.value(), parent->getCostToCome().value()};
+            return {parent->getCostToComeFromStart().value() + edgeCostHeuristic.value() +
+                        child->getCostToGoToGoal().value(),
+                    edgeCostHeuristic.value() + child->getCostToGoToGoal().value(),
+                    parent->getCostToComeFromStart().value()};
+        }
+
+        void TBDstar::insertOutgoingEdges(const std::shared_ptr<tbdstar::Vertex> &vertex)
+        {
+            // Register that this vertex is expanded on the current search.
+            vertex->registerExpansionDuringForwardSearch();
+
+            // Insert the edges to the current children.
+            for (const auto &child : vertex->getForwardChildren())
+            {
+                forwardQueue_.insert(tbdstar::Edge(vertex, child, computeSortKey(vertex, child)));
+            }
+
+            // Insert the edges to the current neighbors.
+            for (const auto &neighbor : graph_.getNeighbors(vertex))
+            {
+                if (neighbor->getId() != vertex->getId())
+                {
+                    forwardQueue_.insert(tbdstar::Edge(vertex, neighbor, computeSortKey(vertex, neighbor)));
+                }
+            }
         }
 
         void TBDstar::computeBackwardSearchHeuristic()
         {
             // Register that we started a new search.
-            ++(*searchId_);
+            ++(*backwardSearchId_);
 
             // Create a queue for this search.
             EdgeQueue queue([](const tbdstar::Edge &lhs, const tbdstar::Edge &rhs) {
@@ -429,11 +730,11 @@ namespace ompl
                     // Remember the cost.
                     child->setCostToComeFromGoal(tentativeChildCost);
 
-                    if (!child->hasBeenExpandedDuringCurrentSearch())
+                    if (!child->hasBeenExpandedDuringCurrentForwardSearch())
                     {
-                        child->registerExpansionDuringCurrentSearch();
+                        child->registerExpansionDuringForwardSearch();
                         // Insert the children of the child into the queue.
-                        for (const auto &grandchild : child->getChildren())
+                        for (const auto &grandchild : child->getForwardChildren())
                         {
                             queue.insert(
                                 tbdstar::Edge(child, grandchild,
@@ -448,7 +749,7 @@ namespace ompl
                         // Insert the neighbors of the child into the queue.
                         for (const auto &neighbor : graph_.getNeighbors(child))
                         {
-                            if (child->getId() != neighbor->getId() && !child->isChildBlacklisted(neighbor))
+                            if (child->getId() != neighbor->getId() && !child->isBlacklistedAsChild(neighbor))
                             {
                                 queue.insert(
                                     tbdstar::Edge(child, neighbor,
@@ -470,17 +771,17 @@ namespace ompl
             // Check if any of the goals have a cost to come less than the current solution cost.
             for (const auto &goal : graph_.getGoalVertices())
             {
-                if (optimizationObjective_->isCostBetterThan(goal->getCostToCome(), *solutionCost_))
+                if (optimizationObjective_->isCostBetterThan(goal->getCostToComeFromStart(), *solutionCost_))
                 {
                     // Remember the incumbent cost.
-                    *solutionCost_ = goal->getCostToCome();
+                    *solutionCost_ = goal->getCostToComeFromStart();
 
                     // Create a path.
                     auto path = std::make_shared<ompl::geometric::PathGeometric>(Planner::si_);
                     auto reversePath = getReversePath(goal);
-                    for (const auto &state : boost::adaptors::reverse(reversePath))
+                    for (const auto &vertex : boost::adaptors::reverse(reversePath))
                     {
-                        path->append(state);
+                        path->append(vertex->getState());
                     }
 
                     // Convert the path to a solution.
