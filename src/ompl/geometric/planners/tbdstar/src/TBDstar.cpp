@@ -214,6 +214,11 @@ namespace ompl
             computeBackwardSearchHeuristic_ = computeBackwardSearchHeuristic;
         }
 
+        void TBDstar::setRepairBackwardSearch(bool repairBackwardSearch)
+        {
+            repairBackwardSearch_ = repairBackwardSearch;
+        }
+
         void TBDstar::rebuildForwardQueue()
         {
             std::vector<tbdstar::Edge> content;
@@ -423,16 +428,22 @@ namespace ompl
             }
             else
             {
+                // This child should be blacklisted.
                 parent->blacklistAsChild(child);
-                if (parent->hasBackwardParent() && parent->getBackwardParent()->getId() == child->getId())
+
+                // If desired, now is the time to repair the backward search.
+                if (repairBackwardSearch_)
                 {
-                    parent->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
-                    parent->resetBackwardParent();
-                    child->removeFromBackwardChildren(parent->getId());
-                    backwardSearchUpdateVertex(parent);
-                    ++(*backwardSearchId_);
+                    if (parent->hasBackwardParent() && parent->getBackwardParent()->getId() == child->getId())
+                    {
+                        parent->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
+                        parent->resetBackwardParent();
+                        child->removeFromBackwardChildren(parent->getId());
+                        backwardSearchUpdateVertex(parent);
+                        ++(*backwardSearchId_);
+                    }
+                    forwardQueueMustBeRebuilt_ = true;
                 }
-                forwardQueueMustBeRebuilt_ = true;
             }
         }
 
@@ -446,7 +457,8 @@ namespace ompl
             vertex->resetBackwardQueuePointer();
 
             // If there is currently no reason to think this vertex can be on an optimal path, clear the queue.
-            if (!optimizationObjective_->isCostBetterThan(vertex->getCostToComeFromGoal(), *solutionCost_)) {
+            if (!optimizationObjective_->isCostBetterThan(vertex->getCostToComeFromGoal(), *solutionCost_))
+            {
                 backwardQueue_.clear();
                 ++(*backwardSearchId_);
                 return;

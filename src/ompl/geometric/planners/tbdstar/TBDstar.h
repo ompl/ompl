@@ -74,6 +74,9 @@ namespace ompl
             /** \brief Set the option to compute the backward search heuristic. */
             void setComputeBackwardSearchHeuristic(bool computeBackwardSearchHeuristic);
 
+            /** \brief Enable LPA* repair of backward search. */
+            void setRepairBackwardSearch(bool setRepairBackwardSearch);
+
             /** \brief Get the edge queue. */
             std::vector<tbdstar::Edge> getEdgesInQueue() const;
 
@@ -162,6 +165,9 @@ namespace ompl
 
             /** \brief The option that specifies whether to compute the backward search heuristic. */
             bool computeBackwardSearchHeuristic_{true};
+
+            /** \brief The option that specifies whether to repair the backward search when detecting a collision. */
+            bool repairBackwardSearch_{true};
 
             /** \brief Syntactic helper to get at the optimization objective of the planner base class. */
             ompl::base::OptimizationObjectivePtr optimizationObjective_;
