@@ -70,7 +70,7 @@ bool isStateValid_R2(const ob::State *state)
     return true; 
 }
 
-int main(int argc, const char **argv) 
+int main() 
 {
     // Setup SE2
     auto SE2(std::make_shared<ob::SE2StateSpace>());
@@ -94,7 +94,6 @@ int main(int argc, const char **argv)
 
     // Define Planning Problem
     typedef ob::ScopedState<ob::SE2StateSpace> SE2State;
-    typedef ob::ScopedState<ob::RealVectorStateSpace> R2State;
     SE2State start_SE2(SE2);
     SE2State goal_SE2(SE2);
     start_SE2->setXY(0, 0);
@@ -102,29 +101,16 @@ int main(int argc, const char **argv)
     goal_SE2->setXY(1, 1);
     goal_SE2->setYaw(0);
 
-    R2State start_R2(R2);
-    R2State goal_R2(R2);
-    start_R2[0] = start_R2[1] = 0;
-    goal_R2[0] = goal_R2[1] = 1;
-
-    // Create vector of ProblemDefinitionPtr
-    std::vector<ob::ProblemDefinitionPtr> pdef_vec;
-    ob::ProblemDefinitionPtr pdef_SE2 =
+    ob::ProblemDefinitionPtr pdef =
             std::make_shared<ob::ProblemDefinition>(si_SE2);
-    pdef_SE2->setStartAndGoalStates(start_SE2, goal_SE2);
-    ob::ProblemDefinitionPtr pdef_R2 =
-            std::make_shared<ob::ProblemDefinition>(si_R2);
-    pdef_R2->setStartAndGoalStates(start_R2, goal_R2);
-
-    pdef_vec.push_back(pdef_R2);
-    pdef_vec.push_back(pdef_SE2);
+    pdef->setStartAndGoalStates(start_SE2, goal_SE2);
 
     // Setup Planner using vector of spaceinformationptr
     typedef og::MultiQuotient<og::QRRT> MultiQuotient;
     auto planner = std::make_shared<MultiQuotient>(si_vec);
-    planner->setProblemDefinition(pdef_vec);
 
     // Planner can be used as any other OMPL algorithm
+    planner->setProblemDefinition(pdef);
     planner->setup();
 
     ob::PlannerStatus solved = planner->ob::Planner::solve(1.0);
@@ -134,15 +120,19 @@ int main(int argc, const char **argv)
         std::cout << std::string(80, '-') << std::endl;
         std::cout << "Configuration-Space Path (SE2):" << std::endl;
         std::cout << std::string(80, '-') << std::endl;
-        pdef_vec.back()->getSolutionPath()->print(std::cout);
+        pdef->getSolutionPath()->print(std::cout);
+
         std::cout << std::string(80, '-') << std::endl;
         std::cout << "Quotient-Space Path (R2):" << std::endl;
         std::cout << std::string(80, '-') << std::endl;
-        pdef_vec.front()->getSolutionPath()->print(std::cout);
+        const ob::ProblemDefinitionPtr pdefR2 = 
+          std::static_pointer_cast<MultiQuotient>(planner)->getProblemDefinition(0);
+        pdefR2->getSolutionPath()->print(std::cout);
+
+
 
         std::vector<int> nodes =
           std::static_pointer_cast<MultiQuotient>(planner)->getFeasibleNodes();
-
         std::cout << std::string(80, '-') << std::endl;
         for(unsigned int k = 0; k < nodes.size(); k++)
         {

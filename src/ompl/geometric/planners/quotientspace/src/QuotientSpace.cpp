@@ -36,6 +36,7 @@
 /* Author: Andreas Orthey */
 #include <ompl/geometric/planners/quotientspace/QuotientSpace.h>
 
+#include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
@@ -135,6 +136,7 @@ void QuotientSpace::setup()
     hasSolution_ = false;
     firstRun_ = true;
 }
+
 void QuotientSpace::clear()
 {
     BaseT::clear();
@@ -145,6 +147,8 @@ void QuotientSpace::clear()
     firstRun_ = true;
     if (parent_ == nullptr && X1_dimension_ > 0)
         X1_sampler_.reset();
+
+    pdef_->clearSolutionPaths();
 }
 
 void QuotientSpace::checkSpaceHasFiniteMeasure(const ob::StateSpacePtr space) const
@@ -169,6 +173,21 @@ ob::PlannerStatus QuotientSpace::solve(const ob::PlannerTerminationCondition &pt
 {
     OMPL_ERROR("A Quotient-Space cannot be solved alone. Use class MultiQuotient to solve Quotient-Spaces.");
     exit(1);
+}
+
+
+void QuotientSpace::setProblemDefinition(const ob::ProblemDefinitionPtr &pdef)
+{
+    BaseT::setProblemDefinition(pdef);
+
+    if (pdef_->hasOptimizationObjective())
+    {
+        opt_ = pdef_->getOptimizationObjective();
+    }
+    else
+    {
+        opt_ = std::make_shared<ob::PathLengthOptimizationObjective>(si_);
+    }
 }
 
 unsigned int QuotientSpace::counter_ = 0;
@@ -622,7 +641,6 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
             }
         }
     }
-    std::cout << "TYPE:" << type_ << std::endl;
     return type_;
 }
 

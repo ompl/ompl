@@ -45,6 +45,7 @@ void QuotientTopology::setup()
   sc.configurePlannerRange(maxDistance);
   goal = pdef_->getGoal().get();
 }
+
 void QuotientTopology::clear()
 {
   BaseT::clear();
@@ -88,6 +89,7 @@ void QuotientTopology::grow(){
   {
     totalNumberOfFeasibleSamples_++;
     Configuration *q_next = new Configuration(Q1, q_random->state);
+
     Vertex v_next = addConfiguration(q_next);
     addEdge(q_nearest->index, v_next);
 
@@ -96,20 +98,6 @@ void QuotientTopology::grow(){
       if(satisfied)
       {
         hasSolution_ = true;
-        // std::cout << std::string(80, '*') << std::endl;
-        // std::cout << getName() << " Found Solution " << std::endl;
-        // std::cout << std::string(80, '*') << std::endl;
-        // uint startComponent = disjointSets_.find_set(v_start_sparse);
-        // uint goalComponent = disjointSets_.find_set(v_goal_sparse);
-        // std::cout << "start component:" << startComponent << "| goalComponent:" << goalComponent << std::endl;
-        // EIterator it, end;
-        // std::cout << "start vertex:" << v_start_sparse << "| goal vertex:" << v_goal_sparse << std::endl;
-        // for(tie(it, end) = boost::edges(graphSparse_); it != end; ++it)
-        // {
-        //     const Vertex v1 = boost::source(*it, graphSparse_);
-        //     const Vertex v2 = boost::target(*it, graphSparse_);
-        //     std::cout << v1 << "-" << v2 << std::endl;
-        // }
       }
     }
   }

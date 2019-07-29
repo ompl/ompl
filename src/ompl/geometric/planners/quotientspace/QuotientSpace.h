@@ -92,6 +92,7 @@ namespace ompl
             /// \brief solve disabled (use MultiQuotient::solve)
             /// final prevents subclasses to override
             ob::PlannerStatus solve(const ob::PlannerTerminationCondition &ptc) override final;
+            virtual void setProblemDefinition(const ob::ProblemDefinitionPtr &pdef) override;
 
             virtual void grow() = 0;
             virtual bool getSolution(ob::PathPtr &solution) = 0;

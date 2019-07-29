@@ -87,7 +87,7 @@ bool isStateValid_R3(const ob::State *state)
     return isInCollision(R3->values); 
 }
 
-int main(int argc, const char **argv) 
+int main() 
 {
     //############################################################################
     //Step 1: Setup planning problem using several quotient-spaces
@@ -107,7 +107,7 @@ int main(int argc, const char **argv)
     ob::SpaceInformationPtr si_R3(std::make_shared<ob::SpaceInformation>(R3));
     si_R3->setStateValidityChecker(isStateValid_R3);
 
-    // Create vector of spaceinformationptr
+    // Create vector of spaceinformationptr (last one is original cspace)
     std::vector<ob::SpaceInformationPtr> si_vec;
     si_vec.push_back(si_R3);
     si_vec.push_back(si_SE3);
@@ -115,40 +115,24 @@ int main(int argc, const char **argv)
     // Define Planning Problem
     SE3State start_SE3(SE3);
     SE3State goal_SE3(SE3);
-
     start_SE3->setXYZ(0, 0, 0);
     start_SE3->rotation().setIdentity();
-
     goal_SE3->setXYZ(1, 1, 1);
     goal_SE3->rotation().setIdentity();
 
-    R3State start_R3(R3);
-    R3State goal_R3(R3);
-    start_R3[0] = start_R3[1] = start_R3[2] = 0;
-    goal_R3[0] = goal_R3[1] = goal_R3[2] = 1;
-
-    // Create vector of ProblemDefinitionPtr
-    std::vector<ob::ProblemDefinitionPtr> pdef_vec;
-    ob::ProblemDefinitionPtr pdef_SE3 =
+    ob::ProblemDefinitionPtr pdef =
             std::make_shared<ob::ProblemDefinition>(si_SE3);
-    pdef_SE3->setStartAndGoalStates(start_SE3, goal_SE3);
-    ob::ProblemDefinitionPtr pdef_R3 =
-            std::make_shared<ob::ProblemDefinition>(si_R3);
-    pdef_R3->setStartAndGoalStates(start_R3, goal_R3);
-
-    pdef_vec.push_back(pdef_R3);
-    pdef_vec.push_back(pdef_SE3);
+    pdef->setStartAndGoalStates(start_SE3, goal_SE3);
 
     //############################################################################
     //Step 2: Do path planning as usual but with a sequence of
     //spaceinformationptr
     //############################################################################
     typedef og::MultiQuotient<og::QRRT> MultiQuotient;
-
     auto planner = std::make_shared<MultiQuotient>(si_vec);
-    planner->setProblemDefinition(pdef_vec);
 
     // Planner can be used as any other OMPL algorithm
+    planner->setProblemDefinition(pdef);
     planner->setup();
 
     ob::PlannerStatus solved = planner->ob::Planner::solve(1.0);
@@ -158,11 +142,14 @@ int main(int argc, const char **argv)
         std::cout << std::string(80, '-') << std::endl;
         std::cout << "Configuration-Space Path (SE3):" << std::endl;
         std::cout << std::string(80, '-') << std::endl;
-        pdef_vec.back()->getSolutionPath()->print(std::cout);
+        pdef->getSolutionPath()->print(std::cout);
+
         std::cout << std::string(80, '-') << std::endl;
         std::cout << "Quotient-Space Path (R3):" << std::endl;
         std::cout << std::string(80, '-') << std::endl;
-        pdef_vec.front()->getSolutionPath()->print(std::cout);
+        const ob::ProblemDefinitionPtr pdefR3 = 
+          std::static_pointer_cast<MultiQuotient>(planner)->getProblemDefinition(0);
+        pdefR3->getSolutionPath()->print(std::cout);
 
         std::vector<int> nodes =
           std::static_pointer_cast<MultiQuotient>(planner)->getFeasibleNodes();

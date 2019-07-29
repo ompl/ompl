@@ -67,15 +67,7 @@ namespace ompl
 
             /// \brief Constructor taking a sequence of ob::SpaceInformationPtr
             ///  and computing the quotient-spaces for each pair in the sequence
-            MultiQuotient(std::vector<ob::SpaceInformationPtr> &si_vec, std::string type = "QuotientPlanner");
-            /** \brief Sequence of Problemdefinition, containing projected start and
-                goal configuration for each ob::SpaceInformationPtr
-                 Example usage:
-                std::static_pointer_cast<MultiQuotient<og::QRRT>>(planner)
-                          ->setProblemDefinition(pdef_vec); */
-
-            void setProblemDefinition(std::vector<ob::ProblemDefinitionPtr> &pdef_vec_);
-
+            MultiQuotient(std::vector<ob::SpaceInformationPtr> &siVec, std::string type = "QuotientPlanner");
             virtual ~MultiQuotient() override;
 
             /// Return annotated vertices (with information about QuotientSpace level)
@@ -84,7 +76,8 @@ namespace ompl
             ob::PlannerStatus solve(const ob::PlannerTerminationCondition &ptc) override;
             void setup() override;
             void clear() override;
-            void setProblemDefinition(const ob::ProblemDefinitionPtr &pdef) override;
+            virtual void setProblemDefinition(const ob::ProblemDefinitionPtr &pdef) override;
+            const ob::ProblemDefinitionPtr &getProblemDefinition(unsigned kQuotientSpace) const;
 
             /// Number of quotient-spaces
             int getLevels() const;
@@ -118,11 +111,6 @@ namespace ompl
 
             /// Each QuotientSpace has a unique ob::SpaceInformationPtr 
             std::vector<ob::SpaceInformationPtr> siVec_;
-
-            /// \brief Each QuotientSpace has a ProblemDefinition, which contains the
-            /// projected start and goal configurations. After planning each
-            /// ProblemDefinitionPtr also contains the solution path on each QuotientSpace.
-            std::vector<ob::ProblemDefinitionPtr> pdefVec_;
 
             /// Compare function for priority queue
             struct CmpQuotientSpacePtrs

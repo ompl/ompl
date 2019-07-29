@@ -53,6 +53,7 @@
 #include <fstream>
 
 const double edgeWidth = 0.1;
+const unsigned ndim = 2;
 
 // Only states near some edges of a hypercube are valid. The valid edges form a
 // narrow passage from (0,...,0) to (1,...,1). A state s is valid if there exists
@@ -101,7 +102,6 @@ ob::PlannerPtr GetQRRT(
 {
     // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     std::vector<ob::SpaceInformationPtr> si_vec;
-    std::vector<ob::ProblemDefinitionPtr> pdef_vec;
 
     for(unsigned k = 2; k < numLinks; k+=2)
     {
@@ -117,33 +117,22 @@ ob::PlannerPtr GetQRRT(
         siK->setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(siK, k));
         siK->setStateValidityCheckingResolution(0.001);
 
-        ob::ProblemDefinitionPtr pdefk = std::make_shared<ob::ProblemDefinition>(siK);
-        std::vector<double> startVecK(k, 0);
-        std::vector<double> goalVecK(k, 1);
-        ompl::base::ScopedState<> startk(spaceK), goalk(spaceK);
         spaceK->setup();
-        spaceK->copyFromReals(startk.get(), startVecK);
-        spaceK->copyFromReals(goalk.get(), goalVecK);
-        pdefk->setStartAndGoalStates(startk, goalk);
-
         si_vec.push_back(siK);
-        pdef_vec.push_back(pdefk);
     }
     OMPL_INFORM("Add Original Chain with %d links.", numLinks);
     si_vec.push_back(si);
-    pdef_vec.push_back(pdef);
 
     typedef og::MultiQuotient<og::QRRT> MultiQuotient;
     auto planner = std::make_shared<MultiQuotient>(si_vec);
-    planner->setProblemDefinition(pdef_vec);
+    planner->setProblemDefinition(pdef);
     std::string qName = "QuotientSpaceRRT["+std::to_string(si_vec.size())+"lvl]";
     planner->setName(qName);
     return planner;
 }
 
-int main(int argc, char **argv)
+int main()
 {
-    const unsigned ndim = 8;
 
     double range = edgeWidth * 0.5;
     auto space(std::make_shared<ompl::base::RealVectorStateSpace>(ndim));

@@ -1,6 +1,7 @@
 #include "QuotientGraphSparse.h"
 #include <ompl/geometric/planners/quotientspace/PlannerDataVertexAnnotated.h>
 #include <ompl/geometric/planners/quotientspace/QuotientSpace.h>
+#include <ompl/geometric/planners/quotientspace/MultiQuotient.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/util/Time.h>
@@ -12,24 +13,12 @@ using namespace ob;
 
 template <class T>
 MotionExplorer<T>::MotionExplorer(std::vector<ob::SpaceInformationPtr> &siVec, std::string type)
-  : ob::Planner(siVec.back(), type), siVec_(siVec)
+  : BaseT(siVec, type)
 {
-    T::resetCounter();
-    for (unsigned int k = 0; k < siVec_.size(); k++)
-    {
-        og::QuotientSpace *parent = nullptr;
-        if (k > 0)
-            parent = quotientSpaces_.back();
-
-        T *ss = new T(siVec_.at(k), parent);
-        quotientSpaces_.push_back(ss);
-        quotientSpaces_.back()->setLevel(k);
-    }
-    root = quotientSpaces_.front();
+    root = static_cast<og::QuotientGraphSparse*>(this->quotientSpaces_.front());
     current = root;
 
-    OMPL_DEVMSG1("Created hierarchy with %d leves.", siVec_.size());
-    std::cout << quotientSpaces_.size() << std::endl;
+    // OMPL_DEVMSG1("Created hierarchy with %d leaves.", siVec_.size());
 }
 
 template <class T>
@@ -41,50 +30,45 @@ template <class T>
 void MotionExplorer<T>::setup()
 {
     Planner::setup();
-    for (unsigned int k = 0; k < quotientSpaces_.size(); k++)
-    {
-        quotientSpaces_.at(k)->setup();
-    }
 }
 
 template <class T>
 void MotionExplorer<T>::clear()
 {
     Planner::clear();
-
-    for (unsigned int k = 0; k < quotientSpaces_.size(); k++)
-    {
-        quotientSpaces_.at(k)->clear();
-    }
-
-    pdef_->clearSolutionPaths();
     selectedPath_.clear();
+    root = nullptr;
+    current = nullptr;
 }
 
 template <class T>
 void MotionExplorer<T>::setSelectedPath( std::vector<int> selectedPath){
-  selectedPath_ = selectedPath;
-  for(uint k = 0; k < selectedPath.size(); k++){
-    //selected path implies path bias, which implies a sampling bias towards the
-    //selected path
-    quotientSpaces_.at(k)->selectedPath = selectedPath.at(k);
-  }
-  std::cout << "[SELECTION CHANGE] QuotientSpaces set to [";
-  for(uint k = 0; k < selectedPath.size(); k++){
-    int sk = selectedPath.at(k);
-    std::cout << sk << " ";
-  }
-  std::cout << "]" << std::endl;
+    selectedPath_ = selectedPath;
+    for(uint k = 0; k < selectedPath.size(); k++){
+      //selected path implies path bias, which implies a sampling bias towards the
+      //selected path
+      og::QuotientGraphSparse *qgraph = 
+        static_cast<og::QuotientGraphSparse*>(this->quotientSpaces_.at(k));
+          
+      qgraph->selectedPath = selectedPath.at(k);
+    }
+    std::cout << "[SELECTION CHANGE] QuotientSpaces set to [";
+    for(uint k = 0; k < selectedPath.size(); k++){
+      int sk = selectedPath.at(k);
+      std::cout << sk << " ";
+    }
+    std::cout << "]" << std::endl;
 }
 
 template <class T>
 ob::PlannerStatus MotionExplorer<T>::solve(const ob::PlannerTerminationCondition &ptc)
 {
   uint K = selectedPath_.size();
-  if(K>=quotientSpaces_.size()){
+  if(K>=this->quotientSpaces_.size()){
     K = K-1;
   }
-  og::QuotientGraphSparse *jQuotient = quotientSpaces_.at(K);
+  og::QuotientGraphSparse *jQuotient = 
+    static_cast<og::QuotientGraphSparse*>(this->quotientSpaces_.at(K));
   std::cout << *jQuotient << std::endl;
 
   uint ctr = 0;
@@ -107,44 +91,6 @@ ob::PlannerStatus MotionExplorer<T>::solve(const ob::PlannerTerminationCondition
 }
 
 template <class T>
-void MotionExplorer<T>::setProblemDefinition(const ob::ProblemDefinitionPtr &pdef)
-{
-    this->Planner::setProblemDefinition(pdef);
-
-    //Compute projection of qInit and qGoal onto QuotientSpaces
-    ob::Goal *goal = pdef_->getGoal().get();
-    ob::GoalState *goalRegion = dynamic_cast<base::GoalState *>(goal);
-    double epsilon = goalRegion->getThreshold();
-    assert(quotientSpaces_.size() == siVec_.size());
-
-    ob::State *sInit = pdef->getStartState(0);
-    ob::State *sGoal = goalRegion->getState();
-
-    OMPL_DEVMSG1("Projecting start and goal onto QuotientSpaces.");
-
-    quotientSpaces_.back()->setProblemDefinition(pdef);
-    for (unsigned int k = siVec_.size()-1; k > 0 ; k--)
-    {
-        og::QuotientSpace *quotientParent = quotientSpaces_.at(k);
-        og::QuotientSpace *quotientChild = quotientSpaces_.at(k-1);
-        ob::SpaceInformationPtr sik = quotientChild->getSpaceInformation();
-        ob::ProblemDefinitionPtr pdefk = std::make_shared<base::ProblemDefinition>(sik);
-
-        ob::State *sInitK = sik->allocState();
-        ob::State *sGoalK = sik->allocState();
-
-        quotientParent->projectQ0Subspace(sInit, sInitK);
-        quotientParent->projectQ0Subspace(sGoal, sGoalK);
-
-        pdefk->setStartAndGoalStates(sInitK, sGoalK, epsilon);
-        quotientChild->setProblemDefinition(pdefk);
-
-        sInit = sInitK;
-        sGoal = sGoalK;
-    }
-}
-
-template <class T>
 void MotionExplorer<T>::getPlannerData(ob::PlannerData &data) const
 {
     unsigned int Nvertices = data.numVertices();
@@ -155,12 +101,12 @@ void MotionExplorer<T>::getPlannerData(ob::PlannerData &data) const
         exit(0);
     }
 
-    unsigned int K = quotientSpaces_.size();
+    unsigned int K = this->quotientSpaces_.size();
     std::vector<uint> countVerticesPerQuotientSpace;
 
     for (unsigned int k = 0; k < K; k++)
     {
-        og::QuotientSpace *Qk = quotientSpaces_.at(k);
+        og::QuotientSpace *Qk = this->quotientSpaces_.at(k);
         static_cast<QuotientGraphSparse*>(Qk)->enumerateAllPaths();
         Qk->getPlannerData(data);
         // label all new vertices
@@ -175,9 +121,9 @@ void MotionExplorer<T>::getPlannerData(ob::PlannerData &data) const
             ob::State *s_lift = Qk->getSpaceInformation()->cloneState(v.getState());
             v.setQuotientState(s_lift);
 
-            for (unsigned int m = k + 1; m < quotientSpaces_.size(); m++)
+            for (unsigned int m = k + 1; m < this->quotientSpaces_.size(); m++)
             {
-                og::QuotientSpace *Qm = quotientSpaces_.at(m);
+                og::QuotientSpace *Qm = this->quotientSpaces_.at(m);
 
                 if (Qm->getX1() != nullptr)
                 {

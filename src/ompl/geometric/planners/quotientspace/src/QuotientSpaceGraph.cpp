@@ -68,8 +68,13 @@ QuotientSpaceGraph::QuotientSpaceGraph(const ob::SpaceInformationPtr &si, Quotie
     }
 }
 
+QuotientSpaceGraph::~QuotientSpaceGraph()
+{
+}
+
 void QuotientSpaceGraph::setup()
 {
+    BaseT::setup();
     if (!nearestDatastructure_)
     {
         nearestDatastructure_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
@@ -80,6 +85,7 @@ void QuotientSpaceGraph::setup()
     if (pdef_)
     {
         BaseT::setup();
+        std::cout << "SET OPT_" << getName() << std::endl;
         if (pdef_->hasOptimizationObjective())
         {
             opt_ = pdef_->getOptimizationObjective();
@@ -96,11 +102,18 @@ void QuotientSpaceGraph::setup()
         setup_ = false;
     }
 }
-
-QuotientSpaceGraph::~QuotientSpaceGraph()
+void QuotientSpaceGraph::clear()
 {
-    clear();
+    BaseT::clear();
+
+    clearVertices();
+    clearQuery();
+    graphLength_ = 0;
+    bestCost_ = ob::Cost(ob::dInf);
+    setup_ = false;
 }
+
+
 QuotientSpaceGraph::Configuration::Configuration(const ob::SpaceInformationPtr &si) : state(si->allocState())
 {
 }
@@ -134,17 +147,6 @@ void QuotientSpaceGraph::clearVertices()
         nearestDatastructure_->clear();
     }
     graph_.clear();
-}
-
-void QuotientSpaceGraph::clear()
-{
-    BaseT::clear();
-
-    clearVertices();
-    clearQuery();
-    graphLength_ = 0;
-    bestCost_ = ob::Cost(ob::dInf);
-    setup_ = false;
 }
 
 void QuotientSpaceGraph::clearQuery()
