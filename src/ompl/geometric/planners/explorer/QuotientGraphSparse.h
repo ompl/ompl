@@ -65,7 +65,7 @@ namespace ompl
 
     protected:
         double sparseDelta_{0.};
-        double sparseDeltaFraction_{0.3};
+        double sparseDeltaFraction_{0.2};
 
 
         void setSparseDeltaFraction(double D)
@@ -79,7 +79,7 @@ namespace ompl
         uint numberVertices{0};
 
         unsigned numberOfFailedAddingPathCalls{0};
-        unsigned Nhead{5}; //head -nX (to display only X top paths)
+        unsigned Nhead{7}; //head -nX (to display only X top paths)
         std::vector<og::PathGeometric> pathStack_;
         std::vector<std::vector<ob::State*>> pathStackHead_;
         void PrintPathStack();

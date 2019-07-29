@@ -50,9 +50,6 @@ void QuotientGraphSparse::setup()
 
   double maxExt = Q1->getMaximumExtent();
   sparseDelta_ = sparseDeltaFraction_ * maxExt;
-  std::cout << "Extend:" << maxExt << std::endl;
-  std::cout << "Delta:" << sparseDelta_ << std::endl;
-
 }
 
 void QuotientGraphSparse::clear()
@@ -129,42 +126,41 @@ void QuotientGraphSparse::Init()
 
 QuotientGraphSparse::Vertex QuotientGraphSparse::addConfiguration(Configuration *q)
 {
-  Vertex v = BaseT::addConfiguration(q);
+    Vertex v = BaseT::addConfiguration(q);
 
-  findGraphNeighbors(q, graphNeighborhood, visibleNeighborhood);
+    findGraphNeighbors(q, graphNeighborhood, visibleNeighborhood);
 
-  //Possible reasons for adding a node to sparse roadmap
-  //(1) VISIBLITY: Add Guard (when no one is visible) [Simeon 00]
-  //(2) CONNECTIVITY: Add Connectivity (when two disconnected components are visible) [Simeon 00]
-  //(3) INTERFACE: Add Interface (when a connected components get another useful cycle
-  //[Jaillet 09, Dobson 14, Nieuwenhausen 04]
-  //(4) OPTIMALITY: Optimality based [Dobson 14]
+    //Possible reasons for adding a node to sparse roadmap
+    //(1) VISIBLITY: Add Guard (when no one is visible) [Simeon 00]
+    //(2) CONNECTIVITY: Add Connectivity (when two disconnected components are visible) [Simeon 00]
+    //(3) INTERFACE: Add Interface (when a connected components get another useful cycle
+    //[Jaillet 09, Dobson 14, Nieuwenhausen 04]
+    //(4) OPTIMALITY: Optimality based [Dobson 14]
 
-  if(visibleNeighborhood.empty())
-  {
-    addConfigurationSparse(q);
-  }else{
-    if(!checkAddConnectivity(q, visibleNeighborhood)){
-      if (!checkAddInterface(q, graphNeighborhood, visibleNeighborhood)){
+    if(visibleNeighborhood.empty())
+    {
+      addConfigurationSparse(q);
+    }else{
+      if(!checkAddConnectivity(q, visibleNeighborhood)){
+        if (!checkAddInterface(q, graphNeighborhood, visibleNeighborhood)){
+        }
       }
     }
-  }
 
-  return v;
+    return v;
 }
 
 void QuotientGraphSparse::uniteComponentsSparse(Vertex m1, Vertex m2)
 {
-  disjointSetsSparse_.union_set(m1, m2);
+    disjointSetsSparse_.union_set(m1, m2);
 }
 bool QuotientGraphSparse::sameComponentSparse(Vertex m1, Vertex m2)
 {
-  return boost::same_component(m1, m2, disjointSetsSparse_);
+    return boost::same_component(m1, m2, disjointSetsSparse_);
 }
 
 QuotientGraphSparse::Vertex QuotientGraphSparse::addConfigurationSparse(Configuration *q)
 {
-  std::cout << "Add Config Sparse" << std::endl;
     Configuration *ql = new Configuration(Q1, q->state);
     const Vertex vl = add_vertex(ql, graphSparse_);
     nearestSparse_->add(ql);

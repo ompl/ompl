@@ -31,6 +31,9 @@ namespace ompl
       ob::SpaceInformationPtr si_;
       ob::State *lastValidState;
 
+      ob::StateSpacePtr space;
+      ob::RealVectorStateSpace *R2;
+
     private:
       std::vector<ob::State*> StatesFromVector( 
           const std::vector<double> &sx, 
