@@ -302,6 +302,9 @@ namespace ompl
             {
                 if (!isForwardSearchStartedOnBatch_)
                 {
+                    // Remember that we've started the forward search on this batch.
+                    isForwardSearchStartedOnBatch_ = true;
+
                     // If no start vertex has finite cost to come from the goal, there is no need to start the
                     // forward search.
                     for (const auto &start : graph_.getStartVertices())
@@ -314,9 +317,6 @@ namespace ompl
                                 start->setCostToComeFromStart(optimizationObjective_->identityCost());
                                 insertOutgoingEdges(start);
                             }
-
-                            // Remember that we've started the forward search on this batch.
-                            isForwardSearchStartedOnBatch_ = true;
 
                             // Update the forward search id.
                             ++(*forwardSearchId_);
