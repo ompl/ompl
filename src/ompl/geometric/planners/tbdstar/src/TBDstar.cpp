@@ -605,6 +605,7 @@ namespace ompl
                     {
                         backwardQueue_.remove(backwardQueuePointer);
                     }
+                    vertex->resetBackwardQueuePointer();
                 }
             }
         }
