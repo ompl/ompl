@@ -357,6 +357,7 @@ namespace ompl
             void Vertex::cacheNeighbors(const std::vector<std::shared_ptr<Vertex>> &neighbors) const
             {
                 neighbors_ = neighbors;
+                neighborBatchId_ = *batchId_.lock();
             }
 
             const std::vector<std::shared_ptr<Vertex>> &Vertex::getNeighbors() const
