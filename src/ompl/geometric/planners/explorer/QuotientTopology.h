@@ -39,9 +39,6 @@ namespace ompl
         double goalBias{.05};
         double epsilon{.0};
 
-        ob::Goal *goal;
-
-
     };
 
   };

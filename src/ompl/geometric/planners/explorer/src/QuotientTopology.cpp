@@ -43,7 +43,6 @@ void QuotientTopology::setup()
   BaseT::setup();
   ompl::tools::SelfConfig sc(Q1, getName());
   sc.configurePlannerRange(maxDistance);
-  goal = pdef_->getGoal().get();
 }
 
 void QuotientTopology::clear()

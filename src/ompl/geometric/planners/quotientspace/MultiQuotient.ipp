@@ -112,7 +112,7 @@ MultiQuotient<T>::~MultiQuotient()
 template <class T>
 void MultiQuotient<T>::setup()
 {
-    Planner::setup();
+    BaseT::setup();
     for (unsigned int k = 0; k < stopAtLevel_; k++)
     {
         quotientSpaces_.at(k)->setup();

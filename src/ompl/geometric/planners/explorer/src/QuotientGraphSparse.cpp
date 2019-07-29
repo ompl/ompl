@@ -48,11 +48,10 @@ void QuotientGraphSparse::setup()
                              });
   }
 
-   //Max 0.2, otherwise the circle would not work?
-  // assert(sparseDeltaFraction_ <= 0.2);
-
-  double maxExt = si_->getMaximumExtent();
+  double maxExt = Q1->getMaximumExtent();
   sparseDelta_ = sparseDeltaFraction_ * maxExt;
+  std::cout << "Extend:" << maxExt << std::endl;
+  std::cout << "Delta:" << sparseDelta_ << std::endl;
 
 }
 
@@ -114,6 +113,7 @@ void QuotientGraphSparse::Init()
         //Make sure q_goal is added, even if visible from q_start
           addConfigurationSparse(qGoal_);
       }
+      assert(boost::num_vertices(graphSparse_)==2);
       v_goal_sparse = graphSparse_[1]->index;
       graphSparse_[v_goal_sparse]->isGoal = true;
     }
@@ -164,6 +164,7 @@ bool QuotientGraphSparse::sameComponentSparse(Vertex m1, Vertex m2)
 
 QuotientGraphSparse::Vertex QuotientGraphSparse::addConfigurationSparse(Configuration *q)
 {
+  std::cout << "Add Config Sparse" << std::endl;
     Configuration *ql = new Configuration(Q1, q->state);
     const Vertex vl = add_vertex(ql, graphSparse_);
     nearestSparse_->add(ql);
@@ -689,7 +690,9 @@ std::vector<int> QuotientGraphSparse::GetSelectedPathIndex() const
 
 void QuotientGraphSparse::getPlannerData(ob::PlannerData &data) const
 {
+  OMPL_INFORM("getPlannerData");
   if(hasSolution_){
+    std::cout << "Has " << pathStackHead_.size() << " Solutions." << std::endl;
       std::vector<int> idxPathI;
       for(uint i = 0; i < pathStackHead_.size(); i++){
           const std::vector<ob::State*> states = pathStackHead_.at(i);
@@ -722,6 +725,7 @@ void QuotientGraphSparse::getPlannerData(ob::PlannerData &data) const
       getPlannerDataRoadmap(data, idxPathI);
   }else{
 
+    std::cout << "roadmap: " << boost::num_vertices(graphSparse_) << std::endl;
     if(boost::num_vertices(graphSparse_) > 0){
       std::vector<int> CurPath = GetSelectedPathIndex();
       getPlannerDataRoadmap(data, CurPath);

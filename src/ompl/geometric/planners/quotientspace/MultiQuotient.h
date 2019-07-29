@@ -60,6 +60,7 @@ namespace ompl
         template <class T>
         class MultiQuotient : public ob::Planner
         {
+            typedef ob::Planner BaseT;
             static_assert(std::is_base_of<og::QuotientSpace, T>::value, "Template must inherit from Quotient");
 
         public:

@@ -22,25 +22,18 @@ namespace ompl
         public:
             const bool DEBUG{false};
 
-            MotionExplorer(std::vector<ob::SpaceInformationPtr> &si_vec, 
+            MotionExplorer(std::vector<ob::SpaceInformationPtr> &siVec, 
                 std::string type = "MotionExplorer");
             virtual ~MotionExplorer() override;
 
             void getPlannerData(ob::PlannerData &data) const override;
-
-            //Write different PTC (for reaching topological phase shift,
-            //etcetera)
             ob::PlannerStatus solve(const ob::PlannerTerminationCondition &ptc) override;
-
             void setup() override;
             void clear() override;
             void setSelectedPath( std::vector<int> selectedPath);
 
         protected:
             double pathBias{0.8}; //[0,1]
-
-            /// Sequence of quotient-spaces
-            // std::vector<og::QuotientGraphSparse *> quotientSpaces_;
 
             og::QuotientGraphSparse *root{nullptr};
             og::QuotientGraphSparse *current{nullptr};

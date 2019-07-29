@@ -29,13 +29,13 @@ MotionExplorer<T>::~MotionExplorer()
 template <class T>
 void MotionExplorer<T>::setup()
 {
-    Planner::setup();
+    BaseT::setup();
 }
 
 template <class T>
 void MotionExplorer<T>::clear()
 {
-    Planner::clear();
+    BaseT::clear();
     selectedPath_.clear();
     root = nullptr;
     current = nullptr;
@@ -108,7 +108,8 @@ void MotionExplorer<T>::getPlannerData(ob::PlannerData &data) const
     {
         og::QuotientSpace *Qk = this->quotientSpaces_.at(k);
         static_cast<QuotientGraphSparse*>(Qk)->enumerateAllPaths();
-        Qk->getPlannerData(data);
+        static_cast<QuotientGraphSparse*>(Qk)->getPlannerData(data);
+        // Qk->getPlannerData(data);
         // label all new vertices
         unsigned int ctr = 0;
 
