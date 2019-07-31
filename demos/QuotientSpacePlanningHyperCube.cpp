@@ -37,23 +37,22 @@
 
 #include "QuotientSpacePlanningCommon.h"
 #include <ompl/base/spaces/RealVectorStateSpace.h>
-#include <ompl/geometric/planners/rrt/RRT.h>
-#include <ompl/geometric/planners/kpiece/KPIECE1.h>
-#include <ompl/geometric/planners/est/EST.h>
-#include <ompl/geometric/planners/prm/PRM.h>
-#include <ompl/geometric/planners/stride/STRIDE.h>
-#include <ompl/tools/benchmark/Benchmark.h>
-#include <ompl/util/String.h>
 
 #include <ompl/geometric/planners/quotientspace/MultiQuotient.h>
 #include <ompl/geometric/planners/quotientspace/QRRT.h>
+
+#include <ompl/tools/benchmark/Benchmark.h>
+#include <ompl/util/String.h>
 
 #include <boost/math/constants/constants.hpp>
 #include <boost/format.hpp>
 #include <fstream>
 
 const double edgeWidth = 0.1;
-const unsigned ndim = 2;
+const unsigned ndim = 10;
+const double runtime_limit = 10;
+const double memory_limit = 4096;
+const int run_count = 10;
 
 // Only states near some edges of a hypercube are valid. The valid edges form a
 // narrow passage from (0,...,0) to (1,...,1). A state s is valid if there exists
@@ -152,17 +151,11 @@ int main()
     }
     ss.setStartAndGoalStates(start, goal);
 
-    double runtime_limit = 10, memory_limit = 4096;
-    int run_count = 5;
     ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count);
     ompl::tools::Benchmark b(ss, "HyperCube");
     b.addExperimentParameter("num_dims", "INTEGER", std::to_string(ndim));
 
-    addPlanner(b, std::make_shared<ompl::geometric::STRIDE>(ss.getSpaceInformation()), range);
-    addPlanner(b, std::make_shared<ompl::geometric::EST>(ss.getSpaceInformation()), range);
-    addPlanner(b, std::make_shared<ompl::geometric::KPIECE1>(ss.getSpaceInformation()), range);
-    addPlanner(b, std::make_shared<ompl::geometric::RRT>(ss.getSpaceInformation()), range);
-    addPlanner(b, std::make_shared<ompl::geometric::PRM>(ss.getSpaceInformation()), range);
+    ob::SpaceInformationPtr si = ss.getSpaceInformation();
 
     ob::PlannerPtr quotientSpacePlanner = 
       GetQRRT(ss.getSpaceInformation(), ss.getProblemDefinition(), ndim);
@@ -175,4 +168,3 @@ int main()
 
     return 0;
 }
-

@@ -84,8 +84,6 @@ void QuotientSpaceGraph::setup()
 
     if (pdef_)
     {
-        BaseT::setup();
-        std::cout << "SET OPT_" << getName() << std::endl;
         if (pdef_->hasOptimizationObjective())
         {
             opt_ = pdef_->getOptimizationObjective();

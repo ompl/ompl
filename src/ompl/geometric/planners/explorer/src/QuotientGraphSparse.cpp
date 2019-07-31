@@ -688,7 +688,7 @@ void QuotientGraphSparse::getPlannerData(ob::PlannerData &data) const
 {
   OMPL_INFORM("getPlannerData");
   if(hasSolution_){
-    std::cout << "Has " << pathStackHead_.size() << " Solutions." << std::endl;
+      OMPL_DEVMSG1("%s has %d solutions.", getName(), pathStackHead_.size());
       std::vector<int> idxPathI;
       for(uint i = 0; i < pathStackHead_.size(); i++){
           const std::vector<ob::State*> states = pathStackHead_.at(i);

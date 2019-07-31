@@ -63,31 +63,35 @@ void MotionExplorer<T>::setSelectedPath( std::vector<int> selectedPath){
 template <class T>
 ob::PlannerStatus MotionExplorer<T>::solve(const ob::PlannerTerminationCondition &ptc)
 {
-  uint K = selectedPath_.size();
-  if(K>=this->quotientSpaces_.size()){
-    K = K-1;
-  }
-  og::QuotientGraphSparse *jQuotient = 
-    static_cast<og::QuotientGraphSparse*>(this->quotientSpaces_.at(K));
-  std::cout << *jQuotient << std::endl;
+    uint K = selectedPath_.size();
+    if(K>=this->quotientSpaces_.size()){
+        K = K-1;
+    }
+    while(K>0 && !this->quotientSpaces_.at(K-1)->hasSolution())
+    {
+        K = K-1;
+    }
+    og::QuotientGraphSparse *jQuotient = 
+      static_cast<og::QuotientGraphSparse*>(this->quotientSpaces_.at(K));
+    std::cout << *jQuotient << std::endl;
 
-  uint ctr = 0;
-  uint M = jQuotient->getNumberOfPaths();
-  uint Mg = M;
+    uint ctr = 0;
+    uint M = jQuotient->getNumberOfPaths();
+    uint Mg = M;
 
-  while (!ptc())
-  {
-    // std::cout << "Growing QuotientSpace " << jQuotient->getName() << std::endl;
-    jQuotient->grow();
-    ctr++;
-    Mg = jQuotient->getNumberOfPaths();
-    //stop at topological phase shift
-    if(Mg > M) return ob::PlannerStatus::APPROXIMATE_SOLUTION;
-  }
-  std::cout << "Grow QuotientSpace " << jQuotient->getName() << " for " << ctr << " iters." << std::endl;
-  std::cout << "Changed #paths from " << M << " to " << Mg << std::endl;
+    while (!ptc())
+    {
+        // std::cout << "Growing QuotientSpace " << jQuotient->getName() << std::endl;
+        jQuotient->grow();
+        ctr++;
+        Mg = jQuotient->getNumberOfPaths();
+        //stop at topological phase shift
+        if(Mg > M) return ob::PlannerStatus::APPROXIMATE_SOLUTION;
+    }
+    std::cout << "Grow QuotientSpace " << jQuotient->getName() << " for " << ctr << " iters." << std::endl;
+    std::cout << "Changed #paths from " << M << " to " << Mg << std::endl;
 
-  return ob::PlannerStatus::TIMEOUT;
+    return ob::PlannerStatus::TIMEOUT;
 }
 
 template <class T>

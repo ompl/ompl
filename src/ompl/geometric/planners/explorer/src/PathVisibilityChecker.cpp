@@ -325,14 +325,12 @@ bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State*> &s1, std::vect
 
   ss.setStateValidityChecker( std::make_shared<pathPathValidityChecker>(si_, si_local,  s1, s2) );
   ob::PlannerPtr linear_homotopy_planner = std::make_shared<og::RRTConnect>(si_local);
-  // static_pointer_cast<og::RRTConnect>(linear_homotopy_planner)->clear();
 
   ss.setStartAndGoalStates(start, goal, epsilon_goalregion);
   ss.setPlanner(linear_homotopy_planner);
   ss.setup();
 
-  ////set objective to infinite path to just return first solution
-  ob::ProblemDefinitionPtr pdef = ss.getProblemDefinition();
+  // ob::ProblemDefinitionPtr pdef = ss.getProblemDefinition();
   ob::PlannerTerminationCondition ptc( ob::timedPlannerTerminationCondition(max__planning_time_path_path) );
 
   ss.solve(ptc);
