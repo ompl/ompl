@@ -161,6 +161,6 @@ int main()
     b.benchmark(request);
     b.saveResultsToFile(boost::str(boost::format("kinematic_%i.log") % numLinks).c_str());
 
-    PrintBenchmarkResults(b);
+    printBenchmarkResults(b);
     return 0;
 }

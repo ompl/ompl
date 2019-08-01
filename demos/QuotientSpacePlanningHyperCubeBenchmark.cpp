@@ -55,7 +55,7 @@ int numberPlanners = 0;
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
 #include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
 #include <ompl/geometric/planners/pdst/PDST.h>
-// #include <ompl/geometric/planners/prm/LazyPRM.h> //segfault
+// #include <ompl/geometric/planners/prm/LazyPRM.h> //segfault?
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
@@ -83,6 +83,8 @@ int numberPlanners = 0;
 #include <ompl/util/String.h>
 
 #include <boost/math/constants/constants.hpp>
+#include <boost/range/irange.hpp>
+#include <boost/range/algorithm_ext/push_back.hpp>
 #include <boost/format.hpp>
 #include <fstream>
 
@@ -93,8 +95,9 @@ int numberPlanners = 0;
 class HyperCubeValidityChecker : public ompl::base::StateValidityChecker
 {
 public:
-    HyperCubeValidityChecker(const ompl::base::SpaceInformationPtr &si, int nDim) : ompl::base::StateValidityChecker(si), nDim_(nDim)
+    HyperCubeValidityChecker(const ompl::base::SpaceInformationPtr &si, int dimension) : ompl::base::StateValidityChecker(si), dimension_(dimension)
     {
+        si->setStateValidityCheckingResolution(0.001);
     }
 
     bool isValid(const ompl::base::State *state) const override
@@ -103,7 +106,7 @@ public:
             = static_cast<const ompl::base::RealVectorStateSpace::StateType*>(state);
         bool foundMaxDim = false;
 
-        for (int i = nDim_ - 1; i >= 0; i--)
+        for (int i = dimension_ - 1; i >= 0; i--)
             if (!foundMaxDim)
             {
                 if ((*s)[i] > edgeWidth)
@@ -114,9 +117,49 @@ public:
         return true;
     }
 protected:
-    int nDim_;
+    int dimension_;
 };
 
+// Note: Number of all simplifications is
+// unsigned numberSimplifications = std::pow(2, curDim - 1);
+// But here we will only create three simplifications, the trivial one, the
+// discrete one and a two-step simplifications, which we found worked well in
+// this experiment. You can experiment with finding better simplifications.
+// std::cout << "dimension: " << curDim << " simplifications:" << numberSimplifications << std::endl;
+
+std::vector<std::vector<int>> getHypercubeAdmissibleProjections(int curDim)
+{
+    std::vector<std::vector<int>> projections;
+
+    //trivial: just configuration space
+    //discrete: use all admissible projections
+    std::vector<int> trivial{curDim};
+    std::vector<int> discrete;
+    boost::push_back(discrete, boost::irange(2, curDim+1));
+
+    std::vector<int> twoStep;
+    boost::push_back(twoStep, boost::irange(2, curDim+1, 2));
+    if(twoStep.back() != curDim) twoStep.push_back(curDim);
+
+    projections.push_back(trivial);
+    projections.push_back(discrete);
+    projections.push_back(twoStep);
+    auto last = std::unique(projections.begin(), projections.end());
+    projections.erase(last, projections.end()); 
+
+    // std::cout << "Projections for dim " << curDim << std::endl;
+    // for(uint k = 0; k < projections.size(); k++){
+    //     std::vector<int> pk = projections.at(k);
+    //     std::cout << k << ": ";
+    //     for(uint j = 0; j < pk.size(); j++){
+    //       std::cout << pk.at(j) << (j<pk.size()-1?",":"");
+    //     }
+    //     std::cout << std::endl;
+    // }
+
+    return projections;
+
+}
 
 void addPlanner(ompl::tools::Benchmark& benchmark, const ompl::base::PlannerPtr& planner, double range)
 {
@@ -128,37 +171,42 @@ void addPlanner(ompl::tools::Benchmark& benchmark, const ompl::base::PlannerPtr&
 }
 
 ob::PlannerPtr GetQRRT(
-    ob::SpaceInformationPtr si, 
-    ob::ProblemDefinitionPtr pdef, 
-    unsigned numLinks, unsigned stepSize = 1)
+    std::vector<int> sequenceLinks, 
+    ob::SpaceInformationPtr si)
 {
     // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     std::vector<ob::SpaceInformationPtr> si_vec;
 
-    for(unsigned k = 2; k < numLinks; k+=stepSize)
+    for(unsigned k = 0; k < sequenceLinks.size()-1; k++)
     {
-        OMPL_INFORM("Create QuotientSpace Chain with %d links.", k);
+        int links = sequenceLinks.at(k);
+        assert(links<maximalDimension);
 
-        auto spaceK(std::make_shared<ompl::base::RealVectorStateSpace>(k));
-        ompl::base::RealVectorBounds bounds(k);
+        auto spaceK(std::make_shared<ompl::base::RealVectorStateSpace>(links));
+        ompl::base::RealVectorBounds bounds(links);
         bounds.setLow(0.);
         bounds.setHigh(1.);
         spaceK->setBounds(bounds);
 
         auto siK = std::make_shared<ob::SpaceInformation>(spaceK);
-        siK->setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(siK, k));
-        siK->setStateValidityCheckingResolution(0.001);
+        siK->setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(siK, links));
 
         spaceK->setup();
         si_vec.push_back(siK);
     }
-    OMPL_INFORM("Add Original Chain with %d links.", numLinks);
     si_vec.push_back(si);
 
     typedef og::MultiQuotient<og::QRRT> MultiQuotient;
     auto planner = std::make_shared<MultiQuotient>(si_vec);
-    planner->setProblemDefinition(pdef);
-    std::string qName = "QuotientSpaceRRT["+std::to_string(si_vec.size())+"lvl]";
+    std::string qName = "QuotientSpaceRRT[";
+    for(unsigned k = 0; k < sequenceLinks.size()-1; k++)
+    {
+        int links = sequenceLinks.at(k);
+        qName+=std::to_string(links)+",";
+    }
+    qName+=std::to_string(si->getStateDimension());
+    qName += "]";
+    std::cout << qName << std::endl;
     planner->setName(qName);
     return planner;
 }
@@ -166,17 +214,20 @@ ob::PlannerPtr GetQRRT(
 int main()
 {
     for(uint curDim = 2; curDim <= maximalDimension; curDim++){
+        numberPlanners = 0;
         double range = edgeWidth * 0.5;
         auto space(std::make_shared<ompl::base::RealVectorStateSpace>(curDim));
         ompl::base::RealVectorBounds bounds(curDim);
         ompl::geometric::SimpleSetup ss(space);
+        ob::SpaceInformationPtr si = ss.getSpaceInformation();
+        ob::ProblemDefinitionPtr pdef = ss.getProblemDefinition();
         ompl::base::ScopedState<> start(space), goal(space);
 
         bounds.setLow(0.);
         bounds.setHigh(1.);
         space->setBounds(bounds);
-        ss.setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(ss.getSpaceInformation(), curDim));
-        ss.getSpaceInformation()->setStateValidityCheckingResolution(0.001);
+        ss.setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(si, curDim));
+        si->setStateValidityCheckingResolution(0.001);
         for(unsigned int i = 0; i < curDim; ++i)
         {
             start[i] = 0.;
@@ -188,9 +239,6 @@ int main()
         ompl::tools::Benchmark b(ss, "HyperCube");
         b.addExperimentParameter("num_dims", "INTEGER", std::to_string(curDim));
 
-        ob::SpaceInformationPtr si = ss.getSpaceInformation();
-
-        //Note: 30 Planner + QRRT
         addPlanner(b, std::make_shared<og::BITstar>(si), range);
         addPlanner(b, std::make_shared<og::EST>(si), range);
         addPlanner(b, std::make_shared<og::BiEST>(si), range);
@@ -221,43 +269,20 @@ int main()
         addPlanner(b, std::make_shared<og::SST>(si), range);
         addPlanner(b, std::make_shared<og::STRIDE>(si), range);
 
-        ob::PlannerPtr quotientSpacePlanner1 = 
-          GetQRRT(ss.getSpaceInformation(), ss.getProblemDefinition(), curDim, 1);
-        ob::PlannerPtr quotientSpacePlanner2 = 
-          GetQRRT(ss.getSpaceInformation(), ss.getProblemDefinition(), curDim, 2);
-        ob::PlannerPtr quotientSpacePlanner3 = 
-          GetQRRT(ss.getSpaceInformation(), ss.getProblemDefinition(), curDim, 2);
 
-        addPlanner(b, quotientSpacePlanner1, range);
-        addPlanner(b, quotientSpacePlanner2, range);
-        addPlanner(b, quotientSpacePlanner3, range);
+        std::vector<std::vector<int>> admissibleProjections = getHypercubeAdmissibleProjections(curDim);
+        for(uint k = 0; k < admissibleProjections.size(); k++){
+          std::vector<int> proj = admissibleProjections.at(k);
+          ob::PlannerPtr quotientSpacePlannerK = GetQRRT(proj, si);
+          addPlanner(b, quotientSpacePlannerK, range);
+        }
 
-				//Estimated Time to Completion
-				std::cout << std::string(80, '-') << std::endl;
-				double worst_case_time_estimate_in_seconds = numberPlanners*run_count*runtime_limit;
-				double worst_case_time_estimate_in_minutes = worst_case_time_estimate_in_seconds/60.0;
-				double worst_case_time_estimate_in_hours = worst_case_time_estimate_in_minutes/60.0;
-				std::cout << "Number of Planners           : " << numberPlanners << std::endl;
-				std::cout << "Number of Runs Per Planner   : " << run_count << std::endl;
-				std::cout << "Time Per Run (s)             : " << runtime_limit << std::endl;
-				std::cout << "Worst-case time requirement  : ";
-
-				if(worst_case_time_estimate_in_hours < 1){
-					if(worst_case_time_estimate_in_minutes < 1){
-						std::cout << worst_case_time_estimate_in_seconds << "s" << std::endl;
-					}else{
-						std::cout << worst_case_time_estimate_in_minutes << "m" << std::endl;
-					}
-				}else{
-					std::cout << worst_case_time_estimate_in_hours << "h" << std::endl;
-				}
-				std::cout << std::string(80, '-') << std::endl;
-
+        printEstimatedTimeToCompletion(numberPlanners, run_count, runtime_limit);
 
         b.benchmark(request);
         b.saveResultsToFile(boost::str(boost::format("hypercube_%i.log") % curDim).c_str());
 
-        PrintBenchmarkResults(b);
+        printBenchmarkResults(b);
 
     }
     return 0;

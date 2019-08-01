@@ -42,7 +42,7 @@ namespace ot = ompl::tools;
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-void PrintBenchmarkResults(const ot::Benchmark &b)
+void printBenchmarkResults(const ot::Benchmark &b)
 {
     ot::Benchmark::CompleteExperiment experiment = b.getRecordedExperimentData();
 
@@ -85,6 +85,31 @@ void PrintBenchmarkResults(const ot::Benchmark &b)
           << "> (" <<  p.second.first << ")" 
           << (ctr<2?" <-- Winner":"")<< std::endl;
         ctr++;
+    }
+    std::cout << std::string(80, '-') << std::endl;
+}
+void printEstimatedTimeToCompletion(unsigned numberPlanners, unsigned run_count, unsigned runtime_limit)
+{
+    std::cout << std::string(80, '-') << std::endl;
+    double worst_case_time_estimate_in_seconds = numberPlanners*run_count*runtime_limit;
+    double worst_case_time_estimate_in_minutes = worst_case_time_estimate_in_seconds/60.0;
+    double worst_case_time_estimate_in_hours = worst_case_time_estimate_in_minutes/60.0;
+    std::cout << "Number of Planners           : " << numberPlanners << std::endl;
+    std::cout << "Number of Runs Per Planner   : " << run_count << std::endl;
+    std::cout << "Time Per Run (s)             : " << runtime_limit << std::endl;
+    std::cout << "Worst-case time requirement  : ";
+
+    if(worst_case_time_estimate_in_hours < 1)
+    {
+        if(worst_case_time_estimate_in_minutes < 1)
+        {
+            std::cout << worst_case_time_estimate_in_seconds << "s" << std::endl;
+        }else{
+            std::cout << worst_case_time_estimate_in_minutes << "m" << std::endl;
+        }
+    }else
+    {
+        std::cout << worst_case_time_estimate_in_hours << "h" << std::endl;
     }
     std::cout << std::string(80, '-') << std::endl;
 }

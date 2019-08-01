@@ -164,7 +164,7 @@ int main()
     b.benchmark(request);
     b.saveResultsToFile(boost::str(boost::format("hypercube_%i.log") % ndim).c_str());
 
-    PrintBenchmarkResults(b);
+    printBenchmarkResults(b);
 
     return 0;
 }
