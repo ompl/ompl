@@ -168,13 +168,15 @@ int main()
         auto space(std::make_shared<ompl::base::RealVectorStateSpace>(ndim));
         ompl::base::RealVectorBounds bounds(ndim);
         ompl::geometric::SimpleSetup ss(space);
+        ob::SpaceInformationPtr si = ss.getSpaceInformation();
+        ob::ProblemDefinitionPtr pdef = ss.getProblemDefinition();
         ompl::base::ScopedState<> start(space), goal(space);
 
         bounds.setLow(0.);
         bounds.setHigh(1.);
         space->setBounds(bounds);
-        ss.setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(ss.getSpaceInformation(), ndim));
-        ss.getSpaceInformation()->setStateValidityCheckingResolution(0.001);
+        ss.setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(si, ndim));
+        si->setStateValidityCheckingResolution(0.001);
         for(unsigned int i = 0; i < ndim; ++i)
         {
             start[i] = 0.;
@@ -186,9 +188,6 @@ int main()
         ompl::tools::Benchmark b(ss, "HyperCube");
         b.addExperimentParameter("num_dims", "INTEGER", std::to_string(ndim));
 
-        ob::SpaceInformationPtr si = ss.getSpaceInformation();
-
-        //Note: 30 Planner + QRRT
         addPlanner(b, std::make_shared<og::RRT>(si), range);
         addPlanner(b, std::make_shared<og::RRTConnect>(si), range);
         addPlanner(b, std::make_shared<og::RRTsharp>(si), range);
@@ -220,8 +219,7 @@ int main()
         addPlanner(b, std::make_shared<og::PDST>(si), range);
         addPlanner(b, std::make_shared<og::BITstar>(si), range);
 
-        ob::PlannerPtr quotientSpacePlanner = 
-          GetQRRT(ss.getSpaceInformation(), ss.getProblemDefinition(), ndim);
+        ob::PlannerPtr quotientSpacePlanner = GetQRRT(si, pdef, ndim);
         addPlanner(b, quotientSpacePlanner, range);
 
         b.benchmark(request);
