@@ -57,9 +57,11 @@ namespace ompl
               return std::lexicographical_compare(lhs.getSortKey().begin(), lhs.getSortKey().end(),
                                                   rhs.getSortKey().begin(), rhs.getSortKey().end());
           })
-          , backwardQueue_(
-                [](const std::pair<double, std::shared_ptr<tbdstar::Vertex>> &lhs,
-                   const std::pair<double, std::shared_ptr<tbdstar::Vertex>> &rhs) { return lhs.first < rhs.first; })
+          , backwardQueue_([](const std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>> &lhs,
+                              const std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>> &rhs) {
+              return std::lexicographical_compare(lhs.first.begin(), lhs.first.end(), rhs.first.begin(),
+                                                  rhs.first.end());
+          })
           , forwardSearchId_(std::make_shared<std::size_t>(1u))
           , backwardSearchId_(std::make_shared<std::size_t>(1u))
           , solutionCost_(std::make_shared<ompl::base::Cost>(std::numeric_limits<double>::infinity()))
@@ -147,8 +149,15 @@ namespace ompl
             {
                 for (const auto &goal : graph_.getGoalVertices())
                 {
+                    // Set tht cost to come from the goal to identity cost.
                     goal->setCostToComeFromGoal(optimizationObjective_->identityCost());
-                    auto backwardQueuePointer = backwardQueue_.insert(std::make_pair(0.0, goal));
+
+                    // Create an element for the queue.
+                    std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>> element(
+                        std::array<double, 2u>({computeCostToGoToStartHeuristic(goal).value(), 0.0}), goal);
+
+                    // Insert the element into the queue and set the corresponding pointer.
+                    auto backwardQueuePointer = backwardQueue_.insert(element);
                     goal->setBackwardQueuePointer(backwardQueuePointer);
                 }
             }
@@ -167,7 +176,7 @@ namespace ompl
             {
                 return {ompl::base::PlannerStatus::StatusType::TIMEOUT};
             }
-        }
+        }  // namespace geometric
 
         ompl::base::Cost TBDstar::bestCost() const
         {
@@ -242,7 +251,7 @@ namespace ompl
         std::vector<std::shared_ptr<tbdstar::Vertex>> TBDstar::getVerticesInQueue() const
         {
             // Get the content from the queue.
-            std::vector<std::pair<double, std::shared_ptr<tbdstar::Vertex>>> content;
+            std::vector<std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>>> content;
             backwardQueue_.getContent(content);
 
             // Return the vertices.
@@ -346,8 +355,15 @@ namespace ompl
                     // Add the goal vertices to the backward queue.
                     for (const auto &goal : graph_.getGoalVertices())
                     {
+                        // Set tht cost to come from the goal to identity cost.
                         goal->setCostToComeFromGoal(optimizationObjective_->identityCost());
-                        auto backwardQueuePointer = backwardQueue_.insert(std::make_pair(0.0, goal));
+
+                        // Create an element for the queue.
+                        std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>> element(
+                            std::array<double, 2u>({computeCostToGoToStartHeuristic(goal).value(), 0.0}), goal);
+
+                        // Insert the element into the queue and set the corresponding pointer.
+                        auto backwardQueuePointer = backwardQueue_.insert(element);
                         goal->setBackwardQueuePointer(backwardQueuePointer);
                     }
 
@@ -438,6 +454,7 @@ namespace ompl
                     {
                         parent->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
                         parent->resetBackwardParent();
+                        parent->invalidateCostToComeFromGoalOfBackwardBranch();
                         child->removeFromBackwardChildren(parent->getId());
                         backwardSearchUpdateVertex(parent);
                         ++(*backwardSearchId_);
@@ -457,7 +474,12 @@ namespace ompl
             vertex->resetBackwardQueuePointer();
 
             // If there is currently no reason to think this vertex can be on an optimal path, clear the queue.
-            if (!optimizationObjective_->isCostBetterThan(vertex->getCostToComeFromGoal(), *solutionCost_))
+            if (!optimizationObjective_->isCostBetterThan(
+                    optimizationObjective_->combineCosts(vertex->getCostToComeFromGoal(),
+                                                         computeCostToGoToStartHeuristic(vertex)),
+                    *solutionCost_) ||
+                (!optimizationObjective_->isFinite(*solutionCost_) &&
+                 optimizationObjective_->isFinite(computeBestCostToComeFromGoalOfAnyStart())))
             {
                 backwardQueue_.clear();
                 ++(*backwardSearchId_);
@@ -630,13 +652,25 @@ namespace ompl
             // Update it if it is in the queue.
             if (element)
             {
-                element->data.first = vertex->getCostToComeFromGoal().value();
+                element->data.first = std::array<double, 2u>(
+                    {optimizationObjective_
+                         ->combineCosts(vertex->getCostToComeFromGoal(), computeCostToGoToStartHeuristic(vertex))
+                         .value(),
+                     vertex->getCostToComeFromGoal().value()});
                 backwardQueue_.update(element);
             }
             else  // Insert it into the queue otherwise.
             {
-                auto backwardQueuePointer =
-                    backwardQueue_.insert(std::make_pair(vertex->getCostToComeFromGoal().value(), vertex));
+                // Compute the sort key for the vertex queue.
+                std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>> element(
+                    {optimizationObjective_
+                         ->combineCosts(vertex->getCostToComeFromGoal(), computeCostToGoToStartHeuristic(vertex))
+                         .value(),
+                     vertex->getCostToComeFromGoal().value()},
+                    vertex);
+
+                // Insert the vertex into the queue, storing the corresponding pointer.
+                auto backwardQueuePointer = backwardQueue_.insert(element);
                 vertex->setBackwardQueuePointer(backwardQueuePointer);
             }
         }
@@ -808,6 +842,41 @@ namespace ompl
                     Planner::pdef_->addSolutionPath(solution);
                 }
             }
+        }
+
+        ompl::base::Cost TBDstar::computeCostToGoToStartHeuristic(const std::shared_ptr<tbdstar::Vertex> &vertex) const
+        {
+            // We need to loop over all start vertices and see which is the closest one.
+            ompl::base::Cost bestCost = optimizationObjective_->infiniteCost();
+            for (const auto &start : graph_.getStartVertices())
+            {
+                bestCost = optimizationObjective_->betterCost(
+                    bestCost, optimizationObjective_->motionCostHeuristic(vertex->getState(), start->getState()));
+            }
+            return bestCost;
+        }
+
+        ompl::base::Cost TBDstar::computeCostToGoToGoalHeuristic(const std::shared_ptr<tbdstar::Vertex> &vertex) const
+        {
+            // We need to loop over all goal vertices and see which is the closest one.
+            ompl::base::Cost bestCost = optimizationObjective_->infiniteCost();
+            for (const auto &goal : graph_.getGoalVertices())
+            {
+                bestCost = optimizationObjective_->betterCost(
+                    bestCost, optimizationObjective_->motionCostHeuristic(vertex->getState(), goal->getState()));
+            }
+            return bestCost;
+        }
+
+        ompl::base::Cost TBDstar::computeBestCostToComeFromGoalOfAnyStart() const
+        {
+            // We need to loop over all start vertices and see which is the closest one.
+            ompl::base::Cost bestCost = optimizationObjective_->infiniteCost();
+            for (const auto &start : graph_.getStartVertices())
+            {
+                bestCost = optimizationObjective_->betterCost(bestCost, start->getCostToComeFromGoal());
+            }
+            return bestCost;
         }
 
     }  // namespace geometric

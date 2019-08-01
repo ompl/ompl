@@ -151,7 +151,8 @@ namespace ompl
                 //     else
                 //     {
                 //         auto msg =
-                //             "TBDstar's OMPL implementation is limited to the goal types GOAL_STATE and GOAL_STATES."s;
+                //             "TBDstar's OMPL implementation is limited to the goal types GOAL_STATE and
+                //             GOAL_STATES."s;
                 //         throw ompl::Exception(msg);
                 //     }
                 // }
@@ -223,12 +224,22 @@ namespace ompl
 
             void Vertex::updateCostOfForwardBranch() const
             {
-                // Update the cost of all children.
+                // Update the cost of all forward children.
                 for (const auto &child : getForwardChildren())
                 {
                     child->setCostToComeFromStart(optimizationObjective_->combineCosts(
                         costToComeFromStart_, child->getEdgeCostFromForwardParent()));
                     child->updateCostOfForwardBranch();
+                }
+            }
+
+            void Vertex::invalidateCostToComeFromGoalOfBackwardBranch() const
+            {
+                // Update the cost of all backward children.
+                for (const auto &child : getBackwardChildren())
+                {
+                    child->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
+                    child->invalidateCostToComeFromGoalOfBackwardBranch();
                 }
             }
 
@@ -423,21 +434,23 @@ namespace ompl
 
             void Vertex::setBackwardQueuePointer(
                 typename ompl::BinaryHeap<
-                    std::pair<double, std::shared_ptr<Vertex>>,
-                    std::function<bool(const std::pair<double, std::shared_ptr<Vertex>> &,
-                                       const std::pair<double, std::shared_ptr<Vertex>> &)>>::Element *pointer)
+                    std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>>,
+                    std::function<bool(const std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>> &,
+                                       const std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>> &)>>::Element
+                    *pointer)
             {
                 backwardQueuePointerBackwardSearchId_ = *backwardSearchId_.lock();
                 backwardQueuePointer_ = pointer;
             }
 
-            typename ompl::BinaryHeap<std::pair<double, std::shared_ptr<Vertex>>,
-                                      std::function<bool(const std::pair<double, std::shared_ptr<Vertex>> &,
-                                                         const std::pair<double, std::shared_ptr<Vertex>> &)>>::Element
-                *
-                Vertex::getBackwardQueuePointer() const
+            typename ompl::BinaryHeap<
+                std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>>,
+                std::function<bool(const std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>> &,
+                                   const std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>> &)>>::Element *
+            Vertex::getBackwardQueuePointer() const
             {
-                if (*backwardSearchId_.lock() != backwardQueuePointerBackwardSearchId_) {
+                if (*backwardSearchId_.lock() != backwardQueuePointerBackwardSearchId_)
+                {
                     backwardQueuePointer_ = nullptr;
                 }
                 return backwardQueuePointer_;

@@ -130,6 +130,10 @@ namespace ompl
                 /** \brief Updates the cost to the whole branch rooted at this vertex. */
                 void updateCostOfForwardBranch() const;
 
+                /** \brief Sets the cost to come from to goal of the backward search to infinity for the whole branch.
+                 */
+                void invalidateCostToComeFromGoalOfBackwardBranch() const;
+
                 /** \brief Adds a vertex this vertex's children. */
                 void addToForwardChildren(const std::shared_ptr<Vertex> &vertex);
 
@@ -192,15 +196,16 @@ namespace ompl
                 /** \brief Sets the backward queue pointer of this vertex. */
                 void setBackwardQueuePointer(
                     typename ompl::BinaryHeap<
-                        std::pair<double, std::shared_ptr<Vertex>>,
-                        std::function<bool(const std::pair<double, std::shared_ptr<Vertex>> &,
-                                           const std::pair<double, std::shared_ptr<Vertex>> &)>>::Element *pointer);
+                        std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>>,
+                        std::function<bool(const std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>> &,
+                                           const std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>> &)>>::
+                        Element *pointer);
 
                 /** \brief Returns the backward queue pointer of this vertex. */
                 typename ompl::BinaryHeap<
-                    std::pair<double, std::shared_ptr<Vertex>>,
-                    std::function<bool(const std::pair<double, std::shared_ptr<Vertex>> &,
-                                       const std::pair<double, std::shared_ptr<Vertex>> &)>>::Element *
+                    std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>>,
+                    std::function<bool(const std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>> &,
+                                       const std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>> &)>>::Element *
                 getBackwardQueuePointer() const;
 
                 /** \brief Resets the backward queue pointer. */
@@ -286,11 +291,11 @@ namespace ompl
                 mutable std::size_t backwardQueuePointerBackwardSearchId_{0u};
 
                 /** \brief The pointer to the backward queue element. */
-                mutable
-                    typename ompl::BinaryHeap<std::pair<double, std::shared_ptr<Vertex>>,
-                                              std::function<bool(const std::pair<double, std::shared_ptr<Vertex>> &,
-                                                                 const std::pair<double, std::shared_ptr<Vertex>> &)>>::
-                        Element *backwardQueuePointer_{nullptr};
+                mutable typename ompl::BinaryHeap<
+                    std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>>,
+                    std::function<bool(const std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>> &,
+                                       const std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>> &)>>::Element
+                    *backwardQueuePointer_{nullptr};
             };
 
         }  // namespace tbdstar

@@ -128,6 +128,15 @@ namespace ompl
              */
             void updateSolution();
 
+            /** \brief Returns the best cost-to-go-heuristic to any start in the graph. */
+            ompl::base::Cost computeCostToGoToStartHeuristic(const std::shared_ptr<tbdstar::Vertex> &vertex) const;
+
+            /** \brief Returns the best cost-to-go-heuristic to any goal in the graph. */
+            ompl::base::Cost computeCostToGoToGoalHeuristic(const std::shared_ptr<tbdstar::Vertex> &vertex) const;
+
+            /** \brief Returns the best cost to come form the goal of any start. */
+            ompl::base::Cost computeBestCostToComeFromGoalOfAnyStart() const;
+
             /** \brief The increasingly dense sampling-based approximation. */
             tbdstar::ImplicitGraph graph_;
 
@@ -137,7 +146,7 @@ namespace ompl
             EdgeQueue forwardQueue_;
 
             /** \brief The backward queue. */
-            using KeyVertexPair = std::pair<double, std::shared_ptr<tbdstar::Vertex>>;
+            using KeyVertexPair = std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>>;
             using VertexQueue =
                 ompl::BinaryHeap<KeyVertexPair, std::function<bool(const KeyVertexPair &, const KeyVertexPair &)>>;
             VertexQueue backwardQueue_;
