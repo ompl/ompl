@@ -88,6 +88,7 @@ void printBenchmarkResults(const ot::Benchmark &b)
     }
     std::cout << std::string(80, '-') << std::endl;
 }
+
 void printEstimatedTimeToCompletion(unsigned numberPlanners, unsigned run_count, unsigned runtime_limit)
 {
     std::cout << std::string(80, '-') << std::endl;

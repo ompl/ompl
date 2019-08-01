@@ -55,7 +55,7 @@ int numberPlanners = 0;
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
 #include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
 #include <ompl/geometric/planners/pdst/PDST.h>
-// #include <ompl/geometric/planners/prm/LazyPRM.h> //segfault?
+// #include <ompl/geometric/planners/prm/LazyPRM.h> //TODO: segfault?
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
@@ -92,18 +92,18 @@ int numberPlanners = 0;
 // narrow passage from (0,...,0) to (1,...,1). A state s is valid if there exists
 // a k s.t. (a) 0<=s[k]<=1, (b) for all i<k s[i]<=edgeWidth, and (c) for all i>k
 // s[i]>=1-edgewidth.
-class HyperCubeValidityChecker : public ompl::base::StateValidityChecker
+class HyperCubeValidityChecker : public ob::StateValidityChecker
 {
 public:
-    HyperCubeValidityChecker(const ompl::base::SpaceInformationPtr &si, int dimension) : ompl::base::StateValidityChecker(si), dimension_(dimension)
+    HyperCubeValidityChecker(const ob::SpaceInformationPtr &si, int dimension) : ob::StateValidityChecker(si), dimension_(dimension)
     {
         si->setStateValidityCheckingResolution(0.001);
     }
 
-    bool isValid(const ompl::base::State *state) const override
+    bool isValid(const ob::State *state) const override
     {
         const auto *s
-            = static_cast<const ompl::base::RealVectorStateSpace::StateType*>(state);
+            = static_cast<const ob::RealVectorStateSpace::StateType*>(state);
         bool foundMaxDim = false;
 
         for (int i = dimension_ - 1; i >= 0; i--)
@@ -148,10 +148,10 @@ std::vector<std::vector<int>> getHypercubeAdmissibleProjections(int curDim)
     projections.erase(last, projections.end()); 
 
     // std::cout << "Projections for dim " << curDim << std::endl;
-    // for(uint k = 0; k < projections.size(); k++){
+    // for(unsigned k = 0; k < projections.size(); k++){
     //     std::vector<int> pk = projections.at(k);
     //     std::cout << k << ": ";
-    //     for(uint j = 0; j < pk.size(); j++){
+    //     for(unsigned j = 0; j < pk.size(); j++){
     //       std::cout << pk.at(j) << (j<pk.size()-1?",":"");
     //     }
     //     std::cout << std::endl;
@@ -213,7 +213,8 @@ ob::PlannerPtr GetQRRT(
 
 int main()
 {
-    for(uint curDim = 2; curDim <= maximalDimension; curDim++){
+    for(unsigned curDim = 2; curDim <= maximalDimension; curDim++)
+    {
         numberPlanners = 0;
         double range = edgeWidth * 0.5;
         auto space(std::make_shared<ompl::base::RealVectorStateSpace>(curDim));
@@ -271,7 +272,8 @@ int main()
 
 
         std::vector<std::vector<int>> admissibleProjections = getHypercubeAdmissibleProjections(curDim);
-        for(uint k = 0; k < admissibleProjections.size(); k++){
+        for(unsigned k = 0; k < admissibleProjections.size(); k++)
+        {
           std::vector<int> proj = admissibleProjections.at(k);
           ob::PlannerPtr quotientSpacePlannerK = GetQRRT(proj, si);
           addPlanner(b, quotientSpacePlannerK, range);
