@@ -35,42 +35,49 @@
 
 /* Author: Andreas Orthey */
 
+const double edgeWidth = 0.1;
+const unsigned maximalDimension = 12;
+const double runtime_limit = 10;
+const double memory_limit = 4096*4096;
+const int run_count = 10;
+int numberPlanners = 0;
+
 #include "QuotientSpacePlanningCommon.h"
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
+#include <ompl/geometric/planners/bitstar/BITstar.h>
+#include <ompl/geometric/planners/est/BiEST.h>
+#include <ompl/geometric/planners/est/EST.h>
+#include <ompl/geometric/planners/est/ProjEST.h>
+#include <ompl/geometric/planners/fmt/BFMT.h>
+#include <ompl/geometric/planners/fmt/FMT.h>
+#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
+#include <ompl/geometric/planners/kpiece/KPIECE1.h>
+#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
+#include <ompl/geometric/planners/pdst/PDST.h>
+// #include <ompl/geometric/planners/prm/LazyPRM.h> //segfault
+#include <ompl/geometric/planners/prm/LazyPRMstar.h>
+#include <ompl/geometric/planners/prm/PRM.h>
+#include <ompl/geometric/planners/prm/PRMstar.h>
+#include <ompl/geometric/planners/prm/SPARS.h>
+#include <ompl/geometric/planners/prm/SPARStwo.h>
 #include <ompl/geometric/planners/quotientspace/MultiQuotient.h>
 #include <ompl/geometric/planners/quotientspace/QRRT.h>
-#include <ompl/geometric/planners/rrt/RRT.h>
+#include <ompl/geometric/planners/rrt/BiTRRT.h>
+#include <ompl/geometric/planners/rrt/InformedRRTstar.h>
+#include <ompl/geometric/planners/rrt/LazyRRT.h>
+#include <ompl/geometric/planners/rrt/LBTRRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTsharp.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/rrt/RRTXstatic.h>
-#include <ompl/geometric/planners/rrt/LazyRRT.h>
-#include <ompl/geometric/planners/rrt/InformedRRTstar.h>
-#include <ompl/geometric/planners/rrt/TRRT.h>
-#include <ompl/geometric/planners/rrt/BiTRRT.h>
-#include <ompl/geometric/planners/rrt/LBTRRT.h>
 #include <ompl/geometric/planners/rrt/SORRTstar.h>
-#include <ompl/geometric/planners/prm/PRM.h>
-#include <ompl/geometric/planners/prm/PRMstar.h>
-#include <ompl/geometric/planners/prm/LazyPRM.h>
-#include <ompl/geometric/planners/prm/LazyPRMstar.h>
-#include <ompl/geometric/planners/prm/SPARS.h>
-#include <ompl/geometric/planners/prm/SPARStwo.h>
-#include <ompl/geometric/planners/kpiece/KPIECE1.h>
-#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
-#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
-#include <ompl/geometric/planners/fmt/FMT.h>
-#include <ompl/geometric/planners/fmt/BFMT.h>
-#include <ompl/geometric/planners/est/EST.h>
-#include <ompl/geometric/planners/est/BiEST.h>
-#include <ompl/geometric/planners/est/ProjEST.h>
-#include <ompl/geometric/planners/sbl/SBL.h>
+#include <ompl/geometric/planners/rrt/TRRT.h>
 #include <ompl/geometric/planners/sbl/pSBL.h>
-#include <ompl/geometric/planners/stride/STRIDE.h>
+#include <ompl/geometric/planners/sbl/SBL.h>
 #include <ompl/geometric/planners/sst/SST.h>
-#include <ompl/geometric/planners/pdst/PDST.h>
-#include <ompl/geometric/planners/bitstar/BITstar.h>
+#include <ompl/geometric/planners/stride/STRIDE.h>
 
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/util/String.h>
@@ -78,12 +85,6 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/format.hpp>
 #include <fstream>
-
-const double edgeWidth = 0.1;
-const unsigned ndim = 10;
-const double runtime_limit = 10;
-const double memory_limit = 4096*4096;
-const int run_count = 10;
 
 // Only states near some edges of a hypercube are valid. The valid edges form a
 // narrow passage from (0,...,0) to (1,...,1). A state s is valid if there exists
@@ -123,17 +124,18 @@ void addPlanner(ompl::tools::Benchmark& benchmark, const ompl::base::PlannerPtr&
     if (params.hasParam(std::string("range")))
         params.setParam(std::string("range"), ompl::toString(range));
     benchmark.addPlanner(planner);
+    numberPlanners++;
 }
 
 ob::PlannerPtr GetQRRT(
     ob::SpaceInformationPtr si, 
     ob::ProblemDefinitionPtr pdef, 
-    unsigned numLinks)
+    unsigned numLinks, unsigned stepSize = 1)
 {
     // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     std::vector<ob::SpaceInformationPtr> si_vec;
 
-    for(unsigned k = 2; k < numLinks; k+=2)
+    for(unsigned k = 2; k < numLinks; k+=stepSize)
     {
         OMPL_INFORM("Create QuotientSpace Chain with %d links.", k);
 
@@ -163,19 +165,19 @@ ob::PlannerPtr GetQRRT(
 
 int main()
 {
-    for(uint k = 2; k < ndim; k++){
+    for(uint curDim = 2; curDim <= maximalDimension; curDim++){
         double range = edgeWidth * 0.5;
-        auto space(std::make_shared<ompl::base::RealVectorStateSpace>(ndim));
-        ompl::base::RealVectorBounds bounds(ndim);
+        auto space(std::make_shared<ompl::base::RealVectorStateSpace>(curDim));
+        ompl::base::RealVectorBounds bounds(curDim);
         ompl::geometric::SimpleSetup ss(space);
         ompl::base::ScopedState<> start(space), goal(space);
 
         bounds.setLow(0.);
         bounds.setHigh(1.);
         space->setBounds(bounds);
-        ss.setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(ss.getSpaceInformation(), ndim));
+        ss.setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(ss.getSpaceInformation(), curDim));
         ss.getSpaceInformation()->setStateValidityCheckingResolution(0.001);
-        for(unsigned int i = 0; i < ndim; ++i)
+        for(unsigned int i = 0; i < curDim; ++i)
         {
             start[i] = 0.;
             goal[i] = 1.;
@@ -184,11 +186,26 @@ int main()
 
         ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count);
         ompl::tools::Benchmark b(ss, "HyperCube");
-        b.addExperimentParameter("num_dims", "INTEGER", std::to_string(ndim));
+        b.addExperimentParameter("num_dims", "INTEGER", std::to_string(curDim));
 
         ob::SpaceInformationPtr si = ss.getSpaceInformation();
 
         //Note: 30 Planner + QRRT
+        addPlanner(b, std::make_shared<og::BITstar>(si), range);
+        addPlanner(b, std::make_shared<og::EST>(si), range);
+        addPlanner(b, std::make_shared<og::BiEST>(si), range);
+        addPlanner(b, std::make_shared<og::ProjEST>(si), range);
+        addPlanner(b, std::make_shared<og::FMT>(si), range);
+        addPlanner(b, std::make_shared<og::BFMT>(si), range);
+        addPlanner(b, std::make_shared<og::KPIECE1>(si), range);
+        addPlanner(b, std::make_shared<og::BKPIECE1>(si), range);
+        addPlanner(b, std::make_shared<og::LBKPIECE1>(si), range);
+        addPlanner(b, std::make_shared<og::PDST>(si), range);
+        addPlanner(b, std::make_shared<og::PRM>(si), range);
+        addPlanner(b, std::make_shared<og::PRMstar>(si), range);
+        addPlanner(b, std::make_shared<og::LazyPRMstar>(si), range);
+        addPlanner(b, std::make_shared<og::SPARS>(si), range);
+        addPlanner(b, std::make_shared<og::SPARStwo>(si), range);
         addPlanner(b, std::make_shared<og::RRT>(si), range);
         addPlanner(b, std::make_shared<og::RRTConnect>(si), range);
         addPlanner(b, std::make_shared<og::RRTsharp>(si), range);
@@ -200,32 +217,45 @@ int main()
         addPlanner(b, std::make_shared<og::BiTRRT>(si), range);
         addPlanner(b, std::make_shared<og::LBTRRT>(si), range);
         addPlanner(b, std::make_shared<og::SORRTstar>(si), range);
-        addPlanner(b, std::make_shared<og::PRM>(si), range);
-        addPlanner(b, std::make_shared<og::PRMstar>(si), range);
-        addPlanner(b, std::make_shared<og::LazyPRM>(si), range);
-        addPlanner(b, std::make_shared<og::LazyPRMstar>(si), range);
-        addPlanner(b, std::make_shared<og::SPARS>(si), range);
-        addPlanner(b, std::make_shared<og::SPARStwo>(si), range);
-        addPlanner(b, std::make_shared<og::KPIECE1>(si), range);
-        addPlanner(b, std::make_shared<og::BKPIECE1>(si), range);
-        addPlanner(b, std::make_shared<og::LBKPIECE1>(si), range);
-        addPlanner(b, std::make_shared<og::FMT>(si), range);
-        addPlanner(b, std::make_shared<og::BFMT>(si), range);
-        addPlanner(b, std::make_shared<og::EST>(si), range);
-        addPlanner(b, std::make_shared<og::BiEST>(si), range);
-        addPlanner(b, std::make_shared<og::ProjEST>(si), range);
         addPlanner(b, std::make_shared<og::SBL>(si), range);
-        addPlanner(b, std::make_shared<og::STRIDE>(si), range);
         addPlanner(b, std::make_shared<og::SST>(si), range);
-        addPlanner(b, std::make_shared<og::PDST>(si), range);
-        addPlanner(b, std::make_shared<og::BITstar>(si), range);
+        addPlanner(b, std::make_shared<og::STRIDE>(si), range);
 
-        ob::PlannerPtr quotientSpacePlanner = 
-          GetQRRT(ss.getSpaceInformation(), ss.getProblemDefinition(), ndim);
-        addPlanner(b, quotientSpacePlanner, range);
+        ob::PlannerPtr quotientSpacePlanner1 = 
+          GetQRRT(ss.getSpaceInformation(), ss.getProblemDefinition(), curDim, 1);
+        ob::PlannerPtr quotientSpacePlanner2 = 
+          GetQRRT(ss.getSpaceInformation(), ss.getProblemDefinition(), curDim, 2);
+        ob::PlannerPtr quotientSpacePlanner3 = 
+          GetQRRT(ss.getSpaceInformation(), ss.getProblemDefinition(), curDim, 2);
+
+        addPlanner(b, quotientSpacePlanner1, range);
+        addPlanner(b, quotientSpacePlanner2, range);
+        addPlanner(b, quotientSpacePlanner3, range);
+
+				//Estimated Time to Completion
+				std::cout << std::string(80, '-') << std::endl;
+				double worst_case_time_estimate_in_seconds = numberPlanners*run_count*runtime_limit;
+				double worst_case_time_estimate_in_minutes = worst_case_time_estimate_in_seconds/60.0;
+				double worst_case_time_estimate_in_hours = worst_case_time_estimate_in_minutes/60.0;
+				std::cout << "Number of Planners           : " << numberPlanners << std::endl;
+				std::cout << "Number of Runs Per Planner   : " << run_count << std::endl;
+				std::cout << "Time Per Run (s)             : " << runtime_limit << std::endl;
+				std::cout << "Worst-case time requirement  : ";
+
+				if(worst_case_time_estimate_in_hours < 1){
+					if(worst_case_time_estimate_in_minutes < 1){
+						std::cout << worst_case_time_estimate_in_seconds << "s" << std::endl;
+					}else{
+						std::cout << worst_case_time_estimate_in_minutes << "m" << std::endl;
+					}
+				}else{
+					std::cout << worst_case_time_estimate_in_hours << "h" << std::endl;
+				}
+				std::cout << std::string(80, '-') << std::endl;
+
 
         b.benchmark(request);
-        b.saveResultsToFile(boost::str(boost::format("hypercube_%i.log") % ndim).c_str());
+        b.saveResultsToFile(boost::str(boost::format("hypercube_%i.log") % curDim).c_str());
 
         PrintBenchmarkResults(b);
 
