@@ -41,8 +41,6 @@
 #include <ompl/base/PlannerData.h>
 #include <boost/serialization/export.hpp>
 
-namespace ob = ompl::base;
-
 namespace ompl
 {
     namespace base
@@ -50,13 +48,13 @@ namespace ompl
         /// \brief An annotated vertex, adding information about its level in the
         /// quotient-space hiearchy, the maxlevel of quotientspaces and the component it
         /// belongs to
-        class PlannerDataVertexAnnotated : public ob::PlannerDataVertex
+        class PlannerDataVertexAnnotated : public ompl::base::PlannerDataVertex
         {
             // If new elements are added,
             // you need to update the clone/getstate functions!
         public:
 
-            PlannerDataVertexAnnotated(const ob::State *st, int tag = 0);
+            PlannerDataVertexAnnotated(const ompl::base::State *st, int tag = 0);
             PlannerDataVertexAnnotated(const PlannerDataVertexAnnotated &rhs);
             virtual PlannerDataVertex *clone() const override;
 
@@ -72,10 +70,10 @@ namespace ompl
             void setComponent(unsigned int component_);
             unsigned int getComponent() const;
 
-            void setState(ob::State *s);
-            void setQuotientState(const ob::State *s);
-            virtual const ob::State *getState() const override;
-            virtual const ob::State *getQuotientState() const;
+            void setState(ompl::base::State *s);
+            void setQuotientState(const ompl::base::State *s);
+            virtual const ompl::base::State *getState() const override;
+            virtual const ompl::base::State *getQuotientState() const;
 
             friend bool operator==(const PlannerDataVertexAnnotated &lhs, const PlannerDataVertexAnnotated &rhs);
             friend std::ostream &operator<<(std::ostream &, const PlannerDataVertexAnnotated &);
@@ -87,7 +85,7 @@ namespace ompl
             std::vector<int> path_;
 
             unsigned int component_{0};
-            const ob::State *stateQuotientSpace_{nullptr};
+            const ompl::base::State *stateQuotientSpace_{nullptr};
         };
 
         // BOOST_CLASS_EXPORT(PlannerDataVertexAnnotated);

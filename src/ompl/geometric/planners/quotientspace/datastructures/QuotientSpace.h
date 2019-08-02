@@ -40,16 +40,14 @@
 
 #include <ompl/base/Planner.h>
 
-namespace ob = ompl::base;
-
 namespace ompl
 {
     namespace geometric
     {
         /// \brief A single quotient-space
-        class QuotientSpace : public ob::Planner
+        class QuotientSpace : public ompl::base::Planner
         {
-            typedef ob::Planner BaseT;
+            typedef ompl::base::Planner BaseT;
             enum QuotientSpaceType
             {
                 UNKNOWN,
@@ -83,21 +81,21 @@ namespace ompl
                  [     ][ X1 ]
                  [     ][    ]
 
-                 We assume that Q1 and Q0 have been given (as ob::SpaceInformationPtr),
+                 We assume that Q1 and Q0 have been given (as ompl::base::SpaceInformationPtr),
                  and we compute the inverse of the quotient map, i.e. X1 = Q1/Q0. */
 
-            QuotientSpace(const ob::SpaceInformationPtr &si, QuotientSpace *parent_ = nullptr);
+            QuotientSpace(const ompl::base::SpaceInformationPtr &si, QuotientSpace *parent_ = nullptr);
             ~QuotientSpace();
 
             /// \brief solve disabled (use MultiQuotient::solve)
             /// final prevents subclasses to override
-            ob::PlannerStatus solve(const ob::PlannerTerminationCondition &ptc) override final;
-            virtual void setProblemDefinition(const ob::ProblemDefinitionPtr &pdef) override;
+            ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override final;
+            virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
 
             virtual void grow() = 0;
-            virtual bool getSolution(ob::PathPtr &solution) = 0;
-            virtual bool sampleQuotient(ob::State *q_random);
-            virtual bool sample(ob::State *q_random);
+            virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
+            virtual bool sampleQuotient(ompl::base::State *q_random);
+            virtual bool sample(ompl::base::State *q_random);
             virtual bool hasSolution();
             virtual void clear() override;
             virtual void setup() override;
@@ -109,13 +107,13 @@ namespace ompl
 
             /// \brief Get SpaceInformationPtr for X1
             ///  (Note: X1 is the second component of Q1 = Q0 x X1)
-            const ob::SpaceInformationPtr &getX1() const;
+            const ompl::base::SpaceInformationPtr &getX1() const;
             /// \brief Get SpaceInformationPtr for Q1
             ///  (Note: Q1 is the product space Q1 = Q0 x X1)
-            const ob::SpaceInformationPtr &getQ1() const;
+            const ompl::base::SpaceInformationPtr &getQ1() const;
             /// \brief Get SpaceInformationPtr for Q0
             ///  (Note: Q0 is the first component of Q1 = Q0 x X1)
-            const ob::SpaceInformationPtr &getQ0() const;
+            const ompl::base::SpaceInformationPtr &getQ0() const;
 
             /// Dimension of space X1
             unsigned int getX1Dimension() const;
@@ -126,8 +124,8 @@ namespace ompl
             /// Dimension of space Q1
             unsigned int getDimension() const;
 
-            const ob::StateSamplerPtr &getX1SamplerPtr() const;
-            const ob::StateSamplerPtr &getQ1SamplerPtr() const;
+            const ompl::base::StateSamplerPtr &getX1SamplerPtr() const;
+            const ompl::base::StateSamplerPtr &getQ1SamplerPtr() const;
 
             /// \brief Parent is a more simplified quotient-space
             /// (higher in abstraction hierarchy)
@@ -153,17 +151,17 @@ namespace ompl
 
             /// \brief Quotient Space Projection Operator onto second component
             /// ProjectX1Subspace: Q0 \times X1 \rightarrow X1
-            void projectX1Subspace(const ob::State *q, ob::State *qX1) const;
+            void projectX1Subspace(const ompl::base::State *q, ompl::base::State *qX1) const;
             /// \brief Quotient Space Projection Operator onto first component
             /// ProjectQ0Subspace: Q0 \times X1 \rightarrow Q0
-            void projectQ0Subspace(const ob::State *q, ob::State *qQ0) const;
+            void projectQ0Subspace(const ompl::base::State *q, ompl::base::State *qQ0) const;
             /// Merge a state from Q0 and X1 into a state on Q1 (concatenate)
-            void mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::State *qQ1) const;
+            void mergeStates(const ompl::base::State *qQ0, const ompl::base::State *qX1, ompl::base::State *qQ1) const;
 
             /// Check if quotient-space is unbounded
-            void checkSpaceHasFiniteMeasure(const ob::StateSpacePtr space) const;
+            void checkSpaceHasFiniteMeasure(const ompl::base::StateSpacePtr space) const;
 
-            ob::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
+            ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 
             /// \brief Write class to stream (use as std::cout << *this << std::endl)
             ///  Actual implementation is in void print(std::ostream& out),
@@ -189,24 +187,24 @@ namespace ompl
             ///   (8) Q1 SE2xRn , Q0 R2              => X1 = SO2xRN
             ///   (9) Q1 SE2xRn , Q0 SE2xRm [0<m<n ] => X1 = R(n-m)
             ///  (10) Q1 SO2xRn , Q0 SO2             => X1 = Rn
-            const ob::StateSpacePtr computeQuotientSpace(const ob::StateSpacePtr Q1, const ob::StateSpacePtr Q0);
+            const ompl::base::StateSpacePtr computeQuotientSpace(const ompl::base::StateSpacePtr Q1, const ompl::base::StateSpacePtr Q0);
             /// Identify the type of the quotient Q1 / Q0
-            QuotientSpaceType identifyQuotientSpaceType(const ob::StateSpacePtr Q1, const ob::StateSpacePtr Q0);
+            QuotientSpaceType identifyQuotientSpaceType(const ompl::base::StateSpacePtr Q1, const ompl::base::StateSpacePtr Q0);
 
-            ob::SpaceInformationPtr Q1{nullptr};
-            ob::SpaceInformationPtr Q0{nullptr};
-            ob::SpaceInformationPtr X1{nullptr};
+            ompl::base::SpaceInformationPtr Q1{nullptr};
+            ompl::base::SpaceInformationPtr Q0{nullptr};
+            ompl::base::SpaceInformationPtr X1{nullptr};
 
-            ob::StateSamplerPtr X1_sampler_;
-            ob::StateSamplerPtr Q1_sampler_;
-            ob::ValidStateSamplerPtr Q1_valid_sampler_;
+            ompl::base::StateSamplerPtr X1_sampler_;
+            ompl::base::StateSamplerPtr Q1_sampler_;
+            ompl::base::ValidStateSamplerPtr Q1_valid_sampler_;
 
-            ob::OptimizationObjectivePtr opt_;
+            ompl::base::OptimizationObjectivePtr opt_;
 
             /// A temporary state on Q0
-            ob::State *s_Q0_tmp_{nullptr};
+            ompl::base::State *s_Q0_tmp_{nullptr};
             /// A temporary state on X1
-            ob::State *s_X1_tmp_{nullptr};
+            ompl::base::State *s_X1_tmp_{nullptr};
 
             QuotientSpaceType type_;
             unsigned int Q1_dimension_{0};

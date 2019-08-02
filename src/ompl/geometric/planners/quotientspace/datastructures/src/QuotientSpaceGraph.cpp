@@ -35,8 +35,8 @@
 
 /* Author: Andreas Orthey */
 #include "GoalVisitor.hpp"
-#include <ompl/geometric/planners/quotientspace/datastructure/PlannerDataVertexAnnotated.h>
-#include <ompl/geometric/planners/quotientspace/datastructure/QuotientSpaceGraph.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraph.h>
 
 #include <ompl/geometric/planners/prm/ConnectionStrategy.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
@@ -51,8 +51,12 @@
 #include <boost/foreach.hpp>
 
 #define foreach BOOST_FOREACH
-using namespace og;
+
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
 using namespace ob;
+using namespace og;
+
 typedef QuotientSpaceGraph::Configuration Configuration;
 
 QuotientSpaceGraph::QuotientSpaceGraph(const ob::SpaceInformationPtr &si, QuotientSpace *parent_) : BaseT(si, parent_)
@@ -233,11 +237,11 @@ unsigned int QuotientSpaceGraph::getNumberOfEdges() const
     return num_edges(graph_);
 }
 
-const og::QuotientSpaceGraph::Graph &QuotientSpaceGraph::getGraph() const
+const QuotientSpaceGraph::Graph &QuotientSpaceGraph::getGraph() const
 {
     return graph_;
 }
-const og::QuotientSpaceGraph::RoadmapNeighborsPtr &QuotientSpaceGraph::getRoadmapNeighborsPtr() const
+const QuotientSpaceGraph::RoadmapNeighborsPtr &QuotientSpaceGraph::getRoadmapNeighborsPtr() const
 {
     return nearestDatastructure_;
 }

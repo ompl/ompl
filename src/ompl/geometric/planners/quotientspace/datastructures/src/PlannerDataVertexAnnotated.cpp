@@ -34,8 +34,9 @@
 *********************************************************************/
 
 /* Author: Andreas Orthey */
-#include <ompl/geometric/planners/quotientspace/datastructure/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 
+namespace ob = ompl::base;
 using namespace ob;
 
 PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const ob::State *st, int tag) : ob::PlannerDataVertex(st, tag)

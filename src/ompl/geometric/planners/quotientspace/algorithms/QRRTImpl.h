@@ -37,11 +37,8 @@
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRTIMPL_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRTIMPL_
-#include <ompl/geometric/planners/quotientspace/datastructure/QuotientSpaceGraph.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraph.h>
 #include <ompl/datastructures/PDF.h>
-
-namespace ob = ompl::base;
-namespace og = ompl::geometric;
 
 namespace ompl
 {
@@ -52,23 +49,23 @@ namespace ompl
     namespace geometric
     {
         /** \brief Implementation of Rapidly Exploring Quotient-Space Tree Algorithm*/
-        class QRRTImpl : public og::QuotientSpaceGraph
+        class QRRTImpl : public ompl::geometric::QuotientSpaceGraph
         {
-            typedef og::QuotientSpaceGraph BaseT;
+            typedef ompl::geometric::QuotientSpaceGraph BaseT;
 
         public:
-            QRRTImpl(const ob::SpaceInformationPtr &si, QuotientSpace *parent_);
+            QRRTImpl(const ompl::base::SpaceInformationPtr &si, QuotientSpace *parent_);
             virtual ~QRRTImpl() override;
             /// One iteration of RRT with adjusted sampling function
             virtual void grow() override;
-            virtual bool getSolution(ob::PathPtr &solution) override;
+            virtual bool getSolution(ompl::base::PathPtr &solution) override;
             /// Importance based on how many vertices the tree has
             double getImportance() const override;
             /// Uniform sampling
-            virtual bool sample(ob::State *q_random) override;
+            virtual bool sample(ompl::base::State *q_random) override;
             /// \brief Quotient-Space sampling by choosing a random vertex from parent
             /// class tree
-            virtual bool sampleQuotient(ob::State *) override;
+            virtual bool sampleQuotient(ompl::base::State *) override;
 
             virtual void setup() override;
             virtual void clear() override;
@@ -90,7 +87,7 @@ namespace ompl
             double goalBias_{.05};
 
             /// Goal state or goal region
-            ob::Goal *goal_;
+            ompl::base::Goal *goal_;
         };
     }
 }

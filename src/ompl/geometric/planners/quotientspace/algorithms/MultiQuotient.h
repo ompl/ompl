@@ -37,12 +37,9 @@
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MULTIQUOTIENT_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MULTIQUOTIENT_
-#include <ompl/geometric/planners/quotientspace/datastructure/QuotientSpace.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpace.h>
 #include <type_traits>
 #include <queue>
-
-namespace ob = ompl::base;
-namespace og = ompl::geometric;
 
 namespace ompl
 {
@@ -50,35 +47,35 @@ namespace ompl
     {
         /** \brief A sequence of multiple quotient-spaces
              The class MultiQuotient can be used with any planner which inherits
-             the og::QuotientSpace class.
+             the ompl::geometric::QuotientSpace class.
 
              Example usage with QRRT
-             (using a sequence si_vec of ob::SpaceInformationPtr)
-               ob::PlannerPtr planner =
-                 std::make_shared<MultiQuotient<og::QRRT> >(si_vec); */
+             (using a sequence si_vec of ompl::base::SpaceInformationPtr)
+             ompl::base::PlannerPtr planner =
+                 std::make_shared<MultiQuotient<ompl::geometric::QRRT> >(si_vec); */
 
         template <class T>
-        class MultiQuotient : public ob::Planner
+        class MultiQuotient : public ompl::base::Planner
         {
-            typedef ob::Planner BaseT;
-            static_assert(std::is_base_of<og::QuotientSpace, T>::value, "Template must inherit from Quotient");
+            typedef ompl::base::Planner BaseT;
+            static_assert(std::is_base_of<ompl::geometric::QuotientSpace, T>::value, "Template must inherit from Quotient");
 
         public:
             const bool DEBUG{false};
 
-            /// \brief Constructor taking a sequence of ob::SpaceInformationPtr
+            /// \brief Constructor taking a sequence of ompl::base::SpaceInformationPtr
             ///  and computing the quotient-spaces for each pair in the sequence
-            MultiQuotient(std::vector<ob::SpaceInformationPtr> &siVec, std::string type = "QuotientPlanner");
+            MultiQuotient(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type = "QuotientPlanner");
             virtual ~MultiQuotient() override;
 
             /// Return annotated vertices (with information about QuotientSpace level)
-            void getPlannerData(ob::PlannerData &data) const override;
+            void getPlannerData(ompl::base::PlannerData &data) const override;
 
-            ob::PlannerStatus solve(const ob::PlannerTerminationCondition &ptc) override;
+            ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override;
             void setup() override;
             void clear() override;
-            virtual void setProblemDefinition(const ob::ProblemDefinitionPtr &pdef) override;
-            const ob::ProblemDefinitionPtr &getProblemDefinition(unsigned kQuotientSpace) const;
+            virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
+            const ompl::base::ProblemDefinitionPtr &getProblemDefinition(unsigned kQuotientSpace) const;
 
             /// Number of quotient-spaces
             int getLevels() const;
@@ -94,10 +91,10 @@ namespace ompl
 
         protected:
             /// Solution paths on each quotient-space
-            std::vector<ob::PathPtr> solutions_;
+            std::vector<ompl::base::PathPtr> solutions_;
 
             /// Sequence of quotient-spaces
-            std::vector<og::QuotientSpace *> quotientSpaces_;
+            std::vector<ompl::geometric::QuotientSpace *> quotientSpaces_;
 
             /// Indicator if a solution has been found on the current quotient-spaces
             bool foundKLevelSolution_{false};
@@ -110,8 +107,8 @@ namespace ompl
             /// level.
             unsigned int stopAtLevel_;
 
-            /// Each QuotientSpace has a unique ob::SpaceInformationPtr 
-            std::vector<ob::SpaceInformationPtr> siVec_;
+            /// Each QuotientSpace has a unique ompl::base::SpaceInformationPtr 
+            std::vector<ompl::base::SpaceInformationPtr> siVec_;
 
             /// Compare function for priority queue
             struct CmpQuotientSpacePtrs
@@ -125,7 +122,7 @@ namespace ompl
             };
             /// \brief Priority queue of QuotientSpaces which keeps track of how often
             /// every tree on each space has been expanded.
-            typedef std::priority_queue<og::QuotientSpace *, std::vector<og::QuotientSpace *>, CmpQuotientSpacePtrs>
+            typedef std::priority_queue<ompl::geometric::QuotientSpace *, std::vector<ompl::geometric::QuotientSpace *>, CmpQuotientSpacePtrs>
                 QuotientSpacePriorityQueue;
             QuotientSpacePriorityQueue priorityQueue_;
         };
