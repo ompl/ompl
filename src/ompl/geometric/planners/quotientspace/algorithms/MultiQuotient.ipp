@@ -235,7 +235,6 @@ void MultiQuotient<T>::setProblemDefinition(const ob::ProblemDefinitionPtr &pdef
     ob::State *sGoal = goalRegion->getState();
 
     OMPL_DEVMSG1("Projecting start and goal onto QuotientSpaces.");
-    OMPL_INFORM("Projecting start and goal onto QuotientSpaces.");
 
     quotientSpaces_.back()->setProblemDefinition(pdef);
 

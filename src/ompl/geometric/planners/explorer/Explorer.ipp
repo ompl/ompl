@@ -1,7 +1,7 @@
 #include "QuotientGraphSparse.h"
-#include <ompl/geometric/planners/quotientspace/PlannerDataVertexAnnotated.h>
-#include <ompl/geometric/planners/quotientspace/QuotientSpace.h>
-#include <ompl/geometric/planners/quotientspace/MultiQuotient.h>
+#include <ompl/geometric/planners/quotientspace/datastructure/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/quotientspace/datastructure/QuotientSpace.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/MultiQuotient.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/util/Time.h>

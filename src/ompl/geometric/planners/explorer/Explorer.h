@@ -1,7 +1,7 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MotionExplorer_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MotionExplorer_
 #include "QuotientGraphSparse.h"
-#include <ompl/geometric/planners/quotientspace/MultiQuotient.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/MultiQuotient.h>
 #include <type_traits>
 #include <queue>
 
