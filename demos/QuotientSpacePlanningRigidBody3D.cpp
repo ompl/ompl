@@ -40,7 +40,6 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/StateSpace.h>
-#include <ompl/geometric/planners/quotientspace/MultiQuotient.h>
 #include <ompl/geometric/planners/quotientspace/QRRT.h>
 #include <iostream>
 #include <boost/math/constants/constants.hpp>
@@ -128,8 +127,7 @@ int main()
     //Step 2: Do path planning as usual but with a sequence of
     //spaceinformationptr
     //############################################################################
-    typedef og::MultiQuotient<og::QRRT> MultiQuotient;
-    auto planner = std::make_shared<MultiQuotient>(si_vec);
+    auto planner = std::make_shared<og::QRRT>(si_vec);
 
     // Planner can be used as any other OMPL algorithm
     planner->setProblemDefinition(pdef);
@@ -147,12 +145,10 @@ int main()
         std::cout << std::string(80, '-') << std::endl;
         std::cout << "Quotient-Space Path (R3):" << std::endl;
         std::cout << std::string(80, '-') << std::endl;
-        const ob::ProblemDefinitionPtr pdefR3 = 
-          std::static_pointer_cast<MultiQuotient>(planner)->getProblemDefinition(0);
+        const ob::ProblemDefinitionPtr pdefR3 = planner->getProblemDefinition(0);
         pdefR3->getSolutionPath()->print(std::cout);
 
-        std::vector<int> nodes =
-          std::static_pointer_cast<MultiQuotient>(planner)->getFeasibleNodes();
+        std::vector<int> nodes = planner->getFeasibleNodes();
 
         std::cout << std::string(80, '-') << std::endl;
         for(unsigned int k = 0; k < nodes.size(); k++)

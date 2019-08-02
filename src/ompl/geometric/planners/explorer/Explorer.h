@@ -12,7 +12,6 @@ namespace ompl
 {
     namespace geometric
     {
-        //class MotionExplorer : public ob::Planner
         template <class T>
         class MotionExplorer : public og::MultiQuotient<T>
         {

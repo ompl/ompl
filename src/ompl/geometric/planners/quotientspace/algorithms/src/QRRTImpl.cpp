@@ -34,7 +34,7 @@
 *********************************************************************/
 
 /* Author: Andreas Orthey */
-#include <ompl/geometric/planners/quotientspace/QRRT.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/QRRTImpl.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <boost/foreach.hpp>
 
@@ -42,49 +42,49 @@ using namespace og;
 using namespace ob;
 #define foreach BOOST_FOREACH
 
-QRRT::QRRT(const ob::SpaceInformationPtr &si, QuotientSpace *parent_) : BaseT(si, parent_)
+QRRTImpl::QRRTImpl(const ob::SpaceInformationPtr &si, QuotientSpace *parent_) : BaseT(si, parent_)
 {
-    setName("QRRT" + std::to_string(id_));
-    Planner::declareParam<double>("range", this, &QRRT::setRange, &QRRT::getRange, "0.:1.:10000.");
-    Planner::declareParam<double>("goal_bias", this, &QRRT::setGoalBias, &QRRT::getGoalBias, "0.:.1:1.");
+    setName("QRRTImpl" + std::to_string(id_));
+    Planner::declareParam<double>("range", this, &QRRTImpl::setRange, &QRRTImpl::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &QRRTImpl::setGoalBias, &QRRTImpl::getGoalBias, "0.:.1:1.");
     qRandom_ = new Configuration(Q1);
 }
 
-QRRT::~QRRT()
+QRRTImpl::~QRRTImpl()
 {
     deleteConfiguration(qRandom_);
 }
 
-void QRRT::setGoalBias(double goalBias)
+void QRRTImpl::setGoalBias(double goalBias)
 {
     goalBias_ = goalBias;
 }
-double QRRT::getGoalBias() const
+double QRRTImpl::getGoalBias() const
 {
     return goalBias_;
 }
-void QRRT::setRange(double maxDistance)
+void QRRTImpl::setRange(double maxDistance)
 {
     maxDistance_ = maxDistance;
 }
-double QRRT::getRange() const
+double QRRTImpl::getRange() const
 {
     return maxDistance_;
 }
 
-void QRRT::setup()
+void QRRTImpl::setup()
 {
     BaseT::setup();
     ompl::tools::SelfConfig sc(Q1, getName());
     sc.configurePlannerRange(maxDistance_);
     goal_ = pdef_->getGoal().get();
 }
-void QRRT::clear()
+void QRRTImpl::clear()
 {
     BaseT::clear();
 }
 
-bool QRRT::getSolution(ob::PathPtr &solution)
+bool QRRTImpl::getSolution(ob::PathPtr &solution)
 {
     if (hasSolution_)
     {
@@ -101,7 +101,7 @@ bool QRRT::getSolution(ob::PathPtr &solution)
     }
 }
 
-void QRRT::grow()
+void QRRTImpl::grow()
 {
     if (firstRun_)
     {
@@ -157,7 +157,7 @@ void QRRT::grow()
     }
 }
 
-double QRRT::getImportance() const
+double QRRTImpl::getImportance() const
 {
     // Should depend on
     // (1) level : The higher the level, the more importance
@@ -177,7 +177,7 @@ double QRRT::getImportance() const
 }
 
 // Make it faster by removing the validity check
-bool QRRT::sample(ob::State *q_random)
+bool QRRTImpl::sample(ob::State *q_random)
 {
     if (parent_ == nullptr)
     {
@@ -199,7 +199,7 @@ bool QRRT::sample(ob::State *q_random)
     return true;
 }
 
-bool QRRT::sampleQuotient(ob::State *q_random_graph)
+bool QRRTImpl::sampleQuotient(ob::State *q_random_graph)
 {
     // RANDOM VERTEX SAMPLING
     const Vertex v = boost::random_vertex(graph_, rng_boost);

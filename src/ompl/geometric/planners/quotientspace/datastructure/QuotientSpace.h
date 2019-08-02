@@ -141,9 +141,9 @@ namespace ompl
             void setLevel(unsigned int);
             /// Type of quotient-space
             QuotientSpaceType getType() const;
-            /// Set pointer to less simplified quotient-space (if any)
+            /// Set pointer to less simplified quotient-space
             void setChild(QuotientSpace *child_);
-            /// Set pointer to more simplified quotient-space (if any)
+            /// Set pointer to more simplified quotient-space
             void setParent(QuotientSpace *parent_);
 
             /// Number of samples drawn on space Q1

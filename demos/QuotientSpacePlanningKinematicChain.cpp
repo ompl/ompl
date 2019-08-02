@@ -37,7 +37,6 @@
 
 #include "KinematicChain.h"
 #include "QuotientSpacePlanningCommon.h"
-#include <ompl/geometric/planners/quotientspace/MultiQuotient.h>
 #include <ompl/geometric/planners/quotientspace/QRRT.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/tools/benchmark/Benchmark.h>
@@ -74,8 +73,7 @@ ob::PlannerPtr GetQRRT(
     OMPL_INFORM("Add Original Chain with %d links.", numLinks);
     si_vec.push_back(si);
 
-    typedef og::MultiQuotient<og::QRRT> MultiQuotient;
-    auto planner = std::make_shared<MultiQuotient>(si_vec);
+    auto planner = std::make_shared<og::QRRT>(si_vec);
     planner->setProblemDefinition(pdef);
 
     std::string qName = "QuotientSpaceRRT[";

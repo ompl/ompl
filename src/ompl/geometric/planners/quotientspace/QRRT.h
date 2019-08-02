@@ -37,18 +37,11 @@
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRT_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRT_
-#include "QuotientSpaceGraph.h"
-#include <ompl/datastructures/PDF.h>
-
-namespace ob = ompl::base;
-namespace og = ompl::geometric;
+#include <ompl/geometric/planners/quotientspace/algorithms/MultiQuotient.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/QRRTImpl.h>
 
 namespace ompl
 {
-    namespace base
-    {
-        OMPL_CLASS_FORWARD(OptimizationObjective);
-    }
     namespace geometric
     {
         /**
@@ -70,46 +63,8 @@ namespace ompl
         */
 
         /** \brief Rapidly Exploring Quotient-Space Tree Algorithm*/
-        class QRRT : public og::QuotientSpaceGraph
-        {
-            typedef og::QuotientSpaceGraph BaseT;
+        typedef ompl::geometric::MultiQuotient<ompl::geometric::QRRTImpl> QRRT;
 
-        public:
-            QRRT(const ob::SpaceInformationPtr &si, QuotientSpace *parent_);
-            virtual ~QRRT() override;
-            /// One iteration of RRT with adjusted sampling function
-            virtual void grow() override;
-            virtual bool getSolution(ob::PathPtr &solution) override;
-            /// Importance based on how many vertices the tree has
-            double getImportance() const override;
-            /// Uniform sampling
-            virtual bool sample(ob::State *q_random) override;
-            /// \brief Quotient-Space sampling by choosing a random vertex from parent
-            /// class tree
-            virtual bool sampleQuotient(ob::State *) override;
-
-            virtual void setup() override;
-            virtual void clear() override;
-
-            void setGoalBias(double goalBias);
-            double getGoalBias() const;
-            void setRange(double distance);
-            double getRange() const;
-
-        protected:
-            /// Random configuration placeholder
-            Configuration *qRandom_{nullptr};
-            /// Current shortest path on tree
-            std::vector<Vertex> shortestPathVertices_;
-
-            /// Maximum distance of expanding the tree
-            double maxDistance_{.0};
-            /// Goal bias similar to RRT
-            double goalBias_{.05};
-
-            /// Goal state or goal region
-            ob::Goal *goal_;
-        };
     }
 }
 

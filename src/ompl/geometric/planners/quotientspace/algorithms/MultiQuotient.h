@@ -37,7 +37,7 @@
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MULTIQUOTIENT_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MULTIQUOTIENT_
-#include "QuotientSpace.h"
+#include <ompl/geometric/planners/quotientspace/datastructure/QuotientSpace.h>
 #include <type_traits>
 #include <queue>
 

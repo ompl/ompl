@@ -34,7 +34,7 @@
 *********************************************************************/
 
 /* Author: Andreas Orthey */
-#include <ompl/geometric/planners/quotientspace/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/quotientspace/datastructure/PlannerDataVertexAnnotated.h>
 
 using namespace ob;
 

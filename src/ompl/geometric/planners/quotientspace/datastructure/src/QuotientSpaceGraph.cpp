@@ -35,8 +35,8 @@
 
 /* Author: Andreas Orthey */
 #include "GoalVisitor.hpp"
-#include <ompl/geometric/planners/quotientspace/PlannerDataVertexAnnotated.h>
-#include <ompl/geometric/planners/quotientspace/QuotientSpaceGraph.h>
+#include <ompl/geometric/planners/quotientspace/datastructure/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/quotientspace/datastructure/QuotientSpaceGraph.h>
 
 #include <ompl/geometric/planners/prm/ConnectionStrategy.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
