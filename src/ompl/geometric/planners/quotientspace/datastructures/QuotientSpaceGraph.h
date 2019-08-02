@@ -64,9 +64,9 @@ namespace ompl
     namespace geometric
     {
         /// \brief A graph on a quotient-space
-        class QuotientSpaceGraph : public ompl::geometric::QuotientSpace
+        class QuotientSpaceGraph : public QuotientSpace
         {
-            typedef ompl::geometric::QuotientSpace BaseT;
+            typedef QuotientSpace BaseT;
 
         public:
             typedef int normalized_index_type;

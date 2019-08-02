@@ -48,10 +48,10 @@ namespace ompl
     }
     namespace geometric
     {
-        /** \brief Implementation of Rapidly Exploring Quotient-Space Tree Algorithm*/
+        /** \brief Implementation of QuotientSpace Rapidly-Exploring Random Trees Algorithm*/
         class QRRTImpl : public ompl::geometric::QuotientSpaceGraph
         {
-            typedef ompl::geometric::QuotientSpaceGraph BaseT;
+            typedef QuotientSpaceGraph BaseT;
 
         public:
             QRRTImpl(const ompl::base::SpaceInformationPtr &si, QuotientSpace *parent_);

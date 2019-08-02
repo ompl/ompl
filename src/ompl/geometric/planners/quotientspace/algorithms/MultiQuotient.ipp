@@ -275,16 +275,6 @@ void MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
     unsigned int K = std::min(solutions_.size() + 1, quotientSpaces_.size());
     K = std::min(K, stopAtLevel_);
 
-    std::vector<int> fn = getFeasibleNodes();
-    std::vector<int> n = getNodes();
-    int fn_sum = 0;
-    int n_sum = 0;
-    for (unsigned int k = 0; k < fn.size(); k++)
-    {
-        fn_sum += fn.at(k);
-        n_sum += n.at(k);
-    }
-
     for (unsigned int k = 0; k < K; k++)
     {
         og::QuotientSpace *Qk = quotientSpaces_.at(k);

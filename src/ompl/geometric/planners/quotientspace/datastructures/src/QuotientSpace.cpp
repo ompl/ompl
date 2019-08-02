@@ -198,6 +198,7 @@ void QuotientSpace::resetCounter()
 {
     QuotientSpace::counter_ = 0;
 }
+
 const StateSpacePtr QuotientSpace::computeQuotientSpace(const StateSpacePtr Q1, const StateSpacePtr Q0)
 {
     type_ = identifyQuotientSpaceType(Q1, Q0);
@@ -761,7 +762,7 @@ void QuotientSpace::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::
 
             sQ1_SO2->value = sQ0->value;
 
-            for(uint k = 0; k < X1_dimension_; k++){
+            for(unsigned k = 0; k < X1_dimension_; k++){
               sQ1_RN->values[k] = sX1->values[k];
             }
             break;

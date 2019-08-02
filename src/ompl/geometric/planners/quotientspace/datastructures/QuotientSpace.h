@@ -169,6 +169,7 @@ namespace ompl
             friend std::ostream &operator<<(std::ostream &out, const QuotientSpace &qtnt);
 
         protected:
+
             /// Internal function implementing actual printing to stream
             virtual void print(std::ostream &out) const;
 
