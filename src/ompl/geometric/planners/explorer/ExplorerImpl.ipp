@@ -12,7 +12,7 @@ using namespace og;
 using namespace ob;
 
 template <class T>
-MotionExplorer<T>::MotionExplorer(std::vector<ob::SpaceInformationPtr> &siVec, std::string type)
+MotionExplorerImpl<T>::MotionExplorerImpl(std::vector<ob::SpaceInformationPtr> &siVec, std::string type)
   : BaseT(siVec, type)
 {
     root = static_cast<og::QuotientGraphSparse*>(this->quotientSpaces_.front());
@@ -22,18 +22,18 @@ MotionExplorer<T>::MotionExplorer(std::vector<ob::SpaceInformationPtr> &siVec, s
 }
 
 template <class T>
-MotionExplorer<T>::~MotionExplorer()
+MotionExplorerImpl<T>::~MotionExplorerImpl()
 {
 }
 
 template <class T>
-void MotionExplorer<T>::setup()
+void MotionExplorerImpl<T>::setup()
 {
     BaseT::setup();
 }
 
 template <class T>
-void MotionExplorer<T>::clear()
+void MotionExplorerImpl<T>::clear()
 {
     BaseT::clear();
     selectedPath_.clear();
@@ -42,7 +42,7 @@ void MotionExplorer<T>::clear()
 }
 
 template <class T>
-void MotionExplorer<T>::setSelectedPath( std::vector<int> selectedPath){
+void MotionExplorerImpl<T>::setSelectedPath( std::vector<int> selectedPath){
     selectedPath_ = selectedPath;
     for(uint k = 0; k < selectedPath.size(); k++){
       //selected path implies path bias, which implies a sampling bias towards the
@@ -61,7 +61,7 @@ void MotionExplorer<T>::setSelectedPath( std::vector<int> selectedPath){
 }
 
 template <class T>
-ob::PlannerStatus MotionExplorer<T>::solve(const ob::PlannerTerminationCondition &ptc)
+ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondition &ptc)
 {
     uint K = selectedPath_.size();
     if(K>=this->quotientSpaces_.size()){
@@ -95,7 +95,7 @@ ob::PlannerStatus MotionExplorer<T>::solve(const ob::PlannerTerminationCondition
 }
 
 template <class T>
-void MotionExplorer<T>::getPlannerData(ob::PlannerData &data) const
+void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
 {
     unsigned int Nvertices = data.numVertices();
     if (Nvertices > 0)
