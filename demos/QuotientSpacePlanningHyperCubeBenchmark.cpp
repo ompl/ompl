@@ -119,16 +119,16 @@ protected:
     int dimension_;
 };
 
-static uint numberRuns{0};
+static unsigned numberRuns{0};
 
 void PostRunEvent(const ob::PlannerPtr &planner, ot::Benchmark::RunProperties &run)
 {
-  static uint pid = 0;
+  static unsigned pid = 0;
 
   ob::SpaceInformationPtr si = planner->getSpaceInformation();
   ob::ProblemDefinitionPtr pdef = planner->getProblemDefinition();
 
-  uint states = boost::lexical_cast<int>(run["graph states INTEGER"]);
+  unsigned states = boost::lexical_cast<int>(run["graph states INTEGER"]);
   double time = boost::lexical_cast<double>(run["time REAL"]);
   double memory = boost::lexical_cast<double>(run["memory REAL"]);
 
