@@ -34,10 +34,10 @@
 *********************************************************************/
 
 /* Author: Andreas Orthey */
-#include <ompl/geometric/planners/quotientspace/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 
+namespace ob = ompl::base;
 using namespace ob;
-using FeasibilityType = PlannerDataVertexAnnotated::FeasibilityType;
 
 PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const ob::State *st, int tag) : ob::PlannerDataVertex(st, tag)
 {
@@ -49,6 +49,7 @@ PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const PlannerDataVertexAn
     level_ = rhs.getLevel();
     maxLevel_ = rhs.getMaxLevel();
     component_ = rhs.getComponent();
+    path_ = rhs.getPath();
     stateQuotientSpace_ = rhs.getQuotientState();
 }
 
@@ -88,6 +89,16 @@ unsigned int PlannerDataVertexAnnotated::getMaxLevel() const
 }
 
 //##############################################################################
+void PlannerDataVertexAnnotated::setPath(std::vector<int> path)
+{
+    path_ = path;
+}
+std::vector<int> PlannerDataVertexAnnotated::getPath() const
+{
+    return path_;
+}
+
+//##############################################################################
 const ob::State *PlannerDataVertexAnnotated::getState() const
 {
     return state_;
@@ -103,6 +114,13 @@ void PlannerDataVertexAnnotated::setQuotientState(const ob::State *s)
 void PlannerDataVertexAnnotated::setState(ob::State *s)
 {
     state_ = s;
+}
+
+bool operator==(const PlannerDataVertexAnnotated &lhs, const PlannerDataVertexAnnotated &rhs)
+{
+    return (lhs.getLevel() == rhs.getLevel() 
+        && lhs.getState() == rhs.getState() 
+        && lhs.getPath()== rhs.getPath());
 }
 
 std::ostream &operator<<(std::ostream &out, const PlannerDataVertexAnnotated &v)

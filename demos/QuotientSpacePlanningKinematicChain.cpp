@@ -37,7 +37,6 @@
 
 #include "KinematicChain.h"
 #include "QuotientSpacePlanningCommon.h"
-#include <ompl/geometric/planners/quotientspace/MultiQuotient.h>
 #include <ompl/geometric/planners/quotientspace/QRRT.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/tools/benchmark/Benchmark.h>
@@ -52,13 +51,10 @@ std::vector<Environment> envs;
 ob::PlannerPtr GetQRRT(
     std::vector<int> sequenceLinks, 
     ob::SpaceInformationPtr si, 
-    ob::ProblemDefinitionPtr pdef, 
-    std::vector<double> start, 
-    std::vector<double> goal)
+    ob::ProblemDefinitionPtr pdef)
 {
     // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     std::vector<ob::SpaceInformationPtr> si_vec;
-    std::vector<ob::ProblemDefinitionPtr> pdef_vec;
 
     for(unsigned k = 0; k < sequenceLinks.size(); k++)
     {
@@ -70,29 +66,15 @@ ob::PlannerPtr GetQRRT(
 
         auto siK = std::make_shared<ob::SpaceInformation>(spaceK);
         siK->setStateValidityChecker(std::make_shared<KinematicChainValidityChecker>(siK));
-        ob::ProblemDefinitionPtr pdefk = std::make_shared<ob::ProblemDefinition>(siK);
-
-        unsigned clippedDofs = numLinks - links;
-        std::vector<double> startVecK(start.begin(), start.end()-clippedDofs);
-        std::vector<double> goalVecK(goal.begin(), goal.end()-clippedDofs);
-
-        ompl::base::ScopedState<> startk(spaceK), goalk(spaceK);
         spaceK->setup();
-        spaceK->copyFromReals(startk.get(), startVecK);
-        spaceK->copyFromReals(goalk.get(), goalVecK);
-        pdefk->setStartAndGoalStates(startk, goalk);
-
         si_vec.push_back(siK);
-        pdef_vec.push_back(pdefk);
     }
 
     OMPL_INFORM("Add Original Chain with %d links.", numLinks);
     si_vec.push_back(si);
-    pdef_vec.push_back(pdef);
 
-    typedef og::MultiQuotient<og::QRRT> MultiQuotient;
-    auto planner = std::make_shared<MultiQuotient>(si_vec);
-    planner->setProblemDefinition(pdef_vec);
+    auto planner = std::make_shared<og::QRRT>(si_vec);
+    planner->setProblemDefinition(pdef);
 
     std::string qName = "QuotientSpaceRRT[";
     for(unsigned k = 0; k < sequenceLinks.size(); k++)
@@ -126,7 +108,6 @@ int main()
     std::vector<double> goalVec(numLinks, 0);
     startVec[0] = 0.;
     goalVec[0] = boost::math::constants::pi<double>() - .001;
-
     chain->setup();
     chain->copyFromReals(start.get(), startVec);
     chain->copyFromReals(goal.get(), goalVec);
@@ -149,53 +130,35 @@ int main()
 
     b.addPlanner( GetQRRT(std::vector<int>{3}, 
           ss.getSpaceInformation(), 
-          ss.getProblemDefinition(), 
-          startVec, 
-          goalVec));
+          ss.getProblemDefinition()) );
     b.addPlanner( GetQRRT(std::vector<int>{2}, 
           ss.getSpaceInformation(), 
-          ss.getProblemDefinition(), 
-          startVec, 
-          goalVec));
+          ss.getProblemDefinition()) );
     b.addPlanner( GetQRRT(std::vector<int>{3,5,9}, 
           ss.getSpaceInformation(), 
-          ss.getProblemDefinition(), 
-          startVec, 
-          goalVec));
+          ss.getProblemDefinition()) );
     b.addPlanner( GetQRRT(std::vector<int>{3,11}, 
           ss.getSpaceInformation(), 
-          ss.getProblemDefinition(), 
-          startVec, 
-          goalVec));
+          ss.getProblemDefinition()) );
     b.addPlanner( GetQRRT(std::vector<int>{10}, 
           ss.getSpaceInformation(), 
-          ss.getProblemDefinition(), 
-          startVec, 
-          goalVec));
+          ss.getProblemDefinition()) );
     b.addPlanner( GetQRRT(std::vector<int>{12}, 
           ss.getSpaceInformation(), 
-          ss.getProblemDefinition(), 
-          startVec, 
-          goalVec));
+          ss.getProblemDefinition()) );
     b.addPlanner( GetQRRT(std::vector<int>{8,13}, 
           ss.getSpaceInformation(), 
-          ss.getProblemDefinition(), 
-          startVec, 
-          goalVec));
+          ss.getProblemDefinition()) );
     b.addPlanner( GetQRRT(std::vector<int>{}, 
           ss.getSpaceInformation(), 
-          ss.getProblemDefinition(), 
-          startVec, 
-          goalVec));
+          ss.getProblemDefinition()) );
     b.addPlanner( GetQRRT(std::vector<int>{2,3,4,5,6,7,8,9,10,11,12,13,14}, 
           ss.getSpaceInformation(), 
-          ss.getProblemDefinition(), 
-          startVec, 
-          goalVec));
+          ss.getProblemDefinition()) );
 
     b.benchmark(request);
     b.saveResultsToFile(boost::str(boost::format("kinematic_%i.log") % numLinks).c_str());
 
-    PrintBenchmarkResults(b);
+    printBenchmarkResults(b);
     return 0;
 }

@@ -35,8 +35,8 @@
 
 /* Author: Andreas Orthey */
 #include "GoalVisitor.hpp"
-#include <ompl/geometric/planners/quotientspace/PlannerDataVertexAnnotated.h>
-#include <ompl/geometric/planners/quotientspace/QuotientSpaceGraph.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraph.h>
 
 #include <ompl/geometric/planners/prm/ConnectionStrategy.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
@@ -51,8 +51,12 @@
 #include <boost/foreach.hpp>
 
 #define foreach BOOST_FOREACH
-using namespace og;
+
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
 using namespace ob;
+using namespace og;
+
 typedef QuotientSpaceGraph::Configuration Configuration;
 
 QuotientSpaceGraph::QuotientSpaceGraph(const ob::SpaceInformationPtr &si, QuotientSpace *parent_) : BaseT(si, parent_)
@@ -68,8 +72,13 @@ QuotientSpaceGraph::QuotientSpaceGraph(const ob::SpaceInformationPtr &si, Quotie
     }
 }
 
+QuotientSpaceGraph::~QuotientSpaceGraph()
+{
+}
+
 void QuotientSpaceGraph::setup()
 {
+    BaseT::setup();
     if (!nearestDatastructure_)
     {
         nearestDatastructure_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
@@ -79,7 +88,6 @@ void QuotientSpaceGraph::setup()
 
     if (pdef_)
     {
-        BaseT::setup();
         if (pdef_->hasOptimizationObjective())
         {
             opt_ = pdef_->getOptimizationObjective();
@@ -96,11 +104,18 @@ void QuotientSpaceGraph::setup()
         setup_ = false;
     }
 }
-
-QuotientSpaceGraph::~QuotientSpaceGraph()
+void QuotientSpaceGraph::clear()
 {
-    clear();
+    BaseT::clear();
+
+    clearVertices();
+    clearQuery();
+    graphLength_ = 0;
+    bestCost_ = ob::Cost(ob::dInf);
+    setup_ = false;
 }
+
+
 QuotientSpaceGraph::Configuration::Configuration(const ob::SpaceInformationPtr &si) : state(si->allocState())
 {
 }
@@ -134,17 +149,6 @@ void QuotientSpaceGraph::clearVertices()
         nearestDatastructure_->clear();
     }
     graph_.clear();
-}
-
-void QuotientSpaceGraph::clear()
-{
-    BaseT::clear();
-
-    clearVertices();
-    clearQuery();
-    graphLength_ = 0;
-    bestCost_ = ob::Cost(dInf);
-    setup_ = false;
 }
 
 void QuotientSpaceGraph::clearQuery()
@@ -219,8 +223,7 @@ QuotientSpaceGraph::Vertex QuotientSpaceGraph::addConfiguration(Configuration *q
     Vertex m = boost::add_vertex(q, graph_);
     graph_[m]->total_connection_attempts = 1;
     graph_[m]->successful_connection_attempts = 0;
-    // disjointSets_.make_set(m);
-    // ConnectVertexToNeighbors(m);
+    disjointSets_.make_set(m);
     nearestDatastructure_->add(q);
     q->index = m;
     return m;
@@ -234,11 +237,11 @@ unsigned int QuotientSpaceGraph::getNumberOfEdges() const
     return num_edges(graph_);
 }
 
-const og::QuotientSpaceGraph::Graph &QuotientSpaceGraph::getGraph() const
+const QuotientSpaceGraph::Graph &QuotientSpaceGraph::getGraph() const
 {
     return graph_;
 }
-const og::QuotientSpaceGraph::RoadmapNeighborsPtr &QuotientSpaceGraph::getRoadmapNeighborsPtr() const
+const QuotientSpaceGraph::RoadmapNeighborsPtr &QuotientSpaceGraph::getRoadmapNeighborsPtr() const
 {
     return nearestDatastructure_;
 }
@@ -290,7 +293,7 @@ bool QuotientSpaceGraph::getSolution(ob::PathPtr &solution)
     else
     {
         ob::Goal *g = pdef_->getGoal().get();
-        bestCost_ = ob::Cost(+dInf);
+        bestCost_ = ob::Cost(+ob::dInf);
         bool same_component = sameComponent(vStart_, vGoal_);
 
         if (same_component && g->isStartGoalPairValid(graph_[vGoal_]->state, graph_[vStart_]->state))

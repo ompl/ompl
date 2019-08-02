@@ -34,18 +34,20 @@
 *********************************************************************/
 
 /* Author: Andreas Orthey */
-#include <ompl/geometric/planners/quotientspace/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
+#include <ompl/base/goals/GoalSampleableRegion.h>
+#include <ompl/base/goals/GoalState.h>
 #include <ompl/util/Time.h>
 #include <queue>
 
+namespace og = ompl::geometric;
 using namespace og;
-using namespace ob;
 
 template <class T>
-MultiQuotient<T>::MultiQuotient(std::vector<ob::SpaceInformationPtr> &siVec, std::string type)
-  : ob::Planner(siVec.back(), type), siVec_(siVec)
+MultiQuotient<T>::MultiQuotient(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
+  : ompl::base::Planner(siVec.back(), type), siVec_(siVec)
 {
     T::resetCounter();
     for (unsigned int k = 0; k < siVec_.size(); k++)
@@ -59,7 +61,7 @@ MultiQuotient<T>::MultiQuotient(std::vector<ob::SpaceInformationPtr> &siVec, std
         quotientSpaces_.back()->setLevel(k);
     }
     stopAtLevel_ = quotientSpaces_.size();
-    OMPL_DEBUG("Created %d QuotientSpace levels.",siVec_.size());
+    OMPL_DEVMSG2("Created %d QuotientSpace levels.",siVec_.size());
 }
 
 template <class T>
@@ -110,7 +112,7 @@ MultiQuotient<T>::~MultiQuotient()
 template <class T>
 void MultiQuotient<T>::setup()
 {
-    Planner::setup();
+    BaseT::setup();
     for (unsigned int k = 0; k < stopAtLevel_; k++)
     {
         quotientSpaces_.at(k)->setup();
@@ -148,14 +150,10 @@ void MultiQuotient<T>::clear()
 
     solutions_.clear();
     pdef_->clearSolutionPaths();
-    for (unsigned int k = 0; k < pdefVec_.size(); k++)
-    {
-        pdefVec_.at(k)->clearSolutionPaths();
-    }
 }
 
 template <class T>
-ob::PlannerStatus MultiQuotient<T>::solve(const ob::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus MultiQuotient<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
 {
     ompl::time::point t_start = ompl::time::now();
 
@@ -166,7 +164,7 @@ ob::PlannerStatus MultiQuotient<T>::solve(const ob::PlannerTerminationCondition 
         if (priorityQueue_.size() <= currentQuotientLevel_)
             priorityQueue_.push(quotientSpaces_.at(k));
 
-        ob::PlannerTerminationCondition ptcOrSolutionFound([this, &ptc] { return ptc || foundKLevelSolution_; });
+        ompl::base::PlannerTerminationCondition ptcOrSolutionFound([this, &ptc] { return ptc || foundKLevelSolution_; });
 
         while (!ptcOrSolutionFound())
         {
@@ -177,7 +175,7 @@ ob::PlannerStatus MultiQuotient<T>::solve(const ob::PlannerTerminationCondition 
             bool hasSolution = quotientSpaces_.at(k)->hasSolution();
             if (hasSolution)
             {
-                ob::PathPtr sol_k;
+                ompl::base::PathPtr sol_k;
                 quotientSpaces_.at(k)->getSolution(sol_k);
                 solutions_.push_back(sol_k);
                 double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
@@ -186,10 +184,10 @@ ob::PlannerStatus MultiQuotient<T>::solve(const ob::PlannerTerminationCondition 
                 currentQuotientLevel_ = k + 1;
 
                 // add solution to pdef
-                ob::PlannerSolution psol(sol_k);
+                ompl::base::PlannerSolution psol(sol_k);
                 std::string lvl_name = getName() + " LvL" + std::to_string(k);
                 psol.setPlannerName(lvl_name);
-                pdefVec_.at(k)->addSolutionPath(psol);
+                quotientSpaces_.at(k)->getProblemDefinition()->addSolutionPath(psol);
             }
             priorityQueue_.push(jQuotient);
         }
@@ -197,48 +195,74 @@ ob::PlannerStatus MultiQuotient<T>::solve(const ob::PlannerTerminationCondition 
         if (!foundKLevelSolution_)
         {
             OMPL_DEBUG("Planner failed finding solution on QuotientSpace level %d", k);
-            return ob::PlannerStatus::TIMEOUT;
+            return ompl::base::PlannerStatus::TIMEOUT;
         }
     }
     double t_end = ompl::time::seconds(ompl::time::now() - t_start);
     OMPL_DEBUG("Found exact solution after %f seconds.", t_end);
 
-    ob::PathPtr sol;
+    ompl::base::PathPtr sol;
     if (quotientSpaces_.at(currentQuotientLevel_ - 1)->getSolution(sol))
     {
-        ob::PlannerSolution psol(sol);
+        ompl::base::PlannerSolution psol(sol);
         psol.setPlannerName(getName());
         pdef_->addSolutionPath(psol);
     }
 
-    return ob::PlannerStatus::EXACT_SOLUTION;
+    return ompl::base::PlannerStatus::EXACT_SOLUTION;
 }
 
 template <class T>
-void MultiQuotient<T>::setProblemDefinition(std::vector<ob::ProblemDefinitionPtr> &pdef_)
+const ompl::base::ProblemDefinitionPtr &MultiQuotient<T>::getProblemDefinition(unsigned kQuotientSpace) const
 {
-    if (siVec_.size() != pdef_.size())
-    {
-        OMPL_ERROR("Number of ProblemDefinitionPtr is %d but we have %d SpaceInformationPtr.", pdef_.size(),
-                   siVec_.size());
-        exit(0);
-    }
-    pdefVec_ = pdef_;
-    ob::Planner::setProblemDefinition(pdefVec_.back());
-    for (unsigned int k = 0; k < pdefVec_.size(); k++)
-    {
-        quotientSpaces_.at(k)->setProblemDefinition(pdefVec_.at(k));
-    }
+    assert(kQuotientSpace >= 0);
+    assert(kQuotientSpace <= siVec_.size()-1);
+    return quotientSpaces_.at(kQuotientSpace)->getProblemDefinition();
 }
 
 template <class T>
-void MultiQuotient<T>::setProblemDefinition(const ob::ProblemDefinitionPtr &pdef)
+void MultiQuotient<T>::setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef)
 {
     this->Planner::setProblemDefinition(pdef);
+
+    //Compute projection of qInit and qGoal onto QuotientSpaces
+    ompl::base::Goal *goal = pdef_->getGoal().get();
+    ompl::base::GoalState *goalRegion = dynamic_cast<ompl::base::GoalState *>(goal);
+    double epsilon = goalRegion->getThreshold();
+    assert(quotientSpaces_.size() == siVec_.size());
+
+    ompl::base::State *sInit = pdef->getStartState(0);
+    ompl::base::State *sGoal = goalRegion->getState();
+
+    OMPL_DEVMSG1("Projecting start and goal onto QuotientSpaces.");
+
+    quotientSpaces_.back()->setProblemDefinition(pdef);
+
+    for (unsigned int k = siVec_.size()-1; k > 0 ; k--)
+    {
+        og::QuotientSpace *quotientParent = quotientSpaces_.at(k);
+        og::QuotientSpace *quotientChild = quotientSpaces_.at(k-1);
+        ompl::base::SpaceInformationPtr sik = quotientChild->getSpaceInformation();
+        ompl::base::ProblemDefinitionPtr pdefk = std::make_shared<base::ProblemDefinition>(sik);
+
+        ompl::base::State *sInitK = sik->allocState();
+        ompl::base::State *sGoalK = sik->allocState();
+
+        quotientParent->projectQ0Subspace(sInit, sInitK);
+        quotientParent->projectQ0Subspace(sGoal, sGoalK);
+
+        pdefk->setStartAndGoalStates(sInitK, sGoalK, epsilon);
+
+        quotientChild->setProblemDefinition(pdefk);
+
+        sInit = sInitK;
+        sGoal = sGoalK;
+    }
 }
 
+
 template <class T>
-void MultiQuotient<T>::getPlannerData(ob::PlannerData &data) const
+void MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
 {
     unsigned int Nvertices = data.numVertices();
     if (Nvertices > 0)
@@ -251,16 +275,6 @@ void MultiQuotient<T>::getPlannerData(ob::PlannerData &data) const
     unsigned int K = std::min(solutions_.size() + 1, quotientSpaces_.size());
     K = std::min(K, stopAtLevel_);
 
-    std::vector<int> fn = getFeasibleNodes();
-    std::vector<int> n = getNodes();
-    int fn_sum = 0;
-    int n_sum = 0;
-    for (unsigned int k = 0; k < fn.size(); k++)
-    {
-        fn_sum += fn.at(k);
-        n_sum += n.at(k);
-    }
-
     for (unsigned int k = 0; k < K; k++)
     {
         og::QuotientSpace *Qk = quotientSpaces_.at(k);
@@ -270,11 +284,11 @@ void MultiQuotient<T>::getPlannerData(ob::PlannerData &data) const
         unsigned int ctr = 0;
         for (unsigned int vidx = Nvertices; vidx < data.numVertices(); vidx++)
         {
-            PlannerDataVertexAnnotated &v = *static_cast<PlannerDataVertexAnnotated *>(&data.getVertex(vidx));
+            ompl::base::PlannerDataVertexAnnotated &v = *static_cast<ompl::base::PlannerDataVertexAnnotated *>(&data.getVertex(vidx));
             v.setLevel(k);
             v.setMaxLevel(K);
 
-            ob::State *s_lift = Qk->getSpaceInformation()->cloneState(v.getState());
+            ompl::base::State *s_lift = Qk->getSpaceInformation()->cloneState(v.getState());
             v.setQuotientState(s_lift);
 
             for (unsigned int m = k + 1; m < quotientSpaces_.size(); m++)
@@ -283,15 +297,15 @@ void MultiQuotient<T>::getPlannerData(ob::PlannerData &data) const
 
                 if (Qm->getX1() != nullptr)
                 {
-                    ob::State *s_X1 = Qm->getX1()->allocState();
-                    ob::State *s_Q1 = Qm->getSpaceInformation()->allocState();
-                    if (Qm->getX1()->getStateSpace()->getType() == ob::STATE_SPACE_SO3)
+                    ompl::base::State *s_X1 = Qm->getX1()->allocState();
+                    ompl::base::State *s_Q1 = Qm->getSpaceInformation()->allocState();
+                    if (Qm->getX1()->getStateSpace()->getType() == ompl::base::STATE_SPACE_SO3)
                     {
-                        static_cast<ob::SO3StateSpace::StateType *>(s_X1)->setIdentity();
+                        static_cast<ompl::base::SO3StateSpace::StateType *>(s_X1)->setIdentity();
                     }
-                    if (Qm->getX1()->getStateSpace()->getType() == ob::STATE_SPACE_SO2)
+                    if (Qm->getX1()->getStateSpace()->getType() == ompl::base::STATE_SPACE_SO2)
                     {
-                        static_cast<ob::SO2StateSpace::StateType *>(s_X1)->setIdentity();
+                        static_cast<ompl::base::SO2StateSpace::StateType *>(s_X1)->setIdentity();
                     }
                     Qm->mergeStates(s_lift, s_X1, s_Q1);
                     s_lift = Qm->getSpaceInformation()->cloneState(s_Q1);
