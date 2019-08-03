@@ -51,23 +51,24 @@ namespace og = ompl::geometric;
 //Path Planning in SE2 = R2 \times SO2
 //using quotient-spaces R2 and SE2
 
+bool boxConstraint(const double values[])
+{
+    const double &x = values[0]-0.5;
+    const double &y = values[1]-0.5;
+    double pos_cnstr = sqrt(x*x + y*y);
+    return (pos_cnstr > 0.2);
+}
 bool isStateValid_SE2(const ob::State *state) 
 {
-    // disallow going through the middle of the square [0,1]x[0,1]
-    // to make it more interesting (i.e. an initial R2 path might be invalid)
     const auto *SE2state = state->as<ob::SE2StateSpace::StateType>();
     const auto *R2 = SE2state->as<ob::RealVectorStateSpace::StateType>(0);
     const auto *SO2 = SE2state->as<ob::SO2StateSpace::StateType>(1);
-
-    const double &x = R2->values[0]-0.5;
-    const double &y = R2->values[1]-0.5;
-    double pos_cnstr = sqrt(x*x + y*y);
-    return (pos_cnstr > 0.2) && (SO2->value < boost::math::constants::pi<double>() / 2.0);
+    return boxConstraint(R2->values) && (SO2->value < boost::math::constants::pi<double>() / 2.0);
 }
-
 bool isStateValid_R2(const ob::State *state) 
 { 
-    return true; 
+    const auto *R2 = state->as<ob::RealVectorStateSpace::StateType>();
+    return boxConstraint(R2->values);
 }
 
 int main() 

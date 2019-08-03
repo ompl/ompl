@@ -2,15 +2,15 @@
 
 We show in this tutorial how the setup of a QuotientSpace planning task differs
 from a classical ConfigurationSpace planning task. Finally, we show how the
-PlannerData can be extracted from the planner.
+PlannerData can be extracted from the QuotientSpace planner.
 
 ### Classical Configuration Space Planning 
-A classical planning problem in OMPL is defined by the following classes
+A classical planning problem in OMPL is defined by 
 - `ompl::base::SpaceInformationPtr`, the configuration space
 - `ompl::base::ProblemDefinitionPtr`, the start and goal configuration
 - `ompl::base::PlannerPtr`, the planner used
 
-Having defined those classes, a solve routine (e.g. using RRT) looks roughly like that
+We then construct and solve a planning problem as
 
 ~~~{.cpp}
 
@@ -35,34 +35,100 @@ number of QuotientSpaces, which can be exploited by an algorithm (if it
 supports it).
 
 We therefore need in addition
-- `std::vector<ompl::base::SpaceInformationPtr>`, the QuotientSpaces and the
-  configuration space as last element
-- `std::vector<ompl::base::ProblemDefinitionPtr>`, the start and goal configuration for each QuotientSpace
-- `ompl::geometric::MultiQuotient`, the manager class which decides when to explore a
-  QuotientSpace and when to switch to another QuotientSpace
-- `ompl::geometric::QuotientSpace`, the actual implementation of a QuotientSpace.
-  Every planner needs to inherit this class. You are not allowed to call solve() on this
-class, but you rather need to use ompl::geometric::MultiQuotient to manage the
-QuotientSpaces.
+- `std::vector<ompl::base::SpaceInformationPtr>`, the QuotientSpaces. Sorted in
+  ascending order depending on number of dimensions. Last element has to be the
+  Configuration Space.
 - `ompl::geometric::QRRT`, a specific QuotientSpace planner which inherits from
   ompl::geometric::QuotientSpace
 
-Having defined those classes, we can solve a new planning problem as
+A planning problem can then be solved as
 
 ~~~{.cpp}
-std::vector<ompl::base::SpaceInformationPtr> si_vec; 
-std::vector<ompl::base::ProblemDefinitionPtr> pdef_vec; 
+std::vector<ompl::base::SpaceInformationPtr> siVec; 
+ompl::base::ProblemDefinitionPtr pdef; 
 
 //...
-// Set QuotientSpaces in si_vec, set start and goal states to pdef_vec
+// Build QuotientSpaces in siVec (see below), set start and goal states to pdef
 //...
 
-typedef og::MultiQuotient<og::QRRT> MultiQuotient;
-auto planner = std::make_shared<MultiQuotient>(si_vec);
-planner->setProblemDefinition(pdef_vec);
+auto planner = std::make_shared<og::QRRT>(siVec);
 
+planner->setProblemDefinition(pdef);
 planner->setup();
 planner->solve();
+~~~
+
+### Building QuotientSpaces
+
+Let us build a small sequence of two QuotientSpaces for a Rigid Body in 2D with
+configuration space 
+\f$SE(2)\f$. This
+example has been implemented in demos/QuotientSpacePlanningRigidBody2D.cpp
+
+First, we need to construct the SpaceInformationPtr for each QuotientSpace. In
+this case, we opt for two layers 
+\f$\{\mathbb{R}^2, SE(2)\}\f$. The space is bounded to be in the unit square
+\f$[0,1]^2\f$
+
+~~~{.cpp}
+
+auto SE2(std::make_shared<ob::SE2StateSpace>());
+ob::RealVectorBounds bounds(2);
+bounds.setLow(0);
+bounds.setHigh(1);
+SE2->setBounds(bounds);
+ob::SpaceInformationPtr si_SE2(std::make_shared<ob::SpaceInformation>(SE2));
+
+auto R2(std::make_shared<ob::RealVectorStateSpace>(2));
+R2->setBounds(0, 1);
+ob::SpaceInformationPtr si_R2(std::make_shared<ob::SpaceInformation>(R2));
+~~~
+
+Second, we need to set the validitychecker for each SpaceInformationPtr. This is
+done by defining a Validity function which evaluates to true if a State is
+feasible and false if it is infeasible. 
+
+For the SE(2) constraint, we declare all configurations feasible where the
+rotation is smaller than \f$\frac{\pi}{2}\f$ and where the position is not in a
+circle of radius \f$0.2\f$ located at \f$(0.5,0.5)\f$.
+
+~~~{.cpp}
+bool boxConstraint(const double values[])
+{
+    const double &x = values[0]-0.5;
+    const double &y = values[1]-0.5;
+    double pos_cnstr = sqrt(x*x + y*y);
+    return (pos_cnstr > 0.2);
+}
+bool isStateValid_SE2(const ob::State *state) 
+{
+    const auto *SE2state = state->as<ob::SE2StateSpace::StateType>();
+    const auto *R2 = SE2state->as<ob::RealVectorStateSpace::StateType>(0);
+    const auto *SO2 = SE2state->as<ob::SO2StateSpace::StateType>(1);
+    return boxConstraint(R2->values) && (SO2->value < boost::math::constants::pi<double>() / 2.0);
+}
+~~~
+
+The validity function for the QuotientSpace can be constructed for example by removing some of the constraints. In real experiments, we often remove links or parts of links from a robot, which implicitly removes the constraints.
+
+~~~{.cpp}
+bool isStateValid_R2(const ob::State *state) 
+{ 
+    const auto *R2 = state->as<ob::RealVectorStateSpace::StateType>();
+    return boxConstraint(R2->values);
+}
+~~~
+
+Finally, we need to set the Validity function to and push the
+SpaceInformationPtr into the vector. Note that the SpaceInformationPtr have to
+be sorted in ascending order depending on number of dimensions. 
+
+~~~{.cpp}
+si_SE2->setStateValidityChecker(isStateValid_SE2);
+si_R2->setStateValidityChecker(isStateValid_R2);
+
+siVec.push_back(si_R2);
+siVec.push_back(si_SE2);
 ~~~
 
 NOTE: The runtime of a QuotientSpace planner depends crucially on the sequence
@@ -80,7 +146,7 @@ Having defined a QuotientSpace planner, we can utilize it similar to a usual
 ompl::base::PlannerPtr, i.e. it can be added to any benchmark, and we can get
 the planner data.
 
-However, the classical PlannerData does not know about QuotientSpaces. To add
+However, the classical PlannerData structure does not know about QuotientSpaces. To add
 QuotientSpace information, we have written a new class ompl::base::PlannerDataVertexAnnotated, which
 inherits from PlannerDataVertex. PlannerDataVertexAnnotated adds new
 functionalities, including
