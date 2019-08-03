@@ -38,7 +38,6 @@
 #include "QuotientSpacePlanningCommon.h"
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
-#include <ompl/geometric/planners/quotientspace/MultiQuotient.h>
 #include <ompl/geometric/planners/quotientspace/QRRT.h>
 
 #include <ompl/tools/benchmark/Benchmark.h>
@@ -122,8 +121,7 @@ ob::PlannerPtr GetQRRT(
     OMPL_INFORM("Add Original Chain with %d links.", numLinks);
     si_vec.push_back(si);
 
-    typedef og::MultiQuotient<og::QRRT> MultiQuotient;
-    auto planner = std::make_shared<MultiQuotient>(si_vec);
+    auto planner = std::make_shared<og::QRRT>(si_vec);
     planner->setProblemDefinition(pdef);
     std::string qName = "QuotientSpaceRRT["+std::to_string(si_vec.size())+"lvl]";
     planner->setName(qName);
@@ -164,7 +162,7 @@ int main()
     b.benchmark(request);
     b.saveResultsToFile(boost::str(boost::format("hypercube_%i.log") % ndim).c_str());
 
-    PrintBenchmarkResults(b);
+    printBenchmarkResults(b);
 
     return 0;
 }

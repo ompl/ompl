@@ -34,7 +34,7 @@
 *********************************************************************/
 
 /* Author: Andreas Orthey */
-#include <ompl/geometric/planners/quotientspace/QuotientSpace.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpace.h>
 
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
@@ -43,8 +43,11 @@
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 
-using namespace ompl::geometric;
-using namespace ompl::base;
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
+using namespace ob;
+using namespace og;
+
 
 const unsigned int verbose{0};
 
@@ -195,6 +198,7 @@ void QuotientSpace::resetCounter()
 {
     QuotientSpace::counter_ = 0;
 }
+
 const StateSpacePtr QuotientSpace::computeQuotientSpace(const StateSpacePtr Q1, const StateSpacePtr Q0)
 {
     type_ = identifyQuotientSpaceType(Q1, Q0);
@@ -758,7 +762,7 @@ void QuotientSpace::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::
 
             sQ1_SO2->value = sQ0->value;
 
-            for(uint k = 0; k < X1_dimension_; k++){
+            for(unsigned k = 0; k < X1_dimension_; k++){
               sQ1_RN->values[k] = sX1->values[k];
             }
             break;

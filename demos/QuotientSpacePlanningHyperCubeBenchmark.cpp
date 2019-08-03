@@ -35,74 +35,77 @@
 
 /* Author: Andreas Orthey */
 
+const double edgeWidth = 0.1;
+const double runtime_limit = 10;
+const double memory_limit = 4096*4096;
+const int run_count = 10;
+unsigned curDim = 8;
+int numberPlanners = 0;
+
 #include "QuotientSpacePlanningCommon.h"
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
-#include <ompl/geometric/planners/quotientspace/MultiQuotient.h>
+#include <ompl/geometric/planners/bitstar/BITstar.h>
+#include <ompl/geometric/planners/est/BiEST.h>
+#include <ompl/geometric/planners/est/EST.h>
+#include <ompl/geometric/planners/est/ProjEST.h>
+#include <ompl/geometric/planners/fmt/BFMT.h>
+#include <ompl/geometric/planners/fmt/FMT.h>
+#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
+#include <ompl/geometric/planners/kpiece/KPIECE1.h>
+#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
+#include <ompl/geometric/planners/pdst/PDST.h>
+// #include <ompl/geometric/planners/prm/LazyPRM.h> //TODO: segfault?
+#include <ompl/geometric/planners/prm/LazyPRMstar.h>
+#include <ompl/geometric/planners/prm/PRM.h>
+#include <ompl/geometric/planners/prm/PRMstar.h>
+#include <ompl/geometric/planners/prm/SPARS.h>
+#include <ompl/geometric/planners/prm/SPARStwo.h>
 #include <ompl/geometric/planners/quotientspace/QRRT.h>
-#include <ompl/geometric/planners/rrt/RRT.h>
+#include <ompl/geometric/planners/rrt/BiTRRT.h>
+#include <ompl/geometric/planners/rrt/InformedRRTstar.h>
+#include <ompl/geometric/planners/rrt/LazyRRT.h>
+#include <ompl/geometric/planners/rrt/LBTRRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTsharp.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/rrt/RRTXstatic.h>
-#include <ompl/geometric/planners/rrt/LazyRRT.h>
-#include <ompl/geometric/planners/rrt/InformedRRTstar.h>
-#include <ompl/geometric/planners/rrt/TRRT.h>
-#include <ompl/geometric/planners/rrt/BiTRRT.h>
-#include <ompl/geometric/planners/rrt/LBTRRT.h>
 #include <ompl/geometric/planners/rrt/SORRTstar.h>
-#include <ompl/geometric/planners/prm/PRM.h>
-#include <ompl/geometric/planners/prm/PRMstar.h>
-#include <ompl/geometric/planners/prm/LazyPRM.h>
-#include <ompl/geometric/planners/prm/LazyPRMstar.h>
-#include <ompl/geometric/planners/prm/SPARS.h>
-#include <ompl/geometric/planners/prm/SPARStwo.h>
-#include <ompl/geometric/planners/kpiece/KPIECE1.h>
-#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
-#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
-#include <ompl/geometric/planners/fmt/FMT.h>
-#include <ompl/geometric/planners/fmt/BFMT.h>
-#include <ompl/geometric/planners/est/EST.h>
-#include <ompl/geometric/planners/est/BiEST.h>
-#include <ompl/geometric/planners/est/ProjEST.h>
-#include <ompl/geometric/planners/sbl/SBL.h>
+#include <ompl/geometric/planners/rrt/TRRT.h>
 #include <ompl/geometric/planners/sbl/pSBL.h>
-#include <ompl/geometric/planners/stride/STRIDE.h>
+#include <ompl/geometric/planners/sbl/SBL.h>
 #include <ompl/geometric/planners/sst/SST.h>
-#include <ompl/geometric/planners/pdst/PDST.h>
-#include <ompl/geometric/planners/bitstar/BITstar.h>
+#include <ompl/geometric/planners/stride/STRIDE.h>
 
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/util/String.h>
 
 #include <boost/math/constants/constants.hpp>
+#include <boost/range/irange.hpp>
+#include <boost/range/algorithm_ext/push_back.hpp>
 #include <boost/format.hpp>
 #include <fstream>
-
-const double edgeWidth = 0.1;
-const unsigned ndim = 10;
-const double runtime_limit = 10;
-const double memory_limit = 4096*4096;
-const int run_count = 10;
 
 // Only states near some edges of a hypercube are valid. The valid edges form a
 // narrow passage from (0,...,0) to (1,...,1). A state s is valid if there exists
 // a k s.t. (a) 0<=s[k]<=1, (b) for all i<k s[i]<=edgeWidth, and (c) for all i>k
 // s[i]>=1-edgewidth.
-class HyperCubeValidityChecker : public ompl::base::StateValidityChecker
+class HyperCubeValidityChecker : public ob::StateValidityChecker
 {
 public:
-    HyperCubeValidityChecker(const ompl::base::SpaceInformationPtr &si, int nDim) : ompl::base::StateValidityChecker(si), nDim_(nDim)
+    HyperCubeValidityChecker(const ob::SpaceInformationPtr &si, int dimension) : ob::StateValidityChecker(si), dimension_(dimension)
     {
+        si->setStateValidityCheckingResolution(0.001);
     }
 
-    bool isValid(const ompl::base::State *state) const override
+    bool isValid(const ob::State *state) const override
     {
         const auto *s
-            = static_cast<const ompl::base::RealVectorStateSpace::StateType*>(state);
+            = static_cast<const ob::RealVectorStateSpace::StateType*>(state);
         bool foundMaxDim = false;
 
-        for (int i = nDim_ - 1; i >= 0; i--)
+        for (int i = dimension_ - 1; i >= 0; i--)
             if (!foundMaxDim)
             {
                 if ((*s)[i] > edgeWidth)
@@ -113,9 +116,76 @@ public:
         return true;
     }
 protected:
-    int nDim_;
+    int dimension_;
 };
 
+static unsigned numberRuns{0};
+
+void PostRunEvent(const ob::PlannerPtr &planner, ot::Benchmark::RunProperties &run)
+{
+  static unsigned pid = 0;
+
+  ob::SpaceInformationPtr si = planner->getSpaceInformation();
+  ob::ProblemDefinitionPtr pdef = planner->getProblemDefinition();
+
+  unsigned states = boost::lexical_cast<int>(run["graph states INTEGER"]);
+  double time = boost::lexical_cast<double>(run["time REAL"]);
+  double memory = boost::lexical_cast<double>(run["memory REAL"]);
+
+  bool solved = (time < runtime_limit);
+
+  std::cout << "Run " << pid << "/" << numberRuns
+    << " [" << planner->getName() << "] " 
+    << (solved?"solved":"FAILED") 
+    << "(time: "<< time 
+    << ", states: " << states 
+    << ", memory: " << memory 
+    << ")" << std::endl;
+  std::cout << std::string(80, '-') << std::endl;
+  pid++;
+}
+
+
+// Note: Number of all simplifications is
+// unsigned numberSimplifications = std::pow(2, curDim - 1);
+// But here we will only create three simplifications, the trivial one, the
+// discrete one and a two-step simplifications, which we found worked well in
+// this experiment. You can experiment with finding better simplifications.
+// std::cout << "dimension: " << curDim << " simplifications:" << numberSimplifications << std::endl;
+
+std::vector<std::vector<int>> getHypercubeAdmissibleProjections(int dim)
+{
+    std::vector<std::vector<int>> projections;
+
+    //trivial: just configuration space
+    //discrete: use all admissible projections
+    std::vector<int> trivial{dim};
+    std::vector<int> discrete;
+    boost::push_back(discrete, boost::irange(2, dim+1));
+
+    std::vector<int> twoStep;
+    boost::push_back(twoStep, boost::irange(2, dim+1, 2));
+    if(twoStep.back() != dim) twoStep.push_back(dim);
+
+    projections.push_back(trivial);
+    projections.push_back(discrete);
+    projections.push_back(twoStep);
+    auto last = std::unique(projections.begin(), projections.end());
+    projections.erase(last, projections.end()); 
+
+    // std::cout << "Projections for dim " << dim << std::endl;
+    // for(unsigned k = 0; k < projections.size(); k++){
+    //     std::vector<int> pk = projections.at(k);
+    //     std::cout << k << ": ";
+    //     for(unsigned j = 0; j < pk.size(); j++){
+    //       std::cout << pk.at(j) << (j<pk.size()-1?",":"");
+    //     }
+    //     std::cout << std::endl;
+    // }
+
+    return projections;
+
+}
 
 void addPlanner(ompl::tools::Benchmark& benchmark, const ompl::base::PlannerPtr& planner, double range)
 {
@@ -123,111 +193,137 @@ void addPlanner(ompl::tools::Benchmark& benchmark, const ompl::base::PlannerPtr&
     if (params.hasParam(std::string("range")))
         params.setParam(std::string("range"), ompl::toString(range));
     benchmark.addPlanner(planner);
+    numberPlanners++;
 }
 
 ob::PlannerPtr GetQRRT(
-    ob::SpaceInformationPtr si, 
-    ob::ProblemDefinitionPtr pdef, 
-    unsigned numLinks)
+    std::vector<int> sequenceLinks, 
+    ob::SpaceInformationPtr si)
 {
     // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     std::vector<ob::SpaceInformationPtr> si_vec;
 
-    for(unsigned k = 2; k < numLinks; k+=2)
+    for(unsigned k = 0; k < sequenceLinks.size()-1; k++)
     {
-        OMPL_INFORM("Create QuotientSpace Chain with %d links.", k);
+        int links = sequenceLinks.at(k);
+        assert(links<maximalDimension);
 
-        auto spaceK(std::make_shared<ompl::base::RealVectorStateSpace>(k));
-        ompl::base::RealVectorBounds bounds(k);
+        auto spaceK(std::make_shared<ompl::base::RealVectorStateSpace>(links));
+        ompl::base::RealVectorBounds bounds(links);
         bounds.setLow(0.);
         bounds.setHigh(1.);
         spaceK->setBounds(bounds);
 
         auto siK = std::make_shared<ob::SpaceInformation>(spaceK);
-        siK->setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(siK, k));
-        siK->setStateValidityCheckingResolution(0.001);
+        siK->setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(siK, links));
 
         spaceK->setup();
         si_vec.push_back(siK);
     }
-    OMPL_INFORM("Add Original Chain with %d links.", numLinks);
     si_vec.push_back(si);
 
-    typedef og::MultiQuotient<og::QRRT> MultiQuotient;
-    auto planner = std::make_shared<MultiQuotient>(si_vec);
-    planner->setProblemDefinition(pdef);
-    std::string qName = "QuotientSpaceRRT["+std::to_string(si_vec.size())+"lvl]";
+    auto planner = std::make_shared<og::QRRT>(si_vec);
+    std::string qName = "QuotientSpaceRRT[";
+    for(unsigned k = 0; k < sequenceLinks.size()-1; k++)
+    {
+        int links = sequenceLinks.at(k);
+        qName+=std::to_string(links)+",";
+    }
+    qName+=std::to_string(si->getStateDimension());
+    qName += "]";
+    std::cout << qName << std::endl;
     planner->setName(qName);
     return planner;
 }
 
-int main()
+int main(int argc, char **argv)
 {
-    for(uint k = 2; k < ndim; k++){
-        double range = edgeWidth * 0.5;
-        auto space(std::make_shared<ompl::base::RealVectorStateSpace>(ndim));
-        ompl::base::RealVectorBounds bounds(ndim);
-        ompl::geometric::SimpleSetup ss(space);
-        ob::SpaceInformationPtr si = ss.getSpaceInformation();
-        ob::ProblemDefinitionPtr pdef = ss.getProblemDefinition();
-        ompl::base::ScopedState<> start(space), goal(space);
-
-        bounds.setLow(0.);
-        bounds.setHigh(1.);
-        space->setBounds(bounds);
-        ss.setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(si, ndim));
-        si->setStateValidityCheckingResolution(0.001);
-        for(unsigned int i = 0; i < ndim; ++i)
-        {
-            start[i] = 0.;
-            goal[i] = 1.;
-        }
-        ss.setStartAndGoalStates(start, goal);
-
-        ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count);
-        ompl::tools::Benchmark b(ss, "HyperCube");
-        b.addExperimentParameter("num_dims", "INTEGER", std::to_string(ndim));
-
-        addPlanner(b, std::make_shared<og::RRT>(si), range);
-        addPlanner(b, std::make_shared<og::RRTConnect>(si), range);
-        addPlanner(b, std::make_shared<og::RRTsharp>(si), range);
-        addPlanner(b, std::make_shared<og::RRTstar>(si), range);
-        addPlanner(b, std::make_shared<og::RRTXstatic>(si), range);
-        addPlanner(b, std::make_shared<og::LazyRRT>(si), range);
-        addPlanner(b, std::make_shared<og::InformedRRTstar>(si), range);
-        addPlanner(b, std::make_shared<og::TRRT>(si), range);
-        addPlanner(b, std::make_shared<og::BiTRRT>(si), range);
-        addPlanner(b, std::make_shared<og::LBTRRT>(si), range);
-        addPlanner(b, std::make_shared<og::SORRTstar>(si), range);
-        addPlanner(b, std::make_shared<og::PRM>(si), range);
-        addPlanner(b, std::make_shared<og::PRMstar>(si), range);
-        addPlanner(b, std::make_shared<og::LazyPRM>(si), range);
-        addPlanner(b, std::make_shared<og::LazyPRMstar>(si), range);
-        addPlanner(b, std::make_shared<og::SPARS>(si), range);
-        addPlanner(b, std::make_shared<og::SPARStwo>(si), range);
-        addPlanner(b, std::make_shared<og::KPIECE1>(si), range);
-        addPlanner(b, std::make_shared<og::BKPIECE1>(si), range);
-        addPlanner(b, std::make_shared<og::LBKPIECE1>(si), range);
-        addPlanner(b, std::make_shared<og::FMT>(si), range);
-        addPlanner(b, std::make_shared<og::BFMT>(si), range);
-        addPlanner(b, std::make_shared<og::EST>(si), range);
-        addPlanner(b, std::make_shared<og::BiEST>(si), range);
-        addPlanner(b, std::make_shared<og::ProjEST>(si), range);
-        addPlanner(b, std::make_shared<og::SBL>(si), range);
-        addPlanner(b, std::make_shared<og::STRIDE>(si), range);
-        addPlanner(b, std::make_shared<og::SST>(si), range);
-        addPlanner(b, std::make_shared<og::PDST>(si), range);
-        addPlanner(b, std::make_shared<og::BITstar>(si), range);
-
-        ob::PlannerPtr quotientSpacePlanner = GetQRRT(si, pdef, ndim);
-        addPlanner(b, quotientSpacePlanner, range);
-
-        b.benchmark(request);
-        b.saveResultsToFile(boost::str(boost::format("hypercube_%i.log") % ndim).c_str());
-
-        PrintBenchmarkResults(b);
-
+    if(argc>1){
+      curDim = std::atoi(argv[1]);
     }
+
+    numberPlanners = 0;
+    double range = edgeWidth * 0.5;
+    auto space(std::make_shared<ompl::base::RealVectorStateSpace>(curDim));
+    ompl::base::RealVectorBounds bounds(curDim);
+    ompl::geometric::SimpleSetup ss(space);
+    ob::SpaceInformationPtr si = ss.getSpaceInformation();
+    ob::ProblemDefinitionPtr pdef = ss.getProblemDefinition();
+    ompl::base::ScopedState<> start(space), goal(space);
+
+    bounds.setLow(0.);
+    bounds.setHigh(1.);
+    space->setBounds(bounds);
+    ss.setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(si, curDim));
+    for(unsigned int i = 0; i < curDim; ++i)
+    {
+        start[i] = 0.;
+        goal[i] = 1.;
+    }
+    ss.setStartAndGoalStates(start, goal);
+
+
+    ot::Benchmark benchmark(ss, "HyperCube");
+    benchmark.addExperimentParameter("num_dims", "INTEGER", std::to_string(curDim));
+
+    //############################################################################
+    // Load All Planner
+    //############################################################################
+    std::vector<std::vector<int>> admissibleProjections = getHypercubeAdmissibleProjections(curDim);
+    for(unsigned k = 0; k < admissibleProjections.size(); k++)
+    {
+        std::vector<int> proj = admissibleProjections.at(k);
+        ob::PlannerPtr quotientSpacePlannerK = GetQRRT(proj, si);
+        addPlanner(benchmark, quotientSpacePlannerK, range);
+    }
+    addPlanner(benchmark, std::make_shared<og::BITstar>(si), range);
+    addPlanner(benchmark, std::make_shared<og::EST>(si), range);
+    addPlanner(benchmark, std::make_shared<og::BiEST>(si), range);
+    addPlanner(benchmark, std::make_shared<og::ProjEST>(si), range);
+    addPlanner(benchmark, std::make_shared<og::FMT>(si), range);
+    addPlanner(benchmark, std::make_shared<og::BFMT>(si), range);
+    addPlanner(benchmark, std::make_shared<og::KPIECE1>(si), range);
+    addPlanner(benchmark, std::make_shared<og::BKPIECE1>(si), range);
+    addPlanner(benchmark, std::make_shared<og::LBKPIECE1>(si), range);
+    addPlanner(benchmark, std::make_shared<og::PDST>(si), range);
+    addPlanner(benchmark, std::make_shared<og::PRM>(si), range);
+    addPlanner(benchmark, std::make_shared<og::PRMstar>(si), range);
+    addPlanner(benchmark, std::make_shared<og::LazyPRMstar>(si), range);
+    addPlanner(benchmark, std::make_shared<og::SPARS>(si), range);
+    addPlanner(benchmark, std::make_shared<og::SPARStwo>(si), range);
+    addPlanner(benchmark, std::make_shared<og::RRT>(si), range);
+    addPlanner(benchmark, std::make_shared<og::RRTConnect>(si), range);
+    addPlanner(benchmark, std::make_shared<og::RRTsharp>(si), range);
+    addPlanner(benchmark, std::make_shared<og::RRTstar>(si), range);
+    addPlanner(benchmark, std::make_shared<og::RRTXstatic>(si), range);
+    addPlanner(benchmark, std::make_shared<og::LazyRRT>(si), range);
+    addPlanner(benchmark, std::make_shared<og::InformedRRTstar>(si), range);
+    addPlanner(benchmark, std::make_shared<og::TRRT>(si), range);
+    addPlanner(benchmark, std::make_shared<og::BiTRRT>(si), range);
+    addPlanner(benchmark, std::make_shared<og::LBTRRT>(si), range);
+    addPlanner(benchmark, std::make_shared<og::SORRTstar>(si), range);
+    addPlanner(benchmark, std::make_shared<og::SBL>(si), range);
+    addPlanner(benchmark, std::make_shared<og::SST>(si), range);
+    addPlanner(benchmark, std::make_shared<og::STRIDE>(si), range);
+    //############################################################################
+
+    printEstimatedTimeToCompletion(numberPlanners, run_count, runtime_limit);
+
+    ot::Benchmark::Request request;
+    request.maxTime = runtime_limit;
+    request.maxMem = memory_limit;
+    request.runCount = run_count;
+    request.useThreads = false;
+    request.simplify = false;
+    request.displayProgress = false;
+    numberRuns = numberPlanners*run_count;
+
+    benchmark.setPostRunEvent(std::bind(&PostRunEvent, std::placeholders::_1, std::placeholders::_2));
+    benchmark.benchmark(request);
+    benchmark.saveResultsToFile(boost::str(boost::format("hypercube_%i.log") % curDim).c_str());
+
+    printBenchmarkResults(benchmark);
+
     return 0;
 }
 

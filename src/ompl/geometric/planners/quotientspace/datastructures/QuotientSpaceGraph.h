@@ -54,9 +54,6 @@
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/variate_generator.hpp>
 
-namespace ob = ompl::base;
-namespace og = ompl::geometric;
-
 namespace ompl
 {
     namespace base
@@ -67,9 +64,9 @@ namespace ompl
     namespace geometric
     {
         /// \brief A graph on a quotient-space
-        class QuotientSpaceGraph : public og::QuotientSpace
+        class QuotientSpaceGraph : public QuotientSpace
         {
-            typedef og::QuotientSpace BaseT;
+            typedef QuotientSpace BaseT;
 
         public:
             typedef int normalized_index_type;
@@ -79,9 +76,9 @@ namespace ompl
             {
             public:
                 Configuration() = delete;
-                Configuration(const ob::SpaceInformationPtr &si);
-                Configuration(const ob::SpaceInformationPtr &si, const ob::State *state_);
-                ob::State *state{nullptr};
+                Configuration(const ompl::base::SpaceInformationPtr &si);
+                Configuration(const ompl::base::SpaceInformationPtr &si, const ompl::base::State *state_);
+                ompl::base::State *state{nullptr};
                 unsigned int total_connection_attempts{0};
                 unsigned int successful_connection_attempts{0};
                 bool on_shortest_path{false};
@@ -114,22 +111,22 @@ namespace ompl
             {
             public:
                 EdgeInternalState() = default;
-                EdgeInternalState(ob::Cost cost_) : cost(cost_){};
+                EdgeInternalState(ompl::base::Cost cost_) : cost(cost_){};
                 EdgeInternalState(const EdgeInternalState &eis)
                 {
                     cost = eis.cost;
                 }
                 void setWeight(double d)
                 {
-                    cost = ob::Cost(d);
+                    cost = ompl::base::Cost(d);
                 }
-                ob::Cost getCost()
+                ompl::base::Cost getCost()
                 {
                     return cost;
                 }
 
             private:
-                ob::Cost cost{+ob::dInf};
+                ompl::base::Cost cost{+ompl::base::dInf};
             };
 
             struct GraphBundle
@@ -159,19 +156,19 @@ namespace ompl
             typedef PDF::Element PDF_Element;
 
         public:
-            QuotientSpaceGraph(const ob::SpaceInformationPtr &si, QuotientSpace *parent = nullptr);
+            QuotientSpaceGraph(const ompl::base::SpaceInformationPtr &si, QuotientSpace *parent = nullptr);
             ~QuotientSpaceGraph();
 
             virtual unsigned int getNumberOfVertices() const;
             virtual unsigned int getNumberOfEdges() const;
 
             virtual void grow() = 0;
-            virtual bool sampleQuotient(ob::State *) override;
-            virtual bool getSolution(ob::PathPtr &solution) override;
+            virtual bool sampleQuotient(ompl::base::State *) override;
+            virtual bool getSolution(ompl::base::PathPtr &solution) override;
 
             /// \brief Return plannerdata structure, whereby each vertex is marked
             /// depending to which component it belongs (start/goal/non-connected)
-            virtual void getPlannerData(ob::PlannerData &data) const override;
+            virtual void getPlannerData(ompl::base::PlannerData &data) const override;
 
             /// \brief Importance of quotient-space depending on number of
             /// vertices in quotient-graph
@@ -199,7 +196,7 @@ namespace ompl
 
             const Configuration *nearest(const Configuration *s) const;
 
-            ob::Cost bestCost_{+ob::dInf};
+            ompl::base::Cost bestCost_{+ompl::base::dInf};
             Configuration *qStart_;
             Configuration *qGoal_;
             Vertex vStart_;
@@ -221,15 +218,15 @@ namespace ompl
             virtual Vertex addConfiguration(Configuration *q);
             void addEdge(const Vertex a, const Vertex b);
 
-            ob::Cost costHeuristic(Vertex u, Vertex v) const;
+            ompl::base::Cost costHeuristic(Vertex u, Vertex v) const;
 
             /// Shortest path on quotient-graph
-            ob::PathPtr getPath(const Vertex &start, const Vertex &goal);
+            ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal);
 
             /// Nearest neighbor structure for quotient space configurations
             RoadmapNeighborsPtr nearestDatastructure_;
             Graph graph_;
-            ob::PathPtr solutionPath_;
+            ompl::base::PathPtr solutionPath_;
             RNG rng_;
             typedef boost::minstd_rand RNGType;
             RNGType rng_boost;

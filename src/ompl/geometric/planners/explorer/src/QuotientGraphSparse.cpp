@@ -1,5 +1,5 @@
 #include <ompl/geometric/planners/explorer/QuotientGraphSparse.h>
-#include <ompl/geometric/planners/quotientspace/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/quotientspace/datastructure/PlannerDataVertexAnnotated.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/geometric/PathSimplifier.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
