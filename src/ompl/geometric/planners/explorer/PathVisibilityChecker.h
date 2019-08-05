@@ -1,5 +1,5 @@
 #pragma once
-#include <ompl/geometric/planners/quotientspace/datastructure/QuotientSpaceGraph.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraph.h>
 #include <ompl/base/State.h>
 
 namespace ob = ompl::base;

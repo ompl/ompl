@@ -1,7 +1,7 @@
 #pragma once
 
 #include "PathVisibilityChecker.h"
-#include <ompl/geometric/planners/quotientspace/datastructure/QuotientSpaceGraph.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraph.h>
 #include <ompl/datastructures/NearestNeighbors.h>
 #include <ompl/util/RandomNumbers.h>
 #include <ompl/geometric/PathGeometric.h>

@@ -729,6 +729,18 @@ class ompl_geometric_generator_t(code_generator_t):
             }}
             """.format(planner))
 
+        for planner in ['QRRT', 'Explorer']:
+            cls = self.ompl_ns.class_(planner)
+            cls.constructor(arg_types=["std::vector<::ompl::base::SpaceInformationPtr> const &"]).exclude()
+            cls.add_registration_code(
+                'def(bp::init< std::vector<ompl::base::SpaceInformationPtr> const &>(bp::arg("si")))')
+            cls.add_wrapper_code("""
+            {0}_wrapper(std::vector<::ompl::base::SpaceInformationPtr> const &si) : ompl::geometric::{0}(si),
+                bp::wrapper<ompl::geometric::{0}>()
+            {{
+            }}
+            """.format(planner))
+
         # exclude methods that use problematic types
         cls = self.ompl_ns.class_('SPARS')
         cls.member_function('addPathToSpanner').exclude()
