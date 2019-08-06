@@ -1,4 +1,4 @@
-#include <ompl/geometric/planners/explorer/QuotientTopology.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/QuotientTopology.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 
