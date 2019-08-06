@@ -477,8 +477,7 @@ namespace ompl
                     optimizationObjective_->combineCosts(vertex->getCostToComeFromGoal(),
                                                          computeCostToGoToStartHeuristic(vertex)),
                     *solutionCost_) ||
-                (!optimizationObjective_->isFinite(*solutionCost_) &&
-                 optimizationObjective_->isFinite(computeBestCostToComeFromGoalOfAnyStart())))
+                optimizationObjective_->isCostBetterThan(computeBestCostToComeFromGoalOfAnyStart(), *solutionCost_))
             {
                 backwardQueue_.clear();
                 ++(*backwardSearchId_);
