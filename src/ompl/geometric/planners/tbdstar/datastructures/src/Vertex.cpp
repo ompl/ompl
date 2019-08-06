@@ -394,8 +394,10 @@ namespace ompl
             std::vector<std::shared_ptr<Vertex>> Vertex::getBackwardChildren() const
             {
                 std::vector<std::shared_ptr<Vertex>> children;
+                children.reserve(backwardChildren_.size());
                 for (const auto &child : backwardChildren_)
                 {
+                    assert(!child.expired());
                     children.emplace_back(child.lock());
                 }
                 return children;
