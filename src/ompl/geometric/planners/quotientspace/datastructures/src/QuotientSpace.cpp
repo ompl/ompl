@@ -174,6 +174,7 @@ void QuotientSpace::checkSpaceHasFiniteMeasure(const ob::StateSpacePtr space) co
 
 ob::PlannerStatus QuotientSpace::solve(const ob::PlannerTerminationCondition &ptc)
 {
+    (void)ptc;
     OMPL_ERROR("A Quotient-Space cannot be solved alone. Use class MultiQuotient to solve Quotient-Spaces.");
     exit(1);
 }
