@@ -80,7 +80,7 @@ namespace ompl
                 spaceInformation_->copyState(startVertex->getState(), startState);
 
                 // By definition, this has identity cost-to-come.
-                startVertex->setCostToComeFromStart(ompl::base::Cost(0.0));
+                startVertex->setCostToComeFromStart(problemDefinition_->getOptimizationObjective()->identityCost());
 
                 // Add the start vertex to the set of vertices.
                 vertices_.add(startVertex);
