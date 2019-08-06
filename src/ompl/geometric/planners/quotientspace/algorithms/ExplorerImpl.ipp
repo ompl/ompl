@@ -1,6 +1,6 @@
-#include "QuotientGraphSparse.h"
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpace.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraphSparse.h>
 #include <ompl/geometric/planners/quotientspace/algorithms/MultiQuotient.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
@@ -15,7 +15,7 @@ template <class T>
 MotionExplorerImpl<T>::MotionExplorerImpl(std::vector<ob::SpaceInformationPtr> &siVec, std::string type)
   : BaseT(siVec, type)
 {
-    root = static_cast<og::QuotientGraphSparse*>(this->quotientSpaces_.front());
+    root = static_cast<og::QuotientSpaceGraphSparse*>(this->quotientSpaces_.front());
     current = root;
 
     // OMPL_DEVMSG1("Created hierarchy with %d leaves.", siVec_.size());
@@ -47,8 +47,8 @@ void MotionExplorerImpl<T>::setSelectedPath( std::vector<int> selectedPath){
     for(uint k = 0; k < selectedPath.size(); k++){
       //selected path implies path bias, which implies a sampling bias towards the
       //selected path
-      og::QuotientGraphSparse *qgraph = 
-        static_cast<og::QuotientGraphSparse*>(this->quotientSpaces_.at(k));
+      og::QuotientSpaceGraphSparse *qgraph = 
+        static_cast<og::QuotientSpaceGraphSparse*>(this->quotientSpaces_.at(k));
           
       qgraph->selectedPath = selectedPath.at(k);
     }
@@ -71,8 +71,8 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
     {
         K = K-1;
     }
-    og::QuotientGraphSparse *jQuotient = 
-      static_cast<og::QuotientGraphSparse*>(this->quotientSpaces_.at(K));
+    og::QuotientSpaceGraphSparse *jQuotient = 
+      static_cast<og::QuotientSpaceGraphSparse*>(this->quotientSpaces_.at(K));
     std::cout << *jQuotient << std::endl;
 
     uint ctr = 0;
@@ -111,8 +111,8 @@ void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
     for (unsigned int k = 0; k < K; k++)
     {
         og::QuotientSpace *Qk = this->quotientSpaces_.at(k);
-        static_cast<QuotientGraphSparse*>(Qk)->enumerateAllPaths();
-        static_cast<QuotientGraphSparse*>(Qk)->getPlannerData(data);
+        static_cast<QuotientSpaceGraphSparse*>(Qk)->enumerateAllPaths();
+        static_cast<QuotientSpaceGraphSparse*>(Qk)->getPlannerData(data);
         // Qk->getPlannerData(data);
         // label all new vertices
         unsigned int ctr = 0;

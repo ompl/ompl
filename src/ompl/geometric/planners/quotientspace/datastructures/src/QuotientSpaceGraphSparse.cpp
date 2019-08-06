@@ -1,4 +1,4 @@
-#include <ompl/geometric/planners/explorer/QuotientGraphSparse.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraphSparse.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/geometric/PathSimplifier.h>
@@ -13,12 +13,12 @@
 using namespace og;
 #define foreach BOOST_FOREACH
 
-QuotientGraphSparse::QuotientGraphSparse(const ob::SpaceInformationPtr &si, QuotientSpace *parent):
+QuotientSpaceGraphSparse::QuotientSpaceGraphSparse(const ob::SpaceInformationPtr &si, QuotientSpace *parent):
   BaseT(si, parent)
 {
-  setName("QuotientGraphSparse");
-  Planner::declareParam<double>("sparse_delta_fraction", this, &QuotientGraphSparse::setSparseDeltaFraction,
-                                &QuotientGraphSparse::getSparseDeltaFraction, "0.0:0.01:1.0");
+  setName("QuotientSpaceGraphSparse");
+  Planner::declareParam<double>("sparse_delta_fraction", this, &QuotientSpaceGraphSparse::setSparseDeltaFraction,
+                                &QuotientSpaceGraphSparse::getSparseDeltaFraction, "0.0:0.01:1.0");
 
   if (!isSetup())
   {
@@ -27,16 +27,16 @@ QuotientGraphSparse::QuotientGraphSparse(const ob::SpaceInformationPtr &si, Quot
   pathVisibilityChecker_ = new PathVisibilityChecker(Q1);
 }
 
-QuotientGraphSparse::~QuotientGraphSparse()
+QuotientSpaceGraphSparse::~QuotientSpaceGraphSparse()
 {
 }
 
-void QuotientGraphSparse::deleteConfiguration(Configuration *q)
+void QuotientSpaceGraphSparse::deleteConfiguration(Configuration *q)
 {
   BaseT::deleteConfiguration(q);
 }
 
-void QuotientGraphSparse::setup()
+void QuotientSpaceGraphSparse::setup()
 {
 
   BaseT::setup();
@@ -52,7 +52,7 @@ void QuotientGraphSparse::setup()
   sparseDelta_ = sparseDeltaFraction_ * maxExt;
 }
 
-void QuotientGraphSparse::clear()
+void QuotientSpaceGraphSparse::clear()
 {
   BaseT::clear();
 
@@ -81,7 +81,7 @@ void QuotientGraphSparse::clear()
   pathStack_.clear();
 }
 
-void QuotientGraphSparse::Init()
+void QuotientSpaceGraphSparse::Init()
 {
   if(const ob::State *st = pis_.nextStart()){
     if (st != nullptr){
@@ -124,7 +124,7 @@ void QuotientGraphSparse::Init()
   // std::cout << "start component:" << startComponent << "| goalComponent:" << goalComponent << std::endl;
 }
 
-QuotientGraphSparse::Vertex QuotientGraphSparse::addConfiguration(Configuration *q)
+QuotientSpaceGraphSparse::Vertex QuotientSpaceGraphSparse::addConfiguration(Configuration *q)
 {
     Vertex v = BaseT::addConfiguration(q);
 
@@ -150,16 +150,16 @@ QuotientGraphSparse::Vertex QuotientGraphSparse::addConfiguration(Configuration 
     return v;
 }
 
-void QuotientGraphSparse::uniteComponentsSparse(Vertex m1, Vertex m2)
+void QuotientSpaceGraphSparse::uniteComponentsSparse(Vertex m1, Vertex m2)
 {
     disjointSetsSparse_.union_set(m1, m2);
 }
-bool QuotientGraphSparse::sameComponentSparse(Vertex m1, Vertex m2)
+bool QuotientSpaceGraphSparse::sameComponentSparse(Vertex m1, Vertex m2)
 {
     return boost::same_component(m1, m2, disjointSetsSparse_);
 }
 
-QuotientGraphSparse::Vertex QuotientGraphSparse::addConfigurationSparse(Configuration *q)
+QuotientSpaceGraphSparse::Vertex QuotientSpaceGraphSparse::addConfigurationSparse(Configuration *q)
 {
     Configuration *ql = new Configuration(Q1, q->state);
     const Vertex vl = add_vertex(ql, graphSparse_);
@@ -169,7 +169,7 @@ QuotientGraphSparse::Vertex QuotientGraphSparse::addConfigurationSparse(Configur
     return vl;
 }
 
-void QuotientGraphSparse::findGraphNeighbors(Configuration *q, std::vector<Configuration*> &graphNeighborhood,
+void QuotientSpaceGraphSparse::findGraphNeighbors(Configuration *q, std::vector<Configuration*> &graphNeighborhood,
                                                    std::vector<Configuration*> &visibleNeighborhood)
 {
     visibleNeighborhood.clear();
@@ -180,7 +180,7 @@ void QuotientGraphSparse::findGraphNeighbors(Configuration *q, std::vector<Confi
             visibleNeighborhood.push_back(qn);
 }
 
-void QuotientGraphSparse::addEdgeSparse(const Vertex a, const Vertex b)
+void QuotientSpaceGraphSparse::addEdgeSparse(const Vertex a, const Vertex b)
 {
   ob::Cost weight = opt_->motionCost(graphSparse_[a]->state, graphSparse_[b]->state);
   EdgeInternalState properties(weight);
@@ -188,7 +188,7 @@ void QuotientGraphSparse::addEdgeSparse(const Vertex a, const Vertex b)
   uniteComponentsSparse(a, b);
 }
 
-bool QuotientGraphSparse::checkAddConnectivity(Configuration* q, std::vector<Configuration*> &visibleNeighborhood)
+bool QuotientSpaceGraphSparse::checkAddConnectivity(Configuration* q, std::vector<Configuration*> &visibleNeighborhood)
 {
     std::vector<Vertex> links;
     if (visibleNeighborhood.size() > 1)
@@ -227,7 +227,7 @@ bool QuotientGraphSparse::checkAddConnectivity(Configuration* q, std::vector<Con
     }
     return false;
 }
-bool QuotientGraphSparse::checkAddInterface(Configuration *q,
+bool QuotientSpaceGraphSparse::checkAddInterface(Configuration *q,
     std::vector<Configuration*> &graphNeighborhood, 
     std::vector<Configuration*> &visibleNeighborhood)
 {
@@ -263,7 +263,7 @@ bool QuotientGraphSparse::checkAddInterface(Configuration *q,
 }
 
 
-bool QuotientGraphSparse::sampleQuotient(ob::State *q_random_graph)
+bool QuotientSpaceGraphSparse::sampleQuotient(ob::State *q_random_graph)
 {
     if(pathStack_.size() > 0){
       if(selectedPath >= 0 && selectedPath < (int)pathStack_.size()){
@@ -303,14 +303,14 @@ bool QuotientGraphSparse::sampleQuotient(ob::State *q_random_graph)
     return true;
 }
 
-unsigned int QuotientGraphSparse::getNumberOfPaths() const
+unsigned int QuotientSpaceGraphSparse::getNumberOfPaths() const
 {
     return pathStackHead_.size();
 }
 //############################################################################
 //############################################################################
 
-void QuotientGraphSparse::Rewire(Vertex &v)
+void QuotientSpaceGraphSparse::Rewire(Vertex &v)
 {
   Configuration *q = graphSparse_[v];
   std::vector<Configuration*> neighbors;
@@ -327,14 +327,14 @@ void QuotientGraphSparse::Rewire(Vertex &v)
   }
 }
 
-void QuotientGraphSparse::Rewire()
+void QuotientSpaceGraphSparse::Rewire()
 {
   Vertex v = boost::random_vertex(graphSparse_, rng_boost);
   return Rewire(v);
 }
 
 
-void QuotientGraphSparse::AddPathToStack(std::vector<ob::State*> &path)
+void QuotientSpaceGraphSparse::AddPathToStack(std::vector<ob::State*> &path)
 {
 
   og::PathGeometric gpath(Q1);
@@ -407,7 +407,7 @@ void QuotientGraphSparse::AddPathToStack(std::vector<ob::State*> &path)
   // }
 
 }
-void QuotientGraphSparse::PrintPathStack()
+void QuotientSpaceGraphSparse::PrintPathStack()
 {
   std::cout << std::string(80, '-') << std::endl;
   std::cout << "Path Stack" << std::endl;
@@ -421,7 +421,7 @@ void QuotientGraphSparse::PrintPathStack()
   }
 }
 
-void QuotientGraphSparse::removeEdgeIfReductionLoop(const Edge &e)
+void QuotientSpaceGraphSparse::removeEdgeIfReductionLoop(const Edge &e)
 {
     const Vertex v1 = boost::source(e, graphSparse_);
     const Vertex v2 = boost::target(e, graphSparse_);
@@ -484,7 +484,7 @@ void QuotientGraphSparse::removeEdgeIfReductionLoop(const Edge &e)
     }
 
 }
-void QuotientGraphSparse::removeReducibleLoops()
+void QuotientSpaceGraphSparse::removeReducibleLoops()
 {
     
     // Edge e = boost::random_edge(graphSparse_, rng_boost);
@@ -495,11 +495,10 @@ void QuotientGraphSparse::removeReducibleLoops()
     }
 }
 
-void QuotientGraphSparse::getPathIndices(const std::vector<ob::State*> &states, std::vector<int> &idxPath) const
+void QuotientSpaceGraphSparse::getPathIndices(const std::vector<ob::State*> &states, std::vector<int> &idxPath) const
 {
 
   if(parent_ == nullptr){
-    // idxPath.push_back(0);
     return;
   }else{
     //convert CS path to QS path
@@ -511,7 +510,7 @@ void QuotientGraphSparse::getPathIndices(const std::vector<ob::State*> &states, 
       pathcur.push_back(qkProjected);
     }
     //Check which path can be deformed into QS path
-    QuotientGraphSparse *quotient = static_cast<QuotientGraphSparse*>(parent_);
+    QuotientSpaceGraphSparse *quotient = static_cast<QuotientSpaceGraphSparse*>(parent_);
     uint K = quotient->getNumberOfPaths();
     assert(K>0);
 
@@ -537,11 +536,11 @@ void QuotientGraphSparse::getPathIndices(const std::vector<ob::State*> &states, 
   }
 }
 
-PathVisibilityChecker* QuotientGraphSparse::getPathVisibilityChecker()
+PathVisibilityChecker* QuotientSpaceGraphSparse::getPathVisibilityChecker()
 {
   return pathVisibilityChecker_;
 }
-const std::vector<ob::State*> QuotientGraphSparse::getKthPath(uint k) const
+const std::vector<ob::State*> QuotientSpaceGraphSparse::getKthPath(uint k) const
 {
     return pathStackHead_.at(k);
 }
@@ -550,7 +549,7 @@ const std::vector<ob::State*> QuotientGraphSparse::getKthPath(uint k) const
 // visited[] keeps track of vertices in current path.
 // path[] stores actual vertices and path_index is current
 // index in path[]
-void QuotientGraphSparse::printAllPathsUtil(
+void QuotientSpaceGraphSparse::printAllPathsUtil(
 		Vertex u, 
 		Vertex d, 
 		bool visited[], 
@@ -596,7 +595,7 @@ void QuotientGraphSparse::printAllPathsUtil(
     visited[u] = false;
 }
 
-void QuotientGraphSparse::enumerateAllPaths() 
+void QuotientSpaceGraphSparse::enumerateAllPaths() 
 {
     if(!hasSolution_) return;
 
@@ -649,7 +648,7 @@ void QuotientGraphSparse::enumerateAllPaths()
     //for each path.
 }
 
-void QuotientGraphSparse::getPlannerDataRoadmap(ob::PlannerData &data, std::vector<int> pathIdx) const
+void QuotientSpaceGraphSparse::getPlannerDataRoadmap(ob::PlannerData &data, std::vector<int> pathIdx) const
 {
   foreach (const Vertex v, boost::vertices(graphSparse_))
   {
@@ -670,13 +669,13 @@ void QuotientGraphSparse::getPlannerDataRoadmap(ob::PlannerData &data, std::vect
   }
 }
 
-std::vector<int> QuotientGraphSparse::GetSelectedPathIndex() const
+std::vector<int> QuotientSpaceGraphSparse::GetSelectedPathIndex() const
 {
     std::vector<int> CurPath;
-    QuotientGraphSparse *pparent = static_cast<QuotientGraphSparse*>(parent_);
+    QuotientSpaceGraphSparse *pparent = static_cast<QuotientSpaceGraphSparse*>(parent_);
     while(pparent!=nullptr){
       CurPath.push_back(pparent->selectedPath);
-      pparent = static_cast<QuotientGraphSparse*>(pparent->parent_);
+      pparent = static_cast<QuotientSpaceGraphSparse*>(pparent->parent_);
     }
     if(selectedPath < 0) CurPath.push_back(0);
     else CurPath.push_back(selectedPath);
@@ -684,9 +683,8 @@ std::vector<int> QuotientGraphSparse::GetSelectedPathIndex() const
     return CurPath;
 }
 
-void QuotientGraphSparse::getPlannerData(ob::PlannerData &data) const
+void QuotientSpaceGraphSparse::getPlannerData(ob::PlannerData &data) const
 {
-  OMPL_INFORM("getPlannerData");
   if(hasSolution_){
       OMPL_DEVMSG1("%s has %d solutions.", getName(), pathStackHead_.size());
       std::vector<int> idxPathI;
@@ -721,7 +719,7 @@ void QuotientGraphSparse::getPlannerData(ob::PlannerData &data) const
       getPlannerDataRoadmap(data, idxPathI);
   }else{
 
-    std::cout << "roadmap: " << boost::num_vertices(graphSparse_) << std::endl;
+    OMPL_DEVMSG1("Roadmap has %d vertices.", boost::num_vertices(graphSparse_));
     if(boost::num_vertices(graphSparse_) > 0){
       std::vector<int> CurPath = GetSelectedPathIndex();
       getPlannerDataRoadmap(data, CurPath);

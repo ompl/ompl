@@ -356,59 +356,6 @@ ob::PathPtr QuotientSpaceGraph::getPath(const Vertex &start, const Vertex &goal)
 
     return p;
 }
-
-void QuotientSpaceGraph::getPlannerData(ob::PlannerData &data) const
-{
-    unsigned int startComponent = 0;
-    unsigned int goalComponent = 1;
-
-    PlannerDataVertexAnnotated pstart(graph_[vStart_]->state, startComponent);
-    data.addStartVertex(pstart);
-    if (hasSolution_)
-    {
-        goalComponent = 0;
-        PlannerDataVertexAnnotated pgoal(graph_[vGoal_]->state, goalComponent);
-        data.addGoalVertex(pgoal);
-    }
-
-    unsigned int ctr = 0;
-    foreach (const Edge e, boost::edges(graph_))
-    {
-        const Vertex v1 = boost::source(e, graph_);
-        const Vertex v2 = boost::target(e, graph_);
-
-        PlannerDataVertexAnnotated p1(graph_[v1]->state);
-        PlannerDataVertexAnnotated p2(graph_[v2]->state);
-
-        unsigned int vi1 = data.addVertex(p1);
-        unsigned int vi2 = data.addVertex(p2);
-        data.addEdge(p1, p2);
-
-        ctr++;
-
-        unsigned int v1Component = const_cast<QuotientSpaceGraph *>(this)->disjointSets_.find_set(v1);
-        unsigned int v2Component = const_cast<QuotientSpaceGraph *>(this)->disjointSets_.find_set(v2);
-        PlannerDataVertexAnnotated &v1a = *static_cast<PlannerDataVertexAnnotated *>(&data.getVertex(vi1));
-        PlannerDataVertexAnnotated &v2a = *static_cast<PlannerDataVertexAnnotated *>(&data.getVertex(vi2));
-
-        if (v1Component == startComponent || v2Component == startComponent)
-        {
-            v1a.setComponent(0);
-            v2a.setComponent(0);
-        }
-        else if (v1Component == goalComponent || v2Component == goalComponent)
-        {
-            v1a.setComponent(1);
-            v2a.setComponent(1);
-        }
-        else
-        {
-            v1a.setComponent(2);
-            v2a.setComponent(2);
-        }
-    }
-}
-
 bool QuotientSpaceGraph::sampleQuotient(ob::State *q_random_graph)
 {
     // RANDOM EDGE SAMPLING
@@ -443,3 +390,69 @@ void QuotientSpaceGraph::printConfiguration(const Configuration *q) const
 {
     Q1->printState(q->state);
 }
+
+void QuotientSpaceGraph::getPlannerData(ob::PlannerData &data) const
+{
+    std::vector<int> idxPathI; 
+    QuotientSpace *pparent = getParent();
+    while(pparent != nullptr)
+    {
+      idxPathI.push_back(0);
+      pparent = pparent->getParent();
+    }
+    idxPathI.push_back(0);
+
+    unsigned int startComponent = 0;
+    unsigned int goalComponent = 1;
+
+    PlannerDataVertexAnnotated pstart(graph_[vStart_]->state, startComponent);
+    pstart.setPath(idxPathI);
+    data.addStartVertex(pstart);
+    if (hasSolution_)
+    {
+        goalComponent = 0;
+        PlannerDataVertexAnnotated pgoal(graph_[vGoal_]->state, goalComponent);
+        pgoal.setPath(idxPathI);
+        data.addGoalVertex(pgoal);
+    }
+
+    unsigned int ctr = 0;
+    foreach (const Edge e, boost::edges(graph_))
+    {
+        const Vertex v1 = boost::source(e, graph_);
+        const Vertex v2 = boost::target(e, graph_);
+
+        PlannerDataVertexAnnotated p1(graph_[v1]->state);
+        PlannerDataVertexAnnotated p2(graph_[v2]->state);
+        p1.setPath(idxPathI);
+        p2.setPath(idxPathI);
+
+        unsigned int vi1 = data.addVertex(p1);
+        unsigned int vi2 = data.addVertex(p2);
+        data.addEdge(p1, p2);
+
+        ctr++;
+
+        unsigned int v1Component = const_cast<QuotientSpaceGraph *>(this)->disjointSets_.find_set(v1);
+        unsigned int v2Component = const_cast<QuotientSpaceGraph *>(this)->disjointSets_.find_set(v2);
+        PlannerDataVertexAnnotated &v1a = *static_cast<PlannerDataVertexAnnotated *>(&data.getVertex(vi1));
+        PlannerDataVertexAnnotated &v2a = *static_cast<PlannerDataVertexAnnotated *>(&data.getVertex(vi2));
+
+        if (v1Component == startComponent || v2Component == startComponent)
+        {
+            v1a.setComponent(0);
+            v2a.setComponent(0);
+        }
+        else if (v1Component == goalComponent || v2Component == goalComponent)
+        {
+            v1a.setComponent(1);
+            v2a.setComponent(1);
+        }
+        else
+        {
+            v1a.setComponent(2);
+            v2a.setComponent(2);
+        }
+    }
+}
+

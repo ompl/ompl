@@ -1,4 +1,4 @@
-#include <ompl/geometric/planners/explorer/PathVisibilityChecker.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/PathVisibilityChecker.h>
 #include <ompl/base/State.h>
 #include <ompl/base/ScopedState.h>
 

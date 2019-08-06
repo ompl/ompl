@@ -59,6 +59,7 @@ namespace ompl
              @par External documentation
              A. Orthey and M. Toussaint,
              Rapidly-Exploring Quotient-Space Trees: Motion Planning using Sequential Simplifications,
+             in <em>International Symposium of Robotics Research</em>, 2019,
              [[PDF]](https://arxiv.org/abs/1906.01350)
         */
 

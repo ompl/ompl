@@ -18,13 +18,13 @@ namespace ompl
 {
   namespace geometric
   {
-    class QuotientGraphSparse: public og::QuotientSpaceGraph{
+    class QuotientSpaceGraphSparse: public og::QuotientSpaceGraph{
 
         typedef og::QuotientSpaceGraph BaseT;
       public:
 
-        QuotientGraphSparse(const ob::SpaceInformationPtr &si, QuotientSpace *parent = nullptr);
-        virtual ~QuotientGraphSparse() override;
+        QuotientSpaceGraphSparse(const ob::SpaceInformationPtr &si, QuotientSpace *parent = nullptr);
+        virtual ~QuotientSpaceGraphSparse() override;
 
         virtual void grow() = 0;
         virtual void getPlannerData(ob::PlannerData &data) const override;
