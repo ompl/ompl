@@ -177,12 +177,12 @@ namespace ompl
                 return false;
             }
 
-            std::vector<std::shared_ptr<Vertex>> ImplicitGraph::getStartVertices() const
+            const std::vector<std::shared_ptr<Vertex>>& ImplicitGraph::getStartVertices() const
             {
                 return startVertices_;
             }
 
-            std::vector<std::shared_ptr<Vertex>> ImplicitGraph::getGoalVertices() const
+            const std::vector<std::shared_ptr<Vertex>>& ImplicitGraph::getGoalVertices() const
             {
                 return goalVertices_;
             }

@@ -87,10 +87,10 @@ namespace ompl
                 bool isGoal(const std::shared_ptr<Vertex> &vertex) const;
 
                 /** \brief Get the start vertices. */
-                std::vector<std::shared_ptr<Vertex>> getStartVertices() const;
+                const std::vector<std::shared_ptr<Vertex>>& getStartVertices() const;
 
                 /** \brief Get the goal vertices. */
-                std::vector<std::shared_ptr<Vertex>> getGoalVertices() const;
+                const std::vector<std::shared_ptr<Vertex>>& getGoalVertices() const;
 
                 /** \brief Get all vertices. */
                 std::vector<std::shared_ptr<Vertex>> getVertices() const;
