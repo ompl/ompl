@@ -90,7 +90,7 @@ namespace ompl
             // Call the base-class setup.
             Planner::setup();
 
-            // Default to path length optimization objective if none other has been specified.
+            // Default to path length optimization objective if none has been specified.
             if (!Planner::pdef_->hasOptimizationObjective())
             {
                 OMPL_WARN("%s: No optimization objective has been specified. Defaulting to path length.",
@@ -140,16 +140,16 @@ namespace ompl
             Planner::checkValidity();
             if (!Planner::setup_)
             {
-                auto msg = Planner::name_ + " failed to setup. Has a problem definition been set?"s;
+                auto msg = Planner::name_ + " failed to setup."s;
                 throw ompl::Exception(msg);
             }
 
-            // If this is the first time solve is called, insert the outgoing edges of the start into the queue.
+            // If this is the first time solve is called, populate the backward queue.
             if (numIterations_ == 0u)
             {
                 for (const auto &goal : graph_.getGoalVertices())
                 {
-                    // Set tht cost to come from the goal to identity cost.
+                    // Set the cost to come from the goal to identity cost.
                     goal->setCostToComeFromGoal(optimizationObjective_->identityCost());
 
                     // Create an element for the queue.
@@ -320,10 +320,9 @@ namespace ompl
                     {
                         if (optimizationObjective_->isFinite(start->getCostToComeFromGoal()))
                         {
-                            // Add the outgoing edges of the start to the queue.
+                            // Add the outgoing edges of all start vertices to the queue.
                             for (const auto &start : graph_.getStartVertices())
                             {
-                                start->setCostToComeFromStart(optimizationObjective_->identityCost());
                                 insertOutgoingEdges(start);
                             }
 
@@ -343,8 +342,8 @@ namespace ompl
                 else if (!forwardQueue_.empty())
                 {
                     performForwardSearchIteration();
-                }  // If both queues are empty, add new samples.
-                else
+                }
+                else  // If both queues are empty, add new samples.
                 {
                     // Add new samples.
                     graph_.addSamples(batchSize_);
