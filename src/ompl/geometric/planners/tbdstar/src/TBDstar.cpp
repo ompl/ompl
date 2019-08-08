@@ -218,6 +218,11 @@ namespace ompl
             }
         }
 
+        void TBDstar::setBatchSize(std::size_t batchSize)
+        {
+            batchSize_ = batchSize;
+        }
+
         void TBDstar::setComputeBackwardSearchHeuristic(bool computeBackwardSearchHeuristic)
         {
             computeBackwardSearchHeuristic_ = computeBackwardSearchHeuristic;

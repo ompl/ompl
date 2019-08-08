@@ -71,6 +71,9 @@ namespace ompl
             /** \brief Get the planner data. */
             void getPlannerData(base::PlannerData &data) const override;
 
+            /** \brief Set the batch size. */
+            void setBatchSize(std::size_t batchSize);
+
             /** \brief Set the option to compute the backward search heuristic. */
             void setComputeBackwardSearchHeuristic(bool computeBackwardSearchHeuristic);
 
