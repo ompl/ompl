@@ -219,8 +219,10 @@ const StateSpacePtr QuotientSpace::computeQuotientSpace(const StateSpacePtr Q1, 
     switch (type_)
     {
         case IDENTITY_SPACE_RN:
+        case IDENTITY_SPACE_SE2:
         case IDENTITY_SPACE_SE2RN:
         case IDENTITY_SPACE_SO2RN:
+        case IDENTITY_SPACE_SE3:
         case IDENTITY_SPACE_SE3RN:
         {
             X1_dimension_ = 0;
@@ -438,8 +440,15 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
             }
             else
             {
-                OMPL_ERROR("Q1 is SE2 but Q0 type %d is not handled.", Q0->getType());
-                exit(0);
+                if (Q0->getType() == ob::STATE_SPACE_SE2)
+                {
+                    type_ = IDENTITY_SPACE_SE2;
+                }
+                else
+                {
+                    OMPL_ERROR("Q1 is SE2 but Q0 type %d is not handled.", Q0->getType());
+                    exit(0);
+                }
             }
         }
         //------------------ (3) Q1 = SE3, Q0 = R3, X1 = SO3
@@ -460,6 +469,15 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
             }
             else
             {
+                if (Q0->getType() == ob::STATE_SPACE_SE3)
+                {
+                    type_ = IDENTITY_SPACE_SE3;
+                }
+                else
+                {
+                    OMPL_ERROR("Q1 is SE2 but Q0 type %d is not handled.", Q0->getType());
+                    exit(0);
+                }
                 OMPL_ERROR("Q1 is SE3 but Q0 type %d is not handled.", Q0->getType());
                 exit(0);
             }
@@ -675,8 +693,10 @@ void QuotientSpace::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::
     switch (type_)
     {
         case IDENTITY_SPACE_RN:
+        case IDENTITY_SPACE_SE2:
         case IDENTITY_SPACE_SE2RN:
         case IDENTITY_SPACE_SO2RN:
+        case IDENTITY_SPACE_SE3:
         case IDENTITY_SPACE_SE3RN:
         {
             OMPL_ERROR("Cannot merge states for Identity space");
@@ -1067,8 +1087,10 @@ void QuotientSpace::projectQ0Subspace(const ob::State *q, ob::State *qQ0) const
     switch (type_)
     {
         case IDENTITY_SPACE_RN:
+        case IDENTITY_SPACE_SE2:
         case IDENTITY_SPACE_SE2RN:
         case IDENTITY_SPACE_SO2RN:
+        case IDENTITY_SPACE_SE3:
         case IDENTITY_SPACE_SE3RN:
         {
             // Identity function
@@ -1394,11 +1416,41 @@ void QuotientSpace::print(std::ostream &out) const
         switch (type_)
         {
             case QuotientSpace::IDENTITY_SPACE_RN:
+            {
+                out << "R^" << Q0_dimension_ 
+                  << " | Q" << level_ + 1 
+                  << ": R^" << Q1_dimension_;
+                break;
+            }
+            case QuotientSpace::IDENTITY_SPACE_SE2:
+            {
+                out << "SE(2)" << " | Q" << level_ + 1 << ": SE(2)";
+                break;
+            }
             case QuotientSpace::IDENTITY_SPACE_SE2RN:
+            {
+                out << "SE(2)xR^" << Q0_dimension_ 
+                  << " | Q" << level_ + 1 
+                  << ": SE(2)xR^" << Q1_dimension_;
+                break;
+            }
             case QuotientSpace::IDENTITY_SPACE_SO2RN:
+            {
+                out << "SO(2)xR^" << Q0_dimension_ 
+                  << " | Q" << level_ + 1 
+                  << ": SO(2)xR^" << Q1_dimension_;
+                break;
+            }
+            case QuotientSpace::IDENTITY_SPACE_SE3:
+            {
+                out << "SE(3)" << " | Q" << level_ + 1 << ": SE(3)";
+                break;
+            }
             case QuotientSpace::IDENTITY_SPACE_SE3RN:
             {
-                out << "R^" << Q0_dimension_ << " | Q" << level_ + 1 << ": R^" << Q1_dimension_;
+                out << "SE(3)xR^" << Q0_dimension_ 
+                  << " | Q" << level_ + 1 
+                  << ": SE(3)xR^" << Q1_dimension_;
                 break;
             }
             case QuotientSpace::RN_RM:

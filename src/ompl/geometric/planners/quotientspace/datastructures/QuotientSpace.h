@@ -52,9 +52,11 @@ namespace ompl
             {
                 UNKNOWN,
                 IDENTITY_SPACE_RN,
+                IDENTITY_SPACE_SE2,
                 IDENTITY_SPACE_SE2RN,
-                IDENTITY_SPACE_SE3RN,
                 IDENTITY_SPACE_SO2RN,
+                IDENTITY_SPACE_SE3,
+                IDENTITY_SPACE_SE3RN,
                 ATOMIC_RN,
                 RN_RM,
                 SE2_R2,
