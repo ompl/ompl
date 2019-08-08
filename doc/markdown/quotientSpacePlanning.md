@@ -5,19 +5,24 @@ Abstraction levels are defined as [QuotientSpaces](https://en.wikipedia.org/wiki
 A simple example is a rigid body in the plane with the configuration space \f$SE(2)\f$. 
 We can abstract this configuration space by projecting onto \f$R^2\f$, the QuotientSpace of positions of the rigid body. 
 
-
-
 ## Admissible QuotientSpace Projections
 
-While there are infinitely many QuotientSpace projections, we are 
-interested in admissible projections. Admissible projections map infeasible
-subspaces of the configuration space onto infeasible points of a
-QuotientSpace. For the rigid body example, an admissible projection is one
-where the projection is obtained by nesting a smaller robot in the larger one.
-Below we show a simple planning problem, where a rigid body needs to move from
-an initial start configuration (green) to a designated goal configuration (red).
-This problem can be abstracted by nesting a disk in the rigid body (right
-Figure).
+QuotientSpace projections are many-to-one mappings, which map subsets of the
+configuration space to a point of a QuotientSpace. The QuotientSpace, as the
+configuration space, contains feasible and infeasible configurations. We like to
+disallow projections which map feasible configurations onto infeasible
+Quotientspace configurations --- because we could thereby abstract away valid
+feasible paths. 
+
+A QuotientSpace projection thus projects an infeasible subset onto an infeasible
+point, but never a feasible configuration onto an infeasible configuration. Such
+projection are called admissible. 
+
+For the rigid body example, we get an admissible projection by nesting a smaller
+robot in the larger one. Below we show a simple planning problem, where a rigid
+body needs to move from an initial start configuration (green) to a designated
+goal configuration (red). This problem can be abstracted by nesting a disk in
+the rigid body (right Figure).
 
 \htmlonly
 <div class="row">
