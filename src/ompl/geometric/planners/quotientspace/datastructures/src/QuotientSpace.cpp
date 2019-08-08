@@ -518,8 +518,14 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                                 }
                                 else
                                 {
-                                    OMPL_ERROR("We require n > m > 0, but have n=%d > m=%d > 0.", n, m);
-                                    exit(0);
+                                    if(m == n){
+                                        type_ = IDENTITY_SPACE;
+                                    }
+                                    else
+                                    {
+                                        OMPL_ERROR("We require n >= m > 0, but have n=%d >= m=%d > 0.", n, m);
+                                        exit(0);
+                                    }
                                 }
                             }
                         }
@@ -576,8 +582,14 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                                     }
                                     else
                                     {
-                                        OMPL_ERROR("We require n > m > 0 but have n=%d > m=%d > 0.", n, m);
-                                        exit(0);
+                                        if(m == n){
+                                            type_ = IDENTITY_SPACE;
+                                        }
+                                        else
+                                        {
+                                            OMPL_ERROR("We require n >= m > 0, but have n=%d >= m=%d > 0.", n, m);
+                                            exit(0);
+                                        }
                                     }
                                 }else{
 
@@ -614,8 +626,13 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                                             type_ = SO2RN_SO2RM;
                                         }else
                                         {
-                                            OMPL_ERROR("We require n > m > 0 but have n=%d > m=%d > 0.", n, m);
-                                            exit(0);
+                                            if (m == n){
+                                                type_ = IDENTITY_SPACE;
+                                            }else
+                                            {
+                                                OMPL_ERROR("We require n >= m > 0 but have n=%d >= m=%d > 0.", n, m);
+                                                exit(0);
+                                            }
                                         }
                                     }else{
                                         OMPL_ERROR("Cannot project onto type %d.", Q1->getType());
