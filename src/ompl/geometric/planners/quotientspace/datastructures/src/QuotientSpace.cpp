@@ -218,7 +218,10 @@ const StateSpacePtr QuotientSpace::computeQuotientSpace(const StateSpacePtr Q1, 
 
     switch (type_)
     {
-        case IDENTITY_SPACE:
+        case IDENTITY_SPACE_RN:
+        case IDENTITY_SPACE_SE2RN:
+        case IDENTITY_SPACE_SO2RN:
+        case IDENTITY_SPACE_SE3RN:
         {
             X1_dimension_ = 0;
             break;
@@ -349,28 +352,23 @@ const StateSpacePtr QuotientSpace::computeQuotientSpace(const StateSpacePtr Q1, 
 
 QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const StateSpacePtr Q1, const StateSpacePtr Q0)
 {
-    // STATE_SPACE_UNKNOWN = 0,
-    // STATE_SPACE_REAL_VECTOR = 1,
-    // STATE_SPACE_SO2 = 2,
-    // STATE_SPACE_SO3 = 3,
-    // STATE_SPACE_SE2 = 4,
-    // STATE_SPACE_SE3 = 5,
-    // STATE_SPACE_TIME = 6,
-    // STATE_SPACE_DISCRETE = 7,
-    //   ---- non-compound:
-    //   (1) Q1 Rn     , Q0 Rm     [0<m<=n] => X1 = R(n-m) \union {0}
-    //   ---- compound:
-    //   (2) Q1 SE2    , Q0 R2              => X1 = SO2
-    //   (3) Q1 SE3    , Q0 R3              => X1 = SO3
-    //   (4) Q1 SE3xRn , Q0 SE3             => X1 = Rn
-    //   (5) Q1 SE3xRn , Q0 R3              => X1 = SO3xRn
-    //   (6) Q1 SE3xRn , Q0 SE3xRm [0<m<n ] => X1 = R(n-m)
     //
-    //   (7) Q1 SE2xRn , Q0 SE2             => X1 = Rn
-    //   (8) Q1 SE2xRn , Q0 R2              => X1 = SO2xRN
-    //   (9) Q1 SE2xRn , Q0 SE2xRm [0<m<n ] => X1 = R(n-m)
-    //  (10) Q1 SO2xRn , Q0 SO2             => X1 = Rn
-    //  (11) Q1 SO2xRn , Q0 SO2xRm [0<m<n ] => X1 = R(n-m)
+    // We can currently handle 11 types of quotient-space mappings
+    // 
+    //   (1) Q1 Rn     , Q0 Rm     [0<m<=n]  => X1 = R(n-m) \union {\emptyset}
+    //   (2) Q1 SE2    , Q0 R2               => X1 = SO2
+    //   (3) Q1 SE3    , Q0 R3               => X1 = SO3
+    //
+    //   (4) Q1 SE3xRn , Q0 SE3              => X1 = Rn
+    //   (5) Q1 SE3xRn , Q0 R3               => X1 = SO3xRn
+    //   (6) Q1 SE3xRn , Q0 SE3xRm [0<m<=n ] => X1 = R(n-m) \union {\emptyset}
+    //
+    //   (7) Q1 SE2xRn , Q0 SE2              => X1 = Rn
+    //   (8) Q1 SE2xRn , Q0 R2               => X1 = SO2xRN
+    //   (9) Q1 SE2xRn , Q0 SE2xRm [0<m<=n ] => X1 = R(n-m) \union {\emptyset}
+    //
+    //  (10) Q1 SO2xRn , Q0 SO2              => X1 = Rn
+    //  (11) Q1 SO2xRn , Q0 SO2xRm [0<m<=n ] => X1 = R(n-m) \union {\emptyset}
 
     if (!Q1->isCompound())
     {
@@ -393,7 +391,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                 {
                     if (n == m && m > 0)
                     {
-                        type_ = IDENTITY_SPACE;
+                        type_ = IDENTITY_SPACE_RN;
                     }
                     else
                     {
@@ -519,7 +517,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                                 else
                                 {
                                     if(m == n){
-                                        type_ = IDENTITY_SPACE;
+                                        type_ = IDENTITY_SPACE_SE3RN;
                                     }
                                     else
                                     {
@@ -583,7 +581,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                                     else
                                     {
                                         if(m == n){
-                                            type_ = IDENTITY_SPACE;
+                                            type_ = IDENTITY_SPACE_SE2RN;
                                         }
                                         else
                                         {
@@ -627,7 +625,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                                         }else
                                         {
                                             if (m == n){
-                                                type_ = IDENTITY_SPACE;
+                                                type_ = IDENTITY_SPACE_SO2RN;
                                             }else
                                             {
                                                 OMPL_ERROR("We require n >= m > 0 but have n=%d >= m=%d > 0.", n, m);
@@ -676,7 +674,10 @@ void QuotientSpace::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::
 
     switch (type_)
     {
-        case IDENTITY_SPACE:
+        case IDENTITY_SPACE_RN:
+        case IDENTITY_SPACE_SE2RN:
+        case IDENTITY_SPACE_SO2RN:
+        case IDENTITY_SPACE_SE3RN:
         {
             OMPL_ERROR("Cannot merge states for Identity space");
             exit(0);
@@ -1065,7 +1066,10 @@ void QuotientSpace::projectQ0Subspace(const ob::State *q, ob::State *qQ0) const
 {
     switch (type_)
     {
-        case IDENTITY_SPACE:
+        case IDENTITY_SPACE_RN:
+        case IDENTITY_SPACE_SE2RN:
+        case IDENTITY_SPACE_SO2RN:
+        case IDENTITY_SPACE_SE3RN:
         {
             // Identity function
             Q1->getStateSpace()->copyState(qQ0, q);
@@ -1389,7 +1393,10 @@ void QuotientSpace::print(std::ostream &out) const
         out << "X" << sublevel << "=Q" << sublevel << ": ";
         switch (type_)
         {
-            case QuotientSpace::IDENTITY_SPACE:
+            case QuotientSpace::IDENTITY_SPACE_RN:
+            case QuotientSpace::IDENTITY_SPACE_SE2RN:
+            case QuotientSpace::IDENTITY_SPACE_SO2RN:
+            case QuotientSpace::IDENTITY_SPACE_SE3RN:
             {
                 out << "R^" << Q0_dimension_ << " | Q" << level_ + 1 << ": R^" << Q1_dimension_;
                 break;
