@@ -10,6 +10,7 @@
 #include <boost/foreach.hpp>
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp> //same_component
+#include <boost/math/constants/constants.hpp>
 using namespace og;
 #define foreach BOOST_FOREACH
 
@@ -50,6 +51,9 @@ void QuotientSpaceGraphSparse::setup()
 
   double maxExt = Q1->getMaximumExtent();
   sparseDelta_ = sparseDeltaFraction_ * maxExt;
+  double d = (double) Q1->getStateDimension();
+  double e = boost::math::constants::e<double>();
+  kPRMStarConstant_ = e + (e/d);
 }
 
 void QuotientSpaceGraphSparse::clear()
@@ -127,6 +131,21 @@ void QuotientSpaceGraphSparse::Init()
 QuotientSpaceGraphSparse::Vertex QuotientSpaceGraphSparse::addConfiguration(Configuration *q)
 {
     Vertex v = BaseT::addConfiguration(q);
+
+    std::vector<Configuration*> neighbors;
+    unsigned N = boost::num_vertices(graph_);
+    unsigned K = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)N)));
+    nearestDatastructure_->nearestK(q, K, neighbors);
+
+    for(uint k = 0; k < neighbors.size(); k++){
+      Configuration *qn = neighbors.at(k);
+      if(Q1->checkMotion(q->state, qn->state))
+      {
+        addEdge(q->index, qn->index);
+      }
+    }
+
+    //Sparse Graph addition
 
     findGraphNeighbors(q, graphNeighborhood, visibleNeighborhood);
 
