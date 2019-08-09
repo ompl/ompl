@@ -574,7 +574,7 @@ void QuotientSpaceGraphSparse::getPathIndices(const std::vector<ob::State*> &sta
     for(uint k = 0; k < states.size(); k++){
       ob::State *qk = states.at(k);
       ob::State *qkProjected = Q0->allocState();
-      projectQ0Subspace(qk, qkProjected);
+      projectQ0(qk, qkProjected);
       pathcur.push_back(qkProjected);
     }
     //Check which path can be deformed into QS path

@@ -73,18 +73,11 @@ namespace ompl
 
         public:
             /**  \brief Quotient Space contains three OMPL spaces, which we call Q1, Q0 and X1.
-
+                  
                  Q1 = Q0 x X1 is a product space of Q0 and X1 and
                       is the main quotient-space of this class
                  Q0 is a pointer to the next lower-dimensional quotient-space and
                  X1 is the quotient-space  Q1 / Q0
-
-                 We can visualize the relationships in the following diagram
-
-                 [     ][ Q0 ]
-                 [ Q1  ][____]
-                 [     ][ X1 ]
-                 [     ][    ]
 
                  We assume that Q1 and Q0 have been given (as ompl::base::SpaceInformationPtr),
                  and we compute the inverse of the quotient map, i.e. X1 = Q1/Q0. */
@@ -155,11 +148,11 @@ namespace ompl
             unsigned int getTotalNumberOfFeasibleSamples() const;
 
             /// \brief Quotient Space Projection Operator onto second component
-            /// ProjectX1Subspace: Q0 \times X1 \rightarrow X1
-            void projectX1Subspace(const ompl::base::State *q, ompl::base::State *qX1) const;
+            /// ProjectX1: Q0 \times X1 \rightarrow X1
+            void projectX1(const ompl::base::State *q, ompl::base::State *qX1) const;
             /// \brief Quotient Space Projection Operator onto first component
-            /// ProjectQ0Subspace: Q0 \times X1 \rightarrow Q0
-            void projectQ0Subspace(const ompl::base::State *q, ompl::base::State *qQ0) const;
+            /// ProjectQ0: Q0 \times X1 \rightarrow Q0
+            void projectQ0(const ompl::base::State *q, ompl::base::State *qQ0) const;
             /// Merge a state from Q0 and X1 into a state on Q1 (concatenate)
             void mergeStates(const ompl::base::State *qQ0, const ompl::base::State *qX1, ompl::base::State *qQ1) const;
 

@@ -957,7 +957,7 @@ void QuotientSpace::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::
         }
     }
 }
-void QuotientSpace::projectX1Subspace(const ob::State *q, ob::State *qX1) const
+void QuotientSpace::projectX1(const ob::State *q, ob::State *qX1) const
 {
     switch (type_)
     {
@@ -1085,7 +1085,7 @@ void QuotientSpace::projectX1Subspace(const ob::State *q, ob::State *qX1) const
     }
 }
 
-void QuotientSpace::projectQ0Subspace(const ob::State *q, ob::State *qQ0) const
+void QuotientSpace::projectQ0(const ob::State *q, ob::State *qQ0) const
 {
     switch (type_)
     {
@@ -1250,8 +1250,7 @@ void QuotientSpace::projectQ0Subspace(const ob::State *q, ob::State *qQ0) const
         }
         default:
         {
-            OMPL_ERROR("Cannot project onto Q0.");
-            OMPL_ERROR("Type %d not implemented.", type_);
+            OMPL_ERROR("Cannot project onto Q0. Type %d not implemented.", type_);
             exit(1);
         }
     }

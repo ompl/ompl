@@ -248,8 +248,8 @@ void MultiQuotient<T>::setProblemDefinition(const ompl::base::ProblemDefinitionP
         ompl::base::State *sInitK = sik->allocState();
         ompl::base::State *sGoalK = sik->allocState();
 
-        quotientParent->projectQ0Subspace(sInit, sInitK);
-        quotientParent->projectQ0Subspace(sGoal, sGoalK);
+        quotientParent->projectQ0(sInit, sInitK);
+        quotientParent->projectQ0(sGoal, sGoalK);
 
         pdefk->setStartAndGoalStates(sInitK, sGoalK, epsilon);
 
