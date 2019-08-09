@@ -35,7 +35,7 @@
 
 /* Author: Andreas Orthey */
 
-const double edgeWidth = 0.1;
+const double edgeWidth = 0.05;
 const double runtime_limit = 10;
 const double memory_limit = 4096*4096;
 const int run_count = 10;
@@ -206,7 +206,7 @@ ob::PlannerPtr GetQRRT(
     for(unsigned k = 0; k < sequenceLinks.size()-1; k++)
     {
         int links = sequenceLinks.at(k);
-        assert(links<maximalDimension);
+        assert(links < curDim);
 
         auto spaceK(std::make_shared<ompl::base::RealVectorStateSpace>(links));
         ompl::base::RealVectorBounds bounds(links);

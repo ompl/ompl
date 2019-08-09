@@ -355,22 +355,25 @@ const StateSpacePtr QuotientSpace::computeQuotientSpace(const StateSpacePtr Q1, 
 QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const StateSpacePtr Q1, const StateSpacePtr Q0)
 {
     //
-    // We can currently handle 11 types of quotient-space mappings
+    // We can currently handle 11 types of quotient-space mappings. 
+    // Emptyset is used for constraint relaxations.
     // 
-    //   (1) Q1 Rn     , Q0 Rm     [0<m<=n]  => X1 = R(n-m) \union {\emptyset}
-    //   (2) Q1 SE2    , Q0 R2               => X1 = SO2
-    //   (3) Q1 SE3    , Q0 R3               => X1 = SO3
+    //   (1)  Q1 Rn     , Q0 Rm     [0<m<=n]  => X1 = R(n-m) \union {\emptyset}
+    //   (2a) Q1 SE2    , Q0 R2               => X1 = SO2
+    //   (2b) Q1 SE2    , Q0 SE2              => X1 = \emptyset
+    //   (3a) Q1 SE3    , Q0 R3               => X1 = SO3
+    //   (3b) Q1 SE3    , Q0 SE3              => X1 = \emptyset
     //
-    //   (4) Q1 SE3xRn , Q0 SE3              => X1 = Rn
-    //   (5) Q1 SE3xRn , Q0 R3               => X1 = SO3xRn
-    //   (6) Q1 SE3xRn , Q0 SE3xRm [0<m<=n ] => X1 = R(n-m) \union {\emptyset}
+    //   (4)  Q1 SE3xRn , Q0 SE3              => X1 = Rn
+    //   (5)  Q1 SE3xRn , Q0 R3               => X1 = SO3xRn
+    //   (6)  Q1 SE3xRn , Q0 SE3xRm [0<m<=n ] => X1 = R(n-m) \union {\emptyset}
     //
-    //   (7) Q1 SE2xRn , Q0 SE2              => X1 = Rn
-    //   (8) Q1 SE2xRn , Q0 R2               => X1 = SO2xRN
-    //   (9) Q1 SE2xRn , Q0 SE2xRm [0<m<=n ] => X1 = R(n-m) \union {\emptyset}
+    //   (7)  Q1 SE2xRn , Q0 SE2              => X1 = Rn
+    //   (8)  Q1 SE2xRn , Q0 R2               => X1 = SO2xRN
+    //   (9)  Q1 SE2xRn , Q0 SE2xRm [0<m<=n ] => X1 = R(n-m) \union {\emptyset}
     //
-    //  (10) Q1 SO2xRn , Q0 SO2              => X1 = Rn
-    //  (11) Q1 SO2xRn , Q0 SO2xRm [0<m<=n ] => X1 = R(n-m) \union {\emptyset}
+    //  (10)  Q1 SO2xRn , Q0 SO2              => X1 = Rn
+    //  (11)  Q1 SO2xRn , Q0 SO2xRm [0<m<=n ] => X1 = R(n-m) \union {\emptyset}
 
     if (!Q1->isCompound())
     {

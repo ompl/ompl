@@ -197,8 +197,8 @@ namespace ompl
             const Configuration *nearest(const Configuration *s) const;
 
             ompl::base::Cost bestCost_{+ompl::base::dInf};
-            Configuration *qStart_;
-            Configuration *qGoal_;
+            Configuration *qStart_{nullptr};
+            Configuration *qGoal_{nullptr};
             Vertex vStart_;
             Vertex vGoal_;
             std::vector<Vertex> shortestVertexPath_;

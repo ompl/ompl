@@ -4,6 +4,7 @@
 #include <ompl/geometric/PathSimplifier.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/objectives/MaximizeMinClearanceObjective.h>
+#include <ompl/base/goals/GoalSampleableRegion.h>
 
 #include <boost/property_map/vector_property_map.hpp>
 #include <boost/property_map/transform_value_property_map.hpp>
@@ -51,6 +52,7 @@ void QuotientSpaceGraphSparse::setup()
 
   double maxExt = Q1->getMaximumExtent();
   sparseDelta_ = sparseDeltaFraction_ * maxExt;
+  pathBias_ = pathBiasFraction_ * maxExt;
   double d = (double) Q1->getStateDimension();
   double e = boost::math::constants::e<double>();
   kPRMStarConstant_ = e + (e/d);
@@ -87,9 +89,9 @@ void QuotientSpaceGraphSparse::clear()
 
 void QuotientSpaceGraphSparse::Init()
 {
-  if(const ob::State *st = pis_.nextStart()){
-    if (st != nullptr){
-      qStart_ = new Configuration(Q1, st);
+  if(const ob::State *sInitial = pis_.nextStart()){
+    if (sInitial != nullptr){
+      qStart_ = new Configuration(Q1, sInitial);
       qStart_->isStart = true;
       vStart_ = addConfiguration(qStart_);
 
@@ -97,15 +99,17 @@ void QuotientSpaceGraphSparse::Init()
       v_start_sparse = graphSparse_[0]->index;
       graphSparse_[v_start_sparse]->isStart = true;
     }
-  }
-  if (qStart_ == nullptr){
-    OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
-    exit(0);
+  }else{
+      OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
+      const base::State *sInvalidInitial = pdef_->getStartState(0);
+      debugInvalidState(sInvalidInitial);
+      exit(0);
   }
 
-  if(const ob::State *st = pis_.nextGoal()){
-    if (st != nullptr){
-      qGoal_ = new Configuration(Q1, st);
+  const ob::State *sGoal{nullptr};
+  if((sGoal = pis_.nextGoal())){
+    if (sGoal != nullptr){
+      qGoal_ = new Configuration(Q1, sGoal);
       qGoal_->isGoal = true;
       vGoal_ = addConfiguration(qGoal_);
 
@@ -118,14 +122,55 @@ void QuotientSpaceGraphSparse::Init()
       v_goal_sparse = graphSparse_[1]->index;
       graphSparse_[v_goal_sparse]->isGoal = true;
     }
+  }else{
+      OMPL_ERROR("%s: There are no valid goal states!", getName().c_str());
+      ob::State *sInvalidGoal = Q1->allocState();
+      const ob::GoalSampleableRegion *goal = pdef_->getGoal()->as<ob::GoalSampleableRegion>();
+      goal->sampleGoal(sInvalidGoal);
+      debugInvalidState(sInvalidGoal);
+      exit(0);
   }
-  if (qGoal_ == nullptr){
-    OMPL_ERROR("%s: There are no valid goal states!", getName().c_str());
-    exit(0);
-  }
-  // uint startComponent = disjointSets_.find_set(v_start_sparse);
-  // uint goalComponent = disjointSets_.find_set(v_goal_sparse);
-  // std::cout << "start component:" << startComponent << "| goalComponent:" << goalComponent << std::endl;
+
+}
+
+void QuotientSpaceGraphSparse::debugInvalidState(const ob::State *s)
+{
+    const ob::StateSpacePtr space = Q1->getStateSpace();
+    bool bounds = space->satisfiesBounds(s);
+    if(!bounds){
+        std::vector<ob::StateSpacePtr> Q1_decomposed;
+        if (!space->isCompound())
+        {
+            Q1_decomposed.push_back(space);
+        }else{
+            ob::CompoundStateSpace *Q1_compound = space->as<ob::CompoundStateSpace>();
+            Q1_decomposed = Q1_compound->getSubspaces();
+        }
+
+        for(uint k = 0; k < Q1_decomposed.size(); k++){
+            ob::StateSpacePtr spacek = Q1_decomposed.at(k);
+            int type = spacek->getType();
+            switch (type) {
+              case ob::STATE_SPACE_REAL_VECTOR:
+              {
+                  auto *RN = spacek->as<ob::RealVectorStateSpace>();
+                  const ob::RealVectorStateSpace::StateType *sk = 
+                    s->as<ob::CompoundState>()->as<ob::RealVectorStateSpace::StateType>(k);
+                  std::vector<double> bl =  RN->getBounds().low;
+                  std::vector<double> bh =  RN->getBounds().high;
+                  for(uint k = 0; k < bl.size(); k++){
+                    double qk = sk->values[k];
+                    double qkl = bl.at(k);
+                    double qkh = bh.at(k);
+                    if(qk < qkl || qk > qkh){
+                        std::cout << "OUTOFBOUNDS [" << k << "] " << bl.at(k) << " <= " << qk << " <= " << bh.at(k) << std::endl;
+                    }
+                  }
+                  break;
+              }
+            }
+        }
+    }
 }
 
 QuotientSpaceGraphSparse::Vertex QuotientSpaceGraphSparse::addConfiguration(Configuration *q)
@@ -307,7 +352,7 @@ bool QuotientSpaceGraphSparse::sampleQuotient(ob::State *q_random_graph)
         ob::State *s2 = states.at((k<N-1)?k+1:k);
         Q1->getStateSpace()->interpolate(s1, s2, r, q_random_graph);
 
-        Q1_sampler_->sampleUniformNear(q_random_graph, q_random_graph, 0.1);
+        Q1_sampler_->sampleUniformNear(q_random_graph, q_random_graph, pathBias_);
 
 
       }else{
@@ -353,7 +398,11 @@ void QuotientSpaceGraphSparse::Rewire()
 }
 
 
-void QuotientSpaceGraphSparse::AddPathToStack(std::vector<ob::State*> &path)
+void QuotientSpaceGraphSparse::removeLastPathFromStack()
+{
+    pathStackHead_.erase(pathStackHead_.end()-1);
+}
+void QuotientSpaceGraphSparse::pushPathToStack(std::vector<ob::State*> &path)
 {
 
   og::PathGeometric gpath(Q1);
@@ -545,8 +594,13 @@ void QuotientSpaceGraphSparse::getPathIndices(const std::vector<ob::State*> &sta
       }
     }
     if(!success){
-      OMPL_ERROR("Could not find projected path on QuotientSpace.");
-      exit(0);
+      //This path is not deformable into any of the QuotientSpace paths 
+      //One way to resolve this issue would be to add the new 
+      // OMPL_ERROR("Could not find projected path on QuotientSpace.");
+      quotient->removeLastPathFromStack();
+      quotient->pushPathToStack(pathcur);
+      idxPath.push_back(0);
+      quotient->getPathIndices(pathcur, idxPath);
     }
     //free all states
     for(uint k = 0; k < pathcur.size(); k++){
@@ -592,7 +646,7 @@ void QuotientSpaceGraphSparse::printAllPathsUtil(
         for (int i = 0; i<path_index; i++){
             pp.push_back(graphSparse_[path[i]]->state);
         }
-        AddPathToStack(pp);
+        pushPathToStack(pp);
     }
     else // If current vertex is not destination
     {
@@ -660,8 +714,8 @@ void QuotientSpaceGraphSparse::enumerateAllPaths()
         og::PathGeometric& pathK = pathStack_.at(k);//*(pathStack_.rbegin()+k));
         pathStackHead_.push_back(pathK.getStates());
     }
-    std::cout << "Found " << pathStackHead_.size() << " path classes." << std::endl;
-    std::cout << std::string(80, '-') << std::endl;
+    OMPL_INFORM("Found %d path classes.", pathStackHead_.size());
+    OMPL_INFORM("%s", std::string(80,'-').c_str());
 
     //TODO: update internally QuotientSpace hierarchy. Create new QuotientSpaces
     //for each path.
