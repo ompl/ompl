@@ -1,37 +1,37 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2019, University of Stuttgart
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Stuttgart nor the names
-*     of its contributors may be used to endorse or promote products
-*     derived from this software without specific prior written
-*     permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2019, University of Stuttgart
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Stuttgart nor the names
+ *     of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written
+ *     permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Andreas Orthey */
 
@@ -60,16 +60,16 @@ namespace ompl
     {
         const double dInf = std::numeric_limits<double>::infinity();
         OMPL_CLASS_FORWARD(OptimizationObjective);
-    }
+    }  // namespace base
     namespace geometric
     {
         /// \brief A graph on a quotient-space
         class QuotientSpaceGraph : public QuotientSpace
         {
-            typedef QuotientSpace BaseT;
+            using BaseT = QuotientSpace;
 
         public:
-            typedef int normalized_index_type;
+            using normalized_index_type = int;
 
             /// A configuration in quotient-space
             class Configuration
@@ -134,26 +134,22 @@ namespace ompl
                 std::string name{"quotient_graph"};
             };
             /// A quotient-graph structure using boost::adjacency_list bundles
-            using Graph = boost::adjacency_list<
-                boost::vecS, 
-                boost::vecS,
-                boost::undirectedS, 
-                Configuration *, 
-                EdgeInternalState,
-                GraphBundle
-            >;
+            using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Configuration *,
+                                                EdgeInternalState, GraphBundle>;
 
-            typedef boost::graph_traits<Graph> BGT;
-            typedef BGT::vertex_descriptor Vertex;
-            typedef BGT::edge_descriptor Edge;
-            typedef BGT::vertices_size_type VertexIndex;
-            typedef BGT::in_edge_iterator IEIterator;
-            typedef BGT::out_edge_iterator OEIterator;
-            typedef Vertex *VertexParent;
-            typedef VertexIndex *VertexRank;
-            typedef std::shared_ptr<NearestNeighbors<Configuration *>> RoadmapNeighborsPtr;
-            typedef ompl::PDF<Configuration *> PDF;
-            typedef PDF::Element PDF_Element;
+            using BGT = boost::graph_traits<Graph>;
+            using Vertex = BGT::vertex_descriptor;
+            using Edge = BGT::edge_descriptor;
+            using VertexIndex = BGT::vertices_size_type;
+            using IEIterator = BGT::in_edge_iterator;
+            using OEIterator = BGT::out_edge_iterator;
+            // typedef Vertex *VertexParent;
+            // typedef VertexIndex *VertexRank;
+            using VertexParent = Vertex;
+            using VertexRank = VertexIndex;
+            using RoadmapNeighborsPtr = std::shared_ptr<NearestNeighbors<Configuration *>>;
+            using PDF = ompl::PDF<Configuration *>;
+            using PDF_Element = PDF::Element;
 
         public:
             QuotientSpaceGraph(const ompl::base::SpaceInformationPtr &si, QuotientSpace *parent = nullptr);
@@ -228,14 +224,14 @@ namespace ompl
             Graph graph_;
             ompl::base::PathPtr solutionPath_;
             RNG rng_;
-            typedef boost::minstd_rand RNGType;
+            using RNGType = boost::minstd_rand;
             RNGType rng_boost;
 
             /// \brief Length of graph (useful for determing importance of
             /// quotient-space
             double graphLength_{0.0};
         };
-    }
-}
+    }  // namespace geometric
+}  // namespace ompl
 
 #endif

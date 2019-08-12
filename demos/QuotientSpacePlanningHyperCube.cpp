@@ -1,37 +1,37 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2019, University of Stuttgart
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Stuttgart nor the names
-*     of its contributors may be used to endorse or promote products
-*     derived from this software without specific prior written
-*     permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2019, University of Stuttgart
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Stuttgart nor the names
+ *     of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written
+ *     permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Andreas Orthey */
 
@@ -60,14 +60,14 @@ const int run_count = 10;
 class HyperCubeValidityChecker : public ompl::base::StateValidityChecker
 {
 public:
-    HyperCubeValidityChecker(const ompl::base::SpaceInformationPtr &si, int nDim) : ompl::base::StateValidityChecker(si), nDim_(nDim)
+    HyperCubeValidityChecker(const ompl::base::SpaceInformationPtr &si, int nDim)
+      : ompl::base::StateValidityChecker(si), nDim_(nDim)
     {
     }
 
     bool isValid(const ompl::base::State *state) const override
     {
-        const auto *s
-            = static_cast<const ompl::base::RealVectorStateSpace::StateType*>(state);
+        const auto *s = static_cast<const ompl::base::RealVectorStateSpace::StateType *>(state);
         bool foundMaxDim = false;
 
         for (int i = nDim_ - 1; i >= 0; i--)
@@ -80,28 +80,25 @@ public:
                 return false;
         return true;
     }
+
 protected:
     int nDim_;
 };
 
-
-void addPlanner(ompl::tools::Benchmark& benchmark, const ompl::base::PlannerPtr& planner, double range)
+void addPlanner(ompl::tools::Benchmark &benchmark, const ompl::base::PlannerPtr &planner, double range)
 {
-    ompl::base::ParamSet& params = planner->params();
+    ompl::base::ParamSet &params = planner->params();
     if (params.hasParam(std::string("range")))
         params.setParam(std::string("range"), ompl::toString(range));
     benchmark.addPlanner(planner);
 }
 
-ob::PlannerPtr GetQRRT(
-    ob::SpaceInformationPtr si, 
-    ob::ProblemDefinitionPtr pdef, 
-    unsigned int numLinks)
+ob::PlannerPtr GetQRRT(ob::SpaceInformationPtr si, ob::ProblemDefinitionPtr pdef, unsigned int numLinks)
 {
     // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     std::vector<ob::SpaceInformationPtr> si_vec;
 
-    for(unsigned int k = 2; k < numLinks; k+=2)
+    for (unsigned int k = 2; k < numLinks; k += 2)
     {
         OMPL_INFORM("Create QuotientSpace Chain with %d links.", k);
 
@@ -123,14 +120,13 @@ ob::PlannerPtr GetQRRT(
 
     auto planner = std::make_shared<og::QRRT>(si_vec);
     planner->setProblemDefinition(pdef);
-    std::string qName = "QuotientSpaceRRT["+std::to_string(si_vec.size())+"lvl]";
+    std::string qName = "QuotientSpaceRRT[" + std::to_string(si_vec.size()) + "lvl]";
     planner->setName(qName);
     return planner;
 }
 
 int main()
 {
-
     double range = edgeWidth * 0.5;
     auto space(std::make_shared<ompl::base::RealVectorStateSpace>(ndim));
     ompl::base::RealVectorBounds bounds(ndim);
@@ -142,7 +138,7 @@ int main()
     space->setBounds(bounds);
     ss.setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(ss.getSpaceInformation(), ndim));
     ss.getSpaceInformation()->setStateValidityCheckingResolution(0.001);
-    for(unsigned int i = 0; i < ndim; ++i)
+    for (unsigned int i = 0; i < ndim; ++i)
     {
         start[i] = 0.;
         goal[i] = 1.;
@@ -155,8 +151,7 @@ int main()
 
     ob::SpaceInformationPtr si = ss.getSpaceInformation();
 
-    ob::PlannerPtr quotientSpacePlanner = 
-      GetQRRT(ss.getSpaceInformation(), ss.getProblemDefinition(), ndim);
+    ob::PlannerPtr quotientSpacePlanner = GetQRRT(ss.getSpaceInformation(), ss.getProblemDefinition(), ndim);
     addPlanner(b, quotientSpacePlanner, range);
 
     b.benchmark(request);

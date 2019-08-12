@@ -1,37 +1,37 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2019, University of Stuttgart
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Stuttgart nor the names
-*     of its contributors may be used to endorse or promote products
-*     derived from this software without specific prior written
-*     permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2019, University of Stuttgart
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Stuttgart nor the names
+ *     of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written
+ *     permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Andreas Orthey */
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
@@ -62,7 +62,7 @@ MultiQuotient<T>::MultiQuotient(std::vector<ompl::base::SpaceInformationPtr> &si
         quotientSpaces_.back()->setLevel(k);
     }
     stopAtLevel_ = quotientSpaces_.size();
-    OMPL_DEVMSG2("Created %d QuotientSpace levels.",siVec_.size());
+    OMPL_DEVMSG2("Created %d QuotientSpace levels.", siVec_.size());
 }
 
 template <class T>
@@ -165,7 +165,8 @@ ompl::base::PlannerStatus MultiQuotient<T>::solve(const ompl::base::PlannerTermi
         if (priorityQueue_.size() <= currentQuotientLevel_)
             priorityQueue_.push(quotientSpaces_.at(k));
 
-        ompl::base::PlannerTerminationCondition ptcOrSolutionFound([this, &ptc] { return ptc || foundKLevelSolution_; });
+        ompl::base::PlannerTerminationCondition ptcOrSolutionFound(
+            [this, &ptc] { return ptc || foundKLevelSolution_; });
 
         while (!ptcOrSolutionFound())
         {
@@ -217,7 +218,7 @@ template <class T>
 const ompl::base::ProblemDefinitionPtr &MultiQuotient<T>::getProblemDefinition(unsigned int kQuotientSpace) const
 {
     assert(kQuotientSpace >= 0);
-    assert(kQuotientSpace <= siVec_.size()-1);
+    assert(kQuotientSpace <= siVec_.size() - 1);
     return quotientSpaces_.at(kQuotientSpace)->getProblemDefinition();
 }
 
@@ -226,7 +227,7 @@ void MultiQuotient<T>::setProblemDefinition(const ompl::base::ProblemDefinitionP
 {
     this->Planner::setProblemDefinition(pdef);
 
-    //Compute projection of qInit and qGoal onto QuotientSpaces
+    // Compute projection of qInit and qGoal onto QuotientSpaces
     ompl::base::Goal *goal = pdef_->getGoal().get();
     ompl::base::GoalState *goalRegion = dynamic_cast<ompl::base::GoalState *>(goal);
     double epsilon = goalRegion->getThreshold();
@@ -239,10 +240,10 @@ void MultiQuotient<T>::setProblemDefinition(const ompl::base::ProblemDefinitionP
 
     quotientSpaces_.back()->setProblemDefinition(pdef);
 
-    for (unsigned int k = siVec_.size()-1; k > 0 ; k--)
+    for (unsigned int k = siVec_.size() - 1; k > 0; k--)
     {
         og::QuotientSpace *quotientParent = quotientSpaces_.at(k);
-        og::QuotientSpace *quotientChild = quotientSpaces_.at(k-1);
+        og::QuotientSpace *quotientChild = quotientSpaces_.at(k - 1);
         ompl::base::SpaceInformationPtr sik = quotientChild->getSpaceInformation();
         ompl::base::ProblemDefinitionPtr pdefk = std::make_shared<base::ProblemDefinition>(sik);
 
@@ -260,7 +261,6 @@ void MultiQuotient<T>::setProblemDefinition(const ompl::base::ProblemDefinitionP
         sGoal = sGoalK;
     }
 }
-
 
 template <class T>
 void MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
@@ -284,7 +284,8 @@ void MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
         unsigned int ctr = 0;
         for (unsigned int vidx = Nvertices; vidx < data.numVertices(); vidx++)
         {
-            ompl::base::PlannerDataVertexAnnotated &v = *static_cast<ompl::base::PlannerDataVertexAnnotated *>(&data.getVertex(vidx));
+            ompl::base::PlannerDataVertexAnnotated &v =
+                static_cast<ompl::base::PlannerDataVertexAnnotated &>(data.getVertex(vidx));
             v.setLevel(k);
             v.setMaxLevel(K);
 
@@ -301,11 +302,11 @@ void MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
                     ompl::base::State *s_Q1 = Qm->getSpaceInformation()->allocState();
                     if (Qm->getX1()->getStateSpace()->getType() == ompl::base::STATE_SPACE_SO3)
                     {
-                        static_cast<ompl::base::SO3StateSpace::StateType *>(s_X1)->setIdentity();
+                        s_X1->as<ompl::base::SO3StateSpace::StateType>()->setIdentity();
                     }
                     if (Qm->getX1()->getStateSpace()->getType() == ompl::base::STATE_SPACE_SO2)
                     {
-                        static_cast<ompl::base::SO2StateSpace::StateType *>(s_X1)->setIdentity();
+                        s_X1->as<ompl::base::SO2StateSpace::StateType>()->setIdentity();
                     }
                     Qm->mergeStates(s_lift, s_X1, s_Q1);
                     s_lift = Qm->getSpaceInformation()->cloneState(s_Q1);
