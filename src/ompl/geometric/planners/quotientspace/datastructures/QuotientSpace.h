@@ -51,7 +51,12 @@ namespace ompl
             enum QuotientSpaceType
             {
                 UNKNOWN,
-                IDENTITY_SPACE,
+                IDENTITY_SPACE_RN,
+                IDENTITY_SPACE_SE2,
+                IDENTITY_SPACE_SE2RN,
+                IDENTITY_SPACE_SO2RN,
+                IDENTITY_SPACE_SE3,
+                IDENTITY_SPACE_SE3RN,
                 ATOMIC_RN,
                 RN_RM,
                 SE2_R2,
@@ -68,18 +73,11 @@ namespace ompl
 
         public:
             /**  \brief Quotient Space contains three OMPL spaces, which we call Q1, Q0 and X1.
-
+                  
                  Q1 = Q0 x X1 is a product space of Q0 and X1 and
                       is the main quotient-space of this class
                  Q0 is a pointer to the next lower-dimensional quotient-space and
                  X1 is the quotient-space  Q1 / Q0
-
-                 We can visualize the relationships in the following diagram
-
-                 [     ][ Q0 ]
-                 [ Q1  ][____]
-                 [     ][ X1 ]
-                 [     ][    ]
 
                  We assume that Q1 and Q0 have been given (as ompl::base::SpaceInformationPtr),
                  and we compute the inverse of the quotient map, i.e. X1 = Q1/Q0. */
@@ -150,11 +148,11 @@ namespace ompl
             unsigned int getTotalNumberOfFeasibleSamples() const;
 
             /// \brief Quotient Space Projection Operator onto second component
-            /// ProjectX1Subspace: Q0 \times X1 \rightarrow X1
-            void projectX1Subspace(const ompl::base::State *q, ompl::base::State *qX1) const;
+            /// ProjectX1: Q0 \times X1 \rightarrow X1
+            void projectX1(const ompl::base::State *q, ompl::base::State *qX1) const;
             /// \brief Quotient Space Projection Operator onto first component
-            /// ProjectQ0Subspace: Q0 \times X1 \rightarrow Q0
-            void projectQ0Subspace(const ompl::base::State *q, ompl::base::State *qQ0) const;
+            /// ProjectQ0: Q0 \times X1 \rightarrow Q0
+            void projectQ0(const ompl::base::State *q, ompl::base::State *qQ0) const;
             /// Merge a state from Q0 and X1 into a state on Q1 (concatenate)
             void mergeStates(const ompl::base::State *qQ0, const ompl::base::State *qX1, ompl::base::State *qQ1) const;
 
@@ -174,21 +172,8 @@ namespace ompl
             virtual void print(std::ostream &out) const;
 
             ///  \brief Compute the quotient Q1 / Q0 between two given spaces.
-            ///  The following cases are currently implemented
-            ///   ---- non-compound:
-            ///   (1) Q1 Rn     , Q0 Rm     [0<m<=n] => X1 = R(n-m) \union {\emptyset}
-            ///   ---- compound:
-            ///   (2) Q1 SE2    , Q0 R2              => X1 = SO2
-            ///   (3) Q1 SE3    , Q0 R3              => X1 = SO3
-            ///   (4) Q1 SE3xRn , Q0 SE3             => X1 = Rn
-            ///   (5) Q1 SE3xRn , Q0 R3              => X1 = SO3xRn
-            ///   (6) Q1 SE3xRn , Q0 SE3xRm [0<m<n ] => X1 = R(n-m)
-            ///
-            ///   (7) Q1 SE2xRn , Q0 SE2             => X1 = Rn
-            ///   (8) Q1 SE2xRn , Q0 R2              => X1 = SO2xRN
-            ///   (9) Q1 SE2xRn , Q0 SE2xRm [0<m<n ] => X1 = R(n-m)
-            ///  (10) Q1 SO2xRn , Q0 SO2             => X1 = Rn
             const ompl::base::StateSpacePtr computeQuotientSpace(const ompl::base::StateSpacePtr Q1, const ompl::base::StateSpacePtr Q0);
+
             /// Identify the type of the quotient Q1 / Q0
             QuotientSpaceType identifyQuotientSpaceType(const ompl::base::StateSpacePtr Q1, const ompl::base::StateSpacePtr Q0);
 

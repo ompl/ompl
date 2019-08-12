@@ -174,6 +174,7 @@ void QuotientSpace::checkSpaceHasFiniteMeasure(const ob::StateSpacePtr space) co
 
 ob::PlannerStatus QuotientSpace::solve(const ob::PlannerTerminationCondition &ptc)
 {
+    (void)ptc;
     OMPL_ERROR("A Quotient-Space cannot be solved alone. Use class MultiQuotient to solve Quotient-Spaces.");
     exit(1);
 }
@@ -217,7 +218,12 @@ const StateSpacePtr QuotientSpace::computeQuotientSpace(const StateSpacePtr Q1, 
 
     switch (type_)
     {
-        case IDENTITY_SPACE:
+        case IDENTITY_SPACE_RN:
+        case IDENTITY_SPACE_SE2:
+        case IDENTITY_SPACE_SE2RN:
+        case IDENTITY_SPACE_SO2RN:
+        case IDENTITY_SPACE_SE3:
+        case IDENTITY_SPACE_SE3RN:
         {
             X1_dimension_ = 0;
             break;
@@ -348,28 +354,26 @@ const StateSpacePtr QuotientSpace::computeQuotientSpace(const StateSpacePtr Q1, 
 
 QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const StateSpacePtr Q1, const StateSpacePtr Q0)
 {
-    // STATE_SPACE_UNKNOWN = 0,
-    // STATE_SPACE_REAL_VECTOR = 1,
-    // STATE_SPACE_SO2 = 2,
-    // STATE_SPACE_SO3 = 3,
-    // STATE_SPACE_SE2 = 4,
-    // STATE_SPACE_SE3 = 5,
-    // STATE_SPACE_TIME = 6,
-    // STATE_SPACE_DISCRETE = 7,
-    //   ---- non-compound:
-    //   (1) Q1 Rn     , Q0 Rm     [0<m<=n] => X1 = R(n-m) \union {0}
-    //   ---- compound:
-    //   (2) Q1 SE2    , Q0 R2              => X1 = SO2
-    //   (3) Q1 SE3    , Q0 R3              => X1 = SO3
-    //   (4) Q1 SE3xRn , Q0 SE3             => X1 = Rn
-    //   (5) Q1 SE3xRn , Q0 R3              => X1 = SO3xRn
-    //   (6) Q1 SE3xRn , Q0 SE3xRm [0<m<n ] => X1 = R(n-m)
     //
-    //   (7) Q1 SE2xRn , Q0 SE2             => X1 = Rn
-    //   (8) Q1 SE2xRn , Q0 R2              => X1 = SO2xRN
-    //   (9) Q1 SE2xRn , Q0 SE2xRm [0<m<n ] => X1 = R(n-m)
-    //  (10) Q1 SO2xRn , Q0 SO2             => X1 = Rn
-    //  (11) Q1 SO2xRn , Q0 SO2xRm [0<m<n ] => X1 = R(n-m)
+    // We can currently handle 11 types of quotient-space mappings. 
+    // Emptyset is used for constraint relaxations.
+    // 
+    //   (1)  Q1 Rn     , Q0 Rm     [0<m<=n]  => X1 = R(n-m) \union {\emptyset}
+    //   (2a) Q1 SE2    , Q0 R2               => X1 = SO2
+    //   (2b) Q1 SE2    , Q0 SE2              => X1 = \emptyset
+    //   (3a) Q1 SE3    , Q0 R3               => X1 = SO3
+    //   (3b) Q1 SE3    , Q0 SE3              => X1 = \emptyset
+    //
+    //   (4)  Q1 SE3xRn , Q0 SE3              => X1 = Rn
+    //   (5)  Q1 SE3xRn , Q0 R3               => X1 = SO3xRn
+    //   (6)  Q1 SE3xRn , Q0 SE3xRm [0<m<=n ] => X1 = R(n-m) \union {\emptyset}
+    //
+    //   (7)  Q1 SE2xRn , Q0 SE2              => X1 = Rn
+    //   (8)  Q1 SE2xRn , Q0 R2               => X1 = SO2xRN
+    //   (9)  Q1 SE2xRn , Q0 SE2xRm [0<m<=n ] => X1 = R(n-m) \union {\emptyset}
+    //
+    //  (10)  Q1 SO2xRn , Q0 SO2              => X1 = Rn
+    //  (11)  Q1 SO2xRn , Q0 SO2xRm [0<m<=n ] => X1 = R(n-m) \union {\emptyset}
 
     if (!Q1->isCompound())
     {
@@ -392,7 +396,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                 {
                     if (n == m && m > 0)
                     {
-                        type_ = IDENTITY_SPACE;
+                        type_ = IDENTITY_SPACE_RN;
                     }
                     else
                     {
@@ -439,8 +443,15 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
             }
             else
             {
-                OMPL_ERROR("Q1 is SE2 but Q0 type %d is not handled.", Q0->getType());
-                exit(0);
+                if (Q0->getType() == ob::STATE_SPACE_SE2)
+                {
+                    type_ = IDENTITY_SPACE_SE2;
+                }
+                else
+                {
+                    OMPL_ERROR("Q1 is SE2 but Q0 type %d is not handled.", Q0->getType());
+                    exit(0);
+                }
             }
         }
         //------------------ (3) Q1 = SE3, Q0 = R3, X1 = SO3
@@ -461,6 +472,15 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
             }
             else
             {
+                if (Q0->getType() == ob::STATE_SPACE_SE3)
+                {
+                    type_ = IDENTITY_SPACE_SE3;
+                }
+                else
+                {
+                    OMPL_ERROR("Q1 is SE2 but Q0 type %d is not handled.", Q0->getType());
+                    exit(0);
+                }
                 OMPL_ERROR("Q1 is SE3 but Q0 type %d is not handled.", Q0->getType());
                 exit(0);
             }
@@ -517,8 +537,14 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                                 }
                                 else
                                 {
-                                    OMPL_ERROR("We require n > m > 0, but have n=%d > m=%d > 0.", n, m);
-                                    exit(0);
+                                    if(m == n){
+                                        type_ = IDENTITY_SPACE_SE3RN;
+                                    }
+                                    else
+                                    {
+                                        OMPL_ERROR("We require n >= m > 0, but have n=%d >= m=%d > 0.", n, m);
+                                        exit(0);
+                                    }
                                 }
                             }
                         }
@@ -575,8 +601,14 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                                     }
                                     else
                                     {
-                                        OMPL_ERROR("We require n > m > 0 but have n=%d > m=%d > 0.", n, m);
-                                        exit(0);
+                                        if(m == n){
+                                            type_ = IDENTITY_SPACE_SE2RN;
+                                        }
+                                        else
+                                        {
+                                            OMPL_ERROR("We require n >= m > 0, but have n=%d >= m=%d > 0.", n, m);
+                                            exit(0);
+                                        }
                                     }
                                 }else{
 
@@ -613,8 +645,13 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                                             type_ = SO2RN_SO2RM;
                                         }else
                                         {
-                                            OMPL_ERROR("We require n > m > 0 but have n=%d > m=%d > 0.", n, m);
-                                            exit(0);
+                                            if (m == n){
+                                                type_ = IDENTITY_SPACE_SO2RN;
+                                            }else
+                                            {
+                                                OMPL_ERROR("We require n >= m > 0 but have n=%d >= m=%d > 0.", n, m);
+                                                exit(0);
+                                            }
                                         }
                                     }else{
                                         OMPL_ERROR("Cannot project onto type %d.", Q1->getType());
@@ -658,7 +695,12 @@ void QuotientSpace::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::
 
     switch (type_)
     {
-        case IDENTITY_SPACE:
+        case IDENTITY_SPACE_RN:
+        case IDENTITY_SPACE_SE2:
+        case IDENTITY_SPACE_SE2RN:
+        case IDENTITY_SPACE_SO2RN:
+        case IDENTITY_SPACE_SE3:
+        case IDENTITY_SPACE_SE3RN:
         {
             OMPL_ERROR("Cannot merge states for Identity space");
             exit(0);
@@ -915,7 +957,7 @@ void QuotientSpace::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::
         }
     }
 }
-void QuotientSpace::projectX1Subspace(const ob::State *q, ob::State *qX1) const
+void QuotientSpace::projectX1(const ob::State *q, ob::State *qX1) const
 {
     switch (type_)
     {
@@ -1043,11 +1085,16 @@ void QuotientSpace::projectX1Subspace(const ob::State *q, ob::State *qX1) const
     }
 }
 
-void QuotientSpace::projectQ0Subspace(const ob::State *q, ob::State *qQ0) const
+void QuotientSpace::projectQ0(const ob::State *q, ob::State *qQ0) const
 {
     switch (type_)
     {
-        case IDENTITY_SPACE:
+        case IDENTITY_SPACE_RN:
+        case IDENTITY_SPACE_SE2:
+        case IDENTITY_SPACE_SE2RN:
+        case IDENTITY_SPACE_SO2RN:
+        case IDENTITY_SPACE_SE3:
+        case IDENTITY_SPACE_SE3RN:
         {
             // Identity function
             Q1->getStateSpace()->copyState(qQ0, q);
@@ -1203,8 +1250,7 @@ void QuotientSpace::projectQ0Subspace(const ob::State *q, ob::State *qQ0) const
         }
         default:
         {
-            OMPL_ERROR("Cannot project onto Q0.");
-            OMPL_ERROR("Type %d not implemented.", type_);
+            OMPL_ERROR("Cannot project onto Q0. Type %d not implemented.", type_);
             exit(1);
         }
     }
@@ -1371,9 +1417,42 @@ void QuotientSpace::print(std::ostream &out) const
         out << "X" << sublevel << "=Q" << sublevel << ": ";
         switch (type_)
         {
-            case QuotientSpace::IDENTITY_SPACE:
+            case QuotientSpace::IDENTITY_SPACE_RN:
             {
-                out << "R^" << Q0_dimension_ << " | Q" << level_ + 1 << ": R^" << Q1_dimension_;
+                out << "R^" << Q0_dimension_ 
+                  << " | Q" << level_ + 1 
+                  << ": R^" << Q1_dimension_;
+                break;
+            }
+            case QuotientSpace::IDENTITY_SPACE_SE2:
+            {
+                out << "SE(2)" << " | Q" << level_ + 1 << ": SE(2)";
+                break;
+            }
+            case QuotientSpace::IDENTITY_SPACE_SE2RN:
+            {
+                out << "SE(2)xR^" << Q0_dimension_ 
+                  << " | Q" << level_ + 1 
+                  << ": SE(2)xR^" << Q1_dimension_;
+                break;
+            }
+            case QuotientSpace::IDENTITY_SPACE_SO2RN:
+            {
+                out << "SO(2)xR^" << Q0_dimension_ 
+                  << " | Q" << level_ + 1 
+                  << ": SO(2)xR^" << Q1_dimension_;
+                break;
+            }
+            case QuotientSpace::IDENTITY_SPACE_SE3:
+            {
+                out << "SE(3)" << " | Q" << level_ + 1 << ": SE(3)";
+                break;
+            }
+            case QuotientSpace::IDENTITY_SPACE_SE3RN:
+            {
+                out << "SE(3)xR^" << Q0_dimension_ 
+                  << " | Q" << level_ + 1 
+                  << ": SE(3)xR^" << Q1_dimension_;
                 break;
             }
             case QuotientSpace::RN_RM:
