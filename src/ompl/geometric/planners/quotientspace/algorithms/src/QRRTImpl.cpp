@@ -60,14 +60,17 @@ void QRRTImpl::setGoalBias(double goalBias)
 {
     goalBias_ = goalBias;
 }
+
 double QRRTImpl::getGoalBias() const
 {
     return goalBias_;
 }
+
 void QRRTImpl::setRange(double maxDistance)
 {
     maxDistance_ = maxDistance;
 }
+
 double QRRTImpl::getRange() const
 {
     return maxDistance_;
@@ -80,6 +83,7 @@ void QRRTImpl::setup()
     sc.configurePlannerRange(maxDistance_);
     goal_ = pdef_->getGoal().get();
 }
+
 void QRRTImpl::clear()
 {
     BaseT::clear();

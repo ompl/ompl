@@ -70,6 +70,7 @@ int MultiQuotient<T>::getLevels() const
 {
     return stopAtLevel_;
 }
+
 template <class T>
 std::vector<int> MultiQuotient<T>::getNodes() const
 {
@@ -81,6 +82,7 @@ std::vector<int> MultiQuotient<T>::getNodes() const
     }
     return nodesPerLevel;
 }
+
 template <class T>
 std::vector<int> MultiQuotient<T>::getFeasibleNodes() const
 {

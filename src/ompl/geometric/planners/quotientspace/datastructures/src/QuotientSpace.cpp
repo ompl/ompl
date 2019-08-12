@@ -51,6 +51,7 @@ using namespace ob;
 using namespace og;
 
 const unsigned int verbose{0};
+unsigned int QuotientSpace::counter_ = 0;
 
 QuotientSpace::QuotientSpace(const ob::SpaceInformationPtr &si, QuotientSpace *parent_)
   : ob::Planner(si, "QuotientSpace"), Q1(si), parent_(parent_)
@@ -121,6 +122,7 @@ QuotientSpace::QuotientSpace(const ob::SpaceInformationPtr &si, QuotientSpace *p
             s_X1_tmp_ = X1->allocState();
     }
 }
+
 QuotientSpace::~QuotientSpace()
 {
     if (parent_ != nullptr)
@@ -190,7 +192,6 @@ void QuotientSpace::setProblemDefinition(const ob::ProblemDefinitionPtr &pdef)
     }
 }
 
-unsigned int QuotientSpace::counter_ = 0;
 void QuotientSpace::resetCounter()
 {
     QuotientSpace::counter_ = 0;
@@ -970,6 +971,7 @@ void QuotientSpace::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::
         }
     }
 }
+
 void QuotientSpace::projectX1(const ob::State *q, ob::State *qX1) const
 {
     switch (type_)
@@ -1272,34 +1274,42 @@ const ob::SpaceInformationPtr &QuotientSpace::getX1() const
 {
     return X1;
 }
+
 const ob::SpaceInformationPtr &QuotientSpace::getQ1() const
 {
     return Q1;
 }
+
 const ob::SpaceInformationPtr &QuotientSpace::getQ0() const
 {
     return Q0;
 }
+
 unsigned int QuotientSpace::getX1Dimension() const
 {
     return X1_dimension_;
 }
+
 unsigned int QuotientSpace::getQ1Dimension() const
 {
     return Q1->getStateDimension();
 }
+
 unsigned int QuotientSpace::getDimension() const
 {
     return getQ1Dimension();
 }
+
 unsigned int QuotientSpace::getQ0Dimension() const
 {
     return Q0_dimension_;
 }
+
 const ob::StateSamplerPtr &QuotientSpace::getX1SamplerPtr() const
 {
     return X1_sampler_;
 }
+
 const ob::StateSamplerPtr &QuotientSpace::getQ1SamplerPtr() const
 {
     return Q1_sampler_;
@@ -1314,42 +1324,52 @@ bool QuotientSpace::hasSolution()
     }
     return hasSolution_;
 }
+
 unsigned int QuotientSpace::getTotalNumberOfSamples() const
 {
     return totalNumberOfSamples_;
 }
+
 unsigned int QuotientSpace::getTotalNumberOfFeasibleSamples() const
 {
     return totalNumberOfFeasibleSamples_;
 }
+
 QuotientSpace *QuotientSpace::getParent() const
 {
     return parent_;
 }
+
 QuotientSpace *QuotientSpace::getChild() const
 {
     return child_;
 }
+
 void QuotientSpace::setChild(QuotientSpace *child)
 {
     child_ = child;
 }
+
 void QuotientSpace::setParent(QuotientSpace *parent)
 {
     parent_ = parent;
 }
+
 unsigned int QuotientSpace::getLevel() const
 {
     return level_;
 }
+
 void QuotientSpace::setLevel(unsigned int level)
 {
     level_ = level;
 }
+
 QuotientSpace::QuotientSpaceType QuotientSpace::getType() const
 {
     return type_;
 }
+
 ob::OptimizationObjectivePtr QuotientSpace::getOptimizationObjectivePtr() const
 {
     return opt_;

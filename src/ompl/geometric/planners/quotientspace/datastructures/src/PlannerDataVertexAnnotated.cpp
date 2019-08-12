@@ -58,59 +58,61 @@ ob::PlannerDataVertex *PlannerDataVertexAnnotated::clone() const
     return new PlannerDataVertexAnnotated(*this);
 }
 
-//##############################################################################
 void PlannerDataVertexAnnotated::setComponent(unsigned int component)
 {
     component_ = component;
 }
+
 unsigned int PlannerDataVertexAnnotated::getComponent() const
 {
     return component_;
 }
 
-//##############################################################################
 void PlannerDataVertexAnnotated::setLevel(unsigned int level)
 {
     level_ = level;
 }
+
 unsigned int PlannerDataVertexAnnotated::getLevel() const
 {
     return level_;
 }
 
-//##############################################################################
 void PlannerDataVertexAnnotated::setMaxLevel(unsigned int level)
 {
     maxLevel_ = level;
 }
+
 unsigned int PlannerDataVertexAnnotated::getMaxLevel() const
 {
     return maxLevel_;
 }
 
-//##############################################################################
 void PlannerDataVertexAnnotated::setPath(std::vector<int> path)
 {
     path_ = path;
 }
+
 std::vector<int> PlannerDataVertexAnnotated::getPath() const
 {
     return path_;
 }
 
-//##############################################################################
 const ob::State *PlannerDataVertexAnnotated::getState() const
 {
     return state_;
 }
+
 const ob::State *PlannerDataVertexAnnotated::getQuotientState() const
 {
     return stateQuotientSpace_;
 }
+
 void PlannerDataVertexAnnotated::setQuotientState(const ob::State *s)
 {
     stateQuotientSpace_ = s;
 }
+
 void PlannerDataVertexAnnotated::setState(ob::State *s)
 {
     state_ = s;

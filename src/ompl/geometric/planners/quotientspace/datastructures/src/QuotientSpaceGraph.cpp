@@ -106,6 +106,7 @@ void QuotientSpaceGraph::setup()
         setup_ = false;
     }
 }
+
 void QuotientSpaceGraph::clear()
 {
     BaseT::clear();
@@ -137,6 +138,7 @@ void QuotientSpaceGraph::deleteConfiguration(Configuration *q)
         q = nullptr;
     }
 }
+
 void QuotientSpaceGraph::clearVertices()
 {
     if (nearestDatastructure_)
@@ -227,10 +229,12 @@ QuotientSpaceGraph::Vertex QuotientSpaceGraph::addConfiguration(Configuration *q
     q->index = m;
     return m;
 }
+
 unsigned int QuotientSpaceGraph::getNumberOfVertices() const
 {
     return num_vertices(graph_);
 }
+
 unsigned int QuotientSpaceGraph::getNumberOfEdges() const
 {
     return num_edges(graph_);
@@ -240,10 +244,12 @@ const QuotientSpaceGraph::Graph &QuotientSpaceGraph::getGraph() const
 {
     return graph_;
 }
+
 const QuotientSpaceGraph::RoadmapNeighborsPtr &QuotientSpaceGraph::getRoadmapNeighborsPtr() const
 {
     return nearestDatastructure_;
 }
+
 ob::Cost QuotientSpaceGraph::costHeuristic(Vertex u, Vertex v) const
 {
     return opt_->motionCostHeuristic(graph_[u]->state, graph_[v]->state);
@@ -309,6 +315,7 @@ bool QuotientSpaceGraph::getSolution(ob::PathPtr &solution)
     }
     return hasSolution_;
 }
+
 ob::PathPtr QuotientSpaceGraph::getPath(const Vertex &start, const Vertex &goal)
 {
     std::vector<Vertex> prev(boost::num_vertices(graph_));
@@ -355,6 +362,7 @@ ob::PathPtr QuotientSpaceGraph::getPath(const Vertex &start, const Vertex &goal)
 
     return p;
 }
+
 bool QuotientSpaceGraph::sampleQuotient(ob::State *q_random_graph)
 {
     // RANDOM EDGE SAMPLING
@@ -377,6 +385,7 @@ bool QuotientSpaceGraph::sampleQuotient(ob::State *q_random_graph)
     Q1->getStateSpace()->interpolate(from, to, s, q_random_graph);
     return true;
 }
+
 void QuotientSpaceGraph::print(std::ostream &out) const
 {
     BaseT::print(out);
