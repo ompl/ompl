@@ -43,17 +43,14 @@
 #include <ompl/util/Time.h>
 #include <queue>
 
-namespace og = ompl::geometric;
-using namespace og;
-
 template <class T>
-MultiQuotient<T>::MultiQuotient(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
+ompl::geometric::MultiQuotient<T>::MultiQuotient(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
   : ompl::base::Planner(siVec.back(), type), siVec_(siVec)
 {
     T::resetCounter();
     for (unsigned int k = 0; k < siVec_.size(); k++)
     {
-        og::QuotientSpace *parent = nullptr;
+        QuotientSpace *parent = nullptr;
         if (k > 0)
             parent = quotientSpaces_.back();
 
@@ -66,13 +63,13 @@ MultiQuotient<T>::MultiQuotient(std::vector<ompl::base::SpaceInformationPtr> &si
 }
 
 template <class T>
-int MultiQuotient<T>::getLevels() const
+int ompl::geometric::MultiQuotient<T>::getLevels() const
 {
     return stopAtLevel_;
 }
 
 template <class T>
-std::vector<int> MultiQuotient<T>::getNodes() const
+std::vector<int> ompl::geometric::MultiQuotient<T>::getNodes() const
 {
     std::vector<int> nodesPerLevel;
     for (unsigned int k = 0; k < stopAtLevel_; k++)
@@ -84,7 +81,7 @@ std::vector<int> MultiQuotient<T>::getNodes() const
 }
 
 template <class T>
-std::vector<int> MultiQuotient<T>::getFeasibleNodes() const
+std::vector<int> ompl::geometric::MultiQuotient<T>::getFeasibleNodes() const
 {
     std::vector<int> feasibleNodesPerLevel;
     for (unsigned int k = 0; k < quotientSpaces_.size(); k++)
@@ -96,7 +93,7 @@ std::vector<int> MultiQuotient<T>::getFeasibleNodes() const
 }
 
 template <class T>
-std::vector<int> MultiQuotient<T>::getDimensionsPerLevel() const
+std::vector<int> ompl::geometric::MultiQuotient<T>::getDimensionsPerLevel() const
 {
     std::vector<int> dimensionsPerLevel;
     for (unsigned int k = 0; k < quotientSpaces_.size(); k++)
@@ -108,12 +105,12 @@ std::vector<int> MultiQuotient<T>::getDimensionsPerLevel() const
 }
 
 template <class T>
-MultiQuotient<T>::~MultiQuotient()
+ompl::geometric::MultiQuotient<T>::~MultiQuotient()
 {
 }
 
 template <class T>
-void MultiQuotient<T>::setup()
+void ompl::geometric::MultiQuotient<T>::setup()
 {
     BaseT::setup();
     for (unsigned int k = 0; k < stopAtLevel_; k++)
@@ -124,7 +121,7 @@ void MultiQuotient<T>::setup()
 }
 
 template <class T>
-void MultiQuotient<T>::setStopLevel(unsigned int level_)
+void ompl::geometric::MultiQuotient<T>::setStopLevel(unsigned int level_)
 {
     if (level_ > quotientSpaces_.size())
     {
@@ -137,7 +134,7 @@ void MultiQuotient<T>::setStopLevel(unsigned int level_)
 }
 
 template <class T>
-void MultiQuotient<T>::clear()
+void ompl::geometric::MultiQuotient<T>::clear()
 {
     Planner::clear();
 
@@ -156,7 +153,7 @@ void MultiQuotient<T>::clear()
 }
 
 template <class T>
-ompl::base::PlannerStatus MultiQuotient<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::MultiQuotient<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
 {
     ompl::time::point t_start = ompl::time::now();
 
@@ -172,7 +169,7 @@ ompl::base::PlannerStatus MultiQuotient<T>::solve(const ompl::base::PlannerTermi
 
         while (!ptcOrSolutionFound())
         {
-            og::QuotientSpace *jQuotient = priorityQueue_.top();
+            QuotientSpace *jQuotient = priorityQueue_.top();
             priorityQueue_.pop();
             jQuotient->grow();
 
@@ -217,7 +214,8 @@ ompl::base::PlannerStatus MultiQuotient<T>::solve(const ompl::base::PlannerTermi
 }
 
 template <class T>
-const ompl::base::ProblemDefinitionPtr &MultiQuotient<T>::getProblemDefinition(unsigned int kQuotientSpace) const
+const ompl::base::ProblemDefinitionPtr &
+ompl::geometric::MultiQuotient<T>::getProblemDefinition(unsigned int kQuotientSpace) const
 {
     assert(kQuotientSpace >= 0);
     assert(kQuotientSpace <= siVec_.size() - 1);
@@ -225,7 +223,7 @@ const ompl::base::ProblemDefinitionPtr &MultiQuotient<T>::getProblemDefinition(u
 }
 
 template <class T>
-void MultiQuotient<T>::setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef)
+void ompl::geometric::MultiQuotient<T>::setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef)
 {
     this->Planner::setProblemDefinition(pdef);
 
@@ -244,8 +242,8 @@ void MultiQuotient<T>::setProblemDefinition(const ompl::base::ProblemDefinitionP
 
     for (unsigned int k = siVec_.size() - 1; k > 0; k--)
     {
-        og::QuotientSpace *quotientParent = quotientSpaces_.at(k);
-        og::QuotientSpace *quotientChild = quotientSpaces_.at(k - 1);
+        QuotientSpace *quotientParent = quotientSpaces_.at(k);
+        QuotientSpace *quotientChild = quotientSpaces_.at(k - 1);
         ompl::base::SpaceInformationPtr sik = quotientChild->getSpaceInformation();
         ompl::base::ProblemDefinitionPtr pdefk = std::make_shared<base::ProblemDefinition>(sik);
 
@@ -265,7 +263,7 @@ void MultiQuotient<T>::setProblemDefinition(const ompl::base::ProblemDefinitionP
 }
 
 template <class T>
-void MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
+void ompl::geometric::MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
 {
     unsigned int Nvertices = data.numVertices();
     if (Nvertices > 0)
@@ -279,7 +277,7 @@ void MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
 
     for (unsigned int k = 0; k < K; k++)
     {
-        og::QuotientSpace *Qk = quotientSpaces_.at(k);
+        QuotientSpace *Qk = quotientSpaces_.at(k);
         Qk->getPlannerData(data);
 
         // label all new vertices
@@ -296,7 +294,7 @@ void MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
 
             for (unsigned int m = k + 1; m < quotientSpaces_.size(); m++)
             {
-                og::QuotientSpace *Qm = quotientSpaces_.at(m);
+                QuotientSpace *Qm = quotientSpaces_.at(m);
 
                 if (Qm->getX1() != nullptr)
                 {

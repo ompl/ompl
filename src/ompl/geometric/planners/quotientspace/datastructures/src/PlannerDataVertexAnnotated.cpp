@@ -36,15 +36,13 @@
 /* Author: Andreas Orthey */
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 
-namespace ob = ompl::base;
-using namespace ob;
-
-PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const ob::State *st, int tag) : ob::PlannerDataVertex(st, tag)
+ompl::base::PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const State *st, int tag)
+  : PlannerDataVertex(st, tag)
 {
 }
 
-PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const PlannerDataVertexAnnotated &rhs)
-  : ob::PlannerDataVertex(rhs.state_, rhs.tag_)
+ompl::base::PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const PlannerDataVertexAnnotated &rhs)
+  : PlannerDataVertex(rhs.state_, rhs.tag_)
 {
     level_ = rhs.getLevel();
     maxLevel_ = rhs.getMaxLevel();
@@ -53,77 +51,77 @@ PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const PlannerDataVertexAn
     stateQuotientSpace_ = rhs.getQuotientState();
 }
 
-ob::PlannerDataVertex *PlannerDataVertexAnnotated::clone() const
+ompl::base::PlannerDataVertex *ompl::base::PlannerDataVertexAnnotated::clone() const
 {
     return new PlannerDataVertexAnnotated(*this);
 }
 
-void PlannerDataVertexAnnotated::setComponent(unsigned int component)
+void ompl::base::PlannerDataVertexAnnotated::setComponent(unsigned int component)
 {
     component_ = component;
 }
 
-unsigned int PlannerDataVertexAnnotated::getComponent() const
+unsigned int ompl::base::PlannerDataVertexAnnotated::getComponent() const
 {
     return component_;
 }
 
-void PlannerDataVertexAnnotated::setLevel(unsigned int level)
+void ompl::base::PlannerDataVertexAnnotated::setLevel(unsigned int level)
 {
     level_ = level;
 }
 
-unsigned int PlannerDataVertexAnnotated::getLevel() const
+unsigned int ompl::base::PlannerDataVertexAnnotated::getLevel() const
 {
     return level_;
 }
 
-void PlannerDataVertexAnnotated::setMaxLevel(unsigned int level)
+void ompl::base::PlannerDataVertexAnnotated::setMaxLevel(unsigned int level)
 {
     maxLevel_ = level;
 }
 
-unsigned int PlannerDataVertexAnnotated::getMaxLevel() const
+unsigned int ompl::base::PlannerDataVertexAnnotated::getMaxLevel() const
 {
     return maxLevel_;
 }
 
-void PlannerDataVertexAnnotated::setPath(std::vector<int> path)
+void ompl::base::PlannerDataVertexAnnotated::setPath(std::vector<int> path)
 {
     path_ = path;
 }
 
-std::vector<int> PlannerDataVertexAnnotated::getPath() const
+std::vector<int> ompl::base::PlannerDataVertexAnnotated::getPath() const
 {
     return path_;
 }
 
-const ob::State *PlannerDataVertexAnnotated::getState() const
+const ompl::base::State *ompl::base::PlannerDataVertexAnnotated::getState() const
 {
     return state_;
 }
 
-const ob::State *PlannerDataVertexAnnotated::getQuotientState() const
+const ompl::base::State *ompl::base::PlannerDataVertexAnnotated::getQuotientState() const
 {
     return stateQuotientSpace_;
 }
 
-void PlannerDataVertexAnnotated::setQuotientState(const ob::State *s)
+void ompl::base::PlannerDataVertexAnnotated::setQuotientState(const State *s)
 {
     stateQuotientSpace_ = s;
 }
 
-void PlannerDataVertexAnnotated::setState(ob::State *s)
+void ompl::base::PlannerDataVertexAnnotated::setState(State *s)
 {
     state_ = s;
 }
 
-bool operator==(const PlannerDataVertexAnnotated &lhs, const PlannerDataVertexAnnotated &rhs)
+bool operator==(const ompl::base::PlannerDataVertexAnnotated &lhs, const ompl::base::PlannerDataVertexAnnotated &rhs)
 {
     return (lhs.getLevel() == rhs.getLevel() && lhs.getState() == rhs.getState() && lhs.getPath() == rhs.getPath());
 }
 
-std::ostream &operator<<(std::ostream &out, const PlannerDataVertexAnnotated &v)
+std::ostream &operator<<(std::ostream &out, const ompl::base::PlannerDataVertexAnnotated &v)
 {
     out << "AnnotatedVertex";
     out << " ->level " << v.getLevel() << "/" << v.getMaxLevel();

@@ -38,12 +38,9 @@
 #include <ompl/tools/config/SelfConfig.h>
 #include <boost/foreach.hpp>
 
-using namespace ompl::geometric;
-using namespace ompl::base;
-
 #define foreach BOOST_FOREACH
 
-QRRTImpl::QRRTImpl(const SpaceInformationPtr &si, QuotientSpace *parent_) : BaseT(si, parent_)
+ompl::geometric::QRRTImpl::QRRTImpl(const base::SpaceInformationPtr &si, QuotientSpace *parent_) : BaseT(si, parent_)
 {
     setName("QRRTImpl" + std::to_string(id_));
     Planner::declareParam<double>("range", this, &QRRTImpl::setRange, &QRRTImpl::getRange, "0.:1.:10000.");
@@ -51,32 +48,32 @@ QRRTImpl::QRRTImpl(const SpaceInformationPtr &si, QuotientSpace *parent_) : Base
     qRandom_ = new Configuration(Q1);
 }
 
-QRRTImpl::~QRRTImpl()
+ompl::geometric::QRRTImpl::~QRRTImpl()
 {
     deleteConfiguration(qRandom_);
 }
 
-void QRRTImpl::setGoalBias(double goalBias)
+void ompl::geometric::QRRTImpl::setGoalBias(double goalBias)
 {
     goalBias_ = goalBias;
 }
 
-double QRRTImpl::getGoalBias() const
+double ompl::geometric::QRRTImpl::getGoalBias() const
 {
     return goalBias_;
 }
 
-void QRRTImpl::setRange(double maxDistance)
+void ompl::geometric::QRRTImpl::setRange(double maxDistance)
 {
     maxDistance_ = maxDistance;
 }
 
-double QRRTImpl::getRange() const
+double ompl::geometric::QRRTImpl::getRange() const
 {
     return maxDistance_;
 }
 
-void QRRTImpl::setup()
+void ompl::geometric::QRRTImpl::setup()
 {
     BaseT::setup();
     ompl::tools::SelfConfig sc(Q1, getName());
@@ -84,12 +81,12 @@ void QRRTImpl::setup()
     goal_ = pdef_->getGoal().get();
 }
 
-void QRRTImpl::clear()
+void ompl::geometric::QRRTImpl::clear()
 {
     BaseT::clear();
 }
 
-bool QRRTImpl::getSolution(PathPtr &solution)
+bool ompl::geometric::QRRTImpl::getSolution(base::PathPtr &solution)
 {
     if (hasSolution_)
     {
@@ -106,7 +103,7 @@ bool QRRTImpl::getSolution(PathPtr &solution)
     }
 }
 
-void QRRTImpl::grow()
+void ompl::geometric::QRRTImpl::grow()
 {
     if (firstRun_)
     {
@@ -162,7 +159,7 @@ void QRRTImpl::grow()
     }
 }
 
-double QRRTImpl::getImportance() const
+double ompl::geometric::QRRTImpl::getImportance() const
 {
     // Should depend on
     // (1) level : The higher the level, the more importance
@@ -182,7 +179,7 @@ double QRRTImpl::getImportance() const
 }
 
 // Make it faster by removing the validity check
-bool QRRTImpl::sample(State *q_random)
+bool ompl::geometric::QRRTImpl::sample(base::State *q_random)
 {
     if (parent_ == nullptr)
     {
@@ -204,7 +201,7 @@ bool QRRTImpl::sample(State *q_random)
     return true;
 }
 
-bool QRRTImpl::sampleQuotient(State *q_random_graph)
+bool ompl::geometric::QRRTImpl::sampleQuotient(base::State *q_random_graph)
 {
     // RANDOM VERTEX SAMPLING
     const Vertex v = boost::random_vertex(graph_, rng_boost);

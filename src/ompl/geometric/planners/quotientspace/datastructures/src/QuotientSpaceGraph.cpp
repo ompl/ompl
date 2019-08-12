@@ -54,17 +54,13 @@
 
 #define foreach BOOST_FOREACH
 
-namespace ob = ompl::base;
-namespace og = ompl::geometric;
-using namespace ob;
-using namespace og;
+using Configuration = ompl::geometric::QuotientSpaceGraph::Configuration;
 
-using Configuration = QuotientSpaceGraph::Configuration;
-
-QuotientSpaceGraph::QuotientSpaceGraph(const ob::SpaceInformationPtr &si, QuotientSpace *parent_) : BaseT(si, parent_)
+ompl::geometric::QuotientSpaceGraph::QuotientSpaceGraph(const base::SpaceInformationPtr &si, QuotientSpace *parent_)
+  : BaseT(si, parent_)
 {
     setName("QuotientSpaceGraph");
-    specs_.recognizedGoal = ob::GOAL_SAMPLEABLE_REGION;
+    specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
     specs_.optimizingPaths = false;
 
@@ -74,11 +70,11 @@ QuotientSpaceGraph::QuotientSpaceGraph(const ob::SpaceInformationPtr &si, Quotie
     }
 }
 
-QuotientSpaceGraph::~QuotientSpaceGraph()
+ompl::geometric::QuotientSpaceGraph::~QuotientSpaceGraph()
 {
 }
 
-void QuotientSpaceGraph::setup()
+void ompl::geometric::QuotientSpaceGraph::setup()
 {
     BaseT::setup();
     if (!nearestDatastructure_)
@@ -96,7 +92,7 @@ void QuotientSpaceGraph::setup()
         }
         else
         {
-            opt_ = std::make_shared<ob::PathLengthOptimizationObjective>(si_);
+            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
         }
         firstRun_ = true;
         setup_ = true;
@@ -107,26 +103,28 @@ void QuotientSpaceGraph::setup()
     }
 }
 
-void QuotientSpaceGraph::clear()
+void ompl::geometric::QuotientSpaceGraph::clear()
 {
     BaseT::clear();
 
     clearVertices();
     clearQuery();
     graphLength_ = 0;
-    bestCost_ = ob::Cost(ob::dInf);
+    bestCost_ = base::Cost(base::dInf);
     setup_ = false;
 }
 
-QuotientSpaceGraph::Configuration::Configuration(const ob::SpaceInformationPtr &si) : state(si->allocState())
+ompl::geometric::QuotientSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si)
+  : state(si->allocState())
 {
 }
-QuotientSpaceGraph::Configuration::Configuration(const ob::SpaceInformationPtr &si, const ob::State *state_)
+ompl::geometric::QuotientSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si,
+                                                                  const base::State *state_)
   : state(si->cloneState(state_))
 {
 }
 
-void QuotientSpaceGraph::deleteConfiguration(Configuration *q)
+void ompl::geometric::QuotientSpaceGraph::deleteConfiguration(Configuration *q)
 {
     if (q != nullptr)
     {
@@ -139,7 +137,7 @@ void QuotientSpaceGraph::deleteConfiguration(Configuration *q)
     }
 }
 
-void QuotientSpaceGraph::clearVertices()
+void ompl::geometric::QuotientSpaceGraph::clearVertices()
 {
     if (nearestDatastructure_)
     {
@@ -154,27 +152,27 @@ void QuotientSpaceGraph::clearVertices()
     graph_.clear();
 }
 
-void QuotientSpaceGraph::clearQuery()
+void ompl::geometric::QuotientSpaceGraph::clearQuery()
 {
     pis_.restart();
 }
 
-double QuotientSpaceGraph::getImportance() const
+double ompl::geometric::QuotientSpaceGraph::getImportance() const
 {
     double N = (double)getNumberOfVertices();
     return 1.0 / (N + 1);
 }
 
-void QuotientSpaceGraph::init()
+void ompl::geometric::QuotientSpaceGraph::init()
 {
-    auto *goal = dynamic_cast<ob::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
     if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         throw ompl::Exception("Unknown goal type");
     }
 
-    if (const ob::State *st = pis_.nextStart())
+    if (const base::State *st = pis_.nextStart())
     {
         if (st != nullptr)
         {
@@ -189,7 +187,7 @@ void QuotientSpaceGraph::init()
         throw ompl::Exception("Invalid initial states.");
     }
 
-    if (const ob::State *st = pis_.nextGoal())
+    if (const base::State *st = pis_.nextGoal())
     {
         if (st != nullptr)
         {
@@ -204,22 +202,23 @@ void QuotientSpaceGraph::init()
     }
 }
 
-void QuotientSpaceGraph::uniteComponents(Vertex m1, Vertex m2)
+void ompl::geometric::QuotientSpaceGraph::uniteComponents(Vertex m1, Vertex m2)
 {
     disjointSets_.union_set(m1, m2);
 }
 
-bool QuotientSpaceGraph::sameComponent(Vertex m1, Vertex m2)
+bool ompl::geometric::QuotientSpaceGraph::sameComponent(Vertex m1, Vertex m2)
 {
     return boost::same_component(m1, m2, disjointSets_);
 }
 
-const QuotientSpaceGraph::Configuration *QuotientSpaceGraph::nearest(const Configuration *q) const
+const ompl::geometric::QuotientSpaceGraph::Configuration *
+ompl::geometric::QuotientSpaceGraph::nearest(const Configuration *q) const
 {
     return nearestDatastructure_->nearest(const_cast<Configuration *>(q));
 }
 
-QuotientSpaceGraph::Vertex QuotientSpaceGraph::addConfiguration(Configuration *q)
+ompl::geometric::QuotientSpaceGraph::Vertex ompl::geometric::QuotientSpaceGraph::addConfiguration(Configuration *q)
 {
     Vertex m = boost::add_vertex(q, graph_);
     graph_[m]->total_connection_attempts = 1;
@@ -230,63 +229,64 @@ QuotientSpaceGraph::Vertex QuotientSpaceGraph::addConfiguration(Configuration *q
     return m;
 }
 
-unsigned int QuotientSpaceGraph::getNumberOfVertices() const
+unsigned int ompl::geometric::QuotientSpaceGraph::getNumberOfVertices() const
 {
     return num_vertices(graph_);
 }
 
-unsigned int QuotientSpaceGraph::getNumberOfEdges() const
+unsigned int ompl::geometric::QuotientSpaceGraph::getNumberOfEdges() const
 {
     return num_edges(graph_);
 }
 
-const QuotientSpaceGraph::Graph &QuotientSpaceGraph::getGraph() const
+const ompl::geometric::QuotientSpaceGraph::Graph &ompl::geometric::QuotientSpaceGraph::getGraph() const
 {
     return graph_;
 }
 
-const QuotientSpaceGraph::RoadmapNeighborsPtr &QuotientSpaceGraph::getRoadmapNeighborsPtr() const
+const ompl::geometric::QuotientSpaceGraph::RoadmapNeighborsPtr &
+ompl::geometric::QuotientSpaceGraph::getRoadmapNeighborsPtr() const
 {
     return nearestDatastructure_;
 }
 
-ob::Cost QuotientSpaceGraph::costHeuristic(Vertex u, Vertex v) const
+ompl::base::Cost ompl::geometric::QuotientSpaceGraph::costHeuristic(Vertex u, Vertex v) const
 {
     return opt_->motionCostHeuristic(graph_[u]->state, graph_[v]->state);
 }
 
 template <template <typename T> class NN>
-void QuotientSpaceGraph::setNearestNeighbors()
+void ompl::geometric::QuotientSpaceGraph::setNearestNeighbors()
 {
     if (nearestDatastructure_ && nearestDatastructure_->size() == 0)
         OMPL_WARN("Calling setNearestNeighbors will clear all states.");
     clear();
-    nearestDatastructure_ = std::make_shared<NN<ob::State *>>();
+    nearestDatastructure_ = std::make_shared<NN<base::State *>>();
     if (!isSetup())
     {
         setup();
     }
 }
 
-double QuotientSpaceGraph::distance(const Configuration *a, const Configuration *b) const
+double ompl::geometric::QuotientSpaceGraph::distance(const Configuration *a, const Configuration *b) const
 {
     return si_->distance(a->state, b->state);
 }
 
-void QuotientSpaceGraph::addEdge(const Vertex a, const Vertex b)
+void ompl::geometric::QuotientSpaceGraph::addEdge(const Vertex a, const Vertex b)
 {
-    ob::Cost weight = opt_->motionCost(graph_[a]->state, graph_[b]->state);
+    base::Cost weight = opt_->motionCost(graph_[a]->state, graph_[b]->state);
     EdgeInternalState properties(weight);
     boost::add_edge(a, b, properties, graph_);
     uniteComponents(a, b);
 }
 
-double QuotientSpaceGraph::getGraphLength() const
+double ompl::geometric::QuotientSpaceGraph::getGraphLength() const
 {
     return graphLength_;
 }
 
-bool QuotientSpaceGraph::getSolution(ob::PathPtr &solution)
+bool ompl::geometric::QuotientSpaceGraph::getSolution(base::PathPtr &solution)
 {
     if (hasSolution_)
     {
@@ -297,8 +297,8 @@ bool QuotientSpaceGraph::getSolution(ob::PathPtr &solution)
     }
     else
     {
-        ob::Goal *g = pdef_->getGoal().get();
-        bestCost_ = ob::Cost(+ob::dInf);
+        base::Goal *g = pdef_->getGoal().get();
+        bestCost_ = base::Cost(+base::dInf);
         bool same_component = sameComponent(vStart_, vGoal_);
 
         if (same_component && g->isStartGoalPairValid(graph_[vGoal_]->state, graph_[vStart_]->state))
@@ -316,7 +316,7 @@ bool QuotientSpaceGraph::getSolution(ob::PathPtr &solution)
     return hasSolution_;
 }
 
-ob::PathPtr QuotientSpaceGraph::getPath(const Vertex &start, const Vertex &goal)
+ompl::base::PathPtr ompl::geometric::QuotientSpaceGraph::getPath(const Vertex &start, const Vertex &goal)
 {
     std::vector<Vertex> prev(boost::num_vertices(graph_));
     auto weight = boost::make_transform_value_property_map(std::mem_fn(&EdgeInternalState::getCost),
@@ -363,7 +363,7 @@ ob::PathPtr QuotientSpaceGraph::getPath(const Vertex &start, const Vertex &goal)
     return p;
 }
 
-bool QuotientSpaceGraph::sampleQuotient(ob::State *q_random_graph)
+bool ompl::geometric::QuotientSpaceGraph::sampleQuotient(base::State *q_random_graph)
 {
     // RANDOM EDGE SAMPLING
     if (num_edges(graph_) == 0)
@@ -379,14 +379,14 @@ bool QuotientSpaceGraph::sampleQuotient(ob::State *q_random_graph)
 
     const Vertex v1 = boost::source(e, graph_);
     const Vertex v2 = boost::target(e, graph_);
-    const ob::State *from = graph_[v1]->state;
-    const ob::State *to = graph_[v2]->state;
+    const base::State *from = graph_[v1]->state;
+    const base::State *to = graph_[v2]->state;
 
     Q1->getStateSpace()->interpolate(from, to, s, q_random_graph);
     return true;
 }
 
-void QuotientSpaceGraph::print(std::ostream &out) const
+void ompl::geometric::QuotientSpaceGraph::print(std::ostream &out) const
 {
     BaseT::print(out);
     out << std::endl
@@ -394,12 +394,12 @@ void QuotientSpaceGraph::print(std::ostream &out) const
         << " edges.]" << std::endl;
 }
 
-void QuotientSpaceGraph::printConfiguration(const Configuration *q) const
+void ompl::geometric::QuotientSpaceGraph::printConfiguration(const Configuration *q) const
 {
     Q1->printState(q->state);
 }
 
-void QuotientSpaceGraph::getPlannerData(ob::PlannerData &data) const
+void ompl::geometric::QuotientSpaceGraph::getPlannerData(base::PlannerData &data) const
 {
     std::vector<int> idxPathI;
     QuotientSpace *pparent = getParent();
@@ -413,13 +413,13 @@ void QuotientSpaceGraph::getPlannerData(ob::PlannerData &data) const
     unsigned int startComponent = 0;
     unsigned int goalComponent = 1;
 
-    PlannerDataVertexAnnotated pstart(graph_[vStart_]->state, startComponent);
+    base::PlannerDataVertexAnnotated pstart(graph_[vStart_]->state, startComponent);
     pstart.setPath(idxPathI);
     data.addStartVertex(pstart);
     if (hasSolution_)
     {
         goalComponent = 0;
-        PlannerDataVertexAnnotated pgoal(graph_[vGoal_]->state, goalComponent);
+        base::PlannerDataVertexAnnotated pgoal(graph_[vGoal_]->state, goalComponent);
         pgoal.setPath(idxPathI);
         data.addGoalVertex(pgoal);
     }
@@ -430,8 +430,8 @@ void QuotientSpaceGraph::getPlannerData(ob::PlannerData &data) const
         const Vertex v1 = boost::source(e, graph_);
         const Vertex v2 = boost::target(e, graph_);
 
-        PlannerDataVertexAnnotated p1(graph_[v1]->state);
-        PlannerDataVertexAnnotated p2(graph_[v2]->state);
+        base::PlannerDataVertexAnnotated p1(graph_[v1]->state);
+        base::PlannerDataVertexAnnotated p2(graph_[v2]->state);
         p1.setPath(idxPathI);
         p2.setPath(idxPathI);
 
@@ -443,8 +443,8 @@ void QuotientSpaceGraph::getPlannerData(ob::PlannerData &data) const
 
         unsigned int v1Component = const_cast<QuotientSpaceGraph *>(this)->disjointSets_.find_set(v1);
         unsigned int v2Component = const_cast<QuotientSpaceGraph *>(this)->disjointSets_.find_set(v2);
-        PlannerDataVertexAnnotated &v1a = *static_cast<PlannerDataVertexAnnotated *>(&data.getVertex(vi1));
-        PlannerDataVertexAnnotated &v2a = *static_cast<PlannerDataVertexAnnotated *>(&data.getVertex(vi2));
+        base::PlannerDataVertexAnnotated &v1a = static_cast<base::PlannerDataVertexAnnotated &>(data.getVertex(vi1));
+        base::PlannerDataVertexAnnotated &v2a = static_cast<base::PlannerDataVertexAnnotated &>(data.getVertex(vi2));
 
         if (v1Component == startComponent || v2Component == startComponent)
         {
