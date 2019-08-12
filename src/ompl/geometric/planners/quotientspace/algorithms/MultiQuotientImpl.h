@@ -39,6 +39,7 @@
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/goals/GoalState.h>
+#include <ompl/util/Exception.h>
 #include <ompl/util/Time.h>
 #include <queue>
 
@@ -213,7 +214,7 @@ ompl::base::PlannerStatus MultiQuotient<T>::solve(const ompl::base::PlannerTermi
 }
 
 template <class T>
-const ompl::base::ProblemDefinitionPtr &MultiQuotient<T>::getProblemDefinition(unsigned kQuotientSpace) const
+const ompl::base::ProblemDefinitionPtr &MultiQuotient<T>::getProblemDefinition(unsigned int kQuotientSpace) const
 {
     assert(kQuotientSpace >= 0);
     assert(kQuotientSpace <= siVec_.size()-1);
@@ -267,9 +268,8 @@ void MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
     unsigned int Nvertices = data.numVertices();
     if (Nvertices > 0)
     {
-        OMPL_ERROR("cannot get planner data if plannerdata is already populated");
         OMPL_ERROR("PlannerData has %d vertices.", Nvertices);
-        exit(0);
+        throw ompl::Exception("cannot get planner data if plannerdata is already populated");
     }
 
     unsigned int K = std::min(solutions_.size() + 1, quotientSpaces_.size());

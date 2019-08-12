@@ -56,7 +56,7 @@ ob::PlannerPtr GetQRRT(
     // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     std::vector<ob::SpaceInformationPtr> si_vec;
 
-    for(unsigned k = 0; k < sequenceLinks.size(); k++)
+    for(unsigned int k = 0; k < sequenceLinks.size(); k++)
     {
         int links = sequenceLinks.at(k);
         assert(links<numLinks);
@@ -77,7 +77,7 @@ ob::PlannerPtr GetQRRT(
     planner->setProblemDefinition(pdef);
 
     std::string qName = "QuotientSpaceRRT[";
-    for(unsigned k = 0; k < sequenceLinks.size(); k++)
+    for(unsigned int k = 0; k < sequenceLinks.size(); k++)
     {
         int links = sequenceLinks.at(k);
         qName+=std::to_string(links)+",";
@@ -94,7 +94,7 @@ int main()
     OMPL_INFORM("Original Chain has %d links", numLinks);
     OMPL_INFORM("Creating Horn Environment with width %f.", narrowPassageWidth);
     envs.push_back(createHornEnvironment(1, narrowPassageWidth));
-    for(unsigned k = 1; k < numLinks; k++){
+    for(unsigned int k = 1; k < numLinks; k++){
         envs.push_back(createHornEnvironment(k, narrowPassageWidth));
     }
 

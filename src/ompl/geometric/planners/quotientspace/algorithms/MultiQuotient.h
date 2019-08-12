@@ -78,7 +78,7 @@ namespace ompl
             void setup() override;
             void clear() override;
             virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
-            const ompl::base::ProblemDefinitionPtr &getProblemDefinition(unsigned kQuotientSpace) const;
+            const ompl::base::ProblemDefinitionPtr &getProblemDefinition(unsigned int kQuotientSpace) const;
 
             /// Number of quotient-spaces
             int getLevels() const;
@@ -131,5 +131,5 @@ namespace ompl
         };
     }
 }
-#include "MultiQuotient.ipp"
+#include "MultiQuotientImpl.h"
 #endif

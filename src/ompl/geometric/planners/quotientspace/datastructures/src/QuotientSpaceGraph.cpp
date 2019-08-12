@@ -44,6 +44,8 @@
 #include <ompl/datastructures/PDF.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/tools/config/MagicConstants.h>
+#include <ompl/util/Exception.h>
+
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
 #include <boost/property_map/vector_property_map.hpp>
@@ -168,7 +170,7 @@ void QuotientSpaceGraph::init()
     if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
-        exit(0);
+        throw ompl::Exception("Unknown goal type");
     }
 
     if (const ob::State *st = pis_.nextStart())
@@ -183,7 +185,7 @@ void QuotientSpaceGraph::init()
     if (qStart_ == nullptr)
     {
         OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
-        exit(0);
+        throw ompl::Exception("Invalid initial states.");
     }
 
     if (const ob::State *st = pis_.nextGoal())
@@ -197,10 +199,8 @@ void QuotientSpaceGraph::init()
     if (qGoal_ == nullptr)
     {
         OMPL_ERROR("%s: There are no valid goal states!", getName().c_str());
-        exit(0);
+        throw ompl::Exception("Invalid goal states.");
     }
-    // unsigned long int nrStartStates = boost::num_vertices(graph_);
-    // OMPL_INFORM("%s: ready with %lu states already in datastructure", getName().c_str(), nrStartStates);
 }
 
 void QuotientSpaceGraph::uniteComponents(Vertex m1, Vertex m2)

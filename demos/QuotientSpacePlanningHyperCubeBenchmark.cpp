@@ -39,7 +39,7 @@ const double edgeWidth = 0.1;
 const double runtime_limit = 10;
 const double memory_limit = 4096*4096;
 const int run_count = 10;
-unsigned curDim = 8;
+unsigned int curDim = 8;
 int numberPlanners = 0;
 
 #include "QuotientSpacePlanningCommon.h"
@@ -119,16 +119,16 @@ protected:
     int dimension_;
 };
 
-static unsigned numberRuns{0};
+static unsigned int numberRuns{0};
 
 void PostRunEvent(const ob::PlannerPtr &planner, ot::Benchmark::RunProperties &run)
 {
-  static unsigned pid = 0;
+  static unsigned int pid = 0;
 
   ob::SpaceInformationPtr si = planner->getSpaceInformation();
   ob::ProblemDefinitionPtr pdef = planner->getProblemDefinition();
 
-  unsigned states = boost::lexical_cast<int>(run["graph states INTEGER"]);
+  unsigned int states = boost::lexical_cast<int>(run["graph states INTEGER"]);
   double time = boost::lexical_cast<double>(run["time REAL"]);
   double memory = boost::lexical_cast<double>(run["memory REAL"]);
 
@@ -147,7 +147,7 @@ void PostRunEvent(const ob::PlannerPtr &planner, ot::Benchmark::RunProperties &r
 
 
 // Note: Number of all simplifications is
-// unsigned numberSimplifications = std::pow(2, curDim - 1);
+// unsigned int numberSimplifications = std::pow(2, curDim - 1);
 // But here we will only create three simplifications, the trivial one, the
 // discrete one and a two-step simplifications, which we found worked well in
 // this experiment. You can experiment with finding better simplifications.
@@ -174,10 +174,10 @@ std::vector<std::vector<int>> getHypercubeAdmissibleProjections(int dim)
     projections.erase(last, projections.end()); 
 
     // std::cout << "Projections for dim " << dim << std::endl;
-    // for(unsigned k = 0; k < projections.size(); k++){
+    // for(unsigned int k = 0; k < projections.size(); k++){
     //     std::vector<int> pk = projections.at(k);
     //     std::cout << k << ": ";
-    //     for(unsigned j = 0; j < pk.size(); j++){
+    //     for(unsigned int j = 0; j < pk.size(); j++){
     //       std::cout << pk.at(j) << (j<pk.size()-1?",":"");
     //     }
     //     std::cout << std::endl;
@@ -203,7 +203,7 @@ ob::PlannerPtr GetQRRT(
     // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     std::vector<ob::SpaceInformationPtr> si_vec;
 
-    for(unsigned k = 0; k < sequenceLinks.size()-1; k++)
+    for(unsigned int k = 0; k < sequenceLinks.size()-1; k++)
     {
         int links = sequenceLinks.at(k);
         assert(links<maximalDimension);
@@ -224,7 +224,7 @@ ob::PlannerPtr GetQRRT(
 
     auto planner = std::make_shared<og::QRRT>(si_vec);
     std::string qName = "QuotientSpaceRRT[";
-    for(unsigned k = 0; k < sequenceLinks.size()-1; k++)
+    for(unsigned int k = 0; k < sequenceLinks.size()-1; k++)
     {
         int links = sequenceLinks.at(k);
         qName+=std::to_string(links)+",";
@@ -270,7 +270,7 @@ int main(int argc, char **argv)
     // Load All Planner
     //############################################################################
     std::vector<std::vector<int>> admissibleProjections = getHypercubeAdmissibleProjections(curDim);
-    for(unsigned k = 0; k < admissibleProjections.size(); k++)
+    for(unsigned int k = 0; k < admissibleProjections.size(); k++)
     {
         std::vector<int> proj = admissibleProjections.at(k);
         ob::PlannerPtr quotientSpacePlannerK = GetQRRT(proj, si);

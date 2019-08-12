@@ -43,6 +43,8 @@
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 
+#include <ompl/util/Exception.h>
+
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 using namespace ob;
@@ -81,16 +83,14 @@ QuotientSpace::QuotientSpace(const ob::SpaceInformationPtr &si, QuotientSpace *p
             X1_sampler_ = X1->allocStateSampler();
             if (Q0_space->getDimension() + X1_space->getDimension() != Q1_space->getDimension())
             {
-                OMPL_ERROR("QuotientSpace Dimensions are wrong.");
-                exit(0);
+                throw ompl::Exception("QuotientSpace Dimensions are wrong.");
             }
             OMPL_DEVMSG1("Q0 dimension: %d measure: %f", Q0_space->getDimension(), Q0_space->getMeasure());
             OMPL_DEVMSG1("X1 dimension: %d measure: %f", X1_space->getDimension(), X1_space->getMeasure());
             OMPL_DEVMSG1("Q1 dimension: %d measure: %f", Q1_space->getDimension(), Q1_space->getMeasure());
             if ((Q0_space->getMeasure() <= 0) || (X1_space->getMeasure() <= 0) || (Q1_space->getMeasure() <= 0))
             {
-                OMPL_ERROR("Zero-measure QuotientSpace detected.");
-                exit(0);
+                throw ompl::Exception("Zero-measure QuotientSpace detected.");
             }
             if (!X1_sampler_)
             {
@@ -158,7 +158,6 @@ void QuotientSpace::checkSpaceHasFiniteMeasure(const ob::StateSpacePtr space) co
 {
     if (space->getMeasure() >= std::numeric_limits<double>::infinity())
     {
-        OMPL_ERROR("QuotientSpace has no bounds");
         const StateSpacePtr Q0_space = Q0->getStateSpace();
         const StateSpacePtr Q1_space = Q1->getStateSpace();
         OMPL_ERROR("Q0 dimension: %d measure: %f", Q0_space->getDimension(), Q0_space->getMeasure());
@@ -168,15 +167,14 @@ void QuotientSpace::checkSpaceHasFiniteMeasure(const ob::StateSpacePtr space) co
             const StateSpacePtr X1_space = X1->getStateSpace();
             OMPL_ERROR("X1 dimension: %d measure: %f", X1_space->getDimension(), X1_space->getMeasure());
         }
-        exit(0);
+        throw ompl::Exception("QuotientSpace has no bounds");
     }
 }
 
 ob::PlannerStatus QuotientSpace::solve(const ob::PlannerTerminationCondition &ptc)
 {
     (void)ptc;
-    OMPL_ERROR("A Quotient-Space cannot be solved alone. Use class MultiQuotient to solve Quotient-Spaces.");
-    exit(1);
+    throw ompl::Exception("A Quotient-Space cannot be solved alone. Use class MultiQuotient to solve Quotient-Spaces.");
 }
 
 
@@ -210,10 +208,9 @@ const StateSpacePtr QuotientSpace::computeQuotientSpace(const StateSpacePtr Q1, 
 
     if (Q0_dimension_ == 0 || Q1_dimension_ == 0)
     {
-        OMPL_ERROR("Detected Zero-dimensional QuotientSpace.");
         OMPL_ERROR("Q0 has dimension %d.", Q0_dimension_);
         OMPL_ERROR("Q1 has dimension %d.", Q1_dimension_);
-        exit(0);
+        throw ompl::Exception("Detected Zero-dimensional QuotientSpace.");
     }
 
     switch (type_)
@@ -346,7 +343,7 @@ const StateSpacePtr QuotientSpace::computeQuotientSpace(const StateSpacePtr Q1, 
         default:
         {
             OMPL_ERROR("Unknown QuotientSpace type: %d", type_);
-            exit(0);
+            throw ompl::Exception("Unknown type");
         }
     }
     return X1;
@@ -403,20 +400,21 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                         
                         OMPL_ERROR("Not allowed: dimensionality needs to be monotonically increasing.");
                         OMPL_ERROR("We require n >= m > 0 but have n=%d >= m=%d > 0", n, m);
-                        exit(0);
+                        throw ompl::Exception( "Invalid dimensionality" );
+
                     }
                 }
             }
             else
             {
                 OMPL_ERROR( "Q1 is R^%d but Q0 type %d is not handled.", n, Q0->getType());
-                exit(0);
+                throw ompl::Exception( "INVALID_STATE_TYPE" );
             }
         }
         else
         {
             OMPL_ERROR("Q1 is non-compound state, but its type %d is not handled.", Q1->getType());
-            exit(0);
+            throw ompl::Exception( "INVALID_STATE_TYPE" );
         }
     }
     else
@@ -438,7 +436,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                 else
                 {
                     OMPL_ERROR("Q1 is SE2 but Q0 type %d is of dimension %d", Q0->getType(), Q0->getDimension());
-                    exit(0);
+                    throw ompl::Exception( "Invalid dimensions." );
                 }
             }
             else
@@ -450,7 +448,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                 else
                 {
                     OMPL_ERROR("Q1 is SE2 but Q0 type %d is not handled.", Q0->getType());
-                    exit(0);
+                    throw ompl::Exception( "INVALID_STATE_TYPE" );
                 }
             }
         }
@@ -467,7 +465,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                 else
                 {
                     OMPL_ERROR("Q1 is SE3 but Q0 type %d is of dimension %d.", Q0->getType(), Q0->getDimension());
-                    exit(0);
+                    throw ompl::Exception( "Invalid dimensions." );
                 }
             }
             else
@@ -479,10 +477,10 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                 else
                 {
                     OMPL_ERROR("Q1 is SE2 but Q0 type %d is not handled.", Q0->getType());
-                    exit(0);
+                    throw ompl::Exception("Invalid QuotientSpace type");
                 }
                 OMPL_ERROR("Q1 is SE3 but Q0 type %d is not handled.", Q0->getType());
-                exit(0);
+                throw ompl::Exception("Invalid QuotientSpace type");
             }
         }
         ///##############################################################################/
@@ -515,7 +513,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                         else
                         {
                             OMPL_ERROR("Not allowed. Q0 needs to be 3-dimensional but is %d dimensional", m);
-                            exit(0);
+                            throw ompl::Exception( "Invalid dimensions." );
                         }
                     }
                     else
@@ -543,7 +541,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                                     else
                                     {
                                         OMPL_ERROR("We require n >= m > 0, but have n=%d >= m=%d > 0.", n, m);
-                                        exit(0);
+                                        throw ompl::Exception( "Invalid dimensions." );
                                     }
                                 }
                             }
@@ -551,7 +549,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                         else
                         {
                             OMPL_ERROR("State compound with %d subspaces not handled.", Q0_subspaces);
-                            exit(0);
+                            throw ompl::Exception("Invalid QuotientSpace type");
                         }
                     }
                 }
@@ -579,7 +577,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                             else
                             {
                                 OMPL_ERROR("Not allowed. Q0 needs to be 2-dimensional but is %d dimensional", m);
-                                exit(0);
+                                throw ompl::Exception( "Invalid dimensions." );
                             }
                         }
                         else
@@ -607,7 +605,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                                         else
                                         {
                                             OMPL_ERROR("We require n >= m > 0, but have n=%d >= m=%d > 0.", n, m);
-                                            exit(0);
+                                            throw ompl::Exception( "Invalid dimensions." );
                                         }
                                     }
                                 }else{
@@ -617,7 +615,7 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                             else
                             {
                                 OMPL_ERROR("QO is compound with %d subspaces, but we only handle 2.", Q0_subspaces);
-                                exit(0);
+                                throw ompl::Exception("Invalid QuotientSpace type");
                             }
                         }
 										}else if(Q1_decomposed.at(0)->getType() == base::STATE_SPACE_SO2 
@@ -650,20 +648,20 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                                             }else
                                             {
                                                 OMPL_ERROR("We require n >= m > 0 but have n=%d >= m=%d > 0.", n, m);
-                                                exit(0);
+                                                throw ompl::Exception( "Invalid dimensions." );
                                             }
                                         }
                                     }else{
                                         OMPL_ERROR("Cannot project onto type %d.", Q1->getType());
-                                        exit(0);
+                                        throw ompl::Exception( "Invalid QuotientSpace type." );
                                     }
                                 }else{
                                     OMPL_ERROR("Q0 has %d subspaces. We can handle only 2.", Q0_subspaces);
-                                    exit(0);
+                                    throw ompl::Exception( "Invalid QuotientSpace type." );
                                 }
                             }else{
                                 OMPL_ERROR("Cannot project onto type %d.", Q0->getType());
-                                exit(0);
+                                throw ompl::Exception( "Invalid QuotientSpace type." );
                             }
 												}
                     }else
@@ -671,14 +669,14 @@ QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const 
                         OMPL_ERROR("State compound %d and %d not recognized.", 
                             Q1_decomposed.at(0)->getType(),
                             Q1_decomposed.at(1)->getType());
-                        exit(0);
+                        throw ompl::Exception( "Invalid QuotientSpace type." );
                     }
                 }
             }
             else
             {
                 OMPL_ERROR("Q1 has %d subspaces, but we only support 2.", Q1_subspaces);
-                exit(0);
+                throw ompl::Exception( "Invalid QuotientSpace type." );
             }
         }
     }
@@ -702,8 +700,7 @@ void QuotientSpace::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::
         case IDENTITY_SPACE_SE3:
         case IDENTITY_SPACE_SE3RN:
         {
-            OMPL_ERROR("Cannot merge states for Identity space");
-            exit(0);
+            throw ompl::Exception( "Cannot merge states for Identity space" );
         }
         case RN_RM:
         {
@@ -804,7 +801,7 @@ void QuotientSpace::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::
 
             sQ1_SO2->value = sQ0->value;
 
-            for(unsigned k = 0; k < X1_dimension_; k++){
+            for(unsigned int k = 0; k < X1_dimension_; k++){
               sQ1_RN->values[k] = sX1->values[k];
             }
             break;
@@ -951,9 +948,8 @@ void QuotientSpace::mergeStates(const ob::State *qQ0, const ob::State *qX1, ob::
         }
         default:
         {
-            OMPL_ERROR("Cannot merge states");
             OMPL_ERROR("Type %d not implemented.", type_);
-            exit(0);
+            throw ompl::Exception( "Cannot merge states." );
         }
     }
 }
@@ -1078,9 +1074,8 @@ void QuotientSpace::projectX1(const ob::State *q, ob::State *qX1) const
         }
         default:
         {
-            OMPL_ERROR("Cannot project onto X1.");
             OMPL_ERROR("Type %d not implemented.", type_);
-            exit(0);
+            throw ompl::Exception("Cannot project onto X1.");
         }
     }
 }
@@ -1251,7 +1246,7 @@ void QuotientSpace::projectQ0(const ob::State *q, ob::State *qQ0) const
         default:
         {
             OMPL_ERROR("Cannot project onto Q0. Type %d not implemented.", type_);
-            exit(1);
+            throw ompl::Exception("Cannot project onto Q0.");
         }
     }
 }

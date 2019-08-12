@@ -48,7 +48,7 @@
 #include <fstream>
 
 const double edgeWidth = 0.1;
-const unsigned ndim = 10;
+const unsigned int ndim = 10;
 const double runtime_limit = 10;
 const double memory_limit = 4096;
 const int run_count = 10;
@@ -96,12 +96,12 @@ void addPlanner(ompl::tools::Benchmark& benchmark, const ompl::base::PlannerPtr&
 ob::PlannerPtr GetQRRT(
     ob::SpaceInformationPtr si, 
     ob::ProblemDefinitionPtr pdef, 
-    unsigned numLinks)
+    unsigned int numLinks)
 {
     // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     std::vector<ob::SpaceInformationPtr> si_vec;
 
-    for(unsigned k = 2; k < numLinks; k+=2)
+    for(unsigned int k = 2; k < numLinks; k+=2)
     {
         OMPL_INFORM("Create QuotientSpace Chain with %d links.", k);
 
