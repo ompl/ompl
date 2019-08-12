@@ -56,15 +56,15 @@ namespace ompl
         public:
             QRRTImpl(const ompl::base::SpaceInformationPtr &si, QuotientSpace *parent_);
             virtual ~QRRTImpl() override;
-            /// One iteration of RRT with adjusted sampling function
+            /** \brief One iteration of RRT with adjusted sampling function */
             virtual void grow() override;
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
-            /// Importance based on how many vertices the tree has
+            /** \brief Importance based on how many vertices the tree has */
             double getImportance() const override;
-            /// Uniform sampling
+            /** \brief Uniform sampling */
             virtual bool sample(ompl::base::State *q_random) override;
-            /// \brief Quotient-Space sampling by choosing a random vertex from parent
-            /// class tree
+            /** \brief \brief Quotient-Space sampling by choosing a random vertex from parent
+                class tree */
             virtual bool sampleQuotient(ompl::base::State *) override;
 
             virtual void setup() override;
@@ -76,17 +76,17 @@ namespace ompl
             double getRange() const;
 
         protected:
-            /// Random configuration placeholder
+            /** \brief Random configuration placeholder */
             Configuration *qRandom_{nullptr};
-            /// Current shortest path on tree
+            /** \brief Current shortest path on tree */
             std::vector<Vertex> shortestPathVertices_;
 
-            /// Maximum distance of expanding the tree
+            /** \brief Maximum distance of expanding the tree */
             double maxDistance_{.0};
-            /// Goal bias similar to RRT
+            /** \brief Goal bias similar to RRT */
             double goalBias_{.05};
 
-            /// Goal state or goal region
+            /** \brief Goal state or goal region */
             ompl::base::Goal *goal_;
         };
     }  // namespace geometric

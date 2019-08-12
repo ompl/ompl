@@ -45,9 +45,9 @@ namespace ompl
 {
     namespace base
     {
-        /// \brief An annotated vertex, adding information about its level in the
-        /// quotient-space hiearchy, the maxlevel of quotientspaces and the component it
-        /// belongs to
+        /** \brief An annotated vertex, adding information about its level in the
+            quotient-space hiearchy, the maxlevel of quotientspaces and the component it
+            belongs to */
         class PlannerDataVertexAnnotated : public ompl::base::PlannerDataVertex
         {
             // If new elements are added,
@@ -87,7 +87,6 @@ namespace ompl
             const ompl::base::State *stateQuotientSpace_{nullptr};
         };
 
-        // BOOST_CLASS_EXPORT(PlannerDataVertexAnnotated);
     }  // namespace base
 }  // namespace ompl
 #endif

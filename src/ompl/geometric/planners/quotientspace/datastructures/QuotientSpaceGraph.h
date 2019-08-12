@@ -63,7 +63,7 @@ namespace ompl
     }  // namespace base
     namespace geometric
     {
-        /// \brief A graph on a quotient-space
+        /** \brief A graph on a quotient-space */
         class QuotientSpaceGraph : public QuotientSpace
         {
             using BaseT = QuotientSpace;
@@ -71,7 +71,7 @@ namespace ompl
         public:
             using normalized_index_type = int;
 
-            /// A configuration in quotient-space
+            /** \brief A configuration in quotient-space */
             class Configuration
             {
             public:
@@ -83,8 +83,8 @@ namespace ompl
                 unsigned int successful_connection_attempts{0};
                 bool on_shortest_path{false};
 
-                /// \brief Element of Probability Density Function (needed to update
-                ///  probability)
+                /** \brief Element of Probability Density Function (needed to update
+                     probability) */
                 void *pdf_element;
                 void setPDFElement(void *element_)
                 {
@@ -98,15 +98,15 @@ namespace ompl
                 bool isStart{false};
                 bool isGoal{false};
 
-                /// \brief Index of configuration in boost::graph. Usually in
-                /// the interval [0,num_vertices(graph)], but if vertices are
-                /// deleted or graphs are copied, we sometimes need to map them
-                /// back to [0,num_vertices(graph)] (because otherwise all the
-                /// graph search algorithm cannot find a solution)
+                /** \brief Index of configuration in boost::graph. Usually in
+                    the interval [0,num_vertices(graph)], but if vertices are
+                    deleted or graphs are copied, we sometimes need to map them
+                    back to [0,num_vertices(graph)] (because otherwise all the
+                    graph search algorithm cannot find a solution) */
                 normalized_index_type index{-1};
             };
 
-            /// An edge in quotient-space
+            /** \brief An edge in quotient-space */
             class EdgeInternalState
             {
             public:
@@ -133,7 +133,7 @@ namespace ompl
             {
                 std::string name{"quotient_graph"};
             };
-            /// A quotient-graph structure using boost::adjacency_list bundles
+            /** \brief A quotient-graph structure using boost::adjacency_list bundles */
             using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Configuration *,
                                                 EdgeInternalState, GraphBundle>;
 
@@ -162,16 +162,16 @@ namespace ompl
             virtual bool sampleQuotient(ompl::base::State *) override;
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
 
-            /// \brief Return plannerdata structure, whereby each vertex is marked
-            /// depending to which component it belongs (start/goal/non-connected)
+            /** \brief Return plannerdata structure, whereby each vertex is marked
+                depending to which component it belongs (start/goal/non-connected) */
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;
 
-            /// \brief Importance of quotient-space depending on number of
-            /// vertices in quotient-graph
+            /** \brief Importance of quotient-space depending on number of
+                vertices in quotient-graph */
             virtual double getImportance() const override;
 
-            /// \brief Initialization methods for the first iteration
-            ///  (adding start configuration and doing sanity checks)
+            /** \brief Initialization methods for the first iteration
+                 (adding start configuration and doing sanity checks) */
             void init();
 
             virtual void setup() override;
@@ -205,7 +205,7 @@ namespace ompl
             const RoadmapNeighborsPtr &getRoadmapNeighborsPtr() const;
 
             virtual void print(std::ostream &out) const override;
-            /// Print configuration to std::cout
+            /** \brief Print configuration to std::cout */
             void printConfiguration(const Configuration *) const;
 
         protected:
@@ -216,10 +216,10 @@ namespace ompl
 
             ompl::base::Cost costHeuristic(Vertex u, Vertex v) const;
 
-            /// Shortest path on quotient-graph
+            /** \brief Shortest path on quotient-graph */
             ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal);
 
-            /// Nearest neighbor structure for quotient space configurations
+            /** \brief Nearest neighbor structure for quotient space configurations */
             RoadmapNeighborsPtr nearestDatastructure_;
             Graph graph_;
             ompl::base::PathPtr solutionPath_;
@@ -227,8 +227,8 @@ namespace ompl
             using RNGType = boost::minstd_rand;
             RNGType rng_boost;
 
-            /// \brief Length of graph (useful for determing importance of
-            /// quotient-space
+            /** \brief Length of graph (useful for determing importance of
+                quotient-space */
             double graphLength_{0.0};
         };
     }  // namespace geometric
