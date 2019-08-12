@@ -34,6 +34,7 @@
 
 # Author: Mark Moll
 
+library(pool)
 library(dplyr, warn.conflicts = FALSE)
 library(tidyr)
 library(ggplot2)
@@ -84,7 +85,7 @@ problem_params <- function(experiments) {
 }
 # return selected values of benchmark parameters
 problem_param_values <- function(experiments, prefix, input) {
-    sapply(params <- problem_params(experiments),
+    sapply(problem_params(experiments),
         function(name) input[[paste0(prefix, "problem_param", name)]])
 }
 # determine whether a performance attribute should be grouped by a benchmark
@@ -101,7 +102,7 @@ problem_param_select_widget <- function(name, experiments, prefix, problem,
                                         version) {
     values <- (experiments %>%
         filter(experiment == !!problem & version == !!version) %>%
-        select(!!name) %>% distinct() %>% collect())[[name]]
+        select(!!name) %>% distinct() %>% collect() %>% drop_na())[[name]]
     disp_name <- gsub("_", " ", name)
     internal_name <- paste0(prefix, "problem_param", name)
     if (length(values) == 1) {
@@ -153,8 +154,7 @@ planner_name_mapping <- function(fullname) {
     sub("control_", " ", sub("geometric_", "", fullname))
 }
 planner_select_widget <- function(performance, widget_name) {
-    planners <- (performance %>% select(planner) %>% distinct() %>%
-                 collect())$planner
+    planners <- (performance %>% select(planner) %>% distinct())$planner
     names(planners) <- planner_name_mapping(planners)
     # select first 4 planners (or all if there are less than 4)
     if (length(planners) < 4)
@@ -198,7 +198,7 @@ shinyServer(function(input, output, session) {
             # case 3
             database <- paste(sessions_folder, query$user, query$job, sep = "/")
         if (file.exists(database)) {
-            con <- DBI::dbConnect(RSQLite::SQLite(), database)
+            con <- dbPool(RSQLite::SQLite(), dbname = database)
             # benchmark job may not yet be finished so check that "experiments"
             # table exists.
             if ("experiments" %in% DBI::dbListTables(con)) {
@@ -215,14 +215,14 @@ shinyServer(function(input, output, session) {
     # create variables for tables in database
     experiments <- reactive({
         con() %>% tbl("experiments") %>%
-            rename(experiment.id = id, experiment = name)
+            rename(experiment.id = id, experiment = name) %>% collect()
     })
     planner_configs <- reactive({
         con() %>% tbl("plannerConfigs") %>%
-            rename(planner.id = id, planner = name)
+            rename(planner.id = id, planner = name) %>% collect()
     })
     runs <- reactive({
-        con() %>% tbl("runs") %>% rename(run.id = id)
+        con() %>% tbl("runs") %>% rename(run.id = id) %>% collect()
     })
     attrs_names <- reactive({
         rnames <- tbl_vars(runs())
@@ -230,7 +230,7 @@ shinyServer(function(input, output, session) {
         rnames
     })
     progress <- reactive({
-        con() %>% tbl("progress")
+        con() %>% tbl("progress") %>% collect()
     })
     prog_attrs_names <- reactive({
         rnames <- tbl_vars(progress())
@@ -238,7 +238,7 @@ shinyServer(function(input, output, session) {
         rnames
     })
     enums <- reactive({
-        con() %>% tbl("enums")
+        con() %>% tbl("enums") %>% collect()
     })
     runs_ext <- reactive({
         planner_configs() %>%
@@ -246,7 +246,7 @@ shinyServer(function(input, output, session) {
                    suffix = c(".planner", ".run")) %>%
         inner_join(experiments(),
                    c("experimentid" = "experiment.id"),
-                   suffix = c(".plannerrun", ".experiment"))
+                   suffix = c(".plannerrun", ".experiment")) %>% collect()
     })
     performance <- reactive({
         runs_ext() %>% filter(experiment == input$perf_problem &
@@ -620,8 +620,7 @@ shinyServer(function(input, output, session) {
         data <- data %>%
             select(attr = !!attr) %>%
             mutate(missing = is.na(attr)) %>%
-            summarise(missing = sum(missing, TRUE), total = n()) %>%
-            collect()
+            summarise(missing = sum(missing, na.rm = TRUE), total = n())
         data$planner <- factor(data$planner, unique(data$planner),
             labels = sapply(unique(data$planner), planner_name_mapping))
         data
@@ -656,9 +655,7 @@ shinyServer(function(input, output, session) {
             data <- data %>% filter_(.dots = filter_expr)
         }
         data <- data %>%
-            select(selection) %>%
-            collect()
-
+            select(selection)
         # turn the planner and grouping columns into factors ordered in the
         # same way that they occur in the database.
         data$planner <- factor(data$planner, unique(data$planner),
