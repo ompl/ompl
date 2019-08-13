@@ -61,8 +61,8 @@ ompl::geometric::QuotientSpace::QuotientSpace(const base::SpaceInformationPtr &s
 
     if (parent_ == nullptr)
     {
-        OMPL_DEVMSG1("ATOMIC_RN dimension: %d measure: %f", Q1_space->getDimension(), Q1_space->getMeasure());
-        type_ = ATOMIC_RN;
+        OMPL_DEVMSG1("ATOMIC dimension: %d measure: %f", Q1_space->getDimension(), Q1_space->getMeasure());
+        type_ = ATOMIC;
     }
     else
     {
@@ -346,7 +346,6 @@ const ompl::base::StateSpacePtr ompl::geometric::QuotientSpace::computeQuotientS
 ompl::geometric::QuotientSpace::QuotientSpaceType
 ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpacePtr Q1, const base::StateSpacePtr Q0)
 {
-    //
     // We can currently handle 11 types of quotient-space mappings.
     // Emptyset is used for constraint relaxations.
     //
@@ -1452,9 +1451,17 @@ void ompl::geometric::QuotientSpace::print(std::ostream &out) const
         {
             out << "SE(2)";
         }
+        else if (Q1->getStateSpace()->getType() == base::STATE_SPACE_SO2)
+        {
+            out << "SO(2)";
+        }
         else if (Q1->getStateSpace()->getType() == base::STATE_SPACE_SE3)
         {
             out << "SE(3)";
+        }
+        else if (Q1->getStateSpace()->getType() == base::STATE_SPACE_SO3)
+        {
+            out << "SO(3)";
         }
         else if (Q1->getStateSpace()->getType() == base::STATE_SPACE_REAL_VECTOR)
         {
