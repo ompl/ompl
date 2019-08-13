@@ -1,37 +1,37 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2019, University of Stuttgart
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Stuttgart nor the names
-*     of its contributors may be used to endorse or promote products
-*     derived from this software without specific prior written
-*     permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2019, University of Stuttgart
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Stuttgart nor the names
+ *     of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written
+ *     permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Andreas Orthey */
 
@@ -47,11 +47,16 @@ namespace ompl
         /// \brief A single quotient-space
         class QuotientSpace : public ompl::base::Planner
         {
-            typedef ompl::base::Planner BaseT;
+            using BaseT = ompl::base::Planner;
             enum QuotientSpaceType
             {
                 UNKNOWN,
-                IDENTITY_SPACE,
+                IDENTITY_SPACE_RN,
+                IDENTITY_SPACE_SE2,
+                IDENTITY_SPACE_SE2RN,
+                IDENTITY_SPACE_SO2RN,
+                IDENTITY_SPACE_SE3,
+                IDENTITY_SPACE_SE3RN,
                 ATOMIC_RN,
                 RN_RM,
                 SE2_R2,
@@ -73,13 +78,6 @@ namespace ompl
                       is the main quotient-space of this class
                  Q0 is a pointer to the next lower-dimensional quotient-space and
                  X1 is the quotient-space  Q1 / Q0
-
-                 We can visualize the relationships in the following diagram
-
-                 [     ][ Q0 ]
-                 [ Q1  ][____]
-                 [     ][ X1 ]
-                 [     ][    ]
 
                  We assume that Q1 and Q0 have been given (as ompl::base::SpaceInformationPtr),
                  and we compute the inverse of the quotient map, i.e. X1 = Q1/Q0. */
@@ -150,11 +148,11 @@ namespace ompl
             unsigned int getTotalNumberOfFeasibleSamples() const;
 
             /// \brief Quotient Space Projection Operator onto second component
-            /// ProjectX1Subspace: Q0 \times X1 \rightarrow X1
-            void projectX1Subspace(const ompl::base::State *q, ompl::base::State *qX1) const;
+            /// ProjectX1: Q0 \times X1 \rightarrow X1
+            void projectX1(const ompl::base::State *q, ompl::base::State *qX1) const;
             /// \brief Quotient Space Projection Operator onto first component
-            /// ProjectQ0Subspace: Q0 \times X1 \rightarrow Q0
-            void projectQ0Subspace(const ompl::base::State *q, ompl::base::State *qQ0) const;
+            /// ProjectQ0: Q0 \times X1 \rightarrow Q0
+            void projectQ0(const ompl::base::State *q, ompl::base::State *qQ0) const;
             /// Merge a state from Q0 and X1 into a state on Q1 (concatenate)
             void mergeStates(const ompl::base::State *qQ0, const ompl::base::State *qX1, ompl::base::State *qQ1) const;
 
@@ -169,28 +167,16 @@ namespace ompl
             friend std::ostream &operator<<(std::ostream &out, const QuotientSpace &qtnt);
 
         protected:
-
             /// Internal function implementing actual printing to stream
             virtual void print(std::ostream &out) const;
 
             ///  \brief Compute the quotient Q1 / Q0 between two given spaces.
-            ///  The following cases are currently implemented
-            ///   ---- non-compound:
-            ///   (1) Q1 Rn     , Q0 Rm     [0<m<=n] => X1 = R(n-m) \union {\emptyset}
-            ///   ---- compound:
-            ///   (2) Q1 SE2    , Q0 R2              => X1 = SO2
-            ///   (3) Q1 SE3    , Q0 R3              => X1 = SO3
-            ///   (4) Q1 SE3xRn , Q0 SE3             => X1 = Rn
-            ///   (5) Q1 SE3xRn , Q0 R3              => X1 = SO3xRn
-            ///   (6) Q1 SE3xRn , Q0 SE3xRm [0<m<n ] => X1 = R(n-m)
-            ///
-            ///   (7) Q1 SE2xRn , Q0 SE2             => X1 = Rn
-            ///   (8) Q1 SE2xRn , Q0 R2              => X1 = SO2xRN
-            ///   (9) Q1 SE2xRn , Q0 SE2xRm [0<m<n ] => X1 = R(n-m)
-            ///  (10) Q1 SO2xRn , Q0 SO2             => X1 = Rn
-            const ompl::base::StateSpacePtr computeQuotientSpace(const ompl::base::StateSpacePtr Q1, const ompl::base::StateSpacePtr Q0);
+            const ompl::base::StateSpacePtr computeQuotientSpace(const ompl::base::StateSpacePtr Q1,
+                                                                 const ompl::base::StateSpacePtr Q0);
+
             /// Identify the type of the quotient Q1 / Q0
-            QuotientSpaceType identifyQuotientSpaceType(const ompl::base::StateSpacePtr Q1, const ompl::base::StateSpacePtr Q0);
+            QuotientSpaceType identifyQuotientSpaceType(const ompl::base::StateSpacePtr Q1,
+                                                        const ompl::base::StateSpacePtr Q0);
 
             ompl::base::SpaceInformationPtr Q1{nullptr};
             ompl::base::SpaceInformationPtr Q0{nullptr};
@@ -221,12 +207,14 @@ namespace ompl
             bool hasSolution_{false};
             bool firstRun_{true};
 
+            bool isDynamic{false};
+
             QuotientSpace *parent_{nullptr};
             QuotientSpace *child_{nullptr};
 
             unsigned int totalNumberOfSamples_{0};
             unsigned int totalNumberOfFeasibleSamples_{0};
         };
-    }
-}
+    }  // namespace geometric
+}  // namespace ompl
 #endif

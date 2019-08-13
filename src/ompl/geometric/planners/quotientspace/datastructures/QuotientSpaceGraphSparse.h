@@ -47,7 +47,6 @@ namespace ompl
         bool checkAddConnectivity(Configuration* q, std::vector<Configuration*> &visibleNeighborhood);
         bool checkAddInterface(Configuration *q, std::vector<Configuration*> &graphNeighborhood, std::vector<Configuration*> &visibleNeighborhood);
 
-
         void Rewire(Vertex &v);
         void Rewire();
         void printAllPathsUtil(Vertex u, Vertex d, bool visited[], int path[], int &path_index);
@@ -62,12 +61,23 @@ namespace ompl
         bool sampleQuotient(ob::State *q_random_graph) override;
 
         PathVisibilityChecker* getPathVisibilityChecker();
+        void debugInvalidState(const ob::State *s);
+
+        void pushPathToStack(std::vector<ob::State*> &path);
+        void removeLastPathFromStack();
+
+        virtual void print(std::ostream &out) const override;
+        bool hasSparseGraphChanged();
 
     protected:
-        double sparseDelta_{0.};
-        double sparseDeltaFraction_{0.2};
-        double kPRMStarConstant_;
 
+        double sparseDelta_{0.};
+        double sparseDeltaFraction_{0.25};
+        double pathBias_{0.};
+        double pathBiasFraction_{0.1};
+        double kPRMStarConstant_;
+        unsigned Nold_v{0};
+        unsigned Nold_e{0};
 
         void setSparseDeltaFraction(double D)
         {
@@ -106,7 +116,6 @@ namespace ompl
         Vertex v_goal_sparse;
 
         PathVisibilityChecker* pathVisibilityChecker_{nullptr};
-        void AddPathToStack(std::vector<ob::State*> &path);
 
     };
   };

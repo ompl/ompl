@@ -19,13 +19,7 @@ QuotientTopology::QuotientTopology(const ob::SpaceInformationPtr &si, QuotientSp
   Planner::declareParam<double>("range", this, &QuotientTopology::setRange, &QuotientTopology::getRange, "0.:1.:10000.");
   Planner::declareParam<double>("goal_bias", this, &QuotientTopology::setGoalBias, &QuotientTopology::getGoalBias, "0.:.1:1.");
 
-  ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
-  if(siC==nullptr) {
-    std::cout << "Base SpaceInformationPtr" << std::endl;
-    controlCase = false;
-  }else{
-    std::cout << "Control SpaceInformationPtr" << std::endl;
-    controlCase = true;
+  if(isDynamic) {
     dCSampler = siC->allocDirectedControlSampler();
     //only works for simpleDirectedControlSampler, which is used as default, but method can't be called
     //dCSampler->setNumControlSamples(numberOfControlSamples);
@@ -99,7 +93,7 @@ void QuotientTopology::grow(){
       sample(q_random->state);
    }
   }
-  if(controlCase) {
+  if(isDynamic) {
     growControl();
   } else {
     growGeometric();

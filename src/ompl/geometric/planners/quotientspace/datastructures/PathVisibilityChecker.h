@@ -1,6 +1,7 @@
 #pragma once
 #include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraph.h>
 #include <ompl/base/State.h>
+#include <ompl/geometric/SimpleSetup.h>
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
@@ -29,10 +30,18 @@ namespace ompl
 
     protected:
       ob::SpaceInformationPtr si_;
+      ob::SpaceInformationPtr si_local;
       ob::State *lastValidState;
 
-      ob::StateSpacePtr space;
+      ob::StateSpacePtr R2space_;
       ob::RealVectorStateSpace *R2;
+      SimpleSetupPtr ss;
+
+      ob::ScopedStatePtr start;
+      ob::ScopedStatePtr goal;
+
+      float max_planning_time_path_path{0.2};
+      float epsilon_goalregion{0.05};
 
     private:
       std::vector<ob::State*> StatesFromVector( 

@@ -63,6 +63,7 @@ void MotionExplorerImpl<T>::setSelectedPath( std::vector<int> selectedPath){
 template <class T>
 ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondition &ptc)
 {
+    ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     uint K = selectedPath_.size();
     if(K>=this->quotientSpaces_.size()){
         K = K-1;
@@ -76,21 +77,12 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
     std::cout << *jQuotient << std::endl;
 
     uint ctr = 0;
-    uint M = jQuotient->getNumberOfPaths();
-    uint Mg = M;
 
     while (!ptc())
     {
-        // std::cout << "Growing QuotientSpace " << jQuotient->getName() << std::endl;
         jQuotient->grow();
         ctr++;
-        Mg = jQuotient->getNumberOfPaths();
-        //stop at topological phase shift
-        if(Mg > M) return ob::PlannerStatus::APPROXIMATE_SOLUTION;
     }
-    std::cout << "Grow QuotientSpace " << jQuotient->getName() << " for " << ctr << " iters." << std::endl;
-    std::cout << "Changed #paths from " << M << " to " << Mg << std::endl;
-
     return ob::PlannerStatus::TIMEOUT;
 }
 
