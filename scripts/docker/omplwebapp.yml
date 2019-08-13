@@ -1,4 +1,4 @@
-version: "3"
+version: "3.7"
 
 services:
 
@@ -10,6 +10,7 @@ services:
       - OMPL_BACKEND_URL=rpc://broker:5672
       - PYTHONPATH=/usr/share/ompl/webapp
     entrypoint: ["uwsgi", "--ini", "/usr/share/ompl/webapp/wsgi.ini"]
+    init: true
     ports:
       - "5000:5000"
     volumes:
@@ -18,29 +19,34 @@ services:
       - broker
       - worker
       - plannerarena
+    restart: unless-stopped
 
   worker:
     image: omplapp
     environment: *env
+    init: true
     working_dir: /usr/share/ompl/webapp
     entrypoint: ["celery", "worker", "--app=omplweb.celery", "--queues=omplapp", "--concurrency=4", "--loglevel=INFO"]
     volumes:
       - benchmark-data:/tmp
     depends_on:
       - broker
+    restart: unless-stopped
 
   plannerarena:
     image: plannerarena
+    init: true
     ports:
       - "8888:8888"
     volumes:
       - benchmark-data:/tmp
+    restart: unless-stopped
 
   broker:
     hostname: broker
     image: rabbitmq:3
-    ports:
-      - "5672:5672"
+    init: true
+    restart: unless-stopped
 
 volumes:
   benchmark-data:
