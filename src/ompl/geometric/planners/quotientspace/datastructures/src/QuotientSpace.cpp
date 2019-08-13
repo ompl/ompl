@@ -38,7 +38,6 @@
 
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
-#include <ompl/control/SpaceInformation.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
@@ -53,18 +52,8 @@ ompl::geometric::QuotientSpace::QuotientSpace(const base::SpaceInformationPtr &s
 {
     id_ = counter_++;
 
-    //############################################################################
-    //Check for dynamic spaces
-    //############################################################################
-    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
-    if(siC==nullptr) {
-      isDynamic = false;
-    }else{
-      isDynamic = true;
-    }
-    OMPL_DEVMSG1("QuotientSpace %d%s", id_, (isDynamic?" (dynamic)":""));
+    OMPL_DEVMSG1("QuotientSpace %s", id_);
 
-    //############################################################################
     if (parent_ != nullptr)
         parent_->setChild(this);  // need to be able to traverse down the tree
 
@@ -73,8 +62,8 @@ ompl::geometric::QuotientSpace::QuotientSpace(const base::SpaceInformationPtr &s
 
     if (parent_ == nullptr)
     {
-        OMPL_DEVMSG1("ATOMIC_RN dimension: %d measure: %f", Q1_space->getDimension(), Q1_space->getMeasure());
-        type_ = ATOMIC_RN;
+        OMPL_DEVMSG1("ATOMIC dimension: %d measure: %f", Q1_space->getDimension(), Q1_space->getMeasure());
+        type_ = ATOMIC;
     }
     else
     {
@@ -381,9 +370,9 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
 
     if (!Q1->isCompound())
     {
-        ///##############################################################################/
+        // ##############################################################################/
         //------------------ non-compound cases:
-        ///##############################################################################/
+        // ##############################################################################/
         //
         //------------------ (1) Q1 = Rn, Q0 = Rm, 0<m<n, X1 = R(n-m)
         if (Q1->getType() == base::STATE_SPACE_REAL_VECTOR)
@@ -424,12 +413,12 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
     }
     else
     {
-        ///##############################################################################/
+        // ##############################################################################/
         //------------------ compound cases:
-        ///##############################################################################/
+        // ##############################################################################/
         //
         //------------------ (2) Q1 = SE2, Q0 = R2, X1 = SO2
-        ///##############################################################################/
+        // ##############################################################################/
         if (Q1->getType() == base::STATE_SPACE_SE2)
         {
             if (Q0->getType() == base::STATE_SPACE_REAL_VECTOR)
@@ -458,7 +447,7 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
             }
         }
         //------------------ (3) Q1 = SE3, Q0 = R3, X1 = SO3
-        ///##############################################################################/
+        // ##############################################################################/
         else if (Q1->getType() == base::STATE_SPACE_SE3)
         {
             if (Q0->getType() == base::STATE_SPACE_REAL_VECTOR)
@@ -488,7 +477,7 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                 throw ompl::Exception("Invalid QuotientSpace type");
             }
         }
-        ///##############################################################################/
+        // ##############################################################################/
         else
         {
             base::CompoundStateSpace *Q1_compound = Q1->as<base::CompoundStateSpace>();
@@ -503,13 +492,13 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                     if (Q0->getType() == base::STATE_SPACE_SE3)
                     {
                         //------------------ (4) Q1 = SE3xRn, Q0 = SE3, X1 = Rn
-                        ///##############################################################################/
+                        // ##############################################################################/
                         type_ = SE3RN_SE3;
                     }
                     else if (Q0->getType() == base::STATE_SPACE_REAL_VECTOR)
                     {
                         //------------------ (5) Q1 = SE3xRn, Q0 = R3, X1 = SO3xRN
-                        ///##############################################################################/
+                        // ##############################################################################/
                         unsigned int m = Q0->getDimension();
                         if (m == 3)
                         {
@@ -524,7 +513,7 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                     else
                     {
                         //------------------ (6) Q1 = SE3xRn, Q0 = SE3xRm, X1 = R(n-m)
-                        ///##############################################################################/
+                        // ##############################################################################/
                         base::CompoundStateSpace *Q0_compound = Q0->as<base::CompoundStateSpace>();
                         const std::vector<base::StateSpacePtr> Q0_decomposed = Q0_compound->getSubspaces();
                         unsigned int Q0_subspaces = Q0_decomposed.size();
@@ -568,13 +557,13 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                         if (Q0->getType() == base::STATE_SPACE_SE2)
                         {
                             //------------------ (7) Q1 = SE2xRn, Q0 = SE2, X1 = Rn
-                            ///##############################################################################/
+                            // ##############################################################################/
                             type_ = SE2RN_SE2;
                         }
                         else if (Q0->getType() == base::STATE_SPACE_REAL_VECTOR)
                         {
                             //------------------ (8) Q1 = SE2xRn, Q0 = R2, X1 = SO2xRN
-                            ///##############################################################################/
+                            // ##############################################################################/
                             unsigned int m = Q0->getDimension();
                             if (m == 2)
                             {
@@ -589,7 +578,7 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                         else
                         {
                             //------------------ (9) Q1 = SE2xRn, Q0 = SE2xRm, X1 = R(n-m)
-                            ///##############################################################################/
+                            // ##############################################################################/
                             base::CompoundStateSpace *Q0_compound = Q0->as<base::CompoundStateSpace>();
                             const std::vector<base::StateSpacePtr> Q0_decomposed = Q0_compound->getSubspaces();
                             unsigned int Q0_subspaces = Q0_decomposed.size();
@@ -633,13 +622,13 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                         if (Q0->getType() == base::STATE_SPACE_SO2)
                         {
                             //------------------ (10) Q1 = SO2xRn, Q0 = SO2, X1 = Rn
-                            ///##############################################################################/
+                            // ##############################################################################/
                             type_ = SO2RN_SO2;
                         }
                         else
                         {
                             //------------------ (11) Q1 = SO2xRn, Q0 = SO2xRm, X1 = R(n-m)
-                            ///##############################################################################/
+                            // ##############################################################################/
                             if (Q0->isCompound())
                             {
                                 base::CompoundStateSpace *Q0_compound = Q0->as<base::CompoundStateSpace>();
@@ -708,8 +697,8 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
 
 void ompl::geometric::QuotientSpace::mergeStates(const base::State *qQ0, const base::State *qX1, base::State *qQ1) const
 {
-    ////input : qQ0 \in Q0, qX1 \in X1
-    ////output: qQ1 = qQ0 \circ qX1 \in Q1
+    // input : qQ0 \in Q0, qX1 \in X1
+    // output: qQ1 = qQ0 \circ qX1 \in Q1
     const base::StateSpacePtr Q1_space = Q1->getStateSpace();
     const base::StateSpacePtr X1_space = X1->getStateSpace();
     const base::StateSpacePtr Q0_space = parent_->getSpaceInformation()->getStateSpace();

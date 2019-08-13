@@ -44,20 +44,20 @@ namespace ompl
 {
     namespace geometric
     {
-        /// \brief A single quotient-space
+        /** \brief A single quotient-space */
         class QuotientSpace : public ompl::base::Planner
         {
             using BaseT = ompl::base::Planner;
             enum QuotientSpaceType
             {
                 UNKNOWN,
+                ATOMIC,
                 IDENTITY_SPACE_RN,
                 IDENTITY_SPACE_SE2,
                 IDENTITY_SPACE_SE2RN,
                 IDENTITY_SPACE_SO2RN,
                 IDENTITY_SPACE_SE3,
                 IDENTITY_SPACE_SE3RN,
-                ATOMIC_RN,
                 RN_RM,
                 SE2_R2,
                 SE2RN_R2,
@@ -85,8 +85,8 @@ namespace ompl
             QuotientSpace(const ompl::base::SpaceInformationPtr &si, QuotientSpace *parent_ = nullptr);
             ~QuotientSpace();
 
-            /// \brief solve disabled (use MultiQuotient::solve)
-            /// final prevents subclasses to override
+            /** \brief solve disabled (use MultiQuotient::solve)
+                final prevents subclasses to override */
             ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override final;
             virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
 
@@ -100,81 +100,82 @@ namespace ompl
 
             virtual double getImportance() const;
 
-            /// reset counter for number of levels
+            /** \brief reset counter for number of levels */
             static void resetCounter();
 
-            /// \brief Get SpaceInformationPtr for X1
-            ///  (Note: X1 is the second component of Q1 = Q0 x X1)
+            /** \brief Get SpaceInformationPtr for X1
+                 (Note: X1 is the second component of Q1 = Q0 x X1) */
             const ompl::base::SpaceInformationPtr &getX1() const;
-            /// \brief Get SpaceInformationPtr for Q1
-            ///  (Note: Q1 is the product space Q1 = Q0 x X1)
+            /** \brief Get SpaceInformationPtr for Q1
+                 (Note: Q1 is the product space Q1 = Q0 x X1) */
             const ompl::base::SpaceInformationPtr &getQ1() const;
-            /// \brief Get SpaceInformationPtr for Q0
-            ///  (Note: Q0 is the first component of Q1 = Q0 x X1)
+            /** \brief Get SpaceInformationPtr for Q0
+                 (Note: Q0 is the first component of Q1 = Q0 x X1) */
             const ompl::base::SpaceInformationPtr &getQ0() const;
 
-            /// Dimension of space X1
+            /** \brief Dimension of space X1 */
             unsigned int getX1Dimension() const;
-            /// Dimension of space Q1
+            /** \brief Dimension of space Q1 */
             unsigned int getQ1Dimension() const;
-            /// Dimension of space Q0
+            /** \brief Dimension of space Q0 */
             unsigned int getQ0Dimension() const;
-            /// Dimension of space Q1
+            /** \brief Dimension of space Q1 */
             unsigned int getDimension() const;
 
             const ompl::base::StateSamplerPtr &getX1SamplerPtr() const;
             const ompl::base::StateSamplerPtr &getQ1SamplerPtr() const;
 
-            /// \brief Parent is a more simplified quotient-space
-            /// (higher in abstraction hierarchy)
+            /** \brief Parent is a more simplified quotient-space
+                (higher in abstraction hierarchy) */
             QuotientSpace *getParent() const;
-            /// \brief Child is a less simplified quotient-space
-            /// (lower in abstraction hierarchy)
+            /** \brief Child is a less simplified quotient-space
+                (lower in abstraction hierarchy) */
             QuotientSpace *getChild() const;
-            /// Level in abstraction hierarchy of quotient-spaces
+            /** \brief Level in abstraction hierarchy of quotient-spaces */
             unsigned int getLevel() const;
-            /// Change abstraction level
+            /** \brief Change abstraction level */
             void setLevel(unsigned int);
-            /// Type of quotient-space
+            /** \brief Type of quotient-space */
             QuotientSpaceType getType() const;
-            /// Set pointer to less simplified quotient-space
+            /** \brief Set pointer to less simplified quotient-space */
             void setChild(QuotientSpace *child_);
-            /// Set pointer to more simplified quotient-space
+            /** \brief Set pointer to more simplified quotient-space */
             void setParent(QuotientSpace *parent_);
 
-            /// Number of samples drawn on space Q1
+            /** \brief Number of samples drawn on space Q1 */
             unsigned int getTotalNumberOfSamples() const;
-            /// Number of feasible samples drawn on space Q1
+            /** \brief Number of feasible samples drawn on space Q1 */
             unsigned int getTotalNumberOfFeasibleSamples() const;
 
-            /// \brief Quotient Space Projection Operator onto second component
-            /// ProjectX1: Q0 \times X1 \rightarrow X1
+            /** \brief Quotient Space Projection Operator onto second component
+                ProjectX1: Q0 \times X1 \rightarrow X1 */
             void projectX1(const ompl::base::State *q, ompl::base::State *qX1) const;
-            /// \brief Quotient Space Projection Operator onto first component
-            /// ProjectQ0: Q0 \times X1 \rightarrow Q0
+            /** \brief Quotient Space Projection Operator onto first component
+                ProjectQ0: Q0 \times X1 \rightarrow Q0 */
             void projectQ0(const ompl::base::State *q, ompl::base::State *qQ0) const;
-            /// Merge a state from Q0 and X1 into a state on Q1 (concatenate)
+            /** \brief Merge a state from Q0 and X1 into a state on Q1 (concatenate) */
             void mergeStates(const ompl::base::State *qQ0, const ompl::base::State *qX1, ompl::base::State *qQ1) const;
 
-            /// Check if quotient-space is unbounded
+            /** \brief Check if quotient-space is unbounded */
             void checkSpaceHasFiniteMeasure(const ompl::base::StateSpacePtr space) const;
 
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 
-            /// \brief Write class to stream (use as std::cout << *this << std::endl)
-            ///  Actual implementation is in void print(std::ostream& out),
-            ///  which can be inherited.
+            /** \brief Write class to stream (use as std::cout << *this << std::endl)
+                 Actual implementation is in void print(std::ostream& out),
+                 which can be inherited. */
             friend std::ostream &operator<<(std::ostream &out, const QuotientSpace &qtnt);
 
         protected:
-            /// Internal function implementing actual printing to stream
+            /** \brief Internal function implementing actual printing to stream */
             virtual void print(std::ostream &out) const;
 
-            ///  \brief Compute the quotient Q1 / Q0 between two given spaces.
+            /**  \brief Compute the quotient Q1 / Q0 between two given spaces.
+             * */
             const ompl::base::StateSpacePtr computeQuotientSpace(const ompl::base::StateSpacePtr Q1,
                                                                  const ompl::base::StateSpacePtr Q0);
 
-            /// Identify the type of the quotient Q1 / Q0
+            /** \brief Identify the type of the quotient Q1 / Q0 */
             QuotientSpaceType identifyQuotientSpaceType(const ompl::base::StateSpacePtr Q1,
                                                         const ompl::base::StateSpacePtr Q0);
 
@@ -188,9 +189,9 @@ namespace ompl
 
             ompl::base::OptimizationObjectivePtr opt_;
 
-            /// A temporary state on Q0
+            /** \brief A temporary state on Q0 */
             ompl::base::State *s_Q0_tmp_{nullptr};
-            /// A temporary state on X1
+            /** \brief A temporary state on X1 */
             ompl::base::State *s_X1_tmp_{nullptr};
 
             QuotientSpaceType type_;
@@ -199,15 +200,13 @@ namespace ompl
             unsigned int X1_dimension_{0};
 
             static unsigned int counter_;
-            /// Identity of space (to keep track of number of quotient-spaces created)
+            /** \brief Identity of space (to keep track of number of quotient-spaces created) */
             unsigned int id_{0};
-            /// Level in sequence of quotient-spaces
+            /** \brief Level in sequence of quotient-spaces */
             unsigned int level_{0};
 
             bool hasSolution_{false};
             bool firstRun_{true};
-
-            bool isDynamic{false};
 
             QuotientSpace *parent_{nullptr};
             QuotientSpace *child_{nullptr};
