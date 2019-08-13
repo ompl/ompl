@@ -51,13 +51,13 @@ namespace ompl
             enum QuotientSpaceType
             {
                 UNKNOWN,
-                ATOMIC,
                 IDENTITY_SPACE_RN,
                 IDENTITY_SPACE_SE2,
                 IDENTITY_SPACE_SE2RN,
                 IDENTITY_SPACE_SO2RN,
                 IDENTITY_SPACE_SE3,
                 IDENTITY_SPACE_SE3RN,
+                ATOMIC_RN,
                 RN_RM,
                 SE2_R2,
                 SE2RN_R2,
@@ -206,6 +206,8 @@ namespace ompl
 
             bool hasSolution_{false};
             bool firstRun_{true};
+
+            bool isDynamic{false};
 
             QuotientSpace *parent_{nullptr};
             QuotientSpace *child_{nullptr};
