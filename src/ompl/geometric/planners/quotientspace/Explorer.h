@@ -2,6 +2,7 @@
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MotionExplorer_
 #include <ompl/geometric/planners/quotientspace/algorithms/ExplorerImpl.h>
 #include <ompl/geometric/planners/quotientspace/algorithms/QuotientTopology.h>
+//#include <ompl/geometric/planners/quotientspace/algorithms/QuotientTopologyControl.h>
 #include <type_traits>
 #include <queue>
 

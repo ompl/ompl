@@ -39,6 +39,7 @@
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/goals/GoalState.h>
+#include <ompl/control/ControlSpace.h>
 #include <ompl/util/Time.h>
 #include <queue>
 
@@ -55,6 +56,9 @@ MultiQuotient<T>::MultiQuotient(std::vector<ompl::base::SpaceInformationPtr> &si
         og::QuotientSpace *parent = nullptr;
         if (k > 0)
             parent = quotientSpaces_.back();
+//	std::cout << "1111111111111111111111111111111111111111111" << std::endl;
+//	std::cout << typeid(&parent).name() << std::endl;
+//        std::cout << dynamic_cast<ompl::control::SpaceInformationPtr>(&siVec.at(k)) << std::endl;
 
         T *ss = new T(siVec_.at(k), parent);
         quotientSpaces_.push_back(ss);
