@@ -1399,6 +1399,14 @@ void QuotientSpace::print(std::ostream &out) const
         {
             out << "SE(2)";
         }
+        else if (Q1->getStateSpace()->getType() == ob::STATE_SPACE_SO2)
+        {
+            out << "SO(2)";
+        }
+        else if (Q1->getStateSpace()->getType() == ob::STATE_SPACE_SO3)
+        {
+            out << "SO(3)";
+        }
         else if (Q1->getStateSpace()->getType() == ob::STATE_SPACE_SE3)
         {
             out << "SE(3)";

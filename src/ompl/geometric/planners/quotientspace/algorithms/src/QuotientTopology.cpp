@@ -96,6 +96,8 @@ void QuotientTopology::grow(){
       bool satisfied = sameComponentSparse(v_start_sparse, v_goal_sparse);
       if(satisfied)
       {
+        std::cout << "Solution found on " << getName() << std::endl;
+        std::cout << boost::num_vertices(graphSparse_) << std::endl;
         hasSolution_ = true;
       }
     }

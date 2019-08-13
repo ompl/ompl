@@ -65,13 +65,19 @@ namespace ompl
 
         void pushPathToStack(std::vector<ob::State*> &path);
         void removeLastPathFromStack();
+
+        virtual void print(std::ostream &out) const override;
+        bool hasSparseGraphChanged();
+
     protected:
+
         double sparseDelta_{0.};
-        double sparseDeltaFraction_{0.2};
+        double sparseDeltaFraction_{0.25};
         double pathBias_{0.};
         double pathBiasFraction_{0.1};
         double kPRMStarConstant_;
-
+        unsigned Nold_v{0};
+        unsigned Nold_e{0};
 
         void setSparseDeltaFraction(double D)
         {

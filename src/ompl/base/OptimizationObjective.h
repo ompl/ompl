@@ -167,6 +167,8 @@ namespace ompl
 
             /** \brief Returns this objective's SpaceInformation. Needed for operators in MultiOptimizationObjective */
             const SpaceInformationPtr &getSpaceInformation() const;
+            /** \brief Returns this objective's SpaceInformation. Needed for operators in MultiOptimizationObjective */
+            void setSpaceInformation(const SpaceInformationPtr);
 
             /** \brief Allocate a heuristic-sampling state generator for this cost function, defaults to a basic
              * rejection sampling scheme when the derived class does not provide a better method.*/

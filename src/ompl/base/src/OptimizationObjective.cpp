@@ -162,6 +162,10 @@ const ompl::base::SpaceInformationPtr &ompl::base::OptimizationObjective::getSpa
 {
     return si_;
 }
+void ompl::base::OptimizationObjective::setSpaceInformation(const SpaceInformationPtr si)
+{
+    si_ = si;
+}
 
 ompl::base::InformedSamplerPtr ompl::base::OptimizationObjective::allocInformedStateSampler(
     const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls) const

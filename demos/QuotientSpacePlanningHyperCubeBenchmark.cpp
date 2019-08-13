@@ -35,9 +35,11 @@
 
 /* Author: Andreas Orthey */
 
-const double edgeWidth = 0.05;
+#include <limits>
+
+const double edgeWidth = 0.1; //0.1 can be solved by many, 0.05 by almost none. 0.08 seems interesting
 const double runtime_limit = 10;
-const double memory_limit = 4096*4096;
+const double memory_limit = std::numeric_limits<unsigned>::max();
 const int run_count = 10;
 unsigned curDim = 8;
 int numberPlanners = 0;
@@ -45,7 +47,8 @@ int numberPlanners = 0;
 #include "QuotientSpacePlanningCommon.h"
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
-#include <ompl/geometric/planners/bitstar/BITstar.h>
+// #include <ompl/geometric/planners/bitstar/BITstar.h> //TODO: not stopping
+// after max_limit
 #include <ompl/geometric/planners/est/BiEST.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/est/ProjEST.h>
@@ -158,18 +161,17 @@ std::vector<std::vector<int>> getHypercubeAdmissibleProjections(int dim)
     std::vector<std::vector<int>> projections;
 
     //trivial: just configuration space
-    //discrete: use all admissible projections
     std::vector<int> trivial{dim};
-    std::vector<int> discrete;
-    boost::push_back(discrete, boost::irange(2, dim+1));
 
-    std::vector<int> twoStep;
-    boost::push_back(twoStep, boost::irange(2, dim+1, 2));
-    if(twoStep.back() != dim) twoStep.push_back(dim);
+    for(int k = 1; k < dim; k++){
+        std::vector<int> kStep;
+        boost::push_back(kStep, boost::irange(2, dim+1, k));
+        if(kStep.back() != dim) kStep.push_back(dim);
+        projections.push_back(kStep);
+    }
 
     projections.push_back(trivial);
-    projections.push_back(discrete);
-    projections.push_back(twoStep);
+
     auto last = std::unique(projections.begin(), projections.end());
     projections.erase(last, projections.end()); 
 
@@ -239,7 +241,7 @@ ob::PlannerPtr GetQRRT(
 int main(int argc, char **argv)
 {
     if(argc>1){
-      curDim = std::atoi(argv[1]);
+        curDim = std::atoi(argv[1]);
     }
 
     numberPlanners = 0;
@@ -276,7 +278,7 @@ int main(int argc, char **argv)
         ob::PlannerPtr quotientSpacePlannerK = GetQRRT(proj, si);
         addPlanner(benchmark, quotientSpacePlannerK, range);
     }
-    addPlanner(benchmark, std::make_shared<og::BITstar>(si), range);
+    // addPlanner(benchmark, std::make_shared<og::BITstar>(si), range);
     addPlanner(benchmark, std::make_shared<og::EST>(si), range);
     addPlanner(benchmark, std::make_shared<og::BiEST>(si), range);
     addPlanner(benchmark, std::make_shared<og::ProjEST>(si), range);
