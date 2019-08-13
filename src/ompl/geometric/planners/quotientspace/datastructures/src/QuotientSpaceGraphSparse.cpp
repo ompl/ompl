@@ -178,18 +178,18 @@ QuotientSpaceGraphSparse::Vertex QuotientSpaceGraphSparse::addConfiguration(Conf
 {
     Vertex v = BaseT::addConfiguration(q);
 
-    std::vector<Configuration*> neighbors;
-    unsigned N = boost::num_vertices(graph_);
-    unsigned K = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)N)));
-    nearestDatastructure_->nearestK(q, K, neighbors);
+    // std::vector<Configuration*> neighbors;
+    // unsigned N = boost::num_vertices(graph_);
+    // unsigned K = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)N)));
+    // nearestDatastructure_->nearestK(q, K, neighbors);
 
-    for(uint k = 0; k < neighbors.size(); k++){
-      Configuration *qn = neighbors.at(k);
-      if(Q1->checkMotion(q->state, qn->state))
-      {
-        addEdge(q->index, qn->index);
-      }
-    }
+    // for(uint k = 0; k < neighbors.size(); k++){
+    //   Configuration *qn = neighbors.at(k);
+    //   if(Q1->checkMotion(q->state, qn->state))
+    //   {
+    //     addEdge(q->index, qn->index);
+    //   }
+    // }
 
     //Sparse Graph addition
 

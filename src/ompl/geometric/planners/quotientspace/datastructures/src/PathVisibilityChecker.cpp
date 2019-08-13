@@ -26,16 +26,6 @@ using namespace ompl::geometric;
 PathVisibilityChecker::PathVisibilityChecker(const base::SpaceInformationPtr &si):
   si_(si)
 {
-  // ob::StateSpacePtr space = si_->getStateSpace();
-  // if(space->getType() == ob::STATE_SPACE_REAL_VECTOR){
-  //   Test1();
-  // }
-  // if(space->getType() == ob::STATE_SPACE_SE2){
-  //   Test2();
-  //   exit(0);
-  // }
-  // Test3();
-  // exit(0);
   lastValidState = si_->allocState();
 
   R2space_ = std::make_shared<ob::RealVectorStateSpace>(2);
@@ -46,7 +36,6 @@ PathVisibilityChecker::PathVisibilityChecker(const base::SpaceInformationPtr &si
   bounds.setHigh(1);
   R2->setBounds(bounds);
 
-  std::cout << "New start/goal PathVisibilityChecker" << std::endl;
   start = std::make_shared<ob::ScopedState<>>(R2space_);
   goal = std::make_shared<ob::ScopedState<>>(R2space_);
 
@@ -57,9 +46,6 @@ PathVisibilityChecker::PathVisibilityChecker(const base::SpaceInformationPtr &si
 
   ss = std::make_shared<og::SimpleSetup>(R2space_);
   si_local = ss->getSpaceInformation();
-  si_local->printState((*start)());
-  si_local->printState((*goal)());
-
 }
 
 PathVisibilityChecker::~PathVisibilityChecker(void)

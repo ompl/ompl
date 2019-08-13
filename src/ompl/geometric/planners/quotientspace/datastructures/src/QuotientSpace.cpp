@@ -38,6 +38,7 @@
 
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
+#include <ompl/control/SpaceInformation.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
@@ -52,12 +53,23 @@ ompl::geometric::QuotientSpace::QuotientSpace(const base::SpaceInformationPtr &s
 {
     id_ = counter_++;
 
+    //############################################################################
+    //Check for dynamic spaces
+    //############################################################################
+    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
+    if(siC==nullptr) {
+      isDynamic = false;
+    }else{
+      isDynamic = true;
+    }
+    OMPL_DEVMSG1("QuotientSpace %d%s", id_, (isDynamic?" (dynamic)":""));
+
+    //############################################################################
     if (parent_ != nullptr)
         parent_->setChild(this);  // need to be able to traverse down the tree
 
     const base::StateSpacePtr Q1_space = Q1->getStateSpace();
 
-    OMPL_DEVMSG1("--- QuotientSpace %d", id_);
 
     if (parent_ == nullptr)
     {

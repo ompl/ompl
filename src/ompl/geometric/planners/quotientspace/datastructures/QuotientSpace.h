@@ -207,6 +207,8 @@ namespace ompl
             bool hasSolution_{false};
             bool firstRun_{true};
 
+            bool isDynamic{false};
+
             QuotientSpace *parent_{nullptr};
             QuotientSpace *child_{nullptr};
 
