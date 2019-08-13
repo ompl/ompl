@@ -54,9 +54,6 @@ ompl::geometric::MultiQuotient<T>::MultiQuotient(std::vector<ompl::base::SpaceIn
         QuotientSpace *parent = nullptr;
         if (k > 0)
             parent = quotientSpaces_.back();
-//	std::cout << "1111111111111111111111111111111111111111111" << std::endl;
-//	std::cout << typeid(&parent).name() << std::endl;
-//        std::cout << dynamic_cast<ompl::control::SpaceInformationPtr>(&siVec.at(k)) << std::endl;
 
         T *ss = new T(siVec_.at(k), parent);
         quotientSpaces_.push_back(ss);

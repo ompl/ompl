@@ -20,6 +20,8 @@ QuotientTopology::QuotientTopology(const ob::SpaceInformationPtr &si, QuotientSp
   Planner::declareParam<double>("goal_bias", this, &QuotientTopology::setGoalBias, &QuotientTopology::getGoalBias, "0.:.1:1.");
 
   if(isDynamic) {
+    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si.get());
+
     dCSampler = siC->allocDirectedControlSampler();
     //only works for simpleDirectedControlSampler, which is used as default, but method can't be called
     //dCSampler->setNumControlSamples(numberOfControlSamples);
