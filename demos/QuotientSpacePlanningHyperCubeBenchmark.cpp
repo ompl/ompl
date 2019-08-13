@@ -161,6 +161,7 @@ std::vector<std::vector<int>> getHypercubeAdmissibleProjections(int dim)
     std::vector<std::vector<int>> projections;
 
     //trivial: just configuration space
+<<<<<<< HEAD
     std::vector<int> trivial{dim};
 
     for(int k = 1; k < dim; k++){
@@ -172,6 +173,20 @@ std::vector<std::vector<int>> getHypercubeAdmissibleProjections(int dim)
 
     projections.push_back(trivial);
 
+=======
+    //discrete: use all admissible projections
+    std::vector<int> trivial{dim};
+    std::vector<int> discrete;
+    boost::push_back(discrete, boost::irange(2, dim+1));
+
+    std::vector<int> twoStep;
+    boost::push_back(twoStep, boost::irange(2, dim+1, 2));
+    if(twoStep.back() != dim) twoStep.push_back(dim);
+
+    projections.push_back(trivial);
+    projections.push_back(discrete);
+    projections.push_back(twoStep);
+>>>>>>> quotientspace
     auto last = std::unique(projections.begin(), projections.end());
     projections.erase(last, projections.end()); 
 
@@ -208,7 +223,11 @@ ob::PlannerPtr GetQRRT(
     for(unsigned k = 0; k < sequenceLinks.size()-1; k++)
     {
         int links = sequenceLinks.at(k);
+<<<<<<< HEAD
         assert(links < curDim);
+=======
+        assert(links<maximalDimension);
+>>>>>>> quotientspace
 
         auto spaceK(std::make_shared<ompl::base::RealVectorStateSpace>(links));
         ompl::base::RealVectorBounds bounds(links);
@@ -241,7 +260,11 @@ ob::PlannerPtr GetQRRT(
 int main(int argc, char **argv)
 {
     if(argc>1){
+<<<<<<< HEAD
         curDim = std::atoi(argv[1]);
+=======
+      curDim = std::atoi(argv[1]);
+>>>>>>> quotientspace
     }
 
     numberPlanners = 0;
@@ -278,7 +301,11 @@ int main(int argc, char **argv)
         ob::PlannerPtr quotientSpacePlannerK = GetQRRT(proj, si);
         addPlanner(benchmark, quotientSpacePlannerK, range);
     }
+<<<<<<< HEAD
     // addPlanner(benchmark, std::make_shared<og::BITstar>(si), range);
+=======
+    addPlanner(benchmark, std::make_shared<og::BITstar>(si), range);
+>>>>>>> quotientspace
     addPlanner(benchmark, std::make_shared<og::EST>(si), range);
     addPlanner(benchmark, std::make_shared<og::BiEST>(si), range);
     addPlanner(benchmark, std::make_shared<og::ProjEST>(si), range);

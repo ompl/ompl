@@ -148,11 +148,19 @@ namespace ompl
             unsigned int getTotalNumberOfFeasibleSamples() const;
 
             /// \brief Quotient Space Projection Operator onto second component
+<<<<<<< HEAD:src/ompl/geometric/planners/quotientspace/datastructures/QuotientSpace.h
             /// ProjectX1: Q0 \times X1 \rightarrow X1
             void projectX1(const ompl::base::State *q, ompl::base::State *qX1) const;
             /// \brief Quotient Space Projection Operator onto first component
             /// ProjectQ0: Q0 \times X1 \rightarrow Q0
             void projectQ0(const ompl::base::State *q, ompl::base::State *qQ0) const;
+=======
+            /// ProjectX1Subspace: Q0 \times X1 \rightarrow X1
+            void projectX1Subspace(const ompl::base::State *q, ompl::base::State *qX1) const;
+            /// \brief Quotient Space Projection Operator onto first component
+            /// ProjectQ0Subspace: Q0 \times X1 \rightarrow Q0
+            void projectQ0Subspace(const ompl::base::State *q, ompl::base::State *qQ0) const;
+>>>>>>> quotientspace:src/ompl/geometric/planners/quotientspace/datastructures/QuotientSpace.h
             /// Merge a state from Q0 and X1 into a state on Q1 (concatenate)
             void mergeStates(const ompl::base::State *qQ0, const ompl::base::State *qX1, ompl::base::State *qQ1) const;
 
@@ -172,8 +180,26 @@ namespace ompl
             virtual void print(std::ostream &out) const;
 
             ///  \brief Compute the quotient Q1 / Q0 between two given spaces.
+<<<<<<< HEAD:src/ompl/geometric/planners/quotientspace/datastructures/QuotientSpace.h
             const ompl::base::StateSpacePtr computeQuotientSpace(const ompl::base::StateSpacePtr Q1, const ompl::base::StateSpacePtr Q0);
 
+=======
+            ///  The following cases are currently implemented
+            ///   ---- non-compound:
+            ///   (1) Q1 Rn     , Q0 Rm     [0<m<=n] => X1 = R(n-m) \union {\emptyset}
+            ///   ---- compound:
+            ///   (2) Q1 SE2    , Q0 R2              => X1 = SO2
+            ///   (3) Q1 SE3    , Q0 R3              => X1 = SO3
+            ///   (4) Q1 SE3xRn , Q0 SE3             => X1 = Rn
+            ///   (5) Q1 SE3xRn , Q0 R3              => X1 = SO3xRn
+            ///   (6) Q1 SE3xRn , Q0 SE3xRm [0<m<n ] => X1 = R(n-m)
+            ///
+            ///   (7) Q1 SE2xRn , Q0 SE2             => X1 = Rn
+            ///   (8) Q1 SE2xRn , Q0 R2              => X1 = SO2xRN
+            ///   (9) Q1 SE2xRn , Q0 SE2xRm [0<m<n ] => X1 = R(n-m)
+            ///  (10) Q1 SO2xRn , Q0 SO2             => X1 = Rn
+            const ompl::base::StateSpacePtr computeQuotientSpace(const ompl::base::StateSpacePtr Q1, const ompl::base::StateSpacePtr Q0);
+>>>>>>> quotientspace:src/ompl/geometric/planners/quotientspace/datastructures/QuotientSpace.h
             /// Identify the type of the quotient Q1 / Q0
             QuotientSpaceType identifyQuotientSpaceType(const ompl::base::StateSpacePtr Q1, const ompl::base::StateSpacePtr Q0);
 

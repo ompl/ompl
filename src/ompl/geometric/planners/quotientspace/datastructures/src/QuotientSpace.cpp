@@ -354,7 +354,6 @@ const StateSpacePtr QuotientSpace::computeQuotientSpace(const StateSpacePtr Q1, 
 
 QuotientSpace::QuotientSpaceType QuotientSpace::identifyQuotientSpaceType(const StateSpacePtr Q1, const StateSpacePtr Q0)
 {
-    //
     // We can currently handle 11 types of quotient-space mappings. 
     // Emptyset is used for constraint relaxations.
     // 
