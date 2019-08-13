@@ -1,37 +1,37 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2019, University of Stuttgart
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Stuttgart nor the names
-*     of its contributors may be used to endorse or promote products
-*     derived from this software without specific prior written
-*     permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2019, University of Stuttgart
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Stuttgart nor the names
+ *     of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written
+ *     permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Andreas Orthey */
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
@@ -39,20 +39,18 @@
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/goals/GoalState.h>
+#include <ompl/util/Exception.h>
 #include <ompl/util/Time.h>
 #include <queue>
 
-namespace og = ompl::geometric;
-using namespace og;
-
 template <class T>
-MultiQuotient<T>::MultiQuotient(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
+ompl::geometric::MultiQuotient<T>::MultiQuotient(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
   : ompl::base::Planner(siVec.back(), type), siVec_(siVec)
 {
     T::resetCounter();
     for (unsigned int k = 0; k < siVec_.size(); k++)
     {
-        og::QuotientSpace *parent = nullptr;
+        QuotientSpace *parent = nullptr;
         if (k > 0)
             parent = quotientSpaces_.back();
 
@@ -61,16 +59,17 @@ MultiQuotient<T>::MultiQuotient(std::vector<ompl::base::SpaceInformationPtr> &si
         quotientSpaces_.back()->setLevel(k);
     }
     stopAtLevel_ = quotientSpaces_.size();
-    OMPL_DEVMSG2("Created %d QuotientSpace levels.",siVec_.size());
+    OMPL_DEVMSG2("Created %d QuotientSpace levels.", siVec_.size());
 }
 
 template <class T>
-int MultiQuotient<T>::getLevels() const
+int ompl::geometric::MultiQuotient<T>::getLevels() const
 {
     return stopAtLevel_;
 }
+
 template <class T>
-std::vector<int> MultiQuotient<T>::getNodes() const
+std::vector<int> ompl::geometric::MultiQuotient<T>::getNodes() const
 {
     std::vector<int> nodesPerLevel;
     for (unsigned int k = 0; k < stopAtLevel_; k++)
@@ -80,8 +79,9 @@ std::vector<int> MultiQuotient<T>::getNodes() const
     }
     return nodesPerLevel;
 }
+
 template <class T>
-std::vector<int> MultiQuotient<T>::getFeasibleNodes() const
+std::vector<int> ompl::geometric::MultiQuotient<T>::getFeasibleNodes() const
 {
     std::vector<int> feasibleNodesPerLevel;
     for (unsigned int k = 0; k < quotientSpaces_.size(); k++)
@@ -93,7 +93,7 @@ std::vector<int> MultiQuotient<T>::getFeasibleNodes() const
 }
 
 template <class T>
-std::vector<int> MultiQuotient<T>::getDimensionsPerLevel() const
+std::vector<int> ompl::geometric::MultiQuotient<T>::getDimensionsPerLevel() const
 {
     std::vector<int> dimensionsPerLevel;
     for (unsigned int k = 0; k < quotientSpaces_.size(); k++)
@@ -105,12 +105,12 @@ std::vector<int> MultiQuotient<T>::getDimensionsPerLevel() const
 }
 
 template <class T>
-MultiQuotient<T>::~MultiQuotient()
+ompl::geometric::MultiQuotient<T>::~MultiQuotient()
 {
 }
 
 template <class T>
-void MultiQuotient<T>::setup()
+void ompl::geometric::MultiQuotient<T>::setup()
 {
     BaseT::setup();
     for (unsigned int k = 0; k < stopAtLevel_; k++)
@@ -121,7 +121,7 @@ void MultiQuotient<T>::setup()
 }
 
 template <class T>
-void MultiQuotient<T>::setStopLevel(unsigned int level_)
+void ompl::geometric::MultiQuotient<T>::setStopLevel(unsigned int level_)
 {
     if (level_ > quotientSpaces_.size())
     {
@@ -134,7 +134,7 @@ void MultiQuotient<T>::setStopLevel(unsigned int level_)
 }
 
 template <class T>
-void MultiQuotient<T>::clear()
+void ompl::geometric::MultiQuotient<T>::clear()
 {
     Planner::clear();
 
@@ -153,7 +153,7 @@ void MultiQuotient<T>::clear()
 }
 
 template <class T>
-ompl::base::PlannerStatus MultiQuotient<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::MultiQuotient<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
 {
     ompl::time::point t_start = ompl::time::now();
 
@@ -164,11 +164,12 @@ ompl::base::PlannerStatus MultiQuotient<T>::solve(const ompl::base::PlannerTermi
         if (priorityQueue_.size() <= currentQuotientLevel_)
             priorityQueue_.push(quotientSpaces_.at(k));
 
-        ompl::base::PlannerTerminationCondition ptcOrSolutionFound([this, &ptc] { return ptc || foundKLevelSolution_; });
+        ompl::base::PlannerTerminationCondition ptcOrSolutionFound(
+            [this, &ptc] { return ptc || foundKLevelSolution_; });
 
         while (!ptcOrSolutionFound())
         {
-            og::QuotientSpace *jQuotient = priorityQueue_.top();
+            QuotientSpace *jQuotient = priorityQueue_.top();
             priorityQueue_.pop();
             jQuotient->grow();
 
@@ -213,19 +214,20 @@ ompl::base::PlannerStatus MultiQuotient<T>::solve(const ompl::base::PlannerTermi
 }
 
 template <class T>
-const ompl::base::ProblemDefinitionPtr &MultiQuotient<T>::getProblemDefinition(unsigned kQuotientSpace) const
+const ompl::base::ProblemDefinitionPtr &
+ompl::geometric::MultiQuotient<T>::getProblemDefinition(unsigned int kQuotientSpace) const
 {
     assert(kQuotientSpace >= 0);
-    assert(kQuotientSpace <= siVec_.size()-1);
+    assert(kQuotientSpace <= siVec_.size() - 1);
     return quotientSpaces_.at(kQuotientSpace)->getProblemDefinition();
 }
 
 template <class T>
-void MultiQuotient<T>::setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef)
+void ompl::geometric::MultiQuotient<T>::setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef)
 {
     this->Planner::setProblemDefinition(pdef);
 
-    //Compute projection of qInit and qGoal onto QuotientSpaces
+    // Compute projection of qInit and qGoal onto QuotientSpaces
     ompl::base::Goal *goal = pdef_->getGoal().get();
     ompl::base::GoalState *goalRegion = dynamic_cast<ompl::base::GoalState *>(goal);
     double epsilon = goalRegion->getThreshold();
@@ -238,10 +240,10 @@ void MultiQuotient<T>::setProblemDefinition(const ompl::base::ProblemDefinitionP
 
     quotientSpaces_.back()->setProblemDefinition(pdef);
 
-    for (unsigned int k = siVec_.size()-1; k > 0 ; k--)
+    for (unsigned int k = siVec_.size() - 1; k > 0; k--)
     {
-        og::QuotientSpace *quotientParent = quotientSpaces_.at(k);
-        og::QuotientSpace *quotientChild = quotientSpaces_.at(k-1);
+        QuotientSpace *quotientParent = quotientSpaces_.at(k);
+        QuotientSpace *quotientChild = quotientSpaces_.at(k - 1);
         ompl::base::SpaceInformationPtr sik = quotientChild->getSpaceInformation();
         ompl::base::ProblemDefinitionPtr pdefk = std::make_shared<base::ProblemDefinition>(sik);
 
@@ -260,16 +262,14 @@ void MultiQuotient<T>::setProblemDefinition(const ompl::base::ProblemDefinitionP
     }
 }
 
-
 template <class T>
-void MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
+void ompl::geometric::MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
 {
     unsigned int Nvertices = data.numVertices();
     if (Nvertices > 0)
     {
-        OMPL_ERROR("cannot get planner data if plannerdata is already populated");
         OMPL_ERROR("PlannerData has %d vertices.", Nvertices);
-        exit(0);
+        throw ompl::Exception("cannot get planner data if plannerdata is already populated");
     }
 
     unsigned int K = std::min(solutions_.size() + 1, quotientSpaces_.size());
@@ -277,14 +277,15 @@ void MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
 
     for (unsigned int k = 0; k < K; k++)
     {
-        og::QuotientSpace *Qk = quotientSpaces_.at(k);
+        QuotientSpace *Qk = quotientSpaces_.at(k);
         Qk->getPlannerData(data);
 
         // label all new vertices
         unsigned int ctr = 0;
         for (unsigned int vidx = Nvertices; vidx < data.numVertices(); vidx++)
         {
-            ompl::base::PlannerDataVertexAnnotated &v = *static_cast<ompl::base::PlannerDataVertexAnnotated *>(&data.getVertex(vidx));
+            ompl::base::PlannerDataVertexAnnotated &v =
+                static_cast<ompl::base::PlannerDataVertexAnnotated &>(data.getVertex(vidx));
             v.setLevel(k);
             v.setMaxLevel(K);
 
@@ -293,7 +294,7 @@ void MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
 
             for (unsigned int m = k + 1; m < quotientSpaces_.size(); m++)
             {
-                og::QuotientSpace *Qm = quotientSpaces_.at(m);
+                QuotientSpace *Qm = quotientSpaces_.at(m);
 
                 if (Qm->getX1() != nullptr)
                 {
@@ -301,11 +302,11 @@ void MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
                     ompl::base::State *s_Q1 = Qm->getSpaceInformation()->allocState();
                     if (Qm->getX1()->getStateSpace()->getType() == ompl::base::STATE_SPACE_SO3)
                     {
-                        static_cast<ompl::base::SO3StateSpace::StateType *>(s_X1)->setIdentity();
+                        s_X1->as<ompl::base::SO3StateSpace::StateType>()->setIdentity();
                     }
                     if (Qm->getX1()->getStateSpace()->getType() == ompl::base::STATE_SPACE_SO2)
                     {
-                        static_cast<ompl::base::SO2StateSpace::StateType *>(s_X1)->setIdentity();
+                        s_X1->as<ompl::base::SO2StateSpace::StateType>()->setIdentity();
                     }
                     Qm->mergeStates(s_lift, s_X1, s_Q1);
                     s_lift = Qm->getSpaceInformation()->cloneState(s_Q1);
