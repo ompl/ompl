@@ -46,6 +46,12 @@ namespace ompl
                                 std::vector<Configuration*> &visibleNeighborhood);
         bool checkAddConnectivity(Configuration* q, std::vector<Configuration*> &visibleNeighborhood);
         bool checkAddInterface(Configuration *q, std::vector<Configuration*> &graphNeighborhood, std::vector<Configuration*> &visibleNeighborhood);
+        // bool checkAddPath(Vertex v);
+        // void findCloseRepresentatives(base::State *workArea, Configuration *q,
+        //                                                          const Configuration *qRep,
+        //                                                          std::map<Vertex, base::State *> &closeRepresentatives);
+        // void updatePairPoints(Vertex rep, const base::State *q, Vertex r, const base::State *s);
+        // void computeVPP(Vertex v, Vertex vp, std::vector<Vertex> &VPPs);
 
         void Rewire(Vertex &v);
         void Rewire();

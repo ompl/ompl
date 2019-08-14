@@ -16,7 +16,8 @@ namespace ompl
         template <class T>
         class MotionExplorerImpl : public og::MultiQuotient<T>
         {
-            static_assert(std::is_base_of<og::QuotientSpaceGraphSparse, T>::value, "Template must inherit from QuotientSpaceGraphSparse");
+            static_assert(std::is_base_of<og::QuotientSpaceGraphSparse, T>::value, 
+                "Template must inherit from QuotientSpaceGraphSparse");
 
             typedef og::MultiQuotient<T> BaseT;
         public:
@@ -41,7 +42,7 @@ namespace ompl
         };
     }
 }
-#include "ExplorerImpl.ipp"
+#include "MultiQuotientExplorerImpl.h"
 #endif
 
 

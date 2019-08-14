@@ -167,8 +167,7 @@ namespace ompl
 
             /** \brief Returns this objective's SpaceInformation. Needed for operators in MultiOptimizationObjective */
             const SpaceInformationPtr &getSpaceInformation() const;
-            /** \brief Returns this objective's SpaceInformation. Needed for operators in MultiOptimizationObjective */
-            void setSpaceInformation(const SpaceInformationPtr);
+            virtual void setSpaceInformation(const SpaceInformationPtr);
 
             /** \brief Allocate a heuristic-sampling state generator for this cost function, defaults to a basic
              * rejection sampling scheme when the derived class does not provide a better method.*/
@@ -245,6 +244,7 @@ namespace ompl
               cost values, where each individual value is scaled by
               its weight */
             Cost motionCost(const State *s1, const State *s2) const override;
+            virtual void setSpaceInformation(const SpaceInformationPtr) override;
 
         protected:
             /** \brief Defines a pairing of an objective and its weight */

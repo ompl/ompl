@@ -39,6 +39,7 @@
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/goals/GoalState.h>
+#include <ompl/base/OptimizationObjective.h>
 #include <ompl/control/ControlSpace.h>
 #include <ompl/util/Exception.h>
 #include <ompl/util/Time.h>
@@ -240,6 +241,8 @@ void ompl::geometric::MultiQuotient<T>::setProblemDefinition(const ompl::base::P
     OMPL_DEVMSG1("Projecting start and goal onto QuotientSpaces.");
 
     quotientSpaces_.back()->setProblemDefinition(pdef);
+
+    base::OptimizationObjectivePtr obj = pdef->getOptimizationObjective();
 
     for (unsigned int k = siVec_.size() - 1; k > 0; k--)
     {

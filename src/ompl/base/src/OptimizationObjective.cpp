@@ -200,6 +200,13 @@ ompl::base::MultiOptimizationObjective::Component::Component(OptimizationObjecti
 {
 }
 
+void ompl::base::MultiOptimizationObjective::setSpaceInformation(const SpaceInformationPtr si)
+{
+    for(uint k = 0; k < components_.size(); k++){
+        components_.at(k).objective->setSpaceInformation(si);
+    }
+}
+
 void ompl::base::MultiOptimizationObjective::addObjective(const OptimizationObjectivePtr &objective, double weight)
 {
     if (locked_)

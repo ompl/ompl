@@ -9,7 +9,6 @@
 
 using namespace og;
 using namespace ob;
-//using namespace oc;
 #define foreach BOOST_FOREACH
 
 QuotientTopology::QuotientTopology(const ob::SpaceInformationPtr &si, QuotientSpace *parent_ ):

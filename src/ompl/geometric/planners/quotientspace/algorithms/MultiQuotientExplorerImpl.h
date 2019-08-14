@@ -1,7 +1,6 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpace.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraphSparse.h>
-#include <ompl/geometric/planners/quotientspace/algorithms/MultiQuotient.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/util/Time.h>
@@ -12,13 +11,11 @@ using namespace og;
 using namespace ob;
 
 template <class T>
-MotionExplorerImpl<T>::MotionExplorerImpl(std::vector<ob::SpaceInformationPtr> &siVec, std::string type)
+ompl::geometric::MotionExplorerImpl<T>::MotionExplorerImpl(std::vector<ob::SpaceInformationPtr> &siVec, std::string type)
   : BaseT(siVec, type)
 {
     root = static_cast<og::QuotientSpaceGraphSparse*>(this->quotientSpaces_.front());
     current = root;
-
-    // OMPL_DEVMSG1("Created hierarchy with %d leaves.", siVec_.size());
 }
 
 template <class T>

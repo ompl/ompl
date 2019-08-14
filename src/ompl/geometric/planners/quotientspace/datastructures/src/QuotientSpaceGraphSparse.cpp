@@ -192,7 +192,6 @@ QuotientSpaceGraphSparse::Vertex QuotientSpaceGraphSparse::addConfiguration(Conf
     // }
 
     //Sparse Graph addition
-
     findGraphNeighbors(q, graphNeighborhood, visibleNeighborhood);
 
     //Possible reasons for adding a node to sparse roadmap
@@ -208,6 +207,25 @@ QuotientSpaceGraphSparse::Vertex QuotientSpaceGraphSparse::addConfiguration(Conf
     }else{
       if(!checkAddConnectivity(q, visibleNeighborhood)){
         if (!checkAddInterface(q, graphNeighborhood, visibleNeighborhood)){
+          // if (!visibleNeighborhood.empty())
+          // {
+          //     base::State *workState = si_->allocState();
+          //     std::map<Vertex, base::State *> closeRepresentatives;
+          //     findCloseRepresentatives(workState, q->state, visibleNeighborhood[0], closeRepresentatives);
+          //     for (auto &closeRepresentative : closeRepresentatives)
+          //     {
+          //         updatePairPoints(visibleNeighborhood[0], q->state, closeRepresentative.first,
+          //                          closeRepresentative.second);
+          //         updatePairPoints(closeRepresentative.first, closeRepresentative.second,
+          //                          visibleNeighborhood[0], q->state);
+          //     }
+          //     checkAddPath(visibleNeighborhood[0]);
+          //     for (auto &closeRepresentative : closeRepresentatives)
+          //     {
+          //         checkAddPath(closeRepresentative.first);
+          //         si_->freeState(closeRepresentative.second);
+          //     }
+          // }
 
         }
       }
@@ -215,6 +233,162 @@ QuotientSpaceGraphSparse::Vertex QuotientSpaceGraphSparse::addConfiguration(Conf
 
     return v;
 }
+// void ompl::geometric::QuotientSpaceGraphSparse::computeVPP(Vertex v, Vertex vp, std::vector<Vertex> &VPPs)
+// {
+//     VPPs.clear();
+//     foreach (Vertex cvpp, boost::adjacent_vertices(v, g_))
+//         if (cvpp != vp)
+//             if (!boost::edge(cvpp, vp, g_).second)
+//                 VPPs.push_back(cvpp);
+// }
+// void ompl::geometric::QuotientSpaceGraphSparse::updatePairPoints(Vertex rep, const base::State *q, Vertex r, const base::State *s)
+// {
+//     // First of all, we need to compute all candidate r'
+//     std::vector<Vertex> VPPs;
+//     computeVPP(rep, r, VPPs);
+
+//     // Then, for each pair Pv(r,r')
+//     foreach (Vertex rp, VPPs)
+//         // Try updating the pair info
+//         distanceCheck(rep, q, r, s, rp);
+// }
+// void ompl::geometric::QuotientSpaceGraphSparse::findCloseRepresentatives(base::State *workArea, const base::State *qNew,
+//                                                          const Vertex qRep,
+//                                                          std::map<Vertex, base::State *> &closeRepresentatives,
+//                                                          const base::PlannerTerminationCondition &ptc)
+// {
+//     for (auto &closeRepresentative : closeRepresentatives)
+//         si_->freeState(closeRepresentative.second);
+//     closeRepresentatives.clear();
+
+//     // Then, begin searching the space around him
+//     for (unsigned int i = 0; i < nearSamplePoints_; ++i)
+//     {
+//         do
+//         {
+//             sampler_->sampleNear(workArea, qNew, denseDelta_);
+//         } while ((!si_->isValid(workArea) || si_->distance(qNew, workArea) > denseDelta_ ||
+//                   !si_->checkMotion(qNew, workArea)) &&
+//                  !ptc);
+
+//         // if we were not successful at sampling a desirable state, we are out of time
+//         if (ptc)
+//             break;
+
+//         // Compute who his graph neighbors are
+//         Vertex representative = findGraphRepresentative(workArea);
+
+//         // Assuming this sample is actually seen by somebody (which he should be in all likelihood)
+//         if (representative != boost::graph_traits<Graph>::null_vertex())
+//         {
+//             // If his representative is different than qNew
+//             if (qRep != representative)
+//                 // And we haven't already tracked this representative
+//                 if (closeRepresentatives.find(representative) == closeRepresentatives.end())
+//                     // Track the representative
+//                     closeRepresentatives[representative] = si_->cloneState(workArea);
+//         }
+//         else
+//         {
+//             // This guy can't be seen by anybody, so we should take this opportunity to add him
+//             addGuard(si_->cloneState(workArea), COVERAGE);
+
+//             // We should also stop our efforts to add a dense path
+//             for (auto &closeRepresentative : closeRepresentatives)
+//                 si_->freeState(closeRepresentative.second);
+//             closeRepresentatives.clear();
+//             break;
+//         }
+//     }
+// }
+// bool ompl::geometric::QuotientSpaceGraphSparse::checkAddPath(Vertex v)
+// {
+//     bool ret = false;
+
+//     std::vector<Vertex> rs;
+//     foreach (Vertex r, boost::adjacent_vertices(v, g_))
+//         rs.push_back(r);
+
+//     /* Candidate x vertices as described in the method, filled by function computeX(). */
+//     std::vector<Vertex> Xs;
+
+//     /* Candidate v" vertices as described in the method, filled by function computeVPP(). */
+//     std::vector<Vertex> VPPs;
+
+//     for (std::size_t i = 0; i < rs.size() && !ret; ++i)
+//     {
+//         Vertex r = rs[i];
+//         computeVPP(v, r, VPPs);
+//         foreach (Vertex rp, VPPs)
+//         {
+//             // First, compute the longest path through the graph
+//             computeX(v, r, rp, Xs);
+//             double rm_dist = 0.0;
+//             foreach (Vertex rpp, Xs)
+//             {
+//                 double tmp_dist = (si_->distance(stateProperty_[r], stateProperty_[v]) +
+//                                    si_->distance(stateProperty_[v], stateProperty_[rpp])) /
+//                                   2.0;
+//                 if (tmp_dist > rm_dist)
+//                     rm_dist = tmp_dist;
+//             }
+
+//             InterfaceData &d = getData(v, r, rp);
+
+//             // Then, if the spanner property is violated
+//             if (rm_dist > stretchFactor_ * d.d_)
+//             {
+//                 ret = true;  // Report that we added for the path
+//                 if (si_->checkMotion(stateProperty_[r], stateProperty_[rp]))
+//                     connectGuards(r, rp);
+//                 else
+//                 {
+//                     auto p(std::make_shared<PathGeometric>(si_));
+//                     if (r < rp)
+//                     {
+//                         p->append(d.sigmaA_);
+//                         p->append(d.pointA_);
+//                         p->append(stateProperty_[v]);
+//                         p->append(d.pointB_);
+//                         p->append(d.sigmaB_);
+//                     }
+//                     else
+//                     {
+//                         p->append(d.sigmaB_);
+//                         p->append(d.pointB_);
+//                         p->append(stateProperty_[v]);
+//                         p->append(d.pointA_);
+//                         p->append(d.sigmaA_);
+//                     }
+
+//                     psimp_->reduceVertices(*p, 10);
+//                     psimp_->shortcutPath(*p, 50);
+
+//                     if (p->checkAndRepair(100).second)
+//                     {
+//                         Vertex prior = r;
+//                         Vertex vnew;
+//                         std::vector<base::State *> &states = p->getStates();
+
+//                         foreach (base::State *st, states)
+//                         {
+//                             // no need to clone st, since we will destroy p; we just copy the pointer
+//                             vnew = addGuard(st, QUALITY);
+
+//                             connectGuards(prior, vnew);
+//                             prior = vnew;
+//                         }
+//                         // clear the states, so memory is not freed twice
+//                         states.clear();
+//                         connectGuards(prior, rp);
+//                     }
+//                 }
+//             }
+//         }
+//     }
+
+//     return ret;
+// }
 
 void QuotientSpaceGraphSparse::uniteComponentsSparse(Vertex m1, Vertex m2)
 {
@@ -420,20 +594,19 @@ void QuotientSpaceGraphSparse::pushPathToStack(std::vector<ob::State*> &path)
 
   og::PathSimplifier shortcutter(Q1, ob::GoalPtr(), pathObj);
 
-  //make sure that we have enough vertices so that the right path class is
-  //visualized (problems with S1)
 
-  if(Q1->getStateSpace()->getType() == ob::STATE_SPACE_SO2)
-  {
-    gpath.interpolate();
+  if(isDynamic){
+      shortcutter.shortcutPath(gpath);
   }else{
-
-    shortcutter.simplifyMax(gpath);
-    // shortcutter.smoothBSpline(gpath);
-    // gpath.interpolate();
-    // gpath.subdivide();
-    // shortcutter.reduceVertices(gpath, 0, 0, 0.5);
-    // shortcutter.shortcutPath(gpath, 5, 0, sparseDelta_);
+      //make sure that we have enough vertices so that the right path class is
+      //visualized (problems with S1)
+      if(Q1->getStateSpace()->getType() == ob::STATE_SPACE_SO2)
+      {
+          gpath.interpolate();
+      }else{
+          shortcutter.smoothBSpline(gpath);
+          shortcutter.simplifyMax(gpath);
+      }
   }
 
   // std::vector<ob::State*> gstates = gpath.getStates();
@@ -442,7 +615,6 @@ void QuotientSpaceGraphSparse::pushPathToStack(std::vector<ob::State*> &path)
   //   Q1->printState(sk);
   // }
 
-  std::cout << "Check path to be in stack: " << path.size() << std::endl;
   if(!pathVisibilityChecker_->CheckValidity(gpath.getStates())){
     std::cout << "REJECTED (Infeasible)" << std::endl;
     numberOfFailedAddingPathCalls++;
@@ -462,12 +634,7 @@ void QuotientSpaceGraphSparse::pushPathToStack(std::vector<ob::State*> &path)
     }
     pathStack_.push_back(gpath);
   }
-  std::cout << "Added to stack" << std::endl;
-  // std::cout << ">>Inserting new path." << std::endl;
-  // std::vector<ob::State*> sp = gpath.getStates();
-  // for(uint k = 0; k < sp.size(); k++){
-  //   Q1->printState(sp.at(k));
-  // }
+  std::cout << "Added to stack (" << pathStack_.size() << " paths on stack)" << std::endl;
 
 }
 void QuotientSpaceGraphSparse::PrintPathStack()
