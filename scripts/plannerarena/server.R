@@ -62,16 +62,18 @@ problem_param_select <- function(param, val) {
         val == problem_params_separate_text)
         # select all
         TRUE
-    else
+    else {
         # select specific parameter value.
         # Use fuzzy matching when comparing numbers because precision is lost
         # when real-valued parameter values are converted to strings for
         # parameter selection widget.
+        p <- rlang::sym(param)
+        v <- as.numeric(val)
         if (regexpr("[-+]?\\d*\\.\\d+|\\d+", val)[1] == -1)
-            sprintf("%s == %s", param, val)
-        else {
-            sprintf("abs(%s - %s) < 0.0000001", param, val)
-        }
+            expr(!!p == val)
+        else
+            expr(abs(!!p - !!v) < 0.0000001)
+    }
 }
 
 # return parameters of parametrized benchmarks if they exist, NULL otherwise
@@ -102,7 +104,7 @@ problem_param_select_widget <- function(name, experiments, prefix, problem,
                                         version) {
     values <- (experiments %>%
         filter(experiment == !!problem & version == !!version) %>%
-        select(!!name) %>% distinct() %>% collect() %>% drop_na())[[name]]
+        select(!!name) %>% distinct() %>% drop_na())[[name]]
     disp_name <- gsub("_", " ", name)
     internal_name <- paste0(prefix, "problem_param", name)
     if (length(values) == 1) {
@@ -135,8 +137,7 @@ problem_param_select_widgets <- function(experiments, prefix, problem,
 }
 
 version_select_widget <- function(experiments, widget_name, checkbox) {
-    versions <- (experiments %>% select(version) %>% distinct() %>%
-                 collect())$version
+    versions <- (experiments %>% select(version) %>% distinct())$version
     if (checkbox)
         widget <- checkboxGroupInput(
             widget_name, label = h4("Selected versions"),
@@ -246,21 +247,21 @@ shinyServer(function(input, output, session) {
                    suffix = c(".planner", ".run")) %>%
         inner_join(experiments(),
                    c("experimentid" = "experiment.id"),
-                   suffix = c(".plannerrun", ".experiment")) %>% collect()
+                   suffix = c(".plannerrun", ".experiment"))
     })
     performance <- reactive({
-        runs_ext() %>% filter(experiment == input$perf_problem &
-                              version == input$perf_version)
+        runs_ext() %>% filter(experiment == !!input$perf_problem &
+                              version == !!input$perf_version)
     })
     prog_perf <- reactive({
         runs_ext() %>%
         inner_join(progress(), c("run.id" = "runid"),
                    suffix = c("", ".progress")) %>%
-        filter(experiment == input$prog_problem & version == input$prog_version)
+        filter(experiment == !!input$prog_problem & version == !!input$prog_version)
     })
     regr_perf <- reactive({
-        runs_ext() %>% filter(experiment == input$regr_problem &
-                              version %in% input$regr_versions)
+        runs_ext() %>% filter(experiment == !!input$regr_problem &
+                              version %in% !!input$regr_versions)
     })
 
     # Go straight to the database upload page if there is no default database
@@ -270,8 +271,7 @@ shinyServer(function(input, output, session) {
     })
 
     problem_names <- reactive({
-        (experiments() %>% select(experiment) %>% distinct() %>%
-         collect())$experiment
+        (experiments() %>% select(experiment) %>% distinct())$experiment
     })
     output$perf_problem_select <- renderUI({
         problem_select_widget(problem_names(), "perf_problem")
@@ -393,15 +393,13 @@ shinyServer(function(input, output, session) {
         validate(need(input$perf_version,
             "Select a version on the “Overall performance” page"))
         experiments() %>%
-            filter(experiment == input$perf_problem &
-                   version == input$perf_version) %>%
-            collect() %>% t()
+            filter(experiment == !!input$perf_problem &
+                   version == !!input$perf_version) %>% t()
     }, rownames = TRUE, colnames = FALSE)
     output$planner_configs <- renderTable({
         performance() %>%
             select(planner, settings) %>%
-            distinct() %>%
-            collect()
+            distinct()
     }, rownames = FALSE, colnames = FALSE)
 
     # font selection
@@ -435,17 +433,16 @@ shinyServer(function(input, output, session) {
         filter_expr <- expr(planner %in% !!selected_planners)
         # for parametrized benchmarks we want only the data that matches all
         # parameters exactly
-        if (length(param_values) > 0)
-            filter_expr <-
-                paste(c(filter_expr, mapply(
-                    problem_param_select, names(param_values), param_values)),
-                    collapse = " & ")
+        if (length(param_values) > 0) {
+            filter_expr <- mapply(
+                    problem_param_select, names(param_values), param_values, USE.NAMES = FALSE)
+        }
+        else
+            filter_expr <- TRUE
         # extract the data to be plotted
         data <- performance() %>%
-            # TODO: avoid using deprecated filter_ function
-            filter_(.dots = filter_expr) %>%
-            select(selection) %>%
-            collect()
+            filter(planner %in% !!selected_planners, !!!filter_expr) %>%
+            select(selection)
         # turn the planner and grouping columns into factors ordered in the
         # same way that they occur in the database.
         uplanner <- unique(data$planner)
@@ -454,7 +451,7 @@ shinyServer(function(input, output, session) {
         if (!is.null(grouping))
             data$grouping <- factor(data$grouping)
         # use bar charts for enum types
-        enum <- enums() %>% filter(name == attr) %>% collect()
+        enum <- enums() %>% filter(name == attr)
         if (nrow(enum) > 0) {
             val <- enum$value
             names(val) <- enum$description
@@ -475,7 +472,6 @@ shinyServer(function(input, output, session) {
             if (include_simplified_attr) {
                 # the "all (separate)" case is not handled here
                 data <- data %>%
-                    collect() %>%
                     gather(key, value, c(attr, simplified_attr),
                            factor_key = TRUE)
                 if (input$perf_show_as_cdf)
@@ -616,7 +612,7 @@ shinyServer(function(input, output, session) {
             group_by(planner)
         if (!is.null(grouping))
             # TODO: avoid using deprecated group_by_ function
-            data <- data %>% group_by_(.dots = grouping, add = TRUE)
+            data <- data %>% group_by(!!rlang::sym(grouping), add = TRUE)
         data <- data %>%
             select(attr = !!attr) %>%
             mutate(missing = is.na(attr)) %>%
@@ -645,16 +641,13 @@ shinyServer(function(input, output, session) {
         # compute selection of rows (add empty string to work around bug if
         # there is only one planner selected)
         selected_planners <- c(input$prog_planners, "")
+        if (length(param_values) > 0)
+            filter_expr <- mapply(
+                problem_param_select, names(param_values), param_values, USE.NAMES = FALSE)
+        else
+            filter_expr <- TRUE
         data <- prog_perf() %>%
-            filter(planner %in% !!selected_planners & !is.na(!!attr))
-        if (length(param_values) > 0) {
-            filter_expr <- paste(mapply(
-                problem_param_select, names(param_values), param_values),
-                collapse = " & ")
-            # TODO: avoid using deprecated filter_ function
-            data <- data %>% filter_(.dots = filter_expr)
-        }
-        data <- data %>%
+            filter(planner %in% !!selected_planners & !is.na(!!attr), !!!filter_expr) %>%
             select(selection)
         # turn the planner and grouping columns into factors ordered in the
         # same way that they occur in the database.
@@ -745,21 +738,18 @@ shinyServer(function(input, output, session) {
         # there is only one planner selected)
         selected_planners <- c(input$regr_planners, "")
         selected_versions <- c(input$regr_versions, "")
-        data <- regr_perf() %>%
-            filter(planner %in% !!selected_planners &
-                   version %in% !!selected_versions)
         # for parametrized benchmarks we want only the data that matches all
         # parameters exactly
-        if (length(param_values) > 0) {
-            filter_expr <- paste(mapply(
-                problem_param_select, names(param_values), param_values),
-                collapse = " & ")
-            # TODO: avoid using deprecated filter_ function
-            data <- data %>% filter_(.dots = filter_expr)
-        }
-        data <- data %>%
-            select(selection) %>%
-            collect()
+        if (length(param_values) > 0)
+            filter_expr <- mapply(
+                problem_param_select, names(param_values), param_values, USE.NAMES = FALSE)
+        else
+            filter_expr <- TRUE
+        data <- regr_perf() %>%
+            filter(planner %in% !!selected_planners &
+                   version %in% !!selected_versions,
+                   !!!filter_expr) %>%
+            select(selection)
 
         # turn the planner and grouping columns into factors ordered in the
         # same way that they occur in the database.
@@ -833,7 +823,7 @@ shinyServer(function(input, output, session) {
     })
     output$progress_page <- renderUI({
         validate(need(con(), no_database_text))
-        validate(need(progress() %>% tally() %>% collect() > 0,
+        validate(need(progress() %>% tally() > 0,
                       "There is no progress data in this database."))
         sidebarLayout(
             sidebarPanel(
@@ -855,7 +845,7 @@ shinyServer(function(input, output, session) {
     output$regression_page <- renderUI({
         validate(need(con(), no_database_text))
         validate(need(experiments() %>% select(version) %>% distinct() %>%
-                      tally() %>% collect() > 1,
+                      tally() > 1,
             "Only one version of OMPL was used for the benchmarks."))
         sidebarLayout(
             sidebarPanel(

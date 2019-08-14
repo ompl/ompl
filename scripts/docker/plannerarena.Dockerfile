@@ -1,4 +1,4 @@
-FROM rocker/shiny-verse:3.5.3
+FROM rocker/shiny-verse:3.6.0
 RUN apt-get update && \
     apt-get install -y libv8-dev
 RUN install2.r --error --deps TRUE \
@@ -7,7 +7,8 @@ RUN install2.r --error --deps TRUE \
     pool \
     Hmisc \
     RSQLite \
-    markdown
+    markdown && \
+    rm -rf /tmp/downloaded_packages/
 COPY plannerarena /srv/shiny-server/plannerarena
 COPY docker/plannerarena.conf /etc/shiny-server/shiny-server.conf
 ADD --chown=shiny:shiny https://www.cs.rice.edu/~mmoll/default-benchmark.db \
