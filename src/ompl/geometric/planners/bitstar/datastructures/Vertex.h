@@ -72,8 +72,7 @@ namespace ompl
             // ---
 
             /** \brief Construct a vertex using space information, and helpers to compute various costs. */
-            Vertex(ompl::base::SpaceInformationPtr spaceInformation, const CostHelper *const costHelpPtr,
-                   const std::shared_ptr<const unsigned int> &searchId,
+          Vertex(ompl::base::SpaceInformationPtr spaceInformation, const CostHelper *const costHelpPtr, SearchQueue *const queuePtr,
                    const std::shared_ptr<const unsigned int> &approximationId, bool root = false);
 
             /** \brief Destruct a vertex. */
@@ -254,6 +253,9 @@ namespace ompl
 
             /** \brief The helper class to compute different costs. */
             const CostHelper *const costHelpPtr_;
+
+            /** \brief The search queue used by the algorithms. */
+            SearchQueue *const queuePtr_;
 
             /** \brief The state itself. */
             ompl::base::State *state_;

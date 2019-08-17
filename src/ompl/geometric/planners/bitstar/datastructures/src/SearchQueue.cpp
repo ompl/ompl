@@ -520,6 +520,16 @@ namespace ompl
             edgeQueue_.rebuild();
         }
 
+        void BITstar::SearchQueue::update(const EdgeQueueElemPtr elementPtr) {
+            assert(elementPtr);
+
+            // Create the up-to-date sort key for this edge.
+            elementPtr->data.first = createSortKey(elementPtr->data.second);
+
+            // Update its position in the queue.
+            edgeQueue_.update(elementPtr);
+        }
+
         void BITstar::SearchQueue::addToInconsistentSet(const VertexPtr &vertex)
         {
 #ifdef BITSTAR_DEBUG

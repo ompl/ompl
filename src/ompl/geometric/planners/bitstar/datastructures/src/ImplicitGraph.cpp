@@ -451,7 +451,7 @@ namespace ompl
                 if (static_cast<bool>(newGoal))
                 {
                     // Allocate the vertex pointer
-                    goalVertices_.push_back(std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_->getSearchId(), approximationId_));
+                  goalVertices_.push_back(std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_, approximationId_));
 
                     // Copy the value into the state
                     spaceInformation_->copyState(goalVertices_.back()->state(), newGoal);
@@ -482,7 +482,7 @@ namespace ompl
                 if (static_cast<bool>(newStart))
                 {
                     // Allocate the vertex pointer:
-                    startVertices_.push_back(std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_->getSearchId(), approximationId_, true));
+                    startVertices_.push_back(std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_, approximationId_, true));
 
                     // Copy the value into the state.
                     spaceInformation_->copyState(startVertices_.back()->state(), newStart);
@@ -1032,7 +1032,7 @@ namespace ompl
                 {
                     // Variable
                     // The new state:
-                    auto newState = std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_->getSearchId(), approximationId_);
+                    auto newState = std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_, approximationId_);
 
                     // Sample in the interval [costSampled_, costReqd):
                     sampler_->sampleUniform(newState->state(), sampledCost_, requiredCost);

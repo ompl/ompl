@@ -104,19 +104,18 @@ namespace ompl
     {
         /////////////////////////////////////////////////////////////////////////////////////////////
         // Public functions:
-        BITstar::Vertex::Vertex(ompl::base::SpaceInformationPtr si, const CostHelper *const costHelpPtr,
-                                const std::shared_ptr<const unsigned int> &searchId,
-                                const std::shared_ptr<const unsigned int> &approximationId,
-                                bool root /*= false*/)
+        BITstar::Vertex::Vertex(ompl::base::SpaceInformationPtr spaceInformation, const CostHelper *const costHelpPtr, SearchQueue *const queuePtr,
+                   const std::shared_ptr<const unsigned int> &approximationId, bool root)
           : id_(getIdGenerator().getNewId())
-          , si_(std::move(si))
+          , si_(std::move(spaceInformation))
           , costHelpPtr_(std::move(costHelpPtr))
+          , queuePtr_(queuePtr)
           , state_(si_->allocState())
           , isRoot_(root)
           , edgeCost_(costHelpPtr_->infiniteCost())
           , cost_(costHelpPtr_->infiniteCost())
           , costAtExpansion_(costHelpPtr_->infiniteCost())
-          , currentSearchId_(searchId)
+          , currentSearchId_(queuePtr->getSearchId())
           , currentApproximationId_(approximationId)
         {
             PRINT_VERTEX_CHANGE
@@ -814,6 +813,13 @@ namespace ompl
             {
                 // I have a parent, so my cost is my parent cost + my edge cost to the parent
                 cost_ = costHelpPtr_->combineCosts(parentPtr_->getCost(), edgeCost_);
+
+                // If I have outgoing edges in the search queue, they need to be updated.
+                for (const auto& edge : edgeQueueOutLookup_) {
+                    if (lookupApproximationId_ == *currentApproximationId_) {
+                        queuePtr_->update(edge);
+                    }
+                }
 
                 // I am one more than my parent's depth:
                 depth_ = (parentPtr_->getDepth() + 1u);

@@ -143,8 +143,11 @@ namespace ompl
             /** \brief Clear the set of inconsistent vertices. */
             void clearInconsistentSet();
 
-            /** \brief Update all the sort keys of the edges in the queue. */
+            /** \brief Update all the sort keys of the edges in the queue and resort. */
             void rebuildEdgeQueue();
+
+            /** \brief Update the sort key of a particular edge and its position in the queue. */
+            void update(const EdgeQueueElemPtr elementPtr);
 
             /** \brief Set the cost-to-go inflation factor. */
             void setInflationFactor(double factor);
