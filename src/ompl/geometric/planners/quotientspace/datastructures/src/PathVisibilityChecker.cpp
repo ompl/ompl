@@ -13,11 +13,14 @@
 #include <ompl/geometric/planners/pdst/PDST.h>
 
 #include <ompl/geometric/SimpleSetup.h>
+#include <ompl/control/SpaceInformation.h>
 #include <ompl/base/StateValidityChecker.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/StateSpaceTypes.h>
+#include <ompl/base/objectives/PathLengthOptimizationObjective.h>
+
 
 #include <boost/math/constants/constants.hpp>
 
@@ -46,6 +49,13 @@ PathVisibilityChecker::PathVisibilityChecker(const base::SpaceInformationPtr &si
 
   ss = std::make_shared<og::SimpleSetup>(R2space_);
   si_local = ss->getSpaceInformation();
+
+  ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si.get());
+  if(siC==nullptr) {
+    isDynamic = false;
+  }else{
+    isDynamic = true;
+  }
 }
 
 PathVisibilityChecker::~PathVisibilityChecker(void)
@@ -288,13 +298,6 @@ bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State*> &s1, std::vect
       return IsPathVisibleSO2(s1, s2);
   }
 
-  std::cout << "PathVisibilityChecker::" << std::endl;
-  for(uint k = 0; k < s1.size(); k++){
-      si_->printState(s1.at(k));
-  }
-  for(uint k = 0; k < s2.size(); k++){
-      si_->printState(s2.at(k));
-  }
 
   ss->setStateValidityChecker( std::make_shared<pathPathValidityChecker>(si_, si_local,  s1, s2) );
   ob::PlannerPtr linear_homotopy_planner = std::make_shared<og::RRTConnect>(si_local);
@@ -306,7 +309,33 @@ bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State*> &s1, std::vect
   ob::PlannerTerminationCondition ptc( ob::timedPlannerTerminationCondition(max_planning_time_path_path) );
 
   ss->solve(ptc);
+
   bool solved = ss->haveExactSolutionPath();
+
+
+  //############################################################################
+  //############################################################################
+  if(solved && isDynamic){
+    // std::cout << "PathVisibilityChecker::" << std::endl;
+    // for(uint k = 0; k < s1.size(); k++){
+    //     si_->printState(s1.at(k));
+    // }
+    // for(uint k = 0; k < s2.size(); k++){
+    //     si_->printState(s2.at(k));
+    // }
+    std::cout << "DYNAMIC CHECK" << std::endl;
+    std::vector<ob::State*> spath = ss->getSolutionPath().getStates();
+
+    for(uint k = 0; k < spath.size(); k++){
+      si_local->printState(spath.at(k));
+    }
+    exit(0);
+  }
+  //############################################################################
+  //############################################################################
+
+
+
   ompl::msg::setLogLevel(logLevelInitial);
   return solved;
 

@@ -29,6 +29,7 @@ namespace ompl
       void Test3(int F=0);
 
     protected:
+      bool isDynamic{false};
       ob::SpaceInformationPtr si_;
       ob::SpaceInformationPtr si_local;
       ob::State *lastValidState;
