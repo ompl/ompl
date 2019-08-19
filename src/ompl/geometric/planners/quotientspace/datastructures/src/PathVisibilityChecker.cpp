@@ -272,6 +272,16 @@ bool PathVisibilityChecker::IsPathVisibleSO2(std::vector<ob::State*> &s1, std::v
 }
 
 
+bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2, std::vector<ob::State*> &sLocal)
+{
+    std::cout << "We can assume s1 and s2 being visible from here on." << std::endl;
+    std::cout << "2D points" << std::endl;
+    for(uint k = 0; k < sLocal.size(); k++){
+      si_local->printState(sLocal.at(k));
+    }
+    exit(0);
+}
+
 bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2)
 {
   //Disable logging for Checker
@@ -316,20 +326,8 @@ bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State*> &s1, std::vect
   //############################################################################
   //############################################################################
   if(solved && isDynamic){
-    // std::cout << "PathVisibilityChecker::" << std::endl;
-    // for(uint k = 0; k < s1.size(); k++){
-    //     si_->printState(s1.at(k));
-    // }
-    // for(uint k = 0; k < s2.size(); k++){
-    //     si_->printState(s2.at(k));
-    // }
-    std::cout << "DYNAMIC CHECK" << std::endl;
     std::vector<ob::State*> spath = ss->getSolutionPath().getStates();
-
-    for(uint k = 0; k < spath.size(); k++){
-      si_local->printState(spath.at(k));
-    }
-    exit(0);
+    IsPathDynamicallyVisible(s1, s2, spath);
   }
   //############################################################################
   //############################################################################
