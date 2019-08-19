@@ -113,29 +113,6 @@ public:
     if(!si_->getStateValidityChecker()->isValid(path2_interp_state_)) return true;
 
     bool visible = si_->checkMotion(path1_interp_state_, path2_interp_state_);
-    //############################################################################
-    //DEBUG
-    //############################################################################
-    // if(!visible){
-    //   std::cout << "States not visible" << std::endl;
-    //   si_->printState(path1_interp_state_);
-    //   si_->printState(path2_interp_state_);
-
-    //   // ob::State *s_interpolate = si_->allocState();
-    //   // double dstep = 0.01;
-    //   // std::cout << std::string(80, '-') << std::endl;
-    //   // for(double d = dstep; d < 1; d+=dstep){
-    //   //     si_->getStateSpace()->interpolate(path1_interp_state_, path2_interp_state_, d, s_interpolate);
-    //   //     // bool visible = si_->checkMotion(path1_interp_state_, s_interpolate);
-    //   //     bool val = si_->getStateValidityChecker()->isValid(s_interpolate);
-    //   //     if(!val){
-    //   //       si_->printState(s_interpolate);
-    //   //       std::cout << "INVALID" << std::endl;
-    //   //     }
-    //   // }
-    //   // exit(0);
-    // }
-    //############################################################################
 
     return visible;
   }
@@ -294,21 +271,29 @@ bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State*> &s1, std::vect
 
   ////Assert Non-empty paths with at least a designated end and start 
   ////configuration
-  //assert(s1.size()>=2);
-  //assert(s2.size()>=2);
+  assert(s1.size()>=2);
+  assert(s2.size()>=2);
 
-  ////Assert Same start and end point
-  //assert( si_->distance(s1.front(), s2.front()) < 1e-10);
-  //assert( si_->distance(s1.back(), s2.back()) < 1e-10);
+  //Assert Same start and end point
+  assert( si_->distance(s1.front(), s2.front()) < 1e-10);
+  assert( si_->distance(s1.back(), s2.back()) < 1e-10);
 
-  ////Paths need to be feasible
-  //if(!CheckValidity(s1)) return false;
-  //if(!CheckValidity(s2)) return false;
+  //Paths need to be feasible
+  if(!CheckValidity(s1)) return false;
+  if(!CheckValidity(s2)) return false;
 
   //Handle edge case of SO(2)
   if(si_->getStateSpace()->getType() == ob::STATE_SPACE_SO2)
   {
       return IsPathVisibleSO2(s1, s2);
+  }
+
+  std::cout << "PathVisibilityChecker::" << std::endl;
+  for(uint k = 0; k < s1.size(); k++){
+      si_->printState(s1.at(k));
+  }
+  for(uint k = 0; k < s2.size(); k++){
+      si_->printState(s2.at(k));
   }
 
   ss->setStateValidityChecker( std::make_shared<pathPathValidityChecker>(si_, si_local,  s1, s2) );
