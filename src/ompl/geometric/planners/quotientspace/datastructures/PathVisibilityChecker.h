@@ -20,7 +20,7 @@ namespace ompl
 
       bool IsPathVisible(std::vector<QuotientSpaceGraph::Vertex> &v1, std::vector<QuotientSpaceGraph::Vertex> &v2, QuotientSpaceGraph::Graph &graph);
       bool IsPathVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2);
-      bool IsPathDynamicallyVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2);
+      bool IsPathDynamicallyVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2, std::vector<ob::State*> &sLocal);
       bool IsPathVisibleSO2(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2);
       bool isPathClockwise(std::vector<ob::State*> &spath);
       bool CheckValidity(const std::vector<ob::State*> &s);
