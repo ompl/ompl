@@ -279,7 +279,7 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
     for(uint k = 0; k < sLocal.size(); k++){
       si_local->printState(sLocal.at(k));
     }
-    exit(0);
+    return true;
 }
 
 bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2)
