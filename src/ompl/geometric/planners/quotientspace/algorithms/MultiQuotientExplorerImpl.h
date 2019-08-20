@@ -1,10 +1,11 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpace.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraphSparse.h>
+#include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/util/Time.h>
-#include <ompl/base/goals/GoalSampleableRegion.h>
+#include <ompl/util/Exception.h>
 #include <queue>
 
 using namespace og;
@@ -89,9 +90,8 @@ void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
     unsigned int Nvertices = data.numVertices();
     if (Nvertices > 0)
     {
-        OMPL_ERROR("Cannot get planner data if plannerdata is already populated");
         OMPL_ERROR("PlannerData has %d vertices.", Nvertices);
-        exit(0);
+        throw ompl::Exception("cannot get planner data if plannerdata is already populated");
     }
 
     unsigned int K = this->quotientSpaces_.size();

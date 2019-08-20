@@ -1,10 +1,11 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraphSparse.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
-#include <ompl/tools/config/SelfConfig.h>
 #include <ompl/geometric/PathSimplifier.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/objectives/MaximizeMinClearanceObjective.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
+#include <ompl/tools/config/SelfConfig.h>
+#include <ompl/util/Exception.h>
 
 #include <boost/property_map/vector_property_map.hpp>
 #include <boost/property_map/transform_value_property_map.hpp>
@@ -104,7 +105,7 @@ void QuotientSpaceGraphSparse::Init()
       OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
       const base::State *sInvalidInitial = pdef_->getStartState(0);
       debugInvalidState(sInvalidInitial);
-      exit(0);
+      throw ompl::Exception("No valid initial states.");
   }
 
   const ob::State *sGoal{nullptr};
@@ -129,7 +130,7 @@ void QuotientSpaceGraphSparse::Init()
       const ob::GoalSampleableRegion *goal = pdef_->getGoal()->as<ob::GoalSampleableRegion>();
       goal->sampleGoal(sInvalidGoal);
       debugInvalidState(sInvalidGoal);
-      exit(0);
+      throw ompl::Exception("No valid goal states.");
   }
 
 }
@@ -532,7 +533,7 @@ bool QuotientSpaceGraphSparse::sampleQuotient(ob::State *q_random_graph)
 
       }else{
         OMPL_ERROR("Selected path is %d (have you selected a path?)");
-        exit(0);
+        throw ompl::Exception("Unknown selected path");
       }
     }else{
         //no solution path, we can just sample randomly
@@ -948,7 +949,7 @@ void QuotientSpaceGraphSparse::getPlannerData(ob::PlannerData &data) const
       OMPL_DEVMSG1("%s has %d solutions.", getName().c_str(), pathStackHead_.size());
       if(pathStackHead_.empty()){
           OMPL_ERROR("%s has 0 solutions.", getName().c_str());
-          exit(0);
+          throw ompl::Exception("Zero solutions");
       }
       std::vector<int> idxPathI;
       for(uint i = 0; i < pathStackHead_.size(); i++){

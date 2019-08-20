@@ -1,6 +1,7 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/PathVisibilityChecker.h>
 #include <ompl/base/State.h>
 #include <ompl/base/ScopedState.h>
+#include <ompl/util/Exception.h>
 
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/prm/PRM.h>
@@ -144,7 +145,6 @@ public:
           // }
           // // std::cout << "Path1: " << (this->CheckValidity(path1_)?"VALIDPATH":"INVALID") << std::endl;
           // // std::cout << "Path2: " << (this->CheckValidity(path2_)?"VALIDPATH":"INVALID") << std::endl;
-          // exit(0);
       }
   }
 
@@ -189,7 +189,8 @@ public:
     {
       OMPL_ERROR("lineFraction: %f. length: %f, newPos: %f, distanceNext: %f, distanceCur: %f",
           lineFraction, pathLength, newPosition, distanceIdxIdxNext, distances.at(idx));
-      exit(0);
+
+      throw ompl::Exception("LineFraction out of bounds.");
     }
 
     si_->getStateSpace()->interpolate(path.at(idx), path.at(idx+1), lineFraction, s_interpolate);
@@ -231,7 +232,7 @@ bool PathVisibilityChecker::CheckValidity(const std::vector<ob::State*> &s)
     if(!si_->isValid(sk)){
       OMPL_ERROR("State invalid");
       si_->printState(sk);
-      exit(0);
+      throw ompl::Exception("Invalid State");
     }
     // std::pair<ob::State *, double> lastValid;
     // lastValid.first = lastValidState;
