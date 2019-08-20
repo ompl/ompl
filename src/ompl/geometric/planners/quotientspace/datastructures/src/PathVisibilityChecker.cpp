@@ -277,7 +277,12 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
     std::cout << "We can assume s1 and s2 being visible from here on." << std::endl;
     std::cout << "2D points" << std::endl;
     for(uint k = 0; k < sLocal.size(); k++){
-      si_local->printState(sLocal.at(k));
+      // si_local->printState(sLocal.at(k));
+
+      const double &x = sLocal.at(k)->as<ob::RealVectorStateSpace::StateType>()->values[0];
+      const double &y = sLocal.at(k)->as<ob::RealVectorStateSpace::StateType>()->values[1];
+      std::cout << x << std::endl;
+      std::cout << y << std::endl;
     }
     return true;
 }
