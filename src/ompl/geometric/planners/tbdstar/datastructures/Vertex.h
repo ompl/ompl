@@ -130,10 +130,6 @@ namespace ompl
                 /** \brief Updates the cost to the whole branch rooted at this vertex. */
                 void updateCostOfForwardBranch() const;
 
-                /** \brief Sets the cost to come from to goal of the backward search to infinity for the whole branch.
-                 */
-                void invalidateCostToComeFromGoalOfBackwardBranch() const;
-
                 /** \brief Adds a vertex this vertex's children. */
                 void addToForwardChildren(const std::shared_ptr<Vertex> &vertex);
 

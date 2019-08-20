@@ -244,16 +244,6 @@ namespace ompl
                 }
             }
 
-            void Vertex::invalidateCostToComeFromGoalOfBackwardBranch() const
-            {
-                // Update the cost of all backward children.
-                for (const auto &child : getBackwardChildren())
-                {
-                    child->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
-                    child->invalidateCostToComeFromGoalOfBackwardBranch();
-                }
-            }
-
             void Vertex::setForwardParent(const std::shared_ptr<Vertex> &vertex, const ompl::base::Cost &edgeCost)
             {
                 // If this is a rewiring, remove from my parent's children.

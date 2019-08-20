@@ -140,6 +140,10 @@ namespace ompl
             /** \brief Returns the best cost to come form the goal of any start. */
             ompl::base::Cost computeBestCostToComeFromGoalOfAnyStart() const;
 
+            /** \brief Sets the cost to come from to goal of the backward search to infinity for the whole branch.
+             */
+            void invalidateCostToComeFromGoalOfBackwardBranch(const std::shared_ptr<tbdstar::Vertex>& vertex);
+
             /** \brief The increasingly dense sampling-based approximation. */
             tbdstar::ImplicitGraph graph_;
 
@@ -174,7 +178,7 @@ namespace ompl
 
             /** \brief Flag whether the forward search has been started on the batch. */
             bool isForwardSearchStartedOnBatch_{false};
- 
+
             /** \brief Flag whether the backward search has been started on the batch. */
             bool isBackwardSearchStartedOnBatch_{true};
 

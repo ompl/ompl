@@ -517,7 +517,7 @@ namespace ompl
                         child->removeFromBackwardChildren(parent->getId());
 
                         // This also affects all children of this vertex.
-                        parent->invalidateCostToComeFromGoalOfBackwardBranch();
+                        invalidateCostToComeFromGoalOfBackwardBranch(parent);
 
                         // If any of these children are in the backward queue, their sort key is outdated.
                         rebuildBackwardQueue();
@@ -960,6 +960,22 @@ namespace ompl
                 bestCost = optimizationObjective_->betterCost(bestCost, start->getCostToComeFromGoal());
             }
             return bestCost;
+        }
+
+        void TBDstar::invalidateCostToComeFromGoalOfBackwardBranch(const std::shared_ptr<tbdstar::Vertex> &vertex)
+        {
+            // Update the cost of all backward children and remove from open.
+            for (const auto &child : vertex->getBackwardChildren())
+            {
+                child->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
+                auto backwardQueuePointer = child->getBackwardQueuePointer();
+                if (backwardQueuePointer)
+                {
+                    backwardQueue_.remove(backwardQueuePointer);
+                    child->resetBackwardQueuePointer();
+                }
+                invalidateCostToComeFromGoalOfBackwardBranch(child);
+            }
         }
 
     }  // namespace geometric
