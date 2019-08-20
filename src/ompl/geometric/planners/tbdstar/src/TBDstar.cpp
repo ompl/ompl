@@ -422,7 +422,8 @@ namespace ompl
             if (!optimizationObjective_->isCostBetterThan(pathThroughEdgeCost, *solutionCost_))
             {
                 std::cout << "This edge can not improve upon the current solution.\n";
-                if (optimizationObjective_->isFinite(pathThroughEdgeCost))
+                if (optimizationObjective_->isFinite(pathThroughEdgeCost) ||
+                    !optimizationObjective_->isFinite(computeBestCostToComeFromGoalOfAnyStart()))
                 {
                     forwardQueue_.clear();
                     std::cout << "The edge cost is finite, clearing the forward queue.\n";
