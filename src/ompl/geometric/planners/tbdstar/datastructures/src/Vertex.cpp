@@ -117,11 +117,22 @@ namespace ompl
 
             ompl::base::Cost Vertex::getCostToComeFromGoal() const
             {
+                if (backwardSearchBatchId_ != *batchId_.lock())
+                {
+                    costToComeFromGoal_ = optimizationObjective_->infiniteCost();
+                }
                 return costToComeFromGoal_;
             }
 
             ompl::base::Cost Vertex::getExpandedCostToComeFromGoal() const
             {
+                std::cout << "expanded backward search id: " << expandedBackwardSearchId_
+                          << ", backward search id: " << *backwardSearchId_.lock() << '\n';
+                if (expandedBackwardSearchId_ != *backwardSearchId_.lock())
+                {
+                    std::cout << "Setting expanded cost to come from goal to infinity\n";
+                    expandedCostToComeFromGoal_ = optimizationObjective_->infiniteCost();
+                }
                 return expandedCostToComeFromGoal_;
             }
 
@@ -165,7 +176,7 @@ namespace ompl
                 // {
                 //     return costToComeFromGoal_;
                 // }
-                return costToComeFromGoal_;
+                return getCostToComeFromGoal();
             }
 
             ompl::base::Cost Vertex::getEdgeCostFromForwardParent() const
@@ -386,6 +397,7 @@ namespace ompl
                 std::vector<std::shared_ptr<Vertex>> children;
                 for (const auto &child : forwardChildren_)
                 {
+                    assert(!child.expired());
                     children.emplace_back(child.lock());
                 }
                 return children;
@@ -410,22 +422,29 @@ namespace ompl
 
             void Vertex::registerExpansionDuringBackwardSearch()
             {
+                std::cout << "Registering expansion of " << vertexId_
+                          << " (backward search id: " << *backwardSearchId_.lock()
+                          << ", expanded cost to come: " << costToComeFromGoal_ << '\n';
+                assert(!backwardSearchId_.expired());
                 expandedCostToComeFromGoal_ = costToComeFromGoal_;
                 expandedBackwardSearchId_ = *backwardSearchId_.lock();
             }
 
             void Vertex::registerInsertionIntoQueueDuringBackwardSearch()
             {
+                assert(!backwardSearchId_.expired());
                 insertedIntoQueueBackwardSearchId_ = *backwardSearchId_.lock();
             }
 
             bool Vertex::hasBeenExpandedDuringCurrentForwardSearch() const
             {
+                assert(!forwardSearchId_.expired());
                 return expandedForwardSearchId_ == *forwardSearchId_.lock();
             }
 
             bool Vertex::hasBeenExpandedDuringCurrentBackwardSearch() const
             {
+                assert(!backwardSearchId_.expired());
                 return expandedBackwardSearchId_ == *backwardSearchId_.lock();
             }
 

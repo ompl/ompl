@@ -63,11 +63,12 @@ namespace ompl
             {
                 spaceInformation_ = spaceInformation;
                 problemDefinition_ = problemDefinition;
+                optimizationObjective_ = problemDefinition->getOptimizationObjective();
                 solutionCost_ = solutionCost;
                 forwardSearchId_ = forwardSearchId;
                 backwardSearchId_ = backwardSearchId;
-                sampler_ = problemDefinition->getOptimizationObjective()->allocInformedStateSampler(
-                    problemDefinition, std::numeric_limits<unsigned int>::max());
+                sampler_ = optimizationObjective_->allocInformedStateSampler(problemDefinition,
+                                                                             std::numeric_limits<unsigned int>::max());
             }
 
             void ImplicitGraph::registerStartState(const ompl::base::State *const startState)
@@ -80,7 +81,7 @@ namespace ompl
                 spaceInformation_->copyState(startVertex->getState(), startState);
 
                 // By definition, this has identity cost-to-come.
-                startVertex->setCostToComeFromStart(problemDefinition_->getOptimizationObjective()->identityCost());
+                startVertex->setCostToComeFromStart(optimizationObjective_->identityCost());
 
                 // Add the start vertex to the set of vertices.
                 vertices_.add(startVertex);
@@ -105,12 +106,59 @@ namespace ompl
                 goalVertices_.emplace_back(goalVertex);
             }
 
-            void ImplicitGraph::addSamples(std::size_t numSamples)
+            std::size_t ImplicitGraph::computeNumberOfSamplesInInformedSet() const
             {
+                std::size_t numberOfSamplesInInformedSet{0u};
+                std::vector<std::shared_ptr<Vertex>> vertices;
+                vertices_.list(vertices);
+
+                // Loop over all vertices.
+                for (const auto &vertex : vertices)
+                {
+                    // Get the best cost to come from any start.
+                    ompl::base::Cost bestCostToComeHeuristic = optimizationObjective_->infiniteCost();
+                    for (const auto &start : startVertices_)
+                    {
+                        auto costToComeHeuristic =
+                            optimizationObjective_->motionCostHeuristic(start->getState(), vertex->getState());
+                        if (optimizationObjective_->isCostBetterThan(costToComeHeuristic, bestCostToComeHeuristic))
+                        {
+                            bestCostToComeHeuristic = costToComeHeuristic;
+                        }
+                    }
+
+                    // Get the best cost to go to any goal.
+                    ompl::base::Cost bestCostToGoHeuristic = optimizationObjective_->infiniteCost();
+                    for (const auto &goal : goalVertices_)
+                    {
+                        auto costToComeHeuristic =
+                            optimizationObjective_->motionCostHeuristic(vertex->getState(), goal->getState());
+                        if (optimizationObjective_->isCostBetterThan(costToComeHeuristic, bestCostToGoHeuristic))
+                        {
+                            bestCostToGoHeuristic = costToComeHeuristic;
+                        }
+                    }
+
+                    // If this can possibly improve the current solution, it is in the informed set.
+                    if (optimizationObjective_->isCostBetterThan(
+                            optimizationObjective_->combineCosts(bestCostToComeHeuristic, bestCostToGoHeuristic),
+                            *solutionCost_.lock()))
+                    {
+                        ++numberOfSamplesInInformedSet;
+                    }
+                }
+
+                return numberOfSamplesInInformedSet;
+            }
+
+            std::vector<std::shared_ptr<Vertex>> ImplicitGraph::addSamples(std::size_t numNewSamples)
+            {
+                // First get the number of samples inside the informed set.
+                auto numSamplesInInformedSet = computeNumberOfSamplesInInformedSet();
                 // Create new vertices.
                 std::vector<std::shared_ptr<Vertex>> newVertices;
-                newVertices.reserve(numSamples);
-                while (newVertices.size() < numSamples)
+                newVertices.reserve(numNewSamples);
+                while (newVertices.size() < numNewSamples)
                 {
                     // Create a new vertex.
                     newVertices.emplace_back(std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_,
@@ -131,9 +179,14 @@ namespace ompl
 
                 // We need to do some internal housekeeping.
                 ++(*batchId_);
-                radius_ = computeConnectionRadius(vertices_.size());
-                // OMPL_WARN("Need to be more careful when computing the connection radius: The number of samples should
-                // " "reflect the ones that fall in the informed set.");
+                radius_ = computeConnectionRadius(numSamplesInInformedSet + numNewSamples);
+
+                return newVertices;
+            }
+
+            std::size_t ImplicitGraph::getNumVertices() const
+            {
+                return vertices_.size();
             }
 
             std::vector<std::shared_ptr<Vertex>>
@@ -177,12 +230,12 @@ namespace ompl
                 return false;
             }
 
-            const std::vector<std::shared_ptr<Vertex>>& ImplicitGraph::getStartVertices() const
+            const std::vector<std::shared_ptr<Vertex>> &ImplicitGraph::getStartVertices() const
             {
                 return startVertices_;
             }
 
-            const std::vector<std::shared_ptr<Vertex>>& ImplicitGraph::getGoalVertices() const
+            const std::vector<std::shared_ptr<Vertex>> &ImplicitGraph::getGoalVertices() const
             {
                 return goalVertices_;
             }

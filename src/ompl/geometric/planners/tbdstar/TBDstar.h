@@ -74,9 +74,6 @@ namespace ompl
             /** \brief Set the batch size. */
             void setBatchSize(std::size_t batchSize);
 
-            /** \brief Set the option to compute the backward search heuristic. */
-            void setComputeBackwardSearchHeuristic(bool computeBackwardSearchHeuristic);
-
             /** \brief Enable LPA* repair of backward search. */
             void setRepairBackwardSearch(bool setRepairBackwardSearch);
 
@@ -114,6 +111,9 @@ namespace ompl
             /** \brief Rebuilds the forward queue. */
             void rebuildForwardQueue();
 
+            /** \brief Rebuilds the forward queue. */
+            void rebuildBackwardQueue();
+
             /** \brief Returns a vector of states from the argument to a start. */
             std::vector<std::shared_ptr<tbdstar::Vertex>>
             getReversePath(const std::shared_ptr<tbdstar::Vertex> &vertex) const;
@@ -122,10 +122,10 @@ namespace ompl
             std::array<double, 3u> computeSortKey(const std::shared_ptr<tbdstar::Vertex> &parent,
                                                   const std::shared_ptr<tbdstar::Vertex> &child) const;
 
-            void insertOutgoingEdges(const std::shared_ptr<tbdstar::Vertex> &vertex);
+            /** \brief Computes the sort key of a vertex. */
+            std::array<double, 2u> computeSortKey(const std::shared_ptr<tbdstar::Vertex> &vertex) const;
 
-            /** \brief Computes the backward search heuristic. */
-            void computeBackwardSearchHeuristic();
+            void insertOutgoingEdges(const std::shared_ptr<tbdstar::Vertex> &vertex);
 
             /** \brief Checks whether the cost to come of a goal vertex has been updated and updates the solution if so.
              */
@@ -169,14 +169,17 @@ namespace ompl
             /** \brief The number of samples per batch. */
             std::size_t batchSize_{100u};
 
+            /** \brief Flag whether to perform a backward search iteration on the next iteration. */
+            bool performBackwardSearchIteration_{true};
+
             /** \brief Flag whether the forward search has been started on the batch. */
             bool isForwardSearchStartedOnBatch_{false};
+ 
+            /** \brief Flag whether the backward search has been started on the batch. */
+            bool isBackwardSearchStartedOnBatch_{true};
 
             /** \brief Flag whether the forward queue needs to be rebuilt. */
             bool forwardQueueMustBeRebuilt_{false};
-
-            /** \brief The option that specifies whether to compute the backward search heuristic. */
-            bool computeBackwardSearchHeuristic_{true};
 
             /** \brief The option that specifies whether to repair the backward search when detecting a collision. */
             bool repairBackwardSearch_{true};

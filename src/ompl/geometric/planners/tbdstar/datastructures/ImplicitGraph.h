@@ -69,7 +69,10 @@ namespace ompl
                            const std::shared_ptr<std::size_t> &backwardSearchId);
 
                 /** \brief Adds a batch of samples. */
-                void addSamples(std::size_t numSamples);
+                std::vector<std::shared_ptr<Vertex>> addSamples(std::size_t numNewSamples);
+
+                /** \brief Gets the number of samples in the graph. */
+                std::size_t getNumVertices() const;
 
                 /** \brief Registers a state as a start state. */
                 void registerStartState(const ompl::base::State *const startState);
@@ -87,15 +90,18 @@ namespace ompl
                 bool isGoal(const std::shared_ptr<Vertex> &vertex) const;
 
                 /** \brief Get the start vertices. */
-                const std::vector<std::shared_ptr<Vertex>>& getStartVertices() const;
+                const std::vector<std::shared_ptr<Vertex>> &getStartVertices() const;
 
                 /** \brief Get the goal vertices. */
-                const std::vector<std::shared_ptr<Vertex>>& getGoalVertices() const;
+                const std::vector<std::shared_ptr<Vertex>> &getGoalVertices() const;
 
                 /** \brief Get all vertices. */
                 std::vector<std::shared_ptr<Vertex>> getVertices() const;
 
             private:
+                /** \brief Computes the number of samples in the informed set. */
+                std::size_t computeNumberOfSamplesInInformedSet() const;
+
                 /** \brief Computes the connection radius with a given number of samples. */
                 double computeConnectionRadius(std::size_t numSamples) const;
 
@@ -104,6 +110,9 @@ namespace ompl
 
                 /** \brief The definition of the planning problem. */
                 ompl::base::ProblemDefinitionPtr problemDefinition_;
+
+                /** \brief The optimization objective of the planning problem. */
+                ompl::base::OptimizationObjectivePtr optimizationObjective_;
 
                 /** \brief The id of the batch. */
                 std::shared_ptr<std::size_t> batchId_;

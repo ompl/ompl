@@ -275,7 +275,7 @@ namespace ompl
                 /** \brief The batch id for which the cached neighbor list is valid. */
                 mutable std::size_t neighborBatchId_{0u};
 
-                /** \brief The batch id for which the backward search cost to go is valid. */
+                /** \brief The batch id for which the backward search cost to come is valid. */
                 mutable std::size_t backwardSearchBatchId_{0u};
 
                 /** \brief The forward search id this vertex has last been expanded on. */
