@@ -2,6 +2,8 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraph.h>
 #include <ompl/base/State.h>
 #include <ompl/geometric/SimpleSetup.h>
+#include <ompl/control/Control.h>
+#include <ompl/control/DirectedControlSampler.h>
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
@@ -25,6 +27,9 @@ namespace ompl
       bool isPathClockwise(std::vector<ob::State*> &spath);
       bool CheckValidity(const std::vector<ob::State*> &s);
 
+      void createStateAt(ompl::control::SpaceInformation* si_,const std::vector<ob::State*> &path, const double &pathLength, const std::vector<double> &distances, const double newPosition, ob::State* s_interpolate) const;
+      void computePathLength(ompl::control::SpaceInformation* si_,const std::vector<ob::State*> &path, std::vector<double> &stateDistances, double &pathLength);
+
       void Test1();
       void Test2();
       void Test3(int F=0);
@@ -44,6 +49,15 @@ namespace ompl
 
       float max_planning_time_path_path{0.2};
       float epsilon_goalregion{0.05};
+
+      std::vector<ob::State*> statesDyn;
+      std::vector<ob::State*> statesDyn_next;
+      std::vector<ompl::control::Control*> controls;
+      std::vector<ompl::control::Control*> controls_next;
+      int controlSamples{20};
+      int pathSamples{10};
+      ompl::control::DirectedControlSamplerPtr sDCSampler;
+      double distanceThreshold{0.1};
 
     private:
       std::vector<ob::State*> StatesFromVector( 
