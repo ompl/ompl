@@ -1,7 +1,6 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/PathVisibilityChecker.h>
 #include <ompl/base/State.h>
 #include <ompl/base/ScopedState.h>
-#include <ompl/util/Exception.h>
 
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/prm/PRM.h>
@@ -21,6 +20,11 @@
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/StateSpaceTypes.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
+
+#include <ompl/control/Control.h>
+#include <ompl/control/SpaceInformation.h>
+#include <ompl/control/DirectedControlSampler.h>
+#include <ompl/control/SimpleDirectedControlSampler.h>
 
 
 #include <boost/math/constants/constants.hpp>
@@ -50,7 +54,6 @@ PathVisibilityChecker::PathVisibilityChecker(const base::SpaceInformationPtr &si
 
   ss = std::make_shared<og::SimpleSetup>(R2space_);
   si_local = ss->getSpaceInformation();
-
   ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si.get());
   if(siC==nullptr) {
     isDynamic = false;
@@ -145,6 +148,7 @@ public:
           // }
           // // std::cout << "Path1: " << (this->CheckValidity(path1_)?"VALIDPATH":"INVALID") << std::endl;
           // // std::cout << "Path2: " << (this->CheckValidity(path2_)?"VALIDPATH":"INVALID") << std::endl;
+          // exit(0);
       }
   }
 
@@ -189,8 +193,7 @@ public:
     {
       OMPL_ERROR("lineFraction: %f. length: %f, newPos: %f, distanceNext: %f, distanceCur: %f",
           lineFraction, pathLength, newPosition, distanceIdxIdxNext, distances.at(idx));
-
-      throw ompl::Exception("LineFraction out of bounds.");
+      exit(0);
     }
 
     si_->getStateSpace()->interpolate(path.at(idx), path.at(idx+1), lineFraction, s_interpolate);
@@ -232,7 +235,7 @@ bool PathVisibilityChecker::CheckValidity(const std::vector<ob::State*> &s)
     if(!si_->isValid(sk)){
       OMPL_ERROR("State invalid");
       si_->printState(sk);
-      throw ompl::Exception("Invalid State");
+      exit(0);
     }
     // std::pair<ob::State *, double> lastValid;
     // lastValid.first = lastValidState;
@@ -272,18 +275,130 @@ bool PathVisibilityChecker::IsPathVisibleSO2(std::vector<ob::State*> &s1, std::v
     return (s1cw == s2cw);
 }
 
+void PathVisibilityChecker::computePathLength(ompl::control::SpaceInformation* si_,const std::vector<ob::State*> &path, std::vector<double> &stateDistances, double &pathLength) 
+  {
+    pathLength = 0;
+    if (path.size() > 1) {
+      for (uint i = 0; i < path.size() - 1; i++) {
+        double distStateState = si_->distance(path.at(i), path.at(i+1));
+        pathLength += distStateState;
+        stateDistances.push_back(pathLength);
+      }
+    } else {
+      stateDistances.push_back(0);
+    }
+  }
+
+void PathVisibilityChecker::createStateAt(ompl::control::SpaceInformation* si_,const std::vector<ob::State*> &path, const double &pathLength, const std::vector<double> &distances, const double newPosition, ob::State* s_interpolate) const 
+  {
+
+    assert( newPosition <= pathLength);
+
+    int idx = -1;
+    for(uint i = 0; i < distances.size(); i++) {
+      if (distances.at(i) >= newPosition) {
+        idx = i;
+        break;
+      }
+    }
+    assert( idx >= 0 );
+    assert( idx <= distances.size()-1 );
+
+    double lastDistance = (idx > 0)? distances.at(idx-1) : 0.0;
+    double distanceIdxIdxNext = distances.at(idx) - lastDistance;
+
+    double lineFraction = (newPosition - lastDistance)/distanceIdxIdxNext;
+    if(lineFraction < 0 || lineFraction > 1)
+    {
+      OMPL_ERROR("lineFraction: %f. length: %f, newPos: %f, distanceNext: %f, distanceCur: %f",
+          lineFraction, pathLength, newPosition, distanceIdxIdxNext, distances.at(idx));
+      exit(0);
+    }
+
+    si_->getStateSpace()->interpolate(path.at(idx), path.at(idx+1), lineFraction, s_interpolate);
+
+  }
 
 bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2, std::vector<ob::State*> &sLocal)
 {
-    std::cout << "We can assume s1 and s2 being visible from here on." << std::endl;
-    std::cout << "2D points" << std::endl;
+    //std::cout << "We can assume s1 and s2 being visible from here on." << std::endl;
+    //std::cout << "2D points" << std::endl;
+    
+    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
+ 
+    //initialize everything once again
+    ob::State* state_path_1 = siC->allocState();
+    ob::State* state_path_2 = siC->allocState();
+    std::vector<double> path_1_distances;
+    std::vector<double> path_2_distances;
+    double path_1_length = 0;
+    double path_2_length = 0;
+    
+    computePathLength(siC, s1, path_1_distances, path_1_length);
+    computePathLength(siC, s2, path_2_distances, path_2_length);
+
+    //siC->setDirectedControlSamplerAllocator(SimpleDirectedControlSampler(si_, controlSamples));
+    //siC->setDirectedControlSamplerAllocator();
+    sDCSampler = siC->allocDirectedControlSampler();
+    //sDCSampler->ompl::control::SimpleDirectedControlSampler::setNumControlSamples(controlSamples);
+
+    for(int i = 0; i < pathSamples-1; i++){
+      controls.push_back(siC->allocControl());
+      controls_next.push_back(siC->allocControl());
+    }
+
+    for(int i = 0; i < 2*pathSamples-1; i++){
+      statesDyn.push_back(siC->allocState());
+      statesDyn_next.push_back(siC->allocState());
+    }
+
     for(uint k = 0; k < sLocal.size(); k++){
       // si_local->printState(sLocal.at(k));
 
-      const double &x = sLocal.at(k)->as<ob::RealVectorStateSpace::StateType>()->values[0];
-      const double &y = sLocal.at(k)->as<ob::RealVectorStateSpace::StateType>()->values[1];
-      std::cout << x << std::endl;
-      std::cout << y << std::endl;
+      const double &pathspace_x = sLocal.at(k)->as<ob::RealVectorStateSpace::StateType>()->values[0];
+      const double &pathspace_y = sLocal.at(k)->as<ob::RealVectorStateSpace::StateType>()->values[1];
+//      std::cout << pathspace_x << std::endl;
+//      std::cout << pathspace_y << std::endl;
+
+      createStateAt(siC, s1, path_1_length, path_1_distances, pathspace_x, state_path_1);
+      createStateAt(siC, s2, path_2_length, path_2_distances, pathspace_y, state_path_2);
+
+      if(k==0) {
+        //create states in-betweeen paths
+        //si_->getStateSpace()->interpolate(start,target,fraction,newState)
+        for(int i = 0; i < pathSamples - 1; i++) {
+	  //create duplicate states, because the second set gets altered by the control sampling
+          siC->getStateSpace()->interpolate(state_path_1,state_path_2,(i+1)/pathSamples, statesDyn.at(i));
+          siC->getStateSpace()->interpolate(state_path_1,state_path_2,(i+1)/pathSamples, statesDyn.at(i+pathSamples-1));
+          //sample controls to the targets, change targets to the states we actually reach
+          sDCSampler->sampleTo(controls.at(i), s1.at(0), statesDyn.at(i+pathSamples-1));
+          //check, if reached states are close enough to actual target
+          if(!(siC->getStateSpace()->distance(statesDyn.at(i), statesDyn.at(i+pathSamples-1)) <= distanceThreshold)) {
+	    return false;
+          }
+
+        }
+
+      } else {
+        for(int i = 0; i < pathSamples - 1; i++) {
+          //create duplicate states, because the second set gets altered by the control sampling, keep previous states in statesDyn
+          siC->getStateSpace()->interpolate(state_path_1, state_path_2, (i+1)/pathSamples, statesDyn_next.at(i));
+          siC->getStateSpace()->interpolate(state_path_1, state_path_2, (i+1)/pathSamples, statesDyn_next.at(i+pathSamples-1));
+          //sample controls to the targets, change targets to the states we actually reach, keep previous controls in controls
+          sDCSampler->sampleTo(controls_next.at(i), controls.at(i), statesDyn.at(i), statesDyn_next.at(i+pathSamples-1));
+          //check, if reached states are close enough to actual target
+          if(!(siC->getStateSpace()->distance(statesDyn_next.at(i), statesDyn_next.at(i+pathSamples-1)) <= distanceThreshold)) {
+            return false;
+          }
+
+	  //save this set of controls in controls for next iteration
+	  //save this set of statesDyn_next in statesDyn
+	  siC->copyState(statesDyn.at(i), statesDyn_next.at(i));
+	  siC->copyControl(controls.at(i), controls_next.at(i));
+        }
+
+      }
+
     }
     return true;
 }
@@ -333,7 +448,7 @@ bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State*> &s1, std::vect
   //############################################################################
   if(solved && isDynamic){
     std::vector<ob::State*> spath = ss->getSolutionPath().getStates();
-    IsPathDynamicallyVisible(s1, s2, spath);
+    solved = IsPathDynamicallyVisible(s1, s2, spath);
   }
   //############################################################################
   //############################################################################
