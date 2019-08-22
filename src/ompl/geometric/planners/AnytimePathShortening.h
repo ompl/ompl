@@ -39,6 +39,7 @@
 
 #include "ompl/base/Planner.h"
 #include <vector>
+#include <thread>
 
 namespace ompl
 {
@@ -67,6 +68,20 @@ namespace ompl
         class AnytimePathShortening : public base::Planner
         {
         public:
+            /// \brief Factory for creating a shared pointer to an AnytimePathShortening
+            /// instance with numPlanners instances of planners of type PlannerType.
+            template<typename PlannerType>
+            static std::shared_ptr<AnytimePathShortening> createPlanner(
+                const base::SpaceInformationPtr &si,
+                unsigned int numPlanners = std::max(1u, std::thread::hardware_concurrency()))
+            {
+                auto result = std::make_shared<AnytimePathShortening>(si);
+                result->planners_.reserve(numPlanners);
+                for (unsigned int i = 0; i < numPlanners; ++i)
+                    result->planners_.emplace_back(std::make_shared<PlannerType>(si));
+                return result;
+            }
+
             /// \brief Constructor requires the space information to plan in
             AnytimePathShortening(const base::SpaceInformationPtr &si);
 

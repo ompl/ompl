@@ -41,8 +41,6 @@
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/util/String.h"
 
-#include <thread>
-
 ompl::geometric::AnytimePathShortening::AnytimePathShortening(const ompl::base::SpaceInformationPtr &si)
   : ompl::base::Planner(si, "APS")
   , defaultNumPlanners_(std::max(1u, std::thread::hardware_concurrency()))
