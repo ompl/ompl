@@ -319,13 +319,36 @@ void PathVisibilityChecker::createStateAt(ompl::control::SpaceInformation* si_,c
 
   }
 
+bool PathVisibilityChecker::isStepDynamicallyFeasible(const ob::State* s_start, ob::State* s_target, const ompl::control::Control* c_previous, ompl::control::Control* c_current, const double targetRegion, const ompl::control::SpaceInformation* siC, const ompl::control::DirectedControlSamplerPtr sampler){
+  ob::State* s_target_copy = siC->allocState();
+  siC->copyState(s_target_copy, s_target);
+  sampler->sampleTo(c_current, c_previous, s_start, s_target);
+  if(siC->getStateSpace()->distance(s_target_copy, s_target) <= targetRegion){
+    siC->freeState(s_target_copy);
+    return true;
+  } else {
+    siC->freeState(s_target_copy);
+    return false;
+  }
+}
+
+//@TODO Change this function so that it can be used as a directedControlSamplerAllocator
+//allocator for the SimpleDirectedControlSampler
+//change samples for higher/lower accuracy
+//ompl::control::DirectedControlSamplerPtr simpleDirectedControlSamplerAllocator(const ompl::control::SpaceInformationPtr siC) const {
+//    unsigned int samples = 20;
+//    ompl::control::DirectedControlSamplerPtr sampler = std::make_shared<ompl::control::SimpleDirectedControlSampler>(siC, samples);
+//    return sampler;
+//}
+
 bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2, std::vector<ob::State*> &sLocal)
 {
     //std::cout << "We can assume s1 and s2 being visible from here on." << std::endl;
     //std::cout << "2D points" << std::endl;
     
     ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
- 
+    ompl::control::SpaceInformationPtr siCPtr = std::dynamic_pointer_cast <ompl::control::SpaceInformation> (si_);
+
     //initialize everything once again
     ob::State* state_path_1 = siC->allocState();
     ob::State* state_path_2 = siC->allocState();
@@ -334,21 +357,29 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
     double path_1_length = 0;
     double path_2_length = 0;
     
+
     computePathLength(siC, s1, path_1_distances, path_1_length);
     computePathLength(siC, s2, path_2_distances, path_2_length);
 
-    //siC->setDirectedControlSamplerAllocator(SimpleDirectedControlSampler(si_, controlSamples));
-    //siC->setDirectedControlSamplerAllocator();
+    //change formula?
+    //this sets the goal area of each control step to 1/4 of the average length of one path step
+    distanceThreshold = 0.5 * (path_1_length + path_2_length) / (s1.size() + s2.size());
+
+//@TODO Set own Allocator for DirectedControlSampler
+    //siC->setDirectedControlSamplerAllocator(ompl::control::SimpleDirectedControlSampler(siC, controlSamples));
+    //siC->setDirectedControlSamplerAllocator(simpleDirectedControlSamplerAllocator);
+    //ompl::control::SimpleDirectedControlSampler(siC, controlSamples);
     sDCSampler = siC->allocDirectedControlSampler();
     //sDCSampler->ompl::control::SimpleDirectedControlSampler::setNumControlSamples(controlSamples);
 
-    for(int i = 0; i < pathSamples-1; i++){
+    for(int i = 0; i < pathSamples-1.; i++){
       controls.push_back(siC->allocControl());
+      siC->nullControl(controls.at(i));
       controls_next.push_back(siC->allocControl());
-    }
+      siC->nullControl(controls.at(i));
 
-    for(int i = 0; i < 2*pathSamples-1; i++){
       statesDyn.push_back(siC->allocState());
+      siC->copyState(statesDyn.at(i), s1.at(0));
       statesDyn_next.push_back(siC->allocState());
     }
 
@@ -360,46 +391,33 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
 //      std::cout << pathspace_x << std::endl;
 //      std::cout << pathspace_y << std::endl;
 
-      createStateAt(siC, s1, path_1_length, path_1_distances, pathspace_x, state_path_1);
-      createStateAt(siC, s2, path_2_length, path_2_distances, pathspace_y, state_path_2);
+      createStateAt(siC, s1, path_1_length, path_1_distances, pathspace_x*path_1_length, state_path_1);
+      createStateAt(siC, s2, path_2_length, path_2_distances, pathspace_y*path_2_length, state_path_2);
 
-      if(k==0) {
-        //create states in-betweeen paths
-        //si_->getStateSpace()->interpolate(start,target,fraction,newState)
-        for(int i = 0; i < pathSamples - 1; i++) {
-	  //create duplicate states, because the second set gets altered by the control sampling
-          siC->getStateSpace()->interpolate(state_path_1,state_path_2,(i+1)/pathSamples, statesDyn.at(i));
-          siC->getStateSpace()->interpolate(state_path_1,state_path_2,(i+1)/pathSamples, statesDyn.at(i+pathSamples-1));
-          //sample controls to the targets, change targets to the states we actually reach
-          sDCSampler->sampleTo(controls.at(i), s1.at(0), statesDyn.at(i+pathSamples-1));
-          //check, if reached states are close enough to actual target
-          if(!(siC->getStateSpace()->distance(statesDyn.at(i), statesDyn.at(i+pathSamples-1)) <= distanceThreshold)) {
-	    return false;
-          }
+      for(int i = 0; i < pathSamples - 1; i++) {
+        //create duplicate states, because the second set gets altered by the control sampling, keep previous states in statesDyn
+        siC->getStateSpace()->interpolate(state_path_1, state_path_2, (i+1)/pathSamples, statesDyn_next.at(i));
+//        siC->getStateSpace()->interpolate(state_path_1, state_path_2, (i+1)/pathSamples, statesDyn_next.at(i+pathSamples-1));
+        //sample controls to the targets, change targets to the states we actually reach, keep previous controls in controls
+//        sDCSampler->sampleTo(controls_next.at(i), controls.at(i), statesDyn.at(i), statesDyn_next.at(i+pathSamples-1));
+        //check, if reached states are close enough to actual target
+//        if(!(siC->getStateSpace()->distance(statesDyn_next.at(i), statesDyn_next.at(i+pathSamples-1)) <= distanceThreshold)) {
+//          return false;
+//        }
 
+        bool stepFeasible = isStepDynamicallyFeasible(statesDyn.at(i), statesDyn_next.at(i), controls.at(i), controls_next.at(i), distanceThreshold, siC, sDCSampler);
+        if(!stepFeasible){
+          std::cout << "failed" << std::endl;
+          return false;
         }
-
-      } else {
-        for(int i = 0; i < pathSamples - 1; i++) {
-          //create duplicate states, because the second set gets altered by the control sampling, keep previous states in statesDyn
-          siC->getStateSpace()->interpolate(state_path_1, state_path_2, (i+1)/pathSamples, statesDyn_next.at(i));
-          siC->getStateSpace()->interpolate(state_path_1, state_path_2, (i+1)/pathSamples, statesDyn_next.at(i+pathSamples-1));
-          //sample controls to the targets, change targets to the states we actually reach, keep previous controls in controls
-          sDCSampler->sampleTo(controls_next.at(i), controls.at(i), statesDyn.at(i), statesDyn_next.at(i+pathSamples-1));
-          //check, if reached states are close enough to actual target
-          if(!(siC->getStateSpace()->distance(statesDyn_next.at(i), statesDyn_next.at(i+pathSamples-1)) <= distanceThreshold)) {
-            return false;
-          }
-
-	  //save this set of controls in controls for next iteration
-	  //save this set of statesDyn_next in statesDyn
-	  siC->copyState(statesDyn.at(i), statesDyn_next.at(i));
-	  siC->copyControl(controls.at(i), controls_next.at(i));
-        }
-
+        std::cout << k << std::endl;
+	//save this set of controls in controls for next iteration
+	//save this set of statesDyn_next in statesDyn
+        siC->copyState(statesDyn.at(i), statesDyn_next.at(i));
+	siC->copyControl(controls.at(i), controls_next.at(i));
       }
-
     }
+    std::cout << "Went through" << std::endl;
     return true;
 }
 
