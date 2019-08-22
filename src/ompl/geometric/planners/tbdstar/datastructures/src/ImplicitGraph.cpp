@@ -155,6 +155,7 @@ namespace ompl
             {
                 // First get the number of samples inside the informed set.
                 auto numSamplesInInformedSet = computeNumberOfSamplesInInformedSet();
+
                 // Create new vertices.
                 std::vector<std::shared_ptr<Vertex>> newVertices;
                 newVertices.reserve(numNewSamples);

@@ -126,11 +126,8 @@ namespace ompl
 
             ompl::base::Cost Vertex::getExpandedCostToComeFromGoal() const
             {
-                std::cout << "expanded backward search id: " << expandedBackwardSearchId_
-                          << ", backward search id: " << *backwardSearchId_.lock() << '\n';
                 if (expandedBackwardSearchId_ != *backwardSearchId_.lock())
                 {
-                    std::cout << "Setting expanded cost to come from goal to infinity\n";
                     expandedCostToComeFromGoal_ = optimizationObjective_->infiniteCost();
                 }
                 return expandedCostToComeFromGoal_;
@@ -412,9 +409,6 @@ namespace ompl
 
             void Vertex::registerExpansionDuringBackwardSearch()
             {
-                std::cout << "Registering expansion of " << vertexId_
-                          << " (backward search id: " << *backwardSearchId_.lock()
-                          << ", expanded cost to come: " << costToComeFromGoal_ << '\n';
                 assert(!backwardSearchId_.expired());
                 expandedCostToComeFromGoal_ = costToComeFromGoal_;
                 expandedBackwardSearchId_ = *backwardSearchId_.lock();

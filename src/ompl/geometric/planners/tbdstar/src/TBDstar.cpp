@@ -320,19 +320,15 @@ namespace ompl
             // Keep track of the number of iterations.
             ++numIterations_;
 
-            std::cout << "===== Iteration " << numIterations_ << " =====\n";
-
             // If there are vertices in the backward search queue, process one of them.
             if (performBackwardSearchIteration_)
             {
                 if (!backwardQueue_.empty())
                 {
-                    std::cout << "The backward queue is not empty, performing a backward search iteration.\n";
                     performBackwardSearchIteration();
                 }
                 else
                 {
-                    std::cout << "The backward queue is empty, switching to forward search.\n";
                     performBackwardSearchIteration_ = false;
                 }
             }
@@ -340,8 +336,6 @@ namespace ompl
             {
                 if (!isForwardSearchStartedOnBatch_)
                 {
-                    std::cout << "Starting the forward search on the batch.\n";
-
                     // Remember that we've started the forward search on this batch.
                     isForwardSearchStartedOnBatch_ = true;
 
@@ -354,7 +348,6 @@ namespace ompl
                             // Add the outgoing edges of all start vertices to the queue.
                             for (const auto &start : graph_.getStartVertices())
                             {
-                                std::cout << "Inserting outgoing edges of the start into the queue.\n";
                                 insertOutgoingEdges(start);
                             }
 
@@ -365,18 +358,15 @@ namespace ompl
                 }
                 else if (forwardQueueMustBeRebuilt_)
                 {
-                    std::cout << "Rebuilding the forward queue.\n";
                     rebuildForwardQueue();
                     forwardQueueMustBeRebuilt_ = false;
                 }
                 else if (!forwardQueue_.empty())
                 {
-                    std::cout << "Performing a forward search iteration.\n";
                     performForwardSearchIteration();
                 }
                 else  // If both queues are empty, add new samples.
                 {
-                    std::cout << "Adding new samples to the graph.\n";
                     // Add new samples to the graph.
                     auto newVertices = graph_.addSamples(batchSize_);
 
@@ -411,8 +401,6 @@ namespace ompl
             auto child = edge.getChild();
             forwardQueue_.pop();
 
-            std::cout << "Forward search processing edge " << parent->getId() << " -> " << child->getId() << '\n';
-
             // If this is edge can not possibly improve our solution, the search is done.
             auto edgeCost = optimizationObjective_->motionCostHeuristic(parent->getState(), child->getState());
             auto parentCostToGoToGoal = optimizationObjective_->combineCosts(edgeCost, child->getCostToGoToGoal());
@@ -421,33 +409,22 @@ namespace ompl
 
             if (!optimizationObjective_->isCostBetterThan(pathThroughEdgeCost, *solutionCost_))
             {
-                std::cout << "This edge can not improve upon the current solution.\n";
                 if (optimizationObjective_->isFinite(pathThroughEdgeCost) ||
                     !optimizationObjective_->isFinite(computeBestCostToComeFromGoalOfAnyStart()))
                 {
                     forwardQueue_.clear();
-                    std::cout << "The edge cost is finite, clearing the forward queue.\n";
                 }
                 else
                 {
-                    std::cout << "The edge cost is infinite, performing a backward search iteration.\n";
                     performBackwardSearchIteration_ = true;
                 }
             }
             else if (child->hasForwardParent() && child->getForwardParent()->getId() == parent->getId())
             {
-                std::cout << "This is a freebie edge ";
                 // This is a freebie, just insert the outgoing edges of the child.
                 if (!child->hasBeenExpandedDuringCurrentForwardSearch())
                 {
-                    std::cout << "which has not yet been expanded. Inserting the outgoing edges of " << child->getId()
-                              << ".\n";
                     insertOutgoingEdges(child);
-                }
-                else
-                {
-                    std::cout << "which has already been expanded. Not inserting the outgoing edges of "
-                              << child->getId() << ".\n";
                 }
             }
             else if (optimizationObjective_->isCostBetterThan(
@@ -457,7 +434,6 @@ namespace ompl
                              optimizationObjective_->motionCostHeuristic(parent->getState(), child->getState()))))
             {
                 // If the edge cannot improve the cost to come to the child, we're done processing it.
-                std::cout << "This edge cannot improve the cost to come to the child.\n";
                 return;
             }
             else if (parent->isWhitelistedAsChild(child) ||
@@ -489,19 +465,12 @@ namespace ompl
                     // Insert the child's outgoing edges into the queue, if it hasn't been expanded yet.
                     if (!child->hasBeenExpandedDuringCurrentForwardSearch())
                     {
-                        std::cout << "Inserting the outgoing edges of " << child->getId() << " into the queue.\n";
                         insertOutgoingEdges(child);
-                    }
-                    else
-                    {
-                        std::cout << "Not inserting the outgoing edges of " << child->getId()
-                                  << " into the queue, because it has already been expanded.\n";
                     }
                 }
             }
             else
             {
-                std::cout << "This edge is in collision.\n";
                 // This child should be blacklisted.
                 parent->blacklistAsChild(child);
 
@@ -510,8 +479,6 @@ namespace ompl
                 {
                     if (parent->hasBackwardParent() && parent->getBackwardParent()->getId() == child->getId())
                     {
-                        std::cout << "The cost to come from the goal of vertex " << parent->getId()
-                                  << " is set to infinity.\n";
                         // The parent was connected to the child through an invalid edge.
                         parent->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
                         parent->resetBackwardParent();
@@ -545,8 +512,6 @@ namespace ompl
             backwardQueue_.pop();
             vertex->resetBackwardQueuePointer();
 
-            std::cout << "Backward search processing vertex " << vertex->getId() << '\n';
-
             // The open queue should not contain consistent vertices.
             assert(!optimizationObjective_->isCostEquivalentTo(vertex->getCostToComeFromGoal(),
                                                                vertex->getExpandedCostToComeFromGoal()));
@@ -556,34 +521,9 @@ namespace ompl
                     optimizationObjective_->combineCosts(vertex->getCostToComeFromGoal(),
                                                          computeCostToGoToStartHeuristic(vertex)),
                     *solutionCost_) ||
-                // optimizationObjective_->isCostBetterThan(
-                //     optimizationObjective_->combineCosts(vertex->getCostToComeFromStart(),
-                //     vertex->getCostToGoToGoal()), *solutionCost_) ||
                 optimizationObjective_->isCostBetterThan(
                     ompl::base::Cost(computeBestCostToComeFromGoalOfAnyStart().value() + 1e-6), *solutionCost_))
             {
-                if (!optimizationObjective_->isCostBetterThan(
-                        optimizationObjective_->combineCosts(vertex->getCostToComeFromGoal(),
-                                                             computeCostToGoToStartHeuristic(vertex)),
-                        *solutionCost_))
-                {
-                    std::cout << "Vertex can not improve solution. Stopping backward search.\n";
-                }
-                // else if (optimizationObjective_->isCostBetterThan(
-                //              optimizationObjective_->combineCosts(vertex->getCostToComeFromStart(),
-                //                                                   vertex->getCostToGoToGoal()),
-                //              *solutionCost_))
-                // {
-                //     std::cout << "This vertex is on a path that could potentially lead to a better solution. Stopping
-                //     "
-                //                  "backward search.\n";
-                // }
-                else if (optimizationObjective_->isCostBetterThan(
-                             ompl::base::Cost(computeBestCostToComeFromGoalOfAnyStart().value() + 1e-6),
-                             *solutionCost_))
-                {
-                    std::cout << "A start vertex can improve current solution. Stopping backward search.\n";
-                }
                 performBackwardSearchIteration_ = false;
                 return;
             }
@@ -592,15 +532,11 @@ namespace ompl
             if (optimizationObjective_->isCostBetterThan(vertex->getCostToComeFromGoal(),
                                                          vertex->getExpandedCostToComeFromGoal()))
             {
-                std::cout << "Vertex is overconsistent (g = " << vertex->getCostToComeFromGoal()
-                          << ", v = " << vertex->getExpandedCostToComeFromGoal() << ")\n";
                 // Register the expansion of this vertex.
                 vertex->registerExpansionDuringBackwardSearch();
             }
             else
             {
-                std::cout << "Vertex is not overconsistent (g = " << vertex->getCostToComeFromGoal()
-                          << ", v = " << vertex->getExpandedCostToComeFromGoal() << ")\n";
                 // Register the expansion of this vertex.
                 vertex->registerExpansionDuringBackwardSearch();
                 vertex->setExpandedCostToComeFromGoal(optimizationObjective_->infiniteCost());
@@ -612,7 +548,6 @@ namespace ompl
             // backward children.
             for (const auto &child : vertex->getBackwardChildren())
             {
-                std::cout << "Calling update vertex on backward child " << child->getId() << '\n';
                 backwardSearchUpdateVertex(child);
             }
 
@@ -622,7 +557,6 @@ namespace ompl
                 if (neighbor->getId() != vertex->getId() && !neighbor->isBlacklistedAsChild(vertex) &&
                     !vertex->isBlacklistedAsChild(neighbor))
                 {
-                    std::cout << "Calling update vertex on neighbor " << neighbor->getId() << '\n';
                     backwardSearchUpdateVertex(neighbor);
                 }
             }
@@ -630,14 +564,12 @@ namespace ompl
             // We also need to update the forward search children.
             for (const auto &child : vertex->getForwardChildren())
             {
-                std::cout << "Calling update vertex on forward child " << child->getId() << '\n';
                 backwardSearchUpdateVertex(child);
             }
 
             // We also need to update the forward search parent if it exists.
             if (vertex->hasForwardParent())
             {
-                std::cout << "Calling update vertex on forward parent " << vertex->getForwardParent()->getId() << '\n';
                 backwardSearchUpdateVertex(vertex->getForwardParent());
             }
         }
@@ -646,7 +578,6 @@ namespace ompl
         {
             if (!graph_.isGoal(vertex))
             {
-                std::cout << "Updating vertex " << vertex->getId() << '\n';
                 // Get the best parent for this vertex.
                 auto bestParent = vertex->getBackwardParent();
                 auto bestCost = vertex->getCostToComeFromGoal();
@@ -730,19 +661,12 @@ namespace ompl
                 // If this vertex is now disconnected, take special care.
                 if (!optimizationObjective_->isFinite(bestCost))
                 {
-                    std::cout << "This vertex does not have any connected neighbors and is now disconnected.\n";
                     if (vertex->hasBackwardParent())
                     {
                         vertex->getBackwardParent()->removeFromBackwardChildren(vertex->getId());
                         vertex->resetBackwardParent();
                     }
                     return;
-                }
-
-                if (vertex->hasBackwardParent())
-                {
-                    std::cout << "The old backward parent was " << vertex->getBackwardParent()->getId()
-                              << " which resulted in a cost to come of " << vertex->getCostToComeFromGoal() << ".\n";
                 }
 
                 // Update the backward parent.
@@ -754,30 +678,21 @@ namespace ompl
                 // Set the cost to come from the goal.
                 vertex->setCostToComeFromGoal(bestCost);
 
-                std::cout << "The new backward parent is " << bestParent->getId()
-                          << " which results in a cost to come of " << vertex->getCostToComeFromGoal() << ".\n";
-
                 // If this has made the vertex inconsistent, insert or update it in the open queue.
                 if (!optimizationObjective_->isCostEquivalentTo(vertex->getCostToComeFromGoal(),
                                                                 vertex->getExpandedCostToComeFromGoal()))
                 {
-                    std::cout << "As a result, the vertex is now inconsistent (g = " << vertex->getCostToComeFromGoal()
-                              << ", v = " << vertex->getExpandedCostToComeFromGoal()
-                              << "), and we insert or update it in the queue.\n";
                     insertOrUpdateInBackwardQueue(vertex);
                 }
                 else
                 {
-                    std::cout << "This vertex is consistent";
                     // Remove this vertex from the queue if it is in the queue.
                     auto backwardQueuePointer = vertex->getBackwardQueuePointer();
                     if (backwardQueuePointer)
                     {
                         backwardQueue_.remove(backwardQueuePointer);
                         vertex->resetBackwardQueuePointer();
-                        std::cout << ", so we remove it from the backward queue";
                     }
-                    std::cout << ".\n";
                 }
             }
         }
@@ -790,13 +705,11 @@ namespace ompl
             // Update it if it is in the queue.
             if (element)
             {
-                std::cout << "Vertex " << vertex->getId() << " already exists in the queue, we'll update.\n";
                 element->data.first = computeSortKey(vertex);
                 backwardQueue_.update(element);
             }
             else  // Insert it into the queue otherwise.
             {
-                std::cout << "Vertex " << vertex->getId() << " does not yet exist in the queue, we insert.\n";
                 // Compute the sort key for the vertex queue.
                 std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>> element(computeSortKey(vertex),
                                                                                             vertex);
@@ -850,48 +763,37 @@ namespace ompl
             // Insert the edges to the current children.
             for (const auto &child : vertex->getForwardChildren())
             {
-                std::cout << "Inserting edge to forward child " << vertex->getId() << " -> " << child->getId()
-                          << " into queue.\n";
                 forwardQueue_.insert(tbdstar::Edge(vertex, child, computeSortKey(vertex, child)));
             }
 
             // Insert the edges to the current neighbors.
             for (const auto &neighbor : graph_.getNeighbors(vertex))
             {
-                std::cout << "Checking edge " << vertex->getId() << " -> " << neighbor->getId() << ".\n";
-
                 // We do not want self loops.
                 if (vertex->getId() == neighbor->getId())
                 {
-                    std::cout << "Self loop, not inserting.\n";
                     continue;
                 }
 
                 // If the neighbor is the backward parent, it will explicitly be added later.
                 if (vertex->hasBackwardParent() && neighbor->getId() == vertex->getBackwardParent()->getId())
                 {
-                    std::cout << "Backward parent, will insert later.\n";
                     continue;
                 }
 
                 // We do not want blacklisted edges.
                 if (neighbor->isBlacklistedAsChild(vertex) || vertex->isBlacklistedAsChild(neighbor))
                 {
-                    std::cout << "Blacklisted, not inserting.\n";
                     continue;
                 }
 
                 // If none of the above tests caught on, we can insert the edge.
-                std::cout << "Inserting edge to neighbor " << vertex->getId() << " -> " << neighbor->getId()
-                          << " into queue.\n";
                 forwardQueue_.insert(tbdstar::Edge(vertex, neighbor, computeSortKey(vertex, neighbor)));
             }
 
             // Insert the edge to the backward search parent.
             if (vertex->hasBackwardParent())
             {
-                std::cout << "Inserting edge to backward parent " << vertex->getId() << " -> "
-                          << vertex->getBackwardParent()->getId() << " into queue.\n";
                 const auto &backwardParent = vertex->getBackwardParent();
                 forwardQueue_.insert(tbdstar::Edge(vertex, backwardParent, computeSortKey(vertex, backwardParent)));
             }
