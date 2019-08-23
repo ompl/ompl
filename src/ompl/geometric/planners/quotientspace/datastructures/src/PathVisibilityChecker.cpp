@@ -347,7 +347,7 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
     //std::cout << "2D points" << std::endl;
     
     ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
-    ompl::control::SpaceInformationPtr siCPtr = std::dynamic_pointer_cast <ompl::control::SpaceInformation> (si_);
+    //ompl::control::SpaceInformationPtr siCPtr = std::dynamic_pointer_cast <ompl::control::SpaceInformation> (si_);
 
     //initialize everything once again
     ob::State* state_path_1 = siC->allocState();
@@ -357,13 +357,17 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
     double path_1_length = 0;
     double path_2_length = 0;
     
-
+    if(!(isPathDynamicallyFeasible(s1) && isPathDynamicallyFeasible(s2))){
+      std::cout << "Initial Paths are dynamically not feasible" << std::endl;
+      return false;
+    }
+    
     computePathLength(siC, s1, path_1_distances, path_1_length);
     computePathLength(siC, s2, path_2_distances, path_2_length);
 
     //change formula?
     //this sets the goal area of each control step to 1/4 of the average length of one path step
-    distanceThreshold = 0.5 * (path_1_length + path_2_length) / (s1.size() + s2.size());
+    distanceThreshold = .25 * (path_1_length + path_2_length) / (s1.size() + s2.size());
 
 //@TODO Set own Allocator for DirectedControlSampler
     //siC->setDirectedControlSamplerAllocator(ompl::control::SimpleDirectedControlSampler(siC, controlSamples));
@@ -404,7 +408,7 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
 //        if(!(siC->getStateSpace()->distance(statesDyn_next.at(i), statesDyn_next.at(i+pathSamples-1)) <= distanceThreshold)) {
 //          return false;
 //        }
-
+	//could change to bool = siC->checkMotion(statesDyn.at(i), statesDyn_next.at(i)), but has lower accuracy
         bool stepFeasible = isStepDynamicallyFeasible(statesDyn.at(i), statesDyn_next.at(i), controls.at(i), controls_next.at(i), distanceThreshold, siC, sDCSampler);
         if(!stepFeasible){
           std::cout << "failed" << std::endl;
@@ -420,6 +424,18 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
     std::cout << "Went through" << std::endl;
     return true;
 }
+
+
+bool PathVisibilityChecker::isPathDynamicallyFeasible(const std::vector<ompl::base::State*> path) const {
+  for(unsigned int i = 0; i < path.size() - 2; i++) {
+    bool stepValid = si_->checkMotion(path.at(i), path.at(i+1));
+    if(!stepValid) {
+      return false;
+    }
+  }
+  return true;
+}
+
 
 bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2)
 {

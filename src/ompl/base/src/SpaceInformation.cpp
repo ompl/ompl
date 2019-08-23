@@ -43,6 +43,7 @@
 #include "ompl/base/spaces/DubinsStateSpace.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
+#include "ompl/base/DynamicalMotionValidator.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Time.h"
@@ -115,6 +116,9 @@ void ompl::base::SpaceInformation::setDefaultMotionValidator()
     else if (dynamic_cast<ConstrainedStateSpace *>(stateSpace_.get()))
         motionValidator_ = std::make_shared<ConstrainedMotionValidator>(this);
     else
+    //@TODO Was DiscreteMotionValidator, could not change to DynamicalMotionValidator
+    // tried:
+        //motionValidator_ = std::make_shared<DynamicalMotionValidator>(this);
         motionValidator_ = std::make_shared<DiscreteMotionValidator>(this);
 }
 
