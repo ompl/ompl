@@ -40,6 +40,7 @@
 #include <chrono>
 #include <ctime>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 
 namespace ompl
@@ -81,6 +82,24 @@ namespace ompl
             ss << std::put_time(std::localtime(&pt), "%F %T");
             return ss.str();
         }
+
+        // Adapted from the deprecated boost/progress.hpp header file
+        class ProgressDisplay
+        {
+        public:
+            explicit ProgressDisplay(std::ostream &os = std::cout);
+            unsigned int operator++();
+            unsigned int count() const
+            {
+                return count_;
+            }
+
+        private:
+            std::ostream& out_;
+            unsigned int count_{0ul};
+            unsigned int nextTicCount_{0ul};
+            unsigned int tic_{0ul};
+        };
     }
 }
 
