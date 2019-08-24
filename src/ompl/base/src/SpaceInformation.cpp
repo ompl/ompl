@@ -39,11 +39,11 @@
 #include <queue>
 #include <utility>
 #include "ompl/base/DiscreteMotionValidator.h"
+#include "ompl/base/DynamicalMotionValidator.h"
 #include "ompl/base/samplers/UniformValidStateSampler.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
-#include "ompl/base/DynamicalMotionValidator.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Time.h"
@@ -118,8 +118,8 @@ void ompl::base::SpaceInformation::setDefaultMotionValidator()
     else
     //@TODO Was DiscreteMotionValidator, could not change to DynamicalMotionValidator
     // tried:
-        //motionValidator_ = std::make_shared<DynamicalMotionValidator>(this);
-        motionValidator_ = std::make_shared<DiscreteMotionValidator>(this);
+        motionValidator_ = std::make_shared<DynamicalMotionValidator>(this);
+        // motionValidator_ = std::make_shared<DiscreteMotionValidator>(this);
 }
 
 void ompl::base::SpaceInformation::setValidStateSamplerAllocator(const ValidStateSamplerAllocator &vssa)
