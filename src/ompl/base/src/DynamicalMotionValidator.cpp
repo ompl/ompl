@@ -42,11 +42,13 @@
 void ompl::base::DynamicalMotionValidator::defaultSettings()
 {
     stateSpace_ = si_->getStateSpace().get();
+    std::cout << "Got called" << std::endl;
     isDynamic = false;
     if (stateSpace_ == nullptr)
         throw Exception("No state space for motion validator");
     siC = dynamic_cast<ompl::control::SpaceInformation*>(si_);
     if(siC != nullptr) {
+      std::cout << "is definitely dynamic" << std::endl;
       isDynamic = true;
       c_current = siC->allocControl();
       sampler = siC->allocDirectedControlSampler();
@@ -135,6 +137,7 @@ bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const St
       si_->copyState(s_target_copy, s2);
       sampler->sampleTo(c_current, s1, s_target_copy);
       double targetRegion = tolerance * si_->getStateSpace()->distance(s1, s2);
+      std::cout << "Used the right one" << std::endl;
       if(si_->getStateSpace()->distance(s_target_copy, s2) <= targetRegion){
         return true;
       } else {

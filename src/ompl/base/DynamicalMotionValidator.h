@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_BASE_DISCRETE_MOTION_VALIDATOR_
-#define OMPL_BASE_DISCRETE_MOTION_VALIDATOR_
+#ifndef OMPL_BASE_DYNAMICAL_MOTION_VALIDATOR_
+#define OMPL_BASE_DYNAMICAL_MOTION_VALIDATOR_
 
 #include "ompl/base/MotionValidator.h"
 #include "ompl/base/SpaceInformation.h"

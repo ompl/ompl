@@ -118,8 +118,8 @@ void ompl::base::SpaceInformation::setDefaultMotionValidator()
     else
     //@TODO Was DiscreteMotionValidator, could not change to DynamicalMotionValidator
     // tried:
-        //motionValidator_ = std::make_shared<DynamicalMotionValidator>(this);
-        motionValidator_ = std::make_shared<DiscreteMotionValidator>(this);
+        motionValidator_ = std::make_shared<DynamicalMotionValidator>(this);
+        //motionValidator_ = std::make_shared<DiscreteMotionValidator>(this);
 }
 
 void ompl::base::SpaceInformation::setValidStateSamplerAllocator(const ValidStateSamplerAllocator &vssa)
