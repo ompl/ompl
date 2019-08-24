@@ -45,16 +45,7 @@ ompl::time::ProgressDisplay::ProgressDisplay(std::ostream &os) : out_(os)
 
 unsigned int ompl::time::ProgressDisplay::operator++()
 {
-    if (++count_ >= nextTicCount_)
-    {
-        auto ticsNeeded = count_ >> 1;
-        do
-        {
-            out_ << '*' << std::flush;
-        } while (++tic_ < ticsNeeded);
-        nextTicCount_ = tic_ << 1;
-        if (count_ == 100u)
-            out_ << std::endl;
-    }
+    if (++count_ & 1) out_ << '*' << std::flush;
+    if (count_ == 100u) out_ << '*' << std::endl;
     return count_;
 }

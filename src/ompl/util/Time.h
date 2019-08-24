@@ -96,9 +96,7 @@ namespace ompl
 
         private:
             std::ostream& out_;
-            unsigned int count_{0ul};
-            unsigned int nextTicCount_{0ul};
-            unsigned int tic_{0ul};
+            unsigned int count_{0u};
         };
     }
 }
