@@ -29,7 +29,6 @@ namespace ompl
 
       void createStateAt(ob::SpaceInformationPtr si_,const std::vector<ob::State*> &path, const double &pathLength, const std::vector<double> &distances, const double newPosition, ob::State* s_interpolate) const;
       void computePathLength(ob::SpaceInformationPtr si_,const std::vector<ob::State*> &path, std::vector<double> &stateDistances, double &pathLength);
-      //bool isStepDynamicallyFeasible(const ob::State* s_start, ob::State* s_target, const ompl::control::Control* c_previous, ompl::control::Control* c_current, const double targetRegion, const ompl::control::SpaceInformation* siC, const ompl::control::DirectedControlSamplerPtr sampler);
       bool isPathDynamicallyFeasible(const std::vector<ompl::base::State*> path) const;
 
       void Test1();
@@ -56,15 +55,10 @@ namespace ompl
       bool stepFeasible;
       std::vector<ob::State*> statesDyn;
       std::vector<ob::State*> statesDyn_next;
-      //std::vector<ompl::control::Control*> controls;
-      //std::vector<ompl::control::Control*> controls_next;
+
       int controlSamples{20};
       double pathSamples{10.};
       ompl::control::DirectedControlSamplerPtr sDCSampler;
-      //double distanceThreshold{0.1};
-      
-//      ompl::control::DirectedControlSamplerPtr simpleDirectedControlSamplerAllocator(const ompl::control::SpaceInformationPtr siC) const;
-
 
     private:
       std::vector<ob::State*> StatesFromVector( 

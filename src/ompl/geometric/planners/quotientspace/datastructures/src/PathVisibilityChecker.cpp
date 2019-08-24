@@ -1,6 +1,7 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/PathVisibilityChecker.h>
 #include <ompl/base/State.h>
 #include <ompl/base/ScopedState.h>
+#include <ompl/util/Exception.h>
 
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/prm/PRM.h>
@@ -54,7 +55,8 @@ PathVisibilityChecker::PathVisibilityChecker(const base::SpaceInformationPtr &si
 
   ss = std::make_shared<og::SimpleSetup>(R2space_);
   si_local = ss->getSpaceInformation();
-  ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si.get());
+
+  ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
   if(siC==nullptr) {
     isDynamic = false;
   }else{
@@ -148,7 +150,6 @@ public:
           // }
           // // std::cout << "Path1: " << (this->CheckValidity(path1_)?"VALIDPATH":"INVALID") << std::endl;
           // // std::cout << "Path2: " << (this->CheckValidity(path2_)?"VALIDPATH":"INVALID") << std::endl;
-          // exit(0);
       }
   }
 
@@ -193,7 +194,8 @@ public:
     {
       OMPL_ERROR("lineFraction: %f. length: %f, newPos: %f, distanceNext: %f, distanceCur: %f",
           lineFraction, pathLength, newPosition, distanceIdxIdxNext, distances.at(idx));
-      exit(0);
+
+      throw ompl::Exception("LineFraction out of bounds.");
     }
 
     si_->getStateSpace()->interpolate(path.at(idx), path.at(idx+1), lineFraction, s_interpolate);
@@ -235,7 +237,7 @@ bool PathVisibilityChecker::CheckValidity(const std::vector<ob::State*> &s)
     if(!si_->isValid(sk)){
       OMPL_ERROR("State invalid");
       si_->printState(sk);
-      exit(0);
+      throw ompl::Exception("Invalid State");
     }
     // std::pair<ob::State *, double> lastValid;
     // lastValid.first = lastValidState;
@@ -346,9 +348,6 @@ void PathVisibilityChecker::createStateAt(ob::SpaceInformationPtr si_,const std:
 
 bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2, std::vector<ob::State*> &sLocal)
 {
-    //std::cout << "We can assume s1 and s2 being visible from here on." << std::endl;
-    //std::cout << "2D points" << std::endl;
-    
     ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
 
     //initialize everything again
@@ -392,17 +391,14 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
 
 	stepFeasible = si_->checkMotion(statesDyn.at(i), statesDyn_next.at(i));
         if(!stepFeasible){
-          std::cout << "failed" << std::endl;
           return false;
         }
-        std::cout << k << std::endl;
-
+        //std::cout << k << std::endl;
 
 	//save this set of statesDyn_next in statesDyn to use in next iteration
         si_->copyState(statesDyn.at(i), statesDyn_next.at(i));
       }
     }
-    std::cout << "Went through" << std::endl;
     return true;
 }
 

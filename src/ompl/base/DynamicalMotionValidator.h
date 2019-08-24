@@ -69,21 +69,21 @@ namespace ompl
 
             bool checkMotion(const State *s1, const State *s2) const override;
 
-	    bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
+            bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
 
-	    bool checkPath(std::vector<ompl::base::State*> path) const;
+            bool checkPath(std::vector<ompl::base::State*> path) const;
 
         private:
             StateSpace *stateSpace_;
 
             void defaultSettings();
 	    
-	    ompl::control::DirectedControlSamplerPtr sampler;
-	    ompl::control::Control* c_current;
-	    ompl::base::State* s_target_copy;
-	    ompl::control::SpaceInformation* siC;
-	    bool isDynamic; 
-	    double tolerance{0.25}; //multiplies with distance of start and target
+            ompl::control::DirectedControlSamplerPtr sampler;
+            ompl::control::Control* c_current;
+            ompl::base::State* s_target_copy;
+            ompl::control::SpaceInformation* siC;
+            bool isDynamic; 
+            double tolerance{0.25}; //multiplies with distance of start and target
         };
     }
 }

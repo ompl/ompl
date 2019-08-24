@@ -179,18 +179,19 @@ QuotientSpaceGraphSparse::Vertex QuotientSpaceGraphSparse::addConfiguration(Conf
 {
     Vertex v = BaseT::addConfiguration(q);
 
-    // std::vector<Configuration*> neighbors;
-    // unsigned N = boost::num_vertices(graph_);
-    // unsigned K = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)N)));
-    // nearestDatastructure_->nearestK(q, K, neighbors);
+    //Add Edges to Delta-Neighbors (PRM* style)
+    std::vector<Configuration*> neighbors;
+    unsigned N = boost::num_vertices(graph_);
+    unsigned K = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)N)));
+    nearestDatastructure_->nearestK(q, K, neighbors);
 
-    // for(uint k = 0; k < neighbors.size(); k++){
-    //   Configuration *qn = neighbors.at(k);
-    //   if(Q1->checkMotion(q->state, qn->state))
-    //   {
-    //     addEdge(q->index, qn->index);
-    //   }
-    // }
+    for(uint k = 0; k < neighbors.size(); k++){
+      Configuration *qn = neighbors.at(k);
+      if(Q1->checkMotion(q->state, qn->state))
+      {
+        addEdge(q->index, qn->index);
+      }
+    }
 
     //Sparse Graph addition
     findGraphNeighbors(q, graphNeighborhood, visibleNeighborhood);
@@ -593,12 +594,10 @@ void QuotientSpaceGraphSparse::pushPathToStack(std::vector<ob::State*> &path)
   multiObj->addObjective(clearObj, 1.0);
   ob::OptimizationObjectivePtr pathObj(multiObj);
 
-  og::PathSimplifier shortcutter(Q1, ob::GoalPtr(), pathObj);
-
-
   if(isDynamic){
-      shortcutter.shortcutPath(gpath);
+      // shortcutter.shortcutPath(gpath);
   }else{
+      og::PathSimplifier shortcutter(Q1, ob::GoalPtr(), pathObj);
       //make sure that we have enough vertices so that the right path class is
       //visualized (problems with S1)
       if(Q1->getStateSpace()->getType() == ob::STATE_SPACE_SO2)
