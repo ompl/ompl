@@ -170,13 +170,15 @@ void readPlannerData()
         ob::GoalState goal(si);
         goal.setState(data.getGoalVertex(0).getState());
         ob::PlannerData::Graph::Vertex start = boost::vertex(data.getStartIndex(0), graph);
+        boost::astar_visitor<boost::null_visitor> dummy_visitor;
         boost::astar_search(graph, start,
             [&goal, &opt, &vertices](ob::PlannerData::Graph::Vertex v1) { return distanceHeuristic(v1, &goal, &opt, vertices); },
             boost::predecessor_map(prev).
             distance_compare([&opt](ob::Cost c1, ob::Cost c2) { return opt.isCostBetterThan(c1, c2); }).
             distance_combine([&opt](ob::Cost c1, ob::Cost c2) { return opt.combineCosts(c1, c2); }).
             distance_inf(opt.infiniteCost()).
-            distance_zero(opt.identityCost()));
+            distance_zero(opt.identityCost()).
+            visitor(dummy_visitor));
 
         // Extracting the path
         og::PathGeometric path(si);
