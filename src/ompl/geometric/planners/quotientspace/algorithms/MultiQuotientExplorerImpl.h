@@ -20,18 +20,18 @@ ompl::geometric::MotionExplorerImpl<T>::MotionExplorerImpl(std::vector<ob::Space
 }
 
 template <class T>
-MotionExplorerImpl<T>::~MotionExplorerImpl()
+ompl::geometric::MotionExplorerImpl<T>::~MotionExplorerImpl()
 {
 }
 
 template <class T>
-void MotionExplorerImpl<T>::setup()
+void ompl::geometric::MotionExplorerImpl<T>::setup()
 {
     BaseT::setup();
 }
 
 template <class T>
-void MotionExplorerImpl<T>::clear()
+void ompl::geometric::MotionExplorerImpl<T>::clear()
 {
     BaseT::clear();
     selectedPath_.clear();
@@ -40,7 +40,11 @@ void MotionExplorerImpl<T>::clear()
 }
 
 template <class T>
-void MotionExplorerImpl<T>::setSelectedPath( std::vector<int> selectedPath){
+void ompl::geometric::MotionExplorerImpl<T>::setSelectedPath( std::vector<int> selectedPath){
+    std::vector<int> oldSelectedPath = selectedPath_;
+    unsigned int N = selectedPath.size();
+    unsigned int Nold = oldSelectedPath.size();
+
     selectedPath_ = selectedPath;
     for(uint k = 0; k < selectedPath.size(); k++){
       //selected path implies path bias, which implies a sampling bias towards the
@@ -50,12 +54,32 @@ void MotionExplorerImpl<T>::setSelectedPath( std::vector<int> selectedPath){
           
       qgraph->selectedPath = selectedPath.at(k);
     }
-    std::cout << "[SELECTION CHANGE] QuotientSpaces set to [";
+
+    std::cout << "[SELECTION CHANGE] QuotientSpaces set from [";
+    for(uint k = 0; k < oldSelectedPath.size(); k++){
+      int sk = oldSelectedPath.at(k);
+      std::cout << sk << " ";
+    }
+    std::cout << "] to [";
     for(uint k = 0; k < selectedPath.size(); k++){
       int sk = selectedPath.at(k);
       std::cout << sk << " ";
     }
     std::cout << "]" << std::endl;
+
+    //User changed to different folder (and the files inside have not been
+    //generated yet)
+    if(N==Nold && N>0 && (N < this->quotientSpaces_.size())){
+        unsigned int M = selectedPath.back();
+        unsigned int Mold = oldSelectedPath.back();
+        if(M!=Mold){
+            std::cout << "Changed Folder. Clear quotient-spaces [" 
+              << N << "]" << std::endl;
+            this->quotientSpaces_.at(N)->clear();
+        }
+
+    }
+
 }
 
 template <class T>
@@ -70,6 +94,11 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
     {
         K = K-1;
     }
+
+    //Check which 
+
+
+
     og::QuotientSpaceGraphSparse *jQuotient = 
       static_cast<og::QuotientSpaceGraphSparse*>(this->quotientSpaces_.at(K));
     std::cout << *jQuotient << std::endl;
