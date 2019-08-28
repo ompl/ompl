@@ -6,6 +6,7 @@
 #include <ompl/control/Control.h>
 #include <ompl/control/SimpleDirectedControlSampler.h>
 #include <ompl/control/StatePropagator.h>
+#include <ompl/base/DynamicalMotionValidator.h>
 
 using namespace og;
 using namespace ob;
@@ -20,15 +21,17 @@ QuotientTopology::QuotientTopology(const ob::SpaceInformationPtr &si, QuotientSp
 
   if(isDynamic) {
     ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si.get());
+    siC->setMotionValidator(std::make_shared<ob::DynamicalMotionValidator>(siC));
+    siC->setup();
+    siC->setMinMaxControlDuration(1,controlDuration);
+    std::cout << "MaxControlDuration: " << controlDuration << std::endl;
 
     dCSampler = siC->allocDirectedControlSampler();
-    //only works for simpleDirectedControlSampler, which is used as default, but method can't be called
+    //@TODO: need to write allocator for simpleDirectedControlSampler
     //dCSampler->setNumControlSamples(numberOfControlSamples);
     propStepSize = siC->getPropagationStepSize();
     prop = siC->getStatePropagator();
     c_random = siC->allocControl();
-    //auto *rmotion = new Motion(siC);
-    //ompl::control::Control *c_random = rmotion->control;
   }
 
   q_random = new Configuration(Q1);
@@ -130,31 +133,29 @@ void QuotientTopology::growGeometric(){
 
 void QuotientTopology::growControl(){
   //do this, if control-case
-    //std::cout << "Got here 111111111111111111111111111111" << std::endl;
     const Configuration *q_nearest = nearest(q_random);
     s_random = q_random->state;
-    //std::cout << "Got here 222222222222222222222222222222" << std::endl;
-    //std::cout << c_random << std::endl;
-    //ompl::control::Control c_rand = ompl::control::Control();
+
     //changes q_random to the state we actually get with directed control c_random
     int duration = dCSampler->sampleTo(c_random, q_nearest->state, s_random);
     //c_random is always collisionfree if applied to q_nearest
-    //std::cout << "Got here 333333333333333333333333333333" << std::endl;
     totalNumberOfSamples_++;
     totalNumberOfFeasibleSamples_++;
+
     if(duration<controlDuration){
       //used control for full duration, add q_random
       Configuration *q_next = new Configuration(Q1, s_random);
       Vertex v_next = addConfiguration(q_next);
       addEdge(q_nearest->index, v_next);
-      //std::cout<<"1111111111"<<std::endl;
+      std::cout << "smaller" << std::endl;
+
     } else {
       //sets q_reached to the State we actually reach with our control for controlDuration
       prop->propagate(q_nearest->state, c_random, controlDuration,s_random);
       Configuration *q_next = new Configuration(Q1, s_random);
       Vertex v_next = addConfiguration(q_next);
       addEdge(q_nearest->index, v_next);
-      //std::cout<<"22222222222"<<std::endl;
+      std::cout << duration << std::endl;
     }
     if(!hasSolution_){
       bool satisfied = sameComponentSparse(v_start_sparse, v_goal_sparse);

@@ -63,7 +63,7 @@ namespace ompl
             /** \brief Constructor takes the state space to construct samples for as argument
                 Optionally, a \e k value can be given to indicate the number of controls to
                 try when directing a system toward a specific state.  Default value is 1. */
-            SimpleDirectedControlSampler(const SpaceInformation *si, unsigned int k = 200);
+            SimpleDirectedControlSampler(const SpaceInformation *si, unsigned int k = 500);
 
             ~SimpleDirectedControlSampler() override;
 
@@ -113,6 +113,11 @@ namespace ompl
 
             /** \brief The number of controls to sample when finding the best control*/
             unsigned int numControlSamples_;
+//##########################################
+	    double distanceFactor_{0.25};
+	    double toleratedDistance_;
+	    double dist;
+//##########################################
         };
     }
 }

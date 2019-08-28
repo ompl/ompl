@@ -21,6 +21,7 @@
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/StateSpaceTypes.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
+#include <ompl/base/DynamicalMotionValidator.h>
 
 #include <ompl/control/Control.h>
 #include <ompl/control/SpaceInformation.h>
@@ -242,6 +243,7 @@ bool PathVisibilityChecker::CheckValidity(const std::vector<ob::State*> &s)
     // std::pair<ob::State *, double> lastValid;
     // lastValid.first = lastValidState;
     // bool val = si_->checkMotion(sk, skk, lastValid);
+
     bool val = si_->checkMotion(sk, skk);
     if(!val) return false;
   }
@@ -348,7 +350,10 @@ void PathVisibilityChecker::createStateAt(ob::SpaceInformationPtr si_,const std:
 
 bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2, std::vector<ob::State*> &sLocal)
 {
-    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
+    std::cout << "Checked two different paths" << std::endl;
+    siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
+    //siC->setMotionValidator(std::make_shared<ob::DynamicalMotionValidator>(siC));
+    //siC->setup();
 
     //initialize everything again
     ob::State* state_path_1 = siC->allocState();
@@ -357,12 +362,15 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
     std::vector<double> path_2_distances;
     double path_1_length = 0;
     double path_2_length = 0;
+
+    //if(!(isPathDynamicallyFeasible(s1) && isPathDynamicallyFeasible(s2))){
+    //  std::cout << "Initial Paths are dynamically not feasible" << std::endl;
+    //  return false;
+    //}
     
-    if(!(isPathDynamicallyFeasible(s1) && isPathDynamicallyFeasible(s2))){
-      std::cout << "Initial Paths are dynamically not feasible" << std::endl;
-      return false;
-    }
-    
+//#######################################################
+
+
     computePathLength(si_, s1, path_1_distances, path_1_length);
     computePathLength(si_, s2, path_2_distances, path_2_length);
 
@@ -378,20 +386,25 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
     }
 
     for(uint k = 0; k < sLocal.size(); k++){
-
+      std::cout << "Got to interpolation state " << k << std::endl;
       const double &pathspace_x = sLocal.at(k)->as<ob::RealVectorStateSpace::StateType>()->values[0];
       const double &pathspace_y = sLocal.at(k)->as<ob::RealVectorStateSpace::StateType>()->values[1];
 
       createStateAt(si_, s1, path_1_length, path_1_distances, pathspace_x*path_1_length, state_path_1);
       createStateAt(si_, s2, path_2_length, path_2_distances, pathspace_y*path_2_length, state_path_2);
+     
+      
 
       for(int i = 0; i < pathSamples - 1; i++) {
         //create States between the two given paths
         si_->getStateSpace()->interpolate(state_path_1, state_path_2, (i+1)/pathSamples, statesDyn_next.at(i));
-
-	stepFeasible = si_->checkMotion(statesDyn.at(i), statesDyn_next.at(i));
+        
+        testCheckMotion(state_path_1, state_path_2);
+	
+        stepFeasible = si_->checkMotion(statesDyn.at(i), statesDyn_next.at(i));
         if(!stepFeasible){
-          return false;
+	  //std::cout << "Paths were dynamically different" << std::endl;
+          //return false;
         }
         //std::cout << k << std::endl;
 
@@ -399,17 +412,32 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
         si_->copyState(statesDyn.at(i), statesDyn_next.at(i));
       }
     }
+    std::cout << "Paths were dynamically identical" << std::endl;
     return true;
 }
 
+void PathVisibilityChecker::testCheckMotion(const ob::State* s1, const ob::State* s2){
+  ob::State* s2_copy = siC->allocState();
+  ompl::control::Control* cont = siC->allocControl();
+  sDCSampler->sampleTo(cont, s1, s2_copy);
+  //s2 is reachable
+  bool motionFeasible = siC->checkMotion(s1,s2_copy);
+  if(motionFeasible){
+    std::cout << "correct" << std::endl;
+  } else {
+    std::cout << "false false false" << std::endl;
+  }
+
+}
 
 bool PathVisibilityChecker::isPathDynamicallyFeasible(const std::vector<ompl::base::State*> path) const {
-  for(unsigned int i = 0; i < path.size() - 2; i++) {
-    bool stepValid = si_->checkMotion(path.at(i), path.at(i+1));
+  for(unsigned int i = 0; i < path.size() - 1; i++) {
+    bool stepValid = siC->checkMotion(path.at(i), path.at(i+1));
     if(!stepValid) {
       return false;
     }
   }
+  std::cout << "checked initial paths, are ok" << std::endl;
   return true;
 }
 

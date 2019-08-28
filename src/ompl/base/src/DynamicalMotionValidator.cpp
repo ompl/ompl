@@ -42,17 +42,17 @@
 void ompl::base::DynamicalMotionValidator::defaultSettings()
 {
     stateSpace_ = si_->getStateSpace().get();
-    std::cout << "Got called" << std::endl;
     isDynamic = false;
     if (stateSpace_ == nullptr)
         throw Exception("No state space for motion validator");
     siC = dynamic_cast<ompl::control::SpaceInformation*>(si_);
     if(siC != nullptr) {
-      std::cout << "is definitely dynamic" << std::endl;
       isDynamic = true;
       c_current = siC->allocControl();
       sampler = siC->allocDirectedControlSampler();
       s_target_copy = siC->allocState();
+    } else {
+      //si_->setStateValidityCheckingResolution(0.01*si_->getStateValidityCheckingResolution());
     }
 }
 
@@ -82,6 +82,7 @@ bool ompl::base::DynamicalMotionValidator::checkPath(const std::vector<ompl::bas
 bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const State *s2) const
 {
     /* assume motion starts in a valid configuration so s1 is valid */
+    
     if (!si_->isValid(s2))
     {
         invalid_++;
@@ -90,6 +91,7 @@ bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const St
 
     
     if(!isDynamic){
+      //geometric case
       bool result = true;
       int nd = stateSpace_->validSegmentCount(s1, s2);
 
@@ -137,7 +139,6 @@ bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const St
       si_->copyState(s_target_copy, s2);
       sampler->sampleTo(c_current, s1, s_target_copy);
       double targetRegion = tolerance * si_->getStateSpace()->distance(s1, s2);
-      std::cout << "Used the right one" << std::endl;
       if(si_->getStateSpace()->distance(s_target_copy, s2) <= targetRegion){
         return true;
       } else {
