@@ -31,6 +31,8 @@ namespace ompl
       void computePathLength(ob::SpaceInformationPtr si_,const std::vector<ob::State*> &path, std::vector<double> &stateDistances, double &pathLength);
       bool isPathDynamicallyFeasible(const std::vector<ompl::base::State*> path) const;
 
+      void testCheckMotion(const ompl::base::State* s1, const ompl::base::State* s2);
+
       void Test1();
       void Test2();
       void Test3(int F=0);
@@ -59,6 +61,7 @@ namespace ompl
       int controlSamples{20};
       double pathSamples{10.};
       ompl::control::DirectedControlSamplerPtr sDCSampler;
+      ompl::control::SpaceInformation* siC;
 
     private:
       std::vector<ob::State*> StatesFromVector( 
