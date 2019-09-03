@@ -889,11 +889,11 @@ bool ompl::base::CompoundStateSpace::isHybrid() const
 {
     bool c = false;
     bool d = false;
-    for (unsigned int i = 0; i < componentCount_; ++i)
+    for (const auto component : components_)
     {
-        if (components_[i]->isHybrid())
+        if (component->isHybrid())
             return true;
-        if (components_[i]->isDiscrete())
+        if (component->isDiscrete())
             d = true;
         else
             c = true;
@@ -916,8 +916,8 @@ const ompl::base::StateSpacePtr &ompl::base::CompoundStateSpace::getSubspace(con
 
 bool ompl::base::CompoundStateSpace::hasSubspace(const std::string &name) const
 {
-    for (unsigned int i = 0; i < componentCount_; ++i)
-        if (components_[i]->getName() == name)
+    for (const auto component : components_)
+        if (component->getName() == name)
             return true;
     return false;
 }
@@ -1038,8 +1038,8 @@ void ompl::base::CompoundStateSpace::copyState(State *destination, const State *
 unsigned int ompl::base::CompoundStateSpace::getSerializationLength() const
 {
     unsigned int l = 0;
-    for (unsigned int i = 0; i < componentCount_; ++i)
-        l += components_[i]->getSerializationLength();
+    for (const auto component : components_)
+        l += component->getSerializationLength();
     return l;
 }
 
@@ -1078,8 +1078,8 @@ double ompl::base::CompoundStateSpace::distance(const State *state1, const State
 void ompl::base::CompoundStateSpace::setLongestValidSegmentFraction(double segmentFraction)
 {
     StateSpace::setLongestValidSegmentFraction(segmentFraction);
-    for (unsigned int i = 0; i < componentCount_; ++i)
-        components_[i]->setLongestValidSegmentFraction(segmentFraction);
+    for (const auto component : components_)
+        component->setLongestValidSegmentFraction(segmentFraction);
 }
 
 unsigned int ompl::base::CompoundStateSpace::validSegmentCount(const State *state1, const State *state2) const
@@ -1216,8 +1216,8 @@ void ompl::base::CompoundStateSpace::printSettings(std::ostream &out) const
 
 void ompl::base::CompoundStateSpace::setup()
 {
-    for (unsigned int i = 0; i < componentCount_; ++i)
-        components_[i]->setup();
+    for (const auto component : components_)
+        component->setup();
 
     StateSpace::setup();
 }
@@ -1225,8 +1225,8 @@ void ompl::base::CompoundStateSpace::setup()
 void ompl::base::CompoundStateSpace::computeLocations()
 {
     StateSpace::computeLocations();
-    for (unsigned int i = 0; i < componentCount_; ++i)
-        components_[i]->computeLocations();
+    for (const auto component : components_)
+        component->computeLocations();
 }
 
 namespace ompl

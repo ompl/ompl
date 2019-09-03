@@ -477,11 +477,9 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
         // Add planner progress property names to struct
         exp_.planners[i].progressPropertyNames.emplace_back("time REAL");
-        base::Planner::PlannerProgressProperties::const_iterator iter;
-        for (iter = planners_[i]->getPlannerProgressProperties().begin();
-             iter != planners_[i]->getPlannerProgressProperties().end(); ++iter)
+        for (const auto &property : planners_[i]->getPlannerProgressProperties())
         {
-            exp_.planners[i].progressPropertyNames.push_back(iter->first);
+            exp_.planners[i].progressPropertyNames.push_back(property.first);
         }
         std::sort(exp_.planners[i].progressPropertyNames.begin(), exp_.planners[i].progressPropertyNames.end());
 
