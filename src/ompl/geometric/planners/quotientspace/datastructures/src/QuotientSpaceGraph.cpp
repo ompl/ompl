@@ -333,7 +333,8 @@ ompl::base::PathPtr ompl::geometric::QuotientSpaceGraph::getPath(const Vertex &s
                                     return opt_->combineCosts(c1.getCost(), c2.getCost());
                                 })
                                 .distance_inf(opt_->infiniteCost())
-                                .distance_zero(opt_->identityCost()));
+                                .distance_zero(opt_->identityCost())
+                                .visitor(AStarGoalVisitor<Vertex>(goal)));
     }
     catch (AStarFoundGoal &)
     {

@@ -134,11 +134,11 @@ namespace ompl
                 std::string name{"quotient_graph"};
             };
             /** \brief A quotient-graph structure using boost::adjacency_list bundles */
-            using Graph = boost::adjacency_list<boost::vecS, 
-                  boost::vecS, 
-                  boost::undirectedS, 
+            using Graph = boost::adjacency_list<boost::vecS,
+                  boost::vecS,
+                  boost::undirectedS,
                   Configuration *,
-                  EdgeInternalState, 
+                  EdgeInternalState,
                   GraphBundle
             >;
 
@@ -163,7 +163,6 @@ namespace ompl
             virtual unsigned int getNumberOfVertices() const;
             virtual unsigned int getNumberOfEdges() const;
 
-            virtual void grow() = 0;
             virtual bool sampleQuotient(ompl::base::State *) override;
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
 
@@ -181,7 +180,7 @@ namespace ompl
 
             virtual void setup() override;
             virtual void clear() override;
-            void clearQuery();
+            void clearQuery() override;
             virtual void clearVertices();
             virtual void deleteConfiguration(Configuration *q);
 
