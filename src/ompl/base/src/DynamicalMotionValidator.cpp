@@ -51,6 +51,8 @@ void ompl::base::DynamicalMotionValidator::defaultSettings()
       c_current = siC->allocControl();
       sampler = siC->allocDirectedControlSampler();
       s_target_copy = siC->allocState();
+    } else {
+      //si_->setStateValidityCheckingResolution(0.01*si_->getStateValidityCheckingResolution());
     }
 }
 
@@ -80,6 +82,7 @@ bool ompl::base::DynamicalMotionValidator::checkPath(const std::vector<ompl::bas
 bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const State *s2) const
 {
     /* assume motion starts in a valid configuration so s1 is valid */
+    
     if (!si_->isValid(s2))
     {
         invalid_++;
@@ -88,6 +91,7 @@ bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const St
 
     
     if(!isDynamic){
+      //geometric case
       bool result = true;
       int nd = stateSpace_->validSegmentCount(s1, s2);
 

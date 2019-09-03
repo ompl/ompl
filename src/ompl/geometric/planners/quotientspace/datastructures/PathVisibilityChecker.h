@@ -27,10 +27,11 @@ namespace ompl
       bool isPathClockwise(std::vector<ob::State*> &spath);
       bool CheckValidity(const std::vector<ob::State*> &s);
 
-      void createStateAt(ompl::control::SpaceInformation* si_,const std::vector<ob::State*> &path, const double &pathLength, const std::vector<double> &distances, const double newPosition, ob::State* s_interpolate) const;
-      void computePathLength(ompl::control::SpaceInformation* si_,const std::vector<ob::State*> &path, std::vector<double> &stateDistances, double &pathLength);
-      bool isStepDynamicallyFeasible(const ob::State* s_start, ob::State* s_target, const ompl::control::Control* c_previous, ompl::control::Control* c_current, const double targetRegion, const ompl::control::SpaceInformation* siC, const ompl::control::DirectedControlSamplerPtr sampler);
+      void createStateAt(ob::SpaceInformationPtr si_,const std::vector<ob::State*> &path, const double &pathLength, const std::vector<double> &distances, const double newPosition, ob::State* s_interpolate) const;
+      void computePathLength(ob::SpaceInformationPtr si_,const std::vector<ob::State*> &path, std::vector<double> &stateDistances, double &pathLength);
       bool isPathDynamicallyFeasible(const std::vector<ompl::base::State*> path) const;
+
+      void testCheckMotion(const ompl::base::State* s1, const ompl::base::State* s2);
 
       void Test1();
       void Test2();
@@ -38,6 +39,7 @@ namespace ompl
 
     protected:
       bool isDynamic{false};
+      
       ob::SpaceInformationPtr si_;
       ob::SpaceInformationPtr si_local;
       ob::State *lastValidState;
@@ -51,18 +53,15 @@ namespace ompl
 
       float max_planning_time_path_path{0.2};
       float epsilon_goalregion{0.05};
-
+      
+      bool stepFeasible;
       std::vector<ob::State*> statesDyn;
       std::vector<ob::State*> statesDyn_next;
-      std::vector<ompl::control::Control*> controls;
-      std::vector<ompl::control::Control*> controls_next;
+
       int controlSamples{20};
       double pathSamples{10.};
       ompl::control::DirectedControlSamplerPtr sDCSampler;
-      double distanceThreshold{0.1};
-      
-//      ompl::control::DirectedControlSamplerPtr simpleDirectedControlSamplerAllocator(const ompl::control::SpaceInformationPtr siC) const;
-
+      ompl::control::SpaceInformation* siC;
 
     private:
       std::vector<ob::State*> StatesFromVector( 

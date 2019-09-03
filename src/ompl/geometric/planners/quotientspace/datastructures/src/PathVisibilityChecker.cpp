@@ -21,6 +21,7 @@
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/StateSpaceTypes.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
+#include <ompl/base/DynamicalMotionValidator.h>
 
 #include <ompl/control/Control.h>
 #include <ompl/control/SpaceInformation.h>
@@ -242,6 +243,7 @@ bool PathVisibilityChecker::CheckValidity(const std::vector<ob::State*> &s)
     // std::pair<ob::State *, double> lastValid;
     // lastValid.first = lastValidState;
     // bool val = si_->checkMotion(sk, skk, lastValid);
+
     bool val = si_->checkMotion(sk, skk);
     if(!val) return false;
   }
@@ -277,7 +279,7 @@ bool PathVisibilityChecker::IsPathVisibleSO2(std::vector<ob::State*> &s1, std::v
     return (s1cw == s2cw);
 }
 
-void PathVisibilityChecker::computePathLength(ompl::control::SpaceInformation* si_,const std::vector<ob::State*> &path, std::vector<double> &stateDistances, double &pathLength) 
+void PathVisibilityChecker::computePathLength(ob::SpaceInformationPtr si_,const std::vector<ob::State*> &path, std::vector<double> &stateDistances, double &pathLength) 
   {
     pathLength = 0;
     if (path.size() > 1) {
@@ -291,7 +293,8 @@ void PathVisibilityChecker::computePathLength(ompl::control::SpaceInformation* s
     }
   }
 
-void PathVisibilityChecker::createStateAt(ompl::control::SpaceInformation* si_,const std::vector<ob::State*> &path, const double &pathLength, const std::vector<double> &distances, const double newPosition, ob::State* s_interpolate) const 
+//copies the createStateAt-method of the pathPathValidityChecker, but only for control::SpaceInformation
+void PathVisibilityChecker::createStateAt(ob::SpaceInformationPtr si_,const std::vector<ob::State*> &path, const double &pathLength, const std::vector<double> &distances, const double newPosition, ob::State* s_interpolate) const 
   {
 
     assert( newPosition <= pathLength);
@@ -321,18 +324,20 @@ void PathVisibilityChecker::createStateAt(ompl::control::SpaceInformation* si_,c
 
   }
 
-bool PathVisibilityChecker::isStepDynamicallyFeasible(const ob::State* s_start, ob::State* s_target, const ompl::control::Control* c_previous, ompl::control::Control* c_current, const double targetRegion, const ompl::control::SpaceInformation* siC, const ompl::control::DirectedControlSamplerPtr sampler){
-  ob::State* s_target_copy = siC->allocState();
-  siC->copyState(s_target_copy, s_target);
-  sampler->sampleTo(c_current, c_previous, s_start, s_target);
-  if(siC->getStateSpace()->distance(s_target_copy, s_target) <= targetRegion){
-    siC->freeState(s_target_copy);
-    return true;
-  } else {
-    siC->freeState(s_target_copy);
-    return false;
-  }
-}
+//not necessary (probably), use si_->checkMotion instead
+
+//bool PathVisibilityChecker::isStepDynamicallyFeasible(const ob::State* s_start, ob::State* s_target, const ompl::control::Control* c_previous, //ompl::control::Control* c_current, const double targetRegion, const ompl::control::SpaceInformation* siC, const //ompl::control::DirectedControlSamplerPtr sampler){
+//  ob::State* s_target_copy = siC->allocState();
+//  siC->copyState(s_target_copy, s_target);
+//  sampler->sampleTo(c_current, c_previous, s_start, s_target);
+//  if(siC->getStateSpace()->distance(s_target_copy, s_target) <= targetRegion){
+//    siC->freeState(s_target_copy);
+//    return true;
+//  } else {
+//    siC->freeState(s_target_copy);
+//    return false;
+//  }
+//}
 
 //@TODO Change this function so that it can be used as a directedControlSamplerAllocator
 //allocator for the SimpleDirectedControlSampler
@@ -345,80 +350,94 @@ bool PathVisibilityChecker::isStepDynamicallyFeasible(const ob::State* s_start, 
 
 bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2, std::vector<ob::State*> &sLocal)
 {
-    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
-    //ompl::control::SpaceInformationPtr siCPtr = std::dynamic_pointer_cast <ompl::control::SpaceInformation> (si_);
+    std::cout << "Checked two different paths" << std::endl;
+    siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
+    //siC->setMotionValidator(std::make_shared<ob::DynamicalMotionValidator>(siC));
+    //siC->setup();
 
-    //initialize everything once again
+    //initialize everything again
     ob::State* state_path_1 = siC->allocState();
     ob::State* state_path_2 = siC->allocState();
     std::vector<double> path_1_distances;
     std::vector<double> path_2_distances;
     double path_1_length = 0;
     double path_2_length = 0;
-    
-    if(!(isPathDynamicallyFeasible(s1) && isPathDynamicallyFeasible(s2))){
-      std::cout << "Initial Paths are dynamically not feasible" << std::endl;
-      return false;
-    }
-    
-    computePathLength(siC, s1, path_1_distances, path_1_length);
-    computePathLength(siC, s2, path_2_distances, path_2_length);
 
-    //change formula?
-    //this sets the goal area of each control step to 1/4 of the average length of one path step
-    distanceThreshold = .25 * (path_1_length + path_2_length) / (s1.size() + s2.size());
+    //if(!(isPathDynamicallyFeasible(s1) && isPathDynamicallyFeasible(s2))){
+    //  std::cout << "Initial Paths are dynamically not feasible" << std::endl;
+    //  return false;
+    //}
+    
+//#######################################################
 
-//@TODO Set own Allocator for DirectedControlSampler
-    //siC->setDirectedControlSamplerAllocator(ompl::control::SimpleDirectedControlSampler(siC, controlSamples));
+
+    computePathLength(si_, s1, path_1_distances, path_1_length);
+    computePathLength(si_, s2, path_2_distances, path_2_length);
+
+
+    //@TODO Set own Allocator for DirectedControlSampler
     //siC->setDirectedControlSamplerAllocator(simpleDirectedControlSamplerAllocator);
-    //ompl::control::SimpleDirectedControlSampler(siC, controlSamples);
     sDCSampler = siC->allocDirectedControlSampler();
-    //sDCSampler->ompl::control::SimpleDirectedControlSampler::setNumControlSamples(controlSamples);
 
     for(int i = 0; i < pathSamples-1.; i++){
-      controls.push_back(siC->allocControl());
-      siC->nullControl(controls.at(i));
-      controls_next.push_back(siC->allocControl());
-      siC->nullControl(controls.at(i));
-
-      statesDyn.push_back(siC->allocState());
-      siC->copyState(statesDyn.at(i), s1.at(0));
-      statesDyn_next.push_back(siC->allocState());
+      statesDyn.push_back(si_->allocState());
+      si_->copyState(statesDyn.at(i), s1.at(0));
+      statesDyn_next.push_back(si_->allocState());
     }
 
     for(uint k = 0; k < sLocal.size(); k++){
-      // si_local->printState(sLocal.at(k));
-
+      std::cout << "Got to interpolation state " << k << std::endl;
       const double &pathspace_x = sLocal.at(k)->as<ob::RealVectorStateSpace::StateType>()->values[0];
       const double &pathspace_y = sLocal.at(k)->as<ob::RealVectorStateSpace::StateType>()->values[1];
 
-      createStateAt(siC, s1, path_1_length, path_1_distances, pathspace_x*path_1_length, state_path_1);
-      createStateAt(siC, s2, path_2_length, path_2_distances, pathspace_y*path_2_length, state_path_2);
+      createStateAt(si_, s1, path_1_length, path_1_distances, pathspace_x*path_1_length, state_path_1);
+      createStateAt(si_, s2, path_2_length, path_2_distances, pathspace_y*path_2_length, state_path_2);
+     
+      
 
       for(int i = 0; i < pathSamples - 1; i++) {
-        //create duplicate states, because the second set gets altered by the control sampling, keep previous states in statesDyn
-        siC->getStateSpace()->interpolate(state_path_1, state_path_2, (i+1)/pathSamples, statesDyn_next.at(i));
-	//could change to bool = siC->checkMotion(statesDyn.at(i), statesDyn_next.at(i)), but has lower accuracy
-        bool stepFeasible = isStepDynamicallyFeasible(statesDyn.at(i), statesDyn_next.at(i), controls.at(i), controls_next.at(i), distanceThreshold, siC, sDCSampler);
+        //create States between the two given paths
+        si_->getStateSpace()->interpolate(state_path_1, state_path_2, (i+1)/pathSamples, statesDyn_next.at(i));
+        
+        testCheckMotion(state_path_1, state_path_2);
+	
+        stepFeasible = si_->checkMotion(statesDyn.at(i), statesDyn_next.at(i));
         if(!stepFeasible){
-          return false;
+	  //std::cout << "Paths were dynamically different" << std::endl;
+          //return false;
         }
-        // std::cout << k << std::endl;
-        siC->copyState(statesDyn.at(i), statesDyn_next.at(i));
-        siC->copyControl(controls.at(i), controls_next.at(i));
+        //std::cout << k << std::endl;
+
+	//save this set of statesDyn_next in statesDyn to use in next iteration
+        si_->copyState(statesDyn.at(i), statesDyn_next.at(i));
       }
     }
+    std::cout << "Paths were dynamically identical" << std::endl;
     return true;
 }
 
+void PathVisibilityChecker::testCheckMotion(const ob::State* s1, const ob::State* s2){
+  ob::State* s2_copy = siC->allocState();
+  ompl::control::Control* cont = siC->allocControl();
+  sDCSampler->sampleTo(cont, s1, s2_copy);
+  //s2 is reachable
+  bool motionFeasible = siC->checkMotion(s1,s2_copy);
+  if(motionFeasible){
+    std::cout << "correct" << std::endl;
+  } else {
+    std::cout << "false false false" << std::endl;
+  }
+
+}
 
 bool PathVisibilityChecker::isPathDynamicallyFeasible(const std::vector<ompl::base::State*> path) const {
-  for(unsigned int i = 0; i < path.size() - 2; i++) {
-    bool stepValid = si_->checkMotion(path.at(i), path.at(i+1));
+  for(unsigned int i = 0; i < path.size() - 1; i++) {
+    bool stepValid = siC->checkMotion(path.at(i), path.at(i+1));
     if(!stepValid) {
       return false;
     }
   }
+  std::cout << "checked initial paths, are ok" << std::endl;
   return true;
 }
 
