@@ -67,6 +67,8 @@ Planners in this category only accounts for the geometric and kinematic constrai
     The FMT∗ algorithm performs a “lazy” dynamic programming recursion on a set of probabilistically-drawn samples to grow a tree of paths, which moves outward in cost-to-come space. Unlike all other planners, the numbers of valid samples needs to be chosen beforehand.
   - [Bidirectional Fast Marching Tree algorithm (BFMT∗)](\ref gBFMT)<br>
     Executes two FMT* trees, one from the start and another one from the goal resulting in a faster planner as it explores less space.
+  - [Quotient-Space RRT (QRRT)](\ref QRRT)<br>
+    A generalization of RRT to plan on different abstraction levels. The abstraction levels are represented by quotient-spaces, and QRRT grows random trees sequentially and simultaneously on each quotient-space. 
 - **Optimizing planners**<br>
   In recent years several sampling-based planning algorithms have been proposed that still provide some optimality guarantees. Typically, an optimal solution is assumed to be shortest path. In OMPL we have a more general framework for expressing the cost of states and paths that allows you to, e.g., maximize the minimum clearance along a path, minimize the mechanical work, or some arbitrary user-defined optimization criterion. See \ref optimalPlanning for more information. Some of the planners below use this general cost framework, but keep in mind that convergence to optimality is **not guaranteed** when optimizing over something other than path length.
   - [PRM*](\ref gPRMstar)<br> An asymptotically optimal version of PRM; _uses the general cost framework._

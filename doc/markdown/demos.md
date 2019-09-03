@@ -36,4 +36,9 @@
   * [ConstrainedPlanningImplicitParallel](ConstrainedPlanningImplicitChain_8cpp_source.html). Plan for a parallel robot made of many implicit chains. The results for this program are visualizable with the [Blender](https://www.blender.org/) file `ConstrainedPlanningImplicitParallel.blend`. Use the `-o` flag to enable output, and run the script linked inside the blender file.
   * [ConstrainedPlanningKinematicChain](ConstrainedPlanningKinematicChain_8cpp_source.html). Similar to the kinematic chain benchmark above, but with a constraint that only allows the tip of the manipulator to move along a line.
 
+- QuotientSpace Planning Demos. Planning on different abstraction levels. For more information refer to the [QuotientSpace Planning Guide](quotientSpacePlanning.html) and the [QuotientSpace Planning Tutorial](quotientSpacePlanningTutorial.html)
+  * [Quotient Space Rigid Body in 2D](QuotientSpacePlanningRigidBody2D_8cpp_source.html). Two-level planning for a rigid body in \f$SE(2)\f$ with quotient space \f$\mathbb{R}^2\f$. 
+  * [Quotient Space Rigid Body in 3D](QuotientSpacePlanningRigidBody3D_8cpp_source.html). Two-level planning for a rigid body in \f$SE(3)\f$ with quotient space \f$\mathbb{R}^3\f$. 
+  * [Quotient Space HyperCube](QuotientSpacePlanningHyperCube_8cpp_source.html). N-level hypercube benchmark using a point robot moving in a cube \f$\mathbb{R}^N\f$. We use QuotientSpaces \f$\{\mathbb{R}^2,\mathbb{R}^4,\cdots,\mathbb{R}^N\f$ (This is a modified version of the [Hypercube benchmark](HypercubeBenchmark_8cpp_source.html)).
+  * [Quotient Space Kinematic Chain](QuotientSpacePlanningKinematicChain_8cpp_source.html). Planning benchmark of different QuotientSpace seuqences for a kinematic chain in \f$\mathbb{R}^N\f$ (This is a modified version of the [Kinematic chain benchmark.](KinematicChainBenchmark_8cpp_source.html)).
 @}

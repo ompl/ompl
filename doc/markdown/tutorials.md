@@ -12,6 +12,7 @@ Below we include a number of tutorials we believe are useful for understanding h
 - [Benchmarking planners](benchmark.html)
 - [Optimal planning](optimalPlanningTutorial.html)
 - [Constrained planning](constrainedPlanningTutorial.html)
+- [QuotientSpace planning](quotientSpacePlanningTutorial.html)
 
 ## Intermediate
 
