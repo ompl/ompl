@@ -64,7 +64,7 @@ namespace ompl
         */
 
         /** \brief QuotientSpace Rapidly Exploring Random Trees Algorithm*/
-        typedef ompl::geometric::MultiQuotient<ompl::geometric::QRRTImpl> QRRT;
+        using QRRT = ompl::geometric::MultiQuotient<ompl::geometric::QRRTImpl>;
 
     }  // namespace geometric
 }  // namespace ompl

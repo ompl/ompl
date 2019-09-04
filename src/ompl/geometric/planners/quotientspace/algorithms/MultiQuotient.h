@@ -131,5 +131,5 @@ namespace ompl
         };
     }  // namespace geometric
 }  // namespace ompl
-#include "MultiQuotientImpl.h"
+#include <ompl/geometric/planners/quotientspace/algorithms/MultiQuotientImpl.h>
 #endif

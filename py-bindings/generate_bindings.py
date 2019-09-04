@@ -637,6 +637,8 @@ class ompl_geometric_generator_t(code_generator_t):
         # exclude deprecated API function
         self.ompl_ns.free_function('getDefaultPlanner').exclude()
 
+        self.std_ns.class_('vector< std::shared_ptr<ompl::base::SpaceInformation> >').rename('vectorSpaceInformation')
+
         # Using nullptr as a default value in method arguments causes
         # problems with Boost.Python.
         # See https://github.com/boostorg/python/issues/60
@@ -645,7 +647,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # Py++ seems to get confused by some methods declared in one module
         # that are *not* overridden in a derived class in another module. The
         # Planner class is defined in ompl::base and two of its virtual methods,
-        # setProblemDefinition and checkValidity, and not overridden by most
+        # setProblemDefinition and checkValidity, are not overridden by most
         # planners. The code below forces Py++ to do the right thing (or at
         # least make it work). It seems rather hacky and there may be a better
         # solution.
@@ -654,15 +656,15 @@ class ompl_geometric_generator_t(code_generator_t):
             planner.add_registration_code(
                 'def("solve", (::ompl::base::PlannerStatus(::ompl::base::Planner::*)( double ))' \
                 '(&::ompl::base::Planner::solve), (bp::arg("solveTime")) )')
-            if planner.name != 'PRM':
-                # PRM overrides setProblemDefinition, so we don't need to add this code
+            if planner.name != 'PRM' and planner.name != 'QRRT':
+                # PRM and QRRT override setProblemDefinition, so we don't need to add this code
                 planner.add_registration_code("""
                 def("setProblemDefinition",&::ompl::base::Planner::setProblemDefinition,
-                    &%s_wrapper::default_setProblemDefinition, (bp::arg("pdef")) )""" %
-                                              planner.name)
+                    &%s::default_setProblemDefinition, (bp::arg("pdef")) )""" %
+                                              planner.wrapper_alias)
             planner.add_registration_code("""
             def("checkValidity",&::ompl::base::Planner::checkValidity,
-                &%s_wrapper::default_checkValidity )""" % planner.name)
+                &%s::default_checkValidity )""" % planner.wrapper_alias)
 
         # The OMPL implementation of PRM uses two threads: one for constructing
         # the roadmap and another for checking for a solution. This causes
@@ -715,7 +717,7 @@ class ompl_geometric_generator_t(code_generator_t):
         # LazyPRM's Vertex type is void* so exclude addMilestone which has return type void*
         self.ompl_ns.class_('LazyPRM').member_function('addMilestone').exclude()
         # avoid difficulties in exporting the return type std::vector<base::PlannerDataPtr>
-                # do this for all multithreaded planners
+        # do this for all multithreaded planners
         for planner in ['SPARS', 'SPARStwo']:
             cls = self.ompl_ns.class_(planner)
             cls.constructor(arg_types=["::ompl::base::SpaceInformationPtr const &"]).exclude()
