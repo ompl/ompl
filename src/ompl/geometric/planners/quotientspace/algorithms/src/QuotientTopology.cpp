@@ -19,7 +19,7 @@ QuotientTopology::QuotientTopology(const ob::SpaceInformationPtr &si, QuotientSp
   Planner::declareParam<double>("range", this, &QuotientTopology::setRange, &QuotientTopology::getRange, "0.:1.:10000.");
   Planner::declareParam<double>("goal_bias", this, &QuotientTopology::setGoalBias, &QuotientTopology::getGoalBias, "0.:.1:1.");
 
-  if(isDynamic) {
+  if(isDynamic()) {
     ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si.get());
     siC->setMotionValidator(std::make_shared<ob::DynamicalMotionValidator>(siC));
     siC->setup();
@@ -97,7 +97,7 @@ void QuotientTopology::grow(){
       sample(q_random->state);
    }
   }
-  if(isDynamic) {
+  if(isDynamic()) {
     growControl();
   } else {
     growGeometric();
@@ -131,13 +131,18 @@ void QuotientTopology::growGeometric(){
   }
 }
 
+//(1) Directed Graph
+//(2) Do not add goal
 void QuotientTopology::growControl(){
   //do this, if control-case
     const Configuration *q_nearest = nearest(q_random);
     s_random = q_random->state;
 
     //changes q_random to the state we actually get with directed control c_random
+    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
+    unsigned int cd = rng_.uniformInt(siC->getMinControlDuration(), siC->getMaxControlDuration());
     int duration = dCSampler->sampleTo(c_random, q_nearest->state, s_random);
+
     //c_random is always collisionfree if applied to q_nearest
     totalNumberOfSamples_++;
     totalNumberOfFeasibleSamples_++;
@@ -145,17 +150,15 @@ void QuotientTopology::growControl(){
     if(duration<controlDuration){
       //used control for full duration, add q_random
       Configuration *q_next = new Configuration(Q1, s_random);
-      Vertex v_next = addConfiguration(q_next);
-      addEdge(q_nearest->index, v_next);
-      std::cout << "smaller" << std::endl;
-
+      Vertex v_next = addConfigurationSparse(q_next);
+      addEdgeSparse(q_nearest->index, v_next);
     } else {
       //sets q_reached to the State we actually reach with our control for controlDuration
-      prop->propagate(q_nearest->state, c_random, controlDuration,s_random);
+      prop->propagate(q_nearest->state, c_random, duration, s_random);
       Configuration *q_next = new Configuration(Q1, s_random);
-      Vertex v_next = addConfiguration(q_next);
-      addEdge(q_nearest->index, v_next);
-      std::cout << duration << std::endl;
+      Vertex v_next = addConfigurationSparse(q_next);
+      addEdgeSparse(q_nearest->index, v_next);
+      // std::cout << duration << std::endl;
     }
     if(!hasSolution_){
       bool satisfied = sameComponentSparse(v_start_sparse, v_goal_sparse);
@@ -164,5 +167,5 @@ void QuotientTopology::growControl(){
         hasSolution_ = true;
       }
     }
-  }
+}
 

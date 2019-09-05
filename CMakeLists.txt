@@ -170,7 +170,7 @@ add_subdirectory(src)
 #add_subdirectory(tests)
 #add_subdirectory(demos)
 #add_subdirectory(scripts)
-#add_subdirectory(doc)
+add_subdirectory(doc)
 
 if(NOT MSVC)
     target_link_flags(ompl)

@@ -50,7 +50,7 @@ namespace ompl
 
         int numberOfControlSamples{10};
         double propStepSize;
-        int controlDuration{200};
+        int controlDuration{10};
         double maxDistance{.0};
         double goalBias{.05};
         double epsilon{.0};

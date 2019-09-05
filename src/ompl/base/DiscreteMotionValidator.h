@@ -63,11 +63,11 @@ namespace ompl
 
             ~DiscreteMotionValidator() override = default;
 
-            bool checkMotion(const State *s1, const State *s2) const override;
+            virtual bool checkMotion(const State *s1, const State *s2) const override;
 
-            bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
+            virtual bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
 
-        private:
+        protected:
             StateSpace *stateSpace_;
 
             void defaultSettings();

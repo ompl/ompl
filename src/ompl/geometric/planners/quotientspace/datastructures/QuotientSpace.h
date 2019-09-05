@@ -131,6 +131,10 @@ namespace ompl
             /// \brief Child is a less simplified quotient-space
             /// (lower in abstraction hierarchy)
             QuotientSpace *getChild() const;
+
+            bool hasParent() const;
+            bool hasChild() const;
+
             /// Level in abstraction hierarchy of quotient-spaces
             unsigned int getLevel() const;
             /// Change abstraction level
@@ -165,6 +169,8 @@ namespace ompl
             ///  Actual implementation is in void print(std::ostream& out),
             ///  which can be inherited.
             friend std::ostream &operator<<(std::ostream &out, const QuotientSpace &qtnt);
+
+            bool isDynamic() const;
 
         protected:
             /// Internal function implementing actual printing to stream
@@ -207,7 +213,7 @@ namespace ompl
             bool hasSolution_{false};
             bool firstRun_{true};
 
-            bool isDynamic{false};
+            bool isDynamic_{false};
 
             QuotientSpace *parent_{nullptr};
             QuotientSpace *child_{nullptr};

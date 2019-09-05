@@ -58,26 +58,25 @@ ompl::geometric::QuotientSpace::QuotientSpace(const base::SpaceInformationPtr &s
     //############################################################################
     ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
     if(siC==nullptr) {
-      isDynamic = false;
+      isDynamic_ = false;
     }else{
-      isDynamic = true;
+      isDynamic_ = true;
     }
-    OMPL_DEVMSG1("QuotientSpace %d%s", id_, (isDynamic?" (dynamic)":""));
+    OMPL_DEVMSG1("QuotientSpace %d%s", id_, (isDynamic_?" (dynamic)":""));
 
     //############################################################################
-    if (parent_ != nullptr)
-        parent_->setChild(this);  // need to be able to traverse down the tree
-
     const base::StateSpacePtr Q1_space = Q1->getStateSpace();
 
 
-    if (parent_ == nullptr)
+    if (!hasParent())//parent_ == nullptr)
     {
         OMPL_DEVMSG1("ATOMIC_RN dimension: %d measure: %f", Q1_space->getDimension(), Q1_space->getMeasure());
         type_ = ATOMIC_RN;
     }
     else
     {
+        parent_->setChild(this);
+
         Q0 = parent_->getSpaceInformation();
         const base::StateSpacePtr Q0_space = Q0->getStateSpace();
         // X1 = Q1 / Q0
@@ -121,7 +120,7 @@ ompl::geometric::QuotientSpace::QuotientSpace(const base::SpaceInformationPtr &s
     {
         Q1_sampler_ = Q1->allocStateSampler();
     }
-    if (parent_ != nullptr)
+    if (hasParent())//parent_ != nullptr)
     {
         s_Q0_tmp_ = Q0->allocState();
         if (X1_dimension_ > 0)
@@ -131,13 +130,28 @@ ompl::geometric::QuotientSpace::QuotientSpace(const base::SpaceInformationPtr &s
 
 ompl::geometric::QuotientSpace::~QuotientSpace()
 {
-    if (parent_ != nullptr)
+    if (hasParent())//parent_ != nullptr)
     {
         if (s_Q0_tmp_)
             Q0->freeState(s_Q0_tmp_);
         if (X1 && s_X1_tmp_)
             X1->freeState(s_X1_tmp_);
     }
+}
+
+bool ompl::geometric::QuotientSpace::hasParent() const
+{
+    return !(parent_ == nullptr);
+}
+
+bool ompl::geometric::QuotientSpace::hasChild() const
+{
+    return !(child_ == nullptr);
+}
+
+bool ompl::geometric::QuotientSpace::isDynamic() const
+{
+    return isDynamic_;
 }
 
 void ompl::geometric::QuotientSpace::setup()
@@ -155,7 +169,7 @@ void ompl::geometric::QuotientSpace::clear()
 
     hasSolution_ = false;
     firstRun_ = true;
-    if (parent_ == nullptr && X1_dimension_ > 0)
+    if (!hasParent() && X1_dimension_ > 0)
         X1_sampler_.reset();
 
     pdef_->clearSolutionPaths();
@@ -1417,7 +1431,7 @@ bool ompl::geometric::QuotientSpace::sampleQuotient(base::State *q_random)
 bool ompl::geometric::QuotientSpace::sample(base::State *q_random)
 {
     bool valid = false;
-    if (parent_ == nullptr)
+    if (!hasParent())
     {
         // return Q1_valid_sampler->sample(q_random);
         Q1_sampler_->sampleUniform(q_random);
@@ -1457,7 +1471,7 @@ void ompl::geometric::QuotientSpace::print(std::ostream &out) const
 {
     out << "[QuotientSpace: id" << id_ << " |lvl" << level_ << "] ";
     unsigned int sublevel = std::max(1U, level_);
-    if (parent_ == nullptr)
+    if (!hasParent())
     {
         out << "X" << sublevel << "=Q" << sublevel << ": ";
         if (Q1->getStateSpace()->getType() == base::STATE_SPACE_SE2)

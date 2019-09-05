@@ -89,6 +89,15 @@ void QuotientSpaceGraphSparse::clear()
   pathStack_.clear();
 }
 
+const ompl::geometric::QuotientSpaceGraph::Configuration *
+ompl::geometric::QuotientSpaceGraphSparse::nearest(const Configuration *q) const
+{
+    if(!isDynamic()) return BaseT::nearest(q);
+    else{
+        return nearestSparse_->nearest(const_cast<Configuration *>(q));
+    }
+}
+
 void QuotientSpaceGraphSparse::Init()
 {
   if(const ob::State *sInitial = pis_.nextStart()){
@@ -179,58 +188,64 @@ QuotientSpaceGraphSparse::Vertex QuotientSpaceGraphSparse::addConfiguration(Conf
 {
     Vertex v = BaseT::addConfiguration(q);
 
-    //Add Edges to Delta-Neighbors (PRM* style)
-    std::vector<Configuration*> neighbors;
-    unsigned N = boost::num_vertices(graph_);
-    unsigned K = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)N)));
-    nearestDatastructure_->nearestK(q, K, neighbors);
-
-    for(uint k = 0; k < neighbors.size(); k++){
-      Configuration *qn = neighbors.at(k);
-      if(Q1->checkMotion(q->state, qn->state))
-      {
-        addEdge(q->index, qn->index);
-      }
-    }
-
-    //Sparse Graph addition
-    findGraphNeighbors(q, graphNeighborhood, visibleNeighborhood);
-
-    //Possible reasons for adding a node to sparse roadmap
-    //(1) VISIBLITY: Add Guard (when no one is visible) [Simeon 00]
-    //(2) CONNECTIVITY: Add Connectivity (when two disconnected components are visible) [Simeon 00]
-    //(3) INTERFACE: Add Interface (when a connected components get another useful cycle
-    //[Jaillet 09, Dobson 14, Nieuwenhausen 04]
-    //(4) OPTIMALITY: Optimality based [Dobson 14]
-
-    if(visibleNeighborhood.empty())
-    {
-      addConfigurationSparse(q);
+    if(isDynamic()){
+      //DYNAMIC
+        addConfigurationSparse(q);
     }else{
-      if(!checkAddConnectivity(q, visibleNeighborhood)){
-        if (!checkAddInterface(q, graphNeighborhood, visibleNeighborhood)){
-          // if (!visibleNeighborhood.empty())
-          // {
-          //     base::State *workState = si_->allocState();
-          //     std::map<Vertex, base::State *> closeRepresentatives;
-          //     findCloseRepresentatives(workState, q->state, visibleNeighborhood[0], closeRepresentatives);
-          //     for (auto &closeRepresentative : closeRepresentatives)
-          //     {
-          //         updatePairPoints(visibleNeighborhood[0], q->state, closeRepresentative.first,
-          //                          closeRepresentative.second);
-          //         updatePairPoints(closeRepresentative.first, closeRepresentative.second,
-          //                          visibleNeighborhood[0], q->state);
-          //     }
-          //     checkAddPath(visibleNeighborhood[0]);
-          //     for (auto &closeRepresentative : closeRepresentatives)
-          //     {
-          //         checkAddPath(closeRepresentative.first);
-          //         si_->freeState(closeRepresentative.second);
-          //     }
-          // }
+      //GEOMETRIC
+        //Add Edges to Delta-Neighbors (PRM* style)
+        std::vector<Configuration*> neighbors;
+        unsigned N = boost::num_vertices(graph_);
+        unsigned K = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)N)));
+        nearestDatastructure_->nearestK(q, K, neighbors);
 
+        for(uint k = 0; k < neighbors.size(); k++){
+          Configuration *qn = neighbors.at(k);
+          if(Q1->checkMotion(qn->state, q->state))
+          {
+            addEdge(qn->index, q->index);
+          }
         }
-      }
+
+        //Sparse Graph addition
+        findGraphNeighbors(q, graphNeighborhood, visibleNeighborhood);
+
+        //Possible reasons for adding a node to sparse roadmap
+        //(1) VISIBLITY: Add Guard (when no one is visible) [Simeon 00]
+        //(2) CONNECTIVITY: Add Connectivity (when two disconnected components are visible) [Simeon 00]
+        //(3) INTERFACE: Add Interface (when a connected components get another useful cycle
+        //[Jaillet 09, Dobson 14, Nieuwenhausen 04]
+        //(4) OPTIMALITY: Optimality based [Dobson 14]
+
+        if(visibleNeighborhood.empty())
+        {
+          addConfigurationSparse(q);
+        }else{
+          if(!checkAddConnectivity(q, visibleNeighborhood)){
+            if (!checkAddInterface(q, graphNeighborhood, visibleNeighborhood)){
+              // if (!visibleNeighborhood.empty())
+              // {
+              //     base::State *workState = si_->allocState();
+              //     std::map<Vertex, base::State *> closeRepresentatives;
+              //     findCloseRepresentatives(workState, q->state, visibleNeighborhood[0], closeRepresentatives);
+              //     for (auto &closeRepresentative : closeRepresentatives)
+              //     {
+              //         updatePairPoints(visibleNeighborhood[0], q->state, closeRepresentative.first,
+              //                          closeRepresentative.second);
+              //         updatePairPoints(closeRepresentative.first, closeRepresentative.second,
+              //                          visibleNeighborhood[0], q->state);
+              //     }
+              //     checkAddPath(visibleNeighborhood[0]);
+              //     for (auto &closeRepresentative : closeRepresentatives)
+              //     {
+              //         checkAddPath(closeRepresentative.first);
+              //         si_->freeState(closeRepresentative.second);
+              //     }
+              // }
+
+            }
+          }
+        }
     }
 
     return v;
@@ -506,36 +521,37 @@ bool QuotientSpaceGraphSparse::checkAddInterface(Configuration *q,
 
 bool QuotientSpaceGraphSparse::sampleQuotient(ob::State *q_random_graph)
 {
-    if(pathStack_.size() > 0){
-      if(selectedPath >= 0 && selectedPath < (int)pathStack_.size()){
-        // std::cout << "Sample " << getName() << " along selected path " << selectedPath 
-        //   << "/" << (int)pathStackHead_.size()-1 << std::endl;
+    if( !getChild()->isDynamic() && pathStack_.size() > 0)
+    {
 
-        std::vector<ob::State*> states = pathStackHead_.at(selectedPath);
-        uint N = states.size();
+        if(selectedPath >= 0 && selectedPath < (int)pathStack_.size())
+        {
+            // std::cout << "Sample " << getName() << " along selected path " << selectedPath 
+            //   << "/" << (int)pathStackHead_.size()-1 << std::endl;
 
-        //############################################################################
-        //Vertex Sampling
-        // int k = rng_.uniformInt(0, N-1);
-        // ob::State *state = states.at(k);
-        // Q1->getStateSpace()->copyState(q_random_graph, state);
-        // Q1_sampler->sampleUniformNear(q_random_graph, q_random_graph, 0.2);
+            std::vector<ob::State*> states = pathStackHead_.at(selectedPath);
+            uint N = states.size();
 
-        //############################################################################
-        //Edge Sampling
-        uint k = rng_.uniformInt(0, N-1);
-        double r = rng_.uniform01();
-        ob::State *s1 = states.at((k<N-1)?k:k-1);
-        ob::State *s2 = states.at((k<N-1)?k+1:k);
-        Q1->getStateSpace()->interpolate(s1, s2, r, q_random_graph);
+            //############################################################################
+            //Vertex Sampling
+            // int k = rng_.uniformInt(0, N-1);
+            // ob::State *state = states.at(k);
+            // Q1->getStateSpace()->copyState(q_random_graph, state);
+            // Q1_sampler->sampleUniformNear(q_random_graph, q_random_graph, 0.2);
 
-        Q1_sampler_->sampleUniformNear(q_random_graph, q_random_graph, pathBias_);
+            //############################################################################
+            //Edge Sampling
+            uint k = rng_.uniformInt(0, N-1);
+            double r = rng_.uniform01();
+            ob::State *s1 = states.at((k<N-1)?k:k-1);
+            ob::State *s2 = states.at((k<N-1)?k+1:k);
+            Q1->getStateSpace()->interpolate(s1, s2, r, q_random_graph);
 
-
-      }else{
-        OMPL_ERROR("Selected path is %d (have you selected a path?)");
-        throw ompl::Exception("Unknown selected path");
-      }
+            Q1_sampler_->sampleUniformNear(q_random_graph, q_random_graph, pathBias_);
+        }else{
+            OMPL_ERROR("Selected path is %d (have you selected a path?)");
+            throw ompl::Exception("Unknown selected path");
+        }
     }else{
         //no solution path, we can just sample randomly
         const Vertex v = boost::random_vertex(graph_, rng_boost);
@@ -594,7 +610,7 @@ void QuotientSpaceGraphSparse::pushPathToStack(std::vector<ob::State*> &path)
   multiObj->addObjective(clearObj, 1.0);
   ob::OptimizationObjectivePtr pathObj(multiObj);
 
-  if(isDynamic){
+  if(isDynamic()){
       // shortcutter.shortcutPath(gpath);
   }else{
       og::PathSimplifier shortcutter(Q1, ob::GoalPtr(), pathObj);
@@ -728,7 +744,7 @@ void QuotientSpaceGraphSparse::removeReducibleLoops()
 void QuotientSpaceGraphSparse::getPathIndices(const std::vector<ob::State*> &states, std::vector<int> &idxPath) const
 {
 
-  if(parent_ == nullptr){
+  if(!hasParent()){//parent_ == nullptr){
     return;
   }else{
     //convert CS path to QS path
@@ -958,6 +974,15 @@ void QuotientSpaceGraphSparse::getPlannerData(ob::PlannerData &data) const
           getPathIndices(states, idxPathI);
           idxPathI.push_back(i);
 
+          //############################################################################
+          //DEBUG
+          std::cout << "[";
+          for(uint k = 0; k < idxPathI.size(); k++){
+            std::cout << idxPathI.at(k) << " ";
+          }
+          std::cout << "]" << std::endl;
+          //############################################################################
+
           ob::PlannerDataVertexAnnotated *p1 = new ob::PlannerDataVertexAnnotated(states.at(0));
           p1->setLevel(level_);
           p1->setPath(idxPathI);
@@ -983,7 +1008,12 @@ void QuotientSpaceGraphSparse::getPlannerData(ob::PlannerData &data) const
       getPlannerDataRoadmap(data, idxPathI);
   }else{
 
-    OMPL_DEVMSG1("Roadmap has %d vertices.", boost::num_vertices(graphSparse_));
+    OMPL_DEVMSG1("Sparse Roadmap has %d/%d vertices/edges (Dense has %d/%d).", 
+        boost::num_vertices(graphSparse_), 
+        boost::num_edges(graphSparse_), 
+        boost::num_vertices(graph_),
+        boost::num_edges(graph_));
+
     if(boost::num_vertices(graphSparse_) > 0){
       std::vector<int> CurPath = GetSelectedPathIndex();
       for(uint k = 0; k < CurPath.size(); k++) std::cout << CurPath.at(k) << ",";

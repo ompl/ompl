@@ -67,8 +67,7 @@ unsigned int ompl::control::SimpleDirectedControlSampler::getBestControl(Control
 
     const unsigned int minDuration = si_->getMinControlDuration();
     const unsigned int maxDuration = si_->getMaxControlDuration();
-
-
+    // std::cout << minDuration << "," << maxDuration << std::endl;
 
     unsigned int steps = cs_->sampleStepCount(minDuration, maxDuration);
     // Propagate the first control, and find how far it is from the target state
@@ -76,7 +75,6 @@ unsigned int ompl::control::SimpleDirectedControlSampler::getBestControl(Control
     steps = si_->propagateWhileValid(source, control, steps, bestState);
 
 //###############################################
-    //std::cout << minDuration << " to " << maxDuration << std::endl;
     dist = si_->distance(source,dest);
     //if((si_->getPropagationStepSize() * maxDuration) < (0.75*dist)){
     //    std::cout << "too far away" << std::endl;
@@ -91,9 +89,9 @@ unsigned int ompl::control::SimpleDirectedControlSampler::getBestControl(Control
         Control *tempControl = si_->allocControl();
         base::State *tempState = si_->allocState();
         double bestDistance = si_->distance(bestState, dest);
-//########################################
-	toleratedDistance_ = distanceFactor_ * dist;
-//#######################################
+      //########################################
+        toleratedDistance_ = distanceFactor_ * dist;
+      //#######################################
         // Sample k-1 more controls, and save the control that gets closest to target
         for (unsigned int i = 1; i < numControlSamples_; ++i)
         {
@@ -111,14 +109,14 @@ unsigned int ompl::control::SimpleDirectedControlSampler::getBestControl(Control
                 si_->copyControl(control, tempControl);
                 bestDistance = tempDistance;
                 steps = sampleSteps;
-//###########################################		
-		if(bestDistance < toleratedDistance_){
-		  si_->freeState(tempState);
-		  si_->freeControl(tempControl);
-		  std::cout << "Exited with " << i << " samples and " << steps << " steps" << std::endl;
-		  return steps;
-		}
-//##########################################
+            //###########################################		
+                if(bestDistance < toleratedDistance_){
+                  si_->freeState(tempState);
+                  si_->freeControl(tempControl);
+                  // std::cout << "Exited with " << i << " samples and " << steps << " steps" << std::endl;
+                  return steps;
+                }
+            //##########################################
             }
         }
 
@@ -126,7 +124,7 @@ unsigned int ompl::control::SimpleDirectedControlSampler::getBestControl(Control
         si_->freeControl(tempControl);
     }
 
-    std::cout << "checked Motion not feasible" << std::endl;
+    // std::cout << "checked Motion not feasible" << std::endl;
 
     si_->copyState(dest, bestState);
     si_->freeState(bestState);

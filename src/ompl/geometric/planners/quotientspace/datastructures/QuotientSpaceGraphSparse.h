@@ -18,9 +18,9 @@ namespace ompl
 {
   namespace geometric
   {
-    class QuotientSpaceGraphSparse: public og::QuotientSpaceGraph{
+    class QuotientSpaceGraphSparse: public ompl::geometric::QuotientSpaceGraph{
 
-        typedef og::QuotientSpaceGraph BaseT;
+        using BaseT = ompl::geometric::QuotientSpaceGraph;
       public:
 
         QuotientSpaceGraphSparse(const ob::SpaceInformationPtr &si, QuotientSpace *parent = nullptr);
@@ -75,12 +75,13 @@ namespace ompl
         virtual void print(std::ostream &out) const override;
         bool hasSparseGraphChanged();
 
+        virtual const Configuration *nearest(const Configuration *s) const;
     protected:
 
         double sparseDelta_{0.};
         double sparseDeltaFraction_{0.25};
         double pathBias_{0.};
-        double pathBiasFraction_{0.1};
+        double pathBiasFraction_{0.05};
         double kPRMStarConstant_;
         unsigned Nold_v{0};
         unsigned Nold_e{0};

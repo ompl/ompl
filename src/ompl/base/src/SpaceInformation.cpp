@@ -116,8 +116,6 @@ void ompl::base::SpaceInformation::setDefaultMotionValidator()
     else if (dynamic_cast<ConstrainedStateSpace *>(stateSpace_.get()))
         motionValidator_ = std::make_shared<ConstrainedMotionValidator>(this);
     else
-    //@TODO Was DiscreteMotionValidator, could not change to DynamicalMotionValidator
-    // tried:
         motionValidator_ = std::make_shared<DynamicalMotionValidator>(this);
         //motionValidator_ = std::make_shared<DiscreteMotionValidator>(this);
 }

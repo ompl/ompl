@@ -37,7 +37,7 @@
 #ifndef OMPL_BASE_DYNAMICAL_MOTION_VALIDATOR_
 #define OMPL_BASE_DYNAMICAL_MOTION_VALIDATOR_
 
-#include "ompl/base/MotionValidator.h"
+#include "ompl/base/DiscreteMotionValidator.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/control/Control.h"
 #include "ompl/control/SpaceInformation.h"
@@ -50,17 +50,19 @@ namespace ompl
     {
         /** \brief A motion validator that only uses the state validity checker. Motions are checked for validity at a
          * specified resolution. */
-        class DynamicalMotionValidator : public MotionValidator
+        class DynamicalMotionValidator : public DiscreteMotionValidator
         {
+            using BaseT = ompl::base::DiscreteMotionValidator;
+
         public:
             /** \brief Constructor */
-            DynamicalMotionValidator(SpaceInformation *si) : MotionValidator(si)
+            DynamicalMotionValidator(SpaceInformation *si) : DiscreteMotionValidator(si)
             {
                 defaultSettings();
             }
 
             /** \brief Constructor */
-            DynamicalMotionValidator(const SpaceInformationPtr &si) : MotionValidator(si)
+            DynamicalMotionValidator(const SpaceInformationPtr &si) : DiscreteMotionValidator(si)
             {
                 defaultSettings();
             }
@@ -71,10 +73,9 @@ namespace ompl
 
             bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
 
-            bool checkPath(std::vector<ompl::base::State*> path) const;
+            //bool checkPath(std::vector<ompl::base::State*> path) const;
 
-        private:
-            StateSpace *stateSpace_;
+        protected:
 
             void defaultSettings();
 	    

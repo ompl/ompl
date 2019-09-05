@@ -41,42 +41,27 @@
 
 void ompl::base::DynamicalMotionValidator::defaultSettings()
 {
-    stateSpace_ = si_->getStateSpace().get();
+    BaseT::defaultSettings();
+
     isDynamic = false;
-    if (stateSpace_ == nullptr)
-        throw Exception("No state space for motion validator");
     siC = dynamic_cast<ompl::control::SpaceInformation*>(si_);
     if(siC != nullptr) {
       isDynamic = true;
       c_current = siC->allocControl();
       sampler = siC->allocDirectedControlSampler();
       s_target_copy = siC->allocState();
-    } else {
-      //si_->setStateValidityCheckingResolution(0.01*si_->getStateValidityCheckingResolution());
-    }
+    } 
 }
 
-//bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s_start, const State *s_target) const
-//{
-//  si_->copyState(s_target_copy, s_target);
-//  sampler->sampleTo(c_current, s_start, s_target_copy);
-//  double targetRegion = 0.25 * si_->getStateSpace()->distance(s_start, s_target);
-//  if(si_->getStateSpace()->distance(s_target_copy, s_target) <= targetRegion){
-//    return true;
-//  } else {
-//    return false;
-//  }
-//}
-
-bool ompl::base::DynamicalMotionValidator::checkPath(const std::vector<ompl::base::State*> path) const {
-  for(unsigned int i = 0; i < path.size() - 2; i++) {
-    bool stepValid = si_->checkMotion(path.at(i), path.at(i+1));
-    if(!stepValid) {
-      return false;
-    }
-  }
-  return true;
-}
+// bool ompl::base::DynamicalMotionValidator::checkPath(const std::vector<ompl::base::State*> path) const {
+//   for(unsigned int i = 0; i < path.size() - 2; i++) {
+//     bool stepValid = si_->checkMotion(path.at(i), path.at(i+1));
+//     if(!stepValid) {
+//       return false;
+//     }
+//   }
+//   return true;
+// }
 
 
 bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const State *s2) const
@@ -89,106 +74,22 @@ bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const St
         return false;
     }
 
-    
     if(!isDynamic){
-      //geometric case
-      bool result = true;
-      int nd = stateSpace_->validSegmentCount(s1, s2);
-
-      /* initialize the queue of test positions */
-      std::queue<std::pair<int, int>> pos;
-      if (nd >= 2)
-      {
-          pos.emplace(1, nd - 1);
-
-          /* temporary storage for the checked state */
-          State *test = si_->allocState();
-
-          /* repeatedly subdivide the path segment in the middle (and check the middle) */
-          while (!pos.empty())
-          {
-              std::pair<int, int> x = pos.front();
-
-              int mid = (x.first + x.second) / 2;
-              stateSpace_->interpolate(s1, s2, (double)mid / (double)nd, test);
-
-              if (!si_->isValid(test))
-              {
-                  result = false;
-                  break;
-              }
-
-              pos.pop();
-
-              if (x.first < mid)
-                  pos.emplace(x.first, mid - 1);
-              if (x.second > mid)
-                  pos.emplace(mid + 1, x.second);
-          }
-
-          si_->freeState(test);
-      }
-
-      if (result)
-          valid_++;
-      else
-          invalid_++;
-
-      return result;
+        return BaseT::checkMotion(s1, s2);
     } else {
-      si_->copyState(s_target_copy, s2);
-      sampler->sampleTo(c_current, s1, s_target_copy);
-      double targetRegion = tolerance * si_->getStateSpace()->distance(s1, s2);
-      if(si_->getStateSpace()->distance(s_target_copy, s2) <= targetRegion){
-        return true;
-      } else {
-        return false;
-      }
-
+        si_->copyState(s_target_copy, s2);
+        sampler->sampleTo(c_current, s1, s_target_copy);
+        double targetRegion = tolerance * si_->getStateSpace()->distance(s1, s2);
+        return (si_->getStateSpace()->distance(s_target_copy, s2) <= targetRegion);
     }
 }
 
 bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const State *s2,
                                                        std::pair<State *, double> &lastValid) const
- {
-     /* assume motion starts in a valid configuration so s1 is valid */
- 
-     bool result = true;
-     int nd = stateSpace_->validSegmentCount(s1, s2);
- 
-     if (nd > 1)
-     {
-         /* temporary storage for the checked state */
-         State *test = si_->allocState();
- 
-         for (int j = 1; j < nd; ++j)
-         {
-             stateSpace_->interpolate(s1, s2, (double)j / (double)nd, test);
-             if (!si_->isValid(test))
-             {
-                 lastValid.second = (double)(j - 1) / (double)nd;
-                 if (lastValid.first != nullptr)
-                     stateSpace_->interpolate(s1, s2, lastValid.second, lastValid.first);
-                 result = false;
-                 break;
-             }
-         }
-         si_->freeState(test);
-     }
- 
-     if (result)
-         if (!si_->isValid(s2))
-         {
-             lastValid.second = (double)(nd - 1) / (double)nd;
-             if (lastValid.first != nullptr)
-                 stateSpace_->interpolate(s1, s2, lastValid.second, lastValid.first);
-             result = false;
-         }
- 
-     if (result)
-         valid_++;
-     else
-         invalid_++;
- 
-     return result;
- }
+{
+  if(!isDynamic) return BaseT::checkMotion(s1, s2, lastValid);
+  else{
+    std::cout << "NYI" << std::endl;
+    exit(0);
+  }
+}

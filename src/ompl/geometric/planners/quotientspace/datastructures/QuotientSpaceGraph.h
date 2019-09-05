@@ -195,7 +195,7 @@ namespace ompl
                                  boost::associative_property_map<std::map<Vertex, Vertex>>>
                 disjointSets_{boost::make_assoc_property_map(vrank), boost::make_assoc_property_map(vparent)};
 
-            const Configuration *nearest(const Configuration *s) const;
+            virtual const Configuration *nearest(const Configuration *s) const;
 
             ompl::base::Cost bestCost_{+ompl::base::dInf};
             Configuration *qStart_{nullptr};
