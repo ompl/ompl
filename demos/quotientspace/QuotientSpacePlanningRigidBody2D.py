@@ -90,7 +90,6 @@ if __name__ == "__main__":
     # Define Planning Problem
     start_SE2 = ob.State(SE2)
     goal_SE2 = ob.State(SE2)
-    print(start_SE2)
     start_SE2().setXY(0, 0)
     start_SE2().setYaw(0)
     goal_SE2().setXY(1, 1)
@@ -121,5 +120,5 @@ if __name__ == "__main__":
 
         nodes = planner.getFeasibleNodes()
         print('-' * 80)
-        for i in range(len(nodes)):
-            print('QuotientSpace%d has %d nodes.' % (i, nodes[i]))
+        for (i, node) in enumerate(nodes):
+            print('QuotientSpace%d has %d nodes.' % (i, node))
