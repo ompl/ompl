@@ -3,38 +3,41 @@ language: cpp
 matrix:
   include:
   - os: linux
-    dist: xenial
-    sudo: required
+    dist: bionic
     compiler: gcc
     addons:
       apt:
         packages:
-        - libboost-serialization-dev
+        &pkgs
         - libboost-filesystem-dev
-        - libboost-system-dev
         - libboost-program-options-dev
+        - libboost-serialization-dev
+        - libboost-system-dev
         - libboost-test-dev
-        - libode-dev
         - libeigen3-dev
+        - libflann-dev
+        - libode-dev
+        - ninja-build
+  - os: linux
+    dist: xenial
+    compiler: gcc
+    addons:
+      apt:
+        packages: *pkgs
   - os: osx
-    osx_image: xcode10.1
+    osx_image: xcode10.3
     compiler: clang
     addons:
       homebrew:
         packages:
         - eigen
         - flann
+        - ninja
         update: true
   - os: linux
-    sudo: required
     services:
       - docker
     env: DOCKERFILE="debian-stretch"
-  - os: linux
-    sudo: required
-    services:
-      - docker
-    env: DOCKERFILE="ubuntu-bionic"
 
 before_install:
   - if [ -n "$DOCKERFILE" ]; then
@@ -47,7 +50,7 @@ script:
     else
       mkdir -p build &&
       cd build &&
-      cmake -DOMPL_REGISTRATION=OFF .. &&
-      make -j `nproc 2>/dev/null || sysctl -n hw.ncpu` &&
+      cmake -G Ninja -DOMPL_REGISTRATION=OFF .. &&
+      cmake --build . &&
       ctest;
     fi
