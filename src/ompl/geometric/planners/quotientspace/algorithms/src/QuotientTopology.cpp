@@ -19,6 +19,9 @@ QuotientTopology::QuotientTopology(const ob::SpaceInformationPtr &si, QuotientSp
   Planner::declareParam<double>("range", this, &QuotientTopology::setRange, &QuotientTopology::getRange, "0.:1.:10000.");
   Planner::declareParam<double>("goal_bias", this, &QuotientTopology::setGoalBias, &QuotientTopology::getGoalBias, "0.:.1:1.");
 
+  specs_.approximateSolutions = true;
+  approximateDistanceToGoal = std::numeric_limits<double>::infinity();
+
   if(isDynamic()) {
     ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si.get());
     siC->setMotionValidator(std::make_shared<ob::DynamicalMotionValidator>(siC));
@@ -74,7 +77,13 @@ void QuotientTopology::clear()
 bool QuotientTopology::getSolution(ob::PathPtr &solution)
 {
   if(hasSolution_){
-    return BaseT::getSolution(solution);
+      if(!isDynamic()) return BaseT::getSolution(solution);
+      else{
+        const Configuration *q_nearest_to_goal = nearest(qGoal_);
+        solution = getPathSparse(qStart_->index, q_nearest_to_goal->index);
+        return true;
+      }
+
   }else{
     return false;
   }
@@ -148,24 +157,40 @@ void QuotientTopology::growControl(){
     totalNumberOfFeasibleSamples_++;
 
     if(duration<controlDuration){
-      //used control for full duration, add q_random
-      Configuration *q_next = new Configuration(Q1, s_random);
-      Vertex v_next = addConfigurationSparse(q_next);
-      addEdgeSparse(q_nearest->index, v_next);
+        //used control for full duration, add q_random
+        Configuration *q_next = new Configuration(Q1, s_random);
+        Vertex v_next = addConfigurationSparse(q_next);
+        addEdgeSparse(q_nearest->index, v_next);
     } else {
-      //sets q_reached to the State we actually reach with our control for controlDuration
-      prop->propagate(q_nearest->state, c_random, duration, s_random);
-      Configuration *q_next = new Configuration(Q1, s_random);
-      Vertex v_next = addConfigurationSparse(q_next);
-      addEdgeSparse(q_nearest->index, v_next);
-      // std::cout << duration << std::endl;
+        //sets q_reached to the State we actually reach with our control for controlDuration
+        prop->propagate(q_nearest->state, c_random, duration, s_random);
+        Configuration *q_next = new Configuration(Q1, s_random);
+        Vertex v_next = addConfigurationSparse(q_next);
+        addEdgeSparse(q_nearest->index, v_next);
+        // std::cout << duration << std::endl;
     }
     if(!hasSolution_){
-      bool satisfied = sameComponentSparse(v_start_sparse, v_goal_sparse);
-      if(satisfied)
-      {
-        hasSolution_ = true;
-      }
+        const Configuration *q_nearest_to_goal = nearest(qGoal_);
+        goal_->isSatisfied(q_nearest_to_goal->state, &distanceToGoal);
+        // if(hasSolution_){
+        //   std::cout << "Found solution " << distanceToGoal << " away from goal." << std::endl;
+        // }
+        if (distanceToGoal < approximateDistanceToGoal)
+        {
+            approximateDistanceToGoal = distanceToGoal;
+            std::cout << "Found new solution " << distanceToGoal << " away from goal." << std::endl;
+            Configuration *qStartSparse = graphSparse_[v_start_sparse];
+            Q1->printState(qStartSparse->state);
+            Q1->printState(q_nearest_to_goal->state);
+            std::cout << q_nearest_to_goal->index << std::endl;
+            std::cout << qStartSparse->index << std::endl;
+
+            ob::PathPtr path = getPathSparse(qStartSparse->index, q_nearest_to_goal->index);
+            if(path!=nullptr){
+                std::cout << "Solution is OK" << std::endl;
+                hasSolution_ = true;
+            }
+        }
     }
 }
 

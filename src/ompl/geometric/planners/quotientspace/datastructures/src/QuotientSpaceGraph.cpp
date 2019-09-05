@@ -318,12 +318,17 @@ bool ompl::geometric::QuotientSpaceGraph::getSolution(base::PathPtr &solution)
 
 ompl::base::PathPtr ompl::geometric::QuotientSpaceGraph::getPath(const Vertex &start, const Vertex &goal)
 {
-    std::vector<Vertex> prev(boost::num_vertices(graph_));
+    return getPath(start, goal, graph_);
+}
+
+ompl::base::PathPtr ompl::geometric::QuotientSpaceGraph::getPath(const Vertex &start, const Vertex &goal, Graph &graph)
+{
+    std::vector<Vertex> prev(boost::num_vertices(graph));
     auto weight = boost::make_transform_value_property_map(std::mem_fn(&EdgeInternalState::getCost),
-                                                           get(boost::edge_bundle, graph_));
+                                                           get(boost::edge_bundle, graph));
     try
     {
-        boost::astar_search(graph_, start, [this, goal](const Vertex v) { return costHeuristic(v, goal); },
+        boost::astar_search(graph, start, [this, goal](const Vertex v) { return costHeuristic(v, goal); },
                             boost::predecessor_map(&prev[0])
                                 .weight_map(weight)
                                 .distance_compare([this](EdgeInternalState c1, EdgeInternalState c2) {
@@ -348,13 +353,13 @@ ompl::base::PathPtr ompl::geometric::QuotientSpaceGraph::getPath(const Vertex &s
     std::vector<Vertex> vpath;
     for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
     {
-        graph_[pos]->on_shortest_path = true;
+        graph[pos]->on_shortest_path = true;
         vpath.push_back(pos);
-        p->append(graph_[pos]->state);
+        p->append(graph[pos]->state);
     }
-    graph_[start]->on_shortest_path = true;
+    graph[start]->on_shortest_path = true;
     vpath.push_back(start);
-    p->append(graph_[start]->state);
+    p->append(graph[start]->state);
 
     shortestVertexPath_.clear();
     shortestVertexPath_.insert(shortestVertexPath_.begin(), vpath.rbegin(), vpath.rend());

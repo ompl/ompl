@@ -6,10 +6,12 @@
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/util/Exception.h>
+#include <ompl/control/PathControl.h>
 
 #include <boost/property_map/vector_property_map.hpp>
 #include <boost/property_map/transform_value_property_map.hpp>
 #include <boost/foreach.hpp>
+#include "GoalVisitor.hpp"
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp> //same_component
 #include <boost/math/constants/constants.hpp>
@@ -98,6 +100,58 @@ ompl::geometric::QuotientSpaceGraphSparse::nearest(const Configuration *q) const
     }
 }
 
+ompl::base::Cost ompl::geometric::QuotientSpaceGraphSparse::costHeuristicSparse(Vertex u, Vertex v) const
+{
+    return opt_->motionCostHeuristic(graphSparse_[u]->state, graphSparse_[v]->state);
+}
+
+ompl::base::PathPtr ompl::geometric::QuotientSpaceGraphSparse::getPathSparse(const Vertex &start, const Vertex &goal)
+{
+    std::vector<Vertex> prev(boost::num_vertices(graphSparse_));
+    auto weight = boost::make_transform_value_property_map(std::mem_fn(&EdgeInternalState::getCost),
+                                                           get(boost::edge_bundle, graphSparse_));
+    try
+    {
+        boost::astar_search(graphSparse_, start, [this, goal](const Vertex v) { return costHeuristicSparse(v, goal); },
+                            boost::predecessor_map(&prev[0])
+                                .weight_map(weight)
+                                .distance_compare([this](EdgeInternalState c1, EdgeInternalState c2) {
+                                    return opt_->isCostBetterThan(c1.getCost(), c2.getCost());
+                                })
+                                .distance_combine([this](EdgeInternalState c1, EdgeInternalState c2) {
+                                    return opt_->combineCosts(c1.getCost(), c2.getCost());
+                                })
+                                .distance_inf(opt_->infiniteCost())
+                                .distance_zero(opt_->identityCost()));
+    }
+    catch (AStarFoundGoal &)
+    {
+    }
+
+    auto p(std::make_shared<PathGeometric>(si_));
+    if (prev[goal] == goal)
+    {
+        return nullptr;
+    }
+
+    std::vector<Vertex> vpath;
+    for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
+    {
+        graphSparse_[pos]->on_shortest_path = true;
+        vpath.push_back(pos);
+        p->append(graphSparse_[pos]->state);
+    }
+    graphSparse_[start]->on_shortest_path = true;
+    vpath.push_back(start);
+    p->append(graphSparse_[start]->state);
+
+    shortestVertexPath_.clear();
+    shortestVertexPath_.insert(shortestVertexPath_.begin(), vpath.rbegin(), vpath.rend());
+    p->reverse();
+
+    return p;
+}
+
 void QuotientSpaceGraphSparse::Init()
 {
   if(const ob::State *sInitial = pis_.nextStart()){
@@ -105,7 +159,6 @@ void QuotientSpaceGraphSparse::Init()
       qStart_ = new Configuration(Q1, sInitial);
       qStart_->isStart = true;
       vStart_ = addConfiguration(qStart_);
-
       assert(boost::num_vertices(graphSparse_)==1);
       v_start_sparse = graphSparse_[0]->index;
       graphSparse_[v_start_sparse]->isStart = true;
@@ -122,16 +175,18 @@ void QuotientSpaceGraphSparse::Init()
     if (sGoal != nullptr){
       qGoal_ = new Configuration(Q1, sGoal);
       qGoal_->isGoal = true;
-      vGoal_ = addConfiguration(qGoal_);
 
-      if(boost::num_vertices(graphSparse_)<2)
-      {
-        //Make sure q_goal is added, even if visible from q_start
-          addConfigurationSparse(qGoal_);
+      if(!isDynamic()){
+          vGoal_ = addConfiguration(qGoal_);
+          if(boost::num_vertices(graphSparse_)<2)
+          {
+            //Make sure q_goal is added, even if visible from q_start
+              addConfigurationSparse(qGoal_);
+          }
+          assert(boost::num_vertices(graphSparse_)==2);
+          v_goal_sparse = graphSparse_[1]->index;
+          graphSparse_[v_goal_sparse]->isGoal = true;
       }
-      assert(boost::num_vertices(graphSparse_)==2);
-      v_goal_sparse = graphSparse_[1]->index;
-      graphSparse_[v_goal_sparse]->isGoal = true;
     }
   }else{
       OMPL_ERROR("%s: There are no valid goal states!", getName().c_str());
@@ -864,42 +919,60 @@ void QuotientSpaceGraphSparse::enumerateAllPaths()
 {
     if(!hasSolution_) return;
 
-    //Check if we already enumerated all paths. If yes, then the number of
-    //vertices has not changed. 
-    if(!hasSparseGraphChanged())
-    {
-        return;
+    if(isDynamic()){
+
+        ob::PathPtr path;
+
+        const Configuration *q_nearest_to_goal = nearest(qGoal_);
+        Configuration *qStartSparse = graphSparse_[v_start_sparse];
+        path = getPathSparse(qStartSparse->index, q_nearest_to_goal->index);
+        if(path==nullptr){
+          OMPL_ERROR("No solution found, but hasSolution_ is set.");
+          exit(0);
+        }
+        og::PathGeometric &gpath = static_cast<og::PathGeometric&>(*path);
+
+        pathStack_.push_back(gpath);
+    }else{
+
+        //Check if we already enumerated all paths. If yes, then the number of
+        //vertices has not changed. 
+        if(!hasSparseGraphChanged())
+        {
+            return;
+        }
+        // TestVisibilityChecker();
+        std::cout << "Enumerating paths on " << getName() << std::endl;
+
+        //Remove Edges
+        //(1) REDUCIBLE: Removal of reducible loops [Schmitzberger 02]
+        removeReducibleLoops();
+        //############################################################################
+
+        // PathEnumerator pe(v_start_sparse, v_goal_sparse, graphSparse_);
+        // pe.ComputePaths();
+
+        unsigned numberVertices = boost::num_vertices(graphSparse_);
+        if(numberVertices<=0) return;
+        bool *visited = new bool[numberVertices];
+        std::cout << "Sparse Graph has " << boost::num_vertices(graphSparse_) << " vertices and "
+          << boost::num_edges(graphSparse_) << " edges." << std::endl;
+
+        int *path = new int[numberVertices];
+        int path_index = 0; // Initialize path[] as empty
+
+        for (unsigned int i = 0; i < numberVertices; i++)
+            visited[i] = false;
+
+        numberOfFailedAddingPathCalls = 0;
+
+        printAllPathsUtil(v_start_sparse, v_goal_sparse, visited, path, path_index);
+        //############################################################################
+
+
     }
-    // TestVisibilityChecker();
-    std::cout << "Enumerating paths on " << getName() << std::endl;
-
-    //Remove Edges
-    //(1) REDUCIBLE: Removal of reducible loops [Schmitzberger 02]
-    removeReducibleLoops();
-    //############################################################################
-
-    // PathEnumerator pe(v_start_sparse, v_goal_sparse, graphSparse_);
-    // pe.ComputePaths();
-
-    unsigned numberVertices = boost::num_vertices(graphSparse_);
-    if(numberVertices<=0) return;
-    bool *visited = new bool[numberVertices];
-    std::cout << "Sparse Graph has " << boost::num_vertices(graphSparse_) << " vertices and "
-      << boost::num_edges(graphSparse_) << " edges." << std::endl;
-
-    int *path = new int[numberVertices];
-    int path_index = 0; // Initialize path[] as empty
-
-    for (unsigned int i = 0; i < numberVertices; i++)
-        visited[i] = false;
-
-    numberOfFailedAddingPathCalls = 0;
-    printAllPathsUtil(v_start_sparse, v_goal_sparse, visited, path, path_index);
-    //############################################################################
-
     uint Npathsize = pathStack_.size();
     uint Npaths = std::min(Nhead, Npathsize);
-
     pathStackHead_.clear();
     for(uint k = 0; k < Npaths; k++){
         //og::PathGeometric& pathK = (*(pathStack_.rbegin()+k));

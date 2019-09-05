@@ -56,7 +56,7 @@ namespace ompl
         void Rewire(Vertex &v);
         void Rewire();
         void printAllPathsUtil(Vertex u, Vertex d, bool visited[], int path[], int &path_index);
-        void enumerateAllPaths();
+        virtual void enumerateAllPaths();
         void removeReducibleLoops();
         void removeEdgeIfReductionLoop(const Edge &e);
         unsigned int getNumberOfPaths() const;
@@ -114,6 +114,8 @@ namespace ompl
           disjointSetsSparse_{boost::make_assoc_property_map(vrankSparse), boost::make_assoc_property_map(vparentSparse)};
 
 
+        ompl::base::PathPtr getPathSparse(const Vertex &start, const Vertex &goal);
+        ompl::base::Cost costHeuristicSparse(Vertex u, Vertex v) const;
         Graph graphSparse_;
         RoadmapNeighborsPtr nearestSparse_;
         std::vector<Configuration*> graphNeighborhood;

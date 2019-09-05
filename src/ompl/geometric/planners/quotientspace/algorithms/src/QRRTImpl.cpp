@@ -78,7 +78,6 @@ void ompl::geometric::QRRTImpl::setup()
     BaseT::setup();
     ompl::tools::SelfConfig sc(Q1, getName());
     sc.configurePlannerRange(maxDistance_);
-    goal_ = pdef_->getGoal().get();
 }
 
 void ompl::geometric::QRRTImpl::clear()

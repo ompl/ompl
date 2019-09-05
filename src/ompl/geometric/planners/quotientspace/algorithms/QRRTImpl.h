@@ -85,9 +85,6 @@ namespace ompl
             double maxDistance_{.0};
             /** \brief Goal bias similar to RRT */
             double goalBias_{.05};
-
-            /** \brief Goal state or goal region */
-            ompl::base::Goal *goal_;
         };
     }  // namespace geometric
 }  // namespace ompl

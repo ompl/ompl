@@ -223,6 +223,7 @@ namespace ompl
 
             /** \brief Shortest path on quotient-graph */
             ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal);
+            ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal, Graph &graph);
 
             /** \brief Nearest neighbor structure for quotient space configurations */
             RoadmapNeighborsPtr nearestDatastructure_;

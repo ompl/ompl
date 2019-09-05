@@ -159,6 +159,7 @@ void ompl::geometric::QuotientSpace::setup()
     BaseT::setup();
     hasSolution_ = false;
     firstRun_ = true;
+    if(pdef_) goal_ = pdef_->getGoal().get();
 }
 
 void ompl::geometric::QuotientSpace::clear()

@@ -220,6 +220,9 @@ namespace ompl
 
             unsigned int totalNumberOfSamples_{0};
             unsigned int totalNumberOfFeasibleSamples_{0};
+
+            /** \brief Goal state or goal region */
+            ompl::base::Goal *goal_;
         };
     }  // namespace geometric
 }  // namespace ompl
