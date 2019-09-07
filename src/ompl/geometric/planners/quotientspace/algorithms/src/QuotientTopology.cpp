@@ -94,6 +94,11 @@ void QuotientTopology::grow(){
     Init();
     firstRun_ = false;
   }
+  if(isDynamic()){
+    if(hasSolution_ && num_vertices(graphSparse_)<=1){
+      hasSolution_ = false;
+    }
+  }
   if(hasSolution_){
     //No Goal Biasing if we already found a solution on this quotient space
     sample(q_random->state);
@@ -185,9 +190,11 @@ void QuotientTopology::growControl(){
             // std::cout << q_nearest_to_goal->index << std::endl;
             // std::cout << qStartSparse->index << std::endl;
 
-            ob::PathPtr path = getPathSparse(qStartSparse->index, q_nearest_to_goal->index);
-            if(path!=nullptr){
-                hasSolution_ = true;
+            if(approximateDistanceToGoal < 5){
+                ob::PathPtr path = getPathSparse(qStartSparse->index, q_nearest_to_goal->index);
+                if(path!=nullptr){
+                    hasSolution_ = true;
+                }
             }
         }
     }

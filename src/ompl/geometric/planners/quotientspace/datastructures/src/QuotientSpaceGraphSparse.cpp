@@ -69,9 +69,11 @@ void QuotientSpaceGraphSparse::clear()
   {
     std::vector<Configuration*> configs;
     nearestSparse_->list(configs);
-    for (auto &config : configs)
-    {
-      deleteConfiguration(config);
+    if(configs.size()>1){
+      for (auto &config : configs)
+      {
+        deleteConfiguration(config);
+      }
     }
     nearestSparse_->clear();
   }
@@ -89,6 +91,45 @@ void QuotientSpaceGraphSparse::clear()
 
   pathStackHead_.clear();
   pathStack_.clear();
+}
+void QuotientSpaceGraphSparse::clearDynamic()
+{
+  // BaseT::clear();
+
+  std::cout << "CLEAR DYNAMICS" << std::endl;
+  if (nearestSparse_)
+  {
+    std::vector<Configuration*> configs;
+    nearestSparse_->list(configs);
+    std::cout << configs.size() << std::endl;
+    for (auto &config : configs)
+    {
+      if(config->state != qStart_->state)
+          deleteConfiguration(config);
+    }
+    nearestSparse_->clear();
+  }
+  graphSparse_.clear();
+
+  // selectedPath = -1;
+  graphNeighborhood.clear();
+  visibleNeighborhood.clear();
+  vrankSparse.clear();
+  vparentSparse.clear();
+  // v_start_sparse = -1;
+  // v_goal_sparse = -1;
+  Nold_v = 0;
+  Nold_e = 0;
+
+  const Vertex vl = add_vertex(qStart_, graphSparse_);
+  nearestSparse_->add(qStart_);
+  disjointSetsSparse_.make_set(vl);
+  graphSparse_[vl]->index = vl;
+
+  Q1->printState(qStart_->state);
+
+  // hasSolution_ = false;
+
 }
 
 const ompl::geometric::QuotientSpaceGraph::Configuration *
@@ -915,27 +956,6 @@ bool QuotientSpaceGraphSparse::hasSparseGraphChanged()
   return false;
 }
 
-void QuotientSpaceGraphSparse::resetDynamic()
-{
-  if (nearestSparse_)
-  {
-    std::vector<Configuration*> configs;
-    nearestSparse_->list(configs);
-    for (auto &config : configs)
-    {
-      if(config!=qStart_)
-        deleteConfiguration(config);
-    }
-    nearestSparse_->clear();
-  }
-  graphSparse_.clear();
-  // Configuration *ql = new Configuration(Q1, q->state);
-
-  const Vertex vl = add_vertex(qStart_, graphSparse_);
-  nearestSparse_->add(qStart_);
-  disjointSetsSparse_.make_set(vl);
-  graphSparse_[vl]->index = vl;
-}
 void QuotientSpaceGraphSparse::enumerateAllPaths() 
 {
     if(!hasSolution_) return;
@@ -953,8 +973,11 @@ void QuotientSpaceGraphSparse::enumerateAllPaths()
         }
         og::PathGeometric &gpath = static_cast<og::PathGeometric&>(*path);
         // pathStack_.push_back(gpath);
+
+        unsigned int kBefore = pathStack_.size();
         pushPathToStack(gpath.getStates());
-        resetDynamic();
+        unsigned int kAfter = pathStack_.size();
+        if(kAfter > kBefore) clearDynamic();
     }else{
 
         //Check if we already enumerated all paths. If yes, then the number of
