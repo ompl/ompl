@@ -180,14 +180,13 @@ void QuotientTopology::growControl(){
             approximateDistanceToGoal = distanceToGoal;
             std::cout << "Found new solution " << distanceToGoal << " away from goal." << std::endl;
             Configuration *qStartSparse = graphSparse_[v_start_sparse];
-            Q1->printState(qStartSparse->state);
-            Q1->printState(q_nearest_to_goal->state);
-            std::cout << q_nearest_to_goal->index << std::endl;
-            std::cout << qStartSparse->index << std::endl;
+            // Q1->printState(qStartSparse->state);
+            // Q1->printState(q_nearest_to_goal->state);
+            // std::cout << q_nearest_to_goal->index << std::endl;
+            // std::cout << qStartSparse->index << std::endl;
 
             ob::PathPtr path = getPathSparse(qStartSparse->index, q_nearest_to_goal->index);
             if(path!=nullptr){
-                std::cout << "Solution is OK" << std::endl;
                 hasSolution_ = true;
             }
         }

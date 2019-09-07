@@ -686,7 +686,7 @@ void QuotientSpaceGraphSparse::pushPathToStack(std::vector<ob::State*> &path)
   //   Q1->printState(sk);
   // }
 
-  if(!pathVisibilityChecker_->CheckValidity(gpath.getStates())){
+  if(!isDynamic() && !pathVisibilityChecker_->CheckValidity(gpath.getStates())){
     std::cout << "REJECTED (Infeasible)" << std::endl;
     numberOfFailedAddingPathCalls++;
     return;
@@ -915,6 +915,27 @@ bool QuotientSpaceGraphSparse::hasSparseGraphChanged()
   return false;
 }
 
+void QuotientSpaceGraphSparse::resetDynamic()
+{
+  if (nearestSparse_)
+  {
+    std::vector<Configuration*> configs;
+    nearestSparse_->list(configs);
+    for (auto &config : configs)
+    {
+      if(config!=qStart_)
+        deleteConfiguration(config);
+    }
+    nearestSparse_->clear();
+  }
+  graphSparse_.clear();
+  // Configuration *ql = new Configuration(Q1, q->state);
+
+  const Vertex vl = add_vertex(qStart_, graphSparse_);
+  nearestSparse_->add(qStart_);
+  disjointSetsSparse_.make_set(vl);
+  graphSparse_[vl]->index = vl;
+}
 void QuotientSpaceGraphSparse::enumerateAllPaths() 
 {
     if(!hasSolution_) return;
@@ -931,8 +952,9 @@ void QuotientSpaceGraphSparse::enumerateAllPaths()
           exit(0);
         }
         og::PathGeometric &gpath = static_cast<og::PathGeometric&>(*path);
-
-        pathStack_.push_back(gpath);
+        // pathStack_.push_back(gpath);
+        pushPathToStack(gpath.getStates());
+        resetDynamic();
     }else{
 
         //Check if we already enumerated all paths. If yes, then the number of

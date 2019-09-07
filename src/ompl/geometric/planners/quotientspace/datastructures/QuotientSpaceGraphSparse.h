@@ -114,6 +114,7 @@ namespace ompl
           disjointSetsSparse_{boost::make_assoc_property_map(vrankSparse), boost::make_assoc_property_map(vparentSparse)};
 
 
+        void resetDynamic();
         ompl::base::PathPtr getPathSparse(const Vertex &start, const Vertex &goal);
         ompl::base::Cost costHeuristicSparse(Vertex u, Vertex v) const;
         Graph graphSparse_;
