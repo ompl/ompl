@@ -96,12 +96,8 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
     }
 
     //Check which 
-
-
-
     og::QuotientSpaceGraphSparse *jQuotient = 
       static_cast<og::QuotientSpaceGraphSparse*>(this->quotientSpaces_.at(K));
-    std::cout << *jQuotient << std::endl;
 
     uint ctr = 0;
 
@@ -110,6 +106,10 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
         jQuotient->grow();
         ctr++;
     }
+    std::cout << std::string(80, '-') << std::endl;
+    std::cout << *jQuotient << std::endl;
+    std::cout << std::string(80, '-') << std::endl;
+    std::cout << "TIMEOUT" << std::endl;
     return ob::PlannerStatus::TIMEOUT;
 }
 

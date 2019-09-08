@@ -96,12 +96,10 @@ void QuotientSpaceGraphSparse::clearDynamic()
 {
   // BaseT::clear();
 
-  std::cout << "CLEAR DYNAMICS" << std::endl;
   if (nearestSparse_)
   {
     std::vector<Configuration*> configs;
     nearestSparse_->list(configs);
-    std::cout << configs.size() << std::endl;
     for (auto &config : configs)
     {
       if(config->state != qStart_->state)
@@ -125,8 +123,6 @@ void QuotientSpaceGraphSparse::clearDynamic()
   nearestSparse_->add(qStart_);
   disjointSetsSparse_.make_set(vl);
   graphSparse_[vl]->index = vl;
-
-  Q1->printState(qStart_->state);
 
   // hasSolution_ = false;
 
@@ -840,48 +836,59 @@ void QuotientSpaceGraphSparse::removeReducibleLoops()
 void QuotientSpaceGraphSparse::getPathIndices(const std::vector<ob::State*> &states, std::vector<int> &idxPath) const
 {
 
-  if(!hasParent()){//parent_ == nullptr){
+  if(!hasParent()){
     return;
   }else{
-    //convert CS path to QS path
-    std::vector<ob::State*> pathcur;
-    for(uint k = 0; k < states.size(); k++){
-      ob::State *qk = states.at(k);
-      ob::State *qkProjected = Q0->allocState();
-      projectQ0(qk, qkProjected);
-      pathcur.push_back(qkProjected);
-    }
-    //Check which path can be deformed into QS path
+    //TODO: we need to check here to which local minima we project. This is
+    //necessary, since sometimes we find a path which actually projects on a
+    //different quotient-space path (and not the selected one).
     QuotientSpaceGraphSparse *quotient = static_cast<QuotientSpaceGraphSparse*>(parent_);
-    uint K = quotient->getNumberOfPaths();
+    unsigned int K = quotient->getNumberOfPaths();
     assert(K>0);
+    unsigned int Ks = quotient->selectedPath;
+    assert(Ks>=0);
+    idxPath.push_back(Ks);
+    quotient->getPathIndices(states, idxPath);
 
-    bool success = false;
-    for(uint k = 0; k < K; k++){
-      std::vector<ob::State*> pathk = quotient->getKthPath(k);
-      bool visible = quotient->getPathVisibilityChecker()->IsPathVisible(pathcur, pathk);
-      if(visible){
-        idxPath.push_back(k);
-        quotient->getPathIndices(pathcur, idxPath);
-        success = true;
-        break;
-      }
-    }
-    if(!success){
-      //This path is not deformable into any of the QuotientSpace paths 
-      //One way to resolve this issue would be to add the new 
-      OMPL_INFORM("Could not find projected path on QuotientSpace. Creating new one.");
+    //convert CS path to QS path
+    //std::vector<ob::State*> pathcur;
+    //for(uint k = 0; k < states.size(); k++){
+    //  ob::State *qk = states.at(k);
+    //  ob::State *qkProjected = Q0->allocState();
+    //  projectQ0(qk, qkProjected);
+    //  pathcur.push_back(qkProjected);
+    //}
+    ////Check which path can be deformed into QS path
+    //QuotientSpaceGraphSparse *quotient = static_cast<QuotientSpaceGraphSparse*>(parent_);
+    //unsigned int K = quotient->getNumberOfPaths();
+    //assert(K>0);
 
-      quotient->removeLastPathFromStack();
-      quotient->pushPathToStack(pathcur);
-      idxPath.push_back(0);
-      quotient->getPathIndices(pathcur, idxPath);
-    }else{
-      //free all states
-      for(uint k = 0; k < pathcur.size(); k++){
-        Q0->freeState(pathcur.at(k));
-      }
-    }
+    //bool success = false;
+    //for(uint k = 0; k < K; k++){
+    //  std::vector<ob::State*> pathk = quotient->getKthPath(k);
+    //  bool visible = quotient->getPathVisibilityChecker()->IsPathVisible(pathcur, pathk);
+    //  if(visible){
+    //    idxPath.push_back(k);
+    //    quotient->getPathIndices(pathcur, idxPath);
+    //    success = true;
+    //    break;
+    //  }
+    //}
+    //if(!success){
+    //  //This path is not deformable into any of the QuotientSpace paths 
+    //  //One way to resolve this issue would be to add the new 
+    //  OMPL_INFORM("Could not find projected path on QuotientSpace. Creating new one.");
+
+    //  quotient->removeLastPathFromStack();
+    //  quotient->pushPathToStack(pathcur);
+    //  idxPath.push_back(0);
+    //  quotient->getPathIndices(pathcur, idxPath);
+    //}else{
+    //  //free all states
+    //  for(uint k = 0; k < pathcur.size(); k++){
+    //    Q0->freeState(pathcur.at(k));
+    //  }
+    //}
   }
 }
 
