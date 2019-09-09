@@ -392,7 +392,6 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
 
       createStateAt(si_, s1, path_1_length, path_1_distances, pathspace_x*path_1_length, state_path_1);
       createStateAt(si_, s2, path_2_length, path_2_distances, pathspace_y*path_2_length, state_path_2);
-     
       
 
       for(int i = 0; i < pathSamples - 1; i++) {

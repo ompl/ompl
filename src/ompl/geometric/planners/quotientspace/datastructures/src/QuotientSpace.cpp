@@ -1587,7 +1587,8 @@ void ompl::geometric::QuotientSpace::print(std::ostream &out) const
             }
         }
     }
-    out << " [Importance:" << getImportance() << "]";
+    out << std::endl << " --[Importance:" << getImportance() << "]";
+    out << std::endl << " --[Measure   :" << Q1->getSpaceMeasure() << "]";
 }
 
 namespace ompl

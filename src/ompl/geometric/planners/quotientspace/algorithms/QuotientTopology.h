@@ -21,13 +21,14 @@ namespace ompl
     //QuotientTopology 
     class QuotientTopology: public og::QuotientSpaceGraphSparse{
 
-      typedef og::QuotientSpaceGraphSparse BaseT;
+      using BaseT = ompl::geometric::QuotientSpaceGraphSparse;
       public:
 
         QuotientTopology(const ob::SpaceInformationPtr &si, QuotientSpace *parent_);
         virtual ~QuotientTopology() override;
         virtual void grow() override;
         virtual void growGeometric();
+        virtual void growGeometricExpand();
         virtual void growControl();
         virtual bool getSolution(ob::PathPtr &solution) override;
 
@@ -38,6 +39,7 @@ namespace ompl
         double getGoalBias() const;
         void setRange(double distance);
         double getRange() const;
+        virtual bool hasSolution() override;
 
         Configuration *q_random{nullptr};
         ompl::control::Control* c_random{nullptr};

@@ -1,5 +1,7 @@
 #include <ompl/geometric/planners/quotientspace/algorithms/QuotientTopology.h>
 #include <ompl/tools/config/SelfConfig.h>
+#include <ompl/datastructures/PDF.h>
+
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/control/ControlSpace.h>
 #include <ompl/control/SpaceInformation.h>
@@ -7,6 +9,8 @@
 #include <ompl/control/SimpleDirectedControlSampler.h>
 #include <ompl/control/StatePropagator.h>
 #include <ompl/base/DynamicalMotionValidator.h>
+#include <boost/foreach.hpp>
+
 
 using namespace og;
 using namespace ob;
@@ -99,7 +103,7 @@ void QuotientTopology::grow(){
       hasSolution_ = false;
     }
   }
-  if(hasSolution_){
+  if(hasSolution_ && pathStackHead_.size()>0){
     //No Goal Biasing if we already found a solution on this quotient space
     sample(q_random->state);
   }else{
@@ -115,9 +119,60 @@ void QuotientTopology::grow(){
     growControl();
   } else {
     growGeometric();
+    //growGeometric();
+    //double v = Q1->getSpaceMeasure();
+    //if(v > 1e4){ 
+    //    //TODO: this is a hack to circumvent many local minima on "small" spaces 
+    //    //which belong to the un-selected quotient-space path 
+    //    //(which would otherwise be found through random walking)
+    //    growGeometricExpand();
+    //}
   }
 }
+bool QuotientTopology::hasSolution()
+{
+  return BaseT::hasSolution();
+  // return ((pathStackHead_.size()>0) && BaseT::hasSolution());
+}
 
+void QuotientTopology::growGeometricExpand()
+{
+    PDF pdf;
+    foreach (Vertex v, boost::vertices(graph_))
+    {
+        const unsigned long int t = graph_[v]->total_connection_attempts;
+        pdf.add(graph_[v], (double)(t - graph_[v]->successful_connection_attempts) / (double)t);
+    }
+    if (pdf.empty()) return;
+
+    std::vector<base::State *> workStates(5);
+    Q1->allocStates(workStates);
+    Configuration *qv = pdf.sample(rng_.uniform01());
+    unsigned int s = Q1->randomBounceMotion(Q1_sampler_, qv->state, workStates.size(), workStates, false);
+
+    if (s > 0)
+    {
+        s--;
+        Configuration *qn = new Configuration(Q1, workStates[s]);
+        Vertex last = addConfiguration(qn);
+
+        for (unsigned int i = 0; i < s; ++i)
+        {
+            // add the vertex along the bouncing motion
+            Configuration *qs = new Configuration(Q1, workStates[i]);
+            Vertex m = addConfiguration(qs);
+
+            addEdge(qn->index, m);
+            qn = qs;
+        }
+
+        if (s > 0 || !sameComponent(qv->index, last))
+        {
+            addEdge(qn->index, last);
+        }
+    }
+    Q1->freeStates(workStates);
+}
 void QuotientTopology::growGeometric(){
   
   const Configuration *q_nearest = nearest(q_random);
@@ -153,7 +208,7 @@ void QuotientTopology::growControl(){
     s_random = q_random->state;
 
     //changes q_random to the state we actually get with directed control c_random
-    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
+    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(Q1.get());
     unsigned int cd = rng_.uniformInt(siC->getMinControlDuration(), siC->getMaxControlDuration());
     int duration = dCSampler->sampleTo(c_random, q_nearest->state, s_random);
 
@@ -172,7 +227,6 @@ void QuotientTopology::growControl(){
         Configuration *q_next = new Configuration(Q1, s_random);
         Vertex v_next = addConfigurationSparse(q_next);
         addEdgeSparse(q_nearest->index, v_next);
-        // std::cout << duration << std::endl;
     }
     if(!hasSolution_){
         const Configuration *q_nearest_to_goal = nearest(qGoal_);
@@ -190,7 +244,7 @@ void QuotientTopology::growControl(){
             // std::cout << q_nearest_to_goal->index << std::endl;
             // std::cout << qStartSparse->index << std::endl;
 
-            if(approximateDistanceToGoal < 5){
+            if(approximateDistanceToGoal < 2){
                 ob::PathPtr path = getPathSparse(qStartSparse->index, q_nearest_to_goal->index);
                 if(path!=nullptr){
                     hasSolution_ = true;

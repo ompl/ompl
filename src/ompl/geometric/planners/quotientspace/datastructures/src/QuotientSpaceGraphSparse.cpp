@@ -292,10 +292,17 @@ QuotientSpaceGraphSparse::Vertex QuotientSpaceGraphSparse::addConfiguration(Conf
         nearestDatastructure_->nearestK(q, K, neighbors);
 
         for(uint k = 0; k < neighbors.size(); k++){
+
           Configuration *qn = neighbors.at(k);
+          q->total_connection_attempts++;
+          qn->total_connection_attempts++;
+
           if(Q1->checkMotion(qn->state, q->state))
           {
+            q->successful_connection_attempts++;
+            qn->successful_connection_attempts++;
             addEdge(qn->index, q->index);
+
           }
         }
 
@@ -717,11 +724,11 @@ void QuotientSpaceGraphSparse::pushPathToStack(std::vector<ob::State*> &path)
       }
   }
 
-  // std::vector<ob::State*> gstates = gpath.getStates();
-  // for(uint k = 0; k < gstates.size(); k++){
-  //   ob::State *sk = gstates.at(k);
-  //   Q1->printState(sk);
-  // }
+  if(!isDynamic() && !isProjectable(gpath.getStates())){
+    std::cout << "REJECTED (Not projectable)" << std::endl;
+    numberOfFailedAddingPathCalls++;
+    return;
+  }
 
   if(!isDynamic() && !pathVisibilityChecker_->CheckValidity(gpath.getStates())){
     std::cout << "REJECTED (Infeasible)" << std::endl;
@@ -833,23 +840,94 @@ void QuotientSpaceGraphSparse::removeReducibleLoops()
     }
 }
 
+void QuotientSpaceGraphSparse::freePath(std::vector<ob::State*> path, const ob::SpaceInformationPtr &si) const
+{
+    for(uint k = 0; k < path.size(); k++){
+      si->freeState(path.at(k));
+    }
+    path.clear();
+}
+std::vector<ob::State*> QuotientSpaceGraphSparse::getProjectedPath(std::vector<ob::State*> pathQ1, const ob::SpaceInformationPtr &si) const
+{
+    std::vector<ob::State*> pathQ0;
+    for(uint k = 0; k < pathQ1.size(); k++){
+      ob::State *qk = pathQ1.at(k);
+      ob::State *qkProjected = Q0->allocState();
+      projectQ0(qk, qkProjected);
+      pathQ0.push_back(qkProjected);
+    }
+    return pathQ0;
+}
+
+bool QuotientSpaceGraphSparse::isProjectable(const std::vector<ob::State*> &pathQ1) const
+{
+    return (getProjectionIndex(pathQ1) >= 0);
+}
+
+int QuotientSpaceGraphSparse::getProjectionIndex(const std::vector<ob::State*> &pathQ1) const
+{
+    if(!hasParent()) return 0;
+    std::vector<ob::State*> pathQ0 = getProjectedPath(pathQ1, Q0);
+    // for(uint k = 0; k < pathQ1.size(); k++){
+    //   ob::State *qk = pathQ1.at(k);
+    //   ob::State *qkProjected = Q0->allocState();
+    //   projectQ0(qk, qkProjected);
+    //   pathQ0.push_back(qkProjected);
+    // }
+
+    QuotientSpaceGraphSparse *quotient = static_cast<QuotientSpaceGraphSparse*>(parent_);
+    unsigned int K = quotient->getNumberOfPaths();
+
+    for(uint k = 0; k < K; k++){
+      std::vector<ob::State*> pathQ0k = quotient->getKthPath(k);
+      bool visible = quotient->getPathVisibilityChecker()->IsPathVisible(pathQ0, pathQ0k);
+      if(visible){
+        freePath(pathQ0, Q0);
+        return k;
+      }
+    }
+    freePath(pathQ0, Q0);
+    return -1;
+}
+
 void QuotientSpaceGraphSparse::getPathIndices(const std::vector<ob::State*> &states, std::vector<int> &idxPath) const
 {
 
   if(!hasParent()){
     return;
   }else{
+    QuotientSpaceGraphSparse *quotient = static_cast<QuotientSpaceGraphSparse*>(parent_);
     //TODO: we need to check here to which local minima we project. This is
     //necessary, since sometimes we find a path which actually projects on a
     //different quotient-space path (and not the selected one).
-    QuotientSpaceGraphSparse *quotient = static_cast<QuotientSpaceGraphSparse*>(parent_);
-    unsigned int K = quotient->getNumberOfPaths();
-    assert(K>0);
-    unsigned int Ks = quotient->selectedPath;
-    assert(Ks>=0);
-    idxPath.push_back(Ks);
-    quotient->getPathIndices(states, idxPath);
+    // APPROACH 1: Assign them all to selected path
+    // QuotientSpaceGraphSparse *quotient = static_cast<QuotientSpaceGraphSparse*>(parent_);
+    // unsigned int K = quotient->getNumberOfPaths();
+    // assert(K>0);
+    // unsigned int Ks = quotient->selectedPath;
+    // assert(Ks>=0);
+    // idxPath.push_back(Ks);
+    // quotient->getPathIndices(states, idxPath);
+    if(isDynamic()){
+      int Ks = quotient->selectedPath;
+      std::cout << "DYNAMIC Projection Index " << Ks << "| " << getName() << std::endl;
+      idxPath.push_back(Ks);
+    }else{
+      int K = getProjectionIndex(states);
+      std::cout << "Projection Index " << K << "| " << getName() << std::endl;
+      if(K<0){
+        K=0;
+        OMPL_WARN("Projection not found. Possibly unprojectable path.");
+      }
+      idxPath.push_back(K);
+      // quotient->getPathIndices(states, idxPath);
+    }
+    std::vector<ob::State*> pathQ0 = getProjectedPath(states, Q0);
+    quotient->getPathIndices(pathQ0, idxPath);
 
+
+
+    // APPROACH 2: Assign them to their projection
     //convert CS path to QS path
     //std::vector<ob::State*> pathcur;
     //for(uint k = 0; k < states.size(); k++){
@@ -859,21 +937,21 @@ void QuotientSpaceGraphSparse::getPathIndices(const std::vector<ob::State*> &sta
     //  pathcur.push_back(qkProjected);
     //}
     ////Check which path can be deformed into QS path
-    //QuotientSpaceGraphSparse *quotient = static_cast<QuotientSpaceGraphSparse*>(parent_);
-    //unsigned int K = quotient->getNumberOfPaths();
-    //assert(K>0);
+    // QuotientSpaceGraphSparse *quotient = static_cast<QuotientSpaceGraphSparse*>(parent_);
+    // unsigned int K = quotient->getNumberOfPaths();
+    // assert(K>0);
 
-    //bool success = false;
-    //for(uint k = 0; k < K; k++){
-    //  std::vector<ob::State*> pathk = quotient->getKthPath(k);
-    //  bool visible = quotient->getPathVisibilityChecker()->IsPathVisible(pathcur, pathk);
-    //  if(visible){
-    //    idxPath.push_back(k);
-    //    quotient->getPathIndices(pathcur, idxPath);
-    //    success = true;
-    //    break;
-    //  }
-    //}
+    // bool success = false;
+    // for(uint k = 0; k < K; k++){
+    //   std::vector<ob::State*> pathk = quotient->getKthPath(k);
+    //   bool visible = quotient->getPathVisibilityChecker()->IsPathVisible(pathcur, pathk);
+    //   if(visible){
+    //     idxPath.push_back(k);
+    //     quotient->getPathIndices(pathcur, idxPath);
+    //     success = true;
+    //     break;
+    //   }
+    // }
     //if(!success){
     //  //This path is not deformable into any of the QuotientSpace paths 
     //  //One way to resolve this issue would be to add the new 
@@ -890,6 +968,9 @@ void QuotientSpaceGraphSparse::getPathIndices(const std::vector<ob::State*> &sta
     //  }
     //}
   }
+  // idxPath.insert(shortestVertexPath_.begin(), vpath.rbegin(), vpath.rend());
+  // idxPath.insert(idxPath.begin(), idxPath.rbegin(), idxPath.rend());
+
 }
 
 PathVisibilityChecker* QuotientSpaceGraphSparse::getPathVisibilityChecker()
@@ -975,8 +1056,8 @@ void QuotientSpaceGraphSparse::enumerateAllPaths()
         Configuration *qStartSparse = graphSparse_[v_start_sparse];
         path = getPathSparse(qStartSparse->index, q_nearest_to_goal->index);
         if(path==nullptr){
-          OMPL_ERROR("No solution found, but hasSolution_ is set.");
-          exit(0);
+          OMPL_WARN("No solution found, but hasSolution_ is set.");
+          return;
         }
         og::PathGeometric &gpath = static_cast<og::PathGeometric&>(*path);
         // pathStack_.push_back(gpath);
@@ -1085,7 +1166,7 @@ std::vector<int> QuotientSpaceGraphSparse::GetSelectedPathIndex() const
 
 void QuotientSpaceGraphSparse::getPlannerData(ob::PlannerData &data) const
 {
-  if(hasSolution_){
+  if(pathStackHead_.size()>0){
       OMPL_DEVMSG1("%s has %d solutions.", getName().c_str(), pathStackHead_.size());
       if(pathStackHead_.empty()){
           OMPL_ERROR("%s has 0 solutions.", getName().c_str());
@@ -1097,7 +1178,9 @@ void QuotientSpaceGraphSparse::getPlannerData(ob::PlannerData &data) const
 
           idxPathI.clear();
           getPathIndices(states, idxPathI);
+          std::reverse(idxPathI.begin(), idxPathI.end());
           idxPathI.push_back(i);
+          // idxPathI.insert(idxPathI.begin(), idxPathI.rbegin(), idxPathI.rend());
 
           //############################################################################
           //DEBUG
@@ -1141,8 +1224,8 @@ void QuotientSpaceGraphSparse::getPlannerData(ob::PlannerData &data) const
 
     if(boost::num_vertices(graphSparse_) > 0){
       std::vector<int> CurPath = GetSelectedPathIndex();
-      for(uint k = 0; k < CurPath.size(); k++) std::cout << CurPath.at(k) << ",";
-      std::cout << std::endl;
+      // for(uint k = 0; k < CurPath.size(); k++) std::cout << CurPath.at(k) << ",";
+      // std::cout << std::endl;
         
       getPlannerDataRoadmap(data, CurPath);
     }

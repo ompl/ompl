@@ -87,12 +87,22 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
 {
     ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     uint K = selectedPath_.size();
+
     if(K>=this->quotientSpaces_.size()){
         K = K-1;
     }
-    while(K>0 && !this->quotientSpaces_.at(K-1)->hasSolution())
+
+    //find lowest dimensional QS which has a solution. Then take the next QS to
+    //expand
+    while(K>0)
     {
-        K = K-1;
+        og::QuotientSpaceGraphSparse *kQuotient = 
+          static_cast<og::QuotientSpaceGraphSparse*>(this->quotientSpaces_.at(K-1));
+        if(kQuotient->getNumberOfPaths()>0){
+          break;
+        }else{
+          K = K-1;
+        }
     }
 
     //Check which 
@@ -101,15 +111,33 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
 
     uint ctr = 0;
 
+    std::cout << "Searching space " << jQuotient->getName() << " until solution found." << std::endl;
+
+    //grow at least PTC, then grow until solution (that way we do not stop after
+    //finding just one single path)
     while (!ptc())
     {
         jQuotient->grow();
         ctr++;
     }
+    while (true)
+    {
+        jQuotient->grow();
+        ctr++;
+        if(jQuotient->hasSolution()){
+          //Note: jQuotient will not have solution, because we have no
+          //enumerated paths
+          std::cout << "has solution" << std::endl;
+          break;
+        }
+        if(ctr%10000==0){
+            std::cout << "CURRENT STATUS" << std::endl;
+            std::cout << *jQuotient << std::endl;
+        }
+    }
     std::cout << std::string(80, '-') << std::endl;
     std::cout << *jQuotient << std::endl;
     std::cout << std::string(80, '-') << std::endl;
-    std::cout << "TIMEOUT" << std::endl;
     return ob::PlannerStatus::TIMEOUT;
 }
 

@@ -62,6 +62,8 @@ namespace ompl
         unsigned int getNumberOfPaths() const;
         const std::vector<ob::State*> getKthPath(uint k) const;
         void getPathIndices(const std::vector<ob::State*> &states, std::vector<int> &idxPath) const;
+        bool isProjectable(const std::vector<ob::State*> &pathQ1) const;
+        int getProjectionIndex(const std::vector<ob::State*> &pathQ1) const;
 
         int selectedPath{-1}; //selected path to sample from (if children try to sample this space)
         bool sampleQuotient(ob::State *q_random_graph) override;
@@ -76,6 +78,8 @@ namespace ompl
         bool hasSparseGraphChanged();
 
         virtual const Configuration *nearest(const Configuration *s) const;
+        void freePath(std::vector<ob::State*> path, const ob::SpaceInformationPtr &si) const;
+        std::vector<ob::State*> getProjectedPath(std::vector<ob::State*> pathQ1, const ob::SpaceInformationPtr &si) const;
     protected:
 
         double sparseDelta_{0.};
