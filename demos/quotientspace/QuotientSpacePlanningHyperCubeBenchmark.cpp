@@ -200,7 +200,6 @@ ob::PlannerPtr GetQRRT(std::vector<int> sequenceLinks, ob::SpaceInformationPtr s
     for (unsigned int k = 0; k < sequenceLinks.size() - 1; k++)
     {
         int links = sequenceLinks.at(k);
-        assert(links < maximalDimension);
 
         auto spaceK(std::make_shared<ompl::base::RealVectorStateSpace>(links));
         ompl::base::RealVectorBounds bounds(links);
