@@ -245,34 +245,3 @@ ompl::base::exactSolnPlannerTerminationCondition(const ompl::base::ProblemDefini
                                            return pdef->hasExactSolution();
                                        });
 }
-
-namespace ompl
-{
-    namespace base
-    {
-        IterationTerminationCondition::IterationTerminationCondition(unsigned int numIterations)
-          : maxCalls_(numIterations), timesCalled_(0u)
-        {
-        }
-
-        bool IterationTerminationCondition::eval()
-        {
-            ++timesCalled_;
-
-            return (timesCalled_ > maxCalls_);
-        }
-
-        void IterationTerminationCondition::reset()
-        {
-            timesCalled_ = 0u;
-        }
-
-        IterationTerminationCondition::operator PlannerTerminationCondition()
-        {
-            return PlannerTerminationCondition([this]
-                                               {
-                                                   return eval();
-                                               });
-        }
-    }
-}
