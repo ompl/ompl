@@ -53,7 +53,7 @@ void ompl::base::IterationTerminationCondition::reset()
     timesCalled_ = 0u;
 }
 
-ompl::base::IterationTerminationCondition::operator PlannerTerminationCondition()
+ompl::base::IterationTerminationCondition::operator ompl::base::PlannerTerminationCondition()
 {
     return PlannerTerminationCondition([this] { return eval(); });
 }

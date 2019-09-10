@@ -1,6 +1,6 @@
 # Planner Termination Conditions {#plannerTerminationConditions}
 
-OMPL uses the ompl::base::PlannerTerminationCondition concept to let planning algorithms know that an attempt to solve a motion planning problem should be terminated. This is done by passing an instance of an ompl::base::PlannerTerminationCondition to a planner's solve method. A PlannerTerminationCondition instance is essentially a functor that can be called with zero arguments that returns `true` when the planner should terminate. For convenience, there is also a cast-to-bool operator defined so the following two is statements are equivalent:
+OMPL uses the ompl::base::PlannerTerminationCondition concept to let planning algorithms know that an attempt to solve a motion planning problem should be terminated. This is done by passing an instance of an ompl::base::PlannerTerminationCondition to a planner's solve method. A PlannerTerminationCondition instance is essentially a functor that can be called with zero arguments that returns `true` when the planner should terminate. For convenience, there is also a cast-to-bool operator defined so the following two if statements are equivalent:
 
 ~~~{.cpp}
 // ptc is an instance of ompl::base::PlannerTerminationCondition
