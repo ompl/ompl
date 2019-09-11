@@ -33,8 +33,6 @@
  *********************************************************************/
 
 /* Author: Henning Kayser, Mark Moll */
-/* Description: A termination condition for early-stopping OMPL optimizing
-   planners based on cost-convergence. */
 
 #include "ompl/base/PlannerTerminationCondition.h"
 
@@ -42,9 +40,20 @@ namespace ompl
 {
     namespace base
     {
+        /// \brief: A termination condition for stopping an optimizing planner based on cost convergence
         class CostConvergenceTerminationCondition : public PlannerTerminationCondition
         {
         public:
+            ///.\brief Constructor
+            /// \param pdef Problem definition, needed to get access to the optimization
+            /// objective and to set a callback to get intermediate solutions.
+            /// \param solutionsWindow Minimum number of solutions to use in deciding
+            /// whether a planner has converged.
+            /// \param convergenceThreshold Threshold to consider for convergence. This should be a number close to 1.
+            /// When lower cost is better (as in minimizing path length), convergenceThreshold should be less than 1.
+            /// When higher cast is better (as in maximizing clearance), convergenceThreshold should be greater than 1.
+            /// A number of 0.9 can be interpreted as: if the cost of the last found solution is greater than .9 times a
+            /// moving average of the last found solutions, then the planner should terminate.
             CostConvergenceTerminationCondition(ProblemDefinitionPtr &pdef, size_t solutionsWindow = 10,
                                                 double convergenceThreshold = 0.9);
 
@@ -54,11 +63,16 @@ namespace ompl
             void processNewSolution(const Cost solutionCost);
 
         private:
+            /// Shared pointer to problem definition.
             ProblemDefinitionPtr pdef_;
-            double averageCost_{0.};
+            /// Cumulative moving average of solutions found so far.
+            Cost averageCost_{0.};
+            /// Number of solutions found so far.
             size_t solutions_{0};
 
+            /// Minimum number of solutions needed to decide whether the planner has converged.
             const size_t solutionsWindow_;
+            /// Fraction of moving average that is used as a cost threshold for deciding convergence.
             const double convergenceThreshold_;
         };
     }  // namespace base

@@ -54,10 +54,12 @@ void ompl::base::CostConvergenceTerminationCondition::processNewSolution(const o
 {
     ++solutions_;
     size_t solutions = std::min(solutions_, solutionsWindow_);
-    Cost newCost(((solutions - 1) * averageCost_ + solutionCost.value()) / solutions);
+    Cost newCost(((solutions - 1) * averageCost_.value() + solutionCost.value()) / solutions);
+    Cost costThreshold(convergenceThreshold_ * averageCost_.value());
+    averageCost_ = newCost;
 
     if (solutions == solutionsWindow_ && pdef_->getOptimizationObjective()->isCostBetterThan(
-        Cost(convergenceThreshold_ * averageCost_), newCost))
+        costThreshold, newCost))
     {
         OMPL_DEBUG("CostConvergenceTerminationCondition: Cost of optimizing planner converged after %lu solutions", solutions_);
         terminate();

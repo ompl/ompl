@@ -39,7 +39,11 @@
 #include <iostream>
 #include <thread>
 
+#include "ompl/base/spaces/SO2StateSpace.h"
 #include "ompl/base/PlannerTerminationCondition.h"
+#include "ompl/base/terminationconditions/IterationTerminationCondition.h"
+#include "ompl/base/terminationconditions/CostConvergenceTerminationCondition.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/util/Time.h"
 
 using namespace ompl;
@@ -79,4 +83,40 @@ BOOST_AUTO_TEST_CASE(TestThreadedTermination)
   ptc_long.terminate();
   BOOST_CHECK(ptc_long);
   BOOST_CHECK(ptc_long());
+}
+
+BOOST_AUTO_TEST_CASE(TestIterationTermination)
+{
+  base::IterationTerminationCondition iptc(10);
+  const base::PlannerTerminationCondition ptc(iptc);
+  BOOST_CHECK(!ptc);
+  BOOST_CHECK(!ptc());
+  for (unsigned int i = 0; i < 10; ++i)
+    ptc();
+  BOOST_CHECK(ptc);
+  BOOST_CHECK(ptc());
+  BOOST_CHECK(iptc.getTimesCalled() == 14);
+}
+
+BOOST_AUTO_TEST_CASE(TestCostConvergenceTermination)
+{
+  auto space = std::make_shared<base::SO2StateSpace>();
+  auto si = std::make_shared<base::SpaceInformation>(space);
+  auto pdef = std::make_shared<base::ProblemDefinition>(si);
+  base::CostConvergenceTerminationCondition ptc(pdef, 10, .9);
+  std::vector<base::Cost> costs(10, base::Cost(10.));
+  std::vector<const base::State *> dummy;
+
+  costs[9] = base::Cost(9.);
+  pdef->setOptimizationObjective(std::make_shared<base::PathLengthOptimizationObjective>(si));
+  BOOST_CHECK(!ptc);
+  BOOST_CHECK(!ptc());
+  for (const auto &c: costs)
+  {
+    BOOST_CHECK(!ptc());
+    pdef->getIntermediateSolutionCallback()(nullptr, dummy, c);
+  }
+
+  BOOST_CHECK(ptc);
+  BOOST_CHECK(ptc());
 }
