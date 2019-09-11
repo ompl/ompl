@@ -44,6 +44,7 @@
 #include "ompl/base/terminationconditions/IterationTerminationCondition.h"
 #include "ompl/base/terminationconditions/CostConvergenceTerminationCondition.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include "ompl/base/objectives/MaximizeMinClearanceObjective.h"
 #include "ompl/util/Time.h"
 
 using namespace ompl;
@@ -103,20 +104,73 @@ BOOST_AUTO_TEST_CASE(TestCostConvergenceTermination)
   auto space = std::make_shared<base::SO2StateSpace>();
   auto si = std::make_shared<base::SpaceInformation>(space);
   auto pdef = std::make_shared<base::ProblemDefinition>(si);
-  base::CostConvergenceTerminationCondition ptc(pdef, 10, .9);
   std::vector<base::Cost> costs(10, base::Cost(10.));
   std::vector<const base::State *> dummy;
 
+  // convergence after 10 iterations
   costs[9] = base::Cost(9.);
   pdef->setOptimizationObjective(std::make_shared<base::PathLengthOptimizationObjective>(si));
-  BOOST_CHECK(!ptc);
-  BOOST_CHECK(!ptc());
-  for (const auto &c: costs)
   {
+    base::CostConvergenceTerminationCondition ptc(pdef, 10, .9);
+    BOOST_CHECK(!ptc);
     BOOST_CHECK(!ptc());
-    pdef->getIntermediateSolutionCallback()(nullptr, dummy, c);
+    for (const auto &c: costs)
+    {
+      BOOST_CHECK(!ptc());
+      pdef->getIntermediateSolutionCallback()(nullptr, dummy, c);
+    }
+
+    BOOST_CHECK(ptc);
+    BOOST_CHECK(ptc());
   }
 
-  BOOST_CHECK(ptc);
-  BOOST_CHECK(ptc());
+  // no convergence after 10 iterations
+  costs[9] = base::Cost(0.);
+  {
+    base::CostConvergenceTerminationCondition ptc(pdef, 10, .9);
+    BOOST_CHECK(!ptc);
+    BOOST_CHECK(!ptc());
+    for (const auto &c: costs)
+    {
+      BOOST_CHECK(!ptc());
+      pdef->getIntermediateSolutionCallback()(nullptr, dummy, c);
+    }
+
+    BOOST_CHECK(!ptc);
+    BOOST_CHECK(!ptc());
+  }
+
+  // convergence after 10 iterations
+  costs[9] = base::Cost(11.);
+  pdef->setOptimizationObjective(std::make_shared<base::MaximizeMinClearanceObjective>(si));
+  {
+    base::CostConvergenceTerminationCondition ptc(pdef, 10, 1.1);
+    BOOST_CHECK(!ptc);
+    BOOST_CHECK(!ptc());
+    for (const auto &c: costs)
+    {
+      BOOST_CHECK(!ptc());
+      pdef->getIntermediateSolutionCallback()(nullptr, dummy, c);
+    }
+
+    BOOST_CHECK(ptc);
+    BOOST_CHECK(ptc());
+  }
+
+  // no convergence after 10 iterations
+  costs[9] = base::Cost(20.);
+  pdef->setOptimizationObjective(std::make_shared<base::MaximizeMinClearanceObjective>(si));
+  {
+    base::CostConvergenceTerminationCondition ptc(pdef, 10, 1.1);
+    BOOST_CHECK(!ptc);
+    BOOST_CHECK(!ptc());
+    for (const auto &c: costs)
+    {
+      BOOST_CHECK(!ptc());
+      pdef->getIntermediateSolutionCallback()(nullptr, dummy, c);
+    }
+
+    BOOST_CHECK(!ptc);
+    BOOST_CHECK(!ptc());
+  }
 }
