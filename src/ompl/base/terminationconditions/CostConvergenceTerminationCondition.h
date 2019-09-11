@@ -52,8 +52,9 @@ namespace ompl
             /// \param convergenceThreshold Threshold to consider for convergence. This should be a number close to 1.
             /// When lower cost is better (as in minimizing path length), convergenceThreshold should be less than 1.
             /// When higher cast is better (as in maximizing clearance), convergenceThreshold should be greater than 1.
-            /// A number of 0.9 can be interpreted as: if the cost of the last found solution is greater than .9 times a
-            /// moving average of the last found solutions, then the planner should terminate.
+            /// A number of 0.9 can be interpreted as: if the cost of new moving average after adding the last found
+            /// solution is worse than .9 times the old moving average of the last found solutions, then the planner
+            /// should terminate.
             CostConvergenceTerminationCondition(ProblemDefinitionPtr &pdef, size_t solutionsWindow = 10,
                                                 double convergenceThreshold = 0.9);
 
