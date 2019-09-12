@@ -216,6 +216,9 @@ namespace ompl
             /** \brief Set whether unconnected samples are dropped on pruning. */
             void setDropSamplesOnPrune(bool dropSamples);
 
+            /** \brief Set whether samples that are provably not beneficial should be kept around. */
+            void setPruning(bool usePruning);
+
             /** \brief Get whether unconnected samples are dropped on pruning. */
             bool getDropSamplesOnPrune() const;
 
@@ -329,6 +332,9 @@ namespace ompl
 
             /** \brief Update the appropriate nearest-neighbour terms, r_ and k_. */
             virtual void updateNearestTerms();
+
+            /** \brief Computes the number of samples in the informed set. */
+            std::size_t computeNumberOfSamplesInInformedSet() const;
 
             /** \brief Calculate the r for r-disc nearest neighbours, a function of the current graph. */
             double calculateR(unsigned int numUniformSamples) const;
@@ -486,6 +492,9 @@ namespace ompl
 
             /** \brief Whether to refresh (i.e., forget) unconnected samples on pruning. */
             bool dropSamplesOnPrune_{false};
+
+            /** \brief Whether the graph is being pruned or not. */
+            bool isPruningEnabled_{true};
 
             /** \brief Whether to consider approximate solutions. */
             bool findApprox_{false};

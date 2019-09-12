@@ -1387,10 +1387,16 @@ namespace ompl
                 // We are, so we've been tracking the number of uniform states, just use that
                 numUniformStates = numUniformStates_;
             }
+            else if (isPruningEnabled_)
+            {
+                // We are not dropping samples but pruning is enabled, then all vertices and samples are uniform, use
+                // that.
+                numUniformStates = vertices_->size() + samples_->size();
+            }
             else
             {
-                // We are not, so then all vertices and samples are uniform, use that
-                numUniformStates = vertices_->size() + samples_->size();
+                // We don't prune, so we have to check how many samples are in the informed set.
+                numUniformStates = computeNumberOfSamplesInInformedSet();
             }
 
             // If this is the first batch, we will be calculating the connection limits from only the starts and goals
@@ -1411,6 +1417,27 @@ namespace ompl
             {
                 r_ = this->calculateR(numUniformStates);
             }
+        }
+
+        std::size_t BITstar::ImplicitGraph::computeNumberOfSamplesInInformedSet() const
+        {
+            std::size_t numberOfSamplesInInformedSet{0u};
+
+            // First count the vertices.
+            std::vector<VertexPtr> vertices;
+            vertices_->list(vertices);
+            numberOfSamplesInInformedSet +=
+                std::count_if(vertices.begin(), vertices.end(),
+                              [this](const VertexPtr &vertex) { return canSampleBePruned(vertex); });
+
+            // Second check the samples.
+            std::vector<VertexPtr> samples;
+            samples_->list(samples);
+            numberOfSamplesInInformedSet +=
+                std::count_if(samples.begin(), samples.end(),
+                              [this](const VertexPtr &sample) { return canSampleBePruned(sample); });
+
+            return numberOfSamplesInInformedSet;
         }
 
         double BITstar::ImplicitGraph::calculateR(unsigned int numUniformSamples) const
@@ -1681,6 +1708,11 @@ namespace ompl
                 // Store
                 dropSamplesOnPrune_ = dropSamples;
             }
+        }
+
+        void BITstar::ImplicitGraph::setPruning(bool usePruning)
+        {
+            isPruningEnabled_ = usePruning;
         }
 
         bool BITstar::ImplicitGraph::getDropSamplesOnPrune() const
