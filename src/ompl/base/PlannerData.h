@@ -42,6 +42,7 @@
 #include <map>
 #include <set>
 #include "ompl/base/State.h"
+#include "ompl/base/Path.h"
 #include "ompl/base/Cost.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/ClassForward.h"
@@ -408,6 +409,8 @@ namespace ompl
 
             /// \brief Any extra properties (key-value pairs) the planner can set.
             std::map<std::string, std::string> properties;
+
+            PathPtr path_;
 
         protected:
             /// \brief A mapping of states to vertex indexes.  For fast lookup of vertex index.
