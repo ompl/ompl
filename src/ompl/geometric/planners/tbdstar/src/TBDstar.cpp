@@ -772,10 +772,15 @@ namespace ompl
 
         std::array<double, 2u> TBDstar::computeSortKey(const std::shared_ptr<tbdstar::Vertex> &vertex) const
         {
+            // LPA* sort key is [min(g(x), v(x)) + h(x); min(g(x), v(x))].
             return {optimizationObjective_
-                        ->combineCosts(vertex->getCostToComeFromGoal(), computeCostToGoToStartHeuristic(vertex))
+                        ->combineCosts(optimizationObjective_->betterCost(vertex->getCostToComeFromGoal(),
+                                                                          vertex->getExpandedCostToComeFromGoal()),
+                                       computeCostToGoToStartHeuristic(vertex))
                         .value(),
-                    vertex->getCostToComeFromGoal().value()};
+                    optimizationObjective_
+                        ->betterCost(vertex->getCostToComeFromGoal(), vertex->getExpandedCostToComeFromGoal())
+                        .value()};
         }
 
         void TBDstar::insertOutgoingEdges(const std::shared_ptr<tbdstar::Vertex> &vertex)
