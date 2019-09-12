@@ -113,6 +113,7 @@ void ompl::control::SST::clear()
         witnesses_->clear();
     if (opt_)
         prevSolutionCost_ = opt_->infiniteCost();
+    lastGoalMotion_ = nullptr;
 }
 
 void ompl::control::SST::freeMemory()
@@ -378,6 +379,7 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
 
     if (solution != nullptr)
     {
+        lastGoalMotion_ = solution;
         /* set the solution path */
         auto path(std::make_shared<PathControl>(si_));
         for (int i = prevSolution_.size() - 1; i >= 1; --i)
@@ -426,8 +428,15 @@ void ompl::control::SST::getPlannerData(base::PlannerData &data) const
 
     double delta = siC_->getPropagationStepSize();
 
-    if (prevSolution_.size() != 0)
-        data.addGoalVertex(base::PlannerDataVertex(prevSolution_[0]));
+    // if (prevSolution_.size() != 0)
+    if (lastGoalMotion_)
+    {
+        data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->getState()));
+        // data.addGoalVertex(base::PlannerDataVertex(prevSolution_[0]));
+        // auto *mGoal = new Motion(siC_);
+        // si_->copyState(mGoal->state_, prevSolution_[0]);
+        // allMotions.push_back(mGoal);
+    }
 
     for (auto m : allMotions)
     {
@@ -442,4 +451,12 @@ void ompl::control::SST::getPlannerData(base::PlannerData &data) const
         else
             data.addStartVertex(base::PlannerDataVertex(m->state_));
     }
+
+    // unsigned int vg = data.getGoalIndex(0);
+    // std::vector<unsigned int> edgeList;
+    // unsigned int Ng = data.getEdges(vg, edgeList);
+    // std::cout << "GOAL VERTEX HAS " << Ng << " EDGES." << std::endl;
+    // unsigned int vs = data.getStartIndex(0);
+    // unsigned int Ns = data.getEdges(vs, edgeList);
+    // std::cout << "START VERTEX HAS " << Ns << " EDGES." << std::endl;
 }
