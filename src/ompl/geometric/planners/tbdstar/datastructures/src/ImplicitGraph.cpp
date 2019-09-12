@@ -71,6 +71,11 @@ namespace ompl
                                                                              std::numeric_limits<unsigned int>::max());
             }
 
+            void ImplicitGraph::setRewireFactor(double rewireFactor)
+            {
+                rewireFactor_ = rewireFactor;
+            }
+
             void ImplicitGraph::registerStartState(const ompl::base::State *const startState)
             {
                 // Create a vertex corresponding to this state.
@@ -180,7 +185,8 @@ namespace ompl
 
                 // We need to do some internal housekeeping.
                 ++(*batchId_);
-                radius_ = computeConnectionRadius(numSamplesInInformedSet + numNewSamples);
+                radius_ = computeConnectionRadius(numSamplesInInformedSet + numNewSamples - startVertices_.size() -
+                                                  goalVertices_.size());
 
                 return newVertices;
             }
@@ -188,6 +194,11 @@ namespace ompl
             std::size_t ImplicitGraph::getNumVertices() const
             {
                 return vertices_.size();
+            }
+
+            double ImplicitGraph::getConnectionRadius() const
+            {
+                return radius_;
             }
 
             std::vector<std::shared_ptr<Vertex>>
@@ -251,14 +262,15 @@ namespace ompl
             double ImplicitGraph::computeConnectionRadius(std::size_t numSamples) const
             {
                 // Define the dimension as a helper variable.
-                auto dimension = spaceInformation_->getStateDimension();
+                auto dimension = static_cast<double>(spaceInformation_->getStateDimension());
 
                 // Compute the RRT* factor.
-                return std::pow(
-                    2.0 * (1.0 + 1.0 / static_cast<double>(dimension)) *
-                        (sampler_->getInformedMeasure(*solutionCost_.lock()) / unitNBallMeasure(dimension)) *
-                        (std::log(static_cast<double>(numSamples)) / static_cast<double>(numSamples)),
-                    1.0 / static_cast<double>(dimension));
+                return rewireFactor_ *
+                       std::pow(2.0 * (1.0 + 1.0 / dimension) *
+                                    (sampler_->getInformedMeasure(*solutionCost_.lock()) /
+                                     unitNBallMeasure(spaceInformation_->getStateDimension())) *
+                                    (std::log(static_cast<double>(numSamples)) / static_cast<double>(numSamples)),
+                                1.0 / dimension);
             }
 
         }  // namespace tbdstar

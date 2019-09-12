@@ -225,9 +225,19 @@ namespace ompl
             batchSize_ = batchSize;
         }
 
+        void TBDstar::setRewireFactor(double rewireFactor)
+        {
+            graph_.setRewireFactor(rewireFactor);
+        }
+
         void TBDstar::setRepairBackwardSearch(bool repairBackwardSearch)
         {
             repairBackwardSearch_ = repairBackwardSearch;
+        }
+
+        void TBDstar::setStopOnFindingInitialSolution(bool stopOnFindingInitialSolution)
+        {
+            stopOnFindingInitialSolution_ = stopOnFindingInitialSolution;
         }
 
         void TBDstar::rebuildForwardQueue()

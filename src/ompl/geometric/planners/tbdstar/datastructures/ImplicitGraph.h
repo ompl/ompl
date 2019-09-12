@@ -68,11 +68,17 @@ namespace ompl
                            const std::shared_ptr<std::size_t> &forwardSearchId,
                            const std::shared_ptr<std::size_t> &backwardSearchId);
 
+                /** \brief Set the reqire factor of the RGG. */
+                void setRewireFactor(double rewireFactor);
+
                 /** \brief Adds a batch of samples. */
                 std::vector<std::shared_ptr<Vertex>> addSamples(std::size_t numNewSamples);
 
                 /** \brief Gets the number of samples in the graph. */
                 std::size_t getNumVertices() const;
+
+                /** \brief Gets the RGG connection radius. */
+                double getConnectionRadius() const;
 
                 /** \brief Registers a state as a start state. */
                 void registerStartState(const ompl::base::State *const startState);
@@ -122,6 +128,9 @@ namespace ompl
 
                 /** \brief The id of the backward search. */
                 std::shared_ptr<std::size_t> backwardSearchId_;
+
+                /** \brief The rewire factor of the RGG. */
+                double rewireFactor_{1.0};
 
                 /** \brief The radius that defines the neighborhood of a vertex. */
                 double radius_{std::numeric_limits<double>::infinity()};

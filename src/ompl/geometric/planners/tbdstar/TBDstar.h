@@ -74,8 +74,14 @@ namespace ompl
             /** \brief Set the batch size. */
             void setBatchSize(std::size_t batchSize);
 
+            /** \brief Set the rewire factor of the RGG graph. */
+            void setRewireFactor(double rewireFactor);
+
             /** \brief Enable LPA* repair of backward search. */
             void setRepairBackwardSearch(bool setRepairBackwardSearch);
+
+            /** \brief Stop when finding an improved solution. */
+            void setStopOnFindingInitialSolution(bool stopOnFindingInitialSolution);
 
             /** \brief Get the edge queue. */
             std::vector<tbdstar::Edge> getEdgesInQueue() const;
@@ -187,6 +193,9 @@ namespace ompl
 
             /** \brief The option that specifies whether to repair the backward search when detecting a collision. */
             bool repairBackwardSearch_{true};
+
+            /** \brief Whether to stop on finding an improved solution. */
+            bool stopOnFindingInitialSolution_{false};
 
             /** \brief Syntactic helper to get at the optimization objective of the planner base class. */
             ompl::base::OptimizationObjectivePtr optimizationObjective_;
