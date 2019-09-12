@@ -629,7 +629,7 @@ namespace ompl
                     auto edgeCost =
                         optimizationObjective_->motionCostHeuristic(backwardChild->getState(), vertex->getState());
                     auto parentCost =
-                        optimizationObjective_->combineCosts(backwardChild->getCostToComeFromGoal(), edgeCost);
+                        optimizationObjective_->combineCosts(backwardChild->getExpandedCostToComeFromGoal(), edgeCost);
                     if (optimizationObjective_->isCostBetterThan(parentCost, bestCost))
                     {
                         bestParent = backwardChild;
@@ -643,7 +643,7 @@ namespace ompl
                     auto edgeCost =
                         optimizationObjective_->motionCostHeuristic(forwardChild->getState(), vertex->getState());
                     auto parentCost =
-                        optimizationObjective_->combineCosts(forwardChild->getCostToComeFromGoal(), edgeCost);
+                        optimizationObjective_->combineCosts(forwardChild->getExpandedCostToComeFromGoal(), edgeCost);
                     if (optimizationObjective_->isCostBetterThan(parentCost, bestCost))
                     {
                         bestParent = forwardChild;
@@ -658,7 +658,7 @@ namespace ompl
                     auto edgeCost =
                         optimizationObjective_->motionCostHeuristic(backwardParent->getState(), vertex->getState());
                     auto parentCost =
-                        optimizationObjective_->combineCosts(backwardParent->getCostToComeFromGoal(), edgeCost);
+                        optimizationObjective_->combineCosts(backwardParent->getExpandedCostToComeFromGoal(), edgeCost);
                     if (optimizationObjective_->isCostBetterThan(parentCost, bestCost))
                     {
                         bestParent = backwardParent;
@@ -673,7 +673,7 @@ namespace ompl
                     auto edgeCost =
                         optimizationObjective_->motionCostHeuristic(forwardParent->getState(), vertex->getState());
                     auto parentCost =
-                        optimizationObjective_->combineCosts(forwardParent->getCostToComeFromGoal(), edgeCost);
+                        optimizationObjective_->combineCosts(forwardParent->getExpandedCostToComeFromGoal(), edgeCost);
                     if (optimizationObjective_->isCostBetterThan(parentCost, bestCost))
                     {
                         bestParent = forwardParent;
