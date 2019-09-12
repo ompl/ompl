@@ -44,7 +44,7 @@ namespace ompl
         class CostConvergenceTerminationCondition : public PlannerTerminationCondition
         {
         public:
-            ///.\brief Constructor
+            /// \brief Constructor
             /// \param pdef Problem definition, needed to get access to the optimization
             /// objective and to set a callback to get intermediate solutions.
             /// \param solutionsWindow Minimum number of solutions to use in deciding

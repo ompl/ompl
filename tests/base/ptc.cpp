@@ -92,11 +92,11 @@ BOOST_AUTO_TEST_CASE(TestIterationTermination)
   const base::PlannerTerminationCondition ptc(iptc);
   BOOST_CHECK(!ptc);
   BOOST_CHECK(!ptc());
-  for (unsigned int i = 0; i < 10; ++i)
-    ptc();
+  for (unsigned int i = 0; i < 8; ++i)
+    BOOST_CHECK(!ptc());
   BOOST_CHECK(ptc);
   BOOST_CHECK(ptc());
-  BOOST_CHECK(iptc.getTimesCalled() == 14);
+  BOOST_CHECK(iptc.getTimesCalled() == 12);
 }
 
 BOOST_AUTO_TEST_CASE(TestCostConvergenceTermination)
