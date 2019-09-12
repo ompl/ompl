@@ -165,7 +165,8 @@ namespace ompl
             }
 
             // Iterate to solve the problem.
-            while (!terminationCondition)
+            while (!terminationCondition &&
+                   !(optimizationObjective_->isFinite(*solutionCost_) && stopOnFindingInitialSolution_))
             {
                 iterate();
             }
@@ -526,11 +527,23 @@ namespace ompl
             assert(!optimizationObjective_->isCostEquivalentTo(vertex->getCostToComeFromGoal(),
                                                                vertex->getExpandedCostToComeFromGoal()));
 
+            // If any goal is underconsistent, we need to continue.
+            bool underconsistentStart {false};
+            for (const auto &start : graph_.getStartVertices())
+            {
+                if (optimizationObjective_->isCostBetterThan(start->getExpandedCostToComeFromGoal(),
+                                                             start->getCostToComeFromGoal()))
+                {
+                    underconsistentStart = true;
+                    break;
+                }
+            }
+
             // If there is currently no reason to think this vertex can be on an optimal path, clear the queue.
-            if (!optimizationObjective_->isCostBetterThan(
+            if ((!underconsistentStart && !optimizationObjective_->isCostBetterThan(
                     optimizationObjective_->combineCosts(vertex->getCostToComeFromGoal(),
                                                          computeCostToGoToStartHeuristic(vertex)),
-                    *solutionCost_) ||
+                    *solutionCost_)) ||
                 optimizationObjective_->isCostBetterThan(
                     ompl::base::Cost(computeBestCostToComeFromGoalOfAnyStart().value() + 1e-6), *solutionCost_))
             {
