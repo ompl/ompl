@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(TestCostConvergenceTermination)
   costs[9] = base::Cost(9.);
   pdef->setOptimizationObjective(std::make_shared<base::PathLengthOptimizationObjective>(si));
   {
-    base::CostConvergenceTerminationCondition ptc(pdef, 10, .9);
+    base::CostConvergenceTerminationCondition ptc(pdef, 10, .1);
     BOOST_CHECK(!ptc);
     BOOST_CHECK(!ptc());
     for (const auto &c: costs)
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(TestCostConvergenceTermination)
   // no convergence after 10 iterations
   costs[9] = base::Cost(0.);
   {
-    base::CostConvergenceTerminationCondition ptc(pdef, 10, .9);
+    base::CostConvergenceTerminationCondition ptc(pdef, 10, .1);
     BOOST_CHECK(!ptc);
     BOOST_CHECK(!ptc());
     for (const auto &c: costs)
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(TestCostConvergenceTermination)
   costs[9] = base::Cost(11.);
   pdef->setOptimizationObjective(std::make_shared<base::MaximizeMinClearanceObjective>(si));
   {
-    base::CostConvergenceTerminationCondition ptc(pdef, 10, 1.1);
+    base::CostConvergenceTerminationCondition ptc(pdef, 10, .1);
     BOOST_CHECK(!ptc);
     BOOST_CHECK(!ptc());
     for (const auto &c: costs)
@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_CASE(TestCostConvergenceTermination)
   costs[9] = base::Cost(20.);
   pdef->setOptimizationObjective(std::make_shared<base::MaximizeMinClearanceObjective>(si));
   {
-    base::CostConvergenceTerminationCondition ptc(pdef, 10, 1.1);
+    base::CostConvergenceTerminationCondition ptc(pdef, 10, .1);
     BOOST_CHECK(!ptc);
     BOOST_CHECK(!ptc());
     for (const auto &c: costs)

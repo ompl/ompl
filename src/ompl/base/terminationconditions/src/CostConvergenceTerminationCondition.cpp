@@ -34,15 +34,14 @@
 
 /* Author: Henning Kayser, Mark Moll */
 
-#include "ompl/base/OptimizationObjective.h"
 #include "ompl/base/terminationconditions/CostConvergenceTerminationCondition.h"
 
 ompl::base::CostConvergenceTerminationCondition::CostConvergenceTerminationCondition(
-    ompl::base::ProblemDefinitionPtr &pdef, size_t solutionsWindow, double convergenceThreshold)
+    ompl::base::ProblemDefinitionPtr &pdef, size_t solutionsWindow, double epsilon)
     : ompl::base::PlannerTerminationCondition(ompl::base::plannerNonTerminatingCondition()),
       pdef_(pdef),
       solutionsWindow_(solutionsWindow),
-      convergenceThreshold_(convergenceThreshold)
+      epsilon_(epsilon)
 {
     pdef_->setIntermediateSolutionCallback(
 	    [this](const Planner* /*planner*/, const std::vector<const State*>& /*states*/, const Cost cost) {
@@ -54,12 +53,14 @@ void ompl::base::CostConvergenceTerminationCondition::processNewSolution(const o
 {
     ++solutions_;
     size_t solutions = std::min(solutions_, solutionsWindow_);
-    Cost newCost(((solutions - 1) * averageCost_.value() + solutionCost.value()) / solutions);
-    Cost costThreshold(convergenceThreshold_ * averageCost_.value());
+    double newCost = ((solutions - 1) * averageCost_ + solutionCost.value()) / solutions;
+    double costLowerThreshold = (1. - epsilon_) * averageCost_;
+    double costUpperThreshold = (1. + epsilon_) * averageCost_;
     averageCost_ = newCost;
 
-    if (solutions == solutionsWindow_ && pdef_->getOptimizationObjective()->isCostBetterThan(
-        costThreshold, newCost))
+    if (solutions == solutionsWindow_ &&
+        averageCost_ > costLowerThreshold &&
+        averageCost_ < costUpperThreshold)
     {
         OMPL_DEBUG("CostConvergenceTerminationCondition: Cost of optimizing planner converged after %lu solutions", solutions_);
         terminate();
