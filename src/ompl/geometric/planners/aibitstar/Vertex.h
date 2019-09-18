@@ -1,0 +1,121 @@
+/*********************************************************************
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2019, University of Oxford
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Toronto nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
+
+// Authors: Marlin Strub
+
+#ifndef OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_VERTEX_
+#define OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_VERTEX_
+
+#include <memory>
+#include <vector>
+
+#include "ompl/base/Cost.h"
+#include "ompl/datastructures/BinaryHeap.h"
+
+#include "ompl/geometric/planners/aibitstar/Edge.h"
+#include "ompl/geometric/planners/aibitstar/State.h"
+
+namespace ompl
+{
+    namespace geometric
+    {
+        namespace aibitstar
+        {
+            class Vertex
+            {
+            public:
+                /** \brief Constructs the vertex, which must be associated with a state. */
+                Vertex(const std::shared_ptr<State> &state);
+
+                /** \brief Destructs the vertex. */
+                ~Vertex() = default;
+
+                /** \brief Gets the unique id of this vertex. */
+                std::size_t getId() const;
+
+                /** \brief Returns the cost-to-come to this vertex. */
+                ompl::base::Cost getCost() const;
+
+                /** \brief Returns the state associated with this vertex. */
+                std::shared_ptr<State> getState() const;
+
+                /** \brief Returns the children of the vertex. */
+                const std::vector<std::shared_ptr<Vertex>> &getChildren() const;
+
+                /** \brief Adds a vertex to this vertex's children. */
+                void addChild(const std::shared_ptr<Vertex> &vertex);
+
+                /** \brief Removes a vertex from this vertex's child. */
+                void removeChild(const std::shared_ptr<Vertex> &vertex);
+
+                /** \brief Returns the parent of the vertex. */
+                std::weak_ptr<Vertex> getParent() const;
+
+                /** \brief Returns the parent of the vertex. */
+                void setParent(const std::shared_ptr<Vertex> &vertex);
+
+            private:
+                /** \brief The unique id of this vertex. */
+                const std::size_t id_;
+
+                /** \brief The cost to come to this vertex. */
+                ompl::base::Cost cost_;
+
+                /** \brief The parent of this vertex. */
+                std::weak_ptr<Vertex> parent_{};
+
+                /** \brief The children of this vertex. */
+                std::vector<std::shared_ptr<Vertex>> children_{};
+
+                /** \brief The state this vertex is associated with. */
+                std::shared_ptr<State> state_;
+
+                /** \brief The edge queue is a friend class to allow efficient updates of outoing edge of this vertex
+                 * the queue. */
+                friend class EdgeQueue;
+
+                /** \brief The outgoing edges from this vertex currently in the queue. This is maintained by the edge
+                 * queue. */
+                mutable std::vector<ompl::BinaryHeap<ompl::geometric::aibitstar::Edge,
+                                                     std::function<bool(const Edge &, const Edge &)>>::Element *>
+                    outgoingEdgeQueueLookup_;
+            };
+
+        }  // namespace aibitstar
+
+    }  // namespace geometric
+
+}  // namespace ompl
+
+#endif  // OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_QUEUE_
