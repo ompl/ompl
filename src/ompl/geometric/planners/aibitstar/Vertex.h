@@ -44,7 +44,6 @@
 #include "ompl/datastructures/BinaryHeap.h"
 
 #include "ompl/geometric/planners/aibitstar/Edge.h"
-#include "ompl/geometric/planners/aibitstar/State.h"
 
 namespace ompl
 {
@@ -52,6 +51,7 @@ namespace ompl
     {
         namespace aibitstar
         {
+            class State;
             class Vertex : public std::enable_shared_from_this<Vertex>
             {
             public:
@@ -79,14 +79,28 @@ namespace ompl
                 /** \brief Removes a vertex from this vertex's child. */
                 void removeChild(const std::shared_ptr<Vertex> &vertex);
 
+                /** \brief Removes a vertex from this vertex's child. */
+                void removeIfChild(const std::shared_ptr<Vertex> &vertex);
+
                 /** \brief Returns the parent of the vertex. */
                 std::weak_ptr<Vertex> getParent() const;
+
+                /** \brief Returns the twin of this vertex, i.e., the vertex in the other search tree with the same
+                 * underlying state. */
+                std::weak_ptr<Vertex> getTwin() const;
 
                 /** \brief Sets the cost to come to this vertex. */
                 void setCost(const ompl::base::Cost &cost);
 
-                /** \brief Returns the parent of the vertex. */
+                /** \brief Resets the parent of the vertex. */
                 void setParent(const std::shared_ptr<Vertex> &vertex);
+
+                /** \brief Returns the parent of the vertex. */
+                void resetParent();
+
+                /** \brief Sets the twin of this vertex, i.e., the vertex in the other search tree with the same
+                 * underlying state. */
+                void setTwin(const std::shared_ptr<Vertex> &vertex);
 
                 /** \brief Invalidates the branch rooted in this vertex. */
                 void releaseBranchFromStates();
@@ -117,6 +131,9 @@ namespace ompl
 
                 /** \brief The parent of this vertex. */
                 std::weak_ptr<Vertex> parent_{};
+
+                /** \brief The twin of this vertex, i.e., the vertex with the same underlying state in the other search tree. */
+                std::weak_ptr<Vertex> twin_{};
 
                 /** \brief The children of this vertex. */
                 std::vector<std::shared_ptr<Vertex>> children_{};

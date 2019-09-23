@@ -71,39 +71,59 @@ namespace ompl
                 return id_;
             }
 
-            ompl::base::State *State::getState() const
+            ompl::base::State *State::raw() const
             {
                 return state_;
             }
 
-            std::weak_ptr<Vertex> State::getForwardVertex() const
+            bool State::hasForwardVertex() const
             {
-                return forwardVertex_;
+                return static_cast<bool>(forwardVertex_.lock());
             }
 
-            std::weak_ptr<Vertex> State::getReverseVertex() const
+            bool State::hasReverseVertex() const
             {
-                return reverseVertex_;
+                return static_cast<bool>(reverseVertex_.lock());
             }
 
-            void State::setForwardVertex(const std::weak_ptr<Vertex> &vertex)
+            std::shared_ptr<Vertex> State::asForwardVertex()
             {
-                forwardVertex_ = vertex;
+                // If this state exists as a forward vertex, return this object.
+                if (auto forwardVertex = forwardVertex_.lock())
+                {
+                    return forwardVertex;
+                }
+                else  // If this state does not yet exist as a forward vertex, create the object.
+                {
+                    forwardVertex = std::make_shared<Vertex>(shared_from_this());
+                    if (auto reverseVertex = reverseVertex_.lock())
+                    {
+                        reverseVertex->setTwin(forwardVertex);
+                        forwardVertex->setTwin(reverseVertex);
+                    }
+                    forwardVertex_ = forwardVertex;
+                    return forwardVertex;
+                }
             }
 
-            void State::setReverseVertex(const std::weak_ptr<Vertex> &vertex)
+            std::shared_ptr<Vertex> State::asReverseVertex()
             {
-                reverseVertex_ = vertex;
-            }
-
-            void State::resetForwardVertex()
-            {
-                forwardVertex_.reset();
-            }
-
-            void State::resetReverseVertex()
-            {
-                reverseVertex_.reset();
+                // If this state exists as a reverse vertex, return this object.
+                if (auto reverseVertex = reverseVertex_.lock())
+                {
+                    return reverseVertex;
+                }
+                else  // If this state does not yet exist as a reverse vertex, create the object.
+                {
+                    reverseVertex = std::make_shared<Vertex>(shared_from_this());
+                    if (auto forwardVertex = forwardVertex_.lock())
+                    {
+                        forwardVertex->setTwin(reverseVertex);
+                        reverseVertex->setTwin(forwardVertex);
+                    }
+                    reverseVertex_ = reverseVertex;
+                    return reverseVertex;
+                }
             }
 
             void State::blacklist(const std::shared_ptr<State> &state)

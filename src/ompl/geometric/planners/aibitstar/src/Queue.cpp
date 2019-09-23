@@ -133,10 +133,9 @@ namespace ompl
 
             void EdgeQueue::clear()
             {
-                // Starting to wonder whether the edge queue lookup is actually useful.
                 while (!empty())
                 {
-                    pop();
+                    auto edge = pop();
                 }
             }
 

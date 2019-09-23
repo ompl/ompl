@@ -45,17 +45,16 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/State.h"
 
+#include "ompl/geometric/planners/aibitstar/Vertex.h"
+
 namespace ompl
 {
     namespace geometric
     {
         namespace aibitstar
         {
-            // Forward declaration of the vertex class.
-            class Vertex;
-
             /** \brief A wrapper class for OMPL's state. */
-            class State
+            class State : public std::enable_shared_from_this<State>
             {
             public:
                 /** \brief Constructs the state, allocating the associated memory using information about the underlying
@@ -68,26 +67,20 @@ namespace ompl
                 /** \brief Get the state's unique id. */
                 std::size_t getId() const;
 
-                /** \brief Get a pointer to this state. */
-                ompl::base::State *getState() const;
+                /** \brief Get the raw pointer to this state. */
+                ompl::base::State *raw() const;
 
-                /** \brief Get the associated forward vertex. */
-                std::weak_ptr<Vertex> getForwardVertex() const;
+                /** \brief Returns whether the state has an associated forward vertex. */
+                bool hasForwardVertex() const;
 
-                /** \brief Get the associated reverse vertex. */
-                std::weak_ptr<Vertex> getReverseVertex() const;
+                /** \brief Returns whether the state has an associated reverse vertex. */
+                bool hasReverseVertex() const;
 
-                /** \brief Set the associated forward vertex. */
-                void setForwardVertex(const std::weak_ptr<Vertex> &forwardVertex);
+                /** \brief Get the state as a reverse vertex. */
+                std::shared_ptr<Vertex> asForwardVertex();
 
-                /** \brief Set the associated reverse vertex. */
-                void setReverseVertex(const std::weak_ptr<Vertex> &reverseVertex);
-
-                /** \brief Resets the associated forward vertex. */
-                void resetForwardVertex();
-
-                /** \brief Resets the associated reverse vertex. */
-                void resetReverseVertex();
+                /** \brief Get the state as a reverse vertex(); */
+                std::shared_ptr<Vertex> asReverseVertex();
 
                 /** \brief Blacklist a state as neighbor. */
                 void blacklist(const std::shared_ptr<State> &state);

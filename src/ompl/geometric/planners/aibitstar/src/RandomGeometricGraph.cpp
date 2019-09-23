@@ -136,7 +136,7 @@ namespace ompl
                 startState_ = std::make_shared<State>(spaceInfo_);
 
                 // Copy the given state.
-                spaceInfo_->copyState(startState_->getState(), startState);
+                spaceInfo_->copyState(startState_->raw(), startState);
 
                 // Add the start to the set of samples.
                 samples_.add(startState_);
@@ -156,7 +156,7 @@ namespace ompl
                 goalState_ = std::make_shared<State>(spaceInfo_);
 
                 // Copy the given state.
-                spaceInfo_->copyState(goalState_->getState(), goalState);
+                spaceInfo_->copyState(goalState_->raw(), goalState);
 
                 // Add the goal to the set of samples.
                 samples_.add(goalState_);
@@ -184,16 +184,10 @@ namespace ompl
 
                     do  // Sample randomly until a valid state is found.
                     {
-                        // Fill the state according to a uniform distribution in the informed set.
-                        if (auto forwardGoal = goalState_->getForwardVertex().lock())
-                        {
-                            sampler_->sampleUniform(newStates.back()->getState(), forwardGoal->getCost());
-                        }
-                        else  // There is no solution yet.
-                        {
-                            sampler_->sampleUniform(newStates.back()->getState(), objective_->infiniteCost());
-                        }
-                    } while (!spaceInfo_->isValid(newStates.back()->getState()));
+                        sampler_->sampleUniform(newStates.back()->raw(), goalState_->hasForwardVertex() ?
+                                                                             goalState_->asForwardVertex()->getCost() :
+                                                                             objective_->infiniteCost());
+                    } while (!spaceInfo_->isValid(newStates.back()->raw()));
                 }
 
                 // Add the new states to the samples.
@@ -216,7 +210,7 @@ namespace ompl
                     // The cache is invalid, let's clear all vertices.
                     state->neighbors_.second.clear();
 
-                    // Get the neighbors from by performing a nearest neighbor search.
+                    // Get the neighbors by performing a nearest neighbor search.
                     std::vector<std::shared_ptr<State>> neighbors;
                     samples_.nearestR(state, radius_, neighbors);
 
@@ -260,13 +254,12 @@ namespace ompl
 
             bool RandomGeometricGraph::canPossiblyImproveSolution(const std::shared_ptr<State> &state) const
             {
-                if (auto forwardGoal = goalState_->getForwardVertex().lock())
+                if (goalState_->hasForwardVertex())
                 {
                     return objective_->isCostBetterThan(
-                        objective_->combineCosts(
-                            objective_->motionCostHeuristic(startState_->getState(), state->getState()),
-                            objective_->motionCostHeuristic(state->getState(), goalState_->getState())),
-                        forwardGoal->getCost());
+                        objective_->combineCosts(objective_->motionCostHeuristic(startState_->raw(), state->raw()),
+                                                 objective_->motionCostHeuristic(state->raw(), goalState_->raw())),
+                        goalState_->asForwardVertex()->getCost());
                 }
                 else
                 {
@@ -276,11 +269,9 @@ namespace ompl
 
             double RandomGeometricGraph::computeRadius(std::size_t numInformedSamples) const
             {
-                // Get the vertex associated with the goal in the forward search tree.
-                auto forwardGoalVertex = goalState_->getForwardVertex().lock();
-
                 // Get the solution cost.
-                auto solutionCost = forwardGoalVertex ? forwardGoalVertex->getCost() : objective_->infiniteCost();
+                auto solutionCost = goalState_->hasForwardVertex() ? goalState_->asForwardVertex()->getCost() :
+                                                                     objective_->infiniteCost();
 
                 // Compute and return the radius. Note to self: double / int -> double. You looked it up. It's fine.
                 return radiusFactor_ *

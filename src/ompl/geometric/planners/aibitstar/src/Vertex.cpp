@@ -36,6 +36,7 @@
 
 #include "ompl/geometric/planners/aibitstar/Vertex.h"
 
+#include <algorithm>
 #include <limits>
 
 namespace ompl
@@ -101,9 +102,32 @@ namespace ompl
                 children_.pop_back();
             }
 
+            void Vertex::removeIfChild(const std::shared_ptr<Vertex> &vertex)
+            {
+                assert(this);
+                assert(vertex);
+
+                // Find the child that is to be removed.
+                auto it = std::find_if(children_.begin(), children_.end(),
+                                       [&vertex](const auto &child) { return child->getId() == vertex->getId(); });
+
+                // If the provided vertex is not a child, this is a bug.
+                if (it != children_.end())
+                {
+                    // Do the good ol' swap and pop.
+                    std::iter_swap(it, children_.rbegin());
+                    children_.pop_back();
+                }
+            }
+
             std::weak_ptr<Vertex> Vertex::getParent() const
             {
                 return parent_;
+            }
+
+            std::weak_ptr<Vertex> Vertex::getTwin() const
+            {
+                return twin_;
             }
 
             void Vertex::setCost(const ompl::base::Cost &cost)
@@ -120,28 +144,22 @@ namespace ompl
                 parent_ = vertex;
             }
 
+            void Vertex::resetParent()
+            {
+                parent_.reset();
+            }
+
+            void Vertex::setTwin(const std::shared_ptr<Vertex> &vertex)
+            {
+                twin_ = vertex;
+            }
+
             void Vertex::releaseBranchFromStates()
             {
                 // We have to invalidate from the leaves up.
                 for (auto child : children_)
                 {
                     child->releaseBranchFromStates();
-                }
-
-                // Remove this vertex from the underlying state.
-                if (auto reverseVertex = state_->getReverseVertex().lock())
-                {
-                    if (reverseVertex->getId() == id_)
-                    {
-                        state_->resetReverseVertex();
-                    }
-                }
-                else if (auto forwardVertex = state_->getForwardVertex().lock())
-                {
-                    if (forwardVertex->getId() == id_)
-                    {
-                        state_->resetForwardVertex();
-                    }
                 }
             }
 
