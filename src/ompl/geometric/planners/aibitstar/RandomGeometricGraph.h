@@ -47,6 +47,7 @@
 #include "ompl/base/OptimizationObjective.h"
 
 #include "ompl/geometric/planners/aibitstar/State.h"
+#include "ompl/geometric/planners/aibitstar/Edge.h"
 
 namespace ompl
 {
@@ -64,7 +65,10 @@ namespace ompl
                 ~RandomGeometricGraph() = default;
 
                 /** \brief Sets the optimization objective. */
-                void setOptimizationObjective(const std::shared_ptr<ompl::base::OptimizationObjective> &objective);
+                void setProblemDefinition(const std::shared_ptr<ompl::base::ProblemDefinition> &problem);
+
+                /** \brief Sets the radius factor. */
+                void setRadiusFactor(double factor);
 
                 /** \brief Samples random states and adds them to the graph. */
                 void addStates(std::size_t numStates);
@@ -89,6 +93,12 @@ namespace ompl
 
                 /** \brief Returns whether a goal state is set. */
                 bool hasGoalState() const;
+
+                /** \brief Returns all sampled states. */
+                std::vector<std::shared_ptr<State>> getSamples() const;
+
+                /** \brief Registers an invalid edge. */
+                void registerInvalidEdge(const Edge &edge);
 
             private:
                 /** \brief Returns the number of states in the informed set. */
@@ -125,7 +135,7 @@ namespace ompl
                 double radius_{std::numeric_limits<double>::infinity()};
 
                 /** \brief The factor by which to scale the connection radius. */
-                double radiusFactor_{1e-3};
+                double radiusFactor_{1.001};
 
                 /** \brief The dimension of the state space this graph is embedded in. */
                 const double dimension_;

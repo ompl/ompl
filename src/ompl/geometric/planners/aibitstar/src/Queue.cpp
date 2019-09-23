@@ -46,6 +46,11 @@ namespace ompl
             {
             }
 
+            bool EdgeQueue::empty() const
+            {
+                return size() == 0u;
+            }
+
             std::size_t EdgeQueue::size() const
             {
                 return heap_.size();
@@ -53,8 +58,31 @@ namespace ompl
 
             void EdgeQueue::insert(const Edge &edge)
             {
+                // Simply update if it is already in the queue.
+                for (const auto outgoingEdge : edge.parent->outgoingEdgeQueueLookup_)
+                {
+                    if (outgoingEdge->data.child->getId() == edge.child->getId())
+                    {
+                        if (edge.key < outgoingEdge->data.key)
+                        {
+                            outgoingEdge->data.key = edge.key;
+                            heap_.update(outgoingEdge);
+                        }
+                        return;
+                    }
+                }
+
                 // Insert the edge and emplace the resulting data pointer into the parents outgoing edge lookup.
                 edge.parent->outgoingEdgeQueueLookup_.emplace_back(heap_.insert(edge));
+            }
+
+            void EdgeQueue::insert(const std::vector<Edge> &edges)
+            {
+                // Can't use the heap's method for multiple edges because we need the packward pointers.
+                for (const auto &edge : edges)
+                {
+                    insert(edge);
+                }
             }
 
             const Edge &EdgeQueue::peek() const
@@ -101,6 +129,27 @@ namespace ompl
                 {
                     throw std::out_of_range("There are no elements in the queue.");
                 }
+            }
+
+            void EdgeQueue::clear()
+            {
+                // Starting to wonder whether the edge queue lookup is actually useful.
+                while (!empty())
+                {
+                    pop();
+                }
+            }
+
+            std::vector<Edge> EdgeQueue::getEdges() const
+            {
+                std::vector<Edge> edges;
+                heap_.getContent(edges);
+                return edges;
+            }
+
+            void EdgeQueue::rebuild()
+            {
+                heap_.rebuild();
             }
 
         }  // namespace aibitstar

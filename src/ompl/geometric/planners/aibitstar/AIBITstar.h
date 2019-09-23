@@ -69,18 +69,90 @@ namespace ompl
             /** \brief Gets the best cost of the current solution. */
             ompl::base::Cost bestCost() const;
 
+            /** \brief Sets the number of samples per batch. */
+            void setNumSamplesPerBatch(std::size_t numSamples);
+
+            /** \brief Sets the radius factor. */
+            void setRadiusFactor(double factor);
+
+            /** \brief Returns a copy of the forward queue. */
+            std::vector<aibitstar::Edge> getForwardQueue() const;
+
+            /** \brief Returns a copy of the reverse queue. */
+            std::vector<aibitstar::Edge> getReverseQueue() const;
+
+            /** \brief Returns the edges in the reverse tree. */
+            std::vector<aibitstar::Edge> getReverseTree() const;
+
+            /** \brief Returns the next edge in the forward queue. */
+            aibitstar::Edge getNextForwardEdge() const;
+
+            /** \brief Returns the next edge in the reverse queue. */
+            aibitstar::Edge getNextReverseEdge() const;
+
+            /** \brief Get the planner data. */
+            void getPlannerData(base::PlannerData &data) const override;
+
         private:
             /** \brief Performs one iteration. */
             void iterate();
 
+            void reverseIterate();
+            void forwardIterate();
+
+            void updateSolution() const;
+
+            std::vector<aibitstar::Edge> forwardExpand(const std::shared_ptr<aibitstar::State> &state) const;
+
             std::vector<aibitstar::Edge> reverseExpand(const std::shared_ptr<aibitstar::State> &state) const;
+
+            aibitstar::Edge createForwardEdge(const std::shared_ptr<aibitstar::Vertex> &parent,
+                                              const std::shared_ptr<aibitstar::Vertex> &child) const;
+
+            aibitstar::Edge createReverseEdge(const std::shared_ptr<aibitstar::Vertex> &parent,
+                                              const std::shared_ptr<aibitstar::Vertex> &child) const;
+
+            std::array<double, 3u> computeForwardKey(const std::shared_ptr<aibitstar::Vertex> &parent,
+                                                     const std::shared_ptr<aibitstar::Vertex> &child,
+                                                     const ompl::base::Cost &edgeCost) const;
 
             std::array<double, 3u> computeReverseKey(const std::shared_ptr<aibitstar::Vertex> &parent,
                                                      const std::shared_ptr<aibitstar::Vertex> &child,
                                                      const ompl::base::Cost &edgeCost) const;
 
+            /** \brief Rebuilds the forward queue, recomputing all sort keys. */
+            void rebuildForwardQueue();
+
+            bool isClosed(const std::shared_ptr<aibitstar::Vertex> &vertex) const;
+
+            /** \brief Returns whether the edge can improve the reverse path. */
+            bool canImproveReversePath(const aibitstar::Edge &edge) const;
+
+            /** \brief Returns whether the edge can improve the reverse tree. */
+            bool canImproveReverseTree(const aibitstar::Edge &edge) const;
+
+            /** \brief Returns whether the edge can improve the forward path. */
+            bool canImproveForwardPath(const aibitstar::Edge &edge) const;
+
+            /** \brief Returns whether the edge can improve the forward tree. */
+            bool canImproveForwardTree(const aibitstar::Edge &edge) const;
+
+            /** \brief Returns whether the edge does improve the forward path. */
+            bool doesImproveForwardPath(const aibitstar::Edge &edge, const ompl::base::Cost &trueEdgeCost) const;
+
+            /** \brief Returns whether the edge does improve the forward tree. */
+            bool doesImproveForwardTree(const aibitstar::Edge &edge, const ompl::base::Cost &trueEdgeCost) const;
+
+            /** \brief Returns whether the edge can improve the forward tree. */
+            bool isValid(const aibitstar::Edge &edge) const;
+
+            void processInvalidEdge(const aibitstar::Edge &edge);
+
             /** \brief The sampling-based approximation of the state space. */
             aibitstar::RandomGeometricGraph graph_;
+
+            /** \brief The number of states added when the approximation is updated. */
+            std::size_t numSamplesPerBatch_{100u};
 
             /** \brief The root of the forward search tree. */
             std::shared_ptr<aibitstar::Vertex> forwardRoot_;
@@ -96,6 +168,10 @@ namespace ompl
 
             /** \brief The current iteration. */
             std::size_t iteration_{0u};
+
+            /** \brief The tag of the current search. */
+            std::size_t searchTag_{1u};
+            
             /** \brief An alias with a more expressive name to the problem of the base class. */
             std::shared_ptr<ompl::base::ProblemDefinition> &problem_ = ompl::base::Planner::pdef_;
 

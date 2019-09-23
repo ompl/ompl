@@ -96,6 +96,36 @@ namespace ompl
                 reverseVertex_ = vertex;
             }
 
+            void State::resetForwardVertex()
+            {
+                forwardVertex_.reset();
+            }
+
+            void State::resetReverseVertex()
+            {
+                reverseVertex_.reset();
+            }
+
+            void State::blacklist(const std::shared_ptr<State> &state)
+            {
+                blacklist_.insert(state->getId());
+            }
+
+            void State::whitelist(const std::shared_ptr<State> &state)
+            {
+                whitelist_.insert(state->getId());
+            }
+
+            bool State::isBlacklisted(const std::shared_ptr<State> &state) const
+            {
+                return blacklist_.find(state->getId()) != blacklist_.end();
+            }
+
+            bool State::isWhitelisted(const std::shared_ptr<State> &state) const
+            {
+                return whitelist_.find(state->getId()) != whitelist_.end();
+            }
+
         }  // namespace aibitstar
 
     }  // namespace geometric

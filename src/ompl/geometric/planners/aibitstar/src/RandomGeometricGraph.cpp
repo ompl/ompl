@@ -62,10 +62,16 @@ namespace ompl
                     });
             }
 
-            void RandomGeometricGraph::setOptimizationObjective(
-                const std::shared_ptr<ompl::base::OptimizationObjective> &objective)
+            void
+            RandomGeometricGraph::setProblemDefinition(const std::shared_ptr<ompl::base::ProblemDefinition> &problem)
             {
-                objective_ = objective;
+                objective_ = problem->getOptimizationObjective();
+                sampler_ = objective_->allocInformedStateSampler(problem, std::numeric_limits<unsigned int>::max());
+            }
+
+            void RandomGeometricGraph::setRadiusFactor(double factor)
+            {
+                radiusFactor_ = factor;
             }
 
             std::shared_ptr<State> RandomGeometricGraph::getStartState() const
@@ -100,6 +106,22 @@ namespace ompl
             bool RandomGeometricGraph::hasGoalState() const
             {
                 return static_cast<bool>(goalState_);
+            }
+
+            std::vector<std::shared_ptr<State>> RandomGeometricGraph::getSamples() const
+            {
+                std::vector<std::shared_ptr<State>> samples;
+                samples_.list(samples);
+                return samples;
+            }
+
+            void RandomGeometricGraph::registerInvalidEdge(const Edge &edge)
+            {
+                // This invalidates the cache.
+                edge.parent->getState()->neighbors_.first = 0u;
+                edge.parent->getState()->neighbors_.second.clear();
+                edge.child->getState()->neighbors_.first = 0u;
+                edge.child->getState()->neighbors_.second.clear();
             }
 
             std::shared_ptr<State> RandomGeometricGraph::setStartState(const ompl::base::State *startState)
@@ -144,8 +166,10 @@ namespace ompl
 
             void RandomGeometricGraph::addStates(std::size_t numNewStates)
             {
+                // Assert sanity of used variables.
                 assert(sampler_);
-                assert(problem_);
+                assert(objective_);
+
                 // Count the number of informed states before adding new states. This saves some counting, because all
                 // new states will be informed, and its known how many of them will be added.
                 auto numInformedSamples = countSamplesInInformedSet();
@@ -158,15 +182,18 @@ namespace ompl
                     // Allocate a new state.
                     newStates.emplace_back(std::make_shared<State>(spaceInfo_));
 
-                    // Fill the state according to a uniform distribution in the informed set.
-                    if (auto forwardGoal = goalState_->getForwardVertex().lock())
+                    do  // Sample randomly until a valid state is found.
                     {
-                        sampler_->sampleUniform(newStates.back()->getState(), forwardGoal->getCost());
-                    }
-                    else  // There is no solution yet.
-                    {
-                        sampler_->sampleUniform(newStates.back()->getState(), objective_->infiniteCost());
-                    }
+                        // Fill the state according to a uniform distribution in the informed set.
+                        if (auto forwardGoal = goalState_->getForwardVertex().lock())
+                        {
+                            sampler_->sampleUniform(newStates.back()->getState(), forwardGoal->getCost());
+                        }
+                        else  // There is no solution yet.
+                        {
+                            sampler_->sampleUniform(newStates.back()->getState(), objective_->infiniteCost());
+                        }
+                    } while (!spaceInfo_->isValid(newStates.back()->getState()));
                 }
 
                 // Add the new states to the samples.
@@ -174,11 +201,15 @@ namespace ompl
 
                 // Update the radius by considering all informed states.
                 radius_ = computeRadius(numInformedSamples + numNewStates);
+
+                // Update the tag.
+                ++tag_;
             }
 
             const std::vector<std::shared_ptr<State>> &
             RandomGeometricGraph::getNeighbors(const std::shared_ptr<State> &state) const
             {
+                assert(state);
                 // If the neighbors cache of the vertex isn't up to date, update it.
                 if (state->neighbors_.first != tag_)
                 {
@@ -196,8 +227,15 @@ namespace ompl
                     };
 
                     // Cache the neighbors that are not blacklisted and not the state itself.
-                    std::copy_if(neighbors.begin(), neighbors.end(), state->neighbors_.second.begin(),
-                                 connectionPredicate);
+                    for (const auto &neighbor : neighbors)
+                    {
+                        if (connectionPredicate(neighbor))
+                        {
+                            state->neighbors_.second.emplace_back(neighbor);
+                        }
+                    }
+                    // std::copy_if(neighbors.begin(), neighbors.end(), state->neighbors_.second.begin(),
+                    //              connectionPredicate);
 
                     // Update the tag of the cache.
                     state->neighbors_.first = tag_;

@@ -63,17 +63,32 @@ namespace ompl
                 /** \brief Destructs the queue. */
                 ~EdgeQueue() = default;
 
+                /** \brief Returns whether the queue is empty. */
+                bool empty() const;
+
                 /** \brief Returns how many elements are in the queue. */
                 std::size_t size() const;
 
                 /** \brief Insert an element into the queue. */
                 void insert(const Edge &edge);
 
+                /** \brief Inserts multiple elements into the queue. */
+                void insert(const std::vector<Edge> &edges);
+
                 /** \brief Return a reference to the top element of the queue. */
                 const Edge &peek() const;
 
                 /** \brief Returns and deletes the top element of the queue. */
                 Edge pop();
+
+                /** \brief Clears the queue, i.e., deletes all elements from it. */
+                void clear();
+
+                /** \brief Copies all edges into a vector and returns the vector. */
+                std::vector<Edge> getEdges() const;
+
+                /** \brief Rebuilds the queue. */
+                void rebuild();
 
             private:
                 /** \brief The type of the heap currently used by this queue. */

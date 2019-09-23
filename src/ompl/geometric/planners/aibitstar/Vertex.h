@@ -52,7 +52,7 @@ namespace ompl
     {
         namespace aibitstar
         {
-            class Vertex
+            class Vertex : public std::enable_shared_from_this<Vertex>
             {
             public:
                 /** \brief Constructs the vertex, which must be associated with a state. */
@@ -82,15 +82,38 @@ namespace ompl
                 /** \brief Returns the parent of the vertex. */
                 std::weak_ptr<Vertex> getParent() const;
 
+                /** \brief Sets the cost to come to this vertex. */
+                void setCost(const ompl::base::Cost &cost);
+
                 /** \brief Returns the parent of the vertex. */
                 void setParent(const std::shared_ptr<Vertex> &vertex);
+
+                /** \brief Invalidates the branch rooted in this vertex. */
+                void releaseBranchFromStates();
+
+                /** \brief Resets the children of this vertex. */
+                void clearChildren();
+
+                /** \brief Returns the tag when this vertex was last expanded. */
+                std::size_t getExpandTag() const;
+
+                /** \brief Sets the expand tag when this vertex was last expanded. */
+                void setExpandTag(std::size_t tag);
+
+                /** \brief Returns the out queue lookup. */
+                const std::vector<ompl::BinaryHeap<ompl::geometric::aibitstar::Edge,
+                                                   std::function<bool(const Edge &, const Edge &)>>::Element *> &
+                getOutQueueLookup() const;
 
             private:
                 /** \brief The unique id of this vertex. */
                 const std::size_t id_;
 
+                /** \brief The tag when this vertex was last expanded. */
+                std::size_t expandTag_{0u};
+
                 /** \brief The cost to come to this vertex. */
-                ompl::base::Cost cost_;
+                ompl::base::Cost cost_{std::numeric_limits<double>::infinity()};
 
                 /** \brief The parent of this vertex. */
                 std::weak_ptr<Vertex> parent_{};

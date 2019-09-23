@@ -39,6 +39,7 @@
 
 #include <array>
 #include <limits>
+#include <memory>
 
 #include "ompl/base/Cost.h"
 

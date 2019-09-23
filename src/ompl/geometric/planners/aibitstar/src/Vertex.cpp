@@ -79,11 +79,16 @@ namespace ompl
 
             void Vertex::addChild(const std::shared_ptr<Vertex> &vertex)
             {
+                assert(this);
+                assert(vertex);
                 children_.emplace_back(vertex);
             }
 
             void Vertex::removeChild(const std::shared_ptr<Vertex> &vertex)
             {
+                assert(this);
+                assert(vertex);
+
                 // Find the child that is to be removed.
                 auto it = std::find_if(children_.begin(), children_.end(),
                                        [&vertex](const auto &child) { return child->getId() == vertex->getId(); });
@@ -101,9 +106,65 @@ namespace ompl
                 return parent_;
             }
 
+            void Vertex::setCost(const ompl::base::Cost &cost)
+            {
+                cost_ = cost;
+            }
+
             void Vertex::setParent(const std::shared_ptr<Vertex> &vertex)
             {
+                if (auto parent = parent_.lock())
+                {
+                    parent->removeChild(shared_from_this());
+                }
                 parent_ = vertex;
+            }
+
+            void Vertex::releaseBranchFromStates()
+            {
+                // We have to invalidate from the leaves up.
+                for (auto child : children_)
+                {
+                    child->releaseBranchFromStates();
+                }
+
+                // Remove this vertex from the underlying state.
+                if (auto reverseVertex = state_->getReverseVertex().lock())
+                {
+                    if (reverseVertex->getId() == id_)
+                    {
+                        state_->resetReverseVertex();
+                    }
+                }
+                else if (auto forwardVertex = state_->getForwardVertex().lock())
+                {
+                    if (forwardVertex->getId() == id_)
+                    {
+                        state_->resetForwardVertex();
+                    }
+                }
+            }
+
+            void Vertex::clearChildren()
+            {
+                children_.clear();
+            }
+
+            std::size_t Vertex::getExpandTag() const
+            {
+                return expandTag_;
+            }
+
+            void Vertex::setExpandTag(std::size_t expandTag)
+            {
+                expandTag_ = expandTag;
+            }
+
+            const std::vector<ompl::BinaryHeap<ompl::geometric::aibitstar::Edge,
+                                               std::function<bool(const Edge &, const Edge &)>>::Element *> &
+            Vertex::getOutQueueLookup() const
+            {
+                return outgoingEdgeQueueLookup_;
             }
 
         }  // namespace aibitstar

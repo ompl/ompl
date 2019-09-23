@@ -83,6 +83,24 @@ namespace ompl
                 /** \brief Set the associated reverse vertex. */
                 void setReverseVertex(const std::weak_ptr<Vertex> &reverseVertex);
 
+                /** \brief Resets the associated forward vertex. */
+                void resetForwardVertex();
+
+                /** \brief Resets the associated reverse vertex. */
+                void resetReverseVertex();
+
+                /** \brief Blacklist a state as neighbor. */
+                void blacklist(const std::shared_ptr<State> &state);
+
+                /** \brief Whitelist a state as neighbor. */
+                void whitelist(const std::shared_ptr<State> &state);
+
+                /** \brief Returns whether a state has been blacklisted. */
+                bool isBlacklisted(const std::shared_ptr<State> &state) const;
+
+                /** \brief Returns whether a state has been whitelisted. */
+                bool isWhitelisted(const std::shared_ptr<State> &state) const;
+
             private:
                 /** \brief Grant access to the state internals to the random geometric graph. */
                 friend class RandomGeometricGraph;
@@ -103,10 +121,10 @@ namespace ompl
                 mutable std::pair<std::size_t, std::vector<std::shared_ptr<State>>> neighbors_{};
 
                 /** \brief The blacklist of states that can not be connected to this state. */
-                std::set<std::size_t> blacklist_{};
+                std::set<std::size_t> blacklist_{};  // Maybe this would be faster as vector?
 
                 /** \brief The whitelist of states that can be connected to this state. */
-                std::set<std::size_t> whitelist_{};
+                std::set<std::size_t> whitelist_{};  // Maybe this would be faster as vector?
 
                 /** \brief The info on the state space this state lives in. */
                 std::shared_ptr<ompl::base::SpaceInformation> spaceInfo_;
