@@ -106,18 +106,18 @@ namespace ompl
 
             std::vector<aibitstar::Edge> reverseExpand(const std::shared_ptr<aibitstar::State> &state) const;
 
-            aibitstar::Edge createForwardEdge(const std::shared_ptr<aibitstar::Vertex> &parent,
-                                              const std::shared_ptr<aibitstar::Vertex> &child) const;
+            aibitstar::Edge createForwardEdge(const std::shared_ptr<aibitstar::State> &parent,
+                                              const std::shared_ptr<aibitstar::State> &child) const;
 
-            aibitstar::Edge createReverseEdge(const std::shared_ptr<aibitstar::Vertex> &parent,
-                                              const std::shared_ptr<aibitstar::Vertex> &child) const;
+            aibitstar::Edge createReverseEdge(const std::shared_ptr<aibitstar::State> &parent,
+                                              const std::shared_ptr<aibitstar::State> &child) const;
 
-            std::array<double, 3u> computeForwardKey(const std::shared_ptr<aibitstar::Vertex> &parent,
-                                                     const std::shared_ptr<aibitstar::Vertex> &child,
+            std::array<double, 3u> computeForwardKey(const std::shared_ptr<aibitstar::State> &parent,
+                                                     const std::shared_ptr<aibitstar::State> &child,
                                                      const ompl::base::Cost &edgeCost) const;
 
-            std::array<double, 3u> computeReverseKey(const std::shared_ptr<aibitstar::Vertex> &parent,
-                                                     const std::shared_ptr<aibitstar::Vertex> &child,
+            std::array<double, 3u> computeReverseKey(const std::shared_ptr<aibitstar::State> &parent,
+                                                     const std::shared_ptr<aibitstar::State> &child,
                                                      const ompl::base::Cost &edgeCost) const;
 
             /** \brief Rebuilds the forward queue, recomputing all sort keys. */

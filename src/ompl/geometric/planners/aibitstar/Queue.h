@@ -53,7 +53,6 @@ namespace ompl
     {
         namespace aibitstar
         {
-
             class EdgeQueue
             {
             public:
@@ -92,7 +91,7 @@ namespace ompl
 
             private:
                 /** \brief The type of the heap currently used by this queue. */
-                using Heap = ompl::BinaryHeap<Edge, std::function<bool(const Edge&, const Edge&)>>;
+                using Heap = ompl::BinaryHeap<Edge, std::function<bool(const Edge &, const Edge &)>>;
 
                 /** \brief The heap which holds the edges. */
                 Heap heap_;

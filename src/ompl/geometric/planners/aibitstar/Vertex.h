@@ -140,16 +140,6 @@ namespace ompl
 
                 /** \brief The state this vertex is associated with. */
                 std::shared_ptr<State> state_;
-
-                /** \brief The edge queue is a friend class to allow efficient updates of outoing edge of this vertex
-                 * the queue. */
-                friend class EdgeQueue;
-
-                /** \brief The outgoing edges from this vertex currently in the queue. This is maintained by the edge
-                 * queue. */
-                mutable std::vector<ompl::BinaryHeap<ompl::geometric::aibitstar::Edge,
-                                                     std::function<bool(const Edge &, const Edge &)>>::Element *>
-                    outgoingEdgeQueueLookup_;
             };
 
         }  // namespace aibitstar

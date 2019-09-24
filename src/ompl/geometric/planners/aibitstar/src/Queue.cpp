@@ -58,22 +58,7 @@ namespace ompl
 
             void EdgeQueue::insert(const Edge &edge)
             {
-                // Simply update if it is already in the queue.
-                for (const auto outgoingEdge : edge.parent->outgoingEdgeQueueLookup_)
-                {
-                    if (outgoingEdge->data.child->getId() == edge.child->getId())
-                    {
-                        if (edge.key < outgoingEdge->data.key)
-                        {
-                            outgoingEdge->data.key = edge.key;
-                            heap_.update(outgoingEdge);
-                        }
-                        return;
-                    }
-                }
-
-                // Insert the edge and emplace the resulting data pointer into the parents outgoing edge lookup.
-                edge.parent->outgoingEdgeQueueLookup_.emplace_back(heap_.insert(edge));
+                heap_.insert(edge);
             }
 
             void EdgeQueue::insert(const std::vector<Edge> &edges)
@@ -109,19 +94,6 @@ namespace ompl
                     // Pop the element from the heap.
                     heap_.pop();
 
-                    // Get a reference to the outgoing edge queue lookup of the parent vertex.
-                    auto &outgoingEdgeQueueLookup = top.parent->outgoingEdgeQueueLookup_;
-
-                    // Remove the edge from the outgoing edge lookup of the parent vertex using find, swap and pop.
-                    auto it = std::find(outgoingEdgeQueueLookup.begin(), outgoingEdgeQueueLookup.end(), element);
-
-                    // If this edge is not in the lookup, this is a bug.
-                    assert(it != outgoingEdgeQueueLookup.end());
-
-                    // Do the good ol' swappedy poppy.
-                    std::iter_swap(it, outgoingEdgeQueueLookup.rbegin());
-                    outgoingEdgeQueueLookup.pop_back();
-
                     // Return the top element.
                     return top;
                 }
@@ -133,10 +105,7 @@ namespace ompl
 
             void EdgeQueue::clear()
             {
-                while (!empty())
-                {
-                    auto edge = pop();
-                }
+                heap_.clear();
             }
 
             std::vector<Edge> EdgeQueue::getEdges() const

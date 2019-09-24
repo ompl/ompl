@@ -194,7 +194,7 @@ namespace ompl
                     // Catch the root case.
                     if (auto parent = vertex->getParent().lock())
                     {
-                        edges.emplace_back(createForwardEdge(parent, vertex));
+                        edges.emplace_back(createReverseEdge(parent->getState(), vertex->getState()));
                     }
                 };
             getEdgesRecursively(reverseRoot_);
@@ -240,60 +240,6 @@ namespace ompl
         void AIBITstar::iterate()
         {
             ++iteration_;
-            // ---------------------------------------
-            // Check whether the solution cost is updated.
-            static auto solutionCost = objective_->infiniteCost();
-
-            if (auto goalVertex = reverseRoot_->getTwin().lock())
-            {
-                if (!objective_->isCostEquivalentTo(solutionCost, goalVertex->getCost()))
-                {
-                    std::cout << "Goal vertex (" << goalVertex->getId() << ") has updated cost of "
-                              << goalVertex->getCost().value() << " through parent "
-                              << goalVertex->getParent().lock()->getId() << '\n';
-                    solutionCost = goalVertex->getCost();
-                }
-            }
-
-            // std::cout << "Forward tree: (id / twin) -> [children]\n { ";
-            // for (const auto &sample : graph_.getSamples())
-            // {
-            //     if (sample->hasForwardVertex())
-            //     {
-            //         auto vertex = sample->asForwardVertex();
-            //         std::cout << "( " << vertex->getId() << " / " << (vertex->getTwin().lock() ?
-            //             std::to_string(vertex->getTwin().lock()->getId()).c_str() :
-            //                                                 "none");
-            //         std::cout << " ) -> [ ";
-            //         for (const auto &child : vertex->getChildren())
-            //         {
-            //             std::cout << child->getId() << ' ';
-            //         }
-            //         std::cout << " ] ";
-            //     }
-            // }
-            // std::cout << "}\n";
-
-            // std::cout << "Reverse tree: (id / twin) -> [children]\n { ";
-            // for (const auto &sample : graph_.getSamples())
-            // {
-            //     if (sample->hasReverseVertex())
-            //     {
-            //         auto vertex = sample->asReverseVertex();
-            //         std::cout << "( " << vertex->getId() << " / " << (vertex->getTwin().lock() ?
-            //             std::to_string(vertex->getTwin().lock()->getId()).c_str() :
-            //                                                 "none");
-            //         std::cout << " ) -> [ ";
-            //         for (const auto &child : vertex->getChildren())
-            //         {
-            //             std::cout << child->getId() << ' ';
-            //         }
-            //         std::cout << " ] ";
-            //     }
-            // }
-            // std::cout << "}\n";
-
-            // ---------------------------------------
             if (!reverseQueue_.empty())
             {
                 reverseIterate();
@@ -306,7 +252,6 @@ namespace ompl
             {
                 graph_.addStates(numSamplesPerBatch_);
                 reverseQueue_.insert(reverseExpand(graph_.getGoalState()));
-                std::cout << "-------------------- New Graph --------------------\n";
             }
         }
 
@@ -318,20 +263,34 @@ namespace ompl
             // Get the top edge from the queue.
             auto edge = forwardQueue_.pop();
 
-            std::cout << "[F] edge v" << edge.parent->getId() << " -> v" << edge.child->getId() << " / s"
-                      << edge.parent->getState()->getId() << " -> s" << edge.child->getState()->getId() << '\n';
+            // Assert some assumptions.
+            assert(edge.parent->hasForwardVertex());
+            assert(edge.parent->hasReverseVertex());
+            assert(edge.parent->asForwardVertex()->getTwin().lock());
+            assert(edge.parent->asForwardVertex()->getId() ==
+                   edge.parent->asReverseVertex()->getTwin().lock()->getId());
+            assert(edge.parent->asReverseVertex()->getId() ==
+                   edge.parent->asForwardVertex()->getTwin().lock()->getId());
+            assert(edge.child->hasReverseVertex());
+            assert(edge.child->asForwardVertex()->getTwin().lock());
+            assert(edge.child->asForwardVertex()->getId() == edge.child->asReverseVertex()->getTwin().lock()->getId());
+            assert(edge.child->asReverseVertex()->getId() == edge.child->asForwardVertex()->getTwin().lock()->getId());
+
+            // The parent must have a forward vertex associated with it.
+            auto parentVertex = edge.parent->asForwardVertex();
+            auto childVertex = edge.child->asForwardVertex();
 
             // The forward search is done if this edge can not possibly improve the forward path.
             if (canImproveForwardPath(edge))
             {
                 // Check if the edge's parent is already the parent of the child.
-                if (auto currentParent = edge.child->getParent().lock())
+                if (auto currentParent = childVertex->getParent().lock())
                 {
-                    if (currentParent->getId() == edge.parent->getId())
+                    if (currentParent->getId() == parentVertex->getId())
                     {
-                        if (!isClosed(edge.child))
+                        if (!isClosed(childVertex))
                         {
-                            forwardQueue_.insert(forwardExpand(edge.child->getState()));
+                            forwardQueue_.insert(forwardExpand(edge.child));
                             return;
                         }
                     }
@@ -342,25 +301,25 @@ namespace ompl
                     // Check if the edge is valid.
                     if (isValid(edge))
                     {
-                        auto trueEdgeCost =
-                            objective_->motionCost(edge.parent->getState()->raw(), edge.child->getState()->raw());
+                        // Compute the true edge cost.
+                        auto trueEdgeCost = objective_->motionCost(edge.parent->raw(), edge.child->raw());
+
                         // Check if the edge can actually improve the forward path and tree.
                         if (doesImproveForwardPath(edge, trueEdgeCost) && doesImproveForwardTree(edge, trueEdgeCost))
                         {
                             // Update the parent of the child in the forward tree.
-                            edge.child->setParent(edge.parent);
+                            childVertex->setParent(parentVertex);
 
                             // Update the cost.
-                            edge.child->setCost(objective_->combineCosts(edge.parent->getCost(), trueEdgeCost));
+                            childVertex->setCost(objective_->combineCosts(parentVertex->getCost(), trueEdgeCost));
 
                             // Add the child to the parents children.
-                            edge.parent->addChild(edge.child);
+                            parentVertex->addChild(childVertex);
 
                             // Expand the outgoing edges into the queue unless this state is the goal state.
-                            if (!isClosed(edge.child) &&
-                                edge.child->getState()->getId() != reverseRoot_->getState()->getId())
+                            if (!isClosed(childVertex) && edge.child->getId() != reverseRoot_->getState()->getId())
                             {
-                                forwardQueue_.insert(forwardExpand(edge.child->getState()));
+                                forwardQueue_.insert(forwardExpand(edge.child));
                             }
                             else  // Update the solution.
                             {
@@ -393,36 +352,37 @@ namespace ompl
             // Get the top edge from the queue.
             auto edge = reverseQueue_.pop();
 
-            std::cout << "[R] edge v" << edge.parent->getId() << " -> v" << edge.child->getId() << " / s"
-                      << edge.parent->getState()->getId() << " -> s" << edge.child->getState()->getId() << '\n';
+            // The parent vertex must have an associated vertex in the tree.
+            assert(edge.parent->hasReverseVertex());
+            auto parentVertex = edge.parent->asReverseVertex();
+            auto childVertex = edge.child->asReverseVertex();
 
             // The reverse search is done if this edge can not improve the reverse path.
             if (canImproveReversePath(edge))
             {
-                std::cout << "Can improve reverse path.\n";
-                if (auto currentParent = edge.child->getParent().lock())
+                if (auto currentParent = childVertex->getParent().lock())
                 {
-                    if (!isClosed(edge.child) && currentParent->getId() == edge.parent->getId())
+                    if (!isClosed(childVertex) && currentParent->getId() == edge.parent->asReverseVertex()->getId())
                     {
-                        reverseQueue_.insert(reverseExpand(edge.child->getState()));
+                        reverseQueue_.insert(reverseExpand(edge.child));
                         return;
                     }
                 }
                 if (canImproveReverseTree(edge))
                 {
                     // Update the parent of the child in the reverse tree.
-                    edge.child->setParent(edge.parent);
+                    childVertex->setParent(parentVertex);
 
                     // Update the cost.
-                    edge.child->setCost(ompl::base::Cost(edge.key[1]));
+                    childVertex->setCost(ompl::base::Cost(edge.key[1]));
 
                     // Add the child to the children of the parent.
-                    edge.parent->addChild(edge.child);
+                    parentVertex->addChild(childVertex);
 
                     // Expand the outgoing edges into the queue unless this is the start state.
-                    if (!isClosed(edge.child) && edge.child->getState()->getId() != forwardRoot_->getState()->getId())
+                    if (!isClosed(childVertex) && edge.child->getId() != forwardRoot_->getState()->getId())
                     {
-                        reverseQueue_.insert(reverseExpand(edge.child->getState()));
+                        reverseQueue_.insert(reverseExpand(edge.child));
                     }
                 }
                 if (reverseQueue_.empty())
@@ -541,20 +501,23 @@ namespace ompl
 
         bool AIBITstar::canImproveForwardTree(const Edge &edge) const
         {
-            return objective_->isCostBetterThan(ompl::base::Cost(edge.key[1]), edge.child->getCost());
+            return objective_->isCostBetterThan(ompl::base::Cost(edge.key[1]),
+                                                edge.child->asForwardVertex()->getCost());
         }
 
         bool AIBITstar::doesImproveForwardPath(const Edge &edge, const ompl::base::Cost &trueEdgeCost) const
         {
-            assert(edge.child->getTwin().lock());
-            assert(edge.child->getState()->hasReverseVertex());
+            assert(edge.child->asForwardVertex()->getTwin().lock());
+            assert(edge.child->hasReverseVertex());
+            assert(edge.parent->hasForwardVertex());
             if (auto reverseRootForwardVertex = reverseRoot_->getTwin().lock())
             {
                 assert(reverseRoot_->getState()->hasForwardVertex());
                 return objective_->isCostBetterThan(
                     objective_->combineCosts(
-                        edge.parent->getCost(),
-                        objective_->combineCosts(trueEdgeCost, edge.child->getTwin().lock()->getCost())),
+                        edge.parent->asForwardVertex()->getCost(),
+                        objective_->combineCosts(trueEdgeCost,
+                                                 edge.child->asForwardVertex()->getTwin().lock()->getCost())),
                     reverseRootForwardVertex->getCost());
             }
             else
@@ -566,35 +529,36 @@ namespace ompl
 
         bool AIBITstar::doesImproveForwardTree(const Edge &edge, const ompl::base::Cost &trueEdgeCost) const
         {
-            return objective_->isCostBetterThan(objective_->combineCosts(edge.parent->getCost(), trueEdgeCost),
-                                                edge.child->getCost());
+            return objective_->isCostBetterThan(
+                objective_->combineCosts(edge.parent->asForwardVertex()->getCost(), trueEdgeCost),
+                edge.child->asForwardVertex()->getCost());
         }
 
         bool AIBITstar::isValid(const Edge &edge) const
         {
             // Check if the edge is whitelisted.
-            if (edge.parent->getState()->isWhitelisted(edge.child->getState()))
+            if (edge.parent->isWhitelisted(edge.child))
             {
                 return true;
             }
             // Check if the edge is blacklisted.
-            else if (edge.parent->getState()->isBlacklisted(edge.child->getState()))
+            else if (edge.parent->isBlacklisted(edge.child))
             {
                 return false;
             }
             // Ok, fine, we have to do work.
-            else if (motionValidator_->checkMotion(edge.parent->getState()->raw(), edge.child->getState()->raw()))
+            else if (motionValidator_->checkMotion(edge.parent->raw(), edge.child->raw()))
             {
                 // Whitelist this edge.
-                edge.parent->getState()->whitelist(edge.child->getState());
-                edge.child->getState()->whitelist(edge.parent->getState());
+                edge.parent->whitelist(edge.child);
+                edge.child->whitelist(edge.parent);
                 return true;
             }
             else
             {
                 // Blacklist this edge.
-                edge.parent->getState()->blacklist(edge.child->getState());
-                edge.child->getState()->blacklist(edge.parent->getState());
+                edge.parent->blacklist(edge.child);
+                edge.child->blacklist(edge.parent);
                 return false;
             }
         }
@@ -603,16 +567,12 @@ namespace ompl
         {
             // Assert the edge is actually invalid.
             assert(!isValid(edge));
-            assert(edge.parent->getTwin().lock());
-            assert(edge.child->getTwin().lock());
-            assert(edge.parent->getState()->hasReverseVertex());
-            assert(edge.child->getState()->hasReverseVertex());
 
             // Invalidate the branch.
-            auto invalidatedReverseVertex = edge.parent->getTwin().lock();
+            auto invalidatedReverseVertex = edge.parent->asReverseVertex();
             invalidatedReverseVertex->releaseBranchFromStates();
             invalidatedReverseVertex->resetParent();
-            edge.child->getTwin().lock()->removeIfChild(invalidatedReverseVertex);
+            edge.child->asReverseVertex()->removeIfChild(invalidatedReverseVertex);
 
             // Clear the forward queue.
             forwardQueue_.clear();
@@ -631,24 +591,15 @@ namespace ompl
             auto edges = forwardQueue_.getEdges();
 
             // Get the parent vertices of the edges.
-            std::set<std::shared_ptr<Vertex>> parents;
-            for (const auto &edge : edges)
+            for (auto &edge : edges)
             {
-                parents.insert(edge.parent);
-            }
-
-            // Update the sort key of all outgoing edges of all parents.
-            for (const auto &parent : parents)
-            {
-                for (const auto &outEdgePointer : parent->getOutQueueLookup())
-                {
-                    outEdgePointer->data.key = computeForwardKey(
-                        outEdgePointer->data.parent, outEdgePointer->data.child, outEdgePointer->data.heuristicCost);
-                }
+                std::cout << "Rebuilding the forward queue.\n";
+                edge.key = computeForwardKey(edge.parent, edge.child, edge.heuristicCost);
             }
 
             // All edges have an updated key, lets rebuild the queue.
-            forwardQueue_.rebuild();
+            forwardQueue_.clear();
+            forwardQueue_.insert(edges);
         }
 
         bool AIBITstar::isClosed(const std::shared_ptr<Vertex> &vertex) const
@@ -658,25 +609,6 @@ namespace ompl
 
         bool AIBITstar::canImproveReversePath(const Edge &edge) const
         {
-            std::cout << "Evaluating edge v" << edge.parent->getId() << " -> v" << edge.child->getId() << " / s"
-                      << edge.parent->getState()->getId() << " -> s" << edge.child->getState()->getId() << '\n';
-
-            // If the start state has not been discovered by the reverse search, the answer is always yes.
-            if (auto startVertex = forwardRoot_->getTwin().lock())
-            {
-                std::cout << "Forward root exists in reverse tree. Use count: " << startVertex.use_count() << '\n';
-                assert(forwardRoot_->getState()->hasReverseVertex());
-
-                std::cout << "edge.key[0]: " << edge.key[0] << ", start vertex: " << startVertex->getCost().value()
-                          << "\nIs better: " << std::boolalpha
-                          << objective_->isCostBetterThan(ompl::base::Cost(edge.key[0]), startVertex->getCost())
-                          << '\n';
-            }
-            else
-            {
-                std::cout << "Forward root does not exist in reverse tree.\n";
-            }
-
             // If the start state has not been discovered by the reverse search, the answer is always yes.
             if (auto startVertex = forwardRoot_->getTwin().lock())
             {
@@ -699,8 +631,9 @@ namespace ompl
 
         bool AIBITstar::canImproveReverseTree(const Edge &edge) const
         {
-            return objective_->isCostBetterThan(objective_->combineCosts(edge.parent->getCost(), edge.heuristicCost),
-                                                edge.child->getCost());
+            return objective_->isCostBetterThan(
+                objective_->combineCosts(edge.parent->asReverseVertex()->getCost(), edge.heuristicCost),
+                edge.child->asReverseVertex()->getCost());
         }
 
         std::vector<Edge> AIBITstar::forwardExpand(const std::shared_ptr<State> &state) const
@@ -717,7 +650,7 @@ namespace ompl
             // Add the outgoing edges to the neighbors in the current graph.
             for (const auto &neighborState : graph_.getNeighbors(state))
             {
-                outgoingEdges.emplace_back(createForwardEdge(forwardVertex, neighborState->asForwardVertex()));
+                outgoingEdges.emplace_back(createForwardEdge(state, neighborState));
             }
 
             // Add the outgoing edge to this vertex's parent in the forward tree, if it exists.
@@ -728,14 +661,14 @@ namespace ompl
 
                 // Add the edge to the reverse tree parent. This seems wrong, but if this edge isn't added and this
                 // vertex becomes better connected then we could potentially miss updating the current parent.
-                outgoingEdges.emplace_back(createForwardEdge(forwardVertex, forwardVertex->getParent().lock()));
+                outgoingEdges.emplace_back(createForwardEdge(state, forwardVertex->getParent().lock()->getState()));
             }
 
             // Add the edges to the forward children.
             for (const auto &child : forwardVertex->getChildren())
             {
                 // Add the edge to the child to the outgoing edges.
-                outgoingEdges.emplace_back(createForwardEdge(forwardVertex, child));
+                outgoingEdges.emplace_back(createForwardEdge(state, child->getState()));
             }
 
             // If this state is in the reverse search tree as well, add its reverse parent and children.
@@ -745,18 +678,15 @@ namespace ompl
                 auto reverseVertex = state->asReverseVertex();
 
                 // Add the parent if it exists.
-                if (reverseVertex->getParent().lock())
+                if (auto reverseVertexParent = reverseVertex->getParent().lock())
                 {
-                    auto reverseParentStateForwardVertex =
-                        reverseVertex->getParent().lock()->getState()->asForwardVertex();
-
                     // Add the edge to the reverse tree parent.
-                    outgoingEdges.emplace_back(createForwardEdge(forwardVertex, reverseParentStateForwardVertex));
+                    outgoingEdges.emplace_back(createForwardEdge(state, reverseVertexParent->getState()));
                 }
 
                 for (const auto &child : reverseVertex->getChildren())
                 {
-                    outgoingEdges.emplace_back(createForwardEdge(forwardVertex, child));
+                    outgoingEdges.emplace_back(createForwardEdge(state, child->getState()));
                 }
             }
 
@@ -781,7 +711,7 @@ namespace ompl
             for (const auto &neighborState : graph_.getNeighbors(state))
             {
                 // Add the edge to this neighbor to the outgoing edges.
-                outgoingEdges.emplace_back(createReverseEdge(reverseVertex, neighborState->asReverseVertex()));
+                outgoingEdges.emplace_back(createReverseEdge(state, neighborState));
             }
 
             // Add the outgoing edge to this vertex's parent in the reverse tree, if it exists.
@@ -792,14 +722,14 @@ namespace ompl
 
                 // Add the edge to the reverse tree parent. This seems wrong, but if this edge isn't added and this
                 // vertex becomes better connected then we could potentially miss updating the current parent.
-                outgoingEdges.emplace_back(createReverseEdge(reverseVertex, reverseVertex->getParent().lock()));
+                outgoingEdges.emplace_back(createReverseEdge(state, reverseVertex->getParent().lock()->getState()));
             }
 
             // Add the edge to the reverse children.
             for (const auto &child : reverseVertex->getChildren())
             {
                 // Add the edge to the child to the outgoing edges.
-                outgoingEdges.emplace_back(createReverseEdge(reverseVertex, child));
+                outgoingEdges.emplace_back(createReverseEdge(state, child->getState()));
             }
 
             // If this state is in the forward search tree as well, add its forward parent and children.
@@ -809,20 +739,17 @@ namespace ompl
                 auto forwardVertex = state->asForwardVertex();
 
                 // Add the parent if it exists.
-                if (forwardVertex->getParent().lock())
+                if (auto forwardVertexParent = forwardVertex->getParent().lock())
                 {
-                    auto forwardParentStateReverseVertex =
-                        forwardVertex->getParent().lock()->getState()->asReverseVertex();
-
                     // Add the edge to the forward tree parent.
-                    outgoingEdges.emplace_back(createReverseEdge(reverseVertex, forwardParentStateReverseVertex));
+                    outgoingEdges.emplace_back(createReverseEdge(state, forwardVertexParent->getState()));
                 }
 
                 // Add the children.
                 for (const auto &child : forwardVertex->getChildren())
                 {
                     // Add the edge to the child to the outgoing edges.
-                    outgoingEdges.emplace_back(createReverseEdge(reverseVertex, child));
+                    outgoingEdges.emplace_back(createReverseEdge(state, child->getState()));
                 }
             }
 
@@ -832,64 +759,61 @@ namespace ompl
             return outgoingEdges;
         }
 
-        aibitstar::Edge AIBITstar::createForwardEdge(const std::shared_ptr<aibitstar::Vertex> &parent,
-                                                     const std::shared_ptr<aibitstar::Vertex> &child) const
+        aibitstar::Edge AIBITstar::createForwardEdge(const std::shared_ptr<aibitstar::State> &parent,
+                                                     const std::shared_ptr<aibitstar::State> &child) const
         {
             // Compute the heuristic cost of the edge.
-            auto edgeCost = objective_->motionCostHeuristic(parent->getState()->raw(), child->getState()->raw());
+            auto edgeCost = objective_->motionCostHeuristic(parent->raw(), child->raw());
 
             // Return an edge.
             return aibitstar::Edge(parent, child, edgeCost, computeForwardKey(parent, child, edgeCost));
         }
 
-        aibitstar::Edge AIBITstar::createReverseEdge(const std::shared_ptr<aibitstar::Vertex> &parent,
-                                                     const std::shared_ptr<aibitstar::Vertex> &child) const
+        aibitstar::Edge AIBITstar::createReverseEdge(const std::shared_ptr<aibitstar::State> &parent,
+                                                     const std::shared_ptr<aibitstar::State> &child) const
         {
             // Compute the heuristic cost of the edge.
-            auto edgeCost = objective_->motionCostHeuristic(parent->getState()->raw(), child->getState()->raw());
+            auto edgeCost = objective_->motionCostHeuristic(parent->raw(), child->raw());
 
             // Return an edge.
             return aibitstar::Edge(parent, child, edgeCost, computeReverseKey(parent, child, edgeCost));
         }
 
-        std::array<double, 3u> AIBITstar::computeForwardKey(const std::shared_ptr<Vertex> &parent,
-                                                            const std::shared_ptr<Vertex> &child,
+        std::array<double, 3u> AIBITstar::computeForwardKey(const std::shared_ptr<State> &parent,
+                                                            const std::shared_ptr<State> &child,
                                                             const ompl::base::Cost &edgeCost) const
         {
             // Assert the sanity of the input.
             assert(parent);
             assert(child);
+            assert(parent->hasForwardVertex());
 
             // The cost to come is the cost through the tree.
-            auto costToCome = parent->getCost();
+            auto costToCome = parent->asForwardVertex()->getCost();
 
             // The cost to go is infinity, if not in the reverse search tree and the corresponding cost otherwise.
-            auto costToGo = objective_->infiniteCost();
-            if (auto twin = child->getTwin().lock())
-            {
-                assert(child->getState()->hasReverseVertex());
-                costToGo = twin->getCost();
-            }
+            auto costToGo = child->asReverseVertex()->getCost();
 
             // The sort key is [g_F(xp) + c^(xp, xc) + h^(xc), g_F(xp) + c^(xp, xc), g_F(xp)].
             return {objective_->combineCosts(costToCome, objective_->combineCosts(edgeCost, costToGo)).value(),
                     objective_->combineCosts(costToCome, edgeCost).value(), costToCome.value()};
         }
 
-        std::array<double, 3u> AIBITstar::computeReverseKey(const std::shared_ptr<Vertex> &parent,
-                                                            const std::shared_ptr<Vertex> &child,
+        std::array<double, 3u> AIBITstar::computeReverseKey(const std::shared_ptr<State> &parent,
+                                                            const std::shared_ptr<State> &child,
                                                             const ompl::base::Cost &edgeCost) const
         {
             // Assert sanity of used variables.
             assert(parent);
             assert(child);
             assert(forwardRoot_);
+            assert(parent->hasReverseVertex());
 
             // The cost to come is the cost through the tree.
-            auto costToCome = parent->getCost();
+            auto costToCome = parent->asReverseVertex()->getCost();
 
             // The cost to go is the motion cost heuristic of the child to the forward root.
-            auto costToGo = objective_->motionCostHeuristic(child->getState()->raw(), forwardRoot_->getState()->raw());
+            auto costToGo = objective_->motionCostHeuristic(child->raw(), forwardRoot_->getState()->raw());
 
             // The sort key is [g_F(xp) + c^(xp, xc) + h^(xc), g_F(xp) + c^(xp, xc), g_F(xp)].
             return {objective_->combineCosts(costToCome, objective_->combineCosts(edgeCost, costToGo)).value(),

@@ -42,7 +42,7 @@ namespace ompl
     {
         namespace aibitstar
         {
-            Edge::Edge(const std::shared_ptr<Vertex> &parent, const std::shared_ptr<Vertex> &child,
+            Edge::Edge(const std::shared_ptr<State> &parent, const std::shared_ptr<State> &child,
                        const ompl::base::Cost &heuristicCost, const std::array<double, 3u> &key)
               : parent(parent), child(child), heuristicCost(heuristicCost), key(key)
             {

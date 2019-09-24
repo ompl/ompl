@@ -49,26 +49,27 @@ namespace ompl
     {
         namespace aibitstar
         {
-            // Forward declaration of vertex class.
-            class Vertex;
+            // Forward declaration of state to break include cycle.
+            class State;
 
+            /** \brief A struct holding edge data. */
             struct Edge
             {
                 /** \brief OMPL's heap unfortunately only works for default constructable element. */
                 Edge() = default;
 
                 /** \brief Construct the edge by providing values for all member variables. */
-                Edge(const std::shared_ptr<Vertex> &parent, const std::shared_ptr<Vertex> &child,
+                Edge(const std::shared_ptr<State> &parent, const std::shared_ptr<State> &child,
                      const ompl::base::Cost &heuristicCost, const std::array<double, 3u> &key);
 
                 /** \brief Destruct the edge. */
                 ~Edge() = default;
 
-                /** \brief The parent vertex of this edge. */
-                std::shared_ptr<Vertex> parent;
+                /** \brief The parent state of this edge. */
+                std::shared_ptr<State> parent;
 
-                /** \brief The child vertex of this edge. */
-                std::shared_ptr<Vertex> child;
+                /** \brief The child state of this edge. */
+                std::shared_ptr<State> child;
 
                 /** \brief The heuristic cost of this edge. */
                 ompl::base::Cost heuristicCost{std::numeric_limits<double>::signaling_NaN()};

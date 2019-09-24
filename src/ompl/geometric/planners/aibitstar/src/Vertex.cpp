@@ -178,13 +178,6 @@ namespace ompl
                 expandTag_ = expandTag;
             }
 
-            const std::vector<ompl::BinaryHeap<ompl::geometric::aibitstar::Edge,
-                                               std::function<bool(const Edge &, const Edge &)>>::Element *> &
-            Vertex::getOutQueueLookup() const
-            {
-                return outgoingEdgeQueueLookup_;
-            }
-
         }  // namespace aibitstar
 
     }  // namespace geometric

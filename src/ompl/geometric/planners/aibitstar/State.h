@@ -54,7 +54,7 @@ namespace ompl
         namespace aibitstar
         {
             /** \brief A wrapper class for OMPL's state. */
-            class State : public std::enable_shared_from_this<State>
+            class State : public std::enable_shared_from_this<State>  // Inheritance must be public here.
             {
             public:
                 /** \brief Constructs the state, allocating the associated memory using information about the underlying
