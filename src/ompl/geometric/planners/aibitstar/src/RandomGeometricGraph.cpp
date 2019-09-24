@@ -117,11 +117,11 @@ namespace ompl
 
             void RandomGeometricGraph::registerInvalidEdge(const Edge &edge)
             {
-                // This invalidates the cache.
-                edge.parent->neighbors_.first = 0u;
-                edge.parent->neighbors_.second.clear();
-                edge.child->neighbors_.first = 0u;
-                edge.child->neighbors_.second.clear();
+                // Remove the edge from the caches (using the erase-remove idiom).
+                auto& parentNeighbors = edge.parent->neighbors_.second;
+                auto& childNeighbors = edge.child->neighbors_.second;
+                parentNeighbors.erase(std::remove(parentNeighbors.begin(), parentNeighbors.end(), edge.child));
+                childNeighbors.erase(std::remove(childNeighbors.begin(), childNeighbors.end(), edge.parent));
             }
 
             std::shared_ptr<State> RandomGeometricGraph::setStartState(const ompl::base::State *startState)
