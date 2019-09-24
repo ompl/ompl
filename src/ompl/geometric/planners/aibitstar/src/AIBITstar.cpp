@@ -324,7 +324,7 @@ namespace ompl
                                     forwardQueue_.insert(forwardExpand(edge.child));
                                 }
                             }
-                            else  // Update the solution.
+                            else  // It is the goal state, update the solution.
                             {
                                 updateSolution();
                             }
@@ -461,8 +461,8 @@ namespace ompl
             // Continuously append vertices.
             while (current->getState()->getId() != forwardRoot_->getState()->getId())
             {
-                vertices.emplace_back(current);
                 assert(current->getParent().lock());
+                vertices.emplace_back(current);
                 current = current->getParent().lock();
             }
             vertices.emplace_back(current);
@@ -470,6 +470,8 @@ namespace ompl
             // Append all vertices to the path.
             for (auto it = vertices.rbegin(); it != vertices.rend(); ++it)
             {
+                assert((*it)->getState());
+                assert((*it)->getState()->raw());
                 path->append((*it)->getState()->raw());
             }
 
