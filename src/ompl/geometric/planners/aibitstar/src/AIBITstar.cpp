@@ -455,7 +455,7 @@ namespace ompl
             auto path = std::make_shared<ompl::geometric::PathGeometric>(spaceInfo_);
 
             // Allocate a vector for vertices. The append function of the path inserts vertices in front of an
-            // std::vector, which is not what I want at all. I'll rather call std::reverse in the end.
+            // std::vector, which is not very efficient. I'll rather iterate over the vector in reverse.
             std::vector<std::shared_ptr<Vertex>> vertices;
 
             // Continuously append vertices.
