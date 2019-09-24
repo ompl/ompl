@@ -317,9 +317,12 @@ namespace ompl
                             parentVertex->addChild(childVertex);
 
                             // Expand the outgoing edges into the queue unless this state is the goal state.
-                            if (!isClosed(childVertex) && edge.child->getId() != reverseRoot_->getState()->getId())
+                            if (edge.child->getId() != reverseRoot_->getState()->getId())
                             {
-                                forwardQueue_.insert(forwardExpand(edge.child));
+                                if (!isClosed(childVertex))
+                                {
+                                    forwardQueue_.insert(forwardExpand(edge.child));
+                                }
                             }
                             else  // Update the solution.
                             {
