@@ -221,15 +221,8 @@ namespace ompl
                     };
 
                     // Cache the neighbors that are not blacklisted and not the state itself.
-                    for (const auto &neighbor : neighbors)
-                    {
-                        if (connectionPredicate(neighbor))
-                        {
-                            state->neighbors_.second.emplace_back(neighbor);
-                        }
-                    }
-                    // std::copy_if(neighbors.begin(), neighbors.end(), state->neighbors_.second.begin(),
-                    //              connectionPredicate);
+                    std::copy_if(neighbors.begin(), neighbors.end(), std::back_inserter(state->neighbors_.second),
+                                 connectionPredicate);
 
                     // Update the tag of the cache.
                     state->neighbors_.first = tag_;
