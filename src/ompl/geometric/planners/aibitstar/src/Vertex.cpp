@@ -154,15 +154,6 @@ namespace ompl
                 twin_ = vertex;
             }
 
-            void Vertex::releaseBranchFromStates()
-            {
-                // We have to invalidate from the leaves up.
-                for (auto child : children_)
-                {
-                    child->releaseBranchFromStates();
-                }
-            }
-
             void Vertex::clearChildren()
             {
                 children_.clear();
