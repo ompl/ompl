@@ -102,9 +102,6 @@ namespace ompl
                  * underlying state. */
                 void setTwin(const std::shared_ptr<Vertex> &vertex);
 
-                /** \brief Invalidates the branch rooted in this vertex. */
-                void releaseBranchFromStates();
-
                 /** \brief Resets the children of this vertex. */
                 void clearChildren();
 

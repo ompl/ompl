@@ -143,8 +143,14 @@ namespace ompl
             /** \brief Returns whether the edge does improve the forward tree. */
             bool doesImproveForwardTree(const aibitstar::Edge &edge, const ompl::base::Cost &trueEdgeCost) const;
 
-            /** \brief Returns whether the edge can improve the forward tree. */
+            /** \brief Returns whether the edge is valid. */
             bool isValid(const aibitstar::Edge &edge) const;
+
+            /** \brief Returns whether the edge could be valid by performing sparse collision checks. */
+            bool couldBeValid(const aibitstar::Edge &edge) const;
+
+            /** \brief Returns the nth base-two van der Corput point between [0, 1). */
+            double vanDerCorput(std::size_t n) const;
 
             void processInvalidEdge(const aibitstar::Edge &edge);
 
@@ -171,12 +177,21 @@ namespace ompl
 
             /** \brief The tag of the current search. */
             std::size_t searchTag_{1u};
-            
+
+            /** \brief The interpolation values used for the sparse collision detection on the reverse search. */
+            std::vector<double> detectionInterpolationValues_{};
+
+            /** \brief The state used to do sparse collision detection with. */
+            ompl::base::State *detectionState_;
+
             /** \brief An alias with a more expressive name to the problem of the base class. */
             std::shared_ptr<ompl::base::ProblemDefinition> &problem_ = ompl::base::Planner::pdef_;
 
             /** \brief An alias with a more expressive name to the space information of the base class. */
             std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo_ = ompl::base::Planner::si_;
+
+            /** \brief A direct pointer to the state space. */
+            std::shared_ptr<ompl::base::StateSpace> space_;
 
             /** \brief Direct access to the optimization objective of the problem. */
             std::shared_ptr<ompl::base::OptimizationObjective> objective_;

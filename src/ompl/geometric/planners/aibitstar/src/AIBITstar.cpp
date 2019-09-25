@@ -50,8 +50,15 @@ namespace ompl
         AIBITstar::AIBITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo)
           : ompl::base::Planner(spaceInfo, "AI-BIT*")
           , graph_(spaceInfo)
+          , detectionState_(spaceInfo->allocState())
+          , space_(spaceInfo->getStateSpace())
           , motionValidator_(spaceInfo->getMotionValidator())
         {
+        }
+
+        AIBITstar::~AIBITstar()
+        {
+            spaceInfo_->freeState(detectionState_);
         }
 
         void AIBITstar::setup()
@@ -335,6 +342,10 @@ namespace ompl
                         // The accuracy of the heuristic should be updated.
                         processInvalidEdge(edge);
 
+                        // Increase the collision detection density on the reverse search.
+                        detectionInterpolationValues_.emplace_back(
+                            vanDerCorput(detectionInterpolationValues_.size() + 1u));
+
                         // Restart the reverse queue.
                         reverseQueue_.insert(reverseExpand(reverseRoot_->getState()));
                     }
@@ -373,19 +384,27 @@ namespace ompl
                 }
                 if (canImproveReverseTree(edge))
                 {
-                    // Update the parent of the child in the reverse tree.
-                    childVertex->setParent(parentVertex);
-
-                    // Update the cost.
-                    childVertex->setCost(ompl::base::Cost(edge.key[1]));
-
-                    // Add the child to the children of the parent.
-                    parentVertex->addChild(childVertex);
-
-                    // Expand the outgoing edges into the queue unless this is the start state.
-                    if (!isClosed(childVertex) && edge.child->getId() != forwardRoot_->getState()->getId())
+                    if (couldBeValid(edge))
                     {
-                        reverseQueue_.insert(reverseExpand(edge.child));
+                        // Update the parent of the child in the reverse tree.
+                        childVertex->setParent(parentVertex);
+
+                        // Update the cost.
+                        childVertex->setCost(ompl::base::Cost(edge.key[1]));
+
+                        // Add the child to the children of the parent.
+                        parentVertex->addChild(childVertex);
+
+                        // Expand the outgoing edges into the queue unless this is the start state.
+                        if (!isClosed(childVertex) && edge.child->getId() != forwardRoot_->getState()->getId())
+                        {
+                            reverseQueue_.insert(reverseExpand(edge.child));
+                        }
+                    }
+                    else
+                    {
+                        // This edge is invalid, process it as such.
+                        processInvalidEdge(edge);
                     }
                 }
                 if (reverseQueue_.empty())
@@ -407,7 +426,7 @@ namespace ompl
                             rebuildForwardQueue();
                         }
                     }
-                    else  // If the start is not reached by the backward search, there is no need to continue the
+                    else  // If the start is not in the backward search tree, there is no need to start/continue the
                           // forward search.
                     {
                         forwardQueue_.clear();
@@ -568,6 +587,47 @@ namespace ompl
             }
         }
 
+        bool AIBITstar::couldBeValid(const Edge &edge) const
+        {
+            // Check if the edge is whitelisted
+            if (edge.parent->isWhitelisted(edge.child))
+            {
+                return true;
+            }
+            // Check if the edge is blacklisted.
+            else if (edge.parent->isBlacklisted(edge.child))
+            {
+                return false;
+            }
+            // Ok, fine, let's do some work.
+            else
+            {
+                for (const auto t : detectionInterpolationValues_)
+                {
+                    space_->interpolate(edge.parent->raw(), edge.child->raw(), t, detectionState_);
+                    if (!spaceInfo_->isValid(detectionState_))
+                    {
+                        edge.parent->blacklist(edge.child);
+                        edge.child->blacklist(edge.parent);
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+
+        double AIBITstar::vanDerCorput(std::size_t n) const
+        {
+            double nthVanDerCorput = 0.0;
+            double denominator = 1.0;
+            while (n)
+            {
+                nthVanDerCorput += std::fmod(n, 2.0) / (denominator *= 2.0);
+                n /= 2.0;
+            }
+            return nthVanDerCorput;
+        }
+
         void AIBITstar::processInvalidEdge(const Edge &edge)
         {
             // Assert the edge is actually invalid.
@@ -575,12 +635,8 @@ namespace ompl
 
             // Invalidate the branch.
             auto invalidatedReverseVertex = edge.parent->asReverseVertex();
-            invalidatedReverseVertex->releaseBranchFromStates();
             invalidatedReverseVertex->resetParent();
             edge.child->asReverseVertex()->removeIfChild(invalidatedReverseVertex);
-
-            // Clear the forward queue.
-            forwardQueue_.clear();
 
             // Register the invalid edge with the graph.
             graph_.registerInvalidEdge(edge);
@@ -598,7 +654,6 @@ namespace ompl
             // Get the parent vertices of the edges.
             for (auto &edge : edges)
             {
-                std::cout << "Rebuilding the forward queue.\n";
                 edge.key = computeForwardKey(edge.parent, edge.child, edge.heuristicCost);
             }
 

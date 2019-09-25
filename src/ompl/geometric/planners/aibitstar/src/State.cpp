@@ -93,14 +93,19 @@ namespace ompl
                 {
                     return forwardVertex;
                 }
-                else  // If this state does not yet exist as a forward vertex, create the object.
+                else  // If this state does not yet exist as a forward vertex, create it.
                 {
+                    // Create a forward vertex from this state.
                     forwardVertex = std::make_shared<Vertex>(shared_from_this());
+
+                    // If this state has a reverse vertex, the newly created vertex is its twin.
                     if (auto reverseVertex = reverseVertex_.lock())
                     {
                         reverseVertex->setTwin(forwardVertex);
                         forwardVertex->setTwin(reverseVertex);
                     }
+
+                    // Remember this state's forward vertex and return.
                     forwardVertex_ = forwardVertex;
                     return forwardVertex;
                 }
@@ -113,14 +118,19 @@ namespace ompl
                 {
                     return reverseVertex;
                 }
-                else  // If this state does not yet exist as a reverse vertex, create the object.
+                else  // If this state does not yet exist as a reverse vertex, create it.
                 {
+                    // Create a reverse vertex from this state.
                     reverseVertex = std::make_shared<Vertex>(shared_from_this());
+
+                    // If this state has a forward vertex, the newly created vertex is its twin.
                     if (auto forwardVertex = forwardVertex_.lock())
                     {
                         forwardVertex->setTwin(reverseVertex);
                         reverseVertex->setTwin(forwardVertex);
                     }
+
+                    // Remember this state's reverse vertex and return.
                     reverseVertex_ = reverseVertex;
                     return reverseVertex;
                 }
