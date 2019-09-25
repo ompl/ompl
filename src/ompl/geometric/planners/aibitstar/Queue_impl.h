@@ -70,13 +70,43 @@ namespace ompl
             template <>
             void EdgeQueue<Direction::FORWARD>::insert(const Edge &edge)
             {
-                heap_.insert(edge);
+                // Update if the edge is already in the queue.
+                for (const auto outgoingEdge : edge.parent->asForwardVertex()->outgoingEdgeQueueLookup_)
+                {
+                    if (outgoingEdge->data.child->getId() == edge.child->getId())
+                    {
+                        if (edge.key < outgoingEdge->data.key)
+                        {
+                            outgoingEdge->data.key = edge.key;
+                            heap_.update(outgoingEdge);
+                        }
+                        return;
+                    }
+                }
+
+                // It is not in the queue, so insert it and remember it in the outgoing edge queue lookup.
+                edge.parent->asForwardVertex()->outgoingEdgeQueueLookup_.emplace_back(heap_.insert(edge));
             }
 
             template <>
             void EdgeQueue<Direction::REVERSE>::insert(const Edge &edge)
             {
-                heap_.insert(edge);
+                // Update if the edge is already in the queue.
+                for (const auto outgoingEdge : edge.parent->asReverseVertex()->outgoingEdgeQueueLookup_)
+                {
+                    if (outgoingEdge->data.child->getId() == edge.child->getId())
+                    {
+                        if (edge.key < outgoingEdge->data.key)
+                        {
+                            outgoingEdge->data.key = edge.key;
+                            heap_.update(outgoingEdge);
+                        }
+                        return;
+                    }
+                }
+
+                // It is not in the queue, so insert it and remember it in the outgoing edge queue lookup.
+                edge.parent->asReverseVertex()->outgoingEdgeQueueLookup_.emplace_back(heap_.insert(edge));
             }
 
             template <Direction D>
@@ -124,6 +154,19 @@ namespace ompl
                     // Pop the element from the heap.
                     heap_.pop();
 
+                    // Get a reference to the outgoing edge queue lookup of the parent vertex.
+                    auto &outgoingEdgeQueueLookup = top.parent->asForwardVertex()->outgoingEdgeQueueLookup_;
+
+                    // Remove the edge from the ougoing edge lookup of the parent vertex using find, swap and pop.
+                    auto it = std::find(outgoingEdgeQueueLookup.begin(), outgoingEdgeQueueLookup.end(), element);
+
+                    // If this edge is not in the lookup, this is a bug.
+                    assert(it != outgoingEdgeQueueLookup.end());
+
+                    // Do the good ol' swappedy poppedy.
+                    std::iter_swap(it, outgoingEdgeQueueLookup.rbegin());
+                    outgoingEdgeQueueLookup.pop_back();
+
                     // Return the top element.
                     return top;
                 }
@@ -145,6 +188,19 @@ namespace ompl
                     // Pop the element from the heap.
                     heap_.pop();
 
+                    // Get a reference to the outgoing edge queue lookup of the parent vertex.
+                    auto &outgoingEdgeQueueLookup = top.parent->asReverseVertex()->outgoingEdgeQueueLookup_;
+
+                    // Remove the edge from the ougoing edge lookup of the parent vertex using find, swap and pop.
+                    auto it = std::find(outgoingEdgeQueueLookup.begin(), outgoingEdgeQueueLookup.end(), element);
+
+                    // If this edge is not in the lookup, this is a bug.
+                    assert(it != outgoingEdgeQueueLookup.end());
+
+                    // Do the good ol' swappedy poppedy.
+                    std::iter_swap(it, outgoingEdgeQueueLookup.rbegin());
+                    outgoingEdgeQueueLookup.pop_back();
+
                     // Return the top element.
                     return top;
                 }
@@ -157,7 +213,11 @@ namespace ompl
             template <Direction D>
             void EdgeQueue<D>::clear()
             {
-                heap_.clear();
+                // Can't use heap_.clear() here, because we need to remove the outgoing edge queue lookup pointers here.
+                while (!empty())
+                {
+                    auto edge = pop();
+                }
             }
 
             template <Direction D>

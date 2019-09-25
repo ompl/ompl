@@ -43,6 +43,7 @@
 #include "ompl/base/Cost.h"
 #include "ompl/datastructures/BinaryHeap.h"
 
+#include "ompl/geometric/planners/aibitstar/Direction.h"
 #include "ompl/geometric/planners/aibitstar/Edge.h"
 
 namespace ompl
@@ -129,7 +130,8 @@ namespace ompl
                 /** \brief The parent of this vertex. */
                 std::weak_ptr<Vertex> parent_{};
 
-                /** \brief The twin of this vertex, i.e., the vertex with the same underlying state in the other search tree. */
+                /** \brief The twin of this vertex, i.e., the vertex with the same underlying state in the other search
+                 * tree. */
                 std::weak_ptr<Vertex> twin_{};
 
                 /** \brief The children of this vertex. */
@@ -137,6 +139,17 @@ namespace ompl
 
                 /** \brief The state this vertex is associated with. */
                 std::shared_ptr<State> state_;
+
+                /** \brief The edge queue is a friend class to allow efficient updates of outgoing edges of this vertex
+                 * in the queue. */
+                template <Direction D>
+                friend class EdgeQueue;
+
+                /** \brief The outgoing edges from this vertex currently in the queue. This is maintained by the queue.
+                 */
+                mutable std::vector<ompl::BinaryHeap<ompl::geometric::aibitstar::Edge,
+                                                     std::function<bool(const Edge &, const Edge &)>>::Element *>
+                    outgoingEdgeQueueLookup_;
             };
 
         }  // namespace aibitstar
