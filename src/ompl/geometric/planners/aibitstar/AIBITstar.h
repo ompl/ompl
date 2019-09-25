@@ -57,7 +57,7 @@ namespace ompl
             AIBITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo);
 
             /** \brief Destructs the algorithm. */
-            ~AIBITstar() = default;
+            ~AIBITstar();
 
             /** \brief Setup the parts of the planner that rely on the problem definition being set. */
             void setup() override;
