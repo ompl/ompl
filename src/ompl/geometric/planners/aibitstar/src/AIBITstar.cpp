@@ -272,16 +272,6 @@ namespace ompl
 
             // Assert some assumptions.
             assert(edge.parent->hasForwardVertex());
-            assert(edge.parent->hasReverseVertex());
-            assert(edge.parent->asForwardVertex()->getTwin().lock());
-            assert(edge.parent->asForwardVertex()->getId() ==
-                   edge.parent->asReverseVertex()->getTwin().lock()->getId());
-            assert(edge.parent->asReverseVertex()->getId() ==
-                   edge.parent->asForwardVertex()->getTwin().lock()->getId());
-            assert(edge.child->hasReverseVertex());
-            assert(edge.child->asForwardVertex()->getTwin().lock());
-            assert(edge.child->asForwardVertex()->getId() == edge.child->asReverseVertex()->getTwin().lock()->getId());
-            assert(edge.child->asReverseVertex()->getId() == edge.child->asForwardVertex()->getTwin().lock()->getId());
 
             // The parent must have a forward vertex associated with it.
             auto parentVertex = edge.parent->asForwardVertex();
@@ -519,7 +509,14 @@ namespace ompl
             }
             else
             {
-                return true;
+                if (!edge.parent->hasReverseVertex() || !edge.child->hasReverseVertex())
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
             }
         }
 
