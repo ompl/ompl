@@ -34,7 +34,7 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/aibitstar/Queue.h"
+#include "ompl/geometric/planners/aibitstar/Direction.h"
 
 namespace ompl
 {
@@ -42,26 +42,45 @@ namespace ompl
     {
         namespace aibitstar
         {
-            EdgeQueue::EdgeQueue() : heap_([](const Edge &lhs, const Edge &rhs) { return lhs.key < rhs.key; })
+            template <Direction D>
+            EdgeQueue<D>::EdgeQueue() : heap_([](const Edge &lhs, const Edge &rhs) { return lhs.key < rhs.key; })
             {
             }
 
-            bool EdgeQueue::empty() const
+            template <Direction D>
+            bool EdgeQueue<D>::empty() const
             {
                 return size() == 0u;
             }
 
-            std::size_t EdgeQueue::size() const
+            template <Direction D>
+            std::size_t EdgeQueue<D>::size() const
             {
                 return heap_.size();
             }
 
-            void EdgeQueue::insert(const Edge &edge)
+            template <Direction D>
+            void EdgeQueue<D>::insert(const Edge &edge)
+            {
+                // static_assert(false, ...) is never satisfied, even if only specializations are instantiated.
+                static_assert(sizeof(D) == 0u, "The edge queue must be instantiated with Direction::FORWARD or "
+                                               "Direction::REVERSE as template parameter.");
+            }
+
+            template <>
+            void EdgeQueue<Direction::FORWARD>::insert(const Edge &edge)
             {
                 heap_.insert(edge);
             }
 
-            void EdgeQueue::insert(const std::vector<Edge> &edges)
+            template <>
+            void EdgeQueue<Direction::REVERSE>::insert(const Edge &edge)
+            {
+                heap_.insert(edge);
+            }
+
+            template <Direction D>
+            void EdgeQueue<D>::insert(const std::vector<Edge> &edges)
             {
                 // Can't use the heap's method for multiple edges because we need the packward pointers.
                 for (const auto &edge : edges)
@@ -70,7 +89,8 @@ namespace ompl
                 }
             }
 
-            const Edge &EdgeQueue::peek() const
+            template <Direction D>
+            const Edge &EdgeQueue<D>::peek() const
             {
                 // Return a reference to the top element in the queue, otherwise throw.
                 if (auto element = heap_.top())
@@ -83,7 +103,17 @@ namespace ompl
                 }
             }
 
-            Edge EdgeQueue::pop()
+            template <Direction D>
+            Edge EdgeQueue<D>::pop()
+            {
+                // static_assert(false, ...) is never satisfied, even if only specializations are instantiated.
+                static_assert(sizeof(D) == 0u, "The edge queue must be instantiated with Direction::FORWARD or "
+                                               "Direction::REVERSE as template parameter.");
+                return Edge();
+            }
+
+            template <>
+            Edge EdgeQueue<Direction::FORWARD>::pop()
             {
                 // Get the top element in the queue, throw if empty.
                 if (auto element = heap_.top())
@@ -103,19 +133,43 @@ namespace ompl
                 }
             }
 
-            void EdgeQueue::clear()
+            template <>
+            Edge EdgeQueue<Direction::REVERSE>::pop()
+            {
+                // Get the top element in the queue, throw if empty.
+                if (auto element = heap_.top())
+                {
+                    // Copy the top element of the heap.
+                    Edge top = element->data;
+
+                    // Pop the element from the heap.
+                    heap_.pop();
+
+                    // Return the top element.
+                    return top;
+                }
+                else
+                {
+                    throw std::out_of_range("There are no elements in the queue.");
+                }
+            }
+
+            template <Direction D>
+            void EdgeQueue<D>::clear()
             {
                 heap_.clear();
             }
 
-            std::vector<Edge> EdgeQueue::getEdges() const
+            template <Direction D>
+            std::vector<Edge> EdgeQueue<D>::getEdges() const
             {
                 std::vector<Edge> edges;
                 heap_.getContent(edges);
                 return edges;
             }
 
-            void EdgeQueue::rebuild()
+            template <Direction D>
+            void EdgeQueue<D>::rebuild()
             {
                 heap_.rebuild();
             }

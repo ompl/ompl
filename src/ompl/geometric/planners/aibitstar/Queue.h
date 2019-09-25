@@ -44,6 +44,7 @@
 #include "ompl/datastructures/BinaryHeap.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 
+#include "ompl/geometric/planners/aibitstar/Direction.h"
 #include "ompl/geometric/planners/aibitstar/Edge.h"
 #include "ompl/geometric/planners/aibitstar/Vertex.h"
 
@@ -53,6 +54,7 @@ namespace ompl
     {
         namespace aibitstar
         {
+            template <Direction D>
             class EdgeQueue
             {
             public:
@@ -101,5 +103,8 @@ namespace ompl
     }  // namespace geometric
 
 }  // namespace ompl
+
+// Include the implementation of the edge queue.
+#include "ompl/geometric/planners/aibitstar/Queue_impl.h"
 
 #endif  // OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_QUEUE_

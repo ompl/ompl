@@ -43,6 +43,7 @@
 #include "ompl/base/Planner.h"
 #include "ompl/base/SpaceInformation.h"
 
+#include "ompl/geometric/planners/aibitstar/Direction.h"
 #include "ompl/geometric/planners/aibitstar/RandomGeometricGraph.h"
 #include "ompl/geometric/planners/aibitstar/Queue.h"
 
@@ -167,10 +168,10 @@ namespace ompl
             std::shared_ptr<aibitstar::Vertex> reverseRoot_;
 
             /** \brief The forward queue. */
-            aibitstar::EdgeQueue forwardQueue_;
+            aibitstar::EdgeQueue<aibitstar::Direction::FORWARD> forwardQueue_;
 
             /** \brief The reverse queue. */
-            aibitstar::EdgeQueue reverseQueue_;
+            aibitstar::EdgeQueue<aibitstar::Direction::REVERSE> reverseQueue_;
 
             /** \brief The current iteration. */
             std::size_t iteration_{0u};
