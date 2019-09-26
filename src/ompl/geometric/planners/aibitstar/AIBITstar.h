@@ -150,11 +150,6 @@ namespace ompl
             /** \brief Returns whether the edge could be valid by performing sparse collision checks. */
             bool couldBeValid(const aibitstar::Edge &edge) const;
 
-            /** \brief Returns the nth base-two van der Corput point between [0, 1). */
-            double vanDerCorput(std::size_t n) const;
-
-            void processInvalidEdge(const aibitstar::Edge &edge);
-
             /** \brief The sampling-based approximation of the state space. */
             aibitstar::RandomGeometricGraph graph_;
 
