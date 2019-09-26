@@ -49,13 +49,7 @@ namespace ompl
             void EdgeQueue<Direction::FORWARD>::insert(const Edge &edge)
             {
                 // Update if the edge is already in the queue.
-                try
-                {
-                    update(edge);
-                }
-                catch (const std::runtime_error &e)
-                {
-                    // It is not in the queue, so insert it and remember it in the outgoing edge queue lookup.
+                if(!update(edge)) {
                     edge.parent->asForwardVertex()->outgoingEdgeQueueLookup_.emplace_back(heap_.insert(edge));
                 }
             }
@@ -64,19 +58,13 @@ namespace ompl
             void EdgeQueue<Direction::REVERSE>::insert(const Edge &edge)
             {
                 // Update if the edge is already in the queue.
-                try
-                {
-                    update(edge);
-                }
-                catch (const std::runtime_error &e)
-                {
-                    // It is not in the queue, so insert it and remember it in the outgoing edge queue lookup.
+                if (!update(edge)) {
                     edge.parent->asReverseVertex()->outgoingEdgeQueueLookup_.emplace_back(heap_.insert(edge));
                 }
             }
 
             template <>
-            void EdgeQueue<Direction::FORWARD>::update(const Edge &edge)
+            bool EdgeQueue<Direction::FORWARD>::update(const Edge &edge)
             {
                 // Update if the edge is already in the queue.
                 for (const auto outgoingEdge : edge.parent->asForwardVertex()->outgoingEdgeQueueLookup_)
@@ -88,14 +76,15 @@ namespace ompl
                             outgoingEdge->data.key = edge.key;
                             heap_.update(outgoingEdge);
                         }
-                        return;
+                        return true;
                     }
                 }
-                throw std::runtime_error("Could not update edge, because it is not in the outgoing queue lookup.");
+                // throw std::runtime_error("Could not update edge, because it is not in the outgoing queue lookup.");
+                return false;
             }
 
             template <>
-            void EdgeQueue<Direction::REVERSE>::update(const Edge &edge)
+            bool EdgeQueue<Direction::REVERSE>::update(const Edge &edge)
             {
                 for (const auto outgoingEdge : edge.parent->asReverseVertex()->outgoingEdgeQueueLookup_)
                 {
@@ -106,10 +95,10 @@ namespace ompl
                             outgoingEdge->data.key = edge.key;
                             heap_.update(outgoingEdge);
                         }
-                        return;
+                        return true;
                     }
                 }
-                throw std::runtime_error("Could not update edge, because it is not in the outgoing queue lookup.");
+                return false;
             }
 
             template <>

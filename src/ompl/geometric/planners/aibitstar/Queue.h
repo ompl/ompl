@@ -77,7 +77,7 @@ namespace ompl
                 void insert(const std::vector<Edge> &edges);
 
                 /** \brief Update an element in the queue. */
-                void update(const Edge &edge);
+                bool update(const Edge &edge);
 
                 /** \brief Return a reference to the top element of the queue. */
                 const Edge &peek() const;
