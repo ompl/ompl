@@ -329,12 +329,24 @@ namespace ompl
                     }
                     else
                     {
-                        // The accuracy of the heuristic should be updated.
-                        processInvalidEdge(edge);
+                        // Assert the edge is actually invalid.
+                        assert(!motionValidator_->checkMotion(edge.parent->raw(), edge.child->raw()));
 
-                        // Increase the collision detection density on the reverse search.
-                        detectionInterpolationValues_.emplace_back(
-                            vanDerCorput(detectionInterpolationValues_.size() + 1u));
+                        // Invalidate the branch.
+                        auto invalidatedReverseVertex = edge.parent->asReverseVertex();
+                        invalidatedReverseVertex->resetParent();
+                        edge.child->asReverseVertex()->removeIfChild(invalidatedReverseVertex);
+
+                        // Register the invalid edge with the graph.
+                        graph_.registerInvalidEdge(edge);
+
+                        std::size_t numInterpolationValues = detectionInterpolationValues_.size() + 1u;
+                        double interpolationStep = 1.0 / (numInterpolationValues + 1u);
+                        detectionInterpolationValues_.clear();
+                        for (std::size_t i = 0u; i < numInterpolationValues; ++i)
+                        {
+                            detectionInterpolationValues_.emplace_back((i + 1u) * interpolationStep);
+                        }
 
                         // Restart the reverse queue.
                         reverseQueue_.insert(reverseExpand(reverseRoot_->getState()));
@@ -393,8 +405,11 @@ namespace ompl
                     }
                     else
                     {
-                        // This edge is invalid, process it as such.
-                        processInvalidEdge(edge);
+                        // Assert the edge is actually invalid.
+                        assert(!motionValidator_->checkMotion(edge.parent->raw(), edge.child->raw()));
+
+                        // Register the invalid edge with the graph.
+                        graph_.registerInvalidEdge(edge);
                     }
                 }
                 if (reverseQueue_.empty())
