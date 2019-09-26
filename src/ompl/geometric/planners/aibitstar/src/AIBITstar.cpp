@@ -271,7 +271,7 @@ namespace ompl
             // Get the top edge from the queue.
             auto edge = forwardQueue_.pop();
 
-            // Assert some assumptions.
+            // Assert that the edge has a forward vertex.
             assert(edge.parent->hasForwardVertex());
 
             // The parent must have a forward vertex associated with it.
@@ -308,8 +308,26 @@ namespace ompl
                             // Update the parent of the child in the forward tree.
                             childVertex->setParent(parentVertex);
 
-                            // Update the cost.
+                            // Update the cost-to-come.
                             childVertex->setCost(objective_->combineCosts(parentVertex->getCost(), trueEdgeCost));
+
+                            // Set the edge cost associated with this parent.
+                            childVertex->setEdgeCost(trueEdgeCost);
+
+                            // Update the cost of the children.
+                            auto changedVertices = childVertex->updateChildren(objective_);
+
+                            // Update the edges in the queue.
+                            for (const auto &vertex : changedVertices)
+                            {
+                                forwardQueue_.update(
+                                    createForwardEdge(vertex->getParent().lock()->getState(), vertex->getState()));
+
+                                if (vertex->getState()->getId() == reverseRoot_->getState()->getId())
+                                {
+                                    updateSolution();
+                                }
+                            }
 
                             // Add the child to the parents children.
                             parentVertex->addChild(childVertex);
@@ -317,6 +335,7 @@ namespace ompl
                             // Expand the outgoing edges into the queue unless this state is the goal state.
                             if (edge.child->getId() != reverseRoot_->getState()->getId())
                             {
+                                // If child vertex is not closed, then expand.
                                 if (!isClosed(childVertex))
                                 {
                                     forwardQueue_.insert(forwardExpand(edge.child));
@@ -394,6 +413,9 @@ namespace ompl
 
                         // Update the cost.
                         childVertex->setCost(ompl::base::Cost(edge.key[1]));
+
+                        // Update the edge cost.
+                        childVertex->setEdgeCost(edge.heuristicCost);
 
                         // Add the child to the children of the parent.
                         parentVertex->addChild(childVertex);
@@ -627,36 +649,6 @@ namespace ompl
                 }
                 return true;
             }
-        }
-
-        double AIBITstar::vanDerCorput(std::size_t n) const
-        {
-            double nthVanDerCorput = 0.0;
-            double denominator = 1.0;
-            while (n)
-            {
-                nthVanDerCorput += std::fmod(n, 2.0) / (denominator *= 2.0);
-                n /= 2.0;
-            }
-            return nthVanDerCorput;
-        }
-
-        void AIBITstar::processInvalidEdge(const Edge &edge)
-        {
-            // Assert the edge is actually invalid.
-            assert(!isValid(edge));
-
-            // Invalidate the branch.
-            auto invalidatedReverseVertex = edge.parent->asReverseVertex();
-            invalidatedReverseVertex->resetParent();
-            edge.child->asReverseVertex()->removeIfChild(invalidatedReverseVertex);
-
-            // Register the invalid edge with the graph.
-            graph_.registerInvalidEdge(edge);
-
-            // Assert we did not invalidate the roots.
-            assert(forwardRoot_->getState()->hasForwardVertex());
-            assert(reverseRoot_->getState()->hasReverseVertex());
         }
 
         void AIBITstar::rebuildForwardQueue()

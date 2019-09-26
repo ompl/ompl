@@ -60,10 +60,10 @@ namespace ompl
             }
 
             template <>
-            void EdgeQueue<Direction::FORWARD>::insert(const Edge& edge);
+            void EdgeQueue<Direction::FORWARD>::insert(const Edge &edge);
 
             template <>
-            void EdgeQueue<Direction::REVERSE>::insert(const Edge& edge);
+            void EdgeQueue<Direction::REVERSE>::insert(const Edge &edge);
 
             template <Direction D>
             void EdgeQueue<D>::insert(const Edge &edge)
@@ -85,6 +85,22 @@ namespace ompl
                 }
             }
 
+            template <>
+            void EdgeQueue<Direction::FORWARD>::update(const Edge &edge);
+
+            template <>
+            void EdgeQueue<Direction::REVERSE>::update(const Edge &edge);
+
+            template <Direction D>
+            void EdgeQueue<D>::update(const Edge &edge)
+            {
+                // static_assert(false, ...) is never satisfied, even if only specializations are instantiated.
+                static_assert(D == Direction::FORWARD || D == Direction::REVERSE, "The edge queue must be instantiated "
+                                                                                  "with Direction::FORWARD or "
+                                                                                  "Direction::REVERSE as template "
+                                                                                  "parameter.");
+            }
+
             template <Direction D>
             const Edge &EdgeQueue<D>::peek() const
             {
@@ -99,10 +115,10 @@ namespace ompl
                 }
             }
 
-            template<>
+            template <>
             Edge EdgeQueue<Direction::FORWARD>::pop();
 
-            template<>
+            template <>
             Edge EdgeQueue<Direction::REVERSE>::pop();
 
             template <Direction D>

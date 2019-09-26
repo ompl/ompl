@@ -78,6 +78,21 @@ namespace ompl
                 return children_;
             }
 
+            std::vector<std::shared_ptr<Vertex>>
+            Vertex::updateChildren(const std::shared_ptr<ompl::base::OptimizationObjective> &objective)
+            {
+                std::vector<std::shared_ptr<Vertex>> accumulatedChildren;
+                for (auto &child : children_)
+                {
+                    child->updateCost(objective);
+                    auto childsAccumulatedChildren = child->updateChildren(objective);
+                    accumulatedChildren.insert(accumulatedChildren.end(), childsAccumulatedChildren.begin(),
+                                               childsAccumulatedChildren.end());
+                }
+
+                return accumulatedChildren;
+            }
+
             void Vertex::addChild(const std::shared_ptr<Vertex> &vertex)
             {
                 assert(this);
@@ -135,6 +150,12 @@ namespace ompl
                 cost_ = cost;
             }
 
+            void Vertex::updateCost(const std::shared_ptr<ompl::base::OptimizationObjective> &objective)
+            {
+                assert(parent_.lock());
+                cost_ = objective->combineCosts(parent_.lock()->getCost(), edgeCost_);
+            }
+
             void Vertex::setParent(const std::shared_ptr<Vertex> &vertex)
             {
                 if (auto parent = parent_.lock())
@@ -142,6 +163,11 @@ namespace ompl
                     parent->removeChild(shared_from_this());
                 }
                 parent_ = vertex;
+            }
+
+            void Vertex::setEdgeCost(const ompl::base::Cost &edgeCost)
+            {
+                edgeCost_ = edgeCost;
             }
 
             void Vertex::resetParent()

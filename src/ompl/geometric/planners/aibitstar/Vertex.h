@@ -41,6 +41,7 @@
 #include <vector>
 
 #include "ompl/base/Cost.h"
+#include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/BinaryHeap.h"
 
 #include "ompl/geometric/planners/aibitstar/Direction.h"
@@ -74,6 +75,10 @@ namespace ompl
                 /** \brief Returns the children of the vertex. */
                 const std::vector<std::shared_ptr<Vertex>> &getChildren() const;
 
+                /** \brief Update the cost-to-come of the children. */
+                std::vector<std::shared_ptr<Vertex>>
+                updateChildren(const std::shared_ptr<ompl::base::OptimizationObjective> &objective);
+
                 /** \brief Adds a vertex to this vertex's children. */
                 void addChild(const std::shared_ptr<Vertex> &vertex);
 
@@ -93,8 +98,14 @@ namespace ompl
                 /** \brief Sets the cost to come to this vertex. */
                 void setCost(const ompl::base::Cost &cost);
 
+                /** \brief Updates the cost by combining the parent cost-to-come and the edge cost. */
+                void updateCost(const std::shared_ptr<ompl::base::OptimizationObjective> &objective);
+
                 /** \brief Resets the parent of the vertex. */
                 void setParent(const std::shared_ptr<Vertex> &vertex);
+
+                /** \brief Sets the edge cost of the vertex. */
+                void setEdgeCost(const ompl::base::Cost &edgeCost);
 
                 /** \brief Returns the parent of the vertex. */
                 void resetParent();
@@ -124,8 +135,11 @@ namespace ompl
                 /** \brief The tag when this vertex was last expanded. */
                 std::size_t expandTag_{0u};
 
-                /** \brief The cost to come to this vertex. */
+                /** \brief The cost-to-come to this vertex. */
                 ompl::base::Cost cost_{std::numeric_limits<double>::infinity()};
+
+                /** \brief The edge cost of the connection with the parent. */
+                ompl::base::Cost edgeCost_{std::numeric_limits<double>::infinity()};
 
                 /** \brief The parent of this vertex. */
                 std::weak_ptr<Vertex> parent_{};
