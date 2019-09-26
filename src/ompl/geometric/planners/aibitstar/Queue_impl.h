@@ -59,6 +59,12 @@ namespace ompl
                 return heap_.size();
             }
 
+            template <>
+            void EdgeQueue<Direction::FORWARD>::insert(const Edge& edge);
+
+            template <>
+            void EdgeQueue<Direction::REVERSE>::insert(const Edge& edge);
+
             template <Direction D>
             void EdgeQueue<D>::insert(const Edge &edge)
             {
@@ -92,6 +98,12 @@ namespace ompl
                     throw std::out_of_range("There are no elements in the queue.");
                 }
             }
+
+            template<>
+            Edge EdgeQueue<Direction::FORWARD>::pop();
+
+            template<>
+            Edge EdgeQueue<Direction::REVERSE>::pop();
 
             template <Direction D>
             Edge EdgeQueue<D>::pop()

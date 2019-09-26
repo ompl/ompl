@@ -34,8 +34,9 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/aibitstar/Direction.h"
 #include "ompl/geometric/planners/aibitstar/Queue.h"
+
+#include "ompl/geometric/planners/aibitstar/Direction.h"
 #include "ompl/geometric/planners/aibitstar/State.h"
 
 namespace ompl
