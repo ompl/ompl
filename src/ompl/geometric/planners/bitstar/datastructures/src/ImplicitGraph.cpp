@@ -1428,14 +1428,14 @@ namespace ompl
             vertices_->list(vertices);
             numberOfSamplesInInformedSet +=
                 std::count_if(vertices.begin(), vertices.end(),
-                              [this](const VertexPtr &vertex) { return canSampleBePruned(vertex); });
+                              [this](const VertexPtr &vertex) { return !canSampleBePruned(vertex); });
 
             // Second check the samples.
             std::vector<VertexPtr> samples;
             samples_->list(samples);
             numberOfSamplesInInformedSet +=
                 std::count_if(samples.begin(), samples.end(),
-                              [this](const VertexPtr &sample) { return canSampleBePruned(sample); });
+                              [this](const VertexPtr &sample) { return !canSampleBePruned(sample); });
 
             return numberOfSamplesInInformedSet;
         }
