@@ -98,25 +98,35 @@ namespace ompl
             /** \brief Performs one iteration. */
             void iterate();
 
+            /** \brief Perform one reverse iteration. */
             void reverseIterate();
+
+            /** \brief Perform one forward iteration. */
             void forwardIterate();
 
+            /** \brief Updates the solution. */
             void updateSolution() const;
 
+            /** \brief Expands the input state, creating forward edges. */
             std::vector<aibitstar::Edge> forwardExpand(const std::shared_ptr<aibitstar::State> &state) const;
 
+            /** \brief Expands the input state, creating reverse edges. */
             std::vector<aibitstar::Edge> reverseExpand(const std::shared_ptr<aibitstar::State> &state) const;
 
+            /** \brief Creates a forward edge between two states. */
             aibitstar::Edge createForwardEdge(const std::shared_ptr<aibitstar::State> &parent,
                                               const std::shared_ptr<aibitstar::State> &child) const;
 
+            /** \brief Creates a reverse edge between two states. */
             aibitstar::Edge createReverseEdge(const std::shared_ptr<aibitstar::State> &parent,
                                               const std::shared_ptr<aibitstar::State> &child) const;
 
+            /** \brief Computes the forward key for an edge between the two input states. */
             std::array<double, 3u> computeForwardKey(const std::shared_ptr<aibitstar::State> &parent,
                                                      const std::shared_ptr<aibitstar::State> &child,
                                                      const ompl::base::Cost &edgeCost) const;
 
+            /** \brief Computes the reverse key for an edge between the two input states. */
             std::array<double, 3u> computeReverseKey(const std::shared_ptr<aibitstar::State> &parent,
                                                      const std::shared_ptr<aibitstar::State> &child,
                                                      const ompl::base::Cost &edgeCost) const;
@@ -124,6 +134,7 @@ namespace ompl
             /** \brief Rebuilds the forward queue, recomputing all sort keys. */
             void rebuildForwardQueue();
 
+            /** \brief Returns whether the vertex has been closed during the current search. */
             bool isClosed(const std::shared_ptr<aibitstar::Vertex> &vertex) const;
 
             /** \brief Returns whether the edge can improve the reverse path. */
