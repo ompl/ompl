@@ -1,5 +1,7 @@
 # Constrained Planning Tutorial {#constrainedPlanningTutorial}
 
+[TOC]
+
 Defining a constrained motion planning problem is easy and very similar to defining an unconstrained planning problem. The primary difference is the need to define a _constraint_, and the use of a _constrained state space_, which wraps around an ambient state space. In this example, we will walk through defining a simple constrained planning problem: a point in \f$\mathbb{R}^3\f$ that is constrained to be on the surface of a sphere, giving a constraint function \f$f(q) = \lVert q \rVert - 1\f$. This is very similar to the problem defined by the demo [ConstrainedPlanningSphere](ConstrainedPlanningSphere_8cpp_source.html).
 
 ## Defining the Constraint
@@ -209,7 +211,6 @@ goal->as<ob::ConstrainedStateSpace::StateType>()->copy(gv);
 ss->setStartAndGoalStates(start, goal);
 ~~~
 
-
 ### Planner
 
 Finally, we can add a planner like normal. Let's use `ompl::geometric::PRM`, but any other planner in `ompl::geometric` would do.
@@ -218,7 +219,6 @@ Finally, we can add a planner like normal. Let's use `ompl::geometric::PRM`, but
 auto pp = std::make_shared<og::PRM>(csi);
 ss->setPlanner(pp);
 ~~~
-
 
 ## Solving a Problem
 
@@ -257,7 +257,7 @@ That is, the distance between states in the path (especially after simplificatio
 If you want a path that has close, intermediate constraint satisfying states, you need to interpolate the path.
 In the code above, this is achieved with `ompl::geometric::PathGeometric::interpolate()`.
 
-# In Summary
+## In Summary
 
 With all that, we've now solved a constrained motion planning problem on a sphere. A resulting motion graph for PRM could look something like this, with the simplified solution path highlighted in yellow:
 

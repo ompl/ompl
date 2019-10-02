@@ -1,17 +1,19 @@
 # Contact Us {#contact}
 
 \htmlonly<div class="row"><div class="col-md-6 col-sm-6">\endhtmlonly
-# Mailing Lists
+
+## Mailing Lists
 
 - Email ompl-users@lists.sourceforge.net to write to the OMPL discussion mailing list. You can subscribe to the list and see an archive of previous messages [here](https://lists.sourceforge.net/lists/listinfo/ompl-users).
 - Email ompl-devel@lists.sourceforge.net to contact the core developers. Please use this list only if you have questions that you feel are not appropriate for the ompl-users mailing list.
 
-# Reporting Bugs
+## Reporting Bugs
 
 To report a bug, please click [here](https://bitbucket.org/ompl/ompl/issues?status=new&status=open).
 
 \htmlonly</div><div class="col-md-6 col-sm-6">\endhtmlonly
-# Contact form
+
+## Contact form
 
 \htmlonly
 <form class="form" role="form" action="http://formspree.io/mmoll@rice.edu" method="POST">

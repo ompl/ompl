@@ -1,11 +1,12 @@
 # Download {#download}
 
-# Releases
+## Releases
 
 - __OMPL__ @PROJECT_VERSION@, released @OMPL_RELEASE_DATE@ ([release notes](releaseNotes.html))
 
-  <a href="https://bitbucket.org/ompl/ompl/downloads/ompl-@PROJECT_VERSION@-Source.tar.gz" class="btn btn-primary btn-sm">TGZ</a>
-  <a href="https://bitbucket.org/ompl/ompl/downloads/ompl-@PROJECT_VERSION@-Source.zip" class="btn btn-primary btn-sm">ZIP</a><br><br>
+  <a href="https://github.com/ompl/ompl/releases/download/@PROJECT_VERSION@/ompl-@PROJECT_VERSION@.tar.gz
+" class="btn btn-primary btn-sm">TGZ</a>
+  <a href="https://github.com/ompl/ompl/releases/download/@PROJECT_VERSION@/ompl-@PROJECT_VERSION@.zip" class="btn btn-primary btn-sm">ZIP</a>
 
   OMPL is also available through through several package managers:
   - [Debian](https://packages.debian.org/sid/libompl-dev),
@@ -21,7 +22,7 @@
 - [Installation instructions.](installation.html)
 - [Older releases.](https://bitbucket.org/ompl/ompl/downloads) See the [release notes](releaseNotes.html) for a brief a description of changes for each release.
 
-# Repositories {#download_repos}
+## Repository {#download_repos}
 
 - The [latest source](https://github.com/ompl/ompl) is available on GitHub:
 
@@ -29,7 +30,7 @@
 
 - [Installation instructions](installation.html) are the same as for a release.
 
-# OMPL in ROS
+## OMPL in ROS
 
 - __OMPL__ is used as a system dependency in [ROS](http://www.ros.org), and the correct .deb file is installed automatically as needed.
 - __OMPL__ is also used as a planning plugin in [MoveIt!](http://moveit.ros.org)

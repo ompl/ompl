@@ -109,9 +109,11 @@ namespace ompl
            @par External Documentation
            The following paper describes the idea of decoupled constrained planning, as implemented in OMPL.
 
-           Z. Kingston, M. Moll, and L. E. Kavraki, "Decoupling Constraints from Sampling-Based Planners," in International
-           Symposium of Robotics Research, Puerto Varas, Chile, 2017. PrePrint:
-           <a href="http://kavrakilab.org/publications/kingston2017decoupling-constraints.pdf">[PDF]</a>
+           Zachary Kingston, Mark Moll, and Lydia E. Kavraki, Exploring Implicit Spaces for Constrained Sampling-Based
+           Planning, _International Journal of Robotics Research,_ 38(10–11):1151–1178, September 2019.
+           DOI: <a href="https://dx.doi.org/10.1177/0278364919868530">10.1177/0278364919868530</a>
+           PrePrint:
+           <a href="http://www.kavrakilab.org/publications/kingston2019exploring-implicit-spaces-for-constrained.pdf">[PDF]</a>
 
            For more information on constrained sampling-based planning in general, see the following review paper. The
            sections on projection- and atlas-based planning describe the methods used in the ProjectedStateSpace,
@@ -119,7 +121,7 @@ namespace ompl
 
            Z. Kingston, M. Moll, and L. E. Kavraki, “Sampling-Based Methods for Motion Planning with Constraints,”
            Annual Review of Control, Robotics, and Autonomous Systems, 2018. DOI:
-           <a href="http://dx.doi.org/10.1146/annurev-control-060117-105226">10.1146/annurev-control-060117-105226</a>
+           <a href="https://dx.doi.org/10.1146/annurev-control-060117-105226">10.1146/annurev-control-060117-105226</a>
            <a href="http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf">[PDF]</a>.
         */
 

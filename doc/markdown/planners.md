@@ -6,8 +6,7 @@ All implementations listed below are considered fully functional. Within OMPL pl
 .
 To see how to benchmark planners, click [here](benchmark.html).
 
-
-# Geometric planners {#geometric_planners}
+## Geometric planners {#geometric_planners}
 
 Planners in this category only accounts for the geometric and kinematic constraints of the system. It is assumed that any feasible path can be turned into a dynamically feasible trajectory. Any of these planners can be used to [plan with geometric constraints](constrainedPlanning.html). Planners in this category can be divided into several overlapping subcategories:
 
@@ -93,13 +92,15 @@ If you use the ompl::geometric::SimpleSetup class (highly recommended) to define
 
 </div>
 <div>
-## Other tools:
+
+### Other tools:
 
 - [Hill Climbing](\ref HillClimbing)
 - [Genetic Search](\ref GeneticSearch)
+  
 </div>
 
-# Control-based planners {#control_planners}
+## Control-based planners {#control_planners}
 
 <div class="plannerlist">
 If the system under consideration is subject to differential constraints, then a control-based planner is used. These planners rely on [state propagation](\ref ompl::control::StatePropagator) rather than simple interpolation to generate motions. These planners do not require [a steering function](\ref ompl::control::StatePropagator::steer), but all of them (except KPIECE) will use it if the user implements it. The first two planners below are kinodynamic adaptations of the corresponding geometric planners above.

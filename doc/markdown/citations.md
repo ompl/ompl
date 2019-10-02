@@ -51,18 +51,22 @@ If you use the OMPL [benchmarking facilities](benchmark.html) or [Planner Arena]
 If you use the [constrained planning](constrainedPlanning.html) capabilities of OMPL, then we kindly ask you to include the following citation in your publications:
 <ul>
 
-<li> Zachary Kingston, Mark Moll, and Lydia E. Kavraki, "Decoupling Constraints from Sampling-Based Planners," in _International Symposium of Robotics Research,_ Puerto Varas, Chile, 2017.
+<li> Zachary Kingston, Mark Moll, and Lydia E. Kavraki, Exploring Implicit Spaces for Constrained Sampling-Based Planning,_International Journal of Robotics Research,_ 38(10–11):1151–1178, September 2019.
 \htmlonly
 <br><div class="btn-group btn-group-xs">
-  <a class="btn btn-primary" href="http://kavrakilab.org/publications/kingston2017decoupling-constraints.pdf"> pdf </a>
-  <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#kingston2017benchmarking"> bibtex </button>
+  <a class="btn btn-primary" href="http://www.kavrakilab.org/publications/kingston2019exploring-implicit-spaces-for-constrained.pdf"> pdf </a>
+  <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#kingston2019constraints"> bibtex </button>
 </div>
-<div class="modal fade" tabindex="-1" id="kingston2017benchmarking"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h4 class="modal-title">BibTeX</h4><button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button></div><div class="modal-body"><pre>@inproceedings{kingston2017decoupling-constraints,
-  Author = {Zachary Kingston and Mark Moll and Lydia E. Kavraki},
-  Address = {Puerto Varas, Chile},
-  Booktitle = {International Symposium of Robotics Research},
-  Title = {Decoupling Constraints from Sampling-Based Planners},
-  Year = {2017}
+<div class="modal fade" tabindex="-1" id="kingston2019constraints"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h4 class="modal-title">BibTeX</h4><button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button></div><div class="modal-body"><pre>@article{kingston2019exploring-implicit-spaces-for-constrained,
+  author = "Kingston, Zachary and Moll, Mark and Kavraki, Lydia E.",
+  doi = "10.1177/0278364919868530",
+  journal = "Intl.\ J.\ of Robotics Research",
+  month = sep,
+  number = "10--11",
+  pages = "1151--1178",
+  title = "Exploring Implicit Spaces for Constrained Sampling-Based Planning",
+  volume = "38",
+  year = "2019"
 }</pre></div></div></div></div>
 \endhtmlonly
 </ul>

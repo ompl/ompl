@@ -26,7 +26,7 @@
       <a href="https://github.com/flexible-collision-library/fcl">FCL</a> and
       <a href="http://gamma.cs.unc.edu/SSV">PQP</a> collision checkers and a simple GUI based on
       <a href="http://www.riverbankcomputing.co.uk/software/pyqt/intro">PyQt</a> /
-      <a href="http://www.pyside.org">PySide</a>. The graphical front-end can be used for planning motions for rigid
+      <a href="https://wiki.qt.io/Qt_for_Python">PySide</a>. The graphical front-end can be used for planning motions for rigid
       bodies and a few vehicle types (first-order and second-order cars, a blimp, and a quadrotor). It relies on the
       <a href="http://assimp.org">Assimp</a> library to import a large variety of mesh formats that can be used to
       represent the robot and its environment.

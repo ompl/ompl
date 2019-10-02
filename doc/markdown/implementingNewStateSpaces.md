@@ -1,5 +1,4 @@
-Implementing State Spaces {#implementingStateSpaces}
-=========================
+# Implementing State Spaces {#implementingStateSpaces}
 
 ## Combining existing state spaces
 
@@ -18,7 +17,6 @@ ompl::base::CompoundStateSpace *newSpace = new ompl::base::CompoundStateSpace();
 newSpace->addSubspace(ompl::base::StateSpacePtr(new ompl::base::RealVectorStateSpace(5)), 1.0);
 newSpace->addSubspace(ompl::base::StateSpacePtr(new ompl::base::SO2StateSpace()), 0.5);
 ~~~
-
 
 ## Inheriting from existing state spaces
 

@@ -1,24 +1,10 @@
 # Integration of OMPL in Other Systems {#integration}
 
+[TOC]
+
 OMPL provides a high level of abstraction to make it easier to integrate it into larger robot software systems. By design, the core OMPL library does not include any code for representing geometry and kinematics. However, to solve motion planning problems, we _do_ need to pick a particular representation for robots and the environment. Below we have listed a number of projects that have done this in very different ways.
 
-\htmlonly
-<div class="btn-group btn-group-sm">
-  <a class="btn btn-primary" href="#integration_moveit">MoveIt!</a>
-  <a class="btn btn-primary" href="#integration_openrave">OpenRAVE</a>
-  <a class="btn btn-primary" href="#integration_vrep">V-REP</a>
-  <a class="btn btn-primary" href="#integration_morse">MORSE</a>
-  <a class="btn btn-primary" href="#integration_kautham">Kautham</a>
-  <a class="btn btn-primary" href="#integration_verosim">VEROSIM</a>
-  <a class="btn btn-primary" href="#integration_aikido">AIKIDO</a>
-  <a class="btn btn-primary" href="#integration_exotica">EXOTica</a>
-  <a class="btn btn-primary" href="#integration_rl">Robotics Library</a>
-  <a class="btn btn-primary" href="#integration_sims">SIMS</a>
-  <a class="btn btn-primary" href="#integration_omplapp">OMPL.app</a>
-</div>
-\endhtmlonly
-
-# MoveIt! {#integration_moveit}
+## MoveIt {#integration_moveit}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -31,7 +17,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-# OpenRAVE {#integration_openrave}
+## OpenRAVE {#integration_openrave}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -44,8 +30,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-
-# V-REP {#integration_vrep}
+## V-REP {#integration_vrep}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -58,8 +43,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-
-# MORSE {#integration_morse}
+## MORSE {#integration_morse}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -72,8 +56,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-
-# The Kautham Project {#integration_kautham}
+## The Kautham Project {#integration_kautham}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -84,8 +67,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-
-# VEROSIM {#integration_verosim}
+## VEROSIM {#integration_verosim}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -98,8 +80,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-
-# AIKIDO {#integration_aikido}
+## AIKIDO {#integration_aikido}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -107,7 +88,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-# EXOTica {#integration_exotica}
+## EXOTica {#integration_exotica}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -120,7 +101,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-# Robotics Library {#integration_rl}
+## Robotics Library {#integration_rl}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -133,8 +114,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-
-# SIMS {#integration_sims}
+## SIMS {#integration_sims}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -145,8 +125,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-
-# OMPL.app {#integration_omplapp}
+## OMPL.app {#integration_omplapp}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">

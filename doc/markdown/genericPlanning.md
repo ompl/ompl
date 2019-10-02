@@ -29,7 +29,6 @@ Creating an actual instance of a space information class (ompl::base::SpaceInfor
 \include svc.cpp
   Once the class is instantiated and parameters have been set, the ompl::base::SpaceInformation::setup() function needs to be called and the instance is ready for use.
 
-
 ## Instantiating a problem definition
 
 - Instances of ompl::base::State or ompl::base::ScopedState need to be supplied as starting states for the system (at least one), using ompl::base::ProblemDefinition::addStartState().

@@ -175,4 +175,7 @@ ul.navbar-nav.mr-auto { overflow: visible; }
     padding: 10px;
     margin-bottom: 10px;
 }
+
+div.toc li.level2 { margin-left: 4px; }
+div.toc li.level3 { margin-left: 8px; }
 @OMPL_CSS@

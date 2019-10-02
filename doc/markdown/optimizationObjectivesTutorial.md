@@ -75,6 +75,7 @@ Here's an animation of the RRTstar algorithm's progress on this multiobjective p
 Now we'll implement an objective which will require a lot more tinkering with the rest of the methods in `ompl::base::OptimizationObjective`. This objective attemps to _maximize the minimum path clearance_; that is, the cost of a given path is only a function of the closest distance between the path and an obstacle. This objective has already been implemented for you as `ompl::base::MaximizeMinClearanceObjective`, but we'll walk you through your own implementation of it.
 
 Here's the interface of our new objective, `MaximizeMinClearance`:
+
 ~~~{.cpp}
 class MaximizeMinClearance : public ob::OptimizationObjective
 {

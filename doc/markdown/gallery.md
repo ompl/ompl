@@ -1,6 +1,6 @@
 # Gallery {#gallery}
 
-# MoveIt
+## MoveIt
 
 An overview of [MoveIt](http://moveit.ros.org), the [ROS](http://www.ros.org) package that provides a high-level interface to OMPL and other motion planning packages.
 
@@ -14,7 +14,7 @@ An overview of [MoveIt](http://moveit.ros.org), the [ROS](http://www.ros.org) pa
 </div>
 \endhtmlonly
 
-# Planning with constraints
+## Planning with constraints
 
 OMPL has support for [motion planning subject to hard constraints](constrainedPlanning.html), including, but not limited to, Cartesian planning. In [a paper presented at ISRR 2017](http://www.kavrakilab.org/publications/kingston2017decoupling-constraints.html) we describe how we have integrated prior motion planning approaches to planning with constraints in one framework that allows you to use any of the OMPL planners for constrained planning. The video below illustrates the main ideas. The examples in the videos are included as demo programs in the `ompl/demos/constraint` directory.
 
@@ -28,7 +28,7 @@ OMPL has support for [motion planning subject to hard constraints](constrainedPl
 </div>
 \endhtmlonly
 
-# Morse
+## Morse
 
 Morse is a robot simulator built on top of the 3D modeling program Blender. Caleb Voss has developed a plugin for Blender that allows you use OMPL to plan motions for Morse robots. There is [extensive documentation](morse.html) on how to use this plugin. Below are some example videos produced with this plugin.
 
@@ -47,7 +47,7 @@ Morse is a robot simulator built on top of the 3D modeling program Blender. Cale
 </div>
 \endhtmlonly
 
-# Manipulation Planning
+## Manipulation Planning
 
 An example of using OMPL on the PR2 from Willow Garage. The robot is asked to move the manipulate objects on the table. This demo is using [ROS](http://www.ros.org).
 
@@ -61,7 +61,7 @@ An example of using OMPL on the PR2 from Willow Garage. The robot is asked to mo
 </div>
 \endhtmlonly
 
-# ROS-Industrial Consortium
+## ROS-Industrial Consortium
 
 ROS-Industrial aims to bring ROS to the industrial world. Path and motion planning, as provided by OMPL, are critical component of that. Below is brief overview of ROS-Industrial.
 
@@ -75,7 +75,7 @@ ROS-Industrial aims to bring ROS to the industrial world. Path and motion planni
 </div>
 \endhtmlonly
 
-# Real-time footstep planning for humanoid robots
+## Real-time footstep planning for humanoid robots
 
 Below is a video illustrating the results of using OMPL to plan footsteps for a humanoid. The work is described in detail in:
 
@@ -93,7 +93,7 @@ The focus is not so much on OMPL, but rather a new hybrid bounding box that allo
 </div>
 \endhtmlonly
 
-# Planning for a Car-Like Vehicle Using ODE
+## Planning for a Car-Like Vehicle Using ODE
 
 An example of using OMPL to plan for a robotic system simulated with [ODE](http://ode.org). The goal is for the yellow car to reach the location of the green box without hitting the red box. The computation is performed using \ref cKPIECE1 "KPIECE". For each computed motion plan, a representation of the exploration data structure (a tree of motions) is also shown.
 
@@ -107,7 +107,7 @@ An example of using OMPL to plan for a robotic system simulated with [ODE](http:
 </div>
 \endhtmlonly
 
-# Planning Using OMPL.app {#gallery_omplapp}
+## Planning Using OMPL.app {#gallery_omplapp}
 
 Below are some rigid body motion planning problems and corresponding solutions found by OMPL.app. The planar examples use a kinematic car model.
 
@@ -148,7 +148,7 @@ Below are some rigid body motion planning problems and corresponding solutions f
 </div>
 \endhtmlonly
 
-# Planning for Underactuated Systems in the Presence of Drift
+## Planning for Underactuated Systems in the Presence of Drift
 
 In the [game of Koules](http://www.ucw.cz/~hubicka/koules/English/), there are a number of balls (called koules) flying in an orbit. The user controls a spaceship. At any time the user can do one of four things: coast, accelerate, turn left, or turn right. The ship and the koules are allowed to collide. The objective is for the ship to bounce all the koules out of the workspace. The user loses when the ship is bounced out of the workspace first. We have written a [demo program](Koules_8cpp_source.html) that solves this game. The physics have been made significantly harder than in the original game. The movie below shows a solution path found by the [Koules demo](Koules_8cpp_source.html) for 7 koules.
 
@@ -162,8 +162,7 @@ In the [game of Koules](http://www.ucw.cz/~hubicka/koules/English/), there are a
 </div>
 \endhtmlonly
 
-
-# Class Project from COMP 450 on Path Optimization {#gallery_comp450}
+## Class Project from COMP 450 on Path Optimization {#gallery_comp450}
 
 In Fall 2010 OMPL was used for the first time in Lydia Kavraki's Algorithmic Robotics class. Students completed several projects. For their last project they could choose from several options. Linda Hill and Yu Yun worked on path optimization. The different optimization criteria considered they considered were path length and sum of discrete path curvature sum. Minimizing the former in shorter paths, minimizing the second results in smoother paths. They used two optimization techniques specific to paths / curves: B-spline interpolation and path hybridization. Path smoothing using B-spline interpolation is shown below on the left. In path hybridization a set of (approximate) solutions to a motion planning problem is given as input, cross-over points are computed, and a new optimized path composed of path segments is found. An example of path hybridization to minimize path length is shown below on the right. In both cases the paths were in SE(3); the figures show simply the R<sup>3</sup> component.
 

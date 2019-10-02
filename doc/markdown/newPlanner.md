@@ -1,6 +1,6 @@
 # Implementing a New Motion Planner {#newPlanner}
 
-# Strict Requirements
+## Strict Requirements
 
 Implementing a new motion planner is very simple using OMPL.  There are just two strict requirements:
 
@@ -9,7 +9,7 @@ Implementing a new motion planner is very simple using OMPL.  There are just two
 
 By satisfying these requirements, the planner can be fully integrated within the existing OMPL framework.
 
-# Optional Features
+## Optional Features
 
 Aside from the strict requirements, there are other methods which can be implemented and practices which should be followed for ease of integration. These are not required, but are strongly recommended for simplicity and consistency:
 

@@ -1,15 +1,6 @@
 # CForest Parallelization Framework {#CForest}
 
-__Contents:__
-
-- \ref cf_ompl
-- \ref cf_diff
-- \ref cf_example
-- \ref cf_results
-- \ref cf_advanced
-  - \ref cf_implementation
-  - \ref cf_limitations
-  - \ref cf_compatible
+[TOC]
 
 CForest was proposed by M. Otte and N. Correll in [this paper.](http://www.mit.edu/~ottemw/html_stuff/pdf_files/otte_ieeetro2013.pdf)
 
@@ -24,7 +15,7 @@ CForest is designed to be used with any random tree algorithm under the followin
 1. The search tree has almost sure convergence to the optimal solution.
 2. The configuration space obeys the [triangle inequality.](http://en.wikipedia.org/wiki/Triangle_inequality) That is, there exists an admissible heuristic.
 
-# CForest in OMPL {#cf_ompl}
+## CForest in OMPL {#cf_ompl}
 
 CForest has been included into OMPL as a new [optimizing planner](optimalPlanning.html) called ompl::geometric::CForest.
 
@@ -75,7 +66,7 @@ planner->as<ompl::geometric::CForest>()->setNumThreads(6);
 
 \note No Python bindings are available for this planner due to its multi-threaded implementation.
 
-# Main differences with the paper version {#cf_diff}
+## Main differences with the paper version {#cf_diff}
 
 When implementing CForest, the focus was to modify the underlying planner as little as possible. Although the main idea of CForest remains, the actual implementation differs from the one proposed in the paper:
 
@@ -88,11 +79,11 @@ When implementing CForest, the focus was to modify the underlying planner as lit
 
 \note Despite all these differences, the CForest implementation greatly improves the performance of the underlying planner. However, an implementation closer to the one described in the paper could improve the performance. Please, take that into account if you plan to compare your algorithm against CForest.
 
-# Example {#cf_example}
+## Example {#cf_example}
 
 - [Circle Grid benchmark](CForestCircleGridBenchmark_8cpp_source.html). Benchmarks the performance of CForest against RRT*  in a specific 2D circle grid problem.
 
-# Results {#cf_results}
+## Results {#cf_results}
 
 CForest produces many interesting results. All these results are obtained with the alpha 1.5 puzzle benchmark configuration included in OMPL.app. The following figure shows the results of running CForest in 2 and 16 threads in a **16-core** machine. Also, the standard RRT* and the pruned version are included in the benchmark.
 
@@ -125,9 +116,9 @@ In case you only have one core available, CForest still improves the RRTstar per
 </div></div>
 \endhtmlonly
 
-# Advanced information {#cf_advanced}
+## Advanced information {#cf_advanced}
 
-## Design and implementation details {#cf_implementation}
+### Design and implementation details {#cf_implementation}
 
 The CForest _planner_ comes with its own state sampler ompl::base::CForestStateSampler and its own state space ompl::base::CForestStateSpaceWrapper. They are completely transparent to the user as the ompl::geometric::CForest handles the creation of these.
 
@@ -147,23 +138,23 @@ Therefore, CForest tracks the creation of the planners but, thanks to the `CFore
 
 This new state sampler allows given states (as opposed to random states) to be sampled. Therefore, when a new, better solution is found, CForest shares the states of the new solution to all samplers. `CForestStateSampler` will sample these states. Once states are sampled, it will continue sampling states according to its underlying state sampler.
 
-## Limitations {#cf_limitations}
+### Limitations {#cf_limitations}
 
 - CForest is designed to solve single-query, shortest path planning problems. Therefore, not all the ompl::base::OptimizationObjective instantiations are valid. The cost metric has to obey the triangle inequality. It is important to note that shortest path planning does not mean that only the path length can be optimized. Other metrics could be specified: time, energy, etc. However, clearance or smoothness optimization are examples of non-valid optimization objectives.
 
 - Whenever the tree is pruned, the states are removed from the `NearestNeighbors` data structure. However, current implementation does not remove pruned states until the planner instance is destroyed. This is specific for the underlying planner implementations but this is the most efficient way in terms of computation time.
 
-## Make your planner CForest-compatible {#cf_compatible}
+### Make your planner CForest-compatible {#cf_compatible}
 
 If you have implemented an __incremental, optimizing planner__ in OMPL and want make it compatible with CForest, there are few modifications you should carry out on your planner.
 
 There are three main components that should be included:
+
 - CForest activation and configuration.
 - Path sharing.
 - Tree pruning.
 
-
-### CForest activation and configuration
+#### CForest activation and configuration
 
 Firstly, if working under CForest, the corresponding callback for sharing intermediate solutions must be set. Also, a check should be included to figure out if the pruning would cause some errors. Therefore, in the `solve()` function, you need to add the following code:
 
@@ -267,7 +258,7 @@ ompl::geometric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
 
 If a sampled state is repeated it will be discarded and the next iteration of the main loop will start.
 
-### Tree pruning
+#### Tree pruning
 
 Pruning refers to two different ways of remove states: 1) prune those states already on the tree that do not lead to a better solution and 2) reject those states before adding them to the tree. In both cases, all the modifications are again within the `solve()` method. Tree main modifications are done:
 
