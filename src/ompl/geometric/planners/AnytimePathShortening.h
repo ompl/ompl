@@ -178,6 +178,9 @@ namespace ompl
             /// Use spaces to separate multiple parameter settings, as shown in the example.
             void setPlanners(const std::string &plannerList);
 
+            /// \brief Get a string representation of the planners and their parameters in the format of setPlanners
+            std::string getPlanners() const;
+
             /// \brief Set default number of planners to use if none are specified.
             void setDefaultNumPlanners(unsigned int numPlanners);
 

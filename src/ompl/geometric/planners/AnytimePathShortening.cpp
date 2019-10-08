@@ -87,6 +87,8 @@ ompl::geometric::AnytimePathShortening::AnytimePathShortening(const ompl::base::
                                         &AnytimePathShortening::maxHybridizationPaths, "0:1:50");
     Planner::declareParam<unsigned int>("num_planners", this, &AnytimePathShortening::setDefaultNumPlanners,
                                         &AnytimePathShortening::getDefaultNumPlanners, "0:64");
+    Planner::declareParam<std::string>("planners", this, &AnytimePathShortening::setPlanners,
+                                        &AnytimePathShortening::getPlanners);
 
     addPlannerProgressProperty("best cost REAL", [this]
                                {
@@ -416,6 +418,32 @@ void ompl::geometric::AnytimePathShortening::setPlanners(const std::string &plan
                 planners_.back()->params().setParam(paramValue[0], paramValue[1]);
             }
     }
+}
+
+std::string ompl::geometric::AnytimePathShortening::getPlanners() const
+{
+    std::stringstream ss;
+    for (unsigned int i = 0; i < planners_.size(); ++i)
+    {
+        if (i > 0)
+            ss << ',';
+        ss << planners_[i]->getName();
+
+        std::map<std::string, std::string> params;
+        planners_[i]->params().getParams(params);
+        if (params.size() > 0)
+        {
+            ss << '[';
+            for (auto it = params.begin(); it != params.end(); ++it)
+            {
+                if (it != params.begin())
+                    ss << ' ';
+                ss << it->first << '=' << it->second;
+            }
+            ss << ']';
+        }
+    }
+    return ss.str();
 }
 
 void ompl::geometric::AnytimePathShortening::printSettings(std::ostream &out) const
