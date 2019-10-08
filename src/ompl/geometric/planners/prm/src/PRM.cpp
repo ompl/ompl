@@ -46,6 +46,7 @@
 #include <boost/property_map/vector_property_map.hpp>
 #include <boost/foreach.hpp>
 #include <thread>
+#include <typeinfo>
 
 #include "GoalVisitor.hpp"
 
@@ -84,7 +85,7 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
 
     if (!starStrategy_)
         Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors,
-                                            std::string("8:1000"));
+                                            &PRM::getMaxNearestNeighbors, std::string("8:1000"));
 
     addPlannerProgressProperty("iterations INTEGER", [this] { return getIterationCount(); });
     addPlannerProgressProperty("best cost REAL", [this] { return getBestCost(); });
@@ -150,6 +151,12 @@ void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
         connectionStrategy_ = KStrategy<Vertex>(k, nn_);
     if (isSetup())
         setup();
+}
+
+unsigned int ompl::geometric::PRM::getMaxNearestNeighbors() const
+{
+    const auto strategy = connectionStrategy_.target<KStrategy<Vertex>>();
+    return strategy ? strategy->getNumNeighbors() : 0u;
 }
 
 void ompl::geometric::PRM::setDefaultConnectionStrategy()

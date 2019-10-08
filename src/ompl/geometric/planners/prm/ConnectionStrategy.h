@@ -80,6 +80,10 @@ namespace ompl
                 return neighbors_;
             }
 
+            unsigned int getNumNeighbors() const
+            {
+                return k_;
+            }
         protected:
             /** \brief Maximum number of nearest neighbors to attempt to connect new milestones to */
             unsigned int k_;

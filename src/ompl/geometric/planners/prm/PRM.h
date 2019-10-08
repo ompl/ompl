@@ -173,6 +173,13 @@ namespace ompl
              */
             void setMaxNearestNeighbors(unsigned int k);
 
+            /** \brief return the maximum number of nearest neighbors to connect a sample to
+             *
+             * This only returns a meaningful answer if the connection strategy is of type KStrategy.
+             */
+            unsigned int getMaxNearestNeighbors() const;
+
+
             /** \brief Set the function that can reject a milestone connection.
 
              \par The given function is called immediately before a connection
