@@ -81,6 +81,20 @@ namespace ompl
                     result->planners_.emplace_back(std::make_shared<PlannerType>(si));
                 return result;
             }
+            /// \brief Factory for creating a shared pointer to an AnytimePathShortening
+            /// instance with planners of type PlannerType1, PlannerType2, ...
+            ///
+            /// Example: createPlanner<ompl::geometric::PRM, ompl::geometric::RRT, ompl::geometric::EST>
+            /// would return a shared pointer to an AnytimePathShortening instance
+            /// containing a PRM, RRT, and EST instance. Typenames can be repeated to get multiple
+            /// planner instances of that type.
+            template<typename ... PlannerTypes>
+            static std::shared_ptr<AnytimePathShortening> createPlanner(const base::SpaceInformationPtr &si)
+            {
+                auto result = std::make_shared<AnytimePathShortening>(si);
+                result->planners_ = std::vector<base::PlannerPtr>{std::make_shared<PlannerTypes>(si)...};
+                return result;
+            }
 
             /// \brief Constructor requires the space information to plan in
             AnytimePathShortening(const base::SpaceInformationPtr &si);
@@ -154,14 +168,27 @@ namespace ompl
             /// \brief Set the maximum number of paths that will be hybridized
             void setMaxHybridizationPath(unsigned int maxPathCount);
 
+            /// \brief Set the list of planners to use.
+            ///
+            /// \param plannerList A string containing a comma-separated list of planner names, e.g., "PRM,EST,RRT"
+            ///
+            /// This will make the list of planners equal to PRM, EST, and RRT. Optionally, planner parameters can be
+            /// passed to change the default:
+            /// "PRM[max_nearest_neighbors=5],EST[goal_bias=.5],RRT[range=10. goal_bias=.1]"
+            /// Use spaces to separate multiple parameter settings, as shown in the example.
+            void setPlanners(const std::string &plannerList);
+
             /// \brief Set default number of planners to use if none are specified.
             void setDefaultNumPlanners(unsigned int numPlanners);
 
             /// \brief Get default number of planners used if none are specified.
             unsigned int getDefaultNumPlanners() const;
 
-            /** \brief Return best cost found so far by algorithm */
+            /// \brief Return best cost found so far by algorithm
             std::string getBestCost() const;
+
+            /// \brief Print settings of this planner as well as those of the planner instances it contains
+            void printSettings(std::ostream &out) const override;
 
         protected:
             /// \brief The function that the planning threads execute when
