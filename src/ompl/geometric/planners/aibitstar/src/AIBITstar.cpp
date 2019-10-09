@@ -258,7 +258,7 @@ namespace ompl
             else
             {
                 graph_.addStates(numSamplesPerBatch_);
-                numSamplesPerBatch_ *= 2u;
+                // numSamplesPerBatch_ *= 2u;
                 reverseQueue_.insert(reverseExpand(graph_.getGoalState()));
             }
         }
