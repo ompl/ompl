@@ -232,11 +232,8 @@ if (OMPL_REGISTRATION)
     endif()
 endif()
 
-# needed for ROS installation
-if (EXISTS "package.xml")
-    # install catkin package.xml
-    install(FILES package.xml DESTINATION "share/ompl")
-endif()
+# install catkin package.xml (needed for ROS installation)
+install(FILES package.xml DESTINATION "share/ompl")
 
 set_package_properties(PkgConfig PROPERTIES
     URL "https://www.freedesktop.org/wiki/Software/pkg-config/"
