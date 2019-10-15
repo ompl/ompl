@@ -272,12 +272,19 @@ namespace ompl
                 auto solutionCost = goalState_->hasForwardVertex() ? goalState_->asForwardVertex()->getCost() :
                                                                      objective_->infiniteCost();
 
-                // Compute and return the radius. Note to self: double / int -> double. You looked it up. It's fine.
-                return radiusFactor_ *
-                       std::pow(2.0 * (1.0 + 1.0 / dimension_) *
-                                    (sampler_->getInformedMeasure(solutionCost) / unitNBallMeasure_) *
+                // FMT*
+                return 2.0 * radiusFactor_ *
+                       std::pow((1.0 / dimension_) * (sampler_->getInformedMeasure(solutionCost) / unitNBallMeasure_) *
                                     (std::log(static_cast<double>(numInformedSamples)) / numInformedSamples),
                                 1.0 / dimension_);
+
+                // Compute and return the radius. Note to self: double / int -> double. You looked it up. It's fine.
+                // RRT*
+                // return radiusFactor_ *
+                //        std::pow(2.0 * (1.0 + 1.0 / dimension_) *
+                //                     (sampler_->getInformedMeasure(solutionCost) / unitNBallMeasure_) *
+                //                     (std::log(static_cast<double>(numInformedSamples)) / numInformedSamples),
+                //                 1.0 / dimension_);
             }
 
         }  // namespace aibitstar
