@@ -246,15 +246,20 @@ namespace ompl
 
         void AIBITstar::iterate()
         {
+            // Increment the iteration count.
             ++iteration_;
+
+            // If there are edges in the reverse queue, process them.
             if (!reverseQueue_.empty())
             {
                 reverseIterate();
             }
+            // If there are edges in the forward queue, process them.
             else if (!forwardQueue_.empty())
             {
                 forwardIterate();
             }
+            // If there are no edges in the queues, add new samples and insert edges in the reverse queue.
             else
             {
                 graph_.addStates(numSamplesPerBatch_);
