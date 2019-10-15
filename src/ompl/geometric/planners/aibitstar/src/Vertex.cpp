@@ -81,7 +81,7 @@ namespace ompl
             std::vector<std::shared_ptr<Vertex>>
             Vertex::updateChildren(const std::shared_ptr<ompl::base::OptimizationObjective> &objective)
             {
-                std::vector<std::shared_ptr<Vertex>> accumulatedChildren;
+                std::vector<std::shared_ptr<Vertex>> accumulatedChildren = children_;
                 for (auto &child : children_)
                 {
                     child->updateCost(objective);
