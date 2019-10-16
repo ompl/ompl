@@ -259,6 +259,9 @@ namespace ompl
             /** \brief Get the problem definition the planner is trying to solve */
             const ProblemDefinitionPtr &getProblemDefinition() const;
 
+            /** \brief Get the problem definition the planner is trying to solve */
+            ProblemDefinitionPtr &getProblemDefinition();
+
             /** \brief Get the planner input states */
             const PlannerInputStates &getPlannerInputStates() const;
 
