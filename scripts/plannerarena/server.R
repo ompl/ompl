@@ -68,11 +68,13 @@ problem_param_select <- function(param, val) {
         # when real-valued parameter values are converted to strings for
         # parameter selection widget.
         p <- rlang::sym(param)
-        v <- as.numeric(val)
-        if (regexpr("[-+]?\\d*\\.\\d+|\\d+", val)[1] == -1)
-            expr(!!p == val)
-        else
+        if (is.numeric(val))
+        {
+            v <- as.numeric(val)
             expr(abs(!!p - !!v) < 0.0000001)
+        }
+        else
+            expr(!!p == !!val)
     }
 }
 
