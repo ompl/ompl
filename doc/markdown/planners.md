@@ -6,8 +6,7 @@ All implementations listed below are considered fully functional. Within OMPL pl
 .
 To see how to benchmark planners, click [here](benchmark.html).
 
-
-# Geometric planners {#geometric_planners}
+## Geometric planners {#geometric_planners}
 
 Planners in this category only accounts for the geometric and kinematic constraints of the system. It is assumed that any feasible path can be turned into a dynamically feasible trajectory. Any of these planners can be used to [plan with geometric constraints](constrainedPlanning.html). Planners in this category can be divided into several overlapping subcategories:
 
@@ -33,7 +32,7 @@ Planners in this category only accounts for the geometric and kinematic constrai
     - [RRT Connect (RRTConnect)](\ref gRRTC)<br>
       This planner is a bidirectional version of RRT (i.e., it grows two trees). It usually outperforms the original RRT algorithm.
     - [RRT*](\ref gRRTstar)<br>
-      An asymptotically optimal version of RRT: the algorithm converges on the optimal path as a function of time. This was the first provably asymptotically planner (together with PRM). Since its publication, several other algorithms have appeared that improve on RRT*'s convergence rate, such as [RRT#](\ref gRRTsharp) and [RRTX](\ref gRRTX).
+      An asymptotically optimal version of RRT: the algorithm converges on the optimal path as a function of time. This was the first provably asymptotically planner (together with PRM). Since its publication, several other algorithms have appeared that improve on RRT*'s convergence rate, such as [RRT#](\ref gRRTsharp) and [RRTX](\ref gRRTXstatic).
     - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT)<br>
       LBTRRT is a asymptotically near-optimal version of RRT: it is guaranteed to converge to a solution that is within a constant factor of the optimal solution.
     - [Sparse Stable RRT](\ref gSST)<br>
@@ -67,13 +66,15 @@ Planners in this category only accounts for the geometric and kinematic constrai
     The FMT∗ algorithm performs a “lazy” dynamic programming recursion on a set of probabilistically-drawn samples to grow a tree of paths, which moves outward in cost-to-come space. Unlike all other planners, the numbers of valid samples needs to be chosen beforehand.
   - [Bidirectional Fast Marching Tree algorithm (BFMT∗)](\ref gBFMT)<br>
     Executes two FMT* trees, one from the start and another one from the goal resulting in a faster planner as it explores less space.
+  - [Quotient-Space RRT (QRRT)](\ref QRRT)<br>
+    A generalization of RRT to plan on different abstraction levels. The abstraction levels are represented by quotient-spaces, and QRRT grows random trees sequentially and simultaneously on each quotient-space. There is extensive documentation in the form of a [guide](quotientSpacePlanning.html), [tutorial](quotientSpacePlanningTutorial.html) and [demos](group__demos.html).
 - **Optimizing planners**<br>
   In recent years several sampling-based planning algorithms have been proposed that still provide some optimality guarantees. Typically, an optimal solution is assumed to be shortest path. In OMPL we have a more general framework for expressing the cost of states and paths that allows you to, e.g., maximize the minimum clearance along a path, minimize the mechanical work, or some arbitrary user-defined optimization criterion. See \ref optimalPlanning for more information. Some of the planners below use this general cost framework, but keep in mind that convergence to optimality is **not guaranteed** when optimizing over something other than path length.
   - [PRM*](\ref gPRMstar)<br> An asymptotically optimal version of PRM; _uses the general cost framework._
   - [LazyPRM*](\ref gLazyPRMstar)<br> Lazy version of PRM*; _uses the general cost framework._
   - [RRT*](\ref gRRTstar)<br> An asymptotically optimal version of RRT; _uses the general cost framework._
   - [RRT#](\ref gRRTsharp)<br> A variant of RRT* with an improved convergence rate. _It uses the general cost framework._
-  - [RRTX](\ref gRRTX)<br> A variant of RRT* with an improved convergence rate. _It uses the general cost framework._
+  - [RRTX](\ref gRRTXstatic)<br> A variant of RRT* with an improved convergence rate. _It uses the general cost framework._
   - [Informed RRT*](\ref gInformedRRTstar)<br> A variant of RRT* that uses heuristics to bound the search for optimal solutions. _It uses the general cost framework._
   - [Batch Informed Trees (BIT*)](\ref gBITstar)<br> An anytime asymptotically optimal algorithm that uses heuristics to order and bound the search for optimal solutions. _It uses the general cost framework._
   - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT)<br> An asymptotically near-optimal version of RRT.
@@ -91,13 +92,15 @@ If you use the ompl::geometric::SimpleSetup class (highly recommended) to define
 
 </div>
 <div>
-## Other tools:
+
+### Other tools:
 
 - [Hill Climbing](\ref HillClimbing)
 - [Genetic Search](\ref GeneticSearch)
+  
 </div>
 
-# Control-based planners {#control_planners}
+## Control-based planners {#control_planners}
 
 <div class="plannerlist">
 If the system under consideration is subject to differential constraints, then a control-based planner is used. These planners rely on [state propagation](\ref ompl::control::StatePropagator) rather than simple interpolation to generate motions. These planners do not require [a steering function](\ref ompl::control::StatePropagator::steer), but all of them (except KPIECE) will use it if the user implements it. The first two planners below are kinodynamic adaptations of the corresponding geometric planners above.

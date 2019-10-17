@@ -37,6 +37,7 @@
 #include "ompl/geometric/planners/cforest/CForest.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include "ompl/util/String.h"
 #include <thread>
 
 ompl::geometric::CForest::CForest(const base::SpaceInformationPtr &si) : base::Planner(si, "CForest")
@@ -211,7 +212,7 @@ ompl::base::PlannerStatus ompl::geometric::CForest::solve(const base::PlannerTer
 
 std::string ompl::geometric::CForest::getBestCost() const
 {
-    return std::to_string(bestCost_.value());
+    return ompl::toString(bestCost_.value());
 }
 
 std::string ompl::geometric::CForest::getNumPathsShared() const

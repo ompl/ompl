@@ -95,7 +95,7 @@ struct EigenFromPython
         }
     }
 
-    static void construct(PyObject *objPtr, bp::converter::rvalue_from_python_stage1_data *data)
+    static void construct(PyObject *, bp::converter::rvalue_from_python_stage1_data *data)
     {
         std::unique_ptr<np::ndarray> array(reinterpret_cast<np::ndarray *>(data->convertible));
         void *storage =

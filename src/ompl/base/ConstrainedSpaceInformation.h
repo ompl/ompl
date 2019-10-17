@@ -131,7 +131,7 @@ namespace ompl
                 \param endpoints flag indicating whether \e s1 and \e s2 are to be included in states
                 \param alloc is currently ignored */
             unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State *> &states,
-                                         unsigned int count, bool endpoints, bool alloc) const override
+                                         unsigned int /*count*/, bool endpoints, bool /*alloc*/) const override
             {
                 bool success = stateSpace_->as<ConstrainedStateSpace>()->discreteGeodesic(s1, s2, true, &states);
 
@@ -175,7 +175,7 @@ namespace ompl
                 \param alloc is currently ignored
             */
             unsigned int getMotionStates(const State *s1, const State *s2, std::vector<State *> &states,
-                                         unsigned int count, bool endpoints, bool alloc) const override
+                                         unsigned int /*count*/, bool /*endpoints*/, bool /*alloc*/) const override
             {
                 auto &&atlas = stateSpace_->as<TangentBundleStateSpace>();
 

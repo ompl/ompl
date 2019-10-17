@@ -159,8 +159,8 @@ namespace ompl
         of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Chicago, IL, USA,
         14-18 Sept. 2014.
         DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
-        <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
-        <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
+        <a href="https://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
+        <a href="https://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
         void uniformProlateHyperspheroidSurface(const std::shared_ptr<const ProlateHyperspheroid> &phsPtr,
                                                 double value[]);
 
@@ -171,8 +171,8 @@ namespace ompl
         of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Chicago, IL, USA,
         14-18 Sept. 2014.
         DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
-        <a href="http://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
-        <a href="http://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
+        <a href="https://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
+        <a href="https://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
         void uniformProlateHyperspheroid(const std::shared_ptr<const ProlateHyperspheroid> &phsPtr, double value[]);
 
     private:

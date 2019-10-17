@@ -39,6 +39,9 @@
 
 #include "ompl/datastructures/GridN.h"
 #include "ompl/datastructures/BinaryHeap.h"
+#include "ompl/util/DisableCompilerWarning.h"
+
+OMPL_PUSH_DISABLE_CLANG_WARNING(-Woverloaded-virtual)
 
 namespace ompl
 {
@@ -354,5 +357,7 @@ namespace ompl
         externalBHeap external_;
     };
 }
+
+OMPL_POP_CLANG
 
 #endif

@@ -22,12 +22,8 @@ install_python_binding_dependencies()
     # install additional python dependencies via pip
     sudo -H pip${PYTHONV} install -vU pygccxml pyplusplus
     # install castxml
-    if [[ $ubuntu_version < 1610 ]]; then
-        wget -O - https://data.kitware.com/api/v1/file/57b5dea08d777f10f2696379/download | tar zxf - -C ${HOME}
-        export PATH=$HOME/castxml/bin:$PATH
-    else
-        sudo apt-get -y install castxml
-    fi
+    wget -q -O- https://data.kitware.com/api/v1/file/5d6f1d01d35580e6dcded6dd/download | tar zxf - -C ${HOME}
+    export PATH=${HOME}/castxml/bin:${PATH}
     sudo apt-get -y install libboost-python-dev
     if [[ $ubuntu_version > 1710 ]]; then
         sudo apt-get -y install libboost-numpy-dev python${PYTHONV}-numpy
@@ -38,7 +34,7 @@ install_app_dependencies()
 {
     sudo apt-get -y install python${PYTHONV}-pyqt5.qtopengl freeglut3-dev libassimp-dev python${PYTHONV}-opengl python${PYTHONV}-flask python${PYTHONV}-celery libccd-dev
     # install additional python dependencies via pip
-    sudo -H pip${PYTHONV} install -vU PyOpenGL-accelerate
+    sudo -H pip${PYTHONV} install -vU PyOpenGL-accelerate==3.1.3b1
     # install fcl
     if ! pkg-config --atleast-version=0.5.0 fcl; then
         if [[ $ubuntu_version > 1604 ]]; then
@@ -57,13 +53,20 @@ install_ompl()
     else
         OMPL="omplapp"
     fi
-    wget -O - https://bitbucket.org/ompl/ompl/downloads/$OMPL-@OMPL_VERSION@-Source.tar.gz | tar zxf -
-    cd $OMPL-@OMPL_VERSION@-Source
+    wget -O - https://github.com/ompl/ompl/releases/download/@PROJECT_VERSION@/${OMPL}-@PROJECT_VERSION@.tar.gz | tar zxf -
+    cd $OMPL-@PROJECT_VERSION@-Source
     mkdir -p build/Release
     cd build/Release
     cmake ../.. -DPYTHON_EXEC=/usr/bin/python${PYTHONV}
     if [ ! -z $1 ]; then
-        make update_bindings
+        # Check if the total memory is less than 6GB.
+        if [ `cat /proc/meminfo | head -1 | awk '{print $2}'` -lt 6291456 ]; then
+            echo "Python binding generation is very memory intensive. At least 6GB of RAM is recommended."
+            echo "Proceeding with binding generation using 1 core..."
+            make -j 1 update_bindings
+        else
+            make update_bindings
+        fi
     fi
     make
     sudo make install

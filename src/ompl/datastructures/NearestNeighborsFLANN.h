@@ -42,7 +42,6 @@
 #error FLANN is not available. Please use a different NearestNeighbors data structure.
 #else
 
-#include "ompl/base/StateSpace.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/util/Exception.h"
 
@@ -58,7 +57,7 @@ namespace ompl
     class FLANNDistance
     {
     public:
-        using ElementType = ompl::base::State *;
+        using ElementType = _T;
         using ResultType = double;
 
         FLANNDistance(const typename NearestNeighbors<_T>::DistanceFunction &distFun) : distFun_(distFun)

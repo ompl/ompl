@@ -68,7 +68,7 @@ if (OMPL_BUILD_PYBINDINGS)
             PATTERN "app" EXCLUDE
             PATTERN "morse" EXCLUDE)
         # put app submodule in omplapp component
-        if(OMPLAPP_VERSION)
+        if(PROJECT_NAME STREQUAL "omplapp")
             install(DIRECTORY ompl/app
                 DESTINATION "${OMPL_PYTHON_INSTALL_DIR}/ompl"
                 COMPONENT omplapp

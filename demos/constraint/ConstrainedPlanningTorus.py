@@ -37,11 +37,11 @@
 # Author: Mark Moll
 
 from __future__ import print_function
-from ConstrainedPlanningCommon import *
 import argparse
 import math
 from functools import partial
 import numpy as np
+from ConstrainedPlanningCommon import *
 
 PI2 = 2 * math.pi
 
@@ -188,8 +188,9 @@ if __name__ == "__main__":
     defaultMaze = join(join(dirname(__file__), "mazes"), "normal.ppm")
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--output", action="store_true",
-                        help="Dump found solution path (if one exists) in plain text and planning graph in GraphML to "
-                        "`torus_path.txt` and `torus_graph.graphml` respectively.")
+                        help="Dump found solution path (if one exists) in plain text and planning "
+                        "graph in GraphML to `torus_path.txt` and `torus_graph.graphml` "
+                        "respectively.")
     parser.add_argument("--bench", action="store_true",
                         help="Do benchmarking on provided planner list.")
     parser.add_argument("--outer", type=float, default=2,
@@ -197,7 +198,8 @@ if __name__ == "__main__":
     parser.add_argument("--inner", type=float, default=1,
                         help="Inner radius of torus.")
     parser.add_argument("--maze", default=defaultMaze,
-                        help="Filename of maze image (in .ppm format) to use as obstacles on the surface of the torus.")
+                        help="Filename of maze image (in .ppm format) to use as obstacles on the "
+                        "surface of the torus.")
     addSpaceOption(parser)
     addPlannerOption(parser)
     addConstrainedOptions(parser)

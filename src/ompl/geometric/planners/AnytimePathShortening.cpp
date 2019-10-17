@@ -34,13 +34,42 @@
 
 /* Author: Ryan Luna */
 
+#include <boost/algorithm/string.hpp>
+
 #include "ompl/geometric/planners/AnytimePathShortening.h"
+#include "ompl/geometric/planners/fmt/BFMT.h"
+#include "ompl/geometric/planners/est/BiEST.h"
+#include "ompl/geometric/planners/rrt/BiTRRT.h"
+#include "ompl/geometric/planners/bitstar/BITstar.h"
+#include "ompl/geometric/planners/kpiece/BKPIECE1.h"
+#include "ompl/geometric/planners/est/EST.h"
+#include "ompl/geometric/planners/fmt/FMT.h"
+#include "ompl/geometric/planners/kpiece/KPIECE1.h"
+#include "ompl/geometric/planners/rrt/LazyLBTRRT.h"
+#include "ompl/geometric/planners/prm/LazyPRM.h"
+#include "ompl/geometric/planners/prm/LazyPRMstar.h"
+#include "ompl/geometric/planners/rrt/LazyRRT.h"
+#include "ompl/geometric/planners/kpiece/LBKPIECE1.h"
+#include "ompl/geometric/planners/rrt/LBTRRT.h"
+#include "ompl/geometric/planners/pdst/PDST.h"
+#include "ompl/geometric/planners/prm/PRM.h"
+#include "ompl/geometric/planners/prm/PRMstar.h"
+#include "ompl/geometric/planners/est/ProjEST.h"
+#include "ompl/geometric/planners/rrt/RRT.h"
+#include "ompl/geometric/planners/rrt/RRTConnect.h"
+#include "ompl/geometric/planners/rrt/RRTstar.h"
+#include "ompl/geometric/planners/rrt/RRTXstatic.h"
+#include "ompl/geometric/planners/sbl/SBL.h"
+#include "ompl/geometric/planners/prm/SPARS.h"
+#include "ompl/geometric/planners/prm/SPARStwo.h"
+#include "ompl/geometric/planners/sst/SST.h"
+#include "ompl/geometric/planners/stride/STRIDE.h"
+#include "ompl/geometric/planners/rrt/TRRT.h"
 #include "ompl/geometric/PathHybridization.h"
 #include "ompl/geometric/PathSimplifier.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
-
-#include <thread>
+#include "ompl/util/String.h"
 
 ompl::geometric::AnytimePathShortening::AnytimePathShortening(const ompl::base::SpaceInformationPtr &si)
   : ompl::base::Planner(si, "APS")
@@ -58,6 +87,8 @@ ompl::geometric::AnytimePathShortening::AnytimePathShortening(const ompl::base::
                                         &AnytimePathShortening::maxHybridizationPaths, "0:1:50");
     Planner::declareParam<unsigned int>("num_planners", this, &AnytimePathShortening::setDefaultNumPlanners,
                                         &AnytimePathShortening::getDefaultNumPlanners, "0:64");
+    Planner::declareParam<std::string>("planners", this, &AnytimePathShortening::setPlanners,
+                                        &AnytimePathShortening::getPlanners);
 
     addPlannerProgressProperty("best cost REAL", [this]
                                {
@@ -304,5 +335,124 @@ std::string ompl::geometric::AnytimePathShortening::getBestCost() const
     base::Cost bestCost(std::numeric_limits<double>::quiet_NaN());
     if (pdef_ && pdef_->getSolutionCount() > 0)
         bestCost = base::Cost(pdef_->getSolutionPath()->length());
-    return std::to_string(bestCost.value());
+    return ompl::toString(bestCost.value());
+}
+
+void ompl::geometric::AnytimePathShortening::setPlanners(const std::string &plannerList)
+{
+    std::vector<std::string> plannerStrings;
+
+    boost::split(plannerStrings, plannerList, boost::is_any_of(","));
+
+    planners_.clear();
+    for (const auto &plannerString : plannerStrings)
+    {
+        std::vector<std::string> plannerAndParams;
+        boost::split(plannerAndParams, plannerString, boost::is_any_of("[ ]"));
+        const std::string &plannerName = plannerAndParams[0];
+
+        if (plannerName == "BFMT")
+            planners_.push_back(std::make_shared<geometric::BFMT>(si_));
+        else if (plannerName == "BiEST")
+            planners_.push_back(std::make_shared<geometric::BiEST>(si_));
+        else if (plannerName == "BiTRRT")
+            planners_.push_back(std::make_shared<geometric::BiTRRT>(si_));
+        else if (plannerName == "BITstar")
+            planners_.push_back(std::make_shared<geometric::BITstar>(si_));
+        else if (plannerName == "BKPIECE")
+            planners_.push_back(std::make_shared<geometric::BKPIECE1>(si_));
+        else if (plannerName == "EST")
+            planners_.push_back(std::make_shared<geometric::EST>(si_));
+        else if (plannerName == "FMT")
+            planners_.push_back(std::make_shared<geometric::FMT>(si_));
+        else if (plannerName == "KPIECE")
+            planners_.push_back(std::make_shared<geometric::KPIECE1>(si_));
+        else if (plannerName == "LazyLBTRRT")
+            planners_.push_back(std::make_shared<geometric::LazyLBTRRT>(si_));
+        else if (plannerName == "LazyPRM")
+            planners_.push_back(std::make_shared<geometric::LazyPRM>(si_));
+        else if (plannerName == "LazyPRMstar")
+            planners_.push_back(std::make_shared<geometric::LazyPRMstar>(si_));
+        else if (plannerName == "LazyRRT")
+            planners_.push_back(std::make_shared<geometric::LazyRRT>(si_));
+        else if (plannerName == "LBKPIECE")
+            planners_.push_back(std::make_shared<geometric::LBKPIECE1>(si_));
+        else if (plannerName == "LBTRRT")
+            planners_.push_back(std::make_shared<geometric::LBTRRT>(si_));
+        else if (plannerName == "PDST")
+            planners_.push_back(std::make_shared<geometric::PDST>(si_));
+        else if (plannerName == "PRM")
+            planners_.push_back(std::make_shared<geometric::PRM>(si_));
+        else if (plannerName == "PRMstar")
+            planners_.push_back(std::make_shared<geometric::PRMstar>(si_));
+        else if (plannerName == "ProjEST")
+            planners_.push_back(std::make_shared<geometric::ProjEST>(si_));
+        else if (plannerName == "RRT")
+            planners_.push_back(std::make_shared<geometric::RRT>(si_));
+        else if (plannerName == "RRTConnect")
+            planners_.push_back(std::make_shared<geometric::RRTConnect>(si_));
+        else if (plannerName == "RRTstar")
+            planners_.push_back(std::make_shared<geometric::RRTstar>(si_));
+        else if (plannerName == "RRTXstatic")
+            planners_.push_back(std::make_shared<geometric::RRTXstatic>(si_));
+        else if (plannerName == "SBL")
+            planners_.push_back(std::make_shared<geometric::SBL>(si_));
+        else if (plannerName == "SPARS")
+            planners_.push_back(std::make_shared<geometric::SPARS>(si_));
+        else if (plannerName == "SPARStwo")
+            planners_.push_back(std::make_shared<geometric::SPARStwo>(si_));
+        else if (plannerName == "SST")
+            planners_.push_back(std::make_shared<geometric::SST>(si_));
+        else if (plannerName == "STRIDE")
+            planners_.push_back(std::make_shared<geometric::STRIDE>(si_));
+        else if (plannerName == "TRRT")
+            planners_.push_back(std::make_shared<geometric::TRRT>(si_));
+        else
+            OMPL_ERROR("Unknown planner name: %s", plannerName.c_str());
+
+        std::vector<std::string> paramValue;
+        for (auto it = plannerAndParams.begin() + 1; it != plannerAndParams.end(); ++it)
+            if (!it->empty())
+            {
+                boost::split(paramValue, *it, boost::is_any_of("="));
+                planners_.back()->params().setParam(paramValue[0], paramValue[1]);
+            }
+    }
+}
+
+std::string ompl::geometric::AnytimePathShortening::getPlanners() const
+{
+    std::stringstream ss;
+    for (unsigned int i = 0; i < planners_.size(); ++i)
+    {
+        if (i > 0)
+            ss << ',';
+        ss << planners_[i]->getName();
+
+        std::map<std::string, std::string> params;
+        planners_[i]->params().getParams(params);
+        if (params.size() > 0)
+        {
+            ss << '[';
+            for (auto it = params.begin(); it != params.end(); ++it)
+            {
+                if (it != params.begin())
+                    ss << ' ';
+                ss << it->first << '=' << it->second;
+            }
+            ss << ']';
+        }
+    }
+    return ss.str();
+}
+
+void ompl::geometric::AnytimePathShortening::printSettings(std::ostream &out) const
+{
+    Planner::printSettings(out);
+    out << "Settings for planner instances in AnytimePathShortening instance:\n";
+    for (const auto &planner : planners_)
+    {
+        out << "* ";
+        planner->printSettings(out);
+    }
 }

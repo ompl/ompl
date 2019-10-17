@@ -163,7 +163,7 @@ namespace ompl
                 which will be called exactly once on each State (including the given initial State)
                 that is added to the ProductGraph.
                 The default argument for the initialization method is a no-op method. */
-            void buildGraph(State *start, const std::function<void(State *)> &initialize = ProductGraph::noInit);
+            void buildGraph(State *start, const std::function<void(State *)> &initialize = [](State *){});
 
             /** \brief Returns whether the given State is an accepting State
                 in this ProductGraph.
@@ -224,9 +224,6 @@ namespace ompl
             }
 
         protected:
-            static void noInit(State *s)
-            {
-            }
             struct Edge
             {
                 double cost;

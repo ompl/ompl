@@ -1,11 +1,27 @@
 # Release Notes {#releaseNotes}
 
-# OMPL 1.4.1 (December 5, 2018)
+## OMPL 1.5.0 (???)
+
+- A C++14 compiler is now required. The minimum version of CMake required is now 3.5 and the minimum version of Boost supported is now 1.58.
+- All development now takes place on [Github](https://github.com/ompl/ompl). This used to be a git mirror of the mercurial repository on BitBucket, but since BitBucket is phasing out mercurial support the GitHub repo is now the main repo. All the old issues have been migrated to GitHub.
+- Added build targets for easily creating Docker images for OMPL, the [PlannerArena web server](http://plannerarena.org), and the [OMPL web app](http://omplapp.kavrakilab.org).
+- Added a new planner: [Quotient-Space RRT](quotientSpacePlanning.html).
+- Added a new PlannerTerminationCondition called CostConvergenceTerminationCondition, which can be used to terminate asymptotically (near-)optimal planners based on convergence.
+- Repositories have been moved to GitHub.
+- Clean up ompl_benchmark_script.py for Python 3.
+- Updated PlannerArena again to work with latest versions of R dependencies.
+- Misc. bug and documentation fixes.
+
+## OMPL 1.4.2 (January 18, 2019)
+
+- Misc. small bug fixes.
+
+## OMPL 1.4.1 (December 5, 2018)
 
 - Made PlannerArena work with latest versions of R packages.
 - Misc. bug and documentation fixes.
 
-# OMPL 1.4.0 (June 25, 2018)
+## OMPL 1.4.0 (June 25, 2018)
 
 - There is a new framework for planning with constraints that unifies and generalizes prior proposed algorithms such as CBiRRT2, AtlasRRT and TangentBundle-RRT. The framework decouples the methodology used for computing configurations that satisfy constraints from the high-level planning strategy. This allows the user to use any sampling-based planning algorithm in OMPL with arbitrary geometric constraints. See the [overview](constrainedPlanning.html), [tutorial](constrainedPlanningTutorial.html) and various [demos](group__demos.html) in `ompl/demos/constraint`.
 - Eigen3 is now a required dependency.
@@ -19,7 +35,7 @@
 - Added the Bridge Test Sampler.
 - Misc. bug fixes.
 
-# OMPL 1.3.2 (November 11, 2017)
+## OMPL 1.3.2 (November 11, 2017)
 
 - Bug fixes for gcc6, clang5, and new versions of Boost.
 - Made PlannerArena work with latest versions of R packages.
@@ -27,33 +43,29 @@
 - [Optionally, use PyPy for Python binding generation.](buildOptions.html) This can significantly speed up the binding generation process (with pypy3 5.9.0 it now takes less than 10 minutes on a modern PC).
 - Misc. bug fixes.
 
-
-# OMPL 1.3.1 (May 18, 2017)
+## OMPL 1.3.1 (May 18, 2017)
 
 - Tidy up code.
 - Small bug fixes.
 
-
-# OMPL 1.3.0 (March 1, 2017)
+## OMPL 1.3.0 (March 1, 2017)
 
 - Added new planners:
-    - [RRT#](\ref gRRTsharp), a variant of [RRT*](\ref gRRTstar) with an improved convergence rate.
-    - [RRTX](\ref gRRTXstatic), a variant of [RRT*](\ref gRRTstar) with an improved convergence rate. Only the static part of the RRTX algorithm is implemented. Dynamical obstacles and updates of the robot position are not available in this implementation.
-    - [SORRT*](\ref gSORRTstar), a variant of [Informed RRT*](\ref gInformedRRTstar) that orders states in the subproblem that could provide a better solution by their potential solution cost.
+  - [RRT#](\ref gRRTsharp), a variant of [RRT*](\ref gRRTstar) with an improved convergence rate.
+  - [RRTX](\ref gRRTXstatic), a variant of [RRT*](\ref gRRTstar) with an improved convergence rate. Only the static part of the RRTX algorithm is implemented. Dynamical obstacles and updates of the robot position are not available in this implementation.
+  - [SORRT*](\ref gSORRTstar), a variant of [Informed RRT*](\ref gInformedRRTstar) that orders states in the subproblem that could provide a better solution by their potential solution cost.
 - New refactored versions of [BIT*](\ref gBITstar) and [Informed RRT*](\ref gInformedRRTstar).
 - Various changes throughout to follow standard C++11 practices that improve efficiency, safety, or legibility.
 - Fixes for Boost 1.63 and pygccxml 1.8.5.
 - Misc. small bug fixes.
 
+## OMPL 1.2.1 (July 1, 2016)
 
-# OMPL 1.2.1 (July 1, 2016)
-
-- New simplified installation instructions. There is now also a [installation script](http://ompl.kavrakilab.org/install-ompl-ubuntu.sh) that will download and install OMPL and all its dependencies on Ubuntu 14.04, 15.10, and 16.04.
+- New simplified installation instructions. There is now also a [installation script](https://ompl.kavrakilab.org/install-ompl-ubuntu.sh) that will download and install OMPL and all its dependencies on Ubuntu 14.04, 15.10, and 16.04.
 - Fixed python bindings for gcc5. Python bindings still take a [very long time](https://github.com/gccxml/pygccxml/issues/56) to generate.
 - Misc. small bug fixes.
 
-
-# OMPL 1.2.0 (June 20, 2016)
+## OMPL 1.2.0 (June 20, 2016)
 
 - C++11 is now **required**. A lot of Boost usage in older versions of OMPL has been replaced with C++11 STL equivalents.
 - Added several new planners and improved existing planners:
@@ -63,8 +75,7 @@
   - A new version of [Expansive Space Trees](\ref gEST) that does not rely on projections to estimate sampling density. Instead, it estimates density directly in the configuration space. This is closer to the original paper and actually works really well! There is now also a [bidirectional version of EST](\ref gBiEST). The previous implementation of EST has been renamed to [ProjEST](\ref gProjEST).
 - Minimum Boost version is now 1.54.
 
-
-# OMPL 1.1.0 (October 28, 2015)
+## OMPL 1.1.0 (October 28, 2015)
 
 - Added several new and updated planners:
   - [Lightning](\ref Lightning): the Lightning Framework is a experienced-based motion planner that recalls from a database of previously generated paths the most similar one to the current planning problem and attempts to repair it, while at the same time planning from scratch in a different thread.
@@ -74,7 +85,7 @@
   - An updated version of the Lower-Bound Tree Rapidly-expanding Random Tree (LBT-RRT) and a lazy version, LazyLBTRRT. These algorithms use Lifelong Planning A* and Dynamic Single-Source Shortest Path over graphs as subroutines, but these subroutines might be more generally useful in other algorithms as well.
   - An updated version of [TRRT](\ref gTRRT) as well as a bidirectional version of TRRT ([BiTRRT](\ref gBiTRRT))
   - An updated version of [FMT*](\ref gFMT) that, among other things, caches collision checks.
-- [New web-based based version of OMPL.app!](http://omplapp.kavrakilab.org) The web app has all the functionality of the standalone GUI. In addition, it allows you to interactively construct benchmark jobs that can be submitted to a benchmark server. We have a public version of the web app and benchmarking server running at http://omplapp.kavrakilab.org, but the web app and benchmark server can also be run locally.
+- [New web-based based version of OMPL.app!](http://omplapp.kavrakilab.org) The web app has all the functionality of the standalone GUI. In addition, it allows you to interactively construct benchmark jobs that can be submitted to a benchmark server. We have a public version of the web app and benchmarking server running at <http://omplapp.kavrakilab.org>, but the web app and benchmark server can also be run locally.
 - There are two new concepts, ompl::base::InformedSampler and ompl::base::InformedStateSampler, that capture the idea of using information about the state space and the current solution cost to limit future search to a planning subproblem that contains all possibly better solutions. The ompl::base::PathLengthDirectInfSampler is derived from InformedStateSampler and can be used to limit sampling to only those states that can lead to a shorter path than the best-found solution so far. This sampler is used in ompl::geometric:InformedRRTstar and ompl::geometric::BITstar.
 - The ompl::geometric::PathSimplifier can now also optimize a path with respect to a (sampleable) goal. This means, for example, that a solution path is no longer “stuck” with an awkward inverse kinematics solution for a goal.
 - Added a `plannerarena` script to simplify running [Planner Arena](http://plannerarena.org) locally.
@@ -83,10 +94,9 @@
 - Added an option to turn off the path simplification in benchmarking.
 - Added support for parametrized benchmarks. Planner Arena can show performance across values for a given parameter.
 - Made it easier to get repeatable runs of an algorithm by enabling the user to set the seed of the *local* random number generators (i.e., not just the global seed).
-- The [OMPL blog](http://ompl.kavrakilab.org/blog.html) is now [Jekyll](http://www.jekyllrb.com)-based and hosted as a [repository on GitHub](https://github.com/ompl/blog). If you have a project that uses OMPL, you can send us a pull request (please check with us first whether it would be appropriate for the blog before you write content).
+- The [OMPL blog](https://ompl.kavrakilab.org/blog.html) is now [Jekyll](http://www.jekyllrb.com)-based and hosted as a [repository on GitHub](https://github.com/ompl/blog). If you have a project that uses OMPL, you can send us a pull request (please check with us first whether it would be appropriate for the blog before you write content).
 
-
-# OMPL 1.0.0 (October 26, 2014)
+## OMPL 1.0.0 (October 26, 2014)
 
 - Added many new planners:
   - [Linear Temporal Logical Planner (LTLPlanner)](\ref cLTLPlanner): a planner that finds solutions for kinodynamic motion planning problems where the goal is specified by a Linear Temporal Logic (LTL) specification.
@@ -105,42 +115,38 @@
 - Minimum Boost version is now 1.48 and minimum CMake version is now 2.8.7.
 - Bug fixes.
 
-
-# OMPL 0.14.2 (May 23, 2014)
+## OMPL 0.14.2 (May 23, 2014)
 
 - Changed the [benchmark database schema](\ref benchmark_database) to make it easier to create your own plots.
 - Real-valued state components are now also stored when exporting PlannerData objects in [GraphML](http://graphml.graphdrawing.org) format.
 - Bug fixes.
 - Documentation fixes.
 
-
-# OMPL 0.14.1 (January 23, 2014)
+## OMPL 0.14.1 (January 23, 2014)
 
 - Update PlannerData to use new cost infrastructure.
 - Bug fixes.
 
-
-# OMPL 0.14.0 (December 20, 2013)
+## OMPL 0.14.0 (December 20, 2013)
 
 - Added new cost infrastructure to plan optimal paths with respect to arbitrary cost functions. Several common cost objective functions have been defined (such as path length and mechanical work) and new ones can easily be defined.
 - RRT*, PRM*, TRRT, and PRM have been updated to use this cost infrastructure.
 - BallTreeRRT* has been removed since it assumed that the path cost is equal to the path length.
 - Added two new planners:
-    - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT), a near asymptotically-optimal incremental sampling-based motion planning algorithm.
-    - [Search Tree with Resolution Independent Density Estimation (STRIDE)](\ref gSTRIDE), an EST-like planner that uses an extension of the GNAT nearest neighbor data structure that supports sampling states inversely proportional to the density of previously sampled states.
+  - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT), a near asymptotically-optimal incremental sampling-based motion planning algorithm.
+  - [Search Tree with Resolution Independent Density Estimation (STRIDE)](\ref gSTRIDE), an EST-like planner that uses an extension of the GNAT nearest neighbor data structure that supports sampling states inversely proportional to the density of previously sampled states.
 - Added support for MORSE. Through a plugin you can use OMPL with Blender and MORSE to plan kinodynamic paths. See [the gallery](gallery.html) for some examples.
 - Added functionality to the Benchmark class to keep track of user-specified properties at regular intervals. This is especially useful for asymptotically/approximately optimal or anytime planners.
 - Added more [demo programs](group__demos.html).
 - Updated gccxml snapshot. If you use gcc 4.8 and the OMPL Python bindings, you need to run "make installpyplusplus" again.
 - Bug fixes.
 
-
-# OMPL 0.13.0 (August 5, 2013)
+## OMPL 0.13.0 (August 5, 2013)
 
 - Added several new planners:
-    - [SPARS](\ref gSPARS) and [SPARS2](\ref gSPARStwo) are roadmap-based planners that operate similarly to Visibility-based PRM, but provide asymptotic near-optimality guarantees.
-    - Path-Directed Subdivision Tree (PDST). There are actually two versions: [one for geometric planning](\ref gPDST) and [one for control-based planning](\ref cPDST).
-    - [Lazy PRM](\ref gLazyPRM), a variant that lazily evaluates the validity of nodes and edges in a roadmap.
+  - [SPARS](\ref gSPARS) and [SPARS2](\ref gSPARStwo) are roadmap-based planners that operate similarly to Visibility-based PRM, but provide asymptotic near-optimality guarantees.
+  - Path-Directed Subdivision Tree (PDST). There are actually two versions: [one for geometric planning](\ref gPDST) and [one for control-based planning](\ref cPDST).
+  - [Lazy PRM](\ref gLazyPRM), a variant that lazily evaluates the validity of nodes and edges in a roadmap.
 - Various improvements and bug fixes in the RRTstar and BallTreeRRTstar planners.
 - Various optimizations in the Syclop planner.
 - The Syclop planner can now operate over triangular decompositions. This is enabled if the [triangle](http://www.cs.cmu.edu/~quake/triangle.html) package is installed.
@@ -155,20 +161,17 @@
 - Updated Py++ toolchain (gccxml, pygccxml, pyplusplus). If you use gcc 4.7/4.8 or Boost 1.54, you need to run "make installpyplusplus" again.
 - Bug fixes.
 
-
-# OMPL 0.12.2 (January 22, 2013)
+## OMPL 0.12.2 (January 22, 2013)
 
 - Initial support for FLANN, a library for approximate nearest neighbors.
 - Documentation updates.
 - Bug fixes.
 
-
-# OMPL 0.12.1 (12/12/12)
+## OMPL 0.12.1 (12/12/12)
 
 - Bug fixes.
 
-
-# OMPL 0.12.0 (November 20, 2012)
+## OMPL 0.12.0 (November 20, 2012)
 
 - Added representation of costs to ompl::base::StateValidityChecker.
 - Added the notion of objectives to be optimized: ompl::base::OptimizationObjective.
@@ -178,15 +181,13 @@
 - Documentation updates.
 - Bug fixes.
 
-
-# OMPL 0.11.1 (July 26, 2012)
+## OMPL 0.11.1 (July 26, 2012)
 
 - Fixed bug in RRT* where nearest neighbor radius shrinks too fast.
 - Added option for versioned installs: multiple versions of OMPL can be installed simultaneously (disabled by default). This is enabled by running `cmake -DOMPL_VERSIONED_INSTALL=ON`.
 - Bug and documentation fixes.
 
-
-# OMPL 0.11.0 (June 30, 2012)
+## OMPL 0.11.0 (June 30, 2012)
 
 - ompl::base::PlannerData now uses the Boost Graph Library (BGL). This offers much more flexibility and power in the inspection of planner data structures. Rather than storing only the data common to all planners, each planner can store its own (meta)data per vertex and edge in a graph. All graph algorithms that exists in BGL can be applied directly.
 - Added PlannerDataStorage object for serialization/deserialization of PlannerData
@@ -196,27 +197,24 @@
 - Moved solution paths from ompl::base::Goal to ompl::base::ProblemDefinition.
 - Implementation of PRM is now threaded (one thread for growing the roadmap, one thread for monitoring whether the problem is solved).
 - Improvements to sampleUniformNear() for SO3.
-- A TeamCity Continuous Integration server has been set up at http://teamcity.kavrakilab.org.
+- A TeamCity Continuous Integration server has been set up at <http://teamcity.kavrakilab.org>.
 - The public repository, issue tracker, and downloads have been moved to Bitbucket. Sourceforge is being phased out for these services.
 - Reduced dependencies: GTest has been replaced by Boost Test, subversion and CVS are no longer needed to get some optional dependencies.
 - Bug fixes.
 
-
-# OMPL 0.10.2 (March 21, 2012)
+## OMPL 0.10.2 (March 21, 2012)
 
 - Created a blog to highlight new features.
 - Bug fixes.
 
-
-# OMPL 0.10.1 (February 27, 2012)
+## OMPL 0.10.1 (February 27, 2012)
 
 - Added representation of discrete control spaces.
 - Fixes for XCode 4.3 / clang 3.1svn when compiling the Python bindings.
 - Updates to support Python 3.x in existing demo programs.
 - Bug fixes.
 
-
-# OMPL 0.10.0 (February 16, 2012)
+## OMPL 0.10.0 (February 16, 2012)
 
 - Minimum Boost version is now 1.44 (for full functionality).
 - Added a primer on sampling-based motion planning and OMPL.
@@ -238,15 +236,13 @@
 - The C++ code switched to the preferred boost::function syntax. A general method for exposing boost::function objects to Python was added, but this requires a patch to pygccxml.
 - To make installing and patching Py++, pygccml, and gccxml easier there is now a script called installPyPlusPlus.sh that does this. One can call this script after running cmake by typing “make installpyplusplus”.
 
-
-# OMPL 0.9.5 (October 4, 2011)
+## OMPL 0.9.5 (October 4, 2011)
 
 - Added control sampler functions that allow specifying an intended direction of propagation
 - Removed pre-generated Python binding code. It turns out that they are dependent on the particular Boost version.
 - Bug fixes.
 
-
-# OMPL 0.9.4 (August 16, 2011)
+## OMPL 0.9.4 (August 16, 2011)
 
 - Renamed StateManifold to StateSpace and ControlManifold to ControlSpace
 - Added RRTstar contribution
@@ -265,8 +261,7 @@
 - Move code for extracting machine properties from util/ to benchmark/
 - Documentation fixes
 
-
-# OMPL 0.9.3 (May 2, 2011)
+## OMPL 0.9.3 (May 2, 2011)
 
 - Added path smoothing with splines
 - Added a bi-directional implementation of KPIECE (\ref gBKPIECE1 "BKPIECE")
@@ -274,20 +269,17 @@
 - Separate "magic constants" to a separate, visible, location
 - A number of bug fixes
 
-
-# OMPL 0.9.2 (February 21, 2011)
+## OMPL 0.9.2 (February 21, 2011)
 
 - Updates to operations on states: indexing in states can be done using state spaces or using integer values
 - Bug fixes for planning with controls
 - Minor doc improvements
 
-
-# OMPL 0.9.1 (December 17, 2010)
+## OMPL 0.9.1 (December 17, 2010)
 
 - Minor updates to build system
 
-
-# OMPL 0.9.0 (December 15, 2010; initial release)
+## OMPL 0.9.0 (December 15, 2010; initial release)
 
 - Implementations of many state-of-the-art sampling-based motion planning algorithms. For purely geometric planning, there are implementations of KPIECE, SBL, RRT, RRT Connect, EST, PRM, Lazy RRT, and others. For planning with differential constraints there are implementations of KPIECE and RRT. Addition of new planners poses very few constraints on the added code.
 - A flexible mechanism for constructing arbitrarily complex configuration spaces and control spaces from simpler ones.

@@ -83,6 +83,12 @@ namespace ompl
                 return pdef_;
             }
 
+            /** \brief Get the current instance of the problem definition */
+            base::ProblemDefinitionPtr &getProblemDefinition()
+            {
+                return pdef_;
+            }
+
             /** \brief Get the current instance of the state space */
             const base::StateSpacePtr &getStateSpace() const
             {

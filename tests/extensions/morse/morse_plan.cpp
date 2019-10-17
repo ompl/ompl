@@ -78,15 +78,15 @@ public:
         }
 
     }
-    void writeState(const base::State *state)
+    void writeState(const base::State *)
     {
         // nothing to do
     }
-    void applyControl(const std::vector<double> &control)
+    void applyControl(const std::vector<double> &)
     {
         // nothing to do
     }
-    void worldStep(const double dur)
+    void worldStep(double)
     {
         // nothing to do
     }
@@ -99,7 +99,7 @@ public:
         : base::MorseGoal(si), c(0)
     {
     }
-    bool isSatisfied_Py(const base::State *state) const
+    bool isSatisfied_Py(const base::State *) const
     {
         // goal is "reached" the 10th time this is called
         distance_ = 10-(c++);

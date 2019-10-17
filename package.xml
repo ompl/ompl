@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>ompl</name>
+  <version>1.5.0</version>
+  <description>OMPL is a free sampling-based motion planning library.</description>
+  <maintainer email="mmoll@rice.edu">Mark Moll</maintainer>
+  <license>BSD</license>
+
+  <url type="website">https://ompl.kavrakilab.org</url>
+  <url type="bugtracker">https://github.com/ompl/ompl/issues</url>
+  <url type="repository">https://github.com/ompl/ompl</url>
+
+  <author>Kavraki Lab</author>
+
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <build_depend>cmake</build_depend>
+  <build_depend>boost</build_depend>
+  <build_depend>eigen</build_depend>
+  <build_depend>pkg-config</build_depend>
+
+  <exec_depend>boost</exec_depend>
+  <exec_depend>eigen</exec_depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

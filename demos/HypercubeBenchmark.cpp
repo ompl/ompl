@@ -41,6 +41,7 @@
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/stride/STRIDE.h>
 #include <ompl/tools/benchmark/Benchmark.h>
+#include <ompl/util/String.h>
 
 #include <boost/math/constants/constants.hpp>
 #include <boost/format.hpp>
@@ -74,7 +75,7 @@ void addPlanner(ompl::tools::Benchmark& benchmark, const ompl::base::PlannerPtr&
 {
     ompl::base::ParamSet& params = planner->params();
     if (params.hasParam(std::string("range")))
-        params.setParam(std::string("range"), std::to_string(range));
+        params.setParam(std::string("range"), ompl::toString(range));
     benchmark.addPlanner(planner);
 }
 

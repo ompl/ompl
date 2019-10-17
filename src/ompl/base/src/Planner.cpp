@@ -73,6 +73,11 @@ const ompl::base::ProblemDefinitionPtr &ompl::base::Planner::getProblemDefinitio
     return pdef_;
 }
 
+ompl::base::ProblemDefinitionPtr &ompl::base::Planner::getProblemDefinition()
+{
+    return pdef_;
+}
+
 void ompl::base::Planner::setProblemDefinition(const ProblemDefinitionPtr &pdef)
 {
     pdef_ = pdef;
@@ -114,6 +119,11 @@ void ompl::base::Planner::clear()
 {
     pis_.clear();
     pis_.update();
+}
+
+void ompl::base::Planner::clearQuery()
+{
+    clear();
 }
 
 void ompl::base::Planner::getPlannerData(PlannerData &data) const

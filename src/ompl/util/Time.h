@@ -40,20 +40,8 @@
 #include <chrono>
 #include <ctime>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
-
-// std::put_time is not implemented in GCC 4.x
-#if defined(__GNUC__) && (__GNUC__ < 5)
-namespace std
-{
-    inline std::string put_time(const std::tm *tmb, const char *fmt)
-    {
-        char mbstr[100];
-        std::strftime(mbstr, sizeof(mbstr), fmt, tmb);
-        return string(mbstr);
-    }
-}
-#endif
 
 namespace ompl
 {
@@ -94,6 +82,22 @@ namespace ompl
             ss << std::put_time(std::localtime(&pt), "%F %T");
             return ss.str();
         }
+
+        // Adapted from the deprecated boost/progress.hpp header file
+        class ProgressDisplay
+        {
+        public:
+            explicit ProgressDisplay(std::ostream &os = std::cout);
+            unsigned int operator++();
+            unsigned int count() const
+            {
+                return count_;
+            }
+
+        private:
+            std::ostream& out_;
+            unsigned int count_{0u};
+        };
     }
 }
 

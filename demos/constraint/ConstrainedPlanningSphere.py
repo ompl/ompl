@@ -76,16 +76,16 @@ class SphereProjection(ob.ProjectionEvaluator):
 
 
 def obstacles(x):
-    if -0.8 < x[2] and x[2] < -0.6:
-        if -0.05 < x[1] and x[1] < 0.05:
+    if x[2] > -0.8 and x[2] < -0.6:
+        if x[1] > -0.05 and x[1] < 0.05:
             return x[0] > 0
         return False
-    elif -0.1 < x[2] and x[2] < 0.1:
-        if -0.05 < x[0] and x[0] < 0.05:
+    elif x[2] > -0.1 and x[2] < 0.1:
+        if x[0] > -0.05 and x[0] < 0.05:
             return x[1] < 0
         return False
-    elif 0.6 < x[2] and x[2] < 0.8:
-        if -0.05 < x[1] and x[1] < 0.05:
+    elif x[2] > 0.6 and x[2] < 0.8:
+        if x[1] > -0.05 and x[1] < 0.05:
             return x[0] < 0
         return False
     return True
@@ -147,8 +147,9 @@ def spherePlanning(options):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--output", action="store_true",
-                        help="Dump found solution path (if one exists) in plain text and planning graph in GraphML to "
-                        "`sphere_path.txt` and `sphere_graph.graphml` respectively.")
+                        help="Dump found solution path (if one exists) in plain text and planning "
+                        "graph in GraphML to `sphere_path.txt` and `sphere_graph.graphml` "
+                        "respectively.")
     parser.add_argument("--bench", action="store_true",
                         help="Do benchmarking on provided planner list.")
     addSpaceOption(parser)

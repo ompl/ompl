@@ -108,7 +108,7 @@ ompl::base::PlannerStatus ompl::tools::ParallelPlan::solve(const base::PlannerTe
                                          });
     else
         for (std::size_t i = 0; i < threads.size(); ++i)
-            threads[i] = new std::thread([this, i, minSolCount, maxSolCount, &ptc]
+            threads[i] = new std::thread([this, i, minSolCount, &ptc]
                                          {
                                              solveOne(planners_[i].get(), minSolCount, &ptc);
                                          });

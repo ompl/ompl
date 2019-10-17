@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(omplapp VERSION 1.5.0 LANGUAGES CXX)
+project(ompl VERSION 1.5.0 LANGUAGES CXX)
 set(OMPL_ABI_VERSION 16)
 
 # set the default build type
@@ -39,18 +39,16 @@ if(MSVC)
     add_definitions(-DBOOST_ALL_NO_LIB)
     add_definitions(-DBOOST_PROGRAM_OPTIONS_DYN_LINK)
 endif(MSVC)
-if(IS_ICPC)
-    set(Boost_USE_STATIC_LIBS ON CACHE STRING "Use statically linked Boost libraries")
-else(IS_ICPC)
-    # Ensure dynamic linking with boost unit_test_framework
-    add_definitions(-DBOOST_TEST_DYN_LINK)
-endif(IS_ICPC)
+# Ensure dynamic linking with boost unit_test_framework
+add_definitions(-DBOOST_TEST_DYN_LINK)
+# Avoid valgrind error due to overflow error, cf. https://bitbucket.org/ompl/ompl/issues/543
+add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
 
 set_package_properties(Boost PROPERTIES
-    URL "http://boost.org"
+    URL "https://www.boost.org"
     PURPOSE "Used throughout OMPL for data serialization, graphs, etc.")
 find_package(Boost 1.58 QUIET REQUIRED COMPONENTS serialization filesystem system program_options)
-include_directories(${Boost_INCLUDE_DIR})
+include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 # Add support in Boost::Python for std::shared_ptr
 # This is a hack that replaces boost::shared_ptr related code with std::shared_ptr.
@@ -61,7 +59,7 @@ endif()
 
 
 # on macOS we need to check whether to use libc++ or libstdc++ with clang++
-if(APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
     include(GetPrerequisites)
     get_prerequisites("${Boost_SYSTEM_LIBRARY}" _libs 0 0 "/" "")
     set(CXXSTDLIB "")
@@ -85,14 +83,14 @@ find_package(Threads QUIET)
 enable_testing()
 
 set_package_properties(Python PROPERTIES
-    URL "http://python.org"
+    URL "https://www.python.org"
     PURPOSE "Used for python bindings.")
 find_package(Python QUIET)
 find_boost_python()
 
 if(PYTHON_FOUND)
     set_package_properties(pypy PROPERTIES
-        URL "http://pypy.org"
+        URL "https://pypy.org"
         PURPOSE "Used to speed up the generation of python bindings.")
     find_package(pypy QUIET)
 endif()
@@ -109,14 +107,13 @@ set_package_properties(MORSE PROPERTIES
 find_package(MORSE QUIET)
 set(OMPL_EXTENSION_MORSE ${MORSE_FOUND})
 
-set_package_properties(OpenDE PROPERTIES
+set_package_properties(ODE PROPERTIES
     URL "http://ode.org"
     PURPOSE "The Open Dynamics Engine can be used as a \"black box\" for kinodynamic planning.")
-find_package(OpenDE QUIET)
-set(OMPL_EXTENSION_OPENDE ${OPENDE_FOUND})
-if (OPENDE_FOUND)
-  add_definitions(${OPENDE_DEFINITIONS})
-  include_directories(${OPENDE_INCLUDE_DIR})
+find_package(ODE QUIET)
+set(OMPL_EXTENSION_ODE ${ODE_FOUND})
+if (OMPL_EXTENSION_ODE)
+  include_directories(${ODE_INCLUDE_DIRS})
 endif()
 
 set_package_properties(Triangle PROPERTIES
@@ -124,7 +121,7 @@ set_package_properties(Triangle PROPERTIES
     PURPOSE "Used to create triangular decompositions of polygonal 2D environments.")
 find_package(Triangle QUIET)
 set(OMPL_EXTENSION_TRIANGLE ${TRIANGLE_FOUND})
-if (TRIANGLE_FOUND)
+if (OMPL_EXTENSION_TRIANGLE)
   include_directories(${TRIANGLE_INCLUDE_DIR})
 endif()
 
@@ -150,7 +147,7 @@ endif()
 
 set_package_properties(Doxygen PROPERTIES
     URL "http://doxygen.org"
-    PURPOSE "Used to create the OMPL documentation (i.e., http://ompl.kavrakilab.org).")
+    PURPOSE "Used to create the OMPL documentation (i.e., https://ompl.kavrakilab.org).")
 find_package(Doxygen)
 
 # Numpy is used to convert Eigen matrices/vectors to numpy arrays
@@ -168,8 +165,8 @@ endif()
 # R is needed for running Planner Arena locally
 find_program(R_EXEC R)
 
-add_subdirectory(py-bindings)
 add_subdirectory(src)
+add_subdirectory(py-bindings)
 add_subdirectory(tests)
 add_subdirectory(demos)
 add_subdirectory(scripts)
@@ -179,7 +176,10 @@ if(NOT MSVC)
     target_link_flags(ompl)
     set(PKG_NAME "ompl")
     set(PKG_DESC "The Open Motion Planning Library")
-    set(PKG_EXTERNAL_DEPS "${ompl_PKG_DEPS}")
+    set(PKG_EXTERNAL_DEPS "eigen3 ${ompl_PKG_DEPS}")
+    if(OMPL_EXTENSION_ODE)
+        set(PKG_EXTERNAL_DEPS "${PKG_EXTERNAL_DEPS}")
+    endif()
     set(PKG_OMPL_LIBS "-lompl ${ompl_LINK_FLAGS}")
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc.in"
                    "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc" @ONLY)
@@ -198,16 +198,12 @@ configure_package_config_file(omplConfig.cmake.in
     NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
-    VERSION ${OMPL_VERSION}
+    VERSION ${PROJECT_VERSION}
     COMPATIBILITY SameMajorVersion)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
     COMPONENT ompl)
-
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ompl.conf"
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ompl"
-  COMPONENT ompl)
 
 # script to install ompl on Ubuntu
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/install-ompl-ubuntu.sh.in"
@@ -230,17 +226,14 @@ if (OMPL_REGISTRATION)
         file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/.registered" "")
         find_package(Python QUIET)
         if (PYTHON_FOUND)
-            execute_process(COMMAND "${PYTHON_EXEC}" "-m" "webbrowser" "http://ompl.kavrakilab.org/core/register.html"
+            execute_process(COMMAND "${PYTHON_EXEC}" "-m" "webbrowser" "https://ompl.kavrakilab.org/core/register.html"
                 OUTPUT_QUIET ERROR_QUIET)
         endif()
     endif()
 endif()
 
-# needed for ROS installation
-if (EXISTS "package.xml")
-    # install catkin package.xml
-    install(FILES package.xml DESTINATION "share/ompl")
-endif()
+# install catkin package.xml (needed for ROS installation)
+install(FILES package.xml DESTINATION "share/ompl")
 
 set_package_properties(PkgConfig PROPERTIES
     URL "https://www.freedesktop.org/wiki/Software/pkg-config/"
@@ -262,3 +255,8 @@ if(PY_MODULES_NOTFOUND)
     string(REPLACE ";" " " PY_MODULES_NOTFOUND_STR "${PY_MODULES_NOTFOUND}")
     message(STATUS "The following Python modules were NOT found:\n\n * ${PY_MODULES_NOTFOUND_STR}\n")
 endif()
+
+# Create targets for building docker images
+# See CMakeModules/OMPLUtils.cmake and scripts/docker for details
+add_docker_target(ompl)
+add_docker_target(plannerarena scripts)

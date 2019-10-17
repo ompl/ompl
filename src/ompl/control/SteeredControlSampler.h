@@ -68,7 +68,7 @@ namespace ompl
                 return si_->propagateWhileValid(source, control, steps, dest);
             }
 
-            unsigned int sampleTo(Control *control, const Control *previous, const base::State *source,
+            unsigned int sampleTo(Control *control, const Control * /*previous*/, const base::State *source,
                                   base::State *dest) override
             {
                 return sampleTo(control, source, dest);

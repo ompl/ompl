@@ -102,15 +102,17 @@ shinyUI(navbarPage("Planner Arena",
                        href = "plannerarena.css"),
     footer = div(class = "footer",
         div(class = "container",
-            p(
-                a(href = "http://www.kavrakilab.org",
-                  "Physical and Biological Computing Group"),
+                a(href = "http://kavrakilab.org",
+                  "Kavraki Lab"),
                 "•",
-                a(href = "http://www.cs.rice.edu",
+                a(href = "https://www.cs.rice.edu",
                   "Department of Computer Science"),
                 "•",
-                a(href = "http://www.rice.edu", "Rice University")
-            )
+                a(href = "https://www.rice.edu", "Rice University"),
+                br(),
+                "Funded in part by the",
+                a(href = "https://www.nsf.gov",
+                  "National Science Foundation")
         ),
         includeScript("www/ga.js")
     ),

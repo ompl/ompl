@@ -1,8 +1,0 @@
-.registered
-build/
-\.pyc$
-\.so$
-\.dylib$
-py-bindings/ompl/bindings_generator.py$
-py-bindings/ompl/app
-package.xml

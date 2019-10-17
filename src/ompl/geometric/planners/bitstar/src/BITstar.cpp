@@ -50,6 +50,8 @@
 #include "ompl/util/Console.h"
 // For exceptions:
 #include "ompl/util/Exception.h"
+// For toString
+#include "ompl/util/String.h"
 // For ompl::geometric::path
 #include "ompl/geometric/PathGeometric.h"
 // For the default optimization objective:
@@ -937,7 +939,7 @@ namespace ompl
             OMPL_INFORM("%s (%u iters): Found a solution of cost %.4f (%u vertices) from %u samples by processing %u "
                         "edges (%u collision checked) to create %u vertices and perform %u rewirings. The graph "
                         "currently has %u vertices.",
-                        Planner::getName().c_str(), numIterations_, bestCost_, bestLength_,
+                        Planner::getName().c_str(), numIterations_, bestCost_.value(), bestLength_,
                         graphPtr_->numStatesGenerated(), queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_,
                         graphPtr_->numVerticesConnected(), numRewirings_, graphPtr_->numConnectedVertices());
         }
@@ -947,7 +949,7 @@ namespace ompl
             OMPL_INFORM("%s: Finished with a solution of cost %.4f (%u vertices) found from %u samples by processing "
                         "%u edges (%u collision checked) to create %u vertices and perform %u rewirings. The final "
                         "graph has %u vertices.",
-                        Planner::getName().c_str(), bestCost_, bestLength_, graphPtr_->numStatesGenerated(),
+                        Planner::getName().c_str(), bestCost_.value(), bestLength_, graphPtr_->numStatesGenerated(),
                         queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_, graphPtr_->numVerticesConnected(),
                         numRewirings_, graphPtr_->numConnectedVertices());
         }
@@ -1209,7 +1211,7 @@ namespace ompl
 
         std::string BITstar::bestCostProgressProperty() const
         {
-            return std::to_string(this->bestCost().value());
+            return ompl::toString(this->bestCost().value());
         }
 
         std::string BITstar::bestLengthProgressProperty() const

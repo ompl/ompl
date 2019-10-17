@@ -249,7 +249,6 @@ namespace ompl
             };
 
         protected:
-#pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
                        /** \brief Representation of a motion
 
                            A motion contains pointers to its state, its parent motion, and the control
@@ -274,9 +273,7 @@ namespace ompl
                 /** \brief The number of steps for which the control is applied */
                 unsigned int steps{0};
             };
-#pragma pack(pop)  // Restoring default byte alignment
 
-#pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
             /** \brief Representation of a region in the Decomposition assigned to Syclop. */
             class Region
             {
@@ -284,12 +281,10 @@ namespace ompl
                 Region() = default;
                 virtual ~Region() = default;
 
-#if __cplusplus >= 201103L
                 Region(const Region &) = default;
                 Region &operator=(const Region &) = default;
                 Region(Region &&) = default;
                 Region &operator=(Region &&) = default;
-#endif
 
                 /** \brief Clears motions and coverage information from this region. */
                 void clear()
@@ -320,11 +315,9 @@ namespace ompl
                 /** \brief The Element corresponding to this region in the PDF of available regions. */
                 PDF<int>::Element *pdfElem;
             };
-#pragma pack(pop)  // Restoring default byte alignment
 
-#pragma pack(push, 4)  // push default byte alignment to stack and align the following structure to 4 byte boundary
-                       /** \brief Representation of an adjacency (a directed edge) between two regions
-                           in the Decomposition assigned to Syclop. */
+            /** \brief Representation of an adjacency (a directed edge) between two regions
+                in the Decomposition assigned to Syclop. */
             class Adjacency
             {
             public:
@@ -353,7 +346,6 @@ namespace ompl
                  * zero tree motions. */
                 bool empty;
             };
-#pragma pack(pop)  // Restoring default byte alignment
 
             /** \brief Add State s as a new root in the low-level tree, and return the Motion corresponding to s. */
             virtual Motion *addRoot(const base::State *s) = 0;

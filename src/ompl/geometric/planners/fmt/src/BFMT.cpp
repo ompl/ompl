@@ -187,7 +187,7 @@ namespace ompl
             }
         }
 
-        void BFMT::saveNeighborhood(const std::shared_ptr<NearestNeighbors<BiDirMotion *>> &nn, BiDirMotion *m)
+        void BFMT::saveNeighborhood(BiDirMotion *m)
         {
             // Check if neighborhood has already been saved
             if (neighborhoods_.find(m) == neighborhoods_.end())
@@ -465,7 +465,7 @@ namespace ompl
             for (auto x : zNear)
             {
                 if (!precomputeNN_)
-                    saveNeighborhood(nn_, x);  // nearest neighbors
+                    saveNeighborhood(x);  // nearest neighbors
 
                 // Define Xnear as all frontier nodes in the neighborhood around the unexplored node x
                 BiDirMotionPtrs xNear;
@@ -582,13 +582,13 @@ namespace ompl
             {
                 for (auto &sampleNode : sampleNodes)
                 {
-                    saveNeighborhood(nn_, sampleNode);  // nearest neighbors
+                    saveNeighborhood(sampleNode);  // nearest neighbors
                 }
             }
             else
             {
-                saveNeighborhood(nn_, x_init);  // nearest neighbors
-                saveNeighborhood(nn_, x_goal);  // nearest neighbors
+                saveNeighborhood(x_init);  // nearest neighbors
+                saveNeighborhood(x_goal);  // nearest neighbors
             }
 
             // Copy nodes in the sample set to Unvisitedfwd.  Overwrite the label of the initial
@@ -751,7 +751,7 @@ namespace ompl
                         Open_elements[tree_][m] = Open_[tree_].insert(m);
 
                         nn_->add(m);
-                        saveNeighborhood(nn_, m);
+                        saveNeighborhood(m);
                         updateNeighborhood(m, nbh);
 
                         break;

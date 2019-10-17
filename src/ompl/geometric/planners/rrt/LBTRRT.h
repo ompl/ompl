@@ -56,15 +56,12 @@ namespace ompl
            algorithm is guaranteed to converge to a solution that is within a constant
            factor of the optimal solution. The notion of optimality is with
            respect to the distance function defined on the state space
-           we are operating on. See ompl::base::Goal::setMaximumPathLength() for
-           how to set the maximally allowed path length to reach the goal.
-           If a solution path that is shorter than ompl::base::Goal::getMaximumPathLength() is
-           found, the algorithm terminates before the elapsed time.
+           we are operating on.
 
            @par External documentation
            O. Salzman and D. Halperin, Sampling-based
            Asymptotically near-optimal RRT for fast, high-quality, motion planning, 2013.
-           [[PDF]](http://arxiv.org/abs/1308.0189)
+           [[PDF]](https://arxiv.org/abs/1308.0189)
         */
 
         /** \brief Lower Bound Tree Rapidly-exploring Random Trees */

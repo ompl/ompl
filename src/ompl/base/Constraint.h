@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2014, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2014, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Zachary Kingston, Ryan Luna */
 
@@ -57,7 +57,7 @@ namespace ompl
         /** \brief Maximum number of iterations in projection routine until
          * giving up. */
         static const unsigned int CONSTRAINT_PROJECTION_MAX_ITERATIONS = 50;
-    }
+    }  // namespace magic
 
     namespace base
     {
@@ -71,7 +71,7 @@ namespace ompl
 
         /** \brief Definition of a differentiable holonomic constraint on a
          * configuration space. See \ref constrainedPlanning for more details.
-        */
+         */
         class Constraint
         {
         public:
@@ -84,7 +84,8 @@ namespace ompl
             \f]
             \a ambientDim will be 3, and \a coDim will be 1.
             */
-            Constraint(const unsigned int ambientDim, const unsigned int coDim, double tolerance = magic::CONSTRAINT_PROJECTION_TOLERANCE)
+            Constraint(const unsigned int ambientDim, const unsigned int coDim,
+                       double tolerance = magic::CONSTRAINT_PROJECTION_TOLERANCE)
               : n_(ambientDim)
               , k_(ambientDim - coDim)
               , tolerance_(tolerance)
@@ -102,7 +103,7 @@ namespace ompl
 
             /** \brief Compute the constraint function at \a state. Result is
              returned in \a out, which should be allocated to size \a coDim. */
-            void function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const;
+            virtual void function(const State *state, Eigen::Ref<Eigen::VectorXd> out) const;
 
             /** \brief Compute the constraint function at \a x. Result is
                 returned in \a out, which should be allocated to size \a coDim. */
@@ -114,7 +115,7 @@ namespace ompl
              size \a coDim by \a ambientDim. Default implementation performs the
              differentiation numerically with a seven-point central difference
              stencil. It is best to provide an analytic formulation. */
-            void jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const;
+            virtual void jacobian(const State *state, Eigen::Ref<Eigen::MatrixXd> out) const;
 
             /** \brief Compute the Jacobian of the constraint function at \a x.
               Result is returned in \a out, which should be allocated to size \a
@@ -131,7 +132,7 @@ namespace ompl
             /** \brief Project a state \a state given the constraints. If a
              valid projection cannot be found, this method will return false.
              Even if this method fails, \a state will be modified. */
-            bool project(State *state) const;
+            virtual bool project(State *state) const;
 
             /** \brief Project a state \a x given the constraints. If a valid
                 projection cannot be found, this method will return false. */
@@ -139,14 +140,14 @@ namespace ompl
 
             /** \brief Returns the distance of \a state to the constraint
              * manifold. */
-            double distance(const State *state) const;
+            virtual double distance(const State *state) const;
 
             /** \brief Returns the distance of \a x to the constraint manifold. */
             virtual double distance(const Eigen::Ref<const Eigen::VectorXd> &x) const;
 
             /** \brief Check whether a state \a state satisfies the
              * constraints */
-            bool isSatisfied(const State *state) const;
+            virtual bool isSatisfied(const State *state) const;
 
             /** \brief Check whether a state \a x satisfies the constraints */
             virtual bool isSatisfied(const Eigen::Ref<const Eigen::VectorXd> &x) const;
@@ -245,24 +246,26 @@ namespace ompl
         public:
             /** \brief Constructor. If constraints is empty assume it will be
              * filled later. */
-            ConstraintIntersection(const unsigned int ambientDim, std::initializer_list<Constraint *> constraints)
+            ConstraintIntersection(const unsigned int ambientDim, std::vector<ConstraintPtr> constraints)
               : Constraint(ambientDim, 0)
             {
-                for (auto constraint : constraints)
+                for (const auto &constraint : constraints)
                     addConstraint(constraint);
             }
 
-            /** \brief Destructor. Destroys all constituent constraints. */
-            ~ConstraintIntersection() override
+            /** \brief Constructor. If constraints is empty assume it will be
+             * filled later. */
+            ConstraintIntersection(const unsigned int ambientDim, std::initializer_list<ConstraintPtr> constraints)
+              : Constraint(ambientDim, 0)
             {
-                for (auto constraint : constraints_)
-                    delete constraint;
+                for (const auto &constraint : constraints)
+                    addConstraint(constraint);
             }
 
             void function(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::VectorXd> out) const override
             {
                 unsigned int i = 0;
-                for (auto constraint : constraints_)
+                for (const auto &constraint : constraints_)
                 {
                     constraint->function(x, out.segment(i, constraint->getCoDimension()));
                     i += constraint->getCoDimension();
@@ -272,7 +275,7 @@ namespace ompl
             void jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const override
             {
                 unsigned int i = 0;
-                for (auto constraint : constraints_)
+                for (const auto &constraint : constraints_)
                 {
                     constraint->jacobian(x, out.block(i, 0, constraint->getCoDimension(), n_));
                     i += constraint->getCoDimension();
@@ -280,14 +283,14 @@ namespace ompl
             }
 
         protected:
-            void addConstraint(Constraint *constraint)
+            void addConstraint(const ConstraintPtr &constraint)
             {
                 setManifoldDimension(k_ - constraint->getCoDimension());
                 constraints_.push_back(constraint);
             }
 
             /** \brief Constituent constraints. */
-            std::vector<Constraint *> constraints_;
+            std::vector<ConstraintPtr> constraints_;
         };
 
         /// @cond IGNORE
@@ -316,7 +319,7 @@ namespace ompl
             /** \brief Optimizing constraint */
             ConstraintPtr constraint_;
         };
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 
 #endif

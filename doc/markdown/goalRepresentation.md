@@ -1,7 +1,6 @@
 # Representing Goals in OMPL {#goalRepresentation}
 
-
-# Setting the Goal
+## Setting the Goal
 
 The most general representation of a goal is ompl::base::Goal. This class contains a pure virtual method, ompl::base::Goal::isSatisfied(), which takes a state as argument and returns a boolean indicating whether that state is a goal or not. No other information about the goal is given. This function can include arbitrary code deciding what is in the goal region and what is not.
 
@@ -87,11 +86,8 @@ public:
   - ompl::base::GoalStates (inherits from ompl::base::GoalSampleableRegion) is a generalization of ompl::base::GoalState. An array of goal states is stored. Sampling goals will cycle through the stored states. The implementation ompl::base::GoalRegion::distanceGoal() will return the minimum distance between the state passed as argument and the stored states. This computation is performed in linear time (in terms of number of stored states), so it may become costly for a large number of states.
   - ompl::base::GoalLazySamples (inherits from ompl::base::GoalStates). In case sampling of states is a time consuming process, this version of a goal allows the sampling process to take place in a separate thread, while the planner is running. As new states are found, they are added to the array of stored states. This is useful for example when performing inverse kinematics for an arm. The inverse kinematics computations can be performed while the planner is running. As more states are found, they become available to the planner.
 
-
-# Using the Goal Region
+## Using the Goal Region
 
 Planners cast the specified goal representation into the minimal representation they can use. For uni-directional planners, ompl::base::Goal is fine. For bi-directional planners however, this needs to be ompl::base::GoalSampleableRegion.
 
 If the planner can use the goal specification, it will compute a motion plan. If successful, the found path is stored in the goal region. Flags indicating whether the solution was approximate are also set. The user can query all the information the planner has set using accessors from ompl::base::Goal.
-
-Planners that include the notion of path length, and attempt to find solution paths that are shorter, also make use of a third version of ompl::base::Goal::isSatisfied(), the one that takes a path length as argument as well. This version decides whether a maximum path length is met. The user can set this maximum length by calling ompl::base::Goal::setMaximumPathLength().

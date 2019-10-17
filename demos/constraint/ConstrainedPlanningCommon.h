@@ -374,7 +374,7 @@ public:
     }
 
     template <typename _T>
-    std::shared_ptr<_T> createPlannerRange(bool intermediate)
+    std::shared_ptr<_T> createPlannerRange(bool /*intermediate*/)
     {
         auto &&planner = createPlannerIntermediate<_T>();
 

@@ -38,8 +38,8 @@
 #include "ompl/tools/benchmark/MachineSpecs.h"
 #include "ompl/util/Time.h"
 #include "ompl/config.h"
+#include "ompl/util/String.h"
 #include <boost/scoped_ptr.hpp>
-#include <boost/progress.hpp>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -75,51 +75,15 @@ namespace ompl
         class RunPlanner
         {
         public:
-            RunPlanner(const Benchmark *benchmark, bool useThreads)
-              : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0), useThreads_(useThreads)
+            RunPlanner(const Benchmark *benchmark)
+              : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0)
             {
             }
 
             void run(const base::PlannerPtr &planner, const machine::MemUsage_t memStart,
                      const machine::MemUsage_t maxMem, const double maxTime, const double timeBetweenUpdates)
             {
-                // if (!useThreads_)
-                // {
                 runThread(planner, memStart + maxMem, time::seconds(maxTime), time::seconds(timeBetweenUpdates));
-                //     return;
-                // }
-
-                // std::thread t([planner, memStart, maxMem, maxTime, timeBetweenUpdates]
-                //      {
-                //          runThread(planner, memStart + maxMem, time::seconds(maxTime),
-                //          time::seconds(timeBetweenUpdates)); });
-                //      }
-
-                // allow 25% more time than originally specified, in order to detect planner termination
-                // if (!t.try_join_for(time::seconds(maxTime * 1.25)))
-                // {
-                //     status_ = base::PlannerStatus::CRASH;
-                //
-                //     std::stringstream es;
-                //     es << "Planner " << benchmark_->getStatus().activePlanner << " did not complete run " <<
-                //     benchmark_->getStatus().activeRun
-                //        << " within the specified amount of time (possible crash). Attempting to force termination of
-                //        planning thread ..." << std::endl;
-                //     std::cerr << es.str();
-                //     OMPL_ERROR(es.str().c_str());
-                //
-                //     t.interrupt();
-                //     t.join();
-                //
-                //     std::string m = "Planning thread cancelled";
-                //     std::cerr << m << std::endl;
-                //     OMPL_ERROR(m.c_str());
-                // }
-
-                // if (memStart < memUsed_)
-                //     memUsed_ -= memStart;
-                // else
-                //     memUsed_ = 0;
             }
 
             double getTimeUsed() const
@@ -205,7 +169,7 @@ namespace ompl
                     else
                     {
                         double timeInSeconds = time::seconds(time::now() - timeStart);
-                        std::string timeStamp = std::to_string(timeInSeconds);
+                        std::string timeStamp = ompl::toString(timeInSeconds);
                         std::map<std::string, std::string> data;
                         data["time REAL"] = timeStamp;
                         for (const auto &property : properties)
@@ -221,7 +185,6 @@ namespace ompl
             double timeUsed_;
             machine::MemUsage_t memUsed_;
             base::PlannerStatus status_;
-            bool useThreads_;
             Benchmark::RunProgressData runProgressData_;
 
             // variables needed for progress property collection
@@ -471,13 +434,13 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
         msg::noOutputHandler();
     OMPL_INFORM("Beginning benchmark");
 
-    boost::scoped_ptr<boost::progress_display> progress;
+    boost::scoped_ptr<ompl::time::ProgressDisplay> progress;
     if (req.displayProgress)
     {
         std::cout << "Running experiment " << exp_.name << "." << std::endl;
         std::cout << "Each planner will be executed " << req.runCount << " times for at most " << req.maxTime
                   << " seconds. Memory is limited at " << req.maxMem << "MB." << std::endl;
-        progress.reset(new boost::progress_display(100, std::cout));
+        progress.reset(new ompl::time::ProgressDisplay);
     }
 
     machine::MemUsage_t memStart = machine::getProcessMemoryUsage();
@@ -514,11 +477,9 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
         // Add planner progress property names to struct
         exp_.planners[i].progressPropertyNames.emplace_back("time REAL");
-        base::Planner::PlannerProgressProperties::const_iterator iter;
-        for (iter = planners_[i]->getPlannerProgressProperties().begin();
-             iter != planners_[i]->getPlannerProgressProperties().end(); ++iter)
+        for (const auto &property : planners_[i]->getPlannerProgressProperties())
         {
-            exp_.planners[i].progressPropertyNames.push_back(iter->first);
+            exp_.planners[i].progressPropertyNames.push_back(property.first);
         }
         std::sort(exp_.planners[i].progressPropertyNames.begin(), exp_.planners[i].progressPropertyNames.end());
 
@@ -581,7 +542,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 OMPL_ERROR(es.str().c_str());
             }
 
-            RunPlanner rp(this, req.useThreads);
+            RunPlanner rp(this);
             rp.run(planners_[i], memStart, maxMemBytes, req.maxTime, req.timeBetweenUpdates);
             bool solved = gsetup_ ? gsetup_->haveSolutionPath() : csetup_->haveSolutionPath();
 
@@ -590,20 +551,20 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             {
                 RunProperties run;
 
-                run["time REAL"] = std::to_string(rp.getTimeUsed());
-                run["memory REAL"] = std::to_string((double)rp.getMemUsed() / (1024.0 * 1024.0));
+                run["time REAL"] = ompl::toString(rp.getTimeUsed());
+                run["memory REAL"] = ompl::toString((double)rp.getMemUsed() / (1024.0 * 1024.0));
                 run["status ENUM"] = std::to_string((int)static_cast<base::PlannerStatus::StatusType>(rp.getStatus()));
                 if (gsetup_)
                 {
                     run["solved BOOLEAN"] = std::to_string(gsetup_->haveExactSolutionPath());
                     run["valid segment fraction REAL"] =
-                        std::to_string(gsetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
+                        ompl::toString(gsetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
                 }
                 else
                 {
                     run["solved BOOLEAN"] = std::to_string(csetup_->haveExactSolutionPath());
                     run["valid segment fraction REAL"] =
-                        std::to_string(csetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
+                        ompl::toString(csetup_->getSpaceInformation()->getMotionValidator()->getValidMotionFraction());
                 }
 
                 if (solved)
@@ -613,10 +574,10 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                         run["approximate solution BOOLEAN"] =
                             std::to_string(gsetup_->getProblemDefinition()->hasApproximateSolution());
                         run["solution difference REAL"] =
-                            std::to_string(gsetup_->getProblemDefinition()->getSolutionDifference());
-                        run["solution length REAL"] = std::to_string(gsetup_->getSolutionPath().length());
-                        run["solution smoothness REAL"] = std::to_string(gsetup_->getSolutionPath().smoothness());
-                        run["solution clearance REAL"] = std::to_string(gsetup_->getSolutionPath().clearance());
+                            ompl::toString(gsetup_->getProblemDefinition()->getSolutionDifference());
+                        run["solution length REAL"] = ompl::toString(gsetup_->getSolutionPath().length());
+                        run["solution smoothness REAL"] = ompl::toString(gsetup_->getSolutionPath().smoothness());
+                        run["solution clearance REAL"] = ompl::toString(gsetup_->getSolutionPath().clearance());
                         run["solution segments INTEGER"] =
                             std::to_string(gsetup_->getSolutionPath().getStateCount() - 1);
                         run["correct solution BOOLEAN"] = std::to_string(gsetup_->getSolutionPath().check());
@@ -632,13 +593,13 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                             time::point timeStart = time::now();
                             gsetup_->simplifySolution();
                             double timeUsed = time::seconds(time::now() - timeStart);
-                            run["simplification time REAL"] = std::to_string(timeUsed);
+                            run["simplification time REAL"] = ompl::toString(timeUsed);
                             run["simplified solution length REAL"] =
-                                std::to_string(gsetup_->getSolutionPath().length());
+                                ompl::toString(gsetup_->getSolutionPath().length());
                             run["simplified solution smoothness REAL"] =
-                                std::to_string(gsetup_->getSolutionPath().smoothness());
+                                ompl::toString(gsetup_->getSolutionPath().smoothness());
                             run["simplified solution clearance REAL"] =
-                                std::to_string(gsetup_->getSolutionPath().clearance());
+                                ompl::toString(gsetup_->getSolutionPath().clearance());
                             run["simplified solution segments INTEGER"] =
                                 std::to_string(gsetup_->getSolutionPath().getStateCount() - 1);
                             run["simplified correct solution BOOLEAN"] =
@@ -654,10 +615,10 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                         run["approximate solution BOOLEAN"] =
                             std::to_string(csetup_->getProblemDefinition()->hasApproximateSolution());
                         run["solution difference REAL"] =
-                            std::to_string(csetup_->getProblemDefinition()->getSolutionDifference());
-                        run["solution length REAL"] = std::to_string(csetup_->getSolutionPath().length());
+                            ompl::toString(csetup_->getProblemDefinition()->getSolutionDifference());
+                        run["solution length REAL"] = ompl::toString(csetup_->getSolutionPath().length());
                         run["solution clearance REAL"] =
-                            std::to_string(csetup_->getSolutionPath().asGeometric().clearance());
+                            ompl::toString(csetup_->getSolutionPath().asGeometric().clearance());
                         run["solution segments INTEGER"] = std::to_string(csetup_->getSolutionPath().getControlCount());
                         run["correct solution BOOLEAN"] = std::to_string(csetup_->getSolutionPath().check());
                     }

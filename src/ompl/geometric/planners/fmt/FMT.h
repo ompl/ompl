@@ -78,12 +78,12 @@ namespace ompl
            optimal motion planning in many dimensions. The International Journal of Robotics Research, 34(7):883-921,
            2015.
            DOI: [10.1177/0278364915577958](http://dx.doi.org/10.1177/0278364915577958)<br>
-           [[PDF]](http://arxiv.org/pdf/1306.3532.pdf)
+           [[PDF]](https://arxiv.org/pdf/1306.3532.pdf)
 
            J. A. Starek, J. V. Gomez, E. Schmerling, L. Janson, L. Moreno, and M. Pavone,
            An Asymptotically-Optimal Sampling-Based Algorithm for Bi-directional Motion Planning,
            in IEEE/RSJ International Conference on Intelligent Robots Systems, 2015.
-           [[PDF]](http://arxiv.org/pdf/1507.07602.pdf)
+           [[PDF]](https://arxiv.org/pdf/1507.07602.pdf)
         */
         /** @brief Asymptotically Optimal Fast Marching Tree algorithm developed
             by L. Janson and M. Pavone. */
@@ -134,7 +134,7 @@ namespace ompl
                 cost r, where r is the value described for FMT* in Section 4
                 of [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based
                method for optimal motion planning in many dimensions. The International Journal of Robotics Research,
-               34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf). For guaranteed asymptotic
+               34(7):883-921, 2015](https://arxiv.org/pdf/1306.3532.pdf). For guaranteed asymptotic
                 convergence, the user should choose a constant multiplier for
                 the search radius that is greater than one. The default value is 1.1.
                 In general, a radius multiplier between 0.9 and 5 appears to
@@ -389,7 +389,7 @@ namespace ompl
             /** \brief Calculate the radius to use for nearest neighbor searches,
                 using the bound given in [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast
                marching sampling-based method for optimal motion planning in many dimensions. The International Journal
-               of Robotics Research, 34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf). The radius depends on
+               of Robotics Research, 34(7):883-921, 2015](https://arxiv.org/pdf/1306.3532.pdf). The radius depends on
                 the radiusMultiplier parameter, the volume of the free
                 configuration space, the volume of the unit ball in the current
                 dimension, and the number of nodes in the graph */
@@ -462,7 +462,7 @@ namespace ompl
                 proportional to the lower bound for optimality derived for FMT*
                 in Section 4 of [L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching
                sampling-based method for optimal motion planning in many dimensions. The International Journal of
-               Robotics Research, 34(7):883-921, 2015](http://arxiv.org/pdf/1306.3532.pdf).  The radius multiplier
+               Robotics Research, 34(7):883-921, 2015](https://arxiv.org/pdf/1306.3532.pdf).  The radius multiplier
                 is the multiplier for the lower bound. For guaranteed asymptotic
                 convergence, the user should choose a multiplier for the search
                 radius that is greater than one. The default value is 1.1.

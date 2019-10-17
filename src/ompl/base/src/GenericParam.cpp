@@ -81,17 +81,17 @@ namespace ompl
         template <>
         float SpecificParam<float>::lexical_cast(const std::string &value) const
         {
-            return std::stof(value);
+            return ompl::stof(value);
         }
         template <>
         double SpecificParam<double>::lexical_cast(const std::string &value) const
         {
-            return std::stod(value);
+            return ompl::stod(value);
         }
         template <>
         long double SpecificParam<long double>::lexical_cast(const std::string &value) const
         {
-            return std::stold(value);
+            return ompl::stold(value);
         }
         template <>
         char SpecificParam<char>::lexical_cast(const std::string &value) const
@@ -106,15 +106,6 @@ namespace ompl
         std::string SpecificParam<std::string>::lexical_cast(const std::string &value) const
         {
             return value;
-        }
-
-        template <>
-        std::string ompl::base::SpecificParam<std::string>::getValue() const
-        {
-            if (getter_)
-                return getter_();
-            else
-                return "";
         }
 
     }  // namespace base

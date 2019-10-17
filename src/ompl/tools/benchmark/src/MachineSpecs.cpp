@@ -128,10 +128,10 @@ std::string getCPUInfoAux()
 }
 
 #else
+#include <unistd.h>
 #if defined _POSIX_VERSION || defined _POSIX2_VERSION || defined __linux__
 // we need a posix compliant os that exposes /proc/self/stat
 
-#include <unistd.h>
 #include <ios>
 #include <iostream>
 #include <fstream>

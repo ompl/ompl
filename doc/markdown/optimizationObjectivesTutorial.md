@@ -30,7 +30,7 @@ Lastly, notice that in `ClearanceObjective`'s constructor we initialized the `om
 
 Here's an animation demonstrating the RRTstar algorithm's progress in planning under the above objective:
 
-<div class="row"><img src="images/clearance.gif" class="col-md-8 col-sm-8 col-md-push-1 col-sm-push-1"></div>
+<div class="row justify-content-center"><div class="col-md-8 col-sm-8"><img src="images/clearance.gif" class="img-fluid"></div></div>
 
 ## Multiobjective optimal planning
 
@@ -68,13 +68,14 @@ This function defines exactly the same optimization objective as the previous on
 
 Here's an animation of the RRTstar algorithm's progress on this multiobjective problem:
 
-<div class="row"><img src="images/balanced.gif" class="col-md-8 col-sm-8 col-md-push-1 col-sm-push-1"></div>
+<div class="row justify-content-center"><div class="col-md-8 col-sm-8"><img src="images/balanced.gif" class="img-fluid"></div></div>
 
 ## Specifying a new objective (part 2): maximize minimum clearance
 
 Now we'll implement an objective which will require a lot more tinkering with the rest of the methods in `ompl::base::OptimizationObjective`. This objective attemps to _maximize the minimum path clearance_; that is, the cost of a given path is only a function of the closest distance between the path and an obstacle. This objective has already been implemented for you as `ompl::base::MaximizeMinClearanceObjective`, but we'll walk you through your own implementation of it.
 
 Here's the interface of our new objective, `MaximizeMinClearance`:
+
 ~~~{.cpp}
 class MaximizeMinClearance : public ob::OptimizationObjective
 {

@@ -49,13 +49,8 @@ class ParallelChain : public ob::Constraint, public ParallelBase
 {
 public:
     ParallelChain(const unsigned int n, Eigen::Vector3d offset, unsigned int links, unsigned int chainNum,
-                  double length = 1, double jointRadius = 0.2)
-      : ob::Constraint(n, links)
-      , offset_(std::move(offset))
-      , links_(links)
-      , chainNum_(chainNum)
-      , length_(length)
-      , jointRadius_(jointRadius)
+                  double length = 1)
+      : ob::Constraint(n, links), offset_(std::move(offset)), links_(links), chainNum_(chainNum), length_(length)
     {
         if (links % 2 == 0)
             throw ompl::Exception("Number of links must be odd!");
@@ -167,7 +162,6 @@ private:
     const unsigned int links_;
     const unsigned int chainNum_;
     const double length_;
-    const double jointRadius_;
 };
 
 class ParallelPlatform : public ob::Constraint, public ParallelBase
@@ -216,11 +210,11 @@ public:
         }
     }
 
-    void getStart(Eigen::VectorXd &x) override
+    void getStart(Eigen::VectorXd &) override
     {
     }
 
-    void getGoal(Eigen::VectorXd &x) override
+    void getGoal(Eigen::VectorXd &) override
     {
     }
 
@@ -245,27 +239,27 @@ public:
         Eigen::Vector3d offset = Eigen::Vector3d::UnitX();
         for (unsigned int i = 0; i < chains_; ++i)
         {
-            addConstraint(new ParallelChain(chains * links * 3, offset, links, i, length, jointRadius));
+            addConstraint(std::make_shared<ParallelChain>(chains * links * 3, offset, links, i, length));
             offset =
                 Eigen::AngleAxisd(2 * boost::math::constants::pi<double>() / (double)chains, Eigen::Vector3d::UnitZ()) *
                 offset;
         }
 
-        addConstraint(new ParallelPlatform(links, chains, radius));
+        addConstraint(std::make_shared<ParallelPlatform>(links, chains, radius));
     }
 
     void getStart(Eigen::VectorXd &x) override
     {
         x = Eigen::VectorXd(3 * links_ * chains_);
-        for (auto & constraint : constraints_)
-            dynamic_cast<ParallelBase *>(constraint)->getStart(x);
+        for (auto &constraint : constraints_)
+            std::dynamic_pointer_cast<ParallelBase>(constraint)->getStart(x);
     }
 
     void getGoal(Eigen::VectorXd &x) override
     {
         x = Eigen::VectorXd(3 * links_ * chains_);
-        for (auto & constraint : constraints_)
-            dynamic_cast<ParallelBase *>(constraint)->getGoal(x);
+        for (auto &constraint : constraints_)
+            std::dynamic_pointer_cast<ParallelBase>(constraint)->getGoal(x);
     }
 
     ob::StateSpacePtr createSpace() const

@@ -1,7 +1,8 @@
 # Constrained Planning Tutorial {#constrainedPlanningTutorial}
 
-Defining a constrained motion planning problem is easy and very similar to defining an unconstrained planning problem. The primary difference is the need to define a _constraint_, and the use of a _constrained state space_, which wraps around an ambient state space. In this example, we will walk through defining a simple constrained planning problem: a point in \f$\mathbb{R}^3\f$ that is constrained to be on the surface of a sphere, giving a constraint function \f$f(q) = \lVert q \rVert - 1\f$. This is very similar to the problem defined by the demo [ConstrainedPlanningSphere](ConstrainedPlanningSphere_8cpp_source.html).
+[TOC]
 
+Defining a constrained motion planning problem is easy and very similar to defining an unconstrained planning problem. The primary difference is the need to define a _constraint_, and the use of a _constrained state space_, which wraps around an ambient state space. In this example, we will walk through defining a simple constrained planning problem: a point in \f$\mathbb{R}^3\f$ that is constrained to be on the surface of a sphere, giving a constraint function \f$f(q) = \lVert q \rVert - 1\f$. This is very similar to the problem defined by the demo [ConstrainedPlanningSphere](ConstrainedPlanningSphere_8cpp_source.html).
 
 ## Defining the Constraint
 
@@ -39,10 +40,9 @@ public:
 
 We now have a constraint function that defines a sphere in \f$\mathbb{R}^3\f$! We can visualize the constraint simply as a sphere in \f$\mathbb{R}^3\f$, shown below.
 
-<div class="row"><img src="images/sphere.png" class="col-xs-6 col-xs-offset-3"></div>
+<div class="row justify-content-center"><div class="col-sm-6"><img src="images/sphere.png" class="img-fluid"></div></div>
 
 Now we can use this constraint to define a constrained state space.
-
 
 ### Constraint Jacobian
 
@@ -62,7 +62,6 @@ void Sphere::jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eig
 
 In general, it is _highly_ recommended that you provide an analytic Jacobian for a constrained planning problem, especially for high-dimensional problems.
 
-
 ### Projection
 
 One of the primary features of `ompl::base::Constraint` is the _projection_ function, `ompl::base::Constraint::project()`.
@@ -72,7 +71,6 @@ By default, `ompl::base::Constraint::project()` implements a Newton's method whi
 However, it is possible to override this method with your own projection routine.
 For example, in the case of our sphere, it could simply normalize the state, placing it on the sphere.
 Another example would be to use inverse kinematics for a complex robot manipulator.
-
 
 ### Constraint Parameters
 
@@ -95,10 +93,10 @@ The second is `maxIterations`, which can be set with `ompl::base::Constraint::se
 `maxIterations` is used in `ompl::base::Constraint::project()` to limit the number of iterations the projection routine uses, in the case that a satisfying configuration cannot be found.
 It might be necessary to adjust this value for particularly easy or hard constraint functions to satisfy (decreasing and increasing iterations respectively).
 
-
 ## Defining the Constrained State Space
 
 ### Ambient State Space
+
 Before we can define a constrained state space, we need to define the ambient state space \f$\mathbb{R}^3\f$.
 
 ~~~{.cpp}
@@ -115,8 +113,8 @@ rvss->setBounds(bounds);
 
 The ambient space is the space over which the constraint is defined, and is used by our constrained state space.
 
-
 ### Constraint Instance
+
 We then need to create an instance of our constraint:
 
 ~~~{.cpp}
@@ -126,8 +124,8 @@ auto constraint = std::make_shared<Sphere>();
 
 The constraint instance is used by our constrained state space.
 
-
 ### Constrained State Space
+
 Now that we have both the ambient state space and the constraint, we can define the constrained state space. For this example, we will be using `ompl::base::ProjectedStateSpace`, which implements a projection operator-based methodology for satisfying constraints. However, we could also just as easily use the other constrained state spaces, `ompl::base::AtlasStateSpace` or `ompl::base::TangentBundleStateSpace`, for this problem. We will also be creating a `ompl::base::ConstrainedSpaceInformation`, which is an augmentation of `ompl::base::SpaceInformation` with some small modification to take into account constraints.
 
 ~~~{.cpp}
@@ -139,7 +137,6 @@ auto csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
 ~~~
 
 One of the most important things that `ompl::base::ConstrainedSpaceInformation` does is call `ompl::base::ConstrainedStateSpace::setSpaceInformation`, which allows for the manifold traversal to do collision checking in tandem with discrete geodesic computation. Now, we have a constrained state space and space information which we can use for planning.
-
 
 ## Defining a Problem
 
@@ -186,8 +183,7 @@ ss->setStateValidityChecker(obstacle);
 
 Below, you can see a representation of this obstacle on our sphere.
 
-<div class="row"><img src="images/obstacles.png" class="col-xs-6 col-xs-offset-3"></div>
-
+<div class="row justify-content-center"><div class="col-sm-6"><img src="images/obstacles.png" class="img-fluid"></div></div>
 
 ### Start and Goal
 
@@ -215,7 +211,6 @@ goal->as<ob::ConstrainedStateSpace::StateType>()->copy(gv);
 ss->setStartAndGoalStates(start, goal);
 ~~~
 
-
 ### Planner
 
 Finally, we can add a planner like normal. Let's use `ompl::geometric::PRM`, but any other planner in `ompl::geometric` would do.
@@ -224,7 +219,6 @@ Finally, we can add a planner like normal. Let's use `ompl::geometric::PRM`, but
 auto pp = std::make_shared<og::PRM>(csi);
 ss->setPlanner(pp);
 ~~~
-
 
 ## Solving a Problem
 
@@ -263,10 +257,10 @@ That is, the distance between states in the path (especially after simplificatio
 If you want a path that has close, intermediate constraint satisfying states, you need to interpolate the path.
 In the code above, this is achieved with `ompl::geometric::PathGeometric::interpolate()`.
 
-# In Summary
+## In Summary
 
 With all that, we've now solved a constrained motion planning problem on a sphere. A resulting motion graph for PRM could look something like this, with the simplified solution path highlighted in yellow:
 
-<div class="row"><img src="images/prm.png" class="col-xs-6 col-xs-offset-3"></div>
+<div class="row justify-content-center"><div class="col-sm-6"><img src="images/prm.png" class="img-fluid"></div></div>
 
 Overall, planning with constraints is simple to setup and use. Beyond requiring you to define a constraint function and wrap your ambient space in a constrained state space, OMPL works and feels like normal. You can read more in general about constrained planning on the [main page](constrainedPlanning.html).

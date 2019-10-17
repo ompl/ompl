@@ -114,7 +114,7 @@ class ClearanceObjective(ob.StateCostIntegralObjective):
     # increases, the state cost decreases.
     def stateCost(self, s):
         return ob.Cost(1 / (self.si_.getStateValidityChecker().clearance(s) +
-            sys.float_info.min))
+                            sys.float_info.min))
 
 ## Return an optimization objective which attempts to steer the robot
 #  away from obstacles.

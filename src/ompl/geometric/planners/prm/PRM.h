@@ -165,10 +165,20 @@ namespace ompl
                 connectionStrategy_ = connectionStrategy;
                 userSetConnectionStrategy_ = true;
             }
+            /** Set default strategy for connecting to nearest neighbors */
+            void setDefaultConnectionStrategy();
+
             /** \brief Convenience function that sets the connection strategy to the
              default one with k nearest neighbors.
              */
             void setMaxNearestNeighbors(unsigned int k);
+
+            /** \brief return the maximum number of nearest neighbors to connect a sample to
+             *
+             * This only returns a meaningful answer if the connection strategy is of type KStrategy.
+             */
+            unsigned int getMaxNearestNeighbors() const;
+
 
             /** \brief Set the function that can reject a milestone connection.
 
@@ -234,7 +244,7 @@ namespace ompl
                 Subsequent calls to solve() will reuse the previously computed roadmap,
                 but will clear the set of input states constructed by the previous call to solve().
                 This enables multi-query functionality for PRM. */
-            void clearQuery();
+            void clearQuery() override;
 
             void clear() override;
 
@@ -247,7 +257,7 @@ namespace ompl
                 clear();
                 nn_ = std::make_shared<NN<Vertex>>();
                 if (!userSetConnectionStrategy_)
-                    connectionStrategy_ = ConnectionStrategy();
+                    setDefaultConnectionStrategy();
                 if (isSetup())
                     setup();
             }

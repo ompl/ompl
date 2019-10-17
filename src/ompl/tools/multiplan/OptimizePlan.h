@@ -71,6 +71,12 @@ namespace ompl
                 return pp_.getProblemDefinition();
             }
 
+            /** \brief Get the problem definition used */
+            base::ProblemDefinitionPtr &getProblemDefinition()
+            {
+                return pp_.getProblemDefinition();
+            }
+
             /** \brief Try to solve the specified problem within a \e solveTime seconds, using at most \e nthreads
                threads. If
                 more than \e maxSol solutions are generated, stop generating more. */

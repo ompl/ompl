@@ -2,9 +2,9 @@
 
 ## About Planner Arena
 
-**Planner Arena** is a site for benchmarking sampling-based planners. The site is set up to show the performance of implementations of various sampling-based planning algorithms in the [Open Motion Planning Library (OMPL)](http://ompl.kavrakilab.org). We have chosen a few benchmark problems that highlight some interesting aspects of motion planning.
+**Planner Arena** is a site for benchmarking sampling-based planners. The site is set up to show the performance of implementations of various sampling-based planning algorithms in the [Open Motion Planning Library (OMPL)](https://ompl.kavrakilab.org). We have chosen a few benchmark problems that highlight some interesting aspects of motion planning.
 
-**Planner Arena** is also a site you can use to analyze your own motion planning benchmark data. The easiest way to do so is to use either the `ompl_benchmark` program in OMPL.app or the [`Benchmark`](\ref ompl::tools::Benchmark) class in your own code. See the [relevant documentation](http://ompl.kavrakilab.org/benchmark.html) on the OMPL site. The log files that are produced by the OMPL benchmarking facilities get turned into a SQLite database using a script. The database schema is described on this page as well. This means that you could produce benchmark databases with some other software for entirely different planning algorithms (or different implementations of algorithms in OMPL) and use Planner Arena to visualize the data. Much of the Planner Arena user interface is dynamically constructed based on the contents of the benchmark database. In particular, if you store different types of performance measures in your tables, Planner Arena will still be able to plot the results.
+**Planner Arena** is also a site you can use to analyze your own motion planning benchmark data. The easiest way to do so is to use either the `ompl_benchmark` program in OMPL.app or the [`Benchmark`](\ref ompl::tools::Benchmark) class in your own code. See the [relevant documentation](https://ompl.kavrakilab.org/benchmark.html) on the OMPL site. The log files that are produced by the OMPL benchmarking facilities get turned into a SQLite database using a script. The database schema is described on this page as well. This means that you could produce benchmark databases with some other software for entirely different planning algorithms (or different implementations of algorithms in OMPL) and use Planner Arena to visualize the data. Much of the Planner Arena user interface is dynamically constructed based on the contents of the benchmark database. In particular, if you store different types of performance measures in your tables, Planner Arena will still be able to plot the results.
 
 Below, we will describe:
 - [The benchmarks included in the default database.](#sampleBenchmarks)
@@ -28,27 +28,27 @@ The default database used by the Planner Arena server contains results for a num
 
 <div class="row" id="videocollection">
   <div class="video">
-    <iframe src="http://player.vimeo.com/video/58686592?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="216" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br>
+    <iframe src="https://player.vimeo.com/video/58686592?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="216" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br>
     <b>Cubicles</b>
   </div>
   <div class="video">
-    <iframe src="http://player.vimeo.com/video/107884951?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="265" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br>
+    <iframe src="https://player.vimeo.com/video/107884951?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="265" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br>
     <b>Abstract</b>
   </div>
   <div class="video">
-    <iframe src="http://player.vimeo.com/video/58686593?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="195" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
+    <iframe src="https://player.vimeo.com/video/58686593?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="195" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
     <b>Home</b>
   </div>
   <div class="video">
-    <iframe src="http://player.vimeo.com/video/107885658?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="258" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
+    <iframe src="https://player.vimeo.com/video/107885658?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="258" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
     <b>Pipedream – ring</b>
   </div>
   <div class="video">
-    <iframe src="http://player.vimeo.com/video/107887115?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="281" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
+    <iframe src="https://player.vimeo.com/video/107887115?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="281" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
     <b>Bugtrap – second-order car</b>
   </div>
   <div class="video">
-    <iframe src="http://player.vimeo.com/video/58686594?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="280" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
+    <iframe src="https://player.vimeo.com/video/58686594?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1" width="280" height="280" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>
     <b>Maze – kinematic car</b>
   </div>
 </div>
@@ -60,7 +60,7 @@ We have also included the results of a few benchmarks where the robot cannot be 
 
 ## <a name="overallPerformance"></a>Plots of overall performance
 
-The overall performance plots can show how different planners compare on various measures. The most common performance measure is the time it took a planner to find a feasible solution. For very hard problems where most planners time out without finding a solution, it might be informative to look at _solution difference_: the gap between the best found solution and the goal. Explanations of the various benchmark data collected by OMPL can be found [here](http://ompl.kavrakilab.org/benchmark.html#benchmark_log).
+The overall performance plots can show how different planners compare on various measures. The most common performance measure is the time it took a planner to find a feasible solution. For very hard problems where most planners time out without finding a solution, it might be informative to look at _solution difference_: the gap between the best found solution and the goal. Explanations of the various benchmark data collected by OMPL can be found [here](https://ompl.kavrakilab.org/benchmark.html#benchmark_log).
 
 The overall performance page allows you to select a motion planning problem that was benchmarked, a particular benchmark attribute to plot, the OMPL version (in case the database contains data for multiple versions), and the planners to compare. If there is only choice in a particular category, it will be disabled (since there is no other choice available).
 
@@ -75,7 +75,7 @@ The plots can be downloaded in two formats:
 
 ## <a name="progress"></a>Progress plots
 
-Some planners in OMPL can not only report information _after_ a run is completed, but also periodically report information _during_ a run. In particular, for asymptotically optimal planners it is interesting to look at the convergence rate of the best path cost. Typically, the path cost is simply path length, but OMPL allows you to specify different [optimization objectives](http://ompl.kavrakilab.org/optimalPlanning.html). See also the [benchmarking tutorial](http://ompl.kavrakilab.org/benchmark.html) for information on how to specify objectives in the input files for `ompl_benchmark`.
+Some planners in OMPL can not only report information _after_ a run is completed, but also periodically report information _during_ a run. In particular, for asymptotically optimal planners it is interesting to look at the convergence rate of the best path cost. Typically, the path cost is simply path length, but OMPL allows you to specify different [optimization objectives](https://ompl.kavrakilab.org/optimalPlanning.html). See also the [benchmarking tutorial](https://ompl.kavrakilab.org/benchmark.html) for information on how to specify objectives in the input files for `ompl_benchmark`.
 
 By default, Planner Arena will plot the smoothed mean as well as a 95% confidence interval for the mean. Analogous to the performance plots, missing data is ignored. During the first couple seconds of a run, a planner may never find a solution path. Below the progress plot, we therefore plot the number of data points available for a particular planner at a particular 1 second time interval.
 
@@ -92,4 +92,4 @@ On the “Database info” page there are two tabs. Both show information for th
 
 ## <a name="changeDatabase"></a>Changing the benchmark database
 
-Finally, it is possible to upload your own database of benchmark data. We have limited the maximum database size to 30MB. If your database is larger, you can [run Planner Arena locally](http://ompl.kavrakilab.org/plannerarena.html). The “Change database” page allows you to switch back to the default database after you have uploaded your own database. You can also download the default database. This might be useful if you want to extend the database with your own benchmarking results and compare our default benchmark data with your own results.
+Finally, it is possible to upload your own database of benchmark data. We have limited the maximum database size to 30MB. If your database is larger, you can [run Planner Arena locally](https://ompl.kavrakilab.org/plannerarena.html). The “Change database” page allows you to switch back to the default database after you have uploaded your own database. You can also download the default database. This might be useful if you want to extend the database with your own benchmarking results and compare our default benchmark data with your own results.

@@ -3,6 +3,7 @@ add_feature_info(OMPL_BUILD_DEMOS "${OMPL_BUILD_DEMOS}" "Whether to build the OM
 
 if (OMPL_BUILD_DEMOS)
     file(TO_NATIVE_PATH "${CMAKE_SOURCE_DIR}/tests/resources" TEST_RESOURCES_DIR)
+    string(REPLACE "\\" "\\\\" TEST_RESOURCES_DIR "${TEST_RESOURCES_DIR}")
     add_definitions(-DTEST_RESOURCES_DIR=\"${TEST_RESOURCES_DIR}\")
 
     macro(add_ompl_demo demo_name)
@@ -45,7 +46,13 @@ if (OMPL_BUILD_DEMOS)
     add_ompl_demo(demo_ConstrainedPlanningImplicitParallel constraint/ConstrainedPlanningImplicitParallel.cpp)
     add_ompl_demo(demo_ConstrainedPlanningKinematicChain constraint/ConstrainedPlanningKinematicChain.cpp)
 
-    if (OMPL_EXTENSION_OPENDE)
+    add_ompl_demo(demo_QuotientSpacePlanningRigidBody2D quotientspace/QuotientSpacePlanningRigidBody2D.cpp)
+    add_ompl_demo(demo_QuotientSpacePlanningRigidBody3D quotientspace/QuotientSpacePlanningRigidBody3D.cpp)
+    add_ompl_demo(demo_QuotientSpacePlanningKinematicChain quotientspace/QuotientSpacePlanningKinematicChain.cpp)
+    add_ompl_demo(demo_QuotientSpacePlanningHyperCube quotientspace/QuotientSpacePlanningHyperCube.cpp)
+    add_ompl_demo(demo_QuotientSpacePlanningHyperCubeBenchmark quotientspace/QuotientSpacePlanningHyperCubeBenchmark.cpp)
+
+    if (OMPL_EXTENSION_ODE)
         add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)
     endif()
 

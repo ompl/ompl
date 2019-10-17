@@ -70,6 +70,29 @@
     #define ASSERT_NOT_PRUNED
 #endif  // BITSTAR_DEBUG
 
+// An anonymous namespace to hide the instance:
+namespace
+{
+    // Global variables:
+    // The initialization flag stating that the ID generator has been created:
+    std::once_flag g_IdInited;
+    // A pointer to the actual ID generator
+    boost::scoped_ptr<ompl::geometric::BITstar::IdGenerator> g_IdGenerator;
+
+    // A function to initialize the ID generator pointer:
+    void initIdGenerator()
+    {
+        g_IdGenerator.reset(new ompl::geometric::BITstar::IdGenerator());
+    }
+
+    // A function to get the current ID generator:
+    ompl::geometric::BITstar::IdGenerator &getIdGenerator()
+    {
+        std::call_once(g_IdInited, &initIdGenerator);
+        return *g_IdGenerator;
+    }
+}
+
 namespace ompl
 {
     namespace geometric
@@ -601,7 +624,11 @@ namespace ompl
             edgeQueueInPtrs_.push_back(newInPtr);
         }
 
-        void BITstar::Vertex::rmIncomingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &elemToDelete, unsigned int vertexQueueResetNum)
+        void BITstar::Vertex::rmIncomingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &elemToDelete, unsigned int
+#ifdef BITSTAR_DEBUG
+        vertexQueueResetNum
+#endif
+        )
         {
             ASSERT_NOT_PRUNED
 
@@ -641,7 +668,11 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
         }
 
-        void BITstar::Vertex::rmIncomingEdgeQueuePtrByIter(const SearchQueue::EdgeQueueElemPtrVector::const_iterator& constIterToDelete, unsigned int vertexQueueResetNum)
+        void BITstar::Vertex::rmIncomingEdgeQueuePtrByIter(const SearchQueue::EdgeQueueElemPtrVector::const_iterator& constIterToDelete, unsigned int
+#ifdef BITSTAR_DEBUG
+        vertexQueueResetNum
+#endif
+        )
         {
             ASSERT_NOT_PRUNED
 
@@ -742,7 +773,11 @@ namespace ompl
             edgeQueueOutPtrs_.push_back(newOutPtr);
         }
 
-        void BITstar::Vertex::rmOutgoingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &elemToDelete, unsigned int vertexQueueResetNum)
+        void BITstar::Vertex::rmOutgoingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &elemToDelete, unsigned int
+#ifdef BITSTAR_DEBUG
+        vertexQueueResetNum
+#endif
+        )
         {
             ASSERT_NOT_PRUNED
 
@@ -782,7 +817,11 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
         }
 
-        void BITstar::Vertex::rmOutgoingEdgeQueuePtrByIter(const SearchQueue::EdgeQueueElemPtrVector::const_iterator& constIterToDelete, unsigned int vertexQueueResetNum)
+        void BITstar::Vertex::rmOutgoingEdgeQueuePtrByIter(const SearchQueue::EdgeQueueElemPtrVector::const_iterator& constIterToDelete, unsigned int
+#ifdef BITSTAR_DEBUG
+        vertexQueueResetNum
+#endif
+        )
         {
             ASSERT_NOT_PRUNED
 

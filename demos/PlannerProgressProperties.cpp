@@ -58,7 +58,7 @@ namespace og = ompl::geometric;
 // Toward the bottom of the generated plot.pdf file, you'll see plots
 // for how various properties change, on average, during planning
 // runs.
-int main(int argc, char** argv)
+int main(int, char**)
 {
     auto space(std::make_shared<ob::RealVectorStateSpace>(2));
     space->setBounds(0, 1);

@@ -9,7 +9,7 @@ find_python_module(pygccxml 1.7.2)
 find_package(castxml)
 
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
-    include_directories(${PYTHON_INCLUDE_DIRS})
+    include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
     # make sure target is defined only once
     if(NOT TARGET py_ompl)
         # top-level target for compiling python modules
@@ -99,6 +99,12 @@ function(create_module_target module)
         else(WIN32)
             add_library(py_ompl_${module} MODULE ${PY${module}BINDINGS})
             set_target_properties(py_ompl_${module} PROPERTIES OUTPUT_NAME _${module})
+            if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
+                target_compile_options(py_ompl_${module} PRIVATE -Wno-unused-local-typedef)
+            endif()
+            if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+                target_compile_options(py_ompl_${module} PRIVATE -Wno-unused-local-typedefs)
+            endif()
         endif(WIN32)
 
         target_link_libraries(py_ompl_${module}

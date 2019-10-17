@@ -66,4 +66,6 @@ src/ompl/base/samplers/InformedStateSampler.h
 src/ompl/base/samplers/informed/PathLengthDirectInfSampler.h
 src/ompl/base/samplers/informed/RejectionInfSampler.h
 src/ompl/base/samplers/informed/OrderedInfSampler.h
+src/ompl/base/terminationconditions/CostConvergenceTerminationCondition.h
+src/ompl/base/terminationconditions/IterationTerminationCondition.h
 py-bindings/ompl_py_base.h

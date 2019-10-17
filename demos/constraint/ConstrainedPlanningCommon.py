@@ -58,7 +58,8 @@ import datetime
 
 def addSpaceOption(parser):
     parser.add_argument("-s", "--space", default="PJ",
-                        choices=["PJ", "AT", "TB"], help="""Choose which constraint handling methodology to use. One of:
+                        choices=["PJ", "AT", "TB"],
+                        help="""Choose which constraint handling methodology to use. One of:
         PJ - Projection (Default)
         AT - Atlas
         TB - Tangent Bundle.""")
@@ -66,7 +67,8 @@ def addSpaceOption(parser):
 
 def addPlannerOption(parser):
     parser.add_argument("-p", "--planner", default="RRT",
-                        help="Comma-separated list of which motion planner to use (multiple if benchmarking, one if planning).\n Choose from, e.g.:\n"
+                        help="Comma-separated list of which motion planner to use (multiple if "
+                        "benchmarking, one if planning).\n Choose from, e.g.:\n"
                         "RRT (Default), RRTConnect, RRTstar, "
                         "EST, BiEST, ProjEST, "
                         "BITstar, "
@@ -78,8 +80,10 @@ def addConstrainedOptions(parser):
     group = parser.add_argument_group("Constrained planning options")
     group.add_argument("-d", "--delta", type=float, default=ob.CONSTRAINED_STATE_SPACE_DELTA,
                        help="Step-size for discrete geodesic on manifold.")
-    group.add_argument("--lambda", type=float, dest="lambda_", metavar="LAMBDA", default=ob.CONSTRAINED_STATE_SPACE_LAMBDA,
-                       help="Maximum `wandering` allowed during atlas traversal. Must be greater than 1.")
+    group.add_argument("--lambda", type=float, dest="lambda_", metavar="LAMBDA",
+                       default=ob.CONSTRAINED_STATE_SPACE_LAMBDA,
+                       help="Maximum `wandering` allowed during atlas traversal. Must be greater "
+                       "than 1.")
     group.add_argument("--tolerance", type=float, default=ob.CONSTRAINT_PROJECTION_TOLERANCE,
                        help="Constraint satisfaction tolerance.")
     group.add_argument("--time", type=float, default=5.,
@@ -87,8 +91,8 @@ def addConstrainedOptions(parser):
     group.add_argument("--tries", type=int, default=ob.CONSTRAINT_PROJECTION_MAX_ITERATIONS,
                        help="Maximum number sample tries per sample.")
     group.add_argument("-r", "--range", type=float, default=0.,
-                       help="Planner `range` value for planners that support this parameter. Automatically determined "
-                       "otherwise (when 0).")
+                       help="Planner `range` value for planners that support this parameter. "
+                       "Automatically determined otherwise (when 0).")
 
 def list2vec(l):
     ret = ou.vectorDouble()
@@ -104,21 +108,25 @@ def clearSpaceAndPlanner(planner):
 def addAtlasOptions(parser):
     group = parser.add_argument_group("Atlas options")
     group.add_argument("--epsilon", type=float, default=ob.ATLAS_STATE_SPACE_EPSILON,
-                       help="Maximum distance from an atlas chart to the manifold. Must be positive.")
+                       help="Maximum distance from an atlas chart to the manifold. Must be "
+                       "positive.")
     group.add_argument("--rho", type=float, default=ob.CONSTRAINED_STATE_SPACE_DELTA *
-                       ob.ATLAS_STATE_SPACE_RHO_MULTIPLIER, help="Maximum radius for an atlas chart. Must be positive.")
-    group.add_argument("--exploration", type=float, default=ob.ATLAS_STATE_SPACE_EXPLORATION, help="Value in [0, 1] which tunes balance of refinement and exploration in "
+                       ob.ATLAS_STATE_SPACE_RHO_MULTIPLIER,
+                       help="Maximum radius for an atlas chart. Must be positive.")
+    group.add_argument("--exploration", type=float, default=ob.ATLAS_STATE_SPACE_EXPLORATION,
+                       help="Value in [0, 1] which tunes balance of refinement and exploration in "
                        "atlas sampling.")
     group.add_argument("--alpha", type=float, default=ob.ATLAS_STATE_SPACE_ALPHA,
-                       help="Maximum angle between an atlas chart and the manifold. Must be in [0, PI/2].")
+                       help="Maximum angle between an atlas chart and the manifold. Must be in "
+                       "[0, PI/2].")
     group.add_argument("--bias", action="store_true",
-                       help="Sets whether the atlas should use frontier-biased chart sampling rather than "
-                       "uniform.")
+                       help="Sets whether the atlas should use frontier-biased chart sampling "
+                       "rather than uniform.")
     group.add_argument("--no-separate", action="store_true",
                        help="Sets that the atlas should not compute chart separating halfspaces.")
     group.add_argument("--charts", type=int, default=ob.ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION,
-                       help="Maximum number of atlas charts that can be generated during one manifold "
-                       "traversal.")
+                       help="Maximum number of atlas charts that can be generated during one "
+                       "manifold traversal.")
 
 
 class ConstrainedProblem(object):

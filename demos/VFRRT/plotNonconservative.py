@@ -49,6 +49,7 @@ def makeVectorField(f, xmin, xmax, ymin, ymax, step):
 fig = plt.figure()
 ax = fig.gca(aspect='equal')
 x = np.loadtxt("vfrrt-nonconservative.path")
-makeVectorField(lambda x, y: (y / sqrt(x * x + y * y + 1e-6), -x / sqrt(x * x + y * y + 1e-6)), -6, 6, -6, 6, 0.5)
+makeVectorField(lambda x, y: (y / sqrt(x * x + y * y + 1e-6), -x / sqrt(x * x + y * y + 1e-6)),
+                -6, 6, -6, 6, 0.5)
 ax.plot(x[:, 0], x[:, 1])
 plt.show()

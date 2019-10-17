@@ -96,7 +96,8 @@ namespace ompl
         DeclareSpecificParamType(3, unsigned int);
         DeclareSpecificParamType(4, float);
         DeclareSpecificParamType(5, double);
-        DeclareSpecificParamType(6, std::string);
+        DeclareSpecificParamType(6, long double);
+        DeclareSpecificParamType(7, std::string);
 
         inline int dummySTLContainerSize()
         {

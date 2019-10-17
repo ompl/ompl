@@ -1,6 +1,7 @@
 # Optimal Planning Tutorial {#optimalPlanningTutorial}
 
 Defining an optimal motion planning problem is almost exactly the same as defining a regular motion planning problem, with two main differences:
+
 1. You need to specify an optimization objective to `ompl::base::ProblemDefinition`.
 2. You need to use an optimizing planner for the actual motion planning.
 
@@ -121,7 +122,7 @@ ob::PlannerStatus solved = optimizingPlanner->solve(1.0);
 
 Here's an animation demonstrating the progress of the RRTstar planner on the problem we just defined:
 
-<div class="row"><img src="images/path-length.gif" class="col-xs-10 col-xs-offset-1"></div>
+<div class="row justify-content-center"><img src="images/path-length.gif" class="col-xs-10"></div>
 
 Note that when attempting to solve the planning problem, we specify a time limit of 1 second. In regular motion planning, the planner will stop as soon as a path between the start and goal states has been found - this can take far less than 1 second of planning. However, if you execute this example you'll notice that the planner always takes the full planning time of 1 second. This is because optimizing planners have a stricter stopping requirement than regular planners. Regular planners stop when they've found a path from start to goal; on the other hand, optimizing planners stop when they've found a path from start to goal that _satisfies the optimization objective_.
 
@@ -130,6 +131,7 @@ Note that when attempting to solve the planning problem, we specify a time limit
 What does satisfying an optimization objective mean? This behaviour can be customized, but by default, it means finding a path that passes some quality threshold. For shortest path planning, it means finding a path that is shorter than some given length. You'll notice we never specified this threshold; the default behaviour for `ompl::base::PathLengthOptimizationObjective` is to set the threshold to 0.0 if a threshold wasn't specified. This means that the objective is only satisfied by paths of length less than 0.0, which means this objective will never be satisfied! Our reasoning for doing this is that, if you don't specify a threshold, we assume that you want the planner to return the best possible path it can find in the time limit. Therefore, setting a threshold of 0.0 means that the objective will never be satisfied, and guarantee that the planner runs all the way until the specified time limit and returns the best path it could find.
 
 We can create an `OptimizationObjective` with a quality threshold of 1.51 by using the `setCostThreshold` method:
+
 ~~~{.cpp}
 ob::OptimizationObjectivePtr getThresholdPathLengthObj(const ob::SpaceInformationPtr& si)
 {

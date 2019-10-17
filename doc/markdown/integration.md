@@ -1,24 +1,10 @@
 # Integration of OMPL in Other Systems {#integration}
 
+[TOC]
+
 OMPL provides a high level of abstraction to make it easier to integrate it into larger robot software systems. By design, the core OMPL library does not include any code for representing geometry and kinematics. However, to solve motion planning problems, we _do_ need to pick a particular representation for robots and the environment. Below we have listed a number of projects that have done this in very different ways.
 
-\htmlonly
-<div class="btn-group">
-  <a class="btn btn-default" href="#integration_moveit">MoveIt!</a>
-  <a class="btn btn-default" href="#integration_openrave">OpenRAVE</a>
-  <a class="btn btn-default" href="#integration_vrep">V-REP</a>
-  <a class="btn btn-default" href="#integration_morse">MORSE</a>
-  <a class="btn btn-default" href="#integration_kautham">Kautham</a>
-  <a class="btn btn-default" href="#integration_verosim">VEROSIM</a>
-  <a class="btn btn-default" href="#integration_aikido">AIKIDO</a>
-  <a class="btn btn-default" href="#integration_exotica">EXOTica</a>
-  <a class="btn btn-default" href="#integration_rl">Robotics Library</a>
-  <a class="btn btn-default" href="#integration_sims">SIMS</a>
-  <a class="btn btn-default" href="#integration_omplapp">OMPL.app</a>
-</div>
-\endhtmlonly
-
-# MoveIt! {#integration_moveit}
+## MoveIt {#integration_moveit}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -31,7 +17,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-# OpenRAVE {#integration_openrave}
+## OpenRAVE {#integration_openrave}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -39,13 +25,12 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-16by9">
-      \htmlonly<iframe src="http://www.youtube.com/embed/6qRRbvNzHG8"></iframe>\endhtmlonly
+      \htmlonly<iframe src="https://www.youtube.com/embed/6qRRbvNzHG8"></iframe>\endhtmlonly
     </div>
   </div>
 </div>
 
-
-# V-REP {#integration_vrep}
+## V-REP {#integration_vrep}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -53,27 +38,25 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-16by9">
-      \htmlonly<iframe src="http://www.youtube.com/embed/JAs2yciPjvM"></iframe>\endhtmlonly
+      \htmlonly<iframe src="https://www.youtube.com/embed/JAs2yciPjvM"></iframe>\endhtmlonly
     </div>
   </div>
 </div>
 
-
-# MORSE {#integration_morse}
+## MORSE {#integration_morse}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
-    [The Modular OpenRobots Simulation Engine (MORSE)](https://www.openrobots.org/wiki/morse) is a generic simulator for academic robotics. It is implemented as an extension for Blender, a 3D modeling program. Blender includes a game engine which uses the Bullet physics simulator under the hood. MORSE includes many simulated sensors, actuators, and robot models. Caleb Voss, as part of a Google Summer of Code project, developed [a plugin for Blender/MORSE](http://ompl.kavrakilab.org/morse.html) that adds planning functionality. The adjacent video shows an example of what can be produced with this plugin.
+    [The Modular OpenRobots Simulation Engine (MORSE)](https://www.openrobots.org/wiki/morse) is a generic simulator for academic robotics. It is implemented as an extension for Blender, a 3D modeling program. Blender includes a game engine which uses the Bullet physics simulator under the hood. MORSE includes many simulated sensors, actuators, and robot models. Caleb Voss, as part of a Google Summer of Code project, developed [a plugin for Blender/MORSE](https://ompl.kavrakilab.org/morse.html) that adds planning functionality. The adjacent video shows an example of what can be produced with this plugin.
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-16by9">
-      \htmlonly<iframe src="http://player.vimeo.com/video/71580831?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=0&amp;loop=1"></iframe>\endhtmlonly
+      \htmlonly<iframe src="https://player.vimeo.com/video/71580831?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=0&amp;loop=1"></iframe>\endhtmlonly
     </div>
   </div>
 </div>
 
-
-# The Kautham Project {#integration_kautham}
+## The Kautham Project {#integration_kautham}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -84,8 +67,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-
-# VEROSIM {#integration_verosim}
+## VEROSIM {#integration_verosim}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -98,16 +80,15 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-
-# AIKIDO {#integration_aikido}
+## AIKIDO {#integration_aikido}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
-    [AIKIDO](https://github.com/personalrobotics/aikido) is a C++ library, complete with Python bindings, for solving robotic motion planning and decision making problems. This library is tightly integrated with [DART](http://dartsim.github.io/) for kinematic/dynamics calculations and [OMPL](http://ompl.kavrakilab.org/) for motion planning. AIKIDO optionally integrates with [ROS](http://ros.org/), through the suite of `aikido_ros` packages, for execution on real robots.
+    [AIKIDO](https://github.com/personalrobotics/aikido) is a C++ library, complete with Python bindings, for solving robotic motion planning and decision making problems. This library is tightly integrated with [DART](http://dartsim.github.io/) for kinematic/dynamics calculations and [OMPL](https://ompl.kavrakilab.org/) for motion planning. AIKIDO optionally integrates with [ROS](http://ros.org/), through the suite of `aikido_ros` packages, for execution on real robots.
   </div>
 </div>
 
-# EXOTica {#integration_exotica}
+## EXOTica {#integration_exotica}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -120,7 +101,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-# Robotics Library {#integration_rl}
+## Robotics Library {#integration_rl}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -133,8 +114,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-
-# SIMS {#integration_sims}
+## SIMS {#integration_sims}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -145,8 +125,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-
-# OMPL.app {#integration_omplapp}
+## OMPL.app {#integration_omplapp}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -154,7 +133,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-4by3">
-      \htmlonly<iframe src="http://player.vimeo.com/video/58686592?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=0&amp;loop=1"></iframe>\endhtmlonly
+      \htmlonly<iframe src="https://player.vimeo.com/video/58686592?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=0&amp;loop=1"></iframe>\endhtmlonly
     </div>
   </div>
 </div>

@@ -95,8 +95,6 @@ public:
         bounds.setLow(-boost::math::constants::pi<double>());
         bounds.setHigh(boost::math::constants::pi<double>());
         setBounds(bounds);
-
-        type_ = ompl::base::STATE_SPACE_SO2;
     }
 
     void registerProjections() override

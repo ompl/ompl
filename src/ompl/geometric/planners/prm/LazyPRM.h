@@ -166,7 +166,7 @@ namespace ompl
                 clear();
                 nn_ = std::make_shared<NN<Vertex>>();
                 if (!userSetConnectionStrategy_)
-                    connectionStrategy_ = ConnectionStrategy();
+                    setDefaultConnectionStrategy();
                 if (isSetup())
                     setup();
             }
@@ -191,6 +191,8 @@ namespace ompl
                 connectionStrategy_ = connectionStrategy;
                 userSetConnectionStrategy_ = true;
             }
+            /** Set default strategy for connecting to nearest neighbors */
+            void setDefaultConnectionStrategy();
 
             /** \brief Convenience function that sets the connection strategy to the
              default one with k nearest neighbors.
@@ -237,7 +239,7 @@ namespace ompl
                 Subsequent calls to solve() will reuse the previously computed roadmap,
                 but will clear the set of input states constructed by the previous call to solve().
                 This enables multi-query functionality for LazyPRM. */
-            void clearQuery();
+            void clearQuery() override;
 
             base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
