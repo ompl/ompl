@@ -2,13 +2,13 @@
 
 ## MoveIt
 
-An overview of [MoveIt](http://moveit.ros.org), the [ROS](http://www.ros.org) package that provides a high-level interface to OMPL and other motion planning packages.
+A 2017 highlight reel for [MoveIt](http://moveit.ros.org), the [ROS](http://www.ros.org) package that provides a high-level interface to OMPL and other motion planning packages.
 
 \htmlonly
 <div class="row justify-content-center">
   <div class="col-md-8 col-sm-10">
     <div class="embed-responsive embed-responsive-16by9">
-      <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/vAeEEoxVhAo"></iframe>
+      <iframe class="embed-responsive-item" src="https://youtu.be/0og1SaZYtRc"></iframe>
     </div>
   </div>
 </div>
@@ -16,7 +16,7 @@ An overview of [MoveIt](http://moveit.ros.org), the [ROS](http://www.ros.org) pa
 
 ## Planning with constraints
 
-OMPL has support for [motion planning subject to hard constraints](constrainedPlanning.html), including, but not limited to, Cartesian planning. In [a paper presented at ISRR 2017](http://www.kavrakilab.org/publications/kingston2017decoupling-constraints.html) we describe how we have integrated prior motion planning approaches to planning with constraints in one framework that allows you to use any of the OMPL planners for constrained planning. The video below illustrates the main ideas. The examples in the videos are included as demo programs in the `ompl/demos/constraint` directory.
+OMPL has support for [motion planning subject to hard constraints](constrainedPlanning.html), including, but not limited to, Cartesian planning. In [a 2019 paper in the International Journal of Robotics Research](http://www.kavrakilab.org/publications/kingston2019exploring-implicit-spaces-for-constrained.pdf) we describe how we have integrated prior motion planning approaches to planning with constraints in one framework that allows you to use any of the OMPL planners for constrained planning. The video below illustrates the main ideas. The examples in the videos are included as demo programs in the `ompl/demos/constraint` directory.
 
 \htmlonly
 <div class="row justify-content-center">

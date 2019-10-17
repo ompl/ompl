@@ -1,5 +1,7 @@
 # Generic Instructions for Setting Up a Planning Context {#genericPlanning}
 
+[TOC]
+
 ## Instantiating a state space
 
 The first step for setting up a planning problem is selecting the space we are planning in. Simply create an instance of a class that inherits from ompl::base::StateSpace, or select one from the available implementations. To change the definition of the employed sampler or distance function, it is possible to provide a further specialization of such a state space. See [Implementing State Spaces]{implementingStateSpaces.html}.
