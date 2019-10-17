@@ -23,6 +23,7 @@ src/ompl/base/goals/GoalSampleableRegion.h
 src/ompl/base/goals/GoalState.h
 src/ompl/base/goals/GoalStates.h
 src/ompl/base/goals/GoalLazySamples.h
+src/ompl/base/goals/GoalSpace.h
 src/ompl/base/DiscreteMotionValidator.h
 src/ompl/base/OptimizationObjective.h
 src/ompl/base/objectives/MinimaxObjective.h
