@@ -452,7 +452,7 @@ namespace ompl
                 }
                 // No else
 
-                // Infrement the provided counter
+                // Increment the provided counter
                 ++(*iters);
             }
 
