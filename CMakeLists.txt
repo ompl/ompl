@@ -53,7 +53,7 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 # Add support in Boost::Python for std::shared_ptr
 # This is a hack that replaces boost::shared_ptr related code with std::shared_ptr.
 # Proper support for std::shared_ptr was added in Boost 1.63.
-if(Boost_VERSION VERSION_LESS "106300")
+if(Boost_VERSION_STRING VERSION_LESS "1.63.0")
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/external")
 endif()
 
