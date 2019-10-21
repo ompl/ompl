@@ -40,7 +40,7 @@ import sys
 from os.path import abspath, dirname, join
 sys.path.insert(0, join(dirname(dirname(dirname(abspath(__file__)))), 'py-bindings'))
 from functools import partial
-from time import clock
+from time import perf_counter
 from math import fabs
 import unittest
 import copy
@@ -163,9 +163,9 @@ class TestPlanner(object):
 
         ss.setStartAndGoalStates(start, goal, 0.05)
 
-        startTime = clock()
+        startTime = perf_counter()
         if ss.solve(SOLUTION_TIME):
-            elapsed = clock() - startTime
+            elapsed = perf_counter() - startTime
             time = time + elapsed
             if show:
                 print('Found solution in %f seconds!' % elapsed)
