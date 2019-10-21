@@ -8,7 +8,7 @@ A 2017 highlight reel for [MoveIt](http://moveit.ros.org), the [ROS](http://www.
 <div class="row justify-content-center">
   <div class="col-md-8 col-sm-10">
     <div class="embed-responsive embed-responsive-16by9">
-      <iframe class="embed-responsive-item" src="https://youtu.be/0og1SaZYtRc"></iframe>
+      <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/0og1SaZYtRc"></iframe>
     </div>
   </div>
 </div>
