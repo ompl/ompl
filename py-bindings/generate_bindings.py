@@ -287,6 +287,11 @@ class ompl_base_generator_t(code_generator_t):
         cls.add_registration_code(
             'def("__bool__", &ompl::base::PlannerStatus::operator bool)')
 
+        # exclude the non-const version of  getProblemDefinition
+        self.ompl_ns.member_functions(
+            'getProblemDefinition',
+            return_type='::ompl::base::ProblemDefinitionPtr &').exclude()
+
         # Using nullptr as a default value in method arguments causes
         # problems with Boost.Python.
         # See https://github.com/boostorg/python/issues/60
@@ -547,6 +552,11 @@ class ompl_control_generator_t(code_generator_t):
         for cls in ['SimpleSetup', 'SpaceInformation']:
             self.ompl_ns.namespace('control').class_(cls).wrapper_alias = 'Control%s_wrapper' % cls
 
+        # exclude the non-const version of  getProblemDefinition
+        self.ompl_ns.member_functions(
+            'getProblemDefinition',
+            return_type='::ompl::base::ProblemDefinitionPtr &').exclude()
+
         # Py++ seems to get confused by some methods declared in one module
         # that are *not* overridden in a derived class in another module. The
         # Planner class is defined in ompl::base and two of its virtual methods,
@@ -643,6 +653,11 @@ class ompl_geometric_generator_t(code_generator_t):
         # problems with Boost.Python.
         # See https://github.com/boostorg/python/issues/60
         self.ompl_ns.class_('PathSimplifier').add_declaration_code('#define nullptr NULL\n')
+
+        # exclude the non-const version of  getProblemDefinition
+        self.ompl_ns.member_functions(
+            'getProblemDefinition',
+            return_type='::ompl::base::ProblemDefinitionPtr &').exclude()
 
         # Py++ seems to get confused by some methods declared in one module
         # that are *not* overridden in a derived class in another module. The
