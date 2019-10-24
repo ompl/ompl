@@ -26,7 +26,7 @@ A breakdown of all contributions by commits can be found on GitHub for the [OMPL
 - [Ryan Luna](http://www.ryanluna.com), Rice University (now at Waymo)
 - Matt Maly, Rice University (now at Google)
 - [James Marble](http://www.cse.unr.edu/robotics/pracsys/marble), Kostas Bekris' [Physics-aware Research for Autonomous Computational SYStems group](http://www.cse.unr.edu/robotics/pracsys), University of Nevada, Reno
-- Andreas Orthey, National Institute of Advanced Industrial Science and Technology (AIST)
+- Andreas Orthey, University of Stuttgart, Marc Toussaint's [Machine Learning & Robotics Lab](https://ipvs.informatik.uni-stuttgart.de/mlr/), University of Stuttgart
 - Scott Paulin, University of Canterbury, New Zealand
 - [Alejandro Perez](http://people.csail.mit.edu/aperez/www), Seth Teller's [Robotics, Vision, and Sensor Networks Group](http://rvsn.csail.mit.edu), MIT
 - [Oren Salzman](http://orensalzman.com), Dan Halperin's [Computational Geometry Lab](http://acg.cs.tau.ac.il), Tel Aviv University
