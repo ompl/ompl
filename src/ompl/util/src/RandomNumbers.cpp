@@ -43,7 +43,6 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/random/uniform_on_sphere.hpp>
 #include <boost/random/variate_generator.hpp>
-#include <Eigen/Core>
 
 /// @cond IGNORE
 namespace

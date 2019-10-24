@@ -73,6 +73,8 @@ namespace ompl
             ~CellX() override = default;
 
             void *heapElement;
+
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         };
 
         /// \endcond

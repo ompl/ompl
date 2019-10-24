@@ -104,6 +104,9 @@ namespace ompl
 
             /** \brief Projection matrix */
             Matrix mat;
+
+        public:
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         };
 
         /// @cond IGNORE

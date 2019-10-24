@@ -88,6 +88,8 @@ namespace ompl
             /** \brief Distance matrix */
             mutable Eigen::MatrixXd table_;
 
+        public:
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         };  // end of class
 
     }  // namespace tools

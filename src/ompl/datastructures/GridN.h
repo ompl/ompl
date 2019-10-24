@@ -67,6 +67,8 @@ namespace ompl
             Cell() = default;
 
             ~Cell() override = default;
+
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         };
 
         /// The datatype for arrays of cells
@@ -242,6 +244,9 @@ namespace ompl
         /// Flag indicating whether the neighbor count used to determine whether
         /// a cell is on the border or not
         bool overrideCellNeighborsLimit_;
+
+    public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     };
 }
 
