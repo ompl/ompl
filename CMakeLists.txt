@@ -151,7 +151,7 @@ set_package_properties(Doxygen PROPERTIES
 find_package(Doxygen)
 
 # Numpy is used to convert Eigen matrices/vectors to numpy arrays
-if(PYTHON_FOUND AND NOT Boost_VERSION VERSION_LESS "106300")
+if(PYTHON_FOUND AND NOT Boost_VERSION_STRING VERSION_LESS "1.63.0")
     find_python_module(numpy)
     if (PY_NUMPY)
         find_boost_numpy()
