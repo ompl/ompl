@@ -76,6 +76,9 @@ namespace ompl
             /** \brief Sets the radius factor. */
             void setRadiusFactor(double factor);
 
+            /** \brief Enables collision detection on the reverse search. */
+            void enableCollisionDetectionOnReverseSearch(bool enable);
+
             /** \brief Returns a copy of the forward queue. */
             std::vector<aibitstar::Edge> getForwardQueue() const;
 
@@ -187,6 +190,9 @@ namespace ompl
 
             /** \brief The interpolation values used for the sparse collision detection on the reverse search. */
             std::vector<double> detectionInterpolationValues_{};
+
+            /** \brief Whether the collision detection on the reverse search is enabled. */
+            bool isCollisionDetectionOnReverseSearchEnabled_{true};
 
             /** \brief The state used to do sparse collision detection with. */
             ompl::base::State *detectionState_;

@@ -176,6 +176,11 @@ namespace ompl
             graph_.setRadiusFactor(factor);
         }
 
+        void AIBITstar::enableCollisionDetectionOnReverseSearch(bool enable)
+        {
+            isCollisionDetectionOnReverseSearchEnabled_ = enable;
+        }
+
         std::vector<Edge> AIBITstar::getForwardQueue() const
         {
             return forwardQueue_.getEdges();
@@ -365,12 +370,16 @@ namespace ompl
                         // Register the invalid edge with the graph.
                         graph_.registerInvalidEdge(edge);
 
-                        std::size_t numInterpolationValues = detectionInterpolationValues_.size() + 1u;
-                        double interpolationStep = 1.0 / (numInterpolationValues + 1u);
-                        detectionInterpolationValues_.clear();
-                        for (std::size_t i = 0u; i < numInterpolationValues; ++i)
+                        // If collision detection on the reverse search is enabled, add the interpolation values.
+                        if (isCollisionDetectionOnReverseSearchEnabled_)
                         {
-                            detectionInterpolationValues_.emplace_back((i + 1u) * interpolationStep);
+                            std::size_t numInterpolationValues = detectionInterpolationValues_.size() + 1u;
+                            double interpolationStep = 1.0 / (numInterpolationValues + 1u);
+                            detectionInterpolationValues_.clear();
+                            for (std::size_t i = 0u; i < numInterpolationValues; ++i)
+                            {
+                                detectionInterpolationValues_.emplace_back((i + 1u) * interpolationStep);
+                            }
                         }
 
                         // Restart the reverse queue.
