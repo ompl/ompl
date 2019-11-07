@@ -1082,8 +1082,8 @@ namespace ompl
                 // Run until at the end:
                 while (goalIter != goalEnd)
                 {
-                    // Check if this start has met the criteria to be pruned
-                    if (queuePtr_->vertexPruneCondition(*goalIter))
+                    // Check if this goal has met the criteria to be pruned
+                    if (queuePtr_->samplePruneCondition(*goalIter))
                     {
                         // It has, remove the goal vertex completely
                         // Check if this vertex is in the tree
