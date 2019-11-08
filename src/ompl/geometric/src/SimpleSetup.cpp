@@ -214,12 +214,6 @@ ompl::geometric::PathGeometric &ompl::geometric::SimpleSetup::getSolutionPath() 
     throw Exception("No solution path");
 }
 
-bool ompl::geometric::SimpleSetup::haveExactSolutionPath() const
-{
-    return haveSolutionPath() && (!pdef_->hasApproximateSolution() ||
-                                  pdef_->getSolutionDifference() < std::numeric_limits<double>::epsilon());
-}
-
 void ompl::geometric::SimpleSetup::getPlannerData(base::PlannerData &pd) const
 {
     pd.clear();
