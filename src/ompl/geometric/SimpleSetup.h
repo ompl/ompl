@@ -139,13 +139,16 @@ namespace ompl
 
             /** \brief Return true if a solution path is available (previous call to solve() was successful) and the
              * solution is exact (not approximate) */
-            bool haveExactSolutionPath() const;
+            bool haveExactSolutionPath() const
+            {
+                return pdef_->hasExactSolution();
+            }
 
             /** \brief Return true if a solution path is available (previous call to solve() was successful). The
              * solution may be approximate. */
             bool haveSolutionPath() const
             {
-                return pdef_->getSolutionPath() != nullptr;
+                return pdef_->hasSolution();
             }
 
             /** \brief Get the best solution's planer name. Throw an exception if no solution is available */
