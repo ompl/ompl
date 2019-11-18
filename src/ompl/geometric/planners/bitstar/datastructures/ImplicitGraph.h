@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Jonathan Gammell */
+/* Authors: Jonathan Gammell, Marlin Strub */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IMPLICITGRAPH_
 #define OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IMPLICITGRAPH_
@@ -227,6 +227,12 @@ namespace ompl
 
             /** \brief Get whether approximate solutions are tracked during the search. */
             bool getTrackApproximateSolutions() const;
+
+            /** \brief Set the average number of allowed failed attempts when sampling. */
+            void setAverageNumOfAllowedFailedAttemptsWhenSampling(std::size_t number);
+
+            /** \brief Get the average number of allowed failed attempts when sampling. */
+            std::size_t getAverageNumOfAllowedFailedAttemptsWhenSampling() const;
 
             /** \brief Set a different nearest neighbours datastructure. */
             template <template <typename T> class NN>

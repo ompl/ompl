@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Jonathan Gammell */
+/* Authors: Jonathan Gammell, Marlin Strub */
 
 // My definition:
 #include "ompl/geometric/planners/bitstar/datastructures/ImplicitGraph.h"
@@ -1028,28 +1028,32 @@ namespace ompl
                 // Actually generate the new samples
                 VertexPtrVector newStates { };
                 newStates.reserve(numRequiredSamples);
-                while (numSamples_ < numRequiredSamples)
+                for (std::size_t tries = 0u;
+                     tries < averageNumOfAllowedFailedAttemptsWhenSampling_ * numRequiredSamples &&
+                     numSamples_ < numRequiredSamples;
+                     ++tries)
                 {
                     // Variable
                     // The new state:
                     auto newState = std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_, approximationId_);
 
                     // Sample in the interval [costSampled_, costReqd):
-                    sampler_->sampleUniform(newState->state(), sampledCost_, requiredCost);
-
-                    // If the state is collision free, add it to the set of free states
-                    ++numStateCollisionChecks_;
-                    if (spaceInformation_->isValid(newState->state()))
+                    if (sampler_->sampleUniform(newState->state(), sampledCost_, requiredCost))
                     {
-                        newStates.push_back(newState);
+                        // If the state is collision free, add it to the set of free states
+                        ++numStateCollisionChecks_;
+                        if (spaceInformation_->isValid(newState->state()))
+                        {
+                            newStates.push_back(newState);
 
-                        // Update the number of uniformly distributed states
-                        ++numUniformStates_;
+                            // Update the number of uniformly distributed states
+                            ++numUniformStates_;
 
-                        // Update the number of sample
-                        ++numSamples_;
+                            // Update the number of sample
+                            ++numSamples_;
+                        }
+                        // No else
                     }
-                    // No else
                 }
 
                 // Add the new state as a sample.
@@ -1752,6 +1756,15 @@ namespace ompl
         bool BITstar::ImplicitGraph::getTrackApproximateSolutions() const
         {
             return findApprox_;
+        }
+
+        void BITstar::ImplicitGraph::setAverageNumOfAllowedFailedAttemptsWhenSampling(std::size_t number)
+        {
+            averageNumOfAllowedFailedAttemptsWhenSampling_ = number;
+        }
+
+        std::size_t BITstar::ImplicitGraph::getAverageNumOfAllowedFailedAttemptsWhenSampling() const {
+            return averageNumOfAllowedFailedAttemptsWhenSampling_;
         }
 
         template <template <typename T> class NN>

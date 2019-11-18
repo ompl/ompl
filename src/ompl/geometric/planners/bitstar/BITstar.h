@@ -220,6 +220,12 @@ namespace ompl
             /** \brief Get the rewiring scale factor. */
             double getRewireFactor() const;
 
+            /** \brief Set the average number of allowed failed attempts when sampling. */
+            void setAverageNumOfAllowedFailedAttemptsWhenSampling(std::size_t number);
+
+            /** \brief Get the average number of allowed failed attempts when sampling. */
+            std::size_t getAverageNumOfAllowedFailedAttemptsWhenSampling() const;
+
             /** \brief Set the number of samplers per batch. */
             void setSamplesPerBatch(unsigned int n);
 

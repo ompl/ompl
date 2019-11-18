@@ -1310,6 +1310,16 @@ namespace ompl
             return graphPtr_->getTrackApproximateSolutions();
         }
 
+        void BITstar::setAverageNumOfAllowedFailedAttemptsWhenSampling(std::size_t number)
+        {
+            graphPtr_->setAverageNumOfAllowedFailedAttemptsWhenSampling(number);
+        }
+
+        std::size_t BITstar::getAverageNumOfAllowedFailedAttemptsWhenSampling() const
+        {
+            return graphPtr_->getAverageNumOfAllowedFailedAttemptsWhenSampling();
+        }
+
         template <template <typename T> class NN>
         void BITstar::setNearestNeighbors()
         {
