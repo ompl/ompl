@@ -1437,9 +1437,8 @@ namespace ompl
             // Second check the samples.
             std::vector<VertexPtr> samples;
             samples_->list(samples);
-            numberOfSamplesInInformedSet +=
-                std::count_if(samples.begin(), samples.end(),
-                              [this](const VertexPtr &sample) { return !canSampleBePruned(sample); });
+            numberOfSamplesInInformedSet += std::count_if(
+                samples.begin(), samples.end(), [this](const VertexPtr &sample) { return !canSampleBePruned(sample); });
 
             return numberOfSamplesInInformedSet;
         }
@@ -1763,7 +1762,8 @@ namespace ompl
             averageNumOfAllowedFailedAttemptsWhenSampling_ = number;
         }
 
-        std::size_t BITstar::ImplicitGraph::getAverageNumOfAllowedFailedAttemptsWhenSampling() const {
+        std::size_t BITstar::ImplicitGraph::getAverageNumOfAllowedFailedAttemptsWhenSampling() const
+        {
             return averageNumOfAllowedFailedAttemptsWhenSampling_;
         }
 

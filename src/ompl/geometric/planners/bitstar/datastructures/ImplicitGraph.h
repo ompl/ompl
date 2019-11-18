@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2014, University of Toronto
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Toronto nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2014, University of Toronto
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Toronto nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Authors: Jonathan Gammell, Marlin Strub */
 
@@ -69,9 +69,9 @@ namespace ompl
             /** \brief Setup the ImplicitGraph, must be called before use. Does not take a copy of the
              * PlannerInputStates, but checks it for starts/goals. */
             void setup(const ompl::base::SpaceInformationPtr &spaceInformation,
-                       const ompl::base::ProblemDefinitionPtr &problemDefinition,
-                       CostHelper *costHelper, SearchQueue *searchQueue,
-                       const ompl::base::Planner *plannerPtr, ompl::base::PlannerInputStates &inputStates);
+                       const ompl::base::ProblemDefinitionPtr &problemDefinition, CostHelper *costHelper,
+                       SearchQueue *searchQueue, const ompl::base::Planner *plannerPtr,
+                       ompl::base::PlannerInputStates &inputStates);
 
             /** \brief Reset the graph to the state of construction. */
             void reset();
@@ -273,13 +273,14 @@ namespace ompl
             /** \brief Performs a couple of checks on a sample, throws if something smells funny. */
             void assertSampleSanity(const VertexConstPtr &sample);
 
-            /** \brief Set the seed used by the RNG and the StateSampler. The state sampler must already be allocated, as a new state sampler will *not* take this seed. */
+            /** \brief Set the seed used by the RNG and the StateSampler. The state sampler must already be allocated,
+             * as a new state sampler will *not* take this seed. */
             void setLocalSeed(std::uint_fast32_t localSeed)
             {
-                //Set the local RNG seed:
+                // Set the local RNG seed:
                 rng_.setLocalSeed(localSeed);
 
-                //Set the sampler's seed, if present:
+                // Set the sampler's seed, if present:
                 if (sampler_)
                 {
                     sampler_->setLocalSeed(localSeed);
@@ -504,8 +505,8 @@ namespace ompl
 
             /** \brief Whether to consider approximate solutions. */
             bool findApprox_{false};
-        }; // class ImplicitGraph
-    } // namespace geometric
-} // namespace ompl
+        };  // class ImplicitGraph
+    }       // namespace geometric
+}  // namespace ompl
 
 #endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IMPLICITGRAPH_
