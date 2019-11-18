@@ -265,7 +265,7 @@ namespace ompl
             // ---
 
             /** \brief Performs a couple of checks on a sample, throws if something smells funny. */
-            void assertSampleSanity(const VertexConstPtr &sample, bool mustBeNew);
+            void assertSampleSanity(const VertexConstPtr &sample);
 
             /** \brief Set the seed used by the RNG and the StateSampler. The state sampler must already be allocated, as a new state sampler will *not* take this seed. */
             void setLocalSeed(std::uint_fast32_t localSeed)

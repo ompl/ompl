@@ -847,7 +847,7 @@ namespace ompl
             else
             {
 #ifdef BITSTAR_DEBUG
-                graphPtr_->assertSampleSanity(edge.second, false);
+                graphPtr_->assertSampleSanity(edge.second);
 #endif  // BITSTAR_DEBUG
 
                 // Add a parent to the child.
@@ -1218,7 +1218,7 @@ namespace ompl
             return graphPtr_->getUseKNearest();
         }
 
-        void BITstar::setStrictQueueOrdering(bool beStrict)
+        void BITstar::setStrictQueueOrdering(bool /* beStrict */)
         {
             OMPL_WARN("%s: This option no longer has any effect; The queue is always strictly ordered.", Planner::getName().c_str());
         }
@@ -1255,7 +1255,7 @@ namespace ompl
             return pruneFraction_;
         }
 
-        void BITstar::setDelayRewiringUntilInitialSolution(bool delayRewiring)
+        void BITstar::setDelayRewiringUntilInitialSolution(bool /* delayRewiring */)
         {
             OMPL_WARN("%s: This option no longer has any effect; Rewiring is never delayed.", Planner::getName().c_str());
         }

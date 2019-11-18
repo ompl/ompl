@@ -718,7 +718,7 @@ namespace ompl
 
             // Assert the state of the sample
 #ifdef BITSTAR_DEBUG
-            this->assertSampleSanity(sample, true);
+            this->assertSampleSanity(sample);
 #endif  // BITSTAR_DEBUG
 
             // Add to the vector of new samples
@@ -738,7 +738,7 @@ namespace ompl
 #ifdef BITSTAR_DEBUG
             for (const auto &sample : samples)
             {
-                this->assertSampleSanity(sample, true);
+                this->assertSampleSanity(sample);
             }
 #endif  // BITSTAR_DEBUG
 
@@ -965,7 +965,7 @@ namespace ompl
             child->removeParent(cascadeCostUpdates);
         }
 
-        void BITstar::ImplicitGraph::assertSampleSanity(const VertexConstPtr &sample, bool mustBeNew)
+        void BITstar::ImplicitGraph::assertSampleSanity(const VertexConstPtr &sample)
         {
             if (sample->isRoot())
             {
