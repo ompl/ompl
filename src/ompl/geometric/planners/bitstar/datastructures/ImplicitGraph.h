@@ -505,6 +505,10 @@ namespace ompl
 
             /** \brief Whether to consider approximate solutions. */
             bool findApprox_{false};
+
+            /** \brief The average number of allowed failed attempts before giving up on a sample when sampling a new
+             * batch. */
+            std::size_t averageNumOfAllowedFailedAttemptsWhenSampling_{2u};
         };  // class ImplicitGraph
     }       // namespace geometric
 }  // namespace ompl
