@@ -220,8 +220,12 @@ class ompl_base_generator_t(code_generator_t):
         spaces = [s.related_class.name.replace('StateSpace', '') \
             for s in self.ompl_ns.class_('StateSpace').recursive_derived]
         for stype in spaces:
-            # create a python type for each of their corresponding state types
-            state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateSpace >' % stype)
+            try:
+                # create a python type for each of their corresponding state types
+                state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateSpace >' % stype)
+            except:
+                # ignore errors because of missing Boost.Numpy
+                continue
             state.rename(stype+'State')
             state.operator('=', arg_types=['::ompl::base::State const &']).exclude()
             # add a constructor that allows, e.g., an SE3State to be constructed from a State
