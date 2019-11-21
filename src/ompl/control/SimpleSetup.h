@@ -294,10 +294,6 @@ namespace ompl
             /// The status of the last planning request
             base::PlannerStatus last_status_;
         };
-
-        /** \brief Given a goal specification, decide on a planner for that goal.
-            \deprecated Use tools::SelfConfig::getDefaultPlanner() instead. */
-        OMPL_DEPRECATED base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
     }
 }
 #endif
