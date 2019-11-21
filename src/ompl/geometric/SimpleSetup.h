@@ -45,7 +45,6 @@
 #include "ompl/geometric/PathSimplifier.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
-#include "ompl/util/Deprecation.h"
 
 namespace ompl
 {

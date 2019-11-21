@@ -46,7 +46,6 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/Time.h"
 #include "ompl/util/ClassForward.h"
-#include "ompl/util/Deprecation.h"
 #include <functional>
 #include <boost/concept_check.hpp>
 #include <string>
