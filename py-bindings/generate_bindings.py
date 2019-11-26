@@ -548,8 +548,6 @@ class ompl_control_generator_t(code_generator_t):
         self.ompl_ns.namespace('control').class_('SimpleSetup').add_registration_code(
             'def("getPlannerAllocator", &ompl::control::SimpleSetup::getPlannerAllocator, ' \
             'bp::return_value_policy< bp::copy_const_reference >())')
-        # exclude deprecated API function
-        self.ompl_ns.free_function('getDefaultPlanner').exclude()
 
         # Do this for all classes that exist with the same name in another namespace
         # (We also do it for all planners; see below)
@@ -648,8 +646,6 @@ class ompl_geometric_generator_t(code_generator_t):
             'bp::return_value_policy< bp::copy_const_reference >())')
         self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::BITstar::Vertex> >').exclude()
         self.std_ns.class_('vector<const ompl::base::State *>').exclude()
-        # exclude deprecated API function
-        self.ompl_ns.free_function('getDefaultPlanner').exclude()
 
         self.std_ns.class_('vector< std::shared_ptr<ompl::base::SpaceInformation> >').rename('vectorSpaceInformation')
 
