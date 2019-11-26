@@ -25,9 +25,23 @@ void ompl::geometric::Optimizer::setup()
 
 ompl::base::PlannerStatus ompl::geometric::Optimizer::solve(const base::PlannerTerminationCondition &ptc)
 {
-  std::cout << std::string(80, '-') << std::endl;
-  std::cout << "TODO: Optimize Path" << std::endl;
-  std::cout << std::string(80, '-') << std::endl;
+
+  //oc::PathControl cpath = static_cast<oc::PathControl&>(*path_);
+
+
+  og::PathGeometric gpath = static_cast<og::PathGeometric&>(*path_);
+  std::vector<ob::State *> states = gpath.getStates();
+  std::cout << "Path has " << states.size() << " states." << std::endl;
+
+        // si_->copyState(s_target_copy, s2);
+        // sampler->sampleTo(c_current, s1, s_target_copy);
+        // double targetRegion = tolerance * si_->getStateSpace()->distance(s1, s2);
+        // return (si_->getStateSpace()->distance(s_target_copy, s2) <= targetRegion);
+
+
+
+  std::cout << "NYI" << std::endl;
+
 }
 
 void ompl::geometric::Optimizer::getPlannerData(base::PlannerData &data) const
