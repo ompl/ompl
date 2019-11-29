@@ -912,30 +912,6 @@ namespace ompl
             edge.first->addChild(edge.second);
         }
 
-        void BITstar::updateInflationFactor()
-        {
-            if (queuePtr_->getInflationFactor() == 1.0)
-            {
-                queuePtr_->setInflationFactor(this->computeOptimalityBound());
-            }
-            else
-            {
-                queuePtr_->setInflationFactor(1.0);
-            }
-        }
-
-        double BITstar::computeOptimalityBound() const
-        {
-            if (bestCost_.value() == std::numeric_limits<double>::infinity())
-            {
-                return std::numeric_limits<double>::infinity();
-            }
-            else
-            {
-                return bestCost_.value() / graphPtr_->minCost().value();
-            }
-        }
-
         void BITstar::updateGoalVertex()
         {
             // Variable

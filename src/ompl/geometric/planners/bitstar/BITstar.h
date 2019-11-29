@@ -362,11 +362,6 @@ namespace ompl
             /** \brief Replace the parent edge with the given new edge and cost */
             void replaceParent(const VertexPtrPair &edge, const ompl::base::Cost &edgeCost);
 
-            /** \brief Updates the infaltion factor. */
-            void updateInflationFactor();
-
-            double computeOptimalityBound() const;
-
             /** \brief The special work that needs to be done to update the goal vertex if the solution has changed. */
             void updateGoalVertex();
 
