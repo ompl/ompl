@@ -178,7 +178,7 @@ namespace ompl
 
                 // Count the number of informed states before adding new states. This saves some counting, because all
                 // new states will be informed, and its known how many of them will be added. If pruning is enabled, we
-                // can do this now.
+                // can do this now. After pruning all remaining states are in the informed set.
                 auto numInformedSamples{0u};
                 if (isPruningEnabled_)
                 {
