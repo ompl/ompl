@@ -483,7 +483,7 @@ namespace ompl
             /** \brief The best cost found to date. This is the maximum total-heuristic cost of samples we'll consider.
              * Accessible via bestCostProgressProperty */
             // Gets set in setup to the proper calls from OptimizationObjective
-            ompl::base::Cost bestCost_{std::numeric_limits<double>::infinity()};
+            ompl::base::Cost bestCost_;
 
             /** \brief The number of vertices in the best solution found to date. Accessible via
              * bestLengthProgressProperty. */

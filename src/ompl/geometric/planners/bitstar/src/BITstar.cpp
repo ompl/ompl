@@ -230,6 +230,9 @@ namespace ompl
                 }
                 // No else, we were given one.
 
+                // Initialize the best cost found so far to be infinite.
+                bestCost_ = Planner::pdef_->getOptimizationObjective()->infiniteCost();
+
                 // If the problem definition *has* a goal, make sure it is of appropriate type
                 if (static_cast<bool>(Planner::pdef_->getGoal()))
                 {
