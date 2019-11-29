@@ -68,6 +68,11 @@ namespace ompl
                 return cost_;
             }
 
+            std::size_t Vertex::getEffort() const
+            {
+                return effort_;
+            }
+
             std::shared_ptr<State> Vertex::getState() const
             {
                 return state_;
@@ -150,13 +155,12 @@ namespace ompl
                 cost_ = cost;
             }
 
-            void Vertex::updateCost(const std::shared_ptr<ompl::base::OptimizationObjective> &objective)
+            void Vertex::setEdgeCost(const ompl::base::Cost &edgeCost)
             {
-                assert(parent_.lock());
-                cost_ = objective->combineCosts(parent_.lock()->getCost(), edgeCost_);
+                edgeCost_ = edgeCost;
             }
 
-            void Vertex::setParent(const std::shared_ptr<Vertex> &vertex)
+            void Vertex::updateParent(const std::shared_ptr<Vertex> &vertex)
             {
                 if (auto parent = parent_.lock())
                 {
@@ -165,9 +169,21 @@ namespace ompl
                 parent_ = vertex;
             }
 
-            void Vertex::setEdgeCost(const ompl::base::Cost &edgeCost)
+            void Vertex::updateCost(const std::shared_ptr<ompl::base::OptimizationObjective> &objective)
             {
-                edgeCost_ = edgeCost;
+                assert(parent_.lock());
+                cost_ = objective->combineCosts(parent_.lock()->getCost(), edgeCost_);
+            }
+
+            void Vertex::setEdgeEffort(std::size_t effort)
+            {
+                edgeEffort_ = effort;
+            }
+
+            void Vertex::updateEffort()
+            {
+                assert(parent_.lock());
+                effort_ = parent_.lock()->getEffort() + edgeEffort_;
             }
 
             void Vertex::resetParent()

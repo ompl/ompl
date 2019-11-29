@@ -141,16 +141,16 @@ namespace ompl
             bool isClosed(const std::shared_ptr<aibitstar::Vertex> &vertex) const;
 
             /** \brief Returns whether the edge can improve the reverse path. */
-            bool canImproveReversePath(const aibitstar::Edge &edge) const;
+            bool doesImproveReversePath(const aibitstar::Edge &edge) const;
 
             /** \brief Returns whether the edge can improve the reverse tree. */
-            bool canImproveReverseTree(const aibitstar::Edge &edge) const;
+            bool doesImproveReverseTree(const aibitstar::Edge &edge) const;
 
             /** \brief Returns whether the edge can improve the forward path. */
-            bool canImproveForwardPath(const aibitstar::Edge &edge) const;
+            bool couldImproveForwardPath(const aibitstar::Edge &edge) const;
 
             /** \brief Returns whether the edge can improve the forward tree. */
-            bool canImproveForwardTree(const aibitstar::Edge &edge) const;
+            bool couldImproveForwardTree(const aibitstar::Edge &edge) const;
 
             /** \brief Returns whether the edge does improve the forward path. */
             bool doesImproveForwardPath(const aibitstar::Edge &edge, const ompl::base::Cost &trueEdgeCost) const;
@@ -160,9 +160,6 @@ namespace ompl
 
             /** \brief Returns whether the edge is valid. */
             bool isValid(const aibitstar::Edge &edge) const;
-
-            /** \brief Returns whether the edge could be valid by performing sparse collision checks. */
-            bool couldBeValid(const aibitstar::Edge &edge) const;
 
             /** \brief The sampling-based approximation of the state space. */
             aibitstar::RandomGeometricGraph graph_;

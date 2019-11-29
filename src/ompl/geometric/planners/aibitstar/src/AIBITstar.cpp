@@ -115,6 +115,7 @@ namespace ompl
                     assert(graph_.hasGoalState());
                     reverseRoot_ = goalState->asReverseVertex();
                     reverseRoot_->setCost(objective_->identityCost());
+                    reverseRoot_->getState()->setEstimatedEffortToGo(0u);
                 }
             }
         }
@@ -267,7 +268,15 @@ namespace ompl
             // If there are no edges in the queues, add new samples and insert edges in the reverse queue.
             else
             {
+                // Add new states.
                 graph_.addStates(numSamplesPerBatch_);
+
+                // Restart the reverse search.
+                reverseRoot_.reset();
+                reverseRoot_ = graph_.getGoalState()->asReverseVertex();
+                reverseRoot_->setCost(objective_->identityCost());
+                reverseRoot_->getState()->setEstimatedEffortToGo(0u);
+
                 // numSamplesPerBatch_ *= 2u;
                 reverseQueue_.insert(reverseExpand(graph_.getGoalState()));
             }
@@ -289,7 +298,7 @@ namespace ompl
             auto childVertex = edge.child->asForwardVertex();
 
             // The forward search is done if this edge can not possibly improve the forward path.
-            if (canImproveForwardPath(edge))
+            if (couldImproveForwardPath(edge))
             {
                 // Check if the edge's parent is already the parent of the child.
                 if (auto currentParent = childVertex->getParent().lock())
@@ -304,7 +313,7 @@ namespace ompl
                     }
                 }
                 // Check if it can possibly improve the tree.
-                if (canImproveForwardTree(edge))
+                if (couldImproveForwardTree(edge))
                 {
                     // Check if the edge is valid.
                     if (isValid(edge))
@@ -316,13 +325,13 @@ namespace ompl
                         if (doesImproveForwardPath(edge, trueEdgeCost) && doesImproveForwardTree(edge, trueEdgeCost))
                         {
                             // Update the parent of the child in the forward tree.
-                            childVertex->setParent(parentVertex);
-
-                            // Update the cost-to-come.
-                            childVertex->setCost(objective_->combineCosts(parentVertex->getCost(), trueEdgeCost));
+                            childVertex->updateParent(parentVertex);
 
                             // Set the edge cost associated with this parent.
                             childVertex->setEdgeCost(trueEdgeCost);
+
+                            // Update the cost-to-come.
+                            childVertex->updateCost(objective_);
 
                             // Update the cost of the children.
                             auto changedVertices = childVertex->updateChildren(objective_);
@@ -362,28 +371,51 @@ namespace ompl
                         // Assert the edge is actually invalid.
                         assert(!motionValidator_->checkMotion(edge.parent->raw(), edge.child->raw()));
 
-                        // Invalidate the branch.
-                        auto invalidatedReverseVertex = edge.parent->asReverseVertex();
-                        invalidatedReverseVertex->resetParent();
-                        edge.child->asReverseVertex()->removeIfChild(invalidatedReverseVertex);
+                        // // Invalidate the branch.
+                        // auto invalidatedReverseVertex = edge.parent->asReverseVertex();
 
-                        // Register the invalid edge with the graph.
-                        graph_.registerInvalidEdge(edge);
+                        // // Register the invalid edge with the graph.
+                        // graph_.registerInvalidEdge(edge);
 
-                        // If collision detection on the reverse search is enabled, add the interpolation values.
-                        if (isCollisionDetectionOnReverseSearchEnabled_)
-                        {
-                            std::size_t numInterpolationValues = detectionInterpolationValues_.size() + 1u;
-                            double interpolationStep = 1.0 / (numInterpolationValues + 1u);
-                            detectionInterpolationValues_.clear();
-                            for (std::size_t i = 0u; i < numInterpolationValues; ++i)
-                            {
-                                detectionInterpolationValues_.emplace_back((i + 1u) * interpolationStep);
-                            }
-                        }
+                        // // Get the neighbors of the invalidated vertex.
+                        // auto neighbors = graph_.getNeighbors(invalidatedReverseVertex->getState());
 
-                        // Restart the reverse queue.
-                        reverseQueue_.insert(reverseExpand(reverseRoot_->getState()));
+                        // // Find the best new parent of these neighbors.
+                        // std::shared_ptr<State> bestNeighbor;
+                        // ompl::base::Cost bestCost = objective_->infiniteCost();
+                        // ompl::base::Cost bestEdgeCost = objective_->infiniteCost();
+                        // for (const auto &neighbor : neighbors)
+                        // {
+                        //     auto edgeCost = objective_->motionCostHeuristic(
+                        //         neighbor->raw(), invalidatedReverseVertex->getState()->raw());
+                        //     // Compute the neighbor cost.
+                        //     auto neighborCost =
+                        //         objective_->combineCosts(neighbor->asReverseVertex()->getCost(), edgeCost);
+
+                        //     // If this is the best neighbor, remember so.
+                        //     if (objective_->isCostBetterThan(neighborCost, bestCost))
+                        //     {
+                        //         bestNeighbor = neighbor;
+                        //         bestCost = neighborCost;
+                        //         bestEdgeCost = edgeCost;
+                        //     }
+                        // }
+
+                        // // Reconnect the invalidated vertex to the reverse tree if possible.
+                        // if (bestNeighbor && bestNeighbor->hasReverseVertex())
+                        // {
+                        //     invalidatedReverseVertex->updateParent(bestNeighbor->asReverseVertex());
+                        //     invalidatedReverseVertex->setEdgeCost(bestEdgeCost);
+                        //     invalidatedReverseVertex->updateCost(objective_);
+                        //     bestNeighbor->asReverseVertex()->addChild(invalidatedReverseVertex);
+                        // }
+                        // else
+                        // {
+                        //     invalidatedReverseVertex->getParent().lock()->removeChild(invalidatedReverseVertex);
+                        //     invalidatedReverseVertex->resetParent();
+                        // }
+
+                        // edge.child->asReverseVertex()->removeIfChild(invalidatedReverseVertex);
                     }
                 }
             }
@@ -404,103 +436,59 @@ namespace ompl
 
             // The parent vertex must have an associated vertex in the tree.
             assert(edge.parent->hasReverseVertex());
+
+            // Get the parent and child vertices.
             auto parentVertex = edge.parent->asReverseVertex();
             auto childVertex = edge.child->asReverseVertex();
 
-            // The reverse search is done if this edge can not improve the reverse path.
-            if (canImproveReversePath(edge))
+            // Simply expand the child vertex if the edge is already in the reverse tree, and the child has not been
+            // expanded yet.
+            if (auto currentParent = childVertex->getParent().lock())
             {
-                if (auto currentParent = childVertex->getParent().lock())
+                if (!isClosed(childVertex) && currentParent->getId() == edge.parent->asReverseVertex()->getId())
                 {
-                    if (!isClosed(childVertex) && currentParent->getId() == edge.parent->asReverseVertex()->getId())
-                    {
-                        reverseQueue_.insert(reverseExpand(edge.child));
-                        return;
-                    }
-                }
-                if (canImproveReverseTree(edge))
-                {
-                    if (couldBeValid(edge))
-                    {
-                        // Update the parent of the child in the reverse tree.
-                        childVertex->setParent(parentVertex);
-
-                        // Update the cost.
-                        childVertex->setCost(ompl::base::Cost(edge.key[1]));
-
-                        // Update the edge cost.
-                        childVertex->setEdgeCost(edge.heuristicCost);
-
-                        // Add the child to the children of the parent.
-                        parentVertex->addChild(childVertex);
-
-                        // Expand the outgoing edges into the queue unless this is the start state.
-                        if (!isClosed(childVertex) && edge.child->getId() != forwardRoot_->getState()->getId())
-                        {
-                            reverseQueue_.insert(reverseExpand(edge.child));
-                        }
-                    }
-                    else
-                    {
-                        // Assert the edge is actually invalid.
-                        assert(!motionValidator_->checkMotion(edge.parent->raw(), edge.child->raw()));
-
-                        // Register the invalid edge with the graph.
-                        graph_.registerInvalidEdge(edge);
-                    }
-                }
-                if (reverseQueue_.empty())
-                {
-                    // Update the search tag.
-                    ++searchTag_;
-
-                    // If there could be a path, rebuild the queue or insert the outgoing edges of the start.
-                    if (forwardRoot_->getTwin().lock())
-                    {
-                        assert(forwardRoot_->getState()->hasReverseVertex());
-                        // If the queue is empty, insert the outgoing edges of the start.
-                        if (forwardQueue_.empty())
-                        {
-                            forwardQueue_.insert(forwardExpand(forwardRoot_->getState()));
-                        }
-                        else  // Otherwise rebuild the queue.
-                        {
-                            rebuildForwardQueue();
-                        }
-                    }
-                    else  // If the start is not in the backward search tree, there is no need to start/continue the
-                          // forward search.
-                    {
-                        forwardQueue_.clear();
-                    }
+                    reverseQueue_.insert(reverseExpand(edge.child));
+                    return;
                 }
             }
-            else
-            {
-                // Clear the reverse queue.
-                reverseQueue_.clear();
 
+            // Incorporate the edge in the reverse tree if it provides an improvement.
+            if (doesImproveReverseTree(edge))
+            {
+                // Update the parent of the child in the reverse tree.
+                childVertex->updateParent(parentVertex);
+
+                // Add the child to the children of the parent.
+                parentVertex->addChild(childVertex);
+
+                // Set the edge cost.
+                childVertex->setEdgeCost(edge.heuristicCost);
+
+                // Update the cost.
+                childVertex->updateCost(objective_);
+
+                // Update the effort.
+                childVertex->updateEffort();
+
+                // Expand the outgoing edges into the queue unless this has already happened or this is the start state.
+                if (!isClosed(childVertex) && edge.child->getId() != forwardRoot_->getState()->getId())
+                {
+                    reverseQueue_.insert(reverseExpand(edge.child));
+                }
+            }
+
+            // Check if this was the last edge in the reverse queue.
+            // TODO: This means we always check all edges in the graph. Is this really necessary?
+            if (reverseQueue_.empty())
+            {
                 // Update the search tag.
                 ++searchTag_;
 
-                // If there could be a path, rebuild the queue or insert the outgoing edges of the start.
+                // Insert the outgoing edges of the start into the forward queue if there could be a path.
                 if (forwardRoot_->getTwin().lock())
                 {
                     assert(forwardRoot_->getState()->hasReverseVertex());
-                    // If the queue is empty, insert the outgoing edges of the start.
-                    if (forwardQueue_.empty())
-                    {
-                        forwardQueue_.insert(forwardExpand(forwardRoot_->getState()));
-                    }
-                    else  // Otherwise rebuild the queue.
-                    {
-                        rebuildForwardQueue();
-                    }
-                }
-                else  // If the start is not reached by the backward search, there is no need to continue the forward
-                      // search.
-                {
-                    forwardQueue_.clear();
+                    forwardQueue_.insert(forwardExpand(forwardRoot_->getState()));
                 }
             }
         }
@@ -543,7 +531,7 @@ namespace ompl
             problem_->addSolutionPath(solution);
         }
 
-        bool AIBITstar::canImproveForwardPath(const Edge &edge) const
+        bool AIBITstar::couldImproveForwardPath(const Edge &edge) const
         {
             // If the start state has not been discovered by the reverse search, the answer is always yes.
             if (auto goalVertex = reverseRoot_->getTwin().lock())
@@ -572,7 +560,7 @@ namespace ompl
             }
         }
 
-        bool AIBITstar::canImproveForwardTree(const Edge &edge) const
+        bool AIBITstar::couldImproveForwardTree(const Edge &edge) const
         {
             return objective_->isCostBetterThan(ompl::base::Cost(edge.key[1]),
                                                 edge.child->asForwardVertex()->getCost());
@@ -636,35 +624,6 @@ namespace ompl
             }
         }
 
-        bool AIBITstar::couldBeValid(const Edge &edge) const
-        {
-            // Check if the edge is whitelisted
-            if (edge.parent->isWhitelisted(edge.child))
-            {
-                return true;
-            }
-            // Check if the edge is blacklisted.
-            else if (edge.parent->isBlacklisted(edge.child))
-            {
-                return false;
-            }
-            // Ok, fine, let's do some work.
-            else
-            {
-                for (const auto t : detectionInterpolationValues_)
-                {
-                    space_->interpolate(edge.parent->raw(), edge.child->raw(), t, detectionState_);
-                    if (!spaceInfo_->isValid(detectionState_))
-                    {
-                        edge.parent->blacklist(edge.child);
-                        edge.child->blacklist(edge.parent);
-                        return false;
-                    }
-                }
-                return true;
-            }
-        }
-
         void AIBITstar::rebuildForwardQueue()
         {
             // This is going to be a bit messy. Get the edges in the queue.
@@ -686,7 +645,7 @@ namespace ompl
             return vertex->getExpandTag() == searchTag_;
         }
 
-        bool AIBITstar::canImproveReversePath(const Edge &edge) const
+        bool AIBITstar::doesImproveReversePath(const Edge &edge) const
         {
             // If the start state has not been discovered by the reverse search, the answer is always yes.
             if (auto startVertex = forwardRoot_->getTwin().lock())
@@ -708,7 +667,7 @@ namespace ompl
             }
         }
 
-        bool AIBITstar::canImproveReverseTree(const Edge &edge) const
+        bool AIBITstar::doesImproveReverseTree(const Edge &edge) const
         {
             return objective_->isCostBetterThan(
                 objective_->combineCosts(edge.parent->asReverseVertex()->getCost(), edge.heuristicCost),
@@ -892,7 +851,10 @@ namespace ompl
             auto costToCome = parent->asReverseVertex()->getCost();
 
             // The cost to go is the motion cost heuristic of the child to the forward root.
-            auto costToGo = objective_->motionCostHeuristic(child->raw(), forwardRoot_->getState()->raw());
+            // auto costToGo = objective_->motionCostHeuristic(child->raw(), forwardRoot_->getState()->raw());
+
+            // If we're using Dijkstra's we can save computing the cost to go.
+            auto costToGo = objective_->identityCost();
 
             // The sort key is [g_F(xp) + c^(xp, xc) + h^(xc), g_F(xp) + c^(xp, xc), g_F(xp)].
             return {objective_->combineCosts(costToCome, objective_->combineCosts(edgeCost, costToGo)).value(),

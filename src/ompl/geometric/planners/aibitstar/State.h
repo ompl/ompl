@@ -94,12 +94,30 @@ namespace ompl
                 /** \brief Returns whether a state has been whitelisted. */
                 bool isWhitelisted(const std::shared_ptr<State> &state) const;
 
+                /** \brief Set the estimated effort to go from this state to the goal. */
+                void setEstimatedEffortToGo(std::size_t effort);
+
+                /** \brief Set the estimated cost to go from this state to the goal. */
+                void setEstimatedCostToGo(ompl::base::Cost cost);
+
+                /** \brief Set the estimated effort to go from this state to the goal. */
+                std::size_t getEstimatedEffortToGo() const;
+
+                /** \brief Set the estimated cost to go from this state to the goal. */
+                ompl::base::Cost getEstimatedCostToGo() const;
+
             private:
                 /** \brief Grant access to the state internals to the random geometric graph. */
                 friend class RandomGeometricGraph;
 
                 /** \brief The unique id of this state. */
                 const std::size_t id_;
+
+                /** \brief The estimated effort (number of collision detections) to go from this state to the goal. */
+                std::size_t estimatedEffortToGo_{std::numeric_limits<std::size_t>::max()};
+
+                /** \brief The estimated cost to go from this state to the goal. */
+                ompl::base::Cost estimatedCostToGo_{std::numeric_limits<double>::max()};
 
                 /** \brief The underlying OMPL state. */
                 ompl::base::State *state_;

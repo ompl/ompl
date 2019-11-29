@@ -156,6 +156,26 @@ namespace ompl
                 return whitelist_.find(state->getId()) != whitelist_.end();
             }
 
+            void State::setEstimatedCostToGo(ompl::base::Cost cost)
+            {
+                estimatedCostToGo_ = cost;
+            }
+
+            void State::setEstimatedEffortToGo(std::size_t effort)
+            {
+                estimatedEffortToGo_ = effort;
+            }
+
+            ompl::base::Cost State::getEstimatedCostToGo() const
+            {
+                return estimatedCostToGo_;
+            }
+
+            std::size_t State::getEstimatedEffortToGo() const
+            {
+                return estimatedEffortToGo_;
+            }
+
         }  // namespace aibitstar
 
     }  // namespace geometric
