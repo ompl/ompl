@@ -762,7 +762,8 @@ namespace ompl
             }
 
             // Mark whether the solution met the optimization objective:
-            soln.optimized_ = costHelpPtr_->isSatisfied(bestCost_);
+            soln.setOptimized(Planner::pdef_->getOptimizationObjective(), bestCost_,
+                              Planner::pdef_->getOptimizationObjective()->isSatisfied(bestCost_));
 
             // Add the solution to the Problem Definition:
             Planner::pdef_->addSolutionPath(soln);
