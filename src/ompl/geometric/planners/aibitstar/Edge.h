@@ -60,7 +60,7 @@ namespace ompl
 
                 /** \brief Construct the edge by providing values for all member variables. */
                 Edge(const std::shared_ptr<State> &parent, const std::shared_ptr<State> &child,
-                     const ompl::base::Cost &heuristicCost, const std::array<double, 3u> &key);
+                     const ompl::base::Cost &estimatedCost, const std::array<double, 3u> &key);
 
                 /** \brief Destruct the edge. */
                 ~Edge() = default;
@@ -71,8 +71,8 @@ namespace ompl
                 /** \brief The child state of this edge. */
                 std::shared_ptr<State> child;
 
-                /** \brief The heuristic cost of this edge. */
-                ompl::base::Cost heuristicCost{std::numeric_limits<double>::signaling_NaN()};
+                /** \brief The heuristic estimate of the cost of this edge. */
+                ompl::base::Cost estimatedCost{std::numeric_limits<double>::signaling_NaN()};
 
                 /** \brief The sort key of this edge. */
                 std::array<double, 3u> key{std::numeric_limits<double>::signaling_NaN(),

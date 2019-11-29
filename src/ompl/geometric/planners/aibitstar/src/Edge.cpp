@@ -43,8 +43,8 @@ namespace ompl
         namespace aibitstar
         {
             Edge::Edge(const std::shared_ptr<State> &parent, const std::shared_ptr<State> &child,
-                       const ompl::base::Cost &heuristicCost, const std::array<double, 3u> &key)
-              : parent(parent), child(child), heuristicCost(heuristicCost), key(key)
+                       const ompl::base::Cost &estimatedCost, const std::array<double, 3u> &key)
+              : parent(parent), child(child), estimatedCost(estimatedCost), key(key)
             {
             }
         }  // namespace aibitstar

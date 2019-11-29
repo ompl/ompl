@@ -463,7 +463,7 @@ namespace ompl
                 parentVertex->addChild(childVertex);
 
                 // Set the edge cost.
-                childVertex->setEdgeCost(edge.heuristicCost);
+                childVertex->setEdgeCost(edge.estimatedCost);
 
                 // Update the cost.
                 childVertex->updateCost(objective_);
@@ -633,7 +633,7 @@ namespace ompl
             // Get the parent vertices of the edges.
             for (auto &edge : edges)
             {
-                edge.key = computeForwardKey(edge.parent, edge.child, edge.heuristicCost);
+                edge.key = computeForwardKey(edge.parent, edge.child, edge.estimatedCost);
             }
 
             // All edges have an updated key, lets rebuild the queue.
@@ -671,7 +671,7 @@ namespace ompl
         bool AIBITstar::doesImproveReverseTree(const Edge &edge) const
         {
             return objective_->isCostBetterThan(
-                objective_->combineCosts(edge.parent->asReverseVertex()->getCost(), edge.heuristicCost),
+                objective_->combineCosts(edge.parent->asReverseVertex()->getCost(), edge.estimatedCost),
                 edge.child->asReverseVertex()->getCost());
         }
 
