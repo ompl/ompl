@@ -50,7 +50,7 @@ namespace ompl
             {
                 // Update if the edge is already in the queue.
                 if(!update(edge)) {
-                    edge.parent->asForwardVertex()->outgoingEdgeQueueLookup_.emplace_back(heap_.insert(edge));
+                    edge.source->asForwardVertex()->outgoingEdgeQueueLookup_.emplace_back(heap_.insert(edge));
                 }
             }
 
@@ -59,7 +59,7 @@ namespace ompl
             {
                 // Update if the edge is already in the queue.
                 if (!update(edge)) {
-                    edge.parent->asReverseVertex()->outgoingEdgeQueueLookup_.emplace_back(heap_.insert(edge));
+                    edge.source->asReverseVertex()->outgoingEdgeQueueLookup_.emplace_back(heap_.insert(edge));
                 }
             }
 
@@ -67,9 +67,9 @@ namespace ompl
             bool EdgeQueue<Direction::FORWARD>::update(const Edge &edge)
             {
                 // Update if the edge is already in the queue.
-                for (const auto outgoingEdge : edge.parent->asForwardVertex()->outgoingEdgeQueueLookup_)
+                for (const auto outgoingEdge : edge.source->asForwardVertex()->outgoingEdgeQueueLookup_)
                 {
-                    if (outgoingEdge->data.child->getId() == edge.child->getId())
+                    if (outgoingEdge->data.target->getId() == edge.target->getId())
                     {
                         if (edge.key < outgoingEdge->data.key)
                         {
@@ -86,9 +86,9 @@ namespace ompl
             template <>
             bool EdgeQueue<Direction::REVERSE>::update(const Edge &edge)
             {
-                for (const auto outgoingEdge : edge.parent->asReverseVertex()->outgoingEdgeQueueLookup_)
+                for (const auto outgoingEdge : edge.source->asReverseVertex()->outgoingEdgeQueueLookup_)
                 {
-                    if (outgoingEdge->data.child->getId() == edge.child->getId())
+                    if (outgoingEdge->data.target->getId() == edge.target->getId())
                     {
                         if (edge.key < outgoingEdge->data.key)
                         {
@@ -113,10 +113,10 @@ namespace ompl
                     // Pop the element from the heap.
                     heap_.pop();
 
-                    // Get a reference to the outgoing edge queue lookup of the parent vertex.
-                    auto &outgoingEdgeQueueLookup = top.parent->asForwardVertex()->outgoingEdgeQueueLookup_;
+                    // Get a reference to the outgoing edge queue lookup of the source vertex.
+                    auto &outgoingEdgeQueueLookup = top.source->asForwardVertex()->outgoingEdgeQueueLookup_;
 
-                    // Remove the edge from the ougoing edge lookup of the parent vertex using find, swap and pop.
+                    // Remove the edge from the ougoing edge lookup of the source vertex using find, swap and pop.
                     auto it = std::find(outgoingEdgeQueueLookup.begin(), outgoingEdgeQueueLookup.end(), element);
 
                     // If this edge is not in the lookup, this is a bug.
@@ -147,10 +147,10 @@ namespace ompl
                     // Pop the element from the heap.
                     heap_.pop();
 
-                    // Get a reference to the outgoing edge queue lookup of the parent vertex.
-                    auto &outgoingEdgeQueueLookup = top.parent->asReverseVertex()->outgoingEdgeQueueLookup_;
+                    // Get a reference to the outgoing edge queue lookup of the source vertex.
+                    auto &outgoingEdgeQueueLookup = top.source->asReverseVertex()->outgoingEdgeQueueLookup_;
 
-                    // Remove the edge from the ougoing edge lookup of the parent vertex using find, swap and pop.
+                    // Remove the edge from the ougoing edge lookup of the source vertex using find, swap and pop.
                     auto it = std::find(outgoingEdgeQueueLookup.begin(), outgoingEdgeQueueLookup.end(), element);
 
                     // If this edge is not in the lookup, this is a bug.

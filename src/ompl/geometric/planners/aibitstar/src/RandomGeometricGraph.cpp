@@ -118,16 +118,16 @@ namespace ompl
             void RandomGeometricGraph::registerInvalidEdge(const Edge &edge)
             {
                 // Remove the edge from the caches (using the erase-remove idiom).
-                auto &parentNeighbors = edge.parent->neighbors_.second;
-                auto &childNeighbors = edge.child->neighbors_.second;
-                parentNeighbors.erase(
-                    std::remove_if(parentNeighbors.begin(), parentNeighbors.end(),
-                                   [&edge](const auto &neighbor) { return neighbor->getId() == edge.child->getId(); }),
-                    parentNeighbors.end());
-                childNeighbors.erase(
-                    std::remove_if(childNeighbors.begin(), childNeighbors.end(),
-                                   [&edge](const auto &neighbor) { return neighbor->getId() == edge.parent->getId(); }),
-                    childNeighbors.end());
+                auto &sourceNeighbors = edge.source->neighbors_.second;
+                auto &targetNeighbors = edge.target->neighbors_.second;
+                sourceNeighbors.erase(
+                    std::remove_if(sourceNeighbors.begin(), sourceNeighbors.end(),
+                                   [&edge](const auto &neighbor) { return neighbor->getId() == edge.target->getId(); }),
+                    sourceNeighbors.end());
+                targetNeighbors.erase(
+                    std::remove_if(targetNeighbors.begin(), targetNeighbors.end(),
+                                   [&edge](const auto &neighbor) { return neighbor->getId() == edge.source->getId(); }),
+                    targetNeighbors.end());
             }
 
             std::shared_ptr<State> RandomGeometricGraph::setStartState(const ompl::base::State *startState)
@@ -139,7 +139,7 @@ namespace ompl
                 }
 
                 // Allocate the start state.
-                startState_ = std::make_shared<State>(spaceInfo_);
+                startState_ = std::make_shared<State>(spaceInfo_, objective_);
 
                 // Copy the given state.
                 spaceInfo_->copyState(startState_->raw(), startState);
@@ -159,7 +159,7 @@ namespace ompl
                 }
 
                 // Allocate the goal state.
-                goalState_ = std::make_shared<State>(spaceInfo_);
+                goalState_ = std::make_shared<State>(spaceInfo_, objective_);
 
                 // Copy the given state.
                 spaceInfo_->copyState(goalState_->raw(), goalState);
