@@ -186,7 +186,7 @@ namespace ompl
                 while (newStates.size() < numNewStates)
                 {
                     // Allocate a new state.
-                    newStates.emplace_back(std::make_shared<State>(spaceInfo_));
+                    newStates.emplace_back(std::make_shared<State>(spaceInfo_, objective_));
 
                     do  // Sample randomly until a valid state is found.
                     {

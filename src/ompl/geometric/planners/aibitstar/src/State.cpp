@@ -51,8 +51,14 @@ namespace ompl
                 }
             }  // namespace
 
-            State::State(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo)
-              : id_(generateId()), state_(spaceInfo->allocState()), neighbors_({0u, {}}), spaceInfo_(spaceInfo)
+            State::State(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo,
+                         const std::shared_ptr<ompl::base::OptimizationObjective> &objective)
+              : id_(generateId())
+              , estimatedCostToGo_(objective->infiniteCost())
+              , lowerBoundCostToGo_(objective->infiniteCost())
+              , state_(spaceInfo->allocState())
+              , neighbors_({0u, {}})
+              , spaceInfo_(spaceInfo)
             {
                 if (state_ == nullptr)
                 {

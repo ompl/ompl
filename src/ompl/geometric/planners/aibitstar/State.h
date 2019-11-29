@@ -59,7 +59,8 @@ namespace ompl
             public:
                 /** \brief Constructs the state, allocating the associated memory using information about the underlying
                  * space. */
-                State(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo);
+                State(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo,
+                      const std::shared_ptr<ompl::base::OptimizationObjective> &objective);
 
                 /** \brief Destructs the state, freeing the associated memory. */
                 ~State();
@@ -117,7 +118,10 @@ namespace ompl
                 std::size_t estimatedEffortToGo_{std::numeric_limits<std::size_t>::max()};
 
                 /** \brief The estimated cost to go from this state to the goal. */
-                ompl::base::Cost estimatedCostToGo_{std::numeric_limits<double>::max()};
+                ompl::base::Cost estimatedCostToGo_;
+
+                /** \brief A lower bound on the cost to go from this state to the goal. */
+                ompl::base::Cost lowerBoundCostToGo_;
 
                 /** \brief The underlying OMPL state. */
                 ompl::base::State *state_;
