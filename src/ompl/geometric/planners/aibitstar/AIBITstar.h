@@ -67,7 +67,7 @@ namespace ompl
             ompl::base::PlannerStatus
             solve(const ompl::base::PlannerTerminationCondition &terminationCondition) override;
 
-            /** \brief Gets the best cost of the current solution. */
+            /** \brief Gets the cost of the current best solution. */
             ompl::base::Cost bestCost() const;
 
             /** \brief Sets the number of samples per batch. */

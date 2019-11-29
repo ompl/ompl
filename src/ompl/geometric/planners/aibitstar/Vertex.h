@@ -53,7 +53,10 @@ namespace ompl
     {
         namespace aibitstar
         {
+            // Forward declare the AI-BIT* state class.
             class State;
+
+            /** \brief The vertex class for both the forward and reverse search. */
             class Vertex : public std::enable_shared_from_this<Vertex>
             {
             public:
@@ -63,7 +66,7 @@ namespace ompl
                 /** \brief Destructs the vertex. */
                 ~Vertex() = default;
 
-                /** \brief Gets the unique id of this vertex. */
+                /** \brief Gets the unique vertex-id of this vertex. */
                 std::size_t getId() const;
 
                 /** \brief Returns the cost-to-come to this vertex. */
@@ -138,7 +141,7 @@ namespace ompl
                 /** \brief The cost-to-come to this vertex. */
                 ompl::base::Cost cost_{std::numeric_limits<double>::infinity()};
 
-                /** \brief The edge cost of the connection with the parent. */
+                /** \brief The cost of the edge which connects this vertex with its parent. */
                 ompl::base::Cost edgeCost_{std::numeric_limits<double>::infinity()};
 
                 /** \brief The parent of this vertex. */
