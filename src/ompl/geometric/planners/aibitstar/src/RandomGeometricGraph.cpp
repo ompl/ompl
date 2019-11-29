@@ -177,8 +177,18 @@ namespace ompl
                 assert(objective_);
 
                 // Count the number of informed states before adding new states. This saves some counting, because all
-                // new states will be informed, and its known how many of them will be added.
-                auto numInformedSamples = countSamplesInInformedSet();
+                // new states will be informed, and its known how many of them will be added. If pruning is enabled, we
+                // can do this now.
+                auto numInformedSamples{0u};
+                if (isPruningEnabled_)
+                {
+                    prune();
+                    numInformedSamples = samples_.size();
+                }
+                else
+                {
+                    numInformedSamples = countSamplesInInformedSet();
+                }
 
                 // Create the requested number of new states.
                 std::vector<std::shared_ptr<State>> newStates;
@@ -204,6 +214,11 @@ namespace ompl
 
                 // Update the tag.
                 ++tag_;
+            }
+
+            void RandomGeometricGraph::enablePruning(bool prune)
+            {
+                isPruningEnabled_ = prune;
             }
 
             const std::vector<std::shared_ptr<State>> &
@@ -236,6 +251,58 @@ namespace ompl
 
                 // The cache is guaranteed to be up to date now, just return it.
                 return state->neighbors_.second;
+            }
+
+            void RandomGeometricGraph::prune()
+            {
+                // Is there really no way of doing this without looping over all samples?
+                std::vector<std::shared_ptr<State>> samples;
+                samples_.list(samples);
+
+                // Prepare a vector of samples to be pruned.
+                std::vector<std::shared_ptr<State>> samplesToBePruned;
+
+                // Check each sample if it can be pruned.
+                for (const auto &sample : samples)
+                {
+                    if (!canPossiblyImproveSolution(sample))
+                    {
+                        samplesToBePruned.emplace_back(sample);
+                    }
+                }
+
+                // Remove all samples to be pruned.
+                for (const auto &sample : samplesToBePruned)
+                {
+                    // Remove the sample from the graph.
+                    samples_.remove(sample);
+
+                    // Remove it from both search trees.
+                    if (sample->hasForwardVertex())
+                    {
+                        auto forwardVertex = sample->asForwardVertex();
+                        if (auto parent = forwardVertex->getParent().lock())
+                        {
+                            forwardVertex->resetParent();
+                            parent->removeChild(forwardVertex);
+                        }
+                    }
+                    if (sample->hasReverseVertex())
+                    {
+                        auto reverseVertex = sample->asReverseVertex();
+                        if (auto parent = reverseVertex->getParent().lock())
+                        {
+                            reverseVertex->resetParent();
+                            parent->removeChild(reverseVertex);
+                        }
+                    }
+                }
+
+                // If any sample was pruned, this has invalidated the nearest neighbor cache.
+                if (!samplesToBePruned.empty())
+                {
+                    ++tag_;
+                }
             }
 
             std::size_t RandomGeometricGraph::countSamplesInInformedSet() const

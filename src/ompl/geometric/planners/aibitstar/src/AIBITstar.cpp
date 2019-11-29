@@ -66,7 +66,7 @@ namespace ompl
             // Check that the problem definition is set.
             if (!problem_)
             {
-                OMPL_ERROR("AI-BIT* can not be setup without first setting the probelm definition.");
+                OMPL_ERROR("AI-BIT* can not be setup without first setting the problem definition.");
                 return;
             }
 
@@ -83,7 +83,8 @@ namespace ompl
             // Default to path length optimization if no objective has been specified.
             if (!problem_->hasOptimizationObjective())
             {
-                OMPL_WARN("%s: No optimization has been specified. Defaulting to path length.", name_.c_str());
+                OMPL_WARN("%s: No optimization objective has been specified. The default is optimizing path length.",
+                          name_.c_str());
                 problem_->setOptimizationObjective(
                     std::make_shared<ompl::base::PathLengthOptimizationObjective>(spaceInfo_));
             }
@@ -125,14 +126,14 @@ namespace ompl
             // Make sure everything is setup.
             if (!setup_)
             {
-                throw std::runtime_error("Called solve on AIBIT* without setting up the planner first.");
+                throw std::runtime_error("Called solve on AI-BIT* without setting up the planner first.");
             }
             if (!spaceInfo_->isSetup())
             {
-                throw std::runtime_error("Called solve on AIBIT* without setting up the state space first.");
+                throw std::runtime_error("Called solve on AI-BIT* without setting up the state space first.");
             }
 
-            // If this is the first time solve is being called, populate the backward queue.
+            // If this is the first time solve is being called, populate the reverse queue.
             if (iteration_ == 0u)
             {
                 reverseQueue_.insert(reverseExpand(graph_.getGoalState()));

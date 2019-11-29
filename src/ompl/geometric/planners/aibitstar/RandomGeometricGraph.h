@@ -73,6 +73,12 @@ namespace ompl
                 /** \brief Samples random states and adds them to the graph. */
                 void addStates(std::size_t numStates);
 
+                /** \brief Enable pruning of the graph. */
+                void enablePruning(bool prune);
+
+                /** \brief Prunes the graph of states that can not improve the current solution. */
+                void prune();
+
                 /** \brief Gets the neighbors of a state. */
                 const std::vector<std::shared_ptr<State>> &getNeighbors(const std::shared_ptr<State> &state) const;
 
@@ -130,6 +136,9 @@ namespace ompl
 
                 /** \brief The goal state of the problem. */
                 std::shared_ptr<State> goalState_;
+
+                /** \brief Whether pruning is enabled. */
+                bool isPruningEnabled_{true};
 
                 /** \brief The connection radius of the RGG. */
                 double radius_{std::numeric_limits<double>::infinity()};
