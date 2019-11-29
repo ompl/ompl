@@ -190,6 +190,10 @@ namespace ompl
                     numInformedSamples = countSamplesInInformedSet();
                 }
 
+                // Get the current best cost.
+                auto currentCost = goalState_->hasForwardVertex() ? goalState_->asForwardVertex()->getCost() :
+                                                                    objective_->infiniteCost();
+
                 // Create the requested number of new states.
                 std::vector<std::shared_ptr<State>> newStates;
                 newStates.reserve(numNewStates);
@@ -200,9 +204,7 @@ namespace ompl
 
                     do  // Sample randomly until a valid state is found.
                     {
-                        sampler_->sampleUniform(newStates.back()->raw(), goalState_->hasForwardVertex() ?
-                                                                             goalState_->asForwardVertex()->getCost() :
-                                                                             objective_->infiniteCost());
+                        sampler_->sampleUniform(newStates.back()->raw(), currentCost);
                     } while (!spaceInfo_->isValid(newStates.back()->raw()));
                 }
 
