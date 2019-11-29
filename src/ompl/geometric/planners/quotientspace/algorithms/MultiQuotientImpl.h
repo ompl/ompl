@@ -184,7 +184,9 @@ ompl::base::PlannerStatus ompl::geometric::MultiQuotient<T>::solve(const ompl::b
                 double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
                 OMPL_DEBUG("Found Solution on Level %d after %f seconds.", k, t_k_end);
                 foundKLevelSolution_ = true;
-                currentQuotientLevel_ = k + 1;
+                currentQuotientLevel_ = k + 1;//std::min(k + 1, quotientSpaces_.size()-1);
+                if(currentQuotientLevel_ > (quotientSpaces_.size()-1)) 
+                  currentQuotientLevel_ = quotientSpaces_.size()-1;
 
                 // add solution to pdef
                 ompl::base::PlannerSolution psol(sol_k);
@@ -205,7 +207,10 @@ ompl::base::PlannerStatus ompl::geometric::MultiQuotient<T>::solve(const ompl::b
     OMPL_DEBUG("Found exact solution after %f seconds.", t_end);
 
     ompl::base::PathPtr sol;
-    if (quotientSpaces_.at(currentQuotientLevel_ - 1)->getSolution(sol))
+    int lastSolvedQuotientSpaceLevel = currentQuotientLevel_ - 1;
+    if(lastSolvedQuotientSpaceLevel < 0) lastSolvedQuotientSpaceLevel = 0;
+
+    if (quotientSpaces_.at(lastSolvedQuotientSpaceLevel)->getSolution(sol))
     {
         ompl::base::PlannerSolution psol(sol);
         psol.setPlannerName(getName());

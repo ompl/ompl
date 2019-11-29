@@ -40,8 +40,9 @@ ompl::base::PlannerStatus ompl::geometric::Optimizer::solve(const base::PlannerT
 
 
 
+  std::cout << std::string(80, '-') << std::endl;
   std::cout << "NYI" << std::endl;
-
+  std::cout << std::string(80, '-') << std::endl;
 }
 
 void ompl::geometric::Optimizer::getPlannerData(base::PlannerData &data) const
