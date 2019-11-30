@@ -32,11 +32,17 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, James D. Marble, Ryan Luna */
+/* Author: Ioan Sucan, James D. Marble, Ryan Luna, Henning Kayser */
 
 #include "ompl/geometric/planners/prm/PRMstar.h"
 
 ompl::geometric::PRMstar::PRMstar(const base::SpaceInformationPtr &si) : PRM(si, true)
+{
+    setName("PRMstar");
+    params_.remove("max_nearest_neighbors");
+}
+
+ompl::geometric::PRMstar::PRMstar(const base::PlannerData &data) : PRM(data, true)
 {
     setName("PRMstar");
     params_.remove("max_nearest_neighbors");

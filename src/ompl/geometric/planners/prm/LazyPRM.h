@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Henning Kayser */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_PRM_LAZY_PRM_
 #define OMPL_GEOMETRIC_PLANNERS_PRM_LAZY_PRM_
@@ -145,6 +145,9 @@ namespace ompl
 
             /** \brief Constructor */
             LazyPRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
+
+            /** \brief Constructor */
+            LazyPRM(const base::PlannerData &data, bool starStrategy = false);
 
             ~LazyPRM() override;
 

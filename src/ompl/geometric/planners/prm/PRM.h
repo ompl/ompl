@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, James D. Marble, Ryan Luna */
+/* Author: Ioan Sucan, James D. Marble, Ryan Luna, Henning Kayser */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_PRM_PRM_
 #define OMPL_GEOMETRIC_PLANNERS_PRM_PRM_
@@ -142,6 +142,9 @@ namespace ompl
 
             /** \brief Constructor */
             PRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
+
+            /** \brief Constructor */
+            PRM(const base::PlannerData &data, bool starStrategy = false);
 
             ~PRM() override;
 

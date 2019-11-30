@@ -32,11 +32,18 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, James D. Marble, Ryan Luna */
+/* Author: Ioan Sucan, James D. Marble, Ryan Luna, Henning Kayser */
 
 #include "ompl/geometric/planners/prm/LazyPRMstar.h"
 
 ompl::geometric::LazyPRMstar::LazyPRMstar(const base::SpaceInformationPtr &si) : LazyPRM(si, true)
+{
+    setName("LazyPRMstar");
+    params_.remove("range");
+    params_.remove("max_nearest_neighbors");
+}
+
+ompl::geometric::LazyPRMstar::LazyPRMstar(const base::PlannerData &data) : LazyPRM(data, true)
 {
     setName("LazyPRMstar");
     params_.remove("range");
