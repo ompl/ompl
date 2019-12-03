@@ -22,6 +22,7 @@ A breakdown of all contributions by commits can be found on GitHub for the [OMPL
 - Florian Hauer, Georgia Tech
 - Gil Jones, Google
 - [Sertac Karaman](http://sertac.scripts.mit.edu/web), Emilio Frazzoli's [Aerospace Robotics and Embedded Systems Laboratory](http://ares.lids.mit.edu), MIT
+- Henning Kayser, Applied Robotics Scientist at [PickNik Robotics](https://picknik.ai)
 - [Zachary Kingston](http://zkingston.com), Rice University
 - [Ryan Luna](http://www.ryanluna.com), Rice University (now at Waymo)
 - Matt Maly, Rice University (now at Google)
