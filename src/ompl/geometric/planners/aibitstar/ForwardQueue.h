@@ -34,10 +34,11 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_QUEUE_
-#define OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_QUEUE_
+#ifndef OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_FORWARD_QUEUE_
+#define OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_FORWARD_QUEUE_
 
 #include <array>
+#include <map>
 
 #include "ompl/base/Cost.h"
 #include "ompl/base/samplers/InformedStateSampler.h"
@@ -54,15 +55,15 @@ namespace ompl
     {
         namespace aibitstar
         {
-            template <Direction D>
-            class EdgeQueue
+            class ForwardQueue
             {
             public:
                 /** \brief Constructs the queue. */
-                EdgeQueue();
+                ForwardQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
+                             const std::shared_ptr<const ompl::base::SpaceInformation> &spaceInfo);
 
                 /** \brief Destructs the queue. */
-                ~EdgeQueue() = default;
+                ~ForwardQueue() = default;
 
                 /** \brief Returns whether the queue is empty. */
                 bool empty() const;
@@ -70,20 +71,20 @@ namespace ompl
                 /** \brief Returns how many elements are in the queue. */
                 std::size_t size() const;
 
-                /** \brief Insert an element into the queue. */
+                /** \brief Insert an edge into the queue. */
                 void insert(const Edge &edge);
 
-                /** \brief Inserts multiple elements into the queue. */
+                /** \brief Inserts multiple edges into the queue. */
                 void insert(const std::vector<Edge> &edges);
 
-                /** \brief Update an element in the queue. */
+                /** \brief Update an edge in the queue. */
                 bool update(const Edge &edge);
 
-                /** \brief Return a reference to the top element of the queue. */
-                const Edge &peek() const;
+                /** \brief Returns a copy to the next edge. */
+                Edge peek(float suboptimalityFactor) const;
 
                 /** \brief Returns and deletes the top element of the queue. */
-                Edge pop();
+                Edge pop(float suboptimalityFactor);
 
                 /** \brief Clears the queue, i.e., deletes all elements from it. */
                 void clear();
@@ -95,11 +96,23 @@ namespace ompl
                 void rebuild();
 
             private:
-                /** \brief The type of the heap currently used by this queue. */
-                using Heap = ompl::BinaryHeap<Edge, std::function<bool(const Edge &, const Edge &)>>;
+                /** \brief Estimates the effort that remains to validate a solution through an edge. */
+                std::size_t estimateEffort(const Edge &edge) const;
 
-                /** \brief The heap which holds the edges. */
-                Heap heap_;
+                /** \brief Estimates the cost of a solution through an edge (possibly inadmissible). */
+                ompl::base::Cost estimateCost(const Edge &edge) const;
+
+                /** \brief Returns a lower bounding cost for a solution through an edge (admissible). */
+                ompl::base::Cost lowerBoundCost(const Edge &edge) const;
+
+                /** \brief The optimization objective. */
+                std::shared_ptr<const ompl::base::OptimizationObjective> objective_;
+
+                /** \brief The state space information. */
+                std::shared_ptr<const ompl::base::SpaceInformation> spaceInfo_;
+
+                /** \brief The queue is ordered on the lower bound cost through an edge. */
+                std::vector<Edge> queue_;
             };
         }  // namespace aibitstar
 
@@ -107,7 +120,4 @@ namespace ompl
 
 }  // namespace ompl
 
-// Include the implementation of the edge queue.
-#include "ompl/geometric/planners/aibitstar/Queue_impl.h"
-
-#endif  // OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_QUEUE_
+#endif  // OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_FORWARD_QUEUE_

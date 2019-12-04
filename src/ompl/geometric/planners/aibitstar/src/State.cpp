@@ -162,14 +162,24 @@ namespace ompl
                 return whitelist_.find(state->getId()) != whitelist_.end();
             }
 
+            void State::setEstimatedEffortToGo(std::size_t effort)
+            {
+                estimatedEffortToGo_ = effort;
+            }
+
             void State::setEstimatedCostToGo(ompl::base::Cost cost)
             {
                 estimatedCostToGo_ = cost;
             }
 
-            void State::setEstimatedEffortToGo(std::size_t effort)
+            void State::setLowerBoundCostToGo(ompl::base::Cost cost)
             {
-                estimatedEffortToGo_ = effort;
+                lowerBoundCostToGo_ = cost;
+            }
+
+            std::size_t State::getEstimatedEffortToGo() const
+            {
+                return estimatedEffortToGo_;
             }
 
             ompl::base::Cost State::getEstimatedCostToGo() const
@@ -177,9 +187,9 @@ namespace ompl
                 return estimatedCostToGo_;
             }
 
-            std::size_t State::getEstimatedEffortToGo() const
+            ompl::base::Cost State::getLowerBoundCostToGo() const
             {
-                return estimatedEffortToGo_;
+                return lowerBoundCostToGo_;
             }
 
         }  // namespace aibitstar

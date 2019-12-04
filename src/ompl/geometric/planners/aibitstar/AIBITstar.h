@@ -45,7 +45,8 @@
 
 #include "ompl/geometric/planners/aibitstar/Direction.h"
 #include "ompl/geometric/planners/aibitstar/RandomGeometricGraph.h"
-#include "ompl/geometric/planners/aibitstar/Queue.h"
+#include "ompl/geometric/planners/aibitstar/ForwardQueue.h"
+#include "ompl/geometric/planners/aibitstar/ReverseQueue.h"
 
 namespace ompl
 {
@@ -111,28 +112,11 @@ namespace ompl
             void updateSolution() const;
 
             /** \brief Expands the input state, creating forward edges. */
-            std::vector<aibitstar::Edge> forwardExpand(const std::shared_ptr<aibitstar::State> &state) const;
+            std::vector<aibitstar::Edge> expand(const std::shared_ptr<aibitstar::State> &state) const;
 
-            /** \brief Expands the input state, creating reverse edges. */
-            std::vector<aibitstar::Edge> reverseExpand(const std::shared_ptr<aibitstar::State> &state) const;
-
-            /** \brief Creates a forward edge between two states. */
-            aibitstar::Edge createForwardEdge(const std::shared_ptr<aibitstar::State> &parent,
-                                              const std::shared_ptr<aibitstar::State> &child) const;
-
-            /** \brief Creates a reverse edge between two states. */
-            aibitstar::Edge createReverseEdge(const std::shared_ptr<aibitstar::State> &parent,
-                                              const std::shared_ptr<aibitstar::State> &child) const;
-
-            /** \brief Computes the forward key for an edge between the two input states. */
-            std::array<double, 3u> computeForwardKey(const std::shared_ptr<aibitstar::State> &parent,
-                                                     const std::shared_ptr<aibitstar::State> &child,
-                                                     const ompl::base::Cost &edgeCost) const;
-
-            /** \brief Computes the reverse key for an edge between the two input states. */
-            std::array<double, 3u> computeReverseKey(const std::shared_ptr<aibitstar::State> &parent,
-                                                     const std::shared_ptr<aibitstar::State> &child,
-                                                     const ompl::base::Cost &edgeCost) const;
+            /** \brief Creates an edge between two states. */
+            aibitstar::Edge createEdge(const std::shared_ptr<aibitstar::State> &source,
+                                       const std::shared_ptr<aibitstar::State> &target) const;
 
             /** \brief Rebuilds the forward queue, recomputing all sort keys. */
             void rebuildForwardQueue();
@@ -167,6 +151,9 @@ namespace ompl
             /** \brief The number of states added when the approximation is updated. */
             std::size_t numSamplesPerBatch_{100u};
 
+            /** \brief The current suboptimality factor of the forward search. */
+            float suboptimalityFactor_{std::numeric_limits<float>::infinity()};
+
             /** \brief The root of the forward search tree. */
             std::shared_ptr<aibitstar::Vertex> forwardRoot_;
 
@@ -174,10 +161,10 @@ namespace ompl
             std::shared_ptr<aibitstar::Vertex> reverseRoot_;
 
             /** \brief The forward queue. */
-            aibitstar::EdgeQueue<aibitstar::Direction::FORWARD> forwardQueue_;
+            std::unique_ptr<aibitstar::ForwardQueue> forwardQueue_;
 
             /** \brief The reverse queue. */
-            aibitstar::EdgeQueue<aibitstar::Direction::REVERSE> reverseQueue_;
+            std::unique_ptr<aibitstar::ReverseQueue> reverseQueue_;
 
             /** \brief The current iteration. */
             std::size_t iteration_{0u};

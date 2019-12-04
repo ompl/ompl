@@ -68,11 +68,6 @@ namespace ompl
                 return cost_;
             }
 
-            std::size_t Vertex::getEffort() const
-            {
-                return effort_;
-            }
-
             std::shared_ptr<State> Vertex::getState() const
             {
                 return state_;
@@ -173,17 +168,6 @@ namespace ompl
             {
                 assert(parent_.lock());
                 cost_ = objective->combineCosts(parent_.lock()->getCost(), edgeCost_);
-            }
-
-            void Vertex::setEdgeEffort(std::size_t effort)
-            {
-                edgeEffort_ = effort;
-            }
-
-            void Vertex::updateEffort()
-            {
-                assert(parent_.lock());
-                effort_ = parent_.lock()->getEffort() + edgeEffort_;
             }
 
             void Vertex::resetParent()

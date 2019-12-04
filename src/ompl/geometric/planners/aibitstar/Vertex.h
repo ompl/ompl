@@ -72,9 +72,6 @@ namespace ompl
                 /** \brief Returns the cost-to-come to this vertex. */
                 ompl::base::Cost getCost() const;
 
-                /** \brief Returns the effort-to-come (in terms of number of collision detections) to this vertex. */
-                std::size_t getEffort() const;
-
                 /** \brief Returns the state associated with this vertex. */
                 std::shared_ptr<State> getState() const;
 
@@ -107,17 +104,11 @@ namespace ompl
                 /** \brief Updates the cost by combining the parent cost-to-come and the edge cost. */
                 void updateCost(const std::shared_ptr<ompl::base::OptimizationObjective> &objective);
 
-                /** \brief Updates the effort it takes to get to this vertex. */
-                void updateEffort();
-
                 /** \brief Resets the parent of the vertex. */
                 void updateParent(const std::shared_ptr<Vertex> &vertex);
 
                 /** \brief Sets the edge cost of the vertex. */
                 void setEdgeCost(const ompl::base::Cost &edgeCost);
-
-                /** \brief Sets the effort it takes to validate the edge to the parent. */
-                void setEdgeEffort(std::size_t effort);
 
                 /** \brief Returns the parent of the vertex. */
                 void resetParent();
@@ -153,12 +144,6 @@ namespace ompl
                 /** \brief The cost of the edge which connects this vertex with its parent. */
                 ompl::base::Cost edgeCost_{std::numeric_limits<double>::infinity()};
 
-                /** \brief The effort-to-come (in terms of necessary collision detections) to this vertex. */
-                std::size_t effort_{std::numeric_limits<std::size_t>::max()};
-
-                /** \brief The effort it takes to validate the edge which connects this vertex with its parent. */
-                std::size_t edgeEffort_{std::numeric_limits<std::size_t>::max()};
-
                 /** \brief The parent of this vertex. */
                 std::weak_ptr<Vertex> parent_{};
 
@@ -174,14 +159,15 @@ namespace ompl
 
                 /** \brief The edge queue is a friend class to allow efficient updates of outgoing edges of this vertex
                  * in the queue. */
-                template <Direction D>
-                friend class EdgeQueue;
+                friend class ReverseQueue;
 
                 /** \brief The outgoing edges from this vertex currently in the queue. This is maintained by the queue.
                  */
-                mutable std::vector<ompl::BinaryHeap<ompl::geometric::aibitstar::Edge,
-                                                     std::function<bool(const Edge &, const Edge &)>>::Element *>
-                    outgoingEdgeQueueLookup_;
+                mutable std::vector<ompl::BinaryHeap<
+                    std::pair<std::array<ompl::base::Cost, 2u>, Edge>,
+                    std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &,
+                                       const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &)>>::Element *>
+                    outgoingReverseQueueLookup_;
             };
 
         }  // namespace aibitstar

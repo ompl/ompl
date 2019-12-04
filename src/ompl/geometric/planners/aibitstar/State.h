@@ -101,11 +101,17 @@ namespace ompl
                 /** \brief Set the estimated cost to go from this state to the goal. */
                 void setEstimatedCostToGo(ompl::base::Cost cost);
 
+                /** \brief Set the lower bound cost to go from this state to the goal. */
+                void setLowerBoundCostToGo(ompl::base::Cost cost);
+
                 /** \brief Set the estimated effort to go from this state to the goal. */
                 std::size_t getEstimatedEffortToGo() const;
 
                 /** \brief Set the estimated cost to go from this state to the goal. */
                 ompl::base::Cost getEstimatedCostToGo() const;
+
+                /** \brief get the lower bound cost to go from this state to the goal. */
+                ompl::base::Cost getLowerBoundCostToGo() const;
 
             private:
                 /** \brief Grant access to the state internals to the random geometric graph. */
