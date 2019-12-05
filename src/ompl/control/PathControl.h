@@ -196,6 +196,8 @@ namespace ompl
             {
                 return controls_.size();
             }
+            /** \brief Remove all states and controls*/
+            void clear();
 
             /** @} */
 

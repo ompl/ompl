@@ -324,10 +324,7 @@ bool ompl::control::PathControl::randomValid(unsigned int attempts)
 
     if (!ok)
     {
-        freeMemory();
-        states_.clear();
-        controls_.clear();
-        controlDurations_.clear();
+        clear();
     }
     return ok;
 }
@@ -339,4 +336,12 @@ void ompl::control::PathControl::freeMemory()
     const auto *si = static_cast<const SpaceInformation *>(si_.get());
     for (auto &control : controls_)
         si->freeControl(control);
+}
+
+void ompl::control::PathControl::clear()
+{
+    freeMemory();
+    states_.clear();
+    controls_.clear();
+    controlDurations_.clear();
 }
