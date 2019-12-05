@@ -413,7 +413,6 @@ namespace ompl
 
                 // The cost-to-come of the vertex in the tree is our estimate of the cost-to-go of the underlying state.
                 edge.target->setEstimatedCostToGo(childVertex->getCost());
-                edge.target->setLowerBoundCostToGo(objective_->costToGo(edge.target->raw(), problem_->getGoal().get()));
 
                 // Add the child to the children of the parent.
                 parentVertex->addChild(childVertex);
