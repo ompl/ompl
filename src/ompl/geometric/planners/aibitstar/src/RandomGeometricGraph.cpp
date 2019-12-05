@@ -206,6 +206,10 @@ namespace ompl
                     {
                         sampler_->sampleUniform(newStates.back()->raw(), currentCost);
                     } while (!spaceInfo_->isValid(newStates.back()->raw()));
+
+                    // Set the cost to go.
+                    newStates.back()->setLowerBoundCostToGo(
+                        objective_->costToGo(newStates.back()->raw(), problem_->getGoal().get()));
                 }
 
                 // Add the new states to the samples.
