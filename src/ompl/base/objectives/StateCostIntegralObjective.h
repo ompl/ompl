@@ -84,6 +84,20 @@ namespace ompl
             */
             Cost motionCost(const State *s1, const State *s2) const override;
 
+            /** \brief Estimate the cost of a path segment from \e s1 to \e s2 (including endpoints).
+                \param s1 start state of the motion to be evaluated
+                \param s2 final state of the motion to be evaluated
+                \param cost the cost of the motion segment
+
+                This function computes
+                \f{eqnarray*}{
+                \mbox{cost} &=& \frac{cost(s_1) + cost(s_2)}{2}\vert s_1 - s_2 \vert
+                \f}
+                regardless of whether enableMotionCostInterpolation was specified as true in
+                constructing this object.
+            */
+            Cost motionCostBestEstimate(const State *s1, const State *s2) const override;
+
             /** \brief Returns whether this objective subdivides
                 motions into smaller segments for more accurate motion
                 cost computation. Motion cost interpolation is
