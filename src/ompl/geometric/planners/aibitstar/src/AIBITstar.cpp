@@ -481,7 +481,7 @@ namespace ompl
             // Register this solution with the problem definition.
             ompl::base::PlannerSolution solution(path);
             solution.setPlannerName(name_);
-            solution.optimized_ = objective_->isSatisfied(reverseRoot_->getTwin().lock()->getCost());
+            solution.setOptimized(objective_, bestCost(), objective_->isSatisfied(bestCost()));
             problem_->addSolutionPath(solution);
 
             // Set a new suboptimality factor.
