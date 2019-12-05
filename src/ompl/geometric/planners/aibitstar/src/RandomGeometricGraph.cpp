@@ -141,6 +141,7 @@ namespace ompl
 
                 // Allocate the start state.
                 startState_ = std::make_shared<State>(spaceInfo_, objective_);
+                startState_->setLowerBoundCostToGo(objective_->costToGo(startState, problem_->getGoal().get()));
 
                 // Copy the given state.
                 spaceInfo_->copyState(startState_->raw(), startState);
@@ -164,6 +165,15 @@ namespace ompl
 
                 // Copy the given state.
                 spaceInfo_->copyState(goalState_->raw(), goalState);
+
+                // Set the lower bound cost to go.
+                goalState_->setLowerBoundCostToGo(objective_->identityCost());
+                goalState_->setEstimatedCostToGo(objective_->identityCost());
+                goalState_->setEstimatedEffortToGo(0u);
+
+                // Sanity check the cost-to-go definition.
+                assert(objective_->isCostEquivalentTo(objective_->costToGo(goalState, problem_->getGoal().get()),
+                                                      objective_->identityCost()));
 
                 // Add the goal to the set of samples.
                 samples_.add(goalState_);
