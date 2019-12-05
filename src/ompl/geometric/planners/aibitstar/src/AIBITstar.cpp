@@ -204,7 +204,7 @@ namespace ompl
 
             // Get the edges recursively.
             std::function<void(const std::shared_ptr<Vertex> &)> getEdgesRecursively =
-                [this, &edges, &getEdgesRecursively](const std::shared_ptr<Vertex> &vertex) {
+                [&edges, &getEdgesRecursively](const std::shared_ptr<Vertex> &vertex) {
                     for (const auto &child : vertex->getChildren())
                     {
                         getEdgesRecursively(child);
@@ -212,7 +212,7 @@ namespace ompl
                     // Catch the root case.
                     if (auto parent = vertex->getParent().lock())
                     {
-                        edges.emplace_back(createEdge(parent->getState(), vertex->getState()));
+                        edges.emplace_back(parent->getState(), vertex->getState());
                     }
                 };
             getEdgesRecursively(reverseRoot_);
@@ -342,8 +342,7 @@ namespace ompl
                             // Update the edges in the queue.
                             for (const auto &vertex : changedVertices)
                             {
-                                forwardQueue_->update(
-                                    createEdge(vertex->getParent().lock()->getState(), vertex->getState()));
+                                forwardQueue_->update({vertex->getParent().lock()->getState(), vertex->getState()});
 
                                 if (vertex->getState()->getId() == reverseRoot_->getState()->getId())
                                 {
@@ -462,20 +461,24 @@ namespace ompl
                 childVertex->updateParent(parentVertex);
 
                 // Set the edge cost.
-                childVertex->setEdgeCost(edge.cost);
+                childVertex->setEdgeCost(objective_->motionCostBestEstimate(parentVertex->getState()->raw(),
+                                                                            childVertex->getState()->raw()));
 
                 // Update the cost of the vertex in the tree.
                 childVertex->updateCost(objective_);
 
                 // The cost-to-come of the vertex in the tree is our estimate of the cost-to-go of the underlying state.
                 edge.target->setEstimatedCostToGo(childVertex->getCost());
+                edge.target->setLowerBoundCostToGo(objective_->costToGo(edge.target->raw(), problem_->getGoal().get()));
 
                 // Add the child to the children of the parent.
                 parentVertex->addChild(childVertex);
 
                 // The effort-to-come of the vertex in the tree is our estimate of the effort-to-go of the underlying
                 // state.
-                edge.target->setEstimatedEffortToGo(childVertex->getEffort());
+                edge.target->setEstimatedEffortToGo(
+                    edge.source->getEstimatedEffortToGo() +
+                    spaceInfo_->getStateSpace()->validSegmentCount(edge.source->raw(), edge.target->raw()));
 
                 // Expand the outgoing edges into the queue unless this has already happened or this is the start state.
                 if (!isClosed(childVertex) && edge.target->getId() != forwardRoot_->getState()->getId())
@@ -545,7 +548,11 @@ namespace ompl
             {
                 assert(reverseRoot_->getState()->hasForwardVertex());
                 // Compare the costs of the full path heuristic with the current cost of the start state.
-                if (objective_->isCostBetterThan(ompl::base::Cost(edge.key[0]), goalVertex->getCost()))
+                auto heuristicPathCost = objective_->combineCosts(
+                    objective_->combineCosts(edge.source->asForwardVertex()->getCost(),
+                                             objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw())),
+                    objective_->costToGo(edge.target->raw(), problem_->getGoal().get()));
+                if (objective_->isCostBetterThan(heuristicPathCost, goalVertex->getCost()))
                 {
                     return true;
                 }
@@ -569,8 +576,10 @@ namespace ompl
 
         bool AIBITstar::couldImproveForwardTree(const Edge &edge) const
         {
-            return objective_->isCostBetterThan(ompl::base::Cost(edge.key[1]),
-                                                edge.target->asForwardVertex()->getCost());
+            auto heuristicCostToCome =
+                objective_->combineCosts(edge.source->asForwardVertex()->getCost(),
+                                         objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw()));
+            return objective_->isCostBetterThan(heuristicCostToCome, edge.target->asForwardVertex()->getCost());
         }
 
         bool AIBITstar::doesImproveForwardPath(const Edge &edge, const ompl::base::Cost &trueEdgeCost) const
@@ -653,7 +662,11 @@ namespace ompl
             {
                 assert(forwardRoot_->getState()->hasReverseVertex());
                 // Compare the costs of the full path heuristic with the current cost of the start state.
-                if (objective_->isCostBetterThan(ompl::base::Cost(edge.key[0]), startVertex->getCost()))
+                auto heuristicPathCost = objective_->combineCosts(
+                    objective_->combineCosts(edge.source->asReverseVertex()->getCost(),
+                                             objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw())),
+                    objective_->motionCostHeuristic(edge.target->raw(), forwardRoot_->getState()->raw()));
+                if (objective_->isCostBetterThan(heuristicPathCost, startVertex->getCost()))
                 {
                     return true;
                 }
@@ -671,7 +684,8 @@ namespace ompl
         bool AIBITstar::doesImproveReverseTree(const Edge &edge) const
         {
             return objective_->isCostBetterThan(
-                objective_->combineCosts(edge.source->asReverseVertex()->getCost(), edge.cost),
+                objective_->combineCosts(edge.source->asReverseVertex()->getCost(),
+                                         objective_->motionCostBestEstimate(edge.source->raw(), edge.target->raw())),
                 edge.target->asReverseVertex()->getCost());
         }
 
@@ -686,7 +700,7 @@ namespace ompl
             // Get the neighbors in the current graph.
             for (const auto &neighborState : graph_.getNeighbors(state))
             {
-                outgoingEdges.emplace_back(createEdge(state, neighborState));
+                outgoingEdges.emplace_back(state, neighborState);
             }
 
             // If the state is in the forward search tree, extra edges have to be added.
@@ -705,7 +719,7 @@ namespace ompl
                     auto forwardParentState = forwardVertex->getParent().lock()->getState();
 
                     // Add the edge to the forward tree parent.
-                    outgoingEdges.emplace_back(createEdge(state, forwardParentState));
+                    outgoingEdges.emplace_back(state, forwardParentState);
                 }
 
                 // Add the edge to the forward children.
@@ -715,7 +729,7 @@ namespace ompl
                     auto forwardChildState = child->getState();
 
                     // Add the edge to the child to the outgoing edges.
-                    outgoingEdges.emplace_back(createEdge(state, forwardChildState));
+                    outgoingEdges.emplace_back(state, forwardChildState);
                 }
             }
 
@@ -735,7 +749,7 @@ namespace ompl
                     auto reverseParentState = reverseVertex->getParent().lock()->getState();
 
                     // Add the edge to the reverse tree parent.
-                    outgoingEdges.emplace_back(createEdge(state, reverseParentState));
+                    outgoingEdges.emplace_back(state, reverseParentState);
                 }
 
                 // Add the edge to the reverse children.
@@ -745,17 +759,11 @@ namespace ompl
                     auto reverseChildState = child->getState();
 
                     // Add the edge to the child to the outgoing edges.
-                    outgoingEdges.emplace_back(createEdge(state, reverseChildState));
+                    outgoingEdges.emplace_back(state, reverseChildState);
                 }
             }
 
             return outgoingEdges;
-        }
-
-        aibitstar::Edge AIBITstar::createEdge(const std::shared_ptr<aibitstar::State> &source,
-                                              const std::shared_ptr<aibitstar::State> &target) const
-        {
-            return {source, target, objective_->motionCostHeuristic(source->raw(), target->raw())};
         }
 
     }  // namespace geometric

@@ -78,9 +78,13 @@ namespace ompl
                         queue_.insert(std::make_pair(
                             std::array<ompl::base::Cost, 2u>{
                                 objective_->combineCosts(
-                                    objective_->combineCosts(edge.source->asReverseVertex()->getCost(), edge.cost),
+                                    objective_->combineCosts(
+                                        edge.source->asReverseVertex()->getCost(),
+                                        objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw())),
                                     edge.target->getLowerBoundCostToGo()),
-                                objective_->combineCosts(edge.source->asReverseVertex()->getCost(), edge.cost)},
+                                objective_->combineCosts(
+                                    edge.source->asReverseVertex()->getCost(),
+                                    objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw()))},
                             edge)));
                 }
             }
@@ -116,9 +120,13 @@ namespace ompl
                         auto oldCost = outgoingEdge->data.first;
                         std::array<ompl::base::Cost, 2u> newCost{
                             objective_->combineCosts(
-                                objective_->combineCosts(edge.source->asReverseVertex()->getCost(), edge.cost),
+                                objective_->combineCosts(
+                                    edge.source->asReverseVertex()->getCost(),
+                                    objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw())),
                                 edge.target->getLowerBoundCostToGo()),
-                            objective_->combineCosts(edge.source->asReverseVertex()->getCost(), edge.cost)};
+                            objective_->combineCosts(
+                                edge.source->asReverseVertex()->getCost(),
+                                objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw()))};
                         if (std::lexicographical_compare(
                                 oldCost.begin(), oldCost.end(), newCost.begin(), newCost.end(),
                                 [this](const ompl::base::Cost &lhs, const ompl::base::Cost &rhs) {

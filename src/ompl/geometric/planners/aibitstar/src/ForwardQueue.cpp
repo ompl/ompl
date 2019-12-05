@@ -244,15 +244,17 @@ namespace ompl
 
             ompl::base::Cost ForwardQueue::estimateCost(const Edge &edge) const
             {
-                return objective_->combineCosts(
-                    objective_->combineCosts(edge.source->asForwardVertex()->getCost(), edge.cost),
-                    edge.target->getEstimatedCostToGo());
+                return objective_->combineCosts(objective_->combineCosts(edge.source->asForwardVertex()->getCost(),
+                                                                         objective_->motionCostBestEstimate(
+                                                                             edge.source->raw(), edge.target->raw())),
+                                                edge.target->getEstimatedCostToGo());
             }
 
             ompl::base::Cost ForwardQueue::lowerBoundCost(const Edge &edge) const
             {
                 return objective_->combineCosts(
-                    objective_->combineCosts(edge.source->asForwardVertex()->getCost(), edge.cost),
+                    objective_->combineCosts(edge.source->asForwardVertex()->getCost(),
+                                             objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw())),
                     edge.target->getLowerBoundCostToGo());
             }
 

@@ -114,10 +114,6 @@ namespace ompl
             /** \brief Expands the input state, creating forward edges. */
             std::vector<aibitstar::Edge> expand(const std::shared_ptr<aibitstar::State> &state) const;
 
-            /** \brief Creates an edge between two states. */
-            aibitstar::Edge createEdge(const std::shared_ptr<aibitstar::State> &source,
-                                       const std::shared_ptr<aibitstar::State> &target) const;
-
             /** \brief Rebuilds the forward queue, recomputing all sort keys. */
             void rebuildForwardQueue();
 
