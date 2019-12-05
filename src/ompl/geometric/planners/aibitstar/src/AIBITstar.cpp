@@ -281,8 +281,6 @@ namespace ompl
                 reverseRoot_ = graph_.getGoalState()->asReverseVertex();
                 reverseRoot_->setCost(objective_->identityCost());
                 reverseRoot_->getState()->setEstimatedEffortToGo(0u);
-
-                // numSamplesPerBatch_ *= 2u;
                 reverseQueue_->insert(expand(graph_.getGoalState()));
             }
         }
@@ -372,52 +370,6 @@ namespace ompl
                     {
                         // Assert the edge is actually invalid.
                         assert(!motionValidator_->checkMotion(edge.source->raw(), edge.target->raw()));
-
-                        // // Invalidate the branch.
-                        // auto invalidatedReverseVertex = edge.source->asReverseVertex();
-
-                        // // Register the invalid edge with the graph.
-                        // graph_.registerInvalidEdge(edge);
-
-                        // // Get the neighbors of the invalidated vertex.
-                        // auto neighbors = graph_.getNeighbors(invalidatedReverseVertex->getState());
-
-                        // // Find the best new parent of these neighbors.
-                        // std::shared_ptr<State> bestNeighbor;
-                        // ompl::base::Cost bestCost = objective_->infiniteCost();
-                        // ompl::base::Cost bestEdgeCost = objective_->infiniteCost();
-                        // for (const auto &neighbor : neighbors)
-                        // {
-                        //     auto edgeCost = objective_->motionCostHeuristic(
-                        //         neighbor->raw(), invalidatedReverseVertex->getState()->raw());
-                        //     // Compute the neighbor cost.
-                        //     auto neighborCost =
-                        //         objective_->combineCosts(neighbor->asReverseVertex()->getCost(), edgeCost);
-
-                        //     // If this is the best neighbor, remember so.
-                        //     if (objective_->isCostBetterThan(neighborCost, bestCost))
-                        //     {
-                        //         bestNeighbor = neighbor;
-                        //         bestCost = neighborCost;
-                        //         bestEdgeCost = edgeCost;
-                        //     }
-                        // }
-
-                        // // Reconnect the invalidated vertex to the reverse tree if possible.
-                        // if (bestNeighbor && bestNeighbor->hasReverseVertex())
-                        // {
-                        //     invalidatedReverseVertex->updateParent(bestNeighbor->asReverseVertex());
-                        //     invalidatedReverseVertex->setEdgeCost(bestEdgeCost);
-                        //     invalidatedReverseVertex->updateCost(objective_);
-                        //     bestNeighbor->asReverseVertex()->addChild(invalidatedReverseVertex);
-                        // }
-                        // else
-                        // {
-                        //     invalidatedReverseVertex->getParent().lock()->removeChild(invalidatedReverseVertex);
-                        //     invalidatedReverseVertex->resetParent();
-                        // }
-
-                        // edge.target->asReverseVertex()->removeIfChild(invalidatedReverseVertex);
                     }
                 }
             }
