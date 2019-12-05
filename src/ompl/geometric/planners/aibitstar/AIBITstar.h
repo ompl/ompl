@@ -109,7 +109,7 @@ namespace ompl
             void forwardIterate();
 
             /** \brief Updates the solution. */
-            void updateSolution() const;
+            void updateSolution();
 
             /** \brief Expands the input state, creating forward edges. */
             std::vector<aibitstar::Edge> expand(const std::shared_ptr<aibitstar::State> &state) const;

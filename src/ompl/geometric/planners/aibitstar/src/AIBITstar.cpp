@@ -455,7 +455,7 @@ namespace ompl
             }
         }
 
-        void AIBITstar::updateSolution() const
+        void AIBITstar::updateSolution()
         {
             // Throw if the reverse root does not have a forward vertex.
             assert(reverseRoot_->getTwin().lock());
@@ -491,6 +491,9 @@ namespace ompl
             solution.setPlannerName(name_);
             solution.optimized_ = objective_->isSatisfied(reverseRoot_->getTwin().lock()->getCost());
             problem_->addSolutionPath(solution);
+
+            // Set a new suboptimality factor.
+            suboptimalityFactor_ = bestCost().value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value();
         }
 
         bool AIBITstar::couldImproveForwardPath(const Edge &edge) const

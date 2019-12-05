@@ -226,6 +226,11 @@ namespace ompl
                 }
             }
 
+            ompl::base::Cost ForwardQueue::getLowerBoundOnOptimalSolutionCost() const
+            {
+                return lowerBoundCost(queue_.front());
+            }
+
             void ForwardQueue::clear()
             {
                 queue_.clear();
