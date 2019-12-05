@@ -276,6 +276,9 @@ namespace ompl
                 // Add new states.
                 graph_.addStates(numSamplesPerBatch_);
 
+                // Reset the suboptimality factor.
+                suboptimalityFactor_ = std::numeric_limits<float>::infinity();
+
                 // Restart the reverse search.
                 reverseRoot_.reset();
                 reverseRoot_ = graph_.getGoalState()->asReverseVertex();
