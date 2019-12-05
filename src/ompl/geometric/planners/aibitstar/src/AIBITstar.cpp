@@ -309,11 +309,8 @@ namespace ompl
                 {
                     if (currentParent->getId() == parentVertex->getId())
                     {
-                        if (!isClosed(childVertex))
-                        {
-                            forwardQueue_->insert(expand(edge.target));
-                            return;
-                        }
+                        forwardQueue_->insert(expand(edge.target));
+                        return;
                     }
                 }
                 // Check if it can possibly improve the tree.
@@ -357,11 +354,8 @@ namespace ompl
                             // Expand the outgoing edges into the queue unless this state is the goal state.
                             if (edge.target->getId() != reverseRoot_->getState()->getId())
                             {
-                                // If child vertex is not closed, then expand.
-                                if (!isClosed(childVertex))
-                                {
-                                    forwardQueue_->insert(expand(edge.target));
-                                }
+                                // Expand the child vertex.
+                                forwardQueue_->insert(expand(edge.target));
                             }
                             else  // It is the goal state, update the solution.
                             {
@@ -375,11 +369,6 @@ namespace ompl
                         assert(!motionValidator_->checkMotion(edge.source->raw(), edge.target->raw()));
                     }
                 }
-            }
-            else  // The forward search is done.
-            {
-                forwardQueue_->clear();
-                ++searchTag_;
             }
         }
 
