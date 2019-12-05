@@ -65,6 +65,7 @@ namespace ompl
             void
             RandomGeometricGraph::setProblemDefinition(const std::shared_ptr<ompl::base::ProblemDefinition> &problem)
             {
+                problem_ = problem;
                 objective_ = problem->getOptimizationObjective();
                 sampler_ = objective_->allocInformedStateSampler(problem, std::numeric_limits<unsigned int>::max());
             }

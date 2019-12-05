@@ -129,6 +129,9 @@ namespace ompl
                 std::shared_ptr<ompl::base::SpaceInformation> spaceInfo_;
 
                 /** \brief The problem this graph is supposed to help solve. */
+                std::shared_ptr<ompl::base::ProblemDefinition> problem_;
+
+                /** \brief The optimization objective this graph is supposed to help optimize. */
                 std::shared_ptr<ompl::base::OptimizationObjective> objective_;
 
                 /** \brief The start state of the problem. */
