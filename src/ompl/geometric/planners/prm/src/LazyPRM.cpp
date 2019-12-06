@@ -245,6 +245,14 @@ void ompl::geometric::LazyPRM::clearQuery()
     pis_.restart();
 }
 
+void ompl::geometric::LazyPRM::clearValidity()
+{
+    foreach (const Vertex v, boost::vertices(g_))
+        vertexValidityProperty_[v] = VALIDITY_UNKNOWN;
+    foreach (const Edge e, boost::edges(g_))
+        edgeValidityProperty_[e] = VALIDITY_UNKNOWN;
+}
+
 void ompl::geometric::LazyPRM::clear()
 {
     Planner::clear();
