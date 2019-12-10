@@ -39,8 +39,6 @@ ompl::base::PlannerStatus ompl::geometric::FiberOP::solve(const base::PlannerTer
       unfilteredPlanners_.push_back(planner);
   }
 
-
-
   std::cout << "Iteration " << iteration_ << std::endl;
   double timeToPlan = 0.5;
   for(uint k = 0; k < unfilteredPlanners_.size(); k++){
