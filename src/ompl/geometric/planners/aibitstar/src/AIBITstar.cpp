@@ -257,32 +257,43 @@ namespace ompl
             // Increment the iteration count.
             ++iteration_;
 
-            // If there are edges in the reverse queue, process them.
-            if (!reverseQueue_->empty())
+            switch (phase_)
             {
-                reverseIterate();
-            }
-            // If there are edges in the forward queue, process them.
-            else if (!forwardQueue_->empty())
-            {
-                forwardIterate();
-            }
-            // If there are no edges in the queues, add new samples and insert edges in the reverse queue.
-            else
-            {
-                // Add new states.
-                graph_.addStates(numSamplesPerBatch_);
+                case Phase::REVERSE_SEARCH:
+                {
+                    reverseIterate();
+                    break;
+                }
+                case Phase::FORWARD_SEARCH:
+                {
+                    forwardIterate();
+                    break;
+                }
+                case Phase::IMPROVE_APPROXIMATION:
+                {
+                    // Add new states.
+                    graph_.addStates(numSamplesPerBatch_);
 
-                // Reset the suboptimality factor.
-                suboptimalityFactor_ = std::numeric_limits<float>::infinity();
+                    // Reset the suboptimality factor.
+                    suboptimalityFactor_ = std::numeric_limits<float>::infinity();
 
-                // Restart the reverse search.
-                reverseRoot_.reset();
-                reverseRoot_ = graph_.getGoalState()->asReverseVertex();
-                reverseRoot_->setCost(objective_->identityCost());
-                reverseRoot_->getState()->setEstimatedEffortToGo(0u);
-                reverseQueue_->insert(expand(graph_.getGoalState()));
-            }
+                    // Restart the reverse search.
+                    reverseRoot_.reset();
+                    reverseRoot_ = graph_.getGoalState()->asReverseVertex();
+                    reverseRoot_->setCost(objective_->identityCost());
+                    reverseRoot_->getState()->setEstimatedEffortToGo(0u);
+                    reverseQueue_->insert(expand(graph_.getGoalState()));
+
+                    // We are now ready to restart the reverse search.
+                    phase_ = Phase::REVERSE_SEARCH;
+                    break;
+                }
+                default:
+                {
+                    // We should never reach this.
+                    assert(false);
+                }
+            };
         }
 
         void AIBITstar::forwardIterate()
@@ -367,6 +378,11 @@ namespace ompl
                     }
                 }
             }
+            // If the forward queue is empty, move on to the next phase.
+            if (forwardQueue_->empty())
+            {
+                phase_ = Phase::IMPROVE_APPROXIMATION;
+            }
         }
 
         void AIBITstar::reverseIterate()
@@ -439,6 +455,11 @@ namespace ompl
                 {
                     assert(forwardRoot_->getState()->hasReverseVertex());
                     forwardQueue_->insert(expand(forwardRoot_->getState()));
+                    phase_ = Phase::FORWARD_SEARCH;
+                }
+                else
+                {
+                    phase_ = Phase::IMPROVE_APPROXIMATION;
                 }
             }
         }

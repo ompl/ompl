@@ -99,6 +99,17 @@ namespace ompl
             void getPlannerData(base::PlannerData &data) const override;
 
         private:
+            /** \brief The different phases the algorithm can be in. */
+            enum class Phase
+            {
+                FORWARD_SEARCH,
+                REVERSE_SEARCH,
+                IMPROVE_APPROXIMATION
+            };
+
+            /** \brief The phase the algorithm is in. */
+            Phase phase_{Phase::REVERSE_SEARCH};
+
             /** \brief Performs one iteration. */
             void iterate();
 
