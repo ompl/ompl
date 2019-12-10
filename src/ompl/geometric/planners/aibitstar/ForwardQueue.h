@@ -39,6 +39,7 @@
 
 #include <array>
 #include <map>
+#include <utility>
 
 #include "ompl/base/Cost.h"
 #include "ompl/base/samplers/InformedStateSampler.h"
@@ -114,8 +115,18 @@ namespace ompl
                 /** \brief The state space information. */
                 std::shared_ptr<const ompl::base::SpaceInformation> spaceInfo_;
 
+                /** \brief The three values an edge can be sorted by. */
+                struct EdgeKeys
+                {
+                    EdgeKeys(ompl::base::Cost lowerBound, ompl::base::Cost estimated, std::size_t effort)
+                      : lowerBoundCost(lowerBound), estimatedCost(estimated), estimatedEffort(effort){};
+                    ompl::base::Cost lowerBoundCost;
+                    ompl::base::Cost estimatedCost;
+                    std::size_t estimatedEffort;
+                };
+
                 /** \brief The queue is ordered on the lower bound cost through an edge. */
-                std::vector<Edge> queue_;
+                std::vector<std::pair<EdgeKeys, Edge>> queue_;
             };
         }  // namespace aibitstar
 

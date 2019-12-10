@@ -37,7 +37,9 @@
 #include "ompl/geometric/planners/aibitstar/ForwardQueue.h"
 
 #include <algorithm>
+#include <utility>
 
+#include "ompl/geometric/planners/aibitstar/stopwatch/timetable.h"
 #include "ompl/geometric/planners/aibitstar/Direction.h"
 #include "ompl/geometric/planners/aibitstar/State.h"
 
@@ -66,30 +68,44 @@ namespace ompl
 
             void ForwardQueue::insert(const Edge &edge)
             {
-                // Check if the element already exists.
-                auto element = std::find_if(queue_.begin(), queue_.end(), [&edge](const Edge &element) {
-                    return edge.source->getId() == element.source->getId() &&
-                           edge.target->getId() == element.target->getId();
-                });
+                // Compute the costs and effort.
+                auto lowerBoundCostOfEdge = lowerBoundCost(edge);
+                auto estimatedCostOfEdge = estimateCost(edge);
+                auto estimatedEffortOfEdge = estimateEffort(edge);
 
-                // If it exists, update the queue, otherwise insert it at the right place.
+                auto keysAndEdge = std::make_pair<EdgeKeys, Edge>(
+                    {lowerBoundCostOfEdge, estimatedCostOfEdge, estimatedEffortOfEdge}, {edge.source, edge.target});
+
+                // Find where to insert the edge.
+                auto it = std::lower_bound(
+                    queue_.begin(), queue_.end(), keysAndEdge,
+                    [this](const std::pair<EdgeKeys, Edge> &a, const std::pair<EdgeKeys, Edge> &b) {
+                        return objective_->isCostBetterThan(a.first.lowerBoundCost, b.first.lowerBoundCost);
+                    });
+
+
+                // Check if the element already exists.
+                auto element =
+                    std::find_if(queue_.begin(), queue_.end(), [&edge](const std::pair<EdgeKeys, Edge> &element) {
+                        return edge.source->getId() == element.second.source->getId() &&
+                               edge.target->getId() == element.second.target->getId();
+                    });
                 if (element != queue_.end())
                 {
-                    std::sort(queue_.begin(), queue_.end(), [this](const Edge &a, const Edge &b) {
-                        return objective_->isCostBetterThan(lowerBoundCost(a), lowerBoundCost(b));
-                    });
+                    // The element exists.
+                    if (element == it)
+                    {
+                        // The element exists and is already at the right position, we're done.
+                        return;
+                    }
+                    else  // If the element exists but is not at the right place, erase it.
+                    {
+                        queue_.erase(element);
+                    }
                 }
-                else
-                {
-                    // Find where to insert the edge.
-                    auto it =
-                        std::lower_bound(queue_.begin(), queue_.end(), edge, [this](const Edge &a, const Edge &b) {
-                            return objective_->isCostBetterThan(lowerBoundCost(a), lowerBoundCost(b));
-                        });
 
-                    // Insert the edge at the correct position.
-                    queue_.insert(it, edge);
-                }
+                // Insert the edge at the correct position.
+                queue_.insert(it, keysAndEdge);
             }
 
             void ForwardQueue::insert(const std::vector<Edge> &edges)
@@ -104,131 +120,141 @@ namespace ompl
             Edge ForwardQueue::peek(float suboptimalityFactor) const
             {
                 // Get the lower bounding edge and corresponding cost.
-                Edge lowerBoundEdge = queue_.front();
+                auto lowerBoundEdge = queue_.begin();
                 auto lowerBoundEdgeCost =
-                    ompl::base::Cost(suboptimalityFactor * lowerBoundCost(lowerBoundEdge).value());
+                    ompl::base::Cost(suboptimalityFactor * lowerBoundEdge->first.lowerBoundCost.value());
 
                 // Find the best estimate edge and corresponding cost.
-                auto bestCostEdge =
-                    std::min_element(queue_.begin(), queue_.end(), [this](const Edge &a, const Edge &b) {
-                        return objective_->isCostBetterThan(estimateCost(a), estimateCost(b));
+                auto bestCostEdge = std::min_element(
+                    queue_.begin(), queue_.end(),
+                    [this](const std::pair<EdgeKeys, Edge> &a, const std::pair<EdgeKeys, Edge> &b) {
+                        return objective_->isCostBetterThan(a.first.estimatedCost, b.first.estimatedCost);
                     });
-                auto bestCostEdgeCost = ompl::base::Cost(suboptimalityFactor * estimateCost(*bestCostEdge).value());
+                auto bestCostEdgeCost =
+                    ompl::base::Cost(suboptimalityFactor * bestCostEdge->first.estimatedCost.value());
 
                 // Find the least effort edge and corresponding cost.
-                std::size_t bestEffort = std::numeric_limits<std::size_t>::max();
                 auto bestEffortEdgeCost = objective_->infiniteCost();
                 auto bestEffortEdge = queue_.begin();
                 for (auto it = queue_.begin(); it != queue_.end(); ++it)
                 {
-                    // Estimate the effort for this edge.
-                    auto effortEstimate = estimateEffort(*it);
-
-                    // Estimate the cost for this edge.
-                    auto costEstimate = estimateCost(*it);
-
-                    if (effortEstimate < bestEffort && !objective_->isCostBetterThan(bestCostEdgeCost, costEstimate))
+                    if (it->first.estimatedEffort < bestEffortEdge->first.estimatedEffort &&
+                        !objective_->isCostBetterThan(bestCostEdgeCost, it->first.estimatedCost))
                     {
-                        bestEffort = effortEstimate;
+                        bestEffortEdgeCost = it->first.estimatedCost;
                         bestEffortEdge = it;
-                        bestEffortEdgeCost = costEstimate;
                     }
                 }
 
                 // Return the correct edge.
                 if (!objective_->isCostBetterThan(lowerBoundEdgeCost, bestEffortEdgeCost))
                 {
-                    return *bestEffortEdge;
+                    return bestEffortEdge->second;
                 }
-                else if (!objective_->isCostBetterThan(lowerBoundEdgeCost, estimateCost(*bestCostEdge)))
+                else if (!objective_->isCostBetterThan(lowerBoundEdgeCost, bestCostEdge->first.estimatedCost))
                 {
-                    return *bestCostEdge;
+                    return bestCostEdge->second;
                 }
                 else
                 {
-                    return lowerBoundEdge;
+                    return lowerBoundEdge->second;
                 }
             }
 
             bool ForwardQueue::update(const Edge &edge)
             {
-                // Check if the element already exists.
-                auto element = std::find_if(queue_.begin(), queue_.end(), [&edge](const Edge &element) {
-                    return edge.source->getId() == element.source->getId() &&
-                           edge.target->getId() == element.target->getId();
-                });
+                // Compute the costs and effort.
+                auto lowerBoundCostOfEdge = lowerBoundCost(edge);
+                auto estimatedCostOfEdge = estimateCost(edge);
+                auto estimatedEffortOfEdge = estimateEffort(edge);
 
-                // If it exists, update the queue, otherwise insert it at the right place.
+                auto keysAndEdge = std::make_pair<EdgeKeys, Edge>(
+                    {lowerBoundCostOfEdge, estimatedCostOfEdge, estimatedEffortOfEdge}, {edge.source, edge.target});
+
+                // Check if the element already exists.
+                auto element =
+                    std::find_if(queue_.begin(), queue_.end(), [&edge](const std::pair<EdgeKeys, Edge> &element) {
+                        return edge.source->getId() == element.second.source->getId() &&
+                               edge.target->getId() == element.second.target->getId();
+                    });
+
+                // Find where to insert the edge.
+                auto it = std::lower_bound(
+                    queue_.begin(), queue_.end(), keysAndEdge,
+                    [this](const std::pair<EdgeKeys, Edge> &a, const std::pair<EdgeKeys, Edge> &b) {
+                        return objective_->isCostBetterThan(a.first.lowerBoundCost, b.first.lowerBoundCost);
+                    });
+
+                // Check if the element exists.
                 if (element != queue_.end())
                 {
-                    std::sort(queue_.begin(), queue_.end(), [this](const Edge &a, const Edge &b) {
-                        return objective_->isCostBetterThan(lowerBoundCost(a), lowerBoundCost(b));
-                    });
-                    return true;
+                    // If the element is already at the right place, simply return.
+                    if (element == it)
+                    {
+                        return true;
+                    }
+                    else  // If the element exists but is not at the right place, erase it.
+                    {
+                        queue_.erase(element);
+                    }
+                    // Insert the edge at the correct position.
+                    queue_.insert(it, keysAndEdge);
                 }
-                else
-                {
-                    return false;
-                }
+                return false;
             }
 
             Edge ForwardQueue::pop(float suboptimalityFactor)
             {
                 // Get the lower bounding edge and corresponding cost.
-                Edge lowerBoundEdge = queue_.front();
+                auto lowerBoundEdge = queue_.begin();
                 auto lowerBoundEdgeCost =
-                    ompl::base::Cost(suboptimalityFactor * lowerBoundCost(lowerBoundEdge).value());
+                    ompl::base::Cost(suboptimalityFactor * lowerBoundEdge->first.lowerBoundCost.value());
 
                 // Find the best estimate edge and corresponding cost.
-                auto bestCostEdge =
-                    std::min_element(queue_.begin(), queue_.end(), [this](const Edge &a, const Edge &b) {
-                        return objective_->isCostBetterThan(estimateCost(a), estimateCost(b));
+                auto bestCostEdge = std::min_element(
+                    queue_.begin(), queue_.end(),
+                    [this](const std::pair<EdgeKeys, Edge> &a, const std::pair<EdgeKeys, Edge> &b) {
+                        return objective_->isCostBetterThan(a.first.estimatedCost, b.first.estimatedCost);
                     });
-                auto bestCostEdgeCost = ompl::base::Cost(suboptimalityFactor * estimateCost(*bestCostEdge).value());
+                auto bestCostEdgeCost =
+                    ompl::base::Cost(suboptimalityFactor * bestCostEdge->first.estimatedCost.value());
 
                 // Find the least effort edge and corresponding cost.
-                std::size_t bestEffort = std::numeric_limits<std::size_t>::max();
                 auto bestEffortEdgeCost = objective_->infiniteCost();
                 auto bestEffortEdge = queue_.begin();
                 for (auto it = queue_.begin(); it != queue_.end(); ++it)
                 {
-                    // Estimate the effort for this edge.
-                    auto effortEstimate = estimateEffort(*it);
-
-                    // Estimate the cost for this edge.
-                    auto costEstimate = estimateCost(*it);
-
-                    if (effortEstimate < bestEffort && !objective_->isCostBetterThan(bestCostEdgeCost, costEstimate))
+                    if (it->first.estimatedEffort < bestEffortEdge->first.estimatedEffort &&
+                        !objective_->isCostBetterThan(bestCostEdgeCost, it->first.estimatedCost))
                     {
-                        bestEffort = effortEstimate;
+                        bestEffortEdgeCost = it->first.estimatedCost;
                         bestEffortEdge = it;
-                        bestEffortEdgeCost = costEstimate;
                     }
                 }
 
                 // Return the correct edge.
                 if (!objective_->isCostBetterThan(lowerBoundEdgeCost, bestEffortEdgeCost))
                 {
-                    auto bestEdge = *bestEffortEdge;
+                    auto bestEdge = bestEffortEdge->second;
                     queue_.erase(bestEffortEdge);
                     return bestEdge;
                 }
-                else if (!objective_->isCostBetterThan(lowerBoundEdgeCost, estimateCost(*bestCostEdge)))
+                else if (!objective_->isCostBetterThan(lowerBoundEdgeCost, bestCostEdge->first.estimatedCost))
                 {
-                    auto bestEdge = *bestCostEdge;
+                    auto bestEdge = bestCostEdge->second;
                     queue_.erase(bestCostEdge);
                     return bestEdge;
                 }
                 else
                 {
                     queue_.erase(queue_.begin());
-                    return lowerBoundEdge;
+                    return lowerBoundEdge->second;
                 }
             }
 
             ompl::base::Cost ForwardQueue::getLowerBoundOnOptimalSolutionCost() const
             {
-                return lowerBoundCost(queue_.front());
+                return queue_.begin()->first.lowerBoundCost;
             }
 
             void ForwardQueue::clear()
@@ -238,7 +264,13 @@ namespace ompl
 
             std::vector<Edge> ForwardQueue::getEdges() const
             {
-                return queue_;
+                std::vector<Edge> edges;
+                edges.reserve(queue_.size());
+                for (auto keyAndEdge : queue_)
+                {
+                    edges.emplace_back(keyAndEdge.second);
+                }
+                return edges;
             }
 
             std::size_t ForwardQueue::estimateEffort(const Edge &edge) const
