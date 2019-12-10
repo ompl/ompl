@@ -40,6 +40,7 @@
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
+#include "ompl/geometric/planners/aibitstar/stopwatch/timetable.h"
 
 namespace ompl
 {
