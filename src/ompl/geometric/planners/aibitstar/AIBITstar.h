@@ -150,6 +150,8 @@ namespace ompl
             /** \brief The current suboptimality factor of the forward search. */
             float suboptimalityFactor_{std::numeric_limits<float>::infinity()};
 
+            ompl::base::Cost bestCost_{std::numeric_limits<double>::signaling_NaN()};
+
             /** \brief The root of the forward search tree. */
             std::shared_ptr<aibitstar::Vertex> forwardRoot_;
 

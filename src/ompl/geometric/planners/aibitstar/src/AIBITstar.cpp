@@ -96,6 +96,9 @@ namespace ompl
             // Pull through the optimization objective for direct access.
             objective_ = problem_->getOptimizationObjective();
 
+            // Set the best cost to infinity.
+            bestCost_ = objective_->infiniteCost();
+
             // Instantiate the queues.
             forwardQueue_ = std::make_unique<aibitstar::ForwardQueue>(objective_, spaceInfo_);
             reverseQueue_ = std::make_unique<aibitstar::ReverseQueue>(objective_);
@@ -163,14 +166,7 @@ namespace ompl
 
         ompl::base::Cost AIBITstar::bestCost() const
         {
-            if (auto forwardGoal = reverseRoot_->getTwin().lock())
-            {
-                return forwardGoal->getCost();
-            }
-            else
-            {
-                return objective_->infiniteCost();
-            }
+            return bestCost_;
         }
 
         void AIBITstar::setNumSamplesPerBatch(std::size_t numSamples)
@@ -454,6 +450,9 @@ namespace ompl
             assert(reverseRoot_->getState()->hasForwardVertex());
             auto current = reverseRoot_->getTwin().lock();
 
+            // Update the best cost.
+            bestCost_ = current->getCost();
+
             // Allocate the path.
             auto path = std::make_shared<ompl::geometric::PathGeometric>(spaceInfo_);
 
@@ -481,11 +480,11 @@ namespace ompl
             // Register this solution with the problem definition.
             ompl::base::PlannerSolution solution(path);
             solution.setPlannerName(name_);
-            solution.setOptimized(objective_, bestCost(), objective_->isSatisfied(bestCost()));
+            solution.setOptimized(objective_, bestCost_, objective_->isSatisfied(bestCost_));
             problem_->addSolutionPath(solution);
 
             // Set a new suboptimality factor.
-            suboptimalityFactor_ = bestCost().value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value();
+            suboptimalityFactor_ = bestCost_.value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value();
         }
 
         bool AIBITstar::couldImproveForwardPath(const Edge &edge) const
