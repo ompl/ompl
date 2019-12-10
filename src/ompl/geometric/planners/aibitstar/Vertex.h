@@ -61,7 +61,8 @@ namespace ompl
             {
             public:
                 /** \brief Constructs the vertex, which must be associated with a state. */
-                Vertex(const std::shared_ptr<State> &state);
+                Vertex(const std::shared_ptr<State> &state,
+                       const std::shared_ptr<ompl::base::OptimizationObjective> &objective);
 
                 /** \brief Destructs the vertex. */
                 ~Vertex() = default;
@@ -135,14 +136,11 @@ namespace ompl
                 /** \brief The unique id of this vertex. */
                 const std::size_t id_;
 
-                /** \brief The tag when this vertex was last expanded. */
-                std::size_t expandTag_{0u};
-
                 /** \brief The cost-to-come to this vertex. */
-                ompl::base::Cost cost_{std::numeric_limits<double>::infinity()};
+                ompl::base::Cost cost_{std::numeric_limits<double>::signaling_NaN()};
 
                 /** \brief The cost of the edge which connects this vertex with its parent. */
-                ompl::base::Cost edgeCost_{std::numeric_limits<double>::infinity()};
+                ompl::base::Cost edgeCost_{std::numeric_limits<double>::signaling_NaN()};
 
                 /** \brief The parent of this vertex. */
                 std::weak_ptr<Vertex> parent_{};
@@ -153,6 +151,9 @@ namespace ompl
 
                 /** \brief The children of this vertex. */
                 std::vector<std::shared_ptr<Vertex>> children_{};
+
+                /** \brief The tag when this vertex was last expanded. */
+                std::size_t expandTag_{0u};
 
                 /** \brief The state this vertex is associated with. */
                 std::shared_ptr<State> state_;

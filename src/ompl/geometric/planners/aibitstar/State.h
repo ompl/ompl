@@ -149,6 +149,9 @@ namespace ompl
 
                 /** \brief The info on the state space this state lives in. */
                 std::shared_ptr<ompl::base::SpaceInformation> spaceInfo_;
+
+                /** \brief The optimization objective. */
+                std::shared_ptr<ompl::base::OptimizationObjective> objective_;
             };
 
         }  // namespace aibitstar

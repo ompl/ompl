@@ -54,7 +54,12 @@ namespace ompl
                 }
             }  // namespace
 
-            Vertex::Vertex(const std::shared_ptr<State> &state) : id_(generateId()), state_(state)
+            Vertex::Vertex(const std::shared_ptr<State> &state,
+                           const std::shared_ptr<ompl::base::OptimizationObjective> &objective)
+              : id_(generateId())
+              , cost_(objective->infiniteCost())
+              , edgeCost_(objective->infiniteCost())
+              , state_(state)
             {
             }
 
