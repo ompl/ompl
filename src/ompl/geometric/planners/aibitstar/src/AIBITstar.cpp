@@ -284,8 +284,12 @@ namespace ompl
                     reverseRoot_->getState()->setEstimatedEffortToGo(0u);
                     reverseQueue_->insert(expand(graph_.getGoalState()));
 
-                    // We are now ready to restart the reverse search.
-                    phase_ = Phase::REVERSE_SEARCH;
+                    // If expanding the goal state actually produced edges, let's start the reverse search.
+                    // Otherwise, we stay in the improve approximation phase.
+                    if (!reverseQueue_->empty())
+                    {
+                        phase_ = Phase::REVERSE_SEARCH;
+                    }
                     break;
                 }
                 default:
