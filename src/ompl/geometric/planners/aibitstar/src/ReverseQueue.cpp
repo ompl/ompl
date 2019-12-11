@@ -106,7 +106,7 @@ namespace ompl
                 }
                 else
                 {
-                    throw std::out_of_range("There are no elements in the reverse queue.");
+                    throw std::out_of_range("There are no elements to peek in the reverse queue.");
                 }
             }
 
@@ -170,7 +170,7 @@ namespace ompl
                 }
                 else
                 {
-                    throw std::out_of_range("There are no elements in the queue.");
+                    throw std::out_of_range("There are no elements to pop in the reverse queue.");
                 }
             }
 
