@@ -104,7 +104,7 @@ namespace ompl
                 std::vector<std::shared_ptr<State>> getSamples() const;
 
                 /** \brief Registers an invalid edge. */
-                void registerInvalidEdge(const Edge &edge);
+                void registerInvalidEdge(const Edge &edge) const;
 
             private:
                 /** \brief Returns the number of states in the informed set. */

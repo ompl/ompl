@@ -116,7 +116,7 @@ namespace ompl
                 return samples;
             }
 
-            void RandomGeometricGraph::registerInvalidEdge(const Edge &edge)
+            void RandomGeometricGraph::registerInvalidEdge(const Edge &edge) const
             {
                 // Remove the edge from the caches (using the erase-remove idiom).
                 auto &sourceNeighbors = edge.source->neighbors_.second;
