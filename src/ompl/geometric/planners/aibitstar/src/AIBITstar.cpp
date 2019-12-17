@@ -34,6 +34,8 @@
 
 // Authors: Marlin Strub
 
+#include <dbg.h>
+
 #include "ompl/geometric/planners/aibitstar/AIBITstar.h"
 
 #include <algorithm>
@@ -41,6 +43,8 @@
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/geometric/planners/aibitstar/stopwatch/timetable.h"
+
+using namespace std::string_literals;
 
 namespace ompl
 {
@@ -384,12 +388,101 @@ namespace ompl
                     {
                         // Assert the edge is actually invalid.
                         assert(!motionValidator_->checkMotion(edge.source->raw(), edge.target->raw()));
+
+                        dbg("Edge ("s + std::to_string(edge.source->getId()) + " -> "s +
+                            std::to_string(edge.target->getId()) + ") is invalid."s);
+
+                        // If this edge was in the reverse search tree, the tree must be updated.
+                        if (edge.source->asReverseVertex()->getParent().lock()->getId() ==
+                            edge.target->asReverseVertex()->getId())
+                        {
+                            // Get the source state as reverse vectex.
+                            auto reverseSource = edge.source->asReverseVertex();
+
+                            // The edge is invalid. The reverse search can be updated.
+                            reverseSource->setEdgeCost(objective_->infiniteCost());
+                            reverseSource->setCost(objective_->infiniteCost());
+
+                            // The source state has been invalidated in the reverse search tree. Get the neighbors of
+                            // the source state. Find the best new parent in the reverse search.
+                            std::shared_ptr<aibitstar::State> newParent;
+                            ompl::base::Cost newCost = objective_->infiniteCost();
+                            ompl::base::Cost newEdgeCost = objective_->infiniteCost();
+                            for (const auto &neighbor : graph_.getNeighbors(edge.source))
+                            {
+                                dbg(neighbor->getId());
+                                auto neighborEdgeCost =
+                                    objective_->motionCostBestEstimate(neighbor->raw(), edge.source->raw());
+                                auto neighborCost =
+                                    objective_->combineCosts(neighbor->asReverseVertex()->getCost(), neighborEdgeCost);
+                                if (objective_->isCostBetterThan(neighborCost, newCost))
+                                {
+                                    newParent = neighbor;
+                                    newCost = neighborCost;
+                                    newEdgeCost = neighborEdgeCost;
+                                }
+                            }
+
+                            if (dbg(newParent))
+                            {
+                                // Update the reverse search tree.
+                                newParent->asReverseVertex()->addChild(edge.source->asReverseVertex());
+                                edge.target->asReverseVertex()->removeChild(edge.source->asReverseVertex());
+                                edge.source->asReverseVertex()->updateParent(newParent->asReverseVertex());
+                                edge.source->asReverseVertex()->setEdgeCost(newEdgeCost);
+                                edge.source->asReverseVertex()->setCost(newCost);
+                                dbg("Updating children.");
+                                auto updatedChildren = edge.source->asReverseVertex()->updateChildren(objective_);
+
+                                dbg("Done.");
+
+                                // Update the underlying state.
+                                edge.source->setEstimatedCostToGo(newCost);
+                                edge.source->setEstimatedEffortToGo(newParent->getEstimatedEffortToGo() +
+                                                                    spaceInfo_->getStateSpace()->validSegmentCount(
+                                                                        newParent->raw(), edge.source->raw()));
+
+                                dbg("Updated the underlying state.");
+
+                                // Update the underlying states of all updated children. We can do this in sequence,
+                                // because thats how they are returned in Vertex::updateChildren. Although this
+                                // assumption is risky, because the implementation could change. TODO(Marlin): Make this
+                                // not dependent on the assumption above.
+                                for (const auto &child : updatedChildren)
+                                {
+                                    assert(child->getParent().lock());
+                                    auto parent = child->getParent().lock();
+                                    auto parentState = parent->getState();
+                                    auto childState = child->getState();
+                                    childState->setEstimatedCostToGo(child->getCost());
+                                    childState->setEstimatedEffortToGo(parentState->getEstimatedEffortToGo() +
+                                                                       spaceInfo_->getStateSpace()->validSegmentCount(
+                                                                           parentState->raw(), childState->raw()));
+                                }
+
+                                dbg("Updated the states underlying the children.");
+
+                                // Update the position of the outgoing edges of all updated children in the forward
+                                // search queue.
+                                for (const auto &child : updatedChildren)
+                                {
+                                    assert(child->getParent().lock());
+                                    auto parent = child->getParent().lock();
+                                    forwardQueue_->update(Edge(parent->getState(), child->getState()));
+                                }
+
+                                dbg("Updated the queue.");
+                            }
+                        }
                     }
                 }
             }
             // If the forward queue is empty, move on to the next phase.
-            if (forwardQueue_->empty())
+            if (forwardQueue_->empty() ||
+                (reverseRoot_->getTwin().lock() &&
+                 bestCost_.value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value() < 2.0))
             {
+                forwardQueue_->clear();
                 phase_ = Phase::IMPROVE_APPROXIMATION;
             }
         }
