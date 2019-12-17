@@ -73,6 +73,15 @@ namespace ompl
                 /** \brief Returns the cost-to-come to this vertex. */
                 ompl::base::Cost getCost() const;
 
+                /** \brief Sets the cost to come to this vertex. */
+                void setCost(const ompl::base::Cost &cost);
+
+                /** \brief Returns the cost-to-come to this vertex when it was last expanded. */
+                ompl::base::Cost getExtendedCost() const;
+
+                /** \brief Sets the cost-to-come to this vertex when it was last expanded. */
+                void setExtendedCost(const ompl::base::Cost &cost);
+
                 /** \brief Returns the state associated with this vertex. */
                 std::shared_ptr<State> getState() const;
 
@@ -98,9 +107,6 @@ namespace ompl
                 /** \brief Returns the twin of this vertex, i.e., the vertex in the other search tree with the same
                  * underlying state. */
                 std::weak_ptr<Vertex> getTwin() const;
-
-                /** \brief Sets the cost to come to this vertex. */
-                void setCost(const ompl::base::Cost &cost);
 
                 /** \brief Updates the cost by combining the parent cost-to-come and the edge cost. */
                 void updateCost(const std::shared_ptr<ompl::base::OptimizationObjective> &objective);
@@ -154,6 +160,9 @@ namespace ompl
 
                 /** \brief The tag when this vertex was last expanded. */
                 std::size_t expandTag_{0u};
+
+                /** \brief The cost-to-come to this vertex when it was last expanded. */
+                ompl::base::Cost extendCost_{std::numeric_limits<double>::signaling_NaN()};
 
                 /** \brief The state this vertex is associated with. */
                 std::shared_ptr<State> state_;

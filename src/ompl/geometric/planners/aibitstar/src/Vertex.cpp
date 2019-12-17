@@ -59,6 +59,7 @@ namespace ompl
               : id_(generateId())
               , cost_(objective->infiniteCost())
               , edgeCost_(objective->infiniteCost())
+              , extendCost_(objective->infiniteCost())
               , state_(state)
             {
             }
@@ -71,6 +72,21 @@ namespace ompl
             ompl::base::Cost Vertex::getCost() const
             {
                 return cost_;
+            }
+
+            void Vertex::setCost(const ompl::base::Cost &cost)
+            {
+                cost_ = cost;
+            }
+
+            ompl::base::Cost Vertex::getExtendedCost() const
+            {
+                return extendCost_;
+            }
+
+            void Vertex::setExtendedCost(const ompl::base::Cost &cost)
+            {
+                extendCost_ = cost;
             }
 
             std::shared_ptr<State> Vertex::getState() const
@@ -148,11 +164,6 @@ namespace ompl
             std::weak_ptr<Vertex> Vertex::getTwin() const
             {
                 return twin_;
-            }
-
-            void Vertex::setCost(const ompl::base::Cost &cost)
-            {
-                cost_ = cost;
             }
 
             void Vertex::setEdgeCost(const ompl::base::Cost &edgeCost)
