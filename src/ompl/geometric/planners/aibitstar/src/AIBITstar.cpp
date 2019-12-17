@@ -144,7 +144,9 @@ namespace ompl
             // If this is the first time solve is being called, populate the reverse queue.
             if (iteration_ == 0u)
             {
-                reverseQueue_->insert(expand(graph_.getGoalState()));
+                reverseQueue_->insert(expand(reverseRoot_->getState()));
+                reverseRoot_->setExtendedCost(objective_->identityCost());
+                reverseRoot_->setExpandTag(searchTag_);
             }
 
             // Iterate until stopped.
@@ -281,8 +283,10 @@ namespace ompl
                     reverseRoot_.reset();
                     reverseRoot_ = graph_.getGoalState()->asReverseVertex();
                     reverseRoot_->setCost(objective_->identityCost());
+                    reverseRoot_->setExtendedCost(objective_->identityCost());
+                    reverseRoot_->setExpandTag(searchTag_);
                     reverseRoot_->getState()->setEstimatedEffortToGo(0u);
-                    reverseQueue_->insert(expand(graph_.getGoalState()));
+                    reverseQueue_->insert(expand(reverseRoot_->getState()));
 
                     // If expanding the goal state actually produced edges, let's start the reverse search.
                     // Otherwise, we stay in the improve approximation phase.
@@ -319,7 +323,8 @@ namespace ompl
                 // Check if the edge's parent is already the parent of the child.
                 if (auto currentParent = childVertex->getParent().lock())
                 {
-                    if (currentParent->getId() == parentVertex->getId())
+                    if (currentParent->getId() == parentVertex->getId() &&
+                        edge.target->getId() != graph_.getGoalState()->getId())
                     {
                         forwardQueue_->insert(expand(edge.target));
                         return;
@@ -364,7 +369,7 @@ namespace ompl
                             parentVertex->addChild(childVertex);
 
                             // Expand the outgoing edges into the queue unless this state is the goal state.
-                            if (edge.target->getId() != reverseRoot_->getState()->getId())
+                            if (edge.target->getId() != graph_.getGoalState()->getId())
                             {
                                 // Expand the child vertex.
                                 forwardQueue_->insert(expand(edge.target));
@@ -411,6 +416,8 @@ namespace ompl
                 if (!isClosed(childVertex) && currentParent->getId() == edge.source->asReverseVertex()->getId())
                 {
                     reverseQueue_->insert(expand(edge.target));
+                    childVertex->setExtendedCost(childVertex->getCost());
+                    childVertex->setExpandTag(searchTag_);
                     return;
                 }
             }
@@ -444,6 +451,8 @@ namespace ompl
                 if (!isClosed(childVertex) && edge.target->getId() != forwardRoot_->getState()->getId())
                 {
                     reverseQueue_->insert(expand(edge.target));
+                    childVertex->setExtendedCost(childVertex->getCost());
+                    childVertex->setExpandTag(searchTag_);
                 }
             }
 
@@ -607,6 +616,9 @@ namespace ompl
                 // Blacklist this edge.
                 edge.source->blacklist(edge.target);
                 edge.target->blacklist(edge.source);
+
+                // Register it with the graph.
+                graph_.registerInvalidEdge(edge);
                 return false;
             }
         }
