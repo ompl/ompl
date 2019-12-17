@@ -53,7 +53,7 @@ namespace ompl
                                        const std::shared_ptr<const ompl::base::SpaceInformation> &spaceInfo)
               : objective_(objective), spaceInfo_(spaceInfo), queue_()
             {
-                queue_.reserve(10000u);
+                queue_.reserve(1000u);
             }
 
             bool ForwardQueue::empty() const
