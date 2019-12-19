@@ -55,15 +55,9 @@ namespace ompl
         AIBITstar::AIBITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo)
           : ompl::base::Planner(spaceInfo, "AI-BIT*")
           , graph_(spaceInfo)
-          , detectionState_(spaceInfo->allocState())
           , space_(spaceInfo->getStateSpace())
           , motionValidator_(spaceInfo->getMotionValidator())
         {
-        }
-
-        AIBITstar::~AIBITstar()
-        {
-            spaceInfo_->freeState(detectionState_);
         }
 
         void AIBITstar::setup()
@@ -183,11 +177,6 @@ namespace ompl
         void AIBITstar::setRadiusFactor(double factor)
         {
             graph_.setRadiusFactor(factor);
-        }
-
-        void AIBITstar::enableCollisionDetectionOnReverseSearch(bool enable)
-        {
-            isCollisionDetectionOnReverseSearchEnabled_ = enable;
         }
 
         std::vector<Edge> AIBITstar::getForwardQueue() const

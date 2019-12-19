@@ -59,7 +59,7 @@ namespace ompl
             AIBITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo);
 
             /** \brief Destructs the algorithm. */
-            ~AIBITstar();
+            ~AIBITstar() = default;
 
             /** \brief Setup the parts of the planner that rely on the problem definition being set. */
             void setup() override;
@@ -76,9 +76,6 @@ namespace ompl
 
             /** \brief Sets the radius factor. */
             void setRadiusFactor(double factor);
-
-            /** \brief Enables collision detection on the reverse search. */
-            void enableCollisionDetectionOnReverseSearch(bool enable);
 
             /** \brief Returns a copy of the forward queue. */
             std::vector<aibitstar::Edge> getForwardQueue() const;
@@ -183,15 +180,6 @@ namespace ompl
 
             /** \brief The tag of the current search. */
             std::size_t searchTag_{1u};
-
-            /** \brief The interpolation values used for the sparse collision detection on the reverse search. */
-            std::vector<double> detectionInterpolationValues_{};
-
-            /** \brief Whether the collision detection on the reverse search is enabled. */
-            bool isCollisionDetectionOnReverseSearchEnabled_{true};
-
-            /** \brief The state used to do sparse collision detection with. */
-            ompl::base::State *detectionState_;
 
             /** \brief An alias with a more expressive name to the problem of the base class. */
             std::shared_ptr<ompl::base::ProblemDefinition> &problem_ = ompl::base::Planner::pdef_;
