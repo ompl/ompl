@@ -34,11 +34,10 @@
 
 // Authors: Marlin Strub
 
-#include <dbg.h>
-
 #include "ompl/geometric/planners/aibitstar/AIBITstar.h"
 
 #include <algorithm>
+#include <memory>
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
