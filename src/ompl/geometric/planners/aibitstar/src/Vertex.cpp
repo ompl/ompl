@@ -118,6 +118,7 @@ namespace ompl
             {
                 assert(this);
                 assert(vertex);
+                assert((!parent_.lock()) || (parent_.lock() && parent_.lock()->getId() != vertex->getId()));
                 children_.emplace_back(vertex);
             }
 
@@ -173,6 +174,9 @@ namespace ompl
 
             void Vertex::updateParent(const std::shared_ptr<Vertex> &vertex)
             {
+                assert(std::find_if(children_.begin(), children_.end(), [&vertex](const auto &child) {
+                           return vertex->getId() == child->getId();
+                       }) == children_.end());
                 if (auto parent = parent_.lock())
                 {
                     parent->removeChild(shared_from_this());
