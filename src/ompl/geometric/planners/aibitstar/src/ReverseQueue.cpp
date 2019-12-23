@@ -74,18 +74,29 @@ namespace ompl
             {
                 if (!update(edge))
                 {
-                    edge.source->asReverseVertex()->outgoingReverseQueueLookup_.emplace_back(
-                        queue_.insert(std::make_pair(
-                            std::array<ompl::base::Cost, 2u>{
-                                objective_->combineCosts(
-                                    objective_->combineCosts(
-                                        edge.source->asReverseVertex()->getCost(),
-                                        objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw())),
-                                    edge.target->getLowerBoundCostToGo()),
-                                objective_->combineCosts(
-                                    edge.source->asReverseVertex()->getCost(),
-                                    objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw()))},
-                            edge)));
+                    // Compute the first field of the key.
+                    auto key1 =
+                        objective_->combineCosts(objective_->combineCosts(edge.source->asReverseVertex()->getCost(),
+                                                                          objective_->motionCostHeuristic(
+                                                                              edge.source->raw(), edge.target->raw())),
+                                                 edge.target->getLowerBoundCostToGo());
+
+                    // Compute the second field of the key.
+                    auto key2 = objective_->combineCosts(
+                        edge.source->asReverseVertex()->getCost(),
+                        objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw()));
+
+                    // Combine the two fields into the key.
+                    std::array<ompl::base::Cost, 2u> key = {key1, key2};
+
+                    // Create the key, edge pair.
+                    auto keyEdgePair = std::make_pair(key, edge);
+
+                    // Insert the edge with the key in the queue.
+                    auto element = queue_.insert(keyEdgePair);
+
+                    // Remember the element.
+                    edge.source->asReverseVertex()->outgoingReverseQueueLookup_.emplace_back(element);
                 }
             }
 
