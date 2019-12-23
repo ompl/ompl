@@ -377,19 +377,17 @@ namespace ompl
                         // Assert the edge is actually invalid.
                         assert(!motionValidator_->checkMotion(edge.source->raw(), edge.target->raw()));
 
-                        dbg("Edge ("s + std::to_string(edge.source->getId()) + " -> "s +
-                            std::to_string(edge.target->getId()) + ") is invalid."s);
-
                         // If this edge was in the reverse search tree, the tree must be updated.
                         if (edge.source->asReverseVertex()->getParent().lock()->getId() ==
-                            edge.target->asReverseVertex()->getId())
+                                edge.target->asReverseVertex()->getId() ||
+                            edge.target->asReverseVertex()->getParent().lock()->getId() ==
+                                edge.source->asReverseVertex()->getId())
                         {
-                            // Get the source state as reverse vectex.
-                            auto reverseSource = edge.source->asReverseVertex();
-
                             // The edge is invalid. The reverse search can be updated.
-                            reverseSource->setEdgeCost(objective_->infiniteCost());
-                            reverseSource->setCost(objective_->infiniteCost());
+                            edge.source->asReverseVertex()->setEdgeCost(objective_->infiniteCost());
+                            edge.source->asReverseVertex()->setCost(objective_->infiniteCost());
+
+                            auto updatedChildren = edge.source->asReverseVertex()->updateChildren(objective_);
 
                             // The source state has been invalidated in the reverse search tree. Get the neighbors of
                             // the source state. Find the best new parent in the reverse search.
@@ -398,7 +396,6 @@ namespace ompl
                             ompl::base::Cost newEdgeCost = objective_->infiniteCost();
                             for (const auto &neighbor : graph_.getNeighbors(edge.source))
                             {
-                                dbg(neighbor->getId());
                                 auto neighborEdgeCost =
                                     objective_->motionCostBestEstimate(neighbor->raw(), edge.source->raw());
                                 auto neighborCost =
@@ -411,26 +408,23 @@ namespace ompl
                                 }
                             }
 
-                            if (dbg(newParent))
+                            if (newParent)
                             {
+                                // Store the reverse source to ensure it's not released.
+                                auto reverseSource = edge.source->asReverseVertex();
+
                                 // Update the reverse search tree.
-                                newParent->asReverseVertex()->addChild(edge.source->asReverseVertex());
-                                edge.target->asReverseVertex()->removeChild(edge.source->asReverseVertex());
-                                edge.source->asReverseVertex()->updateParent(newParent->asReverseVertex());
+                                reverseSource->updateParent(newParent->asReverseVertex());
+                                newParent->asReverseVertex()->addChild(reverseSource);
                                 edge.source->asReverseVertex()->setEdgeCost(newEdgeCost);
                                 edge.source->asReverseVertex()->setCost(newCost);
-                                dbg("Updating children.");
-                                auto updatedChildren = edge.source->asReverseVertex()->updateChildren(objective_);
-
-                                dbg("Done.");
+                                edge.source->asReverseVertex()->updateChildren(objective_);
 
                                 // Update the underlying state.
                                 edge.source->setEstimatedCostToGo(newCost);
                                 edge.source->setEstimatedEffortToGo(newParent->getEstimatedEffortToGo() +
                                                                     spaceInfo_->getStateSpace()->validSegmentCount(
                                                                         newParent->raw(), edge.source->raw()));
-
-                                dbg("Updated the underlying state.");
 
                                 // Update the underlying states of all updated children. We can do this in sequence,
                                 // because thats how they are returned in Vertex::updateChildren. Although this
@@ -448,8 +442,6 @@ namespace ompl
                                                                            parentState->raw(), childState->raw()));
                                 }
 
-                                dbg("Updated the states underlying the children.");
-
                                 // Update the position of the outgoing edges of all updated children in the forward
                                 // search queue.
                                 for (const auto &child : updatedChildren)
@@ -458,8 +450,45 @@ namespace ompl
                                     auto parent = child->getParent().lock();
                                     forwardQueue_->update(Edge(parent->getState(), child->getState()));
                                 }
+                            }
+                            else
+                            {
+                                // Invalidate the branch.
+                                reverseQueue_->removeOutgoingEdges(edge.source->asReverseVertex());
+                                edge.target->asReverseVertex()->removeChild(edge.source->asReverseVertex());
 
-                                dbg("Updated the queue.");
+                                // The phase of the algorithm after this operation depends on whether we've inserted an
+                                // edge.
+                                bool insertedEdge{false};
+
+                                // Add the correct edges to the reverse queue.
+                                for (const auto &child : updatedChildren)
+                                {
+                                    reverseQueue_->removeOutgoingEdges(child);
+
+                                    for (const auto &neighbor : graph_.getNeighbors(child->getState()))
+                                    {
+                                        if (neighbor->hasReverseVertex() &&
+                                            std::find_if(updatedChildren.begin(), updatedChildren.end(),
+                                                         [&neighbor](const auto &child) {
+                                                             return child->getId() ==
+                                                                    neighbor->asReverseVertex()->getId();
+                                                         }) == updatedChildren.end())
+                                        {
+                                            reverseQueue_->insert({neighbor, child->getState()});
+                                            insertedEdge = true;
+                                        }
+                                    }
+                                }
+
+                                if (insertedEdge)
+                                {
+                                    phase_ = Phase::REVERSE_SEARCH;
+                                }
+                                else
+                                {
+                                    phase_ = Phase::IMPROVE_APPROXIMATION;
+                                }
                             }
                         }
                     }
