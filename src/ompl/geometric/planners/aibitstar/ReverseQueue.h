@@ -77,7 +77,7 @@ namespace ompl
                 void insert(const std::vector<Edge> &edges);
 
                 /** Get a reference to the top edge in the queue. */
-                const Edge& peek() const;
+                const Edge &peek() const;
 
                 /** \brief Returns and deletes the top element of the queue. */
                 Edge pop();
@@ -102,10 +102,10 @@ namespace ompl
                 std::shared_ptr<const ompl::base::SpaceInformation> spaceInfo_;
 
                 /** \brief The queue is ordered on the lower bound cost through an edge. */
-                using CostHeap = ompl::BinaryHeap<
-                    std::pair<std::array<ompl::base::Cost, 2u>, Edge>,
-                    std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &,
-                                       const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &)>>;
+                using CostHeap =
+                    ompl::BinaryHeap<std::pair<std::array<ompl::base::Cost, 2u>, Edge>,
+                                     std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &,
+                                                        const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &)>>;
                 CostHeap queue_;
             };
         }  // namespace aibitstar
