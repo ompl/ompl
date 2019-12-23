@@ -133,11 +133,6 @@ namespace ompl
                 /** \brief Sets the expand tag when this vertex was last expanded. */
                 void setExpandTag(std::size_t tag);
 
-                /** \brief Returns the out queue lookup. */
-                const std::vector<ompl::BinaryHeap<ompl::geometric::aibitstar::Edge,
-                                                   std::function<bool(const Edge &, const Edge &)>>::Element *> &
-                getOutQueueLookup() const;
-
             private:
                 /** \brief The unique id of this vertex. */
                 const std::size_t id_;
