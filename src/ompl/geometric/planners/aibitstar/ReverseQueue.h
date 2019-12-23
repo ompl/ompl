@@ -91,6 +91,8 @@ namespace ompl
                 /** \brief Rebuilds the queue. */
                 void rebuild();
 
+                void removeOutgoingEdges(const std::shared_ptr<Vertex>& vertex);
+
             private:
                 /** \brief Update an edge in the queue if it exists. */
                 bool update(const Edge &edge);

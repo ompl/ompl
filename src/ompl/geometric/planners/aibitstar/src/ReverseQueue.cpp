@@ -176,7 +176,7 @@ namespace ompl
 
             void ReverseQueue::clear()
             {
-                // Can't use queue_.clear() because we need to remove theoutgoing edge lookup pointers.
+                // Can't use queue_.clear() because we need to remove the outgoing edge lookup pointers.
                 while (!empty())
                 {
                     pop();
@@ -194,6 +194,18 @@ namespace ompl
                     edges.push_back(element.second);
                 }
                 return edges;
+            }
+
+            void ReverseQueue::removeOutgoingEdges(const std::shared_ptr<Vertex> &vertex)
+            {
+                // Remove all elements from the queue.
+                for (const auto element : vertex->outgoingReverseQueueLookup_)
+                {
+                    queue_.remove(element);
+                }
+
+                // Remove all elements from the lookup.
+                vertex->outgoingReverseQueueLookup_.clear();
             }
 
         }  // namespace aibitstar
