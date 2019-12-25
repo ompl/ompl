@@ -272,6 +272,15 @@ namespace ompl
                 return edges;
             }
 
+            void ForwardQueue::rebuild()
+            {
+                for (const auto &element : queue_)
+                {
+                    auto edge = element.second;
+                    update(edge);
+                }
+            }
+
             std::size_t ForwardQueue::estimateEffort(const Edge &edge) const
             {
                 return spaceInfo_->getStateSpace()->validSegmentCount(edge.source->raw(), edge.target->raw()) +
