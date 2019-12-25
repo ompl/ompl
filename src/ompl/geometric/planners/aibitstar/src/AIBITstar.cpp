@@ -393,6 +393,9 @@ namespace ompl
                             edge.target->asReverseVertex()->getParent().lock()->getId() ==
                                 edge.source->asReverseVertex()->getId())
                         {
+                            // Store the old cost-to-come to the vertex.
+                            auto oldCost = edge.source->asReverseVertex()->getCost();
+
                             // The edge is invalid. The reverse search can be updated.
                             edge.source->asReverseVertex()->setEdgeCost(objective_->infiniteCost());
                             edge.source->asReverseVertex()->setCost(objective_->infiniteCost());
@@ -463,29 +466,44 @@ namespace ompl
                             }
                             else
                             {
-                                // Invalidate the branch.
+                                // Get all of the affected states and remove the outgoing edges of the children.
+                                std::vector<std::shared_ptr<State>> updatedStates{edge.source};
                                 reverseQueue_->removeOutgoingEdges(edge.source->asReverseVertex());
-                                edge.target->asReverseVertex()->removeChild(edge.source->asReverseVertex());
+                                updatedStates.reserve(1u + updatedChildren.size());
+                                for (const auto &child : updatedChildren)
+                                {
+                                    updatedStates.emplace_back(child->getState());
+                                    reverseQueue_->removeOutgoingEdges(child);
+                                }
+
+                                // Clear the invalidated vertices in the reverse search tree.
+                                if (edge.source->asReverseVertex()->getParent().lock()->getId() ==
+                                    edge.target->asReverseVertex()->getId())
+                                {
+                                    edge.target->asReverseVertex()->removeChild(edge.source->asReverseVertex());
+                                }
+                                else
+                                {
+                                    assert(edge.target->asReverseVertex()->getParent().lock()->getId() ==
+                                           edge.source->asReverseVertex()->getId());
+                                    edge.source->asReverseVertex()->removeChild(edge.target->asReverseVertex());
+                                }
+                                updatedChildren.clear();
 
                                 // The phase of the algorithm after this operation depends on whether we've inserted an
-                                // edge.
+                                // edge or not.
                                 bool insertedEdge{false};
 
                                 // Add the correct edges to the reverse queue.
-                                for (const auto &child : updatedChildren)
+                                for (const auto &state : updatedStates)
                                 {
-                                    reverseQueue_->removeOutgoingEdges(child);
-
-                                    for (const auto &neighbor : graph_.getNeighbors(child->getState()))
+                                    // Add an edge from the neighbor of a state to the state if the neighbor is in the
+                                    // reverse search tree.
+                                    for (const auto &neighbor : graph_.getNeighbors(state))
                                     {
-                                        if (neighbor->hasReverseVertex() &&
-                                            std::find_if(updatedChildren.begin(), updatedChildren.end(),
-                                                         [&neighbor](const auto &child) {
-                                                             return child->getId() ==
-                                                                    neighbor->asReverseVertex()->getId();
-                                                         }) == updatedChildren.end())
+                                        if (neighbor->hasReverseVertex())
                                         {
-                                            reverseQueue_->insert({neighbor, child->getState()});
+                                            reverseQueue_->insert({neighbor, state});
                                             insertedEdge = true;
                                         }
                                     }
@@ -497,6 +515,7 @@ namespace ompl
                                 }
                                 else
                                 {
+                                    forwardQueue_->clear();
                                     phase_ = Phase::IMPROVE_APPROXIMATION;
                                 }
                             }
@@ -587,7 +606,14 @@ namespace ompl
                 if (forwardRoot_->getTwin().lock())
                 {
                     assert(forwardRoot_->getState()->hasReverseVertex());
-                    forwardQueue_->insert(expand(forwardRoot_->getState()));
+                    if (forwardQueue_->empty())
+                    {
+                        forwardQueue_->insert(expand(forwardRoot_->getState()));
+                    }
+                    else
+                    {
+                        forwardQueue_->rebuild();
+                    }
                     phase_ = Phase::FORWARD_SEARCH;
                 }
                 else
