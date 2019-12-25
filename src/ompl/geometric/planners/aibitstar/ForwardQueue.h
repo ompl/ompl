@@ -82,10 +82,10 @@ namespace ompl
                 bool update(const Edge &edge);
 
                 /** \brief Returns a copy to the next edge. */
-                Edge peek(float suboptimalityFactor) const;
+                Edge peek(double suboptimalityFactor) const;
 
                 /** \brief Returns and deletes the top element of the queue. */
-                Edge pop(float suboptimalityFactor);
+                Edge pop(double suboptimalityFactor);
 
                 /** \brief Returns a lower bound on the resolution-optimal solution cost. */
                 ompl::base::Cost getLowerBoundOnOptimalSolutionCost() const;
