@@ -249,8 +249,8 @@ namespace ompl
                     for (const auto &child : sample->asForwardVertex()->getChildren())
                     {
                         data.addEdge(base::PlannerDataVertex(sample->asForwardVertex()->getState()->raw(),
-                                                             sample->asForwardVertex()->getId()),
-                                     base::PlannerDataVertex(child->getState()->raw(), child->getId()));
+                                                             sample->asForwardVertex()->getState()->getId()),
+                                     base::PlannerDataVertex(child->getState()->raw(), child->getState()->getId()));
                     }
                 }
             }
