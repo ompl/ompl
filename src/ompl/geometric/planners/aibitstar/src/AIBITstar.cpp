@@ -178,6 +178,16 @@ namespace ompl
             graph_.setRadiusFactor(factor);
         }
 
+        void AIBITstar::setRepairFactor(double factor)
+        {
+            repairFactor_ = factor;
+        }
+
+        void AIBITstar::setSuboptimalityFactor(double factor)
+        {
+            suboptimalityFactor_ = factor;
+        }
+
         std::vector<Edge> AIBITstar::getForwardQueue() const
         {
             return forwardQueue_->getEdges();
@@ -269,7 +279,7 @@ namespace ompl
                     graph_.addStates(numSamplesPerBatch_);
 
                     // Reset the suboptimality factor.
-                    suboptimalityFactor_ = std::numeric_limits<float>::infinity();
+                    suboptimalityFactor_ = std::numeric_limits<double>::infinity();
 
                     // Restart the reverse search.
                     reverseRoot_.reset();
@@ -408,7 +418,7 @@ namespace ompl
                                 }
                             }
 
-                            if (newParent)
+                            if (newParent && (newCost.value() / oldCost.value()) < repairFactor_)
                             {
                                 // Store the reverse source to ensure it's not released.
                                 auto reverseSource = edge.source->asReverseVertex();

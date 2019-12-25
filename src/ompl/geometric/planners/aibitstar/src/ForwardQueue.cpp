@@ -83,7 +83,6 @@ namespace ompl
                         return objective_->isCostBetterThan(a.first.lowerBoundCost, b.first.lowerBoundCost);
                     });
 
-
                 // Check if the element already exists.
                 auto element =
                     std::find_if(queue_.begin(), queue_.end(), [&edge](const std::pair<EdgeKeys, Edge> &element) {
@@ -117,7 +116,7 @@ namespace ompl
                 }
             }
 
-            Edge ForwardQueue::peek(float suboptimalityFactor) const
+            Edge ForwardQueue::peek(double suboptimalityFactor) const
             {
                 // Get the lower bounding edge and corresponding cost.
                 auto lowerBoundEdge = queue_.begin();
@@ -203,7 +202,7 @@ namespace ompl
                 return false;
             }
 
-            Edge ForwardQueue::pop(float suboptimalityFactor)
+            Edge ForwardQueue::pop(double suboptimalityFactor)
             {
                 // Get the lower bounding edge and corresponding cost.
                 auto lowerBoundEdge = queue_.begin();

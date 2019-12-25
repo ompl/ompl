@@ -77,6 +77,12 @@ namespace ompl
             /** \brief Sets the radius factor. */
             void setRadiusFactor(double factor);
 
+            /** \brief Sets the radius factor. */
+            void setRepairFactor(double factor);
+
+            /** \brief Sets the radius factor. */
+            void setSuboptimalityFactor(double factor);
+
             /** \brief Returns a copy of the forward queue. */
             std::vector<aibitstar::Edge> getForwardQueue() const;
 
@@ -156,10 +162,10 @@ namespace ompl
             std::size_t numSamplesPerBatch_{100u};
 
             /** \brief The current suboptimality factor of the forward search. */
-            float suboptimalityFactor_{std::numeric_limits<float>::infinity()};
+            double suboptimalityFactor_{std::numeric_limits<float>::infinity()};
 
             /** \brief The factor that determines when the reverse search should be repaired. */
-            float repairFactor_{std::numeric_limits<float>::infinity()};
+            double repairFactor_{std::numeric_limits<float>::infinity()};
 
             ompl::base::Cost bestCost_{std::numeric_limits<double>::signaling_NaN()};
 
