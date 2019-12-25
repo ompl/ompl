@@ -568,7 +568,7 @@ namespace ompl
                     spaceInfo_->getStateSpace()->validSegmentCount(edge.source->raw(), edge.target->raw()));
 
                 // Expand the outgoing edges into the queue unless this has already happened or this is the start state.
-                if (!isClosed(childVertex) && edge.target->getId() != forwardRoot_->getState()->getId())
+                if (!isClosed(childVertex))
                 {
                     reverseQueue_->insert(expand(edge.target));
                     childVertex->setExtendedCost(childVertex->getCost());
