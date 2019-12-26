@@ -387,11 +387,19 @@ namespace ompl
                         // Assert the edge is actually invalid.
                         assert(!motionValidator_->checkMotion(edge.source->raw(), edge.target->raw()));
 
+                        // Ret the reverse vertices associated with the states of the edge.
+                        auto sourceReverseVertex = edge.source->asReverseVertex();
+                        auto targetReverseVertex = edge.target->asReverseVertex();
+
+                        // Get the parents of these vertices.
+                        auto sourceReverseVertexParent = sourceReverseVertex->getParent().lock();
+                        auto targetReverseVertexParent = targetReverseVertex->getParent().lock();
+
                         // If this edge was in the reverse search tree, the tree must be updated.
-                        if (edge.source->asReverseVertex()->getParent().lock()->getId() ==
-                                edge.target->asReverseVertex()->getId() ||
-                            edge.target->asReverseVertex()->getParent().lock()->getId() ==
-                                edge.source->asReverseVertex()->getId())
+                        if ((static_cast<bool>(sourceReverseVertexParent) &&
+                             sourceReverseVertexParent->getId() == edge.target->asReverseVertex()->getId()) ||
+                            (static_cast<bool>(targetReverseVertexParent) &&
+                             targetReverseVertexParent->getId() == edge.source->asReverseVertex()->getId()))
                         {
                             // Store the old cost-to-come to the vertex.
                             auto oldCost = edge.source->asReverseVertex()->getCost();
