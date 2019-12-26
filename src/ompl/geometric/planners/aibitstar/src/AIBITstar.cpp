@@ -476,8 +476,8 @@ namespace ompl
                             {
                                 // Get all of the affected states and remove the outgoing edges of the children.
                                 std::vector<std::shared_ptr<State>> updatedStates{edge.source};
-                                reverseQueue_->removeOutgoingEdges(edge.source->asReverseVertex());
                                 updatedStates.reserve(1u + updatedChildren.size());
+                                reverseQueue_->removeOutgoingEdges(edge.source->asReverseVertex());
                                 for (const auto &child : updatedChildren)
                                 {
                                     updatedStates.emplace_back(child->getState());
@@ -509,7 +509,11 @@ namespace ompl
                                     // reverse search tree.
                                     for (const auto &neighbor : graph_.getNeighbors(state))
                                     {
-                                        if (neighbor->hasReverseVertex())
+                                        auto it = std::find_if(updatedStates.begin(), updatedStates.end(),
+                                                               [&neighbor](const auto &updatedState) {
+                                                                   return neighbor->getId() == updatedState->getId();
+                                                               });
+                                        if (it == updatedStates.end())
                                         {
                                             reverseQueue_->insert({neighbor, state});
                                             insertedEdge = true;
