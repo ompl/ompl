@@ -99,6 +99,11 @@ namespace ompl
                 return children_;
             }
 
+            bool Vertex::hasChildren() const
+            {
+                return !children_.empty();
+            }
+
             std::vector<std::shared_ptr<Vertex>>
             Vertex::updateChildren(const std::shared_ptr<ompl::base::OptimizationObjective> &objective)
             {

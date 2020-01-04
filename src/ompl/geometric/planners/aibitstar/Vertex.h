@@ -88,6 +88,9 @@ namespace ompl
                 /** \brief Returns the children of the vertex. */
                 const std::vector<std::shared_ptr<Vertex>> &getChildren() const;
 
+                /** \brief Returns whether the vertex has children. */
+                bool hasChildren() const;
+
                 /** \brief Update the cost-to-come of the children. */
                 std::vector<std::shared_ptr<Vertex>>
                 updateChildren(const std::shared_ptr<ompl::base::OptimizationObjective> &objective);
@@ -156,7 +159,7 @@ namespace ompl
                 /** \brief The tag when this vertex was last expanded. */
                 std::size_t expandTag_{0u};
 
-                /** \brief The cost-to-come to this vertex when it was last expanded. */
+                /** \brief The cost-to-come to this vertex when it first extended. */
                 ompl::base::Cost extendCost_{std::numeric_limits<double>::signaling_NaN()};
 
                 /** \brief The state this vertex is associated with. */
