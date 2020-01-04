@@ -566,7 +566,6 @@ namespace ompl
                 if (!isClosed(childVertex) && currentParent->getId() == edge.source->asReverseVertex()->getId())
                 {
                     reverseQueue_->insert(expand(edge.target));
-                    childVertex->setExtendedCost(childVertex->getCost());
                     childVertex->setExpandTag(searchTag_);
                     return;
                 }
@@ -575,6 +574,12 @@ namespace ompl
             // Incorporate the edge in the reverse tree if it provides an improvement.
             if (doesImproveReverseTree(edge))
             {
+                // If this is the first child of this parent, remember the cost.
+                if (!parentVertex->hasChildren())
+                {
+                    parentVertex->setExtendedCost(parentVertex->getCost());
+                }
+
                 // Update the parent of the child in the reverse tree.
                 childVertex->updateParent(parentVertex);
 
