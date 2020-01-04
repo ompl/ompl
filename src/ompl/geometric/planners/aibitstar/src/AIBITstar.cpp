@@ -401,13 +401,9 @@ namespace ompl
                             (static_cast<bool>(targetReverseVertexParent) &&
                              targetReverseVertexParent->getId() == edge.source->asReverseVertex()->getId()))
                         {
-                            // Store the old cost-to-come to the vertex.
-                            auto oldCost = edge.source->asReverseVertex()->getCost();
-
                             // The edge is invalid. The reverse search can be updated.
                             edge.source->asReverseVertex()->setEdgeCost(objective_->infiniteCost());
                             edge.source->asReverseVertex()->setCost(objective_->infiniteCost());
-
                             auto updatedChildren = edge.source->asReverseVertex()->updateChildren(objective_);
 
                             // The source state has been invalidated in the reverse search tree. Get the neighbors of
@@ -429,7 +425,10 @@ namespace ompl
                                 }
                             }
 
-                            if (newParent && (newCost.value() / oldCost.value()) < repairFactor_)
+                            // Get the cost the vertex was originally extended at.
+                            auto extendedCost = edge.source->asReverseVertex()->getExtendedCost();
+
+                            if (newParent && (newCost.value() / extendedCost.value()) < repairFactor_)
                             {
                                 // Store the reverse source to ensure it's not released.
                                 auto reverseSource = edge.source->asReverseVertex();
