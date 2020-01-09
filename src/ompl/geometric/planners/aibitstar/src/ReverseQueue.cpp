@@ -155,10 +155,14 @@ namespace ompl
 
             Edge ReverseQueue::pop()
             {
+                assert(!queue_.empty());
                 if (auto element = queue_.top())
                 {
                     // Copy the top edge.
                     auto edge = element->data.second;
+
+                    // If the source state of the edge does not have an associated vertex, it's a bug.
+                    assert(edge.source->hasReverseVertex());
 
                     // Pop the element from the queue.
                     queue_.pop();
@@ -169,7 +173,7 @@ namespace ompl
                     // Remove the edge from the lookup.
                     auto it = std::find(lookup.begin(), lookup.end(), element);
 
-                    // If the edge is not in the lookup, its a bug.
+                    // If the edge is not in the lookup, it's a bug.
                     assert(it != lookup.end());
 
                     // Swappedy pop.

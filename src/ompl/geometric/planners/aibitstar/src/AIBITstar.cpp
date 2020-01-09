@@ -387,64 +387,68 @@ namespace ompl
                         // Assert the edge is actually invalid.
                         assert(!motionValidator_->checkMotion(edge.source->raw(), edge.target->raw()));
 
-                        // Ret the reverse vertices associated with the states of the edge.
-                        auto sourceReverseVertex = edge.source->asReverseVertex();
-                        auto targetReverseVertex = edge.target->asReverseVertex();
-
-                        // Get the parents of these vertices.
-                        auto sourceReverseVertexParent = sourceReverseVertex->getParent().lock();
-                        auto targetReverseVertexParent = targetReverseVertex->getParent().lock();
+                        // Check if the edge is used in the reverse tree.
+                        bool isSourceInvalidated =
+                            static_cast<bool>(edge.source->asReverseVertex()->getParent().lock()) &&
+                            edge.source->asReverseVertex()->getParent().lock()->getId() ==
+                                edge.target->asReverseVertex()->getId();
+                        bool isTargetInvalidated =
+                            static_cast<bool>(edge.target->asReverseVertex()->getParent().lock()) &&
+                            edge.target->asReverseVertex()->getParent().lock()->getId() ==
+                                edge.source->asReverseVertex()->getId();
 
                         // If this edge was in the reverse search tree, the tree must be updated.
-                        if ((static_cast<bool>(sourceReverseVertexParent) &&
-                             sourceReverseVertexParent->getId() == edge.target->asReverseVertex()->getId()) ||
-                            (static_cast<bool>(targetReverseVertexParent) &&
-                             targetReverseVertexParent->getId() == edge.source->asReverseVertex()->getId()))
+                        if (isSourceInvalidated || isTargetInvalidated)
                         {
-                            // The edge is invalid. The reverse search can be updated.
-                            edge.source->asReverseVertex()->setEdgeCost(objective_->infiniteCost());
-                            edge.source->asReverseVertex()->setCost(objective_->infiniteCost());
-                            auto updatedChildren = edge.source->asReverseVertex()->updateChildren(objective_);
+                            // The source state must not necessarily be the invalidated state.
+                            auto invalidatedState = isSourceInvalidated ? edge.source : edge.target;
 
-                            // The source state has been invalidated in the reverse search tree. Get the neighbors of
-                            // the source state. Find the best new parent in the reverse search.
+                            // The edge is invalid. The reverse tree can be updated.
+                            invalidatedState->asReverseVertex()->setEdgeCost(objective_->infiniteCost());
+                            invalidatedState->asReverseVertex()->setCost(objective_->infiniteCost());
+                            auto updatedChildren = invalidatedState->asReverseVertex()->updateChildren(objective_);
+
+                            // Get the neighbors of the invalidated state and find the best new parent in the reverse
+                            // tree.
                             std::shared_ptr<aibitstar::State> newParent;
                             ompl::base::Cost newCost = objective_->infiniteCost();
                             ompl::base::Cost newEdgeCost = objective_->infiniteCost();
-                            for (const auto &neighbor : graph_.getNeighbors(edge.source))
+                            for (const auto &neighbor : graph_.getNeighbors(invalidatedState))
                             {
-                                auto neighborEdgeCost =
-                                    objective_->motionCostBestEstimate(neighbor->raw(), edge.source->raw());
-                                auto neighborCost =
-                                    objective_->combineCosts(neighbor->asReverseVertex()->getCost(), neighborEdgeCost);
-                                if (objective_->isCostBetterThan(neighborCost, newCost))
+                                if (neighbor->hasReverseVertex())
                                 {
-                                    newParent = neighbor;
-                                    newCost = neighborCost;
-                                    newEdgeCost = neighborEdgeCost;
+                                    auto neighborEdgeCost =
+                                        objective_->motionCostBestEstimate(neighbor->raw(), invalidatedState->raw());
+                                    auto neighborCost = objective_->combineCosts(neighbor->asReverseVertex()->getCost(),
+                                                                                 neighborEdgeCost);
+                                    if (objective_->isCostBetterThan(neighborCost, newCost))
+                                    {
+                                        newParent = neighbor;
+                                        newCost = neighborCost;
+                                        newEdgeCost = neighborEdgeCost;
+                                    }
                                 }
                             }
 
                             // Get the cost the vertex was originally extended at.
-                            auto extendedCost = edge.source->asReverseVertex()->getExtendedCost();
+                            auto extendedCost = invalidatedState->asReverseVertex()->getExtendedCost();
 
                             if (newParent && (newCost.value() / extendedCost.value()) < repairFactor_)
                             {
-                                // Store the reverse source to ensure it's not released.
-                                auto reverseSource = edge.source->asReverseVertex();
-
+                                assert(newParent->hasReverseVertex());
                                 // Update the reverse search tree.
-                                reverseSource->updateParent(newParent->asReverseVertex());
-                                newParent->asReverseVertex()->addChild(reverseSource);
-                                edge.source->asReverseVertex()->setEdgeCost(newEdgeCost);
-                                edge.source->asReverseVertex()->setCost(newCost);
-                                edge.source->asReverseVertex()->updateChildren(objective_);
+                                newParent->asReverseVertex()->addChild(invalidatedState->asReverseVertex());
+                                invalidatedState->asReverseVertex()->updateParent(newParent->asReverseVertex());
+                                invalidatedState->asReverseVertex()->setEdgeCost(newEdgeCost);
+                                invalidatedState->asReverseVertex()->setCost(newCost);
+                                invalidatedState->asReverseVertex()->updateChildren(objective_);
 
                                 // Update the underlying state.
-                                edge.source->setEstimatedCostToGo(newCost);
-                                edge.source->setEstimatedEffortToGo(newParent->getEstimatedEffortToGo() +
-                                                                    spaceInfo_->getStateSpace()->validSegmentCount(
-                                                                        newParent->raw(), edge.source->raw()));
+                                invalidatedState->setEstimatedCostToGo(newCost);
+                                invalidatedState->setEstimatedEffortToGo(
+                                    newParent->getEstimatedEffortToGo() +
+                                    spaceInfo_->getStateSpace()->validSegmentCount(newParent->raw(),
+                                                                                   invalidatedState->raw()));
 
                                 // Update the underlying states of all updated children. We can do this in sequence,
                                 // because thats how they are returned in Vertex::updateChildren. Although this
@@ -468,34 +472,34 @@ namespace ompl
                                 {
                                     assert(child->getParent().lock());
                                     auto parent = child->getParent().lock();
-                                    forwardQueue_->update(Edge(parent->getState(), child->getState()));
+                                    forwardQueue_->update({parent->getState(), child->getState()});
                                 }
                             }
                             else
                             {
                                 // Get all of the affected states and remove the outgoing edges of the children.
-                                std::vector<std::shared_ptr<State>> updatedStates{edge.source};
+                                std::vector<std::shared_ptr<State>> updatedStates{invalidatedState};
+                                reverseQueue_->removeOutgoingEdges(invalidatedState->asReverseVertex());
                                 updatedStates.reserve(1u + updatedChildren.size());
-                                reverseQueue_->removeOutgoingEdges(edge.source->asReverseVertex());
                                 for (const auto &child : updatedChildren)
                                 {
                                     updatedStates.emplace_back(child->getState());
                                     reverseQueue_->removeOutgoingEdges(child);
                                 }
+                                updatedChildren.clear();
 
-                                // Clear the invalidated vertices in the reverse search tree.
-                                if (edge.source->asReverseVertex()->getParent().lock()->getId() ==
-                                    edge.target->asReverseVertex()->getId())
+                                // Clear the invalidated vertices in the reverse search tree. Be careful, the source of
+                                // this edge must not necessarily be the child in the reverse tree.
+                                if (isSourceInvalidated)
                                 {
+                                    // The source is the child in the reverse tree and will be invalidated.
                                     edge.target->asReverseVertex()->removeChild(edge.source->asReverseVertex());
                                 }
                                 else
                                 {
-                                    assert(edge.target->asReverseVertex()->getParent().lock()->getId() ==
-                                           edge.source->asReverseVertex()->getId());
+                                    // The target is the child in the reverse tree and will be invalidated.
                                     edge.source->asReverseVertex()->removeChild(edge.target->asReverseVertex());
                                 }
-                                updatedChildren.clear();
 
                                 // The phase of the algorithm after this operation depends on whether we've inserted an
                                 // edge or not.
@@ -526,6 +530,7 @@ namespace ompl
                                 }
                                 else
                                 {
+                                    assert(reverseQueue_->empty());
                                     forwardQueue_->clear();
                                     phase_ = Phase::IMPROVE_APPROXIMATION;
                                 }
@@ -534,11 +539,14 @@ namespace ompl
                     }
                 }
             }
-            // If the forward queue is empty, move on to the next phase.
-            if (forwardQueue_->empty() ||
-                (reverseRoot_->getTwin().lock() &&
-                 bestCost_.value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value() < 2.0))
+
+            if (phase_ == Phase::FORWARD_SEARCH &&
+                (forwardQueue_->empty() ||
+                 (reverseRoot_->getTwin().lock() &&
+                  bestCost_.value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value() < 2.0)))
             {
+                // If the forward queue is empty, move on to the next phase.
+                assert(reverseQueue_->empty());
                 forwardQueue_->clear();
                 phase_ = Phase::IMPROVE_APPROXIMATION;
             }
