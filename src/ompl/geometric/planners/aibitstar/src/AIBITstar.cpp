@@ -188,6 +188,11 @@ namespace ompl
             suboptimalityFactor_ = factor;
         }
 
+        void AIBITstar::setRepairReverseSearchTreeUponCollisionDetection(bool repair)
+        {
+            repairReverseSearchUponCollisionDetection_ = repair;
+        }
+
         std::vector<Edge> AIBITstar::getForwardQueue() const
         {
             return forwardQueue_->getEdges();
@@ -397,12 +402,20 @@ namespace ompl
                             edge.target->asReverseVertex()->getParent().lock()->getId() ==
                                 edge.source->asReverseVertex()->getId();
 
-                        // If this edge was in the reverse search tree, the tree must be updated.
+                        // If this edge was in the reverse search tree, it could be updated.
                         if (isSourceInvalidated || isTargetInvalidated)
                         {
-                            // The source state must not necessarily be the invalidated state.
-                            auto invalidatedState = isSourceInvalidated ? edge.source : edge.target;
-                            repairReverseSearchTree(edge, invalidatedState);
+                            // Repair the reverse search tree if desired.
+                            if (repairReverseSearchUponCollisionDetection_)
+                            {
+                                // The source state must not necessarily be the invalidated state.
+                                auto invalidatedState = isSourceInvalidated ? edge.source : edge.target;
+
+                                // Repair the reverse search tree. This happens either by rewiring the reverse tree
+                                // locally, or by inserting appropriate edges into the reverse queue and continuing with
+                                // the reverse search.
+                                repairReverseSearchTree(edge, invalidatedState);
+                            }
                         }
                     }
                 }

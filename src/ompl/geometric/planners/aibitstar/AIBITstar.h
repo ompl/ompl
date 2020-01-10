@@ -83,6 +83,9 @@ namespace ompl
             /** \brief Sets the radius factor. */
             void setSuboptimalityFactor(double factor);
 
+            /** \brief Sets the option whether to repair the reverse search tree when the forward search detects a collision. */
+            void setRepairReverseSearchTreeUponCollisionDetection(bool repair);
+
             /** \brief Returns a copy of the forward queue. */
             std::vector<aibitstar::Edge> getForwardQueue() const;
 
@@ -176,6 +179,11 @@ namespace ompl
             /** \brief The factor that determines when the reverse search should be repaired. */
             double repairFactor_{std::numeric_limits<float>::infinity()};
 
+            /** \brief The option that specifies whether to repair the reverse search when the forward search detects a
+             * collision on an edge. */
+            bool repairReverseSearchUponCollisionDetection_{false};
+
+            /** \brief The cost of the current best solution. */
             ompl::base::Cost bestCost_{std::numeric_limits<double>::signaling_NaN()};
 
             /** \brief The root of the forward search tree. */
