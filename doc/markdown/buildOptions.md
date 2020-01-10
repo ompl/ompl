@@ -13,6 +13,6 @@ If you are building OMPL from source, there are several options that you can use
 
 There also several optional dependencies. By default, if an optional dependency is detected by `cmake`, support for this dependency is enabled. If this is not what you want, you can run `cmake` like so:
 
-     cmake -DCMAKE_DISABLE_FIND_PACKAGE_<PackageName> ../..
+     cmake -DCMAKE_DISABLE_FIND_PACKAGE_<PackageName>=ON ../..
 
 where `<PackageName>` is, e.g., `pypy`, `flann`, `spot`, etc.

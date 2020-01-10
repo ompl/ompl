@@ -241,7 +241,8 @@ void ompl::geometric::PDST::clear()
     iteration_ = 1;
     lastGoalMotion_ = nullptr;
     freeMemory();
-    bsp_ = new Cell(1., projectionEvaluator_->getBounds(), 0);
+    if (projectionEvaluator_ && projectionEvaluator_->hasBounds())
+        bsp_ = new Cell(1., projectionEvaluator_->getBounds(), 0);
 }
 
 void ompl::geometric::PDST::freeMemory()

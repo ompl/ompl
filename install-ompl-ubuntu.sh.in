@@ -34,7 +34,7 @@ install_app_dependencies()
 {
     sudo apt-get -y install python${PYTHONV}-pyqt5.qtopengl freeglut3-dev libassimp-dev python${PYTHONV}-opengl python${PYTHONV}-flask python${PYTHONV}-celery libccd-dev
     # install additional python dependencies via pip
-    sudo -H pip${PYTHONV} install -vU PyOpenGL-accelerate==3.1.3b1
+    sudo -H pip${PYTHONV} install -vU PyOpenGL-accelerate
     # install fcl
     if ! pkg-config --atleast-version=0.5.0 fcl; then
         if [[ $ubuntu_version > 1604 ]]; then
