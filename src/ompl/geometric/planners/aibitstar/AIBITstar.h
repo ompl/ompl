@@ -125,6 +125,11 @@ namespace ompl
             /** \brief Updates the solution. */
             void updateSolution();
 
+            /** \brief Rewire reverse search tree locally. Returns [ bestParent, bestCost, bestEdgeCost ].
+             * Note that bestParent == nullptr if no parent is found. */
+            std::tuple<std::shared_ptr<aibitstar::State>, ompl::base::Cost, ompl::base::Cost>
+            getBestParentInReverseTree(const std::shared_ptr<aibitstar::State> &state) const;
+
             /** \brief Expands the input state, creating forward edges. */
             std::vector<aibitstar::Edge> expand(const std::shared_ptr<aibitstar::State> &state) const;
 

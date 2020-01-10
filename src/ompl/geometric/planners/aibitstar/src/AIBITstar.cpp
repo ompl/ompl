@@ -409,26 +409,11 @@ namespace ompl
                             auto updatedChildren = invalidatedState->asReverseVertex()->updateChildren(objective_);
 
                             // Get the neighbors of the invalidated state and find the best new parent in the reverse
-                            // tree.
+                            // tree. Can not use structured bindings because OMPL does not support c++17.
                             std::shared_ptr<aibitstar::State> newParent;
                             ompl::base::Cost newCost = objective_->infiniteCost();
                             ompl::base::Cost newEdgeCost = objective_->infiniteCost();
-                            for (const auto &neighbor : graph_.getNeighbors(invalidatedState))
-                            {
-                                if (neighbor->hasReverseVertex())
-                                {
-                                    auto neighborEdgeCost =
-                                        objective_->motionCostBestEstimate(neighbor->raw(), invalidatedState->raw());
-                                    auto neighborCost = objective_->combineCosts(neighbor->asReverseVertex()->getCost(),
-                                                                                 neighborEdgeCost);
-                                    if (objective_->isCostBetterThan(neighborCost, newCost))
-                                    {
-                                        newParent = neighbor;
-                                        newCost = neighborCost;
-                                        newEdgeCost = neighborEdgeCost;
-                                    }
-                                }
-                            }
+                            std::tie(newParent, newCost, newEdgeCost) = getBestParentInReverseTree(invalidatedState);
 
                             // Get the cost the vertex was originally extended at.
                             auto extendedCost = invalidatedState->asReverseVertex()->getExtendedCost();
@@ -471,8 +456,7 @@ namespace ompl
                                 for (const auto &child : updatedChildren)
                                 {
                                     assert(child->getParent().lock());
-                                    auto parent = child->getParent().lock();
-                                    forwardQueue_->update({parent->getState(), child->getState()});
+                                    forwardQueue_->update({child->getParent().lock()->getState(), child->getState()});
                                 }
                             }
                             else
@@ -791,6 +775,30 @@ namespace ompl
                 graph_.registerInvalidEdge(edge);
                 return false;
             }
+        }
+
+        std::tuple<std::shared_ptr<aibitstar::State>, ompl::base::Cost, ompl::base::Cost>
+        AIBITstar::getBestParentInReverseTree(const std::shared_ptr<aibitstar::State> &state) const
+        {
+            std::shared_ptr<aibitstar::State> bestParent;
+            ompl::base::Cost bestCost = objective_->infiniteCost();
+            ompl::base::Cost bestEdgeCost = objective_->infiniteCost();
+            for (const auto &neighbor : graph_.getNeighbors(state))
+            {
+                if (neighbor->hasReverseVertex())
+                {
+                    auto neighborEdgeCost = objective_->motionCostBestEstimate(neighbor->raw(), state->raw());
+                    auto neighborCost =
+                        objective_->combineCosts(neighbor->asReverseVertex()->getCost(), neighborEdgeCost);
+                    if (objective_->isCostBetterThan(neighborCost, bestCost))
+                    {
+                        bestParent = neighbor;
+                        bestCost = neighborCost;
+                        bestEdgeCost = neighborEdgeCost;
+                    }
+                }
+            }
+            return {bestParent, bestCost, bestEdgeCost};
         }
 
         void AIBITstar::rebuildForwardQueue()
