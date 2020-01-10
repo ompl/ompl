@@ -402,131 +402,15 @@ namespace ompl
                         {
                             // The source state must not necessarily be the invalidated state.
                             auto invalidatedState = isSourceInvalidated ? edge.source : edge.target;
-
-                            // The edge is invalid. The reverse tree can be updated.
-                            invalidatedState->asReverseVertex()->setEdgeCost(objective_->infiniteCost());
-                            invalidatedState->asReverseVertex()->setCost(objective_->infiniteCost());
-                            auto updatedChildren = invalidatedState->asReverseVertex()->updateChildren(objective_);
-
-                            // Get the neighbors of the invalidated state and find the best new parent in the reverse
-                            // tree. Can not use structured bindings because OMPL does not support c++17.
-                            std::shared_ptr<aibitstar::State> newParent;
-                            ompl::base::Cost newCost = objective_->infiniteCost();
-                            ompl::base::Cost newEdgeCost = objective_->infiniteCost();
-                            std::tie(newParent, newCost, newEdgeCost) = getBestParentInReverseTree(invalidatedState);
-
-                            // Get the cost the vertex was originally extended at.
-                            auto extendedCost = invalidatedState->asReverseVertex()->getExtendedCost();
-
-                            if (newParent && (newCost.value() / extendedCost.value()) < repairFactor_)
-                            {
-                                assert(newParent->hasReverseVertex());
-                                // Update the reverse search tree.
-                                newParent->asReverseVertex()->addChild(invalidatedState->asReverseVertex());
-                                invalidatedState->asReverseVertex()->updateParent(newParent->asReverseVertex());
-                                invalidatedState->asReverseVertex()->setEdgeCost(newEdgeCost);
-                                invalidatedState->asReverseVertex()->setCost(newCost);
-                                invalidatedState->asReverseVertex()->updateChildren(objective_);
-
-                                // Update the underlying state.
-                                invalidatedState->setEstimatedCostToGo(newCost);
-                                invalidatedState->setEstimatedEffortToGo(
-                                    newParent->getEstimatedEffortToGo() +
-                                    spaceInfo_->getStateSpace()->validSegmentCount(newParent->raw(),
-                                                                                   invalidatedState->raw()));
-
-                                // Update the underlying states of all updated children. We can do this in sequence,
-                                // because thats how they are returned in Vertex::updateChildren. Although this
-                                // assumption is risky, because the implementation could change. TODO(Marlin): Make this
-                                // not dependent on the assumption above.
-                                for (const auto &child : updatedChildren)
-                                {
-                                    assert(child->getParent().lock());
-                                    auto parent = child->getParent().lock();
-                                    auto parentState = parent->getState();
-                                    auto childState = child->getState();
-                                    childState->setEstimatedCostToGo(child->getCost());
-                                    childState->setEstimatedEffortToGo(parentState->getEstimatedEffortToGo() +
-                                                                       spaceInfo_->getStateSpace()->validSegmentCount(
-                                                                           parentState->raw(), childState->raw()));
-                                }
-
-                                // Update the position of the outgoing edges of all updated children in the forward
-                                // search queue.
-                                for (const auto &child : updatedChildren)
-                                {
-                                    assert(child->getParent().lock());
-                                    forwardQueue_->update({child->getParent().lock()->getState(), child->getState()});
-                                }
-                            }
-                            else
-                            {
-                                // Get all of the affected states and remove the outgoing edges of the children.
-                                std::vector<std::shared_ptr<State>> updatedStates{invalidatedState};
-                                reverseQueue_->removeOutgoingEdges(invalidatedState->asReverseVertex());
-                                updatedStates.reserve(1u + updatedChildren.size());
-                                for (const auto &child : updatedChildren)
-                                {
-                                    updatedStates.emplace_back(child->getState());
-                                    reverseQueue_->removeOutgoingEdges(child);
-                                }
-                                updatedChildren.clear();
-
-                                // Clear the invalidated vertices in the reverse search tree. Be careful, the source of
-                                // this edge must not necessarily be the child in the reverse tree.
-                                if (isSourceInvalidated)
-                                {
-                                    // The source is the child in the reverse tree and will be invalidated.
-                                    edge.target->asReverseVertex()->removeChild(edge.source->asReverseVertex());
-                                }
-                                else
-                                {
-                                    // The target is the child in the reverse tree and will be invalidated.
-                                    edge.source->asReverseVertex()->removeChild(edge.target->asReverseVertex());
-                                }
-
-                                // The phase of the algorithm after this operation depends on whether we've inserted an
-                                // edge or not.
-                                bool insertedEdge{false};
-
-                                // Add the correct edges to the reverse queue.
-                                for (const auto &state : updatedStates)
-                                {
-                                    // Add an edge from the neighbor of a state to the state if the neighbor is in the
-                                    // reverse search tree.
-                                    for (const auto &neighbor : graph_.getNeighbors(state))
-                                    {
-                                        auto it = std::find_if(updatedStates.begin(), updatedStates.end(),
-                                                               [&neighbor](const auto &updatedState) {
-                                                                   return neighbor->getId() == updatedState->getId();
-                                                               });
-                                        if (it == updatedStates.end())
-                                        {
-                                            reverseQueue_->insert({neighbor, state});
-                                            insertedEdge = true;
-                                        }
-                                    }
-                                }
-
-                                if (insertedEdge)
-                                {
-                                    phase_ = Phase::REVERSE_SEARCH;
-                                }
-                                else
-                                {
-                                    assert(reverseQueue_->empty());
-                                    forwardQueue_->clear();
-                                    phase_ = Phase::IMPROVE_APPROXIMATION;
-                                }
-                            }
+                            repairReverseSearchTree(edge, invalidatedState);
                         }
                     }
                 }
             }
 
+            // If the forward queue is empty, move on to the next phase.
             if (phase_ == Phase::FORWARD_SEARCH && forwardQueue_->empty())
             {
-                // If the forward queue is empty, move on to the next phase.
                 assert(reverseQueue_->empty());
                 phase_ = Phase::IMPROVE_APPROXIMATION;
             }
@@ -669,6 +553,126 @@ namespace ompl
 
             // Set a new suboptimality factor.
             suboptimalityFactor_ = bestCost_.value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value();
+        }
+
+        void AIBITstar::repairReverseSearchTree(const aibitstar::Edge &invalidEdge,
+                                                std::shared_ptr<aibitstar::State> &invalidatedState)
+        {
+            // The edge is invalid. The reverse tree can be updated.
+            invalidatedState->asReverseVertex()->setEdgeCost(objective_->infiniteCost());
+            invalidatedState->asReverseVertex()->setCost(objective_->infiniteCost());
+            auto updatedChildren = invalidatedState->asReverseVertex()->updateChildren(objective_);
+
+            // Get the neighbors of the invalidated state and find the best new parent in the reverse
+            // tree. Can not use structured bindings because OMPL does not support c++17.
+            std::shared_ptr<aibitstar::State> newParent;
+            ompl::base::Cost newCost = objective_->infiniteCost();
+            ompl::base::Cost newEdgeCost = objective_->infiniteCost();
+            std::tie(newParent, newCost, newEdgeCost) = getBestParentInReverseTree(invalidatedState);
+
+            // Get the cost the vertex was originally extended at.
+            auto extendedCost = invalidatedState->asReverseVertex()->getExtendedCost();
+
+            if (newParent && (newCost.value() / extendedCost.value()) < repairFactor_)
+            {
+                assert(newParent->hasReverseVertex());
+                // Update the reverse search tree.
+                newParent->asReverseVertex()->addChild(invalidatedState->asReverseVertex());
+                invalidatedState->asReverseVertex()->updateParent(newParent->asReverseVertex());
+                invalidatedState->asReverseVertex()->setEdgeCost(newEdgeCost);
+                invalidatedState->asReverseVertex()->setCost(newCost);
+                invalidatedState->asReverseVertex()->updateChildren(objective_);
+
+                // Update the underlying state.
+                invalidatedState->setEstimatedCostToGo(newCost);
+                invalidatedState->setEstimatedEffortToGo(
+                    newParent->getEstimatedEffortToGo() +
+                    spaceInfo_->getStateSpace()->validSegmentCount(newParent->raw(), invalidatedState->raw()));
+
+                // Update the underlying states of all updated children. We can do this in sequence,
+                // because thats how they are returned in Vertex::updateChildren. Although this
+                // assumption is risky, because the implementation could change. TODO(Marlin): Make this
+                // not dependent on the assumption above.
+                for (const auto &child : updatedChildren)
+                {
+                    assert(child->getParent().lock());
+                    auto parent = child->getParent().lock();
+                    auto parentState = parent->getState();
+                    auto childState = child->getState();
+                    childState->setEstimatedCostToGo(child->getCost());
+                    childState->setEstimatedEffortToGo(
+                        parentState->getEstimatedEffortToGo() +
+                        spaceInfo_->getStateSpace()->validSegmentCount(parentState->raw(), childState->raw()));
+                }
+
+                // Update the position of the outgoing edges of all updated children in the forward
+                // search queue.
+                for (const auto &child : updatedChildren)
+                {
+                    assert(child->getParent().lock());
+                    forwardQueue_->update({child->getParent().lock()->getState(), child->getState()});
+                }
+            }
+            else
+            {
+                // Get all of the affected states and remove the outgoing edges of the children.
+                std::vector<std::shared_ptr<State>> updatedStates{invalidatedState};
+                reverseQueue_->removeOutgoingEdges(invalidatedState->asReverseVertex());
+                updatedStates.reserve(1u + updatedChildren.size());
+                for (const auto &child : updatedChildren)
+                {
+                    updatedStates.emplace_back(child->getState());
+                    reverseQueue_->removeOutgoingEdges(child);
+                }
+                updatedChildren.clear();
+
+                // Clear the invalidated vertices in the reverse search tree. Be careful, the source of
+                // this edge must not necessarily be the child in the reverse tree.
+                if (invalidatedState->getId() == invalidEdge.source->getId())  // The source is invalidated.
+                {
+                    // The source is the child in the reverse tree and will be invalidated.
+                    invalidEdge.target->asReverseVertex()->removeChild(invalidEdge.source->asReverseVertex());
+                }
+                else
+                {
+                    // The target is the child in the reverse tree and will be invalidated.
+                    invalidEdge.source->asReverseVertex()->removeChild(invalidEdge.target->asReverseVertex());
+                }
+
+                // The phase of the algorithm after this operation depends on whether we've inserted an
+                // edge or not.
+                bool insertedEdge{false};
+
+                // Add the correct edges to the reverse queue.
+                for (const auto &state : updatedStates)
+                {
+                    // Add an edge from the neighbor of a state to the state if the neighbor is in the
+                    // reverse search tree.
+                    for (const auto &neighbor : graph_.getNeighbors(state))
+                    {
+                        auto it = std::find_if(updatedStates.begin(), updatedStates.end(),
+                                               [&neighbor](const auto &updatedState) {
+                                                   return neighbor->getId() == updatedState->getId();
+                                               });
+                        if (it == updatedStates.end())
+                        {
+                            reverseQueue_->insert({neighbor, state});
+                            insertedEdge = true;
+                        }
+                    }
+                }
+
+                if (insertedEdge)
+                {
+                    phase_ = Phase::REVERSE_SEARCH;
+                }
+                else
+                {
+                    assert(reverseQueue_->empty());
+                    forwardQueue_->clear();
+                    phase_ = Phase::IMPROVE_APPROXIMATION;
+                }
+            }
         }
 
         bool AIBITstar::couldImproveForwardPath(const Edge &edge) const

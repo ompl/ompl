@@ -125,6 +125,10 @@ namespace ompl
             /** \brief Updates the solution. */
             void updateSolution();
 
+            /** \brief Repairs the reverse search tree upon finding an invalid edge. */
+            void repairReverseSearchTree(const aibitstar::Edge &invalidEdge,
+                                         std::shared_ptr<aibitstar::State> &invalidatedState);
+
             /** \brief Rewire reverse search tree locally. Returns [ bestParent, bestCost, bestEdgeCost ].
              * Note that bestParent == nullptr if no parent is found. */
             std::tuple<std::shared_ptr<aibitstar::State>, ompl::base::Cost, ompl::base::Cost>
