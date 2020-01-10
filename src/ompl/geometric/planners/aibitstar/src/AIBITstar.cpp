@@ -524,14 +524,10 @@ namespace ompl
                 }
             }
 
-            if (phase_ == Phase::FORWARD_SEARCH &&
-                (forwardQueue_->empty() ||
-                 (reverseRoot_->getTwin().lock() &&
-                  bestCost_.value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value() < 2.0)))
+            if (phase_ == Phase::FORWARD_SEARCH && forwardQueue_->empty())
             {
                 // If the forward queue is empty, move on to the next phase.
                 assert(reverseQueue_->empty());
-                forwardQueue_->clear();
                 phase_ = Phase::IMPROVE_APPROXIMATION;
             }
         }
