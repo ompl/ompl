@@ -244,6 +244,9 @@ namespace ompl
                 This enables multi-query functionality for LazyPRM. */
             void clearQuery() override;
 
+            /** \brief change the validity flag of each node and edge to VALIDITY_UNKNOWN */
+            void clearValidity();
+
             base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
         protected:
