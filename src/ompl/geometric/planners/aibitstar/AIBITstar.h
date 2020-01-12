@@ -59,7 +59,7 @@ namespace ompl
             AIBITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo);
 
             /** \brief Destructs the algorithm. */
-            ~AIBITstar() = default;
+            ~AIBITstar();
 
             /** \brief Setup the parts of the planner that rely on the problem definition being set. */
             void setup() override;
@@ -83,8 +83,13 @@ namespace ompl
             /** \brief Sets the radius factor. */
             void setSuboptimalityFactor(double factor);
 
-            /** \brief Sets the option whether to repair the reverse search tree when the forward search detects a collision. */
-            void setRepairReverseSearchTreeUponCollisionDetection(bool repair);
+            /** \brief Sets the option whether to repair the reverse search tree when the forward search detects a
+             * collision. */
+            void enableRepairingReverseTree(bool enable);
+
+            /** \brief Sets the option whether to repair the reverse search tree when the forward search detects a
+             * collision. */
+            void enableCollisionDetectionInReverseSearch(bool enable);
 
             /** \brief Returns a copy of the forward queue. */
             std::vector<aibitstar::Edge> getForwardQueue() const;
@@ -132,6 +137,9 @@ namespace ompl
             void repairReverseSearchTree(const aibitstar::Edge &invalidEdge,
                                          std::shared_ptr<aibitstar::State> &invalidatedState);
 
+            /** \brief Increases the collision detection resolution and restart reverse search. */
+            void increaseSparseCollisionDetectionResolutionAndRestartReverseSearch();
+
             /** \brief Rewire reverse search tree locally. Returns [ bestParent, bestCost, bestEdgeCost ].
              * Note that bestParent == nullptr if no parent is found. */
             std::tuple<std::shared_ptr<aibitstar::State>, ompl::base::Cost, ompl::base::Cost>
@@ -167,6 +175,9 @@ namespace ompl
             /** \brief Returns whether the edge is valid. */
             bool isValid(const aibitstar::Edge &edge) const;
 
+            /** \brief Returns whether the edge could be valid. */
+            bool couldBeValid(const aibitstar::Edge &edge) const;
+
             /** \brief The sampling-based approximation of the state space. */
             aibitstar::RandomGeometricGraph graph_;
 
@@ -181,7 +192,16 @@ namespace ompl
 
             /** \brief The option that specifies whether to repair the reverse search when the forward search detects a
              * collision on an edge. */
-            bool repairReverseSearchUponCollisionDetection_{false};
+            bool isRepairingOfReverseTreeEnabled_{false};
+
+            /** \brief The option that specifies whether sparse collision detection on the reverse search tree is enabled. */
+            bool isCollisionDetectionInReverseTreeEnabled_{false};
+
+            /** \brief The interpolation values used for the sparse collision detection on the reverse search. */
+            std::vector<double> detectionInterpolationValues_{};
+
+            /** \brief The state used to do sparse collision detection with. */
+            ompl::base::State *detectionState_;
 
             /** \brief The cost of the current best solution. */
             ompl::base::Cost bestCost_{std::numeric_limits<double>::signaling_NaN()};

@@ -54,9 +54,15 @@ namespace ompl
         AIBITstar::AIBITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo)
           : ompl::base::Planner(spaceInfo, "AI-BIT*")
           , graph_(spaceInfo)
+          , detectionState_(spaceInfo->allocState())
           , space_(spaceInfo->getStateSpace())
           , motionValidator_(spaceInfo->getMotionValidator())
         {
+        }
+
+        AIBITstar::~AIBITstar()
+        {
+            spaceInfo_->freeState(detectionState_);
         }
 
         void AIBITstar::setup()
@@ -188,9 +194,14 @@ namespace ompl
             suboptimalityFactor_ = factor;
         }
 
-        void AIBITstar::setRepairReverseSearchTreeUponCollisionDetection(bool repair)
+        void AIBITstar::enableRepairingReverseTree(bool enable)
         {
-            repairReverseSearchUponCollisionDetection_ = repair;
+            isRepairingOfReverseTreeEnabled_ = enable;
+        }
+
+        void AIBITstar::enableCollisionDetectionInReverseSearch(bool enable)
+        {
+            isCollisionDetectionInReverseTreeEnabled_ = enable;
         }
 
         std::vector<Edge> AIBITstar::getForwardQueue() const
@@ -229,22 +240,33 @@ namespace ompl
 
         Edge AIBITstar::getNextForwardEdge() const
         {
+            assert(forwardQueue_);
             return forwardQueue_->peek(suboptimalityFactor_);
         }
 
         Edge AIBITstar::getNextReverseEdge() const
         {
+            assert(reverseQueue_);
             return reverseQueue_->peek();
         }
 
         void AIBITstar::getPlannerData(base::PlannerData &data) const
         {
+            // base::PlannerDataVertex takes a raw pointer to a state. I want to guarantee, that the state lives as long
+            // as the program lives.
+            static std::set<std::shared_ptr<State>,
+                            std::function<bool(const std::shared_ptr<State> &, const std::shared_ptr<State> &)>>
+                liveStates([](const auto &lhs, const auto &rhs) { return lhs->getId() < rhs->getId(); });
+
             // Get the base class data.
             Planner::getPlannerData(data);
 
             // Add the samples and their outgoing edges.
             for (const auto &sample : graph_.getSamples())
             {
+                // Add the state to the live states.
+                liveStates.insert(sample);
+
                 // Add the state as a vertex.
                 data.addVertex(base::PlannerDataVertex(sample->raw(), sample->getId()));
 
@@ -321,16 +343,14 @@ namespace ompl
 
             // Assert that the source of the edge has a forward vertex.
             assert(edge.source->hasForwardVertex());
-            auto parentVertex = edge.source->asForwardVertex();
-            auto childVertex = edge.target->asForwardVertex();
 
             // The forward search is done if this edge can not possibly improve the forward path.
             if (couldImproveForwardPath(edge))
             {
                 // Check if the edge's parent is already the parent of the child.
-                if (auto currentParent = childVertex->getParent().lock())
+                if (auto currentParent = edge.target->asForwardVertex()->getParent().lock())
                 {
-                    if (currentParent->getId() == parentVertex->getId() &&
+                    if (currentParent->getId() == edge.source->asForwardVertex()->getId() &&
                         edge.target->getId() != graph_.getGoalState()->getId())
                     {
                         forwardQueue_->insert(expand(edge.target));
@@ -349,6 +369,10 @@ namespace ompl
                         // Check if the edge can actually improve the forward path and tree.
                         if (doesImproveForwardPath(edge, trueEdgeCost) && doesImproveForwardTree(edge, trueEdgeCost))
                         {
+                            // Convenience access to parent and child vertices.
+                            auto parentVertex = edge.source->asForwardVertex();
+                            auto childVertex = edge.target->asForwardVertex();
+
                             // Update the parent of the child in the forward tree.
                             childVertex->updateParent(parentVertex);
 
@@ -406,7 +430,7 @@ namespace ompl
                         if (isSourceInvalidated || isTargetInvalidated)
                         {
                             // Repair the reverse search tree if desired.
-                            if (repairReverseSearchUponCollisionDetection_)
+                            if (isRepairingOfReverseTreeEnabled_)
                             {
                                 // The source state must not necessarily be the invalidated state.
                                 auto invalidatedState = isSourceInvalidated ? edge.source : edge.target;
@@ -415,6 +439,10 @@ namespace ompl
                                 // locally, or by inserting appropriate edges into the reverse queue and continuing with
                                 // the reverse search.
                                 repairReverseSearchTree(edge, invalidatedState);
+                            }
+                            else if (isCollisionDetectionInReverseTreeEnabled_)
+                            {
+                                increaseSparseCollisionDetectionResolutionAndRestartReverseSearch();
                             }
                         }
                     }
@@ -440,14 +468,12 @@ namespace ompl
             // The parent vertex must have an associated vertex in the tree.
             assert(edge.source->hasReverseVertex());
 
-            // Get the parent and child vertices.
-            auto parentVertex = edge.source->asReverseVertex();
-            auto childVertex = edge.target->asReverseVertex();
-
             // Simply expand the child vertex if the edge is already in the reverse tree, and the child has not been
             // expanded yet.
-            if (auto currentParent = childVertex->getParent().lock())
+            if (auto currentParent = edge.target->asReverseVertex()->getParent().lock())
             {
+                auto childVertex = edge.target->asReverseVertex();
+
                 if (!isClosed(childVertex) && currentParent->getId() == edge.source->asReverseVertex()->getId())
                 {
                     reverseQueue_->insert(expand(edge.target));
@@ -456,43 +482,51 @@ namespace ompl
                 }
             }
 
-            // Incorporate the edge in the reverse tree if it provides an improvement.
-            if (doesImproveReverseTree(edge))
+            if (couldBeValid(edge))
             {
-                // If this is the first child of this parent, remember the cost.
-                if (!parentVertex->hasChildren())
+                // Incorporate the edge in the reverse tree if it provides an improvement.
+                if (doesImproveReverseTree(edge))
                 {
-                    parentVertex->setExtendedCost(parentVertex->getCost());
-                }
+                    // Get the parent and child vertices.
+                    auto parentVertex = edge.source->asReverseVertex();
+                    auto childVertex = edge.target->asReverseVertex();
 
-                // Update the parent of the child in the reverse tree.
-                childVertex->updateParent(parentVertex);
+                    // If this is the first child of this parent, remember the cost.
+                    if (!parentVertex->hasChildren())
+                    {
+                        parentVertex->setExtendedCost(parentVertex->getCost());
+                    }
 
-                // Set the edge cost.
-                childVertex->setEdgeCost(objective_->motionCostBestEstimate(parentVertex->getState()->raw(),
-                                                                            childVertex->getState()->raw()));
+                    // Update the parent of the child in the reverse tree.
+                    childVertex->updateParent(parentVertex);
 
-                // Update the cost of the vertex in the tree.
-                childVertex->updateCost(objective_);
+                    // Set the edge cost.
+                    childVertex->setEdgeCost(objective_->motionCostBestEstimate(parentVertex->getState()->raw(),
+                                                                                childVertex->getState()->raw()));
 
-                // The cost-to-come of the vertex in the tree is our estimate of the cost-to-go of the underlying state.
-                edge.target->setEstimatedCostToGo(childVertex->getCost());
+                    // Update the cost of the vertex in the tree.
+                    childVertex->updateCost(objective_);
 
-                // Add the child to the children of the parent.
-                parentVertex->addChild(childVertex);
+                    // The cost-to-come of the vertex in the tree is our estimate of the cost-to-go of the underlying
+                    // state.
+                    edge.target->setEstimatedCostToGo(childVertex->getCost());
 
-                // The effort-to-come of the vertex in the tree is our estimate of the effort-to-go of the underlying
-                // state.
-                edge.target->setEstimatedEffortToGo(
-                    edge.source->getEstimatedEffortToGo() +
-                    spaceInfo_->getStateSpace()->validSegmentCount(edge.source->raw(), edge.target->raw()));
+                    // Add the child to the children of the parent.
+                    parentVertex->addChild(childVertex);
 
-                // Expand the outgoing edges into the queue unless this has already happened or this is the start state.
-                if (!isClosed(childVertex))
-                {
-                    reverseQueue_->insert(expand(edge.target));
-                    childVertex->setExtendedCost(childVertex->getCost());
-                    childVertex->setExpandTag(searchTag_);
+                    // The effort-to-come of the vertex in the tree is our estimate of the effort-to-go of the
+                    // underlying state.
+                    edge.target->setEstimatedEffortToGo(
+                        edge.source->getEstimatedEffortToGo() +
+                        spaceInfo_->getStateSpace()->validSegmentCount(edge.source->raw(), edge.target->raw()));
+
+                    // Expand the outgoing edges into the queue unless this has already happened.
+                    if (!isClosed(childVertex))
+                    {
+                        reverseQueue_->insert(expand(edge.target));
+                        childVertex->setExtendedCost(childVertex->getCost());
+                        childVertex->setExpandTag(searchTag_);
+                    }
                 }
             }
 
@@ -688,6 +722,40 @@ namespace ompl
             }
         }
 
+        void AIBITstar::increaseSparseCollisionDetectionResolutionAndRestartReverseSearch()
+        {
+            // Increase the number of interpolation values.
+            std::size_t numInterpolationValues = detectionInterpolationValues_.size() + 1u;
+            double interpolationStep = 1.0 / (numInterpolationValues + 1u);
+            detectionInterpolationValues_.clear();
+            for (std::size_t i = 0u; i < numInterpolationValues; ++i)
+            {
+                detectionInterpolationValues_.emplace_back((i + 1u) * interpolationStep);
+            }
+
+            // Restart the reverse search.
+            reverseQueue_->clear();
+            reverseRoot_.reset();
+            reverseRoot_ = graph_.getGoalState()->asReverseVertex();
+            reverseRoot_->setCost(objective_->identityCost());
+            reverseRoot_->setExtendedCost(objective_->identityCost());
+            reverseRoot_->setExpandTag(searchTag_);
+            reverseRoot_->getState()->setEstimatedEffortToGo(0u);
+            reverseQueue_->insert(expand(reverseRoot_->getState()));
+
+            // If expanding the goal state actually produced edges, let's start the reverse search.
+            // Otherwise, improve the approximation.
+            if (!reverseQueue_->empty())
+            {
+                phase_ = Phase::REVERSE_SEARCH;
+            }
+            else
+            {
+                forwardQueue_->clear();
+                phase_ = Phase::IMPROVE_APPROXIMATION;
+            }
+        }
+
         bool AIBITstar::couldImproveForwardPath(const Edge &edge) const
         {
             // If the start state has not been discovered by the reverse search, the answer is always yes.
@@ -787,6 +855,35 @@ namespace ompl
                 // Register it with the graph.
                 graph_.registerInvalidEdge(edge);
                 return false;
+            }
+        }
+
+        bool AIBITstar::couldBeValid(const Edge &edge) const
+        {
+            // Check if the edge is whitelisted.
+            if (edge.source->isWhitelisted(edge.target))
+            {
+                return true;
+            }
+            // Check if the edge is blacklisted.
+            else if (edge.source->isBlacklisted(edge.target))
+            {
+                return false;
+            }
+            // Ok, fine, we have to do some work.
+            else
+            {
+                for (const auto t : detectionInterpolationValues_)
+                {
+                    space_->interpolate(edge.source->raw(), edge.target->raw(), t, detectionState_);
+                    if (!spaceInfo_->isValid(detectionState_))
+                    {
+                        edge.source->blacklist(edge.target);
+                        edge.target->blacklist(edge.source);
+                        return false;
+                    }
+                }
+                return true;
             }
         }
 
@@ -916,7 +1013,7 @@ namespace ompl
                 // Add the outgoing edge to this vertex's parent in the reverse tree, if it exists.
                 if (reverseVertex->getId() != reverseRoot_->getId())
                 {
-                    // If this vertex is not the reverse root, it must have a parent.
+                    // If this vertex is not the reverse root, it must have aeparent.
                     assert(reverseVertex->getParent().lock());
 
                     // Get the state associated with the parent vertex.

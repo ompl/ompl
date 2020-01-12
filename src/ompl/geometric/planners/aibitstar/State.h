@@ -68,7 +68,7 @@ namespace ompl
                 /** \brief Get the state's unique id. */
                 std::size_t getId() const;
 
-                /** \brief Get the raw pointer to this state. */
+                /** \brief Get the raw OMPL version of this state. */
                 ompl::base::State *raw() const;
 
                 /** \brief Returns whether the state has an associated forward vertex. */

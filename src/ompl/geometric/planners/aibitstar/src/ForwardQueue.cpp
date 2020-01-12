@@ -118,6 +118,11 @@ namespace ompl
 
             Edge ForwardQueue::peek(double suboptimalityFactor) const
             {
+                // Make sure the queue contains edges.
+                if (queue_.empty()) {
+                    throw std::out_of_range("Forward queue is empty, cannot peek.");
+                }
+
                 // Get the lower bounding edge and corresponding cost.
                 auto lowerBoundEdge = queue_.begin();
                 auto lowerBoundEdgeCost =
