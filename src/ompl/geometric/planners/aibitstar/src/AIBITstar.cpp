@@ -873,6 +873,15 @@ namespace ompl
             // Ok, fine, we have to do some work.
             else
             {
+                // If the interpolation would result in smaller segments than checking the edge in full resolution,
+                // check the edge in full resolution instead.
+                if (!detectionInterpolationValues_.empty() &&
+                    detectionInterpolationValues_.front() * space_->distance(edge.source->raw(), edge.target->raw()) <=
+                        space_->getLongestValidSegmentLength())
+                {
+                    return isValid(edge);
+                }
+
                 for (const auto t : detectionInterpolationValues_)
                 {
                     space_->interpolate(edge.source->raw(), edge.target->raw(), t, detectionState_);
