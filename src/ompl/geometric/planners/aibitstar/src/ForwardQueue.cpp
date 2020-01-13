@@ -37,7 +37,6 @@
 #include "ompl/geometric/planners/aibitstar/ForwardQueue.h"
 
 #include <algorithm>
-#include <utility>
 
 #include "ompl/geometric/planners/aibitstar/stopwatch/timetable.h"
 #include "ompl/geometric/planners/aibitstar/Direction.h"
@@ -116,10 +115,30 @@ namespace ompl
                 }
             }
 
+            void ForwardQueue::remove(const Edge &edge)
+            {
+                auto it = std::find_if(queue_.begin(), queue_.end(), [&edge](const auto &keyEdgePair) {
+                    return keyEdgePair.second.source->getId() == edge.source->getId() &&
+                           keyEdgePair.second.target->getId() && edge.target->getId();
+                });
+
+                if (it != queue_.end())
+                {
+                    // The forward queue does not have a lookup, just erase the edge.
+                    queue_.erase(it);
+                }
+                else
+                {
+                    throw std::out_of_range("Can not remove edge from the forward queue, because it is not in the "
+                                            "queue.");
+                }
+            }
+
             Edge ForwardQueue::peek(double suboptimalityFactor) const
             {
                 // Make sure the queue contains edges.
-                if (queue_.empty()) {
+                if (queue_.empty())
+                {
                     throw std::out_of_range("Forward queue is empty, cannot peek.");
                 }
 

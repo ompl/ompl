@@ -40,6 +40,7 @@
 #include <array>
 #include <map>
 #include <utility>
+#include <vector>
 
 #include "ompl/base/Cost.h"
 #include "ompl/base/samplers/InformedStateSampler.h"
@@ -77,6 +78,9 @@ namespace ompl
 
                 /** \brief Inserts multiple edges into the queue. */
                 void insert(const std::vector<Edge> &edges);
+
+                /** \brief Removes an edge from the queue. Throws if the edge is not in the queue. */
+                void remove(const Edge &edge);
 
                 /** \brief Update an edge in the queue. */
                 bool update(const Edge &edge);
