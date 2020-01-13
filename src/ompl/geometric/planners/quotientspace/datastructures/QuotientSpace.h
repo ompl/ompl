@@ -50,7 +50,7 @@ namespace ompl
             using BaseT = ompl::base::Planner;
             enum QuotientSpaceType
             {
-                UNKNOWN,
+                EMPTY_SET_PROJECTION = 0, //space which projects onto empty set
                 IDENTITY_SPACE_RN,
                 IDENTITY_SPACE_SE2,
                 IDENTITY_SPACE_SE2RN,
@@ -68,7 +68,8 @@ namespace ompl
                 SE3_R3,
                 SE3RN_R3,
                 SE3RN_SE3,
-                SE3RN_SE3RM
+                SE3RN_SE3RM,
+                MULTIAGENT
             };
 
         public:
@@ -154,11 +155,27 @@ namespace ompl
             /// \brief Quotient Space Projection Operator onto second component
             /// ProjectX1: Q0 \times X1 \rightarrow X1
             void projectX1(const ompl::base::State *q, ompl::base::State *qX1) const;
+
             /// \brief Quotient Space Projection Operator onto first component
             /// ProjectQ0: Q0 \times X1 \rightarrow Q0
-            void projectQ0(const ompl::base::State *q, ompl::base::State *qQ0) const;
+            void projectQ0(
+                const ompl::base::State *q, 
+                ompl::base::State *qQ0) const;
+            void projectQ0(
+                const ompl::base::State *q, 
+                ompl::base::State *qQ0,
+                QuotientSpaceType type) const;
+
             /// Merge a state from Q0 and X1 into a state on Q1 (concatenate)
-            void mergeStates(const ompl::base::State *qQ0, const ompl::base::State *qX1, ompl::base::State *qQ1) const;
+            void mergeStates(
+                const ompl::base::State *qQ0, 
+                const ompl::base::State *qX1, 
+                ompl::base::State *qQ1) const;
+            void mergeStates(
+                const ompl::base::State *qQ0, 
+                const ompl::base::State *qX1, 
+                ompl::base::State *qQ1, 
+                QuotientSpaceType type) const;
 
             /// Check if quotient-space is unbounded
             void checkSpaceHasFiniteMeasure(const ompl::base::StateSpacePtr space) const;
@@ -179,6 +196,9 @@ namespace ompl
             ///  \brief Compute the quotient Q1 / Q0 between two given spaces.
             const ompl::base::StateSpacePtr computeQuotientSpace(const ompl::base::StateSpacePtr Q1,
                                                                  const ompl::base::StateSpacePtr Q0);
+            const ompl::base::StateSpacePtr computeQuotientSpace(const ompl::base::StateSpacePtr Q1,
+                                                                 const ompl::base::StateSpacePtr Q0,
+                                                                 QuotientSpaceType type);
 
             /// Identify the type of the quotient Q1 / Q0
             QuotientSpaceType identifyQuotientSpaceType(const ompl::base::StateSpacePtr Q1,
@@ -200,6 +220,8 @@ namespace ompl
             ompl::base::State *s_X1_tmp_{nullptr};
 
             QuotientSpaceType type_;
+            std::vector<QuotientSpaceType> types_; //for multiagent planning
+
             unsigned int Q1_dimension_{0};
             unsigned int Q0_dimension_{0};
             unsigned int X1_dimension_{0};

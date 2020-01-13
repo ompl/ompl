@@ -68,7 +68,8 @@ namespace ompl
                 SE3_R3,
                 SE3RN_R3,
                 SE3RN_SE3,
-                SE3RN_SE3RM
+                SE3RN_SE3RM,
+                MULTIAGENT_SE2RN_R2
             };
 
         public:
