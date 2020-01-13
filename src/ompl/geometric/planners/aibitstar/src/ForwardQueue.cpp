@@ -298,10 +298,18 @@ namespace ompl
 
             void ForwardQueue::rebuild()
             {
+                // Erase all elements that are not valid anymore.
+                queue_.erase(std::remove_if(queue_.begin(), queue_.end(),
+                                            [](const auto &keyEdgePair) {
+                                                return !keyEdgePair.second.source->hasReverseVertex() ||
+                                                       !keyEdgePair.second.target->hasReverseVertex();
+                                            }),
+                             queue_.end());
+
+                // Update all remaining edges.
                 for (const auto &element : queue_)
                 {
-                    auto edge = element.second;
-                    update(edge);
+                    update(element.second);
                 }
             }
 
