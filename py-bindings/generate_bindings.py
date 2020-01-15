@@ -782,16 +782,6 @@ class ompl_geometric_generator_t(code_generator_t):
 class ompl_tools_generator_t(code_generator_t):
     def __init__(self):
         replacement = default_replacement
-        replacement['::ompl::tools::Benchmark::benchmark'] = (
-            'def("benchmark", &benchmarkWrapper)', \
-        """
-        void benchmarkWrapper(%s* obj, const ompl::tools::Benchmark::Request& request)
-        {
-            ompl::tools::Benchmark::Request req(request);
-            req.useThreads = false;
-            obj->benchmark(request);
-        }
-        """)
         replacement['printResultsInfo'] = ('def("printResultsInfo", &__printResultsInfo)', """
         std::string __printResultsInfo(%s* obj)
         {
@@ -836,6 +826,14 @@ class ompl_tools_generator_t(code_generator_t):
             obj->setPostRunEvent(event);
         }
         """)
+        replacement['saveResultsToStream'] = ('def("results", &__saveResultsToStream)', """
+        std::string __saveResultsToStream(%s* obj)
+        {
+            std::ostringstream s;
+            obj->saveResultsToStream(s);
+            return s.str();
+        }
+        """)
 
         code_generator_t.__init__(self, 'tools', \
             ['bindings/util', 'bindings/base', 'bindings/geometric', 'bindings/control'], \
@@ -851,12 +849,10 @@ class ompl_tools_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
 
         benchmark_cls = self.ompl_ns.class_('Benchmark')
-        self.replace_member_function(benchmark_cls.member_function('benchmark'))
+        self.replace_member_function(benchmark_cls.member_function('saveResultsToStream'))
         for constructor in benchmark_cls.constructors(arg_types=[None, "::std::string const &"]):
             constructor.add_transformation(FT.input(1))
 
-        # don't want to export iostream
-        benchmark_cls.member_function('saveResultsToStream').exclude()
         self.ompl_ns.member_functions('addPlannerAllocator').exclude()
         self.replace_member_functions(benchmark_cls.member_functions(
             lambda method: method.name.startswith('set') and method.name.endswith('Event')))

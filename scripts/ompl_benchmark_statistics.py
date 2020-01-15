@@ -469,10 +469,11 @@ def plotStatistics(dbname):
             c.execute("""SELECT count(*) FROM runs WHERE runs.experimentid = %d
                 GROUP BY runs.plannerid""" % experiment[0])
             numRuns = [run[0] for run in c.fetchall()]
-            numRuns = numRuns[0] if len(set(numRuns)) == 1 else ','.join(numRuns)
+            print(numRuns)
+            numRuns = str(numRuns[0]) if len(set(numRuns)) == 1 else ','.join([str(i) for i in numRuns])
 
             plt.figtext(pagex, pagey, 'Experiment "%s"' % experiment[1])
-            plt.figtext(pagex, pagey-0.05, 'Number of averaged runs: %d' % numRuns)
+            plt.figtext(pagex, pagey-0.05, 'Number of averaged runs: %s' % numRuns)
             plt.figtext(pagex, pagey-0.10, "Time limit per run: %g seconds" % experiment[2])
             plt.figtext(pagex, pagey-0.15, "Memory limit per run: %g MB" % experiment[3])
 

@@ -306,7 +306,6 @@ int main(int argc, char **argv)
     request.maxTime = runtime_limit;
     request.maxMem = memory_limit;
     request.runCount = run_count;
-    request.useThreads = false;
     request.simplify = false;
     request.displayProgress = false;
     numberRuns = numberPlanners * run_count;

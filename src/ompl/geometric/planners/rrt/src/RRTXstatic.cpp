@@ -73,7 +73,7 @@ ompl::geometric::RRTXstatic::RRTXstatic(const base::SpaceInformationPtr &si)
                                                                   "1");
     Planner::declareParam<bool>("sample_rejection", this, &RRTXstatic::setSampleRejection,
                                 &RRTXstatic::getSampleRejection, "0,1");
-    Planner::declareParam<bool>("number_sampling_attempts", this, &RRTXstatic::setNumSamplingAttempts,
+    Planner::declareParam<unsigned int>("number_sampling_attempts", this, &RRTXstatic::setNumSamplingAttempts,
                                 &RRTXstatic::getNumSamplingAttempts, "10:10:100000");
 
     addPlannerProgressProperty("iterations INTEGER", [this] { return numIterationsProperty(); });
