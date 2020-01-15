@@ -98,10 +98,6 @@ ompl::geometric::QuotientSpace::QuotientSpace(const base::SpaceInformationPtr &s
             {
                 throw ompl::Exception("Zero-measure QuotientSpace detected.");
             }
-            if (!X1_sampler_)
-            {
-                X1_sampler_ = X1->allocStateSampler();
-            }
             checkSpaceHasFiniteMeasure(X1_space);
         }
         else
@@ -243,6 +239,7 @@ ompl::geometric::QuotientSpace::computeQuotientSpace(
         case IDENTITY_SPACE_SE3RN:
         {
             X1_dimension_ = 0;
+            X1 = std::make_shared<base::RealVectorStateSpace>(0);
             break;
         }
         case RN_RM:
@@ -400,11 +397,12 @@ ompl::geometric::QuotientSpace::computeQuotientSpace(
       for(uint k = 0; k < Q1_decomposed.size(); k++){
         base::StateSpacePtr Q1k = Q1_decomposed.at(k);
         base::StateSpacePtr Q0k = Q0_decomposed.at(k);
-        // std::cout << Q1k->getType() << std::endl;
-        // std::cout << Q0k->getType() << std::endl;
+        // std::cout << "TypeQ1: " << Q1k->getType() << std::endl;
+        // std::cout << "TypeQ0: " << Q0k->getType() << std::endl;
         QuotientSpaceType typek = identifyQuotientSpaceType(Q1k, Q0k);
+        // std::cout << "TypeX1: " << typek << std::endl;
         base::StateSpacePtr X1k = computeQuotientSpace(Q1k, Q0k, typek);
-        // X1k->printSettings(std::cout);
+
         std::static_pointer_cast<base::CompoundStateSpace>(X1_space)->addSubspace(X1k, 1.0);
         types_.push_back(typek);
       }
@@ -762,8 +760,11 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                             }
                         }
                     }
-                    else
+                    else if (Q1_decomposed.at(0)->getType() == base::STATE_SPACE_REAL_VECTOR &&
+                             Q1_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
                     {
+                        type_ = MULTIAGENT;
+                    }else{
                       if(Q1_decomposed.at(0)->isCompound() &&
                            Q1_decomposed.at(1)->isCompound())
                       {
@@ -822,18 +823,31 @@ void ompl::geometric::QuotientSpace::mergeStates(const base::State *qQ0, const b
       //splitState
       for(uint k = 0; k < Q1_decomposed.size(); k++){
         base::StateSpacePtr Q1k = Q1_decomposed.at(k);
+
         base::StateSpacePtr Q0k = Q0_decomposed.at(k);
         base::StateSpacePtr X1k = X1_decomposed.at(k);
-        // std::cout << Q1k->getType() << std::endl;
-        // std::cout << Q0k->getType() << std::endl;
         QuotientSpaceType typek = types_.at(k);
+
         const base::State *qkX1 = qX1->as<base::CompoundState>()->as<base::State>(k);
         base::State *qkQ1 = qQ1->as<base::CompoundState>()->as<base::State>(k);
-        if(typek == EMPTY_SET_PROJECTION){
+        const base::State *qkQ0 = qQ0->as<base::CompoundState>()->as<base::State>(k);
+
+        switch(typek)
+        {
+          case EMPTY_SET_PROJECTION:
             Q1k->copyState(qkQ1, qkX1);
-        }else{
-            const base::State *qkQ0 = qQ0->as<base::CompoundState>()->as<base::State>(k);
+            break;
+          case IDENTITY_SPACE_RN:
+          case IDENTITY_SPACE_SE2:
+          case IDENTITY_SPACE_SE2RN:
+          case IDENTITY_SPACE_SO2RN:
+          case IDENTITY_SPACE_SE3:
+          case IDENTITY_SPACE_SE3RN:
+            Q1k->copyState(qkQ1, qkQ0);
+            break;
+          default:
             mergeStates(qkQ0, qkX1, qkQ1, typek);
+            break;
         }
       }
       return;
@@ -868,7 +882,7 @@ void ompl::geometric::QuotientSpace::mergeStates(
         case IDENTITY_SPACE_SE3:
         case IDENTITY_SPACE_SE3RN:
         {
-            throw ompl::Exception("Cannot merge states for Identity space");
+            Q1->copyState(qQ1, qQ0);
         }
         case RN_RM:
         {
@@ -1282,12 +1296,24 @@ void ompl::geometric::QuotientSpace::projectQ0(const base::State *q, base::State
         for(uint k = 0; k < Q1_decomposed.size(); k++){
           base::StateSpacePtr Q1k = Q1_decomposed.at(k);
           base::StateSpacePtr Q0k = Q0_decomposed.at(k);
-          // std::cout << Q1k->getType() << std::endl;
-          // std::cout << Q0k->getType() << std::endl;
           QuotientSpaceType typek = types_.at(k);
+          // std::cout << "X1 type: " << typek << std::endl;
           const base::State *qk = q->as<base::CompoundState>()->as<base::State>(k);
           base::State *qkQ0 = qQ0->as<base::CompoundState>()->as<base::State>(k);
-          projectQ0(qk, qkQ0, typek);
+          switch(typek)
+          {
+            case IDENTITY_SPACE_RN:
+            case IDENTITY_SPACE_SE2:
+            case IDENTITY_SPACE_SE2RN:
+            case IDENTITY_SPACE_SO2RN:
+            case IDENTITY_SPACE_SE3:
+            case IDENTITY_SPACE_SE3RN:
+              Q1k->copyState(qkQ0, qk);
+              break;
+            default:
+              projectQ0(qk, qkQ0, typek);
+              break;
+          }
         }
         return;
     }else{
@@ -1314,8 +1340,6 @@ void ompl::geometric::QuotientSpace::projectQ0(
         case IDENTITY_SPACE_SE3:
         case IDENTITY_SPACE_SE3RN:
         {
-            OMPL_ERROR("Will not work for MULTIAGENT scenarios right now.");
-            throw ompl::Exception("NYI");
             // Identity function
             Q1->getStateSpace()->copyState(qQ0, q);
             break;
