@@ -502,8 +502,13 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                 {
                     type_ = SE2_R2;
                 }
+                else if(Q0->getDimension() == 0)
+                {
+                    type_ = EMPTY_SET_PROJECTION;
+                }
                 else
                 {
+
                     OMPL_ERROR("Q1 is SE2 but Q0 type %d is of dimension %d", Q0->getType(), Q0->getDimension());
                     throw ompl::Exception("Invalid dimensions.");
                 }
@@ -530,6 +535,10 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                 if (Q0->getDimension() == 3)
                 {
                     type_ = SE3_R3;
+                }
+                else if(Q0->getDimension() == 0)
+                {
+                    type_ = EMPTY_SET_PROJECTION;
                 }
                 else
                 {
@@ -578,6 +587,10 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                         if (m == 3)
                         {
                             type_ = SE3RN_R3;
+                        }
+                        else if(m == 0)
+                        {
+                            type_ = EMPTY_SET_PROJECTION;
                         }
                         else
                         {
