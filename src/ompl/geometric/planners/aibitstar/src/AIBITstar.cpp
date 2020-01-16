@@ -544,12 +544,22 @@ namespace ompl
                     if (forwardQueue_->empty())
                     {
                         forwardQueue_->insert(expand(forwardRoot_->getState()));
+                        phase_ = Phase::FORWARD_SEARCH;
                     }
                     else
                     {
                         forwardQueue_->rebuild();
+                        // If the forward queue is empty now, we're done with this batch because all edges that were in
+                        // the queue were invalidated by repairing the reverse search.
+                        if (!forwardQueue_->empty())
+                        {
+                            phase_ = Phase::FORWARD_SEARCH;
+                        }
+                        else
+                        {
+                            phase_ = Phase::IMPROVE_APPROXIMATION;
+                        }
                     }
-                    phase_ = Phase::FORWARD_SEARCH;
                 }
                 else
                 {
