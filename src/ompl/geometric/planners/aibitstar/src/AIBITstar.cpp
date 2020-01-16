@@ -920,16 +920,6 @@ namespace ompl
             return {bestParent, bestCost, bestEdgeCost};
         }
 
-        void AIBITstar::rebuildForwardQueue()
-        {
-            // This is going to be a bit messy. Get the edges in the queue.
-            auto edges = forwardQueue_->getEdges();
-
-            // All edges have an updated key, lets rebuild the queue.
-            forwardQueue_->clear();
-            forwardQueue_->insert(edges);
-        }
-
         bool AIBITstar::isClosed(const std::shared_ptr<Vertex> &vertex) const
         {
             return vertex->getExpandTag() == searchTag_;

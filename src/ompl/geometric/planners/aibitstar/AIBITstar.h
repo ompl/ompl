@@ -148,9 +148,6 @@ namespace ompl
             /** \brief Expands the input state, creating forward edges. */
             std::vector<aibitstar::Edge> expand(const std::shared_ptr<aibitstar::State> &state) const;
 
-            /** \brief Rebuilds the forward queue, recomputing all sort keys. */
-            void rebuildForwardQueue();
-
             /** \brief Returns whether the vertex has been closed during the current search. */
             bool isClosed(const std::shared_ptr<aibitstar::Vertex> &vertex) const;
 
