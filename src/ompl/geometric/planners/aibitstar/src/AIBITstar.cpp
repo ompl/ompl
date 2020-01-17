@@ -449,6 +449,13 @@ namespace ompl
                 }
             }
 
+            // Clear the queue if no edge in it can possibly improve the current solution.
+            if (!forwardQueue_->empty() &&
+                objective_->isCostBetterThan(bestCost_, forwardQueue_->getLowerBoundOnOptimalSolutionCost()))
+            {
+                forwardQueue_->clear();
+            }
+
             // If the forward queue is empty, move on to the next phase.
             if (phase_ == Phase::FORWARD_SEARCH && forwardQueue_->empty())
             {
