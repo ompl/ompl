@@ -40,6 +40,7 @@
 #include "ompl/base/Planner.h"
 #include <vector>
 #include <thread>
+#include <atomic>
 
 namespace ompl
 {
