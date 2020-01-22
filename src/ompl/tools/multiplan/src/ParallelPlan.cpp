@@ -184,7 +184,7 @@ void ompl::tools::ParallelPlan::solveMore(base::Planner *planner, std::size_t mi
         start = time::now();
         unsigned int attempts = 0;
         for (const auto &path : paths)
-            attempts += phybrid_->recordPath(path.path_, false);
+            attempts += phybrid_->recordPath(std::static_pointer_cast<geometric::PathGeometric>(path.path_), false);
 
         if (phybrid_->pathCount() >= minSolCount)
             phybrid_->computeHybridPath();

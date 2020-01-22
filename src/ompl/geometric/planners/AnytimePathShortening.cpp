@@ -34,6 +34,7 @@
 
 /* Author: Ryan Luna */
 
+#include <algorithm>  // for std::min
 #include <boost/algorithm/string.hpp>
 
 #include "ompl/geometric/planners/AnytimePathShortening.h"
@@ -72,8 +73,7 @@
 #include "ompl/util/String.h"
 
 ompl::geometric::AnytimePathShortening::AnytimePathShortening(const ompl::base::SpaceInformationPtr &si)
-  : ompl::base::Planner(si, "APS")
-  , defaultNumPlanners_(std::max(1u, std::thread::hardware_concurrency()))
+  : ompl::base::Planner(si, "APS"), defaultNumPlanners_(std::max(1u, std::thread::hardware_concurrency()))
 {
     specs_.approximateSolutions = true;
     specs_.multithreaded = true;
@@ -88,12 +88,9 @@ ompl::geometric::AnytimePathShortening::AnytimePathShortening(const ompl::base::
     Planner::declareParam<unsigned int>("num_planners", this, &AnytimePathShortening::setDefaultNumPlanners,
                                         &AnytimePathShortening::getDefaultNumPlanners, "0:64");
     Planner::declareParam<std::string>("planners", this, &AnytimePathShortening::setPlanners,
-                                        &AnytimePathShortening::getPlanners);
+                                       &AnytimePathShortening::getPlanners);
 
-    addPlannerProgressProperty("best cost REAL", [this]
-                               {
-                                   return getBestCost();
-                               });
+    addPlannerProgressProperty("best cost REAL", [this] { return getBestCost(); });
 }
 
 ompl::geometric::AnytimePathShortening::~AnytimePathShortening() = default;
@@ -119,12 +116,25 @@ void ompl::geometric::AnytimePathShortening::addPlanner(base::PlannerPtr &planne
     planners_.push_back(planner);
 }
 
+void ompl::geometric::AnytimePathShortening::addPath(const geometric::PathGeometricPtr &path, base::Planner *planner)
+{
+    const base::OptimizationObjectivePtr &opt(pdef_->getOptimizationObjective());
+    base::Cost pathCost = path->cost(opt);
+    std::lock_guard<std::mutex> _(lock_);
+    if (opt->isCostBetterThan(pathCost, bestCost_))
+    {
+        bestCost_ = pathCost;
+        pdef_->addSolutionPath(path, false, 0.0, planner->getName());
+    }
+    else if (planner != this)
+        pdef_->addSolutionPath(path, false, 0.0, planner->getName());
+}
+
 ompl::base::PlannerStatus
 ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminationCondition &ptc)
 {
     std::vector<std::thread> threads;
     geometric::PathHybridization phybrid(si_);
-    base::Path *bestSln = nullptr;
 
     base::OptimizationObjectivePtr opt = pdef_->getOptimizationObjective();
     if (!opt)
@@ -135,12 +145,6 @@ ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminati
         opt = std::make_shared<base::PathLengthOptimizationObjective>(si_);
         pdef_->setOptimizationObjective(opt);
     }
-    else
-    {
-        if (dynamic_cast<base::PathLengthOptimizationObjective *>(opt.get()) == nullptr)
-            OMPL_WARN("The optimization objective is not set for path length.  The specified optimization criteria may "
-                      "not be optimized over.");
-    }
 
     // Disable output from the motion planners, except for errors
     msg::LogLevel currentLogLevel = msg::getLogLevel();
@@ -150,14 +154,15 @@ ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminati
     clear();
     done_ = false;
     // Spawn a thread for each planner.  This will shortcut the best path after solving.
-    auto threadPtc = base::plannerOrTerminationCondition(ptc,
-        base::PlannerTerminationConditionFn([this]() -> bool { return done_ == true; }));
+    auto threadPtc = base::plannerOrTerminationCondition(
+        ptc, base::PlannerTerminationConditionFn([this]() -> bool { return done_ == true; }));
     for (auto &planner : planners_)
-        threads.emplace_back([this, planner, &threadPtc]{ return threadSolve(planner.get(), threadPtc); });
+        threads.emplace_back([this, planner, &threadPtc] { return threadSolve(planner.get(), threadPtc); });
 
     geometric::PathSimplifier ps(si_);
-    geometric::PathGeometric *sln = nullptr;
+    geometric::PathGeometric *sln = nullptr, *prevLastPath = nullptr;
     bestCost_ = opt->infiniteCost();
+    std::size_t prevSolCount = 0;
     while (!ptc)
     {
         // We have found a solution that is good enough
@@ -168,47 +173,47 @@ ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminati
         }
 
         // Hybridize the set of paths computed. Add the new hybrid path to the mix.
-        std::size_t solCount = pdef_->getSolutionCount();
+        unsigned int solCount = pdef_->getSolutionCount();
         if (hybridize_ && !ptc && solCount > 1)
         {
             const std::vector<base::PlannerSolution> &paths = pdef_->getSolutions();
-            for (size_t j = 0; j < paths.size() && j < maxHybridPaths_ && !ptc; ++j)
-                phybrid.recordPath(paths[j].path_, false);
+            std::size_t numPaths = std::min(solCount, maxHybridPaths_);
+            geometric::PathGeometric *lastPath = static_cast<PathGeometric *>(paths[numPaths - 1].path_.get());
+            // check if new solution paths have been added to top numPaths paths
+            if (lastPath != prevLastPath || (prevSolCount < solCount && solCount <= maxHybridPaths_))
+            {
+                for (size_t j = 0; j < numPaths && !ptc; ++j)
+                    phybrid.recordPath(std::static_pointer_cast<PathGeometric>(paths[j].path_), false);
 
-            phybrid.computeHybridPath();
-            sln = static_cast<geometric::PathGeometric *>(phybrid.getHybridPath().get());
+                phybrid.computeHybridPath();
+                sln = phybrid.getHybridPath().get();
+                prevLastPath = lastPath;
+            }
+            else
+                sln = static_cast<PathGeometric *>(pdef_->getSolutionPath().get());
+            prevSolCount = solCount;
         }
         else if (solCount > 0)
-            sln = static_cast<geometric::PathGeometric *>(pdef_->getSolutionPath().get());
+            sln = static_cast<PathGeometric *>(pdef_->getSolutionPath().get());
 
         if (sln)
         {
             auto pathCopy(std::make_shared<geometric::PathGeometric>(*sln));
-            if (shortcut_) // Shortcut the path
+            if (shortcut_)  // Shortcut the path
                 if (!ps.simplify(*pathCopy, ptc, true))
                     // revert if shortcutting failed
                     pathCopy = std::make_shared<geometric::PathGeometric>(*sln);
-
-            base::Cost pathCost(pathCopy->cost(opt));
-            if (opt->isCostBetterThan(pathCost, bestCost_))
-            {
-                pdef_->addSolutionPath(pathCopy, false, 0.0, getName());
-                bestCost_ = pathCost;
-            }
+            addPath(pathCopy, this);
         }
         if (hybridize_)
             phybrid.clear();
-
-        // keep track of the best solution found so far
-        if (pdef_->getSolutionCount() > 0)
-            bestSln = pdef_->getSolutionPath().get();
     }
 
     for (auto &thread : threads)
         thread.join();
 
     msg::setLogLevel(currentLogLevel);
-    return bestSln != nullptr ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::UNKNOWN;
+    return pdef_->getSolutionCount() > 0 ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::UNKNOWN;
 }
 
 void ompl::geometric::AnytimePathShortening::threadSolve(base::Planner *planner,
@@ -216,7 +221,6 @@ void ompl::geometric::AnytimePathShortening::threadSolve(base::Planner *planner,
 {
     // create a local clone of the problem definition where we keep at most one solution
     auto pdef = pdef_->clone();
-    const base::OptimizationObjectivePtr opt(pdef->getOptimizationObjective());
     geometric::PathSimplifier ps(si_);
 
     planner->setProblemDefinition(pdef);
@@ -226,14 +230,9 @@ void ompl::geometric::AnytimePathShortening::threadSolve(base::Planner *planner,
         {
             geometric::PathGeometric *sln = static_cast<geometric::PathGeometric *>(pdef->getSolutionPath().get());
             auto pathCopy(std::make_shared<geometric::PathGeometric>(*sln));
-            if (shortcut_) // Shortcut the path
+            if (shortcut_)  // Shortcut the path
                 ps.shortcutPath(*pathCopy);
-
-            base::Cost pathCost(pathCopy->cost(opt));
-            if (opt->isCostBetterThan(pathCost, bestCost_))
-                bestCost_ = pathCost;
-            // store new solution path in member pdef_ (shared with other threads)
-            pdef_->addSolutionPath(pathCopy, false, 0.0, planner->getName());
+            addPath(pathCopy, planner);
         }
 
         planner->clear();

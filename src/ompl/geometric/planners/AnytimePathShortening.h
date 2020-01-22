@@ -41,11 +41,16 @@
 #include <vector>
 #include <thread>
 #include <atomic>
+#include <mutex>
 
 namespace ompl
 {
     namespace geometric
     {
+        /// @cond IGNORE
+        OMPL_CLASS_FORWARD(PathGeometric);
+        /// @endcond
+
         /// @anchor gAPS
         /// @par Short description
         /// Anytime path shortening is a generic wrapper around one or more
@@ -197,6 +202,13 @@ namespace ompl
             void printSettings(std::ostream &out) const override;
 
         protected:
+            /// \brief add a path to set of solutions
+            /// \param path solution path
+            /// \param planner planner that produced the solution. If planner==this, the path is
+            /// the result of hybridization/simplification and is only added if it improves the
+            /// best known solution.
+            void addPath(const geometric::PathGeometricPtr &path, base::Planner *planner);
+
             /// \brief The function that the planning threads execute when
             /// solving a motion planning problem.
             virtual void threadSolve(base::Planner *planner, const base::PlannerTerminationCondition &ptc);
@@ -223,6 +235,9 @@ namespace ompl
 
             /// \brief flag to indicate whether threads should terminate
             std::atomic<bool> done_;
+
+            /// \brief mutex for updating bestCost_
+            std::mutex lock_;
         };
     }
 }
