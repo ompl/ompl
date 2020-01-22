@@ -51,25 +51,25 @@ namespace ompl
             enum QuotientSpaceType
             {
                 EMPTY_SET_PROJECTION = 0, //space which projects onto empty set
-                IDENTITY_SPACE_RN,
-                IDENTITY_SPACE_SE2,
-                IDENTITY_SPACE_SE2RN,
-                IDENTITY_SPACE_SO2RN,
-                IDENTITY_SPACE_SE3,
-                IDENTITY_SPACE_SE3RN,
-                ATOMIC_RN,
-                RN_RM,
-                SE2_R2,
-                SE2RN_R2,
-                SE2RN_SE2,
-                SE2RN_SE2RM,
-                SO2RN_SO2,
-                SO2RN_SO2RM,
-                SE3_R3,
-                SE3RN_R3,
-                SE3RN_SE3,
-                SE3RN_SE3RM,
-                MULTIAGENT
+                IDENTITY_SPACE_RN = 1,
+                IDENTITY_SPACE_SE2 = 2,
+                IDENTITY_SPACE_SE2RN = 3,
+                IDENTITY_SPACE_SO2RN = 4,
+                IDENTITY_SPACE_SE3 = 5,
+                IDENTITY_SPACE_SE3RN = 6,
+                ATOMIC_RN = 7,
+                RN_RM = 8,
+                SE2_R2 = 9,
+                SE2RN_R2 = 10,
+                SE2RN_SE2 = 11,
+                SE2RN_SE2RM = 12,
+                SO2RN_SO2 = 13,
+                SO2RN_SO2RM = 14,
+                SE3_R3 = 15,
+                SE3RN_R3 = 16,
+                SE3RN_SE3 = 17,
+                SE3RN_SE3RM = 18,
+                MULTIAGENT = 19
             };
 
         public:
@@ -100,6 +100,13 @@ namespace ompl
             virtual void setup() override;
 
             virtual double getImportance() const;
+
+            /// Allocate State, set entries to Identity/Zero
+            ompl::base::State *allocZeroStateX1() const;
+            ompl::base::State *allocZeroStateQ1() const;
+            ompl::base::State *allocZeroStateQ0() const;
+            ompl::base::State *allocZeroState(ompl::base::StateSpacePtr) const;
+            void allocZeroStateRecursive(ompl::base::State*, ompl::base::StateSpacePtr) const;
 
             /// reset counter for number of levels
             static void resetCounter();

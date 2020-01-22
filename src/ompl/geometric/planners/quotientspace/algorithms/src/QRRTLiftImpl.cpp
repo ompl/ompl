@@ -49,7 +49,6 @@ void ompl::geometric::QRRTLiftImpl::grow()
     if (firstRun_)
     {
       if(parent_ != nullptr){
-        std::cout << "COMPUTELIFT" << std::endl;
         base::PathPtr path;
         if(!parent_->hasSolution()){
           std::cout << "Parent does not have path" << std::endl;

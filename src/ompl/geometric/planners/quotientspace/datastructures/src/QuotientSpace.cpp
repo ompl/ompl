@@ -824,7 +824,7 @@ void ompl::geometric::QuotientSpace::mergeStates(const base::State *qQ0, const b
   if(type_ == MULTIAGENT){
       const base::StateSpacePtr Q1_space = Q1->getStateSpace();
       const base::StateSpacePtr X1_space = X1->getStateSpace();
-      const base::StateSpacePtr Q0_space = parent_->getSpaceInformation()->getStateSpace();
+      const base::StateSpacePtr Q0_space = Q0->getStateSpace();
 
       base::CompoundStateSpace *Q1_compound = Q1_space->as<base::CompoundStateSpace>();
       const std::vector<base::StateSpacePtr> Q1_decomposed = Q1_compound->getSubspaces();
@@ -835,16 +835,28 @@ void ompl::geometric::QuotientSpace::mergeStates(const base::State *qQ0, const b
 
       //splitState
       for(uint k = 0; k < Q1_decomposed.size(); k++){
-        base::StateSpacePtr Q1k = Q1_decomposed.at(k);
-
         base::StateSpacePtr Q0k = Q0_decomposed.at(k);
         base::StateSpacePtr X1k = X1_decomposed.at(k);
+        base::StateSpacePtr Q1k = Q1_decomposed.at(k);
+
         QuotientSpaceType typek = types_.at(k);
 
+        const base::State *qkQ0 = qQ0->as<base::CompoundState>()->as<base::State>(k);
         const base::State *qkX1 = qX1->as<base::CompoundState>()->as<base::State>(k);
         base::State *qkQ1 = qQ1->as<base::CompoundState>()->as<base::State>(k);
-        const base::State *qkQ0 = qQ0->as<base::CompoundState>()->as<base::State>(k);
 
+        std::cout << std::string(80, '-') << std::endl;
+        std::cout << typek << std::endl;
+        std::cout << std::string(80, '-') << std::endl;
+        std::cout << "Q0k" << std::endl;
+        Q0k->printState(qkQ0);
+        std::cout << std::string(80, '-') << std::endl;
+        std::cout << "X1k" << std::endl;
+        X1k->printState(qkX1);
+        std::cout << std::string(80, '-') << std::endl;
+        std::cout << "Q1k" << std::endl;
+        Q1k->printState(qkQ1);
+        std::cout << std::string(80, '-') << std::endl;
         switch(typek)
         {
           case EMPTY_SET_PROJECTION:
@@ -862,7 +874,12 @@ void ompl::geometric::QuotientSpace::mergeStates(const base::State *qQ0, const b
             mergeStates(qkQ0, qkX1, qkQ1, typek);
             break;
         }
+        Q1k->printState(qkQ1);
+        std::cout << std::string(80, '*') << std::endl;
       }
+      std::cout << std::string(80, '*') << std::endl;
+      std::cout << std::string(80, '*') << std::endl;
+      Q1_space->printState(qQ1);
       return;
   }else{
     return mergeStates(qQ0, qX1, qQ1, type_);
@@ -1334,6 +1351,71 @@ void ompl::geometric::QuotientSpace::projectQ0(const base::State *q, base::State
     }
 }
 
+void ompl::geometric::QuotientSpace::allocZeroStateRecursive(base::State *s, base::StateSpacePtr space) const
+{
+  if(!space->isCompound()){
+    int stype = space->getType();
+    switch (stype) 
+    {
+      case base::STATE_SPACE_SO3:
+      {
+        static_cast<base::SO3StateSpace::StateType *>(s)->setIdentity();
+        break;
+      }
+      case base::STATE_SPACE_SO2:
+      {
+        static_cast<base::SO2StateSpace::StateType *>(s)->setIdentity();
+        break;
+      }
+      case base::STATE_SPACE_REAL_VECTOR:
+      {
+        base::RealVectorStateSpace::StateType *sRN = s->as<base::RealVectorStateSpace::StateType>();
+        for(uint k = 0; k < space->getDimension(); k++){
+          sRN->values[k] = 0;
+        }
+        break;
+      }
+      default:
+      {
+      }
+    }
+  }else{
+    base::CompoundStateSpace *cspace = space->as<base::CompoundStateSpace>();
+    const std::vector<base::StateSpacePtr> compounds = cspace->getSubspaces();
+    for(unsigned int k = 0; k < compounds.size(); k++){
+      base::StateSpacePtr spacek = compounds.at(k);
+      base::State *sk = s->as<base::CompoundState>()->as<base::State>(k);
+      allocZeroStateRecursive(sk, spacek);
+    }
+  }
+}
+
+ompl::base::State* ompl::geometric::QuotientSpace::allocZeroState(base::StateSpacePtr space) const
+{
+  if(space != nullptr){
+    base::State *s = space->allocState();
+    allocZeroStateRecursive(s, space);
+    return s;
+  }else{
+    return nullptr;
+  }
+}
+
+ompl::base::State* ompl::geometric::QuotientSpace::allocZeroStateX1() const
+{
+  return allocZeroState(X1->getStateSpace());
+}
+
+ompl::base::State* ompl::geometric::QuotientSpace::allocZeroStateQ1() const
+{
+  return allocZeroState(Q1->getStateSpace());
+}
+
+ompl::base::State* ompl::geometric::QuotientSpace::allocZeroStateQ0() const
+{
+  return allocZeroState(Q0->getStateSpace());
+}
+
 void ompl::geometric::QuotientSpace::projectQ0(
     const base::State *q, 
     base::State *qQ0,
@@ -1785,6 +1867,11 @@ void ompl::geometric::QuotientSpace::print(std::ostream &out) const
             {
                 out << "SE(3)xR^" << Q0_dimension_ - 6 << " | Q" << level_ + 1 << ": SE(3)xR^" << Q1_dimension_ - 6
                     << " | X" << level_ + 1 << ": R^" << X1_dimension_;
+                break;
+            }
+            case QuotientSpace::MULTIAGENT:
+            {
+                out << "Multiagent(" << types_.size() << ")";
                 break;
             }
             default:

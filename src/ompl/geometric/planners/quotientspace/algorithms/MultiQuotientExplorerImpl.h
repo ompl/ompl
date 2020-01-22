@@ -178,8 +178,10 @@ void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
 
                 if (Qm->getX1() != nullptr)
                 {
-                    ob::State *s_X1 = Qm->getX1()->allocState();
-                    ob::State *s_Q1 = Qm->getSpaceInformation()->allocState();
+                    // ob::State *s_X1 = Qm->getX1()->allocState();
+                    ob::State *s_X1 = Qm->allocZeroStateX1();
+                    ob::State *s_Q1 = Qm->allocZeroStateQ1();
+
                     if (Qm->getX1()->getStateSpace()->getType() == ob::STATE_SPACE_SO3)
                     {
                         static_cast<ob::SO3StateSpace::StateType *>(s_X1)->setIdentity();
@@ -189,9 +191,15 @@ void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
                         static_cast<ob::SO2StateSpace::StateType *>(s_X1)->setIdentity();
                     }
                     Qm->mergeStates(s_lift, s_X1, s_Q1);
-                    s_lift = Qm->getSpaceInformation()->cloneState(s_Q1);
+                    s_lift = Qm->getQ1()->cloneState(s_Q1);
+                    std::cout << std::string(80, '-') << std::endl;
+                    std::cout << "s_lift" << std::endl;
+                    Qm->getQ1()->getStateSpace()->printState(s_lift);
 
+                    std::cout << "FreeX1" << std::endl;
                     Qm->getX1()->freeState(s_X1);
+                    std::cout << "FreeQ1" << std::endl;
+                    Qm->getQ1()->printSettings();
                     Qm->getQ1()->freeState(s_Q1);
                 }
             }
