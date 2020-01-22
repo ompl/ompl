@@ -172,34 +172,19 @@ void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
             ob::State *s_lift = Qk->getSpaceInformation()->cloneState(v.getState());
             v.setQuotientState(s_lift);
 
+            std::cout << "Vertex " << vidx << "/" << data.numVertices() << std::endl;
             for (unsigned int m = k + 1; m < this->quotientSpaces_.size(); m++)
             {
-                og::QuotientSpace *Qm = this->quotientSpaces_.at(m);
-
+                const og::QuotientSpace *Qm = this->quotientSpaces_.at(m);
                 if (Qm->getX1() != nullptr)
                 {
-                    // ob::State *s_X1 = Qm->getX1()->allocState();
-                    ob::State *s_X1 = Qm->allocZeroStateX1();
-                    ob::State *s_Q1 = Qm->allocZeroStateQ1();
+                    ob::State *s_Q1 = Qm->allocIdentityStateQ1();
+                    ob::State *s_X1 = Qm->allocIdentityStateX1();
 
-                    if (Qm->getX1()->getStateSpace()->getType() == ob::STATE_SPACE_SO3)
-                    {
-                        static_cast<ob::SO3StateSpace::StateType *>(s_X1)->setIdentity();
-                    }
-                    if (Qm->getX1()->getStateSpace()->getType() == ob::STATE_SPACE_SO2)
-                    {
-                        static_cast<ob::SO2StateSpace::StateType *>(s_X1)->setIdentity();
-                    }
                     Qm->mergeStates(s_lift, s_X1, s_Q1);
                     s_lift = Qm->getQ1()->cloneState(s_Q1);
-                    std::cout << std::string(80, '-') << std::endl;
-                    std::cout << "s_lift" << std::endl;
-                    Qm->getQ1()->getStateSpace()->printState(s_lift);
 
-                    std::cout << "FreeX1" << std::endl;
                     Qm->getX1()->freeState(s_X1);
-                    std::cout << "FreeQ1" << std::endl;
-                    Qm->getQ1()->printSettings();
                     Qm->getQ1()->freeState(s_Q1);
                 }
             }

@@ -102,11 +102,11 @@ namespace ompl
             virtual double getImportance() const;
 
             /// Allocate State, set entries to Identity/Zero
-            ompl::base::State *allocZeroStateX1() const;
-            ompl::base::State *allocZeroStateQ1() const;
-            ompl::base::State *allocZeroStateQ0() const;
-            ompl::base::State *allocZeroState(ompl::base::StateSpacePtr) const;
-            void allocZeroStateRecursive(ompl::base::State*, ompl::base::StateSpacePtr) const;
+            ompl::base::State *allocIdentityStateX1() const;
+            ompl::base::State *allocIdentityStateQ1() const;
+            ompl::base::State *allocIdentityStateQ0() const;
+            ompl::base::State *allocIdentityState(ompl::base::StateSpacePtr) const;
+            void allocIdentityStateRecursive(ompl::base::State*, ompl::base::StateSpacePtr) const;
 
             /// reset counter for number of levels
             static void resetCounter();

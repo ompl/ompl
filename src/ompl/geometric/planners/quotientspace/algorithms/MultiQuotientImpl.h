@@ -298,7 +298,7 @@ void ompl::geometric::MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &
             v.setLevel(k);
             v.setMaxLevel(K);
 
-            ompl::base::State *s_lift = Qk->getSpaceInformation()->cloneState(v.getState());
+            ompl::base::State *s_lift = Qk->getQ1()->cloneState(v.getState());
             v.setQuotientState(s_lift);
 
             for (unsigned int m = k + 1; m < quotientSpaces_.size(); m++)
@@ -307,21 +307,28 @@ void ompl::geometric::MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &
 
                 if (Qm->getX1() != nullptr)
                 {
-                    ompl::base::State *s_X1 = Qm->getX1()->allocState();
-                    ompl::base::State *s_Q1 = Qm->getSpaceInformation()->allocState();
-                    if (Qm->getX1()->getStateSpace()->getType() == ompl::base::STATE_SPACE_SO3)
-                    {
-                        s_X1->as<ompl::base::SO3StateSpace::StateType>()->setIdentity();
-                    }
-                    if (Qm->getX1()->getStateSpace()->getType() == ompl::base::STATE_SPACE_SO2)
-                    {
-                        s_X1->as<ompl::base::SO2StateSpace::StateType>()->setIdentity();
-                    }
-                    Qm->mergeStates(s_lift, s_X1, s_Q1);
-                    s_lift = Qm->getSpaceInformation()->cloneState(s_Q1);
+                    ob::State *s_Q1 = Qm->allocIdentityStateQ1();
+                    Qm->getQ1()->printState(s_Q1);
+
+
+                    ob::State *s_X1 = Qm->allocIdentityStateX1();
+                    Qm->getX1()->printState(s_X1);
+                    std::cout << std::string(80, '-') << std::endl;
 
                     Qm->getX1()->freeState(s_X1);
+                    s_X1 = Qm->allocIdentityStateX1();
+                    Qm->getX1()->printState(s_X1);
+                    std::cout << std::string(80, '-') << std::endl;
+
+                    Qm->mergeStates(s_lift, s_X1, s_Q1);
+                    s_lift = Qm->getQ1()->cloneState(s_Q1);
+
+                    Qm->getQ1()->printState(s_Q1);
                     Qm->getQ1()->freeState(s_Q1);
+
+                    Qm->getX1()->printState(s_X1);
+                    Qm->getX1()->freeState(s_X1);
+
                 }
             }
             v.setState(s_lift);
