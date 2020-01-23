@@ -305,30 +305,16 @@ void ompl::geometric::MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &
             {
                 QuotientSpace *Qm = quotientSpaces_.at(m);
 
-                if (Qm->getX1() != nullptr)
+                if (Qm->getX1Dimension() > 0)
                 {
-                    ob::State *s_Q1 = Qm->allocIdentityStateQ1();
-                    Qm->getQ1()->printState(s_Q1);
-
-
+                    ob::State *s_Q1 = Qm->getQ1()->allocState();
                     ob::State *s_X1 = Qm->allocIdentityStateX1();
-                    Qm->getX1()->printState(s_X1);
-                    std::cout << std::string(80, '-') << std::endl;
 
-                    Qm->getX1()->freeState(s_X1);
-                    s_X1 = Qm->allocIdentityStateX1();
-                    Qm->getX1()->printState(s_X1);
-                    std::cout << std::string(80, '-') << std::endl;
-
-                    Qm->mergeStates(s_lift, s_X1, s_Q1);
+                    // Qm->mergeStates(s_lift, s_X1, s_Q1); //TODO: segfault?
                     s_lift = Qm->getQ1()->cloneState(s_Q1);
 
-                    Qm->getQ1()->printState(s_Q1);
                     Qm->getQ1()->freeState(s_Q1);
-
-                    Qm->getX1()->printState(s_X1);
                     Qm->getX1()->freeState(s_X1);
-
                 }
             }
             v.setState(s_lift);

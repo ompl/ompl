@@ -184,8 +184,8 @@ void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
                     Qm->mergeStates(s_lift, s_X1, s_Q1);
                     s_lift = Qm->getQ1()->cloneState(s_Q1);
 
-                    Qm->getX1()->freeState(s_X1);
                     Qm->getQ1()->freeState(s_Q1);
+                    Qm->getX1()->freeState(s_X1);
                 }
             }
             v.setState(s_lift);

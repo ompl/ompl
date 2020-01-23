@@ -180,7 +180,7 @@ double ompl::geometric::QRRTImpl::getImportance() const
 // Make it faster by removing the validity check
 bool ompl::geometric::QRRTImpl::sample(base::State *q_random)
 {
-    if (parent_ == nullptr)
+    if (!hasParent())
     {
         Q1_sampler_->sampleUniform(q_random);
     }

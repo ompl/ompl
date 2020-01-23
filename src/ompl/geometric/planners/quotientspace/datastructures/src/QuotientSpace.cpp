@@ -68,8 +68,7 @@ ompl::geometric::QuotientSpace::QuotientSpace(const base::SpaceInformationPtr &s
     //############################################################################
     const base::StateSpacePtr Q1_space = Q1->getStateSpace();
 
-
-    if (!hasParent())//parent_ == nullptr)
+    if (!hasParent())
     {
         OMPL_DEVMSG1("ATOMIC_RN dimension: %d measure: %f", Q1_space->getDimension(), Q1_space->getMeasure());
         type_ = ATOMIC_RN;
@@ -117,7 +116,7 @@ ompl::geometric::QuotientSpace::QuotientSpace(const base::SpaceInformationPtr &s
     {
         Q1_sampler_ = Q1->allocStateSampler();
     }
-    if (hasParent())//parent_ != nullptr)
+    if (hasParent())
     {
         s_Q0_tmp_ = Q0->allocState();
         if (X1_dimension_ > 0)
@@ -127,7 +126,7 @@ ompl::geometric::QuotientSpace::QuotientSpace(const base::SpaceInformationPtr &s
 
 ompl::geometric::QuotientSpace::~QuotientSpace()
 {
-    if (hasParent())//parent_ != nullptr)
+    if (hasParent())
     {
         if (s_Q0_tmp_)
             Q0->freeState(s_Q0_tmp_);
@@ -219,10 +218,10 @@ const ompl::base::StateSpacePtr
 ompl::geometric::QuotientSpace::computeQuotientSpace(
     const base::StateSpacePtr Q1,
     const base::StateSpacePtr Q0, 
-    QuotientSpaceType type)
+    QuotientSpaceType qtype)
 {
     base::StateSpacePtr X1{nullptr};
-    switch (type)
+    switch (qtype)
     {
         case MULTIAGENT:
             OMPL_ERROR("NYI");
@@ -359,7 +358,7 @@ ompl::geometric::QuotientSpace::computeQuotientSpace(
         }
         default:
         {
-            OMPL_ERROR("Unknown QuotientSpace type: %d", type);
+            OMPL_ERROR("Unknown QuotientSpace type: %d", qtype);
             throw ompl::Exception("Unknown type");
         }
     }
@@ -397,18 +396,15 @@ ompl::geometric::QuotientSpace::computeQuotientSpace(
       for(uint k = 0; k < Q1_decomposed.size(); k++){
         base::StateSpacePtr Q1k = Q1_decomposed.at(k);
         base::StateSpacePtr Q0k = Q0_decomposed.at(k);
-        // std::cout << "TypeQ1: " << Q1k->getType() << std::endl;
-        // std::cout << "TypeQ0: " << Q0k->getType() << std::endl;
         QuotientSpaceType typek = identifyQuotientSpaceType(Q1k, Q0k);
-        // std::cout << "TypeX1: " << typek << std::endl;
         base::StateSpacePtr X1k = computeQuotientSpace(Q1k, Q0k, typek);
 
-        std::static_pointer_cast<base::CompoundStateSpace>(X1_space)->addSubspace(X1k, 1.0);
+        double weight = (X1k->getDimension()>0 ? 1.0 : 0.0);
+        std::static_pointer_cast<base::CompoundStateSpace>(X1_space)->addSubspace(X1k, weight);
         types_.push_back(typek);
       }
-      type_ = MULTIAGENT;
-
       return X1_space;
+
     }else{
       return computeQuotientSpace(Q1, Q0, type_);
     }
@@ -439,6 +435,8 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
     //  (11)  Q1 SO2xRn , Q0 SO2xRm [0<m<=n ] => X1 = R(n-m) \union {\emptyset}
     //  (12)  Multiagent (any combination of (1-11))
 
+    QuotientSpaceType type;
+
     if (!Q1->isCompound())
     {
         ///##############################################################################/
@@ -454,18 +452,18 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                 unsigned int m = Q0->getDimension();
                 if (n > m && m > 0)
                 {
-                    type_ = RN_RM;
+                    type = RN_RM;
                 }
                 else
                 {
                     if (n == m && m > 0)
                     {
-                        type_ = IDENTITY_SPACE_RN;
+                        type = IDENTITY_SPACE_RN;
                     }
                     else
                     {
                         if(m==0){
-                          type_ = EMPTY_SET_PROJECTION;
+                            type = EMPTY_SET_PROJECTION;
                         }else{
                             OMPL_ERROR("Not allowed: dimensionality needs to be monotonically increasing.");
                             OMPL_ERROR("We require n >= m > 0 but have n=%d >= m=%d > 0", n, m);
@@ -500,11 +498,11 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
             {
                 if (Q0->getDimension() == 2)
                 {
-                    type_ = SE2_R2;
+                    type = SE2_R2;
                 }
                 else if(Q0->getDimension() == 0)
                 {
-                    type_ = EMPTY_SET_PROJECTION;
+                    type = EMPTY_SET_PROJECTION;
                 }
                 else
                 {
@@ -517,7 +515,7 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
             {
                 if (Q0->getType() == base::STATE_SPACE_SE2)
                 {
-                    type_ = IDENTITY_SPACE_SE2;
+                    type = IDENTITY_SPACE_SE2;
                 }
                 else
                 {
@@ -534,11 +532,11 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
             {
                 if (Q0->getDimension() == 3)
                 {
-                    type_ = SE3_R3;
+                    type = SE3_R3;
                 }
                 else if(Q0->getDimension() == 0)
                 {
-                    type_ = EMPTY_SET_PROJECTION;
+                    type = EMPTY_SET_PROJECTION;
                 }
                 else
                 {
@@ -550,7 +548,7 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
             {
                 if (Q0->getType() == base::STATE_SPACE_SE3)
                 {
-                    type_ = IDENTITY_SPACE_SE3;
+                    type = IDENTITY_SPACE_SE3;
                 }
                 else
                 {
@@ -577,7 +575,7 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                     {
                         //------------------ (4) Q1 = SE3xRn, Q0 = SE3, X1 = Rn
                         ///##############################################################################/
-                        type_ = SE3RN_SE3;
+                        type = SE3RN_SE3;
                     }
                     else if (Q0->getType() == base::STATE_SPACE_REAL_VECTOR)
                     {
@@ -586,11 +584,11 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                         unsigned int m = Q0->getDimension();
                         if (m == 3)
                         {
-                            type_ = SE3RN_R3;
+                            type = SE3RN_R3;
                         }
                         else if(m == 0)
                         {
-                            type_ = EMPTY_SET_PROJECTION;
+                            type = EMPTY_SET_PROJECTION;
                         }
                         else
                         {
@@ -613,18 +611,18 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                                 unsigned int m = Q0_decomposed.at(1)->getDimension();
                                 if (m < n && m > 0)
                                 {
-                                    type_ = SE3RN_SE3RM;
+                                    type = SE3RN_SE3RM;
                                 }
                                 else
                                 {
                                     if (m == n)
                                     {
-                                        type_ = IDENTITY_SPACE_SE3RN;
+                                        type = IDENTITY_SPACE_SE3RN;
                                     }
                                     else
                                     {
                                         if(m == 0){
-                                            type_ = EMPTY_SET_PROJECTION;
+                                            type = EMPTY_SET_PROJECTION;
                                         }else{
                                             OMPL_ERROR("We require n >= m > 0, but have n=%d >= m=%d > 0.", n, m);
                                             throw ompl::Exception("Invalid dimensions.");
@@ -650,7 +648,7 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                         {
                             //------------------ (7) Q1 = SE2xRn, Q0 = SE2, X1 = Rn
                             ///##############################################################################/
-                            type_ = SE2RN_SE2;
+                            type = SE2RN_SE2;
                         }
                         else if (Q0->getType() == base::STATE_SPACE_REAL_VECTOR)
                         {
@@ -659,12 +657,12 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                             unsigned int m = Q0->getDimension();
                             if (m == 2)
                             {
-                                type_ = SE2RN_R2;
+                                type = SE2RN_R2;
                             }
                             else
                             {
                                 if(m == 0){
-                                    type_ = EMPTY_SET_PROJECTION;
+                                    type = EMPTY_SET_PROJECTION;
                                 }else{
                                     OMPL_ERROR("Not allowed. Q0 needs to be 2-dimensional but is %d dimensional", m);
                                     throw ompl::Exception("Invalid dimensions.");
@@ -686,13 +684,13 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                                     unsigned int m = Q0_decomposed.at(1)->getDimension();
                                     if (m < n && m > 0)
                                     {
-                                        type_ = SE2RN_SE2RM;
+                                        type = SE2RN_SE2RM;
                                     }
                                     else
                                     {
                                         if (m == n)
                                         {
-                                            type_ = IDENTITY_SPACE_SE2RN;
+                                            type = IDENTITY_SPACE_SE2RN;
                                         }
                                         else
                                         {
@@ -719,7 +717,7 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                         {
                             //------------------ (10) Q1 = SO2xRn, Q0 = SO2, X1 = Rn
                             ///##############################################################################/
-                            type_ = SO2RN_SO2;
+                            type = SO2RN_SO2;
                         }
                         else
                         {
@@ -739,13 +737,13 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                                         unsigned int m = Q0_decomposed.at(1)->getDimension();
                                         if (m < n && m > 0)
                                         {
-                                            type_ = SO2RN_SO2RM;
+                                            type = SO2RN_SO2RM;
                                         }
                                         else
                                         {
                                             if (m == n)
                                             {
-                                                type_ = IDENTITY_SPACE_SO2RN;
+                                                type = IDENTITY_SPACE_SO2RN;
                                             }
                                             else
                                             {
@@ -776,12 +774,12 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                     else if (Q1_decomposed.at(0)->getType() == base::STATE_SPACE_REAL_VECTOR &&
                              Q1_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
                     {
-                        type_ = MULTIAGENT;
+                        type = MULTIAGENT;
                     }else{
                       if(Q1_decomposed.at(0)->isCompound() &&
                            Q1_decomposed.at(1)->isCompound())
                       {
-                        type_ = MULTIAGENT;
+                        type = MULTIAGENT;
                       }else{
                         OMPL_ERROR("State compound %d and %d not recognized.", 
                             Q1_decomposed.at(0)->getType(), 
@@ -806,7 +804,7 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
                       OMPL_ERROR("Q1 has %d subspaces, but Q0 has %d.", Q1_subspaces, Q0_subspaces);
                       throw ompl::Exception("Invalid QuotientSpace type.");
                     }
-                    type_ = MULTIAGENT;
+                    type = MULTIAGENT;
                 }
 
               }else{
@@ -816,7 +814,7 @@ ompl::geometric::QuotientSpace::identifyQuotientSpaceType(const base::StateSpace
             }
         }
     }
-    return type_;
+    return type;
 }
 
 void ompl::geometric::QuotientSpace::mergeStates(const base::State *qQ0, const base::State *qX1, base::State *qQ1) const
@@ -842,21 +840,16 @@ void ompl::geometric::QuotientSpace::mergeStates(const base::State *qQ0, const b
         QuotientSpaceType typek = types_.at(k);
 
         const base::State *qkQ0 = qQ0->as<base::CompoundState>()->as<base::State>(k);
+        Q0k->printState(qkQ0);
         const base::State *qkX1 = qX1->as<base::CompoundState>()->as<base::State>(k);
         base::State *qkQ1 = qQ1->as<base::CompoundState>()->as<base::State>(k);
 
-        std::cout << std::string(80, '-') << std::endl;
-        std::cout << typek << std::endl;
-        // std::cout << std::string(80, '-') << std::endl;
-        // std::cout << "Q0k" << std::endl;
-        // Q0k->printState(qkQ0);
-        // std::cout << std::string(80, '-') << std::endl;
-        // std::cout << "X1k" << std::endl;
-        // X1k->printState(qkX1);
+        X1k->printState(qkX1);
         switch(typek)
         {
           case EMPTY_SET_PROJECTION:
           {
+            //Q1 = X1 (eq. to fiber space)
             Q1k->copyState(qkQ1, qkX1);
             break;
           }
@@ -867,6 +860,7 @@ void ompl::geometric::QuotientSpace::mergeStates(const base::State *qQ0, const b
           case IDENTITY_SPACE_SE3:
           case IDENTITY_SPACE_SE3RN:
           {
+            //Q1 = Q0 (eq. to base space)
             Q1k->copyState(qkQ1, qkQ0);
             break;
           }
@@ -876,14 +870,7 @@ void ompl::geometric::QuotientSpace::mergeStates(const base::State *qQ0, const b
             break;
           }
         }
-        // std::cout << std::string(80, '-') << std::endl;
-        // std::cout << "Q1k (merged)" << std::endl;
-        // Q1k->printState(qkQ1);
-        // std::cout << std::string(80, '*') << std::endl;
       }
-      // std::cout << std::string(80, '*') << std::endl;
-      // std::cout << std::string(80, '*') << std::endl;
-      // Q1_space->printState(qQ1);
       return;
   }else{
     return mergeStates(qQ0, qX1, qQ1, type_);
@@ -894,7 +881,7 @@ void ompl::geometric::QuotientSpace::mergeStates(
     const base::State *qQ0, 
     const base::State *qX1, 
     base::State *qQ1,
-    const QuotientSpaceType type) const
+    const QuotientSpaceType qtype) const
 {
 
     ////input : qQ0 \in Q0, qX1 \in X1
@@ -903,7 +890,7 @@ void ompl::geometric::QuotientSpace::mergeStates(
     const base::StateSpacePtr X1_space = X1->getStateSpace();
     const base::StateSpacePtr Q0_space = parent_->getSpaceInformation()->getStateSpace();
 
-    switch (type)
+    switch (qtype)
     {
         case EMPTY_SET_PROJECTION:
         case MULTIAGENT:
@@ -1177,7 +1164,7 @@ void ompl::geometric::QuotientSpace::mergeStates(
         }
         default:
         {
-            OMPL_ERROR("Type %d not implemented.", type_);
+            OMPL_ERROR("Type %d not implemented.", qtype);
             throw ompl::Exception("Cannot merge states.");
         }
     }
@@ -1331,7 +1318,6 @@ void ompl::geometric::QuotientSpace::projectQ0(const base::State *q, base::State
           base::StateSpacePtr Q1k = Q1_decomposed.at(k);
           base::StateSpacePtr Q0k = Q0_decomposed.at(k);
           QuotientSpaceType typek = types_.at(k);
-          // std::cout << "X1 type: " << typek << std::endl;
           const base::State *qk = q->as<base::CompoundState>()->as<base::State>(k);
           base::State *qkQ0 = qQ0->as<base::CompoundState>()->as<base::State>(k);
           switch(typek)
@@ -1355,7 +1341,7 @@ void ompl::geometric::QuotientSpace::projectQ0(const base::State *q, base::State
     }
 }
 
-void ompl::geometric::QuotientSpace::allocIdentityStateRecursive(base::State *s, base::StateSpacePtr space) const
+void ompl::geometric::QuotientSpace::allocIdentityState(base::State *s, base::StateSpacePtr space) const
 {
   if(space->isCompound()){
     base::CompoundStateSpace *cspace = space->as<base::CompoundStateSpace>();
@@ -1363,7 +1349,7 @@ void ompl::geometric::QuotientSpace::allocIdentityStateRecursive(base::State *s,
     for(unsigned int k = 0; k < compounds.size(); k++){
       base::StateSpacePtr spacek = compounds.at(k);
       base::State *sk = s->as<base::CompoundState>()->as<base::State>(k);
-      allocIdentityStateRecursive(sk, spacek);
+      allocIdentityState(sk, spacek);
     }
   }else{
     int stype = space->getType();
@@ -1389,7 +1375,7 @@ void ompl::geometric::QuotientSpace::allocIdentityStateRecursive(base::State *s,
       }
       default:
       {
-        std::cout << "type: "<< stype << " not recognized." << std::endl;
+        OMPL_ERROR("Type: %d not recognized.", stype);
         exit(0);
       }
     }
@@ -1400,7 +1386,7 @@ ompl::base::State* ompl::geometric::QuotientSpace::allocIdentityState(base::Stat
 {
   if(space != nullptr){
     base::State *s = space->allocState();
-    allocIdentityStateRecursive(s, space);
+    allocIdentityState(s, space);
     return s;
   }else{
     return nullptr;

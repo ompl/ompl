@@ -106,7 +106,7 @@ namespace ompl
             ompl::base::State *allocIdentityStateQ1() const;
             ompl::base::State *allocIdentityStateQ0() const;
             ompl::base::State *allocIdentityState(ompl::base::StateSpacePtr) const;
-            void allocIdentityStateRecursive(ompl::base::State*, ompl::base::StateSpacePtr) const;
+            void allocIdentityState(ompl::base::State*, ompl::base::StateSpacePtr) const;
 
             /// reset counter for number of levels
             static void resetCounter();
