@@ -357,6 +357,13 @@ namespace ompl
         {
             ASSERT_SETUP
 
+            // base::PlannerDataVertex takes a raw pointer to a state. I want to guarantee, that the state lives as long
+            // as the program lives.
+            static std::set<std::shared_ptr<Vertex>,
+                            std::function<bool(const std::shared_ptr<Vertex> &, const std::shared_ptr<Vertex> &)>>
+                liveStates([](const auto &lhs, const auto &rhs) { return lhs->getId() < rhs->getId(); });
+
+
             // Add samples
             if (static_cast<bool>(samples_))
             {
@@ -372,6 +379,9 @@ namespace ompl
                 {
                     // No, add as a regular vertex:
                     data.addVertex(ompl::base::PlannerDataVertex(sample->state(), sample->getId()));
+
+                    // Keep the underlying state alive.
+                    liveStates.insert(sample);
                 }
             }
             // No else.
@@ -404,6 +414,9 @@ namespace ompl
                         data.addEdge(ompl::base::PlannerDataVertex(vertex->getParent()->state(), vertex->getParent()->getId()),
                                      ompl::base::PlannerDataVertex(vertex->state(), vertex->getId()));
                     }
+
+                    // Keep the underlying state alive.
+                    liveStates.insert(vertex);
                 }
             }
             // No else.
