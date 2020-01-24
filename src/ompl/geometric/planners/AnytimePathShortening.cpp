@@ -202,7 +202,7 @@ ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminati
                     pathCopy = std::make_shared<geometric::PathGeometric>(*sln);
             addPath(pathCopy, this);
         }
-        if (hybridize_)
+        if (hybridize_ && phybrid.pathCount() >= maxHybridPaths_)
             phybrid.clear();
     }
 
