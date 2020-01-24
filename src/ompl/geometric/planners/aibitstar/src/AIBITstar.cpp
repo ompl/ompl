@@ -714,11 +714,7 @@ namespace ompl
                     // reverse search tree.
                     for (const auto &neighbor : graph_.getNeighbors(state))
                     {
-                        auto it = std::find_if(updatedStates.begin(), updatedStates.end(),
-                                               [&neighbor](const auto &updatedState) {
-                                                   return neighbor->getId() == updatedState->getId();
-                                               });
-                        if (it == updatedStates.end())
+                        if (neighbor->hasReverseVertex())
                         {
                             reverseQueue_->insert({neighbor, state});
                             insertedEdge = true;
