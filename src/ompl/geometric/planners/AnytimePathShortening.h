@@ -40,7 +40,6 @@
 #include "ompl/base/Planner.h"
 #include <vector>
 #include <thread>
-#include <atomic>
 #include <mutex>
 
 namespace ompl
@@ -232,9 +231,6 @@ namespace ompl
 
             /** \brief Best cost found so far by algorithm */
             base::Cost bestCost_{std::numeric_limits<double>::quiet_NaN()};
-
-            /// \brief flag to indicate whether threads should terminate
-            std::atomic<bool> done_;
 
             /// \brief mutex for updating bestCost_
             std::mutex lock_;

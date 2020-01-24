@@ -152,12 +152,9 @@ ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminati
 
     // Clear any previous planning data for the set of planners
     clear();
-    done_ = false;
     // Spawn a thread for each planner.  This will shortcut the best path after solving.
-    auto threadPtc = base::plannerOrTerminationCondition(
-        ptc, base::PlannerTerminationConditionFn([this]() -> bool { return done_ == true; }));
     for (auto &planner : planners_)
-        threads.emplace_back([this, planner, &threadPtc] { return threadSolve(planner.get(), threadPtc); });
+        threads.emplace_back([this, planner, &ptc] { return threadSolve(planner.get(), ptc); });
 
     geometric::PathSimplifier ps(si_);
     geometric::PathGeometric *sln = nullptr, *prevLastPath = nullptr;
@@ -168,7 +165,7 @@ ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminati
         // We have found a solution that is good enough
         if (opt->isSatisfied(bestCost_))
         {
-            done_ = true;
+            ptc.terminate();
             break;
         }
 
