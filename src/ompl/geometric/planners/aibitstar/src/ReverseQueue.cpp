@@ -156,37 +156,34 @@ namespace ompl
             Edge ReverseQueue::pop()
             {
                 assert(!queue_.empty());
-                if (auto element = queue_.top())
-                {
-                    // Copy the top edge.
-                    auto edge = element->data.second;
 
-                    // If the source state of the edge does not have an associated vertex, it's a bug.
-                    assert(edge.source->hasReverseVertex());
+                // Get the top element, i.e., a pair that holds the key and the edge.
+                auto element = queue_.top();
 
-                    // Pop the element from the queue.
-                    queue_.pop();
+                // Copy the data of the top edge.
+                auto edge = element->data.second;
 
-                    // Get a reference to the outgoing edge queue lookup of the parent vertex.
-                    auto &lookup = edge.source->asReverseVertex()->outgoingReverseQueueLookup_;
+                // If the source state of the edge does not have an associated vertex, it's a bug.
+                assert(edge.source->hasReverseVertex());
 
-                    // Remove the edge from the lookup.
-                    auto it = std::find(lookup.begin(), lookup.end(), element);
+                // Pop the element from the queue.
+                queue_.pop();
 
-                    // If the edge is not in the lookup, it's a bug.
-                    assert(it != lookup.end());
+                // Get a reference to the outgoing edge queue lookup of the parent vertex.
+                auto &lookup = edge.source->asReverseVertex()->outgoingReverseQueueLookup_;
 
-                    // Swappedy pop.
-                    std::iter_swap(it, lookup.rbegin());
-                    lookup.pop_back();
+                // Remove the edge from the lookup.
+                auto it = std::find(lookup.begin(), lookup.end(), element);
 
-                    // Return the element.
-                    return edge;
-                }
-                else
-                {
-                    throw std::out_of_range("There are no elements to pop in the reverse queue.");
-                }
+                // If the edge is not in the lookup, it's a bug.
+                assert(it != lookup.end());
+
+                // Swappedy pop.
+                std::iter_swap(it, lookup.rbegin());
+                lookup.pop_back();
+
+                // Return the element.
+                return edge;
             }
 
             void ReverseQueue::clear()
