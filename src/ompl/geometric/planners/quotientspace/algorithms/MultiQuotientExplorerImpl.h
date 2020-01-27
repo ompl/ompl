@@ -172,7 +172,6 @@ void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
             ob::State *s_lift = Qk->getSpaceInformation()->cloneState(v.getState());
             v.setQuotientState(s_lift);
 
-            std::cout << "Vertex " << vidx << "/" << data.numVertices() << std::endl;
             for (unsigned int m = k + 1; m < this->quotientSpaces_.size(); m++)
             {
                 const og::QuotientSpace *Qm = this->quotientSpaces_.at(m);
@@ -181,7 +180,7 @@ void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
                     ob::State *s_Q1 = Qm->allocIdentityStateQ1();
                     ob::State *s_X1 = Qm->allocIdentityStateX1();
 
-                    Qm->mergeStates(s_lift, s_X1, s_Q1);
+                    // Qm->mergeStates(s_lift, s_X1, s_Q1);
                     s_lift = Qm->getQ1()->cloneState(s_Q1);
 
                     Qm->getQ1()->freeState(s_Q1);

@@ -79,8 +79,12 @@ ompl::geometric::QuotientSpace::QuotientSpace(const base::SpaceInformationPtr &s
 
         Q0 = parent_->getSpaceInformation();
         const base::StateSpacePtr Q0_space = Q0->getStateSpace();
+
+        Q1_dimension_ = Q1->getStateDimension();
+        Q0_dimension_ = Q0->getStateDimension();
         // X1 = Q1 / Q0
         const base::StateSpacePtr X1_space = computeQuotientSpace(Q1_space, Q0_space);
+        X1_dimension_ = X1_space->getDimension();
 
         if (X1_space != nullptr)
         {
@@ -216,19 +220,18 @@ void ompl::geometric::QuotientSpace::resetCounter()
 
 const ompl::base::StateSpacePtr 
 ompl::geometric::QuotientSpace::computeQuotientSpace(
-    const base::StateSpacePtr Q1,
-    const base::StateSpacePtr Q0, 
+    const base::StateSpacePtr Q1_in,
+    const base::StateSpacePtr Q0_in, 
     QuotientSpaceType qtype)
 {
-    base::StateSpacePtr X1{nullptr};
+    base::StateSpacePtr X1_local{nullptr};
     switch (qtype)
     {
         case MULTIAGENT:
             OMPL_ERROR("NYI");
             throw ompl::Exception("NYI");
         case EMPTY_SET_PROJECTION:
-            X1_dimension_ = Q1_dimension_;
-            X1 = Q1;
+            X1_local = Q1_in;
             break;
         case IDENTITY_SPACE_RN:
         case IDENTITY_SPACE_SE2:
@@ -237,61 +240,58 @@ ompl::geometric::QuotientSpace::computeQuotientSpace(
         case IDENTITY_SPACE_SE3:
         case IDENTITY_SPACE_SE3RN:
         {
-            X1_dimension_ = 0;
-            X1 = std::make_shared<base::RealVectorStateSpace>(0);
+            X1_local = std::make_shared<base::RealVectorStateSpace>(0);
             break;
         }
         case RN_RM:
         {
-            unsigned int N = Q1_dimension_ - Q0_dimension_;
-            X1 = std::make_shared<base::RealVectorStateSpace>(N);
-            X1_dimension_ = N;
-
-            base::RealVectorBounds Q1_bounds = std::static_pointer_cast<base::RealVectorStateSpace>(Q1)->getBounds();
+            unsigned int N1 = Q1_in->getDimension();
+            unsigned int N0 = Q0_in->getDimension();
+            unsigned int NX = N1 - N0;
+            X1_local = std::make_shared<base::RealVectorStateSpace>(NX);
+            base::RealVectorBounds Q1_bounds = std::static_pointer_cast<base::RealVectorStateSpace>(Q1_in)->getBounds();
             std::vector<double> low;
-            low.resize(N);
+            low.resize(NX);
             std::vector<double> high;
-            high.resize(N);
-            base::RealVectorBounds X1_bounds(N);
-            for (unsigned int k = 0; k < N; k++)
+            high.resize(NX);
+            base::RealVectorBounds X1_bounds(NX);
+            for (unsigned int k = 0; k < NX; k++)
             {
-                X1_bounds.setLow(k, Q1_bounds.low.at(k + Q0_dimension_));
-                X1_bounds.setHigh(k, Q1_bounds.high.at(k + Q0_dimension_));
+                X1_bounds.setLow(k, Q1_bounds.low.at(k + N0));
+                X1_bounds.setHigh(k, Q1_bounds.high.at(k + N0));
             }
-            std::static_pointer_cast<base::RealVectorStateSpace>(X1)->setBounds(X1_bounds);
+            std::static_pointer_cast<base::RealVectorStateSpace>(X1_local)->setBounds(X1_bounds);
 
             break;
         }
         case SE2_R2:
         {
-            X1_dimension_ = 1;
-            X1 = std::make_shared<base::SO2StateSpace>();
+            X1_local = std::make_shared<base::SO2StateSpace>();
             break;
         }
         case SE3_R3:
         {
-            X1_dimension_ = 3;
-            X1 = std::make_shared<base::SO3StateSpace>();
+            X1_local = std::make_shared<base::SO3StateSpace>();
             break;
         }
         case SE2RN_SE2:
         case SE3RN_SE3:
         case SO2RN_SO2:
         {
-            base::CompoundStateSpace *Q1_compound = Q1->as<base::CompoundStateSpace>();
+            base::CompoundStateSpace *Q1_compound = Q1_in->as<base::CompoundStateSpace>();
             const std::vector<base::StateSpacePtr> Q1_decomposed = Q1_compound->getSubspaces();
 
-            X1_dimension_ = Q1_decomposed.at(1)->getDimension();
+            unsigned int NX = Q1_decomposed.at(1)->getDimension();
 
-            X1 = std::make_shared<base::RealVectorStateSpace>(X1_dimension_);
-            std::static_pointer_cast<base::RealVectorStateSpace>(X1)->setBounds(
+            X1_local = std::make_shared<base::RealVectorStateSpace>(NX);
+            std::static_pointer_cast<base::RealVectorStateSpace>(X1_local)->setBounds(
                 std::static_pointer_cast<base::RealVectorStateSpace>(Q1_decomposed.at(1))->getBounds());
 
             break;
         }
         case SE2RN_R2:
         {
-            base::CompoundStateSpace *Q1_compound = Q1->as<base::CompoundStateSpace>();
+            base::CompoundStateSpace *Q1_compound = Q1_in->as<base::CompoundStateSpace>();
             const std::vector<base::StateSpacePtr> Q1_decomposed = Q1_compound->getSubspaces();
             const std::vector<base::StateSpacePtr> Q1_SE2_decomposed =
                 Q1_decomposed.at(0)->as<base::CompoundStateSpace>()->getSubspaces();
@@ -303,19 +303,16 @@ ompl::geometric::QuotientSpace::computeQuotientSpace(
             base::StateSpacePtr RN(new base::RealVectorStateSpace(N));
             RN->as<base::RealVectorStateSpace>()->setBounds(Q1_RN->getBounds());
 
-            X1 = SO2 + RN;
-            X1_dimension_ = 1 + N;
+            X1_local = SO2 + RN;
             break;
         }
         case SE3RN_R3:
         {
-            base::CompoundStateSpace *Q1_compound = Q1->as<base::CompoundStateSpace>();
+            base::CompoundStateSpace *Q1_compound = Q1_in->as<base::CompoundStateSpace>();
             const std::vector<base::StateSpacePtr> Q1_decomposed = Q1_compound->getSubspaces();
             const std::vector<base::StateSpacePtr> Q1_SE3_decomposed =
                 Q1_decomposed.at(0)->as<base::CompoundStateSpace>()->getSubspaces();
 
-            // const base::SE3StateSpace *Q1_SE3 = Q1_SE3_decomposed.at(0)->as<base::SE3StateSpace>();
-            // const base::SO3StateSpace *Q1_SO3 = Q1_SE3_decomposed.at(1)->as<base::SO3StateSpace>();
             const base::RealVectorStateSpace *Q1_RN = Q1_decomposed.at(1)->as<base::RealVectorStateSpace>();
             unsigned int N = Q1_RN->getDimension();
 
@@ -323,37 +320,36 @@ ompl::geometric::QuotientSpace::computeQuotientSpace(
             base::StateSpacePtr RN(new base::RealVectorStateSpace(N));
             RN->as<base::RealVectorStateSpace>()->setBounds(Q1_RN->getBounds());
 
-            X1 = SO3 + RN;
-            X1_dimension_ = 3 + N;
+            X1_local = SO3 + RN;
             break;
         }
         case SE2RN_SE2RM:
         case SO2RN_SO2RM:
         case SE3RN_SE3RM:
         {
-            base::CompoundStateSpace *Q1_compound = Q1->as<base::CompoundStateSpace>();
+            base::CompoundStateSpace *Q1_compound = Q1_in->as<base::CompoundStateSpace>();
             const std::vector<base::StateSpacePtr> Q1_decomposed = Q1_compound->getSubspaces();
-            base::CompoundStateSpace *Q0_compound = Q0->as<base::CompoundStateSpace>();
+            base::CompoundStateSpace *Q0_compound = Q0_in->as<base::CompoundStateSpace>();
             const std::vector<base::StateSpacePtr> Q0_decomposed = Q0_compound->getSubspaces();
 
             unsigned int N = Q1_decomposed.at(1)->getDimension();
             unsigned int M = Q0_decomposed.at(1)->getDimension();
-            X1_dimension_ = N - M;
-            X1 = std::make_shared<base::RealVectorStateSpace>(X1_dimension_);
+            unsigned int NX = N - M;
+            X1_local = std::make_shared<base::RealVectorStateSpace>(NX);
 
             base::RealVectorBounds Q1_bounds =
                 std::static_pointer_cast<base::RealVectorStateSpace>(Q1_decomposed.at(1))->getBounds();
             std::vector<double> low;
-            low.resize(X1_dimension_);
+            low.resize(NX);
             std::vector<double> high;
-            high.resize(X1_dimension_);
-            base::RealVectorBounds X1_bounds(X1_dimension_);
-            for (unsigned int k = 0; k < X1_dimension_; k++)
+            high.resize(NX);
+            base::RealVectorBounds X1_bounds(NX);
+            for (unsigned int k = 0; k < NX; k++)
             {
                 X1_bounds.setLow(k, Q1_bounds.low.at(k + M));
                 X1_bounds.setHigh(k, Q1_bounds.high.at(k + M));
             }
-            std::static_pointer_cast<base::RealVectorStateSpace>(X1)->setBounds(X1_bounds);
+            std::static_pointer_cast<base::RealVectorStateSpace>(X1_local)->setBounds(X1_bounds);
             break;
         }
         default:
@@ -362,51 +358,50 @@ ompl::geometric::QuotientSpace::computeQuotientSpace(
             throw ompl::Exception("Unknown type");
         }
     }
-    return X1;
+    return X1_local;
 }
 
 
 
 const ompl::base::StateSpacePtr 
 ompl::geometric::QuotientSpace::computeQuotientSpace(
-    const base::StateSpacePtr Q1, 
-    const base::StateSpacePtr Q0)
+    const base::StateSpacePtr Q1_in, 
+    const base::StateSpacePtr Q0_in)
 {
-    Q1_dimension_ = Q1->getDimension();
-    Q0_dimension_ = Q0->getDimension();
 
-    if (Q0_dimension_ == 0 || Q1_dimension_ == 0)
+    if (Q0_in->getDimension() == 0 || Q1_in->getDimension() == 0)
     {
         OMPL_ERROR("Q0 has dimension %d.", Q0_dimension_);
         OMPL_ERROR("Q1 has dimension %d.", Q1_dimension_);
         throw ompl::Exception("Detected Zero-dimensional QuotientSpace.");
     }
 
-    type_ = identifyQuotientSpaceType(Q1, Q0);
+    type_ = identifyQuotientSpaceType(Q1_in, Q0_in);
 
     if(type_ == MULTIAGENT){
       //split spaces into types, then compute quotient for each type. then
       //combine them into X1
-      base::CompoundStateSpace *Q1_compound = Q1->as<base::CompoundStateSpace>();
+      base::CompoundStateSpace *Q1_compound = Q1_in->as<base::CompoundStateSpace>();
       const std::vector<base::StateSpacePtr> Q1_decomposed = Q1_compound->getSubspaces();
-      base::CompoundStateSpace *Q0_compound = Q0->as<base::CompoundStateSpace>();
+      base::CompoundStateSpace *Q0_compound = Q0_in->as<base::CompoundStateSpace>();
       const std::vector<base::StateSpacePtr> Q0_decomposed = Q0_compound->getSubspaces();
       base::StateSpacePtr X1_space = std::make_shared<base::CompoundStateSpace>();
 
       for(uint k = 0; k < Q1_decomposed.size(); k++){
         base::StateSpacePtr Q1k = Q1_decomposed.at(k);
         base::StateSpacePtr Q0k = Q0_decomposed.at(k);
+
         QuotientSpaceType typek = identifyQuotientSpaceType(Q1k, Q0k);
         base::StateSpacePtr X1k = computeQuotientSpace(Q1k, Q0k, typek);
 
-        double weight = (X1k->getDimension()>0 ? 1.0 : 0.0);
+        double weight = (X1k->getDimension() > 0 ? 1.0 : 0.0);
         std::static_pointer_cast<base::CompoundStateSpace>(X1_space)->addSubspace(X1k, weight);
         types_.push_back(typek);
       }
       return X1_space;
 
     }else{
-      return computeQuotientSpace(Q1, Q0, type_);
+      return computeQuotientSpace(Q1_in, Q0_in, type_);
     }
 }
 
@@ -840,11 +835,9 @@ void ompl::geometric::QuotientSpace::mergeStates(const base::State *qQ0, const b
         QuotientSpaceType typek = types_.at(k);
 
         const base::State *qkQ0 = qQ0->as<base::CompoundState>()->as<base::State>(k);
-        Q0k->printState(qkQ0);
         const base::State *qkX1 = qX1->as<base::CompoundState>()->as<base::State>(k);
         base::State *qkQ1 = qQ1->as<base::CompoundState>()->as<base::State>(k);
 
-        X1k->printState(qkX1);
         switch(typek)
         {
           case EMPTY_SET_PROJECTION:
@@ -862,6 +855,22 @@ void ompl::geometric::QuotientSpace::mergeStates(const base::State *qQ0, const b
           {
             //Q1 = Q0 (eq. to base space)
             Q1k->copyState(qkQ1, qkQ0);
+            break;
+          }
+          case RN_RM:
+          {
+            base::RealVectorStateSpace::StateType *sQ1 = qQ1->as<base::RealVectorStateSpace::StateType>();
+            const base::RealVectorStateSpace::StateType *sQ0 = qQ0->as<base::RealVectorStateSpace::StateType>();
+            const base::RealVectorStateSpace::StateType *sX1 = qX1->as<base::RealVectorStateSpace::StateType>();
+
+            for (unsigned int k = 0; k < Q0k->getDimension(); k++)
+            {
+                sQ1->values[k] = sQ0->values[k];
+            }
+            for (unsigned int k = Q0k->getDimension(); k < Q1k->getDimension(); k++)
+            {
+                sQ1->values[k] = sX1->values[k - Q0k->getDimension()];
+            }
             break;
           }
           default:
@@ -1320,6 +1329,7 @@ void ompl::geometric::QuotientSpace::projectQ0(const base::State *q, base::State
           QuotientSpaceType typek = types_.at(k);
           const base::State *qk = q->as<base::CompoundState>()->as<base::State>(k);
           base::State *qkQ0 = qQ0->as<base::CompoundState>()->as<base::State>(k);
+          std::cout << typek << std::endl;
           switch(typek)
           {
             case IDENTITY_SPACE_RN:
@@ -1328,11 +1338,25 @@ void ompl::geometric::QuotientSpace::projectQ0(const base::State *q, base::State
             case IDENTITY_SPACE_SO2RN:
             case IDENTITY_SPACE_SE3:
             case IDENTITY_SPACE_SE3RN:
+            {
               Q1k->copyState(qkQ0, qk);
               break;
+            }
+            case RN_RM:
+            {
+                const base::RealVectorStateSpace::StateType *sQ1 = q->as<base::RealVectorStateSpace::StateType>();
+                base::RealVectorStateSpace::StateType *sQ0 = qQ0->as<base::RealVectorStateSpace::StateType>();
+                for (unsigned int k = 0; k < Q0k->getDimension(); k++)
+                {
+                    sQ0->values[k] = sQ1->values[k];
+                }
+              break;
+            }
             default:
+            {
               projectQ0(qk, qkQ0, typek);
               break;
+            }
           }
         }
         return;
