@@ -53,17 +53,6 @@ void ompl::base::DynamicalMotionValidator::defaultSettings()
     } 
 }
 
-// bool ompl::base::DynamicalMotionValidator::checkPath(const std::vector<ompl::base::State*> path) const {
-//   for(unsigned int i = 0; i < path.size() - 2; i++) {
-//     bool stepValid = si_->checkMotion(path.at(i), path.at(i+1));
-//     if(!stepValid) {
-//       return false;
-//     }
-//   }
-//   return true;
-// }
-
-
 bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const State *s2) const
 {
     /* assume motion starts in a valid configuration so s1 is valid */
@@ -87,9 +76,10 @@ bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const St
 bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const State *s2,
                                                        std::pair<State *, double> &lastValid) const
 {
-  if(!isDynamic) return BaseT::checkMotion(s1, s2, lastValid);
-  else{
-    std::cout << "NYI" << std::endl;
-    exit(0);
+  if(!isDynamic){
+    return BaseT::checkMotion(s1, s2, lastValid);
+  } else{
+    OMPL_ERROR("NYI");
+    throw "NYI";
   }
 }

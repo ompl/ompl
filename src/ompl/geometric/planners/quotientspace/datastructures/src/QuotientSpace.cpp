@@ -859,9 +859,9 @@ void ompl::geometric::QuotientSpace::mergeStates(const base::State *qQ0, const b
           }
           case RN_RM:
           {
-            base::RealVectorStateSpace::StateType *sQ1 = qQ1->as<base::RealVectorStateSpace::StateType>();
-            const base::RealVectorStateSpace::StateType *sQ0 = qQ0->as<base::RealVectorStateSpace::StateType>();
-            const base::RealVectorStateSpace::StateType *sX1 = qX1->as<base::RealVectorStateSpace::StateType>();
+            base::RealVectorStateSpace::StateType *sQ1 = qkQ1->as<base::RealVectorStateSpace::StateType>();
+            const base::RealVectorStateSpace::StateType *sQ0 = qkQ0->as<base::RealVectorStateSpace::StateType>();
+            const base::RealVectorStateSpace::StateType *sX1 = qkX1->as<base::RealVectorStateSpace::StateType>();
 
             for (unsigned int k = 0; k < Q0k->getDimension(); k++)
             {
@@ -1329,7 +1329,6 @@ void ompl::geometric::QuotientSpace::projectQ0(const base::State *q, base::State
           QuotientSpaceType typek = types_.at(k);
           const base::State *qk = q->as<base::CompoundState>()->as<base::State>(k);
           base::State *qkQ0 = qQ0->as<base::CompoundState>()->as<base::State>(k);
-          std::cout << typek << std::endl;
           switch(typek)
           {
             case IDENTITY_SPACE_RN:
@@ -1344,8 +1343,8 @@ void ompl::geometric::QuotientSpace::projectQ0(const base::State *q, base::State
             }
             case RN_RM:
             {
-                const base::RealVectorStateSpace::StateType *sQ1 = q->as<base::RealVectorStateSpace::StateType>();
-                base::RealVectorStateSpace::StateType *sQ0 = qQ0->as<base::RealVectorStateSpace::StateType>();
+                const base::RealVectorStateSpace::StateType *sQ1 = qk->as<base::RealVectorStateSpace::StateType>();
+                base::RealVectorStateSpace::StateType *sQ0 = qkQ0->as<base::RealVectorStateSpace::StateType>();
                 for (unsigned int k = 0; k < Q0k->getDimension(); k++)
                 {
                     sQ0->values[k] = sQ1->values[k];

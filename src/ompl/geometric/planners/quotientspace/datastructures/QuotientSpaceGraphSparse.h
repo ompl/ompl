@@ -79,7 +79,7 @@ namespace ompl
 
         virtual const Configuration *nearest(const Configuration *s) const;
         void freePath(std::vector<ob::State*> path, const ob::SpaceInformationPtr &si) const;
-        std::vector<ob::State*> getProjectedPath(std::vector<ob::State*> pathQ1, const ob::SpaceInformationPtr &si) const;
+        std::vector<ob::State*> getProjectedPath(const std::vector<ob::State*> pathQ1, const ob::SpaceInformationPtr &si) const;
     protected:
 
         double sparseDelta_{0.};

@@ -240,9 +240,6 @@ bool PathVisibilityChecker::CheckValidity(const std::vector<ob::State*> &s)
       si_->printState(sk);
       throw ompl::Exception("Invalid State");
     }
-    // std::pair<ob::State *, double> lastValid;
-    // lastValid.first = lastValidState;
-    // bool val = si_->checkMotion(sk, skk, lastValid);
 
     bool val = si_->checkMotion(sk, skk);
     if(!val) return false;

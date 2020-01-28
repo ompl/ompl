@@ -847,11 +847,11 @@ void QuotientSpaceGraphSparse::freePath(std::vector<ob::State*> path, const ob::
     }
     path.clear();
 }
-std::vector<ob::State*> QuotientSpaceGraphSparse::getProjectedPath(std::vector<ob::State*> pathQ1, const ob::SpaceInformationPtr &si) const
+std::vector<ob::State*> QuotientSpaceGraphSparse::getProjectedPath(const std::vector<ob::State*> pathQ1, const ob::SpaceInformationPtr &si) const
 {
     std::vector<ob::State*> pathQ0;
     for(uint k = 0; k < pathQ1.size(); k++){
-      ob::State *qk = pathQ1.at(k);
+      const ob::State *qk = pathQ1.at(k);
       ob::State *qkProjected = Q0->allocState();
       projectQ0(qk, qkProjected);
       pathQ0.push_back(qkProjected);

@@ -129,6 +129,7 @@ void QuotientTopology::grow(){
     //}
   }
 }
+
 bool QuotientTopology::hasSolution()
 {
   return BaseT::hasSolution();
