@@ -54,7 +54,7 @@ The default database used by the Planner Arena server contains results for a num
 </div>
 
 We have also included the results of a few benchmarks where the robot cannot be modeled by a rigid body. These benchmarks are included with OMPL and OMPL.app as demo programs. We have included the results:
-- __KinematicBenchmark20__ (produced by running `demo_KinematicChainBenchmark 20`): A kinematic chain with 20 degrees of freedom has to move out of a curved narrow passage by essentially folding up onto itself (while avoiding self-collisions!) before fully extending outside of the narrow passage. The implementation of this benchmark has improved significantly, so the benchmark times will not exactly match the graphs shown in [this paper](http://dx.doi.org/10.1109/ICRA.2013.6630908), where the benchmark is introduced.
+- __KinematicBenchmark20__ (produced by running `demo_KinematicChainBenchmark 20`): A kinematic chain with 20 degrees of freedom has to move out of a curved narrow passage by essentially folding up onto itself (while avoiding self-collisions!) before fully extending outside of the narrow passage. The implementation of this benchmark has improved significantly, so the benchmark times will not exactly match the graphs shown in [this paper](https://dx.doi.org/10.1109/ICRA.2013.6630908), where the benchmark is introduced.
 - __EasySwap*__ (produced by running `demo_AnytimePathShortening easy alternate 30 rrtconnect` and `demo_AnytimePathShortening easy none 30 rrtstar`): This benchmark illustrates the benefit of Anytime Path Shortening, a generic wrapper around one or more geometric motion planners that repeatedly applies [shortcutting](\ref ompl::geometric::PathSimplifier) and [hybridization](\ref ompl::geometric::PathHybridization) to a set of solution paths. As dimensionality of the configuration space increases, this approach starts to compare very favorably to asymptotically optimal planners like RRT*. The benchmark consists of two rigid bodies separated by a wall with a not-so-narrow passage having to swap positions. The configuration space is thus 12-dimensional.
 
 
@@ -64,13 +64,13 @@ The overall performance plots can show how different planners compare on various
 
 The overall performance page allows you to select a motion planning problem that was benchmarked, a particular benchmark attribute to plot, the OMPL version (in case the database contains data for multiple versions), and the planners to compare. If there is only choice in a particular category, it will be disabled (since there is no other choice available).
 
-Most of the measures are plotted as [box plots](http://en.wikipedia.org/wiki/Box_plot). Missing data is ignored. This is _very_ important to keep in mind: if a planner failed to solve a problem 99 times out of a 100 runs, then the average solution length is determined by one run! To make missing data more apparent, a table below the plot shows how many data points there were for each planner and how many of those were missing values (i.e., `NULL`, `None`, `NA`, etc.).
+Most of the measures are plotted as [box plots](https://en.wikipedia.org/wiki/Box_plot). Missing data is ignored. This is _very_ important to keep in mind: if a planner failed to solve a problem 99 times out of a 100 runs, then the average solution length is determined by one run! To make missing data more apparent, a table below the plot shows how many data points there were for each planner and how many of those were missing values (i.e., `NULL`, `None`, `NA`, etc.).
 
 If your benchmark database contains results for parametrized benchmarks, then you can select results for different parameter values. By default, results are aggregated over *all* parameter values. You can also choose to show performance for selected planners across all parameter values by selecting “all (separate)” from the corresponding parameter selection widget.
 
 The plots can be downloaded in two formats:
 - **PDF.** This is useful if the plot is more or less “camera-ready” and might just need some touch ups with, e.g., Adobe Illustrator.
-- **RData.** This contains both the plot as well as all the data shown in the plot in a file format that can be loaded into R with the `load` command (or just double-click on the file if you have [RStudio](http://www.rstudio.com) installed). The plot can be completely customized, further analysis can be applied to the data, or the data can be plotted in an entirely different way.
+- **RData.** This contains both the plot as well as all the data shown in the plot in a file format that can be loaded into R with the `load` command (or just double-click on the file if you have [RStudio](https://www.rstudio.com) installed). The plot can be completely customized, further analysis can be applied to the data, or the data can be plotted in an entirely different way.
 
 
 ## <a name="progress"></a>Progress plots
