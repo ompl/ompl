@@ -2,7 +2,7 @@
 
 ## MoveIt
 
-A 2017 highlight reel for [MoveIt](http://moveit.ros.org), the [ROS](http://www.ros.org) package that provides a high-level interface to OMPL and other motion planning packages.
+A 2017 highlight reel for [MoveIt](https://moveit.ros.org), the [ROS](https://www.ros.org) package that provides a high-level interface to OMPL and other motion planning packages.
 
 \htmlonly
 <div class="row justify-content-center">

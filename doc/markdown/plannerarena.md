@@ -8,7 +8,7 @@ The OMPL Planner Arena code allows you to easily create plots from a benchmark d
 - On Ubuntu you need to run `sudo apt install libv8-dev`.
 - The following R packages: shinyjs, V8, tidyverse, Hmisc, pool, RSQLite, and markdown. These packages can be installed like so:
 
-      R -e "install.packages(c('shinyjs', 'V8', 'tidyverse', 'Hmisc', 'pool', 'RSQLite', 'markdown'), repos='http://cran.r-project.org')"
+      R -e "install.packages(c('shinyjs', 'V8', 'tidyverse', 'Hmisc', 'pool', 'RSQLite', 'markdown'), repos='https://cran.r-project.org')"
 
 ## Running
 

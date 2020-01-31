@@ -19,7 +19,7 @@ See also the extensive documentation [here](CForest.html). This also describes h
 
 - M. Otte, N. Correll, C-FOREST: Parallel Shortest Path Planning With
 Superlinear Speedup, IEEE Transactions on Robotics, Vol 20, No 3, 2013.
-DOI: [10.1109/TRO.2013.2240176](http://dx.doi.org/10.1109/TRO.2013.2240176)  
+DOI: [10.1109/TRO.2013.2240176](https://dx.doi.org/10.1109/TRO.2013.2240176)  
 [[PDF]](https://dx.doi.org/10.1109/TRO.2013.2240176)
 
 ## Fast Marching Tree algorithm (FMT∗)
@@ -28,7 +28,7 @@ DOI: [10.1109/TRO.2013.2240176](http://dx.doi.org/10.1109/TRO.2013.2240176)
 
 [FMT∗](\ref gFMT) is a new asymptotically optimal algorithm contributed by Marco Pavone's Autonomous Systems Laboratory. The FMT∗ algorithm performs a “lazy” dynamic programming recursion on a set of probabilistically-drawn samples to grow a tree of paths, which moves outward in cost-to-come space. The algorithm is described in:
 
-- L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based method for optimal motion planning in many dimensions. The International Journal of Robotics Research, 34(7):883-921, 2015. DOI: [10.1177/0278364915577958](http://dx.doi.org/10.1177/0278364915577958) [[PDF]](https://arxiv.org/pdf/1306.3532.pdf)
+- L. Janson, E. Schmerling, A. Clark, M. Pavone. Fast marching tree: a fast marching sampling-based method for optimal motion planning in many dimensions. The International Journal of Robotics Research, 34(7):883-921, 2015. DOI: [10.1177/0278364915577958](https://dx.doi.org/10.1177/0278364915577958) [[PDF]](https://arxiv.org/pdf/1306.3532.pdf)
 
 ## Bidirectional Fast Marching Tree algorithm (BFMT∗)
 
@@ -59,21 +59,21 @@ _arXiv_, 2013 [[PDF]](https://arxiv.org/pdf/1308.0189.pdf)
 
 - [SPARS](\ref gSPARS) and [SPARS2](\ref gSPARStwo) are roadmap-based planners that operate similarly to Visbility-based PRM, but provide asymptotic near-optimality guarantees. The SPARS and SPARS2 algorithms a described in:
 
-  - A. Dobson, A. Krontiris, K. Bekris, Sparse Roadmap Spanners, _Workshop on the Algorithmic Foundations of Robotics (WAFR)_ 2012. [[PDF]](http://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf)
-  - A. Dobson, K. Bekris, Improving Sparse Roadmap Spanners, _IEEE International Conference on Robotics and Automation (ICRA)_ May 2013. [[PDF]](http://www.cs.rutgers.edu/~kb572/pubs/spars2.pdf)
+  - A. Dobson, A. Krontiris, K. Bekris, Sparse Roadmap Spanners, _Workshop on the Algorithmic Foundations of Robotics (WAFR)_ 2012. [[PDF]](https://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf)
+  - A. Dobson, K. Bekris, Improving Sparse Roadmap Spanners, _IEEE International Conference on Robotics and Automation (ICRA)_ May 2013. [[PDF]](https://www.cs.rutgers.edu/~kb572/pubs/spars2.pdf)
 
 ## T-RRT implementation
 
 ### Author: Dave Coleman (University of Colorado Boulder)
 
 - [T-RRT](\ref gTRRT) is an RRT variant and tree-based motion planner that takes into consideration state costs to compute low-cost paths that follow valleys and saddle points of the configuration-space costmap. It uses transition tests from stochastic optimization methods to accept or reject new potential sates. [An example use of TRRT](https://github.com/davetcoleman/ompl_rviz_viewer).
-  - L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in IEEE Transactions on Robotics, 26(4):635–646, August 2010, [[PDF]](http://homepages.laas.fr/nic/Papers/10TRO.pdf)
+  - L. Jaillet, J. Cortés, T. Siméon, Sampling-Based Path Planning on Configuration-Space Costmaps, in IEEE Transactions on Robotics, 26(4):635–646, August 2010, [[PDF]](https://homepages.laas.fr/nic/Papers/10TRO.pdf)
 
 ## ROS interface to OMPL
 
 ### Authors: Ioan Sucan and Sachin Chitta (Willow Garage)
 
-- [MoveIt!](http://moveit.ros.org) wraps OMPL as a planning plugin.
+- [MoveIt!](https://moveit.ros.org) wraps OMPL as a planning plugin.
 
 ## RRT* and extensions
 

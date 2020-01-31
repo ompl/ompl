@@ -46,7 +46,7 @@ if (solved)
 Run your program and save the output of `printAsMatrix()` to a file called, say, path.txt. Let us assume the path consists of SE(3) states. This means that the first three columns represent the 3D position component of the state and the next four columns the orientation represented by a unit quaternion. Below we will describe how to visualize this path with a variety of programs.
 
 * [OMPL.app GUI](https://ompl.kavrakilab.org/gui.html): The OMPL.app GUI can be used to “play back” any path consisting of SE(2) or SE(3) paths. First, load a mesh representing the robot and (optionally) a mesh representing the environment. Next, load the path file `path.txt`. You can either let the GUI loop through the states along the path or show them all simultaneously.
-* [Matplotlib](http://matplotlib.org):
+* [Matplotlib](https://matplotlib.org):
 ~~~{.py}
 from mpl_toolkits.mplot3d import Axes3D
 import numpy
@@ -58,16 +58,16 @@ ax.plot(data[:,1],data[:,2],data[:,3],'.-')
 plt.show()
 ~~~
 
-* [Matlab](http://www.mathworks.com/products/matlab/) / [Octave](http://www.gnu.org/software/octave/):
+* [Matlab](https://www.mathworks.com/products/matlab/) / [Octave](https://www.gnu.org/software/octave/):
 ~~~{.matlab}
 data=load('path.txt');
 plot3(data(:,1), data(:,2), data(:,3), 'o-');
 axis equal, grid on, rotate3d on;
 ~~~
 
-* [Excel](http://office.microsoft.com/en-us/excel/): When you open path.txt with Excel, it will guide you through the process of importing it into a spreadsheet. You should select space-delimited data. Unfortunately, it looks like it is difficult to make plots of a 3D curve in Excel. However, you _can_ plot 2D curves. To create such a plot, select the first two columns of data and select "Insert>Chart...". Next, click on "Scatter>Straight Marked Scatter". (This is for Microsoft Excel for Mac 2011; the menu items might be called something slightly differently in the Microsoft Windows version.)
+* [Excel](https://office.microsoft.com/en-us/excel/): When you open path.txt with Excel, it will guide you through the process of importing it into a spreadsheet. You should select space-delimited data. Unfortunately, it looks like it is difficult to make plots of a 3D curve in Excel. However, you _can_ plot 2D curves. To create such a plot, select the first two columns of data and select "Insert>Chart...". Next, click on "Scatter>Straight Marked Scatter". (This is for Microsoft Excel for Mac 2011; the menu items might be called something slightly differently in the Microsoft Windows version.)
 
-* [R](http://www.r-project.org): First, you need to install the `scatterplot3d` package:
+* [R](https://www.r-project.org): First, you need to install the `scatterplot3d` package:
 ~~~{.splus}
 install.packages(scatterplot3d)
 ~~~

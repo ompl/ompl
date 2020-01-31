@@ -9,8 +9,8 @@ detailed installation instructions.
 
 OMPL has the following required dependencies:
 
-* [Boost](http://www.boost.org) (version 1.54 or higher)
-* [CMake](http://www.cmake.org) (version 2.8.7 or higher)
+* [Boost](https://www.boost.org) (version 1.54 or higher)
+* [CMake](https://www.cmake.org) (version 2.8.7 or higher)
 * [Eigen](http://eigen.tuxfamily.org) (version 3.3 or higher)
 
 The following dependencies are optional:
