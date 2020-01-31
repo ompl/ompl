@@ -107,9 +107,24 @@ BOOST_AUTO_TEST_CASE(TestCostConvergenceTermination)
   std::vector<base::Cost> costs(10, base::Cost(10.));
   std::vector<const base::State *> dummy;
 
+  // convergence after 5 iterations
+  pdef->setOptimizationObjective(std::make_shared<base::PathLengthOptimizationObjective>(si));
+  {
+    base::CostConvergenceTerminationCondition ptc(pdef, 5, 1.);
+    BOOST_CHECK(!ptc);
+    BOOST_CHECK(!ptc());
+    for (unsigned int i = 0; i < 10; ++i)
+    {
+      BOOST_CHECK(i<5 ? !ptc() : ptc());
+      pdef->getIntermediateSolutionCallback()(nullptr, dummy, costs[i]);
+    }
+
+    BOOST_CHECK(ptc);
+    BOOST_CHECK(ptc());
+  }
+
   // convergence after 10 iterations
   costs[9] = base::Cost(9.);
-  pdef->setOptimizationObjective(std::make_shared<base::PathLengthOptimizationObjective>(si));
   {
     base::CostConvergenceTerminationCondition ptc(pdef, 10, .1);
     BOOST_CHECK(!ptc);
