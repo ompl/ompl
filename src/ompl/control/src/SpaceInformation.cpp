@@ -42,9 +42,30 @@
 #include <utility>
 #include <limits>
 
+ompl::control::SpaceInformation::SpaceInformation(
+    const base::StateSpacePtr &stateSpace, ControlSpacePtr controlSpace)
+    : base::SpaceInformation(stateSpace), controlSpace_(std::move(controlSpace))
+{
+    declareParams();
+}
+
+void ompl::control::SpaceInformation::declareParams()
+{
+    params_.declareParam<unsigned int>("min_control_duration",
+                                 [this](unsigned int n) { setMinControlDuration(n); },
+                                 [this] { return getMinControlDuration(); });
+    params_.declareParam<unsigned int>("max_control_duration",
+                                 [this](unsigned int n) { setMaxControlDuration(n); },
+                                 [this] { return getMaxControlDuration(); });
+    params_.declareParam<double>("propagation_step_size",
+                                 [this](double s) { setPropagationStepSize(s); },
+                                 [this] { return getPropagationStepSize(); });
+}
+
 void ompl::control::SpaceInformation::setup()
 {
     base::SpaceInformation::setup();
+    declareParams(); // calling base::SpaceInformation::setup() clears the params
     if (!statePropagator_)
         throw Exception("State propagator not defined");
     if (minSteps_ > maxSteps_)
