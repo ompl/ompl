@@ -613,6 +613,8 @@ class ompl_geometric_generator_t(code_generator_t):
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
         # print paths as matrices
         self.replace_member_functions(self.ompl_ns.member_functions('printAsMatrix'))
+        # make settings printable
+        self.replace_member_functions(self.ompl_ns.member_functions('printSettings'))
         # print debug info
         self.replace_member_functions(self.ompl_ns.member_functions('printDebug'))
         self.ompl_ns.member_functions('freeGridMotions').exclude()
