@@ -5,7 +5,7 @@ namespace ompl
 {
     namespace geometric
     {
-        enum BundleSubspaceType
+        enum BundleSpaceComponentType
         {
             BUNDLE_SPACE_NO_PROJECTION = 0,
             BUNDLE_SPACE_EMPTY_SET_PROJECTION = 1,

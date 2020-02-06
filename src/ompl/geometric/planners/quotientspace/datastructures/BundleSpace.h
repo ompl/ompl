@@ -71,8 +71,8 @@ namespace ompl
             virtual void grow() = 0;
             virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
 
-            virtual bool sampleBase(ompl::base::State *x_random);
-            virtual bool sample(ompl::base::State *x_random);
+            virtual bool sampleBase(ompl::base::State *xRandom);
+            virtual bool sample(ompl::base::State *xRandom);
 
             virtual bool hasSolution();
             virtual void clear() override;
@@ -198,9 +198,9 @@ namespace ompl
             ompl::base::OptimizationObjectivePtr opt_;
 
             /// A temporary state on Base
-            ompl::base::State *s_Base_tmp_{nullptr};
+            ompl::base::State *xBaseTmp_{nullptr};
             /// A temporary state on Fiber
-            ompl::base::State *s_Fiber_tmp_{nullptr};
+            ompl::base::State *xFiberTmp_{nullptr};
 
             // BundleSubspaceType type_;
             // std::vector<BundleSubspaceType> types_; //for multiagent planning

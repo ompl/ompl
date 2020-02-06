@@ -31,6 +31,12 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
     //############################################################################
     const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
 
+    //(1) Number of Components
+    //(2) Type of Components
+
+    getNumberOfComponents();
+
+
     if (!hasParent())
     {
       //TODO: still need to create one component subspace per component
@@ -39,6 +45,7 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
     }
     else
     {
+
         parent_->setChild(this);
 
         Base = parent_->getSpaceInformation();
@@ -90,9 +97,9 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
     }
     if (hasParent())
     {
-        s_Base_tmp_ = Base->allocState();
+        xBaseTmp_ = Base->allocState();
         if (getFiberDimension() > 0)
-            s_Fiber_tmp_ = Fiber->allocState();
+            xFiberTmp_ = Fiber->allocState();
     }
 }
 
@@ -106,10 +113,10 @@ ompl::geometric::BundleSpace::~BundleSpace()
 {
     if (hasParent())
     {
-        if (s_Base_tmp_)
-            Base->freeState(s_Base_tmp_);
-        if (Fiber && s_Fiber_tmp_)
-            Fiber->freeState(s_Fiber_tmp_);
+        if (xBaseTmp_)
+            Base->freeState(xBaseTmp_);
+        if (Fiber && xFiberTmp_)
+            Fiber->freeState(xFiberTmp_);
     }
 }
 
@@ -377,412 +384,6 @@ ompl::geometric::BundleSpace::computeFiberSpace(
     }
 }
 
-ompl::geometric::BundleSpace::BundleType
-ompl::geometric::BundleSpace::identifyBundleType(const base::StateSpacePtr Bundle, const base::StateSpacePtr Base)
-{
-    //
-    // We can currently handle 11 types of quotient-space mappings.
-    // Emptyset is used for constraint relaxations.
-    //
-    //   (1)  Bundle Rn     , Base Rm     [0<m<=n]  => Fiber = R(n-m) \union {\emptyset}
-    //   (2a) Bundle SE2    , Base R2               => Fiber = SO2
-    //   (2b) Bundle SE2    , Base SE2              => Fiber = \emptyset
-    //   (3a) Bundle SE3    , Base R3               => Fiber = SO3
-    //   (3b) Bundle SE3    , Base SE3              => Fiber = \emptyset
-    //
-    //   (4)  Bundle SE3xRn , Base SE3              => Fiber = Rn
-    //   (5)  Bundle SE3xRn , Base R3               => Fiber = SO3xRn
-    //   (6)  Bundle SE3xRn , Base SE3xRm [0<m<=n ] => Fiber = R(n-m) \union {\emptyset}
-    //
-    //   (7)  Bundle SE2xRn , Base SE2              => Fiber = Rn
-    //   (8)  Bundle SE2xRn , Base R2               => Fiber = SO2xRN
-    //   (9)  Bundle SE2xRn , Base SE2xRm [0<m<=n ] => Fiber = R(n-m) \union {\emptyset}
-    //
-    //  (10)  Bundle SO2xRn , Base SO2              => Fiber = Rn
-    //  (11)  Bundle SO2xRn , Base SO2xRm [0<m<=n ] => Fiber = R(n-m) \union {\emptyset}
-    //  (12)  Multiagent (any combination of (1-11))
-
-    BundleType type;
-
-    if (!Bundle->isCompound())
-    {
-        ///##############################################################################/
-        //------------------ non-compound cases:
-        ///##############################################################################/
-        //
-        //------------------ (1) Bundle = Rn, Base = Rm, 0<m<n, Fiber = R(n-m)
-        if (Bundle->getType() == base::STATE_SPACE_REAL_VECTOR)
-        {
-            unsigned int n = Bundle->getDimension();
-            if (Base->getType() == base::STATE_SPACE_REAL_VECTOR)
-            {
-                unsigned int m = Base->getDimension();
-                if (n > m && m > 0)
-                {
-                    type = RN_RM;
-                }
-                else
-                {
-                    if (n == m && m > 0)
-                    {
-                        type = IDENTITY_SPACE_RN;
-                    }
-                    else
-                    {
-                        if(m==0){
-                            type = EMPTY_SET_PROJECTION;
-                        }else{
-                            OMPL_ERROR("Not allowed: dimensionality needs to be monotonically increasing.");
-                            OMPL_ERROR("We require n >= m > 0 but have n=%d >= m=%d > 0", n, m);
-                            throw ompl::Exception("Invalid dimensionality");
-                        }
-                    }
-                }
-            }
-            else
-            {
-                OMPL_ERROR("Bundle is R^%d but Base type %d is not handled.", n, Base->getType());
-                throw ompl::Exception("INVALID_STATE_TYPE");
-            }
-        }
-        else
-        {
-            OMPL_ERROR("Bundle is non-compound state, but its type %d is not handled.", Bundle->getType());
-            throw ompl::Exception("INVALID_STATE_TYPE");
-        }
-    }
-    else
-    {
-        ///##############################################################################/
-        //------------------ compound cases:
-        ///##############################################################################/
-        //
-        //------------------ (2) Bundle = SE2, Base = R2, Fiber = SO2
-        ///##############################################################################/
-        if (Bundle->getType() == base::STATE_SPACE_SE2)
-        {
-            if (Base->getType() == base::STATE_SPACE_REAL_VECTOR)
-            {
-                if (Base->getDimension() == 2)
-                {
-                    type = SE2_R2;
-                }
-                else if(Base->getDimension() == 0)
-                {
-                    type = EMPTY_SET_PROJECTION;
-                }
-                else
-                {
-
-                    OMPL_ERROR("Bundle is SE2 but Base type %d is of dimension %d", Base->getType(), Base->getDimension());
-                    throw ompl::Exception("Invalid dimensions.");
-                }
-            }
-            else
-            {
-                if (Base->getType() == base::STATE_SPACE_SE2)
-                {
-                    type = IDENTITY_SPACE_SE2;
-                }
-                else
-                {
-                    OMPL_ERROR("Bundle is SE2 but Base type %d is not handled.", Base->getType());
-                    throw ompl::Exception("INVALID_STATE_TYPE");
-                }
-            }
-        }
-        //------------------ (3) Bundle = SE3, Base = R3, Fiber = SO3
-        ///##############################################################################/
-        else if (Bundle->getType() == base::STATE_SPACE_SE3)
-        {
-            if (Base->getType() == base::STATE_SPACE_REAL_VECTOR)
-            {
-                if (Base->getDimension() == 3)
-                {
-                    type = SE3_R3;
-                }
-                else if(Base->getDimension() == 0)
-                {
-                    type = EMPTY_SET_PROJECTION;
-                }
-                else
-                {
-                    OMPL_ERROR("Bundle is SE3 but Base type %d is of dimension %d.", Base->getType(), Base->getDimension());
-                    throw ompl::Exception("Invalid dimensions.");
-                }
-            }
-            else
-            {
-                if (Base->getType() == base::STATE_SPACE_SE3)
-                {
-                    type = IDENTITY_SPACE_SE3;
-                }
-                else
-                {
-                    OMPL_ERROR("Bundle is SE2 but Base type %d is not handled.", Base->getType());
-                    throw ompl::Exception("Invalid BundleSpace type");
-                }
-                OMPL_ERROR("Bundle is SE3 but Base type %d is not handled.", Base->getType());
-                throw ompl::Exception("Invalid BundleSpace type");
-            }
-        }
-        ///##############################################################################/
-        else
-        {
-            base::CompoundStateSpace *Bundle_compound = Bundle->as<base::CompoundStateSpace>();
-            const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
-            unsigned int Bundle_subspaces = Bundle_decomposed.size();
-            if (Bundle_subspaces == 2)
-            {
-                if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_SE3 &&
-                    Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
-                {
-                    unsigned int n = Bundle_decomposed.at(1)->getDimension();
-                    if (Base->getType() == base::STATE_SPACE_SE3)
-                    {
-                        //------------------ (4) Bundle = SE3xRn, Base = SE3, Fiber = Rn
-                        ///##############################################################################/
-                        type = SE3RN_SE3;
-                    }
-                    else if (Base->getType() == base::STATE_SPACE_REAL_VECTOR)
-                    {
-                        //------------------ (5) Bundle = SE3xRn, Base = R3, Fiber = SO3xRN
-                        ///##############################################################################/
-                        unsigned int m = Base->getDimension();
-                        if (m == 3)
-                        {
-                            type = SE3RN_R3;
-                        }
-                        else if(m == 0)
-                        {
-                            type = EMPTY_SET_PROJECTION;
-                        }
-                        else
-                        {
-                            OMPL_ERROR("Not allowed. Base needs to be 3-dimensional but is %d dimensional", m);
-                            throw ompl::Exception("Invalid dimensions.");
-                        }
-                    }
-                    else
-                    {
-                        //------------------ (6) Bundle = SE3xRn, Base = SE3xRm, Fiber = R(n-m)
-                        ///##############################################################################/
-                        base::CompoundStateSpace *Base_compound = Base->as<base::CompoundStateSpace>();
-                        const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
-                        unsigned int Base_subspaces = Base_decomposed.size();
-                        if (Base_subspaces == 2)
-                        {
-                            if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_SE3 &&
-                                Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
-                            {
-                                unsigned int m = Base_decomposed.at(1)->getDimension();
-                                if (m < n && m > 0)
-                                {
-                                    type = SE3RN_SE3RM;
-                                }
-                                else
-                                {
-                                    if (m == n)
-                                    {
-                                        type = IDENTITY_SPACE_SE3RN;
-                                    }
-                                    else
-                                    {
-                                        if(m == 0){
-                                            type = EMPTY_SET_PROJECTION;
-                                        }else{
-                                            OMPL_ERROR("We require n >= m > 0, but have n=%d >= m=%d > 0.", n, m);
-                                            throw ompl::Exception("Invalid dimensions.");
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            OMPL_ERROR("State compound with %d subspaces not handled.", Base_subspaces);
-                            throw ompl::Exception("Invalid BundleSpace type");
-                        }
-                    }
-                }
-                else
-                {
-                    if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_SE2 &&
-                        Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
-                    {
-                        unsigned int n = Bundle_decomposed.at(1)->getDimension();
-                        if (Base->getType() == base::STATE_SPACE_SE2)
-                        {
-                            //------------------ (7) Bundle = SE2xRn, Base = SE2, Fiber = Rn
-                            ///##############################################################################/
-                            type = SE2RN_SE2;
-                        }
-                        else if (Base->getType() == base::STATE_SPACE_REAL_VECTOR)
-                        {
-                            //------------------ (8) Bundle = SE2xRn, Base = R2, Fiber = SO2xRN
-                            ///##############################################################################/
-                            unsigned int m = Base->getDimension();
-                            if (m == 2)
-                            {
-                                type = SE2RN_R2;
-                            }
-                            else
-                            {
-                                if(m == 0){
-                                    type = EMPTY_SET_PROJECTION;
-                                }else{
-                                    OMPL_ERROR("Not allowed. Base needs to be 2-dimensional but is %d dimensional", m);
-                                    throw ompl::Exception("Invalid dimensions.");
-                                }
-                            }
-                        }
-                        else
-                        {
-                            //------------------ (9) Bundle = SE2xRn, Base = SE2xRm, Fiber = R(n-m)
-                            ///##############################################################################/
-                            base::CompoundStateSpace *Base_compound = Base->as<base::CompoundStateSpace>();
-                            const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
-                            unsigned int Base_subspaces = Base_decomposed.size();
-                            if (Base_subspaces == 2)
-                            {
-                                if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_SE2 &&
-                                    Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
-                                {
-                                    unsigned int m = Base_decomposed.at(1)->getDimension();
-                                    if (m < n && m > 0)
-                                    {
-                                        type = SE2RN_SE2RM;
-                                    }
-                                    else
-                                    {
-                                        if (m == n)
-                                        {
-                                            type = IDENTITY_SPACE_SE2RN;
-                                        }
-                                        else
-                                        {
-                                            OMPL_ERROR("We require n >= m > 0, but have n=%d >= m=%d > 0.", n, m);
-                                            throw ompl::Exception("Invalid dimensions.");
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                }
-                            }
-                            else
-                            {
-                                OMPL_ERROR("QO is compound with %d subspaces, but we only handle 2.", Base_subspaces);
-                                throw ompl::Exception("Invalid BundleSpace type");
-                            }
-                        }
-                    }
-                    else if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_SO2 &&
-                             Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
-                    {
-                        if (Base->getType() == base::STATE_SPACE_SO2)
-                        {
-                            //------------------ (10) Bundle = SO2xRn, Base = SO2, Fiber = Rn
-                            ///##############################################################################/
-                            type = SO2RN_SO2;
-                        }
-                        else
-                        {
-                            //------------------ (11) Bundle = SO2xRn, Base = SO2xRm, Fiber = R(n-m)
-                            ///##############################################################################/
-                            if (Base->isCompound())
-                            {
-                                base::CompoundStateSpace *Base_compound = Base->as<base::CompoundStateSpace>();
-                                const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
-                                unsigned int Base_subspaces = Base_decomposed.size();
-                                if (Base_subspaces == 2)
-                                {
-                                    if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_SO2 &&
-                                        Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
-                                    {
-                                        unsigned int n = Bundle_decomposed.at(1)->getDimension();
-                                        unsigned int m = Base_decomposed.at(1)->getDimension();
-                                        if (m < n && m > 0)
-                                        {
-                                            type = SO2RN_SO2RM;
-                                        }
-                                        else
-                                        {
-                                            if (m == n)
-                                            {
-                                                type = IDENTITY_SPACE_SO2RN;
-                                            }
-                                            else
-                                            {
-                                                OMPL_ERROR("We require n >= m > 0 but have n=%d >= m=%d > 0.", n, m);
-                                                throw ompl::Exception("Invalid dimensions.");
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        OMPL_ERROR("Cannot project onto type %d.", Bundle->getType());
-                                        throw ompl::Exception("Invalid BundleSpace type.");
-                                    }
-                                }
-                                else
-                                {
-                                    OMPL_ERROR("Base has %d subspaces. We can handle only 2.", Base_subspaces);
-                                    throw ompl::Exception("Invalid BundleSpace type.");
-                                }
-                            }
-                            else
-                            {
-                                OMPL_ERROR("Cannot project onto type %d.", Base->getType());
-                                throw ompl::Exception("Invalid BundleSpace type.");
-                            }
-                        }
-                    }
-                    else if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_REAL_VECTOR &&
-                             Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
-                    {
-                        type = MULTIAGENT;
-                    }else{
-                      if(Bundle_decomposed.at(0)->isCompound() &&
-                           Bundle_decomposed.at(1)->isCompound())
-                      {
-                        type = MULTIAGENT;
-                      }else{
-                        OMPL_ERROR("State compound %d and %d not recognized.", 
-                            Bundle_decomposed.at(0)->getType(), 
-                            Bundle_decomposed.at(1)->getType());
-                        throw ompl::Exception("Invalid BundleSpace type.");
-                      }
-                    }
-                }
-            }
-            else
-            {
-              if(Bundle_subspaces >= 1){
-                if (!Base->isCompound())
-                {
-                    OMPL_ERROR("Bundle is compound, but Base is not.");
-                    throw ompl::Exception("Invalid BundleSpace type.");
-                }else{
-                    base::CompoundStateSpace *Base_compound = Base->as<base::CompoundStateSpace>();
-                    const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
-                    unsigned int Base_subspaces = Base_decomposed.size();
-                    if(Bundle_subspaces != Base_subspaces){
-                      OMPL_ERROR("Bundle has %d subspaces, but Base has %d.", Bundle_subspaces, Base_subspaces);
-                      throw ompl::Exception("Invalid BundleSpace type.");
-                    }
-                    type = MULTIAGENT;
-                }
-
-              }else{
-                OMPL_ERROR("Bundle has %d subspaces.", Bundle_subspaces);
-                throw ompl::Exception("Invalid BundleSpace type.");
-              }
-            }
-        }
-    }
-    return type;
-}
 
 void ompl::geometric::BundleSpace::mergeStates(const base::State *xBase, const base::State *xFiber, base::State *xBundle) const
 {
@@ -1675,14 +1276,14 @@ unsigned int ompl::geometric::BundleSpace::getFiberDimension() const
     return getFiber()->getStateDimension();
 }
 
-unsigned int ompl::geometric::BundleSpace::getDimension() const
-{
-    return getBundle()->getStateDimension();
-}
-
 unsigned int ompl::geometric::BundleSpace::getBaseDimension() const
 {
     return getBase()->getStateDimension();
+}
+
+unsigned int ompl::geometric::BundleSpace::getDimension() const
+{
+    return getBundle()->getStateDimension();
 }
 
 const ompl::base::StateSamplerPtr &ompl::geometric::BundleSpace::getFiberSamplerPtr() const
@@ -1705,15 +1306,15 @@ bool ompl::geometric::BundleSpace::hasSolution()
     return hasSolution_;
 }
 
-unsigned int ompl::geometric::BundleSpace::getTotalNumberOfSamples() const
-{
-    return totalNumberOfSamples_;
-}
+// unsigned int ompl::geometric::BundleSpace::getTotalNumberOfSamples() const
+// {
+//     return totalNumberOfSamples_;
+// }
 
-unsigned int ompl::geometric::BundleSpace::getTotalNumberOfFeasibleSamples() const
-{
-    return totalNumberOfFeasibleSamples_;
-}
+// unsigned int ompl::geometric::BundleSpace::getTotalNumberOfFeasibleSamples() const
+// {
+//     return totalNumberOfFeasibleSamples_;
+// }
 
 ompl::geometric::BundleSpace *ompl::geometric::BundleSpace::getParent() const
 {
@@ -1755,35 +1356,35 @@ ompl::base::OptimizationObjectivePtr ompl::geometric::BundleSpace::getOptimizati
     return opt_;
 }
 
-bool ompl::geometric::BundleSpace::sampleBase(base::State *x_random)
+bool ompl::geometric::BundleSpace::sampleBase(base::State *xRandom)
 {
-    Bundle_sampler_->sampleUniform(q_random);
+    Bundle_sampler_->sampleUniform(xRandom);
     return true;
 }
 
-bool ompl::geometric::BundleSpace::sample(base::State *x_random)
+bool ompl::geometric::BundleSpace::sample(base::State *xRandom)
 {
     bool valid = false;
     if (!hasParent())
     {
         // return Bundle_valid_sampler->sample(q_random);
-        Bundle_sampler_->sampleUniform(q_random);
-        valid = Bundle->isValid(q_random);
+        Bundle_sampler_->sampleUniform(xRandom);
+        valid = Bundle->isValid(xRandom);
     }
     else
     {
         if (getFiberDimension() > 0)
         {
             // Adjusted sampling function: Sampling in G0 x Fiber
-            Fiber_sampler_->sampleUniform(s_Fiber_tmp_);
-            parent_->sampleBase(s_Base_tmp_);
-            mergeStates(s_Base_tmp_, s_Fiber_tmp_, q_random);
+            Fiber_sampler_->sampleUniform(xFiberTmp_);
+            parent_->sampleBase(xBaseTmp_);
+            mergeStates(xBaseTmp_, xFiberTmp_, xRandom);
         }
         else
         {
-            parent_->sampleBase(q_random);
+            parent_->sampleBase(xRandom);
         }
-        valid = Bundle->isValid(q_random);
+        valid = Bundle->isValid(xRandom);
     }
     totalNumberOfSamples_++;
     if (valid)

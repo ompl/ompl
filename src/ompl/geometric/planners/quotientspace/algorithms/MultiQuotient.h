@@ -83,10 +83,10 @@ namespace ompl
             /** \brief Number of quotient-spaces */
             int getLevels() const;
 
-            /** \brief Number of feasible nodes on each BundleSpace (for DEBUGGING) */
-            std::vector<int> getFeasibleNodes() const;
-            /** \brief Number of nodes on each BundleSpace (for DEBUGGING) */
-            std::vector<int> getNodes() const;
+            // /** \brief Number of feasible nodes on each BundleSpace (for DEBUGGING) */
+            // std::vector<int> getFeasibleNodes() const;
+            // /** \brief Number of nodes on each BundleSpace (for DEBUGGING) */
+            // std::vector<int> getNodes() const;
 
             /** \brief Get all dimensions of the quotient-spaces in the sequence */
             std::vector<int> getDimensionsPerLevel() const;

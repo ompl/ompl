@@ -70,29 +70,29 @@ int ompl::geometric::MultiQuotient<T>::getLevels() const
     return stopAtLevel_;
 }
 
-template <class T>
-std::vector<int> ompl::geometric::MultiQuotient<T>::getNodes() const
-{
-    std::vector<int> nodesPerLevel;
-    for (unsigned int k = 0; k < stopAtLevel_; k++)
-    {
-        unsigned int Nk = bundleSpaces_.at(k)->getTotalNumberOfSamples();
-        nodesPerLevel.push_back(Nk);
-    }
-    return nodesPerLevel;
-}
+// template <class T>
+// std::vector<int> ompl::geometric::MultiQuotient<T>::getNodes() const
+// {
+//     std::vector<int> nodesPerLevel;
+//     for (unsigned int k = 0; k < stopAtLevel_; k++)
+//     {
+//         unsigned int Nk = bundleSpaces_.at(k)->getTotalNumberOfSamples();
+//         nodesPerLevel.push_back(Nk);
+//     }
+//     return nodesPerLevel;
+// }
 
-template <class T>
-std::vector<int> ompl::geometric::MultiQuotient<T>::getFeasibleNodes() const
-{
-    std::vector<int> feasibleNodesPerLevel;
-    for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
-    {
-        unsigned int Nk = bundleSpaces_.at(k)->getTotalNumberOfFeasibleSamples();
-        feasibleNodesPerLevel.push_back(Nk);
-    }
-    return feasibleNodesPerLevel;
-}
+// template <class T>
+// std::vector<int> ompl::geometric::MultiQuotient<T>::getFeasibleNodes() const
+// {
+//     std::vector<int> feasibleNodesPerLevel;
+//     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
+//     {
+//         unsigned int Nk = bundleSpaces_.at(k)->getTotalNumberOfFeasibleSamples();
+//         feasibleNodesPerLevel.push_back(Nk);
+//     }
+//     return feasibleNodesPerLevel;
+// }
 
 template <class T>
 std::vector<int> ompl::geometric::MultiQuotient<T>::getDimensionsPerLevel() const
