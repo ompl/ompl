@@ -42,35 +42,44 @@
 
 namespace ompl
 {
+  //New Notation:
+  //
+  // Configuration x;
+  // Components M
+  // Dimension N
+  // BundleSpaces Fiber, Bundle, Base;
+  //
     namespace geometric
     {
         /// \brief A single Bundle-space
         class BundleSpace : public ompl::base::Planner
         {
             using BaseT = ompl::base::Planner;
-            enum BundleType
-            {
-                EMPTY_SET_PROJECTION = 0, //space which projects onto empty set
-                IDENTITY_SPACE_RN = 1,
-                IDENTITY_SPACE_SE2 = 2,
-                IDENTITY_SPACE_SE2RN = 3,
-                IDENTITY_SPACE_SO2RN = 4,
-                IDENTITY_SPACE_SE3 = 5,
-                IDENTITY_SPACE_SE3RN = 6,
-                NO_BUNDLE_STRUCTURE = 7,
-                RN_RM = 8,
-                SE2_R2 = 9,
-                SE2RN_R2 = 10,
-                SE2RN_SE2 = 11, //REMOVE
-                SE2RN_SE2RM = 12,
-                SO2RN_SO2 = 13, //REMOVE
-                SO2RN_SO2RM = 14,
-                SE3_R3 = 15,
-                SE3RN_R3 = 16,
-                SE3RN_SE3 = 17, //REMOVE
-                SE3RN_SE3RM = 18,
-                MULTIAGENT = 19
-            };
+            //IDENTITY_SPACE
+            //CONSTRAINT_RELAXATION_SPACE
+            // enum BundleType
+            // {
+            //     EMPTY_SET_PROJECTION = 0, //space which projects onto empty set
+            //     IDENTITY_SPACE_RN = 1, //REMOVE
+            //     IDENTITY_SPACE_SE2 = 2, //REMOVE
+            //     IDENTITY_SPACE_SE2RN = 3, //REMOVE
+            //     IDENTITY_SPACE_SO2RN = 4, //REMOVE
+            //     IDENTITY_SPACE_SE3 = 5, //REMOVE
+            //     IDENTITY_SPACE_SE3RN = 6,
+            //     NO_BUNDLE_STRUCTURE = 7,
+            //     RN_RM = 8,
+            //     SE2_R2 = 9, //REMOVE
+            //     SE2RN_R2 = 10,
+            //     SE2RN_SE2 = 11, //REMOVE
+            //     SE2RN_SE2RM = 12,
+            //     SO2RN_SO2 = 13, //REMOVE
+            //     SO2RN_SO2RM = 14,
+            //     SE3_R3 = 15, //REMOVE
+            //     SE3RN_R3 = 16,
+            //     SE3RN_SE3 = 17, //REMOVE
+            //     SE3RN_SE3RM = 18,
+            //     MULTIAGENT = 19
+            // };
 
         public:
             /**  \brief Bundle Space contains three OMPL spaces, which we call Bundle, Base and Fiber.
@@ -93,8 +102,10 @@ namespace ompl
 
             virtual void grow() = 0;
             virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
+
             virtual bool sampleBase(ompl::base::State *q_random);
             virtual bool sample(ompl::base::State *q_random);
+
             virtual bool hasSolution();
             virtual void clear() override;
             virtual void setup() override;
@@ -153,34 +164,28 @@ namespace ompl
             void setParent(BundleSpace *parent_);
 
             /// Number of samples drawn on space Bundle
-            unsigned int getTotalNumberOfSamples() const;
+            unsigned int getTotalNumberOfSamples() const; //REMOVE
             /// Number of feasible samples drawn on space Bundle
-            unsigned int getTotalNumberOfFeasibleSamples() const;
+            unsigned int getTotalNumberOfFeasibleSamples() const; //REMOVE
 
             /// \brief Bundle Space Projection Operator onto second component
             /// ProjectFiber: Base \times Fiber \rightarrow Fiber
-            void projectFiber(const ompl::base::State *q, ompl::base::State *qFiber) const;
+            void projectFiber(
+                const ompl::base::State *xBundle, 
+                ompl::base::State *xFiber) const;
 
             /// \brief Bundle Space Projection Operator onto first component
             /// ProjectBase: Base \times Fiber \rightarrow Base
+            
             void projectBase(
-                const ompl::base::State *q, 
-                ompl::base::State *qBase) const;
-            void projectBase(
-                const ompl::base::State *q, 
-                ompl::base::State *qBase,
-                BundleType type) const;
+                const ompl::base::State *xBundle, 
+                ompl::base::State *xBase) const;
 
             /// Merge a state from Base and Fiber into a state on Bundle (concatenate)
             void mergeStates(
-                const ompl::base::State *qBase, 
-                const ompl::base::State *qFiber, 
-                ompl::base::State *qBundle) const;
-            void mergeStates(
-                const ompl::base::State *qBase, 
-                const ompl::base::State *qFiber, 
-                ompl::base::State *qBundle, 
-                BundleType type) const;
+                const ompl::base::State *xBase, 
+                const ompl::base::State *xFiber, 
+                ompl::base::State *xBundle) const; 
 
             /// Check if Bundle-space is unbounded
             void checkSpaceHasFiniteMeasure(const ompl::base::StateSpacePtr space) const;
@@ -195,10 +200,15 @@ namespace ompl
             bool isDynamic() const;
 
         protected:
+            std::vector<BundleSubspacePtr> subspaces_;
+
             /// Internal function implementing actual printing to stream
             virtual void print(std::ostream &out) const;
 
             ///  \brief Compute the Bundle Bundle / Base between two given spaces.
+            
+            
+            //OUTSOURCE
             const ompl::base::StateSpacePtr computeFiberSpace(const ompl::base::StateSpacePtr Bundle,
                                                                  const ompl::base::StateSpacePtr Base);
             const ompl::base::StateSpacePtr computeFiberSpace(const ompl::base::StateSpacePtr Bundle,
@@ -207,7 +217,7 @@ namespace ompl
 
             /// Identify the type of the Bundle Bundle / Base
             BundleType identifyBundleType(const ompl::base::StateSpacePtr Bundle,
-                                                        const ompl::base::StateSpacePtr Base);
+                                          const ompl::base::StateSpacePtr Base);
 
             ompl::base::SpaceInformationPtr Bundle{nullptr};
             ompl::base::SpaceInformationPtr Base{nullptr};
