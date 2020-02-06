@@ -2,16 +2,16 @@
 #define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_SUBSPACE_
 #include <ompl/base/State.h>
 #include <ompl/base/StateSpace.h>
-#include "BundleSubspaceTypes.h"
+#include "BundleSpaceComponent.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        class BundleSubspace
+        class BundleSpaceComponent
         {
           public:
-            BundleSubspace(
+            BundleSpaceComponent(
                 base::StateSpacePtr BundleSpace,
                 base::StateSpacePtr BaseSpace);
 
@@ -46,7 +46,7 @@ namespace ompl
             base::StateSpacePtr BaseSpace_{nullptr};
             base::StateSpacePtr FiberSpace_{nullptr};
 
-            BundleSubspaceType type_;
+            BundleSpaceComponentType type_;
         };
     }
 }

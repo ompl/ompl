@@ -1,6 +1,6 @@
 #include "../SE2_R2.h"
 
-void BundleSubspaceSE2_R2::projectFiber(
+void BundleSpaceComponent_SE2_R2::projectFiber(
     const ompl::base::State *xBundle,
     ompl::base::State *xFiber) const
 {
@@ -11,7 +11,7 @@ void BundleSubspaceSE2_R2::projectFiber(
 }
 
 
-void BundleSubspaceSE2_R2::projectBase(
+void BundleSpaceComponent_SE2_R2::projectBase(
     const ompl::base::State *xBundle,
     ompl::base::State *xBase) const
 {
@@ -23,7 +23,7 @@ void BundleSubspaceSE2_R2::projectBase(
 }
 
 
-void BundleSubspaceSE2_R2::mergeStates(
+void BundleSpaceComponent_SE2_R2::mergeStates(
     const ompl::base::State *xBase, 
     const ompl::base::State *xFiber, 
     ompl::base::State *xBundle) const
@@ -36,7 +36,7 @@ void BundleSubspaceSE2_R2::mergeStates(
   xBundle_SE2->setYaw(xFiber_SO2->value);
 }
 
-ompl::base::StateSpacePtr BundleSubspaceSE2_R2::getFiberSpace()
+ompl::base::StateSpacePtr BundleSpaceComponent_SE2_R2::computeFiberSpace()
 {
 
   unsigned int N = BundleSpace_->getDimension();
@@ -47,7 +47,8 @@ ompl::base::StateSpacePtr BundleSubspaceSE2_R2::getFiberSpace()
   }
   return std::make_shared<base::SO2StateSpace>();
 }
-std::string getTypeAsString()
+
+std::string BundleSpaceComponent_SE2_R2::getTypeAsString()
 {
   return "SE2 -> R2";
 }

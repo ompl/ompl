@@ -1,15 +1,15 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_SUBSPACE_SE2RN_R2__
 #define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_SUBSPACE_SE2RN_R2__
-#include "../BundleSubspace.h"
+#include "../BundleSpaceComponent.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        class BundleSubspaceSE2_R2: public BundleSubspace
+        class BundleSpaceComponent_SE2_R2: public BundleSpaceComponent
         {
           public:
-            BundleSubspace(
+            BundleSpaceComponent_SE2_R2(
                 base::StateSpacePtr BundleSpace,
                 base::StateSpacePtr BaseSpace) = default;
 
@@ -26,7 +26,7 @@ namespace ompl
                 const ompl::base::State *xFiber, 
                 ompl::base::State *xBundle) const override;
 
-            ompl::base::StateSpacePtr getFiberSpace() override;
+            ompl::base::StateSpacePtr computeFiberSpace() override;
 
             std::string getTypeAsString() override;
 

@@ -7,11 +7,13 @@ namespace ompl
 {
     namespace geometric
     {
-        class BundleSubspaceFactory
+        class BundleSpaceComponentFactory
         {
           public:
-            BundleSubspaceFactory() = default;
-            BundleSubspacePtr MakeSubspaceBundle(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace)
+            BundleSpaceComponentFactory() = default;
+            BundleSpaceComponentPtr MakeBundleSpaceComponent(
+                base::StateSpacePtr BundleSpace, 
+                base::StateSpacePtr BaseSpace)
             {
 
 

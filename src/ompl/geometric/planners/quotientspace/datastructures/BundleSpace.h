@@ -1,44 +1,8 @@
-/*********************************************************************
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2019, University of Stuttgart
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of the University of Stuttgart nor the names
- *     of its contributors may be used to endorse or promote products
- *     derived from this software without specific prior written
- *     permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *********************************************************************/
-
-/* Author: Andreas Orthey */
-
 #ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_
 #define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_
 
 #include <ompl/base/Planner.h>
+#include "BundleSpaceComponent.h"
 
 namespace ompl
 {
@@ -51,13 +15,17 @@ namespace ompl
   //
     namespace geometric
     {
+        OMPL_CLASS_FORWARD(BundleSubspace);
+    }
+    namespace geometric
+    {
         /// \brief A single Bundle-space
         class BundleSpace : public ompl::base::Planner
         {
             using BaseT = ompl::base::Planner;
             //IDENTITY_SPACE
             //CONSTRAINT_RELAXATION_SPACE
-            // enum BundleType
+            // enum BundleSubspaceType
             // {
             //     EMPTY_SET_PROJECTION = 0, //space which projects onto empty set
             //     IDENTITY_SPACE_RN = 1, //REMOVE
@@ -103,8 +71,8 @@ namespace ompl
             virtual void grow() = 0;
             virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
 
-            virtual bool sampleBase(ompl::base::State *q_random);
-            virtual bool sample(ompl::base::State *q_random);
+            virtual bool sampleBase(ompl::base::State *x_random);
+            virtual bool sample(ompl::base::State *x_random);
 
             virtual bool hasSolution();
             virtual void clear() override;
@@ -157,16 +125,16 @@ namespace ompl
             /// Change abstraction level
             void setLevel(unsigned int);
             /// Type of Bundle-space
-            BundleType getType() const;
+            // BundleSubspaceType getType() const;
             /// Set pointer to less simplified Bundle-space
             void setChild(BundleSpace *child_);
             /// Set pointer to more simplified Bundle-space
             void setParent(BundleSpace *parent_);
 
-            /// Number of samples drawn on space Bundle
-            unsigned int getTotalNumberOfSamples() const; //REMOVE
-            /// Number of feasible samples drawn on space Bundle
-            unsigned int getTotalNumberOfFeasibleSamples() const; //REMOVE
+            // /// Number of samples drawn on space Bundle
+            // unsigned int getTotalNumberOfSamples() const; //REMOVE
+            // /// Number of feasible samples drawn on space Bundle
+            // unsigned int getTotalNumberOfFeasibleSamples() const; //REMOVE
 
             /// \brief Bundle Space Projection Operator onto second component
             /// ProjectFiber: Base \times Fiber \rightarrow Fiber
@@ -176,7 +144,6 @@ namespace ompl
 
             /// \brief Bundle Space Projection Operator onto first component
             /// ProjectBase: Base \times Fiber \rightarrow Base
-            
             void projectBase(
                 const ompl::base::State *xBundle, 
                 ompl::base::State *xBase) const;
@@ -200,7 +167,7 @@ namespace ompl
             bool isDynamic() const;
 
         protected:
-            std::vector<BundleSubspacePtr> subspaces_;
+            std::vector<BundleSpaceComponentPtr> components_;
 
             /// Internal function implementing actual printing to stream
             virtual void print(std::ostream &out) const;
@@ -213,11 +180,12 @@ namespace ompl
                                                                  const ompl::base::StateSpacePtr Base);
             const ompl::base::StateSpacePtr computeFiberSpace(const ompl::base::StateSpacePtr Bundle,
                                                                  const ompl::base::StateSpacePtr Base,
-                                                                 BundleType type);
+                                                                 BundleSubspaceType type);
 
             /// Identify the type of the Bundle Bundle / Base
-            BundleType identifyBundleType(const ompl::base::StateSpacePtr Bundle,
-                                          const ompl::base::StateSpacePtr Base);
+            BundleSubspaceType identifyBundleSubspaceType(
+                const ompl::base::StateSpacePtr Bundle,
+                const ompl::base::StateSpacePtr Base);
 
             ompl::base::SpaceInformationPtr Bundle{nullptr};
             ompl::base::SpaceInformationPtr Base{nullptr};
@@ -234,12 +202,12 @@ namespace ompl
             /// A temporary state on Fiber
             ompl::base::State *s_Fiber_tmp_{nullptr};
 
-            BundleType type_;
-            std::vector<BundleType> types_; //for multiagent planning
+            // BundleSubspaceType type_;
+            // std::vector<BundleSubspaceType> types_; //for multiagent planning
 
-            unsigned int Bundle_dimension_{0};
-            unsigned int Base_dimension_{0};
-            unsigned int Fiber_dimension_{0};
+            // unsigned int Bundle_dimension_{0};
+            // unsigned int Base_dimension_{0};
+            // unsigned int Fiber_dimension_{0};
 
             static unsigned int counter_;
             /// Identity of space (to keep track of number of Bundle-spaces created)
@@ -255,8 +223,8 @@ namespace ompl
             BundleSpace *parent_{nullptr};
             BundleSpace *child_{nullptr};
 
-            unsigned int totalNumberOfSamples_{0};
-            unsigned int totalNumberOfFeasibleSamples_{0};
+            // unsigned int totalNumberOfSamples_{0};
+            // unsigned int totalNumberOfFeasibleSamples_{0};
 
             /** \brief Goal state or goal region */
             ompl::base::Goal *goal_;
