@@ -40,12 +40,12 @@
 
 #define foreach BOOST_FOREACH
 
-ompl::geometric::QRRTImpl::QRRTImpl(const base::SpaceInformationPtr &si, QuotientSpace *parent_) : BaseT(si, parent_)
+ompl::geometric::QRRTImpl::QRRTImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QRRTImpl" + std::to_string(id_));
     Planner::declareParam<double>("range", this, &QRRTImpl::setRange, &QRRTImpl::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &QRRTImpl::setGoalBias, &QRRTImpl::getGoalBias, "0.:.1:1.");
-    qRandom_ = new Configuration(Q1);
+    qRandom_ = new Configuration(Bundle);
 }
 
 ompl::geometric::QRRTImpl::~QRRTImpl()
@@ -76,7 +76,7 @@ double ompl::geometric::QRRTImpl::getRange() const
 void ompl::geometric::QRRTImpl::setup()
 {
     BaseT::setup();
-    ompl::tools::SelfConfig sc(Q1, getName());
+    ompl::tools::SelfConfig sc(Bundle, getName());
     sc.configurePlannerRange(maxDistance_);
 }
 
@@ -120,7 +120,7 @@ void ompl::geometric::QRRTImpl::grow()
         double s = rng_.uniform01();
         if (s < goalBias_)
         {
-            Q1->copyState(qRandom_->state, qGoal_->state);
+            Bundle->copyState(qRandom_->state, qGoal_->state);
         }
         else
         {
@@ -129,17 +129,17 @@ void ompl::geometric::QRRTImpl::grow()
     }
 
     const Configuration *q_nearest = nearest(qRandom_);
-    double d = Q1->distance(q_nearest->state, qRandom_->state);
+    double d = Bundle->distance(q_nearest->state, qRandom_->state);
     if (d > maxDistance_)
     {
-        Q1->getStateSpace()->interpolate(q_nearest->state, qRandom_->state, maxDistance_ / d, qRandom_->state);
+        Bundle->getStateSpace()->interpolate(q_nearest->state, qRandom_->state, maxDistance_ / d, qRandom_->state);
     }
 
     totalNumberOfSamples_++;
-    if (Q1->checkMotion(q_nearest->state, qRandom_->state))
+    if (Bundle->checkMotion(q_nearest->state, qRandom_->state))
     {
         totalNumberOfFeasibleSamples_++;
-        Configuration *q_next = new Configuration(Q1, qRandom_->state);
+        Configuration *q_next = new Configuration(Bundle, qRandom_->state);
         Vertex v_next = addConfiguration(q_next);
         if (!hasSolution_)
         {
@@ -182,28 +182,28 @@ bool ompl::geometric::QRRTImpl::sample(base::State *q_random)
 {
     if (!hasParent())
     {
-        Q1_sampler_->sampleUniform(q_random);
+        Bundle_sampler_->sampleUniform(q_random);
     }
     else
     {
-        if (X1_dimension_ > 0)
+        if (Fiber_dimension_ > 0)
         {
-            X1_sampler_->sampleUniform(s_X1_tmp_);
-            parent_->sampleQuotient(s_Q0_tmp_);
-            mergeStates(s_Q0_tmp_, s_X1_tmp_, q_random);
+            Fiber_sampler_->sampleUniform(s_Fiber_tmp_);
+            parent_->sampleBase(s_Base_tmp_);
+            mergeStates(s_Base_tmp_, s_Fiber_tmp_, q_random);
         }
         else
         {
-            parent_->sampleQuotient(q_random);
+            parent_->sampleBase(q_random);
         }
     }
     return true;
 }
 
-bool ompl::geometric::QRRTImpl::sampleQuotient(base::State *q_random_graph)
+bool ompl::geometric::QRRTImpl::sampleBase(base::State *q_random_graph)
 {
     // RANDOM VERTEX SAMPLING
     const Vertex v = boost::random_vertex(graph_, rng_boost);
-    Q1->getStateSpace()->copyState(q_random_graph, graph_[v]->state);
+    Bundle->getStateSpace()->copyState(q_random_graph, graph_[v]->state);
     return true;
 }

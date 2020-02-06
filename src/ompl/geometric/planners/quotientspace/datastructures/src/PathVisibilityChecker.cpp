@@ -217,7 +217,7 @@ public:
   ob::State* path2_interp_state_;
 };
 
-bool PathVisibilityChecker::IsPathVisible(std::vector<QuotientSpaceGraph::Vertex> &v1, std::vector<QuotientSpaceGraph::Vertex> &v2, QuotientSpaceGraph::Graph &graph)
+bool PathVisibilityChecker::IsPathVisible(std::vector<BundleSpaceGraph::Vertex> &v1, std::vector<BundleSpaceGraph::Vertex> &v2, BundleSpaceGraph::Graph &graph)
 {
   std::vector<ob::State*> s1;
   std::vector<ob::State*> s2;

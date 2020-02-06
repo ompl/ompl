@@ -1,6 +1,6 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpace.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraphSparse.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpace.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
@@ -15,7 +15,7 @@ template <class T>
 ompl::geometric::MotionExplorerImpl<T>::MotionExplorerImpl(std::vector<ob::SpaceInformationPtr> &siVec, std::string type)
   : BaseT(siVec, type)
 {
-    root = static_cast<og::QuotientSpaceGraphSparse*>(this->quotientSpaces_.front());
+    root = static_cast<og::BundleSpaceGraphSparse*>(this->bundleSpaces_.front());
     current = root;
 }
 
@@ -49,13 +49,13 @@ void ompl::geometric::MotionExplorerImpl<T>::setSelectedPath( std::vector<int> s
     for(uint k = 0; k < selectedPath.size(); k++){
       //selected path implies path bias, which implies a sampling bias towards the
       //selected path
-      og::QuotientSpaceGraphSparse *qgraph = 
-        static_cast<og::QuotientSpaceGraphSparse*>(this->quotientSpaces_.at(k));
+      og::BundleSpaceGraphSparse *qgraph = 
+        static_cast<og::BundleSpaceGraphSparse*>(this->bundleSpaces_.at(k));
           
       qgraph->selectedPath = selectedPath.at(k);
     }
 
-    std::cout << "[SELECTION CHANGE] QuotientSpaces set from [";
+    std::cout << "[SELECTION CHANGE] BundleSpaces set from [";
     for(uint k = 0; k < oldSelectedPath.size(); k++){
       int sk = oldSelectedPath.at(k);
       std::cout << sk << " ";
@@ -69,13 +69,13 @@ void ompl::geometric::MotionExplorerImpl<T>::setSelectedPath( std::vector<int> s
 
     //User changed to different folder (and the files inside have not been
     //generated yet)
-    if(N==Nold && N>0 && (N < this->quotientSpaces_.size())){
+    if(N==Nold && N>0 && (N < this->bundleSpaces_.size())){
         unsigned int M = selectedPath.back();
         unsigned int Mold = oldSelectedPath.back();
         if(M!=Mold){
             std::cout << "Changed Folder. Clear quotient-spaces [" 
               << N << "]" << std::endl;
-            this->quotientSpaces_.at(N)->clear();
+            this->bundleSpaces_.at(N)->clear();
         }
 
     }
@@ -88,7 +88,7 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
     ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     uint K = selectedPath_.size();
 
-    if(K>=this->quotientSpaces_.size()){
+    if(K>=this->bundleSpaces_.size()){
         K = K-1;
     }
 
@@ -96,8 +96,8 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
     //expand
     while(K>0)
     {
-        og::QuotientSpaceGraphSparse *kQuotient = 
-          static_cast<og::QuotientSpaceGraphSparse*>(this->quotientSpaces_.at(K-1));
+        og::BundleSpaceGraphSparse *kQuotient = 
+          static_cast<og::BundleSpaceGraphSparse*>(this->bundleSpaces_.at(K-1));
         if(kQuotient->getNumberOfPaths()>0){
           break;
         }else{
@@ -106,8 +106,8 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
     }
 
     //Check which 
-    og::QuotientSpaceGraphSparse *jQuotient = 
-      static_cast<og::QuotientSpaceGraphSparse*>(this->quotientSpaces_.at(K));
+    og::BundleSpaceGraphSparse *jQuotient = 
+      static_cast<og::BundleSpaceGraphSparse*>(this->bundleSpaces_.at(K));
 
     uint ctr = 0;
 
@@ -151,14 +151,14 @@ void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
         throw ompl::Exception("cannot get planner data if plannerdata is already populated");
     }
 
-    unsigned int K = this->quotientSpaces_.size();
-    std::vector<uint> countVerticesPerQuotientSpace;
+    unsigned int K = this->bundleSpaces_.size();
+    std::vector<uint> countVerticesPerBundleSpace;
 
     for (unsigned int k = 0; k < K; k++)
     {
-        og::QuotientSpace *Qk = this->quotientSpaces_.at(k);
-        static_cast<QuotientSpaceGraphSparse*>(Qk)->enumerateAllPaths();
-        static_cast<QuotientSpaceGraphSparse*>(Qk)->getPlannerData(data);
+        og::BundleSpace *Qk = this->bundleSpaces_.at(k);
+        static_cast<BundleSpaceGraphSparse*>(Qk)->enumerateAllPaths();
+        static_cast<BundleSpaceGraphSparse*>(Qk)->getPlannerData(data);
         // Qk->getPlannerData(data);
         // label all new vertices
         unsigned int ctr = 0;
@@ -172,33 +172,33 @@ void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
             ob::State *s_lift = Qk->getSpaceInformation()->cloneState(v.getState());
             v.setQuotientState(s_lift);
 
-            for (unsigned int m = k + 1; m < this->quotientSpaces_.size(); m++)
+            for (unsigned int m = k + 1; m < this->bundleSpaces_.size(); m++)
             {
-                const og::QuotientSpace *Qm = this->quotientSpaces_.at(m);
-                if (Qm->getX1() != nullptr)
+                const og::BundleSpace *Qm = this->bundleSpaces_.at(m);
+                if (Qm->getFiber() != nullptr)
                 {
-                    ob::State *s_Q1 = Qm->allocIdentityStateQ1();
-                    ob::State *s_X1 = Qm->allocIdentityStateX1();
+                    ob::State *s_Bundle = Qm->allocIdentityStateBundle();
+                    ob::State *s_Fiber = Qm->allocIdentityStateFiber();
 
-                    // Qm->mergeStates(s_lift, s_X1, s_Q1);
-                    s_lift = Qm->getQ1()->cloneState(s_Q1);
+                    // Qm->mergeStates(s_lift, s_Fiber, s_Bundle);
+                    s_lift = Qm->getBundle()->cloneState(s_Bundle);
 
-                    Qm->getQ1()->freeState(s_Q1);
-                    Qm->getX1()->freeState(s_X1);
+                    Qm->getBundle()->freeState(s_Bundle);
+                    Qm->getFiber()->freeState(s_Fiber);
                 }
             }
             v.setState(s_lift);
             ctr++;
         }
-        countVerticesPerQuotientSpace.push_back(data.numVertices() - Nvertices);
+        countVerticesPerBundleSpace.push_back(data.numVertices() - Nvertices);
         Nvertices = data.numVertices();
 
     }
     std::cout << "Created PlannerData with " << data.numVertices() << " vertices ";
     std::cout << "(";
-    for(uint k = 0; k < countVerticesPerQuotientSpace.size(); k++){
-       uint ck = countVerticesPerQuotientSpace.at(k);
-       std::cout << ck << (k < countVerticesPerQuotientSpace.size()-1?", ":"");
+    for(uint k = 0; k < countVerticesPerBundleSpace.size(); k++){
+       uint ck = countVerticesPerBundleSpace.at(k);
+       std::cout << ck << (k < countVerticesPerBundleSpace.size()-1?", ":"");
     }
     std::cout << ")" << std::endl;
 }

@@ -37,7 +37,7 @@
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRTIMPL_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRTIMPL_
-#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraph.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
 #include <ompl/datastructures/PDF.h>
 
 namespace ompl
@@ -48,13 +48,13 @@ namespace ompl
     }
     namespace geometric
     {
-        /** \brief Implementation of QuotientSpace Rapidly-Exploring Random Trees Algorithm*/
-        class QRRTImpl : public ompl::geometric::QuotientSpaceGraph
+        /** \brief Implementation of BundleSpace Rapidly-Exploring Random Trees Algorithm*/
+        class QRRTImpl : public ompl::geometric::BundleSpaceGraph
         {
-            using BaseT = QuotientSpaceGraph;
+            using BaseT = BundleSpaceGraph;
 
         public:
-            QRRTImpl(const ompl::base::SpaceInformationPtr &si, QuotientSpace *parent_);
+            QRRTImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
             virtual ~QRRTImpl() override;
             /** \brief One iteration of RRT with adjusted sampling function */
             virtual void grow() override;
@@ -65,7 +65,7 @@ namespace ompl
             virtual bool sample(ompl::base::State *q_random) override;
             /** \brief \brief Quotient-Space sampling by choosing a random vertex from parent
                 class tree */
-            virtual bool sampleQuotient(ompl::base::State *) override;
+            virtual bool sampleBase(ompl::base::State *) override;
 
             virtual void setup() override;
             virtual void clear() override;

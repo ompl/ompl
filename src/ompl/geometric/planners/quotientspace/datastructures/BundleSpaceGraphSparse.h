@@ -1,7 +1,8 @@
-#pragma once
+#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_SPARSE_
+#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_SPARSE_
 
 #include "PathVisibilityChecker.h"
-#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraph.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
 #include <ompl/datastructures/NearestNeighbors.h>
 #include <ompl/util/RandomNumbers.h>
 #include <ompl/geometric/PathGeometric.h>
@@ -18,13 +19,13 @@ namespace ompl
 {
   namespace geometric
   {
-    class QuotientSpaceGraphSparse: public ompl::geometric::QuotientSpaceGraph{
+    class BundleSpaceGraphSparse: public ompl::geometric::BundleSpaceGraph{
 
-        using BaseT = ompl::geometric::QuotientSpaceGraph;
+        using BaseT = ompl::geometric::BundleSpaceGraph;
       public:
 
-        QuotientSpaceGraphSparse(const ob::SpaceInformationPtr &si, QuotientSpace *parent = nullptr);
-        virtual ~QuotientSpaceGraphSparse() override;
+        BundleSpaceGraphSparse(const ob::SpaceInformationPtr &si, BundleSpace *parent = nullptr);
+        virtual ~BundleSpaceGraphSparse() override;
 
         virtual void grow() = 0;
         virtual void getPlannerData(ob::PlannerData &data) const override;
@@ -62,11 +63,11 @@ namespace ompl
         unsigned int getNumberOfPaths() const;
         const std::vector<ob::State*> getKthPath(uint k) const;
         void getPathIndices(const std::vector<ob::State*> &states, std::vector<int> &idxPath) const;
-        bool isProjectable(const std::vector<ob::State*> &pathQ1) const;
-        int getProjectionIndex(const std::vector<ob::State*> &pathQ1) const;
+        bool isProjectable(const std::vector<ob::State*> &pathBundle) const;
+        int getProjectionIndex(const std::vector<ob::State*> &pathBundle) const;
 
         int selectedPath{-1}; //selected path to sample from (if children try to sample this space)
-        bool sampleQuotient(ob::State *q_random_graph) override;
+        bool sampleBase(ob::State *q_random_graph) override;
 
         PathVisibilityChecker* getPathVisibilityChecker();
         void debugInvalidState(const ob::State *s);
@@ -79,7 +80,7 @@ namespace ompl
 
         virtual const Configuration *nearest(const Configuration *s) const;
         void freePath(std::vector<ob::State*> path, const ob::SpaceInformationPtr &si) const;
-        std::vector<ob::State*> getProjectedPath(const std::vector<ob::State*> pathQ1, const ob::SpaceInformationPtr &si) const;
+        std::vector<ob::State*> getProjectedPath(const std::vector<ob::State*> pathBundle, const ob::SpaceInformationPtr &si) const;
     protected:
 
         double sparseDelta_{0.};
@@ -135,4 +136,4 @@ namespace ompl
   };
 };
 
-
+#endif

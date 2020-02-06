@@ -1,7 +1,7 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MotionExplorerImpl_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MotionExplorerImpl_
 #include <ompl/geometric/planners/quotientspace/algorithms/MultiQuotient.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraphSparse.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h>
 #include <type_traits>
 #include <queue>
 
@@ -16,8 +16,8 @@ namespace ompl
         template <class T>
         class MotionExplorerImpl : public og::MultiQuotient<T>
         {
-            static_assert(std::is_base_of<og::QuotientSpaceGraphSparse, T>::value, 
-                "Template must inherit from QuotientSpaceGraphSparse");
+            static_assert(std::is_base_of<og::BundleSpaceGraphSparse, T>::value, 
+                "Template must inherit from BundleSpaceGraphSparse");
 
             typedef og::MultiQuotient<T> BaseT;
         public:
@@ -36,8 +36,8 @@ namespace ompl
         protected:
             double pathBias{0.8}; //[0,1]
 
-            og::QuotientSpaceGraphSparse *root{nullptr};
-            og::QuotientSpaceGraphSparse *current{nullptr};
+            og::BundleSpaceGraphSparse *root{nullptr};
+            og::BundleSpaceGraphSparse *current{nullptr};
             std::vector<int> selectedPath_;
         };
     }

@@ -35,9 +35,9 @@
 
 /* Author: Andreas Orthey */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MULTIQUOTIENT_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MULTIQUOTIENT_
-#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpace.h>
+#ifndef OMPL_GEOMETRIC_PLANNERS_BundleSpace_MULTIQUOTIENT_
+#define OMPL_GEOMETRIC_PLANNERS_BundleSpace_MULTIQUOTIENT_
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpace.h>
 #include <type_traits>
 #include <queue>
 
@@ -47,7 +47,7 @@ namespace ompl
     {
         /** \brief A sequence of multiple quotient-spaces
              The class MultiQuotient can be used with any planner which inherits
-             the ompl::geometric::QuotientSpace class.
+             the ompl::geometric::BundleSpace class.
 
              Example usage with QRRT
              (using a sequence si_vec of ompl::base::SpaceInformationPtr)
@@ -58,7 +58,7 @@ namespace ompl
         class MultiQuotient : public ompl::base::Planner
         {
             using BaseT = ompl::base::Planner;
-            static_assert(std::is_base_of<QuotientSpace, T>::value, "Template must inherit from Quotient");
+            static_assert(std::is_base_of<BundleSpace, T>::value, "Template must inherit from Quotient");
 
         public:
             const bool DEBUG{false};
@@ -71,21 +71,21 @@ namespace ompl
 
             virtual ~MultiQuotient() override;
 
-            /** \brief Return annotated vertices (with information about QuotientSpace level) */
+            /** \brief Return annotated vertices (with information about BundleSpace level) */
             void getPlannerData(ompl::base::PlannerData &data) const override;
 
             ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override;
             void setup() override;
             void clear() override;
             virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
-            const ompl::base::ProblemDefinitionPtr &getProblemDefinition(unsigned int kQuotientSpace) const;
+            const ompl::base::ProblemDefinitionPtr &getProblemDefinition(unsigned int kBundleSpace) const;
 
             /** \brief Number of quotient-spaces */
             int getLevels() const;
 
-            /** \brief Number of feasible nodes on each QuotientSpace (for DEBUGGING) */
+            /** \brief Number of feasible nodes on each BundleSpace (for DEBUGGING) */
             std::vector<int> getFeasibleNodes() const;
-            /** \brief Number of nodes on each QuotientSpace (for DEBUGGING) */
+            /** \brief Number of nodes on each BundleSpace (for DEBUGGING) */
             std::vector<int> getNodes() const;
 
             /** \brief Get all dimensions of the quotient-spaces in the sequence */
@@ -97,7 +97,7 @@ namespace ompl
             std::vector<ompl::base::PathPtr> solutions_;
 
             /** \brief Sequence of quotient-spaces */
-            std::vector<QuotientSpace *> quotientSpaces_;
+            std::vector<BundleSpace *> bundleSpaces_;
 
             /** \brief Indicator if a solution has been found on the current quotient-spaces */
             bool foundKLevelSolution_{false};
@@ -110,24 +110,24 @@ namespace ompl
                 level. */
             unsigned int stopAtLevel_;
 
-            /** \brief Each QuotientSpace has a unique ompl::base::SpaceInformationPtr */
+            /** \brief Each BundleSpace has a unique ompl::base::SpaceInformationPtr */
             std::vector<ompl::base::SpaceInformationPtr> siVec_;
 
             /** \brief Compare function for priority queue */
-            struct CmpQuotientSpacePtrs
+            struct CmpBundleSpacePtrs
             {
                 // ">" operator: smallest value is top in queue
                 // "<" operator: largest value is top in queue (default)
-                bool operator()(const QuotientSpace *lhs, const QuotientSpace *rhs) const
+                bool operator()(const BundleSpace *lhs, const BundleSpace *rhs) const
                 {
                     return lhs->getImportance() < rhs->getImportance();
                 }
             };
-            /** \brief \brief Priority queue of QuotientSpaces which keeps track of how often
+            /** \brief \brief Priority queue of BundleSpaces which keeps track of how often
                 every tree on each space has been expanded. */
-            typedef std::priority_queue<QuotientSpace *, std::vector<QuotientSpace *>, CmpQuotientSpacePtrs>
-                QuotientSpacePriorityQueue;
-            QuotientSpacePriorityQueue priorityQueue_;
+            typedef std::priority_queue<BundleSpace *, std::vector<BundleSpace *>, CmpBundleSpacePtrs>
+                BundleSpacePriorityQueue;
+            BundleSpacePriorityQueue priorityQueue_;
         };
     }  // namespace geometric
 }  // namespace ompl

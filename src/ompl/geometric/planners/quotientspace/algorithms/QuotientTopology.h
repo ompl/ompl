@@ -1,5 +1,5 @@
 #pragma once
-#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraphSparse.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h>
 #include <ompl/datastructures/PDF.h>
 #include <ompl/control/Control.h>
 #include <ompl/control/StatePropagator.h>
@@ -19,12 +19,12 @@ namespace ompl
   namespace geometric
   {
     //QuotientTopology 
-    class QuotientTopology: public og::QuotientSpaceGraphSparse{
+    class QuotientTopology: public og::BundleSpaceGraphSparse{
 
-      using BaseT = ompl::geometric::QuotientSpaceGraphSparse;
+      using BaseT = ompl::geometric::BundleSpaceGraphSparse;
       public:
 
-        QuotientTopology(const ob::SpaceInformationPtr &si, QuotientSpace *parent_);
+        QuotientTopology(const ob::SpaceInformationPtr &si, BundleSpace *parent_);
         virtual ~QuotientTopology() override;
         virtual void grow() override;
         virtual void growGeometric();

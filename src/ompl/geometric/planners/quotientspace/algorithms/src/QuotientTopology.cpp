@@ -16,10 +16,10 @@ using namespace og;
 using namespace ob;
 #define foreach BOOST_FOREACH
 
-QuotientTopology::QuotientTopology(const ob::SpaceInformationPtr &si, QuotientSpace *parent_ ):
+QuotientTopology::QuotientTopology(const ob::SpaceInformationPtr &si, BundleSpace *parent_ ):
   BaseT(si, parent_)
 {
-  setName("QuotientSpaceTopology"+std::to_string(id_));
+  setName("BundleSpaceTopology"+std::to_string(id_));
   Planner::declareParam<double>("range", this, &QuotientTopology::setRange, &QuotientTopology::getRange, "0.:1.:10000.");
   Planner::declareParam<double>("goal_bias", this, &QuotientTopology::setGoalBias, &QuotientTopology::getGoalBias, "0.:.1:1.");
 
@@ -41,7 +41,7 @@ QuotientTopology::QuotientTopology(const ob::SpaceInformationPtr &si, QuotientSp
     c_random = siC->allocControl();
   }
 
-  q_random = new Configuration(Q1);
+  q_random = new Configuration(Bundle);
 }
 
 QuotientTopology::~QuotientTopology()
@@ -69,7 +69,7 @@ double QuotientTopology::getRange() const
 void QuotientTopology::setup()
 {
   BaseT::setup();
-  ompl::tools::SelfConfig sc(Q1, getName());
+  ompl::tools::SelfConfig sc(Bundle, getName());
   sc.configurePlannerRange(maxDistance);
 }
 
@@ -110,7 +110,7 @@ void QuotientTopology::grow(){
     double s = rng_.uniform01();
     if(s < goalBias){
       //sets q_random as qGoal_
-      Q1->copyState(q_random->state, qGoal_->state); 
+      Bundle->copyState(q_random->state, qGoal_->state); 
    }else{
       sample(q_random->state);
    }
@@ -120,7 +120,7 @@ void QuotientTopology::grow(){
   } else {
     growGeometric();
     //growGeometric();
-    //double v = Q1->getSpaceMeasure();
+    //double v = Bundle->getSpaceMeasure();
     //if(v > 1e4){ 
     //    //TODO: this is a hack to circumvent many local minima on "small" spaces 
     //    //which belong to the un-selected quotient-space path 
@@ -147,20 +147,20 @@ void QuotientTopology::growGeometricExpand()
     if (pdf.empty()) return;
 
     std::vector<base::State *> workStates(5);
-    Q1->allocStates(workStates);
+    Bundle->allocStates(workStates);
     Configuration *qv = pdf.sample(rng_.uniform01());
-    unsigned int s = Q1->randomBounceMotion(Q1_sampler_, qv->state, workStates.size(), workStates, false);
+    unsigned int s = Bundle->randomBounceMotion(Bundle_sampler_, qv->state, workStates.size(), workStates, false);
 
     if (s > 0)
     {
         s--;
-        Configuration *qn = new Configuration(Q1, workStates[s]);
+        Configuration *qn = new Configuration(Bundle, workStates[s]);
         Vertex last = addConfiguration(qn);
 
         for (unsigned int i = 0; i < s; ++i)
         {
             // add the vertex along the bouncing motion
-            Configuration *qs = new Configuration(Q1, workStates[i]);
+            Configuration *qs = new Configuration(Bundle, workStates[i]);
             Vertex m = addConfiguration(qs);
 
             addEdge(qn->index, m);
@@ -172,21 +172,21 @@ void QuotientTopology::growGeometricExpand()
             addEdge(qn->index, last);
         }
     }
-    Q1->freeStates(workStates);
+    Bundle->freeStates(workStates);
 }
 void QuotientTopology::growGeometric(){
   
   const Configuration *q_nearest = nearest(q_random);
-  double d = Q1->distance(q_nearest->state, q_random->state);
+  double d = Bundle->distance(q_nearest->state, q_random->state);
   if(d > maxDistance){
-    Q1->getStateSpace()->interpolate(q_nearest->state, q_random->state, maxDistance / d, q_random->state);
+    Bundle->getStateSpace()->interpolate(q_nearest->state, q_random->state, maxDistance / d, q_random->state);
   }
 
   totalNumberOfSamples_++;
-  if(Q1->checkMotion(q_nearest->state, q_random->state))
+  if(Bundle->checkMotion(q_nearest->state, q_random->state))
   {
     totalNumberOfFeasibleSamples_++;
-    Configuration *q_next = new Configuration(Q1, q_random->state);
+    Configuration *q_next = new Configuration(Bundle, q_random->state);
 
     Vertex v_next = addConfiguration(q_next);
     addEdge(q_nearest->index, v_next);
@@ -209,7 +209,7 @@ void QuotientTopology::growControl(){
     s_random = q_random->state;
 
     //changes q_random to the state we actually get with directed control c_random
-    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(Q1.get());
+    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(Bundle.get());
     unsigned int cd = rng_.uniformInt(siC->getMinControlDuration(), siC->getMaxControlDuration());
     int duration = dCSampler->sampleTo(c_random, q_nearest->state, s_random);
 
@@ -219,13 +219,13 @@ void QuotientTopology::growControl(){
 
     if(duration<controlDuration){
         //used control for full duration, add q_random
-        Configuration *q_next = new Configuration(Q1, s_random);
+        Configuration *q_next = new Configuration(Bundle, s_random);
         Vertex v_next = addConfigurationSparse(q_next);
         addEdgeSparse(q_nearest->index, v_next);
     } else {
         //sets q_reached to the State we actually reach with our control for controlDuration
         prop->propagate(q_nearest->state, c_random, duration, s_random);
-        Configuration *q_next = new Configuration(Q1, s_random);
+        Configuration *q_next = new Configuration(Bundle, s_random);
         Vertex v_next = addConfigurationSparse(q_next);
         addEdgeSparse(q_nearest->index, v_next);
     }
@@ -240,8 +240,8 @@ void QuotientTopology::growControl(){
             approximateDistanceToGoal = distanceToGoal;
             std::cout << "Found new solution " << distanceToGoal << " away from goal." << std::endl;
             Configuration *qStartSparse = graphSparse_[v_start_sparse];
-            // Q1->printState(qStartSparse->state);
-            // Q1->printState(q_nearest_to_goal->state);
+            // Bundle->printState(qStartSparse->state);
+            // Bundle->printState(q_nearest_to_goal->state);
             // std::cout << q_nearest_to_goal->index << std::endl;
             // std::cout << qStartSparse->index << std::endl;
 

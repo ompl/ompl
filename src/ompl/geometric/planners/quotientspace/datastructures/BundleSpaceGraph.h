@@ -35,10 +35,10 @@
 
 /* Author: Andreas Orthey */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QUOTIENTGRAPH_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QUOTIENTGRAPH_
+#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_
+#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_
 
-#include "QuotientSpace.h"
+#include "BundleSpace.h"
 #include <limits>
 #include <ompl/geometric/planners/PlannerIncludes.h>
 #include <ompl/datastructures/NearestNeighbors.h>
@@ -63,15 +63,15 @@ namespace ompl
     }  // namespace base
     namespace geometric
     {
-        /** \brief A graph on a quotient-space */
-        class QuotientSpaceGraph : public QuotientSpace
+        /** \brief A graph on a Bundle-space */
+        class BundleSpaceGraph : public BundleSpace
         {
-            using BaseT = QuotientSpace;
+            using BaseT = BundleSpace;
 
         public:
             using normalized_index_type = int;
 
-            /** \brief A configuration in quotient-space */
+            /** \brief A configuration in Bundle-space */
             class Configuration
             {
             public:
@@ -106,7 +106,7 @@ namespace ompl
                 normalized_index_type index{-1};
             };
 
-            /** \brief An edge in quotient-space */
+            /** \brief An edge in Bundle-space */
             class EdgeInternalState
             {
             public:
@@ -131,9 +131,9 @@ namespace ompl
 
             struct GraphBundle
             {
-                std::string name{"quotient_graph"};
+                std::string name{"Bundle_graph"};
             };
-            /** \brief A quotient-graph structure using boost::adjacency_list bundles */
+            /** \brief A Bundle-graph structure using boost::adjacency_list bundles */
             using Graph = boost::adjacency_list<boost::vecS, 
                   boost::vecS, 
                   boost::undirectedS, 
@@ -157,22 +157,22 @@ namespace ompl
             using PDF_Element = PDF::Element;
 
         public:
-            QuotientSpaceGraph(const ompl::base::SpaceInformationPtr &si, QuotientSpace *parent = nullptr);
-            ~QuotientSpaceGraph();
+            BundleSpaceGraph(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent = nullptr);
+            ~BundleSpaceGraph();
 
             virtual unsigned int getNumberOfVertices() const;
             virtual unsigned int getNumberOfEdges() const;
 
             virtual void grow() = 0;
-            virtual bool sampleQuotient(ompl::base::State *) override;
+            virtual bool sampleBase(ompl::base::State *) override;
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
 
             /** \brief Return plannerdata structure, whereby each vertex is marked
                 depending to which component it belongs (start/goal/non-connected) */
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;
 
-            /** \brief Importance of quotient-space depending on number of
-                vertices in quotient-graph */
+            /** \brief Importance of Bundle-space depending on number of
+                vertices in Bundle-graph */
             virtual double getImportance() const override;
 
             /** \brief Initialization methods for the first iteration
@@ -221,11 +221,11 @@ namespace ompl
 
             ompl::base::Cost costHeuristic(Vertex u, Vertex v) const;
 
-            /** \brief Shortest path on quotient-graph */
+            /** \brief Shortest path on Bundle-graph */
             ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal);
             ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal, Graph &graph);
 
-            /** \brief Nearest neighbor structure for quotient space configurations */
+            /** \brief Nearest neighbor structure for Bundle space configurations */
             RoadmapNeighborsPtr nearestDatastructure_;
             Graph graph_;
             ompl::base::PathPtr solutionPath_;
@@ -234,7 +234,7 @@ namespace ompl
             RNGType rng_boost;
 
             /** \brief Length of graph (useful for determing importance of
-                quotient-space */
+                Bundle-space */
             double graphLength_{0.0};
         };
     }  // namespace geometric

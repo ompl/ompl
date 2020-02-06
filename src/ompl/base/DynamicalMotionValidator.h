@@ -81,6 +81,7 @@ namespace ompl
 	    
             ompl::control::DirectedControlSamplerPtr sampler;
             ompl::control::Control* c_current;
+            double c_time;
             ompl::base::State* s_target_copy;
             ompl::control::SpaceInformation* siC;
             bool isDynamic; 
