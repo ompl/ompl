@@ -1,12 +1,16 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_SUBSPACE_FACTORY__
 #define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_SUBSPACE_FACTORY__
-#include <ompl/base/State.h>
-#include <ompl/base/StateSpace.h>
 #include "BundleSpaceComponent.h"
 #include "BundleSpaceComponentTypes.h"
+#include <ompl/base/State.h>
+#include <ompl/base/StateSpace.h>
 
 namespace ompl
 {
+    namespace geometric
+    {
+        OMPL_CLASS_FORWARD(BundleSpaceComponent);
+    }
     namespace geometric
     {
         class BundleSpaceComponentFactory
@@ -22,7 +26,7 @@ namespace ompl
             identifyBundleSpaceComponentType(
                 const base::StateSpacePtr BundleSpace, 
                 const base::StateSpacePtr BaseSpace);
-        }
+        };
     }
 }
 #endif

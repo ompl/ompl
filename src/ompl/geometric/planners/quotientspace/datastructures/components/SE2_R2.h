@@ -8,10 +8,11 @@ namespace ompl
     {
         class BundleSpaceComponent_SE2_R2: public BundleSpaceComponent
         {
+            using BaseT = BundleSpaceComponent;
           public:
             BundleSpaceComponent_SE2_R2(
                 base::StateSpacePtr BundleSpace,
-                base::StateSpacePtr BaseSpace) = default;
+                base::StateSpacePtr BaseSpace);
 
             virtual void projectFiber(
                 const ompl::base::State *xBundle,
@@ -26,9 +27,13 @@ namespace ompl
                 const ompl::base::State *xFiber, 
                 ompl::base::State *xBundle) const override;
 
+            std::string getTypeAsString() override;
+            std::string getFiberTypeAsString() override;
+            std::string getBundleTypeAsString() override;
+            std::string getBaseTypeAsString() override;
+          protected:
             ompl::base::StateSpacePtr computeFiberSpace() override;
 
-            std::string getTypeAsString() override;
 
         };
     }

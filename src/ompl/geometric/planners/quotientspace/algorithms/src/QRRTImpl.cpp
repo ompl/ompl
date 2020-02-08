@@ -135,10 +135,10 @@ void ompl::geometric::QRRTImpl::grow()
         Bundle->getStateSpace()->interpolate(q_nearest->state, qRandom_->state, maxDistance_ / d, qRandom_->state);
     }
 
-    totalNumberOfSamples_++;
+    // totalNumberOfSamples_++;
     if (Bundle->checkMotion(q_nearest->state, qRandom_->state))
     {
-        totalNumberOfFeasibleSamples_++;
+        // totalNumberOfFeasibleSamples_++;
         Configuration *q_next = new Configuration(Bundle, qRandom_->state);
         Vertex v_next = addConfiguration(q_next);
         if (!hasSolution_)
@@ -178,23 +178,23 @@ double ompl::geometric::QRRTImpl::getImportance() const
 }
 
 // Make it faster by removing the validity check
-bool ompl::geometric::QRRTImpl::sample(base::State *q_random)
+bool ompl::geometric::QRRTImpl::sample(base::State *xRandom)
 {
     if (!hasParent())
     {
-        Bundle_sampler_->sampleUniform(q_random);
+        Bundle_sampler_->sampleUniform(xRandom);
     }
     else
     {
-        if (Fiber_dimension_ > 0)
+        if (getFiberDimension() > 0)
         {
-            Fiber_sampler_->sampleUniform(s_Fiber_tmp_);
-            parent_->sampleBase(s_Base_tmp_);
-            mergeStates(s_Base_tmp_, s_Fiber_tmp_, q_random);
+            Fiber_sampler_->sampleUniform(xFiberTmp_);
+            parent_->sampleBase(xBaseTmp_);
+            mergeStates(xBaseTmp_, xFiberTmp_, xRandom);
         }
         else
         {
-            parent_->sampleBase(q_random);
+            parent_->sampleBase(xRandom);
         }
     }
     return true;

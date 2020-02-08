@@ -27,38 +27,43 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
       isDynamic_ = true;
     }
     OMPL_DEVMSG1("BundleSpace %d%s", id_, (isDynamic_?" (dynamic)":""));
-
     //############################################################################
+
     const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
 
     //(1) Number of Components
     //(2) Type of Components
+    //############################################################################
 
-    getNumberOfComponents();
-
+    int bundleSpaceComponents = GetNumberOfComponents(Bundle_space);
 
     if (!hasParent())
     {
       //TODO: still need to create one component subspace per component
         OMPL_DEVMSG1("NO_BUNDLE_STRUCTURE dimension: %d measure: %f", Bundle_space->getDimension(), Bundle_space->getMeasure());
-        type_ = NO_BUNDLE_STRUCTURE;
+        BundleSpaceComponentPtr component = componentFactory.MakeBundleSpaceComponent(Bundle_space, nullptr);
+        components_.push_back(component);
     }
     else
     {
-
         parent_->setChild(this);
 
         Base = parent_->getSpaceInformation();
         const base::StateSpacePtr Base_space = Base->getStateSpace();
 
-        // Bundle_dimension_ = Bundle->getStateDimension();
-        // Base_dimension_ = Base->getStateDimension();
-
-        computeSubspaces(Bundle_space, Base_space);
-
-        // Fiber = Bundle / Base
-        const base::StateSpacePtr Fiber_space = computeFiberSpace(Bundle_space, Base_space);
-        // Fiber_dimension_ = Fiber_space->getDimension();
+        base::StateSpacePtr Fiber_space = nullptr;
+        if(bundleSpaceComponents > 1){
+          OMPL_ERROR("NYI");
+          // for(uint k = 0; k < bundleSpaceComponents; k++){
+          //   base::CompoundStateSpace *compound = Bundle_space->as<base::CompoundStateSpace>();
+          //   nrComponents = compound->getSubspaceCount();
+          //   const std::vector<base::StateSpacePtr> decomposed = compound->getSubspaces();
+          // }
+        }else{
+          BundleSpaceComponentPtr component = 
+            componentFactory.MakeBundleSpaceComponent(Bundle_space, Base_space);
+          Fiber_space = component->getFiberSpace();
+        }
 
         if (Fiber_space != nullptr)
         {
@@ -103,10 +108,39 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
     }
 }
 
-ompl::geometric::BundleSpace::computeSubspaces()
+int ompl::geometric::BundleSpace::GetNumberOfComponents(base::StateSpacePtr space)
 {
+  int nrComponents = 0;
 
+  if(space->isCompound()){
+    base::CompoundStateSpace *compound = space->as<base::CompoundStateSpace>();
+    nrComponents = compound->getSubspaceCount();
+    if(nrComponents == 2)
+    {
+      int type = space->getType();
 
+      if((type == base::STATE_SPACE_SE2) || (type == base::STATE_SPACE_SE3))
+      {
+        nrComponents = 1;
+      }else{
+        const std::vector<base::StateSpacePtr> decomposed = compound->getSubspaces();
+        int t0 = decomposed.at(0)->getType();
+        int t1 = decomposed.at(1)->getType();
+        if(
+            (t0 == base::STATE_SPACE_SO2 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
+            (t0 == base::STATE_SPACE_SO3 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
+            (t0 == base::STATE_SPACE_SE2 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
+            (t0 == base::STATE_SPACE_SE3 && t1 == base::STATE_SPACE_REAL_VECTOR) 
+          )
+        {
+          nrComponents = 1;
+        }
+      }
+    }
+  }else{
+    nrComponents = 1;
+  }
+  return nrComponents;
 }
 
 ompl::geometric::BundleSpace::~BundleSpace()
@@ -146,8 +180,6 @@ void ompl::geometric::BundleSpace::setup()
 void ompl::geometric::BundleSpace::clear()
 {
     BaseT::clear();
-    totalNumberOfSamples_ = 0;
-    totalNumberOfFeasibleSamples_ = 0;
 
     hasSolution_ = false;
     firstRun_ = true;
@@ -342,62 +374,62 @@ void ompl::geometric::BundleSpace::resetCounter()
 //     return Fiber_local;
 // }
 
-const ompl::base::StateSpacePtr 
-ompl::geometric::BundleSpace::computeFiberSpace(
-    const base::StateSpacePtr Bundle_in, 
-    const base::StateSpacePtr Base_in)
-{
+//const ompl::base::StateSpacePtr 
+//ompl::geometric::BundleSpace::computeFiberSpace(
+//    const base::StateSpacePtr Bundle_in, 
+//    const base::StateSpacePtr Base_in)
+//{
 
-    if (Base_in->getDimension() == 0 || Bundle_in->getDimension() == 0)
-    {
-        OMPL_ERROR("Base has dimension %d.", Base_dimension_);
-        OMPL_ERROR("Bundle has dimension %d.", Bundle_dimension_);
-        throw ompl::Exception("Detected Zero-dimensional BundleSpace.");
-    }
+//    if (Base_in->getDimension() == 0 || Bundle_in->getDimension() == 0)
+//    {
+//        OMPL_ERROR("Base has dimension %d.", Base_dimension_);
+//        OMPL_ERROR("Bundle has dimension %d.", Bundle_dimension_);
+//        throw ompl::Exception("Detected Zero-dimensional BundleSpace.");
+//    }
 
-    type_ = identifyBundleType(Bundle_in, Base_in);
+//    type_ = identifyBundleType(Bundle_in, Base_in);
 
-    if(type_ == MULTIAGENT){
-        //split spaces into types, then compute quotient for each type. then
-        //combine them into Fiber
-        base::CompoundStateSpace *Bundle_compound = Bundle_in->as<base::CompoundStateSpace>();
-        const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
-        base::CompoundStateSpace *Base_compound = Base_in->as<base::CompoundStateSpace>();
-        const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
-        base::StateSpacePtr Fiber_space = std::make_shared<base::CompoundStateSpace>();
+//    if(type_ == MULTIAGENT){
+//        //split spaces into types, then compute quotient for each type. then
+//        //combine them into Fiber
+//        base::CompoundStateSpace *Bundle_compound = Bundle_in->as<base::CompoundStateSpace>();
+//        const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
+//        base::CompoundStateSpace *Base_compound = Base_in->as<base::CompoundStateSpace>();
+//        const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
+//        base::StateSpacePtr Fiber_space = std::make_shared<base::CompoundStateSpace>();
 
-        for(uint k = 0; k < Bundle_decomposed.size(); k++){
-            base::StateSpacePtr Bundlek = Bundle_decomposed.at(k);
-            base::StateSpacePtr Basek = Base_decomposed.at(k);
+//        for(uint k = 0; k < Bundle_decomposed.size(); k++){
+//            base::StateSpacePtr Bundlek = Bundle_decomposed.at(k);
+//            base::StateSpacePtr Basek = Base_decomposed.at(k);
 
-            BundleType typek = identifyBundleType(Bundlek, Basek);
-            base::StateSpacePtr Fiberk = computeFiberSpace(Bundlek, Basek, typek);
+//            BundleType typek = identifyBundleType(Bundlek, Basek);
+//            base::StateSpacePtr Fiberk = computeFiberSpace(Bundlek, Basek, typek);
 
-            double weight = (Fiberk->getDimension() > 0 ? 1.0 : 0.0);
-            std::static_pointer_cast<base::CompoundStateSpace>(Fiber_space)->addSubspace(Fiberk, weight);
-            types_.push_back(typek);
-        }
-        return Fiber_space;
+//            double weight = (Fiberk->getDimension() > 0 ? 1.0 : 0.0);
+//            std::static_pointer_cast<base::CompoundStateSpace>(Fiber_space)->addSubspace(Fiberk, weight);
+//            types_.push_back(typek);
+//        }
+//        return Fiber_space;
 
-    }else{
-        return computeFiberSpace(Bundle_in, Base_in, type_);
-    }
-}
+//    }else{
+//        return computeFiberSpace(Bundle_in, Base_in, type_);
+//    }
+//}
 
 
 void ompl::geometric::BundleSpace::mergeStates(const base::State *xBase, const base::State *xFiber, base::State *xBundle) const
 {
-    unsigned int M = subspaces_.size();
+    unsigned int M = components_.size();
 
     if( M > 1){
         for(uint m = 0; m < M; m++){
             const base::State *xmBase = xBase->as<base::CompoundState>()->as<base::State>(m);
             const base::State *xmFiber = xFiber->as<base::CompoundState>()->as<base::State>(m);
             base::State *xmBundle = xBundle->as<base::CompoundState>()->as<base::State>(m);
-            subspaces_.at(m)->mergeStates(xmBase, xmFiber, xmBundle);
+            components_.at(m)->mergeStates(xmBase, xmFiber, xmBundle);
         }
     }else{
-        subspaces_.front()->mergeStates(xBase, xFiber, xBundle);
+        components_.front()->mergeStates(xBase, xFiber, xBundle);
     }
 }
 
@@ -790,16 +822,16 @@ void ompl::geometric::BundleSpace::mergeStates(const base::State *xBase, const b
 
 void ompl::geometric::BundleSpace::projectFiber(const base::State *xBundle, base::State *xFiber) const
 {
-    unsigned int M = subspaces_.size();
+    unsigned int M = components_.size();
 
     if( M > 1){
         for(uint m = 0; m < M; m++){
             const base::State *xmBundle = xBundle->as<base::CompoundState>()->as<base::State>(m);
             base::State *xmFiber = xFiber->as<base::CompoundState>()->as<base::State>(m);
-            subspaces_.at(m)->projectFiber(xmBundle, xmFiber);
+            components_.at(m)->projectFiber(xmBundle, xmFiber);
         }
     }else{
-        subspaces_.front()->projectFiber(xBundle, xFiber);
+        components_.front()->projectFiber(xBundle, xFiber);
     }
 
 
@@ -935,16 +967,16 @@ void ompl::geometric::BundleSpace::projectFiber(const base::State *xBundle, base
 void ompl::geometric::BundleSpace::projectBase(const base::State *xBundle, base::State *xBase) const
 {
 
-    unsigned int M = subspaces_.size();
+    unsigned int M = components_.size();
 
     if( M > 1){
         for(uint m = 0; m < M; m++){
             const base::State *xmBundle = xBundle->as<base::CompoundState>()->as<base::State>(m);
             base::State *xmBase = xBase->as<base::CompoundState>()->as<base::State>(m);
-            subspaces_.at(m)->projectBase(xmBundle, xmBase);
+            components_.at(m)->projectBase(xmBundle, xmBase);
         }
     }else{
-        subspaces_.front()->projectBase(xBundle, xBase);
+        components_.front()->projectBase(xBundle, xBase);
     }
 
     //if (type_ == MULTIAGENT)
@@ -1346,11 +1378,6 @@ void ompl::geometric::BundleSpace::setLevel(unsigned int level)
     level_ = level;
 }
 
-ompl::geometric::BundleSpace::BundleType ompl::geometric::BundleSpace::getType() const
-{
-    return type_;
-}
-
 ompl::base::OptimizationObjectivePtr ompl::geometric::BundleSpace::getOptimizationObjectivePtr() const
 {
     return opt_;
@@ -1386,26 +1413,22 @@ bool ompl::geometric::BundleSpace::sample(base::State *xRandom)
         }
         valid = Bundle->isValid(xRandom);
     }
-    totalNumberOfSamples_++;
-    if (valid)
-    {
-        totalNumberOfFeasibleSamples_++;
-    }
+    // totalNumberOfSamples_++;
+    // if (valid)
+    // {
+    //     totalNumberOfFeasibleSamples_++;
+    // }
 
     return valid;
 }
 
-double ompl::geometric::BundleSpace::getImportance() const
-{
-    double N = (double)totalNumberOfSamples_;
-    return 1.0 / (N + 1);
-}
-
 void ompl::geometric::BundleSpace::print(std::ostream &out) const
 {
-    for(uint k = 0; k < components_.size(); k++){
-        components_.at(k)->print(out);
+    unsigned int M = components_.size();
+    for(unsigned int m = 0; m < M; m++){
+        out << components_.at(m)->getTypeAsString() << (m<M-1?"|":"");
     }
+    out << std::endl;
 }
 
 // void ompl::geometric::BundleSpace::print(std::ostream &out) const

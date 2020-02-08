@@ -3,6 +3,7 @@
 
 #include <ompl/base/Planner.h>
 #include "BundleSpaceComponent.h"
+#include "BundleSpaceComponentFactory.h"
 
 namespace ompl
 {
@@ -15,7 +16,7 @@ namespace ompl
   //
     namespace geometric
     {
-        OMPL_CLASS_FORWARD(BundleSubspace);
+        OMPL_CLASS_FORWARD(BundleSpaceComponent);
     }
     namespace geometric
     {
@@ -62,6 +63,7 @@ namespace ompl
 
             BundleSpace(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_ = nullptr);
             ~BundleSpace();
+            int GetNumberOfComponents(base::StateSpacePtr space);
 
             /// \brief solve disabled (use MultiBundle::solve)
             /// final prevents subclasses to override
@@ -78,7 +80,7 @@ namespace ompl
             virtual void clear() override;
             virtual void setup() override;
 
-            virtual double getImportance() const;
+            virtual double getImportance() const = 0;
 
             /// \brief Allocate State, set entries to Identity/Zero
             ompl::base::State *allocIdentityStateFiber() const;
@@ -131,11 +133,6 @@ namespace ompl
             /// Set pointer to more simplified Bundle-space
             void setParent(BundleSpace *parent_);
 
-            // /// Number of samples drawn on space Bundle
-            // unsigned int getTotalNumberOfSamples() const; //REMOVE
-            // /// Number of feasible samples drawn on space Bundle
-            // unsigned int getTotalNumberOfFeasibleSamples() const; //REMOVE
-
             /// \brief Bundle Space Projection Operator onto second component
             /// ProjectFiber: Base \times Fiber \rightarrow Fiber
             void projectFiber(
@@ -174,18 +171,15 @@ namespace ompl
 
             ///  \brief Compute the Bundle Bundle / Base between two given spaces.
             
-            
-            //OUTSOURCE
-            const ompl::base::StateSpacePtr computeFiberSpace(const ompl::base::StateSpacePtr Bundle,
-                                                                 const ompl::base::StateSpacePtr Base);
-            const ompl::base::StateSpacePtr computeFiberSpace(const ompl::base::StateSpacePtr Bundle,
-                                                                 const ompl::base::StateSpacePtr Base,
-                                                                 BundleSubspaceType type);
-
+            // const ompl::base::StateSpacePtr computeFiberSpace(const ompl::base::StateSpacePtr Bundle,
+            //                                                      const ompl::base::StateSpacePtr Base);
+            // const ompl::base::StateSpacePtr computeFiberSpace(const ompl::base::StateSpacePtr Bundle,
+            //                                                      const ompl::base::StateSpacePtr Base,
+            //                                                      BundleSpaceComponentType type);
             /// Identify the type of the Bundle Bundle / Base
-            BundleSubspaceType identifyBundleSubspaceType(
-                const ompl::base::StateSpacePtr Bundle,
-                const ompl::base::StateSpacePtr Base);
+            // BundleSpaceComponentType identifyBundleSpaceComponentType(
+            //     const ompl::base::StateSpacePtr Bundle,
+            //     const ompl::base::StateSpacePtr Base);
 
             ompl::base::SpaceInformationPtr Bundle{nullptr};
             ompl::base::SpaceInformationPtr Base{nullptr};
@@ -204,14 +198,15 @@ namespace ompl
 
             // BundleSubspaceType type_;
             // std::vector<BundleSubspaceType> types_; //for multiagent planning
-
             // unsigned int Bundle_dimension_{0};
             // unsigned int Base_dimension_{0};
             // unsigned int Fiber_dimension_{0};
 
             static unsigned int counter_;
+
             /// Identity of space (to keep track of number of Bundle-spaces created)
             unsigned int id_{0};
+
             /// Level in sequence of Bundle-spaces
             unsigned int level_{0};
 
@@ -228,6 +223,8 @@ namespace ompl
 
             /** \brief Goal state or goal region */
             ompl::base::Goal *goal_;
+
+            BundleSpaceComponentFactory componentFactory;
         };
     }  // namespace geometric
 }  // namespace ompl

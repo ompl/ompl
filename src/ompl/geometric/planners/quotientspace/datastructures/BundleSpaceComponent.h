@@ -3,6 +3,7 @@
 #include <ompl/base/State.h>
 #include <ompl/base/StateSpace.h>
 #include "BundleSpaceComponent.h"
+#include "BundleSpaceComponentTypes.h"
 
 namespace ompl
 {
@@ -28,9 +29,9 @@ namespace ompl
                 const ompl::base::State *xFiber, 
                 ompl::base::State *xBundle) const = 0;
 
-            ompl::base::StateSpacePtr getFiberSpace() = 0;
+            ompl::base::StateSpacePtr getFiberSpace() const;
 
-            std::string getTypeAsString() = 0;
+            void initFiberSpace();
 
             /// Dimension of Fiber Space
             unsigned int getFiberDimension() const;
@@ -39,9 +40,16 @@ namespace ompl
             /// Dimension of Bundle Space
             unsigned int getDimension() const;
             /// Type of Bundle Space
-            BundleSpaceType getType() const;
+            BundleSpaceComponentType getType() const;
+
+            virtual std::string getTypeAsString() = 0;
+            virtual std::string getFiberTypeAsString() = 0;
+            virtual std::string getBundleTypeAsString() = 0;
+            virtual std::string getBaseTypeAsString() = 0;
 
           protected:
+            virtual ompl::base::StateSpacePtr computeFiberSpace() = 0;
+
             base::StateSpacePtr BundleSpace_{nullptr};
             base::StateSpacePtr BaseSpace_{nullptr};
             base::StateSpacePtr FiberSpace_{nullptr};

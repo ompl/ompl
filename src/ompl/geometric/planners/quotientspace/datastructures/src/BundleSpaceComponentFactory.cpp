@@ -1,4 +1,30 @@
 #include "../BundleSpaceComponentFactory.h"
+#include <ompl/util/Exception.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/SE2_R2.h>
+
+ompl::geometric::BundleSpaceComponentPtr
+ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
+    const base::StateSpacePtr Bundle, 
+    const base::StateSpacePtr Base)
+{
+    BundleSpaceComponentType type = identifyBundleSpaceComponentType(Bundle, Base);
+
+    BundleSpaceComponentPtr component;
+
+    std::cout << "Type: " << type << std::endl;
+    if(type == BUNDLE_SPACE_NO_PROJECTION)
+    {
+      component = nullptr;
+    }else if(type == BUNDLE_SPACE_SE2_R2){
+      component = std::make_shared<BundleSpaceComponent_SE2_R2>(Bundle, Base);
+    }else{
+      OMPL_ERROR("NYI: %d", type);
+      exit(0);
+    }
+    if(component != nullptr) component->initFiberSpace();
+    return component;
+}
+
 
 ompl::geometric::BundleSpaceComponentType
 ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(const base::StateSpacePtr Bundle, const base::StateSpacePtr Base)
@@ -24,6 +50,10 @@ ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(c
     //  (10)  Bundle SO2xRn , Base SO2              => Fiber = Rn
     //  (11)  Bundle SO2xRn , Base SO2xRm [0<m<=n ] => Fiber = R(n-m) \union {\emptyset}
     //  (12)  Multiagent (any combination of (1-11))
+
+    if(Base == nullptr){
+      return BUNDLE_SPACE_NO_PROJECTION;
+    }
 
     BundleSpaceComponentType type;
 
@@ -364,12 +394,12 @@ ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(c
                     else if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_REAL_VECTOR &&
                              Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
                     {
-                        type = BUNDLE_SPACE_MULTIAGENT;
+                        type = BUNDLE_SPACE_UNKNOWN;
                     }else{
                       if(Bundle_decomposed.at(0)->isCompound() &&
                            Bundle_decomposed.at(1)->isCompound())
                       {
-                        type = BUNDLE_SPACE_MULTIAGENT;
+                        type = BUNDLE_SPACE_UNKNOWN;
                       }else{
                         OMPL_ERROR("State compound %d and %d not recognized.", 
                             Bundle_decomposed.at(0)->getType(), 
@@ -394,7 +424,7 @@ ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(c
                       OMPL_ERROR("Bundle has %d subspaces, but Base has %d.", Bundle_subspaces, Base_subspaces);
                       throw ompl::Exception("Invalid BundleSpace type.");
                     }
-                    type = BUNDLE_SPACE_MULTIAGENT;
+                    type = BUNDLE_SPACE_UNKNOWN;
                 }
 
               }else{
