@@ -59,7 +59,18 @@ std::string ompl::geometric::BundleSpaceComponent::stateTypeToString(
     }else if(type == base::STATE_SPACE_SO3){
         tstr = "SO3";
     }else{
-        tstr = "Unknown";
+      tstr = "Unknown";
+      if(space->isCompound())
+      {
+        base::CompoundStateSpace *space_compound = space->as<base::CompoundStateSpace>();
+        if(space_compound->getSubspaceCount() == 2)
+        {
+          const std::vector<base::StateSpacePtr> space_decomposed = space_compound->getSubspaces();
+          base::StateSpacePtr s0 = space_decomposed.at(0);
+          base::StateSpacePtr s1 = space_decomposed.at(1);
+          tstr = stateTypeToString(s0)+"x"+stateTypeToString(s1);
+        }
+      }
     }
     return tstr;
 }
