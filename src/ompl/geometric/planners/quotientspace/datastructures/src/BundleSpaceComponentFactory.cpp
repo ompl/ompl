@@ -1,6 +1,12 @@
-#include "../BundleSpaceComponentFactory.h"
-#include <ompl/util/Exception.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceComponentFactory.h>
+
 #include <ompl/geometric/planners/quotientspace/datastructures/components/SE2_R2.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/SE3_R3.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/NoProjection.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/EmptySetProjection.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/Identity.h>
+
+#include <ompl/util/Exception.h>
 
 ompl::geometric::BundleSpaceComponentPtr
 ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
@@ -8,20 +14,24 @@ ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
     const base::StateSpacePtr Base)
 {
     BundleSpaceComponentType type = identifyBundleSpaceComponentType(Bundle, Base);
-
     BundleSpaceComponentPtr component;
 
-    std::cout << "Type: " << type << std::endl;
     if(type == BUNDLE_SPACE_NO_PROJECTION)
     {
-      component = nullptr;
+      component = std::make_shared<BundleSpaceComponent_NoProjection>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_EMPTY_SET_PROJECTION){
+      component = std::make_shared<BundleSpaceComponent_EmptySetProjection>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_IDENTITY_PROJECTION){
+      component = std::make_shared<BundleSpaceComponent_Identity>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_SE2_R2){
       component = std::make_shared<BundleSpaceComponent_SE2_R2>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SE3_R3){
+      component = std::make_shared<BundleSpaceComponent_SE3_R3>(Bundle, Base);
     }else{
       OMPL_ERROR("NYI: %d", type);
-      exit(0);
+      throw Exception("BundleSpaceType not yet implemented.");
     }
-    if(component != nullptr) component->initFiberSpace();
+    component->initFiberSpace();
     return component;
 }
 

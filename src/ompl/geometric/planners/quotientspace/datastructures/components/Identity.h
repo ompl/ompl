@@ -1,16 +1,16 @@
-#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_COMPONENT_SE2_R2__
-#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_COMPONENT_SE2_R2__
+#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_COMPONENT_IDENTITY___
+#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_COMPONENT_IDENTITY___
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceComponent.h>
 
 namespace ompl
 {
     namespace geometric
     {
-        class BundleSpaceComponent_SE2_R2: public BundleSpaceComponent
+        class BundleSpaceComponent_Identity: public BundleSpaceComponent
         {
             using BaseT = BundleSpaceComponent;
           public:
-            BundleSpaceComponent_SE2_R2(
+            BundleSpaceComponent_Identity(
                 base::StateSpacePtr BundleSpace,
                 base::StateSpacePtr BaseSpace);
 

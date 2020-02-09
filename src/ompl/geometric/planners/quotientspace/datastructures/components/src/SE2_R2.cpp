@@ -1,4 +1,4 @@
-#include "../SE2_R2.h"
+#include <ompl/geometric/planners/quotientspace/datastructures/components/SE2_R2.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
@@ -54,21 +54,4 @@ ompl::base::StateSpacePtr ompl::geometric::BundleSpaceComponent_SE2_R2::computeF
     throw "Invalid Dimensionality";
   }
   return std::make_shared<base::SO2StateSpace>();
-}
-
-std::string ompl::geometric::BundleSpaceComponent_SE2_R2::getTypeAsString()
-{
-  return "SE2 -> R2";
-}
-std::string ompl::geometric::BundleSpaceComponent_SE2_R2::getFiberTypeAsString()
-{
-  return "SO2";
-}
-std::string ompl::geometric::BundleSpaceComponent_SE2_R2::getBaseTypeAsString()
-{
-  return "R2";
-}
-std::string ompl::geometric::BundleSpaceComponent_SE2_R2::getBundleTypeAsString()
-{
-  return "SE2";
 }

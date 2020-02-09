@@ -250,23 +250,27 @@ void BundleSpaceGraphSparse::debugInvalidState(const ob::State *s)
             Bundle_decomposed = Bundle_compound->getSubspaces();
         }
 
-        for(uint k = 0; k < Bundle_decomposed.size(); k++){
-            ob::StateSpacePtr spacek = Bundle_decomposed.at(k);
+        for(unsigned int m = 0; m < Bundle_decomposed.size(); m++){
+            ob::StateSpacePtr spacek = Bundle_decomposed.at(m);
             int type = spacek->getType();
             switch (type) {
               case ob::STATE_SPACE_REAL_VECTOR:
               {
                   auto *RN = spacek->as<ob::RealVectorStateSpace>();
                   const ob::RealVectorStateSpace::StateType *sk = 
-                    s->as<ob::CompoundState>()->as<ob::RealVectorStateSpace::StateType>(k);
+                    s->as<ob::CompoundState>()->as<ob::RealVectorStateSpace::StateType>(m);
                   std::vector<double> bl =  RN->getBounds().low;
                   std::vector<double> bh =  RN->getBounds().high;
-                  for(uint k = 0; k < bl.size(); k++){
+                  for(unsigned int k = 0; k < bl.size(); k++){
                     double qk = sk->values[k];
                     double qkl = bl.at(k);
                     double qkh = bh.at(k);
                     if(qk < qkl || qk > qkh){
-                        std::cout << "OUTOFBOUNDS [" << k << "] " << bl.at(k) << " <= " << qk << " <= " << bh.at(k) << std::endl;
+                        std::cout << "Out Of Bounds [" 
+                          << "component " << m << ", "
+                          << "link " << k 
+                          << "] " 
+                          << bl.at(k) << " <= " << qk << " <= " << bh.at(k) << std::endl;
                     }
                   }
                   break;

@@ -159,7 +159,7 @@ namespace ompl
             /// \brief Write class to stream (use as std::cout << *this << std::endl)
             ///  Actual implementation is in void print(std::ostream& out),
             ///  which can be inherited.
-            friend std::ostream &operator<<(std::ostream &out, const BundleSpace &qtnt);
+            friend std::ostream &operator<<(std::ostream&, const BundleSpace&);
 
             bool isDynamic() const;
 

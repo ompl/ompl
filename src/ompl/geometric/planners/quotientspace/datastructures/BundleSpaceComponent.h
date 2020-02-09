@@ -2,7 +2,7 @@
 #define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_SUBSPACE_
 #include <ompl/base/State.h>
 #include <ompl/base/StateSpace.h>
-#include "BundleSpaceComponent.h"
+#include <ompl/base/StateSpaceTypes.h>
 #include "BundleSpaceComponentTypes.h"
 
 namespace ompl
@@ -42,13 +42,17 @@ namespace ompl
             /// Type of Bundle Space
             BundleSpaceComponentType getType() const;
 
-            virtual std::string getTypeAsString() = 0;
-            virtual std::string getFiberTypeAsString() = 0;
-            virtual std::string getBundleTypeAsString() = 0;
-            virtual std::string getBaseTypeAsString() = 0;
+            std::string getTypeAsString() const;
+            std::string getFiberTypeAsString() const;
+            std::string getBundleTypeAsString() const;
+            std::string getBaseTypeAsString() const;
+
+            friend std::ostream &operator<<(std::ostream &out, const BundleSpaceComponent&);
 
           protected:
             virtual ompl::base::StateSpacePtr computeFiberSpace() = 0;
+            virtual void print(std::ostream &out) const;
+            std::string stateTypeToString(base::StateSpacePtr) const;
 
             base::StateSpacePtr BundleSpace_{nullptr};
             base::StateSpacePtr BaseSpace_{nullptr};
