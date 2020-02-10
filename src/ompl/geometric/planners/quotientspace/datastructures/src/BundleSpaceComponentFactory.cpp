@@ -1,14 +1,19 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceComponentFactory.h>
 
+#include <ompl/geometric/planners/quotientspace/datastructures/components/SO2RN_SO2.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/SO2RN_SO2RM.h>
+
 #include <ompl/geometric/planners/quotientspace/datastructures/components/SE2_R2.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/SE2RN_R2.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/SE2RN_SE2.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/SE2RN_SE2RM.h>
 
 #include <ompl/geometric/planners/quotientspace/datastructures/components/SE3_R3.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/SE3RN_R3.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/SE3RN_SE3.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/SE3RN_SE3RM.h>
 
 #include <ompl/geometric/planners/quotientspace/datastructures/components/RN_RM.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/components/SO2RN_SO2.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/NoProjection.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/EmptySetProjection.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/Identity.h>
@@ -32,6 +37,7 @@ ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
       component = std::make_shared<BundleSpaceComponent_Identity>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_RN_RM){
       component = std::make_shared<BundleSpaceComponent_RN_RM>(Bundle, Base);
+
     }else if(type == BUNDLE_SPACE_SE2_R2){
       component = std::make_shared<BundleSpaceComponent_SE2_R2>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_SE2RN_R2){
@@ -40,10 +46,20 @@ ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
       component = std::make_shared<BundleSpaceComponent_SE2RN_SE2>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_SE2RN_SE2RM){
       component = std::make_shared<BundleSpaceComponent_SE2RN_SE2RM>(Bundle, Base);
+
     }else if(type == BUNDLE_SPACE_SO2RN_SO2){
       component = std::make_shared<BundleSpaceComponent_SO2RN_SO2>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SO2RN_SO2RM){
+      component = std::make_shared<BundleSpaceComponent_SO2RN_SO2RM>(Bundle, Base);
+
     }else if(type == BUNDLE_SPACE_SE3_R3){
       component = std::make_shared<BundleSpaceComponent_SE3_R3>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SE3RN_R3){
+      component = std::make_shared<BundleSpaceComponent_SE3RN_R3>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SE3RN_SE3){
+      component = std::make_shared<BundleSpaceComponent_SE3RN_SE3>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SE3RN_SE3RM){
+      component = std::make_shared<BundleSpaceComponent_SE3RN_SE3RM>(Bundle, Base);
     }else{
       OMPL_ERROR("NYI: %d", type);
       throw Exception("BundleSpaceType not yet implemented.");

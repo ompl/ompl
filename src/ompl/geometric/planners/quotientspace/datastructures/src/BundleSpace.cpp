@@ -521,62 +521,6 @@ namespace ompl
     } 
 }
 //void ompl::geometric::BundleSpace::mergeStates(
-//        case SE3RN_R3:
-//        {
-//            base::SE3StateSpace::StateType *sBundle_SE3 =
-//                qBundle->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);
-//            base::SO3StateSpace::StateType *sBundle_SO3 = &sBundle_SE3->rotation();
-//            base::RealVectorStateSpace::StateType *sBundle_RN =
-//                qBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
-
-//            const base::RealVectorStateSpace::StateType *sBase = qBase->as<base::RealVectorStateSpace::StateType>();
-//            const base::SO3StateSpace::StateType *sFiber_SO3 =
-//                qFiber->as<base::CompoundState>()->as<base::SO3StateSpace::StateType>(0);
-//            const base::RealVectorStateSpace::StateType *sFiber_RN =
-//                qFiber->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
-
-//            sBundle_SE3->setXYZ(sBase->values[0], sBase->values[1], sBase->values[2]);
-//            sBundle_SO3->x = sFiber_SO3->x;
-//            sBundle_SO3->y = sFiber_SO3->y;
-//            sBundle_SO3->z = sFiber_SO3->z;
-//            sBundle_SO3->w = sFiber_SO3->w;
-
-//            for (unsigned int k = 0; k < Fiber_dimension_ - 3; k++)
-//            {
-//                sBundle_RN->values[k] = sFiber_RN->values[k];
-//            }
-
-//            break;
-//        }
-//        case SO2RN_SO2RM:
-//        {
-//            base::SO2StateSpace::StateType *sBundle_SO2 =
-//                qBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(0);
-//            base::RealVectorStateSpace::StateType *sBundle_RN =
-//                qBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
-
-//            const base::SO2StateSpace::StateType *sBase_SO2 =
-//                qBase->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(0);
-//            const base::RealVectorStateSpace::StateType *sBase_RM =
-//                qBase->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
-
-//            const base::RealVectorStateSpace::StateType *sFiber = qFiber->as<base::RealVectorStateSpace::StateType>();
-
-//            sBundle_SO2->value = sBase_SO2->value;
-
-//            unsigned int M = Bundle_dimension_ - Fiber_dimension_ - 1;
-//            unsigned int N = Fiber_dimension_;
-
-//            for (unsigned int k = 0; k < M; k++)
-//            {
-//                sBundle_RN->values[k] = sBase_RM->values[k];
-//            }
-//            for (unsigned int k = M; k < M + N; k++)
-//            {
-//                sBundle_RN->values[k] = sFiber->values[k - M];
-//            }
-//            break;
-//        }
 //        case SE3RN_SE3:
 //        {
 //            base::SE3StateSpace::StateType *sBundle_SE3 =
@@ -602,85 +546,9 @@ namespace ompl
 
 //            break;
 //        }
-//        case SE3RN_SE3RM:
-//        {
-//            base::SE3StateSpace::StateType *sBundle_SE3 =
-//                qBundle->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);
-//            base::SO3StateSpace::StateType *sBundle_SE3_rotation = &sBundle_SE3->rotation();
-//            base::RealVectorStateSpace::StateType *sBundle_RN =
-//                qBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
-
-//            const base::SE3StateSpace::StateType *sBase_SE3 =
-//                qBase->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);
-//            const base::SO3StateSpace::StateType *sBase_SE3_rotation = &sBase_SE3->rotation();
-//            const base::RealVectorStateSpace::StateType *sBase_RM =
-//                qBase->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
-
-//            const base::RealVectorStateSpace::StateType *sFiber = qFiber->as<base::RealVectorStateSpace::StateType>();
-
-//            sBundle_SE3->setXYZ(sBase_SE3->getX(), sBase_SE3->getY(), sBase_SE3->getZ());
-//            sBundle_SE3_rotation->x = sBase_SE3_rotation->x;
-//            sBundle_SE3_rotation->y = sBase_SE3_rotation->y;
-//            sBundle_SE3_rotation->z = sBase_SE3_rotation->z;
-//            sBundle_SE3_rotation->w = sBase_SE3_rotation->w;
-
-//            //[X Y Z YAW PITCH ROLL] [1...M-1][M...N-1]
-//            // SE3                                        RN
-//            unsigned int M = Bundle_dimension_ - Fiber_dimension_ - 6;
-//            unsigned int N = Fiber_dimension_;
-
-//            for (unsigned int k = 0; k < M; k++)
-//            {
-//                sBundle_RN->values[k] = sBase_RM->values[k];
-//            }
-//            for (unsigned int k = M; k < M + N; k++)
-//            {
-//                sBundle_RN->values[k] = sFiber->values[k - M];
-//            }
-//            break;
-//        }
-//        default:
-//        {
-//            OMPL_ERROR("Type %d not implemented.", qtype);
-//            throw ompl::Exception("Cannot merge states.");
-//        }
-//    }
-//}
 
 // void ompl::geometric::BundleSpace::projectBase(
-//         case SO2RN_SO2RM:
-//         {
-//             const base::SO2StateSpace::StateType *sBundle_SO2 =
-//                 q->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(0);
-//             const base::RealVectorStateSpace::StateType *sBundle_RN =
-//                 q->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
-//             base::SO2StateSpace::StateType *sBase_SO2 =
-//                 qBase->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(0);
-//             base::RealVectorStateSpace::StateType *sBase_RM =
-//                 qBase->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
-
-//             sBase_SO2->value = sBundle_SO2->value;
-
-//             for (unsigned int k = 0; k < Base_dimension_ - 1; k++)
-//             {
-//                 sBase_RM->values[k] = sBundle_RN->values[k];
-//             }
-//             break;
-//         }
-
-//         case SE3RN_R3:
-//         {
-//             const base::SE3StateSpace::StateType *sBundle_SE3 =
-//                 q->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);
-//             base::RealVectorStateSpace::StateType *sBase = qBase->as<base::RealVectorStateSpace::StateType>();
-
-//             sBase->values[0] = sBundle_SE3->getX();
-//             sBase->values[1] = sBundle_SE3->getY();
-//             sBase->values[2] = sBundle_SE3->getZ();
-
-//             break;
-//         }
 //         case SE3RN_SE3:
 //         {
 //             const base::SE3StateSpace::StateType *sBundle_SE3 =
@@ -698,30 +566,6 @@ namespace ompl
 
 //             break;
 //         }
-//         case SE3RN_SE3RM:
-//         {
-//             const base::SE3StateSpace::StateType *sBundle_SE3 =
-//                 q->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);
-//             const base::SO3StateSpace::StateType *sBundle_SE3_rotation = &sBundle_SE3->rotation();
-//             const base::RealVectorStateSpace::StateType *sBundle_RN =
-//                 q->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
-
-//             base::SE3StateSpace::StateType *sBase_SE3 =
-//                 qBase->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);
-//             base::SO3StateSpace::StateType *sBase_rotation = &sBase_SE3->rotation();
-//             base::RealVectorStateSpace::StateType *sBase_RN =
-//                 qBase->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
-
-//             sBase_SE3->setXYZ(sBundle_SE3->getX(), sBundle_SE3->getY(), sBundle_SE3->getZ());
-//             sBase_rotation->x = sBundle_SE3_rotation->x;
-//             sBase_rotation->y = sBundle_SE3_rotation->y;
-//             sBase_rotation->z = sBundle_SE3_rotation->z;
-//             sBase_rotation->w = sBundle_SE3_rotation->w;
-
-//             for (unsigned int k = 0; k < Base_dimension_ - 6; k++)
-//             {
-//                 sBase_RN->values[k] = sBundle_RN->values[k];
-//             }
 //             break;
 //         }
 
@@ -743,21 +587,6 @@ namespace ompl
 
     //         break;
     //     }
-    //     case SE3RN_SE3RM:
-    //     {
-    //         const base::RealVectorStateSpace::StateType *sBundle_RN =
-    //             q->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
-
-    //         const base::RealVectorStateSpace::StateType *sFiber = qFiber->as<base::RealVectorStateSpace::StateType>();
-
-    //         unsigned int N = Bundle_dimension_ - Fiber_dimension_ - 6;
-    //         for (unsigned int k = N; k < Bundle_dimension_ - 6; k++)
-    //         {
-    //             sFiber->values[k - N] = sBundle_RN->values[k];
-    //         }
-    //         break;
-    //     }
-    //
     //
     //
 // const ompl::base::StateSpacePtr 
@@ -775,24 +604,6 @@ namespace ompl
 //             std::static_pointer_cast<base::RealVectorStateSpace>(Fiber_local)->setBounds(
 //                 std::static_pointer_cast<base::RealVectorStateSpace>(Bundle_decomposed.at(1))->getBounds());
 
-//             break;
-//         }
-//         case SE3RN_R3:
-//         {
-//             base::CompoundStateSpace *Bundle_compound = Bundle_in->as<base::CompoundStateSpace>();
-//             const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
-//             const std::vector<base::StateSpacePtr> Bundle_SE3_decomposed =
-//                 Bundle_decomposed.at(0)->as<base::CompoundStateSpace>()->getSubspaces();
-
-//             const base::RealVectorStateSpace *Bundle_RN = Bundle_decomposed.at(1)->as<base::RealVectorStateSpace>();
-//             unsigned int N = Bundle_RN->getDimension();
-
-//             base::StateSpacePtr SO3(new base::SO3StateSpace());
-//             base::StateSpacePtr RN(new base::RealVectorStateSpace(N));
-//             RN->as<base::RealVectorStateSpace>()->setBounds(Bundle_RN->getBounds());
-
-//             Fiber_local = SO3 + RN;
-//             break;
 //         }
 //         case SE2RN_SE2RM:
 //         case SO2RN_SO2RM:
