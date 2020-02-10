@@ -52,6 +52,10 @@
 #include <boost/property_map/transform_value_property_map.hpp>
 #include <boost/foreach.hpp>
 
+// sa->
+#include <iostream>
+using namespace std;
+
 #define foreach BOOST_FOREACH
 
 using Configuration = ompl::geometric::QuotientSpaceGraph::Configuration;
@@ -59,6 +63,7 @@ using Configuration = ompl::geometric::QuotientSpaceGraph::Configuration;
 ompl::geometric::QuotientSpaceGraph::QuotientSpaceGraph(const base::SpaceInformationPtr &si, QuotientSpace *parent_)
   : BaseT(si, parent_)
 {
+    std::cout << "..QuotientSpaceGraph()  --  -- constructor" << std::endl;
     setName("QuotientSpaceGraph");
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
@@ -76,6 +81,7 @@ ompl::geometric::QuotientSpaceGraph::~QuotientSpaceGraph()
 
 void ompl::geometric::QuotientSpaceGraph::setup()
 {
+    std::cout << "..QuotientSpaceGraph:---:setup()" << std::endl;
     BaseT::setup();
     if (!nearestDatastructure_)
     {
@@ -165,6 +171,7 @@ double ompl::geometric::QuotientSpaceGraph::getImportance() const
 
 void ompl::geometric::QuotientSpaceGraph::init()
 {
+    std::cout << "..QuotientSpaceGraph::init(................) " << "Space Information Pointer" << std::endl;
     auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
     if (goal == nullptr)
     {
@@ -321,6 +328,40 @@ ompl::base::PathPtr ompl::geometric::QuotientSpaceGraph::getPath(const Vertex &s
     return getPath(start, goal, graph_);
 }
 
+void ompl::geometric::QuotientSpaceGraph::getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph, std::deque<base::State *> &path)
+{
+    std::vector<Vertex> prev(boost::num_vertices(graph));
+    auto weight = boost::make_transform_value_property_map(std::mem_fn(&EdgeInternalState::getCost),
+                                                           get(boost::edge_bundle, graph));
+    try
+    {
+        boost::astar_search(graph, start, [this, goal](const Vertex v) { return costHeuristic(v, goal); },
+                            boost::predecessor_map(&prev[0])
+                                .weight_map(weight)
+                                .distance_compare([this](EdgeInternalState c1, EdgeInternalState c2) {
+                                    return opt_->isCostBetterThan(c1.getCost(), c2.getCost());
+                                })
+                                .distance_combine([this](EdgeInternalState c1, EdgeInternalState c2) {
+                                    return opt_->combineCosts(c1.getCost(), c2.getCost());
+                                })
+                                .distance_inf(opt_->infiniteCost())
+                                .distance_zero(opt_->identityCost()));
+    }
+    catch (AStarFoundGoal &)
+    {
+    }
+
+    if (prev[goal] == goal)
+    {
+        OMPL_WARN("%s: No dense path was found?", getName().c_str());
+    }
+    else {
+        for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
+            path.push_front(graph_[pos]->state);
+        path.push_front(graph_[start]->state);
+    }
+}
+
 ompl::base::PathPtr ompl::geometric::QuotientSpaceGraph::getPath(const Vertex &start, const Vertex &goal, Graph &graph)
 {
     std::vector<Vertex> prev(boost::num_vertices(graph));
@@ -370,6 +411,8 @@ ompl::base::PathPtr ompl::geometric::QuotientSpaceGraph::getPath(const Vertex &s
 
 bool ompl::geometric::QuotientSpaceGraph::sampleQuotient(base::State *q_random_graph)
 {
+    // sa->
+    std::cout << "..QuotientSpaceGraph::sampleQuotient(.....)" << std::endl;
     // RANDOM EDGE SAMPLING
     if (num_edges(graph_) == 0)
         return false;
@@ -406,6 +449,8 @@ void ompl::geometric::QuotientSpaceGraph::printConfiguration(const Configuration
 
 void ompl::geometric::QuotientSpaceGraph::getPlannerData(base::PlannerData &data) const
 {
+    OMPL_DEBUG("Roadmap has %d/%d vertices/edges", boost::num_vertices(graph_), boost::num_edges(graph_));
+
     std::vector<int> idxPathI;
     QuotientSpace *pparent = getParent();
     while (pparent != nullptr)

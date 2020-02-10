@@ -104,6 +104,19 @@ namespace ompl
                     back to [0,num_vertices(graph)] (because otherwise all the
                     graph search algorithm cannot find a solution) */
                 normalized_index_type index{-1};
+
+                /** \brief Access to the representatives (Sparse Vertex) of the Dense vertices
+                 * For Sparse Graph: Store index of Sparse Vertex which is represtative of Dense Graph Vertex
+                 */
+                normalized_index_type representativeIndex{-1};
+                
+                /** \brief Access to all non-interface supporting vertices of the sparse nodes */
+                //boost::property<vertex_list_t, std::set<VertexIndexType>,
+                std::set<normalized_index_type> nonInterfaceIndexList;
+
+                /** \brief Access to the interface-supporting vertice hashes of the sparse nodes */
+                //boost::property<vertex_interface_list_t, std::unordered_map<VertexIndexType, std::set<VertexIndexType>>>
+                std::unordered_map<normalized_index_type, std::set<normalized_index_type>> interfaceIndexList;
             };
 
             /** \brief An edge in quotient-space */
@@ -134,6 +147,9 @@ namespace ompl
                 std::string name{"quotient_graph"};
             };
             /** \brief A quotient-graph structure using boost::adjacency_list bundles */
+            /**
+             * https://www.boost.org/doc/libs/1_71_0/libs/graph/doc/adjacency_list.html
+             * */
             using Graph = boost::adjacency_list<boost::vecS, 
                   boost::vecS, 
                   boost::undirectedS, 
@@ -141,6 +157,34 @@ namespace ompl
                   EdgeInternalState, 
                   GraphBundle
             >;
+
+            /** The Boost Graph Library (BGL) https://www.boost.org/doc/libs/1_71_0/libs/graph/doc/index.html
+             * graph_traits<Graph>
+                Just like the iterators of STL, graphs have associated types. As stated in the various graph concepts, 
+                a graph has quite a few associated types: vertex_descriptor, edge_descriptor, out_edge_iterator, etc.. 
+                Any particular graph concepts will not require that all of the following associated types be defined. 
+                When implementing a graph class that fullfils one or more graph concepts, for associated types that are 
+                not required by the concepts, it is ok to use void as the type (when using nested typedefs inside the graph class), 
+                or to leave the typedef out of the graph_traits specialization for the graph class. Note that because of 
+                the use of traits classes rather than member types, it is not safe (and often will not work) to define 
+                subclasses of BGL graph types; those types may be missing important traits and properties that were defined 
+                externally to the class definition.
+             * Members
+                Member	Description
+                vertex_descriptor	The type for the objects used to identity vertices in the graph.
+                edge_descriptor	The type for the objects used to identity edges in the graph.
+                adjacency_iterator	The type for the iterators that traverse the vertices adjacent to a vertex.
+                out_edge_iterator	The type for the iterators that traverse through the out-edges of a vertex.
+                in_edge_iterator	The type for the iterators that traverse through the in-edges of a vertex.
+                vertex_iterator	The type for the iterators that traverse through the complete vertex set of the graph.
+                edge_iterator	The type for the iterators that traverse through the complete edge set of the graph.
+                directed_category	This says whether the graph is undirected (undirected_tag) or directed (directed_tag).
+                edge_parallel_category	This says whether the graph allows parallel edges to be inserted (allow_parallel_edge_tag) or if it automatically removes parallel edges (disallow_parallel_edge_tag).
+                traversal_category	The ways in which the vertices in the graph can be traversed. The traversal category tags are: incidence_graph_tag, adjacency_graph_tag, bidirectional_graph_tag, vertex_list_graph_tag, edge_list_graph_tag, vertex_and_edge_list_graph_tag, adjacency_matrix_tag. You can also create your own tag which should inherit from one of the above.
+                vertices_size_type	The unsigned integer type used for representing the number of vertices in the graph.
+                edges_size_type	The unsigned integer type used for representing the number of edge in the graph.
+                degree_size_type	The unsigned integer type used for representing the degree of vertices in the graph.
+                */
 
             using BGT = boost::graph_traits<Graph>;
             using Vertex = BGT::vertex_descriptor;
@@ -212,6 +256,7 @@ namespace ompl
             virtual void print(std::ostream &out) const override;
             /** \brief Print configuration to std::cout */
             void printConfiguration(const Configuration *) const;
+            void getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph, std::deque<base::State *> &path);
 
         protected:
             virtual double distance(const Configuration *a, const Configuration *b) const;

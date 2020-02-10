@@ -5,6 +5,8 @@
 #include <ompl/datastructures/NearestNeighbors.h>
 #include <ompl/util/RandomNumbers.h>
 #include <ompl/geometric/PathGeometric.h>
+#include "ompl/geometric/PathSimplifier.h"
+
 #include <boost/graph/subgraph.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/random.hpp> 
@@ -27,6 +29,8 @@ namespace ompl
         virtual ~QuotientSpaceGraphSparse() override;
 
         virtual void grow() = 0;
+        virtual bool getSolution(ompl::base::PathPtr &solution) override;
+        
         virtual void getPlannerData(ob::PlannerData &data) const override;
         void getPlannerDataRoadmap(ob::PlannerData &data, std::vector<int> pathIdx) const;
 
@@ -44,13 +48,28 @@ namespace ompl
         //Copied from SPARS
         void findGraphNeighbors(Configuration *q, std::vector<Configuration*> &graphNeighborhood,
                                 std::vector<Configuration*> &visibleNeighborhood);
+        bool checkAddCoverage(Configuration *q, std::vector<Configuration*> &visibleNeighborhoods);
         bool checkAddConnectivity(Configuration* q, std::vector<Configuration*> &visibleNeighborhood);
         bool checkAddInterface(Configuration *q, std::vector<Configuration*> &graphNeighborhood, std::vector<Configuration*> &visibleNeighborhood);
-        // bool checkAddPath(Vertex v);
+        bool checkAddPath(Configuration *q);
+
+        void updateRepresentatives(Configuration *q);
+        void getInterfaceNeighborRepresentatives(Configuration *q, std::set<Vertex> &interfaceRepresentatives);
+        void addToRepresentatives(Vertex q, Vertex rep, const std::set<Vertex> &interfaceRepresentatives);
+        void removeFromRepresentatives(Configuration *q);
+        
+        void getInterfaceNeighborhood(Configuration *q, std::vector<Vertex> &interfaceNeighborhood);
+        void computeVPP(Vertex v, Vertex vp, std::vector<Vertex> &VPPs);
+        void computeX(Vertex v, Vertex vp, Vertex vpp, std::vector<Vertex> &Xs);
+        Vertex getInterfaceNeighbor(Vertex q, Vertex rep);
+        void computeDensePath(const Vertex &start, const Vertex &goal, std::deque<base::State *> &path);
+        bool addPathToSpanner(const std::deque<base::State *> &dense_path, Vertex vp, Vertex vpp);
+
+        void updatePairPoints(Configuration *q);
+
         // void findCloseRepresentatives(base::State *workArea, Configuration *q,
         //                                                          const Configuration *qRep,
         //                                                          std::map<Vertex, base::State *> &closeRepresentatives);
-        // void updatePairPoints(Vertex rep, const base::State *q, Vertex r, const base::State *s);
         // void computeVPP(Vertex v, Vertex vp, std::vector<Vertex> &VPPs);
 
         void Rewire(Vertex &v);
@@ -83,7 +102,9 @@ namespace ompl
     protected:
 
         double sparseDelta_{0.};
-        double sparseDeltaFraction_{0.25};
+        double denseDelta_{0.}; //delta for dense graph -> move this QuotientSpaceGraph.h
+        double sparseDeltaFraction_{0.15};
+        double denseDeltaFraction_{0.05};
         double pathBias_{0.};
         double pathBiasFraction_{0.05};
         double kPRMStarConstant_;
@@ -129,8 +150,22 @@ namespace ompl
         Vertex v_start_sparse;
         Vertex v_goal_sparse;
 
+        bool isDenseFoundSolution_{false};
+
         PathVisibilityChecker* pathVisibilityChecker_{nullptr};
 
+        // From SPARS
+        /** \brief A counter for the number of consecutive failed iterations of the algorithm */
+        unsigned int consecutiveFailures_{0u};
+        
+        /** \brief The stretch factor in terms of graph spanners for SPARS to check against */
+        double stretchFactor_{3.};
+
+        /** \brief Geometric Path variable used for smoothing out paths. */
+        PathGeometric geomPath_;
+
+        /** \brief A path simplifier used to simplify dense paths added to S */
+        PathSimplifierPtr psimp_;
     };
   };
 };

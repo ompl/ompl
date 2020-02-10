@@ -92,6 +92,7 @@ namespace ompl
             virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
 
             virtual void grow() = 0;
+            virtual void expand() {} // For PDF sampling, not vitual because otherwise need to add in all derived class of Quotient Space so just override when needed
             virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
             virtual bool sampleQuotient(ompl::base::State *q_random);
             virtual bool sample(ompl::base::State *q_random);
