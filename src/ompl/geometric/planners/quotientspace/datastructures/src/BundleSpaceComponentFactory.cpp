@@ -2,7 +2,12 @@
 
 #include <ompl/geometric/planners/quotientspace/datastructures/components/SE2_R2.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/SE2RN_R2.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/SE2RN_SE2.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/SE2RN_SE2RM.h>
+
 #include <ompl/geometric/planners/quotientspace/datastructures/components/SE3_R3.h>
+
+#include <ompl/geometric/planners/quotientspace/datastructures/components/RN_RM.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/SO2RN_SO2.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/NoProjection.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/EmptySetProjection.h>
@@ -25,12 +30,18 @@ ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
       component = std::make_shared<BundleSpaceComponent_EmptySetProjection>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_IDENTITY_PROJECTION){
       component = std::make_shared<BundleSpaceComponent_Identity>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_RN_RM){
+      component = std::make_shared<BundleSpaceComponent_RN_RM>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_SE2_R2){
       component = std::make_shared<BundleSpaceComponent_SE2_R2>(Bundle, Base);
-    }else if(type == BUNDLE_SPACE_SO2RN_SO2){
-      component = std::make_shared<BundleSpaceComponent_SO2RN_SO2>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_SE2RN_R2){
       component = std::make_shared<BundleSpaceComponent_SE2RN_R2>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SE2RN_SE2){
+      component = std::make_shared<BundleSpaceComponent_SE2RN_SE2>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SE2RN_SE2RM){
+      component = std::make_shared<BundleSpaceComponent_SE2RN_SE2RM>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SO2RN_SO2){
+      component = std::make_shared<BundleSpaceComponent_SO2RN_SO2>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_SE3_R3){
       component = std::make_shared<BundleSpaceComponent_SE3_R3>(Bundle, Base);
     }else{

@@ -24,31 +24,6 @@ namespace ompl
         class BundleSpace : public ompl::base::Planner
         {
             using BaseT = ompl::base::Planner;
-            //IDENTITY_SPACE
-            //CONSTRAINT_RELAXATION_SPACE
-            // enum BundleSubspaceType
-            // {
-            //     EMPTY_SET_PROJECTION = 0, //space which projects onto empty set
-            //     IDENTITY_SPACE_RN = 1, //REMOVE
-            //     IDENTITY_SPACE_SE2 = 2, //REMOVE
-            //     IDENTITY_SPACE_SE2RN = 3, //REMOVE
-            //     IDENTITY_SPACE_SO2RN = 4, //REMOVE
-            //     IDENTITY_SPACE_SE3 = 5, //REMOVE
-            //     IDENTITY_SPACE_SE3RN = 6,
-            //     NO_BUNDLE_STRUCTURE = 7,
-            //     RN_RM = 8,
-            //     SE2_R2 = 9, //REMOVE
-            //     SE2RN_R2 = 10,
-            //     SE2RN_SE2 = 11, //REMOVE
-            //     SE2RN_SE2RM = 12,
-            //     SO2RN_SO2 = 13, //REMOVE
-            //     SO2RN_SO2RM = 14,
-            //     SE3_R3 = 15, //REMOVE
-            //     SE3RN_R3 = 16,
-            //     SE3RN_SE3 = 17, //REMOVE
-            //     SE3RN_SE3RM = 18,
-            //     MULTIAGENT = 19
-            // };
 
         public:
             /**  \brief Bundle Space contains three OMPL spaces, which we call Bundle, Base and Fiber.
@@ -169,18 +144,6 @@ namespace ompl
             /// Internal function implementing actual printing to stream
             virtual void print(std::ostream &out) const;
 
-            ///  \brief Compute the Bundle Bundle / Base between two given spaces.
-            
-            // const ompl::base::StateSpacePtr computeFiberSpace(const ompl::base::StateSpacePtr Bundle,
-            //                                                      const ompl::base::StateSpacePtr Base);
-            // const ompl::base::StateSpacePtr computeFiberSpace(const ompl::base::StateSpacePtr Bundle,
-            //                                                      const ompl::base::StateSpacePtr Base,
-            //                                                      BundleSpaceComponentType type);
-            /// Identify the type of the Bundle Bundle / Base
-            // BundleSpaceComponentType identifyBundleSpaceComponentType(
-            //     const ompl::base::StateSpacePtr Bundle,
-            //     const ompl::base::StateSpacePtr Base);
-
             ompl::base::SpaceInformationPtr Bundle{nullptr};
             ompl::base::SpaceInformationPtr Base{nullptr};
             ompl::base::SpaceInformationPtr Fiber{nullptr};
@@ -195,12 +158,6 @@ namespace ompl
             ompl::base::State *xBaseTmp_{nullptr};
             /// A temporary state on Fiber
             ompl::base::State *xFiberTmp_{nullptr};
-
-            // BundleSubspaceType type_;
-            // std::vector<BundleSubspaceType> types_; //for multiagent planning
-            // unsigned int Bundle_dimension_{0};
-            // unsigned int Base_dimension_{0};
-            // unsigned int Fiber_dimension_{0};
 
             static unsigned int counter_;
 
@@ -217,9 +174,6 @@ namespace ompl
 
             BundleSpace *parent_{nullptr};
             BundleSpace *child_{nullptr};
-
-            // unsigned int totalNumberOfSamples_{0};
-            // unsigned int totalNumberOfFeasibleSamples_{0};
 
             /** \brief Goal state or goal region */
             ompl::base::Goal *goal_;
