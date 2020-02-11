@@ -1,0 +1,5 @@
+[ ] Clean up constructor Bundle Space
+[ ] Clean up Bundle Space Graph Sparse (outsource explorer functions)
+[ ] Add function getLocalMinimaTree() to explorer
+[ ] Organize MultiQuotient classes in better way
+

@@ -11,7 +11,7 @@
 #include <boost/property_map/vector_property_map.hpp>
 #include <boost/property_map/transform_value_property_map.hpp>
 #include <boost/foreach.hpp>
-#include "GoalVisitor.hpp"
+#include "BundleSpaceGraphGoalVisitor.hpp"
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp> //same_component
 #include <boost/math/constants/constants.hpp>
@@ -161,7 +161,7 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraphSparse::getPathSparse(const
                                 .distance_inf(opt_->infiniteCost())
                                 .distance_zero(opt_->identityCost()));
     }
-    catch (AStarFoundGoal &)
+    catch (BundleSpaceGraphFoundGoal &)
     {
     }
 
@@ -851,6 +851,7 @@ void BundleSpaceGraphSparse::freePath(std::vector<ob::State*> path, const ob::Sp
     }
     path.clear();
 }
+
 std::vector<ob::State*> BundleSpaceGraphSparse::getProjectedPath(const std::vector<ob::State*> pathBundle, const ob::SpaceInformationPtr &si) const
 {
     std::vector<ob::State*> pathBase;

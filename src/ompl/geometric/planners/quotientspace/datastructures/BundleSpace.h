@@ -83,7 +83,7 @@ namespace ompl
             /// Dimension of Base Space
             unsigned int getBaseDimension() const;
             /// Dimension of Bundle Space
-            unsigned int getDimension() const;
+            unsigned int getBundleDimension() const;
 
             const ompl::base::StateSamplerPtr &getFiberSamplerPtr() const;
             const ompl::base::StateSamplerPtr &getBundleSamplerPtr() const;

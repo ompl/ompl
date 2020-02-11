@@ -47,7 +47,6 @@ namespace ompl
         ompl::control::StatePropagatorPtr prop;
         ompl::control::DirectedControlSamplerPtr dCSampler;
 	
-
       protected:
 
         int numberOfControlSamples{10};

@@ -7,6 +7,8 @@
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
+#include <ompl/base/spaces/TimeStateSpace.h>
+#include <ompl/base/spaces/DiscreteStateSpace.h>
 
 #include <ompl/util/Exception.h>
 
@@ -286,7 +288,8 @@ void ompl::geometric::BundleSpace::projectFiber(const base::State *xBundle, base
     unsigned int M = components_.size();
 
     if( M > 1){
-        for(uint m = 0; m < M; m++){
+        for(uint m = 0; m < M; m++)
+        {
             const base::State *xmBundle = xBundle->as<base::CompoundState>()->as<base::State>(m);
             base::State *xmFiber = xFiber->as<base::CompoundState>()->as<base::State>(m);
             components_.at(m)->projectFiber(xmBundle, xmFiber);
@@ -301,7 +304,8 @@ void ompl::geometric::BundleSpace::projectBase(const base::State *xBundle, base:
     unsigned int M = components_.size();
 
     if( M > 1){
-        for(uint m = 0; m < M; m++){
+        for(uint m = 0; m < M; m++)
+        {
             const base::State *xmBundle = xBundle->as<base::CompoundState>()->as<base::State>(m);
             base::State *xmBase = xBase->as<base::CompoundState>()->as<base::State>(m);
             components_.at(m)->projectBase(xmBundle, xmBase);
@@ -333,6 +337,18 @@ void ompl::geometric::BundleSpace::allocIdentityState(base::State *s, base::Stat
       case base::STATE_SPACE_SO2:
       {
         static_cast<base::SO2StateSpace::StateType *>(s)->setIdentity();
+        break;
+      }
+      case base::STATE_SPACE_TIME:
+      {
+        static_cast<base::TimeStateSpace::StateType *>(s)->position = 0;
+        break;
+      }
+      case base::STATE_SPACE_DISCRETE:
+      {
+        base::DiscreteStateSpace *space_Discrete = space->as<base::DiscreteStateSpace>();
+        int lb = space_Discrete->getLowerBound();
+        static_cast<base::DiscreteStateSpace::StateType *>(s)->value = lb;
         break;
       }
       case base::STATE_SPACE_REAL_VECTOR:
@@ -405,7 +421,7 @@ unsigned int ompl::geometric::BundleSpace::getBaseDimension() const
     else return 0;
 }
 
-unsigned int ompl::geometric::BundleSpace::getDimension() const
+unsigned int ompl::geometric::BundleSpace::getBundleDimension() const
 {
     return getBundle()->getStateDimension();
 }

@@ -101,8 +101,7 @@ namespace ompl
                 /** \brief Index of configuration in boost::graph. Usually in
                     the interval [0,num_vertices(graph)], but if vertices are
                     deleted or graphs are copied, we sometimes need to map them
-                    back to [0,num_vertices(graph)] (because otherwise all the
-                    graph search algorithm cannot find a solution) */
+                    back to [0, num_vertices(graph)]  */
                 normalized_index_type index{-1};
             };
 
@@ -131,13 +130,15 @@ namespace ompl
 
             struct GraphBundle
             {
-                std::string name{"Bundle_graph"};
+                std::string name{"BundleSpaceGraph"};
             };
+
             /** \brief A Bundle-graph structure using boost::adjacency_list bundles */
-            using Graph = boost::adjacency_list<boost::vecS, 
+            using Graph = boost::adjacency_list<
+                  boost::vecS, 
                   boost::vecS, 
                   boost::undirectedS, 
-                  Configuration *,
+                  Configuration*,
                   EdgeInternalState, 
                   GraphBundle
             >;
@@ -148,8 +149,6 @@ namespace ompl
             using VertexIndex = BGT::vertices_size_type;
             using IEIterator = BGT::in_edge_iterator;
             using OEIterator = BGT::out_edge_iterator;
-            // typedef Vertex *VertexParent;
-            // typedef VertexIndex *VertexRank;
             using VertexParent = Vertex;
             using VertexRank = VertexIndex;
             using RoadmapNeighborsPtr = std::shared_ptr<NearestNeighbors<Configuration *>>;

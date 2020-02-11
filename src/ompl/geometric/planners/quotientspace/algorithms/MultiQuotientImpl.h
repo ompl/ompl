@@ -100,7 +100,7 @@ std::vector<int> ompl::geometric::MultiQuotient<T>::getDimensionsPerLevel() cons
     std::vector<int> dimensionsPerLevel;
     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
     {
-        unsigned int Nk = bundleSpaces_.at(k)->getDimension();
+        unsigned int Nk = bundleSpaces_.at(k)->getBundleDimension();
         dimensionsPerLevel.push_back(Nk);
     }
     return dimensionsPerLevel;

@@ -34,9 +34,9 @@
  *********************************************************************/
 
 /* Author: Andreas Orthey */
-#include "GoalVisitor.hpp"
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/src/BundleSpaceGraphGoalVisitor.hpp>
 
 #include <ompl/geometric/planners/prm/ConnectionStrategy.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
@@ -340,7 +340,7 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraph::getPath(const Vertex &sta
                                 .distance_inf(opt_->infiniteCost())
                                 .distance_zero(opt_->identityCost()));
     }
-    catch (AStarFoundGoal &)
+    catch (BundleSpaceGraphFoundGoal &)
     {
     }
 

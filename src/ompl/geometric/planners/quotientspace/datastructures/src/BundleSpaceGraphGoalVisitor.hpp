@@ -35,22 +35,22 @@
 
 /* Author: Based on examples from BGL documentation  */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_GOALVISITOR_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_GOALVISITOR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_GOALVISITOR_
+#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_GOALVISITOR_
 
 #include <boost/graph/astar_search.hpp>
 
 namespace
 {
-    struct AStarFoundGoal
+    struct BundleSpaceGraphFoundGoal
     {
     };
 
     template <typename V>
-    class AStarGoalVisitor : public boost::default_astar_visitor
+    class BundleSpaceGraphGoalVisitor : public boost::default_astar_visitor
     {
     public:
-        AStarGoalVisitor(const V &goal) : goal_(goal)
+        BundleSpaceGraphGoalVisitor(const V &goal) : goal_(goal)
         {
         }
 
@@ -59,7 +59,7 @@ namespace
         {
             if (u == goal_)
             {
-                throw AStarFoundGoal();
+                throw BundleSpaceGraphFoundGoal();
             }
         }
 
