@@ -1,4 +1,4 @@
-#include <ompl/geometric/planners/quotientspace/datastructures/components/SE3RN_SE3.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_X_SE3.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
@@ -9,22 +9,6 @@ ompl::geometric::BundleSpaceComponent_SE3RN_SE3::BundleSpaceComponent_SE3RN_SE3(
   BaseT(BundleSpace, BaseSpace)
 {
 }
-
-void ompl::geometric::BundleSpaceComponent_SE3RN_SE3::projectFiber(
-    const ompl::base::State *xBundle,
-    ompl::base::State *xFiber) const
-{
-    const base::RealVectorStateSpace::StateType *xBundle_RN =
-        xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
-    base::RealVectorStateSpace::StateType *xFiber_RN = xFiber->as<base::RealVectorStateSpace::StateType>();
-
-    for (unsigned int k = 0; k < getFiberDimension(); k++)
-    {
-        xFiber_RN->values[k] = xBundle_RN->values[k];
-    }
-
-}
-
 
 void ompl::geometric::BundleSpaceComponent_SE3RN_SE3::projectBase(
     const ompl::base::State *xBundle,
@@ -73,17 +57,3 @@ void ompl::geometric::BundleSpaceComponent_SE3RN_SE3::mergeStates(
         xBundle_RN->values[k] = xFiber_RN->values[k];
     }
 }
-
-ompl::base::StateSpacePtr ompl::geometric::BundleSpaceComponent_SE3RN_SE3::computeFiberSpace()
-{
-    base::CompoundStateSpace *Bundle_compound = BundleSpace_->as<base::CompoundStateSpace>();
-    const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
-    const base::RealVectorStateSpace *Bundle_RN = Bundle_decomposed.at(1)->as<base::RealVectorStateSpace>();
-
-    unsigned int N = Bundle_decomposed.at(1)->getDimension();
-
-    base::StateSpacePtr RN(new base::RealVectorStateSpace(N));
-    RN->as<base::RealVectorStateSpace>()->setBounds(Bundle_RN->getBounds());
-    return RN;
-}
-

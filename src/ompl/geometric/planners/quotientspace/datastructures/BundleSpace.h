@@ -48,8 +48,9 @@ namespace ompl
             virtual void grow() = 0;
             virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
 
-            virtual bool sampleBase(ompl::base::State *xRandom);
-            virtual bool sample(ompl::base::State *xRandom);
+            virtual bool sampleBase(ompl::base::State *xBase);
+            virtual bool sampleFiber(ompl::base::State *xFiber);
+            virtual bool sampleBundle(ompl::base::State *xRandom);
 
             virtual bool hasSolution();
             virtual void clear() override;

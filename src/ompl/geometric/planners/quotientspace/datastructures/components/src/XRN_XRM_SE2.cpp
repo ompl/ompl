@@ -1,6 +1,5 @@
-#include <ompl/geometric/planners/quotientspace/datastructures/components/SE2RN_SE2RM.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_XRM_SE2.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
-#include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
 #include <ompl/util/Exception.h>
@@ -10,22 +9,6 @@ ompl::geometric::BundleSpaceComponent_SE2RN_SE2RM::BundleSpaceComponent_SE2RN_SE
     base::StateSpacePtr BaseSpace):
   BaseT(BundleSpace, BaseSpace)
 {
-}
-
-void ompl::geometric::BundleSpaceComponent_SE2RN_SE2RM::projectFiber(
-    const ompl::base::State *xBundle,
-    ompl::base::State *xFiber) const
-{
-    const base::RealVectorStateSpace::StateType *xBundle_RN =
-        xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
-
-    const base::RealVectorStateSpace::StateType *xFiber_RM = xFiber->as<base::RealVectorStateSpace::StateType>();
-
-    unsigned int N = getDimension() - getFiberDimension() - 3;
-    for (unsigned int k = N; k < getDimension() - 3; k++)
-    {
-        xFiber_RM->values[k - N] = xBundle_RN->values[k];
-    }
 }
 
 void ompl::geometric::BundleSpaceComponent_SE2RN_SE2RM::projectBase(
@@ -86,16 +69,4 @@ void ompl::geometric::BundleSpaceComponent_SE2RN_SE2RM::mergeStates(
      {
          xBundle_RN->values[k] = xFiber_RJ->values[k - M];
      }
-}
-
-ompl::base::StateSpacePtr ompl::geometric::BundleSpaceComponent_SE2RN_SE2RM::computeFiberSpace()
-{
-    unsigned int N = BundleSpace_->getDimension();
-    unsigned int Y = BaseSpace_->getDimension();
-    if(N > 3 && Y > 3 && (N > Y))
-    {
-      OMPL_ERROR("Assumed input is SE(2)xRN -> SE2, but got %d -> %d dimensions.", N, Y);
-      throw Exception("Invalid Dimensionality");
-    }
-
 }

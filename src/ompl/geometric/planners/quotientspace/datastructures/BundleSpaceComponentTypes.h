@@ -7,16 +7,15 @@ namespace ompl
     {
         enum BundleSpaceComponentType
         {
-          /** \brief X */
+          /** \brief ompl::geometric::BundleSpaceComponent_None */
             BUNDLE_SPACE_NO_PROJECTION = 0,
 
-          /** \brief X \rightarrow \emptyset */
+          /** \brief ompl::geometric::BundleSpaceComponent_EmptySet */
             BUNDLE_SPACE_EMPTY_SET_PROJECTION = 1,
 
-          /** \brief X \rightarrow X */
+          /** \brief ompl::geometric::BundleSpaceComponent_Identity */
             BUNDLE_SPACE_IDENTITY_PROJECTION = 2,
 
-          /** \brief X \rightarrow X */
             BUNDLE_SPACE_CONSTRAINED_RELAXATION = 3,
 
           /** \brief RN \rightarrow RM, m < n */

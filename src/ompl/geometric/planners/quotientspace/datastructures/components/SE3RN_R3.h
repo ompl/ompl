@@ -14,6 +14,8 @@ namespace ompl
                 base::StateSpacePtr BundleSpace,
                 base::StateSpacePtr BaseSpace);
 
+            ~BundleSpaceComponent_SE3RN_R3() override = default;
+
             virtual void projectFiber(
                 const ompl::base::State *xBundle,
                 ompl::base::State *xFiber) const override;

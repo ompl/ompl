@@ -1,21 +1,23 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceComponentFactory.h>
 
-#include <ompl/geometric/planners/quotientspace/datastructures/components/SO2RN_SO2.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/components/SO2RN_SO2RM.h>
+//XRN -> X
+#include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_X_SO2.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_X_SE2.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_X_SE3.h>
 
-#include <ompl/geometric/planners/quotientspace/datastructures/components/SE2_R2.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/components/SE2RN_R2.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/components/SE2RN_SE2.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/components/SE2RN_SE2RM.h>
+//XRN -> XRM
+#include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_XRM_SO2.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_XRM_SE2.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_XRM_SE3.h>
 
 #include <ompl/geometric/planners/quotientspace/datastructures/components/SE3_R3.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/SE3RN_R3.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/components/SE3RN_SE3.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/components/SE3RN_SE3RM.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/SE2_R2.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/SE2RN_R2.h>
 
 #include <ompl/geometric/planners/quotientspace/datastructures/components/RN_RM.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/components/NoProjection.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/components/EmptySetProjection.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/None.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/EmptySet.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/Identity.h>
 
 #include <ompl/util/Exception.h>
@@ -30,9 +32,9 @@ ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
 
     if(type == BUNDLE_SPACE_NO_PROJECTION)
     {
-      component = std::make_shared<BundleSpaceComponent_NoProjection>(Bundle, Base);
+      component = std::make_shared<BundleSpaceComponent_None>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_EMPTY_SET_PROJECTION){
-      component = std::make_shared<BundleSpaceComponent_EmptySetProjection>(Bundle, Base);
+      component = std::make_shared<BundleSpaceComponent_EmptySet>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_IDENTITY_PROJECTION){
       component = std::make_shared<BundleSpaceComponent_Identity>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_RN_RM){

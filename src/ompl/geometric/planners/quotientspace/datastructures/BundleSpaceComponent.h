@@ -16,6 +16,8 @@ namespace ompl
                 base::StateSpacePtr BundleSpace,
                 base::StateSpacePtr BaseSpace);
 
+            virtual ~BundleSpaceComponent() = default;
+
             virtual void projectFiber(
                 const ompl::base::State *xBundle,
                 ompl::base::State *xFiber) const = 0;

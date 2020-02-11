@@ -1,20 +1,20 @@
-#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_COMPONENT_SE2RN_R2__
-#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_COMPONENT_SE2RN_R2__
+#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_COMPONENT_EMPTYSETPROJECTION___
+#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLE_COMPONENT_EMPTYSETPROJECTION___
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceComponent.h>
 
 namespace ompl
 {
     namespace geometric
     {
-        class BundleSpaceComponent_SE2RN_R2: public BundleSpaceComponent
+        class BundleSpaceComponent_EmptySet: public BundleSpaceComponent
         {
             using BaseT = BundleSpaceComponent;
           public:
-            BundleSpaceComponent_SE2RN_R2(
+            BundleSpaceComponent_EmptySet(
                 base::StateSpacePtr BundleSpace,
                 base::StateSpacePtr BaseSpace);
 
-            ~BundleSpaceComponent_SE2RN_R2() override = default;
+            ~BundleSpaceComponent_EmptySet() override = default;
 
             virtual void projectFiber(
                 const ompl::base::State *xBundle,

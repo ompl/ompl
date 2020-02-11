@@ -141,6 +141,17 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
     }
 }
 
+ompl::geometric::BundleSpace::~BundleSpace()
+{
+    if (hasParent())
+    {
+        if (xBaseTmp_)
+            Base->freeState(xBaseTmp_);
+        if (Fiber && xFiberTmp_)
+            Fiber->freeState(xFiberTmp_);
+    }
+}
+
 int ompl::geometric::BundleSpace::GetNumberOfComponents(base::StateSpacePtr space)
 {
   int nrComponents = 0;
@@ -175,18 +186,6 @@ int ompl::geometric::BundleSpace::GetNumberOfComponents(base::StateSpacePtr spac
   }
   return nrComponents;
 }
-
-ompl::geometric::BundleSpace::~BundleSpace()
-{
-    if (hasParent())
-    {
-        if (xBaseTmp_)
-            Base->freeState(xBaseTmp_);
-        if (Fiber && xFiberTmp_)
-            Fiber->freeState(xFiberTmp_);
-    }
-}
-
 bool ompl::geometric::BundleSpace::hasParent() const
 {
     return !(parent_ == nullptr);
@@ -466,18 +465,22 @@ ompl::base::OptimizationObjectivePtr ompl::geometric::BundleSpace::getOptimizati
     return opt_;
 }
 
-bool ompl::geometric::BundleSpace::sampleBase(base::State *xRandom)
+bool ompl::geometric::BundleSpace::sampleBase(base::State *xBase)
 {
-    Bundle_sampler_->sampleUniform(xRandom);
+    return getParent()->sampleBundle(xBase);
+}
+
+bool ompl::geometric::BundleSpace::sampleFiber(base::State *xFiber)
+{
+    Fiber_sampler_->sampleUniform(xFiber);
     return true;
 }
 
-bool ompl::geometric::BundleSpace::sample(base::State *xRandom)
+bool ompl::geometric::BundleSpace::sampleBundle(base::State *xRandom)
 {
     bool valid = false;
     if (!hasParent())
     {
-        // return Bundle_valid_sampler->sample(q_random);
         Bundle_sampler_->sampleUniform(xRandom);
         valid = Bundle->isValid(xRandom);
     }
@@ -486,13 +489,13 @@ bool ompl::geometric::BundleSpace::sample(base::State *xRandom)
         if (getFiberDimension() > 0)
         {
             // Adjusted sampling function: Sampling in G0 x Fiber
-            Fiber_sampler_->sampleUniform(xFiberTmp_);
-            parent_->sampleBase(xBaseTmp_);
+            sampleFiber(xFiberTmp_);
+            sampleBase(xBaseTmp_);
             mergeStates(xBaseTmp_, xFiberTmp_, xRandom);
         }
         else
         {
-            parent_->sampleBase(xRandom);
+            sampleBase(xRandom);
         }
         valid = Bundle->isValid(xRandom);
     }
