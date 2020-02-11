@@ -62,7 +62,7 @@ namespace ompl
             /** \brief Importance based on how many vertices the tree has */
             double getImportance() const override;
             /** \brief Uniform sampling */
-            virtual bool sample(ompl::base::State *q_random) override;
+            virtual bool sampleBundle(ompl::base::State *q_random) override;
             /** \brief \brief Quotient-Space sampling by choosing a random vertex from parent
                 class tree */
             virtual bool sampleBase(ompl::base::State *) override;

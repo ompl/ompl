@@ -113,7 +113,7 @@ void ompl::geometric::QRRTImpl::grow()
     if (hasSolution_)
     {
         // No Goal Biasing if we already found a solution on this quotient space
-        sample(qRandom_->state);
+        sampleBundle(qRandom_->state);
     }
     else
     {
@@ -124,7 +124,7 @@ void ompl::geometric::QRRTImpl::grow()
         }
         else
         {
-            sample(qRandom_->state);
+            sampleBundle(qRandom_->state);
         }
     }
 
@@ -178,7 +178,7 @@ double ompl::geometric::QRRTImpl::getImportance() const
 }
 
 // Make it faster by removing the validity check
-bool ompl::geometric::QRRTImpl::sample(base::State *xRandom)
+bool ompl::geometric::QRRTImpl::sampleBundle(base::State *xRandom)
 {
     if (!hasParent())
     {
@@ -188,13 +188,13 @@ bool ompl::geometric::QRRTImpl::sample(base::State *xRandom)
     {
         if (getFiberDimension() > 0)
         {
-            Fiber_sampler_->sampleUniform(xFiberTmp_);
-            parent_->sampleBase(xBaseTmp_);
+            sampleFiber(xFiberTmp_);
+            sampleBase(xBaseTmp_);
             mergeStates(xBaseTmp_, xFiberTmp_, xRandom);
         }
         else
         {
-            parent_->sampleBase(xRandom);
+            sampleBase(xRandom);
         }
     }
     return true;

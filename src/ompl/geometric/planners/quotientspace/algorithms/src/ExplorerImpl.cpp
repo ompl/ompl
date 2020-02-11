@@ -1,4 +1,4 @@
-#include <ompl/geometric/planners/quotientspace/algorithms/QuotientTopology.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/ExplorerImpl.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/datastructures/PDF.h>
 
@@ -16,12 +16,12 @@ using namespace og;
 using namespace ob;
 #define foreach BOOST_FOREACH
 
-QuotientTopology::QuotientTopology(const ob::SpaceInformationPtr &si, BundleSpace *parent_ ):
+ExplorerImpl::ExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *parent_ ):
   BaseT(si, parent_)
 {
   setName("BundleSpaceTopology"+std::to_string(id_));
-  Planner::declareParam<double>("range", this, &QuotientTopology::setRange, &QuotientTopology::getRange, "0.:1.:10000.");
-  Planner::declareParam<double>("goal_bias", this, &QuotientTopology::setGoalBias, &QuotientTopology::getGoalBias, "0.:.1:1.");
+  Planner::declareParam<double>("range", this, &ExplorerImpl::setRange, &ExplorerImpl::getRange, "0.:1.:10000.");
+  Planner::declareParam<double>("goal_bias", this, &ExplorerImpl::setGoalBias, &ExplorerImpl::getGoalBias, "0.:.1:1.");
 
   specs_.approximateSolutions = true;
   approximateDistanceToGoal = std::numeric_limits<double>::infinity();
@@ -44,41 +44,41 @@ QuotientTopology::QuotientTopology(const ob::SpaceInformationPtr &si, BundleSpac
   q_random = new Configuration(Bundle);
 }
 
-QuotientTopology::~QuotientTopology()
+ExplorerImpl::~ExplorerImpl()
 {
   deleteConfiguration(q_random);
 }
 
-void QuotientTopology::setGoalBias(double goalBias_)
+void ExplorerImpl::setGoalBias(double goalBias_)
 {
   goalBias = goalBias_;
 }
-double QuotientTopology::getGoalBias() const
+double ExplorerImpl::getGoalBias() const
 {
   return goalBias;
 }
-void QuotientTopology::setRange(double maxDistance_)
+void ExplorerImpl::setRange(double maxDistance_)
 {
   maxDistance = maxDistance_;
 }
-double QuotientTopology::getRange() const
+double ExplorerImpl::getRange() const
 {
   return maxDistance;
 }
 
-void QuotientTopology::setup()
+void ExplorerImpl::setup()
 {
   BaseT::setup();
   ompl::tools::SelfConfig sc(Bundle, getName());
   sc.configurePlannerRange(maxDistance);
 }
 
-void QuotientTopology::clear()
+void ExplorerImpl::clear()
 {
   BaseT::clear();
 }
 
-bool QuotientTopology::getSolution(ob::PathPtr &solution)
+bool ExplorerImpl::getSolution(ob::PathPtr &solution)
 {
   if(hasSolution_){
       if(!isDynamic()) return BaseT::getSolution(solution);
@@ -93,7 +93,7 @@ bool QuotientTopology::getSolution(ob::PathPtr &solution)
   }
 }
 
-void QuotientTopology::grow(){
+void ExplorerImpl::grow(){
   if(firstRun_){
     Init();
     firstRun_ = false;
@@ -105,14 +105,14 @@ void QuotientTopology::grow(){
   }
   if(hasSolution_ && pathStackHead_.size()>0){
     //No Goal Biasing if we already found a solution on this quotient space
-    sample(q_random->state);
+    sampleBundle(q_random->state);
   }else{
     double s = rng_.uniform01();
     if(s < goalBias){
       //sets q_random as qGoal_
       Bundle->copyState(q_random->state, qGoal_->state); 
    }else{
-      sample(q_random->state);
+      sampleBundle(q_random->state);
    }
   }
   if(isDynamic()) {
@@ -130,13 +130,13 @@ void QuotientTopology::grow(){
   }
 }
 
-bool QuotientTopology::hasSolution()
+bool ExplorerImpl::hasSolution()
 {
   return BaseT::hasSolution();
   // return ((pathStackHead_.size()>0) && BaseT::hasSolution());
 }
 
-void QuotientTopology::growGeometricExpand()
+void ExplorerImpl::growGeometricExpand()
 {
     PDF pdf;
     foreach (Vertex v, boost::vertices(graph_))
@@ -174,7 +174,7 @@ void QuotientTopology::growGeometricExpand()
     }
     Bundle->freeStates(workStates);
 }
-void QuotientTopology::growGeometric(){
+void ExplorerImpl::growGeometric(){
   
   const Configuration *q_nearest = nearest(q_random);
   double d = Bundle->distance(q_nearest->state, q_random->state);
@@ -203,7 +203,7 @@ void QuotientTopology::growGeometric(){
 
 //(1) Directed Graph
 //(2) Do not add goal
-void QuotientTopology::growControl(){
+void ExplorerImpl::growControl(){
   //do this, if control-case
     const Configuration *q_nearest = nearest(q_random);
     s_random = q_random->state;

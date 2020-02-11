@@ -18,14 +18,14 @@ namespace ompl
   }
   namespace geometric
   {
-    //QuotientTopology 
-    class QuotientTopology: public og::BundleSpaceGraphSparse{
+    //ExplorerImpl 
+    class ExplorerImpl: public og::BundleSpaceGraphSparse{
 
       using BaseT = ompl::geometric::BundleSpaceGraphSparse;
       public:
 
-        QuotientTopology(const ob::SpaceInformationPtr &si, BundleSpace *parent_);
-        virtual ~QuotientTopology() override;
+        ExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *parent_);
+        virtual ~ExplorerImpl() override;
         virtual void grow() override;
         virtual void growGeometric();
         virtual void growGeometricExpand();
