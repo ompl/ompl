@@ -622,7 +622,7 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q,
 }
 
 
-bool BundleSpaceGraphSparse::sampleBase(ob::State *q_random_graph)
+bool BundleSpaceGraphSparse::sampleFromDatastructure(ob::State *q_random_graph)
 {
     if( !getChild()->isDynamic() && pathStack_.size() > 0)
     {

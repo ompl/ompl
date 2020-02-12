@@ -110,37 +110,25 @@ void ompl::geometric::QRRTImpl::grow()
         firstRun_ = false;
     }
 
-    if (hasSolution_)
-    {
-        // No Goal Biasing if we already found a solution on this quotient space
-        sampleBundle(qRandom_->state);
-    }
-    else
-    {
-        double s = rng_.uniform01();
-        if (s < goalBias_)
-        {
-            Bundle->copyState(qRandom_->state, qGoal_->state);
-        }
-        else
-        {
-            sampleBundle(qRandom_->state);
-        }
-    }
+    //(1) Get Random Sample
+    sampleRandom(qRandom_->state);
 
+    //(2) Get Nearest in Tree
     const Configuration *q_nearest = nearest(qRandom_);
+
+    //(3) Connect Nearest to Random
     double d = Bundle->distance(q_nearest->state, qRandom_->state);
     if (d > maxDistance_)
     {
         Bundle->getStateSpace()->interpolate(q_nearest->state, qRandom_->state, maxDistance_ / d, qRandom_->state);
     }
 
-    // totalNumberOfSamples_++;
+    //(4) Check if Motion is correct
     if (Bundle->checkMotion(q_nearest->state, qRandom_->state))
     {
-        // totalNumberOfFeasibleSamples_++;
         Configuration *q_next = new Configuration(Bundle, qRandom_->state);
         Vertex v_next = addConfiguration(q_next);
+
         if (!hasSolution_)
         {
             // only add edge if no solution exists
@@ -177,7 +165,28 @@ double ompl::geometric::QRRTImpl::getImportance() const
     return 1.0 / (N + 1);
 }
 
-// Make it faster by removing the validity check
+bool ompl::geometric::QRRTImpl::sampleRandom(base::State *xRandom)
+{
+    if (hasSolution_)
+    {
+        // No Goal Biasing if we already found a solution on this quotient space
+        sampleBundle(xRandom);
+    }
+    else
+    {
+        double s = rng_.uniform01();
+        if (s < goalBias_)
+        {
+            Bundle->copyState(xRandom, qGoal_->state);
+        }
+        else
+        {
+            sampleBundle(xRandom);
+        }
+    }
+    return true;
+}
+
 bool ompl::geometric::QRRTImpl::sampleBundle(base::State *xRandom)
 {
     if (!hasParent())
@@ -189,18 +198,18 @@ bool ompl::geometric::QRRTImpl::sampleBundle(base::State *xRandom)
         if (getFiberDimension() > 0)
         {
             sampleFiber(xFiberTmp_);
-            sampleBase(xBaseTmp_);
+            parent_->sampleFromDatastructure(xBaseTmp_);
             mergeStates(xBaseTmp_, xFiberTmp_, xRandom);
         }
         else
         {
-            sampleBase(xRandom);
+            parent_->sampleFromDatastructure(xRandom);
         }
     }
     return true;
 }
 
-bool ompl::geometric::QRRTImpl::sampleBase(base::State *q_random_graph)
+bool ompl::geometric::QRRTImpl::sampleFromDatastructure(base::State *q_random_graph)
 {
     // RANDOM VERTEX SAMPLING
     const Vertex v = boost::random_vertex(graph_, rng_boost);

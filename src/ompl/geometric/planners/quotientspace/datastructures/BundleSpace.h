@@ -48,7 +48,7 @@ namespace ompl
             virtual void grow() = 0;
             virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
 
-            virtual bool sampleBase(ompl::base::State *xBase);
+            virtual bool sampleFromDatastructure(ompl::base::State *xBase) = 0;
             virtual bool sampleFiber(ompl::base::State *xFiber);
             virtual bool sampleBundle(ompl::base::State *xRandom);
 

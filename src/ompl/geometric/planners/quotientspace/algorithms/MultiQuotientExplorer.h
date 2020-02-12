@@ -1,7 +1,7 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MotionExplorerImpl_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MotionExplorerImpl_
-#include <ompl/geometric/planners/quotientspace/algorithms/MultiQuotient.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceSequence.h>
 #include <type_traits>
 #include <queue>
 
@@ -14,12 +14,12 @@ namespace ompl
     {
 
         template <class T>
-        class MotionExplorerImpl : public og::MultiQuotient<T>
+        class MotionExplorerImpl : public og::BundleSpaceSequence<T>
         {
             static_assert(std::is_base_of<og::BundleSpaceGraphSparse, T>::value, 
                 "Template must inherit from BundleSpaceGraphSparse");
 
-            typedef og::MultiQuotient<T> BaseT;
+            typedef og::BundleSpaceSequence<T> BaseT;
         public:
             const bool DEBUG{false};
 

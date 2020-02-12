@@ -19,7 +19,7 @@ using namespace ob;
 ExplorerImpl::ExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *parent_ ):
   BaseT(si, parent_)
 {
-  setName("BundleSpaceTopology"+std::to_string(id_));
+  setName("BundleSpaceExplorer"+std::to_string(id_));
   Planner::declareParam<double>("range", this, &ExplorerImpl::setRange, &ExplorerImpl::getRange, "0.:1.:10000.");
   Planner::declareParam<double>("goal_bias", this, &ExplorerImpl::setGoalBias, &ExplorerImpl::getGoalBias, "0.:.1:1.");
 

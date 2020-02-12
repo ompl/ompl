@@ -37,7 +37,8 @@
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRT_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRT_
-#include <ompl/geometric/planners/quotientspace/algorithms/MultiQuotient.h>
+// #include <ompl/geometric/planners/quotientspace/algorithms/MultiQuotient.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceSequence.h>
 #include <ompl/geometric/planners/quotientspace/algorithms/QRRTImpl.h>
 
 namespace ompl
@@ -64,7 +65,7 @@ namespace ompl
         */
 
         /** \brief QuotientSpace Rapidly Exploring Random Trees Algorithm*/
-        typedef ompl::geometric::MultiQuotient<ompl::geometric::QRRTImpl> QRRT;
+        typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QRRTImpl> QRRT;
 
     }  // namespace geometric
 }  // namespace ompl

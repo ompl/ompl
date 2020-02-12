@@ -35,8 +35,8 @@
 
 /* Author: Andreas Orthey */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_BundleSpace_MULTIQUOTIENT_
-#define OMPL_GEOMETRIC_PLANNERS_BundleSpace_MULTIQUOTIENT_
+#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLESPACESEQUENCE_
+#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLESPACESEQUENCE_
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpace.h>
 #include <type_traits>
 #include <queue>
@@ -45,31 +45,30 @@ namespace ompl
 {
     namespace geometric
     {
-        /** \brief A sequence of multiple quotient-spaces
-             The class MultiQuotient can be used with any planner which inherits
-             the ompl::geometric::BundleSpace class.
+        /** \brief A sequence of BundleSpaces
 
              Example usage with QRRT
              (using a sequence si_vec of ompl::base::SpaceInformationPtr)
              ompl::base::PlannerPtr planner =
-                 std::make_shared<MultiQuotient<ompl::geometric::QRRT> >(si_vec); */
+                 std::make_shared<BundleSpaceSequence<ompl::geometric::QRRT> >(si_vec); */
 
         template <class T>
-        class MultiQuotient : public ompl::base::Planner
+        class BundleSpaceSequence : public ompl::base::Planner
         {
             using BaseT = ompl::base::Planner;
-            static_assert(std::is_base_of<BundleSpace, T>::value, "Template must inherit from Quotient");
+            static_assert(std::is_base_of<BundleSpace, T>::value, "Template must inherit from BundleSpace");
 
         public:
             const bool DEBUG{false};
 
             /** \brief Constructor taking a sequence of ompl::base::SpaceInformationPtr
-                 and computing the quotient-spaces for each pair in the sequence */
-            MultiQuotient(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type = "QuotientPlanner");
-            MultiQuotient(ompl::base::SpaceInformationPtr si) = delete;
-            MultiQuotient(ompl::base::SpaceInformationPtr si, std::string type) = delete;
+                 and computing the BundleSpaces for each pair in the sequence */
+            BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec, 
+                std::string type = "BundleSpacePlanner");
+            BundleSpaceSequence(ompl::base::SpaceInformationPtr si) = delete;
+            BundleSpaceSequence(ompl::base::SpaceInformationPtr si, std::string type) = delete;
 
-            virtual ~MultiQuotient() override;
+            virtual ~BundleSpaceSequence() override;
 
             /** \brief Return annotated vertices (with information about BundleSpace level) */
             void getPlannerData(ompl::base::PlannerData &data) const override;
@@ -80,32 +79,27 @@ namespace ompl
             virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
             const ompl::base::ProblemDefinitionPtr &getProblemDefinition(unsigned int kBundleSpace) const;
 
-            /** \brief Number of quotient-spaces */
+            /** \brief Number of BundleSpaces */
             int getLevels() const;
 
-            // /** \brief Number of feasible nodes on each BundleSpace (for DEBUGGING) */
-            // std::vector<int> getFeasibleNodes() const;
-            // /** \brief Number of nodes on each BundleSpace (for DEBUGGING) */
-            // std::vector<int> getNodes() const;
-
-            /** \brief Get all dimensions of the quotient-spaces in the sequence */
+            /** \brief Get all dimensions of the BundleSpaces in the sequence */
             std::vector<int> getDimensionsPerLevel() const;
             void setStopLevel(unsigned int level_);
 
         protected:
-            /** \brief Solution paths on each quotient-space */
+            /** \brief Solution paths on each BundleSpace */
             std::vector<ompl::base::PathPtr> solutions_;
 
-            /** \brief Sequence of quotient-spaces */
+            /** \brief Sequence of BundleSpaces */
             std::vector<BundleSpace *> bundleSpaces_;
 
-            /** \brief Indicator if a solution has been found on the current quotient-spaces */
+            /** \brief Indicator if a solution has been found on the current BundleSpaces */
             bool foundKLevelSolution_{false};
 
             /** \brief Current level on which we have not yet found a path */
-            unsigned int currentQuotientLevel_{0};
+            unsigned int currentBundleSpaceLevel_{0};
 
-            /** \brief \brief Sometimes we only want to plan until a certain quotient-space
+            /** \brief \brief Sometimes we only want to plan until a certain BundleSpace
                 level (for debugging for example). This variable sets the stopping
                 level. */
             unsigned int stopAtLevel_;
@@ -131,5 +125,5 @@ namespace ompl
         };
     }  // namespace geometric
 }  // namespace ompl
-#include "MultiQuotientImpl.h"
+#include "BundleSpaceSequenceImpl.h"
 #endif

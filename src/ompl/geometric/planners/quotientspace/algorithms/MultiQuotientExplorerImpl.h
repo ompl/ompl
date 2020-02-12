@@ -73,7 +73,7 @@ void ompl::geometric::MotionExplorerImpl<T>::setSelectedPath( std::vector<int> s
         unsigned int M = selectedPath.back();
         unsigned int Mold = oldSelectedPath.back();
         if(M!=Mold){
-            std::cout << "Changed Folder. Clear quotient-spaces [" 
+            std::cout << "Changed Folder. Clear Bundle-spaces [" 
               << N << "]" << std::endl;
             this->bundleSpaces_.at(N)->clear();
         }
@@ -96,9 +96,9 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
     //expand
     while(K>0)
     {
-        og::BundleSpaceGraphSparse *kQuotient = 
+        og::BundleSpaceGraphSparse *kBundle = 
           static_cast<og::BundleSpaceGraphSparse*>(this->bundleSpaces_.at(K-1));
-        if(kQuotient->getNumberOfPaths()>0){
+        if(kBundle->getNumberOfPaths()>0){
           break;
         }else{
           K = K-1;
@@ -106,37 +106,37 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
     }
 
     //Check which 
-    og::BundleSpaceGraphSparse *jQuotient = 
+    og::BundleSpaceGraphSparse *jBundle = 
       static_cast<og::BundleSpaceGraphSparse*>(this->bundleSpaces_.at(K));
 
     uint ctr = 0;
 
-    std::cout << "Searching space " << jQuotient->getName() << " until solution found." << std::endl;
+    std::cout << "Searching space " << jBundle->getName() << " until solution found." << std::endl;
 
     //grow at least PTC, then grow until solution (that way we do not stop after
     //finding just one single path)
     while (!ptc())
     {
-        jQuotient->grow();
+        jBundle->grow();
         ctr++;
     }
     while (true)
     {
-        jQuotient->grow();
+        jBundle->grow();
         ctr++;
-        if(jQuotient->hasSolution()){
-          //Note: jQuotient will not have solution, because we have no
+        if(jBundle->hasSolution()){
+          //Note: jBundle will not have solution, because we have no
           //enumerated paths
           std::cout << "has solution" << std::endl;
           break;
         }
         if(ctr%10000==0){
             std::cout << "CURRENT STATUS" << std::endl;
-            std::cout << *jQuotient << std::endl;
+            std::cout << *jBundle << std::endl;
         }
     }
     std::cout << std::string(80, '-') << std::endl;
-    std::cout << *jQuotient << std::endl;
+    std::cout << *jBundle << std::endl;
     std::cout << std::string(80, '-') << std::endl;
     return ob::PlannerStatus::TIMEOUT;
 }
@@ -170,7 +170,7 @@ void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
             v.setMaxLevel(K);
 
             ob::State *s_lift = Qk->getSpaceInformation()->cloneState(v.getState());
-            v.setQuotientState(s_lift);
+            v.setBaseState(s_lift);
 
             for (unsigned int m = k + 1; m < this->bundleSpaces_.size(); m++)
             {

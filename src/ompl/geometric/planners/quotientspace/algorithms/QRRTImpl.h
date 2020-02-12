@@ -56,16 +56,21 @@ namespace ompl
         public:
             QRRTImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
             virtual ~QRRTImpl() override;
+
             /** \brief One iteration of RRT with adjusted sampling function */
             virtual void grow() override;
+
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
+
             /** \brief Importance based on how many vertices the tree has */
             double getImportance() const override;
+
             /** \brief Uniform sampling */
             virtual bool sampleBundle(ompl::base::State *q_random) override;
+
             /** \brief \brief Quotient-Space sampling by choosing a random vertex from parent
                 class tree */
-            virtual bool sampleBase(ompl::base::State *) override;
+            virtual bool sampleFromDatastructure(ompl::base::State *) override;
 
             virtual void setup() override;
             virtual void clear() override;
@@ -76,14 +81,18 @@ namespace ompl
             double getRange() const;
 
         protected:
+            bool sampleRandom(base::State *xRandom);
+
             /** \brief Random configuration placeholder */
             Configuration *qRandom_{nullptr};
+
             /** \brief Current shortest path on tree */
             std::vector<Vertex> shortestPathVertices_;
 
             /** \brief Maximum distance of expanding the tree */
             double maxDistance_{.0};
-            /** \brief Goal bias similar to RRT */
+
+            /** \brief Goal bias*/
             double goalBias_{.05};
         };
     }  // namespace geometric

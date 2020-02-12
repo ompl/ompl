@@ -61,7 +61,7 @@ namespace ompl
         int getProjectionIndex(const std::vector<ob::State*> &pathBundle) const;
 
         int selectedPath{-1}; //selected path to sample from (if children try to sample this space)
-        bool sampleBase(ob::State *q_random_graph) override;
+        bool sampleFromDatastructure(ob::State *q_random_graph) override;
 
         PathVisibilityChecker* getPathVisibilityChecker();
         void debugInvalidState(const ob::State *s);

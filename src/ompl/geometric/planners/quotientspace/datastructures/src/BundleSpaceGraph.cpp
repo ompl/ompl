@@ -368,7 +368,7 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraph::getPath(const Vertex &sta
     return p;
 }
 
-bool ompl::geometric::BundleSpaceGraph::sampleBase(base::State *q_random_graph)
+bool ompl::geometric::BundleSpaceGraph::sampleFromDatastructure(base::State *q_random_graph)
 {
     // RANDOM EDGE SAMPLING
     if (num_edges(graph_) == 0)

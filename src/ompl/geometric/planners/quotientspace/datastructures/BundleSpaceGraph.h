@@ -163,7 +163,7 @@ namespace ompl
             virtual unsigned int getNumberOfEdges() const;
 
             virtual void grow() = 0;
-            virtual bool sampleBase(ompl::base::State *) override;
+            virtual bool sampleFromDatastructure(ompl::base::State *) override;
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
 
             /** \brief Return plannerdata structure, whereby each vertex is marked

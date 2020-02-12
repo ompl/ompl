@@ -46,7 +46,7 @@
 #include <queue>
 
 template <class T>
-ompl::geometric::MultiQuotient<T>::MultiQuotient(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
+ompl::geometric::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
   : ompl::base::Planner(siVec.back(), type), siVec_(siVec)
 {
     T::resetCounter();
@@ -65,13 +65,13 @@ ompl::geometric::MultiQuotient<T>::MultiQuotient(std::vector<ompl::base::SpaceIn
 }
 
 template <class T>
-int ompl::geometric::MultiQuotient<T>::getLevels() const
+int ompl::geometric::BundleSpaceSequence<T>::getLevels() const
 {
     return stopAtLevel_;
 }
 
 // template <class T>
-// std::vector<int> ompl::geometric::MultiQuotient<T>::getNodes() const
+// std::vector<int> ompl::geometric::BundleSpaceSequence<T>::getNodes() const
 // {
 //     std::vector<int> nodesPerLevel;
 //     for (unsigned int k = 0; k < stopAtLevel_; k++)
@@ -83,7 +83,7 @@ int ompl::geometric::MultiQuotient<T>::getLevels() const
 // }
 
 // template <class T>
-// std::vector<int> ompl::geometric::MultiQuotient<T>::getFeasibleNodes() const
+// std::vector<int> ompl::geometric::BundleSpaceSequence<T>::getFeasibleNodes() const
 // {
 //     std::vector<int> feasibleNodesPerLevel;
 //     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
@@ -95,7 +95,7 @@ int ompl::geometric::MultiQuotient<T>::getLevels() const
 // }
 
 template <class T>
-std::vector<int> ompl::geometric::MultiQuotient<T>::getDimensionsPerLevel() const
+std::vector<int> ompl::geometric::BundleSpaceSequence<T>::getDimensionsPerLevel() const
 {
     std::vector<int> dimensionsPerLevel;
     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
@@ -107,23 +107,23 @@ std::vector<int> ompl::geometric::MultiQuotient<T>::getDimensionsPerLevel() cons
 }
 
 template <class T>
-ompl::geometric::MultiQuotient<T>::~MultiQuotient()
+ompl::geometric::BundleSpaceSequence<T>::~BundleSpaceSequence()
 {
 }
 
 template <class T>
-void ompl::geometric::MultiQuotient<T>::setup()
+void ompl::geometric::BundleSpaceSequence<T>::setup()
 {
     BaseT::setup();
     for (unsigned int k = 0; k < stopAtLevel_; k++)
     {
         bundleSpaces_.at(k)->setup();
     }
-    currentQuotientLevel_ = 0;
+    currentBundleSpaceLevel_ = 0;
 }
 
 template <class T>
-void ompl::geometric::MultiQuotient<T>::setStopLevel(unsigned int level_)
+void ompl::geometric::BundleSpaceSequence<T>::setStopLevel(unsigned int level_)
 {
     if (level_ > bundleSpaces_.size())
     {
@@ -136,7 +136,7 @@ void ompl::geometric::MultiQuotient<T>::setStopLevel(unsigned int level_)
 }
 
 template <class T>
-void ompl::geometric::MultiQuotient<T>::clear()
+void ompl::geometric::BundleSpaceSequence<T>::clear()
 {
     Planner::clear();
 
@@ -144,7 +144,7 @@ void ompl::geometric::MultiQuotient<T>::clear()
     {
         bundleSpaces_.at(k)->clear();
     }
-    currentQuotientLevel_ = 0;
+    currentBundleSpaceLevel_ = 0;
 
     while (!priorityQueue_.empty())
         priorityQueue_.pop();
@@ -155,15 +155,15 @@ void ompl::geometric::MultiQuotient<T>::clear()
 }
 
 template <class T>
-ompl::base::PlannerStatus ompl::geometric::MultiQuotient<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
 {
     ompl::time::point t_start = ompl::time::now();
 
-    for (unsigned int k = currentQuotientLevel_; k < stopAtLevel_; k++)
+    for (unsigned int k = currentBundleSpaceLevel_; k < stopAtLevel_; k++)
     {
         foundKLevelSolution_ = false;
 
-        if (priorityQueue_.size() <= currentQuotientLevel_)
+        if (priorityQueue_.size() <= currentBundleSpaceLevel_)
             priorityQueue_.push(bundleSpaces_.at(k));
 
         ompl::base::PlannerTerminationCondition ptcOrSolutionFound(
@@ -171,9 +171,9 @@ ompl::base::PlannerStatus ompl::geometric::MultiQuotient<T>::solve(const ompl::b
 
         while (!ptcOrSolutionFound())
         {
-            BundleSpace *jQuotient = priorityQueue_.top();
+            BundleSpace *jBundle = priorityQueue_.top();
             priorityQueue_.pop();
-            jQuotient->grow();
+            jBundle->grow();
 
             bool hasSolution = bundleSpaces_.at(k)->hasSolution();
             if (hasSolution)
@@ -184,9 +184,9 @@ ompl::base::PlannerStatus ompl::geometric::MultiQuotient<T>::solve(const ompl::b
                 double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
                 OMPL_DEBUG("Found Solution on Level %d after %f seconds.", k, t_k_end);
                 foundKLevelSolution_ = true;
-                currentQuotientLevel_ = k + 1;//std::min(k + 1, bundleSpaces_.size()-1);
-                if(currentQuotientLevel_ > (bundleSpaces_.size()-1)) 
-                  currentQuotientLevel_ = bundleSpaces_.size()-1;
+                currentBundleSpaceLevel_ = k + 1;//std::min(k + 1, bundleSpaces_.size()-1);
+                if(currentBundleSpaceLevel_ > (bundleSpaces_.size()-1)) 
+                  currentBundleSpaceLevel_ = bundleSpaces_.size()-1;
 
                 // add solution to pdef
                 ompl::base::PlannerSolution psol(sol_k);
@@ -194,7 +194,7 @@ ompl::base::PlannerStatus ompl::geometric::MultiQuotient<T>::solve(const ompl::b
                 psol.setPlannerName(lvl_name);
                 bundleSpaces_.at(k)->getProblemDefinition()->addSolutionPath(psol);
             }
-            priorityQueue_.push(jQuotient);
+            priorityQueue_.push(jBundle);
         }
 
         if (!foundKLevelSolution_)
@@ -207,7 +207,7 @@ ompl::base::PlannerStatus ompl::geometric::MultiQuotient<T>::solve(const ompl::b
     OMPL_DEBUG("Found exact solution after %f seconds.", t_end);
 
     ompl::base::PathPtr sol;
-    int lastSolvedBundleSpaceLevel = currentQuotientLevel_ - 1;
+    int lastSolvedBundleSpaceLevel = currentBundleSpaceLevel_ - 1;
     if(lastSolvedBundleSpaceLevel < 0) lastSolvedBundleSpaceLevel = 0;
 
     if (bundleSpaces_.at(lastSolvedBundleSpaceLevel)->getSolution(sol))
@@ -222,7 +222,7 @@ ompl::base::PlannerStatus ompl::geometric::MultiQuotient<T>::solve(const ompl::b
 
 template <class T>
 const ompl::base::ProblemDefinitionPtr &
-ompl::geometric::MultiQuotient<T>::getProblemDefinition(unsigned int kBundleSpace) const
+ompl::geometric::BundleSpaceSequence<T>::getProblemDefinition(unsigned int kBundleSpace) const
 {
     assert(kBundleSpace >= 0);
     assert(kBundleSpace <= siVec_.size() - 1);
@@ -230,7 +230,7 @@ ompl::geometric::MultiQuotient<T>::getProblemDefinition(unsigned int kBundleSpac
 }
 
 template <class T>
-void ompl::geometric::MultiQuotient<T>::setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef)
+void ompl::geometric::BundleSpaceSequence<T>::setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef)
 {
     this->Planner::setProblemDefinition(pdef);
 
@@ -251,20 +251,20 @@ void ompl::geometric::MultiQuotient<T>::setProblemDefinition(const ompl::base::P
 
     for (unsigned int k = siVec_.size() - 1; k > 0; k--)
     {
-        BundleSpace *quotientParent = bundleSpaces_.at(k);
-        BundleSpace *quotientChild = bundleSpaces_.at(k - 1);
-        ompl::base::SpaceInformationPtr sik = quotientChild->getSpaceInformation();
+        BundleSpace *bundleSpaceParent = bundleSpaces_.at(k);
+        BundleSpace *bundleSpaceChild = bundleSpaces_.at(k - 1);
+        ompl::base::SpaceInformationPtr sik = bundleSpaceChild->getSpaceInformation();
         ompl::base::ProblemDefinitionPtr pdefk = std::make_shared<base::ProblemDefinition>(sik);
 
         ompl::base::State *sInitK = sik->allocState();
         ompl::base::State *sGoalK = sik->allocState();
 
-        quotientParent->projectBase(sInit, sInitK);
-        quotientParent->projectBase(sGoal, sGoalK);
+        bundleSpaceParent->projectBase(sInit, sInitK);
+        bundleSpaceParent->projectBase(sGoal, sGoalK);
 
         pdefk->setStartAndGoalStates(sInitK, sGoalK, epsilon);
 
-        quotientChild->setProblemDefinition(pdefk);
+        bundleSpaceChild->setProblemDefinition(pdefk);
 
         sInit = sInitK;
         sGoal = sGoalK;
@@ -272,7 +272,7 @@ void ompl::geometric::MultiQuotient<T>::setProblemDefinition(const ompl::base::P
 }
 
 template <class T>
-void ompl::geometric::MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &data) const
+void ompl::geometric::BundleSpaceSequence<T>::getPlannerData(ompl::base::PlannerData &data) const
 {
     unsigned int Nvertices = data.numVertices();
     if (Nvertices > 0)
@@ -299,7 +299,7 @@ void ompl::geometric::MultiQuotient<T>::getPlannerData(ompl::base::PlannerData &
             v.setMaxLevel(K);
 
             ompl::base::State *s_lift = Qk->getBundle()->cloneState(v.getState());
-            v.setQuotientState(s_lift);
+            v.setBaseState(s_lift);
 
             for (unsigned int m = k + 1; m < bundleSpaces_.size(); m++)
             {

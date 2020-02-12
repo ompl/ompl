@@ -481,11 +481,6 @@ ompl::base::OptimizationObjectivePtr ompl::geometric::BundleSpace::getOptimizati
     return opt_;
 }
 
-bool ompl::geometric::BundleSpace::sampleBase(base::State *xBase)
-{
-    return getParent()->sampleBundle(xBase);
-}
-
 bool ompl::geometric::BundleSpace::sampleFiber(base::State *xFiber)
 {
     Fiber_sampler_->sampleUniform(xFiber);
@@ -506,12 +501,12 @@ bool ompl::geometric::BundleSpace::sampleBundle(base::State *xRandom)
         {
             // Adjusted sampling function: Sampling in G0 x Fiber
             sampleFiber(xFiberTmp_);
-            sampleBase(xBaseTmp_);
+            parent_->sampleFromDatastructure(xBaseTmp_);
             mergeStates(xBaseTmp_, xFiberTmp_, xRandom);
         }
         else
         {
-            sampleBase(xRandom);
+            parent_->sampleFromDatastructure(xRandom);
         }
         valid = Bundle->isValid(xRandom);
     }
