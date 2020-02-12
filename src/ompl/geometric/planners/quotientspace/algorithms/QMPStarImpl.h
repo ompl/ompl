@@ -60,7 +60,7 @@ namespace ompl
             virtual void grow() override;
             /** \brief sample random node from Probabilty density function*/
             void expand();
-            void addMileStone(Configuration *q_random);
+            Configuration *addMileStone(ompl::base::State *q_state);
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
             /** \brief Importance based on how many vertices the tree has */
             double getImportance() const override;

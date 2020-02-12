@@ -109,8 +109,23 @@ void ompl::geometric::SQMPImpl::grow()
         expand();
         return;
     }
-
-    sample(qRandom_->state);
+    if (hasSolution_)
+    {
+        // No Goal Biasing if we already found a solution on this quotient space
+        sample(qRandom_->state);
+    }
+    else
+    {
+        double s = rng_.uniform01();
+        if (s < goalBias_)
+        {
+            Q1->copyState(qRandom_->state, qGoal_->state);
+        }
+        else
+        {
+            sample(qRandom_->state);
+        }
+    }
     addMileStone(qRandom_);
 }
 

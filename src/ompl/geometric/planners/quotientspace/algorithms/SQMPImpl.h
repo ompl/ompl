@@ -91,6 +91,9 @@ namespace ompl
             /** \brief Maximum distance of expanding the tree */
             double maxDistance_{.0};
 
+            /** \brief Goal bias similar to RRT */
+            double goalBias_{.05};
+
             /** \brief Maximum failures limit for terminating the algorithm similar to SPARS */
             unsigned int maxFailures_{1000u};
 

@@ -148,7 +148,7 @@ void ompl::geometric::QMPStarImpl::grow()
             sample(qRandom_->state);
         }
     }
-    addMileStone(qRandom_);
+    addMileStone(qRandom_->state);
 }
 
 void ompl::geometric::QMPStarImpl::expand()
@@ -166,35 +166,29 @@ void ompl::geometric::QMPStarImpl::expand()
 
     
     Configuration *q = pdf.sample(rng_.uniform01());
-    
-    //sample(q->state);
-    //addMileStone(q);
-    
+
     int s = si_->randomBounceMotion(Q1_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
     if(s > 0)
     {
-        --s;
-        Configuration *prev = graph_[q->index];
-        Configuration *last = new Configuration(Q1, randomWorkStates_[s]);
-        addMileStone(last);
+        Configuration *prev = q;
+        Configuration *last = addMileStone(randomWorkStates_[--s]);
         for (unsigned int i = 0; i < s; i++)
         {
             Configuration *tmp = new Configuration(Q1, randomWorkStates_[i]);
-            addMileStone(tmp);
+            addConfiguration(tmp);
 
-            if(boost::edge(prev->index, tmp->index, graph_).second)
-                ompl::geometric::QuotientSpaceGraph::addEdge(prev->index, tmp->index);
+            ompl::geometric::QuotientSpaceGraph::addEdge(prev->index, tmp->index);
             prev = tmp;
         }
-        if(boost::edge(prev->index, last->index, graph_).second)
+        if(!sameComponent(prev->index, last->index))
             ompl::geometric::QuotientSpaceGraph::addEdge(prev->index, last->index);
     }
 }
 
-void ompl::geometric::QMPStarImpl::addMileStone(Configuration *q_random)
+ompl::geometric::QuotientSpaceGraph::Configuration *ompl::geometric::QMPStarImpl::addMileStone(ompl::base::State *q_state)
 {
     // add sample to graph
-    Configuration *q_next = new Configuration(Q1, q_random->state);
+    Configuration *q_next = new Configuration(Q1, q_state);
     Vertex v_next = addConfiguration(q_next);
 
     totalNumberOfSamples_++;
@@ -231,6 +225,7 @@ void ompl::geometric::QMPStarImpl::addMileStone(Configuration *q_random)
         }
 
     }
+    return q_next;
 }
 
 double ompl::geometric::QMPStarImpl::getImportance() const
