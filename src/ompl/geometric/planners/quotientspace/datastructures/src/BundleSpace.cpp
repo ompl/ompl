@@ -290,7 +290,7 @@ void ompl::geometric::BundleSpace::allocIdentityState(base::State *s, base::Stat
       default:
       {
         OMPL_ERROR("Type: %d not recognized.", stype);
-        exit(0);
+        throw Exception("Type not recognized.");
       }
     }
   }
