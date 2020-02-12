@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, University of Stuttgart
+ *  Copyright (c) 2019, University of Stuttgart
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,39 +33,51 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey, Sohaib Akbar */
+/* Author: Andreas Orthey */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_SQMP_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_SQMP_
-
+#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QMPSTAR_
+#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QMPSTAR_
 #include <ompl/geometric/planners/quotientspace/algorithms/MultiQuotient.h>
-#include <ompl/geometric/planners/quotientspace/algorithms/SQMPImpl.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/QMPStarImpl.h>
 
 namespace ompl
 {
     namespace geometric
     {
         /**
-             @anchor SQMP
+             @anchor QMPStar
              @par Short description
-             Sparse Quotient space roadMap Planner algorithm, is extension to
-             Quotient space raodMap Planner(QMP), it reduce
-             memory requirment to store roadmap similar to
-             SPARS algorithm.
+             A motion planning algorithm computes the motion
+             of a robot by computing a path through its configuration space.
+             To improve the runtime of motion planning algorithms, we
+             propose to nest robots in each other, creating a nested quotient-
+             space decomposition of the configuration space. Based on this
+             decomposition we define a new roadmap-based motion planning
+             algorithm called the Quotient-space roadMap Planner (QMP).
+             The algorithm starts growing a graph on the lowest dimensional
+             quotient space, switches to the next quotient space once a
+             valid path has been found, and keeps updating the graphs
+             on each quotient space simultaneously until a valid path in
+             the configuration space has been found. We show that this
+             algorithm is probabilistically complete and outperforms a set
+             of state-of-the-art algorithms implemented in the open motion
+             planning library (OMPL).
              @par External documentation
              A. Orthey, A. Escande and E. Yoshida,
              Quotient-Space Motion Planning,
              in <em>International Conference on Intelligent Robots and Systems</em>, 2018,
              [[PDF]](https://arxiv.org/abs/1807.09468)
              @par External documentation
-             A. Dobson, A. Krontiris, K. Bekris,
-             Sparse Roadmap Spanners,
-             <em>Workshop on the Algorithmic Foundations of Robotics (WAFR)</em> 2012.
-             [[PDF]](http://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf)
+             S. Karaman and E. Frazzoli, Sampling-based
+             Algorithms for Optimal Motion Planning, International Journal of Robotics
+             Research, vol. 30, no.7, pp. 846-894, 2011.
+             DOI: [10.1177/0278364911406761](http://dx.doi.org/10.1177/0278364911406761)<br>
         */
 
-        /** \brief Sparse Quotient-space roadMap Planner (SQMP) Algorithm */
-       typedef ompl::geometric::MultiQuotient<ompl::geometric::SQMPImpl> SQMP;
-    }
-}
+        /** \brief Quotient-space roadMap Planner Start (QMPStar) Algorithm */
+        typedef ompl::geometric::MultiQuotient<ompl::geometric::QMPStarImpl> QMPStar;
+
+    }  // namespace geometric
+}  // namespace ompl
+
 #endif

@@ -33,7 +33,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey */
+/* Author: Andreas Orthey, Sohaib Akbar */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QMPIMPL_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QMPIMPL_

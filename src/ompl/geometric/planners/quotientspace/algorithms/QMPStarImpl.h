@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, University of Stuttgart
+ *  Copyright (c) 2019, University of Stuttgart
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,9 @@
 
 /* Author: Andreas Orthey, Sohaib Akbar */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_SQMPIMPL_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_SQMPIMPL_
-#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraphSparse.h>
+#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QMPSTARIMPL_
+#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QMPSTARIMPL_
+#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraph.h>
 #include <ompl/datastructures/PDF.h>
 
 namespace ompl
@@ -48,18 +48,19 @@ namespace ompl
     }
     namespace geometric
     {
-        /** \brief Sparse Quotient-space roadMap Planner (SQMP) Algorithm*/
-        class SQMPImpl : public ompl::geometric::QuotientSpaceGraphSparse
+        /** \brief Implementation of QuotientSpace Rapidly-Exploring Random Trees Algorithm*/
+        class QMPStarImpl : public ompl::geometric::QuotientSpaceGraph
         {
-            using BaseT = QuotientSpaceGraphSparse;
+            using BaseT = QuotientSpaceGraph;
 
         public:
-            SQMPImpl(const ompl::base::SpaceInformationPtr &si, QuotientSpace *parent_);
-            virtual ~SQMPImpl() override;
+            QMPStarImpl(const ompl::base::SpaceInformationPtr &si, QuotientSpace *parent_);
+            virtual ~QMPStarImpl() override;
             /** \brief One iteration of RRT with adjusted sampling function */
             virtual void grow() override;
             /** \brief sample random node from Probabilty density function*/
             void expand();
+            void addMileStone(Configuration *q_random);
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
             /** \brief Importance based on how many vertices the tree has */
             double getImportance() const override;
@@ -77,23 +78,18 @@ namespace ompl
             void setRange(double distance);
             double getRange() const;
 
-            void addMileStone(Configuration *q_random);
-            Configuration *addConfigurationDense(Configuration *q_random);
-            bool getPlannerTerminationCondition();
-
         protected:
             /** \brief Random configuration placeholder */
             Configuration *qRandom_{nullptr};
-
             /** \brief Current shortest path on tree */
             std::vector<Vertex> shortestPathVertices_;
 
             /** \brief Maximum distance of expanding the tree */
             double maxDistance_{.0};
-
-            /** \brief Maximum failures limit for terminating the algorithm similar to SPARS */
-            unsigned int maxFailures_{1000u};
-
+            /** \brief Goal bias similar to RRT */
+            double goalBias_{.05};
+            /** \brief constant value for nn search */
+            double kPRMStarConstant_;
             /** \brief for different ratio of expand vs grow 1:5*/
             unsigned int growExpandCounter_{0};
             

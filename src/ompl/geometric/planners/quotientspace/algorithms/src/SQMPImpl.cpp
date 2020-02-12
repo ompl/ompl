@@ -1,3 +1,40 @@
+/*********************************************************************
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2020, University of Stuttgart
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Stuttgart nor the names
+ *     of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written
+ *     permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
+
+/* Author: Andreas Orthey, Sohaib Akbar */
+
 #include <ompl/geometric/planners/quotientspace/algorithms/SQMPImpl.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <boost/foreach.hpp>
@@ -10,23 +47,27 @@ ompl::geometric::SQMPImpl::SQMPImpl(const base::SpaceInformationPtr &si, Quotien
 {
     setName("SQMPImpl" + std::to_string(id_));
     Planner::declareParam<double>("range", this, &SQMPImpl::setRange, &SQMPImpl::getRange, "0.:1.:10000.");
-    Planner::declareParam<double>("goal_bias", this, &SQMPImpl::setGoalBias, &SQMPImpl::getGoalBias, "0.:.1:1.");
     qRandom_ = new Configuration(Q1);
+    randomWorkStates_.resize(5);
+    Q1->allocStates(randomWorkStates_);
 }
 
 ompl::geometric::SQMPImpl::~SQMPImpl()
 {
+    si_->freeStates(randomWorkStates_);
     deleteConfiguration(qRandom_);
 }
 
-void ompl::geometric::SQMPImpl::setGoalBias(double goalBias)
+void ompl::geometric::SQMPImpl::setup()
 {
-    goalBias_ = goalBias;
+    BaseT::setup();
+    ompl::tools::SelfConfig sc(Q1, getName());
+    sc.configurePlannerRange(maxDistance_);
 }
 
-double ompl::geometric::SQMPImpl::getGoalBias() const
+void ompl::geometric::SQMPImpl::clear()
 {
-    return goalBias_;
+    BaseT::clear();
 }
 
 void ompl::geometric::SQMPImpl::setRange(double maxDistance)
@@ -37,19 +78,6 @@ void ompl::geometric::SQMPImpl::setRange(double maxDistance)
 double ompl::geometric::SQMPImpl::getRange() const
 {
     return maxDistance_;
-}
-
-void ompl::geometric::SQMPImpl::setup()
-{
-    BaseT::setup();
-    ompl::tools::SelfConfig sc(Q1, getName());
-    sc.configurePlannerRange(maxDistance_);
-    std::cout << "max dis --- --- --------------------------- -- " << maxDistance_ << ",, ,, , spd " << sparseDelta_ << std::endl;
-}
-
-void ompl::geometric::SQMPImpl::clear()
-{
-    BaseT::clear();
 }
 
 bool ompl::geometric::SQMPImpl::getSolution(base::PathPtr &solution)
@@ -71,25 +99,25 @@ bool ompl::geometric::SQMPImpl::getSolution(base::PathPtr &solution)
 
 void ompl::geometric::SQMPImpl::grow()
 {
-    // start from qrrt
     if (firstRun_)
     {
         Init();
         firstRun_ = false;
+    }
+    if( ++growExpandCounter_ % 5 == 0)
+    {
+        expand();
+        return;
     }
 
     sample(qRandom_->state);
     addMileStone(qRandom_);
-    
 }
+
 void ompl::geometric::SQMPImpl::expand()
 {
-    if (firstRun_)
-    {
-        Init();
-        firstRun_ = false;
-    }
     PDF pdf;
+
     foreach (Vertex v, boost::vertices(graph_))
     {
         const unsigned long int t = graph_[v]->total_connection_attempts;
@@ -98,30 +126,44 @@ void ompl::geometric::SQMPImpl::expand()
 
     if (pdf.empty())
         return;
-    // random number 1 to 10
-    //int j = std::max(10 * rng_.uniform01() , (double)(boost::num_vertices(graph_) - 1));
-    // pick one from top 10 ?
-    // check nodes which has high probability
 
-    //std::vector<base::State *> randomWorkStates(5);
     
     Configuration *q = pdf.sample(rng_.uniform01());
     
     sample(q->state);
     addMileStone(q);
     
-    /*int s = si_->randomBounceMotion(Q1_sampler_, q->state, randomWorkStates.size(), randomWorkStates, false);
+    int s = si_->randomBounceMotion(Q1_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
     for (int i = 0; i < s; i++)
     {
-        Configuration *tmp = new Configuration(randomWorkStates[i]);
+        Configuration *tmp = new Configuration(Q1, randomWorkStates_[i]);
         addMileStone(tmp);
-    }*/
+        if(boost::edge(q->index, tmp->index, graph_).second)
+            ompl::geometric::QuotientSpaceGraph::addEdge(q->index, tmp->index);
+    }
     
+    /*foreach (Vertex v, boost::vertices(graphSparse_))
+    {
+        if(graphSparse_[v]->successful_connection_attempts == 0)
+        {
+            std::vector<Configuration *> r_nearest_neighbors;
+            nearestSparse_->nearestR(graphSparse_[v], sparseDelta_, r_nearest_neighbors);
+
+            for (unsigned int i = 0; i < r_nearest_neighbors.size(); i++)
+            {
+                Configuration *q_neighbor = r_nearest_neighbors.at(i);
+                if (Q1->checkMotion(q_neighbor->state, graphSparse_[v]->state))
+                {
+                    addEdgeSparse(q_neighbor->index, v);
+                }
+            }
+        }
+    }*/
 }
 
 void ompl::geometric::SQMPImpl::addMileStone(Configuration *q_random)
 {
-    Configuration *q_next = addConfigurationDense(qRandom_);
+    Configuration *q_next = addConfigurationDense(q_random);
 
     findGraphNeighbors(q_next, graphNeighborhood, visibleNeighborhood);
 
@@ -144,28 +186,18 @@ void ompl::geometric::SQMPImpl::addMileStone(Configuration *q_random)
 
 ompl::geometric::QuotientSpaceGraph::Configuration * ompl::geometric::SQMPImpl::addConfigurationDense(Configuration *q_random)
 {
-    /*const Configuration *q_nearest = ompl::geometric::QuotientSpaceGraph::nearest(q_random);
-    double d = Q1->distance(q_nearest->state, q_random->state);
-    if (d > maxDistance_)
-    {
-        Q1->getStateSpace()->interpolate(q_nearest->state, q_random->state, maxDistance_ / d, q_random->state);
-    }*/
-    // end interpolation
-
     Configuration *q_next = new Configuration(Q1, q_random->state);
     Vertex v_next = ompl::geometric::QuotientSpaceGraph::addConfiguration(q_next);
     totalNumberOfSamples_++;
     totalNumberOfFeasibleSamples_++;
 
-    // Calculate K , k(n) = kPRMConstant * log(n), where kPRMConstant > kStarPRMConstant = e(1 + 1/d)
+    // Calculate K
     unsigned int k = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double) boost::num_vertices(graph_))));
 
     // find nearest neighbors to be conected to new sample
     std::vector<Configuration *> r_nearest_neighbors;
     ompl::geometric::QuotientSpaceGraph::nearestDatastructure_->nearestK(q_next, k, r_nearest_neighbors);
     
-    //std::cout << "KStart neighb\t" << k << "\t-\t" << r_nearest_neighbors.size() << std::endl; 
-
     for (unsigned int i = 0; i < r_nearest_neighbors.size(); i++)
     {
         q_next->total_connection_attempts++;
@@ -177,8 +209,8 @@ ompl::geometric::QuotientSpaceGraph::Configuration * ompl::geometric::SQMPImpl::
             ompl::geometric::QuotientSpaceGraph::addEdge(q_neighbor->index, v_next);
             q_next->successful_connection_attempts++;
             q_neighbor->successful_connection_attempts++;
-            //remove hasSolution_ for prm use instead stop growing condition here
-            if (q_neighbor->isGoal && !isDenseFoundSolution_)
+            
+            if (/*q_neighbor->isGoal && */!isDenseFoundSolution_)
             {
                 bool same_component = sameComponent(vStart_, vGoal_);
                 if (!same_component)
@@ -190,28 +222,10 @@ ompl::geometric::QuotientSpaceGraph::Configuration * ompl::geometric::SQMPImpl::
                     isDenseFoundSolution_ = true;
                 }
             }
-            /*if (!isDenseFoundSolution_)
-            {
-                double dist = 0.0;
-                bool satisfied = goal_->isSatisfied(q_next->state, &dist);
-                if (satisfied)
-                {
-                    //vGoal_ = ompl::geometric::QuotientSpaceGraph::addConfiguration(qGoal_);
-                    addEdge(q_neighbor->index, vGoal_);
-                    isDenseFoundSolution_ = true;
-                    // sa-> check both start & goal should be in same compnent because for prm can have many graph
-                    //component and no need incase of rrt 
-                    bool same_component = sameComponent(vStart_, vGoal_);
-                    if(!same_component)
-                    {
-                        isDenseFoundSolution_ = false;
-                    }
-                }
-            }*/
         }
     }
 
-    // Update its representative
+    // Update its representative and interface nodes
     std::vector<Configuration *> graphNeighborhood;
     nearestSparse_->nearestR(q_next, sparseDelta_, graphNeighborhood); // Sparse Neighbors
 
@@ -221,7 +235,7 @@ ompl::geometric::QuotientSpaceGraph::Configuration * ompl::geometric::SQMPImpl::
             q_next->representativeIndex = qn->index;
             break;
         }
-
+    // return if rep not found
     if ( q_next->representativeIndex < 0 )
         return q_next;
 
@@ -237,7 +251,7 @@ ompl::geometric::QuotientSpaceGraph::Configuration * ompl::geometric::SQMPImpl::
     {
         Vertex qp_rep = graph_[qp]->representativeIndex;
         if ( qp_rep == -1 )
-            return q_next;
+            continue;
         removeFromRepresentatives(graph_[qp]);
         getInterfaceNeighborRepresentatives(graph_[qp], interfaceRepresentatives);
         addToRepresentatives(qp, qp_rep, interfaceRepresentatives);

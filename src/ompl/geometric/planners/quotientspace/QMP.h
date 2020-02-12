@@ -65,22 +65,11 @@ namespace ompl
              @par External documentation
              A. Orthey, A. Escande and E. Yoshida,
              Quotient-Space Motion Planning,
-             in <em>International Symposium of Robotics Research</em>, 2019,
-             [[PDF]](https://arxiv.org/abs/1906.01350)
+             in <em>International Conference on Intelligent Robots and Systems</em>, 2018,
+             [[PDF]](https://arxiv.org/abs/1807.09468)
         */
 
-        /** \brief Quotient-space roadMap Planner (QMP) Algorithm*/
-        /*
-cd ~/MotionPlanningExplorerGUI/libs/ompl/build/
-make -j4
-sudo make install
-
-cd ~/MotionPlanningExplorerGUI/build/
-make -j4 planner_gui
-./planner_gui  ../data/experiments/ICRA2020/02D_manipulator.xml
-./planner_gui  ../data/experiments/ICRA2020/07D_planar_manipulator.xml
-
-        */
+        /** \brief Quotient-space roadMap Planner (QMP) Algorithm */
         typedef ompl::geometric::MultiQuotient<ompl::geometric::QMPImpl> QMP;
 
     }  // namespace geometric

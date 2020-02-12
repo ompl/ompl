@@ -35,59 +35,69 @@
 
 /* Author: Andreas Orthey, Sohaib Akbar */
 
-#include <ompl/geometric/planners/quotientspace/algorithms/QMPImpl.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/QMPStarImpl.h>
 #include <ompl/tools/config/SelfConfig.h>
-#include <boost/foreach.hpp>
 #include <ompl/datastructures/NearestNeighbors.h>
+#include "ompl/datastructures/PDF.h"
+#include <boost/foreach.hpp>
+#include <boost/math/constants/constants.hpp>
 
 #define foreach BOOST_FOREACH
 
-ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, QuotientSpace *parent_) : BaseT(si, parent_)
+ompl::geometric::QMPStarImpl::QMPStarImpl(const base::SpaceInformationPtr &si, QuotientSpace *parent_) : BaseT(si, parent_)
 {
-    setName("QMPImpl" + std::to_string(id_));
-    Planner::declareParam<double>("range", this, &QMPImpl::setRange, &QMPImpl::getRange, "0.:1.:10000.");
-    Planner::declareParam<double>("goal_bias", this, &QMPImpl::setGoalBias, &QMPImpl::getGoalBias, "0.:.1:1.");
+    setName("QMPStarImpl" + std::to_string(id_));
+    Planner::declareParam<double>("range", this, &QMPStarImpl::setRange, &QMPStarImpl::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &QMPStarImpl::setGoalBias, &QMPStarImpl::getGoalBias, "0.:.1:1.");
     qRandom_ = new Configuration(Q1);
+
+    double d = (double)Q1->getStateDimension();
+    double e = boost::math::constants::e<double>();
+    kPRMStarConstant_ = e + (e / d);
+    
+    randomWorkStates_.resize(5);
+    Q1->allocStates(randomWorkStates_);
 }
 
-ompl::geometric::QMPImpl::~QMPImpl()
+ompl::geometric::QMPStarImpl::~QMPStarImpl()
 {
+    si_->freeStates(randomWorkStates_);
     deleteConfiguration(qRandom_);
 }
 
-void ompl::geometric::QMPImpl::setGoalBias(double goalBias)
+void ompl::geometric::QMPStarImpl::setGoalBias(double goalBias)
 {
     goalBias_ = goalBias;
 }
 
-double ompl::geometric::QMPImpl::getGoalBias() const
+double ompl::geometric::QMPStarImpl::getGoalBias() const
 {
     return goalBias_;
 }
 
-void ompl::geometric::QMPImpl::setRange(double maxDistance)
+void ompl::geometric::QMPStarImpl::setRange(double maxDistance)
 {
     maxDistance_ = maxDistance;
 }
 
-double ompl::geometric::QMPImpl::getRange() const
+double ompl::geometric::QMPStarImpl::getRange() const
 {
     return maxDistance_;
 }
 
-void ompl::geometric::QMPImpl::setup()
+void ompl::geometric::QMPStarImpl::setup()
 {
     BaseT::setup();
     ompl::tools::SelfConfig sc(Q1, getName());
     sc.configurePlannerRange(maxDistance_);
 }
 
-void ompl::geometric::QMPImpl::clear()
+void ompl::geometric::QMPStarImpl::clear()
 {
     BaseT::clear();
 }
 
-bool ompl::geometric::QMPImpl::getSolution(base::PathPtr &solution)
+bool ompl::geometric::QMPStarImpl::getSolution(base::PathPtr &solution)
 {
     if (hasSolution_)
     {
@@ -104,12 +114,21 @@ bool ompl::geometric::QMPImpl::getSolution(base::PathPtr &solution)
     }
 }
 
-void ompl::geometric::QMPImpl::grow()
+void ompl::geometric::QMPStarImpl::grow()
 {
     if (firstRun_)
     {
         init();
+        // add goal too
+        vGoal_ = addConfiguration(qGoal_);
+
         firstRun_ = false;
+    }
+
+    if( ++growExpandCounter_ % 5 == 0)
+    {
+        expand();
+        return;
     }
 
     if (hasSolution_)
@@ -129,47 +148,83 @@ void ompl::geometric::QMPImpl::grow()
             sample(qRandom_->state);
         }
     }
+    addMileStone(qRandom_);
+}
 
+void ompl::geometric::QMPStarImpl::expand()
+{
+    PDF pdf;
+
+    foreach (Vertex v, boost::vertices(graph_))
+    {
+        const unsigned long int t = graph_[v]->total_connection_attempts;
+        pdf.add(graph_[v], (double)(t - graph_[v]->successful_connection_attempts) / (double)t);
+    }
+
+    if (pdf.empty())
+        return;
+
+    
+    Configuration *q = pdf.sample(rng_.uniform01());
+    
+    //sample(q->state);
+    //addMileStone(q);
+    
+    int s = si_->randomBounceMotion(Q1_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
+    if(s > 0)
+    {
+        --s;
+        Configuration *prev = graph_[q->index];
+        Configuration *last = new Configuration(Q1, randomWorkStates_[s]);
+        addMileStone(last);
+        for (unsigned int i = 0; i < s; i++)
+        {
+            Configuration *tmp = new Configuration(Q1, randomWorkStates_[i]);
+            addMileStone(tmp);
+
+            if(boost::edge(prev->index, tmp->index, graph_).second)
+                ompl::geometric::QuotientSpaceGraph::addEdge(prev->index, tmp->index);
+            prev = tmp;
+        }
+        if(boost::edge(prev->index, last->index, graph_).second)
+            ompl::geometric::QuotientSpaceGraph::addEdge(prev->index, last->index);
+    }
+}
+
+void ompl::geometric::QMPStarImpl::addMileStone(Configuration *q_random)
+{
+    // add sample to graph
+    Configuration *q_next = new Configuration(Q1, q_random->state);
+    Vertex v_next = addConfiguration(q_next);
+
+    totalNumberOfSamples_++;
+    totalNumberOfFeasibleSamples_++;
+
+    // Calculate K
+    unsigned int k = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double) boost::num_vertices(graph_))));
+
+    // check for close neighbors
     std::vector<Configuration*> r_nearest_neighbors;
-     
-    BaseT::nearestDatastructure_->nearestK(qRandom_ , 7 , r_nearest_neighbors);
-
-    bool foundFeasibleEdge = false;
+    BaseT::nearestDatastructure_->nearestK(q_next , k , r_nearest_neighbors);
     
     for(unsigned int i=0 ; i< r_nearest_neighbors.size(); i++)
     {
         Configuration* q_neighbor = r_nearest_neighbors.at(i);
-        if (Q1->checkMotion(q_neighbor->state, qRandom_->state)) 
+        
+        q_next->total_connection_attempts++;
+        q_neighbor->total_connection_attempts++;
+        
+        if (Q1->checkMotion(q_neighbor->state, q_next->state)) 
         {
-            Vertex v_next;
-            Configuration *q_next;
-            if(!foundFeasibleEdge)
-            {
-    
-                double d = Q1->distance(q_neighbor->state, qRandom_->state);
-                if (d > maxDistance_)
-                {
-                    Q1->getStateSpace()->interpolate(q_neighbor->state, qRandom_->state, maxDistance_ / d, qRandom_->state);
-                }
+            addEdge(q_neighbor->index, v_next);
+            q_next->successful_connection_attempts++;
+            q_neighbor->successful_connection_attempts++;
 
-                totalNumberOfSamples_++;
-                totalNumberOfFeasibleSamples_++;
-                q_next = new Configuration(Q1, qRandom_->state);
-                v_next = addConfiguration(q_next);
-            
-                
-                foundFeasibleEdge = true;
-            }
-            if (!hasSolution_ && foundFeasibleEdge)
+            if (/*q_neighbor->isGoal && */!hasSolution_)
             {
-                addEdge(q_neighbor->index, v_next);
-                
-                double dist = 0.0;
-                bool satisfied = goal_->isSatisfied(q_next->state, &dist);
-                if (satisfied)
+                bool same_component = sameComponent(vStart_, vGoal_);
+                if (same_component)
                 {
-                    vGoal_ = addConfiguration(qGoal_);
-                    addEdge(q_neighbor->index, vGoal_);
                     hasSolution_ = true;
                 }
             }
@@ -178,7 +233,7 @@ void ompl::geometric::QMPImpl::grow()
     }
 }
 
-double ompl::geometric::QMPImpl::getImportance() const
+double ompl::geometric::QMPStarImpl::getImportance() const
 {
     // Should depend on
     // (1) level : The higher the level, the more importance
@@ -198,7 +253,7 @@ double ompl::geometric::QMPImpl::getImportance() const
 }
 
 // Make it faster by removing the validity check
-bool ompl::geometric::QMPImpl::sample(base::State *q_random)
+bool ompl::geometric::QMPStarImpl::sample(base::State *q_random)
 {
     if (parent_ == nullptr)
     {
@@ -220,7 +275,7 @@ bool ompl::geometric::QMPImpl::sample(base::State *q_random)
     return true;
 }
 
-bool ompl::geometric::QMPImpl::sampleQuotient(base::State *q_random_graph)
+bool ompl::geometric::QMPStarImpl::sampleQuotient(base::State *q_random_graph)
 {
     // RANDOM VERTEX SAMPLING
     const Vertex v = boost::random_vertex(graph_, rng_boost);

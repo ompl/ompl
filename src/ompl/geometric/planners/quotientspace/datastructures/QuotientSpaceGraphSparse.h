@@ -35,7 +35,6 @@ namespace ompl
         void getPlannerDataRoadmap(ob::PlannerData &data, std::vector<int> pathIdx) const;
 
         virtual void deleteConfiguration(Configuration *q);
-        virtual Vertex addConfiguration(Configuration *q) override;
         Vertex addConfigurationSparse(Configuration *q);
         void addEdgeSparse(const Vertex a, const Vertex b);
 

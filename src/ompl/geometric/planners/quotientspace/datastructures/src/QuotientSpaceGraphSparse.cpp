@@ -1,3 +1,40 @@
+/*********************************************************************
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2019, University of Stuttgart
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Stuttgart nor the names
+ *     of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written
+ *     permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
+
+/* Author: Andreas Orthey, Sohaib Akbar */
+
 #include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraphSparse.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/geometric/PathSimplifier.h>
@@ -32,7 +69,7 @@ QuotientSpaceGraphSparse::QuotientSpaceGraphSparse(const ob::SpaceInformationPtr
         setup();
     }
     pathVisibilityChecker_ = new PathVisibilityChecker(Q1);
-    
+
     psimp_ = std::make_shared<PathSimplifier>(si_);
     psimp_->freeStates(false);
 }
@@ -63,9 +100,7 @@ void QuotientSpaceGraphSparse::setup()
     double d = (double)Q1->getStateDimension();
     double e = boost::math::constants::e<double>();
     kPRMStarConstant_ = e + (e / d);
-    std::cout << "sparse delta : " << sparseDelta_ << " ,dense delta :  " << denseDelta_
-              << ",  kPRMStarConstant_ :  " << kPRMStarConstant_ << ",  maxExt :  " << maxExt << "\tDim:\t" << si_->getStateDimension() << std::endl;
-    }
+}
 
 void QuotientSpaceGraphSparse::clear()
 {
@@ -121,8 +156,6 @@ void QuotientSpaceGraphSparse::clearDynamic()
     visibleNeighborhood.clear();
     vrankSparse.clear();
     vparentSparse.clear();
-    // v_start_sparse = -1;
-    // v_goal_sparse = -1;
     Nold_v = 0;
     Nold_e = 0;
 
@@ -130,8 +163,6 @@ void QuotientSpaceGraphSparse::clearDynamic()
     nearestSparse_->add(qStart_);
     disjointSetsSparse_.make_set(vl);
     graphSparse_[vl]->index = vl;
-
-    // hasSolution_ = false;
 }
 
 const ompl::geometric::QuotientSpaceGraph::Configuration *
@@ -217,7 +248,7 @@ void QuotientSpaceGraphSparse::Init()
             qStart_->isStart = true;
             vStart_ = BaseT::addConfiguration(qStart_);
             // Sparse
-            //v_start_sparse = addConfigurationSparse(qStart_);
+            // v_start_sparse = addConfigurationSparse(qStart_);
             Configuration *ql = new Configuration(Q1, qStart_->state);
             const Vertex vl = add_vertex(ql, graphSparse_);
             nearestSparse_->add(ql);
@@ -244,19 +275,19 @@ void QuotientSpaceGraphSparse::Init()
             // dense QuotientSpaceGraph
             qGoal_ = new Configuration(Q1, st);
             qGoal_->isGoal = true;
-            vGoal_ = BaseT::addConfiguration(qGoal_);  // sa-> (added) Q:- why goal state was not added in configuration before?
+            vGoal_ = BaseT::addConfiguration(qGoal_);  // sa-> (added) Q:- why goal state was not added in configuration
 
             // sparse - not added in QuotientSpaceGraph .: because it was added in grow() function
             if (!isDynamic())
             {
-                //v_goal_sparse = addConfigurationSparse(qGoal_); 
+                // v_goal_sparse = addConfigurationSparse(qGoal_);
                 Configuration *ql = new Configuration(Q1, qGoal_->state);
                 const Vertex vl = add_vertex(ql, graphSparse_);
                 nearestSparse_->add(ql);
                 disjointSetsSparse_.make_set(vl);
                 graphSparse_[vl]->index = vl;
-                
-                v_goal_sparse =vl;
+
+                v_goal_sparse = vl;
                 graphSparse_[v_goal_sparse]->isGoal = true;
 
                 assert(boost::num_vertices(graphSparse_) == 2);
@@ -274,7 +305,6 @@ void QuotientSpaceGraphSparse::Init()
 
 void QuotientSpaceGraphSparse::debugInvalidState(const ob::State *s)
 {
-    std::cout << "..* QuotientSpaceGraph-Sparse::debugInvalidState()" << std::endl;
     const ob::StateSpacePtr space = Q1->getStateSpace();
     bool bounds = space->satisfiesBounds(s);
     if (!bounds)
@@ -321,157 +351,6 @@ void QuotientSpaceGraphSparse::debugInvalidState(const ob::State *s)
     }
 }
 
-QuotientSpaceGraphSparse::Vertex QuotientSpaceGraphSparse::addConfiguration(Configuration *q)
-{
-    std::cout << "..* QuotientSpaceGraph-Sparse::addConfiguration()" << std::endl;
-    // Vertex v = BaseT::addConfiguration(q);
-
-    // if (isDynamic())
-    // {
-    //     // DYNAMIC
-    //     addConfigurationSparse(q);
-    // }
-    // else
-    // {
-    //     // GEOMETRIC
-    //     // Add Edges to Delta-Neighbors (PRM* style)
-    //     std::vector<Configuration *> neighbors;
-    //     unsigned N = boost::num_vertices(graph_);
-    //     unsigned K = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)N)));
-    //     nearestDatastructure_->nearestK(q, K, neighbors);
-
-    //     for (uint k = 0; k < neighbors.size(); k++)
-    //     {
-    //         Configuration *qn = neighbors.at(k);
-    //         q->total_connection_attempts++;
-    //         qn->total_connection_attempts++;
-
-    //         if (Q1->checkMotion(qn->state, q->state))
-    //         {
-    //             q->successful_connection_attempts++;
-    //             qn->successful_connection_attempts++;
-    //             addEdge(qn->index, q->index);
-    //         }
-    //     }
-
-    //     // Sparse Graph addition
-    //     findGraphNeighbors(q, graphNeighborhood, visibleNeighborhood);
-
-    //     // Possible reasons for adding a node to sparse roadmap
-    //     //(1) VISIBLITY: Add Guard (when no one is visible) [Simeon 00]
-    //     //(2) CONNECTIVITY: Add Connectivity (when two disconnected components are visible) [Simeon 00]
-    //     //(3) INTERFACE: Add Interface (when a connected components get another useful cycle
-    //     //[Jaillet 09, Dobson 14, Nieuwenhausen 04]
-    //     //(4) OPTIMALITY: Optimality based [Dobson 14]
-
-    //     if (visibleNeighborhood.empty())
-    //     {
-    //         addConfigurationSparse(q);
-    //     }
-    //     else
-    //     {
-    //         if (!checkAddConnectivity(q, visibleNeighborhood))
-    //         {
-    //             if (!checkAddInterface(q, graphNeighborhood, visibleNeighborhood))
-    //             {
-    //                 // if (!visibleNeighborhood.empty())
-    //                 // {
-    //                 //     base::State *workState = si_->allocState();
-    //                 //     std::map<Vertex, base::State *> closeRepresentatives;
-    //                 //     findCloseRepresentatives(workState, q->state, visibleNeighborhood[0], closeRepresentatives);
-    //                 //     for (auto &closeRepresentative : closeRepresentatives)
-    //                 //     {
-    //                 //         updatePairPoints(visibleNeighborhood[0], q->state, closeRepresentative.first,
-    //                 //                          closeRepresentative.second);
-    //                 //         updatePairPoints(closeRepresentative.first, closeRepresentative.second,
-    //                 //                          visibleNeighborhood[0], q->state);
-    //                 //     }
-    //                 //     checkAddPath(visibleNeighborhood[0]);
-    //                 //     for (auto &closeRepresentative : closeRepresentatives)
-    //                 //     {
-    //                 //         checkAddPath(closeRepresentative.first);
-    //                 //         si_->freeState(closeRepresentative.second);
-    //                 //     }
-    //                 // }
-    //             }
-    //         }
-    //     }
-    // }
-
-    // return v;
-    return NULL;
-}
-// void ompl::geometric::QuotientSpaceGraphSparse::computeVPP(Vertex v, Vertex vp, std::vector<Vertex> &VPPs)
-// {
-//     VPPs.clear();
-//     foreach (Vertex cvpp, boost::adjacent_vertices(v, g_))
-//         if (cvpp != vp)
-//             if (!boost::edge(cvpp, vp, g_).second)
-//                 VPPs.push_back(cvpp);
-// }
-// void ompl::geometric::QuotientSpaceGraphSparse::updatePairPoints(Vertex rep, const base::State *q, Vertex r, const
-// base::State *s)
-// {
-//     // First of all, we need to compute all candidate r'
-//     std::vector<Vertex> VPPs;
-//     computeVPP(rep, r, VPPs);
-
-//     // Then, for each pair Pv(r,r')
-//     foreach (Vertex rp, VPPs)
-//         // Try updating the pair info
-//         distanceCheck(rep, q, r, s, rp);
-// }
-// void ompl::geometric::QuotientSpaceGraphSparse::findCloseRepresentatives(base::State *workArea, const base::State
-// *qNew,
-//                                                          const Vertex qRep,
-//                                                          std::map<Vertex, base::State *> &closeRepresentatives,
-//                                                          const base::PlannerTerminationCondition &ptc)
-// {
-//     for (auto &closeRepresentative : closeRepresentatives)
-//         si_->freeState(closeRepresentative.second);
-//     closeRepresentatives.clear();
-
-//     // Then, begin searching the space around him
-//     for (unsigned int i = 0; i < nearSamplePoints_; ++i)
-//     {
-//         do
-//         {
-//             sampler_->sampleNear(workArea, qNew, denseDelta_);
-//         } while ((!si_->isValid(workArea) || si_->distance(qNew, workArea) > denseDelta_ ||
-//                   !si_->checkMotion(qNew, workArea)) &&
-//                  !ptc);
-
-//         // if we were not successful at sampling a desirable state, we are out of time
-//         if (ptc)
-//             break;
-
-//         // Compute who his graph neighbors are
-//         Vertex representative = findGraphRepresentative(workArea);
-
-//         // Assuming this sample is actually seen by somebody (which he should be in all likelihood)
-//         if (representative != boost::graph_traits<Graph>::null_vertex())
-//         {
-//             // If his representative is different than qNew
-//             if (qRep != representative)
-//                 // And we haven't already tracked this representative
-//                 if (closeRepresentatives.find(representative) == closeRepresentatives.end())
-//                     // Track the representative
-//                     closeRepresentatives[representative] = si_->cloneState(workArea);
-//         }
-//         else
-//         {
-//             // This guy can't be seen by anybody, so we should take this opportunity to add him
-//             addGuard(si_->cloneState(workArea), COVERAGE);
-
-//             // We should also stop our efforts to add a dense path
-//             for (auto &closeRepresentative : closeRepresentatives)
-//                 si_->freeState(closeRepresentative.second);
-//             closeRepresentatives.clear();
-//             break;
-//         }
-//     }
-// }
-
 void QuotientSpaceGraphSparse::uniteComponentsSparse(Vertex m1, Vertex m2)
 {
     disjointSetsSparse_.union_set(m1, m2);
@@ -489,7 +368,7 @@ QuotientSpaceGraphSparse::Vertex QuotientSpaceGraphSparse::addConfigurationSpars
     disjointSetsSparse_.make_set(vl);
     graphSparse_[vl]->index = vl;
     updateRepresentatives(q);
-    consecutiveFailures_ = 0;  // sa-> from sparse -> reset consecutive failures
+    consecutiveFailures_ = 0;  // reset consecutive failures
     return vl;
 }
 
@@ -526,7 +405,7 @@ bool QuotientSpaceGraphSparse::checkAddCoverage(Configuration *q, std::vector<Co
         }
     }*/
     // No free paths means we add for coverage
-    if(visibleNeighborhood.empty())
+    if (visibleNeighborhood.empty())
     {
         addConfigurationSparse(q);
         return true;
@@ -547,14 +426,15 @@ bool QuotientSpaceGraphSparse::checkAddConnectivity(Configuration *q, std::vecto
             for (std::size_t j = i + 1; j < visibleNeighborhood.size(); ++j)
             {
                 // If they are in different components
-                if (!sameComponentSparse(visibleNeighborhood[i]->index, visibleNeighborhood[j]->index)) // ??????????????????? check???????
-                // If the paths between are collision free
-                if (Q1->checkMotion(q->state, visibleNeighborhood[i]->state) &&
-                    Q1->checkMotion(q->state, visibleNeighborhood[j]->state))
-                {
-                    links.push_back(visibleNeighborhood[i]->index);
-                    links.push_back(visibleNeighborhood[j]->index);
-                }
+                if (!sameComponentSparse(visibleNeighborhood[i]->index, visibleNeighborhood[j]->index))  // ???????????????????
+                                                                                                         // check???????
+                    // If the paths between are collision free
+                    if (Q1->checkMotion(q->state, visibleNeighborhood[i]->state) &&
+                        Q1->checkMotion(q->state, visibleNeighborhood[j]->state))
+                    {
+                        links.push_back(visibleNeighborhood[i]->index);
+                        links.push_back(visibleNeighborhood[j]->index);
+                    }
             }
         }
 
@@ -568,13 +448,13 @@ bool QuotientSpaceGraphSparse::checkAddConnectivity(Configuration *q, std::vecto
                 if (!boost::edge(v, link, graphSparse_).second)
                 {
                     // And the components haven't been united by previous links
-                    if (!sameComponentSparse(link, v)) //??????????????????? check?????????????????????????? check???????
+                    if (!sameComponentSparse(link, v))  //??????????????????? check??????????????????????????
+                                                        //check???????
                     {
                         addEdgeSparse(v, link);
                     }
                 }
             }
-            std::cout << "Connectivity added  . " << visibleNeighborhood.size() << std::endl;
             return true;
         }
     }
@@ -615,8 +495,6 @@ bool QuotientSpaceGraphSparse::checkAddInterface(Configuration *q, std::vector<C
                     addEdgeSparse(v, qv0->index);
                     addEdgeSparse(v, qv1->index);
                 }
-                // Report success
-                std::cout << "Interface added . " << visibleNeighborhood.size() << std::endl;
                 return true;
             }
         }
@@ -630,7 +508,7 @@ void ompl::geometric::QuotientSpaceGraphSparse::updateRepresentatives(Configurat
     // Get all of the dense samples which may be affected by adding this node
     std::vector<Configuration *> dense_points;
     nearestDatastructure_->nearestR(q, sparseDelta_ + denseDelta_, dense_points);
-    
+
     // For each of those points
     for (Configuration *dense_point : dense_points)
     {
@@ -654,21 +532,22 @@ void ompl::geometric::QuotientSpaceGraphSparse::updateRepresentatives(Configurat
     for (Configuration *dense_point : dense_points)
     {
         // Get it's representative
-        if(dense_point->representativeIndex < 0)
+        if (dense_point->representativeIndex < 0)
             continue;
         Vertex rep = dense_point->representativeIndex;
         // Extract the representatives of any interface-sharing neighbors
         getInterfaceNeighborRepresentatives(dense_point, interfaceRepresentatives);
-        
+
         // For sanity's sake, make sure we clear ourselves out of what this new rep might think of us
         removeFromRepresentatives(dense_point);
-        
+
         // Add this vertex to it's representative's list for the other representatives
         addToRepresentatives(dense_point->index, rep, interfaceRepresentatives);
     }
 }
 /////////////////////#############################################################
-void ompl::geometric::QuotientSpaceGraphSparse::addToRepresentatives(Vertex q, Vertex rep, const std::set<Vertex> &interfaceRepresentatives)
+void ompl::geometric::QuotientSpaceGraphSparse::addToRepresentatives(Vertex q, Vertex rep,
+                                                                     const std::set<Vertex> &interfaceRepresentatives)
 {
     // If this node supports no interfaces
     if (interfaceRepresentatives.empty())
@@ -703,7 +582,8 @@ void ompl::geometric::QuotientSpaceGraphSparse::addToRepresentatives(Vertex q, V
     }
 }
 
-void ompl::geometric::QuotientSpaceGraphSparse::getInterfaceNeighborRepresentatives(Configuration *q, std::set<Vertex> &interfaceRepresentatives)
+void ompl::geometric::QuotientSpaceGraphSparse::getInterfaceNeighborRepresentatives(
+    Configuration *q, std::set<Vertex> &interfaceRepresentatives)
 {
     interfaceRepresentatives.clear();
 
@@ -711,29 +591,31 @@ void ompl::geometric::QuotientSpaceGraphSparse::getInterfaceNeighborRepresentati
     Vertex rep = q->representativeIndex;
     // For each neighbor we are connected to
     foreach (Vertex n, boost::adjacent_vertices(q->index, graph_))
-        {
-            // Get his representative
-            Vertex orep = graph_[n]->representativeIndex;  //-->     representativesProperty_[n];
-            // If that representative is not our own
-            if (orep != rep)
-                // If he is within denseDelta_
-                if (si_->distance(q->state, graph_[n]->state) < denseDelta_)
-                    // Include his rep in the set
-                    interfaceRepresentatives.insert(orep);
-        }
+    {
+        // Get his representative
+        Vertex orep = graph_[n]->representativeIndex;  //-->     representativesProperty_[n];
+        // If that representative is not our own
+        if (orep != rep)
+            // If he is within denseDelta_
+            if (si_->distance(q->state, graph_[n]->state) < denseDelta_)
+                // Include his rep in the set
+                interfaceRepresentatives.insert(orep);
+    }
 }
 
 void ompl::geometric::QuotientSpaceGraphSparse::removeFromRepresentatives(Configuration *q)
 {
-    if ( q->representativeIndex < 0 )
+    if (q->representativeIndex < 0)
         return;
     // Remove the node from the non-interface points (if there)
     graphSparse_[q->representativeIndex]->nonInterfaceIndexList.erase(q->index);
 
     // From each of the interfaces
-    std::unordered_map<normalized_index_type, std::set<normalized_index_type>> interfaceList = graphSparse_[q->representativeIndex]->interfaceIndexList;
-    
-    for (std::unordered_map<normalized_index_type, std::set<normalized_index_type>>::iterator it = interfaceList.begin();
+    std::unordered_map<normalized_index_type, std::set<normalized_index_type>> interfaceList =
+        graphSparse_[q->representativeIndex]->interfaceIndexList;
+
+    for (std::unordered_map<normalized_index_type, std::set<normalized_index_type>>::iterator it =
+             interfaceList.begin();
          it != interfaceList.end(); it++)
     {
         // Remove this node from that list
@@ -742,7 +624,8 @@ void ompl::geometric::QuotientSpaceGraphSparse::removeFromRepresentatives(Config
 }
 
 /////////////////////#############################################################
-void ompl::geometric::QuotientSpaceGraphSparse::getInterfaceNeighborhood(Configuration *q, std::vector<Vertex> &interfaceNeighborhood)
+void ompl::geometric::QuotientSpaceGraphSparse::getInterfaceNeighborhood(Configuration *q,
+                                                                         std::vector<Vertex> &interfaceNeighborhood)
 {
     interfaceNeighborhood.clear();
 
@@ -775,20 +658,21 @@ void ompl::geometric::QuotientSpaceGraphSparse::computeVPP(Vertex v, Vertex vp, 
 
 void ompl::geometric::QuotientSpaceGraphSparse::computeX(Vertex v, Vertex vp, Vertex vpp, std::vector<Vertex> &Xs)
 {
-    //x are nodes that share an interface and an edge with v, share an edge with v" but do not share with v'. I
+    // x are nodes that share an interface and an edge with v, share an edge with v" but do not share with v'. I
     Xs.clear();
     foreach (Vertex cx, boost::adjacent_vertices(vpp, graphSparse_))
         if (boost::edge(cx, v, graphSparse_).second && !boost::edge(cx, vp, graphSparse_).second)
         {
             auto it = graphSparse_[vpp]->interfaceIndexList.find(cx);
-            if(it != graphSparse_[vpp]->interfaceIndexList.end())
-                if(!it->second.empty()) //if (!interfaceListsProperty_[vpp][cx].empty())
+            if (it != graphSparse_[vpp]->interfaceIndexList.end())
+                if (!it->second.empty())  // if (!interfaceListsProperty_[vpp][cx].empty())
                     Xs.push_back(cx);
         }
     Xs.push_back(vpp);
 }
 
-ompl::geometric::QuotientSpaceGraph::Vertex ompl::geometric::QuotientSpaceGraphSparse::getInterfaceNeighbor(Vertex q, Vertex rep)
+ompl::geometric::QuotientSpaceGraph::Vertex ompl::geometric::QuotientSpaceGraphSparse::getInterfaceNeighbor(Vertex q,
+                                                                                                            Vertex rep)
 {
     foreach (Vertex vp, boost::adjacent_vertices(q, graph_))
         if (/*representativesProperty_[vp]*/ graph_[vp]->representativeIndex == rep)
@@ -797,14 +681,15 @@ ompl::geometric::QuotientSpaceGraph::Vertex ompl::geometric::QuotientSpaceGraphS
     throw Exception(name_, "Vertex has no interface neighbor with given representative");
 }
 
-void ompl::geometric::QuotientSpaceGraphSparse::computeDensePath(const Vertex &start, const Vertex &goal, std::deque<base::State *> &path)
+void ompl::geometric::QuotientSpaceGraphSparse::computeDensePath(const Vertex &start, const Vertex &goal,
+                                                                 std::deque<base::State *> &path)
 {
     path.clear();
 
-    //Vertex s = graph_[start]->index ; Vertex g = graph_[goal]->index;
-    //ompl::base::PathPtr dpath = getPath(s, g);
+    // Vertex s = graph_[start]->index ; Vertex g = graph_[goal]->index;
+    // ompl::base::PathPtr dpath = getPath(s, g);
 
-    //boost::vector_property_map<Vertex> prev(boost::num_vertices(graph_));
+    // boost::vector_property_map<Vertex> prev(boost::num_vertices(graph_));
     BaseT::getPathDenseGraphPath(start, goal, graph_, path);
     /*try
     {
@@ -828,14 +713,15 @@ void ompl::geometric::QuotientSpaceGraphSparse::computeDensePath(const Vertex &s
         path.push_front(graph_[start]->state);
     }*/
 }
-bool ompl::geometric::QuotientSpaceGraphSparse::addPathToSpanner(const std::deque<base::State *> &dense_path, Vertex vp, Vertex vpp)
+bool ompl::geometric::QuotientSpaceGraphSparse::addPathToSpanner(const std::deque<base::State *> &dense_path, Vertex vp,
+                                                                 Vertex vpp)
 {
     // First, check to see that the path has length
     if (dense_path.size() <= 1)
     {
         // The path is 0 length, so simply link the representatives
         addEdgeSparse(vp, vpp);
-        consecutiveFailures_ = 0;//resetFailures();
+        consecutiveFailures_ = 0;  // resetFailures();
     }
     else
     {
@@ -870,18 +756,16 @@ bool ompl::geometric::QuotientSpaceGraphSparse::addPathToSpanner(const std::dequ
     return true;
 }
 
-
-
 //---------------------------------------------------------------------------------------------------------------------------********
-
 
 bool ompl::geometric::QuotientSpaceGraphSparse::checkAddPath(Configuration *q)
 {
     std::vector<Vertex> neigh;
     getInterfaceNeighborhood(q, neigh);
 
-    if (!neigh.empty()) {
-      return false;
+    if (!neigh.empty())
+    {
+        return false;
     }
 
     bool result = false;
@@ -892,7 +776,6 @@ bool ompl::geometric::QuotientSpaceGraphSparse::checkAddPath(Configuration *q)
     foreach (Vertex qp, neigh)
         n_rep.insert(graph_[qp]->representativeIndex);
 
-
     std::vector<Vertex> Xs;
     // for each v' in n_rep
     for (auto it = n_rep.begin(); it != n_rep.end() && !result; ++it)
@@ -900,11 +783,9 @@ bool ompl::geometric::QuotientSpaceGraphSparse::checkAddPath(Configuration *q)
         Vertex vp = *it;
         // Identify appropriate v" candidates => vpps
         std::vector<Vertex> VPPs;
-                
+
         computeVPP(v, vp, VPPs);
-        
-        std::cout << "                         " << VPPs.size() << std::endl;
-        
+
         foreach (Vertex vpp, VPPs)
         {
             double s_max = 0;
@@ -923,7 +804,7 @@ bool ompl::geometric::QuotientSpaceGraphSparse::checkAddPath(Configuration *q)
                     s_max = dist;
             }
 
-            std::deque<base::State *> bestDPath; // DensePath
+            std::deque<base::State *> bestDPath;  // DensePath
             Vertex best_qpp = boost::graph_traits<Graph>::null_vertex();
             double d_min = std::numeric_limits<double>::infinity();  // Insanely big number
             // For each vpp in vpps
@@ -932,9 +813,9 @@ bool ompl::geometric::QuotientSpaceGraphSparse::checkAddPath(Configuration *q)
                 Vertex vpp = VPPs[j];
                 // For each q", which are stored interface nodes on v for i(vpp,v)
                 auto it = graphSparse_[v]->interfaceIndexList.find(vpp);
-                if(it != graphSparse_[v]->interfaceIndexList.end())
+                if (it != graphSparse_[v]->interfaceIndexList.end())
                 {
-                    foreach (Vertex qpp, /*interfaceListsProperty_[v][vpp]*/it->second)
+                    foreach (Vertex qpp, /*interfaceListsProperty_[v][vpp]*/ it->second)
                     {
                         // check that representatives are consistent
                         assert(/*representativesProperty_[qpp]*/ graph_[qpp]->representativeIndex == v);
@@ -949,7 +830,7 @@ bool ompl::geometric::QuotientSpaceGraphSparse::checkAddPath(Configuration *q)
                         else
                         {
                             // Compute/Retain MINimum distance path on D through q, q"
-                            std::deque<base::State *> dPath; // DensePath
+                            std::deque<base::State *> dPath;  // DensePath
                             computeDensePath(q->index, qpp, dPath);
                             if (!dPath.empty())
                             {
@@ -982,8 +863,8 @@ bool ompl::geometric::QuotientSpaceGraphSparse::checkAddPath(Configuration *q)
                         bestDPath.push_back(graph_[nb]->state);
 
                         // check consistency of representatives
-                        assert( graph_[na]->representativeIndex == vp && graph_[nb]->representativeIndex == vpp);
-                        
+                        assert(graph_[na]->representativeIndex == vp && graph_[nb]->representativeIndex == vpp);
+
                         // Add the dense path to the spanner
                         addPathToSpanner(bestDPath, vpp, vp);
 
@@ -1003,8 +884,6 @@ bool QuotientSpaceGraphSparse::sampleQuotient(ob::State *q_random_graph)
     {
         if (selectedPath >= 0 && selectedPath < (int)pathStack_.size())
         {
-            // std::cout << "Sample " << getName() << " along selected path " << selectedPath
-            //   << "/" << (int)pathStackHead_.size()-1 << std::endl;
 
             std::vector<ob::State *> states = pathStackHead_.at(selectedPath);
             uint N = states.size();
@@ -1685,12 +1564,12 @@ void QuotientSpaceGraphSparse::getPlannerData(ob::PlannerData &data) const
       data.addVertex(node);
     }*/
     // add sparse nodes green color
-    /*foreach (const Vertex n, boost::vertices(graphSparse_))
+    foreach (const Vertex n, boost::vertices(graphSparse_))
     {
         base::PlannerDataVertexAnnotated node(graphSparse_[n]->state, 3);
         node.setPath(idxPathI);
         data.addVertex(node);
-    }*/
+    }
     // end
     /*return;
 

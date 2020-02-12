@@ -52,10 +52,6 @@
 #include <boost/property_map/transform_value_property_map.hpp>
 #include <boost/foreach.hpp>
 
-// sa->
-#include <iostream>
-using namespace std;
-
 #define foreach BOOST_FOREACH
 
 using Configuration = ompl::geometric::QuotientSpaceGraph::Configuration;
@@ -63,7 +59,6 @@ using Configuration = ompl::geometric::QuotientSpaceGraph::Configuration;
 ompl::geometric::QuotientSpaceGraph::QuotientSpaceGraph(const base::SpaceInformationPtr &si, QuotientSpace *parent_)
   : BaseT(si, parent_)
 {
-    std::cout << "..QuotientSpaceGraph()  --  -- constructor" << std::endl;
     setName("QuotientSpaceGraph");
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
@@ -81,7 +76,6 @@ ompl::geometric::QuotientSpaceGraph::~QuotientSpaceGraph()
 
 void ompl::geometric::QuotientSpaceGraph::setup()
 {
-    std::cout << "..QuotientSpaceGraph:---:setup()" << std::endl;
     BaseT::setup();
     if (!nearestDatastructure_)
     {
@@ -171,7 +165,6 @@ double ompl::geometric::QuotientSpaceGraph::getImportance() const
 
 void ompl::geometric::QuotientSpaceGraph::init()
 {
-    std::cout << "..QuotientSpaceGraph::init(................) " << "Space Information Pointer" << std::endl;
     auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
     if (goal == nullptr)
     {
@@ -411,8 +404,6 @@ ompl::base::PathPtr ompl::geometric::QuotientSpaceGraph::getPath(const Vertex &s
 
 bool ompl::geometric::QuotientSpaceGraph::sampleQuotient(base::State *q_random_graph)
 {
-    // sa->
-    std::cout << "..QuotientSpaceGraph::sampleQuotient(.....)" << std::endl;
     // RANDOM EDGE SAMPLING
     if (num_edges(graph_) == 0)
         return false;
