@@ -31,101 +31,23 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
     OMPL_DEVMSG1("BundleSpace %d%s", id_, (isDynamic_?" (dynamic)":""));
     //############################################################################
 
-    const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
-    int bundleSpaceComponents = GetNumberOfComponents(Bundle_space);
-
     if (!hasParent())
     {
-        if(bundleSpaceComponents > 1){
-          base::CompoundStateSpace *Bundle_compound = 
-            Bundle_space->as<base::CompoundStateSpace>();
-          const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
-
-          for(int m = 0; m < bundleSpaceComponents; m++){
-            base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
-            BundleSpaceComponentPtr componentM = 
-              componentFactory.MakeBundleSpaceComponent(BundleM, nullptr);
-            components_.push_back(componentM);
-          }
-        }else{
-            BundleSpaceComponentPtr component = componentFactory.MakeBundleSpaceComponent(Bundle_space, nullptr);
-            components_.push_back(component);
-        }
+        components_ = componentFactory.MakeBundleSpaceComponents(Bundle);
     }
     else
     {
         parent_->setChild(this);
-
         Base = parent_->getBundle();
-        const base::StateSpacePtr Base_space = Base->getStateSpace();
 
-        base::StateSpacePtr Fiber_space = nullptr;
-        if(bundleSpaceComponents > 1){
+        components_ = componentFactory.MakeBundleSpaceComponents(Bundle, Base);
 
-          base::CompoundStateSpace *Bundle_compound = 
-            Bundle_space->as<base::CompoundStateSpace>();
-          base::CompoundStateSpace *Base_compound = 
-            Base_space->as<base::CompoundStateSpace>();
-
-          int baseSpaceComponents = GetNumberOfComponents(Base_space);
-          if(baseSpaceComponents != bundleSpaceComponents)
-          {
-            OMPL_ERROR("Base Space has %d, but Bundle Space has %d components.", 
-                baseSpaceComponents, bundleSpaceComponents);
-            throw Exception("Different Number Of Components");
-          }
-
-          const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
-          const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
-
-          Fiber_space = std::make_shared<base::CompoundStateSpace>();
-          for(int m = 0; m < bundleSpaceComponents; m++){
-            base::StateSpacePtr BaseM = Base_decomposed.at(m);
-            base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
-            BundleSpaceComponentPtr componentM = 
-              componentFactory.MakeBundleSpaceComponent(BundleM, BaseM);
-            components_.push_back(componentM);
-            
-            base::StateSpacePtr FiberM = componentM->getFiberSpace();
-            double weight = (FiberM->getDimension() > 0 ? 1.0 : 0.0);
-            std::static_pointer_cast<base::CompoundStateSpace>(Fiber_space)->addSubspace(FiberM, weight);
-          }
-
-        }else{
-          BundleSpaceComponentPtr component = 
-            componentFactory.MakeBundleSpaceComponent(Bundle_space, Base_space);
-          components_.push_back(component);
-          Fiber_space = component->getFiberSpace();
-        }
-
-        if (Fiber_space != nullptr)
-        {
-            Fiber = std::make_shared<base::SpaceInformation>(Fiber_space);
-            Fiber_sampler_ = Fiber->allocStateSampler();
-
-            if (Base_space->getDimension() + Fiber_space->getDimension() != Bundle_space->getDimension())
-            {
-                throw ompl::Exception("BundleSpace Dimensions are wrong.");
-            }
-            OMPL_DEVMSG1("Base dimension: %d measure: %f", Base_space->getDimension(), Base_space->getMeasure());
-            OMPL_DEVMSG1("Fiber dimension: %d measure: %f", Fiber_space->getDimension(), Fiber_space->getMeasure());
-            OMPL_DEVMSG1("Bundle dimension: %d measure: %f", Bundle_space->getDimension(), Bundle_space->getMeasure());
-            if ((Base_space->getMeasure() <= 0) || (Fiber_space->getMeasure() <= 0) || (Bundle_space->getMeasure() <= 0))
-            {
-                throw ompl::Exception("Zero-measure BundleSpace detected.");
-            }
-            checkSpaceHasFiniteMeasure(Fiber_space);
-        }
-        else
-        {
-            OMPL_DEVMSG1("Base dimension: %d measure: %f", Base_space->getDimension(), Base_space->getMeasure());
-            OMPL_DEVMSG1("Bundle dimension: %d measure: %f", Bundle_space->getDimension(), Bundle_space->getMeasure());
-        }
-        checkSpaceHasFiniteMeasure(Base_space);
+        MakeFiberSpace();
     }
 
+    checkBundleSpace();
+
     std::cout << *this << std::endl;
-    checkSpaceHasFiniteMeasure(Bundle_space);
 
     if (!Bundle_valid_sampler_)
     {
@@ -154,40 +76,6 @@ ompl::geometric::BundleSpace::~BundleSpace()
     }
 }
 
-int ompl::geometric::BundleSpace::GetNumberOfComponents(base::StateSpacePtr space)
-{
-  int nrComponents = 0;
-
-  if(space->isCompound()){
-    base::CompoundStateSpace *compound = space->as<base::CompoundStateSpace>();
-    nrComponents = compound->getSubspaceCount();
-    if(nrComponents == 2)
-    {
-      int type = space->getType();
-
-      if((type == base::STATE_SPACE_SE2) || (type == base::STATE_SPACE_SE3))
-      {
-        nrComponents = 1;
-      }else{
-        const std::vector<base::StateSpacePtr> decomposed = compound->getSubspaces();
-        int t0 = decomposed.at(0)->getType();
-        int t1 = decomposed.at(1)->getType();
-        if(
-            (t0 == base::STATE_SPACE_SO2 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
-            (t0 == base::STATE_SPACE_SO3 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
-            (t0 == base::STATE_SPACE_SE2 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
-            (t0 == base::STATE_SPACE_SE3 && t1 == base::STATE_SPACE_REAL_VECTOR) 
-          )
-        {
-          nrComponents = 1;
-        }
-      }
-    }
-  }else{
-    nrComponents = 1;
-  }
-  return nrComponents;
-}
 bool ompl::geometric::BundleSpace::hasParent() const
 {
     return !(parent_ == nullptr);
@@ -223,20 +111,60 @@ void ompl::geometric::BundleSpace::clear()
     pdef_->clearSolutionPaths();
 }
 
-void ompl::geometric::BundleSpace::checkSpaceHasFiniteMeasure(const base::StateSpacePtr space) const
+void ompl::geometric::BundleSpace::MakeFiberSpace()
 {
-    if (space->getMeasure() >= std::numeric_limits<double>::infinity())
+    base::StateSpacePtr Fiber_space = nullptr;
+    if(components_.size() > 1)
     {
-        const base::StateSpacePtr Base_space = Base->getStateSpace();
-        const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
-        OMPL_ERROR("Base dimension: %d measure: %f", Base_space->getDimension(), Base_space->getMeasure());
-        OMPL_ERROR("Bundle dimension: %d measure: %f", Bundle_space->getDimension(), Bundle_space->getMeasure());
-        if (Fiber != nullptr)
-        {
-            const base::StateSpacePtr Fiber_space = Fiber->getStateSpace();
-            OMPL_ERROR("Fiber dimension: %d measure: %f", Fiber_space->getDimension(), Fiber_space->getMeasure());
+        Fiber_space = std::make_shared<base::CompoundStateSpace>();
+        for(uint m = 0; m < components_.size(); m++){
+            base::StateSpacePtr FiberM = components_.at(m)->getFiberSpace();
+            double weight = (FiberM->getDimension() > 0 ? 1.0 : 0.0);
+            std::static_pointer_cast<base::CompoundStateSpace>(Fiber_space)->addSubspace(FiberM, weight);
         }
-        throw ompl::Exception("BundleSpace has no bounds");
+    }else{
+        Fiber_space = components_.front()->getFiberSpace();
+    }
+
+    if (Fiber_space != nullptr)
+    {
+        Fiber = std::make_shared<base::SpaceInformation>(Fiber_space);
+        Fiber_sampler_ = Fiber->allocStateSampler();
+    }
+}
+
+void ompl::geometric::BundleSpace::checkBundleSpace() const
+{
+
+  const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
+  checkBundleSpaceMeasure("Bundle", Bundle_space);
+
+  if(Base != nullptr)
+  {
+      const base::StateSpacePtr Base_space = Base->getStateSpace();
+      checkBundleSpaceMeasure("Base", Base_space);
+  }
+  if(Fiber != nullptr)
+  {
+      const base::StateSpacePtr Fiber_space = Fiber->getStateSpace();
+      checkBundleSpaceMeasure("Fiber", Fiber_space);
+      if ((getBaseDimension() + getFiberDimension() != getBundleDimension()))
+      {
+          OMPL_ERROR("Dimensions %d (Base) + %d (Fiber) != %d (Bundle)", 
+              getBaseDimension(), getFiberDimension(), getBundleDimension());
+          throw ompl::Exception("BundleSpace Dimensions are wrong.");
+      }
+  }
+
+}
+
+void ompl::geometric::BundleSpace::checkBundleSpaceMeasure(std::string name, const base::StateSpacePtr space) const
+{
+    OMPL_DEVMSG1("%s dimension: %d measure: %f", name, space->getDimension(), space->getMeasure());
+    if ((space->getMeasure() >= std::numeric_limits<double>::infinity()) ||
+        (space->getMeasure() <= 0))
+    {
+        throw ompl::Exception("Space has zero or infinite measure.");
     }
 }
 
@@ -519,10 +447,11 @@ void ompl::geometric::BundleSpace::print(std::ostream &out) const
     unsigned int M = components_.size();
     out << "[";
     for(unsigned int m = 0; m < M; m++){
-        out << components_.at(m)->getTypeAsString() << (m<M-1?" |":"");
+        out << components_.at(m)->getTypeAsString() << (m<M-1?" | ":"");
     }
     out << "]";
 }
+
 namespace ompl
 {
     namespace geometric

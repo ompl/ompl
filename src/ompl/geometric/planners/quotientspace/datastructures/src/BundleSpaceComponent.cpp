@@ -41,6 +41,12 @@ ompl::geometric::BundleSpaceComponent::getType() const
   return type_;
 }
 
+void 
+ompl::geometric::BundleSpaceComponent::setType(BundleSpaceComponentType& type)
+{
+  type_ = type;
+}
+
 std::string ompl::geometric::BundleSpaceComponent::stateTypeToString(
     base::StateSpacePtr space) const
 {
@@ -78,7 +84,13 @@ std::string ompl::geometric::BundleSpaceComponent::stateTypeToString(
 std::string ompl::geometric::BundleSpaceComponent::getTypeAsString() const
 {
     if(BaseSpace_){
-        return getBundleTypeAsString() + " -> " + getBaseTypeAsString();
+      std::string tstr = getBundleTypeAsString() + " -> " + getBaseTypeAsString();
+      if(type_ == BUNDLE_SPACE_CONSTRAINED_RELAXATION){
+        tstr += " (relaxation)";
+      }else if(type_ == BUNDLE_SPACE_IDENTITY_PROJECTION){
+        tstr += " (identity)";
+      }
+      return tstr;
     }else{
         return getBundleTypeAsString();
     }

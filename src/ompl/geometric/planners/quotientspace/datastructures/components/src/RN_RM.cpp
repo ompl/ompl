@@ -1,6 +1,4 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/components/RN_RM.h>
-#include <ompl/base/spaces/SE2StateSpace.h>
-#include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
 ompl::geometric::BundleSpaceComponent_RN_RM::BundleSpaceComponent_RN_RM(

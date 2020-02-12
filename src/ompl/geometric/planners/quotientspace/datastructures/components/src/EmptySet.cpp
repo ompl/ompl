@@ -1,7 +1,4 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/components/EmptySet.h>
-#include <ompl/base/spaces/SE2StateSpace.h>
-#include <ompl/base/spaces/SO2StateSpace.h>
-#include <ompl/base/spaces/RealVectorStateSpace.h>
 
 ompl::geometric::BundleSpaceComponent_EmptySet::BundleSpaceComponent_EmptySet(
     base::StateSpacePtr BundleSpace,

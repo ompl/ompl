@@ -38,7 +38,6 @@ namespace ompl
 
             BundleSpace(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_ = nullptr);
             ~BundleSpace();
-            int GetNumberOfComponents(base::StateSpacePtr space);
 
             /// \brief solve disabled (use MultiBundle::solve)
             /// final prevents subclasses to override
@@ -127,9 +126,6 @@ namespace ompl
                 const ompl::base::State *xFiber, 
                 ompl::base::State *xBundle) const; 
 
-            /// Check if Bundle-space is unbounded
-            void checkSpaceHasFiniteMeasure(const ompl::base::StateSpacePtr space) const;
-
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 
             /// \brief Write class to stream (use as std::cout << *this << std::endl)
@@ -140,6 +136,12 @@ namespace ompl
             bool isDynamic() const;
 
         protected:
+            /// Check if Bundle-space is unbounded
+            void checkBundleSpaceMeasure(std::string name, 
+                const ompl::base::StateSpacePtr space) const;
+            void checkBundleSpace() const;
+            void MakeFiberSpace();
+
             std::vector<BundleSpaceComponentPtr> components_;
 
             /// Internal function implementing actual printing to stream

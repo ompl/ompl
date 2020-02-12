@@ -19,24 +19,39 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/components/None.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/EmptySet.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/Identity.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/Relaxation.h>
 
 #include <ompl/util/Exception.h>
 
 ompl::geometric::BundleSpaceComponentPtr
 ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
+    const base::StateSpacePtr Bundle)
+{
+  return MakeBundleSpaceComponent(Bundle, nullptr, false);
+}
+ompl::geometric::BundleSpaceComponentPtr
+ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
     const base::StateSpacePtr Bundle, 
-    const base::StateSpacePtr Base)
+    const base::StateSpacePtr Base,
+    bool areValidityCheckersEquivalent)
 {
     BundleSpaceComponentType type = identifyBundleSpaceComponentType(Bundle, Base);
+    if(type == BUNDLE_SPACE_IDENTITY_PROJECTION && !areValidityCheckersEquivalent)
+    {
+      type = BUNDLE_SPACE_CONSTRAINED_RELAXATION;
+    }
+
     BundleSpaceComponentPtr component;
 
-    if(type == BUNDLE_SPACE_NO_PROJECTION)
-    {
+    if(type == BUNDLE_SPACE_NO_PROJECTION){
       component = std::make_shared<BundleSpaceComponent_None>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_EMPTY_SET_PROJECTION){
       component = std::make_shared<BundleSpaceComponent_EmptySet>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_IDENTITY_PROJECTION){
       component = std::make_shared<BundleSpaceComponent_Identity>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_CONSTRAINED_RELAXATION){
+      component = std::make_shared<BundleSpaceComponent_Relaxation>(Bundle, Base);
+
     }else if(type == BUNDLE_SPACE_RN_RM){
       component = std::make_shared<BundleSpaceComponent_RN_RM>(Bundle, Base);
 
@@ -62,14 +77,93 @@ ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
       component = std::make_shared<BundleSpaceComponent_SE3RN_SE3>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_SE3RN_SE3RM){
       component = std::make_shared<BundleSpaceComponent_SE3RN_SE3RM>(Bundle, Base);
+
     }else{
       OMPL_ERROR("NYI: %d", type);
       throw Exception("BundleSpaceType not yet implemented.");
     }
+    component->setType(type);
     component->initFiberSpace();
     return component;
 }
 
+std::vector<ompl::geometric::BundleSpaceComponentPtr> 
+ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponents(
+    base::SpaceInformationPtr Bundle)
+{
+    const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
+    int bundleSpaceComponents = GetNumberOfComponents(Bundle_space);
+
+    std::vector<BundleSpaceComponentPtr> components;
+
+    if(bundleSpaceComponents > 1){
+      base::CompoundStateSpace *Bundle_compound = 
+        Bundle_space->as<base::CompoundStateSpace>();
+      const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
+
+      for(int m = 0; m < bundleSpaceComponents; m++){
+        base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
+        BundleSpaceComponentPtr componentM = MakeBundleSpaceComponent(BundleM);
+        components.push_back(componentM);
+      }
+    }else{
+        BundleSpaceComponentPtr component = MakeBundleSpaceComponent(Bundle_space);
+        components.push_back(component);
+    }
+
+    return components;
+}
+
+std::vector<ompl::geometric::BundleSpaceComponentPtr> 
+ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponents(
+    base::SpaceInformationPtr Bundle,
+    base::SpaceInformationPtr Base)
+{
+    const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
+    int bundleSpaceComponents = GetNumberOfComponents(Bundle_space);
+    const base::StateSpacePtr Base_space = Base->getStateSpace();
+    int baseSpaceComponents = GetNumberOfComponents(Base_space);
+
+    if(baseSpaceComponents != bundleSpaceComponents)
+    {
+      OMPL_ERROR("Base Space has %d, but Bundle Space has %d components.", 
+          baseSpaceComponents, bundleSpaceComponents);
+      throw Exception("Different Number Of Components");
+    }
+
+    std::vector<BundleSpaceComponentPtr> components;
+
+    //Check if planning spaces are equivalent, i.e. if (X, \phi) == (Y, \phi)
+    bool areValidityCheckersEquivalent = false;
+    if(*(Base->getStateValidityChecker().get()) == *(Bundle->getStateValidityChecker().get())){
+        areValidityCheckersEquivalent = true;
+    }
+
+    if(bundleSpaceComponents > 1){
+
+      base::CompoundStateSpace *Bundle_compound = 
+        Bundle_space->as<base::CompoundStateSpace>();
+      base::CompoundStateSpace *Base_compound = 
+        Base_space->as<base::CompoundStateSpace>();
+
+      const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
+      const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
+
+      for(int m = 0; m < bundleSpaceComponents; m++){
+        base::StateSpacePtr BaseM = Base_decomposed.at(m);
+        base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
+        BundleSpaceComponentPtr componentM = MakeBundleSpaceComponent(BundleM, BaseM, 
+            areValidityCheckersEquivalent);
+        components.push_back(componentM);
+      }
+
+    }else{
+      BundleSpaceComponentPtr component = MakeBundleSpaceComponent(Bundle_space, Base_space, 
+          areValidityCheckersEquivalent);
+      components.push_back(component);
+    }
+    return components;
+}
 
 ompl::geometric::BundleSpaceComponentType
 ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(const base::StateSpacePtr Bundle, const base::StateSpacePtr Base)
@@ -480,4 +574,39 @@ ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(c
         }
     }
     return type;
+}
+
+int ompl::geometric::BundleSpaceComponentFactory::GetNumberOfComponents(base::StateSpacePtr space)
+{
+  int nrComponents = 0;
+
+  if(space->isCompound()){
+    base::CompoundStateSpace *compound = space->as<base::CompoundStateSpace>();
+    nrComponents = compound->getSubspaceCount();
+    if(nrComponents == 2)
+    {
+      int type = space->getType();
+
+      if((type == base::STATE_SPACE_SE2) || (type == base::STATE_SPACE_SE3))
+      {
+        nrComponents = 1;
+      }else{
+        const std::vector<base::StateSpacePtr> decomposed = compound->getSubspaces();
+        int t0 = decomposed.at(0)->getType();
+        int t1 = decomposed.at(1)->getType();
+        if(
+            (t0 == base::STATE_SPACE_SO2 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
+            (t0 == base::STATE_SPACE_SO3 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
+            (t0 == base::STATE_SPACE_SE2 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
+            (t0 == base::STATE_SPACE_SE3 && t1 == base::STATE_SPACE_REAL_VECTOR) 
+          )
+        {
+          nrComponents = 1;
+        }
+      }
+    }
+  }else{
+    nrComponents = 1;
+  }
+  return nrComponents;
 }

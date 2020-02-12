@@ -1,7 +1,4 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/components/None.h>
-#include <ompl/base/spaces/SE2StateSpace.h>
-#include <ompl/base/spaces/SO2StateSpace.h>
-#include <ompl/base/spaces/RealVectorStateSpace.h>
 
 ompl::geometric::BundleSpaceComponent_None::BundleSpaceComponent_None(
     base::StateSpacePtr BundleSpace,

@@ -43,6 +43,7 @@ namespace ompl
             unsigned int getDimension() const;
             /// Type of Bundle Space
             BundleSpaceComponentType getType() const;
+            void setType(BundleSpaceComponentType&);
 
             std::string getTypeAsString() const;
             std::string getFiberTypeAsString() const;

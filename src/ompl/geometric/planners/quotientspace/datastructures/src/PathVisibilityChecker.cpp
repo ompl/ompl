@@ -415,6 +415,7 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
 void PathVisibilityChecker::testCheckMotion(const ob::State* s1, const ob::State* s2){
   ob::State* s2_copy = siC->allocState();
   ompl::control::Control* cont = siC->allocControl();
+  OMPL_ERROR("TODO: s2 is not used!?");
   sDCSampler->sampleTo(cont, s1, s2_copy);
   //s2 is reachable
   bool motionFeasible = siC->checkMotion(s1,s2_copy);
