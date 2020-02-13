@@ -103,6 +103,19 @@ namespace ompl
                     deleted or graphs are copied, we sometimes need to map them
                     back to [0, num_vertices(graph)]  */
                 normalized_index_type index{-1};
+
+                /** \brief Access to the representatives (Sparse Vertex) of the Dense vertices
+                 * For Sparse Graph: Store index of Sparse Vertex which is represtative of Dense Graph Vertex
+                 */
+                normalized_index_type representativeIndex{-1};
+                
+                /** \brief Access to all non-interface supporting vertices of the sparse nodes */
+                //boost::property<vertex_list_t, std::set<VertexIndexType>,
+                std::set<normalized_index_type> nonInterfaceIndexList;
+
+                /** \brief Access to the interface-supporting vertice hashes of the sparse nodes */
+                //boost::property<vertex_interface_list_t, std::unordered_map<VertexIndexType, std::set<VertexIndexType>>>
+                std::unordered_map<normalized_index_type, std::set<normalized_index_type>> interfaceIndexList;
             };
 
             /** \brief An edge in Bundle-space */
@@ -133,7 +146,10 @@ namespace ompl
                 std::string name{"BundleSpaceGraph"};
             };
 
-            /** \brief A Bundle-graph structure using boost::adjacency_list bundles */
+            /** \brief A Bundle-graph structure using boost::adjacency_list bundles
+             *
+             * https://www.boost.org/doc/libs/1_71_0/libs/graph/doc/adjacency_list.html
+             * */
             using Graph = boost::adjacency_list<
                   boost::vecS, 
                   boost::vecS, 
@@ -142,7 +158,6 @@ namespace ompl
                   EdgeInternalState, 
                   GraphBundle
             >;
-
             using BGT = boost::graph_traits<Graph>;
             using Vertex = BGT::vertex_descriptor;
             using Edge = BGT::edge_descriptor;
@@ -211,6 +226,8 @@ namespace ompl
             virtual void print(std::ostream &out) const override;
             /** \brief Print configuration to std::cout */
             void printConfiguration(const Configuration *) const;
+
+            void getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph, std::deque<base::State *> &path);
 
         protected:
             virtual double distance(const Configuration *a, const Configuration *b) const;

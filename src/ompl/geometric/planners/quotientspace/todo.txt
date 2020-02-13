@@ -7,3 +7,23 @@ MT
 [ ] Add function getLocalMinimaTree() to explorer
 [ ] Incorporate optimizer
 [ ] Return control in PlannerData
+
+
+Auto-merging
+src/ompl/geometric/planners/quotientspace/datastructures/src/BundleSpaceGraphSparse.cpp
+CONFLICT (content): Merge conflict in
+src/ompl/geometric/planners/quotientspace/datastructures/src/BundleSpaceGraphSparse.cpp
+Auto-merging
+src/ompl/geometric/planners/quotientspace/datastructures/src/BundleSpaceGraph.cpp
+CONFLICT (content): Merge conflict in
+src/ompl/geometric/planners/quotientspace/datastructures/src/BundleSpaceGraph.cpp
+Auto-merging
+src/ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h
+CONFLICT (content): Merge conflict in
+src/ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h
+Auto-merging
+src/ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h
+CONFLICT (content): Merge conflict in
+src/ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h
+Automatic merge failed; fix conflicts and then commit the result.
+
