@@ -33,59 +33,61 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey */
-#include <ompl/geometric/planners/quotientspace/algorithms/QRRTImpl.h>
+/* Author: Andreas Orthey, Sohaib Akbar */
+
+#include <ompl/geometric/planners/quotientspace/algorithms/QMPImpl.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <boost/foreach.hpp>
+#include <ompl/datastructures/NearestNeighbors.h>
 
 #define foreach BOOST_FOREACH
 
-ompl::geometric::QRRTImpl::QRRTImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
+ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
-    setName("QRRTImpl" + std::to_string(id_));
-    Planner::declareParam<double>("range", this, &QRRTImpl::setRange, &QRRTImpl::getRange, "0.:1.:10000.");
-    Planner::declareParam<double>("goal_bias", this, &QRRTImpl::setGoalBias, &QRRTImpl::getGoalBias, "0.:.1:1.");
+    setName("QMPImpl" + std::to_string(id_));
+    Planner::declareParam<double>("range", this, &QMPImpl::setRange, &QMPImpl::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &QMPImpl::setGoalBias, &QMPImpl::getGoalBias, "0.:.1:1.");
     qRandom_ = new Configuration(Bundle);
 }
 
-ompl::geometric::QRRTImpl::~QRRTImpl()
+ompl::geometric::QMPImpl::~QMPImpl()
 {
     deleteConfiguration(qRandom_);
 }
 
-void ompl::geometric::QRRTImpl::setGoalBias(double goalBias)
+void ompl::geometric::QMPImpl::setGoalBias(double goalBias)
 {
     goalBias_ = goalBias;
 }
 
-double ompl::geometric::QRRTImpl::getGoalBias() const
+double ompl::geometric::QMPImpl::getGoalBias() const
 {
     return goalBias_;
 }
 
-void ompl::geometric::QRRTImpl::setRange(double maxDistance)
+void ompl::geometric::QMPImpl::setRange(double maxDistance)
 {
     maxDistance_ = maxDistance;
 }
 
-double ompl::geometric::QRRTImpl::getRange() const
+double ompl::geometric::QMPImpl::getRange() const
 {
     return maxDistance_;
 }
 
-void ompl::geometric::QRRTImpl::setup()
+void ompl::geometric::QMPImpl::setup()
 {
     BaseT::setup();
     ompl::tools::SelfConfig sc(Bundle, getName());
     sc.configurePlannerRange(maxDistance_);
 }
 
-void ompl::geometric::QRRTImpl::clear()
+void ompl::geometric::QMPImpl::clear()
 {
     BaseT::clear();
 }
 
-bool ompl::geometric::QRRTImpl::getSolution(base::PathPtr &solution)
+bool ompl::geometric::QMPImpl::getSolution(base::PathPtr &solution)
 {
     if (hasSolution_)
     {
@@ -102,7 +104,7 @@ bool ompl::geometric::QRRTImpl::getSolution(base::PathPtr &solution)
     }
 }
 
-void ompl::geometric::QRRTImpl::grow()
+void ompl::geometric::QMPImpl::grow()
 {
     if (firstRun_)
     {
@@ -110,43 +112,73 @@ void ompl::geometric::QRRTImpl::grow()
         firstRun_ = false;
     }
 
-    //(1) Get Random Sample
-    sampleRandom(qRandom_->state);
-
-    //(2) Get Nearest in Tree
-    const Configuration *q_nearest = nearest(qRandom_);
-
-    //(3) Connect Nearest to Random
-    double d = Bundle->distance(q_nearest->state, qRandom_->state);
-    if (d > maxDistance_)
+    if (hasSolution_)
     {
-        Bundle->getStateSpace()->interpolate(q_nearest->state, qRandom_->state, maxDistance_ / d, qRandom_->state);
+        // No Goal Biasing if we already found a solution on this bundle space
+        sampleBundle(qRandom_->state);
+    }
+    else
+    {
+        double s = rng_.uniform01();
+        if (s < goalBias_)
+        {
+            Bundle->copyState(qRandom_->state, qGoal_->state);
+        }
+        else
+        {
+            sampleBundle(qRandom_->state);
+        }
     }
 
-    //(4) Check if Motion is correct
-    if (Bundle->checkMotion(q_nearest->state, qRandom_->state))
+    std::vector<Configuration*> r_nearest_neighbors;
+     
+    BaseT::nearestDatastructure_->nearestK(qRandom_ , 7 , r_nearest_neighbors);
+
+    bool foundFeasibleEdge = false;
+    
+    for(unsigned int i=0 ; i< r_nearest_neighbors.size(); i++)
     {
-        Configuration *q_next = new Configuration(Bundle, qRandom_->state);
-        Vertex v_next = addConfiguration(q_next);
-
-        if (!hasSolution_)
+        Configuration* q_neighbor = r_nearest_neighbors.at(i);
+        if (Bundle->checkMotion(q_neighbor->state, qRandom_->state)) 
         {
-            // only add edge if no solution exists
-            addEdge(q_nearest->index, v_next);
-
-            double dist = 0.0;
-            bool satisfied = goal_->isSatisfied(q_next->state, &dist);
-            if (satisfied)
+            Vertex v_next;
+            Configuration *q_next;
+            if(!foundFeasibleEdge)
             {
-                vGoal_ = addConfiguration(qGoal_);
-                addEdge(q_nearest->index, vGoal_);
-                hasSolution_ = true;
+    
+                double d = Bundle->distance(q_neighbor->state, qRandom_->state);
+                if (d > maxDistance_)
+                {
+                    Bundle->getStateSpace()->interpolate(q_neighbor->state, qRandom_->state, maxDistance_ / d, qRandom_->state);
+                }
+
+                // totalNumberOfSamples_++;
+                // totalNumberOfFeasibleSamples_++;
+                q_next = new Configuration(Bundle, qRandom_->state);
+                v_next = addConfiguration(q_next);
+            
+                
+                foundFeasibleEdge = true;
+            }
+            if (!hasSolution_ && foundFeasibleEdge)
+            {
+                addEdge(q_neighbor->index, v_next);
+                
+                double dist = 0.0;
+                bool satisfied = goal_->isSatisfied(q_next->state, &dist);
+                if (satisfied)
+                {
+                    vGoal_ = addConfiguration(qGoal_);
+                    addEdge(q_neighbor->index, vGoal_);
+                    hasSolution_ = true;
+                }
             }
         }
+
     }
 }
 
-double ompl::geometric::QRRTImpl::getImportance() const
+double ompl::geometric::QMPImpl::getImportance() const
 {
     // Should depend on
     // (1) level : The higher the level, the more importance
@@ -165,51 +197,30 @@ double ompl::geometric::QRRTImpl::getImportance() const
     return 1.0 / (N + 1);
 }
 
-bool ompl::geometric::QRRTImpl::sampleRandom(base::State *xRandom)
+// Make it faster by removing the validity check
+bool ompl::geometric::QMPImpl::sampleBundle(base::State *q_random)
 {
-    if (hasSolution_)
+    if (parent_ == nullptr)
     {
-        // No Goal Biasing if we already found a solution on this bundle space
-        sampleBundle(xRandom);
-    }
-    else
-    {
-        double s = rng_.uniform01();
-        if (s < goalBias_)
-        {
-            Bundle->copyState(xRandom, qGoal_->state);
-        }
-        else
-        {
-            sampleBundle(xRandom);
-        }
-    }
-    return true;
-}
-
-bool ompl::geometric::QRRTImpl::sampleBundle(base::State *xRandom)
-{
-    if (!hasParent())
-    {
-        Bundle_sampler_->sampleUniform(xRandom);
+        Bundle_sampler_->sampleUniform(q_random);
     }
     else
     {
         if (getFiberDimension() > 0)
         {
-            sampleFiber(xFiberTmp_);
+            Fiber_sampler_->sampleUniform(xFiberTmp_);
             parent_->sampleFromDatastructure(xBaseTmp_);
-            mergeStates(xBaseTmp_, xFiberTmp_, xRandom);
+            mergeStates(xBaseTmp_, xFiberTmp_, q_random);
         }
         else
         {
-            parent_->sampleFromDatastructure(xRandom);
+            parent_->sampleFromDatastructure(q_random);
         }
     }
     return true;
 }
 
-bool ompl::geometric::QRRTImpl::sampleFromDatastructure(base::State *q_random_graph)
+bool ompl::geometric::QMPImpl::sampleFromDatastructure(base::State *q_random_graph)
 {
     // RANDOM VERTEX SAMPLING
     const Vertex v = boost::random_vertex(graph_, rng_boost);

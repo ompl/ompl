@@ -316,6 +316,40 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
     return hasSolution_;
 }
 
+void ompl::geometric::BundleSpaceGraph::getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph, std::deque<base::State *> &path)
+{
+    std::vector<Vertex> prev(boost::num_vertices(graph));
+    auto weight = boost::make_transform_value_property_map(std::mem_fn(&EdgeInternalState::getCost),
+                                                           get(boost::edge_bundle, graph));
+    try
+    {
+        boost::astar_search(graph, start, [this, goal](const Vertex v) { return costHeuristic(v, goal); },
+                            boost::predecessor_map(&prev[0])
+                                .weight_map(weight)
+                                .distance_compare([this](EdgeInternalState c1, EdgeInternalState c2) {
+                                    return opt_->isCostBetterThan(c1.getCost(), c2.getCost());
+                                })
+                                .distance_combine([this](EdgeInternalState c1, EdgeInternalState c2) {
+                                    return opt_->combineCosts(c1.getCost(), c2.getCost());
+                                })
+                                .distance_inf(opt_->infiniteCost())
+                                .distance_zero(opt_->identityCost()));
+    }
+    catch (BundleSpaceGraphFoundGoal &)
+    {
+    }
+
+    if (prev[goal] == goal)
+    {
+        OMPL_WARN("%s: No dense path was found?", getName().c_str());
+    }
+    else {
+        for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
+            path.push_front(graph_[pos]->state);
+        path.push_front(graph_[start]->state);
+    }
+}
+
 ompl::base::PathPtr ompl::geometric::BundleSpaceGraph::getPath(const Vertex &start, const Vertex &goal)
 {
     return getPath(start, goal, graph_);
@@ -406,6 +440,8 @@ void ompl::geometric::BundleSpaceGraph::printConfiguration(const Configuration *
 
 void ompl::geometric::BundleSpaceGraph::getPlannerData(base::PlannerData &data) const
 {
+    OMPL_DEBUG("Roadmap has %d/%d vertices/edges", boost::num_vertices(graph_), boost::num_edges(graph_));
+
     std::vector<int> idxPathI;
     BundleSpace *pparent = getParent();
     while (pparent != nullptr)
