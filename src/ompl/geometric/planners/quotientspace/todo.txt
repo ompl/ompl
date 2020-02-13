@@ -1,5 +1,9 @@
-[ ] Clean up constructor Bundle Space
-[ ] Clean up Bundle Space Graph Sparse (outsource explorer functions)
-[ ] Add function getLocalMinimaTree() to explorer
+FB
+[x] Clean up constructor Bundle Space
 [ ] Organize MultiQuotient classes in better way
 
+MT
+[ ] Clean up Bundle Space Graph Sparse (outsource explorer functions)
+[ ] Add function getLocalMinimaTree() to explorer
+[ ] Incorporate optimizer
+[ ] Return control in PlannerData

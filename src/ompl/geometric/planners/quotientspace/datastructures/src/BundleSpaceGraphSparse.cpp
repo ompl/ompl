@@ -236,50 +236,6 @@ void BundleSpaceGraphSparse::Init()
 
 }
 
-void BundleSpaceGraphSparse::debugInvalidState(const ob::State *s)
-{
-    const ob::StateSpacePtr space = Bundle->getStateSpace();
-    bool bounds = space->satisfiesBounds(s);
-    if(!bounds){
-        std::vector<ob::StateSpacePtr> Bundle_decomposed;
-        if (!space->isCompound())
-        {
-            Bundle_decomposed.push_back(space);
-        }else{
-            ob::CompoundStateSpace *Bundle_compound = space->as<ob::CompoundStateSpace>();
-            Bundle_decomposed = Bundle_compound->getSubspaces();
-        }
-
-        for(unsigned int m = 0; m < Bundle_decomposed.size(); m++){
-            ob::StateSpacePtr spacek = Bundle_decomposed.at(m);
-            int type = spacek->getType();
-            switch (type) {
-              case ob::STATE_SPACE_REAL_VECTOR:
-              {
-                  auto *RN = spacek->as<ob::RealVectorStateSpace>();
-                  const ob::RealVectorStateSpace::StateType *sk = 
-                    s->as<ob::CompoundState>()->as<ob::RealVectorStateSpace::StateType>(m);
-                  std::vector<double> bl =  RN->getBounds().low;
-                  std::vector<double> bh =  RN->getBounds().high;
-                  for(unsigned int k = 0; k < bl.size(); k++){
-                    double qk = sk->values[k];
-                    double qkl = bl.at(k);
-                    double qkh = bh.at(k);
-                    if(qk < qkl || qk > qkh){
-                        std::cout << "Out Of Bounds [" 
-                          << "component " << m << ", "
-                          << "link " << k 
-                          << "] " 
-                          << bl.at(k) << " <= " << qk << " <= " << bh.at(k) << std::endl;
-                    }
-                  }
-                  break;
-              }
-            }
-        }
-    }
-}
-
 BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfiguration(Configuration *q)
 {
     Vertex v = BaseT::addConfiguration(q);
@@ -693,11 +649,11 @@ void BundleSpaceGraphSparse::Rewire()
   return Rewire(v);
 }
 
-
 void BundleSpaceGraphSparse::removeLastPathFromStack()
 {
     pathStackHead_.erase(pathStackHead_.end()-1);
 }
+
 void BundleSpaceGraphSparse::pushPathToStack(std::vector<ob::State*> &path)
 {
   og::PathGeometric gpath(Bundle);
@@ -714,6 +670,7 @@ void BundleSpaceGraphSparse::pushPathToStack(std::vector<ob::State*> &path)
   ob::OptimizationObjectivePtr pathObj(multiObj);
 
   if(isDynamic()){
+      OMPL_WARN("No Optimizer for dynamic paths specified.");
       // shortcutter.shortcutPath(gpath);
   }else{
       og::PathSimplifier shortcutter(Bundle, ob::GoalPtr(), pathObj);
@@ -1171,6 +1128,12 @@ std::vector<int> BundleSpaceGraphSparse::GetSelectedPathIndex() const
 
 void BundleSpaceGraphSparse::getPlannerData(ob::PlannerData &data) const
 {
+  if(isDynamic()){
+    if(!data.hasControls()){
+      OMPL_ERROR("Dynamic Cspace, but PlannerData has no controls.");
+    }
+  }
+
   if(pathStackHead_.size()>0){
       OMPL_DEVMSG1("%s has %d solutions.", getName().c_str(), pathStackHead_.size());
       if(pathStackHead_.empty()){

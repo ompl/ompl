@@ -174,6 +174,7 @@ void ExplorerImpl::growGeometricExpand()
     }
     Bundle->freeStates(workStates);
 }
+
 void ExplorerImpl::growGeometric(){
   
   const Configuration *q_nearest = nearest(q_random);
@@ -182,10 +183,8 @@ void ExplorerImpl::growGeometric(){
     Bundle->getStateSpace()->interpolate(q_nearest->state, q_random->state, maxDistance / d, q_random->state);
   }
 
-  // totalNumberOfSamples_++;
   if(Bundle->checkMotion(q_nearest->state, q_random->state))
   {
-    // totalNumberOfFeasibleSamples_++;
     Configuration *q_next = new Configuration(Bundle, q_random->state);
 
     Vertex v_next = addConfiguration(q_next);
@@ -214,8 +213,6 @@ void ExplorerImpl::growControl(){
     int duration = dCSampler->sampleTo(c_random, q_nearest->state, s_random);
 
     //c_random is always collisionfree if applied to q_nearest
-    // totalNumberOfSamples_++;
-    // totalNumberOfFeasibleSamples_++;
 
     if(duration<controlDuration){
         //used control for full duration, add q_random

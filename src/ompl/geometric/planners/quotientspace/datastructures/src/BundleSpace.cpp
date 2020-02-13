@@ -168,9 +168,8 @@ void ompl::geometric::BundleSpace::checkBundleSpaceMeasure(std::string name, con
     }
 }
 
-ompl::base::PlannerStatus ompl::geometric::BundleSpace::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::BundleSpace::solve(const base::PlannerTerminationCondition&)
 {
-    (void)ptc;
     throw ompl::Exception("A Bundle-Space cannot be solved alone. Use class MultiBundle to solve Bundle-Spaces.");
 }
 
@@ -250,8 +249,8 @@ void ompl::geometric::BundleSpace::allocIdentityState(base::State *s, base::Stat
     const std::vector<base::StateSpacePtr> compounds = cspace->getSubspaces();
     for(unsigned int k = 0; k < compounds.size(); k++){
       base::StateSpacePtr spacek = compounds.at(k);
-      base::State *sk = s->as<base::CompoundState>()->as<base::State>(k);
-      allocIdentityState(sk, spacek);
+      base::State *xk = s->as<base::CompoundState>()->as<base::State>(k);
+      allocIdentityState(xk, spacek);
     }
   }else{
     int stype = space->getType();
@@ -440,6 +439,50 @@ bool ompl::geometric::BundleSpace::sampleBundle(base::State *xRandom)
     }
 
     return valid;
+}
+
+void ompl::geometric::BundleSpace::debugInvalidState(const base::State *x)
+{
+    const base::StateSpacePtr space = Bundle->getStateSpace();
+    bool bounds = space->satisfiesBounds(x);
+    if(!bounds){
+        std::vector<base::StateSpacePtr> Bundle_decomposed;
+        if (!space->isCompound())
+        {
+            Bundle_decomposed.push_back(space);
+        }else{
+            base::CompoundStateSpace *Bundle_compound = space->as<base::CompoundStateSpace>();
+            Bundle_decomposed = Bundle_compound->getSubspaces();
+        }
+
+        for(unsigned int m = 0; m < Bundle_decomposed.size(); m++){
+            base::StateSpacePtr spacek = Bundle_decomposed.at(m);
+            int type = spacek->getType();
+            switch (type) {
+              case base::STATE_SPACE_REAL_VECTOR:
+              {
+                  auto *RN = spacek->as<base::RealVectorStateSpace>();
+                  const base::RealVectorStateSpace::StateType *xk = 
+                    x->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(m);
+                  std::vector<double> bl =  RN->getBounds().low;
+                  std::vector<double> bh =  RN->getBounds().high;
+                  for(unsigned int k = 0; k < bl.size(); k++){
+                    double qk = xk->values[k];
+                    double qkl = bl.at(k);
+                    double qkh = bh.at(k);
+                    if(qk < qkl || qk > qkh){
+                        std::cout << "Out Of Bounds [" 
+                          << "component " << m << ", "
+                          << "link " << k 
+                          << "] " 
+                          << bl.at(k) << " <= " << qk << " <= " << bh.at(k) << std::endl;
+                    }
+                  }
+                  break;
+              }
+            }
+        }
+    }
 }
 
 void ompl::geometric::BundleSpace::print(std::ostream &out) const

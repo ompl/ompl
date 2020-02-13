@@ -64,7 +64,6 @@ namespace ompl
         bool sampleFromDatastructure(ob::State *q_random_graph) override;
 
         PathVisibilityChecker* getPathVisibilityChecker();
-        void debugInvalidState(const ob::State *s);
 
         void pushPathToStack(std::vector<ob::State*> &path);
         void removeLastPathFromStack();

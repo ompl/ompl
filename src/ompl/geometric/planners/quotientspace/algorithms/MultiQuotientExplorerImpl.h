@@ -180,7 +180,8 @@ void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
                     ob::State *s_Bundle = Qm->allocIdentityStateBundle();
                     ob::State *s_Fiber = Qm->allocIdentityStateFiber();
 
-                    // Qm->mergeStates(s_lift, s_Fiber, s_Bundle);
+                    OMPL_WARN("TODO: Merge states");
+                    // TODO: Qm->mergeStates(s_lift, s_Fiber, s_Bundle);
                     s_lift = Qm->getBundle()->cloneState(s_Bundle);
 
                     Qm->getBundle()->freeState(s_Bundle);

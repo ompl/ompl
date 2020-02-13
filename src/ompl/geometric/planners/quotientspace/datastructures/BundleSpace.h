@@ -64,24 +64,25 @@ namespace ompl
             ompl::base::State *allocIdentityState(ompl::base::StateSpacePtr) const;
             void allocIdentityState(ompl::base::State*, ompl::base::StateSpacePtr) const;
 
+            /// \brief Print Information pertaining to why a state failed being
+            /// valid
+            void debugInvalidState(const ompl::base::State*);
+
             /// \brief reset counter for number of levels
             static void resetCounter();
 
             /// \brief Get SpaceInformationPtr for Fiber
-            ///  (Note: Fiber is the second component of Bundle = Base x Fiber)
             const ompl::base::SpaceInformationPtr &getFiber() const;
             /// \brief Get SpaceInformationPtr for Bundle
-            ///  (Note: Bundle is the product space Bundle = Base x Fiber)
             const ompl::base::SpaceInformationPtr &getBundle() const;
             /// \brief Get SpaceInformationPtr for Base
-            ///  (Note: Base is the first component of Bundle = Base x Fiber)
             const ompl::base::SpaceInformationPtr &getBase() const;
 
-            /// Dimension of Fiber Space
+            /// \brief Dimension of Fiber Space
             unsigned int getFiberDimension() const;
-            /// Dimension of Base Space
+            /// \brief Dimension of Base Space
             unsigned int getBaseDimension() const;
-            /// Dimension of Bundle Space
+            /// \brief Dimension of Bundle Space
             unsigned int getBundleDimension() const;
 
             const ompl::base::StateSamplerPtr &getFiberSamplerPtr() const;
