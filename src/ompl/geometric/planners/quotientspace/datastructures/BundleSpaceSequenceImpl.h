@@ -180,18 +180,25 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
             {
                 ompl::base::PathPtr sol_k;
                 bundleSpaces_.at(k)->getSolution(sol_k);
-                solutions_.push_back(sol_k);
-                double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
-                OMPL_DEBUG("Found Solution on Level %d after %f seconds.", k, t_k_end);
-                foundKLevelSolution_ = true;
-                currentBundleSpaceLevel_ = k + 1;//std::min(k + 1, bundleSpaces_.size()-1);
-                if(currentBundleSpaceLevel_ > (bundleSpaces_.size()-1)) 
-                  currentBundleSpaceLevel_ = bundleSpaces_.size()-1;
+                if(solutions_.size() < k+1)
+                {
+                    solutions_.push_back(sol_k);
+                    double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
+                    OMPL_DEBUG("Found Solution on Level %d after %f seconds.", k, t_k_end);
+                    foundKLevelSolution_ = true;
+                    currentBundleSpaceLevel_ = k + 1;//std::min(k + 1, bundleSpaces_.size()-1);
+                    if(currentBundleSpaceLevel_ > (bundleSpaces_.size()-1)) 
+                      currentBundleSpaceLevel_ = bundleSpaces_.size()-1;
+                }else{
+                    solutions_.at(k) = sol_k;
+                }
 
                 // add solution to pdef
                 ompl::base::PlannerSolution psol(sol_k);
                 std::string lvl_name = getName() + " LvL" + std::to_string(k);
                 psol.setPlannerName(lvl_name);
+
+                bundleSpaces_.at(k)->getProblemDefinition()->clearSolutionPaths();
                 bundleSpaces_.at(k)->getProblemDefinition()->addSolutionPath(psol);
             }
             priorityQueue_.push(jBundle);

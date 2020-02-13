@@ -47,9 +47,6 @@
 ompl::geometric::QMPStarImpl::QMPStarImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QMPStarImpl" + std::to_string(id_));
-    Planner::declareParam<double>("range", this, &QMPStarImpl::setRange, &QMPStarImpl::getRange, "0.:1.:10000.");
-    Planner::declareParam<double>("goal_bias", this, &QMPStarImpl::setGoalBias, &QMPStarImpl::getGoalBias, "0.:.1:1.");
-    qRandom_ = new Configuration(Bundle);
 
     double d = (double)Bundle->getStateDimension();
     double e = boost::math::constants::e<double>();
@@ -65,31 +62,9 @@ ompl::geometric::QMPStarImpl::~QMPStarImpl()
     deleteConfiguration(qRandom_);
 }
 
-void ompl::geometric::QMPStarImpl::setGoalBias(double goalBias)
-{
-    goalBias_ = goalBias;
-}
-
-double ompl::geometric::QMPStarImpl::getGoalBias() const
-{
-    return goalBias_;
-}
-
-void ompl::geometric::QMPStarImpl::setRange(double maxDistance)
-{
-    maxDistance_ = maxDistance;
-}
-
-double ompl::geometric::QMPStarImpl::getRange() const
-{
-    return maxDistance_;
-}
-
 void ompl::geometric::QMPStarImpl::setup()
 {
     BaseT::setup();
-    ompl::tools::SelfConfig sc(Bundle, getName());
-    sc.configurePlannerRange(maxDistance_);
 }
 
 void ompl::geometric::QMPStarImpl::clear()
@@ -97,57 +72,22 @@ void ompl::geometric::QMPStarImpl::clear()
     BaseT::clear();
 }
 
-bool ompl::geometric::QMPStarImpl::getSolution(base::PathPtr &solution)
-{
-    if (hasSolution_)
-    {
-        bool baset_sol = BaseT::getSolution(solution);
-        if (baset_sol)
-        {
-            shortestPathVertices_ = shortestVertexPath_;
-        }
-        return baset_sol;
-    }
-    else
-    {
-        return false;
-    }
-}
-
 void ompl::geometric::QMPStarImpl::grow()
 {
     if (firstRun_)
     {
         init();
-        // add goal too
         vGoal_ = addConfiguration(qGoal_);
-
         firstRun_ = false;
     }
 
-    if( ++growExpandCounter_ % 5 == 0)
+    if( ++growExpandCounter_ % 2 == 0)
     {
         expand();
         return;
     }
 
-    if (hasSolution_)
-    {
-        // No Goal Biasing if we already found a solution on this bundle space
-        sampleBundle(qRandom_->state);
-    }
-    else
-    {
-        double s = rng_.uniform01();
-        if (s < goalBias_)
-        {
-            Bundle->copyState(qRandom_->state, qGoal_->state);
-        }
-        else
-        {
-            sampleBundle(qRandom_->state);
-        }
-    }
+    sampleBundleGoalBias(qRandom_);
     addMileStone(qRandom_->state);
 }
 
@@ -191,9 +131,6 @@ ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPStarImpl::
     Configuration *q_next = new Configuration(Bundle, q_state);
     Vertex v_next = addConfiguration(q_next);
 
-    // totalNumberOfSamples_++;
-    // totalNumberOfFeasibleSamples_++;
-
     // Calculate K
     unsigned int k = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double) boost::num_vertices(graph_))));
 
@@ -216,8 +153,7 @@ ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPStarImpl::
 
             if (/*q_neighbor->isGoal && */!hasSolution_)
             {
-                bool same_component = sameComponent(vStart_, vGoal_);
-                if (same_component)
+                if (sameComponent(vStart_, vGoal_))
                 {
                     hasSolution_ = true;
                 }
@@ -228,52 +164,3 @@ ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPStarImpl::
     return q_next;
 }
 
-double ompl::geometric::QMPStarImpl::getImportance() const
-{
-    // Should depend on
-    // (1) level : The higher the level, the more importance
-    // (2) total samples: the more we already sampled, the less important it
-    // becomes
-    // (3) has solution: if it already has a solution, we should explore less
-    // (only when nothing happens on other levels)
-    // (4) vertices: the more vertices we have, the less important (let other
-    // levels also explore)
-    //
-    // exponentially more samples on level i. Should depend on ALL levels.
-    // const double base = 2;
-    // const double normalizer = powf(base, level);
-    // double N = (double)GetNumberOfVertices()/normalizer;
-    double N = (double)getNumberOfVertices();
-    return 1.0 / (N + 1);
-}
-
-// Make it faster by removing the validity check
-bool ompl::geometric::QMPStarImpl::sampleBundle(base::State *q_random)
-{
-    if (parent_ == nullptr)
-    {
-        Bundle_sampler_->sampleUniform(q_random);
-    }
-    else
-    {
-        if (getFiberDimension() > 0)
-        {
-            Fiber_sampler_->sampleUniform(xFiberTmp_);
-            parent_->sampleFromDatastructure(xBaseTmp_);
-            mergeStates(xBaseTmp_, xFiberTmp_, q_random);
-        }
-        else
-        {
-            parent_->sampleFromDatastructure(q_random);
-        }
-    }
-    return true;
-}
-
-bool ompl::geometric::QMPStarImpl::sampleFromDatastructure(base::State *q_random_graph)
-{
-    // RANDOM VERTEX SAMPLING
-    const Vertex v = boost::random_vertex(graph_, rng_boost);
-    Bundle->getStateSpace()->copyState(q_random_graph, graph_[v]->state);
-    return true;
-}

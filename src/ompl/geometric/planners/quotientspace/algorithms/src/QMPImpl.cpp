@@ -112,27 +112,11 @@ void ompl::geometric::QMPImpl::grow()
         firstRun_ = false;
     }
 
-    if (hasSolution_)
-    {
-        // No Goal Biasing if we already found a solution on this bundle space
-        sampleBundle(qRandom_->state);
-    }
-    else
-    {
-        double s = rng_.uniform01();
-        if (s < goalBias_)
-        {
-            Bundle->copyState(qRandom_->state, qGoal_->state);
-        }
-        else
-        {
-            sampleBundle(qRandom_->state);
-        }
-    }
+    sampleBundleGoalBias(qRandom_);
 
     std::vector<Configuration*> r_nearest_neighbors;
      
-    BaseT::nearestDatastructure_->nearestK(qRandom_ , 7 , r_nearest_neighbors);
+    BaseT::nearestDatastructure_->nearestK(qRandom_, 7, r_nearest_neighbors);
 
     bool foundFeasibleEdge = false;
     
@@ -197,24 +181,45 @@ double ompl::geometric::QMPImpl::getImportance() const
     return 1.0 / (N + 1);
 }
 
-// Make it faster by removing the validity check
-bool ompl::geometric::QMPImpl::sampleBundle(base::State *q_random)
+bool ompl::geometric::QMPImpl::sampleBundleGoalBias(Configuration *xRandom)
 {
-    if (parent_ == nullptr)
+    if (hasSolution_)
     {
-        Bundle_sampler_->sampleUniform(q_random);
+        // No Goal Biasing if we already found a solution on this bundle space
+        sampleBundle(xRandom->state);
+    }
+    else
+    {
+        double s = rng_.uniform01();
+        if (s < goalBias_)
+        {
+            Bundle->copyState(xRandom->state, qGoal_->state);
+        }
+        else
+        {
+            sampleBundle(xRandom->state);
+        }
+    }
+    return true;
+}
+
+bool ompl::geometric::QMPImpl::sampleBundle(base::State *xRandom)
+{
+    if (!hasParent())
+    {
+        Bundle_sampler_->sampleUniform(xRandom);
     }
     else
     {
         if (getFiberDimension() > 0)
         {
-            Fiber_sampler_->sampleUniform(xFiberTmp_);
+            sampleFiber(xFiberTmp_);
             parent_->sampleFromDatastructure(xBaseTmp_);
-            mergeStates(xBaseTmp_, xFiberTmp_, q_random);
+            mergeStates(xBaseTmp_, xFiberTmp_, xRandom);
         }
         else
         {
-            parent_->sampleFromDatastructure(q_random);
+            parent_->sampleFromDatastructure(xRandom);
         }
     }
     return true;

@@ -61,8 +61,12 @@ namespace ompl
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
             /** \brief Importance based on how many vertices the tree has */
             double getImportance() const override;
+
             /** \brief Uniform sampling */
             virtual bool sampleBundle(ompl::base::State *q_random) override;
+            /** \brief Uniform sampling with goal bias*/
+            bool sampleBundleGoalBias(Configuration*);
+
             /** \brief \brief Quotient-Space sampling by choosing a random vertex from parent
                 class tree */
             virtual bool sampleFromDatastructure(ompl::base::State *) override;

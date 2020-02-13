@@ -37,7 +37,7 @@
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_BundleSpace_QMPSTARIMPL_
 #define OMPL_GEOMETRIC_PLANNERS_BundleSpace_QMPSTARIMPL_
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/QMPImpl.h>
 #include <ompl/datastructures/PDF.h>
 
 namespace ompl
@@ -49,9 +49,9 @@ namespace ompl
     namespace geometric
     {
         /** \brief Implementation of BundleSpace Rapidly-Exploring Random Trees Algorithm*/
-        class QMPStarImpl : public ompl::geometric::BundleSpaceGraph
+        class QMPStarImpl : public ompl::geometric::QMPImpl
         {
-            using BaseT = BundleSpaceGraph;
+            using BaseT = QMPImpl;
 
         public:
             QMPStarImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
@@ -61,33 +61,11 @@ namespace ompl
             /** \brief sample random node from Probabilty density function*/
             void expand();
             Configuration *addMileStone(ompl::base::State *q_state);
-            virtual bool getSolution(ompl::base::PathPtr &solution) override;
-            /** \brief Importance based on how many vertices the tree has */
-            double getImportance() const override;
-            /** \brief Uniform sampling */
-            virtual bool sampleBundle(ompl::base::State *q_random) override;
-            /** \brief \brief Quotient-Space sampling by choosing a random vertex from parent
-                class tree */
-            virtual bool sampleFromDatastructure(ompl::base::State *) override;
 
             virtual void setup() override;
             virtual void clear() override;
 
-            void setGoalBias(double goalBias);
-            double getGoalBias() const;
-            void setRange(double distance);
-            double getRange() const;
-
         protected:
-            /** \brief Random configuration placeholder */
-            Configuration *qRandom_{nullptr};
-            /** \brief Current shortest path on tree */
-            std::vector<Vertex> shortestPathVertices_;
-
-            /** \brief Maximum distance of expanding the tree */
-            double maxDistance_{.0};
-            /** \brief Goal bias similar to RRT */
-            double goalBias_{.05};
             /** \brief constant value for nn search */
             double kPRMStarConstant_;
             /** \brief for different ratio of expand vs grow 1:5*/
