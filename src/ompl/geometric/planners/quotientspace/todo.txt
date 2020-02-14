@@ -1,6 +1,6 @@
 FB
 [x] Clean up constructor Bundle Space
-[ ] Organize MultiQuotient classes in better way
+[x] Organize MultiQuotient classes in better way
 [ ] Add QRRTStar
 
 MT
