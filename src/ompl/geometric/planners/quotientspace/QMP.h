@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, University of Stuttgart
+ *  Copyright (c) 2020, University of Stuttgart
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,38 +33,44 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey */
+/* Author: Andreas Orthey, Sohaib Akbar */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRT_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRT_
+#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QMP_
+#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QMP_
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceSequence.h>
-#include <ompl/geometric/planners/quotientspace/algorithms/QRRTImpl.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/QMPImpl.h>
 
 namespace ompl
 {
     namespace geometric
     {
         /**
-             @anchor QRRT
+             @anchor QMP
              @par Short description
-             QRRT is a planner using different abstractions levels, each described by
-             a quotient-space, and grows trees both sequentially and simultaneously on
-             them. The growing of each tree is similar to the RRT algorithm, but it
-             differs that (1) a tree is only started if there exists a solution on a
-             lower-dimensional quotient-space, and (2) a sample is not drawn
-             uniformly, but constraint to the tree of the lower-dimensional
-             quotient-space. The algorithm stops if a planner terminate condition (ptc) is
-             reached, or if a solution has been found on the last quotient-space,
-             which is equivalent to the configuration space.
+             A motion planning algorithm computes the motion
+             of a robot by computing a path through its configuration space.
+             To improve the runtime of motion planning algorithms, we
+             propose to nest robots in each other, creating a nested quotient-
+             space decomposition of the configuration space. Based on this
+             decomposition we define a new roadmap-based motion planning
+             algorithm called the Quotient-space roadMap Planner (QMP).
+             The algorithm starts growing a graph on the lowest dimensional
+             quotient space, switches to the next quotient space once a
+             valid path has been found, and keeps updating the graphs
+             on each quotient space simultaneously until a valid path in
+             the configuration space has been found. We show that this
+             algorithm is probabilistically complete and outperforms a set
+             of state-of-the-art algorithms implemented in the open motion
+             planning library (OMPL).
              @par External documentation
-             A. Orthey and M. Toussaint,
-             Rapidly-Exploring Quotient-Space Trees: Motion Planning using Sequential Simplifications,
-             in <em>International Symposium of Robotics Research</em>, 2019,
-             [[PDF]](https://arxiv.org/abs/1906.01350)
+             A. Orthey, A. Escande and E. Yoshida,
+             Quotient-Space Motion Planning,
+             in <em>International Conference on Intelligent Robots and Systems</em>, 2018,
+             [[PDF]](https://arxiv.org/abs/1807.09468)
         */
 
-        /** \brief QuotientSpace Rapidly Exploring Random Trees Algorithm*/
-        typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QRRTImpl> QRRT;
+        /** \brief Quotient-space roadMap Planner (QMP) Algorithm */
+        typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QMPImpl> QMP;
 
     }  // namespace geometric
 }  // namespace ompl

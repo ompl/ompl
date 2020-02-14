@@ -217,7 +217,7 @@ public:
   ob::State* path2_interp_state_;
 };
 
-bool PathVisibilityChecker::IsPathVisible(std::vector<QuotientSpaceGraph::Vertex> &v1, std::vector<QuotientSpaceGraph::Vertex> &v2, QuotientSpaceGraph::Graph &graph)
+bool PathVisibilityChecker::IsPathVisible(std::vector<BundleSpaceGraph::Vertex> &v1, std::vector<BundleSpaceGraph::Vertex> &v2, BundleSpaceGraph::Graph &graph)
 {
   std::vector<ob::State*> s1;
   std::vector<ob::State*> s2;
@@ -240,9 +240,6 @@ bool PathVisibilityChecker::CheckValidity(const std::vector<ob::State*> &s)
       si_->printState(sk);
       throw ompl::Exception("Invalid State");
     }
-    // std::pair<ob::State *, double> lastValid;
-    // lastValid.first = lastValidState;
-    // bool val = si_->checkMotion(sk, skk, lastValid);
 
     bool val = si_->checkMotion(sk, skk);
     if(!val) return false;
@@ -418,6 +415,7 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
 void PathVisibilityChecker::testCheckMotion(const ob::State* s1, const ob::State* s2){
   ob::State* s2_copy = siC->allocState();
   ompl::control::Control* cont = siC->allocControl();
+  OMPL_ERROR("TODO: s2 is not used!?");
   sDCSampler->sampleTo(cont, s1, s2_copy);
   //s2 is reachable
   bool motionFeasible = siC->checkMotion(s1,s2_copy);

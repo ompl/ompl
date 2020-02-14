@@ -48,7 +48,7 @@ ompl::base::PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const Planner
     maxLevel_ = rhs.getMaxLevel();
     component_ = rhs.getComponent();
     path_ = rhs.getPath();
-    stateQuotientSpace_ = rhs.getQuotientState();
+    stateBaseSpace_ = rhs.getBaseState();
 }
 
 ompl::base::PlannerDataVertex *ompl::base::PlannerDataVertexAnnotated::clone() const
@@ -101,14 +101,14 @@ const ompl::base::State *ompl::base::PlannerDataVertexAnnotated::getState() cons
     return state_;
 }
 
-const ompl::base::State *ompl::base::PlannerDataVertexAnnotated::getQuotientState() const
+const ompl::base::State *ompl::base::PlannerDataVertexAnnotated::getBaseState() const
 {
-    return stateQuotientSpace_;
+    return stateBaseSpace_;
 }
 
-void ompl::base::PlannerDataVertexAnnotated::setQuotientState(const State *s)
+void ompl::base::PlannerDataVertexAnnotated::setBaseState(const State *s)
 {
-    stateQuotientSpace_ = s;
+    stateBaseSpace_ = s;
 }
 
 void ompl::base::PlannerDataVertexAnnotated::setState(State *s)

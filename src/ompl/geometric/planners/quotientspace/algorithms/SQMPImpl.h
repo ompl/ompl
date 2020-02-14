@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, University of Stuttgart
+ *  Copyright (c) 2020, University of Stuttgart
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,11 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey */
+/* Author: Andreas Orthey, Sohaib Akbar */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_BundleSpace_QRRTIMPL_
-#define OMPL_GEOMETRIC_PLANNERS_BundleSpace_QRRTIMPL_
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
+#ifndef OMPL_GEOMETRIC_PLANNERS_BundleSpace_SQMPIMPL_
+#define OMPL_GEOMETRIC_PLANNERS_BundleSpace_SQMPIMPL_
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h>
 #include <ompl/datastructures/PDF.h>
 
 namespace ompl
@@ -48,26 +48,23 @@ namespace ompl
     }
     namespace geometric
     {
-        /** \brief Implementation of BundleSpace Rapidly-Exploring Random Trees Algorithm*/
-        class QRRTImpl : public ompl::geometric::BundleSpaceGraph
+        /** \brief Sparse Quotient-space roadMap Planner (SQMP) Algorithm*/
+        class SQMPImpl : public ompl::geometric::BundleSpaceGraphSparse
         {
-            using BaseT = BundleSpaceGraph;
+            using BaseT = BundleSpaceGraphSparse;
 
         public:
-            QRRTImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
-            virtual ~QRRTImpl() override;
-
+            SQMPImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
+            virtual ~SQMPImpl() override;
             /** \brief One iteration of RRT with adjusted sampling function */
             virtual void grow() override;
-
+            /** \brief sample random node from Probabilty density function*/
+            void expand();
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
-
             /** \brief Importance based on how many vertices the tree has */
             double getImportance() const override;
-
             /** \brief Uniform sampling */
             virtual bool sampleBundle(ompl::base::State *q_random) override;
-
             /** \brief \brief Quotient-Space sampling by choosing a random vertex from parent
                 class tree */
             virtual bool sampleFromDatastructure(ompl::base::State *) override;
@@ -80,9 +77,11 @@ namespace ompl
             void setRange(double distance);
             double getRange() const;
 
-        protected:
-            bool sampleRandom(base::State *xRandom);
+            void addMileStone(Configuration *q_random);
+            Configuration *addConfigurationDense(Configuration *q_random);
+            bool getPlannerTerminationCondition();
 
+        protected:
             /** \brief Random configuration placeholder */
             Configuration *qRandom_{nullptr};
 
@@ -92,8 +91,16 @@ namespace ompl
             /** \brief Maximum distance of expanding the tree */
             double maxDistance_{.0};
 
-            /** \brief Goal bias*/
+            /** \brief Goal bias similar to RRT */
             double goalBias_{.05};
+
+            /** \brief Maximum failures limit for terminating the algorithm similar to SPARS */
+            unsigned int maxFailures_{1000u};
+
+            /** \brief for different ratio of expand vs grow 1:5*/
+            unsigned int growExpandCounter_{0};
+            
+            std::vector<base::State *> randomWorkStates_;
         };
     }  // namespace geometric
 }  // namespace ompl

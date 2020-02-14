@@ -33,11 +33,11 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey */
+/* Author: Andreas Orthey, Sohaib Akbar */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_BundleSpace_QRRTIMPL_
-#define OMPL_GEOMETRIC_PLANNERS_BundleSpace_QRRTIMPL_
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
+#ifndef OMPL_GEOMETRIC_PLANNERS_BundleSpace_QMPSTARIMPL_
+#define OMPL_GEOMETRIC_PLANNERS_BundleSpace_QMPSTARIMPL_
+#include <ompl/geometric/planners/quotientspace/algorithms/QMPImpl.h>
 #include <ompl/datastructures/PDF.h>
 
 namespace ompl
@@ -49,51 +49,29 @@ namespace ompl
     namespace geometric
     {
         /** \brief Implementation of BundleSpace Rapidly-Exploring Random Trees Algorithm*/
-        class QRRTImpl : public ompl::geometric::BundleSpaceGraph
+        class QMPStarImpl : public ompl::geometric::QMPImpl
         {
-            using BaseT = BundleSpaceGraph;
+            using BaseT = QMPImpl;
 
         public:
-            QRRTImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
-            virtual ~QRRTImpl() override;
-
+            QMPStarImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
+            virtual ~QMPStarImpl() override;
             /** \brief One iteration of RRT with adjusted sampling function */
             virtual void grow() override;
-
-            virtual bool getSolution(ompl::base::PathPtr &solution) override;
-
-            /** \brief Importance based on how many vertices the tree has */
-            double getImportance() const override;
-
-            /** \brief Uniform sampling */
-            virtual bool sampleBundle(ompl::base::State *q_random) override;
-
-            /** \brief \brief Quotient-Space sampling by choosing a random vertex from parent
-                class tree */
-            virtual bool sampleFromDatastructure(ompl::base::State *) override;
+            /** \brief sample random node from Probabilty density function*/
+            void expand();
+            Configuration *addMileStone(ompl::base::State *q_state);
 
             virtual void setup() override;
             virtual void clear() override;
 
-            void setGoalBias(double goalBias);
-            double getGoalBias() const;
-            void setRange(double distance);
-            double getRange() const;
-
         protected:
-            bool sampleRandom(base::State *xRandom);
-
-            /** \brief Random configuration placeholder */
-            Configuration *qRandom_{nullptr};
-
-            /** \brief Current shortest path on tree */
-            std::vector<Vertex> shortestPathVertices_;
-
-            /** \brief Maximum distance of expanding the tree */
-            double maxDistance_{.0};
-
-            /** \brief Goal bias*/
-            double goalBias_{.05};
+            /** \brief constant value for nn search */
+            double kPRMStarConstant_;
+            /** \brief for different ratio of expand vs grow 1:5*/
+            unsigned int growExpandCounter_{0};
+            
+            std::vector<base::State *> randomWorkStates_;
         };
     }  // namespace geometric
 }  // namespace ompl

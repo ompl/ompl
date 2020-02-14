@@ -1,5 +1,5 @@
 #pragma once
-#include <ompl/geometric/planners/quotientspace/datastructures/QuotientSpaceGraph.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
 #include <ompl/base/State.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/control/Control.h>
@@ -20,7 +20,7 @@ namespace ompl
       PathVisibilityChecker(const ob::SpaceInformationPtr &si);
       ~PathVisibilityChecker(void);
 
-      bool IsPathVisible(std::vector<QuotientSpaceGraph::Vertex> &v1, std::vector<QuotientSpaceGraph::Vertex> &v2, QuotientSpaceGraph::Graph &graph);
+      bool IsPathVisible(std::vector<BundleSpaceGraph::Vertex> &v1, std::vector<BundleSpaceGraph::Vertex> &v2, BundleSpaceGraph::Graph &graph);
       bool IsPathVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2);
       bool IsPathDynamicallyVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2, std::vector<ob::State*> &sLocal);
       bool IsPathVisibleSO2(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2);

@@ -7,12 +7,15 @@ ompl::control::PathControlOptimizer::PathControlOptimizer(base::SpaceInformation
 }
 void ompl::control::PathControlOptimizer::simplify(PathControl* path)
 {
-    //std::cout << "NYI: Returning original path " << std::endl;
-	reduceVertices(*path,50,50);
+  OMPL_DEBUG("simplify");
+	reduceVertices(*path,1,1);
+  OMPL_DEBUG("done simplify");
 	//path->subdivide() ;
 }
 
-/*void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio)
+/*
+void ompl::control::PathControlOptimizer::reduceVertices(
+PathControl &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio)
 {
   //std::cout << "vertices reduced " << std::endl;
   if (path.getStateCount() < 3)
@@ -85,7 +88,8 @@ void ompl::control::PathControlOptimizer::simplify(PathControl* path)
             result = true;
         }
     }
-}*/
+}
+*/
 
 void ompl::control::PathControlOptimizer::collapseCloseVertices(PathControl &path, unsigned int maxSteps, unsigned int maxEmptySteps)
 {
@@ -293,14 +297,19 @@ void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsi
 			if (p1 > p2)
 				std::swap(p1, p2);
 		
+      if( p1 >= states.size() || p2 >= states.size()){
+        OMPL_ERROR("p1 or p2 larger than states.");
+        continue;
+      }
+      std::cout << "check motion" << std::endl;
 			if (siC->checkMotion(states[p1], states[p2]))
 			{
 				std::cout << p1 <<"  <-->  " << p2 << std::endl;
 				std::cout << "size of states  " << states.size() << std::endl;
 				std::cout << "size of controls  " << controls.size() << std::endl;
-				unsigned int s ;
-				s = controls.size() ;
+				unsigned int s = controls.size();
 				
+        std::cout << "freestates" << std::endl;
 				if (freeStates_)
 				{
 				
@@ -308,13 +317,14 @@ void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsi
 					for (int j = p1 + 1; j < p2; ++j)
 						siC->freeState(states[j]);
 				
-					for (int i = p1 ; i<p2 , i<controls.size() ; ++i)
+					for (int i = p1 ; (i < p2) && (i < controls.size()) ; ++i)
 						siC->freeControl(controls[i]);
 				}
 				
+        std::cout << "states erase" << std::endl;
 				states.erase(states.begin() + p1 + 1, states.begin() + p2);	
 					
-				if (p2<	s)
+				if (p2<s)
 				{
 					controls.erase(controls.begin()+p1,controls.begin()+p2);
 					controlDurations.erase(controlDurations.begin()+p1,controlDurations.begin()+p2) ;
@@ -325,8 +335,12 @@ void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsi
 					controlDurations.erase(controlDurations.begin()+p1,controlDurations.end()) ;
 				}
 				
-				controls.insert(controls.begin()+p1, siC->getCurrentControl() ) ; 
-				controlDurations.insert(controlDurations.begin()+p1, siC->getControlDuration() );
+        std::cout << "insert control" << std::endl;
+        if( p1 < controls.size()){
+          controls.insert(controls.begin()+p1, siC->getCurrentControl() ) ; 
+          controlDurations.insert(controlDurations.begin()+p1, siC->getControlDuration() );
+        }
+        std::cout << "done insert control" << std::endl;
 				
 				//states.resize(states.size()-p2+p1+1);
 				//controls.resize(states.size()-1);

@@ -33,40 +33,38 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey */
+/* Author: Based on examples from BGL documentation  */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRT_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRT_
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceSequence.h>
-#include <ompl/geometric/planners/quotientspace/algorithms/QRRTImpl.h>
+#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_GOALVISITOR_
+#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_GOALVISITOR_
 
-namespace ompl
+#include <boost/graph/astar_search.hpp>
+
+namespace
 {
-    namespace geometric
+    struct BundleSpaceGraphFoundGoal
     {
-        /**
-             @anchor QRRT
-             @par Short description
-             QRRT is a planner using different abstractions levels, each described by
-             a quotient-space, and grows trees both sequentially and simultaneously on
-             them. The growing of each tree is similar to the RRT algorithm, but it
-             differs that (1) a tree is only started if there exists a solution on a
-             lower-dimensional quotient-space, and (2) a sample is not drawn
-             uniformly, but constraint to the tree of the lower-dimensional
-             quotient-space. The algorithm stops if a planner terminate condition (ptc) is
-             reached, or if a solution has been found on the last quotient-space,
-             which is equivalent to the configuration space.
-             @par External documentation
-             A. Orthey and M. Toussaint,
-             Rapidly-Exploring Quotient-Space Trees: Motion Planning using Sequential Simplifications,
-             in <em>International Symposium of Robotics Research</em>, 2019,
-             [[PDF]](https://arxiv.org/abs/1906.01350)
-        */
+    };
 
-        /** \brief QuotientSpace Rapidly Exploring Random Trees Algorithm*/
-        typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QRRTImpl> QRRT;
+    template <typename V>
+    class BundleSpaceGraphGoalVisitor : public boost::default_astar_visitor
+    {
+    public:
+        BundleSpaceGraphGoalVisitor(const V &goal) : goal_(goal)
+        {
+        }
 
-    }  // namespace geometric
-}  // namespace ompl
+        template <typename G>
+        void examine_vertex(const V &u, const G &)
+        {
+            if (u == goal_)
+            {
+                throw BundleSpaceGraphFoundGoal();
+            }
+        }
 
+    private:
+        V goal_;
+    };
+}  // namespace
 #endif

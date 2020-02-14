@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, University of Stuttgart
+ *  Copyright (c) 2020, University of Stuttgart
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,40 +33,39 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey */
+/* Author: Sohaib Akbar, Andreas Orthey */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRT_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRT_
+#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_SQMP_
+#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_SQMP_
+
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceSequence.h>
-#include <ompl/geometric/planners/quotientspace/algorithms/QRRTImpl.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/SQMPImpl.h>
 
 namespace ompl
 {
     namespace geometric
     {
         /**
-             @anchor QRRT
+             @anchor SQMP
              @par Short description
-             QRRT is a planner using different abstractions levels, each described by
-             a quotient-space, and grows trees both sequentially and simultaneously on
-             them. The growing of each tree is similar to the RRT algorithm, but it
-             differs that (1) a tree is only started if there exists a solution on a
-             lower-dimensional quotient-space, and (2) a sample is not drawn
-             uniformly, but constraint to the tree of the lower-dimensional
-             quotient-space. The algorithm stops if a planner terminate condition (ptc) is
-             reached, or if a solution has been found on the last quotient-space,
-             which is equivalent to the configuration space.
+             Sparse Quotient space roadMap Planner algorithm, is extension to
+             Quotient space raodMap Planner(QMP), it reduce
+             memory requirment to store roadmap similar to
+             SPARS algorithm.
              @par External documentation
-             A. Orthey and M. Toussaint,
-             Rapidly-Exploring Quotient-Space Trees: Motion Planning using Sequential Simplifications,
-             in <em>International Symposium of Robotics Research</em>, 2019,
-             [[PDF]](https://arxiv.org/abs/1906.01350)
+             A. Orthey, A. Escande and E. Yoshida,
+             Quotient-Space Motion Planning,
+             in <em>International Conference on Intelligent Robots and Systems</em>, 2018,
+             [[PDF]](https://arxiv.org/abs/1807.09468)
+             @par External documentation
+             A. Dobson, A. Krontiris, K. Bekris,
+             Sparse Roadmap Spanners,
+             <em>Workshop on the Algorithmic Foundations of Robotics (WAFR)</em> 2012.
+             [[PDF]](http://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf)
         */
 
-        /** \brief QuotientSpace Rapidly Exploring Random Trees Algorithm*/
-        typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QRRTImpl> QRRT;
-
-    }  // namespace geometric
-}  // namespace ompl
-
+        /** \brief Sparse Quotient-space roadMap Planner (SQMP) Algorithm */
+       typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::SQMPImpl> SQMP;
+    }
+}
 #endif

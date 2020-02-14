@@ -1,0 +1,11 @@
+FB
+[x] Clean up constructor Bundle Space
+[ ] Organize MultiQuotient classes in better way
+[ ] Add QRRTStar
+
+MT
+[ ] Clean up Bundle Space Graph Sparse (outsource explorer functions)
+[ ] Add function getLocalMinimaTree() to explorer
+[ ] Incorporate optimizer
+[ ] Return control in PlannerData
+
