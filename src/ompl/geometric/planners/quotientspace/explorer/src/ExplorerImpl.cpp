@@ -1,4 +1,4 @@
-#include <ompl/geometric/planners/quotientspace/algorithms/ExplorerImpl.h>
+#include <ompl/geometric/planners/quotientspace/explorer/ExplorerImpl.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/datastructures/PDF.h>
 
