@@ -66,6 +66,16 @@ namespace ompl
             virtual bool checkMotion(const State *s1, const State *s2) const override;
 
             virtual bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
+	    
+			virtual double getControlDuration()  const override 
+			{
+				return 0; 
+			}
+
+			virtual ompl::control::Control* getCurrentControl()  const override 
+			{
+				return nullptr ;
+			} 
 
         protected:
             StateSpace *stateSpace_;

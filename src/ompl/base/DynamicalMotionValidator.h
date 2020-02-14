@@ -69,9 +69,23 @@ namespace ompl
 
             ~DynamicalMotionValidator() override = default;
 
-            bool checkMotion(const State *s1, const State *s2) const override;
+            bool checkMotion(const State *s1, const State *s2) const override ;
 
             bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
+            
+            ompl::control::Control* getCurrentControl() const override 
+            {
+				return c_current ;
+			}
+			
+			double getControlDuration() const override 
+			{
+				return controlDuration_ ;
+			}
+			
+
+			
+            
 
             //bool checkPath(std::vector<ompl::base::State*> path) const;
 
@@ -79,12 +93,13 @@ namespace ompl
 
             void defaultSettings();
 	    
-            ompl::control::DirectedControlSamplerPtr sampler;
+            ompl::control::SimpleDirectedControlSamplerPtr sampler;
             ompl::control::Control* c_current;
+            double controlDuration_ ;
             ompl::base::State* s_target_copy;
             ompl::control::SpaceInformation* siC;
             bool isDynamic; 
-            double tolerance{0.25}; //multiplies with distance of start and target
+            double tolerance{0.1}; //multiplies with distance of start and target
         };
     }
 }

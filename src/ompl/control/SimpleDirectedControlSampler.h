@@ -39,11 +39,17 @@
 
 #include "ompl/control/DirectedControlSampler.h"
 #include "ompl/control/ControlSampler.h"
+#include "ompl/util/ClassForward.h"
+#include <functional>
 
 namespace ompl
 {
     namespace control
     {
+        /// @cond IGNORE
+        OMPL_CLASS_FORWARD(SpaceInformation);
+        OMPL_CLASS_FORWARD(SimpleDirectedControlSampler);
+        /// @endcond		
         /** \brief Implementation of a simple directed control
             sampler. This is a basic implementation that does not
             actually take direction into account and builds upon ControlSampler.
@@ -119,6 +125,9 @@ namespace ompl
 	    double dist;
 //##########################################
         };
+        
+        /** \brief Definition of a function that can allocate a directed control sampler */
+        using SimpleDirectedControlSamplerAllocator = std::function<SimpleDirectedControlSamplerPtr(const SpaceInformation *)>;
     }
 }
 

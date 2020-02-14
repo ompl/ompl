@@ -47,8 +47,11 @@ void ompl::base::DynamicalMotionValidator::defaultSettings()
     siC = dynamic_cast<ompl::control::SpaceInformation*>(si_);
     if(siC != nullptr) {
       isDynamic = true;
+      controlDuration_= 0 ;
       c_current = siC->allocControl();
-      sampler = siC->allocDirectedControlSampler();
+      sampler = siC->allocSimpleDirectedControlSampler();
+      sampler->setNumControlSamples(100);
+	  //std::cout << sampler->getNumControlSamples() << std::endl;      
       s_target_copy = siC->allocState();
     } 
 }
@@ -78,7 +81,9 @@ bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const St
         return BaseT::checkMotion(s1, s2);
     } else {
         si_->copyState(s_target_copy, s2);
-        sampler->sampleTo(c_current, s1, s_target_copy);
+        unsigned int c_t =0 ;
+        auto* p_this = const_cast<DynamicalMotionValidator*>(this);
+        p_this->controlDuration_=sampler->sampleTo(c_current, s1, s_target_copy);
         double targetRegion = tolerance * si_->getStateSpace()->distance(s1, s2);
         return (si_->getStateSpace()->distance(s_target_copy, s2) <= targetRegion);
     }
@@ -93,3 +98,6 @@ bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const St
     exit(0);
   }
 }
+
+
+

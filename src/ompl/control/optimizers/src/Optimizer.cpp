@@ -42,8 +42,7 @@ ompl::base::PlannerStatus ompl::control::Optimizer::solve(const base::PlannerTer
     simplifier.simplify(*gpath,0);
   }else{
     oc::PathControl* cpath = static_cast<oc::PathControl*>(path_.get());
-    oc::SpaceInformationPtr siC = std::static_pointer_cast<oc::SpaceInformation>(si_);
-    oc::PathControlOptimizer control_simplifier(siC);
+    oc::PathControlOptimizer control_simplifier(si_);
     control_simplifier.simplify(cpath);
   }
 }
