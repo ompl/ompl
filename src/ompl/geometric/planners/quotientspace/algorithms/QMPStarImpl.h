@@ -62,9 +62,6 @@ namespace ompl
             void expand();
             Configuration *addMileStone(ompl::base::State *q_state);
 
-            virtual void setup() override;
-            virtual void clear() override;
-
         protected:
             /** \brief constant value for nn search */
             double kPRMStarConstant_;

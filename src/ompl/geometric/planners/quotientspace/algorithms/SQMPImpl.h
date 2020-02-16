@@ -64,14 +64,6 @@ namespace ompl
             /** \brief Importance based on how many vertices the tree has */
             double getImportance() const override;
 
-            virtual void setup() override;
-            virtual void clear() override;
-
-            void setGoalBias(double goalBias);
-            double getGoalBias() const;
-            void setRange(double distance);
-            double getRange() const;
-
             void addMileStone(Configuration *q_random);
             Configuration *addConfigurationDense(Configuration *q_random);
             bool getPlannerTerminationCondition();

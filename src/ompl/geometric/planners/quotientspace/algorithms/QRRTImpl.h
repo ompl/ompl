@@ -65,9 +65,6 @@ namespace ompl
             /** \brief Importance based on how many vertices the tree has */
             double getImportance() const override;
 
-            virtual void setup() override;
-            virtual void clear() override;
-
         protected:
             /** \brief Random configuration placeholder */
             Configuration *qRandom_{nullptr};
