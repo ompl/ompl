@@ -65,35 +65,15 @@ namespace ompl
             /** \brief Importance based on how many vertices the tree has */
             double getImportance() const override;
 
-            /** \brief Uniform sampling */
-            virtual bool sampleBundle(ompl::base::State *q_random) override;
-
-            /** \brief \brief Quotient-Space sampling by choosing a random vertex from parent
-                class tree */
-            virtual bool sampleFromDatastructure(ompl::base::State *) override;
-
             virtual void setup() override;
             virtual void clear() override;
 
-            void setGoalBias(double goalBias);
-            double getGoalBias() const;
-            void setRange(double distance);
-            double getRange() const;
-
         protected:
-            bool sampleRandom(base::State *xRandom);
-
             /** \brief Random configuration placeholder */
             Configuration *qRandom_{nullptr};
 
             /** \brief Current shortest path on tree */
             std::vector<Vertex> shortestPathVertices_;
-
-            /** \brief Maximum distance of expanding the tree */
-            double maxDistance_{.0};
-
-            /** \brief Goal bias*/
-            double goalBias_{.05};
         };
     }  // namespace geometric
 }  // namespace ompl

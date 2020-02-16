@@ -250,19 +250,34 @@ void BundleSpaceGraphSparse::Init()
             qStart_ = new Configuration(Bundle, st);
             qStart_->isStart = true;
             vStart_ = BaseT::addConfiguration(qStart_);
-            // Sparse
-            // v_start_sparse = addConfigurationSparse(qStart_);
-            Configuration *ql = new Configuration(Bundle, qStart_->state);
-            const Vertex vl = add_vertex(ql, graphSparse_);
-            nearestSparse_->add(ql);
-            disjointSetsSparse_.make_set(vl);
-            graphSparse_[vl]->index = vl;
 
-            assert(boost::num_vertices(graphSparse_) == 1);
-            v_start_sparse = graphSparse_[0]->index;
+            //TODO: why not doing it in Sparse::addconfiguration ?
+            v_start_sparse = addConfigurationSparse(qStart_);
             graphSparse_[v_start_sparse]->isStart = true;
-
             qStart_->representativeIndex = v_start_sparse;
+
+            // Configuration *ql = new Configuration(Bundle, qStart_->state);
+            // const Vertex vl = add_vertex(ql, graphSparse_);
+            // nearestSparse_->add(ql);
+            // disjointSetsSparse_.make_set(vl);
+            // graphSparse_[vl]->index = vl;
+
+            //
+            //
+            // Sohaib:
+            // Sparse
+            // // v_start_sparse = addConfigurationSparse(qStart_);
+            // Configuration *ql = new Configuration(Bundle, qStart_->state);
+            // const Vertex vl = add_vertex(ql, graphSparse_);
+            // nearestSparse_->add(ql);
+            // disjointSetsSparse_.make_set(vl);
+            // graphSparse_[vl]->index = vl;
+
+            // assert(boost::num_vertices(graphSparse_) == 1);
+            // v_start_sparse = graphSparse_[0]->index;
+            // graphSparse_[v_start_sparse]->isStart = true;
+
+            // qStart_->representativeIndex = v_start_sparse;
         }
     }
     if (qStart_ == nullptr)
@@ -280,23 +295,38 @@ void BundleSpaceGraphSparse::Init()
             qGoal_->isGoal = true;
             vGoal_ = BaseT::addConfiguration(qGoal_);  // sa-> (added) Q:- why goal state was not added in configuration
 
+
+            v_goal_sparse = addConfigurationSparse(qGoal_);
+            graphSparse_[v_goal_sparse]->isGoal = true;
+            qGoal_->representativeIndex = v_goal_sparse;
+
+
+            //     Configuration *ql = new Configuration(Bundle, qGoal_->state);
+            //     const Vertex vl = add_vertex(ql, graphSparse_);
+            //     nearestSparse_->add(ql);
+            //     disjointSetsSparse_.make_set(vl);
+            //     graphSparse_[vl]->index = vl;
+
+            //     v_goal_sparse = vl;
+
+
             // sparse - not added in BundleSpaceGraph .: because it was added in grow() function
-            if (!isDynamic())
-            {
-                // v_goal_sparse = addConfigurationSparse(qGoal_);
-                Configuration *ql = new Configuration(Bundle, qGoal_->state);
-                const Vertex vl = add_vertex(ql, graphSparse_);
-                nearestSparse_->add(ql);
-                disjointSetsSparse_.make_set(vl);
-                graphSparse_[vl]->index = vl;
+            // if (!isDynamic())
+            // {
+            //     // v_goal_sparse = addConfigurationSparse(qGoal_);
+            //     Configuration *ql = new Configuration(Bundle, qGoal_->state);
+            //     const Vertex vl = add_vertex(ql, graphSparse_);
+            //     nearestSparse_->add(ql);
+            //     disjointSetsSparse_.make_set(vl);
+            //     graphSparse_[vl]->index = vl;
 
-                v_goal_sparse = vl;
-                graphSparse_[v_goal_sparse]->isGoal = true;
+            //     v_goal_sparse = vl;
+            //     graphSparse_[v_goal_sparse]->isGoal = true;
 
-                assert(boost::num_vertices(graphSparse_) == 2);
+            //     assert(boost::num_vertices(graphSparse_) == 2);
 
-                qGoal_->representativeIndex = v_goal_sparse;
-            }
+            //     qGoal_->representativeIndex = v_goal_sparse;
+            // }
         }
     }
     if (qGoal_ == nullptr)
@@ -813,7 +843,7 @@ bool ompl::geometric::BundleSpaceGraphSparse::checkAddPath(Configuration *q)
     return result;
 }
 //**************************************************************************************************************************************************
-bool BundleSpaceGraphSparse::sampleFromDatastructure(ob::State *q_random_graph)
+void BundleSpaceGraphSparse::sampleFromDatastructure(ob::State *q_random_graph)
 {
     if (!getChild()->isDynamic() && pathStack_.size() > 0)
     {
@@ -849,11 +879,8 @@ bool BundleSpaceGraphSparse::sampleFromDatastructure(ob::State *q_random_graph)
     }
     else
     {
-        // no solution path, we can just sample randomly
-        const Vertex v = boost::random_vertex(graph_, rng_boost);
-        Bundle->getStateSpace()->copyState(q_random_graph, graph_[v]->state);
+        BaseT::sampleFromDatastructure(q_random_graph);
     }
-    return true;
 }
 
 unsigned int BundleSpaceGraphSparse::getNumberOfPaths() const
@@ -1401,6 +1428,7 @@ std::vector<int> BundleSpaceGraphSparse::GetSelectedPathIndex() const
 
 bool ompl::geometric::BundleSpaceGraphSparse::getSolution(base::PathPtr &solution)
 {
+  std::cout << "getSolution" << std::endl;
     if (hasSolution_)
     {
         solutionPath_ = getPath(v_start_sparse, v_goal_sparse, graphSparse_);
@@ -1413,6 +1441,7 @@ bool ompl::geometric::BundleSpaceGraphSparse::getSolution(base::PathPtr &solutio
         base::Goal *g = pdef_->getGoal().get();
         bestCost_ = base::Cost(+base::dInf);
         bool same_component = sameComponent(v_start_sparse, v_goal_sparse);
+        std::cout << (same_component?"SAME COMPONENT":"Not yet") << std::endl;
 
         if (same_component &&
             g->isStartGoalPairValid(graphSparse_[v_goal_sparse]->state, graphSparse_[v_start_sparse]->state))

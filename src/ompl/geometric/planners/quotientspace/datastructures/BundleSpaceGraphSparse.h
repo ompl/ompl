@@ -68,14 +68,11 @@ namespace ompl
 
         void updatePairPoints(Configuration *q);
 
-        // void findCloseRepresentatives(base::State *workArea, Configuration *q,
-        //                                                          const Configuration *qRep,
-        //                                                          std::map<Vertex, base::State *> &closeRepresentatives);
-        // void computeVPP(Vertex v, Vertex vp, std::vector<Vertex> &VPPs);
-
-
         void Rewire(Vertex &v);
         void Rewire();
+
+        //*******************************************************************
+        //Explorer Methods (TODO: outsource)
         void printAllPathsUtil(Vertex u, Vertex d, bool visited[], int path[], int &path_index);
         virtual void enumerateAllPaths();
         void removeReducibleLoops();
@@ -85,21 +82,23 @@ namespace ompl
         void getPathIndices(const std::vector<ob::State*> &states, std::vector<int> &idxPath) const;
         bool isProjectable(const std::vector<ob::State*> &pathBundle) const;
         int getProjectionIndex(const std::vector<ob::State*> &pathBundle) const;
-
         int selectedPath{-1}; //selected path to sample from (if children try to sample this space)
-        bool sampleFromDatastructure(ob::State *q_random_graph) override;
+        virtual void sampleFromDatastructure(ob::State *q_random_graph) override;
 
         PathVisibilityChecker* getPathVisibilityChecker();
 
         void pushPathToStack(std::vector<ob::State*> &path);
         void removeLastPathFromStack();
+        std::vector<ob::State*> getProjectedPath(const std::vector<ob::State*> pathBundle, const ob::SpaceInformationPtr &si) const;
+
+        //*******************************************************************
+
 
         virtual void print(std::ostream &out) const override;
         bool hasSparseGraphChanged();
 
         virtual const Configuration *nearest(const Configuration *s) const;
         void freePath(std::vector<ob::State*> path, const ob::SpaceInformationPtr &si) const;
-        std::vector<ob::State*> getProjectedPath(const std::vector<ob::State*> pathBundle, const ob::SpaceInformationPtr &si) const;
     protected:
 
         double sparseDelta_{0.};

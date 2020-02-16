@@ -45,46 +45,12 @@
 ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QMPImpl" + std::to_string(id_));
-    Planner::declareParam<double>("range", this, &QMPImpl::setRange, &QMPImpl::getRange, "0.:1.:10000.");
-    Planner::declareParam<double>("goal_bias", this, &QMPImpl::setGoalBias, &QMPImpl::getGoalBias, "0.:.1:1.");
     qRandom_ = new Configuration(Bundle);
 }
 
 ompl::geometric::QMPImpl::~QMPImpl()
 {
     deleteConfiguration(qRandom_);
-}
-
-void ompl::geometric::QMPImpl::setGoalBias(double goalBias)
-{
-    goalBias_ = goalBias;
-}
-
-double ompl::geometric::QMPImpl::getGoalBias() const
-{
-    return goalBias_;
-}
-
-void ompl::geometric::QMPImpl::setRange(double maxDistance)
-{
-    maxDistance_ = maxDistance;
-}
-
-double ompl::geometric::QMPImpl::getRange() const
-{
-    return maxDistance_;
-}
-
-void ompl::geometric::QMPImpl::setup()
-{
-    BaseT::setup();
-    ompl::tools::SelfConfig sc(Bundle, getName());
-    sc.configurePlannerRange(maxDistance_);
-}
-
-void ompl::geometric::QMPImpl::clear()
-{
-    BaseT::clear();
 }
 
 bool ompl::geometric::QMPImpl::getSolution(base::PathPtr &solution)
@@ -112,7 +78,7 @@ void ompl::geometric::QMPImpl::grow()
         firstRun_ = false;
     }
 
-    sampleBundleGoalBias(qRandom_);
+    sampleBundleGoalBias(qRandom_->state, goalBias_);
 
     std::vector<Configuration*> r_nearest_neighbors;
      
@@ -181,54 +147,3 @@ double ompl::geometric::QMPImpl::getImportance() const
     return 1.0 / (N + 1);
 }
 
-bool ompl::geometric::QMPImpl::sampleBundleGoalBias(Configuration *xRandom)
-{
-    if (hasSolution_)
-    {
-        // No Goal Biasing if we already found a solution on this bundle space
-        sampleBundle(xRandom->state);
-    }
-    else
-    {
-        double s = rng_.uniform01();
-        if (s < goalBias_)
-        {
-            Bundle->copyState(xRandom->state, qGoal_->state);
-        }
-        else
-        {
-            sampleBundle(xRandom->state);
-        }
-    }
-    return true;
-}
-
-bool ompl::geometric::QMPImpl::sampleBundle(base::State *xRandom)
-{
-    if (!hasParent())
-    {
-        Bundle_sampler_->sampleUniform(xRandom);
-    }
-    else
-    {
-        if (getFiberDimension() > 0)
-        {
-            sampleFiber(xFiberTmp_);
-            parent_->sampleFromDatastructure(xBaseTmp_);
-            mergeStates(xBaseTmp_, xFiberTmp_, xRandom);
-        }
-        else
-        {
-            parent_->sampleFromDatastructure(xRandom);
-        }
-    }
-    return true;
-}
-
-bool ompl::geometric::QMPImpl::sampleFromDatastructure(base::State *q_random_graph)
-{
-    // RANDOM VERTEX SAMPLING
-    const Vertex v = boost::random_vertex(graph_, rng_boost);
-    Bundle->getStateSpace()->copyState(q_random_graph, graph_[v]->state);
-    return true;
-}

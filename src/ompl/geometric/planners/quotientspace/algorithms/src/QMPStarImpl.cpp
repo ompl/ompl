@@ -62,16 +62,6 @@ ompl::geometric::QMPStarImpl::~QMPStarImpl()
     deleteConfiguration(qRandom_);
 }
 
-void ompl::geometric::QMPStarImpl::setup()
-{
-    BaseT::setup();
-}
-
-void ompl::geometric::QMPStarImpl::clear()
-{
-    BaseT::clear();
-}
-
 void ompl::geometric::QMPStarImpl::grow()
 {
     if (firstRun_)
@@ -87,7 +77,7 @@ void ompl::geometric::QMPStarImpl::grow()
         return;
     }
 
-    sampleBundleGoalBias(qRandom_);
+    sampleBundleGoalBias(qRandom_->state, goalBias_);
     addMileStone(qRandom_->state);
 }
 

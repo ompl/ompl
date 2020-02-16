@@ -9,3 +9,5 @@ MT
 [ ] Incorporate optimizer
 [ ] Return control in PlannerData
 
+
+[ ] Azer: PropagateWhileValid for custom subdivide

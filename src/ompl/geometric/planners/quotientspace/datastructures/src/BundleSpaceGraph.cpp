@@ -64,6 +64,20 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
     specs_.approximateSolutions = false;
     specs_.optimizingPaths = false;
 
+    Planner::declareParam<double>(
+        "range", 
+        this, 
+        &BundleSpaceGraph::setRange, 
+        &BundleSpaceGraph::getRange, 
+        "0.:1.:10000.");
+
+    Planner::declareParam<double>(
+        "goal_bias", 
+        this, 
+        &BundleSpaceGraph::setGoalBias, 
+        &BundleSpaceGraph::getGoalBias, 
+        "0.:.1:1.");
+
     if (!isSetup())
     {
         setup();
@@ -77,6 +91,9 @@ ompl::geometric::BundleSpaceGraph::~BundleSpaceGraph()
 void ompl::geometric::BundleSpaceGraph::setup()
 {
     BaseT::setup();
+    ompl::tools::SelfConfig sc(Bundle, getName());
+    sc.configurePlannerRange(maxDistance_);
+
     if (!nearestDatastructure_)
     {
         nearestDatastructure_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
@@ -112,6 +129,26 @@ void ompl::geometric::BundleSpaceGraph::clear()
     graphLength_ = 0;
     bestCost_ = base::Cost(base::dInf);
     setup_ = false;
+}
+
+void ompl::geometric::BundleSpaceGraph::setGoalBias(double goalBias)
+{
+    goalBias_ = goalBias;
+}
+
+double ompl::geometric::BundleSpaceGraph::getGoalBias() const
+{
+    return goalBias_;
+}
+
+void ompl::geometric::BundleSpaceGraph::setRange(double maxDistance)
+{
+    maxDistance_ = maxDistance;
+}
+
+double ompl::geometric::BundleSpaceGraph::getRange() const
+{
+    return maxDistance_;
 }
 
 ompl::geometric::BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si)
@@ -402,28 +439,56 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraph::getPath(const Vertex &sta
     return p;
 }
 
-bool ompl::geometric::BundleSpaceGraph::sampleFromDatastructure(base::State *q_random_graph)
+void ompl::geometric::BundleSpaceGraph::sampleBundleGoalBias(base::State *xRandom, double goalBias)
 {
-    // RANDOM EDGE SAMPLING
-    if (num_edges(graph_) == 0)
-        return false;
-
-    Edge e = boost::random_edge(graph_, rng_boost);
-    while (!sameComponent(boost::source(e, graph_), vStart_))
+    if (hasSolution_)
     {
-        e = boost::random_edge(graph_, rng_boost);
+        // No Goal Biasing if we already found a solution on this bundle space
+        sampleBundle(xRandom);
     }
-
-    double s = rng_.uniform01();
-
-    const Vertex v1 = boost::source(e, graph_);
-    const Vertex v2 = boost::target(e, graph_);
-    const base::State *from = graph_[v1]->state;
-    const base::State *to = graph_[v2]->state;
-
-    Bundle->getStateSpace()->interpolate(from, to, s, q_random_graph);
-    return true;
+    else
+    {
+        double s = rng_.uniform01();
+        if (s < goalBias)
+        {
+            Bundle->copyState(xRandom, qGoal_->state);
+        }
+        else
+        {
+            sampleBundle(xRandom);
+        }
+    }
 }
+
+void ompl::geometric::BundleSpaceGraph::sampleFromDatastructure(base::State *q_random_graph)
+{
+    // RANDOM VERTEX SAMPLING
+    const Vertex v = boost::random_vertex(graph_, rng_boost);
+    Bundle->getStateSpace()->copyState(q_random_graph, graph_[v]->state);
+}
+
+// bool ompl::geometric::BundleSpaceGraph::sampleFromDatastructure(base::State *q_random_graph)
+// {
+//     // RANDOM EDGE SAMPLING
+//     if (num_edges(graph_) == 0)
+//         return false;
+
+//     Edge e = boost::random_edge(graph_, rng_boost);
+//     while (!sameComponent(boost::source(e, graph_), vStart_))
+//     {
+//         e = boost::random_edge(graph_, rng_boost);
+//     }
+
+//     double s = rng_.uniform01();
+
+//     const Vertex v1 = boost::source(e, graph_);
+//     const Vertex v2 = boost::target(e, graph_);
+//     const base::State *from = graph_[v1]->state;
+//     const base::State *to = graph_[v2]->state;
+
+//     Bundle->getStateSpace()->interpolate(from, to, s, q_random_graph);
+//     return true;
+// }
 
 void ompl::geometric::BundleSpaceGraph::print(std::ostream &out) const
 {

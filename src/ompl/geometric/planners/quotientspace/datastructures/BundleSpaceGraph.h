@@ -141,7 +141,7 @@ namespace ompl
                 ompl::base::Cost cost{+ompl::base::dInf};
             };
 
-            struct GraphBundle
+            struct GraphMetaData
             {
                 std::string name{"BundleSpaceGraph"};
             };
@@ -156,7 +156,7 @@ namespace ompl
                   boost::undirectedS, 
                   Configuration*,
                   EdgeInternalState, 
-                  GraphBundle
+                  GraphMetaData
             >;
             using BGT = boost::graph_traits<Graph>;
             using Vertex = BGT::vertex_descriptor;
@@ -178,7 +178,8 @@ namespace ompl
             virtual unsigned int getNumberOfEdges() const;
 
             virtual void grow() = 0;
-            virtual bool sampleFromDatastructure(ompl::base::State *) override;
+            virtual void sampleFromDatastructure(ompl::base::State *) override;
+            virtual void sampleBundleGoalBias(ompl::base::State *xRandom, double goalBias);
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
 
             /** \brief Return plannerdata structure, whereby each vertex is marked
@@ -229,6 +230,14 @@ namespace ompl
 
             void getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph, std::deque<base::State *> &path);
 
+            void setGoalBias(double goalBias);
+
+            double getGoalBias() const;
+
+            void setRange(double distance);
+
+            double getRange() const;
+
         protected:
             virtual double distance(const Configuration *a, const Configuration *b) const;
 
@@ -252,6 +261,12 @@ namespace ompl
             /** \brief Length of graph (useful for determing importance of
                 Bundle-space */
             double graphLength_{0.0};
+
+            /** \brief Maximum expansion step*/
+            double maxDistance_{.0};
+
+            /** \brief Goal bias*/
+            double goalBias_{.05};
         };
     }  // namespace geometric
 }  // namespace ompl

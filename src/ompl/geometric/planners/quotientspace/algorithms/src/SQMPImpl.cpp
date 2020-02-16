@@ -46,7 +46,6 @@
 ompl::geometric::SQMPImpl::SQMPImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("SQMPImpl" + std::to_string(id_));
-    Planner::declareParam<double>("range", this, &SQMPImpl::setRange, &SQMPImpl::getRange, "0.:1.:10000.");
     qRandom_ = new Configuration(Bundle);
     randomWorkStates_.resize(5);
     Bundle->allocStates(randomWorkStates_);
@@ -56,28 +55,6 @@ ompl::geometric::SQMPImpl::~SQMPImpl()
 {
     si_->freeStates(randomWorkStates_);
     deleteConfiguration(qRandom_);
-}
-
-void ompl::geometric::SQMPImpl::setup()
-{
-    BaseT::setup();
-    ompl::tools::SelfConfig sc(Bundle, getName());
-    sc.configurePlannerRange(maxDistance_);
-}
-
-void ompl::geometric::SQMPImpl::clear()
-{
-    BaseT::clear();
-}
-
-void ompl::geometric::SQMPImpl::setRange(double maxDistance)
-{
-    maxDistance_ = maxDistance;
-}
-
-double ompl::geometric::SQMPImpl::getRange() const
-{
-    return maxDistance_;
 }
 
 bool ompl::geometric::SQMPImpl::getSolution(base::PathPtr &solution)
@@ -291,37 +268,6 @@ double ompl::geometric::SQMPImpl::getImportance() const
     // double N = (double)GetNumberOfVertices()/normalizer;
     double N = (double)getNumberOfVertices();
     return 1.0 / (N + 1);
-}
-
-// Make it faster by removing the validity check
-bool ompl::geometric::SQMPImpl::sampleBundle(base::State *q_random)
-{
-    if (parent_ == nullptr)
-    {
-        Bundle_sampler_->sampleUniform(q_random);
-    }
-    else
-    {
-        if (getFiberDimension() > 0)
-        {
-            Fiber_sampler_->sampleUniform(xFiberTmp_);
-            parent_->sampleFromDatastructure(xBaseTmp_);
-            mergeStates(xBaseTmp_, xFiberTmp_, q_random);
-        }
-        else
-        {
-            parent_->sampleFromDatastructure(q_random);
-        }
-    }
-    return true;
-}
-
-bool ompl::geometric::SQMPImpl::sampleFromDatastructure(base::State *q_random_graph)
-{
-    // RANDOM VERTEX SAMPLING
-    const Vertex v = boost::random_vertex(graph_, rng_boost);
-    Bundle->getStateSpace()->copyState(q_random_graph, graph_[v]->state);
-    return true;
 }
 
 bool ompl::geometric::SQMPImpl::getPlannerTerminationCondition()

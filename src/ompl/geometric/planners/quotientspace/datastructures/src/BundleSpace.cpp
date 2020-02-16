@@ -408,19 +408,16 @@ ompl::base::OptimizationObjectivePtr ompl::geometric::BundleSpace::getOptimizati
     return opt_;
 }
 
-bool ompl::geometric::BundleSpace::sampleFiber(base::State *xFiber)
+void ompl::geometric::BundleSpace::sampleFiber(base::State *xFiber)
 {
     Fiber_sampler_->sampleUniform(xFiber);
-    return true;
 }
 
-bool ompl::geometric::BundleSpace::sampleBundle(base::State *xRandom)
+void ompl::geometric::BundleSpace::sampleBundle(base::State *xRandom)
 {
-    bool valid = false;
     if (!hasParent())
     {
         Bundle_sampler_->sampleUniform(xRandom);
-        valid = Bundle->isValid(xRandom);
     }
     else
     {
@@ -435,10 +432,7 @@ bool ompl::geometric::BundleSpace::sampleBundle(base::State *xRandom)
         {
             parent_->sampleFromDatastructure(xRandom);
         }
-        valid = Bundle->isValid(xRandom);
     }
-
-    return valid;
 }
 
 void ompl::geometric::BundleSpace::debugInvalidState(const base::State *x)
