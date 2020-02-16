@@ -27,7 +27,7 @@ namespace ompl
       public:
 
         BundleSpaceGraphSparse(const ob::SpaceInformationPtr &si, BundleSpace *parent = nullptr);
-        virtual ~BundleSpaceGraphSparse() override;
+        virtual ~BundleSpaceGraphSparse() override = default;
 
         virtual void grow() = 0;
         virtual bool getSolution(ompl::base::PathPtr &solution) override;
@@ -39,10 +39,12 @@ namespace ompl
         Vertex addConfigurationSparse(Configuration *q);
         void addEdgeSparse(const Vertex a, const Vertex b);
 
+        // virtual unsigned int getNumberOfVertices() const;
+        // virtual unsigned int getNumberOfEdges() const;
+
         // void AddEdge(const Configuration* q1, const Configuration* q2);
         virtual void setup() override;
         virtual void clear() override;
-        void TestVisibilityChecker();
 
         virtual void Init();
         //Copied from SPARS
@@ -73,6 +75,7 @@ namespace ompl
 
         //*******************************************************************
         //Explorer Methods (TODO: outsource)
+        //*******************************************************************
         void printAllPathsUtil(Vertex u, Vertex d, bool visited[], int path[], int &path_index);
         virtual void enumerateAllPaths();
         void removeReducibleLoops();
@@ -86,19 +89,18 @@ namespace ompl
         virtual void sampleFromDatastructure(ob::State *q_random_graph) override;
 
         PathVisibilityChecker* getPathVisibilityChecker();
-
         void pushPathToStack(std::vector<ob::State*> &path);
         void removeLastPathFromStack();
         std::vector<ob::State*> getProjectedPath(const std::vector<ob::State*> pathBundle, const ob::SpaceInformationPtr &si) const;
 
+        void freePath(std::vector<ob::State*> path, const ob::SpaceInformationPtr &si) const;
         //*******************************************************************
-
+        //*******************************************************************
 
         virtual void print(std::ostream &out) const override;
         bool hasSparseGraphChanged();
 
         virtual const Configuration *nearest(const Configuration *s) const;
-        void freePath(std::vector<ob::State*> path, const ob::SpaceInformationPtr &si) const;
     protected:
 
         double sparseDelta_{0.};

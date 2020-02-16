@@ -46,7 +46,6 @@
 ompl::geometric::SQMPImpl::SQMPImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("SQMPImpl" + std::to_string(id_));
-    qRandom_ = new Configuration(Bundle);
     randomWorkStates_.resize(5);
     Bundle->allocStates(randomWorkStates_);
 }
@@ -54,24 +53,7 @@ ompl::geometric::SQMPImpl::SQMPImpl(const base::SpaceInformationPtr &si, BundleS
 ompl::geometric::SQMPImpl::~SQMPImpl()
 {
     si_->freeStates(randomWorkStates_);
-    deleteConfiguration(qRandom_);
-}
-
-bool ompl::geometric::SQMPImpl::getSolution(base::PathPtr &solution)
-{
-    if (hasSolution_)
-    {
-        bool baset_sol = BaseT::getSolution(solution);
-        if (baset_sol)
-        {
-            shortestPathVertices_ = shortestVertexPath_;
-        }
-        return baset_sol;
-    }
-    else
-    {
-        return false;
-    }
+    deleteConfiguration(xRandom_);
 }
 
 void ompl::geometric::SQMPImpl::grow()
@@ -86,24 +68,10 @@ void ompl::geometric::SQMPImpl::grow()
         expand();
         return;
     }
-    if (hasSolution_)
-    {
-        // No Goal Biasing if we already found a solution on this bundle space
-        sampleBundle(qRandom_->state);
-    }
-    else
-    {
-        double s = rng_.uniform01();
-        if (s < goalBias_)
-        {
-            Bundle->copyState(qRandom_->state, qGoal_->state);
-        }
-        else
-        {
-            sampleBundle(qRandom_->state);
-        }
-    }
-    addMileStone(qRandom_);
+    sampleBundleGoalBias(xRandom_->state, goalBias_);
+
+    //TODO: should be replaced with addConfiguration()
+    addMileStone(xRandom_);
 }
 
 void ompl::geometric::SQMPImpl::expand()
@@ -122,6 +90,8 @@ void ompl::geometric::SQMPImpl::expand()
     
     Configuration *q = pdf.sample(rng_.uniform01());
     
+    //TODO: That seems weird. Also Wouldn't it change the State
+    //of a given configuration in the graph?
     sampleBundle(q->state);
     addMileStone(q);
     
@@ -166,6 +136,7 @@ void ompl::geometric::SQMPImpl::addMileStone(Configuration *q_random)
                 if (!checkAddPath(q_next))
                     ++consecutiveFailures_;
             }
+    //TODO: Why check for dense solution? Why not directly same component?
     if (isDenseFoundSolution_)
     {
         bool same_component = sameComponentSparse(v_start_sparse, v_goal_sparse);

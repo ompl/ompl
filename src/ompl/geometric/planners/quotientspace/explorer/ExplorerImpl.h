@@ -47,6 +47,7 @@ namespace ompl
         ompl::control::StatePropagatorPtr prop;
         ompl::control::DirectedControlSamplerPtr dCSampler;
 	
+        virtual void getPlannerData(ob::PlannerData &data) const override;
       protected:
 
         int numberOfControlSamples{10};

@@ -55,12 +55,15 @@ namespace ompl
 
         public:
             SQMPImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
+
             virtual ~SQMPImpl() override;
+
             /** \brief One iteration of RRT with adjusted sampling function */
             virtual void grow() override;
+
             /** \brief sample random node from Probabilty density function*/
             void expand();
-            virtual bool getSolution(ompl::base::PathPtr &solution) override;
+
             /** \brief Importance based on how many vertices the tree has */
             double getImportance() const override;
 
@@ -69,11 +72,6 @@ namespace ompl
             bool getPlannerTerminationCondition();
 
         protected:
-            /** \brief Random configuration placeholder */
-            Configuration *qRandom_{nullptr};
-
-            /** \brief Current shortest path on tree */
-            std::vector<Vertex> shortestPathVertices_;
 
             /** \brief Maximum failures limit for terminating the algorithm similar to SPARS */
             unsigned int maxFailures_{1000u};

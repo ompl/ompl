@@ -3,6 +3,8 @@ FB
 [x] Organize MultiQuotient classes in better way
 [ ] Add QRRTStar
 
+[ ] Clean up QMPStar, make it inherit from QMP
+
 MT
 [ ] Clean up Bundle Space Graph Sparse (outsource explorer functions)
 [ ] Add function getLocalMinimaTree() to explorer

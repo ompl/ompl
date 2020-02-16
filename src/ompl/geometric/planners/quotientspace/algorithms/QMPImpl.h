@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, University of Stuttgart
+ *  Copyright (c) 2020, University of Stuttgart
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -56,17 +56,10 @@ namespace ompl
         public:
             QMPImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
             virtual ~QMPImpl() override;
-            /** \brief One iteration of RRT with adjusted sampling function */
-            virtual void grow() override;
-            virtual bool getSolution(ompl::base::PathPtr &solution) override;
-            /** \brief Importance based on how many vertices the tree has */
-            double getImportance() const override;
 
-        protected:
-            /** \brief Random configuration placeholder */
-            Configuration *qRandom_{nullptr};
-            /** \brief Current shortest path on tree */
-            std::vector<Vertex> shortestPathVertices_;
+            /** \brief One iteration of PRM with adjusted sampling function */
+            virtual void grow() override;
+
         };
     }  // namespace geometric
 }  // namespace ompl

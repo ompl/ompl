@@ -1,4 +1,3 @@
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h>
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
@@ -36,6 +35,7 @@
 
 /* Author: Andreas Orthey, Sohaib Akbar */
 
+#include "BundleSpaceGraphGoalVisitor.hpp"
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/geometric/PathSimplifier.h>
@@ -49,7 +49,6 @@
 #include <boost/property_map/vector_property_map.hpp>
 #include <boost/property_map/transform_value_property_map.hpp>
 #include <boost/foreach.hpp>
-#include "BundleSpaceGraphGoalVisitor.hpp"
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>  //same_component
 #include <boost/math/constants/constants.hpp>
@@ -72,10 +71,6 @@ BundleSpaceGraphSparse::BundleSpaceGraphSparse(const ob::SpaceInformationPtr &si
   pathVisibilityChecker_ = new PathVisibilityChecker(Bundle);
   psimp_ = std::make_shared<PathSimplifier>(si_);
   psimp_->freeStates(false);
-}
-
-BundleSpaceGraphSparse::~BundleSpaceGraphSparse()
-{
 }
 
 void BundleSpaceGraphSparse::deleteConfiguration(Configuration *q)
@@ -137,6 +132,7 @@ void BundleSpaceGraphSparse::clear()
     pathStackHead_.clear();
     pathStack_.clear();
 }
+
 void BundleSpaceGraphSparse::clearDynamic()
 {
     // BaseT::clear();
@@ -231,116 +227,149 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraphSparse::getPathSparse(const
     return p;
 }
 
+// unsigned int ompl::geometric::BundleSpaceGraphSparse::getNumberOfVertices() const
+// {
+//     return num_vertices(graphSparse_);
+// }
+
+// unsigned int ompl::geometric::BundleSpaceGraphSparse::getNumberOfEdges() const
+// {
+//     return num_edges(graphSparse_);
+// }
+
 void BundleSpaceGraphSparse::Init()
 {
+    BaseT::init();
+
+    v_start_sparse = addConfigurationSparse(qStart_);
+    graphSparse_[v_start_sparse]->isStart = true;
+    qStart_->representativeIndex = v_start_sparse;
+
+    v_goal_sparse = addConfigurationSparse(qGoal_);
+    graphSparse_[v_start_sparse]->isGoal = true;
+    qGoal_->representativeIndex = v_goal_sparse;
+
+    //        //     Configuration *ql = new Configuration(Bundle, qGoal_->state);
+    //        //     const Vertex vl = add_vertex(ql, graphSparse_);
+    //        //     nearestSparse_->add(ql);
+    //        //     disjointSetsSparse_.make_set(vl);
+    //        //     graphSparse_[vl]->index = vl;
+
+    //        //     v_goal_sparse = vl;
+    //        //     graphSparse_[v_goal_sparse]->isGoal = true;
+
+    //        //     assert(boost::num_vertices(graphSparse_) == 2);
+
+    //        //     qGoal_->representativeIndex = v_goal_sparse;
+
     // BaseT::init(); //sa-> ? gives error maybe pis_.nextStart() can be called once so add base init() code here
     // BundleSpaceGraph init()
-    auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
-    if (goal == nullptr)
-    {
-        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
-        throw ompl::Exception("Unknown goal type");
-    }
+    //auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    //if (goal == nullptr)
+    //{
+    //    OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
+    //    throw ompl::Exception("Unknown goal type");
+    //}
 
-    if (const base::State *st = pis_.nextStart())
-    {
-        if (st != nullptr)
-        {
-            // dense BundleSpaceGraph
-            qStart_ = new Configuration(Bundle, st);
-            qStart_->isStart = true;
-            vStart_ = BaseT::addConfiguration(qStart_);
+    //if (const base::State *st = pis_.nextStart())
+    //{
+    //    if (st != nullptr)
+    //    {
+    //        // dense BundleSpaceGraph
+    //        qStart_ = new Configuration(Bundle, st);
+    //        qStart_->isStart = true;
+    //        vStart_ = BaseT::addConfiguration(qStart_);
 
-            //TODO: why not doing it in Sparse::addconfiguration ?
-            v_start_sparse = addConfigurationSparse(qStart_);
-            graphSparse_[v_start_sparse]->isStart = true;
-            qStart_->representativeIndex = v_start_sparse;
+    //        //TODO: why not doing it in Sparse::addconfiguration ?
+    //        v_start_sparse = addConfigurationSparse(qStart_);
+    //        graphSparse_[v_start_sparse]->isStart = true;
+    //        qStart_->representativeIndex = v_start_sparse;
 
-            // Configuration *ql = new Configuration(Bundle, qStart_->state);
-            // const Vertex vl = add_vertex(ql, graphSparse_);
-            // nearestSparse_->add(ql);
-            // disjointSetsSparse_.make_set(vl);
-            // graphSparse_[vl]->index = vl;
+    //        // Configuration *ql = new Configuration(Bundle, qStart_->state);
+    //        // const Vertex vl = add_vertex(ql, graphSparse_);
+    //        // nearestSparse_->add(ql);
+    //        // disjointSetsSparse_.make_set(vl);
+    //        // graphSparse_[vl]->index = vl;
 
-            //
-            //
-            // Sohaib:
-            // Sparse
-            // // v_start_sparse = addConfigurationSparse(qStart_);
-            // Configuration *ql = new Configuration(Bundle, qStart_->state);
-            // const Vertex vl = add_vertex(ql, graphSparse_);
-            // nearestSparse_->add(ql);
-            // disjointSetsSparse_.make_set(vl);
-            // graphSparse_[vl]->index = vl;
+    //        //
+    //        //
+    //        // Sohaib:
+    //        // Sparse
+    //        // // v_start_sparse = addConfigurationSparse(qStart_);
+    //        // Configuration *ql = new Configuration(Bundle, qStart_->state);
+    //        // const Vertex vl = add_vertex(ql, graphSparse_);
+    //        // nearestSparse_->add(ql);
+    //        // disjointSetsSparse_.make_set(vl);
+    //        // graphSparse_[vl]->index = vl;
 
-            // assert(boost::num_vertices(graphSparse_) == 1);
-            // v_start_sparse = graphSparse_[0]->index;
-            // graphSparse_[v_start_sparse]->isStart = true;
+    //        // assert(boost::num_vertices(graphSparse_) == 1);
+    //        // v_start_sparse = graphSparse_[0]->index;
+    //        // graphSparse_[v_start_sparse]->isStart = true;
 
-            // qStart_->representativeIndex = v_start_sparse;
-        }
-    }
-    if (qStart_ == nullptr)
-    {
-        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
-        throw ompl::Exception("Invalid initial states.");
-    }
+    //        // qStart_->representativeIndex = v_start_sparse;
+    //    }
+    //}
+    //if (qStart_ == nullptr)
+    //{
+    //    OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
+    //    throw ompl::Exception("Invalid initial states.");
+    //}
 
-    if (const base::State *st = pis_.nextGoal())
-    {
-        if (st != nullptr)
-        {
-            // dense BundleSpaceGraph
-            qGoal_ = new Configuration(Bundle, st);
-            qGoal_->isGoal = true;
-            vGoal_ = BaseT::addConfiguration(qGoal_);  // sa-> (added) Q:- why goal state was not added in configuration
-
-
-            v_goal_sparse = addConfigurationSparse(qGoal_);
-            graphSparse_[v_goal_sparse]->isGoal = true;
-            qGoal_->representativeIndex = v_goal_sparse;
+    //if (const base::State *st = pis_.nextGoal())
+    //{
+    //    if (st != nullptr)
+    //    {
+    //        // dense BundleSpaceGraph
+    //        qGoal_ = new Configuration(Bundle, st);
+    //        qGoal_->isGoal = true;
+    //        vGoal_ = BaseT::addConfiguration(qGoal_);  // sa-> (added) Q:- why goal state was not added in configuration
 
 
-            //     Configuration *ql = new Configuration(Bundle, qGoal_->state);
-            //     const Vertex vl = add_vertex(ql, graphSparse_);
-            //     nearestSparse_->add(ql);
-            //     disjointSetsSparse_.make_set(vl);
-            //     graphSparse_[vl]->index = vl;
-
-            //     v_goal_sparse = vl;
+    //        v_goal_sparse = addConfigurationSparse(qGoal_);
+    //        graphSparse_[v_goal_sparse]->isGoal = true;
+    //        qGoal_->representativeIndex = v_goal_sparse;
 
 
-            // sparse - not added in BundleSpaceGraph .: because it was added in grow() function
-            // if (!isDynamic())
-            // {
-            //     // v_goal_sparse = addConfigurationSparse(qGoal_);
-            //     Configuration *ql = new Configuration(Bundle, qGoal_->state);
-            //     const Vertex vl = add_vertex(ql, graphSparse_);
-            //     nearestSparse_->add(ql);
-            //     disjointSetsSparse_.make_set(vl);
-            //     graphSparse_[vl]->index = vl;
+    //        //     Configuration *ql = new Configuration(Bundle, qGoal_->state);
+    //        //     const Vertex vl = add_vertex(ql, graphSparse_);
+    //        //     nearestSparse_->add(ql);
+    //        //     disjointSetsSparse_.make_set(vl);
+    //        //     graphSparse_[vl]->index = vl;
 
-            //     v_goal_sparse = vl;
-            //     graphSparse_[v_goal_sparse]->isGoal = true;
+    //        //     v_goal_sparse = vl;
 
-            //     assert(boost::num_vertices(graphSparse_) == 2);
 
-            //     qGoal_->representativeIndex = v_goal_sparse;
-            // }
-        }
-    }
-    if (qGoal_ == nullptr)
-    {
-        OMPL_ERROR("%s: There are no valid goal states!", getName().c_str());
-        throw ompl::Exception("Invalid goal states.");
-    }
+    //        // sparse - not added in BundleSpaceGraph .: because it was added in grow() function
+    //        // if (!isDynamic())
+    //        // {
+    //        //     // v_goal_sparse = addConfigurationSparse(qGoal_);
+    //        //     Configuration *ql = new Configuration(Bundle, qGoal_->state);
+    //        //     const Vertex vl = add_vertex(ql, graphSparse_);
+    //        //     nearestSparse_->add(ql);
+    //        //     disjointSetsSparse_.make_set(vl);
+    //        //     graphSparse_[vl]->index = vl;
+
+    //        //     v_goal_sparse = vl;
+    //        //     graphSparse_[v_goal_sparse]->isGoal = true;
+
+    //        //     assert(boost::num_vertices(graphSparse_) == 2);
+
+    //        //     qGoal_->representativeIndex = v_goal_sparse;
+    //        // }
+    //    }
+    //}
+    //if (qGoal_ == nullptr)
+    //{
+    //    OMPL_ERROR("%s: There are no valid goal states!", getName().c_str());
+    //    throw ompl::Exception("Invalid goal states.");
+    //}
 }
-
 
 void BundleSpaceGraphSparse::uniteComponentsSparse(Vertex m1, Vertex m2)
 {
     disjointSetsSparse_.union_set(m1, m2);
 }
+
 bool BundleSpaceGraphSparse::sameComponentSparse(Vertex m1, Vertex m2)
 {
     return boost::same_component(m1, m2, disjointSetsSparse_);
@@ -1335,7 +1364,6 @@ void BundleSpaceGraphSparse::enumerateAllPaths()
         {
             return;
         }
-        // TestVisibilityChecker();
         std::cout << "Enumerating paths on " << getName() << std::endl;
 
         // Remove Edges
@@ -1428,7 +1456,6 @@ std::vector<int> BundleSpaceGraphSparse::GetSelectedPathIndex() const
 
 bool ompl::geometric::BundleSpaceGraphSparse::getSolution(base::PathPtr &solution)
 {
-  std::cout << "getSolution" << std::endl;
     if (hasSolution_)
     {
         solutionPath_ = getPath(v_start_sparse, v_goal_sparse, graphSparse_);
@@ -1441,7 +1468,6 @@ bool ompl::geometric::BundleSpaceGraphSparse::getSolution(base::PathPtr &solutio
         base::Goal *g = pdef_->getGoal().get();
         bestCost_ = base::Cost(+base::dInf);
         bool same_component = sameComponent(v_start_sparse, v_goal_sparse);
-        std::cout << (same_component?"SAME COMPONENT":"Not yet") << std::endl;
 
         if (same_component &&
             g->isStartGoalPairValid(graphSparse_[v_goal_sparse]->state, graphSparse_[v_start_sparse]->state))
@@ -1458,137 +1484,13 @@ bool ompl::geometric::BundleSpaceGraphSparse::getSolution(base::PathPtr &solutio
     }
 }
 
-//void BundleSpaceGraphSparse::getPlannerData(ob::PlannerData &data) const
-//{
-//  if(isDynamic()){
-//    if(!data.hasControls()){
-//      OMPL_ERROR("Dynamic Cspace, but PlannerData has no controls.");
-//    }
-//  }
-
-//  if(pathStackHead_.size()>0){
-//      OMPL_DEVMSG1("%s has %d solutions.", getName().c_str(), pathStackHead_.size());
-//      if(pathStackHead_.empty()){
-//          OMPL_ERROR("%s has 0 solutions.", getName().c_str());
-//          throw ompl::Exception("Zero solutions");
-//      }
-//      std::vector<int> idxPathI;
-//      for(uint i = 0; i < pathStackHead_.size(); i++){
-//          const std::vector<ob::State*> states = pathStackHead_.at(i);
-
-//          idxPathI.clear();
-//          getPathIndices(states, idxPathI);
-//          std::reverse(idxPathI.begin(), idxPathI.end());
-//          idxPathI.push_back(i);
-//          // idxPathI.insert(idxPathI.begin(), idxPathI.rbegin(), idxPathI.rend());
-
-//          //############################################################################
-//          //DEBUG
-//          std::cout << "[";
-//          for(uint k = 0; k < idxPathI.size(); k++){
-//            std::cout << idxPathI.at(k) << " ";
-//          }
-//          std::cout << "]" << std::endl;
-//          //############################################################################
-
-//          ob::PlannerDataVertexAnnotated *p1 = new ob::PlannerDataVertexAnnotated(states.at(0));
-//          p1->setLevel(level_);
-//          p1->setPath(idxPathI);
-//          data.addStartVertex(*p1);
-
-//          for(uint k = 0; k < states.size()-1; k++){
-
-//            ob::PlannerDataVertexAnnotated *p2 = new ob::PlannerDataVertexAnnotated(states.at(k+1));//Bundle->cloneState(graphSparse_[v2]->state));
-//            p2->setLevel(level_);
-//            p2->setPath(idxPathI);
-
-//            if(k==states.size()-2){
-//              data.addGoalVertex(*p2);
-//            }else{
-//              data.addVertex(*p2);
-//            }
-//        }
-//    }
-//    return hasSolution_;
-//}
-
-void BundleSpaceGraphSparse::getPlannerData(ob::PlannerData &data) const
+void BundleSpaceGraphSparse::getPlannerData(base::PlannerData &data) const
 {
-    OMPL_DEBUG("Sparse Roadmap has %d/%d vertices/edges (Dense has %d/%d).", boost::num_vertices(graphSparse_),
-               boost::num_edges(graphSparse_), boost::num_vertices(graph_), boost::num_edges(graph_));
-    // BundleSpaceGraph::getPlannerData(data);
-    // from QSGraph
-    std::vector<int> idxPathI;
-    BundleSpace *pparent = getParent();
-    while (pparent != nullptr)
-    {
-        idxPathI.push_back(0);
-        pparent = pparent->getParent();
-    }
-    idxPathI.push_back(0);
+    OMPL_DEBUG("Sparse Roadmap has %d/%d vertices/edges (Dense has %d/%d).", 
+        boost::num_vertices(graphSparse_),
+        boost::num_edges(graphSparse_), 
+        boost::num_vertices(graph_), 
+        boost::num_edges(graph_));
 
-    unsigned int startComponent = 0;
-    unsigned int goalComponent = 1;
-
-    base::PlannerDataVertexAnnotated pstart(graphSparse_[vStart_]->state, startComponent);
-    pstart.setPath(idxPathI);
-    data.addStartVertex(pstart);
-
-    if (hasSolution_)
-    {
-        goalComponent = 0;
-        base::PlannerDataVertexAnnotated pgoal(graphSparse_[vGoal_]->state, goalComponent);
-        pgoal.setPath(idxPathI);
-        data.addGoalVertex(pgoal);
-    }
-
-    foreach (const Edge e, boost::edges(graphSparse_))
-    {
-        const Vertex v1 = boost::source(e, graphSparse_);
-        const Vertex v2 = boost::target(e, graphSparse_);
-
-        base::PlannerDataVertexAnnotated p1(graphSparse_[v1]->state);
-        base::PlannerDataVertexAnnotated p2(graphSparse_[v2]->state);
-        p1.setPath(idxPathI);
-        p2.setPath(idxPathI);
-
-        unsigned int vi1 = data.addVertex(p1);
-        unsigned int vi2 = data.addVertex(p2);
-        data.addEdge(p1, p2);
-
-        unsigned int v1Component = const_cast<BundleSpaceGraphSparse *>(this)->disjointSetsSparse_.find_set(v1);
-        unsigned int v2Component = const_cast<BundleSpaceGraphSparse *>(this)->disjointSetsSparse_.find_set(v2);
-        base::PlannerDataVertexAnnotated &v1a = static_cast<base::PlannerDataVertexAnnotated &>(data.getVertex(vi1));
-        base::PlannerDataVertexAnnotated &v2a = static_cast<base::PlannerDataVertexAnnotated &>(data.getVertex(vi2));
-
-        if (v1Component == startComponent || v2Component == startComponent)
-        {
-            v1a.setComponent(0);
-            v2a.setComponent(0);
-        }
-        else if (v1Component == goalComponent || v2Component == goalComponent)
-        {
-            v1a.setComponent(1);
-            v2a.setComponent(1);
-        }
-        else
-        {
-            v1a.setComponent(2);
-            v2a.setComponent(2);
-        }
-    }
-    // Make sure to add edge-less nodes as well
-    // add dense nodes
-    /*foreach (const Vertex n, boost::vertices(graph_)){
-      base::PlannerDataVertexAnnotated node(graph_[n]->state, 2);
-      node.setPath(idxPathI);
-      data.addVertex(node);
-    }*/
-    // add sparse nodes green color
-    foreach (const Vertex n, boost::vertices(graphSparse_))
-    {
-        base::PlannerDataVertexAnnotated node(graphSparse_[n]->state, 3);
-        node.setPath(idxPathI);
-        data.addVertex(node);
-    }
+    BaseT::getPlannerDataGraph(data, graphSparse_, v_start_sparse, v_goal_sparse);
 }

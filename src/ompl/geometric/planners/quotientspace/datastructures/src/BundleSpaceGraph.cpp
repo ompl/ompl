@@ -78,6 +78,8 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
         &BundleSpaceGraph::getGoalBias, 
         "0.:.1:1.");
 
+    xRandom_ = new Configuration(Bundle);
+
     if (!isSetup())
     {
         setup();
@@ -334,23 +336,25 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
     }
     else
     {
-        base::Goal *g = pdef_->getGoal().get();
-        bestCost_ = base::Cost(+base::dInf);
-        bool same_component = sameComponent(vStart_, vGoal_);
-
-        if (same_component && g->isStartGoalPairValid(graph_[vGoal_]->state, graph_[vStart_]->state))
-        {
-            solutionPath_ = getPath(vStart_, vGoal_);
-            if (solutionPath_)
-            {
-                solution = solutionPath_;
-                hasSolution_ = true;
-                startGoalVertexPath_ = shortestVertexPath_;
-                return true;
-            }
-        }
+      return false;
     }
-    return hasSolution_;
+        // base::Goal *g = pdef_->getGoal().get();
+        // bestCost_ = base::Cost(+base::dInf);
+        // bool same_component = sameComponent(vStart_, vGoal_);
+
+        // if (same_component && g->isStartGoalPairValid(graph_[vGoal_]->state, graph_[vStart_]->state))
+        // {
+        //     solutionPath_ = getPath(vStart_, vGoal_);
+        //     if (solutionPath_)
+        //     {
+        //         solution = solutionPath_;
+        //         hasSolution_ = true;
+        //         startGoalVertexPath_ = shortestVertexPath_;
+        //         return true;
+        //     }
+        // }
+    // }
+    // return hasSolution_;
 }
 
 void ompl::geometric::BundleSpaceGraph::getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph, std::deque<base::State *> &path)
@@ -503,6 +507,45 @@ void ompl::geometric::BundleSpaceGraph::printConfiguration(const Configuration *
     Bundle->printState(q->state);
 }
 
+void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(
+    base::PlannerData &data, 
+    const Graph &graph, 
+    const Vertex vStart, 
+    const Vertex vGoal) const
+{
+    std::vector<int> idxPathI;
+    BundleSpace *pparent = getParent();
+    while (pparent != nullptr)
+    {
+        idxPathI.push_back(0);
+        pparent = pparent->getParent();
+    }
+    idxPathI.push_back(0);
+
+    base::PlannerDataVertexAnnotated pstart(graph[vStart]->state);
+    pstart.setPath(idxPathI);
+    data.addStartVertex(pstart);
+    if (vGoal>=0)
+    {
+        base::PlannerDataVertexAnnotated pgoal(graph[vGoal]->state);
+        pgoal.setPath(idxPathI);
+        data.addGoalVertex(pgoal);
+    }
+
+    unsigned int ctr = 0;
+    foreach (const Edge e, boost::edges(graph))
+    {
+        const Vertex v1 = boost::source(e, graph);
+        const Vertex v2 = boost::target(e, graph);
+
+        base::PlannerDataVertexAnnotated p1(graph[v1]->state);
+        base::PlannerDataVertexAnnotated p2(graph[v2]->state);
+        p1.setPath(idxPathI);
+        p2.setPath(idxPathI);
+        data.addEdge(p1, p2);
+    }
+
+}
 void ompl::geometric::BundleSpaceGraph::getPlannerData(base::PlannerData &data) const
 {
     OMPL_DEBUG("Roadmap has %d/%d vertices/edges", boost::num_vertices(graph_), boost::num_edges(graph_));

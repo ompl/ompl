@@ -45,29 +45,11 @@
 ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QMPImpl" + std::to_string(id_));
-    qRandom_ = new Configuration(Bundle);
 }
 
 ompl::geometric::QMPImpl::~QMPImpl()
 {
-    deleteConfiguration(qRandom_);
-}
-
-bool ompl::geometric::QMPImpl::getSolution(base::PathPtr &solution)
-{
-    if (hasSolution_)
-    {
-        bool baset_sol = BaseT::getSolution(solution);
-        if (baset_sol)
-        {
-            shortestPathVertices_ = shortestVertexPath_;
-        }
-        return baset_sol;
-    }
-    else
-    {
-        return false;
-    }
+    deleteConfiguration(xRandom_);
 }
 
 void ompl::geometric::QMPImpl::grow()
@@ -78,33 +60,35 @@ void ompl::geometric::QMPImpl::grow()
         firstRun_ = false;
     }
 
-    sampleBundleGoalBias(qRandom_->state, goalBias_);
+    sampleBundleGoalBias(xRandom_->state, goalBias_);
 
     std::vector<Configuration*> r_nearest_neighbors;
      
-    BaseT::nearestDatastructure_->nearestK(qRandom_, 7, r_nearest_neighbors);
+    //TODO: Why 7? Why not use 10 like PRM?
+    BaseT::nearestDatastructure_->nearestK(xRandom_, 7, r_nearest_neighbors);
 
     bool foundFeasibleEdge = false;
     
     for(unsigned int i=0 ; i< r_nearest_neighbors.size(); i++)
     {
         Configuration* q_neighbor = r_nearest_neighbors.at(i);
-        if (Bundle->checkMotion(q_neighbor->state, qRandom_->state)) 
+        if (Bundle->checkMotion(q_neighbor->state, xRandom_->state)) 
         {
             Vertex v_next;
             Configuration *q_next;
+            //TODO: why only add one edge?
             if(!foundFeasibleEdge)
             {
     
-                double d = Bundle->distance(q_neighbor->state, qRandom_->state);
+                double d = Bundle->distance(q_neighbor->state, xRandom_->state);
                 if (d > maxDistance_)
                 {
-                    Bundle->getStateSpace()->interpolate(q_neighbor->state, qRandom_->state, maxDistance_ / d, qRandom_->state);
+                    Bundle->getStateSpace()->interpolate(q_neighbor->state, xRandom_->state, maxDistance_ / d, xRandom_->state);
                 }
 
                 // totalNumberOfSamples_++;
                 // totalNumberOfFeasibleSamples_++;
-                q_next = new Configuration(Bundle, qRandom_->state);
+                q_next = new Configuration(Bundle, xRandom_->state);
                 v_next = addConfiguration(q_next);
             
                 
@@ -112,6 +96,8 @@ void ompl::geometric::QMPImpl::grow()
             }
             if (!hasSolution_ && foundFeasibleEdge)
             {
+                //TODO: What happens if this edge is infeasible, but there has
+                //been one feasible edge before? (i.e. foundfeasibleedge is set)
                 addEdge(q_neighbor->index, v_next);
                 
                 double dist = 0.0;
@@ -126,24 +112,5 @@ void ompl::geometric::QMPImpl::grow()
         }
 
     }
-}
-
-double ompl::geometric::QMPImpl::getImportance() const
-{
-    // Should depend on
-    // (1) level : The higher the level, the more importance
-    // (2) total samples: the more we already sampled, the less important it
-    // becomes
-    // (3) has solution: if it already has a solution, we should explore less
-    // (only when nothing happens on other levels)
-    // (4) vertices: the more vertices we have, the less important (let other
-    // levels also explore)
-    //
-    // exponentially more samples on level i. Should depend on ALL levels.
-    // const double base = 2;
-    // const double normalizer = powf(base, level);
-    // double N = (double)GetNumberOfVertices()/normalizer;
-    double N = (double)getNumberOfVertices();
-    return 1.0 / (N + 1);
 }
 

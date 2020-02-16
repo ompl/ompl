@@ -59,7 +59,7 @@ ompl::geometric::QMPStarImpl::QMPStarImpl(const base::SpaceInformationPtr &si, B
 ompl::geometric::QMPStarImpl::~QMPStarImpl()
 {
     si_->freeStates(randomWorkStates_);
-    deleteConfiguration(qRandom_);
+    deleteConfiguration(xRandom_);
 }
 
 void ompl::geometric::QMPStarImpl::grow()
@@ -71,14 +71,15 @@ void ompl::geometric::QMPStarImpl::grow()
         firstRun_ = false;
     }
 
+    //TODO: Why not use expand() also in QMP?
     if( ++growExpandCounter_ % 2 == 0)
     {
         expand();
         return;
     }
 
-    sampleBundleGoalBias(qRandom_->state, goalBias_);
-    addMileStone(qRandom_->state);
+    sampleBundleGoalBias(xRandom_->state, goalBias_);
+    addMileStone(xRandom_->state);
 }
 
 void ompl::geometric::QMPStarImpl::expand()
@@ -115,6 +116,7 @@ void ompl::geometric::QMPStarImpl::expand()
     }
 }
 
+//TODO: Why not use same as in QMP?
 ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPStarImpl::addMileStone(ompl::base::State *q_state)
 {
     // add sample to graph

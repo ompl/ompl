@@ -185,6 +185,8 @@ namespace ompl
             /** \brief Return plannerdata structure, whereby each vertex is marked
                 depending to which component it belongs (start/goal/non-connected) */
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;
+            void getPlannerDataGraph(ompl::base::PlannerData &data, 
+                const Graph &graph, const Vertex vStart, const Vertex vGoal) const;
 
             /** \brief Importance of Bundle-space depending on number of
                 vertices in Bundle-graph */
@@ -262,11 +264,14 @@ namespace ompl
                 Bundle-space */
             double graphLength_{0.0};
 
-            /** \brief Maximum expansion step*/
+            /** \brief Maximum expansion step */
             double maxDistance_{.0};
 
-            /** \brief Goal bias*/
+            /** \brief Goal bias */
             double goalBias_{.05};
+
+            /** \brief Temporary random configuration */
+            Configuration *xRandom_{nullptr};
         };
     }  // namespace geometric
 }  // namespace ompl

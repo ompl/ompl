@@ -43,29 +43,11 @@
 ompl::geometric::QRRTImpl::QRRTImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QRRTImpl" + std::to_string(id_));
-    qRandom_ = new Configuration(Bundle);
 }
 
 ompl::geometric::QRRTImpl::~QRRTImpl()
 {
-    deleteConfiguration(qRandom_);
-}
-
-bool ompl::geometric::QRRTImpl::getSolution(base::PathPtr &solution)
-{
-    if (hasSolution_)
-    {
-        bool baset_sol = BaseT::getSolution(solution);
-        if (baset_sol)
-        {
-            shortestPathVertices_ = shortestVertexPath_;
-        }
-        return baset_sol;
-    }
-    else
-    {
-        return false;
-    }
+    deleteConfiguration(xRandom_);
 }
 
 void ompl::geometric::QRRTImpl::grow()
@@ -77,27 +59,27 @@ void ompl::geometric::QRRTImpl::grow()
     }
 
     //(1) Get Random Sample
-    sampleBundleGoalBias(qRandom_->state, goalBias_);
+    sampleBundleGoalBias(xRandom_->state, goalBias_);
 
     //(2) Get Nearest in Tree
-    const Configuration *q_nearest = nearest(qRandom_);
+    const Configuration *q_nearest = nearest(xRandom_);
 
     //(3) Connect Nearest to Random
-    double d = Bundle->distance(q_nearest->state, qRandom_->state);
+    double d = Bundle->distance(q_nearest->state, xRandom_->state);
     if (d > maxDistance_)
     {
-        Bundle->getStateSpace()->interpolate(q_nearest->state, qRandom_->state, maxDistance_ / d, qRandom_->state);
+        Bundle->getStateSpace()->interpolate(q_nearest->state, xRandom_->state, maxDistance_ / d, xRandom_->state);
     }
 
     //(4) Check if Motion is correct
-    if (Bundle->checkMotion(q_nearest->state, qRandom_->state))
+    if (Bundle->checkMotion(q_nearest->state, xRandom_->state))
     {
-        Configuration *q_next = new Configuration(Bundle, qRandom_->state);
+        Configuration *q_next = new Configuration(Bundle, xRandom_->state);
         Vertex v_next = addConfiguration(q_next);
 
-        if (!hasSolution_)
+        if (!hasSolution_ || !hasChild())
         {
-            // only add edge if no solution exists
+            // (5) add edge if no solution exists
             addEdge(q_nearest->index, v_next);
 
             double dist = 0.0;
@@ -110,23 +92,4 @@ void ompl::geometric::QRRTImpl::grow()
             }
         }
     }
-}
-
-double ompl::geometric::QRRTImpl::getImportance() const
-{
-    // Should depend on
-    // (1) level : The higher the level, the more importance
-    // (2) total samples: the more we already sampled, the less important it
-    // becomes
-    // (3) has solution: if it already has a solution, we should explore less
-    // (only when nothing happens on other levels)
-    // (4) vertices: the more vertices we have, the less important (let other
-    // levels also explore)
-    //
-    // exponentially more samples on level i. Should depend on ALL levels.
-    // const double base = 2;
-    // const double normalizer = powf(base, level);
-    // double N = (double)GetNumberOfVertices()/normalizer;
-    double N = (double)getNumberOfVertices();
-    return 1.0 / (N + 1);
 }

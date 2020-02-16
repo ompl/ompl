@@ -1,4 +1,5 @@
 #include <ompl/geometric/planners/quotientspace/explorer/ExplorerImpl.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/datastructures/PDF.h>
 
@@ -252,3 +253,76 @@ void ExplorerImpl::growControl(){
     }
 }
 
+void ExplorerImpl::getPlannerData(ob::PlannerData &data) const
+{
+  if(isDynamic()){
+    if(!data.hasControls()){
+      OMPL_ERROR("Dynamic Cspace, but PlannerData has no controls.");
+    }
+  }
+  if(pathStackHead_.size()>0){
+      OMPL_DEVMSG1("%s has %d solutions.", getName().c_str(), pathStackHead_.size());
+      if(pathStackHead_.empty()){
+          OMPL_ERROR("%s has 0 solutions.", getName().c_str());
+          throw ompl::Exception("Zero solutions");
+      }
+      std::vector<int> idxPathI;
+      for(uint i = 0; i < pathStackHead_.size(); i++){
+          const std::vector<ob::State*> states = pathStackHead_.at(i);
+
+          idxPathI.clear();
+          getPathIndices(states, idxPathI);
+          std::reverse(idxPathI.begin(), idxPathI.end());
+          idxPathI.push_back(i);
+          // idxPathI.insert(idxPathI.begin(), idxPathI.rbegin(), idxPathI.rend());
+
+          //############################################################################
+          //DEBUG
+          std::cout << "[";
+          for(uint k = 0; k < idxPathI.size(); k++){
+            std::cout << idxPathI.at(k) << " ";
+          }
+          std::cout << "]" << std::endl;
+          //############################################################################
+
+          ob::PlannerDataVertexAnnotated *p1 = new ob::PlannerDataVertexAnnotated(states.at(0));
+          p1->setLevel(level_);
+          p1->setPath(idxPathI);
+          data.addStartVertex(*p1);
+
+          for(uint k = 0; k < states.size()-1; k++){
+
+            ob::PlannerDataVertexAnnotated *p2 = new ob::PlannerDataVertexAnnotated(states.at(k+1));//Bundle->cloneState(graphSparse_[v2]->state));
+            p2->setLevel(level_);
+            p2->setPath(idxPathI);
+
+            if(k==states.size()-2){
+              data.addGoalVertex(*p2);
+            }else{
+              data.addVertex(*p2);
+            }
+            data.addEdge(*p1,*p2);
+
+            p1 = p2;
+          }
+      }
+      // idxPathI = GetSelectedPathIndex();
+      getPlannerDataRoadmap(data, idxPathI);
+  }else{
+
+    OMPL_DEVMSG1("Sparse Roadmap has %d/%d vertices/edges (Dense has %d/%d).", 
+        boost::num_vertices(graphSparse_), 
+        boost::num_edges(graphSparse_), 
+        boost::num_vertices(graph_),
+        boost::num_edges(graph_));
+
+    if(boost::num_vertices(graphSparse_) > 0){
+      std::vector<int> CurPath = GetSelectedPathIndex();
+      // for(uint k = 0; k < CurPath.size(); k++) std::cout << CurPath.at(k) << ",";
+      // std::cout << std::endl;
+        
+      getPlannerDataRoadmap(data, CurPath);
+    }
+
+  }
+}

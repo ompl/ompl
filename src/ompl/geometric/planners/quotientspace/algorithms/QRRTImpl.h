@@ -59,18 +59,6 @@ namespace ompl
 
             /** \brief One iteration of RRT with adjusted sampling function */
             virtual void grow() override;
-
-            virtual bool getSolution(ompl::base::PathPtr &solution) override;
-
-            /** \brief Importance based on how many vertices the tree has */
-            double getImportance() const override;
-
-        protected:
-            /** \brief Random configuration placeholder */
-            Configuration *qRandom_{nullptr};
-
-            /** \brief Current shortest path on tree */
-            std::vector<Vertex> shortestPathVertices_;
         };
     }  // namespace geometric
 }  // namespace ompl
