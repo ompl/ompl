@@ -90,7 +90,7 @@ void ompl::geometric::SQMPImpl::expand()
     
     Configuration *q = pdf.sample(rng_.uniform01());
     
-    //TODO: That seems weird. Also Wouldn't it change the State
+    //TODO: That seems weird. Wouldn't it change the State
     //of a given configuration in the graph?
     sampleBundle(q->state);
     addMileStone(q);

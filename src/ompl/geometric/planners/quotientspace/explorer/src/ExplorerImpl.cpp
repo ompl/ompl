@@ -188,7 +188,22 @@ void ExplorerImpl::growGeometric(){
   {
     Configuration *q_next = new Configuration(Bundle, q_random->state);
 
+    //############################################################################
+    //TODO: replace w AddConfig
     Vertex v_next = addConfiguration(q_next);
+    // Configuration *q_next = addConfigurationDense(q_random);
+
+    findGraphNeighbors(q_next, graphNeighborhood, visibleNeighborhood);
+
+    if (!checkAddCoverage(q_next, visibleNeighborhood))
+        if (!checkAddConnectivity(q_next, visibleNeighborhood))
+            if (!checkAddInterface(q_next, graphNeighborhood, visibleNeighborhood))
+            {
+                if (!checkAddPath(q_next))
+                    ++consecutiveFailures_;
+            }
+    //############################################################################
+
     addEdge(q_nearest->index, v_next);
 
     if(!hasSolution_){
