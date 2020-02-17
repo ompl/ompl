@@ -34,7 +34,7 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/tbdstar/datastructures/ImplicitGraph.h"
+#include "ompl/geometric/planners/aitstar/datastructures/ImplicitGraph.h"
 
 #include <cmath>
 
@@ -44,7 +44,7 @@ namespace ompl
 {
     namespace geometric
     {
-        namespace tbdstar
+        namespace aitstar
         {
             ImplicitGraph::ImplicitGraph() : batchId_(std::make_shared<std::size_t>(1u))
             {
@@ -281,7 +281,7 @@ namespace ompl
                                 1.0 / dimension);
             }
 
-        }  // namespace tbdstar
+        }  // namespace aitstar
 
     }  // namespace geometric
 

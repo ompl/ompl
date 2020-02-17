@@ -44,7 +44,7 @@
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
-#include "ompl/geometric/planners/tbdstar/TBDstar.h"
+#include "ompl/geometric/planners/aitstar/AITstar.h"
 #include "ompl/util/Console.h"
 
 using namespace std::string_literals;
@@ -53,14 +53,14 @@ namespace ompl
 {
     namespace geometric
     {
-        TBDstar::TBDstar(const ompl::base::SpaceInformationPtr &spaceInformation)
-          : ompl::base::Planner(spaceInformation, "TBDstar")
-          , forwardQueue_([](const tbdstar::Edge &lhs, const tbdstar::Edge &rhs) {
+        AITstar::AITstar(const ompl::base::SpaceInformationPtr &spaceInformation)
+          : ompl::base::Planner(spaceInformation, "AITstar")
+          , forwardQueue_([](const aitstar::Edge &lhs, const aitstar::Edge &rhs) {
               return std::lexicographical_compare(lhs.getSortKey().begin(), lhs.getSortKey().end(),
                                                   rhs.getSortKey().begin(), rhs.getSortKey().end());
           })
-          , backwardQueue_([](const std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>> &lhs,
-                              const std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>> &rhs) {
+          , backwardQueue_([](const std::pair<std::array<double, 2u>, std::shared_ptr<aitstar::Vertex>> &lhs,
+                              const std::pair<std::array<double, 2u>, std::shared_ptr<aitstar::Vertex>> &rhs) {
               return std::lexicographical_compare(lhs.first.begin(), lhs.first.end(), rhs.first.begin(),
                                                   rhs.first.end());
           })
@@ -70,12 +70,12 @@ namespace ompl
         {
         }
 
-        void TBDstar::setup()
+        void AITstar::setup()
         {
             // Check that a problem definition has been set.
             if (!static_cast<bool>(Planner::pdef_))
             {
-                OMPL_ERROR("Tried to setup TBD*, but no problem definition has been set.");
+                OMPL_ERROR("Tried to setup AIT**, but no problem definition has been set.");
                 return;
             }
 
@@ -83,7 +83,7 @@ namespace ompl
             if (!(Planner::pdef_->getGoal()->hasType(ompl::base::GOAL_STATE) ||
                   Planner::pdef_->getGoal()->hasType(ompl::base::GOAL_STATES)))
             {
-                OMPL_ERROR("%s: TBD* is currently only implemented for goals with one or multiple distinct goal "
+                OMPL_ERROR("%s: AIT** is currently only implemented for goals with one or multiple distinct goal "
                            "states.",
                            Planner::getName().c_str());
                 return;
@@ -136,7 +136,7 @@ namespace ompl
             }
         }
 
-        ompl::base::PlannerStatus TBDstar::solve(const ompl::base::PlannerTerminationCondition &terminationCondition)
+        ompl::base::PlannerStatus AITstar::solve(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
             // Ensure the planner is setup.
             Planner::checkValidity();
@@ -155,7 +155,7 @@ namespace ompl
                     goal->setCostToComeFromGoal(optimizationObjective_->identityCost());
 
                     // Create an element for the queue.
-                    std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>> element(
+                    std::pair<std::array<double, 2u>, std::shared_ptr<aitstar::Vertex>> element(
                         std::array<double, 2u>({computeCostToGoToStartHeuristic(goal).value(), 0.0}), goal);
 
                     // Insert the element into the queue and set the corresponding pointer.
@@ -181,12 +181,12 @@ namespace ompl
             }
         }  // namespace geometric
 
-        ompl::base::Cost TBDstar::bestCost() const
+        ompl::base::Cost AITstar::bestCost() const
         {
             return *solutionCost_;
         }
 
-        void TBDstar::getPlannerData(base::PlannerData &data) const
+        void AITstar::getPlannerData(base::PlannerData &data) const
         {
             // Fill the planner progress properties.
             Planner::getPlannerData(data);
@@ -221,40 +221,40 @@ namespace ompl
             }
         }
 
-        void TBDstar::setBatchSize(std::size_t batchSize)
+        void AITstar::setBatchSize(std::size_t batchSize)
         {
             batchSize_ = batchSize;
         }
 
-        void TBDstar::setRewireFactor(double rewireFactor)
+        void AITstar::setRewireFactor(double rewireFactor)
         {
             graph_.setRewireFactor(rewireFactor);
         }
 
-        void TBDstar::setRepairBackwardSearch(bool repairBackwardSearch)
+        void AITstar::setRepairBackwardSearch(bool repairBackwardSearch)
         {
             repairBackwardSearch_ = repairBackwardSearch;
         }
 
-        void TBDstar::setStopOnFindingInitialSolution(bool stopOnFindingInitialSolution)
+        void AITstar::setStopOnFindingInitialSolution(bool stopOnFindingInitialSolution)
         {
             stopOnFindingInitialSolution_ = stopOnFindingInitialSolution;
         }
 
-        void TBDstar::rebuildForwardQueue()
+        void AITstar::rebuildForwardQueue()
         {
-            std::vector<tbdstar::Edge> content;
+            std::vector<aitstar::Edge> content;
             forwardQueue_.getContent(content);
             forwardQueue_.clear();
 
             for (auto &edge : content)
             {
-                forwardQueue_.insert(tbdstar::Edge(edge.getParent(), edge.getChild(),
+                forwardQueue_.insert(aitstar::Edge(edge.getParent(), edge.getChild(),
                                                    computeSortKey(edge.getParent(), edge.getChild())));
             }
         }
 
-        void TBDstar::rebuildBackwardQueue()
+        void AITstar::rebuildBackwardQueue()
         {
             std::vector<KeyVertexPair> content;
             backwardQueue_.getContent(content);
@@ -263,28 +263,28 @@ namespace ompl
             for (auto &vertex : content)
             {
                 // Compute the sort key for the vertex queue.
-                std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>> element(
+                std::pair<std::array<double, 2u>, std::shared_ptr<aitstar::Vertex>> element(
                     computeSortKey(vertex.second), vertex.second);
                 auto backwardQueuePointer = backwardQueue_.insert(element);
                 element.second->setBackwardQueuePointer(backwardQueuePointer);
             }
         }
 
-        std::vector<tbdstar::Edge> TBDstar::getEdgesInQueue() const
+        std::vector<aitstar::Edge> AITstar::getEdgesInQueue() const
         {
-            std::vector<tbdstar::Edge> edges;
+            std::vector<aitstar::Edge> edges;
             forwardQueue_.getContent(edges);
             return edges;
         }
 
-        std::vector<std::shared_ptr<tbdstar::Vertex>> TBDstar::getVerticesInQueue() const
+        std::vector<std::shared_ptr<aitstar::Vertex>> AITstar::getVerticesInQueue() const
         {
             // Get the content from the queue.
-            std::vector<std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>>> content;
+            std::vector<std::pair<std::array<double, 2u>, std::shared_ptr<aitstar::Vertex>>> content;
             backwardQueue_.getContent(content);
 
             // Return the vertices.
-            std::vector<std::shared_ptr<tbdstar::Vertex>> vertices;
+            std::vector<std::shared_ptr<aitstar::Vertex>> vertices;
             for (const auto &pair : content)
             {
                 vertices.emplace_back(pair.second);
@@ -292,7 +292,7 @@ namespace ompl
             return vertices;
         }
 
-        tbdstar::Edge TBDstar::getNextEdgeInQueue() const
+        aitstar::Edge AITstar::getNextEdgeInQueue() const
         {
             if (!forwardQueue_.empty())
             {
@@ -302,7 +302,7 @@ namespace ompl
             return {};
         }
 
-        std::shared_ptr<tbdstar::Vertex> TBDstar::getNextVertexInQueue() const
+        std::shared_ptr<aitstar::Vertex> AITstar::getNextVertexInQueue() const
         {
             if (!backwardQueue_.empty())
             {
@@ -312,21 +312,21 @@ namespace ompl
             return {};
         }
 
-        std::vector<std::shared_ptr<tbdstar::Vertex>> TBDstar::getVerticesInBackwardSearchTree() const
+        std::vector<std::shared_ptr<aitstar::Vertex>> AITstar::getVerticesInBackwardSearchTree() const
         {
             // Get all vertices from the graph.
             auto vertices = graph_.getVertices();
 
             // Erase the vertices that are not in the backward search tree.
             vertices.erase(std::remove_if(vertices.begin(), vertices.end(),
-                                          [this](const std::shared_ptr<tbdstar::Vertex> &vertex) {
+                                          [this](const std::shared_ptr<aitstar::Vertex> &vertex) {
                                               return !graph_.isGoal(vertex) && !vertex->hasBackwardParent();
                                           }),
                            vertices.end());
             return vertices;
         }
 
-        void TBDstar::iterate()
+        void AITstar::iterate()
         {
             // Keep track of the number of iterations.
             ++numIterations_;
@@ -404,7 +404,7 @@ namespace ompl
             }
         }
 
-        void TBDstar::performForwardSearchIteration()
+        void AITstar::performForwardSearchIteration()
         {
             // Get the most promising edge.
             auto &edge = forwardQueue_.top()->data;
@@ -514,7 +514,7 @@ namespace ompl
             }
         }
 
-        void TBDstar::performBackwardSearchIteration()
+        void AITstar::performBackwardSearchIteration()
         {
             // Get the most promising vertex.
             auto vertex = backwardQueue_.top()->data.second;
@@ -597,7 +597,7 @@ namespace ompl
             }
         }
 
-        void TBDstar::backwardSearchUpdateVertex(const std::shared_ptr<tbdstar::Vertex> &vertex)
+        void AITstar::backwardSearchUpdateVertex(const std::shared_ptr<aitstar::Vertex> &vertex)
         {
             if (!graph_.isGoal(vertex))
             {
@@ -720,7 +720,7 @@ namespace ompl
             }
         }
 
-        void TBDstar::insertOrUpdateInBackwardQueue(const std::shared_ptr<tbdstar::Vertex> &vertex)
+        void AITstar::insertOrUpdateInBackwardQueue(const std::shared_ptr<aitstar::Vertex> &vertex)
         {
             // Get the pointer to the element in the queue.
             auto element = vertex->getBackwardQueuePointer();
@@ -734,7 +734,7 @@ namespace ompl
             else  // Insert it into the queue otherwise.
             {
                 // Compute the sort key for the vertex queue.
-                std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>> element(computeSortKey(vertex),
+                std::pair<std::array<double, 2u>, std::shared_ptr<aitstar::Vertex>> element(computeSortKey(vertex),
                                                                                             vertex);
 
                 // Insert the vertex into the queue, storing the corresponding pointer.
@@ -743,10 +743,10 @@ namespace ompl
             }
         }
 
-        std::vector<std::shared_ptr<tbdstar::Vertex>>
-        TBDstar::getReversePath(const std::shared_ptr<tbdstar::Vertex> &vertex) const
+        std::vector<std::shared_ptr<aitstar::Vertex>>
+        AITstar::getReversePath(const std::shared_ptr<aitstar::Vertex> &vertex) const
         {
-            std::vector<std::shared_ptr<tbdstar::Vertex>> reversePath;
+            std::vector<std::shared_ptr<aitstar::Vertex>> reversePath;
             auto current = vertex;
             while (!graph_.isStart(current))
             {
@@ -757,8 +757,8 @@ namespace ompl
             return reversePath;
         }
 
-        std::array<double, 3u> TBDstar::computeSortKey(const std::shared_ptr<tbdstar::Vertex> &parent,
-                                                       const std::shared_ptr<tbdstar::Vertex> &child) const
+        std::array<double, 3u> AITstar::computeSortKey(const std::shared_ptr<aitstar::Vertex> &parent,
+                                                       const std::shared_ptr<aitstar::Vertex> &child) const
         {
             // Compute the sort key [g_T(start) + c_hat(start, neighbor) + h_hat(neighbor), g_T(start) +
             // c_hat(start, neighbor), g_T(start)].
@@ -770,7 +770,7 @@ namespace ompl
                     parent->getCostToComeFromStart().value()};
         }
 
-        std::array<double, 2u> TBDstar::computeSortKey(const std::shared_ptr<tbdstar::Vertex> &vertex) const
+        std::array<double, 2u> AITstar::computeSortKey(const std::shared_ptr<aitstar::Vertex> &vertex) const
         {
             // LPA* sort key is [min(g(x), v(x)) + h(x); min(g(x), v(x))].
             return {optimizationObjective_
@@ -783,7 +783,7 @@ namespace ompl
                         .value()};
         }
 
-        void TBDstar::insertOutgoingEdges(const std::shared_ptr<tbdstar::Vertex> &vertex)
+        void AITstar::insertOutgoingEdges(const std::shared_ptr<aitstar::Vertex> &vertex)
         {
             // Register that this vertex is expanded on the current search.
             vertex->registerExpansionDuringForwardSearch();
@@ -791,7 +791,7 @@ namespace ompl
             // Insert the edges to the current children.
             for (const auto &child : vertex->getForwardChildren())
             {
-                forwardQueue_.insert(tbdstar::Edge(vertex, child, computeSortKey(vertex, child)));
+                forwardQueue_.insert(aitstar::Edge(vertex, child, computeSortKey(vertex, child)));
             }
 
             // Insert the edges to the current neighbors.
@@ -816,18 +816,18 @@ namespace ompl
                 }
 
                 // If none of the above tests caught on, we can insert the edge.
-                forwardQueue_.insert(tbdstar::Edge(vertex, neighbor, computeSortKey(vertex, neighbor)));
+                forwardQueue_.insert(aitstar::Edge(vertex, neighbor, computeSortKey(vertex, neighbor)));
             }
 
             // Insert the edge to the backward search parent.
             if (vertex->hasBackwardParent())
             {
                 const auto &backwardParent = vertex->getBackwardParent();
-                forwardQueue_.insert(tbdstar::Edge(vertex, backwardParent, computeSortKey(vertex, backwardParent)));
+                forwardQueue_.insert(aitstar::Edge(vertex, backwardParent, computeSortKey(vertex, backwardParent)));
             }
         }
 
-        void TBDstar::updateSolution()
+        void AITstar::updateSolution()
         {
             // Check if any of the goals have a cost to come less than the current solution cost.
             for (const auto &goal : graph_.getGoalVertices())
@@ -858,7 +858,7 @@ namespace ompl
             }
         }
 
-        ompl::base::Cost TBDstar::computeCostToGoToStartHeuristic(const std::shared_ptr<tbdstar::Vertex> &vertex) const
+        ompl::base::Cost AITstar::computeCostToGoToStartHeuristic(const std::shared_ptr<aitstar::Vertex> &vertex) const
         {
             // We need to loop over all start vertices and see which is the closest one.
             ompl::base::Cost bestCost = optimizationObjective_->infiniteCost();
@@ -870,7 +870,7 @@ namespace ompl
             return bestCost;
         }
 
-        ompl::base::Cost TBDstar::computeCostToGoToGoalHeuristic(const std::shared_ptr<tbdstar::Vertex> &vertex) const
+        ompl::base::Cost AITstar::computeCostToGoToGoalHeuristic(const std::shared_ptr<aitstar::Vertex> &vertex) const
         {
             // We need to loop over all goal vertices and see which is the closest one.
             ompl::base::Cost bestCost = optimizationObjective_->infiniteCost();
@@ -882,7 +882,7 @@ namespace ompl
             return bestCost;
         }
 
-        ompl::base::Cost TBDstar::computeBestCostToComeFromGoalOfAnyStart() const
+        ompl::base::Cost AITstar::computeBestCostToComeFromGoalOfAnyStart() const
         {
             // We need to loop over all start vertices and see which is the closest one.
             ompl::base::Cost bestCost = optimizationObjective_->infiniteCost();
@@ -893,7 +893,7 @@ namespace ompl
             return bestCost;
         }
 
-        void TBDstar::invalidateCostToComeFromGoalOfBackwardBranch(const std::shared_ptr<tbdstar::Vertex> &vertex)
+        void AITstar::invalidateCostToComeFromGoalOfBackwardBranch(const std::shared_ptr<aitstar::Vertex> &vertex)
         {
             // Update the cost of all backward children and remove from open.
             for (const auto &child : vertex->getBackwardChildren())

@@ -34,7 +34,7 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/tbdstar/datastructures/Vertex.h"
+#include "ompl/geometric/planners/aitstar/datastructures/Vertex.h"
 
 #include <algorithm>
 #include <atomic>
@@ -50,7 +50,7 @@ namespace ompl
 {
     namespace geometric
     {
-        namespace tbdstar
+        namespace aitstar
         {
             namespace
             {
@@ -466,7 +466,7 @@ namespace ompl
                 backwardQueuePointer_ = nullptr;
             }
 
-        }  // namespace tbdstar
+        }  // namespace aitstar
 
     }  // namespace geometric
 

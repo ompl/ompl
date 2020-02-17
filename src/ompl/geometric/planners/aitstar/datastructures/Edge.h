@@ -39,14 +39,14 @@
 #include <array>
 #include <memory>
 
-#include "ompl/geometric/planners/tbdstar/datastructures/Vertex.h"
+#include "ompl/geometric/planners/aitstar/datastructures/Vertex.h"
 #include "ompl/base/Cost.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace tbdstar
+        namespace aitstar
         {
             class Edge
             {
@@ -84,7 +84,7 @@ namespace ompl
                 std::array<double, 3u> sortKey_;
             };
 
-        }  // namespace tbdstar
+        }  // namespace aitstar
 
     }  // namespace geometric
 

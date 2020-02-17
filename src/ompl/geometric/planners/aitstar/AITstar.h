@@ -41,22 +41,22 @@
 
 #include "ompl/base/Planner.h"
 #include "ompl/datastructures/BinaryHeap.h"
-#include "ompl/geometric/planners/tbdstar/datastructures/Edge.h"
-#include "ompl/geometric/planners/tbdstar/datastructures/ImplicitGraph.h"
-#include "ompl/geometric/planners/tbdstar/datastructures/Vertex.h"
+#include "ompl/geometric/planners/aitstar/datastructures/Edge.h"
+#include "ompl/geometric/planners/aitstar/datastructures/ImplicitGraph.h"
+#include "ompl/geometric/planners/aitstar/datastructures/Vertex.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        class TBDstar : public ompl::base::Planner
+        class AITstar : public ompl::base::Planner
         {
         public:
-            /** \brief Constructs a TBDstar. */
-            TBDstar(const ompl::base::SpaceInformationPtr &spaceInformation);
+            /** \brief Constructs a AIT*. */
+            AITstar(const ompl::base::SpaceInformationPtr &spaceInformation);
 
-            /** \brief Destructs a TBDstar. */
-            ~TBDstar() = default;
+            /** \brief Destructs a AIT*. */
+            ~AITstar() = default;
 
             /** \brief Additional setup that can only be done once a problem definition is set. */
             void setup() override;
@@ -84,22 +84,22 @@ namespace ompl
             void setStopOnFindingInitialSolution(bool stopOnFindingInitialSolution);
 
             /** \brief Get the edge queue. */
-            std::vector<tbdstar::Edge> getEdgesInQueue() const;
+            std::vector<aitstar::Edge> getEdgesInQueue() const;
 
             /** \brief Get the vertex queue. */
-            std::vector<std::shared_ptr<tbdstar::Vertex>> getVerticesInQueue() const;
+            std::vector<std::shared_ptr<aitstar::Vertex>> getVerticesInQueue() const;
 
             /** \brief Get the next edge in the queue. */
-            tbdstar::Edge getNextEdgeInQueue() const;
+            aitstar::Edge getNextEdgeInQueue() const;
 
             /** \brief Get the next vertex in the queue. */
-            std::shared_ptr<tbdstar::Vertex> getNextVertexInQueue() const;
+            std::shared_ptr<aitstar::Vertex> getNextVertexInQueue() const;
 
             /** \brief Get the vertices in the backward search tree. */
-            std::vector<std::shared_ptr<tbdstar::Vertex>> getVerticesInBackwardSearchTree() const;
+            std::vector<std::shared_ptr<aitstar::Vertex>> getVerticesInBackwardSearchTree() const;
 
         private:
-            /** \brief Performs one iteration of TBDstar. */
+            /** \brief Performs one iteration of AIT*. */
             void iterate();
 
             /** \brief Performs one forward search iterations. */
@@ -109,10 +109,10 @@ namespace ompl
             void performBackwardSearchIteration();
 
             /** \brief Updates a vertex in the backward search queue (LPA* update). */
-            void backwardSearchUpdateVertex(const std::shared_ptr<tbdstar::Vertex> &vertex);
+            void backwardSearchUpdateVertex(const std::shared_ptr<aitstar::Vertex> &vertex);
 
             /** \brief Inserts or updates a vertex in the backward queue. */
-            void insertOrUpdateInBackwardQueue(const std::shared_ptr<tbdstar::Vertex> &vertex);
+            void insertOrUpdateInBackwardQueue(const std::shared_ptr<aitstar::Vertex> &vertex);
 
             /** \brief Rebuilds the forward queue. */
             void rebuildForwardQueue();
@@ -121,45 +121,45 @@ namespace ompl
             void rebuildBackwardQueue();
 
             /** \brief Returns a vector of states from the argument to a start. */
-            std::vector<std::shared_ptr<tbdstar::Vertex>>
-            getReversePath(const std::shared_ptr<tbdstar::Vertex> &vertex) const;
+            std::vector<std::shared_ptr<aitstar::Vertex>>
+            getReversePath(const std::shared_ptr<aitstar::Vertex> &vertex) const;
 
             /** \brief Computes the sort key of an edge. */
-            std::array<double, 3u> computeSortKey(const std::shared_ptr<tbdstar::Vertex> &parent,
-                                                  const std::shared_ptr<tbdstar::Vertex> &child) const;
+            std::array<double, 3u> computeSortKey(const std::shared_ptr<aitstar::Vertex> &parent,
+                                                  const std::shared_ptr<aitstar::Vertex> &child) const;
 
             /** \brief Computes the sort key of a vertex. */
-            std::array<double, 2u> computeSortKey(const std::shared_ptr<tbdstar::Vertex> &vertex) const;
+            std::array<double, 2u> computeSortKey(const std::shared_ptr<aitstar::Vertex> &vertex) const;
 
-            void insertOutgoingEdges(const std::shared_ptr<tbdstar::Vertex> &vertex);
+            void insertOutgoingEdges(const std::shared_ptr<aitstar::Vertex> &vertex);
 
             /** \brief Checks whether the cost to come of a goal vertex has been updated and updates the solution if so.
              */
             void updateSolution();
 
             /** \brief Returns the best cost-to-go-heuristic to any start in the graph. */
-            ompl::base::Cost computeCostToGoToStartHeuristic(const std::shared_ptr<tbdstar::Vertex> &vertex) const;
+            ompl::base::Cost computeCostToGoToStartHeuristic(const std::shared_ptr<aitstar::Vertex> &vertex) const;
 
             /** \brief Returns the best cost-to-go-heuristic to any goal in the graph. */
-            ompl::base::Cost computeCostToGoToGoalHeuristic(const std::shared_ptr<tbdstar::Vertex> &vertex) const;
+            ompl::base::Cost computeCostToGoToGoalHeuristic(const std::shared_ptr<aitstar::Vertex> &vertex) const;
 
             /** \brief Returns the best cost to come form the goal of any start. */
             ompl::base::Cost computeBestCostToComeFromGoalOfAnyStart() const;
 
             /** \brief Sets the cost to come from to goal of the backward search to infinity for the whole branch.
              */
-            void invalidateCostToComeFromGoalOfBackwardBranch(const std::shared_ptr<tbdstar::Vertex>& vertex);
+            void invalidateCostToComeFromGoalOfBackwardBranch(const std::shared_ptr<aitstar::Vertex>& vertex);
 
             /** \brief The increasingly dense sampling-based approximation. */
-            tbdstar::ImplicitGraph graph_;
+            aitstar::ImplicitGraph graph_;
 
             /** \brief The forward queue. */
             using EdgeQueue =
-                ompl::BinaryHeap<tbdstar::Edge, std::function<bool(const tbdstar::Edge &, const tbdstar::Edge &)>>;
+                ompl::BinaryHeap<aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>;
             EdgeQueue forwardQueue_;
 
             /** \brief The backward queue. */
-            using KeyVertexPair = std::pair<std::array<double, 2u>, std::shared_ptr<tbdstar::Vertex>>;
+            using KeyVertexPair = std::pair<std::array<double, 2u>, std::shared_ptr<aitstar::Vertex>>;
             using VertexQueue =
                 ompl::BinaryHeap<KeyVertexPair, std::function<bool(const KeyVertexPair &, const KeyVertexPair &)>>;
             VertexQueue backwardQueue_;

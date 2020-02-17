@@ -34,13 +34,13 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/tbdstar/datastructures/Edge.h"
+#include "ompl/geometric/planners/aitstar/datastructures/Edge.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace tbdstar
+        namespace aitstar
         {
             Edge::Edge()
               : parent_()
@@ -76,7 +76,7 @@ namespace ompl
                 sortKey_ = key;
             }
 
-        }  // namespace tbdstar
+        }  // namespace aitstar
 
     }  // namespace geometric
 

@@ -50,7 +50,7 @@ namespace ompl
 {
     namespace geometric
     {
-        namespace tbdstar
+        namespace aitstar
         {
             class Vertex
             {
@@ -294,7 +294,7 @@ namespace ompl
                     *backwardQueuePointer_{nullptr};
             };
 
-        }  // namespace tbdstar
+        }  // namespace aitstar
 
     }  // namespace geometric
 

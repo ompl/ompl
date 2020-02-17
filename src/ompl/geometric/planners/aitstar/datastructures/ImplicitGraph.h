@@ -44,13 +44,13 @@
 
 #include "ompl/datastructures/NearestNeighborsGNATNoThreadSafety.h"
 
-#include "ompl/geometric/planners/tbdstar/datastructures/Vertex.h"
+#include "ompl/geometric/planners/aitstar/datastructures/Vertex.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace tbdstar
+        namespace aitstar
         {
             class ImplicitGraph
             {
@@ -151,7 +151,7 @@ namespace ompl
                 std::vector<std::shared_ptr<Vertex>> goalVertices_;
             };
 
-        }  // namespace tbdstar
+        }  // namespace aitstar
 
     }  // namespace geometric
 
