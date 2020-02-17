@@ -34,18 +34,18 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/aibitstar/RandomGeometricGraph.h"
+#include "ompl/geometric/planners/aeitstar/RandomGeometricGraph.h"
 
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/util/GeometricEquations.h"
 
-#include "ompl/geometric/planners/aibitstar/Vertex.h"
+#include "ompl/geometric/planners/aeitstar/Vertex.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aibitstar
+        namespace aeitstar
         {
             RandomGeometricGraph::RandomGeometricGraph(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo)
 
@@ -371,7 +371,7 @@ namespace ompl
                 //                 1.0 / dimension_);
             }
 
-        }  // namespace aibitstar
+        }  // namespace aeitstar
 
     }  // namespace geometric
 

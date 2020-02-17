@@ -34,14 +34,14 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/aibitstar/AIBITstar.h"
+#include "ompl/geometric/planners/aeitstar/AEITstar.h"
 
 #include <algorithm>
 #include <memory>
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
-#include "ompl/geometric/planners/aibitstar/stopwatch/timetable.h"
+#include "ompl/geometric/planners/aeitstar/stopwatch/timetable.h"
 
 using namespace std::string_literals;
 
@@ -49,10 +49,10 @@ namespace ompl
 {
     namespace geometric
     {
-        using namespace aibitstar;
+        using namespace aeitstar;
 
-        AIBITstar::AIBITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo)
-          : ompl::base::Planner(spaceInfo, "AI-BIT*")
+        AEITstar::AEITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo)
+          : ompl::base::Planner(spaceInfo, "AEIT*")
           , graph_(spaceInfo)
           , detectionState_(spaceInfo->allocState())
           , space_(spaceInfo->getStateSpace())
@@ -60,24 +60,24 @@ namespace ompl
         {
         }
 
-        AIBITstar::~AIBITstar()
+        AEITstar::~AEITstar()
         {
             spaceInfo_->freeState(detectionState_);
         }
 
-        void AIBITstar::setup()
+        void AEITstar::setup()
         {
             // Check that the problem definition is set.
             if (!problem_)
             {
-                OMPL_ERROR("AI-BIT* can not be setup without first setting the problem definition.");
+                OMPL_ERROR("AEIT* can not be setup without first setting the problem definition.");
                 return;
             }
 
             // Check the goal is of appropriate type.
             if (!problem_->getGoal()->hasType(ompl::base::GOAL_STATE))
             {
-                OMPL_ERROR("AI-BIT* currently only works for single goal states.");
+                OMPL_ERROR("AEIT* currently only works for single goal states.");
                 return;
             }
 
@@ -103,8 +103,8 @@ namespace ompl
             bestCost_ = objective_->infiniteCost();
 
             // Instantiate the queues.
-            forwardQueue_ = std::make_unique<aibitstar::ForwardQueue>(objective_, spaceInfo_);
-            reverseQueue_ = std::make_unique<aibitstar::ReverseQueue>(objective_);
+            forwardQueue_ = std::make_unique<aeitstar::ForwardQueue>(objective_, spaceInfo_);
+            reverseQueue_ = std::make_unique<aeitstar::ReverseQueue>(objective_);
 
             // Add the start state.
             while (Planner::pis_.haveMoreStartStates())
@@ -132,16 +132,16 @@ namespace ompl
             }
         }
 
-        ompl::base::PlannerStatus AIBITstar::solve(const ompl::base::PlannerTerminationCondition &terminationCondition)
+        ompl::base::PlannerStatus AEITstar::solve(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
             // Make sure everything is setup.
             if (!setup_)
             {
-                throw std::runtime_error("Called solve on AI-BIT* without setting up the planner first.");
+                throw std::runtime_error("Called solve on AEIT* without setting up the planner first.");
             }
             if (!spaceInfo_->isSetup())
             {
-                throw std::runtime_error("Called solve on AI-BIT* without setting up the state space first.");
+                throw std::runtime_error("Called solve on AEIT* without setting up the state space first.");
             }
 
             // If this is the first time solve is being called, populate the reverse queue.
@@ -169,52 +169,52 @@ namespace ompl
             }
         }
 
-        ompl::base::Cost AIBITstar::bestCost() const
+        ompl::base::Cost AEITstar::bestCost() const
         {
             return bestCost_;
         }
 
-        void AIBITstar::setNumSamplesPerBatch(std::size_t numSamples)
+        void AEITstar::setNumSamplesPerBatch(std::size_t numSamples)
         {
             numSamplesPerBatch_ = numSamples;
         }
 
-        void AIBITstar::setRadiusFactor(double factor)
+        void AEITstar::setRadiusFactor(double factor)
         {
             graph_.setRadiusFactor(factor);
         }
 
-        void AIBITstar::setRepairFactor(double factor)
+        void AEITstar::setRepairFactor(double factor)
         {
             repairFactor_ = factor;
         }
 
-        void AIBITstar::setSuboptimalityFactor(double factor)
+        void AEITstar::setSuboptimalityFactor(double factor)
         {
             suboptimalityFactor_ = factor;
         }
 
-        void AIBITstar::enableRepairingReverseTree(bool enable)
+        void AEITstar::enableRepairingReverseTree(bool enable)
         {
             isRepairingOfReverseTreeEnabled_ = enable;
         }
 
-        void AIBITstar::enableCollisionDetectionInReverseSearch(bool enable)
+        void AEITstar::enableCollisionDetectionInReverseSearch(bool enable)
         {
             isCollisionDetectionInReverseTreeEnabled_ = enable;
         }
 
-        std::vector<Edge> AIBITstar::getForwardQueue() const
+        std::vector<Edge> AEITstar::getForwardQueue() const
         {
             return forwardQueue_->getEdges();
         }
 
-        std::vector<Edge> AIBITstar::getReverseQueue() const
+        std::vector<Edge> AEITstar::getReverseQueue() const
         {
             return reverseQueue_->getEdges();
         }
 
-        std::vector<Edge> AIBITstar::getReverseTree() const
+        std::vector<Edge> AEITstar::getReverseTree() const
         {
             // Prepare the return value.
             std::vector<Edge> edges;
@@ -238,19 +238,19 @@ namespace ompl
             return edges;
         }
 
-        Edge AIBITstar::getNextForwardEdge() const
+        Edge AEITstar::getNextForwardEdge() const
         {
             assert(forwardQueue_);
             return forwardQueue_->peek(suboptimalityFactor_);
         }
 
-        Edge AIBITstar::getNextReverseEdge() const
+        Edge AEITstar::getNextReverseEdge() const
         {
             assert(reverseQueue_);
             return reverseQueue_->peek();
         }
 
-        void AIBITstar::getPlannerData(base::PlannerData &data) const
+        void AEITstar::getPlannerData(base::PlannerData &data) const
         {
             // base::PlannerDataVertex takes a raw pointer to a state. I want to guarantee, that the state lives as long
             // as the program lives.
@@ -283,7 +283,7 @@ namespace ompl
             }
         }
 
-        void AIBITstar::iterate()
+        void AEITstar::iterate()
         {
             // Increment the iteration count.
             ++iteration_;
@@ -333,7 +333,7 @@ namespace ompl
             };
         }
 
-        void AIBITstar::forwardIterate()
+        void AEITstar::forwardIterate()
         {
             // Ensure the forward queue is not empty.
             assert(!forwardQueue_->empty());
@@ -464,7 +464,7 @@ namespace ompl
             }
         }
 
-        void AIBITstar::reverseIterate()
+        void AEITstar::reverseIterate()
         {
             // Ensure the reverse queue is not empty.
             assert(!reverseQueue_->empty());
@@ -575,7 +575,7 @@ namespace ompl
             }
         }
 
-        void AIBITstar::updateSolution()
+        void AEITstar::updateSolution()
         {
             // Throw if the reverse root does not have a forward vertex.
             assert(reverseRoot_->getTwin().lock());
@@ -619,8 +619,8 @@ namespace ompl
             suboptimalityFactor_ = bestCost_.value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value();
         }
 
-        void AIBITstar::repairReverseSearchTree(const aibitstar::Edge &invalidEdge,
-                                                std::shared_ptr<aibitstar::State> &invalidatedState)
+        void AEITstar::repairReverseSearchTree(const aeitstar::Edge &invalidEdge,
+                                                std::shared_ptr<aeitstar::State> &invalidatedState)
         {
             // The edge is invalid. The reverse tree can be updated.
             invalidatedState->asReverseVertex()->setEdgeCost(objective_->infiniteCost());
@@ -629,7 +629,7 @@ namespace ompl
 
             // Get the neighbors of the invalidated state and find the best new parent in the reverse
             // tree. Can not use structured bindings because OMPL does not support c++17.
-            std::shared_ptr<aibitstar::State> newParent;
+            std::shared_ptr<aeitstar::State> newParent;
             ompl::base::Cost newCost = objective_->infiniteCost();
             ompl::base::Cost newEdgeCost = objective_->infiniteCost();
             std::tie(newParent, newCost, newEdgeCost) = getBestParentInReverseTree(invalidatedState);
@@ -735,7 +735,7 @@ namespace ompl
             }
         }
 
-        void AIBITstar::increaseSparseCollisionDetectionResolutionAndRestartReverseSearch()
+        void AEITstar::increaseSparseCollisionDetectionResolutionAndRestartReverseSearch()
         {
             // Increase the number of interpolation values.
             std::size_t numInterpolationValues = detectionInterpolationValues_.size() + 1u;
@@ -769,7 +769,7 @@ namespace ompl
             }
         }
 
-        bool AIBITstar::couldImproveForwardPath(const Edge &edge) const
+        bool AEITstar::couldImproveForwardPath(const Edge &edge) const
         {
             // If the start state has not been discovered by the reverse search, the answer is always yes.
             if (auto goalVertex = reverseRoot_->getTwin().lock())
@@ -802,7 +802,7 @@ namespace ompl
             }
         }
 
-        bool AIBITstar::couldImproveForwardTree(const Edge &edge) const
+        bool AEITstar::couldImproveForwardTree(const Edge &edge) const
         {
             auto heuristicCostToCome =
                 objective_->combineCosts(edge.source->asForwardVertex()->getCost(),
@@ -810,7 +810,7 @@ namespace ompl
             return objective_->isCostBetterThan(heuristicCostToCome, edge.target->asForwardVertex()->getCost());
         }
 
-        bool AIBITstar::doesImproveForwardPath(const Edge &edge, const ompl::base::Cost &trueEdgeCost) const
+        bool AEITstar::doesImproveForwardPath(const Edge &edge, const ompl::base::Cost &trueEdgeCost) const
         {
             assert(edge.target->asForwardVertex()->getTwin().lock());
             assert(edge.target->hasReverseVertex());
@@ -832,14 +832,14 @@ namespace ompl
             }
         }
 
-        bool AIBITstar::doesImproveForwardTree(const Edge &edge, const ompl::base::Cost &trueEdgeCost) const
+        bool AEITstar::doesImproveForwardTree(const Edge &edge, const ompl::base::Cost &trueEdgeCost) const
         {
             return objective_->isCostBetterThan(
                 objective_->combineCosts(edge.source->asForwardVertex()->getCost(), trueEdgeCost),
                 edge.target->asForwardVertex()->getCost());
         }
 
-        bool AIBITstar::isValid(const Edge &edge) const
+        bool AEITstar::isValid(const Edge &edge) const
         {
             // Check if the edge is whitelisted.
             if (edge.source->isWhitelisted(edge.target))
@@ -871,7 +871,7 @@ namespace ompl
             }
         }
 
-        bool AIBITstar::couldBeValid(const Edge &edge) const
+        bool AEITstar::couldBeValid(const Edge &edge) const
         {
             // Check if the edge is whitelisted.
             if (edge.source->isWhitelisted(edge.target))
@@ -909,10 +909,10 @@ namespace ompl
             }
         }
 
-        std::tuple<std::shared_ptr<aibitstar::State>, ompl::base::Cost, ompl::base::Cost>
-        AIBITstar::getBestParentInReverseTree(const std::shared_ptr<aibitstar::State> &state) const
+        std::tuple<std::shared_ptr<aeitstar::State>, ompl::base::Cost, ompl::base::Cost>
+        AEITstar::getBestParentInReverseTree(const std::shared_ptr<aeitstar::State> &state) const
         {
-            std::shared_ptr<aibitstar::State> bestParent;
+            std::shared_ptr<aeitstar::State> bestParent;
             ompl::base::Cost bestCost = objective_->infiniteCost();
             ompl::base::Cost bestEdgeCost = objective_->infiniteCost();
             for (const auto &neighbor : graph_.getNeighbors(state))
@@ -933,12 +933,12 @@ namespace ompl
             return {bestParent, bestCost, bestEdgeCost};
         }
 
-        bool AIBITstar::isClosed(const std::shared_ptr<Vertex> &vertex) const
+        bool AEITstar::isClosed(const std::shared_ptr<Vertex> &vertex) const
         {
             return vertex->getExpandTag() == searchTag_;
         }
 
-        bool AIBITstar::doesImproveReversePath(const Edge &edge) const
+        bool AEITstar::doesImproveReversePath(const Edge &edge) const
         {
             // If the start state has not been discovered by the reverse search, the answer is always yes.
             if (auto startVertex = forwardRoot_->getTwin().lock())
@@ -964,7 +964,7 @@ namespace ompl
             }
         }
 
-        bool AIBITstar::doesImproveReverseTree(const Edge &edge) const
+        bool AEITstar::doesImproveReverseTree(const Edge &edge) const
         {
             return objective_->isCostBetterThan(
                 objective_->combineCosts(edge.source->asReverseVertex()->getCost(),
@@ -972,7 +972,7 @@ namespace ompl
                 edge.target->asReverseVertex()->getCost());
         }
 
-        std::vector<Edge> AIBITstar::expand(const std::shared_ptr<State> &state) const
+        std::vector<Edge> AEITstar::expand(const std::shared_ptr<State> &state) const
         {
             // Only states associated with a vertex in either of the trees should be expanded.
             assert(state->hasForwardVertex() || state->hasReverseVertex());

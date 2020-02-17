@@ -34,35 +34,38 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_REVERSE_QUEUE_
-#define OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_REVERSE_QUEUE_
+#ifndef OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_FORWARD_QUEUE_
+#define OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_FORWARD_QUEUE_
 
 #include <array>
 #include <map>
+#include <utility>
+#include <vector>
 
 #include "ompl/base/Cost.h"
 #include "ompl/base/samplers/InformedStateSampler.h"
 #include "ompl/datastructures/BinaryHeap.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 
-#include "ompl/geometric/planners/aibitstar/Direction.h"
-#include "ompl/geometric/planners/aibitstar/Edge.h"
-#include "ompl/geometric/planners/aibitstar/Vertex.h"
+#include "ompl/geometric/planners/aeitstar/Direction.h"
+#include "ompl/geometric/planners/aeitstar/Edge.h"
+#include "ompl/geometric/planners/aeitstar/Vertex.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aibitstar
+        namespace aeitstar
         {
-            class ReverseQueue
+            class ForwardQueue
             {
             public:
                 /** \brief Constructs the queue. */
-                ReverseQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective);
+                ForwardQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
+                             const std::shared_ptr<const ompl::base::SpaceInformation> &spaceInfo);
 
                 /** \brief Destructs the queue. */
-                ~ReverseQueue() = default;
+                ~ForwardQueue() = default;
 
                 /** \brief Returns whether the queue is empty. */
                 bool empty() const;
@@ -70,17 +73,26 @@ namespace ompl
                 /** \brief Returns how many elements are in the queue. */
                 std::size_t size() const;
 
-                /** \brief Insert an element into the queue. */
+                /** \brief Insert an edge into the queue. */
                 void insert(const Edge &edge);
 
-                /** \brief Insert an element into the queue. */
+                /** \brief Inserts multiple edges into the queue. */
                 void insert(const std::vector<Edge> &edges);
 
-                /** Get a reference to the top edge in the queue. */
-                const Edge &peek() const;
+                /** \brief Removes an edge from the queue. Throws if the edge is not in the queue. */
+                void remove(const Edge &edge);
+
+                /** \brief Update an edge in the queue. */
+                bool update(const Edge &edge);
+
+                /** \brief Returns a copy to the next edge. */
+                Edge peek(double suboptimalityFactor) const;
 
                 /** \brief Returns and deletes the top element of the queue. */
-                Edge pop();
+                Edge pop(double suboptimalityFactor);
+
+                /** \brief Returns a lower bound on the resolution-optimal solution cost. */
+                ompl::base::Cost getLowerBoundOnOptimalSolutionCost() const;
 
                 /** \brief Clears the queue, i.e., deletes all elements from it. */
                 void clear();
@@ -91,11 +103,15 @@ namespace ompl
                 /** \brief Rebuilds the queue. */
                 void rebuild();
 
-                void removeOutgoingEdges(const std::shared_ptr<Vertex>& vertex);
-
             private:
-                /** \brief Update an edge in the queue if it exists. */
-                bool update(const Edge &edge);
+                /** \brief Estimates the effort that remains to validate a solution through an edge. */
+                std::size_t estimateEffort(const Edge &edge) const;
+
+                /** \brief Estimates the cost of a solution through an edge (possibly inadmissible). */
+                ompl::base::Cost estimateCost(const Edge &edge) const;
+
+                /** \brief Returns a lower bounding cost for a solution through an edge (admissible). */
+                ompl::base::Cost lowerBoundCost(const Edge &edge) const;
 
                 /** \brief The optimization objective. */
                 std::shared_ptr<const ompl::base::OptimizationObjective> objective_;
@@ -103,17 +119,23 @@ namespace ompl
                 /** \brief The state space information. */
                 std::shared_ptr<const ompl::base::SpaceInformation> spaceInfo_;
 
+                /** \brief The three values an edge can be sorted by. */
+                struct EdgeKeys
+                {
+                    EdgeKeys(ompl::base::Cost lowerBound, ompl::base::Cost estimated, std::size_t effort)
+                      : lowerBoundCost(lowerBound), estimatedCost(estimated), estimatedEffort(effort){};
+                    ompl::base::Cost lowerBoundCost;
+                    ompl::base::Cost estimatedCost;
+                    std::size_t estimatedEffort;
+                };
+
                 /** \brief The queue is ordered on the lower bound cost through an edge. */
-                using CostHeap =
-                    ompl::BinaryHeap<std::pair<std::array<ompl::base::Cost, 2u>, Edge>,
-                                     std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &,
-                                                        const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &)>>;
-                CostHeap queue_;
+                std::vector<std::pair<EdgeKeys, Edge>> queue_;
             };
-        }  // namespace aibitstar
+        }  // namespace aeitstar
 
     }  // namespace geometric
 
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_REVERSE_QUEUE_
+#endif  // OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_FORWARD_QUEUE_

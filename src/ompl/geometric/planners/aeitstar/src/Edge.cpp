@@ -34,19 +34,19 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/aibitstar/Edge.h"
+#include "ompl/geometric/planners/aeitstar/Edge.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aibitstar
+        namespace aeitstar
         {
             Edge::Edge(const std::shared_ptr<State> &source, const std::shared_ptr<State> &target)
               : source(source), target(target)
             {
             }
-        }  // namespace aibitstar
+        }  // namespace aeitstar
 
     }  // namespace geometric
 

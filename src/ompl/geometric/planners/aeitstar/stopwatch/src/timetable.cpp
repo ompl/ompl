@@ -34,24 +34,56 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_DIRECTION_
-#define OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_DIRECTION_
+#include "ompl/geometric/planners/aeitstar/stopwatch/timetable.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aibitstar
+        namespace aeitstar
         {
-            enum class Direction {
-                FORWARD,
-                REVERSE
-            };
+            namespace timing
+            {
+                template <>
+                const std::string Timetable<std::chrono::nanoseconds>::units()
+                {
+                    return "nanoseconds";
+                }
+
+                template <>
+                const std::string Timetable<std::chrono::microseconds>::units()
+                {
+                    return "microseconds";
+                }
+
+                template <>
+                const std::string Timetable<std::chrono::milliseconds>::units()
+                {
+                    return "milliseconds";
+                }
+
+                template <>
+                const std::string Timetable<std::chrono::seconds>::units()
+                {
+                    return "seconds";
+                }
+
+                template <>
+                const std::string Timetable<std::chrono::minutes>::units()
+                {
+                    return "minutes";
+                }
+
+                template <>
+                const std::string Timetable<std::chrono::hours>::units()
+                {
+                    return "hours";
+                }
+
+            }  // namespace timing
 
         }  // namespace aibitstar
 
     }  // namespace geometric
 
 }  // namespace ompl
-
-#endif  // OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_DIRECTION_

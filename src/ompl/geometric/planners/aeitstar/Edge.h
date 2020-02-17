@@ -34,66 +34,47 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_STOPWATCH_STOPWATCH_
-#define OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_STOPWATCH_STOPWATCH_
+#ifndef OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_EDGE_
+#define OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_EDGE_
 
-#include <chrono>
-#include <map>
-#include <string>
+#include <array>
+#include <limits>
+#include <memory>
+
+#include "ompl/base/Cost.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aibitstar
+        namespace aeitstar
         {
-            namespace timing
+            // Forward declaration of state to break include cycle.
+            class State;
+
+            /** \brief A struct for basic edge data. */
+            struct Edge
             {
-                template <typename T>
-                class Stopwatch
-                {
-                public:
-                    explicit Stopwatch(const std::string &name);
-                    ~Stopwatch() = default;
+                /** \brief OMPL's heap unfortunately only works for default constructable element. */
+                Edge() = default;
 
-                    void start(size_t instance = 0u);
-                    void stop(size_t instance = 0u);  // Implementation is in timetable.h.
-                    inline bool isTiming(size_t instance = 0u);
+                /** \brief Construct the edge by providing source and target states. */
+                Edge(const std::shared_ptr<State> &source, const std::shared_ptr<State> &target);
 
-                private:
-                    std::map<size_t, std::chrono::steady_clock::time_point> starts_;
-                    const std::string name_;
-                };
+                /** \brief Destruct the edge. */
+                ~Edge() = default;
 
-                template <typename T>
-                Stopwatch<T>::Stopwatch(const std::string &name) : starts_(), name_(name)
-                {
-                }
+                /** \brief The parent state of this edge. */
+                std::shared_ptr<State> source;
 
-                template <typename T>
-                void Stopwatch<T>::start(size_t instance)
-                {
-                    if (starts_.count(instance))
-                    {
-                        auto msg = std::string("Stopwatch '") + name_ + std::string(", ") + std::to_string(instance) +
-                                   std::string("' is already timing.");
-                        throw std::runtime_error(msg);
-                    }
-                    starts_.emplace(instance, std::chrono::steady_clock::now());
-                }
+                /** \brief The child state of this edge. */
+                std::shared_ptr<State> target;
+            };
 
-                template <typename T>
-                bool Stopwatch<T>::isTiming(size_t instance)
-                {
-                    return starts_.count(instance);
-                }
-
-            }  // namespace timing
-
-        }  // namespace aibitstar
+        }  // namespace aeitstar
 
     }  // namespace geometric
 
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_STOPWATCH_STOPWATCH_
+#endif  // OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_EDGE_

@@ -34,19 +34,19 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/aibitstar/ForwardQueue.h"
+#include "ompl/geometric/planners/aeitstar/ForwardQueue.h"
 
 #include <algorithm>
 
-#include "ompl/geometric/planners/aibitstar/stopwatch/timetable.h"
-#include "ompl/geometric/planners/aibitstar/Direction.h"
-#include "ompl/geometric/planners/aibitstar/State.h"
+#include "ompl/geometric/planners/aeitstar/stopwatch/timetable.h"
+#include "ompl/geometric/planners/aeitstar/Direction.h"
+#include "ompl/geometric/planners/aeitstar/State.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aibitstar
+        namespace aeitstar
         {
             ForwardQueue::ForwardQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
                                        const std::shared_ptr<const ompl::base::SpaceInformation> &spaceInfo)
@@ -335,7 +335,7 @@ namespace ompl
                     edge.target->getLowerBoundCostToGo());
             }
 
-        }  // namespace aibitstar
+        }  // namespace aeitstar
 
     }  // namespace geometric
 

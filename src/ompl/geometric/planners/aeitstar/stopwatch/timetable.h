@@ -52,7 +52,7 @@
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics.hpp>
 
-#include "ompl/geometric/planners/aibitstar/stopwatch/stopwatch.h"
+#include "ompl/geometric/planners/aeitstar/stopwatch/stopwatch.h"
 
 #define AIBITSTAR_TIMING 1
 
@@ -60,9 +60,8 @@ namespace ompl
 {
     namespace geometric
     {
-        namespace aibitstar
+        namespace aeitstar
         {
-
             namespace timing
             {
                 // TODO(Marlin): The value type should really be an integer. However, the
@@ -342,7 +341,7 @@ namespace ompl
 
             }  // namespace timing
 
-        }  // namespace aibitstar
+        }  // namespace aeitstar
 
     }  // namespace geometric
 
