@@ -56,7 +56,7 @@ namespace ompl
 
                 /** \brief Constructs an edge from a parent, a child, and the sort key. */
                 Edge(const std::shared_ptr<Vertex> &parent, const std::shared_ptr<Vertex> &child,
-                     const std::array<double, 3u> &sortKey);
+                     const std::array<ompl::base::Cost, 3u> &sortKey);
 
                 /** \brief Deconstructs an edge. */
                 ~Edge() = default;
@@ -68,10 +68,10 @@ namespace ompl
                 std::shared_ptr<Vertex> getChild() const;
 
                 /** \brief Returns the sort key associated with this edge. */
-                const std::array<double, 3u> &getSortKey() const;
+                const std::array<ompl::base::Cost, 3u> &getSortKey() const;
 
                 /** \brief Sets the sort key associated with this edge. */
-                void setSortKey(const std::array<double, 3u> &key);
+                void setSortKey(const std::array<ompl::base::Cost, 3u> &key);
 
             private:
                 /** \brief The parent in this edge. */
@@ -81,7 +81,7 @@ namespace ompl
                 std::shared_ptr<Vertex> child_;
 
                 /** \brief The sort key associated with this edge. */
-                std::array<double, 3u> sortKey_;
+                std::array<ompl::base::Cost, 3u> sortKey_;
             };
 
         }  // namespace aitstar

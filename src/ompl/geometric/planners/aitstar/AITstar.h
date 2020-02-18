@@ -125,11 +125,11 @@ namespace ompl
             getReversePath(const std::shared_ptr<aitstar::Vertex> &vertex) const;
 
             /** \brief Computes the sort key of an edge. */
-            std::array<double, 3u> computeSortKey(const std::shared_ptr<aitstar::Vertex> &parent,
-                                                  const std::shared_ptr<aitstar::Vertex> &child) const;
+            std::array<ompl::base::Cost, 3u> computeSortKey(const std::shared_ptr<aitstar::Vertex> &parent,
+                                                            const std::shared_ptr<aitstar::Vertex> &child) const;
 
             /** \brief Computes the sort key of a vertex. */
-            std::array<double, 2u> computeSortKey(const std::shared_ptr<aitstar::Vertex> &vertex) const;
+            std::array<ompl::base::Cost, 2u> computeSortKey(const std::shared_ptr<aitstar::Vertex> &vertex) const;
 
             void insertOutgoingEdges(const std::shared_ptr<aitstar::Vertex> &vertex);
 
@@ -148,7 +148,7 @@ namespace ompl
 
             /** \brief Sets the cost to come from to goal of the backward search to infinity for the whole branch.
              */
-            void invalidateCostToComeFromGoalOfBackwardBranch(const std::shared_ptr<aitstar::Vertex>& vertex);
+            void invalidateCostToComeFromGoalOfBackwardBranch(const std::shared_ptr<aitstar::Vertex> &vertex);
 
             /** \brief The increasingly dense sampling-based approximation. */
             aitstar::ImplicitGraph graph_;
@@ -156,13 +156,13 @@ namespace ompl
             /** \brief The forward queue. */
             using EdgeQueue =
                 ompl::BinaryHeap<aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>;
-            EdgeQueue forwardQueue_;
+            std::unique_ptr<EdgeQueue> forwardQueue_;
 
             /** \brief The backward queue. */
-            using KeyVertexPair = std::pair<std::array<double, 2u>, std::shared_ptr<aitstar::Vertex>>;
+            using KeyVertexPair = std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>>;
             using VertexQueue =
                 ompl::BinaryHeap<KeyVertexPair, std::function<bool(const KeyVertexPair &, const KeyVertexPair &)>>;
-            VertexQueue backwardQueue_;
+            std::unique_ptr<VertexQueue> backwardQueue_;
 
             /** \brief The id of the current forward search .*/
             std::shared_ptr<std::size_t> forwardSearchId_;
@@ -195,7 +195,7 @@ namespace ompl
             bool stopOnFindingInitialSolution_{false};
 
             /** \brief Syntactic helper to get at the optimization objective of the planner base class. */
-            ompl::base::OptimizationObjectivePtr optimizationObjective_;
+            ompl::base::OptimizationObjectivePtr objective_;
 
             /** \brief Syntactic helper to get at the motion validator of the planner base class. */
             ompl::base::MotionValidatorPtr motionValidator_;

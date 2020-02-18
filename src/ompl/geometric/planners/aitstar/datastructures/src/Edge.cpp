@@ -45,13 +45,14 @@ namespace ompl
             Edge::Edge()
               : parent_()
               , child_()
-              , sortKey_({std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN(),
-                          std::numeric_limits<double>::signaling_NaN()})
+              , sortKey_({ompl::base::Cost(std::numeric_limits<double>::signaling_NaN()),
+                          ompl::base::Cost(std::numeric_limits<double>::signaling_NaN()),
+                          ompl::base::Cost(std::numeric_limits<double>::signaling_NaN())})
             {
             }
 
             Edge::Edge(const std::shared_ptr<Vertex> &parent, const std::shared_ptr<Vertex> &child,
-                       const std::array<double, 3u> &sortKey)
+                       const std::array<ompl::base::Cost, 3u> &sortKey)
               : parent_(parent), child_(child), sortKey_(sortKey)
             {
             }
@@ -66,12 +67,12 @@ namespace ompl
                 return child_;
             }
 
-            const std::array<double, 3u> &Edge::getSortKey() const
+            const std::array<ompl::base::Cost, 3u> &Edge::getSortKey() const
             {
                 return sortKey_;
             }
 
-            void Edge::setSortKey(const std::array<double, 3u> &key)
+            void Edge::setSortKey(const std::array<ompl::base::Cost, 3u> &key)
             {
                 sortKey_ = key;
             }

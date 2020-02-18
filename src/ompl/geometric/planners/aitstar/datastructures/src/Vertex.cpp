@@ -439,9 +439,9 @@ namespace ompl
 
             void Vertex::setBackwardQueuePointer(
                 typename ompl::BinaryHeap<
-                    std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>>,
-                    std::function<bool(const std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>> &,
-                                       const std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>> &)>>::Element
+                    std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
+                    std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
+                                       const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::Element
                     *pointer)
             {
                 backwardQueuePointerBackwardSearchId_ = *backwardSearchId_.lock();
@@ -449,9 +449,9 @@ namespace ompl
             }
 
             typename ompl::BinaryHeap<
-                std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>>,
-                std::function<bool(const std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>> &,
-                                   const std::pair<std::array<double, 2u>, std::shared_ptr<Vertex>> &)>>::Element *
+                std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
+                std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
+                                   const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::Element *
             Vertex::getBackwardQueuePointer() const
             {
                 if (*backwardSearchId_.lock() != backwardQueuePointerBackwardSearchId_)

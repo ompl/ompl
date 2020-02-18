@@ -55,15 +55,6 @@ namespace ompl
     {
         AITstar::AITstar(const ompl::base::SpaceInformationPtr &spaceInformation)
           : ompl::base::Planner(spaceInformation, "AITstar")
-          , forwardQueue_([](const aitstar::Edge &lhs, const aitstar::Edge &rhs) {
-              return std::lexicographical_compare(lhs.getSortKey().begin(), lhs.getSortKey().end(),
-                                                  rhs.getSortKey().begin(), rhs.getSortKey().end());
-          })
-          , backwardQueue_([](const std::pair<std::array<double, 2u>, std::shared_ptr<aitstar::Vertex>> &lhs,
-                              const std::pair<std::array<double, 2u>, std::shared_ptr<aitstar::Vertex>> &rhs) {
-              return std::lexicographical_compare(lhs.first.begin(), lhs.first.end(), rhs.first.begin(),
-                                                  rhs.first.end());
-          })
           , forwardSearchId_(std::make_shared<std::size_t>(1u))
           , backwardSearchId_(std::make_shared<std::size_t>(1u))
           , solutionCost_(std::make_shared<ompl::base::Cost>(std::numeric_limits<double>::infinity()))
@@ -102,7 +93,27 @@ namespace ompl
             }
 
             // Pull the optimization objective through the problem definition.
-            optimizationObjective_ = Planner::pdef_->getOptimizationObjective();
+            objective_ = Planner::pdef_->getOptimizationObjective();
+
+            // Initialize the forward queue.
+            forwardQueue_ = std::make_unique<EdgeQueue>([this](const aitstar::Edge &lhs, const aitstar::Edge &rhs) {
+                return std::lexicographical_compare(lhs.getSortKey().cbegin(), lhs.getSortKey().cend(),
+                                                    rhs.getSortKey().cbegin(), rhs.getSortKey().cend(),
+                                                    [this](const ompl::base::Cost &a, const ompl::base::Cost &b) {
+                                                        return objective_->isCostBetterThan(a, b);
+                                                    });
+            });
+
+            // Initialize the reverse queue.
+            backwardQueue_ = std::make_unique<VertexQueue>(
+                [this](const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> &lhs,
+                       const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> &rhs) {
+                    return std::lexicographical_compare(lhs.first.cbegin(), lhs.first.cend(), rhs.first.cbegin(),
+                                                        rhs.first.cend(),
+                                                        [this](const ompl::base::Cost &a, const ompl::base::Cost &b) {
+                                                            return objective_->isCostBetterThan(a, b);
+                                                        });
+                });
 
             // Pull the motion validator through the space information.
             motionValidator_ = Planner::si_->getMotionValidator();
@@ -152,21 +163,22 @@ namespace ompl
                 for (const auto &goal : graph_.getGoalVertices())
                 {
                     // Set the cost to come from the goal to identity cost.
-                    goal->setCostToComeFromGoal(optimizationObjective_->identityCost());
+                    goal->setCostToComeFromGoal(objective_->identityCost());
 
                     // Create an element for the queue.
-                    std::pair<std::array<double, 2u>, std::shared_ptr<aitstar::Vertex>> element(
-                        std::array<double, 2u>({computeCostToGoToStartHeuristic(goal).value(), 0.0}), goal);
+                    std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> element(
+                        std::array<ompl::base::Cost, 2u>(
+                            {computeCostToGoToStartHeuristic(goal), ompl::base::Cost(0.0)}),
+                        goal);
 
                     // Insert the element into the queue and set the corresponding pointer.
-                    auto backwardQueuePointer = backwardQueue_.insert(element);
+                    auto backwardQueuePointer = backwardQueue_->insert(element);
                     goal->setBackwardQueuePointer(backwardQueuePointer);
                 }
             }
 
             // Iterate to solve the problem.
-            while (!terminationCondition &&
-                   !(optimizationObjective_->isFinite(*solutionCost_) && stopOnFindingInitialSolution_))
+            while (!terminationCondition && !(objective_->isFinite(*solutionCost_) && stopOnFindingInitialSolution_))
             {
                 iterate();
             }
@@ -244,28 +256,28 @@ namespace ompl
         void AITstar::rebuildForwardQueue()
         {
             std::vector<aitstar::Edge> content;
-            forwardQueue_.getContent(content);
-            forwardQueue_.clear();
+            forwardQueue_->getContent(content);
+            forwardQueue_->clear();
 
             for (auto &edge : content)
             {
-                forwardQueue_.insert(aitstar::Edge(edge.getParent(), edge.getChild(),
-                                                   computeSortKey(edge.getParent(), edge.getChild())));
+                forwardQueue_->insert(aitstar::Edge(edge.getParent(), edge.getChild(),
+                                                    computeSortKey(edge.getParent(), edge.getChild())));
             }
         }
 
         void AITstar::rebuildBackwardQueue()
         {
             std::vector<KeyVertexPair> content;
-            backwardQueue_.getContent(content);
-            backwardQueue_.clear();
+            backwardQueue_->getContent(content);
+            backwardQueue_->clear();
 
             for (auto &vertex : content)
             {
                 // Compute the sort key for the vertex queue.
-                std::pair<std::array<double, 2u>, std::shared_ptr<aitstar::Vertex>> element(
+                std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> element(
                     computeSortKey(vertex.second), vertex.second);
-                auto backwardQueuePointer = backwardQueue_.insert(element);
+                auto backwardQueuePointer = backwardQueue_->insert(element);
                 element.second->setBackwardQueuePointer(backwardQueuePointer);
             }
         }
@@ -273,15 +285,15 @@ namespace ompl
         std::vector<aitstar::Edge> AITstar::getEdgesInQueue() const
         {
             std::vector<aitstar::Edge> edges;
-            forwardQueue_.getContent(edges);
+            forwardQueue_->getContent(edges);
             return edges;
         }
 
         std::vector<std::shared_ptr<aitstar::Vertex>> AITstar::getVerticesInQueue() const
         {
             // Get the content from the queue.
-            std::vector<std::pair<std::array<double, 2u>, std::shared_ptr<aitstar::Vertex>>> content;
-            backwardQueue_.getContent(content);
+            std::vector<std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>>> content;
+            backwardQueue_->getContent(content);
 
             // Return the vertices.
             std::vector<std::shared_ptr<aitstar::Vertex>> vertices;
@@ -294,9 +306,9 @@ namespace ompl
 
         aitstar::Edge AITstar::getNextEdgeInQueue() const
         {
-            if (!forwardQueue_.empty())
+            if (!forwardQueue_->empty())
             {
-                return forwardQueue_.top()->data;
+                return forwardQueue_->top()->data;
             }
 
             return {};
@@ -304,9 +316,9 @@ namespace ompl
 
         std::shared_ptr<aitstar::Vertex> AITstar::getNextVertexInQueue() const
         {
-            if (!backwardQueue_.empty())
+            if (!backwardQueue_->empty())
             {
-                return backwardQueue_.top()->data.second;
+                return backwardQueue_->top()->data.second;
             }
 
             return {};
@@ -334,7 +346,7 @@ namespace ompl
             // If there are vertices in the backward search queue, process one of them.
             if (performBackwardSearchIteration_)
             {
-                if (!backwardQueue_.empty())
+                if (!backwardQueue_->empty())
                 {
                     performBackwardSearchIteration();
                 }
@@ -354,7 +366,7 @@ namespace ompl
                     // forward search.
                     for (const auto &start : graph_.getStartVertices())
                     {
-                        if (optimizationObjective_->isFinite(start->getCostToComeFromGoal()))
+                        if (objective_->isFinite(start->getCostToComeFromGoal()))
                         {
                             // Add the outgoing edges of all start vertices to the queue.
                             for (const auto &start : graph_.getStartVertices())
@@ -372,7 +384,7 @@ namespace ompl
                     rebuildForwardQueue();
                     forwardQueueMustBeRebuilt_ = false;
                 }
-                else if (!forwardQueue_.empty())
+                else if (!forwardQueue_->empty())
                 {
                     performForwardSearchIteration();
                 }
@@ -382,17 +394,17 @@ namespace ompl
                     auto newVertices = graph_.addSamples(batchSize_);
 
                     // This constitutes new searches.
-                    backwardQueue_.clear();
+                    backwardQueue_->clear();
                     ++(*backwardSearchId_);
-                    forwardQueue_.clear();
+                    forwardQueue_->clear();
                     ++(*forwardSearchId_);
 
                     // Add the goals to the backward queue.
                     for (const auto &goal : graph_.getGoalVertices())
                     {
-                        auto backwardQueuePointer = backwardQueue_.insert(std::make_pair(computeSortKey(goal), goal));
+                        auto backwardQueuePointer = backwardQueue_->insert(std::make_pair(computeSortKey(goal), goal));
                         goal->setBackwardQueuePointer(backwardQueuePointer);
-                        goal->setCostToComeFromGoal(optimizationObjective_->identityCost());
+                        goal->setCostToComeFromGoal(objective_->identityCost());
                     }
 
                     // This is a new batch, so the searches haven't been started.
@@ -407,23 +419,22 @@ namespace ompl
         void AITstar::performForwardSearchIteration()
         {
             // Get the most promising edge.
-            auto &edge = forwardQueue_.top()->data;
+            auto &edge = forwardQueue_->top()->data;
             auto parent = edge.getParent();
             auto child = edge.getChild();
-            forwardQueue_.pop();
+            forwardQueue_->pop();
 
             // If this is edge can not possibly improve our solution, the search is done.
-            auto edgeCost = optimizationObjective_->motionCostHeuristic(parent->getState(), child->getState());
-            auto parentCostToGoToGoal = optimizationObjective_->combineCosts(edgeCost, child->getCostToGoToGoal());
-            auto pathThroughEdgeCost =
-                optimizationObjective_->combineCosts(parent->getCostToComeFromStart(), parentCostToGoToGoal);
+            auto edgeCost = objective_->motionCostHeuristic(parent->getState(), child->getState());
+            auto parentCostToGoToGoal = objective_->combineCosts(edgeCost, child->getCostToGoToGoal());
+            auto pathThroughEdgeCost = objective_->combineCosts(parent->getCostToComeFromStart(), parentCostToGoToGoal);
 
-            if (!optimizationObjective_->isCostBetterThan(pathThroughEdgeCost, *solutionCost_))
+            if (!objective_->isCostBetterThan(pathThroughEdgeCost, *solutionCost_))
             {
-                if (optimizationObjective_->isFinite(pathThroughEdgeCost) ||
-                    !optimizationObjective_->isFinite(computeBestCostToComeFromGoalOfAnyStart()))
+                if (objective_->isFinite(pathThroughEdgeCost) ||
+                    !objective_->isFinite(computeBestCostToComeFromGoalOfAnyStart()))
                 {
-                    forwardQueue_.clear();
+                    forwardQueue_->clear();
                 }
                 else
                 {
@@ -438,11 +449,10 @@ namespace ompl
                     insertOutgoingEdges(child);
                 }
             }
-            else if (optimizationObjective_->isCostBetterThan(
-                         child->getCostToComeFromStart(),
-                         optimizationObjective_->combineCosts(
-                             parent->getCostToComeFromStart(),
-                             optimizationObjective_->motionCostHeuristic(parent->getState(), child->getState()))))
+            else if (objective_->isCostBetterThan(child->getCostToComeFromStart(),
+                                                  objective_->combineCosts(parent->getCostToComeFromStart(),
+                                                                           objective_->motionCostHeuristic(
+                                                                               parent->getState(), child->getState()))))
             {
                 // If the edge cannot improve the cost to come to the child, we're done processing it.
                 return;
@@ -454,12 +464,11 @@ namespace ompl
                 parent->whitelistAsChild(child);
 
                 // Compute the edge cost.
-                auto edgeCost = optimizationObjective_->motionCost(parent->getState(), child->getState());
+                auto edgeCost = objective_->motionCost(parent->getState(), child->getState());
 
                 // Check if the edge can improve the cost to come to the child.
-                if (optimizationObjective_->isCostBetterThan(
-                        optimizationObjective_->combineCosts(parent->getCostToComeFromStart(), edgeCost),
-                        child->getCostToComeFromStart()))
+                if (objective_->isCostBetterThan(objective_->combineCosts(parent->getCostToComeFromStart(), edgeCost),
+                                                 child->getCostToComeFromStart()))
                 {
                     // It can, so we rewire the child.
                     child->setForwardParent(parent, edgeCost);
@@ -491,7 +500,7 @@ namespace ompl
                     if (parent->hasBackwardParent() && parent->getBackwardParent()->getId() == child->getId())
                     {
                         // The parent was connected to the child through an invalid edge.
-                        parent->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
+                        parent->setCostToComeFromGoal(objective_->infiniteCost());
                         parent->resetBackwardParent();
                         child->removeFromBackwardChildren(parent->getId());
 
@@ -517,10 +526,10 @@ namespace ompl
         void AITstar::performBackwardSearchIteration()
         {
             // Get the most promising vertex.
-            auto vertex = backwardQueue_.top()->data.second;
+            auto vertex = backwardQueue_->top()->data.second;
 
             // Remove it from the queue.
-            backwardQueue_.pop();
+            backwardQueue_->pop();
             vertex->resetBackwardQueuePointer();
 
             // The open queue should not contain consistent vertices.
@@ -528,11 +537,11 @@ namespace ompl
                                                                vertex->getExpandedCostToComeFromGoal()));
 
             // If any goal is underconsistent, we need to continue.
-            bool underconsistentStart {false};
+            bool underconsistentStart{false};
             for (const auto &start : graph_.getStartVertices())
             {
-                if (optimizationObjective_->isCostBetterThan(start->getExpandedCostToComeFromGoal(),
-                                                             start->getCostToComeFromGoal()))
+                if (objective_->isCostBetterThan(start->getExpandedCostToComeFromGoal(),
+                                                 start->getCostToComeFromGoal()))
                 {
                     underconsistentStart = true;
                     break;
@@ -540,20 +549,19 @@ namespace ompl
             }
 
             // If there is currently no reason to think this vertex can be on an optimal path, clear the queue.
-            if ((!underconsistentStart && !optimizationObjective_->isCostBetterThan(
-                    optimizationObjective_->combineCosts(vertex->getCostToComeFromGoal(),
-                                                         computeCostToGoToStartHeuristic(vertex)),
-                    *solutionCost_)) ||
-                optimizationObjective_->isCostBetterThan(
-                    ompl::base::Cost(computeBestCostToComeFromGoalOfAnyStart().value() + 1e-6), *solutionCost_))
+            if ((!underconsistentStart &&
+                 !objective_->isCostBetterThan(
+                     objective_->combineCosts(vertex->getCostToComeFromGoal(), computeCostToGoToStartHeuristic(vertex)),
+                     *solutionCost_)) ||
+                objective_->isCostBetterThan(ompl::base::Cost(computeBestCostToComeFromGoalOfAnyStart().value() + 1e-6),
+                                             *solutionCost_))
             {
                 performBackwardSearchIteration_ = false;
                 return;
             }
 
             // Check if the vertex is overconsistent. g(s) < v(s).
-            if (optimizationObjective_->isCostBetterThan(vertex->getCostToComeFromGoal(),
-                                                         vertex->getExpandedCostToComeFromGoal()))
+            if (objective_->isCostBetterThan(vertex->getCostToComeFromGoal(), vertex->getExpandedCostToComeFromGoal()))
             {
                 // Register the expansion of this vertex.
                 vertex->registerExpansionDuringBackwardSearch();
@@ -562,7 +570,7 @@ namespace ompl
             {
                 // Register the expansion of this vertex.
                 vertex->registerExpansionDuringBackwardSearch();
-                vertex->setExpandedCostToComeFromGoal(optimizationObjective_->infiniteCost());
+                vertex->setExpandedCostToComeFromGoal(objective_->infiniteCost());
                 backwardSearchUpdateVertex(vertex);
             }
 
@@ -611,11 +619,9 @@ namespace ompl
                     if (neighbor->getId() != vertex->getId() && !neighbor->isBlacklistedAsChild(vertex) &&
                         !vertex->isBlacklistedAsChild(neighbor))
                     {
-                        auto edgeCost =
-                            optimizationObjective_->motionCostHeuristic(neighbor->getState(), vertex->getState());
-                        auto parentCost =
-                            optimizationObjective_->combineCosts(neighbor->getCostToComeFromGoal(), edgeCost);
-                        if (optimizationObjective_->isCostBetterThan(parentCost, bestCost))
+                        auto edgeCost = objective_->motionCostHeuristic(neighbor->getState(), vertex->getState());
+                        auto parentCost = objective_->combineCosts(neighbor->getCostToComeFromGoal(), edgeCost);
+                        if (objective_->isCostBetterThan(parentCost, bestCost))
                         {
                             bestParent = neighbor;
                             bestCost = parentCost;
@@ -626,11 +632,10 @@ namespace ompl
                 // Check all children this vertex hold in the backward search.
                 for (const auto &backwardChild : vertex->getBackwardChildren())
                 {
-                    auto edgeCost =
-                        optimizationObjective_->motionCostHeuristic(backwardChild->getState(), vertex->getState());
+                    auto edgeCost = objective_->motionCostHeuristic(backwardChild->getState(), vertex->getState());
                     auto parentCost =
-                        optimizationObjective_->combineCosts(backwardChild->getExpandedCostToComeFromGoal(), edgeCost);
-                    if (optimizationObjective_->isCostBetterThan(parentCost, bestCost))
+                        objective_->combineCosts(backwardChild->getExpandedCostToComeFromGoal(), edgeCost);
+                    if (objective_->isCostBetterThan(parentCost, bestCost))
                     {
                         bestParent = backwardChild;
                         bestCost = parentCost;
@@ -640,11 +645,9 @@ namespace ompl
                 // Check all children this vertex holds in the forward search.
                 for (const auto &forwardChild : vertex->getForwardChildren())
                 {
-                    auto edgeCost =
-                        optimizationObjective_->motionCostHeuristic(forwardChild->getState(), vertex->getState());
-                    auto parentCost =
-                        optimizationObjective_->combineCosts(forwardChild->getExpandedCostToComeFromGoal(), edgeCost);
-                    if (optimizationObjective_->isCostBetterThan(parentCost, bestCost))
+                    auto edgeCost = objective_->motionCostHeuristic(forwardChild->getState(), vertex->getState());
+                    auto parentCost = objective_->combineCosts(forwardChild->getExpandedCostToComeFromGoal(), edgeCost);
+                    if (objective_->isCostBetterThan(parentCost, bestCost))
                     {
                         bestParent = forwardChild;
                         bestCost = parentCost;
@@ -655,11 +658,10 @@ namespace ompl
                 if (vertex->hasBackwardParent())
                 {
                     auto backwardParent = vertex->getBackwardParent();
-                    auto edgeCost =
-                        optimizationObjective_->motionCostHeuristic(backwardParent->getState(), vertex->getState());
+                    auto edgeCost = objective_->motionCostHeuristic(backwardParent->getState(), vertex->getState());
                     auto parentCost =
-                        optimizationObjective_->combineCosts(backwardParent->getExpandedCostToComeFromGoal(), edgeCost);
-                    if (optimizationObjective_->isCostBetterThan(parentCost, bestCost))
+                        objective_->combineCosts(backwardParent->getExpandedCostToComeFromGoal(), edgeCost);
+                    if (objective_->isCostBetterThan(parentCost, bestCost))
                     {
                         bestParent = backwardParent;
                         bestCost = parentCost;
@@ -670,11 +672,10 @@ namespace ompl
                 if (vertex->hasForwardParent())
                 {
                     auto forwardParent = vertex->getForwardParent();
-                    auto edgeCost =
-                        optimizationObjective_->motionCostHeuristic(forwardParent->getState(), vertex->getState());
+                    auto edgeCost = objective_->motionCostHeuristic(forwardParent->getState(), vertex->getState());
                     auto parentCost =
-                        optimizationObjective_->combineCosts(forwardParent->getExpandedCostToComeFromGoal(), edgeCost);
-                    if (optimizationObjective_->isCostBetterThan(parentCost, bestCost))
+                        objective_->combineCosts(forwardParent->getExpandedCostToComeFromGoal(), edgeCost);
+                    if (objective_->isCostBetterThan(parentCost, bestCost))
                     {
                         bestParent = forwardParent;
                         bestCost = parentCost;
@@ -682,7 +683,7 @@ namespace ompl
                 }
 
                 // If this vertex is now disconnected, take special care.
-                if (!optimizationObjective_->isFinite(bestCost))
+                if (!objective_->isFinite(bestCost))
                 {
                     if (vertex->hasBackwardParent())
                     {
@@ -702,8 +703,8 @@ namespace ompl
                 vertex->setCostToComeFromGoal(bestCost);
 
                 // If this has made the vertex inconsistent, insert or update it in the open queue.
-                if (!optimizationObjective_->isCostEquivalentTo(vertex->getCostToComeFromGoal(),
-                                                                vertex->getExpandedCostToComeFromGoal()))
+                if (!objective_->isCostEquivalentTo(vertex->getCostToComeFromGoal(),
+                                                    vertex->getExpandedCostToComeFromGoal()))
                 {
                     insertOrUpdateInBackwardQueue(vertex);
                 }
@@ -713,7 +714,7 @@ namespace ompl
                     auto backwardQueuePointer = vertex->getBackwardQueuePointer();
                     if (backwardQueuePointer)
                     {
-                        backwardQueue_.remove(backwardQueuePointer);
+                        backwardQueue_->remove(backwardQueuePointer);
                         vertex->resetBackwardQueuePointer();
                     }
                 }
@@ -729,16 +730,16 @@ namespace ompl
             if (element)
             {
                 element->data.first = computeSortKey(vertex);
-                backwardQueue_.update(element);
+                backwardQueue_->update(element);
             }
             else  // Insert it into the queue otherwise.
             {
                 // Compute the sort key for the vertex queue.
-                std::pair<std::array<double, 2u>, std::shared_ptr<aitstar::Vertex>> element(computeSortKey(vertex),
-                                                                                            vertex);
+                std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> element(
+                    computeSortKey(vertex), vertex);
 
                 // Insert the vertex into the queue, storing the corresponding pointer.
-                auto backwardQueuePointer = backwardQueue_.insert(element);
+                auto backwardQueuePointer = backwardQueue_->insert(element);
                 vertex->setBackwardQueuePointer(backwardQueuePointer);
             }
         }
@@ -757,30 +758,26 @@ namespace ompl
             return reversePath;
         }
 
-        std::array<double, 3u> AITstar::computeSortKey(const std::shared_ptr<aitstar::Vertex> &parent,
-                                                       const std::shared_ptr<aitstar::Vertex> &child) const
+        std::array<ompl::base::Cost, 3u> AITstar::computeSortKey(const std::shared_ptr<aitstar::Vertex> &parent,
+                                                                 const std::shared_ptr<aitstar::Vertex> &child) const
         {
             // Compute the sort key [g_T(start) + c_hat(start, neighbor) + h_hat(neighbor), g_T(start) +
             // c_hat(start, neighbor), g_T(start)].
-            ompl::base::Cost edgeCostHeuristic =
-                optimizationObjective_->motionCostHeuristic(parent->getState(), child->getState());
-            return {parent->getCostToComeFromStart().value() + edgeCostHeuristic.value() +
-                        child->getCostToGoToGoal().value(),
-                    edgeCostHeuristic.value() + child->getCostToGoToGoal().value(),
-                    parent->getCostToComeFromStart().value()};
+            ompl::base::Cost edgeCostHeuristic = objective_->motionCostHeuristic(parent->getState(), child->getState());
+            return {
+                objective_->combineCosts(objective_->combineCosts(parent->getCostToComeFromStart(), edgeCostHeuristic),
+                                         child->getCostToGoToGoal()),
+                objective_->combineCosts(edgeCostHeuristic, child->getCostToGoToGoal()),
+                parent->getCostToComeFromStart()};
         }
 
-        std::array<double, 2u> AITstar::computeSortKey(const std::shared_ptr<aitstar::Vertex> &vertex) const
+        std::array<ompl::base::Cost, 2u> AITstar::computeSortKey(const std::shared_ptr<aitstar::Vertex> &vertex) const
         {
             // LPA* sort key is [min(g(x), v(x)) + h(x); min(g(x), v(x))].
-            return {optimizationObjective_
-                        ->combineCosts(optimizationObjective_->betterCost(vertex->getCostToComeFromGoal(),
-                                                                          vertex->getExpandedCostToComeFromGoal()),
-                                       computeCostToGoToStartHeuristic(vertex))
-                        .value(),
-                    optimizationObjective_
-                        ->betterCost(vertex->getCostToComeFromGoal(), vertex->getExpandedCostToComeFromGoal())
-                        .value()};
+            return {objective_->combineCosts(objective_->betterCost(vertex->getCostToComeFromGoal(),
+                                                                    vertex->getExpandedCostToComeFromGoal()),
+                                             computeCostToGoToStartHeuristic(vertex)),
+                    objective_->betterCost(vertex->getCostToComeFromGoal(), vertex->getExpandedCostToComeFromGoal())};
         }
 
         void AITstar::insertOutgoingEdges(const std::shared_ptr<aitstar::Vertex> &vertex)
@@ -791,7 +788,7 @@ namespace ompl
             // Insert the edges to the current children.
             for (const auto &child : vertex->getForwardChildren())
             {
-                forwardQueue_.insert(aitstar::Edge(vertex, child, computeSortKey(vertex, child)));
+                forwardQueue_->insert(aitstar::Edge(vertex, child, computeSortKey(vertex, child)));
             }
 
             // Insert the edges to the current neighbors.
@@ -816,14 +813,14 @@ namespace ompl
                 }
 
                 // If none of the above tests caught on, we can insert the edge.
-                forwardQueue_.insert(aitstar::Edge(vertex, neighbor, computeSortKey(vertex, neighbor)));
+                forwardQueue_->insert(aitstar::Edge(vertex, neighbor, computeSortKey(vertex, neighbor)));
             }
 
             // Insert the edge to the backward search parent.
             if (vertex->hasBackwardParent())
             {
                 const auto &backwardParent = vertex->getBackwardParent();
-                forwardQueue_.insert(aitstar::Edge(vertex, backwardParent, computeSortKey(vertex, backwardParent)));
+                forwardQueue_->insert(aitstar::Edge(vertex, backwardParent, computeSortKey(vertex, backwardParent)));
             }
         }
 
@@ -832,7 +829,7 @@ namespace ompl
             // Check if any of the goals have a cost to come less than the current solution cost.
             for (const auto &goal : graph_.getGoalVertices())
             {
-                if (optimizationObjective_->isCostBetterThan(goal->getCostToComeFromStart(), *solutionCost_))
+                if (objective_->isCostBetterThan(goal->getCostToComeFromStart(), *solutionCost_))
                 {
                     // Remember the incumbent cost.
                     *solutionCost_ = goal->getCostToComeFromStart();
@@ -850,7 +847,7 @@ namespace ompl
                     solution.setPlannerName(Planner::name_);
 
                     // Set the optimized flag.
-                    solution.optimized_ = optimizationObjective_->isSatisfied(*solutionCost_);
+                    solution.optimized_ = objective_->isSatisfied(*solutionCost_);
 
                     // Let the problem definition know that a new solution exists.
                     Planner::pdef_->addSolutionPath(solution);
@@ -861,11 +858,11 @@ namespace ompl
         ompl::base::Cost AITstar::computeCostToGoToStartHeuristic(const std::shared_ptr<aitstar::Vertex> &vertex) const
         {
             // We need to loop over all start vertices and see which is the closest one.
-            ompl::base::Cost bestCost = optimizationObjective_->infiniteCost();
+            ompl::base::Cost bestCost = objective_->infiniteCost();
             for (const auto &start : graph_.getStartVertices())
             {
-                bestCost = optimizationObjective_->betterCost(
-                    bestCost, optimizationObjective_->motionCostHeuristic(vertex->getState(), start->getState()));
+                bestCost = objective_->betterCost(
+                    bestCost, objective_->motionCostHeuristic(vertex->getState(), start->getState()));
             }
             return bestCost;
         }
@@ -873,11 +870,11 @@ namespace ompl
         ompl::base::Cost AITstar::computeCostToGoToGoalHeuristic(const std::shared_ptr<aitstar::Vertex> &vertex) const
         {
             // We need to loop over all goal vertices and see which is the closest one.
-            ompl::base::Cost bestCost = optimizationObjective_->infiniteCost();
+            ompl::base::Cost bestCost = objective_->infiniteCost();
             for (const auto &goal : graph_.getGoalVertices())
             {
-                bestCost = optimizationObjective_->betterCost(
-                    bestCost, optimizationObjective_->motionCostHeuristic(vertex->getState(), goal->getState()));
+                bestCost = objective_->betterCost(
+                    bestCost, objective_->motionCostHeuristic(vertex->getState(), goal->getState()));
             }
             return bestCost;
         }
@@ -885,10 +882,10 @@ namespace ompl
         ompl::base::Cost AITstar::computeBestCostToComeFromGoalOfAnyStart() const
         {
             // We need to loop over all start vertices and see which is the closest one.
-            ompl::base::Cost bestCost = optimizationObjective_->infiniteCost();
+            ompl::base::Cost bestCost = objective_->infiniteCost();
             for (const auto &start : graph_.getStartVertices())
             {
-                bestCost = optimizationObjective_->betterCost(bestCost, start->getCostToComeFromGoal());
+                bestCost = objective_->betterCost(bestCost, start->getCostToComeFromGoal());
             }
             return bestCost;
         }
@@ -898,11 +895,11 @@ namespace ompl
             // Update the cost of all backward children and remove from open.
             for (const auto &child : vertex->getBackwardChildren())
             {
-                child->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
+                child->setCostToComeFromGoal(objective_->infiniteCost());
                 auto backwardQueuePointer = child->getBackwardQueuePointer();
                 if (backwardQueuePointer)
                 {
-                    backwardQueue_.remove(backwardQueuePointer);
+                    backwardQueue_->remove(backwardQueuePointer);
                     child->resetBackwardQueuePointer();
                 }
                 invalidateCostToComeFromGoalOfBackwardBranch(child);
