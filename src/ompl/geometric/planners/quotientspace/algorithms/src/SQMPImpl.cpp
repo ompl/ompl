@@ -52,7 +52,7 @@ ompl::geometric::SQMPImpl::SQMPImpl(const base::SpaceInformationPtr &si, BundleS
 
 ompl::geometric::SQMPImpl::~SQMPImpl()
 {
-    si_->freeStates(randomWorkStates_);
+    getBundle()->freeStates(randomWorkStates_);
     deleteConfiguration(xRandom_);
 }
 
@@ -95,7 +95,7 @@ void ompl::geometric::SQMPImpl::expand()
     sampleBundle(q->state);
     addMileStone(q);
     
-    int s = si_->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
+    int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
     for (int i = 0; i < s; i++)
     {
         Configuration *tmp = new Configuration(Bundle, randomWorkStates_[i]);
@@ -193,7 +193,7 @@ ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SQMPImpl::ad
     nearestSparse_->nearestR(q_next, sparseDelta_, graphNeighborhood); // Sparse Neighbors
 
     for (Configuration *qn : graphNeighborhood)
-        if (si_->checkMotion(q_next->state, qn->state))
+        if (getBundle()->checkMotion(q_next->state, qn->state))
         {
             q_next->representativeIndex = qn->index;
             break;

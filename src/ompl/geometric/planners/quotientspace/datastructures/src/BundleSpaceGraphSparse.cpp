@@ -69,7 +69,7 @@ BundleSpaceGraphSparse::BundleSpaceGraphSparse(const ob::SpaceInformationPtr &si
     setup();
   }
   pathVisibilityChecker_ = new PathVisibilityChecker(Bundle);
-  psimp_ = std::make_shared<PathSimplifier>(si_);
+  psimp_ = std::make_shared<PathSimplifier>(getBundle());
   psimp_->freeStates(false);
 }
 
@@ -203,7 +203,7 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraphSparse::getPathSparse(const
     {
     }
 
-    auto p(std::make_shared<PathGeometric>(si_));
+    auto p(std::make_shared<PathGeometric>(getBundle()));
     if (prev[goal] == goal)
     {
         return nullptr;
@@ -501,7 +501,7 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q,
             if (!boost::edge(qv0->index, qv1->index, graphSparse_).second)
             {
                 // If they can be directly connected
-                if (si_->checkMotion(qv0->state, qv1->state))
+                if (getBundle()->checkMotion(qv0->state, qv1->state))
                 {
                     addEdgeSparse(qv0->index, qv1->index);
                     consecutiveFailures_ = 0;  // sohaib -> from sparse -> reset consecutive failures
@@ -509,7 +509,7 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q,
                 else
                 {
                     // Add the new node to the graph, to bridge the interface
-                    // Vertex v = addGuard(si_->cloneState(qNew), INTERFACE);
+                    // Vertex v = addGuard(getBundle()->cloneState(qNew), INTERFACE);
                     Vertex v = addConfigurationSparse(q);
                     addEdgeSparse(v, qv0->index);
                     addEdgeSparse(v, qv1->index);
@@ -539,7 +539,7 @@ void ompl::geometric::BundleSpaceGraphSparse::updateRepresentatives(Configuratio
         nearestSparse_->nearestR(dense_point, sparseDelta_, graphNeighborhood);
 
         for (Configuration *qn : graphNeighborhood)
-            if (si_->checkMotion(dense_point->state, qn->state))
+            if (getBundle()->checkMotion(dense_point->state, qn->state))
             {
                 dense_point->representativeIndex = qn->index;
                 break;
@@ -617,7 +617,7 @@ void ompl::geometric::BundleSpaceGraphSparse::getInterfaceNeighborRepresentative
         // If that representative is not our own
         if (orep != rep)
             // If he is within denseDelta_
-            if (si_->distance(q->state, graph_[n]->state) < denseDelta_)
+            if (getBundle()->distance(q->state, graph_[n]->state) < denseDelta_)
                 // Include his rep in the set
                 interfaceRepresentatives.insert(orep);
     }
@@ -659,7 +659,7 @@ void ompl::geometric::BundleSpaceGraphSparse::getInterfaceNeighborhood(
         if (graph_[n]->representativeIndex != (int)rep)
         {
             // If he is within denseDelta_
-            if (si_->distance(q->state, graph_[n]->state) < denseDelta_)
+            if (getBundle()->distance(q->state, graph_[n]->state) < denseDelta_)
             {
                 // Append him to the list
                 interfaceNeighborhood.push_back(n);
@@ -733,7 +733,7 @@ bool ompl::geometric::BundleSpaceGraphSparse::addPathToSpanner(const std::deque<
         for (std::size_t i = 0; i < geomPath_.getStateCount(); ++i)
         {
             // Add each guard
-            Configuration *q_path = new Configuration(Bundle, si_->cloneState(geomPath_.getState(i)));
+            Configuration *q_path = new Configuration(Bundle, getBundle()->cloneState(geomPath_.getState(i)));
             Vertex ng = addConfigurationSparse(q_path);
             added_nodes.push_back(ng);
         }
@@ -791,8 +791,8 @@ bool ompl::geometric::BundleSpaceGraphSparse::checkAddPath(Configuration *q)
             foreach (Vertex x, Xs)
             {
                 // Compute/Retain MAXimum distance path thorugh S
-                double dist = (si_->distance(graphSparse_[x]->state, graphSparse_[v]->state) +
-                               si_->distance(graphSparse_[v]->state, graphSparse_[vp]->state)) /
+                double dist = (getBundle()->distance(graphSparse_[x]->state, graphSparse_[v]->state) +
+                               getBundle()->distance(graphSparse_[v]->state, graphSparse_[vp]->state)) /
                               2.0;
                 if (dist > s_max)
                     s_max = dist;
@@ -833,7 +833,7 @@ bool ompl::geometric::BundleSpaceGraphSparse::checkAddPath(Configuration *q)
                                 std::deque<base::State *>::const_iterator jt = dPath.begin();
                                 for (auto it = jt + 1; it != dPath.end(); ++it)
                                 {
-                                    length += si_->distance(*jt, *it);
+                                    length += getBundle()->distance(*jt, *it);
                                     jt = it;
                                 }
 

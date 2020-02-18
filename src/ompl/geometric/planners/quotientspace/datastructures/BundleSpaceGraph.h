@@ -214,6 +214,8 @@ namespace ompl
 
             virtual const Configuration *nearest(const Configuration *s) const;
 
+            virtual void setMetric(const std::string& sMetric) override;
+
             ompl::base::Cost bestCost_{+ompl::base::dInf};
             Configuration *qStart_{nullptr};
             Configuration *qGoal_{nullptr};
@@ -240,6 +242,10 @@ namespace ompl
 
             double getRange() const;
 
+            /** \brief Shortest path on Bundle-graph */
+            ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal);
+            ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal, Graph &graph);
+
         protected:
             virtual double distance(const Configuration *a, const Configuration *b) const;
 
@@ -247,10 +253,6 @@ namespace ompl
             void addEdge(const Vertex a, const Vertex b);
 
             ompl::base::Cost costHeuristic(Vertex u, Vertex v) const;
-
-            /** \brief Shortest path on Bundle-graph */
-            ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal);
-            ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal, Graph &graph);
 
             /** \brief Nearest neighbor structure for Bundle space configurations */
             RoadmapNeighborsPtr nearestDatastructure_;

@@ -17,13 +17,14 @@ namespace ompl
     namespace geometric
     {
         OMPL_CLASS_FORWARD(BundleSpaceComponent);
-    }
-    namespace geometric
-    {
+        OMPL_CLASS_FORWARD(BundleSpaceMetric);
+
         /// \brief A single Bundle-space
         class BundleSpace : public ompl::base::Planner
         {
             using BaseT = ompl::base::Planner;
+            using BaseT::si_; //make it private. 
+            // Note: use getBundle(), getFiber() or getBase() to access the SpaceInformationPtr
 
         public:
             /**  \brief Bundle Space contains three OMPL spaces, which we call Bundle, Base and Fiber.
@@ -46,6 +47,7 @@ namespace ompl
 
             virtual void grow() = 0;
             virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
+            virtual void setMetric(const std::string& sMetric) = 0;
 
             virtual void sampleFromDatastructure(ompl::base::State *xBase) = 0;
             virtual void sampleFiber(ompl::base::State *xFiber);
@@ -183,6 +185,8 @@ namespace ompl
             ompl::base::Goal *goal_;
 
             BundleSpaceComponentFactory componentFactory;
+
+            BundleSpaceMetricPtr metric;
         };
     }  // namespace geometric
 }  // namespace ompl

@@ -58,7 +58,7 @@ ompl::geometric::QMPStarImpl::QMPStarImpl(const base::SpaceInformationPtr &si, B
 
 ompl::geometric::QMPStarImpl::~QMPStarImpl()
 {
-    si_->freeStates(randomWorkStates_);
+    getBundle()->freeStates(randomWorkStates_);
     deleteConfiguration(xRandom_);
 }
 
@@ -98,7 +98,7 @@ void ompl::geometric::QMPStarImpl::expand()
     
     Configuration *q = pdf.sample(rng_.uniform01());
 
-    int s = si_->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
+    int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
     if(s > 0)
     {
         Configuration *prev = q;

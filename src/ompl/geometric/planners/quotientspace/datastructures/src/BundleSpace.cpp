@@ -22,7 +22,7 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
     //############################################################################
     //Check for dynamic spaces
     //############################################################################
-    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
+    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(getBundle().get());
     if(siC==nullptr) {
       isDynamic_ = false;
     }else{
@@ -183,7 +183,7 @@ void ompl::geometric::BundleSpace::setProblemDefinition(const base::ProblemDefin
     }
     else
     {
-        opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
+        opt_ = std::make_shared<base::PathLengthOptimizationObjective>(getBundle());
     }
 }
 

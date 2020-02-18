@@ -45,6 +45,8 @@
 ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QMPImpl" + std::to_string(id_));
+    // setMetric("euclidean");
+    setMetric("shortestpath");
 }
 
 ompl::geometric::QMPImpl::~QMPImpl()

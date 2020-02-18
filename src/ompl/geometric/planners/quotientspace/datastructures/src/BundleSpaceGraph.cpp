@@ -37,6 +37,9 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/src/BundleSpaceGraphGoalVisitor.hpp>
+#include <ompl/geometric/planners/quotientspace/datastructures/metrics/BundleSpaceMetric.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/metrics/BundleSpaceMetricEuclidean.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/metrics/BundleSpaceMetricShortestPath.h>
 
 #include <ompl/geometric/planners/prm/ConnectionStrategy.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
@@ -60,6 +63,8 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
   : BaseT(si, parent_)
 {
     setName("BundleSpaceGraph");
+    setMetric("euclidean");
+
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
     specs_.optimizingPaths = false;
@@ -100,7 +105,11 @@ void ompl::geometric::BundleSpaceGraph::setup()
     {
         nearestDatastructure_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
         nearestDatastructure_->setDistanceFunction(
-            [this](const Configuration *a, const Configuration *b) { return distance(a, b); });
+            [this](const Configuration *a, const Configuration *b) 
+            { 
+                return distance(a, b); 
+            }
+        );
     }
 
     if (pdef_)
@@ -111,7 +120,7 @@ void ompl::geometric::BundleSpaceGraph::setup()
         }
         else
         {
-            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
+            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(getBundle());
         }
         firstRun_ = true;
         setup_ = true;
@@ -309,7 +318,21 @@ void ompl::geometric::BundleSpaceGraph::setNearestNeighbors()
 
 double ompl::geometric::BundleSpaceGraph::distance(const Configuration *a, const Configuration *b) const
 {
-    return si_->distance(a->state, b->state);
+    return metric->distanceBundle(a, b);
+}
+
+void ompl::geometric::BundleSpaceGraph::setMetric(const std::string& sMetric)
+{
+    if(sMetric == "euclidean"){
+        OMPL_DEBUG("Euclidean Metric Selected");
+        metric = std::make_shared<BundleSpaceMetricEuclidean>(this);
+    }else if(sMetric == "shortestpath"){
+        OMPL_DEBUG("ShortestPath Metric Selected");
+        metric = std::make_shared<BundleSpaceMetricShortestPath>(this);
+    }else{
+        OMPL_ERROR("Metric unknown: %s", sMetric);
+        throw ompl::Exception("Unknown Metric");
+    }
 }
 
 void ompl::geometric::BundleSpaceGraph::addEdge(const Vertex a, const Vertex b)
@@ -419,7 +442,7 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraph::getPath(const Vertex &sta
     {
     }
 
-    auto p(std::make_shared<PathGeometric>(si_));
+    auto p(std::make_shared<PathGeometric>(getBundle()));
     if (prev[goal] == goal)
     {
         return nullptr;
@@ -525,7 +548,8 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(
     base::PlannerDataVertexAnnotated pstart(graph[vStart]->state);
     pstart.setPath(idxPathI);
     data.addStartVertex(pstart);
-    if (vGoal>=0)
+
+    if (hasSolution_)
     {
         base::PlannerDataVertexAnnotated pgoal(graph[vGoal]->state);
         pgoal.setPath(idxPathI);
