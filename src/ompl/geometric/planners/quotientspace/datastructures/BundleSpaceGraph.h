@@ -221,8 +221,12 @@ namespace ompl
             Configuration *qGoal_{nullptr};
             Vertex vStart_;
             Vertex vGoal_;
+
             std::vector<Vertex> shortestVertexPath_;
             std::vector<Vertex> startGoalVertexPath_;
+            double lengthStartGoalVertexPath_;
+            std::vector<double> lengthsStartGoalVertexPath_;
+
 
             const Graph &getGraph() const;
             double getGraphLength() const;

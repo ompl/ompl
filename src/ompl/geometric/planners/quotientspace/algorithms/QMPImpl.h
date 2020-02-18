@@ -60,6 +60,18 @@ namespace ompl
             /** \brief One iteration of PRM with adjusted sampling function */
             virtual void grow() override;
 
+            virtual void sampleFromDatastructure(ompl::base::State *) override;
+
+        protected:
+
+            /** \brief Instead of sampling directly on graph, we sample in an
+             * epsilon neighborhood */
+            double epsilonGraphThickening_{0.1};
+
+            /** \brief percentage of times to sample on shortest path instead of
+             * full graph */
+            double pathBias_{0.2};
+
         };
     }  // namespace geometric
 }  // namespace ompl

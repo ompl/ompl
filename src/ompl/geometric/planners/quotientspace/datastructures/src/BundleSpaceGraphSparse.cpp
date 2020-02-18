@@ -1461,6 +1461,15 @@ bool ompl::geometric::BundleSpaceGraphSparse::getSolution(base::PathPtr &solutio
         solutionPath_ = getPath(v_start_sparse, v_goal_sparse, graphSparse_);
         startGoalVertexPath_ = shortestVertexPath_;
         solution = solutionPath_;
+
+        lengthStartGoalVertexPath_ = 0;
+        for(uint k = 1; k < startGoalVertexPath_.size(); k++){
+          Configuration* xk = graphSparse_[startGoalVertexPath_.at(k)];
+          Configuration* xkk = graphSparse_[startGoalVertexPath_.at(k-1)];
+          double d = distance(xk, xkk);
+          lengthsStartGoalVertexPath_.push_back(d);
+          lengthStartGoalVertexPath_ += d;
+        }
         return true;
     }
     else
@@ -1478,6 +1487,15 @@ bool ompl::geometric::BundleSpaceGraphSparse::getSolution(base::PathPtr &solutio
                 solution = solutionPath_;
                 hasSolution_ = true;
                 startGoalVertexPath_ = shortestVertexPath_;
+
+                lengthStartGoalVertexPath_ = 0;
+                for(uint k = 1; k < startGoalVertexPath_.size(); k++){
+                  Configuration* xk = graphSparse_[startGoalVertexPath_.at(k)];
+                  Configuration* xkk = graphSparse_[startGoalVertexPath_.at(k-1)];
+                  double d = distance(xk, xkk);
+                  lengthsStartGoalVertexPath_.push_back(d);
+                  lengthStartGoalVertexPath_ += d;
+                }
                 return true;
             }
         }

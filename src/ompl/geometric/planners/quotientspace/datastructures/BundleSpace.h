@@ -187,6 +187,7 @@ namespace ompl
             BundleSpaceComponentFactory componentFactory;
 
             BundleSpaceMetricPtr metric;
+
         };
     }  // namespace geometric
 }  // namespace ompl

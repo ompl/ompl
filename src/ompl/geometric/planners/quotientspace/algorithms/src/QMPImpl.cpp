@@ -47,6 +47,7 @@ ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpa
     setName("QMPImpl" + std::to_string(id_));
     // setMetric("euclidean");
     setMetric("shortestpath");
+    // epsilonGraphThickening_ = 0.01;
 }
 
 ompl::geometric::QMPImpl::~QMPImpl()
@@ -116,3 +117,65 @@ void ompl::geometric::QMPImpl::grow()
     }
 }
 
+void ompl::geometric::QMPImpl::sampleFromDatastructure(base::State *xRandom)
+{
+    double p = rng_.uniform01();
+    if(lengthStartGoalVertexPath_ > 0 && p < pathBias_)
+    {
+        //(1) Sample randomly on shortest path
+        double p = rng_.uniform01() * lengthStartGoalVertexPath_;
+
+        double t = 0;
+        int ctr = 0;
+        while(t < p && (ctr < startGoalVertexPath_.size()-1))
+        {
+            t += lengthsStartGoalVertexPath_.at(ctr);
+            ctr++;
+        }
+        // std::cout << ctr << "/" << startGoalVertexPath_.size() << std::endl;
+        const Vertex v1 = startGoalVertexPath_.at(ctr-1);
+        const Vertex v2 = startGoalVertexPath_.at(ctr);
+        double d = lengthsStartGoalVertexPath_.at(ctr-1);
+
+        double s = d - (t - p);
+        Bundle->getStateSpace()->interpolate(graph_[v1]->state, graph_[v2]->state, s, xRandom);
+
+    }else{
+        //(2) Sample randomly on graph
+        BaseT::sampleFromDatastructure(xRandom);
+    }
+
+    //(3) Perturbate sample in epsilon neighborhood
+    if(epsilonGraphThickening_>0) 
+    {
+        getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, epsilonGraphThickening_);
+    }
+
+}
+
+  //Edge e;
+  //double t = rng_.uniform01();
+  //if(t<percentageSamplesOnShortestPath)
+  //{
+  //  //shortest path heuristic
+  //  percentageSamplesOnShortestPath = exp(-pow(((double)samplesOnShortestPath++/1000.0),2));
+  //  e = pdf_edges_on_shortest_path.sample(rng_.uniform01());
+  //}else{
+  //  e = boost::random_edge(G, rng_boost);
+  //  while(!sameComponent(boost::source(e, G), v_start))
+  //  {
+  //    e = boost::random_edge(G, rng_boost);
+  //  }
+  //}
+
+  //double s = rng_.uniform01();
+
+  //const Vertex v1 = boost::source(e, G);
+  //const Vertex v2 = boost::target(e, G);
+  //const ob::State *from = G[v1]->state;
+  //const ob::State *to = G[v2]->state;
+
+  //Q1->getStateSpace()->interpolate(from, to, s, q_random_graph);
+  ////Q1_sampler->sampleGaussian(q_random_graph, q_random_graph, epsilon);
+  //if(epsilon>0) Q1_sampler->sampleUniformNear(q_random_graph, q_random_graph, epsilon);
+  //return true;

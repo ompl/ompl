@@ -354,6 +354,14 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
     {
         solutionPath_ = getPath(vStart_, vGoal_);
         startGoalVertexPath_ = shortestVertexPath_;
+        lengthStartGoalVertexPath_ = 0;
+        for(uint k = 1; k < startGoalVertexPath_.size(); k++){
+          Configuration* xk = graph_[startGoalVertexPath_.at(k)];
+          Configuration* xkk = graph_[startGoalVertexPath_.at(k-1)];
+          double d = distance(xk, xkk);
+          lengthsStartGoalVertexPath_.push_back(d);
+          lengthStartGoalVertexPath_ += d;
+        }
         solution = solutionPath_;
         return true;
     }
@@ -487,11 +495,11 @@ void ompl::geometric::BundleSpaceGraph::sampleBundleGoalBias(base::State *xRando
     }
 }
 
-void ompl::geometric::BundleSpaceGraph::sampleFromDatastructure(base::State *q_random_graph)
+void ompl::geometric::BundleSpaceGraph::sampleFromDatastructure(base::State *xRandom)
 {
     // RANDOM VERTEX SAMPLING
     const Vertex v = boost::random_vertex(graph_, rng_boost);
-    Bundle->getStateSpace()->copyState(q_random_graph, graph_[v]->state);
+    Bundle->getStateSpace()->copyState(xRandom, graph_[v]->state);
 }
 
 // bool ompl::geometric::BundleSpaceGraph::sampleFromDatastructure(base::State *q_random_graph)
