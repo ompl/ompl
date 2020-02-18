@@ -185,9 +185,6 @@ namespace ompl
             /** \brief Flag whether the forward search has been started on the batch. */
             bool isForwardSearchStartedOnBatch_{false};
 
-            /** \brief Flag whether the backward search has been started on the batch. */
-            bool isBackwardSearchStartedOnBatch_{true};
-
             /** \brief Flag whether the forward queue needs to be rebuilt. */
             bool forwardQueueMustBeRebuilt_{false};
 
