@@ -141,41 +141,17 @@ void ompl::geometric::QMPImpl::sampleFromDatastructure(base::State *xRandom)
         Bundle->getStateSpace()->interpolate(graph_[v1]->state, graph_[v2]->state, s, xRandom);
 
     }else{
+      OMPL_ERROR("Graph Sampler");
         //(2) Sample randomly on graph
         BaseT::sampleFromDatastructure(xRandom);
     }
 
     //(3) Perturbate sample in epsilon neighborhood
-    if(epsilonGraphThickening_>0) 
+    if(epsilonGraphThickening_ > 0) 
     {
+      OMPL_ERROR("Epsilon Thickening");
         getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, epsilonGraphThickening_);
     }
 
 }
 
-  //Edge e;
-  //double t = rng_.uniform01();
-  //if(t<percentageSamplesOnShortestPath)
-  //{
-  //  //shortest path heuristic
-  //  percentageSamplesOnShortestPath = exp(-pow(((double)samplesOnShortestPath++/1000.0),2));
-  //  e = pdf_edges_on_shortest_path.sample(rng_.uniform01());
-  //}else{
-  //  e = boost::random_edge(G, rng_boost);
-  //  while(!sameComponent(boost::source(e, G), v_start))
-  //  {
-  //    e = boost::random_edge(G, rng_boost);
-  //  }
-  //}
-
-  //double s = rng_.uniform01();
-
-  //const Vertex v1 = boost::source(e, G);
-  //const Vertex v2 = boost::target(e, G);
-  //const ob::State *from = G[v1]->state;
-  //const ob::State *to = G[v2]->state;
-
-  //Q1->getStateSpace()->interpolate(from, to, s, q_random_graph);
-  ////Q1_sampler->sampleGaussian(q_random_graph, q_random_graph, epsilon);
-  //if(epsilon>0) Q1_sampler->sampleUniformNear(q_random_graph, q_random_graph, epsilon);
-  //return true;

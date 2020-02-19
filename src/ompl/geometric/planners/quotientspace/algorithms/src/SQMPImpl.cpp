@@ -70,7 +70,6 @@ void ompl::geometric::SQMPImpl::grow()
     }
     sampleBundleGoalBias(xRandom_->state, goalBias_);
 
-    //TODO: should be replaced with addConfiguration()
     addMileStone(xRandom_);
 }
 

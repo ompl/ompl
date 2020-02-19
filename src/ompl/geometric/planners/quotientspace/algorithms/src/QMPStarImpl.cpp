@@ -71,7 +71,6 @@ void ompl::geometric::QMPStarImpl::grow()
         firstRun_ = false;
     }
 
-    //TODO: Why not use expand() also in QMP?
     if( ++growExpandCounter_ % 2 == 0)
     {
         expand();
@@ -116,7 +115,6 @@ void ompl::geometric::QMPStarImpl::expand()
     }
 }
 
-//TODO: Why not use same as in QMP?
 ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPStarImpl::addMileStone(ompl::base::State *q_state)
 {
     // add sample to graph
