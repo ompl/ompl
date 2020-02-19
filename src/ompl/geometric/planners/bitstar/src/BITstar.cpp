@@ -666,46 +666,59 @@ namespace ompl
             // If we don't have an exact solution, we can't prune sensibly.
             if (hasExactSolution_)
             {
-                // Variables:
-                // The number of vertices and samples pruned:
-                std::pair<unsigned int, unsigned int> numPruned(0u, 0u);
-                // The current measure of the problem space:
-                double informedMeasure = graphPtr_->getInformedMeasure(bestCost_);
-                // The change in the informed measure
-                double relativeMeasure = std::abs((informedMeasure - prunedMeasure_) / prunedMeasure_);
+                /* Profiling reveals that pruning is very expensive, mainly because the nearest neighbour structure of the samples
+                * has to be updated. On the other hand, nearest neighbour lookup gets more expensive the bigger the structure, so
+                * it's a tradeoff. Pruning on every cost update seems insensible, but so does never pruning at all. The criteria
+                * to prune should depend on how many vertices/samples there are and how many of them could be pruned, as the decrease
+                * in cost associated with nearest neighbour lookup for fewer samples must justify the cost of pruning.
+                * It turns out that counting is affordable, so we don't need to use any proxy here. */
 
-                /* Is there good reason to prune?
-                  - Is the informed subset measurably less than the total problem domain?
-                  - Has its measured changed more than the specified pruning threshold?
-                  - If an informed measure is not available, we'll assume yes
-                 */
-                if ((graphPtr_->hasInformedMeasure() && informedMeasure < Planner::si_->getSpaceMeasure() &&
-                     relativeMeasure > pruneFraction_) ||
-                    (!graphPtr_->hasInformedMeasure()))
+                // Count the number of samples that could be pruned.
+                auto samples = graphPtr_->getCopyOfSamples();
+                unsigned int numSamplesThatCouldBePruned(0u);
+                for (const auto &sample : samples)
                 {
-                    OMPL_INFORM("%s: Pruning the planning problem from a solution of %.4f to %.4f, changing the "
-                                "problem size from %.4f to %.4f.",
-                                Planner::getName().c_str(), prunedCost_.value(), bestCost_.value(), prunedMeasure_,
-                                informedMeasure);
+                    if (graphPtr_->canSampleBePruned(sample))
+                    {
+                        ++numSamplesThatCouldBePruned;
+                    }
+                }
+
+                // Count the number of vertices that could be pruned.
+                auto vertices = graphPtr_->getCopyOfVertices();
+                for (const auto &vertex : vertices)
+                {
+                    if (graphPtr_->canSampleBePruned(vertex)) // Actually test if the vertex could be pruned as sample.
+                    {
+                        ++numSamplesThatCouldBePruned;
+                    }
+                }
+
+                // Only prune if the decrease in number of samples and the associated decrease in nearest neighbour lookup cost
+                // justifies the cost of pruning. There has to be a way to make this more formal, and less knob-turney, right?
+                if (static_cast<float>(numSamplesThatCouldBePruned)
+                    / static_cast<float>(graphPtr_->numSamples() + graphPtr_->numVertices()) >= pruneFraction_)
+                {
+                    // Get the current informed measure of the problem space.
+                    double informedMeasure = graphPtr_->getInformedMeasure(bestCost_);
 
                     // Increment the pruning counter:
                     ++numPrunings_;
 
-                    // Prune the graph
-                    numPruned = numPruned + graphPtr_->prune(informedMeasure);
+                    // Prune the graph.
+                    std::pair<unsigned int, unsigned int> numPruned = graphPtr_->prune(informedMeasure);
 
                     // Store the cost at which we pruned:
                     prunedCost_ = bestCost_;
 
-                    // And the measure:
+                    // Also store the measure.
                     prunedMeasure_ = informedMeasure;
 
                     OMPL_INFORM("%s: Pruning disconnected %d vertices from the tree and completely removed %d samples.",
                                 Planner::getName().c_str(), numPruned.first, numPruned.second);
                 }
-                // No else, it's not worth the work to prune...
             }
-            // No else, why was I called?
+            // No else.
         }
 
         void BITstar::blacklistEdge(const VertexPtrPair &edge) const
