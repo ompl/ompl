@@ -196,24 +196,6 @@ namespace ompl
             // Settings.
             // ---
 
-            /** \brief Set the inflation factor for the initial search. */
-            void setInitialInflationFactor(double factor);
-
-            /** \brief Set the parameter for the inflation factor update policy. */
-            void setInflationFactorParameter(double parameter);
-
-            /** \brief Set the parameter for the truncation factor update policy. */
-            void setTruncationFactorParameter(double parameter);
-
-            /** \brief Get the inflation factor for the initial search. */
-            double getInitialInflationFactor() const;
-
-            /** \brief Get the inflation factor for the current search. */
-            double getCurrentInflationFactor() const;
-
-            /** \brief Get the truncation factor for the current search. */
-            double getCurrentTruncationFactor() const;
-
             /** \brief Set the rewiring scale factor, s, such that r_rrg = s \times r_rrg*. */
             void setRewireFactor(double rewireFactor);
 
@@ -319,6 +301,36 @@ namespace ompl
             /** \brief Set the seed used by the RNG and the StateSampler. The state sampler must already be allocated,
              * as a new state sampler will *not* take this seed. */
             void setLocalSeed(std::uint_fast32_t localSeed);
+
+        protected:
+            // ---
+            // The settings that turn BIT* into ABIT*.
+            // ---
+
+            /** \brief Set the inflation factor for the initial search. */
+            void setInitialInflationFactor(double factor);
+
+            /** \brief Set the parameter for the inflation factor update policy. */
+            void setInflationFactorParameter(double parameter);
+
+            /** \brief Set the parameter for the truncation factor update policy. */
+            void setTruncationFactorParameter(double parameter);
+
+            /** \brief Disable the cascading of rewirings. */
+            void enableCascadingRewirings();
+
+            // ---
+            // Getters specific to ABIT*.
+            // ---
+
+            /** \brief Get the inflation factor for the initial search. */
+            double getInitialInflationFactor() const;
+
+            /** \brief Get the inflation factor for the current search. */
+            double getCurrentInflationFactor() const;
+
+            /** \brief Get the truncation factor for the current search. */
+            double getCurrentTruncationFactor() const;
 
         private:
             // ---

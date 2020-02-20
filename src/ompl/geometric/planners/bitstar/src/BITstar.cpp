@@ -1134,6 +1134,11 @@ namespace ompl
             truncationFactorParameter_ = parameter;
         }
 
+        void BITstar::enableCascadingRewirings()
+        {
+            queuePtr_->enableCascadingRewirings(true);
+        }
+
         double BITstar::getInitialInflationFactor() const
         {
             return initialInflationFactor_;
