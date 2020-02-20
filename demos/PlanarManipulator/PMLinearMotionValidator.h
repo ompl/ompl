@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2016, Rice University
+ *  Copyright (c) 2015, Rice University
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,55 +32,33 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Mark Moll */
+/* Author: Ryan Luna */
 
-#ifndef OMPL_UTIL_HASH_
-#define OMPL_UTIL_HASH_
+#ifndef PLANAR_MANIPULATOR_LINEAR_MOTION_VALIDATOR_
+#define PLANAR_MANIPULATOR_LINEAR_MOTION_VALIDATOR_
 
-#include <functional>
-#include <type_traits>
-#include <utility>
-#include <vector>
-#include <boost/functional/hash.hpp>
+#include <ompl/base/MotionValidator.h>
+#include <ompl/base/SpaceInformation.h>
+#include "PlanarManipulator.h"
 
-namespace ompl
+// Special motion validator for planar manipulator that checks for self collisions
+// between adjacent links (wrap around)
+class PMLinearMotionValidator : public ompl::base::MotionValidator
 {
-    // copied from <boost/functional/hash.hpp>
-    template <class T>
-    inline void hash_combine(std::size_t &seed, const T &v)
-    {
-        std::hash<T> hasher;
-        seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    }
-}  // namespace ompl
+public:
+    PMLinearMotionValidator(ompl::base::SpaceInformation *si, const PlanarManipulator *manip);
+    PMLinearMotionValidator(const ompl::base::SpaceInformationPtr &si, const PlanarManipulator *manip);
+    virtual ~PMLinearMotionValidator();
 
-namespace std
-{
-    template <class U, class V>
-    struct hash<std::pair<U, V>>
-    {
-        using argument_type = std::pair<U, V>;
-        using result_type = std::size_t;
-        result_type operator()(argument_type const &p) const
-        {
-            result_type h = std::hash<std::remove_cv_t<U>>()(p.first);
-            ompl::hash_combine(h, p.second);
-            return h;
-        }
-    };
+    virtual bool checkMotion(const ompl::base::State *s1, const ompl::base::State *s2) const;
+    virtual bool checkMotion(const ompl::base::State *s1, const ompl::base::State *s2,
+                             std::pair<ompl::base::State *, double> &lastValid) const;
 
-    template <class T>
-    struct hash<std::vector<T>>
-    {
-        using argument_type = std::vector<T>;
-        using result_type = std::size_t;
-        result_type operator()(argument_type const &v) const
-        {
-            result_type h = 0;
-            boost::hash_range(h, v.begin(), v.end());
-            return h;
-        }
-    };
-}  // namespace std
+protected:
+    void defaultSettings();
+    ompl::base::StateSpace *ss_;
+    const PlanarManipulator *manip_;
+    bool hasBounds_;
+};
 
 #endif

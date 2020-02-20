@@ -12,6 +12,7 @@ if (OMPL_BUILD_TESTS)
     add_definitions(-DTEST_RESOURCES_DIR=\"${TEST_RESOURCES_DIR}\")
 
     # Test datastructures implementation
+    add_ompl_test(test_adjacency_list datastructures/adjacency_list.cpp)
     add_ompl_test(test_heap datastructures/heap.cpp)
     add_ompl_test(test_grid datastructures/grid.cpp)
     add_ompl_test(test_gridb datastructures/gridb.cpp)
