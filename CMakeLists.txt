@@ -47,12 +47,22 @@ add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
 set_package_properties(Boost PROPERTIES
     URL "https://www.boost.org"
     PURPOSE "Used throughout OMPL for data serialization, graphs, etc.")
+set(Boost_USE_MULTITHREADED TRUE)
 find_package(Boost 1.58 QUIET REQUIRED COMPONENTS serialization filesystem system program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 # Add support in Boost::Python for std::shared_ptr
 # This is a hack that replaces boost::shared_ptr related code with std::shared_ptr.
 # Proper support for std::shared_ptr was added in Boost 1.63.
+if (NOT Boost_VERSION_STRING)
+    if (Boost_VERSION_MAJOR)
+        set(Boost_VERSION_STRING
+            "${Boost_VERSION_MAJOR}.${Boost_VERSION_MINOR}.${Boost_VERSION_PATCH}")
+    else()
+        set(Boost_VERSION_STRING
+            "${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_PATCH_VERSION}")
+    endif()
+endif()
 if(Boost_VERSION_STRING VERSION_LESS "1.63.0")
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/external")
 endif()
