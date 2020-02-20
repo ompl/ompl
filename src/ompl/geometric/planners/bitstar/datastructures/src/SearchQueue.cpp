@@ -127,6 +127,11 @@ namespace ompl
             numEdgesPopped_ = 0u;
         }
 
+        void BITstar::SearchQueue::enableCascadingRewirings(bool enable)
+        {
+            isCascadingOfRewiringsEnabled_ = enable;
+        }
+
         void BITstar::SearchQueue::enqueueEdge(const VertexPtrPair &edge)
         {
             ASSERT_SETUP
@@ -551,34 +556,49 @@ namespace ompl
                 this->enqueueEdgeConditionally(parent, child);
             }
 
+            // We need to store whether an outgoing edge is a rewiring.
+            bool isExpandedAsRewiring = false;
+
             // Now consider all neighbouring vertices that are not already my kids.
             for (auto &child : possibleChildren)
             {
                 // If this sample is not connected to the search tree, just enqueue the edge if it's useful.
-                if (!child->hasParent() && !child->isRoot())
+                if (!child->isInTree())
                 {
                     this->enqueueEdgeConditionally(parent, child);
                 }
-                else // If this sample is part of the tree, we need to be a little more careful.
+                else  // If this sample is part of the tree, we need to be a little more careful.
                 {
-                    // Make sure the child is not the root and distinct from this vertex (which is the parent).
-                    if (!child->isRoot() && child->getId() != parent->getId())
+                    if (isCascadingOfRewiringsEnabled_ || !parent->hasEverBeenExpandedAsRewiring())
                     {
-                        // Make sure edges to kiddos aren't added twice.
-                        if (child->getParent()->getId() != parent->getId())
+                        // Remember that this parent is expanded as a rewiring.
+                        isExpandedAsRewiring = true;
+
+                        // Make sure the child is not the root and distinct from this vertex (which is the parent).
+                        if (!child->isRoot() && child->getId() != parent->getId())
                         {
-                            // Make sure the neighbour vertex is not already my parent.
-                            if (parent->isRoot() || child->getId() != parent->getParent()->getId())
+                            // Make sure edges to kiddos aren't added twice.
+                            if (child->getParent()->getId() != parent->getId())
                             {
-                                // The neighbour is not my parent, attempt to queue the edge.
-                                this->enqueueEdgeConditionally(parent, child);
+                                // Make sure the neighbour vertex is not already my parent.
+                                if (parent->isRoot() || child->getId() != parent->getParent()->getId())
+                                {
+                                    // The neighbour is not my parent, attempt to queue the edge.
+                                    this->enqueueEdgeConditionally(parent, child);
+                                }
+                                // No else, this vertex is my parent.
                             }
-                            // No else, this vertex is my parent.
+                            // No else
                         }
                         // No else
                     }
-                    // No else
                 }
+            }
+
+            // If the parent is expanded to a vertex in the tree, it is a rewiring. This needs to be registered.
+            if (isExpandedAsRewiring)
+            {
+                parent->registerRewiringExpansion();
             }
         }
 

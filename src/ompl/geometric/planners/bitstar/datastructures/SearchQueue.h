@@ -102,6 +102,9 @@ namespace ompl
             /** \brief Reset the queue to the state of construction. */
             void reset();
 
+            /** \brief Set whether cascading of rewirings is enabled. */
+            void enableCascadingRewirings(bool enable);
+
             // ---
             // Insertion.
             // ---
@@ -242,6 +245,9 @@ namespace ompl
 
             /** \brief Whether the class is setup */
             bool isSetup_{false};
+
+            /** \brief Whether cascading of rewirings is enabled. */
+            bool isCascadingOfRewiringsEnabled_{false};
 
             /** \brief A cost/heuristic helper class. As I am a copy of the version owned by BITstar.cpp, I can be reset
              * in a clear().*/

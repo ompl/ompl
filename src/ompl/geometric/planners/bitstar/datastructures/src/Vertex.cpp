@@ -501,6 +501,11 @@ namespace ompl
             return expansionSearchId_ == *currentSearchId_;
         }
 
+        bool BITstar::Vertex::hasEverBeenExpandedAsRewiring() const
+        {
+            return hasEverBeenExpandedAsRewiring_;
+        }
+
         void BITstar::Vertex::registerExpansion()
         {
             // Store the cost-to-come at expansion.
@@ -509,6 +514,11 @@ namespace ompl
             // Remember the search and approximation ids.
             expansionApproximationId_ = *currentApproximationId_;
             expansionSearchId_ = *currentSearchId_;
+        }
+
+        void BITstar::Vertex::registerRewiringExpansion()
+        {
+            hasEverBeenExpandedAsRewiring_ = true;
         }
 
         void BITstar::Vertex::markPruned()

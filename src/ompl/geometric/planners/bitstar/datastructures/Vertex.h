@@ -125,6 +125,9 @@ namespace ompl
             /** \brief Returns whether the vertex is expaned on current search. */
             bool isExpandedOnCurrentSearch() const;
 
+            /** \brief Returns whether the vertex has ever been expanded as a rewiring. */
+            bool hasEverBeenExpandedAsRewiring() const;
+
             // ---
             // Graph modification.
             // ---
@@ -180,6 +183,9 @@ namespace ompl
 
             /** \brief Mark the vertex as expanded. */
             void registerExpansion();
+
+            /** \brief Mark expansion to vertices. */
+            void registerRewiringExpansion();
 
             /** \brief Mark the vertex as pruned. */
             void markPruned();
@@ -307,6 +313,9 @@ namespace ompl
 
             /** \brief The id number associated with the search in which this vertex was last expanded. */
             unsigned int expansionSearchId_{0u};
+
+            /** \brief Whether this sample has ever been expanded to vertices. */
+            bool hasEverBeenExpandedAsRewiring_{false};
 
             /** \brief A pointer to the shared memory that holds the current search id. */
             const std::shared_ptr<const unsigned int> currentSearchId_;

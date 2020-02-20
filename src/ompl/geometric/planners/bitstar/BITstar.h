@@ -153,7 +153,7 @@ namespace ompl
             BITstar(const base::SpaceInformationPtr &spaceInfo, const std::string &name = "BITstar");
 
             /** \brief Destruct using the default destructor. */
-            ~BITstar() override = default;
+            virtual ~BITstar() override = default;
 
             /** \brief Setup the algorithm. */
             void setup() override;
