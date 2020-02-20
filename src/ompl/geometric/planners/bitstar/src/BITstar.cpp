@@ -79,13 +79,6 @@ namespace ompl
 {
     namespace geometric
     {
-        void BITstar::setLocalSeed(std::uint_fast32_t localSeed)
-        {
-            graphPtr_->setLocalSeed(localSeed);
-        }
-
-        /////////////////////////////////////////////////////////////////////////////////////////////
-        // Public functions:
         BITstar::BITstar(const ompl::base::SpaceInformationPtr &si, const std::string &name /*= "BITstar"*/)
           : ompl::base::Planner(si, name)
         {

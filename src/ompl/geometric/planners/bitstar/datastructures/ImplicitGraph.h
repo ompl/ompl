@@ -266,20 +266,6 @@ namespace ompl
             /** \brief Performs a couple of checks on a sample, throws if something smells funny. */
             void assertSampleSanity(const VertexConstPtr &sample);
 
-            /** \brief Set the seed used by the RNG and the StateSampler. The state sampler must already be allocated,
-             * as a new state sampler will *not* take this seed. */
-            void setLocalSeed(std::uint_fast32_t localSeed)
-            {
-                // Set the local RNG seed:
-                rng_.setLocalSeed(localSeed);
-
-                // Set the sampler's seed, if present:
-                if (sampler_)
-                {
-                    sampler_->setLocalSeed(localSeed);
-                }
-            };
-
             /** \brief Returns whether the vertex can be pruned, i.e., whether it could provide a better solution given.
              * the current graph. The check should always be g_t(v) + h^(v) >= g_t(x_g). */
             bool canVertexBeDisconnected(const VertexPtr &vertex) const;

@@ -755,11 +755,6 @@ void ompl::geometric::RRTXstatic::allocSampler()
         // We are using a regular sampler
         sampler_ = si_->allocStateSampler();
     }
-
-    if (localSeedSet_)
-    {
-        this->setLocalSeed(localSeed_);
-    }
 }
 
 bool ompl::geometric::RRTXstatic::sampleUniform(base::State *statePtr)
