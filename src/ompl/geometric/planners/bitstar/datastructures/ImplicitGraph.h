@@ -116,10 +116,6 @@ namespace ompl
             /** \brief Get the nearest unconnected samples using the appropriate "near" definition (i.e., k or r). */
             void nearestSamples(const VertexPtr &vertex, VertexPtrVector *neighbourSamples);
 
-            /** \brief Get the nearest samples from the vertexNN_ using the appropriate "near" definition (i.e., k or
-             * r). */
-            void nearestVertices(const VertexPtr &vertex, VertexPtrVector *neighbourVertices);
-
             /** \brief Adds the graph to the given PlannerData struct. */
             void getGraphAsPlannerData(ompl::base::PlannerData &data) const;
 
@@ -137,9 +133,6 @@ namespace ompl
 
             /** \brief Get a copy of all samples. */
             VertexPtrVector getCopyOfSamples() const;
-
-            /** \brief Get a copy of all vertices. */
-            VertexPtrVector getCopyOfVertices() const;
 
             // ---
             // Modification.
@@ -178,7 +171,7 @@ namespace ompl
             void recycleSample(const VertexPtr &sample);
 
             /** \brief Add a vertex to the tree, optionally moving it from the set of unconnected samples. */
-            void addToVertices(const VertexPtr &vertex);
+            void registerAsVertex(const VertexPtr &vertex);
 
             /** \brief Remove a vertex from the tree, can optionally be allowed to move it to the set of unconnected
              * samples if may still be useful. */
@@ -319,11 +312,7 @@ namespace ompl
 
             /** \brief Prune any samples that provably cannot provide a better solution than the current best solution.
              * Returns the number of samples removed. */
-            unsigned int pruneSamples();
-
-            /** \brief Prune any vertices that provably cannot provide a better solution than the current best solution.
-             * Returns the number of vertices removed. */
-            std::pair<unsigned int, unsigned int> pruneVertices();
+            std::pair<unsigned int, unsigned int> pruneSamples();
 
             // ---
             // Low-level random geometric graph helper and calculations
@@ -415,9 +404,6 @@ namespace ompl
 
             /** \brief The samples as a nearest-neighbours datastructure. Sorted by nnDistance. */
             VertexPtrNNPtr samples_{nullptr};
-
-            /** \brief The vertices as a nearest-neighbours data structure. Sorted by nnDistance. */
-            VertexPtrNNPtr vertices_{nullptr};
 
             /** \brief A copy of the vertices recycled into samples during the most recently added batch. */
             VertexPtrVector recycledSamples_;

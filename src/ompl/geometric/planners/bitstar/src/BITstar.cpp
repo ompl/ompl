@@ -681,16 +681,6 @@ namespace ompl
                     }
                 }
 
-                // Count the number of vertices that could be pruned.
-                auto vertices = graphPtr_->getCopyOfVertices();
-                for (const auto &vertex : vertices)
-                {
-                    if (graphPtr_->canSampleBePruned(vertex))  // Actually test if the vertex could be pruned as sample.
-                    {
-                        ++numSamplesThatCouldBePruned;
-                    }
-                }
-
                 // Only prune if the decrease in number of samples and the associated decrease in nearest neighbour
                 // lookup cost justifies the cost of pruning. There has to be a way to make this more formal, and less
                 // knob-turney, right?
@@ -869,10 +859,7 @@ namespace ompl
                 edge.first->addChild(edge.second);
 
                 // Add the vertex to the set of vertices.
-                graphPtr_->addToVertices(edge.second);
-
-                // Remove the vertex from the set of samples.
-                graphPtr_->removeFromSamples(edge.second);
+                graphPtr_->registerAsVertex(edge.second);
             }
 
             // If the vertex hasn't already been expanded, insert its outgoing edges

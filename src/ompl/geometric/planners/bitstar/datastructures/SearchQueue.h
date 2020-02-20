@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Jonathan Gammell */
+/* Authors: Jonathan Gammell, Marlin Strub */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_SEARCHQUEUE_
 #define OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_SEARCHQUEUE_
@@ -204,12 +204,8 @@ namespace ompl
             // High level primitives.
             // ---
 
-            /** \brief Iterate through the list of neighbouring unconnected vertices and add potential edges to
-            * the queue if the vertex is marked as new *or* we're adding all of them. */
-            void enqueueEdgesToSamples(const VertexPtr &vertex, const VertexPtrVector& neighbourSamples);
-
-            /** \brief Iterate through the list of neighbouring vertices and add potential edges to the queue. */
-            void enqueueEdgesToVertices(const VertexPtr &vertex, const VertexPtrVector& neighbourVertices);
+            /** \brief Iterate through the list of neighbouring samples and add potential edges to the queue. */
+            void enqueueEdges(const VertexPtr &parent, const VertexPtrVector &possibleChildren);
 
             /** \brief Attempt to add an edge to the queue. Checks that the edge meets the queueing condition. */
             void enqueueEdgeConditionally(const VertexPtr &parent, const VertexPtr &child);
@@ -217,11 +213,6 @@ namespace ompl
             /** \brief Insert an edge into the edge processing queue. The source vertex of this edge must be in the
              * expansion queue (although it may already be expanded). */
             void enqueueEdge(const VertexPtrPair &edge);
-
-            /** \brief Given two subsets containing (up to) the k-nearest members of each, finds the k-nearest of the
-             * union. */
-            void processKNearest(const VertexConstPtr &vertex, VertexPtrVector *kNearSamples,
-                                 VertexPtrVector *kNearVertices);
 
             // ---
             // Sorting.

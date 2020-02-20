@@ -1,38 +1,38 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2014, University of Toronto
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Toronto nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2014, University of Toronto
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Toronto nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
-/* Authors: Jonathan Gammell */
+/* Authors: Jonathan Gammell, Marlin Strub */
 
 // My definition:
 #include "ompl/geometric/planners/bitstar/datastructures/SearchQueue.h"
@@ -62,10 +62,10 @@
 
 // Debug macros
 #ifdef BITSTAR_DEBUG
-    /** \brief A debug-only call to assert that the object is setup. */
-    #define ASSERT_SETUP this->assertSetup();
+/** \brief A debug-only call to assert that the object is setup. */
+#define ASSERT_SETUP this->assertSetup();
 #else
-    #define ASSERT_SETUP
+#define ASSERT_SETUP
 #endif  // BITSTAR_DEBUG
 
 namespace ompl
@@ -76,10 +76,9 @@ namespace ompl
         // Public functions:
         BITstar::SearchQueue::SearchQueue(NameFunc nameFunc)
           : nameFunc_(std::move(nameFunc))
-          , edgeQueue_([this](const SortKeyAndVertexPtrPair &lhs, const SortKeyAndVertexPtrPair &rhs)
-                       {
-                           return lexicographicalBetterThan(lhs.first, rhs.first);
-                       })  // This tells the edgeQueue_ to use lexicographical comparison for sorting.
+          , edgeQueue_([this](const SortKeyAndVertexPtrPair &lhs, const SortKeyAndVertexPtrPair &rhs) {
+              return lexicographicalBetterThan(lhs.first, rhs.first);
+          })  // This tells the edgeQueue_ to use lexicographical comparison for sorting.
           , searchId_(std::make_shared<unsigned int>(1u))
         {
         }
@@ -147,18 +146,20 @@ namespace ompl
                 }
             }
 
-            if (updateEdge) // The edge is already in the queue, we need to update it's sort key (presumably because the cost-to-come to the source changed).
+            if (updateEdge)  // The edge is already in the queue, we need to update it's sort key (presumably because
+                             // the cost-to-come to the source changed).
             {
 #ifdef BITSTAR_DEBUG
-                if (updateEdge->data.second.first->getId() != edge.first->getId() || updateEdge->data.second.second->getId() != edge.second->getId())
+                if (updateEdge->data.second.first->getId() != edge.first->getId() ||
+                    updateEdge->data.second.second->getId() != edge.second->getId())
                 {
                     throw ompl::Exception("Updating the wrong edge.");
                 }
-#endif // BITSTAR_DEBUG
+#endif  // BITSTAR_DEBUG
                 updateEdge->data.first = this->createSortKey(edge);
                 edgeQueue_.update(updateEdge);
             }
-            else // This edge is not yet in the queue.
+            else  // This edge is not yet in the queue.
             {
                 // The iterator to the new edge in the queue:
                 EdgeQueueElemPtr edgeElemPtr;
@@ -223,10 +224,10 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             if (frontEdge.first->isPruned() || frontEdge.second->isPruned())
-                {
-                    throw ompl::Exception("The edge queue contains an edge with a pruned vertex.");
-                }
-#endif // BITSTAR_DEBUG
+            {
+                throw ompl::Exception("The edge queue contains an edge with a pruned vertex.");
+            }
+#endif  // BITSTAR_DEBUG
 
             // Remove the edge from the respective vertex lookups.
             frontEdge.first->removeFromEdgeQueueOutLookup(frontEdgeQueueElement);
@@ -256,7 +257,8 @@ namespace ompl
 
             if (!edgeQueue_.empty())
             {
-                // Iterate over the vector of incoming edges to this vertex and remove them from the queue (and clean up their other lookup).
+                // Iterate over the vector of incoming edges to this vertex and remove them from the queue (and clean up
+                // their other lookup).
                 for (auto it = vertex->edgeQueueInLookupConstBegin(); it != vertex->edgeQueueInLookupConstEnd(); ++it)
                 {
                     // Remove the edge from the *other* lookup (by value since this is NOT an iter to THAT container).
@@ -279,7 +281,8 @@ namespace ompl
 
             if (!edgeQueue_.empty())
             {
-                // Iterate over the vector of outgoing edges to this vertex and remove them from the queue (and clean up their other lookup).
+                // Iterate over the vector of outgoing edges to this vertex and remove them from the queue (and clean up
+                // their other lookup).
                 for (auto it = vertex->edgeQueueOutLookupConstBegin(); it != vertex->edgeQueueOutLookupConstEnd(); ++it)
                 {
                     // Remove the edge from the *other* lookup (by value since this is NOT an iter to THAT container).
@@ -307,14 +310,14 @@ namespace ompl
 #ifdef BITSTAR_DEBUG
             if (vertex->isConsistent())
             {
-                throw ompl::Exception("Attempting to remove a consistent vertex from the set of inconsistent vertices.");
+                throw ompl::Exception("Attempting to remove a consistent vertex from the set of inconsistent "
+                                      "vertices.");
             }
-#endif // BITSTAR_DEBUG
-            inconsistentVertices_.erase(std::remove_if(inconsistentVertices_.begin(), inconsistentVertices_.end(),
-                                             [vertex](const VertexPtr &element) {
-                                                 return vertex->getId() == element->getId();
-                                             }),
-                                        inconsistentVertices_.end());
+#endif  // BITSTAR_DEBUG
+            inconsistentVertices_.erase(
+                std::remove_if(inconsistentVertices_.begin(), inconsistentVertices_.end(),
+                               [vertex](const VertexPtr &element) { return vertex->getId() == element->getId(); }),
+                inconsistentVertices_.end());
         }
 
         void BITstar::SearchQueue::clear()
@@ -340,7 +343,7 @@ namespace ompl
                 {
                     throw ompl::Exception("Inserting outgoing edges of a pruned start vertex.");
                 }
-#endif // BITSTAR_DEBUG
+#endif  // BITSTAR_DEBUG
                 this->insertOutgoingEdges(*it);
             }
         }
@@ -369,14 +372,15 @@ namespace ompl
             {
                 throw ompl::Exception("Asking whether pruned state can possibly improve current solution.");
             }
-#endif // BITSTAR_DEBUG
+#endif  // BITSTAR_DEBUG
 
             // Threshold should always be g_t(x_g)
 
             // Can it ever be a better solution?
             // Just in case we're using a vertex that is exactly optimally connected
             // g^(v) + h^(v) <= g_t(x_g)?
-            return costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicVertex(state), solutionCost_);
+            return costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicVertex(state),
+                                                                solutionCost_);
         }
 
         bool BITstar::SearchQueue::canPossiblyImproveCurrentSolution(const VertexPtrPair &edge) const
@@ -386,7 +390,8 @@ namespace ompl
             // Can it ever be a better solution? Less-than-equal to just in case we're using an edge that is exactly
             // optimally connected
             // g^(v) + c^(v,x) + h^(x) <= g_t(x_g)?
-            bool canImprove = costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicEdge(edge), solutionCost_);
+            bool canImprove = costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicEdge(edge),
+                                                                           solutionCost_);
 
             // If the child is connected already, we need to check if we could do better than it's current connection.
             // But only if we're inserting the edge
@@ -395,7 +400,8 @@ namespace ompl
                 // Can it ever be a better path to the vertex? Less-than-equal to just in case we're using an edge that
                 // is exactly optimally connected
                 // g^(v) + c^(v,x) <= g_t(x)?
-                canImprove = costHelpPtr_->isCostBetterThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicToTarget(edge), edge.second->getCost());  // Ever rewire?
+                canImprove = costHelpPtr_->isCostBetterThanOrEquivalentTo(
+                    costHelpPtr_->lowerBoundHeuristicToTarget(edge), edge.second->getCost());  // Ever rewire?
             }
 
             return canImprove;
@@ -440,28 +446,16 @@ namespace ompl
             {
                 throw ompl::Exception("Inserting outgoing edges of pruned vertex.");
             }
-#endif // BITSTAR_DEBUG
-            // Should we expand this vertex?
+#endif  // BITSTAR_DEBUG
+        // Should we expand this vertex?
             if (this->canPossiblyImproveCurrentSolution(vertex))
             {
                 // Get the neighbouring samples.
                 VertexPtrVector neighbourSamples;
                 graphPtr_->nearestSamples(vertex, &neighbourSamples);
 
-                // Get the neighbouring vertices.
-                VertexPtrVector neighbourVertices;
-                graphPtr_->nearestVertices(vertex, &neighbourVertices);
-
-                // If we're using k-nearest, we technically need to be doing to combined k-nearest.
-                if (graphPtr_->getUseKNearest())
-                {
-                    this->processKNearest(vertex, &neighbourSamples, &neighbourVertices);
-                }
-                // No else, if we're using r-disc, we keep both sets.
-
                 // Add all outgoing edges to neighbouring vertices and samples.
-                this->enqueueEdgesToSamples(vertex, neighbourSamples);
-                this->enqueueEdgesToVertices(vertex, neighbourVertices);
+                this->enqueueEdges(vertex, neighbourSamples);
             }
             // No else
         }
@@ -477,7 +471,7 @@ namespace ompl
                     throw ompl::Exception("Attempting to insert outgoing edges of an inconsistent "
                                           "vertex that has been pruned.");
                 }
-#endif // BITSTAR_DEBUG
+#endif  // BITSTAR_DEBUG
                 this->insertOutgoingEdges(vertex);
             }
         }
@@ -520,7 +514,8 @@ namespace ompl
             edgeQueue_.rebuild();
         }
 
-        void BITstar::SearchQueue::update(const EdgeQueueElemPtr elementPtr) {
+        void BITstar::SearchQueue::update(const EdgeQueueElemPtr elementPtr)
+        {
             assert(elementPtr);
 
             // Create the up-to-date sort key for this edge.
@@ -541,56 +536,49 @@ namespace ompl
             {
                 ompl::Exception("Attempted to add an unexpanded vertex to the inconsistent set.");
             }
-#endif // BITSTAR_DEBUG
+#endif  // BITSTAR_DEBUG
 
             inconsistentVertices_.push_back(vertex);
         }
 
-        void BITstar::SearchQueue::enqueueEdgesToSamples(const VertexPtr &vertex, const VertexPtrVector& neighbourSamples)
-        {
-            // Iterate through the samples and add each one
-            for (auto &sample : neighbourSamples)
-            {
-                // It is new or we don't care, attempt to queue the edge.
-                this->enqueueEdgeConditionally(vertex, sample);
-            }
-        }
-
-        void BITstar::SearchQueue::enqueueEdgesToVertices(const VertexPtr &vertex, const VertexPtrVector& neighbourVertices)
+        void BITstar::SearchQueue::enqueueEdges(const VertexPtr &parent, const VertexPtrVector &possibleChildren)
         {
             // Start with this vertex' current kiddos.
-            VertexPtrVector children;
-            vertex->getChildren(&children);
-            for (const auto &child : children)
+            VertexPtrVector currentChildren;
+            parent->getChildren(&currentChildren);
+            for (const auto &child : currentChildren)
             {
-                this->enqueueEdgeConditionally(vertex, child);
+                this->enqueueEdgeConditionally(parent, child);
             }
 
             // Now consider all neighbouring vertices that are not already my kids.
-            for (auto &neighbourVertex : neighbourVertices)
+            for (auto &child : possibleChildren)
             {
-                // Make sure the child is not the root and distinct from this vertex (which is the parent).
-                if (!neighbourVertex->isRoot() && neighbourVertex->getId() != vertex->getId())
+                // If this sample is not connected to the search tree, just enqueue the edge if it's useful.
+                if (!child->hasParent() && !child->isRoot())
                 {
-                    // Make sure I am not already the parent
-                    if (neighbourVertex->getParent()->getId() != vertex->getId())
+                    this->enqueueEdgeConditionally(parent, child);
+                }
+                else // If this sample is part of the tree, we need to be a little more careful.
+                {
+                    // Make sure the child is not the root and distinct from this vertex (which is the parent).
+                    if (!child->isRoot() && child->getId() != parent->getId())
                     {
-                        // Make sure the neighbour vertex is not already my parent:
-                        if (vertex->isRoot())
+                        // Make sure edges to kiddos aren't added twice.
+                        if (child->getParent()->getId() != parent->getId())
                         {
-                            // I am root, I have no parent, so attempt to queue the edge:
-                            this->enqueueEdgeConditionally(vertex, neighbourVertex);
+                            // Make sure the neighbour vertex is not already my parent.
+                            if (parent->isRoot() || child->getId() != parent->getParent()->getId())
+                            {
+                                // The neighbour is not my parent, attempt to queue the edge.
+                                this->enqueueEdgeConditionally(parent, child);
+                            }
+                            // No else, this vertex is my parent.
                         }
-                        else if (neighbourVertex->getId() != vertex->getParent()->getId())
-                        {
-                            // The neighbour is not my parent, attempt to queue the edge.
-                            this->enqueueEdgeConditionally(vertex, neighbourVertex);
-                        }
-                        // No else, this vertex is my parent.
+                        // No else
                     }
                     // No else
                 }
-                // No else
             }
         }
 
@@ -614,66 +602,21 @@ namespace ompl
             }
         }
 
-        void BITstar::SearchQueue::processKNearest(const VertexConstPtr &vertex, VertexPtrVector *kNearSamples,
-                                                   VertexPtrVector *kNearVertices)
-        {
-            // Variables
-            // The position in the sample vector
-            unsigned int samplePos = 0u;
-            // The position in the vertex vector
-            unsigned int vertexPos = 0u;
-
-            // Iterate through the first k in the combined vectors
-            while (samplePos + vertexPos < graphPtr_->getConnectivityK() &&
-                   (samplePos < kNearSamples->size() || vertexPos < kNearVertices->size()))
-            {
-                // Where along are we in the relative vectors?
-                if (samplePos < kNearSamples->size() && vertexPos >= kNearVertices->size())
-                {
-                    // There are just samples left. Easy, move the sample token:
-                    ++samplePos;
-                }
-                else if (samplePos >= kNearSamples->size() && vertexPos < kNearVertices->size())
-                {
-                    // There are just vertices left. Easy, move the vertex token:
-                    ++vertexPos;
-                }
-                else
-                {
-                    // Both are left, which is closest?
-                    if (graphPtr_->distance(kNearVertices->at(vertexPos), vertex) <
-                        graphPtr_->distance(kNearSamples->at(samplePos), vertex))
-                    {
-                        // The vertex is closer than the sample, move that token:
-                        ++vertexPos;
-                    }
-                    else
-                    {
-                        // The vertex is not closer than the sample, move the sample token:
-                        ++samplePos;
-                    }
-                }
-            }
-
-            // Now erase the extra. Resize will truncate the extras
-            kNearSamples->resize(samplePos);
-            kNearVertices->resize(vertexPos);
-        }
-
         BITstar::SearchQueue::SortKey BITstar::SearchQueue::createSortKey(const VertexPtrPair &edge) const
         {
-            // The sort key of an edge (u, v) is [ g_t(u) + c^hat(u, v) + epsilon_s * h^hat(v); g_t(u) + c^hat(u, v); g_t(u) ].
-            return {{costHelpPtr_->combineCosts(costHelpPtr_->currentHeuristicToTarget(edge), costHelpPtr_->inflateCost(costHelpPtr_->costToGoHeuristic(edge.second), inflationFactor_)),
-                     costHelpPtr_->currentHeuristicToTarget(edge),
-                     edge.first->getCost()}};
+            // The sort key of an edge (u, v) is [ g_t(u) + c^hat(u, v) + epsilon_s * h^hat(v); g_t(u) + c^hat(u, v);
+            // g_t(u) ].
+            return {{costHelpPtr_->combineCosts(
+                         costHelpPtr_->currentHeuristicToTarget(edge),
+                         costHelpPtr_->inflateCost(costHelpPtr_->costToGoHeuristic(edge.second), inflationFactor_)),
+                     costHelpPtr_->currentHeuristicToTarget(edge), edge.first->getCost()}};
         }
 
         bool BITstar::SearchQueue::lexicographicalBetterThan(const std::array<ompl::base::Cost, 3> &lhs,
                                                              const std::array<ompl::base::Cost, 3> &rhs) const
         {
             return std::lexicographical_compare(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend(),
-                                                [this](const ompl::base::Cost &a, const ompl::base::Cost &b)
-                                                {
+                                                [this](const ompl::base::Cost &a, const ompl::base::Cost &b) {
                                                     return costHelpPtr_->isCostBetterThan(a, b);
                                                 });
         }

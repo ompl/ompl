@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2014, University of Toronto
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Toronto nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2014, University of Toronto
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Toronto nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Authors: Jonathan Gammell, Marlin Strub */
 
@@ -71,10 +71,10 @@
 
 // Debug macros
 #ifdef BITSTAR_DEBUG
-    /** \brief A debug-only call to assert that the object is setup. */
-    #define ASSERT_SETUP this->assertSetup();
+/** \brief A debug-only call to assert that the object is setup. */
+#define ASSERT_SETUP this->assertSetup();
 #else
-    #define ASSERT_SETUP
+#define ASSERT_SETUP
 #endif  // BITSTAR_DEBUG
 
 namespace ompl
@@ -84,15 +84,15 @@ namespace ompl
         /////////////////////////////////////////////////////////////////////////////////////////////
         // Public functions:
         BITstar::ImplicitGraph::ImplicitGraph(NameFunc nameFunc)
-          : nameFunc_(std::move(nameFunc))
-          , approximationId_(std::make_shared<unsigned int>(1u))
+          : nameFunc_(std::move(nameFunc)), approximationId_(std::make_shared<unsigned int>(1u))
         {
         }
 
         void BITstar::ImplicitGraph::setup(const ompl::base::SpaceInformationPtr &spaceInformation,
                                            const ompl::base::ProblemDefinitionPtr &problemDefinition,
                                            CostHelper *costHelper, SearchQueue *searchQueue,
-                                           const ompl::base::Planner *plannerPtr, ompl::base::PlannerInputStates &inputStates)
+                                           const ompl::base::Planner *plannerPtr,
+                                           ompl::base::PlannerInputStates &inputStates)
         {
             // Store that I am setup so that any debug-level tests will pass. This requires assuring that this function
             // is ordered properly.
@@ -113,20 +113,10 @@ namespace ompl
             }
             // No else, already allocated (by a call to setNearestNeighbors())
 
-            if (!static_cast<bool>(vertices_))
-            {
-                vertices_.reset(ompl::tools::SelfConfig::getDefaultNearestNeighbors<VertexPtr>(plannerPtr));
-            }
-            // No else, already allocated (by a call to setNearestNeighbors())
-
             // Configure:
             NearestNeighbors<VertexPtr>::DistanceFunction distanceFunction(
-                [this](const VertexConstPtr &a, const VertexConstPtr &b)
-                {
-                    return distance(a, b);
-                });
+                [this](const VertexConstPtr &a, const VertexConstPtr &b) { return distance(a, b); });
             samples_->setDistanceFunction(distanceFunction);
-            vertices_->setDistanceFunction(distanceFunction);
 
             // Set the min, max and sampled cost to the proper objective-based values:
             minCost_ = costHelpPtr_->infiniteCost();
@@ -176,7 +166,8 @@ namespace ompl
                 {
                     for (const auto &goalVertex : goalVertices_)
                     {
-                        maxDist = std::max(maxDist, spaceInformation_->distance(startVertex->state(), goalVertex->state()));
+                        maxDist =
+                            std::max(maxDist, spaceInformation_->distance(startVertex->state(), goalVertex->state()));
                     }
                 }
 
@@ -229,13 +220,6 @@ namespace ompl
                 samples_.reset();
             }
             // No else, not allocated
-
-            // The set of vertices
-            if (static_cast<bool>(vertices_))
-            {
-                vertices_->clear();
-                vertices_.reset();
-            }
 
             // The various calculations and tracked values, same as in the header
             numNewSamplesInCurrentBatch_ = 0u;
@@ -336,23 +320,6 @@ namespace ompl
             }
         }
 
-        void BITstar::ImplicitGraph::nearestVertices(const VertexPtr &vertex, VertexPtrVector *neighbourVertices)
-        {
-            ASSERT_SETUP
-
-            // Keep track of how many times we've requested nearest neighbours.
-            ++numNearestNeighbours_;
-
-            if (useKNearest_)
-            {
-                vertices_->nearestK(vertex, k_, *neighbourVertices);
-            }
-            else
-            {
-                vertices_->nearestR(vertex, r_, *neighbourVertices);
-            }
-        }
-
         void BITstar::ImplicitGraph::getGraphAsPlannerData(ompl::base::PlannerData &data) const
         {
             ASSERT_SETUP
@@ -363,60 +330,36 @@ namespace ompl
                             std::function<bool(const std::shared_ptr<Vertex> &, const std::shared_ptr<Vertex> &)>>
                 liveStates([](const auto &lhs, const auto &rhs) { return lhs->getId() < rhs->getId(); });
 
-
             // Add samples
             if (static_cast<bool>(samples_))
             {
-                // Variables:
-                // The vector of unused samples:
+                // Get the samples as a vector.
                 VertexPtrVector samples;
-
-                // Get the vector of samples
                 samples_->list(samples);
 
-                // Iterate through it turning each into a disconnected vertex
+                // Iterate through the samples.
                 for (const auto &sample : samples)
                 {
-                    // No, add as a regular vertex:
-                    data.addVertex(ompl::base::PlannerDataVertex(sample->state(), sample->getId()));
-
-                    // Keep the underlying state alive.
+                    // Make sure the sample is not destructed before BIT* is.
                     liveStates.insert(sample);
-                }
-            }
-            // No else.
 
-            // Add vertices
-            if (static_cast<bool>(vertices_))
-            {
-                // Variables:
-                // The vector of vertices in the graph:
-                VertexPtrVector vertices;
-
-                // Get the vector of vertices
-                vertices_->list(vertices);
-
-                // Iterate through it turning each into a vertex with an edge:
-                for (const auto &vertex : vertices)
-                {
-                    // Is the vertex the start?
-                    if (vertex->isRoot())
+                    // Add sample.
+                    if (!sample->isRoot())
                     {
-                        // Yes, add as a start vertex:
-                        data.addStartVertex(ompl::base::PlannerDataVertex(vertex->state(), vertex->getId()));
+                        data.addVertex(ompl::base::PlannerDataVertex(sample->state(), sample->getId()));
+
+                        // Add incoming edge.
+                        if (sample->hasParent())
+                        {
+                            data.addEdge(ompl::base::PlannerDataVertex(sample->getParent()->state(),
+                                                                       sample->getParent()->getId()),
+                                         ompl::base::PlannerDataVertex(sample->state(), sample->getId()));
+                        }
                     }
                     else
                     {
-                        // No, add as a regular vertex:
-                        data.addVertex(ompl::base::PlannerDataVertex(vertex->state(), vertex->getId()));
-
-                        // And as an incoming edge
-                        data.addEdge(ompl::base::PlannerDataVertex(vertex->getParent()->state(), vertex->getParent()->getId()),
-                                     ompl::base::PlannerDataVertex(vertex->state(), vertex->getId()));
+                        data.addStartVertex(ompl::base::PlannerDataVertex(sample->state(), sample->getId()));
                     }
-
-                    // Keep the underlying state alive.
-                    liveStates.insert(vertex);
                 }
             }
             // No else.
@@ -437,8 +380,8 @@ namespace ompl
             closestVertexToGoal_.reset();
         }
 
-        void BITstar::ImplicitGraph::updateStartAndGoalStates(ompl::base::PlannerInputStates &inputStates,
-                                                              const base::PlannerTerminationCondition &terminationCondition)
+        void BITstar::ImplicitGraph::updateStartAndGoalStates(
+            ompl::base::PlannerInputStates &inputStates, const base::PlannerTerminationCondition &terminationCondition)
         {
             ASSERT_SETUP
 
@@ -464,7 +407,8 @@ namespace ompl
                 if (static_cast<bool>(newGoal))
                 {
                     // Allocate the vertex pointer
-                  goalVertices_.push_back(std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_, approximationId_));
+                    goalVertices_.push_back(
+                        std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_, approximationId_));
 
                     // Copy the value into the state
                     spaceInformation_->copyState(goalVertices_.back()->state(), newGoal);
@@ -479,11 +423,10 @@ namespace ompl
             } while (inputStates.haveMoreGoalStates());
 
             /*
-            And then do the same for starts. We do this last as the starts are added to the queue, which uses a cost-to-go
-            heuristic in it's ordering, and for that we want all the goals updated.
-            As there is no way to wait for new *start* states, this loop can be cleaner
-            There is no need to rebuild the queue when we add start vertices, as the queue is ordered on current
-            cost-to-come, and adding a start doesn't change that.
+            And then do the same for starts. We do this last as the starts are added to the queue, which uses a
+            cost-to-go heuristic in it's ordering, and for that we want all the goals updated. As there is no way to
+            wait for new *start* states, this loop can be cleaner There is no need to rebuild the queue when we add
+            start vertices, as the queue is ordered on current cost-to-come, and adding a start doesn't change that.
             */
             while (inputStates.haveMoreStartStates())
             {
@@ -495,13 +438,15 @@ namespace ompl
                 if (static_cast<bool>(newStart))
                 {
                     // Allocate the vertex pointer:
-                    startVertices_.push_back(std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_, approximationId_, true));
+                    startVertices_.push_back(
+                        std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_, approximationId_, true));
 
                     // Copy the value into the state.
                     spaceInformation_->copyState(startVertices_.back()->state(), newStart);
 
                     // Add the vertex to the set of vertices.
-                    this->addToVertices(startVertices_.back());
+                    this->addToSamples(startVertices_.back());
+                    this->registerAsVertex(startVertices_.back());
 
                     // Mark that we've added:
                     addedStart = true;
@@ -604,7 +549,7 @@ namespace ompl
                         // queuePtr_->enqueueVertex(*prunedStartIter);
 
                         // Add the vertex to the set of vertices.
-                        this->addToVertices(*prunedStartIter);
+                        this->registerAsVertex(*prunedStartIter);
 
                         // Mark what we've added:
                         addedStart = true;
@@ -694,7 +639,8 @@ namespace ompl
             // Increment the approximation id.
             ++(*approximationId_);
 
-            // We don't add actual *new* samples until the next time "nearestSamples" is called. This is to support JIT sampling.
+            // We don't add actual *new* samples until the next time "nearestSamples" is called. This is to support JIT
+            // sampling.
         }
 
         std::pair<unsigned int, unsigned int> BITstar::ImplicitGraph::prune(double prunedMeasure)
@@ -715,10 +661,7 @@ namespace ompl
             std::pair<unsigned int, unsigned int> numPruned = this->pruneStartAndGoalVertices();
 
             // Prune the samples.
-            numPruned.second = numPruned.second + this->pruneSamples();
-
-            // Prune the vertices as well.
-            this->pruneVertices();
+            numPruned = numPruned + this->pruneSamples();
 
             return numPruned;
         }
@@ -776,11 +719,12 @@ namespace ompl
 
             // Variable:
 #ifdef BITSTAR_DEBUG
-            // The use count of the passed shared pointer. Used in debug mode to assert that we took ownership of our own copy.
+            // The use count of the passed shared pointer. Used in debug mode to assert that we took ownership of our
+            // own copy.
             unsigned int initCount = sample.use_count();
 #endif  // BITSTAR_DEBUG
-            // A copy of the sample pointer to be removed so we can't delete it out from under ourselves (occurs when
-            // this function is given an element of the maintained set as the argument)
+        // A copy of the sample pointer to be removed so we can't delete it out from under ourselves (occurs when
+        // this function is given an element of the maintained set as the argument)
             VertexPtr sampleCopy(sample);
 
 #ifdef BITSTAR_DEBUG
@@ -817,10 +761,9 @@ namespace ompl
             recycledSamples_.push_back(sample);
         }
 
-        void BITstar::ImplicitGraph::addToVertices(const VertexPtr &vertex)
+        void BITstar::ImplicitGraph::registerAsVertex(const VertexPtr &vertex)
         {
             ASSERT_SETUP
-
 #ifdef BITSTAR_DEBUG
             // Make sure it's connected first, so that the queue gets updated properly.
             // This is a day of debugging I'll never get back
@@ -832,9 +775,6 @@ namespace ompl
 
             // Increment the number of vertices added:
             ++numVertices_;
-
-            // Add to the NN structure:
-            vertices_->add(vertex);
 
             // Update the nearest vertex to the goal (if tracking)
             if (!hasExactSolution_ && findApprox_)
@@ -849,11 +789,12 @@ namespace ompl
 
             // Variable:
 #ifdef BITSTAR_DEBUG
-            // The use count of the passed shared pointer. Used in debug mode to assert that we took ownership of our own copy.
+            // The use count of the passed shared pointer. Used in debug mode to assert that we took ownership of our
+            // own copy.
             unsigned int initCount = vertex.use_count();
 #endif  // BITSTAR_DEBUG
-            // A copy of the vertex pointer to be removed so we can't delete it out from under ourselves (occurs when
-            // this function is given an element of the maintained set as the argument)
+        // A copy of the vertex pointer to be removed so we can't delete it out from under ourselves (occurs when
+        // this function is given an element of the maintained set as the argument)
             VertexPtr vertexCopy(vertex);
 
 #ifdef BITSTAR_DEBUG
@@ -870,7 +811,7 @@ namespace ompl
             ++numVerticesDisconnected_;
 
             // Remove from the nearest-neighbour structure
-            vertices_->remove(vertexCopy);
+            samples_->remove(vertexCopy);
 
             // Add back as sample, if that would be beneficial
             if (moveToFree && !this->canSampleBePruned(vertexCopy))
@@ -899,11 +840,12 @@ namespace ompl
 
             // Variable:
 #ifdef BITSTAR_DEBUG
-            // The use count of the passed shared pointer. Used in debug mode to assert that we took ownership of our own copy.
+            // The use count of the passed shared pointer. Used in debug mode to assert that we took ownership of our
+            // own copy.
             unsigned int initCount = vertex.use_count();
 #endif  // BITSTAR_DEBUG
-            // A copy of the sample pointer to be removed so we can't delete it out from under ourselves (occurs when
-            // this function is given an element of the maintained set as the argument)
+        // A copy of the sample pointer to be removed so we can't delete it out from under ourselves (occurs when
+        // this function is given an element of the maintained set as the argument)
             VertexPtr vertexCopy(vertex);
 
 #ifdef BITSTAR_DEBUG
@@ -921,9 +863,6 @@ namespace ompl
             {
                 queuePtr_->removeFromInconsistentSet(vertexCopy);
             }
-
-            // Remove from the set of vertices.
-            vertices_->remove(vertexCopy);
 
             // Disconnect from parent if necessary, not cascading cost updates.
             if (vertexCopy->hasParent())
@@ -943,18 +882,21 @@ namespace ompl
             // Remove any edges still in the queue.
             queuePtr_->removeAllEdgesConnectedToVertexFromQueue(vertexCopy);
 
+            // Remove this vertex from the set of samples.
+            samples_->remove(vertexCopy);
+
             // This state is now no longer considered a vertex, but could still be useful as sample.
             if (this->canSampleBePruned(vertexCopy))
             {
                 // It's not even useful as sample, mark it as pruned.
                 vertexCopy->markPruned();
-                return { 0, 1 }; // The vertex is actually removed.
+                return {0, 1};  // The vertex is actually removed.
             }
             else
             {
-                // It is useful as sample, so add it as such.
-                this->addToSamples(vertexCopy);
-                return { 1, 0 }; // The vertex is only disconnected and recycled as sample.
+                // It is useful as sample and should be recycled.
+                recycleSample(vertexCopy);
+                return {1, 0};  // The vertex is only disconnected and recycled as sample.
             }
         }
 
@@ -1019,7 +961,8 @@ namespace ompl
                     double sampleDensity = static_cast<double>(numNewSamplesInCurrentBatch_) / approximationMeasure_;
 
                     // Convert that into the number of samples needed for this slice.
-                    double numSamplesForSlice = sampleDensity * sampler_->getInformedMeasure(sampledCost_, requiredCost);
+                    double numSamplesForSlice =
+                        sampleDensity * sampler_->getInformedMeasure(sampledCost_, requiredCost);
 
                     // The integer of the double are definitely sampled
                     numRequiredSamples = numSamples_ + static_cast<unsigned int>(numSamplesForSlice);
@@ -1039,7 +982,7 @@ namespace ompl
                 }
 
                 // Actually generate the new samples
-                VertexPtrVector newStates { };
+                VertexPtrVector newStates{};
                 newStates.reserve(numRequiredSamples);
                 for (std::size_t tries = 0u;
                      tries < averageNumOfAllowedFailedAttemptsWhenSampling_ * numRequiredSamples &&
@@ -1048,7 +991,8 @@ namespace ompl
                 {
                     // Variable
                     // The new state:
-                    auto newState = std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_, approximationId_);
+                    auto newState =
+                        std::make_shared<Vertex>(spaceInformation_, costHelpPtr_, queuePtr_, approximationId_);
 
                     // Sample in the interval [costSampled_, costReqd):
                     if (sampler_->sampleUniform(newState->state(), sampledCost_, requiredCost))
@@ -1080,16 +1024,19 @@ namespace ompl
 
         void BITstar::ImplicitGraph::updateVertexClosestToGoal()
         {
-            if (static_cast<bool>(vertices_))
+            if (static_cast<bool>(samples_))
             {
-                // Get the vector of vertices
-                VertexPtrVector vertices;
-                vertices_->list(vertices);
+                // Get all samples as a vector.
+                VertexPtrVector samples;
+                samples_->list(samples);
 
-                // Iterate through them testing which is the closest to the goal.
-                for (const auto &vertex : vertices)
+                // Iterate through them testing which of the ones in the tree is the closest to the goal.
+                for (const auto &sample : samples)
                 {
-                    this->testClosestToGoal(vertex);
+                    if (sample->isInTree())
+                    {
+                        this->testClosestToGoal(sample);
+                    }
                 }
             }
             // No else, there are no vertices.
@@ -1143,7 +1090,7 @@ namespace ompl
                         // Swap it to the element before our *new* end
                         if (startIter != (startEnd - 1))
                         {
-                            using std::swap; // Enable Koenig Lookup.
+                            using std::swap;  // Enable Koenig Lookup.
                             swap(*startIter, *(startEnd - 1));
                         }
 
@@ -1254,71 +1201,58 @@ namespace ompl
             return numPruned;
         }
 
-        unsigned int BITstar::ImplicitGraph::pruneSamples()
+        std::pair<unsigned int, unsigned int> BITstar::ImplicitGraph::pruneSamples()
         {
-            // Variable:
             // The number of samples pruned in this pass:
-            unsigned int numPruned = 0u;
+            std::pair<unsigned int, unsigned int> numPruned {0u, 0u};
+
+            // Get the vector of samples.
+            VertexPtrVector samples;
+            samples_->list(samples);
 
             // Are we dropping samples anytime we prune?
             if (dropSamplesOnPrune_)
             {
-                // We are, store the number pruned
-                numPruned = samples_->size();
+                std::size_t numFreeStatesPruned = 0u;
+                for (const auto &sample : samples)
+                {
+                    if (!sample->isInTree())
+                    {
+                        this->pruneSample(sample);
+                        ++numPruned.second;
+                        ++numFreeStatesPruned;
+                    }
+                }
 
-                // and the number of uniform samples
+                // Store the number of uniform samples.
                 numUniformStates_ = 0u;
 
-                // Then remove all of the samples
-                samples_->clear();
-
-                // and increasing our global counter
-                numFreeStatesPruned_ = numFreeStatesPruned_ + numPruned;
+                // Increase the global counter.
+                numFreeStatesPruned_ += numFreeStatesPruned;
             }
             else
             {
-                // Get the vector of samples.
-                VertexPtrVector samples;
-                samples_->list(samples);
-
-                // Iterate through the vector and remove any samples that should not be in the queue.
+                // Iterate through the vector and remove any samples that should not be in the graph.
                 for (const auto &sample : samples)
                 {
+                    if (sample->isInTree())
+                    {
+                        if (this->canVertexBeDisconnected(sample))
+                        {
+                            numPruned = numPruned + this->pruneVertex(sample);
+                        }
+                    }
                     // Check if this state should be pruned.
-                    if (this->canSampleBePruned(sample))
+                    else if (this->canSampleBePruned(sample))
                     {
                         // It should, remove the sample from the NN structure.
                         this->pruneSample(sample);
 
                         // Keep track of how many are pruned.
-                        ++numPruned;
+                        ++numPruned.second;
                     }
                     // No else, keep sample.
                 }
-            }
-
-            return numPruned;
-        }
-
-        std::pair<unsigned int, unsigned int> BITstar::ImplicitGraph::pruneVertices()
-        {
-            // The number of samples pruned in this pass.
-            std::pair<unsigned int, unsigned int> numPruned { 0u, 0u };
-
-            // Get the vector of samples
-            VertexPtrVector vertices;
-            vertices_->list(vertices);
-
-            // Iterate through the vector and remove any vertexs that should not be in the queue
-            for (const auto &vertex : vertices)
-            {
-                // Check if this state should be pruned:
-                if (this->canVertexBeDisconnected(vertex))
-                {
-                    // Prune it. This recycles if possible (sorry, not the most expressive method name).
-                    numPruned = numPruned + this->pruneVertex(vertex);
-                }
-                // No else, keep vertex.
             }
 
             return numPruned;
@@ -1345,12 +1279,13 @@ namespace ompl
             {
                 throw ompl::Exception("Asking whether a pruned sample can be pruned.");
             }
-#endif // BITSTAR_DEBUG
+#endif  // BITSTAR_DEBUG
 
             // Threshold should always be g_t(x_g)
             // Prune the unconnected sample if it could never be better of a better solution.
             // g^(v) + h^(v) >= g_t(x_g)?
-            return costHelpPtr_->isCostWorseThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicVertex(sample), solutionCost_);
+            return costHelpPtr_->isCostWorseThanOrEquivalentTo(costHelpPtr_->lowerBoundHeuristicVertex(sample),
+                                                               solutionCost_);
         }
 
         void BITstar::ImplicitGraph::testClosestToGoal(const VertexConstPtr &vertex)
@@ -1376,8 +1311,8 @@ namespace ompl
             {
                 throw ompl::Exception("Calculating the neighbourhood cost of a pruned vertex.");
             }
-#endif // BITSTAR_DEBUG
-            // Are we using JIT sampling?
+#endif  // BITSTAR_DEBUG
+        // Are we using JIT sampling?
             if (useJustInTimeSampling_)
             {
                 // We are, return the maximum heuristic cost that represents a sample in the neighbourhood of the given
@@ -1406,9 +1341,8 @@ namespace ompl
             }
             else if (isPruningEnabled_)
             {
-                // We are not dropping samples but pruning is enabled, then all vertices and samples are uniform, use
-                // that.
-                numUniformStates = vertices_->size() + samples_->size();
+                // We are not dropping samples but pruning is enabled, then all samples are uniform.
+                numUniformStates = samples_->size();
             }
             else
             {
@@ -1438,22 +1372,13 @@ namespace ompl
 
         std::size_t BITstar::ImplicitGraph::computeNumberOfSamplesInInformedSet() const
         {
-            std::size_t numberOfSamplesInInformedSet{0u};
-
-            // First count the vertices.
-            std::vector<VertexPtr> vertices;
-            vertices_->list(vertices);
-            numberOfSamplesInInformedSet +=
-                std::count_if(vertices.begin(), vertices.end(),
-                              [this](const VertexPtr &vertex) { return !canSampleBePruned(vertex); });
-
-            // Second check the samples.
+            // Get the samples as a vector.
             std::vector<VertexPtr> samples;
             samples_->list(samples);
-            numberOfSamplesInInformedSet += std::count_if(
-                samples.begin(), samples.end(), [this](const VertexPtr &sample) { return !canSampleBePruned(sample); });
 
-            return numberOfSamplesInInformedSet;
+            // Return the number of samples that can not be pruned.
+            return std::count_if(samples.begin(), samples.end(),
+                                 [this](const VertexPtr &sample) { return !canSampleBePruned(sample); });
         }
 
         double BITstar::ImplicitGraph::calculateR(unsigned int numUniformSamples) const
@@ -1463,7 +1388,8 @@ namespace ompl
             auto graphCardinality = static_cast<double>(numUniformSamples);
 
             // Calculate the term and return.
-            return rewireFactor_ * this->calculateMinimumRggR() * std::pow(std::log(graphCardinality) / graphCardinality, 1.0 / stateDimension);
+            return rewireFactor_ * this->calculateMinimumRggR() *
+                   std::pow(std::log(graphCardinality) / graphCardinality, 1.0 / stateDimension);
         }
 
         unsigned int BITstar::ImplicitGraph::calculateK(unsigned int numUniformSamples) const
@@ -1481,8 +1407,7 @@ namespace ompl
             // Calculate the term and return
             // RRT*
             return std::pow(2.0 * (1.0 + 1.0 / stateDimension) *
-                                  (approximationMeasure_ /
-                                    unitNBallMeasure(spaceInformation_->getStateDimension())),
+                                (approximationMeasure_ / unitNBallMeasure(spaceInformation_->getStateDimension())),
                             1.0 / stateDimension);
 
             // Relevant work on calculating the minimum radius:
@@ -1622,16 +1547,9 @@ namespace ompl
 
         BITstar::VertexPtrVector BITstar::ImplicitGraph::getCopyOfSamples() const
         {
-                VertexPtrVector samples;
-                samples_->list(samples);
-                return samples;
-        }
-
-        BITstar::VertexPtrVector BITstar::ImplicitGraph::getCopyOfVertices() const
-        {
-                VertexPtrVector vertices;
-                vertices_->list(vertices);
-                return vertices;
+            VertexPtrVector samples;
+            samples_->list(samples);
+            return samples;
         }
 
         void BITstar::ImplicitGraph::setRewireFactor(double rewireFactor)
@@ -1795,7 +1713,6 @@ namespace ompl
             {
                 // The problem isn't setup yet, create NN structs of the specified type:
                 samples_ = std::make_shared<NN<VertexPtr>>();
-                vertices_ = std::make_shared<NN<VertexPtr>>();
             }
         }
 
@@ -1806,7 +1723,10 @@ namespace ompl
 
         unsigned int BITstar::ImplicitGraph::numVertices() const
         {
-            return vertices_->size();
+            VertexPtrVector samples;
+            samples_->list(samples);
+            return std::count_if(samples.begin(), samples.end(),
+                                 [](const VertexPtr &sample) { return sample->isInTree(); });
         }
 
         unsigned int BITstar::ImplicitGraph::numStatesGenerated() const
@@ -1839,5 +1759,5 @@ namespace ompl
             return numStateCollisionChecks_;
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
-    }  // geometric
-}  // ompl
+    }  // namespace geometric
+}  // namespace ompl
