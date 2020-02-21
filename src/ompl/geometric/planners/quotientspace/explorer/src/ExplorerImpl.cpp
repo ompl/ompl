@@ -179,6 +179,7 @@ void ExplorerImpl::growGeometricExpand()
 void ExplorerImpl::growGeometric(){
   
   const Configuration *q_nearest = nearest(q_random);
+
   double d = getBundle()->distance(q_nearest->state, q_random->state);
   if(d > maxDistance){
     getBundle()->getStateSpace()->interpolate(q_nearest->state, q_random->state, maxDistance / d, q_random->state);
@@ -216,11 +217,10 @@ void ExplorerImpl::growGeometric(){
   }
 }
 
-//(1) Directed Graph
-//(2) Do not add goal
 void ExplorerImpl::growControl(){
-  //do this, if control-case
+
     const Configuration *q_nearest = nearest(q_random);
+
     s_random = q_random->state;
 
     //changes q_random to the state we actually get with directed control c_random
@@ -228,20 +228,15 @@ void ExplorerImpl::growControl(){
     unsigned int cd = rng_.uniformInt(siC->getMinControlDuration(), siC->getMaxControlDuration());
     int duration = dCSampler->sampleTo(c_random, q_nearest->state, s_random);
 
-    //c_random is always collisionfree if applied to q_nearest
-
-    if(duration<controlDuration){
-        //used control for full duration, add q_random
-        Configuration *q_next = new Configuration(getBundle(), s_random);
-        Vertex v_next = addConfigurationSparse(q_next);
-        addEdgeSparse(q_nearest->index, v_next);
-    } else {
-        //sets q_reached to the State we actually reach with our control for controlDuration
+    if(duration > controlDuration){
+      //truncate motion
         prop->propagate(q_nearest->state, c_random, duration, s_random);
-        Configuration *q_next = new Configuration(getBundle(), s_random);
-        Vertex v_next = addConfigurationSparse(q_next);
-        addEdgeSparse(q_nearest->index, v_next);
     }
+
+    Configuration *q_next = new Configuration(getBundle(), s_random);
+    Vertex v_next = addConfigurationSparse(q_next);
+    addEdgeSparse(q_nearest->index, v_next);
+
     if(!hasSolution_){
         const Configuration *q_nearest_to_goal = nearest(qGoal_);
         goal_->isSatisfied(q_nearest_to_goal->state, &distanceToGoal);

@@ -52,6 +52,7 @@ ompl::geometric::QRRTImpl::~QRRTImpl()
 
 void ompl::geometric::QRRTImpl::grow()
 {
+    //(0) If first run, add start configuration
     if (firstRun_)
     {
         init();
@@ -65,26 +66,18 @@ void ompl::geometric::QRRTImpl::grow()
     const Configuration *xNearest = nearest(xRandom_);
 
     //(3) Connect Nearest to Random
-    interpolate(xNearest, xRandom_, xRandom_);
+    Configuration *xNext = extendGraphTowards(xNearest, xRandom_);
 
-    //(4) Check if Motion is correct
-    if (checkMotion(xNearest, xRandom_))
+    //(4) If extension was successful, check if we reached goal
+    if(xNext)
     {
-        Configuration *xNext = addBundleConfiguration(xRandom_->state);
-
-        if (!hasSolution_ || !hasChild())
+        bool satisfied = goal_->isSatisfied(xNext->state);
+        if (satisfied)
         {
-            // (5) add edge if no solution exists (QRRT does not use those edges
-            // anyway)
-            addBundleEdge(xNearest, xNext);
-
-            bool satisfied = goal_->isSatisfied(xNext->state);
-            if (satisfied)
-            {
-                vGoal_ = addConfiguration(qGoal_);
-                addEdge(xNearest->index, vGoal_);
-                hasSolution_ = true;
-            }
+            vGoal_ = addConfiguration(qGoal_);
+            addEdge(xNext->index, vGoal_);
+            hasSolution_ = true;
         }
     }
+
 }

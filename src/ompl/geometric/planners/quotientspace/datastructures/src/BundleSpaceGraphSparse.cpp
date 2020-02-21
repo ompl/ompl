@@ -1500,6 +1500,7 @@ bool ompl::geometric::BundleSpaceGraphSparse::getSolution(base::PathPtr &solutio
             }
         }
     }
+    return false;
 }
 
 void BundleSpaceGraphSparse::getPlannerData(base::PlannerData &data) const

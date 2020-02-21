@@ -215,6 +215,7 @@ namespace ompl
             virtual const Configuration *nearest(const Configuration *s) const;
 
             virtual void setMetric(const std::string& sMetric) override;
+            virtual void setPropagator(const std::string& sPropagator) override;
 
             ompl::base::Cost bestCost_{+ompl::base::dInf};
             Configuration *qStart_{nullptr};
@@ -250,14 +251,24 @@ namespace ompl
             ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal);
             ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal, Graph &graph);
 
-        protected:
-
             virtual double distance(const Configuration *a, const Configuration *b) const;
             virtual bool checkMotion(const Configuration *a, const Configuration *b) const;
+
+            Configuration* extendGraphTowards(
+                const Configuration *from, 
+                const Configuration *to);
+
+            // virtual bool propagateBundle(
+            //     const Configuration *from, 
+            //     const Configuration *to, 
+            //     Configuration *result) const;
+
             virtual void interpolate(
                 const Configuration *a, 
                 const Configuration *b, 
                 Configuration *dest) const;
+
+        protected:
 
             virtual Configuration* addBundleConfiguration(base::State*);
             virtual void addBundleEdge(const Configuration *a, const Configuration *b);

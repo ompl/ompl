@@ -18,6 +18,7 @@ namespace ompl
     {
         OMPL_CLASS_FORWARD(BundleSpaceComponent);
         OMPL_CLASS_FORWARD(BundleSpaceMetric);
+        OMPL_CLASS_FORWARD(BundleSpacePropagator);
 
         /// \brief A single Bundle-space
         class BundleSpace : public ompl::base::Planner
@@ -48,6 +49,7 @@ namespace ompl
             virtual void grow() = 0;
             virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
             virtual void setMetric(const std::string& sMetric) = 0;
+            virtual void setPropagator(const std::string& sPropagator) = 0;
 
             virtual void sampleFromDatastructure(ompl::base::State *xBase) = 0;
             virtual void sampleFiber(ompl::base::State *xFiber);
@@ -189,6 +191,8 @@ namespace ompl
             BundleSpaceComponentFactory componentFactory;
 
             BundleSpaceMetricPtr metric;
+
+            BundleSpacePropagatorPtr propagator_;
 
         };
     }  // namespace geometric

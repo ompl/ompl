@@ -41,6 +41,9 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/metrics/BundleSpaceMetricEuclidean.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/metrics/BundleSpaceMetricShortestPath.h>
 
+#include <ompl/geometric/planners/quotientspace/datastructures/propagators/BundleSpacePropagator.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/propagators/BundleSpacePropagatorGeometric.h>
+
 #include <ompl/geometric/planners/prm/ConnectionStrategy.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
@@ -64,6 +67,14 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
 {
     setName("BundleSpaceGraph");
     setMetric("euclidean");
+
+    if(isDynamic())
+    {
+        setPropagator("dynamic");
+    }else{
+        setPropagator("geometric");
+    }
+
 
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;
@@ -345,6 +356,34 @@ void ompl::geometric::BundleSpaceGraph::interpolate(
     if (d > maxDistance_)
     {
         getBundle()->getStateSpace()->interpolate(a->state, b->state, maxDistance_ / d, dest->state);
+    }
+}
+
+Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards(
+    const Configuration *from, 
+    const Configuration *to)
+{
+    Configuration *next = new Configuration(getBundle(), to->state);
+    if (!propagator_->propagate(from, to, next))
+    {
+        return nullptr;
+    }
+    addConfiguration(next);
+    addBundleEdge(from, next);
+    return next;
+}
+
+void ompl::geometric::BundleSpaceGraph::setPropagator(const std::string& sPropagator)
+{
+    if(sPropagator == "geometric"){
+        OMPL_DEBUG("Holonomic Propagator Selected");
+        propagator_ = std::make_shared<BundleSpacePropagatorGeometric>(this);
+    }else if(sPropagator == "dynamic"){
+        OMPL_ERROR("NYI");
+        exit(0);
+    }else{
+        OMPL_ERROR("Propagator unknown: %s", sPropagator);
+        throw ompl::Exception("Unknown Propagator");
     }
 }
 
