@@ -672,11 +672,6 @@ namespace ompl
 
             // NO COUNTER. generated samples are counted at the sampler.
 
-            // Assert the state of the sample
-#ifdef BITSTAR_DEBUG
-            this->assertSampleSanity(sample);
-#endif  // BITSTAR_DEBUG
-
             // Add to the vector of new samples
             newSamples_.push_back(sample);
 
@@ -689,14 +684,6 @@ namespace ompl
             ASSERT_SETUP
 
             // NO COUNTER. generated samples are counted at the sampler.
-
-            // Assert the state of the sample
-#ifdef BITSTAR_DEBUG
-            for (const auto &sample : samples)
-            {
-                this->assertSampleSanity(sample);
-            }
-#endif  // BITSTAR_DEBUG
 
             // Add to the vector of new samples
             newSamples_.insert(newSamples_.end(), samples.begin(), samples.end());
@@ -875,8 +862,18 @@ namespace ompl
             vertexCopy->getChildren(&children);
             for (const auto &child : children)
             {
+                // Remove this edge.
                 vertexCopy->removeChild(child);
                 child->removeParent(false);
+
+                // If the child is inconsistent, it needs to be removed from the set of inconsistent vertices.
+                if (!child->isConsistent())
+                {
+                    queuePtr_->removeFromInconsistentSet(child);
+                }
+
+                // If the child has outgoing edges in the queue, they need to be removed.
+                queuePtr_->removeOutEdgesConnectedToVertexFromQueue(child);
             }
 
             // Remove any edges still in the queue.
@@ -920,24 +917,6 @@ namespace ompl
             child->removeParent(cascadeCostUpdates);
         }
 
-        void BITstar::ImplicitGraph::assertSampleSanity(const VertexConstPtr &sample)
-        {
-            if (sample->isRoot())
-            {
-                std::cout << std::endl << "vId: " << sample->getId() << std::endl;
-                throw ompl::Exception("Sample is a graph root.");
-            }
-            if (sample->hasParent())
-            {
-                std::cout << std::endl << "vId: " << sample->getId() << std::endl;
-                throw ompl::Exception("Sample already has a parent.");
-            }
-            if (sample->hasChildren())
-            {
-                std::cout << std::endl << "vId: " << sample->getId() << std::endl;
-                throw ompl::Exception("Sample already has children.");
-            }
-        }
         /////////////////////////////////////////////////////////////////////////////////////////////
 
         /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1078,6 +1057,7 @@ namespace ompl
                         if ((*startIter)->hasParent())
                         {
                             this->removeEdgeBetweenVertexAndParent(*startIter, true);
+                            queuePtr_->removeOutEdgesConnectedToVertexFromQueue(*startIter);
                         }
 
                         // // Remove it from the vertex queue.
@@ -1142,6 +1122,14 @@ namespace ompl
                             if ((*goalIter)->hasParent())
                             {
                                 this->removeEdgeBetweenVertexAndParent(*goalIter, true);
+                                queuePtr_->removeOutEdgesConnectedToVertexFromQueue(*goalIter);
+
+                                // If the goal is inconsistent, it needs to be removed from the set of inconsistent
+                                // vertices.
+                                if (!(*goalIter)->isConsistent())
+                                {
+                                    queuePtr_->removeFromInconsistentSet(*goalIter);
+                                }
                             }
 
                             // Remove it from the set of vertices, recycling if necessary.
@@ -1204,7 +1192,7 @@ namespace ompl
         std::pair<unsigned int, unsigned int> BITstar::ImplicitGraph::pruneSamples()
         {
             // The number of samples pruned in this pass:
-            std::pair<unsigned int, unsigned int> numPruned {0u, 0u};
+            std::pair<unsigned int, unsigned int> numPruned{0u, 0u};
 
             // Get the vector of samples.
             VertexPtrVector samples;

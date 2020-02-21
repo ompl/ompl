@@ -68,6 +68,8 @@
 #define ASSERT_SETUP
 #endif  // BITSTAR_DEBUG
 
+using namespace std::string_literals;
+
 namespace ompl
 {
     namespace geometric
@@ -548,6 +550,14 @@ namespace ompl
 
         void BITstar::SearchQueue::enqueueEdges(const VertexPtr &parent, const VertexPtrVector &possibleChildren)
         {
+#ifdef BITSTAR_DEBUG
+            if (!parent->isInTree())
+            {
+                auto msg = "Trying to enqueue edges from a parent (" + std::to_string(parent->getId()) +
+                           ") that's not in the tree."s;
+                throw std::runtime_error(msg);
+            }
+#endif
             // Start with this vertex' current kiddos.
             VertexPtrVector currentChildren;
             parent->getChildren(&currentChildren);

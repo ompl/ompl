@@ -263,9 +263,6 @@ namespace ompl
             // General helper functions.
             // ---
 
-            /** \brief Performs a couple of checks on a sample, throws if something smells funny. */
-            void assertSampleSanity(const VertexConstPtr &sample);
-
             /** \brief Returns whether the vertex can be pruned, i.e., whether it could provide a better solution given.
              * the current graph. The check should always be g_t(v) + h^(v) >= g_t(x_g). */
             bool canVertexBeDisconnected(const VertexPtr &vertex) const;

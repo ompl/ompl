@@ -841,10 +841,6 @@ namespace ompl
             }  // If not, we add the vertex without replaceing a parent.
             else
             {
-#ifdef BITSTAR_DEBUG
-                graphPtr_->assertSampleSanity(edge.second);
-#endif  // BITSTAR_DEBUG
-
                 // Add a parent to the child.
                 edge.second->addParent(edge.first, edgeCost);
 
