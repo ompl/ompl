@@ -77,12 +77,6 @@ void ompl::geometric::QMPImpl::grow()
         Configuration* q_neighbor = r_nearest_neighbors.at(i);
         if (Bundle->checkMotion(q_neighbor->state, xRandom_->state)) 
         {
-            Vertex v_next;
-            Configuration *q_next;
-            //TODO: why only add one edge?
-            if(!foundFeasibleEdge)
-            {
-    
                 double d = Bundle->distance(q_neighbor->state, xRandom_->state);
                 if (d > maxDistance_)
                 {
@@ -91,14 +85,10 @@ void ompl::geometric::QMPImpl::grow()
 
                 // totalNumberOfSamples_++;
                 // totalNumberOfFeasibleSamples_++;
-                q_next = new Configuration(Bundle, xRandom_->state);
-                v_next = addConfiguration(q_next);
+                Configuration *q_next = new Configuration(Bundle, xRandom_->state); 
+                Vertex v_next = addConfiguration(q_next);
             
                 
-                foundFeasibleEdge = true;
-            }
-            if (!hasSolution_ && foundFeasibleEdge)
-            {
                 //TODO: What happens if this edge is infeasible, but there has
                 //been one feasible edge before? (i.e. foundfeasibleedge is set)
                 addEdge(q_neighbor->index, v_next);
@@ -111,7 +101,6 @@ void ompl::geometric::QMPImpl::grow()
                     addEdge(q_neighbor->index, vGoal_);
                     hasSolution_ = true;
                 }
-            }
         }
 
     }
@@ -141,7 +130,6 @@ void ompl::geometric::QMPImpl::sampleFromDatastructure(base::State *xRandom)
         Bundle->getStateSpace()->interpolate(graph_[v1]->state, graph_[v2]->state, s, xRandom);
 
     }else{
-      OMPL_ERROR("Graph Sampler");
         //(2) Sample randomly on graph
         BaseT::sampleFromDatastructure(xRandom);
     }
@@ -149,7 +137,6 @@ void ompl::geometric::QMPImpl::sampleFromDatastructure(base::State *xRandom)
     //(3) Perturbate sample in epsilon neighborhood
     if(epsilonGraphThickening_ > 0) 
     {
-      OMPL_ERROR("Epsilon Thickening");
         getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, epsilonGraphThickening_);
     }
 

@@ -439,7 +439,8 @@ void ompl::geometric::BundleSpace::debugInvalidState(const base::State *x)
 {
     const base::StateSpacePtr space = Bundle->getStateSpace();
     bool bounds = space->satisfiesBounds(x);
-    if(!bounds){
+    if(!bounds)
+    {
         std::vector<base::StateSpacePtr> Bundle_decomposed;
         if (!space->isCompound())
         {
@@ -449,33 +450,60 @@ void ompl::geometric::BundleSpace::debugInvalidState(const base::State *x)
             Bundle_decomposed = Bundle_compound->getSubspaces();
         }
 
-        for(unsigned int m = 0; m < Bundle_decomposed.size(); m++){
+        for(unsigned int m = 0; m < Bundle_decomposed.size(); m++)
+        {
             base::StateSpacePtr spacek = Bundle_decomposed.at(m);
             int type = spacek->getType();
-            switch (type) {
-              case base::STATE_SPACE_REAL_VECTOR:
-              {
-                  auto *RN = spacek->as<base::RealVectorStateSpace>();
-                  const base::RealVectorStateSpace::StateType *xk = 
-                    x->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(m);
-                  std::vector<double> bl =  RN->getBounds().low;
-                  std::vector<double> bh =  RN->getBounds().high;
-                  for(unsigned int k = 0; k < bl.size(); k++){
-                    double qk = xk->values[k];
-                    double qkl = bl.at(k);
-                    double qkh = bh.at(k);
-                    if(qk < qkl || qk > qkh){
-                        std::cout << "Out Of Bounds [" 
-                          << "component " << m << ", "
-                          << "link " << k 
-                          << "] " 
-                          << bl.at(k) << " <= " << qk << " <= " << bh.at(k) << std::endl;
+            switch (type) 
+            {
+                case base::STATE_SPACE_REAL_VECTOR:
+                {
+                    auto *RN = spacek->as<base::RealVectorStateSpace>();
+                    const base::RealVectorStateSpace::StateType *xk = 
+                      x->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(m);
+                    std::vector<double> bl =  RN->getBounds().low;
+                    std::vector<double> bh =  RN->getBounds().high;
+                    for(unsigned int k = 0; k < bl.size(); k++)
+                    {
+                      double qk = xk->values[k];
+                      double qkl = bl.at(k);
+                      double qkh = bh.at(k);
+                      if(qk < qkl || qk > qkh){
+                          std::cout << "Out Of Bounds [" 
+                            << "component " << m << ", "
+                            << "link " << k 
+                            << "] " 
+                            << bl.at(k) << " <= " << qk << " <= " << bh.at(k) << std::endl;
+                      }
                     }
-                  }
-                  break;
-              }
+                    break;
+                }
+                case base::STATE_SPACE_SO2:
+                {
+                    double value = 0;
+                    if (!space->isCompound())
+                    {
+                        const base::SO2StateSpace::StateType *xk = 
+                          x->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(m);
+                        value = xk->value;
+                    }else{
+                        const base::SO2StateSpace::StateType *xk = 
+                          x->as<base::SO2StateSpace::StateType>();
+                        value = xk->value;
+                    }
+                    std::cout << "Invalid: -pi <= " << value << " <= +pi" << std::endl;
+                    break;
+                }
+                default:
+                {
+
+                    OMPL_ERROR("Could not debug state type %d.", type);
+                    break;
+                }
             }
         }
+    }else{
+        std::cout << "Bounds satisfied. Must be collision problem." << std::endl;
     }
 }
 

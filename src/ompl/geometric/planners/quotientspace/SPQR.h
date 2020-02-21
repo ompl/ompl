@@ -33,55 +33,39 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey, Sohaib Akbar */
+/* Author: Sohaib Akbar, Andreas Orthey */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_BundleSpace_SQMPIMPL_
-#define OMPL_GEOMETRIC_PLANNERS_BundleSpace_SQMPIMPL_
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h>
-#include <ompl/datastructures/PDF.h>
+#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_SPQR_
+#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_SPQR_
+
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceSequence.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/SPQRImpl.h>
 
 namespace ompl
 {
-    namespace base
-    {
-        OMPL_CLASS_FORWARD(OptimizationObjective);
-    }
     namespace geometric
     {
-        /** \brief Sparse Quotient-space roadMap Planner (SQMP) Algorithm*/
-        class SQMPImpl : public ompl::geometric::BundleSpaceGraphSparse
-        {
-            using BaseT = BundleSpaceGraphSparse;
+        /**
+             @anchor SPQR
+             @par Short description
+             Sparse Quotient space roadMap Planner algorithm, is extension to
+             Quotient space raodMap Planner(QMP), it reduce
+             memory requirment to store roadmap similar to
+             SPARS algorithm.
+             @par External documentation
+             A. Orthey, A. Escande and E. Yoshida,
+             Quotient-Space Motion Planning,
+             in <em>International Conference on Intelligent Robots and Systems</em>, 2018,
+             [[PDF]](https://arxiv.org/abs/1807.09468)
+             @par External documentation
+             A. Dobson, A. Krontiris, K. Bekris,
+             Sparse Roadmap Spanners,
+             <em>Workshop on the Algorithmic Foundations of Robotics (WAFR)</em> 2012.
+             [[PDF]](http://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf)
+        */
 
-        public:
-            SQMPImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
-
-            virtual ~SQMPImpl() override;
-
-            /** \brief One iteration of RRT with adjusted sampling function */
-            virtual void grow() override;
-
-            /** \brief sample random node from Probabilty density function*/
-            void expand();
-
-            /** \brief Importance based on how many vertices the tree has */
-            double getImportance() const override;
-
-            void addMileStone(Configuration *q_random);
-            Configuration *addConfigurationDense(Configuration *q_random);
-            bool getPlannerTerminationCondition();
-
-        protected:
-
-            /** \brief Maximum failures limit for terminating the algorithm similar to SPARS */
-            unsigned int maxFailures_{1000u};
-
-            /** \brief for different ratio of expand vs grow 1:5*/
-            unsigned int growExpandCounter_{0};
-            
-            std::vector<base::State *> randomWorkStates_;
-        };
-    }  // namespace geometric
-}  // namespace ompl
-
+        /** \brief Sparse Quotient-space roadMap Planner (SPQR) Algorithm */
+       typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::SPQRImpl> SPQR;
+    }
+}
 #endif

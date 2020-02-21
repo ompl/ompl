@@ -35,7 +35,7 @@
 
 /* Author: Andreas Orthey, Sohaib Akbar */
 
-#include <ompl/geometric/planners/quotientspace/algorithms/SQMPImpl.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/SPQRImpl.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <boost/foreach.hpp>
 #include <ompl/datastructures/NearestNeighbors.h>
@@ -43,20 +43,20 @@
 
 #define foreach BOOST_FOREACH
 
-ompl::geometric::SQMPImpl::SQMPImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
+ompl::geometric::SPQRImpl::SPQRImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
-    setName("SQMPImpl" + std::to_string(id_));
+    setName("SPQRImpl" + std::to_string(id_));
     randomWorkStates_.resize(5);
     Bundle->allocStates(randomWorkStates_);
 }
 
-ompl::geometric::SQMPImpl::~SQMPImpl()
+ompl::geometric::SPQRImpl::~SPQRImpl()
 {
     getBundle()->freeStates(randomWorkStates_);
     deleteConfiguration(xRandom_);
 }
 
-void ompl::geometric::SQMPImpl::grow()
+void ompl::geometric::SPQRImpl::grow()
 {
     if (firstRun_)
     {
@@ -73,7 +73,7 @@ void ompl::geometric::SQMPImpl::grow()
     addMileStone(xRandom_);
 }
 
-void ompl::geometric::SQMPImpl::expand()
+void ompl::geometric::SPQRImpl::expand()
 {
     PDF pdf;
 
@@ -122,7 +122,7 @@ void ompl::geometric::SQMPImpl::expand()
     }*/
 }
 
-void ompl::geometric::SQMPImpl::addMileStone(Configuration *q_random)
+void ompl::geometric::SPQRImpl::addMileStone(Configuration *q_random)
 {
     Configuration *q_next = addConfigurationDense(q_random);
 
@@ -146,7 +146,7 @@ void ompl::geometric::SQMPImpl::addMileStone(Configuration *q_random)
     }
 }
 
-ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SQMPImpl::addConfigurationDense(Configuration *q_random)
+ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SPQRImpl::addConfigurationDense(Configuration *q_random)
 {
     Configuration *q_next = new Configuration(Bundle, q_random->state);
     Vertex v_next = ompl::geometric::BundleSpaceGraph::addConfiguration(q_next);
@@ -221,7 +221,7 @@ ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SQMPImpl::ad
     return q_next;
 }
 
-double ompl::geometric::SQMPImpl::getImportance() const
+double ompl::geometric::SPQRImpl::getImportance() const
 {
     // Should depend on
     // (1) level : The higher the level, the more importance
@@ -240,7 +240,7 @@ double ompl::geometric::SQMPImpl::getImportance() const
     return 1.0 / (N + 1);
 }
 
-bool ompl::geometric::SQMPImpl::getPlannerTerminationCondition()
+bool ompl::geometric::SPQRImpl::getPlannerTerminationCondition()
 {
     return hasSolution_ || consecutiveFailures_ > maxFailures_;
 }

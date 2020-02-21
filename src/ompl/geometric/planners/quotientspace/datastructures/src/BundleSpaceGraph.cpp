@@ -100,6 +100,7 @@ void ompl::geometric::BundleSpaceGraph::setup()
     BaseT::setup();
     ompl::tools::SelfConfig sc(Bundle, getName());
     sc.configurePlannerRange(maxDistance_);
+    OMPL_DEBUG("Range distance graph sampling: %f", maxDistance_);
 
     if (!nearestDatastructure_)
     {
@@ -222,13 +223,11 @@ void ompl::geometric::BundleSpaceGraph::init()
 
     if (const base::State *st = pis_.nextStart())
     {
-        if (st != nullptr)
-        {
-            qStart_ = new Configuration(Bundle, st);
-            qStart_->isStart = true;
-            vStart_ = addConfiguration(qStart_);
-        }
+        qStart_ = new Configuration(Bundle, st);
+        qStart_->isStart = true;
+        vStart_ = addConfiguration(qStart_);
     }
+
     if (qStart_ == nullptr)
     {
         OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
@@ -237,12 +236,10 @@ void ompl::geometric::BundleSpaceGraph::init()
 
     if (const base::State *st = pis_.nextGoal())
     {
-        if (st != nullptr)
-        {
-            qGoal_ = new Configuration(Bundle, st);
-            qGoal_->isGoal = true;
-        }
+        qGoal_ = new Configuration(Bundle, st);
+        qGoal_->isGoal = true;
     }
+
     if (qGoal_ == nullptr)
     {
         OMPL_ERROR("%s: There are no valid goal states!", getName().c_str());
@@ -564,7 +561,6 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(
         data.addGoalVertex(pgoal);
     }
 
-    unsigned int ctr = 0;
     foreach (const Edge e, boost::edges(graph))
     {
         const Vertex v1 = boost::source(e, graph);
