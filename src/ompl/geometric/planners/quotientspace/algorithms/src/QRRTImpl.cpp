@@ -74,11 +74,11 @@ void ompl::geometric::QRRTImpl::grow()
 
         if (!hasSolution_ || !hasChild())
         {
-            // (5) add edge if no solution exists
+            // (5) add edge if no solution exists (QRRT does not use those edges
+            // anyway)
             addBundleEdge(xNearest, xNext);
 
-            double dist = 0.0;
-            bool satisfied = goal_->isSatisfied(xNext->state, &dist);
+            bool satisfied = goal_->isSatisfied(xNext->state);
             if (satisfied)
             {
                 vGoal_ = addConfiguration(qGoal_);
