@@ -263,6 +263,19 @@ ompl::geometric::BundleSpaceGraph::nearest(const Configuration *q) const
     return nearestDatastructure_->nearest(const_cast<Configuration *>(q));
 }
 
+ompl::geometric::BundleSpaceGraph::Configuration* 
+ompl::geometric::BundleSpaceGraph::addBundleConfiguration(base::State* state)
+{
+    Configuration *x = new Configuration(getBundle(), state);
+    addConfiguration(x);
+    return x;
+}
+
+void ompl::geometric::BundleSpaceGraph::addBundleEdge(const Configuration *a, const Configuration *b)
+{
+    addEdge(a->index, b->index);
+}
+
 ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::BundleSpaceGraph::addConfiguration(Configuration *q)
 {
     Vertex m = boost::add_vertex(q, graph_);

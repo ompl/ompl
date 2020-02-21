@@ -62,28 +62,30 @@ void ompl::geometric::QRRTImpl::grow()
     sampleBundleGoalBias(xRandom_->state, goalBias_);
 
     //(2) Get Nearest in Tree
-    const Configuration *q_nearest = nearest(xRandom_);
+    const Configuration *xNearest = nearest(xRandom_);
 
     //(3) Connect Nearest to Random
-    interpolate(q_nearest, xRandom_, xRandom_);
+    interpolate(xNearest, xRandom_, xRandom_);
 
     //(4) Check if Motion is correct
-    if (checkMotion(q_nearest, xRandom_))
+    if (checkMotion(xNearest, xRandom_))
     {
-        Configuration *q_next = new Configuration(getBundle(), xRandom_->state);
-        Vertex v_next = addConfiguration(q_next);
+        Configuration *xNext = addBundleConfiguration(xRandom_->state);
+        // Configuration *xNext = new Configuration(getBundle(), xRandom_->state);
+        // Vertex v_next = addConfiguration(xNext);
 
         if (!hasSolution_ || !hasChild())
         {
             // (5) add edge if no solution exists
-            addEdge(q_nearest->index, v_next);
+            // addEdge(xNearest->index, v_next);
+            addBundleEdge(xNearest, xNext);
 
             double dist = 0.0;
-            bool satisfied = goal_->isSatisfied(q_next->state, &dist);
+            bool satisfied = goal_->isSatisfied(xNext->state, &dist);
             if (satisfied)
             {
                 vGoal_ = addConfiguration(qGoal_);
-                addEdge(q_nearest->index, vGoal_);
+                addEdge(xNearest->index, vGoal_);
                 hasSolution_ = true;
             }
         }

@@ -1120,7 +1120,7 @@ void BundleSpaceGraphSparse::freePath(std::vector<ob::State*> path, const ob::Sp
     path.clear();
 }
 
-std::vector<ob::State*> BundleSpaceGraphSparse::getProjectedPath(const std::vector<ob::State*> pathBundle, const ob::SpaceInformationPtr &si) const
+std::vector<ob::State*> BundleSpaceGraphSparse::getProjectedPath(const std::vector<ob::State*> pathBundle, const ob::SpaceInformationPtr&) const
 {
     std::vector<ob::State*> pathBase;
     for(uint k = 0; k < pathBundle.size(); k++)

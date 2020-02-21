@@ -251,9 +251,16 @@ namespace ompl
             ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal, Graph &graph);
 
         protected:
+
             virtual double distance(const Configuration *a, const Configuration *b) const;
             virtual bool checkMotion(const Configuration *a, const Configuration *b) const;
-            virtual void interpolate(const Configuration *a, const Configuration *b, Configuration *dest) const;
+            virtual void interpolate(
+                const Configuration *a, 
+                const Configuration *b, 
+                Configuration *dest) const;
+
+            virtual Configuration* addBundleConfiguration(base::State*);
+            virtual void addBundleEdge(const Configuration *a, const Configuration *b);
 
             virtual Vertex addConfiguration(Configuration *q);
             void addEdge(const Vertex a, const Vertex b);
