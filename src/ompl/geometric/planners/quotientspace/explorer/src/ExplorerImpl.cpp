@@ -42,7 +42,7 @@ ExplorerImpl::ExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *paren
     c_random = siC->allocControl();
   }
 
-  q_random = new Configuration(Bundle);
+  q_random = new Configuration(getBundle());
 }
 
 ExplorerImpl::~ExplorerImpl()
@@ -70,7 +70,7 @@ double ExplorerImpl::getRange() const
 void ExplorerImpl::setup()
 {
   BaseT::setup();
-  ompl::tools::SelfConfig sc(Bundle, getName());
+  ompl::tools::SelfConfig sc(getBundle(), getName());
   sc.configurePlannerRange(maxDistance);
 }
 
@@ -111,7 +111,7 @@ void ExplorerImpl::grow(){
     double s = rng_.uniform01();
     if(s < goalBias){
       //sets q_random as qGoal_
-      Bundle->copyState(q_random->state, qGoal_->state); 
+      getBundle()->copyState(q_random->state, qGoal_->state); 
    }else{
       sampleBundle(q_random->state);
    }
@@ -121,7 +121,7 @@ void ExplorerImpl::grow(){
   } else {
     growGeometric();
     //growGeometric();
-    //double v = Bundle->getSpaceMeasure();
+    //double v = getBundle()->getSpaceMeasure();
     //if(v > 1e4){ 
     //    //TODO: this is a hack to circumvent many local minima on "small" spaces 
     //    //which belong to the un-selected quotient-space path 
@@ -148,20 +148,20 @@ void ExplorerImpl::growGeometricExpand()
     if (pdf.empty()) return;
 
     std::vector<base::State *> workStates(5);
-    Bundle->allocStates(workStates);
+    getBundle()->allocStates(workStates);
     Configuration *qv = pdf.sample(rng_.uniform01());
-    unsigned int s = Bundle->randomBounceMotion(Bundle_sampler_, qv->state, workStates.size(), workStates, false);
+    unsigned int s = getBundle()->randomBounceMotion(Bundle_sampler_, qv->state, workStates.size(), workStates, false);
 
     if (s > 0)
     {
         s--;
-        Configuration *qn = new Configuration(Bundle, workStates[s]);
+        Configuration *qn = new Configuration(getBundle(), workStates[s]);
         Vertex last = addConfiguration(qn);
 
         for (unsigned int i = 0; i < s; ++i)
         {
             // add the vertex along the bouncing motion
-            Configuration *qs = new Configuration(Bundle, workStates[i]);
+            Configuration *qs = new Configuration(getBundle(), workStates[i]);
             Vertex m = addConfiguration(qs);
 
             addEdge(qn->index, m);
@@ -173,20 +173,20 @@ void ExplorerImpl::growGeometricExpand()
             addEdge(qn->index, last);
         }
     }
-    Bundle->freeStates(workStates);
+    getBundle()->freeStates(workStates);
 }
 
 void ExplorerImpl::growGeometric(){
   
   const Configuration *q_nearest = nearest(q_random);
-  double d = Bundle->distance(q_nearest->state, q_random->state);
+  double d = getBundle()->distance(q_nearest->state, q_random->state);
   if(d > maxDistance){
-    Bundle->getStateSpace()->interpolate(q_nearest->state, q_random->state, maxDistance / d, q_random->state);
+    getBundle()->getStateSpace()->interpolate(q_nearest->state, q_random->state, maxDistance / d, q_random->state);
   }
 
-  if(Bundle->checkMotion(q_nearest->state, q_random->state))
+  if(getBundle()->checkMotion(q_nearest->state, q_random->state))
   {
-    Configuration *q_next = new Configuration(Bundle, q_random->state);
+    Configuration *q_next = new Configuration(getBundle(), q_random->state);
 
     //############################################################################
     //TODO: replace w AddConfig
@@ -224,7 +224,7 @@ void ExplorerImpl::growControl(){
     s_random = q_random->state;
 
     //changes q_random to the state we actually get with directed control c_random
-    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(Bundle.get());
+    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(getBundle().get());
     unsigned int cd = rng_.uniformInt(siC->getMinControlDuration(), siC->getMaxControlDuration());
     int duration = dCSampler->sampleTo(c_random, q_nearest->state, s_random);
 
@@ -232,13 +232,13 @@ void ExplorerImpl::growControl(){
 
     if(duration<controlDuration){
         //used control for full duration, add q_random
-        Configuration *q_next = new Configuration(Bundle, s_random);
+        Configuration *q_next = new Configuration(getBundle(), s_random);
         Vertex v_next = addConfigurationSparse(q_next);
         addEdgeSparse(q_nearest->index, v_next);
     } else {
         //sets q_reached to the State we actually reach with our control for controlDuration
         prop->propagate(q_nearest->state, c_random, duration, s_random);
-        Configuration *q_next = new Configuration(Bundle, s_random);
+        Configuration *q_next = new Configuration(getBundle(), s_random);
         Vertex v_next = addConfigurationSparse(q_next);
         addEdgeSparse(q_nearest->index, v_next);
     }
@@ -253,8 +253,8 @@ void ExplorerImpl::growControl(){
             approximateDistanceToGoal = distanceToGoal;
             std::cout << "Found new solution " << distanceToGoal << " away from goal." << std::endl;
             Configuration *qStartSparse = graphSparse_[v_start_sparse];
-            // Bundle->printState(qStartSparse->state);
-            // Bundle->printState(q_nearest_to_goal->state);
+            // getBundle()->printState(qStartSparse->state);
+            // getBundle()->printState(q_nearest_to_goal->state);
             // std::cout << q_nearest_to_goal->index << std::endl;
             // std::cout << qStartSparse->index << std::endl;
 
@@ -307,7 +307,7 @@ void ExplorerImpl::getPlannerData(ob::PlannerData &data) const
 
           for(uint k = 0; k < states.size()-1; k++){
 
-            ob::PlannerDataVertexAnnotated *p2 = new ob::PlannerDataVertexAnnotated(states.at(k+1));//Bundle->cloneState(graphSparse_[v2]->state));
+            ob::PlannerDataVertexAnnotated *p2 = new ob::PlannerDataVertexAnnotated(states.at(k+1));//getBundle()->cloneState(graphSparse_[v2]->state));
             p2->setLevel(level_);
             p2->setPath(idxPathI);
 

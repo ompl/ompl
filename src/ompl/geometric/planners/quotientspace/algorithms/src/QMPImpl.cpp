@@ -70,22 +70,20 @@ void ompl::geometric::QMPImpl::grow()
     //TODO: Why 7? Why not use 10 like PRM?
     BaseT::nearestDatastructure_->nearestK(xRandom_, 7, r_nearest_neighbors);
 
-    bool foundFeasibleEdge = false;
-    
     for(unsigned int i=0 ; i< r_nearest_neighbors.size(); i++)
     {
         Configuration* q_neighbor = r_nearest_neighbors.at(i);
-        if (Bundle->checkMotion(q_neighbor->state, xRandom_->state)) 
+        if (getBundle()->checkMotion(q_neighbor->state, xRandom_->state)) 
         {
-                double d = Bundle->distance(q_neighbor->state, xRandom_->state);
+                double d = getBundle()->distance(q_neighbor->state, xRandom_->state);
                 if (d > maxDistance_)
                 {
-                    Bundle->getStateSpace()->interpolate(q_neighbor->state, xRandom_->state, maxDistance_ / d, xRandom_->state);
+                    getBundle()->getStateSpace()->interpolate(q_neighbor->state, xRandom_->state, maxDistance_ / d, xRandom_->state);
                 }
 
                 // totalNumberOfSamples_++;
                 // totalNumberOfFeasibleSamples_++;
-                Configuration *q_next = new Configuration(Bundle, xRandom_->state); 
+                Configuration *q_next = new Configuration(getBundle(), xRandom_->state); 
                 Vertex v_next = addConfiguration(q_next);
             
                 
@@ -116,7 +114,7 @@ void ompl::geometric::QMPImpl::sampleFromDatastructure(base::State *xRandom)
 
         double t = 0;
         int ctr = 0;
-        while(t < p && (ctr < startGoalVertexPath_.size()-1))
+        while(t < p && (ctr < (int)startGoalVertexPath_.size()-1))
         {
             t += lengthsStartGoalVertexPath_.at(ctr);
             ctr++;
@@ -127,7 +125,7 @@ void ompl::geometric::QMPImpl::sampleFromDatastructure(base::State *xRandom)
         double d = lengthsStartGoalVertexPath_.at(ctr-1);
 
         double s = d - (t - p);
-        Bundle->getStateSpace()->interpolate(graph_[v1]->state, graph_[v2]->state, s, xRandom);
+        getBundle()->getStateSpace()->interpolate(graph_[v1]->state, graph_[v2]->state, s, xRandom);
 
     }else{
         //(2) Sample randomly on graph

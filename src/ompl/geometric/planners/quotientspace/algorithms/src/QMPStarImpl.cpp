@@ -48,12 +48,12 @@ ompl::geometric::QMPStarImpl::QMPStarImpl(const base::SpaceInformationPtr &si, B
 {
     setName("QMPStarImpl" + std::to_string(id_));
 
-    double d = (double)Bundle->getStateDimension();
+    double d = (double)getBundle()->getStateDimension();
     double e = boost::math::constants::e<double>();
     kPRMStarConstant_ = e + (e / d);
     
     randomWorkStates_.resize(5);
-    Bundle->allocStates(randomWorkStates_);
+    getBundle()->allocStates(randomWorkStates_);
 }
 
 ompl::geometric::QMPStarImpl::~QMPStarImpl()
@@ -104,7 +104,7 @@ void ompl::geometric::QMPStarImpl::expand()
         Configuration *last = addMileStone(randomWorkStates_[--s]);
         for (int i = 0; i < s; i++)
         {
-            Configuration *tmp = new Configuration(Bundle, randomWorkStates_[i]);
+            Configuration *tmp = new Configuration(getBundle(), randomWorkStates_[i]);
             addConfiguration(tmp);
 
             ompl::geometric::BundleSpaceGraph::addEdge(prev->index, tmp->index);
@@ -118,7 +118,7 @@ void ompl::geometric::QMPStarImpl::expand()
 ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPStarImpl::addMileStone(ompl::base::State *q_state)
 {
     // add sample to graph
-    Configuration *q_next = new Configuration(Bundle, q_state);
+    Configuration *q_next = new Configuration(getBundle(), q_state);
     Vertex v_next = addConfiguration(q_next);
 
     // Calculate K
@@ -135,7 +135,7 @@ ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPStarImpl::
         q_next->total_connection_attempts++;
         q_neighbor->total_connection_attempts++;
         
-        if (Bundle->checkMotion(q_neighbor->state, q_next->state)) 
+        if (getBundle()->checkMotion(q_neighbor->state, q_next->state)) 
         {
             addEdge(q_neighbor->index, v_next);
             q_next->successful_connection_attempts++;

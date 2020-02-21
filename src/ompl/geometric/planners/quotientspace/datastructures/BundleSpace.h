@@ -138,6 +138,12 @@ namespace ompl
 
             bool isDynamic() const;
 
+        private:
+
+            ompl::base::SpaceInformationPtr Bundle{nullptr};
+            ompl::base::SpaceInformationPtr Base{nullptr};
+            ompl::base::SpaceInformationPtr Fiber{nullptr};
+
         protected:
             /// Check if Bundle-space is unbounded
             void checkBundleSpaceMeasure(std::string name, 
@@ -149,10 +155,6 @@ namespace ompl
 
             /// Internal function implementing actual printing to stream
             virtual void print(std::ostream &out) const;
-
-            ompl::base::SpaceInformationPtr Bundle{nullptr};
-            ompl::base::SpaceInformationPtr Base{nullptr};
-            ompl::base::SpaceInformationPtr Fiber{nullptr};
 
             ompl::base::StateSamplerPtr Fiber_sampler_;
             ompl::base::StateSamplerPtr Bundle_sampler_;

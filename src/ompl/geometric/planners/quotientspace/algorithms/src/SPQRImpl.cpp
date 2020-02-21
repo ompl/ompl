@@ -47,7 +47,7 @@ ompl::geometric::SPQRImpl::SPQRImpl(const base::SpaceInformationPtr &si, BundleS
 {
     setName("SPQRImpl" + std::to_string(id_));
     randomWorkStates_.resize(5);
-    Bundle->allocStates(randomWorkStates_);
+    getBundle()->allocStates(randomWorkStates_);
 }
 
 ompl::geometric::SPQRImpl::~SPQRImpl()
@@ -97,7 +97,7 @@ void ompl::geometric::SPQRImpl::expand()
     int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
     for (int i = 0; i < s; i++)
     {
-        Configuration *tmp = new Configuration(Bundle, randomWorkStates_[i]);
+        Configuration *tmp = new Configuration(getBundle(), randomWorkStates_[i]);
         addMileStone(tmp);
         if(boost::edge(q->index, tmp->index, graph_).second)
             ompl::geometric::BundleSpaceGraph::addEdge(q->index, tmp->index);
@@ -113,7 +113,7 @@ void ompl::geometric::SPQRImpl::expand()
             for (unsigned int i = 0; i < r_nearest_neighbors.size(); i++)
             {
                 Configuration *q_neighbor = r_nearest_neighbors.at(i);
-                if (Bundle->checkMotion(q_neighbor->state, graphSparse_[v]->state))
+                if (getBundle()->checkMotion(q_neighbor->state, graphSparse_[v]->state))
                 {
                     addEdgeSparse(q_neighbor->index, v);
                 }
@@ -148,7 +148,7 @@ void ompl::geometric::SPQRImpl::addMileStone(Configuration *q_random)
 
 ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SPQRImpl::addConfigurationDense(Configuration *q_random)
 {
-    Configuration *q_next = new Configuration(Bundle, q_random->state);
+    Configuration *q_next = new Configuration(getBundle(), q_random->state);
     Vertex v_next = ompl::geometric::BundleSpaceGraph::addConfiguration(q_next);
     // totalNumberOfSamples_++;
     // totalNumberOfFeasibleSamples_++;
@@ -166,7 +166,7 @@ ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SPQRImpl::ad
         Configuration *q_neighbor = r_nearest_neighbors.at(i);
         q_neighbor->total_connection_attempts++;
 
-        if (Bundle->checkMotion(q_neighbor->state, q_random->state))
+        if (getBundle()->checkMotion(q_neighbor->state, q_random->state))
         {
             ompl::geometric::BundleSpaceGraph::addEdge(q_neighbor->index, v_next);
             q_next->successful_connection_attempts++;

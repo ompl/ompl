@@ -83,7 +83,7 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
         &BundleSpaceGraph::getGoalBias, 
         "0.:.1:1.");
 
-    xRandom_ = new Configuration(Bundle);
+    xRandom_ = new Configuration(getBundle());
 
     if (!isSetup())
     {
@@ -98,7 +98,7 @@ ompl::geometric::BundleSpaceGraph::~BundleSpaceGraph()
 void ompl::geometric::BundleSpaceGraph::setup()
 {
     BaseT::setup();
-    ompl::tools::SelfConfig sc(Bundle, getName());
+    ompl::tools::SelfConfig sc(getBundle(), getName());
     sc.configurePlannerRange(maxDistance_);
     OMPL_DEBUG("Range distance graph sampling: %f", maxDistance_);
 
@@ -179,7 +179,7 @@ void ompl::geometric::BundleSpaceGraph::deleteConfiguration(Configuration *q)
     {
         if (q->state != nullptr)
         {
-            Bundle->freeState(q->state);
+            getBundle()->freeState(q->state);
         }
         delete q;
         q = nullptr;
@@ -223,7 +223,7 @@ void ompl::geometric::BundleSpaceGraph::init()
 
     if (const base::State *st = pis_.nextStart())
     {
-        qStart_ = new Configuration(Bundle, st);
+        qStart_ = new Configuration(getBundle(), st);
         qStart_->isStart = true;
         vStart_ = addConfiguration(qStart_);
     }
@@ -236,7 +236,7 @@ void ompl::geometric::BundleSpaceGraph::init()
 
     if (const base::State *st = pis_.nextGoal())
     {
-        qGoal_ = new Configuration(Bundle, st);
+        qGoal_ = new Configuration(getBundle(), st);
         qGoal_->isGoal = true;
     }
 
@@ -316,6 +316,23 @@ void ompl::geometric::BundleSpaceGraph::setNearestNeighbors()
 double ompl::geometric::BundleSpaceGraph::distance(const Configuration *a, const Configuration *b) const
 {
     return metric->distanceBundle(a, b);
+}
+
+bool ompl::geometric::BundleSpaceGraph::checkMotion(const Configuration *a, const Configuration *b) const
+{
+    return getBundle()->checkMotion(a->state, b->state);
+}
+
+void ompl::geometric::BundleSpaceGraph::interpolate(
+    const Configuration *a, 
+    const Configuration *b, 
+    Configuration *dest) const
+{
+    double d = distance(a, b);
+    if (d > maxDistance_)
+    {
+        getBundle()->getStateSpace()->interpolate(a->state, b->state, maxDistance_ / d, dest->state);
+    }
 }
 
 void ompl::geometric::BundleSpaceGraph::setMetric(const std::string& sMetric)
@@ -483,7 +500,7 @@ void ompl::geometric::BundleSpaceGraph::sampleBundleGoalBias(base::State *xRando
         double s = rng_.uniform01();
         if (s < goalBias)
         {
-            Bundle->copyState(xRandom, qGoal_->state);
+            getBundle()->copyState(xRandom, qGoal_->state);
         }
         else
         {
@@ -496,7 +513,7 @@ void ompl::geometric::BundleSpaceGraph::sampleFromDatastructure(base::State *xRa
 {
     // RANDOM VERTEX SAMPLING
     const Vertex v = boost::random_vertex(graph_, rng_boost);
-    Bundle->getStateSpace()->copyState(xRandom, graph_[v]->state);
+    getBundle()->getStateSpace()->copyState(xRandom, graph_[v]->state);
 }
 
 // bool ompl::geometric::BundleSpaceGraph::sampleFromDatastructure(base::State *q_random_graph)
@@ -518,7 +535,7 @@ void ompl::geometric::BundleSpaceGraph::sampleFromDatastructure(base::State *xRa
 //     const base::State *from = graph_[v1]->state;
 //     const base::State *to = graph_[v2]->state;
 
-//     Bundle->getStateSpace()->interpolate(from, to, s, q_random_graph);
+//     getBundle()->getStateSpace()->interpolate(from, to, s, q_random_graph);
 //     return true;
 // }
 
@@ -532,7 +549,7 @@ void ompl::geometric::BundleSpaceGraph::print(std::ostream &out) const
 
 void ompl::geometric::BundleSpaceGraph::printConfiguration(const Configuration *q) const
 {
-    Bundle->printState(q->state);
+    getBundle()->printState(q->state);
 }
 
 void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(

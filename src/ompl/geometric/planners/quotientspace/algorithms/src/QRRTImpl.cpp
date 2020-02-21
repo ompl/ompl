@@ -65,16 +65,12 @@ void ompl::geometric::QRRTImpl::grow()
     const Configuration *q_nearest = nearest(xRandom_);
 
     //(3) Connect Nearest to Random
-    double d = Bundle->distance(q_nearest->state, xRandom_->state);
-    if (d > maxDistance_)
-    {
-        Bundle->getStateSpace()->interpolate(q_nearest->state, xRandom_->state, maxDistance_ / d, xRandom_->state);
-    }
+    interpolate(q_nearest, xRandom_, xRandom_);
 
     //(4) Check if Motion is correct
-    if (Bundle->checkMotion(q_nearest->state, xRandom_->state))
+    if (checkMotion(q_nearest, xRandom_))
     {
-        Configuration *q_next = new Configuration(Bundle, xRandom_->state);
+        Configuration *q_next = new Configuration(getBundle(), xRandom_->state);
         Vertex v_next = addConfiguration(q_next);
 
         if (!hasSolution_ || !hasChild())

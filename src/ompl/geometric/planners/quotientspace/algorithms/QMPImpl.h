@@ -48,7 +48,7 @@ namespace ompl
     }
     namespace geometric
     {
-        /** \brief Implementation of BundleSpace Rapidly-Exploring Random Trees Algorithm*/
+        /** \brief Implementation of the Quotient space roadMap Planner */
         class QMPImpl : public ompl::geometric::BundleSpaceGraph
         {
             using BaseT = BundleSpaceGraph;
@@ -57,7 +57,7 @@ namespace ompl
             QMPImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
             virtual ~QMPImpl() override;
 
-            /** \brief One iteration of PRM with adjusted sampling function */
+            /** \brief One iteration of QMP with adjusted sampling function */
             virtual void grow() override;
 
             virtual void sampleFromDatastructure(ompl::base::State *) override;

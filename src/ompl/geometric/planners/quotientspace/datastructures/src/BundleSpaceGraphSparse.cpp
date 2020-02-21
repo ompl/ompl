@@ -68,7 +68,7 @@ BundleSpaceGraphSparse::BundleSpaceGraphSparse(const ob::SpaceInformationPtr &si
   {
     setup();
   }
-  pathVisibilityChecker_ = new PathVisibilityChecker(Bundle);
+  pathVisibilityChecker_ = new PathVisibilityChecker(getBundle());
   psimp_ = std::make_shared<PathSimplifier>(getBundle());
   psimp_->freeStates(false);
 }
@@ -92,10 +92,10 @@ void BundleSpaceGraphSparse::setup()
     }
 
 
-    double maxExt = Bundle->getMaximumExtent();
+    double maxExt = getBundle()->getMaximumExtent();
     sparseDelta_ = sparseDeltaFraction_ * maxExt;
     pathBias_ = pathBiasFraction_ * maxExt;
-    double d = (double) Bundle->getStateDimension();
+    double d = (double) getBundle()->getStateDimension();
     double e = boost::math::constants::e<double>();
     kPRMStarConstant_ = e + (e / d);
 }
@@ -377,7 +377,7 @@ bool BundleSpaceGraphSparse::sameComponentSparse(Vertex m1, Vertex m2)
 
 BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfigurationSparse(Configuration *q)
 {
-    Configuration *ql = new Configuration(Bundle, q->state);  // for sparse create new Configuration ***
+    Configuration *ql = new Configuration(getBundle(), q->state);  // for sparse create new Configuration ***
     const Vertex vl = add_vertex(ql, graphSparse_);
     nearestSparse_->add(ql);
     disjointSetsSparse_.make_set(vl);
@@ -396,7 +396,7 @@ void BundleSpaceGraphSparse::findGraphNeighbors(Configuration *q, std::vector<Co
     nearestSparse_->nearestR(q, sparseDelta_, graphNeighborhood);
 
     for (Configuration *qn : graphNeighborhood)
-        if (Bundle->checkMotion(q->state, qn->state))
+        if (getBundle()->checkMotion(q->state, qn->state))
             visibleNeighborhood.push_back(qn);
 }
 
@@ -414,7 +414,7 @@ bool BundleSpaceGraphSparse::checkAddCoverage(Configuration *q, std::vector<Conf
     {
         Configuration *q_neighbor = visibleNeighborhood.at(i);
         // If path between is free
-        if (Bundle->checkMotion(q_neighbor->state, q->state))
+        if (getBundle()->checkMotion(q_neighbor->state, q->state))
         {
             return false;  // abort already in covered region
         }
@@ -445,8 +445,8 @@ bool BundleSpaceGraphSparse::checkAddConnectivity(Configuration* q, std::vector<
                 {
                     // If the paths between are collision free
                   //TODO: Check that we need to call CheckMotion
-                    if (Bundle->checkMotion(q->state, visibleNeighborhood[i]->state) &&
-                        Bundle->checkMotion(q->state, visibleNeighborhood[j]->state))
+                    if (getBundle()->checkMotion(q->state, visibleNeighborhood[i]->state) &&
+                        getBundle()->checkMotion(q->state, visibleNeighborhood[j]->state))
                     {
                         links.push_back(visibleNeighborhood[i]->index);
                         links.push_back(visibleNeighborhood[j]->index);
@@ -733,7 +733,7 @@ bool ompl::geometric::BundleSpaceGraphSparse::addPathToSpanner(const std::deque<
         for (std::size_t i = 0; i < geomPath_.getStateCount(); ++i)
         {
             // Add each guard
-            Configuration *q_path = new Configuration(Bundle, getBundle()->cloneState(geomPath_.getState(i)));
+            Configuration *q_path = new Configuration(getBundle(), getBundle()->cloneState(geomPath_.getState(i)));
             Vertex ng = addConfigurationSparse(q_path);
             added_nodes.push_back(ng);
         }
@@ -886,7 +886,7 @@ void BundleSpaceGraphSparse::sampleFromDatastructure(ob::State *q_random_graph)
             // Vertex Sampling
             // int k = rng_.uniformInt(0, N-1);
             // ob::State *state = states.at(k);
-            // Bundle->getStateSpace()->copyState(q_random_graph, state);
+            // getBundle()->getStateSpace()->copyState(q_random_graph, state);
             // Bundle_sampler->sampleUniformNear(q_random_graph, q_random_graph, 0.2);
 
             //############################################################################
@@ -896,7 +896,7 @@ void BundleSpaceGraphSparse::sampleFromDatastructure(ob::State *q_random_graph)
             ob::State *s1 = states.at((k < N - 1) ? k : k - 1);
             ob::State *s2 = states.at((k < N - 1) ? k + 1 : k);
 
-            Bundle->getStateSpace()->interpolate(s1, s2, r, q_random_graph);
+            getBundle()->getStateSpace()->interpolate(s1, s2, r, q_random_graph);
 
             Bundle_sampler_->sampleUniformNear(q_random_graph, q_random_graph, pathBias_);
         }
@@ -930,7 +930,7 @@ void BundleSpaceGraphSparse::Rewire(Vertex &v)
     for (uint k = Nv + 1; k < neighbors.size(); k++)
     {
         Configuration *qn = neighbors.at(k);
-        if(Bundle->checkMotion(q->state, qn->state))
+        if(getBundle()->checkMotion(q->state, qn->state))
         {
             addEdge(q->index, qn->index);
         }
@@ -950,15 +950,15 @@ void BundleSpaceGraphSparse::removeLastPathFromStack()
 
 void BundleSpaceGraphSparse::pushPathToStack(std::vector<ob::State*> &path)
 {
-    og::PathGeometric gpath(Bundle);
+    og::PathGeometric gpath(getBundle());
     for(uint k = 0; k < path.size(); k++)
     {
         gpath.append(path.at(k));
     }
 
-    ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(Bundle));
-    ob::OptimizationObjectivePtr clearObj(new ob::MaximizeMinClearanceObjective(Bundle));
-    ob::MultiOptimizationObjective* multiObj = new ob::MultiOptimizationObjective(Bundle);
+    ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(getBundle()));
+    ob::OptimizationObjectivePtr clearObj(new ob::MaximizeMinClearanceObjective(getBundle()));
+    ob::MultiOptimizationObjective* multiObj = new ob::MultiOptimizationObjective(getBundle());
 
     multiObj->addObjective(lengthObj, 1.0);
     multiObj->addObjective(clearObj, 1.0);
@@ -969,10 +969,10 @@ void BundleSpaceGraphSparse::pushPathToStack(std::vector<ob::State*> &path)
         OMPL_WARN("No Optimizer for dynamic paths specified.");
         // shortcutter.shortcutPath(gpath);
     }else{
-        og::PathSimplifier shortcutter(Bundle, ob::GoalPtr(), pathObj);
+        og::PathSimplifier shortcutter(getBundle(), ob::GoalPtr(), pathObj);
         //make sure that we have enough vertices so that the right path class is
         //visualized (problems with S1)
-        if(Bundle->getStateSpace()->getType() == ob::STATE_SPACE_SO2)
+        if(getBundle()->getStateSpace()->getType() == ob::STATE_SPACE_SO2)
         {
             gpath.interpolate();
         }else{
@@ -1026,7 +1026,7 @@ void BundleSpaceGraphSparse::PrintPathStack()
         std::vector<ob::State*> pathk = pathStack_.at(k).getStates();
         for(uint j = 0; j < pathk.size(); j++)
         {
-            Bundle->printState(pathk.at(j));
+            getBundle()->printState(pathk.at(j));
         }
     }
 }
@@ -1126,7 +1126,7 @@ std::vector<ob::State*> BundleSpaceGraphSparse::getProjectedPath(const std::vect
     for(uint k = 0; k < pathBundle.size(); k++)
     {
         const ob::State *qk = pathBundle.at(k);
-        ob::State *qkProjected = Base->allocState();
+        ob::State *qkProjected = getBase()->allocState();
         projectBase(qk, qkProjected);
         pathBase.push_back(qkProjected);
     }
@@ -1144,27 +1144,27 @@ int BundleSpaceGraphSparse::getProjectionIndex(const std::vector<ob::State*> &pa
     {
         return 0;
     }
-    std::vector<ob::State*> pathBase = getProjectedPath(pathBundle, Base);
+    std::vector<ob::State*> pathBase = getProjectedPath(pathBundle, getBase());
     // for(uint k = 0; k < pathBundle.size(); k++){
     //   ob::State *qk = pathBundle.at(k);
-    //   ob::State *qkProjected = Base->allocState();
+    //   ob::State *qkProjected = getBase()->allocState();
     //   projectBase(qk, qkProjected);
     //   pathBase.push_back(qkProjected);
     // }
 
-    BundleSpaceGraphSparse *Bundle = static_cast<BundleSpaceGraphSparse*>(parent_);
-    unsigned int K = Bundle->getNumberOfPaths();
+    BundleSpaceGraphSparse *parent = static_cast<BundleSpaceGraphSparse*>(parent_);
+    unsigned int K = parent->getNumberOfPaths();
 
     for(uint k = 0; k < K; k++)
     {
-      std::vector<ob::State*> pathBasek = Bundle->getKthPath(k);
-      bool visible = Bundle->getPathVisibilityChecker()->IsPathVisible(pathBase, pathBasek);
+      std::vector<ob::State*> pathBasek = parent->getKthPath(k);
+      bool visible = parent->getPathVisibilityChecker()->IsPathVisible(pathBase, pathBasek);
       if(visible){
-        freePath(pathBase, Base);
+        freePath(pathBase, getBase());
         return k;
       }
     }
-    freePath(pathBase, Base);
+    freePath(pathBase, getBase());
     return -1;
 }
 
@@ -1175,21 +1175,21 @@ void BundleSpaceGraphSparse::getPathIndices(const std::vector<ob::State*> &state
   {
     return;
   }else{
-    BundleSpaceGraphSparse *Bundle = static_cast<BundleSpaceGraphSparse*>(parent_);
+    BundleSpaceGraphSparse *parent = static_cast<BundleSpaceGraphSparse*>(parent_);
     //TODO: we need to check here to which local minima we project. This is
     //necessary, since sometimes we find a path which actually projects on a
     //different Bundle-space path (and not the selected one).
     // APPROACH 1: Assign them all to selected path
     // BundleSpaceGraphSparse *Bundle = static_cast<BundleSpaceGraphSparse*>(parent_);
-    // unsigned int K = Bundle->getNumberOfPaths();
+    // unsigned int K = getBundle()->getNumberOfPaths();
     // assert(K>0);
-    // unsigned int Ks = Bundle->selectedPath;
+    // unsigned int Ks = getBundle()->selectedPath;
     // assert(Ks>=0);
     // idxPath.push_back(Ks);
-    // Bundle->getPathIndices(states, idxPath);
+    // getBundle()->getPathIndices(states, idxPath);
     if(isDynamic())
     {
-      int Ks = Bundle->selectedPath;
+      int Ks = parent->selectedPath;
       std::cout << "DYNAMIC Projection Index " << Ks << "| " << getName() << std::endl;
       idxPath.push_back(Ks);
     }else{
@@ -1200,32 +1200,32 @@ void BundleSpaceGraphSparse::getPathIndices(const std::vector<ob::State*> &state
         OMPL_WARN("Projection not found. Possibly unprojectable path.");
       }
       idxPath.push_back(K);
-      // Bundle->getPathIndices(states, idxPath);
+      // getBundle()->getPathIndices(states, idxPath);
     }
-    std::vector<ob::State*> pathBase = getProjectedPath(states, Base);
-    Bundle->getPathIndices(pathBase, idxPath);
+    std::vector<ob::State*> pathBase = getProjectedPath(states, getBase());
+    parent->getPathIndices(pathBase, idxPath);
 
     // APPROACH 2: Assign them to their projection
     //convert CS path to QS path
     //std::vector<ob::State*> pathcur;
     //for(uint k = 0; k < states.size(); k++){
     //  ob::State *qk = states.at(k);
-    //  ob::State *qkProjected = Base->allocState();
+    //  ob::State *qkProjected = getBase()->allocState();
     //  projectBase(qk, qkProjected);
     //  pathcur.push_back(qkProjected);
     //}
     ////Check which path can be deformed into QS path
     // BundleSpaceGraphSparse *Bundle = static_cast<BundleSpaceGraphSparse*>(parent_);
-    // unsigned int K = Bundle->getNumberOfPaths();
+    // unsigned int K = getBundle()->getNumberOfPaths();
     // assert(K>0);
 
     // bool success = false;
     // for(uint k = 0; k < K; k++){
-    //   std::vector<ob::State*> pathk = Bundle->getKthPath(k);
-    //   bool visible = Bundle->getPathVisibilityChecker()->IsPathVisible(pathcur, pathk);
+    //   std::vector<ob::State*> pathk = getBundle()->getKthPath(k);
+    //   bool visible = getBundle()->getPathVisibilityChecker()->IsPathVisible(pathcur, pathk);
     //   if(visible){
     //     idxPath.push_back(k);
-    //     Bundle->getPathIndices(pathcur, idxPath);
+    //     getBundle()->getPathIndices(pathcur, idxPath);
     //     success = true;
     //     break;
     //   }
@@ -1235,14 +1235,14 @@ void BundleSpaceGraphSparse::getPathIndices(const std::vector<ob::State*> &state
     //  //One way to resolve this issue would be to add the new 
     //  OMPL_INFORM("Could not find projected path on BundleSpace. Creating new one.");
 
-    //  Bundle->removeLastPathFromStack();
-    //  Bundle->pushPathToStack(pathcur);
+    //  getBundle()->removeLastPathFromStack();
+    //  getBundle()->pushPathToStack(pathcur);
     //  idxPath.push_back(0);
-    //  Bundle->getPathIndices(pathcur, idxPath);
+    //  getBundle()->getPathIndices(pathcur, idxPath);
     //}else{
     //  //free all states
     //  for(uint k = 0; k < pathcur.size(); k++){
-    //    Base->freeState(pathcur.at(k));
+    //    getBase()->freeState(pathcur.at(k));
     //  }
     //}
   }

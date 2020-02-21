@@ -252,6 +252,8 @@ namespace ompl
 
         protected:
             virtual double distance(const Configuration *a, const Configuration *b) const;
+            virtual bool checkMotion(const Configuration *a, const Configuration *b) const;
+            virtual void interpolate(const Configuration *a, const Configuration *b, Configuration *dest) const;
 
             virtual Vertex addConfiguration(Configuration *q);
             void addEdge(const Vertex a, const Vertex b);
