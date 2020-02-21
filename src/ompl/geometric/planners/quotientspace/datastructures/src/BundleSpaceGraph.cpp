@@ -43,6 +43,7 @@
 
 #include <ompl/geometric/planners/quotientspace/datastructures/propagators/BundleSpacePropagator.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/propagators/BundleSpacePropagatorGeometric.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/propagators/BundleSpacePropagatorDynamic.h>
 
 #include <ompl/geometric/planners/prm/ConnectionStrategy.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
@@ -376,11 +377,9 @@ Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards(
 void ompl::geometric::BundleSpaceGraph::setPropagator(const std::string& sPropagator)
 {
     if(sPropagator == "geometric"){
-        OMPL_DEBUG("Holonomic Propagator Selected");
         propagator_ = std::make_shared<BundleSpacePropagatorGeometric>(this);
     }else if(sPropagator == "dynamic"){
-        OMPL_ERROR("NYI");
-        exit(0);
+        propagator_ = std::make_shared<BundleSpacePropagatorDynamic>(this);
     }else{
         OMPL_ERROR("Propagator unknown: %s", sPropagator);
         throw ompl::Exception("Unknown Propagator");
