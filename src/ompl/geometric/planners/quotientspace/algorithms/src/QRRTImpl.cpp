@@ -71,13 +71,10 @@ void ompl::geometric::QRRTImpl::grow()
     if (checkMotion(xNearest, xRandom_))
     {
         Configuration *xNext = addBundleConfiguration(xRandom_->state);
-        // Configuration *xNext = new Configuration(getBundle(), xRandom_->state);
-        // Vertex v_next = addConfiguration(xNext);
 
         if (!hasSolution_ || !hasChild())
         {
             // (5) add edge if no solution exists
-            // addEdge(xNearest->index, v_next);
             addBundleEdge(xNearest, xNext);
 
             double dist = 0.0;
