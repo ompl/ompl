@@ -152,8 +152,6 @@ namespace ompl
         Vertex v_start_sparse;
         Vertex v_goal_sparse;
 
-        bool isDenseFoundSolution_{false};
-
         PathVisibilityChecker* pathVisibilityChecker_{nullptr};
 
         // From SPARS

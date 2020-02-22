@@ -39,6 +39,7 @@
 #include <ompl/tools/config/SelfConfig.h>
 #include <boost/foreach.hpp>
 #include <ompl/datastructures/NearestNeighbors.h>
+#include "ompl/datastructures/PDF.h"
 
 #define foreach BOOST_FOREACH
 
@@ -48,10 +49,14 @@ ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpa
     // setMetric("euclidean");
     setMetric("shortestpath");
     // epsilonGraphThickening_ = 0.01;
+
+    randomWorkStates_.resize(5);
+    Bundle->allocStates(randomWorkStates_);
 }
 
 ompl::geometric::QMPImpl::~QMPImpl()
 {
+    getBundle()->freeStates(randomWorkStates_);
     deleteConfiguration(xRandom_);
 }
 
@@ -60,61 +65,88 @@ void ompl::geometric::QMPImpl::grow()
     if (firstRun_)
     {
         init();
+        vGoal_ = addConfiguration(qGoal_);
         firstRun_ = false;
+    }
+    if( ++growExpandCounter_ % 2 == 0)
+    {
+        expand();
+        return;
     }
 
     sampleBundleGoalBias(xRandom_->state, goalBias_);
+    addMileStone(xRandom_->state);
+}
 
-    std::vector<Configuration*> r_nearest_neighbors;
-     
-    //TODO: Why 7? Why not use 10 like PRM?
-    BaseT::nearestDatastructure_->nearestK(xRandom_, 7, r_nearest_neighbors);
+void ompl::geometric::QMPImpl::expand()
+{
+    PDF pdf;
 
-    bool foundFeasibleEdge = false;
+    foreach (Vertex v, boost::vertices(graph_))
+    {
+        const unsigned long int t = graph_[v]->total_connection_attempts;
+        pdf.add(graph_[v], (double)(t - graph_[v]->successful_connection_attempts) / (double)t);
+    }
+
+    if (pdf.empty())
+        return;
+
     
+    Configuration *q = pdf.sample(rng_.uniform01());
+
+    int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
+    if(s > 0)
+    {
+        Configuration *prev = q;
+        Configuration *last = addMileStone(randomWorkStates_[--s]);
+        for (int i = 0; i < s; i++)
+        {
+            Configuration *tmp = new Configuration(Bundle, randomWorkStates_[i]);
+            addConfiguration(tmp);
+
+            ompl::geometric::BundleSpaceGraph::addEdge(prev->index, tmp->index);
+            prev = tmp;
+        }
+        if(!sameComponent(prev->index, last->index))
+            ompl::geometric::BundleSpaceGraph::addEdge(prev->index, last->index);
+    }
+}
+
+ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPImpl::addMileStone(ompl::base::State *q_state)
+{
+    // add sample
+    Configuration *q_next = new Configuration(Bundle, q_state);
+    Vertex v_next = addConfiguration(q_next);
+    
+    // check for close 10 neibhors
+    std::vector<Configuration*> r_nearest_neighbors;
+    BaseT::nearestDatastructure_->nearestK(q_next, 10, r_nearest_neighbors);
+
     for(unsigned int i=0 ; i< r_nearest_neighbors.size(); i++)
     {
         Configuration* q_neighbor = r_nearest_neighbors.at(i);
-        if (Bundle->checkMotion(q_neighbor->state, xRandom_->state)) 
-        {
-            Vertex v_next;
-            Configuration *q_next;
-            //TODO: why only add one edge?
-            if(!foundFeasibleEdge)
-            {
-    
-                double d = Bundle->distance(q_neighbor->state, xRandom_->state);
-                if (d > maxDistance_)
-                {
-                    Bundle->getStateSpace()->interpolate(q_neighbor->state, xRandom_->state, maxDistance_ / d, xRandom_->state);
-                }
 
-                // totalNumberOfSamples_++;
-                // totalNumberOfFeasibleSamples_++;
-                q_next = new Configuration(Bundle, xRandom_->state);
-                v_next = addConfiguration(q_next);
+        q_next->total_connection_attempts++;
+        q_neighbor->total_connection_attempts++;
+
+        if (Bundle->checkMotion(q_neighbor->state, q_next->state)) 
+        {
+            addEdge(q_neighbor->index, v_next);
             
-                
-                foundFeasibleEdge = true;
-            }
-            if (!hasSolution_ && foundFeasibleEdge)
+            q_next->successful_connection_attempts++;
+            q_neighbor->successful_connection_attempts++;
+
+            if (!hasSolution_)
             {
-                //TODO: What happens if this edge is infeasible, but there has
-                //been one feasible edge before? (i.e. foundfeasibleedge is set)
-                addEdge(q_neighbor->index, v_next);
-                
-                double dist = 0.0;
-                bool satisfied = goal_->isSatisfied(q_next->state, &dist);
-                if (satisfied)
+                if (sameComponent(vStart_, vGoal_))
                 {
-                    vGoal_ = addConfiguration(qGoal_);
-                    addEdge(q_neighbor->index, vGoal_);
                     hasSolution_ = true;
                 }
             }
         }
 
     }
+    return q_next;
 }
 
 void ompl::geometric::QMPImpl::sampleFromDatastructure(base::State *xRandom)

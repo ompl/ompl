@@ -98,6 +98,19 @@ namespace ompl
                 bool isStart{false};
                 bool isGoal{false};
 
+                /** \brief parent index for {qrrt*} */
+                normalized_index_type parent{-1};
+
+                /** \brief cost to reach until current vertex in {qrrt*} */
+                base::Cost cost;
+
+                /** \brief same as rrt*, connection cost with parent {qrrt*} */
+                base::Cost lineCost;
+
+                /** \brief The set of motions descending from the current motion {qrrt*} */
+                std::vector<Configuration *> children;
+
+
                 /** \brief Index of configuration in boost::graph. Usually in
                     the interval [0,num_vertices(graph)], but if vertices are
                     deleted or graphs are copied, we sometimes need to map them

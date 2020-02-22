@@ -90,11 +90,6 @@ void ompl::geometric::SQMPImpl::expand()
     
     Configuration *q = pdf.sample(rng_.uniform01());
     
-    //TODO: That seems weird. Wouldn't it change the State
-    //of a given configuration in the graph?
-    sampleBundle(q->state);
-    addMileStone(q);
-    
     int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
     for (int i = 0; i < s; i++)
     {
@@ -102,25 +97,8 @@ void ompl::geometric::SQMPImpl::expand()
         addMileStone(tmp);
         if(boost::edge(q->index, tmp->index, graph_).second)
             ompl::geometric::BundleSpaceGraph::addEdge(q->index, tmp->index);
+        //q = tmp;
     }
-    
-    /*foreach (Vertex v, boost::vertices(graphSparse_))
-    {
-        if(graphSparse_[v]->successful_connection_attempts == 0)
-        {
-            std::vector<Configuration *> r_nearest_neighbors;
-            nearestSparse_->nearestR(graphSparse_[v], sparseDelta_, r_nearest_neighbors);
-
-            for (unsigned int i = 0; i < r_nearest_neighbors.size(); i++)
-            {
-                Configuration *q_neighbor = r_nearest_neighbors.at(i);
-                if (Bundle->checkMotion(q_neighbor->state, graphSparse_[v]->state))
-                {
-                    addEdgeSparse(q_neighbor->index, v);
-                }
-            }
-        }
-    }*/
 }
 
 void ompl::geometric::SQMPImpl::addMileStone(Configuration *q_random)
@@ -136,8 +114,8 @@ void ompl::geometric::SQMPImpl::addMileStone(Configuration *q_random)
                 if (!checkAddPath(q_next))
                     ++consecutiveFailures_;
             }
-    //TODO: Why check for dense solution? Why not directly same component?
-    if (isDenseFoundSolution_)
+    
+    if (!hasSolution_)
     {
         bool same_component = sameComponentSparse(v_start_sparse, v_goal_sparse);
         if(!same_component) {
@@ -172,19 +150,6 @@ ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SQMPImpl::ad
             ompl::geometric::BundleSpaceGraph::addEdge(q_neighbor->index, v_next);
             q_next->successful_connection_attempts++;
             q_neighbor->successful_connection_attempts++;
-            
-            if (/*q_neighbor->isGoal && */!isDenseFoundSolution_)
-            {
-                bool same_component = sameComponent(vStart_, vGoal_);
-                if (!same_component)
-                {
-                    isDenseFoundSolution_ = false;
-                }
-                else
-                {
-                    isDenseFoundSolution_ = true;
-                }
-            }
         }
     }
 

@@ -60,6 +60,11 @@ namespace ompl
             /** \brief One iteration of PRM with adjusted sampling function */
             virtual void grow() override;
 
+            /** \brief sample random node from Probabilty density function*/
+            void expand();
+
+            Configuration *addMileStone(ompl::base::State *q_state);
+
             virtual void sampleFromDatastructure(ompl::base::State *) override;
 
         protected:
@@ -71,6 +76,11 @@ namespace ompl
             /** \brief percentage of times to sample on shortest path instead of
              * full graph */
             double pathBias_{0.2};
+
+            /** \brief for different ratio of expand vs grow 1:2*/
+            unsigned int growExpandCounter_{0};
+
+            std::vector<base::State *> randomWorkStates_;
 
         };
     }  // namespace geometric
