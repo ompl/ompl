@@ -1,0 +1,55 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /home/sa/MotionPlanningExplorerGUI/libs/ompl/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_a5d66/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a5d66.dir/build.make CMakeFiles/cmTC_a5d66.dir/build
+make[1]: Entering directory '/home/sa/MotionPlanningExplorerGUI/libs/ompl/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_a5d66.dir/CheckSymbolExists.cxx.o
+/usr/bin/c++     -o CMakeFiles/cmTC_a5d66.dir/CheckSymbolExists.cxx.o -c /home/sa/MotionPlanningExplorerGUI/libs/ompl/build/CMakeFiles/CMakeTmp/CheckSymbolExists.cxx
+Linking CXX executable cmTC_a5d66
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a5d66.dir/link.txt --verbose=1
+/usr/bin/c++       CMakeFiles/cmTC_a5d66.dir/CheckSymbolExists.cxx.o  -o cmTC_a5d66 
+CMakeFiles/cmTC_a5d66.dir/CheckSymbolExists.cxx.o: In function `main':
+CheckSymbolExists.cxx:(.text+0x1b): undefined reference to `pthread_create'
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_a5d66.dir/build.make:97: recipe for target 'cmTC_a5d66' failed
+make[1]: *** [cmTC_a5d66] Error 1
+make[1]: Leaving directory '/home/sa/MotionPlanningExplorerGUI/libs/ompl/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_a5d66/fast' failed
+make: *** [cmTC_a5d66/fast] Error 2
+
+File /home/sa/MotionPlanningExplorerGUI/libs/ompl/build/CMakeFiles/CMakeTmp/CheckSymbolExists.cxx:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/sa/MotionPlanningExplorerGUI/libs/ompl/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_d7c2c/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d7c2c.dir/build.make CMakeFiles/cmTC_d7c2c.dir/build
+make[1]: Entering directory '/home/sa/MotionPlanningExplorerGUI/libs/ompl/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_d7c2c.dir/CheckFunctionExists.cxx.o
+/usr/bin/c++    -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_d7c2c.dir/CheckFunctionExists.cxx.o -c /home/sa/MotionPlanningExplorerGUI/libs/ompl/build/CMakeFiles/CheckLibraryExists/CheckFunctionExists.cxx
+Linking CXX executable cmTC_d7c2c
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d7c2c.dir/link.txt --verbose=1
+/usr/bin/c++   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_d7c2c.dir/CheckFunctionExists.cxx.o  -o cmTC_d7c2c -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_d7c2c.dir/build.make:97: recipe for target 'cmTC_d7c2c' failed
+make[1]: *** [cmTC_d7c2c] Error 1
+make[1]: Leaving directory '/home/sa/MotionPlanningExplorerGUI/libs/ompl/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_d7c2c/fast' failed
+make: *** [cmTC_d7c2c/fast] Error 2
+
+
