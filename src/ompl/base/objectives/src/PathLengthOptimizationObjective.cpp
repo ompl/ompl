@@ -63,10 +63,16 @@ ompl::base::Cost ompl::base::PathLengthOptimizationObjective::motionCostHeuristi
     return motionCost(s1, s2);
 }
 
+ompl::base::Cost ompl::base::PathLengthOptimizationObjective::motionCostBestEstimate(const State *s1,
+                                                                                     const State *s2) const
+{
+    return motionCost(s1, s2);
+}
+
 ompl::base::InformedSamplerPtr ompl::base::PathLengthOptimizationObjective::allocInformedStateSampler(
     const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls) const
 {
-// Make the direct path-length informed sampler and return. If OMPL was compiled with Eigen, a direct version is
-// available, if not a rejection-based technique can be used
+    // Make the direct path-length informed sampler and return. If OMPL was compiled with Eigen, a direct version is
+    // available, if not a rejection-based technique can be used
     return std::make_shared<PathLengthDirectInfSampler>(probDefn, maxNumberCalls);
 }
