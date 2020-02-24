@@ -35,6 +35,8 @@ namespace ompl
 
             void initFiberSpace();
 
+            bool isDynamic() const;
+
             /// Dimension of Fiber Space
             unsigned int getFiberDimension() const;
             /// Dimension of Base Space
@@ -60,6 +62,8 @@ namespace ompl
             base::StateSpacePtr BundleSpace_{nullptr};
             base::StateSpacePtr BaseSpace_{nullptr};
             base::StateSpacePtr FiberSpace_{nullptr};
+
+            bool isDynamic_{false};
 
             BundleSpaceComponentType type_;
         };

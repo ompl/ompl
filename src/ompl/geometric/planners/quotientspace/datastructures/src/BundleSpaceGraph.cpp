@@ -34,6 +34,7 @@
  *********************************************************************/
 
 /* Author: Andreas Orthey */
+
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/src/BundleSpaceGraphGoalVisitor.hpp>
@@ -75,7 +76,6 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
     }else{
         setPropagator("geometric");
     }
-
 
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.approximateSolutions = false;

@@ -512,7 +512,10 @@ void ompl::geometric::BundleSpace::print(std::ostream &out) const
     unsigned int M = components_.size();
     out << "[";
     for(unsigned int m = 0; m < M; m++){
-        out << components_.at(m)->getTypeAsString() << (m<M-1?" | ":"");
+        out << components_.at(m)->getTypeAsString() 
+            // << (components_.at(m)->isDynamic()?" (dyn)":"");
+            << (isDynamic_?"(dyn)":"")
+            << (m<M-1?" | ":"");
     }
     out << "]";
 }
