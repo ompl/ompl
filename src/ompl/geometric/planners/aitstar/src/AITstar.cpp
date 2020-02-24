@@ -533,8 +533,8 @@ namespace ompl
             vertex->resetBackwardQueuePointer();
 
             // The open queue should not contain consistent vertices.
-            assert(!optimizationObjective_->isCostEquivalentTo(vertex->getCostToComeFromGoal(),
-                                                               vertex->getExpandedCostToComeFromGoal()));
+            assert(!objective_->isCostEquivalentTo(vertex->getCostToComeFromGoal(),
+                                                   vertex->getExpandedCostToComeFromGoal()));
 
             // If any goal is underconsistent, we need to continue.
             bool underconsistentStart{false};
