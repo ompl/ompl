@@ -67,7 +67,7 @@ namespace ompl
              http://arxiv.org/abs/1105.1186
         */
 
-        /** \brief QuotientSpace Rapidly Exploring Random Trees Algorithm*/
+        /** \brief QuotientSpace Rapidly Exploring Random Tree Star Algorithm*/
         typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QRRTStarImpl> QRRTStar;
 
     }  // namespace geometric

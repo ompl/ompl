@@ -48,7 +48,7 @@ namespace ompl
     }
     namespace geometric
     {
-        /** \brief Implementation of BundleSpace Rapidly-Exploring Random Trees Algorithm*/
+        /** \brief Implementation of BundleSpace Rapidly-Exploring Random Tree Star Algorithm*/
         class QRRTStarImpl : public ompl::geometric::BundleSpaceGraph
         {
             using BaseT = BundleSpaceGraph;

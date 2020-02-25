@@ -78,9 +78,11 @@ namespace ompl
             double pathBias_{0.2};
 
             /** \brief for different ratio of expand vs grow 1:2*/
-            unsigned int growExpandCounter_{0};
+            unsigned int counter_{0};
 
             std::vector<base::State *> randomWorkStates_;
+
+            unsigned int k_{10};
 
         };
     }  // namespace geometric

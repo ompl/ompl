@@ -71,8 +71,7 @@ void ompl::geometric::QMPStarImpl::grow()
         firstRun_ = false;
     }
 
-    //TODO: Why not use expand() also in QMP?
-    if( ++growExpandCounter_ % 2 == 0)
+    if( ++counter_ % 2 == 0)
     {
         expand();
         return;
@@ -127,12 +126,12 @@ ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPStarImpl::
     unsigned int k = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double) boost::num_vertices(graph_))));
 
     // check for close neighbors
-    std::vector<Configuration*> r_nearest_neighbors;
-    BaseT::nearestDatastructure_->nearestK(q_next , k , r_nearest_neighbors);
+    std::vector<Configuration*> nearestNeighbors;
+    BaseT::nearestDatastructure_->nearestK(q_next , k , nearestNeighbors);
     
-    for(unsigned int i=0 ; i< r_nearest_neighbors.size(); i++)
+    for(unsigned int i=0 ; i< nearestNeighbors.size(); i++)
     {
-        Configuration* q_neighbor = r_nearest_neighbors.at(i);
+        Configuration* q_neighbor = nearestNeighbors.at(i);
         
         q_next->total_connection_attempts++;
         q_neighbor->total_connection_attempts++;
