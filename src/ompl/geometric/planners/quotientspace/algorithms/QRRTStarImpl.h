@@ -35,9 +35,9 @@
 
 /* Author: Andreas Orthey, Sohaib Akbar */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_BundleSpace_QMPSTARIMPL_
-#define OMPL_GEOMETRIC_PLANNERS_BundleSpace_QMPSTARIMPL_
-#include <ompl/geometric/planners/quotientspace/algorithms/QMPImpl.h>
+#ifndef OMPL_GEOMETRIC_PLANNERS_BundleSpace_QRRTSTARIMPL_
+#define OMPL_GEOMETRIC_PLANNERS_BundleSpace_QRRTSTARIMPL_
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
 #include <ompl/datastructures/PDF.h>
 
 namespace ompl
@@ -48,27 +48,22 @@ namespace ompl
     }
     namespace geometric
     {
-        /** \brief Implementation of BundleSpace Rapidly-Exploring Random Trees Algorithm*/
-        class QMPStarImpl : public ompl::geometric::QMPImpl
+        /** \brief Implementation of BundleSpace Rapidly-Exploring Random Tree Star Algorithm*/
+        class QRRTStarImpl : public ompl::geometric::BundleSpaceGraph
         {
-            using BaseT = QMPImpl;
+            using BaseT = BundleSpaceGraph;
 
         public:
-            QMPStarImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
-            virtual ~QMPStarImpl() override;
+            QRRTStarImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
+            virtual ~QRRTStarImpl() override;
+
             /** \brief One iteration of RRT with adjusted sampling function */
             virtual void grow() override;
-            /** \brief sample random node from Probabilty density function*/
-            void expand();
-            Configuration *addMileStone(ompl::base::State *q_state);
 
-        protected:
+            void updateChildCosts(Configuration *q);
+
             /** \brief constant value for nn search */
-            double kPRMStarConstant_;
-            /** \brief for different ratio of expand vs grow 1:5*/
-            unsigned int counter_{0};
-            
-            std::vector<base::State *> randomWorkStates_;
+            double k_rrt_Constant_{0};
         };
     }  // namespace geometric
 }  // namespace ompl
