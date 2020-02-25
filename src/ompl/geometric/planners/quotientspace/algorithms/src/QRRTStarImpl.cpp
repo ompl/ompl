@@ -34,6 +34,7 @@
  *********************************************************************/
 
 /* Author: Andreas Orthey, Sohaib Akbar */
+
 #include <ompl/geometric/planners/quotientspace/algorithms/QRRTStarImpl.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <boost/foreach.hpp>
@@ -69,7 +70,7 @@ void ompl::geometric::QRRTStarImpl::grow()
     const Configuration *q_nearest = nearest(xRandom_);
 
     //(3) Connect Nearest to Random
-    double d = Bundle->distance(q_nearest->state, xRandom_->state);
+    double d = distance(q_nearest, xRandom_);
     if (d > maxDistance_)
     {
         Bundle->getStateSpace()->interpolate(q_nearest->state, xRandom_->state, maxDistance_ / d, xRandom_->state);
@@ -110,7 +111,7 @@ void ompl::geometric::QRRTStarImpl::grow()
 
             if (Bundle->isCostBetterThan(new_cost , min_cost))
             {
-                if(Bundle->distance(q_near->state, q_new->state) < maxDistance_ && Bundle->checkMotion(q_near->state, q_new->state))
+                if(distance(q_near, q_new) < maxDistance_ && Bundle->checkMotion(q_near->state, q_new->state))
                 {
                     q_min = q_near;
                     min_line_cost = line_cost;
@@ -142,7 +143,7 @@ void ompl::geometric::QRRTStarImpl::grow()
                     // check neighbor validity if it wasn´t checked before
                     if (validNeighbor[i] == 0)
                     {
-                        if (Bundle->distance(q_near->state, q_new->state) < maxDistance_ && Bundle->checkMotion(q_near->state, q_new->state))
+                        if (distance(q_near, q_new) < maxDistance_ && Bundle->checkMotion(q_near->state, q_new->state))
                             validNeighbor[i] = 1;
                     }
                     if (validNeighbor[i] == 1)

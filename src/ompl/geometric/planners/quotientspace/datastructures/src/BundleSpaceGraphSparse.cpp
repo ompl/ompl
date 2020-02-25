@@ -410,15 +410,6 @@ void BundleSpaceGraphSparse::addEdgeSparse(const Vertex a, const Vertex b)
 
 bool BundleSpaceGraphSparse::checkAddCoverage(Configuration *q, std::vector<Configuration *> &visibleNeighborhood)
 {
-    /*for (int i = 0; i < visibleNeighborhood.size(); i++)
-    {
-        Configuration *q_neighbor = visibleNeighborhood.at(i);
-        // If path between is free
-        if (Bundle->checkMotion(q_neighbor->state, q->state))
-        {
-            return false;  // abort already in covered region
-        }
-    }*/
     // No free paths means we add for coverage
     if (visibleNeighborhood.empty())
     {
@@ -445,8 +436,8 @@ bool BundleSpaceGraphSparse::checkAddConnectivity(Configuration* q, std::vector<
                 {
                     // If the paths between are collision free
                   //TODO: Check that we need to call CheckMotion
-                    if (Bundle->checkMotion(q->state, visibleNeighborhood[i]->state) &&
-                        Bundle->checkMotion(q->state, visibleNeighborhood[j]->state))
+                    /*if (Bundle->checkMotion(q->state, visibleNeighborhood[i]->state) &&
+                        Bundle->checkMotion(q->state, visibleNeighborhood[j]->state))*/
                     {
                         links.push_back(visibleNeighborhood[i]->index);
                         links.push_back(visibleNeighborhood[j]->index);
@@ -465,8 +456,7 @@ bool BundleSpaceGraphSparse::checkAddConnectivity(Configuration* q, std::vector<
                 if (!boost::edge(v, link, graphSparse_).second)
                 {
                     // And the components haven't been united by previous links
-                    if (!sameComponentSparse(link, v))  //??????????????????? check??????????????????????????
-                                                        //check???????
+                    if (!sameComponentSparse(link, v))
                     {
                         addEdgeSparse(v, link);
                     }
@@ -486,10 +476,7 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q,
     // If we have more than 1 or 0 neighbors
     if (visibleNeighborhood.size() > 1)
     {
-        // The sample q reveals the existence of an interface between two nodes that do not share an edge
-        // N = Nearest_Guards( q, , GS); v1 ← arg minn∈N d( q, n); v2 ← arg minn∈N,n=v1 d( q, n);
-        // if L( v1, q) , L( q, v2) ∈ Cfree ∧ L( v1, v2) ∈/ ES then if L( v1, v2) ∈ Cfree then ES ← ES ∪ L( v1, v2);
-        // else VS ← VS ∪ {q}; ES ← ES ∪ {L( v1, q) , L( q, v2) };
+        // Add q if sample q reveals the existence of an interface between two nodes that do not share an edge
         Configuration *qn0 = graphNeighborhood[0];
         Configuration *qn1 = graphNeighborhood[1];
         Configuration *qv0 = visibleNeighborhood[0];
@@ -504,12 +491,11 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q,
                 if (getBundle()->checkMotion(qv0->state, qv1->state))
                 {
                     addEdgeSparse(qv0->index, qv1->index);
-                    consecutiveFailures_ = 0;  // sohaib -> from sparse -> reset consecutive failures
+                    consecutiveFailures_ = 0;  // reset consecutive failures
                 }
                 else
                 {
                     // Add the new node to the graph, to bridge the interface
-                    // Vertex v = addGuard(getBundle()->cloneState(qNew), INTERFACE);
                     Vertex v = addConfigurationSparse(q);
                     addEdgeSparse(v, qv0->index);
                     addEdgeSparse(v, qv1->index);
@@ -520,21 +506,19 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q,
     }
     return false;
 }
-//''''######################################################################################################################
 
 void ompl::geometric::BundleSpaceGraphSparse::updateRepresentatives(Configuration *q)
 {
-    // Get all of the dense samples which may be affected by adding this node
+    // dense points needed to update
     std::vector<Configuration *> dense_points;
     nearestDatastructure_->nearestR(q, sparseDelta_ + denseDelta_, dense_points);
 
-    // For each of those points
     for (Configuration *dense_point : dense_points)
     {
-        // Remove that point from the old representative's list(s)
+        // remove from representative lists
         removeFromRepresentatives(dense_point);
 
-        // Update that point's representative
+        // update representatives
         std::vector<Configuration *> graphNeighborhood;
         nearestSparse_->nearestR(dense_point, sparseDelta_, graphNeighborhood);
 
@@ -547,10 +531,9 @@ void ompl::geometric::BundleSpaceGraphSparse::updateRepresentatives(Configuratio
     }
 
     std::set<Vertex> interfaceRepresentatives;  // sparse
-    // For each of the points
+
     for (Configuration *dense_point : dense_points)
     {
-        // Get it's representative
         if (dense_point->representativeIndex < 0)
             continue;
         Vertex rep = dense_point->representativeIndex;
@@ -565,7 +548,6 @@ void ompl::geometric::BundleSpaceGraphSparse::updateRepresentatives(Configuratio
     }
 }
 
-/////////////////////#############################################################
 void ompl::geometric::BundleSpaceGraphSparse::addToRepresentatives(
     Vertex q, Vertex rep, const std::set<Vertex> &interfaceRepresentatives)
 {
@@ -583,7 +565,6 @@ void ompl::geometric::BundleSpaceGraphSparse::addToRepresentatives(
         // otherwise, for every neighbor representative
         foreach (Vertex v, interfaceRepresentatives)
         {
-            assert(rep == dense_point->representativeIndex);  //-->    representativesProperty_[dense_point]);
             auto it = graphSparse_[rep]->interfaceIndexList.find(v);
             if (it != graphSparse_[rep]->interfaceIndexList.end())
             {
@@ -613,11 +594,11 @@ void ompl::geometric::BundleSpaceGraphSparse::getInterfaceNeighborRepresentative
     foreach (Vertex n, boost::adjacent_vertices(q->index, graph_))
     {
         // Get his representative
-        Vertex orep = graph_[n]->representativeIndex;  //-->     representativesProperty_[n];
+        Vertex orep = graph_[n]->representativeIndex;
         // If that representative is not our own
         if (orep != rep)
             // If he is within denseDelta_
-            if (getBundle()->distance(q->state, graph_[n]->state) < denseDelta_)
+            if (distance(q, graph_[n]) < denseDelta_)
                 // Include his rep in the set
                 interfaceRepresentatives.insert(orep);
     }
@@ -630,7 +611,7 @@ void ompl::geometric::BundleSpaceGraphSparse::removeFromRepresentatives(Configur
     // Remove the node from the non-interface points (if there)
     graphSparse_[q->representativeIndex]->nonInterfaceIndexList.erase(q->index);
 
-    // From each of the interfaces
+    // From each of the interface lists
     std::unordered_map<normalized_index_type, std::set<normalized_index_type>> interfaceList =
         graphSparse_[q->representativeIndex]->interfaceIndexList;
 
@@ -638,7 +619,7 @@ void ompl::geometric::BundleSpaceGraphSparse::removeFromRepresentatives(Configur
              interfaceList.begin();
          it != interfaceList.end(); it++)
     {
-        // Remove this node from that list
+        // Remove this node
         it->second.erase(q->index);
     }
 }
@@ -659,7 +640,7 @@ void ompl::geometric::BundleSpaceGraphSparse::getInterfaceNeighborhood(
         if (graph_[n]->representativeIndex != (int)rep)
         {
             // If he is within denseDelta_
-            if (getBundle()->distance(q->state, graph_[n]->state) < denseDelta_)
+            if (distance(q, graph_[n]) < denseDelta_)
             {
                 // Append him to the list
                 interfaceNeighborhood.push_back(n);
@@ -791,8 +772,8 @@ bool ompl::geometric::BundleSpaceGraphSparse::checkAddPath(Configuration *q)
             foreach (Vertex x, Xs)
             {
                 // Compute/Retain MAXimum distance path thorugh S
-                double dist = (getBundle()->distance(graphSparse_[x]->state, graphSparse_[v]->state) +
-                               getBundle()->distance(graphSparse_[v]->state, graphSparse_[vp]->state)) /
+                double dist = (distance(graphSparse_[x], graphSparse_[v]) +
+                               distance(graphSparse_[v], graphSparse_[vp])) /
                               2.0;
                 if (dist > s_max)
                     s_max = dist;
