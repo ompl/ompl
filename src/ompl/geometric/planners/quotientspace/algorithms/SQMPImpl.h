@@ -77,7 +77,7 @@ namespace ompl
             unsigned int maxFailures_{1000u};
 
             /** \brief for different ratio of expand vs grow 1:5*/
-            unsigned int growExpandCounter_{0};
+            unsigned int iterations_{0};
             
             std::vector<base::State *> randomWorkStates_;
         };
