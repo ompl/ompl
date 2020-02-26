@@ -110,7 +110,6 @@ namespace ompl
                 /** \brief The set of motions descending from the current motion {qrrt*} */
                 std::vector<Configuration *> children;
 
-
                 /** \brief Index of configuration in boost::graph. Usually in
                     the interval [0,num_vertices(graph)], but if vertices are
                     deleted or graphs are copied, we sometimes need to map them

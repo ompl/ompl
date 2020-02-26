@@ -64,6 +64,7 @@ namespace ompl
 
             /** \brief constant value for nn search */
             double k_rrt_Constant_{0};
+            bool symmetric_;
         };
     }  // namespace geometric
 }  // namespace ompl

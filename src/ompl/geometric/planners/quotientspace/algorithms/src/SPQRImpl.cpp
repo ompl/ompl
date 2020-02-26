@@ -63,7 +63,7 @@ void ompl::geometric::SPQRImpl::grow()
         Init();
         firstRun_ = false;
     }
-    if( ++growExpandCounter_ % 5 == 0)
+    if( ++iterations_ % 2 == 0)
     {
         expand();
         return;
