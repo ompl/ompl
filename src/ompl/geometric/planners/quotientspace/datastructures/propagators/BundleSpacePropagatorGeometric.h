@@ -18,7 +18,7 @@ namespace ompl
 
         virtual ~BundleSpacePropagatorGeometric() override;
 
-        virtual bool propagate( 
+        virtual bool steer( 
             const Configuration *from, 
             const Configuration *to, 
             Configuration *result) const override;

@@ -365,7 +365,7 @@ Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards(
     const Configuration *to)
 {
     Configuration *next = new Configuration(getBundle(), to->state);
-    if (!propagator_->propagate(from, to, next))
+    if (!propagator_->steer(from, to, next))
     {
         return nullptr;
     }

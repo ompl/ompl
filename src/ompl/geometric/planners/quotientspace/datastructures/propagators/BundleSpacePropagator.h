@@ -21,7 +21,7 @@ namespace ompl
 
         virtual ~BundleSpacePropagator();
 
-        virtual bool propagate( 
+        virtual bool steer( 
             const Configuration *from, 
             const Configuration *to, 
             Configuration *result) const = 0;

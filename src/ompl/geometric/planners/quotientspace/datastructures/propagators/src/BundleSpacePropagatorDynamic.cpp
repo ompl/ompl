@@ -33,7 +33,7 @@ ompl::geometric::BundleSpacePropagatorDynamic::~BundleSpacePropagatorDynamic()
     siC_->freeControl(controlRandom_);
 }
 
-bool ompl::geometric::BundleSpacePropagatorDynamic::propagate( 
+bool ompl::geometric::BundleSpacePropagatorDynamic::steer( 
     const Configuration *from, 
     const Configuration *to, 
     Configuration *result) const
