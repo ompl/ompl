@@ -19,8 +19,10 @@ namespace ompl
 
             PathControlOptimizer(base::SpaceInformationPtr si, const base::OptimizationObjectivePtr& obj=nullptr);
             void simplify(PathControl* path);
-	    void reduceVertices(PathControl &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps =0, double rangeRatio=0.9);
-	    void collapseCloseVertices(PathControl &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps =0);
+
+            void reduceVertices(PathControl &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps =0, double rangeRatio=0.9);
+
+            // void collapseCloseVertices(PathControl &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps =0);
 	        //void subdivide(PathControl *path) ;
 	        //void smoothBSpline(PathControl &path, unsigned int maxSteps = 5,double minChange = std::numeric_limits<double>::epsilon());
 
