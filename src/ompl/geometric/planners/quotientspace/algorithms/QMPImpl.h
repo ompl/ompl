@@ -48,7 +48,7 @@ namespace ompl
     }
     namespace geometric
     {
-        /** \brief Implementation of BundleSpace Rapidly-Exploring Random Trees Algorithm*/
+        /** \brief Implementation of the Quotient space roadMap Planner */
         class QMPImpl : public ompl::geometric::BundleSpaceGraph
         {
             using BaseT = BundleSpaceGraph;
@@ -57,8 +57,32 @@ namespace ompl
             QMPImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
             virtual ~QMPImpl() override;
 
-            /** \brief One iteration of PRM with adjusted sampling function */
+            /** \brief One iteration of QMP with adjusted sampling function */
             virtual void grow() override;
+
+            /** \brief sample random node from Probabilty density function*/
+            void expand();
+
+            Configuration *addMileStone(ompl::base::State *q_state);
+
+            virtual void sampleFromDatastructure(ompl::base::State *) override;
+
+        protected:
+
+            /** \brief Instead of sampling directly on graph, we sample in an
+             * epsilon neighborhood */
+            double epsilonGraphThickening_{0.1};
+
+            /** \brief percentage of times to sample on shortest path instead of
+             * full graph */
+            double pathBias_{0.2};
+
+            /** \brief for different ratio of expand vs grow 1:2*/
+            unsigned int counter_{0};
+
+            std::vector<base::State *> randomWorkStates_;
+
+            unsigned int k_{10};
 
         };
     }  // namespace geometric

@@ -98,14 +98,14 @@ std::string ompl::geometric::BundleSpaceComponent::getTypeAsString() const
 
 std::string ompl::geometric::BundleSpaceComponent::getFiberTypeAsString() const
 {
-  if(FiberSpace_) return stateTypeToString(FiberSpace_);
-  else return "None";
+    if(FiberSpace_) return stateTypeToString(FiberSpace_);
+    else return "None";
 }
 
 std::string ompl::geometric::BundleSpaceComponent::getBaseTypeAsString() const
 {
-  if(BaseSpace_) return stateTypeToString(BaseSpace_);
-  else return "None";
+    if(BaseSpace_) return stateTypeToString(BaseSpace_);
+    else return "None";
 }
 
 std::string ompl::geometric::BundleSpaceComponent::getBundleTypeAsString() const
@@ -113,10 +113,16 @@ std::string ompl::geometric::BundleSpaceComponent::getBundleTypeAsString() const
     return stateTypeToString(BundleSpace_);
 }
 
+bool ompl::geometric::BundleSpaceComponent::isDynamic() const
+{
+    return isDynamic_;
+}
+
 void ompl::geometric::BundleSpaceComponent::print(std::ostream &out) const
 {
-  out << getTypeAsString() << std::endl;
+    out << getTypeAsString() << std::endl;
 }
+
 namespace ompl
 {
     namespace geometric

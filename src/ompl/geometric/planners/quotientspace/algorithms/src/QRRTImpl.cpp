@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, University of Stuttgart
+ *  Copyright (c) 2020, University of Stuttgart
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@ ompl::geometric::QRRTImpl::~QRRTImpl()
 
 void ompl::geometric::QRRTImpl::grow()
 {
+    //(0) If first run, add start configuration
     if (firstRun_)
     {
         init();
@@ -62,34 +63,21 @@ void ompl::geometric::QRRTImpl::grow()
     sampleBundleGoalBias(xRandom_->state, goalBias_);
 
     //(2) Get Nearest in Tree
-    const Configuration *q_nearest = nearest(xRandom_);
+    const Configuration *xNearest = nearest(xRandom_);
 
     //(3) Connect Nearest to Random
-    double d = Bundle->distance(q_nearest->state, xRandom_->state);
-    if (d > maxDistance_)
-    {
-        Bundle->getStateSpace()->interpolate(q_nearest->state, xRandom_->state, maxDistance_ / d, xRandom_->state);
-    }
+    Configuration *xNext = extendGraphTowards(xNearest, xRandom_);
 
-    //(4) Check if Motion is correct
-    if (Bundle->checkMotion(q_nearest->state, xRandom_->state))
+    //(4) If extension was successful, check if we reached goal
+    if(xNext)
     {
-        Configuration *q_next = new Configuration(Bundle, xRandom_->state);
-        Vertex v_next = addConfiguration(q_next);
-
-        if (!hasSolution_ || !hasChild())
+        bool satisfied = goal_->isSatisfied(xNext->state);
+        if (satisfied)
         {
-            // (5) add edge if no solution exists
-            addEdge(q_nearest->index, v_next);
-
-            double dist = 0.0;
-            bool satisfied = goal_->isSatisfied(q_next->state, &dist);
-            if (satisfied)
-            {
-                vGoal_ = addConfiguration(qGoal_);
-                addEdge(q_nearest->index, vGoal_);
-                hasSolution_ = true;
-            }
+            vGoal_ = addConfiguration(qGoal_);
+            addEdge(xNext->index, vGoal_);
+            hasSolution_ = true;
         }
     }
+
 }

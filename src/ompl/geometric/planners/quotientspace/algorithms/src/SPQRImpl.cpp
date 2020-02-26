@@ -35,7 +35,7 @@
 
 /* Author: Andreas Orthey, Sohaib Akbar */
 
-#include <ompl/geometric/planners/quotientspace/algorithms/SQMPImpl.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/SPQRImpl.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <boost/foreach.hpp>
 #include <ompl/datastructures/NearestNeighbors.h>
@@ -43,38 +43,37 @@
 
 #define foreach BOOST_FOREACH
 
-ompl::geometric::SQMPImpl::SQMPImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
+ompl::geometric::SPQRImpl::SPQRImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
-    setName("SQMPImpl" + std::to_string(id_));
+    setName("SPQRImpl" + std::to_string(id_));
     randomWorkStates_.resize(5);
-    Bundle->allocStates(randomWorkStates_);
+    getBundle()->allocStates(randomWorkStates_);
 }
 
-ompl::geometric::SQMPImpl::~SQMPImpl()
+ompl::geometric::SPQRImpl::~SPQRImpl()
 {
-    si_->freeStates(randomWorkStates_);
+    getBundle()->freeStates(randomWorkStates_);
     deleteConfiguration(xRandom_);
 }
 
-void ompl::geometric::SQMPImpl::grow()
+void ompl::geometric::SPQRImpl::grow()
 {
     if (firstRun_)
     {
         Init();
         firstRun_ = false;
     }
-    if( ++growExpandCounter_ % 5 == 0)
+    if( ++iterations_ % 2 == 0)
     {
         expand();
         return;
     }
     sampleBundleGoalBias(xRandom_->state, goalBias_);
 
-    //TODO: should be replaced with addConfiguration()
     addMileStone(xRandom_);
 }
 
-void ompl::geometric::SQMPImpl::expand()
+void ompl::geometric::SPQRImpl::expand()
 {
     PDF pdf;
 
@@ -90,40 +89,18 @@ void ompl::geometric::SQMPImpl::expand()
     
     Configuration *q = pdf.sample(rng_.uniform01());
     
-    //TODO: That seems weird. Wouldn't it change the State
-    //of a given configuration in the graph?
-    sampleBundle(q->state);
-    addMileStone(q);
-    
-    int s = si_->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
+    int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
     for (int i = 0; i < s; i++)
     {
-        Configuration *tmp = new Configuration(Bundle, randomWorkStates_[i]);
+        Configuration *tmp = new Configuration(getBundle(), randomWorkStates_[i]);
         addMileStone(tmp);
         if(boost::edge(q->index, tmp->index, graph_).second)
             ompl::geometric::BundleSpaceGraph::addEdge(q->index, tmp->index);
+        //q = tmp;
     }
-    
-    /*foreach (Vertex v, boost::vertices(graphSparse_))
-    {
-        if(graphSparse_[v]->successful_connection_attempts == 0)
-        {
-            std::vector<Configuration *> r_nearest_neighbors;
-            nearestSparse_->nearestR(graphSparse_[v], sparseDelta_, r_nearest_neighbors);
-
-            for (unsigned int i = 0; i < r_nearest_neighbors.size(); i++)
-            {
-                Configuration *q_neighbor = r_nearest_neighbors.at(i);
-                if (Bundle->checkMotion(q_neighbor->state, graphSparse_[v]->state))
-                {
-                    addEdgeSparse(q_neighbor->index, v);
-                }
-            }
-        }
-    }*/
 }
 
-void ompl::geometric::SQMPImpl::addMileStone(Configuration *q_random)
+void ompl::geometric::SPQRImpl::addMileStone(Configuration *q_random)
 {
     Configuration *q_next = addConfigurationDense(q_random);
 
@@ -136,8 +113,8 @@ void ompl::geometric::SQMPImpl::addMileStone(Configuration *q_random)
                 if (!checkAddPath(q_next))
                     ++consecutiveFailures_;
             }
-    //TODO: Why check for dense solution? Why not directly same component?
-    if (isDenseFoundSolution_)
+    
+    if (!hasSolution_)
     {
         bool same_component = sameComponentSparse(v_start_sparse, v_goal_sparse);
         if(!same_component) {
@@ -147,9 +124,9 @@ void ompl::geometric::SQMPImpl::addMileStone(Configuration *q_random)
     }
 }
 
-ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SQMPImpl::addConfigurationDense(Configuration *q_random)
+ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SPQRImpl::addConfigurationDense(Configuration *q_random)
 {
-    Configuration *q_next = new Configuration(Bundle, q_random->state);
+    Configuration *q_next = new Configuration(getBundle(), q_random->state);
     Vertex v_next = ompl::geometric::BundleSpaceGraph::addConfiguration(q_next);
     // totalNumberOfSamples_++;
     // totalNumberOfFeasibleSamples_++;
@@ -167,24 +144,11 @@ ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SQMPImpl::ad
         Configuration *q_neighbor = r_nearest_neighbors.at(i);
         q_neighbor->total_connection_attempts++;
 
-        if (Bundle->checkMotion(q_neighbor->state, q_random->state))
+        if (getBundle()->checkMotion(q_neighbor->state, q_random->state))
         {
             ompl::geometric::BundleSpaceGraph::addEdge(q_neighbor->index, v_next);
             q_next->successful_connection_attempts++;
             q_neighbor->successful_connection_attempts++;
-            
-            if (/*q_neighbor->isGoal && */!isDenseFoundSolution_)
-            {
-                bool same_component = sameComponent(vStart_, vGoal_);
-                if (!same_component)
-                {
-                    isDenseFoundSolution_ = false;
-                }
-                else
-                {
-                    isDenseFoundSolution_ = true;
-                }
-            }
         }
     }
 
@@ -193,7 +157,7 @@ ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SQMPImpl::ad
     nearestSparse_->nearestR(q_next, sparseDelta_, graphNeighborhood); // Sparse Neighbors
 
     for (Configuration *qn : graphNeighborhood)
-        if (si_->checkMotion(q_next->state, qn->state))
+        if (getBundle()->checkMotion(q_next->state, qn->state))
         {
             q_next->representativeIndex = qn->index;
             break;
@@ -222,7 +186,7 @@ ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SQMPImpl::ad
     return q_next;
 }
 
-double ompl::geometric::SQMPImpl::getImportance() const
+double ompl::geometric::SPQRImpl::getImportance() const
 {
     // Should depend on
     // (1) level : The higher the level, the more importance
@@ -241,7 +205,7 @@ double ompl::geometric::SQMPImpl::getImportance() const
     return 1.0 / (N + 1);
 }
 
-bool ompl::geometric::SQMPImpl::getPlannerTerminationCondition()
+bool ompl::geometric::SPQRImpl::getPlannerTerminationCondition()
 {
     return hasSolution_ || consecutiveFailures_ > maxFailures_;
 }

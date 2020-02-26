@@ -98,6 +98,18 @@ namespace ompl
                 bool isStart{false};
                 bool isGoal{false};
 
+                /** \brief parent index for {qrrt*} */
+                normalized_index_type parent{-1};
+
+                /** \brief cost to reach until current vertex in {qrrt*} */
+                base::Cost cost;
+
+                /** \brief same as rrt*, connection cost with parent {qrrt*} */
+                base::Cost lineCost;
+
+                /** \brief The set of motions descending from the current motion {qrrt*} */
+                std::vector<Configuration *> children;
+
                 /** \brief Index of configuration in boost::graph. Usually in
                     the interval [0,num_vertices(graph)], but if vertices are
                     deleted or graphs are copied, we sometimes need to map them
@@ -214,13 +226,20 @@ namespace ompl
 
             virtual const Configuration *nearest(const Configuration *s) const;
 
+            virtual void setMetric(const std::string& sMetric) override;
+            virtual void setPropagator(const std::string& sPropagator) override;
+
             ompl::base::Cost bestCost_{+ompl::base::dInf};
             Configuration *qStart_{nullptr};
             Configuration *qGoal_{nullptr};
             Vertex vStart_;
             Vertex vGoal_;
+
             std::vector<Vertex> shortestVertexPath_;
             std::vector<Vertex> startGoalVertexPath_;
+            double lengthStartGoalVertexPath_;
+            std::vector<double> lengthsStartGoalVertexPath_;
+
 
             const Graph &getGraph() const;
             double getGraphLength() const;
@@ -240,17 +259,36 @@ namespace ompl
 
             double getRange() const;
 
-        protected:
+            /** \brief Shortest path on Bundle-graph */
+            ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal);
+            ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal, Graph &graph);
+
             virtual double distance(const Configuration *a, const Configuration *b) const;
+            virtual bool checkMotion(const Configuration *a, const Configuration *b) const;
+
+            Configuration* extendGraphTowards(
+                const Configuration *from, 
+                const Configuration *to);
+
+            // virtual bool propagateBundle(
+            //     const Configuration *from, 
+            //     const Configuration *to, 
+            //     Configuration *result) const;
+
+            virtual void interpolate(
+                const Configuration *a, 
+                const Configuration *b, 
+                Configuration *dest) const;
+
+        protected:
+
+            virtual Configuration* addBundleConfiguration(base::State*);
+            virtual void addBundleEdge(const Configuration *a, const Configuration *b);
 
             virtual Vertex addConfiguration(Configuration *q);
             void addEdge(const Vertex a, const Vertex b);
 
             ompl::base::Cost costHeuristic(Vertex u, Vertex v) const;
-
-            /** \brief Shortest path on Bundle-graph */
-            ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal);
-            ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal, Graph &graph);
 
             /** \brief Nearest neighbor structure for Bundle space configurations */
             RoadmapNeighborsPtr nearestDatastructure_;

@@ -33,40 +33,39 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey, Sohaib Akbar */
+/* Author: Sohaib Akbar, Andreas Orthey */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QMPSTAR_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QMPSTAR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_SPQR_
+#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_SPQR_
+
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceSequence.h>
-#include <ompl/geometric/planners/quotientspace/algorithms/QMPStarImpl.h>
+#include <ompl/geometric/planners/quotientspace/algorithms/SPQRImpl.h>
 
 namespace ompl
 {
     namespace geometric
     {
         /**
-             @anchor QMPStar
-
+             @anchor SPQR
              @par Short description
-             Quotient space roadMap Planner Star (QMP*) generalizes the PRM* algorithm to bundle spaces. 
-
-             @par External documentation (QMP)
+             Sparse Quotient space roadMap Planner algorithm, is extension to
+             Quotient space raodMap Planner(QMP), it reduce
+             memory requirment to store roadmap similar to
+             SPARS algorithm.
+             @par External documentation
              A. Orthey, A. Escande and E. Yoshida,
              Quotient-Space Motion Planning,
              in <em>International Conference on Intelligent Robots and Systems</em>, 2018,
              [[PDF]](https://arxiv.org/abs/1807.09468)
-
-             @par External documentation (PRM*)
-             S. Karaman and E. Frazzoli, Sampling-based
-             Algorithms for Optimal Motion Planning, International Journal of Robotics
-             Research, vol. 30, no.7, pp. 846-894, 2011.
-             DOI: [10.1177/0278364911406761](http://dx.doi.org/10.1177/0278364911406761)<br>
+             @par External documentation
+             A. Dobson, A. Krontiris, K. Bekris,
+             Sparse Roadmap Spanners,
+             <em>Workshop on the Algorithmic Foundations of Robotics (WAFR)</em> 2012.
+             [[PDF]](http://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf)
         */
 
-        /** \brief Quotient-space roadMap Planner Start (QMPStar) Algorithm */
-        typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QMPStarImpl> QMPStar;
-
-    }  // namespace geometric
-}  // namespace ompl
-
+        /** \brief Sparse Quotient-space roadMap Planner (SPQR) Algorithm */
+       typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::SPQRImpl> SPQR;
+    }
+}
 #endif

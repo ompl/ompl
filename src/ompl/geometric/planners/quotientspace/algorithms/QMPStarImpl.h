@@ -66,7 +66,7 @@ namespace ompl
             /** \brief constant value for nn search */
             double kPRMStarConstant_;
             /** \brief for different ratio of expand vs grow 1:5*/
-            unsigned int growExpandCounter_{0};
+            unsigned int counter_{0};
             
             std::vector<base::State *> randomWorkStates_;
         };

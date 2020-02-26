@@ -194,7 +194,7 @@ ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(c
       return BUNDLE_SPACE_NO_PROJECTION;
     }
 
-    BundleSpaceComponentType type;
+    BundleSpaceComponentType type = geometric::BUNDLE_SPACE_UNKNOWN;
 
     if (!Bundle->isCompound())
     {

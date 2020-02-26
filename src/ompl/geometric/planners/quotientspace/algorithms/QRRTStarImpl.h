@@ -35,9 +35,9 @@
 
 /* Author: Andreas Orthey, Sohaib Akbar */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_BundleSpace_SQMPIMPL_
-#define OMPL_GEOMETRIC_PLANNERS_BundleSpace_SQMPIMPL_
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h>
+#ifndef OMPL_GEOMETRIC_PLANNERS_BundleSpace_QRRTSTARIMPL_
+#define OMPL_GEOMETRIC_PLANNERS_BundleSpace_QRRTSTARIMPL_
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
 #include <ompl/datastructures/PDF.h>
 
 namespace ompl
@@ -48,38 +48,23 @@ namespace ompl
     }
     namespace geometric
     {
-        /** \brief Sparse Quotient-space roadMap Planner (SQMP) Algorithm*/
-        class SQMPImpl : public ompl::geometric::BundleSpaceGraphSparse
+        /** \brief Implementation of BundleSpace Rapidly-Exploring Random Tree Star Algorithm*/
+        class QRRTStarImpl : public ompl::geometric::BundleSpaceGraph
         {
-            using BaseT = BundleSpaceGraphSparse;
+            using BaseT = BundleSpaceGraph;
 
         public:
-            SQMPImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
-
-            virtual ~SQMPImpl() override;
+            QRRTStarImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
+            virtual ~QRRTStarImpl() override;
 
             /** \brief One iteration of RRT with adjusted sampling function */
             virtual void grow() override;
 
-            /** \brief sample random node from Probabilty density function*/
-            void expand();
+            void updateChildCosts(Configuration *q);
 
-            /** \brief Importance based on how many vertices the tree has */
-            double getImportance() const override;
-
-            void addMileStone(Configuration *q_random);
-            Configuration *addConfigurationDense(Configuration *q_random);
-            bool getPlannerTerminationCondition();
-
-        protected:
-
-            /** \brief Maximum failures limit for terminating the algorithm similar to SPARS */
-            unsigned int maxFailures_{1000u};
-
-            /** \brief for different ratio of expand vs grow 1:5*/
-            unsigned int growExpandCounter_{0};
-            
-            std::vector<base::State *> randomWorkStates_;
+            /** \brief constant value for nn search */
+            double k_rrt_Constant_{0};
+            bool symmetric_;
         };
     }  // namespace geometric
 }  // namespace ompl

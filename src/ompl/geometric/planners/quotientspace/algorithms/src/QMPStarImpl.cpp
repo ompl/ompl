@@ -48,17 +48,17 @@ ompl::geometric::QMPStarImpl::QMPStarImpl(const base::SpaceInformationPtr &si, B
 {
     setName("QMPStarImpl" + std::to_string(id_));
 
-    double d = (double)Bundle->getStateDimension();
+    double d = (double)getBundle()->getStateDimension();
     double e = boost::math::constants::e<double>();
     kPRMStarConstant_ = e + (e / d);
     
     randomWorkStates_.resize(5);
-    Bundle->allocStates(randomWorkStates_);
+    getBundle()->allocStates(randomWorkStates_);
 }
 
 ompl::geometric::QMPStarImpl::~QMPStarImpl()
 {
-    si_->freeStates(randomWorkStates_);
+    getBundle()->freeStates(randomWorkStates_);
     deleteConfiguration(xRandom_);
 }
 
@@ -71,8 +71,7 @@ void ompl::geometric::QMPStarImpl::grow()
         firstRun_ = false;
     }
 
-    //TODO: Why not use expand() also in QMP?
-    if( ++growExpandCounter_ % 2 == 0)
+    if( ++counter_ % 2 == 0)
     {
         expand();
         return;
@@ -98,14 +97,14 @@ void ompl::geometric::QMPStarImpl::expand()
     
     Configuration *q = pdf.sample(rng_.uniform01());
 
-    int s = si_->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
+    int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
     if(s > 0)
     {
         Configuration *prev = q;
         Configuration *last = addMileStone(randomWorkStates_[--s]);
         for (int i = 0; i < s; i++)
         {
-            Configuration *tmp = new Configuration(Bundle, randomWorkStates_[i]);
+            Configuration *tmp = new Configuration(getBundle(), randomWorkStates_[i]);
             addConfiguration(tmp);
 
             ompl::geometric::BundleSpaceGraph::addEdge(prev->index, tmp->index);
@@ -116,28 +115,27 @@ void ompl::geometric::QMPStarImpl::expand()
     }
 }
 
-//TODO: Why not use same as in QMP?
 ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPStarImpl::addMileStone(ompl::base::State *q_state)
 {
     // add sample to graph
-    Configuration *q_next = new Configuration(Bundle, q_state);
+    Configuration *q_next = new Configuration(getBundle(), q_state);
     Vertex v_next = addConfiguration(q_next);
 
     // Calculate K
     unsigned int k = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double) boost::num_vertices(graph_))));
 
     // check for close neighbors
-    std::vector<Configuration*> r_nearest_neighbors;
-    BaseT::nearestDatastructure_->nearestK(q_next , k , r_nearest_neighbors);
+    std::vector<Configuration*> nearestNeighbors;
+    BaseT::nearestDatastructure_->nearestK(q_next , k , nearestNeighbors);
     
-    for(unsigned int i=0 ; i< r_nearest_neighbors.size(); i++)
+    for(unsigned int i=0 ; i< nearestNeighbors.size(); i++)
     {
-        Configuration* q_neighbor = r_nearest_neighbors.at(i);
+        Configuration* q_neighbor = nearestNeighbors.at(i);
         
         q_next->total_connection_attempts++;
         q_neighbor->total_connection_attempts++;
         
-        if (Bundle->checkMotion(q_neighbor->state, q_next->state)) 
+        if (getBundle()->checkMotion(q_neighbor->state, q_next->state)) 
         {
             addEdge(q_neighbor->index, v_next);
             q_next->successful_connection_attempts++;

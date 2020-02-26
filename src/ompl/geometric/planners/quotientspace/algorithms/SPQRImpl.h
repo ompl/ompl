@@ -35,37 +35,52 @@
 
 /* Author: Andreas Orthey, Sohaib Akbar */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QMPSTAR_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QMPSTAR_
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceSequence.h>
-#include <ompl/geometric/planners/quotientspace/algorithms/QMPStarImpl.h>
+#ifndef OMPL_GEOMETRIC_PLANNERS_BundleSpace_SPQRIMPL_
+#define OMPL_GEOMETRIC_PLANNERS_BundleSpace_SPQRIMPL_
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h>
+#include <ompl/datastructures/PDF.h>
 
 namespace ompl
 {
+    namespace base
+    {
+        OMPL_CLASS_FORWARD(OptimizationObjective);
+    }
     namespace geometric
     {
-        /**
-             @anchor QMPStar
+        /** \brief Sparse Quotient-space roadMap Planner (SPQR) Algorithm*/
+        class SPQRImpl : public ompl::geometric::BundleSpaceGraphSparse
+        {
+            using BaseT = BundleSpaceGraphSparse;
 
-             @par Short description
-             Quotient space roadMap Planner Star (QMP*) generalizes the PRM* algorithm to bundle spaces. 
+        public:
+            SPQRImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
 
-             @par External documentation (QMP)
-             A. Orthey, A. Escande and E. Yoshida,
-             Quotient-Space Motion Planning,
-             in <em>International Conference on Intelligent Robots and Systems</em>, 2018,
-             [[PDF]](https://arxiv.org/abs/1807.09468)
+            virtual ~SPQRImpl() override;
 
-             @par External documentation (PRM*)
-             S. Karaman and E. Frazzoli, Sampling-based
-             Algorithms for Optimal Motion Planning, International Journal of Robotics
-             Research, vol. 30, no.7, pp. 846-894, 2011.
-             DOI: [10.1177/0278364911406761](http://dx.doi.org/10.1177/0278364911406761)<br>
-        */
+            /** \brief One iteration of RRT with adjusted sampling function */
+            virtual void grow() override;
 
-        /** \brief Quotient-space roadMap Planner Start (QMPStar) Algorithm */
-        typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QMPStarImpl> QMPStar;
+            /** \brief sample random node from Probabilty density function*/
+            void expand();
 
+            /** \brief Importance based on how many vertices the tree has */
+            double getImportance() const override;
+
+            void addMileStone(Configuration *q_random);
+            Configuration *addConfigurationDense(Configuration *q_random);
+            bool getPlannerTerminationCondition();
+
+        protected:
+
+            /** \brief Maximum failures limit for terminating the algorithm similar to SPARS */
+            unsigned int maxFailures_{1000u};
+
+            /** \brief for different ratio of expand vs grow 1:5*/
+            unsigned int iterations_{0};
+            
+            std::vector<base::State *> randomWorkStates_;
+        };
     }  // namespace geometric
 }  // namespace ompl
 

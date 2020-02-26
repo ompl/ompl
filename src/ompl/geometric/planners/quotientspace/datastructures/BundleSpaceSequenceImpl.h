@@ -61,7 +61,8 @@ ompl::geometric::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::b
         bundleSpaces_.back()->setLevel(k);
     }
     stopAtLevel_ = bundleSpaces_.size();
-    OMPL_DEVMSG2("Created %d BundleSpace levels.", siVec_.size());
+
+    OMPL_DEBUG("Created %d BundleSpace levels (%s).", siVec_.size(), getName().c_str());
 }
 
 template <class T>

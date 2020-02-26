@@ -17,13 +17,15 @@ namespace ompl
     namespace geometric
     {
         OMPL_CLASS_FORWARD(BundleSpaceComponent);
-    }
-    namespace geometric
-    {
+        OMPL_CLASS_FORWARD(BundleSpaceMetric);
+        OMPL_CLASS_FORWARD(BundleSpacePropagator);
+
         /// \brief A single Bundle-space
         class BundleSpace : public ompl::base::Planner
         {
             using BaseT = ompl::base::Planner;
+            using BaseT::si_; //make it private. 
+            // Note: use getBundle(), getFiber() or getBase() to access the SpaceInformationPtr
 
         public:
             /**  \brief Bundle Space contains three OMPL spaces, which we call Bundle, Base and Fiber.
@@ -46,6 +48,8 @@ namespace ompl
 
             virtual void grow() = 0;
             virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
+            virtual void setMetric(const std::string& sMetric) = 0;
+            virtual void setPropagator(const std::string& sPropagator) = 0;
 
             virtual void sampleFromDatastructure(ompl::base::State *xBase) = 0;
             virtual void sampleFiber(ompl::base::State *xFiber);
@@ -136,6 +140,12 @@ namespace ompl
 
             bool isDynamic() const;
 
+        private:
+
+            ompl::base::SpaceInformationPtr Bundle{nullptr};
+            ompl::base::SpaceInformationPtr Base{nullptr};
+            ompl::base::SpaceInformationPtr Fiber{nullptr};
+
         protected:
             /// Check if Bundle-space is unbounded
             void checkBundleSpaceMeasure(std::string name, 
@@ -147,10 +157,6 @@ namespace ompl
 
             /// Internal function implementing actual printing to stream
             virtual void print(std::ostream &out) const;
-
-            ompl::base::SpaceInformationPtr Bundle{nullptr};
-            ompl::base::SpaceInformationPtr Base{nullptr};
-            ompl::base::SpaceInformationPtr Fiber{nullptr};
 
             ompl::base::StateSamplerPtr Fiber_sampler_;
             ompl::base::StateSamplerPtr Bundle_sampler_;
@@ -183,6 +189,11 @@ namespace ompl
             ompl::base::Goal *goal_;
 
             BundleSpaceComponentFactory componentFactory;
+
+            BundleSpaceMetricPtr metric;
+
+            BundleSpacePropagatorPtr propagator_;
+
         };
     }  // namespace geometric
 }  // namespace ompl
