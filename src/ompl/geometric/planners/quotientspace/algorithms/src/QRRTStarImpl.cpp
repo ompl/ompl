@@ -218,7 +218,6 @@ void ompl::geometric::QRRTStarImpl::grow()
                         
                         // update node's children costs
                         updateChildCosts(q_near);
-                        std::cout << "----rewire------" << std::endl;
                     }
                 }
             }
