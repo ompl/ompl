@@ -8,7 +8,7 @@ ompl::control::PathControlOptimizer::PathControlOptimizer(base::SpaceInformation
 void ompl::control::PathControlOptimizer::simplify(PathControl* path)
 {
   OMPL_DEBUG("simplify");
-	reduceVertices(*path,15,15,0.9);
+	reduceVertices(*path,10,10,0.33);
   OMPL_DEBUG("done simplify");
 	//path->subdivide() ;
 }
@@ -110,20 +110,13 @@ void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsi
 	std::vector<base::State *> newStates ;
 	std::vector<control::Control *> newControls;
 	std::vector<double> newControlDurations ;
-	ompl::control::Control * newControl ;
-	newControl = siC->allocControl() ;
+	ompl::control::Control *newControl =siC->allocControl() ;
 	double newControlDuration ;
-	ompl::base::State *s1_temp = siC->allocState() ;
-	ompl::base::State *s2_temp = siC->allocState() ;
+
 
 	std::cout << " propagation size " << siC->getPropagationStepSize() << std::endl;
 	std::cout << "initial size of states  " << states.size() << std::endl;
 	std::cout << "initial size of controls  " << controls.size() << std::endl;
-	
-	/*for (auto it = states.begin(); it != v.end(); ++it)
-	{
-		if (states.at)
-	}*/
   
 
 	if (siC->checkMotion(states.front(), states.back()))
@@ -179,12 +172,10 @@ void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsi
         continue;
       }
       std::cout << "check motion" << std::endl;
+			ompl::control::Control *newControl =siC->allocControl() ;
+			ompl::base::State *s1_temp = siC->allocState() ;
+			ompl::base::State *s2_temp = siC->allocState() ;
 			
-			//if (newControl!=nullptr)
-			//{
-				//siC->freeControl(newControl);
-				//std::cout <<" freed newControl" << std::endl;
-			//}
 			siC->copyState(s1_temp,states.at(p1)) ;
 			siC->copyState(s2_temp,states.at(p2));
 			std::cout <<" cloned the states" << std::endl;
@@ -193,15 +184,17 @@ void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsi
 			
 			
 			newControlDuration=sampler->sampleTo(newControl, s1_temp , s2_temp) ;
+			//std::cout << "number of steps before propagation " << newControlDuration << std::endl;
 			cD =siC->propagateWhileValid(states.at(p1),newControl,newControlDuration,res, true) ;
+			//std::cout << "number of steps after propagation " << cD << std::endl;
 			
 			if (cD!=newControlDuration)
 			{
 				std::cout <<" Propagation not valid " << std::endl;
 				continue ;
 			}
-			//siC->freeState(s1_temp) ;
-			//siC->freeState(s2_temp) ;
+			siC->freeState(s1_temp) ;
+			siC->freeState(s2_temp) ;
 			
 			
 			std::cout << p1 <<"  <-->  " << p2 << std::endl;
@@ -209,7 +202,7 @@ void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsi
 			std::cout << "size of controls  " << controls.size() << std::endl;
 			unsigned int s = controls.size();
 			
-			if (cD!=newControlDuration)
+			if (cD==newControlDuration)
 			{
 		std::cout << "freestates" << std::endl;
 				if (freeStates_)
@@ -235,7 +228,7 @@ void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsi
 					if (k<p1)
 					{
 		std::cout << "added control n° " << k << std::endl;				
-						newControls.push_back(controls.at(k));
+						newControls.push_back(siC->cloneControl(controls.at(k)));
 						newControlDurations.push_back(controlDurations.at(k));
 						
 					}
@@ -254,21 +247,13 @@ void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsi
 					}
 					if (k>=p2)
 					{
-						newControls.push_back(controls.at(k));
+						newControls.push_back(siC->cloneControl(controls.at(k)));
 						newControlDurations.push_back(controlDurations.at(k));	
 		std::cout << "added control n° " << k << std::endl;										
-					}
-					//else
-					//{
-						//siC->freeControl(controls.at(k));
-						//std::cout << "freed control at n° " << k << std::endl;		
-					//}		
-					
-					
-					
+					}			
 															
 				}
-				
+				siC->freeControl(newControl) ;
 				controls.swap(newControls) ;
 				controlDurations.swap(newControlDurations) ;
 
