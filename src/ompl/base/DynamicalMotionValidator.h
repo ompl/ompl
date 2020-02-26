@@ -99,7 +99,7 @@ namespace ompl
             ompl::base::State* s_target_copy;
             ompl::control::SpaceInformation* siC;
             bool isDynamic; 
-            double tolerance{0.1}; //multiplies with distance of start and target
+            double tolerance{0.05}; //multiplies with distance of start and target
         };
     }
 }
