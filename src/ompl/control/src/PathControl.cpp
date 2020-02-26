@@ -351,14 +351,19 @@ void ompl::control::PathControl::subdivide()
 {
     if (states_.size() <= controls_.size())
     {
-        OMPL_ERROR("Interpolation not performed.  Number of states in the path should be strictly greater than the "
+        OMPL_ERROR("Subdividing not performed.  Number of states in the path should be strictly greater than the "
                    "number of controls.");
         return;
-    }	
+    }
+    if (states_.size() < 2)
+		return;
+		
     const auto *si = static_cast<const SpaceInformation *>(si_.get());
     std::vector<base::State *> newStates;
     std::vector<Control *> newControls;
     std::vector<double> newControlDurations;    
+    
+    
     
     for (unsigned int i = 0; i < controls_.size(); ++i)
     {
@@ -372,11 +377,11 @@ void ompl::control::PathControl::subdivide()
         }
         std::vector<base::State *> istates;
         si->propagate(states_[i], controls_[i], (int)floor(0.5+controlDurations_[i]/2), istates, true);    
-        /*if (!istates.empty())
-        {
-            si_->freeState(istates.back());
-            istates.pop_back();  
-        }*/
+        //if (!istates.empty())
+        //{
+            //si_->freeState(istates.back());
+            //istates.pop_back();  
+        //}
         newStates.push_back(states_[i]);
         newStates.push_back(istates.back());        
         newControls.push_back(controls_[i]);

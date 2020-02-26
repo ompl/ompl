@@ -8,88 +8,11 @@ ompl::control::PathControlOptimizer::PathControlOptimizer(base::SpaceInformation
 void ompl::control::PathControlOptimizer::simplify(PathControl* path)
 {
   OMPL_DEBUG("simplify");
-	reduceVertices(*path,1,1);
+	reduceVertices(*path,15,15,0.9);
   OMPL_DEBUG("done simplify");
 	//path->subdivide() ;
 }
 
-/*
-void ompl::control::PathControlOptimizer::reduceVertices(
-PathControl &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio)
-{
-  //std::cout << "vertices reduced " << std::endl;
-  if (path.getStateCount() < 3)
-	return;
- 
-  if (maxSteps == 0)
-    maxSteps = path.getStateCount();
- 
-  if (maxEmptySteps == 0)
-	maxEmptySteps = path.getStateCount();
- 
-  bool result = false;
-  unsigned int nochange = 0;
-  const base::SpaceInformationPtr &si = path.getSpaceInformation();
-  std::vector<base::State *> &states = path.getStates();
-  ompl::control::SpaceInformation *siC1 = static_cast<ompl::control::SpaceInformation*>(si.get());
-  siC1->setMotionValidator(std::make_shared<ompl::base::DynamicalMotionValidator>(siC1));
-  siC1->setup();
-  siC1->setMinMaxControlDuration(1,100);
-  
-
- 
-  if (siC1->checkMotion(states.front(), states.back()))
-  {
-    std::cout << "vertices reduced " << std::endl; 
-	if (freeStates_)
-		for (std::size_t i = 2; i < states.size(); ++i)
-			siC1->freeState(states[i - 1]);
-    std::vector<base::State *> newStates(2);
-    newStates[0] = states.front();
-    newStates[1] = states.back();
-	states.swap(newStates);
-	result = true;
-  }
-  else
-	for (unsigned int i = 0; i < maxSteps && nochange < maxEmptySteps; ++i, ++nochange)
-    {
-
-		int count = states.size();
-		if (count<=10) 
-		{
-			rangeRatio= 0.99 ;
-			}
-		int maxN = count - 1;
-		int range = 1 + (int)(floor(0.5 + (double)count * rangeRatio));
- 
-		int p1 = rng_.uniformInt(0, maxN);
-		int p2 = rng_.uniformInt(std::max(p1 - range, 0), std::min(maxN, p1 + range));
-		if (abs(p1 - p2) < 2)
-		{
-			if (p1 < maxN - 1)
-				p2 = p1 + 2;
-            else if (p1 > 1)
-				p2 = p1 - 2;
-			else
-				continue;
-        }
-        std::cout << p1 << "<-->" << p2 << std::endl;
- 
-        if (p1 > p2)
-			std::swap(p1, p2);
- 
-        if (siC1->checkMotion(states[p1], states[p2]))
-        {
-			if (freeStates_)
-				for (int j = p1 + 1; j < p2; ++j)
-					siC1->freeState(states[j]);
-            states.erase(states.begin() + p1 + 1, states.begin() + p2);
-			nochange = 0;
-            result = true;
-        }
-    }
-}
-*/
 
 void ompl::control::PathControlOptimizer::collapseCloseVertices(PathControl &path, unsigned int maxSteps, unsigned int maxEmptySteps)
 {
@@ -107,6 +30,7 @@ void ompl::control::PathControlOptimizer::collapseCloseVertices(PathControl &pat
     ompl::control::SpaceInformation *siC = static_cast<ompl::control::SpaceInformation*>(si.get());
 	siC->setMotionValidator(std::make_shared<ompl::base::DynamicalMotionValidator>(siC));
 	siC->setup();
+	siC->setMinMaxControlDuration(1,50);
  
     // compute pair-wise distances in path (construct only half the matrix)
     std::map<std::pair<const base::State *, const base::State *>, double> distances;
@@ -154,66 +78,6 @@ void ompl::control::PathControlOptimizer::collapseCloseVertices(PathControl &pat
     return;
 }
 
-/*void ompl::control::PathControlOptimizer::subdivide(PathControl *path)
-{
-	if (path->states_.size() < 2)
-		return;
-    std::vector<base::State *> newStates(1, path->states_[0]);
-    for (unsigned int i = 1; i < path->states_.size(); ++i)
-    {
-		base::State *temp = path->si_->allocState();
-        si_->getStateSpace()->interpolate(newStates.back(), states_[i], 0.5, temp);
-        newStates.push_back(temp);
-        newStates.push_back(states_[i]);
-    }
-    path->states_.swap(newStates);
-}
-
-void ompl::control::PathControlOptimizer::smoothBSpline(PathControl &path, unsigned int maxSteps, double minChange)
-{
-	if (path.getStateCount() < 3)
-		return;
- 
-    const base::SpaceInformationPtr &si = path.getSpaceInformation();
-    std::vector<base::State *> &states = path.getStates();
- 
-    base::State *temp1 = si->allocState();
-    base::State *temp2 = si->allocState();
- 
-    for (unsigned int s = 0; s < maxSteps; ++s)
-    {
-		subdivide();
- 
-        unsigned int i = 2, u = 0, n1 = states.size() - 1;
-        while (i < n1)
-        {
-            if (si->isValid(states[i - 1]))
-            {
-                si->getStateSpace()->interpolate(states[i - 1], states[i], 0.5, temp1);
-                si->getStateSpace()->interpolate(states[i], states[i + 1], 0.5, temp2);
-                si->getStateSpace()->interpolate(temp1, temp2, 0.5, temp1);
-                if (si->checkMotion(states[i - 1], temp1) && si->checkMotion(temp1, states[i + 1]))
-                {
-					if (si->distance(states[i], temp1) > minChange)
-                    {
-                        si->copyState(states[i], temp1);
-                        ++u;
-                    }
-                }
-            }
- 
-            i += 2;
-        }
- 
-        if (u == 0)
-            break;
-    }
- 
-    si->freeState(temp1);
-    si->freeState(temp2);
-}
-*/
-
 
 void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsigned int maxSteps, unsigned int maxEmptySteps, double rangeRatio)
 {
@@ -237,26 +101,39 @@ void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsi
 	siC->setMotionValidator(std::make_shared<ompl::base::DynamicalMotionValidator>(siC));
 	siC->setup();
 	siC->setMinMaxControlDuration(1,50);
+	
+	ompl::control::SimpleDirectedControlSamplerPtr sampler;
+	sampler = siC->allocSimpleDirectedControlSampler();
+	sampler->setNumControlSamples(100);
+	
   
 	std::vector<base::State *> newStates ;
 	std::vector<control::Control *> newControls;
 	std::vector<double> newControlDurations ;
-
-  
+	ompl::control::Control * newControl ;
+	newControl = siC->allocControl() ;
+	double newControlDuration ;
+	ompl::base::State *s1_temp = siC->allocState() ;
+	ompl::base::State *s2_temp = siC->allocState() ;
 
 	std::cout << " propagation size " << siC->getPropagationStepSize() << std::endl;
 	std::cout << "initial size of states  " << states.size() << std::endl;
 	std::cout << "initial size of controls  " << controls.size() << std::endl;
+	
+	/*for (auto it = states.begin(); it != v.end(); ++it)
+	{
+		if (states.at)
+	}*/
   
 
 	if (siC->checkMotion(states.front(), states.back()))
 	{
 		if (freeStates_)
 			for (std::size_t i = 2; i < states.size(); ++i)
-				siC->freeState(states[i - 1]);
+				siC->freeState(states.at(i - 1));
 			for (std::size_t i = 1; i < controls.size()-1; ++i)
 			{	
-				siC->freeControl(controls[i]) ;
+				siC->freeControl(controls.at(i)) ;
 				controlDurations.erase(controlDurations.begin()+i) ;	
 			}
 		std::vector<base::State *> newStates(2);
@@ -302,67 +179,107 @@ void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsi
         continue;
       }
       std::cout << "check motion" << std::endl;
-			if (siC->checkMotion(states[p1], states[p2]))
+			
+			//if (newControl!=nullptr)
+			//{
+				//siC->freeControl(newControl);
+				//std::cout <<" freed newControl" << std::endl;
+			//}
+			siC->copyState(s1_temp,states.at(p1)) ;
+			siC->copyState(s2_temp,states.at(p2));
+			std::cout <<" cloned the states" << std::endl;
+			std::vector<base::State *> res ;
+			double cD ;
+			
+			
+			newControlDuration=sampler->sampleTo(newControl, s1_temp , s2_temp) ;
+			cD =siC->propagateWhileValid(states.at(p1),newControl,newControlDuration,res, true) ;
+			
+			if (cD!=newControlDuration)
 			{
-				std::cout << p1 <<"  <-->  " << p2 << std::endl;
-				std::cout << "size of states  " << states.size() << std::endl;
-				std::cout << "size of controls  " << controls.size() << std::endl;
-				unsigned int s = controls.size();
-				
-        std::cout << "freestates" << std::endl;
+				std::cout <<" Propagation not valid " << std::endl;
+				continue ;
+			}
+			//siC->freeState(s1_temp) ;
+			//siC->freeState(s2_temp) ;
+			
+			
+			std::cout << p1 <<"  <-->  " << p2 << std::endl;
+			std::cout << "size of states  " << states.size() << std::endl;
+			std::cout << "size of controls  " << controls.size() << std::endl;
+			unsigned int s = controls.size();
+			
+			if (cD!=newControlDuration)
+			{
+		std::cout << "freestates" << std::endl;
 				if (freeStates_)
 				{
 				
 				
 					for (int j = p1 + 1; j < p2; ++j)
-						siC->freeState(states[j]);
+						siC->freeState(states.at(j));
 				
-					for (int i = p1 ; (i < p2) && (i < controls.size()) ; ++i)
-						siC->freeControl(controls[i]);
+					//for (int l = p1 ; (l < p2) && (l < controls.size()) ; ++l)
+						//siC->freeControl(controls.at(l));
 				}
 				
-        std::cout << "states erase" << std::endl;
+		std::cout << "states erase" << std::endl;
 				states.erase(states.begin() + p1 + 1, states.begin() + p2);	
+				
+				newControls.clear() ;
+				newControlDurations.clear() ;
+		std::cout << "cleared newcontrols" << std::endl;		
+				
+				for (int k = 0 ; k< controls.size(); ++k )
+				{
+					if (k<p1)
+					{
+		std::cout << "added control n° " << k << std::endl;				
+						newControls.push_back(controls.at(k));
+						newControlDurations.push_back(controlDurations.at(k));
+						
+					}
+					if (k==p1)
+					{
+						//siC->copyControl(newControl, siC->getCurrentControl() );
+						//newControls.push_back(siC->cloneControl(siC->getCurrentControl() ));
+						//newControlDurations.push_back(siC->getControlDuration());
+						newControls.push_back(siC->cloneControl(newControl));
+						newControlDurations.push_back(newControlDuration);
+		std::cout << "added control at p1 n° " << k << std::endl;					
+						//siC->freeControl(controls.at(k));
+						
+		//std::cout << "freed control at n° " << k << std::endl;					
+											
+					}
+					if (k>=p2)
+					{
+						newControls.push_back(controls.at(k));
+						newControlDurations.push_back(controlDurations.at(k));	
+		std::cout << "added control n° " << k << std::endl;										
+					}
+					//else
+					//{
+						//siC->freeControl(controls.at(k));
+						//std::cout << "freed control at n° " << k << std::endl;		
+					//}		
 					
-				if (p2<s)
-				{
-					controls.erase(controls.begin()+p1,controls.begin()+p2);
-					controlDurations.erase(controlDurations.begin()+p1,controlDurations.begin()+p2) ;
-				}
-				else
-				{
-					controls.erase(controls.begin()+p1,controls.end());
-					controlDurations.erase(controlDurations.begin()+p1,controlDurations.end()) ;
+					
+					
+															
 				}
 				
-        std::cout << "insert control" << std::endl;
-        if( p1 < controls.size()){
-          controls.insert(controls.begin()+p1, siC->getCurrentControl() ) ; 
-          controlDurations.insert(controlDurations.begin()+p1, siC->getControlDuration() );
-        }
-        std::cout << "done insert control" << std::endl;
-				
-				//states.resize(states.size()-p2+p1+1);
-				//controls.resize(states.size()-1);
-				//controlDurations.resize(states.size()-1);
-				
-				//newControls.insert(newControls.end(), controls.begin(),controls.begin()+p1-1) ;
-				//newControls.push_back(siC->getCurrentControl()) ;
-				//newControls.insert(newControls.end(), controls.begin()+p2,controls.end()) ;
-				
-				//newControlDurations.insert(newControlDurations.end(), controlDurations.begin(),controlDurations.begin()+p1-1) ;
-				//newControlDurations.push_back(siC->getControlDuration()) ;
-				//newControlDurations.insert(newControlDurations.end(), controlDurations.begin()+p2,controlDurations.end()) ;		
-				
-				//controls.swap(newControls);
-				//controlDurations.swap(newControlDurations) ;			
-				
-
-
+				controls.swap(newControls) ;
+				controlDurations.swap(newControlDurations) ;
 
 				nochange = 0;
-				result = true;
+				result = true; 
+				
+				if (!path.check())
+					std::cout << "something is wrong " << std::endl;
+				
 			}
+			
 		}
 
 	}

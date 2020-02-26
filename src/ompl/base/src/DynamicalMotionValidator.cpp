@@ -50,7 +50,7 @@ void ompl::base::DynamicalMotionValidator::defaultSettings()
       controlDuration_= 0 ;
       c_current = siC->allocControl();
       sampler = siC->allocSimpleDirectedControlSampler();
-      sampler->setNumControlSamples(100);
+      sampler->setNumControlSamples(50);
 	  //std::cout << sampler->getNumControlSamples() << std::endl;      
       s_target_copy = siC->allocState();
     } 
