@@ -207,6 +207,8 @@ void ompl::geometric::QRRTStarImpl::grow()
                                 break;
                             }
                         }
+                        // remove the edge with old parent
+                        boost::remove_edge(q_near->parent, q_near->index, graph_);
                         // add with new parent
                         this->addEdge(q_new->index, q_near->index, line_cost);
                         
@@ -232,7 +234,7 @@ void ompl::geometric::QRRTStarImpl::grow()
             if (satisfied)
             {
                 vGoal_ = addConfiguration(qGoal_);
-                BaseT::addEdge(q_nearest->index, vGoal_);
+                BaseT::addEdge(/*q_nearest*/q_new->index, vGoal_);
                 hasSolution_ = true;
             }
         }
