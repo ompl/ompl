@@ -63,7 +63,7 @@ namespace ompl
              [[PDF]](https://arxiv.org/abs/1906.01350)
         */
 
-        /** \brief QuotientSpace Rapidly Exploring Random Trees Algorithm*/
+        /** \brief [Q]uotient space [R]apidly exploring [R]andom [T]rees (QRRT) Algorithm*/
         typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QRRTImpl> QRRT;
 
     }  // namespace geometric

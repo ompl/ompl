@@ -46,22 +46,12 @@ namespace ompl
     {
         /**
              @anchor QMP
-             @par Short description
-             A motion planning algorithm computes the motion
-             of a robot by computing a path through its configuration space.
-             To improve the runtime of motion planning algorithms, we
-             propose to nest robots in each other, creating a nested quotient-
-             space decomposition of the configuration space. Based on this
-             decomposition we define a new roadmap-based motion planning
-             algorithm called the Quotient-space roadMap Planner (QMP).
-             The algorithm starts growing a graph on the lowest dimensional
-             quotient space, switches to the next quotient space once a
-             valid path has been found, and keeps updating the graphs
-             on each quotient space simultaneously until a valid path in
-             the configuration space has been found. We show that this
-             algorithm is probabilistically complete and outperforms a set
-             of state-of-the-art algorithms implemented in the open motion
-             planning library (OMPL).
+
+             @par Short description 
+             The Quotient-space roadMap Planner (QMP) is
+             a multi-query, probabilistically complete roadmap planner which
+             generalizes PRM to bundle spaces.
+
              @par External documentation
              A. Orthey, A. Escande and E. Yoshida,
              Quotient-Space Motion Planning,
@@ -69,7 +59,7 @@ namespace ompl
              [[PDF]](https://arxiv.org/abs/1807.09468)
         */
 
-        /** \brief Quotient-space roadMap Planner (QMP) Algorithm */
+        /** \brief [Q]uotient space road[M]ap [P]lanner (QMP) Algorithm */
         typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QMPImpl> QMP;
 
     }  // namespace geometric

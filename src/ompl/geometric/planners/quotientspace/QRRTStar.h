@@ -45,29 +45,14 @@ namespace ompl
     namespace geometric
     {
         /**
-             @anchor QRRT*
+             @anchor QRRTstar
+
              @par Short description
-             QRRT is a planner using different abstractions levels, each described by
-             a quotient-space, and grows trees both sequentially and simultaneously on
-             them. The growing of each tree is similar to the RRT algorithm, but it
-             differs that (1) a tree is only started if there exists a solution on a
-             lower-dimensional quotient-space, and (2) a sample is not drawn
-             uniformly, but constraint to the tree of the lower-dimensional
-             quotient-space. The algorithm stops if a planner terminate condition (ptc) is
-             reached, or if a solution has been found on the last quotient-space,
-             which is equivalent to the configuration space.
+
              @par External documentation
-             A. Orthey and M. Toussaint,
-             Rapidly-Exploring Quotient-Space Trees: Motion Planning using Sequential Simplifications,
-             in <em>International Symposium of Robotics Research</em>, 2019,
-             [[PDF]](https://arxiv.org/abs/1906.01350)
-             S. Karaman and E. Frazzoli, Sampling-based
-             Algorithms for Optimal Motion Planning, International Journal of Robotics
-             Research, Vol 30, No 7, 2011.
-             http://arxiv.org/abs/1105.1186
         */
 
-        /** \brief QuotientSpace Rapidly Exploring Random Tree Star Algorithm*/
+        /** \brief [Q]uotient space [R]apidly exploring [R]andom [T]rees Star (QRRT*) Algorithm*/
         typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QRRTStarImpl> QRRTStar;
 
     }  // namespace geometric

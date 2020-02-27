@@ -62,8 +62,8 @@ namespace ompl
             {
                 return useKNearest_;
             }
-
-            void addEdge(const Vertex a, const Vertex b, base::Cost weight);
+            virtual bool getSolution(ompl::base::PathPtr &solution) override;
+            virtual void getPlannerData(ompl::base::PlannerData &data) const override;
 
         public:
             QRRTStarImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);

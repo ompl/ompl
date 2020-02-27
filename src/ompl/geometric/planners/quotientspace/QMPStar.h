@@ -45,25 +45,15 @@ namespace ompl
     namespace geometric
     {
         /**
-             @anchor QMPStar
+             @anchor QMPstar
 
              @par Short description
              Quotient space roadMap Planner Star (QMP*) generalizes the PRM* algorithm to bundle spaces. 
 
-             @par External documentation (QMP)
-             A. Orthey, A. Escande and E. Yoshida,
-             Quotient-Space Motion Planning,
-             in <em>International Conference on Intelligent Robots and Systems</em>, 2018,
-             [[PDF]](https://arxiv.org/abs/1807.09468)
-
-             @par External documentation (PRM*)
-             S. Karaman and E. Frazzoli, Sampling-based
-             Algorithms for Optimal Motion Planning, International Journal of Robotics
-             Research, vol. 30, no.7, pp. 846-894, 2011.
-             DOI: [10.1177/0278364911406761](http://dx.doi.org/10.1177/0278364911406761)<br>
+             @par External documentation
         */
 
-        /** \brief Quotient-space roadMap Planner Start (QMPStar) Algorithm */
+        /** \brief [Q]uotient space road[M]ap [P]lanner Star (QMP*) Algorithm */
         typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QMPStarImpl> QMPStar;
 
     }  // namespace geometric
