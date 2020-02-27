@@ -47,6 +47,18 @@ namespace ompl
 {
     namespace base
     {
+            /**
+           @anchor DeterministicStateSampler
+           @par Short description
+           \ref DeterministicStateSampler Implementation of a deterministic state sampler. The 
+           implementation allows to load and draw samples from a precomputed sequence or from the Halton Sequence,            
+           @par External documentation
+           Dispertio: Optimal Sampling For Safe Deterministic Motion Planning
+           L Palmieri, L Bruns, M Meurer, KO Arras - IEEE Robotics and Automation Letters, 2019
+           DOI: [10.1109/LRA.2019.2958525](https://ieeexplore.ieee.org/abstract/document/8928532)<br>
+           [[PDF]](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8928532)
+        */
+
         /** \brief An abstract class for the concept of using deterministic sampling sequences
         to decrease the dispersion of the samples. */
         class DeterministicStateSampler : public StateSampler
