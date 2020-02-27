@@ -49,10 +49,10 @@ namespace ompl
         \ref HaltonSequence1D Realization of the Halton sequence for the generation of
         arbitrary dimensional, low-dispersion sequences.
         @par External documentation
-        Implementation follows https://en.wikipedia.org/wiki/Halton_sequence.        
+        Implementation follows https://en.wikipedia.org/wiki/Halton_sequence.
         A more efficient implementation might be found in
         Struckmeier, Jens. "Fast generation of low-discrepancy sequences." Journal of Computational and
-        Applied Mathematics 61.1 (1995): 29-41. 
+        Applied Mathematics 61.1 (1995): 29-41.
         \brief Realization of the Halton sequence for the generation of
         arbitrary dimensional, low-dispersion sequences.
 
@@ -60,43 +60,43 @@ namespace ompl
         {
         public:
             /** \brief Constructor */
-            HaltonSequence1D();
+        HaltonSequence1D();
 
-            /** \brief Constructor */
-            HaltonSequence1D(unsigned int base);
+        /** \brief Constructor */
+        HaltonSequence1D(unsigned int base);
 
-            /** \brief Sets the base of the halton sequence */
-            void setBase(unsigned int base);
+        /** \brief Sets the base of the halton sequence */
+        void setBase(unsigned int base);
 
-            /** \brief Returns the next sample in the interval [0,1] */
-            double sample();
+        /** \brief Returns the next sample in the interval [0,1] */
+        double sample();
 
-        private:
-            unsigned int i_, base_;
-        };
+    private:
+        unsigned int i_, base_;
+    };  // namespace base
 
-        /** \brief Realization of the Halton sequence for the generation of
-        arbitrary dimensional, low-dispersion sequences. */
-        class HaltonSequence : public DeterministicSequence
-        {
-        public:
-            /** \brief Constructor, only specifiying the dimensions, first n primes will be used
-            as bases. */
-            HaltonSequence(unsigned int dimensions);
-            /** \brief Constructor, for which the bases vector will be used to initialize the
-            bases of the 1D halton sequences. bases.size() has to be equal to dimensions. */
-            HaltonSequence(unsigned int dimensions, std::vector<unsigned int> bases);
+    /** \brief Realization of the Halton sequence for the generation of
+    arbitrary dimensional, low-dispersion sequences. */
+    class HaltonSequence : public DeterministicSequence
+    {
+    public:
+        /** \brief Constructor, only specifiying the dimensions, first n primes will be used
+        as bases. */
+        HaltonSequence(unsigned int dimensions);
+        /** \brief Constructor, for which the bases vector will be used to initialize the
+        bases of the 1D halton sequences. bases.size() has to be equal to dimensions. */
+        HaltonSequence(unsigned int dimensions, std::vector<unsigned int> bases);
 
-            /** \brief Returns the next sample in the interval [0,1] */
-            std::vector<double> sample() override;
+        /** \brief Returns the next sample in the interval [0,1] */
+        std::vector<double> sample() override;
 
-        private:
-            std::vector<HaltonSequence1D> halton_sequences_1d_;
+    private:
+        std::vector<HaltonSequence1D> halton_sequences_1d_;
 
-            /** \brief Sets the bases of the 1D Halton generators to the first n primes */
-            void setBasesToPrimes();
-        };
-    }  // namespace base
+        /** \brief Sets the bases of the 1D Halton generators to the first n primes */
+        void setBasesToPrimes();
+    };
+}  // namespace ompl
 
 }  // namespace ompl
 
