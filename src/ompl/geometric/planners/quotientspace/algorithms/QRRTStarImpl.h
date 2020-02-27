@@ -84,7 +84,10 @@ namespace ompl
             bool symmetric_;
 
             /** \brief option to use k nn or radius */
-            bool useKNearest_{true};
+            bool useKNearest_{false};
+
+            /** \brief store dimension of bundle space to calc radius */
+            double d_{0};
         };
     }  // namespace geometric
 }  // namespace ompl

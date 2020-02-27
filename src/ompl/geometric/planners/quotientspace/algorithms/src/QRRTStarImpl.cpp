@@ -40,6 +40,7 @@
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <boost/foreach.hpp>
 #include <boost/math/constants/constants.hpp>
+#include "ompl/util/GeometricEquations.h"
 
 #define foreach BOOST_FOREACH
 
@@ -52,10 +53,12 @@ ompl::geometric::QRRTStarImpl::QRRTStarImpl(const base::SpaceInformationPtr &si,
         &ompl::geometric::QRRTStarImpl::setKNearest, 
         &ompl::geometric::QRRTStarImpl::getKNearest, 
         "0,1");
-    double d = (double)Bundle->getStateDimension();
+    d_ = (double)Bundle->getStateDimension();
     double e = boost::math::constants::e<double>();
     // k > 2^(d + 1) * e * (1 + 1 / d).
-    k_rrt_Constant_ = std::pow(2, d + 1) * e * (1.0 + 1.0 / d);
+    k_rrt_Constant_ = std::pow(2, d_ + 1) * e * (1.0 + 1.0 / d_);
+    // γRRG > γRRG ∗ = 2*( 1 + 1/d)^1/d * ( μ( Xfree) / ζd)^1/d
+    r_rrt_Constant_ = std::pow(2 * (1.0 + 1.0 / d_) * (getBundle()->getSpaceMeasure() / unitNBallMeasure(d_)), 1.0 / d_);
     symmetric_ = Bundle->getStateSpace()->hasSymmetricInterpolate();
 }
 
@@ -100,8 +103,7 @@ void ompl::geometric::QRRTStarImpl::grow()
         else {
             double r = std::min(maxDistance_, 
                 r_rrt_Constant_ * 
-                std::pow(log((double) boost::num_vertices(graph_)) / (double) boost::num_vertices(graph_),
-                    1 / static_cast<double>(Bundle->getStateDimension())));
+                std::pow(log((double) boost::num_vertices(graph_)) / (double) boost::num_vertices(graph_), 1 / d_ ));
             nearestDatastructure_->nearestR(xRandom_, r, nearestNbh);
         }
 
@@ -150,7 +152,7 @@ void ompl::geometric::QRRTStarImpl::grow()
 
             if (opt_->isCostBetterThan(new_cost , min_cost))
             {
-                if(distance(q_near, xRandom_) < maxDistance_ && Bundle->checkMotion(q_near->state, xRandom_->state))
+                if((!useKNearest_ || distance(q_near, xRandom_) < maxDistance_) && Bundle->checkMotion(q_near->state, xRandom_->state))
                 {
                     q_min = q_near;
                     min_line_cost = line_cost;
@@ -194,7 +196,7 @@ void ompl::geometric::QRRTStarImpl::grow()
                     // check neighbor validity if it wasn´t checked before
                     if (validNeighbor[i] == 0)
                     {
-                        valid = (distance(q_near, q_new) < maxDistance_ && Bundle->checkMotion(q_near->state, q_new->state));
+                        valid = ((!useKNearest_ || distance(q_near, q_new) < maxDistance_) && Bundle->checkMotion(q_near->state, q_new->state));
                     }
                     if (valid)
                     {
