@@ -99,7 +99,7 @@ namespace ompl
                 bool isGoal{false};
 
                 /** \brief parent index for {qrrt*} */
-                normalized_index_type parent{-1};
+                Configuration *parent{nullptr};
 
                 /** \brief cost to reach until current vertex in {qrrt*} */
                 base::Cost cost;
@@ -108,7 +108,7 @@ namespace ompl
                 base::Cost lineCost;
 
                 /** \brief The set of motions descending from the current motion {qrrt*} */
-                std::vector<normalized_index_type> children;
+                std::vector<Configuration *> children;
 
 
                 /** \brief Index of configuration in boost::graph. Usually in

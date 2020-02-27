@@ -428,7 +428,7 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraph::getPath(const Vertex &sta
 }
 
 ompl::base::PathPtr ompl::geometric::BundleSpaceGraph::getPath(const Vertex &start, const Vertex &goal, Graph &graph)
-{
+{std::cout << "BundleSpaceGraph::getSolution" << std::endl;
     std::vector<Vertex> prev(boost::num_vertices(graph));
     auto weight = boost::make_transform_value_property_map(std::mem_fn(&EdgeInternalState::getCost),
                                                            get(boost::edge_bundle, graph));
