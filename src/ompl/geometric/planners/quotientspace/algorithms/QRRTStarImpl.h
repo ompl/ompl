@@ -53,6 +53,18 @@ namespace ompl
         {
             using BaseT = BundleSpaceGraph;
 
+            void setKNearest(bool useKNearest)
+            {
+                useKNearest_ = useKNearest;
+            }
+
+            bool getKNearest() const
+            {
+                return useKNearest_;
+            }
+
+            void addEdge(const Vertex a, const Vertex b, base::Cost weight);
+
         public:
             QRRTStarImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
             virtual ~QRRTStarImpl() override;
@@ -62,9 +74,17 @@ namespace ompl
 
             void updateChildCosts(Configuration *q);
 
-            /** \brief constant value for nn search */
+            /** \brief a constant value to calculate k */
             double k_rrt_Constant_{0};
+
+            /** \brief a constant value to calculate radius */
+            double r_rrt_Constant_{0};
+
+            /** \brief true if cost from a to b is same as b to a*/
             bool symmetric_;
+
+            /** \brief option to use k nn or radius */
+            bool useKNearest_{true};
         };
     }  // namespace geometric
 }  // namespace ompl

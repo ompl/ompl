@@ -48,7 +48,6 @@ ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpa
     setName("QMPImpl" + std::to_string(id_));
     // setMetric("euclidean");
     setMetric("shortestpath");
-    // epsilonGraphThickening_ = 0.01;
 
     randomWorkStates_.resize(5);
     getBundle()->allocStates(randomWorkStates_);
@@ -90,33 +89,6 @@ void ompl::geometric::QMPImpl::expand()
 
     if (pdf.empty())
         return;
-
-//<<<<<<< HEAD
-//    for(unsigned int i=0 ; i< r_nearest_neighbors.size(); i++)
-//    {
-//        Configuration* q_neighbor = r_nearest_neighbors.at(i);
-//        if (getBundle()->checkMotion(q_neighbor->state, xRandom_->state)) 
-//        {
-//                double d = getBundle()->distance(q_neighbor->state, xRandom_->state);
-//                if (d > maxDistance_)
-//                {
-//                    getBundle()->getStateSpace()->interpolate(q_neighbor->state, xRandom_->state, maxDistance_ / d, xRandom_->state);
-//                }
-
-//                // totalNumberOfSamples_++;
-//                // totalNumberOfFeasibleSamples_++;
-//                Configuration *q_next = new Configuration(getBundle(), xRandom_->state); 
-//                Vertex v_next = addConfiguration(q_next);
-            
-                
-//                //TODO: What happens if this edge is infeasible, but there has
-//                //been one feasible edge before? (i.e. foundfeasibleedge is set)
-//                addEdge(q_neighbor->index, v_next);
-                
-//                double dist = 0.0;
-//                bool satisfied = goal_->isSatisfied(q_next->state, &dist);
-//                if (satisfied)
-//=======
     
     Configuration *q = pdf.sample(rng_.uniform01());
 
@@ -165,7 +137,6 @@ ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPImpl::addM
             if (!hasSolution_)
             {
                 if (sameComponent(vStart_, vGoal_))
-// >>>>>>> 1bf78bdb4b3570e653c1b34ad1f763e70dfc8582
                 {
                     hasSolution_ = true;
                 }

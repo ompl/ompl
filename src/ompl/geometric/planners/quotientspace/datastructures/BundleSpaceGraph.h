@@ -108,7 +108,7 @@ namespace ompl
                 base::Cost lineCost;
 
                 /** \brief The set of motions descending from the current motion {qrrt*} */
-                std::vector<Configuration *> children;
+                std::vector<normalized_index_type> children;
 
                 /** \brief Index of configuration in boost::graph. Usually in
                     the interval [0,num_vertices(graph)], but if vertices are
