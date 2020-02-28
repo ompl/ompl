@@ -51,7 +51,7 @@ namespace ompl
           /** \brief SE3RN \rightarrow SE3RM, m < n */
             BUNDLE_SPACE_SE3RN_SE3RM = 14,
 
-            BUNDLE_SPACE_UNKNOWN = 99
+            BUNDLE_SPACE_UNKNOWN = -1
         };
     }
 }

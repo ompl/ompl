@@ -245,7 +245,7 @@ void ompl::geometric::QRRTStarImpl::grow()
             {
                 std::cout << "---------satisfied------------*" << std::endl;
                 vGoal_ = addConfiguration(qGoal_);
-                addEdge(q_nearest->index, vGoal_);
+                addEdge(q_new->index, vGoal_);
                 qGoal_->parent = q_new;
                 qGoal_->parent->children.push_back(qGoal_);
                 //nearestDatastructure_->add(qGoal_);

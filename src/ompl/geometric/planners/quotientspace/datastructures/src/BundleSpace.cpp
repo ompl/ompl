@@ -28,7 +28,7 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
     }else{
       isDynamic_ = true;
     }
-    OMPL_DEVMSG1("BundleSpace %d%s", id_, (isDynamic_?" (dynamic)":""));
+    OMPL_DEBUG("BundleSpace %d%s", id_, (isDynamic_?" (dynamic)":""));
     //############################################################################
 
     if (!hasParent())
@@ -47,7 +47,9 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
 
     checkBundleSpace();
 
+    std::cout << std::string(80, '-') << std::endl;
     std::cout << *this << std::endl;
+    std::cout << std::string(80, '-') << std::endl;
 
     if (!Bundle_valid_sampler_)
     {
