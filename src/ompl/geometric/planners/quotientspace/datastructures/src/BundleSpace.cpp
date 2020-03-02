@@ -310,17 +310,17 @@ ompl::base::State* ompl::geometric::BundleSpace::allocIdentityState(base::StateS
 
 ompl::base::State* ompl::geometric::BundleSpace::allocIdentityStateFiber() const
 {
-  return allocIdentityState(Fiber->getStateSpace());
+  return allocIdentityState(getFiber()->getStateSpace());
 }
 
 ompl::base::State* ompl::geometric::BundleSpace::allocIdentityStateBundle() const
 {
-  return allocIdentityState(Bundle->getStateSpace());
+  return allocIdentityState(getBundle()->getStateSpace());
 }
 
 ompl::base::State* ompl::geometric::BundleSpace::allocIdentityStateBase() const
 {
-  return allocIdentityState(Base->getStateSpace());
+  return allocIdentityState(getBase()->getStateSpace());
 }
 
 const ompl::base::SpaceInformationPtr &ompl::geometric::BundleSpace::getFiber() const

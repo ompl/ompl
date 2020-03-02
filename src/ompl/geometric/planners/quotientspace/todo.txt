@@ -2,7 +2,7 @@ FB
 [x] Clean up constructor Bundle Space
 [x] Organize MultiQuotient classes in better way
 [x] Add QRRTStar
-[ ] Clean up QMPStar, make it inherit from QMP
+[x] Clean up QMPStar, make it inherit from QMP
 [ ] Make Bundle/Base/Fiber private, so that we have to use custom in-built
 interpolate/distance/addConfiguration methods. (then we can easily add dynamical
 constraints there, usable by any bundle algorithm)
