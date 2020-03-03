@@ -45,13 +45,13 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/State.h"
 
-#include "ompl/geometric/planners/aeitstar/Vertex.h"
+#include "ompl/geometric/planners/eitstar/Vertex.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aeitstar
+        namespace eitstar
         {
             /** \brief A wrapper class for OMPL's state. */
             class State : public std::enable_shared_from_this<State>  // Inheritance must be public here.
@@ -154,7 +154,7 @@ namespace ompl
                 std::shared_ptr<ompl::base::OptimizationObjective> objective_;
             };
 
-        }  // namespace aeitstar
+        }  // namespace eitstar
 
     }  // namespace geometric
 

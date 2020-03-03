@@ -34,61 +34,19 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_STOPWATCH_STOPWATCH_
-#define OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_STOPWATCH_STOPWATCH_
-
-#include <chrono>
-#include <map>
-#include <string>
+#ifndef OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_DIRECTION_
+#define OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_DIRECTION_
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aeitstar
+        namespace eitstar
         {
-            namespace timing
-            {
-                template <typename T>
-                class Stopwatch
-                {
-                public:
-                    explicit Stopwatch(const std::string &name);
-                    ~Stopwatch() = default;
-
-                    void start(size_t instance = 0u);
-                    void stop(size_t instance = 0u);  // Implementation is in timetable.h.
-                    inline bool isTiming(size_t instance = 0u);
-
-                private:
-                    std::map<size_t, std::chrono::steady_clock::time_point> starts_;
-                    const std::string name_;
-                };
-
-                template <typename T>
-                Stopwatch<T>::Stopwatch(const std::string &name) : starts_(), name_(name)
-                {
-                }
-
-                template <typename T>
-                void Stopwatch<T>::start(size_t instance)
-                {
-                    if (starts_.count(instance))
-                    {
-                        auto msg = std::string("Stopwatch '") + name_ + std::string(", ") + std::to_string(instance) +
-                                   std::string("' is already timing.");
-                        throw std::runtime_error(msg);
-                    }
-                    starts_.emplace(instance, std::chrono::steady_clock::now());
-                }
-
-                template <typename T>
-                bool Stopwatch<T>::isTiming(size_t instance)
-                {
-                    return starts_.count(instance);
-                }
-
-            }  // namespace timing
+            enum class Direction {
+                FORWARD,
+                REVERSE
+            };
 
         }  // namespace aibitstar
 
@@ -96,4 +54,4 @@ namespace ompl
 
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_STOPWATCH_STOPWATCH_
+#endif  // OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_DIRECTION_

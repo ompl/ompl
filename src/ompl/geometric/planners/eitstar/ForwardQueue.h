@@ -47,15 +47,15 @@
 #include "ompl/datastructures/BinaryHeap.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 
-#include "ompl/geometric/planners/aeitstar/Direction.h"
-#include "ompl/geometric/planners/aeitstar/Edge.h"
-#include "ompl/geometric/planners/aeitstar/Vertex.h"
+#include "ompl/geometric/planners/eitstar/Direction.h"
+#include "ompl/geometric/planners/eitstar/Edge.h"
+#include "ompl/geometric/planners/eitstar/Vertex.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aeitstar
+        namespace eitstar
         {
             class ForwardQueue
             {
@@ -132,7 +132,7 @@ namespace ompl
                 /** \brief The queue is ordered on the lower bound cost through an edge. */
                 std::vector<std::pair<EdgeKeys, Edge>> queue_;
             };
-        }  // namespace aeitstar
+        }  // namespace eitstar
 
     }  // namespace geometric
 

@@ -45,15 +45,15 @@
 #include "ompl/datastructures/BinaryHeap.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 
-#include "ompl/geometric/planners/aeitstar/Direction.h"
-#include "ompl/geometric/planners/aeitstar/Edge.h"
-#include "ompl/geometric/planners/aeitstar/Vertex.h"
+#include "ompl/geometric/planners/eitstar/Direction.h"
+#include "ompl/geometric/planners/eitstar/Edge.h"
+#include "ompl/geometric/planners/eitstar/Vertex.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aeitstar
+        namespace eitstar
         {
             class ReverseQueue
             {
@@ -110,7 +110,7 @@ namespace ompl
                                                         const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &)>>;
                 CostHeap queue_;
             };
-        }  // namespace aeitstar
+        }  // namespace eitstar
 
     }  // namespace geometric
 

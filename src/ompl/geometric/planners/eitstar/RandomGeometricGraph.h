@@ -46,14 +46,14 @@
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/base/OptimizationObjective.h"
 
-#include "ompl/geometric/planners/aeitstar/State.h"
-#include "ompl/geometric/planners/aeitstar/Edge.h"
+#include "ompl/geometric/planners/eitstar/State.h"
+#include "ompl/geometric/planners/eitstar/Edge.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aeitstar
+        namespace eitstar
         {
             class RandomGeometricGraph
             {
@@ -156,7 +156,7 @@ namespace ompl
                 const double unitNBallMeasure_;
             };
 
-        }  // namespace aeitstar
+        }  // namespace eitstar
 
     }  // namespace geometric
 

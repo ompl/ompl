@@ -43,23 +43,23 @@
 #include "ompl/base/Planner.h"
 #include "ompl/base/SpaceInformation.h"
 
-#include "ompl/geometric/planners/aeitstar/Direction.h"
-#include "ompl/geometric/planners/aeitstar/RandomGeometricGraph.h"
-#include "ompl/geometric/planners/aeitstar/ForwardQueue.h"
-#include "ompl/geometric/planners/aeitstar/ReverseQueue.h"
+#include "ompl/geometric/planners/eitstar/Direction.h"
+#include "ompl/geometric/planners/eitstar/RandomGeometricGraph.h"
+#include "ompl/geometric/planners/eitstar/ForwardQueue.h"
+#include "ompl/geometric/planners/eitstar/ReverseQueue.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        class AEITstar : public ompl::base::Planner
+        class EITstar : public ompl::base::Planner
         {
         public:
             /** \brief Constructs an algorithm using the provided space information */
-            AEITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo);
+            EITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo);
 
             /** \brief Destructs the algorithm. */
-            ~AEITstar();
+            ~EITstar();
 
             /** \brief Setup the parts of the planner that rely on the problem definition being set. */
             void setup() override;
@@ -92,19 +92,19 @@ namespace ompl
             void enableCollisionDetectionInReverseSearch(bool enable);
 
             /** \brief Returns a copy of the forward queue. */
-            std::vector<aeitstar::Edge> getForwardQueue() const;
+            std::vector<eitstar::Edge> getForwardQueue() const;
 
             /** \brief Returns a copy of the reverse queue. */
-            std::vector<aeitstar::Edge> getReverseQueue() const;
+            std::vector<eitstar::Edge> getReverseQueue() const;
 
             /** \brief Returns the edges in the reverse tree. */
-            std::vector<aeitstar::Edge> getReverseTree() const;
+            std::vector<eitstar::Edge> getReverseTree() const;
 
             /** \brief Returns the next edge in the forward queue. */
-            aeitstar::Edge getNextForwardEdge() const;
+            eitstar::Edge getNextForwardEdge() const;
 
             /** \brief Returns the next edge in the reverse queue. */
-            aeitstar::Edge getNextReverseEdge() const;
+            eitstar::Edge getNextReverseEdge() const;
 
             /** \brief Get the planner data. */
             void getPlannerData(base::PlannerData &data) const override;
@@ -134,49 +134,49 @@ namespace ompl
             void updateSolution();
 
             /** \brief Repairs the reverse search tree upon finding an invalid edge. */
-            void repairReverseSearchTree(const aeitstar::Edge &invalidEdge,
-                                         std::shared_ptr<aeitstar::State> &invalidatedState);
+            void repairReverseSearchTree(const eitstar::Edge &invalidEdge,
+                                         std::shared_ptr<eitstar::State> &invalidatedState);
 
             /** \brief Increases the collision detection resolution and restart reverse search. */
             void increaseSparseCollisionDetectionResolutionAndRestartReverseSearch();
 
             /** \brief Rewire reverse search tree locally. Returns [ bestParent, bestCost, bestEdgeCost ].
              * Note that bestParent == nullptr if no parent is found. */
-            std::tuple<std::shared_ptr<aeitstar::State>, ompl::base::Cost, ompl::base::Cost>
-            getBestParentInReverseTree(const std::shared_ptr<aeitstar::State> &state) const;
+            std::tuple<std::shared_ptr<eitstar::State>, ompl::base::Cost, ompl::base::Cost>
+            getBestParentInReverseTree(const std::shared_ptr<eitstar::State> &state) const;
 
             /** \brief Expands the input state, creating forward edges. */
-            std::vector<aeitstar::Edge> expand(const std::shared_ptr<aeitstar::State> &state) const;
+            std::vector<eitstar::Edge> expand(const std::shared_ptr<eitstar::State> &state) const;
 
             /** \brief Returns whether the vertex has been closed during the current search. */
-            bool isClosed(const std::shared_ptr<aeitstar::Vertex> &vertex) const;
+            bool isClosed(const std::shared_ptr<eitstar::Vertex> &vertex) const;
 
             /** \brief Returns whether the edge can improve the reverse path. */
-            bool doesImproveReversePath(const aeitstar::Edge &edge) const;
+            bool doesImproveReversePath(const eitstar::Edge &edge) const;
 
             /** \brief Returns whether the edge can improve the reverse tree. */
-            bool doesImproveReverseTree(const aeitstar::Edge &edge) const;
+            bool doesImproveReverseTree(const eitstar::Edge &edge) const;
 
             /** \brief Returns whether the edge can improve the forward path. */
-            bool couldImproveForwardPath(const aeitstar::Edge &edge) const;
+            bool couldImproveForwardPath(const eitstar::Edge &edge) const;
 
             /** \brief Returns whether the edge can improve the forward tree. */
-            bool couldImproveForwardTree(const aeitstar::Edge &edge) const;
+            bool couldImproveForwardTree(const eitstar::Edge &edge) const;
 
             /** \brief Returns whether the edge does improve the forward path. */
-            bool doesImproveForwardPath(const aeitstar::Edge &edge, const ompl::base::Cost &trueEdgeCost) const;
+            bool doesImproveForwardPath(const eitstar::Edge &edge, const ompl::base::Cost &trueEdgeCost) const;
 
             /** \brief Returns whether the edge does improve the forward tree. */
-            bool doesImproveForwardTree(const aeitstar::Edge &edge, const ompl::base::Cost &trueEdgeCost) const;
+            bool doesImproveForwardTree(const eitstar::Edge &edge, const ompl::base::Cost &trueEdgeCost) const;
 
             /** \brief Returns whether the edge is valid. */
-            bool isValid(const aeitstar::Edge &edge) const;
+            bool isValid(const eitstar::Edge &edge) const;
 
             /** \brief Returns whether the edge could be valid. */
-            bool couldBeValid(const aeitstar::Edge &edge) const;
+            bool couldBeValid(const eitstar::Edge &edge) const;
 
             /** \brief The sampling-based approximation of the state space. */
-            aeitstar::RandomGeometricGraph graph_;
+            eitstar::RandomGeometricGraph graph_;
 
             /** \brief The number of states added when the approximation is updated. */
             std::size_t numSamplesPerBatch_{100u};
@@ -204,16 +204,16 @@ namespace ompl
             ompl::base::Cost bestCost_{std::numeric_limits<double>::signaling_NaN()};
 
             /** \brief The root of the forward search tree. */
-            std::shared_ptr<aeitstar::Vertex> forwardRoot_;
+            std::shared_ptr<eitstar::Vertex> forwardRoot_;
 
             /** \brief The root of the reverse search tree. */
-            std::shared_ptr<aeitstar::Vertex> reverseRoot_;
+            std::shared_ptr<eitstar::Vertex> reverseRoot_;
 
             /** \brief The forward queue. */
-            std::unique_ptr<aeitstar::ForwardQueue> forwardQueue_;
+            std::unique_ptr<eitstar::ForwardQueue> forwardQueue_;
 
             /** \brief The reverse queue. */
-            std::unique_ptr<aeitstar::ReverseQueue> reverseQueue_;
+            std::unique_ptr<eitstar::ReverseQueue> reverseQueue_;
 
             /** \brief The current iteration. */
             std::size_t iteration_{0u};

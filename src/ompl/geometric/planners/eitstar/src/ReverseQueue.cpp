@@ -34,18 +34,18 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/aeitstar/ReverseQueue.h"
+#include "ompl/geometric/planners/eitstar/ReverseQueue.h"
 
 #include <utility>
 
-#include "ompl/geometric/planners/aeitstar/Direction.h"
-#include "ompl/geometric/planners/aeitstar/State.h"
+#include "ompl/geometric/planners/eitstar/Direction.h"
+#include "ompl/geometric/planners/eitstar/State.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aeitstar
+        namespace eitstar
         {
             ReverseQueue::ReverseQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective)
               : objective_(objective)
@@ -220,7 +220,7 @@ namespace ompl
                 vertex->outgoingReverseQueueLookup_.clear();
             }
 
-        }  // namespace aeitstar
+        }  // namespace eitstar
 
     }  // namespace geometric
 

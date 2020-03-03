@@ -52,7 +52,7 @@
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics.hpp>
 
-#include "ompl/geometric/planners/aeitstar/stopwatch/stopwatch.h"
+#include "ompl/geometric/planners/eitstar/stopwatch/stopwatch.h"
 
 #define AIBITSTAR_TIMING 1
 
@@ -60,7 +60,7 @@ namespace ompl
 {
     namespace geometric
     {
-        namespace aeitstar
+        namespace eitstar
         {
             namespace timing
             {
@@ -341,7 +341,7 @@ namespace ompl
 
             }  // namespace timing
 
-        }  // namespace aeitstar
+        }  // namespace eitstar
 
     }  // namespace geometric
 

@@ -34,55 +34,19 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/aeitstar/stopwatch/timetable.h"
+#include "ompl/geometric/planners/eitstar/Edge.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aeitstar
+        namespace eitstar
         {
-            namespace timing
+            Edge::Edge(const std::shared_ptr<State> &source, const std::shared_ptr<State> &target)
+              : source(source), target(target)
             {
-                template <>
-                const std::string Timetable<std::chrono::nanoseconds>::units()
-                {
-                    return "nanoseconds";
-                }
-
-                template <>
-                const std::string Timetable<std::chrono::microseconds>::units()
-                {
-                    return "microseconds";
-                }
-
-                template <>
-                const std::string Timetable<std::chrono::milliseconds>::units()
-                {
-                    return "milliseconds";
-                }
-
-                template <>
-                const std::string Timetable<std::chrono::seconds>::units()
-                {
-                    return "seconds";
-                }
-
-                template <>
-                const std::string Timetable<std::chrono::minutes>::units()
-                {
-                    return "minutes";
-                }
-
-                template <>
-                const std::string Timetable<std::chrono::hours>::units()
-                {
-                    return "hours";
-                }
-
-            }  // namespace timing
-
-        }  // namespace aibitstar
+            }
+        }  // namespace eitstar
 
     }  // namespace geometric
 

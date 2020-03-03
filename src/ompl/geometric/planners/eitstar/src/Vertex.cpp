@@ -34,7 +34,7 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/aeitstar/Vertex.h"
+#include "ompl/geometric/planners/eitstar/Vertex.h"
 
 #include <algorithm>
 #include <limits>
@@ -43,7 +43,7 @@ namespace ompl
 {
     namespace geometric
     {
-        namespace aeitstar
+        namespace eitstar
         {
             namespace
             {
@@ -220,7 +220,7 @@ namespace ompl
                 expandTag_ = expandTag;
             }
 
-        }  // namespace aeitstar
+        }  // namespace eitstar
 
     }  // namespace geometric
 

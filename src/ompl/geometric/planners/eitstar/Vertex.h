@@ -44,14 +44,14 @@
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/BinaryHeap.h"
 
-#include "ompl/geometric/planners/aeitstar/Direction.h"
-#include "ompl/geometric/planners/aeitstar/Edge.h"
+#include "ompl/geometric/planners/eitstar/Direction.h"
+#include "ompl/geometric/planners/eitstar/Edge.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aeitstar
+        namespace eitstar
         {
             // Forward declare the AI-BIT* state class.
             class State;

@@ -34,13 +34,13 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/aeitstar/State.h"
+#include "ompl/geometric/planners/eitstar/State.h"
 
 namespace ompl
 {
     namespace geometric
     {
-        namespace aeitstar
+        namespace eitstar
         {
             namespace
             {
@@ -193,7 +193,7 @@ namespace ompl
                 return lowerBoundCostToGo_;
             }
 
-        }  // namespace aeitstar
+        }  // namespace eitstar
 
     }  // namespace geometric
 
