@@ -131,7 +131,17 @@ namespace ompl
             /** \brief Computes the sort key of a vertex. */
             std::array<ompl::base::Cost, 2u> computeSortKey(const std::shared_ptr<aitstar::Vertex> &vertex) const;
 
+            /** \brief Inserts the outgoing edges of a vertex into the forward edge queue. */
             void insertOutgoingEdges(const std::shared_ptr<aitstar::Vertex> &vertex);
+
+            /** \brief Get all outgoing edges of a vertex. */
+            std::vector<aitstar::Edge> getOutgoingEdges(const std::shared_ptr<aitstar::Vertex> &vertex) const;
+
+            /** \brief Check whether all vertices of a set of edges have been processed by the reverse queue. */
+            bool haveAllVerticesBeenProcessed(const std::vector<aitstar::Edge>& edges) const;
+
+            /** \brief Check whether the parent and child vertices of an edge have been processed by the reverse queue. */
+            bool haveAllVerticesBeenProcessed(const aitstar::Edge& edges) const;
 
             /** \brief Checks whether the cost to come of a goal vertex has been updated and updates the solution if so.
              */
@@ -172,6 +182,9 @@ namespace ompl
 
             /** \brief The cost of the incumbent solution. */
             std::shared_ptr<ompl::base::Cost> solutionCost_;
+
+            /** \brief The edges to be inserted in the forward queue. */
+            std::vector<aitstar::Edge> edgesToBeInserted_{};
 
             /** \brief The number of iterations that have been performed. */
             std::size_t numIterations_{0u};
