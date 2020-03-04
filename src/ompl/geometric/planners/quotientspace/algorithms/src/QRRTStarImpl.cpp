@@ -235,22 +235,27 @@ void ompl::geometric::QRRTStarImpl::grow()
             }
         }
         
-        if (!hasSolution_)
-        {
-            // (7) check if this sample satisfies the goal
+        // (7) check if this sample satisfies the goal
 
-            double dist = 0.0;
-            bool satisfied = goal_->isSatisfied(q_new->state, &dist);
-            if (satisfied)
+        double dist = 0.0;
+        bool satisfied = goal_->isSatisfied(q_new->state, &dist);
+        if (satisfied)
+        {
+            std::cout << "goal satisfied\tcost_" << q_new->cost << "\tid_" << id_  << std::endl;
+            if(goalConfigurations_.empty())
             {
-                std::cout << "---------satisfied------------*" << std::endl;
                 vGoal_ = addConfiguration(qGoal_);
-                addEdge(q_new->index, vGoal_);
-                qGoal_->parent = q_new;
-                qGoal_->parent->children.push_back(qGoal_);
-                //nearestDatastructure_->add(qGoal_);
-                hasSolution_ = true;
+                addEdge(q_nearest->index, vGoal_);
             }
+            goalConfigurations_.push_back(q_new);
+
+            if (opt_->isCostBetterThan(q_new->cost, bestCost_))
+            {
+                qGoal_->parent = q_new;
+                bestGoalConfiguration_ = q_new;
+                bestCost_ = bestGoalConfiguration_->cost;
+            }
+            hasSolution_ = true;
         }
     }
 }
@@ -269,10 +274,11 @@ bool ompl::geometric::QRRTStarImpl::getSolution(base::PathPtr &solution)
     if (hasSolution_)
     {
         auto path(std::make_shared<PathGeometric>(getBundle()));
+        path->append(qGoal_->state);
         
-        Configuration *intermediate_node = qGoal_->parent;
+        Configuration *intermediate_node = bestGoalConfiguration_;
         
-        while (intermediate_node->parent != nullptr)
+        while (intermediate_node != nullptr)
         {
             path->append(intermediate_node->state);
             intermediate_node = intermediate_node->parent;
@@ -289,20 +295,41 @@ bool ompl::geometric::QRRTStarImpl::getSolution(base::PathPtr &solution)
 
 void ompl::geometric::QRRTStarImpl::getPlannerData(base::PlannerData &data) const
 {
-    OMPL_DEBUG("Roadmap has %d/%d vertices/edges", nearestDatastructure_->size(), nearestDatastructure_->size() - 1);
+    OMPL_DEBUG("Roadmap has %d vertices", nearestDatastructure_->size());
     BaseT::getPlannerData(data);
-    /*std::vector<Configuration *> nodes;
-    if (nearestDatastructure_)
-        nearestDatastructure_->list(nodes);
 
-    if (qGoal_)
-        data.addGoalVertex(base::PlannerDataVertex(qGoal_->state));
+    // std::vector<Configuration *> motions;
+    // if (nearestDatastructure_)
+    //     nearestDatastructure_->list(motions);
 
-    for (auto &node : nodes)
+    // if (bestGoalConfiguration_)
+    //     data.addGoalVertex(base::PlannerDataVertex(bestGoalConfiguration_->state));
+
+    // for (int i = 0; i < motions.size(); i++)
+    // {
+    //     if (motions[i]->parent == nullptr)
+    //         data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
+    //     else
+    //         data.addEdge(base::PlannerDataVertex(motions[i]->parent->state), base::PlannerDataVertex(motions[i]->state));
+    // }
+
+    //data.addGoalVertex(base::PlannerDataVertex(qGoal_->state));
+    //data.addStartVertex(base::PlannerDataVertex(qStart_->state));
+
+    //addChildrenToPlannerData(qStart_, data);
+}
+
+void ompl::geometric::QRRTStarImpl::addChildrenToPlannerData(Configuration* q, base::PlannerData &data) const
+{
+    if (q != nullptr)
     {
-        if (node->parent == nullptr)
-            data.addStartVertex(base::PlannerDataVertex(node->state));
-        else
-            data.addEdge(base::PlannerDataVertex(node->parent->state), base::PlannerDataVertex(node->state));
-    }*/
+        if (!q->children.empty())
+        {
+            /*for (std::size_t i = 0; i < q->children.size(); ++i)
+            {
+                // data.addEdge(base::PlannerDataVertex(q->state), base::PlannerDataVertex(q->children[i]->state));
+                // addChildrenToPlannerData(q->children[i], data);
+            }*/
+        }
+    }
 }

@@ -310,6 +310,11 @@ namespace ompl
 
             /** \brief Temporary random configuration */
             Configuration *xRandom_{nullptr};
+
+            /** \brief Temporary random configuration */
+            Configuration *xApproximateNearest_{nullptr};
+
+            double bestDist_{base::dInf};
         };
     }  // namespace geometric
 }  // namespace ompl
