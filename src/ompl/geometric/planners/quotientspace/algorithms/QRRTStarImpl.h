@@ -64,8 +64,10 @@ namespace ompl
             }
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;
+            void addChildrenToPlannerData(Configuration *q, base::PlannerData &data) const;
 
         public:
+
             QRRTStarImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
             virtual ~QRRTStarImpl() override;
 
@@ -84,10 +86,20 @@ namespace ompl
             bool symmetric_;
 
             /** \brief option to use k nn or radius */
-            bool useKNearest_{false};
+            bool useKNearest_{true};
 
             /** \brief store dimension of bundle space to calc radius */
             double d_{0};
+
+            /** \brief Best cost found so far by algorithm */
+            base::Cost bestCost_{std::numeric_limits<double>::quiet_NaN()};
+
+            /** \brief best goal motion. */
+            Configuration *bestGoalConfiguration_{nullptr};
+
+            /** \brief list of configurations that satisfy the goal condition */
+            std::vector<Configuration *> goalConfigurations_;
+
         };
     }  // namespace geometric
 }  // namespace ompl

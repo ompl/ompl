@@ -37,7 +37,7 @@
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRTSTAR_
 #define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRTSTAR_
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceSequence.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceSequenceDynamic.h>
 #include <ompl/geometric/planners/quotientspace/algorithms/QRRTStarImpl.h>
 
 namespace ompl
@@ -68,7 +68,7 @@ namespace ompl
         */
 
         /** \brief QuotientSpace Rapidly Exploring Random Tree Star Algorithm*/
-        typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QRRTStarImpl> QRRTStar;
+        typedef ompl::geometric::BundleSpaceSequenceDynamic<ompl::geometric::QRRTStarImpl> QRRTStar;
 
     }  // namespace geometric
 }  // namespace ompl
