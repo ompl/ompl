@@ -28,7 +28,7 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
     }else{
       isDynamic_ = true;
     }
-    OMPL_DEVMSG1("BundleSpace %d%s", id_, (isDynamic_?" (dynamic)":""));
+    OMPL_DEBUG("BundleSpace %d%s", id_, (isDynamic_?" (dynamic)":""));
     //############################################################################
 
     if (!hasParent())
@@ -47,7 +47,9 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
 
     checkBundleSpace();
 
+    std::cout << std::string(80, '-') << std::endl;
     std::cout << *this << std::endl;
+    std::cout << std::string(80, '-') << std::endl;
 
     if (!Bundle_valid_sampler_)
     {
@@ -308,17 +310,17 @@ ompl::base::State* ompl::geometric::BundleSpace::allocIdentityState(base::StateS
 
 ompl::base::State* ompl::geometric::BundleSpace::allocIdentityStateFiber() const
 {
-  return allocIdentityState(Fiber->getStateSpace());
+  return allocIdentityState(getFiber()->getStateSpace());
 }
 
 ompl::base::State* ompl::geometric::BundleSpace::allocIdentityStateBundle() const
 {
-  return allocIdentityState(Bundle->getStateSpace());
+  return allocIdentityState(getBundle()->getStateSpace());
 }
 
 ompl::base::State* ompl::geometric::BundleSpace::allocIdentityStateBase() const
 {
-  return allocIdentityState(Base->getStateSpace());
+  return allocIdentityState(getBase()->getStateSpace());
 }
 
 const ompl::base::SpaceInformationPtr &ompl::geometric::BundleSpace::getFiber() const

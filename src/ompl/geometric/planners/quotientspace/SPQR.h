@@ -48,23 +48,12 @@ namespace ompl
         /**
              @anchor SPQR
              @par Short description
-             Sparse Quotient space roadMap Planner algorithm, is extension to
-             Quotient space raodMap Planner(QMP), it reduce
-             memory requirment to store roadmap similar to
-             SPARS algorithm.
+             SParse Quotient space Roadmap planner (SPQR) algorithm, 
+             generalizes the SPARS roadmap planner to bundle spaces
              @par External documentation
-             A. Orthey, A. Escande and E. Yoshida,
-             Quotient-Space Motion Planning,
-             in <em>International Conference on Intelligent Robots and Systems</em>, 2018,
-             [[PDF]](https://arxiv.org/abs/1807.09468)
-             @par External documentation
-             A. Dobson, A. Krontiris, K. Bekris,
-             Sparse Roadmap Spanners,
-             <em>Workshop on the Algorithmic Foundations of Robotics (WAFR)</em> 2012.
-             [[PDF]](http://www.cs.rutgers.edu/~kb572/pubs/sparse_roadmap_spanner.pdf)
         */
 
-        /** \brief Sparse Quotient-space roadMap Planner (SPQR) Algorithm */
+        /** \brief [SP]arse [Q]uotient space [R]oadmap planner (SPQR) Algorithm */
        typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::SPQRImpl> SPQR;
     }
 }

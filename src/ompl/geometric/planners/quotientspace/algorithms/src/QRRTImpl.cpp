@@ -71,9 +71,17 @@ void ompl::geometric::QRRTImpl::grow()
     //(4) If extension was successful, check if we reached goal
     if(xNext)
     {
+        // double dist = 0;
+        // bool satisfied = goal_->isSatisfied(xNext->state, &dist);
+        // if(dist < bestDist_)
+        // {
+        //     bestDist_ = dist;
+        //     xApproximateNearest_ = xNext;
+        // }
         bool satisfied = goal_->isSatisfied(xNext->state);
         if (satisfied)
         {
+            // std::cout << bestDist_ << std::endl;
             vGoal_ = addConfiguration(qGoal_);
             addEdge(xNext->index, vGoal_);
             hasSolution_ = true;

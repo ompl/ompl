@@ -61,7 +61,7 @@ namespace ompl
             virtual void grow() override;
 
             /** \brief sample random node from Probabilty density function*/
-            void expand();
+            // void expand();
 
             Configuration *addMileStone(ompl::base::State *q_state);
 

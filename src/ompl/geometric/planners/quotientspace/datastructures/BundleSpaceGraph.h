@@ -99,7 +99,7 @@ namespace ompl
                 bool isGoal{false};
 
                 /** \brief parent index for {qrrt*} */
-                normalized_index_type parent{-1};
+                Configuration *parent{nullptr};
 
                 /** \brief cost to reach until current vertex in {qrrt*} */
                 base::Cost cost;
@@ -310,6 +310,11 @@ namespace ompl
 
             /** \brief Temporary random configuration */
             Configuration *xRandom_{nullptr};
+
+            /** \brief Temporary random configuration */
+            Configuration *xApproximateNearest_{nullptr};
+
+            double bestDist_{base::dInf};
         };
     }  // namespace geometric
 }  // namespace ompl

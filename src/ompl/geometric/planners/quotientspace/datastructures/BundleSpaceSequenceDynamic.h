@@ -35,8 +35,8 @@
 
 /* Author: Andreas Orthey */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLESPACESEQUENCE_
-#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLESPACESEQUENCE_
+#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLESPACEDYNAMICSEQUENCE_
+#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLESPACEDYNAMICSEQUENCE_
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpace.h>
 #include <type_traits>
 #include <queue>
@@ -50,27 +50,25 @@ namespace ompl
              Example usage with QRRT
              (using a sequence si_vec of ompl::base::SpaceInformationPtr)
              ompl::base::PlannerPtr planner =
-                 std::make_shared<BundleSpaceSequence<ompl::geometric::QRRT> >(si_vec); */
+                 std::make_shared<BundleSpaceSequenceDynamic<ompl::geometric::QRRT> >(si_vec); */
 
         template <class T>
-        class BundleSpaceSequence : public ompl::base::Planner
+        class BundleSpaceSequenceDynamic : public ompl::base::Planner
         {
             using BaseT = ompl::base::Planner;
-            static_assert(std::is_base_of<BundleSpace, T>::value, 
-                "Template must inherit from BundleSpace");
+            static_assert(std::is_base_of<BundleSpace, T>::value, "Template must inherit from BundleSpace");
 
         public:
             const bool DEBUG{false};
 
             /** \brief Constructor taking a sequence of ompl::base::SpaceInformationPtr
                  and computing the BundleSpaces for each pair in the sequence */
-            BundleSpaceSequence(
-                std::vector<ompl::base::SpaceInformationPtr> &siVec, 
+            BundleSpaceSequenceDynamic(std::vector<ompl::base::SpaceInformationPtr> &siVec, 
                 std::string type = "BundleSpacePlanner");
-            BundleSpaceSequence(ompl::base::SpaceInformationPtr si) = delete;
-            BundleSpaceSequence(ompl::base::SpaceInformationPtr si, std::string type) = delete;
+            BundleSpaceSequenceDynamic(ompl::base::SpaceInformationPtr si) = delete;
+            BundleSpaceSequenceDynamic(ompl::base::SpaceInformationPtr si, std::string type) = delete;
 
-            virtual ~BundleSpaceSequence() override;
+            virtual ~BundleSpaceSequenceDynamic() override;
 
             /** \brief Return annotated vertices (with information about BundleSpace level) */
             void getPlannerData(ompl::base::PlannerData &data) const override;
@@ -86,11 +84,9 @@ namespace ompl
 
             /** \brief Get all dimensions of the BundleSpaces in the sequence */
             std::vector<int> getDimensionsPerLevel() const;
-
             void setStopLevel(unsigned int level_);
 
         protected:
-
             /** \brief Solution paths on each BundleSpace */
             std::vector<ompl::base::PathPtr> solutions_;
 
@@ -129,5 +125,5 @@ namespace ompl
         };
     }  // namespace geometric
 }  // namespace ompl
-#include "BundleSpaceSequenceImpl.h"
+#include "BundleSpaceSequenceDynamicImpl.h"
 #endif

@@ -117,7 +117,8 @@ void ompl::geometric::SPQRImpl::addMileStone(Configuration *q_random)
     if (!hasSolution_)
     {
         bool same_component = sameComponentSparse(v_start_sparse, v_goal_sparse);
-        if(!same_component) {
+        if(!same_component) 
+        {
             return;
         }
         hasSolution_ = true;

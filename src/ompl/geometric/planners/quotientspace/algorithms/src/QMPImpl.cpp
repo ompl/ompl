@@ -48,7 +48,7 @@ ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpa
     setName("QMPImpl" + std::to_string(id_));
     // setMetric("euclidean");
     setMetric("shortestpath");
-    // epsilonGraphThickening_ = 0.01;
+    // setSampler("random_vertex");
 
     randomWorkStates_.resize(5);
     getBundle()->allocStates(randomWorkStates_);
@@ -68,104 +68,42 @@ void ompl::geometric::QMPImpl::grow()
         vGoal_ = addConfiguration(qGoal_);
         firstRun_ = false;
     }
-    if( ++counter_ % 2 == 0)
-    {
-        expand();
-        return;
-    }
+    // if( ++counter_ % 2 == 0)
+    // {
+    //     expand();
+    //     return;
+    // }
 
+    //(1) Get Random Sample
     sampleBundleGoalBias(xRandom_->state, goalBias_);
-    addMileStone(xRandom_->state);
-}
+    // addMileStone(xRandom_->state);
 
-void ompl::geometric::QMPImpl::expand()
-{
-    PDF pdf;
-
-    foreach (Vertex v, boost::vertices(graph_))
-    {
-        const unsigned long int t = graph_[v]->total_connection_attempts;
-        pdf.add(graph_[v], (double)(t - graph_[v]->successful_connection_attempts) / (double)t);
-    }
-
-    if (pdf.empty())
-        return;
-
-//<<<<<<< HEAD
-//    for(unsigned int i=0 ; i< r_nearest_neighbors.size(); i++)
-//    {
-//        Configuration* q_neighbor = r_nearest_neighbors.at(i);
-//        if (getBundle()->checkMotion(q_neighbor->state, xRandom_->state)) 
-//        {
-//                double d = getBundle()->distance(q_neighbor->state, xRandom_->state);
-//                if (d > maxDistance_)
-//                {
-//                    getBundle()->getStateSpace()->interpolate(q_neighbor->state, xRandom_->state, maxDistance_ / d, xRandom_->state);
-//                }
-
-//                // totalNumberOfSamples_++;
-//                // totalNumberOfFeasibleSamples_++;
-//                Configuration *q_next = new Configuration(getBundle(), xRandom_->state); 
-//                Vertex v_next = addConfiguration(q_next);
-            
-                
-//                //TODO: What happens if this edge is infeasible, but there has
-//                //been one feasible edge before? (i.e. foundfeasibleedge is set)
-//                addEdge(q_neighbor->index, v_next);
-                
-//                double dist = 0.0;
-//                bool satisfied = goal_->isSatisfied(q_next->state, &dist);
-//                if (satisfied)
-//=======
+    //(2) Add Sample and get K-nearest
+    if(!getBundle()->getStateValidityChecker()->isValid(xRandom_->state)) return;
+    Configuration *xNext = new Configuration(getBundle(), xRandom_->state);
+    Vertex vNext = addConfiguration(xNext);
     
-    Configuration *q = pdf.sample(rng_.uniform01());
-
-    int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
-    if(s > 0)
-    {
-        Configuration *prev = q;
-        Configuration *last = addMileStone(randomWorkStates_[--s]);
-        for (int i = 0; i < s; i++)
-        {
-            Configuration *tmp = new Configuration(getBundle(), randomWorkStates_[i]);
-            addConfiguration(tmp);
-
-            ompl::geometric::BundleSpaceGraph::addEdge(prev->index, tmp->index);
-            prev = tmp;
-        }
-        if(!sameComponent(prev->index, last->index))
-            ompl::geometric::BundleSpaceGraph::addEdge(prev->index, last->index);
-    }
-}
-
-ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPImpl::addMileStone(ompl::base::State *q_state)
-{
-    // add sample
-    Configuration *q_next = new Configuration(getBundle(), q_state);
-    Vertex v_next = addConfiguration(q_next);
-    
-    // check for close k neibhors
+    // (3) Try to connect to neighbors
     std::vector<Configuration*> nearestNeighbors;
-    BaseT::nearestDatastructure_->nearestK(q_next, k_, nearestNeighbors);
+    BaseT::nearestDatastructure_->nearestK(xNext, k_, nearestNeighbors);
 
-    for(unsigned int i=0 ; i< nearestNeighbors.size(); i++)
+    for(unsigned int k = 0 ; k < nearestNeighbors.size(); k++)
     {
-        Configuration* q_neighbor = nearestNeighbors.at(i);
+        Configuration* xNeighbor = nearestNeighbors.at(k);
 
-        q_next->total_connection_attempts++;
-        q_neighbor->total_connection_attempts++;
+        xNext->total_connection_attempts++;
+        xNeighbor->total_connection_attempts++;
 
-        if (getBundle()->checkMotion(q_neighbor->state, q_next->state)) 
+        if (getBundle()->checkMotion(xNeighbor->state, xNext->state)) 
         {
-            addEdge(q_neighbor->index, v_next);
+            addEdge(xNeighbor->index, vNext);
             
-            q_next->successful_connection_attempts++;
-            q_neighbor->successful_connection_attempts++;
+            xNext->successful_connection_attempts++;
+            xNeighbor->successful_connection_attempts++;
 
             if (!hasSolution_)
             {
                 if (sameComponent(vStart_, vGoal_))
-// >>>>>>> 1bf78bdb4b3570e653c1b34ad1f763e70dfc8582
                 {
                     hasSolution_ = true;
                 }
@@ -173,8 +111,77 @@ ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPImpl::addM
         }
 
     }
-    return q_next;
 }
+
+// void ompl::geometric::QMPImpl::expand()
+// {
+//     PDF pdf;
+
+//     foreach (Vertex v, boost::vertices(graph_))
+//     {
+//         const unsigned long int t = graph_[v]->total_connection_attempts;
+//         pdf.add(graph_[v], (double)(t - graph_[v]->successful_connection_attempts) / (double)t);
+//     }
+
+//     if (pdf.empty())
+//         return;
+    
+//     Configuration *q = pdf.sample(rng_.uniform01());
+
+//     int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
+//     if(s > 0)
+//     {
+//         Configuration *prev = q;
+//         Configuration *last = addMileStone(randomWorkStates_[--s]);
+//         for (int i = 0; i < s; i++)
+//         {
+//             Configuration *tmp = new Configuration(getBundle(), randomWorkStates_[i]);
+//             addConfiguration(tmp);
+
+//             ompl::geometric::BundleSpaceGraph::addEdge(prev->index, tmp->index);
+//             prev = tmp;
+//         }
+//         if(!sameComponent(prev->index, last->index))
+//             ompl::geometric::BundleSpaceGraph::addEdge(prev->index, last->index);
+//     }
+// }
+
+// ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPImpl::addMileStone(ompl::base::State *q_state)
+// {
+//     // add sample
+//     Configuration *q_next = new Configuration(getBundle(), q_state);
+//     Vertex v_next = addConfiguration(q_next);
+    
+//     // check for close k neibhors
+//     std::vector<Configuration*> nearestNeighbors;
+//     BaseT::nearestDatastructure_->nearestK(q_next, k_, nearestNeighbors);
+
+//     for(unsigned int i=0 ; i< nearestNeighbors.size(); i++)
+//     {
+//         Configuration* q_neighbor = nearestNeighbors.at(i);
+
+//         q_next->total_connection_attempts++;
+//         q_neighbor->total_connection_attempts++;
+
+//         if (getBundle()->checkMotion(q_neighbor->state, q_next->state)) 
+//         {
+//             addEdge(q_neighbor->index, v_next);
+            
+//             q_next->successful_connection_attempts++;
+//             q_neighbor->successful_connection_attempts++;
+
+//             if (!hasSolution_)
+//             {
+//                 if (sameComponent(vStart_, vGoal_))
+//                 {
+//                     hasSolution_ = true;
+//                 }
+//             }
+//         }
+
+//     }
+//     return q_next;
+// }
 
 void ompl::geometric::QMPImpl::sampleFromDatastructure(base::State *xRandom)
 {

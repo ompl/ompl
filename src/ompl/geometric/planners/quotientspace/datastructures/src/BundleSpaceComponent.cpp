@@ -64,19 +64,17 @@ std::string ompl::geometric::BundleSpaceComponent::stateTypeToString(
         tstr = "SO2";
     }else if(type == base::STATE_SPACE_SO3){
         tstr = "SO3";
-    }else{
-      tstr = "Unknown";
-      if(space->isCompound())
-      {
+    }else if(space->isCompound()){
         base::CompoundStateSpace *space_compound = space->as<base::CompoundStateSpace>();
-        if(space_compound->getSubspaceCount() == 2)
-        {
-          const std::vector<base::StateSpacePtr> space_decomposed = space_compound->getSubspaces();
-          base::StateSpacePtr s0 = space_decomposed.at(0);
-          base::StateSpacePtr s1 = space_decomposed.at(1);
-          tstr = stateTypeToString(s0)+"x"+stateTypeToString(s1);
+        const std::vector<base::StateSpacePtr> space_decomposed = space_compound->getSubspaces();
+
+        for(uint k = 0; k < space_decomposed.size(); k++){
+            base::StateSpacePtr s0 = space_decomposed.at(k);
+            tstr = tstr + stateTypeToString(s0);
+            if(k < space_decomposed.size()-1) tstr += "x";
         }
-      }
+    }else{
+        throw Exception("Unknown State Space");
     }
     return tstr;
 }
@@ -84,13 +82,13 @@ std::string ompl::geometric::BundleSpaceComponent::stateTypeToString(
 std::string ompl::geometric::BundleSpaceComponent::getTypeAsString() const
 {
     if(BaseSpace_){
-      std::string tstr = getBundleTypeAsString() + " -> " + getBaseTypeAsString();
-      if(type_ == BUNDLE_SPACE_CONSTRAINED_RELAXATION){
-        tstr += " (relaxation)";
-      }else if(type_ == BUNDLE_SPACE_IDENTITY_PROJECTION){
-        tstr += " (identity)";
-      }
-      return tstr;
+        std::string tstr = getBundleTypeAsString() + " -> " + getBaseTypeAsString();
+        if(type_ == BUNDLE_SPACE_CONSTRAINED_RELAXATION){
+            tstr += " (relaxation)";
+        }else if(type_ == BUNDLE_SPACE_IDENTITY_PROJECTION){
+            tstr += " (identity)";
+        }
+        return tstr;
     }else{
         return getBundleTypeAsString();
     }

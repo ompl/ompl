@@ -23,70 +23,6 @@
 
 #include <ompl/util/Exception.h>
 
-ompl::geometric::BundleSpaceComponentPtr
-ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
-    const base::StateSpacePtr Bundle)
-{
-  return MakeBundleSpaceComponent(Bundle, nullptr, false);
-}
-ompl::geometric::BundleSpaceComponentPtr
-ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
-    const base::StateSpacePtr Bundle, 
-    const base::StateSpacePtr Base,
-    bool areValidityCheckersEquivalent)
-{
-    BundleSpaceComponentType type = identifyBundleSpaceComponentType(Bundle, Base);
-    if(type == BUNDLE_SPACE_IDENTITY_PROJECTION && !areValidityCheckersEquivalent)
-    {
-      type = BUNDLE_SPACE_CONSTRAINED_RELAXATION;
-    }
-
-    BundleSpaceComponentPtr component;
-
-    if(type == BUNDLE_SPACE_NO_PROJECTION){
-      component = std::make_shared<BundleSpaceComponent_None>(Bundle, Base);
-    }else if(type == BUNDLE_SPACE_EMPTY_SET_PROJECTION){
-      component = std::make_shared<BundleSpaceComponent_EmptySet>(Bundle, Base);
-    }else if(type == BUNDLE_SPACE_IDENTITY_PROJECTION){
-      component = std::make_shared<BundleSpaceComponent_Identity>(Bundle, Base);
-    }else if(type == BUNDLE_SPACE_CONSTRAINED_RELAXATION){
-      component = std::make_shared<BundleSpaceComponent_Relaxation>(Bundle, Base);
-
-    }else if(type == BUNDLE_SPACE_RN_RM){
-      component = std::make_shared<BundleSpaceComponent_RN_RM>(Bundle, Base);
-
-    }else if(type == BUNDLE_SPACE_SE2_R2){
-      component = std::make_shared<BundleSpaceComponent_SE2_R2>(Bundle, Base);
-    }else if(type == BUNDLE_SPACE_SE2RN_R2){
-      component = std::make_shared<BundleSpaceComponent_SE2RN_R2>(Bundle, Base);
-    }else if(type == BUNDLE_SPACE_SE2RN_SE2){
-      component = std::make_shared<BundleSpaceComponent_SE2RN_SE2>(Bundle, Base);
-    }else if(type == BUNDLE_SPACE_SE2RN_SE2RM){
-      component = std::make_shared<BundleSpaceComponent_SE2RN_SE2RM>(Bundle, Base);
-
-    }else if(type == BUNDLE_SPACE_SO2RN_SO2){
-      component = std::make_shared<BundleSpaceComponent_SO2RN_SO2>(Bundle, Base);
-    }else if(type == BUNDLE_SPACE_SO2RN_SO2RM){
-      component = std::make_shared<BundleSpaceComponent_SO2RN_SO2RM>(Bundle, Base);
-
-    }else if(type == BUNDLE_SPACE_SE3_R3){
-      component = std::make_shared<BundleSpaceComponent_SE3_R3>(Bundle, Base);
-    }else if(type == BUNDLE_SPACE_SE3RN_R3){
-      component = std::make_shared<BundleSpaceComponent_SE3RN_R3>(Bundle, Base);
-    }else if(type == BUNDLE_SPACE_SE3RN_SE3){
-      component = std::make_shared<BundleSpaceComponent_SE3RN_SE3>(Bundle, Base);
-    }else if(type == BUNDLE_SPACE_SE3RN_SE3RM){
-      component = std::make_shared<BundleSpaceComponent_SE3RN_SE3RM>(Bundle, Base);
-
-    }else{
-      OMPL_ERROR("NYI: %d", type);
-      throw Exception("BundleSpaceType not yet implemented.");
-    }
-    component->setType(type);
-    component->initFiberSpace();
-    return component;
-}
-
 std::vector<ompl::geometric::BundleSpaceComponentPtr> 
 ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponents(
     base::SpaceInformationPtr Bundle)
@@ -96,16 +32,19 @@ ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponents(
 
     std::vector<BundleSpaceComponentPtr> components;
 
-    if(bundleSpaceComponents > 1){
-      base::CompoundStateSpace *Bundle_compound = 
-        Bundle_space->as<base::CompoundStateSpace>();
-      const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
+    OMPL_DEBUG("Bundle components: %d", bundleSpaceComponents);
 
-      for(int m = 0; m < bundleSpaceComponents; m++){
-        base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
-        BundleSpaceComponentPtr componentM = MakeBundleSpaceComponent(BundleM);
-        components.push_back(componentM);
-      }
+    if(bundleSpaceComponents > 1)
+    {
+        base::CompoundStateSpace *Bundle_compound = 
+          Bundle_space->as<base::CompoundStateSpace>();
+        const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
+
+        for(int m = 0; m < bundleSpaceComponents; m++){
+            base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
+            BundleSpaceComponentPtr componentM = MakeBundleSpaceComponent(BundleM);
+            components.push_back(componentM);
+        }
     }else{
         BundleSpaceComponentPtr component = MakeBundleSpaceComponent(Bundle_space);
         components.push_back(component);
@@ -163,6 +102,70 @@ ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponents(
       components.push_back(component);
     }
     return components;
+}
+
+ompl::geometric::BundleSpaceComponentPtr
+ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
+    const base::StateSpacePtr Bundle)
+{
+  return MakeBundleSpaceComponent(Bundle, nullptr, false);
+}
+
+ompl::geometric::BundleSpaceComponentPtr
+ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
+    const base::StateSpacePtr Bundle, 
+    const base::StateSpacePtr Base,
+    bool areValidityCheckersEquivalent)
+{
+    BundleSpaceComponentType type = identifyBundleSpaceComponentType(Bundle, Base);
+    if(type == BUNDLE_SPACE_IDENTITY_PROJECTION && !areValidityCheckersEquivalent)
+    {
+      type = BUNDLE_SPACE_CONSTRAINED_RELAXATION;
+    }
+
+    BundleSpaceComponentPtr component;
+
+    if(type == BUNDLE_SPACE_NO_PROJECTION){
+      component = std::make_shared<BundleSpaceComponent_None>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_EMPTY_SET_PROJECTION){
+      component = std::make_shared<BundleSpaceComponent_EmptySet>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_IDENTITY_PROJECTION){
+      component = std::make_shared<BundleSpaceComponent_Identity>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_CONSTRAINED_RELAXATION){
+      component = std::make_shared<BundleSpaceComponent_Relaxation>(Bundle, Base);
+
+    }else if(type == BUNDLE_SPACE_RN_RM){
+      component = std::make_shared<BundleSpaceComponent_RN_RM>(Bundle, Base);
+
+    }else if(type == BUNDLE_SPACE_SE2_R2){
+      component = std::make_shared<BundleSpaceComponent_SE2_R2>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SE2RN_R2){
+      component = std::make_shared<BundleSpaceComponent_SE2RN_R2>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SE2RN_SE2){
+      component = std::make_shared<BundleSpaceComponent_SE2RN_SE2>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SE2RN_SE2RM){
+      component = std::make_shared<BundleSpaceComponent_SE2RN_SE2RM>(Bundle, Base);
+
+    }else if(type == BUNDLE_SPACE_SO2RN_SO2){
+      component = std::make_shared<BundleSpaceComponent_SO2RN_SO2>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SO2RN_SO2RM){
+      component = std::make_shared<BundleSpaceComponent_SO2RN_SO2RM>(Bundle, Base);
+
+    }else if(type == BUNDLE_SPACE_SE3_R3){
+      component = std::make_shared<BundleSpaceComponent_SE3_R3>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SE3RN_R3){
+      component = std::make_shared<BundleSpaceComponent_SE3RN_R3>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SE3RN_SE3){
+      component = std::make_shared<BundleSpaceComponent_SE3RN_SE3>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SE3RN_SE3RM){
+      component = std::make_shared<BundleSpaceComponent_SE3RN_SE3RM>(Bundle, Base);
+    }else{
+      OMPL_ERROR("NYI: %d", type);
+      throw Exception("BundleSpaceType not yet implemented.");
+    }
+    component->setType(type);
+    component->initFiberSpace();
+    return component;
 }
 
 ompl::geometric::BundleSpaceComponentType

@@ -34,6 +34,7 @@
  *********************************************************************/
 
 /* Author: Andreas Orthey */
+#include <ompl/geometric/planners/quotientspace/algorithms/QRRTStarImpl.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
@@ -46,7 +47,7 @@
 #include <queue>
 
 template <class T>
-ompl::geometric::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
+ompl::geometric::BundleSpaceSequenceDynamic<T>::BundleSpaceSequenceDynamic(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
   : ompl::base::Planner(siVec.back(), type), siVec_(siVec)
 {
     T::resetCounter();
@@ -61,12 +62,11 @@ ompl::geometric::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::b
         bundleSpaces_.back()->setLevel(k);
     }
     stopAtLevel_ = bundleSpaces_.size();
-
-    OMPL_DEBUG("Created %d BundleSpace levels (%s).", siVec_.size(), getName().c_str());
+    OMPL_DEVMSG2("Created %d BundleSpace levels.", siVec_.size());
 }
 
 template <class T>
-int ompl::geometric::BundleSpaceSequence<T>::getLevels() const
+int ompl::geometric::BundleSpaceSequenceDynamic<T>::getLevels() const
 {
     return stopAtLevel_;
 }
@@ -96,7 +96,7 @@ int ompl::geometric::BundleSpaceSequence<T>::getLevels() const
 // }
 
 template <class T>
-std::vector<int> ompl::geometric::BundleSpaceSequence<T>::getDimensionsPerLevel() const
+std::vector<int> ompl::geometric::BundleSpaceSequenceDynamic<T>::getDimensionsPerLevel() const
 {
     std::vector<int> dimensionsPerLevel;
     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
@@ -108,12 +108,12 @@ std::vector<int> ompl::geometric::BundleSpaceSequence<T>::getDimensionsPerLevel(
 }
 
 template <class T>
-ompl::geometric::BundleSpaceSequence<T>::~BundleSpaceSequence()
+ompl::geometric::BundleSpaceSequenceDynamic<T>::~BundleSpaceSequenceDynamic()
 {
 }
 
 template <class T>
-void ompl::geometric::BundleSpaceSequence<T>::setup()
+void ompl::geometric::BundleSpaceSequenceDynamic<T>::setup()
 {
     BaseT::setup();
     for (unsigned int k = 0; k < stopAtLevel_; k++)
@@ -124,7 +124,7 @@ void ompl::geometric::BundleSpaceSequence<T>::setup()
 }
 
 template <class T>
-void ompl::geometric::BundleSpaceSequence<T>::setStopLevel(unsigned int level_)
+void ompl::geometric::BundleSpaceSequenceDynamic<T>::setStopLevel(unsigned int level_)
 {
     if (level_ > bundleSpaces_.size())
     {
@@ -137,7 +137,7 @@ void ompl::geometric::BundleSpaceSequence<T>::setStopLevel(unsigned int level_)
 }
 
 template <class T>
-void ompl::geometric::BundleSpaceSequence<T>::clear()
+void ompl::geometric::BundleSpaceSequenceDynamic<T>::clear()
 {
     Planner::clear();
 
@@ -156,36 +156,54 @@ void ompl::geometric::BundleSpaceSequence<T>::clear()
 }
 
 template <class T>
-ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequenceDynamic<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
 {
+    bool isStar = false;
+    bool firstSolutionFound = false;
+    if (std::is_same<T, ompl::geometric::QRRTStarImpl>::value)
+    {
+        isStar = true;
+    }
     ompl::time::point t_start = ompl::time::now();
 
     for (unsigned int k = currentBundleSpaceLevel_; k < stopAtLevel_; k++)
     {
         foundKLevelSolution_ = false;
+        firstSolutionFound = false;
 
         if (priorityQueue_.size() <= currentBundleSpaceLevel_)
             priorityQueue_.push(bundleSpaces_.at(k));
-
+        
         ompl::base::PlannerTerminationCondition ptcOrSolutionFound(
             [this, &ptc] { return ptc || foundKLevelSolution_; });
+        
+        ompl::base::PlannerTerminationCondition ptcCondition(ptcOrSolutionFound);
+        
+        if(k == stopAtLevel_ - 1 )
+        {
+            ompl::base::PlannerTerminationCondition plannerTerminationCondition(
+            [this, &ptc] { return ptc; });
+            ptcCondition = plannerTerminationCondition;
+        }
 
-        while (!ptcOrSolutionFound())
+        while (!ptcCondition())
         {
             BundleSpace *jBundle = priorityQueue_.top();
             priorityQueue_.pop();
             jBundle->grow();
 
             bool hasSolution = bundleSpaces_.at(k)->hasSolution();
-            if (hasSolution)
+            if (hasSolution && !firstSolutionFound)
             {
+                if(isStar) firstSolutionFound = true;
+
                 ompl::base::PathPtr sol_k;
                 bundleSpaces_.at(k)->getSolution(sol_k);
                 if(solutions_.size() < k+1)
                 {
                     solutions_.push_back(sol_k);
                     double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
-                    OMPL_DEBUG("Found Solution on Level %d after %f seconds.", k, t_k_end);
+                    OMPL_DEBUG("*Found Solution on Level %d after %f seconds.", k, t_k_end);
                     foundKLevelSolution_ = true;
                     currentBundleSpaceLevel_ = k + 1;//std::min(k + 1, bundleSpaces_.size()-1);
                     if(currentBundleSpaceLevel_ > (bundleSpaces_.size()-1)) 
@@ -230,7 +248,7 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
 
 template <class T>
 const ompl::base::ProblemDefinitionPtr &
-ompl::geometric::BundleSpaceSequence<T>::getProblemDefinition(unsigned int kBundleSpace) const
+ompl::geometric::BundleSpaceSequenceDynamic<T>::getProblemDefinition(unsigned int kBundleSpace) const
 {
     assert(kBundleSpace >= 0);
     assert(kBundleSpace <= siVec_.size() - 1);
@@ -238,7 +256,7 @@ ompl::geometric::BundleSpaceSequence<T>::getProblemDefinition(unsigned int kBund
 }
 
 template <class T>
-void ompl::geometric::BundleSpaceSequence<T>::setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef)
+void ompl::geometric::BundleSpaceSequenceDynamic<T>::setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef)
 {
     this->Planner::setProblemDefinition(pdef);
 
@@ -280,7 +298,7 @@ void ompl::geometric::BundleSpaceSequence<T>::setProblemDefinition(const ompl::b
 }
 
 template <class T>
-void ompl::geometric::BundleSpaceSequence<T>::getPlannerData(ompl::base::PlannerData &data) const
+void ompl::geometric::BundleSpaceSequenceDynamic<T>::getPlannerData(ompl::base::PlannerData &data) const
 {
     unsigned int Nvertices = data.numVertices();
     if (Nvertices > 0)
@@ -318,7 +336,7 @@ void ompl::geometric::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planner
                     ob::State *s_Bundle = Qm->getBundle()->allocState();
                     ob::State *s_Fiber = Qm->allocIdentityStateFiber();
 
-                    Qm->mergeStates(s_lift, s_Fiber, s_Bundle); //TODO: segfault?
+                    // Qm->mergeStates(s_lift, s_Fiber, s_Bundle); //TODO: segfault?
                     s_lift = Qm->getBundle()->cloneState(s_Bundle);
 
                     Qm->getBundle()->freeState(s_Bundle);

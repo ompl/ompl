@@ -40,17 +40,26 @@
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <boost/foreach.hpp>
 #include <boost/math/constants/constants.hpp>
+#include "ompl/util/GeometricEquations.h"
 
 #define foreach BOOST_FOREACH
 
 ompl::geometric::QRRTStarImpl::QRRTStarImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QRRTStarImpl" + std::to_string(id_));
-    double d = (double)getBundle()->getStateDimension();
+    Planner::declareParam<double>(
+        "useKNearest_", 
+        this, 
+        &ompl::geometric::QRRTStarImpl::setKNearest, 
+        &ompl::geometric::QRRTStarImpl::getKNearest, 
+        "0,1");
+    d_ = (double)getBundle()->getStateDimension();
     double e = boost::math::constants::e<double>();
     // k > 2^(d + 1) * e * (1 + 1 / d).
-    k_rrt_Constant_ = 1.1 * (std::pow(2, d + 1) * e * (1.0 + 1.0 / d));
-    symmetric_ = opt_->isSymmetric();
+    k_rrt_Constant_ = std::pow(2, d_ + 1) * e * (1.0 + 1.0 / d_);
+    // γRRG > γRRG ∗ = 2*( 1 + 1/d)^1/d * ( μ( Xfree) / ζd)^1/d
+    r_rrt_Constant_ = std::pow(2 * (1.0 + 1.0 / d_) * (getBundle()->getSpaceMeasure() / unitNBallMeasure(d_)), 1.0 / d_);
+    symmetric_ = getBundle()->getStateSpace()->hasSymmetricInterpolate();
 }
 
 ompl::geometric::QRRTStarImpl::~QRRTStarImpl()
@@ -63,6 +72,7 @@ void ompl::geometric::QRRTStarImpl::grow()
     if (firstRun_)
     {
         init();
+        goal_ = pdef_->getGoal().get();
         firstRun_ = false;
     }
 
@@ -82,43 +92,58 @@ void ompl::geometric::QRRTStarImpl::grow()
     //(4) Check if Motion is correct
     if (getBundle()->checkMotion(q_nearest->state, xRandom_->state))
     {
+        // (5) Add sample
         Configuration *q_new = new Configuration(getBundle(), xRandom_->state);
-        Vertex v_next = addConfiguration(q_new);
 
         // Find nearby neighbors of the new motion
         std::vector<Configuration *> nearestNbh;
         
-        // calculate k
-        unsigned int k = std::ceil(k_rrt_Constant_ * log((double) boost::num_vertices(graph_)));
-        nearestDatastructure_->nearestK(q_new, k, nearestNbh);
+        if (useKNearest_)
+        {
+            // calculate k
+            unsigned int k = std::ceil(k_rrt_Constant_ * log((double) nearestDatastructure_->size()));
+            nearestDatastructure_->nearestK(q_new, k, nearestNbh);
+        }
+        else {
+            double r = std::min(maxDistance_, 
+                r_rrt_Constant_ * 
+                std::pow(log((double) nearestDatastructure_->size()) / (double) nearestDatastructure_->size(), 1 / d_ ));
+            nearestDatastructure_->nearestR(q_new, r, nearestNbh);
+        }
 
+        // nearest neighbor cost
+        ompl::base::Cost nn_line_cost = opt_->motionCost(q_nearest->state, q_new->state);
+        ompl::base::Cost nn_cost = opt_->combineCosts(q_nearest->cost, nn_line_cost);
+        
         // Find neighbor with minimum Cost
         Configuration *q_min = q_nearest;
-
-        ompl::base::Cost min_line_cost = opt_->motionCost(q_nearest->state, q_new->state);
-        ompl::base::Cost min_cost = opt_->combineCosts(q_nearest->cost, min_line_cost);
+        ompl::base::Cost min_line_cost = nn_line_cost;
+        ompl::base::Cost min_cost = nn_cost;
         
-        // if valid neighbors in first time than no need to check motion in rewire step for ith neighbor {-1, 0, 1}
+        // if valid neighbors in first step than no need to check motion in rewire step for ith neighbor. valid values are {-1, 0, 1}
         int validNeighbor[nearestNbh.size()];
-        validNeighbor[0] = 1; // nearest is already valid
 
-        // store the cost
-        std::vector<ompl::base::Cost> costs;
+        // store the connection cost for later use, if space is symmetric
         std::vector<ompl::base::Cost> lineCosts;
 
         if (symmetric_)
         {
-            costs.resize(nearestNbh.size());
             lineCosts.resize(nearestNbh.size());
-            // neaarest neihb cost
-            costs[0] = min_cost;
-            lineCosts[0] = min_line_cost;
         }
 
-        /* By default, neighborhood states are sorted by distance, so start from 1 because first will be nearest, sort in ascending distance */
-        for(unsigned int i=1; i< nearestNbh.size(); i++)
+        for(unsigned int i=0; i< nearestNbh.size(); i++)
         {
             Configuration* q_near = nearestNbh.at(i);
+
+            // nearest neighbor
+            if (q_nearest == q_near)
+            {
+                validNeighbor[i] = 1;
+                if (symmetric_) {
+                    lineCosts[i] = nn_line_cost;
+                }
+                continue;
+            }
             validNeighbor[i] = 0;
 
             ompl::base::Cost line_cost = opt_->motionCost(q_near->state, q_new->state);
@@ -126,13 +151,13 @@ void ompl::geometric::QRRTStarImpl::grow()
             
             if (symmetric_)
             {
-                costs[i] = new_cost;
                 lineCosts[i] = line_cost;
             }
 
             if (opt_->isCostBetterThan(new_cost , min_cost))
             {
-                if(distance(q_near, q_new) < maxDistance_ && getBundle()->checkMotion(q_near->state, q_new->state))
+                // if((!useKNearest_ || distance(q_near, xRandom_) < maxDistance_) && getBundle()->checkMotion(q_near->state, xRandom_->state))
+                if((!useKNearest_ || distance(q_near, q_new) < maxDistance_) && getBundle()->checkMotion(q_near->state, q_new->state))
                 {
                     q_min = q_near;
                     min_line_cost = line_cost;
@@ -143,56 +168,62 @@ void ompl::geometric::QRRTStarImpl::grow()
             }
         }
 
-        // (5) add edge assign cost
+        // // (4) Add sample
+        // Configuration *q_new = new Configuration(getBundle(), xRandom_->state);
+
+        // (6) add edge assign cost
+        Vertex v_next = addConfiguration(q_new);
         addEdge(q_min->index, v_next);
+
         q_new->lineCost = min_line_cost;
         q_new->cost = min_cost;
-        q_new->parent = q_min->index;
+        q_new->parent = q_min;
         q_min->children.push_back(q_new);
+
+        //nearestDatastructure_->add(q_new);
         
-        // (6) Rewire the tree
+        // (7) Rewire the tree
         for (unsigned int i=0 ; i< nearestNbh.size(); i++)
         {
             Configuration* q_near = nearestNbh.at(i);
-            if (q_near->index != q_new->parent)
+            
+            if (q_near != q_new->parent)
             {
                 base::Cost line_cost;
-                base::Cost new_cost;
                 if(symmetric_) {
                     line_cost = lineCosts[i];
-                    new_cost = costs[i];
                 }
                 else {
                     line_cost = opt_->motionCost(q_new->state, q_near->state);
-                    new_cost = opt_->combineCosts(q_new->cost, line_cost);
                 }
+                base::Cost new_cost = opt_->combineCosts(q_new->cost, line_cost);
                 
                 if (opt_->isCostBetterThan(new_cost, q_near->cost))
                 {
+                    bool valid = (validNeighbor[i] == 1);
                     // check neighbor validity if it wasn´t checked before
                     if (validNeighbor[i] == 0)
                     {
-                        if (distance(q_near, q_new) < maxDistance_ && getBundle()->checkMotion(q_near->state, q_new->state))
-                            validNeighbor[i] = 1;
+                        valid = ((!useKNearest_ || distance(q_near, q_new) < maxDistance_) && getBundle()->checkMotion(q_near->state, q_new->state));
                     }
-                    if (validNeighbor[i] == 1)
+                    if (valid)
                     {
                         // remove node from children of its parent node
-                        for (auto it = graph_[q_near->parent]->children.begin(); it != graph_[q_near->parent]->children.end(); ++it)
+                        for (auto it = q_near->parent->children.begin(); it != q_near->parent->children.end(); ++it)
                         {
                             if (*it == q_near)
                             {
-                                graph_[q_near->parent]->children.erase(it);
+                                q_near->parent->children.erase(it);
                                 break;
                             }
                         }
-
                         // remove the edge with old parent
-                        boost::remove_edge(q_near->parent, q_near->index, graph_);
+                        // boost::remove_edge(q_near->parent, q_near->index, graph_);
+                        // add with new parent
                         addEdge(q_new->index, q_near->index);
                         
                         // update node parent
-                        q_near->parent = q_new->index;
+                        q_near->parent = q_new;
                         q_near->lineCost = line_cost;
                         q_near->cost = new_cost;
                         q_new->children.push_back(q_near);
@@ -204,18 +235,27 @@ void ompl::geometric::QRRTStarImpl::grow()
             }
         }
         
-        if (!hasSolution_ || !hasChild())
-        {
-            // (7) check if this sample satisfies the goal
+        // (7) check if this sample satisfies the goal
 
-            double dist = 0.0;
-            bool satisfied = goal_->isSatisfied(q_new->state, &dist);
-            if (satisfied)
+        double dist = 0.0;
+        bool satisfied = goal_->isSatisfied(q_new->state, &dist);
+        if (satisfied)
+        {
+            std::cout << "goal satisfied\tcost_" << q_new->cost << "\tid_" << id_  << std::endl;
+            if(goalConfigurations_.empty())
             {
                 vGoal_ = addConfiguration(qGoal_);
                 addEdge(q_nearest->index, vGoal_);
-                hasSolution_ = true;
             }
+            goalConfigurations_.push_back(q_new);
+
+            if (opt_->isCostBetterThan(q_new->cost, bestCost_))
+            {
+                qGoal_->parent = q_new;
+                bestGoalConfiguration_ = q_new;
+                bestCost_ = bestGoalConfiguration_->cost;
+            }
+            hasSolution_ = true;
         }
     }
 }
@@ -224,7 +264,72 @@ void ompl::geometric::QRRTStarImpl::updateChildCosts(Configuration *q)
 {
     for (std::size_t i = 0; i < q->children.size(); ++i)
     {
-        q->children[i]->cost = opt_->combineCosts(q->cost, q->children[i]->lineCost);
-        updateChildCosts(q->children[i]);
+        q->children.at(i)->cost = opt_->combineCosts(q->cost, q->children.at(i)->lineCost);
+        updateChildCosts(q->children.at(i));
+    }
+}
+
+bool ompl::geometric::QRRTStarImpl::getSolution(base::PathPtr &solution)
+{
+    if (hasSolution_)
+    {
+        auto path(std::make_shared<PathGeometric>(getBundle()));
+        path->append(qGoal_->state);
+        
+        Configuration *intermediate_node = bestGoalConfiguration_;
+        
+        while (intermediate_node != nullptr)
+        {
+            path->append(intermediate_node->state);
+            intermediate_node = intermediate_node->parent;
+        }
+        path->reverse();
+        solution = path;
+        return true;
+    }
+    else
+    {
+      return false;
+    }
+}
+
+void ompl::geometric::QRRTStarImpl::getPlannerData(base::PlannerData &data) const
+{
+    OMPL_DEBUG("Roadmap has %d vertices", nearestDatastructure_->size());
+    BaseT::getPlannerData(data);
+
+    // std::vector<Configuration *> motions;
+    // if (nearestDatastructure_)
+    //     nearestDatastructure_->list(motions);
+
+    // if (bestGoalConfiguration_)
+    //     data.addGoalVertex(base::PlannerDataVertex(bestGoalConfiguration_->state));
+
+    // for (int i = 0; i < motions.size(); i++)
+    // {
+    //     if (motions[i]->parent == nullptr)
+    //         data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
+    //     else
+    //         data.addEdge(base::PlannerDataVertex(motions[i]->parent->state), base::PlannerDataVertex(motions[i]->state));
+    // }
+
+    //data.addGoalVertex(base::PlannerDataVertex(qGoal_->state));
+    //data.addStartVertex(base::PlannerDataVertex(qStart_->state));
+
+    //addChildrenToPlannerData(qStart_, data);
+}
+
+void ompl::geometric::QRRTStarImpl::addChildrenToPlannerData(Configuration* q, base::PlannerData &data) const
+{
+    if (q != nullptr)
+    {
+        if (!q->children.empty())
+        {
+            /*for (std::size_t i = 0; i < q->children.size(); ++i)
+            {
+                // data.addEdge(base::PlannerDataVertex(q->state), base::PlannerDataVertex(q->children[i]->state));
+                // addChildrenToPlannerData(q->children[i], data);
+            }*/
+        }
     }
 }
