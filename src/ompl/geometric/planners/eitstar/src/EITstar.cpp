@@ -34,8 +34,6 @@
 
 // Authors: Marlin Strub
 
-#include <dbg.h>
-
 #include "ompl/geometric/planners/eitstar/EITstar.h"
 
 #include <algorithm>
@@ -347,7 +345,7 @@ namespace ompl
                         else
                         {
                             // The reverse search has work to do.
-                            phase_ = Phase::REVERSE_SEARCH;
+                            phase_ = reverseQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::REVERSE_SEARCH;
                         }
                         return;
                     }
@@ -409,7 +407,8 @@ namespace ompl
                                 else
                                 {
                                     // The reverse search has work to do.
-                                    phase_ = Phase::REVERSE_SEARCH;
+                                    phase_ =
+                                        reverseQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::REVERSE_SEARCH;
                                 }
                             }
                             else  // It is the goal state, update the solution.
@@ -819,7 +818,7 @@ namespace ompl
                 if (insertedEdge)
                 {
                     jitSearchEdgeCache_ = forwardQueue_->getEdges();
-                    phase_ = Phase::REVERSE_SEARCH;
+                    phase_ = reverseQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::REVERSE_SEARCH;
                 }
                 else
                 {
