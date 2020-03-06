@@ -35,10 +35,11 @@
 /* Author: Leonard Bruns */
 
 #include "ompl/base/samplers/deterministic/HaltonSequence.h"
-
+#include "ompl/util/Console.h"
 #include <iostream>
 #include <cmath>
 #include <map>
+#include <boost/math/special_functions/prime.hpp>
 
 namespace ompl
 {
@@ -84,7 +85,7 @@ namespace ompl
         {
             if (bases.size() != dimensions)
             {
-                std::cout << "Warning: Number of bases does not match dimensions. Using first n primes instead.";
+                OMPL_WARN("Number of bases does not match dimensions. Using first n primes instead.");
             }
             else
             {
@@ -110,27 +111,11 @@ namespace ompl
         void HaltonSequence::setBasesToPrimes()
         {
             // set the base of the halton sequences to the first n prime numbers, where n is dimensions
-            unsigned int primes_found = 0;
             unsigned int current = 2;
-            // naive method to finding the prime numbers, but since dimensions
-            // is not that large this should normally be fine
-            while (primes_found < dimensions_)
+            for (unsigned int i = 0; i < dimensions_; i++)
             {
-                bool prime = true;
-                for (int i = current / 2; i >= 2; --i)
-                {
-                    if (current % i == 0)
-                    {
-                        prime = false;
-                        break;
-                    }
-                }
-                if (prime == true)
-                {
-                    halton_sequences_1d_[primes_found].setBase(current);
-                    ++primes_found;
-                }
-                ++current;
+                current = boost::math::prime(i);
+                halton_sequences_1d_[i].setBase(current);
             }
         }
     }  // namespace base

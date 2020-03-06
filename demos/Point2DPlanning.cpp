@@ -116,7 +116,9 @@ public:
         OMPL_INFORM("Found %d solutions", (int)ns);
         if (ss_->haveSolutionPath())
         {
-            ss_->simplifySolution();
+            if (!useDeterministicSampling_)
+                ss_->simplifySolution();
+
             og::PathGeometric &p = ss_->getSolutionPath();
             if (!useDeterministicSampling_)
             {
