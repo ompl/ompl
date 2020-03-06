@@ -302,32 +302,12 @@ namespace ompl
                 }
                 case Phase::IMPROVE_APPROXIMATION:
                 {
-                    // Add new states.
-                    graph_.addStates(numSamplesPerBatch_);
-
-                    // Reset the suboptimality factor.
-                    suboptimalityFactor_ = std::numeric_limits<double>::infinity();
-
-                    // Restart the reverse search.
-                    reverseRoot_.reset();
-                    reverseRoot_ = graph_.getGoalState()->asReverseVertex();
-                    reverseRoot_->setCost(objective_->identityCost());
-                    reverseRoot_->setExtendedCost(objective_->identityCost());
-                    reverseRoot_->setExpandTag(searchTag_);
-                    reverseRoot_->getState()->setEstimatedEffortToGo(0u);
-                    reverseQueue_->insert(expand(reverseRoot_->getState()));
-
-                    // If expanding the goal state actually produced edges, let's start the reverse search.
-                    // Otherwise, we stay in the improve approximation phase.
-                    if (!reverseQueue_->empty())
-                    {
-                        phase_ = Phase::REVERSE_SEARCH;
-                    }
+                    improveApproximation();
                     break;
                 }
                 default:
                 {
-                    // We should never reach this.
+                    // We should never reach here.
                     assert(false);
                 }
             };
@@ -572,6 +552,31 @@ namespace ompl
                 {
                     phase_ = Phase::IMPROVE_APPROXIMATION;
                 }
+            }
+        }
+
+        void EITstar::improveApproximation()
+        {
+            // Add new states.
+            graph_.addStates(numSamplesPerBatch_);
+
+            // Reset the suboptimality factor.
+            suboptimalityFactor_ = std::numeric_limits<double>::infinity();
+
+            // Restart the reverse search.
+            reverseRoot_.reset();
+            reverseRoot_ = graph_.getGoalState()->asReverseVertex();
+            reverseRoot_->setCost(objective_->identityCost());
+            reverseRoot_->setExtendedCost(objective_->identityCost());
+            reverseRoot_->setExpandTag(searchTag_);
+            reverseRoot_->getState()->setEstimatedEffortToGo(0u);
+            reverseQueue_->insert(expand(reverseRoot_->getState()));
+
+            // If expanding the goal state actually produced edges, let's start the reverse search.
+            // Otherwise, we stay in the improve approximation phase.
+            if (!reverseQueue_->empty())
+            {
+                phase_ = Phase::REVERSE_SEARCH;
             }
         }
 

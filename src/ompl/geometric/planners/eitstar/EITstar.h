@@ -130,6 +130,9 @@ namespace ompl
             /** \brief Perform one forward iteration. */
             void forwardIterate();
 
+            /** \brief Improves the approximation by sampling more states. */
+            void improveApproximation();
+
             /** \brief Updates the solution. */
             void updateSolution();
 
