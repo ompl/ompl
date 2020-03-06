@@ -178,6 +178,9 @@ namespace ompl
             /** \brief Returns whether the edge could be valid. */
             bool couldBeValid(const eitstar::Edge &edge) const;
 
+            /** \brief Returns whether all vertices have been processed by the reverse search. */
+            bool canBeInsertedInForwardQueue(const std::vector<eitstar::Edge>& edges) const;
+
             /** \brief The sampling-based approximation of the state space. */
             eitstar::RandomGeometricGraph graph_;
 
@@ -199,6 +202,9 @@ namespace ompl
 
             /** \brief The interpolation values used for the sparse collision detection on the reverse search. */
             std::vector<double> detectionInterpolationValues_{};
+
+            /** \brief The edge cache that enables the just-in-time reverse search. */
+            std::vector<eitstar::Edge> jitSearchEdgeCache_{};
 
             /** \brief The state used to do sparse collision detection with. */
             ompl::base::State *detectionState_;

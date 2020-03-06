@@ -333,7 +333,20 @@ namespace ompl
                     if (currentParent->getId() == edge.source->asForwardVertex()->getId() &&
                         edge.target->getId() != graph_.getGoalState()->getId())
                     {
-                        forwardQueue_->insert(expand(edge.target));
+                        // Get the outgoing edges of the child.
+                        jitSearchEdgeCache_ = expand(edge.target);
+
+                        // Insert them if they can be inserted.
+                        if (canBeInsertedInForwardQueue(jitSearchEdgeCache_))
+                        {
+                            forwardQueue_->insert(jitSearchEdgeCache_);
+                            jitSearchEdgeCache_.clear();
+                        }
+                        else
+                        {
+                            // The reverse search has work to do.
+                            phase_ = Phase::REVERSE_SEARCH;
+                        }
                         return;
                     }
                 }
@@ -382,8 +395,20 @@ namespace ompl
                             // Expand the outgoing edges into the queue unless this state is the goal state.
                             if (edge.target->getId() != graph_.getGoalState()->getId())
                             {
-                                // Expand the child vertex.
-                                forwardQueue_->insert(expand(edge.target));
+                                // Get the outgoing edges of the child.
+                                jitSearchEdgeCache_ = expand(edge.target);
+
+                                // Insert them if they can be inserted.
+                                if (canBeInsertedInForwardQueue(jitSearchEdgeCache_))
+                                {
+                                    forwardQueue_->insert(jitSearchEdgeCache_);
+                                    jitSearchEdgeCache_.clear();
+                                }
+                                else
+                                {
+                                    // The reverse search has work to do.
+                                    phase_ = Phase::REVERSE_SEARCH;
+                                }
                             }
                             else  // It is the goal state, update the solution.
                             {
@@ -450,10 +475,62 @@ namespace ompl
             assert(!reverseQueue_->empty());
 
             // Get the top edge from the queue.
-            auto edge = reverseQueue_->pop();
+            auto edge = reverseQueue_->peek();
 
             // The parent vertex must have an associated vertex in the tree.
             assert(edge.source->hasReverseVertex());
+
+            // Check whether we can suspend the reverse search.
+            if ((jitSearchEdgeCache_.empty() && !doesImproveReversePath(edge)) || reverseQueue_->empty())
+            {
+                // Update the search tag.
+                ++searchTag_;
+
+                // Insert the outgoing edges of the start into the forward queue if there could be a path.
+                if (forwardQueue_->empty() && forwardRoot_->getTwin().lock())
+                {
+                    assert(forwardRoot_->getState()->hasReverseVertex());
+                    if (forwardQueue_->empty())
+                    {
+                        // Get the outgoing edges of the child.
+                        jitSearchEdgeCache_ = expand(forwardRoot_->getState());
+
+                        // Insert them if they can be inserted and the forward search can be started..
+                        if (canBeInsertedInForwardQueue(jitSearchEdgeCache_))
+                        {
+                            forwardQueue_->insert(jitSearchEdgeCache_);
+                            jitSearchEdgeCache_.clear();
+                            phase_ = Phase::FORWARD_SEARCH;
+                        }
+                    }
+                    else
+                    {
+                        // Rebuild the forward queue, as the reverse search might have updated the used heuristics.
+                        forwardQueue_->rebuild();
+
+                        // If the forward queue is empty now, we're done with this batch because all edges that were in
+                        // the queue were invalidated by repairing the reverse search.
+                        if (forwardQueue_->empty())
+                        {
+                            phase_ = Phase::IMPROVE_APPROXIMATION;
+                        }
+                        else
+                        {
+                            phase_ = Phase::FORWARD_SEARCH;
+                        }
+                    }
+                }
+                else
+                {
+                    phase_ = Phase::IMPROVE_APPROXIMATION;
+                }
+
+                // We're done with the reverse search for now.
+                return;
+            }
+
+            // This edge needs to be processed, pop it from the queue.
+            reverseQueue_->pop();
 
             // Simply expand the child vertex if the edge is already in the reverse tree, and the child has not been
             // expanded yet.
@@ -517,40 +594,13 @@ namespace ompl
                 }
             }
 
-            // Check if this was the last edge in the reverse queue.
-            // TODO: This means we always check all edges in the graph. Is this really necessary?
-            if (reverseQueue_->empty())
+            // If there are edges to be inserted in the forward queue, check if they can be inserted now.
+            if (!jitSearchEdgeCache_.empty())
             {
-                // Update the search tag.
-                ++searchTag_;
-
-                // Insert the outgoing edges of the start into the forward queue if there could be a path.
-                if (forwardRoot_->getTwin().lock())
+                if (canBeInsertedInForwardQueue(jitSearchEdgeCache_))
                 {
-                    assert(forwardRoot_->getState()->hasReverseVertex());
-                    if (forwardQueue_->empty())
-                    {
-                        forwardQueue_->insert(expand(forwardRoot_->getState()));
-                        phase_ = Phase::FORWARD_SEARCH;
-                    }
-                    else
-                    {
-                        forwardQueue_->rebuild();
-                        // If the forward queue is empty now, we're done with this batch because all edges that were in
-                        // the queue were invalidated by repairing the reverse search.
-                        if (!forwardQueue_->empty())
-                        {
-                            phase_ = Phase::FORWARD_SEARCH;
-                        }
-                        else
-                        {
-                            phase_ = Phase::IMPROVE_APPROXIMATION;
-                        }
-                    }
-                }
-                else
-                {
-                    phase_ = Phase::IMPROVE_APPROXIMATION;
+                    forwardQueue_->insert(jitSearchEdgeCache_);
+                    jitSearchEdgeCache_.clear();
                 }
             }
         }
@@ -912,6 +962,18 @@ namespace ompl
                 }
                 return true;
             }
+        }
+
+        bool EITstar::canBeInsertedInForwardQueue(const std::vector<eitstar::Edge> &edges) const
+        {
+            for (const auto &edge : edges)
+            {
+                if (!edge.source->hasReverseVertex() || !edge.target->hasReverseVertex())
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         std::tuple<std::shared_ptr<eitstar::State>, ompl::base::Cost, ompl::base::Cost>
