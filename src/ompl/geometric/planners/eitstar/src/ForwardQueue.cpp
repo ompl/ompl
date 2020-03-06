@@ -229,9 +229,9 @@ namespace ompl
             Edge ForwardQueue::pop(double suboptimalityFactor)
             {
                 // Get the lower bounding edge and corresponding cost.
-                auto lowerBoundEdge = queue_.begin();
+                auto lowerBoundEdgeIt = queue_.begin();
                 auto lowerBoundEdgeCost =
-                    ompl::base::Cost(suboptimalityFactor * lowerBoundEdge->first.lowerBoundCost.value());
+                    ompl::base::Cost(suboptimalityFactor * lowerBoundEdgeIt->first.lowerBoundCost.value());
 
                 // Find the best estimate edge and corresponding cost.
                 auto bestCostEdge = std::min_element(
@@ -270,8 +270,9 @@ namespace ompl
                 }
                 else
                 {
-                    queue_.erase(queue_.begin());
-                    return lowerBoundEdge->second;
+                    auto lowerBoundEdge = lowerBoundEdgeIt->second;
+                    queue_.erase(lowerBoundEdgeIt);
+                    return lowerBoundEdge;
                 }
             }
 
