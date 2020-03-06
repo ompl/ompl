@@ -827,7 +827,7 @@ namespace ompl
                     objective_->combineCosts(
                         edge.source->asForwardVertex()->getCost(),
                         objective_->combineCosts(trueEdgeCost,
-                                                 edge.target->asForwardVertex()->getTwin().lock()->getCost())),
+                                                 objective_->costToGo(edge.target->raw(), problem_->getGoal().get()))),
                     reverseRootForwardVertex->getCost());
             }
             else
