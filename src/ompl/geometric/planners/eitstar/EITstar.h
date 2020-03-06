@@ -230,6 +230,9 @@ namespace ompl
             /** \brief The tag of the current search. */
             std::size_t searchTag_{1u};
 
+            /** \brief The tag of the current batch. */
+            std::size_t startExpansionGraphTag_{0u};
+
             /** \brief An alias with a more expressive name to the problem of the base class. */
             std::shared_ptr<ompl::base::ProblemDefinition> &problem_ = ompl::base::Planner::pdef_;
 

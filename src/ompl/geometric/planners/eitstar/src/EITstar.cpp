@@ -34,6 +34,8 @@
 
 // Authors: Marlin Strub
 
+#include <dbg.h>
+
 #include "ompl/geometric/planners/eitstar/EITstar.h"
 
 #include <algorithm>
@@ -464,7 +466,7 @@ namespace ompl
             // If the forward queue is empty, move on to the next phase.
             if (phase_ == Phase::FORWARD_SEARCH && forwardQueue_->empty())
             {
-                assert(reverseQueue_->empty());
+                reverseQueue_->clear();
                 phase_ = Phase::IMPROVE_APPROXIMATION;
             }
         }
@@ -481,16 +483,16 @@ namespace ompl
             assert(edge.source->hasReverseVertex());
 
             // Check whether we can suspend the reverse search.
-            if ((jitSearchEdgeCache_.empty() && !doesImproveReversePath(edge)) || reverseQueue_->empty())
+            if ((jitSearchEdgeCache_.empty() && !doesImproveReversePath(edge)))
             {
                 // Update the search tag.
                 ++searchTag_;
 
                 // Insert the outgoing edges of the start into the forward queue if there could be a path.
-                if (forwardQueue_->empty() && forwardRoot_->getTwin().lock())
+                if (forwardRoot_->getTwin().lock())
                 {
                     assert(forwardRoot_->getState()->hasReverseVertex());
-                    if (forwardQueue_->empty())
+                    if (startExpansionGraphTag_ != graph_.getTag())
                     {
                         // Get the outgoing edges of the child.
                         jitSearchEdgeCache_ = expand(forwardRoot_->getState());
@@ -498,10 +500,16 @@ namespace ompl
                         // Insert them if they can be inserted and the forward search can be started..
                         if (canBeInsertedInForwardQueue(jitSearchEdgeCache_))
                         {
+                            // Insert and clear the cache.
                             forwardQueue_->insert(jitSearchEdgeCache_);
                             jitSearchEdgeCache_.clear();
-                            phase_ = Phase::FORWARD_SEARCH;
+
+                            // Set the phase. If the insert resulted in zero edges, then improve the approximation.
+                            phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
                         }
+
+                        // Register the expansion of the start.
+                        startExpansionGraphTag_ = graph_.getTag();
                     }
                     else
                     {
@@ -510,19 +518,8 @@ namespace ompl
 
                         // If the forward queue is empty now, we're done with this batch because all edges that were in
                         // the queue were invalidated by repairing the reverse search.
-                        if (forwardQueue_->empty())
-                        {
-                            phase_ = Phase::IMPROVE_APPROXIMATION;
-                        }
-                        else
-                        {
-                            phase_ = Phase::FORWARD_SEARCH;
-                        }
+                        phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
                     }
-                }
-                else
-                {
-                    phase_ = Phase::IMPROVE_APPROXIMATION;
                 }
 
                 // We're done with the reverse search for now.
@@ -601,6 +598,48 @@ namespace ompl
                 {
                     forwardQueue_->insert(jitSearchEdgeCache_);
                     jitSearchEdgeCache_.clear();
+                }
+            }
+
+            if (reverseQueue_->empty())
+            {
+                // Insert the outgoing edges of the start into the forward queue if there could be a path.
+                if (forwardRoot_->getTwin().lock())
+                {
+                    assert(forwardRoot_->getState()->hasReverseVertex());
+                    if (startExpansionGraphTag_ != graph_.getTag())
+                    {
+                        // Get the outgoing edges of the child.
+                        jitSearchEdgeCache_ = expand(forwardRoot_->getState());
+
+                        // Insert them if they can be inserted and the forward search can be started..
+                        if (canBeInsertedInForwardQueue(jitSearchEdgeCache_))
+                        {
+                            // Insert and clear the cache.
+                            forwardQueue_->insert(jitSearchEdgeCache_);
+                            jitSearchEdgeCache_.clear();
+
+                            // Set the phase. If the insert resulted in zero edges, then improve the approximation.
+                            phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
+                        }
+
+                        // Register the expansion of the start.
+                        startExpansionGraphTag_ = graph_.getTag();
+                    }
+                    else
+                    {
+                        // Rebuild the forward queue, as the reverse search might have updated the used heuristics.
+                        forwardQueue_->rebuild();
+
+                        // If the forward queue is empty now, we're done with this batch because all edges that were in
+                        // the queue were invalidated by repairing the reverse search.
+                        phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
+                    }
+                }
+                else
+                {
+                    forwardQueue_->clear();
+                    phase_ = Phase::IMPROVE_APPROXIMATION;
                 }
             }
         }
@@ -779,14 +818,16 @@ namespace ompl
 
                 if (insertedEdge)
                 {
+                    jitSearchEdgeCache_ = forwardQueue_->getEdges();
                     phase_ = Phase::REVERSE_SEARCH;
                 }
                 else
                 {
-                    assert(reverseQueue_->empty());
-                    forwardQueue_->clear();
                     phase_ = Phase::IMPROVE_APPROXIMATION;
                 }
+
+                // Either way, the forward queue should be cleared.
+                forwardQueue_->clear();
             }
         }
 
@@ -815,13 +856,15 @@ namespace ompl
             // Otherwise, improve the approximation.
             if (!reverseQueue_->empty())
             {
+                // Store the edges in the forward queue in the cache.
+                jitSearchEdgeCache_ = forwardQueue_->getEdges();
                 phase_ = Phase::REVERSE_SEARCH;
             }
             else
             {
-                forwardQueue_->clear();
                 phase_ = Phase::IMPROVE_APPROXIMATION;
             }
+            forwardQueue_->clear();
         }
 
         bool EITstar::couldImproveForwardPath(const Edge &edge) const

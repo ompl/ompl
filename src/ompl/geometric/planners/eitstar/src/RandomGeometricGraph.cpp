@@ -131,6 +131,11 @@ namespace ompl
                     targetNeighbors.end());
             }
 
+            std::size_t RandomGeometricGraph::getTag() const
+            {
+                return tag_;
+            }
+
             std::shared_ptr<State> RandomGeometricGraph::setStartState(const ompl::base::State *startState)
             {
                 // Ensure we don't already have a start state.
