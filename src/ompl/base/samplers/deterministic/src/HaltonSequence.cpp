@@ -88,9 +88,11 @@ namespace ompl
             }
             else
             {
-                for (size_t i = 0; i < bases.size(); ++i)
+                int i = 0;
+                for (auto base : bases)
                 {
-                    halton_sequences_1d_[i].setBase(bases[i]);
+                    halton_sequences_1d_[i].setBase(base);
+                    i++;
                 }
             }
         }
