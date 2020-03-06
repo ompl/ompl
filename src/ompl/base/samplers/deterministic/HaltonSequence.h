@@ -55,11 +55,12 @@ namespace ompl
         Applied Mathematics 61.1 (1995): 29-41.
         \brief Realization of the Halton sequence for the generation of
         arbitrary dimensional, low-dispersion sequences.
+        */
 
         class HaltonSequence1D
         {
         public:
-            /** \brief Constructor */
+        /** \brief Constructor */
         HaltonSequence1D();
 
         /** \brief Constructor */
