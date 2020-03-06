@@ -1006,8 +1006,14 @@ namespace ompl
                     // Get the state associated with the parent vertex.
                     auto forwardParentState = forwardVertex->getParent().lock()->getState();
 
-                    // Add the edge to the forward tree parent.
-                    outgoingEdges.emplace_back(state, forwardParentState);
+                    // Add the edge to the forward tree parent if it has not already being added.
+                    if (std::find_if(outgoingEdges.cbegin(), outgoingEdges.cend(),
+                                     [&forwardParentState](const auto &edge) {
+                                         return edge.target->getId() == forwardParentState->getId();
+                                     }) == outgoingEdges.cend())
+                    {
+                        outgoingEdges.emplace_back(state, forwardParentState);
+                    }
                 }
 
                 // Add the edge to the forward children.
@@ -1016,8 +1022,14 @@ namespace ompl
                     // Get the state associated with the child vertex.
                     auto forwardChildState = child->getState();
 
-                    // Add the edge to the child to the outgoing edges.
-                    outgoingEdges.emplace_back(state, forwardChildState);
+                    // Add the edge to the forward tree child if it has not already being added.
+                    if (std::find_if(outgoingEdges.cbegin(), outgoingEdges.cend(),
+                                     [&forwardChildState](const auto &edge) {
+                                         return edge.target->getId() == forwardChildState->getId();
+                                     }) == outgoingEdges.cend())
+                    {
+                        outgoingEdges.emplace_back(state, forwardChildState);
+                    }
                 }
             }
 
@@ -1036,8 +1048,14 @@ namespace ompl
                     // Get the state associated with the parent vertex.
                     auto reverseParentState = reverseVertex->getParent().lock()->getState();
 
-                    // Add the edge to the reverse tree parent.
-                    outgoingEdges.emplace_back(state, reverseParentState);
+                    // Add the edge to the reverse tree parent if it has not already being added.
+                    if (std::find_if(outgoingEdges.cbegin(), outgoingEdges.cend(),
+                                     [&reverseParentState](const auto &edge) {
+                                         return edge.target->getId() == reverseParentState->getId();
+                                     }) == outgoingEdges.cend())
+                    {
+                        outgoingEdges.emplace_back(state, reverseParentState);
+                    }
                 }
 
                 // Add the edge to the reverse children.
@@ -1046,8 +1064,14 @@ namespace ompl
                     // Get the state associated with the child vertex.
                     auto reverseChildState = child->getState();
 
-                    // Add the edge to the child to the outgoing edges.
-                    outgoingEdges.emplace_back(state, reverseChildState);
+                    // Add the edge to the reverse tree parent if it has not already being added.
+                    if (std::find_if(outgoingEdges.cbegin(), outgoingEdges.cend(),
+                                     [&reverseChildState](const auto &edge) {
+                                         return edge.target->getId() == reverseChildState->getId();
+                                     }) == outgoingEdges.cend())
+                    {
+                        outgoingEdges.emplace_back(state, reverseChildState);
+                    }
                 }
             }
 
