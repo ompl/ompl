@@ -1058,7 +1058,7 @@ namespace ompl
                 auto heuristicPathCost = objective_->combineCosts(
                     objective_->combineCosts(edge.source->asReverseVertex()->getCost(),
                                              objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw())),
-                    objective_->motionCostHeuristic(edge.target->raw(), forwardRoot_->getState()->raw()));
+                    edge.target->getLowerBoundCostToCome());
                 if (objective_->isCostBetterThan(heuristicPathCost, startVertex->getCost()))
                 {
                     return true;

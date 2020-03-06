@@ -79,7 +79,7 @@ namespace ompl
                         objective_->combineCosts(objective_->combineCosts(edge.source->asReverseVertex()->getCost(),
                                                                           objective_->motionCostHeuristic(
                                                                               edge.source->raw(), edge.target->raw())),
-                                                 edge.target->getLowerBoundCostToGo());
+                                                 edge.target->getLowerBoundCostToCome());
 
                     // Compute the second field of the key.
                     auto key2 = objective_->combineCosts(

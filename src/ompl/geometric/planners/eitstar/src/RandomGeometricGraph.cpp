@@ -146,7 +146,21 @@ namespace ompl
 
                 // Allocate the start state.
                 startState_ = std::make_shared<State>(spaceInfo_, objective_);
+
+                // Set the lower bound for the cost to go.
                 startState_->setLowerBoundCostToGo(objective_->costToGo(startState, problem_->getGoal().get()));
+
+                // Set the lower bound for the cost to come.
+                for (std::size_t i = 0u; i < problem_->getStartStateCount(); ++i)
+                {
+                    if (objective_->isCostBetterThan(
+                            objective_->motionCostHeuristic(startState_->raw(), problem_->getStartState(i)),
+                            startState_->getLowerBoundCostToCome()))
+                    {
+                        startState_->setLowerBoundCostToCome(
+                            objective_->motionCostHeuristic(startState_->raw(), problem_->getStartState(i)));
+                    }
+                }
 
                 // Copy the given state.
                 spaceInfo_->copyState(startState_->raw(), startState);
@@ -217,15 +231,27 @@ namespace ompl
                 {
                     // Allocate a new state.
                     newStates.emplace_back(std::make_shared<State>(spaceInfo_, objective_));
+                    auto &newState = newStates.back();
 
                     do  // Sample randomly until a valid state is found.
                     {
-                        sampler_->sampleUniform(newStates.back()->raw(), currentCost);
-                    } while (!spaceInfo_->isValid(newStates.back()->raw()));
+                        sampler_->sampleUniform(newState->raw(), currentCost);
+                    } while (!spaceInfo_->isValid(newState->raw()));
 
-                    // Set the cost to go.
-                    newStates.back()->setLowerBoundCostToGo(
-                        objective_->costToGo(newStates.back()->raw(), problem_->getGoal().get()));
+                    // Set the lower bound for the cost to go.
+                    newState->setLowerBoundCostToGo(objective_->costToGo(newState->raw(), problem_->getGoal().get()));
+
+                    // Set the lower bound for the cost to come.
+                    for (std::size_t i = 0u; i < problem_->getStartStateCount(); ++i)
+                    {
+                        if (objective_->isCostBetterThan(
+                                objective_->motionCostHeuristic(newState->raw(), problem_->getStartState(i)),
+                                newState->getLowerBoundCostToCome()))
+                        {
+                            newState->setLowerBoundCostToCome(
+                                objective_->motionCostHeuristic(newState->raw(), problem_->getStartState(i)));
+                        }
+                    }
                 }
 
                 // Add the new states to the samples.

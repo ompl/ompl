@@ -56,6 +56,7 @@ namespace ompl
               : id_(generateId())
               , estimatedCostToGo_(objective->infiniteCost())
               , lowerBoundCostToGo_(objective->infiniteCost())
+              , lowerBoundCostToCome_(objective->infiniteCost())
               , state_(spaceInfo->allocState())
               , neighbors_({0u, {}})
               , spaceInfo_(spaceInfo)
@@ -178,6 +179,11 @@ namespace ompl
                 lowerBoundCostToGo_ = cost;
             }
 
+            void State::setLowerBoundCostToCome(ompl::base::Cost cost)
+            {
+                lowerBoundCostToCome_ = cost;
+            }
+
             std::size_t State::getEstimatedEffortToGo() const
             {
                 return estimatedEffortToGo_;
@@ -191,6 +197,11 @@ namespace ompl
             ompl::base::Cost State::getLowerBoundCostToGo() const
             {
                 return lowerBoundCostToGo_;
+            }
+
+            ompl::base::Cost State::getLowerBoundCostToCome() const
+            {
+                return lowerBoundCostToCome_;
             }
 
         }  // namespace eitstar
