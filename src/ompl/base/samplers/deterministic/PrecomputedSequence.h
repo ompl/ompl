@@ -38,7 +38,7 @@
 #define OMPL_BASE_PRECOMPUTED_SEQUENCE
 
 #include "ompl/base/samplers/deterministic/DeterministicSequence.h"
-
+#include <random>
 #include <string>
 
 namespace ompl
@@ -64,6 +64,7 @@ namespace ompl
         private:
             std::vector<std::vector<double>> sample_set_;
             size_t current_index_{0};
+            std::default_random_engine rand_eng_;
 
             /** \brief Reads a specified number of samples of specified dimension from a specified file. */
             void readSamplesFromFile(std::string path, unsigned int dimensions, size_t max_samples = 0);

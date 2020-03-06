@@ -55,7 +55,10 @@ namespace ompl
         {
             readSamplesFromFile(path, dimensions, max_samples);
             if (shuffle)
+            {
+                rand_eng_ = std::default_random_engine{};
                 shuffleSamples();
+            }
         }
 
         std::vector<double> PrecomputedSequence::sample()
@@ -101,8 +104,9 @@ namespace ompl
 
         void PrecomputedSequence::shuffleSamples()
         {
-            std::srand(0);
-            std::random_shuffle(sample_set_.begin(), sample_set_.end());
+            // std::srand(0);
+            std::shuffle(sample_set_.begin(), sample_set_.end(), rand_eng_);
         }
+
     }  // namespace base
 }  // namespace ompl
