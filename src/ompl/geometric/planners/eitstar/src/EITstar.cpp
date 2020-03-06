@@ -625,7 +625,7 @@ namespace ompl
         }
 
         void EITstar::repairReverseSearchTree(const eitstar::Edge &invalidEdge,
-                                                std::shared_ptr<eitstar::State> &invalidatedState)
+                                              std::shared_ptr<eitstar::State> &invalidatedState)
         {
             // The edge is invalid. The reverse tree can be updated.
             invalidatedState->asReverseVertex()->setEdgeCost(objective_->infiniteCost());
