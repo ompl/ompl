@@ -8,7 +8,7 @@ ompl::control::PathControlOptimizer::PathControlOptimizer(base::SpaceInformation
 void ompl::control::PathControlOptimizer::simplify(PathControl* path)
 {
   OMPL_DEBUG("simplify");
-	reduceVertices(*path,10,10,0.33);
+	reduceVertices(*path,20,20,0.33);
   OMPL_DEBUG("done simplify");
 	//path->subdivide() ;
 }
@@ -187,8 +187,7 @@ void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsi
 
     if(distToTarget < targetRegion)
       OMPL_DEBUG("Reached P2");
-
-    if(distToTarget <= targetRegion && (cD == steps))
+    if((distToTarget <= targetRegion && (cD == steps))&&(connectConsecutiveStates(p2, path)))
     {
       if (freeStates_)
       {
@@ -221,5 +220,63 @@ void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsi
 
     
   }
+}
+
+bool ompl::control::PathControlOptimizer::connectConsecutiveStates(unsigned int position, PathControl &path )
+{
+	const PathControl path_old = PathControl(path) ;
+	const base::SpaceInformationPtr &si = path.getSpaceInformation();
+	ompl::control::SpaceInformation *siC = static_cast<ompl::control::SpaceInformation*>(si.get());		
+	
+	std::vector<base::State *> &states = path.getStates();
+	std::vector<Control *> &controls = path.getControls() ;
+	std::vector<double > &controlDurations = path.getControlDurations() ;
+
+    ompl::control::Control *newControl =siC->allocControl() ;
+
+	ompl::control::SimpleDirectedControlSamplerPtr sampler;
+	sampler = siC->allocSimpleDirectedControlSampler();
+	sampler->setNumControlSamples(100);	
+	
+	base::State *state1 = siC->allocState();
+	base::State *state2 = siC->allocState();
+	base::State *state2_tmp = siC->allocState();
+
+
+	for (unsigned int i=position ; i<states.size()-1; ++i)
+	{
+		state1 = siC->cloneState(states.at(i));
+		state2 = siC->cloneState(states.at(i+1));
+		siC->copyState(state2_tmp, state2);
+		
+		
+		//(1) sampleTo might reach state different from P2, and this state might be
+		//reached using propagate while valid.
+		double steps = sampler->sampleTo(newControl, state1, state2_tmp);
+		double cD = siC->propagateWhileValid(state1, newControl, steps, state2_tmp);
+
+		//Check that we reached P2
+		const double d12 = siC->getStateSpace()->distance(state1, state2);
+		const double targetRegion = 0.5 * d12;
+
+		double distToTarget = siC->getStateSpace()->distance(state2_tmp, state2);
+		std::cout << "Trying to connect states: " << i << "  <-->  " << i+1 
+			<< " (dist=" << distToTarget << "<=" 
+			<< targetRegion << ")" << std::endl;
+		
+		if (distToTarget > targetRegion || (cD != steps)) 
+		{
+			std::cout << "State " << i<< " could not be reached" << std::endl;
+			path = PathControl(path_old) ;
+			return false ;
+		}
+		else 
+		{
+			siC->copyControl(controls.at(i), newControl);
+			siC->copyState(states.at(i+1), state2_tmp);
+			controlDurations.at(i)= steps ;
+		}
+	}
+	return true ;
 }
 

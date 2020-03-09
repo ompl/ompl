@@ -21,6 +21,8 @@ namespace ompl
             void simplify(PathControl* path);
 
             void reduceVertices(PathControl &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps =0, double rangeRatio=0.9);
+            
+            bool connectConsecutiveStates(unsigned int position, PathControl &path ) ;
 
             // void collapseCloseVertices(PathControl &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps =0);
 	        //void subdivide(PathControl *path) ;
