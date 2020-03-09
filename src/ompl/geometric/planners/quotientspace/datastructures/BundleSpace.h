@@ -190,7 +190,7 @@ namespace ompl
 
             BundleSpaceComponentFactory componentFactory;
 
-            BundleSpaceMetricPtr metric;
+            BundleSpaceMetricPtr metric_;
 
             BundleSpacePropagatorPtr propagator_;
 

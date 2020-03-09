@@ -6,6 +6,7 @@ FB
 [ ] Make Bundle/Base/Fiber private, so that we have to use custom in-built
 interpolate/distance/addConfiguration methods. (then we can easily add dynamical
 constraints there, usable by any bundle algorithm)
+[ ] render GL output?
 
 MT
 [ ] Clean up Bundle Space Graph Sparse (outsource explorer functions)

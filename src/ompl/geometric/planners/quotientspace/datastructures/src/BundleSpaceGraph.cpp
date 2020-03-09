@@ -340,7 +340,7 @@ void ompl::geometric::BundleSpaceGraph::setNearestNeighbors()
 
 double ompl::geometric::BundleSpaceGraph::distance(const Configuration *a, const Configuration *b) const
 {
-    return metric->distanceBundle(a, b);
+    return metric_->distanceBundle(a, b);
 }
 
 bool ompl::geometric::BundleSpaceGraph::checkMotion(const Configuration *a, const Configuration *b) const
@@ -390,10 +390,10 @@ void ompl::geometric::BundleSpaceGraph::setMetric(const std::string& sMetric)
 {
     if(sMetric == "euclidean"){
         OMPL_DEBUG("Euclidean Metric Selected");
-        metric = std::make_shared<BundleSpaceMetricEuclidean>(this);
+        metric_ = std::make_shared<BundleSpaceMetricEuclidean>(this);
     }else if(sMetric == "shortestpath"){
         OMPL_DEBUG("ShortestPath Metric Selected");
-        metric = std::make_shared<BundleSpaceMetricShortestPath>(this);
+        metric_ = std::make_shared<BundleSpaceMetricShortestPath>(this);
     }else{
         OMPL_ERROR("Metric unknown: %s", sMetric);
         throw ompl::Exception("Unknown Metric");

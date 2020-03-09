@@ -61,21 +61,23 @@ namespace ompl
             virtual void grow() override;
 
             /** \brief sample random node from Probabilty density function*/
-            // void expand();
+            void expand();
 
             Configuration *addMileStone(ompl::base::State *q_state);
 
             virtual void sampleFromDatastructure(ompl::base::State *) override;
 
+            virtual double getImportance() const override;
+
         protected:
 
             /** \brief Instead of sampling directly on graph, we sample in an
              * epsilon neighborhood */
-            double epsilonGraphThickening_{0.1};
+            double epsilonGraphThickening_{0};
 
             /** \brief percentage of times to sample on shortest path instead of
              * full graph */
-            double pathBias_{0.2};
+            double pathBias_{1.0};
 
             /** \brief for different ratio of expand vs grow 1:2*/
             unsigned int counter_{0};
