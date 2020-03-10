@@ -52,7 +52,7 @@ namespace ompl
         using namespace eitstar;
 
         EITstar::EITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo)
-          : ompl::base::Planner(spaceInfo, "AEIT*")
+          : ompl::base::Planner(spaceInfo, "EIT*")
           , graph_(spaceInfo)
           , detectionState_(spaceInfo->allocState())
           , space_(spaceInfo->getStateSpace())
@@ -70,14 +70,14 @@ namespace ompl
             // Check that the problem definition is set.
             if (!problem_)
             {
-                OMPL_ERROR("AEIT* can not be setup without first setting the problem definition.");
+                OMPL_ERROR("EIT* can not be setup without first setting the problem definition.");
                 return;
             }
 
             // Check the goal is of appropriate type.
             if (!problem_->getGoal()->hasType(ompl::base::GOAL_STATE))
             {
-                OMPL_ERROR("AEIT* currently only works for single goal states.");
+                OMPL_ERROR("EIT* currently only works for single goal states.");
                 return;
             }
 
