@@ -7,7 +7,6 @@
 
 namespace ompl
 {
-  //New Notation:
   //
   // Configuration x;
   // Components M
@@ -23,6 +22,7 @@ namespace ompl
         /// \brief A single Bundle-space
         class BundleSpace : public ompl::base::Planner
         {
+        private:
             using BaseT = ompl::base::Planner;
             using BaseT::si_; //make it private. 
             // Note: use getBundle(), getFiber() or getBase() to access the SpaceInformationPtr
@@ -30,19 +30,17 @@ namespace ompl
         public:
             /**  \brief Bundle Space contains three OMPL spaces, which we call Bundle, Base and Fiber.
 
-                 Bundle = Base x Fiber is a product space of Base and Fiber and
-                      is the main Bundle-space of this class
-                 Base is a pointer to the next lower-dimensional Bundle-space and
-                 Fiber is the Bundle-space  Bundle / Base
+                 - Bundle is (locally) a product space of Base and Fiber
+                 - Base is a pointer to the next lower-dimensional Bundle-space (if any) 
+                 - Fiber is the quotient space Bundle / Base
 
                  We assume that Bundle and Base have been given (as ompl::base::SpaceInformationPtr),
-                 and we compute the inverse of the Bundle map, i.e. Fiber = Bundle/Base. */
+                 and we compute automatically the fiber */
 
             BundleSpace(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_ = nullptr);
             ~BundleSpace();
 
             /// \brief solve disabled (use MultiBundle::solve)
-            /// final prevents subclasses to override
             ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override final;
             virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
 
@@ -104,13 +102,14 @@ namespace ompl
 
             /// Level in abstraction hierarchy of Bundle-spaces
             unsigned int getLevel() const;
+
             /// Change abstraction level
             void setLevel(unsigned int);
-            /// Type of Bundle-space
-            // BundleSubspaceType getType() const;
-            /// Set pointer to less simplified Bundle-space
+
+            /// Set pointer to next Bundle-space (more dimensional)
             void setChild(BundleSpace *child_);
-            /// Set pointer to more simplified Bundle-space
+
+            /// Set pointer to previous Bundle-space (less dimensional)
             void setParent(BundleSpace *parent_);
 
             /// \brief Bundle Space Projection Operator onto second component
@@ -188,10 +187,13 @@ namespace ompl
             /** \brief Goal state or goal region */
             ompl::base::Goal *goal_;
 
-            BundleSpaceComponentFactory componentFactory;
+            /** \brief Factory to split space into components */
+            BundleSpaceComponentFactory componentFactory_;
 
+            /** \brief Metric on bundle space */
             BundleSpaceMetricPtr metric_;
 
+            /** \brief Propagator (steering or interpolation) on bundle space */
             BundleSpacePropagatorPtr propagator_;
 
         };

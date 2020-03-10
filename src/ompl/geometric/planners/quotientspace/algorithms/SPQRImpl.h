@@ -64,9 +64,6 @@ namespace ompl
             /** \brief sample random node from Probabilty density function*/
             void expand();
 
-            /** \brief Importance based on how many vertices the tree has */
-            double getImportance() const override;
-
             void addMileStone(Configuration *q_random);
             Configuration *addConfigurationDense(Configuration *q_random);
             bool getPlannerTerminationCondition();

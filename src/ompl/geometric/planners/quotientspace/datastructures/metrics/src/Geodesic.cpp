@@ -1,21 +1,21 @@
-#include <ompl/geometric/planners/quotientspace/datastructures/metrics/BundleSpaceMetricEuclidean.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/metrics/Geodesic.h>
 using namespace ompl::geometric;
 using Configuration = ompl::geometric::BundleSpaceGraph::Configuration;
 
-BundleSpaceMetricEuclidean::BundleSpaceMetricEuclidean(
+BundleSpaceMetricGeodesic::BundleSpaceMetricGeodesic(
     BundleSpaceGraph* bundleSpaceGraph):
   BaseT(bundleSpaceGraph)
 {
 }
 
-double BundleSpaceMetricEuclidean::distanceBundle(
+double BundleSpaceMetricGeodesic::distanceBundle(
     const Configuration *xStart, 
     const Configuration *xDest)
 {
     return bundleSpaceGraph_->getBundle()->distance(xStart->state, xDest->state);
 }
 
-double BundleSpaceMetricEuclidean::distanceFiber(
+double BundleSpaceMetricGeodesic::distanceFiber(
     const Configuration *xStart, 
     const Configuration *xDest)
 {
@@ -31,7 +31,7 @@ double BundleSpaceMetricEuclidean::distanceFiber(
 		}
 }
 
-double BundleSpaceMetricEuclidean::distanceBase(
+double BundleSpaceMetricGeodesic::distanceBase(
     const Configuration *xStart, 
     const Configuration *xDest)
 {

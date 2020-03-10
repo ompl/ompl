@@ -1,4 +1,4 @@
-#include <ompl/geometric/planners/quotientspace/datastructures/metrics/BundleSpaceMetricShortestPath.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/metrics/ShortestPath.h>
 #include <ompl/geometric/PathGeometric.h>
 
 
@@ -38,7 +38,7 @@ double BundleSpaceMetricShortestPath::distanceBase(
     const Configuration *xStart, 
     const Configuration *xDest)
 {
-    OMPL_WARN("Computing euclidean distance on base space. If you want the graph-based distance, call distanceBundle instead.");
+    OMPL_WARN("Computing geodesic distance on base space. If you want the graph-based distance, call distanceBundle instead.");
     return BaseT::distanceBase(xStart, xDest);
 }
 

@@ -27,22 +27,3 @@ ompl::geometric::BundleSpaceMetric::~BundleSpaceMetric()
         bundleSpaceGraph_->getBase()->freeState(xBaseDestTmp_);
     }
 }
-// double BundleSpaceMetric::distanceBundle(
-//     const Configuration *xStart, 
-//     const Configuration *xDest)
-// {
-//     return distanceBundle(xStart->state, xDest->state);
-// }
-// double BundleSpaceMetric::distanceFiber(
-//     const Configuration *xStart, 
-//     const Configuration *xDest)
-// {
-//     return distanceFiber(xStart->state, xDest->state);
-// }
-// double BundleSpaceMetric::distanceBase(
-//     const Configuration *xStart, 
-//     const Configuration *xDest)
-// {
-//     return distanceBase(xStart->state, xDest->state);
-// }
-

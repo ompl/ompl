@@ -67,8 +67,6 @@ namespace ompl
 
             virtual void sampleFromDatastructure(ompl::base::State *) override;
 
-            virtual double getImportance() const override;
-
         protected:
 
             /** \brief Instead of sampling directly on graph, we sample in an

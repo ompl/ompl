@@ -187,25 +187,6 @@ ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SPQRImpl::ad
     return q_next;
 }
 
-double ompl::geometric::SPQRImpl::getImportance() const
-{
-    // Should depend on
-    // (1) level : The higher the level, the more importance
-    // (2) total samples: the more we already sampled, the less important it
-    // becomes
-    // (3) has solution: if it already has a solution, we should explore less
-    // (only when nothing happens on other levels)
-    // (4) vertices: the more vertices we have, the less important (let other
-    // levels also explore)
-    //
-    // exponentially more samples on level i. Should depend on ALL levels.
-    // const double base = 2;
-    // const double normalizer = powf(base, level);
-    // double N = (double)GetNumberOfVertices()/normalizer;
-    double N = (double)getNumberOfVertices();
-    return 1.0 / (N + 1);
-}
-
 bool ompl::geometric::SPQRImpl::getPlannerTerminationCondition()
 {
     return hasSolution_ || consecutiveFailures_ > maxFailures_;

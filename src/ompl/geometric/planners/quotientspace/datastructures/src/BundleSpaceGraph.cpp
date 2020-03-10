@@ -38,9 +38,14 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/src/BundleSpaceGraphGoalVisitor.hpp>
+// #include <ompl/geometric/planners/quotientspace/datastructures/importance/BundleSpaceImportance.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/graphsampler/GraphSampler.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/importance/Greedy.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/importance/Exponential.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/importance/Uniform.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/metrics/BundleSpaceMetric.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/metrics/BundleSpaceMetricEuclidean.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/metrics/BundleSpaceMetricShortestPath.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/metrics/Geodesic.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/metrics/ShortestPath.h>
 
 #include <ompl/geometric/planners/quotientspace/datastructures/propagators/BundleSpacePropagator.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/propagators/BundleSpacePropagatorGeometric.h>
@@ -68,7 +73,10 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
   : BaseT(si, parent_)
 {
     setName("BundleSpaceGraph");
-    setMetric("euclidean");
+
+    setMetric("geodesic");
+    setGraphSampler("vertex");
+    setImportance("uniform");
 
     if(isDynamic())
     {
@@ -220,8 +228,7 @@ void ompl::geometric::BundleSpaceGraph::clearQuery()
 
 double ompl::geometric::BundleSpaceGraph::getImportance() const
 {
-    double N = (double)getNumberOfVertices();
-    return 1.0 / (N + 1);
+    return importanceCalculator_->eval();
 }
 
 void ompl::geometric::BundleSpaceGraph::init()
@@ -353,11 +360,12 @@ void ompl::geometric::BundleSpaceGraph::interpolate(
     const Configuration *b, 
     Configuration *dest) const
 {
-    double d = distance(a, b);
-    if (d > maxDistance_)
-    {
-        getBundle()->getStateSpace()->interpolate(a->state, b->state, maxDistance_ / d, dest->state);
-    }
+    // double d = distance(a, b);
+    // if (d > maxDistance_)
+    // {
+        // getBundle()->getStateSpace()->interpolate(a->state, b->state, maxDistance_ / d, dest->state);
+    // }
+    getBundle()->getStateSpace()->interpolate(a->state, b->state, 1.0, dest->state);
 }
 
 Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards(
@@ -388,15 +396,43 @@ void ompl::geometric::BundleSpaceGraph::setPropagator(const std::string& sPropag
 
 void ompl::geometric::BundleSpaceGraph::setMetric(const std::string& sMetric)
 {
-    if(sMetric == "euclidean"){
-        OMPL_DEBUG("Euclidean Metric Selected");
-        metric_ = std::make_shared<BundleSpaceMetricEuclidean>(this);
+    if(sMetric == "geodesic"){
+        OMPL_DEBUG("Geodesic Metric Selected");
+        metric_ = std::make_shared<BundleSpaceMetricGeodesic>(this);
     }else if(sMetric == "shortestpath"){
         OMPL_DEBUG("ShortestPath Metric Selected");
         metric_ = std::make_shared<BundleSpaceMetricShortestPath>(this);
     }else{
         OMPL_ERROR("Metric unknown: %s", sMetric);
         throw ompl::Exception("Unknown Metric");
+    }
+}
+
+void ompl::geometric::BundleSpaceGraph::setImportance(const std::string& sImportance)
+{
+    if(sImportance == "uniform"){
+        OMPL_DEBUG("Uniform Importance Selected");
+        importanceCalculator_ = std::make_shared<BundleSpaceImportanceUniform>(this);
+    }else if(sImportance == "greedy"){
+        OMPL_DEBUG("Greedy Importance Selected");
+        importanceCalculator_ = std::make_shared<BundleSpaceImportanceGreedy>(this);
+    }else if(sImportance == "exponential"){
+        OMPL_DEBUG("Greedy Importance Selected");
+        importanceCalculator_ = std::make_shared<BundleSpaceImportanceExponential>(this);
+    }else{
+        OMPL_ERROR("Importance calculator unknown: %s", sImportance);
+        throw ompl::Exception("Unknown Importance");
+    }
+}
+
+void ompl::geometric::BundleSpaceGraph::setGraphSampler(const std::string& sGraphSampler)
+{
+    if(sGraphSampler == "vertex"){
+        OMPL_DEBUG("Vertex Sampler Selected");
+        graphSampler_ = std::make_shared<BundleSpaceGraphSampler>(this);
+    }else{
+        OMPL_ERROR("Sampler unknown: %s", sGraphSampler);
+        throw ompl::Exception("Unknown Graph Sampler");
     }
 }
 

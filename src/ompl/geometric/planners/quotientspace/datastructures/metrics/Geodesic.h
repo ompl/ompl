@@ -1,18 +1,18 @@
-#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_METRICS_BUNDLEMETRIC_EUCLIDEAN__
-#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_METRICS_BUNDLEMETRIC_EUCLIDEAN__
+#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_METRICS_BUNDLEMETRIC_GEODESIC__
+#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_METRICS_BUNDLEMETRIC_GEODESIC__
 #include <ompl/geometric/planners/quotientspace/datastructures/metrics/BundleSpaceMetric.h>
 
 namespace ompl
 {
   namespace geometric
   {
-    class BundleSpaceMetricEuclidean: public BundleSpaceMetric
+    class BundleSpaceMetricGeodesic: public BundleSpaceMetric
     {
         using BaseT = BundleSpaceMetric;
       public:
-        BundleSpaceMetricEuclidean() = delete;
-        BundleSpaceMetricEuclidean(BundleSpaceGraph*); 
-        virtual ~BundleSpaceMetricEuclidean() override = default;
+        BundleSpaceMetricGeodesic() = delete;
+        BundleSpaceMetricGeodesic(BundleSpaceGraph*); 
+        virtual ~BundleSpaceMetricGeodesic() override = default;
 
         virtual double distanceBundle(
             const Configuration *xStart, 

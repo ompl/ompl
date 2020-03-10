@@ -60,7 +60,13 @@ namespace ompl
     {
         const double dInf = std::numeric_limits<double>::infinity();
         OMPL_CLASS_FORWARD(OptimizationObjective);
-    }  // namespace base
+    }
+    namespace geometric
+    {
+        OMPL_CLASS_FORWARD(BundleSpaceImportance);
+        OMPL_CLASS_FORWARD(BundleSpaceGraphSampler);
+    }
+
     namespace geometric
     {
         /** \brief A graph on a Bundle-space */
@@ -228,6 +234,8 @@ namespace ompl
 
             virtual void setMetric(const std::string& sMetric) override;
             virtual void setPropagator(const std::string& sPropagator) override;
+            virtual void setImportance(const std::string& sImportance);
+            virtual void setGraphSampler(const std::string& sGraphSampler);
 
             ompl::base::Cost bestCost_{+ompl::base::dInf};
             Configuration *qStart_{nullptr};
@@ -315,6 +323,10 @@ namespace ompl
             Configuration *xApproximateNearest_{nullptr};
 
             double bestDist_{base::dInf};
+
+            BundleSpaceImportancePtr importanceCalculator_;
+
+            BundleSpaceGraphSamplerPtr graphSampler_;
         };
     }  // namespace geometric
 }  // namespace ompl

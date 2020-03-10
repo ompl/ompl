@@ -46,8 +46,8 @@
 ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QMPImpl" + std::to_string(id_));
-    // setMetric("euclidean");
     setMetric("shortestpath");
+    setImportance("exponential");
     // setSampler("random_vertex");
 
     randomWorkStates_.resize(5);
@@ -184,25 +184,11 @@ ompl::geometric::BundleSpaceGraph::Configuration *ompl::geometric::QMPImpl::addM
     return q_next;
 }
 
-double ompl::geometric::QMPImpl::getImportance() const
-{
-
-  if(hasSolution_ && hasChild()){
-    return 0.0;
-  }else{
-    return 1.0;
-  }
-    // double N = (double)getNumberOfVertices();
-
-    // return 1.0 / (N + 1);
-}
 void ompl::geometric::QMPImpl::sampleFromDatastructure(base::State *xRandom)
 {
     double p = rng_.uniform01();
     if(lengthStartGoalVertexPath_ > 0 && p < pathBias_)
     {
-      std::cout << std::string(80, '-') << std::endl;
-      std::cout << "Sampling from Path with length " << lengthStartGoalVertexPath_ << std::endl;
         //(1) Sample randomly on shortest path
         double p = rng_.uniform01() * lengthStartGoalVertexPath_;
 
@@ -227,7 +213,6 @@ void ompl::geometric::QMPImpl::sampleFromDatastructure(base::State *xRandom)
         getBundle()->getStateSpace()->interpolate(graph_[v1]->state, graph_[v2]->state, s, xRandom);
 
     }else{
-      OMPL_ERROR("SAMPLING from graph");
         //(2) Sample randomly on graph
         BaseT::sampleFromDatastructure(xRandom);
     }

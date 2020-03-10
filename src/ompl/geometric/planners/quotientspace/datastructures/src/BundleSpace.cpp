@@ -33,14 +33,14 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
 
     if (!hasParent())
     {
-        components_ = componentFactory.MakeBundleSpaceComponents(Bundle);
+        components_ = componentFactory_.MakeBundleSpaceComponents(Bundle);
     }
     else
     {
         parent_->setChild(this);
         Base = parent_->getBundle();
 
-        components_ = componentFactory.MakeBundleSpaceComponents(Bundle, Base);
+        components_ = componentFactory_.MakeBundleSpaceComponents(Bundle, Base);
 
         MakeFiberSpace();
     }

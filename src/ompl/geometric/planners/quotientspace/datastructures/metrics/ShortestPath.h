@@ -1,15 +1,15 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_METRICS_BUNDLEMETRIC_SHORTEST_PATH_
 #define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_METRICS_BUNDLEMETRIC_SHORTEST_PATH_
-#include <ompl/geometric/planners/quotientspace/datastructures/metrics/BundleSpaceMetricEuclidean.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/metrics/Geodesic.h>
 
 namespace ompl
 {
   namespace geometric
   {
     OMPL_CLASS_FORWARD(PathGeometric);
-    class BundleSpaceMetricShortestPath: public BundleSpaceMetricEuclidean
+    class BundleSpaceMetricShortestPath: public BundleSpaceMetricGeodesic
     {
-        using BaseT = BundleSpaceMetricEuclidean;
+        using BaseT = BundleSpaceMetricGeodesic;
       public:
         BundleSpaceMetricShortestPath() = delete;
         BundleSpaceMetricShortestPath(BundleSpaceGraph*); 

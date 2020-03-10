@@ -122,7 +122,7 @@ namespace ompl
                 }
             };
             /** \brief \brief Priority queue of BundleSpaces which keeps track of how often
-                every tree on each space has been expanded. */
+                every graph on each space has been expanded. */
             typedef std::priority_queue<BundleSpace *, std::vector<BundleSpace *>, CmpBundleSpacePtrs>
                 BundleSpacePriorityQueue;
             BundleSpacePriorityQueue priorityQueue_;
