@@ -151,16 +151,7 @@ namespace ompl
                 startState_->setLowerBoundCostToGo(objective_->costToGo(startState, problem_->getGoal().get()));
 
                 // Set the lower bound for the cost to come.
-                for (std::size_t i = 0u; i < problem_->getStartStateCount(); ++i)
-                {
-                    if (objective_->isCostBetterThan(
-                            objective_->motionCostHeuristic(startState_->raw(), problem_->getStartState(i)),
-                            startState_->getLowerBoundCostToCome()))
-                    {
-                        startState_->setLowerBoundCostToCome(
-                            objective_->motionCostHeuristic(startState_->raw(), problem_->getStartState(i)));
-                    }
-                }
+                startState_->setLowerBoundCostToCome(objective_->identityCost());
 
                 // Copy the given state.
                 spaceInfo_->copyState(startState_->raw(), startState);
