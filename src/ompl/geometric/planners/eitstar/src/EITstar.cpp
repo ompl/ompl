@@ -651,6 +651,9 @@ namespace ompl
             // Reset the suboptimality factor.
             suboptimalityFactor_ = std::numeric_limits<double>::infinity();
 
+            // Reset the reverse collision detection.
+            detectionInterpolationValues_.clear();
+
             // Restart the reverse search.
             reverseRoot_.reset();
             reverseRoot_ = graph_.getGoalState()->asReverseVertex();
