@@ -41,6 +41,7 @@
 #include <random>
 #include <cassert>
 #include <cstdint>
+#include <algorithm>
 
 #include "ompl/config.h"
 #include "ompl/util/ProlateHyperspheroid.h"
