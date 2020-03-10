@@ -302,6 +302,8 @@ namespace ompl
                 }
                 case Phase::IMPROVE_APPROXIMATION:
                 {
+                    reverseQueue_->clear();
+                    forwardQueue_->clear();
                     improveApproximation();
                     break;
                 }
@@ -465,7 +467,6 @@ namespace ompl
             // If the forward queue is empty, move on to the next phase.
             if (phase_ == Phase::FORWARD_SEARCH && forwardQueue_->empty())
             {
-                reverseQueue_->clear();
                 phase_ = Phase::IMPROVE_APPROXIMATION;
             }
         }
@@ -637,7 +638,6 @@ namespace ompl
                 }
                 else
                 {
-                    forwardQueue_->clear();
                     phase_ = Phase::IMPROVE_APPROXIMATION;
                 }
             }
@@ -818,15 +818,13 @@ namespace ompl
                 if (insertedEdge)
                 {
                     jitSearchEdgeCache_ = forwardQueue_->getEdges();
+                    forwardQueue_->clear();
                     phase_ = reverseQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::REVERSE_SEARCH;
                 }
                 else
                 {
                     phase_ = Phase::IMPROVE_APPROXIMATION;
                 }
-
-                // Either way, the forward queue should be cleared.
-                forwardQueue_->clear();
             }
         }
 
@@ -857,13 +855,13 @@ namespace ompl
             {
                 // Store the edges in the forward queue in the cache.
                 jitSearchEdgeCache_ = forwardQueue_->getEdges();
+                forwardQueue_->clear();
                 phase_ = Phase::REVERSE_SEARCH;
             }
             else
             {
                 phase_ = Phase::IMPROVE_APPROXIMATION;
             }
-            forwardQueue_->clear();
         }
 
         bool EITstar::couldImproveForwardPath(const Edge &edge) const
