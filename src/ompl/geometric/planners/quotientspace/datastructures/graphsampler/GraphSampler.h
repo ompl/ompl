@@ -9,18 +9,24 @@ namespace ompl
 {
     namespace geometric
     {
-      class BundleSpaceGraphSampler{
-        using Vertex = ompl::geometric::BundleSpaceGraph::Vertex;
+      class BundleSpaceGraphSampler
+      {
+        protected:
+          using Vertex = ompl::geometric::BundleSpaceGraph::Vertex;
+
         public:
           BundleSpaceGraphSampler() = delete;
           BundleSpaceGraphSampler(BundleSpaceGraph*); 
 
-          void sample(base::State *xRandom);
-      protected:
-        using RNGType = boost::minstd_rand;
-        RNGType rng_boost;
+          virtual void sample(base::State *xRandom) = 0;
 
-        BundleSpaceGraph* bundleSpaceGraph_;
+        protected:
+
+          using RNGType = boost::minstd_rand;
+          RNGType rng_boost;
+          RNG rng_;
+
+          BundleSpaceGraph* bundleSpaceGraph_;
       };
     }  // namespace geometric
 }  // namespace ompl

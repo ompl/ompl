@@ -38,18 +38,16 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/src/BundleSpaceGraphGoalVisitor.hpp>
-// #include <ompl/geometric/planners/quotientspace/datastructures/importance/BundleSpaceImportance.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/graphsampler/GraphSampler.h>
+
+#include <ompl/geometric/planners/quotientspace/datastructures/graphsampler/RandomVertex.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/graphsampler/RandomEdge.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/importance/Greedy.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/importance/Exponential.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/importance/Uniform.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/metrics/BundleSpaceMetric.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/metrics/Geodesic.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/metrics/ShortestPath.h>
-
-#include <ompl/geometric/planners/quotientspace/datastructures/propagators/BundleSpacePropagator.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/propagators/BundleSpacePropagatorGeometric.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/propagators/BundleSpacePropagatorDynamic.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/propagators/Geometric.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/propagators/Dynamic.h>
 
 #include <ompl/geometric/planners/prm/ConnectionStrategy.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
@@ -74,8 +72,9 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
 {
     setName("BundleSpaceGraph");
 
+    //Functional primitives
     setMetric("geodesic");
-    setGraphSampler("vertex");
+    setGraphSampler("randomvertex");
     setImportance("uniform");
 
     if(isDynamic())
@@ -389,7 +388,7 @@ void ompl::geometric::BundleSpaceGraph::setPropagator(const std::string& sPropag
     }else if(sPropagator == "dynamic"){
         propagator_ = std::make_shared<BundleSpacePropagatorDynamic>(this);
     }else{
-        OMPL_ERROR("Propagator unknown: %s", sPropagator);
+        OMPL_ERROR("Propagator unknown: %s", sPropagator.c_str());
         throw ompl::Exception("Unknown Propagator");
     }
 }
@@ -403,7 +402,7 @@ void ompl::geometric::BundleSpaceGraph::setMetric(const std::string& sMetric)
         OMPL_DEBUG("ShortestPath Metric Selected");
         metric_ = std::make_shared<BundleSpaceMetricShortestPath>(this);
     }else{
-        OMPL_ERROR("Metric unknown: %s", sMetric);
+        OMPL_ERROR("Metric unknown: %s", sMetric.c_str());
         throw ompl::Exception("Unknown Metric");
     }
 }
@@ -420,18 +419,21 @@ void ompl::geometric::BundleSpaceGraph::setImportance(const std::string& sImport
         OMPL_DEBUG("Greedy Importance Selected");
         importanceCalculator_ = std::make_shared<BundleSpaceImportanceExponential>(this);
     }else{
-        OMPL_ERROR("Importance calculator unknown: %s", sImportance);
+        OMPL_ERROR("Importance calculator unknown: %s", sImportance.c_str());
         throw ompl::Exception("Unknown Importance");
     }
 }
 
 void ompl::geometric::BundleSpaceGraph::setGraphSampler(const std::string& sGraphSampler)
 {
-    if(sGraphSampler == "vertex"){
-        OMPL_DEBUG("Vertex Sampler Selected");
-        graphSampler_ = std::make_shared<BundleSpaceGraphSampler>(this);
+    if(sGraphSampler == "randomvertex"){
+        OMPL_DEBUG("Random Vertex Sampler Selected");
+        graphSampler_ = std::make_shared<BundleSpaceGraphSamplerRandomVertex>(this);
+    }else if(sGraphSampler == "randomedge"){
+        OMPL_DEBUG("Random Edge Sampler Selected");
+        graphSampler_ = std::make_shared<BundleSpaceGraphSamplerRandomEdge>(this);
     }else{
-        OMPL_ERROR("Sampler unknown: %s", sGraphSampler);
+        OMPL_ERROR("Sampler unknown: %s", sGraphSampler.c_str());
         throw ompl::Exception("Unknown Graph Sampler");
     }
 }
@@ -598,33 +600,8 @@ void ompl::geometric::BundleSpaceGraph::sampleBundleGoalBias(base::State *xRando
 
 void ompl::geometric::BundleSpaceGraph::sampleFromDatastructure(base::State *xRandom)
 {
-    // RANDOM VERTEX SAMPLING
-    const Vertex v = boost::random_vertex(graph_, rng_boost);
-    getBundle()->getStateSpace()->copyState(xRandom, graph_[v]->state);
+    graphSampler_->sample(xRandom);
 }
-
-// bool ompl::geometric::BundleSpaceGraph::sampleFromDatastructure(base::State *q_random_graph)
-// {
-//     // RANDOM EDGE SAMPLING
-//     if (num_edges(graph_) == 0)
-//         return false;
-
-//     Edge e = boost::random_edge(graph_, rng_boost);
-//     while (!sameComponent(boost::source(e, graph_), vStart_))
-//     {
-//         e = boost::random_edge(graph_, rng_boost);
-//     }
-
-//     double s = rng_.uniform01();
-
-//     const Vertex v1 = boost::source(e, graph_);
-//     const Vertex v2 = boost::target(e, graph_);
-//     const base::State *from = graph_[v1]->state;
-//     const base::State *to = graph_[v2]->state;
-
-//     getBundle()->getStateSpace()->interpolate(from, to, s, q_random_graph);
-//     return true;
-// }
 
 void ompl::geometric::BundleSpaceGraph::print(std::ostream &out) const
 {

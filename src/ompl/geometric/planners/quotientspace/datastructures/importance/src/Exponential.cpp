@@ -14,5 +14,6 @@ double ompl::geometric::BundleSpaceImportanceExponential::eval()
     const double base = 2;
     const double normalizer = powf(base, bundleSpaceGraph_->getLevel());
     double N = (double)bundleSpaceGraph_->getNumberOfVertices()/normalizer;
+    return 1.0 / (N + 1.0);
 }
 

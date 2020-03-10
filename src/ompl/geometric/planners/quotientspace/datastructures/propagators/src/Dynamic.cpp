@@ -1,4 +1,4 @@
-#include "../BundleSpacePropagatorDynamic.h"
+#include <ompl/geometric/planners/quotientspace/datastructures/propagators/Dynamic.h>
 #include <ompl/base/DynamicalMotionValidator.h>
 
 ompl::geometric::BundleSpacePropagatorDynamic::BundleSpacePropagatorDynamic(

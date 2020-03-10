@@ -1,4 +1,4 @@
-#include "../BundleSpacePropagatorGeometric.h"
+#include <ompl/geometric/planners/quotientspace/datastructures/propagators/Geometric.h>
 
 ompl::geometric::BundleSpacePropagatorGeometric::BundleSpacePropagatorGeometric(
     BundleSpaceGraph *bundleSpaceGraph):

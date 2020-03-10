@@ -49,7 +49,7 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/random.hpp>
-#include <boost/graph/subgraph.hpp>
+// #include <boost/graph/subgraph.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/variate_generator.hpp>

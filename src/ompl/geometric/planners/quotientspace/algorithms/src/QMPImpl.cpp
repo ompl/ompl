@@ -46,9 +46,10 @@
 ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QMPImpl" + std::to_string(id_));
+
     setMetric("shortestpath");
     setImportance("exponential");
-    // setSampler("random_vertex");
+    setGraphSampler("randomvertex");
 
     randomWorkStates_.resize(5);
     getBundle()->allocStates(randomWorkStates_);
