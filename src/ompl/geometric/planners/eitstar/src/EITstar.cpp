@@ -947,22 +947,25 @@ namespace ompl
                 return false;
             }
             // Ok, fine, we have to do work.
-            else if (motionValidator_->checkMotion(edge.source->raw(), edge.target->raw()))
-            {
-                // Whitelist this edge.
-                edge.source->whitelist(edge.target);
-                edge.target->whitelist(edge.source);
-                return true;
-            }
             else
             {
-                // Blacklist this edge.
-                edge.source->blacklist(edge.target);
-                edge.target->blacklist(edge.source);
+                if (motionValidator_->checkMotion(edge.source->raw(), edge.target->raw()))
+                {
+                    // Whitelist this edge.
+                    edge.source->whitelist(edge.target);
+                    edge.target->whitelist(edge.source);
+                    return true;
+                }
+                else
+                {
+                    // Blacklist this edge.
+                    edge.source->blacklist(edge.target);
+                    edge.target->blacklist(edge.source);
 
-                // Register it with the graph.
-                graph_.registerInvalidEdge(edge);
-                return false;
+                    // Register it with the graph.
+                    graph_.registerInvalidEdge(edge);
+                    return false;
+                }
             }
         }
 
