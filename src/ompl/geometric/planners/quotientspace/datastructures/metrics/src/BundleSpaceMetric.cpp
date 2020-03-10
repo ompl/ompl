@@ -27,3 +27,18 @@ ompl::geometric::BundleSpaceMetric::~BundleSpaceMetric()
         bundleSpaceGraph_->getBase()->freeState(xBaseDestTmp_);
     }
 }
+
+void ompl::geometric::BundleSpaceMetric::interpolateBundle(
+    const Configuration *q_from, 
+    const Configuration *q_to, 
+    Configuration* q_interp)
+{
+    interpolateBundle(q_from, q_to, 1.0, q_interp);
+}
+
+void ompl::geometric::BundleSpaceMetric::interpolateBundle(
+    const Configuration *q_from, 
+    Configuration *q_to)
+{
+    interpolateBundle(q_from, q_to, q_to);
+}

@@ -133,3 +133,45 @@ BundleSpaceMetricShortestPath::getInterpolationPath(
   pathBundle.push_back(xDest);
   return pathBundle;
 }
+
+void BundleSpaceMetricShortestPath::interpolateBundle(
+    const Configuration *q_from, 
+    const Configuration *q_to, 
+    const double step, 
+    Configuration* q_interp)
+{
+    if(bundleSpaceGraph_->getBaseDimension() <= 0){
+        return BaseT::interpolateBundle(q_from, q_to, step, q_interp);
+    }else{
+        std::vector<const Configuration*> path = getInterpolationPath(q_from, q_to);
+        double d_path = 0;
+        for(uint k = 0; k < path.size()-1; k++){
+          d_path += BaseT::distanceBundle(path.at(k), path.at(k+1));
+        }
+
+        double d_step = step*d_path;
+        double d_last_to_next = 0;
+
+        unsigned int ctr = 0;
+        double d = 0;
+        while(d < d_step && ctr < path.size()-1){
+          d_last_to_next = BaseT::distanceBundle(path.at(ctr), path.at(ctr+1));
+          d += d_last_to_next;
+          ctr++;
+        }
+
+        const Configuration *q_last = path.at(ctr-1);
+        const Configuration *q_next = path.at(ctr);
+
+        //|--------------------- d_path -----------------------|
+        //|----------------- d_step -------------|
+        //                                |-- d_last_to_next --|
+        //                                |-step-|
+        //q1 ----- q2 ------ ... ----- q_last ---|---------- q_next
+
+        double step = (d_last_to_next - (d - d_step))/d_last_to_next;
+
+        BaseT::interpolateBundle(q_last, q_next, step, q_interp);
+
+    }
+}

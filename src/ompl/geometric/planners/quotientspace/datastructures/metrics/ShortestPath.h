@@ -29,6 +29,7 @@ namespace ompl
             const Configuration *xStart, 
             const Configuration *xDest);
 
+        virtual void interpolateBundle(const Configuration *q_from, const Configuration *q_to, const double step, Configuration* q_interp) override;
     };
   }
 }

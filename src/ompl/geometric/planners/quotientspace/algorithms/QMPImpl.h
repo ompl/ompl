@@ -75,7 +75,7 @@ namespace ompl
 
             /** \brief percentage of times to sample on shortest path instead of
              * full graph */
-            double pathBias_{1.0};
+            double pathBias_{0.1};
 
             /** \brief for different ratio of expand vs grow 1:2*/
             unsigned int counter_{0};

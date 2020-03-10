@@ -47,6 +47,15 @@ double BundleSpaceMetricGeodesic::distanceBase(
 		}
 }
 
+void BundleSpaceMetricGeodesic::interpolateBundle(
+    const Configuration *q_from, 
+    const Configuration *q_to, 
+    const double step, 
+    Configuration* q_interp)
+{
+    bundleSpaceGraph_->getBundle()->getStateSpace()->interpolate(
+        q_from->state, q_to->state, step, q_interp->state);
+}
 
 // void interpolateBundle(
 //     const Configuration *xStart, 

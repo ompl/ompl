@@ -278,11 +278,6 @@ namespace ompl
                 const Configuration *from, 
                 const Configuration *to);
 
-            // virtual bool propagateBundle(
-            //     const Configuration *from, 
-            //     const Configuration *to, 
-            //     Configuration *result) const;
-
             virtual void interpolate(
                 const Configuration *a, 
                 const Configuration *b, 

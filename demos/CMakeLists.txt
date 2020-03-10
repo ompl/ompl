@@ -50,7 +50,6 @@ if (OMPL_BUILD_DEMOS)
     add_ompl_demo(demo_QuotientSpacePlanningRigidBody3D QuotientSpacePlanningRigidBody3D.cpp)
     add_ompl_demo(demo_QuotientSpacePlanningKinematicChain QuotientSpacePlanningKinematicChain.cpp)
     add_ompl_demo(demo_QuotientSpacePlanningHyperCube QuotientSpacePlanningHyperCube.cpp)
-    add_ompl_demo(demo_QuotientSpacePlanningHyperCubeRelaxation QuotientSpacePlanningHyperCubeRelaxation.cpp)
     add_ompl_demo(demo_QuotientSpacePlanningHyperCubeBenchmark QuotientSpacePlanningHyperCubeBenchmark.cpp)
 
     if (OMPL_EXTENSION_ODE)

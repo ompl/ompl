@@ -354,17 +354,22 @@ bool ompl::geometric::BundleSpaceGraph::checkMotion(const Configuration *a, cons
     return getBundle()->checkMotion(a->state, b->state);
 }
 
+// void ompl::geometric::BundleSpaceGraph::interpolate(
+//     const base::State *a,
+//     const base::State *b, 
+//     base::State *dest) const
+// {
+//     // getBundle()->getStateSpace()->interpolate(a, b, 1.0, dest);
+//     metric_->interpolateBundle(a, b, dest);
+// }
+
 void ompl::geometric::BundleSpaceGraph::interpolate(
     const Configuration *a, 
     const Configuration *b, 
     Configuration *dest) const
 {
-    // double d = distance(a, b);
-    // if (d > maxDistance_)
-    // {
-        // getBundle()->getStateSpace()->interpolate(a->state, b->state, maxDistance_ / d, dest->state);
-    // }
-    getBundle()->getStateSpace()->interpolate(a->state, b->state, 1.0, dest->state);
+    metric_->interpolateBundle(a, b, dest);
+    // interpolate(a->state, b->state, dest->state);
 }
 
 Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards(
