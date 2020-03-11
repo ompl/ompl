@@ -9,6 +9,7 @@
 
 
 
+
 namespace ompl
 {
     namespace control
@@ -22,7 +23,9 @@ namespace ompl
 
             void reduceVertices(PathControl &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps =0, double rangeRatio=0.9);
             
-            bool connectConsecutiveStates(unsigned int position, PathControl &path ) ;
+            bool connectConsecutiveStates(unsigned int position, ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, SimpleDirectedControlSamplerPtr sampler ) ;
+            
+			bool connectStateToGoal(unsigned int position, ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, SimpleDirectedControlSamplerPtr sampler ) ;
 
             // void collapseCloseVertices(PathControl &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps =0);
 	        //void subdivide(PathControl *path) ;
