@@ -329,9 +329,9 @@ control::SpaceInformation* siC, SimpleDirectedControlSamplerPtr sampler )
           siC->freeState(states.at(j));
           siC->freeControl(controls.at(j));
         }	
-        states.erase(states.begin() + position + 1, states.end() -1);	
-        controls.erase(controls.begin() + position + 1, controls.end() -1);	
-        controlDurations.erase(controlDurations.begin() + position + 1, controlDurations.end() -1);	
+        states.erase(states.begin() + position + 1, states.end() );	
+        controls.erase(controls.begin() + position + 1, controls.end());	
+        controlDurations.erase(controlDurations.begin() + position + 1, controlDurations.end());	
 		siC->copyControl(controls.back() , newControl) ;
 		controlDurations.back()= steps ;
 		
