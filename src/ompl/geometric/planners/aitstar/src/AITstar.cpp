@@ -200,6 +200,13 @@ namespace ompl
 
         void AITstar::getPlannerData(base::PlannerData &data) const
         {
+            // base::PlannerDataVertex takes a raw pointer to a state. I want to guarantee, that the state lives as long
+            // as the program lives.
+            static std::set<
+                std::shared_ptr<aitstar::Vertex>,
+                std::function<bool(const std::shared_ptr<aitstar::Vertex> &, const std::shared_ptr<aitstar::Vertex> &)>>
+                liveStates([](const auto &lhs, const auto &rhs) { return lhs->getId() < rhs->getId(); });
+
             // Fill the planner progress properties.
             Planner::getPlannerData(data);
 
@@ -209,6 +216,9 @@ namespace ompl
             // Add the vertices and edges.
             for (const auto &vertex : vertices)
             {
+                // Add the vertex to the live states.
+                liveStates.insert(vertex);
+
                 // Add the vertex as the right kind of vertex.
                 if (graph_.isStart(vertex))
                 {
@@ -241,6 +251,11 @@ namespace ompl
         void AITstar::setRewireFactor(double rewireFactor)
         {
             graph_.setRewireFactor(rewireFactor);
+        }
+
+        void AITstar::enablePruning(bool prune)
+        {
+            isPruningEnabled_ = prune;
         }
 
         void AITstar::setRepairBackwardSearch(bool repairBackwardSearch)
@@ -424,9 +439,6 @@ namespace ompl
                 }
                 else  // If both queues are empty, add new samples.
                 {
-                    // Add new samples to the graph.
-                    auto newVertices = graph_.addSamples(batchSize_);
-
                     // Clear the backward queue.
                     std::vector<std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>>>
                         backwardQueue;
@@ -452,6 +464,15 @@ namespace ompl
 
                     // Clear the cache of edges to be inserted.
                     edgesToBeInserted_.clear();
+
+                    // Remove useless samples from the graph.
+                    if (isPruningEnabled_)
+                    {
+                        graph_.prune();
+                    }
+
+                    // Add new samples to the graph.
+                    auto newVertices = graph_.addSamples(batchSize_);
 
                     // Add the goals to the backward queue.
                     for (const auto &goal : graph_.getGoalVertices())
@@ -494,7 +515,8 @@ namespace ompl
                 {
                     std::vector<aitstar::Edge> edges;
                     forwardQueue_->getContent(edges);
-                    for (const auto& edge : edges) {
+                    for (const auto &edge : edges)
+                    {
                         edge.getChild()->resetForwardQueueLookup();
                     }
                     forwardQueue_->clear();
@@ -812,6 +834,7 @@ namespace ompl
                         auto forwardQueueLookup = vertex.lock()->getForwardQueueLookup();
                         for (const auto &element : forwardQueueLookup)
                         {
+                            edgesToBeInserted_.emplace_back(element->data);
                             forwardQueue_->remove(element);
                         }
                         vertex.lock()->resetForwardQueueLookup();
@@ -827,6 +850,7 @@ namespace ompl
                                                });
                         if (it != affectedVertices.end())
                         {
+                            edgesToBeInserted_.emplace_back(edge);
                             vertex->removeFromForwardQueueLookup(element);
                             forwardQueue_->remove(element);
                         }

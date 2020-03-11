@@ -259,6 +259,24 @@ namespace ompl
                 return accumulatedChildren;
             }
 
+            std::vector<std::weak_ptr<aitstar::Vertex>> Vertex::invalidateForwardBranch()
+            {
+                std::vector<std::weak_ptr<aitstar::Vertex>> accumulatedChildren = forwardChildren_;
+
+                // Remove all children.
+                for (const auto &child : forwardChildren_)
+                {
+                    child.lock()->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
+                    child.lock()->resetForwardParent();
+                    auto childsAccumulatedChildren = child.lock()->invalidateForwardBranch();
+                    accumulatedChildren.insert(accumulatedChildren.end(), childsAccumulatedChildren.begin(),
+                                               childsAccumulatedChildren.end());
+                }
+                forwardChildren_.clear();
+
+                return accumulatedChildren;
+            }
+
             void Vertex::setForwardParent(const std::shared_ptr<Vertex> &vertex, const ompl::base::Cost &edgeCost)
             {
                 // If this is a rewiring, remove from my parent's children.
@@ -275,6 +293,11 @@ namespace ompl
 
                 // Update the cost to come.
                 costToComeFromStart_ = optimizationObjective_->combineCosts(vertex->getCostToComeFromStart(), edgeCost);
+            }
+
+            void Vertex::resetForwardParent()
+            {
+                forwardParent_.reset();
             }
 
             void Vertex::setBackwardParent(const std::shared_ptr<Vertex> &vertex)

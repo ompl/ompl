@@ -77,6 +77,9 @@ namespace ompl
             /** \brief Set the rewire factor of the RGG graph. */
             void setRewireFactor(double rewireFactor);
 
+            /** \brief Set whether pruning is enabled or not. */
+            void enablePruning(bool prune);
+
             /** \brief Enable LPA* repair of backward search. */
             void setRepairBackwardSearch(bool setRepairBackwardSearch);
 
@@ -203,6 +206,9 @@ namespace ompl
 
             /** \brief The option that specifies whether to repair the backward search when detecting a collision. */
             bool repairBackwardSearch_{true};
+
+            /** \brief The option that specifies whether to prune the graph of useless samples. */
+            bool isPruningEnabled_{true};
 
             /** \brief Whether to stop on finding an improved solution. */
             bool stopOnFindingInitialSolution_{false};

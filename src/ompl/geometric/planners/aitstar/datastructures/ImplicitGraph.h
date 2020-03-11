@@ -104,6 +104,9 @@ namespace ompl
                 /** \brief Get all vertices. */
                 std::vector<std::shared_ptr<Vertex>> getVertices() const;
 
+                /** \brief Prune all samples that can not contribute to a solution better than the current one. */
+                void prune();
+
             private:
                 /** \brief Computes the number of samples in the informed set. */
                 std::size_t computeNumberOfSamplesInInformedSet() const;

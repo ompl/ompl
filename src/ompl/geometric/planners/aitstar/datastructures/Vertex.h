@@ -99,6 +99,9 @@ namespace ompl
                 /** \brief Sets the parent vertex (in the forward-search tree). */
                 void setForwardParent(const std::shared_ptr<Vertex> &vertex, const ompl::base::Cost &edgeCost);
 
+                /** \brief Resets the forward parent of the vertex. */
+                void resetForwardParent();
+
                 /** \brief Returns whether this vertex has a parent in the backward search. */
                 bool hasBackwardParent() const;
 
@@ -132,8 +135,11 @@ namespace ompl
                 /** \brief Updates the cost to the whole branch rooted at this vertex. */
                 void updateCostOfForwardBranch() const;
 
-                /** \brief Recursively invalidates the branch of the reverse tree rooted in this vertex. */
+                /** \brief Recursively invalidates the branch of the backward tree rooted in this vertex. */
                 std::vector<std::weak_ptr<aitstar::Vertex>> invalidateBackwardBranch();
+
+                /** \brief Recursively invalidates the branch of the forward tree rooted in this vertex. */
+                std::vector<std::weak_ptr<aitstar::Vertex>> invalidateForwardBranch();
 
                 /** \brief Adds a vertex this vertex's children. */
                 void addToForwardChildren(const std::shared_ptr<Vertex> &vertex);

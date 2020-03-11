@@ -256,6 +256,70 @@ namespace ompl
                 return vertices;
             }
 
+            void ImplicitGraph::prune()
+            {
+                if (!optimizationObjective_->isFinite(*(solutionCost_.lock())))
+                {
+                    return;
+                }
+
+                std::vector<std::shared_ptr<Vertex>> vertices;
+                vertices_.list(vertices);
+
+                // Prepare the vector of vertices to be pruned.
+                std::vector<std::shared_ptr<Vertex>> verticesToBePruned;
+
+                // Check each vertex whether it can be pruned.
+                for (const auto &vertex : vertices)
+                {
+                    // Get the preferred start for this vertex.
+                    auto bestCostToCome = optimizationObjective_->infiniteCost();
+                    for (const auto &start : startVertices_)
+                    {
+                        auto costToCome =
+                            optimizationObjective_->motionCostHeuristic(start->getState(), vertex->getState());
+                        if (optimizationObjective_->isCostBetterThan(costToCome, bestCostToCome))
+                        {
+                            bestCostToCome = costToCome;
+                        }
+                    }
+
+                    // Check if the combination of the admissible costToCome and costToGo estimates results in a path
+                    // that is more expensive than the current solution.
+                    if (!optimizationObjective_->isCostBetterThan(
+                            optimizationObjective_->combineCosts(
+                                bestCostToCome, optimizationObjective_->costToGo(vertex->getState(),
+                                                                                 problemDefinition_->getGoal().get())),
+                            *(solutionCost_.lock())))
+                    {
+                        verticesToBePruned.emplace_back(vertex);
+                    }
+                }
+
+                // Remove all vertices to be pruned.
+                for (const auto &vertex : verticesToBePruned)
+                {
+                    // Remove it from both search trees.
+                    if (vertex->hasBackwardParent())
+                    {
+                        vertex->getBackwardParent()->removeFromBackwardChildren(vertex->getId());
+                        vertex->resetBackwardParent();
+                    }
+                    vertex->invalidateBackwardBranch();
+                    if (vertex->hasForwardParent())
+                    {
+                        vertex->getForwardParent()->removeFromForwardChildren(vertex->getId());
+                        vertex->resetForwardParent();
+                    }
+                    vertex->invalidateForwardBranch();
+
+                    // Remove it from the nearest neighbor struct.
+                    vertices_.remove(vertex);
+                }
+
+                // Assert that the forward and reverse queue are empty?
+            }
+
             double ImplicitGraph::computeConnectionRadius(std::size_t numSamples) const
             {
                 // Define the dimension as a helper variable.
