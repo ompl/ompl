@@ -170,14 +170,11 @@ namespace ompl
                     newVertices.emplace_back(std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_,
                                                                       forwardSearchId_, backwardSearchId_));
 
-                    // Sample the associated state uniformly within the informed set.
-                    sampler_->sampleUniform(newVertices.back()->getState(), *solutionCost_.lock());
-
-                    // Remove the new sample right away if it's not valid.
-                    if (!spaceInformation_->getStateValidityChecker()->isValid(newVertices.back()->getState()))
+                    do
                     {
-                        newVertices.pop_back();
-                    }
+                        // Sample the associated state uniformly within the informed set.
+                        sampler_->sampleUniform(newVertices.back()->getState(), *solutionCost_.lock());
+                    } while (!spaceInformation_->getStateValidityChecker()->isValid(newVertices.back()->getState()));
                 }
 
                 // Add all new vertices to the nearest neighbor structure.
