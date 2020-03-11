@@ -46,6 +46,8 @@
 #include "ompl/base/State.h"
 #include "ompl/datastructures/BinaryHeap.h"
 
+#include "ompl/geometric/planners/aitstar/datastructures/Edge.h"
+
 namespace ompl
 {
     namespace geometric
@@ -130,6 +132,9 @@ namespace ompl
                 /** \brief Updates the cost to the whole branch rooted at this vertex. */
                 void updateCostOfForwardBranch() const;
 
+                /** \brief Recursively invalidates the branch of the reverse tree rooted in this vertex. */
+                std::vector<std::weak_ptr<aitstar::Vertex>> invalidateBackwardBranch();
+
                 /** \brief Adds a vertex this vertex's children. */
                 void addToForwardChildren(const std::shared_ptr<Vertex> &vertex);
 
@@ -207,6 +212,26 @@ namespace ompl
 
                 /** \brief Resets the backward queue pointer. */
                 void resetBackwardQueuePointer();
+
+                /** \brief Adds an element to the forward queue lookup. */
+                void addToForwardQueueLookup(
+                    typename ompl::BinaryHeap<
+                        aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element
+                        *pointer);
+
+                /** \brief Returns the backward queue pointer of this vertex. */
+                std::vector<ompl::BinaryHeap<
+                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
+                getForwardQueueLookup() const;
+
+                /** \brief Remove an element from the forward queue lookup. */
+                void removeFromForwardQueueLookup(
+                    ompl::BinaryHeap<aitstar::Edge,
+                                     std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element
+                        *element);
+
+                /** \brief Resets the forward queue lookup. */
+                void resetForwardQueueLookup();
 
             private:
                 /** \brief The space information of the planning problem. */
@@ -293,6 +318,11 @@ namespace ompl
                     std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
                                        const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
                     Element *backwardQueuePointer_{nullptr};
+
+                /** \brief The lookup to outgoing edges in the forward queue. */
+                mutable std::vector<ompl::BinaryHeap<
+                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
+                    forwardQueueLookup_;
             };
 
         }  // namespace aitstar

@@ -37,9 +37,9 @@
 #pragma once
 
 #include <array>
+#include <limits>
 #include <memory>
 
-#include "ompl/geometric/planners/aitstar/datastructures/Vertex.h"
 #include "ompl/base/Cost.h"
 
 namespace ompl
@@ -48,6 +48,9 @@ namespace ompl
     {
         namespace aitstar
         {
+            // Forward declaration of a vertex.
+            class Vertex;
+
             class Edge
             {
             public:

@@ -241,6 +241,24 @@ namespace ompl
                 }
             }
 
+            std::vector<std::weak_ptr<aitstar::Vertex>> Vertex::invalidateBackwardBranch()
+            {
+                std::vector<std::weak_ptr<aitstar::Vertex>> accumulatedChildren = backwardChildren_;
+
+                // Remove all children.
+                for (const auto &child : backwardChildren_)
+                {
+                    child.lock()->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
+                    child.lock()->resetBackwardParent();
+                    auto childsAccumulatedChildren = child.lock()->invalidateBackwardBranch();
+                    accumulatedChildren.insert(accumulatedChildren.end(), childsAccumulatedChildren.begin(),
+                                               childsAccumulatedChildren.end());
+                }
+                backwardChildren_.clear();
+
+                return accumulatedChildren;
+            }
+
             void Vertex::setForwardParent(const std::shared_ptr<Vertex> &vertex, const ompl::base::Cost &edgeCost)
             {
                 // If this is a rewiring, remove from my parent's children.
@@ -441,8 +459,8 @@ namespace ompl
                 typename ompl::BinaryHeap<
                     std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
                     std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
-                                       const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::Element
-                    *pointer)
+                                       const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
+                    Element *pointer)
             {
                 backwardQueuePointerBackwardSearchId_ = *backwardSearchId_.lock();
                 backwardQueuePointer_ = pointer;
@@ -451,8 +469,9 @@ namespace ompl
             typename ompl::BinaryHeap<
                 std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
                 std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
-                                   const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::Element *
-            Vertex::getBackwardQueuePointer() const
+                                   const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
+                Element *
+                Vertex::getBackwardQueuePointer() const
             {
                 if (*backwardSearchId_.lock() != backwardQueuePointerBackwardSearchId_)
                 {
@@ -464,6 +483,33 @@ namespace ompl
             void Vertex::resetBackwardQueuePointer()
             {
                 backwardQueuePointer_ = nullptr;
+            }
+
+            void Vertex::addToForwardQueueLookup(
+                typename ompl::BinaryHeap<
+                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *pointer)
+            {
+                forwardQueueLookup_.emplace_back(pointer);
+            }
+
+            /** \brief Returns the backward queue pointer of this vertex. */
+            typename std::vector<ompl::BinaryHeap<
+                aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
+            Vertex::getForwardQueueLookup() const
+            {
+                return forwardQueueLookup_;
+            }
+
+            void Vertex::removeFromForwardQueueLookup(
+                ompl::BinaryHeap<aitstar::Edge,
+                                 std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *element)
+            {
+                forwardQueueLookup_.erase(std::remove(forwardQueueLookup_.begin(), forwardQueueLookup_.end(), element));
+            }
+
+            void Vertex::resetForwardQueueLookup()
+            {
+                forwardQueueLookup_.clear();
             }
 
         }  // namespace aitstar
