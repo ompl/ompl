@@ -755,7 +755,7 @@ namespace ompl
                         !vertex->isBlacklistedAsChild(neighbor))
                     {
                         auto edgeCost = objective_->motionCostHeuristic(neighbor->getState(), vertex->getState());
-                        auto parentCost = objective_->combineCosts(neighbor->getCostToComeFromGoal(), edgeCost);
+                        auto parentCost = objective_->combineCosts(neighbor->getExpandedCostToComeFromGoal(), edgeCost);
                         if (objective_->isCostBetterThan(parentCost, bestCost))
                         {
                             bestParent = neighbor;
