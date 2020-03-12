@@ -502,14 +502,14 @@ namespace ompl
                 // Check whether we've exhausted the current approximation.
                 if (isFinalSearchOnBatch_ || !hasExactSolution_)
                 {
-                    // Add a new batch.
-                    this->newBatch();
-
                     // Prune the graph if enabled.
                     if (isPruningEnabled_)
                     {
                         this->prune();
                     }
+
+                    // Add a new batch.
+                    this->newBatch();
 
                     // Set the inflation factor to an initial value.
                     queuePtr_->setInflationFactor(initialInflationFactor_);
