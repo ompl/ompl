@@ -612,6 +612,7 @@ namespace ompl
                     {
                         // The parent was connected to the child through an invalid edge.
                         parent->setCostToComeFromGoal(objective_->infiniteCost());
+                        parent->setExpandedCostToComeFromGoal(objective_->infiniteCost());
                         parent->resetBackwardParent();
                         child->removeFromBackwardChildren(parent->getId());
 
