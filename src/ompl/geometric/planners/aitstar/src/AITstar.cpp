@@ -746,7 +746,8 @@ namespace ompl
             {
                 // Get the best parent for this vertex.
                 auto bestParent = vertex->getBackwardParent();
-                auto bestCost = objective_->infiniteCost();
+                auto bestCost =
+                    vertex->hasBackwardParent() ? vertex->getCostToComeFromGoal() : objective_->infiniteCost();
 
                 // Check all neighbors as defined by the graph.
                 for (const auto &neighbor : graph_.getNeighbors(vertex))
@@ -860,7 +861,8 @@ namespace ompl
                                 backwardQueue_->insert(std::make_pair(computeSortKey(neighbor), neighbor));
                             neighbor->setBackwardQueuePointer(backwardQueuePtr);
 
-                            // We consider this vertex as unexpanded, otherwise we'll have consistent vertices in the queue.
+                            // We consider this vertex as unexpanded, otherwise we'll have consistent vertices in the
+                            // queue.
                             neighbor->setExpandedCostToComeFromGoal(objective_->infiniteCost());
                         }
                     }
