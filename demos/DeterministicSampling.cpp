@@ -43,7 +43,6 @@ namespace ob = ompl::base;
 int main(int /*argc*/, char ** /*argv*/)
 {
     std::cout << "Testing the Halton Sequence..." << std::endl;
-
     ob::HaltonSequence hs5d(5);
 
     for(int i=0; i<10; ++i) {
