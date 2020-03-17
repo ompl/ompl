@@ -10,8 +10,15 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
 {
     base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
 
+    //EXP DECAY PATH BIAS.
+    //from 1.0 down to lower limit
+    //COMMENT FOR FIXED PATH BIAS
+    double exponentialDecayLowerLimit = 0.1;
+    pathBias_ = (1.0-exponentialDecayLowerLimit) * exp(-exponentialDecayLambda_ * pow(((double)exponentialDecayCtr_++/1000.0),2)) + exponentialDecayLowerLimit;
+    OMPL_DEVMSG1("Path Bias %d", pathBias_);
+
     double p = rng_.uniform01();
-    if(p < pathBias_)
+    if(p<pathBias_)
     {
         if(bundleSpaceGraph_->isDynamic()){
           std::cout << "NYI" << std::endl;

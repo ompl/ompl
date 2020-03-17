@@ -32,6 +32,10 @@ namespace ompl
           double epsilonGraphThickening_{0.1};
 
           double pathBias_{0.2};
+
+          double exponentialDecayLambda_{0.2};
+
+          unsigned int exponentialDecayCtr_{0};
       };
     }  // namespace geometric
 }  // namespace ompl
