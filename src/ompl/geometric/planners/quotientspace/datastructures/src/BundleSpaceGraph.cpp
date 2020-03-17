@@ -76,11 +76,6 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
 {
     ompl::base::OptimizationObjectivePtr lengthObj(new ompl::base::PathLengthOptimizationObjective(getBundle()));
     ompl::base::OptimizationObjectivePtr clearObj(new ompl::base::MaximizeMinClearanceObjective(getBundle()));
-    // ompl::base::MultiOptimizationObjective* multiObj = new ompl::base::MultiOptimizationObjective(getBundle());
-
-    // multiObj->addObjective(lengthObj, 0.1);
-    // multiObj->addObjective(clearObj, 1.0);
-    // ompl::base::OptimizationObjectivePtr 
     pathRefinementObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
 
     std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 0.1);
@@ -533,7 +528,7 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
           solutionPath_ = getPath(vStart_, vGoal_);
           numVerticesWhenComputingSolutionPath = getNumberOfVertices();
 
-          if(!isDynamic() && solutionPath_ != nullptr){
+          if(!isDynamic() && solutionPath_ != solution){
               ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 
                   pathRefinementObj_);
               geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);

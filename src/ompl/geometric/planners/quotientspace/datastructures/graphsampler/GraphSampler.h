@@ -33,7 +33,7 @@ namespace ompl
 
           double pathBias_{0.2};
 
-          double exponentialDecayLambda_{0.2};
+          double exponentialDecayLambda_{1e-3};
 
           unsigned int exponentialDecayCtr_{0};
       };
