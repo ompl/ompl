@@ -43,11 +43,13 @@
 ompl::geometric::QRRTImpl::QRRTImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QRRTImpl" + std::to_string(id_));
+    setImportance("greedy");
+    setGraphSampler("randomvertex");
+    // setMetric("shortestpath");
 }
 
 ompl::geometric::QRRTImpl::~QRRTImpl()
 {
-    deleteConfiguration(xRandom_);
 }
 
 void ompl::geometric::QRRTImpl::grow()
@@ -66,25 +68,26 @@ void ompl::geometric::QRRTImpl::grow()
     const Configuration *xNearest = nearest(xRandom_);
 
     //(3) Connect Nearest to Random
-    Configuration *xNext = extendGraphTowards(xNearest, xRandom_);
+    Configuration *xNext = extendGraphTowards_Range(xNearest, xRandom_);
 
     //(4) If extension was successful, check if we reached goal
     if(xNext)
     {
-        // double dist = 0;
-        // bool satisfied = goal_->isSatisfied(xNext->state, &dist);
-        // if(dist < bestDist_)
-        // {
-        //     bestDist_ = dist;
-        //     xApproximateNearest_ = xNext;
-        // }
-        bool satisfied = goal_->isSatisfied(xNext->state);
+        double dist = 0;
+        bool satisfied = goal_->isSatisfied(xNext->state, &dist);
+        // bool satisfied = goal_->isSatisfied(xNext->state);
         if (satisfied)
         {
             // std::cout << bestDist_ << std::endl;
             vGoal_ = addConfiguration(qGoal_);
             addEdge(xNext->index, vGoal_);
             hasSolution_ = true;
+        }
+        if(dist < bestDist_)
+        {
+            bestDist_ = dist;
+            xApproximateNearest_ = xNext;
+            std::cout << "Distance Tree to Goal: " << bestDist_ << std::endl;
         }
     }
 

@@ -17,6 +17,9 @@ namespace ompl
         ~BundleSpaceImportanceGreedy() = default;
 
         virtual double eval() override;
+      private:
+        double getLevelConstant();
+        double epsilon{0.1};
     };
   }
 }

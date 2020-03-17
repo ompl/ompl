@@ -5,7 +5,7 @@ ompl::geometric::BundleSpaceGraphSamplerRandomEdge::BundleSpaceGraphSamplerRando
 {
 }
 
-void ompl::geometric::BundleSpaceGraphSamplerRandomEdge::sample(base::State *xRandom)
+void ompl::geometric::BundleSpaceGraphSamplerRandomEdge::sampleImplementation(base::State *xRandom)
 {
     BundleSpaceGraph::Graph graph = bundleSpaceGraph_->getGraph();
 

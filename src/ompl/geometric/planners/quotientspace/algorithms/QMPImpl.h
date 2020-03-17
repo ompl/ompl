@@ -65,7 +65,7 @@ namespace ompl
 
             Configuration *addMileStone(ompl::base::State *q_state);
 
-            virtual void sampleFromDatastructure(ompl::base::State *) override;
+            // virtual void sampleFromDatastructure(ompl::base::State *) override;
 
         protected:
 

@@ -13,7 +13,8 @@ namespace ompl
           BundleSpaceGraphSamplerRandomVertex() = delete;
           BundleSpaceGraphSamplerRandomVertex(BundleSpaceGraph*); 
 
-          virtual void sample(base::State *xRandom) override;
+        protected:
+          virtual void sampleImplementation(base::State *xRandom) override;
       };
     }  // namespace geometric
 }  // namespace ompl

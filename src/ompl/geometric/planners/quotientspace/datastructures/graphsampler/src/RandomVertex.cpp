@@ -5,7 +5,7 @@ ompl::geometric::BundleSpaceGraphSamplerRandomVertex::BundleSpaceGraphSamplerRan
 {
 }
 
-void ompl::geometric::BundleSpaceGraphSamplerRandomVertex::sample(base::State *xRandom)
+void ompl::geometric::BundleSpaceGraphSamplerRandomVertex::sampleImplementation(base::State *xRandom)
 {
     const Vertex v = boost::random_vertex(bundleSpaceGraph_->getGraph(), rng_boost);
     bundleSpaceGraph_->getBundle()->getStateSpace()->copyState(xRandom, bundleSpaceGraph_->getGraph()[v]->state);

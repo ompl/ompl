@@ -19,7 +19,7 @@ double BundleSpaceMetricShortestPath::distanceBundle(
         return BaseT::distanceBundle(xStart, xDest);
     }else{
         std::vector<const Configuration*> path = getInterpolationPath(xStart, xDest);
-        double d = 0;
+        double d = 0.0;
         for(uint k = 0; k < path.size()-1; k++){
           d += BaseT::distanceBundle(path.at(k), path.at(k+1));
         }
@@ -144,6 +144,8 @@ void BundleSpaceMetricShortestPath::interpolateBundle(
         return BaseT::interpolateBundle(q_from, q_to, step, q_interp);
     }else{
         std::vector<const Configuration*> path = getInterpolationPath(q_from, q_to);
+        if(path.size() <= 2) return BaseT::interpolateBundle(q_from, q_to, step, q_interp);
+
         double d_path = 0;
         for(uint k = 0; k < path.size()-1; k++){
           d_path += BaseT::distanceBundle(path.at(k), path.at(k+1));

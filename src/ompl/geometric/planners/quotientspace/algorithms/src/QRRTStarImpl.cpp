@@ -82,19 +82,10 @@ void ompl::geometric::QRRTStarImpl::grow()
     //(2) Get Nearest in Tree
     Configuration *q_nearest = nearestDatastructure_->nearest(xRandom_);
 
-    //(3) Connect Nearest to Random
-    double d = distance(q_nearest, xRandom_);
-    if (d > maxDistance_)
-    {
-        getBundle()->getStateSpace()->interpolate(q_nearest->state, xRandom_->state, maxDistance_ / d, xRandom_->state);
-    }
+    Configuration *q_new = extendGraphTowards_Range(q_nearest, xRandom_);
 
-    //(4) Check if Motion is correct
-    if (getBundle()->checkMotion(q_nearest->state, xRandom_->state))
+    if(q_new)
     {
-        // (5) Add sample
-        Configuration *q_new = new Configuration(getBundle(), xRandom_->state);
-
         // Find nearby neighbors of the new motion
         std::vector<Configuration *> nearestNbh;
         
@@ -103,8 +94,8 @@ void ompl::geometric::QRRTStarImpl::grow()
             // calculate k
             unsigned int k = std::ceil(k_rrt_Constant_ * log((double) nearestDatastructure_->size()));
             nearestDatastructure_->nearestK(q_new, k, nearestNbh);
-        }
-        else {
+        }else
+        {
             double r = std::min(maxDistance_, 
                 r_rrt_Constant_ * 
                 std::pow(log((double) nearestDatastructure_->size()) / (double) nearestDatastructure_->size(), 1 / d_ ));
@@ -139,7 +130,8 @@ void ompl::geometric::QRRTStarImpl::grow()
             if (q_nearest == q_near)
             {
                 validNeighbor[i] = 1;
-                if (symmetric_) {
+                if (symmetric_) 
+                {
                     lineCosts[i] = nn_line_cost;
                 }
                 continue;

@@ -274,7 +274,15 @@ namespace ompl
             virtual double distance(const Configuration *a, const Configuration *b) const;
             virtual bool checkMotion(const Configuration *a, const Configuration *b) const;
 
-            Configuration* extendGraphTowards(
+            const Configuration* extendGraphTowards(
+                const Configuration *from, 
+                const Configuration *to);
+
+            bool connect(
+                const Configuration *from, 
+                const Configuration *to);
+
+            Configuration* extendGraphTowards_Range(
                 const Configuration *from, 
                 const Configuration *to);
 
@@ -283,6 +291,7 @@ namespace ompl
                 const Configuration *b, 
                 Configuration *dest) const;
 
+            ompl::base::PathPtr solutionPath_;
         protected:
 
             virtual Configuration* addBundleConfiguration(base::State*);
@@ -296,7 +305,7 @@ namespace ompl
             /** \brief Nearest neighbor structure for Bundle space configurations */
             RoadmapNeighborsPtr nearestDatastructure_;
             Graph graph_;
-            ompl::base::PathPtr solutionPath_;
+            unsigned int numVerticesWhenComputingSolutionPath{0};
             RNG rng_;
             using RNGType = boost::minstd_rand;
             RNGType rng_boost;
@@ -306,7 +315,7 @@ namespace ompl
             double graphLength_{0.0};
 
             /** \brief Maximum expansion step */
-            double maxDistance_{.0};
+            double maxDistance_{-1.0};
 
             /** \brief Goal bias */
             double goalBias_{.05};
@@ -322,6 +331,8 @@ namespace ompl
             BundleSpaceImportancePtr importanceCalculator_;
 
             BundleSpaceGraphSamplerPtr graphSampler_;
+
+            ompl::base::OptimizationObjectivePtr pathRefinementObj_;
         };
     }  // namespace geometric
 }  // namespace ompl

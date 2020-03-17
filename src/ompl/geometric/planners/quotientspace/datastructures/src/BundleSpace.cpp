@@ -426,8 +426,8 @@ void ompl::geometric::BundleSpace::sampleBundle(base::State *xRandom)
         if (getFiberDimension() > 0)
         {
             // Adjusted sampling function: Sampling in G0 x Fiber
-            sampleFiber(xFiberTmp_);
             parent_->sampleFromDatastructure(xBaseTmp_);
+            sampleFiber(xFiberTmp_);
             mergeStates(xBaseTmp_, xFiberTmp_, xRandom);
         }
         else
