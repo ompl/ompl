@@ -74,14 +74,14 @@ using Configuration = ompl::geometric::BundleSpaceGraph::Configuration;
 ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformationPtr &si, BundleSpace *parent_)
   : BaseT(si, parent_)
 {
-    ompl::base::OptimizationObjectivePtr lengthObj(new ompl::base::PathLengthOptimizationObjective(getBundle()));
-    ompl::base::OptimizationObjectivePtr clearObj(new ompl::base::MaximizeMinClearanceObjective(getBundle()));
+    ompl::base::OptimizationObjectivePtr lengthObj = 
+      std::make_shared<ompl::base::PathLengthOptimizationObjective>(getBundle());
+    ompl::base::OptimizationObjectivePtr clearObj = 
+      std::make_shared<ompl::base::MaximizeMinClearanceObjective>(getBundle());
     pathRefinementObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
 
-    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 0.1);
-    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(clearObj, 1.0);
-
-
+    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 0.5);
+    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(clearObj, 0.5);
 
     setName("BundleSpaceGraph");
 
@@ -121,6 +121,9 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
     {
         setup();
     }
+
+    ompl::tools::SelfConfig sc(getBundle(), getName());
+    sc.configurePlannerRange(maxDistance_);
 }
 
 ompl::geometric::BundleSpaceGraph::~BundleSpaceGraph()
@@ -131,9 +134,7 @@ ompl::geometric::BundleSpaceGraph::~BundleSpaceGraph()
 void ompl::geometric::BundleSpaceGraph::setup()
 {
     BaseT::setup();
-    ompl::tools::SelfConfig sc(getBundle(), getName());
-    sc.configurePlannerRange(maxDistance_);
-    OMPL_DEBUG("Range distance graph sampling: %f", maxDistance_);
+    // OMPL_DEBUG("Range distance graph sampling: %f", maxDistance_);
 
     if (!nearestDatastructure_)
     {
@@ -390,6 +391,7 @@ Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards_Range(
 
     if (!propagator_->steer(from, next, next))
     {
+        deleteConfiguration(next);
         return nullptr;
     }
     addConfiguration(next);
@@ -549,7 +551,7 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
     }
     else
     {
-      return false;
+        return false;
     }
         // base::Goal *g = pdef_->getGoal().get();
         // bestCost_ = base::Cost(+base::dInf);

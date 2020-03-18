@@ -43,7 +43,7 @@
 ompl::geometric::QRRTImpl::QRRTImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QRRTImpl" + std::to_string(id_));
-    setImportance("greedy");
+    setImportance("uniform");
     setGraphSampler("randomvertex");
     // setMetric("shortestpath");
 }
@@ -71,23 +71,14 @@ void ompl::geometric::QRRTImpl::grow()
     Configuration *xNext = extendGraphTowards_Range(xNearest, xRandom_);
 
     //(4) If extension was successful, check if we reached goal
-    if(xNext)
+    if(xNext && !hasSolution_)
     {
-        double dist = 0;
-        bool satisfied = goal_->isSatisfied(xNext->state, &dist);
-        // bool satisfied = goal_->isSatisfied(xNext->state);
+        bool satisfied = goal_->isSatisfied(xNext->state);
         if (satisfied)
         {
-            // std::cout << bestDist_ << std::endl;
             vGoal_ = addConfiguration(qGoal_);
             addEdge(xNext->index, vGoal_);
             hasSolution_ = true;
-        }
-        if(dist < bestDist_)
-        {
-            bestDist_ = dist;
-            xApproximateNearest_ = xNext;
-            std::cout << "Distance Tree to Goal: " << bestDist_ << std::endl;
         }
     }
 

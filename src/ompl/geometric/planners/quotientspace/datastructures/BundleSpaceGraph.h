@@ -190,7 +190,7 @@ namespace ompl
 
         public:
             BundleSpaceGraph(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent = nullptr);
-            ~BundleSpaceGraph();
+            virtual ~BundleSpaceGraph();
 
             virtual unsigned int getNumberOfVertices() const;
             virtual unsigned int getNumberOfEdges() const;

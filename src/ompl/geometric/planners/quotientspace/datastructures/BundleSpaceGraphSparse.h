@@ -27,7 +27,7 @@ namespace ompl
       public:
 
         BundleSpaceGraphSparse(const ob::SpaceInformationPtr &si, BundleSpace *parent = nullptr);
-        virtual ~BundleSpaceGraphSparse() override = default;
+        virtual ~BundleSpaceGraphSparse() override;
 
         virtual void grow() = 0;
         virtual bool getSolution(ompl::base::PathPtr &solution) override;

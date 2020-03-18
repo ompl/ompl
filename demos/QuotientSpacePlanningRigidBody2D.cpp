@@ -46,8 +46,7 @@
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-// Path Planning in SE2 = R2 \times SO2
-// using quotient-spaces R2 and SE2
+// Path Planning on fiber bundle SE2 \rightarrow R2
 
 bool boxConstraint(const double values[])
 {
@@ -115,22 +114,15 @@ int main()
     if (solved)
     {
         std::cout << std::string(80, '-') << std::endl;
-        std::cout << "Configuration-Space Path (SE2):" << std::endl;
+        std::cout << "Bundle Space Path (SE2):" << std::endl;
         std::cout << std::string(80, '-') << std::endl;
         pdef->getSolutionPath()->print(std::cout);
 
         std::cout << std::string(80, '-') << std::endl;
-        std::cout << "Quotient-Space Path (R2):" << std::endl;
+        std::cout << "Base Space Path (R2)   :" << std::endl;
         std::cout << std::string(80, '-') << std::endl;
         const ob::ProblemDefinitionPtr pdefR2 = planner->getProblemDefinition(0);
         pdefR2->getSolutionPath()->print(std::cout);
-
-        std::vector<int> nodes = planner->getFeasibleNodes();
-        std::cout << std::string(80, '-') << std::endl;
-        for (unsigned int k = 0; k < nodes.size(); k++)
-        {
-            std::cout << "QuotientSpace" << k << " has " << nodes.at(k) << " nodes." << std::endl;
-        }
     }
     return 0;
 }

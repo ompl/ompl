@@ -82,7 +82,7 @@ void printBenchmarkResults(const ot::Benchmark &b)
     for (auto const &p : plannerTimes)
     {
         std::cout << "Place <" << ctr << "> Time: <" << p.first << "> \%Success: <" << p.second.second << "> ("
-                  << p.second.first << ")" << (ctr < 2 ? " <-- Winner" : "") << std::endl;
+                  << p.second.first << ")" << ((ctr < 2) && (p.second.second > 0) ? " <-- Winner" : "") << std::endl;
         ctr++;
     }
     std::cout << std::string(80, '-') << std::endl;

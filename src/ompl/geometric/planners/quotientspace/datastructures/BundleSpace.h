@@ -38,7 +38,7 @@ namespace ompl
                  and we compute automatically the fiber */
 
             BundleSpace(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_ = nullptr);
-            ~BundleSpace();
+            virtual ~BundleSpace();
 
             /// \brief solve disabled (use MultiBundle::solve)
             ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override final;

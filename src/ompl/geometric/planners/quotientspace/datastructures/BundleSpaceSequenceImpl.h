@@ -110,6 +110,13 @@ std::vector<int> ompl::geometric::BundleSpaceSequence<T>::getDimensionsPerLevel(
 template <class T>
 ompl::geometric::BundleSpaceSequence<T>::~BundleSpaceSequence()
 {
+    for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
+    {
+        if(bundleSpaces_.at(k)){
+          delete bundleSpaces_.at(k);
+        }
+    }
+    bundleSpaces_.clear();
 }
 
 template <class T>
@@ -149,10 +156,12 @@ void ompl::geometric::BundleSpaceSequence<T>::clear()
 
     while (!priorityQueue_.empty())
         priorityQueue_.pop();
+
     foundKLevelSolution_ = false;
 
     solutions_.clear();
     pdef_->clearSolutionPaths();
+
 }
 
 template <class T>
@@ -297,7 +306,7 @@ void ompl::geometric::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planner
         BundleSpace *Qk = bundleSpaces_.at(k);
         Qk->getPlannerData(data);
 
-        // label all new vertices
+        // label all vertices
         unsigned int ctr = 0;
         for (unsigned int vidx = Nvertices; vidx < data.numVertices(); vidx++)
         {
@@ -315,8 +324,8 @@ void ompl::geometric::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planner
 
                 if (Qm->getFiberDimension() > 0)
                 {
-                    ob::State *s_Bundle = Qm->getBundle()->allocState();
-                    ob::State *s_Fiber = Qm->allocIdentityStateFiber();
+                    base::State *s_Bundle = Qm->getBundle()->allocState();
+                    base::State *s_Fiber = Qm->allocIdentityStateFiber();
 
                     Qm->mergeStates(s_lift, s_Fiber, s_Bundle); //TODO: segfault?
                     s_lift = Qm->getBundle()->cloneState(s_Bundle);

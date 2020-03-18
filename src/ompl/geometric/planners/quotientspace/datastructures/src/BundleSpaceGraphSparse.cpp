@@ -73,6 +73,11 @@ BundleSpaceGraphSparse::BundleSpaceGraphSparse(const ob::SpaceInformationPtr &si
   psimp_->freeStates(false);
 }
 
+BundleSpaceGraphSparse::~BundleSpaceGraphSparse()
+{
+  delete pathVisibilityChecker_;
+}
+
 void BundleSpaceGraphSparse::deleteConfiguration(Configuration *q)
 {
     BaseT::deleteConfiguration(q);

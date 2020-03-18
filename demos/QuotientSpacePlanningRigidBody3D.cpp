@@ -51,8 +51,7 @@ using SO3State = ob::ScopedState<ob::SO3StateSpace>;
 using R3State = ob::ScopedState<ob::RealVectorStateSpace>;
 const double pi = boost::math::constants::pi<double>();
 
-// Path Planning in SE3 = R3 \times SO3
-// using quotient-spaces R3 and SE3
+// Path Planning on fiber bundle SE3 \rightarrow R3
 
 bool isInCollision(double *val)
 {
@@ -135,23 +134,15 @@ int main()
     if (solved)
     {
         std::cout << std::string(80, '-') << std::endl;
-        std::cout << "Configuration-Space Path (SE3):" << std::endl;
+        std::cout << "Bundle-Space Path (SE3):" << std::endl;
         std::cout << std::string(80, '-') << std::endl;
         pdef->getSolutionPath()->print(std::cout);
 
         std::cout << std::string(80, '-') << std::endl;
-        std::cout << "Quotient-Space Path (R3):" << std::endl;
+        std::cout << "Base-Space Path (R3)   :" << std::endl;
         std::cout << std::string(80, '-') << std::endl;
         const ob::ProblemDefinitionPtr pdefR3 = planner->getProblemDefinition(0);
         pdefR3->getSolutionPath()->print(std::cout);
-
-        std::vector<int> nodes = planner->getFeasibleNodes();
-
-        std::cout << std::string(80, '-') << std::endl;
-        for (unsigned int k = 0; k < nodes.size(); k++)
-        {
-            std::cout << "QuotientSpace" << k << " has " << nodes.at(k) << " nodes." << std::endl;
-        }
     }
     return 0;
 }

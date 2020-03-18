@@ -70,7 +70,7 @@ namespace ompl
             BundleSpaceSequence(ompl::base::SpaceInformationPtr si) = delete;
             BundleSpaceSequence(ompl::base::SpaceInformationPtr si, std::string type) = delete;
 
-            virtual ~BundleSpaceSequence() override;
+            virtual ~BundleSpaceSequence();
 
             /** \brief Return annotated vertices (with information about BundleSpace level) */
             void getPlannerData(ompl::base::PlannerData &data) const override;

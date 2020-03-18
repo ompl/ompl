@@ -44,7 +44,7 @@
 #include <boost/range/algorithm_ext/push_back.hpp>
 
 const unsigned int numLinks = 20;
-const double runtime_limit = 3;
+const double runtime_limit = 1;
 const double memory_limit = 4096;
 const int run_count = 1;
 
@@ -167,9 +167,9 @@ int main()
     //############################################################################
     ob::SpaceInformationPtr si = ss.getSpaceInformation();
     ob::ProblemDefinitionPtr pdef = ss.getProblemDefinition();
-    benchmark.addPlanner(std::make_shared<og::STRIDE>(si));
-    benchmark.addPlanner(std::make_shared<og::EST>(si));
-    benchmark.addPlanner(std::make_shared<og::KPIECE1>(si));
+    // benchmark.addPlanner(std::make_shared<og::STRIDE>(si));
+    // benchmark.addPlanner(std::make_shared<og::EST>(si));
+    // benchmark.addPlanner(std::make_shared<og::KPIECE1>(si));
     // benchmark.addPlanner(std::make_shared<og::RRT>(si));
     // benchmark.addPlanner(std::make_shared<og::PRM>(si));
 

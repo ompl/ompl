@@ -76,6 +76,7 @@ ompl::geometric::BundleSpace::~BundleSpace()
         if (Fiber && xFiberTmp_)
             Fiber->freeState(xFiberTmp_);
     }
+    components_.clear();
 }
 
 bool ompl::geometric::BundleSpace::hasParent() const
