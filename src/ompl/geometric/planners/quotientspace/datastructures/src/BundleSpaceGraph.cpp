@@ -228,16 +228,10 @@ void ompl::geometric::BundleSpaceGraph::clearVertices()
     {
         std::vector<Configuration *> configs;
         nearestDatastructure_->list(configs);
-        std::cout << "Configs to delete: " << configs.size() << std::endl;
         for (auto &config : configs)
         {
-            std::cout << "Deleting Configuration:" << std::endl;
-            if(config != nullptr){
-            printConfiguration(config);
             deleteConfiguration(config);
-            }
         }
-        std::cout << "clear Nearest" << std::endl;
         nearestDatastructure_->clear();
     }
     graph_.clear();
