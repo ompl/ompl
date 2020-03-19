@@ -35,15 +35,9 @@
 
 /* Author: Andreas Orthey */
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
-#include <ompl/base/spaces/SO2StateSpace.h>
-#include <ompl/base/spaces/SO3StateSpace.h>
-#include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/goals/GoalState.h>
-#include <ompl/base/OptimizationObjective.h>
-#include <ompl/control/ControlSpace.h>
 #include <ompl/util/Exception.h>
 #include <ompl/util/Time.h>
-#include <queue>
 
 template <class T>
 ompl::geometric::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
@@ -64,6 +58,19 @@ ompl::geometric::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::b
 
     OMPL_DEBUG("Created %d BundleSpace levels (%s).", siVec_.size(), getName().c_str());
 }
+
+template <class T>
+ompl::geometric::BundleSpaceSequence<T>::~BundleSpaceSequence()
+{
+    for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
+    {
+        if(bundleSpaces_.at(k)){
+          delete bundleSpaces_.at(k);
+        }
+    }
+    bundleSpaces_.clear();
+}
+
 
 template <class T>
 int ompl::geometric::BundleSpaceSequence<T>::getLevels() const
@@ -108,15 +115,16 @@ std::vector<int> ompl::geometric::BundleSpaceSequence<T>::getDimensionsPerLevel(
 }
 
 template <class T>
-ompl::geometric::BundleSpaceSequence<T>::~BundleSpaceSequence()
+void ompl::geometric::BundleSpaceSequence<T>::setStopLevel(unsigned int level_)
 {
-    for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
+    if (level_ > bundleSpaces_.size())
     {
-        if(bundleSpaces_.at(k)){
-          delete bundleSpaces_.at(k);
-        }
+        stopAtLevel_ = bundleSpaces_.size();
     }
-    bundleSpaces_.clear();
+    else
+    {
+        stopAtLevel_ = level_;
+    }
 }
 
 template <class T>
@@ -128,19 +136,7 @@ void ompl::geometric::BundleSpaceSequence<T>::setup()
         bundleSpaces_.at(k)->setup();
     }
     currentBundleSpaceLevel_ = 0;
-}
-
-template <class T>
-void ompl::geometric::BundleSpaceSequence<T>::setStopLevel(unsigned int level_)
-{
-    if (level_ > bundleSpaces_.size())
-    {
-        stopAtLevel_ = bundleSpaces_.size();
-    }
-    else
-    {
-        stopAtLevel_ = level_;
-    }
+    std::cout << "Setup " << getName() << std::endl;
 }
 
 template <class T>
@@ -160,8 +156,8 @@ void ompl::geometric::BundleSpaceSequence<T>::clear()
     foundKLevelSolution_ = false;
 
     solutions_.clear();
+    std::cout << "Clear Bundle Space " << getName() << std::endl;
     pdef_->clearSolutionPaths();
-
 }
 
 template <class T>
@@ -193,6 +189,7 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
                 if(solutions_.size() < k+1)
                 {
                     solutions_.push_back(sol_k);
+                    std::cout << "Add solution:" << sol_k->length() << " on level " << k << std::endl;
                     double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
                     OMPL_DEBUG("Found Solution on Level %d after %f seconds.", k, t_k_end);
                     foundKLevelSolution_ = true;
@@ -223,16 +220,27 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
     double t_end = ompl::time::seconds(ompl::time::now() - t_start);
     OMPL_DEBUG("Found exact solution after %f seconds.", t_end);
 
-    ompl::base::PathPtr sol;
-    int lastSolvedBundleSpaceLevel = currentBundleSpaceLevel_ - 1;
-    if(lastSolvedBundleSpaceLevel < 0) lastSolvedBundleSpaceLevel = 0;
+    // int lastSolvedBundleSpaceLevel = currentBundleSpaceLevel_;
+    // if(lastSolvedBundleSpaceLevel < 0) lastSolvedBundleSpaceLevel = 0;
 
-    if (bundleSpaces_.at(lastSolvedBundleSpaceLevel)->getSolution(sol))
-    {
-        ompl::base::PlannerSolution psol(sol);
-        psol.setPlannerName(getName());
-        pdef_->addSolutionPath(psol);
-    }
+    // ompl::base::PathPtr sol;
+    // if (bundleSpaces_.at(lastSolvedBundleSpaceLevel)->getSolution(sol))
+    // {
+    //     ompl::base::PlannerSolution psol(sol);
+    //     psol.setPlannerName(getName());
+    //     pdef_->addSolutionPath(psol);
+    //     std::cout << "Add solution path with length " << sol->length() << std::endl;
+    //     std::cout << "last space: " << lastSolvedBundleSpaceLevel << std::endl;
+    //     // base::SpaceInformationPtr si = bundleSpaces_.at(lastSolvedBundleSpaceLevel)->getBundle();
+    // }
+
+    // bundleSpaces_.at(lastSolvedBundleSpaceLevel)->getProblemDefinition()->getSolution();
+
+    ompl::base::PathPtr sol;
+    ompl::base::PlannerSolution psol(sol);
+    bundleSpaces_.back()->getProblemDefinition()->getSolution(psol);
+    pdef_->addSolutionPath(psol);
+    // std::cout << "Final path length: " << pdef_->getSolutionPath()->length() << std::endl;
 
     return ompl::base::PlannerStatus::EXACT_SOLUTION;
 }

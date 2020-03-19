@@ -39,10 +39,6 @@ namespace ompl
         Vertex addConfigurationSparse(Configuration *q);
         void addEdgeSparse(const Vertex a, const Vertex b);
 
-        // virtual unsigned int getNumberOfVertices() const;
-        // virtual unsigned int getNumberOfEdges() const;
-
-        // void AddEdge(const Configuration* q1, const Configuration* q2);
         virtual void setup() override;
         virtual void clear() override;
 

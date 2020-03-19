@@ -77,6 +77,8 @@
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/util/String.h>
 
+#include <ompl/base/Path.h>
+#include <ompl/geometric/PathGeometric.h>
 #include <boost/math/constants/constants.hpp>
 #include <boost/range/irange.hpp>
 #include <boost/range/algorithm_ext/push_back.hpp>
@@ -88,7 +90,7 @@ const double edgeWidth = 0.1;
 const double runtime_limit = 3;
 const double memory_limit = 4096 * 4096;
 const int run_count = 2;
-unsigned int curDim = 9;
+unsigned int curDim = 6;
 int numberPlanners = 0;
 
 
@@ -117,16 +119,14 @@ std::vector<std::vector<int>> getHypercubeAdmissibleProjections(int dim)
 
     std::vector<int> powStep;
 
-    powStep.push_back(2);
-    powStep.push_back(4);
-    powStep.push_back(7);
+    // powStep.push_back(2);
+    powStep.push_back(3);
     powStep.push_back(dim);
 
-    std::cout << "Projections" << std::endl;
     projections.push_back(powStep);
     projections.push_back(trivial);
     // projections.push_back(discrete);
-    projections.push_back(twoStep);
+    // projections.push_back(twoStep);
 
 
     // projections.push_back(std::vector<int>{});
@@ -213,11 +213,34 @@ void PostRunEvent(const ob::PlannerPtr &planner, ot::Benchmark::RunProperties &r
     ob::SpaceInformationPtr si = planner->getSpaceInformation();
     ob::ProblemDefinitionPtr pdef = planner->getProblemDefinition();
 
+
+
     unsigned int states = boost::lexical_cast<int>(run["graph states INTEGER"]);
     double time = boost::lexical_cast<double>(run["time REAL"]);
     double memory = boost::lexical_cast<double>(run["memory REAL"]);
 
+    bool pathExists = boost::lexical_cast<bool>(run["solved BOOLEAN"]);
+
     bool solved = (time < runtime_limit);
+
+    if(solved && !pathExists)
+    {
+      std::cout << "ERROR: PATH NOT FOUND" << std::endl;
+    }
+
+    if ( run.find("solution length REAL") != run.end() ) 
+    {
+      ob::PathPtr path = pdef->getSolutionPath();
+      og::PathGeometric &gpath = static_cast<og::PathGeometric&>(*path);
+      std::vector<ob::State*> states = gpath.getStates();
+      for(uint k = 0; k < states.size(); k++){
+        si->printState(states.at(k));
+      }
+      double cost = boost::lexical_cast<double>(run["solution length REAL"]);
+      std::cout << "Path Cost: " << cost << std::endl;
+      std::cout << "Path States: " << states.size() << std::endl;
+    }
+
 
     std::cout << "Run " << pid << "/" << numberRuns << " [" << planner->getName() << "] "
               << (solved ? "solved" : "FAILED") << "(time: " << time << ", states: " << states << ", memory: " << memory
@@ -308,6 +331,8 @@ int main(int argc, char **argv)
     // Load All Planner
     //############################################################################
     std::vector<std::vector<int>> admissibleProjections = getHypercubeAdmissibleProjections(curDim);
+    // addPlanner(benchmark, std::make_shared<og::BKPIECE1>(si), range);
+    // addPlanner(benchmark, std::make_shared<og::KPIECE1>(si), range);
     for (unsigned int k = 0; k < admissibleProjections.size(); k++)
     {
         std::vector<int> proj = admissibleProjections.at(k);
@@ -316,8 +341,6 @@ int main(int argc, char **argv)
         // addPlanner(benchmark, GetBundlePlanner<og::QRRTStar>(proj, si, "QRRTStar"), range);
         // addPlanner(benchmark, GetBundlePlanner<og::QMPStar>(proj, si, "QMPStar"), range);
     }
-    addPlanner(benchmark, std::make_shared<og::BKPIECE1>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::KPIECE1>(si), range);
     // addPlanner(benchmark, std::make_shared<og::ProjEST>(si), range);
     // // addPlanner(benchmark, std::make_shared<og::SPARStwo>(si), range);
     // addPlanner(benchmark, std::make_shared<og::SBL>(si), range);
@@ -337,7 +360,6 @@ int main(int argc, char **argv)
     // addPlanner(benchmark, std::make_shared<og::LazyPRMstar>(si), range);
     // addPlanner(benchmark, std::make_shared<og::SPARS>(si), range);
     // addPlanner(benchmark, std::make_shared<og::SPARStwo>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::RRT>(si), range);
     // addPlanner(benchmark, std::make_shared<og::RRTConnect>(si), range);
     // addPlanner(benchmark, std::make_shared<og::RRTsharp>(si), range);
     // addPlanner(benchmark, std::make_shared<og::RRTstar>(si), range);
