@@ -170,7 +170,9 @@ void ompl::geometric::BundleSpaceGraph::clear()
 {
     BaseT::clear();
 
+    std::cout << "Clear Vertices"  << getName()<< std::endl;
     clearVertices();
+    std::cout << "Clear Query" << getName() << std::endl;
     clearQuery();
     graphLength_ = 0;
     bestCost_ = base::Cost(base::dInf);
@@ -226,10 +228,16 @@ void ompl::geometric::BundleSpaceGraph::clearVertices()
     {
         std::vector<Configuration *> configs;
         nearestDatastructure_->list(configs);
+        std::cout << "Configs to delete: " << configs.size() << std::endl;
         for (auto &config : configs)
         {
+            std::cout << "Deleting Configuration:" << std::endl;
+            if(config != nullptr){
+            printConfiguration(config);
             deleteConfiguration(config);
+            }
         }
+        std::cout << "clear Nearest" << std::endl;
         nearestDatastructure_->clear();
     }
     graph_.clear();

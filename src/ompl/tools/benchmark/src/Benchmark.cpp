@@ -675,6 +675,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 OMPL_ERROR(es.str().c_str());
             }
         }
+        planners_[i]->clear();
     }
 
     status_.running = false;

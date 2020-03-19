@@ -54,7 +54,7 @@ namespace ompl
 
         /** \brief [Q]uotient space [R]apidly exploring [R]andom [T]rees Star (QRRT*) Algorithm*/
         // typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QRRTStarImpl> QRRTStar;
-        typedef ompl::geometric::BundleSpaceSequenceDynamic<ompl::geometric::QRRTStarImpl> QRRTStar;
+        typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QRRTStarImpl> QRRTStar;
 
     }  // namespace geometric
 }  // namespace ompl

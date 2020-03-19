@@ -64,7 +64,6 @@ ompl::geometric::QRRTStarImpl::QRRTStarImpl(const base::SpaceInformationPtr &si,
 
 ompl::geometric::QRRTStarImpl::~QRRTStarImpl()
 {
-    deleteConfiguration(xRandom_);
 }
 
 void ompl::geometric::QRRTStarImpl::grow()
@@ -162,10 +161,9 @@ void ompl::geometric::QRRTStarImpl::grow()
 
         // // (4) Add sample
         // Configuration *q_new = new Configuration(getBundle(), xRandom_->state);
-
         // (6) add edge assign cost
-        Vertex v_next = addConfiguration(q_new);
-        addEdge(q_min->index, v_next);
+        // Vertex v_next = addConfiguration(q_new);
+        // addEdge(q_min->index, v_next);
 
         q_new->lineCost = min_line_cost;
         q_new->cost = min_cost;
@@ -248,6 +246,7 @@ void ompl::geometric::QRRTStarImpl::grow()
                 bestCost_ = bestGoalConfiguration_->cost;
             }
             hasSolution_ = true;
+            std::cout << "hasSolution=True" << std::endl;
         }
     }
 }

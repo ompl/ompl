@@ -142,10 +142,12 @@ void ompl::geometric::BundleSpaceSequence<T>::setup()
 template <class T>
 void ompl::geometric::BundleSpaceSequence<T>::clear()
 {
+    std::cout << "Clear Bundle Space " << getName() << std::endl;
     Planner::clear();
 
     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
     {
+        std::cout << "Clear Bundle Space " << bundleSpaces_.at(k)->getName() << std::endl;
         bundleSpaces_.at(k)->clear();
     }
     currentBundleSpaceLevel_ = 0;
@@ -163,6 +165,7 @@ void ompl::geometric::BundleSpaceSequence<T>::clear()
 template <class T>
 ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
 {
+  std::cout << "start " << getName() << std::endl;
     ompl::time::point t_start = ompl::time::now();
 
     for (unsigned int k = currentBundleSpaceLevel_; k < stopAtLevel_; k++)
@@ -189,7 +192,6 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
                 if(solutions_.size() < k+1)
                 {
                     solutions_.push_back(sol_k);
-                    std::cout << "Add solution:" << sol_k->length() << " on level " << k << std::endl;
                     double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
                     OMPL_DEBUG("Found Solution on Level %d after %f seconds.", k, t_k_end);
                     foundKLevelSolution_ = true;
@@ -242,6 +244,7 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
     pdef_->addSolutionPath(psol);
     // std::cout << "Final path length: " << pdef_->getSolutionPath()->length() << std::endl;
 
+  std::cout << "return " << getName() << std::endl;
     return ompl::base::PlannerStatus::EXACT_SOLUTION;
 }
 
@@ -335,7 +338,7 @@ void ompl::geometric::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planner
                     base::State *s_Bundle = Qm->getBundle()->allocState();
                     base::State *s_Fiber = Qm->allocIdentityStateFiber();
 
-                    Qm->mergeStates(s_lift, s_Fiber, s_Bundle); //TODO: segfault?
+                    Qm->mergeStates(s_lift, s_Fiber, s_Bundle);
                     s_lift = Qm->getBundle()->cloneState(s_Bundle);
 
                     Qm->getBundle()->freeState(s_Bundle);
