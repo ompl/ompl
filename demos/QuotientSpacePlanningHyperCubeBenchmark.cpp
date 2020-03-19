@@ -326,9 +326,8 @@ int main(int argc, char **argv)
         std::vector<int> proj = admissibleProjections.at(k);
         addPlanner(benchmark, GetBundlePlanner<og::QRRT>(proj, si, "QRRT"), range);
         addPlanner(benchmark, GetBundlePlanner<og::QRRTStar>(proj, si, "QRRTStar"), range);
-        break;
-        // addPlanner(benchmark, GetBundlePlanner<og::QMP>(proj, si, "QMP"), range);
-        // addPlanner(benchmark, GetBundlePlanner<og::QMPStar>(proj, si, "QMPStar"), range);
+        addPlanner(benchmark, GetBundlePlanner<og::QMP>(proj, si, "QMP"), range);
+        addPlanner(benchmark, GetBundlePlanner<og::QMPStar>(proj, si, "QMPStar"), range);
     }
     // addPlanner(benchmark, std::make_shared<og::BKPIECE1>(si), range);
     // addPlanner(benchmark, std::make_shared<og::KPIECE1>(si), range);

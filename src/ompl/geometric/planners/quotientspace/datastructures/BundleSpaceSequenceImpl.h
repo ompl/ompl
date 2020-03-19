@@ -136,18 +136,15 @@ void ompl::geometric::BundleSpaceSequence<T>::setup()
         bundleSpaces_.at(k)->setup();
     }
     currentBundleSpaceLevel_ = 0;
-    std::cout << "Setup " << getName() << std::endl;
 }
 
 template <class T>
 void ompl::geometric::BundleSpaceSequence<T>::clear()
 {
-    std::cout << "Clear Bundle Space " << getName() << std::endl;
     Planner::clear();
 
     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
     {
-        std::cout << "Clear Bundle Space " << bundleSpaces_.at(k)->getName() << std::endl;
         bundleSpaces_.at(k)->clear();
     }
     currentBundleSpaceLevel_ = 0;
@@ -158,7 +155,6 @@ void ompl::geometric::BundleSpaceSequence<T>::clear()
     foundKLevelSolution_ = false;
 
     solutions_.clear();
-    std::cout << "Clear Bundle Space " << getName() << std::endl;
     pdef_->clearSolutionPaths();
 }
 
