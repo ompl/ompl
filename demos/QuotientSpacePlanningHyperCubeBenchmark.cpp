@@ -89,7 +89,7 @@
 const double edgeWidth = 0.2;
 const double runtime_limit = 1;
 const double memory_limit = 4096 * 4096;
-const int run_count = 2;
+const int run_count = 5;
 unsigned int curDim = 8;
 int numberPlanners = 0;
 
@@ -124,8 +124,8 @@ std::vector<std::vector<int>> getHypercubeAdmissibleProjections(int dim)
     powStep.push_back(6);
     powStep.push_back(dim);
 
-    projections.push_back(trivial);
     projections.push_back(powStep);
+    // projections.push_back(trivial);
     // projections.push_back(discrete);
     // projections.push_back(twoStep);
 
@@ -257,7 +257,6 @@ ob::PlannerPtr GetBundlePlanner(std::vector<int> sequenceLinks, ob::SpaceInforma
     for (unsigned int k = 0; k < sequenceLinks.size() - 1; k++)
     {
         int links = sequenceLinks.at(k);
-        assert(links < maximalDimension);
 
         auto spaceK(std::make_shared<ompl::base::RealVectorStateSpace>(links));
         ompl::base::RealVectorBounds bounds(links);
@@ -329,8 +328,8 @@ int main(int argc, char **argv)
         addPlanner(benchmark, GetBundlePlanner<og::QMP>(proj, si, "QMP"), range);
         addPlanner(benchmark, GetBundlePlanner<og::QMPStar>(proj, si, "QMPStar"), range);
     }
-    // addPlanner(benchmark, std::make_shared<og::BKPIECE1>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::KPIECE1>(si), range);
+    addPlanner(benchmark, std::make_shared<og::BKPIECE1>(si), range);
+    addPlanner(benchmark, std::make_shared<og::KPIECE1>(si), range);
     // addPlanner(benchmark, std::make_shared<og::SBL>(si), range);
     // addPlanner(benchmark, std::make_shared<og::ProjEST>(si), range);
     // // addPlanner(benchmark, std::make_shared<og::SPARStwo>(si), range);

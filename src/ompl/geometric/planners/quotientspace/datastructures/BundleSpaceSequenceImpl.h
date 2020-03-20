@@ -161,7 +161,6 @@ void ompl::geometric::BundleSpaceSequence<T>::clear()
 template <class T>
 ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
 {
-  std::cout << "start " << getName() << std::endl;
     ompl::time::point t_start = ompl::time::now();
 
     for (unsigned int k = currentBundleSpaceLevel_; k < stopAtLevel_; k++)
@@ -238,9 +237,8 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
     ompl::base::PlannerSolution psol(sol);
     bundleSpaces_.back()->getProblemDefinition()->getSolution(psol);
     pdef_->addSolutionPath(psol);
-    // std::cout << "Final path length: " << pdef_->getSolutionPath()->length() << std::endl;
+    std::cout << "Final path length: " << pdef_->getSolutionPath()->length() << std::endl;
 
-  std::cout << "return " << getName() << std::endl;
     return ompl::base::PlannerStatus::EXACT_SOLUTION;
 }
 

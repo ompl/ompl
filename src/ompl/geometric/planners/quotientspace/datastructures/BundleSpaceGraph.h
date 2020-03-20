@@ -278,6 +278,14 @@ namespace ompl
                 const Configuration *from, 
                 const Configuration *to);
 
+            Configuration* steerTowards_Range(
+                const Configuration *from, 
+                const Configuration *to);
+
+            Configuration* steerTowards(
+                const Configuration *from, 
+                const Configuration *to);
+
             bool connect(
                 const Configuration *from, 
                 const Configuration *to);

@@ -156,6 +156,7 @@ void ompl::geometric::BundleSpaceGraph::setup()
         else
         {
             opt_ = std::make_shared<base::PathLengthOptimizationObjective>(getBundle());
+            pdef_->setOptimizationObjective(opt_);
         }
         firstRun_ = true;
         setup_ = true;
@@ -170,9 +171,7 @@ void ompl::geometric::BundleSpaceGraph::clear()
 {
     BaseT::clear();
 
-    std::cout << "Clear Vertices"  << getName()<< std::endl;
     clearVertices();
-    std::cout << "Clear Query" << getName() << std::endl;
     clearQuery();
     graphLength_ = 0;
     bestCost_ = base::Cost(base::dInf);
@@ -228,6 +227,7 @@ void ompl::geometric::BundleSpaceGraph::clearVertices()
     {
         std::vector<Configuration *> configs;
         nearestDatastructure_->list(configs);
+        // std::cout << "Clear " << configs.size() << " configs." << std::endl;
         for (auto &config : configs)
         {
             deleteConfiguration(config);
@@ -379,6 +379,38 @@ void ompl::geometric::BundleSpaceGraph::interpolate(
     metric_->interpolateBundle(a, b, dest);
 }
 
+Configuration* ompl::geometric::BundleSpaceGraph::steerTowards_Range(
+    const Configuration *from, 
+    const Configuration *to)
+{
+    Configuration *next = new Configuration(getBundle(), to->state);
+
+    double d = distance(from, to);
+    if (d > maxDistance_)
+    {
+        metric_->interpolateBundle(from, to, maxDistance_ / d, next);
+    }
+
+    if (!propagator_->steer(from, next, next))
+    {
+        deleteConfiguration(next);
+        return nullptr;
+    }
+    return next;
+}
+Configuration* ompl::geometric::BundleSpaceGraph::steerTowards(
+    const Configuration *from, 
+    const Configuration *to)
+{
+    Configuration *next = new Configuration(getBundle(), to->state);
+
+    if (!propagator_->steer(from, next, next))
+    {
+        deleteConfiguration(next);
+        return nullptr;
+    }
+    return next;
+}
 Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards_Range(
     const Configuration *from, 
     const Configuration *to)
@@ -538,15 +570,6 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
               geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
               shortcutter.simplifyMax(gpath);
           }
-          // startGoalVertexPath_ = shortestVertexPath_;
-          // lengthStartGoalVertexPath_ = 0;
-          // for(uint k = 1; k < startGoalVertexPath_.size(); k++){
-          //   Configuration* xk = graph_[startGoalVertexPath_.at(k)];
-          //   Configuration* xkk = graph_[startGoalVertexPath_.at(k-1)];
-          //   double d = distance(xk, xkk);
-          //   lengthsStartGoalVertexPath_.push_back(d);
-          //   lengthStartGoalVertexPath_ += d;
-          // }
         }
         solution = solutionPath_;
         return true;

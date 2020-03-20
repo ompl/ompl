@@ -45,7 +45,6 @@ ompl::geometric::QRRTImpl::QRRTImpl(const base::SpaceInformationPtr &si, BundleS
     setName("QRRTImpl" + std::to_string(id_));
     setImportance("uniform");
     setGraphSampler("randomvertex");
-    // setMetric("shortestpath");
 }
 
 ompl::geometric::QRRTImpl::~QRRTImpl()

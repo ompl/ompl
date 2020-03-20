@@ -66,6 +66,11 @@ namespace ompl
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;
             void addChildrenToPlannerData(Configuration *q, base::PlannerData &data) const;
 
+            virtual void clear() override;
+
+            void getNearestNeighbors(Configuration *x, std::vector<Configuration *> &nearest);
+            void removeFromParent(Configuration *q);
+
         public:
 
             QRRTStarImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
@@ -82,6 +87,8 @@ namespace ompl
             /** \brief a constant value to calculate radius */
             double r_rrt_Constant_{0};
 
+            double rewireFactor_{1.1};
+
             /** \brief true if cost from a to b is same as b to a*/
             bool symmetric_;
 
@@ -92,7 +99,7 @@ namespace ompl
             double d_{0};
 
             /** \brief Best cost found so far by algorithm */
-            base::Cost bestCost_{std::numeric_limits<double>::quiet_NaN()};
+            base::Cost bestCost_{std::numeric_limits<double>::infinity()};
 
             /** \brief best goal motion. */
             Configuration *bestGoalConfiguration_{nullptr};
