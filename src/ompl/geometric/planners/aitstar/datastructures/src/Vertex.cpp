@@ -249,6 +249,7 @@ namespace ompl
                 for (const auto &child : backwardChildren_)
                 {
                     child.lock()->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
+                    child.lock()->setExpandedCostToComeFromGoal(optimizationObjective_->infiniteCost());
                     child.lock()->resetBackwardParent();
                     auto childsAccumulatedChildren = child.lock()->invalidateBackwardBranch();
                     accumulatedChildren.insert(accumulatedChildren.end(), childsAccumulatedChildren.begin(),

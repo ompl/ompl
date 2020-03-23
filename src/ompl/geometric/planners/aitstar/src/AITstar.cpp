@@ -820,6 +820,7 @@ namespace ompl
 
                     // Invalidate the branch in the reverse search tree that is rooted at this vertex.
                     vertex->setCostToComeFromGoal(objective_->infiniteCost());
+                    vertex->setExpandedCostToComeFromGoal(objective_->infiniteCost());
                     auto affectedVertices = vertex->invalidateBackwardBranch();
 
                     // Remove the affected edges from the forward queue, placing them in the edge cache.
@@ -851,19 +852,16 @@ namespace ompl
                         }
                     }
 
-                    // Insert the neighbors of the root that are still in the tree in open as they might now be the best
-                    // parents of the vertices in the invalidated branch.
-                    for (const auto &neighbor : graph_.getNeighbors(vertex))
+                    // Check update the invalidated vertices and insert them in open if they become connected to the tree.
+                    for (const auto &affectedVertex : affectedVertices)
                     {
-                        if (neighbor->hasBackwardParent() && !neighbor->getBackwardQueuePointer())
-                        {
-                            auto backwardQueuePtr =
-                                backwardQueue_->insert(std::make_pair(computeSortKey(neighbor), neighbor));
-                            neighbor->setBackwardQueuePointer(backwardQueuePtr);
+                        auto affectedVertexPtr = affectedVertex.lock();
 
-                            // We consider this vertex as unexpanded, otherwise we'll have consistent vertices in the
-                            // queue.
-                            neighbor->setExpandedCostToComeFromGoal(objective_->infiniteCost());
+                        backwardSearchUpdateVertex(affectedVertexPtr);
+                        if (affectedVertex.lock()->hasBackwardParent())
+                        {
+                            insertOrUpdateInBackwardQueue(affectedVertexPtr);
+                            affectedVertexPtr->setExpandedCostToComeFromGoal(objective_->infiniteCost());
                         }
                     }
 
