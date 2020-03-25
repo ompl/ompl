@@ -53,7 +53,6 @@ ompl::geometric::SPQRImpl::SPQRImpl(const base::SpaceInformationPtr &si, BundleS
 ompl::geometric::SPQRImpl::~SPQRImpl()
 {
     getBundle()->freeStates(randomWorkStates_);
-    deleteConfiguration(xRandom_);
 }
 
 void ompl::geometric::SPQRImpl::grow()
@@ -63,12 +62,14 @@ void ompl::geometric::SPQRImpl::grow()
         Init();
         firstRun_ = false;
     }
-    if( ++iterations_ % 2 == 0)
-    {
-        expand();
-        return;
-    }
+    // if( ++iterations_ % 2 == 0)
+    // {
+    //     expand();
+    //     return;
+    // }
     sampleBundleGoalBias(xRandom_->state, goalBias_);
+
+    if(!getBundle()->getStateValidityChecker()->isValid(xRandom_->state)) return;
 
     addMileStone(xRandom_);
 }
@@ -107,12 +108,20 @@ void ompl::geometric::SPQRImpl::addMileStone(Configuration *q_random)
     findGraphNeighbors(q_next, graphNeighborhood, visibleNeighborhood);
 
     if (!checkAddCoverage(q_next, visibleNeighborhood))
+    {
         if (!checkAddConnectivity(q_next, visibleNeighborhood))
+        {
             if (!checkAddInterface(q_next, graphNeighborhood, visibleNeighborhood))
             {
                 if (!checkAddPath(q_next))
+                {
                     ++consecutiveFailures_;
-            }
+                }
+            }else{
+                ++consecutiveFailures_;
+            }//no interface
+        }//no connectivity
+    }//no coverage
     
     if (!hasSolution_)
     {
@@ -167,7 +176,6 @@ ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SPQRImpl::ad
     if ( q_next->representativeIndex < 0 )
         return q_next;
 
-
     std::vector<Vertex> interfaceNeighborhood;
     std::set<Vertex> interfaceRepresentatives;
 
@@ -187,7 +195,12 @@ ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SPQRImpl::ad
     return q_next;
 }
 
-bool ompl::geometric::SPQRImpl::getPlannerTerminationCondition()
+bool ompl::geometric::SPQRImpl::isInfeasible()
 {
-    return hasSolution_ || consecutiveFailures_ > maxFailures_;
+    bool progressFailure = (consecutiveFailures_ >= maxFailures_);
+    if(progressFailure)
+    {
+        OMPL_INFORM("Failed finding samples for %d rounds.", consecutiveFailures_);
+    }
+    return progressFailure;
 }

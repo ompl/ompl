@@ -8,35 +8,35 @@ namespace ompl
 {
     namespace geometric
     {
-      class BundleSpaceGraphSampler
-      {
-        protected:
-          using Vertex = ompl::geometric::BundleSpaceGraph::Vertex;
+        class BundleSpaceGraphSampler
+        {
+          protected:
+            using Vertex = ompl::geometric::BundleSpaceGraph::Vertex;
 
-        public:
-          BundleSpaceGraphSampler() = delete;
-          BundleSpaceGraphSampler(BundleSpaceGraph*); 
+          public:
+            BundleSpaceGraphSampler() = delete;
+            BundleSpaceGraphSampler(BundleSpaceGraph*); 
 
-          void sample(base::State *xRandom);
+            void sample(base::State *xRandom);
 
-        protected:
+          protected:
 
-          virtual void sampleImplementation(base::State *xRandom) = 0;
+            virtual void sampleImplementation(base::State *xRandom) = 0;
 
-          using RNGType = boost::minstd_rand;
-          RNGType rng_boost;
-          RNG rng_;
+            using RNGType = boost::minstd_rand;
+            RNGType rng_boost;
+            RNG rng_;
 
-          BundleSpaceGraph* bundleSpaceGraph_;
+            BundleSpaceGraph* bundleSpaceGraph_;
 
-          double epsilonGraphThickening_{0.1};
+            double epsilonGraphThickening_{0.1};
 
-          double pathBias_{0.2};
+            double pathBiasFixed_{0.2};
 
-          double exponentialDecayLambda_{1e-3};
+            double exponentialDecayLambda_{1e-3};
 
-          unsigned int exponentialDecayCtr_{0};
-      };
+            unsigned int exponentialDecayCtr_{0};
+        };
     }  // namespace geometric
 }  // namespace ompl
 #endif

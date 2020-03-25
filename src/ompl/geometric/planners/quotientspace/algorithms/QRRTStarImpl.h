@@ -66,9 +66,11 @@ namespace ompl
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;
 
             virtual void clear() override;
+            virtual void setup() override;
 
             void getNearestNeighbors(Configuration *x, std::vector<Configuration *> &nearest);
             void removeFromParent(Configuration *q);
+            void calculateRewiringLowerBounds();
 
         public:
 
@@ -96,9 +98,6 @@ namespace ompl
 
             /** \brief store dimension of bundle space to calc radius */
             double d_{0};
-
-            /** \brief Best cost found so far by algorithm */
-            base::Cost bestCost_{std::numeric_limits<double>::infinity()};
 
             /** \brief list of configurations that satisfy the goal condition */
             std::vector<Configuration *> goalConfigurations_;

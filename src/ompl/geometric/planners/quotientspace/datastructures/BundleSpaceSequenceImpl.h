@@ -205,6 +205,14 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
                 bundleSpaces_.at(k)->getProblemDefinition()->clearSolutionPaths();
                 bundleSpaces_.at(k)->getProblemDefinition()->addSolutionPath(psol);
             }
+
+            bool isInfeasible = bundleSpaces_.at(k)->isInfeasible();
+            if(isInfeasible)
+            {
+                double t_end = ompl::time::seconds(ompl::time::now() - t_start);
+                OMPL_DEBUG("Infeasibility detected after %f seconds (level %d).", t_end, k);
+                return ompl::base::PlannerStatus::INFEASIBLE;
+            }
             priorityQueue_.push(jBundle);
         }
 
@@ -217,27 +225,10 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
     double t_end = ompl::time::seconds(ompl::time::now() - t_start);
     OMPL_DEBUG("Found exact solution after %f seconds.", t_end);
 
-    // int lastSolvedBundleSpaceLevel = currentBundleSpaceLevel_;
-    // if(lastSolvedBundleSpaceLevel < 0) lastSolvedBundleSpaceLevel = 0;
-
-    // ompl::base::PathPtr sol;
-    // if (bundleSpaces_.at(lastSolvedBundleSpaceLevel)->getSolution(sol))
-    // {
-    //     ompl::base::PlannerSolution psol(sol);
-    //     psol.setPlannerName(getName());
-    //     pdef_->addSolutionPath(psol);
-    //     std::cout << "Add solution path with length " << sol->length() << std::endl;
-    //     std::cout << "last space: " << lastSolvedBundleSpaceLevel << std::endl;
-    //     // base::SpaceInformationPtr si = bundleSpaces_.at(lastSolvedBundleSpaceLevel)->getBundle();
-    // }
-
-    // bundleSpaces_.at(lastSolvedBundleSpaceLevel)->getProblemDefinition()->getSolution();
-
     ompl::base::PathPtr sol;
     ompl::base::PlannerSolution psol(sol);
     bundleSpaces_.back()->getProblemDefinition()->getSolution(psol);
     pdef_->addSolutionPath(psol);
-    std::cout << "Final path length: " << pdef_->getSolutionPath()->length() << std::endl;
 
     return ompl::base::PlannerStatus::EXACT_SOLUTION;
 }

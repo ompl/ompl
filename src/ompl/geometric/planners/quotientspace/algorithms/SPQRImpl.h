@@ -66,7 +66,7 @@ namespace ompl
 
             void addMileStone(Configuration *q_random);
             Configuration *addConfigurationDense(Configuration *q_random);
-            bool getPlannerTerminationCondition();
+            virtual bool isInfeasible() override;
 
         protected:
 

@@ -83,7 +83,6 @@ void ompl::geometric::QMPImpl::grow()
     sampleBundle(xRandom_->state);
 
     if(!getBundle()->getStateValidityChecker()->isValid(xRandom_->state)) return;
-    // addMileStone(xRandom_->state);
 
     //(2) Add Configuration if valid
     Configuration *xNew = new Configuration(getBundle(), xRandom_->state);
@@ -101,15 +100,9 @@ void ompl::geometric::QMPImpl::grow()
         xNearest->total_connection_attempts++;
 
         const Configuration *xNext = extendGraphTowards(xNearest, xNew);
-        // if(connect(xNearest, xNew))
-        // {
 
         if(xNext)
         {
-        // if (getBundle()->checkMotion(xNeighbor->state, xNext->state)) 
-        // {
-            // addEdge(xNew->index, xNext->index);
-            
             xNew->successful_connection_attempts++;
             xNearest->successful_connection_attempts++;
 

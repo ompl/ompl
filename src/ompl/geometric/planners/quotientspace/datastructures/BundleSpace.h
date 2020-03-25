@@ -54,6 +54,8 @@ namespace ompl
             virtual void sampleBundle(ompl::base::State *xRandom);
 
             virtual bool hasSolution();
+            virtual bool isInfeasible();
+
             virtual void clear() override;
             virtual void setup() override;
 

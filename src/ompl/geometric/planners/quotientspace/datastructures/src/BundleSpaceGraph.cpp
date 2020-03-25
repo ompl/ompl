@@ -49,7 +49,6 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/propagators/Geometric.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/propagators/Dynamic.h>
 
-#include <ompl/geometric/planners/prm/ConnectionStrategy.h>
 #include <ompl/geometric/PathSimplifier.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
@@ -578,23 +577,6 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
     {
         return false;
     }
-        // base::Goal *g = pdef_->getGoal().get();
-        // bestCost_ = base::Cost(+base::dInf);
-        // bool same_component = sameComponent(vStart_, vGoal_);
-
-        // if (same_component && g->isStartGoalPairValid(graph_[vGoal_]->state, graph_[vStart_]->state))
-        // {
-        //     solutionPath_ = getPath(vStart_, vGoal_);
-        //     if (solutionPath_)
-        //     {
-        //         solution = solutionPath_;
-        //         hasSolution_ = true;
-        //         startGoalVertexPath_ = shortestVertexPath_;
-        //         return true;
-        //     }
-        // }
-    // }
-    // return hasSolution_;
 }
 
 void ompl::geometric::BundleSpaceGraph::getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph, std::deque<base::State *> &path)
@@ -758,6 +740,12 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(
         p1.setPath(idxPathI);
         p2.setPath(idxPathI);
         data.addEdge(p1, p2);
+    }
+    foreach (const Vertex v, boost::vertices(graph))
+    {
+        base::PlannerDataVertexAnnotated p(graph[v]->state);
+        p.setPath(idxPathI);
+        data.addVertex(p);
     }
 
 }

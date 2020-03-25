@@ -1497,5 +1497,7 @@ void BundleSpaceGraphSparse::getPlannerData(base::PlannerData &data) const
         boost::num_vertices(graph_), 
         boost::num_edges(graph_));
 
-    BaseT::getPlannerDataGraph(data, graphSparse_, v_start_sparse, v_goal_sparse);
+    if(boost::num_vertices(graphSparse_) > 1){
+        BaseT::getPlannerDataGraph(data, graphSparse_, v_start_sparse, v_goal_sparse);
+    }
 }

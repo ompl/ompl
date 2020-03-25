@@ -56,16 +56,11 @@ ompl::geometric::QRRTStarImpl::QRRTStarImpl(const base::SpaceInformationPtr &si,
         &ompl::geometric::QRRTStarImpl::setKNearest, 
         &ompl::geometric::QRRTStarImpl::getKNearest, 
         "0,1");
-    d_ = (double)getBundle()->getStateDimension();
-    double e = boost::math::constants::e<double>();
-    // k > 2^(d + 1) * e * (1 + 1 / d).
-    k_rrt_Constant_ = std::pow(2, d_ + 1) * e * (1.0 + 1.0 / d_);
-    // γRRG > γRRG ∗ = 2*( 1 + 1/d)^1/d * ( μ( Xfree) / ζd)^1/d
-    r_rrt_Constant_ = std::pow(2 * (1.0 + 1.0 / d_) * (getBundle()->getSpaceMeasure() / unitNBallMeasure(d_)), 1.0 / d_);
+
     symmetric_ = getBundle()->getStateSpace()->hasSymmetricInterpolate();
 
-    setImportance("greedy");
-    setGraphSampler("randomvertex");
+    setImportance("uniform");
+    setGraphSampler("randomedge");
     setMetric("geodesic");
 }
 
@@ -73,11 +68,15 @@ ompl::geometric::QRRTStarImpl::~QRRTStarImpl()
 {
 }
 
+void ompl::geometric::QRRTStarImpl::setup()
+{
+    BaseT::setup();
+    calculateRewiringLowerBounds();
+}
 void ompl::geometric::QRRTStarImpl::clear()
 {
     BaseT::clear();
-    bestCost_ = opt_->infiniteCost();
-    std::cout << "Clear " << getName() << std::endl;
+    goalConfigurations_.clear();
 }
 
 void ompl::geometric::QRRTStarImpl::grow()
@@ -249,8 +248,7 @@ void ompl::geometric::QRRTStarImpl::grow()
             }
             if(updatedSolution)
             {
-                std::cout << "Found path with cost " << qGoal_->cost 
-                  << " (level " << getLevel() << ")" << std::endl;
+                OMPL_INFORM("Found path with cost %f (level %d).", qGoal_->cost, getLevel());
                 hasSolution_ = true;
             }
         }
@@ -284,12 +282,10 @@ bool ompl::geometric::QRRTStarImpl::getSolution(base::PathPtr &solution)
         solutionPath_ = std::make_shared<PathGeometric>(getBundle());
 
         Configuration *intermediate_node = qGoal_;
-        int ctr = 0;
         while (intermediate_node != nullptr)
         {
             std::static_pointer_cast<PathGeometric>(solutionPath_)->append(intermediate_node->state);
             intermediate_node = intermediate_node->parent;
-
         }
         std::static_pointer_cast<PathGeometric>(solutionPath_)->reverse();
         solution = solutionPath_;
@@ -318,10 +314,18 @@ void ompl::geometric::QRRTStarImpl::getNearestNeighbors(Configuration *x, std::v
     }
 }
 
+void ompl::geometric::QRRTStarImpl::calculateRewiringLowerBounds()
+{
+    d_ = (double)getBundle()->getStateDimension();
+    double e = boost::math::constants::e<double>();
+    // k > 2^(d + 1) * e * (1 + 1 / d).
+    k_rrt_Constant_ = std::pow(2, d_ + 1) * e * (1.0 + 1.0 / d_);
+    // γRRG > γRRG ∗ = 2*( 1 + 1/d)^1/d * ( μ( Xfree) / ζd)^1/d
+    r_rrt_Constant_ = std::pow(2 * (1.0 + 1.0 / d_) * (getBundle()->getSpaceMeasure() / unitNBallMeasure(d_)), 1.0 / d_);
+}
+
 void ompl::geometric::QRRTStarImpl::getPlannerData(base::PlannerData &data) const
 {
-    OMPL_DEBUG("Roadmap has %d vertices", nearestDatastructure_->size());
-
     std::vector<int> idxPathI;
     BundleSpace *pparent = getParent();
     while (pparent != nullptr)
@@ -357,4 +361,5 @@ void ompl::geometric::QRRTStarImpl::getPlannerData(base::PlannerData &data) cons
             data.addEdge(p1, p2);
         }
     }
+    OMPL_DEBUG("Tree has %d/%d vertices/edges (level %d).", motions.size(), motions.size()-1, getLevel());
 }

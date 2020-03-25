@@ -27,15 +27,7 @@ double ompl::geometric::BundleSpaceImportanceGreedy::getLevelConstant()
 
 double ompl::geometric::BundleSpaceImportanceGreedy::eval()
 {
-    // if(bundleSpaceGraph_->hasSolution() && bundleSpaceGraph_->hasChild())
-    // {
-    //     return 0.0;
-    // }else{
-    //     return 1.0;
-    // }
-
     const double f = getLevelConstant();
-
     double N = (double)bundleSpaceGraph_->getNumberOfVertices();
     return 1.0 / (N/f + 1);
 }

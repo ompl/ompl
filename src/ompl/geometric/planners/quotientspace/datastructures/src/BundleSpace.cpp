@@ -366,6 +366,11 @@ const ompl::base::StateSamplerPtr &ompl::geometric::BundleSpace::getBundleSample
     return Bundle_sampler_;
 }
 
+bool ompl::geometric::BundleSpace::isInfeasible()
+{
+    return false;
+}
+
 bool ompl::geometric::BundleSpace::hasSolution()
 {
     if (!hasSolution_)
