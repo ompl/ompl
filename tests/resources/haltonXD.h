@@ -32,26 +32,63 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Leonard Bruns */
+/* Author: Luigi Palmieri */
 
 #include <ompl/base/samplers/deterministic/HaltonSequence.h>
 
+#ifndef OMPL_TEST_HALTON_XD_
+#define OMPL_TEST_HALTON_XD_
+
+#include <fstream>
 #include <iostream>
+#include <iterator>
+#include <vector>
+#include <sstream>
+#include <string>
 
-namespace ob = ompl::base;
-
-int main(int /*argc*/, char ** /*argv*/)
+/** \brief Representation of XD Halton sequence read from file */
+struct HaltonXD
 {
-    std::cout << "Testing the Halton Sequence..." << std::endl;
-    ob::HaltonSequence hs5d(5);
-
-    for(int i=0; i<10; ++i) {
-        auto sample = hs5d.sample();
-        for(auto s : sample) {
-            std::cout << s << " ";
-        }
-        std::cout << std::endl;
+    HaltonXD(unsigned int dim)
+    {
+        dimensions_ = dim;
     }
 
-    return 0;
-}
+    std::vector<std::vector<double>> sequence_;
+    // Dimension of the sequence
+    unsigned int dimensions_;
+
+    HaltonXD &operator=(const HaltonXD &other)
+    {
+        dimensions_ = other.dimensions_;
+        sequence_ = other.sequence_;
+        return *this;
+    }
+
+    void loadSequence(const char *filename)
+    {
+        std::cout << "Loading the sequence " << filename << std::endl;
+
+        std::ifstream input(filename);
+        std::vector<double> line;
+        std::string sline;
+        while (std::getline(input, sline, '\n'))
+        {
+            std::istringstream in(sline);
+            std::vector<double> line((std::istream_iterator<double>(in)), std::istream_iterator<double>());
+            if (line.size() != dimensions_)
+            {
+                std::cout << "Error the read line has a different dimension of " << line.size();
+                std::cout << "Expected dimension of " << dimensions_;
+            }
+            sequence_.push_back(line);
+        }
+    }
+
+    std::vector<std::vector<double>> getSequence()
+    {
+        return sequence_;
+    }
+};
+
+#endif

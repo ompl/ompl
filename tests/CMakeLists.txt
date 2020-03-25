@@ -29,6 +29,7 @@ if (OMPL_BUILD_TESTS)
     endif()
 
     # Test base code
+    add_ompl_test(test_halton_sampling base/halton_deterministic_sampling.cpp)
     add_ompl_test(test_state_operations base/state_operations.cpp)
     add_ompl_test(test_state_spaces base/state_spaces.cpp)
     add_ompl_test(test_state_storage base/state_storage.cpp)
