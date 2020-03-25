@@ -64,7 +64,6 @@ namespace ompl
             }
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;
-            void addChildrenToPlannerData(Configuration *q, base::PlannerData &data) const;
 
             virtual void clear() override;
 
@@ -100,9 +99,6 @@ namespace ompl
 
             /** \brief Best cost found so far by algorithm */
             base::Cost bestCost_{std::numeric_limits<double>::infinity()};
-
-            /** \brief best goal motion. */
-            Configuration *bestGoalConfiguration_{nullptr};
 
             /** \brief list of configurations that satisfy the goal condition */
             std::vector<Configuration *> goalConfigurations_;

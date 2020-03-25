@@ -36,6 +36,7 @@
 /* Author: Andreas Orthey, Sohaib Akbar */
 
 #include <ompl/geometric/planners/quotientspace/algorithms/QRRTStarImpl.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <boost/foreach.hpp>
@@ -95,22 +96,10 @@ void ompl::geometric::QRRTStarImpl::grow()
     Configuration *q_nearest = nearestDatastructure_->nearest(xRandom_);
 
     //(3) Steer toward random
-    // Configuration *q_new = steerTowards_Range(q_nearest, xRandom_);
+    Configuration *q_new = steerTowards_Range(q_nearest, xRandom_);
 
-    double d = distance(q_nearest, xRandom_);
-    if (d > maxDistance_)
+    if(q_new)
     {
-        getBundle()->getStateSpace()->interpolate(
-            q_nearest->state,
-            xRandom_->state, 
-            maxDistance_ / d,
-        xRandom_->state);
-    }
-
-    if(getBundle()->checkMotion(q_nearest->state, xRandom_->state))
-    {
-        Configuration *q_new = new Configuration(getBundle(), xRandom_->state);
-
         // (1) Find all neighbors of the new configuration in graph
         std::vector<Configuration *> nearestNbh;
         getNearestNeighbors(q_new, nearestNbh);
@@ -171,8 +160,6 @@ void ompl::geometric::QRRTStarImpl::grow()
         //(4) Connect to minimum cost neighbor 
         addConfiguration(q_new);
         q_new->parent->children.push_back(q_new);
-        addEdge(q_new->parent->index, q_new->index);
-
 
         bool checkForSolution = false;
 
@@ -213,12 +200,6 @@ void ompl::geometric::QRRTStarImpl::grow()
                         // (7d) remove q_near from children of its old parent node
                         removeFromParent(q_near);
 
-                        // (7e) remove edge old parent to q_near
-                        boost::remove_edge(q_near->parent->index, q_near->index, graph_);
-
-                        // (7f) add new edge q_new to q_near
-                        addEdge(q_new->index, q_near->index);
-
                         // (7g) update costs of q_near
                         q_near->lineCost = line_cost;
                         q_near->cost = new_cost;
@@ -239,14 +220,6 @@ void ompl::geometric::QRRTStarImpl::grow()
         bool satisfied = goal_->isSatisfied(q_new->state, &dist);
         if (satisfied)
         {
-            // if(goalConfigurations_.empty())
-            // {
-            //     vGoal_ = addConfiguration(qGoal_);
-            //     addEdge(q_new->index, vGoal_);
-            //     qGoal_->lineCost = opt_->motionCost(q_new->state, qGoal_->state);
-            //     qGoal_->cost = opt_->combineCosts(q_new->cost, qGoal_->lineCost);
-            //     qGoal_->parent = q_new;
-            // }
             goalConfigurations_.push_back(q_new);
             checkForSolution = true;
         }
@@ -267,8 +240,6 @@ void ompl::geometric::QRRTStarImpl::grow()
 
                     if (opt_->isCostBetterThan(qk->cost, bestCost_))
                     {
-                        // bestGoalConfiguration_ = qk;
-                        // bestCost_ = bestGoalConfiguration_->cost;
                         qGoal_ = qk;
                         vGoal_ = qGoal_->index;
                         bestCost_ = qGoal_->cost;
@@ -280,10 +251,6 @@ void ompl::geometric::QRRTStarImpl::grow()
             {
                 std::cout << "Found path with cost " << qGoal_->cost 
                   << " (level " << getLevel() << ")" << std::endl;
-
-                // qGoal_->lineCost = opt_->motionCost(bestGoalConfiguration_->state, qGoal_->state);
-                // qGoal_->cost = opt_->combineCosts(bestGoalConfiguration_->cost, qGoal_->lineCost);
-                // qGoal_->parent = bestGoalConfiguration_;
                 hasSolution_ = true;
             }
         }
@@ -323,26 +290,6 @@ bool ompl::geometric::QRRTStarImpl::getSolution(base::PathPtr &solution)
             std::static_pointer_cast<PathGeometric>(solutionPath_)->append(intermediate_node->state);
             intermediate_node = intermediate_node->parent;
 
-            //detect and handle loops
-            if(ctr++ > 100){
-              std::cout << "DETECTED LOOP" << std::endl;
-              int idx = intermediate_node->index;
-              for(uint k = 0; k < 10; k++)
-              {
-                if(intermediate_node->parent)
-                {
-                    std::cout << intermediate_node->index << " to " 
-                      << intermediate_node->parent->index << std::endl;
-                }else{
-                  break;
-                }
-                intermediate_node = intermediate_node->parent;
-                if(intermediate_node->index == idx){
-                  break;
-                }
-              }
-              break;
-            }
         }
         std::static_pointer_cast<PathGeometric>(solutionPath_)->reverse();
         solution = solutionPath_;
@@ -354,54 +301,12 @@ bool ompl::geometric::QRRTStarImpl::getSolution(base::PathPtr &solution)
     }
 }
 
-void ompl::geometric::QRRTStarImpl::getPlannerData(base::PlannerData &data) const
-{
-    OMPL_DEBUG("Roadmap has %d vertices", nearestDatastructure_->size());
-    BaseT::getPlannerData(data);
-
-    // std::vector<Configuration *> motions;
-    // if (nearestDatastructure_)
-    //     nearestDatastructure_->list(motions);
-
-    // if (bestGoalConfiguration_)
-    //     data.addGoalVertex(base::PlannerDataVertex(bestGoalConfiguration_->state));
-
-    // for (int i = 0; i < motions.size(); i++)
-    // {
-    //     if (motions[i]->parent == nullptr)
-    //         data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
-    //     else
-    //         data.addEdge(base::PlannerDataVertex(motions[i]->parent->state), base::PlannerDataVertex(motions[i]->state));
-    // }
-
-    //data.addGoalVertex(base::PlannerDataVertex(qGoal_->state));
-    //data.addStartVertex(base::PlannerDataVertex(qStart_->state));
-
-    //addChildrenToPlannerData(qStart_, data);
-}
-
-void ompl::geometric::QRRTStarImpl::addChildrenToPlannerData(Configuration* q, base::PlannerData &data) const
-{
-    if (q != nullptr)
-    {
-        if (!q->children.empty())
-        {
-            /*for (std::size_t i = 0; i < q->children.size(); ++i)
-            {
-                // data.addEdge(base::PlannerDataVertex(q->state), base::PlannerDataVertex(q->children[i]->state));
-                // addChildrenToPlannerData(q->children[i], data);
-            }*/
-        }
-    }
-}
-
 void ompl::geometric::QRRTStarImpl::getNearestNeighbors(Configuration *x, std::vector<Configuration *> &nearest)
 {
     auto cardDbl = static_cast<double>(nearestDatastructure_->size() + 1u);
 
     if (useKNearest_)
     {
-        // calculate k
         unsigned int k = std::ceil(k_rrt_Constant_ * log(cardDbl));
         nearestDatastructure_->nearestK(x, k, nearest);
     }else
@@ -410,5 +315,46 @@ void ompl::geometric::QRRTStarImpl::getNearestNeighbors(Configuration *x, std::v
             r_rrt_Constant_ * 
             std::pow(log(cardDbl) / cardDbl, 1 / d_ ));
         nearestDatastructure_->nearestR(x, r, nearest);
+    }
+}
+
+void ompl::geometric::QRRTStarImpl::getPlannerData(base::PlannerData &data) const
+{
+    OMPL_DEBUG("Roadmap has %d vertices", nearestDatastructure_->size());
+
+    std::vector<int> idxPathI;
+    BundleSpace *pparent = getParent();
+    while (pparent != nullptr)
+    {
+        idxPathI.push_back(0);
+        pparent = pparent->getParent();
+    }
+    idxPathI.push_back(0);
+
+    base::PlannerDataVertexAnnotated pstart(qStart_->state);
+    pstart.setPath(idxPathI);
+    data.addStartVertex(pstart);
+
+    if (hasSolution_)
+    {
+        base::PlannerDataVertexAnnotated pgoal(qGoal_->state);
+        pgoal.setPath(idxPathI);
+        data.addGoalVertex(pgoal);
+    }
+
+    std::vector<Configuration *> motions;
+    if (nearestDatastructure_)
+        nearestDatastructure_->list(motions);
+
+    foreach (const Configuration* q, motions)
+    {
+        if(q->parent != nullptr)
+        {
+            base::PlannerDataVertexAnnotated p1(q->parent->state);
+            base::PlannerDataVertexAnnotated p2(q->state);
+            p1.setPath(idxPathI);
+            p2.setPath(idxPathI);
+            data.addEdge(p1, p2);
+        }
     }
 }
