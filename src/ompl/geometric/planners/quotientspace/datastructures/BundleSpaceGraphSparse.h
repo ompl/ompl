@@ -1,7 +1,6 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_SPARSE_
 #define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_SPARSE_
 
-#include "PathVisibilityChecker.h"
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
 #include <ompl/datastructures/NearestNeighbors.h>
 #include <ompl/util/RandomNumbers.h>
@@ -43,13 +42,14 @@ namespace ompl
         virtual void clear() override;
 
         virtual void Init();
-        //Copied from SPARS
+
+        //Using same conditions as SPARS algorithm to determine sparse graph
+        //addition
         void findGraphNeighbors(Configuration *q, std::vector<Configuration*> &graphNeighborhood,
                                 std::vector<Configuration*> &visibleNeighborhood);
         bool checkAddCoverage(Configuration *q, std::vector<Configuration*> &visibleNeighborhoods);
         bool checkAddConnectivity(Configuration* q, std::vector<Configuration*> &visibleNeighborhood);
         bool checkAddInterface(Configuration *q, std::vector<Configuration*> &graphNeighborhood, std::vector<Configuration*> &visibleNeighborhood);
-
         bool checkAddPath(Configuration *q);
 
         void updateRepresentatives(Configuration *q);
@@ -68,30 +68,6 @@ namespace ompl
 
         void Rewire(Vertex &v);
         void Rewire();
-
-        //*******************************************************************
-        //Explorer Methods (TODO: outsource)
-        //*******************************************************************
-        void printAllPathsUtil(Vertex u, Vertex d, bool visited[], int path[], int &path_index);
-        virtual void enumerateAllPaths();
-        void removeReducibleLoops();
-        void removeEdgeIfReductionLoop(const Edge &e);
-        unsigned int getNumberOfPaths() const;
-        const std::vector<ob::State*> getKthPath(uint k) const;
-        void getPathIndices(const std::vector<ob::State*> &states, std::vector<int> &idxPath) const;
-        bool isProjectable(const std::vector<ob::State*> &pathBundle) const;
-        int getProjectionIndex(const std::vector<ob::State*> &pathBundle) const;
-        int selectedPath{-1}; //selected path to sample from (if children try to sample this space)
-        virtual void sampleFromDatastructure(ob::State *q_random_graph) override;
-
-        PathVisibilityChecker* getPathVisibilityChecker();
-        void pushPathToStack(std::vector<ob::State*> &path);
-        void removeLastPathFromStack();
-        std::vector<ob::State*> getProjectedPath(const std::vector<ob::State*> pathBundle, const ob::SpaceInformationPtr &si) const;
-
-        void freePath(std::vector<ob::State*> path, const ob::SpaceInformationPtr &si) const;
-        //*******************************************************************
-        //*******************************************************************
 
         virtual void print(std::ostream &out) const override;
         bool hasSparseGraphChanged();
@@ -119,14 +95,6 @@ namespace ompl
         }
         uint numberVertices{0};
 
-        unsigned numberOfFailedAddingPathCalls{0};
-        unsigned Nhead{5}; //head -nX (to display only X top paths)
-        std::vector<og::PathGeometric> pathStack_;
-        std::vector<std::vector<ob::State*>> pathStackHead_;
-        void PrintPathStack();
-
-        std::vector<int> GetSelectedPathIndex() const;
-
         virtual void uniteComponentsSparse(Vertex m1, Vertex m2);
         bool sameComponentSparse(Vertex m1, Vertex m2);
         // boost::disjoint_sets<boost::associative_property_map<std::map<Vertex, VertexRank> >, boost::associative_property_map<std::map<Vertex, Vertex> > > 
@@ -147,8 +115,6 @@ namespace ompl
 
         Vertex v_start_sparse;
         Vertex v_goal_sparse;
-
-        PathVisibilityChecker* pathVisibilityChecker_{nullptr};
 
         // From SPARS
         /** \brief A counter for the number of consecutive failed iterations of the algorithm */

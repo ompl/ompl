@@ -54,6 +54,7 @@ namespace ompl
             using BaseT = BundleSpaceGraphSparse;
 
         public:
+
             SPQRImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
 
             virtual ~SPQRImpl() override;
@@ -64,8 +65,10 @@ namespace ompl
             /** \brief sample random node from Probabilty density function*/
             void expand();
 
-            void addMileStone(Configuration *q_random);
+            void addConfigurationConditional(Configuration *q_random);
+
             Configuration *addConfigurationDense(Configuration *q_random);
+
             virtual bool isInfeasible() override;
 
         protected:

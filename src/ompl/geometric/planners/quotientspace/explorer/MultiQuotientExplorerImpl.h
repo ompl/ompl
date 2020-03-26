@@ -1,6 +1,6 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpace.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h>
+#include <ompl/geometric/planners/quotientspace/explorer/ExplorerImpl.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
@@ -15,7 +15,7 @@ template <class T>
 ompl::geometric::MotionExplorerImpl<T>::MotionExplorerImpl(std::vector<ob::SpaceInformationPtr> &siVec, std::string type)
   : BaseT(siVec, type)
 {
-    root = static_cast<og::BundleSpaceGraphSparse*>(this->bundleSpaces_.front());
+    root = static_cast<og::ExplorerImpl*>(this->bundleSpaces_.front());
     current = root;
 }
 
@@ -49,8 +49,8 @@ void ompl::geometric::MotionExplorerImpl<T>::setSelectedPath( std::vector<int> s
     for(uint k = 0; k < selectedPath.size(); k++){
       //selected path implies path bias, which implies a sampling bias towards the
       //selected path
-      og::BundleSpaceGraphSparse *qgraph = 
-        static_cast<og::BundleSpaceGraphSparse*>(this->bundleSpaces_.at(k));
+      og::ExplorerImpl *qgraph = 
+        static_cast<og::ExplorerImpl*>(this->bundleSpaces_.at(k));
           
       qgraph->selectedPath = selectedPath.at(k);
     }
@@ -96,8 +96,8 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
     //expand
     while(K>0)
     {
-        og::BundleSpaceGraphSparse *kBundle = 
-          static_cast<og::BundleSpaceGraphSparse*>(this->bundleSpaces_.at(K-1));
+        og::ExplorerImpl *kBundle = 
+          static_cast<og::ExplorerImpl*>(this->bundleSpaces_.at(K-1));
         if(kBundle->getNumberOfPaths()>0){
           break;
         }else{
@@ -106,8 +106,8 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
     }
 
     //Check which 
-    og::BundleSpaceGraphSparse *jBundle = 
-      static_cast<og::BundleSpaceGraphSparse*>(this->bundleSpaces_.at(K));
+    og::ExplorerImpl *jBundle = 
+      static_cast<og::ExplorerImpl*>(this->bundleSpaces_.at(K));
 
     uint ctr = 0;
 
@@ -157,8 +157,8 @@ void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
     for (unsigned int k = 0; k < K; k++)
     {
         og::BundleSpace *Qk = this->bundleSpaces_.at(k);
-        static_cast<BundleSpaceGraphSparse*>(Qk)->enumerateAllPaths();
-        static_cast<BundleSpaceGraphSparse*>(Qk)->getPlannerData(data);
+        static_cast<ExplorerImpl*>(Qk)->enumerateAllPaths();
+        static_cast<ExplorerImpl*>(Qk)->getPlannerData(data);
         // Qk->getPlannerData(data);
         // label all new vertices
         unsigned int ctr = 0;

@@ -59,8 +59,9 @@ ompl::geometric::QRRTStarImpl::QRRTStarImpl(const base::SpaceInformationPtr &si,
 
     symmetric_ = getBundle()->getStateSpace()->hasSymmetricInterpolate();
 
-    setImportance("uniform");
-    setGraphSampler("randomedge");
+    setImportance("exponential");
+    // setGraphSampler("randomedge");
+    setGraphSampler("randomvertex");
     setMetric("geodesic");
 }
 

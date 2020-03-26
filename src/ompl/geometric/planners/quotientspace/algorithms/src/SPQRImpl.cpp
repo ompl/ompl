@@ -69,39 +69,41 @@ void ompl::geometric::SPQRImpl::grow()
     // }
     sampleBundleGoalBias(xRandom_->state, goalBias_);
 
-    if(!getBundle()->getStateValidityChecker()->isValid(xRandom_->state)) return;
-
-    addMileStone(xRandom_);
-}
-
-void ompl::geometric::SPQRImpl::expand()
-{
-    PDF pdf;
-
-    foreach (Vertex v, boost::vertices(graph_))
+    if(!getBundle()->getStateValidityChecker()->isValid(xRandom_->state))
     {
-        const unsigned long int t = graph_[v]->total_connection_attempts;
-        pdf.add(graph_[v], (double)(t - graph_[v]->successful_connection_attempts) / (double)t);
-    }
-
-    if (pdf.empty())
         return;
-
-    
-    Configuration *q = pdf.sample(rng_.uniform01());
-    
-    int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
-    for (int i = 0; i < s; i++)
-    {
-        Configuration *tmp = new Configuration(getBundle(), randomWorkStates_[i]);
-        addMileStone(tmp);
-        if(boost::edge(q->index, tmp->index, graph_).second)
-            ompl::geometric::BundleSpaceGraph::addEdge(q->index, tmp->index);
-        //q = tmp;
     }
+
+    addConfigurationConditional(xRandom_);
 }
 
-void ompl::geometric::SPQRImpl::addMileStone(Configuration *q_random)
+// void ompl::geometric::SPQRImpl::expand()
+// {
+//     PDF pdf;
+
+//     foreach (Vertex v, boost::vertices(graph_))
+//     {
+//         const unsigned long int t = graph_[v]->total_connection_attempts;
+//         pdf.add(graph_[v], (double)(t - graph_[v]->successful_connection_attempts) / (double)t);
+//     }
+
+//     if (pdf.empty())
+//         return;
+
+    
+//     Configuration *q = pdf.sample(rng_.uniform01());
+    
+//     int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
+//     for (int i = 0; i < s; i++)
+//     {
+//         Configuration *tmp = new Configuration(getBundle(), randomWorkStates_[i]);
+//         addConfigurationConditional(tmp);
+//         if(boost::edge(q->index, tmp->index, graph_).second)
+//             ompl::geometric::BundleSpaceGraph::addEdge(q->index, tmp->index);
+//     }
+// }
+
+void ompl::geometric::SPQRImpl::addConfigurationConditional(Configuration *q_random)
 {
     Configuration *q_next = addConfigurationDense(q_random);
 
@@ -200,7 +202,7 @@ bool ompl::geometric::SPQRImpl::isInfeasible()
     bool progressFailure = (consecutiveFailures_ >= maxFailures_);
     if(progressFailure)
     {
-        OMPL_INFORM("Failed finding samples for %d rounds.", consecutiveFailures_);
+        OMPL_INFORM("Infeasibility detected with probability %f (no valid samples for %d rounds).", 1.0 - 1.0/(double)consecutiveFailures_, consecutiveFailures_);
     }
     return progressFailure;
 }

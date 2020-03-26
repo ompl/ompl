@@ -3,10 +3,12 @@ FB
 [x] Organize MultiQuotient classes in better way
 [x] Add QRRTStar
 [x] Clean up QMPStar, make it inherit from QMP
-[ ] Make Bundle/Base/Fiber private, so that we have to use custom in-built
+[x] Make Bundle/Base/Fiber private, so that we have to use custom in-built
 interpolate/distance/addConfiguration methods. (then we can easily add dynamical
 constraints there, usable by any bundle algorithm)
-[ ] render GL output?
+[x] Move Explorer stuff from GraphSparse to Explorer
+[x] Move pathVisibilityChecker to Explorer
+[ ] Move SPQR checks to GraphSparse
 
 MT
 [ ] Clean up Bundle Space Graph Sparse (outsource explorer functions)

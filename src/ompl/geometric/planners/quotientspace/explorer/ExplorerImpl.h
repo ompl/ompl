@@ -4,6 +4,7 @@
 #include <ompl/control/Control.h>
 #include <ompl/control/StatePropagator.h>
 #include <ompl/control/DirectedControlSampler.h>
+#include "PathVisibilityChecker.h"
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
@@ -48,6 +49,37 @@ namespace ompl
         ompl::control::DirectedControlSamplerPtr dCSampler;
 	
         virtual void getPlannerData(ob::PlannerData &data) const override;
+
+        //############################################################################
+        void printAllPathsUtil(Vertex u, Vertex d, bool visited[], int path[], int &path_index);
+        virtual void enumerateAllPaths();
+        void removeReducibleLoops();
+        void removeEdgeIfReductionLoop(const Edge &e);
+        unsigned int getNumberOfPaths() const;
+        const std::vector<ob::State*> getKthPath(uint k) const;
+        void getPathIndices(const std::vector<ob::State*> &states, std::vector<int> &idxPath) const;
+        bool isProjectable(const std::vector<ob::State*> &pathBundle) const;
+        int getProjectionIndex(const std::vector<ob::State*> &pathBundle) const;
+        int selectedPath{-1}; //selected path to sample from (if children try to sample this space)
+        virtual void sampleFromDatastructure(ob::State *q_random_graph) override;
+
+        PathVisibilityChecker* getPathVisibilityChecker();
+        void pushPathToStack(std::vector<ob::State*> &path);
+        void removeLastPathFromStack();
+        std::vector<ob::State*> getProjectedPath(const std::vector<ob::State*> pathBundle, const ob::SpaceInformationPtr &si) const;
+
+        void freePath(std::vector<ob::State*> path, const ob::SpaceInformationPtr &si) const;
+
+        PathVisibilityChecker* pathVisibilityChecker_{nullptr};
+
+        unsigned numberOfFailedAddingPathCalls{0};
+        unsigned Nhead{5}; //head -nX (to display only X top paths)
+        std::vector<og::PathGeometric> pathStack_;
+        std::vector<std::vector<ob::State*>> pathStackHead_;
+        void PrintPathStack();
+
+        std::vector<int> GetSelectedPathIndex() const;
+        //############################################################################
       protected:
 
         int numberOfControlSamples{10};
