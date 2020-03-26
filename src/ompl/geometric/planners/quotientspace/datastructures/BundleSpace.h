@@ -26,6 +26,9 @@ namespace ompl
             using BaseT = ompl::base::Planner;
             using BaseT::si_; //make it private. 
             // Note: use getBundle(), getFiber() or getBase() to access the SpaceInformationPtr
+            
+            /// \brief solve disabled (use BundleSequence::solve)
+            ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override final;
 
         public:
             /**  \brief Bundle Space contains three OMPL spaces, which we call Bundle, Base and Fiber.
@@ -40,8 +43,6 @@ namespace ompl
             BundleSpace(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_ = nullptr);
             virtual ~BundleSpace();
 
-            /// \brief solve disabled (use MultiBundle::solve)
-            ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override final;
             virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
 
             virtual void grow() = 0;

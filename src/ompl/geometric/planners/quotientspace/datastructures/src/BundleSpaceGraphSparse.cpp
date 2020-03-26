@@ -76,11 +76,6 @@ BundleSpaceGraphSparse::~BundleSpaceGraphSparse()
 {
 }
 
-void BundleSpaceGraphSparse::deleteConfiguration(Configuration *q)
-{
-    BaseT::deleteConfiguration(q);
-}
-
 void BundleSpaceGraphSparse::setup()
 {
     BaseT::setup();
@@ -238,121 +233,6 @@ void BundleSpaceGraphSparse::Init()
     v_goal_sparse = addConfigurationSparse(qGoal_);
     graphSparse_[v_start_sparse]->isGoal = true;
     qGoal_->representativeIndex = v_goal_sparse;
-
-    //        //     Configuration *ql = new Configuration(Bundle, qGoal_->state);
-    //        //     const Vertex vl = add_vertex(ql, graphSparse_);
-    //        //     nearestSparse_->add(ql);
-    //        //     disjointSetsSparse_.make_set(vl);
-    //        //     graphSparse_[vl]->index = vl;
-
-    //        //     v_goal_sparse = vl;
-    //        //     graphSparse_[v_goal_sparse]->isGoal = true;
-
-    //        //     assert(boost::num_vertices(graphSparse_) == 2);
-
-    //        //     qGoal_->representativeIndex = v_goal_sparse;
-
-    // BaseT::init(); //sa-> ? gives error maybe pis_.nextStart() can be called once so add base init() code here
-    // BundleSpaceGraph init()
-    //auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
-    //if (goal == nullptr)
-    //{
-    //    OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
-    //    throw ompl::Exception("Unknown goal type");
-    //}
-
-    //if (const base::State *st = pis_.nextStart())
-    //{
-    //    if (st != nullptr)
-    //    {
-    //        // dense BundleSpaceGraph
-    //        qStart_ = new Configuration(Bundle, st);
-    //        qStart_->isStart = true;
-    //        vStart_ = BaseT::addConfiguration(qStart_);
-
-    //        //TODO: why not doing it in Sparse::addconfiguration ?
-    //        v_start_sparse = addConfigurationSparse(qStart_);
-    //        graphSparse_[v_start_sparse]->isStart = true;
-    //        qStart_->representativeIndex = v_start_sparse;
-
-    //        // Configuration *ql = new Configuration(Bundle, qStart_->state);
-    //        // const Vertex vl = add_vertex(ql, graphSparse_);
-    //        // nearestSparse_->add(ql);
-    //        // disjointSetsSparse_.make_set(vl);
-    //        // graphSparse_[vl]->index = vl;
-
-    //        //
-    //        //
-    //        // Sohaib:
-    //        // Sparse
-    //        // // v_start_sparse = addConfigurationSparse(qStart_);
-    //        // Configuration *ql = new Configuration(Bundle, qStart_->state);
-    //        // const Vertex vl = add_vertex(ql, graphSparse_);
-    //        // nearestSparse_->add(ql);
-    //        // disjointSetsSparse_.make_set(vl);
-    //        // graphSparse_[vl]->index = vl;
-
-    //        // assert(boost::num_vertices(graphSparse_) == 1);
-    //        // v_start_sparse = graphSparse_[0]->index;
-    //        // graphSparse_[v_start_sparse]->isStart = true;
-
-    //        // qStart_->representativeIndex = v_start_sparse;
-    //    }
-    //}
-    //if (qStart_ == nullptr)
-    //{
-    //    OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
-    //    throw ompl::Exception("Invalid initial states.");
-    //}
-
-    //if (const base::State *st = pis_.nextGoal())
-    //{
-    //    if (st != nullptr)
-    //    {
-    //        // dense BundleSpaceGraph
-    //        qGoal_ = new Configuration(Bundle, st);
-    //        qGoal_->isGoal = true;
-    //        vGoal_ = BaseT::addConfiguration(qGoal_);  // sa-> (added) Q:- why goal state was not added in configuration
-
-
-    //        v_goal_sparse = addConfigurationSparse(qGoal_);
-    //        graphSparse_[v_goal_sparse]->isGoal = true;
-    //        qGoal_->representativeIndex = v_goal_sparse;
-
-
-    //        //     Configuration *ql = new Configuration(Bundle, qGoal_->state);
-    //        //     const Vertex vl = add_vertex(ql, graphSparse_);
-    //        //     nearestSparse_->add(ql);
-    //        //     disjointSetsSparse_.make_set(vl);
-    //        //     graphSparse_[vl]->index = vl;
-
-    //        //     v_goal_sparse = vl;
-
-
-    //        // sparse - not added in BundleSpaceGraph .: because it was added in grow() function
-    //        // if (!isDynamic())
-    //        // {
-    //        //     // v_goal_sparse = addConfigurationSparse(qGoal_);
-    //        //     Configuration *ql = new Configuration(Bundle, qGoal_->state);
-    //        //     const Vertex vl = add_vertex(ql, graphSparse_);
-    //        //     nearestSparse_->add(ql);
-    //        //     disjointSetsSparse_.make_set(vl);
-    //        //     graphSparse_[vl]->index = vl;
-
-    //        //     v_goal_sparse = vl;
-    //        //     graphSparse_[v_goal_sparse]->isGoal = true;
-
-    //        //     assert(boost::num_vertices(graphSparse_) == 2);
-
-    //        //     qGoal_->representativeIndex = v_goal_sparse;
-    //        // }
-    //    }
-    //}
-    //if (qGoal_ == nullptr)
-    //{
-    //    OMPL_ERROR("%s: There are no valid goal states!", getName().c_str());
-    //    throw ompl::Exception("Invalid goal states.");
-    //}
 }
 
 void BundleSpaceGraphSparse::uniteComponentsSparse(Vertex m1, Vertex m2)
@@ -365,9 +245,39 @@ bool BundleSpaceGraphSparse::sameComponentSparse(Vertex m1, Vertex m2)
     return boost::same_component(m1, m2, disjointSetsSparse_);
 }
 
+
+void BundleSpaceGraphSparse::deleteConfiguration(Configuration *q)
+{
+    BaseT::deleteConfiguration(q);
+}
+
+BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfiguration(Configuration *q)
+{
+    BaseT::addConfiguration(q);
+
+    findGraphNeighbors(q, graphNeighborhood, visibleNeighborhood);
+
+    if (!checkAddCoverage(q, visibleNeighborhood))
+    {
+        if (!checkAddConnectivity(q, visibleNeighborhood))
+        {
+            if (!checkAddInterface(q, graphNeighborhood, visibleNeighborhood))
+            {
+                if (!checkAddPath(q))
+                {
+                    ++consecutiveFailures_;
+                }
+            }else{
+                ++consecutiveFailures_;
+            }//no interface
+        }//no connectivity
+    }//no coverage
+    return q->index;
+}
+
 BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfigurationSparse(Configuration *q)
 {
-    Configuration *ql = new Configuration(getBundle(), q->state);  // for sparse create new Configuration ***
+    Configuration *ql = new Configuration(getBundle(), q->state);
     const Vertex vl = add_vertex(ql, graphSparse_);
     nearestSparse_->add(ql);
     disjointSetsSparse_.make_set(vl);
@@ -914,7 +824,7 @@ bool ompl::geometric::BundleSpaceGraphSparse::getSolution(base::PathPtr &solutio
 {
     if (hasSolution_)
     {
-        solutionPath_ = getPath(v_start_sparse, v_goal_sparse, graphSparse_);
+        solutionPath_ = getPathSparse(v_start_sparse, v_goal_sparse);
         startGoalVertexPath_ = shortestVertexPath_;
         solution = solutionPath_;
 
@@ -937,7 +847,7 @@ bool ompl::geometric::BundleSpaceGraphSparse::getSolution(base::PathPtr &solutio
         if (same_component &&
             g->isStartGoalPairValid(graphSparse_[v_goal_sparse]->state, graphSparse_[v_start_sparse]->state))
         {
-            solutionPath_ = getPath(v_start_sparse, v_goal_sparse, graphSparse_);
+            solutionPath_ = getPathSparse(v_start_sparse, v_goal_sparse);
             if (solutionPath_)
             {
                 solution = solutionPath_;

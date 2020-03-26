@@ -231,7 +231,7 @@ void ExplorerImpl::growControl(){
     s_random = q_random->state;
 
     //changes q_random to the state we actually get with directed control c_random
-    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(getBundle().get());
+    // ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(getBundle().get());
     // unsigned int cd = rng_.uniformInt(siC->getMinControlDuration(), siC->getMaxControlDuration());
     int duration = dCSampler->sampleTo(c_random, q_nearest->state, s_random);
 

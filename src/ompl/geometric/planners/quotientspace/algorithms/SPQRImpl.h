@@ -65,16 +65,14 @@ namespace ompl
             /** \brief sample random node from Probabilty density function*/
             void expand();
 
-            void addConfigurationConditional(Configuration *q_random);
-
-            Configuration *addConfigurationDense(Configuration *q_random);
-
             virtual bool isInfeasible() override;
+
+            virtual Vertex addConfiguration(Configuration *q) override;
 
         protected:
 
             /** \brief Maximum failures limit for terminating the algorithm similar to SPARS */
-            unsigned int maxFailures_{1000u};
+            unsigned int maxFailures_{1000u}; 
 
             /** \brief for different ratio of expand vs grow 1:5*/
             unsigned int iterations_{0};

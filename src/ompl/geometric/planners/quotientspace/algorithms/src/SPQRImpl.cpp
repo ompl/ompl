@@ -48,6 +48,9 @@ ompl::geometric::SPQRImpl::SPQRImpl(const base::SpaceInformationPtr &si, BundleS
     setName("SPQRImpl" + std::to_string(id_));
     randomWorkStates_.resize(5);
     getBundle()->allocStates(randomWorkStates_);
+
+    setMetric("geodesic");
+    setGraphSampler("randomedge");
 }
 
 ompl::geometric::SPQRImpl::~SPQRImpl()
@@ -62,11 +65,7 @@ void ompl::geometric::SPQRImpl::grow()
         Init();
         firstRun_ = false;
     }
-    // if( ++iterations_ % 2 == 0)
-    // {
-    //     expand();
-    //     return;
-    // }
+
     sampleBundleGoalBias(xRandom_->state, goalBias_);
 
     if(!getBundle()->getStateValidityChecker()->isValid(xRandom_->state))
@@ -74,132 +73,112 @@ void ompl::geometric::SPQRImpl::grow()
         return;
     }
 
-    addConfigurationConditional(xRandom_);
-}
+    Configuration *q_next = new Configuration(getBundle(), xRandom_->state);
+    addConfiguration(q_next);
 
-// void ompl::geometric::SPQRImpl::expand()
-// {
-//     PDF pdf;
+    expand();
 
-//     foreach (Vertex v, boost::vertices(graph_))
-//     {
-//         const unsigned long int t = graph_[v]->total_connection_attempts;
-//         pdf.add(graph_[v], (double)(t - graph_[v]->successful_connection_attempts) / (double)t);
-//     }
-
-//     if (pdf.empty())
-//         return;
-
-    
-//     Configuration *q = pdf.sample(rng_.uniform01());
-    
-//     int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
-//     for (int i = 0; i < s; i++)
-//     {
-//         Configuration *tmp = new Configuration(getBundle(), randomWorkStates_[i]);
-//         addConfigurationConditional(tmp);
-//         if(boost::edge(q->index, tmp->index, graph_).second)
-//             ompl::geometric::BundleSpaceGraph::addEdge(q->index, tmp->index);
-//     }
-// }
-
-void ompl::geometric::SPQRImpl::addConfigurationConditional(Configuration *q_random)
-{
-    Configuration *q_next = addConfigurationDense(q_random);
-
-    findGraphNeighbors(q_next, graphNeighborhood, visibleNeighborhood);
-
-    if (!checkAddCoverage(q_next, visibleNeighborhood))
-    {
-        if (!checkAddConnectivity(q_next, visibleNeighborhood))
-        {
-            if (!checkAddInterface(q_next, graphNeighborhood, visibleNeighborhood))
-            {
-                if (!checkAddPath(q_next))
-                {
-                    ++consecutiveFailures_;
-                }
-            }else{
-                ++consecutiveFailures_;
-            }//no interface
-        }//no connectivity
-    }//no coverage
-    
     if (!hasSolution_)
     {
         bool same_component = sameComponentSparse(v_start_sparse, v_goal_sparse);
-        if(!same_component) 
+        if(same_component) 
         {
-            return;
+            hasSolution_ = true;
         }
-        hasSolution_ = true;
     }
 }
 
-ompl::geometric::BundleSpaceGraph::Configuration * ompl::geometric::SPQRImpl::addConfigurationDense(Configuration *q_random)
+void ompl::geometric::SPQRImpl::expand()
 {
-    Configuration *q_next = new Configuration(getBundle(), q_random->state);
-    Vertex v_next = ompl::geometric::BundleSpaceGraph::addConfiguration(q_next);
-    // totalNumberOfSamples_++;
-    // totalNumberOfFeasibleSamples_++;
+    PDF pdf;
+
+    foreach (Vertex v, boost::vertices(graph_))
+    {
+        const unsigned long int t = graph_[v]->total_connection_attempts;
+        pdf.add(graph_[v], (double)(t - graph_[v]->successful_connection_attempts) / (double)t);
+    }
+
+    if (pdf.empty())
+        return;
+
+    
+    Configuration *q = pdf.sample(rng_.uniform01());
+    
+    int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
+    for (int i = 0; i < s; i++)
+    {
+        Configuration *tmp = new Configuration(getBundle(), randomWorkStates_[i]);
+        addConfiguration(tmp);
+        if(boost::edge(q->index, tmp->index, graph_).second)
+            ompl::geometric::BundleSpaceGraph::addEdge(q->index, tmp->index);
+    }
+}
+
+ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::SPQRImpl::addConfiguration(Configuration *q)
+{
+    BaseT::addConfiguration(q);
 
     // Calculate K
     unsigned int k = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double) boost::num_vertices(graph_))));
 
-    // find nearest neighbors to be conected to new sample
+    // DENSE GRAPH: find nearest neighbors to be conected to new sample
     std::vector<Configuration *> r_nearest_neighbors;
-    ompl::geometric::BundleSpaceGraph::nearestDatastructure_->nearestK(q_next, k, r_nearest_neighbors);
+    nearestDatastructure_->nearestK(q, k, r_nearest_neighbors);
     
     for (unsigned int i = 0; i < r_nearest_neighbors.size(); i++)
     {
-        q_next->total_connection_attempts++;
         Configuration *q_neighbor = r_nearest_neighbors.at(i);
+        q->total_connection_attempts++;
         q_neighbor->total_connection_attempts++;
 
-        if (getBundle()->checkMotion(q_neighbor->state, q_random->state))
+        if (getBundle()->checkMotion(q_neighbor->state, q->state))
         {
-            ompl::geometric::BundleSpaceGraph::addEdge(q_neighbor->index, v_next);
-            q_next->successful_connection_attempts++;
+            addEdge(q_neighbor->index, q->index);
+            q->successful_connection_attempts++;
             q_neighbor->successful_connection_attempts++;
         }
     }
 
-    // Update its representative and interface nodes
-    std::vector<Configuration *> graphNeighborhood;
-    nearestSparse_->nearestR(q_next, sparseDelta_, graphNeighborhood); // Sparse Neighbors
+    // SPARSE GRAPH: Update its representative and interface nodes
+    std::vector<Configuration *> sparseGraphNeighborhood;
+    nearestSparse_->nearestR(q, sparseDelta_, sparseGraphNeighborhood);
 
-    for (Configuration *qn : graphNeighborhood)
-        if (getBundle()->checkMotion(q_next->state, qn->state))
+    for (Configuration *qn : sparseGraphNeighborhood)
+    {
+        if (getBundle()->checkMotion(q->state, qn->state))
         {
-            q_next->representativeIndex = qn->index;
+            q->representativeIndex = qn->index;
             break;
         }
-    // return if rep not found
-    if ( q_next->representativeIndex < 0 )
-        return q_next;
-
-    std::vector<Vertex> interfaceNeighborhood;
-    std::set<Vertex> interfaceRepresentatives;
-
-    getInterfaceNeighborRepresentatives(q_next, interfaceRepresentatives);
-    getInterfaceNeighborhood(q_next, interfaceNeighborhood);
-    addToRepresentatives(v_next, q_next->representativeIndex, interfaceRepresentatives);
-    
-    foreach (Vertex qp, interfaceNeighborhood)
-    {
-        normalized_index_type qp_rep = graph_[qp]->representativeIndex;
-        if ( qp_rep == -1 )
-            continue;
-        removeFromRepresentatives(graph_[qp]);
-        getInterfaceNeighborRepresentatives(graph_[qp], interfaceRepresentatives);
-        addToRepresentatives(qp, qp_rep, interfaceRepresentatives);
     }
-    return q_next;
+
+    if ( q->representativeIndex >= 0 )
+    {
+        std::vector<Vertex> interfaceNeighborhood;
+        std::set<Vertex> interfaceRepresentatives;
+
+        getInterfaceNeighborRepresentatives(q, interfaceRepresentatives);
+        getInterfaceNeighborhood(q, interfaceNeighborhood);
+        addToRepresentatives(q->index, q->representativeIndex, interfaceRepresentatives);
+        
+        foreach (Vertex qp, interfaceNeighborhood)
+        {
+            normalized_index_type qp_rep = graph_[qp]->representativeIndex;
+            // if ( qp_rep == -1 )
+            //     continue;
+            if ( qp_rep < 0 ) continue;
+            removeFromRepresentatives(graph_[qp]);
+            getInterfaceNeighborRepresentatives(graph_[qp], interfaceRepresentatives);
+            addToRepresentatives(qp, qp_rep, interfaceRepresentatives);
+        }
+    }
+
+    return q->index;
 }
 
 bool ompl::geometric::SPQRImpl::isInfeasible()
 {
-    bool progressFailure = (consecutiveFailures_ >= maxFailures_);
+    bool progressFailure = ((consecutiveFailures_ >= maxFailures_) && !hasSolution_);
     if(progressFailure)
     {
         OMPL_INFORM("Infeasibility detected with probability %f (no valid samples for %d rounds).", 1.0 - 1.0/(double)consecutiveFailures_, consecutiveFailures_);

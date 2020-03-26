@@ -34,6 +34,7 @@ namespace ompl
         virtual void getPlannerData(ob::PlannerData &data) const override;
         void getPlannerDataRoadmap(ob::PlannerData &data, std::vector<int> pathIdx) const;
 
+        virtual Vertex addConfiguration(Configuration *q) override;
         virtual void deleteConfiguration(Configuration *q);
         Vertex addConfigurationSparse(Configuration *q);
         void addEdgeSparse(const Vertex a, const Vertex b);
@@ -108,6 +109,7 @@ namespace ompl
         void clearDynamic();
         ompl::base::PathPtr getPathSparse(const Vertex &start, const Vertex &goal);
         ompl::base::Cost costHeuristicSparse(Vertex u, Vertex v) const;
+
         Graph graphSparse_;
         RoadmapNeighborsPtr nearestSparse_;
         std::vector<Configuration*> graphNeighborhood;

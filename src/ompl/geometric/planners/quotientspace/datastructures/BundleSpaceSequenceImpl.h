@@ -78,30 +78,6 @@ int ompl::geometric::BundleSpaceSequence<T>::getLevels() const
     return stopAtLevel_;
 }
 
-// template <class T>
-// std::vector<int> ompl::geometric::BundleSpaceSequence<T>::getNodes() const
-// {
-//     std::vector<int> nodesPerLevel;
-//     for (unsigned int k = 0; k < stopAtLevel_; k++)
-//     {
-//         unsigned int Nk = bundleSpaces_.at(k)->getTotalNumberOfSamples();
-//         nodesPerLevel.push_back(Nk);
-//     }
-//     return nodesPerLevel;
-// }
-
-// template <class T>
-// std::vector<int> ompl::geometric::BundleSpaceSequence<T>::getFeasibleNodes() const
-// {
-//     std::vector<int> feasibleNodesPerLevel;
-//     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
-//     {
-//         unsigned int Nk = bundleSpaces_.at(k)->getTotalNumberOfFeasibleSamples();
-//         feasibleNodesPerLevel.push_back(Nk);
-//     }
-//     return feasibleNodesPerLevel;
-// }
-
 template <class T>
 std::vector<int> ompl::geometric::BundleSpaceSequence<T>::getDimensionsPerLevel() const
 {
@@ -189,13 +165,13 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
                     solutions_.push_back(sol_k);
                     double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
                     OMPL_DEBUG("Found Solution on Level %d after %f seconds.", k, t_k_end);
-                    foundKLevelSolution_ = true;
                     currentBundleSpaceLevel_ = k + 1;//std::min(k + 1, bundleSpaces_.size()-1);
                     if(currentBundleSpaceLevel_ > (bundleSpaces_.size()-1)) 
                       currentBundleSpaceLevel_ = bundleSpaces_.size()-1;
                 }else{
                     solutions_.at(k) = sol_k;
                 }
+                foundKLevelSolution_ = true;
 
                 // add solution to pdef
                 ompl::base::PlannerSolution psol(sol_k);
@@ -222,8 +198,8 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
             return ompl::base::PlannerStatus::TIMEOUT;
         }
     }
-    double t_end = ompl::time::seconds(ompl::time::now() - t_start);
-    OMPL_DEBUG("Found exact solution after %f seconds.", t_end);
+    // double t_end = ompl::time::seconds(ompl::time::now() - t_start);
+    // OMPL_DEBUG("Found exact solution after %f seconds.", t_end);
 
     ompl::base::PathPtr sol;
     ompl::base::PlannerSolution psol(sol);
