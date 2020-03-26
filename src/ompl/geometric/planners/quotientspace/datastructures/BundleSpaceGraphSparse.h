@@ -98,8 +98,7 @@ namespace ompl
 
         virtual void uniteComponentsSparse(Vertex m1, Vertex m2);
         bool sameComponentSparse(Vertex m1, Vertex m2);
-        // boost::disjoint_sets<boost::associative_property_map<std::map<Vertex, VertexRank> >, boost::associative_property_map<std::map<Vertex, Vertex> > > 
-        //   disjointSetsSparse_{boost::make_assoc_property_map(vrank), boost::make_assoc_property_map(vparent)};
+
         std::map<Vertex, VertexRank> vrankSparse;
         std::map<Vertex, Vertex> vparentSparse;
         boost::disjoint_sets<boost::associative_property_map<std::map<Vertex, VertexRank> >, boost::associative_property_map<std::map<Vertex, Vertex> > > 

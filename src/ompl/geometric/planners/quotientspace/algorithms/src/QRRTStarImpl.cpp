@@ -294,7 +294,7 @@ bool ompl::geometric::QRRTStarImpl::getSolution(base::PathPtr &solution)
     }
     else
     {
-      return false;
+        return false;
     }
 }
 

@@ -19,25 +19,10 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
     const double pathBias_ = (1.0 - pathBiasFixed_) * exp(-exponentialDecayLambda_ * exponentialDecayCtr_++) + pathBiasFixed_;
 
     double p = rng_.uniform01();
-    if(p < pathBias_)
+    if(p < pathBias_ && !bundleSpaceGraph_->isDynamic())
     {
-        if(bundleSpaceGraph_->isDynamic()){
-          std::cout << "TODO: NYI" << std::endl;
-          throw "NYI";
-        }
-
         geometric::PathGeometric &spath = static_cast<geometric::PathGeometric &>(*bundleSpaceGraph_->solutionPath_);
         std::vector<base::State*> states = spath.getStates();
-
-        //TODO: @DEBUG
-        if(states.size() < 2)
-        {
-            std::cout << std::string(80, '-') << std::endl;
-            std::cout << "SOLUTION PATH HAS NO STATES" << std::endl;
-            std::cout << std::string(80, '-') << std::endl;
-            OMPL_ERROR("Solution path has no states (did you set it, does it exist?)");
-            throw "ZeroStates";
-        }
 
         if(states.size() < 2){
             sampleImplementation(xRandom);

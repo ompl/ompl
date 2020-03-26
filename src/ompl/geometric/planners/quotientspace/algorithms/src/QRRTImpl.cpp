@@ -43,7 +43,7 @@
 ompl::geometric::QRRTImpl::QRRTImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QRRTImpl" + std::to_string(id_));
-    setImportance("uniform");
+    setImportance("exponential");
     setGraphSampler("randomvertex");
 }
 

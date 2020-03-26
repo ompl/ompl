@@ -8,10 +8,22 @@ interpolate/distance/addConfiguration methods. (then we can easily add dynamical
 constraints there, usable by any bundle algorithm)
 [x] Move Explorer stuff from GraphSparse to Explorer
 [x] Move pathVisibilityChecker to Explorer
-[ ] Move SPQR checks to GraphSparse
+[x] Move SPQR checks to GraphSparse
+[ ] handle NH constraints in QMPStar and SPQR
+[ ] make QMPStar inherit from QMP
+
+Improvements (FB):
+- multi robot implementation using a new component-based implementation
+- enabled non-holonomic planning on bundles
+- additional bundles (empty, relaxed, etc)
+- Four new algorithms: QRRT*, QMP, QMP*, SPQR
+- Sparse graph structures (based on SPARS impl)
+- Enabled different metrics
+- Enabled different graph sampler
+- Enabled different propagators
+- Enabled different selector functions for multiple bundles
 
 MT
-[ ] Clean up Bundle Space Graph Sparse (outsource explorer functions)
 [ ] Add function getLocalMinimaTree() to explorer
 [ ] Incorporate optimizer
 [ ] Return control in PlannerData

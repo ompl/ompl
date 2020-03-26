@@ -56,19 +56,11 @@ namespace ompl
         public:
             QMPStarImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
             virtual ~QMPStarImpl() override;
-            /** \brief One iteration of RRT with adjusted sampling function */
-            virtual void grow() override;
-            /** \brief sample random node from Probabilty density function*/
-            void expand();
-            Configuration *addMileStone(ompl::base::State *q_state);
 
         protected:
-            /** \brief constant value for nn search */
-            double kPRMStarConstant_;
-            /** \brief for different ratio of expand vs grow 1:5*/
-            unsigned int counter_{0};
-            
-            std::vector<base::State *> randomWorkStates_;
+            virtual unsigned int computeK() override;
+
+            double kPRMStarConstant_{0};
         };
     }  // namespace geometric
 }  // namespace ompl

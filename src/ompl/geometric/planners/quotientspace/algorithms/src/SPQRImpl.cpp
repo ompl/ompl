@@ -109,8 +109,7 @@ void ompl::geometric::SPQRImpl::expand()
     {
         Configuration *tmp = new Configuration(getBundle(), randomWorkStates_[i]);
         addConfiguration(tmp);
-        if(boost::edge(q->index, tmp->index, graph_).second)
-            ompl::geometric::BundleSpaceGraph::addEdge(q->index, tmp->index);
+        addEdge(q->index, tmp->index);
     }
 }
 
@@ -164,8 +163,6 @@ ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::SPQRImpl::addConfigur
         foreach (Vertex qp, interfaceNeighborhood)
         {
             normalized_index_type qp_rep = graph_[qp]->representativeIndex;
-            // if ( qp_rep == -1 )
-            //     continue;
             if ( qp_rep < 0 ) continue;
             removeFromRepresentatives(graph_[qp]);
             getInterfaceNeighborRepresentatives(graph_[qp], interfaceRepresentatives);

@@ -63,6 +63,11 @@ ompl::geometric::QMPImpl::~QMPImpl()
     deleteConfiguration(xRandom_);
 }
 
+unsigned int ompl::geometric::QMPImpl::computeK()
+{
+    return k_NearestNeighbors_;
+}
+
 void ompl::geometric::QMPImpl::grow()
 {
     if (firstRun_)
@@ -71,12 +76,6 @@ void ompl::geometric::QMPImpl::grow()
         vGoal_ = addConfiguration(qGoal_);
         firstRun_ = false;
     }
-
-    // if( ++counter_ % 3 == 0)
-    // {
-    //     expand();
-    //     return;
-    // }
 
     //(1) Get Random Sample
     sampleBundle(xRandom_->state);
@@ -87,9 +86,10 @@ void ompl::geometric::QMPImpl::grow()
     Configuration *xNew = new Configuration(getBundle(), xRandom_->state);
     addConfiguration(xNew);
     
-    //(3) Get K nearest neighbors
+    //(3) Connect to K nearest neighbors
     std::vector<Configuration*> nearestNeighbors;
-    BaseT::nearestDatastructure_->nearestK(xNew, k_, nearestNeighbors);
+
+    BaseT::nearestDatastructure_->nearestK(xNew, computeK(), nearestNeighbors);
 
     for(unsigned int k = 0 ; k < nearestNeighbors.size(); k++)
     {
@@ -186,43 +186,3 @@ void ompl::geometric::QMPImpl::grow()
 //     }
 //     return q_next;
 // }
-
-//void ompl::geometric::QMPImpl::sampleFromDatastructure(base::State *xRandom)
-//{
-//    double p = rng_.uniform01();
-//    if(lengthStartGoalVertexPath_ > 0 && p < pathBias_)
-//    {
-//        //(1) Sample randomly on shortest path
-//        double p = rng_.uniform01() * lengthStartGoalVertexPath_;
-
-//        double t = 0;
-//        int ctr = 0;
-//        while(t < p && (ctr < (int)startGoalVertexPath_.size()-1))
-//        {
-//            t += lengthsStartGoalVertexPath_.at(ctr);
-//            ctr++;
-//        }
-//        const Vertex v1 = startGoalVertexPath_.at(ctr-1);
-//        const Vertex v2 = startGoalVertexPath_.at(ctr);
-//        double d = lengthsStartGoalVertexPath_.at(ctr-1);
-
-
-//        //          |---- d -----|
-//        //---O------O------------O
-//        //|--------- t ----------|
-//        //|--------- p ------|
-//        //          |d-(t-p) |
-//        double s = (d - (t - p))/(d);
-//        getBundle()->getStateSpace()->interpolate(graph_[v1]->state, graph_[v2]->state, s, xRandom);
-
-//    }else{
-//        //(2) Sample randomly on graph
-//        BaseT::sampleFromDatastructure(xRandom);
-//    }
-
-//    //(3) Perturbate sample in epsilon neighborhood
-//    // if(epsilonGraphThickening_ > 0) 
-//    // {
-//    //     getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, epsilonGraphThickening_);
-//    // }
-//}

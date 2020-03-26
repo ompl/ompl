@@ -65,7 +65,7 @@ namespace ompl
 
             Configuration *addMileStone(ompl::base::State *q_state);
 
-            // virtual void sampleFromDatastructure(ompl::base::State *) override;
+            virtual unsigned int computeK();
 
         protected:
 
@@ -77,12 +77,10 @@ namespace ompl
              * full graph */
             double pathBias_{0.1};
 
-            /** \brief for different ratio of expand vs grow 1:2*/
-            unsigned int counter_{0};
-
             std::vector<base::State *> randomWorkStates_;
 
-            unsigned int k_{10};
+            /** \brief k nearest variable */
+            unsigned int k_NearestNeighbors_{10};
 
         };
     }  // namespace geometric

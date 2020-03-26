@@ -563,7 +563,8 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
           solutionPath_ = getPath(vStart_, vGoal_);
           numVerticesWhenComputingSolutionPath = getNumberOfVertices();
 
-          if(!isDynamic() && solutionPath_ != solution){
+          if(!isDynamic() && solutionPath_ != solution)
+          {
               ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 
                   pathRefinementObj_);
               geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
