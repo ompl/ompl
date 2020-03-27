@@ -82,6 +82,8 @@ namespace ompl
         //############################################################################
       protected:
 
+        double pathBias_{0.};
+        double pathBiasFraction_{0.05};
         int numberOfControlSamples{10};
         double propStepSize;
         int controlDuration{10};

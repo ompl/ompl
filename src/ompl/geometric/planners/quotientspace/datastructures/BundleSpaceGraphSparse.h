@@ -20,8 +20,8 @@ namespace ompl
 {
   namespace geometric
   {
-    class BundleSpaceGraphSparse: public ompl::geometric::BundleSpaceGraph{
-
+    class BundleSpaceGraphSparse: public ompl::geometric::BundleSpaceGraph
+    {
         using BaseT = ompl::geometric::BundleSpaceGraph;
       public:
 
@@ -67,9 +67,6 @@ namespace ompl
 
         void updatePairPoints(Configuration *q);
 
-        void Rewire(Vertex &v);
-        void Rewire();
-
         virtual void print(std::ostream &out) const override;
         bool hasSparseGraphChanged();
 
@@ -80,9 +77,6 @@ namespace ompl
         double denseDelta_{0.}; //delta for dense graph -> move this BundleSpaceGraph.h
         double sparseDeltaFraction_{0.15};
         double denseDeltaFraction_{0.05};
-        double pathBias_{0.};
-        double pathBiasFraction_{0.05};
-        double kPRMStarConstant_;
         unsigned Nold_v{0};
         unsigned Nold_e{0};
 
@@ -94,7 +88,6 @@ namespace ompl
         {
             return sparseDeltaFraction_;
         }
-        uint numberVertices{0};
 
         virtual void uniteComponentsSparse(Vertex m1, Vertex m2);
         bool sameComponentSparse(Vertex m1, Vertex m2);
@@ -103,7 +96,6 @@ namespace ompl
         std::map<Vertex, Vertex> vparentSparse;
         boost::disjoint_sets<boost::associative_property_map<std::map<Vertex, VertexRank> >, boost::associative_property_map<std::map<Vertex, Vertex> > > 
           disjointSetsSparse_{boost::make_assoc_property_map(vrankSparse), boost::make_assoc_property_map(vparentSparse)};
-
 
         void clearDynamic();
         ompl::base::PathPtr getPathSparse(const Vertex &start, const Vertex &goal);

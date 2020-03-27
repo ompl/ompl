@@ -47,11 +47,10 @@ ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpa
 {
     setName("QMPImpl" + std::to_string(id_));
 
-    setImportance("greedy");
-
     // setMetric("geodesic");
     setMetric("shortestpath");
     setGraphSampler("randomedge");
+    setImportance("exponential");
 
     randomWorkStates_.resize(5);
     getBundle()->allocStates(randomWorkStates_);
@@ -60,7 +59,6 @@ ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpa
 ompl::geometric::QMPImpl::~QMPImpl()
 {
     getBundle()->freeStates(randomWorkStates_);
-    deleteConfiguration(xRandom_);
 }
 
 unsigned int ompl::geometric::QMPImpl::computeK()

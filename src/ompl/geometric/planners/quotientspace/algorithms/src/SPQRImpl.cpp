@@ -40,6 +40,7 @@
 #include <boost/foreach.hpp>
 #include <ompl/datastructures/NearestNeighbors.h>
 #include "ompl/datastructures/PDF.h"
+#include <boost/math/constants/constants.hpp>
 
 #define foreach BOOST_FOREACH
 
@@ -51,6 +52,10 @@ ompl::geometric::SPQRImpl::SPQRImpl(const base::SpaceInformationPtr &si, BundleS
 
     setMetric("geodesic");
     setGraphSampler("randomedge");
+
+    double d = (double)getBundle()->getStateDimension();
+    double e = boost::math::constants::e<double>();
+    kPRMStarConstant_ = e + (e / d);
 }
 
 ompl::geometric::SPQRImpl::~SPQRImpl()

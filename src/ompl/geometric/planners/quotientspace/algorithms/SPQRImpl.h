@@ -76,6 +76,8 @@ namespace ompl
 
             /** \brief for different ratio of expand vs grow 1:5*/
             unsigned int iterations_{0};
+
+            double kPRMStarConstant_{0};
             
             std::vector<base::State *> randomWorkStates_;
         };

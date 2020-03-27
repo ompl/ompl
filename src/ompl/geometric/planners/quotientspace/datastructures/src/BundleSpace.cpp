@@ -443,6 +443,19 @@ void ompl::geometric::BundleSpace::sampleBundle(base::State *xRandom)
     }
 }
 
+std::vector<int> ompl::geometric::BundleSpace::getIndexLevel() const
+{
+    std::vector<int> idxPathI;
+    BundleSpace *pparent = getParent();
+    while (pparent != nullptr)
+    {
+        idxPathI.push_back(0);
+        pparent = pparent->getParent();
+    }
+    idxPathI.push_back(0);
+    return idxPathI;
+}
+
 void ompl::geometric::BundleSpace::debugInvalidState(const base::State *x)
 {
     const base::StateSpacePtr space = Bundle->getStateSpace();

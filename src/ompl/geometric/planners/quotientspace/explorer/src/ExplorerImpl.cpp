@@ -46,6 +46,9 @@ ExplorerImpl::ExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *paren
   q_random = new Configuration(getBundle());
 
   pathVisibilityChecker_ = new PathVisibilityChecker(getBundle());
+
+  double maxExt = getBundle()->getMaximumExtent();
+  pathBias_ = pathBiasFraction_ * maxExt;
 }
 
 ExplorerImpl::~ExplorerImpl()
@@ -807,7 +810,7 @@ void ExplorerImpl::enumerateAllPaths()
         // PathEnumerator pe(v_start_sparse, v_goal_sparse, graphSparse_);
         // pe.ComputePaths();
 
-        unsigned numberVertices = boost::num_vertices(graphSparse_);
+        unsigned int numberVertices = boost::num_vertices(graphSparse_);
         if (numberVertices <= 0)
             return;
         bool *visited = new bool[numberVertices];

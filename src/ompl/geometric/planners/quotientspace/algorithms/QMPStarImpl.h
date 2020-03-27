@@ -48,7 +48,6 @@ namespace ompl
     }
     namespace geometric
     {
-        /** \brief Implementation of BundleSpace Rapidly-Exploring Random Trees Algorithm*/
         class QMPStarImpl : public ompl::geometric::QMPImpl
         {
             using BaseT = QMPImpl;

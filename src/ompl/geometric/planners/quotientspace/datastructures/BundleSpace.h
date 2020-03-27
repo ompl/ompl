@@ -62,6 +62,8 @@ namespace ompl
 
             virtual double getImportance() const = 0;
 
+            std::vector<int> getIndexLevel() const;
+
             /// \brief Allocate State, set entries to Identity/Zero
             ompl::base::State *allocIdentityStateFiber() const;
             ompl::base::State *allocIdentityStateBundle() const;

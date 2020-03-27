@@ -74,7 +74,8 @@ ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponents(
 
     //Check if planning spaces are equivalent, i.e. if (X, \phi) == (Y, \phi)
     bool areValidityCheckersEquivalent = false;
-    if(*(Base->getStateValidityChecker().get()) == *(Bundle->getStateValidityChecker().get())){
+    if(*(Base->getStateValidityChecker().get()) == *(Bundle->getStateValidityChecker().get()))
+    {
         areValidityCheckersEquivalent = true;
     }
 

@@ -19,7 +19,8 @@ double ompl::geometric::BundleSpaceImportanceGreedy::getLevelConstant()
         K++;
     }
 
-    double f = (k>1? powf(epsilon, K-k) - powf(epsilon, K-k+1):
+    double f = ( k > 1 ? 
+        powf(epsilon, K-k) - powf(epsilon, K-k+1):
         powf(epsilon, K-k));
 
     return f;

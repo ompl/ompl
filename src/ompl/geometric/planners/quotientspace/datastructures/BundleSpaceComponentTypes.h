@@ -16,6 +16,7 @@ namespace ompl
           /** \brief ompl::geometric::BundleSpaceComponent_Identity */
             BUNDLE_SPACE_IDENTITY_PROJECTION = 2,
 
+          /** \brief ompl::geometric::BundleSpaceComponent_Relaxation */
             BUNDLE_SPACE_CONSTRAINED_RELAXATION = 3,
 
           /** \brief RN \rightarrow RM, m < n */

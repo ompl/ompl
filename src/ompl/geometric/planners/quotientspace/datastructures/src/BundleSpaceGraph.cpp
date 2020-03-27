@@ -68,20 +68,9 @@
 
 using Configuration = ompl::geometric::BundleSpaceGraph::Configuration;
 
-
-
 ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformationPtr &si, BundleSpace *parent_)
   : BaseT(si, parent_)
 {
-    ompl::base::OptimizationObjectivePtr lengthObj = 
-      std::make_shared<ompl::base::PathLengthOptimizationObjective>(getBundle());
-    ompl::base::OptimizationObjectivePtr clearObj = 
-      std::make_shared<ompl::base::MaximizeMinClearanceObjective>(getBundle());
-    pathRefinementObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
-
-    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 0.5);
-    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(clearObj, 0.5);
-
     setName("BundleSpaceGraph");
 
     //Functional primitives
@@ -123,6 +112,16 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
 
     ompl::tools::SelfConfig sc(getBundle(), getName());
     sc.configurePlannerRange(maxDistance_);
+
+    ompl::base::OptimizationObjectivePtr lengthObj = 
+      std::make_shared<ompl::base::PathLengthOptimizationObjective>(getBundle());
+    ompl::base::OptimizationObjectivePtr clearObj = 
+      std::make_shared<ompl::base::MaximizeMinClearanceObjective>(getBundle());
+    pathRefinementObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
+
+    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 0.5);
+    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(clearObj, 0.5);
+
 }
 
 ompl::geometric::BundleSpaceGraph::~BundleSpaceGraph()
@@ -711,14 +710,9 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(
     const Vertex vStart, 
     const Vertex vGoal) const
 {
-    std::vector<int> idxPathI;
-    BundleSpace *pparent = getParent();
-    while (pparent != nullptr)
-    {
-        idxPathI.push_back(0);
-        pparent = pparent->getParent();
-    }
-    idxPathI.push_back(0);
+    if(boost::num_vertices(graph) <= 0) return;
+
+    std::vector<int> idxPathI = getIndexLevel();
 
     base::PlannerDataVertexAnnotated pstart(graph[vStart]->state);
     pstart.setPath(idxPathI);
@@ -752,6 +746,10 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(
 }
 void ompl::geometric::BundleSpaceGraph::getPlannerData(base::PlannerData &data) const
 {
-    OMPL_DEBUG("Roadmap has %d/%d vertices/edges", boost::num_vertices(graph_), boost::num_edges(graph_));
+    OMPL_DEBUG("Graph (level %d) has %d/%d vertices/edges", 
+        getLevel(), 
+        boost::num_vertices(graph_), 
+        boost::num_edges(graph_));
+
     getPlannerDataGraph(data, graph_, vStart_, vGoal_);
 }

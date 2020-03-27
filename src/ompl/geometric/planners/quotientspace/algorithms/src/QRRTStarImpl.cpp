@@ -327,14 +327,7 @@ void ompl::geometric::QRRTStarImpl::calculateRewiringLowerBounds()
 
 void ompl::geometric::QRRTStarImpl::getPlannerData(base::PlannerData &data) const
 {
-    std::vector<int> idxPathI;
-    BundleSpace *pparent = getParent();
-    while (pparent != nullptr)
-    {
-        idxPathI.push_back(0);
-        pparent = pparent->getParent();
-    }
-    idxPathI.push_back(0);
+    std::vector<int> idxPathI = getIndexLevel();
 
     base::PlannerDataVertexAnnotated pstart(qStart_->state);
     pstart.setPath(idxPathI);
@@ -362,5 +355,9 @@ void ompl::geometric::QRRTStarImpl::getPlannerData(base::PlannerData &data) cons
             data.addEdge(p1, p2);
         }
     }
-    OMPL_DEBUG("Tree has %d/%d vertices/edges (level %d).", motions.size(), motions.size()-1, getLevel());
+
+    OMPL_DEBUG("Tree (level %d) has %d/%d vertices/edges", 
+        getLevel(), 
+        motions.size(),
+        motions.size()-1);
 }

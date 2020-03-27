@@ -61,8 +61,13 @@ BundleSpaceGraphSparse::BundleSpaceGraphSparse(const ob::SpaceInformationPtr &si
   BaseT(si, parent), geomPath_(si)
 {
   setName("BundleSpaceGraphSparse");
-  Planner::declareParam<double>("sparse_delta_fraction", this, &BundleSpaceGraphSparse::setSparseDeltaFraction,
-                                &BundleSpaceGraphSparse::getSparseDeltaFraction, "0.0:0.01:1.0");
+
+  Planner::declareParam<double>(
+      "sparse_delta_fraction", 
+      this, 
+      &BundleSpaceGraphSparse::setSparseDeltaFraction,
+      &BundleSpaceGraphSparse::getSparseDeltaFraction, 
+      "0.0:0.01:1.0");
 
   if (!isSetup())
   {
@@ -92,10 +97,6 @@ void BundleSpaceGraphSparse::setup()
 
     double maxExt = getBundle()->getMaximumExtent();
     sparseDelta_ = sparseDeltaFraction_ * maxExt;
-    pathBias_ = pathBiasFraction_ * maxExt;
-    double d = (double) getBundle()->getStateDimension();
-    double e = boost::math::constants::e<double>();
-    kPRMStarConstant_ = e + (e / d);
 }
 
 void BundleSpaceGraphSparse::clear()
@@ -751,31 +752,6 @@ bool ompl::geometric::BundleSpaceGraphSparse::checkAddPath(Configuration *q)
     return result;
 }
 
-void BundleSpaceGraphSparse::Rewire(Vertex &v)
-{
-    Configuration *q = graphSparse_[v];
-    std::vector<Configuration *> neighbors;
-    uint Nv = boost::degree(v, graphSparse_);
-    uint K = Nv + 2;
-    nearestSparse_->nearestK(const_cast<Configuration *>(q), K, neighbors);
-
-    for (uint k = Nv + 1; k < neighbors.size(); k++)
-    {
-        Configuration *qn = neighbors.at(k);
-        if(getBundle()->checkMotion(q->state, qn->state))
-        {
-            addEdge(q->index, qn->index);
-        }
-    }
-}
-
-void BundleSpaceGraphSparse::Rewire()
-{
-    Vertex v = boost::random_vertex(graphSparse_, rng_boost);
-    return Rewire(v);
-}
-
-
 bool BundleSpaceGraphSparse::hasSparseGraphChanged()
 {
     unsigned Nv = boost::num_vertices(graphSparse_);
@@ -871,7 +847,8 @@ bool ompl::geometric::BundleSpaceGraphSparse::getSolution(base::PathPtr &solutio
 
 void BundleSpaceGraphSparse::getPlannerData(base::PlannerData &data) const
 {
-    OMPL_DEBUG("Sparse Roadmap has %d/%d vertices/edges (Dense has %d/%d).", 
+    OMPL_DEBUG("Sparse Graph (level %d) has %d/%d vertices/edges (Dense has %d/%d).", 
+        getLevel(),
         boost::num_vertices(graphSparse_),
         boost::num_edges(graphSparse_), 
         boost::num_vertices(graph_), 
