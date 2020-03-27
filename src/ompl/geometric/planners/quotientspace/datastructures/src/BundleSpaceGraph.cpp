@@ -40,6 +40,7 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/src/BundleSpaceGraphGoalVisitor.hpp>
 
 #include <ompl/geometric/planners/quotientspace/datastructures/graphsampler/RandomVertex.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/graphsampler/RandomDegreeVertex.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/graphsampler/RandomEdge.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/importance/Greedy.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/importance/Exponential.h>
@@ -532,6 +533,9 @@ void ompl::geometric::BundleSpaceGraph::setGraphSampler(const std::string& sGrap
     }else if(sGraphSampler == "randomedge"){
         OMPL_DEBUG("Random Edge Sampler Selected");
         graphSampler_ = std::make_shared<BundleSpaceGraphSamplerRandomEdge>(this);
+    }else if(sGraphSampler == "randomdegreevertex"){
+        OMPL_DEBUG("Random Degree Vertex Sampler Selected");
+        graphSampler_ = std::make_shared<BundleSpaceGraphSamplerRandomDegreeVertex>(this);
     }else{
         OMPL_ERROR("Sampler unknown: %s", sGraphSampler.c_str());
         throw ompl::Exception("Unknown Graph Sampler");

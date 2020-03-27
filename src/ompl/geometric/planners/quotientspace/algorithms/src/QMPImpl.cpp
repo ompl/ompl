@@ -49,7 +49,8 @@ ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpa
 
     // setMetric("geodesic");
     setMetric("shortestpath");
-    setGraphSampler("randomedge");
+    // setGraphSampler("randomedge");
+    setGraphSampler("randomdegreevertex");
     setImportance("exponential");
 
     randomWorkStates_.resize(5);

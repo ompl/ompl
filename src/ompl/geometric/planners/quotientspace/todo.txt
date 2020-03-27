@@ -11,10 +11,12 @@ constraints there, usable by any bundle algorithm)
 [x] Move SPQR checks to GraphSparse
 [x] make QMPStar inherit from QMP
 [x] Run Benchmark Rapid Inf Test
-[ ] rewrite diagram to go top down (including little squares)
+[x] rewrite diagram to go top down (including little squares)
+[x] Implement Random-Degree-Vertex sampling
+[ ] prettify diagram
 [ ] handle NH constraints in QMPStar and SPQR
 [ ] Add Types for Metric/Importance/Sampler
-[ ] Implement Random-Degree-Vertex sampling
+[ ] Clarify experiments
 
 Improvements (FB):
 - multi robot implementation using a new component-based implementation
