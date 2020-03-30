@@ -23,7 +23,7 @@ void ompl::geometric::BundleSpaceComponent_SE2RN_SE2::projectBase(
     xBase_SE2->setYaw(xBundle_SE2->getYaw());
 }
 
-void ompl::geometric::BundleSpaceComponent_SE2RN_SE2::mergeStates(
+void ompl::geometric::BundleSpaceComponent_SE2RN_SE2::liftState(
     const ompl::base::State *xBase, 
     const ompl::base::State *xFiber, 
     ompl::base::State *xBundle) const

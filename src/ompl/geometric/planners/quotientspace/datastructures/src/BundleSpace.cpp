@@ -195,7 +195,7 @@ void ompl::geometric::BundleSpace::resetCounter()
     BundleSpace::counter_ = 0;
 }
 
-void ompl::geometric::BundleSpace::mergeStates(const base::State *xBase, const base::State *xFiber, base::State *xBundle) const
+void ompl::geometric::BundleSpace::liftState(const base::State *xBase, const base::State *xFiber, base::State *xBundle) const
 {
     unsigned int M = components_.size();
 
@@ -206,10 +206,10 @@ void ompl::geometric::BundleSpace::mergeStates(const base::State *xBase, const b
             const base::State *xmBase = xBase->as<base::CompoundState>()->as<base::State>(m);
             const base::State *xmFiber = xFiber->as<base::CompoundState>()->as<base::State>(m);
             base::State *xmBundle = xBundle->as<base::CompoundState>()->as<base::State>(m);
-            components_.at(m)->mergeStates(xmBase, xmFiber, xmBundle);
+            components_.at(m)->liftState(xmBase, xmFiber, xmBundle);
         }
     }else{
-        components_.front()->mergeStates(xBase, xFiber, xBundle);
+        components_.front()->liftState(xBase, xFiber, xBundle);
     }
 }
 
@@ -434,7 +434,7 @@ void ompl::geometric::BundleSpace::sampleBundle(base::State *xRandom)
             // Adjusted sampling function: Sampling in G0 x Fiber
             parent_->sampleFromDatastructure(xBaseTmp_);
             sampleFiber(xFiberTmp_);
-            mergeStates(xBaseTmp_, xFiberTmp_, xRandom);
+            liftState(xBaseTmp_, xFiberTmp_, xRandom);
         }
         else
         {

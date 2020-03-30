@@ -20,7 +20,7 @@ namespace ompl
                 const ompl::base::State *xBundle,
                 ompl::base::State *xBase) const override;
 
-            virtual void mergeStates(
+            virtual void liftState(
                 const ompl::base::State *xBase, 
                 const ompl::base::State *xFiber, 
                 ompl::base::State *xBundle) const override;

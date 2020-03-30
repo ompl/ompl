@@ -115,7 +115,7 @@ BundleSpaceMetricShortestPath::getInterpolationPath(
                 fiber->getStateSpace()->interpolate(xFiberStartTmp_, xFiberDestTmp_, interpLength, xFiberK);
 
                 Configuration *xk = new Configuration(bundle);
-                bundleSpaceGraph_->mergeStates(pathBase.at(k), xFiberK, xk->state);
+                bundleSpaceGraph_->liftState(pathBase.at(k), xFiberK, xk->state);
                 pathBundle.push_back(xk);
                 fiber->freeState(xFiberK);
             }

@@ -37,7 +37,7 @@ void ompl::geometric::BundleSpaceComponent_SE3_R3::projectBase(
 }
 
 
-void ompl::geometric::BundleSpaceComponent_SE3_R3::mergeStates(
+void ompl::geometric::BundleSpaceComponent_SE3_R3::liftState(
     const ompl::base::State *xBase, 
     const ompl::base::State *xFiber, 
     ompl::base::State *xBundle) const

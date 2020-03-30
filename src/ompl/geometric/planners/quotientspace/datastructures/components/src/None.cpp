@@ -22,7 +22,7 @@ void ompl::geometric::BundleSpaceComponent_None::projectBase(
 }
 
 
-void ompl::geometric::BundleSpaceComponent_None::mergeStates(
+void ompl::geometric::BundleSpaceComponent_None::liftState(
     const ompl::base::State *, 
     const ompl::base::State *, 
     ompl::base::State *) const

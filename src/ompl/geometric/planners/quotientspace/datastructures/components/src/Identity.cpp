@@ -22,7 +22,7 @@ void ompl::geometric::BundleSpaceComponent_Identity::projectBase(
     BundleSpace_->copyState(xBase, xBundle);
 }
 
-void ompl::geometric::BundleSpaceComponent_Identity::mergeStates(
+void ompl::geometric::BundleSpaceComponent_Identity::liftState(
     const ompl::base::State *xBase, 
     const ompl::base::State*, 
     ompl::base::State *xBundle) const

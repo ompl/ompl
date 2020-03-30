@@ -130,7 +130,7 @@ namespace ompl
                 ompl::base::State *xBase) const;
 
             /// Merge a state from Base and Fiber into a state on Bundle (concatenate)
-            void mergeStates(
+            void liftState(
                 const ompl::base::State *xBase, 
                 const ompl::base::State *xFiber, 
                 ompl::base::State *xBundle) const; 

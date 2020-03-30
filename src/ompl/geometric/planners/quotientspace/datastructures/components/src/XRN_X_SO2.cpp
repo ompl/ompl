@@ -22,7 +22,7 @@ void ompl::geometric::BundleSpaceComponent_SO2RN_SO2::projectBase(
     xBase_SO2->value = xBundle_SO2->value;
 }
 
-void ompl::geometric::BundleSpaceComponent_SO2RN_SO2::mergeStates(
+void ompl::geometric::BundleSpaceComponent_SO2RN_SO2::liftState(
     const ompl::base::State *xBase, 
     const ompl::base::State *xFiber, 
     ompl::base::State *xBundle) const

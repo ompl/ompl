@@ -44,7 +44,7 @@ void ompl::geometric::BundleSpaceComponent_SE2RN_R2::projectBase(
     xBase_R2->values[1] = xBundle_SE2->getY();
 }
 
-void ompl::geometric::BundleSpaceComponent_SE2RN_R2::mergeStates(
+void ompl::geometric::BundleSpaceComponent_SE2RN_R2::liftState(
     const ompl::base::State *xBase, 
     const ompl::base::State *xFiber, 
     ompl::base::State *xBundle) const

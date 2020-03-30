@@ -20,7 +20,7 @@ void ompl::geometric::BundleSpaceComponent_EmptySet::projectBase(
 {
 }
 
-void ompl::geometric::BundleSpaceComponent_EmptySet::mergeStates(
+void ompl::geometric::BundleSpaceComponent_EmptySet::liftState(
     const ompl::base::State *, 
     const ompl::base::State *xFiber,
     ompl::base::State *xBundle) const

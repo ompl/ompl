@@ -1,4 +1,3 @@
-FB
 [x] Clean up constructor Bundle Space
 [x] Organize MultiQuotient classes in better way
 [x] Add QRRTStar
@@ -13,23 +12,20 @@ constraints there, usable by any bundle algorithm)
 [x] Run Benchmark Rapid Inf Test
 [x] rewrite diagram to go top down (including little squares)
 [x] Implement Random-Degree-Vertex sampling
-[ ] prettify diagram
+[x] prettify diagram
 [ ] handle NH constraints in QMPStar and SPQR
+[ ] Add steering function support
 [ ] Add Types for Metric/Importance/Sampler
+
 [ ] Clarify experiments
 
 Improvements (FB):
-- multi robot implementation using a new component-based implementation
-- enabled non-holonomic planning on bundles
-- additional bundles (empty, relaxed, etc)
+- Enables Multi Robot Planning using a new component-based implementation
+- Can handle non-holonomic constraints
+- Add new bundles (empty, relaxed, etc)
 - Four new algorithms: QRRT*, QMP, QMP*, SPQR
 - Sparse graph structures (based on SPARS impl)
 - Enabled different metrics
 - Enabled different graph sampler
 - Enabled different propagators
 - Enabled different selector functions for multiple bundles
-
-MT
-[ ] Add function getLocalMinimaTree() to explorer
-[ ] Incorporate optimizer
-[ ] Return control in PlannerData
