@@ -118,6 +118,7 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
       std::make_shared<ompl::base::PathLengthOptimizationObjective>(getBundle());
     ompl::base::OptimizationObjectivePtr clearObj = 
       std::make_shared<ompl::base::MaximizeMinClearanceObjective>(getBundle());
+
     pathRefinementObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
 
     std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 0.5);

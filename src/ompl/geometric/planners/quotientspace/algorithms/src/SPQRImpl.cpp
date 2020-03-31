@@ -67,16 +67,16 @@ void ompl::geometric::SPQRImpl::grow()
 {
     if (firstRun_)
     {
-        Init();
+        init();
         firstRun_ = false;
     }
 
-    sampleBundleGoalBias(xRandom_->state, goalBias_);
+    if(!sampleBundleValid(xRandom_->state)) return;
 
-    if(!getBundle()->getStateValidityChecker()->isValid(xRandom_->state))
-    {
-        return;
-    }
+    // if(!getBundle()->getStateValidityChecker()->isValid(xRandom_->state))
+    // {
+    //     return;
+    // }
 
     Configuration *q_next = new Configuration(getBundle(), xRandom_->state);
     addConfiguration(q_next);

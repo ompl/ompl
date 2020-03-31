@@ -16,7 +16,6 @@ constraints there, usable by any bundle algorithm)
 [ ] handle NH constraints in QMPStar and SPQR
 [ ] Add steering function support
 [ ] Add Types for Metric/Importance/Sampler
-
 [ ] Clarify experiments
 
 Improvements (FB):

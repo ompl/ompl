@@ -106,7 +106,7 @@ bool ExplorerImpl::getSolution(ob::PathPtr &solution)
 
 void ExplorerImpl::grow(){
   if(firstRun_){
-    Init();
+    init();
     firstRun_ = false;
   }
   if(isDynamic()){

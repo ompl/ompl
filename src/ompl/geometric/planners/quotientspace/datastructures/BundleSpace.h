@@ -53,6 +53,7 @@ namespace ompl
             virtual void sampleFromDatastructure(ompl::base::State *xBase) = 0;
             virtual void sampleFiber(ompl::base::State *xFiber);
             virtual void sampleBundle(ompl::base::State *xRandom);
+            bool sampleBundleValid(ompl::base::State *xRandom);
 
             virtual bool hasSolution();
             virtual bool isInfeasible();

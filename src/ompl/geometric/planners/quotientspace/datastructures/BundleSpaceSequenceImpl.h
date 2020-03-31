@@ -75,7 +75,7 @@ ompl::geometric::BundleSpaceSequence<T>::~BundleSpaceSequence()
 template <class T>
 int ompl::geometric::BundleSpaceSequence<T>::getLevels() const
 {
-    return stopAtLevel_;
+    return bundleSpaces_.size();
 }
 
 template <class T>
@@ -155,6 +155,7 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
             priorityQueue_.pop();
             jBundle->grow();
 
+            //TODO: remove from while loop 
             bool hasSolution = bundleSpaces_.at(k)->hasSolution();
             if (hasSolution)
             {

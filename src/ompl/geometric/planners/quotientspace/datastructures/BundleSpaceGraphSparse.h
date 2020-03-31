@@ -35,14 +35,14 @@ namespace ompl
         void getPlannerDataRoadmap(ob::PlannerData &data, std::vector<int> pathIdx) const;
 
         virtual Vertex addConfiguration(Configuration *q) override;
-        virtual void deleteConfiguration(Configuration *q);
+        virtual void deleteConfiguration(Configuration *q) override;
         Vertex addConfigurationSparse(Configuration *q);
         void addEdgeSparse(const Vertex a, const Vertex b);
 
         virtual void setup() override;
         virtual void clear() override;
 
-        virtual void Init();
+        virtual void init() override;
 
         //Using same conditions as SPARS algorithm to determine sparse graph
         //addition

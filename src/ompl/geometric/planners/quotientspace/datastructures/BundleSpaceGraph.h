@@ -212,7 +212,7 @@ namespace ompl
 
             /** \brief Initialization methods for the first iteration
                  (adding start configuration and doing sanity checks) */
-            void init();
+            virtual void init();
 
             virtual void setup() override;
             virtual void clear() override;
@@ -338,11 +338,11 @@ namespace ompl
 
             double bestDist_{base::dInf};
 
-            BundleSpaceImportancePtr importanceCalculator_;
+            BundleSpaceImportancePtr importanceCalculator_{nullptr};
 
-            BundleSpaceGraphSamplerPtr graphSampler_;
+            BundleSpaceGraphSamplerPtr graphSampler_{nullptr};
 
-            ompl::base::OptimizationObjectivePtr pathRefinementObj_;
+            ompl::base::OptimizationObjectivePtr pathRefinementObj_{nullptr};
         };
     }  // namespace geometric
 }  // namespace ompl

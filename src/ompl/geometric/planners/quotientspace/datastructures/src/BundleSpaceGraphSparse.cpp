@@ -223,9 +223,11 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraphSparse::getPathSparse(const
     return p;
 }
 
-void BundleSpaceGraphSparse::Init()
+void BundleSpaceGraphSparse::init()
 {
     BaseT::init();
+
+    vGoal_ = addConfiguration(qGoal_);
 
     v_start_sparse = addConfigurationSparse(qStart_);
     graphSparse_[v_start_sparse]->isStart = true;

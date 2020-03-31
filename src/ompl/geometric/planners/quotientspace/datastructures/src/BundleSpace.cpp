@@ -9,6 +9,7 @@
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/base/spaces/TimeStateSpace.h>
 #include <ompl/base/spaces/DiscreteStateSpace.h>
+#include <ompl/tools/config/MagicConstants.h>
 
 #include <ompl/util/Exception.h>
 
@@ -419,6 +420,20 @@ ompl::base::OptimizationObjectivePtr ompl::geometric::BundleSpace::getOptimizati
 void ompl::geometric::BundleSpace::sampleFiber(base::State *xFiber)
 {
     Fiber_sampler_->sampleUniform(xFiber);
+}
+
+bool ompl::geometric::BundleSpace::sampleBundleValid(base::State *xRandom)
+{
+		bool found = false;
+
+    unsigned int attempts = 0;
+    do
+    {
+        sampleBundle(xRandom);
+        found = getBundle()->getStateValidityChecker()->isValid(xRandom);
+        attempts++;
+    } while (attempts < magic::FIND_VALID_STATE_ATTEMPTS_WITHOUT_TERMINATION_CHECK && !found);
+    return found;
 }
 
 void ompl::geometric::BundleSpace::sampleBundle(base::State *xRandom)

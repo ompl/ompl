@@ -49,9 +49,10 @@ ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpa
 
     // setMetric("geodesic");
     setMetric("shortestpath");
-    // setGraphSampler("randomedge");
-    setGraphSampler("randomdegreevertex");
+    setGraphSampler("randomedge");
+    // setGraphSampler("randomdegreevertex");
     setImportance("exponential");
+    // setImportance("greedy");
 
     randomWorkStates_.resize(5);
     getBundle()->allocStates(randomWorkStates_);
@@ -77,9 +78,10 @@ void ompl::geometric::QMPImpl::grow()
     }
 
     //(1) Get Random Sample
-    sampleBundle(xRandom_->state);
+    // sampleBundle(xRandom_->state);
 
-    if(!getBundle()->getStateValidityChecker()->isValid(xRandom_->state)) return;
+    // if(!getBundle()->getStateValidityChecker()->isValid(xRandom_->state)) return;
+    if(!sampleBundleValid(xRandom_->state)) return;
 
     //(2) Add Configuration if valid
     Configuration *xNew = new Configuration(getBundle(), xRandom_->state);
