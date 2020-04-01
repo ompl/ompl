@@ -90,7 +90,7 @@ void ompl::geometric::QRRTStarImpl::grow()
     }
 
     //(1) Get Random Sample
-    sampleBundleGoalBias(xRandom_->state, goalBias_);
+    sampleBundleGoalBias(xRandom_->state);
 
     //(2) Get Nearest in Tree
     Configuration *q_nearest = nearestDatastructure_->nearest(xRandom_);

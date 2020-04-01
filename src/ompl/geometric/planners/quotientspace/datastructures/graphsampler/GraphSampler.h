@@ -29,13 +29,15 @@ namespace ompl
 
             BundleSpaceGraph* bundleSpaceGraph_;
 
-            double epsilonGraphThickening_{0.1};
+            double epsilonGraphThickening_{0.0};
 
-            double pathBiasFixed_{0.2};
+            double epsilonGraphThickeningFraction_{1e-3};
+
+            double pathBiasFixed_{0.1};
 
             double exponentialDecayLambda_{1e-3};
 
-            unsigned int exponentialDecayCtr_{0};
+            unsigned int counterSampling_{0};
         };
     }  // namespace geometric
 }  // namespace ompl

@@ -3,9 +3,8 @@
 ompl::geometric::BundleSpaceGraphSampler::BundleSpaceGraphSampler(BundleSpaceGraph* bundleSpaceGraph):
   bundleSpaceGraph_(bundleSpaceGraph)
 {
-
     double mu = bundleSpaceGraph_->getBundle()->getMaximumExtent();
-    epsilonGraphThickening_ = mu * 1e-2;
+    epsilonGraphThickening_ = mu * epsilonGraphThickeningFraction_;
     OMPL_DEBUG("Epsilon Graph Thickening constant set to %f", epsilonGraphThickening_);
 }
 
@@ -16,7 +15,9 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
 
     //EXP DECAY PATH BIAS.
     //from 1.0 down to lower limit pathbiasfixed_
-    const double pathBias_ = (1.0 - pathBiasFixed_) * exp(-exponentialDecayLambda_ * exponentialDecayCtr_++) + pathBiasFixed_;
+    const double pathBias_ = 
+      (1.0 - pathBiasFixed_) * exp(-exponentialDecayLambda_ * counterSampling_++) 
+      + pathBiasFixed_;
 
     double p = rng_.uniform01();
     if(p < pathBias_ && !bundleSpaceGraph_->isDynamic())
@@ -25,6 +26,7 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
         std::vector<base::State*> states = spath.getStates();
 
         if(states.size() < 2){
+            //empty solution returned, cannot use path bias sampling
             sampleImplementation(xRandom);
         }else{
 

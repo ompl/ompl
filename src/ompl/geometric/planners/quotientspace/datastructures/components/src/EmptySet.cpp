@@ -1,4 +1,5 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/components/EmptySet.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 
 ompl::geometric::BundleSpaceComponent_EmptySet::BundleSpaceComponent_EmptySet(
     base::StateSpacePtr BundleSpace,
@@ -8,16 +9,17 @@ ompl::geometric::BundleSpaceComponent_EmptySet::BundleSpaceComponent_EmptySet(
 }
 
 void ompl::geometric::BundleSpaceComponent_EmptySet::projectFiber(
-    const ompl::base::State*,
-    ompl::base::State*) const
+    const ompl::base::State* xBundle,
+    ompl::base::State* xFiber) const
 {
-    OMPL_WARN("Trying to project to fiber with Empty-Set Projection space.");
+    BundleSpace_->copyState(xFiber, xBundle);
 }
 
 void ompl::geometric::BundleSpaceComponent_EmptySet::projectBase(
     const ompl::base::State *,
     ompl::base::State *) const
 {
+    OMPL_WARN("Trying to project to base of Empty-Set Projection space.");
 }
 
 void ompl::geometric::BundleSpaceComponent_EmptySet::liftState(

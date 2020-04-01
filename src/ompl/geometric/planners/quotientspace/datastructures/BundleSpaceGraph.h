@@ -197,7 +197,7 @@ namespace ompl
 
             virtual void grow() = 0;
             virtual void sampleFromDatastructure(ompl::base::State *) override;
-            virtual void sampleBundleGoalBias(ompl::base::State *xRandom, double goalBias);
+            virtual void sampleBundleGoalBias(ompl::base::State *xRandom);
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
 
             /** \brief Return plannerdata structure, whereby each vertex is marked
@@ -328,7 +328,7 @@ namespace ompl
             double maxDistance_{-1.0};
 
             /** \brief Goal bias */
-            double goalBias_{.05};
+            double goalBias_{.1};
 
             /** \brief Temporary random configuration */
             Configuration *xRandom_{nullptr};

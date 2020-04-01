@@ -221,9 +221,12 @@ void ompl::geometric::BundleSpace::projectFiber(const base::State *xBundle, base
     if( M > 1){
         for(uint m = 0; m < M; m++)
         {
-            const base::State *xmBundle = xBundle->as<base::CompoundState>()->as<base::State>(m);
-            base::State *xmFiber = xFiber->as<base::CompoundState>()->as<base::State>(m);
-            components_.at(m)->projectFiber(xmBundle, xmFiber);
+            if(components_.at(m)->getFiberDimension() > 0)
+            {
+                const base::State *xmBundle = xBundle->as<base::CompoundState>()->as<base::State>(m);
+                base::State *xmFiber = xFiber->as<base::CompoundState>()->as<base::State>(m);
+                components_.at(m)->projectFiber(xmBundle, xmFiber);
+            }
         }
     }else{
         components_.front()->projectFiber(xBundle, xFiber);
@@ -237,9 +240,12 @@ void ompl::geometric::BundleSpace::projectBase(const base::State *xBundle, base:
     if( M > 1){
         for(uint m = 0; m < M; m++)
         {
-            const base::State *xmBundle = xBundle->as<base::CompoundState>()->as<base::State>(m);
-            base::State *xmBase = xBase->as<base::CompoundState>()->as<base::State>(m);
-            components_.at(m)->projectBase(xmBundle, xmBase);
+            if(components_.at(m)->getBaseDimension() > 0)
+            {
+                const base::State *xmBundle = xBundle->as<base::CompoundState>()->as<base::State>(m);
+                base::State *xmBase = xBase->as<base::CompoundState>()->as<base::State>(m);
+                components_.at(m)->projectBase(xmBundle, xmBase);
+            }
         }
     }else{
         components_.front()->projectBase(xBundle, xBase);

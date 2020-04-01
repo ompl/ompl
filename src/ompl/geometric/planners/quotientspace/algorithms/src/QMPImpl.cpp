@@ -79,7 +79,6 @@ void ompl::geometric::QMPImpl::grow()
 
     //(1) Get Random Sample
     // sampleBundle(xRandom_->state);
-
     // if(!getBundle()->getStateValidityChecker()->isValid(xRandom_->state)) return;
     if(!sampleBundleValid(xRandom_->state)) return;
 

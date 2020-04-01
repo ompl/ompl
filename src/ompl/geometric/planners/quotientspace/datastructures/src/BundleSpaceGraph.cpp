@@ -670,7 +670,7 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraph::getPath(const Vertex &sta
     return p;
 }
 
-void ompl::geometric::BundleSpaceGraph::sampleBundleGoalBias(base::State *xRandom, double goalBias)
+void ompl::geometric::BundleSpaceGraph::sampleBundleGoalBias(base::State *xRandom)
 {
     if (hasSolution_)
     {
@@ -680,7 +680,7 @@ void ompl::geometric::BundleSpaceGraph::sampleBundleGoalBias(base::State *xRando
     else
     {
         double s = rng_.uniform01();
-        if (s < goalBias)
+        if (s < goalBias_)
         {
             getBundle()->copyState(xRandom, qGoal_->state);
         }

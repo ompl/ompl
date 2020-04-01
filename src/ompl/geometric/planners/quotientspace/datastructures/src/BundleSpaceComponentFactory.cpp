@@ -65,6 +65,7 @@ ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponents(
 
     if(baseSpaceComponents != bundleSpaceComponents)
     {
+      Base->printSettings();
       OMPL_ERROR("Base Space has %d, but Bundle Space has %d components.", 
           baseSpaceComponents, bundleSpaceComponents);
       throw Exception("Different Number Of Components");
@@ -315,11 +316,9 @@ ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(c
                 }
                 else
                 {
-                    OMPL_ERROR("Bundle is SE2 but Base type %d is not handled.", Base->getType());
+                    OMPL_ERROR("Bundle is SE3 but Base type %d is not handled.", Base->getType());
                     throw ompl::Exception("Invalid BundleSpace type");
                 }
-                OMPL_ERROR("Bundle is SE3 but Base type %d is not handled.", Base->getType());
-                throw ompl::Exception("Invalid BundleSpace type");
             }
         }
         ///##############################################################################/
@@ -605,7 +604,10 @@ int ompl::geometric::BundleSpaceComponentFactory::GetNumberOfComponents(base::St
             (t0 == base::STATE_SPACE_SE3 && t1 == base::STATE_SPACE_REAL_VECTOR) 
           )
         {
-          nrComponents = 1;
+          if(decomposed.at(1)->getDimension() > 0)
+          {
+            nrComponents = 1;
+          }
         }
       }
     }

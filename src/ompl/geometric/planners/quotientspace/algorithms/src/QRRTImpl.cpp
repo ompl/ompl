@@ -43,8 +43,9 @@
 ompl::geometric::QRRTImpl::QRRTImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QRRTImpl" + std::to_string(id_));
+    setMetric("geodesic");
     setImportance("exponential");
-    setGraphSampler("randomvertex");
+    setGraphSampler("randomedge");
 }
 
 ompl::geometric::QRRTImpl::~QRRTImpl()
@@ -61,7 +62,7 @@ void ompl::geometric::QRRTImpl::grow()
     }
 
     //(1) Get Random Sample
-    sampleBundleGoalBias(xRandom_->state, goalBias_);
+    sampleBundleGoalBias(xRandom_->state);
 
     //(2) Get Nearest in Tree
     const Configuration *xNearest = nearest(xRandom_);
