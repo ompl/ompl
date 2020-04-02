@@ -39,6 +39,20 @@ namespace ompl
                 const base::StateSpacePtr BundleSpace, 
                 const base::StateSpacePtr BaseSpace);
 
+            bool isMapping_Identity(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_EmptyProjection(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_RN_to_RM(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_SE2_to_R2(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_SE2RN_to_R2(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_SE2RN_to_SE2(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_SE2RN_to_SE2RM(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_SE3_to_R3(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_SE3RN_to_R3(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_SE3RN_to_SE3(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_SE3RN_to_SE3RM(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_SO2RN_to_SO2(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_SO2RN_to_SO2RM(const base::StateSpacePtr, const base::StateSpacePtr);
+
             int GetNumberOfComponents(base::StateSpacePtr space);
         };
     }

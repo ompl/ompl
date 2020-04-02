@@ -45,12 +45,14 @@ namespace ompl
 {
     namespace geometric
     {
-        /** \brief A sequence of BundleSpaces
+        /** \brief A planner for a sequence of BundleSpaces
 
              Example usage with QRRT
-             (using a sequence si_vec of ompl::base::SpaceInformationPtr)
              ompl::base::PlannerPtr planner =
-                 std::make_shared<BundleSpaceSequence<ompl::geometric::QRRT> >(si_vec); */
+                 std::make_shared<BundleSpaceSequence<ompl::geometric::QRRT> >(si_vec); 
+
+             whereby si_vec is of type std::vector<ompl::base::SpaceInformationPtr>
+         */
 
         template <class T>
         class BundleSpaceSequence : public ompl::base::Planner
@@ -60,8 +62,6 @@ namespace ompl
                 "Template must inherit from BundleSpace");
 
         public:
-            const bool DEBUG{false};
-
             /** \brief Constructor taking a sequence of ompl::base::SpaceInformationPtr
                  and computing the BundleSpaces for each pair in the sequence */
             BundleSpaceSequence(
@@ -91,7 +91,7 @@ namespace ompl
 
         protected:
 
-            /** \brief Solution paths on each BundleSpace */
+            /** \brief Solution paths on each BundleSpace (TODO: put into pdefs)*/
             std::vector<ompl::base::PathPtr> solutions_;
 
             /** \brief Sequence of BundleSpaces */

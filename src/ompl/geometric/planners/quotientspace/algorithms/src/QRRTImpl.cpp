@@ -44,7 +44,7 @@ ompl::geometric::QRRTImpl::QRRTImpl(const base::SpaceInformationPtr &si, BundleS
 {
     setName("QRRTImpl" + std::to_string(id_));
     setMetric("geodesic");
-    setImportance("exponential");
+    setImportance("uniform");
     setGraphSampler("randomvertex");
 }
 
