@@ -134,7 +134,7 @@ ompl::geometric::BundleSpaceGraph::~BundleSpaceGraph()
 void ompl::geometric::BundleSpaceGraph::setup()
 {
     BaseT::setup();
-    // OMPL_DEBUG("Range distance graph sampling: %f", maxDistance_);
+    OMPL_DEBUG("Range distance graph sampling: %f", maxDistance_);
 
     if (!nearestDatastructure_)
     {

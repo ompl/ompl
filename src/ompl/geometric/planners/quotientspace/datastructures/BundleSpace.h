@@ -22,12 +22,14 @@ namespace ompl
         /// \brief A single Bundle-space
         class BundleSpace : public ompl::base::Planner
         {
+
         private:
+
             using BaseT = ompl::base::Planner;
             using BaseT::si_; //make it private. 
             // Note: use getBundle(), getFiber() or getBase() to access the SpaceInformationPtr
             
-            /// \brief solve disabled (use BundleSequence::solve)
+            /// \brief solve is disabled (use BundleSequence::solve)
             ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override final;
 
         public:
@@ -130,7 +132,7 @@ namespace ompl
                 const ompl::base::State *xBundle, 
                 ompl::base::State *xBase) const;
 
-            /// Merge a state from Base and Fiber into a state on Bundle (concatenate)
+            /// \brief Lift a state from Base to Bundle using a Fiber State
             void liftState(
                 const ompl::base::State *xBase, 
                 const ompl::base::State *xFiber, 

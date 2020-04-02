@@ -12,7 +12,7 @@ void ompl::geometric::BundleSpaceComponent_Identity::projectFiber(
     const ompl::base::State*,
     ompl::base::State*) const
 {
-    OMPL_WARN("Trying to project to fiber with non-projectable Bundle Space.");
+    OMPL_WARN("Trying to project to fiber of Identity Bundle Space.");
 }
 
 void ompl::geometric::BundleSpaceComponent_Identity::projectBase(
@@ -34,4 +34,3 @@ ompl::base::StateSpacePtr ompl::geometric::BundleSpaceComponent_Identity::comput
 {
     return std::make_shared<base::RealVectorStateSpace>(0);
 }
-

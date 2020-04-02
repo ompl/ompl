@@ -34,4 +34,3 @@ ompl::base::StateSpacePtr ompl::geometric::BundleSpaceComponent_EmptySet::comput
 {
     return BundleSpace_;
 }
-

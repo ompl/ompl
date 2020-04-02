@@ -201,6 +201,42 @@ ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(c
 
     BundleSpaceComponentType type = geometric::BUNDLE_SPACE_UNKNOWN;
 
+
+    //check for identity
+    if (Bundle->isCompound())
+    {
+      if(Base->isCompound())
+      {
+          base::CompoundStateSpace *Bundle_compound = Bundle->as<base::CompoundStateSpace>();
+          const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
+          base::CompoundStateSpace *Base_compound = Base->as<base::CompoundStateSpace>();
+          const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
+
+          if (Bundle_decomposed.size() == Base_decomposed.size())
+          {
+              bool equalTypes = true;
+              for(uint k = 0; k < Bundle_decomposed.size(); k++)
+              {
+                  if(Base_decomposed.at(k)->getType() !=
+                  Bundle_decomposed.at(k)->getType())
+                  {
+                    equalTypes = false;
+                    break;
+                  }
+              }
+              if(equalTypes)
+              {
+                  return BUNDLE_SPACE_IDENTITY_PROJECTION;
+              }
+          }
+      }
+    }else{
+      if(Base->getType() == Bundle->getType())
+      {
+          return BUNDLE_SPACE_IDENTITY_PROJECTION;
+      }
+    }
+
     if (!Bundle->isCompound())
     {
         ///##############################################################################/
@@ -556,8 +592,13 @@ ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(c
               if(Bundle_subspaces >= 1){
                 if (!Base->isCompound())
                 {
-                    OMPL_ERROR("Bundle is compound, but Base is not.");
-                    throw ompl::Exception("Invalid BundleSpace type.");
+                    if(Base->getDimension() <= 0){
+                      type = BUNDLE_SPACE_EMPTY_SET_PROJECTION;
+                    }else{
+                      Base->printSettings(std::cout);
+                      OMPL_ERROR("Bundle is compound, but Base is not.");
+                      throw ompl::Exception("Invalid BundleSpace type.");
+                    }
                 }else{
                     base::CompoundStateSpace *Base_compound = Base->as<base::CompoundStateSpace>();
                     const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();

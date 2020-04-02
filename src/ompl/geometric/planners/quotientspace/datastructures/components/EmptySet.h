@@ -6,6 +6,11 @@ namespace ompl
 {
     namespace geometric
     {
+        /**
+             @anchor EmptySet
+             @par Short description
+             Representation of a Fiber Bundle $X \rightarrow \emptyset$
+        */
         class BundleSpaceComponent_EmptySet: public BundleSpaceComponent
         {
             using BaseT = BundleSpaceComponent;
