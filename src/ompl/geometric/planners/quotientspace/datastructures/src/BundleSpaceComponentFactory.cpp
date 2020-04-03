@@ -170,6 +170,80 @@ ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
     return component;
 }
 
+ompl::geometric::BundleSpaceComponentType
+ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(const base::StateSpacePtr Bundle, const base::StateSpacePtr Base)
+{
+    if(Base == nullptr)
+    {
+        return BUNDLE_SPACE_NO_PROJECTION;
+    }
+
+    if(isMapping_Identity(Bundle, Base))
+    {
+        return BUNDLE_SPACE_IDENTITY_PROJECTION;
+    }
+
+    if(isMapping_EmptyProjection(Bundle, Base))
+    {
+        return BUNDLE_SPACE_EMPTY_SET_PROJECTION;
+    }
+
+    if(isMapping_RN_to_RM(Bundle, Base))
+    {
+        return BUNDLE_SPACE_RN_RM;
+    }
+
+    //SE3 ->
+    if(isMapping_SE3_to_R3(Bundle, Base))
+    {
+        return BUNDLE_SPACE_SE3_R3;
+    }
+    if(isMapping_SE3RN_to_SE3(Bundle, Base))
+    {
+        return BUNDLE_SPACE_SE3RN_SE3;
+    }
+    if(isMapping_SE3RN_to_R3(Bundle, Base))
+    {
+        return BUNDLE_SPACE_SE3RN_R3;
+    }
+    if(isMapping_SE3RN_to_SE3RM(Bundle, Base))
+    {
+        return BUNDLE_SPACE_SE3RN_SE3RM;
+    }
+
+    //SE2 ->
+    if(isMapping_SE2_to_R2(Bundle, Base))
+    {
+        return BUNDLE_SPACE_SE2_R2;
+    }
+    if(isMapping_SE2RN_to_SE2(Bundle, Base))
+    {
+        return BUNDLE_SPACE_SE2RN_SE2;
+    }
+    if(isMapping_SE2RN_to_R2(Bundle, Base))
+    {
+        return BUNDLE_SPACE_SE2RN_R2;
+    }
+    if(isMapping_SE2RN_to_SE2RM(Bundle, Base))
+    {
+        return BUNDLE_SPACE_SE2RN_SE2RM;
+    }
+
+    //SO2 ->
+    if(isMapping_SO2RN_to_SO2(Bundle, Base))
+    {
+        return BUNDLE_SPACE_SO2RN_SO2;
+    }
+    if(isMapping_SO2RN_to_SO2RM(Bundle, Base))
+    {
+        return BUNDLE_SPACE_SO2RN_SO2RM;
+    }
+
+    OMPL_ERROR("Fiber Bundle unknown.");
+    return BUNDLE_SPACE_UNKNOWN;
+}
+
+
 bool ompl::geometric::BundleSpaceComponentFactory::isMapping_Identity(
     const base::StateSpacePtr Bundle, 
     const base::StateSpacePtr Base)
@@ -498,79 +572,6 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_EmptyProjection(
     }
     return false;
 }
-
-ompl::geometric::BundleSpaceComponentType
-ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(const base::StateSpacePtr Bundle, const base::StateSpacePtr Base)
-{
-    if(Base == nullptr)
-    {
-        return BUNDLE_SPACE_NO_PROJECTION;
-    }
-
-    if(isMapping_Identity(Bundle, Base))
-    {
-        return BUNDLE_SPACE_IDENTITY_PROJECTION;
-    }
-
-    if(isMapping_EmptyProjection(Bundle, Base))
-    {
-        return BUNDLE_SPACE_EMPTY_SET_PROJECTION;
-    }
-
-    if(isMapping_RN_to_RM(Bundle, Base))
-    {
-        return BUNDLE_SPACE_RN_RM;
-    }
-
-    //SE3 ->
-    if(isMapping_SE3_to_R3(Bundle, Base))
-    {
-        return BUNDLE_SPACE_SE3_R3;
-    }
-    if(isMapping_SE3RN_to_SE3(Bundle, Base))
-    {
-        return BUNDLE_SPACE_SE3RN_SE3;
-    }
-    if(isMapping_SE3RN_to_R3(Bundle, Base))
-    {
-        return BUNDLE_SPACE_SE3RN_R3;
-    }
-    if(isMapping_SE3RN_to_SE3RM(Bundle, Base))
-    {
-        return BUNDLE_SPACE_SE3RN_SE3RM;
-    }
-
-    //SE2 ->
-    if(isMapping_SE2_to_R2(Bundle, Base))
-    {
-        return BUNDLE_SPACE_SE2_R2;
-    }
-    if(isMapping_SE2RN_to_SE2(Bundle, Base))
-    {
-        return BUNDLE_SPACE_SE2RN_SE2;
-    }
-    if(isMapping_SE2RN_to_R2(Bundle, Base))
-    {
-        return BUNDLE_SPACE_SE2RN_R2;
-    }
-    if(isMapping_SE2RN_to_SE2RM(Bundle, Base))
-    {
-        return BUNDLE_SPACE_SE2RN_SE2RM;
-    }
-
-    //SO2 ->
-    if(isMapping_SO2RN_to_SO2(Bundle, Base))
-    {
-        return BUNDLE_SPACE_SO2RN_SO2;
-    }
-    if(isMapping_SO2RN_to_SO2RM(Bundle, Base))
-    {
-        return BUNDLE_SPACE_SO2RN_SO2RM;
-    }
-
-    return BUNDLE_SPACE_UNKNOWN;
-}
-
 int ompl::geometric::BundleSpaceComponentFactory::GetNumberOfComponents(base::StateSpacePtr space)
 {
   int nrComponents = 0;

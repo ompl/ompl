@@ -105,6 +105,7 @@ namespace ompl
             /// (lower in abstraction hierarchy)
             BundleSpace *getChild() const;
 
+            bool hasBaseSpace() const;
             bool hasParent() const;
             bool hasChild() const;
 

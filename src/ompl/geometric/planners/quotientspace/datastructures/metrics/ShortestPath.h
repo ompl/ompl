@@ -9,11 +9,14 @@ namespace ompl
     OMPL_CLASS_FORWARD(PathGeometric);
     class BundleSpaceMetricShortestPath: public BundleSpaceMetricGeodesic
     {
+
         using BaseT = BundleSpaceMetricGeodesic;
+
       public:
+
         BundleSpaceMetricShortestPath() = delete;
         BundleSpaceMetricShortestPath(BundleSpaceGraph*); 
-        virtual ~BundleSpaceMetricShortestPath() override = default;
+        virtual ~BundleSpaceMetricShortestPath() override;
 
         virtual double distanceBundle(
             const Configuration *xStart, 
@@ -30,6 +33,11 @@ namespace ompl
             const Configuration *xDest);
 
         virtual void interpolateBundle(const Configuration *q_from, const Configuration *q_to, const double step, Configuration* q_interp) override;
+
+      protected:
+        std::vector<Configuration*> tmpPath_;
+        Configuration *xBaseStart_{nullptr};
+        Configuration *xBaseDest_{nullptr};// = new Configuration(base, xBaseDestTmp_);
     };
   }
 }

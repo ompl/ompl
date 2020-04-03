@@ -111,9 +111,6 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
         setup();
     }
 
-    ompl::tools::SelfConfig sc(getBundle(), getName());
-    sc.configurePlannerRange(maxDistance_);
-
     ompl::base::OptimizationObjectivePtr lengthObj = 
       std::make_shared<ompl::base::PathLengthOptimizationObjective>(getBundle());
     ompl::base::OptimizationObjectivePtr clearObj = 
@@ -134,7 +131,12 @@ ompl::geometric::BundleSpaceGraph::~BundleSpaceGraph()
 void ompl::geometric::BundleSpaceGraph::setup()
 {
     BaseT::setup();
-    OMPL_DEBUG("Range distance graph sampling: %f", maxDistance_);
+
+    ompl::tools::SelfConfig sc(getBundle(), getName());
+    sc.configurePlannerRange(maxDistance_);
+
+    OMPL_DEBUG("Range distance graph sampling: %f (max extent %f)", maxDistance_, 
+        getBundle()->getMaximumExtent());
 
     if (!nearestDatastructure_)
     {
@@ -560,7 +562,6 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
 {
     if (hasSolution_)
     {
-        
         if((solutionPath_ != nullptr) &&
             (getNumberOfVertices() == numVerticesWhenComputingSolutionPath)){
         }else{

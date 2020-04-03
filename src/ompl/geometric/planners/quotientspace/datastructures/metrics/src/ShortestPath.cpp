@@ -9,6 +9,29 @@ BundleSpaceMetricShortestPath::BundleSpaceMetricShortestPath(
     BundleSpaceGraph* bundleSpaceGraph):
   BaseT(bundleSpaceGraph)
 {
+    if(bundleSpaceGraph_->hasBaseSpace())
+    {
+        const base::SpaceInformationPtr &base = bundleSpaceGraph_->getBase();
+        xBaseStart_ = new Configuration(base);
+        xBaseDest_ = new Configuration(base);
+    }
+}
+BundleSpaceMetricShortestPath::~BundleSpaceMetricShortestPath()
+{
+    if(bundleSpaceGraph_->hasBaseSpace())
+    {
+        delete xBaseStart_;
+        delete xBaseDest_;
+        for(uint k = 0; k < tmpPath_.size(); k++){
+          Configuration *qk = new Configuration(bundleSpaceGraph_->getBundle());
+          tmpPath_.push_back(qk);
+        }
+        for (auto q : tmpPath_)
+        {
+            delete q;
+        }
+        tmpPath_.clear();
+    }
 }
 
 double BundleSpaceMetricShortestPath::distanceBundle(
@@ -57,17 +80,12 @@ BundleSpaceMetricShortestPath::getInterpolationPath(
   base::State *sDest = xDest->state;
 
   //(1) project onto base
-  bundleSpaceGraph_->projectBase(sStart, xBaseStartTmp_);
-  bundleSpaceGraph_->projectBase(sDest, xBaseDestTmp_);
-
-  Configuration *xBaseStart = new Configuration(base, xBaseStartTmp_);
-  Configuration *xBaseDest = new Configuration(base, xBaseDestTmp_);
-  base::State *sBaseStart = xBaseStart->state;
-  base::State *sBaseDest = xBaseDest->state;
+  bundleSpaceGraph_->projectBase(sStart, xBaseStart_->state);
+  bundleSpaceGraph_->projectBase(sDest, xBaseDest_->state);
 
   //(2) get nearest graph nodes on base
-  const Configuration *xBaseNearestStart = parent->nearest( xBaseStart );
-  const Configuration *xBaseNearestDest = parent->nearest( xBaseDest );
+  const Configuration *xBaseNearestStart = parent->nearest( xBaseStart_ );
+  const Configuration *xBaseNearestDest = parent->nearest( xBaseDest_ );
 
   //(3) compute path on base between nearest graph nodes
   // std::vector<const Configuration*> 
@@ -83,10 +101,18 @@ BundleSpaceMetricShortestPath::getInterpolationPath(
       const std::vector<base::State*> pathBase = gpath->getStates();
       if(pathBase.size() > 1)
       {
+        //Fill Up temporary path if necessary
+        if(pathBase.size() > tmpPath_.size())
+        {
+            for(uint k = tmpPath_.size(); k < pathBase.size(); k++){
+                Configuration *qk = new Configuration(bundleSpaceGraph_->getBundle());
+                tmpPath_.push_back(qk);
+            }
+        }
         //(4b) interpolate path on base, then lift up by interpolating along fiber
          double lengthBasePath = 0;
          std::vector<double> lengthsBasePath;
-         double lengthFirstSegment = base->distance(sBaseStart, pathBase.at(0));
+         double lengthFirstSegment = base->distance(xBaseStart_->state, pathBase.at(0));
          lengthsBasePath.push_back(lengthFirstSegment); 
          lengthBasePath += lengthFirstSegment;
          for(uint k = 1; k < pathBase.size(); k++){
@@ -94,7 +120,7 @@ BundleSpaceMetricShortestPath::getInterpolationPath(
              lengthsBasePath.push_back(lengthKthSegment); 
              lengthBasePath += lengthKthSegment;
          }
-         double lengthLastSegment = base->distance(pathBase.back(), sBaseDest);
+         double lengthLastSegment = base->distance(pathBase.back(), xBaseDest_->state);
          lengthsBasePath.push_back(lengthLastSegment); 
          lengthBasePath += lengthLastSegment;
 
@@ -114,18 +140,18 @@ BundleSpaceMetricShortestPath::getInterpolationPath(
                 double interpLength = lengthCurrent / lengthBasePath;
                 fiber->getStateSpace()->interpolate(xFiberStartTmp_, xFiberDestTmp_, interpLength, xFiberK);
 
-                Configuration *xk = new Configuration(bundle);
-                bundleSpaceGraph_->liftState(pathBase.at(k), xFiberK, xk->state);
-                pathBundle.push_back(xk);
+                // Configuration *xk = new Configuration(bundle);
+                bundleSpaceGraph_->liftState(pathBase.at(k), xFiberK, tmpPath_.at(k)->state);
+                pathBundle.push_back(tmpPath_.at(k));
                 fiber->freeState(xFiberK);
             }
 
          }else{
              //Case 2: bundle = base, just copy states
              for(uint k = 0; k < pathBase.size(); k++){
-                 Configuration *xk = new Configuration(bundle);
-                 bundle->copyState(xk->state, pathBase.at(k));
-                 pathBundle.push_back(xk);
+                 // Configuration *xk = new Configuration(bundle);
+                 bundle->copyState(tmpPath_.at(k)->state, pathBase.at(k));
+                 pathBundle.push_back(tmpPath_.at(k));
              }
          }
       }
@@ -144,7 +170,10 @@ void BundleSpaceMetricShortestPath::interpolateBundle(
         return BaseT::interpolateBundle(q_from, q_to, step, q_interp);
     }else{
         std::vector<const Configuration*> path = getInterpolationPath(q_from, q_to);
-        if(path.size() <= 2) return BaseT::interpolateBundle(q_from, q_to, step, q_interp);
+        if(path.size() <= 2)
+        {
+          return BaseT::interpolateBundle(q_from, q_to, step, q_interp);
+        }
 
         double d_path = 0;
         for(uint k = 0; k < path.size()-1; k++){

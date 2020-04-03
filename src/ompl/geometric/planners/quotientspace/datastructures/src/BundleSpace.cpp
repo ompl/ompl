@@ -84,6 +84,10 @@ bool ompl::geometric::BundleSpace::hasParent() const
 {
     return !(parent_ == nullptr);
 }
+bool ompl::geometric::BundleSpace::hasBaseSpace() const
+{
+    return hasParent();
+}
 
 bool ompl::geometric::BundleSpace::hasChild() const
 {

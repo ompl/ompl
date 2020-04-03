@@ -14,6 +14,7 @@ constraints there, usable by any bundle algorithm)
 [x] Implement Random-Degree-Vertex sampling
 [x] prettify diagram
 [x] Refactor IdentifyBundleSpaceComponentType
+[x] Fix memory leak on shortest path metric
 
 [ ] *** Add steering function support (at least SE3 and SE2)
 [ ] ** Clarify experiments
