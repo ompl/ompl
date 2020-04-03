@@ -158,7 +158,7 @@ namespace ompl
             /// Check if Bundle-space is unbounded
             void checkBundleSpaceMeasure(std::string name, 
                 const ompl::base::StateSpacePtr space) const;
-            void checkBundleSpace() const;
+            void sanityChecks() const;
             void MakeFiberSpace();
 
             std::vector<BundleSpaceComponentPtr> components_;

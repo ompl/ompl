@@ -35,12 +35,10 @@ namespace ompl
         //Interpolate Functions
         //############################################################################
 
-        //interpolate Bundle
         virtual void interpolateBundle(const Configuration *q_from, const Configuration *q_to, const double step, Configuration* q_interp) = 0;
 
         void interpolateBundle(const Configuration *q_from, const Configuration *q_to, Configuration* q_interp);
         void interpolateBundle(const Configuration *q_from, Configuration *q_to);
-
 
       protected:
 

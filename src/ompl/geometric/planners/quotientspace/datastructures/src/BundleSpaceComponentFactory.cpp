@@ -276,7 +276,8 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_Identity(
           }
       }
     }else{
-      if(Base->getType() == Bundle->getType())
+      if((Base->getType() == Bundle->getType()) &&
+          (Base->getDimension() == Bundle->getDimension()))
       {
           return true;
       }

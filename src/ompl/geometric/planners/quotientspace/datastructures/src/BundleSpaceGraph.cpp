@@ -321,6 +321,7 @@ ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::BundleSpaceGraph::add
     disjointSets_.make_set(m);
     nearestDatastructure_->add(q);
     q->index = m;
+
     return m;
 }
 
@@ -570,10 +571,13 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
 
           if(!isDynamic() && solutionPath_ != solution)
           {
+              std::cout << "Simplification" << std::endl;
+              std::cout << solutionPath_->length() << std::endl;
               ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 
                   pathRefinementObj_);
               geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
               shortcutter.simplifyMax(gpath);
+              std::cout << solutionPath_->length() << std::endl;
           }
         }
         solution = solutionPath_;

@@ -14,7 +14,9 @@ namespace ompl
             using Vertex = ompl::geometric::BundleSpaceGraph::Vertex;
 
           public:
+
             BundleSpaceGraphSampler() = delete;
+
             BundleSpaceGraphSampler(BundleSpaceGraph*); 
 
             void sample(base::State *xRandom);
@@ -37,7 +39,9 @@ namespace ompl
 
             double exponentialDecayLambda_{1e-3};
 
-            unsigned int counterSampling_{0};
+            unsigned long long counterPathSampling_{0};
+
+            unsigned long long counterGraphSampling_{0};
         };
     }  // namespace geometric
 }  // namespace ompl

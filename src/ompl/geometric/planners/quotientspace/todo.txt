@@ -15,12 +15,13 @@ constraints there, usable by any bundle algorithm)
 [x] prettify diagram
 [x] Refactor IdentifyBundleSpaceComponentType
 [x] Fix memory leak on shortest path metric
+[x] Add Adaptive Graph Thickening
 
 [ ] *** Add steering function support (at least SE3 and SE2)
 [ ] ** Clarify experiments
 [ ] * handle NH constraints in QMPStar and SPQR
 [ ] * Add Enumerate for Metric/Importance/Sampler
-[ ] * Add Adaptive Graph Thickening
+[ ] * Add goal component bias in QMP
 
 Improvements (FB):
 - Enables Multi Robot Planning using a new component-based implementation

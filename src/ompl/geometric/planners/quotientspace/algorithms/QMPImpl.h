@@ -63,24 +63,21 @@ namespace ompl
             /** \brief sample random node from Probabilty density function*/
             void expand();
 
-            Configuration *addMileStone(ompl::base::State *q_state);
-
             virtual unsigned int computeK();
 
+            void connectNeighbors(Configuration *x);
+
+            virtual Vertex addConfiguration(Configuration *q) override;
+            void updatePDF(Configuration *q);
+
         protected:
-
-            /** \brief Instead of sampling directly on graph, we sample in an
-             * epsilon neighborhood */
-            double epsilonGraphThickening_{0};
-
-            /** \brief percentage of times to sample on shortest path instead of
-             * full graph */
-            double pathBias_{0.1};
 
             std::vector<base::State *> randomWorkStates_;
 
             /** \brief k nearest variable */
             unsigned int k_NearestNeighbors_{10};
+
+            PDF pdf;
 
         };
     }  // namespace geometric

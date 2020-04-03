@@ -32,7 +32,7 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
     OMPL_DEBUG("BundleSpace %d%s", id_, (isDynamic_?" (dynamic)":""));
     //############################################################################
 
-    if (!hasParent())
+    if (!hasBaseSpace())
     {
         components_ = componentFactory_.MakeBundleSpaceComponents(Bundle);
     }
@@ -43,10 +43,11 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
 
         components_ = componentFactory_.MakeBundleSpaceComponents(Bundle, Base);
 
+        std::cout << "Make Fiber Space" << std::endl;
         MakeFiberSpace();
     }
 
-    checkBundleSpace();
+    sanityChecks();
 
     std::cout << std::string(80, '-') << std::endl;
     std::cout << *this << std::endl;
@@ -141,7 +142,7 @@ void ompl::geometric::BundleSpace::MakeFiberSpace()
     }
 }
 
-void ompl::geometric::BundleSpace::checkBundleSpace() const
+void ompl::geometric::BundleSpace::sanityChecks() const
 {
 
   const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
