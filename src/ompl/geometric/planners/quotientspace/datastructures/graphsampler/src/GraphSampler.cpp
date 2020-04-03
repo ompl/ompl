@@ -8,6 +8,11 @@ ompl::geometric::BundleSpaceGraphSampler::BundleSpaceGraphSampler(BundleSpaceGra
     OMPL_DEBUG("Epsilon Graph Thickening constant set to %f", epsilonGraphThickening_);
 }
 
+void ompl::geometric::BundleSpaceGraphSampler::setPathBiasStartSegment(double s)
+{
+  std::cout << "SET pathBiasStartSegment to " << s << std::endl;
+  this->pathBiasStartSegment_ = s;
+}
 void ompl::geometric::BundleSpaceGraphSampler::sample(
     base::State *xRandom)
 {
@@ -32,7 +37,11 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
         }else{
 
             double totalLength = spath.length();
-            double distStopping = rng_.uniform01() * totalLength;
+            double distStopping = 
+              pathBiasStartSegment_ + rng_.uniform01() * (totalLength - pathBiasStartSegment_);
+
+            std::cout << "pathSampling:" << distStopping << "/" << totalLength 
+              << " biasSegment:" << pathBiasStartSegment_ << "." << std::endl;
 
             base::State *s1 = nullptr;
             base::State *s2 = nullptr;

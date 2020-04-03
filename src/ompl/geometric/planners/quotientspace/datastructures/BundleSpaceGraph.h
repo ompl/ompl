@@ -237,6 +237,8 @@ namespace ompl
             virtual void setImportance(const std::string& sImportance);
             virtual void setGraphSampler(const std::string& sGraphSampler);
 
+            BundleSpaceGraphSamplerPtr getGraphSampler();
+
             /** \brief Best cost found so far by algorithm */
             base::Cost bestCost_{+ompl::base::dInf};
 

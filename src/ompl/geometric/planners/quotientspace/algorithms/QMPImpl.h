@@ -48,6 +48,7 @@ namespace ompl
     }
     namespace geometric
     {
+        OMPL_CLASS_FORWARD(PathGeometric);
         /** \brief Implementation of the Quotient space roadMap Planner */
         class QMPImpl : public ompl::geometric::BundleSpaceGraph
         {
@@ -59,6 +60,7 @@ namespace ompl
 
             /** \brief One iteration of QMP with adjusted sampling function */
             virtual void grow() override;
+            virtual void clear() override;
 
             /** \brief sample random node from Probabilty density function*/
             void expand();
@@ -70,9 +72,13 @@ namespace ompl
             virtual Vertex addConfiguration(Configuration *q) override;
             void updatePDF(Configuration *q);
 
+            bool computeFeasiblePathSection();
         protected:
 
             std::vector<base::State *> randomWorkStates_;
+
+            base::State *xFiberTmp1_{nullptr};
+            base::State *xFiberTmp2_{nullptr};
 
             /** \brief k nearest variable */
             unsigned int k_NearestNeighbors_{10};

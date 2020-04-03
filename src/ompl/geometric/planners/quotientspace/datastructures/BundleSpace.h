@@ -139,6 +139,12 @@ namespace ompl
                 const ompl::base::State *xFiber, 
                 ompl::base::State *xBundle) const; 
 
+            void liftPath(
+                  const std::vector<base::State*> pathBase,
+                  const base::State* xFiberStart,
+                  const base::State* xFiberGoal,
+                  std::vector<base::State*> pathBundle) const;
+
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 
             /// \brief Write class to stream (use as std::cout << *this << std::endl)

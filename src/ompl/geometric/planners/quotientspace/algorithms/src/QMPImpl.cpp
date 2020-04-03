@@ -40,6 +40,8 @@
 #include <boost/foreach.hpp>
 #include <ompl/datastructures/NearestNeighbors.h>
 #include "ompl/datastructures/PDF.h"
+#include <ompl/geometric/PathGeometric.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/graphsampler/GraphSampler.h>
 
 #define foreach BOOST_FOREACH
 
@@ -47,8 +49,8 @@ ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpa
 {
     setName("QMPImpl" + std::to_string(id_));
 
-    setMetric("geodesic");
-    // setMetric("shortestpath");
+    // setMetric("geodesic");
+    setMetric("shortestpath");
     setGraphSampler("randomedge");
     // setGraphSampler("randomdegreevertex");
     setImportance("exponential");
@@ -56,16 +58,107 @@ ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpa
 
     randomWorkStates_.resize(5);
     getBundle()->allocStates(randomWorkStates_);
+
+    if(getFiberDimension() > 0)
+    {
+        xFiberTmp1_ = getFiber()->allocState();
+        xFiberTmp2_ = getFiber()->allocState();
+    }
 }
 
 ompl::geometric::QMPImpl::~QMPImpl()
 {
     getBundle()->freeStates(randomWorkStates_);
+    if(getFiberDimension() > 0)
+    {
+        getFiber()->freeState(xFiberTmp1_);
+        getFiber()->freeState(xFiberTmp2_);
+    }
+}
+
+void ompl::geometric::QMPImpl::clear()
+{
+    pdf.clear();
 }
 
 unsigned int ompl::geometric::QMPImpl::computeK()
 {
     return k_NearestNeighbors_;
+}
+
+bool ompl::geometric::QMPImpl::computeFeasiblePathSection()
+{
+    if(!hasBaseSpace()) return false;
+    if(isDynamic())
+    {
+      OMPL_WARN("NYI");
+      return false;
+    }
+
+    PathGeometricPtr gpath = std::static_pointer_cast<PathGeometric>(
+        static_cast<BundleSpaceGraph*>(getParent())->solutionPath_);
+    // gpath->interpolate();
+    const std::vector<base::State*> pathBase = gpath->getStates();
+
+    projectFiber(qStart_->state, xFiberTmp1_);
+    projectFiber(qGoal_->state, xFiberTmp2_);
+
+    std::vector<base::State*> pathBundle;
+    pathBundle.resize(pathBase.size());
+    getBundle()->allocStates(pathBundle);
+
+    liftPath(pathBase, xFiberTmp1_, xFiberTmp2_, pathBundle);
+
+    //check for feasibility
+    Configuration *xLast = qStart_;
+    std::pair<base::State*, double> lastValid;
+    lastValid.first = getBundle()->allocState();
+
+    for(uint k = 1; k < pathBundle.size(); k++)
+    {
+
+        if(!getBundle()->checkMotion(pathBundle.at(k-1), pathBundle.at(k), lastValid))
+        {
+            std::cout << "Failed at state " << k-1 << "-" << k << 
+              "lastvalid: "<< lastValid.second << " (/" << pathBundle.size() << ")" << std::endl;
+            if(lastValid.second > 0)
+            {
+                Configuration *xk = new Configuration(getBundle(), lastValid.first);
+                addConfiguration(xk);
+                addBundleEdge(xLast, xk);
+            }
+
+            //compute how much we made progress along shortest path
+            double length = 0;
+            for(uint j = 1; j < k; j++){
+                length += getBundle()->distance(pathBundle.at(j-1), pathBundle.at(j));
+            }
+            length += lastValid.second * getBundle()->distance(pathBundle.at(k-1), pathBundle.at(k));
+
+            static_cast<BundleSpaceGraph*>(getParent())->getGraphSampler()->setPathBiasStartSegment(length);
+
+            getBundle()->freeStates(pathBundle);
+            return false;
+        }else{
+            if(k < pathBundle.size()-1)
+            {
+                Configuration *xk = new Configuration(getBundle(), pathBundle.at(k));
+                addConfiguration(xk);
+                addBundleEdge(xLast, xk);
+                xLast = xk;
+            }else{
+                addBundleEdge(xLast, qGoal_);
+                if (sameComponent(qStart_->index, qGoal_->index))
+                {
+                    hasSolution_ = true;
+                }else
+                {
+                    OMPL_ERROR("Found geodesic path section, but it does not connect start/goal");
+                }
+            }
+        }
+    }
+    return true;
 }
 
 void ompl::geometric::QMPImpl::grow()
@@ -75,6 +168,10 @@ void ompl::geometric::QMPImpl::grow()
         init();
         vGoal_ = addConfiguration(qGoal_);
         firstRun_ = false;
+        if(computeFeasiblePathSection())
+        {
+            OMPL_DEBUG("Found feasible geodesic path section");
+        }
     }
 
     //(1) Get Random Sample
@@ -123,18 +220,6 @@ void ompl::geometric::QMPImpl::connectNeighbors(Configuration *x)
 
 void ompl::geometric::QMPImpl::expand()
 {
-    // PDF pdf;
-
-    // foreach (Vertex v, boost::vertices(graph_))
-    // {
-    //     const unsigned long int t = graph_[v]->total_connection_attempts;
-    //     if(t > 0)
-    //     {
-    //         pdf.add(graph_[v], (double)(t - graph_[v]->successful_connection_attempts) / (double)t);
-    //     }else{
-    //         pdf.add(graph_[v], (double)1.0);
-    //     }
-    // }
 
     if (pdf.empty())
         return;

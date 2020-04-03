@@ -21,6 +21,8 @@ namespace ompl
 
             void sample(base::State *xRandom);
 
+            void setPathBiasStartSegment(double);
+
           protected:
 
             virtual void sampleImplementation(base::State *xRandom) = 0;
@@ -36,6 +38,8 @@ namespace ompl
             double epsilonGraphThickeningFraction_{1e-3};
 
             double pathBiasFixed_{0.1};
+
+            double pathBiasStartSegment_{0.0};
 
             double exponentialDecayLambda_{1e-3};
 

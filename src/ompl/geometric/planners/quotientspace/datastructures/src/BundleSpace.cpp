@@ -201,6 +201,53 @@ void ompl::geometric::BundleSpace::resetCounter()
     BundleSpace::counter_ = 0;
 }
 
+void ompl::geometric::BundleSpace::liftPath(
+      const std::vector<base::State*> pathBase,
+      const base::State* xFiberStart,
+      const base::State* xFiberGoal,
+      std::vector<base::State*> pathBundle) const
+{
+    if(pathBase.size() != pathBundle.size())
+    {
+      OMPL_ERROR("Size of paths has to be identical in order to lift them.");
+      throw Exception("Path size inequivalent.");
+    }
+    if(getFiberDimension() > 0)
+    {
+        double lengthTotalPathBase = 0;
+        std::vector<double> lengthIntermediatePathBase;
+
+        for(uint k = 1; k < pathBase.size(); k++){
+            double lengthKthSegment = getBase()->distance(pathBase.at(k-1), pathBase.at(k));
+            lengthIntermediatePathBase.push_back(lengthKthSegment); 
+            lengthTotalPathBase += lengthKthSegment;
+        }
+
+        double lengthCurrent = 0;
+
+        base::State *xFiberCur = getFiber()->allocState();
+
+        for(uint k = 0; k < pathBase.size(); k++)
+        {
+            double step = lengthCurrent / lengthTotalPathBase;
+            getFiber()->getStateSpace()->interpolate(xFiberStart, xFiberGoal, step, xFiberCur);
+
+            liftState(pathBase.at(k), xFiberCur, pathBundle.at(k));
+
+            if(k < pathBase.size() - 1)
+            {
+                lengthCurrent += lengthIntermediatePathBase.at(k);
+            }
+        }
+        getFiber()->freeState(xFiberCur);
+
+    }else{
+        for(uint k = 0; k < pathBase.size(); k++){
+            getBundle()->copyState(pathBundle.at(k), pathBase.at(k));
+        }
+    }
+}
+
 void ompl::geometric::BundleSpace::liftState(const base::State *xBase, const base::State *xFiber, base::State *xBundle) const
 {
     unsigned int M = components_.size();

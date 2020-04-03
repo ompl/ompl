@@ -16,6 +16,7 @@ constraints there, usable by any bundle algorithm)
 [x] Refactor IdentifyBundleSpaceComponentType
 [x] Fix memory leak on shortest path metric
 [x] Add Adaptive Graph Thickening
+[x] Add last Valid sampling bias after we tried a geodesic lift
 
 [ ] *** Add steering function support (at least SE3 and SE2)
 [ ] ** Clarify experiments

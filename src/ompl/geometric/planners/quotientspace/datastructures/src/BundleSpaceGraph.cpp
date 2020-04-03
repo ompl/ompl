@@ -546,6 +546,12 @@ void ompl::geometric::BundleSpaceGraph::setGraphSampler(const std::string& sGrap
     }
 }
 
+ompl::geometric::BundleSpaceGraphSamplerPtr 
+ompl::geometric::BundleSpaceGraph::getGraphSampler()
+{
+  return graphSampler_;
+}
+
 void ompl::geometric::BundleSpaceGraph::addEdge(const Vertex a, const Vertex b)
 {
     base::Cost weight = opt_->motionCost(graph_[a]->state, graph_[b]->state);
