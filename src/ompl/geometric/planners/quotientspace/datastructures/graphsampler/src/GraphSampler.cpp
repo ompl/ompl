@@ -10,7 +10,6 @@ ompl::geometric::BundleSpaceGraphSampler::BundleSpaceGraphSampler(BundleSpaceGra
 
 void ompl::geometric::BundleSpaceGraphSampler::setPathBiasStartSegment(double s)
 {
-  std::cout << "SET pathBiasStartSegment to " << s << std::endl;
   this->pathBiasStartSegment_ = s;
 }
 void ompl::geometric::BundleSpaceGraphSampler::sample(
@@ -40,8 +39,8 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
             double distStopping = 
               pathBiasStartSegment_ + rng_.uniform01() * (totalLength - pathBiasStartSegment_);
 
-            std::cout << "pathSampling:" << distStopping << "/" << totalLength 
-              << " biasSegment:" << pathBiasStartSegment_ << "." << std::endl;
+            // std::cout << "pathSampling:" << distStopping << "/" << totalLength 
+            //   << " biasSegment:" << pathBiasStartSegment_ << "." << std::endl;
 
             base::State *s1 = nullptr;
             base::State *s2 = nullptr;

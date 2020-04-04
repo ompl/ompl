@@ -229,7 +229,6 @@ void ompl::geometric::BundleSpaceGraph::clearVertices()
     {
         std::vector<Configuration *> configs;
         nearestDatastructure_->list(configs);
-        // std::cout << "Clear " << configs.size() << " configs." << std::endl;
         for (auto &config : configs)
         {
             deleteConfiguration(config);
@@ -577,13 +576,10 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
 
           if(!isDynamic() && solutionPath_ != solution)
           {
-              std::cout << "Simplification" << std::endl;
-              std::cout << solutionPath_->length() << std::endl;
               ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 
                   pathRefinementObj_);
               geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
               shortcutter.simplifyMax(gpath);
-              std::cout << solutionPath_->length() << std::endl;
           }
         }
         solution = solutionPath_;

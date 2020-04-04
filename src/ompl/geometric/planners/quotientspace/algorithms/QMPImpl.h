@@ -70,6 +70,7 @@ namespace ompl
             void connectNeighbors(Configuration *x);
 
             virtual Vertex addConfiguration(Configuration *q) override;
+            void deleteConfiguration(Configuration *q) override;
             void updatePDF(Configuration *q);
 
             bool computeFeasiblePathSection();

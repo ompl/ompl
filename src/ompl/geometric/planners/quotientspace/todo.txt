@@ -22,7 +22,7 @@ constraints there, usable by any bundle algorithm)
 [ ] ** Clarify experiments
 [ ] * handle NH constraints in QMPStar and SPQR
 [ ] * Add Enumerate for Metric/Importance/Sampler
-[ ] * Add goal component bias in QMP
+[ ] * Make path segment sampling more robust
 
 Improvements (FB):
 - Enables Multi Robot Planning using a new component-based implementation

@@ -78,6 +78,7 @@ ompl::geometric::QMPImpl::~QMPImpl()
 
 void ompl::geometric::QMPImpl::clear()
 {
+    BaseT::clear();
     pdf.clear();
 }
 
@@ -119,8 +120,8 @@ bool ompl::geometric::QMPImpl::computeFeasiblePathSection()
 
         if(!getBundle()->checkMotion(pathBundle.at(k-1), pathBundle.at(k), lastValid))
         {
-            std::cout << "Failed at state " << k-1 << "-" << k << 
-              "lastvalid: "<< lastValid.second << " (/" << pathBundle.size() << ")" << std::endl;
+            // std::cout << "Failed at state " << k-1 << "-" << k << 
+            //   "lastvalid: "<< lastValid.second << " (/" << pathBundle.size() << ")" << std::endl;
             if(lastValid.second > 0)
             {
                 Configuration *xk = new Configuration(getBundle(), lastValid.first);
@@ -255,6 +256,12 @@ ompl::geometric::QMPImpl::addConfiguration(Configuration *q)
     PDF_Element *q_element = pdf.add(q, 1.0);
     q->setPDFElement(q_element);
     return m;
+}
+
+void ompl::geometric::QMPImpl::deleteConfiguration(Configuration *q)
+{
+    q->setPDFElement(nullptr);
+    BaseT::deleteConfiguration(q);
 }
 
 void ompl::geometric::QMPImpl::updatePDF(Configuration *q)
