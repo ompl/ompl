@@ -43,7 +43,6 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
 
         components_ = componentFactory_.MakeBundleSpaceComponents(Bundle, Base);
 
-        std::cout << "Make Fiber Space" << std::endl;
         MakeFiberSpace();
     }
 

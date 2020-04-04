@@ -239,6 +239,8 @@ namespace ompl
 
             BundleSpaceGraphSamplerPtr getGraphSampler();
 
+            bool computeFeasiblePathSection();
+
             /** \brief Best cost found so far by algorithm */
             base::Cost bestCost_{+ompl::base::dInf};
 
@@ -334,6 +336,9 @@ namespace ompl
 
             /** \brief Temporary random configuration */
             Configuration *xRandom_{nullptr};
+
+            base::State *xFiberTmp1_{nullptr};
+            base::State *xFiberTmp2_{nullptr};
 
             /** \brief Temporary random configuration */
             Configuration *xApproximateNearest_{nullptr};

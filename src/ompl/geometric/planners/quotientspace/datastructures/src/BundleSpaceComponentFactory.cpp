@@ -248,7 +248,7 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_Identity(
     const base::StateSpacePtr Bundle, 
     const base::StateSpacePtr Base)
 {
-    if (Bundle->isCompound())
+    if(Bundle->isCompound())
     {
       if(Base->isCompound())
       {
@@ -259,19 +259,12 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_Identity(
 
           if (Bundle_decomposed.size() == Base_decomposed.size())
           {
-              bool equalTypes = true;
               for(uint k = 0; k < Bundle_decomposed.size(); k++)
               {
-                  if(Base_decomposed.at(k)->getType() !=
-                  Bundle_decomposed.at(k)->getType())
+                  if(!isMapping_Identity(Bundle_decomposed.at(k), Base_decomposed.at(k)))
                   {
-                      equalTypes = false;
-                      break;
+                      return false;
                   }
-              }
-              if(equalTypes)
-              {
-                  return true;
               }
           }
       }

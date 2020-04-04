@@ -58,6 +58,10 @@ void ompl::geometric::QRRTImpl::grow()
     {
         init();
         firstRun_ = false;
+        if(computeFeasiblePathSection())
+        {
+            return;
+        }
     }
 
     //(1) Get Random Sample

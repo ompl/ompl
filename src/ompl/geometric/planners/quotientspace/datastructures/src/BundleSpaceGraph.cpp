@@ -121,11 +121,21 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
     std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 0.5);
     std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(clearObj, 0.5);
 
+    if(getFiberDimension() > 0)
+    {
+        xFiberTmp1_ = getFiber()->allocState();
+        xFiberTmp2_ = getFiber()->allocState();
+    }
 }
 
 ompl::geometric::BundleSpaceGraph::~BundleSpaceGraph()
 {
     deleteConfiguration(xRandom_);
+    if(getFiberDimension() > 0)
+    {
+        getFiber()->freeState(xFiberTmp1_);
+        getFiber()->freeState(xFiberTmp2_);
+    }
 }
 
 void ompl::geometric::BundleSpaceGraph::setup()
@@ -574,7 +584,7 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
           solutionPath_ = getPath(vStart_, vGoal_);
           numVerticesWhenComputingSolutionPath = getNumberOfVertices();
 
-          if(!isDynamic() && solutionPath_ != solution)
+          if(!isDynamic() && solutionPath_ != solution && getChild() != nullptr)
           {
               ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 
                   pathRefinementObj_);
@@ -676,6 +686,92 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraph::getPath(const Vertex &sta
 
     return p;
 }
+
+bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection()
+{
+    if(!hasBaseSpace()) return false;
+    if(isDynamic())
+    {
+      OMPL_WARN("NYI: computing path sections for dynamical systems.");
+      return false;
+    }
+
+    base::PathPtr basePath = static_cast<BundleSpaceGraph*>(getParent())->solutionPath_;
+    PathGeometricPtr geometricBasePath = std::static_pointer_cast<PathGeometric>(basePath);
+    // gpath->interpolate();
+    const std::vector<base::State*> basePathStates = geometricBasePath->getStates();
+
+    projectFiber(qStart_->state, xFiberTmp1_);
+    projectFiber(qGoal_->state, xFiberTmp2_);
+
+    std::vector<base::State*> bundlePathStates;
+    bundlePathStates.resize(basePathStates.size());
+    getBundle()->allocStates(bundlePathStates);
+
+    liftPath(basePathStates, xFiberTmp1_, xFiberTmp2_, bundlePathStates);
+
+    //check for feasibility
+    Configuration *xLast = qStart_;
+    std::pair<base::State*, double> lastValid;
+    lastValid.first = getBundle()->allocState();
+
+    for(uint k = 1; k < bundlePathStates.size(); k++)
+    {
+
+        if(!getBundle()->checkMotion(bundlePathStates.at(k-1), bundlePathStates.at(k), lastValid))
+        {
+            if(lastValid.second > 0)
+            {
+                //add last valid into the bundle graph
+                Configuration *xk = new Configuration(getBundle(), lastValid.first);
+                addConfiguration(xk);
+                addBundleEdge(xLast, xk);
+            }
+
+            //compute how much we made progress along shortest path
+            // Use this to bias sampling towards an interesting region of the
+            // base path restriction (basically the end where we terminated)
+            double length = 0;
+            for(uint j = 1; j < k; j++){
+                length += getBundle()->distance(bundlePathStates.at(j-1), bundlePathStates.at(j));
+            }
+            length += lastValid.second * getBundle()->distance(bundlePathStates.at(k-1), bundlePathStates.at(k));
+
+            static_cast<BundleSpaceGraph*>(getParent())->getGraphSampler()->setPathBiasStartSegment(length);
+
+            getBundle()->freeStates(bundlePathStates);
+            return false;
+        }else{
+            if(k < bundlePathStates.size()-1)
+            {
+                Configuration *xk = new Configuration(getBundle(), bundlePathStates.at(k));
+                addConfiguration(xk);
+                addBundleEdge(xLast, xk);
+                xLast = xk;
+            }else{
+                if(qGoal_->index <= 0)
+                {
+                    vGoal_ = addConfiguration(qGoal_);
+                }
+                addBundleEdge(xLast, qGoal_);
+                if (sameComponent(qStart_->index, qGoal_->index))
+                {
+                    OMPL_DEBUG("Found feasible geodesic path section (%d edges added)", k);
+                    hasSolution_ = true;
+                    return true;
+            // vGoal_ = addConfiguration(qGoal_);
+            // addEdge(xNext->index, vGoal_);
+                }else
+                {
+                    OMPL_ERROR("Found geodesic path section, but it does not connect start/goal");
+                    throw "???";
+                }
+            }
+        }
+    }
+    return true;
+}
+
 
 void ompl::geometric::BundleSpaceGraph::sampleBundleGoalBias(base::State *xRandom)
 {

@@ -73,13 +73,9 @@ namespace ompl
             void deleteConfiguration(Configuration *q) override;
             void updatePDF(Configuration *q);
 
-            bool computeFeasiblePathSection();
         protected:
 
             std::vector<base::State *> randomWorkStates_;
-
-            base::State *xFiberTmp1_{nullptr};
-            base::State *xFiberTmp2_{nullptr};
 
             /** \brief k nearest variable */
             unsigned int k_NearestNeighbors_{10};
