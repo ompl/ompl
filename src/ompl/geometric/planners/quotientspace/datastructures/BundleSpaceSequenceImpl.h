@@ -34,6 +34,7 @@
  *********************************************************************/
 
 /* Author: Andreas Orthey */
+
 #include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/base/goals/GoalState.h>
 #include <ompl/util/Exception.h>

@@ -156,6 +156,9 @@ void ompl::geometric::BundleSpace::sanityChecks() const
   {
       const base::StateSpacePtr Fiber_space = Fiber->getStateSpace();
       checkBundleSpaceMeasure("Fiber", Fiber_space);
+  }
+  if(hasParent())
+  {
       if ((getBaseDimension() + getFiberDimension() != getBundleDimension()))
       {
           OMPL_ERROR("Dimensions %d (Base) + %d (Fiber) != %d (Bundle)", 
@@ -163,7 +166,6 @@ void ompl::geometric::BundleSpace::sanityChecks() const
           throw ompl::Exception("BundleSpace Dimensions are wrong.");
       }
   }
-
 }
 
 void ompl::geometric::BundleSpace::checkBundleSpaceMeasure(std::string name, const base::StateSpacePtr space) const

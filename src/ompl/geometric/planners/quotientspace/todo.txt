@@ -17,14 +17,15 @@ constraints there, usable by any bundle algorithm)
 [x] Fix memory leak on shortest path metric
 [x] Add Adaptive Graph Thickening
 [x] Add last Valid sampling bias after we tried a geodesic lift
+[x] Add SO3xRN
 
 [ ] *** Add steering function support (at least SE3 and SE2)
 [ ] ** Clarify experiments
 [ ] * handle NH constraints in QMPStar and SPQR
-[ ] * Add Enumerate for Metric/Importance/Sampler
+[ ] * Add Enumerate for Metric/Importance/Sampler (Options Class?)
 [ ] * Make path segment sampling more robust
 [ ] * benchmark the whole suite on pregrasp
-[ ] * add SO3xRN
+[ ] ** Merge with master branch ompl/ompl (to get newest planner versions)
 
 Improvements (FB):
 - Enable Multi Robot Planning using a new component-based implementation
