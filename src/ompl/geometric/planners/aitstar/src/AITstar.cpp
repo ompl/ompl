@@ -33,7 +33,6 @@
  *********************************************************************/
 
 // Authors: Marlin Strub
-
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -274,7 +273,8 @@ namespace ompl
             forwardQueue_->getContent(edges);
             for (const auto &edge : edges)
             {
-                edge.getChild()->resetForwardQueueLookup();
+                edge.getChild()->resetForwardQueueIncomingLookup();
+                edge.getParent()->resetForwardQueueOutgoingLookup();
             }
             forwardQueue_->clear();
 
@@ -282,8 +282,8 @@ namespace ompl
             {
                 for (auto &edge : edges)
                 {
-                    edge.getChild()->addToForwardQueueLookup(forwardQueue_->insert(aitstar::Edge(
-                        edge.getParent(), edge.getChild(), computeSortKey(edge.getParent(), edge.getChild()))));
+                    insertOrUpdateInForwardQueue(aitstar::Edge(edge.getParent(), edge.getChild(),
+                                                               computeSortKey(edge.getParent(), edge.getChild())));
                 }
             }
             else
@@ -383,8 +383,8 @@ namespace ompl
                     {
                         if (haveAllVerticesBeenProcessed(edge))
                         {
-                            edge.getChild()->addToForwardQueueLookup(forwardQueue_->insert(aitstar::Edge(
-                                edge.getParent(), edge.getChild(), computeSortKey(edge.getParent(), edge.getChild()))));
+                            insertOrUpdateInForwardQueue(aitstar::Edge(
+                                edge.getParent(), edge.getChild(), computeSortKey(edge.getParent(), edge.getChild())));
                         }
                     }
                     edgesToBeInserted_.clear();
@@ -418,7 +418,7 @@ namespace ompl
                     {
                         for (const auto &edge : outgoingStartEdges)
                         {
-                            edge.getChild()->addToForwardQueueLookup(forwardQueue_->insert(edge));
+                            insertOrUpdateInForwardQueue(edge);
                         }
                     }
                     else
@@ -457,7 +457,8 @@ namespace ompl
                     forwardQueue_->getContent(forwardQueue);
                     for (const auto &element : forwardQueue)
                     {
-                        element.getChild()->resetForwardQueueLookup();
+                        element.getChild()->resetForwardQueueIncomingLookup();
+                        element.getParent()->resetForwardQueueOutgoingLookup();
                     }
                     forwardQueue_->clear();
                     ++(*forwardSearchId_);
@@ -500,7 +501,8 @@ namespace ompl
             auto child = edge.getChild();
             assert(child->hasBackwardParent() || graph_.isGoal(child));
             assert(parent->hasBackwardParent() || graph_.isGoal(parent));
-            child->removeFromForwardQueueLookup(forwardQueue_->top());
+            child->removeFromForwardQueueIncomingLookup(forwardQueue_->top());
+            parent->removeFromForwardQueueOutgoingLookup(forwardQueue_->top());
             forwardQueue_->pop();
 
             // If this is edge can not possibly improve our solution, the search is done.
@@ -517,7 +519,8 @@ namespace ompl
                     forwardQueue_->getContent(edges);
                     for (const auto &edge : edges)
                     {
-                        edge.getChild()->resetForwardQueueLookup();
+                        edge.getChild()->resetForwardQueueIncomingLookup();
+                        edge.getParent()->resetForwardQueueOutgoingLookup();
                     }
                     forwardQueue_->clear();
                 }
@@ -536,7 +539,7 @@ namespace ompl
                     {
                         for (const auto &edge : edges)
                         {
-                            edge.getChild()->addToForwardQueueLookup(forwardQueue_->insert(edge));
+                            insertOrUpdateInForwardQueue(edge);
                         }
                     }
                     else
@@ -588,7 +591,7 @@ namespace ompl
                         {
                             for (const auto &edge : edges)
                             {
-                                edge.getChild()->addToForwardQueueLookup(forwardQueue_->insert(edge));
+                                insertOrUpdateInForwardQueue(edge);
                             }
                         }
                         else
@@ -733,7 +736,7 @@ namespace ompl
                     {
                         auto &edge = edgesToBeInserted_.at(i);
                         edge.setSortKey(computeSortKey(edge.getParent(), edge.getChild()));
-                        edge.getChild()->addToForwardQueueLookup(forwardQueue_->insert(edge));
+                        insertOrUpdateInForwardQueue(edge);
                     }
                     edgesToBeInserted_.clear();
                 }
@@ -826,18 +829,28 @@ namespace ompl
                     // Remove the affected edges from the forward queue, placing them in the edge cache.
                     for (const auto &affectedVertex : affectedVertices)
                     {
-                        auto forwardQueueLookup = vertex.lock()->getForwardQueueLookup();
-                        for (const auto &element : forwardQueueLookup)
+                        auto forwardQueueIncomingLookup = affectedVertex.lock()->getForwardQueueIncomingLookup();
+                        for (const auto &element : forwardQueueIncomingLookup)
                         {
                             edgesToBeInserted_.emplace_back(element->data);
                             forwardQueue_->remove(element);
+                            element->data.getParent()->removeFromForwardQueueOutgoingLookup(element);
                         }
-                        vertex.lock()->resetForwardQueueLookup();
+                        affectedVertex.lock()->resetForwardQueueIncomingLookup();
+
+                        auto forwardQueueOutgoingLookup = affectedVertex.lock()->getForwardQueueOutgoingLookup();
+                        for (const auto &element : forwardQueueOutgoingLookup)
+                        {
+                            edgesToBeInserted_.emplace_back(element->data);
+                            forwardQueue_->remove(element);
+                            element->data.getChild()->removeFromForwardQueueIncomingLookup(element);
+                        }
+                        affectedVertex.lock()->resetForwardQueueOutgoingLookup();
                     }
 
                     // Remove appropriate edges from the forward queue that target the root of the branch.
-                    auto vertexForwardQueueLookup = vertex->getForwardQueueLookup();
-                    for (const auto &element : vertexForwardQueueLookup)
+                    auto vertexForwardQueueIncomingLookup = vertex->getForwardQueueIncomingLookup();
+                    for (const auto &element : vertexForwardQueueIncomingLookup)
                     {
                         auto &edge = element->data;
                         auto it = std::find_if(affectedVertices.begin(), affectedVertices.end(),
@@ -846,13 +859,25 @@ namespace ompl
                                                });
                         if (it != affectedVertices.end())
                         {
-                            edgesToBeInserted_.emplace_back(edge);
-                            vertex->removeFromForwardQueueLookup(element);
+                            edgesToBeInserted_.emplace_back(element->data);
+                            vertex->removeFromForwardQueueIncomingLookup(element);
+                            element->data.getParent()->removeFromForwardQueueOutgoingLookup(element);
                             forwardQueue_->remove(element);
                         }
                     }
 
-                    // Check update the invalidated vertices and insert them in open if they become connected to the tree.
+                    // Remove appropriate edges from the forward queue that target the root of the branch.
+                    auto vertexForwardQueueOutgoingLookup = vertex->getForwardQueueOutgoingLookup();
+                    for (const auto &element : vertexForwardQueueOutgoingLookup)
+                    {
+                        edgesToBeInserted_.emplace_back(element->data);
+                        vertex->removeFromForwardQueueOutgoingLookup(element);
+                        element->data.getChild()->removeFromForwardQueueIncomingLookup(element);
+                        forwardQueue_->remove(element);
+                    }
+
+                    // Check update the invalidated vertices and insert them in open if they become connected to the
+                    // tree.
                     for (const auto &affectedVertex : affectedVertices)
                     {
                         auto affectedVertexPtr = affectedVertex.lock();
@@ -916,6 +941,32 @@ namespace ompl
                 // Insert the vertex into the queue, storing the corresponding pointer.
                 auto backwardQueuePointer = backwardQueue_->insert(element);
                 vertex->setBackwardQueuePointer(backwardQueuePointer);
+            }
+        }
+
+        void AITstar::insertOrUpdateInForwardQueue(const aitstar::Edge &edge)
+        {
+            // Check if the edge is already in the queue and can be updated.
+            auto lookup = edge.getChild()->getForwardQueueIncomingLookup();
+            auto it = std::find_if(lookup.begin(), lookup.end(), [&edge](const auto element) {
+                return element->data.getParent()->getId() == edge.getParent()->getId();
+            });
+
+            if (it != lookup.end())
+            {
+                assert(std::find_if(edge.getParent()->getForwardQueueOutgoingLookup().begin(),
+                                    edge.getParent()->getForwardQueueOutgoingLookup().end(),
+                                    [&edge](const auto element) {
+                                        return element->data.getChild()->getId() == edge.getChild()->getId();
+                                    }) != edge.getParent()->getForwardQueueOutgoingLookup().end());
+                (*it)->data.setSortKey(edge.getSortKey());
+                forwardQueue_->update(*it);
+            }
+            else
+            {
+                auto element = forwardQueue_->insert(edge);
+                edge.getParent()->addToForwardQueueOutgoingLookup(element);
+                edge.getChild()->addToForwardQueueIncomingLookup(element);
             }
         }
 

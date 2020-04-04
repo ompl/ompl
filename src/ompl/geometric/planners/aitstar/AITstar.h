@@ -115,6 +115,9 @@ namespace ompl
             void backwardSearchUpdateVertex(const std::shared_ptr<aitstar::Vertex> &vertex);
 
             /** \brief Inserts or updates a vertex in the backward queue. */
+            void insertOrUpdateInForwardQueue(const aitstar::Edge& edge);
+
+            /** \brief Inserts or updates a vertex in the backward queue. */
             void insertOrUpdateInBackwardQueue(const std::shared_ptr<aitstar::Vertex> &vertex);
 
             /** \brief Rebuilds the forward queue. */

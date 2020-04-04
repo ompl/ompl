@@ -33,7 +33,6 @@
  *********************************************************************/
 
 // Authors: Marlin Strub
-
 #include "ompl/geometric/planners/aitstar/datastructures/Vertex.h"
 
 #include <algorithm>
@@ -509,31 +508,58 @@ namespace ompl
                 backwardQueuePointer_ = nullptr;
             }
 
-            void Vertex::addToForwardQueueLookup(
+            void Vertex::addToForwardQueueIncomingLookup(
                 typename ompl::BinaryHeap<
                     aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *pointer)
             {
-                forwardQueueLookup_.emplace_back(pointer);
+                forwardQueueIncomingLookup_.emplace_back(pointer);
             }
 
-            /** \brief Returns the backward queue pointer of this vertex. */
+            void Vertex::addToForwardQueueOutgoingLookup(
+                typename ompl::BinaryHeap<
+                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *pointer)
+            {
+                forwardQueueOutgoingLookup_.emplace_back(pointer);
+            }
+
             typename std::vector<ompl::BinaryHeap<
                 aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
-            Vertex::getForwardQueueLookup() const
+            Vertex::getForwardQueueIncomingLookup() const
             {
-                return forwardQueueLookup_;
+                return forwardQueueIncomingLookup_;
             }
 
-            void Vertex::removeFromForwardQueueLookup(
+            typename std::vector<ompl::BinaryHeap<
+                aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
+            Vertex::getForwardQueueOutgoingLookup() const
+            {
+                return forwardQueueOutgoingLookup_;
+            }
+
+            void Vertex::removeFromForwardQueueIncomingLookup(
                 ompl::BinaryHeap<aitstar::Edge,
                                  std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *element)
             {
-                forwardQueueLookup_.erase(std::remove(forwardQueueLookup_.begin(), forwardQueueLookup_.end(), element));
+                forwardQueueIncomingLookup_.erase(
+                    std::remove(forwardQueueIncomingLookup_.begin(), forwardQueueIncomingLookup_.end(), element));
             }
 
-            void Vertex::resetForwardQueueLookup()
+            void Vertex::removeFromForwardQueueOutgoingLookup(
+                ompl::BinaryHeap<aitstar::Edge,
+                                 std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *element)
             {
-                forwardQueueLookup_.clear();
+                forwardQueueOutgoingLookup_.erase(
+                    std::remove(forwardQueueOutgoingLookup_.begin(), forwardQueueOutgoingLookup_.end(), element));
+            }
+
+            void Vertex::resetForwardQueueIncomingLookup()
+            {
+                forwardQueueIncomingLookup_.clear();
+            }
+
+            void Vertex::resetForwardQueueOutgoingLookup()
+            {
+                forwardQueueOutgoingLookup_.clear();
             }
 
         }  // namespace aitstar

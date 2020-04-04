@@ -219,25 +219,45 @@ namespace ompl
                 /** \brief Resets the backward queue pointer. */
                 void resetBackwardQueuePointer();
 
-                /** \brief Adds an element to the forward queue lookup. */
-                void addToForwardQueueLookup(
+                /** \brief Adds an element to the forward queue incoming lookup. */
+                void addToForwardQueueIncomingLookup(
                     typename ompl::BinaryHeap<
                         aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element
                         *pointer);
 
-                /** \brief Returns the backward queue pointer of this vertex. */
+                /** \brief Adds an element to the forward queue outgoing lookup. */
+                void addToForwardQueueOutgoingLookup(
+                    typename ompl::BinaryHeap<
+                        aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element
+                        *pointer);
+
+                /** \brief Returns the forward queue incoming lookup of this vertex. */
                 std::vector<ompl::BinaryHeap<
                     aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
-                getForwardQueueLookup() const;
+                getForwardQueueIncomingLookup() const;
 
-                /** \brief Remove an element from the forward queue lookup. */
-                void removeFromForwardQueueLookup(
+                /** \brief Returns the forward queue outgoing lookup of this vertex. */
+                std::vector<ompl::BinaryHeap<
+                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
+                getForwardQueueOutgoingLookup() const;
+
+                /** \brief Remove an element from the incoming queue lookup. */
+                void removeFromForwardQueueIncomingLookup(
                     ompl::BinaryHeap<aitstar::Edge,
                                      std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element
                         *element);
 
-                /** \brief Resets the forward queue lookup. */
-                void resetForwardQueueLookup();
+                /** \brief Remove an element from the outgoing queue lookup. */
+                void removeFromForwardQueueOutgoingLookup(
+                    ompl::BinaryHeap<aitstar::Edge,
+                                     std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element
+                        *element);
+
+                /** \brief Resets the forward queue incoming lookup. */
+                void resetForwardQueueIncomingLookup();
+
+                /** \brief Resets the forward queue outgoing lookup. */
+                void resetForwardQueueOutgoingLookup();
 
             private:
                 /** \brief The space information of the planning problem. */
@@ -325,10 +345,15 @@ namespace ompl
                                        const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
                     Element *backwardQueuePointer_{nullptr};
 
+                /** \brief The lookup to incoming edges in the forward queue. */
+                mutable std::vector<ompl::BinaryHeap<
+                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
+                    forwardQueueIncomingLookup_;
+
                 /** \brief The lookup to outgoing edges in the forward queue. */
                 mutable std::vector<ompl::BinaryHeap<
                     aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
-                    forwardQueueLookup_;
+                    forwardQueueOutgoingLookup_;
             };
 
         }  // namespace aitstar
