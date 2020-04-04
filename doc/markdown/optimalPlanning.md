@@ -9,9 +9,7 @@ In order to perform optimal planning, you need two things:
 
 You can specify a path quality metric using the `ompl::base::OptimizationObjective` class. As for the optimizing planner, OMPL currently provides several planners that guarantee _asymptotic optimality_ of returned solutions (see the [list of available planners](planners.html)). You can find out more about asymptotic optimality in motion planning by checking out [this paper](http://sertac.scripts.mit.edu/web/wp-content/papercite-data/pdf/karaman.frazzoli-ijrr11.pdf) by Karaman and Frazzoli.
 
-#### CForest parallelization framework
-
-OMPL includes support for the CForest parallelization framework, boosting the convergence of optimal planners. [Learn more about CForest.](CForest.html)
+\note OMPL includes support for the CForest parallelization framework, boosting the convergence of optimal planners. [Learn more about CForest.](CForest.html)
 
 ## Optimization Objectives
 

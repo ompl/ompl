@@ -523,7 +523,7 @@ public:
         bench->addExperimentParameter("n - k", "INTEGER", std::to_string(constraint->getCoDimension()));
         bench->addExperimentParameter("space", "INTEGER", std::to_string(type));
 
-        request = ot::Benchmark::Request(c_opt.time, 2048, 100, 0.1, true, false, true, true);
+        request = ot::Benchmark::Request(c_opt.time, 2048, 100, 0.1, true, false, true);
 
         for (auto planner : planners)
             bench->addPlanner(getPlanner(planner, problem));

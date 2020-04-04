@@ -45,15 +45,25 @@ add_definitions(-DBOOST_TEST_DYN_LINK)
 add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
 
 set_package_properties(Boost PROPERTIES
-    URL "http://boost.org"
+    URL "https://www.boost.org"
     PURPOSE "Used throughout OMPL for data serialization, graphs, etc.")
+set(Boost_USE_MULTITHREADED TRUE)
 find_package(Boost 1.58 QUIET REQUIRED COMPONENTS serialization filesystem system program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 # Add support in Boost::Python for std::shared_ptr
 # This is a hack that replaces boost::shared_ptr related code with std::shared_ptr.
 # Proper support for std::shared_ptr was added in Boost 1.63.
-if(Boost_VERSION VERSION_LESS "106300")
+if (NOT Boost_VERSION_STRING)
+    if (Boost_VERSION_MAJOR)
+        set(Boost_VERSION_STRING
+            "${Boost_VERSION_MAJOR}.${Boost_VERSION_MINOR}.${Boost_VERSION_PATCH}")
+    else()
+        set(Boost_VERSION_STRING
+            "${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_PATCH_VERSION}")
+    endif()
+endif()
+if(Boost_VERSION_STRING VERSION_LESS "1.63.0")
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/external")
 endif()
 
@@ -83,14 +93,14 @@ find_package(Threads QUIET)
 enable_testing()
 
 set_package_properties(Python PROPERTIES
-    URL "http://python.org"
+    URL "https://www.python.org"
     PURPOSE "Used for python bindings.")
 find_package(Python QUIET)
 find_boost_python()
 
 if(PYTHON_FOUND)
     set_package_properties(pypy PROPERTIES
-        URL "http://pypy.org"
+        URL "https://pypy.org"
         PURPOSE "Used to speed up the generation of python bindings.")
     find_package(pypy QUIET)
 endif()
@@ -147,11 +157,11 @@ endif()
 
 set_package_properties(Doxygen PROPERTIES
     URL "http://doxygen.org"
-    PURPOSE "Used to create the OMPL documentation (i.e., http://ompl.kavrakilab.org).")
+    PURPOSE "Used to create the OMPL documentation (i.e., https://ompl.kavrakilab.org).")
 find_package(Doxygen)
 
 # Numpy is used to convert Eigen matrices/vectors to numpy arrays
-if(PYTHON_FOUND AND NOT Boost_VERSION VERSION_LESS "106300")
+if(PYTHON_FOUND AND NOT Boost_VERSION_STRING VERSION_LESS "1.63.0")
     find_python_module(numpy)
     if (PY_NUMPY)
         find_boost_numpy()
@@ -226,17 +236,14 @@ if (OMPL_REGISTRATION)
         file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/.registered" "")
         find_package(Python QUIET)
         if (PYTHON_FOUND)
-            execute_process(COMMAND "${PYTHON_EXEC}" "-m" "webbrowser" "http://ompl.kavrakilab.org/core/register.html"
+            execute_process(COMMAND "${PYTHON_EXEC}" "-m" "webbrowser" "https://ompl.kavrakilab.org/core/register.html"
                 OUTPUT_QUIET ERROR_QUIET)
         endif()
     endif()
 endif()
 
-# needed for ROS installation
-if (EXISTS "package.xml")
-    # install catkin package.xml
-    install(FILES package.xml DESTINATION "share/ompl")
-endif()
+# install catkin package.xml (needed for ROS installation)
+install(FILES package.xml DESTINATION "share/ompl")
 
 set_package_properties(PkgConfig PROPERTIES
     URL "https://www.freedesktop.org/wiki/Software/pkg-config/"

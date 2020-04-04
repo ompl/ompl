@@ -1,36 +1,26 @@
 # Using OMPL with Morse {#morse}
 
-Table of Contents:
-- \ref morseInstallation
-- \ref morseSettingUpAnEnvironment
-- \ref morseAddingRobots
-- \ref morseGoal
-- \ref morsePlanning
-- \ref morsePlayback
-- \ref morseRendering
-- \ref morseAdvancedTweaks
+[TOC]
 
-# Installation {#morseInstallation}
+## Installation {#morseInstallation}
 
 First, you'll need to [install MORSE (version 1.0 or later)](http://www.openrobots.org/morse/doc/stable/user/installation.html). After doing so, you should have a working copy of both Blender and MORSE. You can check if this was successful by running
 
-    $ morse check
+    morse check
 
 Second, follow the general instructions for installing OMPL with the Python bindings. Since Blender and MORSE require Python 3, it is essential you also use Python 3 for the OMPL python bindings:
 
-    $ cmake -DPYTHON_EXEC=/usr/bin/python3 .
+    cmake -DPYTHON_EXEC=/usr/bin/python3 .
 
 You may also need to install the Python3 libraries and headers if they aren't already (for example, on Ubuntu this is the python3-dev package). You should also take care to set the variables Boost_PYTHON_LIBRARY_DEBUG and Boost_PYTHON_LIBRARY_RELEASE to the exact Python 3 version of these libraries that is used by Morse. This version is included in the output of `morse check`.
 
 At the moment, there is one Python script that should be installed as a Blender add-on. This is not done automatically. You'll find the add-on located at ${PREFIX}/share/ompl/addons/ompl_addon.py (by default, ${PREFIX} is equal to /usr/local). To install it, open Blender, navigate to File > User Preferences > Addons > Install addon... and select the ompl_addon.py file. Then enable this addon by clicking its check box. Finally, you'll want to Save As Default so that it will always be enabled when Blender starts.
 
-
-# Quickstart {#morseQuickstart}
+## Quick Start {#morseQuickstart}
 
 Modeling and solving a planning problem is a multi-step process. The next several sections will take you through this process from start to finish; however, you may wish to jump in a little further down so you can see some results right away. If you would like to use a pre-designed demo environment instead of modeling your own the first time, start at the section \ref morseAddingRobots, with ompl/demos/morse/rampjump_starter.blend as your environment file. If you would like to get to the planning phase immediately, you can start at the section \ref morsePlanning, with ompl/demos/morse/rampjump_complete.blend as your environment file.
 
-
-# Setting up an environment {#morseSettingUpAnEnvironment}
+## Setting up an environment {#morseSettingUpAnEnvironment}
 
 The environment is the 3D model in which a planning problem is defined. We'll use Blender to construct the environment. To get started, open Blender and save the fresh file under a name of your choice. This will be called the environment file, and has the file extension *.blend. You can add and manipulate objects as you like to build, e.g., a course for a robot to move around in.
 
@@ -56,7 +46,7 @@ As a very simple example, we can use the cube already in the scene as an item th
    - set the 'Physics Type' to 'Rigid Body'; this allows the cube to participate in the physics simulation as a movable, collidable object; also check the 'Collision Bounds' setting, and make sure it's using the 'Box' bounds (for more complicated objects, it may be appropriate to use 'Convex Hull' or 'Triangle Mesh').
    - now select the plane; its physics type should already be 'Static' by default; leave it as such since the plane should be immovable, but still collidable.
 
-# Adding robot(s) {#morseAddingRobots}
+## Adding robot(s) {#morseAddingRobots}
 
 MORSE requires special knowledge of the robots in a scene in order to control them, so rather than build them in as part of the environment, we provide a tool for adding robots into a scene. It is located in the OMPL menu; navigate to Game -> OMPL -> Add Robot... (Note that you will not be able to find this menu unless you have changed from the 'Blender Render' engine to the 'Blender Game' engine in the top menu bar.)
 
@@ -66,7 +56,7 @@ This brings up a dialog where you can select a robot type and a controller for i
 
 After adding a robot to the scene, you can position it using the grab and rotate tools (`g`, and `r`). If you would like more than one robot of the same type, you can use the duplicate tool (`Shift` + `d`) instead of returning to the Add Robot dialog.
 
-# Defining the goal {#morseGoal}
+## Defining the goal {#morseGoal}
 
 Goals are defined by specifying that a particular object should arrive at a pre-defined pose to within a certain tolerance or that the object should enter a pre-defined region. A goal requirement is conveyed to OMPL via the existence of an object that shares the same name as the object for which we are specifying the goal, but ends in the suffix '.goalPose', '.goalRegion', or '.goalRot'. To add a new pose or rotation goal specification for an object, navigate to Game -> OMPL -> Add Goal... Here you can choose which goal type you would like to add. Adding a region goal specification simply requires appropriately renaming an existing object representing the region.
 
@@ -82,7 +72,7 @@ If you started from scratch with the section \ref morseSettingUpAnEnvironment, t
 
 Note that the goal specification objects will not participate in physics, so there is no need to worry about disabling physics for them.
 
-# Bounds configuration and planning {#morsePlanning}
+## Bounds configuration and planning {#morsePlanning}
 
 \note **Tip:** from this point on, it is very useful to have launched Blender from a terminal so that you can see the output it produces, especially if anything goes wrong.
 
@@ -96,13 +86,13 @@ If you have been following along from the section \ref morseSettingUpAnEnvironme
 
 After you have configured the planning bounds, you are ready to plan. Navigate to Game -> OMPL -> Plan... Choose a (possibly new) file in which you would like OMPL to save the solution, like 'path.out'. On the terminal you should see MORSE starting up, followed by a list of rigid body and goal objects, followed by OMPL starting up. If everything was successful, the final message before planning should be "Starting with 1 states". If you have `wmctrl` installed, the planning window will be “shaded” to keep it out of the way, but you can unshade it to watch if you would like. To stop a plan before a solution is found, close the planning window (or with it unshaded, press `Esc`); the best approximate solution found so far will be saved. Otherwise, OMPL will plan as long as it takes to find a solution.
 
-# Playback and animation saving {#morsePlayback}
+## Playback and animation saving {#morsePlayback}
 
 After planning is completed, you'll want to review the solution path by playing it back. At the same time, the path will be saved into a format used for animation in Blender allowing convenient production of pretty videos. To choose the destination file for this, run Game -> OMPL -> Choose animation save file... This file will be a copy of your environment *.blend file, but with a record of the changes to the poses of all the rigid body objects throughout the solution path.
 
 To play back the solution and record the animation to file, run Game -> OMPL -> Play..., selecting the same file you chose in the Plan phase, e.g. 'path.out'. This will start up MORSE much like in the Plan phase, but will only re-enact the solution path.
 
-# Rendering animation videos {#morseRendering}
+## Rendering animation videos {#morseRendering}
 
 After playing back the solution path, you can open the new animation *.blend file that was recorded during playback. Now you can edit the precise movements made by all the objects in the scene to clean up or tweak the path if you wish. Also you can use Blender to its full extent in applying materials and textures to the objects. You can even alter the shape of objects without affecting any of the motion since it is coded into the *.blend and no longer depends on the results of a physics simulation.
 
@@ -112,7 +102,7 @@ After playing back the solution path, you can open the new animation *.blend fil
 
 You'll need to switch back from the 'Blender Game' engine to the 'Blender Render' engine in the top menu bar to allow rendering your animation without the physics engine. There are many useful settings in the Properties menu on the far right under the Render tab. Because the animation was created with a 60 Hz clock, make sure the frame rate setting is either 60 fps, or 30 fps with a frame step of 2 to skip alternate frames; otherwise the speed of the video will be incorrect. Also ensure that end frame is the last frame in which there is saved animation data. You can determine this by looking at the Timeline at the bottom of the Blender window; yellow lines indicate frames in which there is animation data. You should then change the output format to AVI JPEG or some other video format. If all the other settings are to your liking, you can press Render Animation to create the video.
 
-# Advanced tweaks {#morseAdvancedTweaks}
+## Advanced tweaks {#morseAdvancedTweaks}
 
 There is some interesting functionality that is not exposed via the OMPL addon interface, since it requires a little bit of coding. Here are some pointers to get you started if you want to try out something a little fancier.
 

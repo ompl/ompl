@@ -91,7 +91,7 @@ An automatic code formatter is available to automate enforcing the style guide, 
 
 Install **clang_format**. For Ubuntu:
 
-    sudo apt-get install -y clang-format-3.6
+    sudo apt-get install -y clang-format
 
 ### Usage
 
@@ -101,11 +101,11 @@ A configuration file is available at the base of the OMPL repository that will b
 
 Format single file:
 
-    clang-format-3.6 --i -style=file MY_OMPL_FILE.cpp
+    clang-format --i -style=file MY_OMPL_FILE.cpp
 
 Format entire directory recursively including subfolders:
 
-    find . -name '*.h' -or -name '*.hpp' -or -name '*.cpp' | xargs clang-format-3.6 --i -style=file $1
+    find . -name '*.h' -or -name '*.hpp' -or -name '*.cpp' | xargs clang-format --i -style=file $1
 
 #### Emacs Editor Configuration
 

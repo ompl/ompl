@@ -451,6 +451,9 @@ namespace ompl
                     foundSample = InformedSampler::space_->satisfiesBounds(statePtr);
                 }
                 // No else
+
+                // Increment the provided counter
+                ++(*iters);
             }
 
             // Successful?

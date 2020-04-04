@@ -80,6 +80,8 @@ struct ompl::ProlateHyperspheroid::PhsData
     /** \brief The transformation from PHS-frame to world frame. Is calculated every time the transverse diameter
      * changes. Unlike other parts of Eigen, variably sized matrices do not require special allocators. */
     Eigen::MatrixXd transformationWorldFromEllipse_;
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 ompl::ProlateHyperspheroid::ProlateHyperspheroid(unsigned int n, const double focus1[], const double focus2[])

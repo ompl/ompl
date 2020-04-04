@@ -45,7 +45,6 @@
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
-#include "ompl/util/Deprecation.h"
 
 namespace ompl
 {
@@ -79,6 +78,12 @@ namespace ompl
 
             /** \brief Get the current instance of the problem definition */
             const base::ProblemDefinitionPtr &getProblemDefinition() const
+            {
+                return pdef_;
+            }
+
+            /** \brief Get the current instance of the problem definition */
+            base::ProblemDefinitionPtr &getProblemDefinition()
             {
                 return pdef_;
             }
@@ -288,10 +293,6 @@ namespace ompl
             /// The status of the last planning request
             base::PlannerStatus last_status_;
         };
-
-        /** \brief Given a goal specification, decide on a planner for that goal.
-            \deprecated Use tools::SelfConfig::getDefaultPlanner() instead. */
-        OMPL_DEPRECATED base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
     }
 }
 #endif

@@ -1,26 +1,18 @@
 # How to Benchmark Planners {#benchmark}
 
+[TOC]
+
 OMPL contains a ompl::Benchmark class that facilitates solving a motion planning problem repeatedly with different parameters, different planners, different samplers, or even differently configured versions of the same planning algorithm. Below, we will describe how you can use this class.
 
-\if OMPLAPP
-- \ref benchmark_config
-\endif
-- \ref benchmark_code
-- \ref benchmark_log
-- \ref benchmark_sample_results
-- \ref benchmark_logfile_format
-- \ref benchmark_database
-
 \ifnot OMPLAPP
-For a command line program for rigid body motion planning and basic kinodynamic motion planning, see the [ompl_benchmark](http://ompl.kavrakilab.org/benchmark.html) program in OMPL.app.
+For a command line program for rigid body motion planning and basic kinodynamic motion planning, see the [ompl_benchmark](https://ompl.kavrakilab.org/benchmark.html) program in OMPL.app.
 \endif
 
 For interactive visualization of benchmark databases, please see [plannerarena.org](http://plannerarena.org).
 
 \if OMPLAPP
 
-# Create a benchmark configuration file {#benchmark_config}
-
+## Create a benchmark configuration file {#benchmark_config}
 
 OMPL.app contains a command line program called `ompl_benchmark`, that can read a text based configuration file using an ini style format with key/value pairs. This is the same format that can be read and saved with the OMPL.app GUI. The GUI ignores the settings related to benchmarking. However, it is often convenient to create an initial configuration with the GUI and add the benchmark settings with a text editor. Currently the base functionality of the `ompl_benchmark` program only applies to geometric planning in SE(2) and SE(3) and kinodynamic planning for certain systems, but the program can be extended by the user to other types of planning problems.
 
@@ -56,24 +48,26 @@ The following planners are valid for kinodynamic planning (i.e., when the  `cont
 
 An example of a minimal SE(2) configuration comparing the rrt and est planners is given below:
 
-    [problem]
-    name=my_benchmark_problem
-    robot=my_robot_mesh.dae
-    start.x=0.0
-    start.y=0.0
-    start.theta=0.0
-    goal.x=1.0
-    goal.y=1.0
-    goal.theta=0.0
+~~~{.yaml}
+[problem]
+name=my_benchmark_problem
+robot=my_robot_mesh.dae
+start.x=0.0
+start.y=0.0
+start.theta=0.0
+goal.x=1.0
+goal.y=1.0
+goal.theta=0.0
 
-    [benchmark]
-    time_limit=10.0
-    mem_limit=1000.0
-    run_count = 3
+[benchmark]
+time_limit=10.0
+mem_limit=1000.0
+run_count = 3
 
-    [planner]
-    est=
-    rrt=
+[planner]
+est=
+rrt=
+~~~
 
 Any parameter defined by these planners may also be configured for the benchmark. For example, the geometric::RRT planner defines two parameters, “range” and “goal_bias”, both real valued. The default values can be changed under the “planner” heading in the following manner:
 
@@ -84,35 +78,40 @@ There are many other optional parameters that can be specified or changed. The `
 
 It is possible to create multiple instances of the same planner and configure each differently. This code, for example, creates two instances of `rrtconnect` with different values for its range parameter:
 
-    rrtconnect=
-    rrtconnect.range=100
-    rrtconnect=
-    rrtconnect.range=200
+~~~{.yaml}
+rrtconnect=
+rrtconnect.range=100
+rrtconnect=
+rrtconnect.range=200
+~~~
 
 Moreover, the problem settings can be changed between different planner instances.
 Below, some of the problem settings are changed for the second instance of `kpiece`.
 
-    kpiece=
-    kpiece=
-    # increase the size of the projection by a specific factor, in every dimension
-    problem.projection.cellsize_factor = 4.0
-    # specify a different sampler
-    problem.sampler=obstacle_based
+~~~{.yaml}
+kpiece=
+kpiece=
+# increase the size of the projection by a specific factor, in every dimension
+problem.projection.cellsize_factor = 4.0
+# specify a different sampler
+problem.sampler=obstacle_based
+~~~
 
 When using multiple planner instances, a useful parameter is “name”, as it can be used to rename a planner. For example, two instances of geometric::PRM can be created but named differently. Having different names is useful when processing the resulting log data using the [benchmark script](#benchmark_log).
 
-    prm=
-    problem.sampler=uniform
-    prm.name=uniprm
-    prm=
-    problem.sampler=obstacle_based
-    prm.name=obprm
+~~~{.yaml}
+prm=
+problem.sampler=uniform
+prm.name=uniprm
+prm=
+problem.sampler=obstacle_based
+prm.name=obprm
+~~~
 
 Finally, to execute the benchmark configuration file, simply run the `ompl_benchmark` executable in the OMPL.app bin directory, and supply the path to the config file as the first argument.
 \endif
 
-Writing benchmarking code {#benchmark_code}
--------------------------------------------
+## Writing benchmarking code {#benchmark_code}
 
 Benchmarking a set of planners on a specified problem using the Benchmark class in your own code is a simple task in OMPL. The steps involved are as follows:
 
@@ -214,25 +213,33 @@ b.setPreRunEvent(std::bind(&optionalPreRunEvent, std::placeholders::_1));
 b.setPostRunEvent(std::bind(&optionalPostRunEvent, std::placeholders::_1, std::placeholders::_2));
 ~~~
 
-# Processing the benchmarking log file {#benchmark_log}
+## Processing the benchmarking log file {#benchmark_log}
 
 Once the C++ code computing the results has been executed, a log file is generated. This contains information about the settings of the planners, the parameters of the problem tested on, etc. To visualize this information, we provide a script that parses the log files:
 
-    ompl/scripts/ompl_benchmark_statistics.py logfile.log -d mydatabase.db
+~~~{.sh}
+ompl/scripts/ompl_benchmark_statistics.py logfile.log -d mydatabase.db
+~~~
 
 This will generate a SQLite database containing the parsed data. If no database name is specified, the named is assumed to be benchmark.db. Once this database is generated, we can visualize the results. The recommended way is to upload the database to [Planner Arena](http://plannerarena.org) and navigate through the different plots. Planner Arena can also be run locally with the `plannerarena` script (requires R to be installed). Alternatively, you can also produce some basic plots with `ompl_benchmark_statistics.py` like so:
 
-    ompl/scripts/ompl_benchmark_statistics.py -d mydatabase.db -p boxplot.pdf
+~~~{.sh}
+ompl/scripts/ompl_benchmark_statistics.py -d mydatabase.db -p boxplot.pdf
+~~~
 
 This will generate a series of plots, one for each of the attributes described below, showing the results for each planner. [Below](#benchmark_sample_results) we have included some sample benchmark results.
 
 If you would like to process the data in different ways, you can generate a dump file that you can load in a MySQL database:
 
-    ompl/scripts/ompl_benchmark_statistics.py -d mydatabase.db -m mydump.sql
+~~~{.sh}
+ompl/scripts/ompl_benchmark_statistics.py -d mydatabase.db -m mydump.sql
+~~~
 
 For more details on how to use the benchmark script, see:
 
-    scripts/ompl_benchmark_statistics.py --help
+~~~{.sh}
+scripts/ompl_benchmark_statistics.py --help
+~~~
 
 Collected benchmark data for each experiment:
 
@@ -270,11 +277,13 @@ Collected benchmark data for each planner execution:
 
 Planning algorithms can also register callback functions that the Benchmark class will use to measure progress properties at regular intervals during a run of the planning algorithm. Currently only RRT* uses this functionality. The RRT* constructor registers, among others, a function that returns the cost of the best path found so far:
 
-    addPlannerProgressProperty("best cost REAL", std::bind(&RRTstar::getBestCost, this));
+~~~{.cpp}
+addPlannerProgressProperty("best cost REAL", std::bind(&RRTstar::getBestCost, this));
+~~~
 
 With the Benchmark class one can thus measure how the cost is decreasing over time. The ompl_benchmark_statistics.py script will automatically generate plots of progress properties as a function of time.
 
-# Sample benchmark results {#benchmark_sample_results}
+## Sample benchmark results {#benchmark_sample_results}
 
 Below are sample results for running benchmarks for two example problems: the “cubicles” environment and the “Twistycool” environment. The complete benchmarking program (SE3RigidBodyPlanningBenchmark.cpp), the environment and robot files are included with OMPL.app, so you can rerun the exact same benchmarks on your own machine. See the [gallery](gallery.html#gallery_omplapp) for visualizations of sample solutions to both problems. The results below were run on a recent model Apple MacBook Pro (2.66 GHz Intel Core i7, 8GB of RAM). It is important to note that none of the planner parameters were tuned; all benchmarks were run with default settings. From these results one cannot draw any firm conclusions about which planner is “better” than some other planner.
 
@@ -285,21 +294,21 @@ These are the PDF files with plots as generated by the ompl_benchmark_statistics
 
 The plots show comparisons between ompl::geometric::RRTConnect, ompl::geometric::RRT, ompl::geometric::BKPIECE1, ompl::geometric::LBKPIECE1, ompl::geometric::KPIECE1, ompl::geometric::SBL, ompl::geometric::EST, and ompl::geometric::PRM. Each planner is run 500 times with a 10 second time limit for the cubicles problem for each sampling strategy, while for the Twistycool problem each planner is run 50 times with a 60 second time limit.
 
-For integer and real-valued measurements the script will compute [box plots](http://en.wikipedia.org/wiki/Box_plot). For example, here is the plot for the real-valued attribute __time__ for the cubicles environment:
+For integer and real-valued measurements the script will compute [box plots](https://en.wikipedia.org/wiki/Box_plot). For example, here is the plot for the real-valued attribute __time__ for the cubicles environment:
 
-<div class="row"><img src="images/cubicles_time.png" class="col-md-8 col-sm-10 col-md-offset-2 col-sm-offset-1 img-responsive"></div>
+<div class="row"><div class="col-md-8 col-sm-10 offset-md-2 offset-sm-1"><img src="images/cubicles_time.png" class="img-fluid"></div></div>
 
 For boolean measurements the script will create bar charts with the percentage of __true__ values. For example, here is the plot for the boolean attribute __solved__ for the Twistycool environment, a much harder problem:
 
-<div class="row"><img src="images/Twistycool_solved.png" class="col-md-8 col-sm-10 col-md-offset-2 col-sm-offset-1 img-responsive"></div>
+<div class="row"><div class="col-md-8 col-sm-10 offset-md-2 offset-sm-1"><img src="images/Twistycool_solved.png" class="img-fluid"></div></div>
 
 Whenever measurements are not always available for a particular attribute, the columns for each planner are labeled with the number of runs for which no data was available. For instance, the boolean attribute __correct solution__ is not set if a solution is not found.
 
-# The benchmark logfile format {#benchmark_logfile_format}
+## The benchmark logfile format {#benchmark_logfile_format}
 
 The benchmark log files have a pretty simple structure. Below we have included their syntax in [Extended Backus-Naur Form](https://en.wikipedia.org/wiki/Extended_Backus–Naur_Form). This may be useful for someone interested in extending other planning libraries with similar logging capabilities (which would be helpful in a direct comparison of the performance of planning libraries). Log files in this format can be parsed by ompl_benchmark_statistics.py (see next section).
 
-~~~
+~~~{.bnf}
 logfile               ::= preamble planners_data;
 preamble              ::= [version] experiment [exp_property_count exp_properties] hostname date setup [cpuinfo]
                           random_seed time_limit memory_limit [num_runs]
@@ -349,9 +358,9 @@ prog_run_data         ::= data "," | data "," prog_run_data;
 
 Here, `EOL` denotes a newline character, `int` denotes an integer, `float` denotes a floating point number, `num` denotes an integer or float value and undefined symbols correspond to strings without whitespace characters. The exception is `property_name` which is a string that _can_ have whitespace characters. It is also assumed that if the log file says there is data for _k_ planners that that really is the case (likewise for the number of run measurements and the optional progress measurements).
 
-# The benchmark database schema {#benchmark_database}
+## The benchmark database schema {#benchmark_database}
 
-<div class="col-sm-4 pull-right">
+<div class="col-sm-4 float-right">
   <img src="images/benchmarkdb_schema.png" width="100%">
   <br/>
   <b>The benchmark database schema</b>
@@ -394,7 +403,7 @@ The ompl_benchmark_statistics.py script can produce a series of plots from a dat
   - *collision_checks:* the number of collision checks (or, more precisely, the number state validator calls).
   - *best_cost:* the cost of the best solution found so far.
 
-Using SQL queries one can easily select a subset of the data or compute <a href="http://en.wikipedia.org/wiki/Join_(SQL)">joins</a> of tables.
+Using SQL queries one can easily select a subset of the data or compute <a href="https://en.wikipedia.org/wiki/Join_(SQL)">joins</a> of tables.
 Consider the following snippet of R code:
 
 ~~~{.splus}

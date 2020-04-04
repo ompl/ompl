@@ -151,7 +151,7 @@ namespace ompl
                                         &BITstar::getConsiderApproximateSolutions, "0,1");
 
             // Register my progress info:
-            addPlannerProgressProperty("best cost DOUBLE", [this]
+            addPlannerProgressProperty("best cost REAL", [this]
                                        {
                                            return bestCostProgressProperty();
                                        });

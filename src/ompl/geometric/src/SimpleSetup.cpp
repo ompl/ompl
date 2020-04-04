@@ -37,11 +37,6 @@
 #include "ompl/geometric/SimpleSetup.h"
 #include "ompl/tools/config/SelfConfig.h"
 
-ompl::base::PlannerPtr ompl::geometric::getDefaultPlanner(const base::GoalPtr &goal)
-{
-    return tools::SelfConfig::getDefaultPlanner(goal);
-}
-
 ompl::geometric::SimpleSetup::SimpleSetup(const base::SpaceInformationPtr &si)
   : configured_(false), planTime_(0.0), simplifyTime_(0.0), lastStatus_(base::PlannerStatus::UNKNOWN)
 {
@@ -212,12 +207,6 @@ ompl::geometric::PathGeometric &ompl::geometric::SimpleSetup::getSolutionPath() 
             return static_cast<PathGeometric &>(*p);
     }
     throw Exception("No solution path");
-}
-
-bool ompl::geometric::SimpleSetup::haveExactSolutionPath() const
-{
-    return haveSolutionPath() && (!pdef_->hasApproximateSolution() ||
-                                  pdef_->getSolutionDifference() < std::numeric_limits<double>::epsilon());
 }
 
 void ompl::geometric::SimpleSetup::getPlannerData(base::PlannerData &pd) const

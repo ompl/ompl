@@ -40,7 +40,6 @@
 #include "ompl/config.h"
 #include "ompl/util/String.h"
 #include <boost/scoped_ptr.hpp>
-#include <boost/progress.hpp>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -435,13 +434,16 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
         msg::noOutputHandler();
     OMPL_INFORM("Beginning benchmark");
 
-    boost::scoped_ptr<boost::progress_display> progress;
+    boost::scoped_ptr<ompl::time::ProgressDisplay> progress;
     if (req.displayProgress)
     {
         std::cout << "Running experiment " << exp_.name << "." << std::endl;
-        std::cout << "Each planner will be executed " << req.runCount << " times for at most " << req.maxTime
-                  << " seconds. Memory is limited at " << req.maxMem << "MB." << std::endl;
-        progress.reset(new boost::progress_display(100, std::cout));
+        if (req.runCount)
+            std::cout << "Each planner will be executed " << req.runCount << " times for at most " << req.maxTime << " seconds.";
+        else
+            std::cout << "Each planner will be executed as many times as possible within " << req.maxTime << " seconds.";
+        std::cout << " Memory is limited at " << req.maxMem << "MB." << std::endl;
+        progress.reset(new ompl::time::ProgressDisplay);
     }
 
     machine::MemUsage_t memStart = machine::getProcessMemoryUsage();
@@ -478,20 +480,21 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
 
         // Add planner progress property names to struct
         exp_.planners[i].progressPropertyNames.emplace_back("time REAL");
-        base::Planner::PlannerProgressProperties::const_iterator iter;
-        for (iter = planners_[i]->getPlannerProgressProperties().begin();
-             iter != planners_[i]->getPlannerProgressProperties().end(); ++iter)
+        for (const auto &property : planners_[i]->getPlannerProgressProperties())
         {
-            exp_.planners[i].progressPropertyNames.push_back(iter->first);
+            exp_.planners[i].progressPropertyNames.push_back(property.first);
         }
         std::sort(exp_.planners[i].progressPropertyNames.begin(), exp_.planners[i].progressPropertyNames.end());
 
         // run the planner
-        for (unsigned int j = 0; j < req.runCount; ++j)
+        double maxTime = req.maxTime;
+        unsigned int j = 0;
+        while (true)
         {
             status_.activeRun = j;
-            status_.progressPercentage =
-                (double)(100 * (req.runCount * i + j)) / (double)(planners_.size() * req.runCount);
+            status_.progressPercentage = req.runCount ?
+                (double)(100 * (req.runCount * i + j)) / (double)(planners_.size() * req.runCount) :
+                (double)(100 * i) / (double)(planners_.size());
 
             if (req.displayProgress)
                 while (status_.progressPercentage > progress->count())
@@ -546,7 +549,7 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
             }
 
             RunPlanner rp(this);
-            rp.run(planners_[i], memStart, maxMemBytes, req.maxTime, req.timeBetweenUpdates);
+            rp.run(planners_[i], memStart, maxMemBytes, maxTime, req.timeBetweenUpdates);
             bool solved = gsetup_ ? gsetup_->haveSolutionPath() : csetup_->haveSolutionPath();
 
             // store results
@@ -673,6 +676,19 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 es << "*** " << e.what() << std::endl;
                 std::cerr << es.str();
                 OMPL_ERROR(es.str().c_str());
+            }
+
+            ++j;
+            if (req.runCount == 0)
+            {
+                maxTime -= rp.getTimeUsed();
+                if (maxTime < 0.)
+                    break;
+            }
+            else
+            {
+                if (j >= req.runCount)
+                    break;
             }
         }
         planners_[i]->clear();

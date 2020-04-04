@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan, James D. Marble, Ryan Luna */
+/* Author: Ioan Sucan, James D. Marble, Ryan Luna, Henning Kayser */
 
 #include "ompl/geometric/planners/prm/PRM.h"
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
@@ -46,6 +46,7 @@
 #include <boost/property_map/vector_property_map.hpp>
 #include <boost/foreach.hpp>
 #include <thread>
+#include <typeinfo>
 
 #include "GoalVisitor.hpp"
 
@@ -84,12 +85,66 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
 
     if (!starStrategy_)
         Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &PRM::setMaxNearestNeighbors,
-                                            std::string("8:1000"));
+                                            &PRM::getMaxNearestNeighbors, std::string("8:1000"));
 
     addPlannerProgressProperty("iterations INTEGER", [this] { return getIterationCount(); });
     addPlannerProgressProperty("best cost REAL", [this] { return getBestCost(); });
     addPlannerProgressProperty("milestone count INTEGER", [this] { return getMilestoneCountString(); });
     addPlannerProgressProperty("edge count INTEGER", [this] { return getEdgeCountString(); });
+}
+
+ompl::geometric::PRM::PRM(const base::PlannerData &data, bool starStrategy)
+  : PRM(data.getSpaceInformation(), starStrategy)
+{
+    if (data.numVertices() > 0)
+    {
+        // mapping between vertex id from PlannerData and Vertex in Boost.Graph
+        std::map<unsigned int, Vertex> vertices;
+        // helper function to create vertices as needed and update the vertices mapping
+        const auto &getOrCreateVertex = [&](unsigned int vertex_index) {
+            if (!vertices.count(vertex_index))
+            {
+                const auto &data_vertex = data.getVertex(vertex_index);
+                Vertex graph_vertex = boost::add_vertex(g_);
+                stateProperty_[graph_vertex] = si_->cloneState(data_vertex.getState());
+                totalConnectionAttemptsProperty_[graph_vertex] = 1;
+                successfulConnectionAttemptsProperty_[graph_vertex] = 0;
+                vertices[vertex_index] = graph_vertex;
+            }
+            return vertices.at(vertex_index);
+        };
+
+        specs_.multithreaded = false;  // temporarily set to false since nn_ is used only in single thread
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
+        specs_.multithreaded = true;
+        nn_->setDistanceFunction([this](const Vertex a, const Vertex b) { return distanceFunction(a, b); });
+
+        for (size_t vertex_index = 0; vertex_index < data.numVertices(); ++vertex_index)
+        {
+            Vertex m = getOrCreateVertex(vertex_index);
+            std::vector<unsigned int> neighbor_indices;
+            data.getEdges(vertex_index, neighbor_indices);
+            if (neighbor_indices.empty())
+            {
+                disjointSets_.make_set(m);
+            }
+            else
+            {
+                for (const unsigned int neighbor_index : neighbor_indices)
+                {
+                    Vertex n = getOrCreateVertex(neighbor_index);
+                    totalConnectionAttemptsProperty_[n]++;
+                    successfulConnectionAttemptsProperty_[n]++;
+                    base::Cost weight;
+                    data.getEdgeWeight(vertex_index, neighbor_index, &weight);
+                    const Graph::edge_property_type properties(weight);
+                    boost::add_edge(m, n, properties, g_);
+                    uniteComponents(m, n);
+                }
+            }
+            nn_->add(m);
+        }
+    }
 }
 
 ompl::geometric::PRM::~PRM()
@@ -150,6 +205,12 @@ void ompl::geometric::PRM::setMaxNearestNeighbors(unsigned int k)
         connectionStrategy_ = KStrategy<Vertex>(k, nn_);
     if (isSetup())
         setup();
+}
+
+unsigned int ompl::geometric::PRM::getMaxNearestNeighbors() const
+{
+    const auto strategy = connectionStrategy_.target<KStrategy<Vertex>>();
+    return strategy ? strategy->getNumNeighbors() : 0u;
 }
 
 void ompl::geometric::PRM::setDefaultConnectionStrategy()

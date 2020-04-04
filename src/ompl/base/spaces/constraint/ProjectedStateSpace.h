@@ -45,8 +45,6 @@
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 
-#include <Eigen/Core>
-
 namespace ompl
 {
     namespace base

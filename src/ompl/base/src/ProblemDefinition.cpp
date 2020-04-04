@@ -345,19 +345,11 @@ ompl::base::PathPtr ompl::base::ProblemDefinition::isStraightLinePathValid() con
         }
         else
         {
-            for (unsigned int i = 0; i < startStates_.size() && !path; ++i)
-            {
-                const State *start = startStates_[i];
+            for (const auto start : startStates_)
                 if (start && si_->isValid(start) && si_->satisfiesBounds(start))
-                {
-                    for (unsigned int j = 0; j < states.size() && !path; ++j)
-                        if (si_->checkMotion(start, states[j]))
-                        {
-                            path = std::make_shared<geometric::PathGeometric>(si_, start, states[j]);
-                            break;
-                        }
-                }
-            }
+                    for (const auto state : states)
+                        if (si_->checkMotion(start, state))
+                            return std::make_shared<geometric::PathGeometric>(si_, start, state);
         }
     }
 

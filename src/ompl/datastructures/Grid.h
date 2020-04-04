@@ -66,6 +66,8 @@ namespace ompl
             Cell() = default;
 
             virtual ~Cell() = default;
+
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         };
 
         /// The datatype for arrays of cells

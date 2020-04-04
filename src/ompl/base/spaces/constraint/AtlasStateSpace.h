@@ -46,7 +46,6 @@
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 
 #include <boost/math/constants/constants.hpp>
-#include <Eigen/Core>
 
 namespace ompl
 {

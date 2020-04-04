@@ -142,7 +142,7 @@ void ompl::base::ProjectionEvaluator::setBounds(const RealVectorBounds &bounds)
 
 void ompl::base::ProjectionEvaluator::setCellSizes(unsigned int dim, double cellSize)
 {
-    if (cellSizes_.size() >= dim)
+    if (cellSizes_.size() <= dim)
         OMPL_ERROR("Dimension %u is not defined for projection evaluator", dim);
     else
     {

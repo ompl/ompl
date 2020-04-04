@@ -66,7 +66,7 @@ namespace ompl
         */
 
         /** \brief [Q]uotient space [R]apidly exploring [R]andom [T]rees (QRRT) Algorithm*/
-        typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QRRTImpl> QRRT;
+        using QRRT = ompl::geometric::BundleSpaceSequence<ompl::geometric::QRRTImpl>;
 
     }  // namespace geometric
 }  // namespace ompl

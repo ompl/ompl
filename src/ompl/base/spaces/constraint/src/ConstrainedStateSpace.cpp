@@ -312,6 +312,7 @@ ompl::base::State *ompl::base::ConstrainedStateSpace::geodesicInterpolate(const 
         const double t2 = (i <= n - 2) ? d[i + 1] / last - t : 1;
 
         delete[] d;
-        return (t1 < t2) ? geodesic[i] : geodesic[i + 1];
+        assert((t1 < t2 || std::abs(t1 - t2) < std::numeric_limits<double>::epsilon())  ? (i < geodesic.size()) : (i + 1 < geodesic.size()));
+        return (t1 < t2 || std::abs(t1 - t2) < std::numeric_limits<double>::epsilon()) ? geodesic[i] : geodesic[i + 1];
     }
 }

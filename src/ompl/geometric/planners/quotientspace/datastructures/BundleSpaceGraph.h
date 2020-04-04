@@ -198,6 +198,7 @@ namespace ompl
             virtual void grow() = 0;
             virtual void sampleFromDatastructure(ompl::base::State *) override;
             virtual void sampleBundleGoalBias(ompl::base::State *xRandom);
+
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
 
             /** \brief Return plannerdata structure, whereby each vertex is marked
@@ -216,7 +217,7 @@ namespace ompl
 
             virtual void setup() override;
             virtual void clear() override;
-            void clearQuery();
+            void clearQuery() override;
             virtual void clearVertices();
             virtual void deleteConfiguration(Configuration *q);
 

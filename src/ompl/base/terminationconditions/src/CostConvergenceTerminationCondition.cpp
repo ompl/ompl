@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2019, PickNik LLC
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the PickNik LLC nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -32,20 +32,37 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef OMPL_UTIL_DEPRECATION_
-#define OMPL_UTIL_DEPRECATION_
+/* Author: Henning Kayser, Mark Moll */
 
-/** \def OMPL_DEPRECATED
-    Macro that marks functions as deprecated */
+#include "ompl/base/terminationconditions/CostConvergenceTerminationCondition.h"
 
-#ifdef __GNUC__
-#define OMPL_DEPRECATED __attribute__((deprecated))
-#elif defined(_MSC_VER)
-#define OMPL_DEPRECATED __declspec(deprecated)
-#elif defined(__clang__)
-#define OMPL_DEPRECATED __attribute__((deprecated("OMPL: Use of this method is deprecated")))
-#else
-#define OMPL_DEPRECATED /* Nothing */
-#endif
+ompl::base::CostConvergenceTerminationCondition::CostConvergenceTerminationCondition(
+    ompl::base::ProblemDefinitionPtr &pdef, size_t solutionsWindow, double epsilon)
+    : ompl::base::PlannerTerminationCondition(ompl::base::plannerNonTerminatingCondition()),
+      pdef_(pdef),
+      solutionsWindow_(solutionsWindow),
+      epsilon_(epsilon)
+{
+    pdef_->setIntermediateSolutionCallback(
+	    [this](const Planner* /*planner*/, const std::vector<const State*>& /*states*/, const Cost cost) {
+	        this->processNewSolution(cost);
+	    });
+}
 
-#endif
+void ompl::base::CostConvergenceTerminationCondition::processNewSolution(const ompl::base::Cost solutionCost)
+{
+    ++solutions_;
+    size_t solutions = std::min(solutions_, solutionsWindow_);
+    double newCost = ((solutions - 1) * averageCost_ + solutionCost.value()) / solutions;
+    double costLowerThreshold = (1. - epsilon_) * averageCost_;
+    double costUpperThreshold = (1. + epsilon_) * averageCost_;
+    averageCost_ = newCost;
+
+    if (solutions == solutionsWindow_ &&
+        averageCost_ > costLowerThreshold &&
+        averageCost_ < costUpperThreshold)
+    {
+        OMPL_DEBUG("CostConvergenceTerminationCondition: Cost of optimizing planner converged after %lu solutions", solutions_);
+        terminate();
+    }
+}

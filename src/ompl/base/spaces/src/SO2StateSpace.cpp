@@ -43,11 +43,6 @@
 
 using namespace boost::math::double_constants;
 
-// Define for boost version < 1.47
-#ifndef BOOST_ASSERT_MSG
-#define BOOST_ASSERT_MSG(expr, msg) assert(expr)
-#endif
-
 void ompl::base::SO2StateSampler::sampleUniform(State *state)
 {
     state->as<SO2StateSpace::StateType>()->value =

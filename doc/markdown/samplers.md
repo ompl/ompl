@@ -9,8 +9,7 @@ There are two different kinds of samplers that sound similar, but have different
 
 Below we will describe how you can specify a planner to use one of these samplers and how to write your own valid state sampler. The code examples are taken from the [StateSampling.cpp](StateSampling_8cpp_source.html) demo program (note that there is also a [Python version](StateSampling_8py_source.html) of this demo).
 
-
-# Using an Existing Sampler
+## Using an Existing Sampler
 
 We cannot set the type of sampler directly in the SimpleSetup or SpaceInformation classes, because each thread needs it own copy of a sampler. Instead, we need to define a ompl::base::ValidStateSamplerAllocator, a function that, given a pointer to an ompl::base::SpaceInformation, returns ompl::base::ValidStateSamplerPtr. This function can also configure the valid state sampler according to the specific space information before returning it. The following simple example shows how to use the ObstacleBasedValidStateSampler:
 
@@ -26,8 +25,7 @@ We cannot set the type of sampler directly in the SimpleSetup or SpaceInformatio
 \until allocOBValidStateSampler
 Other setup steps, such as specifying start and goal states, have been omitted for the sake of clarity.
 
-
-# Creating a New Valid State Sampler
+## Creating a New Valid State Sampler
 
 A wide variety of heuristics have been proposed to improve the sampling of states. The quality of a sample can be characterized, e.g., by its distance to the nearest obstacle or by the “visibility” from a state. There are also two common cases where problem-specific information can be exploited:
 

@@ -36,11 +36,12 @@
 
 # Author: Mark Moll, Ioan Sucan, Luis G. Torres
 
-from os.path import exists
 import os
 import sqlite3
 import sys
 import argparse
+# Pathlib is part of the standard library in Python 3, but for Python2 you
+# may have to `apt install python-pathlib2` or `pip install pathlib2`
 from pathlib import Path
 from warnings import warn
 plottingEnabled = True
@@ -382,7 +383,6 @@ def plotAttribute(cur, planners, attribute, typename):
         for i in range(len(labels)):
             x = i + width / 2 if typename == 'BOOLEAN' else i + 1
             ax.text(x, .95*maxy, str(nanCounts[i]), horizontalalignment='center', size='small')
-    plt.show()
 
 def plotProgressAttribute(cur, planners, attribute):
     """Plot data for a single planner progress attribute. Will create an
@@ -430,10 +430,6 @@ each planner."""
             # plot average with error bars
             plt.errorbar(times, means, yerr=2*stddevs, errorevery=max(1, len(times) // 20))
             ax.legend(plannerNames)
-    if plannerNames:
-        plt.show()
-    else:
-        plt.clf()
 
 def plotStatistics(dbname):
     """Create a PDF file with box plots for all attributes."""
@@ -450,7 +446,8 @@ def plotStatistics(dbname):
     c.execute('PRAGMA table_info(runs)')
     colInfo = c.fetchall()[3:]
 
-    with PdfPages(Path(dbname).with_suffix('.pdf')) as pp:
+    # the str() call is needed for backwards compatibility with python2
+    with PdfPages(str(Path(dbname).with_suffix('.pdf'))) as pp:
         for col in colInfo:
             if col[2] == 'BOOLEAN' or col[2] == 'ENUM' or \
                col[2] == 'INTEGER' or col[2] == 'REAL':
@@ -472,14 +469,14 @@ def plotStatistics(dbname):
             c.execute("""SELECT count(*) FROM runs WHERE runs.experimentid = %d
                 GROUP BY runs.plannerid""" % experiment[0])
             numRuns = [run[0] for run in c.fetchall()]
-            numRuns = numRuns[0] if len(set(numRuns)) == 1 else ','.join(numRuns)
+            print(numRuns)
+            numRuns = str(numRuns[0]) if len(set(numRuns)) == 1 else ','.join([str(i) for i in numRuns])
 
             plt.figtext(pagex, pagey, 'Experiment "%s"' % experiment[1])
-            plt.figtext(pagex, pagey-0.05, 'Number of averaged runs: %d' % numRuns)
+            plt.figtext(pagex, pagey-0.05, 'Number of averaged runs: %s' % numRuns)
             plt.figtext(pagex, pagey-0.10, "Time limit per run: %g seconds" % experiment[2])
             plt.figtext(pagex, pagey-0.15, "Memory limit per run: %g MB" % experiment[3])
 
-        plt.show()
         pp.savefig(plt.gcf())
 
 def saveAsMysql(dbname):
@@ -598,8 +595,8 @@ if __name__ == '__main__':
     parser.add_argument('logfile', nargs='*')
     args = parser.parse_args()
 
-    if not args.append and exists(args.database) and args.logfile:
-        os.remove(args.database)
+    if not args.append and Path(args.database).exists() and args.logfile:
+        Path(args.database).unlink()
 
     if args.logfile:
         readBenchmarkLog(args.database, args.logfile, args.moveit)

@@ -267,7 +267,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
             /* attempt to connect trees */
 
-            /* if reached, it means we used rstate directly, no need top copy again */
+            /* if reached, it means we used rstate directly, no need to copy again */
             if (gs != REACHED)
                 si_->copyState(rstate, tgi.xstate);
 

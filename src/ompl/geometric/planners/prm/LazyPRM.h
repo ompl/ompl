@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Henning Kayser */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_PRM_LAZY_PRM_
 #define OMPL_GEOMETRIC_PLANNERS_PRM_LAZY_PRM_
@@ -146,6 +146,9 @@ namespace ompl
             /** \brief Constructor */
             LazyPRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
 
+            /** \brief Constructor */
+            LazyPRM(const base::PlannerData &data, bool starStrategy = false);
+
             ~LazyPRM() override;
 
             /** \brief Set the maximum length of a motion to be added to the roadmap. */
@@ -240,6 +243,9 @@ namespace ompl
                 but will clear the set of input states constructed by the previous call to solve().
                 This enables multi-query functionality for LazyPRM. */
             void clearQuery() override;
+
+            /** \brief change the validity flag of each node and edge to VALIDITY_UNKNOWN */
+            void clearValidity();
 
             base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 

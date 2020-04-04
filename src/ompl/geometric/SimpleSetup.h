@@ -45,7 +45,6 @@
 #include "ompl/geometric/PathSimplifier.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
-#include "ompl/util/Deprecation.h"
 
 namespace ompl
 {
@@ -79,6 +78,12 @@ namespace ompl
 
             /** \brief Get the current instance of the problem definition */
             const base::ProblemDefinitionPtr &getProblemDefinition() const
+            {
+                return pdef_;
+            }
+
+            /** \brief Get the current instance of the problem definition */
+            base::ProblemDefinitionPtr &getProblemDefinition()
             {
                 return pdef_;
             }
@@ -133,13 +138,16 @@ namespace ompl
 
             /** \brief Return true if a solution path is available (previous call to solve() was successful) and the
              * solution is exact (not approximate) */
-            bool haveExactSolutionPath() const;
+            bool haveExactSolutionPath() const
+            {
+                return pdef_->hasExactSolution();
+            }
 
             /** \brief Return true if a solution path is available (previous call to solve() was successful). The
              * solution may be approximate. */
             bool haveSolutionPath() const
             {
-                return pdef_->getSolutionPath() != nullptr;
+                return pdef_->hasSolution();
             }
 
             /** \brief Get the best solution's planer name. Throw an exception if no solution is available */
@@ -297,10 +305,6 @@ namespace ompl
             /// The status of the last planning request
             base::PlannerStatus lastStatus_;
         };
-
-        /** \brief Given a goal specification, decide on a planner for that goal.
-            \deprecated Use tools::SelfConfig::getDefaultPlanner() instead. */
-        OMPL_DEPRECATED base::PlannerPtr getDefaultPlanner(const base::GoalPtr &goal);
     }
 }
 #endif

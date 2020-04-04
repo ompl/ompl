@@ -261,7 +261,7 @@ namespace ompl
                 vector_.pop_back();
         }
 
-        Element *newElement(_T &data, unsigned int pos) const
+        Element *newElement(const _T &data, unsigned int pos) const
         {
             auto *element = new Element();
             element->data = data;

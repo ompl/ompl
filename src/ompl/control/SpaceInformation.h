@@ -72,14 +72,7 @@ namespace ompl
         {
         public:
             /** \brief Constructor. Sets the instance of the state and control spaces to plan with. */
-            SpaceInformation(const base::StateSpacePtr &stateSpace, ControlSpacePtr controlSpace)
-              : base::SpaceInformation(stateSpace)
-              , controlSpace_(std::move(controlSpace))
-              , minSteps_(0)
-              , maxSteps_(0)
-              , stepSize_(0.0)
-            {
-            }
+            SpaceInformation(const base::StateSpacePtr &stateSpace, ControlSpacePtr controlSpace);
 
             ~SpaceInformation() override = default;
 
@@ -156,6 +149,18 @@ namespace ompl
             void setMinMaxControlDuration(unsigned int minSteps, unsigned int maxSteps)
             {
                 minSteps_ = minSteps;
+                maxSteps_ = maxSteps;
+            }
+
+            /** \brief Set the minimum number of steps a control is propagated for */
+            void setMinControlDuration(unsigned int minSteps)
+            {
+                minSteps_ = minSteps;
+            }
+
+            /** \brief Set the minimum and maximum number of steps a control is propagated for */
+            void setMaxControlDuration(unsigned int maxSteps)
+            {
                 maxSteps_ = maxSteps;
             }
 
@@ -311,6 +316,9 @@ namespace ompl
             
 
         protected:
+            /** Declare parameter settings */
+            void declareParams();
+
             /** \brief The control space describing the space of controls applicable to states in the state space */
             ControlSpacePtr controlSpace_;
 
@@ -318,10 +326,10 @@ namespace ompl
             StatePropagatorPtr statePropagator_;
 
             /** \brief The minimum number of steps to apply a control for */
-            unsigned int minSteps_;
+            unsigned int minSteps_{0};
 
             /** \brief The maximum number of steps to apply a control for */
-            unsigned int maxSteps_;
+            unsigned int maxSteps_{0};
 
             /** \brief Optional allocator for the DirectedControlSampler. If not specified, the default implementation
              * is used */
@@ -330,7 +338,7 @@ namespace ompl
             SimpleDirectedControlSamplerAllocator sdcsa_ ;
 
             /** \brief The actual duration of each step */
-            double stepSize_;
+            double stepSize_{0.};
         };
     }
 }

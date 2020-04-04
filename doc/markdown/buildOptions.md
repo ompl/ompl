@@ -9,10 +9,10 @@ If you are building OMPL from source, there are several options that you can use
 | OMPL_BUILD_PYTESTS            | ON            | Whether the Python tests should be added to the `test` target. |
 | OMPL_BUILD_TESTS              | ON            | Wether to compile the C++ unit tests |
 | OMPL_REGISTRATION             | ON            | Whether the registration page is shown. (Disabling it might be useful for build bots.) |
-| OMPL_VERSIONED_INSTALL        | OFF           | Install header files in include/ompl-X.Y/ompl, where X and Y are the major and minor version numbers. |
+| OMPL_VERSIONED_INSTALL        | ON            | Install header files in include/ompl-X.Y/ompl, where X and Y are the major and minor version numbers. |
 
 There also several optional dependencies. By default, if an optional dependency is detected by `cmake`, support for this dependency is enabled. If this is not what you want, you can run `cmake` like so:
 
-     cmake -DCMAKE_DISABLE_FIND_PACKAGE_<PackageName> ../..
+     cmake -DCMAKE_DISABLE_FIND_PACKAGE_<PackageName>=ON ../..
 
 where `<PackageName>` is, e.g., `pypy`, `flann`, `spot`, etc.

@@ -46,7 +46,6 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/Time.h"
 #include "ompl/util/ClassForward.h"
-#include "ompl/util/Deprecation.h"
 #include <functional>
 #include <boost/concept_check.hpp>
 #include <string>
@@ -258,6 +257,9 @@ namespace ompl
 
             /** \brief Get the problem definition the planner is trying to solve */
             const ProblemDefinitionPtr &getProblemDefinition() const;
+
+            /** \brief Get the problem definition the planner is trying to solve */
+            ProblemDefinitionPtr &getProblemDefinition();
 
             /** \brief Get the planner input states */
             const PlannerInputStates &getPlannerInputStates() const;

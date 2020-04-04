@@ -54,7 +54,7 @@ namespace ompl
         */
 
         /** \brief [Q]uotient space road[M]ap [P]lanner Star (QMP*) Algorithm */
-        typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QMPStarImpl> QMPStar;
+        using QMPStar = ompl::geometric::BundleSpaceSequence<ompl::geometric::QMPStarImpl>;
 
     }  // namespace geometric
 }  // namespace ompl

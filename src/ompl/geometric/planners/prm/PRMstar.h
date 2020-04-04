@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, James D. Marble */
+/* Author: Ioan Sucan, James D. Marble, Henning Kayser */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_PRM_PRM_STAR_
 #define OMPL_GEOMETRIC_PLANNERS_PRM_PRM_STAR_
@@ -67,6 +67,9 @@ namespace ompl
         public:
             /** \brief Constructor */
             PRMstar(const base::SpaceInformationPtr &si);
+            /** \brief Constructor */
+            PRMstar(const base::PlannerData &data);
+
         };
     }
 }

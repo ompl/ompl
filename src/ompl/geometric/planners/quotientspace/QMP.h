@@ -60,7 +60,7 @@ namespace ompl
         */
 
         /** \brief [Q]uotient space road[M]ap [P]lanner (QMP) Algorithm */
-        typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::QMPImpl> QMP;
+        using QMP = ompl::geometric::BundleSpaceSequence<ompl::geometric::QMPImpl>;
 
     }  // namespace geometric
 }  // namespace ompl

@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, James D. Marble, Ryan Luna */
+/* Author: Ioan Sucan, James D. Marble, Ryan Luna, Henning Kayser */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_PRM_PRM_
 #define OMPL_GEOMETRIC_PLANNERS_PRM_PRM_
@@ -143,6 +143,9 @@ namespace ompl
             /** \brief Constructor */
             PRM(const base::SpaceInformationPtr &si, bool starStrategy = false);
 
+            /** \brief Constructor */
+            PRM(const base::PlannerData &data, bool starStrategy = false);
+
             ~PRM() override;
 
             void setProblemDefinition(const base::ProblemDefinitionPtr &pdef) override;
@@ -172,6 +175,13 @@ namespace ompl
              default one with k nearest neighbors.
              */
             void setMaxNearestNeighbors(unsigned int k);
+
+            /** \brief return the maximum number of nearest neighbors to connect a sample to
+             *
+             * This only returns a meaningful answer if the connection strategy is of type KStrategy.
+             */
+            unsigned int getMaxNearestNeighbors() const;
+
 
             /** \brief Set the function that can reject a milestone connection.
 

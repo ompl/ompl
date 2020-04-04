@@ -54,7 +54,7 @@ namespace ompl
         */
 
         /** \brief [SP]arse [Q]uotient space [R]oadmap planner (SPQR) Algorithm */
-       typedef ompl::geometric::BundleSpaceSequence<ompl::geometric::SPQRImpl> SPQR;
+       using SPQR = ompl::geometric::BundleSpaceSequence<ompl::geometric::SPQRImpl>;
     }
 }
 #endif

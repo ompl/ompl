@@ -54,7 +54,7 @@ namespace ompl
            @par External documentation
            Yanbo Li, Zakary Littlefield, Kostas E. Bekris, Sampling-based
            Asymptotically Optimal Sampling-based Kinodynamic Planning.
-           [[PDF]](http://arxiv.org/abs/1407.2896)
+           [[PDF]](https://arxiv.org/abs/1407.2896)
         */
         class SST : public base::Planner
         {

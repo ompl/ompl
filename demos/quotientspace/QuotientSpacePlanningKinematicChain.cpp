@@ -35,7 +35,7 @@
 
 /* Author: Andreas Orthey */
 
-#include "KinematicChain.h"
+#include "../KinematicChain.h"
 #include "QuotientSpacePlanningCommon.h"
 #include <ompl/geometric/planners/quotientspace/QRRT.h>
 #include <ompl/base/SpaceInformation.h>
