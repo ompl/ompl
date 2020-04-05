@@ -179,6 +179,13 @@ namespace ompl
             numSamplesPerBatch_ = numSamples;
         }
 
+        void EITstar::setInitialNumberOfSparseCollisionChecks(std::size_t numChecks)
+        {
+            initialNumSparseCollisionChecks_ = numChecks;
+            numSparseCollisionChecksCurrentLevel_ = numChecks;
+            numSparseCollisionChecksPreviousLevel_ = 0u;
+        }
+
         void EITstar::setRadiusFactor(double factor)
         {
             graph_.setRadiusFactor(factor);
@@ -652,7 +659,7 @@ namespace ompl
             suboptimalityFactor_ = std::numeric_limits<double>::infinity();
 
             // Reset the reverse collision detection.
-            numSparseCollisionChecksCurrentLevel_ = 1u;
+            numSparseCollisionChecksCurrentLevel_ = initialNumSparseCollisionChecks_;
             numSparseCollisionChecksPreviousLevel_ = 0u;
 
             // Restart the reverse search.

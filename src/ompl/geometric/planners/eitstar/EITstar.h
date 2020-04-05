@@ -74,6 +74,9 @@ namespace ompl
             /** \brief Sets the number of samples per batch. */
             void setNumSamplesPerBatch(std::size_t numSamples);
 
+            /** \brief Sets the initial number of collision checks on the reverse search. */
+            void setInitialNumberOfSparseCollisionChecks(std::size_t numChecks);
+
             /** \brief Sets the radius factor. */
             void setRadiusFactor(double factor);
 
@@ -199,6 +202,9 @@ namespace ompl
 
             /** \brief The option that specifies whether sparse collision detection on the reverse search tree is enabled. */
             bool isCollisionDetectionInReverseTreeEnabled_{false};
+
+            /** \brief The number of sparse collision detections on level 0. */
+            std::size_t initialNumSparseCollisionChecks_{1u};
 
             /** \brief The number of sparse collision detections performed on the reverse search. */
             std::size_t numSparseCollisionChecksCurrentLevel_{1u};
