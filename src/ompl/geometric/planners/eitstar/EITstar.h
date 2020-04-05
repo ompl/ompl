@@ -200,8 +200,11 @@ namespace ompl
             /** \brief The option that specifies whether sparse collision detection on the reverse search tree is enabled. */
             bool isCollisionDetectionInReverseTreeEnabled_{false};
 
-            /** \brief The interpolation values used for the sparse collision detection on the reverse search. */
-            std::vector<double> detectionInterpolationValues_{};
+            /** \brief The number of sparse collision detections performed on the reverse search. */
+            std::size_t numSparseCollisionChecksCurrentLevel_{1u};
+
+            /** \brief The number of sparse collision detections performed on the reverse search. */
+            std::size_t numSparseCollisionChecksPreviousLevel_{0u};
 
             /** \brief The edge cache that enables the just-in-time reverse search. */
             std::vector<eitstar::Edge> jitSearchEdgeCache_{};

@@ -652,7 +652,8 @@ namespace ompl
             suboptimalityFactor_ = std::numeric_limits<double>::infinity();
 
             // Reset the reverse collision detection.
-            detectionInterpolationValues_.clear();
+            numSparseCollisionChecksCurrentLevel_ = 1u;
+            numSparseCollisionChecksPreviousLevel_ = 0u;
 
             // Restart the reverse search.
             reverseRoot_.reset();
@@ -833,14 +834,11 @@ namespace ompl
 
         void EITstar::increaseSparseCollisionDetectionResolutionAndRestartReverseSearch()
         {
-            // Increase the number of interpolation values.
-            std::size_t numInterpolationValues = detectionInterpolationValues_.size() + 1u;
-            double interpolationStep = 1.0 / (numInterpolationValues + 1u);
-            detectionInterpolationValues_.clear();
-            for (std::size_t i = 0u; i < numInterpolationValues; ++i)
-            {
-                detectionInterpolationValues_.emplace_back((i + 1u) * interpolationStep);
-            }
+            // Remember the number of collision checks on the previous level.
+            numSparseCollisionChecksPreviousLevel_ = numSparseCollisionChecksCurrentLevel_;
+
+            // Increase the corresponding number of sparse checks.
+            numSparseCollisionChecksCurrentLevel_ = (2u * numSparseCollisionChecksPreviousLevel_) + 1u;
 
             // Restart the reverse search.
             reverseQueue_->clear();
@@ -987,25 +985,91 @@ namespace ompl
             // Ok, fine, we have to do some work.
             else
             {
-                // If the interpolation would result in smaller segments than checking the edge in full resolution,
-                // check the edge in full resolution instead.
-                if (!detectionInterpolationValues_.empty() &&
-                    detectionInterpolationValues_.front() * space_->distance(edge.source->raw(), edge.target->raw()) <=
-                        space_->getLongestValidSegmentLength())
+                /***
+                   Let's say we want to perform seven collision checks on an edge:
+
+                   position of checks:   |--------x--------x--------x--------x--------x--------x--------x--------|
+                   indices of checks:             1        2        3        4        5        6        7
+                   order of testing:              4        2        5        1        6        3        7
+
+                   We create a queue that holds segments and always test the midpoint of the segments. We start with the
+                   outermost indices and then break the segment in half until the segment collapses to a single point:
+
+                   1. indices = { (1, 7) }
+                      current = (1, 7) -> test midpoint = 4 -> add (1, 3) and (5, 7) to queue
+                   2. indices = { (1, 3), (5, 7) }
+                      current (1, 3) -> test midpoint = 2 -> add (1, 1) and (3, 3) to queue
+                   3. indices = { (5, 7), (1, 1), (3, 3) }
+                      current (5, 7) -> test midpoint = 6 -> add (5, 5) and (7, 7) to queue
+                   4. indices = { (1, 1), (3, 3), (5, 5), (7, 7) }
+                      current (1, 1) -> test midpoint = 1 -> add nothing to the queue
+                   5. indices = { (3, 3), (5, 5), (7, 7) }
+                      current (3, 3) -> test midpoint = 3 -> add nothing to the queue
+                   6. indices = { (5, 5) (7, 7) }
+                      current (5, 5) -> test midpoint = 5 -> add nothing to the queue
+                   7  indices = { (7, 7) }
+                      current (7, 7) -> test midpoint = 7 -> add nothing to the queue
+
+                ***/
+
+                // The segment count is the number of checks on this level plus 1.
+                auto segmentCount = numSparseCollisionChecksCurrentLevel_ + 1u;
+
+                // If the segment cound is larger than what would be necessary we just do the full collision check which
+                // will whitelist the edge.
+                if (segmentCount >= space_->validSegmentCount(edge.source->raw(), edge.target->raw()))
                 {
                     return isValid(edge);
                 }
 
-                for (const auto t : detectionInterpolationValues_)
+                // Initialize the queue of positions to be tested.
+                std::queue<std::pair<std::size_t, std::size_t>> indices;
+                indices.emplace(1u, numSparseCollisionChecksCurrentLevel_);
+
+                // Store the current check number.
+                std::size_t currentCheck = 1u;
+
+                // Test states while there are states to be tested.
+                while (!indices.empty())
                 {
-                    space_->interpolate(edge.source->raw(), edge.target->raw(), t, detectionState_);
-                    if (!spaceInfo_->isValid(detectionState_))
+                    // Get the current segment and remove if from the queue.
+                    auto current = indices.front();
+                    indices.pop();
+
+                    // Get the midpoint of the segment.
+                    auto mid = (current.first + current.second) / 2;
+
+                    // Create the first half of the split segment if necessary.
+                    if (current.first < mid)
                     {
-                        edge.source->blacklist(edge.target);
-                        edge.target->blacklist(edge.source);
-                        return false;
+                        indices.emplace(current.first, mid - 1u);
                     }
+
+                    // Create the second half of the split segment if necessary.
+                    if (current.second > mid)
+                    {
+                        indices.emplace(mid + 1u, current.second);
+                    }
+
+                    // Only do the detection if we haven't tested this state on a previous level.
+                    if (currentCheck > numSparseCollisionChecksPreviousLevel_)
+                    {
+                        space_->interpolate(edge.source->raw(), edge.target->raw(),
+                                            static_cast<double>(mid) / static_cast<double>(segmentCount),
+                                            detectionState_);
+
+                        if (!spaceInfo_->isValid(detectionState_))
+                        {
+                            edge.source->blacklist(edge.target);
+                            edge.target->blacklist(edge.source);
+                            return false;
+                        }
+                    }
+
+                    // Increase the current check number.
+                    ++currentCheck;
                 }
+
                 return true;
             }
         }
