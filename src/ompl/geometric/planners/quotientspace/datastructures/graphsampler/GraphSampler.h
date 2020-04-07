@@ -22,6 +22,7 @@ namespace ompl
             void sample(base::State *xRandom);
 
             void setPathBiasStartSegment(double);
+            double getPathBiasStartSegment();
 
           protected:
 

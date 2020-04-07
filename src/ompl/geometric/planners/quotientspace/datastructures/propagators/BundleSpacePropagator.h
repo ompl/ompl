@@ -24,7 +24,7 @@ namespace ompl
         virtual bool steer( 
             const Configuration *from, 
             const Configuration *to, 
-            Configuration *result) const = 0;
+            Configuration *result) = 0;
 
       protected:
 

@@ -241,6 +241,7 @@ namespace ompl
             BundleSpaceGraphSamplerPtr getGraphSampler();
 
             bool computeFeasiblePathSection();
+            bool computeFeasiblePathSection2();
 
             /** \brief Best cost found so far by algorithm */
             base::Cost bestCost_{+ompl::base::dInf};
@@ -307,6 +308,12 @@ namespace ompl
                 Configuration *dest) const;
 
             ompl::base::PathPtr solutionPath_;
+
+            bool checkFeasiblePathSection( 
+                Configuration *xLast,
+                std::vector<base::State*> basePath,
+                std::vector<base::State*> bundlePath, 
+                unsigned int depth=0);
         protected:
 
             virtual Configuration* addBundleConfiguration(base::State*);
@@ -343,8 +350,6 @@ namespace ompl
 
             /** \brief Temporary random configuration */
             Configuration *xApproximateNearest_{nullptr};
-
-            double bestDist_{base::dInf};
 
             BundleSpaceImportancePtr importanceCalculator_{nullptr};
 

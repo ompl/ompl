@@ -18,14 +18,17 @@ constraints there, usable by any bundle algorithm)
 [x] Add Adaptive Graph Thickening
 [x] Add last Valid sampling bias after we tried a geodesic lift
 [x] Add SO3xRN
+[x] Merge with master branch ompl/ompl (to get newest planner versions)
+[x] benchmark the whole suite on pregrasp
 
+[ ] Rename LiftPath to InterpolateAlongPathSection
 [ ] *** Add steering function support (at least SE3 and SE2)
 [ ] ** Clarify experiments
 [ ] * handle NH constraints in QMPStar and SPQR
-[ ] * Add Enumerate for Metric/Importance/Sampler (Options Class?)
+[ ] * Add Enumerate for Metric/Importance/Sampler (Use Params like in RRTstar)
 [ ] * Make path segment sampling more robust
-[ ] * benchmark the whole suite on pregrasp
-[ ] ** Merge with master branch ompl/ompl (to get newest planner versions)
+[ ] * Try to fix path section interpolation by using random fiber directions
+(particle shooting extension?)
 
 Improvements (FB):
 - Enable Multi Robot Planning using a new component-based implementation

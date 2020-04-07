@@ -6,6 +6,8 @@
 #include <ompl/control/SpaceInformation.h>
 #include <ompl/control/StatePropagator.h>
 #include <ompl/control/DirectedControlSampler.h>
+#include <ompl/control/ControlSampler.h>
+#include <ompl/util/RandomNumbers.h>
 
 namespace ompl
 {
@@ -27,9 +29,10 @@ namespace ompl
         virtual bool steer( 
             const Configuration *from, 
             const Configuration *to, 
-            Configuration *result) const override;
+            Configuration *result) override;
 
       protected:
+        RNG rng_;
         int numberOfControlSamples{10};
         double propStepSize;
         int controlDuration{10};
@@ -40,7 +43,9 @@ namespace ompl
 
         base::State* stateRandom_;
         control::StatePropagatorPtr prop_;
-        control::DirectedControlSamplerPtr controlSampler_;
+        // control::DirectedControlSamplerPtr controlSampler_;
+        control::ControlSamplerPtr controlSampler_;
+
 
 
     };

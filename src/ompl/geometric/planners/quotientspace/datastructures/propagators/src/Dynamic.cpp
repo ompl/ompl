@@ -1,6 +1,7 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/propagators/Dynamic.h>
 #include <ompl/base/DynamicalMotionValidator.h>
 
+
 ompl::geometric::BundleSpacePropagatorDynamic::BundleSpacePropagatorDynamic(
     BundleSpaceGraph *bundleSpaceGraph):
   BaseT(bundleSpaceGraph)
@@ -18,7 +19,8 @@ ompl::geometric::BundleSpacePropagatorDynamic::BundleSpacePropagatorDynamic(
     siC_->setMinMaxControlDuration(1,controlDuration);
     std::cout << "MaxControlDuration: " << controlDuration << std::endl;
 
-    controlSampler_ = siC_->allocDirectedControlSampler();
+    // controlSampler_ = siC_->allocDirectedControlSampler();
+    controlSampler_ = siC_->allocControlSampler();
 
     //@TODO: need to write allocator for simpleDirectedControlSampler
     //dCSampler->setNumControlSamples(numberOfControlSamples);
@@ -36,17 +38,22 @@ ompl::geometric::BundleSpacePropagatorDynamic::~BundleSpacePropagatorDynamic()
 bool ompl::geometric::BundleSpacePropagatorDynamic::steer( 
     const Configuration *from, 
     const Configuration *to, 
-    Configuration *result) const
+    Configuration *result)
 {
-    bundleSpaceGraph_->getBundle()->copyState(result->state, to->state);
+    // bundleSpaceGraph_->getBundle()->copyState(result->state, to->state);
 
-    unsigned int cd = controlSampler_->sampleTo(controlRandom_, from->state, result->state);
+    // unsigned int cd = controlSampler_->sampleTo(controlRandom_, from->state, to->state);
+    // cd = siC_->propagateWhileValid(from->state, controlRandom_, cd, result->state);
+    // if (cd >= siC_->getMinControlDuration()){
+    //     return true;
+    // }	
+    // return false;
 
-    cd = siC_->propagateWhileValid(from->state, controlRandom_, cd, result->state);
+    //different approach
+    controlSampler_->sample(controlRandom_);
+    unsigned int cd = rng_.uniformInt(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
+    unsigned int propCd = siC_->propagateWhileValid(from->state, controlRandom_, cd, result->state);
 
-    if (cd >= siC_->getMinControlDuration()){
-        return true;
-    }	
-    return false;
+    return (propCd == cd);
 }
 

@@ -12,6 +12,12 @@ void ompl::geometric::BundleSpaceGraphSampler::setPathBiasStartSegment(double s)
 {
   this->pathBiasStartSegment_ = s;
 }
+
+double ompl::geometric::BundleSpaceGraphSampler::getPathBiasStartSegment()
+{
+  return this->pathBiasStartSegment_;
+}
+
 void ompl::geometric::BundleSpaceGraphSampler::sample(
     base::State *xRandom)
 {

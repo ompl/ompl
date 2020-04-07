@@ -139,11 +139,28 @@ namespace ompl
                 const ompl::base::State *xFiber, 
                 ompl::base::State *xBundle) const; 
 
-            void liftPath(
-                  const std::vector<base::State*> pathBase,
-                  const base::State* xFiberStart,
-                  const base::State* xFiberGoal,
-                  std::vector<base::State*> pathBundle) const;
+            // void liftPath(
+            //       const std::vector<base::State*> pathBase,
+            //       const base::State* xFiberStart,
+            //       const base::State* xFiberGoal,
+            //       std::vector<base::State*> pathBundle) const;
+
+            unsigned int interpolateAlongBasePath(
+                  const std::vector<base::State*> basePath,
+                  double location,
+                  base::State* xResult) const;
+
+            std::vector<ompl::base::State*> computePathSection(
+                  const std::vector<ompl::base::State*> basePath,
+                  const ompl::base::State* xFiberStart,
+                  const ompl::base::State* xFiberGoal) const;
+
+            std::vector<ompl::base::State*> computePathSection(
+                  const std::vector<ompl::base::State*> basePath,
+                  const ompl::base::State* xFiberStart,
+                  double locationStart,
+                  const ompl::base::State* xFiberGoal) const;
+
 
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 
@@ -182,6 +199,8 @@ namespace ompl
             ompl::base::State *xBaseTmp_{nullptr};
             /// A temporary state on Fiber
             ompl::base::State *xFiberTmp_{nullptr};
+            /// A temporary state on Bundle
+            ompl::base::State *xBundleTmp_{nullptr};
 
             static unsigned int counter_;
 
