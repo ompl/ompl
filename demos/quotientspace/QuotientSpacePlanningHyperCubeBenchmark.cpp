@@ -85,12 +85,11 @@
 #include <boost/format.hpp>
 #include <fstream>
 
-
 const double edgeWidth = 0.2;
 const double runtime_limit = 1;
 const double memory_limit = 4096 * 4096;
-const int run_count = 5;
-unsigned int curDim = 8;
+const int run_count = 2;
+unsigned int curDim = 20;
 int numberPlanners = 0;
 
 
@@ -120,8 +119,14 @@ std::vector<std::vector<int>> getHypercubeAdmissibleProjections(int dim)
     std::vector<int> powStep;
 
     // powStep.push_back(2);
-    powStep.push_back(3);
+    powStep.push_back(4);
     powStep.push_back(6);
+    powStep.push_back(8);
+    powStep.push_back(10);
+    powStep.push_back(12);
+    powStep.push_back(14);
+    powStep.push_back(16);
+    powStep.push_back(18);
     powStep.push_back(dim);
 
     projections.push_back(powStep);
@@ -324,12 +329,13 @@ int main(int argc, char **argv)
     {
         std::vector<int> proj = admissibleProjections.at(k);
         addPlanner(benchmark, GetBundlePlanner<og::QRRT>(proj, si, "QRRT"), range);
-        addPlanner(benchmark, GetBundlePlanner<og::QRRTStar>(proj, si, "QRRTStar"), range);
+        // addPlanner(benchmark, GetBundlePlanner<og::QRRTStar>(proj, si, "QRRTStar"), range);
         addPlanner(benchmark, GetBundlePlanner<og::QMP>(proj, si, "QMP"), range);
-        addPlanner(benchmark, GetBundlePlanner<og::QMPStar>(proj, si, "QMPStar"), range);
+        // addPlanner(benchmark, GetBundlePlanner<og::QMPStar>(proj, si, "QMPStar"), range);
     }
+    addPlanner(benchmark, std::make_shared<og::RRTConnect>(si), range);
     addPlanner(benchmark, std::make_shared<og::BKPIECE1>(si), range);
-    addPlanner(benchmark, std::make_shared<og::KPIECE1>(si), range);
+    // addPlanner(benchmark, std::make_shared<og::KPIECE1>(si), range);
     // addPlanner(benchmark, std::make_shared<og::SBL>(si), range);
     // addPlanner(benchmark, std::make_shared<og::ProjEST>(si), range);
     // // addPlanner(benchmark, std::make_shared<og::SPARStwo>(si), range);

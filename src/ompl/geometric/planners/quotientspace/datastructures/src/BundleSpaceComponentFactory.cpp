@@ -2,11 +2,13 @@
 
 //XRN -> X
 #include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_X_SO2.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_X_SO3.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_X_SE2.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_X_SE3.h>
 
 //XRN -> XRM
 #include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_XRM_SO2.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_XRM_SO3.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_XRM_SE2.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/components/XRN_XRM_SE3.h>
 
@@ -153,6 +155,11 @@ ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
     }else if(type == BUNDLE_SPACE_SO2RN_SO2RM){
       component = std::make_shared<BundleSpaceComponent_SO2RN_SO2RM>(Bundle, Base);
 
+    }else if(type == BUNDLE_SPACE_SO3RN_SO3){
+      component = std::make_shared<BundleSpaceComponent_SO3RN_SO3>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_SO3RN_SO3RM){
+      component = std::make_shared<BundleSpaceComponent_SO3RN_SO3RM>(Bundle, Base);
+
     }else if(type == BUNDLE_SPACE_SE3_R3){
       component = std::make_shared<BundleSpaceComponent_SE3_R3>(Bundle, Base);
     }else if(type == BUNDLE_SPACE_SE3RN_R3){
@@ -240,6 +247,10 @@ ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(c
     }
 
     //SO3 ->
+    if(isMapping_SO3RN_to_SO3(Bundle, Base))
+    {
+        return BUNDLE_SPACE_SO3RN_SO3;
+    }
     if(isMapping_SO3RN_to_SO3RM(Bundle, Base))
     {
         return BUNDLE_SPACE_SO3RN_SO3RM;

@@ -150,16 +150,44 @@ namespace ompl
                   double location,
                   base::State* xResult) const;
 
-            std::vector<ompl::base::State*> computePathSection(
+            //  ---------------
+            //            ____x
+            //       ____/
+            //   ___/
+            //  x
+            //  ---------------
+            std::vector<ompl::base::State*> computePathSection_Geodesic(
                   const std::vector<ompl::base::State*> basePath,
                   const ompl::base::State* xFiberStart,
                   const ompl::base::State* xFiberGoal) const;
 
-            std::vector<ompl::base::State*> computePathSection(
+            //  ---------------
+            //   _____________x
+            //  |
+            //  |
+            //  x
+            //  ---------------
+            std::vector<ompl::base::State*> computePathSection_Manhattan_Top(
                   const std::vector<ompl::base::State*> basePath,
                   const ompl::base::State* xFiberStart,
-                  double locationStart,
                   const ompl::base::State* xFiberGoal) const;
+
+            //  ---------------
+            //                x
+            //                |
+            //                |
+            //  x_____________|
+            //  ---------------
+            std::vector<ompl::base::State*> computePathSection_Manhattan_Down(
+                  const std::vector<ompl::base::State*> basePath,
+                  const ompl::base::State* xFiberStart,
+                  const ompl::base::State* xFiberGoal) const;
+
+            // std::vector<ompl::base::State*> computePathSection(
+            //       const std::vector<ompl::base::State*> basePath,
+            //       const ompl::base::State* xFiberStart,
+            //       double locationStart,
+            //       const ompl::base::State* xFiberGoal) const;
 
 
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;

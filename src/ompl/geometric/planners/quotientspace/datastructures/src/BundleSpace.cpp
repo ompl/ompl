@@ -258,7 +258,7 @@ void ompl::geometric::BundleSpace::resetCounter()
 //     }
 // }
 
-std::vector<ompl::base::State*> ompl::geometric::BundleSpace::computePathSection(
+std::vector<ompl::base::State*> ompl::geometric::BundleSpace::computePathSection_Geodesic(
       const std::vector<base::State*> basePath,
       const base::State* xFiberStart,
       const base::State* xFiberGoal) const
@@ -304,22 +304,75 @@ std::vector<ompl::base::State*> ompl::geometric::BundleSpace::computePathSection
     return bundlePath;
 }
 
-std::vector<ompl::base::State*> ompl::geometric::BundleSpace::computePathSection(
+std::vector<ompl::base::State*> ompl::geometric::BundleSpace::computePathSection_Manhattan_Top(
       const std::vector<base::State*> basePath,
       const base::State* xFiberStart,
-      const double baseLocationStart,
       const base::State* xFiberGoal) const
 {
+    std::vector<base::State*> bundlePath;
+    bundlePath.resize(basePath.size()+1);
+    getBundle()->allocStates(bundlePath);
 
-    base::State *xBaseStart = getBase()->allocState();
+    if(getFiberDimension() > 0)
+    {
+        liftState(basePath.front(), xFiberStart, bundlePath.front());
+        for(uint k = 1; k < bundlePath.size(); k++)
+        {
+            liftState(basePath.at(k-1), xFiberGoal, bundlePath.at(k));
+        }
 
-    unsigned int lastCtr = interpolateAlongBasePath(basePath, baseLocationStart, xBaseStart);
-
-    std::vector<base::State*> basePathSegment = {basePath.begin() + lastCtr, basePath.end()}; 
-    basePathSegment.insert(basePathSegment.begin(), xBaseStart);
-
-    return computePathSection(basePathSegment, xFiberStart, xFiberGoal);
+    }else{
+        for(uint k = 0; k < basePath.size(); k++){
+            getBundle()->copyState(bundlePath.at(k), basePath.at(k));
+        }
+    }
+    return bundlePath;
 }
+std::vector<ompl::base::State*> ompl::geometric::BundleSpace::computePathSection_Manhattan_Down(
+      const std::vector<base::State*> basePath,
+      const base::State* xFiberStart,
+      const base::State* xFiberGoal) const
+{
+    std::vector<base::State*> bundlePath;
+    bundlePath.resize(basePath.size()+1);
+    getBundle()->allocStates(bundlePath);
+
+    if(getFiberDimension() > 0)
+    {
+        for(uint k = 0; k < basePath.size(); k++)
+        {
+            if(k<basePath.size()-1){
+                liftState(basePath.at(k), xFiberStart, bundlePath.at(k));
+            }else{
+                liftState(basePath.at(k), xFiberGoal, bundlePath.at(k));
+            }
+        }
+        // liftState(basePath.back(), xFiberGoal, bundlePath.back());
+
+    }else{
+        for(uint k = 0; k < basePath.size(); k++){
+            getBundle()->copyState(bundlePath.at(k), basePath.at(k));
+        }
+    }
+    return bundlePath;
+}
+
+// std::vector<ompl::base::State*> ompl::geometric::BundleSpace::computePathSection(
+//       const std::vector<base::State*> basePath,
+//       const base::State* xFiberStart,
+//       const double baseLocationStart,
+//       const base::State* xFiberGoal) const
+// {
+
+//     base::State *xBaseStart = getBase()->allocState();
+
+//     unsigned int lastCtr = interpolateAlongBasePath(basePath, baseLocationStart, xBaseStart);
+
+//     std::vector<base::State*> basePathSegment = {basePath.begin() + lastCtr, basePath.end()}; 
+//     basePathSegment.insert(basePathSegment.begin(), xBaseStart);
+
+//     return computePathSection(basePathSegment, xFiberStart, xFiberGoal);
+// }
 
 unsigned int ompl::geometric::BundleSpace::interpolateAlongBasePath(
       const std::vector<base::State*> basePath,

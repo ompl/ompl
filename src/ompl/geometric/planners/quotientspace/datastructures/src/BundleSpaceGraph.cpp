@@ -705,7 +705,7 @@ bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection()
     projectFiber(qGoal_->state, xFiberTmp2_);
 
     std::vector<base::State*> bundlePathStates = 
-      computePathSection(basePathStates, xFiberTmp1_, xFiberTmp2_);
+      computePathSection_Geodesic(basePathStates, xFiberTmp1_, xFiberTmp2_);
 
     //check for feasibility
     Configuration *xLast = qStart_;
@@ -777,7 +777,7 @@ bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection()
     return hasSolution_;
 }
 
-const unsigned int PATH_SECTION_TREE_MAX_DEPTH = 4;
+const unsigned int PATH_SECTION_TREE_MAX_DEPTH = 3;
 const unsigned int PATH_SECTION_TREE_MAX_BRANCHING = 10;
 
 bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
@@ -940,13 +940,10 @@ bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
                     extendable = true;
                 }
 
-                // std::cout << std::string(5*depth, '-');
-                // std::cout << "Branch " << j << " depth " << depth << 
-                //   ":" << (extendable?"extending":"infeasible")<< std::endl;
                 if(extendable)
                 {
                   std::vector<base::State*> branchPathBundle = 
-                      computePathSection(basePathSegment, xFiberTmp1_, xFiberTmp2_);
+                      computePathSection_Manhattan_Down(basePathSegment, xFiberTmp1_, xFiberTmp2_);
 
                   bool found = 
                     checkFeasiblePathSection(xLast, basePathSegment, branchPathBundle, depth+1, locationOnBasePath);
@@ -984,7 +981,7 @@ bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection2()
     projectFiber(qStart_->state, xFiberTmp1_);
     projectFiber(qGoal_->state, xFiberTmp2_);
 
-    std::vector<base::State*> bundlePathStates = computePathSection(
+    std::vector<base::State*> bundlePathStates = computePathSection_Manhattan_Down(
         basePathStates, xFiberTmp1_, xFiberTmp2_);
 
     //check for feasibility
