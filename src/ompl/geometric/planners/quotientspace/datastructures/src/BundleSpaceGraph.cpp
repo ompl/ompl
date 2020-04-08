@@ -988,7 +988,7 @@ bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection2()
     bool found = checkFeasiblePathSection(qStart_, basePathStates, bundlePathStates);
     if(!found)
     {
-        std::cout << "path section infeasible" << std::endl;
+        OMPL_DEBUG("path section infeasible");
     }
 
     //DEBUG

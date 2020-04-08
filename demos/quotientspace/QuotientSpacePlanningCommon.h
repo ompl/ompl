@@ -62,6 +62,10 @@ void printBenchmarkResults(const ot::Benchmark &b)
         {
             ot::Benchmark::RunProperties run = runs.at(j);
             double timeJrun = std::atof(run["time REAL"].c_str());
+            bool runSolved = std::atoi(run["solved BOOLEAN"].c_str());
+
+            if(!runSolved) timeJrun = experiment.maxTime;
+
             time += timeJrun;
             if (timeJrun < experiment.maxTime)
                 percentSuccess++;

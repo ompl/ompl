@@ -38,7 +38,7 @@
 #include "QuotientSpacePlanningCommon.h"
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
-// #include <ompl/geometric/planners/bitstar/BITstar.h> //TODO: gets stuck
+#include <ompl/geometric/planners/bitstar/BITstar.h> //TODO: gets stuck
 #include <ompl/geometric/planners/est/BiEST.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/est/ProjEST.h>
@@ -48,7 +48,7 @@
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
 #include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
 #include <ompl/geometric/planners/pdst/PDST.h>
-// #include <ompl/geometric/planners/prm/LazyPRM.h> //TODO: segfault
+#include <ompl/geometric/planners/prm/LazyPRM.h> //TODO: segfault
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
@@ -58,6 +58,7 @@
 #include <ompl/geometric/planners/quotientspace/QRRTStar.h>
 #include <ompl/geometric/planners/quotientspace/QMP.h>
 #include <ompl/geometric/planners/quotientspace/QMPStar.h>
+#include <ompl/geometric/planners/quotientspace/SPQR.h>
 #include <ompl/geometric/planners/rrt/BiTRRT.h>
 #include <ompl/geometric/planners/rrt/InformedRRTstar.h>
 #include <ompl/geometric/planners/rrt/LazyRRT.h>
@@ -69,7 +70,7 @@
 #include <ompl/geometric/planners/rrt/RRTXstatic.h>
 #include <ompl/geometric/planners/rrt/SORRTstar.h>
 #include <ompl/geometric/planners/rrt/TRRT.h>
-// #include <ompl/geometric/planners/sbl/pSBL.h> //TODO: parallel algorithms return infeasible solutions
+#include <ompl/geometric/planners/sbl/pSBL.h> //TODO: parallel algorithms return infeasible solutions
 #include <ompl/geometric/planners/sbl/SBL.h>
 #include <ompl/geometric/planners/sst/SST.h>
 #include <ompl/geometric/planners/stride/STRIDE.h>
@@ -86,10 +87,10 @@
 #include <fstream>
 
 const double edgeWidth = 0.2;
-const double runtime_limit = 1;
+const double runtime_limit = 60;
 const double memory_limit = 4096 * 4096;
-const int run_count = 2;
-unsigned int curDim = 20;
+const int run_count = 10;
+unsigned int curDim = 40;
 int numberPlanners = 0;
 
 
@@ -111,55 +112,18 @@ std::vector<std::vector<int>> getHypercubeAdmissibleProjections(int dim)
     // std::vector<int> discrete;
     // boost::push_back(discrete, boost::irange(2, dim + 1));
 
-    std::vector<int> twoStep;
-    boost::push_back(twoStep, boost::irange(2, dim + 1, 2));
-    if (twoStep.back() != dim)
-        twoStep.push_back(dim);
+    // std::vector<int> twoStep;
+    // boost::push_back(twoStep, boost::irange(2, dim + 1, 2));
+    // if (twoStep.back() != dim)
+    //     twoStep.push_back(dim);
 
     std::vector<int> powStep;
 
-    // powStep.push_back(2);
-    powStep.push_back(4);
-    powStep.push_back(6);
-    powStep.push_back(8);
-    powStep.push_back(10);
-    powStep.push_back(12);
-    powStep.push_back(14);
-    powStep.push_back(16);
-    powStep.push_back(18);
-    powStep.push_back(dim);
+    for(int k = 4; k <= dim; k+=2){
+      powStep.push_back(k);
+    }
 
     projections.push_back(powStep);
-    // projections.push_back(trivial);
-    // projections.push_back(discrete);
-    // projections.push_back(twoStep);
-
-
-    // projections.push_back(std::vector<int>{});
-    // projections.push_back(std::vector<int>{2});
-    // projections.push_back(std::vector<int>{3});
-
-    // unsigned int K = ceil(dim*0.5);
-    // for(uint k = 2; k < K; k++){
-    //   std::vector<int> kStep;
-    //   boost::push_back(kStep, boost::irange(2, dim, k));
-    //   projections.push_back(kStep);
-    // }
-    // for(int k = 2; k < dim; k++){
-    //   std::vector<int> kStep{k,dim};
-    //   projections.push_back(kStep);
-
-    //   for(int j = k+1; j < dim; j++){
-    //     std::vector<int> kjStep{k,j,dim};
-    //     projections.push_back(kjStep);
-    //   }
-    // }
-
-    // for(uint k = 0; k < projections.size(); k++){
-    //   if(projections.at(k).back() != dim)
-    //     projections.at(k).push_back(dim);
-    // }
-
     auto last = std::unique(projections.begin(), projections.end());
     projections.erase(last, projections.end());
 
@@ -324,50 +288,47 @@ int main(int argc, char **argv)
     //############################################################################
     // Load All Planner
     //############################################################################
+    //MultiLevel Planner
+
     std::vector<std::vector<int>> admissibleProjections = getHypercubeAdmissibleProjections(curDim);
     for (unsigned int k = 0; k < admissibleProjections.size(); k++)
     {
         std::vector<int> proj = admissibleProjections.at(k);
         addPlanner(benchmark, GetBundlePlanner<og::QRRT>(proj, si, "QRRT"), range);
-        // addPlanner(benchmark, GetBundlePlanner<og::QRRTStar>(proj, si, "QRRTStar"), range);
+        addPlanner(benchmark, GetBundlePlanner<og::QRRTStar>(proj, si, "QRRTStar"), range);
         addPlanner(benchmark, GetBundlePlanner<og::QMP>(proj, si, "QMP"), range);
-        // addPlanner(benchmark, GetBundlePlanner<og::QMPStar>(proj, si, "QMPStar"), range);
+        addPlanner(benchmark, GetBundlePlanner<og::QMPStar>(proj, si, "QMPStar"), range);
+        addPlanner(benchmark, GetBundlePlanner<og::SPQR>(proj, si, "SPQR"), range);
     }
-    addPlanner(benchmark, std::make_shared<og::RRTConnect>(si), range);
-    addPlanner(benchmark, std::make_shared<og::BKPIECE1>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::KPIECE1>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::SBL>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::ProjEST>(si), range);
-    // // addPlanner(benchmark, std::make_shared<og::SPARStwo>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::STRIDE>(si), range);
 
-    // addPlanner(benchmark, std::make_shared<og::EST>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::BiEST>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::ProjEST>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::FMT>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::BFMT>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::KPIECE1>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::BKPIECE1>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::LBKPIECE1>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::PDST>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::PRM>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::PRMstar>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::LazyPRMstar>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::SPARS>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::SPARStwo>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::RRTConnect>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::RRTsharp>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::RRTstar>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::RRTXstatic>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::LazyRRT>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::InformedRRTstar>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::TRRT>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::BiTRRT>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::LBTRRT>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::SORRTstar>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::SBL>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::SST>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::STRIDE>(si), range);
+    //Classical Planner
+    addPlanner(benchmark, std::make_shared<og::EST>(si), range);
+    addPlanner(benchmark, std::make_shared<og::BiEST>(si), range);
+    addPlanner(benchmark, std::make_shared<og::ProjEST>(si), range);
+    addPlanner(benchmark, std::make_shared<og::FMT>(si), range);
+    addPlanner(benchmark, std::make_shared<og::BFMT>(si), range);
+    addPlanner(benchmark, std::make_shared<og::KPIECE1>(si), range);
+    addPlanner(benchmark, std::make_shared<og::BKPIECE1>(si), range);
+    addPlanner(benchmark, std::make_shared<og::LBKPIECE1>(si), range);
+    addPlanner(benchmark, std::make_shared<og::PDST>(si), range);
+    addPlanner(benchmark, std::make_shared<og::PRM>(si), range);
+    addPlanner(benchmark, std::make_shared<og::PRMstar>(si), range);
+    addPlanner(benchmark, std::make_shared<og::LazyPRMstar>(si), range);
+    addPlanner(benchmark, std::make_shared<og::SPARS>(si), range);
+    addPlanner(benchmark, std::make_shared<og::SPARStwo>(si), range);
+    addPlanner(benchmark, std::make_shared<og::RRTConnect>(si), range);
+    addPlanner(benchmark, std::make_shared<og::RRTsharp>(si), range);
+    addPlanner(benchmark, std::make_shared<og::RRTstar>(si), range);
+    addPlanner(benchmark, std::make_shared<og::RRTXstatic>(si), range);
+    addPlanner(benchmark, std::make_shared<og::LazyRRT>(si), range);
+    addPlanner(benchmark, std::make_shared<og::InformedRRTstar>(si), range);
+    addPlanner(benchmark, std::make_shared<og::TRRT>(si), range);
+    addPlanner(benchmark, std::make_shared<og::BiTRRT>(si), range);
+    addPlanner(benchmark, std::make_shared<og::LBTRRT>(si), range);
+    addPlanner(benchmark, std::make_shared<og::SORRTstar>(si), range);
+    addPlanner(benchmark, std::make_shared<og::SBL>(si), range);
+    addPlanner(benchmark, std::make_shared<og::SST>(si), range);
+    addPlanner(benchmark, std::make_shared<og::STRIDE>(si), range);
     //############################################################################
 
     printEstimatedTimeToCompletion(numberPlanners, run_count, runtime_limit);

@@ -32,6 +32,8 @@ constraints there, usable by any bundle algorithm)
 [ ] ** Make path bias a dynamic window (test SE3 and SE3^k)
 [ ] * Outsource path section shooting method to own folder
 [ ] * Make path segment sampling more robust
+[ ] ** Fix Hypercube out_of_range error
+[ ] ** Plot hypercube benchmark
 
 Improvements (FB):
 - Enable Multi Robot Planning using a new component-based implementation

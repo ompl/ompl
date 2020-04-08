@@ -315,10 +315,13 @@ std::vector<ompl::base::State*> ompl::geometric::BundleSpace::computePathSection
 
     if(getFiberDimension() > 0)
     {
-        liftState(basePath.front(), xFiberStart, bundlePath.front());
-        for(uint k = 1; k < bundlePath.size(); k++)
+        for(uint k = 0; k < basePath.size(); k++)
         {
-            liftState(basePath.at(k-1), xFiberGoal, bundlePath.at(k));
+            if(k > 0){
+                liftState(basePath.at(k), xFiberGoal, bundlePath.at(k));
+            }else{
+                liftState(basePath.at(k), xFiberStart, bundlePath.at(k));
+            }
         }
 
     }else{
@@ -341,7 +344,7 @@ std::vector<ompl::base::State*> ompl::geometric::BundleSpace::computePathSection
     {
         for(uint k = 0; k < basePath.size(); k++)
         {
-            if(k<basePath.size()-1){
+            if(k < basePath.size()-1){
                 liftState(basePath.at(k), xFiberStart, bundlePath.at(k));
             }else{
                 liftState(basePath.at(k), xFiberGoal, bundlePath.at(k));

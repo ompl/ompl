@@ -15,7 +15,7 @@ void ompl::geometric::BundleSpaceGraphSampler::setPathBiasStartSegment(double s)
       this->pathBiasStartSegment_ = s;
       geometric::PathGeometric &spath = 
         static_cast<geometric::PathGeometric &>(*bundleSpaceGraph_->solutionPath_);
-      std::cout << "Set path bias:" << s << "/" << spath.length() << std::endl;
+      OMPL_DEBUG("Set path bias: %f/%f", s, spath.length());
   }
 }
 
