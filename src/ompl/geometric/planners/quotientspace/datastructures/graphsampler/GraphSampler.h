@@ -36,13 +36,13 @@ namespace ompl
 
             double epsilonGraphThickening_{0.0};
 
-            double epsilonGraphThickeningFraction_{1e-3};
+            double epsilonGraphThickeningFraction_{1e-2};
 
             double pathBiasFixed_{0.1};
 
             double pathBiasStartSegment_{0.0};
 
-            double exponentialDecayLambda_{1e-3};
+            double exponentialDecayLambda_{1e-5};
 
             unsigned long long counterPathSampling_{0};
 

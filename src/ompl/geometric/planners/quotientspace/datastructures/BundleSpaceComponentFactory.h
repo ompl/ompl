@@ -52,6 +52,17 @@ namespace ompl
             bool isMapping_SE3RN_to_SE3RM(const base::StateSpacePtr, const base::StateSpacePtr);
             bool isMapping_SO2RN_to_SO2(const base::StateSpacePtr, const base::StateSpacePtr);
             bool isMapping_SO2RN_to_SO2RM(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_SO3RN_to_SO3(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_SO3RN_to_SO3RM(const base::StateSpacePtr, const base::StateSpacePtr);
+
+            bool isMapping_XRN_to_XRM(
+                const base::StateSpacePtr, 
+                const base::StateSpacePtr,
+                const base::StateSpaceType);
+            bool isMapping_XRN_to_X(
+                const base::StateSpacePtr, 
+                const base::StateSpacePtr,
+                const base::StateSpaceType);
 
             int GetNumberOfComponents(base::StateSpacePtr space);
         };

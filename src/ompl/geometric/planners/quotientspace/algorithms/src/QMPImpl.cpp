@@ -107,7 +107,7 @@ void ompl::geometric::QMPImpl::grow()
         init();
         vGoal_ = addConfiguration(qGoal_);
         firstRun_ = false;
-        if(computeFeasiblePathSection())
+        if(computeFeasiblePathSection2())
         {
             return;
         }

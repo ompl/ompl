@@ -239,6 +239,12 @@ ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(c
         return BUNDLE_SPACE_SO2RN_SO2RM;
     }
 
+    //SO3 ->
+    if(isMapping_SO3RN_to_SO3RM(Bundle, Base))
+    {
+        return BUNDLE_SPACE_SO3RN_SO3RM;
+    }
+
     OMPL_ERROR("Fiber Bundle unknown.");
     return BUNDLE_SPACE_UNKNOWN;
 }
@@ -267,6 +273,7 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_Identity(
                   }
               }
           }
+          return true;
       }
     }else{
       if((Base->getType() == Bundle->getType()) &&
@@ -343,62 +350,7 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SE3RN_to_R3(
     }
     return false;
 }
-bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SE3RN_to_SE3(
-    const base::StateSpacePtr Bundle, 
-    const base::StateSpacePtr Base)
-{
-    if(!Bundle->isCompound()) return false;
 
-    base::CompoundStateSpace *Bundle_compound = Bundle->as<base::CompoundStateSpace>();
-    const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
-    unsigned int Bundle_subspaces = Bundle_decomposed.size();
-    if (Bundle_subspaces == 2)
-    {
-        if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_SE3 &&
-            Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
-        {
-            if (Base->getType() == base::STATE_SPACE_SE3)
-            {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SE3RN_to_SE3RM(
-    const base::StateSpacePtr Bundle, 
-    const base::StateSpacePtr Base)
-{
-    if(!Bundle->isCompound()) return false;
-
-    base::CompoundStateSpace *Bundle_compound = Bundle->as<base::CompoundStateSpace>();
-    const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
-    if (Bundle_decomposed.size() == 2)
-    {
-        if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_SE3 &&
-            Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
-        {
-            if(!Base->isCompound()) return false;
-            unsigned int n = Bundle_decomposed.at(1)->getDimension();
-
-            base::CompoundStateSpace *Base_compound = Base->as<base::CompoundStateSpace>();
-            const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
-            if (Base_decomposed.size() == 2)
-            {
-                if (Base_decomposed.at(0)->getType() == base::STATE_SPACE_SE3 &&
-                    Base_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
-                {
-                    unsigned int m = Base_decomposed.at(1)->getDimension();
-                    if (n > m && m > 0)
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    return false;
-}
 bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SE2_to_R2(
     const base::StateSpacePtr Bundle, 
     const base::StateSpacePtr Base)
@@ -443,66 +395,69 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SE2RN_to_R2(
     }
     return false;
 }
+
 bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SE2RN_to_SE2(
     const base::StateSpacePtr Bundle, 
     const base::StateSpacePtr Base)
 {
-    if(!Bundle->isCompound()) return false;
-
-    base::CompoundStateSpace *Bundle_compound = Bundle->as<base::CompoundStateSpace>();
-    const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
-    unsigned int Bundle_subspaces = Bundle_decomposed.size();
-    if (Bundle_subspaces == 2)
-    {
-        if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_SE2 &&
-            Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
-        {
-            if (Base->getType() == base::STATE_SPACE_SE2)
-            {
-                return true;
-            }
-        }
-    }
-    return false;
+    return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SE2);
 }
-bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SE2RN_to_SE2RM(
+
+bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SE3RN_to_SE3(
     const base::StateSpacePtr Bundle, 
     const base::StateSpacePtr Base)
 {
-    if(!Bundle->isCompound()) return false;
-
-    base::CompoundStateSpace *Bundle_compound = Bundle->as<base::CompoundStateSpace>();
-    const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
-    if (Bundle_decomposed.size() == 2)
-    {
-        if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_SE2 &&
-            Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
-        {
-            if(!Base->isCompound()) return false;
-            unsigned int n = Bundle_decomposed.at(1)->getDimension();
-
-            base::CompoundStateSpace *Base_compound = Base->as<base::CompoundStateSpace>();
-            const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
-            if (Base_decomposed.size() == 2)
-            {
-                if (Base_decomposed.at(0)->getType() == base::STATE_SPACE_SE2 &&
-                    Base_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
-                {
-                    unsigned int m = Base_decomposed.at(1)->getDimension();
-                    if (n > m && m > 0)
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    return false;
+    return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SE3);
 }
+
 bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SO2RN_to_SO2(
     const base::StateSpacePtr Bundle, 
     const base::StateSpacePtr Base)
 {
+    return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SO2);
+}
+
+bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SO3RN_to_SO3(
+    const base::StateSpacePtr Bundle, 
+    const base::StateSpacePtr Base)
+{
+    return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SO3);
+}
+
+
+bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SE2RN_to_SE2RM(
+    const base::StateSpacePtr Bundle, 
+    const base::StateSpacePtr Base)
+{
+    return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SE2);
+}
+
+bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SE3RN_to_SE3RM(
+    const base::StateSpacePtr Bundle, 
+    const base::StateSpacePtr Base)
+{
+    return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SE3);
+}
+
+bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SO2RN_to_SO2RM(
+    const base::StateSpacePtr Bundle, 
+    const base::StateSpacePtr Base)
+{
+    return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SO2);
+}
+
+bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SO3RN_to_SO3RM(
+    const base::StateSpacePtr Bundle, 
+    const base::StateSpacePtr Base)
+{
+    return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SO3);
+}
+
+bool ompl::geometric::BundleSpaceComponentFactory::isMapping_XRN_to_X(
+    const base::StateSpacePtr Bundle, 
+    const base::StateSpacePtr Base,
+    const base::StateSpaceType type)
+{
     if(!Bundle->isCompound()) return false;
 
     base::CompoundStateSpace *Bundle_compound = Bundle->as<base::CompoundStateSpace>();
@@ -510,10 +465,10 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SO2RN_to_SO2(
     unsigned int Bundle_subspaces = Bundle_decomposed.size();
     if (Bundle_subspaces == 2)
     {
-        if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_SO2 &&
+        if (Bundle_decomposed.at(0)->getType() == type &&
             Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
         {
-            if (Base->getType() == base::STATE_SPACE_SO2)
+            if (Base->getType() == type)
             {
                 return true;
             }
@@ -521,9 +476,11 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SO2RN_to_SO2(
     }
     return false;
 }
-bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SO2RN_to_SO2RM(
+
+bool ompl::geometric::BundleSpaceComponentFactory::isMapping_XRN_to_XRM(
     const base::StateSpacePtr Bundle, 
-    const base::StateSpacePtr Base)
+    const base::StateSpacePtr Base,
+    const base::StateSpaceType type)
 {
     if(!Bundle->isCompound()) return false;
 
@@ -531,7 +488,7 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SO2RN_to_SO2RM(
     const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
     if (Bundle_decomposed.size() == 2)
     {
-        if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_SO2 &&
+        if (Bundle_decomposed.at(0)->getType() == type &&
             Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
         {
             if(!Base->isCompound()) return false;
@@ -541,7 +498,7 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SO2RN_to_SO2RM(
             const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
             if (Base_decomposed.size() == 2)
             {
-                if (Base_decomposed.at(0)->getType() == base::STATE_SPACE_SO2 &&
+                if (Base_decomposed.at(0)->getType() == type &&
                     Base_decomposed.at(1)->getType() == base::STATE_SPACE_REAL_VECTOR)
                 {
                     unsigned int m = Base_decomposed.at(1)->getDimension();
@@ -555,6 +512,7 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SO2RN_to_SO2RM(
     }
     return false;
 }
+
 
 bool ompl::geometric::BundleSpaceComponentFactory::isMapping_EmptyProjection(
     const base::StateSpacePtr, 

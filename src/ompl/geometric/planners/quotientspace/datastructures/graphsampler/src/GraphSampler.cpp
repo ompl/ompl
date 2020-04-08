@@ -10,7 +10,13 @@ ompl::geometric::BundleSpaceGraphSampler::BundleSpaceGraphSampler(BundleSpaceGra
 
 void ompl::geometric::BundleSpaceGraphSampler::setPathBiasStartSegment(double s)
 {
-  this->pathBiasStartSegment_ = s;
+  if(s > this->pathBiasStartSegment_)
+  {
+      this->pathBiasStartSegment_ = s;
+      geometric::PathGeometric &spath = 
+        static_cast<geometric::PathGeometric &>(*bundleSpaceGraph_->solutionPath_);
+      std::cout << "Set path bias:" << s << "/" << spath.length() << std::endl;
+  }
 }
 
 double ompl::geometric::BundleSpaceGraphSampler::getPathBiasStartSegment()
@@ -40,10 +46,13 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
             //empty solution returned, cannot use path bias sampling
             sampleImplementation(xRandom);
         }else{
-
-            double totalLength = spath.length();
+            //First one works well for SE3->R3, second one works best for
+            //SE3^k->SE3^{k-1}
+            // double endLength = std::min( pathBiasStartSegment_ + 0.1*spath.length(),
+            //     spath.length());
+            double endLength = spath.length();
             double distStopping = 
-              pathBiasStartSegment_ + rng_.uniform01() * (totalLength - pathBiasStartSegment_);
+              pathBiasStartSegment_ + rng_.uniform01() * (endLength - pathBiasStartSegment_);
 
             // std::cout << "pathSampling:" << distStopping << "/" << totalLength 
             //   << " biasSegment:" << pathBiasStartSegment_ << "." << std::endl;
@@ -70,6 +79,12 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
             //          |d-(t-s) |
             double step = (distLastSegment - (distCountedSegments - distStopping))/(distLastSegment);
             bundle->getStateSpace()->interpolate(s1, s2, step, xRandom);
+
+            if(epsilonGraphThickening_ > 0) 
+            {
+              bundleSpaceGraph_->getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, 
+                  epsilonGraphThickening_);
+            }
         }
 
     }else{

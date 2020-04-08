@@ -311,9 +311,10 @@ namespace ompl
 
             bool checkFeasiblePathSection( 
                 Configuration *xLast,
-                std::vector<base::State*> basePath,
-                std::vector<base::State*> bundlePath, 
-                unsigned int depth=0);
+                const std::vector<base::State*> basePath,
+                const std::vector<base::State*> bundlePath, 
+                unsigned int depth=0,
+                double startLength=0.0);
         protected:
 
             virtual Configuration* addBundleConfiguration(base::State*);

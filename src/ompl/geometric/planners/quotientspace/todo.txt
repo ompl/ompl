@@ -23,12 +23,15 @@ constraints there, usable by any bundle algorithm)
 
 [ ] Rename LiftPath to InterpolateAlongPathSection
 [ ] *** Add steering function support (at least SE3 and SE2)
-[ ] ** Clarify experiments
 [ ] * handle NH constraints in QMPStar and SPQR
+[ ] ** Clarify experiments
 [ ] * Add Enumerate for Metric/Importance/Sampler (Use Params like in RRTstar)
-[ ] * Make path segment sampling more robust
+[ ] * Make bidirectional version of QRRT
 [ ] * Try to fix path section interpolation by using random fiber directions
 (particle shooting extension?)
+[ ] ** Make path bias a dynamic window (test SE3 and SE3^k)
+[ ] * Outsource path section shooting method to own folder
+[ ] * Make path segment sampling more robust
 
 Improvements (FB):
 - Enable Multi Robot Planning using a new component-based implementation

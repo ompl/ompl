@@ -338,11 +338,13 @@ unsigned int ompl::geometric::BundleSpace::interpolateAlongBasePath(
 
     unsigned int ctr = 0;
     double d = 0;
-    while(d < location && ctr < basePath.size()-1){
+    while(d <= location && ctr < basePath.size()-1){
       d_last_to_next = getBase()->distance(basePath.at(ctr), basePath.at(ctr+1));
       d += d_last_to_next;
       ctr++;
     }
+
+    assert(ctr>0);
 
     base::State* xLast = basePath.at(ctr-1);
     base::State* xNext = basePath.at(ctr);
@@ -376,6 +378,21 @@ void ompl::geometric::BundleSpace::liftState(const base::State *xBase, const bas
     }else{
         components_.front()->liftState(xBase, xFiber, xBundle);
     }
+
+    //TODO: DEBUG
+    base::State *xF = getFiber()->allocState();
+    projectFiber(xBundle, xF);
+
+    if(getFiber()->distance(xFiber, xF) > 1e-5)
+    {
+        std::cout << std::string(80, '-') << std::endl;
+        getFiber()->printState(xFiber);
+        std::cout << std::string(80, '-') << std::endl;
+        getFiber()->printState(xF);
+        OMPL_ERROR("Fibers are not preserved after lifting.");
+        exit(0);
+    }
+
 }
 
 void ompl::geometric::BundleSpace::projectFiber(const base::State *xBundle, base::State *xFiber) const

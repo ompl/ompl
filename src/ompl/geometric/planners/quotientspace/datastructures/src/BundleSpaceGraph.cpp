@@ -777,20 +777,31 @@ bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection()
     return hasSolution_;
 }
 
-const unsigned int PATH_SECTION_TREE_MAX_DEPTH = 3;
+const unsigned int PATH_SECTION_TREE_MAX_DEPTH = 4;
 const unsigned int PATH_SECTION_TREE_MAX_BRANCHING = 10;
 
 bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
     Configuration *xLast,
-    std::vector<base::State*> basePath,
-    std::vector<base::State*> bundlePath,
-    unsigned int depth)
+    const std::vector<base::State*> basePath,
+    const std::vector<base::State*> bundlePath,
+    unsigned int depth,
+    double startLength)
 {
-    if(depth >= PATH_SECTION_TREE_MAX_DEPTH) return false;
-
-    // Configuration *xLast = bundlePath.front();
     std::pair<base::State*, double> lastValid;
     lastValid.first = getBundle()->allocState();
+
+    //TODO: DEBUG
+    if(getBundle()->distance(xLast->state, bundlePath.front()) > 1e-6)
+    {
+        std::cout << std::string(80, '-') << std::endl;
+        std::cout << "Last State" << std::endl;
+        getBundle()->printState(xLast->state);
+        std::cout << std::string(80, '-') << std::endl;
+        std::cout << "Current State" << std::endl;
+        getBundle()->printState(bundlePath.front());
+        OMPL_ERROR("Last states does not equal first bundle state");
+        throw "";
+    }
 
     for(uint k = 1; k < bundlePath.size(); k++)
     {
@@ -801,6 +812,19 @@ bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
                 Configuration *xk = new Configuration(getBundle(), bundlePath.at(k));
                 addConfiguration(xk);
                 addBundleEdge(xLast, xk);
+                
+                //DEBUG
+                if(!getBundle()->checkMotion(xLast->state, xk->state))
+                {
+                    OMPL_ERROR("Not feasible from last (k=%d)", k);
+                    std::cout << std::string(80, '-') << std::endl;
+                    std::cout << "Last State" << std::endl;
+                    getBundle()->printState(xLast->state);
+                    std::cout << std::string(80, '-') << std::endl;
+                    std::cout << "Current State" << std::endl;
+                    getBundle()->printState(bundlePath.at(k-1));
+                    throw "";
+                }
                 xLast = xk;
             }else{
                 if(qGoal_->index <= 0)
@@ -808,6 +832,20 @@ bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
                     vGoal_ = addConfiguration(qGoal_);
                 }
                 addBundleEdge(xLast, qGoal_);
+
+                if(!getBundle()->checkMotion(xLast->state, qGoal_->state))
+                {
+                    std::cout << std::string(80, '-') << std::endl;
+                    std::cout << k << std::endl;
+                    std::cout << std::string(80, '-') << std::endl;
+                    std::cout << "Last State" << std::endl;
+                    getBundle()->printState(xLast->state);
+                    std::cout << std::string(80, '-') << std::endl;
+                    std::cout << "Current State" << std::endl;
+                    getBundle()->printState(bundlePath.at(k-1));
+                    OMPL_ERROR("Not feasible from last (k=%d)", k);
+                    throw "";
+                }
 
                 //sanity check
                 if (!sameComponent(qStart_->index, qGoal_->index))
@@ -818,41 +856,58 @@ bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
                 OMPL_DEBUG("Found feasible geodesic path section (%d edges added, total %d edges)", k,
                     getNumberOfEdges());
                 OMPL_DEBUG("Depth %d", depth);
+                double totalLength = 
+                  static_cast<BundleSpaceGraph*>(getParent())->solutionPath_->length();
+                OMPL_DEBUG("From %f -> %f", startLength, totalLength);
                 hasSolution_ = true;
+                getBundle()->freeState(lastValid.first);
                 return true;
             }
         }else
         {
-            Configuration *xCurrent{nullptr};
+            Configuration *xLastValid{nullptr};
             if(lastValid.second > 0)
             {
                 //add last valid into the bundle graph
-                xCurrent = new Configuration(getBundle(), lastValid.first);
-                addConfiguration(xCurrent);
-                addBundleEdge(xLast, xCurrent);
-            }else
-            {
-                xCurrent = xLast;
+                xLastValid = new Configuration(getBundle(), lastValid.first);
+                addConfiguration(xLastValid);
+                addBundleEdge(xLast, xLastValid);
+                xLast = xLastValid;
+            }else{
+                xLastValid = xLast;
             }
 
             //Get length until last Valid
-            double length = 0;
+            double locationOnBasePath = 0.0;
+            double totalLength = 0.0;
             for(uint j = 1; j < k; j++){
-                length += getBundle()->distance(bundlePath.at(j-1), bundlePath.at(j));
+                locationOnBasePath += getBase()->distance(basePath.at(j-1), basePath.at(j));
+                totalLength += getBase()->distance(basePath.at(j-1), basePath.at(j));
             }
-            length += lastValid.second * getBundle()->distance(bundlePath.at(k-1), bundlePath.at(k));
+            locationOnBasePath += lastValid.second * getBase()->distance(basePath.at(k-1), basePath.at(k));
+            for(uint j = k; j < basePath.size(); j++){
+                totalLength += getBase()->distance(basePath.at(j-1), basePath.at(j));
+            }
 
-            static_cast<BundleSpaceGraph*>(getParent())->getGraphSampler()->setPathBiasStartSegment(length);
+            static_cast<BundleSpaceGraph*>(getParent())->getGraphSampler()->setPathBiasStartSegment(locationOnBasePath + startLength);
 
-            double totalLength = 
-              static_cast<BundleSpaceGraph*>(getParent())->solutionPath_->length();
+            // std::cout << std::string(5*depth, '-');
+            // std::cout << "Failed geodesic path section after " 
+            //   << locationOnBasePath 
+            //   << "/" << totalLength << std::endl;
 
-            std::cout << "Failed geodesic path section after " 
-              << length 
-              << "/" << totalLength << std::endl;
+            // projectBase(xLastValid->state, xBaseTmp_);
 
+            if(depth + 1 >= PATH_SECTION_TREE_MAX_DEPTH) return false;
 
-            projectBase(xLast->state, xBaseTmp_);
+            base::State *xBaseStart = getBase()->allocState();
+            unsigned int lastCtr = 
+              interpolateAlongBasePath(basePath, locationOnBasePath, xBaseStart);
+
+            std::vector<base::State*> basePathSegment = 
+            {basePath.begin() + lastCtr, basePath.end()}; 
+            basePathSegment.insert(basePathSegment.begin(), xBaseStart);
+
             for(uint j = 0; j < PATH_SECTION_TREE_MAX_BRANCHING; j++)
             {
                 if(hasSolution_) break;
@@ -863,9 +918,7 @@ bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
                 while(ctr++ < 10 && !found)
                 {
                     sampleFiber(xFiberTmp1_);
-                    liftState(xBaseTmp_, xFiberTmp1_, xBundleTmp_);
-
-                    getBundleSamplerPtr()->sampleUniformNear(xBundleTmp_, xBundleTmp_, 1e-2);
+                    liftState(xBaseStart, xFiberTmp1_, xBundleTmp_);
 
                     if(getBundle()->isValid(xBundleTmp_))
                     {
@@ -878,40 +931,40 @@ bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
 
                 //check that we can connect new sample with last states
                 bool extendable = false;
-                if(getBundle()->checkMotion(xCurrent->state, xBundleTmp_))
+                if(getBundle()->checkMotion(xLastValid->state, xBundleTmp_))
                 {
-                  Configuration *xj = new Configuration(getBundle(), xBundleTmp_);
-                  addConfiguration(xj);
-                  addBundleEdge(xCurrent, xj);
-                  xLast = xj;
-                  extendable = true;
-                }else{
-                    if(getBundle()->checkMotion(xLast->state, xBundleTmp_))
-                    {
-                        Configuration *xj = new Configuration(getBundle(), xBundleTmp_);
-                        addConfiguration(xj);
-                        addBundleEdge(xLast, xj);
-                        xLast = xj;
-                        extendable = true;
-                    }
+                    Configuration *xj = new Configuration(getBundle(), xBundleTmp_);
+                    addConfiguration(xj);
+                    addBundleEdge(xLastValid, xj);
+                    xLast = xj;
+                    extendable = true;
                 }
 
-
+                // std::cout << std::string(5*depth, '-');
+                // std::cout << "Branch " << j << " depth " << depth << 
+                //   ":" << (extendable?"extending":"infeasible")<< std::endl;
                 if(extendable)
                 {
-                  std::cout << "Check branch " << j << " depth " << depth << std::endl;
                   std::vector<base::State*> branchPathBundle = 
-                    computePathSection(basePath, xFiberTmp1_, length, xFiberTmp2_);
+                      computePathSection(basePathSegment, xFiberTmp1_, xFiberTmp2_);
 
-                  bool found = checkFeasiblePathSection(xLast, basePath, branchPathBundle, depth+1);
+                  bool found = 
+                    checkFeasiblePathSection(xLast, basePathSegment, branchPathBundle, depth+1, locationOnBasePath);
                   getBundle()->freeStates(branchPathBundle);
-                  if(found) return true;
+
+                  if(found)
+                  {
+                      getBundle()->freeState(lastValid.first);
+                      return true;
+                  }
                 }
             }
+            getBase()->freeState(xBaseStart);
 
             break;
         }
     }
+    getBundle()->freeState(lastValid.first);
     return false;
 }
 
@@ -936,19 +989,33 @@ bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection2()
 
     //check for feasibility
     bool found = checkFeasiblePathSection(qStart_, basePathStates, bundlePathStates);
+    if(!found)
+    {
+        std::cout << "path section infeasible" << std::endl;
+    }
 
+    //DEBUG
     if(found){
-      PathGeometricPtr geometricBasePath = std::make_shared<PathGeometric>(getBundle());
-      for(uint i = 0; i < bundlePathStates.size(); i++){
-        geometricBasePath->append(bundlePathStates.at(i));
-      }
-      bool valid =geometricBasePath->check();
+      solutionPath_ = getPath(vStart_, vGoal_);
+
+      geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
+
+      bool valid = gpath.check();
       if(!valid)
       {
         OMPL_ERROR("Path section is invalid.");
+        std::vector<base::State*> gStates = gpath.getStates();
+        for(uint k = 1; k < gStates.size(); k++){
+          base::State *sk1 = gStates.at(k-1);
+          base::State *sk2 = gStates.at(k-2);
+          if(!getBundle()->checkMotion(sk1, sk2))
+          {
+            std::cout << "Error between states " << k-1 << " and " << k << std::endl;
+          }
+        }
+      }else{
+        std::cout << "PATH SECTION IS VALID" << std::endl;
       }
-
-
     }
     return found;
 }

@@ -52,6 +52,12 @@ namespace ompl
           /** \brief SE3RN \rightarrow SE3RM, m < n */
             BUNDLE_SPACE_SE3RN_SE3RM = 14,
 
+          /** \brief SO3RN \rightarrow SO3 */
+            BUNDLE_SPACE_SO3RN_SO3 = 15,
+
+          /** \brief SO3RN \rightarrow SO3RM, m < n */
+            BUNDLE_SPACE_SO3RN_SO3RM = 16,
+
             BUNDLE_SPACE_UNKNOWN = -1
         };
     }
