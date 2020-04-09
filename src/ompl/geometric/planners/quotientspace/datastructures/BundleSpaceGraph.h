@@ -65,6 +65,7 @@ namespace ompl
     {
         OMPL_CLASS_FORWARD(BundleSpaceImportance);
         OMPL_CLASS_FORWARD(BundleSpaceGraphSampler);
+        OMPL_CLASS_FORWARD(BundleSpacePathRestriction);
     }
 
     namespace geometric
@@ -355,6 +356,8 @@ namespace ompl
             BundleSpaceImportancePtr importanceCalculator_{nullptr};
 
             BundleSpaceGraphSamplerPtr graphSampler_{nullptr};
+
+            BundleSpacePathRestrictionPtr pathRestriction_{nullptr};
 
             ompl::base::OptimizationObjectivePtr pathRefinementObj_{nullptr};
         };

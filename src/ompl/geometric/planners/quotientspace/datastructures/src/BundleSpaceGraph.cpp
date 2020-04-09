@@ -49,6 +49,7 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/metrics/ShortestPath.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/propagators/Geometric.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/propagators/Dynamic.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/pathrestriction/PathRestriction.h>
 
 #include <ompl/geometric/PathSimplifier.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
@@ -78,6 +79,8 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
     setMetric("geodesic");
     setGraphSampler("randomvertex");
     setImportance("uniform");
+
+    pathRestriction_ = std::make_shared<BundleSpacePathRestriction>(this);
 
     if(isDynamic())
     {
@@ -990,13 +993,11 @@ bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
 bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection2()
 {
     if(!hasBaseSpace()) return false;
-    if(isDynamic())
-    {
-      OMPL_WARN("NYI: computing path sections for dynamical systems.");
-      return false;
-    }
 
     base::PathPtr basePath = static_cast<BundleSpaceGraph*>(getParent())->solutionPath_;
+
+    pathRestriction_->setBasePath(basePath);
+
     PathGeometricPtr geometricBasePath = std::static_pointer_cast<PathGeometric>(basePath);
     const std::vector<base::State*> basePathStates = geometricBasePath->getStates();
 
@@ -1006,8 +1007,11 @@ bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection2()
     projectFiber(qStart_->state, xFiberTmp1_);
     projectFiber(qGoal_->state, xFiberTmp2_);
 
-    std::vector<base::State*> bundlePathStates = computePathSection_Manhattan_Down(
-        basePathStatesExtented, xFiberTmp1_, xFiberTmp2_);
+    std::vector<base::State*> bundlePathStates = 
+    pathRestriction_->interpolateManhattan(xFiberTmp1_, xFiberTmp2_);
+
+    // std::vector<base::State*> bundlePathStates = computePathSection_Manhattan_Down(
+    //     basePathStatesExtented, xFiberTmp1_, xFiberTmp2_);
 
     //check for feasibility
     bool found = checkFeasiblePathSection(qStart_, basePathStatesExtented, bundlePathStates);
