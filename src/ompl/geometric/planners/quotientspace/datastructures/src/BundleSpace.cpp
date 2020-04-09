@@ -12,6 +12,7 @@
 #include <ompl/tools/config/MagicConstants.h>
 
 #include <ompl/util/Exception.h>
+#include <cmath> //to use isnan(d)
 
 unsigned int ompl::geometric::BundleSpace::counter_ = 0;
 
@@ -310,7 +311,7 @@ std::vector<ompl::base::State*> ompl::geometric::BundleSpace::computePathSection
       const base::State* xFiberGoal) const
 {
     std::vector<base::State*> bundlePath;
-    bundlePath.resize(basePath.size()+1);
+    bundlePath.resize(basePath.size());
     getBundle()->allocStates(bundlePath);
 
     if(getFiberDimension() > 0)
@@ -337,7 +338,7 @@ std::vector<ompl::base::State*> ompl::geometric::BundleSpace::computePathSection
       const base::State* xFiberGoal) const
 {
     std::vector<base::State*> bundlePath;
-    bundlePath.resize(basePath.size()+1);
+    bundlePath.resize(basePath.size());
     getBundle()->allocStates(bundlePath);
 
     if(getFiberDimension() > 0)
@@ -350,7 +351,6 @@ std::vector<ompl::base::State*> ompl::geometric::BundleSpace::computePathSection
                 liftState(basePath.at(k), xFiberGoal, bundlePath.at(k));
             }
         }
-        // liftState(basePath.back(), xFiberGoal, bundlePath.back());
 
     }else{
         for(uint k = 0; k < basePath.size(); k++){
@@ -359,23 +359,6 @@ std::vector<ompl::base::State*> ompl::geometric::BundleSpace::computePathSection
     }
     return bundlePath;
 }
-
-// std::vector<ompl::base::State*> ompl::geometric::BundleSpace::computePathSection(
-//       const std::vector<base::State*> basePath,
-//       const base::State* xFiberStart,
-//       const double baseLocationStart,
-//       const base::State* xFiberGoal) const
-// {
-
-//     base::State *xBaseStart = getBase()->allocState();
-
-//     unsigned int lastCtr = interpolateAlongBasePath(basePath, baseLocationStart, xBaseStart);
-
-//     std::vector<base::State*> basePathSegment = {basePath.begin() + lastCtr, basePath.end()}; 
-//     basePathSegment.insert(basePathSegment.begin(), xBaseStart);
-
-//     return computePathSection(basePathSegment, xFiberStart, xFiberGoal);
-// }
 
 unsigned int ompl::geometric::BundleSpace::interpolateAlongBasePath(
       const std::vector<base::State*> basePath,
@@ -412,9 +395,28 @@ unsigned int ompl::geometric::BundleSpace::interpolateAlongBasePath(
     //
     //                              xLast                 xNext
 
-    double step = (d_last_to_next - (d - location))/d_last_to_next;
+    double step = 0.0;
+    if(d_last_to_next > 0)
+    {
+        step = (d_last_to_next - (d - location))/d_last_to_next;
+    }
 
-    getBase()->getStateSpace()->interpolate(xLast, xNext, step, xResult);
+    // if(std::isnan(step)){
+    //     std::cout << std::string(80, '#') << std::endl;
+    //     for(uint k = 0; k < basePath.size(); k++){
+    //       getBase()->printState(basePath.at(k));
+    //     }
+    //     getBase()->getStateSpace()->interpolate(xLast, xNext, step, xResult);
+    //     std::cout << std::string(80, '-') << std::endl;
+    //     getBase()->printState(xLast);
+    //     getBase()->printState(xNext);
+    //     std::cout << "step: " << step << std::endl;
+    //     std::cout << "d: " << d << std::endl;
+    //     std::cout << "last segment:" << d_last_to_next << std::endl;
+    //     std::cout << "location:" << location << std::endl;
+    //     getBase()->printState(xResult);
+    //     exit(0);
+    // }
     return ctr;
 }
 

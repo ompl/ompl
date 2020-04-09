@@ -34,6 +34,7 @@ constraints there, usable by any bundle algorithm)
 [ ] * Make path segment sampling more robust
 [ ] ** Fix Hypercube out_of_range error
 [ ] ** Plot hypercube benchmark
+[ ] *** Fix base space Nan values in hypercube benchmark
 
 Improvements (FB):
 - Enable Multi Robot Planning using a new component-based implementation

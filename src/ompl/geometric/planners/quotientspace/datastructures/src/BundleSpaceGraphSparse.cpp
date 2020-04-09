@@ -694,7 +694,7 @@ bool ompl::geometric::BundleSpaceGraphSparse::checkAddPath(Configuration *q)
                     foreach (Vertex qpp, /*interfaceListsProperty_[v][vpp]*/ it->second)
                     {
                         // check that representatives are consistent
-                        assert(/*representativesProperty_[qpp]*/ graph_[qpp]->representativeIndex == v);
+                        assert(/*representativesProperty_[qpp]*/ graph_[qpp]->representativeIndex == (int)v);
 
                         // If they happen to be the one and same node
                         if (q->index == (int)qpp)
@@ -739,7 +739,7 @@ bool ompl::geometric::BundleSpaceGraphSparse::checkAddPath(Configuration *q)
                         bestDPath.push_back(graph_[nb]->state);
 
                         // check consistency of representatives
-                        assert(graph_[na]->representativeIndex == vp && graph_[nb]->representativeIndex == vpp);
+                        assert(graph_[na]->representativeIndex == (int)vp && graph_[nb]->representativeIndex == (int)vpp);
 
                         // Add the dense path to the spanner
                         addPathToSpanner(bestDPath, vpp, vp);
