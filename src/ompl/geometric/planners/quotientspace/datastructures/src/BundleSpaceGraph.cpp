@@ -666,7 +666,6 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraph::getPath(const Vertex &sta
     auto p(std::make_shared<PathGeometric>(getBundle()));
     if (prev[goal] == goal)
     {
-        std::cout << "warning: no path found" << std::endl;
         return nullptr;
     }
 
@@ -743,9 +742,9 @@ bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection()
 
             static_cast<BundleSpaceGraph*>(getParent())->getGraphSampler()->setPathBiasStartSegment(length);
 
-            std::cout << "Feasible Path Section: stopped at " 
-              << length << "/" 
-              << geometricBasePath->length() << std::endl;
+            // std::cout << "Feasible Path Section: stopped at " 
+            //   << length << "/" 
+            //   << geometricBasePath->length() << std::endl;
 
             break;
         }else{
@@ -763,13 +762,13 @@ bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection()
                 addBundleEdge(xLast, qGoal_);
                 if (sameComponent(qStart_->index, qGoal_->index))
                 {
-                    OMPL_DEBUG("Found feasible geodesic path section (%d edges added)", k);
+                    OMPL_DEBUG("Found feasible path section (%d edges added)", k);
                     hasSolution_ = true;
                     getBundle()->freeStates(bundlePathStates);
                 }else
                 {
-                    OMPL_ERROR("Found geodesic path section, but it does not connect start/goal");
-                    throw "???";
+                    throw Exception("Found feasible path section, \
+                        but it does not connect start/goal");
                 }
             }
         }
@@ -791,11 +790,7 @@ bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
     std::pair<base::State*, double> lastValid;
     lastValid.first = getBundle()->allocState();
 
-    if(basePath.size() != bundlePath.size())
-    {
-      std::cout << "Base path size differs from bundle path size, NYI" << std::endl;
-    }
-    //TODO: DEBUG
+    //sanitycheck
     if(getBundle()->distance(xLast->state, bundlePath.front()) > 1e-6)
     {
         std::cout << std::string(80, '-') << std::endl;
@@ -804,8 +799,7 @@ bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
         std::cout << std::string(80, '-') << std::endl;
         std::cout << "Current State" << std::endl;
         getBundle()->printState(bundlePath.front());
-        OMPL_ERROR("Last states does not equal first bundle state");
-        throw "";
+        throw Exception("Last states does not equal first bundle state");
     }
 
     for(uint k = 1; k < bundlePath.size(); k++)
@@ -818,7 +812,7 @@ bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
                 addConfiguration(xk);
                 addBundleEdge(xLast, xk);
                 
-                //DEBUG
+                //sanitycheck
                 if(!getBundle()->checkMotion(xLast->state, xk->state))
                 {
                     OMPL_ERROR("Not feasible from last (k=%d)", k);
@@ -828,7 +822,7 @@ bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
                     std::cout << std::string(80, '-') << std::endl;
                     std::cout << "Current State" << std::endl;
                     getBundle()->printState(bundlePath.at(k-1));
-                    throw "";
+                    throw Exception("");
                 }
                 xLast = xk;
             }else{
@@ -866,8 +860,6 @@ bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
                     throw "Goal index != vGoal";
                 }
 
-                getBundle()->printState(xLast->state);
-                getBundle()->printState(qGoal_->state);
                 OMPL_DEBUG("Found feasible geodesic path section (%d edges added, total %d edges)", k,
                     getNumberOfEdges());
                 OMPL_DEBUG("Depth %d", depth);
@@ -1008,14 +1000,17 @@ bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection2()
     PathGeometricPtr geometricBasePath = std::static_pointer_cast<PathGeometric>(basePath);
     const std::vector<base::State*> basePathStates = geometricBasePath->getStates();
 
+    std::vector<base::State*> basePathStatesExtented = basePathStates;
+    basePathStatesExtented.push_back(basePathStates.back());
+
     projectFiber(qStart_->state, xFiberTmp1_);
     projectFiber(qGoal_->state, xFiberTmp2_);
 
     std::vector<base::State*> bundlePathStates = computePathSection_Manhattan_Down(
-        basePathStates, xFiberTmp1_, xFiberTmp2_);
+        basePathStatesExtented, xFiberTmp1_, xFiberTmp2_);
 
     //check for feasibility
-    bool found = checkFeasiblePathSection(qStart_, basePathStates, bundlePathStates);
+    bool found = checkFeasiblePathSection(qStart_, basePathStatesExtented, bundlePathStates);
     if(!found)
     {
         OMPL_DEBUG("path section infeasible");
@@ -1041,7 +1036,6 @@ bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection2()
             << std::endl;
           throw Exception("Reported feasible path section, \
               but path section is not existent.");
-          exit(0);
       }
 
       geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);

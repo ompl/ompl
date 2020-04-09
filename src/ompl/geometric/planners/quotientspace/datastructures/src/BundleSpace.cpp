@@ -383,8 +383,6 @@ unsigned int ompl::geometric::BundleSpace::interpolateAlongBasePath(
       ctr++;
     }
 
-    assert(ctr>0);
-
     base::State* xLast = basePath.at(ctr-1);
     base::State* xNext = basePath.at(ctr);
 
@@ -398,25 +396,28 @@ unsigned int ompl::geometric::BundleSpace::interpolateAlongBasePath(
     double step = 0.0;
     if(d_last_to_next > 0)
     {
-        step = (d_last_to_next - (d - location))/d_last_to_next;
+        step = std::fabs(d_last_to_next - (d - location))/d_last_to_next;
     }
 
-    // if(std::isnan(step)){
-    //     std::cout << std::string(80, '#') << std::endl;
-    //     for(uint k = 0; k < basePath.size(); k++){
-    //       getBase()->printState(basePath.at(k));
-    //     }
-    //     getBase()->getStateSpace()->interpolate(xLast, xNext, step, xResult);
-    //     std::cout << std::string(80, '-') << std::endl;
-    //     getBase()->printState(xLast);
-    //     getBase()->printState(xNext);
-    //     std::cout << "step: " << step << std::endl;
-    //     std::cout << "d: " << d << std::endl;
-    //     std::cout << "last segment:" << d_last_to_next << std::endl;
-    //     std::cout << "location:" << location << std::endl;
-    //     getBase()->printState(xResult);
-    //     exit(0);
-    // }
+    getBase()->getStateSpace()->interpolate(xLast, xNext, step, xResult);
+
+    if((std::isnan(step)) || (step < 0) || (step > 1)){
+        std::cout << std::string(80, '#') << std::endl;
+        for(uint k = 0; k < basePath.size(); k++){
+          getBase()->printState(basePath.at(k));
+        }
+        std::cout << std::string(80, '-') << std::endl;
+        getBase()->printState(xLast);
+        std::cout << "position:" << d - d_last_to_next << std::endl;
+        getBase()->printState(xNext);
+        std::cout << "position:" << d << std::endl;
+        std::cout << "location:" << location << std::endl;
+        std::cout << "d_last_to_next:" << d_last_to_next << std::endl;
+        std::cout << "step: " << step << std::endl;
+        std::cout << "step (not normalized): " << (d_last_to_next - (d - location)) << std::endl;
+        getBase()->printState(xResult);
+        exit(0);
+    }
     return ctr;
 }
 

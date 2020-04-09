@@ -49,8 +49,8 @@ ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpa
 {
     setName("QMPImpl" + std::to_string(id_));
 
-    // setMetric("geodesic");
-    setMetric("shortestpath");
+    setMetric("geodesic");
+    // setMetric("shortestpath");
     setGraphSampler("randomedge");
     // setGraphSampler("randomdegreevertex");
     setImportance("exponential");

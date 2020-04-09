@@ -20,8 +20,9 @@ constraints there, usable by any bundle algorithm)
 [x] Add SO3xRN
 [x] Merge with master branch ompl/ompl (to get newest planner versions)
 [x] benchmark the whole suite on pregrasp
+[x] Fix base space Nan values in hypercube benchmark
+[x] Rename LiftPath to InterpolateAlongPathSection
 
-[ ] Rename LiftPath to InterpolateAlongPathSection
 [ ] *** Add steering function support (at least SE3 and SE2)
 [ ] * handle NH constraints in QMPStar and SPQR
 [ ] ** Clarify experiments
@@ -33,8 +34,7 @@ constraints there, usable by any bundle algorithm)
 [ ] * Outsource path section shooting method to own folder
 [ ] * Make path segment sampling more robust
 [ ] ** Fix Hypercube out_of_range error
-[ ] ** Plot hypercube benchmark
-[ ] *** Fix base space Nan values in hypercube benchmark
+[ ] ** Plot hypercube benchmark (fix log to plot script)
 
 Improvements (FB):
 - Enable Multi Robot Planning using a new component-based implementation
