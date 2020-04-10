@@ -31,7 +31,9 @@ constraints there, usable by any bundle algorithm)
 [ ] * Outsource path section shooting method to own folder
 [ ] * Make path sections as strategy pattern inside a pathrestriction. Do the same
 for graphs
+[ ] Rename quotientspace folder to multilevel
 
+[ ] Remove DenseGraphPath method from BundleSpaceGraph.h
 [ ] * Add Enumerate for Metric/Importance/Sampler (Use Params like in RRTstar)
 [ ] ** Plot hypercube benchmark (fix log to plot script)
 [ ] *** Add steering function support (at least SE3 and SE2)

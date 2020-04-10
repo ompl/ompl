@@ -51,8 +51,8 @@ namespace ompl
             unsigned long long counterGraphSampling_{0};
 
             ExponentialDecay pathBiasDecay_;
-            ExponentialDecay graphThickeningDecay_;
-            ExponentialDecay pathThickeningDecay_;
+            ExponentialDecay graphThickeningGrowth_;
+            ExponentialDecay pathThickeningGrowth_;
         };
     }  // namespace geometric
 }  // namespace ompl

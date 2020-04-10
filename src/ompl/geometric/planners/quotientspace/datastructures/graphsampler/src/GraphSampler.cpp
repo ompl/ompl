@@ -10,13 +10,13 @@ ompl::geometric::BundleSpaceGraphSampler::BundleSpaceGraphSampler(BundleSpaceGra
     pathBiasDecay_.setLambda(exponentialDecayLambda_);
     pathBiasDecay_.setLowerBound(pathBiasFixed_);
 
-    pathThickeningDecay_.setLambda(exponentialDecayLambda_);
-    pathThickeningDecay_.setLowerBound(epsilonGraphThickening_);
-    pathThickeningDecay_.setUpperBound(0.0);
+    pathThickeningGrowth_.setLambda(exponentialDecayLambda_);
+    pathThickeningGrowth_.setLowerBound(epsilonGraphThickening_);
+    pathThickeningGrowth_.setUpperBound(0.0);
 
-    graphThickeningDecay_.setLambda(exponentialDecayLambda_);
-    graphThickeningDecay_.setLowerBound(epsilonGraphThickening_);
-    graphThickeningDecay_.setUpperBound(0.0);
+    graphThickeningGrowth_.setLambda(exponentialDecayLambda_);
+    graphThickeningGrowth_.setLowerBound(epsilonGraphThickening_);
+    graphThickeningGrowth_.setUpperBound(0.0);
 }
 
 void ompl::geometric::BundleSpaceGraphSampler::setPathBiasStartSegment(double s)
@@ -96,7 +96,7 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
 
             if(epsilonGraphThickening_ > 0) 
             {
-                double eps = pathThickeningDecay_();
+                double eps = pathThickeningGrowth_();
                 bundleSpaceGraph_->getBundleSamplerPtr()->sampleUniformNear(
                     xRandom, xRandom, eps);
             }
@@ -114,7 +114,7 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
     {
         //Decay on graph thickening (reflects or believe in the usefullness of
         //the graph for biasing our sampling)
-        double eps = graphThickeningDecay_();
+        double eps = graphThickeningGrowth_();
         bundleSpaceGraph_->getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, 
             eps);
     }

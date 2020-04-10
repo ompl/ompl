@@ -31,8 +31,40 @@ namespace ompl
           void setBasePath(base::PathPtr);
           void setBasePath(std::vector<base::State*>);
 
+          bool checkSection(
+                Configuration* const xStart,
+                Configuration* const xGoal);
+
+          bool checkSectionRecursiveRepair(
+                Configuration* const xStart,
+                Configuration* const xGoal,
+                std::vector<base::State*> basePath,
+                unsigned int depth=0,
+                double startLength=0.0);
+
+          bool sampleFiber(const base::State* xBase, base::State* xBundle);
+
+          void sanityCheckSection();
+
+          Configuration* addFeasibleSegment(
+              const Configuration* xLast, 
+              base::State *sNext);
+
+          void addFeasibleGoalSegment( 
+              Configuration* const xLast, 
+              Configuration* const xGoal);
+
+          //Note: 
+          //const ptr* means that the pointer itself is const
+          //ptr* const means that the content of the pointer is const (but ptr
+          //can change)
+
+
           bool hasFeasibleSection(Configuration* const, Configuration* const);
 
+
+
+          //\brief Interpolate along restriction using L2 metric
           //  ---------------
           //            ____x
           //       ____/
@@ -41,8 +73,10 @@ namespace ompl
           //  ---------------
           std::vector<base::State*> interpolateSectionL2(
                 const base::State* xFiberStart,
-                const base::State* xFiberGoal);
+                const base::State* xFiberGoal,
+                const std::vector<base::State*> basePath);
 
+          //\brief Interpolate along restriction using L1 metric
           //  ---------------
           //                x
           //                |
@@ -53,6 +87,8 @@ namespace ompl
                 const base::State* xFiberStart,
                 const base::State* xFiberGoal);
 
+          //\brief Interpolate along restriction using L1 metric, but first
+          //interpolate along fiber
           //  ---------------
           //   _____________x
           //  |
@@ -72,11 +108,16 @@ namespace ompl
           double lengthBasePath_{0.0};
           std::vector<double> intermediateLengthsBasePath_;
 
+          base::State *xBaseTmp_{nullptr};
+          base::State *xBundleTmp_{nullptr};
+
           base::State *xFiberStart_{nullptr};
           base::State *xFiberGoal_{nullptr};
           base::State *xFiberTmp_{nullptr};
 
-          std::vector<base::State*> bundleSection_;
+          std::vector<base::State*> section_;
+
+          std::pair<base::State*, double> lastValid_;
       };
   }
 }
