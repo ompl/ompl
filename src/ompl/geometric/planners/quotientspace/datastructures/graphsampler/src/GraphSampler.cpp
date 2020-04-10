@@ -6,6 +6,17 @@ ompl::geometric::BundleSpaceGraphSampler::BundleSpaceGraphSampler(BundleSpaceGra
     double mu = bundleSpaceGraph_->getBundle()->getMaximumExtent();
     epsilonGraphThickening_ = mu * epsilonGraphThickeningFraction_;
     OMPL_DEBUG("Epsilon Graph Thickening constant set to %f", epsilonGraphThickening_);
+
+    pathBiasDecay_.setLambda(exponentialDecayLambda_);
+    pathBiasDecay_.setLowerBound(pathBiasFixed_);
+
+    pathThickeningDecay_.setLambda(exponentialDecayLambda_);
+    pathThickeningDecay_.setLowerBound(epsilonGraphThickening_);
+    pathThickeningDecay_.setUpperBound(0.0);
+
+    graphThickeningDecay_.setLambda(exponentialDecayLambda_);
+    graphThickeningDecay_.setLowerBound(epsilonGraphThickening_);
+    graphThickeningDecay_.setUpperBound(0.0);
 }
 
 void ompl::geometric::BundleSpaceGraphSampler::setPathBiasStartSegment(double s)
@@ -31,12 +42,12 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
 
     //EXP DECAY PATH BIAS.
     //from 1.0 down to lower limit pathbiasfixed_
-    const double pathBias = 
-      (1.0 - pathBiasFixed_) * exp(-exponentialDecayLambda_ * counterPathSampling_++) 
-      + pathBiasFixed_;
+    // const double pathBias = 
+    //   (1.0 - pathBiasFixed_) * exp(-exponentialDecayLambda_ * counterPathSampling_++) 
+    //   + pathBiasFixed_;
 
     double p = rng_.uniform01();
-    if(p < pathBias && !bundleSpaceGraph_->isDynamic())
+    if(p < pathBiasDecay_() && !bundleSpaceGraph_->isDynamic())
     {
         geometric::PathGeometric &spath = 
           static_cast<geometric::PathGeometric &>(*bundleSpaceGraph_->solutionPath_);
@@ -50,6 +61,9 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
             //SE3^k->SE3^{k-1}
             // double endLength = std::min( pathBiasStartSegment_ + 0.1*spath.length(),
             //     spath.length());
+
+
+            //TODO: outsource to bundlegraph?
             double endLength = spath.length();
             double distStopping = 
               pathBiasStartSegment_ + rng_.uniform01() * (endLength - pathBiasStartSegment_);
@@ -82,9 +96,11 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
 
             if(epsilonGraphThickening_ > 0) 
             {
-              bundleSpaceGraph_->getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, 
-                  epsilonGraphThickening_);
+                double eps = pathThickeningDecay_();
+                bundleSpaceGraph_->getBundleSamplerPtr()->sampleUniformNear(
+                    xRandom, xRandom, eps);
             }
+
         }
 
     }else{
@@ -98,14 +114,8 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
     {
         //Decay on graph thickening (reflects or believe in the usefullness of
         //the graph for biasing our sampling)
-        double graphBias = 
-          (- epsilonGraphThickening_) * exp(-exponentialDecayLambda_ * counterGraphSampling_++) 
-          + epsilonGraphThickening_;
-        bundleSpaceGraph_->getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, graphBias);
-
-        //TODO: what to do when we encounter an integer wrap around?
-        // -- Currently we do nothing, so periodically we will see a spike in
-        // graphbias/pathbias, which might be OK (i.e. if we get stuck, maybe go
-        // back and test some more on the path or the graph
+        double eps = graphThickeningDecay_();
+        bundleSpaceGraph_->getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, 
+            eps);
     }
 }

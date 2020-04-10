@@ -690,94 +690,18 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraph::getPath(const Vertex &sta
     return p;
 }
 
-bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection()
+const ompl::geometric::BundleSpacePathRestrictionPtr 
+ompl::geometric::BundleSpaceGraph::getPathRestriction()
 {
-    if(!hasBaseSpace()) return false;
-    if(isDynamic())
-    {
-      OMPL_WARN("NYI: computing path sections for dynamical systems.");
-      return false;
-    }
+  if(!hasParent()){
+    OMPL_WARN("Tried getting path restriction without base space");
+    return nullptr;
+  }
 
-    base::PathPtr basePath = static_cast<BundleSpaceGraph*>(getParent())->solutionPath_;
-    PathGeometricPtr geometricBasePath = std::static_pointer_cast<PathGeometric>(basePath);
-    // gpath->interpolate();
-    const std::vector<base::State*> basePathStates = geometricBasePath->getStates();
+  base::PathPtr basePath = static_cast<BundleSpaceGraph*>(getParent())->solutionPath_;
+  pathRestriction_->setBasePath(basePath);
 
-    projectFiber(qStart_->state, xFiberTmp1_);
-    projectFiber(qGoal_->state, xFiberTmp2_);
-
-    std::vector<base::State*> bundlePathStates = 
-      computePathSection_Geodesic(basePathStates, xFiberTmp1_, xFiberTmp2_);
-
-    //check for feasibility
-    Configuration *xLast = qStart_;
-    std::pair<base::State*, double> lastValid;
-    lastValid.first = getBundle()->allocState();
-
-    for(uint k = 1; k < bundlePathStates.size(); k++)
-    {
-
-        if(!getBundle()->checkMotion(bundlePathStates.at(k-1), bundlePathStates.at(k), lastValid))
-        {
-            if(lastValid.second > 0)
-            {
-                //add last valid into the bundle graph
-                Configuration *xk = new Configuration(getBundle(), lastValid.first);
-                addConfiguration(xk);
-                addBundleEdge(xLast, xk);
-            }
-
-            //Random strategy: (1) Try random samples in the current fiber,
-            //until we find a valid sample. Then retry to move towards goal
-            //(feasible section with sidestepping)
-            //
-            // NOte: We could also do some recursive section computer
-
-            //compute how much we made progress along shortest path
-            // Use this to bias sampling towards an interesting region of the
-            // base path restriction (basically the end where we terminated)
-            double length = 0;
-            for(uint j = 1; j < k; j++){
-                length += getBundle()->distance(bundlePathStates.at(j-1), bundlePathStates.at(j));
-            }
-            length += lastValid.second * getBundle()->distance(bundlePathStates.at(k-1), bundlePathStates.at(k));
-
-            static_cast<BundleSpaceGraph*>(getParent())->getGraphSampler()->setPathBiasStartSegment(length);
-
-            // std::cout << "Feasible Path Section: stopped at " 
-            //   << length << "/" 
-            //   << geometricBasePath->length() << std::endl;
-
-            break;
-        }else{
-            if(k < bundlePathStates.size()-1)
-            {
-                Configuration *xk = new Configuration(getBundle(), bundlePathStates.at(k));
-                addConfiguration(xk);
-                addBundleEdge(xLast, xk);
-                xLast = xk;
-            }else{
-                if(qGoal_->index <= 0)
-                {
-                    vGoal_ = addConfiguration(qGoal_);
-                }
-                addBundleEdge(xLast, qGoal_);
-                if (sameComponent(qStart_->index, qGoal_->index))
-                {
-                    OMPL_DEBUG("Found feasible path section (%d edges added)", k);
-                    hasSolution_ = true;
-                    getBundle()->freeStates(bundlePathStates);
-                }else
-                {
-                    throw Exception("Found feasible path section, \
-                        but it does not connect start/goal");
-                }
-            }
-        }
-    }
-    getBundle()->freeStates(bundlePathStates);
-    return hasSolution_;
+  return pathRestriction_;
 }
 
 const unsigned int PATH_SECTION_TREE_MAX_DEPTH = 3;
@@ -965,8 +889,13 @@ bool ompl::geometric::BundleSpaceGraph::checkFeasiblePathSection(
                     //Now interpolate from there to goal
                     //#########################################################
                     //TODO: do not alloc branch path each round
+                    // std::vector<base::State*> branchPathBundle = 
+                    //     computePathSection_Manhattan_Down(basePathSegment, xFiberStart, xFiberTmp2_);
+
+                    pathRestriction_->setBasePath(basePathSegment);
+
                     std::vector<base::State*> branchPathBundle = 
-                        computePathSection_Manhattan_Down(basePathSegment, xFiberStart, xFiberTmp2_);
+                      pathRestriction_->interpolateSectionL1(xFiberStart, xFiberTmp2_);
 
                     bool feasibleSection = 
                       checkFeasiblePathSection(xSideStep, basePathSegment, 
@@ -996,8 +925,6 @@ bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection2()
 
     base::PathPtr basePath = static_cast<BundleSpaceGraph*>(getParent())->solutionPath_;
 
-    pathRestriction_->setBasePath(basePath);
-
     PathGeometricPtr geometricBasePath = std::static_pointer_cast<PathGeometric>(basePath);
     const std::vector<base::State*> basePathStates = geometricBasePath->getStates();
 
@@ -1007,11 +934,11 @@ bool ompl::geometric::BundleSpaceGraph::computeFeasiblePathSection2()
     projectFiber(qStart_->state, xFiberTmp1_);
     projectFiber(qGoal_->state, xFiberTmp2_);
 
-    std::vector<base::State*> bundlePathStates = 
-    pathRestriction_->interpolateManhattan(xFiberTmp1_, xFiberTmp2_);
+    //interpolate a path section
+    pathRestriction_->setBasePath(basePath);
 
-    // std::vector<base::State*> bundlePathStates = computePathSection_Manhattan_Down(
-    //     basePathStatesExtented, xFiberTmp1_, xFiberTmp2_);
+    std::vector<base::State*> bundlePathStates = 
+    pathRestriction_->interpolateSectionL1(xFiberTmp1_, xFiberTmp2_);
 
     //check for feasibility
     bool found = checkFeasiblePathSection(qStart_, basePathStatesExtented, bundlePathStates);

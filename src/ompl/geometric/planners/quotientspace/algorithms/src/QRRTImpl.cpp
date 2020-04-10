@@ -70,7 +70,7 @@ void ompl::geometric::QRRTImpl::grow()
     //(2) Get Nearest in Tree
     const Configuration *xNearest = nearest(xRandom_);
 
-    //(3) Connect Nearest to Random
+    //(3) Connect Nearest to Random (within range)
     Configuration *xNext = extendGraphTowards_Range(xNearest, xRandom_);
 
     //(4) If extension was successful, check if we reached goal
@@ -81,8 +81,8 @@ void ompl::geometric::QRRTImpl::grow()
             bool satisfied = goal_->isSatisfied(xNext->state, &dist);
             if(dist < bestCost_.value())
             {
-              bestCost_ = base::Cost(dist);
-              std::cout << "Nearest to goal: " << dist << std::endl;
+                bestCost_ = base::Cost(dist);
+                std::cout << "Nearest to goal: " << dist << std::endl;
             }
             if (satisfied)
             {

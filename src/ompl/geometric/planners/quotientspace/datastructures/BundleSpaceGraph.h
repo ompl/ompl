@@ -241,8 +241,9 @@ namespace ompl
 
             BundleSpaceGraphSamplerPtr getGraphSampler();
 
-            bool computeFeasiblePathSection();
             bool computeFeasiblePathSection2();
+
+            const BundleSpacePathRestrictionPtr getPathRestriction();
 
             /** \brief Best cost found so far by algorithm */
             base::Cost bestCost_{+ompl::base::dInf};
@@ -316,13 +317,16 @@ namespace ompl
                 const std::vector<base::State*> bundlePath, 
                 unsigned int depth=0,
                 double startLength=0.0);
-        protected:
 
             virtual Configuration* addBundleConfiguration(base::State*);
-            virtual void addBundleEdge(const Configuration *a, const Configuration *b);
 
             virtual Vertex addConfiguration(Configuration *q);
+
+            virtual void addBundleEdge(const Configuration *a, const Configuration *b);
+
             void addEdge(const Vertex a, const Vertex b);
+        protected:
+
 
             ompl::base::Cost costHeuristic(Vertex u, Vertex v) const;
 

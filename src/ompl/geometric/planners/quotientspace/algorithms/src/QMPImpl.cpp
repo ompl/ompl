@@ -42,6 +42,7 @@
 #include "ompl/datastructures/PDF.h"
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/planners/quotientspace/datastructures/graphsampler/GraphSampler.h>
+#include <ompl/geometric/planners/quotientspace/datastructures/pathrestriction/PathRestriction.h>
 
 #define foreach BOOST_FOREACH
 
@@ -107,9 +108,15 @@ void ompl::geometric::QMPImpl::grow()
         init();
         vGoal_ = addConfiguration(qGoal_);
         firstRun_ = false;
-        if(computeFeasiblePathSection2())
-        {
-            return;
+
+        if(hasBaseSpace()){
+            if(getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
+            {
+                if (sameComponent(vStart_, vGoal_))
+                {
+                    hasSolution_ = true;
+                }
+            }
         }
     }
 

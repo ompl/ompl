@@ -139,56 +139,10 @@ namespace ompl
                 const ompl::base::State *xFiber, 
                 ompl::base::State *xBundle) const; 
 
-            // void liftPath(
-            //       const std::vector<base::State*> pathBase,
-            //       const base::State* xFiberStart,
-            //       const base::State* xFiberGoal,
-            //       std::vector<base::State*> pathBundle) const;
-
             unsigned int interpolateAlongBasePath(
                   const std::vector<base::State*> basePath,
                   double location,
                   base::State* xResult) const;
-
-            //  ---------------
-            //            ____x
-            //       ____/
-            //   ___/
-            //  x
-            //  ---------------
-            std::vector<ompl::base::State*> computePathSection_Geodesic(
-                  const std::vector<ompl::base::State*> basePath,
-                  const ompl::base::State* xFiberStart,
-                  const ompl::base::State* xFiberGoal) const;
-
-            //  ---------------
-            //   _____________x
-            //  |
-            //  |
-            //  x
-            //  ---------------
-            std::vector<ompl::base::State*> computePathSection_Manhattan_Top(
-                  const std::vector<ompl::base::State*> basePath,
-                  const ompl::base::State* xFiberStart,
-                  const ompl::base::State* xFiberGoal) const;
-
-            //  ---------------
-            //                x
-            //                |
-            //                |
-            //  x_____________|
-            //  ---------------
-            std::vector<ompl::base::State*> computePathSection_Manhattan_Down(
-                  const std::vector<ompl::base::State*> basePath,
-                  const ompl::base::State* xFiberStart,
-                  const ompl::base::State* xFiberGoal) const;
-
-            // std::vector<ompl::base::State*> computePathSection(
-            //       const std::vector<ompl::base::State*> basePath,
-            //       const ompl::base::State* xFiberStart,
-            //       double locationStart,
-            //       const ompl::base::State* xFiberGoal) const;
-
 
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 

@@ -3,11 +3,13 @@
 #include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/variate_generator.hpp>
+#include "ExponentialDecay.h"
 
 namespace ompl
 {
     namespace geometric
     {
+
         class BundleSpaceGraphSampler
         {
           protected:
@@ -36,7 +38,7 @@ namespace ompl
 
             double epsilonGraphThickening_{0.0};
 
-            double epsilonGraphThickeningFraction_{1e-2};
+            double epsilonGraphThickeningFraction_{1e-3};
 
             double pathBiasFixed_{0.1};
 
@@ -47,6 +49,10 @@ namespace ompl
             unsigned long long counterPathSampling_{0};
 
             unsigned long long counterGraphSampling_{0};
+
+            ExponentialDecay pathBiasDecay_;
+            ExponentialDecay graphThickeningDecay_;
+            ExponentialDecay pathThickeningDecay_;
         };
     }  // namespace geometric
 }  // namespace ompl
