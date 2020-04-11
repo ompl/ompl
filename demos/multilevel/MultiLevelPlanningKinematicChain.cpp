@@ -35,18 +35,17 @@
 
 /* Author: Andreas Orthey */
 
-#include "../KinematicChain.h"
 #include "MultiLevelPlanningCommon.h"
-#include <ompl/geometric/planners/quotientspace/QRRT.h>
+#include "../KinematicChain.h"
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <boost/range/irange.hpp>
 #include <boost/range/algorithm_ext/push_back.hpp>
 
-const unsigned int numLinks = 20;
-const double runtime_limit = 1;
+const unsigned int numLinks = 15;
+const double runtime_limit = 5;
 const double memory_limit = 4096;
-const int run_count = 1;
+const int run_count = 2;
 
 const double linkLength = 1.0 / numLinks;
 
@@ -56,7 +55,7 @@ std::vector<Environment> envs;
 
 Environment createCustomHornEnvironment(unsigned int d)
 {
-    double narrowPassageWidth = sqrtf((double)d) / (double)d;
+    double narrowPassageWidth = log((double)d) / (double)d;
     return createHornEnvironment(d, narrowPassageWidth);
 }
 
@@ -99,24 +98,35 @@ ob::PlannerPtr GetQRRT(std::vector<int> sequenceLinks, ob::SpaceInformationPtr s
 std::vector<std::vector<int>> getAdmissibleProjections(int dim)
 {
     std::vector<std::vector<int>> projections;
-    projections.push_back(std::vector<int>{});
-    projections.push_back(std::vector<int>{2});
-    projections.push_back(std::vector<int>{3});
+    // projections.push_back(std::vector<int>{});
+    // projections.push_back(std::vector<int>{2});
+    // projections.push_back(std::vector<int>{3});
 
-    unsigned int K = ceil(dim*0.5);
-    for(uint k = 0; k < K; k++){
-      std::vector<int> kStep;
-      if(k>0) boost::push_back(kStep, boost::irange(2, dim, k));
-      projections.push_back(kStep);
-    }
-    for(uint k = 2; k < dim; k++){
-      std::vector<int> kStep{k};
-      projections.push_back(kStep);
-      for(uint j = k+1; j < dim; j++){
-        std::vector<int> kjStep{k,j};
-        projections.push_back(kjStep);
-      }
-    }
+    // unsigned int K = ceil(dim*0.5);
+    // for(uint k = 0; k < K; k++){
+    //   std::vector<int> kStep;
+    //   if(k>0) boost::push_back(kStep, boost::irange(2, dim, k));
+    //   projections.push_back(kStep);
+    // }
+    // for(int k = 2; k < dim; k++){
+    //   std::vector<int> kStep{k};
+    //   projections.push_back(kStep);
+    //   for(int j = k+1; j < dim; j++){
+    //     std::vector<int> kjStep{k,j};
+    //     projections.push_back(kjStep);
+    //   }
+    // }
+    std::vector<int> discrete;
+    boost::push_back(discrete, boost::irange(2, dim + 1));
+
+    std::vector<int> twoStep;
+    boost::push_back(twoStep, boost::irange(2, dim + 1, 2));
+
+    if (twoStep.back() != dim)
+        twoStep.push_back(dim);
+
+    projections.push_back(twoStep);
+    projections.push_back(discrete);
 
     auto last = std::unique(projections.begin(), projections.end());
     projections.erase(last, projections.end());
@@ -137,6 +147,7 @@ std::vector<std::vector<int>> getAdmissibleProjections(int dim)
 int main()
 {
     Environment env = createCustomHornEnvironment(numLinks);
+    // Environment env = createHornEnvironment(numLinks, log((double)numLinks) / (double)numLinks);
     OMPL_INFORM("Original Chain has %d links", numLinks);
     for (unsigned int k = 0; k < numLinks; k++)
     {
@@ -158,7 +169,6 @@ int main()
     chain->copyFromReals(goal.get(), goalVec);
     ss.setStartAndGoalStates(start, goal);
 
-    ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, 0.5);
     ompl::tools::Benchmark benchmark(ss, "KinematicChain");
     benchmark.addExperimentParameter("num_links", "INTEGER", std::to_string(numLinks));
 
@@ -167,19 +177,35 @@ int main()
     //############################################################################
     ob::SpaceInformationPtr si = ss.getSpaceInformation();
     ob::ProblemDefinitionPtr pdef = ss.getProblemDefinition();
-    // benchmark.addPlanner(std::make_shared<og::STRIDE>(si));
-    // benchmark.addPlanner(std::make_shared<og::EST>(si));
-    // benchmark.addPlanner(std::make_shared<og::KPIECE1>(si));
-    // benchmark.addPlanner(std::make_shared<og::RRT>(si));
-    // benchmark.addPlanner(std::make_shared<og::PRM>(si));
+
+    addPlanner(benchmark, std::make_shared<og::STRIDE>(si));
+    addPlanner(benchmark, std::make_shared<og::KPIECE1>(si));
+    // addPlanner(benchmark, std::make_shared<og::FMT>(si));
+
+    // addPlanner(benchmark, std::make_shared<og::RRTConnect>(si)); //TODO: Investigate: does not return?
+    addPlanner(benchmark, std::make_shared<og::EST>(si));
+    addPlanner(benchmark, std::make_shared<og::PRM>(si));
 
     std::vector<std::vector<int>> admissibleProjections = getAdmissibleProjections(numLinks-1);
     for (unsigned int k = 0; k < admissibleProjections.size(); k++)
     {
         std::vector<int> proj = admissibleProjections.at(k);
         ob::PlannerPtr plannerK = GetQRRT(proj, si);
-        benchmark.addPlanner(plannerK);
+        addPlanner(benchmark, plannerK);
     }
+    // addPlanner(benchmark, std::make_shared<og::BKPIECE1>(si));
+
+    printEstimatedTimeToCompletion(numberPlanners, run_count, runtime_limit);
+
+    ot::Benchmark::Request request;
+    request.maxTime = runtime_limit;
+    request.maxMem = memory_limit;
+    request.runCount = run_count;
+    request.simplify = false;
+    request.displayProgress = false;
+    numberRuns = numberPlanners * run_count;
+
+    benchmark.setPostRunEvent(std::bind(&PostRunEvent, std::placeholders::_1, std::placeholders::_2));
 
     benchmark.benchmark(request);
     benchmark.saveResultsToFile(boost::str(boost::format("kinematic_%i.log") % numLinks).c_str());

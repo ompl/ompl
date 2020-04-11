@@ -123,6 +123,7 @@ int main()
         std::cout << std::string(80, '-') << std::endl;
         const ob::ProblemDefinitionPtr pdefR2 = planner->getProblemDefinition(0);
         pdefR2->getSolutionPath()->print(std::cout);
+        std::cout << std::string(80, '-') << std::endl;
     }
     return 0;
 }

@@ -85,14 +85,6 @@ protected:
     int nDim_;
 };
 
-void addPlanner(ompl::tools::Benchmark &benchmark, const ompl::base::PlannerPtr &planner, double range)
-{
-    ompl::base::ParamSet &params = planner->params();
-    if (params.hasParam(std::string("range")))
-        params.setParam(std::string("range"), ompl::toString(range));
-    benchmark.addPlanner(planner);
-}
-
 ob::PlannerPtr GetQRRT(ob::SpaceInformationPtr si, ob::ProblemDefinitionPtr pdef, unsigned int numLinks)
 {
     // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);

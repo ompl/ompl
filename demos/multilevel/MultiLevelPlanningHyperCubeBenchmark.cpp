@@ -38,43 +38,6 @@
 #include "MultiLevelPlanningCommon.h"
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
-#include <ompl/geometric/planners/bitstar/BITstar.h> //TODO: gets stuck
-#include <ompl/geometric/planners/est/BiEST.h>
-#include <ompl/geometric/planners/est/EST.h>
-#include <ompl/geometric/planners/est/ProjEST.h>
-#include <ompl/geometric/planners/fmt/BFMT.h>
-#include <ompl/geometric/planners/fmt/FMT.h>
-#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
-#include <ompl/geometric/planners/kpiece/KPIECE1.h>
-#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
-#include <ompl/geometric/planners/pdst/PDST.h>
-#include <ompl/geometric/planners/prm/LazyPRM.h> //TODO: segfault
-#include <ompl/geometric/planners/prm/LazyPRMstar.h>
-#include <ompl/geometric/planners/prm/PRM.h>
-#include <ompl/geometric/planners/prm/PRMstar.h>
-#include <ompl/geometric/planners/prm/SPARS.h>
-#include <ompl/geometric/planners/prm/SPARStwo.h>
-#include <ompl/geometric/planners/quotientspace/QRRT.h>
-#include <ompl/geometric/planners/quotientspace/QRRTStar.h>
-#include <ompl/geometric/planners/quotientspace/QMP.h>
-#include <ompl/geometric/planners/quotientspace/QMPStar.h>
-#include <ompl/geometric/planners/quotientspace/SPQR.h>
-#include <ompl/geometric/planners/rrt/BiTRRT.h>
-#include <ompl/geometric/planners/rrt/InformedRRTstar.h>
-#include <ompl/geometric/planners/rrt/LazyRRT.h>
-#include <ompl/geometric/planners/rrt/LBTRRT.h>
-#include <ompl/geometric/planners/rrt/RRTConnect.h>
-#include <ompl/geometric/planners/rrt/RRT.h>
-#include <ompl/geometric/planners/rrt/RRTsharp.h>
-#include <ompl/geometric/planners/rrt/RRTstar.h>
-#include <ompl/geometric/planners/rrt/RRTXstatic.h>
-#include <ompl/geometric/planners/rrt/SORRTstar.h>
-#include <ompl/geometric/planners/rrt/TRRT.h>
-#include <ompl/geometric/planners/sbl/pSBL.h> //TODO: parallel algorithms return infeasible solutions
-#include <ompl/geometric/planners/sbl/SBL.h>
-#include <ompl/geometric/planners/sst/SST.h>
-#include <ompl/geometric/planners/stride/STRIDE.h>
-
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/util/String.h>
 
@@ -86,12 +49,11 @@
 #include <boost/format.hpp>
 #include <fstream>
 
-const double edgeWidth = 0.2;
+const double edgeWidth = 0.1; //original STRIDE paper had edgewidth = 0.1
 const double runtime_limit = 10;
 const double memory_limit = 1024 * 1024; //in MB, but does not consider free operations from prev runs
-const int run_count = 10;
+const int run_count = 100;
 unsigned int curDim = 40;
-int numberPlanners = 0;
 
 // Note: Number of all simplifications is
 // unsigned int numberSimplifications = std::pow(2, curDim - 1);
@@ -169,47 +131,6 @@ protected:
     int dimension_;
 };
 
-static unsigned int numberRuns{0};
-
-void PostRunEvent(const ob::PlannerPtr &planner, ot::Benchmark::RunProperties &run)
-{
-    static unsigned int pid = 0;
-
-    ob::SpaceInformationPtr si = planner->getSpaceInformation();
-    ob::ProblemDefinitionPtr pdef = planner->getProblemDefinition();
-
-    unsigned int states = boost::lexical_cast<int>(run["graph states INTEGER"]);
-    double time = boost::lexical_cast<double>(run["time REAL"]);
-    double memory = boost::lexical_cast<double>(run["memory REAL"]);
-
-    bool solved = boost::lexical_cast<bool>(run["solved BOOLEAN"]);
-
-    double cost = std::numeric_limits<double>::infinity();
-    if ( run.find("solution length REAL") != run.end() ) 
-    {
-      cost = boost::lexical_cast<double>(run["solution length REAL"]);
-    }
-
-    std::cout << "Run " << pid << "/" << numberRuns << " [" << planner->getName() << "] "
-              << (solved ? "solved" : "FAILED") 
-              << "(time: " << time 
-              << ", cost: " << cost
-              << ", states: " << states 
-              << ", memory: " << memory
-              << ")" << std::endl;
-    std::cout << std::string(80, '-') << std::endl;
-    pid++;
-}
-
-void addPlanner(ompl::tools::Benchmark &benchmark, const ompl::base::PlannerPtr &planner, double range)
-{
-    ompl::base::ParamSet &params = planner->params();
-    if (params.hasParam(std::string("range")))
-        params.setParam(std::string("range"), ompl::toString(range));
-    benchmark.addPlanner(planner);
-    numberPlanners++;
-}
-
 template<typename T>  
 ob::PlannerPtr GetMultiLevelPlanner(std::vector<int> sequenceLinks, ob::SpaceInformationPtr si, std::string name="Planner")
 {
@@ -255,7 +176,6 @@ int main(int argc, char **argv)
         curDim = std::atoi(argv[1]);
     }
 
-    numberPlanners = 0;
     double range = edgeWidth * 0.5;
     auto space(std::make_shared<ompl::base::RealVectorStateSpace>(curDim));
     ompl::base::RealVectorBounds bounds(curDim);

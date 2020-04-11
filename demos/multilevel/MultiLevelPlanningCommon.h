@@ -38,6 +38,46 @@
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/tools/benchmark/Benchmark.h>
 
+//include planners
+#include <ompl/geometric/planners/bitstar/BITstar.h> //TODO: gets stuck
+#include <ompl/geometric/planners/est/BiEST.h>
+#include <ompl/geometric/planners/est/EST.h>
+#include <ompl/geometric/planners/est/ProjEST.h>
+#include <ompl/geometric/planners/fmt/BFMT.h>
+#include <ompl/geometric/planners/fmt/FMT.h>
+#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
+#include <ompl/geometric/planners/kpiece/KPIECE1.h>
+#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
+#include <ompl/geometric/planners/pdst/PDST.h>
+#include <ompl/geometric/planners/prm/LazyPRM.h> //TODO: segfault
+#include <ompl/geometric/planners/prm/LazyPRMstar.h>
+#include <ompl/geometric/planners/prm/PRM.h>
+#include <ompl/geometric/planners/prm/PRMstar.h>
+#include <ompl/geometric/planners/prm/SPARS.h>
+#include <ompl/geometric/planners/prm/SPARStwo.h>
+#include <ompl/geometric/planners/quotientspace/QRRT.h>
+#include <ompl/geometric/planners/quotientspace/QRRTStar.h>
+#include <ompl/geometric/planners/quotientspace/QMP.h>
+#include <ompl/geometric/planners/quotientspace/QMPStar.h>
+#include <ompl/geometric/planners/quotientspace/SPQR.h>
+#include <ompl/geometric/planners/rrt/BiTRRT.h>
+#include <ompl/geometric/planners/rrt/InformedRRTstar.h>
+#include <ompl/geometric/planners/rrt/LazyRRT.h>
+#include <ompl/geometric/planners/rrt/LBTRRT.h>
+#include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/geometric/planners/rrt/RRT.h>
+#include <ompl/geometric/planners/rrt/RRTsharp.h>
+#include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <ompl/geometric/planners/rrt/RRTXstatic.h>
+#include <ompl/geometric/planners/rrt/SORRTstar.h>
+#include <ompl/geometric/planners/rrt/TRRT.h>
+#include <ompl/geometric/planners/sbl/pSBL.h> //TODO: parallel algorithms return infeasible solutions
+#include <ompl/geometric/planners/sbl/SBL.h>
+#include <ompl/geometric/planners/sst/SST.h>
+#include <ompl/geometric/planners/stride/STRIDE.h>
+
+#include <boost/lexical_cast.hpp>
+
 namespace ot = ompl::tools;
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
@@ -119,4 +159,47 @@ void printEstimatedTimeToCompletion(unsigned int numberPlanners, unsigned int ru
         std::cout << worst_case_time_estimate_in_hours << "h" << std::endl;
     }
     std::cout << std::string(80, '-') << std::endl;
+}
+
+static unsigned int numberRuns{0};
+
+void PostRunEvent(const ob::PlannerPtr &planner, ot::Benchmark::RunProperties &run)
+{
+    static unsigned int pid = 0;
+
+    ob::SpaceInformationPtr si = planner->getSpaceInformation();
+    ob::ProblemDefinitionPtr pdef = planner->getProblemDefinition();
+
+    unsigned int states = boost::lexical_cast<int>(run["graph states INTEGER"]);
+    double time = boost::lexical_cast<double>(run["time REAL"]);
+    double memory = boost::lexical_cast<double>(run["memory REAL"]);
+
+    bool solved = boost::lexical_cast<bool>(run["solved BOOLEAN"]);
+
+    double cost = std::numeric_limits<double>::infinity();
+    if ( run.find("solution length REAL") != run.end() ) 
+    {
+      cost = boost::lexical_cast<double>(run["solution length REAL"]);
+    }
+
+    std::cout << "Run " << pid << "/" << numberRuns << " [" << planner->getName() << "] "
+              << (solved ? "solved" : "FAILED") 
+              << "(time: " << time 
+              << ", cost: " << cost
+              << ", states: " << states 
+              << ", memory: " << memory
+              << ")" << std::endl;
+    std::cout << std::string(80, '-') << std::endl;
+    pid++;
+}
+
+int numberPlanners = 0;
+
+void addPlanner(ompl::tools::Benchmark &benchmark, const ompl::base::PlannerPtr &planner, double range = 1e-2)
+{
+    ompl::base::ParamSet &params = planner->params();
+    if (params.hasParam(std::string("range")))
+        params.setParam(std::string("range"), ompl::toString(range));
+    benchmark.addPlanner(planner);
+    numberPlanners++;
 }
