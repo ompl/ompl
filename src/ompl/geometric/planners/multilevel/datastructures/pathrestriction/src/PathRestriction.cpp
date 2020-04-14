@@ -4,6 +4,8 @@
 #include <ompl/base/Path.h>
 #include <ompl/geometric/PathGeometric.h>
 
+#define SANITY_CHECK(X) X
+
 ompl::geometric::BundleSpacePathRestriction::BundleSpacePathRestriction(BundleSpaceGraph* bundleSpaceGraph):
   bundleSpaceGraph_(bundleSpaceGraph)
 {
@@ -84,24 +86,17 @@ ompl::geometric::BundleSpacePathRestriction::interpolateSectionL1(
       const base::State* xFiberGoal,
       const std::vector<base::State*> basePath) 
 {
-    //Two goal states (to interpolate along goal fiber)
-    // basePath.push_back(basePath.back());
-
     std::vector<base::State*> bundlePath;
-
 
     if(bundleSpaceGraph_->getFiberDimension() > 0)
     {
         bundlePath.resize(basePath.size() + 1);
         bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
-        for(uint k = 0; k < bundlePath.size(); k++)
+        for(uint k = 0; k < bundlePath.size()-1; k++)
         {
-            if(k < bundlePath.size()-1){
-                bundleSpaceGraph_->liftState(basePath.at(k), xFiberStart, bundlePath.at(k));
-            }else{
-                bundleSpaceGraph_->liftState(basePath.back(), xFiberGoal, bundlePath.at(k));
-            }
+            bundleSpaceGraph_->liftState(basePath.at(k), xFiberStart, bundlePath.at(k));
         }
+        bundleSpaceGraph_->liftState(basePath.back(), xFiberGoal, bundlePath.back());
 
     }else{
         bundlePath.resize(basePath.size());
@@ -119,28 +114,22 @@ ompl::geometric::BundleSpacePathRestriction::interpolateSectionL1_FiberFirst(
       const base::State* xFiberGoal,
       const std::vector<base::State*> basePath)
 {
-
-    //Two start states (to interpolate along start fiber)
-    // basePath.insert(basePath.begin(), basePath.front());
-    OMPL_ERROR("NYI");
-    throw "NYI";
-
     std::vector<base::State*> bundlePath;
-    bundlePath.resize(basePath.size());
-    bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
 
     if(bundleSpaceGraph_->getFiberDimension() > 0)
     {
-        for(uint k = 0; k < basePath.size(); k++)
+        bundlePath.resize(basePath.size() + 1);
+        bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
+
+        bundleSpaceGraph_->liftState(basePath.front(), xFiberStart, bundlePath.front());
+        for(uint k = 1; k < bundlePath.size(); k++)
         {
-            if(k > 0){
-                bundleSpaceGraph_->liftState(basePath.at(k), xFiberGoal, bundlePath.at(k));
-            }else{
-                bundleSpaceGraph_->liftState(basePath.at(k), xFiberStart, bundlePath.at(k));
-            }
+            bundleSpaceGraph_->liftState(basePath.at(k-1), xFiberGoal, bundlePath.at(k));
         }
 
     }else{
+        bundlePath.resize(basePath.size());
+        bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
         for(uint k = 0; k < basePath.size(); k++){
             bundleSpaceGraph_->getBundle()->copyState(bundlePath.at(k), basePath.at(k));
         }
@@ -201,18 +190,19 @@ ompl::geometric::BundleSpacePathRestriction::addFeasibleSegment(
     bundleSpaceGraph_->addConfiguration(x);
     bundleSpaceGraph_->addBundleEdge(xLast, x);
     
-    //sanitycheck
-    if(!bundleSpaceGraph_->getBundle()->checkMotion(xLast->state, x->state))
-    {
-        OMPL_ERROR("Not feasible from last");
-        std::cout << std::string(80, '-') << std::endl;
-        std::cout << "Last State" << std::endl;
-        bundleSpaceGraph_->getBundle()->printState(xLast->state);
-        std::cout << std::string(80, '-') << std::endl;
-        std::cout << "Current State" << std::endl;
-        bundleSpaceGraph_->getBundle()->printState(x->state);
-        throw Exception("");
-    }
+    SANITY_CHECK(
+        if(!bundleSpaceGraph_->getBundle()->checkMotion(xLast->state, x->state))
+        {
+            OMPL_ERROR("Not feasible from last");
+            std::cout << std::string(80, '-') << std::endl;
+            std::cout << "Last State" << std::endl;
+            bundleSpaceGraph_->getBundle()->printState(xLast->state);
+            std::cout << std::string(80, '-') << std::endl;
+            std::cout << "Current State" << std::endl;
+            bundleSpaceGraph_->getBundle()->printState(x->state);
+            throw Exception("");
+        }
+    );
     return x;
 }
 
@@ -308,9 +298,15 @@ bool ompl::geometric::BundleSpacePathRestriction::hasFeasibleSection(
     if(bundleSpaceGraph_->isDynamic()) return false;
 
     bool foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_);
+    if(!foundFeasibleSection)
+    {
+        foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_, 0,0, false);
+    }
 
     if(foundFeasibleSection){
-      sanityCheckSection();
+      SANITY_CHECK(
+        sanityCheckSection();
+      );
     }
 
     return foundFeasibleSection;
@@ -375,15 +371,23 @@ const unsigned int PATH_SECTION_TREE_MAX_BRANCHING = 10;
 bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
     Configuration* const xStart,
     Configuration* const xGoal,
-    std::vector<base::State*> basePath,
+    const std::vector<base::State*> basePath,
     unsigned int depth,
-    double startLength)
+    double startLength,
+    bool interpolateL1)
 {
     bundleSpaceGraph_->projectFiber(xStart->state, xFiberStart_);
     bundleSpaceGraph_->projectFiber(xGoal->state, xFiberGoal_);
 
-    std::vector<base::State*> section =
-      interpolateSectionL1(xFiberStart_, xFiberGoal_, basePath);
+    std::vector<base::State*> section;
+    if(interpolateL1)
+    {
+        section = 
+          interpolateSectionL1(xFiberStart_, xFiberGoal_, basePath);
+    }else{
+        section = 
+          interpolateSectionL1_FiberFirst(xFiberStart_, xFiberGoal_, basePath);
+    }
 
     Configuration *xLast = xStart;
 
@@ -397,6 +401,7 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
                 xLast = addFeasibleSegment(xLast, section.at(k));
             }else{
                 addFeasibleGoalSegment(xLast, xGoal);
+                OMPL_DEBUG("Found feasible path section (%d edges added)", k);
                 return true;
             }
         }else
@@ -470,7 +475,14 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
                     //#########################################################
 
                     bool feasibleSection = 
-                      checkSectionRecursiveRepair(xSideStep, xGoal, basePathSegment, depth+1, locationOnBasePath);
+                      checkSectionRecursiveRepair(
+                          xSideStep, 
+                          xGoal, 
+                          basePathSegment, 
+                          depth+1, 
+                          locationOnBasePath, 
+                          !interpolateL1);
+
                     if(feasibleSection)
                     {
                         return true;

@@ -15,10 +15,13 @@ namespace ompl
       OMPL_CLASS_FORWARD(PathGeometric);
 
       /// \brief Representation of path restriction (set of all elements of bundle space
-      //which projects onto a given base path). This class has additional
+      //which projects onto a given base path --- i.e. a union of fibers over base path). 
+      //
+      //This class has additional
       //functionalities to find path sections (paths lying inside path
       //restriction) using different interpolation methods (shortest L1, L2
       //paths)
+
       class BundleSpacePathRestriction
       {
         public:
@@ -38,9 +41,10 @@ namespace ompl
           bool checkSectionRecursiveRepair(
                 Configuration* const xStart,
                 Configuration* const xGoal,
-                std::vector<base::State*> basePath,
+                const std::vector<base::State*> basePath,
                 unsigned int depth=0,
-                double startLength=0.0);
+                double startLength=0.0,
+                bool interpolateL1=true);
 
           bool sideStepAlongFiber(const base::State* xBase, base::State* xBundle);
 
@@ -59,10 +63,7 @@ namespace ompl
           //ptr* const means that the content of the pointer is const (but ptr
           //can change)
 
-
           bool hasFeasibleSection(Configuration* const, Configuration* const);
-
-
 
           //\brief Interpolate along restriction using L2 metric
           //  ---------------

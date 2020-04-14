@@ -181,16 +181,21 @@ void ompl::geometric::BundleSpace::sanityChecks() const
 void ompl::geometric::BundleSpace::checkBundleSpaceMeasure(std::string name, const base::StateSpacePtr space) const
 {
     OMPL_DEVMSG1("%s dimension: %d measure: %f", name, space->getDimension(), space->getMeasure());
-    if ((space->getMeasure() >= std::numeric_limits<double>::infinity()) ||
-        (space->getMeasure() <= 0))
+    if ((space->getMeasure() >= std::numeric_limits<double>::infinity()))
     {
-        throw ompl::Exception("Space has zero or infinite measure.");
+        throw ompl::Exception("Space infinite measure.");
+    }
+     
+    if(space->getMeasure() <= 0)
+    {
+        throw ompl::Exception("Space has zero measure.");
     }
 }
 
 ompl::base::PlannerStatus ompl::geometric::BundleSpace::solve(const base::PlannerTerminationCondition&)
 {
-    throw ompl::Exception("A Bundle-Space cannot be solved alone. Use class MultiBundle to solve Bundle-Spaces.");
+    throw ompl::Exception("A Bundle-Space cannot be solved alone. \
+        Use class BundleSpaceSequence to solve Bundle-Spaces.");
 }
 
 void ompl::geometric::BundleSpace::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
