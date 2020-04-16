@@ -428,21 +428,22 @@ Configuration* ompl::geometric::BundleSpaceGraph::steerTowards(
 }
 Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards_Range(
     const Configuration *from, 
-    const Configuration *to)
+    Configuration *to)
 {
-    Configuration *next = new Configuration(getBundle(), to->state);
+    // Configuration *next = new Configuration(getBundle(), to->state);
 
     double d = distance(from, to);
     if (d > maxDistance_)
     {
-        metric_->interpolateBundle(from, to, maxDistance_ / d, next);
+        metric_->interpolateBundle(from, to, maxDistance_ / d, to);
     }
 
-    if (!propagator_->steer(from, next, next))
+    if (!propagator_->steer(from, to, to))
     {
-        deleteConfiguration(next);
         return nullptr;
     }
+
+    Configuration *next = new Configuration(getBundle(), to->state);
     addConfiguration(next);
     addBundleEdge(from, next);
     return next;
@@ -790,5 +791,9 @@ void ompl::geometric::BundleSpaceGraph::getPlannerData(base::PlannerData &data) 
         boost::num_vertices(graph_), 
         boost::num_edges(graph_));
 
+    if(bestCost_.value() < ompl::base::dInf)
+    {
+        OMPL_DEBUG("Best Cost: %.2f", bestCost_.value());
+    }
     getPlannerDataGraph(data, graph_, vStart_, vGoal_);
 }

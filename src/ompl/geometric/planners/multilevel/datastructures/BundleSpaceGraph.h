@@ -302,7 +302,7 @@ namespace ompl
 
             Configuration* extendGraphTowards_Range(
                 const Configuration *from, 
-                const Configuration *to);
+                Configuration *to);
 
             virtual void interpolate(
                 const Configuration *a, 

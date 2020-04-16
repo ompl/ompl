@@ -1,5 +1,6 @@
 #include <ompl/geometric/planners/multilevel/datastructures/propagators/Dynamic.h>
 #include <ompl/base/DynamicalMotionValidator.h>
+#include <ompl/control/SimpleDirectedControlSampler.h>
 
 
 ompl::geometric::BundleSpacePropagatorDynamic::BundleSpacePropagatorDynamic(
@@ -20,7 +21,11 @@ ompl::geometric::BundleSpacePropagatorDynamic::BundleSpacePropagatorDynamic(
     std::cout << "MaxControlDuration: " << controlDuration << std::endl;
 
     // controlSampler_ = siC_->allocDirectedControlSampler();
-    controlSampler_ = siC_->allocControlSampler();
+    controlSampler_ = std::make_shared<control::SimpleDirectedControlSampler>(siC_);
+    controlSampler_->setNumControlSamples(5);
+
+    // if (!controlSampler_)
+    //     controlSampler_ = siC_->allocControlSampler();
 
     //@TODO: need to write allocator for simpleDirectedControlSampler
     //dCSampler->setNumControlSamples(numberOfControlSamples);
@@ -37,23 +42,24 @@ ompl::geometric::BundleSpacePropagatorDynamic::~BundleSpacePropagatorDynamic()
 
 bool ompl::geometric::BundleSpacePropagatorDynamic::steer( 
     const Configuration *from, 
-    const Configuration *, 
+    const Configuration *to, 
     Configuration *result)
 {
-    // bundleSpaceGraph_->getBundle()->copyState(result->state, to->state);
+    unsigned int cd = controlSampler_->sampleTo(controlRandom_, from->state, to->state);
 
-    // unsigned int cd = controlSampler_->sampleTo(controlRandom_, from->state, to->state);
-    // cd = siC_->propagateWhileValid(from->state, controlRandom_, cd, result->state);
-    // if (cd >= siC_->getMinControlDuration()){
-    //     return true;
-    // }	
-    // return false;
+    cd = siC_->propagateWhileValid(from->state, controlRandom_, cd, result->state);
 
-    //different approach
-    controlSampler_->sample(controlRandom_);
-    unsigned int cd = rng_.uniformInt(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
-    unsigned int propCd = siC_->propagateWhileValid(from->state, controlRandom_, cd, result->state);
+    if (cd >= siC_->getMinControlDuration())
+    {
+        return true;
+    }	
+    return false;
 
-    return (propCd == cd);
+
+    ////(2) different approach (SIngle Control)
+    //controlSampler_->sample(controlRandom_);
+    //unsigned int cd = rng_.uniformInt(siC_->getMinControlDuration(), siC_->getMaxControlDuration());
+    //unsigned int propCd = siC_->propagateWhileValid(from->state, controlRandom_, cd, result->state);
+    // return (propCd == cd);
 }
 

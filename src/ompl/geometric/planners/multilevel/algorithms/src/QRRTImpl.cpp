@@ -88,7 +88,7 @@ void ompl::geometric::QRRTImpl::grow()
             if(dist < bestCost_.value())
             {
                 bestCost_ = base::Cost(dist);
-                std::cout << "Nearest to goal: " << dist << std::endl;
+                // std::cout << "Nearest to goal: " << dist << std::endl;
             }
             if (satisfied)
             {

@@ -35,16 +35,19 @@ namespace ompl
         RNG rng_;
         int numberOfControlSamples{10};
         double propStepSize;
-        int controlDuration{10};
+        int controlDuration{2};
 
         control::SpaceInformation *siC_{nullptr};
 
         control::Control* controlRandom_{nullptr};
 
         base::State* stateRandom_;
+
         control::StatePropagatorPtr prop_;
-        // control::DirectedControlSamplerPtr controlSampler_;
-        control::ControlSamplerPtr controlSampler_;
+
+        control::SimpleDirectedControlSamplerPtr controlSampler_;
+
+        // control::ControlSamplerPtr controlSampler_;
 
 
 

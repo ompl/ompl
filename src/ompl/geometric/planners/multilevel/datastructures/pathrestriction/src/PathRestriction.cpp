@@ -9,12 +9,6 @@
 ompl::geometric::BundleSpacePathRestriction::BundleSpacePathRestriction(BundleSpaceGraph* bundleSpaceGraph):
   bundleSpaceGraph_(bundleSpaceGraph)
 {
-    if(bundleSpaceGraph_->isDynamic())
-    {
-        OMPL_WARN("NYI: computing path sections for dynamical systems.");
-        return;
-        // throw Exception("NYI");
-    }
     if(bundleSpaceGraph_->getFiberDimension() > 0)
     {
         xFiberStart_ = bundleSpaceGraph_->getFiber()->allocState();
@@ -57,12 +51,6 @@ void ompl::geometric::BundleSpacePathRestriction::setBasePath(ompl::base::PathPt
 void ompl::geometric::BundleSpacePathRestriction::setBasePath(
     std::vector<base::State*> basePath)
 {
-    if(bundleSpaceGraph_->isDynamic())
-    {
-      OMPL_WARN("NYI: computing path sections for dynamical systems.");
-      return;
-    }
-
     basePath_ = basePath;
 
     lengthBasePath_ = 0.0;
@@ -168,8 +156,6 @@ ompl::geometric::BundleSpacePathRestriction::interpolateSectionL2(
             if(k < basePath.size() - 1)
             {
                 lengthCurrent += bundleSpaceGraph_->getBase()->distance(basePath.at(k), basePath.at(k+1));
-
-                // lengthCurrent += intermediateLengthsBasePath_.at(k);
             }
         }
 
@@ -300,6 +286,7 @@ bool ompl::geometric::BundleSpacePathRestriction::hasFeasibleSection(
     bool foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_);
     if(!foundFeasibleSection)
     {
+      //Try with inverse L1 
         foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_, 0,0, false);
     }
 
