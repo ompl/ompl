@@ -200,8 +200,8 @@ namespace ompl
                                                     Eigen::Ref<Eigen::VectorXi> coord)
         {
             // compute floor(projection ./ cellSizes)
-            coord = projection.cwiseQuotient(Eigen::Map<const Eigen::VectorXd>(cellSizes.data(), cellSizes.size()))
-                        .unaryExpr((double (*)(double))std::floor)
+            coord = (projection.array() / Eigen::Map<const Eigen::VectorXd>(cellSizes.data(), cellSizes.size()).array())
+                        .floor()
                         .cast<int>();
         }
     }  // namespace base
