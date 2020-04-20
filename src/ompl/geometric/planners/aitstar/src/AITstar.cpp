@@ -56,93 +56,98 @@ namespace ompl
           : ompl::base::Planner(spaceInformation, "AITstar")
           , forwardSearchId_(std::make_shared<std::size_t>(1u))
           , backwardSearchId_(std::make_shared<std::size_t>(1u))
-          , solutionCost_(std::make_shared<ompl::base::Cost>(std::numeric_limits<double>::infinity()))
+          , solutionCost_()
         {
         }
 
         void AITstar::setup()
         {
-            // Check that a problem definition has been set.
-            if (!static_cast<bool>(Planner::pdef_))
-            {
-                OMPL_ERROR("Tried to setup AIT**, but no problem definition has been set.");
-                return;
-            }
-
-            // If we were given a goal, make sure its of appropriate type.
-            if (!(Planner::pdef_->getGoal()->hasType(ompl::base::GOAL_STATE) ||
-                  Planner::pdef_->getGoal()->hasType(ompl::base::GOAL_STATES)))
-            {
-                OMPL_ERROR("%s: AIT** is currently only implemented for goals with one or multiple distinct goal "
-                           "states.",
-                           Planner::getName().c_str());
-                return;
-            }
-
             // Call the base-class setup.
             Planner::setup();
 
-            // Default to path length optimization objective if none has been specified.
-            if (!Planner::pdef_->hasOptimizationObjective())
+            // Check that a problem definition has been set.
+            if (static_cast<bool>(Planner::pdef_))
             {
-                OMPL_WARN("%s: No optimization objective has been specified. Defaulting to path length.",
-                          Planner::getName().c_str());
-                Planner::pdef_->setOptimizationObjective(
-                    std::make_shared<ompl::base::PathLengthOptimizationObjective>(Planner::si_));
-            }
+                // If we were given a goal, make sure its of appropriate type.
+                if (!(pdef_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION)))
+                {
+                    OMPL_ERROR("AIT* is currently only implemented for goals that can be cast to "
+                               "ompl::base::GOAL_SAMPLEABLE_GOAL_REGION.");
+                    setup_ = false;
+                    return;
+                }
 
-            // Pull the optimization objective through the problem definition.
-            objective_ = Planner::pdef_->getOptimizationObjective();
+                // Default to path length optimization objective if none has been specified.
+                if (!pdef_->hasOptimizationObjective())
+                {
+                    OMPL_WARN("%s: No optimization objective has been specified. Defaulting to path length.",
+                              Planner::getName().c_str());
+                    Planner::pdef_->setOptimizationObjective(
+                        std::make_shared<ompl::base::PathLengthOptimizationObjective>(Planner::si_));
+                }
 
-            // Initialize the forward queue.
-            forwardQueue_ = std::make_unique<EdgeQueue>([this](const aitstar::Edge &lhs, const aitstar::Edge &rhs) {
-                return std::lexicographical_compare(lhs.getSortKey().cbegin(), lhs.getSortKey().cend(),
-                                                    rhs.getSortKey().cbegin(), rhs.getSortKey().cend(),
-                                                    [this](const ompl::base::Cost &a, const ompl::base::Cost &b) {
-                                                        return objective_->isCostBetterThan(a, b);
-                                                    });
-            });
+                // Pull the optimization objective through the problem definition.
+                objective_ = pdef_->getOptimizationObjective();
 
-            // Initialize the reverse queue.
-            backwardQueue_ = std::make_unique<VertexQueue>(
-                [this](const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> &lhs,
-                       const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> &rhs) {
-                    return std::lexicographical_compare(lhs.first.cbegin(), lhs.first.cend(), rhs.first.cbegin(),
-                                                        rhs.first.cend(),
+                // Initialize the solution cost to be infinite.
+                solutionCost_ = std::make_shared<ompl::base::Cost>(objective_->infiniteCost());
+
+                // Initialize the forward queue.
+                forwardQueue_ = std::make_unique<EdgeQueue>([this](const aitstar::Edge &lhs, const aitstar::Edge &rhs) {
+                    return std::lexicographical_compare(lhs.getSortKey().cbegin(), lhs.getSortKey().cend(),
+                                                        rhs.getSortKey().cbegin(), rhs.getSortKey().cend(),
                                                         [this](const ompl::base::Cost &a, const ompl::base::Cost &b) {
                                                             return objective_->isCostBetterThan(a, b);
                                                         });
                 });
 
-            // Pull the motion validator through the space information.
-            motionValidator_ = Planner::si_->getMotionValidator();
+                // Initialize the reverse queue.
+                backwardQueue_ = std::make_unique<VertexQueue>(
+                    [this](const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> &lhs,
+                           const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> &rhs) {
+                        return std::lexicographical_compare(
+                            lhs.first.cbegin(), lhs.first.cend(), rhs.first.cbegin(), rhs.first.cend(),
+                            [this](const ompl::base::Cost &a, const ompl::base::Cost &b) {
+                                return objective_->isCostBetterThan(a, b);
+                            });
+                    });
 
-            // Setup a graph.
-            graph_.setup(Planner::si_, Planner::pdef_, solutionCost_, forwardSearchId_, backwardSearchId_);
+                // Pull the motion validator through the space information.
+                motionValidator_ = si_->getMotionValidator();
 
-            // Add the start states.
-            while (Planner::pis_.haveMoreStartStates())
-            {
-                // Get the next start state.
-                const ompl::base::State *startState = Planner::pis_.nextStart();
+                // Setup a graph.
+                graph_.setup(si_, pdef_, solutionCost_, forwardSearchId_, backwardSearchId_, &pis_);
 
-                // Add it if it's valid.
-                if (static_cast<bool>(startState))
+                // Add the start states.
+                while (pis_.haveMoreStartStates())
                 {
-                    graph_.registerStartState(startState);
+                    // Get the next start state.
+                    const ompl::base::State *startState = pis_.nextStart();
+
+                    // Add it if it's valid.
+                    if (static_cast<bool>(startState))
+                    {
+                        graph_.registerStartState(startState);
+                    }
+                }
+
+                // Add the goal states.
+                while (pis_.haveMoreGoalStates())
+                {
+                    const auto goalState = pis_.nextGoal();
+
+                    // Add it if it's valid.
+                    if (static_cast<bool>(goalState))
+                    {
+                        graph_.registerGoalState(goalState);
+                    }
                 }
             }
-
-            // Add the goal states.
-            while (Planner::pis_.haveMoreGoalStates())
+            else
             {
-                const auto goalState = Planner::pis_.nextGoal();
-
-                // Add it if it's valid.
-                if (static_cast<bool>(goalState))
-                {
-                    graph_.registerGoalState(goalState);
-                }
+                // AIT* can't be setup without a problem definition.
+                setup_ = false;
+                OMPL_WARN("AIT*: Unable to setup without a problem definition.");
             }
         }
 
@@ -152,9 +157,30 @@ namespace ompl
             Planner::checkValidity();
             if (!Planner::setup_)
             {
-                auto msg = Planner::name_ + " failed to setup."s;
-                throw ompl::Exception(msg);
+                OMPL_WARN("AIT*: Failed to setup and thus solve can not do anything meaningful.");
+                return ompl::base::PlannerStatus::StatusType::ABORT;
             }
+
+            if (!graph_.hasAStartState())
+            {
+                OMPL_WARN("AIT*: No solution can be found as no start states are available");
+                return ompl::base::PlannerStatus::StatusType::INVALID_START;
+            }
+
+            // If the graph currently does not have a goal state, we must wait until we get one.
+            if (!graph_.hasAGoalState())
+            {
+                graph_.updateStartAndGoalStates(terminationCondition, &pis_);
+            }
+
+            // If the graph still doesn't have a goal after waiting there's nothing to solve.
+            if (!graph_.hasAGoalState())
+            {
+                OMPL_WARN("AIT*: No solution can be found as no start states are available");
+                return ompl::base::PlannerStatus::StatusType::INVALID_GOAL;
+            }
+
+            OMPL_INFORM("%s: Searching for a solution to the given planning problem.", Planner::getName().c_str());
 
             // If this is the first time solve is called, populate the backward queue.
             if (numIterations_ == 0u)
@@ -184,11 +210,11 @@ namespace ompl
 
             if (std::isfinite(solutionCost_->value()))
             {
-                return {ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION};
+                return ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION;
             }
             else
             {
-                return {ompl::base::PlannerStatus::StatusType::TIMEOUT};
+                return ompl::base::PlannerStatus::StatusType::TIMEOUT;
             }
         }
 
@@ -465,6 +491,12 @@ namespace ompl
 
                     // Clear the cache of edges to be inserted.
                     edgesToBeInserted_.clear();
+
+                    // Add new start and goal states if necessary.
+                    if (pis_.haveMoreStartStates() || pis_.haveMoreGoalStates())
+                    {
+                        graph_.updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), &pis_);
+                    }
 
                     // Remove useless samples from the graph.
                     if (isPruningEnabled_)

@@ -41,6 +41,8 @@
 #include "ompl/base/samplers/InformedStateSampler.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/ProblemDefinition.h"
+#include "ompl/base/PlannerTerminationCondition.h"
+#include "ompl/base/Planner.h"
 
 #include "ompl/datastructures/NearestNeighborsGNATNoThreadSafety.h"
 
@@ -66,7 +68,8 @@ namespace ompl
                            const ompl::base::ProblemDefinitionPtr &problemDefinition,
                            const std::shared_ptr<ompl::base::Cost> &solutionCost,
                            const std::shared_ptr<std::size_t> &forwardSearchId,
-                           const std::shared_ptr<std::size_t> &backwardSearchId);
+                           const std::shared_ptr<std::size_t> &backwardSearchId,
+                           ompl::base::PlannerInputStates* inputStates);
 
                 /** \brief Set the reqire factor of the RGG. */
                 void setRewireFactor(double rewireFactor);
@@ -85,6 +88,16 @@ namespace ompl
 
                 /** \brief Registers a state as a goal state. */
                 void registerGoalState(const ompl::base::State *const goalState);
+
+                /** \brief Returns whether the graph has a goal state. */
+                bool hasAStartState() const;
+
+                /** \brief Returns whether the graph has a goal state. */
+                bool hasAGoalState() const;
+
+                /** \brief Adds new start and goals to the graph and creates a new informed sampler if necessary. */
+                void updateStartAndGoalStates(const ompl::base::PlannerTerminationCondition &terminationCondition,
+                                              ompl::base::PlannerInputStates *inputStates);
 
                 /** \brief Get neighbors of a vertex. */
                 std::vector<std::shared_ptr<Vertex>> getNeighbors(const std::shared_ptr<Vertex> &vertex) const;
@@ -114,6 +127,9 @@ namespace ompl
                 /** \brief Computes the connection radius with a given number of samples. */
                 double computeConnectionRadius(std::size_t numSamples) const;
 
+                /** \brief Returns wehther a state can possibly improve the current solution. */
+                bool canPossiblyImproveSolution(const std::shared_ptr<Vertex> &vertex) const;
+
                 /** \brief The space information of the underlying planning problem. */
                 ompl::base::SpaceInformationPtr spaceInformation_;
 
@@ -121,7 +137,7 @@ namespace ompl
                 ompl::base::ProblemDefinitionPtr problemDefinition_;
 
                 /** \brief The optimization objective of the planning problem. */
-                ompl::base::OptimizationObjectivePtr optimizationObjective_;
+                ompl::base::OptimizationObjectivePtr objective_;
 
                 /** \brief The id of the batch. */
                 std::shared_ptr<std::size_t> batchId_;
@@ -152,6 +168,16 @@ namespace ompl
 
                 /** \brief The goal vertices in the graph. */
                 std::vector<std::shared_ptr<Vertex>> goalVertices_;
+
+                /** \brief The start vertices that have been pruned. They are kept around because if the user decides to
+                 * add goal states after we've pruned some start states, we might want to add these pruned start states
+                 * again. */
+                std::vector<std::shared_ptr<Vertex>> prunedStartVertices_;
+
+                /** \brief The goal vertices that have been pruned. They are kept around because if the user decides to
+                 * add start states after we've pruned some goal states, we might want to add these pruned goal states
+                 * again. */
+                std::vector<std::shared_ptr<Vertex>> prunedGoalVertices_;
             };
 
         }  // namespace aitstar
