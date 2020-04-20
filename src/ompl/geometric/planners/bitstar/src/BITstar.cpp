@@ -32,47 +32,30 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Authors: Jonathan Gammell */
+/* Authors: Jonathan Gammell, Marlin Strub */
 
-// My definition:
 #include "ompl/geometric/planners/bitstar/BITstar.h"
 
-// For stringstreams
 #include <sstream>
-// For stream manipulations
 #include <iomanip>
-// For smart pointers
 #include <memory>
-// For boost::adaptors::reverse which let "for (auto ...)" loops iterate in reverse
 #include <boost/range/adaptor/reversed.hpp>
 
-// For OMPL_INFORM et al.
 #include "ompl/util/Console.h"
-// For exceptions:
 #include "ompl/util/Exception.h"
-// For toString
 #include "ompl/util/String.h"
-// For ompl::geometric::path
 #include "ompl/geometric/PathGeometric.h"
-// For the default optimization objective:
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
-// BIT*:
-// A collection of common helper functions
 #include "ompl/geometric/planners/bitstar/datastructures/HelperFunctions.h"
-// The Vertex ID generator class
 #include "ompl/geometric/planners/bitstar/datastructures/IdGenerator.h"
-// My vertex class:
 #include "ompl/geometric/planners/bitstar/datastructures/Vertex.h"
-// My cost & heuristic helper class
 #include "ompl/geometric/planners/bitstar/datastructures/CostHelper.h"
-// My implicit graph
 #include "ompl/geometric/planners/bitstar/datastructures/ImplicitGraph.h"
-// My queue class
 #include "ompl/geometric/planners/bitstar/datastructures/SearchQueue.h"
 
 #ifdef BITSTAR_DEBUG
-#warning Compiling BIT* with debug-level asserts
+#warning Compiling BIT* with debug-level asserts.
 #endif  // BITSTAR_DEBUG
 
 namespace ompl

@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Authors: Jonathan Gammell */
+/* Authors: Jonathan Gammell, Marlin Strub */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_BITSTAR_
 #define OMPL_GEOMETRIC_PLANNERS_BITSTAR_BITSTAR_
