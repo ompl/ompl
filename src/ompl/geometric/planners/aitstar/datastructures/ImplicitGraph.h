@@ -69,7 +69,7 @@ namespace ompl
                            const std::shared_ptr<ompl::base::Cost> &solutionCost,
                            const std::shared_ptr<std::size_t> &forwardSearchId,
                            const std::shared_ptr<std::size_t> &backwardSearchId,
-                           ompl::base::PlannerInputStates* inputStates);
+                           ompl::base::PlannerInputStates *inputStates);
 
                 /** \brief Set the reqire factor of the RGG. */
                 void setRewireFactor(double rewireFactor);
@@ -95,7 +95,8 @@ namespace ompl
                 /** \brief Returns whether the graph has a goal state. */
                 bool hasAGoalState() const;
 
-                /** \brief Adds new start and goals to the graph and creates a new informed sampler if necessary. */
+                /** \brief Adds new start and goals to the graph if avavilable and creates a new informed sampler if
+                 * necessary. */
                 void updateStartAndGoalStates(const ompl::base::PlannerTerminationCondition &terminationCondition,
                                               ompl::base::PlannerInputStates *inputStates);
 

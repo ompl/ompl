@@ -225,7 +225,7 @@ namespace ompl
                     for (const auto &revivedStart : revivedStarts)
                     {
                         std::iter_swap(revivedStart, prunedStartVertices_.rbegin());
-                        prunedGoalVertices_.pop_back();
+                        prunedStartVertices_.pop_back();
                     }
                 }
 
