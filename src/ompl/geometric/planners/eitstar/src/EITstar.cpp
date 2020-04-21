@@ -57,6 +57,7 @@ namespace ompl
           , detectionState_(spaceInfo->allocState())
           , space_(spaceInfo->getStateSpace())
           , motionValidator_(spaceInfo->getMotionValidator())
+          , solutionCost_()
         {
         }
 
@@ -67,68 +68,70 @@ namespace ompl
 
         void EITstar::setup()
         {
-            // Check that the problem definition is set.
-            if (!problem_)
-            {
-                OMPL_ERROR("EIT* can not be setup without first setting the problem definition.");
-                return;
-            }
-
-            // Check the goal is of appropriate type.
-            if (!problem_->getGoal()->hasType(ompl::base::GOAL_STATE))
-            {
-                OMPL_ERROR("EIT* currently only works for single goal states.");
-                return;
-            }
-
             // Call the base class setup.
             Planner::setup();
 
-            // Default to path length optimization if no objective has been specified.
-            if (!problem_->hasOptimizationObjective())
+            // Check that the problem definition is set.
+            if (static_cast<bool>(problem_))
             {
-                OMPL_WARN("%s: No optimization objective has been specified. The default is optimizing path length.",
-                          name_.c_str());
-                problem_->setOptimizationObjective(
-                    std::make_shared<ompl::base::PathLengthOptimizationObjective>(spaceInfo_));
-            }
-
-            // Let the graph know about the problem so that it can focus its approximation.
-            graph_.setProblemDefinition(problem_);
-
-            // Pull through the optimization objective for direct access.
-            objective_ = problem_->getOptimizationObjective();
-
-            // Set the best cost to infinity.
-            bestCost_ = objective_->infiniteCost();
-
-            // Instantiate the queues.
-            forwardQueue_ = std::make_unique<eitstar::ForwardQueue>(objective_, spaceInfo_);
-            reverseQueue_ = std::make_unique<eitstar::ReverseQueue>(objective_);
-
-            // Add the start state.
-            while (Planner::pis_.haveMoreStartStates())
-            {
-                if (const auto start = Planner::pis_.nextStart())
+                // If we were given a goal, make sure its of appropriate type.
+                if (!(problem_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION)))
                 {
-                    auto startState = graph_.setStartState(start);
-                    assert(graph_.hasStartState());
-                    forwardRoot_ = startState->asForwardVertex();
-                    forwardRoot_->setCost(objective_->identityCost());
+                    OMPL_ERROR("EIT* is currently only implemented for goals that can be cast to "
+                               "ompl::base::GOAL_SAMPLEABLE_GOAL_REGION.");
+                    setup_ = false;
+                    return;
+                }
+
+                // Default to path length optimization if no objective has been specified.
+                if (!problem_->hasOptimizationObjective())
+                {
+                    OMPL_WARN("%s: No optimization objective has been specified. The default is optimizing path "
+                              "length.",
+                              name_.c_str());
+                    problem_->setOptimizationObjective(
+                        std::make_shared<ompl::base::PathLengthOptimizationObjective>(spaceInfo_));
+                }
+
+                // Pull through the optimization objective for direct access.
+                objective_ = problem_->getOptimizationObjective();
+
+                // Initialize the solution cost to infinity.
+                solutionCost_ = std::make_shared<ompl::base::Cost>(objective_->infiniteCost());
+
+                // Initialize the cost of the best reverse path to infinity.
+                reverseCost_ = objective_->infiniteCost();
+
+                // Setup the graph with the problem information.
+                graph_.setup(problem_, solutionCost_, &pis_);
+
+                // Set the best cost to infinity.
+                bestCost_ = objective_->infiniteCost();
+
+                // Instantiate the queues.
+                forwardQueue_ = std::make_unique<eitstar::ForwardQueue>(objective_, spaceInfo_);
+                reverseQueue_ = std::make_unique<eitstar::ReverseQueue>(objective_);
+
+                // Create the forward roots.
+                for (const auto &start : graph_.getStartStates())
+                {
+                    auto root = start->asForwardVertex();
+                    root->setCost(objective_->identityCost());
+                    forwardRoots_.emplace_back(root);
+                }
+
+                // Create the reverse roots.
+                for (const auto &goal : graph_.getGoalStates())
+                {
+                    auto root = goal->asReverseVertex();
+                    root->setCost(objective_->identityCost());
+                    reverseRoots_.emplace_back(root);
                 }
             }
-
-            // Add the goal state.
-            while (Planner::pis_.haveMoreGoalStates())
+            else
             {
-                if (const auto goal = Planner::pis_.nextGoal())
-                {
-                    auto goalState = graph_.setGoalState(goal);
-                    assert(graph_.hasGoalState());
-                    reverseRoot_ = goalState->asReverseVertex();
-                    reverseRoot_->setCost(objective_->identityCost());
-                    reverseRoot_->getState()->setEstimatedEffortToGo(0u);
-                }
+                setup_ = false;
+                OMPL_WARN("EIT*: Unable to setup without a problem definition.");
             }
         }
 
@@ -147,9 +150,7 @@ namespace ompl
             // If this is the first time solve is being called, populate the reverse queue.
             if (iteration_ == 0u)
             {
-                reverseQueue_->insert(expand(reverseRoot_->getState()));
-                reverseRoot_->setExtendedCost(objective_->identityCost());
-                reverseRoot_->setExpandTag(searchTag_);
+                expandReverseRootsIntoReverseQueue();
             }
 
             // Iterate until stopped.
@@ -159,7 +160,7 @@ namespace ompl
             }
 
             // Return the appropriate planner status.
-            if (reverseRoot_->getTwin().lock())
+            if (objective_->isFinite(*solutionCost_))
             {
                 return ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION;
             }
@@ -226,7 +227,7 @@ namespace ompl
             // Prepare the return value.
             std::vector<Edge> edges;
 
-            // Get the edges recursively.
+            // Define a helper that recursively gets all reverse edges of a vertex.
             std::function<void(const std::shared_ptr<Vertex> &)> getEdgesRecursively =
                 [&edges, &getEdgesRecursively](const std::shared_ptr<Vertex> &vertex) {
                     for (const auto &child : vertex->getChildren())
@@ -239,7 +240,12 @@ namespace ompl
                         edges.emplace_back(parent->getState(), vertex->getState());
                     }
                 };
-            getEdgesRecursively(reverseRoot_);
+
+            // Get the edges of all reverse roots recursively.
+            for (const auto &root : reverseRoots_)
+            {
+                getEdgesRecursively(root);
+            }
 
             // Return all edges in the reverse tree.
             return edges;
@@ -340,7 +346,7 @@ namespace ompl
                 if (auto currentParent = edge.target->asForwardVertex()->getParent().lock())
                 {
                     if (currentParent->getId() == edge.source->asForwardVertex()->getId() &&
-                        edge.target->getId() != graph_.getGoalState()->getId())
+                        !graph_.isGoal(edge.target))
                     {
                         // Get the outgoing edges of the child.
                         jitSearchEdgeCache_ = expand(edge.target);
@@ -392,9 +398,10 @@ namespace ompl
                             {
                                 forwardQueue_->update({vertex->getParent().lock()->getState(), vertex->getState()});
 
-                                if (vertex->getState()->getId() == reverseRoot_->getState()->getId())
+                                // Update the solution if the vertex is a goal.
+                                if (graph_.isGoal(vertex->getState()))
                                 {
-                                    updateSolution();
+                                    updateSolution(vertex->getState());
                                 }
                             }
 
@@ -402,7 +409,7 @@ namespace ompl
                             parentVertex->addChild(childVertex);
 
                             // Expand the outgoing edges into the queue unless this state is the goal state.
-                            if (edge.target->getId() != graph_.getGoalState()->getId())
+                            if (!graph_.isGoal(edge.target))
                             {
                                 // Get the outgoing edges of the child.
                                 jitSearchEdgeCache_ = expand(edge.target);
@@ -422,7 +429,7 @@ namespace ompl
                             }
                             else  // It is the goal state, update the solution.
                             {
-                                updateSolution();
+                                updateSolution(edge.target);
                             }
                         }
                     }
@@ -490,21 +497,21 @@ namespace ompl
             assert(edge.source->hasReverseVertex());
 
             // Check whether we can suspend the reverse search.
-            if ((jitSearchEdgeCache_.empty() && !doesImproveReversePath(edge)))
+            if (jitSearchEdgeCache_.empty() && !doesImproveReversePath(edge))
             {
                 // Update the search tag.
                 ++searchTag_;
 
-                // Insert the outgoing edges of the start into the forward queue if there could be a path.
-                if (forwardRoot_->getTwin().lock())
+                // Insert edges into the forward queue if there could be a path.
+                if (isAnyForwardRootInReverseTree())
                 {
-                    assert(forwardRoot_->getState()->hasReverseVertex());
+                    // If the forward roots haven't been expanded on this RGG yet, expand them now.
                     if (startExpansionGraphTag_ != graph_.getTag())
                     {
-                        // Get the outgoing edges of the child.
-                        jitSearchEdgeCache_ = expand(forwardRoot_->getState());
+                        // Expand the forward roots that are in the reverse tree.
+                        jitSearchEdgeCache_ = expandForwardRootsInReverseTree();
 
-                        // Insert them if they can be inserted and the forward search can be started..
+                        // Insert them if they can be inserted and the forward search can be started.
                         if (canBeInsertedInForwardQueue(jitSearchEdgeCache_))
                         {
                             // Insert and clear the cache.
@@ -527,6 +534,10 @@ namespace ompl
                         // the queue were invalidated by repairing the reverse search.
                         phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
                     }
+                }
+                else
+                {
+                    phase_ = Phase::IMPROVE_APPROXIMATION;
                 }
 
                 // We're done with the reverse search for now.
@@ -588,6 +599,13 @@ namespace ompl
                         edge.source->getEstimatedEffortToGo() +
                         spaceInfo_->getStateSpace()->validSegmentCount(edge.source->raw(), edge.target->raw()));
 
+                    // If this edge improves the reverse cost, update it.
+                    if (graph_.isStart(edge.target) &&
+                        objective_->isCostBetterThan(childVertex->getCost(), reverseCost_))
+                    {
+                        reverseCost_ = childVertex->getCost();
+                    }
+
                     // Expand the outgoing edges into the queue unless this has already happened.
                     if (!isClosed(childVertex))
                     {
@@ -610,14 +628,14 @@ namespace ompl
 
             if (reverseQueue_->empty())
             {
-                // Insert the outgoing edges of the start into the forward queue if there could be a path.
-                if (forwardRoot_->getTwin().lock())
+                // Insert edges into the forward queue if there could be a path.
+                if (isAnyForwardRootInReverseTree())
                 {
-                    assert(forwardRoot_->getState()->hasReverseVertex());
+                    // If the start vertex hasn't already been expanded on this RGG, then expand it now.
                     if (startExpansionGraphTag_ != graph_.getTag())
                     {
                         // Get the outgoing edges of the child.
-                        jitSearchEdgeCache_ = expand(forwardRoot_->getState());
+                        jitSearchEdgeCache_ = expandForwardRootsInReverseTree();
 
                         // Insert them if they can be inserted and the forward search can be started..
                         if (canBeInsertedInForwardQueue(jitSearchEdgeCache_))
@@ -663,13 +681,23 @@ namespace ompl
             numSparseCollisionChecksPreviousLevel_ = 0u;
 
             // Restart the reverse search.
-            reverseRoot_.reset();
-            reverseRoot_ = graph_.getGoalState()->asReverseVertex();
-            reverseRoot_->setCost(objective_->identityCost());
-            reverseRoot_->setExtendedCost(objective_->identityCost());
-            reverseRoot_->setExpandTag(searchTag_);
-            reverseRoot_->getState()->setEstimatedEffortToGo(0u);
-            reverseQueue_->insert(expand(reverseRoot_->getState()));
+            reverseRoots_.clear();
+            reverseCost_ = objective_->infiniteCost();
+            for (const auto &goal : graph_.getGoalStates())
+            {
+                reverseRoots_.emplace_back(goal->asReverseVertex());
+                auto &reverseRoot = reverseRoots_.back();
+                reverseRoot->setCost(objective_->identityCost());
+                reverseRoot->setExtendedCost(objective_->identityCost());
+                reverseRoot->setExpandTag(searchTag_);
+                reverseQueue_->insert(expand(reverseRoot->getState()));
+                assert(reverseRoot->getState()->getEstimatedEffortToGo() == 0u);
+                assert(objective_->isCostEquivalentTo(reverseRoot->getState()->getLowerBoundCostToGo(),
+                                                      objective_->identityCost()));
+            }
+
+            // Clear the jit search edge cache.
+            jitSearchEdgeCache_.clear();
 
             // If expanding the goal state actually produced edges, let's start the reverse search.
             // Otherwise, we stay in the improve approximation phase.
@@ -679,48 +707,54 @@ namespace ompl
             }
         }
 
-        void EITstar::updateSolution()
+        void EITstar::updateSolution(const std::shared_ptr<eitstar::State> &goal)
         {
             // Throw if the reverse root does not have a forward vertex.
-            assert(reverseRoot_->getTwin().lock());
-            assert(reverseRoot_->getState()->hasForwardVertex());
-            auto current = reverseRoot_->getTwin().lock();
+            assert(goal->hasForwardVertex());
 
-            // Update the best cost.
-            bestCost_ = current->getCost();
-
-            // Allocate the path.
-            auto path = std::make_shared<ompl::geometric::PathGeometric>(spaceInfo_);
-
-            // Allocate a vector for vertices. The append function of the path inserts vertices in front of an
-            // std::vector, which is not very efficient. I'll rather iterate over the vector in reverse.
-            std::vector<std::shared_ptr<Vertex>> vertices;
-
-            // Continuously append vertices.
-            while (current->getState()->getId() != forwardRoot_->getState()->getId())
+            // We update the current goal if
+            //   1. We currently don't have a goal; or
+            //   2. The new goal has a better cost to come than the old goal
+            if (objective_->isCostBetterThan(goal->asForwardVertex()->getCost(), bestCost_))
             {
-                assert(current->getParent().lock());
+                auto current = goal->asForwardVertex();
+
+                // Update the best cost.
+                bestCost_ = current->getCost();
+
+                // Allocate the path.
+                auto path = std::make_shared<ompl::geometric::PathGeometric>(spaceInfo_);
+
+                // Allocate a vector for vertices. The append function of the path inserts vertices in front of an
+                // std::vector, which is not very efficient. I'll rather iterate over the vector in reverse.
+                std::vector<std::shared_ptr<Vertex>> vertices;
+
+                // Continuously append vertices.
+                while (!graph_.isStart(current->getState()))
+                {
+                    assert(current->getParent().lock());
+                    vertices.emplace_back(current);
+                    current = current->getParent().lock();
+                }
                 vertices.emplace_back(current);
-                current = current->getParent().lock();
+
+                // Append all vertices to the path.
+                for (auto it = vertices.rbegin(); it != vertices.rend(); ++it)
+                {
+                    assert((*it)->getState());
+                    assert((*it)->getState()->raw());
+                    path->append((*it)->getState()->raw());
+                }
+
+                // Register this solution with the problem definition.
+                ompl::base::PlannerSolution solution(path);
+                solution.setPlannerName(name_);
+                solution.setOptimized(objective_, bestCost_, objective_->isSatisfied(bestCost_));
+                problem_->addSolutionPath(solution);
+
+                // Set a new suboptimality factor.
+                suboptimalityFactor_ = bestCost_.value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value();
             }
-            vertices.emplace_back(current);
-
-            // Append all vertices to the path.
-            for (auto it = vertices.rbegin(); it != vertices.rend(); ++it)
-            {
-                assert((*it)->getState());
-                assert((*it)->getState()->raw());
-                path->append((*it)->getState()->raw());
-            }
-
-            // Register this solution with the problem definition.
-            ompl::base::PlannerSolution solution(path);
-            solution.setPlannerName(name_);
-            solution.setOptimized(objective_, bestCost_, objective_->isSatisfied(bestCost_));
-            problem_->addSolutionPath(solution);
-
-            // Set a new suboptimality factor.
-            suboptimalityFactor_ = bestCost_.value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value();
         }
 
         void EITstar::repairReverseSearchTree(const eitstar::Edge &invalidEdge,
@@ -849,13 +883,15 @@ namespace ompl
 
             // Restart the reverse search.
             reverseQueue_->clear();
-            reverseRoot_.reset();
-            reverseRoot_ = graph_.getGoalState()->asReverseVertex();
-            reverseRoot_->setCost(objective_->identityCost());
-            reverseRoot_->setExtendedCost(objective_->identityCost());
-            reverseRoot_->setExpandTag(searchTag_);
-            reverseRoot_->getState()->setEstimatedEffortToGo(0u);
-            reverseQueue_->insert(expand(reverseRoot_->getState()));
+            reverseRoots_.clear();
+            reverseCost_ = objective_->infiniteCost();
+            for (const auto &goal : graph_.getGoalStates())
+            {
+                auto reverseRoot = goal->asReverseVertex();
+                reverseRoot->setCost(objective_->identityCost());
+                reverseRoots_.emplace_back(reverseRoot);
+            }
+            expandReverseRootsIntoReverseQueue();
 
             // If expanding the goal state actually produced edges, let's start the reverse search.
             // Otherwise, improve the approximation.
@@ -874,16 +910,15 @@ namespace ompl
 
         bool EITstar::couldImproveForwardPath(const Edge &edge) const
         {
-            // If the start state has not been discovered by the reverse search, the answer is always yes.
-            if (auto goalVertex = reverseRoot_->getTwin().lock())
+            // If we currently don't have a solution, the anwer is yes.
+            if (!objective_->isFinite(bestCost_))
             {
-                assert(reverseRoot_->getState()->hasForwardVertex());
                 // Compare the costs of the full path heuristic with the current cost of the start state.
                 auto heuristicPathCost = objective_->combineCosts(
                     objective_->combineCosts(edge.source->asForwardVertex()->getCost(),
                                              objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw())),
                     objective_->costToGo(edge.target->raw(), problem_->getGoal().get()));
-                if (objective_->isCostBetterThan(heuristicPathCost, goalVertex->getCost()))
+                if (objective_->isCostBetterThan(heuristicPathCost, bestCost_))
                 {
                     return true;
                 }
@@ -896,6 +931,7 @@ namespace ompl
             {
                 if (!edge.source->hasReverseVertex() || !edge.target->hasReverseVertex())
                 {
+                    assert(false);
                     return false;
                 }
                 else
@@ -918,19 +954,17 @@ namespace ompl
             assert(edge.target->asForwardVertex()->getTwin().lock());
             assert(edge.target->hasReverseVertex());
             assert(edge.source->hasForwardVertex());
-            if (auto reverseRootForwardVertex = reverseRoot_->getTwin().lock())
+            if (isAnyReverseRootInForwardTree())
             {
-                assert(reverseRoot_->getState()->hasForwardVertex());
                 return objective_->isCostBetterThan(
                     objective_->combineCosts(
                         edge.source->asForwardVertex()->getCost(),
                         objective_->combineCosts(trueEdgeCost,
                                                  objective_->costToGo(edge.target->raw(), problem_->getGoal().get()))),
-                    reverseRootForwardVertex->getCost());
+                    bestCost_);
             }
             else
             {
-                assert(!reverseRoot_->getState()->hasForwardVertex());
                 return true;
             }
         }
@@ -1081,6 +1115,41 @@ namespace ompl
             }
         }
 
+        void EITstar::expandReverseRootsIntoReverseQueue()
+        {
+            for (auto &reverseRoot : reverseRoots_)
+            {
+                reverseRoot->setCost(objective_->identityCost());
+                reverseRoot->setExtendedCost(objective_->identityCost());
+                reverseRoot->setExpandTag(searchTag_);
+                reverseQueue_->insert(expand(reverseRoot->getState()));
+            }
+        }
+
+        bool EITstar::isAnyForwardRootInReverseTree() const
+        {
+            for (const auto &root : forwardRoots_)
+            {
+                if (root->getTwin().lock())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        bool EITstar::isAnyReverseRootInForwardTree() const
+        {
+            for (const auto &root : reverseRoots_)
+            {
+                if (root->getTwin().lock())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         bool EITstar::canBeInsertedInForwardQueue(const std::vector<eitstar::Edge> &edges) const
         {
             for (const auto &edge : edges)
@@ -1124,16 +1193,16 @@ namespace ompl
 
         bool EITstar::doesImproveReversePath(const Edge &edge) const
         {
-            // If the start state has not been discovered by the reverse search, the answer is always yes.
-            if (auto startVertex = forwardRoot_->getTwin().lock())
+            // If there is currently no reverse path, the answer is yes.
+            if (objective_->isFinite(reverseCost_))
             {
-                assert(forwardRoot_->getState()->hasReverseVertex());
                 // Compare the costs of the full path heuristic with the current cost of the start state.
-                auto heuristicPathCost = objective_->combineCosts(
+                const auto heuristicPathCost = objective_->combineCosts(
                     objective_->combineCosts(edge.source->asReverseVertex()->getCost(),
                                              objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw())),
                     edge.target->getLowerBoundCostToCome());
-                if (objective_->isCostBetterThan(heuristicPathCost, startVertex->getCost()))
+
+                if (objective_->isCostBetterThan(heuristicPathCost, reverseCost_))
                 {
                     return true;
                 }
@@ -1177,9 +1246,9 @@ namespace ompl
                 auto forwardVertex = state->asForwardVertex();
 
                 // Add the outgoing edge to this vertex's parent in the forward tree, if it exists.
-                if (forwardVertex->getId() != forwardRoot_->getId())
+                if (!graph_.isStart(state))
                 {
-                    // If this vertex is not the forward root, it must have a parent.
+                    // If this vertex is not a start state, it must have a parent.
                     assert(forwardVertex->getParent().lock());
 
                     // Get the state associated with the parent vertex.
@@ -1219,9 +1288,9 @@ namespace ompl
                 auto reverseVertex = state->asReverseVertex();
 
                 // Add the outgoing edge to this vertex's parent in the reverse tree, if it exists.
-                if (reverseVertex->getId() != reverseRoot_->getId())
+                if (!graph_.isGoal(state))
                 {
-                    // If this vertex is not the reverse root, it must have aeparent.
+                    // If this state is not a goal, it must have a parent.
                     assert(reverseVertex->getParent().lock());
 
                     // Get the state associated with the parent vertex.
@@ -1255,6 +1324,20 @@ namespace ompl
             }
 
             return outgoingEdges;
+        }
+
+        std::vector<eitstar::Edge> EITstar::expandForwardRootsInReverseTree() const
+        {
+            std::vector<eitstar::Edge> allEdges;
+            for (const auto root : forwardRoots_)
+            {
+                if (root->getTwin().lock())
+                {
+                    auto edges = expand(root->getState());
+                    allEdges.insert(allEdges.end(), edges.begin(), edges.end());
+                }
+            }
+            return allEdges;
         }
 
     }  // namespace geometric

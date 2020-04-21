@@ -43,6 +43,7 @@
 
 #include "ompl/datastructures/NearestNeighborsGNATNoThreadSafety.h"
 #include "ompl/base/samplers/InformedStateSampler.h"
+#include "ompl/base/Planner.h"
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/base/OptimizationObjective.h"
 
@@ -65,7 +66,14 @@ namespace ompl
                 ~RandomGeometricGraph() = default;
 
                 /** \brief Sets the optimization objective. */
-                void setProblemDefinition(const std::shared_ptr<ompl::base::ProblemDefinition> &problem);
+                void setup(const std::shared_ptr<ompl::base::ProblemDefinition> &problem,
+                           const std::shared_ptr<ompl::base::Cost> &solutionCost,
+                           ompl::base::PlannerInputStates *inputStates);
+
+                /** \brief Adds new start and goals to the graph if available and creates a new informed sampler if
+                 * necessary. */
+                void updateStartAndGoalStates(const ompl::base::PlannerTerminationCondition &terminationCondition,
+                                              ompl::base::PlannerInputStates *inputStates);
 
                 /** \brief Sets the radius factor. */
                 void setRadiusFactor(double factor);
@@ -82,23 +90,29 @@ namespace ompl
                 /** \brief Gets the neighbors of a state. */
                 const std::vector<std::shared_ptr<State>> &getNeighbors(const std::shared_ptr<State> &state) const;
 
-                /** \brief Get start state. */
-                std::shared_ptr<State> getStartState() const;
+                /** \brief Get the start states. */
+                const std::vector<std::shared_ptr<State>> &getStartStates() const;
 
-                /** \brief Get goal state. */
-                std::shared_ptr<State> getGoalState() const;
+                /** \brief Get the goal states. */
+                const std::vector<std::shared_ptr<State>> &getGoalStates() const;
 
                 /** \brief Sets the start state. */
-                std::shared_ptr<State> setStartState(const ompl::base::State *startState);
+                std::shared_ptr<State> registerStartState(const ompl::base::State *start);
 
                 /** \brief Sets the goal state. */
-                std::shared_ptr<State> setGoalState(const ompl::base::State *goalState);
+                std::shared_ptr<State> registerGoalState(const ompl::base::State *goal);
 
                 /** \brief Returns whether a start state is set. */
                 bool hasStartState() const;
 
                 /** \brief Returns whether a goal state is set. */
                 bool hasGoalState() const;
+
+                /** \brief Returns whether a state is a start state. */
+                bool isStart(const std::shared_ptr<State> &state) const;
+
+                /** \brief Returns whether a state is a goal state. */
+                bool isGoal(const std::shared_ptr<State> &state) const;
 
                 /** \brief Returns all sampled states. */
                 std::vector<std::shared_ptr<State>> getSamples() const;
@@ -126,6 +140,12 @@ namespace ompl
                 /** \brief Returns whether a state can possibly improve the current solution. */
                 bool canPossiblyImproveSolution(const std::shared_ptr<State> &state) const;
 
+                /** \brief Get the heuristic cost from the preferred start of a state. */
+                ompl::base::Cost heuristicCostFromPreferredStart(const std::shared_ptr<State> &state) const;
+
+                /** \brief Get the heuristic cost to the preferred goal of a state. */
+                ompl::base::Cost heuristicCostToPreferredGoal(const std::shared_ptr<State> &state) const;
+
                 /** \brief Computes the radius for the RGG. */
                 double computeRadius(std::size_t numInformedSamples) const;
 
@@ -147,11 +167,19 @@ namespace ompl
                 /** \brief The optimization objective this graph is supposed to help optimize. */
                 std::shared_ptr<ompl::base::OptimizationObjective> objective_;
 
-                /** \brief The start state of the problem. */
-                std::shared_ptr<State> startState_;
+                /** \brief The start states of the problem. */
+                std::vector<std::shared_ptr<State>> startStates_;
 
-                /** \brief The goal state of the problem. */
-                std::shared_ptr<State> goalState_;
+                /** \brief The goal states of the problem. */
+                std::vector<std::shared_ptr<State>> goalStates_;
+
+                /** \brief The pruned start states of the problem. We keep these around because if a new start is added
+                 * after pruning a goal, we might want to consider the new goal again. */
+                std::vector<std::shared_ptr<State>> prunedStartStates_;
+
+                /** \brief The pruned goal states of the problem. We keep these around because if a new goal is added
+                 * after pruning a start, we might want to consider the new start again. */
+                std::vector<std::shared_ptr<State>> prunedGoalStates_;
 
                 /** \brief Whether pruning is enabled. */
                 bool isPruningEnabled_{true};
@@ -167,6 +195,9 @@ namespace ompl
 
                 /** \brief The measure of a unit ball in n dimensions. */
                 const double unitNBallMeasure_;
+
+                /** \brief The cost of the incumbent solution. */
+                std::weak_ptr<const ompl::base::Cost> solutionCost_;
             };
 
         }  // namespace eitstar

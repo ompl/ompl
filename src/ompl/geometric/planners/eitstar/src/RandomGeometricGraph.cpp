@@ -62,12 +62,124 @@ namespace ompl
                     });
             }
 
-            void
-            RandomGeometricGraph::setProblemDefinition(const std::shared_ptr<ompl::base::ProblemDefinition> &problem)
+            void RandomGeometricGraph::setup(const std::shared_ptr<ompl::base::ProblemDefinition> &problem,
+                                             const std::shared_ptr<ompl::base::Cost> &solutionCost,
+                                             ompl::base::PlannerInputStates *inputStates)
             {
                 problem_ = problem;
                 objective_ = problem->getOptimizationObjective();
                 sampler_ = objective_->allocInformedStateSampler(problem, std::numeric_limits<unsigned int>::max());
+                solutionCost_ = solutionCost;
+                updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), inputStates);
+            }
+
+            void RandomGeometricGraph::updateStartAndGoalStates(
+                const ompl::base::PlannerTerminationCondition &terminationCondition,
+                ompl::base::PlannerInputStates *inputStates)
+            {
+                // We need to keep track of whether a new goal and/or a new start has been added when calling this
+                // function.
+                bool addedNewStartState = false;
+                bool addedNewGoalState = false;
+
+                // First update the goals. We have to call inputStates->nextGoal(terminationCondition) at least once
+                // (regardless of the return value of inputStates->moreGoalStates()) in case the termination condition
+                // wants us to wait for a goal.
+                do
+                {
+                    // Get a new goal. If there are none, or the underlying state is invalid this will be a nullptr.
+                    auto newGoalState = inputStates->nextGoal(terminationCondition);
+
+                    // If there was a new valid goal, register it as such and remember that a goal has been added.
+                    if (static_cast<bool>(newGoalState))
+                    {
+                        registerGoalState(newGoalState);
+                        addedNewGoalState = true;
+                    }
+
+                } while (inputStates->haveMoreGoalStates());
+
+                // Having updated the goals, we now update the starts.
+                while (inputStates->haveMoreStartStates())
+                {
+                    // Get the next start. The returned pointer can be a nullptr (if the state is invalid).
+                    auto newStartState = inputStates->nextStart();
+
+                    // If there is a new valid start, register it as such and remember that a start has been added.
+                    if (static_cast<bool>(newStartState))
+                    {
+                        registerStartState(newStartState);
+                        addedNewStartState = true;
+                    }
+                }
+
+                // If we added a new start and have previously pruned goals, we might want to add the goals back.
+                if (addedNewStartState && !prunedGoalStates_.empty())
+                {
+                    // Keep track of the pruned goal vertices that have been revived.
+                    std::vector<std::vector<std::shared_ptr<State>>::iterator> revivedGoals;
+
+                    // Let's see if the pruned goal is close enough to any new start to revive it..
+                    for (auto it = prunedGoalStates_.begin(); it != prunedGoalStates_.end(); ++it)
+                    {
+                        // Loop over all start states to get the best cost.
+                        auto heuristicCost = objective_->infiniteCost();
+                        for (const auto &start : startStates_)
+                        {
+                            heuristicCost = objective_->betterCost(
+                                heuristicCost, objective_->motionCostHeuristic(start->raw(), (*it)->raw()));
+                        }
+
+                        // If this goal can possibly improve the current solution, add it back to the graph.
+                        if (objective_->isCostBetterThan(heuristicCost, *solutionCost_.lock()))
+                        {
+                            registerGoalState((*it)->raw());
+                            addedNewGoalState = true;
+                            revivedGoals.emplace_back(it);
+                        }
+                    }
+
+                    // Remove all revived goals from the pruned goals.
+                    for (auto& revivedGoal : revivedGoals)
+                    {
+                        std::iter_swap(revivedGoal, prunedGoalStates_.rbegin());
+                        prunedGoalStates_.pop_back();
+                    }
+                }
+
+                // If we added a new goal and have previously pruned starts, we might want to add the starts back.
+                if (addedNewGoalState && !prunedStartStates_.empty())
+                {
+                    // Keep track of the pruned goal vertices that have been revived.
+                    std::vector<std::vector<std::shared_ptr<State>>::iterator> revivedStarts;
+
+                    // Let's see if the pruned start is close enough to any new goal to revive it..
+                    for (auto it = prunedStartStates_.begin(); it != prunedStartStates_.end(); ++it)
+                    {
+                        // Loop over all start states to get the best cost.
+                        auto heuristicCost = objective_->infiniteCost();
+                        for (const auto &goal : goalStates_)
+                        {
+                            heuristicCost = objective_->betterCost(
+                                heuristicCost, objective_->motionCostHeuristic(goal->raw(), (*it)->raw()));
+                        }
+
+                        // If this goal can possibly improve the current solution, add it back to the graph.
+                        if (objective_->isCostBetterThan(heuristicCost, *solutionCost_.lock()))
+                        {
+                            registerStartState((*it)->raw());
+                            addedNewStartState = true;
+                            revivedStarts.emplace_back(it);
+                        }
+                    }
+
+                    // Remove all revived goals from the pruned goals.
+                    for (auto& revivedStart : revivedStarts)
+                    {
+                        std::iter_swap(revivedStart, prunedStartStates_.rbegin());
+                        prunedStartStates_.pop_back();
+                    }
+                }
             }
 
             void RandomGeometricGraph::setRadiusFactor(double factor)
@@ -75,38 +187,48 @@ namespace ompl
                 radiusFactor_ = factor;
             }
 
-            std::shared_ptr<State> RandomGeometricGraph::getStartState() const
+            const std::vector<std::shared_ptr<State>> &RandomGeometricGraph::getStartStates() const
             {
-                if (startState_)
-                {
-                    return startState_;
-                }
-                else
-                {
-                    throw std::runtime_error("Start state is not set.");
-                }
+                return startStates_;
             }
 
-            std::shared_ptr<State> RandomGeometricGraph::getGoalState() const
+            const std::vector<std::shared_ptr<State>> &RandomGeometricGraph::getGoalStates() const
             {
-                if (goalState_)
-                {
-                    return goalState_;
-                }
-                else
-                {
-                    throw std::runtime_error("Goal state is not set.");
-                }
+                return goalStates_;
             }
 
             bool RandomGeometricGraph::hasStartState() const
             {
-                return static_cast<bool>(startState_);
+                return !startStates_.empty();
             }
 
             bool RandomGeometricGraph::hasGoalState() const
             {
-                return static_cast<bool>(goalState_);
+                return !goalStates_.empty();
+            }
+
+            bool RandomGeometricGraph::isStart(const std::shared_ptr<State> &state) const
+            {
+                for (const auto &start : startStates_)
+                {
+                    if (state->getId() == start->getId())
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            bool RandomGeometricGraph::isGoal(const std::shared_ptr<State> &state) const
+            {
+                for (const auto &goal : goalStates_)
+                {
+                    if (state->getId() == goal->getId())
+                    {
+                        return true;
+                    }
+                }
+                return false;
             }
 
             std::vector<std::shared_ptr<State>> RandomGeometricGraph::getSamples() const
@@ -136,59 +258,57 @@ namespace ompl
                 return tag_;
             }
 
-            std::shared_ptr<State> RandomGeometricGraph::setStartState(const ompl::base::State *startState)
+            std::shared_ptr<State> RandomGeometricGraph::registerStartState(const ompl::base::State *start)
             {
-                // Ensure we don't already have a start state.
-                if (startState_)
-                {
-                    throw std::runtime_error("Graph already has a start.");
-                }
-
                 // Allocate the start state.
-                startState_ = std::make_shared<State>(spaceInfo_, objective_);
+                auto startState = std::make_shared<State>(spaceInfo_, objective_);
+
+                // Hold onto it.
+                startStates_.emplace_back(startState);
 
                 // Set the lower bound for the cost to go.
-                startState_->setLowerBoundCostToGo(objective_->costToGo(startState, problem_->getGoal().get()));
+                startState->setLowerBoundCostToGo(objective_->costToGo(start, problem_->getGoal().get()));
 
                 // Set the lower bound for the cost to come.
-                startState_->setLowerBoundCostToCome(objective_->identityCost());
+                startState->setLowerBoundCostToCome(objective_->identityCost());
 
                 // Copy the given state.
-                spaceInfo_->copyState(startState_->raw(), startState);
+                spaceInfo_->copyState(startState->raw(), start);
 
                 // Add the start to the set of samples.
-                samples_.add(startState_);
+                samples_.add(startState);
 
-                return startState_;
+                return startState;
             }
 
-            std::shared_ptr<State> RandomGeometricGraph::setGoalState(const ompl::base::State *goalState)
+            std::shared_ptr<State> RandomGeometricGraph::registerGoalState(const ompl::base::State *goal)
             {
-                // Ensure we don't already have a start state.
-                if (goalState_)
-                {
-                    throw std::runtime_error("Graph already has a goal.");
-                }
-
                 // Allocate the goal state.
-                goalState_ = std::make_shared<State>(spaceInfo_, objective_);
+                auto goalState = std::make_shared<State>(spaceInfo_, objective_);
 
-                // Copy the given state.
-                spaceInfo_->copyState(goalState_->raw(), goalState);
+                // Hold onto it.
+                goalStates_.emplace_back(goalState);
 
                 // Set the lower bound cost to go.
-                goalState_->setLowerBoundCostToGo(objective_->identityCost());
-                goalState_->setEstimatedCostToGo(objective_->identityCost());
-                goalState_->setEstimatedEffortToGo(0u);
+                goalState->setLowerBoundCostToGo(objective_->identityCost());
+
+                // Set the estimated cost to go.
+                goalState->setEstimatedCostToGo(objective_->identityCost());
+
+                // Set the estimated effort to go.
+                goalState->setEstimatedEffortToGo(0u);
+
+                // Copy the given state.
+                spaceInfo_->copyState(goalState->raw(), goal);
 
                 // Sanity check the cost-to-go definition.
-                assert(objective_->isCostEquivalentTo(objective_->costToGo(goalState, problem_->getGoal().get()),
+                assert(objective_->isCostEquivalentTo(objective_->costToGo(goal, problem_->getGoal().get()),
                                                       objective_->identityCost()));
 
                 // Add the goal to the set of samples.
-                samples_.add(goalState_);
+                samples_.add(goalState);
 
-                return goalState_;
+                return goalState;
             }
 
             void RandomGeometricGraph::addStates(std::size_t numNewStates)
@@ -212,8 +332,7 @@ namespace ompl
                 }
 
                 // Get the current best cost.
-                auto currentCost = goalState_->hasForwardVertex() ? goalState_->asForwardVertex()->getCost() :
-                                                                    objective_->infiniteCost();
+                auto currentCost = *solutionCost_.lock();
 
                 // Create the requested number of new states.
                 std::vector<std::shared_ptr<State>> newStates;
@@ -306,6 +425,15 @@ namespace ompl
                 {
                     if (!canPossiblyImproveSolution(sample))
                     {
+                        if (isStart(sample))
+                        {
+                            prunedStartStates_.emplace_back(sample);
+                        }
+                        else if (isGoal(sample))
+                        {
+                            prunedGoalStates_.emplace_back(sample);
+                        }
+
                         samplesToBePruned.emplace_back(sample);
                     }
                 }
@@ -359,12 +487,22 @@ namespace ompl
 
             bool RandomGeometricGraph::canPossiblyImproveSolution(const std::shared_ptr<State> &state) const
             {
-                if (goalState_->hasForwardVertex())
+                // Get the current solution cost.
+                assert(solutionCost_.lock());
+                const auto currentCost = *solutionCost_.lock();
+
+                // If it is infinite, any state can improve it.
+                if (objective_->isFinite(currentCost))
                 {
-                    return objective_->isCostBetterThan(
-                        objective_->combineCosts(objective_->motionCostHeuristic(startState_->raw(), state->raw()),
-                                                 objective_->motionCostHeuristic(state->raw(), goalState_->raw())),
-                        goalState_->asForwardVertex()->getCost());
+                    // Get the heuristic cost to come.
+                    const auto costToCome = heuristicCostFromPreferredStart(state);
+
+                    // Get the heuristic cost to go.
+                    const auto costToGo = heuristicCostToPreferredGoal(state);
+
+                    // Return whether the heuristic cost to come and the heuristic cost to go is better than the current
+                    // cost.
+                    return objective_->isCostBetterThan(objective_->combineCosts(costToCome, costToGo), currentCost);
                 }
                 else
                 {
@@ -372,15 +510,49 @@ namespace ompl
                 }
             }
 
+            ompl::base::Cost
+            RandomGeometricGraph::heuristicCostFromPreferredStart(const std::shared_ptr<State> &state) const
+            {
+                // Get the preferred start for this vertex.
+                auto bestCost = objective_->infiniteCost();
+                for (const auto &start : startStates_)
+                {
+                    const auto costToCome = objective_->motionCostHeuristic(start->raw(), state->raw());
+                    if (objective_->isCostBetterThan(costToCome, bestCost))
+                    {
+                        bestCost = costToCome;
+                    }
+                }
+
+                return bestCost;
+            }
+
+            ompl::base::Cost
+            RandomGeometricGraph::heuristicCostToPreferredGoal(const std::shared_ptr<State> &state) const
+            {
+                // Get the preferred start for this vertex.
+                auto bestCost = objective_->infiniteCost();
+                for (const auto &goal : goalStates_)
+                {
+                    const auto costToCome = objective_->motionCostHeuristic(goal->raw(), state->raw());
+                    if (objective_->isCostBetterThan(costToCome, bestCost))
+                    {
+                        bestCost = costToCome;
+                    }
+                }
+
+                return bestCost;
+            }
+
             double RandomGeometricGraph::computeRadius(std::size_t numInformedSamples) const
             {
                 // Get the solution cost.
-                auto solutionCost = goalState_->hasForwardVertex() ? goalState_->asForwardVertex()->getCost() :
-                                                                     objective_->infiniteCost();
+                assert(solutionCost_.lock());
+                const auto currentCost = *solutionCost_.lock();
 
                 // FMT*
                 return 2.0 * radiusFactor_ *
-                       std::pow((1.0 / dimension_) * (sampler_->getInformedMeasure(solutionCost) / unitNBallMeasure_) *
+                       std::pow((1.0 / dimension_) * (sampler_->getInformedMeasure(currentCost) / unitNBallMeasure_) *
                                     (std::log(static_cast<double>(numInformedSamples)) / numInformedSamples),
                                 1.0 / dimension_);
 
@@ -388,7 +560,7 @@ namespace ompl
                 // RRT*
                 // return radiusFactor_ *
                 //        std::pow(2.0 * (1.0 + 1.0 / dimension_) *
-                //                     (sampler_->getInformedMeasure(solutionCost) / unitNBallMeasure_) *
+                //                     (sampler_->getInformedMeasure(currentCost) / unitNBallMeasure_) *
                 //                     (std::log(static_cast<double>(numInformedSamples)) / numInformedSamples),
                 //                 1.0 / dimension_);
             }

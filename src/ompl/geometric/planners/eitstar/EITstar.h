@@ -109,6 +109,12 @@ namespace ompl
             /** \brief Returns the next edge in the reverse queue. */
             eitstar::Edge getNextReverseEdge() const;
 
+            /** \brief Checks whether the vertex is a start state. */
+            bool isStart(const std::shared_ptr<eitstar::State> &state) const;
+
+            /** \brief Checks whether the vertex is a goal State. */
+            bool isGoal(const std::shared_ptr<eitstar::State> &state) const;
+
             /** \brief Get the planner data. */
             void getPlannerData(base::PlannerData &data) const override;
 
@@ -137,7 +143,7 @@ namespace ompl
             void improveApproximation();
 
             /** \brief Updates the solution. */
-            void updateSolution();
+            void updateSolution(const std::shared_ptr<eitstar::State>& goalState);
 
             /** \brief Repairs the reverse search tree upon finding an invalid edge. */
             void repairReverseSearchTree(const eitstar::Edge &invalidEdge,
@@ -153,6 +159,9 @@ namespace ompl
 
             /** \brief Expands the input state, creating forward edges. */
             std::vector<eitstar::Edge> expand(const std::shared_ptr<eitstar::State> &state) const;
+
+            /** \brief Expands the forward roots that are in the reverse search tree. */
+            std::vector<eitstar::Edge> expandForwardRootsInReverseTree() const;
 
             /** \brief Returns whether the vertex has been closed during the current search. */
             bool isClosed(const std::shared_ptr<eitstar::Vertex> &vertex) const;
@@ -181,8 +190,17 @@ namespace ompl
             /** \brief Returns whether the edge could be valid. */
             bool couldBeValid(const eitstar::Edge &edge) const;
 
+            /** \brief Expands and inserts the reverse roots into the reverse queue. */
+            void expandReverseRootsIntoReverseQueue();
+
+            /** \brief Returns whether any forward root is in the reverse search tree. */
+            bool isAnyForwardRootInReverseTree() const;
+
+            /** \brief Returns whether any reverse root is in the forward search tree. */
+            bool isAnyReverseRootInForwardTree() const;
+
             /** \brief Returns whether all vertices have been processed by the reverse search. */
-            bool canBeInsertedInForwardQueue(const std::vector<eitstar::Edge>& edges) const;
+            bool canBeInsertedInForwardQueue(const std::vector<eitstar::Edge> &edges) const;
 
             /** \brief The sampling-based approximation of the state space. */
             eitstar::RandomGeometricGraph graph_;
@@ -221,11 +239,11 @@ namespace ompl
             /** \brief The cost of the current best solution. */
             ompl::base::Cost bestCost_{std::numeric_limits<double>::signaling_NaN()};
 
-            /** \brief The root of the forward search tree. */
-            std::shared_ptr<eitstar::Vertex> forwardRoot_;
+            /** \brief The roots of the forward search tree (forest). */
+            std::vector<std::shared_ptr<eitstar::Vertex>> forwardRoots_;
 
-            /** \brief The root of the reverse search tree. */
-            std::shared_ptr<eitstar::Vertex> reverseRoot_;
+            /** \brief The roots of the reverse search tree (forest). */
+            std::vector<std::shared_ptr<eitstar::Vertex>> reverseRoots_;
 
             /** \brief The forward queue. */
             std::unique_ptr<eitstar::ForwardQueue> forwardQueue_;
@@ -256,6 +274,12 @@ namespace ompl
 
             /** \brief Direct access to the motion validator of the state space. */
             std::shared_ptr<ompl::base::MotionValidator> motionValidator_;
+
+            /** \brief The cost of the incumbent solution. */
+            std::shared_ptr<ompl::base::Cost> solutionCost_;
+
+            /** \brief The cost of the best reverse path. */
+            ompl::base::Cost reverseCost_;
         };
 
     }  // namespace geometric
