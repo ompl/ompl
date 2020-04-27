@@ -45,7 +45,7 @@ matrix:
   - os: linux
     services:
       - docker
-    env: DOCKERFILE="debian-stretch"
+    env: DOCKERFILE="debian-buster"
 
 before_install:
   - if [ -n "$DOCKERFILE" ]; then
