@@ -129,20 +129,13 @@ void ompl::geometric::PathHybridization::computeHybridPath()
     }
 }
 
-const ompl::base::PathPtr &ompl::geometric::PathHybridization::getHybridPath() const
+const ompl::geometric::PathGeometricPtr &ompl::geometric::PathHybridization::getHybridPath() const
 {
     return hpath_;
 }
 
-unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr &pp, bool matchAcrossGaps)
+unsigned int ompl::geometric::PathHybridization::recordPath(const geometric::PathGeometricPtr &p, bool matchAcrossGaps)
 {
-    auto *p = dynamic_cast<PathGeometric *>(pp.get());
-    if (!p)
-    {
-        OMPL_ERROR("Path hybridization only works for geometric paths");
-        return 0;
-    }
-
     if (p->getSpaceInformation() != si_)
     {
         OMPL_ERROR("Paths for hybridization must be from the same space information");
@@ -153,7 +146,8 @@ unsigned int ompl::geometric::PathHybridization::recordPath(const base::PathPtr 
     if (p->getStateCount() == 0)
         return 0;
 
-    PathInfo pi(pp);
+    // interpolate path to get more potential crossover points between paths
+    PathInfo pi(p);
 
     // if this path was previously included in the hybridization, skip it
     if (paths_.find(pi) != paths_.end())

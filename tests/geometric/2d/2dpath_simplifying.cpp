@@ -97,8 +97,8 @@ public:
         base::OptimizationObjectivePtr obj(new T(si_));
         geometric::PathHybridization hybrid(si_, obj);
         std::cout << hybrid.getName() << std::endl;
-        base::PathPtr path1(paths_[0]);
-        base::PathPtr path2(paths_[1]);
+        geometric::PathGeometricPtr path1(paths_[0]);
+        geometric::PathGeometricPtr path2(paths_[1]);
         hybrid.recordPath(path1, true);
         hybrid.recordPath(path2, true);
         hybrid.computeHybridPath();
