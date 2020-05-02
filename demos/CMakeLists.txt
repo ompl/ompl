@@ -55,13 +55,8 @@ if (OMPL_BUILD_DEMOS)
     find_package(yaml-cpp)
     if (YAMLCPP_FOUND)
         add_ompl_demo(demo_PlanarManipulator
-            PlanarManipulator/PlanarManipulator_demo.cpp
-            PlanarManipulator/BoundedPlanarManipulatorStateSpace.cpp
-            PlanarManipulator/LinearMotionValidator.cpp
+            PlanarManipulator/PlanarManipulatorDemo.cpp
             PlanarManipulator/PlanarManipulator.cpp
-            PlanarManipulator/PlanarManipulatorStateSpace.cpp
-            PlanarManipulator/PMLinearMotionValidator.cpp
-            PlanarManipulator/Geometry.cpp
             PlanarManipulator/PolyWorld.cpp
         )
         target_include_directories(demo_PlanarManipulator PUBLIC ${YAMLCPP_INCLUDE_DIRS})

@@ -39,10 +39,9 @@
 
 #include <eigen3/Eigen/Dense>
 #include <ompl/base/SpaceInformation.h>
-#include "ompl/geometric/planners/xxl/XXLPlanarDecomposition.h"
+#include <ompl/geometric/planners/xxl/XXLPlanarDecomposition.h>
 #include "PlanarManipulator.h"
 #include "PlanarManipulatorStateSpace.h"
-#include "BoundedPlanarManipulatorStateSpace.h"
 
 // An XXL decomposition for a planar manipulator
 class PMXXLDecomposition : public ompl::geometric::XXLPlanarDecomposition
@@ -119,7 +118,7 @@ public:
         if (layer > 0)
         {
             std::vector<Eigen::Affine2d> frames;
-            manip_->FK(start->as<BoundedPlanarManipulatorStateSpace::StateType>()->values, frames);
+            manip_->FK(start->as<PlanarManipulatorStateSpace::StateType>()->values, frames);
 
             // Set the base frame of the manipulator
             partialManip.setBaseFrame(frames[projectedJoints_[layer - 1]]);
@@ -132,10 +131,10 @@ public:
         // For sublayers, the joint seed is a suffix of the seed
         if (layer > 0)
             memcpy(&angles[0],
-                   &start->as<BoundedPlanarManipulatorStateSpace::StateType>()->values[projectedJoints_[layer - 1] + 1],
+                   &start->as<PlanarManipulatorStateSpace::StateType>()->values[projectedJoints_[layer - 1] + 1],
                    partialManip.getNumLinks() * sizeof(double));
         else
-            memcpy(&angles[0], start->as<BoundedPlanarManipulatorStateSpace::StateType>()->values,
+            memcpy(&angles[0], start->as<PlanarManipulatorStateSpace::StateType>()->values,
                    partialManip.getNumLinks() * sizeof(double));
 
         // Sample a pose in the desired region
@@ -215,11 +214,11 @@ public:
 
             // Constructing state
             ompl::base::State *newState = si_->allocState();
-            double *values = newState->as<BoundedPlanarManipulatorStateSpace::StateType>()->values;
+            double *values = newState->as<PlanarManipulatorStateSpace::StateType>()->values;
 
             // Upper layer joints will not change
             if (precedingVals > 0)
-                memcpy(values, start->as<BoundedPlanarManipulatorStateSpace::StateType>()->values,
+                memcpy(values, start->as<PlanarManipulatorStateSpace::StateType>()->values,
                        precedingVals * sizeof(double));
 
             // Copying solution for this layer
@@ -232,7 +231,7 @@ public:
                 valid = false;
                 unsigned int index = precedingVals + partialManip.getNumLinks();
                 unsigned int attempts = 5;
-                const double *seed = start->as<BoundedPlanarManipulatorStateSpace::StateType>()->values;
+                const double *seed = start->as<PlanarManipulatorStateSpace::StateType>()->values;
 
                 double variance = 0.025;
                 for (unsigned int att = 0; att < attempts && !valid; ++att)
@@ -329,7 +328,7 @@ public:
     bool sampleRemainingJoints(int layer, ompl::base::State *s, const double *const seedVals,
                                const std::vector<double> &partialSln) const
     {
-        double *values = s->as<BoundedPlanarManipulatorStateSpace::StateType>()->values;
+        double *values = s->as<PlanarManipulatorStateSpace::StateType>()->values;
 
         unsigned int precedingVals =
             (layer > 0 ? projectedJoints_[layer - 1] + 1 : 0);  // number of joints in the partial solution?
@@ -381,7 +380,7 @@ public:
         if (!seed && layer > 0)
             throw ompl::Exception("You must set the seed value to sample from a layer > 0");
 
-        const double *seedVals = seed ? seed->as<BoundedPlanarManipulatorStateSpace::StateType>()->values : nullptr;
+        const double *seedVals = seed ? seed->as<PlanarManipulatorStateSpace::StateType>()->values : nullptr;
         initializePartialManipulator(layer, seedVals);
         PlanarManipulator &partialManip = partialManips_[layer];
 
@@ -424,7 +423,7 @@ public:
     virtual void project(const ompl::base::State *s, std::vector<double> &coord, int layer = 0) const
     {
         std::vector<Eigen::Affine2d> frames;
-        manip_->FK(s->as<BoundedPlanarManipulatorStateSpace::StateType>()->values, frames);
+        manip_->FK(s->as<PlanarManipulatorStateSpace::StateType>()->values, frames);
 
         coord.resize(3);
         coord[0] = frames[projectedJoints_[layer]].translation()[0];
@@ -437,7 +436,7 @@ public:
     virtual void project(const ompl::base::State *s, std::vector<int> &layers) const
     {
         std::vector<Eigen::Affine2d> frames;
-        manip_->FK(s->as<BoundedPlanarManipulatorStateSpace::StateType>()->values, frames);
+        manip_->FK(s->as<PlanarManipulatorStateSpace::StateType>()->values, frames);
 
         layers.resize(projectedJoints_.size());
         std::vector<double> coord(3);

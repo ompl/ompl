@@ -34,62 +34,81 @@
 
 /* Author: Ryan Luna */
 
-#ifndef POLYWORLD_H
-#define POLYWORLD_H
+#ifndef POLYWORLD_H_
+#define POLYWORLD_H_
 
+#include <cmath>
 #include <string>
-#include <yaml-cpp/yaml.h>
-#include "Geometry.h"
+#include <vector>
 
-// A representation of a world composed of polygonal obstacles
-// The world is read in using a proprietary YAML format
+// Definition of a point (x,y).
+typedef std::pair<double, double> Point;
+
+// Returns true if the difference between a and b is < eps.
+bool cmpDouble(double a, double b, const double eps = 1e-12);
+
+// Returns true if the two points are the same.
+bool equalPoints(Point p0, Point p1);
+
+// Definition of a planar convex polygon.
+class ConvexPolygon
+{
+public:
+    // Initializes a new convex polygon from the set of points.  The
+    // convex hull of the points are taken to guarantee convexity.
+    ConvexPolygon(const std::vector<Point> &coords);
+
+    // Returns the number of vertices on the convex polygon.
+    size_t numPoints() const
+    {
+        return coordinates_.size();
+    }
+    // Returns the ith point of this polygon.
+    Point operator[](size_t i) const
+    {
+        return coordinates_[i];
+    }
+
+    // Returns true if this polygon contains the given point.
+    bool inside(Point point) const;
+
+private:
+    std::vector<Point> coordinates_;
+};
+
+// A representation of a bounded planar world composed of polygonal obstacles.
 class PolyWorld
 {
 public:
-    // Empty world
     PolyWorld(const std::string &worldName, const std::pair<double, double> &xBounds,
               const std::pair<double, double> &yBounds);
-    // Read world from file
-    PolyWorld(const char *worldFile);
-    PolyWorld()
-    {
-    }
-    virtual ~PolyWorld();
 
-    void clear();
+    const std::string &worldName() const;
+    std::pair<double, double> xBounds() const;
+    std::pair<double, double> yBounds() const;
 
-    void initialize(const std::string &worldName, const std::pair<double, double> &xBounds,
-                    const std::pair<double, double> &yBounds);
+    size_t numObstacles() const;
+    const std::vector<ConvexPolygon> &obstacles() const;
+    const ConvexPolygon &obstacle(size_t i) const;
 
-    const std::string &getWorldName() const;
-    std::pair<double, double> getXBounds() const;
-    std::pair<double, double> getYBounds() const;
+    // Adds the obstacle to the world.
+    void addObstacle(const ConvexPolygon &polygon);
 
-    unsigned int getNumObstacles() const;
-    const std::vector<Geometry::Geometry *> &getObstacles() const;
-    const Geometry::Geometry *getObstacle(unsigned int i) const;
+    // Returns true if the given point is outside of the bounds
+    // defined for this world, false otherwise.
+    bool outOfBounds(Point p) const;
 
-    void addObstacle(Geometry::Geometry *geom);
-
-    bool outOfBounds(const Geometry::Point &p) const;
-
-    // Check the point for collision against all obstacles, including "unknown" obstacles
-    bool pointCollisionFree(const Geometry::Point &p) const;
+    // Returns true if the given point does not collide with any obstacle.
+    bool pointCollisionFree(Point p) const;
 
     // Write the world to the given filename in YAML format
     void writeWorld(const char *filename) const;
 
 protected:
-    void readWorld(const char *worldFile);
-    Geometry::Geometry *readGeometry(const YAML::Node &node) const;
-    Geometry::ConvexPolygon *readPolygon(const YAML::Node &polygonNode) const;
-    Geometry::ConvexPolygon *readRectangle(const YAML::Node &rectNode) const;
-    Geometry::Point readCoordinate(const std::string &string) const;
-
     std::string worldName_;
     std::vector<std::pair<double, double>> bounds_;
 
-    std::vector<Geometry::Geometry *> obstacles_;
+    std::vector<ConvexPolygon> obstacles_;
 };
 
 #endif

@@ -43,11 +43,12 @@
 class PlanarManipulator
 {
 public:
-    PlanarManipulator(unsigned int numLinks, double linkLength,
-                      const std::pair<double, double> &origin = std::make_pair(0, 0));
+    // A numLinks manipulator with equal length links.
+    PlanarManipulator(unsigned int numLinks, double linkLength, const std::pair<double, double> &origin = {0.0, 0.0});
 
+    // A numLinks manipulator with variable link lengths.
     PlanarManipulator(unsigned int numLinks, const std::vector<double> &linkLengths,
-                      const std::pair<double, double> &origin = std::make_pair(0, 0));
+                      const std::pair<double, double> &origin = {0.0, 0.0});
 
     virtual ~PlanarManipulator();
 
@@ -93,7 +94,8 @@ public:
     bool IK(std::vector<double> &solution, const std::vector<double> &seed, const Eigen::Affine2d &desiredFrame) const;
 
     // Forward and backward reaching inverse kinematics (FABRIK)
-    // DOES respect joint limits
+    //   Aristidou and Lasenby, FABRIK: A fast, iterative solver for the inverse kinematics problem.
+    //   Graphical Models 73(5): 243–260.
     bool FABRIK(std::vector<double> &solution, const Eigen::Affine2d &eeFrame, double xyTol = 1e-5,
                 double thetaTol = 1e-3) const;
     bool FABRIK(std::vector<double> &solution, const std::vector<double> &seed, const Eigen::Affine2d &desiredFrame,
@@ -106,26 +108,6 @@ public:
 
     // Convert the given frame to x,y,theta vector
     static void frameToPose(const Eigen::Affine2d &frame, Eigen::VectorXd &pose);
-
-    // Interpolate this manipulator using Cartesian space minimization technique
-    void cartesianInterpolate(const std::vector<double> &start, const std::vector<double> &end, double t,
-                              std::vector<double> &result) const;
-    void cartesianInterpolate(const double *const start, const double *const end, double t, double *result) const;
-
-    // Interpolate this manipulator using a hybrid Cartesian-Angular technique
-    // Stride is the modulo value for the links included in the cartesian scheme
-    // A stride=2 indicates every other link, stride=3 indicates every third link, etc.
-    // NOTE: Currently assumes Euclidean state space
-
-    //#warning "Stride default value is 3"
-    void hybridCartesianInterpolate(const std::vector<double> &start, const std::vector<double> &end, double t,
-                                    std::vector<double> &result, int stride = 2) const;
-    void hybridCartesianInterpolate(const double *const start, const double *const end, double t, double *result,
-                                    unsigned int stride = 2) const;
-
-    // Compute the angles for the chain if the parameterization is reversed, from end to beginning.
-    // The root of the reversed angles is assumed to be the frame of the end effector
-    void reverseChainAngles(const std::vector<double> &angles, std::vector<double> &reversed) const;
 
 protected:
     bool infeasible(const Eigen::Affine2d &frame) const;

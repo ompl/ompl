@@ -49,12 +49,14 @@
 #define TWOPI boost::math::constants::two_pi<double>()
 #endif
 
-// A goal that allows for specification of position (and orientation) for the
-// end effector of a planar manipulator
+// A goal that allows for specification of position (and optionally, the
+// orientation) for the end effector of a planar manipulator.
 // Uses GoalLazySamples to sample valid IK positions
 class PlanarManipulatorIKGoal : public ompl::base::GoalLazySamples
 {
 public:
+    // If fixedOrientation is false, the orientation in the goalPose is not
+    // considered (a random orientation will be sampled).
     PlanarManipulatorIKGoal(const ompl::base::SpaceInformationPtr &si, const Eigen::Affine2d &goalPose,
                             const PlanarManipulator *manipulator, bool fixedOrientation = true)
       : ompl::base::GoalLazySamples(
@@ -91,14 +93,12 @@ public:
 protected:
     bool sampleGoalThread(ompl::base::State *st) const
     {
-        // ompl::time::point start = ompl::time::now();
         std::vector<double> seed(manipulator_->getNumLinks());
         std::vector<double> soln(manipulator_->getNumLinks());
 
         bool good = false;
         unsigned int maxTries = 1000;
         unsigned int tries = 0;
-        // unsigned int ikcalls = 0;
         do
         {
             // random seed
@@ -108,8 +108,11 @@ protected:
             for (size_t i = 0; i < 10 && !good; ++i)
             {
                 Eigen::Affine2d pose(goalPose_);
-                if (!fixedOrientation_)  // Randomize the orientation if it does not matter
+                if (!fixedOrientation_)
+                {
+                    // Sample the orientation if it does not matter
                     pose.rotate(rng_.uniformReal(-PI, PI));
+                }
 
                 if (manipulator_->FABRIK(soln, seed, pose))
                 {
@@ -119,7 +122,6 @@ protected:
                     // GoalLazySamples will check validity
                     good = true;
                 }
-                // ikcalls++;
                 tries++;
             }
 
