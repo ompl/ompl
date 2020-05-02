@@ -150,7 +150,7 @@ set_package_properties(spot PROPERTIES
     URL "http://spot.lrde.epita.fr"
     PURPOSE "Used for constructing finite automata from LTL formulae.")
 find_package(spot)
-if (SPOT_FOUND)
+if (spot_FOUND)
     set(OMPL_HAVE_SPOT 1)
     include_directories("${SPOT_INCLUDE_DIRS}")
     link_directories(${SPOT_LIBRARY_DIRS})

@@ -22,8 +22,12 @@ install_python_binding_dependencies()
     # install additional python dependencies via pip
     sudo -H pip${PYTHONV} install -vU pygccxml pyplusplus
     # install castxml
-    wget -q -O- https://data.kitware.com/api/v1/file/5d6f1d01d35580e6dcded6dd/download | tar zxf - -C ${HOME}
-    export PATH=${HOME}/castxml/bin:${PATH}
+    if [[ $ubuntu_version > 1910 ]]; then
+        sudo apt-get install -y castxml
+    else
+        wget -q -O- https://data.kitware.com/api/v1/file/5e8b740d2660cbefba944189/download | tar zxf - -C ${HOME}
+        export PATH=${HOME}/castxml/bin:${PATH}
+    fi
     sudo apt-get -y install libboost-python-dev
     if [[ $ubuntu_version > 1710 ]]; then
         sudo apt-get -y install libboost-numpy-dev python${PYTHONV}-numpy
@@ -40,8 +44,8 @@ install_app_dependencies()
         if [[ $ubuntu_version > 1604 ]]; then
             sudo apt-get -y install libfcl-dev
         else
-            wget -O - https://github.com/flexible-collision-library/fcl/archive/0.5.0.tar.gz | tar zxf -
-            cd fcl-0.5.0; cmake .; sudo -E make install; cd ..
+            wget -O - https://github.com/flexible-collision-library/fcl/archive/0.6.1.tar.gz | tar zxf -
+            cd fcl-0.6.1; cmake .; sudo -E make install; cd ..
         fi
     fi
 }
