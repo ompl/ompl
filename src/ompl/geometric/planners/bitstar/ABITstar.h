@@ -72,7 +72,7 @@ namespace ompl
         DOI: <a href="https://arxiv.org/abs/2002.06589">arXiv:2002.06589</a>.
         Video: <a href="https://www.youtube.com/watch?v=VFdihv8Lq2A">Illustration video</a>.
         */
-        /** \brief Advanced Batch Informed Trees (ABIT*)*/
+        /** \brief Advanced Batch Informed Trees (ABIT*) */
         class ABITstar : public ompl::geometric::BITstar
         {
         public:

@@ -75,19 +75,6 @@ namespace ompl
             graphPtr_ = std::make_shared<ImplicitGraph>([this]() { return getName(); });
             queuePtr_ = std::make_shared<SearchQueue>([this]() { return getName(); });
 
-            // Make sure the default name reflects the default k-nearest setting
-            if (graphPtr_->getUseKNearest() && Planner::getName() == "BITstar")
-            {
-                // It's the current default r-disc BIT* name, but we're using k-nearest, so change
-                Planner::setName("kBITstar");
-            }
-            else if (!graphPtr_->getUseKNearest() && Planner::getName() == "kBITstar")
-            {
-                // It's the current default k-nearest BIT* name, but we're using r-disc, so change
-                Planner::setName("BITstar");
-            }
-            // It's not default named, don't change it
-
             // Specify my planner specs:
             Planner::specs_.recognizedGoal = ompl::base::GOAL_SAMPLEABLE_REGION;
             Planner::specs_.multithreaded = false;
@@ -215,8 +202,7 @@ namespace ompl
                     if (!Planner::pdef_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION))
                     {
                         OMPL_ERROR("%s::setup() BIT* currently only supports goals that can be cast to a sampleable "
-                                   "goal "
-                                   "region.",
+                                   "goal region.",
                                    Planner::getName().c_str());
                         // Mark as not setup:
                         Planner::setup_ = false;
@@ -245,7 +231,36 @@ namespace ompl
                 // Get the measure of the problem
                 prunedMeasure_ = Planner::si_->getSpaceMeasure();
 
-                // We are already marked as setup.
+                // If the planner is default named, we change it:
+                if (!graphPtr_->getUseKNearest() && Planner::getName() == "kBITstar")
+                {
+                    // It's current the default k-nearest BIT* name, and we're toggling, so set to the default r-disc
+                    OMPL_WARN("BIT*: An r-disc version of BIT* can not be named 'kBITstar', as this name is reserved "
+                              "for the k-nearest version. Changing the name to 'BITstar'.");
+                    Planner::setName("BITstar");
+                }
+                else if (graphPtr_->getUseKNearest() && Planner::getName() == "BITstar")
+                {
+                    // It's current the default r-disc BIT* name, and we're toggling, so set to the default k-nearest
+                    OMPL_WARN("BIT*: A k-nearest version of BIT* can not be named 'BITstar', as this name is reserved "
+                              "for the r-disc version. Changing the name to 'kBITstar'.");
+                    Planner::setName("kBITstar");
+                }
+                else if (!graphPtr_->getUseKNearest() && Planner::getName() == "kABITstar")
+                {
+                    // It's current the default k-nearest ABIT* name, and we're toggling, so set to the default r-disc
+                    OMPL_WARN("ABIT*: An r-disc version of ABIT* can not be named 'kABITstar', as this name is "
+                              "reserved for the k-nearest version. Changing the name to 'ABITstar'.");
+                    Planner::setName("ABITstar");
+                }
+                else if (graphPtr_->getUseKNearest() && Planner::getName() == "ABITstar")
+                {
+                    // It's current the default r-disc ABIT* name, and we're toggling, so set to the default k-nearest
+                    OMPL_WARN("ABIT*: A k-nearest version of ABIT* can not be named 'ABITstar', as this name is "
+                              "reserved for the r-disc version. Changing the name to 'kABITstar'.");
+                    Planner::setName("kABITstar");
+                }
+                // It's not default named, don't change it
             }
             else
             {
@@ -1155,12 +1170,30 @@ namespace ompl
             if (!graphPtr_->getUseKNearest() && Planner::getName() == "kBITstar")
             {
                 // It's current the default k-nearest BIT* name, and we're toggling, so set to the default r-disc
+                OMPL_WARN("BIT*: An r-disc version of BIT* can not be named 'kBITstar', as this name is reserved for "
+                          "the k-nearest version. Changing the name to 'BITstar'.");
                 Planner::setName("BITstar");
             }
             else if (graphPtr_->getUseKNearest() && Planner::getName() == "BITstar")
             {
                 // It's current the default r-disc BIT* name, and we're toggling, so set to the default k-nearest
+                OMPL_WARN("BIT*: A k-nearest version of BIT* can not be named 'BITstar', as this name is reserved for "
+                          "the r-disc version. Changing the name to 'kBITstar'.");
                 Planner::setName("kBITstar");
+            }
+            else if (!graphPtr_->getUseKNearest() && Planner::getName() == "kABITstar")
+            {
+                // It's current the default k-nearest ABIT* name, and we're toggling, so set to the default r-disc
+                OMPL_WARN("ABIT*: An r-disc version of ABIT* can not be named 'kABITstar', as this name is reserved "
+                          "for the k-nearest version. Changing the name to 'ABITstar'.");
+                Planner::setName("ABITstar");
+            }
+            else if (graphPtr_->getUseKNearest() && Planner::getName() == "ABITstar")
+            {
+                // It's current the default r-disc ABIT* name, and we're toggling, so set to the default k-nearest
+                OMPL_WARN("ABIT*: A k-nearest version of ABIT* can not be named 'ABITstar', as this name is reserved "
+                          "for the r-disc version. Changing the name to 'kABITstar'.");
+                Planner::setName("kABITstar");
             }
             // It's not default named, don't change it
         }
