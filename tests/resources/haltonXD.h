@@ -34,10 +34,11 @@
 
 /* Author: Luigi Palmieri */
 
-#include <ompl/base/samplers/deterministic/HaltonSequence.h>
-
 #ifndef OMPL_TEST_HALTON_XD_
 #define OMPL_TEST_HALTON_XD_
+
+#include <ompl/base/samplers/deterministic/HaltonSequence.h>
+#include <ompl/util/Console.h>
 
 #include <fstream>
 #include <iostream>
@@ -47,28 +48,16 @@
 #include <string>
 
 /** \brief Representation of XD Halton sequence read from file */
-struct HaltonXD
+class HaltonXD
 {
+public:
     HaltonXD(unsigned int dim)
     {
         dimensions_ = dim;
     }
 
-    std::vector<std::vector<double>> sequence_;
-    // Dimension of the sequence
-    unsigned int dimensions_;
-
-    HaltonXD &operator=(const HaltonXD &other)
-    {
-        dimensions_ = other.dimensions_;
-        sequence_ = other.sequence_;
-        return *this;
-    }
-
     void loadSequence(const char *filename)
     {
-        std::cout << "Loading the sequence " << filename << std::endl;
-
         std::ifstream input(filename);
         std::vector<double> line;
         std::string sline;
@@ -78,8 +67,8 @@ struct HaltonXD
             std::vector<double> line((std::istream_iterator<double>(in)), std::istream_iterator<double>());
             if (line.size() != dimensions_)
             {
-                std::cout << "Error the read line has a different dimension of " << line.size();
-                std::cout << "Expected dimension of " << dimensions_;
+                OMPL_ERROR("Error the read line has a different dimension of %d", line.size());
+                OMPL_ERROR("Expected dimension of %d", dimensions_);
             }
             sequence_.push_back(line);
         }
@@ -89,6 +78,10 @@ struct HaltonXD
     {
         return sequence_;
     }
+
+private:
+    std::vector<std::vector<double>> sequence_;
+    unsigned int dimensions_;
 };
 
 #endif

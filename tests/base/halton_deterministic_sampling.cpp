@@ -47,8 +47,6 @@ namespace ob = ompl::base;
 
 BOOST_AUTO_TEST_CASE(Halton_1D)
 {
-    std::cout << "Testing the 1D Halton Sequence..." << std::endl;
-
     boost::filesystem::path path(TEST_RESOURCES_DIR);
     // Reading sequence from file
     HaltonXD hd1 = HaltonXD(1);
@@ -59,7 +57,6 @@ BOOST_AUTO_TEST_CASE(Halton_1D)
     // checking if we have read all rows
     BOOST_CHECK_EQUAL(seq.size(), 5);
     // checking the samples of the rows
-    std::cout << "Generated Sample - Sample from Text" << std::endl;
     for (unsigned int i = 0; i < 5; ++i)
     {
         std::vector<double> sample = hs1d.sample();
@@ -69,16 +66,12 @@ BOOST_AUTO_TEST_CASE(Halton_1D)
         for (unsigned int j = 0; j < sample.size(); j++)
         {
             BOOST_CHECK_CLOSE(sample[j], read_sample[j], 0.001);
-            std::cout << sample[j] << " - " << read_sample[j] << ", ";
         }
-        std::cout << std::endl;
     }
-    std::cout << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(Halton_2D)
 {
-    std::cout << "Testing the 2D Halton Sequence..." << std::endl;
     boost::filesystem::path path(TEST_RESOURCES_DIR);
     // Reading sequence from file
     HaltonXD hd2 = HaltonXD(2);
@@ -89,7 +82,6 @@ BOOST_AUTO_TEST_CASE(Halton_2D)
     // checking if we have read all rows
     BOOST_CHECK_EQUAL(seq.size(), 5);
     // checking the samples of the rows
-    std::cout << "Generated Sample - Sample from Text" << std::endl;
     for (unsigned int i = 0; i < 5; ++i)
     {
         std::vector<double> sample = hs2d.sample();
@@ -99,16 +91,12 @@ BOOST_AUTO_TEST_CASE(Halton_2D)
         for (unsigned int j = 0; j < sample.size(); j++)
         {
             BOOST_CHECK_CLOSE(sample[j], read_sample[j], 0.001);
-            std::cout << sample[j] << " - " << read_sample[j] << ", ";
         }
-        std::cout << std::endl;
     }
-    std::cout << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(Halton_5D)
 {
-    std::cout << "Testing the 5D Halton Sequence..." << std::endl;
     boost::filesystem::path path(TEST_RESOURCES_DIR);
     // Reading sequence from file
     HaltonXD hd5 = HaltonXD(5);
@@ -119,7 +107,6 @@ BOOST_AUTO_TEST_CASE(Halton_5D)
     // checking if we have read all rows
     BOOST_CHECK_EQUAL(seq.size(), 5);
     // checking the samples of the rows
-    std::cout << "Generated Sample - Sample from Text" << std::endl;
     for (unsigned int i = 0; i < 5; ++i)
     {
         std::vector<double> sample = hs5d.sample();
@@ -129,16 +116,12 @@ BOOST_AUTO_TEST_CASE(Halton_5D)
         for (unsigned int j = 0; j < sample.size(); j++)
         {
             BOOST_CHECK_CLOSE(sample[j], read_sample[j], 0.001);
-            std::cout << sample[j] << " - " << read_sample[j] << ", ";
         }
-        std::cout << std::endl;
     }
-    std::cout << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(Halton_10D)
 {
-    std::cout << "Testing the 10D Halton Sequence..." << std::endl;
     boost::filesystem::path path(TEST_RESOURCES_DIR);
     // Reading sequence from file
     HaltonXD hd10 = HaltonXD(10);
@@ -149,7 +132,6 @@ BOOST_AUTO_TEST_CASE(Halton_10D)
     // checking if we have read all rows
     BOOST_CHECK_EQUAL(seq.size(), 5);
     // checking the samples of the rows
-    std::cout << "Generated Sample - Sample from Text" << std::endl;
     for (unsigned int i = 0; i < 5; ++i)
     {
         std::vector<double> sample = hs10d.sample();
@@ -159,9 +141,6 @@ BOOST_AUTO_TEST_CASE(Halton_10D)
         for (unsigned int j = 0; j < sample.size(); j++)
         {
             BOOST_CHECK_CLOSE(sample[j], read_sample[j], 0.001);
-            std::cout << sample[j] << " - " << read_sample[j] << ", ";
         }
-        std::cout << std::endl;
     }
-    std::cout << std::endl;
 }
