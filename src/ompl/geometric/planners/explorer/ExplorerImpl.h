@@ -89,9 +89,11 @@ namespace ompl
         int controlDuration{10};
         double maxDistance{.0};
         double goalBias{.05};
-        double epsilon{.0};
+        // double epsilon{.0};
         double distanceToGoal{.0};
         double approximateDistanceToGoal{.0};
+
+        base::OptimizationObjectivePtr pathObj_{nullptr};
 
     };
 

@@ -85,7 +85,9 @@ namespace ompl
                 Configuration() = delete;
                 Configuration(const ompl::base::SpaceInformationPtr &si);
                 Configuration(const ompl::base::SpaceInformationPtr &si, const ompl::base::State *state_);
+
                 ompl::base::State *state{nullptr};
+
                 unsigned int total_connection_attempts{0};
                 unsigned int successful_connection_attempts{0};
                 bool on_shortest_path{false};
@@ -135,6 +137,8 @@ namespace ompl
                 /** \brief Access to the interface-supporting vertice hashes of the sparse nodes */
                 //boost::property<vertex_interface_list_t, std::unordered_map<VertexIndexType, std::set<VertexIndexType>>>
                 std::unordered_map<normalized_index_type, std::set<normalized_index_type>> interfaceIndexList;
+
+                std::vector<Configuration*> reachableSet;
             };
 
             /** \brief An edge in Bundle-space */
@@ -246,7 +250,7 @@ namespace ompl
             const BundleSpacePathRestrictionPtr getPathRestriction();
 
             /** \brief Best cost found so far by algorithm */
-            base::Cost bestCost_{+ompl::base::dInf};
+            base::Cost bestCost_{+base::dInf};
 
             Configuration *qStart_{nullptr};
             Configuration *qGoal_{nullptr};

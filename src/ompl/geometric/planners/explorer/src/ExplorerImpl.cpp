@@ -49,6 +49,15 @@ ExplorerImpl::ExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *paren
 
   double maxExt = getBundle()->getMaximumExtent();
   pathBias_ = pathBiasFraction_ * maxExt;
+
+
+  ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(getBundle()));
+  ob::OptimizationObjectivePtr clearObj(new ob::MaximizeMinClearanceObjective(getBundle()));
+
+  pathObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
+
+  std::static_pointer_cast<base::MultiOptimizationObjective>(pathObj_)->addObjective(lengthObj, 0.5);
+  std::static_pointer_cast<base::MultiOptimizationObjective>(pathObj_)->addObjective(clearObj, 0.5);
 }
 
 ExplorerImpl::~ExplorerImpl()
@@ -130,7 +139,6 @@ void ExplorerImpl::grow(){
     growControl();
   } else {
     growGeometric();
-    //growGeometric();
     //double v = getBundle()->getSpaceMeasure();
     //if(v > 1e4){ 
     //    //TODO: this is a hack to circumvent many local minima on "small" spaces 
@@ -407,20 +415,12 @@ void ExplorerImpl::pushPathToStack(std::vector<ob::State*> &path)
         gpath.append(path.at(k));
     }
 
-    ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(getBundle()));
-    ob::OptimizationObjectivePtr clearObj(new ob::MaximizeMinClearanceObjective(getBundle()));
-    ob::MultiOptimizationObjective* multiObj = new ob::MultiOptimizationObjective(getBundle());
-
-    multiObj->addObjective(lengthObj, 1.0);
-    multiObj->addObjective(clearObj, 1.0);
-    ob::OptimizationObjectivePtr pathObj(multiObj);
-
     if(isDynamic())
     {
         OMPL_WARN("No Optimizer for dynamic paths specified.");
         // shortcutter.shortcutPath(gpath);
     }else{
-        og::PathSimplifier shortcutter(getBundle(), ob::GoalPtr(), pathObj);
+        og::PathSimplifier shortcutter(getBundle(), ob::GoalPtr(), pathObj_);
         //make sure that we have enough vertices so that the right path class is
         //visualized (problems with S1)
         if(getBundle()->getStateSpace()->getType() == ob::STATE_SPACE_SO2)

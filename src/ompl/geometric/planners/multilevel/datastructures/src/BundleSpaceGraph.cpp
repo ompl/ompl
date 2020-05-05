@@ -46,6 +46,7 @@
 #include <ompl/geometric/planners/multilevel/datastructures/importance/Exponential.h>
 #include <ompl/geometric/planners/multilevel/datastructures/importance/Uniform.h>
 #include <ompl/geometric/planners/multilevel/datastructures/metrics/Geodesic.h>
+#include <ompl/geometric/planners/multilevel/datastructures/metrics/Reachability.h>
 #include <ompl/geometric/planners/multilevel/datastructures/metrics/ShortestPath.h>
 #include <ompl/geometric/planners/multilevel/datastructures/propagators/Geometric.h>
 #include <ompl/geometric/planners/multilevel/datastructures/propagators/Dynamic.h>
@@ -59,6 +60,8 @@
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/tools/config/MagicConstants.h>
 #include <ompl/util/Exception.h>
+
+#include <ompl/datastructures/NearestNeighborsSqrtApprox.h>
 
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/incremental_components.hpp>
@@ -153,7 +156,14 @@ void ompl::geometric::BundleSpaceGraph::setup()
 
     if (!nearestDatastructure_)
     {
-        nearestDatastructure_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
+        if(!isDynamic()){
+            nearestDatastructure_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
+        }else{
+            //for dynamical systems, we use a pseudometric 
+            //(non-symmetric metric)
+            nearestDatastructure_.reset(
+            new NearestNeighborsSqrtApprox<Configuration*>());
+        }
         nearestDatastructure_->setDistanceFunction(
             [this](const Configuration *a, const Configuration *b) 
             { 
@@ -231,6 +241,16 @@ void ompl::geometric::BundleSpaceGraph::deleteConfiguration(Configuration *q)
         {
             getBundle()->freeState(q->state);
         }
+        for(uint k = 0; k < q->reachableSet.size(); k++)
+        {
+            Configuration *qk = q->reachableSet.at(k);
+            if (qk->state != nullptr)
+            {
+                getBundle()->freeState(qk->state);
+            }
+        }
+        q->reachableSet.clear();
+
         delete q;
         q = nullptr;
     }
@@ -331,6 +351,12 @@ ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::BundleSpaceGraph::add
     graph_[m]->total_connection_attempts = 1;
     graph_[m]->successful_connection_attempts = 0;
     disjointSets_.make_set(m);
+
+    if(isDynamic())
+    {
+        std::static_pointer_cast<BundleSpaceMetricReachability>(metric_)->createReachableSet(q);
+    }
+
     nearestDatastructure_->add(q);
     q->index = m;
 
@@ -513,7 +539,11 @@ void ompl::geometric::BundleSpaceGraph::setPropagator(const std::string& sPropag
 
 void ompl::geometric::BundleSpaceGraph::setMetric(const std::string& sMetric)
 {
-    if(sMetric == "geodesic"){
+    if(isDynamic()){
+        OMPL_DEBUG("Dynamic Metric Selected");
+        metric_ = std::make_shared<BundleSpaceMetricReachability>(this);
+        // metric_ = std::make_shared<BundleSpaceMetricGeodesic>(this);
+    }else if(sMetric == "geodesic"){
         OMPL_DEBUG("Geodesic Metric Selected");
         metric_ = std::make_shared<BundleSpaceMetricGeodesic>(this);
     }else if(sMetric == "shortestpath"){

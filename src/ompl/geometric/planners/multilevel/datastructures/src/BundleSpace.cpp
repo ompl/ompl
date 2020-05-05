@@ -11,8 +11,12 @@
 #include <ompl/base/spaces/DiscreteStateSpace.h>
 #include <ompl/tools/config/MagicConstants.h>
 
+
 #include <ompl/util/Exception.h>
 #include <cmath> //to use isnan(d)
+
+#define DEBUG_BUNDLESPACE
+#undef DEBUG_BUNDLESPACE
 
 unsigned int ompl::geometric::BundleSpace::counter_ = 0;
 
@@ -24,6 +28,7 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
     //############################################################################
     //Check for dynamic spaces
     //############################################################################
+
     ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(getBundle().get());
     if(siC==nullptr) {
       isDynamic_ = false;
@@ -31,6 +36,7 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
       isDynamic_ = true;
     }
     OMPL_DEBUG("BundleSpace %d%s", id_, (isDynamic_?" (dynamic)":""));
+
     //############################################################################
 
     if (!hasBaseSpace())
@@ -49,9 +55,12 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
 
     sanityChecks();
 
-    std::cout << std::string(80, '-') << std::endl;
-    std::cout << *this << std::endl;
-    std::cout << std::string(80, '-') << std::endl;
+    std::stringstream ss;
+    ss << (*this);
+    OMPL_DEBUG(ss.str().c_str());
+    // std::cout << std::string(80, '-') << std::endl;
+    // std::cout << *this << std::endl;
+    // std::cout << std::string(80, '-') << std::endl;
 
     if (!Bundle_valid_sampler_)
     {
@@ -186,10 +195,10 @@ void ompl::geometric::BundleSpace::checkBundleSpaceMeasure(std::string name, con
         throw ompl::Exception("Space infinite measure.");
     }
      
-    if(space->getMeasure() <= 0)
-    {
-        throw ompl::Exception("Space has zero measure.");
-    }
+    // if(space->getMeasure() <= 0)
+    // {
+    //     throw ompl::Exception("Space has zero measure.");
+    // }
 }
 
 ompl::base::PlannerStatus ompl::geometric::BundleSpace::solve(const base::PlannerTerminationCondition&)
@@ -342,7 +351,8 @@ void ompl::geometric::BundleSpace::liftState(const base::State *xBase, const bas
         components_.front()->liftState(xBase, xFiber, xBundle);
     }
 
-    //TODO: DEBUG
+#ifdef DEBUG_BUNDLESPACE
+    OMPL_WARN("Debugging ON");
     base::State *xF = getFiber()->allocState();
     projectFiber(xBundle, xF);
 
@@ -355,6 +365,7 @@ void ompl::geometric::BundleSpace::liftState(const base::State *xBase, const bas
         OMPL_ERROR("Fibers are not preserved after lifting.");
         exit(0);
     }
+#endif
 
 }
 

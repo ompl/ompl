@@ -28,28 +28,35 @@ constraints there, usable by any bundle algorithm)
 [x] Add L1 interpolation on restriction into recursiverepair (for QRRT,
 verify on Hypercube)
 [x] Outsource path section shooting method to own folder
+[x] Rename quotientspace folder to multilevel (when we migrated to final ompl
+merge branch) 
+[x] *** Add inverse L1 and extend box scenario
 
-[ ] *** Add inverse L1 and extend box scenario
 [ ] *** Make L1+L2 combined recursiverepair section method
 [ ] ** Make path bias a dynamic window (test SE3 and SE3^k)
 
 [ ] * Refactor path section to allow steering methods (path restriction w NH
 cnstrs)
 [ ] *** Add steering function support (at least SE3 and SE2)
+[ ] * What to do about velocity constraints?
 
 [ ] * Make bidirectional version of QRRT (as param)
 [ ] * Make path sections as strategy pattern inside a pathrestriction. Do the same
 for graphs
-[ ] Add deform robot
 [ ] Remove DenseGraphPath method from BundleSpaceGraph.h
 [ ] * Add Enumerate for Metric/Importance/Sampler (Use Params like in RRTstar)
 [ ] ** Plot hypercube benchmark (fix log to plot script)
 [ ] * handle NH constraints in QMPStar and SPQR
 [ ] **merge* Make sure every experiment is solvable in "realtime" (around 3s)
-[ ] Rename quotientspace folder to multilevel (when we migrated to final ompl
-merge branch) 
 [ ] Rename whole repo
 [ ] Write novel tutorial/demo (after paper is out)
+
+[ ] Remove all sanitychecks/debug informations
+
+
+
+
+
 
 Improvements (FB):
 - Enable Multi Robot Planning using a new component-based implementation
