@@ -457,20 +457,20 @@ namespace ompl
                 auto dimension = static_cast<double>(spaceInformation_->getStateDimension());
 
                 // Compute the RRT* factor.
-                // return rewireFactor_ *
-                //        std::pow(2.0 * (1.0 + 1.0 / dimension) *
-                //                     (sampler_->getInformedMeasure(*solutionCost_.lock()) /
-                //                      unitNBallMeasure(spaceInformation_->getStateDimension())) *
-                //                     (std::log(static_cast<double>(numSamples)) / static_cast<double>(numSamples)),
-                //                 1.0 / dimension);
-
-                // Compute the FMT* factor.
-                return 2.0 * rewireFactor_ *
-                       std::pow((1.0 / dimension) *
+                return rewireFactor_ *
+                       std::pow(2.0 * (1.0 + 1.0 / dimension) *
                                     (sampler_->getInformedMeasure(*solutionCost_.lock()) /
                                      unitNBallMeasure(spaceInformation_->getStateDimension())) *
-                                    (std::log(static_cast<double>(numSamples)) / numSamples),
+                                    (std::log(static_cast<double>(numSamples)) / static_cast<double>(numSamples)),
                                 1.0 / dimension);
+
+                // // Compute the FMT* factor.
+                // return 2.0 * rewireFactor_ *
+                //        std::pow((1.0 / dimension) *
+                //                     (sampler_->getInformedMeasure(*solutionCost_.lock()) /
+                //                      unitNBallMeasure(spaceInformation_->getStateDimension())) *
+                //                     (std::log(static_cast<double>(numSamples)) / numSamples),
+                //                 1.0 / dimension);
             }
 
             bool ImplicitGraph::canPossiblyImproveSolution(const std::shared_ptr<Vertex> &vertex) const
