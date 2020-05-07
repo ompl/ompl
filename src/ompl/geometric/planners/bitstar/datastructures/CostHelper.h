@@ -217,7 +217,7 @@ namespace ompl
 
             /** \brief Combine multiple costs. */
             template <typename... Costs>
-            inline ompl::base::Cost combineCosts(const ompl::base::Cost &cost, Costs... costs) const
+            inline ompl::base::Cost combineCosts(const ompl::base::Cost &cost, const Costs&... costs) const
             {
                 return this->combineCosts(cost, this->combineCosts(costs...));
             }
