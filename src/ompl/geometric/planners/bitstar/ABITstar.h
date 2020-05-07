@@ -60,9 +60,18 @@ namespace ompl
         an initial solution is found (\ref gBITstarSetDelayRewiringUntilInitialSolution "Delayed rewiring"), the ability
         to generate samples only when necessary (\ref gBITstarSetJustInTimeSampling "Just-in-time sampling"), and the
         ability to periodically remove samples that have yet to be connected to the graph (\ref
-        gBITstarSetDropSamplesOnPrune "Sample dropping"). With just-in-time sampling, BIT* can even solve planning
+        gBITstarSetDropSamplesOnPrune "Sample dropping"). With just-in-time sampling, ABIT* can even solve planning
         problems with infinite state space boundaries, i.e., (-inf, inf).
 
+        The inflation and truncation factor update policies of this implementation reflect the policies used to create
+        the experimental results in ABIT*'s publication. Each increasingly dense RGG is searched twice, once with a very
+        high inflation factor (\ref gABITstarSetInitialInflationFactor, 1'000'000 by default), and once with an
+        inflation factor that scales as 1 + inflation_parameter / q, where inflation_parameter is a parameter that
+        scales the  inflation factor (\ref gABITstarSetInflationScalingParameter, 10 by default) is and q is the number
+        of samples. Each search is truncated with a truncation factor of 1 + truncation_parameter / q, where
+        truncation_parameter is a parameter that influences the truncation factor (\ref
+        gABITstarSetTruncationScalingParameter, 5 by default) and q is the number of samples again. For more information
+        see ABIT*'s publication.
 
         @par Associated publication:
 
@@ -86,10 +95,10 @@ namespace ompl
             void setInitialInflationFactor(double factor);
 
             /** \brief Set the parameter for the inflation factor update policy. */
-            void setInflationFactorParameter(double parameter);
+            void setInflationScalingParameter(double parameter);
 
             /** \brief Set the parameter for the truncation factor update policy. */
-            void setTruncationFactorParameter(double parameter);
+            void setTruncationScalingParameter(double parameter);
 
             /** \brief Get the inflation factor for the initial search. */
             double getInitialInflationFactor() const;

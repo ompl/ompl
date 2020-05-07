@@ -86,8 +86,6 @@ namespace ompl
             Planner::specs_.canReportIntermediateSolutions = true;
 
             // Register my setting callbacks
-            Planner::declareParam<double>("initial_inflation_factor", this, &BITstar::setInitialInflationFactor,
-                                          &BITstar::getInitialInflationFactor, "1.0:0.01:1000.0");
             Planner::declareParam<double>("rewire_factor", this, &BITstar::setRewireFactor, &BITstar::getRewireFactor,
                                           "1.0:0.01:3.0");
             Planner::declareParam<unsigned int>("samples_per_batch", this, &BITstar::setSamplesPerBatch,
@@ -523,14 +521,14 @@ namespace ompl
 
                     // Set the new truncation factor.
                     truncationFactor_ =
-                        1.0 + truncationFactorParameter_ /
+                        1.0 + truncationScalingParameter_ /
                                   (static_cast<float>(graphPtr_->numVertices() + graphPtr_->numSamples()));
                 }
                 else
                 {
                     // Exhaust the current approximation by performing an uninflated search.
                     queuePtr_->setInflationFactor(
-                        1.0 + inflationFactorParameter_ /
+                        1.0 + inflationScalingParameter_ /
                                   (static_cast<float>(graphPtr_->numVertices() + graphPtr_->numSamples())));
                     queuePtr_->rebuildEdgeQueue();
                     queuePtr_->insertOutgoingEdgesOfInconsistentVertices();
@@ -1111,19 +1109,19 @@ namespace ompl
             queuePtr_->setInflationFactor(factor);
         }
 
-        void BITstar::setInflationFactorParameter(double parameter)
+        void BITstar::setInflationScalingParameter(double factor)
         {
-            inflationFactorParameter_ = parameter;
+            inflationScalingParameter_ = factor;
         }
 
-        void BITstar::setTruncationFactorParameter(double parameter)
+        void BITstar::setTruncationScalingParameter(double factor)
         {
-            truncationFactorParameter_ = parameter;
+            truncationScalingParameter_ = factor;
         }
 
-        void BITstar::enableCascadingRewirings()
+        void BITstar::enableCascadingRewirings(bool enable)
         {
-            queuePtr_->enableCascadingRewirings(true);
+            queuePtr_->enableCascadingRewirings(enable);
         }
 
         double BITstar::getInitialInflationFactor() const

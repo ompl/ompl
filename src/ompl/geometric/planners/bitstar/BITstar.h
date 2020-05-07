@@ -302,17 +302,20 @@ namespace ompl
             // The settings that turn BIT* into ABIT*.
             // ---
 
-            /** \brief Set the inflation factor for the initial search. */
+            /** \brief Set the inflation for the initial search of RGG approximation. See ABIT*'s class description for
+             * more details about the inflation factor update policy. */
             void setInitialInflationFactor(double factor);
 
-            /** \brief Set the parameter for the inflation factor update policy. */
-            void setInflationFactorParameter(double parameter);
+            /** \brief The parameter that scales the inflation factor on the second search of each RGG approximation.
+             * See ABIT*'s class description for more details about the inflation factor update policy. */
+            void setInflationScalingParameter(double parameter);
 
-            /** \brief Set the parameter for the truncation factor update policy. */
-            void setTruncationFactorParameter(double parameter);
+            /** \brief Sets the parameter that scales the truncation factor for the searches of each RGG approximation.
+             * See ABIT*'s class description for more details about the truncation factor update policy. */
+            void setTruncationScalingParameter(double parameter);
 
-            /** \brief Disable the cascading of rewirings. */
-            void enableCascadingRewirings();
+            /** \brief Enable the cascading of rewirings. */
+            void enableCascadingRewirings(bool enable);
 
             // ---
             // Getters specific to ABIT*.
@@ -320,6 +323,12 @@ namespace ompl
 
             /** \brief Get the inflation factor for the initial search. */
             double getInitialInflationFactor() const;
+
+            /** \brief Get the inflation factor parameter. */
+            double getInflationFactorParameter() const;
+
+            /** \brief Get the truncation factor parameter. */
+            double getTruncationFactorParameter() const;
 
             /** \brief Get the inflation factor for the current search. */
             double getCurrentInflationFactor() const;
@@ -479,10 +488,10 @@ namespace ompl
             double truncationFactor_{1.0};
 
             /** \brief The truncation factor parameter for the update policy. */
-            double truncationFactorParameter_{0.0};
+            double truncationScalingParameter_{0.0};
 
             /** \brief The inflation factor parameter for the update policy. */
-            double inflationFactorParameter_{0.0};
+            double inflationScalingParameter_{0.0};
 
             /** \brief The goal vertex of the current best solution. */
             VertexConstPtr curGoalVertex_{nullptr};
