@@ -663,6 +663,13 @@ namespace ompl
                         // If the reverse queue is empty, this means we have to add new samples.
                         if (backwardQueue_->empty())
                         {
+                            std::vector<aitstar::Edge> edges;
+                            forwardQueue_->getContent(edges);
+                            for (const auto &edge : edges)
+                            {
+                                edge.getChild()->resetForwardQueueIncomingLookup();
+                                edge.getParent()->resetForwardQueueOutgoingLookup();
+                            }
                             forwardQueue_->clear();
                         }
                         else
@@ -676,6 +683,8 @@ namespace ompl
 
         void AITstar::performBackwardSearchIteration()
         {
+            assert(!backwardQueue_->empty());
+
             // Get the most promising vertex.
             auto vertex = backwardQueue_->top()->data.second;
 
