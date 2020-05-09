@@ -60,6 +60,7 @@
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/tools/config/MagicConstants.h>
 #include <ompl/util/Exception.h>
+#include <ompl/control/SpaceInformation.h>
 
 #include <ompl/datastructures/NearestNeighborsSqrtApprox.h>
 
@@ -157,12 +158,17 @@ void ompl::geometric::BundleSpaceGraph::setup()
     if (!nearestDatastructure_)
     {
         if(!isDynamic()){
-            nearestDatastructure_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
+            nearestDatastructure_.reset
+            (
+                tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this)
+            );
         }else{
-            //for dynamical systems, we use a pseudometric 
-            //(non-symmetric metric)
-            nearestDatastructure_.reset(
-            new NearestNeighborsSqrtApprox<Configuration*>());
+            //for dynamical systems, we use a quasimetric 
+            //(non-symmetric metric), so we cannot use NN structures like GNAT
+            nearestDatastructure_.reset
+            (
+                new NearestNeighborsSqrtApprox<Configuration*>()
+            );
         }
         nearestDatastructure_->setDistanceFunction(
             [this](const Configuration *a, const Configuration *b) 
@@ -226,11 +232,24 @@ double ompl::geometric::BundleSpaceGraph::getRange() const
 ompl::geometric::BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si)
   : state(si->allocState())
 {
+    const ompl::control::SpaceInformationPtr siC = 
+      std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
+    if(siC != nullptr)
+    {
+        control = siC->allocControl();
+    }
 }
 ompl::geometric::BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si,
                                                                   const base::State *state_)
   : state(si->cloneState(state_))
 {
+    const ompl::control::SpaceInformationPtr siC = 
+      std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
+
+    if(siC != nullptr)
+    {
+        control = siC->allocControl();
+    }
 }
 
 void ompl::geometric::BundleSpaceGraph::deleteConfiguration(Configuration *q)
@@ -248,6 +267,11 @@ void ompl::geometric::BundleSpaceGraph::deleteConfiguration(Configuration *q)
             {
                 getBundle()->freeState(qk->state);
             }
+        }
+        if(isDynamic()) {
+            const ompl::control::SpaceInformationPtr siC = 
+              std::dynamic_pointer_cast<ompl::control::SpaceInformation>(getBundle());
+            siC->freeControl(q->control);
         }
         q->reachableSet.clear();
 
@@ -355,6 +379,9 @@ ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::BundleSpaceGraph::add
     if(isDynamic())
     {
         std::static_pointer_cast<BundleSpaceMetricReachability>(metric_)->createReachableSet(q);
+        ompl::control::SpaceInformation *siC = 
+          dynamic_cast<ompl::control::SpaceInformation*>(getBundle().get());
+        siC->nullControl(q->control);
     }
 
     nearestDatastructure_->add(q);
@@ -458,10 +485,13 @@ Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards_Range(
 {
     // Configuration *next = new Configuration(getBundle(), to->state);
 
-    double d = distance(from, to);
-    if (d > maxDistance_)
+    if(!isDynamic())
     {
-        metric_->interpolateBundle(from, to, maxDistance_ / d, to);
+      double d = distance(from, to);
+      if (d > maxDistance_)
+      {
+          metric_->interpolateBundle(from, to, maxDistance_ / d, to);
+      }
     }
 
     if (!propagator_->steer(from, to, to))
@@ -470,6 +500,14 @@ Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards_Range(
     }
 
     Configuration *next = new Configuration(getBundle(), to->state);
+    if(isDynamic())
+    {
+        const ompl::control::SpaceInformationPtr siC = 
+          std::dynamic_pointer_cast<ompl::control::SpaceInformation>(getBundle());
+        const control::Control* lastControl = 
+          std::static_pointer_cast<BundleSpacePropagatorDynamic>(propagator_)->getLastControl();
+        siC->copyControl(next->control, lastControl);
+    }
     addConfiguration(next);
     addBundleEdge(from, next);
     return next;

@@ -37,15 +37,39 @@ namespace ompl
 
         void createReachableSet(Configuration *x);
 
-        void setAverageControl(control::RealVectorControlSpace *controlSpace, control::Control* ctrl);
+        void setAverageControl(
+            control::ControlSpace *controlSpace, control::Control* ctrl);
+        void createControls(
+            control::ControlSpace* controlSpace, control::Control *control);
 
+        void checkActiveControlDimensions( 
+            ompl::control::ControlSpace *controlSpace);
+
+        void computeControl(int dimensions, std::vector<int> controlIdx);
       private:
         ompl::control::SpaceInformationPtr siC_{nullptr};
 
-        int numberConfigurationsReachableSet_{0};
-        std::vector<int> activeControlDimensions_;
+        void setControlDimension(
+            ompl::control::ControlSpace *controlSpace,
+            ompl::control::Control *control,
+            int Jdimension,
+            bool lowerBound);
+        void setControlDimension(
+            ompl::control::ControlSpace *controlSpace,
+            ompl::control::Control *control,
+            int Kcomponent,
+            int Jdimension,
+            bool lowerBound);
+        void createControls(
+            ompl::control::ControlSpace *controlSpace,
+            ompl::control::Control *control,
+            std::vector<int> idx);
 
-        int numberActiveControlDimensions_{0};
+        int numberConfigurationsReachableSet_{0};
+        int stepSizeReachableSet_{1};
+
+        std::vector<std::pair<int, int>> activeControlDimensions_;
+
         std::vector<control::Control*> controls_;
 
         ompl::control::ControlSpacePtr controlSpace_{nullptr};

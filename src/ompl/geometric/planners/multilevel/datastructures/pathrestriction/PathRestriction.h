@@ -42,9 +42,9 @@ namespace ompl
                 Configuration* const xStart,
                 Configuration* const xGoal,
                 const std::vector<base::State*> basePath,
+                bool interpolateL1=true,
                 unsigned int depth=0,
-                double startLength=0.0,
-                bool interpolateL1=true);
+                double startLength=0.0);
 
           bool sideStepAlongFiber(const base::State* xBase, base::State* xBundle);
 
@@ -98,6 +98,14 @@ namespace ompl
           //  x
           //  ---------------
           std::vector<base::State*> interpolateSectionL1_FiberFirst(
+                const base::State* xFiberStart,
+                const base::State* xFiberGoal,
+                const std::vector<base::State*> basePath);
+
+          //\brief Interpolate quasisection using spline-based approach
+          // ** Requires xFiberStart/xFiberGoal to be a true derivative of
+          // basePath start and goal points
+          std::vector<base::State*> interpolateQuasiSectionSpline(
                 const base::State* xFiberStart,
                 const base::State* xFiberGoal,
                 const std::vector<base::State*> basePath);

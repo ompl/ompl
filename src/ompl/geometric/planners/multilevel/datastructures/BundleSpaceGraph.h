@@ -87,6 +87,7 @@ namespace ompl
                 Configuration(const ompl::base::SpaceInformationPtr &si, const ompl::base::State *state_);
 
                 ompl::base::State *state{nullptr};
+                ompl::control::Control *control{nullptr};
 
                 unsigned int total_connection_attempts{0};
                 unsigned int successful_connection_attempts{0};

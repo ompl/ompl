@@ -15,14 +15,14 @@ ompl::geometric::BundleSpacePropagatorDynamic::BundleSpacePropagatorDynamic(
         throw Exception("Wrong SpaceInformationPtr");
     }
 
-    siC_->setMotionValidator(std::make_shared<base::DynamicalMotionValidator>(siC_));
-    siC_->setup();
-    siC_->setMinMaxControlDuration(1,controlDuration);
+    // siC_->setMotionValidator(std::make_shared<base::DynamicalMotionValidator>(siC_));
+    // siC_->setup();
+    // siC_->setMinMaxControlDuration(1,controlDuration);
     std::cout << "MaxControlDuration: " << controlDuration << std::endl;
 
-    // controlSampler_ = siC_->allocDirectedControlSampler();
-    controlSampler_ = std::make_shared<control::SimpleDirectedControlSampler>(siC_);
-    controlSampler_->setNumControlSamples(5);
+    controlSampler_ = siC_->allocDirectedControlSampler();
+    // controlSampler_ = std::make_shared<control::SimpleDirectedControlSampler>(siC_);
+    // controlSampler_->setNumControlSamples(5);
 
     // if (!controlSampler_)
     //     controlSampler_ = siC_->allocControlSampler();
@@ -40,14 +40,21 @@ ompl::geometric::BundleSpacePropagatorDynamic::~BundleSpacePropagatorDynamic()
     siC_->freeControl(controlRandom_);
 }
 
+const ompl::control::Control* 
+ompl::geometric::BundleSpacePropagatorDynamic::getLastControl()
+{
+  return controlRandom_;
+}
+
 bool ompl::geometric::BundleSpacePropagatorDynamic::steer( 
     const Configuration *from, 
     const Configuration *to, 
     Configuration *result)
 {
-    unsigned int cd = controlSampler_->sampleTo(controlRandom_, from->state, to->state);
+    unsigned int cd = controlSampler_->sampleTo(controlRandom_, from->control, from->state, to->state);
 
-    cd = siC_->propagateWhileValid(from->state, controlRandom_, cd, result->state);
+    //Is checked inside sampleTo
+    // cd = siC_->propagateWhileValid(from->state, controlRandom_, cd, result->state);
 
     if (cd >= siC_->getMinControlDuration())
     {

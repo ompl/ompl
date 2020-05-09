@@ -69,6 +69,45 @@ void ompl::geometric::BundleSpacePathRestriction::setBasePath(
 }
 
 std::vector<ompl::base::State*> 
+ompl::geometric::BundleSpacePathRestriction::interpolateQuasiSectionSpline(
+      const base::State* xFiberStart,
+      const base::State* xFiberGoal,
+      const std::vector<base::State*> basePath) 
+{
+    
+  if(bundleSpaceGraph_->getBase()->getStateSpace()->getType() != base::STATE_SPACE_REAL_VECTOR)
+  {
+      throw Exception("NYI");
+  }
+
+  //BezierCurveFit through BasePath
+
+  std::cout << "Interpolating along base path" << std::endl;
+  exit(0);
+
+  //unsigned int dim = bundleSpaceGraph_->getBaseDimension();
+
+  //for(uint k = 0; k < dim; k++){
+  //  std::vector<const double> basePathK;
+  //  for(uint j = 0; j < basePath.size(); j++)
+  //  {
+  //      base::State* bj = basePath.at(j);
+  //      double*& v = bj->as<base::RealVectorStateSpace::StateType>()->values;
+  //      const double jk = v[k];
+  //      basePathK.push_back(jk);
+  //  }
+  //  //TODO: get from fiber
+  //  double a_prime = 0.0;
+  //  double b_prime = 0.0;
+
+  //  double spacingBetweenPoints = 1.0/(basePath.size()-1.0);
+  //  boost::math::cubic_b_spline<double> spline(
+  //      basePathK.begin(), basePathK.end(), 0, spacingBetweenPoints, a_prime, b_prime);
+  //  double y = spline(x);
+  //}
+
+}
+std::vector<ompl::base::State*> 
 ompl::geometric::BundleSpacePathRestriction::interpolateSectionL1(
       const base::State* xFiberStart,
       const base::State* xFiberGoal,
@@ -148,6 +187,7 @@ ompl::geometric::BundleSpacePathRestriction::interpolateSectionL2(
         for(uint k = 0; k < basePath.size(); k++)
         {
             double step = lengthCurrent / totalLengthBasePath;
+
             bundleSpaceGraph_->getFiber()->getStateSpace()->interpolate(
                 xFiberStart, xFiberGoal, step, xFiberTmp_);
 
@@ -260,18 +300,18 @@ void ompl::geometric::BundleSpacePathRestriction::sanityCheckSection()
     bool valid = gpath.check();
     if(!valid)
     {
-      OMPL_ERROR("Path section is invalid.");
-      std::vector<base::State*> gStates = gpath.getStates();
-      for(uint k = 1; k < gStates.size(); k++){
-        base::State *sk1 = gStates.at(k-1);
-        base::State *sk2 = gStates.at(k-2);
-        if(!bundleSpaceGraph_->getBundle()->checkMotion(sk1, sk2))
-        {
-          std::cout << "Error between states " << k-1 << " and " << k << std::endl;
+        OMPL_ERROR("Path section is invalid.");
+        std::vector<base::State*> gStates = gpath.getStates();
+        for(uint k = 1; k < gStates.size(); k++){
+          base::State *sk1 = gStates.at(k-1);
+          base::State *sk2 = gStates.at(k-2);
+          if(!bundleSpaceGraph_->getBundle()->checkMotion(sk1, sk2))
+          {
+            std::cout << "Error between states " << k-1 << " and " << k << std::endl;
+          }
         }
-      }
-      throw Exception("Reported feasible path section, \
-          but path section is infeasible.");
+        throw Exception("Reported feasible path section, \
+            but path section is infeasible.");
     }
 }
 
@@ -279,24 +319,28 @@ bool ompl::geometric::BundleSpacePathRestriction::hasFeasibleSection(
       Configuration* const xStart,
       Configuration* const xGoal) 
 {
-    // bool foundFeasibleSection = checkSection(xStart, xGoal);
-
-    if(bundleSpaceGraph_->isDynamic()) return false;
-
-    bool foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_);
-    if(!foundFeasibleSection)
+    if(bundleSpaceGraph_->isDynamic())
     {
-      //Try with inverse L1 
-        foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_, 0,0, false);
-    }
+        interpolateQuasiSectionSpline(xStart->state, xGoal->state, basePath_);
+        return false;
+    }else{
 
-    if(foundFeasibleSection){
-      SANITY_CHECK(
-        sanityCheckSection();
-      );
-    }
+        bool foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_);
+        if(!foundFeasibleSection)
+        {
+          //Try with inverse L1 
+            foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_, false);
+        }
 
-    return foundFeasibleSection;
+        SANITY_CHECK(
+            if(foundFeasibleSection)
+            {
+                sanityCheckSection();
+            }
+        );
+
+        return foundFeasibleSection;
+    }
 }
 
 bool ompl::geometric::BundleSpacePathRestriction::checkSection(
@@ -359,9 +403,9 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
     Configuration* const xStart,
     Configuration* const xGoal,
     const std::vector<base::State*> basePath,
+    bool interpolateL1,
     unsigned int depth,
-    double startLength,
-    bool interpolateL1)
+    double startLength)
 {
     bundleSpaceGraph_->projectFiber(xStart->state, xFiberStart_);
     bundleSpaceGraph_->projectFiber(xGoal->state, xFiberGoal_);
@@ -466,9 +510,9 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
                           xSideStep, 
                           xGoal, 
                           basePathSegment, 
+                          !interpolateL1,
                           depth+1, 
-                          locationOnBasePath, 
-                          !interpolateL1);
+                          locationOnBasePath);
 
                     if(feasibleSection)
                     {

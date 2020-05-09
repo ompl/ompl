@@ -11,6 +11,10 @@
 
 namespace ompl
 {
+  namespace control
+  {
+    OMPL_CLASS_FORWARD(DirectedControlSampler);
+  }
 
   namespace geometric
   {
@@ -31,6 +35,8 @@ namespace ompl
             const Configuration *to, 
             Configuration *result) override;
 
+        const control::Control* getLastControl();
+
       protected:
         RNG rng_;
         int numberOfControlSamples{10};
@@ -45,9 +51,9 @@ namespace ompl
 
         control::StatePropagatorPtr prop_;
 
-        control::SimpleDirectedControlSamplerPtr controlSampler_;
+        // control::SimpleDirectedControlSamplerPtr controlSampler_;
 
-        // control::ControlSamplerPtr controlSampler_;
+        control::DirectedControlSamplerPtr controlSampler_;
 
 
 
