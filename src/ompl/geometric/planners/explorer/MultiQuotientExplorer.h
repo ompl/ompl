@@ -1,7 +1,8 @@
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MotionExplorerImpl_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MotionExplorerImpl_
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceSequence.h>
+// #ifndef OMPL_GEOMETRIC_PLANNERS_EXPLORER_MOTIONEXPLORERIMPL_
+// #define OMPL_GEOMETRIC_PLANNERS_EXPLORER_MOTIONEXPLORERIMPL_
+#pragma once
+#include <ompl/geometric/planners/multilevel/datastructures/BundleSpaceGraphSparse.h>
+#include <ompl/geometric/planners/multilevel/datastructures/BundleSpaceSequence.h>
 #include <type_traits>
 #include <queue>
 
@@ -31,18 +32,17 @@ namespace ompl
             ob::PlannerStatus solve(const ob::PlannerTerminationCondition &ptc) override;
             void setup() override;
             void clear() override;
-            void setSelectedPath( std::vector<int> selectedPath);
+            void setLocalMinimumSelection( std::vector<int> selection);
 
         protected:
             double pathBias{0.8}; //[0,1]
 
             og::BundleSpaceGraphSparse *root{nullptr};
             og::BundleSpaceGraphSparse *current{nullptr};
-            std::vector<int> selectedPath_;
+            std::vector<int> selectedLocalMinimum_;
         };
     }
 }
+
 #include "MultiQuotientExplorerImpl.h"
-#endif
-
-
+// #endif

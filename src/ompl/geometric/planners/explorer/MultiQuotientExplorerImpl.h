@@ -1,5 +1,5 @@
-#include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpace.h>
+#include <ompl/geometric/planners/multilevel/datastructures/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/multilevel/datastructures/BundleSpace.h>
 #include <ompl/geometric/planners/explorer/ExplorerImpl.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
@@ -34,35 +34,35 @@ template <class T>
 void ompl::geometric::MotionExplorerImpl<T>::clear()
 {
     BaseT::clear();
-    selectedPath_.clear();
+    selectedLocalMinimum_.clear();
     root = nullptr;
     current = nullptr;
 }
 
 template <class T>
-void ompl::geometric::MotionExplorerImpl<T>::setSelectedPath( std::vector<int> selectedPath){
-    std::vector<int> oldSelectedPath = selectedPath_;
-    unsigned int N = selectedPath.size();
-    unsigned int Nold = oldSelectedPath.size();
+void ompl::geometric::MotionExplorerImpl<T>::setLocalMinimumSelection( std::vector<int> selection)
+{
+    std::vector<int> oldSelectedLocalMinimum = selectedLocalMinimum_;
+    selectedLocalMinimum_ = selection;
 
-    selectedPath_ = selectedPath;
-    for(uint k = 0; k < selectedPath.size(); k++){
-      //selected path implies path bias, which implies a sampling bias towards the
-      //selected path
+    unsigned int N = selectedLocalMinimum_.size();
+    unsigned int Nold = oldSelectedLocalMinimum.size();
+
+    for(uint k = 0; k < selectedLocalMinimum_.size(); k++){
       og::ExplorerImpl *qgraph = 
         static_cast<og::ExplorerImpl*>(this->bundleSpaces_.at(k));
           
-      qgraph->selectedPath = selectedPath.at(k);
+      qgraph->setSelectedPath(selectedLocalMinimum_.at(k));
     }
 
     std::cout << "[SELECTION CHANGE] BundleSpaces set from [";
-    for(uint k = 0; k < oldSelectedPath.size(); k++){
-      int sk = oldSelectedPath.at(k);
+    for(uint k = 0; k < oldSelectedLocalMinimum.size(); k++){
+      int sk = oldSelectedLocalMinimum.at(k);
       std::cout << sk << " ";
     }
     std::cout << "] to [";
-    for(uint k = 0; k < selectedPath.size(); k++){
-      int sk = selectedPath.at(k);
+    for(uint k = 0; k < selectedLocalMinimum_.size(); k++){
+      int sk = selectedLocalMinimum_.at(k);
       std::cout << sk << " ";
     }
     std::cout << "]" << std::endl;
@@ -70,8 +70,8 @@ void ompl::geometric::MotionExplorerImpl<T>::setSelectedPath( std::vector<int> s
     //User changed to different folder (and the files inside have not been
     //generated yet)
     if(N==Nold && N>0 && (N < this->bundleSpaces_.size())){
-        unsigned int M = selectedPath.back();
-        unsigned int Mold = oldSelectedPath.back();
+        unsigned int M = selectedLocalMinimum_.back();
+        unsigned int Mold = oldSelectedLocalMinimum.back();
         if(M!=Mold){
             std::cout << "Changed Folder. Clear Bundle-spaces [" 
               << N << "]" << std::endl;
@@ -86,7 +86,7 @@ template <class T>
 ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondition &ptc)
 {
     ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
-    uint K = selectedPath_.size();
+    uint K = selectedLocalMinimum_.size();
 
     if(K>=this->bundleSpaces_.size()){
         K = K-1;

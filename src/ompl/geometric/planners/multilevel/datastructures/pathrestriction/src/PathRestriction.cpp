@@ -68,6 +68,8 @@ void ompl::geometric::BundleSpacePathRestriction::setBasePath(
         lengthBasePath_);
 }
 
+#include <unsupported/Eigen/Splines>
+
 std::vector<ompl::base::State*> 
 ompl::geometric::BundleSpacePathRestriction::interpolateQuasiSectionSpline(
       const base::State* xFiberStart,
@@ -79,6 +81,11 @@ ompl::geometric::BundleSpacePathRestriction::interpolateQuasiSectionSpline(
   {
       throw Exception("NYI");
   }
+
+  typedef Eigen::Spline<double,3> SplineNd;
+  typedef SplineNd::PointType PointType;
+  typedef SplineNd::KnotVectorType KnotVectorType;
+  typedef SplineNd::ControlPointVectorType ControlPointVectorType;
 
   //BezierCurveFit through BasePath
 

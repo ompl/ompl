@@ -1,10 +1,9 @@
 #pragma once
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraphSparse.h>
+#include <ompl/geometric/planners/multilevel/datastructures/BundleSpaceGraphSparse.h>
 #include <ompl/datastructures/PDF.h>
 #include <ompl/control/Control.h>
 #include <ompl/control/StatePropagator.h>
 #include <ompl/control/DirectedControlSampler.h>
-#include "PathVisibilityChecker.h"
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
@@ -19,6 +18,7 @@ namespace ompl
   }
   namespace geometric
   {
+      OMPL_CLASS_FORWARD(PathVisibilityChecker);
     //ExplorerImpl 
     class ExplorerImpl: public og::BundleSpaceGraphSparse{
 
@@ -60,7 +60,6 @@ namespace ompl
         void getPathIndices(const std::vector<ob::State*> &states, std::vector<int> &idxPath) const;
         bool isProjectable(const std::vector<ob::State*> &pathBundle) const;
         int getProjectionIndex(const std::vector<ob::State*> &pathBundle) const;
-        int selectedPath{-1}; //selected path to sample from (if children try to sample this space)
         virtual void sampleFromDatastructure(ob::State *q_random_graph) override;
 
         PathVisibilityChecker* getPathVisibilityChecker();
@@ -78,10 +77,14 @@ namespace ompl
         std::vector<std::vector<ob::State*>> pathStackHead_;
         void PrintPathStack();
 
+        void setSelectedPath(int);
+        int getSelectedPath();
+
         std::vector<int> GetSelectedPathIndex() const;
         //############################################################################
       protected:
 
+        int selectedPath_{-1}; //selected path to sample from (if children try to sample this space)
         double pathBias_{0.};
         double pathBiasFraction_{0.05};
         int numberOfControlSamples{10};

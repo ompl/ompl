@@ -1,5 +1,5 @@
 #pragma once
-#include <ompl/geometric/planners/quotientspace/datastructures/BundleSpaceGraph.h>
+#include <ompl/geometric/planners/multilevel/datastructures/BundleSpaceGraph.h>
 #include <ompl/base/State.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/control/Control.h>

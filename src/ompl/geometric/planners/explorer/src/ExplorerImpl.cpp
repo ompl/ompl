@@ -1,5 +1,6 @@
 #include <ompl/geometric/planners/explorer/ExplorerImpl.h>
-#include <ompl/geometric/planners/quotientspace/datastructures/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/explorer/PathVisibilityChecker.h>
+#include <ompl/geometric/planners/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/datastructures/PDF.h>
 
@@ -93,7 +94,7 @@ void ExplorerImpl::setup()
 void ExplorerImpl::clear()
 {
   BaseT::clear();
-  selectedPath = -1;
+  selectedPath_ = -1;
   pathStackHead_.clear();
   pathStack_.clear();
 }
@@ -361,10 +362,10 @@ void ExplorerImpl::sampleFromDatastructure(ob::State *q_random_graph)
 {
     if (!getChild()->isDynamic() && pathStack_.size() > 0)
     {
-        if (selectedPath >= 0 && selectedPath < (int)pathStack_.size())
+        if (selectedPath_ >= 0 && selectedPath_ < (int)pathStack_.size())
         {
 
-            std::vector<ob::State *> states = pathStackHead_.at(selectedPath);
+            std::vector<ob::State *> states = pathStackHead_.at(selectedPath_);
             uint N = states.size();
 
             //############################################################################
@@ -387,7 +388,9 @@ void ExplorerImpl::sampleFromDatastructure(ob::State *q_random_graph)
         }
         else
         {
-            OMPL_ERROR("Selected path is %d (have you selected a path?)");
+            std::cout << "Level:" << level_ << std::endl;
+            OMPL_ERROR("Selected path is %d/%d (have you selected a path?)", 
+                selectedPath_, pathStack_.size());
             throw ompl::Exception("Unknown selected path");
         }
     }
@@ -395,6 +398,17 @@ void ExplorerImpl::sampleFromDatastructure(ob::State *q_random_graph)
     {
         BaseT::sampleFromDatastructure(q_random_graph);
     }
+}
+
+int ExplorerImpl::getSelectedPath()
+{
+    return selectedPath_;
+}
+
+void ExplorerImpl::setSelectedPath(int selectedPath)
+{
+    selectedPath_ = selectedPath;
+    std::cout << "Level" << level_ << " set new selected path to " << selectedPath_ << std::endl;
 }
 
 unsigned int ExplorerImpl::getNumberOfPaths() const
@@ -633,13 +647,13 @@ void ExplorerImpl::getPathIndices(const std::vector<ob::State*> &states, std::ve
     // ExplorerImpl *Bundle = static_cast<ExplorerImpl*>(parent_);
     // unsigned int K = getBundle()->getNumberOfPaths();
     // assert(K>0);
-    // unsigned int Ks = getBundle()->selectedPath;
+    // unsigned int Ks = getBundle()->getselectedpath();
     // assert(Ks>=0);
     // idxPath.push_back(Ks);
     // getBundle()->getPathIndices(states, idxPath);
     if(isDynamic())
     {
-      int Ks = parent->selectedPath;
+      int Ks = parent->getSelectedPath();
       std::cout << "DYNAMIC Projection Index " << Ks << "| " << getName() << std::endl;
       idxPath.push_back(Ks);
     }else{
@@ -847,13 +861,13 @@ std::vector<int> ExplorerImpl::GetSelectedPathIndex() const
     ExplorerImpl *pparent = static_cast<ExplorerImpl*>(parent_);
     while(pparent!=nullptr)
     {
-        CurPath.push_back(pparent->selectedPath);
+        CurPath.push_back(pparent->getSelectedPath());
         pparent = static_cast<ExplorerImpl*>(pparent->parent_);
     }
-    if (selectedPath < 0)
+    if (selectedPath_ < 0)
         CurPath.push_back(0);
     else
-        CurPath.push_back(selectedPath);
+        CurPath.push_back(selectedPath_);
 
     return CurPath;
 }

@@ -1,6 +1,6 @@
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MotionExplorer_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_MotionExplorer_
-#include <ompl/geometric/planners/explorer/MultiQuotientExplorer.h>
+#ifndef OMPL_GEOMETRIC_PLANNERS_EXPLORER_MotionExplorer_
+#define OMPL_GEOMETRIC_PLANNERS_EXPLORER_MotionExplorer_
+#include "MultiQuotientExplorer.h"
 #include <ompl/geometric/planners/explorer/ExplorerImpl.h>
 #include <type_traits>
 #include <queue>
