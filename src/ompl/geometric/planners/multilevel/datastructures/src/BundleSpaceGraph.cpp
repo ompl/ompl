@@ -656,12 +656,15 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
           solutionPath_ = getPath(vStart_, vGoal_);
           numVerticesWhenComputingSolutionPath = getNumberOfVertices();
 
-          if(!isDynamic() && solutionPath_ != solution && getChild() != nullptr)
+          if(!isDynamic() && solutionPath_ != solution && getChild() != nullptr
+              // && !getChild()->isDynamic()
+              )
           {
               ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 
                   pathRefinementObj_);
               geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
               shortcutter.simplifyMax(gpath);
+              std::vector<base::State*> gstates = gpath.getStates();
           }
         }
         solution = solutionPath_;
