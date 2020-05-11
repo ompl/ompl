@@ -68,7 +68,25 @@ void ompl::geometric::BundleSpacePathRestriction::setBasePath(
         lengthBasePath_);
 }
 
+#include <ompl/base/spaces/SO3StateSpace.h>
+#include <ompl/base/spaces/SE3StateSpace.h>
 #include <unsupported/Eigen/Splines>
+#include <Eigen/Geometry> 
+
+void QuaternionToDirectionVector(
+  const Eigen::Quaternion<double> q,
+  Eigen::Vector3d &v)
+{
+  Eigen::Vector3d ex(1,0,0);
+  v = q.toRotationMatrix()*ex;
+}
+void DirectionVectorToQuaternion(
+  const Eigen::Vector3d v,
+  Eigen::Quaternion<double> &q)
+{
+  Eigen::Vector3d ex(1,0,0);
+  q = Eigen::Quaternion<double>::FromTwoVectors(ex, v);
+}
 
 std::vector<ompl::base::State*> 
 ompl::geometric::BundleSpacePathRestriction::interpolateQuasiSectionSpline(
@@ -82,36 +100,132 @@ ompl::geometric::BundleSpacePathRestriction::interpolateQuasiSectionSpline(
       throw Exception("NYI");
   }
 
-  typedef Eigen::Spline<double,3> SplineNd;
+  const int dim = 3;
+  typedef Eigen::Spline<double, dim> SplineNd;
+  typedef Eigen::SplineFitting<SplineNd> SplineFittingNd;
+
   typedef SplineNd::PointType PointType;
   typedef SplineNd::KnotVectorType KnotVectorType;
   typedef SplineNd::ControlPointVectorType ControlPointVectorType;
 
+  // T1 exp(t log(T1^-1 T2))
+
+  //############################################################################
   //BezierCurveFit through BasePath
+  //############################################################################
 
-  std::cout << "Interpolating along base path" << std::endl;
-  exit(0);
+  // double spacingBetweenPoints = 1.0/double(basePath.size()-1);
+  // Eigen::RowVectorXd time = Eigen::RowVectorXd::Constant(basePath.size() - 1, spacingBetweenPoints);
 
-  //unsigned int dim = bundleSpaceGraph_->getBaseDimension();
+  Eigen::MatrixXd states = Eigen::MatrixXd::Zero(dim, basePath.size());
+  for(uint j = 0; j < basePath.size(); j++)
+  {
+      base::State* bj = basePath.at(j);
+      double*& v = bj->as<base::RealVectorStateSpace::StateType>()->values;
+      for(uint k = 0; k < dim; k++){
+          states(k,j) = v[k];
+      }
+  }
+  std::cout << states << std::endl;
 
-  //for(uint k = 0; k < dim; k++){
-  //  std::vector<const double> basePathK;
-  //  for(uint j = 0; j < basePath.size(); j++)
-  //  {
-  //      base::State* bj = basePath.at(j);
-  //      double*& v = bj->as<base::RealVectorStateSpace::StateType>()->values;
-  //      const double jk = v[k];
-  //      basePathK.push_back(jk);
-  //  }
-  //  //TODO: get from fiber
-  //  double a_prime = 0.0;
-  //  double b_prime = 0.0;
+  //############################################################################
+  //Extract Derivatives
+  //############################################################################
+  std::cout << std::string(80, '-') << std::endl;
+  bundleSpaceGraph_->getFiber()->printState(xFiberStart);
+  bundleSpaceGraph_->getFiber()->printState(xFiberGoal);
+  std::cout << std::string(80, '-') << std::endl;
 
-  //  double spacingBetweenPoints = 1.0/(basePath.size()-1.0);
-  //  boost::math::cubic_b_spline<double> spline(
-  //      basePathK.begin(), basePathK.end(), 0, spacingBetweenPoints, a_prime, b_prime);
-  //  double y = spline(x);
-  //}
+  const base::SO3StateSpace::StateType *xFiberStart_SO3 =
+       xFiberStart->as<base::CompoundState>()->as<base::SO3StateSpace::StateType>(0);
+  const base::SO3StateSpace::StateType *xFiberGoal_SO3 =
+       xFiberGoal->as<base::CompoundState>()->as<base::SO3StateSpace::StateType>(0);
+
+  Eigen::Quaternion<double> qStart(
+      xFiberStart_SO3->w, 
+      xFiberStart_SO3->x,
+      xFiberStart_SO3->y,
+      xFiberStart_SO3->z);
+  Eigen::Quaternion<double> qGoal(
+      xFiberGoal_SO3->w, 
+      xFiberGoal_SO3->x,
+      xFiberGoal_SO3->y,
+      xFiberGoal_SO3->z);
+
+  Eigen::Vector3d vStart, vGoal;
+  QuaternionToDirectionVector(qStart, vStart);
+  QuaternionToDirectionVector(qGoal, vGoal);
+
+  //############################################################################
+  //Eval Spline
+  //############################################################################
+
+  Eigen::MatrixXd derivatives = Eigen::MatrixXd::Zero(dim, 2);
+
+  derivatives.col(0) = vStart;
+  derivatives.col(1) = vGoal;
+
+  Eigen::VectorXi indices(2);
+      indices << 0, basePath.size() - 1;
+
+  const SplineNd spline = 
+    SplineFittingNd::InterpolateWithDerivatives(states, derivatives, indices, 3);
+
+
+  //############################################################################
+  //Convert to OMPL
+  //############################################################################
+  int N = 100;
+  std::vector<base::State*> bundlePath;
+  bundlePath.resize(N);
+  bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
+
+  double d = 0;
+  double dstep = 1.0/double(N-1);
+  for(uint j = 0; j < N; j++)
+  {
+      PointType pt = spline(d);
+
+      base::State* bj = bundlePath.at(j);
+
+      base::SE3StateSpace::StateType *xBundle_SE3 =
+         bj->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);
+      xBundle_SE3->setXYZ(pt(0), pt(1), pt(2));
+
+      base::SO3StateSpace::StateType *xBundle_SO3 = &xBundle_SE3->rotation();
+
+      // PointType deriv = spline.derivatives(d, 1);
+      Eigen::Vector3d dx;
+      dx = (spline(d + dstep) - spline(d))/dstep;
+      dx = dx.normalized();
+
+      std::cout << "Derivative:" << std::endl;
+      std::cout << dx << std::endl;
+
+      Eigen::Quaternion<double> qj;
+      DirectionVectorToQuaternion(dx, qj);
+
+      xBundle_SO3->x = qj.x();
+      xBundle_SO3->y = qj.y();
+      xBundle_SO3->z = qj.z();
+      xBundle_SO3->w = qj.w();
+
+      base::RealVectorStateSpace::StateType *xBundle_RN =
+         bj->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
+
+      int K = bundleSpaceGraph_->getBundleDimension() - 6;
+      for (unsigned int k = 0; k < K; k++)
+      {
+          xBundle_RN->values[k] = 0;
+      }
+      xBundle_RN->values[0] = 1;
+
+      std::cout << std::string(80, '-') << std::endl;
+      bundleSpaceGraph_->getBundle()->printState(bj);
+
+      d += dstep;
+  }
+  return bundlePath;
 
 }
 std::vector<ompl::base::State*> 
@@ -328,8 +442,37 @@ bool ompl::geometric::BundleSpacePathRestriction::hasFeasibleSection(
 {
     if(bundleSpaceGraph_->isDynamic())
     {
-        interpolateQuasiSectionSpline(xStart->state, xGoal->state, basePath_);
-        return false;
+        bundleSpaceGraph_->projectFiber(xStart->state, xFiberStart_);
+        bundleSpaceGraph_->projectFiber(xGoal->state, xFiberGoal_);
+        std::vector<base::State*> section = 
+          interpolateQuasiSectionSpline(xFiberStart_, xFiberGoal_, basePath_);
+
+        Configuration *xLast = xStart;
+
+        for(uint k = 1; k < section.size(); k++)
+        {
+            if(k < section.size()-1)
+            {
+                // xLast = addFeasibleSegment(xLast, section.at(k));
+                Configuration *x = new Configuration(bundleSpaceGraph_->getBundle(), section.at(k));
+                bundleSpaceGraph_->addConfiguration(x);
+                bundleSpaceGraph_->addBundleEdge(xLast, x);
+                xLast = x;
+
+            }else{
+                if(xGoal->index <= 0)
+                {
+                    bundleSpaceGraph_->vGoal_ = bundleSpaceGraph_->addConfiguration(xGoal);
+                }
+
+                bundleSpaceGraph_->addBundleEdge(xLast, xGoal);
+                // addFeasibleGoalSegment(xLast, xGoal);
+                OMPL_DEBUG("Found feasible path section (%d edges added)", k);
+                return true;
+            }
+
+        }
+        return true;
     }else{
 
         bool foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_);

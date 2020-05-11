@@ -203,9 +203,6 @@ namespace ompl
             /** \brief Goal state or goal region */
             ompl::base::Goal *goal_;
 
-            /** \brief Factory to split space into components */
-            BundleSpaceComponentFactory componentFactory_;
-
             /** \brief Metric on bundle space */
             BundleSpaceMetricPtr metric_;
 

@@ -129,6 +129,8 @@ namespace ompl
           std::vector<base::State*> section_;
 
           std::pair<base::State*, double> lastValid_;
+
+
       };
   }
 }

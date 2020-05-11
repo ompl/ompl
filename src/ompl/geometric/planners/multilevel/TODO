@@ -35,11 +35,9 @@ merge branch)
 
 [ ] *** Make L1+L2 combined recursiverepair section method
 [ ] ** Make path bias a dynamic window (test SE3 and SE3^k)
-
 [ ] * Refactor path section to allow steering methods (path restriction w NH
 cnstrs)
 [ ] *** Add steering function support (at least SE3 and SE2)
-
 [ ] * Make bidirectional version of QRRT (as param)
 [ ] * Make path sections as strategy pattern inside a pathrestriction. Do the same
 for graphs
