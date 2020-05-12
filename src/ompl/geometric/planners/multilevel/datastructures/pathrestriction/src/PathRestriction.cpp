@@ -107,12 +107,13 @@ ompl::geometric::BundleSpacePathRestriction::interpolateQuasiSectionSpline(
       const std::vector<base::State*> basePath) 
 {
     
-  if(bundleSpaceGraph_->getBase()->getStateSpace()->getType() != base::STATE_SPACE_REAL_VECTOR)
+  if(bundleSpaceGraph_->getBase()->getStateSpace()->getType() != base::STATE_SPACE_REAL_VECTOR
+      || (bundleSpaceGraph_->getBaseDimension() > 3))
   {
       throw Exception("NYI");
   }
 
-  const int dim = 3;
+  const int dim = bundleSpaceGraph_->getBaseDimension();
 
   // T1 exp(t log(T1^-1 T2))
 
@@ -191,6 +192,9 @@ ompl::geometric::BundleSpacePathRestriction::interpolateQuasiSectionSpline(
       //Note: Catmull-Rom: use pk+1 - pk-1 / dist(k-1,k+1)
       Eigen::Vector3d pk_tangent = states.col(k+1) - states.col(k-1);
       pk = pk_tangent/(time(k+1) - time(k-1));//pk_tangent.squaredNorm();
+
+      pk = pk/pk.norm();
+
       //
       //Note: Finite difference
       // Eigen::Vector3d pk_in = states.col(k) - states.col(k-1);
@@ -205,11 +209,6 @@ ompl::geometric::BundleSpacePathRestriction::interpolateQuasiSectionSpline(
       // }
 
       derivatives.col(k).tail(3) = pk;
-  }
-
-  Eigen::VectorXi indices(basePath.size());
-  for(uint k = 0; k < basePath.size(); k++){
-    indices(k) = k;
   }
 
   std::cout << std::string(80, '-') << std::endl;
@@ -380,7 +379,8 @@ ompl::geometric::BundleSpacePathRestriction::interpolateSectionL1(
     }else{
         bundlePath.resize(basePath.size());
         bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
-        for(uint k = 0; k < basePath.size(); k++){
+        for(uint k = 0; k < basePath.size(); k++)
+        {
             bundleSpaceGraph_->getBundle()->copyState(bundlePath.at(k), basePath.at(k));
         }
     }
@@ -582,24 +582,30 @@ bool ompl::geometric::BundleSpacePathRestriction::hasFeasibleSection(
 
         for(uint k = 1; k < section.size(); k++)
         {
-            if(k < section.size()-1)
+            if(bundleSpaceGraph_->getBundle()->checkMotion(
+                  section.at(k-1), section.at(k), lastValid_))
             {
-                // xLast = addFeasibleSegment(xLast, section.at(k));
-                Configuration *x = new Configuration(bundleSpaceGraph_->getBundle(), section.at(k));
-                bundleSpaceGraph_->addConfiguration(x);
-                bundleSpaceGraph_->addBundleEdge(xLast, x);
-                xLast = x;
-
-            }else{
-                if(xGoal->index <= 0)
+                if(k < section.size()-1)
                 {
-                    bundleSpaceGraph_->vGoal_ = bundleSpaceGraph_->addConfiguration(xGoal);
-                }
+                    xLast = addFeasibleSegment(xLast, section.at(k));
+                }else{
+                    if(xGoal->index <= 0)
+                    {
+                        bundleSpaceGraph_->vGoal_ = bundleSpaceGraph_->addConfiguration(xGoal);
+                    }
 
-                bundleSpaceGraph_->addBundleEdge(xLast, xGoal);
-                // addFeasibleGoalSegment(xLast, xGoal);
-                OMPL_DEBUG("Found feasible path section (%d edges added)", k);
-                return true;
+                    // bundleSpaceGraph_->addBundleEdge(xLast, xGoal);
+                    addFeasibleGoalSegment(xLast, xGoal);
+                    OMPL_DEBUG("Found feasible path section (%d edges added)", k);
+                    return true;
+                }
+                    // Configuration *x = new Configuration(bundleSpaceGraph_->getBundle(), section.at(k));
+                    // bundleSpaceGraph_->addConfiguration(x);
+                    // bundleSpaceGraph_->addBundleEdge(xLast, x);
+                    // xLast = x;
+            }else{
+              addFeasibleSegment(xLast, lastValid_.first);
+              return false;
             }
 
         }

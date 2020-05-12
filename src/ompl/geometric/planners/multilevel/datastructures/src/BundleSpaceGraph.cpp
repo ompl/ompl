@@ -126,7 +126,7 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
     pathRefinementObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
 
     std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 0.5);
-    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(clearObj, 0.5);
+    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(clearObj, 1.0);
 
     if(getFiberDimension() > 0)
     {
@@ -657,7 +657,7 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
           numVerticesWhenComputingSolutionPath = getNumberOfVertices();
 
           if(!isDynamic() && solutionPath_ != solution && getChild() != nullptr
-              // && !getChild()->isDynamic()
+              && !getChild()->isDynamic()
               )
           {
               ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 
@@ -834,6 +834,24 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(
         base::PlannerDataVertexAnnotated pgoal(graph[vGoal]->state);
         pgoal.setPath(idxPathI);
         data.addGoalVertex(pgoal);
+        if(solutionPath_ != nullptr)
+        {
+          geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
+          std::vector<base::State*> gstates = gpath.getStates();
+          std::cout << "Adding solution path with " << gstates.size() << "states." << std::endl;
+
+          base::PlannerDataVertexAnnotated *pLast = &pstart;
+          for(uint k = 1; k < gstates.size()-1; k++)
+          {
+              getBundle()->printState(gstates.at(k));
+              base::PlannerDataVertexAnnotated p(gstates.at(k));
+              p.setPath(idxPathI);
+              data.addVertex(p);
+              data.addEdge(*pLast, p);
+              pLast = &p;
+          }
+          data.addEdge(*pLast, pgoal);
+        }
     }
 
     foreach (const Edge e, boost::edges(graph))
@@ -853,6 +871,8 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(
         p.setPath(idxPathI);
         data.addVertex(p);
     }
+
+
 
 }
 void ompl::geometric::BundleSpaceGraph::getPlannerData(base::PlannerData &data) const

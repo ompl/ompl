@@ -45,7 +45,8 @@ void ompl::base::DynamicalMotionValidator::defaultSettings()
 
     isDynamic = false;
     siC = dynamic_cast<ompl::control::SpaceInformation*>(si_);
-    if(siC != nullptr) {
+    if(siC != nullptr) 
+    {
       isDynamic = true;
       controlDuration_= 0 ;
       c_current = siC->allocControl();
@@ -69,6 +70,7 @@ bool ompl::base::DynamicalMotionValidator::checkMotion(const State *s1, const St
     if(!isDynamic){
         return BaseT::checkMotion(s1, s2);
     } else {
+      std::cout << "Check Dynamic Motion" << std::endl;
         si_->copyState(s_target_copy, s2);
         unsigned int c_t =0 ;
         auto* p_this = const_cast<DynamicalMotionValidator*>(this);

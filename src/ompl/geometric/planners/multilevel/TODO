@@ -32,9 +32,12 @@ verify on Hypercube)
 merge branch) 
 [x] Add inverse L1 and extend box scenario
 [x] What to do about velocity constraints?
+[x] Think about quasi-sections (something along the lines of the best dynamical lift)
+[x] Rename whole repo
 
+[ ] ** Refactor path restriction into dynamic/geometric
 [ ] *** Make L1+L2 combined recursiverepair section method
-[ ] ** Make path bias a dynamic window (test SE3 and SE3^k)
+[ ] * Make path bias a dynamic window (test SE3 and SE3^k)
 [ ] * Refactor path section to allow steering methods (path restriction w NH
 cnstrs)
 [ ] *** Add steering function support (at least SE3 and SE2)
@@ -45,10 +48,7 @@ for graphs
 [ ] * Add Enumerate for Metric/Importance/Sampler (Use Params like in RRTstar)
 [ ] ** Plot hypercube benchmark (fix log to plot script)
 [ ] **merge* Make sure every experiment is solvable in "realtime" (around 3s)
-[ ] Rename whole repo
 [ ] Write novel tutorial/demo
-[ ] Think about quasi-sections (something along the lines of the best dynamical lift)
-
 [ ] Remove all sanitychecks/debug informations
 
 
