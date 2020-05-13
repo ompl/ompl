@@ -1129,6 +1129,16 @@ namespace ompl
             return initialInflationFactor_;
         }
 
+        double BITstar::getInflationScalingParameter() const
+        {
+            return inflationScalingParameter_;
+        }
+
+        double BITstar::getTruncationScalingParameter() const
+        {
+            return truncationScalingParameter_;
+        }
+
         double BITstar::getCurrentInflationFactor() const
         {
             return queuePtr_->getInflationFactor();

@@ -103,6 +103,12 @@ namespace ompl
             /** \brief Get the inflation factor for the initial search. */
             double getInitialInflationFactor() const;
 
+            /** \brief Get the inflation scaling parameter. */
+            double getInflationScalingParameter() const;
+
+            /** \brief Get the truncation scaling parameter. */
+            double getTruncationScalingParameter() const;
+
             /** \brief Get the inflation factor for the current search. */
             double getCurrentInflationFactor() const;
 

@@ -59,9 +59,9 @@ namespace ompl
             Planner::declareParam<double>("initial_inflation_factor", this, &ABITstar::setInitialInflationFactor,
                                           &ABITstar::getInitialInflationFactor, "1.0:0.01:1000000.0");
             Planner::declareParam<double>("scaling_inflation_factor", this, &ABITstar::setInflationScalingParameter,
-                                          &ABITstar::getInflationFactorParameter, "1.0:0.01:1000000.0");
+                                          &ABITstar::getInflationScalingParameter, "1.0:0.01:1000000.0");
             Planner::declareParam<double>("scaling_truncation_factor", this, &ABITstar::setTruncationScalingParameter,
-                                          &ABITstar::getTruncationFactorParameter, "1.0:0.01:1000000.0");
+                                          &ABITstar::getTruncationScalingParameter, "1.0:0.01:1000000.0");
         }
 
         void ABITstar::setInitialInflationFactor(double factor)
@@ -82,6 +82,16 @@ namespace ompl
         double ABITstar::getInitialInflationFactor() const
         {
             return BITstar::getInitialInflationFactor();
+        }
+
+        double ABITstar::getInflationScalingParameter() const
+        {
+            return BITstar::getInflationScalingParameter();
+        }
+
+        double ABITstar::getTruncationScalingParameter() const
+        {
+            return BITstar::getTruncationScalingParameter();
         }
 
         double ABITstar::getCurrentInflationFactor() const
