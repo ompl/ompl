@@ -125,7 +125,7 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
 
     pathRefinementObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
 
-    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 0.5);
+    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 1.0);
     std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(clearObj, 1.0);
 
     if(getFiberDimension() > 0)
@@ -657,7 +657,7 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
           numVerticesWhenComputingSolutionPath = getNumberOfVertices();
 
           if(!isDynamic() && solutionPath_ != solution && getChild() != nullptr
-              && !getChild()->isDynamic()
+              // && !getChild()->isDynamic()
               )
           {
               ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 

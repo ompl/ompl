@@ -18,6 +18,8 @@
 #include <ompl/geometric/planners/multilevel/datastructures/components/SE2RN_R2.h>
 
 #include <ompl/geometric/planners/multilevel/datastructures/components/RN_RM.h>
+#include <ompl/geometric/planners/multilevel/datastructures/components/RNSO2_RN.h>
+
 #include <ompl/geometric/planners/multilevel/datastructures/components/None.h>
 #include <ompl/geometric/planners/multilevel/datastructures/components/EmptySet.h>
 #include <ompl/geometric/planners/multilevel/datastructures/components/Identity.h>
@@ -140,6 +142,8 @@ ompl::geometric::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
 
     }else if(type == BUNDLE_SPACE_RN_RM){
       component = std::make_shared<BundleSpaceComponent_RN_RM>(Bundle, Base);
+    }else if(type == BUNDLE_SPACE_RNSO2_RN){
+      component = std::make_shared<BundleSpaceComponent_RNSO2_RN>(Bundle, Base);
 
     }else if(type == BUNDLE_SPACE_SE2_R2){
       component = std::make_shared<BundleSpaceComponent_SE2_R2>(Bundle, Base);
@@ -195,9 +199,14 @@ ompl::geometric::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(c
         return BUNDLE_SPACE_EMPTY_SET_PROJECTION;
     }
 
+    //RN ->
     if(isMapping_RN_to_RM(Bundle, Base))
     {
         return BUNDLE_SPACE_RN_RM;
+    }
+    if(isMapping_RNSO2_to_RN(Bundle, Base))
+    {
+        return BUNDLE_SPACE_RNSO2_RN;
     }
 
     //SE3 ->
@@ -380,6 +389,35 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SE2_to_R2(
     }
     return false;
 }
+
+bool ompl::geometric::BundleSpaceComponentFactory::isMapping_RNSO2_to_RN(
+    const base::StateSpacePtr Bundle, 
+    const base::StateSpacePtr Base)
+{
+    if(!Bundle->isCompound()) return false;
+
+    base::CompoundStateSpace *Bundle_compound = Bundle->as<base::CompoundStateSpace>();
+    const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
+    unsigned int Bundle_subspaces = Bundle_decomposed.size();
+    if (Bundle_subspaces == 2)
+    {
+        if (Bundle_decomposed.at(0)->getType() == base::STATE_SPACE_REAL_VECTOR &&
+            Bundle_decomposed.at(1)->getType() == base::STATE_SPACE_SO2)
+        {
+            if (Base->getType() == base::STATE_SPACE_REAL_VECTOR)
+            {
+                unsigned int n = Bundle_decomposed.at(0)->getDimension();
+                unsigned int m = Base->getDimension();
+                if (m == n)
+                {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 bool ompl::geometric::BundleSpaceComponentFactory::isMapping_SE2RN_to_R2(
     const base::StateSpacePtr Bundle, 
     const base::StateSpacePtr Base)
@@ -546,7 +584,12 @@ int ompl::geometric::BundleSpaceComponentFactory::GetNumberOfComponents(base::St
     {
       int type = space->getType();
 
-      if((type == base::STATE_SPACE_SE2) || (type == base::STATE_SPACE_SE3))
+      if(
+          (type == base::STATE_SPACE_SE2) || 
+          (type == base::STATE_SPACE_SE3) || 
+          (type == base::STATE_SPACE_DUBINS) || 
+          (type == base::STATE_SPACE_DUBINS_AIRPLANE)
+        )
       {
         nrComponents = 1;
       }else{
@@ -557,7 +600,7 @@ int ompl::geometric::BundleSpaceComponentFactory::GetNumberOfComponents(base::St
             (t0 == base::STATE_SPACE_SO2 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
             (t0 == base::STATE_SPACE_SO3 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
             (t0 == base::STATE_SPACE_SE2 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
-            (t0 == base::STATE_SPACE_SE3 && t1 == base::STATE_SPACE_REAL_VECTOR) 
+            (t0 == base::STATE_SPACE_SE3 && t1 == base::STATE_SPACE_REAL_VECTOR)
           )
         {
           if(decomposed.at(1)->getDimension() > 0)

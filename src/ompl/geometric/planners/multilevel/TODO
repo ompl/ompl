@@ -51,7 +51,6 @@ for graphs
 [ ] Write novel tutorial/demo
 [ ] Remove all sanitychecks/debug informations
 
-
 Improvements (FB):
 - Enable Multi Robot Planning using a new component-based implementation
 - Refactored using language of fiber bundles

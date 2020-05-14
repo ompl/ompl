@@ -1,5 +1,6 @@
 #include <ompl/geometric/planners/multilevel/datastructures/pathrestriction/PathRestriction.h>
 #include <ompl/geometric/planners/multilevel/datastructures/graphsampler/GraphSampler.h>
+#include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 
 #include <ompl/base/Path.h>
 #include <ompl/geometric/PathGeometric.h>
@@ -141,7 +142,8 @@ ompl::geometric::BundleSpacePathRestriction::interpolateQuasiSectionSpline(
       base::State* bj = basePath.at(j);
       double*& v = bj->as<base::RealVectorStateSpace::StateType>()->values;
 
-      for(uint k = 0; k < dim; k++){
+      for(int k = 0; k < dim; k++)
+      {
           states(k,j) = v[k];
       }
   }
@@ -467,7 +469,7 @@ ompl::geometric::BundleSpacePathRestriction::addFeasibleSegment(
     Configuration *x = new Configuration(bundleSpaceGraph_->getBundle(), sNext);
     bundleSpaceGraph_->addConfiguration(x);
     bundleSpaceGraph_->addBundleEdge(xLast, x);
-    
+
     SANITY_CHECK(
         if(!bundleSpaceGraph_->getBundle()->checkMotion(xLast->state, x->state))
         {
@@ -495,16 +497,18 @@ ompl::geometric::BundleSpacePathRestriction::addFeasibleGoalSegment(
     }
     bundleSpaceGraph_->addBundleEdge(xLast, xGoal);
 
-    if(!bundleSpaceGraph_->getBundle()->checkMotion(xLast->state, xGoal->state))
-    {
-        std::cout << std::string(80, '-') << std::endl;
-        std::cout << "Last State" << std::endl;
-        bundleSpaceGraph_->getBundle()->printState(xLast->state);
-        std::cout << std::string(80, '-') << std::endl;
-        std::cout << "Current State" << std::endl;
-        bundleSpaceGraph_->getBundle()->printState(xGoal->state);
-        throw Exception("Infeasible goal segment.");
-    }
+    SANITY_CHECK(
+        if(!bundleSpaceGraph_->getBundle()->checkMotion(xLast->state, xGoal->state))
+        {
+            std::cout << std::string(80, '-') << std::endl;
+            std::cout << "Last State" << std::endl;
+            bundleSpaceGraph_->getBundle()->printState(xLast->state);
+            std::cout << std::string(80, '-') << std::endl;
+            std::cout << "Current State" << std::endl;
+            bundleSpaceGraph_->getBundle()->printState(xGoal->state);
+            throw Exception("Infeasible goal segment.");
+        }
+    );
 }
 
 bool ompl::geometric::BundleSpacePathRestriction::sideStepAlongFiber(const base::State* xBase, base::State* xBundle)
@@ -523,48 +527,6 @@ bool ompl::geometric::BundleSpacePathRestriction::sideStepAlongFiber(const base:
         }
     }
     return found;
-}
-
-void ompl::geometric::BundleSpacePathRestriction::sanityCheckSection()
-{
-    if (!bundleSpaceGraph_->sameComponent(bundleSpaceGraph_->vStart_, bundleSpaceGraph_->vGoal_))
-    {
-        throw Exception("Reported feasible path section, \
-            but start and goal are in different components.");
-    }
-
-    base::PathPtr solutionPath = bundleSpaceGraph_->getPath(bundleSpaceGraph_->vStart_, bundleSpaceGraph_->vGoal_);
-
-    if(solutionPath == nullptr)
-    {
-        std::cout 
-          << bundleSpaceGraph_->getName()
-          << " failed on level " << bundleSpaceGraph_->getLevel() 
-          << " dim " << bundleSpaceGraph_->getBundleDimension() 
-          << "->" << bundleSpaceGraph_->getBaseDimension() 
-          << std::endl;
-        throw Exception("Reported feasible path section, \
-            but path section is not existent.");
-    }
-
-    geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath);
-
-    bool valid = gpath.check();
-    if(!valid)
-    {
-        OMPL_ERROR("Path section is invalid.");
-        std::vector<base::State*> gStates = gpath.getStates();
-        for(uint k = 1; k < gStates.size(); k++){
-          base::State *sk1 = gStates.at(k-1);
-          base::State *sk2 = gStates.at(k-2);
-          if(!bundleSpaceGraph_->getBundle()->checkMotion(sk1, sk2))
-          {
-            std::cout << "Error between states " << k-1 << " and " << k << std::endl;
-          }
-        }
-        throw Exception("Reported feasible path section, \
-            but path section is infeasible.");
-    }
 }
 
 bool ompl::geometric::BundleSpacePathRestriction::hasFeasibleSection(
@@ -611,22 +573,62 @@ bool ompl::geometric::BundleSpacePathRestriction::hasFeasibleSection(
         }
         return true;
     }else{
-
-        bool foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_);
-        if(!foundFeasibleSection)
+        //check for quasisection computation module
+        int type = bundleSpaceGraph_->getBundle()->getStateSpace()->getType();
+        if(type == base::STATE_SPACE_DUBINS || type == base::STATE_SPACE_DUBINS_AIRPLANE)
         {
-          //Try with inverse L1 
-            foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_, false);
-        }
+            //Quasisections
+            bundleSpaceGraph_->projectFiber(xStart->state, xFiberStart_);
+            bundleSpaceGraph_->projectFiber(xGoal->state, xFiberGoal_);
+            std::vector<base::State*> section = 
+              interpolateSectionL2(xFiberStart_, xFiberGoal_, basePath_);
 
-        SANITY_CHECK(
-            if(foundFeasibleSection)
+            Configuration *xLast = xStart;
+
+            for(uint k = 1; k < section.size(); k++)
             {
-                sanityCheckSection();
-            }
-        );
+                if(bundleSpaceGraph_->getBundle()->checkMotion(
+                      section.at(k-1), section.at(k), lastValid_))
+                {
+                    if(k < section.size()-1)
+                    {
+                        xLast = addFeasibleSegment(xLast, section.at(k));
+                    }else{
+                        if(xGoal->index <= 0)
+                        {
+                            bundleSpaceGraph_->vGoal_ = bundleSpaceGraph_->addConfiguration(xGoal);
+                        }
+                        addFeasibleGoalSegment(xLast, xGoal);
+                        OMPL_DEBUG("Found feasible path section (%d edges added)", k);
+                        return true;
+                    }
+                }else{
+                  addFeasibleSegment(xLast, lastValid_.first);
+                  return false;
+                }
 
-        return foundFeasibleSection;
+            }
+            return true;
+
+        }else{
+
+
+            bool foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_);
+            if(!foundFeasibleSection)
+            {
+              //Try with inverse L1 
+                foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_, false);
+            }
+
+            SANITY_CHECK(
+                if(foundFeasibleSection)
+                {
+                    sanityCheckSection();
+                }
+            );
+
+            return foundFeasibleSection;
+        }
     }
 }
 
@@ -717,7 +719,8 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
             if(k < section.size()-1)
             {
                 xLast = addFeasibleSegment(xLast, section.at(k));
-            }else{
+            }else
+            {
                 addFeasibleGoalSegment(xLast, xGoal);
                 OMPL_DEBUG("Found feasible path section (%d edges added)", k);
                 return true;
@@ -735,7 +738,8 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
                 bundleSpaceGraph_->addConfiguration(xLastValid);
                 bundleSpaceGraph_->addBundleEdge(xLast, xLastValid);
                 xLast = xLastValid;
-            }else{
+            }else
+            {
                 xLastValid = xLast;
             }
 
@@ -814,3 +818,56 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
     return false;
 }
 
+void ompl::geometric::BundleSpacePathRestriction::sanityCheckSection()
+{
+    if (!bundleSpaceGraph_->sameComponent(bundleSpaceGraph_->vStart_, bundleSpaceGraph_->vGoal_))
+    {
+        throw Exception("Reported feasible path section, \
+            but start and goal are in different components.");
+    }
+
+    base::PathPtr solutionPath = bundleSpaceGraph_->getPath(bundleSpaceGraph_->vStart_, bundleSpaceGraph_->vGoal_);
+
+    if(solutionPath == nullptr)
+    {
+
+        Configuration *q = bundleSpaceGraph_->qGoal_;
+        bundleSpaceGraph_->printConfiguration(q);
+        while(q->parent != nullptr)
+        {
+            bundleSpaceGraph_->printConfiguration(q);
+            q = q->parent;
+        }
+
+        if(q != bundleSpaceGraph_->qStart_)
+        {
+            std::cout 
+              << bundleSpaceGraph_->getName()
+              << " failed on level " << bundleSpaceGraph_->getLevel() 
+              << " dim " << bundleSpaceGraph_->getBundleDimension() 
+              << "->" << bundleSpaceGraph_->getBaseDimension() 
+              << std::endl;
+            throw Exception("Reported feasible path section, \
+                but path section is not existent.");
+        }
+    }
+
+    geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath);
+
+    bool valid = gpath.check();
+    if(!valid)
+    {
+        OMPL_ERROR("Path section is invalid.");
+        std::vector<base::State*> gStates = gpath.getStates();
+        for(uint k = 1; k < gStates.size(); k++){
+          base::State *sk1 = gStates.at(k-1);
+          base::State *sk2 = gStates.at(k-2);
+          if(!bundleSpaceGraph_->getBundle()->checkMotion(sk1, sk2))
+          {
+            std::cout << "Error between states " << k-1 << " and " << k << std::endl;
+          }
+        }
+        throw Exception("Reported feasible path section, \
+            but path section is infeasible.");
+    }
+}
