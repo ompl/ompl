@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2016, Rice University
+ *  Copyright (c) 2015, Rice University
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the Rice University nor the names of its
+ *   * Neither the name of Rice University nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -32,55 +32,20 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Mark Moll */
+/* Author: Ryan Luna */
 
-#ifndef OMPL_UTIL_HASH_
-#define OMPL_UTIL_HASH_
+#ifndef PLANAR_MANIPULATOR_STATE_SPACE_H_
+#define PLANAR_MANIPULATOR_STATE_SPACE_H_
 
-#include <functional>
-#include <type_traits>
-#include <utility>
-#include <vector>
-#include <boost/functional/hash.hpp>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 
-namespace ompl
+// State space for a planar manipulator with n joints whose angles are bounded.
+class PlanarManipulatorStateSpace : public ompl::base::RealVectorStateSpace
 {
-    // copied from <boost/functional/hash.hpp>
-    template <class T>
-    inline void hash_combine(std::size_t &seed, const T &v)
+public:
+    PlanarManipulatorStateSpace(int n) : ompl::base::RealVectorStateSpace(n)
     {
-        std::hash<T> hasher;
-        seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
-}  // namespace ompl
-
-namespace std
-{
-    template <class U, class V>
-    struct hash<std::pair<U, V>>
-    {
-        using argument_type = std::pair<U, V>;
-        using result_type = std::size_t;
-        result_type operator()(argument_type const &p) const
-        {
-            result_type h = std::hash<std::remove_cv_t<U>>()(p.first);
-            ompl::hash_combine(h, p.second);
-            return h;
-        }
-    };
-
-    template <class T>
-    struct hash<std::vector<T>>
-    {
-        using argument_type = std::vector<T>;
-        using result_type = std::size_t;
-        result_type operator()(argument_type const &v) const
-        {
-            result_type h = 0;
-            boost::hash_range(h, v.begin(), v.end());
-            return h;
-        }
-    };
-}  // namespace std
+};
 
 #endif

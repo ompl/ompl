@@ -176,6 +176,13 @@ namespace ompl
         <a href="https://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
         void uniformProlateHyperspheroid(const std::shared_ptr<const ProlateHyperspheroid> &phsPtr, double value[]);
 
+        /** \brief randomly rearrange elements in the range [first, last) */
+        template <class RandomAccessIterator>
+        void shuffle(RandomAccessIterator first, RandomAccessIterator last)
+        {
+            std::shuffle(first, last, generator_);
+        }
+
     private:
         /** \brief A forward declaration to a data structure class holding data for spherical distributions of various
          * dimension. */
