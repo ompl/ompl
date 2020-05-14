@@ -44,11 +44,13 @@ OMPL_PUSH_DISABLE_GCC_WARNING(-Wunused-function)
 OMPL_POP_CLANG
 #include <iostream>
 
+#include "ompl/base/goals/GoalState.h"
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include "ompl/geometric/planners/bitstar/ABITstar.h"
+#include "ompl/geometric/planners/bitstar/BITstar.h"
+#include "ompl/geometric/planners/cforest/CForest.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"
-#include "ompl/geometric/planners/cforest/CForest.h"
-#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
-#include "ompl/base/goals/GoalState.h"
 #include "ompl/util/RandomNumbers.h"
 
 #include "../../base/PlannerTest.h"
@@ -69,9 +71,6 @@ public:
 
     virtual ~TestPlanner() = default;
 
-    virtual base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) = 0;
-
-
     virtual void test2DCircles(const Circles2D& circles)
     {
         base::SpaceInformationPtr si = geometric::spaceInformation2DCircles(circles);
@@ -79,6 +78,8 @@ public:
     }
 
 protected:
+
+    virtual base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) const = 0;
 
     /* test a planner in a planar environment with circular obstacles */
     void test2DCirclesGeneral(const Circles2D &circles,
@@ -293,10 +294,9 @@ class RRTstarTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) const override
     {
-        auto rrt(std::make_shared<geometric::RRTstar>(si));
-        return rrt;
+        return std::make_shared<geometric::RRTstar>(si);
     }
 };
 
@@ -304,10 +304,9 @@ class PRMstarTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) const override
     {
-        auto prm(std::make_shared<geometric::PRMstar>(si));
-        return prm;
+        return std::make_shared<geometric::PRMstar>(si);
     }
 };
 
@@ -315,10 +314,9 @@ class PRMTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) const override
     {
-        auto prm(std::make_shared<geometric::PRM>(si));
-        return prm;
+        return std::make_shared<geometric::PRM>(si);
     }
 };
 
@@ -326,10 +324,29 @@ class CForestTest : public TestPlanner
 {
 protected:
 
-    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) override
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) const override
     {
-        auto cforest(std::make_shared<geometric::CForest>(si));
-        return cforest;
+        return std::make_shared<geometric::CForest>(si);
+    }
+};
+
+class BITstarTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) const override
+    {
+        return std::make_shared<geometric::BITstar>(si);
+    }
+};
+
+class ABITstarTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) const override
+    {
+        return std::make_shared<geometric::ABITstar>(si);
     }
 };
 
@@ -387,9 +404,11 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
             printf("Done with %s.\n", #Name);                                \
     }
 
-OMPL_PLANNER_TEST(PRMstar)
-OMPL_PLANNER_TEST(PRM)
-OMPL_PLANNER_TEST(RRTstar)
+OMPL_PLANNER_TEST(ABITstar)
+OMPL_PLANNER_TEST(BITstar)
 OMPL_PLANNER_TEST(CForest)
+OMPL_PLANNER_TEST(PRM)
+OMPL_PLANNER_TEST(PRMstar)
+OMPL_PLANNER_TEST(RRTstar)
 
 BOOST_AUTO_TEST_SUITE_END()
