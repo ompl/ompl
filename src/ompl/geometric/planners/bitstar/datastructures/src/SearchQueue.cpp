@@ -113,6 +113,9 @@ namespace ompl
             // Clear the queue.
             edgeQueue_.clear();
 
+            // Clear the set of inconsistent vertices.
+            inconsistentVertices_.clear();
+
             // Reset the inflation factor.
             inflationFactor_ = 1.0;
 
