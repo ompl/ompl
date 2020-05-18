@@ -259,10 +259,7 @@ namespace ompl
             Vertex vGoal_;
 
             std::vector<Vertex> shortestVertexPath_;
-            std::vector<Vertex> startGoalVertexPath_;
             double lengthStartGoalVertexPath_;
-            std::vector<double> lengthsStartGoalVertexPath_;
-
 
             const Graph &getGraph() const;
             double getGraphLength() const;
@@ -331,7 +328,7 @@ namespace ompl
             /** \brief Nearest neighbor structure for Bundle space configurations */
             RoadmapNeighborsPtr nearestDatastructure_;
             Graph graph_;
-            unsigned int numVerticesWhenComputingSolutionPath{0};
+            unsigned int numVerticesWhenComputingSolutionPath_{0};
             RNG rng_;
             using RNGType = boost::minstd_rand;
             RNGType rng_boost;
@@ -351,9 +348,6 @@ namespace ompl
 
             base::State *xFiberTmp1_{nullptr};
             base::State *xFiberTmp2_{nullptr};
-
-            /** \brief Temporary random configuration */
-            Configuration *xApproximateNearest_{nullptr};
 
             BundleSpaceImportancePtr importanceCalculator_{nullptr};
 

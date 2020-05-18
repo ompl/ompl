@@ -121,6 +121,9 @@ namespace ompl
 
         /** \brief A path simplifier used to simplify dense paths added to S */
         PathSimplifierPtr psimp_;
+
+        std::vector<Vertex> startGoalVertexPath_;
+        std::vector<double> lengthsStartGoalVertexPath_;
     };
   };
 };

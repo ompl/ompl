@@ -28,6 +28,10 @@ ompl::geometric::BundleSpaceMetric::~BundleSpaceMetric()
     }
 }
 
+void ompl::geometric::BundleSpaceMetric::reset()
+{
+}
+
 void ompl::geometric::BundleSpaceMetric::interpolateBundle(
     const Configuration *q_from, 
     const Configuration *q_to, 

@@ -24,6 +24,8 @@ namespace ompl
 
         virtual double eval() = 0;
 
+        virtual void reset(){};
+
       protected:
 
         BundleSpaceGraph* bundleSpaceGraph_;

@@ -31,6 +31,10 @@ class ExponentialDecay
         + lowerBound_;
     }
 
+    void reset()
+    {
+        counter_ = 0;
+    }
   private:
     double lambda_{0.1};
     double lowerBound_{0.0};

@@ -125,7 +125,7 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
 
     pathRefinementObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
 
-    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 1.0);
+    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 0.5);
     std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(clearObj, 1.0);
 
     if(getFiberDimension() > 0)
@@ -207,6 +207,19 @@ void ompl::geometric::BundleSpaceGraph::clear()
     graphLength_ = 0;
     bestCost_ = base::Cost(base::dInf);
     setup_ = false;
+    vStart_ = 0;
+    vGoal_ = 0;
+    lengthStartGoalVertexPath_ = base::dInf;
+    shortestVertexPath_.clear();
+
+    qStart_ = nullptr;
+    qStart_ = nullptr;
+    solutionPath_ = nullptr;
+    numVerticesWhenComputingSolutionPath_ = 0;
+
+    importanceCalculator_->reset();
+    graphSampler_->reset();
+    pathRestriction_->reset();
 }
 
 void ompl::geometric::BundleSpaceGraph::setGoalBias(double goalBias)
@@ -651,20 +664,48 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
     if (hasSolution_)
     {
         if((solutionPath_ != nullptr) &&
-            (getNumberOfVertices() == numVerticesWhenComputingSolutionPath)){
+            (getNumberOfVertices() == numVerticesWhenComputingSolutionPath_)){
         }else{
           solutionPath_ = getPath(vStart_, vGoal_);
-          numVerticesWhenComputingSolutionPath = getNumberOfVertices();
+          numVerticesWhenComputingSolutionPath_ = getNumberOfVertices();
 
           if(!isDynamic() && solutionPath_ != solution && getChild() != nullptr
               // && !getChild()->isDynamic()
               )
           {
-              ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 
-                  pathRefinementObj_);
-              geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
-              shortcutter.simplifyMax(gpath);
-              std::vector<base::State*> gstates = gpath.getStates();
+              int type = getBundle()->getStateSpace()->getType();
+              bool optimize = true;
+              if(type == base::STATE_SPACE_DUBINS || type == base::STATE_SPACE_DUBINS_AIRPLANE)
+              {
+                optimize = false;
+              }
+              if(!optimize && getBundle()->getStateSpace()->isCompound())
+              {
+                  std::vector<base::StateSpacePtr> Bundle_decomposed;
+                  base::CompoundStateSpace *Bundle_compound = 
+                    getBundle()->getStateSpace()->as<base::CompoundStateSpace>();
+                  Bundle_decomposed = Bundle_compound->getSubspaces();
+                  for(uint k = 0; k < Bundle_decomposed.size(); k++)
+                  {
+                    int tk = Bundle_decomposed.at(k)->getType();
+                    if(tk == base::STATE_SPACE_DUBINS || tk == base::STATE_SPACE_DUBINS_AIRPLANE)
+                    {
+                      optimize = false;
+                      break;
+                    }
+                  }
+              }
+              
+              if(optimize)
+              {
+                  // std::cout << "Optimize... ";
+                  // ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 
+                  //     pathRefinementObj_);
+                  // geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
+                  // shortcutter.simplifyMax(gpath);
+                  // std::vector<base::State*> gstates = gpath.getStates();
+                  // std::cout << "Done" << std::endl;
+              }
           }
         }
         solution = solutionPath_;
@@ -843,7 +884,6 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(
           base::PlannerDataVertexAnnotated *pLast = &pstart;
           for(uint k = 1; k < gstates.size()-1; k++)
           {
-              getBundle()->printState(gstates.at(k));
               base::PlannerDataVertexAnnotated p(gstates.at(k));
               p.setPath(idxPathI);
               data.addVertex(p);

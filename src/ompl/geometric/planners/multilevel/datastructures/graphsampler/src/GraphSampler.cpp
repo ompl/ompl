@@ -19,6 +19,16 @@ ompl::geometric::BundleSpaceGraphSampler::BundleSpaceGraphSampler(BundleSpaceGra
     graphThickeningGrowth_.setUpperBound(0.0);
 }
 
+void ompl::geometric::BundleSpaceGraphSampler::reset()
+{
+    double mu = bundleSpaceGraph_->getBundle()->getMaximumExtent();
+    epsilonGraphThickening_ = mu * epsilonGraphThickeningFraction_;
+
+    pathBiasDecay_.reset();
+    pathThickeningGrowth_.reset();
+    graphThickeningGrowth_.reset();
+}
+
 void ompl::geometric::BundleSpaceGraphSampler::setPathBiasStartSegment(double s)
 {
   if(s > this->pathBiasStartSegment_)

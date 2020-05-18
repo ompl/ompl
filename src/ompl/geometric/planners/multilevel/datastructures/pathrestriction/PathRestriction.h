@@ -110,6 +110,8 @@ namespace ompl
                 const base::State* xFiberGoal,
                 const std::vector<base::State*> basePath);
 
+          virtual void reset();
+
         protected:
 
           BundleSpaceGraph* bundleSpaceGraph_;
@@ -125,8 +127,6 @@ namespace ompl
           base::State *xFiberStart_{nullptr};
           base::State *xFiberGoal_{nullptr};
           base::State *xFiberTmp_{nullptr};
-
-          std::vector<base::State*> section_;
 
           std::pair<base::State*, double> lastValid_;
 

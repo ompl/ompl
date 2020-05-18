@@ -43,6 +43,10 @@ ompl::geometric::BundleSpacePathRestriction::~BundleSpacePathRestriction()
     bundleSpaceGraph_->getBundle()->freeState(xBundleTmp_);
 }
 
+void ompl::geometric::BundleSpacePathRestriction::reset()
+{
+}
+
 void ompl::geometric::BundleSpacePathRestriction::setBasePath(ompl::base::PathPtr path)
 {
     PathGeometricPtr geometricBasePath = std::static_pointer_cast<PathGeometric>(path);
@@ -593,7 +597,8 @@ bool ompl::geometric::BundleSpacePathRestriction::hasFeasibleSection(
                     if(k < section.size()-1)
                     {
                         xLast = addFeasibleSegment(xLast, section.at(k));
-                    }else{
+                    }else
+                    {
                         if(xGoal->index <= 0)
                         {
                             bundleSpaceGraph_->vGoal_ = bundleSpaceGraph_->addConfiguration(xGoal);

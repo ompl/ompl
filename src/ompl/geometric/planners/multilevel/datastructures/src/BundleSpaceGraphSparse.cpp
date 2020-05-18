@@ -127,6 +127,9 @@ void BundleSpaceGraphSparse::clear()
     Nold_v = 0;
     Nold_e = 0;
 
+    startGoalVertexPath_.clear();
+    lengthsStartGoalVertexPath_.clear();
+
 }
 
 void BundleSpaceGraphSparse::clearDynamic()
