@@ -282,59 +282,62 @@ const ompl::base::State *ompl::base::PlannerInputStates::nextGoal(const PlannerT
             throw Exception(error);
     }
 
-    const GoalSampleableRegion *goal =
-        pdef_->getGoal()->hasType(GOAL_SAMPLEABLE_REGION) ? pdef_->getGoal()->as<GoalSampleableRegion>() : nullptr;
-
-    if (goal != nullptr)
+    if (pdef_->getGoal() != nullptr)
     {
-        time::point start_wait;
-        bool first = true;
-        bool attempt = true;
-        while (attempt)
+        const GoalSampleableRegion *goal =
+            pdef_->getGoal()->hasType(GOAL_SAMPLEABLE_REGION) ? pdef_->getGoal()->as<GoalSampleableRegion>() : nullptr;
+
+        if (goal != nullptr)
         {
-            attempt = false;
-
-            if (sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample())
+            time::point start_wait;
+            bool first = true;
+            bool attempt = true;
+            while (attempt)
             {
-                if (tempState_ == nullptr)
-                    tempState_ = si_->allocState();
-                do
+                attempt = false;
+
+                if (sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample())
                 {
-                    goal->sampleGoal(tempState_);
-                    sampledGoalsCount_++;
-                    bool bounds = si_->satisfiesBounds(tempState_);
-                    bool valid = bounds ? si_->isValid(tempState_) : false;
-                    if (bounds && valid)
+                    if (tempState_ == nullptr)
+                        tempState_ = si_->allocState();
+                    do
                     {
-                        if (!first)  // if we waited, show how long
+                        goal->sampleGoal(tempState_);
+                        sampledGoalsCount_++;
+                        bool bounds = si_->satisfiesBounds(tempState_);
+                        bool valid = bounds ? si_->isValid(tempState_) : false;
+                        if (bounds && valid)
                         {
-                            OMPL_DEBUG("%s: Waited %lf seconds for the first goal sample.",
-                                       planner_ ? planner_->getName().c_str() : "PlannerInputStates",
-                                       time::seconds(time::now() - start_wait));
+                            if (!first)  // if we waited, show how long
+                            {
+                                OMPL_DEBUG("%s: Waited %lf seconds for the first goal sample.",
+                                           planner_ ? planner_->getName().c_str() : "PlannerInputStates",
+                                           time::seconds(time::now() - start_wait));
+                            }
+                            return tempState_;
                         }
-                        return tempState_;
-                    }
 
-                    OMPL_WARN("%s: Skipping invalid goal state (invalid %s)",
-                              planner_ ? planner_->getName().c_str() : "PlannerInputStates",
-                              bounds ? "state" : "bounds");
-                    std::stringstream ss;
-                    si_->printState(tempState_, ss);
-                    OMPL_DEBUG("%s: Discarded goal state:\n%s",
-                               planner_ ? planner_->getName().c_str() : "PlannerInputStates", ss.str().c_str());
-                } while (!ptc && sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample());
-            }
-            if (goal->couldSample() && !ptc)
-            {
-                if (first)
-                {
-                    first = false;
-                    start_wait = time::now();
-                    OMPL_DEBUG("%s: Waiting for goal region samples ...",
-                               planner_ ? planner_->getName().c_str() : "PlannerInputStates");
+                        OMPL_WARN("%s: Skipping invalid goal state (invalid %s)",
+                                  planner_ ? planner_->getName().c_str() : "PlannerInputStates",
+                                  bounds ? "state" : "bounds");
+                        std::stringstream ss;
+                        si_->printState(tempState_, ss);
+                        OMPL_DEBUG("%s: Discarded goal state:\n%s",
+                                   planner_ ? planner_->getName().c_str() : "PlannerInputStates", ss.str().c_str());
+                    } while (!ptc && sampledGoalsCount_ < goal->maxSampleCount() && goal->canSample());
                 }
-                std::this_thread::sleep_for(time::seconds(0.01));
-                attempt = !ptc;
+                if (goal->couldSample() && !ptc)
+                {
+                    if (first)
+                    {
+                        first = false;
+                        start_wait = time::now();
+                        OMPL_DEBUG("%s: Waiting for goal region samples ...",
+                                   planner_ ? planner_->getName().c_str() : "PlannerInputStates");
+                    }
+                    std::this_thread::sleep_for(time::seconds(0.01));
+                    attempt = !ptc;
+                }
             }
         }
     }

@@ -1,86 +1,67 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2014, University of Toronto
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Toronto nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2014, University of Toronto
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Toronto nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
-/* Authors: Jonathan Gammell */
+/* Authors: Jonathan Gammell, Marlin Strub */
 
-// My definition:
 #include "ompl/geometric/planners/bitstar/BITstar.h"
 
-// For stringstreams
 #include <sstream>
-// For stream manipulations
 #include <iomanip>
-// For smart pointers
 #include <memory>
-// For boost::adaptors::reverse which let "for (auto ...)" loops iterate in reverse
 #include <boost/range/adaptor/reversed.hpp>
 
-// For OMPL_INFORM et al.
 #include "ompl/util/Console.h"
-// For exceptions:
 #include "ompl/util/Exception.h"
-// For toString
 #include "ompl/util/String.h"
-// For ompl::geometric::path
 #include "ompl/geometric/PathGeometric.h"
-// For the default optimization objective:
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
-// BIT*:
-// A collection of common helper functions
 #include "ompl/geometric/planners/bitstar/datastructures/HelperFunctions.h"
-// The Vertex ID generator class
 #include "ompl/geometric/planners/bitstar/datastructures/IdGenerator.h"
-// My vertex class:
 #include "ompl/geometric/planners/bitstar/datastructures/Vertex.h"
-// My cost & heuristic helper class
 #include "ompl/geometric/planners/bitstar/datastructures/CostHelper.h"
-// My implicit graph
 #include "ompl/geometric/planners/bitstar/datastructures/ImplicitGraph.h"
-// My queue class
 #include "ompl/geometric/planners/bitstar/datastructures/SearchQueue.h"
 
 #ifdef BITSTAR_DEBUG
-    #warning Compiling BIT* with debug-level asserts
+#warning Compiling BIT* with debug-level asserts.
 #endif  // BITSTAR_DEBUG
 
 namespace ompl
 {
     namespace geometric
     {
-        /////////////////////////////////////////////////////////////////////////////////////////////
-        // Public functions:
         BITstar::BITstar(const ompl::base::SpaceInformationPtr &si, const std::string &name /*= "BITstar"*/)
           : ompl::base::Planner(si, name)
         {
@@ -91,28 +72,8 @@ namespace ompl
             // Allocate my helper classes, they hold settings and must never be deallocated. Give them a pointer to my
             // name, so they can output helpful error messages
             costHelpPtr_ = std::make_shared<CostHelper>();
-            graphPtr_ = std::make_shared<ImplicitGraph>([this]()
-                                                        {
-                                                            return getName();
-                                                        });
-            queuePtr_ = std::make_shared<SearchQueue>([this]()
-                                                      {
-                                                          return getName();
-                                                      });
-            queuePtr_->setPruneDuringResort(usePruning_);
-
-            // Make sure the default name reflects the default k-nearest setting
-            if (graphPtr_->getUseKNearest() && Planner::getName() == "BITstar")
-            {
-                // It's the current default r-disc BIT* name, but we're using k-nearest, so change
-                Planner::setName("kBITstar");
-            }
-            else if (!graphPtr_->getUseKNearest() && Planner::getName() == "kBITstar")
-            {
-                // It's the current default k-nearest BIT* name, but we're using r-disc, so change
-                Planner::setName("BITstar");
-            }
-            // It's not default named, don't change it
+            graphPtr_ = std::make_shared<ImplicitGraph>([this]() { return getName(); });
+            queuePtr_ = std::make_shared<SearchQueue>([this]() { return getName(); });
 
             // Specify my planner specs:
             Planner::specs_.recognizedGoal = ompl::base::GOAL_SAMPLEABLE_REGION;
@@ -129,10 +90,12 @@ namespace ompl
                                           "1.0:0.01:3.0");
             Planner::declareParam<unsigned int>("samples_per_batch", this, &BITstar::setSamplesPerBatch,
                                                 &BITstar::getSamplesPerBatch, "1:1:1000000");
-            Planner::declareParam<bool>("use_k_nearest", this, &BITstar::setUseKNearest, &BITstar::getUseKNearest, "0,"
-                                                                                                                   "1");
-            Planner::declareParam<bool>("use_graphPtr_pruning", this, &BITstar::setPruning, &BITstar::getPruning, "0,"
-                                                                                                                  "1");
+            Planner::declareParam<bool>("use_k_nearest", this, &BITstar::setUseKNearest, &BITstar::getUseKNearest,
+                                        "0,"
+                                        "1");
+            Planner::declareParam<bool>("use_graph_pruning", this, &BITstar::setPruning, &BITstar::getPruning,
+                                        "0,"
+                                        "1");
             Planner::declareParam<double>("prune_threshold_as_fractional_cost_change", this,
                                           &BITstar::setPruneThresholdFraction, &BITstar::getPruneThresholdFraction,
                                           "0.0:0.01:1.0");
@@ -151,34 +114,18 @@ namespace ompl
                                         &BITstar::getConsiderApproximateSolutions, "0,1");
 
             // Register my progress info:
-            addPlannerProgressProperty("best cost REAL", [this]
-                                       {
-                                           return bestCostProgressProperty();
-                                       });
-            addPlannerProgressProperty("number of segments in solution path INTEGER", [this]
-                                       {
-                                           return bestLengthProgressProperty();
-                                       });
-            addPlannerProgressProperty("current free states INTEGER", [this]
-                                       {
-                                           return currentFreeProgressProperty();
-                                       });
-            addPlannerProgressProperty("current graph vertices INTEGER", [this]
-                                       {
-                                           return currentVertexProgressProperty();
-                                       });
-            addPlannerProgressProperty("state collision checks INTEGER", [this]
-                                       {
-                                           return stateCollisionCheckProgressProperty();
-                                       });
-            addPlannerProgressProperty("edge collision checks INTEGER", [this]
-                                       {
-                                           return edgeCollisionCheckProgressProperty();
-                                       });
-            addPlannerProgressProperty("nearest neighbour calls INTEGER", [this]
-                                       {
-                                           return nearestNeighbourProgressProperty();
-                                       });
+            addPlannerProgressProperty("best cost DOUBLE", [this] { return bestCostProgressProperty(); });
+            addPlannerProgressProperty("number of segments in solution path INTEGER",
+                                       [this] { return bestLengthProgressProperty(); });
+            addPlannerProgressProperty("current free states INTEGER", [this] { return currentFreeProgressProperty(); });
+            addPlannerProgressProperty("current graph vertices INTEGER",
+                                       [this] { return currentVertexProgressProperty(); });
+            addPlannerProgressProperty("state collision checks INTEGER",
+                                       [this] { return stateCollisionCheckProgressProperty(); });
+            addPlannerProgressProperty("edge collision checks INTEGER",
+                                       [this] { return edgeCollisionCheckProgressProperty(); });
+            addPlannerProgressProperty("nearest neighbour calls INTEGER",
+                                       [this] { return nearestNeighbourProgressProperty(); });
 
             // Extra progress info that aren't necessary for every day use. Uncomment if desired.
             /*
@@ -244,13 +191,16 @@ namespace ompl
                 }
                 // No else, we were given one.
 
+                // Initialize the best cost found so far to be infinite.
+                bestCost_ = Planner::pdef_->getOptimizationObjective()->infiniteCost();
+
                 // If the problem definition *has* a goal, make sure it is of appropriate type
                 if (static_cast<bool>(Planner::pdef_->getGoal()))
                 {
                     if (!Planner::pdef_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION))
                     {
-                        OMPL_ERROR("%s::setup() BIT* currently only supports goals that can be cast to a sampleable goal "
-                                   "region.",
+                        OMPL_ERROR("%s::setup() BIT* currently only supports goals that can be cast to a sampleable "
+                                   "goal region.",
                                    Planner::getName().c_str());
                         // Mark as not setup:
                         Planner::setup_ = false;
@@ -266,9 +216,11 @@ namespace ompl
                 // Setup the queue
                 queuePtr_->setup(costHelpPtr_.get(), graphPtr_.get());
 
-                // Setup the graph, it does not hold a copy of this or Planner::pis_, but uses them to create a NN struct
-                // and check for starts/goals, respectively.
-                graphPtr_->setup(Planner::si_, Planner::pdef_, costHelpPtr_.get(), queuePtr_.get(), this, Planner::pis_);
+                // Setup the graph, it does not hold a copy of this or Planner::pis_, but uses them to create a NN
+                // struct and check for starts/goals, respectively.
+                graphPtr_->setup(Planner::si_, Planner::pdef_, costHelpPtr_.get(), queuePtr_.get(), this,
+                                 Planner::pis_);
+                graphPtr_->setPruning(isPruningEnabled_);
 
                 // Set the best and pruned costs to the proper objective-based values:
                 bestCost_ = costHelpPtr_->infiniteCost();
@@ -277,7 +229,36 @@ namespace ompl
                 // Get the measure of the problem
                 prunedMeasure_ = Planner::si_->getSpaceMeasure();
 
-                // We are already marked as setup.
+                // If the planner is default named, we change it:
+                if (!graphPtr_->getUseKNearest() && Planner::getName() == "kBITstar")
+                {
+                    // It's current the default k-nearest BIT* name, and we're toggling, so set to the default r-disc
+                    OMPL_WARN("BIT*: An r-disc version of BIT* can not be named 'kBITstar', as this name is reserved "
+                              "for the k-nearest version. Changing the name to 'BITstar'.");
+                    Planner::setName("BITstar");
+                }
+                else if (graphPtr_->getUseKNearest() && Planner::getName() == "BITstar")
+                {
+                    // It's current the default r-disc BIT* name, and we're toggling, so set to the default k-nearest
+                    OMPL_WARN("BIT*: A k-nearest version of BIT* can not be named 'BITstar', as this name is reserved "
+                              "for the r-disc version. Changing the name to 'kBITstar'.");
+                    Planner::setName("kBITstar");
+                }
+                else if (!graphPtr_->getUseKNearest() && Planner::getName() == "kABITstar")
+                {
+                    // It's current the default k-nearest ABIT* name, and we're toggling, so set to the default r-disc
+                    OMPL_WARN("ABIT*: An r-disc version of ABIT* can not be named 'kABITstar', as this name is "
+                              "reserved for the k-nearest version. Changing the name to 'ABITstar'.");
+                    Planner::setName("ABITstar");
+                }
+                else if (graphPtr_->getUseKNearest() && Planner::getName() == "ABITstar")
+                {
+                    // It's current the default r-disc ABIT* name, and we're toggling, so set to the default k-nearest
+                    OMPL_WARN("ABIT*: A k-nearest version of ABIT* can not be named 'ABITstar', as this name is "
+                              "reserved for the r-disc version. Changing the name to 'kABITstar'.");
+                    Planner::setName("kABITstar");
+                }
+                // It's not default named, don't change it
             }
             else
             {
@@ -292,9 +273,9 @@ namespace ompl
             // Keep this in the order of the constructors:
 
             // The various helper classes. DO NOT reset the pointers, they hold configuration parameters:
-            costHelpPtr_->clear();
-            graphPtr_->clear();
-            queuePtr_->clear();
+            costHelpPtr_->reset();
+            graphPtr_->reset();
+            queuePtr_->reset();
 
             // Reset the various calculations and convenience containers. Will be recalculated on setup
             curGoalVertex_.reset();
@@ -331,7 +312,8 @@ namespace ompl
             // Assert setup succeeded
             if (!Planner::setup_)
             {
-                throw ompl::Exception("%s::solve() failed to set up the planner. Has a problem definition been set?", Planner::getName().c_str());
+                throw ompl::Exception("%s::solve() failed to set up the planner. Has a problem definition been set?",
+                                      Planner::getName().c_str());
             }
             // No else
 
@@ -350,18 +332,28 @@ namespace ompl
             // Warn if we are missing a start
             if (!graphPtr_->hasAStart())
             {
-                // We don't have a start, since there's no way to wait for one to appear, so we will not be solving this "problem" today
-                OMPL_WARN("%s: A solution cannot be found as no valid start states are available.", Planner::getName().c_str());
+                // We don't have a start, since there's no way to wait for one to appear, so we will not be solving this
+                // "problem" today
+                OMPL_WARN("%s: A solution cannot be found as no valid start states are available.",
+                          Planner::getName().c_str());
             }
             // No else, it's a start
 
             // Warn if we are missing a goal
             if (!graphPtr_->hasAGoal())
             {
-                // We don't have a goal (and we waited as long as ptc allowed us for one to appear), so we will not be solving this "problem" today
-                OMPL_WARN("%s: A solution cannot be found as no valid goal states are available.", Planner::getName().c_str());
+                // We don't have a goal (and we waited as long as ptc allowed us for one to appear), so we will not be
+                // solving this "problem" today
+                OMPL_WARN("%s: A solution cannot be found as no valid goal states are available.",
+                          Planner::getName().c_str());
             }
             // No else, there's a goal to all of this
+
+            // Insert the outgoing edges of the start vertices.
+            if (numIterations_ == 0u)
+            {
+                queuePtr_->insertOutgoingEdgesOfStartVertices();
+            }
 
             /* Iterate as long as:
               - We're allowed (ptc == false && stopLoop_ == false), AND
@@ -403,7 +395,7 @@ namespace ompl
             // solutions.
             // PlannerStatus(addedSolution, approximate)
             return {hasExactSolution_ || graphPtr_->getTrackApproximateSolutions(),
-                                             !hasExactSolution_ && graphPtr_->getTrackApproximateSolutions()};
+                    !hasExactSolution_ && graphPtr_->getTrackApproximateSolutions()};
         }
 
         void BITstar::getPlannerData(ompl::base::PlannerData &data) const
@@ -418,12 +410,12 @@ namespace ompl
             if (hasExactSolution_)
             {
                 // Exact solution
-                data.markGoalState(curGoalVertex_->stateConst());
+                data.markGoalState(curGoalVertex_->state());
             }
             else if (!hasExactSolution_ && graphPtr_->getTrackApproximateSolutions())
             {
                 // Approximate solution
-                data.markGoalState(graphPtr_->closestVertexToGoal()->stateConst());
+                data.markGoalState(graphPtr_->closestVertexToGoal()->state());
             }
             // No else, no solution
         }
@@ -438,10 +430,10 @@ namespace ompl
             {
                 // Variable
                 // The edge in the front of the queue
-                VertexConstPtrPair frontEdge = queuePtr_->frontEdge();
+                VertexConstPtrPair frontEdge = queuePtr_->getFrontEdge();
 
                 // The next edge in the queue:
-                nextEdge = std::make_pair(frontEdge.first->stateConst(), frontEdge.second->stateConst());
+                nextEdge = std::make_pair(frontEdge.first->state(), frontEdge.second->state());
             }
             else
             {
@@ -461,7 +453,7 @@ namespace ompl
             if (!queuePtr_->isEmpty())
             {
                 // The next cost in the queue:
-                nextCost = queuePtr_->frontEdgeValue().at(0u);
+                nextCost = queuePtr_->getFrontEdgeValue().at(0u);
             }
             else
             {
@@ -475,11 +467,6 @@ namespace ompl
         void BITstar::getEdgeQueue(VertexConstPtrPairVector *edgesInQueue)
         {
             queuePtr_->getEdges(edgesInQueue);
-        }
-
-        void BITstar::getVertexQueue(VertexConstPtrVector *verticesInQueue)
-        {
-            queuePtr_->getVertices(verticesInQueue);
         }
 
         unsigned int BITstar::numIterations() const
@@ -502,81 +489,127 @@ namespace ompl
         // Protected functions:
         void BITstar::iterate()
         {
-            // Info:
+            // Keep track of how many iterations we've performed.
             ++numIterations_;
 
-            // Is the edge queue empty
-            if (queuePtr_->isEmpty())
+            // If the search is done or the queue is empty, we need to populate the queue.
+            if (isSearchDone_ || queuePtr_->isEmpty())
             {
-                // Yes, we must have just finished a batch. Increase the resolution of the graph and restart the queue.
-                this->newBatch();
+                // Check whether we've exhausted the current approximation.
+                if (isFinalSearchOnBatch_ || !hasExactSolution_)
+                {
+                    // Prune the graph if enabled.
+                    if (isPruningEnabled_)
+                    {
+                        this->prune();
+                    }
+
+                    // Add a new batch.
+                    this->newBatch();
+
+                    // Set the inflation factor to an initial value.
+                    queuePtr_->setInflationFactor(initialInflationFactor_);
+
+                    // Clear the search queue.
+                    queuePtr_->clear();
+
+                    // Restart the queue, adding the outgoing edges of the start vertices to the queue.
+                    queuePtr_->insertOutgoingEdgesOfStartVertices();
+
+                    // Set flag to false.
+                    isFinalSearchOnBatch_ = false;
+
+                    // Set the new truncation factor.
+                    truncationFactor_ =
+                        1.0 + truncationScalingParameter_ /
+                                  (static_cast<float>(graphPtr_->numVertices() + graphPtr_->numSamples()));
+                }
+                else
+                {
+                    // Exhaust the current approximation by performing an uninflated search.
+                    queuePtr_->setInflationFactor(
+                        1.0 + inflationScalingParameter_ /
+                                  (static_cast<float>(graphPtr_->numVertices() + graphPtr_->numSamples())));
+                    queuePtr_->rebuildEdgeQueue();
+                    queuePtr_->insertOutgoingEdgesOfInconsistentVertices();
+                    queuePtr_->clearInconsistentSet();
+                    isFinalSearchOnBatch_ = true;
+                }
+
+                isSearchDone_ = false;
             }
             else
             {
-                // If the edge queue is not empty, then there is work to do!
+                // Get the most promising edge.
+                VertexPtrPair edge = queuePtr_->popFrontEdge();
 
-                // Variables:
-                // The current edge:
-                VertexPtrPair bestEdge;
-
-                // Pop the minimum edge
-                queuePtr_->popFrontEdge(&bestEdge);
-
+                // If this edge is already part of the search tree it's a freebie.
+                if (edge.second->hasParent() && edge.second->getParent()->getId() == edge.first->getId())
+                {
+                    if (!edge.first->isExpandedOnCurrentSearch())
+                    {
+                        edge.first->registerExpansion();
+                    }
+                    queuePtr_->insertOutgoingEdges(edge.second);
+                }
                 // In the best case, can this edge improve our solution given the current graph?
                 // g_t(v) + c_hat(v,x) + h_hat(x) < g_t(x_g)?
-                if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicEdge(bestEdge), bestCost_))
+                else if (costHelpPtr_->isCostBetterThan(
+                             costHelpPtr_->inflateCost(costHelpPtr_->currentHeuristicEdge(edge), truncationFactor_),
+                             bestCost_))
                 {
                     // What about improving the current graph?
                     // g_t(v) + c_hat(v,x)  < g_t(x)?
-                    if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicToTarget(bestEdge),
-                                                       bestEdge.second->getCost()))
+                    if (costHelpPtr_->isCostBetterThan(costHelpPtr_->currentHeuristicToTarget(edge),
+                                                       edge.second->getCost()))
                     {
                         // Ok, so it *could* be a useful edge. Do the work of calculating its cost for real
 
-                        // Variables:
-                        // The true cost of the edge:
-                        ompl::base::Cost trueEdgeCost;
-
                         // Get the true cost of the edge
-                        trueEdgeCost = costHelpPtr_->trueEdgeCost(bestEdge);
+                        ompl::base::Cost trueEdgeCost = costHelpPtr_->trueEdgeCost(edge);
 
                         // Can this actual edge ever improve our solution?
                         // g_hat(v) + c(v,x) + h_hat(x) < g_t(x_g)?
                         if (costHelpPtr_->isCostBetterThan(
-                                costHelpPtr_->combineCosts(costHelpPtr_->costToComeHeuristic(bestEdge.first),
-                                                           trueEdgeCost,
-                                                           costHelpPtr_->costToGoHeuristic(bestEdge.second)),
+                                costHelpPtr_->combineCosts(costHelpPtr_->costToComeHeuristic(edge.first), trueEdgeCost,
+                                                           costHelpPtr_->costToGoHeuristic(edge.second)),
                                 bestCost_))
                         {
                             // Does this edge have a collision?
-                            if (this->checkEdge(bestEdge))
+                            if (this->checkEdge(edge))
                             {
+                                // Remember that this edge has passed the collision checks.
+                                this->whitelistEdge(edge);
+
                                 // Does the current edge improve our graph?
                                 // g_t(v) + c(v,x) < g_t(x)?
                                 if (costHelpPtr_->isCostBetterThan(
-                                        costHelpPtr_->combineCosts(bestEdge.first->getCost(), trueEdgeCost),
-                                        bestEdge.second->getCost()))
+                                        costHelpPtr_->combineCosts(edge.first->getCost(), trueEdgeCost),
+                                        edge.second->getCost()))
                                 {
                                     // YAAAAH. Add the edge! Allowing for the sample to be removed from free if it is
                                     // not currently connected and otherwise propagate cost updates to descendants.
                                     // addEdge will update the queue and handle the extra work that occurs if this edge
                                     // improves the solution.
-                                    this->addEdge(bestEdge, trueEdgeCost);
+                                    this->addEdge(edge, trueEdgeCost);
 
                                     // If the path to the goal has changed, we will need to update the cached info about
                                     // the solution cost or solution length:
                                     this->updateGoalVertex();
 
-                                    /*
-                                    //Remove any unnecessary incoming edges in the edge queue
-                                    queuePtr_->removeExtraEdgesTo(bestEdge.second);
-                                    */
-
-                                    // We will only prune the whole graph/samples on a new batch.
+                                    // If this is the first edge that's being expanded in the current search, remember
+                                    // the cost-to-come and the search / approximation ids.
+                                    if (!edge.first->isExpandedOnCurrentSearch())
+                                    {
+                                        edge.first->registerExpansion();
+                                    }
                                 }
                                 // No else, this edge may be useful at some later date.
                             }
-                            // No else, we failed
+                            else  // Remember that this edge is in collision.
+                            {
+                                this->blacklistEdge(edge);
+                            }
                         }
                         // No else, we failed
                     }
@@ -584,20 +617,15 @@ namespace ompl
                 }
                 else
                 {
-                    // The edge cannot improve our solution, and therefore neither can any other edge in the queue. Give
-                    // up on the batch:
-                    queuePtr_->finish();
+                    isSearchDone_ = true;
                 }
             }  // Search queue not empty.
         }
 
         void BITstar::newBatch()
         {
-            // Info:
+            // Increment the batch counter.
             ++numBatches_;
-
-            // Reset the queue:
-            queuePtr_->reset();
 
             // Do we need to update our starts or goals?
             if (Planner::pis_.haveMoreStartStates() || Planner::pis_.haveMoreGoalStates())
@@ -607,66 +635,80 @@ namespace ompl
             }
             // No else, we have enough of a problem to do some work, and everything's up to date.
 
-            // Prune the graph (if enabled)
-            this->prune();
-
-            // Add a new batch of samples
+            // Add a new batch of samples.
             graphPtr_->addNewSamples(samplesPerBatch_);
         }
 
         void BITstar::prune()
         {
-            /* Test if we should we do a little tidying up:
-              - Is pruning enabled?
-              - Do we have an exact solution?
-              - Has the solution changed more than the specified pruning threshold?
-            */
-            if ((usePruning_) && (hasExactSolution_) &&
-                (std::abs(costHelpPtr_->fractionalChange(bestCost_, prunedCost_)) > pruneFraction_))
+#ifdef BITSTAR_DEBUG
+            if (!isPruningEnabled_)
             {
-                // Variables:
-                // The number of vertices and samples pruned:
-                std::pair<unsigned int, unsigned int> numPruned(0u, 0u);
-                // The current measure of the problem space:
-                double informedMeasure = graphPtr_->getInformedMeasure(bestCost_);
-                // The change in the informed measure
-                double relativeMeasure = std::abs((informedMeasure - prunedMeasure_) / prunedMeasure_);
+                throw ompl::Exception("Pruning is not enabled, but prune() is called nonetheless.");
+            }
+#endif  // BITSTAR_DEBUG
 
-                /* Is there good reason to prune?
-                  - Is the informed subset measurably less than the total problem domain?
-                  - Has its measured changed more than the specified pruning threshold?
-                  - If an informed measure is not available, we'll assume yes
-                 */
-                if ((graphPtr_->hasInformedMeasure() && informedMeasure < Planner::si_->getSpaceMeasure() &&
-                     relativeMeasure > pruneFraction_) ||
-                    (!graphPtr_->hasInformedMeasure()))
+            // If we don't have an exact solution, we can't prune sensibly.
+            if (hasExactSolution_)
+            {
+                /* Profiling reveals that pruning is very expensive, mainly because the nearest neighbour structure of
+                 * the samples has to be updated. On the other hand, nearest neighbour lookup gets more expensive the
+                 * bigger the structure, so it's a tradeoff. Pruning on every cost update seems insensible, but so does
+                 * never pruning at all. The criteria to prune should depend on how many vertices/samples there are and
+                 * how many of them could be pruned, as the decrease in cost associated with nearest neighbour lookup
+                 * for fewer samples must justify the cost of pruning. It turns out that counting is affordable, so we
+                 * don't need to use any proxy here. */
+
+                // Count the number of samples that could be pruned.
+                auto samples = graphPtr_->getCopyOfSamples();
+                unsigned int numSamplesThatCouldBePruned(0u);
+                for (const auto &sample : samples)
                 {
-                    OMPL_INFORM("%s: Pruning the planning problem from a solution of %.4f to %.4f, changing the "
-                                "problem size from %.4f to %.4f.",
-                                Planner::getName().c_str(), prunedCost_.value(), bestCost_.value(), prunedMeasure_,
-                                informedMeasure);
+                    if (graphPtr_->canSampleBePruned(sample))
+                    {
+                        ++numSamplesThatCouldBePruned;
+                    }
+                }
+
+                // Only prune if the decrease in number of samples and the associated decrease in nearest neighbour
+                // lookup cost justifies the cost of pruning. There has to be a way to make this more formal, and less
+                // knob-turney, right?
+                if (static_cast<float>(numSamplesThatCouldBePruned) /
+                        static_cast<float>(graphPtr_->numSamples() + graphPtr_->numVertices()) >=
+                    pruneFraction_)
+                {
+                    // Get the current informed measure of the problem space.
+                    double informedMeasure = graphPtr_->getInformedMeasure(bestCost_);
 
                     // Increment the pruning counter:
                     ++numPrunings_;
 
-                    // Prune the graph
-                    numPruned = numPruned + graphPtr_->prune(informedMeasure);
-
-                    // Prune the search.
-                    numPruned = numPruned + queuePtr_->prune(curGoalVertex_);
+                    // Prune the graph.
+                    std::pair<unsigned int, unsigned int> numPruned = graphPtr_->prune(informedMeasure);
 
                     // Store the cost at which we pruned:
                     prunedCost_ = bestCost_;
 
-                    // And the measure:
+                    // Also store the measure.
                     prunedMeasure_ = informedMeasure;
 
                     OMPL_INFORM("%s: Pruning disconnected %d vertices from the tree and completely removed %d samples.",
                                 Planner::getName().c_str(), numPruned.first, numPruned.second);
                 }
-                // No else, it's not worth the work to prune...
             }
-            // No else, why was I called?
+            // No else.
+        }
+
+        void BITstar::blacklistEdge(const VertexPtrPair &edge) const
+        {
+            // We store the actual blacklist with the parent vertex for efficient lookup.
+            edge.first->blacklistChild(edge.second);
+        }
+
+        void BITstar::whitelistEdge(const VertexPtrPair &edge) const
+        {
+            // We store the actual whitelist with the parent vertex for efficient lookup.
+            edge.first->whitelistChild(edge.second);
         }
 
         void BITstar::publishSolution()
@@ -699,7 +741,8 @@ namespace ompl
             }
 
             // Mark whether the solution met the optimization objective:
-            soln.optimized_ = costHelpPtr_->isSatisfied(bestCost_);
+            soln.setOptimized(Planner::pdef_->getOptimizationObjective(), bestCost_,
+                              Planner::pdef_->getOptimizationObjective()->isSatisfied(bestCost_));
 
             // Add the solution to the Problem Definition:
             Planner::pdef_->addSolutionPath(soln);
@@ -730,14 +773,13 @@ namespace ompl
             }
 
             // Insert the goal into the path
-            reversePath.push_back(curVertex->stateConst());
+            reversePath.push_back(curVertex->state());
 
             // Then, use the vertex pointer like an iterator. Starting at the goal, we iterate up the chain pushing the
             // *parent* of the iterator into the vector until the vertex has no parent.
             // This will allows us to add the start (as the parent of the first child) and then stop when we get to the
             // start itself, avoiding trying to find its nonexistent child
-            for (/*Already allocated & initialized*/; !curVertex->isRoot();
-                 curVertex = curVertex->getParentConst())
+            for (/*Already allocated & initialized*/; !curVertex->isRoot(); curVertex = curVertex->getParent())
             {
 #ifdef BITSTAR_DEBUG
                 // Check the case where the chain ends incorrectly.
@@ -749,67 +791,82 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
 
                 // Push back the parent into the vector as a state pointer:
-                reversePath.push_back(curVertex->getParentConst()->stateConst());
+                reversePath.push_back(curVertex->getParent()->state());
             }
             return reversePath;
         }
 
         bool BITstar::checkEdge(const VertexConstPtrPair &edge)
         {
-            ++numEdgeCollisionChecks_;
-            return Planner::si_->checkMotion(edge.first->stateConst(), edge.second->stateConst());
+#ifdef BITSTAR_DEBUG
+            if (edge.first->isBlacklistedAsChild(edge.second))
+            {
+                throw ompl::Exception("A blacklisted edge made it into the edge queue.");
+            }
+#endif  // BITSTAR_DEBUG
+        // If this is a whitelisted edge, there's no need to do (repeat) the collision checking.
+            if (edge.first->isWhitelistedAsChild(edge.second))
+            {
+                return true;
+            }
+            else  // This is a new edge, we need to check whether it is feasible.
+            {
+                ++numEdgeCollisionChecks_;
+                return Planner::si_->checkMotion(edge.first->state(), edge.second->state());
+            }
         }
 
-        void BITstar::addEdge(const VertexPtrPair &newEdge, const ompl::base::Cost &edgeCost)
+        void BITstar::addEdge(const VertexPtrPair &edge, const ompl::base::Cost &edgeCost)
         {
 #ifdef BITSTAR_DEBUG
-            if (newEdge.first->isInTree() == false)
+            if (edge.first->isInTree() == false)
             {
                 throw ompl::Exception("Adding an edge from a vertex not connected to the graph");
             }
-            if (costHelpPtr_->isCostEquivalentTo(costHelpPtr_->trueEdgeCost(newEdge), edgeCost) == false)
+            if (costHelpPtr_->isCostEquivalentTo(costHelpPtr_->trueEdgeCost(edge), edgeCost) == false)
             {
                 throw ompl::Exception("You have passed the wrong edge cost to addEdge.");
             }
 #endif  // BITSTAR_DEBUG
 
-            // Variables
-            // The edge is a rewiring if it is current in the tree:
-            bool isRewiring = newEdge.second->hasParent();
-
-            // Perform a rewiring?
-            if (isRewiring)
+            // If the child already has a parent, this is a rewiring.
+            if (edge.second->hasParent())
             {
-                // Replace the edge
-                this->replaceParent(newEdge, edgeCost);
-            }
+                // Replace the old parent.
+                this->replaceParent(edge, edgeCost);
+            }  // If not, we add the vertex without replaceing a parent.
             else
             {
-#ifdef BITSTAR_DEBUG
-                graphPtr_->assertValidSample(newEdge.second, false);
-#endif  // BITSTAR_DEBUG
-                // If not, we just add the vertex
+                // Add a parent to the child.
+                edge.second->addParent(edge.first, edgeCost);
 
-                // Add a parent to the child, updating descendant costs:
-                newEdge.second->addParent(newEdge.first, edgeCost, true);
+                // Add a child to the parent.
+                edge.first->addChild(edge.second);
 
-                // Add a child to the parent:
-                newEdge.first->addChild(newEdge.second);
+                // Add the vertex to the set of vertices.
+                graphPtr_->registerAsVertex(edge.second);
+            }
 
-                // Then enqueue the vertex, moving it from the free set to the vertex set.
-                queuePtr_->enqueueVertex(newEdge.second, true);
+            // If the vertex hasn't already been expanded, insert its outgoing edges
+            if (!edge.second->isExpandedOnCurrentSearch())
+            {
+                queuePtr_->insertOutgoingEdges(edge.second);
+            }
+            else  // If the vertex has already been expanded, remember it as inconsistent.
+            {
+                queuePtr_->addToInconsistentSet(edge.second);
             }
         }
 
-        void BITstar::replaceParent(const VertexPtrPair &newEdge, const ompl::base::Cost &edgeCost)
+        void BITstar::replaceParent(const VertexPtrPair &edge, const ompl::base::Cost &edgeCost)
         {
 #ifdef BITSTAR_DEBUG
-            if (newEdge.second->getParent()->getId() == newEdge.first->getId())
+            if (edge.second->getParent()->getId() == edge.first->getId())
             {
                 throw ompl::Exception("The new and old parents of the given rewiring are the same.");
             }
-            if (costHelpPtr_->isCostBetterThan(newEdge.second->getCost(),
-                                               costHelpPtr_->combineCosts(newEdge.first->getCost(), edgeCost)) == true)
+            if (costHelpPtr_->isCostBetterThan(edge.second->getCost(),
+                                               costHelpPtr_->combineCosts(edge.first->getCost(), edgeCost)) == true)
             {
                 throw ompl::Exception("The new edge will increase the cost-to-come of the vertex!");
             }
@@ -819,19 +876,16 @@ namespace ompl
             ++numRewirings_;
 
             // Remove the child from the parent, not updating costs
-            newEdge.second->getParent()->removeChild(newEdge.second);
+            edge.second->getParent()->removeChild(edge.second);
 
             // Remove the parent from the child, not updating costs
-            newEdge.second->removeParent(false);
+            edge.second->removeParent(false);
 
             // Add the parent to the child. updating the downstream costs.
-            newEdge.second->addParent(newEdge.first, edgeCost, true);
+            edge.second->addParent(edge.first, edgeCost);
 
             // Add the child to the parent.
-            newEdge.first->addChild(newEdge.second);
-
-            // Mark the queues as unsorted below this child
-            queuePtr_->markVertexUnsorted(newEdge.second);
+            edge.first->addChild(edge.second);
         }
 
         void BITstar::updateGoalVertex()
@@ -845,26 +899,25 @@ namespace ompl
             ompl::base::Cost newCost = bestCost_;
 
             // Iterate through the vector of goals, and see if the solution has changed
-            for (auto goalIter = graphPtr_->goalVerticesBeginConst(); goalIter != graphPtr_->goalVerticesEndConst();
-                 ++goalIter)
+            for (auto it = graphPtr_->goalVerticesBeginConst(); it != graphPtr_->goalVerticesEndConst(); ++it)
             {
                 // First, is this goal even in the tree?
-                if ((*goalIter)->isInTree())
+                if ((*it)->isInTree())
                 {
                     // Next, is there currently a solution?
                     if (static_cast<bool>(newBestGoal))
                     {
                         // There is already a solution, is it to this goal?
-                        if ((*goalIter)->getId() == newBestGoal->getId())
+                        if ((*it)->getId() == newBestGoal->getId())
                         {
                             // Ah-ha, We meet again! Are we doing any better? We check the length as sometimes the path
                             // length changes with minimal change in cost.
-                            if (!costHelpPtr_->isCostEquivalentTo((*goalIter)->getCost(), newCost) ||
-                                ((*goalIter)->getDepth() + 1u) != bestLength_)
+                            if (!costHelpPtr_->isCostEquivalentTo((*it)->getCost(), newCost) ||
+                                ((*it)->getDepth() + 1u) != bestLength_)
                             {
                                 // The path to the current best goal has changed, so we need to update it.
                                 goalUpdated = true;
-                                newBestGoal = *goalIter;
+                                newBestGoal = *it;
                                 newCost = newBestGoal->getCost();
                             }
                             // No else, no change
@@ -873,11 +926,11 @@ namespace ompl
                         {
                             // It is not to this goal, we have a second solution! What an easy problem... but is it
                             // better?
-                            if (costHelpPtr_->isCostBetterThan((*goalIter)->getCost(), newCost))
+                            if (costHelpPtr_->isCostBetterThan((*it)->getCost(), newCost))
                             {
                                 // It is! Save this as a better goal:
                                 goalUpdated = true;
-                                newBestGoal = *goalIter;
+                                newBestGoal = *it;
                                 newCost = newBestGoal->getCost();
                             }
                             // No else, not a better solution
@@ -887,7 +940,7 @@ namespace ompl
                     {
                         // There isn't a preexisting solution, that means that any goal is an update:
                         goalUpdated = true;
-                        newBestGoal = *goalIter;
+                        newBestGoal = *it;
                         newCost = newBestGoal->getCost();
                     }
                 }
@@ -910,11 +963,11 @@ namespace ompl
                 bestLength_ = curGoalVertex_->getDepth() + 1u;
 
                 // Tell everyone else about it.
-                queuePtr_->hasSolution(bestCost_);
-                graphPtr_->hasSolution(bestCost_);
+                queuePtr_->registerSolutionCost(bestCost_);
+                graphPtr_->registerSolutionCost(bestCost_);
 
                 // Stop the solution loop if enabled:
-                stopLoop_ = stopOnSolnChange_;
+                stopLoop_ = stopOnSolutionChange_;
 
                 // Brag:
                 this->goalMessage();
@@ -941,7 +994,7 @@ namespace ompl
                         "currently has %u vertices.",
                         Planner::getName().c_str(), numIterations_, bestCost_.value(), bestLength_,
                         graphPtr_->numStatesGenerated(), queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_,
-                        graphPtr_->numVerticesConnected(), numRewirings_, graphPtr_->numConnectedVertices());
+                        graphPtr_->numVerticesConnected(), numRewirings_, graphPtr_->numVertices());
         }
 
         void BITstar::endSuccessMessage() const
@@ -951,7 +1004,7 @@ namespace ompl
                         "graph has %u vertices.",
                         Planner::getName().c_str(), bestCost_.value(), bestLength_, graphPtr_->numStatesGenerated(),
                         queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_, graphPtr_->numVerticesConnected(),
-                        numRewirings_, graphPtr_->numConnectedVertices());
+                        numRewirings_, graphPtr_->numVertices());
         }
 
         void BITstar::endFailureMessage() const
@@ -964,7 +1017,7 @@ namespace ompl
                             "%.4f.",
                             Planner::getName().c_str(), numIterations_, graphPtr_->numStatesGenerated(),
                             queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_, graphPtr_->numVerticesConnected(),
-                            numRewirings_, graphPtr_->numConnectedVertices(), graphPtr_->smallestDistanceToGoal(),
+                            numRewirings_, graphPtr_->numVertices(), graphPtr_->smallestDistanceToGoal(),
                             graphPtr_->closestVertexToGoal()->getCost().value());
             }
             else
@@ -974,14 +1027,14 @@ namespace ompl
                             "has %u vertices.",
                             Planner::getName().c_str(), numIterations_, graphPtr_->numStatesGenerated(),
                             queuePtr_->numEdgesPopped(), numEdgeCollisionChecks_, graphPtr_->numVerticesConnected(),
-                            numRewirings_, graphPtr_->numConnectedVertices());
+                            numRewirings_, graphPtr_->numVertices());
             }
         }
 
-        void BITstar::statusMessage(const ompl::msg::LogLevel &msgLevel, const std::string &status) const
+        void BITstar::statusMessage(const ompl::msg::LogLevel &logLevel, const std::string &status) const
         {
             // Check if we need to create the message
-            if (msgLevel >= ompl::msg::getLogLevel())
+            if (logLevel >= ompl::msg::getLogLevel())
             {
                 // Variable
                 // The message as a stream:
@@ -998,9 +1051,9 @@ namespace ompl
                 // The number of iterations
                 outputStream << ", i: " << std::setw(5) << std::setfill(' ') << numIterations_;
                 // The number of states current in the graph
-                outputStream << ", g: " << std::setw(5) << std::setfill(' ') << graphPtr_->numConnectedVertices();
+                outputStream << ", g: " << std::setw(5) << std::setfill(' ') << graphPtr_->numVertices();
                 // The number of free states
-                outputStream << ", f: " << std::setw(5) << std::setfill(' ') << graphPtr_->numFreeSamples();
+                outputStream << ", f: " << std::setw(5) << std::setfill(' ') << graphPtr_->numSamples();
                 // The number edges in the queue:
                 outputStream << ", q: " << std::setw(5) << std::setfill(' ') << queuePtr_->numEdges();
                 // The total number of edges taken out of the queue:
@@ -1023,19 +1076,19 @@ namespace ompl
                 // The message:
                 outputStream << status;
 
-                if (msgLevel == ompl::msg::LOG_DEBUG)
+                if (logLevel == ompl::msg::LOG_DEBUG)
                 {
                     OMPL_DEBUG("%s: ", outputStream.str().c_str());
                 }
-                else if (msgLevel == ompl::msg::LOG_INFO)
+                else if (logLevel == ompl::msg::LOG_INFO)
                 {
                     OMPL_INFORM("%s: ", outputStream.str().c_str());
                 }
-                else if (msgLevel == ompl::msg::LOG_WARN)
+                else if (logLevel == ompl::msg::LOG_WARN)
                 {
                     OMPL_WARN("%s: ", outputStream.str().c_str());
                 }
-                else if (msgLevel == ompl::msg::LOG_ERROR)
+                else if (logLevel == ompl::msg::LOG_ERROR)
                 {
                     OMPL_ERROR("%s: ", outputStream.str().c_str());
                 }
@@ -1050,6 +1103,52 @@ namespace ompl
 
         /////////////////////////////////////////////////////////////////////////////////////////////
         // Boring sets/gets (Public) and progress properties (Protected):
+        void BITstar::setInitialInflationFactor(double factor)
+        {
+            initialInflationFactor_ = factor;
+            queuePtr_->setInflationFactor(factor);
+        }
+
+        void BITstar::setInflationScalingParameter(double factor)
+        {
+            inflationScalingParameter_ = factor;
+        }
+
+        void BITstar::setTruncationScalingParameter(double factor)
+        {
+            truncationScalingParameter_ = factor;
+        }
+
+        void BITstar::enableCascadingRewirings(bool enable)
+        {
+            queuePtr_->enableCascadingRewirings(enable);
+        }
+
+        double BITstar::getInitialInflationFactor() const
+        {
+            return initialInflationFactor_;
+        }
+
+        double BITstar::getInflationScalingParameter() const
+        {
+            return inflationScalingParameter_;
+        }
+
+        double BITstar::getTruncationScalingParameter() const
+        {
+            return truncationScalingParameter_;
+        }
+
+        double BITstar::getCurrentInflationFactor() const
+        {
+            return queuePtr_->getInflationFactor();
+        }
+
+        double BITstar::getCurrentTruncationFactor() const
+        {
+            return truncationFactor_;
+        }
+
         void BITstar::setRewireFactor(double rewireFactor)
         {
             graphPtr_->setRewireFactor(rewireFactor);
@@ -1060,9 +1159,9 @@ namespace ompl
             return graphPtr_->getRewireFactor();
         }
 
-        void BITstar::setSamplesPerBatch(unsigned int n)
+        void BITstar::setSamplesPerBatch(unsigned int samplesPerBatch)
         {
-            samplesPerBatch_ = n;
+            samplesPerBatch_ = samplesPerBatch;
         }
 
         unsigned int BITstar::getSamplesPerBatch() const
@@ -1079,12 +1178,30 @@ namespace ompl
             if (!graphPtr_->getUseKNearest() && Planner::getName() == "kBITstar")
             {
                 // It's current the default k-nearest BIT* name, and we're toggling, so set to the default r-disc
+                OMPL_WARN("BIT*: An r-disc version of BIT* can not be named 'kBITstar', as this name is reserved for "
+                          "the k-nearest version. Changing the name to 'BITstar'.");
                 Planner::setName("BITstar");
             }
             else if (graphPtr_->getUseKNearest() && Planner::getName() == "BITstar")
             {
                 // It's current the default r-disc BIT* name, and we're toggling, so set to the default k-nearest
+                OMPL_WARN("BIT*: A k-nearest version of BIT* can not be named 'BITstar', as this name is reserved for "
+                          "the r-disc version. Changing the name to 'kBITstar'.");
                 Planner::setName("kBITstar");
+            }
+            else if (!graphPtr_->getUseKNearest() && Planner::getName() == "kABITstar")
+            {
+                // It's current the default k-nearest ABIT* name, and we're toggling, so set to the default r-disc
+                OMPL_WARN("ABIT*: An r-disc version of ABIT* can not be named 'kABITstar', as this name is reserved "
+                          "for the k-nearest version. Changing the name to 'ABITstar'.");
+                Planner::setName("ABITstar");
+            }
+            else if (graphPtr_->getUseKNearest() && Planner::getName() == "ABITstar")
+            {
+                // It's current the default r-disc ABIT* name, and we're toggling, so set to the default k-nearest
+                OMPL_WARN("ABIT*: A k-nearest version of ABIT* can not be named 'ABITstar', as this name is reserved "
+                          "for the r-disc version. Changing the name to 'kABITstar'.");
+                Planner::setName("kABITstar");
             }
             // It's not default named, don't change it
         }
@@ -1094,33 +1211,28 @@ namespace ompl
             return graphPtr_->getUseKNearest();
         }
 
-        void BITstar::setStrictQueueOrdering(bool beStrict)
+        void BITstar::setStrictQueueOrdering(bool /* beStrict */)
         {
-            queuePtr_->setStrictQueueOrdering(beStrict);
+            OMPL_WARN("%s: This option no longer has any effect; The queue is always strictly ordered.",
+                      Planner::getName().c_str());
         }
 
         bool BITstar::getStrictQueueOrdering() const
         {
-            return queuePtr_->getStrictQueueOrdering();
+            OMPL_WARN("%s: This option no longer has any effect; The queue is always strictly ordered.",
+                      Planner::getName().c_str());
+            return true;
         }
 
-        void BITstar::setPruning(bool prune)
+        void BITstar::setPruning(bool usePruning)
         {
-            if (!prune)
-            {
-                OMPL_WARN("%s: Turning pruning off has never really been tested.", Planner::getName().c_str());
-            }
-
-            // Store
-            usePruning_ = prune;
-
-            // Pass the setting onto the queue
-            queuePtr_->setPruneDuringResort(usePruning_);
+            isPruningEnabled_ = usePruning;
+            graphPtr_->setPruning(usePruning);
         }
 
         bool BITstar::getPruning() const
         {
-            return usePruning_;
+            return isPruningEnabled_;
         }
 
         void BITstar::setPruneThresholdFraction(double fractionalChange)
@@ -1138,14 +1250,17 @@ namespace ompl
             return pruneFraction_;
         }
 
-        void BITstar::setDelayRewiringUntilInitialSolution(bool delayRewiring)
+        void BITstar::setDelayRewiringUntilInitialSolution(bool /* delayRewiring */)
         {
-            queuePtr_->setDelayedRewiring(delayRewiring);
+            OMPL_WARN("%s: This option no longer has any effect; Rewiring is never delayed.",
+                      Planner::getName().c_str());
         }
 
         bool BITstar::getDelayRewiringUntilInitialSolution() const
         {
-            return queuePtr_->getDelayedRewiring();
+            OMPL_WARN("%s: This option no longer has any effect; Rewiring is never delayed.",
+                      Planner::getName().c_str());
+            return false;
         }
 
         void BITstar::setJustInTimeSampling(bool useJit)
@@ -1170,12 +1285,12 @@ namespace ompl
 
         void BITstar::setStopOnSolnImprovement(bool stopOnChange)
         {
-            stopOnSolnChange_ = stopOnChange;
+            stopOnSolutionChange_ = stopOnChange;
         }
 
         bool BITstar::getStopOnSolnImprovement() const
         {
-            return stopOnSolnChange_;
+            return stopOnSolutionChange_;
         }
 
         void BITstar::setConsiderApproximateSolutions(bool findApproximate)
@@ -1190,6 +1305,16 @@ namespace ompl
         bool BITstar::getConsiderApproximateSolutions() const
         {
             return graphPtr_->getTrackApproximateSolutions();
+        }
+
+        void BITstar::setAverageNumOfAllowedFailedAttemptsWhenSampling(std::size_t number)
+        {
+            graphPtr_->setAverageNumOfAllowedFailedAttemptsWhenSampling(number);
+        }
+
+        std::size_t BITstar::getAverageNumOfAllowedFailedAttemptsWhenSampling() const
+        {
+            return graphPtr_->getAverageNumOfAllowedFailedAttemptsWhenSampling();
         }
 
         template <template <typename T> class NN>
@@ -1221,17 +1346,12 @@ namespace ompl
 
         std::string BITstar::currentFreeProgressProperty() const
         {
-            return std::to_string(graphPtr_->numFreeSamples());
+            return std::to_string(graphPtr_->numSamples());
         }
 
         std::string BITstar::currentVertexProgressProperty() const
         {
-            return std::to_string(graphPtr_->numConnectedVertices());
-        }
-
-        std::string BITstar::vertexQueueSizeProgressProperty() const
-        {
-            return std::to_string(queuePtr_->numVertices());
+            return std::to_string(graphPtr_->numVertices());
         }
 
         std::string BITstar::edgeQueueSizeProgressProperty() const
@@ -1299,5 +1419,5 @@ namespace ompl
             return std::to_string(queuePtr_->numEdgesPopped());
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
-    }  // geometric
-}  // ompl
+    }  // namespace geometric
+}  // namespace ompl
