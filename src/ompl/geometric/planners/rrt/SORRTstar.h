@@ -49,7 +49,14 @@ namespace ompl
             Run \ref gRRTstar "RRT*" as SORRT* using an ordered informed search strategy that considers states in the
            subproblem that could provide a better solution in order of their potential solution cost.
             A sorted version \ref gInformedRRTstar "Informed RRT*".
-            To be published along with an extended version of \ref gBITstar "BIT*".
+
+            @par Associated publication:
+
+            J. D. Gammell, T. D. Barfoot, S. S. Srinivasa,  "Batch Informed Trees (BIT*): Informed asymptotically optimal
+            anytime search." The International Journal of Robotics Research (IJRR), 39(5): 543-567, Apr. 2020.
+            DOI: <a href="https://doi.org/10.1177/0278364919890396">10.1177/0278364919890396</a>.
+            arXiv: <a href="https://arxiv.org/pdf/1707.01888">1707.01888 [cs.RO]</a>.
+            <a href="https://www.youtube.com/watch?v=MRzSfLpNBmA">Illustration video</a>.
         */
 
         /** \brief SORRT* */

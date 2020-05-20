@@ -16,7 +16,7 @@ A breakdown of all contributions by commits can be found on GitHub for the [OMPL
 - [Neil Dantam](http://www.neil.dantam.name), Rice University (now at Colorado School of Mines)
 - [Andrew Dobson](http://www.pracsyslab.org/dobson), Kostas Bekris' [Physics-aware Research for Autonomous Computational SYStems group](http://www.pracsyslab.org), Rutgers University
 - Elizabeth Fudge, Rice University
-- [Jonathan Gammell](http://mrg.robots.ox.ac.uk/mrg_people/jon-gammell/), Tim Barfoot's [Autonomous Space Robotics Lab](http://asrl.utias.utoronto.ca), University of Toronto
+- [Jonathan Gammell](https://robotic-esp.com/gammell/), Tim Barfoot's [Autonomous Space Robotics Lab](http://asrl.utias.utoronto.ca), University of Toronto
 - Bryant Gipson, Rice University (now at Google)
 - [Javier V Gomez](http://jvgomez.github.io), Universidad Carlos III de Madrid (now at Magic Leap)
 - Florian Hauer, Georgia Tech
