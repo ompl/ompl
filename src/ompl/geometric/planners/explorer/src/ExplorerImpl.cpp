@@ -58,7 +58,7 @@ ExplorerImpl::ExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *paren
   pathObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
 
   std::static_pointer_cast<base::MultiOptimizationObjective>(pathObj_)->addObjective(lengthObj, 0.5);
-  std::static_pointer_cast<base::MultiOptimizationObjective>(pathObj_)->addObjective(clearObj, 0.5);
+  // std::static_pointer_cast<base::MultiOptimizationObjective>(pathObj_)->addObjective(clearObj, 0.5);
 }
 
 ExplorerImpl::~ExplorerImpl()

@@ -125,7 +125,7 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
 
     pathRefinementObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
 
-    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 0.5);
+    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 1.0);
     std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(clearObj, 1.0);
 
     if(getFiberDimension() > 0)
@@ -698,13 +698,19 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
               
               if(optimize)
               {
-                  // std::cout << "Optimize... ";
-                  // ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 
-                  //     pathRefinementObj_);
-                  // geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
-                  // shortcutter.simplifyMax(gpath);
-                  // std::vector<base::State*> gstates = gpath.getStates();
-                  // std::cout << "Done" << std::endl;
+                  std::cout << "Optimize... ";
+                  ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 
+                      pathRefinementObj_);
+                  geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
+                  // bool valid = shortcutter.simplifyMax(gpath);
+                  bool valid = shortcutter.reduceVertices(gpath);
+                  if(!valid)
+                  {
+                      //reset solutionPath
+                      std::cout << "Reset" << std::endl;
+                      solutionPath_ = getPath(vStart_, vGoal_);
+                  }
+                  std::cout << "Done" << std::endl;
               }
           }
         }
@@ -879,7 +885,7 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(
         {
           geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
           std::vector<base::State*> gstates = gpath.getStates();
-          std::cout << "Adding solution path with " << gstates.size() << "states." << std::endl;
+          // std::cout << "Adding solution path with " << gstates.size() << "states." << std::endl;
 
           base::PlannerDataVertexAnnotated *pLast = &pstart;
           for(uint k = 1; k < gstates.size()-1; k++)

@@ -691,7 +691,7 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSection(
 }
 
 const unsigned int PATH_SECTION_TREE_MAX_DEPTH = 3;
-const unsigned int PATH_SECTION_TREE_MAX_BRANCHING = 10;
+const unsigned int PATH_SECTION_TREE_MAX_BRANCHING = 20;
 
 bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
     Configuration* const xStart,

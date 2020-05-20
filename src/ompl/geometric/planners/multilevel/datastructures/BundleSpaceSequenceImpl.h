@@ -196,7 +196,7 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
 
         if (!foundKLevelSolution_)
         {
-            OMPL_DEBUG("Planner failed finding solution on BundleSpace level %d", k);
+            OMPL_DEBUG("-- Planner failed finding solution on BundleSpace level %d", k);
             return ompl::base::PlannerStatus::TIMEOUT;
         }
     }
@@ -313,4 +313,6 @@ void ompl::geometric::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planner
         }
         Nvertices = data.numVertices();
     }
+    OMPL_DEBUG("Graph has %d/%d vertices/edges", 
+        data.numVertices(), data.numEdges());
 }
