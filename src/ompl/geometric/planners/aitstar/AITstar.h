@@ -109,17 +109,29 @@ namespace ompl
             /** \brief Set the batch size. */
             void setBatchSize(std::size_t batchSize);
 
+            /** \brief Get the batch size. */
+            std::size_t getBatchSize() const;
+
             /** \brief Set the rewire factor of the RGG graph. */
             void setRewireFactor(double rewireFactor);
 
+            /** \brief Get the rewire factor of the RGG graph. */
+            double getRewireFactor() const;
+
             /** \brief Set whether to track approximate vertices. */
             void trackApproximateSolutions(bool track);
+
+            /** \brief Set whether to track approximate vertices. */
+            bool areApproximateSolutionsTracked() const;
 
             /** \brief Updates the best approximate goal vertex. */
             void updateBestApproximateGoalVertex();
 
             /** \brief Set whether pruning is enabled or not. */
             void enablePruning(bool prune);
+
+            /** \brief Set whether pruning is enabled or not. */
+            bool isPruningEnabled() const;
 
             /** \brief Enable LPA* repair of backward search. */
             void setRepairBackwardSearch(bool setRepairBackwardSearch);
@@ -272,6 +284,9 @@ namespace ompl
 
             /** \brief Syntactic helper to get at the motion validator of the planner base class. */
             ompl::base::MotionValidatorPtr motionValidator_;
+
+            /** \brief The number of edge collision checks performed. */
+            std::size_t numEdgeCollisionChecks_{0u};
         };
     }  // namespace geometric
 }  // namespace ompl

@@ -87,6 +87,11 @@ namespace ompl
                 rewireFactor_ = rewireFactor;
             }
 
+            double ImplicitGraph::getRewireFactor() const
+            {
+                return rewireFactor_;
+            }
+
             void ImplicitGraph::registerStartState(const ompl::base::State *const startState)
             {
                 // Create a vertex corresponding to this state.
@@ -320,6 +325,9 @@ namespace ompl
                     {
                         // Sample the associated state uniformly within the informed set.
                         sampler_->sampleUniform(newVertices.back()->getState(), *solutionCost_.lock());
+
+                        // Count how many states we've checked.
+                        ++numStateCollisionChecks_;
                     } while (!spaceInformation_->getStateValidityChecker()->isValid(newVertices.back()->getState()));
                 }
 
@@ -354,6 +362,7 @@ namespace ompl
                 }
                 else
                 {
+                    ++numNearestNeighborsCalls_;
                     std::vector<std::shared_ptr<Vertex>> neighbors{};
                     vertices_.nearestR(vertex, radius_, neighbors);
                     vertex->cacheNeighbors(neighbors);
@@ -459,6 +468,16 @@ namespace ompl
                 }
 
                 // Assert that the forward and reverse queue are empty?
+            }
+
+            std::size_t ImplicitGraph::getNumberOfStateCollisionChecks() const
+            {
+                return numStateCollisionChecks_;
+            }
+
+            std::size_t ImplicitGraph::getNumberOfNearestNeighborCalls() const
+            {
+                return numNearestNeighborsCalls_;
             }
 
             double ImplicitGraph::computeConnectionRadius(std::size_t numSamples) const

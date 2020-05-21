@@ -77,6 +77,9 @@ namespace ompl
                 /** \brief Set the reqire factor of the RGG. */
                 void setRewireFactor(double rewireFactor);
 
+                /** \brief Get the reqire factor of the RGG. */
+                double getRewireFactor() const;
+
                 /** \brief Sets whether to track approximate solutions or not. */
                 void setTrackApproximateSolution(bool track);
 
@@ -126,6 +129,12 @@ namespace ompl
 
                 /** \brief Prune all samples that can not contribute to a solution better than the current one. */
                 void prune();
+
+                /** \brief Get the number of state collision checks. */
+                std::size_t getNumberOfStateCollisionChecks() const;
+
+                /** \brief Get the number of nearest neighbor calls. */
+                std::size_t getNumberOfNearestNeighborCalls() const;
 
             private:
                 /** \brief Computes the number of samples in the informed set. */
@@ -191,6 +200,12 @@ namespace ompl
                  * add start states after we've pruned some goal states, we might want to add these pruned goal states
                  * again. */
                 std::vector<std::shared_ptr<Vertex>> prunedGoalVertices_;
+
+                /** \brief The number of state collision checks. */
+                mutable std::size_t numStateCollisionChecks_{0u};
+
+                /** \brief The number of state collision checks. */
+                mutable std::size_t numNearestNeighborsCalls_{0u};
             };
 
         }  // namespace aitstar

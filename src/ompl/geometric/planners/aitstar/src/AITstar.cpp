@@ -57,6 +57,31 @@ namespace ompl
           , backwardSearchId_(std::make_shared<std::size_t>(1u))
           , solutionCost_()
         {
+            // Specify AIT*'s planner specs.
+            specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+            specs_.multithreaded = false;
+            specs_.approximateSolutions = trackApproximateSolutions_;  // Must be enabled.
+            specs_.optimizingPaths = true;
+            specs_.directed = true;
+            specs_.provingSolutionNonExistence = false;
+            specs_.canReportIntermediateSolutions = true;
+
+            // Register the setting callbacks.
+            declareParam<double>("rewire_factor", this, &AITstar::setRewireFactor, &AITstar::getRewireFactor,
+                                 "1.0:0.01:3.0");
+            declareParam<std::size_t>("samples_per_batch", this, &AITstar::setBatchSize, &AITstar::getBatchSize);
+            declareParam<bool>("use_graph_pruning", this, &AITstar::enablePruning, &AITstar::isPruningEnabled);
+            declareParam<bool>("find_approximate_solutions", this, &AITstar::trackApproximateSolutions,
+                               &AITstar::areApproximateSolutionsTracked);
+
+            // Register the progress properties.
+            addPlannerProgressProperty("best cost DOUBLE", [this]() { return std::to_string(solutionCost_->value()); });
+            addPlannerProgressProperty("state collision checks INTEGER",
+                                       [this]() { return std::to_string(graph_.getNumberOfStateCollisionChecks()); });
+            addPlannerProgressProperty("edge collision checks INTEGER",
+                                       [this]() { return std::to_string(numEdgeCollisionChecks_); });
+            addPlannerProgressProperty("nearest neighbour calls INTEGER",
+                                       [this]() { return std::to_string(graph_.getNumberOfNearestNeighborCalls()); });
         }
 
         void AITstar::setup()
@@ -277,9 +302,19 @@ namespace ompl
             batchSize_ = batchSize;
         }
 
+        std::size_t AITstar::getBatchSize() const
+        {
+            return batchSize_;
+        }
+
         void AITstar::setRewireFactor(double rewireFactor)
         {
             graph_.setRewireFactor(rewireFactor);
+        }
+
+        double AITstar::getRewireFactor() const
+        {
+            return graph_.getRewireFactor();
         }
 
         void AITstar::trackApproximateSolutions(bool track)
@@ -291,9 +326,19 @@ namespace ompl
             }
         }
 
+        bool AITstar::areApproximateSolutionsTracked() const
+        {
+            return trackApproximateSolutions_;
+        }
+
         void AITstar::enablePruning(bool prune)
         {
             isPruningEnabled_ = prune;
+        }
+
+        bool AITstar::isPruningEnabled() const
+        {
+            return isPruningEnabled_;
         }
 
         void AITstar::setRepairBackwardSearch(bool repairBackwardSearch)
@@ -637,7 +682,11 @@ namespace ompl
                      motionValidator_->checkMotion(parent->getState(), child->getState()))
             {
                 // Remember that this is a good edge.
-                parent->whitelistAsChild(child);
+                if (!parent->isWhitelistedAsChild(child))
+                {
+                    parent->whitelistAsChild(child);
+                    numEdgeCollisionChecks_++;
+                }
 
                 // Compute the edge cost.
                 auto edgeCost = objective_->motionCost(parent->getState(), child->getState());
