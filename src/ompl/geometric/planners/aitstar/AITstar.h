@@ -49,6 +49,38 @@ namespace ompl
 {
     namespace geometric
     {
+        /**
+        @anchor gABITstar
+
+        \ref gAITstar "AIT*" (Adaptively Informed Trees) is an almost-surely asymptotically optimal path planner.
+        It aims to find an initial solution quickly and asymptotically converge to the globally optimal solution.
+
+        AIT* views the planning problem as the two subproblems of approximation and search, and approximates the free
+        state space with an increasingly dense, edge-implicit random geometric graph (RGG), similar to BIT* and ABIT*.
+
+        AIT* uses an asymmetric bidirectional search that simultaneously estimates and exploits an accurate, adaptive
+        heuristic that is specific to each problem instance. The reverse search (goal to start) does not perform
+        collision detection on the edges and estimates cost-to-go values for all states in the RGG that are processed
+        with the forward search (start to goal) which does perform collision detection. Because AIT* uses LPA* as the
+        reverse search algorithm, the heuristic is admissible in the context of the current RGG and can efficiently be
+        updated when the forward search detects a collision on an edge that is in the reverse search tree (as this
+        indicates a flawed heuristic).
+
+        This implementation of AIT* can solve problems with multiple start and goal states and supports adding start and
+        goal states while the planner is running.
+
+        @par Associated publication:
+
+        M. P. Strub, J. D. Gammell. “Adaptively Informed Trees (AIT*): Fast Asymptotically Optimal Path Planning through
+        Adaptive Heuristics” in Proceedings of the IEEE international conference on robotics and automation (ICRA),
+        Paris, France, 31 May – 4 Jun. 2020.
+
+        DOI: <a href="https://arxiv.org/abs/2002.06599">arXiv:2002.06589</a>
+        Video 1: <a href="https://youtu.be/twM723QM9TQ">ICRA submission video</a>.
+        Video 2: <a href="https://youtu.be/1h7ugF9F6VM">ICRA presentation video</a>
+        */
+
+        /** \brief Adaptively Informed Trees (AIT*) */
         class AITstar : public ompl::base::Planner
         {
         public:
@@ -115,7 +147,7 @@ namespace ompl
             void backwardSearchUpdateVertex(const std::shared_ptr<aitstar::Vertex> &vertex);
 
             /** \brief Inserts or updates a vertex in the backward queue. */
-            void insertOrUpdateInForwardQueue(const aitstar::Edge& edge);
+            void insertOrUpdateInForwardQueue(const aitstar::Edge &edge);
 
             /** \brief Inserts or updates a vertex in the backward queue. */
             void insertOrUpdateInBackwardQueue(const std::shared_ptr<aitstar::Vertex> &vertex);
@@ -144,10 +176,11 @@ namespace ompl
             std::vector<aitstar::Edge> getOutgoingEdges(const std::shared_ptr<aitstar::Vertex> &vertex) const;
 
             /** \brief Check whether all vertices of a set of edges have been processed by the reverse queue. */
-            bool haveAllVerticesBeenProcessed(const std::vector<aitstar::Edge>& edges) const;
+            bool haveAllVerticesBeenProcessed(const std::vector<aitstar::Edge> &edges) const;
 
-            /** \brief Check whether the parent and child vertices of an edge have been processed by the reverse queue. */
-            bool haveAllVerticesBeenProcessed(const aitstar::Edge& edges) const;
+            /** \brief Check whether the parent and child vertices of an edge have been processed by the reverse queue.
+             */
+            bool haveAllVerticesBeenProcessed(const aitstar::Edge &edges) const;
 
             /** \brief Checks whether the cost to come of a goal vertex has been updated and updates the solution if so.
              */

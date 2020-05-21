@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2014, University of Oxford
+ *  Copyright (c) 2019, University of Oxford
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,10 @@
  *********************************************************************/
 
 // Authors: Marlin Strub
+
 #include <algorithm>
 #include <cmath>
 #include <string>
-
-#include <iostream>
 
 #include <boost/range/adaptor/reversed.hpp>
 
@@ -157,17 +156,17 @@ namespace ompl
             Planner::checkValidity();
             if (!Planner::setup_)
             {
-                OMPL_WARN("AIT*: Failed to setup and thus solve can not do anything meaningful.");
+                OMPL_WARN("%s: Failed to setup and thus solve can not do anything meaningful.", name_.c_str());
                 return ompl::base::PlannerStatus::StatusType::ABORT;
             }
 
             if (!graph_.hasAStartState())
             {
-                OMPL_WARN("AIT*: No solution can be found as no start states are available");
+                OMPL_WARN("%s: No solution can be found as no start states are available", name_.c_str());
                 return ompl::base::PlannerStatus::StatusType::INVALID_START;
             }
 
-            // If the graph currently does not have a goal state, we must wait until we get one.
+            // If the graph currently does not have a goal state, we wait until we get one.
             if (!graph_.hasAGoalState())
             {
                 graph_.updateStartAndGoalStates(terminationCondition, &pis_);
@@ -176,11 +175,11 @@ namespace ompl
             // If the graph still doesn't have a goal after waiting there's nothing to solve.
             if (!graph_.hasAGoalState())
             {
-                OMPL_WARN("AIT*: No solution can be found as no start states are available");
+                OMPL_WARN("%s: No solution can be found as no start states are available", name_.c_str());
                 return ompl::base::PlannerStatus::StatusType::INVALID_GOAL;
             }
 
-            OMPL_INFORM("%s: Searching for a solution to the given planning problem.", Planner::getName().c_str());
+            OMPL_INFORM("%s: Searching for a solution to the given planning problem.", name_.c_str());
 
             // If this is the first time solve is called, populate the backward queue.
             if (numIterations_ == 0u)
@@ -295,15 +294,22 @@ namespace ompl
 
         void AITstar::rebuildForwardQueue()
         {
+            // Get all edges from the queue.
             std::vector<aitstar::Edge> edges;
             forwardQueue_->getContent(edges);
+
+            // Rebuilding the queue invalidates the incoming and outgoing lookup.
             for (const auto &edge : edges)
             {
                 edge.getChild()->resetForwardQueueIncomingLookup();
                 edge.getParent()->resetForwardQueueOutgoingLookup();
             }
+
+            // Clear the queue.
             forwardQueue_->clear();
 
+            // Insert all edges into the queue if they connect vertices that have been processed, otherwise store them
+            // in the cache of edges that are to be inserted.
             if (haveAllVerticesBeenProcessed(edges))
             {
                 for (auto &edge : edges)
@@ -321,8 +327,13 @@ namespace ompl
 
         void AITstar::rebuildBackwardQueue()
         {
+            // Rebuilding the backward queue invalidates the backward queue pointers.
             std::vector<KeyVertexPair> content;
             backwardQueue_->getContent(content);
+            for (auto &element : content)
+            {
+                element.second->resetBackwardQueuePointer();
+            }
             backwardQueue_->clear();
 
             for (auto &vertex : content)
@@ -396,15 +407,21 @@ namespace ompl
             // Keep track of the number of iterations.
             ++numIterations_;
 
-            // If there are vertices in the backward search queue, process one of them.
+            // If the algorithm is in a state that requires performing a backward search iteration, try to perform one.
             if (performBackwardSearchIteration_)
             {
+                // If the backward queue is not empty, perform a backward search iteration.
                 if (!backwardQueue_->empty())
                 {
                     performBackwardSearchIteration();
                 }
                 else
                 {
+                    // If the backward queue is empty, check if there are forward edges to be inserted.
+                    // Only insert forward edges that connect vertices that have been processed with the reverse search.
+                    // If the backward queue is empty and a vertex has not been processed with the backward queue, it
+                    // means that it's not in the same connected component of the RGG as the goal. We can not reach the
+                    // goal from this vertex and therefore this edge can be disregarded.
                     for (const auto &edge : edgesToBeInserted_)
                     {
                         if (haveAllVerticesBeenProcessed(edge))
@@ -415,6 +432,7 @@ namespace ompl
                     }
                     edgesToBeInserted_.clear();
                     performBackwardSearchIteration_ = false;
+                    forwardQueueMustBeRebuilt_ = true;
                 }
             }
             else
@@ -440,6 +458,8 @@ namespace ompl
                             }
                         }
                     }
+                    // If all vertices of the outgoing start edges have been processed, insert the edges into the
+                    // forward queue. If not, remember that they are to be inserted.
                     if (haveAllVerticesBeenProcessed(outgoingStartEdges))
                     {
                         for (const auto &edge : outgoingStartEdges)
@@ -456,14 +476,17 @@ namespace ompl
                 }
                 else if (forwardQueueMustBeRebuilt_)
                 {
+                    // Rebuild the forwared queue if necessary.
                     rebuildForwardQueue();
                     forwardQueueMustBeRebuilt_ = false;
                 }
                 else if (!forwardQueue_->empty())
                 {
+                    // If the forward queue is not empty, perform a forward search iteration.
                     performForwardSearchIteration();
                 }
-                else  // If both queues are empty, add new samples.
+                else  // We should not perform a reverse search iteration and the forward queue is empty. Add more
+                      // samples.
                 {
                     // Clear the backward queue.
                     std::vector<std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>>>
@@ -487,6 +510,8 @@ namespace ompl
                         element.getParent()->resetForwardQueueOutgoingLookup();
                     }
                     forwardQueue_->clear();
+
+                    // This constitutes a new forward search.
                     ++(*forwardSearchId_);
 
                     // Clear the cache of edges to be inserted.
@@ -505,7 +530,7 @@ namespace ompl
                     }
 
                     // Add new samples to the graph.
-                    auto newVertices = graph_.addSamples(batchSize_);
+                    graph_.addSamples(batchSize_);
 
                     // Add the goals to the backward queue.
                     for (const auto &goal : graph_.getGoalVertices())
@@ -515,10 +540,10 @@ namespace ompl
                         goal->setCostToComeFromGoal(objective_->identityCost());
                     }
 
-                    // This is a new batch, so the searches haven't been started.
+                    // This is a new batch, so the search hasn't been started.
                     isForwardSearchStartedOnBatch_ = false;
 
-                    // We will start with a backward iteration.
+                    // We have to update the heuristic. Start with a backward iteration.
                     performBackwardSearchIteration_ = true;
                 }
             }
@@ -526,22 +551,29 @@ namespace ompl
 
         void AITstar::performForwardSearchIteration()
         {
+            // We should never perform a forward search iteration while there are still edges to be inserted.
             assert(edgesToBeInserted_.empty());
+
             // Get the most promising edge.
             auto &edge = forwardQueue_->top()->data;
             auto parent = edge.getParent();
             auto child = edge.getChild();
+
+            // Make sure the edge is sane
             assert(child->hasBackwardParent() || graph_.isGoal(child));
             assert(parent->hasBackwardParent() || graph_.isGoal(parent));
+
+            // Remove the edge from the incoming and outgoing lookups.
             child->removeFromForwardQueueIncomingLookup(forwardQueue_->top());
             parent->removeFromForwardQueueOutgoingLookup(forwardQueue_->top());
+
+            // Remove the edge from the queue.
             forwardQueue_->pop();
 
             // If this is edge can not possibly improve our solution, the search is done.
             auto edgeCost = objective_->motionCostHeuristic(parent->getState(), child->getState());
             auto parentCostToGoToGoal = objective_->combineCosts(edgeCost, child->getCostToGoToGoal());
             auto pathThroughEdgeCost = objective_->combineCosts(parent->getCostToComeFromStart(), parentCostToGoToGoal);
-
             if (!objective_->isCostBetterThan(pathThroughEdgeCost, *solutionCost_))
             {
                 if (objective_->isFinite(pathThroughEdgeCost) ||
@@ -586,7 +618,7 @@ namespace ompl
             {
                 // If the edge cannot improve the cost to come to the child, we're done processing it.
                 return;
-            }
+            }  // The edge can possibly improve the solution and the path to the child. Let's check it for collision.
             else if (parent->isWhitelistedAsChild(child) ||
                      motionValidator_->checkMotion(parent->getState(), child->getState()))
             {
@@ -685,6 +717,7 @@ namespace ompl
         void AITstar::performBackwardSearchIteration()
         {
             assert(!backwardQueue_->empty());
+            forwardQueueMustBeRebuilt_ = true;
 
             // Get the most promising vertex.
             auto vertex = backwardQueue_->top()->data.second;
@@ -996,6 +1029,8 @@ namespace ompl
 
             if (it != lookup.end())
             {
+                // We used the incoming lookup of the child. Assert that it is already in the outgoing lookup of the
+                // parent.
                 assert(std::find_if(edge.getParent()->getForwardQueueOutgoingLookup().begin(),
                                     edge.getParent()->getForwardQueueOutgoingLookup().end(),
                                     [&edge](const auto element) {
