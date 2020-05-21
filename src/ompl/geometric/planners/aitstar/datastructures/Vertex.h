@@ -180,8 +180,8 @@ namespace ompl
                 /** \brief Returns the nearest neighbors, throws if not up to date. */
                 const std::vector<std::shared_ptr<Vertex>> &getNeighbors() const;
 
-                /** \brief Registers the expansion of this vertex during the current forward search. */
-                void registerExpansionDuringForwardSearch();
+                /** \brief Registers that a child has been added to this vertex during the current forward search. */
+                void registerAdditionOfChildDuringForwardSearch();
 
                 /** \brief Registers the expansion of this vertex during the current backward search. */
                 void registerExpansionDuringBackwardSearch();
@@ -191,7 +191,7 @@ namespace ompl
                 void registerInsertionIntoQueueDuringBackwardSearch();
 
                 /** \brief Returns whether the vertex has been expanded during the current forward search. */
-                bool hasBeenExpandedDuringCurrentForwardSearch() const;
+                bool hasHadAChildAddedDuringCurrentForwardSearch() const;
 
                 /** \brief Returns whether the vertex has been expanded during the current backward search. */
                 bool hasBeenExpandedDuringCurrentBackwardSearch() const;
@@ -326,8 +326,8 @@ namespace ompl
                 /** \brief The batch id for which the backward search cost to come is valid. */
                 mutable std::size_t backwardSearchBatchId_{0u};
 
-                /** \brief The forward search id this vertex has last been expanded on. */
-                mutable std::size_t expandedForwardSearchId_{0u};
+                /** \brief The forward search id a child has last been added to this vertex. */
+                mutable std::size_t childAddedForwardSearchId_{0u};
 
                 /** \brief The backward search id this vertex has last been expanded on. */
                 mutable std::size_t expandedBackwardSearchId_{0u};

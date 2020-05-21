@@ -443,9 +443,9 @@ namespace ompl
                 return children;
             }
 
-            void Vertex::registerExpansionDuringForwardSearch()
+            void Vertex::registerAdditionOfChildDuringForwardSearch()
             {
-                expandedForwardSearchId_ = *forwardSearchId_.lock();
+                childAddedForwardSearchId_ = *forwardSearchId_.lock();
             }
 
             void Vertex::registerExpansionDuringBackwardSearch()
@@ -461,10 +461,10 @@ namespace ompl
                 insertedIntoQueueBackwardSearchId_ = *backwardSearchId_.lock();
             }
 
-            bool Vertex::hasBeenExpandedDuringCurrentForwardSearch() const
+            bool Vertex::hasHadAChildAddedDuringCurrentForwardSearch() const
             {
                 assert(!forwardSearchId_.expired());
-                return expandedForwardSearchId_ == *forwardSearchId_.lock();
+                return childAddedForwardSearchId_ == *forwardSearchId_.lock();
             }
 
             bool Vertex::hasBeenExpandedDuringCurrentBackwardSearch() const

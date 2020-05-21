@@ -560,28 +560,25 @@ namespace ompl
                 {
                     performBackwardSearchIteration_ = true;
                 }
-            }
+            }  // This edge can improve the solution. Check if it's already in the reverse search tree.
             else if (child->hasForwardParent() && child->getForwardParent()->getId() == parent->getId())
             {
                 // This is a freebie, just insert the outgoing edges of the child.
-                if (!child->hasBeenExpandedDuringCurrentForwardSearch())
+                auto edges = getOutgoingEdges(child);
+                if (haveAllVerticesBeenProcessed(edges))
                 {
-                    auto edges = getOutgoingEdges(child);
-                    if (haveAllVerticesBeenProcessed(edges))
+                    for (const auto &edge : edges)
                     {
-                        for (const auto &edge : edges)
-                        {
-                            insertOrUpdateInForwardQueue(edge);
-                        }
-                    }
-                    else
-                    {
-                        edgesToBeInserted_ = edges;
-                        performBackwardSearchIteration_ = true;
-                        return;
+                        insertOrUpdateInForwardQueue(edge);
                     }
                 }
-            }
+                else
+                {
+                    edgesToBeInserted_ = edges;
+                    performBackwardSearchIteration_ = true;
+                    return;
+                }
+            }  // This edge can improve the solution and is not already in the reverse search tree.
             else if (objective_->isCostBetterThan(child->getCostToComeFromStart(),
                                                   objective_->combineCosts(parent->getCostToComeFromStart(),
                                                                            objective_->motionCostHeuristic(
@@ -603,7 +600,14 @@ namespace ompl
                 if (objective_->isCostBetterThan(objective_->combineCosts(parent->getCostToComeFromStart(), edgeCost),
                                                  child->getCostToComeFromStart()))
                 {
-                    // It can, so we rewire the child.
+                    // If the child has already been expanded during the current forward search, something's fishy.
+                    assert(!child->hasHadAChildAddedDuringCurrentForwardSearch());
+
+                    // Register the expansion of the parent. Here, expansion means adding a child to a vertex in the
+                    // tree.
+                    parent->registerAdditionOfChildDuringForwardSearch();
+
+                    // Rewire the child.
                     child->setForwardParent(parent, edgeCost);
 
                     // Add it to the children of the parent.
@@ -615,23 +619,20 @@ namespace ompl
                     // Check if the solution can benefit from this.
                     updateSolution();
 
-                    // Insert the child's outgoing edges into the queue, if it hasn't been expanded yet.
-                    if (!child->hasBeenExpandedDuringCurrentForwardSearch())
+                    // Insert the child's outgoing edges into the queue.
+                    auto edges = getOutgoingEdges(child);
+                    if (haveAllVerticesBeenProcessed(edges))
                     {
-                        auto edges = getOutgoingEdges(child);
-                        if (haveAllVerticesBeenProcessed(edges))
+                        for (const auto &edge : edges)
                         {
-                            for (const auto &edge : edges)
-                            {
-                                insertOrUpdateInForwardQueue(edge);
-                            }
+                            insertOrUpdateInForwardQueue(edge);
                         }
-                        else
-                        {
-                            edgesToBeInserted_ = edges;
-                            performBackwardSearchIteration_ = true;
-                            return;
-                        }
+                    }
+                    else
+                    {
+                        edgesToBeInserted_ = edges;
+                        performBackwardSearchIteration_ = true;
+                        return;
                     }
                 }
             }
@@ -1051,9 +1052,6 @@ namespace ompl
         {
             // Prepare the return variable.
             std::vector<aitstar::Edge> outgoingEdges;
-
-            // Register that this vertex is expanded on the current search.
-            vertex->registerExpansionDuringForwardSearch();
 
             // Insert the edges to the current children.
             for (const auto &child : vertex->getForwardChildren())
