@@ -50,7 +50,7 @@ namespace ompl
     namespace geometric
     {
         /**
-        @anchor gABITstar
+        @anchor gAITstar
 
         \ref gAITstar "AIT*" (Adaptively Informed Trees) is an almost-surely asymptotically optimal path planner.
         It aims to find an initial solution quickly and asymptotically converge to the globally optimal solution.
@@ -93,6 +93,9 @@ namespace ompl
             /** \brief Additional setup that can only be done once a problem definition is set. */
             void setup() override;
 
+            /** \brief Clears the algorithm's internal state. */
+            void clear() override;
+
             /** \brief Solves a motion planning problem. */
             ompl::base::PlannerStatus
             solve(const ompl::base::PlannerTerminationCondition &terminationCondition) override;
@@ -108,6 +111,12 @@ namespace ompl
 
             /** \brief Set the rewire factor of the RGG graph. */
             void setRewireFactor(double rewireFactor);
+
+            /** \brief Set whether to track approximate vertices. */
+            void trackApproximateSolutions(bool track);
+
+            /** \brief Updates the best approximate goal vertex. */
+            void updateBestApproximateGoalVertex();
 
             /** \brief Set whether pruning is enabled or not. */
             void enablePruning(bool prune);
@@ -192,6 +201,9 @@ namespace ompl
             /** \brief Returns the best cost-to-go-heuristic to any goal in the graph. */
             ompl::base::Cost computeCostToGoToGoalHeuristic(const std::shared_ptr<aitstar::Vertex> &vertex) const;
 
+            /** \brief Returns the best cost to any goal in the graph. */
+            ompl::base::Cost computeCostToGoToGoal(const std::shared_ptr<aitstar::Vertex> &vertex) const;
+
             /** \brief Returns the best cost to come form the goal of any start. */
             ompl::base::Cost computeBestCostToComeFromGoalOfAnyStart() const;
 
@@ -222,6 +234,9 @@ namespace ompl
             /** \brief The cost of the incumbent solution. */
             std::shared_ptr<ompl::base::Cost> solutionCost_;
 
+            /** \brief The vertex that is closest to the goal (in cost space). */
+            ompl::base::Cost approximateSolutionCost_{};
+
             /** \brief The edges to be inserted in the forward queue. */
             std::vector<aitstar::Edge> edgesToBeInserted_{};
 
@@ -242,6 +257,9 @@ namespace ompl
 
             /** \brief The option that specifies whether to repair the backward search when detecting a collision. */
             bool repairBackwardSearch_{true};
+
+            /** \brief The option that specifies whether to track approximate solutions. */
+            bool trackApproximateSolutions_{false};
 
             /** \brief The option that specifies whether to prune the graph of useless samples. */
             bool isPruningEnabled_{true};

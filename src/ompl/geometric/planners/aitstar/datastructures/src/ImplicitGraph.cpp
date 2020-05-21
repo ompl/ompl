@@ -47,11 +47,6 @@ namespace ompl
         {
             ImplicitGraph::ImplicitGraph() : batchId_(std::make_shared<std::size_t>(1u))
             {
-                // Set the distance function to the space information distance function.
-                vertices_.setDistanceFunction(
-                    [this](const std::shared_ptr<Vertex> &a, const std::shared_ptr<Vertex> &b) {
-                        return spaceInformation_->distance(a->getState(), b->getState());
-                    });
             }
 
             void ImplicitGraph::setup(const ompl::base::SpaceInformationPtr &spaceInformation,
@@ -59,17 +54,32 @@ namespace ompl
                                       const std::shared_ptr<ompl::base::Cost> &solutionCost,
                                       const std::shared_ptr<std::size_t> &forwardSearchId,
                                       const std::shared_ptr<std::size_t> &backwardSearchId,
-                                      ompl::base::PlannerInputStates* inputStates)
+                                      ompl::base::PlannerInputStates *inputStates)
             {
+                vertices_.setDistanceFunction(
+                    [this](const std::shared_ptr<Vertex> &a, const std::shared_ptr<Vertex> &b) {
+                        return spaceInformation_->distance(a->getState(), b->getState());
+                    });
                 spaceInformation_ = spaceInformation;
                 problemDefinition_ = problemDefinition;
                 objective_ = problemDefinition->getOptimizationObjective();
                 solutionCost_ = solutionCost;
                 forwardSearchId_ = forwardSearchId;
                 backwardSearchId_ = backwardSearchId;
-                sampler_ =
-                    objective_->allocInformedStateSampler(problemDefinition, std::numeric_limits<unsigned int>::max());
                 updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), inputStates);
+            }
+
+            void ImplicitGraph::clear()
+            {
+                *batchId_ = 1u;
+                *forwardSearchId_ = 1u;
+                *backwardSearchId_ = 1u;
+                radius_ = std::numeric_limits<double>::infinity();
+                vertices_.clear();
+                startVertices_.clear();
+                goalVertices_.clear();
+                prunedStartVertices_.clear();
+                prunedGoalVertices_.clear();
             }
 
             void ImplicitGraph::setRewireFactor(double rewireFactor)

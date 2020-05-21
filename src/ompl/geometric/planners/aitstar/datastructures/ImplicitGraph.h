@@ -71,8 +71,14 @@ namespace ompl
                            const std::shared_ptr<std::size_t> &backwardSearchId,
                            ompl::base::PlannerInputStates *inputStates);
 
+                /** \brief Resets the graph to its construction state, without resetting options. */
+                void clear();
+
                 /** \brief Set the reqire factor of the RGG. */
                 void setRewireFactor(double rewireFactor);
+
+                /** \brief Sets whether to track approximate solutions or not. */
+                void setTrackApproximateSolution(bool track);
 
                 /** \brief Adds a batch of samples. */
                 std::vector<std::shared_ptr<Vertex>> addSamples(std::size_t numNewSamples);
@@ -151,6 +157,12 @@ namespace ompl
 
                 /** \brief The rewire factor of the RGG. */
                 double rewireFactor_{1.0};
+
+                /** \brief Whether to track approximate solutions. */
+                bool trackApproximateSolution_{false};
+
+                /** \brief The vertex to the goal. */
+                std::shared_ptr<Vertex> bestApproximateGoal_;
 
                 /** \brief The radius that defines the neighborhood of a vertex. */
                 double radius_{std::numeric_limits<double>::infinity()};

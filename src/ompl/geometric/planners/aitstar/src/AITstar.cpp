@@ -67,15 +67,6 @@ namespace ompl
             // Check that a problem definition has been set.
             if (static_cast<bool>(Planner::pdef_))
             {
-                // If we were given a goal, make sure its of appropriate type.
-                if (!(pdef_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION)))
-                {
-                    OMPL_ERROR("AIT* is currently only implemented for goals that can be cast to "
-                               "ompl::base::GOAL_SAMPLEABLE_GOAL_REGION.");
-                    setup_ = false;
-                    return;
-                }
-
                 // Default to path length optimization objective if none has been specified.
                 if (!pdef_->hasOptimizationObjective())
                 {
@@ -85,11 +76,24 @@ namespace ompl
                         std::make_shared<ompl::base::PathLengthOptimizationObjective>(Planner::si_));
                 }
 
+                if (static_cast<bool>(pdef_->getGoal()))
+                {
+                    // If we were given a goal, make sure its of appropriate type.
+                    if (!(pdef_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION)))
+                    {
+                        OMPL_ERROR("AIT* is currently only implemented for goals that can be cast to "
+                                   "ompl::base::GOAL_SAMPLEABLE_GOAL_REGION.");
+                        setup_ = false;
+                        return;
+                    }
+                }
+
                 // Pull the optimization objective through the problem definition.
                 objective_ = pdef_->getOptimizationObjective();
 
                 // Initialize the solution cost to be infinite.
                 solutionCost_ = std::make_shared<ompl::base::Cost>(objective_->infiniteCost());
+                approximateSolutionCost_ = objective_->infiniteCost();
 
                 // Initialize the forward queue.
                 forwardQueue_ = std::make_unique<EdgeQueue>([this](const aitstar::Edge &lhs, const aitstar::Edge &rhs) {
@@ -116,31 +120,6 @@ namespace ompl
 
                 // Setup a graph.
                 graph_.setup(si_, pdef_, solutionCost_, forwardSearchId_, backwardSearchId_, &pis_);
-
-                // Add the start states.
-                while (pis_.haveMoreStartStates())
-                {
-                    // Get the next start state.
-                    const ompl::base::State *startState = pis_.nextStart();
-
-                    // Add it if it's valid.
-                    if (static_cast<bool>(startState))
-                    {
-                        graph_.registerStartState(startState);
-                    }
-                }
-
-                // Add the goal states.
-                while (pis_.haveMoreGoalStates())
-                {
-                    const auto goalState = pis_.nextGoal();
-
-                    // Add it if it's valid.
-                    if (static_cast<bool>(goalState))
-                    {
-                        graph_.registerGoalState(goalState);
-                    }
-                }
             }
             else
             {
@@ -148,6 +127,23 @@ namespace ompl
                 setup_ = false;
                 OMPL_WARN("AIT*: Unable to setup without a problem definition.");
             }
+        }
+
+        void AITstar::clear()
+        {
+            graph_.clear();
+            forwardQueue_->clear();
+            backwardQueue_->clear();
+            *forwardSearchId_ = 1u;
+            *backwardSearchId_ = 1u;
+            *solutionCost_ = objective_->infiniteCost();
+            approximateSolutionCost_ = objective_->infiniteCost();
+            edgesToBeInserted_.clear();
+            numIterations_ = 0u;
+            performBackwardSearchIteration_ = true;
+            isForwardSearchStartedOnBatch_ = false;
+            forwardQueueMustBeRebuilt_ = false;
+            Planner::clear();
         }
 
         ompl::base::PlannerStatus AITstar::solve(const ompl::base::PlannerTerminationCondition &terminationCondition)
@@ -160,16 +156,16 @@ namespace ompl
                 return ompl::base::PlannerStatus::StatusType::ABORT;
             }
 
-            if (!graph_.hasAStartState())
-            {
-                OMPL_WARN("%s: No solution can be found as no start states are available", name_.c_str());
-                return ompl::base::PlannerStatus::StatusType::INVALID_START;
-            }
-
             // If the graph currently does not have a goal state, we wait until we get one.
             if (!graph_.hasAGoalState())
             {
                 graph_.updateStartAndGoalStates(terminationCondition, &pis_);
+            }
+
+            if (!graph_.hasAStartState())
+            {
+                OMPL_WARN("%s: No solution can be found as no start states are available", name_.c_str());
+                return ompl::base::PlannerStatus::StatusType::INVALID_START;
             }
 
             // If the graph still doesn't have a goal after waiting there's nothing to solve.
@@ -202,14 +198,23 @@ namespace ompl
             }
 
             // Iterate to solve the problem.
-            while (!terminationCondition && !(objective_->isFinite(*solutionCost_) && stopOnFindingInitialSolution_))
+            while (!terminationCondition && !objective_->isSatisfied(*solutionCost_) &&
+                   !(objective_->isFinite(*solutionCost_) && stopOnFindingInitialSolution_))
             {
                 iterate();
             }
 
-            if (std::isfinite(solutionCost_->value()))
+            // In any case, update the solution now. (Externally, someone might call pdef_->clearSolutionPaths() between
+            // invokations of solve().)
+            updateSolution();
+
+            if (objective_->isFinite(*solutionCost_))
             {
                 return ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION;
+            }
+            else if (trackApproximateSolutions_ && objective_->isFinite(approximateSolutionCost_))
+            {
+                return ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION;
             }
             else
             {
@@ -275,6 +280,15 @@ namespace ompl
         void AITstar::setRewireFactor(double rewireFactor)
         {
             graph_.setRewireFactor(rewireFactor);
+        }
+
+        void AITstar::trackApproximateSolutions(bool track)
+        {
+            trackApproximateSolutions_ = track;
+            if (!trackApproximateSolutions_)
+            {
+                approximateSolutionCost_ = objective_->infiniteCost();
+            }
         }
 
         void AITstar::enablePruning(bool prune)
@@ -908,8 +922,8 @@ namespace ompl
                         for (const auto &element : forwardQueueIncomingLookup)
                         {
                             edgesToBeInserted_.emplace_back(element->data);
-                            forwardQueue_->remove(element);
                             element->data.getParent()->removeFromForwardQueueOutgoingLookup(element);
+                            forwardQueue_->remove(element);
                         }
                         affectedVertex.lock()->resetForwardQueueIncomingLookup();
 
@@ -917,8 +931,8 @@ namespace ompl
                         for (const auto &element : forwardQueueOutgoingLookup)
                         {
                             edgesToBeInserted_.emplace_back(element->data);
-                            forwardQueue_->remove(element);
                             element->data.getChild()->removeFromForwardQueueIncomingLookup(element);
+                            forwardQueue_->remove(element);
                         }
                         affectedVertex.lock()->resetForwardQueueOutgoingLookup();
                     }
@@ -1161,13 +1175,14 @@ namespace ompl
             // Check if any of the goals have a cost to come less than the current solution cost.
             for (const auto &goal : graph_.getGoalVertices())
             {
-                if (objective_->isCostBetterThan(goal->getCostToComeFromStart(), *solutionCost_))
+                if (objective_->isCostBetterThan(goal->getCostToComeFromStart(), *solutionCost_) ||
+                    (!pdef_->hasExactSolution() && objective_->isFinite(goal->getCostToComeFromStart())))
                 {
                     // Remember the incumbent cost.
                     *solutionCost_ = goal->getCostToComeFromStart();
 
                     // Create a path.
-                    auto path = std::make_shared<ompl::geometric::PathGeometric>(Planner::si_);
+                    auto path = std::make_shared<ompl::geometric::PathGeometric>(si_);
                     auto reversePath = getReversePath(goal);
                     for (const auto &vertex : boost::adaptors::reverse(reversePath))
                     {
@@ -1176,14 +1191,50 @@ namespace ompl
 
                     // Convert the path to a solution.
                     ompl::base::PlannerSolution solution(path);
-                    solution.setPlannerName(Planner::name_);
+                    solution.setPlannerName(name_);
 
                     // Set the optimized flag.
-                    solution.optimized_ = objective_->isSatisfied(*solutionCost_);
+                    solution.setOptimized(objective_, *solutionCost_, objective_->isSatisfied(*solutionCost_));
 
                     // Let the problem definition know that a new solution exists.
-                    Planner::pdef_->addSolutionPath(solution);
+                    pdef_->addSolutionPath(solution);
                 }
+            }
+
+            if (!pdef_->hasExactSolution() && trackApproximateSolutions_)
+            {
+                std::shared_ptr<aitstar::Vertex> bestApproximateGoal;
+                for (const auto &approximateGoal : graph_.getVertices())
+                {
+                    if (approximateGoal->hasForwardParent() || graph_.isStart(approximateGoal))
+                    {
+                        auto costToGoal = computeCostToGoToGoal(approximateGoal);
+                        if (objective_->isCostBetterThan(costToGoal, approximateSolutionCost_))
+                        {
+                            // Remember the incumbent cost.
+                            approximateSolutionCost_ = costToGoal;
+                            bestApproximateGoal = approximateGoal;
+                        }
+                    }
+                }
+
+                // Create a path.
+                auto path = std::make_shared<ompl::geometric::PathGeometric>(Planner::si_);
+                auto reversePath = getReversePath(bestApproximateGoal);
+                for (const auto &vertex : boost::adaptors::reverse(reversePath))
+                {
+                    path->append(vertex->getState());
+                }
+
+                // Convert the path to a solution.
+                ompl::base::PlannerSolution solution(path);
+                solution.setPlannerName(name_);
+
+                // Set the approximate flag.
+                solution.setApproximate(approximateSolutionCost_.value());
+
+                // Let the problem definition know that a new solution exists.
+                Planner::pdef_->addSolutionPath(solution);
             }
         }
 
@@ -1207,6 +1258,18 @@ namespace ompl
             {
                 bestCost = objective_->betterCost(
                     bestCost, objective_->motionCostHeuristic(vertex->getState(), goal->getState()));
+            }
+            return bestCost;
+        }
+
+        ompl::base::Cost AITstar::computeCostToGoToGoal(const std::shared_ptr<aitstar::Vertex> &vertex) const
+        {
+            // We need to loop over all goal vertices and see which is the closest one.
+            ompl::base::Cost bestCost = objective_->infiniteCost();
+            for (const auto &goal : graph_.getGoalVertices())
+            {
+                bestCost =
+                    objective_->betterCost(bestCost, objective_->motionCost(vertex->getState(), goal->getState()));
             }
             return bestCost;
         }
