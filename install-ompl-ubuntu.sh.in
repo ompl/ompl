@@ -11,7 +11,7 @@ install_common_dependencies()
     # needed because we depend on system-installed libraries built with g++ and linked
     # against libstdc++. In case `c++` corresponds to `clang++`, code will not build, even
     # if we would pass the flag `-stdlib=libstdc++` to `clang++`.
-    sudo apt-get -y install cmake pkg-config libboost-serialization-dev libboost-filesystem-dev libboost-system-dev libboost-program-options-dev libboost-test-dev libeigen3-dev libode-dev
+    sudo apt-get -y install cmake pkg-config libboost-serialization-dev libboost-filesystem-dev libboost-system-dev libboost-program-options-dev libboost-test-dev libeigen3-dev libode-dev wget
     export CXX=g++
     export MAKEFLAGS="-j `nproc`"
 }
@@ -22,8 +22,12 @@ install_python_binding_dependencies()
     # install additional python dependencies via pip
     sudo -H pip${PYTHONV} install -vU pygccxml pyplusplus
     # install castxml
-    wget -q -O- https://data.kitware.com/api/v1/file/5d6f1d01d35580e6dcded6dd/download | tar zxf - -C ${HOME}
-    export PATH=${HOME}/castxml/bin:${PATH}
+    if [[ $ubuntu_version > 1910 ]]; then
+        sudo apt-get install -y castxml
+    else
+        wget -q -O- https://data.kitware.com/api/v1/file/5e8b740d2660cbefba944189/download | tar zxf - -C ${HOME}
+        export PATH=${HOME}/castxml/bin:${PATH}
+    fi
     sudo apt-get -y install libboost-python-dev
     if [[ $ubuntu_version > 1710 ]]; then
         sudo apt-get -y install libboost-numpy-dev python${PYTHONV}-numpy
@@ -40,25 +44,31 @@ install_app_dependencies()
         if [[ $ubuntu_version > 1604 ]]; then
             sudo apt-get -y install libfcl-dev
         else
-            wget -O - https://github.com/flexible-collision-library/fcl/archive/0.5.0.tar.gz | tar zxf -
-            cd fcl-0.5.0; cmake .; sudo -E make install; cd ..
+            wget -O - https://github.com/flexible-collision-library/fcl/archive/0.6.1.tar.gz | tar zxf -
+            cd fcl-0.6.1; cmake .; sudo -E make install; cd ..
         fi
     fi
 }
 
 install_ompl()
 {
-    if [ -z $2 ]; then
+    if [ -z $APP ]; then
         OMPL="ompl"
     else
         OMPL="omplapp"
     fi
-    wget -O - https://github.com/ompl/ompl/releases/download/@PROJECT_VERSION@/${OMPL}-@PROJECT_VERSION@.tar.gz | tar zxf -
-    cd $OMPL-@PROJECT_VERSION@-Source
+    if [ -z $GITHUB ]; then
+        wget -O - https://github.com/ompl/ompl/releases/download/@PROJECT_VERSION@/${OMPL}-@PROJECT_VERSION@.tar.gz | tar zxf -
+        cd $OMPL-@PROJECT_VERSION@-Source
+    else
+        sudo apt-get install git
+        git clone --recurse-submodules https://github.com/ompl/${OMPL}.git
+        cd $OMPL
+    fi
     mkdir -p build/Release
     cd build/Release
     cmake ../.. -DPYTHON_EXEC=/usr/bin/python${PYTHONV}
-    if [ ! -z $1 ]; then
+    if [ ! -z $PYTHON ]; then
         # Check if the total memory is less than 6GB.
         if [ `cat /proc/meminfo | head -1 | awk '{print $2}'` -lt 6291456 ]; then
             echo "Python binding generation is very memory intensive. At least 6GB of RAM is recommended."
@@ -84,11 +94,16 @@ case $i in
         PYTHON=1
         shift
         ;;
+    -g|--github)
+        GITHUB=1
+        shift
+        ;;
     *)
         # unknown option -> show help
         echo "Usage: `basename $0` [-p] [-a]"
         echo "  -p: enable Python bindings"
         echo "  -a: enable OMPL.app (implies '-p')"
+        echo "  -g: install latest commit from master branch on GitHub"
     ;;
 esac
 done
@@ -108,4 +123,4 @@ fi
 if [ ! -z $APP ]; then
     install_app_dependencies
 fi
-install_ompl $PYTHON $APP
+install_ompl

@@ -546,7 +546,7 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion **z)
         }
 
         // Find the lowest cost-to-come connection from Open to x
-        base::Cost cMin(std::numeric_limits<double>::infinity());
+        base::Cost cMin(opt_->infiniteCost());
         Motion *yMin = getBestParent(x, yNear, cMin);
         yNear.clear();
 

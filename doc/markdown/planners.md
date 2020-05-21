@@ -77,6 +77,7 @@ Planners in this category only accounts for the geometric and kinematic constrai
   - [RRTX](\ref gRRTXstatic)<br> A variant of RRT* with an improved convergence rate. _It uses the general cost framework._
   - [Informed RRT*](\ref gInformedRRTstar)<br> A variant of RRT* that uses heuristics to bound the search for optimal solutions. _It uses the general cost framework._
   - [Batch Informed Trees (BIT*)](\ref gBITstar)<br> An anytime asymptotically optimal algorithm that uses heuristics to order and bound the search for optimal solutions. _It uses the general cost framework._
+  - [Advanced BIT* (ABIT*)](\ref gABITstar)<br> An extension to BIT* that uses advanced graph-search techniques to find initial solutions faster. _It uses the general cost framework._
   - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT)<br> An asymptotically near-optimal version of RRT.
   - [Sparse Stable RRT](\ref gSST)<br> SST is an asymptotically near-optimal incremental version of RRT.
   - [Transition-based RRT (T-RRT)](\ref gTRRT)<br> T-RRT does not give any hard optimality guarantees, but tries to find short, low-cost paths. _It uses the general cost framework._
@@ -89,6 +90,9 @@ Planners in this category only accounts for the geometric and kinematic constrai
 
 \attention How OMPL selects a geometric planner<br>
 If you use the ompl::geometric::SimpleSetup class (highly recommended) to define and solve your motion planning problem, then OMPL will automatically select an appropriate planner (unless you have explicitly specified one). If the state space has a default projection (which is going to be the case if you use any of the built-in state spaces), then it will use [LBKPIECE](\ref gLBKPIECE1) if a bidirectional planner can be used and otherwise it will use [KPIECE](\ref gKPIECE1). These planners have been shown to work well consistently across many real-world motion planning problems, which is why these planners are the default choice. In case the state space has no default projection, [RRTConnect](\ref gRRTC) or regular [RRT](\ref gRRT) will be used, depending on whether a bidirectional planner can be used. The notion of a goal is very general in OMPL: it may not even be possible to sample a state that satisfies the goal, in which case OMPL cannot grow a second tree at a goal state.
+
+\attention Feasibility and Optimality<br>
+The line between feasible and optimal planners is not so black and white in practice. The line between them can be blurred with an appropriate ompl::base::PlannerTerminationCondition. For instance, the ompl::base::exactSolnPlannerTerminationCondition function returns a termination condition that causes optimizing planners to terminate once the first solution is found. As another example, using a ompl::base::CostConvergenceTerminationCondition with parameters `solutionsWindow=10` and `epsilon=1`, causes an optimizing planner to terminate when _exactly_ 10 solutions have been found. You can use ompl::base::plannerOrTerminationCondition and ompl::base::plannerAndTerminationCondition to combine planner termination conditions (e.g., “terminate when either 10 solutions have been found **or** a time limit of 10 seconds is exceeded”). See \ref plannerTerminationConditions for details.
 
 </div>
 <div>

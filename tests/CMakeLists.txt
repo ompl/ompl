@@ -12,11 +12,12 @@ if (OMPL_BUILD_TESTS)
     add_definitions(-DTEST_RESOURCES_DIR=\"${TEST_RESOURCES_DIR}\")
 
     # Test datastructures implementation
+    add_ompl_test(test_adjacency_list datastructures/adjacency_list.cpp)
     add_ompl_test(test_heap datastructures/heap.cpp)
     add_ompl_test(test_grid datastructures/grid.cpp)
     add_ompl_test(test_gridb datastructures/gridb.cpp)
     add_ompl_test(test_nearestneighbors datastructures/nearestneighbors.cpp)
-    if(FLANN_FOUND)
+    if(flann_FOUND)
         target_link_libraries(test_nearestneighbors ${FLANN_LIBRARIES})
     endif()
     add_ompl_test(test_pdf datastructures/pdf.cpp)
@@ -29,6 +30,7 @@ if (OMPL_BUILD_TESTS)
     endif()
 
     # Test base code
+    add_ompl_test(test_halton_sampling base/halton_deterministic_sampling.cpp)
     add_ompl_test(test_state_operations base/state_operations.cpp)
     add_ompl_test(test_state_spaces base/state_spaces.cpp)
     add_ompl_test(test_state_storage base/state_storage.cpp)

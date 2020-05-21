@@ -32,30 +32,17 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Jonathan Gammell */
+/* Authors: Jonathan Gammell, Marlin Strub */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_VERTEX_
 #define OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_VERTEX_
 
-// vector
+#include <memory>
 #include <vector>
 
-// shared and weak pointers
-#include <memory>
-// For unordered sets of failed children:
-#include <unordered_set>
-
-// OMPL:
-// The space information
-#include "ompl/base/SpaceInformation.h"
-// The optimization objective
 #include "ompl/base/OptimizationObjective.h"
-
-// BIT*:
-// I am member class of the BITstar class (i.e., I am in it's namespace), so I need to include it's definition to be
-// aware of the class BITstar. It has a forward declaration to me and the other helper classes.
+#include "ompl/base/SpaceInformation.h"
 #include "ompl/geometric/planners/bitstar/BITstar.h"
-// I store data for the SearchQueue, get their definitions.
 #include "ompl/geometric/planners/bitstar/datastructures/SearchQueue.h"
 
 namespace ompl
@@ -76,66 +63,93 @@ namespace ompl
         has been changed. Updates only flow downstream.
         */
 
-        /** \brief The vertex of the underlying graphs in \ref gBITstar "BIT*"*/
+        /** \brief The vertex of the underlying graphs in \ref gBITstar BIT*. */
         class BITstar::Vertex
         {
         public:
-            ////////////////////////////////////////////////////
-            // Public functions:
-            /** \brief Constructor */
-            Vertex(ompl::base::SpaceInformationPtr si, const CostHelper *const costHelpPtr, bool root = false);
+            // ---
+            // Construction and destruction.
+            // ---
 
-            /** \brief Destructor */
+            /** \brief Construct a vertex using space information, and helpers to compute various costs. */
+          Vertex(ompl::base::SpaceInformationPtr spaceInformation, const CostHelper *const costHelpPtr, SearchQueue *const queuePtr,
+                   const std::shared_ptr<const unsigned int> &approximationId, bool root = false);
+
+            /** \brief Destruct a vertex. */
             virtual ~Vertex();
 
-            /** \brief The (unique) vertex ID */
+            // ---
+            // State access.
+            // ---
+
+            /** \brief The (unique) vertex ID. */
             BITstar::VertexId getId() const;
 
-            /** \brief The state of a vertex as a constant pointer */
-            ompl::base::State const *stateConst() const;
-
-            /** \brief The state of a vertex as a mutable pointer*/
+            /** \brief The state of a vertex as a pointer. */
             ompl::base::State *state();
 
-            ////////////////////////////
-            // The vertex's graph properties:
-            /** \brief Whether the vertex is root */
+            /** \brief The state of a vertex as a pointer to const. */
+            ompl::base::State const *state() const;
+
+            // ---
+            // Graph information access.
+            // ---
+
+            /** \brief Returns whether the vertex is the root of the search tree. */
             bool isRoot() const;
 
-            /** \brief Get whether this vertex has a parent */
+            /** \brief Returns whether this vertex has a parent. */
             bool hasParent() const;
 
-            /** \brief Get whether a vertex is "in the graph" or not. This returns true if the vertex is the graph root
-             * or is connected to a parent. */
+            /** \brief Get whether a vertex is in the search tree or a sample (i.e., a vertex of the RRG). */
             bool isInTree() const;
 
-            /** \brief Get the "depth" of the vertex from the root. A root vertex is at depth 0, a direct descendent of
-             * the root 1, etc. */
+            /** \brief Get the depth of the vertex from the root. */
             unsigned int getDepth() const;
 
-            /** \brief Get the parent of a vertex as a constant pointer */
-            VertexConstPtr getParentConst() const;
+            /** \brief Get a const pointer to the parent of this vertex. */
+            VertexConstPtr getParent() const;
 
-            /** \brief Get the parent of a vertex as a mutable pointer*/
+            /** \brief Get a pointer to the parent of this vertex. */
             VertexPtr getParent();
 
-            /** \brief Set the parent of this vertex, cannot be used to replace a previous parent. Will always update
-             * this vertex's cost, and can update descendent costs */
-            void addParent(const VertexPtr &newParent, const ompl::base::Cost &edgeInCost, bool updateChildCosts);
+            /** \brief Whether the vertex is consistent. */
+            bool isConsistent() const;
 
-            /** \brief Remove the parent of this vertex. Will always update this vertex's cost, and can update the descendent costs */
+            /** \brief Whether the vertex has been pruned. */
+            bool isPruned() const;
+
+            /** \brief Returns whether the vertex is expanded on current approximation. */
+            bool isExpandedOnCurrentApproximation() const;
+
+            /** \brief Returns whether the vertex is expaned on current search. */
+            bool isExpandedOnCurrentSearch() const;
+
+            /** \brief Returns whether the vertex has ever been expanded as a rewiring. */
+            bool hasEverBeenExpandedAsRewiring() const;
+
+            // ---
+            // Graph modification.
+            // ---
+
+            /** \brief Set the parent of this vertex, cannot be used to replace a previous parent. Will always update
+             * this vertex's cost, and can update descendent costs. */
+            void addParent(const VertexPtr &newParent, const ompl::base::Cost &edgeInCost);
+
+            /** \brief Remove the parent of this vertex. Will always update this vertex's cost, and can update the descendent costs. */
             void removeParent(bool updateChildCosts);
 
-            /** \brief Get whether this vertex has any children */
+            /** \brief Get whether this vertex has any children. */
             bool hasChildren() const;
 
-            /** \brief Get the children of a vertex as constant pointers */
-            void getChildrenConst(VertexConstPtrVector *children) const;
+            /** \brief Get the children of a vertex as constant pointers. */
+            void getChildren(VertexConstPtrVector *children) const;
 
-            /** \brief Get the children of a vertex as mutable pointers */
+            /** \brief Get the children of a vertex as mutable pointers. */
             void getChildren(VertexPtrVector *children);
 
-            /** \brief Add a child to this vertex. Does not change this vertex's cost or those of its descendants. Child must already have this vertex listed as it's parent. */
+            /** \brief Add a child to this vertex. Does not change this vertex's cost or those of its descendants.
+             * Child must already have this vertex listed as it's parent. */
             void addChild(const VertexPtr &newChild);
 
             /** \brief Remove a child from this vertex. Does not change this vertex's cost or those of its descendants.
@@ -143,200 +157,182 @@ namespace ompl
             * vertex pointer is not found. */
             void removeChild(const VertexPtr &oldChild);
 
-            /** \brief Get the cost-to-come of a vertex. Return infinity if the edge is disconnected */
+            /** \brief Put the vertex on the blacklist of children. */
+            void blacklistChild(const VertexConstPtr &vertex);
+
+            /** \brief Put the vertex on the whitelist of children. */
+            void whitelistChild(const VertexConstPtr &vertex);
+
+            /** \brief Returns true if the vertex is blacklisted as a child of this vertex. */
+            bool isBlacklistedAsChild(const VertexConstPtr &vertex) const;
+
+            /** \brief Returns true if the vertex is blacklisted as a child of this vertex. */
+            bool isWhitelistedAsChild(const VertexConstPtr &vertex) const;
+
+            /** \brief Clears the blacklist. */
+            void clearBlacklist();
+
+            /** \brief Clears the whitelist. */
+            void clearWhitelist();
+
+            /** \brief Get the cost-to-come of a vertex. Return infinity if the edge is disconnected. */
             ompl::base::Cost getCost() const;
 
-            /** \brief Get the incremental cost-to-come of a vertex */
+            /** \brief Get the incremental cost-to-come of a vertex. */
             ompl::base::Cost getEdgeInCost() const;
 
-            /** \brief Returns true if the vertex is marked as new. Vertices are new until marked old. */
-            bool isNew() const;
+            /** \brief Mark the vertex as expanded. */
+            void registerExpansion();
 
-            /** \brief Mark the vertex as new. */
-            void markNew();
-
-            /** \brief Mark the vertex as old. */
-            void markOld();
-
-            /** \brief Returns true if the vertex has been expanded towards samples. */
-            bool hasBeenExpandedToSamples() const;
-
-            /** \brief Mark the vertex as expanded towards samples. */
-            void markExpandedToSamples();
-
-            /** \brief Mark the vertex as not expanded towards samples. */
-            void markUnexpandedToSamples();
-
-            /** \brief Returns true if the vertex has been expanded towards vertices. */
-            bool hasBeenExpandedToVertices() const;
-
-            /** \brief Mark the vertex as expanded towards vertices. */
-            void markExpandedToVertices();
-
-            /** \brief Mark the vertex as not expanded towards vertices. */
-            void markUnexpandedToVertices();
-
-            /** \brief Whether the vertex has been pruned */
-            bool isPruned() const;
+            /** \brief Mark expansion to vertices. */
+            void registerRewiringExpansion();
 
             /** \brief Mark the vertex as pruned. */
             void markPruned();
 
             /** \brief Mark the vertex as unpruned. */
             void markUnpruned();
-            ////////////////////////////
 
-            ////////////////////////////
-            // Functions for the vertex's SearchQueue data
-            //////////////
-            // Vertex queue info:
-            /** \brief Get an iterator to this vertex in the vertex queue */
-            SearchQueue::VertexQueueIter getVertexQueueIter() const;
+            // ---
+            // Edge queue lookups.
+            // ---
 
-            /** \brief Set the iterator to this vertex in the vertex queue */
-            void setVertexQueueIter(const SearchQueue::VertexQueueIter &newPtr);
+            /** \brief Add to the list of the edge queue entries that point in to this vertex. Will clear existing in/out lookups if they were added under a different id. */
+            void insertInEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtr &inEdge);
 
-            /** \brief Clear the iterator to this vertex in the vertex queue */
-            void clearVertexQueueIter();
+            /** \brief Add to the list of the edge queue entries that point out of this vertex. Will clear existing in/out lookups if they were added under a different id. */
+            void insertInEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtr &outEdge);
 
-            /** \brief Return true if the vertex has a link to it's entry in the Vertex Queue */
-            bool hasVertexQueueEntry() const;
-            //////////////
+            /** \brief Remove an incoming edge queue entry by value to the member vector. */
+            void removeFromEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtr &inEdge);
 
-            //////////////
-            // Edge queue info (incoming edges):
-            /** \brief Add to the list of the edge queue entries that point in to this vertex. Will clear existing in/out lookups if they were added under a different id.*/
-            void addIncomingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &newInPtr, unsigned int vertexQueueResetNum);
+            /** \brief Remove an outgoing edge queue entry by value. */
+            void removeFromEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtr &outEdge);
 
-            /** \brief Remove an incoming edge queue entry by value to the member vector.*/
-            void rmIncomingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &elemToDelete, unsigned int vertexQueueResetNum);
+            /** \brief Remove an incoming edge queue entry by iterator to the member vector. */
+            void removeFromEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtrVector::const_iterator &inEdge);
 
-            /** \brief Remove an incoming edge queue entry by iterator to the member vector.*/
-            void rmIncomingEdgeQueuePtrByIter(const SearchQueue::EdgeQueueElemPtrVector::const_iterator &constIterToDelete, unsigned int vertexQueueResetNum);
-
-            /** \brief Clear the pointers to all of the incoming edge queue entries */
-            void clearIncomingEdgeQueuePtrs();
+            /** \brief Remove an outgoing edge queue entry by iterator to the member vector. */
+            void removeFromEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtrVector::const_iterator &outEdge);
 
             /** \brief Get an iterator to the front of the incoming edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
-            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator incomingEdgeQueuePtrsBeginConst(unsigned int vertexQueueResetNum);
-
-            /** \brief Get an iterator to the end of the incoming edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
-            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator incomingEdgeQueuePtrsEndConst(unsigned int vertexQueueResetNum);
-
-            /** \brief Get the number of edge queue entries incoming to this vertex. Will clear existing in/out lookups if they were added under a different id. */
-            unsigned int getNumIncomingEdgeQueuePtrs(unsigned int vertexQueueResetNum);
-
-            /** \brief Return true if the vertex has links to incoming entries in the Edge Queue. Will clear existing in/out lookups if they were added under a different id. */
-            bool hasIncomingEdgeQueueEntries(unsigned int vertexQueueResetNum);
-            //////////////
-
-            //////////////
-            // Edge queue info (outgoing edges):
-            /** \brief Add to the list of the edge queue entries that point out of this vertex. Will clear existing in/out lookups if they were added under a different id.*/
-            void addOutgoingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &newOutPtr, unsigned int vertexQueueResetNum);
-
-            /** \brief Remove an outgoing edge queue entry by value.*/
-            void rmOutgoingEdgeQueuePtr(const SearchQueue::EdgeQueueElemPtr &elemToDelete, unsigned int vertexQueueResetNum);
-
-            /** \brief Remove an outgoing edge queue entry by iterator to the member vector.*/
-            void rmOutgoingEdgeQueuePtrByIter(const SearchQueue::EdgeQueueElemPtrVector::const_iterator &constIterToDelete, unsigned int vertexQueueResetNum);
-
-            /** \brief Clear the pointers to all of the outgoing edge queue entries */
-            void clearOutgoingEdgeQueuePtrs();
+            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator edgeQueueInLookupConstBegin();
 
             /** \brief Get an iterator to the front of the outgoing edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
-            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator outgoingEdgeQueuePtrsBeginConst(unsigned int vertexQueueResetNum);
+            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator edgeQueueOutLookupConstBegin();
+
+            /** \brief Get an iterator to the end of the incoming edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
+            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator edgeQueueInLookupConstEnd();
 
             /** \brief Get an iterator to the end of the outgoing edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
-            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator outgoingEdgeQueuePtrsEndConst(unsigned int vertexQueueResetNum);
+            BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator edgeQueueOutLookupConstEnd();
+
+            /** \brief Get the number of edge queue entries incoming to this vertex. Will clear existing in/out lookups if they were added under a different id. */
+            unsigned int edgeQueueInLookupSize();
 
             /** \brief Get the number of edge queue entries outgoing from this vertex. Will clear existing in/out lookups if they were added under a different id. */
-            unsigned int getNumOutgoingEdgeQueuePtrs(unsigned int vertexQueueResetNum);
+            unsigned int edgeQueueOutLookupSize();
 
-            /** \brief Return true if the vertex has links to outgoing entries in the Edge Queue. Will clear existing in/out lookups if they were added under a different id. */
-            bool hasOutgoingEdgeQueueEntries(unsigned int vertexQueueResetNum);
-            //////////////
-            ////////////////////////////
-            ////////////////////////////////////////////////////
-        protected:
-            /** \brief Calculates the updated cost and depth of the current state, as well as calling all children's
-             * updateCostAndDepth() functions and thus updating everything down-stream (if desired).*/
-            void updateCostAndDepth(bool cascadeUpdates = true);
+            /** \brief Clear the pointers to all of the incoming edge queue entries. */
+            void clearEdgeQueueInLookup();
+
+            /** \brief Clear the pointers to all of the outgoing edge queue entries. */
+            void clearEdgeQueueOutLookup();
 
         private:
-            /** \brief The vertex ID */
-            BITstar::VertexId vId_;
+            // ---
+            // Internal bookkeeping.
+            // ---
 
-            /** \brief The state space used by the planner */
+            /** \brief Calculates the updated cost and depth of the current state, optionally calls itself on all children. */
+            void updateCostAndDepth(bool cascadeUpdates = true);
+
+            // ---
+            // Member variables.
+            // ---
+
+            /** \brief The vertex id. */
+            BITstar::VertexId id_;
+
+            /** \brief The state space used by the planner. */
             ompl::base::SpaceInformationPtr si_;
 
-            /** \brief The optimization objective used by the planner */
+            /** \brief The helper class to compute different costs. */
             const CostHelper *const costHelpPtr_;
 
-            /** \brief The state itself */
+            /** \brief The search queue used by the algorithms. */
+            SearchQueue *const queuePtr_;
+
+            /** \brief The state itself. */
             ompl::base::State *state_;
 
-            /** \brief Whether the vertex is a root */
+            /** \brief Whether the vertex is a root. */
             bool isRoot_;
-
-            /** \brief Whether the vertex is new. */
-            bool isNew_{true};
-
-            /** \brief Whether the vertex had been expanded to samples. */
-            bool hasBeenExpandedToSamples_{false};
-
-            /** \brief Whether the vertex has been expanded to vertices. */
-            bool hasBeenExpandedToVertices_{false};
 
             /** \brief Whether the vertex is pruned. Vertices throw if any member function other than isPruned() is
              * access after they are pruned. */
             bool isPruned_{false};
 
-            /** \brief The depth of the state  */
+            /** \brief The depth of the state.  */
             unsigned int depth_{0u};
 
             /** \brief The parent state as a shared pointer such that the parent will not be deleted until all the
              * children are. */
-            VertexPtr parentSPtr_;
+            VertexPtr parentPtr_;
 
-            /** \brief The incremental cost to get to the state. I.e., the cost of the parent -> state edge */
+            /** \brief The incremental cost to get to the state. I.e., the cost of the parent -> state edge. */
             ompl::base::Cost edgeCost_;
 
-            /** \brief The cost of the state  */
+            /** \brief The cost-to-come to this vertex. */
             ompl::base::Cost cost_;
 
+            /** \brief The cost-to-come to this vertex at the time of its last expansion. */
+            ompl::base::Cost costAtExpansion_;
+
             /** \brief The child states as weak pointers, such that the ownership loop is broken and a state can be
-             * deleted once it's children are.*/
-            std::vector<VertexWeakPtr> childWPtrs_;
+             * deleted once it's children are. */
+            std::vector<VertexWeakPtr> children_;
 
-            /** \brief A pointer to this vertex in the vertex queue */
-            SearchQueue::VertexQueueIter vertexQueueIter_;
+            /** \brief A list of pointers to elements in the edge queue that point in to this vertex. */
+            SearchQueue::EdgeQueueElemPtrVector edgeQueueInLookup_;
 
-            /** \brief Whether a valid iterator the vertex queue exists (as iterators have no equivalent to NULL) */
-            bool isVertexQueueSet_{false};
+            /** \brief A list of pointers to elements in the edge queue that point out from this vertex. */
+            SearchQueue::EdgeQueueElemPtrVector edgeQueueOutLookup_;
 
-            /** \brief A list of pointers to elements in the edge queue that point in to this vertex */
-            SearchQueue::EdgeQueueElemPtrVector edgeQueueInPtrs_;
+            /** \brief A collection of potential child vertex ids that are blacklisted for edges (due to a collision). */
+            std::set<BITstar::VertexId> childIdBlacklist_;
 
-            /** \brief A list of pointers to elements in the edge queue that point out from this vertex */
-            SearchQueue::EdgeQueueElemPtrVector edgeQueueOutPtrs_;
+            /** \brief A collection of potential child vertex ids that are whitelisted for edges. */
+            std::set<BITstar::VertexId> childIdWhitelist_;
 
-            /** \brief The id-number associated with the currently stored edge lookups. This is used to reset existing
-            * lookups when on the next pass through the vertex queue. */
-            unsigned int edgeLookupPass_{0u};
+            /** \brief The id number associated with the search in which the lookups are up to date. */
+            unsigned int lookupApproximationId_{0u};
 
-            /** \brief A helper function to clear the given incoming lookup (and in debug mode assert it existed) */
-            void rmIncomingHelper(const SearchQueue::EdgeQueueElemPtrVector::iterator &iterToDelete);
+            /** \brief The id number associated with the approximation on which this vertex was last expanded. */
+            unsigned int expansionApproximationId_{0u};
 
-            /** \brief A helper function to clear the given outgoing lookup (and in debug mode assert it existed) */
-            void rmOutgoingHelper(const SearchQueue::EdgeQueueElemPtrVector::iterator &iterToDelete);
+            /** \brief The id number associated with the search in which this vertex was last expanded. */
+            unsigned int expansionSearchId_{0u};
 
-            /** \brief A helper function to clear existing lookups if they are out of date (i.e., created at a different id than the one given) */
-            void clearOldLookups(unsigned int vertexQueueResetNum);
+            /** \brief Whether this sample has ever been expanded to vertices. */
+            bool hasEverBeenExpandedAsRewiring_{false};
 
-            /** \brief A helper function to check that the vertex is not pruned and throw if so */
-            void assertNotPruned() const;
-        };  // class: Vertex
-    }       // geometric
-}  // ompl
+            /** \brief A pointer to the shared memory that holds the current search id. */
+            const std::shared_ptr<const unsigned int> currentSearchId_;
+
+            /** \brief A pointer to the shared memory that holds the current approximation id. */
+            const std::shared_ptr<const unsigned int> currentApproximationId_;
+
+            /** \brief A helper function to clear the given incoming lookup (and in debug mode assert it existed). */
+            void removeFromEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtrVector::iterator &iterToDelete);
+
+            /** \brief A helper function to clear the given outgoing lookup (and in debug mode assert it existed). */
+            void removeFromEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtrVector::iterator &iterToDelete);
+
+            /** \brief A helper function to clear existing lookups if they are out of date (i.e., created at a different id than the one given). */
+            void clearLookupsIfOutdated();
+        };  // class Vertex
+    } // namespace geometric
+}  // namespace ompl
+
 #endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_VERTEX_

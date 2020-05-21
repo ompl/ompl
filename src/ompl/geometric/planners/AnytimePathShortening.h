@@ -40,11 +40,16 @@
 #include "ompl/base/Planner.h"
 #include <vector>
 #include <thread>
+#include <mutex>
 
 namespace ompl
 {
     namespace geometric
     {
+        /// @cond IGNORE
+        OMPL_CLASS_FORWARD(PathGeometric);
+        /// @endcond
+
         /// @anchor gAPS
         /// @par Short description
         /// Anytime path shortening is a generic wrapper around one or more
@@ -58,7 +63,15 @@ namespace ompl
         /// until the termination condition is met.
         /// The purpose of this tool is to add anytime properties to motion
         /// planners that are not typically viewed as optimal/optimizing
-        /// algorithms.
+        /// algorithms. This implementation deviates from the published
+        /// version. Here, n threads repeatedly produce solution paths
+        /// (that are optionally shortcutted), which are then subsequently
+        /// added to a shared pool of solutions paths. The threads run
+        /// independently and don't need to synchronize. A seperate thread
+        /// repeatedly applies path hybridization to the top paths and,
+        /// optionally, applies path simplification to the best path found
+        /// so far.
+
         ///
         /// @par External documentation
         /// R. Luna, I.A. Şucan, M. Moll, and L.E. Kavraki, Anytime Solution Optimization for Sampling-Based Motion
@@ -105,12 +118,6 @@ namespace ompl
             /// \brief Adds the given planner to the set of planners used to
             /// compute candidate paths.
             void addPlanner(base::PlannerPtr &planner);
-
-            /// \brief Set the problem definition for the planners. The
-            /// problem needs to be set before calling solve(). Note:
-            /// If this problem definition replaces a previous one, it
-            /// may also be necessary to call clear().
-            void setProblemDefinition(const base::ProblemDefinitionPtr &pdef) override;
 
             /// \brief Method that solves the motion planning problem.  This method
             /// terminates under just two conditions, the given argument condition,
@@ -194,6 +201,13 @@ namespace ompl
             void printSettings(std::ostream &out) const override;
 
         protected:
+            /// \brief add a path to set of solutions
+            /// \param path solution path
+            /// \param planner planner that produced the solution. If planner==this, the path is
+            /// the result of hybridization/simplification and is only added if it improves the
+            /// best known solution.
+            void addPath(const geometric::PathGeometricPtr &path, base::Planner *planner);
+
             /// \brief The function that the planning threads execute when
             /// solving a motion planning problem.
             virtual void threadSolve(base::Planner *planner, const base::PlannerTerminationCondition &ptc);
@@ -214,6 +228,12 @@ namespace ompl
             /// \brief The number of planners to use if none are specified. This defaults to the number of cores.
             /// This parameter has no effect if planners have already been added.
             unsigned int defaultNumPlanners_;
+
+            /** \brief Best cost found so far by algorithm */
+            base::Cost bestCost_{std::numeric_limits<double>::quiet_NaN()};
+
+            /// \brief mutex for updating bestCost_
+            std::mutex lock_;
         };
     }
 }
