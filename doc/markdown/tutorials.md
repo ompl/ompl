@@ -10,8 +10,8 @@ Below we include a number of tutorials we believe are useful for understanding h
 - [Using existing samplers and creating new ones](samplers.html)
 - [Visualizing solution paths](pathVisualization.html)
 - [Benchmarking planners](benchmark.html)
-- [Optimal planning](optimalPlanningTutorial.html) (see also the [high-level introduction](optimalPlanning.html)
-- [Constrained planning](constrainedPlanningTutorial.html) (see also the [high-level introduction](constrainedPlanning.html)
+- [Optimal planning](optimalPlanningTutorial.html) (see also the [high-level introduction](optimalPlanning.html))
+- [Constrained planning](constrainedPlanningTutorial.html) (see also the [high-level introduction](constrainedPlanning.html))
 - [QuotientSpace planning](quotientSpacePlanningTutorial.html) (see also the [high-level introduction](quotientSpacePlanning.html))
 
 ## Intermediate

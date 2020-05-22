@@ -22,17 +22,19 @@ A breakdown of all contributions by commits can be found on GitHub for the [OMPL
 - Florian Hauer, Georgia Tech
 - Gil Jones, Google
 - [Sertac Karaman](http://sertac.scripts.mit.edu/web), Emilio Frazzoli's [Aerospace Robotics and Embedded Systems Laboratory](http://ares.lids.mit.edu), MIT
-- Henning Kayser, Applied Robotics Scientist at [PickNik Robotics](https://picknik.ai)
+- Henning Kayser, [PickNik Robotics](https://picknik.ai)
 - [Zachary Kingston](http://zkingston.com), Rice University
 - [Ryan Luna](http://www.ryanluna.com), Rice University (now at Waymo)
 - Matt Maly, Rice University (now at Google)
 - [James Marble](http://www.cse.unr.edu/robotics/pracsys/marble), Kostas Bekris' [Physics-aware Research for Autonomous Computational SYStems group](http://www.cse.unr.edu/robotics/pracsys), University of Nevada, Reno
 - Andreas Orthey, University of Stuttgart, Marc Toussaint's [Machine Learning & Robotics Lab](https://ipvs.informatik.uni-stuttgart.de/mlr/), University of Stuttgart
+- Luigi Palmieri, Robert Bosch GmbH
 - Scott Paulin, University of Canterbury, New Zealand
 - [Alejandro Perez](http://people.csail.mit.edu/aperez/www), Seth Teller's [Robotics, Vision, and Sensor Networks Group](http://rvsn.csail.mit.edu), MIT
 - [Oren Salzman](http://orensalzman.com), Dan Halperin's [Computational Geometry Lab](http://acg.cs.tau.ac.il), Tel Aviv University
 - Edward Schmerling, Marco Pavone's [Autonomous Systems Lab](http://asl.stanford.edu), Stanford University
 - Jonathan Sobieski, Rice University
+- Marlin Strub, Robert Bosch GmbH
 - Sonny Tarbouriech, University of Sherbrooke
 - [Luis Torres](http://luis.web.unc.edu), Ron Alterovitz' [Computational Robotics Group](http://robotics.cs.unc.edu), University of North Carolina at Chapel Hill (now at Google)
 - [Caleb Voss](http://calebvoss.com), Rice University (now at Georgia Tech)

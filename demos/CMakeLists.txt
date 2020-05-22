@@ -53,7 +53,7 @@ if (OMPL_BUILD_DEMOS)
     add_ompl_demo(demo_QuotientSpacePlanningHyperCubeBenchmark quotientspace/QuotientSpacePlanningHyperCubeBenchmark.cpp)
 
     find_package(yaml-cpp)
-    if (YAMLCPP_FOUND)
+    if (yaml-cpp_FOUND)
         add_ompl_demo(demo_PlanarManipulator
             PlanarManipulator/PlanarManipulatorDemo.cpp
             PlanarManipulator/PlanarManipulator.cpp
