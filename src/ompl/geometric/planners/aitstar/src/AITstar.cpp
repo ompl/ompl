@@ -223,8 +223,7 @@ namespace ompl
             }
 
             // Iterate to solve the problem.
-            while (!terminationCondition && !objective_->isSatisfied(*solutionCost_) &&
-                   !(objective_->isFinite(*solutionCost_) && stopOnFindingInitialSolution_))
+            while (!terminationCondition && !objective_->isSatisfied(*solutionCost_))
             {
                 iterate();
             }
@@ -344,11 +343,6 @@ namespace ompl
         void AITstar::setRepairBackwardSearch(bool repairBackwardSearch)
         {
             repairBackwardSearch_ = repairBackwardSearch;
-        }
-
-        void AITstar::setStopOnFindingInitialSolution(bool stopOnFindingInitialSolution)
-        {
-            stopOnFindingInitialSolution_ = stopOnFindingInitialSolution;
         }
 
         void AITstar::rebuildForwardQueue()

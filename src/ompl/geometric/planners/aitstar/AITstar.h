@@ -136,9 +136,6 @@ namespace ompl
             /** \brief Enable LPA* repair of backward search. */
             void setRepairBackwardSearch(bool setRepairBackwardSearch);
 
-            /** \brief Stop when finding an improved solution. */
-            void setStopOnFindingInitialSolution(bool stopOnFindingInitialSolution);
-
             /** \brief Get the edge queue. */
             std::vector<aitstar::Edge> getEdgesInQueue() const;
 
@@ -275,9 +272,6 @@ namespace ompl
 
             /** \brief The option that specifies whether to prune the graph of useless samples. */
             bool isPruningEnabled_{true};
-
-            /** \brief Whether to stop on finding an improved solution. */
-            bool stopOnFindingInitialSolution_{false};
 
             /** \brief Syntactic helper to get at the optimization objective of the planner base class. */
             ompl::base::OptimizationObjectivePtr objective_;
