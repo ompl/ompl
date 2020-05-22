@@ -443,7 +443,7 @@ namespace ompl
                 return children;
             }
 
-            void Vertex::registerAdditionOfChildDuringForwardSearch()
+            void Vertex::registerPoppedOutgoingEdgeDuringForwardSearch()
             {
                 childAddedForwardSearchId_ = *forwardSearchId_.lock();
             }
@@ -461,7 +461,7 @@ namespace ompl
                 insertedIntoQueueReverseSearchId_ = *reverseSearchId_.lock();
             }
 
-            bool Vertex::hasHadAChildAddedDuringCurrentForwardSearch() const
+            bool Vertex::hasHadOutgoingEdgePoppedDuringCurrentForwardSearch() const
             {
                 assert(!forwardSearchId_.expired());
                 return childAddedForwardSearchId_ == *forwardSearchId_.lock();

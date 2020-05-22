@@ -633,6 +633,10 @@ namespace ompl
             // Remove the edge from the queue.
             forwardQueue_->pop();
 
+            // Register that an outgoing edge of the parent has been popped from the queue. This means that the parent
+            // has optimal cost-to-come for the current approximation.
+            parent->registerPoppedOutgoingEdgeDuringForwardSearch();
+
             // If this is edge can not possibly improve our solution, the search is done.
             auto edgeCost = objective_->motionCostHeuristic(parent->getState(), child->getState());
             auto parentCostToGoToGoal = objective_->combineCosts(edgeCost, child->getCostToGoToGoal());
@@ -700,11 +704,7 @@ namespace ompl
                                                  child->getCostToComeFromStart()))
                 {
                     // If the child has already been expanded during the current forward search, something's fishy.
-                    assert(!child->hasHadAChildAddedDuringCurrentForwardSearch());
-
-                    // Register the expansion of the parent. Here, expansion means adding a child to a vertex in the
-                    // tree.
-                    parent->registerAdditionOfChildDuringForwardSearch();
+                    assert(!child->hasHadOutgoingEdgePoppedDuringCurrentForwardSearch());
 
                     // Rewire the child.
                     child->setForwardParent(parent, edgeCost);
@@ -1210,8 +1210,7 @@ namespace ompl
             // TODO: Think whether it is sufficient to test for reverse parents.
             for (const auto &edge : edges)
             {
-                if ((!edge.getChild()->hasReverseParent() && !graph_.isGoal(edge.getChild())) ||
-                    (!edge.getParent()->hasReverseParent() && !graph_.isGoal(edge.getParent())))
+                if (!haveAllVerticesBeenProcessed(edge))
                 {
                     return false;
                 }

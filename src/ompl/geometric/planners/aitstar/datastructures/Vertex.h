@@ -181,7 +181,7 @@ namespace ompl
                 const std::vector<std::shared_ptr<Vertex>> &getNeighbors() const;
 
                 /** \brief Registers that a child has been added to this vertex during the current forward search. */
-                void registerAdditionOfChildDuringForwardSearch();
+                void registerPoppedOutgoingEdgeDuringForwardSearch();
 
                 /** \brief Registers the expansion of this vertex during the current reverse search. */
                 void registerExpansionDuringReverseSearch();
@@ -191,7 +191,7 @@ namespace ompl
                 void registerInsertionIntoQueueDuringReverseSearch();
 
                 /** \brief Returns whether the vertex has been expanded during the current forward search. */
-                bool hasHadAChildAddedDuringCurrentForwardSearch() const;
+                bool hasHadOutgoingEdgePoppedDuringCurrentForwardSearch() const;
 
                 /** \brief Returns whether the vertex has been expanded during the current reverse search. */
                 bool hasBeenExpandedDuringCurrentReverseSearch() const;
