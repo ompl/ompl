@@ -34,7 +34,8 @@
 
 // Authors: Marlin Strub
 
-#pragma once
+#ifndef OMPL_GEOMETRIC_PLANNERS_AITSTAR_IMPLICITGRAPH_
+#define OMPL_GEOMETRIC_PLANNERS_AITSTAR_IMPLICITGRAPH_
 
 #include <memory>
 
@@ -60,7 +61,7 @@ namespace ompl
                 /** \brief Constructs an implicit graph. */
                 ImplicitGraph();
 
-                /** \brief Deconstructs an implicit graph. */
+                /** \brief Destructs an implicit graph. */
                 virtual ~ImplicitGraph() = default;
 
                 /** \brief The setup method for the graph. Needed to have it on the stack. */
@@ -74,7 +75,7 @@ namespace ompl
                 /** \brief Resets the graph to its construction state, without resetting options. */
                 void clear();
 
-                /** \brief Set the reqire factor of the RGG. */
+                /** \brief Set the rewire factor of the RGG. */
                 void setRewireFactor(double rewireFactor);
 
                 /** \brief Get the reqire factor of the RGG. */
@@ -83,7 +84,7 @@ namespace ompl
                 /** \brief Sets whether to track approximate solutions or not. */
                 void setTrackApproximateSolution(bool track);
 
-                /** \brief Adds a batch of samples. */
+                /** \brief Adds a batch of samples and returns the samples it has added. */
                 std::vector<std::shared_ptr<Vertex>> addSamples(std::size_t numNewSamples);
 
                 /** \brief Gets the number of samples in the graph. */
@@ -213,3 +214,5 @@ namespace ompl
     }  // namespace geometric
 
 }  // namespace ompl
+
+#endif  // OMPL_GEOMETRIC_PLANNERS_AITSTAR_IMPLICITGRAPH_

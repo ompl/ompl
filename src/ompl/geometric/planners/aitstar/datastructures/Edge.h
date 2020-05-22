@@ -34,7 +34,8 @@
 
 // Authors: Marlin Strub
 
-#pragma once
+#ifndef OMPL_GEOMETRIC_PLANNERS_AITSTAR_EDGE_
+#define OMPL_GEOMETRIC_PLANNERS_AITSTAR_EDGE_
 
 #include <array>
 #include <limits>
@@ -61,7 +62,7 @@ namespace ompl
                 Edge(const std::shared_ptr<Vertex> &parent, const std::shared_ptr<Vertex> &child,
                      const std::array<ompl::base::Cost, 3u> &sortKey);
 
-                /** \brief Deconstructs an edge. */
+                /** \brief Destructs an edge. */
                 ~Edge() = default;
 
                 /** \brief Returns the parent in this edge. */
@@ -92,3 +93,5 @@ namespace ompl
     }  // namespace geometric
 
 }  // namespace ompl
+
+#endif  //  OMPL_GEOMETRIC_PLANNERS_AITSTAR_EDGE_

@@ -67,15 +67,15 @@ namespace ompl
                            const std::shared_ptr<std::size_t> &reverseSearchId)
               : spaceInformation_(spaceInformation)
               , problemDefinition_(problemDefinition)
-              , optimizationObjective_(problemDefinition->getOptimizationObjective())
+              , objective_(problemDefinition->getOptimizationObjective())
               , forwardChildren_()
               , forwardParent_()
               , state_(spaceInformation->allocState())  // The memory allocated here is freed in the destructor.
-              , costToComeFromStart_(optimizationObjective_->infiniteCost())
-              , edgeCostFromForwardParent_(optimizationObjective_->infiniteCost())
-              , costToComeFromGoal_(optimizationObjective_->infiniteCost())
-              , expandedCostToComeFromGoal_(optimizationObjective_->infiniteCost())
-              , costToGoToGoal_(optimizationObjective_->infiniteCost())
+              , costToComeFromStart_(objective_->infiniteCost())
+              , edgeCostFromForwardParent_(objective_->infiniteCost())
+              , costToComeFromGoal_(objective_->infiniteCost())
+              , expandedCostToComeFromGoal_(objective_->infiniteCost())
+              , costToGoToGoal_(objective_->infiniteCost())
               , vertexId_(generateId())
               , batchId_(batchId)
               , forwardSearchId_(forwardSearchId)
@@ -118,7 +118,7 @@ namespace ompl
             {
                 if (reverseSearchBatchId_ != *batchId_.lock())
                 {
-                    costToComeFromGoal_ = optimizationObjective_->infiniteCost();
+                    costToComeFromGoal_ = objective_->infiniteCost();
                 }
                 return costToComeFromGoal_;
             }
@@ -127,7 +127,7 @@ namespace ompl
             {
                 if (expandedReverseSearchId_ != *reverseSearchId_.lock())
                 {
-                    expandedCostToComeFromGoal_ = optimizationObjective_->infiniteCost();
+                    expandedCostToComeFromGoal_ = objective_->infiniteCost();
                 }
                 return expandedCostToComeFromGoal_;
             }
@@ -234,7 +234,7 @@ namespace ompl
                 // Update the cost of all forward children.
                 for (const auto &child : getForwardChildren())
                 {
-                    child->setCostToComeFromStart(optimizationObjective_->combineCosts(
+                    child->setCostToComeFromStart(objective_->combineCosts(
                         costToComeFromStart_, child->getEdgeCostFromForwardParent()));
                     child->updateCostOfForwardBranch();
                 }
@@ -247,8 +247,8 @@ namespace ompl
                 // Remove all children.
                 for (const auto &child : reverseChildren_)
                 {
-                    child.lock()->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
-                    child.lock()->setExpandedCostToComeFromGoal(optimizationObjective_->infiniteCost());
+                    child.lock()->setCostToComeFromGoal(objective_->infiniteCost());
+                    child.lock()->setExpandedCostToComeFromGoal(objective_->infiniteCost());
                     child.lock()->resetReverseParent();
                     auto childsAccumulatedChildren = child.lock()->invalidateReverseBranch();
                     accumulatedChildren.insert(accumulatedChildren.end(), childsAccumulatedChildren.begin(),
@@ -267,7 +267,7 @@ namespace ompl
                 // Remove all children.
                 for (const auto &child : forwardChildren_)
                 {
-                    child.lock()->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
+                    child.lock()->setCostToComeFromGoal(objective_->infiniteCost());
                     child.lock()->resetForwardParent();
                     auto childsAccumulatedChildren = child.lock()->invalidateForwardBranch();
                     accumulatedChildren.insert(accumulatedChildren.end(), childsAccumulatedChildren.begin(),
@@ -293,7 +293,7 @@ namespace ompl
                 forwardParent_ = std::weak_ptr<Vertex>(vertex);
 
                 // Update the cost to come.
-                costToComeFromStart_ = optimizationObjective_->combineCosts(vertex->getCostToComeFromStart(), edgeCost);
+                costToComeFromStart_ = objective_->combineCosts(vertex->getCostToComeFromStart(), edgeCost);
             }
 
             void Vertex::resetForwardParent()
@@ -446,7 +446,7 @@ namespace ompl
 
             void Vertex::registerPoppedOutgoingEdgeDuringForwardSearch()
             {
-                childAddedForwardSearchId_ = *forwardSearchId_.lock();
+                poppedOutgoingEdgeForwardSearchId_ = *forwardSearchId_.lock();
             }
 
             void Vertex::registerExpansionDuringReverseSearch()
@@ -470,7 +470,7 @@ namespace ompl
             bool Vertex::hasHadOutgoingEdgePoppedDuringCurrentForwardSearch() const
             {
                 assert(!forwardSearchId_.expired());
-                return childAddedForwardSearchId_ == *forwardSearchId_.lock();
+                return poppedOutgoingEdgeForwardSearchId_ == *forwardSearchId_.lock();
             }
 
             bool Vertex::hasBeenExpandedDuringCurrentReverseSearch() const
