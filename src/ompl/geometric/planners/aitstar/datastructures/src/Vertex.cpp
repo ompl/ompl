@@ -256,6 +256,7 @@ namespace ompl
                 }
                 reverseChildren_.clear();
 
+                unregisterExpansionDuringReverseSearch();
                 return accumulatedChildren;
             }
 
@@ -453,6 +454,11 @@ namespace ompl
                 assert(!reverseSearchId_.expired());
                 expandedCostToComeFromGoal_ = costToComeFromGoal_;
                 expandedReverseSearchId_ = *reverseSearchId_.lock();
+            }
+
+            void Vertex::unregisterExpansionDuringReverseSearch()
+            {
+                expandedReverseSearchId_ = 0u;
             }
 
             void Vertex::registerInsertionIntoQueueDuringReverseSearch()

@@ -784,7 +784,6 @@ namespace ompl
         void AITstar::performReverseSearchIteration()
         {
             assert(!reverseQueue_->empty());
-            forwardQueueMustBeRebuilt_ = true;
 
             // Get the most promising vertex.
             auto vertex = reverseQueue_->top()->data.second;
@@ -823,6 +822,7 @@ namespace ompl
                 // This invalidates the cost-to-go estimate of the forward search.
                 performReverseSearchIteration_ = false;
                 forwardQueueMustBeRebuilt_ = true;
+                vertex->registerExpansionDuringReverseSearch();
                 return;
             }
 
@@ -1207,7 +1207,6 @@ namespace ompl
 
         bool AITstar::haveAllVerticesBeenProcessed(const std::vector<aitstar::Edge> &edges) const
         {
-            // TODO: Think whether it is sufficient to test for reverse parents.
             for (const auto &edge : edges)
             {
                 if (!haveAllVerticesBeenProcessed(edge))
@@ -1221,14 +1220,8 @@ namespace ompl
 
         bool AITstar::haveAllVerticesBeenProcessed(const aitstar::Edge &edge) const
         {
-            // TODO: Think whether it is sufficient to test for reverse parents.
-            if ((!edge.getChild()->hasReverseParent() && !graph_.isGoal(edge.getChild())) ||
-                (!edge.getParent()->hasReverseParent() && !graph_.isGoal(edge.getParent())))
-            {
-                return false;
-            }
-
-            return true;
+            return edge.getParent()->hasBeenExpandedDuringCurrentReverseSearch() &&
+                   edge.getChild()->hasBeenExpandedDuringCurrentReverseSearch();
         }
 
         void AITstar::updateExactSolution()
@@ -1332,6 +1325,7 @@ namespace ompl
 
         void AITstar::invalidateCostToComeFromGoalOfReverseBranch(const std::shared_ptr<aitstar::Vertex> &vertex)
         {
+            vertex->unregisterExpansionDuringReverseSearch();
             // Update the cost of all reverse children and remove from open.
             for (const auto &child : vertex->getReverseChildren())
             {
