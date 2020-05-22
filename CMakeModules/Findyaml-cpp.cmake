@@ -1,4 +1,4 @@
-# Find YAMLCPP, a library for parsing YAML files
+# Find libyaml-cpp, a library for parsing YAML files
 
 include(FindPackageHandleStandardArgs)
 
