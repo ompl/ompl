@@ -75,6 +75,7 @@ namespace ompl
                                &AITstar::areApproximateSolutionsTracked);
 
             // Register the progress properties.
+            addPlannerProgressProperty("iterations INTEGER", [this]() { return std::to_string(numIterations_); });
             addPlannerProgressProperty("best cost DOUBLE", [this]() { return std::to_string(solutionCost_->value()); });
             addPlannerProgressProperty("state collision checks INTEGER",
                                        [this]() { return std::to_string(graph_.getNumberOfStateCollisionChecks()); });
