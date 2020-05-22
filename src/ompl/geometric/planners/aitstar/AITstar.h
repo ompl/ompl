@@ -41,6 +41,7 @@
 
 #include "ompl/base/Planner.h"
 #include "ompl/datastructures/BinaryHeap.h"
+#include "ompl/geometric/PathGeometric.h"
 #include "ompl/geometric/planners/aitstar/datastructures/Edge.h"
 #include "ompl/geometric/planners/aitstar/datastructures/ImplicitGraph.h"
 #include "ompl/geometric/planners/aitstar/datastructures/Vertex.h"
@@ -67,7 +68,8 @@ namespace ompl
         indicates a flawed heuristic).
 
         This implementation of AIT* can solve problems with multiple start and goal states and supports adding start and
-        goal states while the planner is running.
+        goal states while the planner is running. One can also turn off repairing the reverse search tree upon collision
+        detection, which might be beneficial for problems in which collision detection is computationally inexpensive.
 
         @par Associated publication:
 
@@ -118,10 +120,10 @@ namespace ompl
             /** \brief Get the rewire factor of the RGG graph. */
             double getRewireFactor() const;
 
-            /** \brief Set whether to track approximate vertices. */
+            /** \brief Set whether to track approximate solutions. */
             void trackApproximateSolutions(bool track);
 
-            /** \brief Set whether to track approximate vertices. */
+            /** \brief Get whether approximate solutions are tracked. */
             bool areApproximateSolutionsTracked() const;
 
             /** \brief Updates the best approximate goal vertex. */
@@ -130,7 +132,7 @@ namespace ompl
             /** \brief Set whether pruning is enabled or not. */
             void enablePruning(bool prune);
 
-            /** \brief Set whether pruning is enabled or not. */
+            /** \brief Get whether pruning is enabled or not. */
             bool isPruningEnabled() const;
 
             /** \brief Enable LPA* repair of reverse search. */
@@ -176,7 +178,7 @@ namespace ompl
             /** \brief Rebuilds the forward queue. */
             void rebuildReverseQueue();
 
-            /** \brief Returns a vector of states from the argument to a start. */
+            /** \brief Returns the path a start to the argument. */
             std::shared_ptr<ompl::geometric::PathGeometric>
             getPathToVertex(const std::shared_ptr<aitstar::Vertex> &vertex) const;
 
@@ -206,7 +208,7 @@ namespace ompl
 
             /** \brief Checks whether the input vertex is the new best approximate solution and updates the solution in
              * the problem definition if so. **/
-            void updateApproximateSolution(const std::shared_ptr<aitstar::Vertex>& vertex);
+            void updateApproximateSolution(const std::shared_ptr<aitstar::Vertex> &vertex);
 
             /** \brief Returns the best cost-to-go-heuristic to any start in the graph. */
             ompl::base::Cost computeCostToGoToStartHeuristic(const std::shared_ptr<aitstar::Vertex> &vertex) const;

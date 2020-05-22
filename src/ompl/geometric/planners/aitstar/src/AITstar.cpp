@@ -41,7 +41,6 @@
 #include <boost/range/adaptor/reversed.hpp>
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
-#include "ompl/geometric/PathGeometric.h"
 #include "ompl/geometric/planners/aitstar/AITstar.h"
 #include "ompl/util/Console.h"
 
