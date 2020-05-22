@@ -177,8 +177,8 @@ namespace ompl
             void rebuildBackwardQueue();
 
             /** \brief Returns a vector of states from the argument to a start. */
-            std::vector<std::shared_ptr<aitstar::Vertex>>
-            getReversePath(const std::shared_ptr<aitstar::Vertex> &vertex) const;
+            std::shared_ptr<ompl::geometric::PathGeometric>
+            getPathToVertex(const std::shared_ptr<aitstar::Vertex> &vertex) const;
 
             /** \brief Computes the sort key of an edge. */
             std::array<ompl::base::Cost, 3u> computeSortKey(const std::shared_ptr<aitstar::Vertex> &parent,
@@ -202,7 +202,11 @@ namespace ompl
 
             /** \brief Checks whether the cost to come of a goal vertex has been updated and updates the solution if so.
              */
-            void updateSolution();
+            void updateExactSolution();
+
+            /** \brief Checks whether the input vertex is the new best approximate solution and updates the solution in
+             * the problem definition if so. **/
+            void updateApproximateSolution(const std::shared_ptr<aitstar::Vertex>& vertex);
 
             /** \brief Returns the best cost-to-go-heuristic to any start in the graph. */
             ompl::base::Cost computeCostToGoToStartHeuristic(const std::shared_ptr<aitstar::Vertex> &vertex) const;

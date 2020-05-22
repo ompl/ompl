@@ -60,7 +60,7 @@ namespace ompl
             // Specify AIT*'s planner specs.
             specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
             specs_.multithreaded = false;
-            specs_.approximateSolutions = trackApproximateSolutions_;  // Must be enabled.
+            specs_.approximateSolutions = trackApproximateSolutions_;  // Disabled by default.
             specs_.optimizingPaths = true;
             specs_.directed = true;
             specs_.provingSolutionNonExistence = false;
@@ -228,9 +228,19 @@ namespace ompl
                 iterate();
             }
 
-            // In any case, update the solution now. (Externally, someone might call pdef_->clearSolutionPaths() between
-            // invokations of solve().)
-            updateSolution();
+            // Someone might call ProblemDefinition::clearSolutionPaths() between invokations of Planner::solve(), in
+            // which case previously found solutions are not registered with the problem definition anymore.
+            updateExactSolution();
+
+            // If there are no solutions registered in the problem definition and we're tracking approximate solutions,
+            // find the best vertex in the graph.
+            if (!pdef_->hasExactSolution() && !pdef_->hasApproximateSolution() && trackApproximateSolutions_)
+            {
+                for (const auto &vertex : graph_.getVertices())
+                {
+                    updateApproximateSolution(vertex);
+                }
+            }
 
             if (objective_->isFinite(*solutionCost_))
             {
@@ -706,7 +716,7 @@ namespace ompl
                     child->updateCostOfForwardBranch();
 
                     // Check if the solution can benefit from this.
-                    updateSolution();
+                    updateExactSolution();
 
                     // Insert the child's outgoing edges into the queue.
                     auto edges = getOutgoingEdges(child);
@@ -1104,9 +1114,10 @@ namespace ompl
             }
         }
 
-        std::vector<std::shared_ptr<aitstar::Vertex>>
-        AITstar::getReversePath(const std::shared_ptr<aitstar::Vertex> &vertex) const
+        std::shared_ptr<ompl::geometric::PathGeometric>
+        AITstar::getPathToVertex(const std::shared_ptr<aitstar::Vertex> &vertex) const
         {
+            // Create the reverse path by following the parents to the start.
             std::vector<std::shared_ptr<aitstar::Vertex>> reversePath;
             auto current = vertex;
             while (!graph_.isStart(current))
@@ -1115,7 +1126,15 @@ namespace ompl
                 current = current->getForwardParent();
             }
             reversePath.emplace_back(current);
-            return reversePath;
+
+            // Reverse the reverse path to get the forward path.
+            auto path = std::make_shared<ompl::geometric::PathGeometric>(Planner::si_);
+            for (const auto &vertex : boost::adaptors::reverse(reversePath))
+            {
+                path->append(vertex->getState());
+            }
+
+            return path;
         }
 
         std::array<ompl::base::Cost, 3u> AITstar::computeSortKey(const std::shared_ptr<aitstar::Vertex> &parent,
@@ -1213,27 +1232,21 @@ namespace ompl
             return true;
         }
 
-        void AITstar::updateSolution()
+        void AITstar::updateExactSolution()
         {
             // Check if any of the goals have a cost to come less than the current solution cost.
             for (const auto &goal : graph_.getGoalVertices())
             {
+                // We need to check whether the cost is better, or whether someone has removed the exact solution from
+                // the problem definition.
                 if (objective_->isCostBetterThan(goal->getCostToComeFromStart(), *solutionCost_) ||
                     (!pdef_->hasExactSolution() && objective_->isFinite(goal->getCostToComeFromStart())))
                 {
                     // Remember the incumbent cost.
                     *solutionCost_ = goal->getCostToComeFromStart();
 
-                    // Create a path.
-                    auto path = std::make_shared<ompl::geometric::PathGeometric>(si_);
-                    auto reversePath = getReversePath(goal);
-                    for (const auto &vertex : boost::adaptors::reverse(reversePath))
-                    {
-                        path->append(vertex->getState());
-                    }
-
-                    // Convert the path to a solution.
-                    ompl::base::PlannerSolution solution(path);
+                    // Create a solution.
+                    ompl::base::PlannerSolution solution(getPathToVertex(goal));
                     solution.setPlannerName(name_);
 
                     // Set the optimized flag.
@@ -1243,43 +1256,33 @@ namespace ompl
                     pdef_->addSolutionPath(solution);
                 }
             }
-
-            if (!pdef_->hasExactSolution() && trackApproximateSolutions_)
-            {
-                std::shared_ptr<aitstar::Vertex> bestApproximateGoal;
-                for (const auto &approximateGoal : graph_.getVertices())
-                {
-                    if (approximateGoal->hasForwardParent() || graph_.isStart(approximateGoal))
-                    {
-                        auto costToGoal = computeCostToGoToGoal(approximateGoal);
-                        if (objective_->isCostBetterThan(costToGoal, approximateSolutionCost_))
-                        {
-                            // Remember the incumbent cost.
-                            approximateSolutionCost_ = costToGoal;
-                            bestApproximateGoal = approximateGoal;
-                        }
-                    }
-                }
-
-                // Create a path.
-                auto path = std::make_shared<ompl::geometric::PathGeometric>(Planner::si_);
-                auto reversePath = getReversePath(bestApproximateGoal);
-                for (const auto &vertex : boost::adaptors::reverse(reversePath))
-                {
-                    path->append(vertex->getState());
-                }
-
-                // Convert the path to a solution.
-                ompl::base::PlannerSolution solution(path);
-                solution.setPlannerName(name_);
-
-                // Set the approximate flag.
-                solution.setApproximate(approximateSolutionCost_.value());
-
-                // Let the problem definition know that a new solution exists.
-                Planner::pdef_->addSolutionPath(solution);
-            }
         }
+
+        void AITstar::updateApproximateSolution(const std::shared_ptr<aitstar::Vertex> &vertex)
+        {
+            assert(trackApproximateSolutions_);
+            if (vertex->hasForwardParent() || graph_.isStart(vertex))
+            {
+                auto costToGoal = computeCostToGoToGoal(vertex);
+
+                // We need to check whether this is better than the current approximate solution or whether someone has
+                // removed all approximate solutions from the problem definition.
+                if (objective_->isCostBetterThan(costToGoal, approximateSolutionCost_) ||
+                    !pdef_->hasApproximateSolution())
+                {
+                    // Remember the incumbent approximate cost.
+                    approximateSolutionCost_ = costToGoal;
+                    ompl::base::PlannerSolution solution(getPathToVertex(vertex));
+                    solution.setPlannerName(name_);
+
+                    // Set the approximate flag.
+                    solution.setApproximate(approximateSolutionCost_.value());
+
+                    // Let the problem definition know that a new solution exists.
+                    pdef_->addSolutionPath(solution);
+                }
+            }
+        };
 
         ompl::base::Cost AITstar::computeCostToGoToStartHeuristic(const std::shared_ptr<aitstar::Vertex> &vertex) const
         {
