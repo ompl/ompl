@@ -53,7 +53,7 @@ namespace ompl
                                       const ompl::base::ProblemDefinitionPtr &problemDefinition,
                                       const std::shared_ptr<ompl::base::Cost> &solutionCost,
                                       const std::shared_ptr<std::size_t> &forwardSearchId,
-                                      const std::shared_ptr<std::size_t> &backwardSearchId,
+                                      const std::shared_ptr<std::size_t> &reverseSearchId,
                                       ompl::base::PlannerInputStates *inputStates)
             {
                 vertices_.setDistanceFunction(
@@ -65,7 +65,7 @@ namespace ompl
                 objective_ = problemDefinition->getOptimizationObjective();
                 solutionCost_ = solutionCost;
                 forwardSearchId_ = forwardSearchId;
-                backwardSearchId_ = backwardSearchId;
+                reverseSearchId_ = reverseSearchId;
                 updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), inputStates);
             }
 
@@ -73,7 +73,7 @@ namespace ompl
             {
                 *batchId_ = 1u;
                 *forwardSearchId_ = 1u;
-                *backwardSearchId_ = 1u;
+                *reverseSearchId_ = 1u;
                 radius_ = std::numeric_limits<double>::infinity();
                 vertices_.clear();
                 startVertices_.clear();
@@ -96,7 +96,7 @@ namespace ompl
             {
                 // Create a vertex corresponding to this state.
                 auto startVertex = std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_,
-                                                            forwardSearchId_, backwardSearchId_);
+                                                            forwardSearchId_, reverseSearchId_);
 
                 // Copy the state into the vertex's state.
                 spaceInformation_->copyState(startVertex->getState(), startState);
@@ -115,7 +115,7 @@ namespace ompl
             {
                 // Create a vertex corresponding to this state.
                 auto goalVertex = std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_,
-                                                           forwardSearchId_, backwardSearchId_);
+                                                           forwardSearchId_, reverseSearchId_);
 
                 // Copy the state into the vertex's state.
                 spaceInformation_->copyState(goalVertex->getState(), goalState);
@@ -319,7 +319,7 @@ namespace ompl
                 {
                     // Create a new vertex.
                     newVertices.emplace_back(std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_,
-                                                                      forwardSearchId_, backwardSearchId_));
+                                                                      forwardSearchId_, reverseSearchId_));
 
                     do
                     {
@@ -450,12 +450,12 @@ namespace ompl
                 for (const auto &vertex : verticesToBePruned)
                 {
                     // Remove it from both search trees.
-                    if (vertex->hasBackwardParent())
+                    if (vertex->hasReverseParent())
                     {
-                        vertex->getBackwardParent()->removeFromBackwardChildren(vertex->getId());
-                        vertex->resetBackwardParent();
+                        vertex->getReverseParent()->removeFromReverseChildren(vertex->getId());
+                        vertex->resetReverseParent();
                     }
-                    vertex->invalidateBackwardBranch();
+                    vertex->invalidateReverseBranch();
                     if (vertex->hasForwardParent())
                     {
                         vertex->getForwardParent()->removeFromForwardChildren(vertex->getId());

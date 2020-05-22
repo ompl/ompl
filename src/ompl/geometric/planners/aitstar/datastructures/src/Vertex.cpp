@@ -64,7 +64,7 @@ namespace ompl
                            const ompl::base::ProblemDefinitionPtr &problemDefinition,
                            const std::shared_ptr<std::size_t> &batchId,
                            const std::shared_ptr<std::size_t> &forwardSearchId,
-                           const std::shared_ptr<std::size_t> &backwardSearchId)
+                           const std::shared_ptr<std::size_t> &reverseSearchId)
               : spaceInformation_(spaceInformation)
               , problemDefinition_(problemDefinition)
               , optimizationObjective_(problemDefinition->getOptimizationObjective())
@@ -79,7 +79,7 @@ namespace ompl
               , vertexId_(generateId())
               , batchId_(batchId)
               , forwardSearchId_(forwardSearchId)
-              , backwardSearchId_(backwardSearchId)
+              , reverseSearchId_(reverseSearchId)
             {
             }
 
@@ -116,7 +116,7 @@ namespace ompl
 
             ompl::base::Cost Vertex::getCostToComeFromGoal() const
             {
-                if (backwardSearchBatchId_ != *batchId_.lock())
+                if (reverseSearchBatchId_ != *batchId_.lock())
                 {
                     costToComeFromGoal_ = optimizationObjective_->infiniteCost();
                 }
@@ -125,7 +125,7 @@ namespace ompl
 
             ompl::base::Cost Vertex::getExpandedCostToComeFromGoal() const
             {
-                if (expandedBackwardSearchId_ != *backwardSearchId_.lock())
+                if (expandedReverseSearchId_ != *reverseSearchId_.lock())
                 {
                     expandedCostToComeFromGoal_ = optimizationObjective_->infiniteCost();
                 }
@@ -193,14 +193,14 @@ namespace ompl
                 return forwardParent_.lock();
             }
 
-            bool Vertex::hasBackwardParent() const
+            bool Vertex::hasReverseParent() const
             {
-                return static_cast<bool>(backwardParent_.lock());
+                return static_cast<bool>(reverseParent_.lock());
             }
 
-            std::shared_ptr<Vertex> Vertex::getBackwardParent() const
+            std::shared_ptr<Vertex> Vertex::getReverseParent() const
             {
-                return backwardParent_.lock();
+                return reverseParent_.lock();
             }
 
             void Vertex::setForwardEdgeCost(const ompl::base::Cost &cost)
@@ -215,7 +215,7 @@ namespace ompl
 
             void Vertex::setCostToComeFromGoal(const ompl::base::Cost &cost)
             {
-                backwardSearchBatchId_ = *batchId_.lock();
+                reverseSearchBatchId_ = *batchId_.lock();
                 costToComeFromGoal_ = cost;
             }
 
@@ -240,21 +240,21 @@ namespace ompl
                 }
             }
 
-            std::vector<std::weak_ptr<aitstar::Vertex>> Vertex::invalidateBackwardBranch()
+            std::vector<std::weak_ptr<aitstar::Vertex>> Vertex::invalidateReverseBranch()
             {
-                std::vector<std::weak_ptr<aitstar::Vertex>> accumulatedChildren = backwardChildren_;
+                std::vector<std::weak_ptr<aitstar::Vertex>> accumulatedChildren = reverseChildren_;
 
                 // Remove all children.
-                for (const auto &child : backwardChildren_)
+                for (const auto &child : reverseChildren_)
                 {
                     child.lock()->setCostToComeFromGoal(optimizationObjective_->infiniteCost());
                     child.lock()->setExpandedCostToComeFromGoal(optimizationObjective_->infiniteCost());
-                    child.lock()->resetBackwardParent();
-                    auto childsAccumulatedChildren = child.lock()->invalidateBackwardBranch();
+                    child.lock()->resetReverseParent();
+                    auto childsAccumulatedChildren = child.lock()->invalidateReverseBranch();
                     accumulatedChildren.insert(accumulatedChildren.end(), childsAccumulatedChildren.begin(),
                                                childsAccumulatedChildren.end());
                 }
-                backwardChildren_.clear();
+                reverseChildren_.clear();
 
                 return accumulatedChildren;
             }
@@ -300,21 +300,21 @@ namespace ompl
                 forwardParent_.reset();
             }
 
-            void Vertex::setBackwardParent(const std::shared_ptr<Vertex> &vertex)
+            void Vertex::setReverseParent(const std::shared_ptr<Vertex> &vertex)
             {
                 // If this is a rewiring, remove from my parent's children.
-                if (static_cast<bool>(backwardParent_.lock()))
+                if (static_cast<bool>(reverseParent_.lock()))
                 {
-                    backwardParent_.lock()->removeFromBackwardChildren(vertexId_);
+                    reverseParent_.lock()->removeFromReverseChildren(vertexId_);
                 }
 
                 // Remember the parent.
-                backwardParent_ = std::weak_ptr<Vertex>(vertex);
+                reverseParent_ = std::weak_ptr<Vertex>(vertex);
             }
 
-            void Vertex::resetBackwardParent()
+            void Vertex::resetReverseParent()
             {
-                backwardParent_.reset();
+                reverseParent_.reset();
             }
 
             void Vertex::addToForwardChildren(const std::shared_ptr<Vertex> &vertex)
@@ -341,28 +341,28 @@ namespace ompl
                 forwardChildren_.pop_back();
             }
 
-            void Vertex::addToBackwardChildren(const std::shared_ptr<Vertex> &vertex)
+            void Vertex::addToReverseChildren(const std::shared_ptr<Vertex> &vertex)
             {
-                backwardChildren_.push_back(vertex);
+                reverseChildren_.push_back(vertex);
             }
 
-            void Vertex::removeFromBackwardChildren(std::size_t vertexId)
+            void Vertex::removeFromReverseChildren(std::size_t vertexId)
             {
                 // Find the child.
                 auto it = std::find_if(
-                    backwardChildren_.begin(), backwardChildren_.end(),
+                    reverseChildren_.begin(), reverseChildren_.end(),
                     [vertexId](const std::weak_ptr<Vertex> &child) { return vertexId == child.lock()->getId(); });
 
                 // Throw if it is not found.
-                if (it == backwardChildren_.end())
+                if (it == reverseChildren_.end())
                 {
-                    auto msg = "Asked to remove vertex from backward children that is currently not a child."s;
+                    auto msg = "Asked to remove vertex from reverse children that is currently not a child."s;
                     throw ompl::Exception(msg);
                 }
 
                 // Swap and pop.
-                std::iter_swap(it, backwardChildren_.rbegin());
-                backwardChildren_.pop_back();
+                std::iter_swap(it, reverseChildren_.rbegin());
+                reverseChildren_.pop_back();
             }
 
             void Vertex::whitelistAsChild(const std::shared_ptr<Vertex> &vertex) const
@@ -431,11 +431,11 @@ namespace ompl
                 return children;
             }
 
-            std::vector<std::shared_ptr<Vertex>> Vertex::getBackwardChildren() const
+            std::vector<std::shared_ptr<Vertex>> Vertex::getReverseChildren() const
             {
                 std::vector<std::shared_ptr<Vertex>> children;
-                children.reserve(backwardChildren_.size());
-                for (const auto &child : backwardChildren_)
+                children.reserve(reverseChildren_.size());
+                for (const auto &child : reverseChildren_)
                 {
                     assert(!child.expired());
                     children.emplace_back(child.lock());
@@ -448,17 +448,17 @@ namespace ompl
                 childAddedForwardSearchId_ = *forwardSearchId_.lock();
             }
 
-            void Vertex::registerExpansionDuringBackwardSearch()
+            void Vertex::registerExpansionDuringReverseSearch()
             {
-                assert(!backwardSearchId_.expired());
+                assert(!reverseSearchId_.expired());
                 expandedCostToComeFromGoal_ = costToComeFromGoal_;
-                expandedBackwardSearchId_ = *backwardSearchId_.lock();
+                expandedReverseSearchId_ = *reverseSearchId_.lock();
             }
 
-            void Vertex::registerInsertionIntoQueueDuringBackwardSearch()
+            void Vertex::registerInsertionIntoQueueDuringReverseSearch()
             {
-                assert(!backwardSearchId_.expired());
-                insertedIntoQueueBackwardSearchId_ = *backwardSearchId_.lock();
+                assert(!reverseSearchId_.expired());
+                insertedIntoQueueReverseSearchId_ = *reverseSearchId_.lock();
             }
 
             bool Vertex::hasHadAChildAddedDuringCurrentForwardSearch() const
@@ -467,26 +467,26 @@ namespace ompl
                 return childAddedForwardSearchId_ == *forwardSearchId_.lock();
             }
 
-            bool Vertex::hasBeenExpandedDuringCurrentBackwardSearch() const
+            bool Vertex::hasBeenExpandedDuringCurrentReverseSearch() const
             {
-                assert(!backwardSearchId_.expired());
-                return expandedBackwardSearchId_ == *backwardSearchId_.lock();
+                assert(!reverseSearchId_.expired());
+                return expandedReverseSearchId_ == *reverseSearchId_.lock();
             }
 
-            bool Vertex::hasBeenInsertedIntoQueueDuringCurrentBackwardSearch() const
+            bool Vertex::hasBeenInsertedIntoQueueDuringCurrentReverseSearch() const
             {
-                return insertedIntoQueueBackwardSearchId_ == *backwardSearchId_.lock();
+                return insertedIntoQueueReverseSearchId_ == *reverseSearchId_.lock();
             }
 
-            void Vertex::setBackwardQueuePointer(
+            void Vertex::setReverseQueuePointer(
                 typename ompl::BinaryHeap<
                     std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
                     std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
                                        const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
                     Element *pointer)
             {
-                backwardQueuePointerBackwardSearchId_ = *backwardSearchId_.lock();
-                backwardQueuePointer_ = pointer;
+                reverseQueuePointerReverseSearchId_ = *reverseSearchId_.lock();
+                reverseQueuePointer_ = pointer;
             }
 
             typename ompl::BinaryHeap<
@@ -494,18 +494,18 @@ namespace ompl
                 std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
                                    const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
                 Element *
-                Vertex::getBackwardQueuePointer() const
+                Vertex::getReverseQueuePointer() const
             {
-                if (*backwardSearchId_.lock() != backwardQueuePointerBackwardSearchId_)
+                if (*reverseSearchId_.lock() != reverseQueuePointerReverseSearchId_)
                 {
-                    backwardQueuePointer_ = nullptr;
+                    reverseQueuePointer_ = nullptr;
                 }
-                return backwardQueuePointer_;
+                return reverseQueuePointer_;
             }
 
-            void Vertex::resetBackwardQueuePointer()
+            void Vertex::resetReverseQueuePointer()
             {
-                backwardQueuePointer_ = nullptr;
+                reverseQueuePointer_ = nullptr;
             }
 
             void Vertex::addToForwardQueueIncomingLookup(

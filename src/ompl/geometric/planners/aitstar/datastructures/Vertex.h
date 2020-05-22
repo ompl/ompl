@@ -61,7 +61,7 @@ namespace ompl
                 Vertex(const ompl::base::SpaceInformationPtr &spaceInformation,
                        const ompl::base::ProblemDefinitionPtr &problemDefinition,
                        const std::shared_ptr<std::size_t> &batchId, const std::shared_ptr<std::size_t> &forwardSearchId,
-                       const std::shared_ptr<std::size_t> &backwardSearchId);
+                       const std::shared_ptr<std::size_t> &reverseSearchId);
 
                 /** \brief Destructs the vertex. */
                 virtual ~Vertex();
@@ -102,20 +102,20 @@ namespace ompl
                 /** \brief Resets the forward parent of the vertex. */
                 void resetForwardParent();
 
-                /** \brief Returns whether this vertex has a parent in the backward search. */
-                bool hasBackwardParent() const;
+                /** \brief Returns whether this vertex has a parent in the reverse search. */
+                bool hasReverseParent() const;
 
-                /** \brief Sets the parent vertex (in the backward-search tree). */
-                void setBackwardParent(const std::shared_ptr<Vertex> &vertex);
+                /** \brief Sets the parent vertex (in the reverse-search tree). */
+                void setReverseParent(const std::shared_ptr<Vertex> &vertex);
 
-                /** \brief Resets the backward parent of the vertex. */
-                void resetBackwardParent();
+                /** \brief Resets the reverse parent of the vertex. */
+                void resetReverseParent();
 
                 /** \brief Returns the parent of the vertex (in the forward-search tree). */
                 std::shared_ptr<Vertex> getForwardParent() const;
 
-                /** \brief Returns the parent of the vertex (in the backward-search tree). */
-                std::shared_ptr<Vertex> getBackwardParent() const;
+                /** \brief Returns the parent of the vertex (in the reverse-search tree). */
+                std::shared_ptr<Vertex> getReverseParent() const;
 
                 /** \brief Sets the cost to come to this vertex. */
                 void setForwardEdgeCost(const ompl::base::Cost &cost);
@@ -135,8 +135,8 @@ namespace ompl
                 /** \brief Updates the cost to the whole branch rooted at this vertex. */
                 void updateCostOfForwardBranch() const;
 
-                /** \brief Recursively invalidates the branch of the backward tree rooted in this vertex. */
-                std::vector<std::weak_ptr<aitstar::Vertex>> invalidateBackwardBranch();
+                /** \brief Recursively invalidates the branch of the reverse tree rooted in this vertex. */
+                std::vector<std::weak_ptr<aitstar::Vertex>> invalidateReverseBranch();
 
                 /** \brief Recursively invalidates the branch of the forward tree rooted in this vertex. */
                 std::vector<std::weak_ptr<aitstar::Vertex>> invalidateForwardBranch();
@@ -151,13 +151,13 @@ namespace ompl
                 std::vector<std::shared_ptr<Vertex>> getForwardChildren() const;
 
                 /** \brief Adds a vertex this vertex's children. */
-                void addToBackwardChildren(const std::shared_ptr<Vertex> &vertex);
+                void addToReverseChildren(const std::shared_ptr<Vertex> &vertex);
 
                 /** \brief Removes a vertex from this vertex's forward children. */
-                void removeFromBackwardChildren(std::size_t vertexId);
+                void removeFromReverseChildren(std::size_t vertexId);
 
-                /** \brief Returns this vertex's children in the backward search tree. */
-                std::vector<std::shared_ptr<Vertex>> getBackwardChildren() const;
+                /** \brief Returns this vertex's children in the reverse search tree. */
+                std::vector<std::shared_ptr<Vertex>> getReverseChildren() const;
 
                 /** \brief Blacklists a child. */
                 void whitelistAsChild(const std::shared_ptr<Vertex> &vertex) const;
@@ -183,41 +183,41 @@ namespace ompl
                 /** \brief Registers that a child has been added to this vertex during the current forward search. */
                 void registerAdditionOfChildDuringForwardSearch();
 
-                /** \brief Registers the expansion of this vertex during the current backward search. */
-                void registerExpansionDuringBackwardSearch();
+                /** \brief Registers the expansion of this vertex during the current reverse search. */
+                void registerExpansionDuringReverseSearch();
 
-                /** \brief Registers the insertion of this vertex into the open queue during the current backward
+                /** \brief Registers the insertion of this vertex into the open queue during the current reverse
                  * search. */
-                void registerInsertionIntoQueueDuringBackwardSearch();
+                void registerInsertionIntoQueueDuringReverseSearch();
 
                 /** \brief Returns whether the vertex has been expanded during the current forward search. */
                 bool hasHadAChildAddedDuringCurrentForwardSearch() const;
 
-                /** \brief Returns whether the vertex has been expanded during the current backward search. */
-                bool hasBeenExpandedDuringCurrentBackwardSearch() const;
+                /** \brief Returns whether the vertex has been expanded during the current reverse search. */
+                bool hasBeenExpandedDuringCurrentReverseSearch() const;
 
-                /** \brief Returns whether the vertex has been inserted into the queue during the current backward
+                /** \brief Returns whether the vertex has been inserted into the queue during the current reverse
                  * search. */
-                bool hasBeenInsertedIntoQueueDuringCurrentBackwardSearch() const;
+                bool hasBeenInsertedIntoQueueDuringCurrentReverseSearch() const;
 
-                /** \brief Sets the backward queue pointer of this vertex. */
-                void setBackwardQueuePointer(
+                /** \brief Sets the reverse queue pointer of this vertex. */
+                void setReverseQueuePointer(
                     typename ompl::BinaryHeap<
                         std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
                         std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
                                            const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>
                                                &)>>::Element *pointer);
 
-                /** \brief Returns the backward queue pointer of this vertex. */
+                /** \brief Returns the reverse queue pointer of this vertex. */
                 typename ompl::BinaryHeap<
                     std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
                     std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
                                        const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
                     Element *
-                    getBackwardQueuePointer() const;
+                    getReverseQueuePointer() const;
 
-                /** \brief Resets the backward queue pointer. */
-                void resetBackwardQueuePointer();
+                /** \brief Resets the reverse queue pointer. */
+                void resetReverseQueuePointer();
 
                 /** \brief Adds an element to the forward queue incoming lookup. */
                 void addToForwardQueueIncomingLookup(
@@ -272,8 +272,8 @@ namespace ompl
                 /** \brief The children of this vertex in the forward search tree. */
                 std::vector<std::weak_ptr<Vertex>> forwardChildren_{};
 
-                /** \brief The children of this vertex in the backward search tree. */
-                std::vector<std::weak_ptr<Vertex>> backwardChildren_{};
+                /** \brief The children of this vertex in the reverse search tree. */
+                std::vector<std::weak_ptr<Vertex>> reverseChildren_{};
 
                 /** \brief The cached neighbors of this vertex. */
                 mutable std::vector<std::shared_ptr<Vertex>> neighbors_{};
@@ -288,7 +288,7 @@ namespace ompl
                 std::weak_ptr<Vertex> forwardParent_;
 
                 /** \brief The parent of this vertex. */
-                std::weak_ptr<Vertex> backwardParent_;
+                std::weak_ptr<Vertex> reverseParent_;
 
                 /** \brief The state associated with this vertex. */
                 ompl::base::State *state_;
@@ -299,7 +299,7 @@ namespace ompl
                 /** \brief The edge cost from the parent. */
                 ompl::base::Cost edgeCostFromForwardParent_;
 
-                /** \brief The backward cost to come. */
+                /** \brief The reverse cost to come. */
                 mutable ompl::base::Cost costToComeFromGoal_;
 
                 /** \brief The cost to come from the goal when this vertex was expanded. */
@@ -317,33 +317,33 @@ namespace ompl
                 /** \brief The id of the current forward search. */
                 const std::weak_ptr<const std::size_t> forwardSearchId_;
 
-                /** \brief The id of the current backward search. */
-                const std::weak_ptr<const std::size_t> backwardSearchId_;
+                /** \brief The id of the current reverse search. */
+                const std::weak_ptr<const std::size_t> reverseSearchId_;
 
                 /** \brief The batch id for which the cached neighbor list is valid. */
                 mutable std::size_t neighborBatchId_{0u};
 
-                /** \brief The batch id for which the backward search cost to come is valid. */
-                mutable std::size_t backwardSearchBatchId_{0u};
+                /** \brief The batch id for which the reverse search cost to come is valid. */
+                mutable std::size_t reverseSearchBatchId_{0u};
 
                 /** \brief The forward search id a child has last been added to this vertex. */
                 mutable std::size_t childAddedForwardSearchId_{0u};
 
-                /** \brief The backward search id this vertex has last been expanded on. */
-                mutable std::size_t expandedBackwardSearchId_{0u};
+                /** \brief The reverse search id this vertex has last been expanded on. */
+                mutable std::size_t expandedReverseSearchId_{0u};
 
-                /** \brief The backward search id this vertex has last been inserted into open on. */
-                mutable std::size_t insertedIntoQueueBackwardSearchId_{0u};
+                /** \brief The reverse search id this vertex has last been inserted into open on. */
+                mutable std::size_t insertedIntoQueueReverseSearchId_{0u};
 
-                /** \brief The backward search id for which the backward queue pointer is valid. */
-                mutable std::size_t backwardQueuePointerBackwardSearchId_{0u};
+                /** \brief The reverse search id for which the reverse queue pointer is valid. */
+                mutable std::size_t reverseQueuePointerReverseSearchId_{0u};
 
-                /** \brief The pointer to the backward queue element. */
+                /** \brief The pointer to the reverse queue element. */
                 mutable typename ompl::BinaryHeap<
                     std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
                     std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
                                        const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
-                    Element *backwardQueuePointer_{nullptr};
+                    Element *reverseQueuePointer_{nullptr};
 
                 /** \brief The lookup to incoming edges in the forward queue. */
                 mutable std::vector<ompl::BinaryHeap<

@@ -133,8 +133,8 @@ namespace ompl
             /** \brief Set whether pruning is enabled or not. */
             bool isPruningEnabled() const;
 
-            /** \brief Enable LPA* repair of backward search. */
-            void setRepairBackwardSearch(bool setRepairBackwardSearch);
+            /** \brief Enable LPA* repair of reverse search. */
+            void setRepairReverseSearch(bool repairReverseSearch);
 
             /** \brief Get the edge queue. */
             std::vector<aitstar::Edge> getEdgesInQueue() const;
@@ -148,8 +148,8 @@ namespace ompl
             /** \brief Get the next vertex in the queue. */
             std::shared_ptr<aitstar::Vertex> getNextVertexInQueue() const;
 
-            /** \brief Get the vertices in the backward search tree. */
-            std::vector<std::shared_ptr<aitstar::Vertex>> getVerticesInBackwardSearchTree() const;
+            /** \brief Get the vertices in the reverse search tree. */
+            std::vector<std::shared_ptr<aitstar::Vertex>> getVerticesInReverseSearchTree() const;
 
         private:
             /** \brief Performs one iteration of AIT*. */
@@ -158,23 +158,23 @@ namespace ompl
             /** \brief Performs one forward search iterations. */
             void performForwardSearchIteration();
 
-            /** \brief Performs one backward search iterations. */
-            void performBackwardSearchIteration();
+            /** \brief Performs one reverse search iterations. */
+            void performReverseSearchIteration();
 
-            /** \brief Updates a vertex in the backward search queue (LPA* update). */
-            void backwardSearchUpdateVertex(const std::shared_ptr<aitstar::Vertex> &vertex);
+            /** \brief Updates a vertex in the reverse search queue (LPA* update). */
+            void reverseSearchUpdateVertex(const std::shared_ptr<aitstar::Vertex> &vertex);
 
-            /** \brief Inserts or updates a vertex in the backward queue. */
+            /** \brief Inserts or updates a vertex in the reverse queue. */
             void insertOrUpdateInForwardQueue(const aitstar::Edge &edge);
 
-            /** \brief Inserts or updates a vertex in the backward queue. */
-            void insertOrUpdateInBackwardQueue(const std::shared_ptr<aitstar::Vertex> &vertex);
+            /** \brief Inserts or updates a vertex in the reverse queue. */
+            void insertOrUpdateInReverseQueue(const std::shared_ptr<aitstar::Vertex> &vertex);
 
             /** \brief Rebuilds the forward queue. */
             void rebuildForwardQueue();
 
             /** \brief Rebuilds the forward queue. */
-            void rebuildBackwardQueue();
+            void rebuildReverseQueue();
 
             /** \brief Returns a vector of states from the argument to a start. */
             std::shared_ptr<ompl::geometric::PathGeometric>
@@ -220,9 +220,9 @@ namespace ompl
             /** \brief Returns the best cost to come form the goal of any start. */
             ompl::base::Cost computeBestCostToComeFromGoalOfAnyStart() const;
 
-            /** \brief Sets the cost to come from to goal of the backward search to infinity for the whole branch.
+            /** \brief Sets the cost to come from to goal of the reverse search to infinity for the whole branch.
              */
-            void invalidateCostToComeFromGoalOfBackwardBranch(const std::shared_ptr<aitstar::Vertex> &vertex);
+            void invalidateCostToComeFromGoalOfReverseBranch(const std::shared_ptr<aitstar::Vertex> &vertex);
 
             /** \brief The increasingly dense sampling-based approximation. */
             aitstar::ImplicitGraph graph_;
@@ -232,17 +232,17 @@ namespace ompl
                 ompl::BinaryHeap<aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>;
             std::unique_ptr<EdgeQueue> forwardQueue_;
 
-            /** \brief The backward queue. */
+            /** \brief The reverse queue. */
             using KeyVertexPair = std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>>;
             using VertexQueue =
                 ompl::BinaryHeap<KeyVertexPair, std::function<bool(const KeyVertexPair &, const KeyVertexPair &)>>;
-            std::unique_ptr<VertexQueue> backwardQueue_;
+            std::unique_ptr<VertexQueue> reverseQueue_;
 
             /** \brief The id of the current forward search .*/
             std::shared_ptr<std::size_t> forwardSearchId_;
 
-            /** \brief The id of the current backward search .*/
-            std::shared_ptr<std::size_t> backwardSearchId_;
+            /** \brief The id of the current reverse search .*/
+            std::shared_ptr<std::size_t> reverseSearchId_;
 
             /** \brief The cost of the incumbent solution. */
             std::shared_ptr<ompl::base::Cost> solutionCost_;
@@ -259,8 +259,8 @@ namespace ompl
             /** \brief The number of samples per batch. */
             std::size_t batchSize_{100u};
 
-            /** \brief Flag whether to perform a backward search iteration on the next iteration. */
-            bool performBackwardSearchIteration_{true};
+            /** \brief Flag whether to perform a reverse search iteration on the next iteration. */
+            bool performReverseSearchIteration_{true};
 
             /** \brief Flag whether the forward search has been started on the batch. */
             bool isForwardSearchStartedOnBatch_{false};
@@ -268,8 +268,8 @@ namespace ompl
             /** \brief Flag whether the forward queue needs to be rebuilt. */
             bool forwardQueueMustBeRebuilt_{false};
 
-            /** \brief The option that specifies whether to repair the backward search when detecting a collision. */
-            bool repairBackwardSearch_{true};
+            /** \brief The option that specifies whether to repair the reverse search when detecting a collision. */
+            bool repairReverseSearch_{true};
 
             /** \brief The option that specifies whether to track approximate solutions. */
             bool trackApproximateSolutions_{false};

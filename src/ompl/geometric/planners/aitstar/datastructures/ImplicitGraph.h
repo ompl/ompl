@@ -68,7 +68,7 @@ namespace ompl
                            const ompl::base::ProblemDefinitionPtr &problemDefinition,
                            const std::shared_ptr<ompl::base::Cost> &solutionCost,
                            const std::shared_ptr<std::size_t> &forwardSearchId,
-                           const std::shared_ptr<std::size_t> &backwardSearchId,
+                           const std::shared_ptr<std::size_t> &reverseSearchId,
                            ompl::base::PlannerInputStates *inputStates);
 
                 /** \brief Resets the graph to its construction state, without resetting options. */
@@ -161,8 +161,8 @@ namespace ompl
                 /** \brief The id of the forward search. */
                 std::shared_ptr<std::size_t> forwardSearchId_;
 
-                /** \brief The id of the backward search. */
-                std::shared_ptr<std::size_t> backwardSearchId_;
+                /** \brief The id of the reverse search. */
+                std::shared_ptr<std::size_t> reverseSearchId_;
 
                 /** \brief The rewire factor of the RGG. */
                 double rewireFactor_{1.0};
