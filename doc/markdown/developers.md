@@ -8,6 +8,7 @@ A breakdown of all contributions by commits can be found on GitHub for the [OMPL
 
 - [Jennifer Barry](http://people.csail.mit.edu/jbarry), Leslie Pack Kaelbling and Tomás Lozano-Pérez's [Learning in Intelligent Systems Group](http://lis.csail.mit.edu), MIT (now at Rethink Robotics)
 - [Prudhvi Boyapalli](http://www.prudhviboyapalli.com), Rice University
+- Leonard Bruns, Robert Bosch GmbH (now at KTH Royal Institute of Technology)
 - Stephen Butler, Rice University
 - Beck Chen, Rice University
 - [Sachin Chitta](http://www.sachinchitta.org), SRI International (now at Boston Dynamics)
@@ -16,7 +17,7 @@ A breakdown of all contributions by commits can be found on GitHub for the [OMPL
 - [Neil Dantam](http://www.neil.dantam.name), Rice University (now at Colorado School of Mines)
 - [Andrew Dobson](http://www.pracsyslab.org/dobson), Kostas Bekris' [Physics-aware Research for Autonomous Computational SYStems group](http://www.pracsyslab.org), Rutgers University
 - Elizabeth Fudge, Rice University
-- [Jonathan Gammell](https://robotic-esp.com/gammell/), Tim Barfoot's [Autonomous Space Robotics Lab](http://asrl.utias.utoronto.ca), University of Toronto
+- [Jonathan Gammell](https://robotic-esp.com/gammell/), Tim Barfoot's [Autonomous Space Robotics Lab](http://asrl.utias.utoronto.ca), University of Toronto (now professor at Oxford)
 - Bryant Gipson, Rice University (now at Google)
 - [Javier V Gomez](http://jvgomez.github.io), Universidad Carlos III de Madrid (now at Magic Leap)
 - Florian Hauer, Georgia Tech
@@ -34,7 +35,7 @@ A breakdown of all contributions by commits can be found on GitHub for the [OMPL
 - [Oren Salzman](http://orensalzman.com), Dan Halperin's [Computational Geometry Lab](http://acg.cs.tau.ac.il), Tel Aviv University
 - Edward Schmerling, Marco Pavone's [Autonomous Systems Lab](http://asl.stanford.edu), Stanford University
 - Jonathan Sobieski, Rice University
-- Marlin Strub, Robert Bosch GmbH
+- Marlin Strub, [Estimation, Search, and Planning group](https://robotic-esp.com) at Oxford
 - Sonny Tarbouriech, University of Sherbrooke
 - [Luis Torres](http://luis.web.unc.edu), Ron Alterovitz' [Computational Robotics Group](http://robotics.cs.unc.edu), University of North Carolina at Chapel Hill (now at Google)
 - [Caleb Voss](http://calebvoss.com), Rice University (now at Georgia Tech)
