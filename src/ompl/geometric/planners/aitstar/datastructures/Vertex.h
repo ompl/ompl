@@ -325,7 +325,8 @@ namespace ompl
                 /** \brief The batch id for which the reverse search cost to come is valid. */
                 mutable std::size_t reverseSearchBatchId_{0u};
 
-                /** \brief The forward search id when the most recent outgoing edge was popped from the forward queue. */
+                /** \brief The forward search id when the most recent outgoing edge was popped from the forward queue.
+                 */
                 mutable std::size_t poppedOutgoingEdgeId_{0u};
 
                 /** \brief The reverse search id this vertex has last been expanded on. */
@@ -337,22 +338,25 @@ namespace ompl
                 /** \brief The reverse search id for which the reverse queue pointer is valid. */
                 mutable std::size_t reverseQueuePointerId_{0u};
 
-                /** \brief The pointer to the reverse queue element. */
-                mutable typename ompl::BinaryHeap<
+                /** \brief The type of the elements in the reverse queue. */
+                using ReverseQueueElement = typename ompl::BinaryHeap<
                     std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
                     std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
                                        const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
-                    Element *reverseQueuePointer_{nullptr};
+                    Element;
+
+                /** \brief The pointer to the reverse queue element. */
+                mutable ReverseQueueElement *reverseQueuePointer_{nullptr};
+
+                /** \brief The type of the elements in the forward queue. */
+                using ForwardQueueElement = typename ompl::BinaryHeap<
+                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element;
 
                 /** \brief The lookup to incoming edges in the forward queue. */
-                mutable std::vector<ompl::BinaryHeap<
-                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
-                    forwardQueueIncomingLookup_;
+                mutable std::vector<ForwardQueueElement *> forwardQueueIncomingLookup_;
 
                 /** \brief The lookup to outgoing edges in the forward queue. */
-                mutable std::vector<ompl::BinaryHeap<
-                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
-                    forwardQueueOutgoingLookup_;
+                mutable std::vector<ForwardQueueElement *> forwardQueueOutgoingLookup_;
             };
 
         }  // namespace aitstar
