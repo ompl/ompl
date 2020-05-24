@@ -62,9 +62,7 @@ namespace ompl
 
             Vertex::Vertex(const ompl::base::SpaceInformationPtr &spaceInformation,
                            const ompl::base::ProblemDefinitionPtr &problemDefinition,
-                           const std::shared_ptr<std::size_t> &batchId,
-                           const std::shared_ptr<std::size_t> &forwardSearchId,
-                           const std::shared_ptr<std::size_t> &reverseSearchId)
+                           const std::shared_ptr<std::size_t> &batchId)
               : spaceInformation_(spaceInformation)
               , problemDefinition_(problemDefinition)
               , objective_(problemDefinition->getOptimizationObjective())
@@ -78,8 +76,6 @@ namespace ompl
               , costToGoToGoal_(objective_->infiniteCost())
               , vertexId_(generateId())
               , batchId_(batchId)
-              , forwardSearchId_(forwardSearchId)
-              , reverseSearchId_(reverseSearchId)
             {
             }
 
@@ -125,7 +121,7 @@ namespace ompl
 
             ompl::base::Cost Vertex::getExpandedCostToComeFromGoal() const
             {
-                if (expandedReverseSearchId_ != *reverseSearchId_.lock())
+                if (expandedReverseSearchId_ != *batchId_.lock())
                 {
                     expandedCostToComeFromGoal_ = objective_->infiniteCost();
                 }
@@ -134,44 +130,6 @@ namespace ompl
 
             ompl::base::Cost Vertex::getCostToGoToGoal() const
             {
-                // // If the cost to go hasn't been set, compute it.
-                // if (!std::isfinite(costToGoToGoal_.value()))
-                // {
-                //     auto goalPtr = problemDefinition_->getGoal();
-                //     if (goalPtr->hasType(ompl::base::GOAL_STATE))
-                //     {
-                //         costToGoToGoal_ = optimizationObjective_->motionCostHeuristic(
-                //             state_, goalPtr->as<ompl::base::GoalState>()->getState());
-                //     }
-                //     else if (goalPtr->hasType(ompl::base::GOAL_STATES))
-                //     {
-                //         for (std::size_t i = 0u; i < goalPtr->as<ompl::base::GoalStates>()->getStateCount(); ++i)
-                //         {
-                //             ompl::base::Cost costToGoToThis = optimizationObjective_->motionCostHeuristic(
-                //                 state_, goalPtr->as<ompl::base::GoalStates>()->getState(i));
-                //             if (optimizationObjective_->isCostBetterThan(costToGoToThis, costToGoToGoal_))
-                //             {
-                //                 costToGoToGoal_ = costToGoToThis;
-                //             }
-                //         }
-                //     }
-                //     else
-                //     {
-                //         auto msg =
-                //             "TBDstar's OMPL implementation is limited to the goal types GOAL_STATE and
-                //             GOAL_STATES."s;
-                //         throw ompl::Exception(msg);
-                //     }
-                // }
-
-                // if (!std::isfinite(costToComeFromGoal_.value()))
-                // {
-                //     return costToGoToGoal_;
-                // }
-                // else
-                // {
-                //     return costToComeFromGoal_;
-                // }
                 return getCostToComeFromGoal();
             }
 
@@ -446,14 +404,14 @@ namespace ompl
 
             void Vertex::registerPoppedOutgoingEdgeDuringForwardSearch()
             {
-                poppedOutgoingEdgeForwardSearchId_ = *forwardSearchId_.lock();
+                poppedOutgoingEdgeId_ = *batchId_.lock();
             }
 
             void Vertex::registerExpansionDuringReverseSearch()
             {
                 assert(!reverseSearchId_.expired());
                 expandedCostToComeFromGoal_ = costToComeFromGoal_;
-                expandedReverseSearchId_ = *reverseSearchId_.lock();
+                expandedReverseSearchId_ = *batchId_.lock();
             }
 
             void Vertex::unregisterExpansionDuringReverseSearch()
@@ -464,24 +422,24 @@ namespace ompl
             void Vertex::registerInsertionIntoQueueDuringReverseSearch()
             {
                 assert(!reverseSearchId_.expired());
-                insertedIntoQueueReverseSearchId_ = *reverseSearchId_.lock();
+                insertedIntoQueueId_ = *batchId_.lock();
             }
 
             bool Vertex::hasHadOutgoingEdgePoppedDuringCurrentForwardSearch() const
             {
                 assert(!forwardSearchId_.expired());
-                return poppedOutgoingEdgeForwardSearchId_ == *forwardSearchId_.lock();
+                return poppedOutgoingEdgeId_ == *batchId_.lock();
             }
 
             bool Vertex::hasBeenExpandedDuringCurrentReverseSearch() const
             {
                 assert(!reverseSearchId_.expired());
-                return expandedReverseSearchId_ == *reverseSearchId_.lock();
+                return expandedReverseSearchId_ == *batchId_.lock();
             }
 
             bool Vertex::hasBeenInsertedIntoQueueDuringCurrentReverseSearch() const
             {
-                return insertedIntoQueueReverseSearchId_ == *reverseSearchId_.lock();
+                return insertedIntoQueueId_ == *batchId_.lock();
             }
 
             void Vertex::setReverseQueuePointer(
@@ -491,7 +449,7 @@ namespace ompl
                                        const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
                     Element *pointer)
             {
-                reverseQueuePointerReverseSearchId_ = *reverseSearchId_.lock();
+                reverseQueuePointerId_ = *batchId_.lock();
                 reverseQueuePointer_ = pointer;
             }
 
@@ -502,7 +460,7 @@ namespace ompl
                 Element *
                 Vertex::getReverseQueuePointer() const
             {
-                if (*reverseSearchId_.lock() != reverseQueuePointerReverseSearchId_)
+                if (*batchId_.lock() != reverseQueuePointerId_)
                 {
                     reverseQueuePointer_ = nullptr;
                 }

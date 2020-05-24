@@ -241,12 +241,6 @@ namespace ompl
                 ompl::BinaryHeap<KeyVertexPair, std::function<bool(const KeyVertexPair &, const KeyVertexPair &)>>;
             std::unique_ptr<VertexQueue> reverseQueue_;
 
-            /** \brief The id of the current forward search .*/
-            std::shared_ptr<std::size_t> forwardSearchId_;
-
-            /** \brief The id of the current reverse search .*/
-            std::shared_ptr<std::size_t> reverseSearchId_;
-
             /** \brief The cost of the incumbent solution. */
             std::shared_ptr<ompl::base::Cost> solutionCost_;
 

@@ -61,8 +61,7 @@ namespace ompl
                 /** \brief Constructs a vertex by sampling a state. */
                 Vertex(const ompl::base::SpaceInformationPtr &spaceInformation,
                        const ompl::base::ProblemDefinitionPtr &problemDefinition,
-                       const std::shared_ptr<std::size_t> &batchId, const std::shared_ptr<std::size_t> &forwardSearchId,
-                       const std::shared_ptr<std::size_t> &reverseSearchId);
+                       const std::shared_ptr<std::size_t> &batchId);
 
                 /** \brief Destructs the vertex. */
                 virtual ~Vertex();
@@ -320,12 +319,6 @@ namespace ompl
                 /** \brief The id of the most recent batch. */
                 const std::weak_ptr<const std::size_t> batchId_;
 
-                /** \brief The id of the current forward search. */
-                const std::weak_ptr<const std::size_t> forwardSearchId_;
-
-                /** \brief The id of the current reverse search. */
-                const std::weak_ptr<const std::size_t> reverseSearchId_;
-
                 /** \brief The batch id for which the cached neighbor list is valid. */
                 mutable std::size_t neighborBatchId_{0u};
 
@@ -333,16 +326,16 @@ namespace ompl
                 mutable std::size_t reverseSearchBatchId_{0u};
 
                 /** \brief The forward search id when the most recent outgoing edge was popped from the forward queue. */
-                mutable std::size_t poppedOutgoingEdgeForwardSearchId_{0u};
+                mutable std::size_t poppedOutgoingEdgeId_{0u};
 
                 /** \brief The reverse search id this vertex has last been expanded on. */
                 mutable std::size_t expandedReverseSearchId_{0u};
 
                 /** \brief The reverse search id this vertex has last been inserted into open on. */
-                mutable std::size_t insertedIntoQueueReverseSearchId_{0u};
+                mutable std::size_t insertedIntoQueueId_{0u};
 
                 /** \brief The reverse search id for which the reverse queue pointer is valid. */
-                mutable std::size_t reverseQueuePointerReverseSearchId_{0u};
+                mutable std::size_t reverseQueuePointerId_{0u};
 
                 /** \brief The pointer to the reverse queue element. */
                 mutable typename ompl::BinaryHeap<

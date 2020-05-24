@@ -52,8 +52,6 @@ namespace ompl
     {
         AITstar::AITstar(const ompl::base::SpaceInformationPtr &spaceInformation)
           : ompl::base::Planner(spaceInformation, "AITstar")
-          , forwardSearchId_(std::make_shared<std::size_t>(1u))
-          , reverseSearchId_(std::make_shared<std::size_t>(1u))
           , solutionCost_()
         {
             // Specify AIT*'s planner specs.
@@ -144,7 +142,7 @@ namespace ompl
                 motionValidator_ = si_->getMotionValidator();
 
                 // Setup a graph.
-                graph_.setup(si_, pdef_, solutionCost_, forwardSearchId_, reverseSearchId_, &pis_);
+                graph_.setup(si_, pdef_, solutionCost_, &pis_);
             }
             else
             {
@@ -159,8 +157,6 @@ namespace ompl
             graph_.clear();
             forwardQueue_->clear();
             reverseQueue_->clear();
-            *forwardSearchId_ = 1u;
-            *reverseSearchId_ = 1u;
             *solutionCost_ = objective_->infiniteCost();
             approximateSolutionCost_ = objective_->infiniteCost();
             edgesToBeInserted_.clear();
@@ -561,9 +557,6 @@ namespace ompl
                     }
                     reverseQueue_->clear();
 
-                    // This constitutes a new reverse search.
-                    ++(*reverseSearchId_);
-
                     // Clear the forward queue.
                     std::vector<aitstar::Edge> forwardQueue;
                     forwardQueue_->getContent(forwardQueue);
@@ -573,9 +566,6 @@ namespace ompl
                         element.getParent()->resetForwardQueueOutgoingLookup();
                     }
                     forwardQueue_->clear();
-
-                    // This constitutes a new forward search.
-                    ++(*forwardSearchId_);
 
                     // Clear the cache of edges to be inserted.
                     edgesToBeInserted_.clear();
