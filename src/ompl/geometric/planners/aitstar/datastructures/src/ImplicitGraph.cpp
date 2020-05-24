@@ -45,13 +45,13 @@ namespace ompl
     {
         namespace aitstar
         {
-            ImplicitGraph::ImplicitGraph() : batchId_(std::make_shared<std::size_t>(1u))
+            ImplicitGraph::ImplicitGraph(const ompl::base::Cost &solutionCost)
+              : batchId_(1u), solutionCost_(solutionCost)
             {
             }
 
             void ImplicitGraph::setup(const ompl::base::SpaceInformationPtr &spaceInformation,
                                       const ompl::base::ProblemDefinitionPtr &problemDefinition,
-                                      const std::shared_ptr<ompl::base::Cost> &solutionCost,
                                       ompl::base::PlannerInputStates *inputStates)
             {
                 vertices_.setDistanceFunction(
@@ -61,13 +61,12 @@ namespace ompl
                 spaceInformation_ = spaceInformation;
                 problemDefinition_ = problemDefinition;
                 objective_ = problemDefinition->getOptimizationObjective();
-                solutionCost_ = solutionCost;
                 updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), inputStates);
             }
 
             void ImplicitGraph::clear()
             {
-                *batchId_ = 1u;
+                batchId_ = 1u;
                 radius_ = std::numeric_limits<double>::infinity();
                 vertices_.clear();
                 startVertices_.clear();
@@ -186,7 +185,7 @@ namespace ompl
                         }
 
                         // If this goal can possibly improve the current solution, add it back to the graph.
-                        if (objective_->isCostBetterThan(heuristicCost, *solutionCost_.lock()))
+                        if (objective_->isCostBetterThan(heuristicCost, solutionCost_))
                         {
                             registerGoalState((*it)->getState());
                             addedNewGoalState = true;
@@ -220,7 +219,7 @@ namespace ompl
                         }
 
                         // If this goal can possibly improve the current solution, add it back to the graph.
-                        if (objective_->isCostBetterThan(heuristicCost, *solutionCost_.lock()))
+                        if (objective_->isCostBetterThan(heuristicCost, solutionCost_))
                         {
                             registerStartState((*it)->getState());
                             addedNewStartState = true;
@@ -289,8 +288,7 @@ namespace ompl
 
                     // If this can possibly improve the current solution, it is in the informed set.
                     if (objective_->isCostBetterThan(
-                            objective_->combineCosts(bestCostToComeHeuristic, bestCostToGoHeuristic),
-                            *solutionCost_.lock()))
+                            objective_->combineCosts(bestCostToComeHeuristic, bestCostToGoHeuristic), solutionCost_))
                     {
                         ++numberOfSamplesInInformedSet;
                     }
@@ -315,7 +313,7 @@ namespace ompl
                     do
                     {
                         // Sample the associated state uniformly within the informed set.
-                        sampler_->sampleUniform(newVertices.back()->getState(), *solutionCost_.lock());
+                        sampler_->sampleUniform(newVertices.back()->getState(), solutionCost_);
 
                         // Count how many states we've checked.
                         ++numStateCollisionChecks_;
@@ -326,7 +324,7 @@ namespace ompl
                 vertices_.add(newVertices);
 
                 // We need to do some internal housekeeping.
-                ++(*batchId_);
+                ++batchId_;
                 radius_ = computeConnectionRadius(numSamplesInInformedSet + numNewSamples - startVertices_.size() -
                                                   goalVertices_.size());
 
@@ -404,7 +402,7 @@ namespace ompl
 
             void ImplicitGraph::prune()
             {
-                if (!objective_->isFinite(*(solutionCost_.lock())))
+                if (!objective_->isFinite(solutionCost_))
                 {
                     return;
                 }
@@ -479,7 +477,7 @@ namespace ompl
                 // Compute the RRT* factor.
                 return rewireFactor_ *
                        std::pow(2.0 * (1.0 + 1.0 / dimension) *
-                                    (sampler_->getInformedMeasure(*solutionCost_.lock()) /
+                                    (sampler_->getInformedMeasure(solutionCost_) /
                                      unitNBallMeasure(spaceInformation_->getStateDimension())) *
                                     (std::log(static_cast<double>(numSamples)) / static_cast<double>(numSamples)),
                                 1.0 / dimension);
@@ -511,7 +509,7 @@ namespace ompl
                 return objective_->isCostBetterThan(
                     objective_->combineCosts(
                         bestCostToCome, objective_->costToGo(vertex->getState(), problemDefinition_->getGoal().get())),
-                    *(solutionCost_.lock()));
+                    solutionCost_);
             }
 
         }  // namespace aitstar

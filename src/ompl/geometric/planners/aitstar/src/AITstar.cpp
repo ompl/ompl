@@ -53,6 +53,7 @@ namespace ompl
         AITstar::AITstar(const ompl::base::SpaceInformationPtr &spaceInformation)
           : ompl::base::Planner(spaceInformation, "AITstar")
           , solutionCost_()
+          , graph_(solutionCost_)
         {
             // Specify AIT*'s planner specs.
             specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
@@ -73,7 +74,7 @@ namespace ompl
 
             // Register the progress properties.
             addPlannerProgressProperty("iterations INTEGER", [this]() { return std::to_string(numIterations_); });
-            addPlannerProgressProperty("best cost DOUBLE", [this]() { return std::to_string(solutionCost_->value()); });
+            addPlannerProgressProperty("best cost DOUBLE", [this]() { return std::to_string(solutionCost_.value()); });
             addPlannerProgressProperty("state collision checks INTEGER",
                                        [this]() { return std::to_string(graph_.getNumberOfStateCollisionChecks()); });
             addPlannerProgressProperty("edge collision checks INTEGER",
@@ -115,7 +116,7 @@ namespace ompl
                 objective_ = pdef_->getOptimizationObjective();
 
                 // Initialize the solution cost to be infinite.
-                solutionCost_ = std::make_shared<ompl::base::Cost>(objective_->infiniteCost());
+                solutionCost_ = objective_->infiniteCost();
                 approximateSolutionCost_ = objective_->infiniteCost();
 
                 // Initialize the forward queue.
@@ -142,7 +143,7 @@ namespace ompl
                 motionValidator_ = si_->getMotionValidator();
 
                 // Setup a graph.
-                graph_.setup(si_, pdef_, solutionCost_, &pis_);
+                graph_.setup(si_, pdef_, &pis_);
             }
             else
             {
@@ -157,7 +158,7 @@ namespace ompl
             graph_.clear();
             forwardQueue_->clear();
             reverseQueue_->clear();
-            *solutionCost_ = objective_->infiniteCost();
+            solutionCost_ = objective_->infiniteCost();
             approximateSolutionCost_ = objective_->infiniteCost();
             edgesToBeInserted_.clear();
             numIterations_ = 0u;
@@ -219,7 +220,7 @@ namespace ompl
             }
 
             // Iterate to solve the problem.
-            while (!terminationCondition && !objective_->isSatisfied(*solutionCost_))
+            while (!terminationCondition && !objective_->isSatisfied(solutionCost_))
             {
                 iterate();
             }
@@ -238,7 +239,7 @@ namespace ompl
                 }
             }
 
-            if (objective_->isFinite(*solutionCost_))
+            if (objective_->isFinite(solutionCost_))
             {
                 return ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION;
             }
@@ -254,7 +255,7 @@ namespace ompl
 
         ompl::base::Cost AITstar::bestCost() const
         {
-            return *solutionCost_;
+            return solutionCost_;
         }
 
         void AITstar::getPlannerData(base::PlannerData &data) const
@@ -631,7 +632,7 @@ namespace ompl
             auto edgeCost = objective_->motionCostHeuristic(parent->getState(), child->getState());
             auto parentCostToGoToGoal = objective_->combineCosts(edgeCost, child->getCostToGoToGoal());
             auto pathThroughEdgeCost = objective_->combineCosts(parent->getCostToComeFromStart(), parentCostToGoToGoal);
-            if (!objective_->isCostBetterThan(pathThroughEdgeCost, *solutionCost_))
+            if (!objective_->isCostBetterThan(pathThroughEdgeCost, solutionCost_))
             {
                 if (objective_->isFinite(pathThroughEdgeCost) ||
                     !objective_->isFinite(computeBestCostToComeFromGoalOfAnyStart()))
@@ -805,9 +806,9 @@ namespace ompl
                 ((!underconsistentStart &&
                   !objective_->isCostBetterThan(objective_->combineCosts(vertex->getCostToComeFromGoal(),
                                                                          computeCostToGoToStartHeuristic(vertex)),
-                                                *solutionCost_)) ||
+                                                solutionCost_)) ||
                  objective_->isCostBetterThan(
-                     ompl::base::Cost(computeBestCostToComeFromGoalOfAnyStart().value() + 1e-6), *solutionCost_)))
+                     ompl::base::Cost(computeBestCostToComeFromGoalOfAnyStart().value() + 1e-6), solutionCost_)))
             {
                 // This invalidates the cost-to-go estimate of the forward search.
                 performReverseSearchIteration_ = false;
@@ -1221,18 +1222,18 @@ namespace ompl
             {
                 // We need to check whether the cost is better, or whether someone has removed the exact solution from
                 // the problem definition.
-                if (objective_->isCostBetterThan(goal->getCostToComeFromStart(), *solutionCost_) ||
+                if (objective_->isCostBetterThan(goal->getCostToComeFromStart(), solutionCost_) ||
                     (!pdef_->hasExactSolution() && objective_->isFinite(goal->getCostToComeFromStart())))
                 {
                     // Remember the incumbent cost.
-                    *solutionCost_ = goal->getCostToComeFromStart();
+                    solutionCost_ = goal->getCostToComeFromStart();
 
                     // Create a solution.
                     ompl::base::PlannerSolution solution(getPathToVertex(goal));
                     solution.setPlannerName(name_);
 
                     // Set the optimized flag.
-                    solution.setOptimized(objective_, *solutionCost_, objective_->isSatisfied(*solutionCost_));
+                    solution.setOptimized(objective_, solutionCost_, objective_->isSatisfied(solutionCost_));
 
                     // Let the problem definition know that a new solution exists.
                     pdef_->addSolutionPath(solution);

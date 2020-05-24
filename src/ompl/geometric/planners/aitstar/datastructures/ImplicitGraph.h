@@ -59,7 +59,7 @@ namespace ompl
             {
             public:
                 /** \brief Constructs an implicit graph. */
-                ImplicitGraph();
+                ImplicitGraph(const ompl::base::Cost &solutionCost);
 
                 /** \brief Destructs an implicit graph. */
                 virtual ~ImplicitGraph() = default;
@@ -67,7 +67,6 @@ namespace ompl
                 /** \brief The setup method for the graph. Needed to have it on the stack. */
                 void setup(const ompl::base::SpaceInformationPtr &spaceInformation,
                            const ompl::base::ProblemDefinitionPtr &problemDefinition,
-                           const std::shared_ptr<ompl::base::Cost> &solutionCost,
                            ompl::base::PlannerInputStates *inputStates);
 
                 /** \brief Resets the graph to its construction state, without resetting options. */
@@ -155,7 +154,7 @@ namespace ompl
                 ompl::base::OptimizationObjectivePtr objective_;
 
                 /** \brief The id of the batch. */
-                std::shared_ptr<std::size_t> batchId_;
+                std::size_t batchId_;
 
                 /** \brief The rewire factor of the RGG. */
                 double rewireFactor_{1.0};
@@ -170,7 +169,7 @@ namespace ompl
                 double radius_{std::numeric_limits<double>::infinity()};
 
                 /** \brief The cost of the incumbent solution. */
-                std::weak_ptr<const ompl::base::Cost> solutionCost_;
+                const ompl::base::Cost& solutionCost_;
 
                 /** \brief The state sampler responsible for filling the state values of vertices. */
                 ompl::base::InformedSamplerPtr sampler_;

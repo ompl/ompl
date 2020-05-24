@@ -62,7 +62,7 @@ namespace ompl
 
             Vertex::Vertex(const ompl::base::SpaceInformationPtr &spaceInformation,
                            const ompl::base::ProblemDefinitionPtr &problemDefinition,
-                           const std::shared_ptr<std::size_t> &batchId)
+                           const std::size_t &batchId)
               : spaceInformation_(spaceInformation)
               , problemDefinition_(problemDefinition)
               , objective_(problemDefinition->getOptimizationObjective())
@@ -112,7 +112,7 @@ namespace ompl
 
             ompl::base::Cost Vertex::getCostToComeFromGoal() const
             {
-                if (reverseSearchBatchId_ != *batchId_.lock())
+                if (reverseSearchBatchId_ != batchId_)
                 {
                     costToComeFromGoal_ = objective_->infiniteCost();
                 }
@@ -121,7 +121,7 @@ namespace ompl
 
             ompl::base::Cost Vertex::getExpandedCostToComeFromGoal() const
             {
-                if (expandedReverseSearchId_ != *batchId_.lock())
+                if (expandedReverseSearchId_ != batchId_)
                 {
                     expandedCostToComeFromGoal_ = objective_->infiniteCost();
                 }
@@ -173,7 +173,7 @@ namespace ompl
 
             void Vertex::setCostToComeFromGoal(const ompl::base::Cost &cost)
             {
-                reverseSearchBatchId_ = *batchId_.lock();
+                reverseSearchBatchId_ = batchId_;
                 costToComeFromGoal_ = cost;
             }
 
@@ -360,18 +360,18 @@ namespace ompl
 
             bool Vertex::hasCachedNeighbors() const
             {
-                return neighborBatchId_ == *batchId_.lock();
+                return neighborBatchId_ == batchId_;
             }
 
             void Vertex::cacheNeighbors(const std::vector<std::shared_ptr<Vertex>> &neighbors) const
             {
                 neighbors_ = neighbors;
-                neighborBatchId_ = *batchId_.lock();
+                neighborBatchId_ = batchId_;
             }
 
             const std::vector<std::shared_ptr<Vertex>> &Vertex::getNeighbors() const
             {
-                if (neighborBatchId_ != *batchId_.lock())
+                if (neighborBatchId_ != batchId_)
                 {
                     throw ompl::Exception("Requested neighbors from vertex of outdated approximation.");
                 }
@@ -404,14 +404,14 @@ namespace ompl
 
             void Vertex::registerPoppedOutgoingEdgeDuringForwardSearch()
             {
-                poppedOutgoingEdgeId_ = *batchId_.lock();
+                poppedOutgoingEdgeId_ = batchId_;
             }
 
             void Vertex::registerExpansionDuringReverseSearch()
             {
                 assert(!reverseSearchId_.expired());
                 expandedCostToComeFromGoal_ = costToComeFromGoal_;
-                expandedReverseSearchId_ = *batchId_.lock();
+                expandedReverseSearchId_ = batchId_;
             }
 
             void Vertex::unregisterExpansionDuringReverseSearch()
@@ -422,24 +422,24 @@ namespace ompl
             void Vertex::registerInsertionIntoQueueDuringReverseSearch()
             {
                 assert(!reverseSearchId_.expired());
-                insertedIntoQueueId_ = *batchId_.lock();
+                insertedIntoQueueId_ = batchId_;
             }
 
             bool Vertex::hasHadOutgoingEdgePoppedDuringCurrentForwardSearch() const
             {
                 assert(!forwardSearchId_.expired());
-                return poppedOutgoingEdgeId_ == *batchId_.lock();
+                return poppedOutgoingEdgeId_ == batchId_;
             }
 
             bool Vertex::hasBeenExpandedDuringCurrentReverseSearch() const
             {
                 assert(!reverseSearchId_.expired());
-                return expandedReverseSearchId_ == *batchId_.lock();
+                return expandedReverseSearchId_ == batchId_;
             }
 
             bool Vertex::hasBeenInsertedIntoQueueDuringCurrentReverseSearch() const
             {
-                return insertedIntoQueueId_ == *batchId_.lock();
+                return insertedIntoQueueId_ == batchId_;
             }
 
             void Vertex::setReverseQueuePointer(
@@ -449,7 +449,7 @@ namespace ompl
                                        const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
                     Element *pointer)
             {
-                reverseQueuePointerId_ = *batchId_.lock();
+                reverseQueuePointerId_ = batchId_;
                 reverseQueuePointer_ = pointer;
             }
 
@@ -460,7 +460,7 @@ namespace ompl
                 Element *
                 Vertex::getReverseQueuePointer() const
             {
-                if (*batchId_.lock() != reverseQueuePointerId_)
+                if (batchId_ != reverseQueuePointerId_)
                 {
                     reverseQueuePointer_ = nullptr;
                 }

@@ -61,7 +61,7 @@ namespace ompl
                 /** \brief Constructs a vertex by sampling a state. */
                 Vertex(const ompl::base::SpaceInformationPtr &spaceInformation,
                        const ompl::base::ProblemDefinitionPtr &problemDefinition,
-                       const std::shared_ptr<std::size_t> &batchId);
+                       const std::size_t &batchId);
 
                 /** \brief Destructs the vertex. */
                 virtual ~Vertex();
@@ -317,7 +317,7 @@ namespace ompl
                 const std::size_t vertexId_;
 
                 /** \brief The id of the most recent batch. */
-                const std::weak_ptr<const std::size_t> batchId_;
+                const std::size_t& batchId_;
 
                 /** \brief The batch id for which the cached neighbor list is valid. */
                 mutable std::size_t neighborBatchId_{0u};

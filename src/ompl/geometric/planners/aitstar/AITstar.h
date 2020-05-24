@@ -227,6 +227,12 @@ namespace ompl
              */
             void invalidateCostToComeFromGoalOfReverseBranch(const std::shared_ptr<aitstar::Vertex> &vertex);
 
+            /** \brief The cost of the incumbent solution. */
+            ompl::base::Cost solutionCost_;
+
+            /** \brief The cost to go to the goal of the vertex that is closest to the goal (in cost space). */
+            ompl::base::Cost approximateSolutionCost_{};
+
             /** \brief The increasingly dense sampling-based approximation. */
             aitstar::ImplicitGraph graph_;
 
@@ -240,12 +246,6 @@ namespace ompl
             using VertexQueue =
                 ompl::BinaryHeap<KeyVertexPair, std::function<bool(const KeyVertexPair &, const KeyVertexPair &)>>;
             std::unique_ptr<VertexQueue> reverseQueue_;
-
-            /** \brief The cost of the incumbent solution. */
-            std::shared_ptr<ompl::base::Cost> solutionCost_;
-
-            /** \brief The cost to go to the goal of the vertex that is closest to the goal (in cost space). */
-            ompl::base::Cost approximateSolutionCost_{};
 
             /** \brief The edges to be inserted in the forward queue. */
             std::vector<aitstar::Edge> edgesToBeInserted_{};
