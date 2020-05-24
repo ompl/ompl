@@ -54,6 +54,22 @@ namespace ompl
           : ompl::base::Planner(spaceInformation, "AITstar")
           , solutionCost_()
           , graph_(solutionCost_)
+          , forwardQueue_([this](const aitstar::Edge &lhs, const aitstar::Edge &rhs) {
+              return std::lexicographical_compare(lhs.getSortKey().cbegin(), lhs.getSortKey().cend(),
+                                                  rhs.getSortKey().cbegin(), rhs.getSortKey().cend(),
+                                                  [this](const ompl::base::Cost &a, const ompl::base::Cost &b) {
+                                                      return objective_->isCostBetterThan(a, b);
+                                                  });
+          })
+          , reverseQueue_(
+                [this](const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> &lhs,
+                       const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> &rhs) {
+                    return std::lexicographical_compare(lhs.first.cbegin(), lhs.first.cend(), rhs.first.cbegin(),
+                                                        rhs.first.cend(),
+                                                        [this](const ompl::base::Cost &a, const ompl::base::Cost &b) {
+                                                            return objective_->isCostBetterThan(a, b);
+                                                        });
+                })
         {
             // Specify AIT*'s planner specs.
             specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
@@ -119,26 +135,6 @@ namespace ompl
                 solutionCost_ = objective_->infiniteCost();
                 approximateSolutionCost_ = objective_->infiniteCost();
 
-                // Initialize the forward queue.
-                forwardQueue_ = std::make_unique<EdgeQueue>([this](const aitstar::Edge &lhs, const aitstar::Edge &rhs) {
-                    return std::lexicographical_compare(lhs.getSortKey().cbegin(), lhs.getSortKey().cend(),
-                                                        rhs.getSortKey().cbegin(), rhs.getSortKey().cend(),
-                                                        [this](const ompl::base::Cost &a, const ompl::base::Cost &b) {
-                                                            return objective_->isCostBetterThan(a, b);
-                                                        });
-                });
-
-                // Initialize the reverse queue.
-                reverseQueue_ = std::make_unique<VertexQueue>(
-                    [this](const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> &lhs,
-                           const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> &rhs) {
-                        return std::lexicographical_compare(
-                            lhs.first.cbegin(), lhs.first.cend(), rhs.first.cbegin(), rhs.first.cend(),
-                            [this](const ompl::base::Cost &a, const ompl::base::Cost &b) {
-                                return objective_->isCostBetterThan(a, b);
-                            });
-                    });
-
                 // Pull the motion validator through the space information.
                 motionValidator_ = si_->getMotionValidator();
 
@@ -156,8 +152,8 @@ namespace ompl
         void AITstar::clear()
         {
             graph_.clear();
-            forwardQueue_->clear();
-            reverseQueue_->clear();
+            forwardQueue_.clear();
+            reverseQueue_.clear();
             solutionCost_ = objective_->infiniteCost();
             approximateSolutionCost_ = objective_->infiniteCost();
             edgesToBeInserted_.clear();
@@ -214,7 +210,7 @@ namespace ompl
                         goal);
 
                     // Insert the element into the queue and set the corresponding pointer.
-                    auto reverseQueuePointer = reverseQueue_->insert(element);
+                    auto reverseQueuePointer = reverseQueue_.insert(element);
                     goal->setReverseQueuePointer(reverseQueuePointer);
                 }
             }
@@ -356,7 +352,7 @@ namespace ompl
         {
             // Get all edges from the queue.
             std::vector<aitstar::Edge> edges;
-            forwardQueue_->getContent(edges);
+            forwardQueue_.getContent(edges);
 
             // Rebuilding the queue invalidates the incoming and outgoing lookup.
             for (const auto &edge : edges)
@@ -366,7 +362,7 @@ namespace ompl
             }
 
             // Clear the queue.
-            forwardQueue_->clear();
+            forwardQueue_.clear();
 
             // Insert all edges into the queue if they connect vertices that have been processed, otherwise store them
             // in the cache of edges that are to be inserted.
@@ -389,19 +385,19 @@ namespace ompl
         {
             // Rebuilding the reverse queue invalidates the reverse queue pointers.
             std::vector<KeyVertexPair> content;
-            reverseQueue_->getContent(content);
+            reverseQueue_.getContent(content);
             for (auto &element : content)
             {
                 element.second->resetReverseQueuePointer();
             }
-            reverseQueue_->clear();
+            reverseQueue_.clear();
 
             for (auto &vertex : content)
             {
                 // Compute the sort key for the vertex queue.
                 std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> element(
                     computeSortKey(vertex.second), vertex.second);
-                auto reverseQueuePointer = reverseQueue_->insert(element);
+                auto reverseQueuePointer = reverseQueue_.insert(element);
                 element.second->setReverseQueuePointer(reverseQueuePointer);
             }
         }
@@ -409,7 +405,7 @@ namespace ompl
         std::vector<aitstar::Edge> AITstar::getEdgesInQueue() const
         {
             std::vector<aitstar::Edge> edges;
-            forwardQueue_->getContent(edges);
+            forwardQueue_.getContent(edges);
             return edges;
         }
 
@@ -417,7 +413,7 @@ namespace ompl
         {
             // Get the content from the queue.
             std::vector<std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>>> content;
-            reverseQueue_->getContent(content);
+            reverseQueue_.getContent(content);
 
             // Return the vertices.
             std::vector<std::shared_ptr<aitstar::Vertex>> vertices;
@@ -430,9 +426,9 @@ namespace ompl
 
         aitstar::Edge AITstar::getNextEdgeInQueue() const
         {
-            if (!forwardQueue_->empty())
+            if (!forwardQueue_.empty())
             {
-                return forwardQueue_->top()->data;
+                return forwardQueue_.top()->data;
             }
 
             return {};
@@ -440,9 +436,9 @@ namespace ompl
 
         std::shared_ptr<aitstar::Vertex> AITstar::getNextVertexInQueue() const
         {
-            if (!reverseQueue_->empty())
+            if (!reverseQueue_.empty())
             {
-                return reverseQueue_->top()->data.second;
+                return reverseQueue_.top()->data.second;
             }
 
             return {};
@@ -471,7 +467,7 @@ namespace ompl
             if (performReverseSearchIteration_)
             {
                 // If the reverse queue is not empty, perform a reverse search iteration.
-                if (!reverseQueue_->empty())
+                if (!reverseQueue_.empty())
                 {
                     performReverseSearchIteration();
                 }
@@ -540,7 +536,7 @@ namespace ompl
                     rebuildForwardQueue();
                     forwardQueueMustBeRebuilt_ = false;
                 }
-                else if (!forwardQueue_->empty())
+                else if (!forwardQueue_.empty())
                 {
                     // If the forward queue is not empty, perform a forward search iteration.
                     performForwardSearchIteration();
@@ -551,22 +547,22 @@ namespace ompl
                     // Clear the reverse queue.
                     std::vector<std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>>>
                         reverseQueue;
-                    reverseQueue_->getContent(reverseQueue);
+                    reverseQueue_.getContent(reverseQueue);
                     for (const auto &element : reverseQueue)
                     {
                         element.second->resetReverseQueuePointer();
                     }
-                    reverseQueue_->clear();
+                    reverseQueue_.clear();
 
                     // Clear the forward queue.
                     std::vector<aitstar::Edge> forwardQueue;
-                    forwardQueue_->getContent(forwardQueue);
+                    forwardQueue_.getContent(forwardQueue);
                     for (const auto &element : forwardQueue)
                     {
                         element.getChild()->resetForwardQueueIncomingLookup();
                         element.getParent()->resetForwardQueueOutgoingLookup();
                     }
-                    forwardQueue_->clear();
+                    forwardQueue_.clear();
 
                     // Clear the cache of edges to be inserted.
                     edgesToBeInserted_.clear();
@@ -589,7 +585,7 @@ namespace ompl
                     // Add the goals to the reverse queue.
                     for (const auto &goal : graph_.getGoalVertices())
                     {
-                        auto reverseQueuePointer = reverseQueue_->insert(std::make_pair(computeSortKey(goal), goal));
+                        auto reverseQueuePointer = reverseQueue_.insert(std::make_pair(computeSortKey(goal), goal));
                         goal->setReverseQueuePointer(reverseQueuePointer);
                         goal->setCostToComeFromGoal(objective_->identityCost());
                     }
@@ -609,7 +605,7 @@ namespace ompl
             assert(edgesToBeInserted_.empty());
 
             // Get the most promising edge.
-            auto &edge = forwardQueue_->top()->data;
+            auto &edge = forwardQueue_.top()->data;
             auto parent = edge.getParent();
             auto child = edge.getChild();
 
@@ -618,11 +614,11 @@ namespace ompl
             assert(parent->hasReverseParent() || graph_.isGoal(parent));
 
             // Remove the edge from the incoming and outgoing lookups.
-            child->removeFromForwardQueueIncomingLookup(forwardQueue_->top());
-            parent->removeFromForwardQueueOutgoingLookup(forwardQueue_->top());
+            child->removeFromForwardQueueIncomingLookup(forwardQueue_.top());
+            parent->removeFromForwardQueueOutgoingLookup(forwardQueue_.top());
 
             // Remove the edge from the queue.
-            forwardQueue_->pop();
+            forwardQueue_.pop();
 
             // Register that an outgoing edge of the parent has been popped from the queue. This means that the parent
             // has optimal cost-to-come for the current approximation.
@@ -638,13 +634,13 @@ namespace ompl
                     !objective_->isFinite(computeBestCostToComeFromGoalOfAnyStart()))
                 {
                     std::vector<aitstar::Edge> edges;
-                    forwardQueue_->getContent(edges);
+                    forwardQueue_.getContent(edges);
                     for (const auto &edge : edges)
                     {
                         edge.getChild()->resetForwardQueueIncomingLookup();
                         edge.getParent()->resetForwardQueueOutgoingLookup();
                     }
-                    forwardQueue_->clear();
+                    forwardQueue_.clear();
                 }
                 else
                 {
@@ -752,16 +748,16 @@ namespace ompl
                         reverseSearchUpdateVertex(parent);
 
                         // If the reverse queue is empty, this means we have to add new samples.
-                        if (reverseQueue_->empty())
+                        if (reverseQueue_.empty())
                         {
                             std::vector<aitstar::Edge> edges;
-                            forwardQueue_->getContent(edges);
+                            forwardQueue_.getContent(edges);
                             for (const auto &edge : edges)
                             {
                                 edge.getChild()->resetForwardQueueIncomingLookup();
                                 edge.getParent()->resetForwardQueueOutgoingLookup();
                             }
-                            forwardQueue_->clear();
+                            forwardQueue_.clear();
                         }
                         else
                         {
@@ -774,13 +770,13 @@ namespace ompl
 
         void AITstar::performReverseSearchIteration()
         {
-            assert(!reverseQueue_->empty());
+            assert(!reverseQueue_.empty());
 
             // Get the most promising vertex.
-            auto vertex = reverseQueue_->top()->data.second;
+            auto vertex = reverseQueue_.top()->data.second;
 
             // Remove it from the queue.
-            reverseQueue_->pop();
+            reverseQueue_.pop();
             vertex->resetReverseQueuePointer();
 
             // The open queue should not contain consistent vertices.
@@ -967,7 +963,7 @@ namespace ompl
                         {
                             edgesToBeInserted_.emplace_back(element->data);
                             element->data.getParent()->removeFromForwardQueueOutgoingLookup(element);
-                            forwardQueue_->remove(element);
+                            forwardQueue_.remove(element);
                         }
                         affectedVertex.lock()->resetForwardQueueIncomingLookup();
 
@@ -976,7 +972,7 @@ namespace ompl
                         {
                             edgesToBeInserted_.emplace_back(element->data);
                             element->data.getChild()->removeFromForwardQueueIncomingLookup(element);
-                            forwardQueue_->remove(element);
+                            forwardQueue_.remove(element);
                         }
                         affectedVertex.lock()->resetForwardQueueOutgoingLookup();
                     }
@@ -995,7 +991,7 @@ namespace ompl
                             edgesToBeInserted_.emplace_back(element->data);
                             vertex->removeFromForwardQueueIncomingLookup(element);
                             element->data.getParent()->removeFromForwardQueueOutgoingLookup(element);
-                            forwardQueue_->remove(element);
+                            forwardQueue_.remove(element);
                         }
                     }
 
@@ -1006,7 +1002,7 @@ namespace ompl
                         edgesToBeInserted_.emplace_back(element->data);
                         vertex->removeFromForwardQueueOutgoingLookup(element);
                         element->data.getChild()->removeFromForwardQueueIncomingLookup(element);
-                        forwardQueue_->remove(element);
+                        forwardQueue_.remove(element);
                     }
 
                     // Check update the invalidated vertices and insert them in open if they become connected to the
@@ -1047,7 +1043,7 @@ namespace ompl
                     auto reverseQueuePointer = vertex->getReverseQueuePointer();
                     if (reverseQueuePointer)
                     {
-                        reverseQueue_->remove(reverseQueuePointer);
+                        reverseQueue_.remove(reverseQueuePointer);
                         vertex->resetReverseQueuePointer();
                     }
                 }
@@ -1063,7 +1059,7 @@ namespace ompl
             if (element)
             {
                 element->data.first = computeSortKey(vertex);
-                reverseQueue_->update(element);
+                reverseQueue_.update(element);
             }
             else  // Insert it into the queue otherwise.
             {
@@ -1072,7 +1068,7 @@ namespace ompl
                     computeSortKey(vertex), vertex);
 
                 // Insert the vertex into the queue, storing the corresponding pointer.
-                auto reverseQueuePointer = reverseQueue_->insert(element);
+                auto reverseQueuePointer = reverseQueue_.insert(element);
                 vertex->setReverseQueuePointer(reverseQueuePointer);
             }
         }
@@ -1095,11 +1091,11 @@ namespace ompl
                                         return element->data.getChild()->getId() == edge.getChild()->getId();
                                     }) != edge.getParent()->getForwardQueueOutgoingLookup().end());
                 (*it)->data.setSortKey(edge.getSortKey());
-                forwardQueue_->update(*it);
+                forwardQueue_.update(*it);
             }
             else
             {
-                auto element = forwardQueue_->insert(edge);
+                auto element = forwardQueue_.insert(edge);
                 edge.getParent()->addToForwardQueueOutgoingLookup(element);
                 edge.getChild()->addToForwardQueueIncomingLookup(element);
             }
@@ -1326,7 +1322,7 @@ namespace ompl
                 auto reverseQueuePointer = child->getReverseQueuePointer();
                 if (reverseQueuePointer)
                 {
-                    reverseQueue_->remove(reverseQueuePointer);
+                    reverseQueue_.remove(reverseQueuePointer);
                     child->resetReverseQueuePointer();
                 }
             }
