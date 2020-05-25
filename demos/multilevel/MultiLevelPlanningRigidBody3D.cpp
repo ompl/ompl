@@ -40,7 +40,7 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/StateSpace.h>
-#include <ompl/geometric/planners/quotientspace/QRRT.h>
+#include <ompl/geometric/planners/multilevel/QRRT.h>
 #include <iostream>
 #include <boost/math/constants/constants.hpp>
 

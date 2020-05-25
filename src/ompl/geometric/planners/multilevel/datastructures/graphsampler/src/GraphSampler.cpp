@@ -29,15 +29,25 @@ void ompl::geometric::BundleSpaceGraphSampler::reset()
     graphThickeningGrowth_.reset();
 }
 
+void ompl::geometric::BundleSpaceGraphSampler::disableSegmentBias()
+{
+    this->segmentBias_ = false;
+}
+
 void ompl::geometric::BundleSpaceGraphSampler::setPathBiasStartSegment(double s)
 {
-  if(s > this->pathBiasStartSegment_)
-  {
-      this->pathBiasStartSegment_ = s;
-      geometric::PathGeometric &spath = 
-        static_cast<geometric::PathGeometric &>(*bundleSpaceGraph_->solutionPath_);
-      OMPL_DEBUG("Set path bias: %f/%f", s, spath.length());
-  }
+    if(!segmentBias_)
+    {
+        this->pathBiasStartSegment_ = 0;
+    }else{
+        if(s > this->pathBiasStartSegment_)
+        {
+            this->pathBiasStartSegment_ = s;
+            geometric::PathGeometric &spath = 
+              static_cast<geometric::PathGeometric &>(*bundleSpaceGraph_->solutionPath_);
+            OMPL_DEBUG("Set path bias: %f/%f", s, spath.length());
+        }
+    }
 }
 
 double ompl::geometric::BundleSpaceGraphSampler::getPathBiasStartSegment()
@@ -57,7 +67,9 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
     //   + pathBiasFixed_;
 
     double p = rng_.uniform01();
-    if(p < pathBiasDecay_() && !bundleSpaceGraph_->isDynamic())
+    double pd = pathBiasDecay_();
+
+    if(p < pd && !bundleSpaceGraph_->isDynamic())
     {
         geometric::PathGeometric &spath = 
           static_cast<geometric::PathGeometric &>(*bundleSpaceGraph_->solutionPath_);
@@ -77,6 +89,8 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
             double endLength = spath.length();
             double distStopping = 
               pathBiasStartSegment_ + rng_.uniform01() * (endLength - pathBiasStartSegment_);
+
+            // std::cout << "pathbias start:" << pathBiasStartSegment_ << std::endl;
 
             // std::cout << "pathSampling:" << distStopping << "/" << totalLength 
             //   << " biasSegment:" << pathBiasStartSegment_ << "." << std::endl;
@@ -125,6 +139,7 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
         //Decay on graph thickening (reflects or believe in the usefullness of
         //the graph for biasing our sampling)
         double eps = graphThickeningGrowth_();
+        // std::cout << "Epsilon: " << eps << std::endl;
         bundleSpaceGraph_->getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, 
             eps);
     }

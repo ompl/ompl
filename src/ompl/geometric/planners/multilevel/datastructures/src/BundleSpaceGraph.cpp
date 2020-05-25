@@ -675,26 +675,26 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
           {
               int type = getBundle()->getStateSpace()->getType();
               bool optimize = true;
-              if(type == base::STATE_SPACE_DUBINS || type == base::STATE_SPACE_DUBINS_AIRPLANE)
-              {
-                optimize = false;
-              }
-              if(!optimize && getBundle()->getStateSpace()->isCompound())
-              {
-                  std::vector<base::StateSpacePtr> Bundle_decomposed;
-                  base::CompoundStateSpace *Bundle_compound = 
-                    getBundle()->getStateSpace()->as<base::CompoundStateSpace>();
-                  Bundle_decomposed = Bundle_compound->getSubspaces();
-                  for(uint k = 0; k < Bundle_decomposed.size(); k++)
-                  {
-                    int tk = Bundle_decomposed.at(k)->getType();
-                    if(tk == base::STATE_SPACE_DUBINS || tk == base::STATE_SPACE_DUBINS_AIRPLANE)
-                    {
-                      optimize = false;
-                      break;
-                    }
-                  }
-              }
+              // if(type == base::STATE_SPACE_DUBINS || type == base::STATE_SPACE_DUBINS_AIRPLANE)
+              // {
+              //   optimize = false;
+              // }
+              // if(!optimize && getBundle()->getStateSpace()->isCompound())
+              // {
+              //     std::vector<base::StateSpacePtr> Bundle_decomposed;
+              //     base::CompoundStateSpace *Bundle_compound = 
+              //       getBundle()->getStateSpace()->as<base::CompoundStateSpace>();
+              //     Bundle_decomposed = Bundle_compound->getSubspaces();
+              //     for(uint k = 0; k < Bundle_decomposed.size(); k++)
+              //     {
+              //       int tk = Bundle_decomposed.at(k)->getType();
+              //       if(tk == base::STATE_SPACE_DUBINS || tk == base::STATE_SPACE_DUBINS_AIRPLANE)
+              //       {
+              //         optimize = false;
+              //         break;
+              //       }
+              //     }
+              // }
               
               if(optimize)
               {

@@ -616,8 +616,6 @@ bool ompl::geometric::BundleSpacePathRestriction::hasFeasibleSection(
             return true;
 
         }else{
-
-
             bool foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_);
             if(!foundFeasibleSection)
             {
@@ -631,7 +629,6 @@ bool ompl::geometric::BundleSpacePathRestriction::hasFeasibleSection(
                     sanityCheckSection();
                 }
             );
-
             return foundFeasibleSection;
         }
     }
@@ -691,7 +688,7 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSection(
 }
 
 const unsigned int PATH_SECTION_TREE_MAX_DEPTH = 3;
-const unsigned int PATH_SECTION_TREE_MAX_BRANCHING = 20;
+const unsigned int PATH_SECTION_TREE_MAX_BRANCHING = 10;
 
 bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
     Configuration* const xStart,
@@ -708,10 +705,10 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
     if(interpolateL1)
     {
         section = 
-          interpolateSectionL1(xFiberStart_, xFiberGoal_, basePath);
+          interpolateSectionL1_FiberFirst(xFiberStart_, xFiberGoal_, basePath);
     }else{
         section = 
-          interpolateSectionL1_FiberFirst(xFiberStart_, xFiberGoal_, basePath);
+          interpolateSectionL1(xFiberStart_, xFiberGoal_, basePath);
     }
 
     Configuration *xLast = xStart;

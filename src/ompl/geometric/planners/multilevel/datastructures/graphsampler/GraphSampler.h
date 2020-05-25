@@ -26,6 +26,8 @@ namespace ompl
             void setPathBiasStartSegment(double);
             double getPathBiasStartSegment();
 
+            void disableSegmentBias();
+
             virtual void reset();
 
           protected:
@@ -45,6 +47,8 @@ namespace ompl
             double pathBiasFixed_{0.1};
 
             double pathBiasStartSegment_{0.0};
+
+            bool segmentBias_{true};
 
             double exponentialDecayLambda_{1e-5};
 

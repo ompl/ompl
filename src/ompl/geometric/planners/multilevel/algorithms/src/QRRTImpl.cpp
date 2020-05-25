@@ -36,6 +36,7 @@
 /* Author: Andreas Orthey */
 #include <ompl/geometric/planners/multilevel/algorithms/QRRTImpl.h>
 #include <ompl/geometric/planners/multilevel/datastructures/pathrestriction/PathRestriction.h>
+#include <ompl/geometric/planners/multilevel/datastructures/graphsampler/GraphSampler.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <boost/foreach.hpp>
 
@@ -45,8 +46,8 @@ ompl::geometric::QRRTImpl::QRRTImpl(const base::SpaceInformationPtr &si, BundleS
 {
     setName("QRRTImpl" + std::to_string(id_));
     setImportance("exponential");
-    // setImportance("greedy");
     setGraphSampler("randomvertex");
+    getGraphSampler()->disableSegmentBias();
 }
 
 ompl::geometric::QRRTImpl::~QRRTImpl()

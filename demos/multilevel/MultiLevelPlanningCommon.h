@@ -55,11 +55,11 @@
 #include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
-#include <ompl/geometric/planners/quotientspace/QRRT.h>
-#include <ompl/geometric/planners/quotientspace/QRRTStar.h>
-#include <ompl/geometric/planners/quotientspace/QMP.h>
-#include <ompl/geometric/planners/quotientspace/QMPStar.h>
-#include <ompl/geometric/planners/quotientspace/SPQR.h>
+#include <ompl/geometric/planners/multilevel/QRRT.h>
+#include <ompl/geometric/planners/multilevel/QRRTStar.h>
+#include <ompl/geometric/planners/multilevel/QMP.h>
+#include <ompl/geometric/planners/multilevel/QMPStar.h>
+#include <ompl/geometric/planners/multilevel/SPQR.h>
 #include <ompl/geometric/planners/rrt/BiTRRT.h>
 #include <ompl/geometric/planners/rrt/InformedRRTstar.h>
 #include <ompl/geometric/planners/rrt/LazyRRT.h>
