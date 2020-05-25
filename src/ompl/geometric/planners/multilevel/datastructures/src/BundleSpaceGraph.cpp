@@ -698,7 +698,6 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
               
               if(optimize)
               {
-                  std::cout << "Optimize... ";
                   ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 
                       pathRefinementObj_);
                   geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
@@ -707,10 +706,8 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
                   if(!valid)
                   {
                       //reset solutionPath
-                      std::cout << "Reset" << std::endl;
                       solutionPath_ = getPath(vStart_, vGoal_);
                   }
-                  std::cout << "Done" << std::endl;
               }
           }
         }

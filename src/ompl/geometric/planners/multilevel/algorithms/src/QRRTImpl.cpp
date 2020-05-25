@@ -65,12 +65,10 @@ void ompl::geometric::QRRTImpl::grow()
         //smarter path section search
         if(hasBaseSpace())
         {
-            std::cout << "Start section module." << std::endl;
             if(getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
             {
                 hasSolution_ = true;
             }
-            std::cout << "Finish section module." << std::endl;
         }
     }
 

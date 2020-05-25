@@ -5,7 +5,8 @@
 #include <ompl/base/Path.h>
 #include <ompl/geometric/PathGeometric.h>
 
-#define SANITY_CHECK(X) X
+#define SANITY_CHECK_PATH_RESTRICTION
+#undef SANITY_CHECK_PATH_RESTRICTION
 
 ompl::geometric::BundleSpacePathRestriction::BundleSpacePathRestriction(BundleSpaceGraph* bundleSpaceGraph):
   bundleSpaceGraph_(bundleSpaceGraph)
@@ -138,7 +139,7 @@ ompl::geometric::BundleSpacePathRestriction::interpolateQuasiSectionSpline(
       double dk = bundleSpaceGraph_->getBase()->distance(bk, bkk);
       time(k) = dk + time(k-1);
   }
-  std::cout << time << std::endl;
+  // std::cout << time << std::endl;
 
   Eigen::MatrixXd states = Eigen::MatrixXd::Zero(dim, basePath.size());
   for(uint j = 0; j < basePath.size(); j++)
@@ -217,11 +218,11 @@ ompl::geometric::BundleSpacePathRestriction::interpolateQuasiSectionSpline(
       derivatives.col(k).tail(3) = pk;
   }
 
-  std::cout << std::string(80, '-') << std::endl;
-  std::cout << states << std::endl;
-  std::cout << std::string(80, '-') << std::endl;
-  std::cout << derivatives << std::endl;
-  std::cout << std::string(80, '-') << std::endl;
+  // std::cout << std::string(80, '-') << std::endl;
+  // std::cout << states << std::endl;
+  // std::cout << std::string(80, '-') << std::endl;
+  // std::cout << derivatives << std::endl;
+  // std::cout << std::string(80, '-') << std::endl;
 
 
   // const SplineNd spline = 
@@ -474,19 +475,19 @@ ompl::geometric::BundleSpacePathRestriction::addFeasibleSegment(
     bundleSpaceGraph_->addConfiguration(x);
     bundleSpaceGraph_->addBundleEdge(xLast, x);
 
-    SANITY_CHECK(
-        if(!bundleSpaceGraph_->getBundle()->checkMotion(xLast->state, x->state))
-        {
-            OMPL_ERROR("Not feasible from last");
-            std::cout << std::string(80, '-') << std::endl;
-            std::cout << "Last State" << std::endl;
-            bundleSpaceGraph_->getBundle()->printState(xLast->state);
-            std::cout << std::string(80, '-') << std::endl;
-            std::cout << "Current State" << std::endl;
-            bundleSpaceGraph_->getBundle()->printState(x->state);
-            throw Exception("");
-        }
-    );
+#ifdef SANITY_CHECK_PATH_RESTRICTION
+    if(!bundleSpaceGraph_->getBundle()->checkMotion(xLast->state, x->state))
+    {
+        OMPL_ERROR("Not feasible from last");
+        std::cout << std::string(80, '-') << std::endl;
+        std::cout << "Last State" << std::endl;
+        bundleSpaceGraph_->getBundle()->printState(xLast->state);
+        std::cout << std::string(80, '-') << std::endl;
+        std::cout << "Current State" << std::endl;
+        bundleSpaceGraph_->getBundle()->printState(x->state);
+        throw Exception("");
+    }
+#endif
     return x;
 }
 
@@ -501,18 +502,18 @@ ompl::geometric::BundleSpacePathRestriction::addFeasibleGoalSegment(
     }
     bundleSpaceGraph_->addBundleEdge(xLast, xGoal);
 
-    SANITY_CHECK(
-        if(!bundleSpaceGraph_->getBundle()->checkMotion(xLast->state, xGoal->state))
-        {
-            std::cout << std::string(80, '-') << std::endl;
-            std::cout << "Last State" << std::endl;
-            bundleSpaceGraph_->getBundle()->printState(xLast->state);
-            std::cout << std::string(80, '-') << std::endl;
-            std::cout << "Current State" << std::endl;
-            bundleSpaceGraph_->getBundle()->printState(xGoal->state);
-            throw Exception("Infeasible goal segment.");
-        }
-    );
+#ifdef SANITY_CHECK_PATH_RESTRICTION
+    if(!bundleSpaceGraph_->getBundle()->checkMotion(xLast->state, xGoal->state))
+    {
+        std::cout << std::string(80, '-') << std::endl;
+        std::cout << "Last State" << std::endl;
+        bundleSpaceGraph_->getBundle()->printState(xLast->state);
+        std::cout << std::string(80, '-') << std::endl;
+        std::cout << "Current State" << std::endl;
+        bundleSpaceGraph_->getBundle()->printState(xGoal->state);
+        throw Exception("Infeasible goal segment.");
+    }
+#endif
 }
 
 bool ompl::geometric::BundleSpacePathRestriction::sideStepAlongFiber(const base::State* xBase, base::State* xBundle)
@@ -623,12 +624,12 @@ bool ompl::geometric::BundleSpacePathRestriction::hasFeasibleSection(
                 foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_, false);
             }
 
-            SANITY_CHECK(
-                if(foundFeasibleSection)
-                {
-                    sanityCheckSection();
-                }
-            );
+#ifdef SANITY_CHECK_PATH_RESTRICTION
+            if(foundFeasibleSection)
+            {
+                sanityCheckSection();
+            }
+#endif
             return foundFeasibleSection;
         }
     }

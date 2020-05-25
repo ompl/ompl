@@ -35,18 +35,20 @@ merge branch)
 [x] Think about quasi-sections (something along the lines of the best dynamical lift)
 [x] Rename whole repo
 [x] Add steering function support (at least SE3 and SE2)
-
-[ ] **** Make L1+L2 combined recursiverepair section method (Probably more
+[x] Make sure every experiment is solvable in "realtime" (around 3s)
+[x] **** Make L1+L2 combined recursiverepair section method (Probably more
 likely to find section if trying L1, L2, L1inverse instead of doing too much
 sidestepping)
+
 [ ] * Make bidirectional version of QRRT (as param)
 [ ] ** Refactor path restriction into dynamic/geometric
 [ ] * Make path bias a dynamic window (test SE3 and SE3^k)
 [ ] Remove DenseGraphPath method from BundleSpaceGraph.h
 [ ] * Add Enumerate for Metric/Importance/Sampler (Use Params like in RRTstar)
 [ ] ** Plot hypercube benchmark (fix log to plot script)
-[ ] **merge* Make sure every experiment is solvable in "realtime" (around 3s)
 [ ] Write novel tutorial/demo
+[ ] *** Add projection for multiple robots to enable benchmark with projection based planners
+
 [ ] Remove all sanitychecks/debug informations
 
 Improvements (FB):
