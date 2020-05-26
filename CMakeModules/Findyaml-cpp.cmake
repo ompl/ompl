@@ -1,4 +1,4 @@
-# Find YAMLCPP, a library for parsing YAML files
+# Find libyaml-cpp, a library for parsing YAML files
 
 include(FindPackageHandleStandardArgs)
 
@@ -9,4 +9,4 @@ if(PKGCONFIG_FOUND)
         set(YAMLCPP_INCLUDE_DIRS "/usr/include")
     endif()
 endif()
-find_package_handle_standard_args(YAMLCPP DEFAULT_MSG YAMLCPP_LIBRARIES YAMLCPP_INCLUDE_DIRS)
+find_package_handle_standard_args(yaml-cpp DEFAULT_MSG YAMLCPP_LIBRARIES YAMLCPP_INCLUDE_DIRS)

@@ -49,6 +49,18 @@ namespace ompl
 {
     namespace geometric
     {
+        /**
+        @anchor gXXL
+
+        \ref gXXL "XXL" is a probabilistically complete sampling-based algorithm designed to plan the motions of high-dimensional mobile manipulators and related platforms. Using a novel sampling and connection strategy that guides a set of points mapped on the robot through the workspace, XXL scales to realistic manipulator platforms with dozens of joints by focusing the search of the robot's configuration space to specific degrees-of-freedom that affect motion in particular portions of the workspace. Simulated planning scenarios with the Robonaut2 platform and planar kinematic chains confirm that XXL exhibits competitive solution times relative to many existing works while obtaining execution-quality solution paths. Solutions from XXL are of comparable quality to costaware methods even though XXL does not explicitly optimize over any particular criteria, and are computed in an order of magnitude less time.
+
+        @par Associated publication:
+        R. Luna, M. Moll, J. Badger, and L. E. Kavraki,
+        A Scalable Motion Planner for High-Dimensional Kinematic Systems,
+        <em>Intl. J. of Robotics Research</em>, vol. 39, issue 4, pp. 361-388, Mar. 2020.
+        DOI: [10.1177/0278364919890408](http://dx.doi.org/10.1177/0278364919890408)<br>
+        [[PDF]](http://www.kavrakilab.org/publications/luna2020a-scalable-motion-planner-for-high-dimensional.pdf)
+        */
         class XXL : public base::Planner
         {
         public:

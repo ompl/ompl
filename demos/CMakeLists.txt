@@ -53,7 +53,10 @@ if (OMPL_BUILD_DEMOS)
     add_ompl_demo(demo_QuotientSpacePlanningHyperCubeBenchmark quotientspace/QuotientSpacePlanningHyperCubeBenchmark.cpp)
 
     find_package(yaml-cpp)
-    if (YAMLCPP_FOUND)
+    set_package_properties(yaml-cpp PROPERTIES
+        URL "https://github.com/jbeder/yaml-cpp"
+        PURPOSE "Used for parsing input data for the PlanarManipulator demo.")
+    if (yaml-cpp_FOUND)
         add_ompl_demo(demo_PlanarManipulator
             PlanarManipulator/PlanarManipulatorDemo.cpp
             PlanarManipulator/PlanarManipulator.cpp
