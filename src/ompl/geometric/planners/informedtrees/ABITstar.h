@@ -34,10 +34,10 @@
 
 /* Authors: Marlin Strub */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_ABITSTAR_ABITSTAR_
-#define OMPL_GEOMETRIC_PLANNERS_ABITSTAR_ABITSTAR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_ABITSTAR_
+#define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_ABITSTAR_
 
-#include "ompl/geometric/planners/bitstar/BITstar.h"
+#include "ompl/geometric/planners/informedtrees/BITstar.h"
 
 namespace ompl
 {
@@ -121,4 +121,4 @@ namespace ompl
 
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_ABITSTAR_ABITSTAR_
+#endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_ABITSTAR_

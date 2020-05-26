@@ -34,8 +34,8 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_AITSTAR_IMPLICITGRAPH_
-#define OMPL_GEOMETRIC_PLANNERS_AITSTAR_IMPLICITGRAPH_
+#ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_AITSTAR_IMPLICITGRAPH_
+#define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_AITSTAR_IMPLICITGRAPH_
 
 #include <memory>
 
@@ -47,7 +47,7 @@
 
 #include "ompl/datastructures/NearestNeighborsGNATNoThreadSafety.h"
 
-#include "ompl/geometric/planners/aitstar/datastructures/Vertex.h"
+#include "ompl/geometric/planners/informedtrees/aitstar/Vertex.h"
 
 namespace ompl
 {
@@ -206,4 +206,4 @@ namespace ompl
 
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_AITSTAR_IMPLICITGRAPH_
+#endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_AITSTAR_IMPLICITGRAPH_

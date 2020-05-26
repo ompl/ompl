@@ -34,14 +34,7 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_AITSTAR_EDGE_
-#define OMPL_GEOMETRIC_PLANNERS_AITSTAR_EDGE_
-
-#include <array>
-#include <limits>
-#include <memory>
-
-#include "ompl/base/Cost.h"
+#include "ompl/geometric/planners/informedtrees/aitstar/Edge.h"
 
 namespace ompl
 {
@@ -49,49 +42,43 @@ namespace ompl
     {
         namespace aitstar
         {
-            // Forward declaration of a vertex.
-            class Vertex;
-
-            class Edge
+            Edge::Edge()
+              : parent_()
+              , child_()
+              , sortKey_({ompl::base::Cost(std::numeric_limits<double>::signaling_NaN()),
+                          ompl::base::Cost(std::numeric_limits<double>::signaling_NaN()),
+                          ompl::base::Cost(std::numeric_limits<double>::signaling_NaN())})
             {
-            public:
-                /** \brief Needs a default constructor for the binary heap. */
-                Edge();
+            }
 
-                /** \brief Constructs an edge from a parent, a child, and the sort key. */
-                Edge(const std::shared_ptr<Vertex> &parent, const std::shared_ptr<Vertex> &child,
-                     const std::array<ompl::base::Cost, 3u> &sortKey);
+            Edge::Edge(const std::shared_ptr<Vertex> &parent, const std::shared_ptr<Vertex> &child,
+                       const std::array<ompl::base::Cost, 3u> &sortKey)
+              : parent_(parent), child_(child), sortKey_(sortKey)
+            {
+            }
 
-                /** \brief Destructs an edge. */
-                ~Edge() = default;
+            std::shared_ptr<Vertex> Edge::getParent() const
+            {
+                return parent_;
+            }
 
-                /** \brief Returns the parent in this edge. */
-                std::shared_ptr<Vertex> getParent() const;
+            std::shared_ptr<Vertex> Edge::getChild() const
+            {
+                return child_;
+            }
 
-                /** \brief Returns the child in this edge. */
-                std::shared_ptr<Vertex> getChild() const;
+            const std::array<ompl::base::Cost, 3u> &Edge::getSortKey() const
+            {
+                return sortKey_;
+            }
 
-                /** \brief Returns the sort key associated with this edge. */
-                const std::array<ompl::base::Cost, 3u> &getSortKey() const;
-
-                /** \brief Sets the sort key associated with this edge. */
-                void setSortKey(const std::array<ompl::base::Cost, 3u> &key);
-
-            private:
-                /** \brief The parent in this edge. */
-                std::shared_ptr<Vertex> parent_;
-
-                /** \brief The child in this edge. */
-                std::shared_ptr<Vertex> child_;
-
-                /** \brief The sort key associated with this edge. */
-                std::array<ompl::base::Cost, 3u> sortKey_;
-            };
+            void Edge::setSortKey(const std::array<ompl::base::Cost, 3u> &key)
+            {
+                sortKey_ = key;
+            }
 
         }  // namespace aitstar
 
     }  // namespace geometric
 
 }  // namespace ompl
-
-#endif  //  OMPL_GEOMETRIC_PLANNERS_AITSTAR_EDGE_

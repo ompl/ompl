@@ -41,7 +41,7 @@
 #include <boost/range/adaptor/reversed.hpp>
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
-#include "ompl/geometric/planners/aitstar/AITstar.h"
+#include "ompl/geometric/planners/informedtrees/AITstar.h"
 #include "ompl/util/Console.h"
 
 using namespace std::string_literals;

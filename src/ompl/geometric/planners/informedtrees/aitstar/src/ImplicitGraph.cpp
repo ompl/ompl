@@ -33,7 +33,7 @@
  *********************************************************************/
 
 // Authors: Marlin Strub
-#include "ompl/geometric/planners/aitstar/datastructures/ImplicitGraph.h"
+#include "ompl/geometric/planners/informedtrees/aitstar/ImplicitGraph.h"
 
 #include <cmath>
 

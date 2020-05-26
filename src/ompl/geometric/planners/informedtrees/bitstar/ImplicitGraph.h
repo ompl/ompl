@@ -34,13 +34,13 @@
 
 /* Authors: Jonathan Gammell, Marlin Strub */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IMPLICITGRAPH_
-#define OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IMPLICITGRAPH_
+#ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_IMPLICITGRAPH_
+#define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_IMPLICITGRAPH_
 
 #include "ompl/base/Cost.h"
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/NearestNeighbors.h"
-#include "ompl/geometric/planners/bitstar/BITstar.h"
+#include "ompl/geometric/planners/informedtrees/BITstar.h"
 
 namespace ompl
 {
@@ -482,4 +482,4 @@ namespace ompl
     }       // namespace geometric
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IMPLICITGRAPH_
+#endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_IMPLICITGRAPH_

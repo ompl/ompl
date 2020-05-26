@@ -46,9 +46,9 @@ OMPL_POP_CLANG
 
 #include "ompl/base/goals/GoalState.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
-#include "ompl/geometric/planners/aitstar/AITstar.h"
-#include "ompl/geometric/planners/bitstar/ABITstar.h"
-#include "ompl/geometric/planners/bitstar/BITstar.h"
+#include "ompl/geometric/planners/informedtrees/AITstar.h"
+#include "ompl/geometric/planners/informedtrees/ABITstar.h"
+#include "ompl/geometric/planners/informedtrees/BITstar.h"
 #include "ompl/geometric/planners/cforest/CForest.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"

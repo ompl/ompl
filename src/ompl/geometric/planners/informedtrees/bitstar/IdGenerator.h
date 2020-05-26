@@ -34,12 +34,12 @@
 
 /* Authors: Jonathan Gammell */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IDGENERATOR_
-#define OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IDGENERATOR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_IDGENERATOR_
+#define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_IDGENERATOR_
 
 // I am member class of the BITstar class, so I need to include it's definition to be aware of the class BITstar. It has
 // a forward declaration to me.
-#include "ompl/geometric/planners/bitstar/BITstar.h"
+#include "ompl/geometric/planners/informedtrees/BITstar.h"
 
 #include <thread>
 #include <mutex>
@@ -81,4 +81,4 @@ namespace ompl
 }  // ompl
 
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_IDGENERATOR_
+#endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_IDGENERATOR_

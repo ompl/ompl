@@ -33,7 +33,7 @@
  *********************************************************************/
 
 // Authors: Marlin Strub
-#include "ompl/geometric/planners/aitstar/datastructures/Vertex.h"
+#include "ompl/geometric/planners/informedtrees/aitstar/Vertex.h"
 
 #include <algorithm>
 #include <atomic>
