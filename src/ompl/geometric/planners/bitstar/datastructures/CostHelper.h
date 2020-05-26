@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Authors: Jonathan Gammell */
+/* Authors: Jonathan Gammell, Marlin Strub */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_COSTHELPER_
 #define OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_COSTHELPER_
@@ -83,8 +83,8 @@ namespace ompl
                 graphPtr_ = graph;
             };
 
-            /** \brief Clear the CostHelper, returns to state at construction*/
-            inline void clear()
+            /** \brief Reset the CostHelper, returns to state at construction. */
+            inline void reset()
             {
                 opt_.reset();
                 graphPtr_ = nullptr;
@@ -103,6 +103,12 @@ namespace ompl
              * cost-to-go. */
             inline ompl::base::Cost lowerBoundHeuristicVertex(const VertexConstPtr &vertex) const
             {
+#ifdef BITSTAR_DEBUG
+                if (vertex->isPruned())
+                {
+                    throw ompl::Exception("Computing the lower bound heuristic through a pruned vertex.");
+                }
+#endif // BITSTAR_DEBUG
                 return this->combineCosts(this->costToComeHeuristic(vertex), this->costToGoHeuristic(vertex));
             };
 
@@ -151,6 +157,12 @@ namespace ompl
             /** \brief Calculate a heuristic estimate of the cost-to-come for a Vertex */
             inline ompl::base::Cost costToComeHeuristic(const VertexConstPtr &vertex) const
             {
+#ifdef BITSTAR_DEBUG
+                if (vertex->isPruned())
+                {
+                    throw ompl::Exception("Computing the cost to come heuristic to a pruned vertex.");
+                }
+#endif // BITSTAR_DEBUG
                 // Variable
                 // The current best cost to the state, initialize to infinity
                 ompl::base::Cost curBest = this->infiniteCost();
@@ -161,7 +173,7 @@ namespace ompl
                 {
                     // Update the cost-to-come as the better of the best so far and the new one
                     curBest = this->betterCost(curBest,
-                                               this->motionCostHeuristic((*startIter)->stateConst(), vertex->stateConst()));
+                                               this->motionCostHeuristic((*startIter)->state(), vertex->state()));
                 }
 
                 // Return
@@ -171,7 +183,7 @@ namespace ompl
             /** \brief Calculate a heuristic estimate of the cost of an edge between two Vertices */
             inline ompl::base::Cost edgeCostHeuristic(const VertexConstPtrPair &edgePair) const
             {
-                return this->motionCostHeuristic(edgePair.first->stateConst(), edgePair.second->stateConst());
+                return this->motionCostHeuristic(edgePair.first->state(), edgePair.second->state());
             };
 
             /** \brief Calculate a heuristic estimate of the cost-to-go for a Vertex */
@@ -187,7 +199,7 @@ namespace ompl
                 {
                     // Update the cost-to-go as the better of the best so far and the new one
                     curBest = this->betterCost(curBest,
-                                               this->motionCostHeuristic(vertex->stateConst(), (*goalIter)->stateConst()));
+                                               this->motionCostHeuristic(vertex->state(), (*goalIter)->state()));
                 }
 
                 // Return
@@ -200,23 +212,21 @@ namespace ompl
             /** \brief The true cost of an edge, including constraints.*/
             inline ompl::base::Cost trueEdgeCost(const VertexConstPtrPair &edgePair) const
             {
-                return this->motionCost(edgePair.first->stateConst(), edgePair.second->stateConst());
+                return this->motionCost(edgePair.first->state(), edgePair.second->state());
             };
 
-            /** \brief Combine 3 costs */
-            inline ompl::base::Cost combineCosts(const ompl::base::Cost &a, const ompl::base::Cost &b,
-                                                 const ompl::base::Cost &c) const
+            /** \brief Combine multiple costs. */
+            template <typename... Costs>
+            inline ompl::base::Cost combineCosts(const ompl::base::Cost &cost, const Costs&... costs) const
             {
-                return this->combineCosts(a, this->combineCosts(b, c));
-            };
+                return this->combineCosts(cost, this->combineCosts(costs...));
+            }
 
-            /** \brief Combine 4 costs */
-            inline ompl::base::Cost combineCosts(const ompl::base::Cost &a, const ompl::base::Cost &b,
-                                                 const ompl::base::Cost &c, const ompl::base::Cost &d) const
+            /** \brief Inflate a cost by a given factor. */
+            inline ompl::base::Cost inflateCost(const ompl::base::Cost &cost, double factor) const
             {
-                return this->combineCosts(a, this->combineCosts(b, c, d));
-            };
-            ////////////////////////////////
+                return ompl::base::Cost(factor * cost.value());
+            }
 
             //////////////////
             // Cost-comparison functions

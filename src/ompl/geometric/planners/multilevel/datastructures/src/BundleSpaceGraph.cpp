@@ -669,9 +669,7 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
           solutionPath_ = getPath(vStart_, vGoal_);
           numVerticesWhenComputingSolutionPath_ = getNumberOfVertices();
 
-          if(!isDynamic() && solutionPath_ != solution && getChild() != nullptr
-              // && !getChild()->isDynamic()
-              )
+          if(!isDynamic() && solutionPath_ != solution && getChild() != nullptr)
           {
               int type = getBundle()->getStateSpace()->getType();
               bool optimize = true;
