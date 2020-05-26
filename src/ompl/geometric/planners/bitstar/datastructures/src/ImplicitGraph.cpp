@@ -949,7 +949,8 @@ namespace ompl
                 }
 
                 // Actually generate the new samples
-                while (numSamples_ < totalReqdSamples)
+                unsigned int ctr = 0;
+                while (numSamples_ < totalReqdSamples && ctr < 10)
                 {
                     // Variable
                     // The new state:
@@ -971,6 +972,7 @@ namespace ompl
                         // Update the number of sample
                         ++numSamples_;
                     }
+                    ctr++;
                     // No else
                 }
 

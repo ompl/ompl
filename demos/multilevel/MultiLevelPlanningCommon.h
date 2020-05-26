@@ -118,15 +118,17 @@ void printBenchmarkResults(const ot::Benchmark &b)
         plannerTimes[time] = std::make_pair(pk.name, percentSuccess);
     }
 
-    std::cout << "Finished Benchmark (Runtime:" << experiment.maxTime << ", RunCount:" << experiment.runCount << ")"
+    std::cout << "Finished Benchmark (Runtime: " << experiment.maxTime << ", RunCount: " << experiment.runCount << ")"
               << std::endl;
     std::cout << "Placement <Rank> <Time (in Seconds)> <Success (in Percentage)>" << std::endl;
     unsigned int ctr = 1;
     std::cout << std::string(80, '-') << std::endl;
     for (auto const &p : plannerTimes)
     {
-        std::cout << "Place <" << ctr << "> Time: <" << p.first << "> \%Success: <" << p.second.second << "> ("
-                  << p.second.first << ")" << ((ctr < 2) && (p.second.second > 0) ? " <-- Winner" : "") << std::endl;
+        std::cout << "Place <" << ctr 
+          << "> Time: <" << p.first 
+          << "> \%Success: <" << p.second.second 
+          << "> (" << p.second.first << ")" << std::endl;
         ctr++;
     }
     std::cout << std::string(80, '-') << std::endl;

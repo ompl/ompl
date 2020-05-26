@@ -109,7 +109,8 @@ void ompl::geometric::QMPImpl::grow()
         vGoal_ = addConfiguration(qGoal_);
         firstRun_ = false;
 
-        if(hasBaseSpace()){
+        if(hasBaseSpace())
+        {
             if(getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
             {
                 if (sameComponent(vStart_, vGoal_))

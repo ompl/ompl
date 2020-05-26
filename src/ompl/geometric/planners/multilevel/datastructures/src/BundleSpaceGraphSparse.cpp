@@ -237,7 +237,7 @@ void BundleSpaceGraphSparse::init()
     qStart_->representativeIndex = v_start_sparse;
 
     v_goal_sparse = addConfigurationSparse(qGoal_);
-    graphSparse_[v_start_sparse]->isGoal = true;
+    graphSparse_[v_goal_sparse]->isGoal = true;
     qGoal_->representativeIndex = v_goal_sparse;
 }
 
@@ -859,7 +859,8 @@ void BundleSpaceGraphSparse::getPlannerData(base::PlannerData &data) const
         boost::num_vertices(graph_), 
         boost::num_edges(graph_));
 
-    if(boost::num_vertices(graphSparse_) > 1){
+    if(boost::num_vertices(graphSparse_) > 1)
+    {
         BaseT::getPlannerDataGraph(data, graphSparse_, v_start_sparse, v_goal_sparse);
     }
 }

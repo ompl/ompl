@@ -45,10 +45,15 @@
 #include <ompl/base/Path.h>
 #include <ompl/geometric/PathGeometric.h>
 
-const double runtime_limit = 60;
-const double memory_limit = 1024*1024; //in MB, but does not consider free operations from prev runs
-const int run_count = 10;
-unsigned int curDim = 50;
+// const double runtime_limit = 60;
+// const double memory_limit = 1024*1024; //in MB, but does not consider free operations from prev runs
+// const int run_count = 10;
+// unsigned int curDim = 50;
+
+const double runtime_limit = 2;
+const double memory_limit = 1024*20; //in MB, but does not consider free operations from prev runs
+const int run_count = 2;
+unsigned int curDim = 2;
 
 int main(int argc, char **argv)
 {
@@ -90,6 +95,9 @@ int main(int argc, char **argv)
         std::vector<int> proj = admissibleProjections.at(k);
         addPlanner(benchmark, GetMultiLevelPlanner<og::QRRT>(proj, si, "QRRT"), range);
         addPlanner(benchmark, GetMultiLevelPlanner<og::QRRTStar>(proj, si, "QRRTStar"), range);
+        addPlanner(benchmark, GetMultiLevelPlanner<og::QMP>(proj, si, "QMP"), range);
+        addPlanner(benchmark, GetMultiLevelPlanner<og::QMPStar>(proj, si, "QMPStar"), range);
+        addPlanner(benchmark, GetMultiLevelPlanner<og::QRRTStar>(proj, si, "SPQR"), range);
     }
 
     //Classical Planner

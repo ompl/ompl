@@ -41,6 +41,7 @@
 #include <ompl/datastructures/NearestNeighbors.h>
 #include "ompl/datastructures/PDF.h"
 #include <boost/math/constants/constants.hpp>
+#include <ompl/geometric/planners/multilevel/datastructures/pathrestriction/PathRestriction.h>
 
 #define foreach BOOST_FOREACH
 
@@ -52,6 +53,7 @@ ompl::geometric::SPQRImpl::SPQRImpl(const base::SpaceInformationPtr &si, BundleS
 
     setMetric("geodesic");
     setGraphSampler("randomedge");
+    setImportance("exponential");
 
     double d = (double)getBundle()->getStateDimension();
     double e = boost::math::constants::e<double>();
@@ -69,14 +71,20 @@ void ompl::geometric::SPQRImpl::grow()
     {
         init();
         firstRun_ = false;
+
+        if(hasBaseSpace())
+        {
+            if(getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
+            {
+                if (sameComponentSparse(v_start_sparse, v_goal_sparse))
+                {
+                    hasSolution_ = true;
+                }
+            }
+        }
     }
 
     if(!sampleBundleValid(xRandom_->state)) return;
-
-    // if(!getBundle()->getStateValidityChecker()->isValid(xRandom_->state))
-    // {
-    //     return;
-    // }
 
     Configuration *q_next = new Configuration(getBundle(), xRandom_->state);
     addConfiguration(q_next);

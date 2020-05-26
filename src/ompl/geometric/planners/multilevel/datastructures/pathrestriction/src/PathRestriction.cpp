@@ -139,7 +139,6 @@ ompl::geometric::BundleSpacePathRestriction::interpolateQuasiSectionSpline(
       double dk = bundleSpaceGraph_->getBase()->distance(bk, bkk);
       time(k) = dk + time(k-1);
   }
-  // std::cout << time << std::endl;
 
   Eigen::MatrixXd states = Eigen::MatrixXd::Zero(dim, basePath.size());
   for(uint j = 0; j < basePath.size(); j++)
