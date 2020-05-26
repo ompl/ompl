@@ -51,7 +51,7 @@ namespace ompl
           void sanityCheckSection();
 
           Configuration* addFeasibleSegment(
-              const Configuration* xLast, 
+              Configuration* xLast, 
               base::State *sNext);
 
           void addFeasibleGoalSegment( 

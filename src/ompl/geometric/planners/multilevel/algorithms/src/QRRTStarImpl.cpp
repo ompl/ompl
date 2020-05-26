@@ -37,6 +37,7 @@
 
 #include <ompl/geometric/planners/multilevel/algorithms/QRRTStarImpl.h>
 #include <ompl/geometric/planners/multilevel/datastructures/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/multilevel/datastructures/pathrestriction/PathRestriction.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <boost/foreach.hpp>
@@ -87,6 +88,20 @@ void ompl::geometric::QRRTStarImpl::grow()
         init();
         goal_ = pdef_->getGoal().get();
         firstRun_ = false;
+
+        if(hasBaseSpace())
+        {
+            if(getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
+            {
+                if (opt_->isCostBetterThan(qGoal_->cost, bestCost_))
+                {
+                    goalConfigurations_.push_back(qGoal_);
+                    vGoal_ = qGoal_->index;
+                    bestCost_ = qGoal_->cost;
+                    hasSolution_ = true;
+                }
+            }
+        }
     }
 
     //(1) Get Random Sample

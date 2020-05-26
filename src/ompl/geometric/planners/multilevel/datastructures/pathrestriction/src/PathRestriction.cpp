@@ -468,12 +468,14 @@ ompl::geometric::BundleSpacePathRestriction::interpolateSectionL2(
 
 ompl::geometric::BundleSpaceGraph::Configuration* 
 ompl::geometric::BundleSpacePathRestriction::addFeasibleSegment(
-    const Configuration* xLast, 
+    Configuration* xLast, 
     base::State *sNext)
 {
     Configuration *x = new Configuration(bundleSpaceGraph_->getBundle(), sNext);
     bundleSpaceGraph_->addConfiguration(x);
     bundleSpaceGraph_->addBundleEdge(xLast, x);
+
+    x->parent = xLast;
 
 #ifdef SANITY_CHECK_PATH_RESTRICTION
     if(!bundleSpaceGraph_->getBundle()->checkMotion(xLast->state, x->state))
@@ -501,6 +503,8 @@ ompl::geometric::BundleSpacePathRestriction::addFeasibleGoalSegment(
         bundleSpaceGraph_->vGoal_ = bundleSpaceGraph_->addConfiguration(xGoal);
     }
     bundleSpaceGraph_->addBundleEdge(xLast, xGoal);
+
+    xGoal->parent = xLast;
 
 #ifdef SANITY_CHECK_PATH_RESTRICTION
     if(!bundleSpaceGraph_->getBundle()->checkMotion(xLast->state, xGoal->state))
