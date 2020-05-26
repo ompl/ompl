@@ -46,6 +46,7 @@ ompl::geometric::BundleSpacePathRestriction::~BundleSpacePathRestriction()
 
 void ompl::geometric::BundleSpacePathRestriction::reset()
 {
+  basePath_.clear();
 }
 
 void ompl::geometric::BundleSpacePathRestriction::setBasePath(ompl::base::PathPtr path)
@@ -725,6 +726,8 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
             {
                 addFeasibleGoalSegment(xLast, xGoal);
                 OMPL_DEBUG("Found feasible path section (%d edges added)", k);
+                bundleSpaceGraph_->getBundle()->freeStates(section);
+
                 return true;
             }
         }else
@@ -763,7 +766,11 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
             static_cast<BundleSpaceGraph*>(bundleSpaceGraph_->getParent())
               ->getGraphSampler()->setPathBiasStartSegment(locationOnBasePath + startLength);
 
-            if(depth + 1 >= PATH_SECTION_TREE_MAX_DEPTH) return false;
+            if(depth + 1 >= PATH_SECTION_TREE_MAX_DEPTH)
+            {
+                bundleSpaceGraph_->getBundle()->freeStates(section);
+                return false;
+            }
 
             //############################################################################
             //Side step randomly and interpolate from there towards goal
@@ -809,6 +816,7 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
 
                     if(feasibleSection)
                     {
+                        bundleSpaceGraph_->getBundle()->freeStates(section);
                         return true;
                     }
                 }
@@ -817,6 +825,7 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(
             break;
         }
     }
+    bundleSpaceGraph_->getBundle()->freeStates(section);
     return false;
 }
 

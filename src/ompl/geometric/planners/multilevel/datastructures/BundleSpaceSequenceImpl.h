@@ -302,6 +302,8 @@ void ompl::geometric::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planner
                     base::State *s_Fiber = Qm->allocIdentityStateFiber();
 
                     Qm->liftState(s_lift, s_Fiber, s_Bundle);
+
+                    Qm->getBase()->freeState(s_lift);
                     s_lift = Qm->getBundle()->cloneState(s_Bundle);
 
                     Qm->getBundle()->freeState(s_Bundle);

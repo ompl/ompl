@@ -367,6 +367,7 @@ void ompl::geometric::BundleSpace::liftState(const base::State *xBase, const bas
         OMPL_ERROR("Fibers are not preserved after lifting.");
         exit(0);
     }
+    getFiber()->freeState(xF);
 #endif
 
 }
@@ -411,66 +412,67 @@ void ompl::geometric::BundleSpace::projectBase(const base::State *xBundle, base:
 
 void ompl::geometric::BundleSpace::allocIdentityState(base::State *s, base::StateSpacePtr space) const
 {
-  if(space->isCompound()){
-    base::CompoundStateSpace *cspace = space->as<base::CompoundStateSpace>();
-    const std::vector<base::StateSpacePtr> compounds = cspace->getSubspaces();
-    for(unsigned int k = 0; k < compounds.size(); k++){
-      base::StateSpacePtr spacek = compounds.at(k);
-      base::State *xk = s->as<base::CompoundState>()->as<base::State>(k);
-      allocIdentityState(xk, spacek);
-    }
-  }else{
-    int stype = space->getType();
-    switch (stype) 
+    if(space->isCompound())
     {
-      case base::STATE_SPACE_SO3:
-      {
-        static_cast<base::SO3StateSpace::StateType *>(s)->setIdentity();
-        break;
-      }
-      case base::STATE_SPACE_SO2:
-      {
-        static_cast<base::SO2StateSpace::StateType *>(s)->setIdentity();
-        break;
-      }
-      case base::STATE_SPACE_TIME:
-      {
-        static_cast<base::TimeStateSpace::StateType *>(s)->position = 0;
-        break;
-      }
-      case base::STATE_SPACE_DISCRETE:
-      {
-        base::DiscreteStateSpace *space_Discrete = space->as<base::DiscreteStateSpace>();
-        int lb = space_Discrete->getLowerBound();
-        static_cast<base::DiscreteStateSpace::StateType *>(s)->value = lb;
-        break;
-      }
-      case base::STATE_SPACE_REAL_VECTOR:
-      {
-        base::RealVectorStateSpace::StateType *sRN = s->as<base::RealVectorStateSpace::StateType>();
-        for(uint k = 0; k < space->getDimension(); k++){
-          sRN->values[k] = 0;
+        base::CompoundStateSpace *cspace = space->as<base::CompoundStateSpace>();
+        const std::vector<base::StateSpacePtr> compounds = cspace->getSubspaces();
+        for(unsigned int k = 0; k < compounds.size(); k++){
+            base::StateSpacePtr spacek = compounds.at(k);
+            base::State *xk = s->as<base::CompoundState>()->as<base::State>(k);
+            allocIdentityState(xk, spacek);
         }
-        break;
-      }
-      default:
-      {
-        OMPL_ERROR("Type: %d not recognized.", stype);
-        throw Exception("Type not recognized.");
-      }
+    }else{
+        int stype = space->getType();
+        switch (stype) 
+        {
+            case base::STATE_SPACE_SO3:
+            {
+                static_cast<base::SO3StateSpace::StateType *>(s)->setIdentity();
+                break;
+            }
+            case base::STATE_SPACE_SO2:
+            {
+                static_cast<base::SO2StateSpace::StateType *>(s)->setIdentity();
+                break;
+            }
+            case base::STATE_SPACE_TIME:
+            {
+                static_cast<base::TimeStateSpace::StateType *>(s)->position = 0;
+                break;
+            }
+            case base::STATE_SPACE_DISCRETE:
+            {
+                base::DiscreteStateSpace *space_Discrete = space->as<base::DiscreteStateSpace>();
+                int lb = space_Discrete->getLowerBound();
+                static_cast<base::DiscreteStateSpace::StateType *>(s)->value = lb;
+                break;
+            }
+            case base::STATE_SPACE_REAL_VECTOR:
+            {
+                base::RealVectorStateSpace::StateType *sRN = s->as<base::RealVectorStateSpace::StateType>();
+                for(uint k = 0; k < space->getDimension(); k++){
+                    sRN->values[k] = 0;
+                }
+                break;
+            }
+            default:
+            {
+                OMPL_ERROR("Type: %d not recognized.", stype);
+                throw Exception("Type not recognized.");
+            }
+        }
     }
-  }
 }
 
 ompl::base::State* ompl::geometric::BundleSpace::allocIdentityState(base::StateSpacePtr space) const
 {
-  if(space != nullptr){
-    base::State *s = space->allocState();
-    allocIdentityState(s, space);
-    return s;
-  }else{
-    return nullptr;
-  }
+    if(space != nullptr){
+        base::State *s = space->allocState();
+        allocIdentityState(s, space);
+        return s;
+    }else{
+        return nullptr;
+    }
 }
 
 ompl::base::State* ompl::geometric::BundleSpace::allocIdentityStateFiber() const

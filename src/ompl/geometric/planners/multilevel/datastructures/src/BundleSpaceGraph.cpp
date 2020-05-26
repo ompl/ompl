@@ -203,7 +203,8 @@ void ompl::geometric::BundleSpaceGraph::clear()
     BaseT::clear();
 
     clearVertices();
-    clearQuery();
+    pis_.restart();
+
     graphLength_ = 0;
     bestCost_ = base::Cost(base::dInf);
     setup_ = false;
@@ -212,14 +213,50 @@ void ompl::geometric::BundleSpaceGraph::clear()
     lengthStartGoalVertexPath_ = base::dInf;
     shortestVertexPath_.clear();
 
+    // deleteConfiguration(qStart_);
+    // deleteConfiguration(qGoal_);
     qStart_ = nullptr;
-    qStart_ = nullptr;
-    solutionPath_ = nullptr;
+    qGoal_ = nullptr;
+
+    if(!isDynamic())
+    {
+        // geometric::PathGeometric &spath = static_cast<geometric::PathGeometric &>(*solutionPath_);
+        if(solutionPath_ != nullptr)
+        {
+            std::static_pointer_cast<geometric::PathGeometric>(solutionPath_)->clear();
+        }
+        // spath.clear();
+        // // spath.freeMemory();
+        // std::vector<base::State*> states = spath.getStates();
+        // for(auto s: states)
+        // {
+        //     getBundle()->freeState(s);
+        // }
+        // // getBundle()->freeStates(states);
+        // states.clear();
+    }
+    
+
     numVerticesWhenComputingSolutionPath_ = 0;
 
     importanceCalculator_->reset();
     graphSampler_->reset();
     pathRestriction_->reset();
+}
+
+void ompl::geometric::BundleSpaceGraph::clearVertices()
+{
+    if (nearestDatastructure_)
+    {
+        std::vector<Configuration *> configs;
+        nearestDatastructure_->list(configs);
+        for (auto &config : configs)
+        {
+            deleteConfiguration(config);
+        }
+        nearestDatastructure_->clear();
+    }
+    graph_.clear();
 }
 
 void ompl::geometric::BundleSpaceGraph::setGoalBias(double goalBias)
@@ -291,26 +328,6 @@ void ompl::geometric::BundleSpaceGraph::deleteConfiguration(Configuration *q)
         delete q;
         q = nullptr;
     }
-}
-
-void ompl::geometric::BundleSpaceGraph::clearVertices()
-{
-    if (nearestDatastructure_)
-    {
-        std::vector<Configuration *> configs;
-        nearestDatastructure_->list(configs);
-        for (auto &config : configs)
-        {
-            deleteConfiguration(config);
-        }
-        nearestDatastructure_->clear();
-    }
-    graph_.clear();
-}
-
-void ompl::geometric::BundleSpaceGraph::clearQuery()
-{
-    pis_.restart();
 }
 
 double ompl::geometric::BundleSpaceGraph::getImportance() const
@@ -460,25 +477,6 @@ void ompl::geometric::BundleSpaceGraph::interpolate(
     metric_->interpolateBundle(a, b, dest);
 }
 
-Configuration* ompl::geometric::BundleSpaceGraph::steerTowards_Range(
-    const Configuration *from, 
-    const Configuration *to)
-{
-    Configuration *next = new Configuration(getBundle(), to->state);
-
-    double d = distance(from, to);
-    if (d > maxDistance_)
-    {
-        metric_->interpolateBundle(from, to, maxDistance_ / d, next);
-    }
-
-    if (!propagator_->steer(from, next, next))
-    {
-        deleteConfiguration(next);
-        return nullptr;
-    }
-    return next;
-}
 Configuration* ompl::geometric::BundleSpaceGraph::steerTowards(
     const Configuration *from, 
     const Configuration *to)
@@ -490,6 +488,25 @@ Configuration* ompl::geometric::BundleSpaceGraph::steerTowards(
         deleteConfiguration(next);
         return nullptr;
     }
+    return next;
+}
+Configuration* ompl::geometric::BundleSpaceGraph::steerTowards_Range(
+    const Configuration *from, 
+    Configuration *to)
+{
+    // Configuration *next = new Configuration(getBundle(), to->state);
+
+    double d = distance(from, to);
+    if (d > maxDistance_)
+    {
+        metric_->interpolateBundle(from, to, maxDistance_ / d, to);
+    }
+
+    if (!propagator_->steer(from, to, to))
+    {
+        return nullptr;
+    }
+    Configuration *next = new Configuration(getBundle(), to->state);
     return next;
 }
 Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards_Range(
@@ -671,7 +688,7 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
 
           if(!isDynamic() && solutionPath_ != solution && getChild() != nullptr)
           {
-              int type = getBundle()->getStateSpace()->getType();
+              // int type = getBundle()->getStateSpace()->getType();
               bool optimize = true;
               // if(type == base::STATE_SPACE_DUBINS || type == base::STATE_SPACE_DUBINS_AIRPLANE)
               // {
@@ -912,10 +929,8 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(
         p.setPath(idxPathI);
         data.addVertex(p);
     }
-
-
-
 }
+
 void ompl::geometric::BundleSpaceGraph::getPlannerData(base::PlannerData &data) const
 {
     OMPL_DEBUG("Graph (level %d) has %d/%d vertices/edges", 

@@ -223,7 +223,6 @@ namespace ompl
 
             virtual void setup() override;
             virtual void clear() override;
-            void clearQuery() override;
             virtual void clearVertices();
             virtual void deleteConfiguration(Configuration *q);
 
@@ -292,7 +291,7 @@ namespace ompl
 
             Configuration* steerTowards_Range(
                 const Configuration *from, 
-                const Configuration *to);
+                Configuration *to);
 
             Configuration* steerTowards(
                 const Configuration *from, 
