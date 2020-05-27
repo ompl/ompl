@@ -62,7 +62,6 @@ void ompl::geometric::QRRTImpl::grow()
         init();
         firstRun_ = false;
 
-        //smarter path section search
         if(hasBaseSpace())
         {
             if(getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))

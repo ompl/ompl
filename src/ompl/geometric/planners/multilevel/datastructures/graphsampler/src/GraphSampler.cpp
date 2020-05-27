@@ -84,8 +84,6 @@ void ompl::geometric::BundleSpaceGraphSampler::sample(
             // double endLength = std::min( pathBiasStartSegment_ + 0.1*spath.length(),
             //     spath.length());
 
-
-            //TODO: outsource to bundlegraph?
             double endLength = spath.length();
             double distStopping = 
               pathBiasStartSegment_ + rng_.uniform01() * (endLength - pathBiasStartSegment_);

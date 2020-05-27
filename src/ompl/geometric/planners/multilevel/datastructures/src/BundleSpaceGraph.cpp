@@ -688,9 +688,11 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
 
           if(!isDynamic() && solutionPath_ != solution && getChild() != nullptr)
           {
+              // bool optimize = true;
               // int type = getBundle()->getStateSpace()->getType();
-              bool optimize = true;
-              // if(type == base::STATE_SPACE_DUBINS || type == base::STATE_SPACE_DUBINS_AIRPLANE)
+              // // if(type == base::STATE_SPACE_DUBINS || type == base::STATE_SPACE_DUBINS_AIRPLANE)
+              // if(type == base::STATE_SPACE_DUBINS 
+              //     || type == base::STATE_SPACE_DUBINS_AIRPLANE)
               // {
               //   optimize = false;
               // }
@@ -711,8 +713,8 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
               //     }
               // }
               
-              if(optimize)
-              {
+              // if(optimize)
+              // {
                   ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 
                       pathRefinementObj_);
                   geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
@@ -723,7 +725,7 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
                       //reset solutionPath
                       solutionPath_ = getPath(vStart_, vGoal_);
                   }
-              }
+              // }
           }
         }
         solution = solutionPath_;

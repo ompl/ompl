@@ -4,7 +4,6 @@
 ompl::geometric::BundleSpaceImportanceGreedy::BundleSpaceImportanceGreedy(BundleSpaceGraph* graph):
   BaseT(graph)
 {
-
 }
 
 double ompl::geometric::BundleSpaceImportanceGreedy::getLevelConstant()

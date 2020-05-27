@@ -41,10 +41,13 @@ likely to find section if trying L1, L2, L1inverse instead of doing too much
 sidestepping)
 [x] Remove all sanitychecks/debug informations
 [x] Plot hypercube benchmark (fix log to plot script)
+[x] Fix possible memory leak in QRRT*
 
-[ ] *** Fix possible memory leak in QRRT*
+[ ] ** Write new tutorial/demo for multilevel
+[ ] ** Redo 37dof pregrasp with ProjectionEnabled Planner (should work since RN)
 [ ] Remove DenseGraphPath method from BundleSpaceGraph.h
-[ ] ** Write new tutorial/demo
+[ ] Further sweep to clean up SparseGraph
+[ ] Verify that we need the disableSegmentBias
 
 //OPTIONAL
 [ ] Add Enumerate for Metric/Importance/Sampler (Use Params like in RRTstar)
