@@ -34,7 +34,7 @@
 
 /* Authors: Marlin Strub */
 
-#include "ompl/geometric/planners/bitstar/ABITstar.h"
+#include "ompl/geometric/planners/informedtrees/ABITstar.h"
 
 namespace ompl
 {

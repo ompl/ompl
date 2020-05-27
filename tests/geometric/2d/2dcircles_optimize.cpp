@@ -46,8 +46,9 @@ OMPL_POP_CLANG
 
 #include "ompl/base/goals/GoalState.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
-#include "ompl/geometric/planners/bitstar/ABITstar.h"
-#include "ompl/geometric/planners/bitstar/BITstar.h"
+#include "ompl/geometric/planners/informedtrees/AITstar.h"
+#include "ompl/geometric/planners/informedtrees/ABITstar.h"
+#include "ompl/geometric/planners/informedtrees/BITstar.h"
 #include "ompl/geometric/planners/cforest/CForest.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"
@@ -330,6 +331,16 @@ protected:
     }
 };
 
+class AITstarTest : public TestPlanner
+{
+protected:
+
+    base::PlannerPtr newPlanner(const base::SpaceInformationPtr &si) const override
+    {
+        return std::make_shared<geometric::AITstar>(si);
+    }
+};
+
 class BITstarTest : public TestPlanner
 {
 protected:
@@ -405,6 +416,7 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
     }
 
 OMPL_PLANNER_TEST(ABITstar)
+OMPL_PLANNER_TEST(AITstar)
 OMPL_PLANNER_TEST(BITstar)
 OMPL_PLANNER_TEST(CForest)
 OMPL_PLANNER_TEST(PRM)

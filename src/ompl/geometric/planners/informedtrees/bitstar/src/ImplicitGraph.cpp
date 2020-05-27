@@ -35,7 +35,7 @@
 /* Authors: Jonathan Gammell, Marlin Strub */
 
 // My definition:
-#include "ompl/geometric/planners/bitstar/datastructures/ImplicitGraph.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/ImplicitGraph.h"
 
 // STL/Boost:
 // For std::move
@@ -61,13 +61,13 @@
 
 // BIT*:
 // A collection of common helper functions
-#include "ompl/geometric/planners/bitstar/datastructures/HelperFunctions.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/HelperFunctions.h"
 // The vertex class:
-#include "ompl/geometric/planners/bitstar/datastructures/Vertex.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/Vertex.h"
 // The cost-helper class:
-#include "ompl/geometric/planners/bitstar/datastructures/CostHelper.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/CostHelper.h"
 // The search queue class
-#include "ompl/geometric/planners/bitstar/datastructures/SearchQueue.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/SearchQueue.h"
 
 // Debug macros
 #ifdef BITSTAR_DEBUG
