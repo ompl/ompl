@@ -36,6 +36,7 @@
 
 #include "PolyWorld.h"
 
+#include <cassert>
 #include <fstream>
 #include <ompl/util/Console.h>
 #include <yaml-cpp/yaml.h>
