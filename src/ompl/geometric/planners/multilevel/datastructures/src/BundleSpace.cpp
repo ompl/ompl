@@ -89,14 +89,14 @@ ompl::geometric::BundleSpace::~BundleSpace()
         {
             Base->freeState(xBaseTmp_);
         }
-        if (Fiber && xFiberTmp_)
+        if (getFiberDimension()>0 && xFiberTmp_)
         {
             Fiber->freeState(xFiberTmp_);
         }
     }
     if (xBundleTmp_)
     {
-        Base->freeState(xBundleTmp_);
+        Bundle->freeState(xBundleTmp_);
     }
     components_.clear();
 }

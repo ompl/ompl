@@ -65,8 +65,9 @@ ompl::geometric::BundleSpaceSequence<T>::~BundleSpaceSequence()
 {
     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
     {
-        if(bundleSpaces_.at(k)){
-          delete bundleSpaces_.at(k);
+        if(bundleSpaces_.at(k))
+        {
+            delete bundleSpaces_.at(k);
         }
     }
     bundleSpaces_.clear();
