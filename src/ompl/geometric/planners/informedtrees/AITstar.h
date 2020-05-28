@@ -127,9 +127,6 @@ namespace ompl
             /** \brief Get whether approximate solutions are tracked. */
             bool areApproximateSolutionsTracked() const;
 
-            /** \brief Updates the best approximate goal vertex. */
-            void updateBestApproximateGoalVertex();
-
             /** \brief Set whether pruning is enabled or not. */
             void enablePruning(bool prune);
 

@@ -83,10 +83,11 @@ namespace ompl
             // Register the setting callbacks.
             declareParam<double>("rewire_factor", this, &AITstar::setRewireFactor, &AITstar::getRewireFactor,
                                  "1.0:0.01:3.0");
-            declareParam<std::size_t>("samples_per_batch", this, &AITstar::setBatchSize, &AITstar::getBatchSize);
-            declareParam<bool>("use_graph_pruning", this, &AITstar::enablePruning, &AITstar::isPruningEnabled);
+            declareParam<std::size_t>("samples_per_batch", this, &AITstar::setBatchSize, &AITstar::getBatchSize,
+                                      "1:1:1000");
+            declareParam<bool>("use_graph_pruning", this, &AITstar::enablePruning, &AITstar::isPruningEnabled, "0,1");
             declareParam<bool>("find_approximate_solutions", this, &AITstar::trackApproximateSolutions,
-                               &AITstar::areApproximateSolutionsTracked);
+                               &AITstar::areApproximateSolutionsTracked, "0,1");
 
             // Register the progress properties.
             addPlannerProgressProperty("iterations INTEGER", [this]() { return std::to_string(numIterations_); });

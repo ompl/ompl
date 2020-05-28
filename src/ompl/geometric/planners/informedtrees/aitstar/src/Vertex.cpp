@@ -409,7 +409,6 @@ namespace ompl
 
             void Vertex::registerExpansionDuringReverseSearch()
             {
-                assert(!reverseSearchId_.expired());
                 expandedCostToComeFromGoal_ = costToComeFromGoal_;
                 expandedReverseSearchId_ = batchId_;
             }
@@ -421,19 +420,16 @@ namespace ompl
 
             void Vertex::registerInsertionIntoQueueDuringReverseSearch()
             {
-                assert(!reverseSearchId_.expired());
                 insertedIntoQueueId_ = batchId_;
             }
 
             bool Vertex::hasHadOutgoingEdgePoppedDuringCurrentForwardSearch() const
             {
-                assert(!forwardSearchId_.expired());
                 return poppedOutgoingEdgeId_ == batchId_;
             }
 
             bool Vertex::hasBeenExpandedDuringCurrentReverseSearch() const
             {
-                assert(!reverseSearchId_.expired());
                 return expandedReverseSearchId_ == batchId_;
             }
 
