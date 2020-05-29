@@ -709,6 +709,13 @@ namespace ompl
                     // Check if the solution can benefit from this.
                     updateExactSolution();
 
+                    // If we don't have an exact solution but are tracking approximate solutions, see if the child is
+                    // the best approximate solution so far.
+                    if (!pdef_->hasExactSolution() && trackApproximateSolutions_)
+                    {
+                        updateApproximateSolution(child);
+                    }
+
                     // Insert the child's outgoing edges into the queue.
                     auto edges = getOutgoingEdges(child);
                     if (haveAllVerticesBeenProcessed(edges))
