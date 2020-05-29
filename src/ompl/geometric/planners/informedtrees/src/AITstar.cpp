@@ -325,7 +325,10 @@ namespace ompl
             trackApproximateSolutions_ = track;
             if (!trackApproximateSolutions_)
             {
-                approximateSolutionCost_ = objective_->infiniteCost();
+                if (static_cast<bool>(objective_))
+                {
+                    approximateSolutionCost_ = objective_->infiniteCost();
+                }
             }
         }
 
