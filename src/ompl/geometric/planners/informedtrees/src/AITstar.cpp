@@ -74,7 +74,7 @@ namespace ompl
             // Specify AIT*'s planner specs.
             specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
             specs_.multithreaded = false;
-            specs_.approximateSolutions = trackApproximateSolutions_;  // Disabled by default.
+            specs_.approximateSolutions = true;
             specs_.optimizingPaths = true;
             specs_.directed = true;
             specs_.provingSolutionNonExistence = false;
