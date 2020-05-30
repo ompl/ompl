@@ -37,6 +37,8 @@
 
 #include <cmath>
 
+#include <boost/math/constants/constants.hpp>
+
 #include "ompl/util/GeometricEquations.h"
 
 namespace ompl
@@ -61,6 +63,8 @@ namespace ompl
                 spaceInformation_ = spaceInformation;
                 problemDefinition_ = problemDefinition;
                 objective_ = problemDefinition->getOptimizationObjective();
+                k_rgg_ = boost::math::constants::e<double>() +
+                         (boost::math::constants::e<double>() / spaceInformation->getStateDimension());
                 updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), inputStates);
             }
 
@@ -68,6 +72,8 @@ namespace ompl
             {
                 batchId_ = 1u;
                 radius_ = std::numeric_limits<double>::infinity();
+                numNeighbors_ = std::numeric_limits<std::size_t>::max();
+                k_rgg_ = std::numeric_limits<std::size_t>::max();
                 vertices_.clear();
                 startVertices_.clear();
                 goalVertices_.clear();
@@ -83,6 +89,16 @@ namespace ompl
             double ImplicitGraph::getRewireFactor() const
             {
                 return rewireFactor_;
+            }
+
+            void ImplicitGraph::setUseKNearest(bool useKNearest)
+            {
+                useKNearest_ = useKNearest;
+            }
+
+            bool ImplicitGraph::getUseKNearest() const
+            {
+                return useKNearest_;
             }
 
             void ImplicitGraph::registerStartState(const ompl::base::State *const startState)
@@ -323,10 +339,19 @@ namespace ompl
                 // Add all new vertices to the nearest neighbor structure.
                 vertices_.add(newVertices);
 
+                auto numUniformSamplesInInformedSet =
+                    numSamplesInInformedSet + numNewSamples - startVertices_.size() - goalVertices_.size();
+
                 // We need to do some internal housekeeping.
                 ++batchId_;
-                radius_ = computeConnectionRadius(numSamplesInInformedSet + numNewSamples - startVertices_.size() -
-                                                  goalVertices_.size());
+                if (useKNearest_)
+                {
+                    numNeighbors_ = computeNumberOfNeighbors(numUniformSamplesInInformedSet);
+                }
+                else
+                {
+                    radius_ = computeConnectionRadius(numUniformSamplesInInformedSet);
+                }
 
                 return newVertices;
             }
@@ -353,7 +378,14 @@ namespace ompl
                 {
                     ++numNearestNeighborsCalls_;
                     std::vector<std::shared_ptr<Vertex>> neighbors{};
-                    vertices_.nearestR(vertex, radius_, neighbors);
+                    if (useKNearest_)
+                    {
+                        vertices_.nearestK(vertex, numNeighbors_, neighbors);
+                    }
+                    else
+                    {
+                        vertices_.nearestR(vertex, radius_, neighbors);
+                    }
                     vertex->cacheNeighbors(neighbors);
                     return neighbors;
                 }
@@ -489,6 +521,11 @@ namespace ompl
                 //                      unitNBallMeasure(spaceInformation_->getStateDimension())) *
                 //                     (std::log(static_cast<double>(numSamples)) / numSamples),
                 //                 1.0 / dimension);
+            }
+
+            std::size_t ImplicitGraph::computeNumberOfNeighbors(std::size_t numSamples) const
+            {
+                return std::ceil(rewireFactor_ * k_rgg_ * std::log(static_cast<double>(numSamples)));
             }
 
             bool ImplicitGraph::canPossiblyImproveSolution(const std::shared_ptr<Vertex> &vertex) const

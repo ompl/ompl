@@ -81,6 +81,7 @@ namespace ompl
             specs_.canReportIntermediateSolutions = true;
 
             // Register the setting callbacks.
+            declareParam<bool>("use_k_nearest", this, &AITstar::setUseKNearest, &AITstar::getUseKNearest, "0,1");
             declareParam<double>("rewire_factor", this, &AITstar::setRewireFactor, &AITstar::getRewireFactor,
                                  "1.0:0.01:3.0");
             declareParam<std::size_t>("samples_per_batch", this, &AITstar::setBatchSize, &AITstar::getBatchSize,
@@ -342,6 +343,16 @@ namespace ompl
         bool AITstar::isPruningEnabled() const
         {
             return isPruningEnabled_;
+        }
+
+        void AITstar::setUseKNearest(bool useKNearest)
+        {
+            graph_.setUseKNearest(useKNearest);
+        }
+
+        bool AITstar::getUseKNearest() const
+        {
+            return graph_.getUseKNearest();
         }
 
         void AITstar::setRepairReverseSearch(bool repairReverseSearch)

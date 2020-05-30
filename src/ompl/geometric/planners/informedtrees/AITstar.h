@@ -133,6 +133,12 @@ namespace ompl
             /** \brief Get whether pruning is enabled or not. */
             bool isPruningEnabled() const;
 
+            /** \brief Set whether to use a k-nearest RGG connection model. If false, AIT* uses an r-disc model. */
+            void setUseKNearest(bool useKNearest);
+
+            /** \brief Get whether to use a k-nearest RGG connection model. If false, AIT* uses an r-disc model. */
+            bool getUseKNearest() const;
+
             /** \brief Enable LPA* repair of reverse search. */
             void setRepairReverseSearch(bool repairReverseSearch);
 
