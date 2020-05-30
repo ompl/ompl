@@ -134,6 +134,12 @@ namespace ompl
                 /** \brief Prune all samples that can not contribute to a solution better than the current one. */
                 void prune();
 
+                /** \brief Returns the total number of sampled states. */
+                std::size_t getNumberOfSampledStates() const;
+
+                /** \brief Returns the total number of valid samples found. */
+                std::size_t getNumberOfValidSamples() const;
+
                 /** \brief Get the number of state collision checks. */
                 std::size_t getNumberOfStateCollisionChecks() const;
 
@@ -212,8 +218,11 @@ namespace ompl
                  * again. */
                 std::vector<std::shared_ptr<Vertex>> prunedGoalVertices_;
 
-                /** \brief The number of state collision checks. */
-                mutable std::size_t numStateCollisionChecks_{0u};
+                /** \brief The number of sampled states that were valid. */
+                mutable std::size_t numValidSamples_{0u};
+
+                /** \brief The number of sampled states. */
+                mutable std::size_t numSampledStates_{0u};
 
                 /** \brief The number of state collision checks. */
                 mutable std::size_t numNearestNeighborsCalls_{0u};

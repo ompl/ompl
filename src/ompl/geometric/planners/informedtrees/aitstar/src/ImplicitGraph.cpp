@@ -79,6 +79,8 @@ namespace ompl
                 goalVertices_.clear();
                 prunedStartVertices_.clear();
                 prunedGoalVertices_.clear();
+                numSampledStates_ = 0u;
+                numValidSamples_ = 0u;
             }
 
             void ImplicitGraph::setRewireFactor(double rewireFactor)
@@ -332,8 +334,10 @@ namespace ompl
                         sampler_->sampleUniform(newVertices.back()->getState(), solutionCost_);
 
                         // Count how many states we've checked.
-                        ++numStateCollisionChecks_;
+                        ++numSampledStates_;
                     } while (!spaceInformation_->getStateValidityChecker()->isValid(newVertices.back()->getState()));
+
+                    ++numValidSamples_;
                 }
 
                 // Add all new vertices to the nearest neighbor structure.
@@ -491,9 +495,21 @@ namespace ompl
                 // Assert that the forward and reverse queue are empty?
             }
 
+            std::size_t ImplicitGraph::getNumberOfSampledStates() const
+            {
+                return numSampledStates_;
+            }
+
+            std::size_t ImplicitGraph::getNumberOfValidSamples() const
+            {
+                return numValidSamples_;
+            }
+
             std::size_t ImplicitGraph::getNumberOfStateCollisionChecks() const
             {
-                return numStateCollisionChecks_;
+                // Each sampled state is checked for collision. Only sampled states are checked for collision (number of
+                // collision checked edges don't count here.)
+                return numSampledStates_;
             }
 
             std::size_t ImplicitGraph::getNumberOfNearestNeighborCalls() const
