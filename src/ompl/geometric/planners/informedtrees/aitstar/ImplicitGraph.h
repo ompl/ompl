@@ -78,6 +78,12 @@ namespace ompl
                 /** \brief Get the reqire factor of the RGG. */
                 double getRewireFactor() const;
 
+                /** \brief Whether to use a k-nearest connection model. If false, it uses an r-disc model. */
+                void setUseKNearest(bool useKNearest);
+
+                /** \brief Whether the graph uses a k-nearest connection model. If false, it uses an r-disc model. */
+                bool getUseKNearest() const;
+
                 /** \brief Sets whether to track approximate solutions or not. */
                 void setTrackApproximateSolution(bool track);
 
@@ -128,6 +134,12 @@ namespace ompl
                 /** \brief Prune all samples that can not contribute to a solution better than the current one. */
                 void prune();
 
+                /** \brief Returns the total number of sampled states. */
+                std::size_t getNumberOfSampledStates() const;
+
+                /** \brief Returns the total number of valid samples found. */
+                std::size_t getNumberOfValidSamples() const;
+
                 /** \brief Get the number of state collision checks. */
                 std::size_t getNumberOfStateCollisionChecks() const;
 
@@ -138,8 +150,11 @@ namespace ompl
                 /** \brief Computes the number of samples in the informed set. */
                 std::size_t computeNumberOfSamplesInInformedSet() const;
 
-                /** \brief Computes the connection radius with a given number of samples. */
+                /** \brief Computes the connection radius of the r-disc model with a given number of samples. */
                 double computeConnectionRadius(std::size_t numSamples) const;
+
+                /** \brief Computes the number of neighbors of the k-nearest model with a given number of samples. */
+                std::size_t computeNumberOfNeighbors(std::size_t numSamples) const;
 
                 /** \brief Returns wehther a state can possibly improve the current solution. */
                 bool canPossiblyImproveSolution(const std::shared_ptr<Vertex> &vertex) const;
@@ -165,11 +180,21 @@ namespace ompl
                 /** \brief The vertex to the goal. */
                 std::shared_ptr<Vertex> bestApproximateGoal_;
 
-                /** \brief The radius that defines the neighborhood of a vertex. */
+                /** \brief Whether to use a k-nearest RGG. If false, AIT* uses an r-disc RGG. */
+                bool useKNearest_{true};
+
+                /** \brief The radius that defines the neighborhood of a vertex if using an r-disc graph. */
                 double radius_{std::numeric_limits<double>::infinity()};
 
+                /** \brief The number of neighbors that defines the neighborhood of a vertex if using a k-nearest graph.
+                 */
+                std::size_t numNeighbors_{std::numeric_limits<std::size_t>::max()};
+
+                /** \brief A constant for the computation of the number of neighbors when using a k-nearest model. */
+                std::size_t k_rgg_{std::numeric_limits<std::size_t>::max()};
+
                 /** \brief The cost of the incumbent solution. */
-                const ompl::base::Cost& solutionCost_;
+                const ompl::base::Cost &solutionCost_;
 
                 /** \brief The state sampler responsible for filling the state values of vertices. */
                 ompl::base::InformedSamplerPtr sampler_;
@@ -193,8 +218,11 @@ namespace ompl
                  * again. */
                 std::vector<std::shared_ptr<Vertex>> prunedGoalVertices_;
 
-                /** \brief The number of state collision checks. */
-                mutable std::size_t numStateCollisionChecks_{0u};
+                /** \brief The number of sampled states that were valid. */
+                mutable std::size_t numValidSamples_{0u};
+
+                /** \brief The number of sampled states. */
+                mutable std::size_t numSampledStates_{0u};
 
                 /** \brief The number of state collision checks. */
                 mutable std::size_t numNearestNeighborsCalls_{0u};

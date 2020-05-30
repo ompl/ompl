@@ -81,6 +81,7 @@ namespace ompl
             specs_.canReportIntermediateSolutions = true;
 
             // Register the setting callbacks.
+            declareParam<bool>("use_k_nearest", this, &AITstar::setUseKNearest, &AITstar::getUseKNearest, "0,1");
             declareParam<double>("rewire_factor", this, &AITstar::setRewireFactor, &AITstar::getRewireFactor,
                                  "1.0:0.01:3.0");
             declareParam<std::size_t>("samples_per_batch", this, &AITstar::setBatchSize, &AITstar::getBatchSize,
@@ -167,12 +168,17 @@ namespace ompl
 
         ompl::base::PlannerStatus AITstar::solve(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
+            // The planner status to return.
+            auto status = ompl::base::PlannerStatus::StatusType::UNKNOWN;
+
             // Ensure the planner is setup.
             Planner::checkValidity();
             if (!Planner::setup_)
             {
                 OMPL_WARN("%s: Failed to setup and thus solve can not do anything meaningful.", name_.c_str());
-                return ompl::base::PlannerStatus::StatusType::ABORT;
+                status = ompl::base::PlannerStatus::StatusType::ABORT;
+                informAboutPlannerStatus(status);
+                return status;
             }
 
             // If the graph currently does not have a goal state, we wait until we get one.
@@ -184,14 +190,18 @@ namespace ompl
             if (!graph_.hasAStartState())
             {
                 OMPL_WARN("%s: No solution can be found as no start states are available", name_.c_str());
-                return ompl::base::PlannerStatus::StatusType::INVALID_START;
+                status = ompl::base::PlannerStatus::StatusType::INVALID_START;
+                informAboutPlannerStatus(status);
+                return status;
             }
 
             // If the graph still doesn't have a goal after waiting there's nothing to solve.
             if (!graph_.hasAGoalState())
             {
-                OMPL_WARN("%s: No solution can be found as no start states are available", name_.c_str());
-                return ompl::base::PlannerStatus::StatusType::INVALID_GOAL;
+                OMPL_WARN("%s: No solution can be found as no goal states are available", name_.c_str());
+                status = ompl::base::PlannerStatus::StatusType::INVALID_GOAL;
+                informAboutPlannerStatus(status);
+                return status;
             }
 
             OMPL_INFORM("%s: Searching for a solution to the given planning problem.", name_.c_str());
@@ -236,18 +246,22 @@ namespace ompl
                 }
             }
 
+            // Return the right planner status.
             if (objective_->isFinite(solutionCost_))
             {
-                return ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION;
+                status = ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION;
             }
             else if (trackApproximateSolutions_ && objective_->isFinite(approximateSolutionCost_))
             {
-                return ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION;
+                status = ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION;
             }
             else
             {
-                return ompl::base::PlannerStatus::StatusType::TIMEOUT;
+                status = ompl::base::PlannerStatus::StatusType::TIMEOUT;
             }
+
+            informAboutPlannerStatus(status);
+            return status;
         }
 
         ompl::base::Cost AITstar::bestCost() const
@@ -347,6 +361,16 @@ namespace ompl
             return isPruningEnabled_;
         }
 
+        void AITstar::setUseKNearest(bool useKNearest)
+        {
+            graph_.setUseKNearest(useKNearest);
+        }
+
+        bool AITstar::getUseKNearest() const
+        {
+            return graph_.getUseKNearest();
+        }
+
         void AITstar::setRepairReverseSearch(bool repairReverseSearch)
         {
             repairReverseSearch_ = repairReverseSearch;
@@ -404,6 +428,76 @@ namespace ompl
                 auto reverseQueuePointer = reverseQueue_.insert(element);
                 element.second->setReverseQueuePointer(reverseQueuePointer);
             }
+        }
+
+        void AITstar::informAboutNewSolution() const
+        {
+            OMPL_INFORM("%s (%u iterations): Found a new exact solution of cost %.4f. Sampled a total of %u states, %u "
+                        "of which were valid samples (%.1f \%). Processed %u edges, %u of which were collision checked "
+                        "(%.1f \%). The forward search tree has %u vertices. The reverse search tree has %u vertices.",
+                        name_.c_str(), numIterations_, solutionCost_.value(), graph_.getNumberOfSampledStates(),
+                        graph_.getNumberOfValidSamples(),
+                        100.0 * (static_cast<double>(graph_.getNumberOfValidSamples()) /
+                                 static_cast<double>(graph_.getNumberOfSampledStates())),
+                        numProcessedEdges_, numEdgeCollisionChecks_,
+                        100.0 * (static_cast<float>(numEdgeCollisionChecks_) / static_cast<float>(numProcessedEdges_)),
+                        countNumVerticesInForwardTree(), countNumVerticesInReverseTree());
+        }
+
+        void AITstar::informAboutPlannerStatus(ompl::base::PlannerStatus::StatusType status) const
+        {
+            switch (status)
+            {
+                case ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION:
+                {
+                    OMPL_INFORM("%s (%u iterations): Found an exact solution of cost %.4f.", name_.c_str(),
+                                numIterations_, solutionCost_.value());
+                    break;
+                }
+                case ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION:
+                {
+                    OMPL_INFORM("%s (%u iterations): Did not find an exact solution, but found an approximate solution "
+                                "of cost %.4f.",
+                                name_.c_str(), numIterations_, approximateSolutionCost_.value());
+                    break;
+                }
+                case ompl::base::PlannerStatus::StatusType::TIMEOUT:
+                {
+                    if (trackApproximateSolutions_)
+                    {
+                        OMPL_INFORM("%s (%u iterations): Did not find any solution.", name_.c_str(), numIterations_);
+                    }
+                    else
+                    {
+                        OMPL_INFORM("%s (%u iterations): Did not find an exact solution, and tracking approximate "
+                                    "solutions is disabled.",
+                                    name_.c_str(), numIterations_);
+                    }
+                    break;
+                }
+                case ompl::base::PlannerStatus::StatusType::UNKNOWN:
+                case ompl::base::PlannerStatus::StatusType::INVALID_START:
+                case ompl::base::PlannerStatus::StatusType::INVALID_GOAL:
+                case ompl::base::PlannerStatus::StatusType::UNRECOGNIZED_GOAL_TYPE:
+                case ompl::base::PlannerStatus::StatusType::CRASH:
+                case ompl::base::PlannerStatus::StatusType::ABORT:
+                case ompl::base::PlannerStatus::StatusType::TYPE_COUNT:
+                {
+                    OMPL_INFORM("%s (%u iterations): Unable to solve the given planning problem.", name_.c_str(),
+                                numIterations_);
+                }
+            }
+
+            OMPL_INFORM("%s (%u iterations): Sampled a total of %u states, %u of which were valid samples (%.1f \%). "
+                        "Processed %u edges, %u of which were collision checked (%.1f \%). The forward search tree "
+                        "has %u vertices. The reverse search tree has %u vertices.",
+                        name_.c_str(), numIterations_, graph_.getNumberOfSampledStates(),
+                        graph_.getNumberOfValidSamples(),
+                        100.0 * (static_cast<double>(graph_.getNumberOfValidSamples()) /
+                                 static_cast<double>(graph_.getNumberOfSampledStates())),
+                        numProcessedEdges_, numEdgeCollisionChecks_,
+                        100.0 * (static_cast<float>(numEdgeCollisionChecks_) / static_cast<float>(numProcessedEdges_)),
+                        countNumVerticesInForwardTree(), countNumVerticesInReverseTree());
         }
 
         std::vector<aitstar::Edge> AITstar::getEdgesInQueue() const
@@ -623,6 +717,9 @@ namespace ompl
 
             // Remove the edge from the queue.
             forwardQueue_.pop();
+
+            // This counts as processing an edge.
+            ++numProcessedEdges_;
 
             // Register that an outgoing edge of the parent has been popped from the queue. This means that the parent
             // has optimal cost-to-come for the current approximation.
@@ -1244,6 +1341,9 @@ namespace ompl
 
                     // Let the problem definition know that a new solution exists.
                     pdef_->addSolutionPath(solution);
+
+                    // Let the user know about the new solution.
+                    informAboutNewSolution();
                 }
             }
         }
@@ -1319,6 +1419,34 @@ namespace ompl
                 bestCost = objective_->betterCost(bestCost, start->getCostToComeFromGoal());
             }
             return bestCost;
+        }
+
+        std::size_t AITstar::countNumVerticesInForwardTree() const
+        {
+            std::size_t numVerticesInForwardTree = 0u;
+            auto vertices = graph_.getVertices();
+            for (const auto &vertex : vertices)
+            {
+                if (graph_.isStart(vertex) || vertex->hasForwardParent())
+                {
+                    ++numVerticesInForwardTree;
+                }
+            }
+            return numVerticesInForwardTree;
+        }
+
+        std::size_t AITstar::countNumVerticesInReverseTree() const
+        {
+            std::size_t numVerticesInReverseTree = 0u;
+            auto vertices = graph_.getVertices();
+            for (const auto &vertex : vertices)
+            {
+                if (graph_.isGoal(vertex) || vertex->hasReverseParent())
+                {
+                    ++numVerticesInReverseTree;
+                }
+            }
+            return numVerticesInReverseTree;
         }
 
         void AITstar::invalidateCostToComeFromGoalOfReverseBranch(const std::shared_ptr<aitstar::Vertex> &vertex)
