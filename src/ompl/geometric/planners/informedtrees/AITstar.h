@@ -290,7 +290,7 @@ namespace ompl
             bool repairReverseSearch_{true};
 
             /** \brief The option that specifies whether to track approximate solutions. */
-            bool trackApproximateSolutions_{false};
+            bool trackApproximateSolutions_{true};
 
             /** \brief The option that specifies whether to prune the graph of useless samples. */
             bool isPruningEnabled_{true};

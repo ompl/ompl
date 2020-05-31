@@ -74,7 +74,7 @@ namespace ompl
             // Specify AIT*'s planner specs.
             specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
             specs_.multithreaded = false;
-            specs_.approximateSolutions = trackApproximateSolutions_;  // Disabled by default.
+            specs_.approximateSolutions = true;
             specs_.optimizingPaths = true;
             specs_.directed = true;
             specs_.provingSolutionNonExistence = false;
@@ -339,7 +339,10 @@ namespace ompl
             trackApproximateSolutions_ = track;
             if (!trackApproximateSolutions_)
             {
-                approximateSolutionCost_ = objective_->infiniteCost();
+                if (static_cast<bool>(objective_))
+                {
+                    approximateSolutionCost_ = objective_->infiniteCost();
+                }
             }
         }
 
@@ -802,6 +805,13 @@ namespace ompl
 
                     // Check if the solution can benefit from this.
                     updateExactSolution();
+
+                    // If we don't have an exact solution but are tracking approximate solutions, see if the child is
+                    // the best approximate solution so far.
+                    if (!pdef_->hasExactSolution() && trackApproximateSolutions_)
+                    {
+                        updateApproximateSolution(child);
+                    }
 
                     // Insert the child's outgoing edges into the queue.
                     auto edges = getOutgoingEdges(child);
