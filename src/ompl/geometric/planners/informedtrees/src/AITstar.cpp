@@ -457,7 +457,7 @@ namespace ompl
                 case ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION:
                 {
                     OMPL_INFORM("%s (%u iterations): Did not find an exact solution, but found an approximate solution "
-                                "of cost %.4f.",
+                                "that is %.4f away from goal.",
                                 name_.c_str(), numIterations_, approximateSolutionCost_.value());
                     break;
                 }
@@ -1367,6 +1367,9 @@ namespace ompl
 
                     // Set the approximate flag.
                     solution.setApproximate(approximateSolutionCost_.value());
+
+                    // Set the optimized flag.
+                    solution.setOptimized(objective_, approximateSolutionCost_, objective_->isSatisfied(approximateSolutionCost_));
 
                     // Let the problem definition know that a new solution exists.
                     pdef_->addSolutionPath(solution);
