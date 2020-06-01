@@ -136,6 +136,7 @@ namespace ompl
                 // Initialize the solution cost to be infinite.
                 solutionCost_ = objective_->infiniteCost();
                 approximateSolutionCost_ = objective_->infiniteCost();
+                approximateSolutionCostToGoal_ = objective_->infiniteCost();
 
                 // Pull the motion validator through the space information.
                 motionValidator_ = si_->getMotionValidator();
@@ -158,6 +159,7 @@ namespace ompl
             reverseQueue_.clear();
             solutionCost_ = objective_->infiniteCost();
             approximateSolutionCost_ = objective_->infiniteCost();
+            approximateSolutionCostToGoal_ = objective_->infiniteCost();
             edgesToBeInserted_.clear();
             numIterations_ = 0u;
             performReverseSearchIteration_ = true;
@@ -236,9 +238,9 @@ namespace ompl
             // which case previously found solutions are not registered with the problem definition anymore.
             updateExactSolution();
 
-            // If there are no solutions registered in the problem definition and we're tracking approximate solutions,
-            // find the best vertex in the graph.
-            if (!pdef_->hasExactSolution() && !pdef_->hasApproximateSolution() && trackApproximateSolutions_)
+            // If there are no exact solutions registered in the problem definition and we're tracking approximate
+            // solutions, find the best vertex in the graph.
+            if (!pdef_->hasExactSolution() && trackApproximateSolutions_)
             {
                 for (const auto &vertex : graph_.getVertices())
                 {
@@ -342,6 +344,7 @@ namespace ompl
                 if (static_cast<bool>(objective_))
                 {
                     approximateSolutionCost_ = objective_->infiniteCost();
+                    approximateSolutionCostToGoal_ = objective_->infiniteCost();
                 }
             }
         }
@@ -457,8 +460,9 @@ namespace ompl
                 case ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION:
                 {
                     OMPL_INFORM("%s (%u iterations): Did not find an exact solution, but found an approximate solution "
-                                "of cost %.4f.",
-                                name_.c_str(), numIterations_, approximateSolutionCost_.value());
+                                "of cost %.4f which is %.4f away from a goal (in cost space).",
+                                name_.c_str(), numIterations_, approximateSolutionCost_.value(),
+                                approximateSolutionCostToGoal_.value());
                     break;
                 }
                 case ompl::base::PlannerStatus::StatusType::TIMEOUT:
@@ -1357,16 +1361,20 @@ namespace ompl
 
                 // We need to check whether this is better than the current approximate solution or whether someone has
                 // removed all approximate solutions from the problem definition.
-                if (objective_->isCostBetterThan(costToGoal, approximateSolutionCost_) ||
+                if (objective_->isCostBetterThan(costToGoal, approximateSolutionCostToGoal_) ||
                     !pdef_->hasApproximateSolution())
                 {
                     // Remember the incumbent approximate cost.
-                    approximateSolutionCost_ = costToGoal;
+                    approximateSolutionCost_ = vertex->getCostToComeFromStart();
+                    approximateSolutionCostToGoal_ = costToGoal;
                     ompl::base::PlannerSolution solution(getPathToVertex(vertex));
                     solution.setPlannerName(name_);
 
                     // Set the approximate flag.
-                    solution.setApproximate(approximateSolutionCost_.value());
+                    solution.setApproximate(costToGoal.value());
+
+                    // This solution is approximate and can not satisfy the objective.
+                    solution.setOptimized(objective_, approximateSolutionCost_, false);
 
                     // Let the problem definition know that a new solution exists.
                     pdef_->addSolutionPath(solution);

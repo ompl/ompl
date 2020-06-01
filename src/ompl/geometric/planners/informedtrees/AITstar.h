@@ -245,8 +245,11 @@ namespace ompl
             /** \brief The cost of the incumbent solution. */
             ompl::base::Cost solutionCost_;
 
-            /** \brief The cost to go to the goal of the vertex that is closest to the goal (in cost space). */
+            /** \brief The cost to come to the vertex that is closest to the goal (in cost space). */
             ompl::base::Cost approximateSolutionCost_{};
+
+            /** \brief The cost to go to the goal from the current best approximate solution. */
+            ompl::base::Cost approximateSolutionCostToGoal_{};
 
             /** \brief The increasingly dense sampling-based approximation. */
             aitstar::ImplicitGraph graph_;
