@@ -206,27 +206,9 @@ namespace ompl
                 return status;
             }
 
-            OMPL_INFORM("%s: Searching for a solution to the given planning problem.", name_.c_str());
-
-            // If this is the first time solve is called, populate the reverse queue.
-            if (numIterations_ == 0u)
-            {
-                for (const auto &goal : graph_.getGoalVertices())
-                {
-                    // Set the cost to come from the goal to identity cost.
-                    goal->setCostToComeFromGoal(objective_->identityCost());
-
-                    // Create an element for the queue.
-                    std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> element(
-                        std::array<ompl::base::Cost, 2u>(
-                            {computeCostToGoToStartHeuristic(goal), ompl::base::Cost(0.0)}),
-                        goal);
-
-                    // Insert the element into the queue and set the corresponding pointer.
-                    auto reverseQueuePointer = reverseQueue_.insert(element);
-                    goal->setReverseQueuePointer(reverseQueuePointer);
-                }
-            }
+            OMPL_INFORM("%s: Searching for a solution to the given planning problem. The current best solution cost is "
+                        "%.4f",
+                        name_.c_str(), solutionCost_.value());
 
             // Iterate to solve the problem.
             while (!terminationCondition && !objective_->isSatisfied(solutionCost_))
@@ -440,10 +422,14 @@ namespace ompl
                         "(%.1f \%). The forward search tree has %u vertices. The reverse search tree has %u vertices.",
                         name_.c_str(), numIterations_, solutionCost_.value(), graph_.getNumberOfSampledStates(),
                         graph_.getNumberOfValidSamples(),
-                        100.0 * (static_cast<double>(graph_.getNumberOfValidSamples()) /
-                                 static_cast<double>(graph_.getNumberOfSampledStates())),
+                        graph_.getNumberOfSampledStates() == 0u ?
+                            0.0 :
+                            100.0 * (static_cast<double>(graph_.getNumberOfValidSamples()) /
+                                     static_cast<double>(graph_.getNumberOfSampledStates())),
                         numProcessedEdges_, numEdgeCollisionChecks_,
-                        100.0 * (static_cast<float>(numEdgeCollisionChecks_) / static_cast<float>(numProcessedEdges_)),
+                        numProcessedEdges_ == 0u ? 0.0 :
+                                                   100.0 * (static_cast<float>(numEdgeCollisionChecks_) /
+                                                            static_cast<float>(numProcessedEdges_)),
                         countNumVerticesInForwardTree(), countNumVerticesInReverseTree());
         }
 
@@ -492,16 +478,20 @@ namespace ompl
                 }
             }
 
-            OMPL_INFORM("%s (%u iterations): Sampled a total of %u states, %u of which were valid samples (%.1f \%). "
-                        "Processed %u edges, %u of which were collision checked (%.1f \%). The forward search tree "
-                        "has %u vertices. The reverse search tree has %u vertices.",
-                        name_.c_str(), numIterations_, graph_.getNumberOfSampledStates(),
-                        graph_.getNumberOfValidSamples(),
-                        100.0 * (static_cast<double>(graph_.getNumberOfValidSamples()) /
-                                 static_cast<double>(graph_.getNumberOfSampledStates())),
-                        numProcessedEdges_, numEdgeCollisionChecks_,
-                        100.0 * (static_cast<float>(numEdgeCollisionChecks_) / static_cast<float>(numProcessedEdges_)),
-                        countNumVerticesInForwardTree(), countNumVerticesInReverseTree());
+            OMPL_INFORM(
+                "%s (%u iterations): Sampled a total of %u states, %u of which were valid samples (%.1f \%). "
+                "Processed %u edges, %u of which were collision checked (%.1f \%). The forward search tree "
+                "has %u vertices. The reverse search tree has %u vertices.",
+                name_.c_str(), numIterations_, graph_.getNumberOfSampledStates(), graph_.getNumberOfValidSamples(),
+                graph_.getNumberOfSampledStates() == 0u ?
+                    0.0 :
+                    100.0 * (static_cast<double>(graph_.getNumberOfValidSamples()) /
+                             static_cast<double>(graph_.getNumberOfSampledStates())),
+                numProcessedEdges_, numEdgeCollisionChecks_,
+                numProcessedEdges_ == 0u ?
+                    0.0 :
+                    100.0 * (static_cast<float>(numEdgeCollisionChecks_) / static_cast<float>(numProcessedEdges_)),
+                countNumVerticesInForwardTree(), countNumVerticesInReverseTree());
         }
 
         std::vector<aitstar::Edge> AITstar::getEdgesInQueue() const
@@ -562,6 +552,26 @@ namespace ompl
 
         void AITstar::iterate()
         {
+            // If this is the first time solve is called, populate the reverse queue.
+            if (numIterations_ == 0u)
+            {
+                for (const auto &goal : graph_.getGoalVertices())
+                {
+                    // Set the cost to come from the goal to identity cost.
+                    goal->setCostToComeFromGoal(objective_->identityCost());
+
+                    // Create an element for the queue.
+                    std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> element(
+                        std::array<ompl::base::Cost, 2u>(
+                            {computeCostToGoToStartHeuristic(goal), ompl::base::Cost(0.0)}),
+                        goal);
+
+                    // Insert the element into the queue and set the corresponding pointer.
+                    auto reverseQueuePointer = reverseQueue_.insert(element);
+                    goal->setReverseQueuePointer(reverseQueuePointer);
+                }
+            }
+
             // Keep track of the number of iterations.
             ++numIterations_;
 
