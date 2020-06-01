@@ -73,7 +73,6 @@ namespace ompl
                 batchId_ = 1u;
                 radius_ = std::numeric_limits<double>::infinity();
                 numNeighbors_ = std::numeric_limits<std::size_t>::max();
-                k_rgg_ = std::numeric_limits<std::size_t>::max();
                 vertices_.clear();
                 startVertices_.clear();
                 goalVertices_.clear();
