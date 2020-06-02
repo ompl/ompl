@@ -57,42 +57,6 @@ std::vector<int> getHypercubeAdmissibleProjection(int dim)
     return discrete;
 }
 
-std::vector<std::vector<int>> getHypercubeAdmissibleProjections(int dim)
-{
-    std::vector<std::vector<int>> projections;
-
-    // trivial: just configuration space
-    // discrete: use all admissible projections
-    std::vector<int> trivial{dim};
-
-    std::vector<int> discrete;
-    boost::push_back(discrete, boost::irange(2, dim + 1));
-
-    // std::vector<int> twoStep;
-    // boost::push_back(twoStep, boost::irange(2, dim + 1, 2));
-
-    // if (twoStep.back() != dim)
-    //     twoStep.push_back(dim);
-    // projections.push_back(twoStep);
-
-    projections.push_back(discrete);
-    auto last = std::unique(projections.begin(), projections.end());
-    projections.erase(last, projections.end());
-
-    std::cout << "Projections for dim " << dim << std::endl;
-    for(unsigned int k = 0; k < projections.size(); k++){
-        std::vector<int> pk = projections.at(k);
-        std::cout << k << ": ";
-        for(unsigned int j = 0; j < pk.size(); j++){
-          std::cout << pk.at(j) << (j<pk.size()-1?",":"");
-        }
-        std::cout << std::endl;
-    }
-
-    return projections;
-}
-
-
 // Only states near some edges of a hypercube are valid. The valid edges form a
 // narrow passage from (0,...,0) to (1,...,1). A state s is valid if there exists
 // a k s.t. (a) 0<=s[k]<=1, (b) for all i<k s[i]<=edgeWidth, and (c) for all i>k
@@ -129,7 +93,6 @@ protected:
 template<typename T>  
 ob::PlannerPtr GetMultiLevelPlanner(std::vector<int> sequenceLinks, ob::SpaceInformationPtr si, std::string name="Planner")
 {
-    // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     std::vector<ob::SpaceInformationPtr> si_vec;
 
     for (unsigned int k = 0; k < sequenceLinks.size() - 1; k++)
@@ -151,16 +114,7 @@ ob::PlannerPtr GetMultiLevelPlanner(std::vector<int> sequenceLinks, ob::SpaceInf
     si_vec.push_back(si);
 
     auto planner = std::make_shared<T>(si_vec, name);
-    std::string qName = planner->getName()+"[";
-    for (unsigned int k = 0; k < sequenceLinks.size() - 1; k++)
-    {
-        int links = sequenceLinks.at(k);
-        qName += std::to_string(links) + ",";
-    }
-    qName += std::to_string(si->getStateDimension());
-    qName += "]";
-    std::cout << qName << std::endl;
-    planner->setName(qName);
+
     return planner;
 }
 

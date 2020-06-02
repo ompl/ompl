@@ -40,6 +40,7 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
 #include <ompl/geometric/planners/multilevel/QRRT.h>
+#include <ompl/geometric/planners/multilevel/SPQR.h>
 
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/util/String.h>

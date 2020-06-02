@@ -58,14 +58,15 @@ sidestepping)
 
 
 Improvements (FB):
-- Enable Multi Robot Planning using a new component-based implementation
-- Refactored using language of fiber bundles
-- Enable handling of non-holonomic constraints
+- Rename quotient space to multilevel
+- Refactored code using language of fiber bundles
+- Enable multi-robot planning using a new component-based implementation
+- Enable handling of non-holonomic constraints in multilevel
 - Add new bundle spaces (empty, relaxed, identity, SO2xRN, SO3xRN)
-- Add algorithms: QRRT*, QMP, QMP*, SPQR
+- Add new algorithms: QRRT*, QMP, QMP*, SPQR
 - Add sparse graph structures (based on SPARS impl)
-- Add new path restriction/section method (see paper)
+- Add new path restriction/section method
 - Enable different bundle metrics
 - Enable different bundle graph sampler
 - Enable different propagators
-- Enable different selector functions for multiple bundles
+- Enable different selection functions for multiple bundles

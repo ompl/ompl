@@ -8,7 +8,8 @@
 - Added new planners:
   - [XXL](\ref gXXL)
   - [ABIT*](\ref gABITstar)
-  - [Quotient-Space RRT](quotientSpacePlanning.html).
+  - [QRRT, QMP, QRRT*, QMP*, SPQR](multiLevelPlanning.html) for Multilevel
+    planning
 - Added support for deterministic sampling. Halton sampling is included, other deterministic sampling methods can be added.
 - Added a new PlannerTerminationCondition called CostConvergenceTerminationCondition, which can be used to terminate asymptotically (near-)optimal planners based on convergence.
 - Clean up ompl_benchmark_script.py for Python 3.

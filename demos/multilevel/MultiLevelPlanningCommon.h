@@ -39,7 +39,8 @@
 #include <ompl/tools/benchmark/Benchmark.h>
 
 //include planners
-#include <ompl/geometric/planners/bitstar/BITstar.h> //TODO: gets stuck
+#include <ompl/geometric/planners/bitstar/BITstar.h>
+#include <ompl/geometric/planners/bitstar/ABITstar.h>
 #include <ompl/geometric/planners/est/BiEST.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/est/ProjEST.h>
@@ -49,7 +50,6 @@
 #include <ompl/geometric/planners/kpiece/KPIECE1.h>
 #include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
 #include <ompl/geometric/planners/pdst/PDST.h>
-#include <ompl/geometric/planners/prm/LazyPRM.h> //TODO: segfault
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
@@ -71,7 +71,6 @@
 #include <ompl/geometric/planners/rrt/RRTXstatic.h>
 #include <ompl/geometric/planners/rrt/SORRTstar.h>
 #include <ompl/geometric/planners/rrt/TRRT.h>
-#include <ompl/geometric/planners/sbl/pSBL.h> //TODO: parallel algorithms return infeasible solutions
 #include <ompl/geometric/planners/sbl/SBL.h>
 #include <ompl/geometric/planners/sst/SST.h>
 #include <ompl/geometric/planners/stride/STRIDE.h>
