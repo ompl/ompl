@@ -136,6 +136,7 @@ namespace ompl
                 // Initialize the solution cost to be infinite.
                 solutionCost_ = objective_->infiniteCost();
                 approximateSolutionCost_ = objective_->infiniteCost();
+                approximateSolutionCostToGoal_ = objective_->infiniteCost();
 
                 // Pull the motion validator through the space information.
                 motionValidator_ = si_->getMotionValidator();
@@ -158,6 +159,7 @@ namespace ompl
             reverseQueue_.clear();
             solutionCost_ = objective_->infiniteCost();
             approximateSolutionCost_ = objective_->infiniteCost();
+            approximateSolutionCostToGoal_ = objective_->infiniteCost();
             edgesToBeInserted_.clear();
             numIterations_ = 0u;
             performReverseSearchIteration_ = true;
@@ -204,27 +206,9 @@ namespace ompl
                 return status;
             }
 
-            OMPL_INFORM("%s: Searching for a solution to the given planning problem.", name_.c_str());
-
-            // If this is the first time solve is called, populate the reverse queue.
-            if (numIterations_ == 0u)
-            {
-                for (const auto &goal : graph_.getGoalVertices())
-                {
-                    // Set the cost to come from the goal to identity cost.
-                    goal->setCostToComeFromGoal(objective_->identityCost());
-
-                    // Create an element for the queue.
-                    std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> element(
-                        std::array<ompl::base::Cost, 2u>(
-                            {computeCostToGoToStartHeuristic(goal), ompl::base::Cost(0.0)}),
-                        goal);
-
-                    // Insert the element into the queue and set the corresponding pointer.
-                    auto reverseQueuePointer = reverseQueue_.insert(element);
-                    goal->setReverseQueuePointer(reverseQueuePointer);
-                }
-            }
+            OMPL_INFORM("%s: Searching for a solution to the given planning problem. The current best solution cost is "
+                        "%.4f",
+                        name_.c_str(), solutionCost_.value());
 
             // Iterate to solve the problem.
             while (!terminationCondition && !objective_->isSatisfied(solutionCost_))
@@ -236,9 +220,9 @@ namespace ompl
             // which case previously found solutions are not registered with the problem definition anymore.
             updateExactSolution();
 
-            // If there are no solutions registered in the problem definition and we're tracking approximate solutions,
-            // find the best vertex in the graph.
-            if (!pdef_->hasExactSolution() && !pdef_->hasApproximateSolution() && trackApproximateSolutions_)
+            // If there are no exact solutions registered in the problem definition and we're tracking approximate
+            // solutions, find the best vertex in the graph.
+            if (!pdef_->hasExactSolution() && trackApproximateSolutions_)
             {
                 for (const auto &vertex : graph_.getVertices())
                 {
@@ -342,6 +326,7 @@ namespace ompl
                 if (static_cast<bool>(objective_))
                 {
                     approximateSolutionCost_ = objective_->infiniteCost();
+                    approximateSolutionCostToGoal_ = objective_->infiniteCost();
                 }
             }
         }
@@ -437,10 +422,14 @@ namespace ompl
                         "(%.1f \%). The forward search tree has %u vertices. The reverse search tree has %u vertices.",
                         name_.c_str(), numIterations_, solutionCost_.value(), graph_.getNumberOfSampledStates(),
                         graph_.getNumberOfValidSamples(),
-                        100.0 * (static_cast<double>(graph_.getNumberOfValidSamples()) /
-                                 static_cast<double>(graph_.getNumberOfSampledStates())),
+                        graph_.getNumberOfSampledStates() == 0u ?
+                            0.0 :
+                            100.0 * (static_cast<double>(graph_.getNumberOfValidSamples()) /
+                                     static_cast<double>(graph_.getNumberOfSampledStates())),
                         numProcessedEdges_, numEdgeCollisionChecks_,
-                        100.0 * (static_cast<float>(numEdgeCollisionChecks_) / static_cast<float>(numProcessedEdges_)),
+                        numProcessedEdges_ == 0u ? 0.0 :
+                                                   100.0 * (static_cast<float>(numEdgeCollisionChecks_) /
+                                                            static_cast<float>(numProcessedEdges_)),
                         countNumVerticesInForwardTree(), countNumVerticesInReverseTree());
         }
 
@@ -457,8 +446,9 @@ namespace ompl
                 case ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION:
                 {
                     OMPL_INFORM("%s (%u iterations): Did not find an exact solution, but found an approximate solution "
-                                "that is %.4f away from goal.",
-                                name_.c_str(), numIterations_, approximateSolutionCost_.value());
+                                "of cost %.4f which is %.4f away from a goal (in cost space).",
+                                name_.c_str(), numIterations_, approximateSolutionCost_.value(),
+                                approximateSolutionCostToGoal_.value());
                     break;
                 }
                 case ompl::base::PlannerStatus::StatusType::TIMEOUT:
@@ -488,16 +478,20 @@ namespace ompl
                 }
             }
 
-            OMPL_INFORM("%s (%u iterations): Sampled a total of %u states, %u of which were valid samples (%.1f \%). "
-                        "Processed %u edges, %u of which were collision checked (%.1f \%). The forward search tree "
-                        "has %u vertices. The reverse search tree has %u vertices.",
-                        name_.c_str(), numIterations_, graph_.getNumberOfSampledStates(),
-                        graph_.getNumberOfValidSamples(),
-                        100.0 * (static_cast<double>(graph_.getNumberOfValidSamples()) /
-                                 static_cast<double>(graph_.getNumberOfSampledStates())),
-                        numProcessedEdges_, numEdgeCollisionChecks_,
-                        100.0 * (static_cast<float>(numEdgeCollisionChecks_) / static_cast<float>(numProcessedEdges_)),
-                        countNumVerticesInForwardTree(), countNumVerticesInReverseTree());
+            OMPL_INFORM(
+                "%s (%u iterations): Sampled a total of %u states, %u of which were valid samples (%.1f \%). "
+                "Processed %u edges, %u of which were collision checked (%.1f \%). The forward search tree "
+                "has %u vertices. The reverse search tree has %u vertices.",
+                name_.c_str(), numIterations_, graph_.getNumberOfSampledStates(), graph_.getNumberOfValidSamples(),
+                graph_.getNumberOfSampledStates() == 0u ?
+                    0.0 :
+                    100.0 * (static_cast<double>(graph_.getNumberOfValidSamples()) /
+                             static_cast<double>(graph_.getNumberOfSampledStates())),
+                numProcessedEdges_, numEdgeCollisionChecks_,
+                numProcessedEdges_ == 0u ?
+                    0.0 :
+                    100.0 * (static_cast<float>(numEdgeCollisionChecks_) / static_cast<float>(numProcessedEdges_)),
+                countNumVerticesInForwardTree(), countNumVerticesInReverseTree());
         }
 
         std::vector<aitstar::Edge> AITstar::getEdgesInQueue() const
@@ -558,6 +552,26 @@ namespace ompl
 
         void AITstar::iterate()
         {
+            // If this is the first time solve is called, populate the reverse queue.
+            if (numIterations_ == 0u)
+            {
+                for (const auto &goal : graph_.getGoalVertices())
+                {
+                    // Set the cost to come from the goal to identity cost.
+                    goal->setCostToComeFromGoal(objective_->identityCost());
+
+                    // Create an element for the queue.
+                    std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> element(
+                        std::array<ompl::base::Cost, 2u>(
+                            {computeCostToGoToStartHeuristic(goal), ompl::base::Cost(0.0)}),
+                        goal);
+
+                    // Insert the element into the queue and set the corresponding pointer.
+                    auto reverseQueuePointer = reverseQueue_.insert(element);
+                    goal->setReverseQueuePointer(reverseQueuePointer);
+                }
+            }
+
             // Keep track of the number of iterations.
             ++numIterations_;
 
@@ -1357,19 +1371,20 @@ namespace ompl
 
                 // We need to check whether this is better than the current approximate solution or whether someone has
                 // removed all approximate solutions from the problem definition.
-                if (objective_->isCostBetterThan(costToGoal, approximateSolutionCost_) ||
+                if (objective_->isCostBetterThan(costToGoal, approximateSolutionCostToGoal_) ||
                     !pdef_->hasApproximateSolution())
                 {
                     // Remember the incumbent approximate cost.
-                    approximateSolutionCost_ = costToGoal;
+                    approximateSolutionCost_ = vertex->getCostToComeFromStart();
+                    approximateSolutionCostToGoal_ = costToGoal;
                     ompl::base::PlannerSolution solution(getPathToVertex(vertex));
                     solution.setPlannerName(name_);
 
                     // Set the approximate flag.
-                    solution.setApproximate(approximateSolutionCost_.value());
+                    solution.setApproximate(costToGoal.value());
 
-                    // Set the optimized flag.
-                    solution.setOptimized(objective_, approximateSolutionCost_, objective_->isSatisfied(approximateSolutionCost_));
+                    // This solution is approximate and can not satisfy the objective.
+                    solution.setOptimized(objective_, approximateSolutionCost_, false);
 
                     // Let the problem definition know that a new solution exists.
                     pdef_->addSolutionPath(solution);

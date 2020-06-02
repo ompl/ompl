@@ -128,8 +128,8 @@ protected:
             opt->setCostThreshold(opt->infiniteCost());
 
             time::point start = time::now();
-            bool solved = planner->solve(solutionTime);
-            if (solved)
+            auto solved = planner->solve(solutionTime);
+            if (solved == base::PlannerStatus::EXACT_SOLUTION)
             {
               // we change the optimization objective so the planner runs until timeout
               opt->setCostThreshold(base::Cost(std::numeric_limits<double>::epsilon()));
