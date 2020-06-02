@@ -49,27 +49,11 @@ static const int T_ERROR    = 3;
 /** \brief Representation of a 2D environment */
 struct Environment2D
 {
-    Environment2D()
-    {
-        width = height = 0;
-    }
-
     std::pair<int, int>             start;
     std::pair<int, int>             goal;
-    int                             width;
-    int                             height;
+    int                             width{0};
+    int                             height{0};
     std::vector< std::vector<int> > grid;
-
-    Environment2D& operator=(const Environment2D &other)
-    {
-        start = other.start;
-        goal = other.goal;
-        width = other.width;
-        height = other.height;
-        grid = other.grid;
-        return *this;
-    }
-
 };
 
 /** Load a grid representing the environment */

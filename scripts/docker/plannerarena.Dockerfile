@@ -1,6 +1,6 @@
-FROM rocker/shiny-verse:3.6.0
+FROM rocker/shiny-verse:3.6.3
 RUN apt-get update && \
-    apt-get install -y libv8-dev
+    apt-get install -y libv8-dev libjpeg-dev
 RUN install2.r --error --deps TRUE \
     shinyjs \
     V8 \

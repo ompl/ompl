@@ -136,6 +136,7 @@ namespace ompl
         }
         void add(const std::vector<_T> &data) override
         {
+            if (data.empty()) return;
             unsigned int oldSize = data_.size();
             unsigned int newSize = oldSize + data.size();
             bool rebuild = index_ && (newSize > data_.capacity());

@@ -777,7 +777,6 @@ class ompl_geometric_generator_t(code_generator_t):
             # Exclude some functions from BIT* that cause some Py++ compilation problems
             # (#I don't know why this doesn't work):
             self.ompl_ns.class_('BITstar').member_functions('getEdgeQueue').exclude()
-            self.ompl_ns.class_('BITstar').member_functions('getVertexQueue').exclude()
         except declaration_not_found_t:
             pass
 

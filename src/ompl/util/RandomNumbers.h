@@ -155,11 +155,10 @@ namespace ompl
 
         /** \brief Uniform random sampling of the surface of a prolate hyperspheroid, a special symmetric type of
         n-dimensional ellipse. The return variable \e value is expected to already exist.
-        @par J. D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
-        Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic." In Proceedings
-        of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Chicago, IL, USA,
-        14-18 Sept. 2014.
-        DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
+        @par J. D. Gammell, T. D. Barfoot, S. S. Srinivasa, "Informed sampling for asymptotically optimal path planning."
+        IEEE Transactions on Robotics (T-RO), 34(4): 966-984, Aug. 2018.
+        DOI: <a href="https://doi.org/10.1109/TRO.2018.2830331">TRO.2018.2830331</a>.
+        arXiv: <a href="https://arxiv.org/pdf/1706.06454">1706.06454 [cs.RO]</a>
         <a href="https://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
         <a href="https://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
         void uniformProlateHyperspheroidSurface(const std::shared_ptr<const ProlateHyperspheroid> &phsPtr,
@@ -167,14 +166,20 @@ namespace ompl
 
         /** \brief Uniform random sampling of a prolate hyperspheroid, a special symmetric type of
         n-dimensional ellipse. The return variable \e value is expected to already exist.
-        @par J. D. Gammell, S. S. Srinivasa, T. D. Barfoot, "Informed RRT*: Optimal Sampling-based
-        Path Planning Focused via Direct Sampling of an Admissible Ellipsoidal Heuristic." In Proceedings
-        of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Chicago, IL, USA,
-        14-18 Sept. 2014.
-        DOI: <a href="http://dx.doi.org/10.1109/IROS.2014.6942976">10.1109/IROS.2014.6942976</a>.
+        @par J. D. Gammell, T. D. Barfoot, S. S. Srinivasa, "Informed sampling for asymptotically optimal path planning."
+        IEEE Transactions on Robotics (T-RO), 34(4): 966-984, Aug. 2018.
+        DOI: <a href="https://doi.org/10.1109/TRO.2018.2830331">TRO.2018.2830331</a>.
+        arXiv: <a href="https://arxiv.org/pdf/1706.06454">1706.06454 [cs.RO]</a>.
         <a href="https://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
         <a href="https://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
         void uniformProlateHyperspheroid(const std::shared_ptr<const ProlateHyperspheroid> &phsPtr, double value[]);
+
+        /** \brief randomly rearrange elements in the range [first, last) */
+        template <class RandomAccessIterator>
+        void shuffle(RandomAccessIterator first, RandomAccessIterator last)
+        {
+            std::shuffle(first, last, generator_);
+        }
 
     private:
         /** \brief A forward declaration to a data structure class holding data for spherical distributions of various

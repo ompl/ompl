@@ -234,7 +234,8 @@ ompl::base::PlannerTerminationCondition ompl::base::timedPlannerTerminationCondi
     return PlannerTerminationCondition([endTime]
                                        {
                                            return time::now() > endTime;
-                                       });
+                                       },
+                                       interval);
 }
 
 ompl::base::PlannerTerminationCondition
