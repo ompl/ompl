@@ -67,6 +67,22 @@ namespace ompl
                               base::State *state) const = 0;
         };
 
+        /**
+        \anchor gTSRRT
+
+        \ref gTSRRT "Task-space Rapidly-exploring Random Trees (TSRRT)" is a variant of RRT where exploration is guided
+        by the task space. It requires an ompl::geometric::TaskSpaceConfig instance that defines how to project
+        configuration space states to the task spaces and an inverse operation to lift task space states to the
+        configuration space.
+
+        \par Associated publication:
+        A. Shkolnik and R. Tedrake, “Path planning in 1000+ dimensions using a task-space voronoi bias,” in IEEE Intl.
+        Conf. on Robotics and Automation, pp. 2061–2067, 2009. DOI:
+        [10.1109/ROBOT.2009.5152638](http://dx.doi.org/10.1109/ROBOT.2009.5152638)<br>
+        [[PDF]](https://groups.csail.mit.edu/robotics-center/public_papers/Shkolnik09.pdf)
+
+        **/
+
         /** \brief Task-space Rapidly-exploring Random Trees */
         class TSRRT : public base::Planner
         {

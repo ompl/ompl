@@ -1,14 +1,18 @@
 # Release Notes {#releaseNotes}
 
-## OMPL 1.5.0 (???)
+## OMPL 1.5.0 (June 2, 2020)
 
 - A C++14 compiler is now required. The minimum version of CMake required is now 3.5 and the minimum version of Boost supported is now 1.58.
 - All development now takes place on [Github](https://github.com/ompl/ompl). This used to be a git mirror of the mercurial repository on BitBucket, but since BitBucket is phasing out mercurial support the GitHub repo is now the main repo. All the old issues have been migrated to GitHub.
 - Added build targets for easily creating Docker images for OMPL, the [PlannerArena web server](http://plannerarena.org), and the [OMPL web app](http://omplapp.kavrakilab.org). Docker images are available on [Docker Hub](https://hub.docker.com/u/kavrakilab).
 - Added new planners:
-  - [XXL](\ref gXXL)
-  - [ABIT*](\ref gABITstar)
-  - [Quotient-Space RRT](quotientSpacePlanning.html).
+  - [XXL](\ref gXXL): a probabilistically complete sampling-based algorithm designed to plan the motions of high-dimensional mobile manipulators and related platforms.
+  - [ABIT*](\ref gABITstar): an extension to BIT* that uses advanced graph-search techniques to find initial solutions faster.
+  - [AIT*](\ref gAITstar): an anytime asymptotically optimal algorithm that simultaneously estimates and exploits problem-specific heuristics.
+  - [Quotient-Space RRT](quotientSpacePlanning.html): a generalization of RRT to plan on different abstraction levels. The abstraction levels are represented by quotient-spaces.
+  - [Taskspace RRT](\ref gTSRRT): a variant of RRT where exploration is guided by the task space.
+  - [RLRT](\ref gRLRT) and [BiRLRT](\ref gBiRLRT): basic tree-based planners without any sophistic heuristics to guide the exploration, useful as a baseline for comparison against other tree-based planners.
+- PRM, PRM*, LazyPRM, and LazyPRM* can now be initialized with an ompl::base::PlannerData instance (the generic way to represent roadmaps/trees in OMPL). This means that you seed these planners with data from a previous run from any other planner. Using the ompl::base::PlannerDataStorage functionality, this data can be saved to or loaded from disk.
 - Added support for deterministic sampling. Halton sampling is included, other deterministic sampling methods can be added.
 - Added a new PlannerTerminationCondition called CostConvergenceTerminationCondition, which can be used to terminate asymptotically (near-)optimal planners based on convergence.
 - Clean up ompl_benchmark_script.py for Python 3.
