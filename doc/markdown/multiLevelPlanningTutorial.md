@@ -173,4 +173,4 @@ if(v!=nullptr){
 ~~~
 ### Further Information
 
-For more information, please refer to either the general introduction to [MultiLevel Planning](multiLevelPlanning.html) or the [demos](group__demos.html).
+For more information, please refer to either the general introduction to [Multilevel Planning](multiLevelPlanning.html) or the [demos](group__demos.html).

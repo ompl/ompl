@@ -45,7 +45,7 @@ of the lower-dimensional robot.
 </div>
 \endhtmlonly
 
-## Why Use MultiLevel Planning
+## Why Use Multilevel Planning
 
 - If you supply admissible projections, we can guarantee probabilistic completeness and asymptotical (near-) optimality
 - It is more general than lower-dimensional projections
@@ -58,8 +58,8 @@ of the lower-dimensional robot.
 
 ## 100-dimensional Hypercube Benchmark
 
-To see how much faster MultiLevel planning can be, we provide a 100-d hypercube
-demo, which you can run yourself using [MultiLevel HyperCube](MultiLevelPlanningHyperCube_8cpp_source.html) and [MultiLevel HyperCube Benchmark](MultiLevelPlanningHyperCubeBenchmark_8cpp_source.html).
+To see how much faster Multilevel planning can be, we provide a 100-d hypercube
+demo, which you can run yourself using [Multilevel HyperCube](MultiLevelPlanningHyperCube_8cpp_source.html) and [Multilevel HyperCube Benchmark](MultiLevelPlanningHyperCubeBenchmark_8cpp_source.html).
 
 The abstractions in this scenario are \f$99\f$ projections, where each
 projection removes a dimension from the problem and reduces the problem from an
