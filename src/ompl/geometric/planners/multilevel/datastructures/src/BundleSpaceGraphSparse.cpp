@@ -340,14 +340,8 @@ bool BundleSpaceGraphSparse::checkAddConnectivity(Configuration* q, std::vector<
                 // If they are in different components
                 if (!sameComponentSparse(visibleNeighborhood[i]->index, visibleNeighborhood[j]->index))
                 {
-                    // If the paths between are collision free
-                  //TODO: Check that we need to call CheckMotion
-//                     /*if (Bundle->checkMotion(q->state, visibleNeighborhood[i]->state) &&
-//                         Bundle->checkMotion(q->state, visibleNeighborhood[j]->state))*/
-                    {
-                        links.push_back(visibleNeighborhood[i]->index);
-                        links.push_back(visibleNeighborhood[j]->index);
-                    }
+                    links.push_back(visibleNeighborhood[i]->index);
+                    links.push_back(visibleNeighborhood[j]->index);
                 }
             }
         }

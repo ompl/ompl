@@ -84,7 +84,7 @@ namespace ompl
           //                |
           //  x_____________|
           //  ---------------
-          std::vector<base::State*> interpolateSectionL1(
+          std::vector<base::State*> interpolateSectionL1FL(
                 const base::State* xFiberStart,
                 const base::State* xFiberGoal,
                 const std::vector<base::State*> basePath);
@@ -97,18 +97,18 @@ namespace ompl
           //  |
           //  x
           //  ---------------
-          std::vector<base::State*> interpolateSectionL1_FiberFirst(
+          std::vector<base::State*> interpolateSectionL1FF(
                 const base::State* xFiberStart,
                 const base::State* xFiberGoal,
                 const std::vector<base::State*> basePath);
 
-          //\brief Interpolate quasisection using spline-based approach
-          // ** Requires xFiberStart/xFiberGoal to be a true derivative of
-          // basePath start and goal points
-          std::vector<base::State*> interpolateQuasiSectionSpline(
-                const base::State* xFiberStart,
-                const base::State* xFiberGoal,
-                const std::vector<base::State*> basePath);
+          ////\brief Interpolate quasisection using spline-based approach
+          //// ** Requires xFiberStart/xFiberGoal to be a true derivative of
+          //// basePath start and goal points
+          //std::vector<base::State*> interpolateQuasiSectionSpline(
+          //      const base::State* xFiberStart,
+          //      const base::State* xFiberGoal,
+          //      const std::vector<base::State*> basePath);
 
           virtual void reset();
 

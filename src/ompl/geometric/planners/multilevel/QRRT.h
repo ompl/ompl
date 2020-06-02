@@ -35,8 +35,8 @@
 
 /* Author: Andreas Orthey */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRT_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QRRT_
+#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_QRRT_
+#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_QRRT_
 #include <ompl/geometric/planners/multilevel/datastructures/BundleSpaceSequence.h>
 #include <ompl/geometric/planners/multilevel/algorithms/QRRTImpl.h>
 

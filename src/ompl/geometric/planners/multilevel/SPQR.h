@@ -35,8 +35,8 @@
 
 /* Author: Sohaib Akbar, Andreas Orthey */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_SPQR_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_SPQR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_SPQR_
+#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_SPQR_
 
 #include <ompl/geometric/planners/multilevel/datastructures/BundleSpaceSequence.h>
 #include <ompl/geometric/planners/multilevel/algorithms/SPQRImpl.h>

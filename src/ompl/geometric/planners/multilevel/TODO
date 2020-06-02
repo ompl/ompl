@@ -45,7 +45,7 @@ sidestepping)
 [x] Write new tutorial/demo for multilevel
 [x] Redo 37dof pregrasp with ProjectionEnabled Planner (should work since RN)
 
-[ ] Better pictures for highlevel intro (also use fiber bundle picture)
+[ ] DOCUMENTATION: Better pictures for highlevel intro (also use fiber bundle picture)
 [ ] Remove DenseGraphPath method from BundleSpaceGraph.h
 [ ] Further sweep to clean up SparseGraph
 

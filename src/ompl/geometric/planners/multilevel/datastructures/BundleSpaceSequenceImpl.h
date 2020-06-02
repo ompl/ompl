@@ -157,7 +157,6 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
             priorityQueue_.pop();
             jBundle->grow();
 
-            //TODO: remove next part from while loop, put into PTC function
             bool hasSolution = bundleSpaces_.at(k)->hasSolution();
             if (hasSolution)
             {

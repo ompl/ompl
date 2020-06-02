@@ -91,7 +91,7 @@ namespace ompl
 
         protected:
 
-            /** \brief Solution paths on each BundleSpace (TODO: put into pdefs)*/
+            /** \brief Solution paths on each BundleSpace*/
             std::vector<ompl::base::PathPtr> solutions_;
 
             /** \brief Sequence of BundleSpaces */

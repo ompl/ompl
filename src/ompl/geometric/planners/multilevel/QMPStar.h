@@ -35,8 +35,8 @@
 
 /* Author: Andreas Orthey, Sohaib Akbar */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QMPSTAR_
-#define OMPL_GEOMETRIC_PLANNERS_QUOTIENTSPACE_QMPSTAR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_QMPSTAR_
+#define OMPL_GEOMETRIC_PLANNERS_BUNDLESPACE_QMPSTAR_
 #include <ompl/geometric/planners/multilevel/datastructures/BundleSpaceSequence.h>
 #include <ompl/geometric/planners/multilevel/algorithms/QMPStarImpl.h>
 
