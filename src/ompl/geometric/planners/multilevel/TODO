@@ -42,12 +42,11 @@ sidestepping)
 [x] Remove all sanitychecks/debug informations
 [x] Plot hypercube benchmark (fix log to plot script)
 [x] Fix possible memory leak in QRRT*
+[x] Write new tutorial/demo for multilevel
+[x] Redo 37dof pregrasp with ProjectionEnabled Planner (should work since RN)
 
-[ ] ** Write new tutorial/demo for multilevel
-[ ] ** Redo 37dof pregrasp with ProjectionEnabled Planner (should work since RN)
 [ ] Remove DenseGraphPath method from BundleSpaceGraph.h
 [ ] Further sweep to clean up SparseGraph
-[ ] Verify that we need the disableSegmentBias
 
 //OPTIONAL
 [ ] Add Enumerate for Metric/Importance/Sampler (Use Params like in RRTstar)
@@ -58,15 +57,15 @@ sidestepping)
 
 
 Improvements (FB):
-- Rename quotient space to multilevel
+- Rename quotient space to multilevel (makes it more descriptive)
 - Refactored code using language of fiber bundles
 - Enable multi-robot planning using a new component-based implementation
 - Enable handling of non-holonomic constraints in multilevel
 - Add new bundle spaces (empty, relaxed, identity, SO2xRN, SO3xRN)
 - Add new algorithms: QRRT*, QMP, QMP*, SPQR
 - Add sparse graph structures (based on SPARS impl)
-- Add new path restriction/section method
-- Enable different bundle metrics
-- Enable different bundle graph sampler
-- Enable different propagators
-- Enable different selection functions for multiple bundles
+- Add new path restriction/section method to exploit multilevels
+- New bundle metrics
+- New graph sampling methods
+- New bundle propagators
+- New selection methods
