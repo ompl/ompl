@@ -50,13 +50,6 @@ namespace og = ompl::geometric;
 
 const double edgeWidth = 0.1; //original STRIDE paper had edgewidth = 0.1
 
-// Note: Number of all simplifications is
-// unsigned int numberSimplifications = std::pow(2, curDim - 1);
-// But here we will only create three simplifications, the trivial one, the
-// discrete one and a two-step simplifications, which we found worked well in
-// this experiment. You can experiment with finding better simplifications.
-// std::cout << "dimension: " << curDim << " simplifications:" << numberSimplifications << std::endl;
-
 std::vector<int> getHypercubeAdmissibleProjection(int dim)
 {
     std::vector<int> discrete;

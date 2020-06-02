@@ -72,7 +72,6 @@ int main()
     ss.setStartAndGoalStates(start, goal);
 
     std::vector<int> admissibleProjection = getHypercubeAdmissibleProjection(ndim);
-
     ob::PlannerPtr planner = GetMultiLevelPlanner<og::QRRT>(admissibleProjection, si, "QRRT");
     ss.setPlanner(planner);
 
