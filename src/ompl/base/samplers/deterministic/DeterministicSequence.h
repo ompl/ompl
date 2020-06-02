@@ -51,6 +51,7 @@ namespace ompl
             DeterministicSequence(unsigned int dimensions) : dimensions_(dimensions)
             {
             }
+            virtual ~DeterministicSequence() = default;
 
             /** \brief Returns the next sample in the interval [0,1] */
             virtual std::vector<double> sample() = 0;
