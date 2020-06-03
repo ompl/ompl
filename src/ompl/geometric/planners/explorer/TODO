@@ -1,4 +1,0 @@
-[ ] Add function getLocalMinimaTree() to explorer (make corresponding changes in GUI)
-[ ] Incorporate optimizer
-[ ] Return control in PlannerData
-

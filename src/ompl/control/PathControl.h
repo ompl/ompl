@@ -196,14 +196,8 @@ namespace ompl
             {
                 return controls_.size();
             }
-            /** \brief Remove all states and controls*/
-            void clear();
 
             /** @} */
-            
-			
-			void subdivide() ;
-	
 
         protected:
             /** \brief The list of states that make up the path */

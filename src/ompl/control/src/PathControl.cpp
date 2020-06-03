@@ -324,7 +324,10 @@ bool ompl::control::PathControl::randomValid(unsigned int attempts)
 
     if (!ok)
     {
-        clear();
+        freeMemory();
+        states_.clear();
+        controls_.clear();
+        controlDurations_.clear();
     }
     return ok;
 }
@@ -336,66 +339,4 @@ void ompl::control::PathControl::freeMemory()
     const auto *si = static_cast<const SpaceInformation *>(si_.get());
     for (auto &control : controls_)
         si->freeControl(control);
-}
-
-void ompl::control::PathControl::clear()
-{
-    freeMemory();
-    states_.clear();
-    controls_.clear();
-    controlDurations_.clear();
-}
-
-
-void ompl::control::PathControl::subdivide()
-{
-    if (states_.size() <= controls_.size())
-    {
-        OMPL_ERROR("Subdividing not performed.  Number of states in the path should be strictly greater than the "
-                   "number of controls.");
-        return;
-    }
-    if (states_.size() < 2)
-		return;
-		
-    const auto *si = static_cast<const SpaceInformation *>(si_.get());
-    std::vector<base::State *> newStates;
-    std::vector<Control *> newControls;
-    std::vector<double> newControlDurations;    
-    
-    
-    
-    for (unsigned int i = 0; i < controls_.size(); ++i)
-    {
-		
-        if (controlDurations_[i] <= 1)
-        {
-            newStates.push_back(states_[i]);
-            newControls.push_back(controls_[i]);
-            newControlDurations.push_back(controlDurations_[i]);
-            continue;
-        }
-        std::vector<base::State *> istates;
-        si->propagate(states_[i], controls_[i], (int)floor(0.5+controlDurations_[i]/2), istates, true);    
-        //if (!istates.empty())
-        //{
-            //si_->freeState(istates.back());
-            //istates.pop_back();  
-        //}
-        newStates.push_back(states_[i]);
-        newStates.push_back(istates.back());        
-        newControls.push_back(controls_[i]);
-        newControls.push_back(si->cloneControl(controls_[i]));
-        newControlDurations.push_back((int)floor(0.5+controlDurations_[i]/2));
-        newControlDurations.push_back(controlDurations_[i] - (int)floor(0.5+controlDurations_[i]/2));
-        
-                       		
-	}
-    newStates.push_back(states_[controls_.size()]);
-    states_.swap(newStates);
-    controls_.swap(newControls);
-    controlDurations_.swap(newControlDurations);	
-    
-    std::cout << "states :  "<< states_.size() << std::endl;
-    std::cout << "controls :  "<< controls_.size() << std::endl;
 }

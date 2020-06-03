@@ -143,7 +143,3 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
 
     return result;
 }
-
-
-
-
