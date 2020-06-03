@@ -4,28 +4,21 @@
 
 namespace ompl
 {
-
-  namespace geometric
-  {
-
-    class BundleSpacePropagatorGeometric: public BundleSpacePropagator
+    namespace geometric
     {
-        using BaseT = BundleSpacePropagator;
-      public:
+        class BundleSpacePropagatorGeometric : public BundleSpacePropagator
+        {
+            using BaseT = BundleSpacePropagator;
 
-        BundleSpacePropagatorGeometric() = delete;
-        BundleSpacePropagatorGeometric(BundleSpaceGraph*); 
+        public:
+            BundleSpacePropagatorGeometric() = delete;
+            BundleSpacePropagatorGeometric(BundleSpaceGraph *);
 
-        virtual ~BundleSpacePropagatorGeometric() override;
+            virtual ~BundleSpacePropagatorGeometric() override;
 
-        virtual bool steer( 
-            const Configuration *from, 
-            const Configuration *to, 
-            Configuration *result) override;
-
-    };
-  }
+            virtual bool steer(const Configuration *from, const Configuration *to, Configuration *result) override;
+        };
+    }
 }
-
 
 #endif

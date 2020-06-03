@@ -4,55 +4,48 @@
 
 namespace ompl
 {
-  namespace geometric
-  {
-    OMPL_CLASS_FORWARD(BundleSpaceGraph);
-
-    class BundleSpaceMetric
+    namespace geometric
     {
-      public:
-        using Configuration = ompl::geometric::BundleSpaceGraph::Configuration;
-        BundleSpaceMetric() = delete;
-        BundleSpaceMetric(BundleSpaceGraph*); 
+        OMPL_CLASS_FORWARD(BundleSpaceGraph);
 
-        virtual ~BundleSpaceMetric();
+        class BundleSpaceMetric
+        {
+        public:
+            using Configuration = ompl::geometric::BundleSpaceGraph::Configuration;
+            BundleSpaceMetric() = delete;
+            BundleSpaceMetric(BundleSpaceGraph *);
 
-        virtual void reset();
+            virtual ~BundleSpaceMetric();
 
-        //############################################################################
-        //Distance Functions
-        //############################################################################
+            virtual void reset();
 
-        virtual double distanceBundle(
-            const Configuration *xStart, 
-            const Configuration *xDest) = 0;
-        virtual double distanceFiber(
-            const Configuration *xStart, 
-            const Configuration *xDest) = 0;
-        virtual double distanceBase(
-            const Configuration *xStart, 
-            const Configuration *xDest) = 0;
+            //############################################################################
+            // Distance Functions
+            //############################################################################
 
-        //############################################################################
-        //Interpolate Functions
-        //############################################################################
+            virtual double distanceBundle(const Configuration *xStart, const Configuration *xDest) = 0;
+            virtual double distanceFiber(const Configuration *xStart, const Configuration *xDest) = 0;
+            virtual double distanceBase(const Configuration *xStart, const Configuration *xDest) = 0;
 
-        virtual void interpolateBundle(const Configuration *q_from, const Configuration *q_to, const double step, Configuration* q_interp) = 0;
+            //############################################################################
+            // Interpolate Functions
+            //############################################################################
 
-        void interpolateBundle(const Configuration *q_from, const Configuration *q_to, Configuration* q_interp);
-        void interpolateBundle(const Configuration *q_from, Configuration *q_to);
+            virtual void interpolateBundle(const Configuration *q_from, const Configuration *q_to, const double step,
+                                           Configuration *q_interp) = 0;
 
-      protected:
+            void interpolateBundle(const Configuration *q_from, const Configuration *q_to, Configuration *q_interp);
+            void interpolateBundle(const Configuration *q_from, Configuration *q_to);
 
-        BundleSpaceGraph* bundleSpaceGraph_;
+        protected:
+            BundleSpaceGraph *bundleSpaceGraph_;
 
-        base::State *xFiberStartTmp_;
-        base::State *xFiberDestTmp_;
-        base::State *xBaseStartTmp_;
-        base::State *xBaseDestTmp_;
-    };
-  }
+            base::State *xFiberStartTmp_;
+            base::State *xFiberDestTmp_;
+            base::State *xBaseStartTmp_;
+            base::State *xBaseDestTmp_;
+        };
+    }
 }
-
 
 #endif

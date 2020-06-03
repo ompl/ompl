@@ -69,8 +69,7 @@ void ompl::geometric::QMPImpl::clear()
     pdf.clear();
 }
 
-ompl::geometric::BundleSpaceGraph::Vertex 
-ompl::geometric::QMPImpl::addConfiguration(Configuration *q)
+ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::QMPImpl::addConfiguration(Configuration *q)
 {
     Vertex m = BaseT::addConfiguration(q);
     PDF_Element *q_element = pdf.add(q, 1.0);
@@ -86,12 +85,11 @@ void ompl::geometric::QMPImpl::deleteConfiguration(Configuration *q)
 
 void ompl::geometric::QMPImpl::updatePDF(Configuration *q)
 {
-  unsigned int N = q->total_connection_attempts;
-  unsigned int Ns = q->successful_connection_attempts;
-  double val = (double)(N-Ns) / (double)N;
-  pdf.update(static_cast<PDF_Element*>(q->getPDFElement()), val);
+    unsigned int N = q->total_connection_attempts;
+    unsigned int Ns = q->successful_connection_attempts;
+    double val = (double)(N - Ns) / (double)N;
+    pdf.update(static_cast<PDF_Element *>(q->getPDFElement()), val);
 }
-
 
 unsigned int ompl::geometric::QMPImpl::computeK()
 {
@@ -106,9 +104,9 @@ void ompl::geometric::QMPImpl::grow()
         vGoal_ = addConfiguration(qGoal_);
         firstRun_ = false;
 
-        if(hasBaseSpace())
+        if (hasBaseSpace())
         {
-            if(getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
+            if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
             {
                 if (sameComponent(vStart_, vGoal_))
                 {
@@ -119,12 +117,13 @@ void ompl::geometric::QMPImpl::grow()
     }
 
     //(1) Get Random Sample
-    if(!sampleBundleValid(xRandom_->state)) return;
+    if (!sampleBundleValid(xRandom_->state))
+        return;
 
     //(2) Add Configuration if valid
     Configuration *xNew = new Configuration(getBundle(), xRandom_->state);
     addConfiguration(xNew);
-    
+
     //(3) Connect to K nearest neighbors
     connectNeighbors(xNew);
 
@@ -141,18 +140,18 @@ void ompl::geometric::QMPImpl::grow()
 
 void ompl::geometric::QMPImpl::connectNeighbors(Configuration *x)
 {
-    std::vector<Configuration*> nearestNeighbors;
+    std::vector<Configuration *> nearestNeighbors;
 
     BaseT::nearestDatastructure_->nearestK(x, computeK(), nearestNeighbors);
 
-    for(unsigned int k = 0 ; k < nearestNeighbors.size(); k++)
+    for (unsigned int k = 0; k < nearestNeighbors.size(); k++)
     {
-        Configuration* xNear = nearestNeighbors.at(k);
+        Configuration *xNear = nearestNeighbors.at(k);
 
         x->total_connection_attempts++;
         xNear->total_connection_attempts++;
 
-        if(connect(xNear, x))
+        if (connect(xNear, x))
         {
             x->successful_connection_attempts++;
             xNear->successful_connection_attempts++;
@@ -164,14 +163,14 @@ void ompl::geometric::QMPImpl::connectNeighbors(Configuration *x)
 
 void ompl::geometric::QMPImpl::expand()
 {
-
     if (pdf.empty())
         return;
-    
+
     Configuration *q = pdf.sample(rng_.uniform01());
 
-    int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
-    if(s > 0)
+    int s =
+        getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
+    if (s > 0)
     {
         Configuration *prev = q;
 
@@ -187,7 +186,7 @@ void ompl::geometric::QMPImpl::expand()
             ompl::geometric::BundleSpaceGraph::addEdge(prev->index, tmp->index);
             prev = tmp;
         }
-        if(!sameComponent(prev->index, last->index))
+        if (!sameComponent(prev->index, last->index))
             ompl::geometric::BundleSpaceGraph::addEdge(prev->index, last->index);
     }
 }

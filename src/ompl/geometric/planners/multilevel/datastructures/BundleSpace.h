@@ -7,12 +7,12 @@
 
 namespace ompl
 {
-  //
-  // Configuration x;
-  // Components M
-  // Dimension N
-  // BundleSpaces Fiber, Bundle, Base;
-  //
+    //
+    // Configuration x;
+    // Components M
+    // Dimension N
+    // BundleSpaces Fiber, Bundle, Base;
+    //
     namespace geometric
     {
         OMPL_CLASS_FORWARD(BundleSpaceComponent);
@@ -22,13 +22,11 @@ namespace ompl
         /// \brief A single Bundle-space
         class BundleSpace : public ompl::base::Planner
         {
-
         private:
-
             using BaseT = ompl::base::Planner;
-            using BaseT::si_; //make it private. 
+            using BaseT::si_;  // make it private.
             // Note: use getBundle(), getFiber() or getBase() to access the SpaceInformationPtr
-            
+
             /// \brief solve is disabled (use BundleSequence::solve)
             ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override final;
 
@@ -36,7 +34,7 @@ namespace ompl
             /**  \brief Bundle Space contains three OMPL spaces, which we call Bundle, Base and Fiber.
 
                  - Bundle is (locally) a product space of Base and Fiber
-                 - Base is a pointer to the next lower-dimensional Bundle-space (if any) 
+                 - Base is a pointer to the next lower-dimensional Bundle-space (if any)
                  - Fiber is the quotient space Bundle / Base
 
                  We assume that Bundle and Base have been given (as ompl::base::SpaceInformationPtr),
@@ -49,8 +47,8 @@ namespace ompl
 
             virtual void grow() = 0;
             virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
-            virtual void setMetric(const std::string& sMetric) = 0;
-            virtual void setPropagator(const std::string& sPropagator) = 0;
+            virtual void setMetric(const std::string &sMetric) = 0;
+            virtual void setPropagator(const std::string &sPropagator) = 0;
 
             virtual void sampleFromDatastructure(ompl::base::State *xBase) = 0;
             virtual void sampleFiber(ompl::base::State *xFiber);
@@ -72,11 +70,11 @@ namespace ompl
             ompl::base::State *allocIdentityStateBundle() const;
             ompl::base::State *allocIdentityStateBase() const;
             ompl::base::State *allocIdentityState(ompl::base::StateSpacePtr) const;
-            void allocIdentityState(ompl::base::State*, ompl::base::StateSpacePtr) const;
+            void allocIdentityState(ompl::base::State *, ompl::base::StateSpacePtr) const;
 
             /// \brief Print Information pertaining to why a state failed being
             /// valid
-            void debugInvalidState(const ompl::base::State*);
+            void debugInvalidState(const ompl::base::State *);
 
             /// \brief reset counter for number of levels
             static void resetCounter();
@@ -123,21 +121,15 @@ namespace ompl
 
             /// \brief Bundle Space Projection Operator onto second component
             /// ProjectFiber: Base \times Fiber \rightarrow Fiber
-            void projectFiber(
-                const ompl::base::State *xBundle, 
-                ompl::base::State *xFiber) const;
+            void projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const;
 
             /// \brief Bundle Space Projection Operator onto first component
             /// ProjectBase: Base \times Fiber \rightarrow Base
-            void projectBase(
-                const ompl::base::State *xBundle, 
-                ompl::base::State *xBase) const;
+            void projectBase(const ompl::base::State *xBundle, ompl::base::State *xBase) const;
 
             /// \brief Lift a state from Base to Bundle using a Fiber State
-            void liftState(
-                const ompl::base::State *xBase, 
-                const ompl::base::State *xFiber, 
-                ompl::base::State *xBundle) const; 
+            void liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+                           ompl::base::State *xBundle) const;
 
             /// \brief return xResult, being a state on the basePath at location
             //    Input: - basePath on getBase()
@@ -146,30 +138,26 @@ namespace ompl
             //
             //    Example: location=0 returns basePath.front()
             //    Example: location=basePath.length() returns basePath.back()
-            unsigned int interpolateAlongBasePath(
-                  const std::vector<base::State*> basePath,
-                  double location,
-                  base::State* xResult) const;
+            unsigned int interpolateAlongBasePath(const std::vector<base::State *> basePath, double location,
+                                                  base::State *xResult) const;
 
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 
             /// \brief Write class to stream (use as std::cout << *this << std::endl)
             ///  Actual implementation is in void print(std::ostream& out),
             ///  which can be inherited.
-            friend std::ostream &operator<<(std::ostream&, const BundleSpace&);
+            friend std::ostream &operator<<(std::ostream &, const BundleSpace &);
 
             bool isDynamic() const;
 
         private:
-
             ompl::base::SpaceInformationPtr Bundle{nullptr};
             ompl::base::SpaceInformationPtr Base{nullptr};
             ompl::base::SpaceInformationPtr Fiber{nullptr};
 
         protected:
             /// Check if Bundle-space is unbounded
-            void checkBundleSpaceMeasure(std::string name, 
-                const ompl::base::StateSpacePtr space) const;
+            void checkBundleSpaceMeasure(std::string name, const ompl::base::StateSpacePtr space) const;
             void sanityChecks() const;
             void MakeFiberSpace();
 
@@ -215,7 +203,6 @@ namespace ompl
 
             /** \brief Propagator (steering or interpolation) on bundle space */
             BundleSpacePropagatorPtr propagator_;
-
         };
     }  // namespace geometric
 }  // namespace ompl

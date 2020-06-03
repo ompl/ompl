@@ -1,79 +1,94 @@
 #include <ompl/geometric/planners/multilevel/datastructures/BundleSpaceComponent.h>
 #include <ompl/util/Exception.h>
 
-ompl::geometric::BundleSpaceComponent::BundleSpaceComponent(
-                base::StateSpacePtr BundleSpace,
-                base::StateSpacePtr BaseSpace):
-  BundleSpace_(BundleSpace), BaseSpace_(BaseSpace)
+ompl::geometric::BundleSpaceComponent::BundleSpaceComponent(base::StateSpacePtr BundleSpace,
+                                                            base::StateSpacePtr BaseSpace)
+  : BundleSpace_(BundleSpace), BaseSpace_(BaseSpace)
 {
 }
 
 void ompl::geometric::BundleSpaceComponent::initFiberSpace()
 {
-  FiberSpace_ = computeFiberSpace();
+    FiberSpace_ = computeFiberSpace();
 }
 
 ompl::base::StateSpacePtr ompl::geometric::BundleSpaceComponent::getFiberSpace() const
 {
-  return FiberSpace_;
+    return FiberSpace_;
 }
 
 unsigned int ompl::geometric::BundleSpaceComponent::getFiberDimension() const
 {
-  if(FiberSpace_) return FiberSpace_->getDimension();
-  else return 0;
+    if (FiberSpace_)
+        return FiberSpace_->getDimension();
+    else
+        return 0;
 }
 
 unsigned int ompl::geometric::BundleSpaceComponent::getBaseDimension() const
 {
-  if(BaseSpace_) return BaseSpace_->getDimension();
-  else return 0;
+    if (BaseSpace_)
+        return BaseSpace_->getDimension();
+    else
+        return 0;
 }
 
 unsigned int ompl::geometric::BundleSpaceComponent::getDimension() const
 {
-  return BundleSpace_->getDimension();
+    return BundleSpace_->getDimension();
 }
 
-ompl::geometric::BundleSpaceComponentType 
-ompl::geometric::BundleSpaceComponent::getType() const
+ompl::geometric::BundleSpaceComponentType ompl::geometric::BundleSpaceComponent::getType() const
 {
-  return type_;
+    return type_;
 }
 
-void 
-ompl::geometric::BundleSpaceComponent::setType(BundleSpaceComponentType& type)
+void ompl::geometric::BundleSpaceComponent::setType(BundleSpaceComponentType &type)
 {
-  type_ = type;
+    type_ = type;
 }
 
-std::string ompl::geometric::BundleSpaceComponent::stateTypeToString(
-    base::StateSpacePtr space) const
+std::string ompl::geometric::BundleSpaceComponent::stateTypeToString(base::StateSpacePtr space) const
 {
     std::string tstr;
     int type = space->getType();
-    if(type == base::STATE_SPACE_REAL_VECTOR){
+    if (type == base::STATE_SPACE_REAL_VECTOR)
+    {
         int N = space->getDimension();
         tstr = "R";
         tstr += std::to_string(N);
-    }else if(type == base::STATE_SPACE_SE2){
+    }
+    else if (type == base::STATE_SPACE_SE2)
+    {
         tstr = "SE2";
-    }else if(type == base::STATE_SPACE_SE3){
+    }
+    else if (type == base::STATE_SPACE_SE3)
+    {
         tstr = "SE3";
-    }else if(type == base::STATE_SPACE_SO2){
+    }
+    else if (type == base::STATE_SPACE_SO2)
+    {
         tstr = "SO2";
-    }else if(type == base::STATE_SPACE_SO3){
+    }
+    else if (type == base::STATE_SPACE_SO3)
+    {
         tstr = "SO3";
-    }else if(space->isCompound()){
+    }
+    else if (space->isCompound())
+    {
         base::CompoundStateSpace *space_compound = space->as<base::CompoundStateSpace>();
         const std::vector<base::StateSpacePtr> space_decomposed = space_compound->getSubspaces();
 
-        for(uint k = 0; k < space_decomposed.size(); k++){
+        for (uint k = 0; k < space_decomposed.size(); k++)
+        {
             base::StateSpacePtr s0 = space_decomposed.at(k);
             tstr = tstr + stateTypeToString(s0);
-            if(k < space_decomposed.size()-1) tstr += "x";
+            if (k < space_decomposed.size() - 1)
+                tstr += "x";
         }
-    }else{
+    }
+    else
+    {
         throw Exception("Unknown State Space");
     }
     return tstr;
@@ -81,29 +96,39 @@ std::string ompl::geometric::BundleSpaceComponent::stateTypeToString(
 
 std::string ompl::geometric::BundleSpaceComponent::getTypeAsString() const
 {
-    if(BaseSpace_){
+    if (BaseSpace_)
+    {
         std::string tstr = getBundleTypeAsString() + " -> " + getBaseTypeAsString();
-        if(type_ == BUNDLE_SPACE_CONSTRAINED_RELAXATION){
+        if (type_ == BUNDLE_SPACE_CONSTRAINED_RELAXATION)
+        {
             tstr += " (relaxation)";
-        }else if(type_ == BUNDLE_SPACE_IDENTITY_PROJECTION){
+        }
+        else if (type_ == BUNDLE_SPACE_IDENTITY_PROJECTION)
+        {
             tstr += " (identity)";
         }
         return tstr;
-    }else{
+    }
+    else
+    {
         return getBundleTypeAsString();
     }
 }
 
 std::string ompl::geometric::BundleSpaceComponent::getFiberTypeAsString() const
 {
-    if(FiberSpace_) return stateTypeToString(FiberSpace_);
-    else return "None";
+    if (FiberSpace_)
+        return stateTypeToString(FiberSpace_);
+    else
+        return "None";
 }
 
 std::string ompl::geometric::BundleSpaceComponent::getBaseTypeAsString() const
 {
-    if(BaseSpace_) return stateTypeToString(BaseSpace_);
-    else return "None";
+    if (BaseSpace_)
+        return stateTypeToString(BaseSpace_);
+    else
+        return "None";
 }
 
 std::string ompl::geometric::BundleSpaceComponent::getBundleTypeAsString() const
@@ -130,5 +155,5 @@ namespace ompl
             bundleSpaceComponent.print(out);
             return out;
         }
-    } 
+    }
 }

@@ -3,21 +3,18 @@
 
 #include <ompl/util/Exception.h>
 
-ompl::geometric::BundleSpaceComponent_XRN_X::BundleSpaceComponent_XRN_X(
-    base::StateSpacePtr BundleSpace,
-    base::StateSpacePtr BaseSpace):
-  BaseT(BundleSpace, BaseSpace)
+ompl::geometric::BundleSpaceComponent_XRN_X::BundleSpaceComponent_XRN_X(base::StateSpacePtr BundleSpace,
+                                                                        base::StateSpacePtr BaseSpace)
+  : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::geometric::BundleSpaceComponent_XRN_X::projectFiber(
-    const ompl::base::State *xBundle,
-    ompl::base::State *xFiber) const
+void ompl::geometric::BundleSpaceComponent_XRN_X::projectFiber(const ompl::base::State *xBundle,
+                                                               ompl::base::State *xFiber) const
 {
     const base::RealVectorStateSpace::StateType *xBundle_RN =
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
-    base::RealVectorStateSpace::StateType *xFiber_RN = 
-        xFiber->as<base::RealVectorStateSpace::StateType>();
+    base::RealVectorStateSpace::StateType *xFiber_RN = xFiber->as<base::RealVectorStateSpace::StateType>();
 
     for (unsigned int k = 0; k < getFiberDimension(); k++)
     {
@@ -30,14 +27,11 @@ ompl::base::StateSpacePtr ompl::geometric::BundleSpaceComponent_XRN_X::computeFi
     base::CompoundStateSpace *Bundle_compound = BundleSpace_->as<base::CompoundStateSpace>();
     const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
 
-    const base::RealVectorStateSpace *Bundle_RN = 
-      Bundle_decomposed.at(1)->as<base::RealVectorStateSpace>();
+    const base::RealVectorStateSpace *Bundle_RN = Bundle_decomposed.at(1)->as<base::RealVectorStateSpace>();
 
     unsigned int N = Bundle_RN->getDimension();
 
     base::StateSpacePtr RN = std::make_shared<base::RealVectorStateSpace>(N);
-    std::static_pointer_cast<base::RealVectorStateSpace>(RN)->setBounds(
-        Bundle_RN->getBounds());
+    std::static_pointer_cast<base::RealVectorStateSpace>(RN)->setBounds(Bundle_RN->getBounds());
     return RN;
 }
-

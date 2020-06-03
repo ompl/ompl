@@ -1,30 +1,23 @@
 #include <ompl/geometric/planners/multilevel/datastructures/components/None.h>
 
-ompl::geometric::BundleSpaceComponent_None::BundleSpaceComponent_None(
-    base::StateSpacePtr BundleSpace,
-    base::StateSpacePtr BaseSpace):
-  BaseT(BundleSpace, BaseSpace)
+ompl::geometric::BundleSpaceComponent_None::BundleSpaceComponent_None(base::StateSpacePtr BundleSpace,
+                                                                      base::StateSpacePtr BaseSpace)
+  : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::geometric::BundleSpaceComponent_None::projectFiber(
-    const ompl::base::State *,
-    ompl::base::State *) const
+void ompl::geometric::BundleSpaceComponent_None::projectFiber(const ompl::base::State *, ompl::base::State *) const
 {
     OMPL_WARN("Trying to project to fiber with non-projectable Bundle Space.");
 }
 
-void ompl::geometric::BundleSpaceComponent_None::projectBase(
-    const ompl::base::State *,
-    ompl::base::State *) const
+void ompl::geometric::BundleSpaceComponent_None::projectBase(const ompl::base::State *, ompl::base::State *) const
 {
     OMPL_WARN("Trying to project to base with non-projectable Bundle Space.");
 }
 
-void ompl::geometric::BundleSpaceComponent_None::liftState(
-    const ompl::base::State *, 
-    const ompl::base::State *, 
-    ompl::base::State *) const
+void ompl::geometric::BundleSpaceComponent_None::liftState(const ompl::base::State *, const ompl::base::State *,
+                                                           ompl::base::State *) const
 {
     OMPL_WARN("Trying to lift States with non-projectable Bundle Space.");
 }

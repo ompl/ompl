@@ -4,35 +4,25 @@
 
 namespace ompl
 {
-
-  namespace geometric
-  {
-
-    OMPL_CLASS_FORWARD(BundleSpaceGraph);
-
-    class BundleSpacePropagator
+    namespace geometric
     {
+        OMPL_CLASS_FORWARD(BundleSpaceGraph);
 
-      public:
+        class BundleSpacePropagator
+        {
+        public:
+            using Configuration = BundleSpaceGraph::Configuration;
+            BundleSpacePropagator() = delete;
+            BundleSpacePropagator(BundleSpaceGraph *);
 
-        using Configuration = BundleSpaceGraph::Configuration;
-        BundleSpacePropagator() = delete;
-        BundleSpacePropagator(BundleSpaceGraph*); 
+            virtual ~BundleSpacePropagator();
 
-        virtual ~BundleSpacePropagator();
+            virtual bool steer(const Configuration *from, const Configuration *to, Configuration *result) = 0;
 
-        virtual bool steer( 
-            const Configuration *from, 
-            const Configuration *to, 
-            Configuration *result) = 0;
-
-      protected:
-
-        BundleSpaceGraph* bundleSpaceGraph_;
-
-    };
-  }
+        protected:
+            BundleSpaceGraph *bundleSpaceGraph_;
+        };
+    }
 }
-
 
 #endif

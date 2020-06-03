@@ -16,28 +16,21 @@ namespace ompl
     {
         class BundleSpaceComponentFactory
         {
-          public:
+        public:
             BundleSpaceComponentFactory() = default;
 
-            std::vector<BundleSpaceComponentPtr> MakeBundleSpaceComponents(
-                base::SpaceInformationPtr Bundle, 
-                base::SpaceInformationPtr Base);
+            std::vector<BundleSpaceComponentPtr> MakeBundleSpaceComponents(base::SpaceInformationPtr Bundle,
+                                                                           base::SpaceInformationPtr Base);
 
-            std::vector<BundleSpaceComponentPtr> MakeBundleSpaceComponents(
-                base::SpaceInformationPtr Bundle);
+            std::vector<BundleSpaceComponentPtr> MakeBundleSpaceComponents(base::SpaceInformationPtr Bundle);
 
-          protected:
-            BundleSpaceComponentPtr MakeBundleSpaceComponent(
-                base::StateSpacePtr BundleSpace, 
-                base::StateSpacePtr BaseSpace,
-                bool);
-            BundleSpaceComponentPtr MakeBundleSpaceComponent(
-                base::StateSpacePtr BundleSpace);
+        protected:
+            BundleSpaceComponentPtr MakeBundleSpaceComponent(base::StateSpacePtr BundleSpace,
+                                                             base::StateSpacePtr BaseSpace, bool);
+            BundleSpaceComponentPtr MakeBundleSpaceComponent(base::StateSpacePtr BundleSpace);
 
-            BundleSpaceComponentType
-            identifyBundleSpaceComponentType(
-                const base::StateSpacePtr BundleSpace, 
-                const base::StateSpacePtr BaseSpace);
+            BundleSpaceComponentType identifyBundleSpaceComponentType(const base::StateSpacePtr BundleSpace,
+                                                                      const base::StateSpacePtr BaseSpace);
 
             bool isMapping_Identity(const base::StateSpacePtr, const base::StateSpacePtr);
             bool isMapping_EmptyProjection(const base::StateSpacePtr, const base::StateSpacePtr);
@@ -56,14 +49,8 @@ namespace ompl
             bool isMapping_SO3RN_to_SO3RM(const base::StateSpacePtr, const base::StateSpacePtr);
             bool isMapping_RNSO2_to_RN(const base::StateSpacePtr, const base::StateSpacePtr);
 
-            bool isMapping_XRN_to_XRM(
-                const base::StateSpacePtr, 
-                const base::StateSpacePtr,
-                const base::StateSpaceType);
-            bool isMapping_XRN_to_X(
-                const base::StateSpacePtr, 
-                const base::StateSpacePtr,
-                const base::StateSpaceType);
+            bool isMapping_XRN_to_XRM(const base::StateSpacePtr, const base::StateSpacePtr, const base::StateSpaceType);
+            bool isMapping_XRN_to_X(const base::StateSpacePtr, const base::StateSpacePtr, const base::StateSpaceType);
 
             int GetNumberOfComponents(base::StateSpacePtr space);
         };

@@ -1,7 +1,8 @@
 #include <ompl/geometric/planners/multilevel/datastructures/graphsampler/RandomVertex.h>
 
-ompl::geometric::BundleSpaceGraphSamplerRandomVertex::BundleSpaceGraphSamplerRandomVertex(BundleSpaceGraph* bundleSpaceGraph):
-  BaseT(bundleSpaceGraph)
+ompl::geometric::BundleSpaceGraphSamplerRandomVertex::BundleSpaceGraphSamplerRandomVertex(
+    BundleSpaceGraph *bundleSpaceGraph)
+  : BaseT(bundleSpaceGraph)
 {
 }
 

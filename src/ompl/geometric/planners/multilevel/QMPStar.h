@@ -48,7 +48,7 @@ namespace ompl
              @anchor QMPstar
 
              @par Short description
-             Quotient space roadMap Planner Star (QMP*) generalizes the PRM* algorithm to bundle spaces. 
+             Quotient space roadMap Planner Star (QMP*) generalizes the PRM* algorithm to bundle spaces.
 
              @par External documentation
         */

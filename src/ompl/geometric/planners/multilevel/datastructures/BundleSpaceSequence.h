@@ -49,7 +49,7 @@ namespace ompl
 
              Example usage with QRRT
              ompl::base::PlannerPtr planner =
-                 std::make_shared<BundleSpaceSequence<ompl::geometric::QRRT> >(si_vec); 
+                 std::make_shared<BundleSpaceSequence<ompl::geometric::QRRT> >(si_vec);
 
              whereby si_vec is of type std::vector<ompl::base::SpaceInformationPtr>
          */
@@ -58,15 +58,13 @@ namespace ompl
         class BundleSpaceSequence : public ompl::base::Planner
         {
             using BaseT = ompl::base::Planner;
-            static_assert(std::is_base_of<BundleSpace, T>::value, 
-                "Template must inherit from BundleSpace");
+            static_assert(std::is_base_of<BundleSpace, T>::value, "Template must inherit from BundleSpace");
 
         public:
             /** \brief Constructor taking a sequence of ompl::base::SpaceInformationPtr
                  and computing the BundleSpaces for each pair in the sequence */
-            BundleSpaceSequence(
-                std::vector<ompl::base::SpaceInformationPtr> &siVec, 
-                std::string type = "BundleSpacePlanner");
+            BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec,
+                                std::string type = "BundleSpacePlanner");
             BundleSpaceSequence(ompl::base::SpaceInformationPtr si) = delete;
             BundleSpaceSequence(ompl::base::SpaceInformationPtr si, std::string type) = delete;
 
@@ -90,7 +88,6 @@ namespace ompl
             void setStopLevel(unsigned int level_);
 
         protected:
-
             /** \brief Solution paths on each BundleSpace*/
             std::vector<ompl::base::PathPtr> solutions_;
 

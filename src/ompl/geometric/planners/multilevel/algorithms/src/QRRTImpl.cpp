@@ -62,9 +62,9 @@ void ompl::geometric::QRRTImpl::grow()
         init();
         firstRun_ = false;
 
-        if(hasBaseSpace())
+        if (hasBaseSpace())
         {
-            if(getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
+            if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
             {
                 hasSolution_ = true;
             }
@@ -81,23 +81,26 @@ void ompl::geometric::QRRTImpl::grow()
     Configuration *xNext = extendGraphTowards_Range(xNearest, xRandom_);
 
     //(4) If extension was successful, check if we reached goal
-    if(xNext && !hasSolution_)
+    if (xNext && !hasSolution_)
     {
-        if(isDynamic()){
+        if (isDynamic())
+        {
             double dist;
             bool satisfied = goal_->isSatisfied(xNext->state, &dist);
-            if(dist < bestCost_.value())
+            if (dist < bestCost_.value())
             {
                 bestCost_ = base::Cost(dist);
                 // std::cout << "Nearest to goal: " << dist << std::endl;
             }
             if (satisfied)
             {
-                vGoal_ = xNext->index;//addConfiguration(qGoal_);
+                vGoal_ = xNext->index;  // addConfiguration(qGoal_);
                 // addEdge(xNext->index, vGoal_);
                 hasSolution_ = true;
             }
-        }else{
+        }
+        else
+        {
             bool satisfied = goal_->isSatisfied(xNext->state);
             if (satisfied)
             {
@@ -107,5 +110,4 @@ void ompl::geometric::QRRTImpl::grow()
             }
         }
     }
-
 }

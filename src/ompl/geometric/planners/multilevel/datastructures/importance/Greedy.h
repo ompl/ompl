@@ -4,27 +4,25 @@
 
 namespace ompl
 {
-  namespace geometric
-  {
-    class BundleSpaceImportanceGreedy: public BundleSpaceImportance
+    namespace geometric
     {
-        using BaseT = BundleSpaceImportance;
-      public:
+        class BundleSpaceImportanceGreedy : public BundleSpaceImportance
+        {
+            using BaseT = BundleSpaceImportance;
 
-        BundleSpaceImportanceGreedy() = delete;
-        BundleSpaceImportanceGreedy(BundleSpaceGraph* graph);
+        public:
+            BundleSpaceImportanceGreedy() = delete;
+            BundleSpaceImportanceGreedy(BundleSpaceGraph *graph);
 
-        ~BundleSpaceImportanceGreedy() = default;
+            ~BundleSpaceImportanceGreedy() = default;
 
-        virtual double eval() override;
-      private:
-        double getLevelConstant();
-        double epsilon{0.1};
-    };
-  }
+            virtual double eval() override;
+
+        private:
+            double getLevelConstant();
+            double epsilon{0.1};
+        };
+    }
 }
 
-
 #endif
-
-

@@ -47,7 +47,7 @@ namespace ompl
         /**
              @anchor QMP
 
-             @par Short description 
+             @par Short description
              The Quotient-space roadMap Planner (QMP) is
              a multi-query, probabilistically complete roadmap planner which
              generalizes PRM to bundle spaces.

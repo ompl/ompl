@@ -79,17 +79,19 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
 {
     setName("BundleSpaceGraph");
 
-    //Functional primitives
+    // Functional primitives
     setMetric("geodesic");
     setGraphSampler("randomvertex");
     setImportance("uniform");
 
     pathRestriction_ = std::make_shared<BundleSpacePathRestriction>(this);
 
-    if(isDynamic())
+    if (isDynamic())
     {
         setPropagator("dynamic");
-    }else{
+    }
+    else
+    {
         setPropagator("geometric");
     }
 
@@ -97,19 +99,11 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
     specs_.approximateSolutions = false;
     specs_.optimizingPaths = false;
 
-    Planner::declareParam<double>(
-        "range", 
-        this, 
-        &BundleSpaceGraph::setRange, 
-        &BundleSpaceGraph::getRange, 
-        "0.:1.:10000.");
+    Planner::declareParam<double>("range", this, &BundleSpaceGraph::setRange, &BundleSpaceGraph::getRange, "0.:1.:"
+                                                                                                           "10000.");
 
-    Planner::declareParam<double>(
-        "goal_bias", 
-        this, 
-        &BundleSpaceGraph::setGoalBias, 
-        &BundleSpaceGraph::getGoalBias, 
-        "0.:.1:1.");
+    Planner::declareParam<double>("goal_bias", this, &BundleSpaceGraph::setGoalBias, &BundleSpaceGraph::getGoalBias,
+                                  "0.:.1:1.");
 
     xRandom_ = new Configuration(getBundle());
 
@@ -118,17 +112,17 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
         setup();
     }
 
-    ompl::base::OptimizationObjectivePtr lengthObj = 
-      std::make_shared<ompl::base::PathLengthOptimizationObjective>(getBundle());
-    ompl::base::OptimizationObjectivePtr clearObj = 
-      std::make_shared<ompl::base::MaximizeMinClearanceObjective>(getBundle());
+    ompl::base::OptimizationObjectivePtr lengthObj =
+        std::make_shared<ompl::base::PathLengthOptimizationObjective>(getBundle());
+    ompl::base::OptimizationObjectivePtr clearObj =
+        std::make_shared<ompl::base::MaximizeMinClearanceObjective>(getBundle());
 
     pathRefinementObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
 
     std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 1.0);
     std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(clearObj, 1.0);
 
-    if(getFiberDimension() > 0)
+    if (getFiberDimension() > 0)
     {
         xFiberTmp1_ = getFiber()->allocState();
         xFiberTmp2_ = getFiber()->allocState();
@@ -138,7 +132,7 @@ ompl::geometric::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformation
 ompl::geometric::BundleSpaceGraph::~BundleSpaceGraph()
 {
     deleteConfiguration(xRandom_);
-    if(getFiberDimension() > 0)
+    if (getFiberDimension() > 0)
     {
         getFiber()->freeState(xFiberTmp1_);
         getFiber()->freeState(xFiberTmp2_);
@@ -152,30 +146,22 @@ void ompl::geometric::BundleSpaceGraph::setup()
     ompl::tools::SelfConfig sc(getBundle(), getName());
     sc.configurePlannerRange(maxDistance_);
 
-    OMPL_DEBUG("Range distance graph sampling: %f (max extent %f)", maxDistance_, 
-        getBundle()->getMaximumExtent());
+    OMPL_DEBUG("Range distance graph sampling: %f (max extent %f)", maxDistance_, getBundle()->getMaximumExtent());
 
     if (!nearestDatastructure_)
     {
-        if(!isDynamic()){
-            nearestDatastructure_.reset
-            (
-                tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this)
-            );
-        }else{
-            //for dynamical systems, we use a quasimetric 
+        if (!isDynamic())
+        {
+            nearestDatastructure_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
+        }
+        else
+        {
+            // for dynamical systems, we use a quasimetric
             //(non-symmetric metric), so we cannot use NN structures like GNAT
-            nearestDatastructure_.reset
-            (
-                new NearestNeighborsSqrtApprox<Configuration*>()
-            );
+            nearestDatastructure_.reset(new NearestNeighborsSqrtApprox<Configuration *>());
         }
         nearestDatastructure_->setDistanceFunction(
-            [this](const Configuration *a, const Configuration *b) 
-            { 
-                return distance(a, b); 
-            }
-        );
+            [this](const Configuration *a, const Configuration *b) { return distance(a, b); });
     }
 
     if (pdef_)
@@ -218,10 +204,10 @@ void ompl::geometric::BundleSpaceGraph::clear()
     qStart_ = nullptr;
     qGoal_ = nullptr;
 
-    if(!isDynamic())
+    if (!isDynamic())
     {
         // geometric::PathGeometric &spath = static_cast<geometric::PathGeometric &>(*solutionPath_);
-        if(solutionPath_ != nullptr)
+        if (solutionPath_ != nullptr)
         {
             std::static_pointer_cast<geometric::PathGeometric>(solutionPath_)->clear();
         }
@@ -235,7 +221,6 @@ void ompl::geometric::BundleSpaceGraph::clear()
         // // getBundle()->freeStates(states);
         // states.clear();
     }
-    
 
     numVerticesWhenComputingSolutionPath_ = 0;
 
@@ -282,21 +267,19 @@ double ompl::geometric::BundleSpaceGraph::getRange() const
 ompl::geometric::BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si)
   : state(si->allocState())
 {
-    const ompl::control::SpaceInformationPtr siC = 
-      std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
-    if(siC != nullptr)
+    const ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
+    if (siC != nullptr)
     {
         control = siC->allocControl();
     }
 }
 ompl::geometric::BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si,
-                                                                  const base::State *state_)
+                                                                const base::State *state_)
   : state(si->cloneState(state_))
 {
-    const ompl::control::SpaceInformationPtr siC = 
-      std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
+    const ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
 
-    if(siC != nullptr)
+    if (siC != nullptr)
     {
         control = siC->allocControl();
     }
@@ -310,7 +293,7 @@ void ompl::geometric::BundleSpaceGraph::deleteConfiguration(Configuration *q)
         {
             getBundle()->freeState(q->state);
         }
-        for(uint k = 0; k < q->reachableSet.size(); k++)
+        for (uint k = 0; k < q->reachableSet.size(); k++)
         {
             Configuration *qk = q->reachableSet.at(k);
             if (qk->state != nullptr)
@@ -318,9 +301,10 @@ void ompl::geometric::BundleSpaceGraph::deleteConfiguration(Configuration *q)
                 getBundle()->freeState(qk->state);
             }
         }
-        if(isDynamic()) {
-            const ompl::control::SpaceInformationPtr siC = 
-              std::dynamic_pointer_cast<ompl::control::SpaceInformation>(getBundle());
+        if (isDynamic())
+        {
+            const ompl::control::SpaceInformationPtr siC =
+                std::dynamic_pointer_cast<ompl::control::SpaceInformation>(getBundle());
             siC->freeControl(q->control);
         }
         q->reachableSet.clear();
@@ -386,8 +370,8 @@ ompl::geometric::BundleSpaceGraph::nearest(const Configuration *q) const
     return nearestDatastructure_->nearest(const_cast<Configuration *>(q));
 }
 
-ompl::geometric::BundleSpaceGraph::Configuration* 
-ompl::geometric::BundleSpaceGraph::addBundleConfiguration(base::State* state)
+ompl::geometric::BundleSpaceGraph::Configuration *
+ompl::geometric::BundleSpaceGraph::addBundleConfiguration(base::State *state)
 {
     Configuration *x = new Configuration(getBundle(), state);
     addConfiguration(x);
@@ -406,11 +390,10 @@ ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::BundleSpaceGraph::add
     graph_[m]->successful_connection_attempts = 0;
     disjointSets_.make_set(m);
 
-    if(isDynamic())
+    if (isDynamic())
     {
         std::static_pointer_cast<BundleSpaceMetricReachability>(metric_)->createReachableSet(q);
-        ompl::control::SpaceInformation *siC = 
-          dynamic_cast<ompl::control::SpaceInformation*>(getBundle().get());
+        ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation *>(getBundle().get());
         siC->nullControl(q->control);
     }
 
@@ -469,17 +452,13 @@ bool ompl::geometric::BundleSpaceGraph::checkMotion(const Configuration *a, cons
     return getBundle()->checkMotion(a->state, b->state);
 }
 
-void ompl::geometric::BundleSpaceGraph::interpolate(
-    const Configuration *a, 
-    const Configuration *b, 
-    Configuration *dest) const
+void ompl::geometric::BundleSpaceGraph::interpolate(const Configuration *a, const Configuration *b,
+                                                    Configuration *dest) const
 {
     metric_->interpolateBundle(a, b, dest);
 }
 
-Configuration* ompl::geometric::BundleSpaceGraph::steerTowards(
-    const Configuration *from, 
-    const Configuration *to)
+Configuration *ompl::geometric::BundleSpaceGraph::steerTowards(const Configuration *from, const Configuration *to)
 {
     Configuration *next = new Configuration(getBundle(), to->state);
 
@@ -490,9 +469,7 @@ Configuration* ompl::geometric::BundleSpaceGraph::steerTowards(
     }
     return next;
 }
-Configuration* ompl::geometric::BundleSpaceGraph::steerTowards_Range(
-    const Configuration *from, 
-    Configuration *to)
+Configuration *ompl::geometric::BundleSpaceGraph::steerTowards_Range(const Configuration *from, Configuration *to)
 {
     // Configuration *next = new Configuration(getBundle(), to->state);
 
@@ -509,19 +486,17 @@ Configuration* ompl::geometric::BundleSpaceGraph::steerTowards_Range(
     Configuration *next = new Configuration(getBundle(), to->state);
     return next;
 }
-Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards_Range(
-    const Configuration *from, 
-    Configuration *to)
+Configuration *ompl::geometric::BundleSpaceGraph::extendGraphTowards_Range(const Configuration *from, Configuration *to)
 {
     // Configuration *next = new Configuration(getBundle(), to->state);
 
-    if(!isDynamic())
+    if (!isDynamic())
     {
-      double d = distance(from, to);
-      if (d > maxDistance_)
-      {
-          metric_->interpolateBundle(from, to, maxDistance_ / d, to);
-      }
+        double d = distance(from, to);
+        if (d > maxDistance_)
+        {
+            metric_->interpolateBundle(from, to, maxDistance_ / d, to);
+        }
     }
 
     if (!propagator_->steer(from, to, to))
@@ -530,12 +505,12 @@ Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards_Range(
     }
 
     Configuration *next = new Configuration(getBundle(), to->state);
-    if(isDynamic())
+    if (isDynamic())
     {
-        const ompl::control::SpaceInformationPtr siC = 
-          std::dynamic_pointer_cast<ompl::control::SpaceInformation>(getBundle());
-        const control::Control* lastControl = 
-          std::static_pointer_cast<BundleSpacePropagatorDynamic>(propagator_)->getLastControl();
+        const ompl::control::SpaceInformationPtr siC =
+            std::dynamic_pointer_cast<ompl::control::SpaceInformation>(getBundle());
+        const control::Control *lastControl =
+            std::static_pointer_cast<BundleSpacePropagatorDynamic>(propagator_)->getLastControl();
         siC->copyControl(next->control, lastControl);
     }
     addConfiguration(next);
@@ -543,11 +518,9 @@ Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards_Range(
     return next;
 }
 
-const Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards(
-    const Configuration *from, 
-    const Configuration *to)
+const Configuration *ompl::geometric::BundleSpaceGraph::extendGraphTowards(const Configuration *from,
+                                                                           const Configuration *to)
 {
-
     Configuration *next = new Configuration(getBundle(), to->state);
 
     if (!propagator_->steer(from, next, next))
@@ -556,12 +529,14 @@ const Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards(
     }
 
     double d = distance(next, to);
-    if(d < std::numeric_limits<double>::epsilon())
+    if (d < std::numeric_limits<double>::epsilon())
     {
         addBundleEdge(from, to);
         return to;
-    }else{
-        //do that only if we do not reach configuration "to"
+    }
+    else
+    {
+        // do that only if we do not reach configuration "to"
         addConfiguration(next);
         addBundleEdge(from, next);
         return next;
@@ -571,9 +546,7 @@ const Configuration* ompl::geometric::BundleSpaceGraph::extendGraphTowards(
     // return next;
 }
 
-bool ompl::geometric::BundleSpaceGraph::connect( 
-    const Configuration *from, 
-    const Configuration *to)
+bool ompl::geometric::BundleSpaceGraph::connect(const Configuration *from, const Configuration *to)
 {
     Configuration *next = new Configuration(getBundle(), to->state);
 
@@ -583,7 +556,7 @@ bool ompl::geometric::BundleSpaceGraph::connect(
     }
 
     double d = distance(next, to);
-    if(d < std::numeric_limits<double>::epsilon())
+    if (d < std::numeric_limits<double>::epsilon())
     {
         addBundleEdge(from, to);
         return true;
@@ -591,76 +564,101 @@ bool ompl::geometric::BundleSpaceGraph::connect(
     return false;
 }
 
-void ompl::geometric::BundleSpaceGraph::setPropagator(const std::string& sPropagator)
+void ompl::geometric::BundleSpaceGraph::setPropagator(const std::string &sPropagator)
 {
-    if(sPropagator == "geometric"){
+    if (sPropagator == "geometric")
+    {
         OMPL_DEBUG("Geometric Propagator Selected");
         propagator_ = std::make_shared<BundleSpacePropagatorGeometric>(this);
-    }else if(sPropagator == "dynamic"){
+    }
+    else if (sPropagator == "dynamic")
+    {
         OMPL_DEBUG("Dynamic Propagator Selected");
         propagator_ = std::make_shared<BundleSpacePropagatorDynamic>(this);
-    }else{
+    }
+    else
+    {
         OMPL_ERROR("Propagator unknown: %s", sPropagator.c_str());
         throw ompl::Exception("Unknown Propagator");
     }
 }
 
-void ompl::geometric::BundleSpaceGraph::setMetric(const std::string& sMetric)
+void ompl::geometric::BundleSpaceGraph::setMetric(const std::string &sMetric)
 {
-    if(isDynamic()){
+    if (isDynamic())
+    {
         OMPL_DEBUG("Dynamic Metric Selected");
         metric_ = std::make_shared<BundleSpaceMetricReachability>(this);
         // metric_ = std::make_shared<BundleSpaceMetricGeodesic>(this);
-    }else if(sMetric == "geodesic"){
+    }
+    else if (sMetric == "geodesic")
+    {
         OMPL_DEBUG("Geodesic Metric Selected");
         metric_ = std::make_shared<BundleSpaceMetricGeodesic>(this);
-    }else if(sMetric == "shortestpath"){
+    }
+    else if (sMetric == "shortestpath")
+    {
         OMPL_DEBUG("ShortestPath Metric Selected");
         metric_ = std::make_shared<BundleSpaceMetricShortestPath>(this);
-    }else{
+    }
+    else
+    {
         OMPL_ERROR("Metric unknown: %s", sMetric.c_str());
         throw ompl::Exception("Unknown Metric");
     }
 }
 
-void ompl::geometric::BundleSpaceGraph::setImportance(const std::string& sImportance)
+void ompl::geometric::BundleSpaceGraph::setImportance(const std::string &sImportance)
 {
-    if(sImportance == "uniform"){
+    if (sImportance == "uniform")
+    {
         OMPL_DEBUG("Uniform Importance Selected");
         importanceCalculator_ = std::make_shared<BundleSpaceImportanceUniform>(this);
-    }else if(sImportance == "greedy"){
+    }
+    else if (sImportance == "greedy")
+    {
         OMPL_DEBUG("Greedy Importance Selected");
         importanceCalculator_ = std::make_shared<BundleSpaceImportanceGreedy>(this);
-    }else if(sImportance == "exponential"){
+    }
+    else if (sImportance == "exponential")
+    {
         OMPL_DEBUG("Greedy Importance Selected");
         importanceCalculator_ = std::make_shared<BundleSpaceImportanceExponential>(this);
-    }else{
+    }
+    else
+    {
         OMPL_ERROR("Importance calculator unknown: %s", sImportance.c_str());
         throw ompl::Exception("Unknown Importance");
     }
 }
 
-void ompl::geometric::BundleSpaceGraph::setGraphSampler(const std::string& sGraphSampler)
+void ompl::geometric::BundleSpaceGraph::setGraphSampler(const std::string &sGraphSampler)
 {
-    if(sGraphSampler == "randomvertex"){
+    if (sGraphSampler == "randomvertex")
+    {
         OMPL_DEBUG("Random Vertex Sampler Selected");
         graphSampler_ = std::make_shared<BundleSpaceGraphSamplerRandomVertex>(this);
-    }else if(sGraphSampler == "randomedge"){
+    }
+    else if (sGraphSampler == "randomedge")
+    {
         OMPL_DEBUG("Random Edge Sampler Selected");
         graphSampler_ = std::make_shared<BundleSpaceGraphSamplerRandomEdge>(this);
-    }else if(sGraphSampler == "randomdegreevertex"){
+    }
+    else if (sGraphSampler == "randomdegreevertex")
+    {
         OMPL_DEBUG("Random Degree Vertex Sampler Selected");
         graphSampler_ = std::make_shared<BundleSpaceGraphSamplerRandomDegreeVertex>(this);
-    }else{
+    }
+    else
+    {
         OMPL_ERROR("Sampler unknown: %s", sGraphSampler.c_str());
         throw ompl::Exception("Unknown Graph Sampler");
     }
 }
 
-ompl::geometric::BundleSpaceGraphSamplerPtr 
-ompl::geometric::BundleSpaceGraph::getGraphSampler()
+ompl::geometric::BundleSpaceGraphSamplerPtr ompl::geometric::BundleSpaceGraph::getGraphSampler()
 {
-  return graphSampler_;
+    return graphSampler_;
 }
 
 void ompl::geometric::BundleSpaceGraph::addEdge(const Vertex a, const Vertex b)
@@ -680,53 +678,54 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
 {
     if (hasSolution_)
     {
-        if((solutionPath_ != nullptr) &&
-            (getNumberOfVertices() == numVerticesWhenComputingSolutionPath_)){
-        }else{
-          solutionPath_ = getPath(vStart_, vGoal_);
-          numVerticesWhenComputingSolutionPath_ = getNumberOfVertices();
+        if ((solutionPath_ != nullptr) && (getNumberOfVertices() == numVerticesWhenComputingSolutionPath_))
+        {
+        }
+        else
+        {
+            solutionPath_ = getPath(vStart_, vGoal_);
+            numVerticesWhenComputingSolutionPath_ = getNumberOfVertices();
 
-          if(!isDynamic() && solutionPath_ != solution && getChild() != nullptr)
-          {
-              // bool optimize = true;
-              // int type = getBundle()->getStateSpace()->getType();
-              // // if(type == base::STATE_SPACE_DUBINS || type == base::STATE_SPACE_DUBINS_AIRPLANE)
-              // if(type == base::STATE_SPACE_DUBINS 
-              //     || type == base::STATE_SPACE_DUBINS_AIRPLANE)
-              // {
-              //   optimize = false;
-              // }
-              // if(!optimize && getBundle()->getStateSpace()->isCompound())
-              // {
-              //     std::vector<base::StateSpacePtr> Bundle_decomposed;
-              //     base::CompoundStateSpace *Bundle_compound = 
-              //       getBundle()->getStateSpace()->as<base::CompoundStateSpace>();
-              //     Bundle_decomposed = Bundle_compound->getSubspaces();
-              //     for(uint k = 0; k < Bundle_decomposed.size(); k++)
-              //     {
-              //       int tk = Bundle_decomposed.at(k)->getType();
-              //       if(tk == base::STATE_SPACE_DUBINS || tk == base::STATE_SPACE_DUBINS_AIRPLANE)
-              //       {
-              //         optimize = false;
-              //         break;
-              //       }
-              //     }
-              // }
-              
-              // if(optimize)
-              // {
-                  ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), 
-                      pathRefinementObj_);
-                  geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
-                  // bool valid = shortcutter.simplifyMax(gpath);
-                  bool valid = shortcutter.reduceVertices(gpath);
-                  if(!valid)
-                  {
-                      //reset solutionPath
-                      solutionPath_ = getPath(vStart_, vGoal_);
-                  }
-              // }
-          }
+            if (!isDynamic() && solutionPath_ != solution && getChild() != nullptr)
+            {
+                // bool optimize = true;
+                // int type = getBundle()->getStateSpace()->getType();
+                // // if(type == base::STATE_SPACE_DUBINS || type == base::STATE_SPACE_DUBINS_AIRPLANE)
+                // if(type == base::STATE_SPACE_DUBINS
+                //     || type == base::STATE_SPACE_DUBINS_AIRPLANE)
+                // {
+                //   optimize = false;
+                // }
+                // if(!optimize && getBundle()->getStateSpace()->isCompound())
+                // {
+                //     std::vector<base::StateSpacePtr> Bundle_decomposed;
+                //     base::CompoundStateSpace *Bundle_compound =
+                //       getBundle()->getStateSpace()->as<base::CompoundStateSpace>();
+                //     Bundle_decomposed = Bundle_compound->getSubspaces();
+                //     for(uint k = 0; k < Bundle_decomposed.size(); k++)
+                //     {
+                //       int tk = Bundle_decomposed.at(k)->getType();
+                //       if(tk == base::STATE_SPACE_DUBINS || tk == base::STATE_SPACE_DUBINS_AIRPLANE)
+                //       {
+                //         optimize = false;
+                //         break;
+                //       }
+                //     }
+                // }
+
+                // if(optimize)
+                // {
+                ompl::geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), pathRefinementObj_);
+                geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
+                // bool valid = shortcutter.simplifyMax(gpath);
+                bool valid = shortcutter.reduceVertices(gpath);
+                if (!valid)
+                {
+                    // reset solutionPath
+                    solutionPath_ = getPath(vStart_, vGoal_);
+                }
+                // }
+            }
         }
         solution = solutionPath_;
         return true;
@@ -737,7 +736,8 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
     }
 }
 
-void ompl::geometric::BundleSpaceGraph::getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph, std::deque<base::State *> &path)
+void ompl::geometric::BundleSpaceGraph::getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph,
+                                                              std::deque<base::State *> &path)
 {
     std::vector<Vertex> prev(boost::num_vertices(graph));
     auto weight = boost::make_transform_value_property_map(std::mem_fn(&EdgeInternalState::getCost),
@@ -764,7 +764,8 @@ void ompl::geometric::BundleSpaceGraph::getPathDenseGraphPath(const Vertex &star
     {
         OMPL_WARN("%s: No dense path was found?", getName().c_str());
     }
-    else {
+    else
+    {
         for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
             path.push_front(graph_[pos]->state);
         path.push_front(graph_[start]->state);
@@ -823,18 +824,18 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraph::getPath(const Vertex &sta
     return p;
 }
 
-const ompl::geometric::BundleSpacePathRestrictionPtr 
-ompl::geometric::BundleSpaceGraph::getPathRestriction()
+const ompl::geometric::BundleSpacePathRestrictionPtr ompl::geometric::BundleSpaceGraph::getPathRestriction()
 {
-  if(!hasParent()){
-    OMPL_WARN("Tried getting path restriction without base space");
-    return nullptr;
-  }
+    if (!hasParent())
+    {
+        OMPL_WARN("Tried getting path restriction without base space");
+        return nullptr;
+    }
 
-  base::PathPtr basePath = static_cast<BundleSpaceGraph*>(getParent())->solutionPath_;
-  pathRestriction_->setBasePath(basePath);
+    base::PathPtr basePath = static_cast<BundleSpaceGraph *>(getParent())->solutionPath_;
+    pathRestriction_->setBasePath(basePath);
 
-  return pathRestriction_;
+    return pathRestriction_;
 }
 
 void ompl::geometric::BundleSpaceGraph::sampleBundleGoalBias(base::State *xRandom)
@@ -867,8 +868,8 @@ void ompl::geometric::BundleSpaceGraph::print(std::ostream &out) const
 {
     BaseT::print(out);
     out << std::endl
-        << " --[BundleSpaceGraph has " << getNumberOfVertices() << " vertices and " << getNumberOfEdges()
-        << " edges.]" << std::endl;
+        << " --[BundleSpaceGraph has " << getNumberOfVertices() << " vertices and " << getNumberOfEdges() << " edges.]"
+        << std::endl;
 }
 
 void ompl::geometric::BundleSpaceGraph::printConfiguration(const Configuration *q) const
@@ -876,13 +877,11 @@ void ompl::geometric::BundleSpaceGraph::printConfiguration(const Configuration *
     getBundle()->printState(q->state);
 }
 
-void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(
-    base::PlannerData &data, 
-    const Graph &graph, 
-    const Vertex vStart, 
-    const Vertex vGoal) const
+void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &data, const Graph &graph,
+                                                            const Vertex vStart, const Vertex vGoal) const
 {
-    if(boost::num_vertices(graph) <= 0) return;
+    if (boost::num_vertices(graph) <= 0)
+        return;
 
     std::vector<int> idxPathI = getIndexLevel();
 
@@ -895,22 +894,22 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(
         base::PlannerDataVertexAnnotated pgoal(graph[vGoal]->state);
         pgoal.setPath(idxPathI);
         data.addGoalVertex(pgoal);
-        if(solutionPath_ != nullptr)
+        if (solutionPath_ != nullptr)
         {
-          geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
-          std::vector<base::State*> gstates = gpath.getStates();
-          // std::cout << "Adding solution path with " << gstates.size() << "states." << std::endl;
+            geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
+            std::vector<base::State *> gstates = gpath.getStates();
+            // std::cout << "Adding solution path with " << gstates.size() << "states." << std::endl;
 
-          base::PlannerDataVertexAnnotated *pLast = &pstart;
-          for(uint k = 1; k < gstates.size()-1; k++)
-          {
-              base::PlannerDataVertexAnnotated p(gstates.at(k));
-              p.setPath(idxPathI);
-              data.addVertex(p);
-              data.addEdge(*pLast, p);
-              pLast = &p;
-          }
-          data.addEdge(*pLast, pgoal);
+            base::PlannerDataVertexAnnotated *pLast = &pstart;
+            for (uint k = 1; k < gstates.size() - 1; k++)
+            {
+                base::PlannerDataVertexAnnotated p(gstates.at(k));
+                p.setPath(idxPathI);
+                data.addVertex(p);
+                data.addEdge(*pLast, p);
+                pLast = &p;
+            }
+            data.addEdge(*pLast, pgoal);
         }
     }
 
@@ -935,12 +934,10 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(
 
 void ompl::geometric::BundleSpaceGraph::getPlannerData(base::PlannerData &data) const
 {
-    OMPL_DEBUG("Graph (level %d) has %d/%d vertices/edges", 
-        getLevel(), 
-        boost::num_vertices(graph_), 
-        boost::num_edges(graph_));
+    OMPL_DEBUG("Graph (level %d) has %d/%d vertices/edges", getLevel(), boost::num_vertices(graph_),
+               boost::num_edges(graph_));
 
-    if(bestCost_.value() < ompl::base::dInf)
+    if (bestCost_.value() < ompl::base::dInf)
     {
         OMPL_DEBUG("Best Cost: %.2f", bestCost_.value());
     }

@@ -41,7 +41,8 @@
 #include <ompl/util/Time.h>
 
 template <class T>
-ompl::geometric::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
+ompl::geometric::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec,
+                                                             std::string type)
   : ompl::base::Planner(siVec.back(), type), siVec_(siVec)
 {
     T::resetCounter();
@@ -65,14 +66,13 @@ ompl::geometric::BundleSpaceSequence<T>::~BundleSpaceSequence()
 {
     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
     {
-        if(bundleSpaces_.at(k))
+        if (bundleSpaces_.at(k))
         {
             delete bundleSpaces_.at(k);
         }
     }
     bundleSpaces_.clear();
 }
-
 
 template <class T>
 int ompl::geometric::BundleSpaceSequence<T>::getLevels() const
@@ -137,7 +137,8 @@ void ompl::geometric::BundleSpaceSequence<T>::clear()
 }
 
 template <class T>
-ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus
+ompl::geometric::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
 {
     ompl::time::point t_start = ompl::time::now();
 
@@ -162,15 +163,17 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
             {
                 ompl::base::PathPtr sol_k;
                 bundleSpaces_.at(k)->getSolution(sol_k);
-                if(solutions_.size() < k+1)
+                if (solutions_.size() < k + 1)
                 {
                     solutions_.push_back(sol_k);
                     double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
                     OMPL_DEBUG("Found Solution on Level %d after %f seconds.", k, t_k_end);
-                    currentBundleSpaceLevel_ = k + 1;//std::min(k + 1, bundleSpaces_.size()-1);
-                    if(currentBundleSpaceLevel_ > (bundleSpaces_.size()-1)) 
-                      currentBundleSpaceLevel_ = bundleSpaces_.size()-1;
-                }else{
+                    currentBundleSpaceLevel_ = k + 1;  // std::min(k + 1, bundleSpaces_.size()-1);
+                    if (currentBundleSpaceLevel_ > (bundleSpaces_.size() - 1))
+                        currentBundleSpaceLevel_ = bundleSpaces_.size() - 1;
+                }
+                else
+                {
                     solutions_.at(k) = sol_k;
                 }
                 foundKLevelSolution_ = true;
@@ -185,7 +188,7 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequence<T>::solve(const o
             }
 
             bool isInfeasible = bundleSpaces_.at(k)->isInfeasible();
-            if(isInfeasible)
+            if (isInfeasible)
             {
                 double t_end = ompl::time::seconds(ompl::time::now() - t_start);
                 OMPL_DEBUG("Infeasibility detected after %f seconds (level %d).", t_end, k);
@@ -315,6 +318,5 @@ void ompl::geometric::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planner
         }
         Nvertices = data.numVertices();
     }
-    OMPL_DEBUG("Graph has %d/%d vertices/edges", 
-        data.numVertices(), data.numEdges());
+    OMPL_DEBUG("Graph has %d/%d vertices/edges", data.numVertices(), data.numEdges());
 }

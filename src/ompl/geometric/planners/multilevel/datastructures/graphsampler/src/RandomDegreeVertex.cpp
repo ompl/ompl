@@ -3,8 +3,9 @@
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 
-ompl::geometric::BundleSpaceGraphSamplerRandomDegreeVertex::BundleSpaceGraphSamplerRandomDegreeVertex(BundleSpaceGraph* bundleSpaceGraph):
-  BaseT(bundleSpaceGraph)
+ompl::geometric::BundleSpaceGraphSamplerRandomDegreeVertex::BundleSpaceGraphSamplerRandomDegreeVertex(
+    BundleSpaceGraph *bundleSpaceGraph)
+  : BaseT(bundleSpaceGraph)
 {
 }
 
@@ -12,7 +13,7 @@ void ompl::geometric::BundleSpaceGraphSamplerRandomDegreeVertex::sampleImplement
 {
     const BundleSpaceGraph::Graph &graph = bundleSpaceGraph_->getGraph();
 
-    ompl::PDF<BundleSpaceGraph::Configuration*> pdf;
+    ompl::PDF<BundleSpaceGraph::Configuration *> pdf;
 
     foreach (BundleSpaceGraph::Vertex v, boost::vertices(graph))
     {
@@ -21,7 +22,7 @@ void ompl::geometric::BundleSpaceGraphSamplerRandomDegreeVertex::sampleImplement
 
     if (pdf.empty())
         return;
-    
+
     BundleSpaceGraph::Configuration *q = pdf.sample(rng_.uniform01());
     bundleSpaceGraph_->getBundle()->getStateSpace()->copyState(xRandom, q->state);
 }

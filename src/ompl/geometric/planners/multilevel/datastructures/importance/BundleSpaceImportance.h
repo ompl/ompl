@@ -3,36 +3,29 @@
 #include <ompl/geometric/planners/multilevel/datastructures/BundleSpaceGraph.h>
 #include <memory>
 
-
 namespace ompl
 {
-  namespace geometric
-  {
-    OMPL_CLASS_FORWARD(BundleSpaceGraph);
-
-
-    class BundleSpaceImportance
+    namespace geometric
     {
-      public:
+        OMPL_CLASS_FORWARD(BundleSpaceGraph);
 
-        using Configuration = BundleSpaceGraph::Configuration;
-        BundleSpaceImportance() = delete;
-        BundleSpaceImportance(BundleSpaceGraph* graph):
-          bundleSpaceGraph_(graph){};
+        class BundleSpaceImportance
+        {
+        public:
+            using Configuration = BundleSpaceGraph::Configuration;
+            BundleSpaceImportance() = delete;
+            BundleSpaceImportance(BundleSpaceGraph *graph) : bundleSpaceGraph_(graph){};
 
-        virtual ~BundleSpaceImportance() = default;
+            virtual ~BundleSpaceImportance() = default;
 
-        virtual double eval() = 0;
+            virtual double eval() = 0;
 
-        virtual void reset(){};
+            virtual void reset(){};
 
-      protected:
-
-        BundleSpaceGraph* bundleSpaceGraph_;
-    };
-  }
+        protected:
+            BundleSpaceGraph *bundleSpaceGraph_;
+        };
+    }
 }
 
-
 #endif
-

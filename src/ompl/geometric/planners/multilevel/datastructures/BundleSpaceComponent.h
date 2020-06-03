@@ -11,25 +11,17 @@ namespace ompl
     {
         class BundleSpaceComponent
         {
-          public:
-            BundleSpaceComponent(
-                base::StateSpacePtr BundleSpace,
-                base::StateSpacePtr BaseSpace);
+        public:
+            BundleSpaceComponent(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace);
 
             virtual ~BundleSpaceComponent() = default;
 
-            virtual void projectFiber(
-                const ompl::base::State *xBundle,
-                ompl::base::State *xFiber) const = 0;
+            virtual void projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const = 0;
 
-            virtual void projectBase(
-                const ompl::base::State *xBundle,
-                ompl::base::State *xBase) const = 0;
+            virtual void projectBase(const ompl::base::State *xBundle, ompl::base::State *xBase) const = 0;
 
-            virtual void liftState(
-                const ompl::base::State *xBase, 
-                const ompl::base::State *xFiber, 
-                ompl::base::State *xBundle) const = 0;
+            virtual void liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+                                   ompl::base::State *xBundle) const = 0;
 
             ompl::base::StateSpacePtr getFiberSpace() const;
 
@@ -45,16 +37,16 @@ namespace ompl
             unsigned int getDimension() const;
             /// Type of Bundle Space
             BundleSpaceComponentType getType() const;
-            void setType(BundleSpaceComponentType&);
+            void setType(BundleSpaceComponentType &);
 
             std::string getTypeAsString() const;
             std::string getFiberTypeAsString() const;
             std::string getBundleTypeAsString() const;
             std::string getBaseTypeAsString() const;
 
-            friend std::ostream &operator<<(std::ostream &out, const BundleSpaceComponent&);
+            friend std::ostream &operator<<(std::ostream &out, const BundleSpaceComponent &);
 
-          protected:
+        protected:
             virtual ompl::base::StateSpacePtr computeFiberSpace() = 0;
             virtual void print(std::ostream &out) const;
             std::string stateTypeToString(base::StateSpacePtr) const;

@@ -54,7 +54,6 @@ namespace ompl
             using BaseT = BundleSpaceGraphSparse;
 
         public:
-
             SPQRImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
 
             virtual ~SPQRImpl() override;
@@ -70,15 +69,14 @@ namespace ompl
             virtual Vertex addConfiguration(Configuration *q) override;
 
         protected:
-
             /** \brief Maximum failures limit for terminating the algorithm similar to SPARS */
-            unsigned int maxFailures_{1000u}; 
+            unsigned int maxFailures_{1000u};
 
             /** \brief for different ratio of expand vs grow 1:5*/
             unsigned int iterations_{0};
 
             double kPRMStarConstant_{0};
-            
+
             std::vector<base::State *> randomWorkStates_;
         };
     }  // namespace geometric

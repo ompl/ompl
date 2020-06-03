@@ -4,24 +4,21 @@
 
 namespace ompl
 {
-  namespace geometric
-  {
-    class BundleSpaceImportanceExponential: public BundleSpaceImportance
+    namespace geometric
     {
-        using BaseT = BundleSpaceImportance;
-      public:
+        class BundleSpaceImportanceExponential : public BundleSpaceImportance
+        {
+            using BaseT = BundleSpaceImportance;
 
-        BundleSpaceImportanceExponential() = delete;
-        BundleSpaceImportanceExponential(BundleSpaceGraph* graph);
+        public:
+            BundleSpaceImportanceExponential() = delete;
+            BundleSpaceImportanceExponential(BundleSpaceGraph *graph);
 
-        ~BundleSpaceImportanceExponential() = default;
+            ~BundleSpaceImportanceExponential() = default;
 
-        virtual double eval() override;
-    };
-  }
+            virtual double eval() override;
+        };
+    }
 }
 
-
 #endif
-
-

@@ -130,16 +130,17 @@ namespace ompl
                  * For Sparse Graph: Store index of Sparse Vertex which is represtative of Dense Graph Vertex
                  */
                 normalized_index_type representativeIndex{-1};
-                
+
                 /** \brief Access to all non-interface supporting vertices of the sparse nodes */
-                //boost::property<vertex_list_t, std::set<VertexIndexType>,
+                // boost::property<vertex_list_t, std::set<VertexIndexType>,
                 std::set<normalized_index_type> nonInterfaceIndexList;
 
                 /** \brief Access to the interface-supporting vertice hashes of the sparse nodes */
-                //boost::property<vertex_interface_list_t, std::unordered_map<VertexIndexType, std::set<VertexIndexType>>>
+                // boost::property<vertex_interface_list_t, std::unordered_map<VertexIndexType,
+                // std::set<VertexIndexType>>>
                 std::unordered_map<normalized_index_type, std::set<normalized_index_type>> interfaceIndexList;
 
-                std::vector<Configuration*> reachableSet;
+                std::vector<Configuration *> reachableSet;
             };
 
             /** \brief An edge in Bundle-space */
@@ -174,14 +175,8 @@ namespace ompl
              *
              * https://www.boost.org/doc/libs/1_71_0/libs/graph/doc/adjacency_list.html
              * */
-            using Graph = boost::adjacency_list<
-                  boost::vecS, 
-                  boost::vecS, 
-                  boost::undirectedS, 
-                  Configuration*,
-                  EdgeInternalState, 
-                  GraphMetaData
-            >;
+            using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Configuration *,
+                                                EdgeInternalState, GraphMetaData>;
             using BGT = boost::graph_traits<Graph>;
             using Vertex = BGT::vertex_descriptor;
             using Edge = BGT::edge_descriptor;
@@ -210,8 +205,8 @@ namespace ompl
             /** \brief Return plannerdata structure, whereby each vertex is marked
                 depending to which component it belongs (start/goal/non-connected) */
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;
-            void getPlannerDataGraph(ompl::base::PlannerData &data, 
-                const Graph &graph, const Vertex vStart, const Vertex vGoal) const;
+            void getPlannerDataGraph(ompl::base::PlannerData &data, const Graph &graph, const Vertex vStart,
+                                     const Vertex vGoal) const;
 
             /** \brief Importance of Bundle-space depending on number of
                 vertices in Bundle-graph */
@@ -238,10 +233,10 @@ namespace ompl
 
             virtual const Configuration *nearest(const Configuration *s) const;
 
-            virtual void setMetric(const std::string& sMetric) override;
-            virtual void setPropagator(const std::string& sPropagator) override;
-            virtual void setImportance(const std::string& sImportance);
-            virtual void setGraphSampler(const std::string& sGraphSampler);
+            virtual void setMetric(const std::string &sMetric) override;
+            virtual void setPropagator(const std::string &sPropagator) override;
+            virtual void setImportance(const std::string &sImportance);
+            virtual void setGraphSampler(const std::string &sGraphSampler);
 
             BundleSpaceGraphSamplerPtr getGraphSampler();
 
@@ -268,7 +263,8 @@ namespace ompl
             /** \brief Print configuration to std::cout */
             void printConfiguration(const Configuration *) const;
 
-            void getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph, std::deque<base::State *> &path);
+            void getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph,
+                                       std::deque<base::State *> &path);
 
             void setGoalBias(double goalBias);
 
@@ -285,43 +281,29 @@ namespace ompl
             virtual double distance(const Configuration *a, const Configuration *b) const;
             virtual bool checkMotion(const Configuration *a, const Configuration *b) const;
 
-            const Configuration* extendGraphTowards(
-                const Configuration *from, 
-                const Configuration *to);
+            const Configuration *extendGraphTowards(const Configuration *from, const Configuration *to);
 
-            Configuration* steerTowards_Range(
-                const Configuration *from, 
-                Configuration *to);
+            Configuration *steerTowards_Range(const Configuration *from, Configuration *to);
 
-            Configuration* steerTowards(
-                const Configuration *from, 
-                const Configuration *to);
+            Configuration *steerTowards(const Configuration *from, const Configuration *to);
 
-            bool connect(
-                const Configuration *from, 
-                const Configuration *to);
+            bool connect(const Configuration *from, const Configuration *to);
 
-            Configuration* extendGraphTowards_Range(
-                const Configuration *from, 
-                Configuration *to);
+            Configuration *extendGraphTowards_Range(const Configuration *from, Configuration *to);
 
-            virtual void interpolate(
-                const Configuration *a, 
-                const Configuration *b, 
-                Configuration *dest) const;
+            virtual void interpolate(const Configuration *a, const Configuration *b, Configuration *dest) const;
 
             ompl::base::PathPtr solutionPath_;
 
-            virtual Configuration* addBundleConfiguration(base::State*);
+            virtual Configuration *addBundleConfiguration(base::State *);
 
             virtual Vertex addConfiguration(Configuration *q);
 
             virtual void addBundleEdge(const Configuration *a, const Configuration *b);
 
             void addEdge(const Vertex a, const Vertex b);
+
         protected:
-
-
             ompl::base::Cost costHeuristic(Vertex u, Vertex v) const;
 
             /** \brief Nearest neighbor structure for Bundle space configurations */

@@ -9,17 +9,15 @@ namespace ompl
 {
     namespace geometric
     {
-
         class BundleSpaceGraphSampler
         {
-          protected:
+        protected:
             using Vertex = ompl::geometric::BundleSpaceGraph::Vertex;
 
-          public:
-
+        public:
             BundleSpaceGraphSampler() = delete;
 
-            BundleSpaceGraphSampler(BundleSpaceGraph*); 
+            BundleSpaceGraphSampler(BundleSpaceGraph *);
 
             void sample(base::State *xRandom);
 
@@ -30,15 +28,14 @@ namespace ompl
 
             virtual void reset();
 
-          protected:
-
+        protected:
             virtual void sampleImplementation(base::State *xRandom) = 0;
 
             using RNGType = boost::minstd_rand;
             RNGType rng_boost;
             RNG rng_;
 
-            BundleSpaceGraph* bundleSpaceGraph_;
+            BundleSpaceGraph *bundleSpaceGraph_;
 
             double epsilonGraphThickening_{0.0};
 

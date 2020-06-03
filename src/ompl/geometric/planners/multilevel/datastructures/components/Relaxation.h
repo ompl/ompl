@@ -6,19 +6,16 @@ namespace ompl
 {
     namespace geometric
     {
-        class BundleSpaceComponent_Relaxation: public BundleSpaceComponent_Identity
+        class BundleSpaceComponent_Relaxation : public BundleSpaceComponent_Identity
         {
             using BaseT = BundleSpaceComponent_Identity;
-          public:
-            BundleSpaceComponent_Relaxation(
-                base::StateSpacePtr BundleSpace,
-                base::StateSpacePtr BaseSpace);
+
+        public:
+            BundleSpaceComponent_Relaxation(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace);
 
             ~BundleSpaceComponent_Relaxation() override = default;
-
         };
     }
 }
 
 #endif
-

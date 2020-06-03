@@ -6,19 +6,18 @@ namespace ompl
 {
     namespace geometric
     {
-      class BundleSpaceGraphSamplerRandomDegreeVertex: public BundleSpaceGraphSampler
-      {
-          using BaseT = BundleSpaceGraphSampler;
+        class BundleSpaceGraphSamplerRandomDegreeVertex : public BundleSpaceGraphSampler
+        {
+            using BaseT = BundleSpaceGraphSampler;
+
         public:
-          BundleSpaceGraphSamplerRandomDegreeVertex() = delete;
-          BundleSpaceGraphSamplerRandomDegreeVertex(BundleSpaceGraph*); 
+            BundleSpaceGraphSamplerRandomDegreeVertex() = delete;
+            BundleSpaceGraphSamplerRandomDegreeVertex(BundleSpaceGraph *);
 
         protected:
-          virtual void sampleImplementation(base::State *xRandom) override;
-      };
+            virtual void sampleImplementation(base::State *xRandom) override;
+        };
     }  // namespace geometric
 }  // namespace ompl
 
 #endif
-
-

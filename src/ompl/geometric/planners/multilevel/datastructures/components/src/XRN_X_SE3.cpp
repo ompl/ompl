@@ -3,16 +3,14 @@
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
-ompl::geometric::BundleSpaceComponent_SE3RN_SE3::BundleSpaceComponent_SE3RN_SE3(
-    base::StateSpacePtr BundleSpace,
-    base::StateSpacePtr BaseSpace):
-  BaseT(BundleSpace, BaseSpace)
+ompl::geometric::BundleSpaceComponent_SE3RN_SE3::BundleSpaceComponent_SE3RN_SE3(base::StateSpacePtr BundleSpace,
+                                                                                base::StateSpacePtr BaseSpace)
+  : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::geometric::BundleSpaceComponent_SE3RN_SE3::projectBase(
-    const ompl::base::State *xBundle,
-    ompl::base::State *xBase) const
+void ompl::geometric::BundleSpaceComponent_SE3RN_SE3::projectBase(const ompl::base::State *xBundle,
+                                                                  ompl::base::State *xBase) const
 {
     const base::SE3StateSpace::StateType *xBundle_SE3 =
         xBundle->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);
@@ -26,14 +24,11 @@ void ompl::geometric::BundleSpaceComponent_SE3RN_SE3::projectBase(
     xBase_SO3->y = xBundle_SO3->y;
     xBase_SO3->z = xBundle_SO3->z;
     xBase_SO3->w = xBundle_SO3->w;
-
 }
 
-
-void ompl::geometric::BundleSpaceComponent_SE3RN_SE3::liftState(
-    const ompl::base::State *xBase, 
-    const ompl::base::State *xFiber, 
-    ompl::base::State *xBundle) const
+void ompl::geometric::BundleSpaceComponent_SE3RN_SE3::liftState(const ompl::base::State *xBase,
+                                                                const ompl::base::State *xFiber,
+                                                                ompl::base::State *xBundle) const
 {
     base::SE3StateSpace::StateType *xBundle_SE3 =
         xBundle->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);

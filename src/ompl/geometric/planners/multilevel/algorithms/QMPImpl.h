@@ -74,14 +74,12 @@ namespace ompl
             void updatePDF(Configuration *q);
 
         protected:
-
             std::vector<base::State *> randomWorkStates_;
 
             /** \brief k nearest variable */
             unsigned int k_NearestNeighbors_{10};
 
             PDF pdf;
-
         };
     }  // namespace geometric
 }  // namespace ompl

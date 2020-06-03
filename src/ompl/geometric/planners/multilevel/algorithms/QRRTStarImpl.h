@@ -73,7 +73,6 @@ namespace ompl
             void calculateRewiringLowerBounds();
 
         public:
-
             QRRTStarImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
             virtual ~QRRTStarImpl() override;
 
@@ -101,7 +100,6 @@ namespace ompl
 
             /** \brief list of configurations that satisfy the goal condition */
             std::vector<Configuration *> goalConfigurations_;
-
         };
     }  // namespace geometric
 }  // namespace ompl

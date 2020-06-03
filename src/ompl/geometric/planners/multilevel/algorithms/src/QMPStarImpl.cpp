@@ -44,7 +44,8 @@
 
 #define foreach BOOST_FOREACH
 
-ompl::geometric::QMPStarImpl::QMPStarImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
+ompl::geometric::QMPStarImpl::QMPStarImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_)
+  : BaseT(si, parent_)
 {
     setName("QMPStarImpl" + std::to_string(id_));
 
@@ -59,7 +60,6 @@ ompl::geometric::QMPStarImpl::~QMPStarImpl()
 
 unsigned int ompl::geometric::QMPStarImpl::computeK()
 {
-    unsigned int K = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double) boost::num_vertices(graph_))));
+    unsigned int K = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)boost::num_vertices(graph_))));
     return K;
 }
-

@@ -3,15 +3,13 @@
 
 #include <ompl/util/Exception.h>
 
-ompl::geometric::BundleSpaceComponent_XRN_XRM::BundleSpaceComponent_XRN_XRM(
-    base::StateSpacePtr BundleSpace,
-    base::StateSpacePtr BaseSpace):
-  BaseT(BundleSpace, BaseSpace)
+ompl::geometric::BundleSpaceComponent_XRN_XRM::BundleSpaceComponent_XRN_XRM(base::StateSpacePtr BundleSpace,
+                                                                            base::StateSpacePtr BaseSpace)
+  : BaseT(BundleSpace, BaseSpace)
 {
 }
-void ompl::geometric::BundleSpaceComponent_XRN_XRM::projectFiber(
-    const ompl::base::State *xBundle,
-    ompl::base::State *xFiber) const
+void ompl::geometric::BundleSpaceComponent_XRN_XRM::projectFiber(const ompl::base::State *xBundle,
+                                                                 ompl::base::State *xFiber) const
 {
     const base::RealVectorStateSpace::StateType *xBundle_RN =
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);

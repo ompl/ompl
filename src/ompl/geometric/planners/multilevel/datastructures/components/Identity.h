@@ -6,36 +6,26 @@ namespace ompl
 {
     namespace geometric
     {
-        class BundleSpaceComponent_Identity: public BundleSpaceComponent
+        class BundleSpaceComponent_Identity : public BundleSpaceComponent
         {
             using BaseT = BundleSpaceComponent;
-          public:
-            BundleSpaceComponent_Identity(
-                base::StateSpacePtr BundleSpace,
-                base::StateSpacePtr BaseSpace);
+
+        public:
+            BundleSpaceComponent_Identity(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace);
 
             ~BundleSpaceComponent_Identity() override = default;
 
-            virtual void projectFiber(
-                const ompl::base::State *xBundle,
-                ompl::base::State *xFiber) const override;
+            virtual void projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const override;
 
-            virtual void projectBase(
-                const ompl::base::State *xBundle,
-                ompl::base::State *xBase) const override;
+            virtual void projectBase(const ompl::base::State *xBundle, ompl::base::State *xBase) const override;
 
-            virtual void liftState(
-                const ompl::base::State *xBase, 
-                const ompl::base::State *xFiber, 
-                ompl::base::State *xBundle) const override;
+            virtual void liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+                                   ompl::base::State *xBundle) const override;
 
-          protected:
+        protected:
             ompl::base::StateSpacePtr computeFiberSpace() override;
-
-
         };
     }
 }
 
 #endif
-

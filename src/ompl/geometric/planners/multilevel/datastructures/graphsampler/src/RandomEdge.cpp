@@ -1,7 +1,8 @@
 #include <ompl/geometric/planners/multilevel/datastructures/graphsampler/RandomEdge.h>
 
-ompl::geometric::BundleSpaceGraphSamplerRandomEdge::BundleSpaceGraphSamplerRandomEdge(BundleSpaceGraph* bundleSpaceGraph):
-  BaseT(bundleSpaceGraph)
+ompl::geometric::BundleSpaceGraphSamplerRandomEdge::BundleSpaceGraphSamplerRandomEdge(
+    BundleSpaceGraph *bundleSpaceGraph)
+  : BaseT(bundleSpaceGraph)
 {
 }
 
@@ -9,7 +10,8 @@ void ompl::geometric::BundleSpaceGraphSamplerRandomEdge::sampleImplementation(ba
 {
     BundleSpaceGraph::Graph graph = bundleSpaceGraph_->getGraph();
 
-    if (num_edges(graph) == 0) return;
+    if (num_edges(graph) == 0)
+        return;
 
     BundleSpaceGraph::Edge e = boost::random_edge(graph, rng_boost);
 

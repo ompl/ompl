@@ -48,13 +48,13 @@ namespace ompl
         /**
              @anchor SPQR
              @par Short description
-             SParse Quotient space Roadmap planner (SPQR) algorithm, 
+             SParse Quotient space Roadmap planner (SPQR) algorithm,
              generalizes the SPARS roadmap planner to bundle spaces
              @par External documentation
         */
 
         /** \brief [SP]arse [Q]uotient space [R]oadmap planner (SPQR) Algorithm */
-       using SPQR = ompl::geometric::BundleSpaceSequence<ompl::geometric::SPQRImpl>;
+        using SPQR = ompl::geometric::BundleSpaceSequence<ompl::geometric::SPQRImpl>;
     }
 }
 #endif

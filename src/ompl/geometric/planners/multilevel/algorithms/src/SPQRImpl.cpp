@@ -72,9 +72,9 @@ void ompl::geometric::SPQRImpl::grow()
         init();
         firstRun_ = false;
 
-        if(hasBaseSpace())
+        if (hasBaseSpace())
         {
-            if(getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
+            if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
             {
                 if (sameComponentSparse(v_start_sparse, v_goal_sparse))
                 {
@@ -84,7 +84,8 @@ void ompl::geometric::SPQRImpl::grow()
         }
     }
 
-    if(!sampleBundleValid(xRandom_->state)) return;
+    if (!sampleBundleValid(xRandom_->state))
+        return;
 
     Configuration *q_next = new Configuration(getBundle(), xRandom_->state);
     addConfiguration(q_next);
@@ -94,7 +95,7 @@ void ompl::geometric::SPQRImpl::grow()
     if (!hasSolution_)
     {
         bool same_component = sameComponentSparse(v_start_sparse, v_goal_sparse);
-        if(same_component) 
+        if (same_component)
         {
             hasSolution_ = true;
         }
@@ -114,10 +115,10 @@ void ompl::geometric::SPQRImpl::expand()
     if (pdf.empty())
         return;
 
-    
     Configuration *q = pdf.sample(rng_.uniform01());
-    
-    int s = getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
+
+    int s =
+        getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
     for (int i = 0; i < s; i++)
     {
         Configuration *tmp = new Configuration(getBundle(), randomWorkStates_[i]);
@@ -131,12 +132,12 @@ ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::SPQRImpl::addConfigur
     BaseT::addConfiguration(q);
 
     // Calculate K
-    unsigned int k = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double) boost::num_vertices(graph_))));
+    unsigned int k = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)boost::num_vertices(graph_))));
 
     // DENSE GRAPH: find nearest neighbors to be conected to new sample
     std::vector<Configuration *> r_nearest_neighbors;
     nearestDatastructure_->nearestK(q, k, r_nearest_neighbors);
-    
+
     for (unsigned int i = 0; i < r_nearest_neighbors.size(); i++)
     {
         Configuration *q_neighbor = r_nearest_neighbors.at(i);
@@ -164,7 +165,7 @@ ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::SPQRImpl::addConfigur
         }
     }
 
-    if ( q->representativeIndex >= 0 )
+    if (q->representativeIndex >= 0)
     {
         std::vector<Vertex> interfaceNeighborhood;
         std::set<Vertex> interfaceRepresentatives;
@@ -172,11 +173,12 @@ ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::SPQRImpl::addConfigur
         getInterfaceNeighborRepresentatives(q, interfaceRepresentatives);
         getInterfaceNeighborhood(q, interfaceNeighborhood);
         addToRepresentatives(q->index, q->representativeIndex, interfaceRepresentatives);
-        
+
         foreach (Vertex qp, interfaceNeighborhood)
         {
             normalized_index_type qp_rep = graph_[qp]->representativeIndex;
-            if ( qp_rep < 0 ) continue;
+            if (qp_rep < 0)
+                continue;
             removeFromRepresentatives(graph_[qp]);
             getInterfaceNeighborRepresentatives(graph_[qp], interfaceRepresentatives);
             addToRepresentatives(qp, qp_rep, interfaceRepresentatives);
@@ -189,9 +191,10 @@ ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::SPQRImpl::addConfigur
 bool ompl::geometric::SPQRImpl::isInfeasible()
 {
     bool progressFailure = ((consecutiveFailures_ >= maxFailures_) && !hasSolution_);
-    if(progressFailure)
+    if (progressFailure)
     {
-        OMPL_INFORM("Infeasibility detected with probability %f (no valid samples for %d rounds).", 1.0 - 1.0/(double)consecutiveFailures_, consecutiveFailures_);
+        OMPL_INFORM("Infeasibility detected with probability %f (no valid samples for %d rounds).",
+                    1.0 - 1.0 / (double)consecutiveFailures_, consecutiveFailures_);
     }
     return progressFailure;
 }

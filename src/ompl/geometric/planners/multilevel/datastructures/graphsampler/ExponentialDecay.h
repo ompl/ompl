@@ -3,14 +3,12 @@
 
 class ExponentialDecay
 {
-  public:
+public:
     ExponentialDecay() = default;
-    ExponentialDecay(double lambda):
-      lambda_(lambda){};
-    ExponentialDecay(double lambda, double lowerBound):
-      lambda_(lambda), lowerBound_(lowerBound){};
-    ExponentialDecay(double lambda, double lowerBound, double upperBound):
-      lambda_(lambda), lowerBound_(lowerBound), upperBound_(upperBound){};
+    ExponentialDecay(double lambda) : lambda_(lambda){};
+    ExponentialDecay(double lambda, double lowerBound) : lambda_(lambda), lowerBound_(lowerBound){};
+    ExponentialDecay(double lambda, double lowerBound, double upperBound)
+      : lambda_(lambda), lowerBound_(lowerBound), upperBound_(upperBound){};
 
     void setLowerBound(double lowerBound)
     {
@@ -27,19 +25,18 @@ class ExponentialDecay
 
     double operator()(void)
     {
-        return (upperBound_ - lowerBound_) * exp(-lambda_ * counter_++) 
-        + lowerBound_;
+        return (upperBound_ - lowerBound_) * exp(-lambda_ * counter_++) + lowerBound_;
     }
 
     void reset()
     {
         counter_ = 0;
     }
-  private:
+
+private:
     double lambda_{0.1};
     double lowerBound_{0.0};
     double upperBound_{1.0};
     unsigned long long counter_{0};
 };
 #endif
-
