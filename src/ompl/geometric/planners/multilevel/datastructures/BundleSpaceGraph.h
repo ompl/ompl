@@ -67,6 +67,10 @@ namespace ompl
         OMPL_CLASS_FORWARD(BundleSpaceGraphSampler);
         OMPL_CLASS_FORWARD(BundleSpacePathRestriction);
     }
+    namespace control
+    {
+        OMPL_CLASS_FORWARD(Control);
+    }
 
     namespace geometric
     {

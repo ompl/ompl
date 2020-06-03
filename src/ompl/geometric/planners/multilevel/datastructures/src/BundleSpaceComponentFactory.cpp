@@ -591,6 +591,7 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_EmptyProjection(con
     }
     return false;
 }
+
 int ompl::geometric::BundleSpaceComponentFactory::GetNumberOfComponents(base::StateSpacePtr space)
 {
     int nrComponents = 0;
@@ -604,7 +605,7 @@ int ompl::geometric::BundleSpaceComponentFactory::GetNumberOfComponents(base::St
             int type = space->getType();
 
             if ((type == base::STATE_SPACE_SE2) || (type == base::STATE_SPACE_SE3) ||
-                (type == base::STATE_SPACE_DUBINS) || (type == base::STATE_SPACE_DUBINS_AIRPLANE))
+                (type == base::STATE_SPACE_DUBINS))
             {
                 nrComponents = 1;
             }
