@@ -62,7 +62,7 @@ void ompl::geometric::BundleSpacePathRestriction::setBasePath(std::vector<base::
 
     lengthBasePath_ = 0.0;
     intermediateLengthsBasePath_.clear();
-    for (uint k = 1; k < basePath_.size(); k++)
+    for (unsigned int k = 1; k < basePath_.size(); k++)
     {
         double lk = bundleSpaceGraph_->getBase()->distance(basePath_.at(k - 1), basePath_.at(k));
         intermediateLengthsBasePath_.push_back(lk);
@@ -80,7 +80,7 @@ std::vector<ompl::base::State *> ompl::geometric::BundleSpacePathRestriction::in
     {
         bundlePath.resize(basePath.size() + 1);
         bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
-        for (uint k = 0; k < bundlePath.size() - 1; k++)
+        for (unsigned int k = 0; k < bundlePath.size() - 1; k++)
         {
             bundleSpaceGraph_->liftState(basePath.at(k), xFiberStart, bundlePath.at(k));
         }
@@ -90,7 +90,7 @@ std::vector<ompl::base::State *> ompl::geometric::BundleSpacePathRestriction::in
     {
         bundlePath.resize(basePath.size());
         bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
-        for (uint k = 0; k < basePath.size(); k++)
+        for (unsigned int k = 0; k < basePath.size(); k++)
         {
             bundleSpaceGraph_->getBundle()->copyState(bundlePath.at(k), basePath.at(k));
         }
@@ -109,7 +109,7 @@ std::vector<ompl::base::State *> ompl::geometric::BundleSpacePathRestriction::in
         bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
 
         bundleSpaceGraph_->liftState(basePath.front(), xFiberStart, bundlePath.front());
-        for (uint k = 1; k < bundlePath.size(); k++)
+        for (unsigned int k = 1; k < bundlePath.size(); k++)
         {
             bundleSpaceGraph_->liftState(basePath.at(k - 1), xFiberGoal, bundlePath.at(k));
         }
@@ -118,7 +118,7 @@ std::vector<ompl::base::State *> ompl::geometric::BundleSpacePathRestriction::in
     {
         bundlePath.resize(basePath.size());
         bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
-        for (uint k = 0; k < basePath.size(); k++)
+        for (unsigned int k = 0; k < basePath.size(); k++)
         {
             bundleSpaceGraph_->getBundle()->copyState(bundlePath.at(k), basePath.at(k));
         }
@@ -134,7 +134,7 @@ std::vector<ompl::base::State *> ompl::geometric::BundleSpacePathRestriction::in
     bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
 
     double totalLengthBasePath = 0.0;
-    for (uint k = 1; k < basePath.size(); k++)
+    for (unsigned int k = 1; k < basePath.size(); k++)
     {
         totalLengthBasePath += bundleSpaceGraph_->getBase()->distance(basePath.at(k - 1), basePath.at(k));
     }
@@ -143,7 +143,7 @@ std::vector<ompl::base::State *> ompl::geometric::BundleSpacePathRestriction::in
     {
         double lengthCurrent = 0;
 
-        for (uint k = 0; k < basePath.size(); k++)
+        for (unsigned int k = 0; k < basePath.size(); k++)
         {
             double step = lengthCurrent / totalLengthBasePath;
 
@@ -159,7 +159,7 @@ std::vector<ompl::base::State *> ompl::geometric::BundleSpacePathRestriction::in
     }
     else
     {
-        for (uint k = 0; k < basePath.size(); k++)
+        for (unsigned int k = 0; k < basePath.size(); k++)
         {
             bundleSpaceGraph_->getBundle()->copyState(bundlePath.at(k), basePath.at(k));
         }
@@ -249,7 +249,7 @@ bool ompl::geometric::BundleSpacePathRestriction::hasFeasibleSection(Configurati
 
         Configuration *xLast = xStart;
 
-        for (uint k = 1; k < section.size(); k++)
+        for (unsigned int k = 1; k < section.size(); k++)
         {
             if (bundleSpaceGraph_->getBundle()->checkMotion(section.at(k - 1), section.at(k), lastValid_))
             {
@@ -305,7 +305,7 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSection(Configuration *co
     Configuration *xLast = xStart;
 
     bool found = false;
-    for (uint k = 1; k < section.size(); k++)
+    for (unsigned int k = 1; k < section.size(); k++)
     {
         if (bundleSpaceGraph_->getBundle()->checkMotion(section.at(k - 1), section.at(k), lastValid_))
         {
@@ -370,7 +370,7 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(Co
 
     Configuration *xLast = xStart;
 
-    for (uint k = 1; k < section.size(); k++)
+    for (unsigned int k = 1; k < section.size(); k++)
     {
         if (bundleSpaceGraph_->getBundle()->checkMotion(section.at(k - 1), section.at(k), lastValid_))
         {
@@ -410,7 +410,7 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(Co
             // Get length until last Valid
             //############################################################################
             double locationOnBasePath = 0.0;
-            for (uint j = 1; j < k; j++)
+            for (unsigned int j = 1; j < k; j++)
             {
                 double dj = bundleSpaceGraph_->getBase()->distance(basePath.at(j - 1), basePath.at(j));
                 locationOnBasePath += dj;
@@ -440,7 +440,7 @@ bool ompl::geometric::BundleSpacePathRestriction::checkSectionRecursiveRepair(Co
             std::vector<base::State *> basePathSegment = {basePath.begin() + lastCtr, basePath.end()};
             basePathSegment.insert(basePathSegment.begin(), xBaseTmp_);
 
-            for (uint j = 0; j < PATH_SECTION_TREE_MAX_BRANCHING; j++)
+            for (unsigned int j = 0; j < PATH_SECTION_TREE_MAX_BRANCHING; j++)
             {
                 //#############################################################
                 // find feasible sample in current fiber
@@ -517,7 +517,7 @@ void ompl::geometric::BundleSpacePathRestriction::sanityCheckSection()
     {
         OMPL_ERROR("Path section is invalid.");
         std::vector<base::State *> gStates = gpath.getStates();
-        for (uint k = 1; k < gStates.size(); k++)
+        for (unsigned int k = 1; k < gStates.size(); k++)
         {
             base::State *sk1 = gStates.at(k - 1);
             base::State *sk2 = gStates.at(k - 2);

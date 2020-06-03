@@ -293,7 +293,7 @@ void ompl::geometric::BundleSpaceGraph::deleteConfiguration(Configuration *q)
         {
             getBundle()->freeState(q->state);
         }
-        for (uint k = 0; k < q->reachableSet.size(); k++)
+        for (unsigned int k = 0; k < q->reachableSet.size(); k++)
         {
             Configuration *qk = q->reachableSet.at(k);
             if (qk->state != nullptr)
@@ -703,7 +703,7 @@ bool ompl::geometric::BundleSpaceGraph::getSolution(base::PathPtr &solution)
                 //     base::CompoundStateSpace *Bundle_compound =
                 //       getBundle()->getStateSpace()->as<base::CompoundStateSpace>();
                 //     Bundle_decomposed = Bundle_compound->getSubspaces();
-                //     for(uint k = 0; k < Bundle_decomposed.size(); k++)
+                //     for(unsigned int k = 0; k < Bundle_decomposed.size(); k++)
                 //     {
                 //       int tk = Bundle_decomposed.at(k)->getType();
                 //       if(tk == base::STATE_SPACE_DUBINS || tk == base::STATE_SPACE_DUBINS_AIRPLANE)
@@ -902,7 +902,7 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &d
             // std::cout << "Adding solution path with " << gstates.size() << "states." << std::endl;
 
             base::PlannerDataVertexAnnotated *pLast = &pstart;
-            for (uint k = 1; k < gstates.size() - 1; k++)
+            for (unsigned int k = 1; k < gstates.size() - 1; k++)
             {
                 base::PlannerDataVertexAnnotated p(gstates.at(k));
                 p.setPath(idxPathI);

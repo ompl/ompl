@@ -793,7 +793,7 @@ bool ompl::geometric::BundleSpaceGraphSparse::getSolution(base::PathPtr &solutio
         solution = solutionPath_;
 
         lengthStartGoalVertexPath_ = 0;
-        for (uint k = 1; k < startGoalVertexPath_.size(); k++)
+        for (unsigned int k = 1; k < startGoalVertexPath_.size(); k++)
         {
             Configuration *xk = graphSparse_[startGoalVertexPath_.at(k)];
             Configuration *xkk = graphSparse_[startGoalVertexPath_.at(k - 1)];
@@ -820,7 +820,7 @@ bool ompl::geometric::BundleSpaceGraphSparse::getSolution(base::PathPtr &solutio
                 startGoalVertexPath_ = shortestVertexPath_;
 
                 lengthStartGoalVertexPath_ = 0;
-                for (uint k = 1; k < startGoalVertexPath_.size(); k++)
+                for (unsigned int k = 1; k < startGoalVertexPath_.size(); k++)
                 {
                     Configuration *xk = graphSparse_[startGoalVertexPath_.at(k)];
                     Configuration *xkk = graphSparse_[startGoalVertexPath_.at(k - 1)];

@@ -149,7 +149,7 @@ void ompl::geometric::BundleSpace::MakeFiberSpace()
     if (components_.size() > 1)
     {
         Fiber_space = std::make_shared<base::CompoundStateSpace>();
-        for (uint m = 0; m < components_.size(); m++)
+        for (unsigned int m = 0; m < components_.size(); m++)
         {
             base::StateSpacePtr FiberM = components_.at(m)->getFiberSpace();
             double weight = (FiberM->getDimension() > 0 ? 1.0 : 0.0);
@@ -249,7 +249,7 @@ void ompl::geometric::BundleSpace::resetCounter()
 //         double lengthTotalPathBase = 0;
 //         std::vector<double> lengthIntermediatePathBase;
 
-//         for(uint k = 1; k < pathBase.size(); k++){
+//         for(unsigned int k = 1; k < pathBase.size(); k++){
 //             double lengthKthSegment = getBase()->distance(pathBase.at(k-1), pathBase.at(k));
 //             lengthIntermediatePathBase.push_back(lengthKthSegment);
 //             lengthTotalPathBase += lengthKthSegment;
@@ -259,7 +259,7 @@ void ompl::geometric::BundleSpace::resetCounter()
 
 //         base::State *xFiberCur = getFiber()->allocState();
 
-//         for(uint k = 0; k < pathBase.size(); k++)
+//         for(unsigned int k = 0; k < pathBase.size(); k++)
 //         {
 //             double step = lengthCurrent / lengthTotalPathBase;
 //             getFiber()->getStateSpace()->interpolate(xFiberStart, xFiberGoal, step, xFiberCur);
@@ -274,7 +274,7 @@ void ompl::geometric::BundleSpace::resetCounter()
 //         getFiber()->freeState(xFiberCur);
 
 //     }else{
-//         for(uint k = 0; k < pathBase.size(); k++){
+//         for(unsigned int k = 0; k < pathBase.size(); k++){
 //             getBundle()->copyState(pathBundle.at(k), pathBase.at(k));
 //         }
 //     }
@@ -284,7 +284,7 @@ unsigned int ompl::geometric::BundleSpace::interpolateAlongBasePath(const std::v
                                                                     double location, base::State *xResult) const
 {
     double d_path = 0;
-    for (uint k = 0; k < basePath.size() - 1; k++)
+    for (unsigned int k = 0; k < basePath.size() - 1; k++)
     {
         d_path += getBase()->distance(basePath.at(k), basePath.at(k + 1));
     }
@@ -324,7 +324,7 @@ unsigned int ompl::geometric::BundleSpace::interpolateAlongBasePath(const std::v
     if ((std::isnan(step)) || (step < 0) || (step > 1))
     {
         std::cout << std::string(80, '#') << std::endl;
-        for (uint k = 0; k < basePath.size(); k++)
+        for (unsigned int k = 0; k < basePath.size(); k++)
         {
             getBase()->printState(basePath.at(k));
         }
@@ -350,7 +350,7 @@ void ompl::geometric::BundleSpace::liftState(const base::State *xBase, const bas
 
     if (M > 1)
     {
-        for (uint m = 0; m < M; m++)
+        for (unsigned int m = 0; m < M; m++)
         {
             const base::State *xmBase = xBase->as<base::CompoundState>()->as<base::State>(m);
             const base::State *xmFiber = xFiber->as<base::CompoundState>()->as<base::State>(m);
@@ -387,7 +387,7 @@ void ompl::geometric::BundleSpace::projectFiber(const base::State *xBundle, base
 
     if (M > 1)
     {
-        for (uint m = 0; m < M; m++)
+        for (unsigned int m = 0; m < M; m++)
         {
             if (components_.at(m)->getFiberDimension() > 0)
             {
@@ -409,7 +409,7 @@ void ompl::geometric::BundleSpace::projectBase(const base::State *xBundle, base:
 
     if (M > 1)
     {
-        for (uint m = 0; m < M; m++)
+        for (unsigned int m = 0; m < M; m++)
         {
             if (components_.at(m)->getBaseDimension() > 0)
             {
@@ -468,7 +468,7 @@ void ompl::geometric::BundleSpace::allocIdentityState(base::State *s, base::Stat
             case base::STATE_SPACE_REAL_VECTOR:
             {
                 base::RealVectorStateSpace::StateType *sRN = s->as<base::RealVectorStateSpace::StateType>();
-                for (uint k = 0; k < space->getDimension(); k++)
+                for (unsigned int k = 0; k < space->getDimension(); k++)
                 {
                     sRN->values[k] = 0;
                 }

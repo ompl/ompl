@@ -20,7 +20,7 @@ BundleSpaceMetricShortestPath::~BundleSpaceMetricShortestPath()
     {
         delete xBaseStart_;
         delete xBaseDest_;
-        for (uint k = 0; k < tmpPath_.size(); k++)
+        for (unsigned int k = 0; k < tmpPath_.size(); k++)
         {
             Configuration *qk = new Configuration(bundleSpaceGraph_->getBundle());
             tmpPath_.push_back(qk);
@@ -43,7 +43,7 @@ double BundleSpaceMetricShortestPath::distanceBundle(const Configuration *xStart
     {
         std::vector<const Configuration *> path = getInterpolationPath(xStart, xDest);
         double d = 0.0;
-        for (uint k = 0; k < path.size() - 1; k++)
+        for (unsigned int k = 0; k < path.size() - 1; k++)
         {
             d += BaseT::distanceBundle(path.at(k), path.at(k + 1));
         }
@@ -99,7 +99,7 @@ std::vector<const Configuration *> BundleSpaceMetricShortestPath::getInterpolati
             // Fill Up temporary path if necessary
             if (pathBase.size() > tmpPath_.size())
             {
-                for (uint k = tmpPath_.size(); k < pathBase.size(); k++)
+                for (unsigned int k = tmpPath_.size(); k < pathBase.size(); k++)
                 {
                     Configuration *qk = new Configuration(bundleSpaceGraph_->getBundle());
                     tmpPath_.push_back(qk);
@@ -111,7 +111,7 @@ std::vector<const Configuration *> BundleSpaceMetricShortestPath::getInterpolati
             double lengthFirstSegment = base->distance(xBaseStart_->state, pathBase.at(0));
             lengthsBasePath.push_back(lengthFirstSegment);
             lengthBasePath += lengthFirstSegment;
-            for (uint k = 1; k < pathBase.size(); k++)
+            for (unsigned int k = 1; k < pathBase.size(); k++)
             {
                 double lengthKthSegment = base->distance(pathBase.at(k - 1), pathBase.at(k));
                 lengthsBasePath.push_back(lengthKthSegment);
@@ -129,7 +129,7 @@ std::vector<const Configuration *> BundleSpaceMetricShortestPath::getInterpolati
                 bundleSpaceGraph_->projectFiber(sDest, xFiberDestTmp_);
 
                 double lengthCurrent = 0;
-                for (uint k = 0; k < pathBase.size(); k++)
+                for (unsigned k = 0; k < pathBase.size(); k++)
                 {
                     base::State *xFiberK = fiber->allocState();
                     lengthCurrent += lengthsBasePath.at(k);
@@ -146,7 +146,7 @@ std::vector<const Configuration *> BundleSpaceMetricShortestPath::getInterpolati
             else
             {
                 // Case 2: bundle = base, just copy states
-                for (uint k = 0; k < pathBase.size(); k++)
+                for (unsigned int k = 0; k < pathBase.size(); k++)
                 {
                     // Configuration *xk = new Configuration(bundle);
                     bundle->copyState(tmpPath_.at(k)->state, pathBase.at(k));
@@ -175,7 +175,7 @@ void BundleSpaceMetricShortestPath::interpolateBundle(const Configuration *q_fro
         }
 
         double d_path = 0;
-        for (uint k = 0; k < path.size() - 1; k++)
+        for (unsigned int k = 0; k < path.size() - 1; k++)
         {
             d_path += BaseT::distanceBundle(path.at(k), path.at(k + 1));
         }

@@ -312,7 +312,7 @@ bool ompl::geometric::BundleSpaceComponentFactory::isMapping_Identity(const base
 
             if (Bundle_decomposed.size() == Base_decomposed.size())
             {
-                for (uint k = 0; k < Bundle_decomposed.size(); k++)
+                for (unsigned int k = 0; k < Bundle_decomposed.size(); k++)
                 {
                     if (!isMapping_Identity(Bundle_decomposed.at(k), Base_decomposed.at(k)))
                     {

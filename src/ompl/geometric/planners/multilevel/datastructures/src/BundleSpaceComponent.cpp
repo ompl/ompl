@@ -79,7 +79,7 @@ std::string ompl::geometric::BundleSpaceComponent::stateTypeToString(base::State
         base::CompoundStateSpace *space_compound = space->as<base::CompoundStateSpace>();
         const std::vector<base::StateSpacePtr> space_decomposed = space_compound->getSubspaces();
 
-        for (uint k = 0; k < space_decomposed.size(); k++)
+        for (unsigned int k = 0; k < space_decomposed.size(); k++)
         {
             base::StateSpacePtr s0 = space_decomposed.at(k);
             tstr = tstr + stateTypeToString(s0);
