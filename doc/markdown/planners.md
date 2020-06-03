@@ -45,6 +45,8 @@ Planners in this category only accounts for the geometric and kinematic constrai
       Many different parallelization schemes have been proposed for sampling-based planners, including RRT. In this implementation, several threads simultaneously add states to the same tree. Once a solution is found, all threads terminate.
     - [Lazy RRT (LazyRRT)](\ref gLazyRRT)<br>
       This planner performs lazy state validity checking (similar to LazyPRM). It is not experimental, but in our experience it does not seem to outperform other planners by a significant margin on any class of problems.
+    - [Task-space RRT (TSRRT)](\ref gTSRRT)<br>
+      TSRRT is a variant of RRT where exploration is guided by the task space. It requires an ompl::geometric::TaskSpaceConfig instance that defines how to project configuration space states to the task spaces and an inverse operation to lift task space states to the configuration space.
   - [Expansive Space Trees (EST)](\ref gEST)<br>
     This planner was published around the same time as RRT. In our experience it is not as sensitive to having a good distance measure, which can be difficult to define for complex high-dimensional state spaces. There are actually three versions of EST: the [original version](\ref gEST) that is close to the first publication, [a bidirectional version](\ref gBiEST), and a [projection-based version](\ref gProjEST). The low-dimensional projection is used to keep track of how the state space has been explored. Most of the time OMPL can automatically determine a reasonable projection. We have implemented a few planners that not necessarily simple variants of EST, but do share the same expansion strategy:
     - [Single-query Bi-directional Lazy collision checking planner (SBL)](\ref gSBL)<br>
@@ -85,6 +87,7 @@ Planners in this category only accounts for the geometric and kinematic constrai
   - [Informed RRT*](\ref gInformedRRTstar)<br> A variant of RRT* that uses heuristics to bound the search for optimal solutions. _It uses the general cost framework._
   - [Batch Informed Trees (BIT*)](\ref gBITstar)<br> An anytime asymptotically optimal algorithm that uses heuristics to order and bound the search for optimal solutions. _It uses the general cost framework._
   - [Advanced BIT* (ABIT*)](\ref gABITstar)<br> An extension to BIT* that uses advanced graph-search techniques to find initial solutions faster. _It uses the general cost framework._
+  - [Adaptively Informed Trees (AIT*)](\ref gAITstar)<br> An anytime asymptotically optimal algorithm that simultaneously estimates and exploits problem-specific heuristics. _It uses the general cost framework._
   - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT)<br> An asymptotically near-optimal version of RRT.
   - [Sparse Stable RRT](\ref gSST)<br> SST is an asymptotically near-optimal incremental version of RRT.
   - [Transition-based RRT (T-RRT)](\ref gTRRT)<br> T-RRT does not give any hard optimality guarantees, but tries to find short, low-cost paths. _It uses the general cost framework._

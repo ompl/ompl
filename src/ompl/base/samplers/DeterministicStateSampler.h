@@ -77,18 +77,20 @@ namespace ompl
             of its own. This can be used to apply non default options to the deterministic sequence.*/
             DeterministicStateSampler(const StateSpace *space, std::shared_ptr<DeterministicSequence> sequence_ptr);
 
-            void sampleUniform(State *state)
-            {   
+            virtual ~DeterministicStateSampler() = default;
+
+            virtual void sampleUniform(State *state)
+            {
                 std::vector<double> sample = sequence_ptr_->sample();
                 space_->copyFromReals(state, sample);
                 return;
             }
 
-            void sampleUniformNear(State *, const State *, double)
+            virtual void sampleUniformNear(State *, const State *, double)
             {
                 OMPL_ERROR("sampleUniformNear is not supported for DeterministicStateSampler");
             }
-            void sampleGaussian(State *, const State *, double)
+            virtual void sampleGaussian(State *, const State *, double)
             {
                 OMPL_ERROR("sampleGaussian is not supported for DeterministicStateSampler");
             }

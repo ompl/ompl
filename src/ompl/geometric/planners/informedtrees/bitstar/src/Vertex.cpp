@@ -35,7 +35,7 @@
 /* Authors: Jonathan Gammell, Marlin Strub */
 
 // My definition:
-#include "ompl/geometric/planners/bitstar/datastructures/Vertex.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/Vertex.h"
 
 // For std::move
 #include <utility>
@@ -45,11 +45,11 @@
 
 // BIT*:
 // A collection of common helper functions
-#include "ompl/geometric/planners/bitstar/datastructures/HelperFunctions.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/HelperFunctions.h"
 // The ID generator class
-#include "ompl/geometric/planners/bitstar/datastructures/IdGenerator.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/IdGenerator.h"
 // The cost-helper class:
-#include "ompl/geometric/planners/bitstar/datastructures/CostHelper.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/CostHelper.h"
 
 // Debug macros.
 #ifdef BITSTAR_DEBUG

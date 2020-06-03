@@ -34,16 +34,16 @@
 
 /* Authors: Jonathan Gammell, Marlin Strub */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_VERTEX_
-#define OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_VERTEX_
+#ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_VERTEX_
+#define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_VERTEX_
 
 #include <memory>
 #include <vector>
 
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/geometric/planners/bitstar/BITstar.h"
-#include "ompl/geometric/planners/bitstar/datastructures/SearchQueue.h"
+#include "ompl/geometric/planners/informedtrees/BITstar.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/SearchQueue.h"
 
 namespace ompl
 {
@@ -335,4 +335,4 @@ namespace ompl
     } // namespace geometric
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_VERTEX_
+#endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_VERTEX_

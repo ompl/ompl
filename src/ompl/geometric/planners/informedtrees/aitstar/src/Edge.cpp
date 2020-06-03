@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, Robert Bosch GmbH
+ *  Copyright (c) 2019-present University of Oxford
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the Robert Bosch GmbH nor the names of its
+ *   * Neither the names of the copyright holders nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -32,33 +32,53 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Leonard Bruns */
+// Authors: Marlin Strub
 
-#ifndef OMPL_BASE_DETERMINISTIC_SEQUENCE
-#define OMPL_BASE_DETERMINISTIC_SEQUENCE
-
-#include <vector>
+#include "ompl/geometric/planners/informedtrees/aitstar/Edge.h"
 
 namespace ompl
 {
-    namespace base
+    namespace geometric
     {
-        /** \brief An abstract class for deterministic sequences in arbitrary dimensions. */
-        class DeterministicSequence
+        namespace aitstar
         {
-        public:
-            /** \brief Constructor */
-            DeterministicSequence(unsigned int dimensions) : dimensions_(dimensions)
+            Edge::Edge()
+              : parent_()
+              , child_()
+              , sortKey_({ompl::base::Cost(std::numeric_limits<double>::signaling_NaN()),
+                          ompl::base::Cost(std::numeric_limits<double>::signaling_NaN()),
+                          ompl::base::Cost(std::numeric_limits<double>::signaling_NaN())})
             {
             }
-            virtual ~DeterministicSequence() = default;
 
-            /** \brief Returns the next sample in the interval [0,1] */
-            virtual std::vector<double> sample() = 0;
+            Edge::Edge(const std::shared_ptr<Vertex> &parent, const std::shared_ptr<Vertex> &child,
+                       const std::array<ompl::base::Cost, 3u> &sortKey)
+              : parent_(parent), child_(child), sortKey_(sortKey)
+            {
+            }
 
-            const unsigned int dimensions_;
-        };
-    }  // namespace base
+            std::shared_ptr<Vertex> Edge::getParent() const
+            {
+                return parent_;
+            }
+
+            std::shared_ptr<Vertex> Edge::getChild() const
+            {
+                return child_;
+            }
+
+            const std::array<ompl::base::Cost, 3u> &Edge::getSortKey() const
+            {
+                return sortKey_;
+            }
+
+            void Edge::setSortKey(const std::array<ompl::base::Cost, 3u> &key)
+            {
+                sortKey_ = key;
+            }
+
+        }  // namespace aitstar
+
+    }  // namespace geometric
+
 }  // namespace ompl
-
-#endif

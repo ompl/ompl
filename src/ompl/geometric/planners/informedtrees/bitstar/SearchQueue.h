@@ -34,8 +34,8 @@
 
 /* Authors: Jonathan Gammell, Marlin Strub */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_SEARCHQUEUE_
-#define OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_SEARCHQUEUE_
+#ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_SEARCHQUEUE_
+#define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_SEARCHQUEUE_
 
 #include <array>
 #include <functional>
@@ -48,7 +48,7 @@
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/BinaryHeap.h"
 #include "ompl/datastructures/NearestNeighbors.h"
-#include "ompl/geometric/planners/bitstar/BITstar.h"
+#include "ompl/geometric/planners/informedtrees/BITstar.h"
 
 namespace ompl
 {
@@ -281,4 +281,4 @@ namespace ompl
         }; // class SearchQueue
     } // namespace geometric
 }  // namespace ompl
-#endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_SEARCHQUEUE_
+#endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_SEARCHQUEUE_
