@@ -196,7 +196,7 @@ void ompl::geometric::BundleSpace::sanityChecks() const
 
 void ompl::geometric::BundleSpace::checkBundleSpaceMeasure(std::string name, const base::StateSpacePtr space) const
 {
-    OMPL_DEVMSG1("%s dimension: %d measure: %f", name, space->getDimension(), space->getMeasure());
+    OMPL_DEVMSG1("%s dimension: %d measure: %f", name.c_str(), space->getDimension(), space->getMeasure());
     if ((space->getMeasure() >= std::numeric_limits<double>::infinity()))
     {
         throw ompl::Exception("Space infinite measure.");
