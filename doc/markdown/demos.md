@@ -40,3 +40,4 @@
   - [Multilevel Rigid Body in 3D](MultiLevelPlanningRigidBody3D_8cpp_source.html). Two-level planning for a rigid body in \f$SE(3)\f$ with simplified space \f$\mathbb{R}^3\f$.
   - [Multilevel HyperCube](MultiLevelPlanningHyperCube_8cpp_source.html). N-level hypercube benchmark using a point robot moving in a cube \f$\mathbb{[0,1]}^N\f$ (This is a modified version of the [Hypercube benchmark](HypercubeBenchmark_8cpp_source.html)).
   - [Multilevel HyperCube Benchmark](MultiLevelPlanningHyperCubeBenchmark_8cpp_source.html). Benchmark version of Multilevel Hypercube 
+  - [Multilevel KinematicChain](MultiLevelPlanningKinematicChain_8cpp_source.html). Multilevel version of Kinematic Chain benchmark.
