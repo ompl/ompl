@@ -753,7 +753,8 @@ void ompl::geometric::BundleSpaceGraph::getPathDenseGraphPath(const Vertex &star
                                     return opt_->combineCosts(c1.getCost(), c2.getCost());
                                 })
                                 .distance_inf(opt_->infiniteCost())
-                                .distance_zero(opt_->identityCost()));
+                                .distance_zero(opt_->identityCost())
+                                .visitor(BundleSpaceGraphGoalVisitor<Vertex>(goal)));
     }
     catch (BundleSpaceGraphFoundGoal &)
     {
@@ -793,7 +794,8 @@ ompl::base::PathPtr ompl::geometric::BundleSpaceGraph::getPath(const Vertex &sta
                                     return opt_->combineCosts(c1.getCost(), c2.getCost());
                                 })
                                 .distance_inf(opt_->infiniteCost())
-                                .distance_zero(opt_->identityCost()));
+                                .distance_zero(opt_->identityCost())
+                                .visitor(BundleSpaceGraphGoalVisitor<Vertex>(goal)));
     }
     catch (BundleSpaceGraphFoundGoal &)
     {

@@ -16,6 +16,7 @@ namespace ompl
 
         public:
             BundleSpaceGraphSampler() = delete;
+            virtual ~BundleSpaceGraphSampler() = default;
 
             BundleSpaceGraphSampler(BundleSpaceGraph *);
 
