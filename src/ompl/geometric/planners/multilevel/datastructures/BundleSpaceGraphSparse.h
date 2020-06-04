@@ -13,9 +13,6 @@
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/variate_generator.hpp>
 
-namespace ob = ompl::base;
-namespace og = ompl::geometric;
-
 namespace ompl
 {
     namespace geometric
@@ -25,14 +22,14 @@ namespace ompl
             using BaseT = ompl::geometric::BundleSpaceGraph;
 
         public:
-            BundleSpaceGraphSparse(const ob::SpaceInformationPtr &si, BundleSpace *parent = nullptr);
+            BundleSpaceGraphSparse(const base::SpaceInformationPtr &si, BundleSpace *parent = nullptr);
             virtual ~BundleSpaceGraphSparse() override;
 
             virtual void grow() = 0;
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
 
-            virtual void getPlannerData(ob::PlannerData &data) const override;
-            void getPlannerDataRoadmap(ob::PlannerData &data, std::vector<int> pathIdx) const;
+            virtual void getPlannerData(base::PlannerData &data) const override;
+            void getPlannerDataRoadmap(base::PlannerData &data, std::vector<int> pathIdx) const;
 
             virtual Vertex addConfiguration(Configuration *q) override;
             virtual void deleteConfiguration(Configuration *q) override;
@@ -101,8 +98,8 @@ namespace ompl
                                     boost::make_assoc_property_map(vparentSparse)};
 
             void clearDynamic();
-            ompl::base::PathPtr getPathSparse(const Vertex &start, const Vertex &goal);
-            ompl::base::Cost costHeuristicSparse(Vertex u, Vertex v) const;
+            base::PathPtr getPathSparse(const Vertex &start, const Vertex &goal);
+            base::Cost costHeuristicSparse(Vertex u, Vertex v) const;
 
             Graph graphSparse_;
             RoadmapNeighborsPtr nearestSparse_;

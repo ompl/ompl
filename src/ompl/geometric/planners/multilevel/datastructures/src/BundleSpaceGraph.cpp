@@ -46,10 +46,8 @@
 #include <ompl/geometric/planners/multilevel/datastructures/importance/Exponential.h>
 #include <ompl/geometric/planners/multilevel/datastructures/importance/Uniform.h>
 #include <ompl/geometric/planners/multilevel/datastructures/metrics/Geodesic.h>
-#include <ompl/geometric/planners/multilevel/datastructures/metrics/Reachability.h>
 #include <ompl/geometric/planners/multilevel/datastructures/metrics/ShortestPath.h>
 #include <ompl/geometric/planners/multilevel/datastructures/propagators/Geometric.h>
-#include <ompl/geometric/planners/multilevel/datastructures/propagators/Dynamic.h>
 #include <ompl/geometric/planners/multilevel/datastructures/pathrestriction/PathRestriction.h>
 
 #include <ompl/geometric/PathSimplifier.h>

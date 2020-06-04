@@ -54,10 +54,10 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/range/adaptor/map.hpp>
 
-using namespace og;
+using namespace ompl::geometric;
 #define foreach BOOST_FOREACH
 
-BundleSpaceGraphSparse::BundleSpaceGraphSparse(const ob::SpaceInformationPtr &si, BundleSpace *parent)
+BundleSpaceGraphSparse::BundleSpaceGraphSparse(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent)
   : BaseT(si, parent), geomPath_(si)
 {
     setName("BundleSpaceGraphSparse");
@@ -300,7 +300,7 @@ void BundleSpaceGraphSparse::findGraphNeighbors(Configuration *q, std::vector<Co
 
 void BundleSpaceGraphSparse::addEdgeSparse(const Vertex a, const Vertex b)
 {
-    ob::Cost weight = opt_->motionCost(graphSparse_[a]->state, graphSparse_[b]->state);
+    base::Cost weight = opt_->motionCost(graphSparse_[a]->state, graphSparse_[b]->state);
     EdgeInternalState properties(weight);
     boost::add_edge(a, b, properties, graphSparse_);
     uniteComponentsSparse(a, b);
@@ -756,11 +756,11 @@ bool BundleSpaceGraphSparse::hasSparseGraphChanged()
     return false;
 }
 
-void BundleSpaceGraphSparse::getPlannerDataRoadmap(ob::PlannerData &data, std::vector<int> pathIdx) const
+void BundleSpaceGraphSparse::getPlannerDataRoadmap(ompl::base::PlannerData &data, std::vector<int> pathIdx) const
 {
     foreach (const Vertex v, boost::vertices(graphSparse_))
     {
-        ob::PlannerDataVertexAnnotated p(graphSparse_[v]->state);
+        base::PlannerDataVertexAnnotated p(graphSparse_[v]->state);
         p.setLevel(level_);
         p.setPath(pathIdx);
         data.addVertex(p);
@@ -770,8 +770,8 @@ void BundleSpaceGraphSparse::getPlannerDataRoadmap(ob::PlannerData &data, std::v
         const Vertex v1 = boost::source(e, graphSparse_);
         const Vertex v2 = boost::target(e, graphSparse_);
 
-        ob::PlannerDataVertexAnnotated p1(graphSparse_[v1]->state);
-        ob::PlannerDataVertexAnnotated p2(graphSparse_[v2]->state);
+        base::PlannerDataVertexAnnotated p1(graphSparse_[v1]->state);
+        base::PlannerDataVertexAnnotated p2(graphSparse_[v2]->state);
 
         data.addEdge(p1, p2);
     }
@@ -835,7 +835,7 @@ bool ompl::geometric::BundleSpaceGraphSparse::getSolution(base::PathPtr &solutio
     return false;
 }
 
-void BundleSpaceGraphSparse::getPlannerData(base::PlannerData &data) const
+void BundleSpaceGraphSparse::getPlannerData(ompl::base::PlannerData &data) const
 {
     OMPL_DEBUG("Sparse Graph (level %d) has %d/%d vertices/edges (Dense has %d/%d).", getLevel(),
                boost::num_vertices(graphSparse_), boost::num_edges(graphSparse_), boost::num_vertices(graph_),
