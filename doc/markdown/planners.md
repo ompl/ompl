@@ -69,13 +69,14 @@ Planners in this category only accounts for the geometric and kinematic constrai
   - [Bidirectional Fast Marching Tree algorithm (BFMT∗)](\ref gBFMT)<br>
     Executes two FMT* trees, one from the start and another one from the goal resulting in a faster planner as it explores less space.
 - **Multi-level planners**<br>
+  Planning algorithms which can exploit multiple levels of abstractions. If you want to use them, you should call them with a vector of `ompl::base::SpaceInformationPtr`. All planner then guarantee probabilistic completeness, if the supplied abstractions are admissible. There is extensive documentation in the form of a [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](group__demos.html).
   - [Rapidly-exploring Random Quotient space Trees (QRRT)](\ref QRRT)<br>
-    A generalization of RRT to plan on different abstraction levels. There is extensive documentation in the form of a [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](group__demos.html).
+    A generalization of RRT to plan on different abstraction levels. 
   - [QRRT*](\ref QRRTstar)<br> An asymptotically optimal version of QRRT
   - [Quotient-Space Roadmap Planner (QMP)](\ref QMP)<br>
     A generalization of PRM to plan on different abstraction levels. 
   - [QMP*](\ref QMPstar)<br> An asymptotically optimal version of QMP
-  - [Sparse Quotient space roadmap planner (SPQR)*](\ref SPQR)<br> A
+  - [Sparse Quotient space roadmap planner (SPQR)](\ref SPQR)<br> A
     generalization of SPARS to multi-level planning.
 - **Optimizing planners**<br>
   In recent years several sampling-based planning algorithms have been proposed that still provide some optimality guarantees. Typically, an optimal solution is assumed to be shortest path. In OMPL we have a more general framework for expressing the cost of states and paths that allows you to, e.g., maximize the minimum clearance along a path, minimize the mechanical work, or some arbitrary user-defined optimization criterion. See \ref optimalPlanning for more information. Some of the planners below use this general cost framework, but keep in mind that convergence to optimality is **not guaranteed** when optimizing over something other than path length.

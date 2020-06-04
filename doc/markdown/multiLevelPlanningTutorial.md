@@ -131,14 +131,13 @@ siVec.push_back(si_R2);
 siVec.push_back(si_SE2);
 ~~~
 
-NOTE: The runtime of a multilevel planner depends crucially on the sequence
-of defined. For some spaces, planning time can be very fast,
-while for others it is can still be outperformed by classical planner such as
-ompl::geometric::RRT (which is equivalent to running ompl::geometric::QRRT with
-a single configuration space). Which spaces work best is still an open research
-question. A good heuristic is to use more levels the more narrow
-passages we have in an environment. More information can be found in the [QRRT
-paper](https://arxiv.org/abs/1906.01350).
+NOTE: The runtime of a multilevel planner depends crucially on this sequence.
+For some sequences, planning time can be very fast, while for others it is can
+still be outperformed by classical planner such as ompl::geometric::RRT (which
+is equivalent to running ompl::geometric::QRRT with a single state space). Which
+spaces work best is still an open research question. A good heuristic is to use
+more levels the more narrow passages we have in an environment. More information
+can be found in the [QRRT paper](https://arxiv.org/abs/1906.01350).
 
 ### AnnotatedPlannerDataVertex
 
@@ -158,6 +157,9 @@ functionalities, including
   vertex level
 - `getState()`, returns a state in the original configuration space (this way
     the behavior is the same as for the classical PlannerData class).
+
+
+You can use this in your code in the following way:
 
 ~~~{.cpp}
 #include <ompl/geometric/planners/multilevel/datastructures/PlannerDataVertexAnnotated.h>
