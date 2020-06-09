@@ -359,7 +359,7 @@ namespace ompl
                         }
                         else
                         {
-                            // The reverse search has work to do.
+                            // The reverse search has work to do unless the reverse search is empty.
                             phase_ = reverseQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::REVERSE_SEARCH;
                         }
                         return;
@@ -1074,7 +1074,7 @@ namespace ompl
                 while (!indices.empty())
                 {
                     // Get the current segment and remove if from the queue.
-                    auto current = indices.front();
+                    const auto current = indices.front();
                     indices.pop();
 
                     // Get the midpoint of the segment.
