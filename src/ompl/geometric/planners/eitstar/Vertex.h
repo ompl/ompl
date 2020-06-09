@@ -34,8 +34,8 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_VERTEX_
-#define OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_VERTEX_
+#ifndef OMPL_GEOMETRIC_PLANNERS_EITSTAR_VERTEX_
+#define OMPL_GEOMETRIC_PLANNERS_EITSTAR_VERTEX_
 
 #include <memory>
 #include <vector>
@@ -184,4 +184,4 @@ namespace ompl
 
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_QUEUE_
+#endif  // OMPL_GEOMETRIC_PLANNERS_EITSTAR_QUEUE_

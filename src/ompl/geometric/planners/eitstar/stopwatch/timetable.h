@@ -34,8 +34,8 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_STOPWATCH_TIMETABLE_
-#define OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_STOPWATCH_TIMETABLE_
+#ifndef OMPL_GEOMETRIC_PLANNERS_EITSTAR_STOPWATCH_TIMETABLE_
+#define OMPL_GEOMETRIC_PLANNERS_EITSTAR_STOPWATCH_TIMETABLE_
 
 #include <stdio.h>
 #include <sys/ioctl.h>
@@ -54,7 +54,7 @@
 
 #include "ompl/geometric/planners/eitstar/stopwatch/stopwatch.h"
 
-#define AIBITSTAR_TIMING 1
+#define EITSTAR_TIMING 1
 
 namespace ompl
 {
@@ -347,4 +347,4 @@ namespace ompl
 
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_STOPWATCH_TIMETABLE_
+#endif  // OMPL_GEOMETRIC_PLANNERS_EITSTAR_STOPWATCH_TIMETABLE_

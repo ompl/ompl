@@ -34,8 +34,8 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_EDGE_
-#define OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_EDGE_
+#ifndef OMPL_GEOMETRIC_PLANNERS_EITSTAR_EDGE_
+#define OMPL_GEOMETRIC_PLANNERS_EITSTAR_EDGE_
 
 #include <array>
 #include <limits>
@@ -77,4 +77,4 @@ namespace ompl
 
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_AIBITSTAR_EDGE_
+#endif  // OMPL_GEOMETRIC_PLANNERS_EITSTAR_EDGE_
