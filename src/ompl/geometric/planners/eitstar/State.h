@@ -95,29 +95,51 @@ namespace ompl
                 /** \brief Returns whether a state has been whitelisted. */
                 bool isWhitelisted(const std::shared_ptr<State> &state) const;
 
-                /** \brief Set the estimated effort to go from this state to the goal. */
+                /** \brief Set the estimated effort (number of collision detections) to go from this state to the goal
+                 * through the current RGG. */
                 void setEstimatedEffortToGo(std::size_t effort);
 
-                /** \brief Set the estimated cost to go from this state to the goal. */
+                /** \brief Set the best estimate of the cost to go from this state to the goal through the current RGG.
+                 */
                 void setEstimatedCostToGo(ompl::base::Cost cost);
 
-                /** \brief Set the lower bound cost to go from this state to the goal. */
+                /** \brief Set the admissible estimate of the cost to go from this state to the goal through the current
+                 * RGG. */
+                void setAdmissibleCostToGo(ompl::base::Cost cost);
+
+                /** \brief Set the lower bound cost to go from this state to the goal through the continuous state
+                 * space. */
                 void setLowerBoundCostToGo(ompl::base::Cost cost);
 
-                /** \brief Set the lower bound cost to come from the start to this state. */
+                /** \brief Set the lower bound cost to come from the start to this state through the continuous state
+                 * space. */
                 void setLowerBoundCostToCome(ompl::base::Cost cost);
 
-                /** \brief Set the estimated effort to go from this state to the goal. */
+                /** \brief Set the current cost to come from the start to this state. */
+                void setCurrentCostToCome(ompl::base::Cost cost);
+
+                /** \brief Get the estimated effort (number of collision detections) to go from this state to the goal
+                 * through the current RGG. */
                 std::size_t getEstimatedEffortToGo() const;
 
-                /** \brief Set the estimated cost to go from this state to the goal. */
+                /** \brief Get the best estimate of the cost to go from this state to the goal through the current RGG.
+                 */
                 ompl::base::Cost getEstimatedCostToGo() const;
 
-                /** \brief Get the lower bound cost to go from this state to the goal. */
+                /** \brief Get the admissible estimate of the cost to go from this state to the goal through the current
+                 * RGG. */
+                ompl::base::Cost getAdmissibleCostToGo() const;
+
+                /** \brief Get the lower bound cost to go from this state to the goal through the continuous state
+                 * space. */
                 ompl::base::Cost getLowerBoundCostToGo() const;
 
-                /** \brief Get the lower bound cost to come from the start to this state. */
+                /** \brief Get the lower bound cost to come from the start to this state through the continuous state
+                 * space. */
                 ompl::base::Cost getLowerBoundCostToCome() const;
+
+                /** \brief Get the current cost to come from the start to this state. */
+                ompl::base::Cost getCurrentCostToCome() const;
 
             private:
                 /** \brief Grant access to the state internals to the random geometric graph. */
@@ -126,17 +148,27 @@ namespace ompl
                 /** \brief The unique id of this state. */
                 const std::size_t id_;
 
-                /** \brief The estimated effort (number of collision detections) to go from this state to the goal. */
+                /** \brief The estimated effort (number of collision detections) to go from this state to the goal
+                 * through the current graph. */
                 std::size_t estimatedEffortToGo_{std::numeric_limits<std::size_t>::max()};
 
-                /** \brief The estimated cost to go from this state to the goal. */
+                /** \brief A best estimate of the cost to go from this state to the goal through the current RGG. */
                 ompl::base::Cost estimatedCostToGo_;
 
-                /** \brief A lower bound on the cost to go from this state to the goal. */
+                /** \brief An admissible estimate of the cost to go from this state to the goal through the current RGG.
+                 */
+                ompl::base::Cost admissibleCostToGo_;
+
+                /** \brief A lower bound on the cost to go from this state to the goal through the continuous state
+                 * space. */
                 ompl::base::Cost lowerBoundCostToGo_;
 
-                /** \brief A lower bound on the cost to go from this state to the goal. */
+                /** \brief A lower bound on the cost to come from the start to this state through the continuous state
+                 * space. */
                 ompl::base::Cost lowerBoundCostToCome_;
+
+                /** \brief The current cost to come from the start to this state. */
+                ompl::base::Cost currentCostToCome_;
 
                 /** \brief The underlying OMPL state. */
                 ompl::base::State *state_;

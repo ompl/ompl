@@ -76,14 +76,14 @@ namespace ompl
                 {
                     // Compute the first field of the key.
                     auto key1 =
-                        objective_->combineCosts(objective_->combineCosts(edge.source->asReverseVertex()->getCost(),
+                        objective_->combineCosts(objective_->combineCosts(edge.source->getAdmissibleCostToGo(),
                                                                           objective_->motionCostHeuristic(
                                                                               edge.source->raw(), edge.target->raw())),
                                                  edge.target->getLowerBoundCostToCome());
 
                     // Compute the second field of the key.
                     auto key2 = objective_->combineCosts(
-                        edge.source->asReverseVertex()->getCost(),
+                        edge.source->getAdmissibleCostToGo(),
                         objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw()));
 
                     // Combine the two fields into the key.
@@ -132,11 +132,11 @@ namespace ompl
                         std::array<ompl::base::Cost, 2u> newCost{
                             objective_->combineCosts(
                                 objective_->combineCosts(
-                                    edge.source->asReverseVertex()->getCost(),
+                                    edge.source->getAdmissibleCostToGo(),
                                     objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw())),
                                 edge.target->getLowerBoundCostToGo()),
                             objective_->combineCosts(
-                                edge.source->asReverseVertex()->getCost(),
+                                edge.source->getAdmissibleCostToGo(),
                                 objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw()))};
                         if (std::lexicographical_compare(
                                 oldCost.begin(), oldCost.end(), newCost.begin(), newCost.end(),
