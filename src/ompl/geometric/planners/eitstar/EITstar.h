@@ -231,9 +231,6 @@ namespace ompl
             /** \brief The state used to do sparse collision detection with. */
             ompl::base::State *detectionState_;
 
-            /** \brief The cost of the current best solution. */
-            ompl::base::Cost bestCost_{std::numeric_limits<double>::signaling_NaN()};
-
             /** \brief The roots of the forward search tree (forest). */
             std::vector<std::shared_ptr<eitstar::Vertex>> forwardRoots_;
 
@@ -271,7 +268,7 @@ namespace ompl
             std::shared_ptr<ompl::base::MotionValidator> motionValidator_;
 
             /** \brief The cost of the incumbent solution. */
-            std::shared_ptr<ompl::base::Cost> solutionCost_;
+            ompl::base::Cost solutionCost_{std::numeric_limits<double>::signaling_NaN()};
 
             /** \brief The cost of the best reverse path. */
             ompl::base::Cost reverseCost_;

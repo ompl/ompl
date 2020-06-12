@@ -131,9 +131,6 @@ namespace ompl
                 /** \brief The objective. */
                 const std::shared_ptr<const ompl::base::OptimizationObjective> objective_;
 
-                /** \brief The cost-to-come to this vertex. */
-                ompl::base::Cost cost_{std::numeric_limits<double>::signaling_NaN()};
-
                 /** \brief The cost of the edge which connects this vertex with its parent. */
                 ompl::base::Cost edgeCost_{std::numeric_limits<double>::signaling_NaN()};
 

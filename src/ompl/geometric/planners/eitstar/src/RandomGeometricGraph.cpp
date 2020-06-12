@@ -47,7 +47,8 @@ namespace ompl
     {
         namespace eitstar
         {
-            RandomGeometricGraph::RandomGeometricGraph(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo)
+            RandomGeometricGraph::RandomGeometricGraph(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo,
+                                                       const ompl::base::Cost &solutionCost)
 
               : samples_(8 /* degree */, 4 /* min degree */, 12 /* max degree */, 50 /* max num points per leaf */,
                          500 /* removed cache size */,
@@ -55,6 +56,7 @@ namespace ompl
               , spaceInfo_(spaceInfo)
               , dimension_(spaceInfo->getStateDimension())
               , unitNBallMeasure_(unitNBallMeasure(spaceInfo->getStateDimension()))
+              , solutionCost_(solutionCost)
             {
                 samples_.setDistanceFunction(
                     [this](const std::shared_ptr<State> &state1, const std::shared_ptr<State> &state2) {
@@ -63,13 +65,11 @@ namespace ompl
             }
 
             void RandomGeometricGraph::setup(const std::shared_ptr<ompl::base::ProblemDefinition> &problem,
-                                             const std::shared_ptr<ompl::base::Cost> &solutionCost,
                                              ompl::base::PlannerInputStates *inputStates)
             {
                 problem_ = problem;
                 objective_ = problem->getOptimizationObjective();
                 sampler_ = objective_->allocInformedStateSampler(problem, std::numeric_limits<unsigned int>::max());
-                solutionCost_ = solutionCost;
                 updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), inputStates);
             }
 
@@ -131,7 +131,7 @@ namespace ompl
                         }
 
                         // If this goal can possibly improve the current solution, add it back to the graph.
-                        if (objective_->isCostBetterThan(heuristicCost, *solutionCost_.lock()))
+                        if (objective_->isCostBetterThan(heuristicCost, solutionCost_))
                         {
                             registerGoalState((*it)->raw());
                             addedNewGoalState = true;
@@ -165,7 +165,7 @@ namespace ompl
                         }
 
                         // If this goal can possibly improve the current solution, add it back to the graph.
-                        if (objective_->isCostBetterThan(heuristicCost, *solutionCost_.lock()))
+                        if (objective_->isCostBetterThan(heuristicCost, solutionCost_))
                         {
                             registerStartState((*it)->raw());
                             addedNewStartState = true;
@@ -347,9 +347,6 @@ namespace ompl
                     numInformedSamples = countSamplesInInformedSet();
                 }
 
-                // Get the current best cost.
-                auto currentCost = *solutionCost_.lock();
-
                 // Create the requested number of new states.
                 std::vector<std::shared_ptr<State>> newStates;
                 newStates.reserve(numNewStates);
@@ -361,7 +358,7 @@ namespace ompl
 
                     do  // Sample randomly until a valid state is found.
                     {
-                        sampler_->sampleUniform(newState->raw(), currentCost);
+                        sampler_->sampleUniform(newState->raw(), solutionCost_);
                     } while (!spaceInfo_->isValid(newState->raw()));
 
                     // Set the cost to come.
@@ -515,12 +512,8 @@ namespace ompl
 
             bool RandomGeometricGraph::canPossiblyImproveSolution(const std::shared_ptr<State> &state) const
             {
-                // Get the current solution cost.
-                assert(solutionCost_.lock());
-                const auto currentCost = *solutionCost_.lock();
-
                 // If it is infinite, any state can improve it.
-                if (objective_->isFinite(currentCost))
+                if (objective_->isFinite(solutionCost_))
                 {
                     // Get the heuristic cost to come.
                     const auto costToCome = heuristicCostFromPreferredStart(state);
@@ -530,7 +523,7 @@ namespace ompl
 
                     // Return whether the heuristic cost to come and the heuristic cost to go is better than the current
                     // cost.
-                    return objective_->isCostBetterThan(objective_->combineCosts(costToCome, costToGo), currentCost);
+                    return objective_->isCostBetterThan(objective_->combineCosts(costToCome, costToGo), solutionCost_);
                 }
                 else
                 {
@@ -568,13 +561,9 @@ namespace ompl
 
             double RandomGeometricGraph::computeRadius(std::size_t numInformedSamples) const
             {
-                // Get the solution cost.
-                assert(solutionCost_.lock());
-                const auto currentCost = *solutionCost_.lock();
-
                 // FMT*
                 return 2.0 * radiusFactor_ *
-                       std::pow((1.0 / dimension_) * (sampler_->getInformedMeasure(currentCost) / unitNBallMeasure_) *
+                       std::pow((1.0 / dimension_) * (sampler_->getInformedMeasure(solutionCost_) / unitNBallMeasure_) *
                                     (std::log(static_cast<double>(numInformedSamples)) / numInformedSamples),
                                 1.0 / dimension_);
 
@@ -582,7 +571,7 @@ namespace ompl
                 // RRT*
                 // return radiusFactor_ *
                 //        std::pow(2.0 * (1.0 + 1.0 / dimension_) *
-                //                     (sampler_->getInformedMeasure(currentCost) / unitNBallMeasure_) *
+                //                     (sampler_->getInformedMeasure(solutionCost_) / unitNBallMeasure_) *
                 //                     (std::log(static_cast<double>(numInformedSamples)) / numInformedSamples),
                 //                 1.0 / dimension_);
             }

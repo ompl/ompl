@@ -60,14 +60,13 @@ namespace ompl
             {
             public:
                 /** \brief Constructs a random geometric graph. */
-                RandomGeometricGraph(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo);
+                RandomGeometricGraph(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo, const ompl::base::Cost& solutionCost);
 
                 /** \brief Destricts a random geometric graph. */
                 ~RandomGeometricGraph() = default;
 
                 /** \brief Sets the optimization objective. */
                 void setup(const std::shared_ptr<ompl::base::ProblemDefinition> &problem,
-                           const std::shared_ptr<ompl::base::Cost> &solutionCost,
                            ompl::base::PlannerInputStates *inputStates);
 
                 /** \brief Adds new start and goals to the graph if available and creates a new informed sampler if
@@ -187,7 +186,7 @@ namespace ompl
                 const double unitNBallMeasure_;
 
                 /** \brief The cost of the incumbent solution. */
-                std::weak_ptr<const ompl::base::Cost> solutionCost_;
+                const ompl::base::Cost& solutionCost_;
             };
 
         }  // namespace eitstar

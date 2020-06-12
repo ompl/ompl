@@ -53,7 +53,7 @@ namespace ompl
 
         EITstar::EITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo)
           : ompl::base::Planner(spaceInfo, "EIT*")
-          , graph_(spaceInfo)
+          , graph_(spaceInfo, solutionCost_)
           , detectionState_(spaceInfo->allocState())
           , space_(spaceInfo->getStateSpace())
           , motionValidator_(spaceInfo->getMotionValidator())
@@ -97,16 +97,16 @@ namespace ompl
                 objective_ = problem_->getOptimizationObjective();
 
                 // Initialize the solution cost to infinity.
-                solutionCost_ = std::make_shared<ompl::base::Cost>(objective_->infiniteCost());
+                solutionCost_ = objective_->infiniteCost();
 
                 // Initialize the cost of the best reverse path to infinity.
                 reverseCost_ = objective_->infiniteCost();
 
                 // Setup the graph with the problem information.
-                graph_.setup(problem_, solutionCost_, &pis_);
+                graph_.setup(problem_, &pis_);
 
                 // Set the best cost to infinity.
-                bestCost_ = objective_->infiniteCost();
+                solutionCost_ = objective_->infiniteCost();
 
                 // Instantiate the queues.
                 forwardQueue_ = std::make_unique<eitstar::ForwardQueue>(objective_, spaceInfo_);
@@ -152,13 +152,13 @@ namespace ompl
             }
 
             // Iterate until stopped or objective is satisfied.
-            while (!terminationCondition && !objective_->isSatisfied(bestCost_))
+            while (!terminationCondition && !objective_->isSatisfied(solutionCost_))
             {
                 iterate();
             }
 
             // Return the appropriate planner status.
-            if (objective_->isFinite(*solutionCost_))
+            if (objective_->isFinite(solutionCost_))
             {
                 return ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION;
             }
@@ -170,7 +170,7 @@ namespace ompl
 
         ompl::base::Cost EITstar::bestCost() const
         {
-            return bestCost_;
+            return solutionCost_;
         }
 
         void EITstar::setNumSamplesPerBatch(std::size_t numSamples)
@@ -391,7 +391,7 @@ namespace ompl
                         if (objective_->isCostBetterThan(trueCostThroughEdge, edge.target->getCurrentCostToCome()) &&
                             objective_->isCostBetterThan(
                                 objective_->combineCosts(trueCostThroughEdge, edge.target->getAdmissibleCostToGo()),
-                                bestCost_))
+                                solutionCost_))
                         {
                             // Convenience access to parent and child vertices.
                             auto parentVertex = edge.source->asForwardVertex();
@@ -479,7 +479,7 @@ namespace ompl
 
             // Clear the queue if no edge in it can possibly improve the current solution.
             if (!forwardQueue_->empty() &&
-                objective_->isCostBetterThan(bestCost_, forwardQueue_->getLowerBoundOnOptimalSolutionCost()))
+                objective_->isCostBetterThan(solutionCost_, forwardQueue_->getLowerBoundOnOptimalSolutionCost()))
             {
                 forwardQueue_->clear();
             }
@@ -731,10 +731,10 @@ namespace ompl
             // We update the current goal if
             //   1. We currently don't have a goal; or
             //   2. The new goal has a better cost to come than the old goal
-            if (objective_->isCostBetterThan(goal->getCurrentCostToCome(), bestCost_))
+            if (objective_->isCostBetterThan(goal->getCurrentCostToCome(), solutionCost_))
             {
                 // Update the best cost.
-                bestCost_ = goal->getCurrentCostToCome();
+                solutionCost_ = goal->getCurrentCostToCome();
 
                 // Allocate the path.
                 auto path = std::make_shared<ompl::geometric::PathGeometric>(spaceInfo_);
@@ -764,11 +764,12 @@ namespace ompl
                 // Register this solution with the problem definition.
                 ompl::base::PlannerSolution solution(path);
                 solution.setPlannerName(name_);
-                solution.setOptimized(objective_, bestCost_, objective_->isSatisfied(bestCost_));
+                solution.setOptimized(objective_, solutionCost_, objective_->isSatisfied(solutionCost_));
                 problem_->addSolutionPath(solution);
 
                 // Set a new suboptimality factor.
-                suboptimalityFactor_ = bestCost_.value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value();
+                suboptimalityFactor_ =
+                    solutionCost_.value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value();
             }
         }
 
@@ -808,14 +809,14 @@ namespace ompl
         bool EITstar::couldImproveForwardPath(const Edge &edge) const
         {
             // If we currently don't have a solution, the anwer is yes.
-            if (!objective_->isFinite(bestCost_))
+            if (!objective_->isFinite(solutionCost_))
             {
                 // Compare the costs of the full path heuristic with the current cost of the start state.
                 auto heuristicPathCost = objective_->combineCosts(
                     objective_->combineCosts(edge.source->getCurrentCostToCome(),
                                              objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw())),
                     objective_->costToGo(edge.target->raw(), problem_->getGoal().get()));
-                if (objective_->isCostBetterThan(heuristicPathCost, bestCost_))
+                if (objective_->isCostBetterThan(heuristicPathCost, solutionCost_))
                 {
                     return true;
                 }
@@ -858,7 +859,7 @@ namespace ompl
                         edge.source->getCurrentCostToCome(),
                         objective_->combineCosts(trueEdgeCost,
                                                  objective_->costToGo(edge.target->raw(), problem_->getGoal().get()))),
-                    bestCost_);
+                    solutionCost_);
             }
             else
             {
