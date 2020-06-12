@@ -180,6 +180,22 @@ namespace ompl
                         prunedStartStates_.pop_back();
                     }
                 }
+
+                if (addedNewGoalState || addedNewStartState)
+                {
+                    // Allocate a state sampler if we have at least one start and one goal.
+                    if (!startStates_.empty() && !goalStates_.empty())
+                    {
+                        sampler_ =
+                            objective_->allocInformedStateSampler(problem_, std::numeric_limits<unsigned int>::max());
+                    }
+                }
+
+                if (!goalStates_.empty() && startStates_.empty())
+                {
+                    OMPL_WARN("EIT*: The problem has a goal but not a start. EIT* can not find a solution since "
+                              "PlannerInputStates provides no method to wait for a valid start state to appear.");
+                }
             }
 
             void RandomGeometricGraph::setRadiusFactor(double factor)

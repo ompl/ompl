@@ -87,6 +87,12 @@ namespace ompl
              * forward search detects a collision. */
             void enableCollisionDetectionInReverseSearch(bool enable);
 
+            /** \brief Set whether pruning is enabled or not. */
+            void enablePruning(bool prune);
+
+            /** \brief Get whether pruning is enabled or not. */
+            bool isPruningEnabled() const;
+
             /** \brief Returns a copy of the forward queue. */
             std::vector<eitstar::Edge> getForwardQueue() const;
 
@@ -212,6 +218,9 @@ namespace ompl
 
             /** \brief The number of sparse collision detections performed on the reverse search. */
             std::size_t numSparseCollisionChecksPreviousLevel_{0u};
+
+            /** \brief Whether pruning is enabled. */
+            bool isPruningEnabled_{true};
 
             /** \brief The edge cache that enables the just-in-time reverse search. */
             std::vector<eitstar::Edge> jitSearchEdgeCache_{};

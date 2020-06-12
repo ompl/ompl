@@ -200,6 +200,16 @@ namespace ompl
             isCollisionDetectionInReverseTreeEnabled_ = enable;
         }
 
+        void EITstar::enablePruning(bool enable)
+        {
+            isPruningEnabled_ = enable;
+        }
+
+        bool EITstar::isPruningEnabled() const
+        {
+            return isPruningEnabled_;
+        }
+
         std::vector<Edge> EITstar::getForwardQueue() const
         {
             return forwardQueue_->getEdges();
@@ -668,6 +678,12 @@ namespace ompl
 
         void EITstar::improveApproximation()
         {
+            // Prune the graph if enabled.
+            if (isPruningEnabled_)
+            {
+                graph_.prune();
+            }
+
             // Add new states.
             graph_.addStates(numSamplesPerBatch_);
 
