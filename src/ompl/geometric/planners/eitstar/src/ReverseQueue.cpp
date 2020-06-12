@@ -52,8 +52,8 @@ namespace ompl
               , queue_([objective](const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &lhs,
                                    const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &rhs) {
                   return std::lexicographical_compare(
-                      lhs.first.begin(), lhs.first.end(), rhs.first.begin(), rhs.first.end(),
-                      [objective](const ompl::base::Cost &lhs, const ompl::base::Cost &rhs) {
+                      lhs.first.cbegin(), lhs.first.cend(), rhs.first.cbegin(), rhs.first.cend(),
+                      [&objective](const ompl::base::Cost &lhs, const ompl::base::Cost &rhs) {
                           return objective->isCostBetterThan(lhs, rhs);
                       });
               })
@@ -128,18 +128,16 @@ namespace ompl
                 {
                     if (outgoingEdge->data.second.target->getId() == edge.target->getId())
                     {
-                        auto oldCost = outgoingEdge->data.first;
+                        const auto oldCost = outgoingEdge->data.first;
+                        const auto edgeCostHeuristic =
+                            objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw());
                         std::array<ompl::base::Cost, 2u> newCost{
                             objective_->combineCosts(
-                                objective_->combineCosts(
-                                    edge.source->getAdmissibleCostToGo(),
-                                    objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw())),
+                                objective_->combineCosts(edge.source->getAdmissibleCostToGo(), edgeCostHeuristic),
                                 edge.target->getLowerBoundCostToGo()),
-                            objective_->combineCosts(
-                                edge.source->getAdmissibleCostToGo(),
-                                objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw()))};
+                            objective_->combineCosts(edge.source->getAdmissibleCostToGo(), edgeCostHeuristic)};
                         if (std::lexicographical_compare(
-                                oldCost.begin(), oldCost.end(), newCost.begin(), newCost.end(),
+                                oldCost.cbegin(), oldCost.cend(), newCost.cbegin(), newCost.cend(),
                                 [this](const ompl::base::Cost &lhs, const ompl::base::Cost &rhs) {
                                     return objective_->isCostBetterThan(lhs, rhs);
                                 }))
@@ -158,7 +156,7 @@ namespace ompl
                 assert(!queue_.empty());
 
                 // Get the top element, i.e., a pair that holds the key and the edge.
-                auto element = queue_.top();
+                const auto element = queue_.top();
 
                 // Copy the data of the top edge.
                 auto edge = element->data.second;

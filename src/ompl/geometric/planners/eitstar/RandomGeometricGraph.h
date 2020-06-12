@@ -60,7 +60,8 @@ namespace ompl
             {
             public:
                 /** \brief Constructs a random geometric graph. */
-                RandomGeometricGraph(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo, const ompl::base::Cost& solutionCost);
+                RandomGeometricGraph(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo,
+                                     const ompl::base::Cost &solutionCost);
 
                 /** \brief Destricts a random geometric graph. */
                 ~RandomGeometricGraph() = default;
@@ -82,6 +83,9 @@ namespace ompl
 
                 /** \brief Enable pruning of the graph. */
                 void enablePruning(bool prune);
+
+                /** \brief Whether pruning is enabled. */
+                bool isPruningEnabled() const;
 
                 /** \brief Prunes the graph of states that can not improve the current solution. */
                 void prune();
@@ -186,7 +190,7 @@ namespace ompl
                 const double unitNBallMeasure_;
 
                 /** \brief The cost of the incumbent solution. */
-                const ompl::base::Cost& solutionCost_;
+                const ompl::base::Cost &solutionCost_;
             };
 
         }  // namespace eitstar

@@ -207,12 +207,12 @@ namespace ompl
 
         void EITstar::enablePruning(bool enable)
         {
-            isPruningEnabled_ = enable;
+            graph_.enablePruning(enable);
         }
 
         bool EITstar::isPruningEnabled() const
         {
-            return isPruningEnabled_;
+            return graph_.isPruningEnabled();
         }
 
         std::vector<Edge> EITstar::getForwardQueue() const
@@ -726,13 +726,7 @@ namespace ompl
 
         void EITstar::improveApproximation()
         {
-            // Prune the graph if enabled.
-            if (isPruningEnabled_)
-            {
-                graph_.prune();
-            }
-
-            // Add new states.
+            // Add new states, also prunes states if enabled.
             graph_.addStates(numSamplesPerBatch_);
 
             // Reset the suboptimality factor.

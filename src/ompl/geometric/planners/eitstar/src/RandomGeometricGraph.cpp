@@ -88,7 +88,7 @@ namespace ompl
                 do
                 {
                     // Get a new goal. If there are none, or the underlying state is invalid this will be a nullptr.
-                    auto newGoalState = inputStates->nextGoal(terminationCondition);
+                    const auto newGoalState = inputStates->nextGoal(terminationCondition);
 
                     // If there was a new valid goal, register it as such and remember that a goal has been added.
                     if (static_cast<bool>(newGoalState))
@@ -103,7 +103,7 @@ namespace ompl
                 while (inputStates->haveMoreStartStates())
                 {
                     // Get the next start. The returned pointer can be a nullptr (if the state is invalid).
-                    auto newStartState = inputStates->nextStart();
+                    const auto newStartState = inputStates->nextStart();
 
                     // If there is a new valid start, register it as such and remember that a start has been added.
                     if (static_cast<bool>(newStartState))
@@ -225,26 +225,14 @@ namespace ompl
 
             bool RandomGeometricGraph::isStart(const std::shared_ptr<State> &state) const
             {
-                for (const auto &start : startStates_)
-                {
-                    if (state->getId() == start->getId())
-                    {
-                        return true;
-                    }
-                }
-                return false;
+                return std::any_of(startStates_.begin(), startStates_.end(),
+                                   [&state](const auto &start) { return state->getId() == start->getId(); });
             }
 
             bool RandomGeometricGraph::isGoal(const std::shared_ptr<State> &state) const
             {
-                for (const auto &goal : goalStates_)
-                {
-                    if (state->getId() == goal->getId())
-                    {
-                        return true;
-                    }
-                }
-                return false;
+                return std::any_of(goalStates_.begin(), goalStates_.end(),
+                                   [&state](const auto &goal) { return state->getId() == goal->getId(); });
             }
 
             std::vector<std::shared_ptr<State>> RandomGeometricGraph::getSamples() const
@@ -374,19 +362,10 @@ namespace ompl
                     newState->setEstimatedEffortToGo(std::numeric_limits<std::size_t>::max());
 
                     // Set the lower bound for the cost to go.
-                    newState->setLowerBoundCostToGo(objective_->costToGo(newState->raw(), problem_->getGoal().get()));
+                    newState->setLowerBoundCostToGo(heuristicCostToPreferredGoal(newState));
 
                     // Set the lower bound for the cost to come.
-                    for (std::size_t i = 0u; i < problem_->getStartStateCount(); ++i)
-                    {
-                        if (objective_->isCostBetterThan(
-                                objective_->motionCostHeuristic(newState->raw(), problem_->getStartState(i)),
-                                newState->getLowerBoundCostToCome()))
-                        {
-                            newState->setLowerBoundCostToCome(
-                                objective_->motionCostHeuristic(newState->raw(), problem_->getStartState(i)));
-                        }
-                    }
+                    newState->setLowerBoundCostToCome(heuristicCostFromPreferredStart(newState));
                 }
 
                 // Add the new states to the samples.
@@ -404,6 +383,11 @@ namespace ompl
                 isPruningEnabled_ = prune;
             }
 
+            bool RandomGeometricGraph::isPruningEnabled() const
+            {
+                return isPruningEnabled_;
+            }
+
             const std::vector<std::shared_ptr<State>> &
             RandomGeometricGraph::getNeighbors(const std::shared_ptr<State> &state) const
             {
@@ -419,7 +403,7 @@ namespace ompl
                     samples_.nearestR(state, radius_, neighbors);
 
                     // We dont want to connect to blacklisted neighbors and the querying state itself.
-                    auto connectionPredicate = [&state](const std::shared_ptr<State> &neighbor) {
+                    const auto connectionPredicate = [&state](const std::shared_ptr<State> &neighbor) {
                         return (state->blacklist_.find(neighbor->id_) == state->blacklist_.end()) &&
                                (state->id_ != neighbor->id_);
                     };
@@ -507,13 +491,17 @@ namespace ompl
                 // states from this number, as they're not technically uniformly distributed.
                 return std::count_if(samples.begin(), samples.end(),
                                      [this](const auto &sample) { return canPossiblyImproveSolution(sample); }) -
-                       2u;
+                       startStates_.size() - goalStates_.size();
             }
 
             bool RandomGeometricGraph::canPossiblyImproveSolution(const std::shared_ptr<State> &state) const
             {
                 // If it is infinite, any state can improve it.
-                if (objective_->isFinite(solutionCost_))
+                if (!objective_->isFinite(solutionCost_))
+                {
+                    return true;
+                }
+                else
                 {
                     // Get the heuristic cost to come.
                     const auto costToCome = heuristicCostFromPreferredStart(state);
@@ -524,10 +512,6 @@ namespace ompl
                     // Return whether the heuristic cost to come and the heuristic cost to go is better than the current
                     // cost.
                     return objective_->isCostBetterThan(objective_->combineCosts(costToCome, costToGo), solutionCost_);
-                }
-                else
-                {
-                    return true;
                 }
             }
 
@@ -561,17 +545,18 @@ namespace ompl
 
             double RandomGeometricGraph::computeRadius(std::size_t numInformedSamples) const
             {
-                // FMT*
-                return 2.0 * radiusFactor_ *
-                       std::pow((1.0 / dimension_) * (sampler_->getInformedMeasure(solutionCost_) / unitNBallMeasure_) *
+                // Compute and return the radius. Note to self: double / int -> double. You looked it up. It's fine.
+                // RRT*
+                return radiusFactor_ *
+                       std::pow(2.0 * (1.0 + 1.0 / dimension_) *
+                                    (sampler_->getInformedMeasure(solutionCost_) / unitNBallMeasure_) *
                                     (std::log(static_cast<double>(numInformedSamples)) / numInformedSamples),
                                 1.0 / dimension_);
 
-                // Compute and return the radius. Note to self: double / int -> double. You looked it up. It's fine.
-                // RRT*
-                // return radiusFactor_ *
-                //        std::pow(2.0 * (1.0 + 1.0 / dimension_) *
-                //                     (sampler_->getInformedMeasure(solutionCost_) / unitNBallMeasure_) *
+                // FMT*
+                // return 2.0 * radiusFactor_ *
+                //        std::pow((1.0 / dimension_) * (sampler_->getInformedMeasure(solutionCost_) /
+                //        unitNBallMeasure_) *
                 //                     (std::log(static_cast<double>(numInformedSamples)) / numInformedSamples),
                 //                 1.0 / dimension_);
             }

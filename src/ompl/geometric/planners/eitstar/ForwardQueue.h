@@ -122,7 +122,7 @@ namespace ompl
                 /** \brief The three values an edge can be sorted by. */
                 struct EdgeKeys
                 {
-                    EdgeKeys(ompl::base::Cost lowerBound, ompl::base::Cost estimated, std::size_t effort)
+                    EdgeKeys(const ompl::base::Cost& lowerBound, const ompl::base::Cost& estimated, const std::size_t effort)
                       : lowerBoundCost(lowerBound), estimatedCost(estimated), estimatedEffort(effort){};
                     ompl::base::Cost lowerBoundCost;
                     ompl::base::Cost estimatedCost;

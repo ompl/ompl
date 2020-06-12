@@ -110,9 +110,9 @@ namespace ompl
                 {
                     child->getState()->setCurrentCostToCome(
                         objective->combineCosts(state_->getCurrentCostToCome(), child->getEdgeCost()));
-                    auto childsAccumulatedChildren = child->updateCurrentCostOfChildren(objective);
-                    accumulatedChildren.insert(accumulatedChildren.end(), childsAccumulatedChildren.begin(),
-                                               childsAccumulatedChildren.end());
+                    const auto childsAccumulatedChildren = child->updateCurrentCostOfChildren(objective);
+                    accumulatedChildren.insert(accumulatedChildren.end(), childsAccumulatedChildren.cbegin(),
+                                               childsAccumulatedChildren.cend());
                 }
 
                 return accumulatedChildren;
@@ -143,24 +143,6 @@ namespace ompl
                 children_.pop_back();
             }
 
-            void Vertex::removeIfChild(const std::shared_ptr<Vertex> &vertex)
-            {
-                assert(this);
-                assert(vertex);
-
-                // Find the child that is to be removed.
-                auto it = std::find_if(children_.begin(), children_.end(),
-                                       [&vertex](const auto &child) { return child->getId() == vertex->getId(); });
-
-                // If the provided vertex is not a child, this is a bug.
-                if (it != children_.end())
-                {
-                    // Do the good ol' swap and pop.
-                    std::iter_swap(it, children_.rbegin());
-                    children_.pop_back();
-                }
-            }
-
             std::weak_ptr<Vertex> Vertex::getParent() const
             {
                 return parent_;
@@ -186,10 +168,14 @@ namespace ompl
                 assert(std::find_if(children_.begin(), children_.end(), [&vertex](const auto &child) {
                            return vertex->getId() == child->getId();
                        }) == children_.end());
+
+                // If we already have a parent, update its children.
                 if (auto parent = parent_.lock())
                 {
                     parent->removeChild(shared_from_this());
                 }
+
+                // Remember the new parent.
                 parent_ = vertex;
             }
 

@@ -89,9 +89,6 @@ namespace ompl
                 /** \brief Removes a vertex from this vertex's child. */
                 void removeChild(const std::shared_ptr<Vertex> &vertex);
 
-                /** \brief Removes a vertex from this vertex's child. */
-                void removeIfChild(const std::shared_ptr<Vertex> &vertex);
-
                 /** \brief Returns the parent of the vertex. */
                 std::weak_ptr<Vertex> getParent() const;
 
