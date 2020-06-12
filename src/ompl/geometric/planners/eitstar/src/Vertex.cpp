@@ -109,7 +109,7 @@ namespace ompl
                 for (auto &child : children_)
                 {
                     child->getState()->setCurrentCostToCome(
-                        objective->combineCosts(state_->getCurrentCostToCome(), edgeCost_));
+                        objective->combineCosts(state_->getCurrentCostToCome(), child->getEdgeCost()));
                     auto childsAccumulatedChildren = child->updateCurrentCostOfChildren(objective);
                     accumulatedChildren.insert(accumulatedChildren.end(), childsAccumulatedChildren.begin(),
                                                childsAccumulatedChildren.end());
@@ -174,6 +174,11 @@ namespace ompl
             void Vertex::setEdgeCost(const ompl::base::Cost &edgeCost)
             {
                 edgeCost_ = edgeCost;
+            }
+
+            ompl::base::Cost Vertex::getEdgeCost() const
+            {
+                return edgeCost_;
             }
 
             void Vertex::updateParent(const std::shared_ptr<Vertex> &vertex)

@@ -105,6 +105,9 @@ namespace ompl
                 /** \brief Sets the edge cost of the vertex. */
                 void setEdgeCost(const ompl::base::Cost &edgeCost);
 
+                /** \brief Sets the edge cost of the vertex. */
+                ompl::base::Cost getEdgeCost() const;
+
                 /** \brief Returns the parent of the vertex. */
                 void resetParent();
 
