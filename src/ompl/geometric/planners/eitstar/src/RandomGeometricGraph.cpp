@@ -348,6 +348,18 @@ namespace ompl
                         sampler_->sampleUniform(newState->raw(), currentCost);
                     } while (!spaceInfo_->isValid(newState->raw()));
 
+                    // Set the cost to come.
+                    newState->setAdmissibleCostToGo(objective_->infiniteCost());
+
+                    // Set the current cost.
+                    newState->setCurrentCostToCome(objective_->infiniteCost());
+
+                    // Set the estimated cost.
+                    newState->setEstimatedCostToGo(objective_->infiniteCost());
+
+                    // Set the estimated effort to go.
+                    newState->setEstimatedEffortToGo(std::numeric_limits<std::size_t>::max());
+
                     // Set the lower bound for the cost to go.
                     newState->setLowerBoundCostToGo(objective_->costToGo(newState->raw(), problem_->getGoal().get()));
 

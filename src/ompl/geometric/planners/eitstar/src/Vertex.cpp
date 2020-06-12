@@ -57,11 +57,29 @@ namespace ompl
             }  // namespace
 
             Vertex::Vertex(const std::shared_ptr<State> &state,
-                           const std::shared_ptr<ompl::base::OptimizationObjective> &objective)
+                           const std::shared_ptr<ompl::base::OptimizationObjective> &objective,
+                           const Direction &direction)
               : id_(generateId())
+              , objective_(objective)
               , edgeCost_(objective->infiniteCost())
               , state_(state)
+              , direction_(direction)
             {
+            }
+
+            Vertex::~Vertex()
+            {
+                if (direction_ == Direction::FORWARD)
+                {
+                    state_->setCurrentCostToCome(objective_->infiniteCost());
+                }
+                else
+                {
+                    assert(direction_ == Direction::REVERSE);
+                    state_->setAdmissibleCostToGo(objective_->infiniteCost());
+                    state_->setEstimatedCostToGo(objective_->infiniteCost());
+                    state_->setEstimatedEffortToGo(std::numeric_limits<std::size_t>::max());
+                }
             }
 
             std::size_t Vertex::getId() const
@@ -90,7 +108,8 @@ namespace ompl
                 std::vector<std::shared_ptr<Vertex>> accumulatedChildren = children_;
                 for (auto &child : children_)
                 {
-                    child->getState()->setCurrentCostToCome(objective->combineCosts(state_->getCurrentCostToCome(), edgeCost_));
+                    child->getState()->setCurrentCostToCome(
+                        objective->combineCosts(state_->getCurrentCostToCome(), edgeCost_));
                     auto childsAccumulatedChildren = child->updateCurrentCostOfChildren(objective);
                     accumulatedChildren.insert(accumulatedChildren.end(), childsAccumulatedChildren.begin(),
                                                childsAccumulatedChildren.end());

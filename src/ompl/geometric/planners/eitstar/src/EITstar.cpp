@@ -116,13 +116,19 @@ namespace ompl
                 for (const auto &start : graph_.getStartStates())
                 {
                     start->setCurrentCostToCome(objective_->identityCost());
+                    start->setAdmissibleCostToGo(objective_->infiniteCost());
+                    start->setEstimatedCostToGo(objective_->infiniteCost());
+                    start->setEstimatedEffortToGo(std::numeric_limits<std::size_t>::max());
                     forwardRoots_.emplace_back(start->asForwardVertex());
                 }
 
                 // Create the reverse roots.
                 for (const auto &goal : graph_.getGoalStates())
                 {
+                    goal->setCurrentCostToCome(objective_->infiniteCost());
                     goal->setAdmissibleCostToGo(objective_->identityCost());
+                    goal->setEstimatedCostToGo(objective_->identityCost());
+                    goal->setEstimatedEffortToGo(0u);
                     reverseRoots_.emplace_back(goal->asReverseVertex());
                 }
             }
@@ -677,11 +683,12 @@ namespace ompl
             reverseCost_ = objective_->infiniteCost();
             for (const auto &goal : graph_.getGoalStates())
             {
+                goal->setCurrentCostToCome(objective_->infiniteCost());
+                goal->setAdmissibleCostToGo(objective_->identityCost());
+                goal->setEstimatedCostToGo(objective_->identityCost());
+                goal->setEstimatedEffortToGo(0u);
                 reverseRoots_.emplace_back(goal->asReverseVertex());
                 reverseQueue_->insert(expand(goal));
-                assert(goal->getEstimatedEffortToGo() == 0u);
-                assert(objective_->isCostEquivalentTo(goal->getAdmissibleCostToGo(), objective_->identityCost()));
-                assert(objective_->isCostEquivalentTo(goal->getLowerBoundCostToGo(), objective_->identityCost()));
             }
 
             // Clear the jit search edge cache.

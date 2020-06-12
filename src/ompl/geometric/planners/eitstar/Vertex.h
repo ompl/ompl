@@ -62,10 +62,10 @@ namespace ompl
             public:
                 /** \brief Constructs the vertex, which must be associated with a state. */
                 Vertex(const std::shared_ptr<State> &state,
-                       const std::shared_ptr<ompl::base::OptimizationObjective> &objective);
+                       const std::shared_ptr<ompl::base::OptimizationObjective> &objective, const Direction &direction);
 
                 /** \brief Destructs the vertex. */
-                ~Vertex() = default;
+                ~Vertex();
 
                 /** \brief Gets the unique vertex-id of this vertex. */
                 std::size_t getId() const;
@@ -125,6 +125,9 @@ namespace ompl
                 /** \brief The unique id of this vertex. */
                 const std::size_t id_;
 
+                /** \brief The objective. */
+                const std::shared_ptr<const ompl::base::OptimizationObjective> objective_;
+
                 /** \brief The cost-to-come to this vertex. */
                 ompl::base::Cost cost_{std::numeric_limits<double>::signaling_NaN()};
 
@@ -147,6 +150,9 @@ namespace ompl
                 /** \brief The state this vertex is associated with. */
                 std::shared_ptr<State> state_;
 
+                /** \brief The direction of the tree this vertex is part of. */
+                Direction direction_;
+
                 /** \brief The edge queue is a friend class to allow efficient updates of outgoing edges of this vertex
                  * in the queue. */
                 friend class ReverseQueue;
@@ -160,7 +166,7 @@ namespace ompl
                     outgoingReverseQueueLookup_;
             };
 
-        }  // namespace aibitstar
+        }  // namespace eitstar
 
     }  // namespace geometric
 
