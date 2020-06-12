@@ -213,7 +213,7 @@ namespace ompl
                 return expandTag_;
             }
 
-            void Vertex::setExpandTag(std::size_t expandTag)
+            void Vertex::registerExpansionInReverseSearch(std::size_t expandTag)
             {
                 expandTag_ = expandTag;
             }

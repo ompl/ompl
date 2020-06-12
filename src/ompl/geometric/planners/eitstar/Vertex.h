@@ -122,7 +122,7 @@ namespace ompl
                 std::size_t getExpandTag() const;
 
                 /** \brief Sets the expand tag when this vertex was last expanded. */
-                void setExpandTag(std::size_t tag);
+                void registerExpansionInReverseSearch(std::size_t tag);
 
             private:
                 /** \brief The unique id of this vertex. */

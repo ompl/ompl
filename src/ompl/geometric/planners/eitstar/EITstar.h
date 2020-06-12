@@ -164,6 +164,12 @@ namespace ompl
             /** \brief Returns whether the vertex has been closed during the current search. */
             bool isClosed(const std::shared_ptr<eitstar::Vertex> &vertex) const;
 
+            /** \brief Returns whether all vertices connected by the input edges have been closed in reverse search. */
+            bool doAllVerticesHaveAdmissibleCostToGo(const eitstar::Edge &edge) const;
+
+            /** \brief Returns whether all vertices connected by the input edges have been closed in reverse search. */
+            bool doAllVerticesHaveAdmissibleCostToGo(const std::vector<eitstar::Edge> &edges) const;
+
             /** \brief Returns whether the edge can improve the reverse path. */
             bool doesImproveReversePath(const eitstar::Edge &edge) const;
 
@@ -197,7 +203,10 @@ namespace ompl
             /** \brief Returns whether any reverse root is in the forward search tree. */
             bool isAnyReverseRootInForwardTree() const;
 
-            /** \brief Returns whether all vertices have been processed by the reverse search. */
+            /** \brief Returns whether the vertices of the edge have been processed by the reverse search. */
+            bool canBeInsertedInForwardQueue(const eitstar::Edge &edge) const;
+
+            /** \brief Returns whether all vertices of the edges have been processed by the reverse search. */
             bool canBeInsertedInForwardQueue(const std::vector<eitstar::Edge> &edges) const;
 
             /** \brief The sampling-based approximation of the state space. */
@@ -219,7 +228,8 @@ namespace ompl
             /** \brief The number of sparse collision detections performed on the reverse search on this level. */
             std::size_t numSparseCollisionChecksCurrentLevel_{1u};
 
-            /** \brief The number of sparse collision detections performed on the reverse search on the previous level. */
+            /** \brief The number of sparse collision detections performed on the reverse search on the previous level.
+             */
             std::size_t numSparseCollisionChecksPreviousLevel_{0u};
 
             /** \brief Whether pruning is enabled. */

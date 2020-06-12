@@ -348,7 +348,7 @@ namespace ompl
             // Assert that the source of the edge has a forward vertex.
             assert(edge.source->hasForwardVertex());
 
-            // The forward search is done if this edge can not possibly improve the forward path.
+            // Check if this edge can possibly improve the forward path.
             if (couldImproveForwardPath(edge))
             {
                 // Check if the edge's parent is already the parent of the child.
@@ -368,9 +368,26 @@ namespace ompl
                         }
                         else
                         {
-                            // The reverse search has work to do unless the reverse search is empty.
-                            phase_ = reverseQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::REVERSE_SEARCH;
+                            if (reverseQueue_->empty())
+                            {
+                                // Try each edge individually.
+                                for (const auto &edge : jitSearchEdgeCache_)
+                                {
+                                    if (doAllVerticesHaveAdmissibleCostToGo(edge))
+                                    {
+                                        forwardQueue_->insert(edge);
+                                    }
+                                }
+
+                                // Clear all edges. The ones that are not inserted are between vertices that are not in
+                                // the same connected component.
+                                jitSearchEdgeCache_.clear();
+
+                                // Set the phase. If no edges were inserted, improve the approximation.
+                                phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
+                            }
                         }
+
                         return;
                     }
                 }
@@ -438,9 +455,18 @@ namespace ompl
                                 }
                                 else
                                 {
-                                    // The reverse search has work to do unless its queue is empty.
-                                    phase_ =
-                                        reverseQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::REVERSE_SEARCH;
+                                    if (reverseQueue_->empty())
+                                    {
+                                        for (const auto &edge : jitSearchEdgeCache_)
+                                        {
+                                            if (doAllVerticesHaveAdmissibleCostToGo(edge))
+                                            {
+                                                forwardQueue_->insert(edge);
+                                            }
+                                        }
+                                        phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION :
+                                                                          Phase::FORWARD_SEARCH;
+                                    }
                                 }
                             }
                             else  // It is the goal state, update the solution.
@@ -550,19 +576,18 @@ namespace ompl
             // This edge needs to be processed, pop it from the queue.
             reverseQueue_->pop();
 
-            // Update the search tag.
-            ++searchTag_;
+            // Register the expansion of its parent.
+            edge.source->asReverseVertex()->registerExpansionInReverseSearch(searchTag_);
 
             // Simply expand the child vertex if the edge is already in the reverse tree, and the child has not been
             // expanded yet.
-            if (auto currentParent = edge.target->asReverseVertex()->getParent().lock())
+            if (auto currentParentOfTarget = edge.target->asReverseVertex()->getParent().lock())
             {
-                auto childVertex = edge.target->asReverseVertex();
+                auto targetVertex = edge.target->asReverseVertex();
 
-                if (!isClosed(childVertex) && currentParent->getId() == edge.source->asReverseVertex()->getId())
+                if (currentParentOfTarget->getId() == edge.source->asReverseVertex()->getId())
                 {
                     reverseQueue_->insert(expand(edge.target));
-                    childVertex->setExpandTag(searchTag_);
                     return;
                 }
             }
@@ -578,12 +603,7 @@ namespace ompl
                     // Get the parent and child vertices.
                     auto parentVertex = edge.source->asReverseVertex();
                     auto childVertex = edge.target->asReverseVertex();
-
-                    // If this is the first child of this parent, remember the cost.
-                    if (!parentVertex->hasChildren())
-                    {
-                        parentVertex->setExpandTag(searchTag_);
-                    }
+                    assert(!isClosed(childVertex));
 
                     // Update the parent of the child in the reverse tree.
                     childVertex->updateParent(parentVertex);
@@ -629,15 +649,20 @@ namespace ompl
                 }
             }
 
-            // If there are edges to be inserted in the forward queue, check if they can be inserted now.
-            if (!jitSearchEdgeCache_.empty())
-            {
-                if (canBeInsertedInForwardQueue(jitSearchEdgeCache_))
-                {
-                    forwardQueue_->insert(jitSearchEdgeCache_);
-                    jitSearchEdgeCache_.clear();
-                }
-            }
+            // If there are edges to be inserted in the forward queue, insert the ones that can be inserted.
+            jitSearchEdgeCache_.erase(std::remove_if(jitSearchEdgeCache_.begin(), jitSearchEdgeCache_.end(),
+                                                     [this](const auto &edge) {
+                                                         if (canBeInsertedInForwardQueue(edge))
+                                                         {
+                                                             forwardQueue_->insert(edge);
+                                                             return true;
+                                                         }
+                                                         else
+                                                         {
+                                                             return false;
+                                                         }
+                                                     }),
+                                      jitSearchEdgeCache_.end());
 
             if (reverseQueue_->empty())
             {
@@ -650,22 +675,40 @@ namespace ompl
                         // Get the outgoing edges of the child.
                         jitSearchEdgeCache_ = expandForwardRootsInReverseTree();
 
-                        // Insert them if they can be inserted and the forward search can be started..
-                        if (canBeInsertedInForwardQueue(jitSearchEdgeCache_))
+                        // Insert the ones that have admissible cost to go.
+                        for (const auto &edge : jitSearchEdgeCache_)
                         {
-                            // Insert and clear the cache.
-                            forwardQueue_->insert(jitSearchEdgeCache_);
-                            jitSearchEdgeCache_.clear();
-
-                            // Set the phase. If the insert resulted in zero edges, then improve the approximation.
-                            phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
+                            if (doAllVerticesHaveAdmissibleCostToGo(edge))
+                            {
+                                forwardQueue_->insert(edge);
+                            }
                         }
+
+                        // Clear all edges. The ones that are not inserted are between vertices that are not in the
+                        // same connected component.
+                        jitSearchEdgeCache_.clear();
+
+                        // Set the phase. If the insert resulted in zero edges, then improve the approximation.
+                        phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
 
                         // Register the expansion of the start.
                         startExpansionGraphTag_ = graph_.getTag();
                     }
                     else
                     {
+                        // Try each edge in the jit reverse search individually.
+                        for (const auto &edge : jitSearchEdgeCache_)
+                        {
+                            if (doAllVerticesHaveAdmissibleCostToGo(edge))
+                            {
+                                forwardQueue_->insert(edge);
+                            }
+                        }
+
+                        // Clear all edges. The ones that are not inserted are between vertices that are not in
+                        // the same connected component.
+                        jitSearchEdgeCache_.clear();
+
                         // Rebuild the forward queue, as the reverse search might have updated the used heuristics.
                         forwardQueue_->rebuild();
 
@@ -720,6 +763,9 @@ namespace ompl
             if (!reverseQueue_->empty())
             {
                 phase_ = Phase::REVERSE_SEARCH;
+
+                // Update the search tag.
+                ++searchTag_;
             }
         }
 
@@ -1046,16 +1092,14 @@ namespace ompl
             return false;
         }
 
+        bool EITstar::canBeInsertedInForwardQueue(const eitstar::Edge &edge) const
+        {
+            return doAllVerticesHaveAdmissibleCostToGo(edge);
+        }
+
         bool EITstar::canBeInsertedInForwardQueue(const std::vector<eitstar::Edge> &edges) const
         {
-            for (const auto &edge : edges)
-            {
-                if (!edge.source->hasReverseVertex() || !edge.target->hasReverseVertex())
-                {
-                    return false;
-                }
-            }
-            return true;
+            return doAllVerticesHaveAdmissibleCostToGo(edges);
         }
 
         std::tuple<std::shared_ptr<eitstar::State>, ompl::base::Cost, ompl::base::Cost>
@@ -1068,8 +1112,9 @@ namespace ompl
             {
                 if (neighbor->hasReverseVertex())
                 {
-                    auto neighborEdgeCost = objective_->motionCostBestEstimate(neighbor->raw(), state->raw());
-                    auto neighborCost = objective_->combineCosts(neighbor->getAdmissibleCostToGo(), neighborEdgeCost);
+                    const auto neighborEdgeCost = objective_->motionCostBestEstimate(neighbor->raw(), state->raw());
+                    const auto neighborCost =
+                        objective_->combineCosts(neighbor->getAdmissibleCostToGo(), neighborEdgeCost);
                     if (objective_->isCostBetterThan(neighborCost, bestCost))
                     {
                         bestParent = neighbor;
@@ -1084,6 +1129,28 @@ namespace ompl
         bool EITstar::isClosed(const std::shared_ptr<Vertex> &vertex) const
         {
             return vertex->getExpandTag() == searchTag_;
+        }
+
+        bool EITstar::doAllVerticesHaveAdmissibleCostToGo(const eitstar::Edge &edge) const
+        {
+            if (!edge.source->hasReverseVertex() || !edge.target->hasReverseVertex())
+            {
+                return false;
+            }
+
+            return isClosed(edge.source->asReverseVertex()) && isClosed(edge.target->asReverseVertex());
+        }
+
+        bool EITstar::doAllVerticesHaveAdmissibleCostToGo(const std::vector<eitstar::Edge> &edges) const
+        {
+            for (const auto &edge : edges)
+            {
+                if (!doAllVerticesHaveAdmissibleCostToGo(edge))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         bool EITstar::doesImproveReversePath(const Edge &edge) const
