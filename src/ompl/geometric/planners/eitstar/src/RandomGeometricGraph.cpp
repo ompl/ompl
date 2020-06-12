@@ -140,7 +140,7 @@ namespace ompl
                     }
 
                     // Remove all revived goals from the pruned goals.
-                    for (auto& revivedGoal : revivedGoals)
+                    for (auto &revivedGoal : revivedGoals)
                     {
                         std::iter_swap(revivedGoal, prunedGoalStates_.rbegin());
                         prunedGoalStates_.pop_back();
@@ -174,7 +174,7 @@ namespace ompl
                     }
 
                     // Remove all revived goals from the pruned goals.
-                    for (auto& revivedStart : revivedStarts)
+                    for (auto &revivedStart : revivedStarts)
                     {
                         std::iter_swap(revivedStart, prunedStartStates_.rbegin());
                         prunedStartStates_.pop_back();
@@ -541,15 +541,12 @@ namespace ompl
             ompl::base::Cost
             RandomGeometricGraph::heuristicCostFromPreferredStart(const std::shared_ptr<State> &state) const
             {
-                // Get the preferred start for this vertex.
+                // Get the preferred start for this state.
                 auto bestCost = objective_->infiniteCost();
                 for (const auto &start : startStates_)
                 {
-                    const auto costToCome = objective_->motionCostHeuristic(start->raw(), state->raw());
-                    if (objective_->isCostBetterThan(costToCome, bestCost))
-                    {
-                        bestCost = costToCome;
-                    }
+                    bestCost =
+                        objective_->betterCost(objective_->motionCostHeuristic(start->raw(), state->raw()), bestCost);
                 }
 
                 return bestCost;
@@ -558,15 +555,12 @@ namespace ompl
             ompl::base::Cost
             RandomGeometricGraph::heuristicCostToPreferredGoal(const std::shared_ptr<State> &state) const
             {
-                // Get the preferred start for this vertex.
+                // Get the preferred goal for this state.
                 auto bestCost = objective_->infiniteCost();
                 for (const auto &goal : goalStates_)
                 {
-                    const auto costToCome = objective_->motionCostHeuristic(goal->raw(), state->raw());
-                    if (objective_->isCostBetterThan(costToCome, bestCost))
-                    {
-                        bestCost = costToCome;
-                    }
+                    bestCost =
+                        objective_->betterCost(objective_->motionCostHeuristic(state->raw(), goal->raw()), bestCost);
                 }
 
                 return bestCost;

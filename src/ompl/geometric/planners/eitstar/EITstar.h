@@ -87,6 +87,9 @@ namespace ompl
              * forward search detects a collision. */
             void enableCollisionDetectionInReverseSearch(bool enable);
 
+            /** \brief Whether increasingly dense collision detection in the reverse search is enabled. */
+            bool isCollisionDetectionInReverseSearchEnabled() const;
+
             /** \brief Set whether pruning is enabled or not. */
             void enablePruning(bool prune);
 
@@ -208,15 +211,15 @@ namespace ompl
 
             /** \brief The option that specifies whether sparse collision detection on the reverse search tree is
              * enabled. */
-            bool isCollisionDetectionInReverseTreeEnabled_{false};
+            bool isCollisionDetectionInReverseTreeEnabled_{true};
 
             /** \brief The number of sparse collision detections on level 0. */
             std::size_t initialNumSparseCollisionChecks_{1u};
 
-            /** \brief The number of sparse collision detections performed on the reverse search. */
+            /** \brief The number of sparse collision detections performed on the reverse search on this level. */
             std::size_t numSparseCollisionChecksCurrentLevel_{1u};
 
-            /** \brief The number of sparse collision detections performed on the reverse search. */
+            /** \brief The number of sparse collision detections performed on the reverse search on the previous level. */
             std::size_t numSparseCollisionChecksPreviousLevel_{0u};
 
             /** \brief Whether pruning is enabled. */

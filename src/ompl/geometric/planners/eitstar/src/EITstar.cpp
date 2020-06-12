@@ -200,6 +200,11 @@ namespace ompl
             isCollisionDetectionInReverseTreeEnabled_ = enable;
         }
 
+        bool EITstar::isCollisionDetectionInReverseSearchEnabled() const
+        {
+            return isCollisionDetectionInReverseTreeEnabled_;
+        }
+
         void EITstar::enablePruning(bool enable)
         {
             isPruningEnabled_ = enable;
