@@ -44,6 +44,7 @@
 #include "ompl/control/ControlSampler.h"
 #include "ompl/control/DirectedControlSampler.h"
 #include <ompl/control/SimpleDirectedControlSampler.h>
+#include <ompl/control/ModifiedDirectedControlSampler.h>
 #include "ompl/control/StatePropagator.h"
 #include "ompl/control/Control.h"
 #include "ompl/util/ClassForward.h"
@@ -178,10 +179,14 @@ namespace ompl
             
             SimpleDirectedControlSamplerPtr allocSimpleDirectedControlSampler() const ;
 
+	    ModifiedDirectedControlSamplerPtr allocModifiedDirectedControlSampler() const ;
+
             /** \brief Set the allocator to use for the  DirectedControlSampler */
             void setDirectedControlSamplerAllocator(const DirectedControlSamplerAllocator &dcsa);
             
             void setSimpleDirectedControlSamplerAllocator(const SimpleDirectedControlSamplerAllocator &sdcsa);
+
+	    void setModifiedDirectedControlSamplerAllocator(const ModifiedDirectedControlSamplerAllocator &mdcsa);
 
             /** \brief Reset the DirectedControlSampler to be the default one */
             void clearDirectedSamplerAllocator();
@@ -192,6 +197,13 @@ namespace ompl
                 @{ */
                 
             void clearSimpleDirectedSamplerAllocator();
+
+            /** @} */
+
+            /** @name Configuration of the state propagator
+                @{ */  
+
+            void clearModifiedDirectedSamplerAllocator();
 
             /** @} */
 
@@ -328,6 +340,8 @@ namespace ompl
             DirectedControlSamplerAllocator dcsa_;
             
             SimpleDirectedControlSamplerAllocator sdcsa_ ;
+
+	    ModifiedDirectedControlSamplerAllocator mdcsa_ ;
 
             /** \brief The actual duration of each step */
             double stepSize_;

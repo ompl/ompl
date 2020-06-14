@@ -23,9 +23,15 @@ namespace ompl
 
             void reduceVertices(PathControl &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps =0, double rangeRatio=0.9);
             
+            void addIntermediaryStates( PathControl &path) ;
+            
             bool connectConsecutiveStates(unsigned int position, ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, SimpleDirectedControlSamplerPtr sampler ) ;
             
 			bool connectStateToGoal(unsigned int position, ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, SimpleDirectedControlSamplerPtr sampler ) ;
+			
+			bool connectStates(unsigned int initial, unsigned int goal , ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, SimpleDirectedControlSamplerPtr sampler, ompl::base::State* reached_State) ;
+			
+			bool connectStates(unsigned int initial, unsigned int goal , ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, SimpleDirectedControlSamplerPtr sampler) ;
 
             // void collapseCloseVertices(PathControl &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps =0);
 	        //void subdivide(PathControl *path) ;

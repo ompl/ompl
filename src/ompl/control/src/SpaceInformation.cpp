@@ -36,6 +36,7 @@
 
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/control/SimpleDirectedControlSampler.h"
+#include "ompl/control/ModifiedDirectedControlSampler.h"
 #include "ompl/control/SteeredControlSampler.h"
 #include "ompl/util/Exception.h"
 #include <cassert>
@@ -89,6 +90,14 @@ ompl::control::SimpleDirectedControlSamplerPtr ompl::control::SpaceInformation::
 		return std::make_shared<SimpleDirectedControlSampler>(this);
 }
 
+ompl::control::ModifiedDirectedControlSamplerPtr ompl::control::SpaceInformation::allocModifiedDirectedControlSampler() const
+{
+	if (mdcsa_)
+		return mdcsa_(this) ;
+	else
+		return std::make_shared<ModifiedDirectedControlSampler>(this);
+}
+
 void ompl::control::SpaceInformation::setDirectedControlSamplerAllocator(const DirectedControlSamplerAllocator &dcsa)
 {
     dcsa_ = dcsa;
@@ -101,6 +110,12 @@ void ompl::control::SpaceInformation::setSimpleDirectedControlSamplerAllocator(c
 	setup_ = false;
 }
 
+void ompl::control::SpaceInformation::setModifiedDirectedControlSamplerAllocator(const ModifiedDirectedControlSamplerAllocator &mdcsa)
+{
+	mdcsa_=mdcsa ;
+	setup_ = false;
+}
+
 void ompl::control::SpaceInformation::clearDirectedSamplerAllocator()
 {
     dcsa_ = DirectedControlSamplerAllocator();
@@ -110,6 +125,12 @@ void ompl::control::SpaceInformation::clearDirectedSamplerAllocator()
 void ompl::control::SpaceInformation::clearSimpleDirectedSamplerAllocator()
 {
 	sdcsa_= SimpleDirectedControlSamplerAllocator() ;
+	setup_ = false ;
+}
+
+void ompl::control::SpaceInformation::clearModifiedDirectedSamplerAllocator()
+{
+	mdcsa_= ModifiedDirectedControlSamplerAllocator() ;
 	setup_ = false ;
 }
 
