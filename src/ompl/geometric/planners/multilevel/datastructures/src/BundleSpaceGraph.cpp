@@ -46,10 +46,8 @@
 #include <ompl/geometric/planners/multilevel/datastructures/importance/Exponential.h>
 #include <ompl/geometric/planners/multilevel/datastructures/importance/Uniform.h>
 #include <ompl/geometric/planners/multilevel/datastructures/metrics/Geodesic.h>
-#include <ompl/geometric/planners/multilevel/datastructures/metrics/Reachability.h>
 #include <ompl/geometric/planners/multilevel/datastructures/metrics/ShortestPath.h>
 #include <ompl/geometric/planners/multilevel/datastructures/propagators/Geometric.h>
-#include <ompl/geometric/planners/multilevel/datastructures/propagators/Dynamic.h>
 #include <ompl/geometric/planners/multilevel/datastructures/pathrestriction/PathRestriction.h>
 
 #include <ompl/geometric/PathSimplifier.h>
@@ -390,12 +388,12 @@ ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::BundleSpaceGraph::add
     graph_[m]->successful_connection_attempts = 0;
     disjointSets_.make_set(m);
 
-    if (isDynamic())
-    {
-        std::static_pointer_cast<BundleSpaceMetricReachability>(metric_)->createReachableSet(q);
-        ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation *>(getBundle().get());
-        siC->nullControl(q->control);
-    }
+    // if (isDynamic())
+    // {
+    //     std::static_pointer_cast<BundleSpaceMetricReachability>(metric_)->createReachableSet(q);
+    //     ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation *>(getBundle().get());
+    //     siC->nullControl(q->control);
+    // }
 
     nearestDatastructure_->add(q);
     q->index = m;
@@ -505,14 +503,14 @@ Configuration *ompl::geometric::BundleSpaceGraph::extendGraphTowards_Range(const
     }
 
     Configuration *next = new Configuration(getBundle(), to->state);
-    if (isDynamic())
-    {
-        const ompl::control::SpaceInformationPtr siC =
-            std::dynamic_pointer_cast<ompl::control::SpaceInformation>(getBundle());
-        const control::Control *lastControl =
-            std::static_pointer_cast<BundleSpacePropagatorDynamic>(propagator_)->getLastControl();
-        siC->copyControl(next->control, lastControl);
-    }
+    // if (isDynamic())
+    // {
+    //     const ompl::control::SpaceInformationPtr siC =
+    //         std::dynamic_pointer_cast<ompl::control::SpaceInformation>(getBundle());
+    //     const control::Control *lastControl =
+    //         std::static_pointer_cast<BundleSpacePropagatorDynamic>(propagator_)->getLastControl();
+    //     siC->copyControl(next->control, lastControl);
+    // }
     addConfiguration(next);
     addBundleEdge(from, next);
     return next;
@@ -571,11 +569,11 @@ void ompl::geometric::BundleSpaceGraph::setPropagator(const std::string &sPropag
         OMPL_DEBUG("Geometric Propagator Selected");
         propagator_ = std::make_shared<BundleSpacePropagatorGeometric>(this);
     }
-    else if (sPropagator == "dynamic")
-    {
-        OMPL_DEBUG("Dynamic Propagator Selected");
-        propagator_ = std::make_shared<BundleSpacePropagatorDynamic>(this);
-    }
+    // else if (sPropagator == "dynamic")
+    // {
+    //     OMPL_DEBUG("Dynamic Propagator Selected");
+    //     propagator_ = std::make_shared<BundleSpacePropagatorDynamic>(this);
+    // }
     else
     {
         OMPL_ERROR("Propagator unknown: %s", sPropagator.c_str());
@@ -588,7 +586,8 @@ void ompl::geometric::BundleSpaceGraph::setMetric(const std::string &sMetric)
     if (isDynamic())
     {
         OMPL_DEBUG("Dynamic Metric Selected");
-        metric_ = std::make_shared<BundleSpaceMetricReachability>(this);
+        throw ompl::Exception("NYI");
+        // metric_ = std::make_shared<BundleSpaceMetricReachability>(this);
         // metric_ = std::make_shared<BundleSpaceMetricGeodesic>(this);
     }
     else if (sMetric == "geodesic")
