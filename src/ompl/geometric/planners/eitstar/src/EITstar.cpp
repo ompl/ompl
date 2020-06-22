@@ -215,6 +215,16 @@ namespace ompl
             return graph_.isPruningEnabled();
         }
 
+        void EITstar::setUseKNearest(bool useKNearest)
+        {
+            graph_.setUseKNearest(useKNearest);
+        }
+
+        bool EITstar::getUseKNearest() const
+        {
+            return graph_.getUseKNearest();
+        }
+
         std::vector<Edge> EITstar::getForwardQueue() const
         {
             return forwardQueue_->getEdges();

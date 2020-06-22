@@ -87,6 +87,12 @@ namespace ompl
                 /** \brief Whether pruning is enabled. */
                 bool isPruningEnabled() const;
 
+                /** \brief Whether to use a k-nearest connection model. If false, it uses an r-disc model. */
+                void setUseKNearest(bool useKNearest);
+
+                /** \brief Whether the graph uses a k-nearest connection model. If false, it uses an r-disc model. */
+                bool getUseKNearest() const;
+
                 /** \brief Prunes the graph of states that can not improve the current solution. */
                 void prune();
 
@@ -139,6 +145,9 @@ namespace ompl
                 /** \brief Get the heuristic cost to the preferred goal of a state. */
                 ompl::base::Cost heuristicCostToPreferredGoal(const std::shared_ptr<State> &state) const;
 
+                /** \brief Computes the number of neighbors of the k-nearest model with a given number of samples. */
+                std::size_t computeNumberOfNeighbors(std::size_t numInformedSamples) const;
+
                 /** \brief Computes the radius for the RGG. */
                 double computeRadius(std::size_t numInformedSamples) const;
 
@@ -176,6 +185,16 @@ namespace ompl
 
                 /** \brief Whether pruning is enabled. */
                 bool isPruningEnabled_{true};
+
+                /** \brief Whether to use a k-nearest RGG. If false, EIT* uses an r-disc RGG. */
+                bool useKNearest_{true};
+
+                /** \brief The number of neighbors that defines the neighborhood of a vertex if using a k-nearest graph.
+                 */
+                std::size_t numNeighbors_{std::numeric_limits<std::size_t>::max()};
+
+                /** \brief A constant for the computation of the number of neighbors when using a k-nearest model. */
+                std::size_t k_rgg_{std::numeric_limits<std::size_t>::max()};
 
                 /** \brief The connection radius of the RGG. */
                 double radius_{std::numeric_limits<double>::infinity()};

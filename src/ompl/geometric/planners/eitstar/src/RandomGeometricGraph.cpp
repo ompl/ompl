@@ -36,6 +36,10 @@
 
 #include "ompl/geometric/planners/eitstar/RandomGeometricGraph.h"
 
+#include <cmath>
+
+#include <boost/math/constants/constants.hpp>
+
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/util/GeometricEquations.h"
 
@@ -70,6 +74,8 @@ namespace ompl
                 problem_ = problem;
                 objective_ = problem->getOptimizationObjective();
                 sampler_ = objective_->allocInformedStateSampler(problem, std::numeric_limits<unsigned int>::max());
+                k_rgg_ = boost::math::constants::e<double>() +
+                         (boost::math::constants::e<double>() / spaceInfo_->getStateDimension());
                 updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), inputStates);
             }
 
@@ -372,7 +378,14 @@ namespace ompl
                 samples_.add(newStates);
 
                 // Update the radius by considering all informed states.
-                radius_ = computeRadius(numInformedSamples + numNewStates);
+                if (useKNearest_)
+                {
+                    numNeighbors_ = computeNumberOfNeighbors(numInformedSamples + numNewStates);
+                }
+                else
+                {
+                    radius_ = computeRadius(numInformedSamples + numNewStates);
+                }
 
                 // Update the tag.
                 ++tag_;
@@ -388,6 +401,16 @@ namespace ompl
                 return isPruningEnabled_;
             }
 
+            void RandomGeometricGraph::setUseKNearest(bool useKNearest)
+            {
+                useKNearest_ = useKNearest;
+            }
+
+            bool RandomGeometricGraph::getUseKNearest() const
+            {
+                return useKNearest_;
+            }
+
             const std::vector<std::shared_ptr<State>> &
             RandomGeometricGraph::getNeighbors(const std::shared_ptr<State> &state) const
             {
@@ -400,8 +423,14 @@ namespace ompl
 
                     // Get the neighbors by performing a nearest neighbor search.
                     std::vector<std::shared_ptr<State>> neighbors;
-                    samples_.nearestR(state, radius_, neighbors);
-
+                    if (useKNearest_)
+                    {
+                        samples_.nearestK(state, numNeighbors_, neighbors);
+                    }
+                    else
+                    {
+                        samples_.nearestR(state, radius_, neighbors);
+                    }
                     // We dont want to connect to blacklisted neighbors and the querying state itself.
                     const auto connectionPredicate = [&state](const std::shared_ptr<State> &neighbor) {
                         return (state->blacklist_.find(neighbor->id_) == state->blacklist_.end()) &&
@@ -541,6 +570,11 @@ namespace ompl
                 }
 
                 return bestCost;
+            }
+
+            std::size_t RandomGeometricGraph::computeNumberOfNeighbors(std::size_t numInformedSamples) const
+            {
+                return std::ceil(radiusFactor_ * k_rgg_ * std::log(static_cast<double>(numInformedSamples)));
             }
 
             double RandomGeometricGraph::computeRadius(std::size_t numInformedSamples) const

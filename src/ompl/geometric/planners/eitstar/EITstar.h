@@ -96,6 +96,12 @@ namespace ompl
             /** \brief Get whether pruning is enabled or not. */
             bool isPruningEnabled() const;
 
+            /** \brief Set whether to use a k-nearest RGG connection model. If false, AIT* uses an r-disc model. */
+            void setUseKNearest(bool useKNearest);
+
+            /** \brief Get whether to use a k-nearest RGG connection model. If false, AIT* uses an r-disc model. */
+            bool getUseKNearest() const;
+
             /** \brief Returns a copy of the forward queue. */
             std::vector<eitstar::Edge> getForwardQueue() const;
 
