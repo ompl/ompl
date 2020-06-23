@@ -397,8 +397,6 @@ namespace ompl
                                 phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
                             }
                         }
-
-                        return;
                     }
                 }
                 // Check if it can possibly improve the tree.
@@ -514,8 +512,7 @@ namespace ompl
             }
 
             // Clear the queue if no edge in it can possibly improve the current solution.
-            if (!forwardQueue_->empty() &&
-                objective_->isCostBetterThan(solutionCost_, forwardQueue_->getLowerBoundOnOptimalSolutionCost()))
+            if (objective_->isCostBetterThan(solutionCost_, forwardQueue_->getLowerBoundOnOptimalSolutionCost()))
             {
                 forwardQueue_->clear();
             }
