@@ -538,42 +538,30 @@ namespace ompl
             // Check whether we can suspend the reverse search.
             if (jitSearchEdgeCache_.empty() && !doesImproveReversePath(edge))
             {
-                // Insert edges into the forward queue if there could be a path.
-                if (isAnyForwardRootInReverseTree())
+                // If the forward roots haven't been expanded on this RGG yet, expand them now.
+                if (startExpansionGraphTag_ != graph_.getTag())
                 {
-                    // If the forward roots haven't been expanded on this RGG yet, expand them now.
-                    if (startExpansionGraphTag_ != graph_.getTag())
+                    // Expand the forward roots that are in the reverse tree.
+                    jitSearchEdgeCache_ = expandForwardRootsInReverseTree();
+                    updateJitSearchEdgeCache();
+
+                    if (jitSearchEdgeCache_.empty())
                     {
-                        // Expand the forward roots that are in the reverse tree.
-                        jitSearchEdgeCache_ = expandForwardRootsInReverseTree();
-
-                        // Insert them if they can be inserted and the forward search can be started.
-                        if (canBeInsertedInForwardQueue(jitSearchEdgeCache_))
-                        {
-                            // Insert and clear the cache.
-                            forwardQueue_->insert(jitSearchEdgeCache_);
-                            jitSearchEdgeCache_.clear();
-
-                            // Set the phase. If the insert resulted in zero edges, then improve the approximation.
-                            phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
-                        }
-
-                        // Register the expansion of the start.
-                        startExpansionGraphTag_ = graph_.getTag();
-                    }
-                    else
-                    {
-                        // Rebuild the forward queue, as the reverse search might have updated the used heuristics.
-                        forwardQueue_->rebuild();
-
-                        // If the forward queue is empty now, we're done with this batch because all edges that were in
-                        // the queue were invalidated by repairing the reverse search.
+                        // Set the phase. If the insert resulted in zero edges, then improve the approximation.
                         phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
                     }
+
+                    // Register the expansion of the start.
+                    startExpansionGraphTag_ = graph_.getTag();
                 }
                 else
                 {
-                    phase_ = Phase::IMPROVE_APPROXIMATION;
+                    // Rebuild the forward queue, as the reverse search might have updated the used heuristics.
+                    forwardQueue_->rebuild();
+
+                    // If the forward queue is empty now, we're done with this batch because all edges that were in
+                    // the queue were invalidated by repairing the reverse search.
+                    phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
                 }
 
                 // We're done with the reverse search for now.
