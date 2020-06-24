@@ -167,6 +167,10 @@ namespace ompl
             /** \brief Expands the forward roots that are in the reverse search tree. */
             std::vector<eitstar::Edge> expandForwardRootsInReverseTree() const;
 
+            /** \brief Updates the jit search edge cache by inserting edges that connect vertices whose cost-to-come
+             * estimates are admissible. */
+            void updateJitSearchEdgeCache();
+
             /** \brief Returns whether the vertex has been closed during the current search. */
             bool isClosed(const std::shared_ptr<eitstar::Vertex> &vertex) const;
 

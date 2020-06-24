@@ -657,22 +657,14 @@ namespace ompl
             }
 
             // If there are edges to be inserted in the forward queue, insert the ones that can be inserted.
-            jitSearchEdgeCache_.erase(std::remove_if(jitSearchEdgeCache_.begin(), jitSearchEdgeCache_.end(),
-                                                     [this](const auto &edge) {
-                                                         if (canBeInsertedInForwardQueue(edge))
-                                                         {
-                                                             forwardQueue_->insert(edge);
-                                                             return true;
-                                                         }
-                                                         else
-                                                         {
-                                                             return false;
-                                                         }
-                                                     }),
-                                      jitSearchEdgeCache_.end());
+            updateJitSearchEdgeCache();
 
             if (reverseQueue_->empty())
             {
+                // If the reverse queue is empty, we can clear the jit search edge as all edges that have now been are
+                // between vertices in different components of the RGG.
+                jitSearchEdgeCache_.clear();
+
                 // Insert edges into the forward queue if there could be a path.
                 if (isAnyForwardRootInReverseTree())
                 {
@@ -681,48 +673,23 @@ namespace ompl
                     {
                         // Get the outgoing edges of the child.
                         jitSearchEdgeCache_ = expandForwardRootsInReverseTree();
+                        updateJitSearchEdgeCache();
 
-                        // Insert the ones that have admissible cost to go.
-                        for (const auto &edge : jitSearchEdgeCache_)
-                        {
-                            if (doAllVerticesHaveAdmissibleCostToGo(edge))
-                            {
-                                forwardQueue_->insert(edge);
-                            }
-                        }
-
-                        // Clear all edges. The ones that are not inserted are between vertices that are not in the
-                        // same connected component.
+                        // Clear all edges. If the reverse queue is empty, there's no way the vertices of the edges that
+                        // weren't inserted above will be inserted later.
                         jitSearchEdgeCache_.clear();
-
-                        // Set the phase. If the insert resulted in zero edges, then improve the approximation.
-                        phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
 
                         // Register the expansion of the start.
                         startExpansionGraphTag_ = graph_.getTag();
                     }
                     else
                     {
-                        // Try each edge in the jit reverse search individually.
-                        for (const auto &edge : jitSearchEdgeCache_)
-                        {
-                            if (doAllVerticesHaveAdmissibleCostToGo(edge))
-                            {
-                                forwardQueue_->insert(edge);
-                            }
-                        }
-
-                        // Clear all edges. The ones that are not inserted are between vertices that are not in
-                        // the same connected component.
-                        jitSearchEdgeCache_.clear();
-
                         // Rebuild the forward queue, as the reverse search might have updated the used heuristics.
                         forwardQueue_->rebuild();
-
-                        // If the forward queue is empty now, we're done with this batch because all edges that were in
-                        // the queue were invalidated by repairing the reverse search.
-                        phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
                     }
+
+                    // Set the phase. If the insert resulted in zero edges, then improve the approximation.
+                    phase_ = forwardQueue_->empty() ? Phase::IMPROVE_APPROXIMATION : Phase::FORWARD_SEARCH;
                 }
                 else
                 {
@@ -1300,6 +1267,25 @@ namespace ompl
                 }
             }
             return allEdges;
+        }
+
+        void EITstar::updateJitSearchEdgeCache()
+        {
+            const auto insertionPredicate = [this](const auto &edge) {
+                if (canBeInsertedInForwardQueue(edge))
+                {
+                    forwardQueue_->insert(edge);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            };
+
+            jitSearchEdgeCache_.erase(
+                std::remove_if(jitSearchEdgeCache_.begin(), jitSearchEdgeCache_.end(), insertionPredicate),
+                jitSearchEdgeCache_.end());
         }
 
     }  // namespace geometric
