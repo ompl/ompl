@@ -91,19 +91,24 @@ namespace ompl
                 // First update the goals. We have to call inputStates->nextGoal(terminationCondition) at least once
                 // (regardless of the return value of inputStates->moreGoalStates()) in case the termination condition
                 // wants us to wait for a goal.
-                do
+                if (goalStates_.size() < maxNumGoals_)
                 {
-                    // Get a new goal. If there are none, or the underlying state is invalid this will be a nullptr.
-                    const auto newGoalState = inputStates->nextGoal(terminationCondition);
-
-                    // If there was a new valid goal, register it as such and remember that a goal has been added.
-                    if (static_cast<bool>(newGoalState))
+                    do
                     {
-                        registerGoalState(newGoalState);
-                        addedNewGoalState = true;
-                    }
+                        // Get a new goal. If there are none, or the underlying state is invalid this will be a nullptr.
+                        const auto newGoalState =
+                            inputStates->nextGoal(ompl::base::plannerAlwaysTerminatingCondition());
 
-                } while (inputStates->haveMoreGoalStates());
+                        // If there was a new valid goal, register it as such and remember that a goal has been added.
+                        if (static_cast<bool>(newGoalState))
+                        {
+                            registerGoalState(newGoalState);
+                            addedNewGoalState = true;
+                        }
+
+                    } while (inputStates->haveMoreGoalStates() && goalStates_.size() < maxNumGoals_ &&
+                             !terminationCondition);
+                }
 
                 // Having updated the goals, we now update the starts.
                 while (inputStates->haveMoreStartStates())
@@ -209,6 +214,11 @@ namespace ompl
                 radiusFactor_ = factor;
             }
 
+            double RandomGeometricGraph::getRadiusFactor() const
+            {
+                return radiusFactor_;
+            }
+
             const std::vector<std::shared_ptr<State>> &RandomGeometricGraph::getStartStates() const
             {
                 return startStates_;
@@ -302,6 +312,9 @@ namespace ompl
                 // Set the lower bound cost to go.
                 goalState->setLowerBoundCostToGo(objective_->identityCost());
 
+                // Set the cost to go estimate admissible for the approximation.
+                goalState->setAdmissibleCostToGo(objective_->identityCost());
+
                 // Set the estimated cost to go.
                 goalState->setEstimatedCostToGo(objective_->identityCost());
 
@@ -355,23 +368,44 @@ namespace ompl
                         sampler_->sampleUniform(newState->raw(), solutionCost_);
                     } while (!spaceInfo_->isValid(newState->raw()));
 
-                    // Set the cost to come.
-                    newState->setAdmissibleCostToGo(objective_->infiniteCost());
-
-                    // Set the current cost.
+                    // Set the current cost to come.
                     newState->setCurrentCostToCome(objective_->infiniteCost());
-
-                    // Set the estimated cost.
-                    newState->setEstimatedCostToGo(objective_->infiniteCost());
-
-                    // Set the estimated effort to go.
-                    newState->setEstimatedEffortToGo(std::numeric_limits<std::size_t>::max());
-
-                    // Set the lower bound for the cost to go.
-                    newState->setLowerBoundCostToGo(heuristicCostToPreferredGoal(newState));
 
                     // Set the lower bound for the cost to come.
                     newState->setLowerBoundCostToCome(heuristicCostFromPreferredStart(newState));
+
+                    if (problem_->getGoal()->isSatisfied(newState->raw()))
+                    {
+                        // Set the lower bound cost to go.
+                        newState->setLowerBoundCostToGo(objective_->identityCost());
+
+                        // Set the cost to go estimate admissible for the approximation.
+                        newState->setAdmissibleCostToGo(objective_->identityCost());
+
+                        // Set the estimated cost to go.
+                        newState->setEstimatedCostToGo(objective_->identityCost());
+
+                        // Set the estimated effort to go.
+                        newState->setEstimatedEffortToGo(0u);
+
+                        // Add this state to the goal states.
+                        goalStates_.emplace_back(newState);
+                    }
+                    else
+                    {
+                        // Set the lower bound for the cost to go.
+                        newState->setLowerBoundCostToGo(
+                            objective_->costToGo(newState->raw(), problem_->getGoal().get()));
+
+                        // Set the admissible cost to go.
+                        newState->setAdmissibleCostToGo(objective_->infiniteCost());
+
+                        // Set the estimated cost to go.
+                        newState->setEstimatedCostToGo(objective_->infiniteCost());
+
+                        // Set the estimated effort to go.
+                        newState->setEstimatedEffortToGo(std::numeric_limits<std::size_t>::max());
+                    }
                 }
 
                 // Add the new states to the samples.
@@ -409,6 +443,16 @@ namespace ompl
             bool RandomGeometricGraph::getUseKNearest() const
             {
                 return useKNearest_;
+            }
+
+            void RandomGeometricGraph::setMaxNumberOfGoals(unsigned int maxNumberOfGoals)
+            {
+                maxNumGoals_ = maxNumberOfGoals;
+            }
+
+            unsigned int RandomGeometricGraph::getMaxNumberOfGoals() const
+            {
+                return maxNumGoals_;
             }
 
             const std::vector<std::shared_ptr<State>> &

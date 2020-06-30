@@ -78,7 +78,7 @@ namespace ompl
                 if (!(problem_->getGoal()->hasType(ompl::base::GOAL_SAMPLEABLE_REGION)))
                 {
                     OMPL_ERROR("EIT* is currently only implemented for goals that can be cast to "
-                               "ompl::base::GOAL_SAMPLEABLE_GOAL_REGION.");
+                               "ompl::base::GOAL_SAMPLEABLE_REGION.");
                     setup_ = false;
                     return;
                 }

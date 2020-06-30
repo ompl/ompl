@@ -78,8 +78,8 @@ namespace ompl
                 /** \brief Sets the radius factor. */
                 void setRadiusFactor(double factor);
 
-                /** \brief Samples random states and adds them to the graph. */
-                void addStates(std::size_t numStates);
+                /** \brief Gets the radius factor. */
+                double getRadiusFactor() const;
 
                 /** \brief Enable pruning of the graph. */
                 void enablePruning(bool prune);
@@ -92,6 +92,15 @@ namespace ompl
 
                 /** \brief Whether the graph uses a k-nearest connection model. If false, it uses an r-disc model. */
                 bool getUseKNearest() const;
+
+                /** \brief Set the maximum number of goals EIT* will sample from sampleable goal regions. */
+                void setMaxNumberOfGoals(unsigned int maxNumberOfGoals);
+
+                /** \brief Get the maximum number of goals EIT* will sample from sampleable goal regions. */
+                unsigned int getMaxNumberOfGoals() const;
+
+                /** \brief Samples random states and adds them to the graph. */
+                void addStates(std::size_t numStates);
 
                 /** \brief Prunes the graph of states that can not improve the current solution. */
                 void prune();
@@ -188,6 +197,9 @@ namespace ompl
 
                 /** \brief Whether to use a k-nearest RGG. If false, EIT* uses an r-disc RGG. */
                 bool useKNearest_{true};
+
+                /** \brief The maximum number of goals EIT* will sample explicitly. */
+                unsigned int maxNumGoals_{1u};
 
                 /** \brief The number of neighbors that defines the neighborhood of a vertex if using a k-nearest graph.
                  */
