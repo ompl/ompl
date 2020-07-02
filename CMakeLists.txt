@@ -91,7 +91,7 @@ set_package_properties(Threads PROPERTIES
     PURPOSE "Pthreads is sometimes needed, depending on OS / compiler.")
 find_package(Threads QUIET)
 
-enable_testing()
+# enable_testing()
 
 set_package_properties(Python PROPERTIES
     URL "https://www.python.org"
@@ -178,8 +178,8 @@ find_program(R_EXEC R)
 
 add_subdirectory(src)
 add_subdirectory(py-bindings)
-add_subdirectory(tests)
-add_subdirectory(demos)
+# add_subdirectory(tests)
+# add_subdirectory(demos)
 add_subdirectory(scripts)
 add_subdirectory(doc)
 

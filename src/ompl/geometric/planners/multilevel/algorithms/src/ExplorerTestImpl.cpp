@@ -70,45 +70,52 @@ void ompl::geometric::ExplorerTestImpl::grow()
             std::vector<Vertex> path2 = shortestVertexPath_;
             // og::PathGeometric &gpath2 = static_cast<og::PathGeometric &>(*pPath2);
 
-            path.insert(path.begin(), path2.begin(), path2.end());
+            path.insert(path.end(), path2.begin()+1, path2.end());
             float pathlength = pPath->length() + pPath2->length();
 
-            std::cout << pPath->length() << std::endl;
+            // std::cout << graph_[path.at(0)]->state << std::endl;
+
+            bool isVisible = false;
 
             for (int i = 0; i < solutionspaths.size(); i++)
             {
                 // FALL 2: verbessert bestehenden pfad
                 // Knoten wurde mit 2 Knoten des Pfades verbunden
-                //TODO: Does not work
+                // TODO: Does not work (checks complete path)
                 if (pathVisibilityChecker_->IsPathVisible(path, solutionspaths.at(i), graph_))
                 {
                     std::cout << "ITS VISIBLE" << std::endl;
+                    isVisible = true;
                     // Path is shorter than visible path else do nothing
                     if (pathlength < solutionPathLength.at(i))
                     {
                         solutionspaths.at(i) = path;
                         solutionPathLength.at(i) = pathlength;
                     }
+                    break;
                 }
             }
-
-            // FALL 3: neuen Pfad
-            // Knoten kann mit Start und Ziel verbunden werden
-            std::cout << "NOT VISIBLE" << std::endl;
-            solutionspaths.push_back(path);
-            solutionPathLength.push_back(pathlength);
-        }
-
-        /*for (int i = 0; i < solutionspaths.size(); i++)
-        {
-            std::cout << "Path: ";
-            for (int j = 0 ; j < solutionspaths.at(i).size(); j++)
-            {
-                std::cout << solutionspaths.at(i).at(j) << ' ';
+            if(!isVisible){
+                std::cout << "NOT VISIBLE" << std::endl;
+                solutionspaths.push_back(path);
+                solutionPathLength.push_back(pathlength);
             }
-            std::cout << "\t Length: ";
-            std::cout << solutionPathLength.at(i) << std::endl;
-        }*/
+
+        }
+        // FALL 3: neuen Pfad
+        // Knoten kann mit Start und Ziel verbunden werden
+    }
+
+
+    for (int i = 0; i < solutionspaths.size(); i++)
+    {
+        std::cout << "Path: ";
+        for (int j = 0 ; j < solutionspaths.at(i).size(); j++)
+        {
+            std::cout << solutionspaths.at(i).at(j) << ' ';
+        }
+        std::cout << "\t Length: ";
+        std::cout << solutionPathLength.at(i) << std::endl;
     }
 }
 
@@ -160,7 +167,7 @@ void ompl::geometric::ExplorerTestImpl::firstGrow()
                 ompl::base::PathPtr pPath2 = getPath(v, vGoal_);
                 std::vector<Vertex> path2 = shortestVertexPath_;
 
-                path.insert(path.begin(), path2.begin(), path2.end());
+                path.insert(path.end(), path2.begin()+1, path2.end());
                 float pathlength = pPath->length() + pPath2->length();
 
                 solutionspaths.push_back(path);
@@ -168,10 +175,4 @@ void ompl::geometric::ExplorerTestImpl::firstGrow()
             }
         }
     }
-
-    //  base::PathPtr toStart = getPath(vStart_, xNew->index);
-    //  base::PathPtr toGoal = getPath(vGoal_, xNew->index);
-
-    // PathGeometric path = getPath(vStart_,vGoal_)->as<PathGeometric>();
-    // solutions_.push_back(path.getStates());
 }
