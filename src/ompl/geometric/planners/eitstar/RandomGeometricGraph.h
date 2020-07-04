@@ -121,6 +121,9 @@ namespace ompl
                 /** \brief Get the number of valid samples. */
                 unsigned int getNumberOfValidSamples() const;
 
+                /** \brief Get the number of nearest neighbor calls. */
+                unsigned int getNumberOfNearestNeighborCalls() const;
+
                 /** \brief Sets the start state. */
                 std::shared_ptr<State> registerStartState(const ompl::base::State *start);
 
@@ -234,10 +237,13 @@ namespace ompl
                 const ompl::base::Cost &solutionCost_;
 
                 /** \brief The number of sampled states. */
-                unsigned int numSampledStates_{0u};
+                mutable unsigned int numSampledStates_{0u};
 
                 /** \brief The number of valid samples. */
-                unsigned int numValidSamples_{0u};
+                mutable unsigned int numValidSamples_{0u};
+
+                /** \brief The number of valid samples. */
+                mutable unsigned int numNearestNeighborCalls_{0u};
             };
 
         }  // namespace eitstar

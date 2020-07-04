@@ -59,6 +59,36 @@ namespace ompl
           , motionValidator_(spaceInfo->getMotionValidator())
           , solutionCost_()
         {
+            // Specify EIT*'s planner specs.
+            specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+            specs_.multithreaded = false;
+            specs_.approximateSolutions = true;
+            specs_.optimizingPaths = true;
+            specs_.directed = true;
+            specs_.provingSolutionNonExistence = false;
+            specs_.canReportIntermediateSolutions = true;
+
+            // Register the setting callbacks.
+            declareParam<bool>("use_k_nearest", this, &EITstar::setUseKNearest, &EITstar::getUseKNearest, "0,1");
+            declareParam<double>("rewire_factor", this, &EITstar::setRadiusFactor, &EITstar::getRadiusFactor,
+                                 "1.0:0.01:3.0");
+            declareParam<std::size_t>("batch_size", this, &EITstar::setBatchSize, &EITstar::getBatchSize, "1:1:10000");
+            declareParam<bool>("use_graph_pruning", this, &EITstar::enablePruning, &EITstar::isPruningEnabled, "0,1");
+            declareParam<bool>("find_approximate_solutions", this, &EITstar::trackApproximateSolutions,
+                               &EITstar::areApproximateSolutionsTracked, "0,1");
+            declareParam<unsigned int>("set_max_num_goals", this, &EITstar::setMaxNumberOfGoals,
+                                       &EITstar::getMaxNumberOfGoals, "1:1:1000");
+
+            // Register the progress properties.
+            addPlannerProgressProperty("iterations INTEGER", [this]() { return std::to_string(iteration_); });
+            addPlannerProgressProperty("best cost DOUBLE", [this]() { return std::to_string(solutionCost_.value()); });
+            addPlannerProgressProperty("state collision checks INTEGER",
+                                       [this]() { return std::to_string(graph_.getNumberOfSampledStates()); });
+            addPlannerProgressProperty("edge collision checks INTEGER",
+                                       [this]() { return std::to_string(numCollisionCheckedEdges_); });
+            addPlannerProgressProperty("nearest neighbour calls INTEGER",
+                                       [this]() { return std::to_string(graph_.getNumberOfNearestNeighborCalls());
+                                       });
         }
 
         EITstar::~EITstar()
@@ -225,6 +255,11 @@ namespace ompl
             graph_.setRadiusFactor(factor);
         }
 
+        double EITstar::getRadiusFactor() const
+        {
+            return graph_.getRadiusFactor();
+        }
+
         void EITstar::setSuboptimalityFactor(double factor)
         {
             suboptimalityFactor_ = factor;
@@ -268,6 +303,16 @@ namespace ompl
         bool EITstar::getUseKNearest() const
         {
             return graph_.getUseKNearest();
+        }
+
+        void EITstar::setMaxNumberOfGoals(unsigned int numberOfGoals)
+        {
+            graph_.setMaxNumberOfGoals(numberOfGoals);
+        }
+
+        unsigned int EITstar::getMaxNumberOfGoals() const
+        {
+            return graph_.getMaxNumberOfGoals();
         }
 
         std::vector<Edge> EITstar::getForwardQueue() const

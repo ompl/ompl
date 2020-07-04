@@ -238,6 +238,11 @@ namespace ompl
                 return numValidSamples_;
             }
 
+            unsigned int RandomGeometricGraph::getNumberOfNearestNeighborCalls() const
+            {
+                return numNearestNeighborCalls_;
+            }
+
             bool RandomGeometricGraph::hasStartState() const
             {
                 return !startStates_.empty();
@@ -506,6 +511,9 @@ namespace ompl
 
                     // Update the tag of the cache.
                     state->neighbors_.first = tag_;
+
+                    // Increase the counter of nearest neighbor calls.
+                    ++numNearestNeighborCalls_;
                 }
 
                 // The cache is guaranteed to be up to date now, just return it.
