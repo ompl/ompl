@@ -100,7 +100,8 @@ namespace ompl
                 unsigned int getMaxNumberOfGoals() const;
 
                 /** \brief Samples random states and adds them to the graph. */
-                void addStates(std::size_t numStates);
+                bool addStates(std::size_t numStates,
+                               const ompl::base::PlannerTerminationCondition &terminationCondition);
 
                 /** \brief Prunes the graph of states that can not improve the current solution. */
                 void prune();
@@ -113,6 +114,12 @@ namespace ompl
 
                 /** \brief Get the goal states. */
                 const std::vector<std::shared_ptr<State>> &getGoalStates() const;
+
+                /** \brief Get the number of sampled states. */
+                unsigned int getNumberOfSampledStates() const;
+
+                /** \brief Get the number of valid samples. */
+                unsigned int getNumberOfValidSamples() const;
 
                 /** \brief Sets the start state. */
                 std::shared_ptr<State> registerStartState(const ompl::base::State *start);
@@ -133,7 +140,7 @@ namespace ompl
                 bool isGoal(const std::shared_ptr<State> &state) const;
 
                 /** \brief Returns all sampled states. */
-                std::vector<std::shared_ptr<State>> getSamples() const;
+                std::vector<std::shared_ptr<State>> getStates() const;
 
                 /** \brief Registers an invalid edge. */
                 void registerInvalidEdge(const Edge &edge) const;
@@ -165,6 +172,9 @@ namespace ompl
 
                 /** \brief The sampled states in a nearest neighbor structure. */
                 NearestNeighborsGNATNoThreadSafety<std::shared_ptr<State>> samples_;
+
+                /** \brief The new sampled states. */
+                std::vector<std::shared_ptr<State>> newSamples_;
 
                 /** \brief The state sampler. */
                 std::shared_ptr<ompl::base::InformedSampler> sampler_{nullptr};
@@ -222,6 +232,12 @@ namespace ompl
 
                 /** \brief The cost of the incumbent solution. */
                 const ompl::base::Cost &solutionCost_;
+
+                /** \brief The number of sampled states. */
+                unsigned int numSampledStates_{0u};
+
+                /** \brief The number of valid samples. */
+                unsigned int numValidSamples_{0u};
             };
 
         }  // namespace eitstar

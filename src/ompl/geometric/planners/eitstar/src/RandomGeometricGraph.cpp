@@ -105,7 +105,6 @@ namespace ompl
                             registerGoalState(newGoalState);
                             addedNewGoalState = true;
                         }
-
                     } while (inputStates->haveMoreGoalStates() && goalStates_.size() < maxNumGoals_ &&
                              !terminationCondition);
                 }
@@ -229,6 +228,16 @@ namespace ompl
                 return goalStates_;
             }
 
+            unsigned int RandomGeometricGraph::getNumberOfSampledStates() const
+            {
+                return numSampledStates_;
+            }
+
+            unsigned int RandomGeometricGraph::getNumberOfValidSamples() const
+            {
+                return numValidSamples_;
+            }
+
             bool RandomGeometricGraph::hasStartState() const
             {
                 return !startStates_.empty();
@@ -251,7 +260,7 @@ namespace ompl
                                    [&state](const auto &goal) { return state->getId() == goal->getId(); });
             }
 
-            std::vector<std::shared_ptr<State>> RandomGeometricGraph::getSamples() const
+            std::vector<std::shared_ptr<State>> RandomGeometricGraph::getStates() const
             {
                 std::vector<std::shared_ptr<State>> samples;
                 samples_.list(samples);
@@ -334,7 +343,8 @@ namespace ompl
                 return goalState;
             }
 
-            void RandomGeometricGraph::addStates(std::size_t numNewStates)
+            bool RandomGeometricGraph::addStates(std::size_t numNewStates,
+                                                 const ompl::base::PlannerTerminationCondition &terminationCondition)
             {
                 // Assert sanity of used variables.
                 assert(sampler_);
@@ -355,18 +365,20 @@ namespace ompl
                 }
 
                 // Create the requested number of new states.
-                std::vector<std::shared_ptr<State>> newStates;
-                newStates.reserve(numNewStates);
-                while (newStates.size() < numNewStates)
+                do
                 {
                     // Allocate a new state.
-                    newStates.emplace_back(std::make_shared<State>(spaceInfo_, objective_));
-                    auto &newState = newStates.back();
+                    newSamples_.emplace_back(std::make_shared<State>(spaceInfo_, objective_));
+                    auto &newState = newSamples_.back();
 
                     do  // Sample randomly until a valid state is found.
                     {
                         sampler_->sampleUniform(newState->raw(), solutionCost_);
+                        ++numSampledStates_;
                     } while (!spaceInfo_->isValid(newState->raw()));
+
+                    // We've found a valid sample.
+                    ++numValidSamples_;
 
                     // Set the current cost to come.
                     newState->setCurrentCostToCome(objective_->infiniteCost());
@@ -406,23 +418,30 @@ namespace ompl
                         // Set the estimated effort to go.
                         newState->setEstimatedEffortToGo(std::numeric_limits<std::size_t>::max());
                     }
-                }
+                } while (newSamples_.size() < numNewStates && !terminationCondition);
 
                 // Add the new states to the samples.
-                samples_.add(newStates);
-
-                // Update the radius by considering all informed states.
-                if (useKNearest_)
+                if (newSamples_.size() == numNewStates)
                 {
-                    numNeighbors_ = computeNumberOfNeighbors(numInformedSamples + numNewStates);
-                }
-                else
-                {
-                    radius_ = computeRadius(numInformedSamples + numNewStates);
-                }
+                    samples_.add(newSamples_);
+                    newSamples_.clear();
 
-                // Update the tag.
-                ++tag_;
+                    // Update the radius by considering all informed states.
+                    if (useKNearest_)
+                    {
+                        numNeighbors_ = computeNumberOfNeighbors(numInformedSamples + numNewStates);
+                    }
+                    else
+                    {
+                        radius_ = computeRadius(numInformedSamples + numNewStates);
+                    }
+
+                    // Update the tag.
+                    ++tag_;
+
+                    return true;
+                }
+                return false;
             }
 
             void RandomGeometricGraph::enablePruning(bool prune)

@@ -96,6 +96,12 @@ namespace ompl
             /** \brief Get whether pruning is enabled or not. */
             bool isPruningEnabled() const;
 
+            /** \brief Set whether to track approximate solutions or not. */
+            void trackApproximateSolutions(bool track);
+
+            /** \brief Get whether approximate solutions are tracked or not. */
+            bool areApproximateSolutionsTracked() const;
+
             /** \brief Set whether to use a k-nearest RGG connection model. If false, AIT* uses an r-disc model. */
             void setUseKNearest(bool useKNearest);
 
@@ -139,7 +145,7 @@ namespace ompl
             Phase phase_{Phase::REVERSE_SEARCH};
 
             /** \brief Performs one iteration. */
-            void iterate();
+            void iterate(const ompl::base::PlannerTerminationCondition &terminationCondition);
 
             /** \brief Perform one reverse iteration. */
             void reverseIterate();
@@ -148,13 +154,25 @@ namespace ompl
             void forwardIterate();
 
             /** \brief Improves the approximation by sampling more states. */
-            void improveApproximation();
+            void improveApproximation(const ompl::base::PlannerTerminationCondition &terminationCondition);
 
             /** \brief Updates the solution. */
             void updateSolution(const std::shared_ptr<eitstar::State> &goalState);
 
             /** \brief Increases the collision detection resolution and restart reverse search. */
             void increaseSparseCollisionDetectionResolutionAndRestartReverseSearch();
+
+            /** \brief Uses OMPL_INFORM to let the user know about a newly found solution. */
+            void informAboutNewSolution() const;
+
+            /** \brief Uses OMPL_INFORM to let the user know about the planner status. */
+            void informAboutPlannerStatus(ompl::base::PlannerStatus::StatusType status) const;
+
+            /** \brief Returns the number of vertices in the forward tree. */
+            unsigned int countNumVerticesInForwardTree() const;
+
+            /** \brief Returns the number of vertices in the forward tree. */
+            unsigned int countNumVerticesInReverseTree() const;
 
             /** \brief Rewire reverse search tree locally. Returns [ bestParent, bestCost, bestEdgeCost ].
              * Note that bestParent == nullptr if no parent is found. */
@@ -245,6 +263,9 @@ namespace ompl
             /** \brief Whether pruning is enabled. */
             bool isPruningEnabled_{true};
 
+            /** \brief Whether EIT* tracks approximate solutions. */
+            bool trackApproximateSolutions_{true};
+
             /** \brief The edge cache that enables the just-in-time reverse search. */
             std::vector<eitstar::Edge> jitSearchEdgeCache_{};
 
@@ -292,6 +313,18 @@ namespace ompl
 
             /** \brief The cost of the best reverse path. */
             ompl::base::Cost reverseCost_;
+
+            /** \brief The cost to come to the vertex that is closest to the goal (in cost space). */
+            ompl::base::Cost approximateSolutionCost_{};
+
+            /** \brief The cost to go to the goal from the current best approximate solution. */
+            ompl::base::Cost approximateSolutionCostToGoal_{};
+
+            /** \brief The number of processed edges. */
+            mutable unsigned int numProcessedEdges_{0u};
+
+            /** \brief The number of collision checked edges. */
+            mutable unsigned int numCollisionCheckedEdges_{0u};
         };
 
     }  // namespace geometric
