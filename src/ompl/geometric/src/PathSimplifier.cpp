@@ -46,7 +46,7 @@
 #include <utility>
 
 ompl::geometric::PathSimplifier::PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr &goal,
-                                                const base::OptimizationObjectivePtr& obj)
+                                                const base::OptimizationObjectivePtr &obj)
   : si_(std::move(si)), freeStates_(true)
 {
     if (goal)
@@ -79,6 +79,9 @@ void ompl::geometric::PathSimplifier::freeStates(bool flag)
 /* Based on COMP450 2010 project of Yun Yu and Linda Hill (Rice University) */
 void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigned int maxSteps, double minChange)
 {
+    auto start = std::chrono::steady_clock::now();
+    std::string msg = "Start SmoothBSpline with: " + std::to_string(path.getStateCount()) + " states and path_length " + std::to_string(path.length());
+    OMPL_DEBUG(msg.c_str());
     if (path.getStateCount() < 3)
         return;
 
@@ -90,9 +93,11 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
 
     for (unsigned int s = 0; s < maxSteps; ++s)
     {
+        std::cout << "smoothBSpline: starting step : " + std::to_string(s) << std::endl;
         path.subdivide();
 
         unsigned int i = 2, u = 0, n1 = states.size() - 1;
+        std::cout << "smoothBSpline: n1 is : " + std::to_string(n1) << std::endl;
         while (i < n1)
         {
             if (si->isValid(states[i - 1]))
@@ -104,8 +109,16 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
                 {
                     if (si->distance(states[i], temp1) > minChange)
                     {
+
+                        std::cout << "smoothBSpline: distance " + std::to_string(si->distance(states[i], temp1)) + " is greater than min change: " + std::to_string(minChange) << std::endl;
                         si->copyState(states[i], temp1);
                         ++u;
+                    }
+                    else
+                    {
+                        std::cout << "smoothBSpline: NOT GOOD! distance " + std::to_string(si->distance(states[i], temp1)) +
+                                         " is less than min change: " + std::to_string(minChange)
+                                  << std::endl;
                     }
                 }
             }
@@ -114,17 +127,27 @@ void ompl::geometric::PathSimplifier::smoothBSpline(PathGeometric &path, unsigne
         }
 
         if (u == 0)
+        {
+            std::cout << "smoothBSpline: BREAK is called at step : " + std::to_string(s) << std::endl;
             break;
+        }
     }
 
     si->freeState(temp1);
     si->freeState(temp2);
+    auto end = std::chrono::steady_clock::now();
+    auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::string end_msg = "END of SmoothBSpline! Time elapsed: " + std::to_string(elapsed_time) + " millisecond, nb of states: " + std::to_string(path.getStateCount()) + " and path_length " + std::to_string(path.length());
+    OMPL_DEBUG(end_msg.c_str());
 }
 
 bool ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsigned int maxSteps,
                                                      unsigned int maxEmptySteps, double rangeRatio)
 {
-    if (path.getStateCount() < 3)
+    auto start = std::chrono::steady_clock::now();
+    std::string msg = "Start ReduceVertices with: " + std::to_string(path.getStateCount()) + " states and path_length " + std::to_string(path.length());
+    OMPL_DEBUG(msg.c_str());
+    if (path.getStateCount() <= 3)
         return false;
 
     if (maxSteps == 0)
@@ -171,6 +194,11 @@ bool ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
             if (p1 > p2)
                 std::swap(p1, p2);
 
+            if (p1 == 0 && p2 == maxN) //already checked! => skip it!
+            {
+                continue;
+            }
+
             if (si->checkMotion(states[p1], states[p2]))
             {
                 if (freeStates_)
@@ -181,13 +209,21 @@ bool ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
                 result = true;
             }
         }
+
+    auto end = std::chrono::steady_clock::now();
+    auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::string end_msg = "END of ReduceVertices! Time elapsed: " + std::to_string(elapsed_time) + " millisecond, nb of states: " + std::to_string(path.getStateCount()) + " and path_length " + std::to_string(path.length());
+    OMPL_DEBUG(end_msg.c_str());
     return result;
 }
 
 bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned int maxSteps,
                                                    unsigned int maxEmptySteps, double rangeRatio, double snapToVertex)
 {
-    if (path.getStateCount() < 3)
+    auto start = std::chrono::steady_clock::now();
+    std::string msg = "Start ShortcutPath with: " + std::to_string(path.getStateCount()) + " states and path_length " + std::to_string(path.length());
+    OMPL_DEBUG(msg.c_str());
+    if (path.getStateCount() <= 3)
         return false;
 
     if (maxSteps == 0)
@@ -212,6 +248,9 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
     double threshold = dists.back() * snapToVertex;
     // The range (distance) of a single connection that will be attempted
     double rd = rangeRatio * dists.back();
+
+    std::string msg2 = "ShortcutPath: Threshold is" + std::to_string(threshold) + " And rd is " + std::to_string(rd);
+    OMPL_DEBUG(msg2.c_str());
 
     base::State *temp0 = si->allocState();
     base::State *temp1 = si->allocState();
@@ -380,6 +419,11 @@ bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned
 
     si->freeState(temp1);
     si->freeState(temp0);
+
+    auto end = std::chrono::steady_clock::now();
+    auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::string end_msg = "END of ShortcutPath! Time elapsed: " + std::to_string(elapsed_time) + " millisecond, nb of states: " + std::to_string(path.getStateCount()) + " and path_length " + std::to_string(path.length());
+    OMPL_DEBUG(end_msg.c_str());
     return result;
 }
 
@@ -401,7 +445,8 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
 
     std::vector<std::tuple<double, base::Cost, unsigned int>> distCostIndices;
     for (unsigned int i = 0; i < states.size() - 1; i++)
-        distCostIndices.emplace_back(si->distance(states[i], states[i + 1]), obj_->motionCost(states[i], states[i + 1]), i);
+        distCostIndices.emplace_back(si->distance(states[i], states[i + 1]), obj_->motionCost(states[i], states[i + 1]),
+                                     i);
 
     // Sort so highest costs are first
     std::sort(distCostIndices.begin(), distCostIndices.end(),
@@ -581,7 +626,7 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
             distCostIndices.clear();
             for (unsigned int i = 0; i < states.size() - 1; i++)
                 distCostIndices.emplace_back(si->distance(states[i], states[i + 1]),
-                                                          obj_->motionCost(states[i], states[i + 1]), i);
+                                             obj_->motionCost(states[i], states[i + 1]), i);
 
             // Sort so highest costs are first
             std::sort(
@@ -605,7 +650,10 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
 bool ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path, unsigned int maxSteps,
                                                             unsigned int maxEmptySteps)
 {
-    if (path.getStateCount() < 3)
+    auto start = std::chrono::steady_clock::now();
+    std::string msg = "Start collapseCloseVertices with: " + std::to_string(path.getStateCount()) + " states and path_length " + std::to_string(path.length());
+    OMPL_DEBUG(msg.c_str());
+    if (path.getStateCount() <= 3)
         return false;
 
     if (maxSteps == 0)
@@ -660,6 +708,11 @@ bool ompl::geometric::PathSimplifier::collapseCloseVertices(PathGeometric &path,
         else
             break;
     }
+
+    auto end = std::chrono::steady_clock::now();
+    auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::string end_msg = "END of collapseCloseVertices! Time elapsed: " + std::to_string(elapsed_time) + " millisecond, nb of states: " + std::to_string(path.getStateCount()) + " and path_length " + std::to_string(path.length());
+    OMPL_DEBUG(end_msg.c_str());
     return result;
 }
 
@@ -690,6 +743,10 @@ bool ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
             unsigned int times = 0;
             do
             {
+                std::string msg = "Call shortcutPath " + std::to_string(times) +
+                                  " for path with: " + std::to_string(path.getStateCount()) +
+                                  " states and path_length " + std::to_string(path.length());
+                OMPL_DEBUG(msg.c_str());
                 bool shortcut = shortcutPath(path);  // split path segments, not just vertices
                 bool better_goal =
                     gsr_ ? findBetterGoal(path, ptc) : false;  // Try to connect the path to a closer goal
@@ -697,12 +754,28 @@ bool ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
                 metricTryMore = shortcut || better_goal;
             } while ((ptc == false || atLeastOnce) && ++times <= 5 && metricTryMore);
 
+            std::string msg = "AFTER shortcutPath : path with: " + std::to_string(path.getStateCount()) +
+                              " states and path_length " + std::to_string(path.length());
+            OMPL_DEBUG(msg.c_str());
+
+
             // smooth the path with BSpline interpolation
             if (ptc == false || atLeastOnce)
+            {
+                auto path_length = path.length();
+                auto state_count = path.getStateCount();
+                std::string msg = "Call SmoothBSpline for path with: " + std::to_string(state_count) +
+                                  " states and path_length " + std::to_string(path_length);
+                OMPL_DEBUG(msg.c_str());
                 smoothBSpline(path, 3, path.length() / 100.0);
+            }
 
             if (ptc == false || atLeastOnce)
             {
+                std::string msg = "Call checkAndRepair for path with: " + std::to_string(path.getStateCount()) +
+                                  " states and path_length " + std::to_string(path.length());
+                OMPL_DEBUG(msg.c_str());
+
                 // we always run this if the metric-space algorithms were run.  In non-metric spaces this does not work.
                 const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
                 if (!p.second)
@@ -719,19 +792,38 @@ bool ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
 
         // try a randomized step of connecting vertices
         if (ptc == false || atLeastOnce)
+        {
+            std::string msg = "Call reduceVertices for path with: " + std::to_string(path.getStateCount()) +
+                              " states and path_length " + std::to_string(path.length());
+            OMPL_DEBUG(msg.c_str());
             tryMore = reduceVertices(path);
+        }
 
         // try to collapse close-by vertices
         if (ptc == false || atLeastOnce)
+        {
+            std::string msg = "Call collapseCloseVertices for path with: " + std::to_string(path.getStateCount()) +
+                              " states and path_length " + std::to_string(path.length());
+            OMPL_DEBUG(msg.c_str());
             collapseCloseVertices(path);
+            }
 
         // try to reduce verices some more, if there is any point in doing so
         unsigned int times = 0;
         while ((ptc == false || atLeastOnce) && tryMore && ++times <= 5)
+        {
+            std::string msg = "Call reduceVertices in while loop, repeat nb: " +std::to_string(times)+"  for path with: " + std::to_string(path.getStateCount()) +
+                              " states and path_length " + std::to_string(path.length());
+            OMPL_DEBUG(msg.c_str());
             tryMore = reduceVertices(path);
+
+            }
 
         if ((ptc == false || atLeastOnce) && si_->getStateSpace()->isMetricSpace())
         {
+            std::string msg = "Space is METRIC! Call checkAndRepair for path with: " + std::to_string(path.getStateCount()) +
+                              " states and path_length " + std::to_string(path.length());
+            OMPL_DEBUG(msg.c_str());
             // we always run this if the metric-space algorithms were run.  In non-metric spaces this does not work.
             const std::pair<bool, bool> &p = path.checkAndRepair(magic::MAX_VALID_SAMPLE_ATTEMPTS);
             if (!p.second)

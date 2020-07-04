@@ -48,6 +48,8 @@ void ompl::base::DiscreteMotionValidator::defaultSettings()
 bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const State *s2,
                                                       std::pair<State *, double> &lastValid) const
 {
+    OMPL_DEBUG("PROBLEM!!! CALLING check motion in OMPL!");
+
     /* assume motion starts in a valid configuration so s1 is valid */
 
     bool result = true;
@@ -92,6 +94,7 @@ bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const Sta
 
 bool ompl::base::DiscreteMotionValidator::checkMotion(const State *s1, const State *s2) const
 {
+    OMPL_DEBUG("PROBLEM!!! CALLING check motion in OMPL!");
     /* assume motion starts in a valid configuration so s1 is valid */
     if (!si_->isValid(s2))
     {
