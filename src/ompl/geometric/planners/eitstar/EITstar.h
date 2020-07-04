@@ -84,6 +84,9 @@ namespace ompl
             void setRadiusFactor(double factor);
 
             /** \brief Sets the radius factor. */
+            double getRadiusFactor() const;
+
+            /** \brief Sets the radius factor. */
             void setSuboptimalityFactor(double factor);
 
             /** \brief Sets the option whether to increse collision detection on the reverse search tree when the
