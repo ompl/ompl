@@ -204,6 +204,18 @@ namespace ompl
                 expandTag_ = expandTag;
             }
 
+            void Vertex::callOnBranch(const std::function<void(const std::shared_ptr<eitstar::State> &)> &function)
+            {
+                // Call it on the underlying state.
+                function(state_);
+
+                // Recursively call it on all children.
+                for (const auto &child : children_)
+                {
+                    child->callOnBranch(function);
+                }
+            }
+
         }  // namespace eitstar
 
     }  // namespace geometric

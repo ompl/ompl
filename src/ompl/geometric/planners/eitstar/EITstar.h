@@ -168,8 +168,25 @@ namespace ompl
             /** \brief Improves the approximation by sampling more states. */
             void improveApproximation(const ompl::base::PlannerTerminationCondition &terminationCondition);
 
-            /** \brief Updates the solution. */
-            void updateSolution(const std::shared_ptr<eitstar::State> &goalState);
+            /** \brief Updates the exact solution by checking every goal in the graph. */
+            void updateExactSolution();
+
+            /** \brief Updates the solution with a given goal state. */
+            void updateExactSolution(const std::shared_ptr<eitstar::State> &goalState);
+
+            /** \brief Checks whether the input vertex is the new best approximate solution and updates the solution in
+             * the problem definition if so. **/
+            void updateApproximateSolution();
+
+            /** \brief Checks whether the input vertex is the new best approximate solution and updates the solution in
+             * the problem definition if so. **/
+            void updateApproximateSolution(const std::shared_ptr<eitstar::State> &state);
+
+            /** \brief Updates the current cost to come of a state using the information in the forward search tree. */
+            void updateCurrentCostToCome(const std::shared_ptr<eitstar::State> &state);
+
+            /** \brief Computes the cost to go to the goal. */
+            ompl::base::Cost computeCostToGoToGoal(const std::shared_ptr<eitstar::State> &state) const;
 
             /** \brief Increases the collision detection resolution and restart reverse search. */
             void increaseSparseCollisionDetectionResolutionAndRestartReverseSearch();

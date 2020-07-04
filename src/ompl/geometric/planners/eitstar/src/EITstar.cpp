@@ -217,6 +217,17 @@ namespace ompl
                 iterate(terminationCondition);
             }
 
+            // Someone might call ProblemDefinition::clearSolutionPaths() between invocations of Planner::sovle(), in
+            // which case previously found solutions are not registered with the problem definition anymore.
+            updateExactSolution();
+
+            // If there are no exact solutions registered in the problem definition and we're tracking approximate
+            // solutions, find the best vertex in the graph.
+            if (!pdef_->hasExactSolution() && trackApproximateSolutions_)
+            {
+                updateApproximateSolution();
+            }
+
             // Return the appropriate planner status.
             if (objective_->isFinite(solutionCost_))
             {
@@ -537,7 +548,7 @@ namespace ompl
                                 // Update the solution if the vertex is a goal.
                                 if (graph_.isGoal(vertex->getState()))
                                 {
-                                    updateSolution(vertex->getState());
+                                    updateExactSolution(vertex->getState());
                                 }
                             }
 
@@ -571,7 +582,7 @@ namespace ompl
                             }
                             else  // It is the goal state, update the solution.
                             {
-                                updateSolution(edge.target);
+                                updateExactSolution(edge.target);
                             }
                         }
                     }
@@ -818,7 +829,42 @@ namespace ompl
             }
         }
 
-        void EITstar::updateSolution(const std::shared_ptr<eitstar::State> &goal)
+        void EITstar::updateExactSolution()
+        {
+            for (const auto &goal : graph_.getGoalStates())
+            {
+                if (goal->hasForwardVertex())
+                {
+                    updateExactSolution(goal);
+                }
+            }
+        }
+
+        void EITstar::updateApproximateSolution()
+        {
+            for (const auto &start : graph_.getStartStates())
+            {
+                start->asForwardVertex()->callOnBranch(
+                    [this](const std::shared_ptr<eitstar::State> &state) -> void { updateApproximateSolution(state); });
+            }
+        }
+
+        void EITstar::updateCurrentCostToCome(const std::shared_ptr<eitstar::State> &state)
+        {
+            if (state->hasForwardVertex())
+            {
+                auto forwardVertex = state->asForwardVertex();
+                state->setCurrentCostToCome(
+                    objective_->combineCosts(forwardVertex->getParent().lock()->getState()->getCurrentCostToCome(),
+                                             forwardVertex->getEdgeCost()));
+            }
+            else
+            {
+                state->setCurrentCostToCome(objective_->infiniteCost());
+            }
+        }
+
+        void EITstar::updateExactSolution(const std::shared_ptr<eitstar::State> &goal)
         {
             // Throw if the reverse root does not have a forward vertex.
             assert(goal->hasForwardVertex());
@@ -866,6 +912,30 @@ namespace ompl
                 suboptimalityFactor_ =
                     solutionCost_.value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value();
             }
+        }
+
+        void EITstar::updateApproximateSolution(const std::shared_ptr<eitstar::State> &state)
+        {
+            assert(trackApproximateSolutions_);
+            if (state->hasForwardVertex() || graph_.isStart(state))
+            {
+                const auto costToGoal = computeCostToGoToGoal(state);
+                if (objective_->isCostBetterThan(costToGoal, approximateSolutionCostToGoal_))
+                {
+                    approximateSolutionCost_ = state->getCurrentCostToCome();
+                    approximateSolutionCostToGoal_ = costToGoal;
+                }
+            }
+        }
+
+        ompl::base::Cost EITstar::computeCostToGoToGoal(const std::shared_ptr<eitstar::State> &state) const
+        {
+            auto bestCost = objective_->infiniteCost();
+            for (const auto &goal : graph_.getGoalStates())
+            {
+                bestCost = objective_->betterCost(bestCost, objective_->motionCost(state->raw(), goal->raw()));
+            }
+            return bestCost;
         }
 
         void EITstar::increaseSparseCollisionDetectionResolutionAndRestartReverseSearch()

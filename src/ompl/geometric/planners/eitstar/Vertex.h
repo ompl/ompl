@@ -121,6 +121,9 @@ namespace ompl
                 /** \brief Sets the expand tag when this vertex was last expanded. */
                 void registerExpansionInReverseSearch(std::size_t tag);
 
+                /** \brief Calls the given function with all children as arguments. */
+                void callOnBranch(const std::function<void(const std::shared_ptr<eitstar::State> &)> &function);
+
             private:
                 /** \brief The unique id of this vertex. */
                 const std::size_t id_;
