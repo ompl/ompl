@@ -203,9 +203,14 @@ namespace ompl
             return solutionCost_;
         }
 
-        void EITstar::setNumSamplesPerBatch(std::size_t numSamples)
+        void EITstar::setBatchSize(unsigned int numSamples)
         {
-            numSamplesPerBatch_ = numSamples;
+            batchSize_ = numSamples;
+        }
+
+        unsigned int EITstar::getBatchSize() const
+        {
+            return batchSize_;
         }
 
         void EITstar::setInitialNumberOfSparseCollisionChecks(std::size_t numChecks)
@@ -731,7 +736,7 @@ namespace ompl
         void EITstar::improveApproximation(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
             // Add new states, also prunes states if enabled.
-            if (graph_.addStates(numSamplesPerBatch_, terminationCondition))
+            if (graph_.addStates(batchSize_, terminationCondition))
             {
                 // Reset the suboptimality factor.
                 suboptimalityFactor_ = std::numeric_limits<double>::infinity();

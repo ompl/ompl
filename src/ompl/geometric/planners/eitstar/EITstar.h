@@ -72,7 +72,10 @@ namespace ompl
             ompl::base::Cost bestCost() const;
 
             /** \brief Sets the number of samples per batch. */
-            void setNumSamplesPerBatch(std::size_t numSamples);
+            void setBatchSize(unsigned int numSamples);
+
+            /** \brief Sets the number of samples per batch. */
+            unsigned int getBatchSize() const;
 
             /** \brief Sets the initial number of collision checks on the reverse search. */
             void setInitialNumberOfSparseCollisionChecks(std::size_t numChecks);
@@ -241,7 +244,7 @@ namespace ompl
             eitstar::RandomGeometricGraph graph_;
 
             /** \brief The number of states added when the approximation is updated. */
-            std::size_t numSamplesPerBatch_{100u};
+            unsigned int batchSize_{100u};
 
             /** \brief The current suboptimality factor of the forward search. */
             double suboptimalityFactor_{std::numeric_limits<float>::infinity()};
