@@ -18,24 +18,21 @@ namespace ompl
         {
           public:
 
-            PathControlOptimizer(base::SpaceInformationPtr si, const base::OptimizationObjectivePtr& obj=nullptr);
+            PathControlOptimizer(base::SpaceInformationPtr si, ompl::base::State* goalState  ,const base::OptimizationObjectivePtr& obj=nullptr);
             void simplify(PathControl* path);
 
             void reduceVertices(PathControl &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps =0, double rangeRatio=0.9);
             
             void addIntermediaryStates( PathControl &path) ;
             
-            bool connectConsecutiveStates(unsigned int position, ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, SimpleDirectedControlSamplerPtr sampler ) ;
+            bool connectConsecutiveStates(unsigned int position, ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, ModifiedDirectedControlSamplerPtr sampler ) ;
             
-			bool connectStateToGoal(unsigned int position, ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, SimpleDirectedControlSamplerPtr sampler ) ;
+			bool connectStateToGoal(unsigned int position, ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, ModifiedDirectedControlSamplerPtr sampler ) ;
 			
-			bool connectStates(unsigned int initial, unsigned int goal , ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, SimpleDirectedControlSamplerPtr sampler, ompl::base::State* reached_State) ;
+			bool connectStates(unsigned int initial, unsigned int goal , ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, ModifiedDirectedControlSamplerPtr sampler, ompl::base::State* reached_State) ;
 			
-			bool connectStates(unsigned int initial, unsigned int goal , ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, SimpleDirectedControlSamplerPtr sampler) ;
+			bool connectStates(unsigned int initial, unsigned int goal , ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, ModifiedDirectedControlSamplerPtr sampler) ;
 
-            // void collapseCloseVertices(PathControl &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps =0);
-	        //void subdivide(PathControl *path) ;
-	        //void smoothBSpline(PathControl &path, unsigned int maxSteps = 5,double minChange = std::numeric_limits<double>::epsilon());
 
           protected:
 
@@ -46,6 +43,8 @@ namespace ompl
             bool freeStates_ ;
             
             RNG rng_ ;
+            
+            ompl::base::State* goalState_ ; 
         };
     }
 }

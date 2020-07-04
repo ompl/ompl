@@ -70,11 +70,10 @@ unsigned int ompl::control::ModifiedDirectedControlSampler::getBestControl(Contr
     const unsigned int maxDuration = si_->getMaxControlDuration();
     // std::cout << minDuration << "," << maxDuration << std::endl;
 
-    unsigned int steps = cs_->sampleStepCount(minDuration, maxDuration);
+    //unsigned int steps = cs_->sampleStepCount(minDuration, maxDuration);
     // Propagate the first control, and find how far it is from the target state
     base::State *bestState = si_->allocState();
-    steps = si_->propagateWhileValid(source, control, steps, bestState);
-
+    //unsigned int steps = si_->propagateWhileValid(source, control, 1, bestState) ;
 //###############################################
     dist = si_->distance(source,dest);
     //if((si_->getPropagationStepSize() * maxDuration) < (0.75*dist)){
@@ -96,29 +95,38 @@ unsigned int ompl::control::ModifiedDirectedControlSampler::getBestControl(Contr
         // Sample k-1 more controls, and save the control that gets closest to target
         for (unsigned int i = 1; i < numControlSamples_; ++i)
         {
-            unsigned int sampleSteps = cs_->sampleStepCount(minDuration, maxDuration);
+            //unsigned int sampleSteps = cs_->sampleStepCount(minDuration, maxDuration);
             if (previous != nullptr)
                 cs_->sampleNext(tempControl, previous, source);
             else
                 cs_->sample(tempControl, source);
+            double oldDistance = si_->distance(source, dest);
+            si_->copyState(tempState,source);
+            unsigned int k=0 ;
+            double tempDistance = 0 ;
+			while (tempDistance< oldDistance)
+			{
+				//propagate for one step
+				unsigned int stepsMade =si_->propagateWhileValid(tempState, tempControl, 1, tempState);
+				if (stepsMade<1)
+				{
+					break ;
+				}	
+				tempDistance = si_->distance(tempState, dest) ;
+				++k ;
+				//aufhören wegen propagateWHileValid oder tempDistance < tolertedDistance
 
-            sampleSteps = si_->propagateWhileValid(source, tempControl, sampleSteps, tempState);
-            double tempDistance = si_->distance(tempState, dest);
-            if (tempDistance < bestDistance)
-            {
-                si_->copyState(bestState, tempState);
-                si_->copyControl(control, tempControl);
-                bestDistance = tempDistance;
-                steps = sampleSteps;
-            //###########################################		
-                if(bestDistance < toleratedDistance_){
-                  si_->freeState(tempState);
-                  si_->freeControl(tempControl);
+                if(tempDistance < toleratedDistance_){
+					si_->copyState(bestState, tempState);
+					si_->copyControl(control, tempControl);
+					bestDistance = tempDistance;					
+                    si_->freeState(tempState);
+                    si_->freeControl(tempControl);
                   // std::cout << "Exited with " << i << " samples and " << steps << " steps" << std::endl;
-                  return steps;
-                }
-            //##########################################
-            }
+                  return k;
+                }				
+			}
+            
         }
 
         si_->freeState(tempState);
@@ -130,49 +138,7 @@ unsigned int ompl::control::ModifiedDirectedControlSampler::getBestControl(Contr
     //si_->copyState(dest, bestState);
     si_->freeState(bestState);
 
-    return steps;
+    return 0;
 }
 
-std::vector<double> ompl::control::ModifiedDirectedControlSampler::getBestControls(std::vector<Control *> &controls, const base::State *source,
-                                                                         base::State *dest, const Control *previous)
-{
-	Control* prev= prev= si_->allocControl()  ;
-	ompl::base::State* start = si_->allocState() ;	
-	si_->copyState(start, source);	
-	if (previous != nullptr)
-	{
-		//prev= si_->allocControl() ;
-		si_->copyControl(prev, previous);
-	}
-	
-	std::vector<double> steps ; 
-	Control* tempControl = si_->allocControl() ;
-	ompl::base::State* reachedState = si_->allocState() ;
-	unsigned int i =0 ;	
-	unsigned int step = getBestControl(tempControl,start,dest,prev) ;
-	si_->printControl(tempControl, std::cout) ;
-	step = si_->propagateWhileValid(start, tempControl, step, reachedState);
-
-	steps.push_back(step) ;
-	controls.push_back(tempControl) ;
-	
-	while ((si_->distance(start,dest)>distanceFactor_*si_->distance(source,dest))&&(i<100))
-	{
-		
-		si_->copyControl(prev,tempControl);
-		si_->copyState(start, reachedState) ;
-		step = getBestControl(tempControl,start,dest,prev) ;
-		step = si_->propagateWhileValid(start, tempControl, step, reachedState);
-		steps.push_back(step) ;
-		controls.push_back(si_->cloneControl(tempControl)) ;
-		i++ ;
-		
-	}
-	
-	if (i!=99)
-	{
-		std::cout<< "a list of "<<i<<" controls has been found" <<std::endl ;
-	}
-	
-	return steps ;
-}                                                                         
+                                                                     

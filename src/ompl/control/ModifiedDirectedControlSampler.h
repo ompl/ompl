@@ -107,9 +107,7 @@ namespace ompl
                 control and duration. The motion is checked for validity. */
             unsigned int sampleTo(Control *control, const Control *previous, const base::State *source,
                                   base::State *dest) override;
-                                  
-            std::vector<double> getBestControls(std::vector<Control *>&controls, const base::State *source,
-                                                                         base::State *dest, const Control *previous) ;                     
+                                                    
 
         protected:
             /** \brief Samples \e numControlSamples_ controls, and returns the
@@ -123,7 +121,7 @@ namespace ompl
             /** \brief The number of controls to sample when finding the best control*/
             unsigned int numControlSamples_;
 //##########################################
-	    double distanceFactor_{0.1};
+	    double distanceFactor_{0.2};
 	    double toleratedDistance_;
 	    double dist;
 //##########################################

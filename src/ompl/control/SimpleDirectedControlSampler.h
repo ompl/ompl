@@ -120,7 +120,7 @@ namespace ompl
             /** \brief The number of controls to sample when finding the best control*/
             unsigned int numControlSamples_;
 //##########################################
-	    double distanceFactor_{0.25};
+	    double distanceFactor_{0.1};
 	    double toleratedDistance_;
 	    double dist;
 //##########################################
