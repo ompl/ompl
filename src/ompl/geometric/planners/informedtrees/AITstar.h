@@ -159,7 +159,7 @@ namespace ompl
 
         private:
             /** \brief Performs one iteration of AIT*. */
-            void iterate();
+            void iterate(const ompl::base::PlannerTerminationCondition &terminationCondition);
 
             /** \brief Performs one forward search iterations. */
             void performForwardSearchIteration();
