@@ -355,18 +355,9 @@ namespace ompl
                 assert(sampler_);
                 assert(objective_);
 
-                // Count the number of informed states before adding new states. This saves some counting, because all
-                // new states will be informed, and its known how many of them will be added. If pruning is enabled, we
-                // can do this now. After pruning all remaining states are in the informed set.
-                auto numInformedSamples{0u};
-                if (isPruningEnabled_)
+                if (numNewStates == 0u)
                 {
-                    prune();
-                    numInformedSamples = samples_.size();
-                }
-                else
-                {
-                    numInformedSamples = countSamplesInInformedSet();
+                    return true;
                 }
 
                 // Create the requested number of new states.
@@ -428,6 +419,21 @@ namespace ompl
                 // Add the new states to the samples.
                 if (newSamples_.size() == numNewStates)
                 {
+                    // Count the number of informed states before adding the new states. This saves some counting,
+                    // because all new states will be in the informed set, and its known how many of them will be added.
+                    // If pruning is enabled, we can do this now. After pruning all remaining states are in the informed
+                    // set.
+                    auto numInformedSamples{0u};
+                    if (isPruningEnabled_)
+                    {
+                        prune();
+                        numInformedSamples = samples_.size();
+                    }
+                    else
+                    {
+                        numInformedSamples = countSamplesInInformedSet();
+                    }
+
                     samples_.add(newSamples_);
                     newSamples_.clear();
 
