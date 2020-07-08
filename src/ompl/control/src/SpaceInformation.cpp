@@ -102,36 +102,16 @@ ompl::control::DirectedControlSamplerPtr ompl::control::SpaceInformation::allocD
         return std::make_shared<SimpleDirectedControlSampler>(this);
 }
 
-ompl::control::SimpleDirectedControlSamplerPtr ompl::control::SpaceInformation::allocSimpleDirectedControlSampler() const
-{
-	if (sdcsa_)
-		return sdcsa_(this) ;
-	else
-		return std::make_shared<SimpleDirectedControlSampler>(this);
-}
-
 void ompl::control::SpaceInformation::setDirectedControlSamplerAllocator(const DirectedControlSamplerAllocator &dcsa)
 {
     dcsa_ = dcsa;
     setup_ = false;
 }
 
-void ompl::control::SpaceInformation::setSimpleDirectedControlSamplerAllocator(const SimpleDirectedControlSamplerAllocator &sdcsa)
-{
-	sdcsa_=sdcsa ;
-	setup_ = false;
-}
-
 void ompl::control::SpaceInformation::clearDirectedSamplerAllocator()
 {
     dcsa_ = DirectedControlSamplerAllocator();
     setup_ = false;
-}
-
-void ompl::control::SpaceInformation::clearSimpleDirectedSamplerAllocator()
-{
-	sdcsa_= SimpleDirectedControlSamplerAllocator() ;
-	setup_ = false ;
 }
 
 void ompl::control::SpaceInformation::setStatePropagator(const StatePropagatorFn &fn)

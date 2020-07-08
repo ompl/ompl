@@ -4,10 +4,8 @@
 #include <ompl/control/PathControl.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/OptimizationObjective.h>
-#include "ompl/util/RandomNumbers.h"
-#include "ompl/base/DynamicalMotionValidator.h"
-
-
+#include <ompl/control/ModifiedDirectedControlSampler.h>
+#include <ompl/util/RandomNumbers.h>
 
 namespace ompl
 {
@@ -17,14 +15,21 @@ namespace ompl
         {
           public:
 
-            PathControlOptimizer(base::SpaceInformationPtr si, const base::OptimizationObjectivePtr& obj=nullptr);
+            PathControlOptimizer(base::SpaceInformationPtr si, ompl::base::State* goalState  ,const base::OptimizationObjectivePtr& obj=nullptr);
             void simplify(PathControl* path);
 
             void reduceVertices(PathControl &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps =0, double rangeRatio=0.9);
+            
+            void addIntermediaryStates( PathControl &path) ;
+            
+            bool connectConsecutiveStates(unsigned int position, ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, ModifiedDirectedControlSamplerPtr sampler ) ;
+            
+			bool connectStateToGoal(unsigned int position, ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, ModifiedDirectedControlSamplerPtr sampler ) ;
+			
+			bool connectStates(unsigned int initial, unsigned int goal , ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, ModifiedDirectedControlSamplerPtr sampler, ompl::base::State* reached_State) ;
+			
+			bool connectStates(unsigned int initial, unsigned int goal , ompl::control::PathControl &path, ompl::base::State* state, control::SpaceInformation* siC, ModifiedDirectedControlSamplerPtr sampler) ;
 
-            // void collapseCloseVertices(PathControl &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps =0);
-	        //void subdivide(PathControl *path) ;
-	        //void smoothBSpline(PathControl &path, unsigned int maxSteps = 5,double minChange = std::numeric_limits<double>::epsilon());
 
           protected:
 
@@ -35,6 +40,8 @@ namespace ompl
             bool freeStates_ ;
             
             RNG rng_ ;
+            
+            ompl::base::State* goalState_ ; 
         };
     }
 }

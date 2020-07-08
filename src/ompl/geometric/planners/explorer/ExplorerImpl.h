@@ -7,8 +7,7 @@
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
-//namespace oc = ompl::control;
-//need to set propagationStepSize?
+namespace oc = ompl::control;
 
 namespace ompl
 {

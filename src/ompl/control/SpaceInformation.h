@@ -43,7 +43,6 @@
 #include "ompl/control/ControlSpace.h"
 #include "ompl/control/ControlSampler.h"
 #include "ompl/control/DirectedControlSampler.h"
-#include <ompl/control/SimpleDirectedControlSampler.h>
 #include "ompl/control/StatePropagator.h"
 #include "ompl/control/Control.h"
 #include "ompl/util/ClassForward.h"
@@ -180,13 +179,9 @@ namespace ompl
                (SimpleDirectedControlSampler) unless
                 setDirectedControlSamplerAllocator() was previously called. */
             DirectedControlSamplerPtr allocDirectedControlSampler() const;
-            
-            SimpleDirectedControlSamplerPtr allocSimpleDirectedControlSampler() const ;
 
             /** \brief Set the allocator to use for the  DirectedControlSampler */
             void setDirectedControlSamplerAllocator(const DirectedControlSamplerAllocator &dcsa);
-            
-            void setSimpleDirectedControlSamplerAllocator(const SimpleDirectedControlSamplerAllocator &sdcsa);
 
             /** \brief Reset the DirectedControlSampler to be the default one */
             void clearDirectedSamplerAllocator();
@@ -195,13 +190,6 @@ namespace ompl
 
             /** @name Configuration of the state propagator
                 @{ */
-                
-            void clearSimpleDirectedSamplerAllocator();
-
-            /** @} */
-
-            /** @name Configuration of the state propagator
-                @{ */                
 
             /** \brief Get the instance of StatePropagator that performs state propagation */
             const StatePropagatorPtr &getStatePropagator() const
@@ -303,17 +291,6 @@ namespace ompl
 
             /** \brief Perform additional setup tasks (run once, before use) */
             void setup() override;
-            
-			double getControlDuration() const
-			{
-				return motionValidator_->getControlDuration() ;
-			}
-			
-			ompl::control::Control* getCurrentControl() const
-			{
-				return motionValidator_->getCurrentControl() ;
-			}
-            
 
         protected:
             /** Declare parameter settings */
@@ -334,8 +311,6 @@ namespace ompl
             /** \brief Optional allocator for the DirectedControlSampler. If not specified, the default implementation
              * is used */
             DirectedControlSamplerAllocator dcsa_;
-            
-            SimpleDirectedControlSamplerAllocator sdcsa_ ;
 
             /** \brief The actual duration of each step */
             double stepSize_{0.};

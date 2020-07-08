@@ -7,15 +7,16 @@
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/objectives/MaximizeMinClearanceObjective.h>
 #include <ompl/control/ControlSpace.h>
+#include <ompl/control/PathControl.h>
 #include <ompl/control/SpaceInformation.h>
 #include <ompl/control/Control.h>
 #include <ompl/control/SimpleDirectedControlSampler.h>
 #include <ompl/control/StatePropagator.h>
-#include <ompl/base/DynamicalMotionValidator.h>
 #include <boost/foreach.hpp>
 
 
 using namespace og;
+using namespace oc;
 using namespace ob;
 #define foreach BOOST_FOREACH
 
@@ -31,7 +32,6 @@ ExplorerImpl::ExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *paren
 
   if(isDynamic()) {
     ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si.get());
-    siC->setMotionValidator(std::make_shared<ob::DynamicalMotionValidator>(siC));
     siC->setup();
     siC->setMinMaxControlDuration(1,controlDuration);
     std::cout << "MaxControlDuration: " << controlDuration << std::endl;
@@ -242,9 +242,6 @@ void ExplorerImpl::growControl(){
 
     s_random = q_random->state;
 
-    //changes q_random to the state we actually get with directed control c_random
-    // ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(getBundle().get());
-    // unsigned int cd = rng_.uniformInt(siC->getMinControlDuration(), siC->getMaxControlDuration());
     int duration = dCSampler->sampleTo(c_random, q_nearest->state, s_random);
 
     if(duration > controlDuration){
@@ -423,17 +420,21 @@ void ExplorerImpl::removeLastPathFromStack()
 
 void ExplorerImpl::pushPathToStack(std::vector<ob::State*> &path)
 {
-    og::PathGeometric gpath(getBundle());
-    for(uint k = 0; k < path.size(); k++)
-    {
-        gpath.append(path.at(k));
-    }
 
     if(isDynamic())
     {
-        OMPL_WARN("No Optimizer for dynamic paths specified.");
+        oc::PathControl cpath(getBundle());
+        for(uint k = 0; k < path.size(); k++)
+        {
+            cpath.append(path.at(k));
+        }
         // shortcutter.shortcutPath(gpath);
     }else{
+        og::PathGeometric gpath(getBundle());
+        for(uint k = 0; k < path.size(); k++)
+        {
+            gpath.append(path.at(k));
+        }
         og::PathSimplifier shortcutter(getBundle(), ob::GoalPtr(), pathObj_);
         //make sure that we have enough vertices so that the right path class is
         //visualized (problems with S1)
@@ -444,41 +445,40 @@ void ExplorerImpl::pushPathToStack(std::vector<ob::State*> &path)
             shortcutter.smoothBSpline(gpath);
             shortcutter.simplifyMax(gpath);
         }
-    }
-
-    if(!isDynamic() && !isProjectable(gpath.getStates()))
-    {
-      std::cout << "REJECTED (Not projectable)" << std::endl;
-      numberOfFailedAddingPathCalls++;
-      return;
-    }
-
-    if(!isDynamic() && !pathVisibilityChecker_->CheckValidity(gpath.getStates()))
-    {
-      std::cout << "REJECTED (Infeasible)" << std::endl;
-      numberOfFailedAddingPathCalls++;
-      return;
-    }
-
-    if (pathStack_.size() <= 0)
-    {
-        pathStack_.push_back(gpath);
-    }
-    else
-    {
-        for (uint k = 0; k < pathStack_.size(); k++)
+        if(!isProjectable(gpath.getStates()))
         {
-            og::PathGeometric &pathk = pathStack_.at(k);
-            if (pathVisibilityChecker_->IsPathVisible(gpath.getStates(), pathk.getStates()))
-            {
-                std::cout << "REJECTED (Equal to path " << k << ")" << std::endl;
-                numberOfFailedAddingPathCalls++;
-                return;
-            }
+          std::cout << "REJECTED (Not projectable)" << std::endl;
+          numberOfFailedAddingPathCalls++;
+          return;
         }
-        pathStack_.push_back(gpath);
+
+        if(!pathVisibilityChecker_->CheckValidity(gpath.getStates()))
+        {
+          std::cout << "REJECTED (Infeasible)" << std::endl;
+          numberOfFailedAddingPathCalls++;
+          return;
+        }
+        if (pathStack_.size() <= 0)
+        {
+            pathStack_.push_back(gpath);
+        }
+        else
+        {
+            for (uint k = 0; k < pathStack_.size(); k++)
+            {
+                og::PathGeometric &pathk = pathStack_.at(k);
+                if (pathVisibilityChecker_->IsPathVisible(gpath.getStates(), pathk.getStates()))
+                {
+                    std::cout << "REJECTED (Equal to path " << k << ")" << std::endl;
+                    numberOfFailedAddingPathCalls++;
+                    return;
+                }
+            }
+            pathStack_.push_back(gpath);
+        }
+        std::cout << "Added to stack (" << pathStack_.size() << " paths on stack)" << std::endl;
     }
-    std::cout << "Added to stack (" << pathStack_.size() << " paths on stack)" << std::endl;
+
 }
 
 void ExplorerImpl::PrintPathStack()

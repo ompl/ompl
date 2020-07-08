@@ -88,6 +88,7 @@ void ompl::geometric::ExplorerTestImpl::grow()
                     {
                         solutionspaths.at(i) = path;
                         solutionPathLength.at(i) = pathlength;
+                        //TODO: break; 
                     }
                 }
             }

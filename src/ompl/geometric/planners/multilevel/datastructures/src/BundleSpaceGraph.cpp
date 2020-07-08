@@ -48,6 +48,7 @@
 #include <ompl/geometric/planners/multilevel/datastructures/metrics/Geodesic.h>
 #include <ompl/geometric/planners/multilevel/datastructures/metrics/ShortestPath.h>
 #include <ompl/geometric/planners/multilevel/datastructures/propagators/Geometric.h>
+#include <ompl/geometric/planners/multilevel/datastructures/propagators/Dynamic.h>
 #include <ompl/geometric/planners/multilevel/datastructures/pathrestriction/PathRestriction.h>
 
 #include <ompl/geometric/PathSimplifier.h>
@@ -569,11 +570,11 @@ void ompl::geometric::BundleSpaceGraph::setPropagator(const std::string &sPropag
         OMPL_DEBUG("Geometric Propagator Selected");
         propagator_ = std::make_shared<BundleSpacePropagatorGeometric>(this);
     }
-    // else if (sPropagator == "dynamic")
-    // {
-    //     OMPL_DEBUG("Dynamic Propagator Selected");
-    //     propagator_ = std::make_shared<BundleSpacePropagatorDynamic>(this);
-    // }
+    else if (sPropagator == "dynamic")
+    {
+        OMPL_DEBUG("Dynamic Propagator Selected");
+        propagator_ = std::make_shared<BundleSpacePropagatorDynamic>(this);
+    }
     else
     {
         OMPL_ERROR("Propagator unknown: %s", sPropagator.c_str());
@@ -583,14 +584,7 @@ void ompl::geometric::BundleSpaceGraph::setPropagator(const std::string &sPropag
 
 void ompl::geometric::BundleSpaceGraph::setMetric(const std::string &sMetric)
 {
-    if (isDynamic())
-    {
-        OMPL_DEBUG("Dynamic Metric Selected");
-        throw ompl::Exception("NYI");
-        // metric_ = std::make_shared<BundleSpaceMetricReachability>(this);
-        // metric_ = std::make_shared<BundleSpaceMetricGeodesic>(this);
-    }
-    else if (sMetric == "geodesic")
+    if (sMetric == "geodesic")
     {
         OMPL_DEBUG("Geodesic Metric Selected");
         metric_ = std::make_shared<BundleSpaceMetricGeodesic>(this);

@@ -35,14 +35,18 @@ bool ompl::control::Optimizer::IsGeometric() const
 
 ompl::base::PlannerStatus ompl::control::Optimizer::solve(const base::PlannerTerminationCondition &ptc)
 {
-  if(IsGeometric()){
+  if(IsGeometric())
+  {
     OMPL_WARN("Optimizing on geometric Path.");
     og::PathGeometric* gpath = static_cast<og::PathGeometric*>(path_.get());
     og::PathSimplifier simplifier(si_);
     simplifier.simplify(*gpath,0);
   }else{
     oc::PathControl* cpath = static_cast<oc::PathControl*>(path_.get());
-    oc::PathControlOptimizer control_simplifier(si_);
+    base::State* goalState = si_->allocState() ;
+    std::static_pointer_cast<const base::GoalSampleableRegion> (pdef_->getGoal())->sampleGoal(goalState) ;
+    
+    oc::PathControlOptimizer control_simplifier(si_,goalState);
     control_simplifier.simplify(cpath);
   }
 }

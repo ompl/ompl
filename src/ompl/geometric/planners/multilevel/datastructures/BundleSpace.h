@@ -38,7 +38,7 @@ namespace ompl
                  - Fiber is the quotient space Bundle / Base
 
                  We assume that Bundle and Base have been given (as ompl::base::SpaceInformationPtr),
-                 and we compute automatically the fiber */
+                 and we automatically compute the fiber */
 
             BundleSpace(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_ = nullptr);
             virtual ~BundleSpace();
@@ -201,7 +201,8 @@ namespace ompl
             /** \brief Metric on bundle space */
             BundleSpaceMetricPtr metric_;
 
-            /** \brief Propagator (steering or interpolation) on bundle space */
+            /** \brief Propagator (steering or interpolation) on bundle space.
+             * Note: currently just a stub for base::StatePropagator*/
             BundleSpacePropagatorPtr propagator_;
         };
     }  // namespace geometric

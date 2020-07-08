@@ -34,16 +34,22 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_CONTROL_SIMPLE_DIRECTED_CONTROL_SAMPLER_
-#define OMPL_CONTROL_SIMPLE_DIRECTED_CONTROL_SAMPLER_
+#ifndef OMPL_CONTROL_MODIFIED_DIRECTED_CONTROL_SAMPLER_
+#define OMPL_CONTROL_MODIFIED_DIRECTED_CONTROL_SAMPLER_
 
 #include "ompl/control/DirectedControlSampler.h"
 #include "ompl/control/ControlSampler.h"
+#include "ompl/util/ClassForward.h"
+#include <functional>
 
 namespace ompl
 {
     namespace control
     {
+        /// @cond IGNORE
+        OMPL_CLASS_FORWARD(SpaceInformation);
+        OMPL_CLASS_FORWARD(ModifiedDirectedControlSampler);
+        /// @endcond		
         /** \brief Implementation of a simple directed control
             sampler. This is a basic implementation that does not
             actually take direction into account and builds upon ControlSampler.
@@ -57,15 +63,15 @@ namespace ompl
            20, pp. 378–400, May 2001. DOI: [10.1177/02783640122067453](http://dx.doi.org/10.1177/02783640122067453)<br>
            [[PDF]](http://ijr.sagepub.com/content/20/5/378.full.pdf)
            [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html) */
-        class SimpleDirectedControlSampler : public DirectedControlSampler
+        class ModifiedDirectedControlSampler : public DirectedControlSampler
         {
         public:
             /** \brief Constructor takes the state space to construct samples for as argument
                 Optionally, a \e k value can be given to indicate the number of controls to
                 try when directing a system toward a specific state.  Default value is 1. */
-            SimpleDirectedControlSampler(const SpaceInformation *si, unsigned int k = 1);
+            ModifiedDirectedControlSampler(const SpaceInformation *si, unsigned int k = 5);
 
-            ~SimpleDirectedControlSampler() override;
+            ~ModifiedDirectedControlSampler() override;
 
             /** \brief Retrieve the number of controls to generate when finding the best control. */
             unsigned int getNumControlSamples() const
@@ -101,6 +107,7 @@ namespace ompl
                 control and duration. The motion is checked for validity. */
             unsigned int sampleTo(Control *control, const Control *previous, const base::State *source,
                                   base::State *dest) override;
+                                                    
 
         protected:
             /** \brief Samples \e numControlSamples_ controls, and returns the
@@ -113,7 +120,15 @@ namespace ompl
 
             /** \brief The number of controls to sample when finding the best control*/
             unsigned int numControlSamples_;
+//##########################################
+	    double distanceFactor_{0.2};
+	    double toleratedDistance_;
+	    double dist;
+//##########################################
         };
+        
+        /** \brief Definition of a function that can allocate a directed control sampler */
+        using ModifiedDirectedControlSamplerAllocator = std::function<ModifiedDirectedControlSamplerPtr(const SpaceInformation *)>;
     }
 }
 

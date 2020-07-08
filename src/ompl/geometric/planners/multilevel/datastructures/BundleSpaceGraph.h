@@ -240,8 +240,6 @@ namespace ompl
 
             BundleSpaceGraphSamplerPtr getGraphSampler();
 
-            bool computeFeasiblePathSection2();
-
             const BundleSpacePathRestrictionPtr getPathRestriction();
 
             /** \brief Best cost found so far by algorithm */
