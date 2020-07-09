@@ -57,10 +57,8 @@ unsigned int ompl::geometric::PathSpace::getNumberOfPaths() const
 
 void ompl::geometric::PathSpace::getPlannerData(base::PlannerData &data, BundleSpaceGraph* bundleGraph) const
 {
-
     BundleSpaceGraph::Graph graph = bundleGraph->getGraph();
     base::SpaceInformationPtr si = bundleGraph->getBundle();
-
 
     std::vector<int> idxPathI;
     if (criticalPaths_.size() > 0)

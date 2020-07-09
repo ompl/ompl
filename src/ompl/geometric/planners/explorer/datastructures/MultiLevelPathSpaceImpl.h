@@ -161,14 +161,16 @@ void MultiLevelPathSpace<T>::getPlannerData(ob::PlannerData &data) const
         og::BundleSpaceGraph *Qk = static_cast<BundleSpaceGraph*>(this->bundleSpaces_.at(k));
 
         MotionExplorerImpl *Qk_tmp = dynamic_cast<MotionExplorerImpl*>(Qk);
-        if(Qk_tmp != nullptr) Qk_tmp->enumerateAllPaths();
+        if(Qk_tmp != nullptr)
+        {
+            Qk_tmp->enumerateAllPaths();
+            Qk_tmp->getPlannerData(data);
+        }else
+        {
+            og::PathSpace *Pk = static_cast<PathSpace*>(this->bundleSpaces_.at(k));
+            Pk->getPlannerData(data, Qk);
+        }
 
-        og::PathSpace *Pk = static_cast<PathSpace*>(this->bundleSpaces_.at(k));
-        Pk->getPlannerData(data, Qk);
-
-        // Qk->getPlannerData(data);
-            
-        // Qk->getPlannerData(data);
         // label all new vertices
         unsigned int ctr = 0;
 
