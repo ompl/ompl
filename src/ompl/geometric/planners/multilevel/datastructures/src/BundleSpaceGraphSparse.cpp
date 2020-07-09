@@ -280,7 +280,7 @@ BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfigurationSparse(Co
     nearestSparse_->add(ql);
     disjointSetsSparse_.make_set(vl);
     graphSparse_[vl]->index = vl;
-    updateRepresentatives(q);
+    updateRepresentatives(ql);
     consecutiveFailures_ = 0;  // reset consecutive failures
     return vl;
 }

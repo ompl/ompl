@@ -37,8 +37,8 @@ namespace ompl
         protected:
             double pathBias{0.8}; //[0,1]
 
-            og::BundleSpaceGraphSparse *root{nullptr};
-            og::BundleSpaceGraphSparse *current{nullptr};
+            og::BundleSpaceGraph *root{nullptr};
+            og::BundleSpaceGraph *current{nullptr};
             std::vector<int> selectedLocalMinimum_;
         };
     }
