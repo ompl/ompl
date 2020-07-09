@@ -47,11 +47,11 @@ namespace ompl
     namespace geometric
     {
         /**
-           @anchor gERT
-           @par Short description
-           ERT is a tree-based motion planner that leverages a prior experience
-           to find similar motion plans. The provided experience is used to
-           bias the sampling of candidate states, and their connections.
+            @anchor gERT
+            @par Short description
+            ERT is a tree-based motion planner that leverages a prior experience
+            to find similar motion plans. The provided experience is used to
+            bias the sampling of candidate states, and their connections.
         */
 
         /** \brief Rapidly-exploring Random Trees */

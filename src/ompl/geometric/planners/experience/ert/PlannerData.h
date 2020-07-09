@@ -43,57 +43,57 @@
 
 namespace ompl
 {
-   namespace geometric
-   {
-       namespace ert
-       {
-           /** \brief Representation of an edge for the ERT planner */
-           class PlannerDataEdgeSegment : public base::PlannerDataEdge
-           {
-           public:
-               PlannerDataEdgeSegment(std::vector<base::State*> segment) : segment_(segment)
-               {}
+    namespace geometric
+    {
+        namespace ert
+        {
+            /** \brief Representation of an edge for the ERT planner */
+            class PlannerDataEdgeSegment : public base::PlannerDataEdge
+            {
+            public:
+                PlannerDataEdgeSegment(std::vector<base::State*> segment) : segment_(segment)
+                {}
 
-               PlannerDataEdgeSegment(const PlannerDataEdgeSegment &rhs) : segment_(rhs.segment_)
-               {}
+                PlannerDataEdgeSegment(const PlannerDataEdgeSegment &rhs) : segment_(rhs.segment_)
+                {}
 
-               ~PlannerDataEdgeSegment() override = default;
+                ~PlannerDataEdgeSegment() override = default;
 
-               base::PlannerDataEdge *clone() const override
-               {
-                   return static_cast<base::PlannerDataEdge *>(new PlannerDataEdgeSegment(*this));
-               }
+                base::PlannerDataEdge *clone() const override
+                {
+                    return static_cast<base::PlannerDataEdge *>(new PlannerDataEdgeSegment(*this));
+                }
 
-               std::vector<base::State*> getSegment() const
-               {
-                  return segment_;
-               }
+                std::vector<base::State*> getSegment() const
+                {
+                    return segment_;
+                }
 
-               bool operator==(const PlannerDataEdge &rhs) const override
-               {
-                   const auto *rhsc = static_cast<const PlannerDataEdgeSegment *>(&rhs);
-                   if (segment_ == rhsc->segment_)
-                       return static_cast<const PlannerDataEdge>(*this) == rhs;
-                   return false;
-               }
+                bool operator==(const PlannerDataEdge &rhs) const override
+                {
+                const auto *rhsc = static_cast<const PlannerDataEdgeSegment *>(&rhs);
+                if (segment_ == rhsc->segment_)
+                    return static_cast<const PlannerDataEdge>(*this) == rhs;
+                return false;
+                }
 
-           protected:
-               friend class boost::serialization::access;
-               friend class PlannerDataStorage;
-               friend class PlannerData;
+            protected:
+                friend class boost::serialization::access;
+                friend class PlannerDataStorage;
+                friend class PlannerData;
 
-               PlannerDataEdgeSegment() = default;
+                PlannerDataEdgeSegment() = default;
 
-               template <class Archive>
-               void serialize(Archive &ar, const unsigned int /*version*/)
-               {
-                   ar &boost::serialization::base_object<base::PlannerDataEdge>(*this);
-               }
+                template <class Archive>
+                void serialize(Archive &ar, const unsigned int /*version*/)
+                {
+                    ar &boost::serialization::base_object<base::PlannerDataEdge>(*this);
+                }
 
-               std::vector<base::State*> segment_;
-           };
-       }
-   }
+                std::vector<base::State*> segment_;
+            };
+        }
+    }
 }
 
 #endif

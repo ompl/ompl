@@ -401,20 +401,20 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
 
 void ompl::geometric::ERT::getPlannerData(base::PlannerData &data) const
 {
-   Planner::getPlannerData(data);
+    Planner::getPlannerData(data);
 
-   std::vector<Motion *> motions;
-   if (nn_)
-       nn_->list(motions);
+    std::vector<Motion *> motions;
+    if (nn_)
+        nn_->list(motions);
 
-   if (lastGoalMotion_ != nullptr)
-       data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
+    if (lastGoalMotion_ != nullptr)
+        data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
-   for (auto &motion : motions)
-   {
-       if (motion->parent == nullptr)
-           data.addStartVertex(base::PlannerDataVertex(motion->state));
-       else
-           data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state), ert::PlannerDataEdgeSegment(motion->segment));
+    for (auto &motion : motions)
+    {
+        if (motion->parent == nullptr)
+            data.addStartVertex(base::PlannerDataVertex(motion->state));
+        else
+            data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state), ert::PlannerDataEdgeSegment(motion->segment));
    }
 }
