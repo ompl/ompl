@@ -37,12 +37,10 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_EXPERIENCE_ERT_
 #define OMPL_GEOMETRIC_PLANNERS_EXPERIENCE_ERT_
 
+#include "ompl/geometric/planners/experience/ert/PlannerData.h"
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/datastructures/PDF.h"
-
-#include <ompl/base/spaces/RealVectorStateSpace.h>
-#include "ompl/geometric/planners/experience/planner_data_edge_segment.h"
 
 namespace ompl
 {
@@ -51,18 +49,9 @@ namespace ompl
         /**
            @anchor gERT
            @par Short description
-           ERT is a tree-based motion planner that uses the following
-           idea: ERT samples a random state @b qr in the state space,
-           then finds the state @b qc among the previously seen states
-           that is closest to @b qr and expands from @b qc towards @b
-           qr, until a state @b qm is reached. @b qm is then added to
-           the exploration tree.
-           @par External documentation
-           J. Kuffner and S.M. LaValle, ERT-connect: An efficient approach to single-query path planning, in <em>Proc.
-           2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI:
-           [10.1109/ROBOT.2000.844730](http://dx.doi.org/10.1109/ROBOT.2000.844730)<br>
-           [[PDF]](http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246)
-           [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html)
+           ERT is a tree-based motion planner that leverages a prior experience
+           to find similar motion plans. The provided experience is used to
+           bias the sampling of candidate states, and their connections.
         */
 
         /** \brief Rapidly-exploring Random Trees */
@@ -70,7 +59,7 @@ namespace ompl
         {
         public:
             /** \brief Constructor */
-            ERT(const base::SpaceInformationPtr &si, bool addIntermediateStates = false);
+            ERT(const base::SpaceInformationPtr &si);
 
             ~ERT() override;
 
@@ -100,139 +89,80 @@ namespace ompl
                 return goalBias_;
             }
 
-            // NOTE: not used!
-            /** \brief Specify whether the intermediate states generated along motions are to be added to the tree
-             * itself */
-            void setIntermediateStates(bool addIntermediateStates)
-            {
-                addIntermediateStates_ = addIntermediateStates;
-            }
-
-            // NOTE: not used!
-            /** \brief Return true if the intermediate states generated along motions are to be added to the tree itself
-             */
-            bool getIntermediateStates() const
-            {
-                return addIntermediateStates_;
-            }
-
-            // NOTE: not used!
-            /** \brief Set the range the planner is supposed to use.
-
-                This parameter greatly influences the runtime of the
-                algorithm. It represents the maximum length of a
-                motion to be added in the tree of motions. */
-            void setRange(double distance)
-            {
-                maxDistance_ = distance;
-            }
-
-            // NOTE: not used!
-            /** \brief Get the range the planner is using */
-            double getRange() const
-            {
-                return maxDistance_;
-            }
-
-            /** \brief Set the minimum fraction of the experience to be extracted
-
-                some more description... */
+            /** \brief Set the minimum fraction of the experience to be extracted */
             void setExperienceFractionMin(double segment_fraction_min)
             {
-                segment_fraction_min_ = segment_fraction_min;
+                segmentFractionMin_ = segment_fraction_min;
             }
 
             /** \brief Get the minimum experience fraction the planner is using */
             double getExperienceFractionMin() const
             {
-                return segment_fraction_min_;
+                return segmentFractionMin_;
             }
 
-            /** \brief Set the maximum fraction of the experience to be extracted
-
-                some more description... */
+            // TODO: need to assert that segment_fraction_min < segment_fraction_max
+            // set them both at the same time?
+            /** \brief Set the maximum fraction of the experience to be extracted */
             void setExperienceFractionMax(double segment_fraction_max)
             {
-                segment_fraction_max_ = segment_fraction_max;
+                segmentFractionMax_ = segment_fraction_max;
             }
 
             /** \brief Get the maximum experience fraction the planner is using */
             double getExperienceFractionMax() const
             {
-                return segment_fraction_max_;
+                return segmentFractionMax_;
             }
 
-            /** \brief Set the tubular neighbourhood around the experience to delimit the tree expansion
-
-                some more description... */
-            void setExperienceTubularRadius(double segment_noise)
+            // NOTE: It might be of interest to set a different radius for each dimension
+            /** \brief Set the tubular neighbourhood around the experience to delimit the tree expansion */
+            void setExperienceTubularRadius(double experience_tubular_radius)
             {
-                experience_tubular_radius_ = segment_noise;
+                experienceTubularRadius_ = experience_tubular_radius;
             }
 
             /** \brief Get the tubular neighbourhood around the experience the planner is using */
             double getExperienceTubularRadius() const
             {
-                return experience_tubular_radius_;
+                return experienceTubularRadius_;
             }
 
-            // NOTE: could the argument be a PathGeometric?
-            // NOTE: is there a more elegant way to initialise experience_
-            /** \brief Set the experience to exploit by the ERT
+            /** \brief Set the experience to exploit by the ERT.
 
-                some more description... */
+                The resolution of the experience has a significant impact on the
+                planner's performance. If no experience is defined, the planner
+                exploits a straight path from start to goal. */
             void setExperience(std::vector<base::State*> experience)
             {
-                experience_.resize(experience.size());
-                // candidate_segment_.resize(experience.size());
+                experience_ = new Motion(si_, experience.size());
                 for (size_t i = 0; i < experience.size(); ++i)
-                {
-                    base::State *s = si_->allocState();
-                    si_->copyState(s, experience[i]);
-                    experience_[i] = s;
-
-                    // NOTE: THIS COULD BE cloneState()!
-
-                    // base::State *ss = si_->allocState();
-                    // candidate_segment_[i] = ss;
-                }
-
-                // experience_.clear();
-                // experience_.reserve(experience.size());
-                // for (auto &state : experience)
-                // {
-                //     base::State *s = si_->allocState();
-                //     si_->copyState(s, state);
-                //     experience_.push_back(s);
-                // }
-
+                    si_->copyState(experience_->segment[i], experience[i]);
+                experience_->phase_end = experience.size() - 1;
             }
 
-            // NOTE: update according type of experience
             /** \brief Get the experience the planner is using
 
                 Before solve it will return the same experience as provided.
-                After solve it will return the updated one, if enabled*/
+                After solve it will return the updated one, if enabled */
             std::vector<base::State*> getExperience() const
             {
-                return experience_;
+                return experience_->segment;
             }
 
             /** \brief Get the experience the planner is using
 
-                Before solve it will return the same experience as provided.
-                After solve it will return the updated one, if enabled*/
+                Before calling solve(), it will return the same experience as provided.
+                After calling solve() it will return the updated one, if enabled */
             PathGeometric getExperienceAsPathGeometric() const
             {
                 auto path(std::make_shared<PathGeometric>(si_));
-                for (auto &state : experience_)
+                for (auto &state : experience_->segment)
                     path->append(state);
                 return *path;
             }
 
-            /** \brief Specify whether the provided experience is to be updated as its mapping onto the current planning problem
-
-                some more description... */
+            /** \brief Specify whether the provided experience is to be updated as its mapping onto the current planning problem */
             void setExperienceInitialUpdate(bool experienceInitialUpdate)
             {
                 experienceInitialUpdate_ = experienceInitialUpdate;
@@ -260,14 +190,14 @@ namespace ompl
         protected:
             /** \brief Representation of a motion
 
-                This only contains pointers to parent motions as we
-                only need to go backwards in the tree. */
+                This contains a pointer to the parent motion, and relevant
+                information about the sequence of states (segment) that made
+                such connection valid. */
             class Motion
             {
             public:
                 Motion() = default;
 
-                // NOTE: why not to change the name of this for segment?
                 /** \brief Constructor that allocates memory for the state */
                 Motion(const base::SpaceInformationPtr &si, const unsigned int &ps) :
                     state(si->allocState()),
@@ -283,31 +213,25 @@ namespace ompl
                 /** \brief The parent motion in the exploration tree */
                 Motion *parent{nullptr};
 
-                // NOTE: the state and demo_index could be a class defining the ConfigurationPhaseSpace as in the paper
                 /** \brief The end state of the motion */
                 base::State *state{nullptr};
 
-                // NOTE: the state and demo_index could be a class defining the ConfigurationPhaseSpace as in the paper
-                /** \brief The end phase of the motion */
-                unsigned int demo_index;
+                /** \brief The end phase of the motion, here defined as the index of the end state in the experience */
+                unsigned int phase_end;
+
+                /** \brief All states composing the motion */
+                std::vector<base::State*> segment;
+
+                /** \brief The phase span of the motion, here defined as the segment index size */
+                unsigned int phase_span{0};
 
                 /** \brief A pointer to the corresponding element in the probability distribution function */
                 // about the end state!
                 PDF<Motion *>::Element *element{nullptr};
 
-                // NOTE: could this be called cost, to be more generic?
+                // NOTE: ideally, this should be a customisable payload according to a desired cost function
                 /** \brief The number of attempts to expand the tree from the end state of this motion */
-                unsigned int selected_num{0};
-
-                // NOTE: add option to resample?
-                // NOTE: would using this PlannerDataEdgeSegment better?
-                // NOTE: would using this PathGeometric better?
-                // the difference between PathGeometric and what Segment means for us is that the latter contains uniform samples along the trajectory, whereas PathGeometric does not forcefully need to (although it can be resampled with .interpolate())
-                /** \brief All states composing the motion */
-                std::vector<base::State*> segment;
-
-                /** \brief The phase span of the motion */
-                unsigned int phase_span{0};
+                unsigned int selection_count{0};
             };
 
             /** \brief Free the memory allocated by this planner */
@@ -319,25 +243,23 @@ namespace ompl
                 return si_->distance(a->state, b->state);
             }
 
-             /** \brief Compute motion weight in the PDF according to the number of times such motion has been picked to expand the tree */
             // NOTE: ideally, this function should be a pointer to a user-defined function
-            // that allows to set pdef uniform, or any other metric...
-            double weightFunction(const Motion *m)
+            /** \brief Compute motion weight in the PDF according to the number of times such motion has been picked to expand the tree */
+            double weightFunction(Motion *m)
             {
-               return (1. / (100 * m->selected_num + 1));
+                m->selection_count++;
+                return (1. / (100 * m->selection_count + 1));
             }
 
-            // NOTE: to document
-            /** \brief  */
-            bool isSegmentValid(const std::vector<base::State*> &segment);
+            /** \brief Returns true if the entire motion is valid. */
             bool isSegmentValid(const Motion *tmotion);
 
-            // NOTE: making it const, does the content const too?
             // NOTE: to document
-            /** \brief  */
-            // bool getSegment(std::vector<base::State*> &experience, const base::State *istate, const unsigned int &ialpha, base::State *tstate, unsigned int &talpha);
-            // void getSegment(const base::State *istate, const unsigned int &ialpha, base::State *tstate, unsigned int &talpha, const bool connect_flag, std::vector<base::State*> &experience);
+            /** \brief Compute a motion to connect or explore */
             void getSegment(const Motion *imotion, Motion *tmotion, const bool connect_flag);
+
+            /** \brief Attempt (once) to compute a motion to connect or explore. Returns true if the motion is valid. */
+            bool getValidSegment(const Motion *imotion, Motion *tmotion, const bool connect_flag);
 
             /** \brief The probability distribution function over states in the tree */
             PDF<Motion *> pdf_;
@@ -351,49 +273,22 @@ namespace ompl
             /** \brief The fraction of time the goal is picked as the state to expand towards (if such a state is available) */
             double goalBias_{.05};
 
-            // NOTE: not used!
-            /** \brief  */
-            double maxDistance_{0.};
-
-            // NOTE: update name following OMPL standars (no underscore), as example
             /** \brief The minimum fraction of the experience to be extracted as micro-experience (segment) */
-            // double alphaMinimum_{0.05};
-            double segment_fraction_min_{0.05};
+            double segmentFractionMin_{0.05};
 
-            // NOTE: update name following OMPL standars (no underscore), as example
             /** \brief The maximum fraction of the experience to be extracted as micro-experience (segment) */
-            // double alphaMaximum_{0.1};
-            double segment_fraction_max_{0.1};
+            double segmentFractionMax_{0.1};
 
-            // NOTE: update name following OMPL standars (no underscore), as example
             /** \brief The tubular neighbourhood around the experience
 
-                This parameter indicates the maximum distance ti which ERT will expand.
+                This parameter determines the extend to which ERT will expand around the experience.
                 Currently, the tubular neighbourhood is symmetric in all dimensions */
-            // double epsilon_{5};
-            double experience_tubular_radius_{5};
+            double experienceTubularRadius_{5};
 
-            // NOTE: not used!
-            /** \brief Flag indicating whether intermediate states are added to the built tree of motions */
-            bool addIntermediateStates_;
+            /** \brief The task-relevant prior experience to leverage */
+            Motion *experience_{nullptr};
 
-            // NOTE: should this be a Motion?
-            // NOTE: could this be a PathGeometric?
-            /** \brief The task-relevant prior experience to exploit for the ERT */
-            std::vector<base::State*> experience_;
-
-            // NOTE: should this be a Motion?
-            // NOTE: does this need to be documented?
-            /** \brief Pre-allocate memory for sampling segments */
-            // std::vector<base::State*> candidate_segment_;
-
-            // NOTE: should this be a Motion?
-            // NOTE: does this need to be documented?
-            /** \brief Indicate last index in candidate_segment_ corresponding to the segment */
-            // unsigned int candidate_segment_last_index_{0};
-            // unsigned int candidate_segment_phase_span_;
-
-            /** \brief Flag indicating whether the experience is map onto the current planning problem at start */
+            /** \brief Flag indicating whether the experience is to be mapped onto the current planning problem at start */
             bool experienceInitialUpdate_{true};
 
             /** \brief The random number generator */
