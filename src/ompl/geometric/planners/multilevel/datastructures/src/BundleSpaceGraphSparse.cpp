@@ -93,6 +93,7 @@ void BundleSpaceGraphSparse::setup()
 
 void BundleSpaceGraphSparse::clear()
 {
+  std::cout << "Clear" << std::endl;
     BaseT::clear();
 
     if (nearestSparse_)
@@ -280,8 +281,8 @@ BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfigurationSparse(Co
     nearestSparse_->add(ql);
     disjointSetsSparse_.make_set(vl);
     graphSparse_[vl]->index = vl;
-    updateRepresentatives(q);
-    consecutiveFailures_ = 0;  // reset consecutive failures
+    updateRepresentatives(ql);
+    consecutiveFailures_ = 0;
     return vl;
 }
 
@@ -300,10 +301,40 @@ void BundleSpaceGraphSparse::findGraphNeighbors(Configuration *q, std::vector<Co
 
 void BundleSpaceGraphSparse::addEdgeSparse(const Vertex a, const Vertex b)
 {
+  std::cout << "Adding sparse " << a << "," << b << std::endl;
     ob::Cost weight = opt_->motionCost(graphSparse_[a]->state, graphSparse_[b]->state);
     EdgeInternalState properties(weight);
+    std::cout << "add to graph" << std::endl;
+    getBundle()->printState(graphSparse_[a]->state);
+    getBundle()->printState(graphSparse_[b]->state);
+    std::cout << "Vertex a=" << graphSparse_[a]->index << std::endl;
+    std::cout << "Vertex b=" << graphSparse_[b]->index << std::endl;
+
+    if(boost::edge(a, b, graphSparse_).second)
+    {
+      std::cout << "Edge exists" << std::endl;
+    }else{
+      std::cout << "Edge does not exists" << std::endl;
+    }
+
+    if(boost::vertex(a, graphSparse_) == BGT::null_vertex())
+    {
+      std::cout << "Vertex " << a << " does not exist" << std::endl;
+    }
+    if(boost::vertex(b, graphSparse_) == BGT::null_vertex())
+    {
+      std::cout << "Vertex " << b << " does not exist" << std::endl;
+    }
+    std::cout << "#vertices: " << num_vertices(graphSparse_) << std::endl;
+    std::cout << "#edges: " << num_edges(graphSparse_) << std::endl;
+
+    std::cout << properties.getCost().value() << std::endl;
+    std::cout << "boost::add_edge..." << std::endl;
+
     boost::add_edge(a, b, properties, graphSparse_);
+    std::cout << "unite" << std::endl;
     uniteComponentsSparse(a, b);
+  std::cout << "Adding sparse" << std::endl;
 }
 
 bool BundleSpaceGraphSparse::checkAddCoverage(Configuration *q, std::vector<Configuration *> &visibleNeighborhood)
@@ -381,6 +412,7 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q, std::vector<Con
                 // If they can be directly connected
                 if (getBundle()->checkMotion(qv0->state, qv1->state))
                 {
+                    std::cout << "Add qv0,qv1" << std::endl;
                     addEdgeSparse(qv0->index, qv1->index);
                     consecutiveFailures_ = 0;  // reset consecutive failures
                 }
@@ -388,7 +420,9 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q, std::vector<Con
                 {
                     // Add the new node to the graph, to bridge the interface
                     Vertex v = addConfigurationSparse(q);
+                    std::cout << "Add v,qv0" << std::endl;
                     addEdgeSparse(v, qv0->index);
+                    std::cout << "Add v,qv1" << std::endl;
                     addEdgeSparse(v, qv1->index);
                 }
                 return true;

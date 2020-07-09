@@ -348,6 +348,7 @@ bool PathVisibilityChecker::IsPathDynamicallyVisible(std::vector<ob::State*> &s1
 {
     std::cout << "Checked two different paths" << std::endl;
     siC = dynamic_cast<ompl::control::SpaceInformation*>(si_.get());
+    siC->setup();
 
     //initialize everything again
     ob::State* state_path_1 = siC->allocState();

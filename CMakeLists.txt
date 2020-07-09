@@ -91,7 +91,7 @@ set_package_properties(Threads PROPERTIES
     PURPOSE "Pthreads is sometimes needed, depending on OS / compiler.")
 find_package(Threads QUIET)
 
-enable_testing()
+# enable_testing()
 
 set_package_properties(Python PROPERTIES
     URL "https://www.python.org"

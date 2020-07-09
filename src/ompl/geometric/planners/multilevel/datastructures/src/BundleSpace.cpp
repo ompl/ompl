@@ -62,9 +62,6 @@ ompl::geometric::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, B
     std::stringstream ss;
     ss << (*this);
     OMPL_DEBUG(ss.str().c_str());
-    // std::cout << std::string(80, '-') << std::endl;
-    // std::cout << *this << std::endl;
-    // std::cout << std::string(80, '-') << std::endl;
 
     if (!Bundle_valid_sampler_)
     {

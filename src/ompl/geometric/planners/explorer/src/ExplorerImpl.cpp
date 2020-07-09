@@ -14,146 +14,162 @@
 #include <ompl/control/StatePropagator.h>
 #include <boost/foreach.hpp>
 
-
 using namespace og;
 using namespace oc;
 using namespace ob;
 #define foreach BOOST_FOREACH
 
-ExplorerImpl::ExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *parent_ ):
-  BaseT(si, parent_)
+ExplorerImpl::ExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
-  setName("BundleSpaceExplorer"+std::to_string(id_));
-  Planner::declareParam<double>("range", this, &ExplorerImpl::setRange, &ExplorerImpl::getRange, "0.:1.:10000.");
-  Planner::declareParam<double>("goal_bias", this, &ExplorerImpl::setGoalBias, &ExplorerImpl::getGoalBias, "0.:.1:1.");
+    setName("BundleSpaceExplorer" + std::to_string(id_));
+    Planner::declareParam<double>("range", this, &ExplorerImpl::setRange, &ExplorerImpl::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &ExplorerImpl::setGoalBias, &ExplorerImpl::getGoalBias,
+                                  "0.:.1:1.");
 
-  specs_.approximateSolutions = true;
-  approximateDistanceToGoal = std::numeric_limits<double>::infinity();
+    specs_.approximateSolutions = true;
+    approximateDistanceToGoal = std::numeric_limits<double>::infinity();
 
-  if(isDynamic()) {
-    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation*>(si.get());
-    siC->setup();
-    siC->setMinMaxControlDuration(1,controlDuration);
-    std::cout << "MaxControlDuration: " << controlDuration << std::endl;
+    if (isDynamic())
+    {
+        ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation *>(si.get());
+        siC->setup();
+        siC->setMinMaxControlDuration(1, controlDuration);
+        std::cout << "MaxControlDuration: " << controlDuration << std::endl;
 
-    dCSampler = siC->allocDirectedControlSampler();
-    //@TODO: need to write allocator for simpleDirectedControlSampler
-    //dCSampler->setNumControlSamples(numberOfControlSamples);
-    propStepSize = siC->getPropagationStepSize();
-    prop = siC->getStatePropagator();
-    c_random = siC->allocControl();
-  }
+        dCSampler = siC->allocDirectedControlSampler();
+        //@TODO: need to write allocator for simpleDirectedControlSampler
+        // dCSampler->setNumControlSamples(numberOfControlSamples);
+        propStepSize = siC->getPropagationStepSize();
+        prop = siC->getStatePropagator();
+        c_random = siC->allocControl();
+    }
 
-  q_random = new Configuration(getBundle());
+    q_random = new Configuration(getBundle());
 
-  pathVisibilityChecker_ = new PathVisibilityChecker(getBundle());
+    pathVisibilityChecker_ = new PathVisibilityChecker(getBundle());
 
-  double maxExt = getBundle()->getMaximumExtent();
-  pathBias_ = pathBiasFraction_ * maxExt;
+    double maxExt = getBundle()->getMaximumExtent();
+    pathBias_ = pathBiasFraction_ * maxExt;
 
+    ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(getBundle()));
+    ob::OptimizationObjectivePtr clearObj(new ob::MaximizeMinClearanceObjective(getBundle()));
 
-  ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(getBundle()));
-  ob::OptimizationObjectivePtr clearObj(new ob::MaximizeMinClearanceObjective(getBundle()));
+    pathObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
 
-  pathObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
-
-  std::static_pointer_cast<base::MultiOptimizationObjective>(pathObj_)->addObjective(lengthObj, 0.5);
-  // std::static_pointer_cast<base::MultiOptimizationObjective>(pathObj_)->addObjective(clearObj, 0.5);
+    std::static_pointer_cast<base::MultiOptimizationObjective>(pathObj_)->addObjective(lengthObj, 0.5);
+    // std::static_pointer_cast<base::MultiOptimizationObjective>(pathObj_)->addObjective(clearObj, 0.5);
 }
 
 ExplorerImpl::~ExplorerImpl()
 {
-  deleteConfiguration(q_random);
-  delete pathVisibilityChecker_;
+    deleteConfiguration(q_random);
+    delete pathVisibilityChecker_;
 }
 
 void ExplorerImpl::setGoalBias(double goalBias_)
 {
-  goalBias = goalBias_;
+    goalBias = goalBias_;
 }
 double ExplorerImpl::getGoalBias() const
 {
-  return goalBias;
+    return goalBias;
 }
 void ExplorerImpl::setRange(double maxDistance_)
 {
-  maxDistance = maxDistance_;
+    maxDistance = maxDistance_;
 }
 double ExplorerImpl::getRange() const
 {
-  return maxDistance;
+    return maxDistance;
 }
 
 void ExplorerImpl::setup()
 {
-  BaseT::setup();
-  ompl::tools::SelfConfig sc(getBundle(), getName());
-  sc.configurePlannerRange(maxDistance);
+    BaseT::setup();
+    ompl::tools::SelfConfig sc(getBundle(), getName());
+    sc.configurePlannerRange(maxDistance);
 }
 
 void ExplorerImpl::clear()
 {
-  BaseT::clear();
-  selectedPath_ = -1;
-  pathStackHead_.clear();
-  pathStack_.clear();
+    BaseT::clear();
+    selectedPath_ = -1;
+    pathStackHead_.clear();
+    pathStack_.clear();
 }
 
 bool ExplorerImpl::getSolution(ob::PathPtr &solution)
 {
-  if(hasSolution_){
-      if(!isDynamic()) return BaseT::getSolution(solution);
-      else{
-        const Configuration *q_nearest_to_goal = nearest(qGoal_);
-        solution = getPathSparse(qStart_->index, q_nearest_to_goal->index);
-        return true;
-      }
-
-  }else{
-    return false;
-  }
+    if (hasSolution_)
+    {
+        if (!isDynamic())
+            return BaseT::getSolution(solution);
+        else
+        {
+            const Configuration *q_nearest_to_goal = nearest(qGoal_);
+            solution = getPathSparse(qStart_->index, q_nearest_to_goal->index);
+            return true;
+        }
+    }
+    else
+    {
+        return false;
+    }
 }
 
-void ExplorerImpl::grow(){
-  if(firstRun_){
-    init();
-    firstRun_ = false;
-  }
-  if(isDynamic()){
-    if(hasSolution_ && num_vertices(graphSparse_)<=1){
-      hasSolution_ = false;
+void ExplorerImpl::grow()
+{
+    if (firstRun_)
+    {
+        init();
+        firstRun_ = false;
     }
-  }
-  if(hasSolution_ && pathStackHead_.size()>0){
-    //No Goal Biasing if we already found a solution on this quotient space
-    sampleBundle(q_random->state);
-  }else{
-    double s = rng_.uniform01();
-    if(s < goalBias){
-      //sets q_random as qGoal_
-      getBundle()->copyState(q_random->state, qGoal_->state); 
-   }else{
-      sampleBundle(q_random->state);
-   }
-  }
-  if(isDynamic()) {
-    growControl();
-  } else {
-    growGeometric();
-    //double v = getBundle()->getSpaceMeasure();
-    //if(v > 1e4){ 
-    //    //TODO: this is a hack to circumvent many local minima on "small" spaces 
-    //    //which belong to the un-selected quotient-space path 
-    //    //(which would otherwise be found through random walking)
-    //    growGeometricExpand();
-    //}
-  }
+    if (isDynamic())
+    {
+        if (hasSolution_ && num_vertices(graphSparse_) <= 1)
+        {
+            hasSolution_ = false;
+        }
+    }
+    if (hasSolution_ && pathStackHead_.size() > 0)
+    {
+        // No Goal Biasing if we already found a solution on this quotient space
+        sampleBundle(q_random->state);
+    }
+    else
+    {
+        double s = rng_.uniform01();
+        if (s < goalBias)
+        {
+            // sets q_random as qGoal_
+            getBundle()->copyState(q_random->state, qGoal_->state);
+        }
+        else
+        {
+            sampleBundle(q_random->state);
+        }
+    }
+    if (isDynamic())
+    {
+        growControl();
+    }
+    else
+    {
+        growGeometric();
+        // double v = getBundle()->getSpaceMeasure();
+        // if(v > 1e4){
+        //    //TODO: this is a hack to circumvent many local minima on "small" spaces
+        //    //which belong to the un-selected quotient-space path
+        //    //(which would otherwise be found through random walking)
+        //    growGeometricExpand();
+        //}
+    }
 }
 
 bool ExplorerImpl::hasSolution()
 {
-  return BaseT::hasSolution();
-  // return ((pathStackHead_.size()>0) && BaseT::hasSolution());
+    return BaseT::hasSolution();
+    // return ((pathStackHead_.size()>0) && BaseT::hasSolution());
 }
 
 void ExplorerImpl::growGeometricExpand()
@@ -164,7 +180,8 @@ void ExplorerImpl::growGeometricExpand()
         const unsigned long int t = graph_[v]->total_connection_attempts;
         pdf.add(graph_[v], (double)(t - graph_[v]->successful_connection_attempts) / (double)t);
     }
-    if (pdf.empty()) return;
+    if (pdf.empty())
+        return;
 
     std::vector<base::State *> workStates(5);
     getBundle()->allocStates(workStates);
@@ -195,57 +212,60 @@ void ExplorerImpl::growGeometricExpand()
     getBundle()->freeStates(workStates);
 }
 
-void ExplorerImpl::growGeometric(){
-  
-  const Configuration *q_nearest = nearest(q_random);
+void ExplorerImpl::growGeometric()
+{
+    const Configuration *q_nearest = nearest(q_random);
 
-  double d = getBundle()->distance(q_nearest->state, q_random->state);
-  if(d > maxDistance){
-    getBundle()->getStateSpace()->interpolate(q_nearest->state, q_random->state, maxDistance / d, q_random->state);
-  }
-
-  if(getBundle()->checkMotion(q_nearest->state, q_random->state))
-  {
-    Configuration *q_next = new Configuration(getBundle(), q_random->state);
-
-    //############################################################################
-    //TODO: replace w AddConfig
-    Vertex v_next = addConfiguration(q_next);
-    // Configuration *q_next = addConfigurationDense(q_random);
-
-    findGraphNeighbors(q_next, graphNeighborhood, visibleNeighborhood);
-
-    if (!checkAddCoverage(q_next, visibleNeighborhood))
-        if (!checkAddConnectivity(q_next, visibleNeighborhood))
-            if (!checkAddInterface(q_next, graphNeighborhood, visibleNeighborhood))
-            {
-                if (!checkAddPath(q_next))
-                    ++consecutiveFailures_;
-            }
-    //############################################################################
-
-    addEdge(q_nearest->index, v_next);
-
-    if(!hasSolution_){
-      bool satisfied = sameComponentSparse(v_start_sparse, v_goal_sparse);
-      if(satisfied)
-      {
-        hasSolution_ = true;
-      }
+    double d = getBundle()->distance(q_nearest->state, q_random->state);
+    if (d > maxDistance)
+    {
+        getBundle()->getStateSpace()->interpolate(q_nearest->state, q_random->state, maxDistance / d, q_random->state);
     }
-  }
+
+    if (getBundle()->checkMotion(q_nearest->state, q_random->state))
+    {
+        Configuration *q_next = new Configuration(getBundle(), q_random->state);
+
+        //############################################################################
+        // TODO: replace w AddConfig
+        Vertex v_next = addConfiguration(q_next);
+        // Configuration *q_next = addConfigurationDense(q_random);
+
+        findGraphNeighbors(q_next, graphNeighborhood, visibleNeighborhood);
+
+        if (!checkAddCoverage(q_next, visibleNeighborhood))
+            if (!checkAddConnectivity(q_next, visibleNeighborhood))
+                if (!checkAddInterface(q_next, graphNeighborhood, visibleNeighborhood))
+                {
+                    if (!checkAddPath(q_next))
+                        ++consecutiveFailures_;
+                }
+        //############################################################################
+
+        addEdge(q_nearest->index, v_next);
+
+        if (!hasSolution_)
+        {
+            bool satisfied = sameComponentSparse(v_start_sparse, v_goal_sparse);
+            if (satisfied)
+            {
+                hasSolution_ = true;
+            }
+        }
+    }
 }
 
-void ExplorerImpl::growControl(){
-
+void ExplorerImpl::growControl()
+{
     const Configuration *q_nearest = nearest(q_random);
 
     s_random = q_random->state;
 
     int duration = dCSampler->sampleTo(c_random, q_nearest->state, s_random);
 
-    if(duration > controlDuration){
-      //truncate motion
+    if (duration > controlDuration)
+    {
+        // truncate motion
         prop->propagate(q_nearest->state, c_random, duration, s_random);
     }
 
@@ -253,7 +273,8 @@ void ExplorerImpl::growControl(){
     Vertex v_next = addConfigurationSparse(q_next);
     addEdgeSparse(q_nearest->index, v_next);
 
-    if(!hasSolution_){
+    if (!hasSolution_)
+    {
         const Configuration *q_nearest_to_goal = nearest(qGoal_);
         goal_->isSatisfied(q_nearest_to_goal->state, &distanceToGoal);
         // if(hasSolution_){
@@ -269,9 +290,11 @@ void ExplorerImpl::growControl(){
             // std::cout << q_nearest_to_goal->index << std::endl;
             // std::cout << qStartSparse->index << std::endl;
 
-            if(approximateDistanceToGoal < 2){
+            if (approximateDistanceToGoal < 2)
+            {
                 ob::PathPtr path = getPathSparse(qStartSparse->index, q_nearest_to_goal->index);
-                if(path!=nullptr){
+                if (path != nullptr)
+                {
                     hasSolution_ = true;
                 }
             }
@@ -281,79 +304,93 @@ void ExplorerImpl::growControl(){
 
 void ExplorerImpl::getPlannerData(ob::PlannerData &data) const
 {
-  if(isDynamic()){
-    if(!data.hasControls()){
-      OMPL_ERROR("Dynamic Cspace, but PlannerData has no controls.");
+    if (isDynamic())
+    {
+        if (!data.hasControls())
+        {
+            OMPL_ERROR("Dynamic Cspace, but PlannerData has no controls.");
+        }
     }
-  }
-  if(pathStackHead_.size()>0){
-      OMPL_DEVMSG1("%s has %d solutions.", getName().c_str(), pathStackHead_.size());
-      if(pathStackHead_.empty()){
-          OMPL_ERROR("%s has 0 solutions.", getName().c_str());
-          throw ompl::Exception("Zero solutions");
-      }
-      std::vector<int> idxPathI;
-      for(uint i = 0; i < pathStackHead_.size(); i++){
-          const std::vector<ob::State*> states = pathStackHead_.at(i);
+    if (pathStackHead_.size() > 0)
+    {
+        OMPL_DEVMSG1("%s has %d solutions.", getName().c_str(), pathStackHead_.size());
+        if (pathStackHead_.empty())
+        {
+            OMPL_ERROR("%s has 0 solutions.", getName().c_str());
+            throw ompl::Exception("Zero solutions");
+        }
+        std::vector<int> idxPathI;
+        for (uint i = 0; i < pathStackHead_.size(); i++)
+        {
+            const std::vector<ob::State *> states = pathStackHead_.at(i);
 
-          idxPathI.clear();
-          getPathIndices(states, idxPathI);
-          std::reverse(idxPathI.begin(), idxPathI.end());
-          idxPathI.push_back(i);
-          // idxPathI.insert(idxPathI.begin(), idxPathI.rbegin(), idxPathI.rend());
+            std::cout << pathStackHead_.at(i).size() << std::endl;
 
-          //############################################################################
-          //DEBUG
-          std::cout << "[";
-          for(uint k = 0; k < idxPathI.size(); k++){
-            std::cout << idxPathI.at(k) << " ";
-          }
-          std::cout << "]" << std::endl;
-          //############################################################################
 
-          ob::PlannerDataVertexAnnotated *p1 = new ob::PlannerDataVertexAnnotated(states.at(0));
-          p1->setLevel(level_);
-          p1->setPath(idxPathI);
-          data.addStartVertex(*p1);
+            idxPathI.clear();
+            //getPathIndices(states, idxPathI);
+            std::reverse(idxPathI.begin(), idxPathI.end());
+            idxPathI.push_back(i);
+            // idxPathI.insert(idxPathI.begin(), idxPathI.rbegin(), idxPathI.rend());
 
-          for(uint k = 0; k < states.size()-1; k++){
-
-            ob::PlannerDataVertexAnnotated *p2 = new ob::PlannerDataVertexAnnotated(states.at(k+1));//getBundle()->cloneState(graphSparse_[v2]->state));
-            p2->setLevel(level_);
-            p2->setPath(idxPathI);
-
-            if(k==states.size()-2){
-              data.addGoalVertex(*p2);
-            }else{
-              data.addVertex(*p2);
+            //############################################################################
+            // DEBUG
+            std::cout << "[";
+            for (uint k = 0; k < idxPathI.size(); k++)
+            {
+                std::cout << idxPathI.at(k) << " ";
             }
-            data.addEdge(*p1,*p2);
+            std::cout << "]" << std::endl;
+            //############################################################################
 
-            p1 = p2;
-          }
-      }
-      // idxPathI = GetSelectedPathIndex();
-      getPlannerDataRoadmap(data, idxPathI);
-  }else{
+            ob::PlannerDataVertexAnnotated *p1 = new ob::PlannerDataVertexAnnotated(states.at(0));
+            p1->setLevel(level_);
+            p1->setPath(idxPathI);
+            data.addStartVertex(*p1);
 
-    OMPL_DEVMSG1("Sparse Roadmap has %d/%d vertices/edges (Dense has %d/%d).", 
-        boost::num_vertices(graphSparse_), 
-        boost::num_edges(graphSparse_), 
-        boost::num_vertices(graph_),
-        boost::num_edges(graph_));
+            for (uint k = 0; k < states.size() - 1; k++)
+            {
+                getBundle()->printState(pathStackHead_.at(i).at(k));
 
-    if(boost::num_vertices(graphSparse_) > 0){
-      std::vector<int> CurPath = GetSelectedPathIndex();
-      // for(uint k = 0; k < CurPath.size(); k++) std::cout << CurPath.at(k) << ",";
-      // std::cout << std::endl;
-        
-      getPlannerDataRoadmap(data, CurPath);
+
+                ob::PlannerDataVertexAnnotated *p2 = new ob::PlannerDataVertexAnnotated(
+                    states.at(k + 1));  // getBundle()->cloneState(graphSparse_[v2]->state));
+                p2->setLevel(level_);
+                p2->setPath(idxPathI);
+
+                if (k == states.size() - 2)
+                {
+                    data.addGoalVertex(*p2);
+                }
+                else
+                {
+                    data.addVertex(*p2);
+                }
+                data.addEdge(*p1, *p2);
+
+                p1 = p2;
+            }
+        }
+        // idxPathI = GetSelectedPathIndex();
+        getPlannerDataRoadmap(data, idxPathI);
     }
+    else
+    {
+        OMPL_DEVMSG1("Sparse Roadmap has %d/%d vertices/edges (Dense has %d/%d).", boost::num_vertices(graphSparse_),
+                     boost::num_edges(graphSparse_), boost::num_vertices(graph_), boost::num_edges(graph_));
 
-  }
+        if (boost::num_vertices(graphSparse_) > 0)
+        {
+            std::vector<int> CurPath = GetSelectedPathIndex();
+            // for(uint k = 0; k < CurPath.size(); k++) std::cout << CurPath.at(k) << ",";
+            // std::cout << std::endl;
+
+            getPlannerDataRoadmap(data, CurPath);
+        }
+    }
 }
 //############################################################################
-//EXPLORER
+// EXPLORER
 //############################################################################
 void ExplorerImpl::sampleFromDatastructure(ob::State *q_random_graph)
 {
@@ -361,7 +398,6 @@ void ExplorerImpl::sampleFromDatastructure(ob::State *q_random_graph)
     {
         if (selectedPath_ >= 0 && selectedPath_ < (int)pathStack_.size())
         {
-
             std::vector<ob::State *> states = pathStackHead_.at(selectedPath_);
             uint N = states.size();
 
@@ -386,8 +422,7 @@ void ExplorerImpl::sampleFromDatastructure(ob::State *q_random_graph)
         else
         {
             std::cout << "Level:" << level_ << std::endl;
-            OMPL_ERROR("Selected path is %d/%d (have you selected a path?)", 
-                selectedPath_, pathStack_.size());
+            OMPL_ERROR("Selected path is %d/%d (have you selected a path?)", selectedPath_, pathStack_.size());
             throw ompl::Exception("Unknown selected path");
         }
     }
@@ -418,10 +453,10 @@ void ExplorerImpl::removeLastPathFromStack()
     pathStackHead_.erase(pathStackHead_.end() - 1);
 }
 
-void ExplorerImpl::pushPathToStack(std::vector<ob::State*> &path)
+void ExplorerImpl::pushPathToStack(std::vector<ob::State *> &path)
 {
 
-    if(isDynamic())
+    if (isDynamic())
     {
         oc::PathControl cpath(getBundle());
         for(uint k = 0; k < path.size(); k++)
@@ -436,12 +471,14 @@ void ExplorerImpl::pushPathToStack(std::vector<ob::State*> &path)
             gpath.append(path.at(k));
         }
         og::PathSimplifier shortcutter(getBundle(), ob::GoalPtr(), pathObj_);
-        //make sure that we have enough vertices so that the right path class is
-        //visualized (problems with S1)
-        if(getBundle()->getStateSpace()->getType() == ob::STATE_SPACE_SO2)
+        // make sure that we have enough vertices so that the right path class is
+        // visualized (problems with S1)
+        if (getBundle()->getStateSpace()->getType() == ob::STATE_SPACE_SO2)
         {
             gpath.interpolate();
-        }else{
+        }
+        else
+        {
             shortcutter.smoothBSpline(gpath);
             shortcutter.simplifyMax(gpath);
         }
@@ -486,10 +523,10 @@ void ExplorerImpl::PrintPathStack()
     std::cout << std::string(80, '-') << std::endl;
     std::cout << "Path Stack" << std::endl;
     std::cout << std::string(80, '-') << std::endl;
-    for(uint k = 0; k < pathStack_.size(); k++)
+    for (uint k = 0; k < pathStack_.size(); k++)
     {
-        std::vector<ob::State*> pathk = pathStack_.at(k).getStates();
-        for(uint j = 0; j < pathk.size(); j++)
+        std::vector<ob::State *> pathk = pathStack_.at(k).getStates();
+        for (uint j = 0; j < pathk.size(); j++)
         {
             getBundle()->printState(pathk.at(j));
         }
@@ -576,7 +613,7 @@ void ExplorerImpl::removeReducibleLoops()
     }
 }
 
-void ExplorerImpl::freePath(std::vector<ob::State*> path, const ob::SpaceInformationPtr &si) const
+void ExplorerImpl::freePath(std::vector<ob::State *> path, const ob::SpaceInformationPtr &si) const
 {
     for (uint k = 0; k < path.size(); k++)
     {
@@ -585,10 +622,11 @@ void ExplorerImpl::freePath(std::vector<ob::State*> path, const ob::SpaceInforma
     path.clear();
 }
 
-std::vector<ob::State*> ExplorerImpl::getProjectedPath(const std::vector<ob::State*> pathBundle, const ob::SpaceInformationPtr&) const
+std::vector<ob::State *> ExplorerImpl::getProjectedPath(const std::vector<ob::State *> pathBundle,
+                                                        const ob::SpaceInformationPtr &) const
 {
-    std::vector<ob::State*> pathBase;
-    for(uint k = 0; k < pathBundle.size(); k++)
+    std::vector<ob::State *> pathBase;
+    for (uint k = 0; k < pathBundle.size(); k++)
     {
         const ob::State *qk = pathBundle.at(k);
         ob::State *qkProjected = getBase()->allocState();
@@ -598,18 +636,18 @@ std::vector<ob::State*> ExplorerImpl::getProjectedPath(const std::vector<ob::Sta
     return pathBase;
 }
 
-bool ExplorerImpl::isProjectable(const std::vector<ob::State*> &pathBundle) const
+bool ExplorerImpl::isProjectable(const std::vector<ob::State *> &pathBundle) const
 {
     return (getProjectionIndex(pathBundle) >= 0);
 }
 
-int ExplorerImpl::getProjectionIndex(const std::vector<ob::State*> &pathBundle) const
+int ExplorerImpl::getProjectionIndex(const std::vector<ob::State *> &pathBundle) const
 {
-    if(!hasParent()) 
+    if (!hasParent())
     {
         return 0;
     }
-    std::vector<ob::State*> pathBase = getProjectedPath(pathBundle, getBase());
+    std::vector<ob::State *> pathBase = getProjectedPath(pathBundle, getBase());
     // for(uint k = 0; k < pathBundle.size(); k++){
     //   ob::State *qk = pathBundle.at(k);
     //   ob::State *qkProjected = getBase()->allocState();
@@ -617,110 +655,72 @@ int ExplorerImpl::getProjectionIndex(const std::vector<ob::State*> &pathBundle) 
     //   pathBase.push_back(qkProjected);
     // }
 
-    ExplorerImpl *parent = static_cast<ExplorerImpl*>(parent_);
+    ExplorerImpl *parent = static_cast<ExplorerImpl *>(parent_);
     unsigned int K = parent->getNumberOfPaths();
 
-    for(uint k = 0; k < K; k++)
+    for (uint k = 0; k < K; k++)
     {
-      std::vector<ob::State*> pathBasek = parent->getKthPath(k);
-      bool visible = parent->getPathVisibilityChecker()->IsPathVisible(pathBase, pathBasek);
-      if(visible){
-        freePath(pathBase, getBase());
-        return k;
-      }
+        std::vector<ob::State *> pathBasek = parent->getKthPath(k);
+        bool visible = parent->getPathVisibilityChecker()->IsPathVisible(pathBase, pathBasek);
+        if (visible)
+        {
+            freePath(pathBase, getBase());
+            return k;
+        }
     }
     freePath(pathBase, getBase());
     return -1;
 }
 
-void ExplorerImpl::getPathIndices(const std::vector<ob::State*> &states, std::vector<int> &idxPath) const
+void ExplorerImpl::getPathIndices(const std::vector<ob::State *> &states, std::vector<int> &idxPath) const
 {
-  if(!hasParent())
-  {
-    return;
-  }else{
-    ExplorerImpl *parent = static_cast<ExplorerImpl*>(parent_);
-    //TODO: we need to check here to which local minima we project. This is
-    //necessary, since sometimes we find a path which actually projects on a
-    //different Bundle-space path (and not the selected one).
-    // APPROACH 1: Assign them all to selected path
-    // ExplorerImpl *Bundle = static_cast<ExplorerImpl*>(parent_);
-    // unsigned int K = getBundle()->getNumberOfPaths();
-    // assert(K>0);
-    // unsigned int Ks = getBundle()->getselectedpath();
-    // assert(Ks>=0);
-    // idxPath.push_back(Ks);
-    // getBundle()->getPathIndices(states, idxPath);
-    if(isDynamic())
+    if (!hasParent())
     {
-      int Ks = parent->getSelectedPath();
-      std::cout << "DYNAMIC Projection Index " << Ks << "| " << getName() << std::endl;
-      idxPath.push_back(Ks);
-    }else{
-      int K = getProjectionIndex(states);
-      std::cout << "Projection Index " << K << "| " << getName() << std::endl;
-      if(K<0){
-        K=0;
-        OMPL_WARN("Projection not found. Possibly unprojectable path.");
-      }
-      idxPath.push_back(K);
-      // getBundle()->getPathIndices(states, idxPath);
+        return;
     }
-    std::vector<ob::State*> pathBase = getProjectedPath(states, getBase());
-    parent->getPathIndices(pathBase, idxPath);
-
-    // APPROACH 2: Assign them to their projection
-    //convert CS path to QS path
-    //std::vector<ob::State*> pathcur;
-    //for(uint k = 0; k < states.size(); k++){
-    //  ob::State *qk = states.at(k);
-    //  ob::State *qkProjected = getBase()->allocState();
-    //  projectBase(qk, qkProjected);
-    //  pathcur.push_back(qkProjected);
-    //}
-    ////Check which path can be deformed into QS path
-    // ExplorerImpl *Bundle = static_cast<ExplorerImpl*>(parent_);
-    // unsigned int K = getBundle()->getNumberOfPaths();
-    // assert(K>0);
-
-    // bool success = false;
-    // for(uint k = 0; k < K; k++){
-    //   std::vector<ob::State*> pathk = getBundle()->getKthPath(k);
-    //   bool visible = getBundle()->getPathVisibilityChecker()->IsPathVisible(pathcur, pathk);
-    //   if(visible){
-    //     idxPath.push_back(k);
-    //     getBundle()->getPathIndices(pathcur, idxPath);
-    //     success = true;
-    //     break;
-    //   }
-    // }
-    //if(!success){
-    //  //This path is not deformable into any of the BundleSpace paths 
-    //  //One way to resolve this issue would be to add the new 
-    //  OMPL_INFORM("Could not find projected path on BundleSpace. Creating new one.");
-
-    //  getBundle()->removeLastPathFromStack();
-    //  getBundle()->pushPathToStack(pathcur);
-    //  idxPath.push_back(0);
-    //  getBundle()->getPathIndices(pathcur, idxPath);
-    //}else{
-    //  //free all states
-    //  for(uint k = 0; k < pathcur.size(); k++){
-    //    getBase()->freeState(pathcur.at(k));
-    //  }
-    //}
-  }
-  // idxPath.insert(shortestVertexPath_.begin(), vpath.rbegin(), vpath.rend());
-  // idxPath.insert(idxPath.begin(), idxPath.rbegin(), idxPath.rend());
-
+    else
+    {
+        ExplorerImpl *parent = static_cast<ExplorerImpl *>(parent_);
+        // TODO: we need to check here to which local minima we project. This is
+        // necessary, since sometimes we find a path which actually projects on a
+        // different Bundle-space path (and not the selected one).
+        // APPROACH 1: Assign them all to selected path
+        // ExplorerImpl *Bundle = static_cast<ExplorerImpl*>(parent_);
+        // unsigned int K = getBundle()->getNumberOfPaths();
+        // assert(K>0);
+        // unsigned int Ks = getBundle()->getselectedpath();
+        // assert(Ks>=0);
+        // idxPath.push_back(Ks);
+        // getBundle()->getPathIndices(states, idxPath);
+        if (isDynamic())
+        {
+            int Ks = parent->getSelectedPath();
+            std::cout << "DYNAMIC Projection Index " << Ks << "| " << getName() << std::endl;
+            idxPath.push_back(Ks);
+        }
+        else
+        {
+            int K = getProjectionIndex(states);
+            std::cout << "Projection Index " << K << "| " << getName() << std::endl;
+            if (K < 0)
+            {
+                K = 0;
+                OMPL_WARN("Projection not found. Possibly unprojectable path.");
+            }
+            idxPath.push_back(K);
+            // getBundle()->getPathIndices(states, idxPath);
+        }
+        std::vector<ob::State *> pathBase = getProjectedPath(states, getBase());
+        parent->getPathIndices(pathBase, idxPath);
+    }
 }
 
-PathVisibilityChecker* ExplorerImpl::getPathVisibilityChecker()
+PathVisibilityChecker *ExplorerImpl::getPathVisibilityChecker()
 {
     return pathVisibilityChecker_;
 }
 
-const std::vector<ob::State*> ExplorerImpl::getKthPath(uint k) const
+const std::vector<ob::State *> ExplorerImpl::getKthPath(uint k) const
 {
     return pathStackHead_.at(k);
 }
@@ -729,12 +729,7 @@ const std::vector<ob::State*> ExplorerImpl::getKthPath(uint k) const
 // visited[] keeps track of vertices in current path.
 // path[] stores actual vertices and path_index is current
 // index in path[]
-void ExplorerImpl::printAllPathsUtil(
-		Vertex u, 
-		Vertex d, 
-		bool visited[], 
-		int path[], 
-		int &path_index) 
+void ExplorerImpl::printAllPathsUtil(Vertex u, Vertex d, bool visited[], int path[], int &path_index)
 {
     // terminate if we have enough paths in stack
     if (pathStack_.size() > Nhead)
@@ -780,7 +775,7 @@ void ExplorerImpl::printAllPathsUtil(
     path_index--;
     visited[u] = false;
 }
-void ExplorerImpl::enumerateAllPaths() 
+void ExplorerImpl::enumerateAllPaths()
 {
     if (!hasSolution_)
         return;
@@ -853,16 +848,15 @@ void ExplorerImpl::enumerateAllPaths()
     }
     OMPL_INFORM("Found %d path classes.", pathStackHead_.size());
     OMPL_INFORM("%s", std::string(80, '-').c_str());
-
 }
 std::vector<int> ExplorerImpl::GetSelectedPathIndex() const
 {
     std::vector<int> CurPath;
-    ExplorerImpl *pparent = static_cast<ExplorerImpl*>(parent_);
-    while(pparent!=nullptr)
+    ExplorerImpl *pparent = static_cast<ExplorerImpl *>(parent_);
+    while (pparent != nullptr)
     {
         CurPath.push_back(pparent->getSelectedPath());
-        pparent = static_cast<ExplorerImpl*>(pparent->parent_);
+        pparent = static_cast<ExplorerImpl *>(pparent->parent_);
     }
     if (selectedPath_ < 0)
         CurPath.push_back(0);
@@ -873,4 +867,3 @@ std::vector<int> ExplorerImpl::GetSelectedPathIndex() const
 }
 
 //############################################################################
-
