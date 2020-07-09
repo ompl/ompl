@@ -48,13 +48,13 @@ ompl::geometric::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::b
     T::resetCounter();
     for (unsigned int k = 0; k < siVec_.size(); k++)
     {
-        BundleSpace *parent = nullptr;
+        T *parent = nullptr;
         if (k > 0)
             parent = bundleSpaces_.back();
 
         T *ss = new T(siVec_.at(k), parent);
         bundleSpaces_.push_back(ss);
-        bundleSpaces_.back()->setLevel(k);
+        static_cast<BundleSpace*>(bundleSpaces_.back())->setLevel(k);
     }
     stopAtLevel_ = bundleSpaces_.size();
 
@@ -86,7 +86,7 @@ std::vector<int> ompl::geometric::BundleSpaceSequence<T>::getDimensionsPerLevel(
     std::vector<int> dimensionsPerLevel;
     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
     {
-        unsigned int Nk = bundleSpaces_.at(k)->getBundleDimension();
+        unsigned int Nk = static_cast<BundleSpace*>(bundleSpaces_.at(k))->getBundleDimension();
         dimensionsPerLevel.push_back(Nk);
     }
     return dimensionsPerLevel;
@@ -111,7 +111,7 @@ void ompl::geometric::BundleSpaceSequence<T>::setup()
     BaseT::setup();
     for (unsigned int k = 0; k < stopAtLevel_; k++)
     {
-        bundleSpaces_.at(k)->setup();
+        static_cast<BundleSpace*>(bundleSpaces_.at(k))->setup();
     }
     currentBundleSpaceLevel_ = 0;
 }
@@ -123,7 +123,7 @@ void ompl::geometric::BundleSpaceSequence<T>::clear()
 
     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
     {
-        bundleSpaces_.at(k)->clear();
+        static_cast<BundleSpace*>(bundleSpaces_.at(k))->clear();
     }
     currentBundleSpaceLevel_ = 0;
 
@@ -144,10 +144,12 @@ ompl::geometric::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTerminat
 
     for (unsigned int k = currentBundleSpaceLevel_; k < stopAtLevel_; k++)
     {
+        BundleSpace *kBundle = static_cast<BundleSpace*>(bundleSpaces_.at(k));
+
         foundKLevelSolution_ = false;
 
         if (priorityQueue_.size() <= currentBundleSpaceLevel_)
-            priorityQueue_.push(bundleSpaces_.at(k));
+            priorityQueue_.push(kBundle);
 
         ompl::base::PlannerTerminationCondition ptcOrSolutionFound(
             [this, &ptc] { return ptc || foundKLevelSolution_; });
@@ -158,11 +160,11 @@ ompl::geometric::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTerminat
             priorityQueue_.pop();
             jBundle->grow();
 
-            bool hasSolution = bundleSpaces_.at(k)->hasSolution();
+            bool hasSolution = kBundle->hasSolution();
             if (hasSolution)
             {
                 ompl::base::PathPtr sol_k;
-                bundleSpaces_.at(k)->getSolution(sol_k);
+                kBundle->getSolution(sol_k);
                 if (solutions_.size() < k + 1)
                 {
                     solutions_.push_back(sol_k);
@@ -183,11 +185,11 @@ ompl::geometric::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTerminat
                 std::string lvl_name = getName() + " LvL" + std::to_string(k);
                 psol.setPlannerName(lvl_name);
 
-                bundleSpaces_.at(k)->getProblemDefinition()->clearSolutionPaths();
-                bundleSpaces_.at(k)->getProblemDefinition()->addSolutionPath(psol);
+                kBundle->getProblemDefinition()->clearSolutionPaths();
+                kBundle->getProblemDefinition()->addSolutionPath(psol);
             }
 
-            bool isInfeasible = bundleSpaces_.at(k)->isInfeasible();
+            bool isInfeasible = kBundle->isInfeasible();
             if (isInfeasible)
             {
                 double t_end = ompl::time::seconds(ompl::time::now() - t_start);
@@ -208,7 +210,7 @@ ompl::geometric::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTerminat
 
     ompl::base::PathPtr sol;
     ompl::base::PlannerSolution psol(sol);
-    bundleSpaces_.back()->getProblemDefinition()->getSolution(psol);
+    static_cast<BundleSpace*>(bundleSpaces_.back())->getProblemDefinition()->getSolution(psol);
     pdef_->addSolutionPath(psol);
 
     return ompl::base::PlannerStatus::EXACT_SOLUTION;
@@ -220,7 +222,7 @@ ompl::geometric::BundleSpaceSequence<T>::getProblemDefinition(unsigned int kBund
 {
     assert(kBundleSpace >= 0);
     assert(kBundleSpace <= siVec_.size() - 1);
-    return bundleSpaces_.at(kBundleSpace)->getProblemDefinition();
+    return static_cast<BundleSpace*>(bundleSpaces_.at(kBundleSpace))->getProblemDefinition();
 }
 
 template <class T>
@@ -239,14 +241,14 @@ void ompl::geometric::BundleSpaceSequence<T>::setProblemDefinition(const ompl::b
 
     OMPL_DEVMSG1("Projecting start and goal onto BundleSpaces.");
 
-    bundleSpaces_.back()->setProblemDefinition(pdef);
+    static_cast<BundleSpace*>(bundleSpaces_.back())->setProblemDefinition(pdef);
 
     base::OptimizationObjectivePtr obj = pdef->getOptimizationObjective();
 
     for (unsigned int k = siVec_.size() - 1; k > 0; k--)
     {
-        BundleSpace *bundleSpaceParent = bundleSpaces_.at(k);
-        BundleSpace *bundleSpaceChild = bundleSpaces_.at(k - 1);
+        BundleSpace *bundleSpaceParent = static_cast<BundleSpace*>(bundleSpaces_.at(k));
+        BundleSpace *bundleSpaceChild = static_cast<BundleSpace*>(bundleSpaces_.at(k - 1));
         ompl::base::SpaceInformationPtr sik = bundleSpaceChild->getSpaceInformation();
         ompl::base::ProblemDefinitionPtr pdefk = std::make_shared<base::ProblemDefinition>(sik);
 
@@ -280,7 +282,7 @@ void ompl::geometric::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planner
 
     for (unsigned int k = 0; k < K; k++)
     {
-        BundleSpace *Qk = bundleSpaces_.at(k);
+        BundleSpace *Qk = static_cast<BundleSpace*>(bundleSpaces_.at(k));
         Qk->getPlannerData(data);
 
         // label all vertices

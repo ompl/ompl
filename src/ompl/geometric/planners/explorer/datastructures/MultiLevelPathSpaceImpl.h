@@ -1,7 +1,7 @@
 #include <ompl/geometric/planners/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/geometric/planners/multilevel/datastructures/BundleSpace.h>
-#include <ompl/geometric/planners/explorer/ExplorerImpl.h>
-#include <ompl/geometric/planners/multilevel/algorithms/ExplorerTestImpl.h>
+#include <ompl/geometric/planners/explorer/datastructures/PathSpace.h>
+#include <ompl/geometric/planners/explorer/algorithms/MotionExplorerImpl.h>
 
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
@@ -14,26 +14,26 @@ using namespace og;
 using namespace ob;
 
 template <class T>
-ompl::geometric::MotionExplorerImpl<T>::MotionExplorerImpl(std::vector<ob::SpaceInformationPtr> &siVec, std::string type)
+ompl::geometric::MultiLevelPathSpace<T>::MultiLevelPathSpace(std::vector<ob::SpaceInformationPtr> &siVec, std::string type)
   : BaseT(siVec, type)
 {
-    root = static_cast<og::ExplorerTestImpl*>(this->bundleSpaces_.front());
+    root = this->bundleSpaces_.front();
     current = root;
 }
 
 template <class T>
-ompl::geometric::MotionExplorerImpl<T>::~MotionExplorerImpl()
+ompl::geometric::MultiLevelPathSpace<T>::~MultiLevelPathSpace()
 {
 }
 
 template <class T>
-void ompl::geometric::MotionExplorerImpl<T>::setup()
+void ompl::geometric::MultiLevelPathSpace<T>::setup()
 {
     BaseT::setup();
 }
 
 template <class T>
-void ompl::geometric::MotionExplorerImpl<T>::clear()
+void ompl::geometric::MultiLevelPathSpace<T>::clear()
 {
     BaseT::clear();
     selectedLocalMinimum_.clear();
@@ -42,7 +42,7 @@ void ompl::geometric::MotionExplorerImpl<T>::clear()
 }
 
 template <class T>
-void ompl::geometric::MotionExplorerImpl<T>::setLocalMinimumSelection( std::vector<int> selection)
+void ompl::geometric::MultiLevelPathSpace<T>::setLocalMinimumSelection( std::vector<int> selection)
 {
     std::vector<int> oldSelectedLocalMinimum = selectedLocalMinimum_;
     selectedLocalMinimum_ = selection;
@@ -51,10 +51,10 @@ void ompl::geometric::MotionExplorerImpl<T>::setLocalMinimumSelection( std::vect
     unsigned int Nold = oldSelectedLocalMinimum.size();
 
     for(uint k = 0; k < selectedLocalMinimum_.size(); k++){
-      og::ExplorerTestImpl *qgraph =
-        static_cast<og::ExplorerTestImpl*>(this->bundleSpaces_.at(k));
+      og::PathSpace *pathspace =
+        static_cast<og::PathSpace*>(this->bundleSpaces_.at(k));
           
-      qgraph->setSelectedPath(selectedLocalMinimum_.at(k));
+      pathspace->setSelectedPath(selectedLocalMinimum_.at(k));
     }
 
     std::cout << "[SELECTION CHANGE] BundleSpaces set from [";
@@ -85,7 +85,7 @@ void ompl::geometric::MotionExplorerImpl<T>::setLocalMinimumSelection( std::vect
 }
 
 template <class T>
-ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondition &ptc)
+ob::PlannerStatus MultiLevelPathSpace<T>::solve(const ob::PlannerTerminationCondition &ptc)
 {
     ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     uint K = selectedLocalMinimum_.size();
@@ -98,8 +98,8 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
     //expand
     while(K>0)
     {
-        og::ExplorerTestImpl *kBundle =
-          static_cast<og::ExplorerTestImpl*>(this->bundleSpaces_.at(K-1));
+        og::PathSpace *kBundle =
+          static_cast<og::PathSpace*>(this->bundleSpaces_.at(K-1));
         if(kBundle->getNumberOfPaths()>0){
           break;
         }else{
@@ -108,8 +108,8 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
     }
 
     //Check which 
-    og::ExplorerTestImpl *jBundle =
-      static_cast<og::ExplorerTestImpl*>(this->bundleSpaces_.at(K));
+    og::BundleSpace *jBundle =
+      static_cast<og::BundleSpace*>(this->bundleSpaces_.at(K));
 
     uint ctr = 0;
 
@@ -144,7 +144,7 @@ ob::PlannerStatus MotionExplorerImpl<T>::solve(const ob::PlannerTerminationCondi
 }
 
 template <class T>
-void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
+void MultiLevelPathSpace<T>::getPlannerData(ob::PlannerData &data) const
 {
     unsigned int Nvertices = data.numVertices();
     if (Nvertices > 0)
@@ -158,9 +158,16 @@ void MotionExplorerImpl<T>::getPlannerData(ob::PlannerData &data) const
 
     for (unsigned int k = 0; k < K; k++)
     {
-        og::BundleSpace *Qk = this->bundleSpaces_.at(k);
-       /* static_cast<ExplorerImpl*>(Qk)->enumerateAllPaths();*/
-        static_cast<ExplorerTestImpl*>(Qk)->getPlannerData(data);
+        og::BundleSpaceGraph *Qk = static_cast<BundleSpaceGraph*>(this->bundleSpaces_.at(k));
+
+        MotionExplorerImpl *Qk_tmp = dynamic_cast<MotionExplorerImpl*>(Qk);
+        if(Qk_tmp != nullptr) Qk_tmp->enumerateAllPaths();
+
+        og::PathSpace *Pk = static_cast<PathSpace*>(this->bundleSpaces_.at(k));
+        Pk->getPlannerData(data, Qk);
+
+        // Qk->getPlannerData(data);
+            
         // Qk->getPlannerData(data);
         // label all new vertices
         unsigned int ctr = 0;

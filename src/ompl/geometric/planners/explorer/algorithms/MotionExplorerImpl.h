@@ -1,4 +1,6 @@
 #pragma once
+#include <ompl/geometric/planners/explorer/datastructures/PathSpace.h>
+
 #include <ompl/geometric/planners/multilevel/datastructures/BundleSpaceGraphSparse.h>
 #include <ompl/datastructures/PDF.h>
 #include <ompl/control/Control.h>
@@ -18,14 +20,16 @@ namespace ompl
   namespace geometric
   {
       OMPL_CLASS_FORWARD(PathVisibilityChecker);
-    //ExplorerImpl 
-    class ExplorerImpl: public og::BundleSpaceGraphSparse{
+    //MotionExplorerImpl 
+    class MotionExplorerImpl: public og::PathSpace, 
+                              public og::BundleSpaceGraphSparse
+    {
 
       using BaseT = ompl::geometric::BundleSpaceGraphSparse;
       public:
 
-        ExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *parent_);
-        virtual ~ExplorerImpl() override;
+        MotionExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *parent_);
+        virtual ~MotionExplorerImpl() override;
         virtual void grow() override;
         virtual void growGeometric();
         virtual void growGeometricExpand();
@@ -48,13 +52,13 @@ namespace ompl
         ompl::control::DirectedControlSamplerPtr dCSampler;
 	
         virtual void getPlannerData(ob::PlannerData &data) const override;
+        unsigned int getNumberOfPaths() const;
 
         //############################################################################
         void printAllPathsUtil(Vertex u, Vertex d, bool visited[], int path[], int &path_index);
         virtual void enumerateAllPaths();
         void removeReducibleLoops();
         void removeEdgeIfReductionLoop(const Edge &e);
-        unsigned int getNumberOfPaths() const;
         const std::vector<ob::State*> getKthPath(uint k) const;
         void getPathIndices(const std::vector<ob::State*> &states, std::vector<int> &idxPath) const;
         bool isProjectable(const std::vector<ob::State*> &pathBundle) const;
@@ -76,14 +80,13 @@ namespace ompl
         std::vector<std::vector<ob::State*>> pathStackHead_;
         void PrintPathStack();
 
-        void setSelectedPath(int);
-        int getSelectedPath();
+        // void setSelectedPath(int);
+        // int getSelectedPath();
 
         std::vector<int> GetSelectedPathIndex() const;
         //############################################################################
       protected:
 
-        int selectedPath_{-1}; //selected path to sample from (if children try to sample this space)
         double pathBias_{0.};
         double pathBiasFraction_{0.05};
         int numberOfControlSamples{10};

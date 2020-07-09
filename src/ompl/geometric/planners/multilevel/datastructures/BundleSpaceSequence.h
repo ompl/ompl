@@ -92,7 +92,7 @@ namespace ompl
             std::vector<ompl::base::PathPtr> solutions_;
 
             /** \brief Sequence of BundleSpaces */
-            std::vector<BundleSpace *> bundleSpaces_;
+            std::vector<T *> bundleSpaces_;
 
             /** \brief Indicator if a solution has been found on the current BundleSpaces */
             bool foundKLevelSolution_{false};

@@ -1,5 +1,5 @@
-#include <ompl/geometric/planners/explorer/ExplorerImpl.h>
-#include <ompl/geometric/planners/explorer/PathVisibilityChecker.h>
+#include <ompl/geometric/planners/explorer/algorithms/MotionExplorerImpl.h>
+#include <ompl/geometric/planners/explorer/datastructures/PathVisibilityChecker.h>
 #include <ompl/geometric/planners/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/datastructures/PDF.h>
@@ -19,11 +19,13 @@ using namespace oc;
 using namespace ob;
 #define foreach BOOST_FOREACH
 
-ExplorerImpl::ExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
+MotionExplorerImpl::MotionExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *parent_) : 
+  ompl::geometric::PathSpace(),
+  BaseT(si, parent_)
 {
     setName("BundleSpaceExplorer" + std::to_string(id_));
-    Planner::declareParam<double>("range", this, &ExplorerImpl::setRange, &ExplorerImpl::getRange, "0.:1.:10000.");
-    Planner::declareParam<double>("goal_bias", this, &ExplorerImpl::setGoalBias, &ExplorerImpl::getGoalBias,
+    Planner::declareParam<double>("range", this, &MotionExplorerImpl::setRange, &MotionExplorerImpl::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &MotionExplorerImpl::setGoalBias, &MotionExplorerImpl::getGoalBias,
                                   "0.:.1:1.");
 
     specs_.approximateSolutions = true;
@@ -60,37 +62,37 @@ ExplorerImpl::ExplorerImpl(const ob::SpaceInformationPtr &si, BundleSpace *paren
     // std::static_pointer_cast<base::MultiOptimizationObjective>(pathObj_)->addObjective(clearObj, 0.5);
 }
 
-ExplorerImpl::~ExplorerImpl()
+MotionExplorerImpl::~MotionExplorerImpl()
 {
     deleteConfiguration(q_random);
     delete pathVisibilityChecker_;
 }
 
-void ExplorerImpl::setGoalBias(double goalBias_)
+void MotionExplorerImpl::setGoalBias(double goalBias_)
 {
     goalBias = goalBias_;
 }
-double ExplorerImpl::getGoalBias() const
+double MotionExplorerImpl::getGoalBias() const
 {
     return goalBias;
 }
-void ExplorerImpl::setRange(double maxDistance_)
+void MotionExplorerImpl::setRange(double maxDistance_)
 {
     maxDistance = maxDistance_;
 }
-double ExplorerImpl::getRange() const
+double MotionExplorerImpl::getRange() const
 {
     return maxDistance;
 }
 
-void ExplorerImpl::setup()
+void MotionExplorerImpl::setup()
 {
     BaseT::setup();
     ompl::tools::SelfConfig sc(getBundle(), getName());
     sc.configurePlannerRange(maxDistance);
 }
 
-void ExplorerImpl::clear()
+void MotionExplorerImpl::clear()
 {
     BaseT::clear();
     selectedPath_ = -1;
@@ -98,7 +100,7 @@ void ExplorerImpl::clear()
     pathStack_.clear();
 }
 
-bool ExplorerImpl::getSolution(ob::PathPtr &solution)
+bool MotionExplorerImpl::getSolution(ob::PathPtr &solution)
 {
     if (hasSolution_)
     {
@@ -117,7 +119,7 @@ bool ExplorerImpl::getSolution(ob::PathPtr &solution)
     }
 }
 
-void ExplorerImpl::grow()
+void MotionExplorerImpl::grow()
 {
     if (firstRun_)
     {
@@ -166,13 +168,13 @@ void ExplorerImpl::grow()
     }
 }
 
-bool ExplorerImpl::hasSolution()
+bool MotionExplorerImpl::hasSolution()
 {
     return BaseT::hasSolution();
     // return ((pathStackHead_.size()>0) && BaseT::hasSolution());
 }
 
-void ExplorerImpl::growGeometricExpand()
+void MotionExplorerImpl::growGeometricExpand()
 {
     PDF pdf;
     foreach (Vertex v, boost::vertices(graph_))
@@ -212,7 +214,7 @@ void ExplorerImpl::growGeometricExpand()
     getBundle()->freeStates(workStates);
 }
 
-void ExplorerImpl::growGeometric()
+void MotionExplorerImpl::growGeometric()
 {
     const Configuration *q_nearest = nearest(q_random);
 
@@ -255,7 +257,7 @@ void ExplorerImpl::growGeometric()
     }
 }
 
-void ExplorerImpl::growControl()
+void MotionExplorerImpl::growControl()
 {
     const Configuration *q_nearest = nearest(q_random);
 
@@ -302,7 +304,7 @@ void ExplorerImpl::growControl()
     }
 }
 
-void ExplorerImpl::getPlannerData(ob::PlannerData &data) const
+void MotionExplorerImpl::getPlannerData(ob::PlannerData &data) const
 {
     if (isDynamic())
     {
@@ -326,10 +328,9 @@ void ExplorerImpl::getPlannerData(ob::PlannerData &data) const
 
             std::cout << pathStackHead_.at(i).size() << std::endl;
 
-
             idxPathI.clear();
-            //getPathIndices(states, idxPathI);
-            std::reverse(idxPathI.begin(), idxPathI.end());
+            // getPathIndices(states, idxPathI);
+            // std::reverse(idxPathI.begin(), idxPathI.end());
             idxPathI.push_back(i);
             // idxPathI.insert(idxPathI.begin(), idxPathI.rbegin(), idxPathI.rend());
 
@@ -350,8 +351,7 @@ void ExplorerImpl::getPlannerData(ob::PlannerData &data) const
 
             for (uint k = 0; k < states.size() - 1; k++)
             {
-                getBundle()->printState(pathStackHead_.at(i).at(k));
-
+                getBundle()->printState(states.at(k));
 
                 ob::PlannerDataVertexAnnotated *p2 = new ob::PlannerDataVertexAnnotated(
                     states.at(k + 1));  // getBundle()->cloneState(graphSparse_[v2]->state));
@@ -370,9 +370,10 @@ void ExplorerImpl::getPlannerData(ob::PlannerData &data) const
 
                 p1 = p2;
             }
+            getBundle()->printState(states.back());
         }
         // idxPathI = GetSelectedPathIndex();
-        getPlannerDataRoadmap(data, idxPathI);
+        //getPlannerDataRoadmap(data, idxPathI);
     }
     else
     {
@@ -392,7 +393,7 @@ void ExplorerImpl::getPlannerData(ob::PlannerData &data) const
 //############################################################################
 // EXPLORER
 //############################################################################
-void ExplorerImpl::sampleFromDatastructure(ob::State *q_random_graph)
+void MotionExplorerImpl::sampleFromDatastructure(ob::State *q_random_graph)
 {
     if (!getChild()->isDynamic() && pathStack_.size() > 0)
     {
@@ -432,28 +433,17 @@ void ExplorerImpl::sampleFromDatastructure(ob::State *q_random_graph)
     }
 }
 
-int ExplorerImpl::getSelectedPath()
-{
-    return selectedPath_;
-}
-
-void ExplorerImpl::setSelectedPath(int selectedPath)
-{
-    selectedPath_ = selectedPath;
-    std::cout << "Level" << level_ << " set new selected path to " << selectedPath_ << std::endl;
-}
-
-unsigned int ExplorerImpl::getNumberOfPaths() const
+unsigned int MotionExplorerImpl::getNumberOfPaths() const
 {
     return pathStackHead_.size();
 }
 
-void ExplorerImpl::removeLastPathFromStack()
+void MotionExplorerImpl::removeLastPathFromStack()
 {
     pathStackHead_.erase(pathStackHead_.end() - 1);
 }
 
-void ExplorerImpl::pushPathToStack(std::vector<ob::State *> &path)
+void MotionExplorerImpl::pushPathToStack(std::vector<ob::State *> &path)
 {
 
     if (isDynamic())
@@ -518,7 +508,7 @@ void ExplorerImpl::pushPathToStack(std::vector<ob::State *> &path)
 
 }
 
-void ExplorerImpl::PrintPathStack()
+void MotionExplorerImpl::PrintPathStack()
 {
     std::cout << std::string(80, '-') << std::endl;
     std::cout << "Path Stack" << std::endl;
@@ -533,7 +523,7 @@ void ExplorerImpl::PrintPathStack()
     }
 }
 
-void ExplorerImpl::removeEdgeIfReductionLoop(const Edge &e)
+void MotionExplorerImpl::removeEdgeIfReductionLoop(const Edge &e)
 {
     const Vertex v1 = boost::source(e, graphSparse_);
     const Vertex v2 = boost::target(e, graphSparse_);
@@ -602,7 +592,7 @@ void ExplorerImpl::removeEdgeIfReductionLoop(const Edge &e)
         }
     }
 }
-void ExplorerImpl::removeReducibleLoops()
+void MotionExplorerImpl::removeReducibleLoops()
 {
     // Edge e = boost::random_edge(graphSparse_, rng_boost);
     uint Mend = boost::num_edges(graphSparse_);
@@ -613,7 +603,7 @@ void ExplorerImpl::removeReducibleLoops()
     }
 }
 
-void ExplorerImpl::freePath(std::vector<ob::State *> path, const ob::SpaceInformationPtr &si) const
+void MotionExplorerImpl::freePath(std::vector<ob::State *> path, const ob::SpaceInformationPtr &si) const
 {
     for (uint k = 0; k < path.size(); k++)
     {
@@ -622,7 +612,7 @@ void ExplorerImpl::freePath(std::vector<ob::State *> path, const ob::SpaceInform
     path.clear();
 }
 
-std::vector<ob::State *> ExplorerImpl::getProjectedPath(const std::vector<ob::State *> pathBundle,
+std::vector<ob::State *> MotionExplorerImpl::getProjectedPath(const std::vector<ob::State *> pathBundle,
                                                         const ob::SpaceInformationPtr &) const
 {
     std::vector<ob::State *> pathBase;
@@ -636,12 +626,12 @@ std::vector<ob::State *> ExplorerImpl::getProjectedPath(const std::vector<ob::St
     return pathBase;
 }
 
-bool ExplorerImpl::isProjectable(const std::vector<ob::State *> &pathBundle) const
+bool MotionExplorerImpl::isProjectable(const std::vector<ob::State *> &pathBundle) const
 {
     return (getProjectionIndex(pathBundle) >= 0);
 }
 
-int ExplorerImpl::getProjectionIndex(const std::vector<ob::State *> &pathBundle) const
+int MotionExplorerImpl::getProjectionIndex(const std::vector<ob::State *> &pathBundle) const
 {
     if (!hasParent())
     {
@@ -655,7 +645,7 @@ int ExplorerImpl::getProjectionIndex(const std::vector<ob::State *> &pathBundle)
     //   pathBase.push_back(qkProjected);
     // }
 
-    ExplorerImpl *parent = static_cast<ExplorerImpl *>(parent_);
+    MotionExplorerImpl *parent = static_cast<MotionExplorerImpl *>(parent_);
     unsigned int K = parent->getNumberOfPaths();
 
     for (uint k = 0; k < K; k++)
@@ -672,7 +662,7 @@ int ExplorerImpl::getProjectionIndex(const std::vector<ob::State *> &pathBundle)
     return -1;
 }
 
-void ExplorerImpl::getPathIndices(const std::vector<ob::State *> &states, std::vector<int> &idxPath) const
+void MotionExplorerImpl::getPathIndices(const std::vector<ob::State *> &states, std::vector<int> &idxPath) const
 {
     if (!hasParent())
     {
@@ -680,12 +670,12 @@ void ExplorerImpl::getPathIndices(const std::vector<ob::State *> &states, std::v
     }
     else
     {
-        ExplorerImpl *parent = static_cast<ExplorerImpl *>(parent_);
+        MotionExplorerImpl *parent = static_cast<MotionExplorerImpl *>(parent_);
         // TODO: we need to check here to which local minima we project. This is
         // necessary, since sometimes we find a path which actually projects on a
         // different Bundle-space path (and not the selected one).
         // APPROACH 1: Assign them all to selected path
-        // ExplorerImpl *Bundle = static_cast<ExplorerImpl*>(parent_);
+        // MotionExplorerImpl *Bundle = static_cast<MotionExplorerImpl*>(parent_);
         // unsigned int K = getBundle()->getNumberOfPaths();
         // assert(K>0);
         // unsigned int Ks = getBundle()->getselectedpath();
@@ -715,12 +705,12 @@ void ExplorerImpl::getPathIndices(const std::vector<ob::State *> &states, std::v
     }
 }
 
-PathVisibilityChecker *ExplorerImpl::getPathVisibilityChecker()
+PathVisibilityChecker *MotionExplorerImpl::getPathVisibilityChecker()
 {
     return pathVisibilityChecker_;
 }
 
-const std::vector<ob::State *> ExplorerImpl::getKthPath(uint k) const
+const std::vector<ob::State *> MotionExplorerImpl::getKthPath(uint k) const
 {
     return pathStackHead_.at(k);
 }
@@ -729,7 +719,7 @@ const std::vector<ob::State *> ExplorerImpl::getKthPath(uint k) const
 // visited[] keeps track of vertices in current path.
 // path[] stores actual vertices and path_index is current
 // index in path[]
-void ExplorerImpl::printAllPathsUtil(Vertex u, Vertex d, bool visited[], int path[], int &path_index)
+void MotionExplorerImpl::printAllPathsUtil(Vertex u, Vertex d, bool visited[], int path[], int &path_index)
 {
     // terminate if we have enough paths in stack
     if (pathStack_.size() > Nhead)
@@ -775,7 +765,7 @@ void ExplorerImpl::printAllPathsUtil(Vertex u, Vertex d, bool visited[], int pat
     path_index--;
     visited[u] = false;
 }
-void ExplorerImpl::enumerateAllPaths()
+void MotionExplorerImpl::enumerateAllPaths()
 {
     if (!hasSolution_)
         return;
@@ -849,14 +839,14 @@ void ExplorerImpl::enumerateAllPaths()
     OMPL_INFORM("Found %d path classes.", pathStackHead_.size());
     OMPL_INFORM("%s", std::string(80, '-').c_str());
 }
-std::vector<int> ExplorerImpl::GetSelectedPathIndex() const
+std::vector<int> MotionExplorerImpl::GetSelectedPathIndex() const
 {
     std::vector<int> CurPath;
-    ExplorerImpl *pparent = static_cast<ExplorerImpl *>(parent_);
+    MotionExplorerImpl *pparent = static_cast<MotionExplorerImpl *>(parent_);
     while (pparent != nullptr)
     {
         CurPath.push_back(pparent->getSelectedPath());
-        pparent = static_cast<ExplorerImpl *>(pparent->parent_);
+        pparent = static_cast<MotionExplorerImpl *>(pparent->parent_);
     }
     if (selectedPath_ < 0)
         CurPath.push_back(0);
