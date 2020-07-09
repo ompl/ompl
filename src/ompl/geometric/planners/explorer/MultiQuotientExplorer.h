@@ -19,8 +19,8 @@ namespace ompl
         template <class T>
         class MotionExplorerImpl : public og::BundleSpaceSequence<T>
         {
-            static_assert(std::is_base_of<og::BundleSpaceGraph, T>::value,
-                "Template must inherit from BundleSpaceGraphSparse");
+            static_assert(std::is_base_of<og::BundleSpaceGraph, T>::value, 
+                "Template must inherit from BundleSpaceGraph");
 
             typedef og::BundleSpaceSequence<T> BaseT;
         public:
