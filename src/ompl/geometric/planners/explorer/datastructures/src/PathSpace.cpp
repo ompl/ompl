@@ -1,16 +1,30 @@
 #include <ompl/geometric/planners/explorer/datastructures/PathSpace.h>
 #include <ompl/geometric/planners/multilevel/datastructures/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/explorer/datastructures/PathVisibilityChecker.h>
 #include <boost/foreach.hpp>
 
 #define foreach BOOST_FOREACH
 
 using namespace ompl::geometric;
 
-ompl::geometric::PathSpace::PathSpace()
+ompl::geometric::PathSpace::PathSpace(BundleSpaceGraph* bundleSpaceGraph):
+  bundleSpaceGraph_(bundleSpaceGraph)
 {
 }
 ompl::geometric::PathSpace::~PathSpace()
 {
+    if(pathVisibilityChecker_)
+    {
+        delete pathVisibilityChecker_;
+    }
+}
+PathVisibilityChecker* PathSpace::getPathVisibilityChecker()
+{
+    if(!pathVisibilityChecker_)
+    {
+        pathVisibilityChecker_ = new PathVisibilityChecker(bundleSpaceGraph_->getBundle());
+    }
+    return pathVisibilityChecker_;
 }
 
 int ompl::geometric::PathSpace::getSelectedPath()

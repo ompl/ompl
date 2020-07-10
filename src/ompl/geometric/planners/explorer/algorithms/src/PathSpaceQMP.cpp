@@ -8,16 +8,16 @@
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/planners/multilevel/datastructures/graphsampler/GraphSampler.h>
 #include <ompl/geometric/planners/multilevel/datastructures/pathrestriction/PathRestriction.h>
-#include <ompl/geometric/planners/explorer/datastructures/PathVisibilityChecker.h>
 #include <ompl/geometric/planners/multilevel/datastructures/PlannerDataVertexAnnotated.h>
+#include <ompl/geometric/planners/explorer/datastructures/PathVisibilityChecker.h>
 
 #define foreach BOOST_FOREACH
 
-ompl::geometric::PathSpaceQMP::PathSpaceQMP(const base::SpaceInformationPtr &si, BundleSpace *parent_)
-  : PathSpace(), BaseT(si, parent_)
+ompl::geometric::PathSpaceQMP::PathSpaceQMP(const base::SpaceInformationPtr &si, BundleSpace *parent_): 
+  BaseT(si, parent_),
+  PathSpace(this)
 {
     setName("PathSpaceQMP" + std::to_string(id_));
-    pathVisibilityChecker_ = new PathVisibilityChecker(getBundle());
     if (hasBaseSpace())
     {
         static_cast<BundleSpaceGraph*>(getParent())->getGraphSampler()->disablePathBias();
@@ -26,7 +26,6 @@ ompl::geometric::PathSpaceQMP::PathSpaceQMP(const base::SpaceInformationPtr &si,
 
 ompl::geometric::PathSpaceQMP::~PathSpaceQMP()
 {
-    delete pathVisibilityChecker_;
 }
 
 void ompl::geometric::PathSpaceQMP::grow()
@@ -90,7 +89,7 @@ void ompl::geometric::PathSpaceQMP::grow()
         {
             // FALL 2: verbessert bestehenden pfad
             // Knoten wurde mit 2 Knoten des Pfades verbunden
-            if (pathVisibilityChecker_->IsPathVisible(path, getCriticalPath(i), graph_))
+            if (getPathVisibilityChecker()->IsPathVisible(path, getCriticalPath(i), graph_))
             {
                 isVisible = true;
                 // Path is shorter than visible path else do nothing

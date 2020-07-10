@@ -22,7 +22,7 @@ namespace ompl
       OMPL_CLASS_FORWARD(PathVisibilityChecker);
     //PathSpaceSparseOptimization 
     class PathSpaceSparseOptimization: public og::PathSpace, 
-                              public og::BundleSpaceGraphSparse
+                                       public og::BundleSpaceGraphSparse
     {
 
       using BaseT = ompl::geometric::BundleSpaceGraphSparse;
@@ -32,7 +32,6 @@ namespace ompl
         virtual ~PathSpaceSparseOptimization() override;
         virtual void grow() override;
         virtual void growGeometric();
-        virtual void growGeometricExpand();
         virtual void growControl();
         virtual bool getSolution(ob::PathPtr &solution) override;
 
@@ -65,14 +64,14 @@ namespace ompl
         int getProjectionIndex(const std::vector<ob::State*> &pathBundle) const;
         virtual void sampleFromDatastructure(ob::State *q_random_graph) override;
 
-        PathVisibilityChecker* getPathVisibilityChecker();
+        // PathVisibilityChecker* getPathVisibilityChecker();
         void pushPathToStack(std::vector<ob::State*> &path);
-        void removeLastPathFromStack();
+        // void removeLastPathFromStack();
         std::vector<ob::State*> getProjectedPath(const std::vector<ob::State*> pathBundle, const ob::SpaceInformationPtr &si) const;
 
         void freePath(std::vector<ob::State*> path, const ob::SpaceInformationPtr &si) const;
 
-        PathVisibilityChecker* pathVisibilityChecker_{nullptr};
+        // PathVisibilityChecker* pathVisibilityChecker_{nullptr};
 
         unsigned numberOfFailedAddingPathCalls{0};
         unsigned Nhead{5}; //head -nX (to display only X top paths)

@@ -6,16 +6,19 @@ namespace ompl{
 
     namespace geometric{
 
+        class PathVisibilityChecker;
         class PathSpace{
 
             using VertexPath = std::vector<BundleSpaceGraph::Vertex>;
 
           public:
 
-            PathSpace();
+            PathSpace() = delete;
+            PathSpace(BundleSpaceGraph*);
             ~PathSpace();
 
             void setSelectedPath(int);
+
             int getSelectedPath();
 
             unsigned int getNumberOfPaths() const;
@@ -30,7 +33,12 @@ namespace ompl{
 
             void getPlannerData(base::PlannerData &data, BundleSpaceGraph* bundleGraph) const;
 
+            PathVisibilityChecker *getPathVisibilityChecker();
+
           protected:
+            BundleSpaceGraph *bundleSpaceGraph_;
+
+            PathVisibilityChecker *pathVisibilityChecker_{nullptr};
 
             int selectedPath_{-1};
 

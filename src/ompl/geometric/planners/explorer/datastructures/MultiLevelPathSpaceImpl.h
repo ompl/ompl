@@ -126,16 +126,13 @@ ob::PlannerStatus MultiLevelPathSpace<T>::solve(const ob::PlannerTerminationCond
     {
         jBundle->grow();
         ctr++;
-        // if(jBundle->hasSolution()){
-          //Note: jBundle will not have solution, because we have no
-          //enumerated paths
-          // std::cout << "has solution" << std::endl;
-          // break;
-        // }
-        if(ctr%100==0){
+        if(jBundle->hasSolution())
+        {
+           break;
+        }
+        if(ctr%100==0)
+        {
             break;
-            // std::cout << "CURRENT STATUS" << std::endl;
-            // std::cout << *jBundle << std::endl;
         }
     }
     std::cout << std::string(80, '-') << std::endl;

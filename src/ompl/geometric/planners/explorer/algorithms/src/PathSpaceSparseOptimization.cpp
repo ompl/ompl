@@ -20,8 +20,8 @@ using namespace ob;
 #define foreach BOOST_FOREACH
 
 PathSpaceSparseOptimization::PathSpaceSparseOptimization(const ob::SpaceInformationPtr &si, BundleSpace *parent_) : 
-  ompl::geometric::PathSpace(),
-  BaseT(si, parent_)
+  BaseT(si, parent_),
+  ompl::geometric::PathSpace(this)
 {
     setName("BundleSpaceExplorer" + std::to_string(id_));
     Planner::declareParam<double>("range", this, &PathSpaceSparseOptimization::setRange, &PathSpaceSparseOptimization::getRange, "0.:1.:10000.");
@@ -46,9 +46,7 @@ PathSpaceSparseOptimization::PathSpaceSparseOptimization(const ob::SpaceInformat
         c_random = siC->allocControl();
     }
 
-    q_random = new Configuration(getBundle());
-
-    pathVisibilityChecker_ = new PathVisibilityChecker(getBundle());
+    // pathVisibilityChecker_ = new PathVisibilityChecker(getBundle());
 
     double maxExt = getBundle()->getMaximumExtent();
     pathBias_ = pathBiasFraction_ * maxExt;
@@ -64,8 +62,7 @@ PathSpaceSparseOptimization::PathSpaceSparseOptimization(const ob::SpaceInformat
 
 PathSpaceSparseOptimization::~PathSpaceSparseOptimization()
 {
-    deleteConfiguration(q_random);
-    delete pathVisibilityChecker_;
+    // delete pathVisibilityChecker_;
 }
 
 void PathSpaceSparseOptimization::setGoalBias(double goalBias_)
@@ -136,19 +133,19 @@ void PathSpaceSparseOptimization::grow()
     if (hasSolution_ && pathStackHead_.size() > 0)
     {
         // No Goal Biasing if we already found a solution on this quotient space
-        sampleBundle(q_random->state);
+        sampleBundle(xRandom_->state);
     }
     else
     {
         double s = rng_.uniform01();
         if (s < goalBias)
         {
-            // sets q_random as qGoal_
-            getBundle()->copyState(q_random->state, qGoal_->state);
+            // sets xRandom_ as qGoal_
+            getBundle()->copyState(xRandom_->state, qGoal_->state);
         }
         else
         {
-            sampleBundle(q_random->state);
+            sampleBundle(xRandom_->state);
         }
     }
     if (isDynamic())
@@ -158,80 +155,72 @@ void PathSpaceSparseOptimization::grow()
     else
     {
         growGeometric();
-        // double v = getBundle()->getSpaceMeasure();
-        // if(v > 1e4){
-        //    //TODO: this is a hack to circumvent many local minima on "small" spaces
-        //    //which belong to the un-selected quotient-space path
-        //    //(which would otherwise be found through random walking)
-        //    growGeometricExpand();
-        //}
     }
 }
 
 bool PathSpaceSparseOptimization::hasSolution()
 {
     return BaseT::hasSolution();
-    // return ((pathStackHead_.size()>0) && BaseT::hasSolution());
 }
 
-void PathSpaceSparseOptimization::growGeometricExpand()
-{
-    PDF pdf;
-    foreach (Vertex v, boost::vertices(graph_))
-    {
-        const unsigned long int t = graph_[v]->total_connection_attempts;
-        pdf.add(graph_[v], (double)(t - graph_[v]->successful_connection_attempts) / (double)t);
-    }
-    if (pdf.empty())
-        return;
+// void PathSpaceSparseOptimization::growGeometricExpand()
+// {
+//     PDF pdf;
+//     foreach (Vertex v, boost::vertices(graph_))
+//     {
+//         const unsigned long int t = graph_[v]->total_connection_attempts;
+//         pdf.add(graph_[v], (double)(t - graph_[v]->successful_connection_attempts) / (double)t);
+//     }
+//     if (pdf.empty())
+//         return;
 
-    std::vector<base::State *> workStates(5);
-    getBundle()->allocStates(workStates);
-    Configuration *qv = pdf.sample(rng_.uniform01());
-    unsigned int s = getBundle()->randomBounceMotion(Bundle_sampler_, qv->state, workStates.size(), workStates, false);
+//     std::vector<base::State *> workStates(5);
+//     getBundle()->allocStates(workStates);
+//     Configuration *qv = pdf.sample(rng_.uniform01());
+//     unsigned int s = getBundle()->randomBounceMotion(Bundle_sampler_, qv->state, workStates.size(), workStates, false);
 
-    if (s > 0)
-    {
-        s--;
-        Configuration *qn = new Configuration(getBundle(), workStates[s]);
-        Vertex last = addConfiguration(qn);
+//     if (s > 0)
+//     {
+//         s--;
+//         Configuration *qn = new Configuration(getBundle(), workStates[s]);
+//         Vertex last = addConfiguration(qn);
 
-        for (unsigned int i = 0; i < s; ++i)
-        {
-            // add the vertex along the bouncing motion
-            Configuration *qs = new Configuration(getBundle(), workStates[i]);
-            Vertex m = addConfiguration(qs);
+//         for (unsigned int i = 0; i < s; ++i)
+//         {
+//             // add the vertex along the bouncing motion
+//             Configuration *qs = new Configuration(getBundle(), workStates[i]);
+//             Vertex m = addConfiguration(qs);
 
-            addEdge(qn->index, m);
-            qn = qs;
-        }
+//             addEdge(qn->index, m);
+//             qn = qs;
+//         }
 
-        if (s > 0 || !sameComponent(qv->index, last))
-        {
-            addEdge(qn->index, last);
-        }
-    }
-    getBundle()->freeStates(workStates);
-}
+//         if (s > 0 || !sameComponent(qv->index, last))
+//         {
+//             addEdge(qn->index, last);
+//         }
+//     }
+//     getBundle()->freeStates(workStates);
+// }
 
 void PathSpaceSparseOptimization::growGeometric()
 {
-    const Configuration *q_nearest = nearest(q_random);
+    const Configuration *q_nearest = nearest(xRandom_);
 
-    double d = getBundle()->distance(q_nearest->state, q_random->state);
+    double d = getBundle()->distance(q_nearest->state, xRandom_->state);
     if (d > maxDistance)
     {
-        getBundle()->getStateSpace()->interpolate(q_nearest->state, q_random->state, maxDistance / d, q_random->state);
+        getBundle()->getStateSpace()->interpolate(q_nearest->state, xRandom_->state, maxDistance / d, xRandom_->state);
     }
 
-    if (getBundle()->checkMotion(q_nearest->state, q_random->state))
+    if (getBundle()->checkMotion(q_nearest->state, xRandom_->state))
     {
-        Configuration *q_next = new Configuration(getBundle(), q_random->state);
+        Configuration *q_next = new Configuration(getBundle(), xRandom_->state);
 
         //############################################################################
         // TODO: replace w AddConfig
         Vertex v_next = addConfiguration(q_next);
-        // Configuration *q_next = addConfigurationDense(q_random);
+        // Configuration *q_next = addConfigurationDense(xRandom_);
 
         findGraphNeighbors(q_next, graphNeighborhood, visibleNeighborhood);
 
@@ -259,9 +248,9 @@ void PathSpaceSparseOptimization::growGeometric()
 
 void PathSpaceSparseOptimization::growControl()
 {
-    const Configuration *q_nearest = nearest(q_random);
+    const Configuration *q_nearest = nearest(xRandom_);
 
-    s_random = q_random->state;
+    s_random = xRandom_->state;
 
     int duration = dCSampler->sampleTo(c_random, q_nearest->state, s_random);
 
@@ -285,7 +274,7 @@ void PathSpaceSparseOptimization::growControl()
         if (distanceToGoal < approximateDistanceToGoal)
         {
             approximateDistanceToGoal = distanceToGoal;
-            std::cout << "Found new solution " << distanceToGoal << " away from goal." << std::endl;
+            // std::cout << "Found new solution " << distanceToGoal << " away from goal." << std::endl;
             Configuration *qStartSparse = graphSparse_[v_start_sparse];
             // getBundle()->printState(qStartSparse->state);
             // getBundle()->printState(q_nearest_to_goal->state);
@@ -393,7 +382,7 @@ void PathSpaceSparseOptimization::getPlannerData(ob::PlannerData &data) const
 //############################################################################
 // EXPLORER
 //############################################################################
-void PathSpaceSparseOptimization::sampleFromDatastructure(ob::State *q_random_graph)
+void PathSpaceSparseOptimization::sampleFromDatastructure(ob::State *xRandom_graph)
 {
     if (!getChild()->isDynamic() && pathStack_.size() > 0)
     {
@@ -406,8 +395,8 @@ void PathSpaceSparseOptimization::sampleFromDatastructure(ob::State *q_random_gr
             // Vertex Sampling
             // int k = rng_.uniformInt(0, N-1);
             // ob::State *state = states.at(k);
-            // getBundle()->getStateSpace()->copyState(q_random_graph, state);
-            // Bundle_sampler->sampleUniformNear(q_random_graph, q_random_graph, 0.2);
+            // getBundle()->getStateSpace()->copyState(xRandom_graph, state);
+            // Bundle_sampler->sampleUniformNear(xRandom_graph, xRandom_graph, 0.2);
 
             //############################################################################
             // Edge Sampling
@@ -416,9 +405,9 @@ void PathSpaceSparseOptimization::sampleFromDatastructure(ob::State *q_random_gr
             ob::State *s1 = states.at((k < N - 1) ? k : k - 1);
             ob::State *s2 = states.at((k < N - 1) ? k + 1 : k);
 
-            getBundle()->getStateSpace()->interpolate(s1, s2, r, q_random_graph);
+            getBundle()->getStateSpace()->interpolate(s1, s2, r, xRandom_graph);
 
-            Bundle_sampler_->sampleUniformNear(q_random_graph, q_random_graph, pathBias_);
+            Bundle_sampler_->sampleUniformNear(xRandom_graph, xRandom_graph, pathBias_);
         }
         else
         {
@@ -429,7 +418,7 @@ void PathSpaceSparseOptimization::sampleFromDatastructure(ob::State *q_random_gr
     }
     else
     {
-        BaseT::sampleFromDatastructure(q_random_graph);
+        BaseT::sampleFromDatastructure(xRandom_graph);
     }
 }
 
@@ -438,10 +427,10 @@ unsigned int PathSpaceSparseOptimization::getNumberOfPaths() const
     return pathStackHead_.size();
 }
 
-void PathSpaceSparseOptimization::removeLastPathFromStack()
-{
-    pathStackHead_.erase(pathStackHead_.end() - 1);
-}
+// void PathSpaceSparseOptimization::removeLastPathFromStack()
+// {
+//     pathStackHead_.erase(pathStackHead_.end() - 1);
+// }
 
 void PathSpaceSparseOptimization::pushPathToStack(std::vector<ob::State *> &path)
 {
@@ -479,7 +468,7 @@ void PathSpaceSparseOptimization::pushPathToStack(std::vector<ob::State *> &path
           return;
         }
 
-        if(!pathVisibilityChecker_->CheckValidity(gpath.getStates()))
+        if(!getPathVisibilityChecker()->CheckValidity(gpath.getStates()))
         {
           std::cout << "REJECTED (Infeasible)" << std::endl;
           numberOfFailedAddingPathCalls++;
@@ -494,7 +483,7 @@ void PathSpaceSparseOptimization::pushPathToStack(std::vector<ob::State *> &path
             for (uint k = 0; k < pathStack_.size(); k++)
             {
                 og::PathGeometric &pathk = pathStack_.at(k);
-                if (pathVisibilityChecker_->IsPathVisible(gpath.getStates(), pathk.getStates()))
+                if (getPathVisibilityChecker()->IsPathVisible(gpath.getStates(), pathk.getStates()))
                 {
                     std::cout << "REJECTED (Equal to path " << k << ")" << std::endl;
                     numberOfFailedAddingPathCalls++;
@@ -584,7 +573,7 @@ void PathSpaceSparseOptimization::removeEdgeIfReductionLoop(const Edge &e)
         vpath2.push_back(v1);
         vpath2.push_back(v2);
 
-        if (pathVisibilityChecker_->IsPathVisible(vpath1, vpath2, graphSparse_))
+        if (getPathVisibilityChecker()->IsPathVisible(vpath1, vpath2, graphSparse_))
         {
             // RemoveEdge
             std::cout << "Removing Edge " << v1 << "<->" << v2 << std::endl;
@@ -705,10 +694,10 @@ void PathSpaceSparseOptimization::getPathIndices(const std::vector<ob::State *> 
     }
 }
 
-PathVisibilityChecker *PathSpaceSparseOptimization::getPathVisibilityChecker()
-{
-    return pathVisibilityChecker_;
-}
+// PathVisibilityChecker *PathSpaceSparseOptimization::getPathVisibilityChecker()
+// {
+//     // return pathVisibilityChecker_;
+// }
 
 const std::vector<ob::State *> PathSpaceSparseOptimization::getKthPath(uint k) const
 {

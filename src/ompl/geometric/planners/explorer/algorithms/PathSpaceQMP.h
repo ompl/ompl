@@ -24,12 +24,8 @@ namespace ompl
             virtual ~PathSpaceQMP() override;
             virtual void grow() override;
 
-            PathVisibilityChecker *getPathVisibilityChecker();
-            PathVisibilityChecker *pathVisibilityChecker_{nullptr};
-
         protected:
             double bestCost_{std::numeric_limits<double>::infinity()};
-
 
         };
     }  // namespace geometric
