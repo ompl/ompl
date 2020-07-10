@@ -35,7 +35,6 @@
 /* Author: Èric Pairet */
 
 #include "ompl/geometric/planners/experience/ERT.h"
-#include <limits>
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
@@ -69,16 +68,6 @@ void ompl::geometric::ERT::clear()
     lastGoalMotion_ = nullptr;
 }
 
-void ompl::geometric::ERT::setup()
-{
-    Planner::setup();
-    tools::SelfConfig sc(si_, getName());
-
-    if (!nn_)
-        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
-    nn_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
-}
-
 void ompl::geometric::ERT::freeMemory()
 {
     if (nn_)
@@ -91,7 +80,7 @@ void ompl::geometric::ERT::freeMemory()
                 if (state != nullptr)
                     si_->freeState(state);
             if (motion->state != nullptr)
-                si_->freeState(motion->state);
+                    si_->freeState(motion->state);
             delete motion;
         }
     }
@@ -102,6 +91,16 @@ void ompl::geometric::ERT::freeMemory()
             si_->freeState(state);
     experience_->segment.clear();
     delete experience_;
+}
+
+void ompl::geometric::ERT::setup()
+{
+    Planner::setup();
+    tools::SelfConfig sc(si_, getName());
+
+    if (!nn_)
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
+    nn_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 }
 
 bool ompl::geometric::ERT::isSegmentValid(const Motion *tmotion)
@@ -117,7 +116,7 @@ bool ompl::geometric::ERT::isSegmentValid(const Motion *tmotion)
     return true;
 }
 
-void ompl::geometric::ERT::getSegment(const Motion *imotion, Motion *tmotion, const bool connect_flag)
+void ompl::geometric::ERT::getSegment(const Motion *imotion, Motion *tmotion, const bool &connect_flag)
 {
     const auto ss = si_->getStateSpace();
     const auto &locations = ss->getValueLocations();
@@ -158,7 +157,7 @@ void ompl::geometric::ERT::getSegment(const Motion *imotion, Motion *tmotion, co
     si_->copyState(tmotion->state, tmotion->segment[tmotion->phase_span - 1]);
 }
 
-bool ompl::geometric::ERT::getValidSegment(const Motion *imotion, Motion *tmotion, const bool connect_flag)
+bool ompl::geometric::ERT::getValidSegment(const Motion *imotion, Motion *tmotion, const bool &connect_flag)
 {
     const auto ss = si_->getStateSpace();
     const auto &locations = ss->getValueLocations();
@@ -214,8 +213,13 @@ bool ompl::geometric::ERT::getValidSegment(const Motion *imotion, Motion *tmotio
 ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal *goal = pdef_->getGoal().get();
-    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+
+    if (goal_s == nullptr)
+    {
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
+    }
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -341,7 +345,7 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
             nn_->add(motion);
 
             double dist = 0.0;
-            if (goal->isSatisfied(motion->state, &dist))
+            if (goal_s->isSatisfied(motion->state, &dist))
             {
                 approxdif = dist;
                 solution = motion;

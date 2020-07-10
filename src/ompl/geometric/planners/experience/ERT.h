@@ -54,7 +54,7 @@ namespace ompl
             bias the sampling of candidate states, and their connections.
         */
 
-        /** \brief Rapidly-exploring Random Trees */
+        /** \brief Experience-guided Random Trees */
         class ERT : public base::Planner
         {
         public:
@@ -254,12 +254,11 @@ namespace ompl
             /** \brief Returns true if the entire motion is valid. */
             bool isSegmentValid(const Motion *tmotion);
 
-            // NOTE: to document
-            /** \brief Compute a motion to connect or explore */
-            void getSegment(const Motion *imotion, Motion *tmotion, const bool connect_flag);
+            /** \brief Compute a motion to connect or explore. The segment is not validated. */
+            void getSegment(const Motion *imotion, Motion *tmotion, const bool &connect_flag);
 
             /** \brief Attempt (once) to compute a motion to connect or explore. Returns true if the motion is valid. */
-            bool getValidSegment(const Motion *imotion, Motion *tmotion, const bool connect_flag);
+            bool getValidSegment(const Motion *imotion, Motion *tmotion, const bool &connect_flag);
 
             /** \brief The probability distribution function over states in the tree */
             PDF<Motion *> pdf_;
