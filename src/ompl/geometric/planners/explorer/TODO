@@ -2,3 +2,5 @@
 [ ] Incorporate optimizer
 [ ] Return control in PlannerData
 
+[ ] Anytime thread-based (plus exhaustive mode)
+

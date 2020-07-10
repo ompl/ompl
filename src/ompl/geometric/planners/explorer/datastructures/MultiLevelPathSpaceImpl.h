@@ -1,7 +1,7 @@
 #include <ompl/geometric/planners/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/geometric/planners/multilevel/datastructures/BundleSpace.h>
 #include <ompl/geometric/planners/explorer/datastructures/PathSpace.h>
-#include <ompl/geometric/planners/explorer/algorithms/MotionExplorerImpl.h>
+#include <ompl/geometric/planners/explorer/algorithms/PathSpaceSparseOptimization.h>
 
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
@@ -126,15 +126,16 @@ ob::PlannerStatus MultiLevelPathSpace<T>::solve(const ob::PlannerTerminationCond
     {
         jBundle->grow();
         ctr++;
-        if(jBundle->hasSolution()){
+        // if(jBundle->hasSolution()){
           //Note: jBundle will not have solution, because we have no
           //enumerated paths
-          std::cout << "has solution" << std::endl;
-          break;
-        }
-        if(ctr%10000==0){
-            std::cout << "CURRENT STATUS" << std::endl;
-            std::cout << *jBundle << std::endl;
+          // std::cout << "has solution" << std::endl;
+          // break;
+        // }
+        if(ctr%100==0){
+            break;
+            // std::cout << "CURRENT STATUS" << std::endl;
+            // std::cout << *jBundle << std::endl;
         }
     }
     std::cout << std::string(80, '-') << std::endl;
@@ -160,7 +161,7 @@ void MultiLevelPathSpace<T>::getPlannerData(ob::PlannerData &data) const
     {
         og::BundleSpaceGraph *Qk = static_cast<BundleSpaceGraph*>(this->bundleSpaces_.at(k));
 
-        MotionExplorerImpl *Qk_tmp = dynamic_cast<MotionExplorerImpl*>(Qk);
+        PathSpaceSparseOptimization *Qk_tmp = dynamic_cast<PathSpaceSparseOptimization*>(Qk);
         if(Qk_tmp != nullptr)
         {
             Qk_tmp->enumerateAllPaths();
@@ -186,12 +187,15 @@ void MultiLevelPathSpace<T>::getPlannerData(ob::PlannerData &data) const
             for (unsigned int m = k + 1; m < this->bundleSpaces_.size(); m++)
             {
                 const og::BundleSpace *Qm = this->bundleSpaces_.at(m);
-                if (Qm->getFiber() != nullptr)
+
+                if (Qm->getFiberDimension() > 0)
                 {
                     ob::State *s_Bundle = Qm->allocIdentityStateBundle();
                     ob::State *s_Fiber = Qm->allocIdentityStateFiber();
 
-                    OMPL_WARN("TODO: Merge states");
+                    Qm->liftState(s_lift, s_Fiber, s_Bundle);
+
+                    Qm->getBase()->freeState(s_lift);
                     // TODO: Qm->liftState(s_lift, s_Fiber, s_Bundle);
                     s_lift = Qm->getBundle()->cloneState(s_Bundle);
 

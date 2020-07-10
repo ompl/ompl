@@ -20,11 +20,11 @@ namespace ompl{
 
             unsigned int getNumberOfPaths() const;
 
-            void updatePath(int k, VertexPath p, double length);
+            void updatePath(int k, VertexPath p, double cost);
 
-            void addPath(VertexPath p, double length);
+            void addPath(VertexPath p, double cost);
 
-            double getPathLength(int k) const;
+            double getPathCost(int k) const;
 
             std::vector<BundleSpaceGraph::Vertex>& getCriticalPath(int k);
 
@@ -36,7 +36,7 @@ namespace ompl{
 
             std::vector<VertexPath> criticalPaths_;
 
-            std::vector<double> criticalPathsLength_;
+            std::vector<double> criticalPathsCost_;
         };
     }
 }

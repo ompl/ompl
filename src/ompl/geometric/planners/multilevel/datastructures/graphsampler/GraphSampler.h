@@ -26,6 +26,8 @@ namespace ompl
 
             void disableSegmentBias();
 
+            void disablePathBias();
+
             virtual void reset();
 
         protected:

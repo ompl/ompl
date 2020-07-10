@@ -22,24 +22,24 @@ void ompl::geometric::PathSpace::setSelectedPath(int selectedPath)
     selectedPath_ = selectedPath;
 }
 
-void ompl::geometric::PathSpace::updatePath(int k, VertexPath p, double length)
+void ompl::geometric::PathSpace::updatePath(int k, VertexPath p, double cost)
 {
     if(k >= criticalPaths_.size()) return;
     criticalPaths_.at(k) = p;
-    criticalPathsLength_.at(k) = length;
+    criticalPathsCost_.at(k) = cost;
 }
 
-void ompl::geometric::PathSpace::addPath(VertexPath p, double length)
+void ompl::geometric::PathSpace::addPath(VertexPath p, double cost)
 {
     criticalPaths_.push_back(p);
-    criticalPathsLength_.push_back(length);
+    criticalPathsCost_.push_back(cost);
 }
 
-double ompl::geometric::PathSpace::getPathLength(int k) const
+double ompl::geometric::PathSpace::getPathCost(int k) const
 {
-    if(k < criticalPathsLength_.size())
+    if(k < criticalPathsCost_.size())
     {
-        return criticalPathsLength_.at(k);
+        return criticalPathsCost_.at(k);
     }
 }
 std::vector<BundleSpaceGraph::Vertex>& ompl::geometric::PathSpace::getCriticalPath(int k)
@@ -90,11 +90,11 @@ void ompl::geometric::PathSpace::getPlannerData(base::PlannerData &data, BundleS
             p1->setPath(idxPathI);
             data.addStartVertex(*p1);
 
-            si->printState(s1);
+            // si->printState(s1);
             for (uint k = 0; k < vertices.size() - 1; k++)
             {
                 base::State *s2 = graph[vertices.at(k+1)]->state;
-                si->printState(s2);
+                // si->printState(s2);
 
                 base::PlannerDataVertexAnnotated *p2 = new base::PlannerDataVertexAnnotated(
                   si->cloneState(s2));
@@ -113,7 +113,7 @@ void ompl::geometric::PathSpace::getPlannerData(base::PlannerData &data, BundleS
 
                 p1 = p2;
             }
-            std::cout << "Length: " << getPathLength(i) << std::endl;
+            std::cout << "Cost: " << getPathCost(i) << std::endl;
         }
     }
     foreach (const BundleSpaceGraph::Edge e, boost::edges(graph))

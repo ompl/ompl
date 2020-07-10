@@ -34,6 +34,13 @@ void ompl::geometric::BundleSpaceGraphSampler::disableSegmentBias()
     this->segmentBias_ = false;
 }
 
+void ompl::geometric::BundleSpaceGraphSampler::disablePathBias()
+{
+    pathBiasDecay_.setLambda(0);
+    pathBiasDecay_.setUpperBound(0);
+    pathBiasDecay_.setLowerBound(0);
+}
+
 void ompl::geometric::BundleSpaceGraphSampler::setPathBiasStartSegment(double s)
 {
     if (!segmentBias_)
