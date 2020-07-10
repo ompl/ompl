@@ -1,0 +1,565 @@
+/*********************************************************************
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2020, Rice University
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Rice University nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
+
+/* Author: Èric Pairet */
+
+#include "ompl/geometric/planners/experience/ERTConnect.h"
+#include "ompl/base/goals/GoalSampleableRegion.h"
+#include "ompl/tools/config/SelfConfig.h"
+
+ompl::geometric::ERTConnect::ERTConnect(const base::SpaceInformationPtr &si)
+  : base::Planner(si, "ERTConnect")
+{
+    specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
+    specs_.directed = true;
+
+    Planner::declareParam<double>("goal_bias", this, &ERTConnect::setGoalBias, &ERTConnect::getGoalBias, "0.:.05:1.");
+    Planner::declareParam<double>("experience_fraction_min", this, &ERTConnect::setExperienceFractionMin, &ERTConnect::getExperienceFractionMin, "0.:.05:1.");
+    Planner::declareParam<double>("experience_fraction_max", this, &ERTConnect::setExperienceFractionMax, &ERTConnect::getExperienceFractionMax, "0.:.05:1.");
+    Planner::declareParam<double>("experience_tubular_radius", this, &ERTConnect::setExperienceTubularRadius, &ERTConnect::getExperienceTubularRadius, "0.:.05:10000.");
+    Planner::declareParam<bool>("experience_initial_update", this, &ERTConnect::setExperienceInitialUpdate, &ERTConnect::getExperienceInitialUpdate, "0,1");
+}
+
+ompl::geometric::ERTConnect::~ERTConnect()
+{
+    freeMemory();
+}
+
+void ompl::geometric::ERTConnect::clear()
+{
+    Planner::clear();
+    sampler_.reset();
+    freeMemory();
+    if (tStart_)
+        tStart_->clear();
+    if (tGoal_)
+        tGoal_->clear();
+
+    pdf_tStart_.clear();
+    pdf_tGoal_.clear();
+}
+
+void ompl::geometric::ERTConnect::freeMemory()
+{
+    std::vector<Motion *> motions;
+
+    if (tStart_)
+    {
+        tStart_->list(motions);
+        for (auto &motion : motions)
+        {
+            for (auto &state : motion->segment)
+                if (state != nullptr)
+                    si_->freeState(state);
+            if (motion->state != nullptr)
+                si_->freeState(motion->state);
+            delete motion;
+        }
+    }
+
+    if (tGoal_)
+    {
+        tGoal_->list(motions);
+        for (auto &motion : motions)
+        {
+            for (auto &state : motion->segment)
+                if (state != nullptr)
+                    si_->freeState(state);
+            if (motion->state != nullptr)
+                si_->freeState(motion->state);
+            delete motion;
+        }
+    }
+}
+
+void ompl::geometric::ERTConnect::setup()
+{
+    Planner::setup();
+    tools::SelfConfig sc(si_, getName());
+
+    if (!tStart_)
+        tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
+    if (!tGoal_)
+        tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
+    tStart_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
+    tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
+}
+
+bool ompl::geometric::ERTConnect::isSegmentValid(const Motion *tmotion)
+{
+    /* check first state as next checkMotion assumes it valid */
+    if (!si_->isValid(tmotion->segment[0]))
+        return false;
+
+    /* check the motions (segments) between states */
+    for (unsigned int i = 0; i < tmotion->phase_span - 1; ++i)
+        if (!si_->checkMotion(tmotion->segment[i], tmotion->segment[i + 1]))
+            return false;
+    return true;
+}
+
+void ompl::geometric::ERTConnect::getSegment(const Motion *imotion, Motion *tmotion, const bool &connect_flag)
+{
+    const auto ss = si_->getStateSpace();
+    const auto &locations = ss->getValueLocations();
+    const unsigned int dimensionality = locations.size();
+    std::vector<double> b(dimensionality), l(dimensionality);
+
+    /* compute tranform parameters */
+    tmotion->phase_span = std::abs(int(tmotion->phase_end) - int(imotion->phase_end)) + 1;
+    if (connect_flag)
+    {
+        /* compute transform parameters to connect */
+        for(size_t i = 0; i < dimensionality; ++i)
+        {
+            b[i] = *(ss->getValueAddressAtLocation(imotion->state, locations[i])) - *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end], locations[i]));
+            l[i] = *(ss->getValueAddressAtLocation(tmotion->state, locations[i])) - (*(ss->getValueAddressAtLocation(experience_->segment[tmotion->phase_end], locations[i])) + b[i]);
+        }
+    }
+    else
+    {
+        /* compute transform parameters to explore */
+        double noise = tmotion->phase_span * experienceTubularRadius_ / experience_->phase_span;
+        for(size_t i = 0; i < dimensionality; ++i)
+        {
+            b[i] = *(ss->getValueAddressAtLocation(imotion->state, locations[i])) - *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end], locations[i]));
+            l[i] = rng_.uniformReal(-noise, noise);
+        }
+    }
+
+    /* transform segment */
+    double t;
+    for(size_t i = 0; i < tmotion->phase_span; ++i)
+    {
+        t = double(i) / double(tmotion->phase_span - 1);
+        for(size_t j = 0; j < dimensionality; ++j)
+            *(ss->getValueAddressAtLocation(tmotion->segment[i], locations[j])) = *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end + i], locations[j])) + t * l[j] + b[j];
+        ss->enforceBounds(tmotion->segment[i]);
+    }
+    si_->copyState(tmotion->state, tmotion->segment[tmotion->phase_span - 1]);
+}
+
+bool ompl::geometric::ERTConnect::getValidSegment(const Motion *imotion, Motion *tmotion, const bool &connect_flag)
+{
+    /* when connecting the trees, the nearest motion might have the same phase */
+    if (imotion->phase_end == tmotion->phase_end)
+    {
+        std::cout << "\n\n        that's the case...\n\n" << std::endl;
+        if (si_->checkMotion(imotion->state, tmotion->state))
+        {
+            tmotion->segment[0] = imotion->state;
+            tmotion->segment[1] = tmotion->state;
+            tmotion->phase_span = 2;
+            return true;
+        }
+        return false;
+    }
+
+    const auto ss = si_->getStateSpace();
+    const auto &locations = ss->getValueLocations();
+    const unsigned int dimensionality = locations.size();
+    std::vector<double> b(dimensionality), l(dimensionality), x(dimensionality);
+
+    /* segment direction */
+    int increment = int(tmotion->phase_end) - int(imotion->phase_end);
+    int direction = (increment > 0) - (increment < 0);
+    tmotion->phase_span = std::abs(increment) + 1;
+
+    /* compute tranform parameters */
+    if (connect_flag)
+    {
+        /* compute transform parameters to connect */
+        for(size_t i = 0; i < dimensionality; ++i)
+        {
+            b[i] = *(ss->getValueAddressAtLocation(imotion->state, locations[i])) - *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end], locations[i]));
+            l[i] = *(ss->getValueAddressAtLocation(tmotion->state, locations[i])) - (*(ss->getValueAddressAtLocation(experience_->segment[tmotion->phase_end], locations[i])) + b[i]);
+            x[i] = *(ss->getValueAddressAtLocation(experience_->segment[tmotion->phase_end], locations[i])) + b[i] + l[i];
+        }
+    }
+    else
+    {
+        /* compute transform parameters to explore */
+        double noise = tmotion->phase_span * experienceTubularRadius_ / experience_->phase_span;
+        for(size_t i = 0; i < dimensionality; ++i)
+        {
+            b[i] = *(ss->getValueAddressAtLocation(imotion->state, locations[i])) - *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end], locations[i]));
+            l[i] = rng_.uniformReal(-noise, noise);
+            x[i] = *(ss->getValueAddressAtLocation(experience_->segment[tmotion->phase_end], locations[i])) + b[i] + l[i];
+        }
+    }
+
+    /* validate target state */
+    ss->copyFromReals(tmotion->state, x);
+    ss->enforceBounds(tmotion->state);
+    if (!si_->isValid(tmotion->state))
+        return false;
+
+    /* transform segment while valid */
+    double t;
+    si_->copyState(tmotion->segment[0], imotion->state);
+    for(size_t i = 1; i < tmotion->phase_span; ++i)
+    {
+        t = double(i) / double(tmotion->phase_span - 1);
+        for(size_t j = 0; j < dimensionality; ++j)
+            *(ss->getValueAddressAtLocation(tmotion->segment[i], locations[j])) = *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end + i * direction], locations[j])) + t * l[j] + b[j];
+
+        ss->enforceBounds(tmotion->segment[i]);
+        if (!si_->checkMotion(tmotion->segment[i - 1], tmotion->segment[i]))
+            return false;
+    }
+    return true;
+}
+
+ompl::base::PlannerStatus ompl::geometric::ERTConnect::solve(const base::PlannerTerminationCondition &ptc)
+{
+    checkValidity();
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+
+    if (goal_s == nullptr)
+    {
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
+    }
+
+    while (const base::State *st = pis_.nextStart())
+    {
+        auto *motion = new Motion(si_, 0);
+        si_->copyState(motion->state, st);
+        motion->phase_end = 0;
+        motion->element = pdf_tStart_.add(motion, weightFunction(motion));
+        tStart_->add(motion);
+    }
+
+    if (tStart_->size() == 0)
+    {
+        OMPL_ERROR("%s: Motion planning start tree could not be initialized!", getName().c_str());
+        return base::PlannerStatus::INVALID_START;
+    }
+
+    if (!goal_s->couldSample())
+    {
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
+        return base::PlannerStatus::INVALID_GOAL;
+    }
+
+    /* map experience onto current planning problem; currently only one experience is created for a selected start and goal */
+    auto *smotion = new Motion(si_, 0);
+    smotion->state = pdef_->getStartState(0);
+    smotion->phase_end = 0;
+
+    auto *gmotion = new Motion(si_, 0);
+    const base::State *st = pis_.nextGoal(ptc);
+    if (st != nullptr)
+    {
+        si_->copyState(gmotion->state, st);
+        gmotion->phase_end = experience_->phase_end;
+        gmotion->element = pdf_tGoal_.add(gmotion, weightFunction(gmotion));
+        tGoal_->add(gmotion);
+    }
+    else
+    {
+        OMPL_ERROR("%s: Unable to sample any valid states for goal tree", getName().c_str());
+        return base::PlannerStatus::TIMEOUT;
+    }
+
+
+
+
+
+
+
+    /* map experience onto current planning problem; currently only one experience is created for a selected start and goal */
+    // base::State *sstate = si_->allocState();
+    // base::State *gstate = si_->allocState();
+    // sstate = pdef_->getStartState(0);
+    // if ((goal_s != nullptr) && goal_s->canSample())
+    //     goal_s->sampleGoal(gstate);
+    // else
+    // {
+    //     OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
+    //     return base::PlannerStatus::INVALID_GOAL;
+    // }
+
+    if (!experience_)
+    {
+        OMPL_INFORM("%s: No experience provided. Setting straight experience", getName().c_str());
+
+        experience_ = new Motion(si_, 50); // 50 states for the straight experience
+        experience_->phase_end = experience_->phase_span - 1;
+        si_->getMotionStates(smotion->state, gmotion->state, experience_->segment, experience_->phase_span - 2, true, false);
+    }
+    else
+    {
+        /* update experience as its mapping onto the current planning problem */
+        if (experienceInitialUpdate_)
+        {
+            Motion *tmotion = new Motion(si_, 0); // targ
+            si_->copyState(tmotion->state, gmotion->state);
+            tmotion->phase_end = experience_->phase_span - 1;
+            tmotion->segment.resize(experience_->phase_span);
+            tmotion->segment = experience_->segment; // copy the pointers to update the experience_
+
+            getSegment(smotion, tmotion, true);
+        }
+    }
+    OMPL_INFORM("%s: Updated experience has %u states", getName().c_str(), experience_->phase_span);
+
+    /* check if the mapped experience is a solution */
+    if (isSegmentValid(experience_))
+    {
+        OMPL_INFORM("%s: Updated experience solves the current problem defition!", getName().c_str());
+
+        auto path(std::make_shared<PathGeometric>(si_));
+        for (auto &state : experience_->segment)
+            path->append(state);
+
+        bool is_approximate = false;
+        pdef_->addSolutionPath(path, is_approximate, si_->distance(gmotion->state, experience_->segment.back()), getName().c_str());
+        return base::PlannerStatus(true, is_approximate);
+    }
+
+    /* proceed with the planning */
+    if (!sampler_)
+        sampler_ = si_->allocStateSampler();
+
+    OMPL_INFORM("%s: Starting planning with %d states already in datastructure", getName().c_str(),
+                (int)(tStart_->size() + tGoal_->size()));
+
+    bool solved = false;
+    bool startTree = false;
+    Motion *approxsol = nullptr;
+    double approxdif = std::numeric_limits<double>::infinity();
+
+    Motion *imotion; // init
+    Motion *tmotion = new Motion(si_, experience_->phase_span); /* pre-allocate memory for candidate segments */
+
+    bool connect_flag;
+    if (segmentFractionMin_ > segmentFractionMax_)
+    {
+        OMPL_WARN("segmentFractionMin_ > segmentFractionMax_, swapping parameters.");
+        double tmp = segmentFractionMin_;
+        segmentFractionMin_ = segmentFractionMax_;
+        segmentFractionMax_ = tmp;
+    }
+    unsigned int min_inc = std::max((unsigned int)(segmentFractionMin_ * experience_->phase_end), (unsigned int)(1));
+    unsigned int max_inc = std::max((unsigned int)(segmentFractionMax_ * experience_->phase_end), (unsigned int)(min_inc + 1));
+
+    Motion *addedMotion = nullptr;
+    Motion *otherAddedMotion = nullptr;
+    while (!ptc)
+    {
+        startTree = !startTree;
+        TreeData &tree = startTree ? tStart_ : tGoal_;
+        TreeData &otherTree = startTree ? tGoal_ : tStart_;
+        PDF<Motion*> &pdf = startTree ? pdf_tStart_ : pdf_tGoal_;
+        PDF<Motion*> &otherPdf = startTree ? pdf_tGoal_ : pdf_tStart_;
+        Motion *target = startTree ? gmotion : smotion;
+
+        addedMotion = nullptr;
+        otherAddedMotion = nullptr;
+
+        /* pick a state from the tree */
+        imotion = pdf.sample(rng_.uniform01());
+        pdf.update(imotion->element, weightFunction(imotion));
+
+        /* sample candidate segment to explore from the tree */
+        connect_flag = false;
+        if (startTree)
+            tmotion->phase_end = rng_.uniformInt(std::min(imotion->phase_end + min_inc, experience_->phase_end), std::min(imotion->phase_end + max_inc, experience_->phase_end));
+        else
+            tmotion->phase_end = rng_.uniformInt(std::max(0, (int)imotion->phase_end - (int)max_inc), std::max(0, (int)imotion->phase_end - (int)min_inc));
+
+        /* switch to connect mode if the segment attemts to reach the other end */
+        if ((startTree && (tmotion->phase_end == experience_->phase_end)) || (!startTree && (tmotion->phase_end == 0))) {
+            connect_flag = true;
+            tmotion->phase_end = target->phase_end;
+            si_->copyState(tmotion->state, target->state); // make sure we don't modify pointed start/goal
+        }
+
+        /* attempt generating a valid segment to connect or explore */
+        if (!getValidSegment(imotion, tmotion, connect_flag))
+            continue;
+
+        Motion *motion = new Motion(si_, tmotion->phase_span);
+        si_->copyState(motion->state, tmotion->state);
+        for (size_t i = 0; i < tmotion->phase_span; ++i)
+            si_->copyState(motion->segment[i], tmotion->segment[i]);
+        motion->phase_span = tmotion->phase_span;
+        motion->phase_end = tmotion->phase_end;
+        motion->parent = imotion;
+        motion->element = pdf.add(motion, weightFunction(motion));
+        tree->add(motion);
+
+        /* remember which motion was just added and check if it reaches the other end */
+        addedMotion = motion;
+        if (connect_flag)
+        {
+            OMPL_INFORM("%s: Solution found by %s", getName().c_str(), startTree ? "startTree" : "goalTree");
+            solved = true;
+            break;
+        }
+
+        /* attempt connecting to last added motion from the nearest state in the other tree*/
+        imotion = otherTree->nearest(addedMotion);
+        otherPdf.update(imotion->element, weightFunction(imotion));
+
+        /* attempt generating a valid segment to connect to the other tree */
+        if (getValidSegment(imotion, tmotion, true))
+        {
+            Motion *other_motion = new Motion(si_, tmotion->phase_span);
+            si_->copyState(other_motion->state, tmotion->state);
+            for (size_t i = 0; i < tmotion->phase_span; ++i)
+            si_->copyState(other_motion->segment[i], tmotion->segment[i]);
+            other_motion->phase_span = tmotion->phase_span;
+            other_motion->phase_end = tmotion->phase_end;
+            other_motion->parent = imotion;
+            other_motion->element = otherPdf.add(other_motion, weightFunction(other_motion));
+            otherTree->add(other_motion);
+
+            // remember the otherAddedMotion
+            OMPL_INFORM("%s: Solution found by connecting both trees", getName().c_str());
+            otherAddedMotion = other_motion;
+            solved = true;
+            break;
+        }
+
+        /* update approximate solution */
+        if (startTree)
+        {
+            double dist = 0.0;
+            goal_s->isSatisfied(addedMotion->state, &dist);
+            if (dist < approxdif)
+            {
+                approxdif = dist;
+                approxsol = addedMotion;
+            }
+        }
+    }
+
+    /* retrieve solution: approximate (only startTree), or exact from either tree or from connecting both*/
+    Motion *startMotion = nullptr;
+    Motion *goalMotion = nullptr;
+    if (!solved && approxsol)
+        startMotion = approxsol;
+    else
+    {
+        startMotion = startTree ? addedMotion : otherAddedMotion;
+        goalMotion = startTree ? otherAddedMotion : addedMotion;
+    }
+
+    /* construct the solution path */
+    Motion *solution = startMotion;
+    std::vector<Motion *> mpath1;
+    while (solution != nullptr) {
+        mpath1.push_back(solution);
+        solution = solution->parent;
+    }
+
+    solution = goalMotion;
+    std::vector<Motion *> mpath2;
+    while (solution != nullptr) {
+        mpath2.push_back(solution);
+        solution = solution->parent;
+    }
+
+    /* remove connection state to avoid duplicate state */
+    if (!mpath1.empty() && !mpath2.empty())
+        mpath1[0]->segment.erase(mpath1[0]->segment.end() - 1);
+
+    auto path(std::make_shared<PathGeometric>(si_));
+    for (int i = mpath1.size() - 1; i >= 0; --i)
+    {
+        if (!mpath1[i]->parent)
+            path->append(mpath1[i]->state);
+        else
+            for (size_t j = 1; j < mpath1[i]->segment.size(); ++j)
+                path->append(mpath1[i]->segment[j]);
+    }
+
+    for (auto &motion : mpath2)
+    {
+        if (!motion->parent)
+            path->append(motion->state);
+        else
+            for (int j = motion->segment.size() - 1; j > 0; --j)
+                path->append(motion->segment[j]);
+    }
+
+    for (auto &state : tmotion->segment)
+        si_->freeState(state);
+    si_->freeState(tmotion->state);
+    delete tmotion;
+
+    OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
+    if (solved)
+    {
+        pdef_->addSolutionPath(path, false, 0.0, getName());
+        return base::PlannerStatus::EXACT_SOLUTION;
+    }
+    if (approxsol)
+    {
+        pdef_->addSolutionPath(path, true, approxdif, getName());
+        return base::PlannerStatus::APPROXIMATE_SOLUTION;
+    }
+    return base::PlannerStatus::TIMEOUT;
+}
+
+void ompl::geometric::ERTConnect::getPlannerData(base::PlannerData &data) const
+{
+    Planner::getPlannerData(data);
+
+    std::vector<Motion *> motions;
+    if (tStart_)
+        tStart_->list(motions);
+
+    for (auto &motion : motions)
+    {
+        if (motion->parent == nullptr)
+            data.addStartVertex(base::PlannerDataVertex(motion->state, 1));
+        else
+            data.addEdge(base::PlannerDataVertex(motion->parent->state, 1), base::PlannerDataVertex(motion->state, 1), ert::PlannerDataEdgeSegment(motion->segment));
+    }
+
+    motions.clear();
+    if (tGoal_)
+        tGoal_->list(motions);
+
+    for (auto &motion : motions)
+    {
+        if (motion->parent == nullptr)
+            data.addGoalVertex(base::PlannerDataVertex(motion->state, 2));
+        else
+            data.addEdge(base::PlannerDataVertex(motion->state, 2), base::PlannerDataVertex(motion->parent->state, 2), ert::PlannerDataEdgeSegment(motion->segment));
+    }
+}
