@@ -325,7 +325,8 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
         tmotion->phase_end = rng_.uniformInt(std::min(imotion->phase_end + min_inc, experience_->phase_end), std::min(imotion->phase_end + max_inc, experience_->phase_end));
 
         /* bias to goal with certain probability or when candidate segment has alpha_end = 1 */
-        if (((goal_s != nullptr) && (rng_.uniform01() < goalBias_) && goal_s->canSample()) || ((experience_->phase_end - tmotion->phase_end) <= min_inc)) {
+        if (((goal_s != nullptr) && (rng_.uniform01() < goalBias_) && goal_s->canSample()) || ((experience_->phase_end - tmotion->phase_end) <= min_inc))
+        {
             connect_flag = true;
             tmotion->phase_end = experience_->phase_end;
             goal_s->sampleGoal(tmotion->state);
@@ -361,10 +362,15 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
 
     bool solved = false;
     bool approximate = false;
-    if (solution == nullptr)
+    if (solution)
+        solved = true;
+    else
     {
-        solution = approxsol;
-        approximate = true;
+        if (approxsol)
+        {
+            approximate = true;
+            solution = approxsol;
+        }
     }
 
     if (solution != nullptr)
@@ -391,7 +397,6 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
         }
 
         pdef_->addSolutionPath(path, approximate, approxdif, getName());
-        solved = true;
     }
 
     for (auto &state : tmotion->segment)
@@ -400,7 +405,7 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
     delete tmotion;
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
-    return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
+    return solved ? base::PlannerStatus::EXACT_SOLUTION : (approximate ? base::PlannerStatus::APPROXIMATE_SOLUTION : base::PlannerStatus::TIMEOUT);
 }
 
 void ompl::geometric::ERT::getPlannerData(base::PlannerData &data) const

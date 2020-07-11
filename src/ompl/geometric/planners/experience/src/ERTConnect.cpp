@@ -175,7 +175,6 @@ bool ompl::geometric::ERTConnect::getValidSegment(const Motion *imotion, Motion 
     /* when connecting the trees, the nearest motion might have the same phase */
     if (imotion->phase_end == tmotion->phase_end)
     {
-        std::cout << "\n\n        that's the case...\n\n" << std::endl;
         if (si_->checkMotion(imotion->state, tmotion->state))
         {
             tmotion->segment[0] = imotion->state;
@@ -293,24 +292,6 @@ ompl::base::PlannerStatus ompl::geometric::ERTConnect::solve(const base::Planner
         return base::PlannerStatus::TIMEOUT;
     }
 
-
-
-
-
-
-
-    /* map experience onto current planning problem; currently only one experience is created for a selected start and goal */
-    // base::State *sstate = si_->allocState();
-    // base::State *gstate = si_->allocState();
-    // sstate = pdef_->getStartState(0);
-    // if ((goal_s != nullptr) && goal_s->canSample())
-    //     goal_s->sampleGoal(gstate);
-    // else
-    // {
-    //     OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
-    //     return base::PlannerStatus::INVALID_GOAL;
-    // }
-
     if (!experience_)
     {
         OMPL_INFORM("%s: No experience provided. Setting straight experience", getName().c_str());
@@ -401,7 +382,8 @@ ompl::base::PlannerStatus ompl::geometric::ERTConnect::solve(const base::Planner
             tmotion->phase_end = rng_.uniformInt(std::max(0, (int)imotion->phase_end - (int)max_inc), std::max(0, (int)imotion->phase_end - (int)min_inc));
 
         /* switch to connect mode if the segment attemts to reach the other end */
-        if ((startTree && (tmotion->phase_end == experience_->phase_end)) || (!startTree && (tmotion->phase_end == 0))) {
+        if ((startTree && (tmotion->phase_end == experience_->phase_end)) || (!startTree && (tmotion->phase_end == 0)))
+        {
             connect_flag = true;
             tmotion->phase_end = target->phase_end;
             si_->copyState(tmotion->state, target->state); // make sure we don't modify pointed start/goal
@@ -468,52 +450,67 @@ ompl::base::PlannerStatus ompl::geometric::ERTConnect::solve(const base::Planner
     }
 
     /* retrieve solution: approximate (only startTree), or exact from either tree or from connecting both*/
+    bool approximate = false;
     Motion *startMotion = nullptr;
     Motion *goalMotion = nullptr;
-    if (!solved && approxsol)
-        startMotion = approxsol;
-    else
+    if (solved)
     {
+        approxdif = 0;
         startMotion = startTree ? addedMotion : otherAddedMotion;
         goalMotion = startTree ? otherAddedMotion : addedMotion;
     }
-
-    /* construct the solution path */
-    Motion *solution = startMotion;
-    std::vector<Motion *> mpath1;
-    while (solution != nullptr) {
-        mpath1.push_back(solution);
-        solution = solution->parent;
-    }
-
-    solution = goalMotion;
-    std::vector<Motion *> mpath2;
-    while (solution != nullptr) {
-        mpath2.push_back(solution);
-        solution = solution->parent;
-    }
-
-    /* remove connection state to avoid duplicate state */
-    if (!mpath1.empty() && !mpath2.empty())
-        mpath1[0]->segment.erase(mpath1[0]->segment.end() - 1);
-
-    auto path(std::make_shared<PathGeometric>(si_));
-    for (int i = mpath1.size() - 1; i >= 0; --i)
+    else
     {
-        if (!mpath1[i]->parent)
-            path->append(mpath1[i]->state);
-        else
-            for (size_t j = 1; j < mpath1[i]->segment.size(); ++j)
-                path->append(mpath1[i]->segment[j]);
+        if (approxsol)
+        {
+            approximate = true;
+            startMotion = approxsol;
+        }
     }
 
-    for (auto &motion : mpath2)
+    if (startMotion || goalMotion)
     {
-        if (!motion->parent)
-            path->append(motion->state);
-        else
-            for (int j = motion->segment.size() - 1; j > 0; --j)
-                path->append(motion->segment[j]);
+        /* construct the solution path */
+        Motion *solution = startMotion;
+        std::vector<Motion *> mpath1;
+        while (solution != nullptr)
+        {
+            mpath1.push_back(solution);
+            solution = solution->parent;
+        }
+
+        solution = goalMotion;
+        std::vector<Motion *> mpath2;
+        while (solution != nullptr)
+        {
+            mpath2.push_back(solution);
+            solution = solution->parent;
+        }
+
+        /* remove connection state to avoid duplicate state */
+        if (!mpath1.empty() && !mpath2.empty())
+            mpath1[0]->segment.erase(mpath1[0]->segment.end() - 1);
+
+        auto path(std::make_shared<PathGeometric>(si_));
+        for (int i = mpath1.size() - 1; i >= 0; --i)
+        {
+            if (!mpath1[i]->parent)
+                path->append(mpath1[i]->state);
+            else
+                for (size_t j = 1; j < mpath1[i]->segment.size(); ++j)
+                    path->append(mpath1[i]->segment[j]);
+        }
+
+        for (auto &motion : mpath2)
+        {
+            if (!motion->parent)
+                path->append(motion->state);
+            else
+                for (int j = motion->segment.size() - 1; j > 0; --j)
+                    path->append(motion->segment[j]);
+        }
+
+        pdef_->addSolutionPath(path, approximate, approxdif, getName());
     }
 
     for (auto &state : tmotion->segment)
@@ -522,17 +519,7 @@ ompl::base::PlannerStatus ompl::geometric::ERTConnect::solve(const base::Planner
     delete tmotion;
 
     OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
-    if (solved)
-    {
-        pdef_->addSolutionPath(path, false, 0.0, getName());
-        return base::PlannerStatus::EXACT_SOLUTION;
-    }
-    if (approxsol)
-    {
-        pdef_->addSolutionPath(path, true, approxdif, getName());
-        return base::PlannerStatus::APPROXIMATE_SOLUTION;
-    }
-    return base::PlannerStatus::TIMEOUT;
+    return solved ? base::PlannerStatus::EXACT_SOLUTION : (approximate ? base::PlannerStatus::APPROXIMATE_SOLUTION : base::PlannerStatus::TIMEOUT);
 }
 
 void ompl::geometric::ERTConnect::getPlannerData(base::PlannerData &data) const

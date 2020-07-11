@@ -116,7 +116,10 @@ namespace ompl
             }
 
             // NOTE: It might be of interest to set a different radius for each dimension
-            /** \brief Set the tubular neighbourhood around the experience to delimit the tree expansion */
+            /** \brief Set the tubular neighbourhood around the experience to delimit the tree expansion
+
+                This parameter determines the extend to which ERTConnect will expand around the experience.
+                Currently, the tubular neighbourhood is symmetric in all dimensions */
             void setExperienceTubularRadius(double experience_tubular_radius)
             {
                 experienceTubularRadius_ = experience_tubular_radius;
@@ -278,10 +281,7 @@ namespace ompl
             /** \brief The maximum fraction of the experience to be extracted as micro-experience (segment) */
             double segmentFractionMax_{0.1};
 
-            /** \brief The tubular neighbourhood around the experience
-
-                This parameter determines the extend to which ERT will expand around the experience.
-                Currently, the tubular neighbourhood is symmetric in all dimensions */
+            /** \brief The tubular neighbourhood around the experience */
             double experienceTubularRadius_{5};
 
             /** \brief The task-relevant prior experience to leverage */
