@@ -249,7 +249,7 @@ void ompl::geometric::BundleSpaceSequence<T>::setProblemDefinition(const ompl::b
     {
         BundleSpace *bundleSpaceParent = static_cast<BundleSpace*>(bundleSpaces_.at(k));
         BundleSpace *bundleSpaceChild = static_cast<BundleSpace*>(bundleSpaces_.at(k - 1));
-        ompl::base::SpaceInformationPtr sik = bundleSpaceChild->getSpaceInformation();
+        ompl::base::SpaceInformationPtr sik = bundleSpaceChild->getBundle();
         ompl::base::ProblemDefinitionPtr pdefk = std::make_shared<base::ProblemDefinition>(sik);
 
         ompl::base::State *sInitK = sik->allocState();
@@ -296,6 +296,7 @@ void ompl::geometric::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planner
 
             ompl::base::State *s_lift = Qk->getBundle()->cloneState(v.getState());
             v.setBaseState(s_lift);
+            Qk->getBundle()->printState(s_lift);
 
             for (unsigned int m = k + 1; m < bundleSpaces_.size(); m++)
             {
@@ -308,7 +309,7 @@ void ompl::geometric::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planner
 
                     Qm->liftState(s_lift, s_Fiber, s_Bundle);
 
-                    Qm->getBase()->freeState(s_lift);
+                    // Qm->getBase()->freeState(s_lift);
                     s_lift = Qm->getBundle()->cloneState(s_Bundle);
 
                     Qm->getBundle()->freeState(s_Bundle);

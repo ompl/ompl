@@ -922,6 +922,7 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &d
         base::PlannerDataVertexAnnotated p(graph[v]->state);
         p.setPath(idxPathI);
         data.addVertex(p);
+        getBundle()->printState(graph[v]->state);
     }
 }
 

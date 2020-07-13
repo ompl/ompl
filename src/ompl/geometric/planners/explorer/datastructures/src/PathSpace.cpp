@@ -27,16 +27,16 @@ PathVisibilityChecker* PathSpace::getPathVisibilityChecker()
     return pathVisibilityChecker_;
 }
 
-int ompl::geometric::PathSpace::getSelectedPath()
+unsigned int ompl::geometric::PathSpace::getSelectedPath()
 {
     return selectedPath_;
 }
-void ompl::geometric::PathSpace::setSelectedPath(int selectedPath)
+void ompl::geometric::PathSpace::setSelectedPath(unsigned int selectedPath)
 {
     selectedPath_ = selectedPath;
 }
 
-void ompl::geometric::PathSpace::updatePath(int k, VertexPath p, double cost)
+void ompl::geometric::PathSpace::updatePath(unsigned int k, VertexPath p, double cost)
 {
     if(k >= criticalPaths_.size()) return;
     criticalPaths_.at(k) = p;
@@ -49,18 +49,23 @@ void ompl::geometric::PathSpace::addPath(VertexPath p, double cost)
     criticalPathsCost_.push_back(cost);
 }
 
-double ompl::geometric::PathSpace::getPathCost(int k) const
+double ompl::geometric::PathSpace::getPathCost(unsigned int k) const
 {
     if(k < criticalPathsCost_.size())
     {
         return criticalPathsCost_.at(k);
+    }else{
+        throw Exception("Path does not exist.");
     }
 }
-std::vector<BundleSpaceGraph::Vertex>& ompl::geometric::PathSpace::getCriticalPath(int k)
+
+std::vector<BundleSpaceGraph::Vertex>& ompl::geometric::PathSpace::getCriticalPath(unsigned int k)
 {
     if(k < criticalPaths_.size())
     {
         return criticalPaths_.at(k);
+    }else{
+        throw Exception("Path does not exist.");
     }
 }
 

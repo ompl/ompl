@@ -25,6 +25,8 @@ namespace ompl
         private:
             using BaseT = ompl::base::Planner;
             using BaseT::si_;  // make it private.
+            using BaseT::getSpaceInformation;
+
             // Note: use getBundle(), getFiber() or getBase() to access the SpaceInformationPtr
 
             /// \brief solve is disabled (use BundleSequence::solve)

@@ -178,7 +178,7 @@ void MultiLevelPathSpace<T>::getPlannerData(ob::PlannerData &data) const
             v.setLevel(k);
             v.setMaxLevel(K);
 
-            ob::State *s_lift = Qk->getSpaceInformation()->cloneState(v.getState());
+            ob::State *s_lift = Qk->getBundle()->cloneState(v.getState());
             v.setBaseState(s_lift);
 
             for (unsigned int m = k + 1; m < this->bundleSpaces_.size(); m++)
@@ -192,8 +192,7 @@ void MultiLevelPathSpace<T>::getPlannerData(ob::PlannerData &data) const
 
                     Qm->liftState(s_lift, s_Fiber, s_Bundle);
 
-                    Qm->getBase()->freeState(s_lift);
-                    // TODO: Qm->liftState(s_lift, s_Fiber, s_Bundle);
+                    // Qm->getBase()->freeState(s_lift);
                     s_lift = Qm->getBundle()->cloneState(s_Bundle);
 
                     Qm->getBundle()->freeState(s_Bundle);
@@ -207,7 +206,8 @@ void MultiLevelPathSpace<T>::getPlannerData(ob::PlannerData &data) const
         Nvertices = data.numVertices();
 
     }
-    std::cout << "Created PlannerData with " << data.numVertices() << " vertices ";
+    std::cout << "Created PlannerData with " << data.numVertices() << " vertices and "
+      << data.numEdges() << " edges ";
     std::cout << "(";
     for(uint k = 0; k < countVerticesPerBundleSpace.size(); k++){
        uint ck = countVerticesPerBundleSpace.at(k);

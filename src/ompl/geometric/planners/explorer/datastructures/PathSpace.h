@@ -17,19 +17,19 @@ namespace ompl{
             PathSpace(BundleSpaceGraph*);
             ~PathSpace();
 
-            void setSelectedPath(int);
+            void setSelectedPath(unsigned int);
 
-            int getSelectedPath();
+            unsigned int getSelectedPath();
 
-            unsigned int getNumberOfPaths() const;
+            virtual unsigned int getNumberOfPaths() const;
 
-            void updatePath(int k, VertexPath p, double cost);
+            void updatePath(unsigned int k, VertexPath p, double cost);
 
             void addPath(VertexPath p, double cost);
 
-            double getPathCost(int k) const;
+            double getPathCost(unsigned int k) const;
 
-            std::vector<BundleSpaceGraph::Vertex>& getCriticalPath(int k);
+            std::vector<BundleSpaceGraph::Vertex>& getCriticalPath(unsigned int k);
 
             void getPlannerData(base::PlannerData &data, BundleSpaceGraph* bundleGraph) const;
 

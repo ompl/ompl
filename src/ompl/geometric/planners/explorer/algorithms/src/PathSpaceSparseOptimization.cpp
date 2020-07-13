@@ -4,6 +4,7 @@
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/datastructures/PDF.h>
 
+
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/objectives/MaximizeMinClearanceObjective.h>
 #include <ompl/control/ControlSpace.h>
@@ -12,6 +13,8 @@
 #include <ompl/control/Control.h>
 #include <ompl/control/SimpleDirectedControlSampler.h>
 #include <ompl/control/StatePropagator.h>
+
+#include <ompl/control/optimizers/PathControlOptimizer.h>
 #include <boost/foreach.hpp>
 
 using namespace og;
@@ -318,8 +321,8 @@ void PathSpaceSparseOptimization::getPlannerData(ob::PlannerData &data) const
             std::cout << pathStackHead_.at(i).size() << std::endl;
 
             idxPathI.clear();
-            // getPathIndices(states, idxPathI);
-            // std::reverse(idxPathI.begin(), idxPathI.end());
+            getPathIndices(states, idxPathI);
+            std::reverse(idxPathI.begin(), idxPathI.end());
             idxPathI.push_back(i);
             // idxPathI.insert(idxPathI.begin(), idxPathI.rbegin(), idxPathI.rend());
 
@@ -340,7 +343,7 @@ void PathSpaceSparseOptimization::getPlannerData(ob::PlannerData &data) const
 
             for (uint k = 0; k < states.size() - 1; k++)
             {
-                getBundle()->printState(states.at(k));
+                // getBundle()->printState(states.at(k));
 
                 ob::PlannerDataVertexAnnotated *p2 = new ob::PlannerDataVertexAnnotated(
                     states.at(k + 1));  // getBundle()->cloneState(graphSparse_[v2]->state));
@@ -359,10 +362,9 @@ void PathSpaceSparseOptimization::getPlannerData(ob::PlannerData &data) const
 
                 p1 = p2;
             }
-            getBundle()->printState(states.back());
+            // getBundle()->printState(states.back());
         }
-        // idxPathI = GetSelectedPathIndex();
-        //getPlannerDataRoadmap(data, idxPathI);
+        getPlannerDataRoadmap(data, idxPathI);
     }
     else
     {
@@ -442,7 +444,27 @@ void PathSpaceSparseOptimization::pushPathToStack(std::vector<ob::State *> &path
         {
             cpath.append(path.at(k));
         }
-        // shortcutter.shortcutPath(gpath);
+        // shortcutter.shortcutPath(gpath)
+        // oc::PathControl* cpath = static_cast<oc::PathControl*>(path_.get());
+        // base::State* goalState = si_->allocState();
+        // std::static_pointer_cast<const base::GoalSampleableRegion> (pdef_->getGoal())->sampleGoal(goalState) ;
+
+        oc::PathControlOptimizer control_simplifier(getBundle(), qGoal_->state);
+        std::cout << "Dynamic Optimize" << std::endl;
+        control_simplifier.simplify(&cpath);
+
+        // for (uint k = 0; k < pathStack_.size(); k++)
+        // {
+        //     oc::PathControl &pathk = pathStack_.at(k);
+        //     if (getPathVisibilityChecker()->IsPathVisible(gpath.getStates(), pathk.getStates()))
+        //     {
+        //         std::cout << "REJECTED (Equal to path " << k << ")" << std::endl;
+        //         numberOfFailedAddingPathCalls++;
+        //         return;
+        //     }
+        // }
+        // pathStack_.push_back(gpath);
+
     }else{
         og::PathGeometric gpath(getBundle());
         for(uint k = 0; k < path.size(); k++)
@@ -454,6 +476,7 @@ void PathSpaceSparseOptimization::pushPathToStack(std::vector<ob::State *> &path
         // visualized (problems with S1)
         if (getBundle()->getStateSpace()->getType() == ob::STATE_SPACE_SO2)
         {
+          std::cout << "SO2 INTERPOLATE" << std::endl;
             gpath.interpolate();
         }
         else
