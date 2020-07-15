@@ -306,6 +306,16 @@ namespace ompl
             return trackApproximateSolutions_;
         }
 
+        void EITstar::resetSuboptimalityFactorOnEveryApproximation(bool reset)
+        {
+            resetSuboptimalityFactorOnEveryApproximation_ = reset;
+        }
+
+        bool EITstar::isSuboptimalityFactorOnEveryApproximationReset() const
+        {
+            return resetSuboptimalityFactorOnEveryApproximation_;
+        }
+
         void EITstar::setUseKNearest(bool useKNearest)
         {
             graph_.setUseKNearest(useKNearest);
@@ -795,7 +805,9 @@ namespace ompl
             if (graph_.addStates(batchSize_, terminationCondition))
             {
                 // Reset the suboptimality factor.
-                suboptimalityFactor_ = std::numeric_limits<double>::infinity();
+                if (resetSuboptimalityFactorOnEveryApproximation_) {
+                    suboptimalityFactor_ = std::numeric_limits<double>::infinity();
+                }
 
                 // Reset the reverse collision detection.
                 numSparseCollisionChecksCurrentLevel_ = initialNumSparseCollisionChecks_;

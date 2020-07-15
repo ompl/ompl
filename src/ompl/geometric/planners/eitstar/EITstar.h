@@ -108,6 +108,12 @@ namespace ompl
             /** \brief Get whether approximate solutions are tracked or not. */
             bool areApproximateSolutionsTracked() const;
 
+            /** \brief Set whether to reset the suboptimality factor on every approximation or not. */
+            void resetSuboptimalityFactorOnEveryApproximation(bool reset);
+
+            /** \brief Get whether the suboptimality factor is reset or not. */
+            bool isSuboptimalityFactorOnEveryApproximationReset() const;
+
             /** \brief Set whether to use a k-nearest RGG connection model. If false, AIT* uses an r-disc model. */
             void setUseKNearest(bool useKNearest);
 
@@ -294,6 +300,9 @@ namespace ompl
 
             /** \brief Whether EIT* tracks approximate solutions. */
             bool trackApproximateSolutions_{true};
+
+            /** \brief Whether EIT* resets the suboptimality factor of its forward search on every approximation. */
+            bool resetSuboptimalityFactorOnEveryApproximation_{true};
 
             /** \brief The edge cache that enables the just-in-time reverse search. */
             std::vector<eitstar::Edge> jitSearchEdgeCache_{};
