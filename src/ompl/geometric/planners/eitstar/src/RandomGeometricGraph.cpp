@@ -485,7 +485,7 @@ namespace ompl
                 return maxNumGoals_;
             }
 
-            const std::vector<std::shared_ptr<State>> &
+            std::vector<std::shared_ptr<State>>
             RandomGeometricGraph::getNeighbors(const std::shared_ptr<State> &state) const
             {
                 assert(state);
@@ -506,9 +506,9 @@ namespace ompl
                         samples_.nearestR(state, radius_, neighbors);
                     }
                     // We dont want to connect to blacklisted neighbors and the querying state itself.
-                    const auto connectionPredicate = [&state](const std::shared_ptr<State> &neighbor) {
+                    const auto connectionPredicate = [&state, this](const std::shared_ptr<State> &neighbor) {
                         return (state->blacklist_.find(neighbor->id_) == state->blacklist_.end()) &&
-                               (state->id_ != neighbor->id_);
+                               (state->id_ != neighbor->id_) && !(isGoal(state) && isGoal(neighbor));
                     };
 
                     // Cache the neighbors that are not blacklisted and not the state itself.
@@ -522,8 +522,48 @@ namespace ompl
                     ++numNearestNeighborCalls_;
                 }
 
-                // The cache is guaranteed to be up to date now, just return it.
-                return state->neighbors_.second;
+                // The cache is now guaranteed to be up to date.
+                auto neighbors = state->neighbors_.second;
+
+                // Add the forward parent and children.
+                if (state->hasForwardVertex())
+                {
+                    const auto forwardVertex = state->asForwardVertex();
+
+                    // Add the parent.
+                    if (auto forwardParent = forwardVertex->getParent().lock())
+                    {
+                        neighbors.emplace_back(forwardParent->getState());
+                    }
+
+                    // Add the children.
+                    const auto &forwardChildren = forwardVertex->getChildren();
+                    for (const auto &child : forwardChildren)
+                    {
+                        neighbors.emplace_back(child->getState());
+                    }
+                }
+
+                // Add the reverse parent and children.
+                if (state->hasReverseVertex())
+                {
+                    const auto reverseVertex = state->asReverseVertex();
+
+                    // Add the parent.
+                    if (auto reverseParent = reverseVertex->getParent().lock())
+                    {
+                        neighbors.emplace_back(reverseParent->getState());
+                    }
+
+                    // Add the children.
+                    const auto &reverseChildren = reverseVertex->getChildren();
+                    for (const auto &child : reverseChildren)
+                    {
+                        neighbors.emplace_back(child->getState());
+                    }
+                }
+
+                return neighbors;
             }
 
             void RandomGeometricGraph::prune()

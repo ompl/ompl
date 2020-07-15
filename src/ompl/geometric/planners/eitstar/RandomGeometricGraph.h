@@ -107,7 +107,7 @@ namespace ompl
                 void prune();
 
                 /** \brief Gets the neighbors of a state. */
-                const std::vector<std::shared_ptr<State>> &getNeighbors(const std::shared_ptr<State> &state) const;
+                std::vector<std::shared_ptr<State>> getNeighbors(const std::shared_ptr<State> &state) const;
 
                 /** \brief Get the start states. */
                 const std::vector<std::shared_ptr<State>> &getStartStates() const;
