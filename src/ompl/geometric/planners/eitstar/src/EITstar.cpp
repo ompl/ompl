@@ -575,7 +575,11 @@ namespace ompl
                                 }
                                 else
                                 {
-                                    if (reverseQueue_->empty())
+                                    if (!reverseQueue_->empty())
+                                    {
+                                        phase_ = Phase::REVERSE_SEARCH;
+                                    }
+                                    else
                                     {
                                         for (const auto &edge : jitSearchEdgeCache_)
                                         {
