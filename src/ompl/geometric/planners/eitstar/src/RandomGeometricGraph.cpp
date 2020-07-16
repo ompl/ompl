@@ -58,6 +58,7 @@ namespace ompl
                          500 /* removed cache size */,
                          false /* rebalancing */)  // These are the defaults. Play with them.
               , spaceInfo_(spaceInfo)
+              , space_(spaceInfo->getStateSpace())
               , dimension_(spaceInfo->getStateDimension())
               , unitNBallMeasure_(unitNBallMeasure(spaceInfo->getStateDimension()))
               , solutionCost_(solutionCost)
@@ -306,6 +307,9 @@ namespace ompl
                 // Set the lower bound for the cost to come.
                 startState->setLowerBoundCostToCome(objective_->identityCost());
 
+                // Set the lower bound effort to come.
+                startState->setLowerBoundEffortToCome(0u);
+
                 // Copy the given state.
                 spaceInfo_->copyState(startState->raw(), start);
 
@@ -323,6 +327,9 @@ namespace ompl
                 // Hold onto it.
                 goalStates_.emplace_back(goalState);
 
+                // Copy the given state.
+                spaceInfo_->copyState(goalState->raw(), goal);
+
                 // Set the lower bound cost to go.
                 goalState->setLowerBoundCostToGo(objective_->identityCost());
 
@@ -335,8 +342,16 @@ namespace ompl
                 // Set the estimated effort to go.
                 goalState->setEstimatedEffortToGo(0u);
 
-                // Copy the given state.
-                spaceInfo_->copyState(goalState->raw(), goal);
+                // Set the lower bound effort to come.
+                unsigned int lowerBoundEffortToCome = std::numeric_limits<unsigned int>::max();
+                for (const auto &start : startStates_)
+                {
+                    const auto lowerBoundEffortToComeFromThisStart = space_->validSegmentCount(start->raw(), goal);
+                    lowerBoundEffortToCome = lowerBoundEffortToComeFromThisStart < lowerBoundEffortToCome ?
+                                                 lowerBoundEffortToComeFromThisStart :
+                                                 lowerBoundEffortToCome;
+                }
+                goalState->setLowerBoundEffortToCome(lowerBoundEffortToCome);
 
                 // Sanity check the cost-to-go definition.
                 assert(objective_->isCostEquivalentTo(objective_->costToGo(goal, problem_->getGoal().get()),
@@ -381,6 +396,18 @@ namespace ompl
 
                     // Set the lower bound for the cost to come.
                     newState->setLowerBoundCostToCome(heuristicCostFromPreferredStart(newState));
+
+                    // Set the lower bound effort to come.
+                    unsigned int lowerBoundEffortToCome = std::numeric_limits<unsigned int>::max();
+                    for (const auto &start : startStates_)
+                    {
+                        const auto lowerBoundEffortToComeFromThisStart =
+                            space_->validSegmentCount(start->raw(), newState->raw());
+                        lowerBoundEffortToCome = lowerBoundEffortToComeFromThisStart < lowerBoundEffortToCome ?
+                                                     lowerBoundEffortToComeFromThisStart :
+                                                     lowerBoundEffortToCome;
+                    }
+                    newState->setLowerBoundEffortToCome(lowerBoundEffortToCome);
 
                     if (problem_->getGoal()->isSatisfied(newState->raw()))
                     {

@@ -87,8 +87,7 @@ namespace ompl
             addPlannerProgressProperty("edge collision checks INTEGER",
                                        [this]() { return std::to_string(numCollisionCheckedEdges_); });
             addPlannerProgressProperty("nearest neighbour calls INTEGER",
-                                       [this]() { return std::to_string(graph_.getNumberOfNearestNeighborCalls());
-                                       });
+                                       [this]() { return std::to_string(graph_.getNumberOfNearestNeighborCalls()); });
         }
 
         EITstar::~EITstar()
@@ -139,8 +138,8 @@ namespace ompl
                 solutionCost_ = objective_->infiniteCost();
 
                 // Instantiate the queues.
-                forwardQueue_ = std::make_unique<eitstar::ForwardQueue>(objective_, spaceInfo_);
-                reverseQueue_ = std::make_unique<eitstar::ReverseQueue>(objective_);
+                forwardQueue_ = std::make_unique<eitstar::ForwardQueue>(objective_, space_);
+                reverseQueue_ = std::make_unique<eitstar::ReverseQueue>(objective_, space_);
 
                 // Create the forward roots.
                 for (const auto &start : graph_.getStartStates())
@@ -805,7 +804,8 @@ namespace ompl
             if (graph_.addStates(batchSize_, terminationCondition))
             {
                 // Reset the suboptimality factor.
-                if (resetSuboptimalityFactorOnEveryApproximation_) {
+                if (resetSuboptimalityFactorOnEveryApproximation_)
+                {
                     suboptimalityFactor_ = std::numeric_limits<double>::infinity();
                 }
 

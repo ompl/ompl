@@ -194,6 +194,11 @@ namespace ompl
                 currentCostToCome_ = cost;
             }
 
+            void State::setLowerBoundEffortToCome(unsigned int effort)
+            {
+                lowerBoundEffortToCome_ = effort;
+            }
+
             std::size_t State::getEstimatedEffortToGo() const
             {
                 return estimatedEffortToGo_;
@@ -222,6 +227,11 @@ namespace ompl
             ompl::base::Cost State::getCurrentCostToCome() const
             {
                 return currentCostToCome_;
+            }
+
+            unsigned int State::getLowerBoundEffortToCome() const
+            {
+                return lowerBoundEffortToCome_;
             }
 
         }  // namespace eitstar

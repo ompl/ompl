@@ -47,15 +47,19 @@ namespace ompl
     {
         namespace eitstar
         {
-            ReverseQueue::ReverseQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective)
+            ReverseQueue::ReverseQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
+                                       const std::shared_ptr<const ompl::base::StateSpace> &space)
               : objective_(objective)
-              , queue_([objective](const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &lhs,
-                                   const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &rhs) {
-                  return std::lexicographical_compare(
-                      lhs.first.cbegin(), lhs.first.cend(), rhs.first.cbegin(), rhs.first.cend(),
-                      [&objective](const ompl::base::Cost &lhs, const ompl::base::Cost &rhs) {
-                          return objective->isCostBetterThan(lhs, rhs);
-                      });
+              , space_(space)
+              , queue_([objective](const HeapElement &lhs, const HeapElement &rhs) {
+                  if (objective->isCostEquivalentTo(std::get<0>(lhs), std::get<0>(rhs)))
+                  {
+                      return std::get<1>(lhs) < std::get<1>(rhs);
+                  }
+                  else
+                  {
+                      return objective->isCostBetterThan(std::get<0>(lhs), std::get<0>(rhs));
+                  }
               })
             {
             }
@@ -81,22 +85,18 @@ namespace ompl
                                                                               edge.source->raw(), edge.target->raw())),
                                                  edge.target->getLowerBoundCostToCome());
 
-                    // Compute the second field of the key.
-                    auto key2 = objective_->combineCosts(
-                        edge.source->getAdmissibleCostToGo(),
-                        objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw()));
+                    auto key2 = edge.source->getEstimatedEffortToGo() +
+                                space_->validSegmentCount(edge.source->raw(), edge.target->raw()) +
+                                edge.target->getLowerBoundEffortToCome();
 
-                    // Combine the two fields into the key.
-                    std::array<ompl::base::Cost, 2u> key = {key1, key2};
-
-                    // Create the key, edge pair.
-                    auto keyEdgePair = std::make_pair(key, edge);
+                    // Create the heap element.
+                    auto element = std::make_tuple(key1, key2, edge);
 
                     // Insert the edge with the key in the queue.
-                    auto element = queue_.insert(keyEdgePair);
+                    auto elementPointer = queue_.insert(element);
 
                     // Remember the element.
-                    edge.source->asReverseVertex()->outgoingReverseQueueLookup_.emplace_back(element);
+                    edge.source->asReverseVertex()->outgoingReverseQueueLookup_.emplace_back(elementPointer);
                 }
             }
 
@@ -113,7 +113,7 @@ namespace ompl
             {
                 if (auto element = queue_.top())
                 {
-                    return element->data.second;
+                    return std::get<2>(element->data);
                 }
                 else
                 {
@@ -126,26 +126,34 @@ namespace ompl
                 // Update if the edges is already in the queue.
                 for (const auto outgoingEdge : edge.source->asReverseVertex()->outgoingReverseQueueLookup_)
                 {
-                    if (outgoingEdge->data.second.target->getId() == edge.target->getId())
+                    if (std::get<2>(outgoingEdge->data).target->getId() == edge.target->getId())
                     {
-                        const auto oldCost = outgoingEdge->data.first;
+                        const auto oldCost = std::get<0>(outgoingEdge->data);
                         const auto edgeCostHeuristic =
                             objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw());
-                        std::array<ompl::base::Cost, 2u> newCost{
-                            objective_->combineCosts(
-                                objective_->combineCosts(edge.source->getAdmissibleCostToGo(), edgeCostHeuristic),
-                                edge.target->getLowerBoundCostToGo()),
-                            objective_->combineCosts(edge.source->getAdmissibleCostToGo(), edgeCostHeuristic)};
-                        if (std::lexicographical_compare(
-                                oldCost.cbegin(), oldCost.cend(), newCost.cbegin(), newCost.cend(),
-                                [this](const ompl::base::Cost &lhs, const ompl::base::Cost &rhs) {
-                                    return objective_->isCostBetterThan(lhs, rhs);
-                                }))
+                        const auto newCost = objective_->combineCosts(
+                            objective_->combineCosts(edge.source->getAdmissibleCostToGo(), edgeCostHeuristic),
+                            edge.target->getLowerBoundCostToGo());
+                        const auto oldEffort = std::get<1>(outgoingEdge->data);
+                        const auto newEffort = edge.source->getEstimatedEffortToGo() +
+                                               space_->validSegmentCount(edge.source->raw(), edge.target->raw()) +
+                                               edge.target->getLowerBoundEffortToCome();
+
+                        if (objective_->isCostEquivalentTo(oldCost, newCost))
                         {
-                            outgoingEdge->data.first = newCost;
-                            queue_.update(outgoingEdge);
+                            if (newEffort < oldEffort)
+                            {
+                                std::get<1>(outgoingEdge->data) = newEffort;
+                                queue_.update(outgoingEdge);
+                                return true;
+                            }
                         }
-                        return true;
+                        else if (objective_->isCostBetterThan(newCost, oldCost))
+                        {
+                            std::get<0>(outgoingEdge->data) = newCost;
+                            queue_.update(outgoingEdge);
+                            return true;
+                        }
                     }
                 }
                 return false;
@@ -159,7 +167,7 @@ namespace ompl
                 const auto element = queue_.top();
 
                 // Copy the data of the top edge.
-                auto edge = element->data.second;
+                auto edge = std::get<2>(element->data);
 
                 // If the source state of the edge does not have an associated vertex, it's a bug.
                 assert(edge.source->hasReverseVertex());
@@ -195,13 +203,13 @@ namespace ompl
 
             std::vector<Edge> ReverseQueue::getEdges() const
             {
-                std::vector<std::pair<std::array<ompl::base::Cost, 2u>, Edge>> contents;
+                std::vector<HeapElement> contents;
                 queue_.getContent(contents);
                 std::vector<Edge> edges;
                 edges.reserve(contents.size());
                 for (const auto &element : contents)
                 {
-                    edges.push_back(element.second);
+                    edges.push_back(std::get<2>(element));
                 }
                 return edges;
             }

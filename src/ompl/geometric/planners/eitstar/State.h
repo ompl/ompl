@@ -118,6 +118,9 @@ namespace ompl
                 /** \brief Set the current cost to come from the start to this state. */
                 void setCurrentCostToCome(ompl::base::Cost cost);
 
+                /** \brief Sets the lower bound effort to come to this state through the continuous state space. */
+                void setLowerBoundEffortToCome(unsigned int);
+
                 /** \brief Get the estimated effort (number of collision detections) to go from this state to the goal
                  * through the current RGG. */
                 std::size_t getEstimatedEffortToGo() const;
@@ -141,6 +144,10 @@ namespace ompl
                 /** \brief Get the current cost to come from the start to this state. */
                 ompl::base::Cost getCurrentCostToCome() const;
 
+                /** \brief Get the lower bound cost to come from the start to this state through the continuous state
+                 * space. */
+                unsigned int getLowerBoundEffortToCome() const;
+
             private:
                 /** \brief Grant access to the state internals to the random geometric graph. */
                 friend class RandomGeometricGraph;
@@ -154,6 +161,9 @@ namespace ompl
 
                 /** \brief A best estimate of the cost to go from this state to the goal through the current RGG. */
                 ompl::base::Cost estimatedCostToGo_;
+
+                /** \brief A lower bound on the effort to come. */
+                unsigned int lowerBoundEffortToCome_{std::numeric_limits<unsigned int>::max()};
 
                 /** \brief An admissible estimate of the cost to go from this state to the goal through the current RGG.
                  */

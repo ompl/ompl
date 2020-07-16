@@ -49,8 +49,8 @@ namespace ompl
         namespace eitstar
         {
             ForwardQueue::ForwardQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
-                                       const std::shared_ptr<const ompl::base::SpaceInformation> &spaceInfo)
-              : objective_(objective), spaceInfo_(spaceInfo), queue_()
+                                       const std::shared_ptr<const ompl::base::StateSpace> &space)
+              : objective_(objective), space_(space), queue_()
             {
                 queue_.reserve(1000u);
             }
@@ -317,7 +317,7 @@ namespace ompl
 
             std::size_t ForwardQueue::estimateEffort(const Edge &edge) const
             {
-                return spaceInfo_->getStateSpace()->validSegmentCount(edge.source->raw(), edge.target->raw()) +
+                return space_->validSegmentCount(edge.source->raw(), edge.target->raw()) +
                        edge.target->getEstimatedEffortToGo();
             }
 

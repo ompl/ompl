@@ -39,6 +39,7 @@
 
 #include <array>
 #include <map>
+#include <tuple>
 
 #include "ompl/base/Cost.h"
 #include "ompl/base/samplers/InformedStateSampler.h"
@@ -59,7 +60,8 @@ namespace ompl
             {
             public:
                 /** \brief Constructs the queue. */
-                ReverseQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective);
+                ReverseQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
+                             const std::shared_ptr<const ompl::base::StateSpace> &space);
 
                 /** \brief Destructs the queue. */
                 ~ReverseQueue() = default;
@@ -101,14 +103,13 @@ namespace ompl
                 std::shared_ptr<const ompl::base::OptimizationObjective> objective_;
 
                 /** \brief The state space information. */
-                std::shared_ptr<const ompl::base::SpaceInformation> spaceInfo_;
+                std::shared_ptr<const ompl::base::StateSpace> space_;
 
                 /** \brief The queue is ordered on the lower bound cost through an edge. */
-                using CostHeap =
-                    ompl::BinaryHeap<std::pair<std::array<ompl::base::Cost, 2u>, Edge>,
-                                     std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &,
-                                                        const std::pair<std::array<ompl::base::Cost, 2u>, Edge> &)>>;
-                CostHeap queue_;
+                using HeapElement = std::tuple<ompl::base::Cost, unsigned int, Edge>;
+                using CostEffortHeap =
+                    ompl::BinaryHeap<HeapElement, std::function<bool(const HeapElement &, const HeapElement &)>>;
+                CostEffortHeap queue_;
             };
         }  // namespace eitstar
 

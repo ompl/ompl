@@ -185,6 +185,9 @@ namespace ompl
                 /** \brief The info about the underlying state space. */
                 std::shared_ptr<ompl::base::SpaceInformation> spaceInfo_;
 
+                /** \brief The underlying state space. */
+                std::shared_ptr<ompl::base::StateSpace> space_;
+
                 /** \brief The problem this graph is supposed to help solve. */
                 std::shared_ptr<ompl::base::ProblemDefinition> problem_;
 

@@ -62,7 +62,7 @@ namespace ompl
             public:
                 /** \brief Constructs the queue. */
                 ForwardQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
-                             const std::shared_ptr<const ompl::base::SpaceInformation> &spaceInfo);
+                             const std::shared_ptr<const ompl::base::StateSpace> &space);
 
                 /** \brief Destructs the queue. */
                 ~ForwardQueue() = default;
@@ -117,7 +117,7 @@ namespace ompl
                 std::shared_ptr<const ompl::base::OptimizationObjective> objective_;
 
                 /** \brief The state space information. */
-                std::shared_ptr<const ompl::base::SpaceInformation> spaceInfo_;
+                std::shared_ptr<const ompl::base::StateSpace> space_;
 
                 /** \brief The three values an edge can be sorted by. */
                 struct EdgeKeys
