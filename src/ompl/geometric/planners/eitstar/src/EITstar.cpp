@@ -804,7 +804,7 @@ namespace ompl
 
         void EITstar::improveApproximation(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
-            // Add new states, also prunes states if enabled.
+            // Add new states, also prunes states if enabled. The method returns true if all states have been added.
             if (graph_.addStates(batchSize_, terminationCondition))
             {
                 // Reset the suboptimality factor.
@@ -924,9 +924,12 @@ namespace ompl
                 solution.setOptimized(objective_, solutionCost_, objective_->isSatisfied(solutionCost_));
                 problem_->addSolutionPath(solution);
 
-                // Set a new suboptimality factor.
-                suboptimalityFactor_ =
-                    solutionCost_.value() / forwardQueue_->getLowerBoundOnOptimalSolutionCost().value();
+                // If we found this solution with a suboptimality factor greater than 1, set the factor to one now.
+                // Empirically, this results in faster convergence, see associated publication for more info.
+                if (suboptimalityFactor_ > 1.0)
+                {
+                    suboptimalityFactor_ = 1.0;
+                }
             }
         }
 
