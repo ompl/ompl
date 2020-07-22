@@ -52,7 +52,7 @@ ompl::geometric::SPQRImpl::SPQRImpl(const base::SpaceInformationPtr &si, BundleS
     getBundle()->allocStates(randomWorkStates_);
 
     setMetric("geodesic");
-    setGraphSampler("randomedge");
+    setGraphSampler("randomvertex");
     setImportance("exponential");
 
     double d = (double)getBundle()->getStateDimension();
@@ -87,8 +87,11 @@ void ompl::geometric::SPQRImpl::grow()
     if (!sampleBundleValid(xRandom_->state))
         return;
 
-    Configuration *q_next = new Configuration(getBundle(), xRandom_->state);
-    addConfiguration(q_next);
+    Configuration *xNew = new Configuration(getBundle(), xRandom_->state);
+
+    addConfiguration(xNew);
+
+    connectNeighbors(xNew);
 
     expand();
 
@@ -127,9 +130,8 @@ void ompl::geometric::SPQRImpl::expand()
     }
 }
 
-ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::SPQRImpl::addConfiguration(Configuration *q)
+void ompl::geometric::SPQRImpl::connectNeighbors(Configuration *q)
 {
-    BaseT::addConfiguration(q);
 
     // Calculate K
     unsigned int k = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)boost::num_vertices(graph_))));
@@ -184,8 +186,6 @@ ompl::geometric::BundleSpaceGraph::Vertex ompl::geometric::SPQRImpl::addConfigur
             addToRepresentatives(qp, qp_rep, interfaceRepresentatives);
         }
     }
-
-    return q->index;
 }
 
 bool ompl::geometric::SPQRImpl::isInfeasible()

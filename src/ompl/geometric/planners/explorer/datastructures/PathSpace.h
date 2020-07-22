@@ -35,6 +35,10 @@ namespace ompl{
 
             PathVisibilityChecker *getPathVisibilityChecker();
 
+            void getPathIndices(
+                const std::vector<BundleSpaceGraph::Vertex> &vertices, 
+                std::vector<int> &idxPath) const;
+
           protected:
             BundleSpaceGraph *bundleSpaceGraph_;
 

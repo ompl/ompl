@@ -60,7 +60,7 @@ void ompl::base::Constraint::jacobian(const Eigen::Ref<const Eigen::VectorXd> &x
         const double ax = std::fabs(x[j]);
         // Make step size as small as possible while still giving usable accuracy.
         const double h = std::sqrt(std::numeric_limits<double>::epsilon()) * (ax >= 1 ? ax : 1);
-
+        
         // Can't assume y1[j]-y2[j] == 2*h because of precision errors.
         y1[j] += h;
         y2[j] -= h;
@@ -93,6 +93,7 @@ bool ompl::base::Constraint::project(State *state) const
 bool ompl::base::Constraint::project(Eigen::Ref<Eigen::VectorXd> x) const
 {
     // Newton's method
+
     unsigned int iter = 0;
     double norm = 0;
     Eigen::VectorXd f(getCoDimension());

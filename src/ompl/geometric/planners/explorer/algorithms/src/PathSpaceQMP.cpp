@@ -59,6 +59,8 @@ void ompl::geometric::PathSpaceQMP::grow()
     //(3) Connect to K nearest neighbors
     connectNeighbors(xNew);
 
+    expand();
+
     if (!hasSolution_)
     {
         if (sameComponent(vStart_, vGoal_))

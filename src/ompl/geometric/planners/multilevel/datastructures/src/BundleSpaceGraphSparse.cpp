@@ -84,7 +84,10 @@ void BundleSpaceGraphSparse::setup()
     {
         nearestSparse_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
         nearestSparse_->setDistanceFunction(
-            [this](const Configuration *a, const Configuration *b) { return distance(a, b); });
+            [this](const Configuration *a, const Configuration *b) 
+            { 
+                return distance(a, b); 
+            });
     }
 
     double maxExt = getBundle()->getMaximumExtent();
@@ -93,7 +96,6 @@ void BundleSpaceGraphSparse::setup()
 
 void BundleSpaceGraphSparse::clear()
 {
-  std::cout << "Clear" << std::endl;
     BaseT::clear();
 
     if (nearestSparse_)
@@ -268,9 +270,9 @@ BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfiguration(Configur
             else
             {
                 ++consecutiveFailures_;
-            }  // no interface
-        }      // no connectivity
-    }          // no coverage
+            }// no interface
+        }// no connectivity
+    }// no coverage
     return q->index;
 }
 

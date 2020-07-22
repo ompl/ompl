@@ -461,13 +461,14 @@ Configuration *ompl::geometric::BundleSpaceGraph::steerTowards(const Configurati
 {
     Configuration *next = new Configuration(getBundle(), to->state);
 
-    if (!propagator_->steer(from, next, next))
+    if (!propagator_->steer(from, to, next))
     {
         deleteConfiguration(next);
         return nullptr;
     }
     return next;
 }
+
 Configuration *ompl::geometric::BundleSpaceGraph::steerTowards_Range(const Configuration *from, Configuration *to)
 {
     // Configuration *next = new Configuration(getBundle(), to->state);
@@ -485,6 +486,7 @@ Configuration *ompl::geometric::BundleSpaceGraph::steerTowards_Range(const Confi
     Configuration *next = new Configuration(getBundle(), to->state);
     return next;
 }
+
 Configuration *ompl::geometric::BundleSpaceGraph::extendGraphTowards_Range(const Configuration *from, Configuration *to)
 {
     // Configuration *next = new Configuration(getBundle(), to->state);
@@ -517,50 +519,15 @@ Configuration *ompl::geometric::BundleSpaceGraph::extendGraphTowards_Range(const
     return next;
 }
 
-const Configuration *ompl::geometric::BundleSpaceGraph::extendGraphTowards(const Configuration *from,
-                                                                           const Configuration *to)
-{
-    Configuration *next = new Configuration(getBundle(), to->state);
-
-    if (!propagator_->steer(from, next, next))
-    {
-        return nullptr;
-    }
-
-    double d = distance(next, to);
-    if (d < std::numeric_limits<double>::epsilon())
-    {
-        addBundleEdge(from, to);
-        return to;
-    }
-    else
-    {
-        // do that only if we do not reach configuration "to"
-        addConfiguration(next);
-        addBundleEdge(from, next);
-        return next;
-    }
-    // addConfiguration(next);
-    // addBundleEdge(from, next);
-    // return next;
-}
-
 bool ompl::geometric::BundleSpaceGraph::connect(const Configuration *from, const Configuration *to)
 {
-    Configuration *next = new Configuration(getBundle(), to->state);
-
-    if (!propagator_->steer(from, to, next))
+    if (!propagator_->steer(from, to, xRandom_))
     {
         return false;
     }
 
-    double d = distance(next, to);
-    if (d < std::numeric_limits<double>::epsilon())
-    {
-        addBundleEdge(from, to);
-        return true;
-    }
-    return false;
+    addBundleEdge(from, to);
+    return true;
 }
 
 void ompl::geometric::BundleSpaceGraph::setPropagator(const std::string &sPropagator)
@@ -891,7 +858,6 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &d
         {
             geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
             std::vector<base::State *> gstates = gpath.getStates();
-            // std::cout << "Adding solution path with " << gstates.size() << "states." << std::endl;
 
             base::PlannerDataVertexAnnotated *pLast = &pstart;
             for (uint k = 1; k < gstates.size() - 1; k++)
@@ -922,7 +888,7 @@ void ompl::geometric::BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &d
         base::PlannerDataVertexAnnotated p(graph[v]->state);
         p.setPath(idxPathI);
         data.addVertex(p);
-        getBundle()->printState(graph[v]->state);
+        // getBundle()->printState(graph[v]->state);
     }
 }
 

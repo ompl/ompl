@@ -279,14 +279,22 @@ namespace ompl
             virtual double distance(const Configuration *a, const Configuration *b) const;
             virtual bool checkMotion(const Configuration *a, const Configuration *b) const;
 
-            const Configuration *extendGraphTowards(const Configuration *from, const Configuration *to);
-
-            Configuration *steerTowards_Range(const Configuration *from, Configuration *to);
-
-            Configuration *steerTowards(const Configuration *from, const Configuration *to);
-
             bool connect(const Configuration *from, const Configuration *to);
 
+            /** \brief Steer system at Configuration *from to Configuration
+             * *to */
+            Configuration *steerTowards(const Configuration *from, const Configuration *to);
+
+            /** \brief Steer system at Configuration *from to Configuration
+             * *to, stopping if maxdistance is reached */
+            Configuration *steerTowards_Range(const Configuration *from, Configuration *to);
+
+            /** \brief Steer system at Configuration *from to Configuration
+             * *to while system is valid */
+            // const Configuration *extendGraphTowards(const Configuration *from, const Configuration *to);
+
+            /** \brief Steer system at Configuration *from to Configuration
+             * *to while system is valid, stopping if maxDistance is reached */
             Configuration *extendGraphTowards_Range(const Configuration *from, Configuration *to);
 
             virtual void interpolate(const Configuration *a, const Configuration *b, Configuration *dest) const;

@@ -74,12 +74,28 @@ unsigned int ompl::geometric::PathSpace::getNumberOfPaths() const
     return criticalPaths_.size();
 }
 
+void ompl::geometric::PathSpace::getPathIndices(
+    const std::vector<BundleSpaceGraph::Vertex> &vertices, 
+    std::vector<int> &idxPath) const
+{
+    if (!bundleSpaceGraph_->hasParent())
+    {
+        std::reverse(idxPath.begin(), idxPath.end());
+        return;
+    }
+    else
+    {
+      idxPath.push_back(0);
+        // parent->getPathIndices(vertices, idxPath);
+    }
+}
+
 void ompl::geometric::PathSpace::getPlannerData(base::PlannerData &data, BundleSpaceGraph* bundleGraph) const
 {
     BundleSpaceGraph::Graph graph = bundleGraph->getGraph();
     base::SpaceInformationPtr si = bundleGraph->getBundle();
 
-    std::vector<int> idxPathI;
+    std::vector<int> idxPath;
     if (criticalPaths_.size() > 0)
     {
         OMPL_DEVMSG1("%s has %d solutions.", bundleGraph->getName().c_str(), criticalPaths_.size());
@@ -88,15 +104,14 @@ void ompl::geometric::PathSpace::getPlannerData(base::PlannerData &data, BundleS
         {
             const std::vector<BundleSpaceGraph::Vertex> vertices = criticalPaths_.at(i);
 
-            idxPathI.clear();
-            idxPathI.push_back(i);
+            idxPath.clear();
+            getPathIndices(vertices, idxPath);
+            idxPath.push_back(i);
 
-            //############################################################################
-            // DEBUG
             std::cout << "[";
-            for (uint k = 0; k < idxPathI.size(); k++)
+            for (uint k = 0; k < idxPath.size(); k++)
             {
-                std::cout << idxPathI.at(k) << " ";
+                std::cout << idxPath.at(k) << " ";
             }
             std::cout << "]" << std::endl;
             //############################################################################
@@ -106,7 +121,7 @@ void ompl::geometric::PathSpace::getPlannerData(base::PlannerData &data, BundleS
             base::PlannerDataVertexAnnotated *p1 = new base::PlannerDataVertexAnnotated(
                 si->cloneState(s1));
             p1->setLevel(bundleGraph->getLevel());
-            p1->setPath(idxPathI);
+            p1->setPath(idxPath);
             data.addStartVertex(*p1);
 
             // si->printState(s1);
@@ -118,7 +133,7 @@ void ompl::geometric::PathSpace::getPlannerData(base::PlannerData &data, BundleS
                 base::PlannerDataVertexAnnotated *p2 = new base::PlannerDataVertexAnnotated(
                   si->cloneState(s2));
                 p2->setLevel(bundleGraph->getLevel());
-                p2->setPath(idxPathI);
+                p2->setPath(idxPath);
 
                 if (k == vertices.size() - 2)
                 {
@@ -142,14 +157,14 @@ void ompl::geometric::PathSpace::getPlannerData(base::PlannerData &data, BundleS
 
         base::PlannerDataVertexAnnotated p1(graph[v1]->state);
         base::PlannerDataVertexAnnotated p2(graph[v2]->state);
-        p1.setPath(idxPathI);
-        p2.setPath(idxPathI);
+        p1.setPath(idxPath);
+        p2.setPath(idxPath);
         data.addEdge(p1, p2);
     }
     foreach (const BundleSpaceGraph::Vertex v, boost::vertices(graph))
     {
         base::PlannerDataVertexAnnotated p(graph[v]->state);
-        p.setPath(idxPathI);
+        p.setPath(idxPath);
         data.addVertex(p);
     }
 }

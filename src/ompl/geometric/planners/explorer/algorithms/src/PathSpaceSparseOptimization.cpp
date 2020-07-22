@@ -341,9 +341,10 @@ void PathSpaceSparseOptimization::getPlannerData(ob::PlannerData &data) const
             p1->setPath(idxPathI);
             data.addStartVertex(*p1);
 
+            double dk=0;
             for (uint k = 0; k < states.size() - 1; k++)
             {
-                // getBundle()->printState(states.at(k));
+                dk += getBundle()->distance(states.at(k), states.at(k+1));
 
                 ob::PlannerDataVertexAnnotated *p2 = new ob::PlannerDataVertexAnnotated(
                     states.at(k + 1));  // getBundle()->cloneState(graphSparse_[v2]->state));
@@ -362,6 +363,8 @@ void PathSpaceSparseOptimization::getPlannerData(ob::PlannerData &data) const
 
                 p1 = p2;
             }
+            std::cout << "Cost: " << dk << std::endl;
+
             // getBundle()->printState(states.back());
         }
         getPlannerDataRoadmap(data, idxPathI);

@@ -66,7 +66,7 @@ namespace ompl
 
             virtual bool isInfeasible() override;
 
-            virtual Vertex addConfiguration(Configuration *q) override;
+            void connectNeighbors(Configuration *x);
 
         protected:
             /** \brief Maximum failures limit for terminating the algorithm similar to SPARS */

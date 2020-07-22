@@ -296,7 +296,7 @@ void ompl::geometric::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planner
 
             ompl::base::State *s_lift = Qk->getBundle()->cloneState(v.getState());
             v.setBaseState(s_lift);
-            Qk->getBundle()->printState(s_lift);
+            // Qk->getBundle()->printState(s_lift);
 
             for (unsigned int m = k + 1; m < bundleSpaces_.size(); m++)
             {

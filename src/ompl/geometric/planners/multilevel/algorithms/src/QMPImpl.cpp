@@ -136,6 +136,7 @@ void ompl::geometric::QMPImpl::grow()
             hasSolution_ = true;
         }
     }
+    std::cout << "Graph" << getNumberOfVertices() << " : " << computeK() << std::endl;
 }
 
 void ompl::geometric::QMPImpl::connectNeighbors(Configuration *x)
