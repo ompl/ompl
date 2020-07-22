@@ -69,7 +69,7 @@ multilevel planning algorithms (QRRT, QRRT*, QMP, QMP*, SPQR) to all other
 algorithms currently implemented in the library (as of May 2020). Note that we
 had to remove planners `ompl::geometric::SST` and `ompl::geometric::PDST` due to
 memory issues. We observe that QRRT, QRRT*, QMP and QMP* all terminate in under
-one second (note that `ompl::geometric::SPQR` and `ompl::geometric::SPARStwo`
+one second (note that `ompl::multilevel::SPQR` and `ompl::geometric::SPARStwo`
 terminate while declaring the problem to be infeasible). Thus the multilevel
 planner significantly outperforms classical planner. Note that this problem is
 really hard, and classical planner can often only solve this problem with up to $25$
@@ -95,7 +95,7 @@ Check out the [demos](group__demos.html).
 
 ### Papers
 
-- A Orthey, S Akbar and M Toussaint, _Multilevel Motion Planning: A Fiber Bundle Approach_, 2020. Under review.
+- A Orthey, S Akbar and M Toussaint, _Multilevel Motion Planning: A Fiber Bundle Formulation_, 2020. Preprint. Also available at <https://arxiv.org/abs/2007.09435>.
 
 - A Orthey and M Toussaint, _Rapidly-Exploring Quotient-Space Trees: Motion Planning using Sequential Simplifications_, ISRR, 2019. Also available at <https://arxiv.org/abs/1906.01350>.
 

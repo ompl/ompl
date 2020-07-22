@@ -3,8 +3,10 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/config.h"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ompl"
     COMPONENT ompl)
 
-file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp geometric/*.cpp control/*.cpp tools/*.cpp)
-file(GLOB_RECURSE OMPL_HEADERS datastructures/*.h util/*.h base/*.h geometric/*.h control/*.h tools/*.h)
+file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp
+  geometric/*.cpp control/*.cpp multilevel/*.cpp tools/*.cpp)
+file(GLOB_RECURSE OMPL_HEADERS datastructures/*.h util/*.h base/*.h
+  geometric/*.h control/*.h multilevel/*.h tools/*.h)
 
 #############################################
 # Add enabled extensions to the source code #

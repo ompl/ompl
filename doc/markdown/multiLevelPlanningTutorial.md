@@ -12,14 +12,14 @@ We then construct and solve a planning problem as
 
 ~~~{.cpp}
 
-base::SpaceInformationPtr si;
-base::ProblemDefinitionPtr pdef; 
+ompl::base::SpaceInformationPtr si;
+ompl::base::ProblemDefinitionPtr pdef; 
 
 //...
 // Set start and goal states to pdef
 //...
 
-base::PlannerPtr planner = std::make_shared<geometric::RRT>(si);
+ompl::base::PlannerPtr planner = std::make_shared<geometric::RRT>(si);
 planner->setProblemDefinition(pdef);
 planner->setup();
 planner->solve();
@@ -38,19 +38,19 @@ While the `ompl::base::ProblemDefinitionPtr` remains the same, we change the `om
   SpaceInformationPtr, sorted in
   ascending order depending on number of dimensions. Last element has to be the
 original state space.
-- `ompl::geometric::QRRT`, a specific multilevel planner, has to inherit from `ompl::geometric::BundleSpaceSequence.h`
+- `ompl::multilevel::QRRT`, a specific multilevel planner, has to inherit from `ompl::multilevel::BundleSpaceSequence.h`
 
 A planning problem can then be solved as
 
 ~~~{.cpp}
-std::vector<base::SpaceInformationPtr> siVec; 
-base::ProblemDefinitionPtr pdef; 
+std::vector<ompl::base::SpaceInformationPtr> siVec; 
+ompl::base::ProblemDefinitionPtr pdef; 
 
 //...
 // Build siVec (see below), set start and goal states to pdef
 //...
 
-auto planner = std::make_shared<geometric::QRRT>(siVec);
+auto planner = std::make_shared<ompl::multilevel::QRRT>(siVec);
 
 planner->setProblemDefinition(pdef);
 planner->setup();
@@ -71,16 +71,16 @@ onto the position of the rigid body. The space is bounded to be in the unit squa
 
 ~~~{.cpp}
 
-auto SE2(std::make_shared<base::SE2StateSpace>());
-base::RealVectorBounds bounds(2);
+auto SE2(std::make_shared<ompl::base::SE2StateSpace>());
+ompl::base::RealVectorBounds bounds(2);
 bounds.setLow(0);
 bounds.setHigh(1);
 SE2->setBounds(bounds);
-base::SpaceInformationPtr si_SE2(std::make_shared<base::SpaceInformation>(SE2));
+ompl::base::SpaceInformationPtr si_SE2(std::make_shared<ompl::base::SpaceInformation>(SE2));
 
-auto R2(std::make_shared<base::RealVectorStateSpace>(2));
+auto R2(std::make_shared<ompl::base::RealVectorStateSpace>(2));
 R2->setBounds(0, 1);
-base::SpaceInformationPtr si_R2(std::make_shared<base::SpaceInformation>(R2));
+ompl::base::SpaceInformationPtr si_R2(std::make_shared<ompl::base::SpaceInformation>(R2));
 ~~~
 
 Second, we need to set the `ompl::base::StateValidityChecker` for each
@@ -99,11 +99,11 @@ bool boxConstraint(const double values[])
     double pos_cnstr = sqrt(x*x + y*y);
     return (pos_cnstr > 0.2);
 }
-bool isStateValid_SE2(const base::State *state) 
+bool isStateValid_SE2(const ompl::base::State *state) 
 {
-    const auto *SE2state = state->as<base::SE2StateSpace::StateType>();
-    const auto *R2 = SE2state->as<base::RealVectorStateSpace::StateType>(0);
-    const auto *SO2 = SE2state->as<base::SO2StateSpace::StateType>(1);
+    const auto *SE2state = state->as<ompl::base::SE2StateSpace::StateType>();
+    const auto *R2 = SE2state->as<ompl::base::RealVectorStateSpace::StateType>(0);
+    const auto *SO2 = SE2state->as<ompl::base::SO2StateSpace::StateType>(1);
     return boxConstraint(R2->values) && (SO2->value < boost::math::constants::pi<double>() / 2.0);
 }
 ~~~
@@ -111,9 +111,9 @@ bool isStateValid_SE2(const base::State *state)
 The validity function for the simplified robot can be constructed by removing some of the constraints. In real experiments, we often remove links or parts of links from a robot, which implicitly removes the constraints. We choose the following constraint
 
 ~~~{.cpp}
-bool isStateValid_R2(const base::State *state) 
+bool isStateValid_R2(const ompl::base::State *state) 
 { 
-    const auto *R2 = state->as<base::RealVectorStateSpace::StateType>();
+    const auto *R2 = state->as<ompl::base::RealVectorStateSpace::StateType>();
     return boxConstraint(R2->values);
 }
 ~~~
@@ -134,7 +134,7 @@ siVec.push_back(si_SE2);
 NOTE: The runtime of a multilevel planner depends crucially on the sequence
 of defined. For some spaces, planning time can be very fast,
 while for others it is can still be outperformed by classical planner such as
-ompl::geometric::RRT (which is equivalent to running ompl::geometric::QRRT with
+ompl::geometric::RRT (which is equivalent to running ompl::multilevel::QRRT with
 a single configuration space). Which spaces work best is still an open research
 question. A good heuristic is to use more levels the more narrow
 passages we have in an environment. More information can be found in the [QRRT
@@ -148,7 +148,7 @@ the planner data.
 
 However, the classical PlannerData structure does not know about multiple levels
 of abstraction. To add
-this information, we wrote the class `ompl::base::PlannerDataVertexAnnotated`, which
+this information, we wrote the class `ompl::multilevel::PlannerDataVertexAnnotated`, which
 inherits from PlannerDataVertex. PlannerDataVertexAnnotated adds new
 functionalities, including
 
@@ -160,15 +160,15 @@ functionalities, including
     the behavior is the same as for the classical PlannerData class).
 
 ~~~{.cpp}
-#include <ompl/geometric/planners/multilevel/datastructures/PlannerDataVertexAnnotated.h>
+    #include <ompl/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 
-geometric::PlannerDataVertexAnnotated *v = 
-    dynamic_cast<geometric::PlannerDataVertexAnnotated*>(&pd->getVertex(0));
+    ompl::multilevel::PlannerDataVertexAnnotated *v = 
+    dynamic_cast<ompl::multilevel::PlannerDataVertexAnnotated*>(&pd->getVertex(0));
 if(v!=nullptr){
     unsigned int level = v->getLevel();
     unsigned int maxLevel = v->getMaxLevel();
-    const base::State *s_BaseState = v->getBaseState();
-    const base::State *s_ConfigurationState = v->getState();
+    const ompl::base::State *s_BaseState = v->getBaseState();
+    const ompl::base::State *s_ConfigurationState = v->getState();
 }
 ~~~
 ### Further Information

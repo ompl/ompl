@@ -1,0 +1,72 @@
+[x] Clean up constructor Bundle Space
+[x] Organize MultiQuotient classes in better way
+[x] Add QRRTStar
+[x] Clean up QMPStar, make it inherit from QMP
+[x] Make Bundle/Base/Fiber private, so that we have to use custom in-built
+interpolate/distance/addConfiguration methods. (then we can easily add dynamical
+constraints there, usable by any bundle algorithm)
+[x] Move Explorer stuff from GraphSparse to Explorer
+[x] Move pathVisibilityChecker to Explorer
+[x] Move SPQR checks to GraphSparse
+[x] make QMPStar inherit from QMP
+[x] Run Benchmark Rapid Inf Test
+[x] rewrite diagram to go top down (including little squares)
+[x] Implement Random-Degree-Vertex sampling
+[x] prettify diagram
+[x] Refactor IdentifyBundleSpaceComponentType
+[x] Fix memory leak on shortest path metric
+[x] Add Adaptive Graph Thickening
+[x] Add last Valid sampling bias after we tried a geodesic lift
+[x] Add SO3xRN
+[x] Merge with master branch ompl/ompl (to get newest planner versions)
+[x] benchmark the whole suite on pregrasp
+[x] Fix base space Nan values in hypercube benchmark
+[x] Rename LiftPath to InterpolateAlongPathSection
+[x] Try to fix path section interpolation by using random fiber directions
+(particle shooting extension?)
+[x] Fix Hypercube out_of_range error
+[x] Add L1 interpolation on restriction into recursiverepair (for QRRT,
+verify on Hypercube)
+[x] Outsource path section shooting method to own folder
+[x] Rename quotientspace folder to multilevel (when we migrated to final ompl
+merge branch) 
+[x] Add inverse L1 and extend box scenario
+[x] What to do about velocity constraints?
+[x] Think about quasi-sections (something along the lines of the best dynamical lift)
+[x] Rename whole repo
+[x] Add steering function support (at least SE3 and SE2)
+[x] Make sure every experiment is solvable in "realtime" (around 3s)
+[x] Make L1+L2 combined recursiverepair section method (Probably more
+likely to find section if trying L1, L2, L1inverse instead of doing too much
+sidestepping)
+[x] Remove all sanitychecks/debug informations
+[x] Plot hypercube benchmark (fix log to plot script)
+[x] Fix possible memory leak in QRRT*
+[x] Write new tutorial/demo for multilevel
+[x] Redo 37dof pregrasp with ProjectionEnabled Planner (should work since RN)
+[x] Further sweep to clean up SparseGraph
+
+[ ] DOCUMENTATION: Better pictures for highlevel intro (also use fiber bundle picture)
+
+//OPTIONAL
+[ ] Remove DenseGraphPath method from BundleSpaceGraph.h
+[ ] Add Enumerate for Metric/Importance/Sampler (Use Params like in RRTstar)
+[ ] Refactor path restriction into dynamic/geometric
+[ ] Make path bias a dynamic window (test SE3 and SE3^k)
+[ ] Add projection for multiple robots to enable benchmark with projection based planners
+[ ] Make bidirectional version of QRRT (as param)
+
+
+Improvements (FB):
+- Rename quotient space to multilevel (makes it more descriptive)
+- Refactored code using language of fiber bundles
+- Enable multi-robot planning using a new component-based implementation
+- Enable handling of non-holonomic constraints in multilevel
+- Add new bundle spaces (empty, relaxed, identity, SO2xRN, SO3xRN)
+- Add new algorithms: QRRT*, QMP, QMP*, SPQR
+- Add sparse graph structures (based on SPARS impl)
+- Add new path restriction/section method to exploit multilevels
+- New bundle metrics
+- New graph sampling methods
+- New bundle propagators
+- New selection methods
