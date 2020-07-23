@@ -101,6 +101,24 @@ LocalMinimaNode* LocalMinimaTree::getSelectedPath() const
     return getPath(level, index);
 }
 
+std::vector<LocalMinimaNode*> LocalMinimaTree::getSelectedPathSiblings() const
+{
+    std::vector<LocalMinimaNode*> nodeVector;
+
+    int level = selectedMinimum_.size() - 1;
+    if(level < 0) return nodeVector;
+
+    int indexSelectedPath = selectedMinimum_.back();
+
+    for(uint k = 0; k < getNumberOfMinima(level); k++)
+    {
+      if((int)k == indexSelectedPath) continue;
+      LocalMinimaNode* nodek = getPath(level, k);
+      nodeVector.push_back(nodek);
+    }
+    return nodeVector;
+}
+
 void LocalMinimaTree::sanityCheckLevelIndex(int level, int index) const
 {
   if( level < 0 || level > (int)getNumberOfLevel() - 1)

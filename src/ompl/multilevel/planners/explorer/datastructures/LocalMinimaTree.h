@@ -109,6 +109,7 @@ namespace ompl
 
             LocalMinimaNode* getPath(int level, int index) const;
             LocalMinimaNode* getSelectedPath() const;
+            std::vector<LocalMinimaNode*> getSelectedPathSiblings() const;
             double getPathCost(int level, int index) const;
 
             void sanityCheckLevelIndex(int level, int index) const;
