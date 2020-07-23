@@ -3,15 +3,7 @@
 #include <ompl/base/ScopedState.h>
 #include <ompl/util/Exception.h>
 
-#include <ompl/geometric/planners/rrt/RRT.h>
-#include <ompl/geometric/planners/prm/PRM.h>
-#include <ompl/geometric/planners/kpiece/KPIECE1.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
-#include <ompl/geometric/planners/fmt/FMT.h>
-#include <ompl/geometric/planners/est/EST.h>
-#include <ompl/geometric/planners/stride/STRIDE.h>
-#include <ompl/geometric/planners/sst/SST.h>
-#include <ompl/geometric/planners/pdst/PDST.h>
 
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/control/SpaceInformation.h>
@@ -216,7 +208,7 @@ public:
   ob::State* path2_interp_state_;
 };
 
-bool PathVisibilityChecker::IsPathVisible(std::vector<BundleSpaceGraph::Vertex> &v1, std::vector<BundleSpaceGraph::Vertex> &v2, BundleSpaceGraph::Graph &graph)
+bool PathVisibilityChecker::IsPathVisible(const std::vector<BundleSpaceGraph::Vertex> &v1, const std::vector<BundleSpaceGraph::Vertex> &v2, BundleSpaceGraph::Graph &graph)
 {
   std::vector<ob::State*> s1;
   std::vector<ob::State*> s2;
@@ -291,34 +283,34 @@ void PathVisibilityChecker::computePathLength(ob::SpaceInformationPtr si_,const 
 
 //copies the createStateAt-method of the pathPathValidityChecker, but only for control::SpaceInformation
 void PathVisibilityChecker::createStateAt(ob::SpaceInformationPtr si_,const std::vector<ob::State*> &path, const double &pathLength, const std::vector<double> &distances, const double newPosition, ob::State* s_interpolate) const 
-  {
+{
 
-    assert( newPosition <= pathLength);
+  assert( newPosition <= pathLength);
 
-    int idx = -1;
-    for(uint i = 0; i < distances.size(); i++) {
-      if (distances.at(i) >= newPosition) {
-        idx = i;
-        break;
-      }
+  int idx = -1;
+  for(uint i = 0; i < distances.size(); i++) {
+    if (distances.at(i) >= newPosition) {
+      idx = i;
+      break;
     }
-    assert( idx >= 0 );
-    assert( idx <= distances.size()-1 );
-
-    double lastDistance = (idx > 0)? distances.at(idx-1) : 0.0;
-    double distanceIdxIdxNext = distances.at(idx) - lastDistance;
-
-    double lineFraction = (newPosition - lastDistance)/distanceIdxIdxNext;
-    if(lineFraction < 0 || lineFraction > 1)
-    {
-      OMPL_ERROR("lineFraction: %f. length: %f, newPos: %f, distanceNext: %f, distanceCur: %f",
-          lineFraction, pathLength, newPosition, distanceIdxIdxNext, distances.at(idx));
-      exit(0);
-    }
-
-    si_->getStateSpace()->interpolate(path.at(idx), path.at(idx+1), lineFraction, s_interpolate);
-
   }
+  assert( idx >= 0 );
+  assert( idx <= distances.size()-1 );
+
+  double lastDistance = (idx > 0)? distances.at(idx-1) : 0.0;
+  double distanceIdxIdxNext = distances.at(idx) - lastDistance;
+
+  double lineFraction = (newPosition - lastDistance)/distanceIdxIdxNext;
+  if(lineFraction < 0 || lineFraction > 1)
+  {
+    OMPL_ERROR("lineFraction: %f. length: %f, newPos: %f, distanceNext: %f, distanceCur: %f",
+        lineFraction, pathLength, newPosition, distanceIdxIdxNext, distances.at(idx));
+    exit(0);
+  }
+
+  si_->getStateSpace()->interpolate(path.at(idx), path.at(idx+1), lineFraction, s_interpolate);
+
+}
 
 //not necessary (probably), use si_->checkMotion instead
 

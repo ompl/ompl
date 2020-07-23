@@ -1,5 +1,5 @@
-#ifndef OMPL_MULTILEVEL_PLANNERS_EXPLORER_MotionExplorer_
-#define OMPL_MULTILEVEL_PLANNERS_EXPLORER_MotionExplorer_
+#ifndef OMPL_MULTILEVEL_PLANNERS_EXPLORER_MOTIONEXPLORER_
+#define OMPL_MULTILEVEL_PLANNERS_EXPLORER_MOTIONEXPLORER_
 #include <ompl/multilevel/planners/explorer/datastructures/MultiLevelPathSpace.h>
 #include <ompl/multilevel/planners/explorer/algorithms/PathSpaceSparseOptimization.h>
 #include <type_traits>

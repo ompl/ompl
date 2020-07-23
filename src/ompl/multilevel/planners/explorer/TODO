@@ -4,3 +4,4 @@
 
 [ ] Anytime thread-based (plus exhaustive mode)
 
+[ ] Every non-const function of LMT should be mutexed

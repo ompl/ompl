@@ -8,10 +8,8 @@ namespace ompl
 {
     namespace multilevel
     {
-
         using MotionExplorerQMP = MultiLevelPathSpace<PathSpaceQMP>;
-
-    }  // namespace multilevel
-}  // namespace ompl
+    }
+}
 
 #endif

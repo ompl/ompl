@@ -17,7 +17,7 @@ namespace ompl
         OMPL_CLASS_FORWARD(BundleSpaceGraph);
 
         /// \brief Representation of path restriction (set of all elements of bundle space
-        // which projects onto a given base path --- i.e. a union of fibers over base path).
+        // which project onto a given base path --- i.e. the union of fibers over base path).
         //
         // This class has additional
         // functionalities to find path sections (paths lying inside path
@@ -90,14 +90,6 @@ namespace ompl
             std::vector<base::State *> interpolateSectionL1FF(const base::State *xFiberStart,
                                                               const base::State *xFiberGoal,
                                                               const std::vector<base::State *> basePath);
-
-            ////\brief Interpolate quasisection using spline-based approach
-            //// ** Requires xFiberStart/xFiberGoal to be a true derivative of
-            //// basePath start and goal points
-            // std::vector<base::State*> interpolateQuasiSectionSpline(
-            //      const base::State* xFiberStart,
-            //      const base::State* xFiberGoal,
-            //      const std::vector<base::State*> basePath);
 
             virtual void reset();
 

@@ -23,7 +23,7 @@ using namespace ompl::multilevel;
 using namespace ompl::base;
 
 PathSpaceSparseOptimization::PathSpaceSparseOptimization(const base::SpaceInformationPtr &si, BundleSpace *parent_) : 
-  ompl::multilevel::PathSpace(this),
+  PathSpace(this),
   BaseT(si, parent_)
 {
     setName("BundleSpaceExplorer" + std::to_string(id_));
@@ -49,7 +49,7 @@ PathSpaceSparseOptimization::PathSpaceSparseOptimization(const base::SpaceInform
         c_random = siC->allocControl();
     }
 
-    // pathVisibilityChecker_ = new PathVisibilityChecker(getBundle());
+    pathVisibilityChecker_ = new PathVisibilityChecker(getBundle());
 
     double maxExt = getBundle()->getMaximumExtent();
     pathBias_ = pathBiasFraction_ * maxExt;
@@ -65,7 +65,7 @@ PathSpaceSparseOptimization::PathSpaceSparseOptimization(const base::SpaceInform
 
 PathSpaceSparseOptimization::~PathSpaceSparseOptimization()
 {
-    // delete pathVisibilityChecker_;
+    delete pathVisibilityChecker_;
 }
 
 void PathSpaceSparseOptimization::setGoalBias(double goalBias_)
@@ -95,7 +95,6 @@ void PathSpaceSparseOptimization::setup()
 void PathSpaceSparseOptimization::clear()
 {
     BaseT::clear();
-    selectedPath_ = -1;
     pathStackHead_.clear();
     pathStack_.clear();
 }
@@ -320,10 +319,10 @@ void PathSpaceSparseOptimization::getPlannerData(base::PlannerData &data) const
 
             std::cout << pathStackHead_.at(i).size() << std::endl;
 
-            idxPathI.clear();
-            getPathIndices(states, idxPathI);
-            std::reverse(idxPathI.begin(), idxPathI.end());
-            idxPathI.push_back(i);
+            // idxPathI.clear();
+            // getPathIndices(states, idxPathI);
+            // std::reverse(idxPathI.begin(), idxPathI.end());
+            // idxPathI.push_back(i);
             // idxPathI.insert(idxPathI.begin(), idxPathI.rbegin(), idxPathI.rend());
 
             //############################################################################
@@ -338,7 +337,7 @@ void PathSpaceSparseOptimization::getPlannerData(base::PlannerData &data) const
 
             multilevel::PlannerDataVertexAnnotated *p1 = new multilevel::PlannerDataVertexAnnotated(states.at(0));
             p1->setLevel(level_);
-            p1->setPath(idxPathI);
+            // p1->setPath(idxPathI);
             data.addStartVertex(*p1);
 
             double dk=0;
@@ -349,7 +348,7 @@ void PathSpaceSparseOptimization::getPlannerData(base::PlannerData &data) const
                 multilevel::PlannerDataVertexAnnotated *p2 = new multilevel::PlannerDataVertexAnnotated(
                     states.at(k + 1));  // getBundle()->cloneState(graphSparse_[v2]->state));
                 p2->setLevel(level_);
-                p2->setPath(idxPathI);
+                // p2->setPath(idxPathI);
 
                 if (k == states.size() - 2)
                 {
@@ -374,14 +373,14 @@ void PathSpaceSparseOptimization::getPlannerData(base::PlannerData &data) const
         OMPL_DEVMSG1("Sparse Roadmap has %d/%d vertices/edges (Dense has %d/%d).", boost::num_vertices(graphSparse_),
                      boost::num_edges(graphSparse_), boost::num_vertices(graph_), boost::num_edges(graph_));
 
-        if (boost::num_vertices(graphSparse_) > 0)
-        {
-            std::vector<int> CurPath = GetSelectedPathIndex();
-            // for(uint k = 0; k < CurPath.size(); k++) std::cout << CurPath.at(k) << ",";
-            // std::cout << std::endl;
+        // if (boost::num_vertices(graphSparse_) > 0)
+        // {
+        //     // std::vector<int> CurPath = GetSelectedPathIndex();
+        //     // for(uint k = 0; k < CurPath.size(); k++) std::cout << CurPath.at(k) << ",";
+        //     // std::cout << std::endl;
 
-            getPlannerDataRoadmap(data, CurPath);
-        }
+        //     getPlannerDataRoadmap(data, CurPath);
+        // }
     }
 }
 //############################################################################
@@ -391,9 +390,11 @@ void PathSpaceSparseOptimization::sampleFromDatastructure(base::State *xRandom_g
 {
     if (!getChild()->isDynamic() && pathStack_.size() > 0)
     {
-        if (selectedPath_ >= 0 && selectedPath_ < (int)pathStack_.size())
-        {
-            std::vector<base::State *> states = pathStackHead_.at(selectedPath_);
+        // if (selectedPath_ >= 0 && selectedPath_ < (int)pathStack_.size())
+        // {
+            const std::vector<base::State *>& states = 
+              localMinimaTree_->getSelectedMinimumAsStateVector(getLevel());
+
             uint N = states.size();
 
             //############################################################################
@@ -413,13 +414,13 @@ void PathSpaceSparseOptimization::sampleFromDatastructure(base::State *xRandom_g
             getBundle()->getStateSpace()->interpolate(s1, s2, r, xRandom_graph);
 
             Bundle_sampler_->sampleUniformNear(xRandom_graph, xRandom_graph, pathBias_);
-        }
-        else
-        {
-            std::cout << "Level:" << level_ << std::endl;
-            OMPL_ERROR("Selected path is %d/%d (have you selected a path?)", selectedPath_, pathStack_.size());
-            throw ompl::Exception("Unknown selected path");
-        }
+        // }
+        // else
+        // {
+        //     std::cout << "Level:" << level_ << std::endl;
+        //     OMPL_ERROR("Selected path is %d/%d (have you selected a path?)", selectedPath_, pathStack_.size());
+        //     throw ompl::Exception("Unknown selected path");
+        // }
     }
     else
     {
@@ -494,7 +495,7 @@ void PathSpaceSparseOptimization::pushPathToStack(std::vector<base::State *> &pa
           return;
         }
 
-        if(!getPathVisibilityChecker()->CheckValidity(gpath.getStates()))
+        if(!pathVisibilityChecker_->CheckValidity(gpath.getStates()))
         {
           std::cout << "REJECTED (Infeasible)" << std::endl;
           numberOfFailedAddingPathCalls++;
@@ -509,7 +510,7 @@ void PathSpaceSparseOptimization::pushPathToStack(std::vector<base::State *> &pa
             for (uint k = 0; k < pathStack_.size(); k++)
             {
                 geometric::PathGeometric &pathk = pathStack_.at(k);
-                if (getPathVisibilityChecker()->IsPathVisible(gpath.getStates(), pathk.getStates()))
+                if (pathVisibilityChecker_->IsPathVisible(gpath.getStates(), pathk.getStates()))
                 {
                     std::cout << "REJECTED (Equal to path " << k << ")" << std::endl;
                     numberOfFailedAddingPathCalls++;
@@ -599,7 +600,7 @@ void PathSpaceSparseOptimization::removeEdgeIfReductionLoop(const Edge &e)
         vpath2.push_back(v1);
         vpath2.push_back(v2);
 
-        if (getPathVisibilityChecker()->IsPathVisible(vpath1, vpath2, graphSparse_))
+        if (pathVisibilityChecker_->IsPathVisible(vpath1, vpath2, graphSparse_))
         {
             // RemoveEdge
             std::cout << "Removing Edge " << v1 << "<->" << v2 << std::endl;
@@ -666,7 +667,7 @@ int PathSpaceSparseOptimization::getProjectionIndex(const std::vector<base::Stat
     for (uint k = 0; k < K; k++)
     {
         std::vector<base::State *> pathBasek = parent->getKthPath(k);
-        bool visible = parent->getPathVisibilityChecker()->IsPathVisible(pathBase, pathBasek);
+        bool visible = parent->pathVisibilityChecker_->IsPathVisible(pathBase, pathBasek);
         if (visible)
         {
             freePath(pathBase, getBase());
@@ -677,52 +678,47 @@ int PathSpaceSparseOptimization::getProjectionIndex(const std::vector<base::Stat
     return -1;
 }
 
-void PathSpaceSparseOptimization::getPathIndices(const std::vector<base::State *> &states, std::vector<int> &idxPath) const
-{
-    if (!hasParent())
-    {
-        return;
-    }
-    else
-    {
-        PathSpaceSparseOptimization *parent = static_cast<PathSpaceSparseOptimization *>(parent_);
-        // TODO: we need to check here to which local minima we project. This is
-        // necessary, since sometimes we find a path which actually projects on a
-        // different Bundle-space path (and not the selected one).
-        // APPROACH 1: Assign them all to selected path
-        // PathSpaceSparseOptimization *Bundle = static_cast<PathSpaceSparseOptimization*>(parent_);
-        // unsigned int K = getBundle()->getNumberOfPaths();
-        // assert(K>0);
-        // unsigned int Ks = getBundle()->getselectedpath();
-        // assert(Ks>=0);
-        // idxPath.push_back(Ks);
-        // getBundle()->getPathIndices(states, idxPath);
-        if (isDynamic())
-        {
-            int Ks = parent->getSelectedPath();
-            std::cout << "DYNAMIC Projection Index " << Ks << "| " << getName() << std::endl;
-            idxPath.push_back(Ks);
-        }
-        else
-        {
-            int K = getProjectionIndex(states);
-            std::cout << "Projection Index " << K << "| " << getName() << std::endl;
-            if (K < 0)
-            {
-                K = 0;
-                OMPL_WARN("Projection not found. Possibly unprojectable path.");
-            }
-            idxPath.push_back(K);
-            // getBundle()->getPathIndices(states, idxPath);
-        }
-        std::vector<base::State *> pathBase = getProjectedPath(states, getBase());
-        parent->getPathIndices(pathBase, idxPath);
-    }
-}
-
-// PathVisibilityChecker *PathSpaceSparseOptimization::getPathVisibilityChecker()
+// void PathSpaceSparseOptimization::getPathIndices(const std::vector<base::State *> &states, std::vector<int> &idxPath) const
 // {
-//     // return pathVisibilityChecker_;
+//     if (!hasParent())
+//     {
+//         return;
+//     }
+//     else
+//     {
+//         PathSpaceSparseOptimization *parent = static_cast<PathSpaceSparseOptimization *>(parent_);
+//         // TODO: we need to check here to which local minima we project. This is
+//         // necessary, since sometimes we find a path which actually projects on a
+//         // different Bundle-space path (and not the selected one).
+//         // APPROACH 1: Assign them all to selected path
+//         // PathSpaceSparseOptimization *Bundle = static_cast<PathSpaceSparseOptimization*>(parent_);
+//         // unsigned int K = getBundle()->getNumberOfPaths();
+//         // assert(K>0);
+//         // unsigned int Ks = getBundle()->getselectedpath();
+//         // assert(Ks>=0);
+//         // idxPath.push_back(Ks);
+//         // getBundle()->getPathIndices(states, idxPath);
+//         if (isDynamic())
+//         {
+//             int Ks = parent->getSelectedPath();
+//             std::cout << "DYNAMIC Projection Index " << Ks << "| " << getName() << std::endl;
+//             idxPath.push_back(Ks);
+//         }
+//         else
+//         {
+//             int K = getProjectionIndex(states);
+//             std::cout << "Projection Index " << K << "| " << getName() << std::endl;
+//             if (K < 0)
+//             {
+//                 K = 0;
+//                 OMPL_WARN("Projection not found. Possibly unprojectable path.");
+//             }
+//             idxPath.push_back(K);
+//             // getBundle()->getPathIndices(states, idxPath);
+//         }
+//         std::vector<base::State *> pathBase = getProjectedPath(states, getBase());
+//         parent->getPathIndices(pathBase, idxPath);
+//     }
 // }
 
 const std::vector<ompl::base::State *> PathSpaceSparseOptimization::getKthPath(uint k) const
@@ -854,21 +850,21 @@ void PathSpaceSparseOptimization::enumerateAllPaths()
     OMPL_INFORM("Found %d path classes.", pathStackHead_.size());
     OMPL_INFORM("%s", std::string(80, '-').c_str());
 }
-std::vector<int> PathSpaceSparseOptimization::GetSelectedPathIndex() const
-{
-    std::vector<int> CurPath;
-    PathSpaceSparseOptimization *pparent = static_cast<PathSpaceSparseOptimization *>(parent_);
-    while (pparent != nullptr)
-    {
-        CurPath.push_back(pparent->getSelectedPath());
-        pparent = static_cast<PathSpaceSparseOptimization *>(pparent->parent_);
-    }
-    if (selectedPath_ < 0)
-        CurPath.push_back(0);
-    else
-        CurPath.push_back(selectedPath_);
+// std::vector<int> PathSpaceSparseOptimization::GetSelectedPathIndex() const
+// {
+//     std::vector<int> CurPath;
+//     PathSpaceSparseOptimization *pparent = static_cast<PathSpaceSparseOptimization *>(parent_);
+//     while (pparent != nullptr)
+//     {
+//         CurPath.push_back(pparent->getSelectedPath());
+//         pparent = static_cast<PathSpaceSparseOptimization *>(pparent->parent_);
+//     }
+//     if (selectedPath_ < 0)
+//         CurPath.push_back(0);
+//     else
+//         CurPath.push_back(selectedPath_);
 
-    return CurPath;
-}
+//     return CurPath;
+// }
 
 //############################################################################

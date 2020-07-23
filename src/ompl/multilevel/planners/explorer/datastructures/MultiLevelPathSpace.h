@@ -1,4 +1,5 @@
-#pragma once
+#ifndef OMPL_MULTILEVEL_PLANNERS_EXPLORER_MULTILEVELMOTIONEXPLORER_
+#define OMPL_MULTILEVEL_PLANNERS_EXPLORER_MULTILEVELMOTIONEXPLORER_
 #include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
 #include <ompl/multilevel/datastructures/BundleSpaceGraphSparse.h>
 
@@ -7,46 +8,54 @@
 #include <type_traits>
 #include <queue>
 
-namespace ob = ompl::base;
-namespace og = ompl::multilevel;
-
 namespace ompl
 {
     namespace multilevel
     {
+        OMPL_CLASS_FORWARD(LocalMinimaTree);
 
         template <class T>
-        class MultiLevelPathSpace : public og::BundleSpaceSequence<T>
+        class MultiLevelPathSpace : public BundleSpaceSequence<T>
         {
-            static_assert(std::is_base_of<og::BundleSpace, T>::value, 
+            static_assert(std::is_base_of<BundleSpace, T>::value, 
                 "Template must inherit from BundleSpace");
-            static_assert(std::is_base_of<og::PathSpace, T>::value, 
-                "Template must inherit from PathSpace");
 
-            typedef og::BundleSpaceSequence<T> BaseT;
+            using BaseT = BundleSpaceSequence<T>;
         public:
             const bool DEBUG{false};
 
-            MultiLevelPathSpace(std::vector<ob::SpaceInformationPtr> &siVec, 
+            MultiLevelPathSpace(std::vector<base::SpaceInformationPtr> &siVec, 
                 std::string type = "MultiLevelPathSpace");
             virtual ~MultiLevelPathSpace() override;
 
-            void getPlannerData(ob::PlannerData &data) const override;
+            void getPlannerData(base::PlannerData &data) const override;
 
-            ob::PlannerStatus solve(const ob::PlannerTerminationCondition &ptc) override;
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
             void setup() override;
             void clear() override;
-            void setLocalMinimumSelection( std::vector<int> selection);
+
+            LocalMinimaTreePtr& getLocalMinimaTree();
 
         protected:
             double pathBias{0.8}; //[0,1]
 
-            T *root{nullptr};
             T *current{nullptr};
-            std::vector<int> selectedLocalMinimum_;
+            // std::vector<int> selectedLocalMinimum_;
+
+            LocalMinimaTreePtr localMinimaTree_;
+
+            enum ExtensionMode
+            {
+              AUTOMATIC_UNIFORM = 0,
+              AUTOMATIC_FAST_DOWNWARD = 1,
+              MANUAL = 2
+            };
+
+            ExtensionMode mode;
+
         };
     }
 }
 
 #include "MultiLevelPathSpaceImpl.h"
-// #endif
+#endif

@@ -1,6 +1,7 @@
 #include <ompl/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/multilevel/datastructures/BundleSpace.h>
 #include <ompl/multilevel/planners/explorer/datastructures/PathSpace.h>
+#include <ompl/multilevel/planners/explorer/datastructures/LocalMinimaTree.h>
 #include <ompl/multilevel/planners/explorer/algorithms/PathSpaceSparseOptimization.h>
 
 #include <ompl/base/goals/GoalSampleableRegion.h>
@@ -10,15 +11,22 @@
 #include <ompl/util/Exception.h>
 #include <queue>
 
-using namespace og;
-using namespace ob;
+using namespace ompl::multilevel;
 
 template <class T>
-ompl::multilevel::MultiLevelPathSpace<T>::MultiLevelPathSpace(std::vector<ob::SpaceInformationPtr> &siVec, std::string type)
+ompl::multilevel::MultiLevelPathSpace<T>::MultiLevelPathSpace(std::vector<base::SpaceInformationPtr> &siVec, std::string type)
   : BaseT(siVec, type)
 {
-    root = this->bundleSpaces_.front();
-    current = root;
+    current = this->bundleSpaces_.front();
+    localMinimaTree_ = std::make_shared<LocalMinimaTree>(siVec);
+
+    //connect all quotient spaces to local minima tree
+    for(uint k = 0; k < this->bundleSpaces_.size(); k++)
+    {
+        PathSpace *Pk = static_cast<PathSpace*>(this->bundleSpaces_.at(k));
+        Pk->setLocalMinimaTree(localMinimaTree_);
+    }
+
 }
 
 template <class T>
@@ -36,59 +44,64 @@ template <class T>
 void ompl::multilevel::MultiLevelPathSpace<T>::clear()
 {
     BaseT::clear();
-    selectedLocalMinimum_.clear();
-    root = nullptr;
     current = nullptr;
 }
-
 template <class T>
-void ompl::multilevel::MultiLevelPathSpace<T>::setLocalMinimumSelection( std::vector<int> selection)
+LocalMinimaTreePtr& MultiLevelPathSpace<T>::getLocalMinimaTree()
 {
-    std::vector<int> oldSelectedLocalMinimum = selectedLocalMinimum_;
-    selectedLocalMinimum_ = selection;
-
-    unsigned int N = selectedLocalMinimum_.size();
-    unsigned int Nold = oldSelectedLocalMinimum.size();
-
-    for(uint k = 0; k < selectedLocalMinimum_.size(); k++){
-      og::PathSpace *pathspace =
-        static_cast<og::PathSpace*>(this->bundleSpaces_.at(k));
-          
-      pathspace->setSelectedPath(selectedLocalMinimum_.at(k));
-    }
-
-    std::cout << "[SELECTION CHANGE] BundleSpaces set from [";
-    for(uint k = 0; k < oldSelectedLocalMinimum.size(); k++){
-      int sk = oldSelectedLocalMinimum.at(k);
-      std::cout << sk << " ";
-    }
-    std::cout << "] to [";
-    for(uint k = 0; k < selectedLocalMinimum_.size(); k++){
-      int sk = selectedLocalMinimum_.at(k);
-      std::cout << sk << " ";
-    }
-    std::cout << "]" << std::endl;
-
-    //User changed to different folder (and the files inside have not been
-    //generated yet)
-    if(N==Nold && N>0 && (N < this->bundleSpaces_.size())){
-        unsigned int M = selectedLocalMinimum_.back();
-        unsigned int Mold = oldSelectedLocalMinimum.back();
-        if(M!=Mold){
-            std::cout << "Changed Folder. Clear Bundle-spaces [" 
-              << N << "]" << std::endl;
-            this->bundleSpaces_.at(N)->clear();
-        }
-
-    }
-
+    return localMinimaTree_;
 }
 
+//template <class T>
+//void ompl::multilevel::MultiLevelPathSpace<T>::setLocalMinimumSelection( std::vector<int> selection)
+//{
+//    //TODO: outsource to LMT
+//    std::vector<int> oldSelectedLocalMinimum = selectedLocalMinimum_;
+//    selectedLocalMinimum_ = selection;
+
+//    unsigned int N = selectedLocalMinimum_.size();
+//    unsigned int Nold = oldSelectedLocalMinimum.size();
+
+//    for(uint k = 0; k < selectedLocalMinimum_.size(); k++){
+//      PathSpace *pathspace =
+//        static_cast<PathSpace*>(this->bundleSpaces_.at(k));
+          
+//      pathspace->setSelectedPath(selectedLocalMinimum_.at(k));
+//    }
+
+//    std::cout << "[SELECTION CHANGE] BundleSpaces set from [";
+//    for(uint k = 0; k < oldSelectedLocalMinimum.size(); k++){
+//      int sk = oldSelectedLocalMinimum.at(k);
+//      std::cout << sk << " ";
+//    }
+//    std::cout << "] to [";
+//    for(uint k = 0; k < selectedLocalMinimum_.size(); k++){
+//      int sk = selectedLocalMinimum_.at(k);
+//      std::cout << sk << " ";
+//    }
+//    std::cout << "]" << std::endl;
+
+//    //User changed to different folder (and the files inside have not been
+//    //generated yet)
+//    if(N==Nold && N>0 && (N < this->bundleSpaces_.size())){
+//        unsigned int M = selectedLocalMinimum_.back();
+//        unsigned int Mold = oldSelectedLocalMinimum.back();
+//        if(M!=Mold){
+//            std::cout << "Changed Folder. Clear Bundle-spaces [" 
+//              << N << "]" << std::endl;
+//            this->bundleSpaces_.at(N)->clear();
+//        }
+
+//    }
+
+//}
+
 template <class T>
-ob::PlannerStatus MultiLevelPathSpace<T>::solve(const ob::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus MultiLevelPathSpace<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
 {
     ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
-    uint K = selectedLocalMinimum_.size();
+    std::vector<int> selectedLocalMinimum = localMinimaTree_->getSelectedMinimum();
+    uint K = selectedLocalMinimum.size();
 
     if(K>=this->bundleSpaces_.size()){
         K = K-1;
@@ -98,9 +111,7 @@ ob::PlannerStatus MultiLevelPathSpace<T>::solve(const ob::PlannerTerminationCond
     //expand
     while(K>0)
     {
-        og::PathSpace *kBundle =
-          static_cast<og::PathSpace*>(this->bundleSpaces_.at(K-1));
-        if(kBundle->getNumberOfPaths()>0){
+        if(localMinimaTree_->getNumberOfMinima(K-1)>0){
           break;
         }else{
           K = K-1;
@@ -108,8 +119,8 @@ ob::PlannerStatus MultiLevelPathSpace<T>::solve(const ob::PlannerTerminationCond
     }
 
     //Check which 
-    og::BundleSpace *jBundle =
-      static_cast<og::BundleSpace*>(this->bundleSpaces_.at(K));
+    BundleSpace *jBundle =
+      static_cast<BundleSpace*>(this->bundleSpaces_.at(K));
 
     uint ctr = 0;
 
@@ -138,12 +149,13 @@ ob::PlannerStatus MultiLevelPathSpace<T>::solve(const ob::PlannerTerminationCond
     std::cout << std::string(80, '-') << std::endl;
     std::cout << *jBundle << std::endl;
     std::cout << std::string(80, '-') << std::endl;
-    return ob::PlannerStatus::TIMEOUT;
+    return base::PlannerStatus::TIMEOUT;
 }
 
 template <class T>
-void MultiLevelPathSpace<T>::getPlannerData(ob::PlannerData &data) const
+void MultiLevelPathSpace<T>::getPlannerData(base::PlannerData &data) const
 {
+    //TODO: just call BaseT (better: remove completely)
     unsigned int Nvertices = data.numVertices();
     if (Nvertices > 0)
     {
@@ -156,17 +168,13 @@ void MultiLevelPathSpace<T>::getPlannerData(ob::PlannerData &data) const
 
     for (unsigned int k = 0; k < K; k++)
     {
-        og::BundleSpaceGraph *Qk = static_cast<BundleSpaceGraph*>(this->bundleSpaces_.at(k));
+        BundleSpaceGraph *Qk = static_cast<BundleSpaceGraph*>(this->bundleSpaces_.at(k));
 
         PathSpaceSparseOptimization *Qk_tmp = dynamic_cast<PathSpaceSparseOptimization*>(Qk);
         if(Qk_tmp != nullptr)
         {
             Qk_tmp->enumerateAllPaths();
             Qk_tmp->getPlannerData(data);
-        }else
-        {
-            og::PathSpace *Pk = static_cast<PathSpace*>(this->bundleSpaces_.at(k));
-            Pk->getPlannerData(data, Qk);
         }
 
         // label all new vertices
@@ -174,21 +182,22 @@ void MultiLevelPathSpace<T>::getPlannerData(ob::PlannerData &data) const
 
         for (unsigned int vidx = Nvertices; vidx < data.numVertices(); vidx++)
         {
-          ob::PlannerDataVertexAnnotated &v = *static_cast<ob::PlannerDataVertexAnnotated *>(&data.getVertex(vidx));
+            multilevel::PlannerDataVertexAnnotated &v = 
+              *static_cast<multilevel::PlannerDataVertexAnnotated *>(&data.getVertex(vidx));
             v.setLevel(k);
             v.setMaxLevel(K);
 
-            ob::State *s_lift = Qk->getBundle()->cloneState(v.getState());
+            base::State *s_lift = Qk->getBundle()->cloneState(v.getState());
             v.setBaseState(s_lift);
 
             for (unsigned int m = k + 1; m < this->bundleSpaces_.size(); m++)
             {
-                const og::BundleSpace *Qm = this->bundleSpaces_.at(m);
+                const BundleSpace *Qm = this->bundleSpaces_.at(m);
 
                 if (Qm->getFiberDimension() > 0)
                 {
-                    ob::State *s_Bundle = Qm->allocIdentityStateBundle();
-                    ob::State *s_Fiber = Qm->allocIdentityStateFiber();
+                    base::State *s_Bundle = Qm->allocIdentityStateBundle();
+                    base::State *s_Fiber = Qm->allocIdentityStateFiber();
 
                     Qm->liftState(s_lift, s_Fiber, s_Bundle);
 

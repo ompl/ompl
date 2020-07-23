@@ -15,10 +15,13 @@
 using namespace ompl::multilevel;
 
 PathSpaceQMP::PathSpaceQMP(const base::SpaceInformationPtr &si, BundleSpace *parent_): 
-  BaseT(si, parent_),
-  PathSpace(this)
+  PathSpace(this),
+  BaseT(si, parent_)
 {
+    pathVisibilityChecker_ = new PathVisibilityChecker(getBundle());
+
     setName("PathSpaceQMP" + std::to_string(id_));
+
     if (hasBaseSpace())
     {
         static_cast<BundleSpaceGraph*>(getParent())->getGraphSampler()->disablePathBias();
@@ -27,6 +30,7 @@ PathSpaceQMP::PathSpaceQMP(const base::SpaceInformationPtr &si, BundleSpace *par
 
 PathSpaceQMP::~PathSpaceQMP()
 {
+    delete pathVisibilityChecker_;
 }
 
 void PathSpaceQMP::grow()
@@ -92,7 +96,7 @@ void PathSpaceQMP::grow()
         {
             // FALL 2: verbessert bestehenden pfad
             // Knoten wurde mit 2 Knoten des Pfades verbunden
-            if (getPathVisibilityChecker()->IsPathVisible(path, getCriticalPath(i), graph_))
+            if (pathVisibilityChecker_->IsPathVisible(path, getMinimumPath(i), graph_))
             {
                 isVisible = true;
                 // Path is shorter than visible path else do nothing
@@ -116,6 +120,7 @@ void PathSpaceQMP::grow()
         // ompl::base::PathPtr pp = getPath(vStart_, vGoal_);
         // std::cout << "Best cost found: " << bestCost_ << "; cost shortest path: " << pp->length() << std::endl;
 
+        OMPL_INFORM("Found %d path classes.", getNumberOfPaths());
 
     }
 }

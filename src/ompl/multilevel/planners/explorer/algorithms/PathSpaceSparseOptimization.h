@@ -1,7 +1,7 @@
 #pragma once
-#include <ompl/multilevel/planners/explorer/datastructures/PathSpace.h>
 
 #include <ompl/multilevel/datastructures/BundleSpaceGraphSparse.h>
+#include <ompl/multilevel/planners/explorer/datastructures/PathSpace.h>
 #include <ompl/datastructures/PDF.h>
 #include <ompl/control/Control.h>
 #include <ompl/control/StatePropagator.h>
@@ -15,8 +15,7 @@ namespace ompl
   }
   namespace multilevel
   {
-      OMPL_CLASS_FORWARD(PathVisibilityChecker);
-    //PathSpaceSparseOptimization 
+    OMPL_CLASS_FORWARD(PathVisibilityChecker);
     class PathSpaceSparseOptimization: public multilevel::PathSpace, 
                                        public multilevel::BundleSpaceGraphSparse
     {
@@ -47,7 +46,7 @@ namespace ompl
         ompl::control::DirectedControlSamplerPtr dCSampler;
 	
         virtual void getPlannerData(base::PlannerData &data) const override;
-        virtual unsigned int getNumberOfPaths() const override;
+        unsigned int getNumberOfPaths() const;
 
         //############################################################################
         void printAllPathsUtil(Vertex u, Vertex d, bool visited[], int path[], int &path_index);
@@ -74,8 +73,8 @@ namespace ompl
         std::vector<std::vector<base::State*>> pathStackHead_;
         void PrintPathStack();
 
-        std::vector<int> GetSelectedPathIndex() const;
         //############################################################################
+        PathVisibilityChecker *pathVisibilityChecker_{nullptr};
       protected:
 
         double pathBias_{0.};

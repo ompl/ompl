@@ -27,6 +27,8 @@ namespace ompl
         protected:
             double bestCost_{std::numeric_limits<double>::infinity()};
 
+            PathVisibilityChecker *pathVisibilityChecker_{nullptr};
+
         };
     }  // namespace multilevel
 }  // namespace ompl

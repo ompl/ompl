@@ -1,15 +1,19 @@
 #pragma once
 #include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
+#include <ompl/multilevel/planners/explorer/datastructures/LocalMinimaTree.h>
 #include <ompl/base/PlannerData.h>
 
-namespace ompl{
+namespace ompl
+{
+    namespace base
+    {
+        OMPL_CLASS_FORWARD(Path);
+    }
+    namespace multilevel
+    {
+        OMPL_CLASS_FORWARD(LocalMinimaTree);
 
-    namespace multilevel{
-
-        class PathVisibilityChecker;
         class PathSpace{
-
-            using VertexPath = std::vector<BundleSpaceGraph::Vertex>;
 
           public:
 
@@ -17,11 +21,11 @@ namespace ompl{
             PathSpace(BundleSpaceGraph*);
             ~PathSpace();
 
-            void setSelectedPath(unsigned int);
-
-            unsigned int getSelectedPath();
+            void setLocalMinimaTree(LocalMinimaTreePtr);
 
             virtual unsigned int getNumberOfPaths() const;
+
+            base::PathPtr VerticesToPathPtr(VertexPath vpath);
 
             void updatePath(unsigned int k, VertexPath p, double cost);
 
@@ -29,26 +33,24 @@ namespace ompl{
 
             double getPathCost(unsigned int k) const;
 
-            std::vector<BundleSpaceGraph::Vertex>& getCriticalPath(unsigned int k);
+            const std::vector<BundleSpaceGraph::Vertex>& getMinimumPath(unsigned int k);
 
-            void getPlannerData(base::PlannerData &data, BundleSpaceGraph* bundleGraph) const;
+            // void getPlannerData(base::PlannerData &data, BundleSpaceGraph* bundleGraph) const;
 
-            PathVisibilityChecker *getPathVisibilityChecker();
+            // PathVisibilityChecker *getPathVisibilityChecker();
 
-            void getPathIndices(
-                const std::vector<BundleSpaceGraph::Vertex> &vertices, 
-                std::vector<int> &idxPath) const;
+            // void getPathIndices(
+            //     const std::vector<BundleSpaceGraph::Vertex> &vertices, 
+            //     std::vector<int> &idxPath) const;
 
           protected:
+
             BundleSpaceGraph *bundleSpaceGraph_;
 
-            PathVisibilityChecker *pathVisibilityChecker_{nullptr};
+            LocalMinimaTreePtr localMinimaTree_;
 
-            int selectedPath_{-1};
+            // PathVisibilityChecker *pathVisibilityChecker_{nullptr};
 
-            std::vector<VertexPath> criticalPaths_;
-
-            std::vector<double> criticalPathsCost_;
         };
     }
 }
