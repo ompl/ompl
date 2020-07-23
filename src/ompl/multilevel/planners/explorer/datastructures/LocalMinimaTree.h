@@ -121,10 +121,15 @@ namespace ompl
             LocalMinimaNode* addPath(base::PathPtr path, double cost, int level);
             LocalMinimaNode* updatePath(base::PathPtr path, double cost, int level, int index);
 
-            std::mutex& getLock();
+            std::recursive_mutex& getLock();
+
+            bool hasChanged();
 
           protected:
-            std::mutex lock_;
+            std::recursive_mutex lock_;
+
+            bool hasChanged_{false};
+
 
             //needed to convert between representations of tree
             std::vector<base::SpaceInformationPtr> siVec_; 

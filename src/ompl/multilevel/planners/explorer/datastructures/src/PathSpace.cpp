@@ -53,6 +53,7 @@ void ompl::multilevel::PathSpace::updatePath(unsigned int k, VertexPath vpath, d
     int level = bundleSpaceGraph_->getLevel();
     LocalMinimaNode *node = localMinimaTree_->updatePath(VerticesToPathPtr(vpath), cost, level, k);
     node->setVertexPath(vpath);
+    OMPL_INFORM("Update path %d with cost %.2f (%d paths on level %d).", k, cost, getNumberOfPaths(), level);
 }
 
 void ompl::multilevel::PathSpace::addPath(VertexPath vpath, double cost)
@@ -60,6 +61,7 @@ void ompl::multilevel::PathSpace::addPath(VertexPath vpath, double cost)
     int level = bundleSpaceGraph_->getLevel();
     LocalMinimaNode *node = localMinimaTree_->addPath(VerticesToPathPtr(vpath), cost, level);
     node->setVertexPath(vpath);
+    OMPL_INFORM("New path with cost %.2f (%d paths on level %d).", cost, getNumberOfPaths(), level);
 }
 
 double ompl::multilevel::PathSpace::getPathCost(unsigned int k) const

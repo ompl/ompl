@@ -40,11 +40,11 @@ std::vector<int> LocalMinimaTree::getSelectedMinimum() const
 }
 void LocalMinimaTree::setSelectedMinimum(std::vector<int> selectedMinimum)
 {
-    std::lock_guard<std::mutex> guard(lock_);
+    std::lock_guard<std::recursive_mutex> guard(lock_);
     selectedMinimum_ = selectedMinimum;
 }
 
-std::mutex& LocalMinimaTree::getLock()
+std::recursive_mutex& LocalMinimaTree::getLock()
 {
   return lock_;
 }
@@ -60,29 +60,50 @@ unsigned int LocalMinimaTree::getNumberOfLevelContainingMinima() const
     return ctr;
 }
 
+bool LocalMinimaTree::hasChanged()
+{
+    std::lock_guard<std::recursive_mutex> guard(lock_);
+    if(hasChanged_)
+    {
+        OMPL_INFORM("Has Changed");
+        hasChanged_ = false;
+        return true;
+    }else
+    {
+        return false;
+    }
+}
 LocalMinimaNode* LocalMinimaTree::updatePath(base::PathPtr path, double cost, int level, int index)
 {
-    std::lock_guard<std::mutex> guard(lock_);
+    std::lock_guard<std::recursive_mutex> guard(lock_);
     sanityCheckLevelIndex(level, index);
 
     LocalMinimaNode* node = tree_.at(level).at(index);
     node->setPathPtr(path);
     node->setLevel(level);
     node->setCost(cost);
-    std::cout << "Update Path " << index << "(level " << level << ") to " << cost << std::endl;
+    hasChanged_ = true;
+
+    if(selectedMinimum_.size() == level-1)
+    {
+        selectedMinimum_.back() = index;
+    }
     return node;
 }
 
 LocalMinimaNode* LocalMinimaTree::addPath(base::PathPtr path, double cost, int level)
 {
-    std::lock_guard<std::mutex> guard(lock_);
+    std::lock_guard<std::recursive_mutex> guard(lock_);
 
     LocalMinimaNode* node = new LocalMinimaNode(siVec_.at(level), path);
     node->setLevel(level);
     node->setCost(cost);
     tree_.at(level).push_back(node);
     numberOfMinima_++;
-    std::cout << "Add Path (level " << level << ") with cost " << cost << std::endl;
+    hasChanged_ = true;
+
+    setSelectedMinimumExpand();
+    selectedMinimum_.back() = tree_.at(level).size()-1;
     return node;
 }
 
@@ -142,7 +163,7 @@ double LocalMinimaTree::getPathCost(int level, int index) const
 
 void LocalMinimaTree::setSelectedMinimumPrev()
 {
-  std::lock_guard<std::mutex> guard(lock_);
+  std::lock_guard<std::recursive_mutex> guard(lock_);
 
   if(selectedMinimum_.size() > 0)
   {
@@ -155,11 +176,12 @@ void LocalMinimaTree::setSelectedMinimumPrev()
               selectedMinimum_.back()+1, maxMinima, selectedMinimum_.size()-1);
       }
   }
+  hasChanged_ = true;
 }
 
 void LocalMinimaTree::setSelectedMinimumNext()
 {
-  std::lock_guard<std::mutex> guard(lock_);
+  std::lock_guard<std::recursive_mutex> guard(lock_);
 
   if(selectedMinimum_.size() > 0)
   {
@@ -172,27 +194,30 @@ void LocalMinimaTree::setSelectedMinimumNext()
               selectedMinimum_.back()+1, maxMinima, selectedMinimum_.size()-1);
       }
   }
+  hasChanged_ = true;
 }
 
 void LocalMinimaTree::setSelectedMinimumCollapse()
 {
-    std::lock_guard<std::mutex> guard(lock_);
+    std::lock_guard<std::recursive_mutex> guard(lock_);
 
     if(selectedMinimum_.size() > 0)
     {
         selectedMinimum_.erase(selectedMinimum_.end() - 1);
     }
+    hasChanged_ = true;
 }
 
 void LocalMinimaTree::setSelectedMinimumExpand()
 {
-    std::lock_guard<std::mutex> guard(lock_);
+    std::lock_guard<std::recursive_mutex> guard(lock_);
 
     unsigned int maxLevel = getNumberOfLevelContainingMinima();
     if(selectedMinimum_.size() < maxLevel)
     {
         selectedMinimum_.push_back(0);
     }
+    hasChanged_ = true;
 }
 void LocalMinimaTree::printSelectedMinimum()
 {

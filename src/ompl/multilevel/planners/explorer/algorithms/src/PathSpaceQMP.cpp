@@ -120,7 +120,7 @@ void PathSpaceQMP::grow()
         // ompl::base::PathPtr pp = getPath(vStart_, vGoal_);
         // std::cout << "Best cost found: " << bestCost_ << "; cost shortest path: " << pp->length() << std::endl;
 
-        OMPL_INFORM("Found %d path classes.", getNumberOfPaths());
+        // OMPL_INFORM("Found %d path classes.", getNumberOfPaths());
 
     }
 }
