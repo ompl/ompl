@@ -52,54 +52,11 @@ LocalMinimaTreePtr& MultiLevelPathSpace<T>::getLocalMinimaTree()
     return localMinimaTree_;
 }
 
-//template <class T>
-//void ompl::multilevel::MultiLevelPathSpace<T>::setLocalMinimumSelection( std::vector<int> selection)
-//{
-//    //TODO: outsource to LMT
-//    std::vector<int> oldSelectedLocalMinimum = selectedLocalMinimum_;
-//    selectedLocalMinimum_ = selection;
-
-//    unsigned int N = selectedLocalMinimum_.size();
-//    unsigned int Nold = oldSelectedLocalMinimum.size();
-
-//    for(uint k = 0; k < selectedLocalMinimum_.size(); k++){
-//      PathSpace *pathspace =
-//        static_cast<PathSpace*>(this->bundleSpaces_.at(k));
-          
-//      pathspace->setSelectedPath(selectedLocalMinimum_.at(k));
-//    }
-
-//    std::cout << "[SELECTION CHANGE] BundleSpaces set from [";
-//    for(uint k = 0; k < oldSelectedLocalMinimum.size(); k++){
-//      int sk = oldSelectedLocalMinimum.at(k);
-//      std::cout << sk << " ";
-//    }
-//    std::cout << "] to [";
-//    for(uint k = 0; k < selectedLocalMinimum_.size(); k++){
-//      int sk = selectedLocalMinimum_.at(k);
-//      std::cout << sk << " ";
-//    }
-//    std::cout << "]" << std::endl;
-
-//    //User changed to different folder (and the files inside have not been
-//    //generated yet)
-//    if(N==Nold && N>0 && (N < this->bundleSpaces_.size())){
-//        unsigned int M = selectedLocalMinimum_.back();
-//        unsigned int Mold = oldSelectedLocalMinimum.back();
-//        if(M!=Mold){
-//            std::cout << "Changed Folder. Clear Bundle-spaces [" 
-//              << N << "]" << std::endl;
-//            this->bundleSpaces_.at(N)->clear();
-//        }
-
-//    }
-
-//}
-
 template <class T>
 ompl::base::PlannerStatus MultiLevelPathSpace<T>::solve(const ompl::base::PlannerTerminationCondition &ptc)
 {
     ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
+
     std::vector<int> selectedLocalMinimum = localMinimaTree_->getSelectedMinimum();
     uint K = selectedLocalMinimum.size();
 
@@ -124,8 +81,6 @@ ompl::base::PlannerStatus MultiLevelPathSpace<T>::solve(const ompl::base::Planne
 
     uint ctr = 0;
 
-    std::cout << "Searching space " << jBundle->getName() << " until solution found." << std::endl;
-
     //grow at least PTC, then grow until solution (that way we do not stop after
     //finding just one single path)
     while (!ptc())
@@ -133,22 +88,6 @@ ompl::base::PlannerStatus MultiLevelPathSpace<T>::solve(const ompl::base::Planne
         jBundle->grow();
         ctr++;
     }
-    while (true)
-    {
-        jBundle->grow();
-        ctr++;
-        if(jBundle->hasSolution())
-        {
-           break;
-        }
-        if(ctr%100==0)
-        {
-            break;
-        }
-    }
-    std::cout << std::string(80, '-') << std::endl;
-    std::cout << *jBundle << std::endl;
-    std::cout << std::string(80, '-') << std::endl;
     return base::PlannerStatus::TIMEOUT;
 }
 
@@ -174,8 +113,8 @@ void MultiLevelPathSpace<T>::getPlannerData(base::PlannerData &data) const
         if(Qk_tmp != nullptr)
         {
             Qk_tmp->enumerateAllPaths();
-            Qk_tmp->getPlannerData(data);
         }
+        Qk->getPlannerData(data);
 
         // label all new vertices
         unsigned int ctr = 0;
@@ -215,13 +154,5 @@ void MultiLevelPathSpace<T>::getPlannerData(base::PlannerData &data) const
         Nvertices = data.numVertices();
 
     }
-    std::cout << "Created PlannerData with " << data.numVertices() << " vertices and "
-      << data.numEdges() << " edges ";
-    std::cout << "(";
-    for(uint k = 0; k < countVerticesPerBundleSpace.size(); k++){
-       uint ck = countVerticesPerBundleSpace.at(k);
-       std::cout << ck << (k < countVerticesPerBundleSpace.size()-1?", ":"");
-    }
-    std::cout << ")" << std::endl;
 }
 

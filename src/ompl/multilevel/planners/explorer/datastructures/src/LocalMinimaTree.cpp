@@ -1,6 +1,7 @@
 #include <ompl/multilevel/planners/explorer/datastructures/LocalMinimaTree.h>
 #include <ompl/util/Console.h>
 #include <thread>
+#include <ompl/geometric/PathSimplifier.h>
 
 using namespace ompl::multilevel;
 
@@ -13,6 +14,8 @@ LocalMinimaTree::LocalMinimaTree(std::vector<base::SpaceInformationPtr> siVec):
         std::vector<LocalMinimaNode*> kthLevel;
         tree_.push_back(kthLevel);
     }
+
+
 }
 
 LocalMinimaTree::~LocalMinimaTree()
@@ -65,7 +68,6 @@ bool LocalMinimaTree::hasChanged()
     std::lock_guard<std::recursive_mutex> guard(lock_);
     if(hasChanged_)
     {
-        OMPL_INFORM("Has Changed");
         hasChanged_ = false;
         return true;
     }else
@@ -94,6 +96,16 @@ LocalMinimaNode* LocalMinimaTree::updatePath(base::PathPtr path, double cost, in
 LocalMinimaNode* LocalMinimaTree::addPath(base::PathPtr path, double cost, int level)
 {
     std::lock_guard<std::recursive_mutex> guard(lock_);
+
+    // base::OptimizationObjectivePtr obj = 
+    //   std::make_shared<ompl::base::PathLengthOptimizationObjective>(siVec_.at(level));
+    // geometric::PathSimplifier shortcutter(siVec_.at(level), base::GoalPtr(), obj);
+
+    geometric::PathGeometricPtr gpath = std::dynamic_pointer_cast<geometric::PathGeometric>(path);
+    if(gpath != nullptr)
+    {
+        gpath->interpolate();
+    }
 
     LocalMinimaNode* node = new LocalMinimaNode(siVec_.at(level), path);
     node->setLevel(level);
@@ -131,6 +143,7 @@ std::vector<LocalMinimaNode*> LocalMinimaTree::getSelectedPathSiblings() const
 
     int indexSelectedPath = selectedMinimum_.back();
 
+    // std::cout << level << " has " << getNumberOfMinima(level) << " paths." << std::endl;
     for(uint k = 0; k < getNumberOfMinima(level); k++)
     {
       if((int)k == indexSelectedPath) continue;

@@ -43,7 +43,7 @@
 template <class T>
 ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec,
                                                              std::string type)
-  : ompl::base::Planner(siVec.back(), type), siVec_(siVec)
+  : BaseT(siVec, type)
 {
     T::resetCounter();
     for (unsigned int k = 0; k < siVec_.size(); k++)
@@ -74,23 +74,23 @@ ompl::multilevel::BundleSpaceSequence<T>::~BundleSpaceSequence()
     bundleSpaces_.clear();
 }
 
-template <class T>
-int ompl::multilevel::BundleSpaceSequence<T>::getLevels() const
-{
-    return bundleSpaces_.size();
-}
+// template <class T>
+// int ompl::multilevel::BundleSpaceSequence<T>::getLevels() const
+// {
+//     return bundleSpaces_.size();
+// }
 
-template <class T>
-std::vector<int> ompl::multilevel::BundleSpaceSequence<T>::getDimensionsPerLevel() const
-{
-    std::vector<int> dimensionsPerLevel;
-    for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
-    {
-        unsigned int Nk = static_cast<BundleSpace*>(bundleSpaces_.at(k))->getBundleDimension();
-        dimensionsPerLevel.push_back(Nk);
-    }
-    return dimensionsPerLevel;
-}
+// template <class T>
+// std::vector<int> ompl::multilevel::BundleSpaceSequence<T>::getDimensionsPerLevel() const
+// {
+//     std::vector<int> dimensionsPerLevel;
+//     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
+//     {
+//         unsigned int Nk = static_cast<BundleSpace*>(bundleSpaces_.at(k))->getBundleDimension();
+//         dimensionsPerLevel.push_back(Nk);
+//     }
+//     return dimensionsPerLevel;
+// }
 
 template <class T>
 void ompl::multilevel::BundleSpaceSequence<T>::setStopLevel(unsigned int level_)
@@ -119,7 +119,7 @@ void ompl::multilevel::BundleSpaceSequence<T>::setup()
 template <class T>
 void ompl::multilevel::BundleSpaceSequence<T>::clear()
 {
-    Planner::clear();
+    BaseT::clear();
 
     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
     {
@@ -132,8 +132,8 @@ void ompl::multilevel::BundleSpaceSequence<T>::clear()
 
     foundKLevelSolution_ = false;
 
-    solutions_.clear();
-    pdef_->clearSolutionPaths();
+    // solutions_.clear();
+    // pdef_->clearSolutionPaths();
 }
 
 template <class T>
@@ -217,18 +217,9 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
 }
 
 template <class T>
-const ompl::base::ProblemDefinitionPtr &
-ompl::multilevel::BundleSpaceSequence<T>::getProblemDefinition(unsigned int kBundleSpace) const
-{
-    assert(kBundleSpace >= 0);
-    assert(kBundleSpace <= siVec_.size() - 1);
-    return static_cast<BundleSpace*>(bundleSpaces_.at(kBundleSpace))->getProblemDefinition();
-}
-
-template <class T>
 void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef)
 {
-    this->Planner::setProblemDefinition(pdef);
+    BaseT::setProblemDefinition(pdef);
 
     // Compute projection of qInit and qGoal onto BundleSpaces
     ompl::base::Goal *goal = pdef_->getGoal().get();
@@ -244,6 +235,8 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(const ompl::
     static_cast<BundleSpace*>(bundleSpaces_.back())->setProblemDefinition(pdef);
 
     base::OptimizationObjectivePtr obj = pdef->getOptimizationObjective();
+
+    pdefVec_.push_back(pdef);
 
     for (unsigned int k = siVec_.size() - 1; k > 0; k--)
     {
@@ -264,7 +257,11 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(const ompl::
 
         sInit = sInitK;
         sGoal = sGoalK;
+
+        pdefVec_.push_back(pdefk);
     }
+
+    std::reverse(pdefVec_.begin(), pdefVec_.end());
 }
 
 template <class T>

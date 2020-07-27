@@ -15,6 +15,11 @@ namespace ompl
         OMPL_CLASS_FORWARD(SpaceInformation);
         OMPL_CLASS_FORWARD(Path);
     }
+    namespace geometric
+    {
+        OMPL_CLASS_FORWARD(PathSimplifier);
+        OMPL_CLASS_FORWARD(PathGeometric);
+    }
     namespace multilevel
     {
         using VertexPath = std::vector<BundleSpaceGraph::Vertex>;
@@ -129,7 +134,6 @@ namespace ompl
             std::recursive_mutex lock_;
 
             bool hasChanged_{false};
-
 
             //needed to convert between representations of tree
             std::vector<base::SpaceInformationPtr> siVec_; 

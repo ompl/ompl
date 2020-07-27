@@ -38,6 +38,7 @@
 #ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLESPACESEQUENCE_
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLESPACESEQUENCE_
 #include <ompl/multilevel/datastructures/BundleSpace.h>
+#include <ompl/multilevel/datastructures/PlannerMultiLevel.h>
 #include <type_traits>
 #include <queue>
 
@@ -56,9 +57,9 @@ namespace ompl
              \tparam T Planner function used to grow each space
          */
         template <class T>
-        class BundleSpaceSequence : public ompl::base::Planner
+        class BundleSpaceSequence : public PlannerMultiLevel
         {
-            using BaseT = ompl::base::Planner;
+            using BaseT = ompl::multilevel::PlannerMultiLevel;
             static_assert(std::is_base_of<BundleSpace, T>::value, 
                 "Template must inherit from BundleSpace");
 
@@ -79,19 +80,10 @@ namespace ompl
             void setup() override;
             void clear() override;
             virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
-            const ompl::base::ProblemDefinitionPtr &getProblemDefinition(unsigned int kBundleSpace) const;
-
-            /** \brief Number of BundleSpaces */
-            int getLevels() const;
-
-            /** \brief Get all dimensions of the BundleSpaces in the sequence */
-            std::vector<int> getDimensionsPerLevel() const;
 
             void setStopLevel(unsigned int level_);
 
         protected:
-            /** \brief Solution paths on each BundleSpace*/
-            std::vector<ompl::base::PathPtr> solutions_;
 
             /** \brief Sequence of BundleSpaces */
             std::vector<T *> bundleSpaces_;
@@ -106,9 +98,6 @@ namespace ompl
                 level (for debugging for example). This variable sets the stopping
                 level. */
             unsigned int stopAtLevel_;
-
-            /** \brief Each BundleSpace has a unique ompl::base::SpaceInformationPtr */
-            std::vector<ompl::base::SpaceInformationPtr> siVec_;
 
             /** \brief Compare function for priority queue */
             struct CmpBundleSpacePtrs

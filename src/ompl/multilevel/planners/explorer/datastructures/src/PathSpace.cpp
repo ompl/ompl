@@ -20,19 +20,7 @@ void PathSpace::setLocalMinimaTree(LocalMinimaTreePtr localMinimaTree)
 
 PathSpace::~PathSpace()
 {
-    // if(pathVisibilityChecker_)
-    // {
-    //     delete pathVisibilityChecker_;
-    // }
 }
-// PathVisibilityChecker* PathSpace::getPathVisibilityChecker()
-// {
-//     if(!pathVisibilityChecker_)
-//     {
-//         pathVisibilityChecker_ = new PathVisibilityChecker(bundleSpaceGraph_->getBundle());
-//     }
-//     return pathVisibilityChecker_;
-// }
 
 ompl::base::PathPtr PathSpace::VerticesToPathPtr(VertexPath vpath)
 {
@@ -53,7 +41,8 @@ void ompl::multilevel::PathSpace::updatePath(unsigned int k, VertexPath vpath, d
     int level = bundleSpaceGraph_->getLevel();
     LocalMinimaNode *node = localMinimaTree_->updatePath(VerticesToPathPtr(vpath), cost, level, k);
     node->setVertexPath(vpath);
-    OMPL_INFORM("Update path %d with cost %.2f (%d paths on level %d).", k, cost, getNumberOfPaths(), level);
+    OMPL_INFORM("Update path %d with cost %.2f (%d path(s) on level %d).", 
+        k, cost, getNumberOfPaths(), level);
 }
 
 void ompl::multilevel::PathSpace::addPath(VertexPath vpath, double cost)
@@ -61,7 +50,8 @@ void ompl::multilevel::PathSpace::addPath(VertexPath vpath, double cost)
     int level = bundleSpaceGraph_->getLevel();
     LocalMinimaNode *node = localMinimaTree_->addPath(VerticesToPathPtr(vpath), cost, level);
     node->setVertexPath(vpath);
-    OMPL_INFORM("New path with cost %.2f (%d paths on level %d).", cost, getNumberOfPaths(), level);
+    OMPL_INFORM("New path with cost %.2f (%d path(s) on level %d).", 
+        cost, getNumberOfPaths(), level);
 }
 
 double ompl::multilevel::PathSpace::getPathCost(unsigned int k) const
@@ -74,16 +64,6 @@ const std::vector<BundleSpaceGraph::Vertex>& PathSpace::getMinimumPath(unsigned 
     const LocalMinimaNode* node = localMinimaTree_->getPath(bundleSpaceGraph_->getLevel(), k);
     return node->asVertices();
 }
-
-// std::vector<BundleSpaceGraph::Vertex>& ompl::multilevel::PathSpace::getCriticalPath(unsigned int k)
-// {
-//     if(k < criticalPaths_.size())
-//     {
-//         return criticalPaths_.at(k);
-//     }else{
-//         throw Exception("Path does not exist.");
-//     }
-// }
 
 unsigned int ompl::multilevel::PathSpace::getNumberOfPaths() const
 {
