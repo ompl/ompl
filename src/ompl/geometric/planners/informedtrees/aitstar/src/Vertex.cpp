@@ -331,11 +331,25 @@ namespace ompl
 
             bool Vertex::isWhitelistedAsChild(const std::shared_ptr<Vertex> &vertex) const
             {
-                for (const auto &whitelistedChild : whitelistedChildren_)
+                // Check if the vertex is whitelisted by iterating over all whitelisted children.
+                // It this detects an invalid vertex, e.g., a vertex that was once whitelisted but
+                // has been pruned since, remove the vertex from the list of whitelisted children.
+                auto it = whitelistedChildren_.begin();
+                while (it != whitelistedChildren_.end())
                 {
-                    if (whitelistedChild.lock()->getId() == vertex->getId())
+                    // Check if the child is a valid vertex.
+                    if (const auto child = it->lock())
                     {
-                        return true;
+                        // Check if the vertex is whitelisted.
+                        if (child->getId() == vertex->getId())
+                        {
+                            return true;
+                        }
+                        ++it;
+                    }
+                    else
+                    {
+                        it = whitelistedChildren_.erase(it);
                     }
                 }
                 return false;
@@ -348,11 +362,22 @@ namespace ompl
 
             bool Vertex::isBlacklistedAsChild(const std::shared_ptr<Vertex> &vertex) const
             {
-                for (const auto &blacklistedChild : blacklistedChildren_)
+                auto it = blacklistedChildren_.begin();
+                while (it != blacklistedChildren_.end())
                 {
-                    if (blacklistedChild.lock()->getId() == vertex->getId())
+                    // Check if the child is a valid vertex.
+                    if (const auto child = it->lock())
                     {
-                        return true;
+                        // Check if the vertex is whitelisted.
+                        if (child->getId() == vertex->getId())
+                        {
+                            return true;
+                        }
+                        ++it;
+                    }
+                    else
+                    {
+                        it = blacklistedChildren_.erase(it);
                     }
                 }
                 return false;
@@ -378,7 +403,8 @@ namespace ompl
                 }
 
                 std::vector<std::shared_ptr<Vertex>> neighbors;
-                for (const auto& neighbor : neighbors_) {
+                for (const auto &neighbor : neighbors_)
+                {
                     assert(neighbor.lock());
                     neighbors.emplace_back(neighbor.lock());
                 }
