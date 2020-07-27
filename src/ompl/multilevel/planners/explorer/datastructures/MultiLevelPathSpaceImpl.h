@@ -2,7 +2,7 @@
 #include <ompl/multilevel/datastructures/BundleSpace.h>
 #include <ompl/multilevel/planners/explorer/datastructures/PathSpace.h>
 #include <ompl/multilevel/planners/explorer/datastructures/LocalMinimaTree.h>
-#include <ompl/multilevel/planners/explorer/algorithms/PathSpaceSparseOptimization.h>
+// #include <ompl/multilevel/planners/explorer/algorithms/PathSpaceSparseOptimization.h>
 
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
@@ -109,11 +109,11 @@ void MultiLevelPathSpace<T>::getPlannerData(base::PlannerData &data) const
     {
         BundleSpaceGraph *Qk = static_cast<BundleSpaceGraph*>(this->bundleSpaces_.at(k));
 
-        PathSpaceSparseOptimization *Qk_tmp = dynamic_cast<PathSpaceSparseOptimization*>(Qk);
-        if(Qk_tmp != nullptr)
-        {
-            Qk_tmp->enumerateAllPaths();
-        }
+        // PathSpaceSparseOptimization *Qk_tmp = dynamic_cast<PathSpaceSparseOptimization*>(Qk);
+        // if(Qk_tmp != nullptr)
+        // {
+        //     Qk_tmp->enumerateAllPaths();
+        // }
         Qk->getPlannerData(data);
 
         // label all new vertices

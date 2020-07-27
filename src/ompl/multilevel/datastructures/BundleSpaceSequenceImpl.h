@@ -133,7 +133,7 @@ void ompl::multilevel::BundleSpaceSequence<T>::clear()
     foundKLevelSolution_ = false;
 
     // solutions_.clear();
-    // pdef_->clearSolutionPaths();
+    pdef_->clearSolutionPaths();
 }
 
 template <class T>

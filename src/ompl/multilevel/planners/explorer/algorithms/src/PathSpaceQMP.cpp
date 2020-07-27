@@ -64,7 +64,7 @@ void PathSpaceQMP::grow()
     //(3) Connect to K nearest neighbors
     connectNeighbors(xNew);
 
-    expand();
+    // expand();
 
     if (!hasSolution_)
     {

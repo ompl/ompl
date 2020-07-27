@@ -2,12 +2,17 @@
 
 ompl::multilevel::PlannerMultiLevel::PlannerMultiLevel(
     std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
-  : ompl::base::Planner(siVec.back(), type), siVec_(siVec)
+  : BaseT(siVec.back(), type), siVec_(siVec)
 {
 }
 
 ompl::multilevel::PlannerMultiLevel::~PlannerMultiLevel()
 {
+}
+
+void ompl::multilevel::PlannerMultiLevel::clear()
+{
+    BaseT::clear();
     solutions_.clear();
     pdef_->clearSolutionPaths();
     for(uint k = 0; k < pdefVec_.size(); k++)
@@ -15,6 +20,7 @@ ompl::multilevel::PlannerMultiLevel::~PlannerMultiLevel()
         pdefVec_.at(k)->clearSolutionPaths();
     }
 }
+
 
 std::vector<int> ompl::multilevel::PlannerMultiLevel::getDimensionsPerLevel() const
 {

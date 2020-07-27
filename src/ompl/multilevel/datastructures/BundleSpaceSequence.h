@@ -74,11 +74,11 @@ namespace ompl
             virtual ~BundleSpaceSequence();
 
             /** \brief Return annotated vertices (with information about BundleSpace level) */
-            void getPlannerData(ompl::base::PlannerData &data) const override;
+            virtual void getPlannerData(ompl::base::PlannerData &data) const override;
 
             ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override;
-            void setup() override;
-            void clear() override;
+            virtual void setup() override;
+            virtual void clear() override;
             virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
 
             void setStopLevel(unsigned int level_);

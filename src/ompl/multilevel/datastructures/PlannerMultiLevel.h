@@ -24,6 +24,8 @@ namespace ompl
 
             const std::vector<ompl::base::ProblemDefinitionPtr> &getProblemDefinitionVector() const;
 
+            virtual void clear() override;
+
             /** \brief Number of BundleSpaces */
             int getLevels() const;
 

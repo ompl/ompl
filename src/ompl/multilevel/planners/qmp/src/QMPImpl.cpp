@@ -136,7 +136,6 @@ void ompl::multilevel::QMPImpl::grow()
             hasSolution_ = true;
         }
     }
-    std::cout << "Graph" << getNumberOfVertices() << " : " << computeK() << std::endl;
 }
 
 void ompl::multilevel::QMPImpl::connectNeighbors(Configuration *x)
