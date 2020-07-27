@@ -365,18 +365,25 @@ namespace ompl
 
             void Vertex::cacheNeighbors(const std::vector<std::shared_ptr<Vertex>> &neighbors) const
             {
-                neighbors_ = neighbors;
+                neighbors_.clear();
+                neighbors_.insert(neighbors_.begin(), neighbors.begin(), neighbors.end());
                 neighborBatchId_ = batchId_;
             }
 
-            const std::vector<std::shared_ptr<Vertex>> &Vertex::getNeighbors() const
+            const std::vector<std::shared_ptr<Vertex>> Vertex::getNeighbors() const
             {
                 if (neighborBatchId_ != batchId_)
                 {
                     throw ompl::Exception("Requested neighbors from vertex of outdated approximation.");
                 }
 
-                return neighbors_;
+                std::vector<std::shared_ptr<Vertex>> neighbors;
+                for (const auto& neighbor : neighbors_) {
+                    assert(neighbor.lock());
+                    neighbors.emplace_back(neighbor.lock());
+                }
+
+                return neighbors;
             }
 
             std::vector<std::shared_ptr<Vertex>> Vertex::getForwardChildren() const
