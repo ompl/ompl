@@ -14,12 +14,31 @@ LocalMinimaTree::LocalMinimaTree(std::vector<base::SpaceInformationPtr> siVec):
         std::vector<LocalMinimaNode*> kthLevel;
         tree_.push_back(kthLevel);
     }
-
-
 }
 
 LocalMinimaTree::~LocalMinimaTree()
 {
+}
+
+void LocalMinimaTree::clear()
+{
+    hasChanged_ = false;
+    selectedMinimum_.clear();
+
+    for(uint k = 0; k < tree_.size(); k++)
+    {
+      std::vector<LocalMinimaNode*>& treeLevelk = tree_.at(k);
+      for(uint j = 0; j < treeLevelk.size(); j++)
+      {
+        LocalMinimaNode* node = treeLevelk.at(j);
+        delete node;
+        treeLevelk.at(j)=nullptr;
+      }
+      treeLevelk.clear();
+    }
+
+    numberOfMinima_ = 0;
+    levels_ = 0;
 }
 
 unsigned int LocalMinimaTree::getNumberOfMinima(unsigned int level) const
@@ -37,11 +56,12 @@ unsigned int LocalMinimaTree::getNumberOfLevel() const
     return tree_.size();
 }
 
-std::vector<int> LocalMinimaTree::getSelectedMinimum() const
+std::vector<int> LocalMinimaTree::getSelectedPathIndex() const
 {
     return selectedMinimum_;
 }
-void LocalMinimaTree::setSelectedMinimum(std::vector<int> selectedMinimum)
+
+void LocalMinimaTree::setSelectedPathIndex(std::vector<int> selectedMinimum)
 {
     std::lock_guard<std::recursive_mutex> guard(lock_);
     selectedMinimum_ = selectedMinimum;
@@ -86,7 +106,7 @@ LocalMinimaNode* LocalMinimaTree::updatePath(base::PathPtr path, double cost, in
     node->setCost(cost);
     hasChanged_ = true;
 
-    if(selectedMinimum_.size() == level-1)
+    if((int)selectedMinimum_.size() == level-1)
     {
         selectedMinimum_.back() = index;
     }
@@ -180,13 +200,20 @@ void LocalMinimaTree::setSelectedMinimumPrev()
 
   if(selectedMinimum_.size() > 0)
   {
-      int maxMinima = getNumberOfMinima(selectedMinimum_.size()-1);
+      int level = selectedMinimum_.size() - 1;
+      int maxMinima = getNumberOfMinima(level);
       if(maxMinima > 0)
       {
-          if(selectedMinimum_.back() > 0) selectedMinimum_.back()--;
-          else selectedMinimum_.back() = maxMinima-1;
-          OMPL_DEVMSG1("Selected local minimum %d/%d (level %d)", 
-              selectedMinimum_.back()+1, maxMinima, selectedMinimum_.size()-1);
+          if(selectedMinimum_.back() > 0)
+          {
+            selectedMinimum_.back()--;
+          }else{
+            selectedMinimum_.back() = maxMinima-1;
+          }
+
+          OMPL_DEVMSG1("Selected local minimum %d/%d (level %d, cost %.2f)", 
+              selectedMinimum_.back()+1, maxMinima, level,
+              tree_.at(level).at(selectedMinimum_.back())->getCost());
       }
   }
   hasChanged_ = true;

@@ -44,7 +44,9 @@ template <class T>
 void ompl::multilevel::MultiLevelPathSpace<T>::clear()
 {
     BaseT::clear();
-    current = nullptr;
+    localMinimaTree_->clear();
+    current = this->bundleSpaces_.front();
+    OMPL_INFORM("Cleared multilevel path space structure.");
 }
 template <class T>
 LocalMinimaTreePtr& MultiLevelPathSpace<T>::getLocalMinimaTree()
@@ -57,7 +59,7 @@ ompl::base::PlannerStatus MultiLevelPathSpace<T>::solve(const ompl::base::Planne
 {
     ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
 
-    std::vector<int> selectedLocalMinimum = localMinimaTree_->getSelectedMinimum();
+    std::vector<int> selectedLocalMinimum = localMinimaTree_->getSelectedPathIndex();
     uint K = selectedLocalMinimum.size();
 
     if(K>=this->bundleSpaces_.size()){

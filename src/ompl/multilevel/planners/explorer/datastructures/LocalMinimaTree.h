@@ -94,13 +94,13 @@ namespace ompl
             LocalMinimaTree(std::vector<base::SpaceInformationPtr>);
             ~LocalMinimaTree(); 
 
+            void clear();
+
             unsigned int getNumberOfMinima(unsigned int level) const;
             unsigned int getNumberOfMinima() const;
             unsigned int getNumberOfLevel() const;
             unsigned int getNumberOfLevelContainingMinima() const;
 
-            std::vector<int> getSelectedMinimum() const;
-            void setSelectedMinimum(std::vector<int> index);
 
             const std::vector<base::State*>& getSelectedMinimumAsStateVector(int level) const;
 
@@ -113,15 +113,14 @@ namespace ompl
             void printSelectedMinimum();
 
             LocalMinimaNode* getPath(int level, int index) const;
-            LocalMinimaNode* getSelectedPath() const;
-            std::vector<LocalMinimaNode*> getSelectedPathSiblings() const;
             double getPathCost(int level, int index) const;
 
+            LocalMinimaNode* getSelectedPath() const;
+            std::vector<int> getSelectedPathIndex() const;
+            void setSelectedPathIndex(std::vector<int> index);
+            std::vector<LocalMinimaNode*> getSelectedPathSiblings() const;
+
             void sanityCheckLevelIndex(int level, int index) const;
-
-
-            // void updatePath(int level, int index, VertexPath path, double cost);
-            // void addPath(int level, VertexPath path, double cost);
 
             LocalMinimaNode* addPath(base::PathPtr path, double cost, int level);
             LocalMinimaNode* updatePath(base::PathPtr path, double cost, int level, int index);

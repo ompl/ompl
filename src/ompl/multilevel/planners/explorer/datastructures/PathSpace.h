@@ -33,23 +33,15 @@ namespace ompl
 
             double getPathCost(unsigned int k) const;
 
+            void clear();
+
             const std::vector<BundleSpaceGraph::Vertex>& getMinimumPath(unsigned int k);
-
-            // void getPlannerData(base::PlannerData &data, BundleSpaceGraph* bundleGraph) const;
-
-            // PathVisibilityChecker *getPathVisibilityChecker();
-
-            // void getPathIndices(
-            //     const std::vector<BundleSpaceGraph::Vertex> &vertices, 
-            //     std::vector<int> &idxPath) const;
 
           protected:
 
             BundleSpaceGraph *bundleSpaceGraph_;
 
             LocalMinimaTreePtr localMinimaTree_;
-
-            // PathVisibilityChecker *pathVisibilityChecker_{nullptr};
 
         };
     }

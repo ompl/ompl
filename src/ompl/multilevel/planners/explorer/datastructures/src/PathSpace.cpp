@@ -22,6 +22,10 @@ PathSpace::~PathSpace()
 {
 }
 
+void PathSpace::clear()
+{
+}
+
 ompl::base::PathPtr PathSpace::VerticesToPathPtr(VertexPath vpath)
 {
     const BundleSpaceGraph::Graph &graph = bundleSpaceGraph_->getGraph();
