@@ -38,6 +38,8 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
+#include <chrono>
+
 ompl::geometric::ERT::ERT(const base::SpaceInformationPtr &si) :
     base::Planner(si, "ERT")
 {
@@ -54,6 +56,13 @@ ompl::geometric::ERT::ERT(const base::SpaceInformationPtr &si) :
 ompl::geometric::ERT::~ERT()
 {
     freeMemory();
+
+    // NOTE: in the deconstructor as MoveIt calls freeMemory() before planning
+    for (auto &state : experience_->segment)
+        if (state != nullptr)
+            si_->freeState(state);
+    experience_->segment.clear();
+    delete experience_;
 }
 
 void ompl::geometric::ERT::clear()
@@ -84,13 +93,6 @@ void ompl::geometric::ERT::freeMemory()
             delete motion;
         }
     }
-
-    // NOTE: this might need to move somewhere else, as MoveIt might call freeMemory() before planning
-    for (auto &state : experience_->segment)
-        if (state != nullptr)
-            si_->freeState(state);
-    experience_->segment.clear();
-    delete experience_;
 }
 
 void ompl::geometric::ERT::setup()
@@ -236,16 +238,28 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
         return base::PlannerStatus::INVALID_START;
     }
 
-    /* map experience onto current planning problem; currently only one experience is created for a selected start and goal */
-    base::State *sstate = si_->allocState();
-    base::State *gstate = si_->allocState();
-    sstate = pdef_->getStartState(0);
-    if ((goal_s != nullptr) && goal_s->canSample())
-        goal_s->sampleGoal(gstate);
-    else
+    if (!goal_s->couldSample())
     {
         OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
+    }
+
+    /* map experience onto current planning problem; currently only one experience is created for a selected start and goal */
+    auto *smotion = new Motion(si_, 0);
+    smotion->state = pdef_->getStartState(0);
+    smotion->phase_end = 0;
+
+    auto *gmotion = new Motion(si_, 0);
+    const base::State *st = pis_.nextGoal(ptc);
+    if (st != nullptr)
+    {
+        si_->copyState(gmotion->state, st);
+        gmotion->phase_end = experience_->phase_end;
+    }
+    else
+    {
+        OMPL_ERROR("%s: Unable to sample any valid state in goal region", getName().c_str());
+        return base::PlannerStatus::TIMEOUT;
     }
 
     if (!experience_)
@@ -254,24 +268,20 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
 
         experience_ = new Motion(si_, 50); // 50 states for the straight experience
         experience_->phase_end = experience_->phase_span - 1;
-        si_->getMotionStates(sstate, gstate, experience_->segment, experience_->phase_span - 2, true, false);
+        si_->getMotionStates(smotion->state, gmotion->state, experience_->segment, experience_->phase_span - 2, true, false);
     }
     else
     {
         /* update experience as its mapping onto the current planning problem */
         if (experienceInitialUpdate_)
         {
-            Motion *imotion = new Motion(si_, 0); // init
-            imotion->state = sstate;
-            imotion->phase_end = 0;
-
             Motion *tmotion = new Motion(si_, 0); // targ
-            tmotion->state = gstate;
-            tmotion->phase_end = experience_->phase_span - 1;
+            si_->copyState(tmotion->state, gmotion->state);
+            tmotion->phase_end = experience_->phase_end;
             tmotion->segment.resize(experience_->phase_span);
             tmotion->segment = experience_->segment; // copy the pointers to update the experience_
 
-            getSegment(imotion, tmotion, true);
+            getSegment(smotion, tmotion, true);
         }
     }
     OMPL_INFORM("%s: Updated experience has %u states", getName().c_str(), experience_->phase_span);
@@ -286,7 +296,7 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
             path->append(state);
 
         bool is_approximate = false;
-        pdef_->addSolutionPath(path, is_approximate, si_->distance(gstate, experience_->segment.back()), getName().c_str());
+        pdef_->addSolutionPath(path, is_approximate, si_->distance(gmotion->state, experience_->segment.back()), getName().c_str());
         return base::PlannerStatus(true, is_approximate);
     }
 

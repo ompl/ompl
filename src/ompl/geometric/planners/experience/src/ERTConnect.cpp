@@ -54,6 +54,13 @@ ompl::geometric::ERTConnect::ERTConnect(const base::SpaceInformationPtr &si)
 ompl::geometric::ERTConnect::~ERTConnect()
 {
     freeMemory();
+
+    // NOTE: in the deconstructor as MoveIt calls freeMemory() before planning
+    for (auto &state : experience_->segment)
+        if (state != nullptr)
+            si_->freeState(state);
+    experience_->segment.clear();
+    delete experience_;
 }
 
 void ompl::geometric::ERTConnect::clear()
@@ -288,7 +295,7 @@ ompl::base::PlannerStatus ompl::geometric::ERTConnect::solve(const base::Planner
     }
     else
     {
-        OMPL_ERROR("%s: Unable to sample any valid states for goal tree", getName().c_str());
+        OMPL_ERROR("%s: Unable to sample any valid state for goal tree", getName().c_str());
         return base::PlannerStatus::TIMEOUT;
     }
 
@@ -307,7 +314,7 @@ ompl::base::PlannerStatus ompl::geometric::ERTConnect::solve(const base::Planner
         {
             Motion *tmotion = new Motion(si_, 0); // targ
             si_->copyState(tmotion->state, gmotion->state);
-            tmotion->phase_end = experience_->phase_span - 1;
+            tmotion->phase_end = experience_->phase_end;
             tmotion->segment.resize(experience_->phase_span);
             tmotion->segment = experience_->segment; // copy the pointers to update the experience_
 
