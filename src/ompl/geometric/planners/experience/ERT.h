@@ -101,8 +101,6 @@ namespace ompl
                 return segmentFractionMin_;
             }
 
-            // TODO: need to assert that segment_fraction_min < segment_fraction_max
-            // set them both at the same time?
             /** \brief Set the maximum fraction of the experience to be extracted */
             void setExperienceFractionMax(double segment_fraction_max)
             {
@@ -131,7 +129,7 @@ namespace ompl
                 return experienceTubularRadius_;
             }
 
-            /** \brief Set the experience to exploit by the ERT.
+            /** \brief Set the experience to exploit by the ERT
 
                 The resolution of the experience has a significant impact on the
                 planner's performance. If no experience is defined, the planner
@@ -248,9 +246,8 @@ namespace ompl
 
             // NOTE: ideally, this function should be a pointer to a user-defined function
             /** \brief Compute motion weight in the PDF according to the number of times such motion has been picked to expand the tree */
-            double weightFunction(Motion *m)
+            double weightFunction(const Motion *m)
             {
-                m->selection_count++;
                 return (1. / (100 * m->selection_count + 1));
             }
 
@@ -258,10 +255,10 @@ namespace ompl
             bool isSegmentValid(const Motion *tmotion);
 
             /** \brief Compute a motion to connect or explore. The segment is not validated. */
-            void getSegment(const Motion *imotion, Motion *tmotion, const bool &connect_flag);
+            void mapExperienceOntoProblem(const Motion *imotion, Motion *tmotion);
 
             /** \brief Attempt (once) to compute a motion to connect or explore. Returns true if the motion is valid. */
-            bool getValidSegment(const Motion *imotion, Motion *tmotion, const bool &connect_flag);
+            bool getValidSegment(const Motion *imotion, Motion *tmotion, base::State *xstate, const bool &connect_flag);
 
             /** \brief The probability distribution function over states in the tree */
             PDF<Motion *> pdf_;

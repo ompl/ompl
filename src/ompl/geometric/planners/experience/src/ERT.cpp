@@ -118,7 +118,34 @@ bool ompl::geometric::ERT::isSegmentValid(const Motion *tmotion)
     return true;
 }
 
-void ompl::geometric::ERT::getSegment(const Motion *imotion, Motion *tmotion, const bool &connect_flag)
+void ompl::geometric::ERT::mapExperienceOntoProblem(const Motion *imotion, Motion *tmotion)
+{
+    const auto ss = si_->getStateSpace();
+    const auto &locations = ss->getValueLocations();
+    const unsigned int dimensionality = locations.size();
+    std::vector<double> b(dimensionality), l(dimensionality);
+
+    /* compute tranform parameters to connect */
+    tmotion->phase_span = std::abs(int(tmotion->phase_end) - int(imotion->phase_end)) + 1;
+    for (size_t i = 0; i < dimensionality; ++i)
+    {
+        b[i] = *(ss->getValueAddressAtLocation(imotion->state, locations[i])) - *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end], locations[i]));
+        l[i] = *(ss->getValueAddressAtLocation(tmotion->state, locations[i])) - (*(ss->getValueAddressAtLocation(experience_->segment[tmotion->phase_end], locations[i])) + b[i]);
+    }
+
+    /* transform segment */
+    double t;
+    for (size_t i = 0; i < tmotion->phase_span; ++i)
+    {
+        t = double(i) / double(tmotion->phase_span - 1);
+        for (size_t j = 0; j < dimensionality; ++j)
+            *(ss->getValueAddressAtLocation(tmotion->segment[i], locations[j])) = *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end + i], locations[j])) + t * l[j] + b[j];
+        ss->enforceBounds(tmotion->segment[i]);
+    }
+    si_->copyState(tmotion->state, tmotion->segment[tmotion->phase_span - 1]);
+}
+
+bool ompl::geometric::ERT::getValidSegment(const Motion *imotion, Motion *tmotion, base::State *xstate, const bool &connect_flag)
 {
     const auto ss = si_->getStateSpace();
     const auto &locations = ss->getValueLocations();
@@ -130,7 +157,7 @@ void ompl::geometric::ERT::getSegment(const Motion *imotion, Motion *tmotion, co
     if (connect_flag)
     {
         /* compute transform parameters to connect */
-        for(size_t i = 0; i < dimensionality; ++i)
+        for (size_t i = 0; i < dimensionality; ++i)
         {
             b[i] = *(ss->getValueAddressAtLocation(imotion->state, locations[i])) - *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end], locations[i]));
             l[i] = *(ss->getValueAddressAtLocation(tmotion->state, locations[i])) - (*(ss->getValueAddressAtLocation(experience_->segment[tmotion->phase_end], locations[i])) + b[i]);
@@ -139,73 +166,31 @@ void ompl::geometric::ERT::getSegment(const Motion *imotion, Motion *tmotion, co
     else
     {
         /* compute transform parameters to explore */
-        double noise = tmotion->phase_span * experienceTubularRadius_ / experience_->phase_span;
-        for(size_t i = 0; i < dimensionality; ++i)
+        double noise = (tmotion->phase_span - 1) * experienceTubularRadius_ / (experience_->phase_span - 1);
+        for (size_t i = 0; i < dimensionality; ++i)
         {
             b[i] = *(ss->getValueAddressAtLocation(imotion->state, locations[i])) - *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end], locations[i]));
-            l[i] = rng_.uniformReal(-noise, noise);
+            *(ss->getValueAddressAtLocation(xstate, locations[i])) = *(ss->getValueAddressAtLocation(experience_->segment[tmotion->phase_end], locations[i])) + b[i];
         }
-    }
 
-    /* transform segment */
-    double t;
-    for(size_t i = 0; i < tmotion->phase_span; ++i)
-    {
-        t = double(i) / double(tmotion->phase_span - 1);
-        for(size_t j = 0; j < dimensionality; ++j)
-            *(ss->getValueAddressAtLocation(tmotion->segment[i], locations[j])) = *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end + i], locations[j])) + t * l[j] + b[j];
-        ss->enforceBounds(tmotion->segment[i]);
-    }
-    si_->copyState(tmotion->state, tmotion->segment[tmotion->phase_span - 1]);
-}
+        sampler_->sampleUniformNear(tmotion->state, xstate, noise); // already enforcing bounds
+        for (size_t i = 0; i < dimensionality; ++i)
+            l[i] = *(ss->getValueAddressAtLocation(tmotion->state, locations[i])) - *(ss->getValueAddressAtLocation(xstate, locations[i]));
 
-bool ompl::geometric::ERT::getValidSegment(const Motion *imotion, Motion *tmotion, const bool &connect_flag)
-{
-    const auto ss = si_->getStateSpace();
-    const auto &locations = ss->getValueLocations();
-    const unsigned int dimensionality = locations.size();
-    std::vector<double> b(dimensionality), l(dimensionality), x(dimensionality);
-
-    /* compute tranform parameters */
-    tmotion->phase_span = std::abs(int(tmotion->phase_end) - int(imotion->phase_end)) + 1;
-    if (connect_flag)
-    {
-        /* compute transform parameters to connect */
-        for(size_t i = 0; i < dimensionality; ++i)
-        {
-            b[i] = *(ss->getValueAddressAtLocation(imotion->state, locations[i])) - *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end], locations[i]));
-            l[i] = *(ss->getValueAddressAtLocation(tmotion->state, locations[i])) - (*(ss->getValueAddressAtLocation(experience_->segment[tmotion->phase_end], locations[i])) + b[i]);
-            x[i] = *(ss->getValueAddressAtLocation(experience_->segment[tmotion->phase_end], locations[i])) + b[i] + l[i];
-        }
+        /* validate target state */
+        if (!si_->isValid(tmotion->state))
+            return false;
     }
-    else
-    {
-        /* compute transform parameters to explore */
-        double noise = tmotion->phase_span * experienceTubularRadius_ / experience_->phase_span;
-        for(size_t i = 0; i < dimensionality; ++i)
-        {
-            b[i] = *(ss->getValueAddressAtLocation(imotion->state, locations[i])) - *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end], locations[i]));
-            l[i] = rng_.uniformReal(-noise, noise);
-            x[i] = *(ss->getValueAddressAtLocation(experience_->segment[tmotion->phase_end], locations[i])) + b[i] + l[i];
-        }
-    }
-
-    /* validate target state */
-    ss->copyFromReals(tmotion->state, x);
-    ss->enforceBounds(tmotion->state);
-    if (!si_->isValid(tmotion->state))
-        return false;
 
     /* transform segment while valid */
     double t;
     si_->copyState(tmotion->segment[0], imotion->state);
-    for(size_t i = 1; i < tmotion->phase_span; ++i)
+    for (size_t i = 1; i < tmotion->phase_span; ++i)
     {
         t = double(i) / double(tmotion->phase_span - 1);
-        for(size_t j = 0; j < dimensionality; ++j)
+        for (size_t j = 0; j < dimensionality; ++j)
             *(ss->getValueAddressAtLocation(tmotion->segment[i], locations[j])) = *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end + i], locations[j])) + t * l[j] + b[j];
 
-        ss->enforceBounds(tmotion->segment[i]);
         if (!si_->checkMotion(tmotion->segment[i - 1], tmotion->segment[i]))
             return false;
     }
@@ -281,7 +266,7 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
             tmotion->segment.resize(experience_->phase_span);
             tmotion->segment = experience_->segment; // copy the pointers to update the experience_
 
-            getSegment(smotion, tmotion, true);
+            mapExperienceOntoProblem(smotion, tmotion);
         }
     }
     OMPL_INFORM("%s: Updated experience has %u states", getName().c_str(), experience_->phase_span);
@@ -312,6 +297,7 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
 
     Motion *imotion; // init
     Motion *tmotion = new Motion(si_, experience_->phase_span); /* pre-allocate memory for candidate segments */
+    base::State *xstate = si_->allocState();
 
     bool connect_flag;
     if (segmentFractionMin_ > segmentFractionMax_)
@@ -328,14 +314,17 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
     {
         /* pick a state from the tree */
         imotion = pdf_.sample(rng_.uniform01());
+        imotion->selection_count++;
         pdf_.update(imotion->element, weightFunction(imotion));
 
         /* sample candidate segment to extend the tree */
         connect_flag = false;
         tmotion->phase_end = rng_.uniformInt(std::min(imotion->phase_end + min_inc, experience_->phase_end), std::min(imotion->phase_end + max_inc, experience_->phase_end));
 
+        // NOTE: check this conditional. Including "remaining" segments seems to give worse performance
         /* bias to goal with certain probability or when candidate segment has alpha_end = 1 */
-        if (((goal_s != nullptr) && (rng_.uniform01() < goalBias_) && goal_s->canSample()) || ((experience_->phase_end - tmotion->phase_end) <= min_inc))
+        // if (((goal_s != nullptr) && (rng_.uniform01() < goalBias_) && goal_s->canSample()) || ((experience_->phase_end - tmotion->phase_end) <= min_inc))
+        if (((goal_s != nullptr) && (rng_.uniform01() < goalBias_) && goal_s->canSample()) || (experience_->phase_end == tmotion->phase_end))
         {
             connect_flag = true;
             tmotion->phase_end = experience_->phase_end;
@@ -343,7 +332,7 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
         }
 
         /* attempt generating a valid segment to connect or explore */
-        if (getValidSegment(imotion, tmotion, connect_flag))
+        if (getValidSegment(imotion, tmotion, xstate, connect_flag))
         {
             Motion *motion = new Motion(si_, tmotion->phase_span);
             si_->copyState(motion->state, tmotion->state);
@@ -412,6 +401,7 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
     for (auto &state : tmotion->segment)
         si_->freeState(state);
     si_->freeState(tmotion->state);
+    si_->freeState(xstate);
     delete tmotion;
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
