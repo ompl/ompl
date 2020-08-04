@@ -48,7 +48,7 @@ sidestepping)
 
 [ ] DOCUMENTATION: Better pictures for highlevel intro (also use fiber bundle picture)
 
-//OPTIONAL
+//Possible Extensions
 [ ] Remove DenseGraphPath method from BundleSpaceGraph.h
 [ ] Add Enumerate for Metric/Importance/Sampler (Use Params like in RRTstar)
 [ ] Refactor path restriction into dynamic/geometric
@@ -57,16 +57,5 @@ sidestepping)
 [ ] Make bidirectional version of QRRT (as param)
 
 
-Improvements (FB):
-- Rename quotient space to multilevel (makes it more descriptive)
-- Refactored code using language of fiber bundles
-- Enable multi-robot planning using a new component-based implementation
-- Enable handling of non-holonomic constraints in multilevel
-- Add new bundle spaces (empty, relaxed, identity, SO2xRN, SO3xRN)
-- Add new algorithms: QRRT*, QMP, QMP*, SPQR
-- Add sparse graph structures (based on SPARS impl)
-- Add new path restriction/section method to exploit multilevels
-- New bundle metrics
-- New graph sampling methods
-- New bundle propagators
-- New selection methods
+Changes:
+-- Added license to each file

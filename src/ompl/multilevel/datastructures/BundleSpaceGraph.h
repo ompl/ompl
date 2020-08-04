@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, University of Stuttgart
+ *  Copyright (c) 2019, University of Stuttgart.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey */
+/* Author: Andreas Orthey, Sohaib Akbar */
 
 #ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_
@@ -258,11 +258,9 @@ namespace ompl
             const RoadmapNeighborsPtr &getRoadmapNeighborsPtr() const;
 
             virtual void print(std::ostream &out) const override;
+
             /** \brief Print configuration to std::cout */
             void printConfiguration(const Configuration *) const;
-
-            void getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph,
-                                       std::deque<base::State *> &path);
 
             void setGoalBias(double goalBias);
 

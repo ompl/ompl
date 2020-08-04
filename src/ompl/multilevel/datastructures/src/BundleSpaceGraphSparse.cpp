@@ -1,7 +1,8 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, University of Stuttgart
+ *  Copyright (c) 2020, 
+ *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +15,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the University of Stuttgart nor the names
+ *   * Neither the name of the MPI-IS nor the names
  *     of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written
  *     permission.
@@ -126,37 +127,6 @@ void BundleSpaceGraphSparse::clear()
 
     startGoalVertexPath_.clear();
     lengthsStartGoalVertexPath_.clear();
-}
-
-void BundleSpaceGraphSparse::clearDynamic()
-{
-    // BaseT::clear();
-
-    if (nearestSparse_)
-    {
-        std::vector<Configuration *> configs;
-        nearestSparse_->list(configs);
-        for (auto &config : configs)
-        {
-            if (config->state != qStart_->state)
-                deleteConfiguration(config);
-        }
-        nearestSparse_->clear();
-    }
-    graphSparse_.clear();
-
-    // selectedPath = -1;
-    graphNeighborhood.clear();
-    visibleNeighborhood.clear();
-    vrankSparse.clear();
-    vparentSparse.clear();
-    Nold_v = 0;
-    Nold_e = 0;
-
-    const Vertex vl = add_vertex(qStart_, graphSparse_);
-    nearestSparse_->add(qStart_);
-    disjointSetsSparse_.make_set(vl);
-    graphSparse_[vl]->index = vl;
 }
 
 const ompl::multilevel::BundleSpaceGraph::Configuration *
@@ -582,7 +552,13 @@ void ompl::multilevel::BundleSpaceGraphSparse::computeDensePath(const Vertex &st
                                                                std::deque<base::State *> &path)
 {
     path.clear();
-    BaseT::getPathDenseGraphPath(start, goal, graph_, path);
+    // BaseT::getPathDenseGraphPath(start, goal, graph_, path);
+
+    ompl::base::PathPtr dpath = BaseT::getPath(start, goal, graph_);
+    std::vector<base::State*> states = 
+      std::static_pointer_cast<geometric::PathGeometric>(dpath)->getStates();
+
+    std::move(begin(states), end(states), back_inserter(path));
 }
 
 bool ompl::multilevel::BundleSpaceGraphSparse::addPathToSpanner(const std::deque<base::State *> &dense_path, Vertex vp,

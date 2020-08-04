@@ -34,6 +34,7 @@
  *********************************************************************/
 
 /* Author: Andreas Orthey */
+
 #include <ompl/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 
 using namespace ompl::multilevel;

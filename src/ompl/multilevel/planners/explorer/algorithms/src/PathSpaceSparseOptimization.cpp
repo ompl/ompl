@@ -796,11 +796,7 @@ void PathSpaceSparseOptimization::enumerateAllPaths()
         geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*path);
         // pathStack_.push_back(gpath);
 
-        unsigned int kBefore = pathStack_.size();
         pushPathToStack(gpath.getStates());
-        unsigned int kAfter = pathStack_.size();
-        if (kAfter > kBefore)
-            clearDynamic();
     }
     else
     {

@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, University of Stuttgart
+ *  Copyright (c) 2019, University of Stuttgart
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
  *********************************************************************/
 
 /* Author: Andreas Orthey */
+
 #include <ompl/multilevel/planners/qrrt/QRRTImpl.h>
 #include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
