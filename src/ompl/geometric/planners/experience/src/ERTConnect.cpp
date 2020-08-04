@@ -422,7 +422,7 @@ ompl::base::PlannerStatus ompl::geometric::ERTConnect::solve(const base::Planner
         if (getValidSegment(imotion, tmotion, true))
         {
             Motion *other_motion = new Motion(si_, tmotion->phase_span);
-            si_->copyState(other_motion->state, tmotion->segment[tmotion->phase_end]);
+            si_->copyState(other_motion->state, tmotion->segment[tmotion->phase_span - 1]);
             for (size_t i = 0; i < tmotion->phase_span; ++i)
                 si_->copyState(other_motion->segment[i], tmotion->segment[i]);
             other_motion->phase_span = tmotion->phase_span;

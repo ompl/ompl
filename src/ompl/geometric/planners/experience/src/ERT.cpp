@@ -342,7 +342,7 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
         if (getValidSegment(imotion, tmotion, connect_flag))
         {
             Motion *motion = new Motion(si_, tmotion->phase_span);
-            si_->copyState(motion->state, tmotion->segment[tmotion->phase_end]);
+            si_->copyState(motion->state, tmotion->segment[tmotion->phase_span - 1]);
             for (size_t i = 0; i < tmotion->phase_span; ++i)
                 si_->copyState(motion->segment[i], tmotion->segment[i]);
             motion->phase_span = tmotion->phase_span;
