@@ -258,7 +258,7 @@ namespace ompl
             void mapExperienceOntoProblem(const Motion *imotion, Motion *tmotion);
 
             /** \brief Attempt (once) to compute a motion to connect or explore. Returns true if the motion is valid. */
-            bool getValidSegment(const Motion *imotion, Motion *tmotion, base::State *xstate, const bool &connect_flag);
+            bool getValidSegment(const Motion *imotion, Motion *tmotion, const bool &connect_flag);
 
             /** \brief The probability distribution function over states in the tree */
             PDF<Motion *> pdf_;
