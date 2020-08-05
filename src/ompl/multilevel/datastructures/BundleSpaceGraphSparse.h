@@ -76,7 +76,7 @@ namespace ompl
         protected:
             double sparseDelta_{0.};
             double denseDelta_{0.};  // delta for dense graph -> move this BundleSpaceGraph.h
-            double sparseDeltaFraction_{0.25};
+            double sparseDeltaFraction_{0.1};
             double denseDeltaFraction_{0.001};
             unsigned Nold_v{0};
             unsigned Nold_e{0};

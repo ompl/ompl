@@ -254,7 +254,7 @@ void BundleSpaceGraphSparse::deleteConfiguration(Configuration *q)
 
 BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfiguration(Configuration *q)
 {
-    BaseT::addConfiguration(q);
+    // BaseT::addConfiguration(q);
 
     findGraphNeighbors(q, graphNeighborhood, visibleNeighborhood);
 
@@ -264,13 +264,10 @@ BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfiguration(Configur
         {
             if (!checkAddInterface(q, graphNeighborhood, visibleNeighborhood))
             {
-                if (!checkAddPath(q))
-                {
-                    ++consecutiveFailures_;
-                }
-            }
-            else
-            {
+                // if (!checkAddPath(q))
+                // {
+                //     ++consecutiveFailures_;
+                // }
                 ++consecutiveFailures_;
             }// no interface
         }// no connectivity
