@@ -208,15 +208,6 @@ void ompl::multilevel::BundleSpaceGraph::clear()
         {
             std::static_pointer_cast<geometric::PathGeometric>(solutionPath_)->clear();
         }
-        // spath.clear();
-        // // spath.freeMemory();
-        // std::vector<base::State*> states = spath.getStates();
-        // for(auto s: states)
-        // {
-        //     getBundle()->freeState(s);
-        // }
-        // // getBundle()->freeStates(states);
-        // states.clear();
     }
 
     numVerticesWhenComputingSolutionPath_ = 0;

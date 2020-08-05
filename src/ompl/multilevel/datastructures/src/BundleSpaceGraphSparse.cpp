@@ -80,6 +80,11 @@ BundleSpaceGraphSparse::~BundleSpaceGraphSparse()
 {
 }
 
+const BundleSpaceGraph::Graph& BundleSpaceGraphSparse::getGraph() const
+{
+    return graphSparse_;
+}
+
 void BundleSpaceGraphSparse::setup()
 {
     BaseT::setup();
@@ -105,12 +110,9 @@ void BundleSpaceGraphSparse::clear()
     {
         std::vector<Configuration *> configs;
         nearestSparse_->list(configs);
-        if (configs.size() > 1)
+        for (auto &config : configs)
         {
-            for (auto &config : configs)
-            {
-                deleteConfiguration(config);
-            }
+            deleteConfiguration(config);
         }
         nearestSparse_->clear();
     }
@@ -261,7 +263,6 @@ BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfigurationSparse(Co
     graphSparse_[vl]->successful_connection_attempts = 0;
     graphSparse_[vl]->index = vl;
 
-    nearestDatastructure_->add(q);
     nearestSparse_->add(q);
 
     disjointSetsSparse_.make_set(vl);

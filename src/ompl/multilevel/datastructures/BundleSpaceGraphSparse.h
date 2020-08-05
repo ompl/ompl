@@ -83,6 +83,8 @@ namespace ompl
 
             virtual void init() override;
 
+            virtual const Graph &getGraph() const override;
+
             // Using same conditions as SPARS algorithm to determine sparse graph
             // addition
             void findGraphNeighbors(Configuration *q, std::vector<Configuration *> &graphNeighborhood,

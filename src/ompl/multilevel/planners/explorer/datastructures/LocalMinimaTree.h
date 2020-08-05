@@ -110,6 +110,8 @@ namespace ompl
             void setSelectedMinimumNext();
             void setSelectedMinimumCollapse();
             void setSelectedMinimumExpand();
+            void setSelectedMinimumExpandFull();
+
             void printSelectedMinimum();
 
             LocalMinimaNode* getPath(int level, int index) const;

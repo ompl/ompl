@@ -259,6 +259,19 @@ void LocalMinimaTree::setSelectedMinimumExpand()
     }
     hasChanged_ = true;
 }
+
+void LocalMinimaTree::setSelectedMinimumExpandFull()
+{
+    std::lock_guard<std::recursive_mutex> guard(lock_);
+
+    unsigned int maxLevel = getNumberOfLevelContainingMinima();
+    while(selectedMinimum_.size() < maxLevel)
+    {
+        selectedMinimum_.push_back(0);
+    }
+    hasChanged_ = true;
+}
+
 void LocalMinimaTree::printSelectedMinimum()
 {
   for(uint k = 0; k < selectedMinimum_.size(); k++){
