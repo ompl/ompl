@@ -1,7 +1,8 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, University of Stuttgart
+ *  Copyright (c) 2020, 
+ *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +15,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the University of Stuttgart nor the names
+ *   * Neither the name of the MPI-IS nor the names
  *     of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written
  *     permission.
@@ -58,6 +59,9 @@ ompl::multilevel::SPQRImpl::SPQRImpl(const base::SpaceInformationPtr &si, Bundle
     double d = (double)getBundle()->getStateDimension();
     double e = boost::math::constants::e<double>();
     kPRMStarConstant_ = e + (e / d);
+
+    firstRun_ = true;
+
 }
 
 ompl::multilevel::SPQRImpl::~SPQRImpl()
@@ -72,20 +76,27 @@ void ompl::multilevel::SPQRImpl::grow()
         init();
         firstRun_ = false;
 
-        if (hasBaseSpace())
-        {
-            if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
-            {
-                if (sameComponentSparse(v_start_sparse, v_goal_sparse))
-                {
-                    hasSolution_ = true;
-                }
-            }
-        }
+        // if (hasBaseSpace())
+        // {
+        //   printConfiguration(qStart_);
+        //   printConfiguration(qGoal_);
+        //   std::cout << qStart_->index << std::endl;
+        //   std::cout << qGoal_->index << std::endl;
+        //     if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
+        //     {
+        //         if (sameComponentSparse(v_start_sparse, v_goal_sparse))
+        //         {
+        //             hasSolution_ = true;
+        //         }
+        //     }
+        // }
     }
+    // std::cout << "GROW" << getLevel() << std::endl;
 
     if (!sampleBundleValid(xRandom_->state))
+    {
         return;
+    }
 
     Configuration *xNew = new Configuration(getBundle(), xRandom_->state);
 

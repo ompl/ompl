@@ -144,6 +144,7 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
 
     for (unsigned int k = currentBundleSpaceLevel_; k < stopAtLevel_; k++)
     {
+      std::cout << "LEVEL " << k << std::endl;
         BundleSpace *kBundle = static_cast<BundleSpace*>(bundleSpaces_.at(k));
 
         foundKLevelSolution_ = false;

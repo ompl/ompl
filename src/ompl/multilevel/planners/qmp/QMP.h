@@ -1,7 +1,8 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, MPI-IS
+ *  Copyright (c) 2020, 
+ *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without

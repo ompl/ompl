@@ -264,7 +264,7 @@ void PathSpaceSparseOptimization::growControl()
 
     Configuration *q_next = new Configuration(getBundle(), s_random);
     Vertex v_next = addConfigurationSparse(q_next);
-    addEdgeSparse(q_nearest->index, v_next);
+    addEdge(q_nearest->index, v_next);
 
     if (!hasSolution_)
     {
@@ -796,11 +796,7 @@ void PathSpaceSparseOptimization::enumerateAllPaths()
         geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*path);
         // pathStack_.push_back(gpath);
 
-        unsigned int kBefore = pathStack_.size();
         pushPathToStack(gpath.getStates());
-        unsigned int kAfter = pathStack_.size();
-        if (kAfter > kBefore)
-            clearDynamic();
     }
     else
     {

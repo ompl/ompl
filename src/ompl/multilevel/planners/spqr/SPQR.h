@@ -1,7 +1,8 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, MPI-IS
+ *  Copyright (c) 2020, 
+ *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,7 +34,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Sohaib Akbar, Andreas Orthey */
+/* Author: Andreas Orthey, Sohaib Akbar */
 
 #ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_SPQR_
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_SPQR_
@@ -54,7 +55,7 @@ namespace ompl
         */
 
         /** \brief [SP]arse [Q]uotient space [R]oadmap planner (SPQR) Algorithm */
-        using SPQR = ompl::multilevel::BundleSpaceSequence<ompl::multilevel::SPQRImpl>;
+        using SPQR = BundleSpaceSequence<SPQRImpl>;
     }
 }
 #endif

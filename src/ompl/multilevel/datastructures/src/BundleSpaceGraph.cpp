@@ -172,6 +172,7 @@ void ompl::multilevel::BundleSpaceGraph::setup()
         else
         {
             opt_ = std::make_shared<base::PathLengthOptimizationObjective>(getBundle());
+            opt_->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
             pdef_->setOptimizationObjective(opt_);
         }
         firstRun_ = true;
@@ -198,8 +199,6 @@ void ompl::multilevel::BundleSpaceGraph::clear()
     lengthStartGoalVertexPath_ = base::dInf;
     shortestVertexPath_.clear();
 
-    // deleteConfiguration(qStart_);
-    // deleteConfiguration(qGoal_);
     qStart_ = nullptr;
     qGoal_ = nullptr;
 
@@ -329,8 +328,8 @@ void ompl::multilevel::BundleSpaceGraph::init()
     if (const base::State *st = pis_.nextStart())
     {
         qStart_ = new Configuration(getBundle(), st);
-        qStart_->isStart = true;
         vStart_ = addConfiguration(qStart_);
+        qStart_->isStart = true;
     }
 
     if (qStart_ == nullptr)
@@ -387,13 +386,6 @@ ompl::multilevel::BundleSpaceGraph::Vertex ompl::multilevel::BundleSpaceGraph::a
     graph_[m]->total_connection_attempts = 1;
     graph_[m]->successful_connection_attempts = 0;
     disjointSets_.make_set(m);
-
-    // if (isDynamic())
-    // {
-    //     std::static_pointer_cast<BundleSpaceMetricReachability>(metric_)->createReachableSet(q);
-    //     ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation *>(getBundle().get());
-    //     siC->nullControl(q->control);
-    // }
 
     nearestDatastructure_->add(q);
     q->index = m;
@@ -696,41 +688,47 @@ bool ompl::multilevel::BundleSpaceGraph::getSolution(base::PathPtr &solution)
     }
 }
 
-void ompl::multilevel::BundleSpaceGraph::getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph,
-                                                              std::deque<base::State *> &path)
-{
-    std::vector<Vertex> prev(boost::num_vertices(graph));
-    auto weight = boost::make_transform_value_property_map(std::mem_fn(&EdgeInternalState::getCost),
-                                                           get(boost::edge_bundle, graph));
-    try
-    {
-        boost::astar_search(graph, start, [this, goal](const Vertex v) { return costHeuristic(v, goal); },
-                            boost::predecessor_map(&prev[0])
-                                .weight_map(weight)
-                                .distance_compare([this](EdgeInternalState c1, EdgeInternalState c2) {
-                                    return opt_->isCostBetterThan(c1.getCost(), c2.getCost());
-                                })
-                                .distance_combine([this](EdgeInternalState c1, EdgeInternalState c2) {
-                                    return opt_->combineCosts(c1.getCost(), c2.getCost());
-                                })
-                                .distance_inf(opt_->infiniteCost())
-                                .distance_zero(opt_->identityCost()));
-    }
-    catch (BundleSpaceGraphFoundGoal &)
-    {
-    }
+// void ompl::multilevel::BundleSpaceGraph::getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph,
+//                                                               std::deque<base::State *> &path)
+// {
+//     ompl::base::PathPtr dpath = getPath(start, goal, graph);
+//     std::vector<base::State*> states = 
+//       std::static_pointer_cast<geometric::PathGeometric>(dpath)->getStates();
 
-    if (prev[goal] == goal)
-    {
-        OMPL_WARN("%s: No dense path was found?", getName().c_str());
-    }
-    else
-    {
-        for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
-            path.push_front(graph_[pos]->state);
-        path.push_front(graph_[start]->state);
-    }
-}
+//     std::move(begin(states), end(states), back_inserter(path));
+
+//     // std::vector<Vertex> prev(boost::num_vertices(graph));
+//     // auto weight = boost::make_transform_value_property_map(std::mem_fn(&EdgeInternalState::getCost),
+//     //                                                        get(boost::edge_bundle, graph));
+//     // try
+//     // {
+//     //     boost::astar_search(graph, start, [this, goal](const Vertex v) { return costHeuristic(v, goal); },
+//     //                         boost::predecessor_map(&prev[0])
+//     //                             .weight_map(weight)
+//     //                             .distance_compare([this](EdgeInternalState c1, EdgeInternalState c2) {
+//     //                                 return opt_->isCostBetterThan(c1.getCost(), c2.getCost());
+//     //                             })
+//     //                             .distance_combine([this](EdgeInternalState c1, EdgeInternalState c2) {
+//     //                                 return opt_->combineCosts(c1.getCost(), c2.getCost());
+//     //                             })
+//     //                             .distance_inf(opt_->infiniteCost())
+//     //                             .distance_zero(opt_->identityCost()));
+//     // }
+//     // catch (BundleSpaceGraphFoundGoal &)
+//     // {
+//     // }
+
+//     // if (prev[goal] == goal)
+//     // {
+//     //     OMPL_WARN("%s: No dense path was found?", getName().c_str());
+//     // }
+//     // else
+//     // {
+//     //     for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
+//     //         path.push_front(graph_[pos]->state);
+//     //     path.push_front(graph_[start]->state);
+//     // }
+// }
 
 ompl::base::PathPtr ompl::multilevel::BundleSpaceGraph::getPath(const Vertex &start, const Vertex &goal)
 {
