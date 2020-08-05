@@ -196,8 +196,6 @@ void BundleSpaceGraphSparse::init()
 {
     BaseT::init();
 
-    vGoal_ = addConfiguration(qGoal_);
-
     v_start_sparse = addConfigurationSparse(qStart_);
     graphSparse_[v_start_sparse]->isStart = true;
     qStart_->representativeIndex = v_start_sparse;
@@ -224,7 +222,8 @@ void BundleSpaceGraphSparse::deleteConfiguration(Configuration *q)
 
 BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfiguration(Configuration *q)
 {
-    BaseT::addConfiguration(q);
+    //add to dense roadmap
+    // BaseT::addConfiguration(q);
 
     findGraphNeighbors(q, graphNeighborhood, visibleNeighborhood);
 
@@ -234,14 +233,11 @@ BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfiguration(Configur
         {
             if (!checkAddInterface(q, graphNeighborhood, visibleNeighborhood))
             {
-                if (!checkAddPath(q))
-                {
-                    ++consecutiveFailures_;
-                }
-            }
-            else
-            {
                 ++consecutiveFailures_;
+                // if (!checkAddPath(q))
+                // {
+                    // ++consecutiveFailures_;
+                // }
             }// no interface
         }// no connectivity
     }// no coverage
@@ -255,7 +251,7 @@ BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfigurationSparse(Co
     nearestSparse_->add(ql);
     disjointSetsSparse_.make_set(vl);
     graphSparse_[vl]->index = vl;
-    updateRepresentatives(ql);
+    // updateRepresentatives(ql);
     consecutiveFailures_ = 0;
     return vl;
 }
@@ -281,7 +277,9 @@ void BundleSpaceGraphSparse::addEdgeSparse(const Vertex a, const Vertex b)
     uniteComponentsSparse(a, b);
 }
 
-bool BundleSpaceGraphSparse::checkAddCoverage(Configuration *q, std::vector<Configuration *> &visibleNeighborhood)
+bool BundleSpaceGraphSparse::checkAddCoverage(
+    Configuration *q, 
+    std::vector<Configuration *> &visibleNeighborhood)
 {
     // No free paths means we add for coverage
     if (visibleNeighborhood.empty())
@@ -292,34 +290,36 @@ bool BundleSpaceGraphSparse::checkAddCoverage(Configuration *q, std::vector<Conf
     return false;
 }
 
-bool BundleSpaceGraphSparse::checkAddConnectivity(Configuration *q, std::vector<Configuration *> &visibleNeighborhood)
+bool BundleSpaceGraphSparse::checkAddConnectivity(
+    Configuration *q, 
+    std::vector<Configuration *> &visibleNeighborhood)
 {
     // The sample q is able to connect to at least two nodes that are otherwise disconnected:
     std::vector<Vertex> links;
     if (visibleNeighborhood.size() > 1)
     {
-        // For each neighbor
-        for (std::size_t i = 0; i < visibleNeighborhood.size(); ++i)
+        for (unsigned int i = 0; i < visibleNeighborhood.size(); i++)
         {
-            // For each other neighbor
-            for (std::size_t j = i + 1; j < visibleNeighborhood.size(); ++j)
+            for (unsigned int j = i + 1; j < visibleNeighborhood.size(); j++)
             {
-                // If they are in different components
-                if (!sameComponentSparse(visibleNeighborhood[i]->index, visibleNeighborhood[j]->index))
+                const Vertex &vi = visibleNeighborhood[i]->index;
+                const Vertex &vj = visibleNeighborhood[j]->index;
+                if (!sameComponentSparse(vi, vj))
                 {
-                    links.push_back(visibleNeighborhood[i]->index);
-                    links.push_back(visibleNeighborhood[j]->index);
+                    links.push_back(vi);
+                    links.push_back(vj);
                 }
             }
         }
 
         if (!links.empty())
         {
+            //there exist at least a pair of disconnected neighbors
             Vertex v = addConfigurationSparse(q);
 
             for (Vertex link : links)
             {
-                // If there's no edge
+                // (1) check that no previous edge exist
                 if (!boost::edge(v, link, graphSparse_).second)
                 {
                     // And the components haven't been united by previous links
@@ -335,8 +335,10 @@ bool BundleSpaceGraphSparse::checkAddConnectivity(Configuration *q, std::vector<
     return false;
 }
 
-bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q, std::vector<Configuration *> &graphNeighborhood,
-                                               std::vector<Configuration *> &visibleNeighborhood)
+bool BundleSpaceGraphSparse::checkAddInterface(
+    Configuration *q, 
+    std::vector<Configuration *> &graphNeighborhood,
+    std::vector<Configuration *> &visibleNeighborhood)
 {
     // Pairs of nodes that share an interface to also be connected with an edge
     // If we have more than 1 or 0 neighbors
@@ -351,26 +353,197 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q, std::vector<Con
         if (qn0 == qv0 && qn1 == qv1)
         {
             // If our two closest neighbors don't share an edge
-            if (!boost::edge(qv0->index, qv1->index, graphSparse_).second)
+            const Vertex& v0idx = qv0->index;
+            const Vertex& v1idx = qv1->index;
+            if (!boost::edge(v0idx, v1idx, graphSparse_).second)
             {
                 // If they can be directly connected
                 if (getBundle()->checkMotion(qv0->state, qv1->state))
                 {
-                    addEdgeSparse(qv0->index, qv1->index);
+                    addEdgeSparse(v0idx, v1idx);
                     consecutiveFailures_ = 0;  // reset consecutive failures
                 }
                 else
                 {
                     // Add the new node to the graph, to bridge the interface
                     Vertex v = addConfigurationSparse(q);
-                    addEdgeSparse(v, qv0->index);
-                    addEdgeSparse(v, qv1->index);
+                    addEdgeSparse(v, v0idx);
+                    addEdgeSparse(v, v1idx);
                 }
                 return true;
             }
         }
     }
     return false;
+}
+
+
+// bool ompl::geometric::SPARStwo::checkAddInterface(const base::State *qNew, std::vector<Vertex> &graphNeighborhood,
+//                                                   std::vector<Vertex> &visibleNeighborhood)
+// {
+//     // If we have more than 1 or 0 neighbors
+//     if (visibleNeighborhood.size() > 1)
+//         if (graphNeighborhood[0] == visibleNeighborhood[0] && graphNeighborhood[1] == visibleNeighborhood[1])
+//             // If our two closest neighbors don't share an edge
+//             if (!boost::edge(visibleNeighborhood[0], visibleNeighborhood[1], g_).second)
+//             {
+//                 // If they can be directly connected
+//                 if (si_->checkMotion(stateProperty_[visibleNeighborhood[0]], stateProperty_[visibleNeighborhood[1]]))
+//                 {
+//                     // Connect them
+//                     connectGuards(visibleNeighborhood[0], visibleNeighborhood[1]);
+//                     // And report that we added to the roadmap
+//                     resetFailures();
+//                     // Report success
+//                     return true;
+//                 }
+
+//                 // Add the new node to the graph, to bridge the interface
+//                 Vertex v = addGuard(si_->cloneState(qNew), INTERFACE);
+//                 connectGuards(v, visibleNeighborhood[0]);
+//                 connectGuards(v, visibleNeighborhood[1]);
+//                 // Report success
+//                 return true;
+//             }
+//     return false;
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+bool ompl::multilevel::BundleSpaceGraphSparse::checkAddPath(
+    Configuration *q)
+{
+    std::vector<Vertex> neigh;
+    getInterfaceNeighborhood(q, neigh);
+
+    if (!neigh.empty())
+    {
+        return false;
+    }
+
+    bool result = false;
+
+    Vertex v = q->representativeIndex;
+
+    std::set<Vertex> n_rep;
+    foreach (Vertex qp, neigh)
+        n_rep.insert(graph_[qp]->representativeIndex);
+
+    std::vector<Vertex> Xs;
+    // for each v' in n_rep
+    for (auto it = n_rep.begin(); it != n_rep.end() && !result; ++it)
+    {
+        Vertex vp = *it;
+        // Identify appropriate v" candidates => vpps
+        std::vector<Vertex> VPPs;
+
+        computeVPP(v, vp, VPPs);
+
+        foreach (Vertex vpp, VPPs)
+        {
+            double s_max = 0;
+
+            // Find the X nodes to test
+            computeX(v, vp, vpp, Xs);
+
+            // For each x in xs
+            foreach (Vertex x, Xs)
+            {
+                // Compute/Retain MAXimum distance path thorugh S
+                double dist =
+                    (distance(graphSparse_[x], graphSparse_[v]) + distance(graphSparse_[v], graphSparse_[vp])) / 2.0;
+                if (dist > s_max)
+                    s_max = dist;
+            }
+
+            std::deque<base::State *> bestDPath;  // DensePath
+            Vertex best_qpp = boost::graph_traits<Graph>::null_vertex();
+            double d_min = std::numeric_limits<double>::infinity();  // Insanely big number
+            // For each vpp in vpps
+            for (std::size_t j = 0; j < VPPs.size() && !result; ++j)
+            {
+                Vertex vpp = VPPs[j];
+                // For each q", which are stored interface nodes on v for i(vpp,v)
+                auto it = graphSparse_[v]->interfaceIndexList.find(vpp);
+                if (it != graphSparse_[v]->interfaceIndexList.end())
+                {
+                    foreach (Vertex qpp, /*interfaceListsProperty_[v][vpp]*/ it->second)
+                    {
+                        // check that representatives are consistent
+                        assert(/*representativesProperty_[qpp]*/ graph_[qpp]->representativeIndex == (int)v);
+
+                        // If they happen to be the one and same node
+                        if (q->index == (int)qpp)
+                        {
+                            bestDPath.push_front(q->state);
+                            best_qpp = qpp;
+                            d_min = 0;
+                        }
+                        else
+                        {
+                            // Compute/Retain MINimum distance path on D through q, q"
+                            std::deque<base::State *> dPath;  // DensePath
+                            computeDensePath(q->index, qpp, dPath);
+                            if (!dPath.empty())
+                            {
+                                // compute path length
+                                double length = 0.0;
+                                std::deque<base::State *>::const_iterator jt = dPath.begin();
+                                for (auto it = jt + 1; it != dPath.end(); ++it)
+                                {
+                                    length += getBundle()->distance(*jt, *it);
+                                    jt = it;
+                                }
+
+                                if (length < d_min)
+                                {
+                                    d_min = length;
+                                    bestDPath.swap(dPath);
+                                    best_qpp = qpp;
+                                }
+                            }
+                        }
+                    }
+                    // If the spanner property is violated for these paths
+                    if (s_max > stretchFactor_ * d_min)
+                    {
+                        // Need to augment this path with the appropriate neighbor information
+                        Vertex na = getInterfaceNeighbor(q->index, vp);
+                        Vertex nb = getInterfaceNeighbor(best_qpp, vpp);
+
+                        bestDPath.push_front(graph_[na]->state);
+                        bestDPath.push_back(graph_[nb]->state);
+
+                        // check consistency of representatives
+                        assert(graph_[na]->representativeIndex == (int)vp &&
+                               graph_[nb]->representativeIndex == (int)vpp);
+
+                        // Add the dense path to the spanner
+                        addPathToSpanner(bestDPath, vpp, vp);
+
+                        // Report success
+                        result = true;
+                    }
+                }
+            }
+        }
+    }
+    return result;
 }
 
 void ompl::multilevel::BundleSpaceGraphSparse::updateRepresentatives(Configuration *q)
@@ -604,125 +777,6 @@ bool ompl::multilevel::BundleSpaceGraphSparse::addPathToSpanner(const std::deque
     return true;
 }
 
-bool ompl::multilevel::BundleSpaceGraphSparse::checkAddPath(Configuration *q)
-{
-    std::vector<Vertex> neigh;
-    getInterfaceNeighborhood(q, neigh);
-
-    if (!neigh.empty())
-    {
-        return false;
-    }
-
-    bool result = false;
-
-    Vertex v = q->representativeIndex;
-
-    std::set<Vertex> n_rep;
-    foreach (Vertex qp, neigh)
-        n_rep.insert(graph_[qp]->representativeIndex);
-
-    std::vector<Vertex> Xs;
-    // for each v' in n_rep
-    for (auto it = n_rep.begin(); it != n_rep.end() && !result; ++it)
-    {
-        Vertex vp = *it;
-        // Identify appropriate v" candidates => vpps
-        std::vector<Vertex> VPPs;
-
-        computeVPP(v, vp, VPPs);
-
-        foreach (Vertex vpp, VPPs)
-        {
-            double s_max = 0;
-
-            // Find the X nodes to test
-            computeX(v, vp, vpp, Xs);
-
-            // For each x in xs
-            foreach (Vertex x, Xs)
-            {
-                // Compute/Retain MAXimum distance path thorugh S
-                double dist =
-                    (distance(graphSparse_[x], graphSparse_[v]) + distance(graphSparse_[v], graphSparse_[vp])) / 2.0;
-                if (dist > s_max)
-                    s_max = dist;
-            }
-
-            std::deque<base::State *> bestDPath;  // DensePath
-            Vertex best_qpp = boost::graph_traits<Graph>::null_vertex();
-            double d_min = std::numeric_limits<double>::infinity();  // Insanely big number
-            // For each vpp in vpps
-            for (std::size_t j = 0; j < VPPs.size() && !result; ++j)
-            {
-                Vertex vpp = VPPs[j];
-                // For each q", which are stored interface nodes on v for i(vpp,v)
-                auto it = graphSparse_[v]->interfaceIndexList.find(vpp);
-                if (it != graphSparse_[v]->interfaceIndexList.end())
-                {
-                    foreach (Vertex qpp, /*interfaceListsProperty_[v][vpp]*/ it->second)
-                    {
-                        // check that representatives are consistent
-                        assert(/*representativesProperty_[qpp]*/ graph_[qpp]->representativeIndex == (int)v);
-
-                        // If they happen to be the one and same node
-                        if (q->index == (int)qpp)
-                        {
-                            bestDPath.push_front(q->state);
-                            best_qpp = qpp;
-                            d_min = 0;
-                        }
-                        else
-                        {
-                            // Compute/Retain MINimum distance path on D through q, q"
-                            std::deque<base::State *> dPath;  // DensePath
-                            computeDensePath(q->index, qpp, dPath);
-                            if (!dPath.empty())
-                            {
-                                // compute path length
-                                double length = 0.0;
-                                std::deque<base::State *>::const_iterator jt = dPath.begin();
-                                for (auto it = jt + 1; it != dPath.end(); ++it)
-                                {
-                                    length += getBundle()->distance(*jt, *it);
-                                    jt = it;
-                                }
-
-                                if (length < d_min)
-                                {
-                                    d_min = length;
-                                    bestDPath.swap(dPath);
-                                    best_qpp = qpp;
-                                }
-                            }
-                        }
-                    }
-                    // If the spanner property is violated for these paths
-                    if (s_max > stretchFactor_ * d_min)
-                    {
-                        // Need to augment this path with the appropriate neighbor information
-                        Vertex na = getInterfaceNeighbor(q->index, vp);
-                        Vertex nb = getInterfaceNeighbor(best_qpp, vpp);
-
-                        bestDPath.push_front(graph_[na]->state);
-                        bestDPath.push_back(graph_[nb]->state);
-
-                        // check consistency of representatives
-                        assert(graph_[na]->representativeIndex == (int)vp &&
-                               graph_[nb]->representativeIndex == (int)vpp);
-
-                        // Add the dense path to the spanner
-                        addPathToSpanner(bestDPath, vpp, vp);
-
-                        // Report success
-                        result = true;
-                    }
-                }
-            }
-        }
-    }
-    return result;
-}
 
 bool BundleSpaceGraphSparse::hasSparseGraphChanged()
 {

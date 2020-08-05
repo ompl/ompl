@@ -50,7 +50,7 @@ namespace ompl
     namespace multilevel
     {
         /** \brief Sparse Quotient-space roadMap Planner (SPQR) Algorithm*/
-        class SPQRImpl : public ompl::multilevel::BundleSpaceGraphSparse
+        class SPQRImpl : public BundleSpaceGraphSparse
         {
             using BaseT = BundleSpaceGraphSparse;
 
@@ -67,7 +67,7 @@ namespace ompl
 
             virtual bool isInfeasible() override;
 
-            void connectNeighbors(Configuration *x);
+            // void connectNeighbors(Configuration *x);
 
         protected:
             /** \brief Maximum failures limit for terminating the algorithm similar to SPARS */

@@ -86,15 +86,17 @@ void ompl::multilevel::SPQRImpl::grow()
     }
 
     if (!sampleBundleValid(xRandom_->state))
+    {
         return;
+    }
 
     Configuration *xNew = new Configuration(getBundle(), xRandom_->state);
 
     addConfiguration(xNew);
 
-    connectNeighbors(xNew);
+    // connectNeighbors(xNew);
 
-    expand();
+    // expand();
 
     if (!hasSolution_)
     {
@@ -131,63 +133,63 @@ void ompl::multilevel::SPQRImpl::expand()
     }
 }
 
-void ompl::multilevel::SPQRImpl::connectNeighbors(Configuration *q)
-{
+// void ompl::multilevel::SPQRImpl::connectNeighbors(Configuration *q)
+// {
 
-    // Calculate K
-    unsigned int k = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)boost::num_vertices(graph_))));
+//     // Calculate K
+//     unsigned int k = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)boost::num_vertices(graph_))));
 
-    // DENSE GRAPH: find nearest neighbors to be conected to new sample
-    std::vector<Configuration *> r_nearest_neighbors;
-    nearestDatastructure_->nearestK(q, k, r_nearest_neighbors);
+//     // DENSE GRAPH: find nearest neighbors to be conected to new sample
+//     std::vector<Configuration *> r_nearest_neighbors;
+//     nearestDatastructure_->nearestK(q, k, r_nearest_neighbors);
 
-    for (unsigned int i = 0; i < r_nearest_neighbors.size(); i++)
-    {
-        Configuration *q_neighbor = r_nearest_neighbors.at(i);
-        q->total_connection_attempts++;
-        q_neighbor->total_connection_attempts++;
+//     for (unsigned int i = 0; i < r_nearest_neighbors.size(); i++)
+//     {
+//         Configuration *q_neighbor = r_nearest_neighbors.at(i);
+//         q->total_connection_attempts++;
+//         q_neighbor->total_connection_attempts++;
 
-        if (getBundle()->checkMotion(q_neighbor->state, q->state))
-        {
-            addEdge(q_neighbor->index, q->index);
-            q->successful_connection_attempts++;
-            q_neighbor->successful_connection_attempts++;
-        }
-    }
+//         if (getBundle()->checkMotion(q_neighbor->state, q->state))
+//         {
+//             addEdge(q_neighbor->index, q->index);
+//             q->successful_connection_attempts++;
+//             q_neighbor->successful_connection_attempts++;
+//         }
+//     }
 
-    // SPARSE GRAPH: Update its representative and interface nodes
-    std::vector<Configuration *> sparseGraphNeighborhood;
-    nearestSparse_->nearestR(q, sparseDelta_, sparseGraphNeighborhood);
+//     // SPARSE GRAPH: Update its representative and interface nodes
+//     std::vector<Configuration *> sparseGraphNeighborhood;
+//     nearestSparse_->nearestR(q, sparseDelta_, sparseGraphNeighborhood);
 
-    for (Configuration *qn : sparseGraphNeighborhood)
-    {
-        if (getBundle()->checkMotion(q->state, qn->state))
-        {
-            q->representativeIndex = qn->index;
-            break;
-        }
-    }
+//     for (Configuration *qn : sparseGraphNeighborhood)
+//     {
+//         if (getBundle()->checkMotion(q->state, qn->state))
+//         {
+//             q->representativeIndex = qn->index;
+//             break;
+//         }
+//     }
 
-    if (q->representativeIndex >= 0)
-    {
-        std::vector<Vertex> interfaceNeighborhood;
-        std::set<Vertex> interfaceRepresentatives;
+//     if (q->representativeIndex >= 0)
+//     {
+//         std::vector<Vertex> interfaceNeighborhood;
+//         std::set<Vertex> interfaceRepresentatives;
 
-        getInterfaceNeighborRepresentatives(q, interfaceRepresentatives);
-        getInterfaceNeighborhood(q, interfaceNeighborhood);
-        addToRepresentatives(q->index, q->representativeIndex, interfaceRepresentatives);
+//         getInterfaceNeighborRepresentatives(q, interfaceRepresentatives);
+//         getInterfaceNeighborhood(q, interfaceNeighborhood);
+//         addToRepresentatives(q->index, q->representativeIndex, interfaceRepresentatives);
 
-        foreach (Vertex qp, interfaceNeighborhood)
-        {
-            normalized_index_type qp_rep = graph_[qp]->representativeIndex;
-            if (qp_rep < 0)
-                continue;
-            removeFromRepresentatives(graph_[qp]);
-            getInterfaceNeighborRepresentatives(graph_[qp], interfaceRepresentatives);
-            addToRepresentatives(qp, qp_rep, interfaceRepresentatives);
-        }
-    }
-}
+//         foreach (Vertex qp, interfaceNeighborhood)
+//         {
+//             normalized_index_type qp_rep = graph_[qp]->representativeIndex;
+//             if (qp_rep < 0)
+//                 continue;
+//             removeFromRepresentatives(graph_[qp]);
+//             getInterfaceNeighborRepresentatives(graph_[qp], interfaceRepresentatives);
+//             addToRepresentatives(qp, qp_rep, interfaceRepresentatives);
+//         }
+//     }
+// }
 
 bool ompl::multilevel::SPQRImpl::isInfeasible()
 {

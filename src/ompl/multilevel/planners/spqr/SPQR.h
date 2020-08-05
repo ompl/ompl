@@ -55,7 +55,7 @@ namespace ompl
         */
 
         /** \brief [SP]arse [Q]uotient space [R]oadmap planner (SPQR) Algorithm */
-        using SPQR = ompl::multilevel::BundleSpaceSequence<ompl::multilevel::SPQRImpl>;
+        using SPQR = BundleSpaceSequence<SPQRImpl>;
     }
 }
 #endif
