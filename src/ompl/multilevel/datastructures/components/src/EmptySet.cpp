@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -40,13 +40,13 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
 ompl::multilevel::BundleSpaceComponent_EmptySet::BundleSpaceComponent_EmptySet(base::StateSpacePtr BundleSpace,
-                                                                              base::StateSpacePtr BaseSpace)
+                                                                               base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
 void ompl::multilevel::BundleSpaceComponent_EmptySet::projectFiber(const ompl::base::State *xBundle,
-                                                                  ompl::base::State *xFiber) const
+                                                                   ompl::base::State *xFiber) const
 {
     BundleSpace_->copyState(xFiber, xBundle);
 }
@@ -57,8 +57,8 @@ void ompl::multilevel::BundleSpaceComponent_EmptySet::projectBase(const ompl::ba
 }
 
 void ompl::multilevel::BundleSpaceComponent_EmptySet::liftState(const ompl::base::State *,
-                                                               const ompl::base::State *xFiber,
-                                                               ompl::base::State *xBundle) const
+                                                                const ompl::base::State *xFiber,
+                                                                ompl::base::State *xBundle) const
 {
     BundleSpace_->copyState(xBundle, xFiber);
 }

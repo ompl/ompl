@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -43,13 +43,13 @@
 #include <ompl/util/Exception.h>
 
 ompl::multilevel::BundleSpaceComponent_SE2RN_SE2::BundleSpaceComponent_SE2RN_SE2(base::StateSpacePtr BundleSpace,
-                                                                                base::StateSpacePtr BaseSpace)
+                                                                                 base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
 void ompl::multilevel::BundleSpaceComponent_SE2RN_SE2::projectBase(const ompl::base::State *xBundle,
-                                                                  ompl::base::State *xBase) const
+                                                                   ompl::base::State *xBase) const
 {
     const base::SE2StateSpace::StateType *xBundle_SE2 =
         xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
@@ -60,8 +60,8 @@ void ompl::multilevel::BundleSpaceComponent_SE2RN_SE2::projectBase(const ompl::b
 }
 
 void ompl::multilevel::BundleSpaceComponent_SE2RN_SE2::liftState(const ompl::base::State *xBase,
-                                                                const ompl::base::State *xFiber,
-                                                                ompl::base::State *xBundle) const
+                                                                 const ompl::base::State *xFiber,
+                                                                 ompl::base::State *xBundle) const
 {
     base::SE2StateSpace::StateType *xBundle_SE2 =
         xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);

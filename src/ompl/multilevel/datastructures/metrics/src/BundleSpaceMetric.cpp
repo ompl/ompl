@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -71,7 +71,7 @@ void ompl::multilevel::BundleSpaceMetric::reset()
 }
 
 void ompl::multilevel::BundleSpaceMetric::interpolateBundle(const Configuration *q_from, const Configuration *q_to,
-                                                           Configuration *q_interp)
+                                                            Configuration *q_interp)
 {
     interpolateBundle(q_from, q_to, 1.0, q_interp);
 }

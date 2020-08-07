@@ -56,6 +56,10 @@ sidestepping)
 [ ] Add projection for multiple robots to enable benchmark with projection based planners
 [ ] Make bidirectional version of QRRT (as param)
 
-
 Changes:
+-- Paper preprint on arxiv (https://arxiv.org/pdf/2007.09435.pdf)
 -- Added license to each file
+-- Clang-format run on all files
+-- Add doxygen documentation 
+-- Created new namespace "multilevel" (easier to handle both geometric and
+control spaces)

@@ -8,14 +8,13 @@
 
 using namespace ompl::multilevel;
 
-PathSpace::PathSpace(BundleSpaceGraph* bundleSpaceGraph):
-  bundleSpaceGraph_(bundleSpaceGraph)
+PathSpace::PathSpace(BundleSpaceGraph *bundleSpaceGraph) : bundleSpaceGraph_(bundleSpaceGraph)
 {
 }
 
 void PathSpace::setLocalMinimaTree(LocalMinimaTreePtr localMinimaTree)
 {
-    localMinimaTree_  = localMinimaTree;
+    localMinimaTree_ = localMinimaTree;
 }
 
 PathSpace::~PathSpace()
@@ -32,12 +31,11 @@ ompl::base::PathPtr PathSpace::VerticesToPathPtr(VertexPath vpath)
 
     auto path(std::make_shared<geometric::PathGeometric>(bundleSpaceGraph_->getBundle()));
 
-    for(uint k = 0; k < vpath.size(); k++)
+    for (uint k = 0; k < vpath.size(); k++)
     {
         path->append(graph[vpath.at(k)]->state);
     }
     return path;
-
 }
 
 void ompl::multilevel::PathSpace::updatePath(unsigned int k, VertexPath vpath, double cost)
@@ -45,8 +43,7 @@ void ompl::multilevel::PathSpace::updatePath(unsigned int k, VertexPath vpath, d
     int level = bundleSpaceGraph_->getLevel();
     LocalMinimaNode *node = localMinimaTree_->updatePath(VerticesToPathPtr(vpath), cost, level, k);
     node->setVertexPath(vpath);
-    OMPL_INFORM("Update path %d with cost %.2f (%d path(s) on level %d).", 
-        k, cost, getNumberOfPaths(), level);
+    OMPL_INFORM("Update path %d with cost %.2f (%d path(s) on level %d).", k, cost, getNumberOfPaths(), level);
 }
 
 void ompl::multilevel::PathSpace::addPath(VertexPath vpath, double cost)
@@ -54,8 +51,7 @@ void ompl::multilevel::PathSpace::addPath(VertexPath vpath, double cost)
     int level = bundleSpaceGraph_->getLevel();
     LocalMinimaNode *node = localMinimaTree_->addPath(VerticesToPathPtr(vpath), cost, level);
     node->setVertexPath(vpath);
-    OMPL_INFORM("New path with cost %.2f (%d path(s) on level %d).", 
-        cost, getNumberOfPaths(), level);
+    OMPL_INFORM("New path with cost %.2f (%d path(s) on level %d).", cost, getNumberOfPaths(), level);
 }
 
 double ompl::multilevel::PathSpace::getPathCost(unsigned int k) const
@@ -63,9 +59,9 @@ double ompl::multilevel::PathSpace::getPathCost(unsigned int k) const
     return localMinimaTree_->getPathCost(bundleSpaceGraph_->getLevel(), k);
 }
 
-const std::vector<BundleSpaceGraph::Vertex>& PathSpace::getMinimumPath(unsigned int k)
+const std::vector<BundleSpaceGraph::Vertex> &PathSpace::getMinimumPath(unsigned int k)
 {
-    const LocalMinimaNode* node = localMinimaTree_->getPath(bundleSpaceGraph_->getLevel(), k);
+    const LocalMinimaNode *node = localMinimaTree_->getPath(bundleSpaceGraph_->getLevel(), k);
     return node->asVertices();
 }
 
@@ -75,7 +71,7 @@ unsigned int ompl::multilevel::PathSpace::getNumberOfPaths() const
 }
 
 // void ompl::multilevel::PathSpace::getPathIndices(
-//     const std::vector<BundleSpaceGraph::Vertex> &vertices, 
+//     const std::vector<BundleSpaceGraph::Vertex> &vertices,
 //     std::vector<int> &idxPath) const
 // {
 //     if (!bundleSpaceGraph_->hasParent())
@@ -90,7 +86,7 @@ unsigned int ompl::multilevel::PathSpace::getNumberOfPaths() const
 //     }
 // }
 
-//void ompl::multilevel::PathSpace::getPlannerData(base::PlannerData &data, BundleSpaceGraph* bundleGraph) const
+// void ompl::multilevel::PathSpace::getPlannerData(base::PlannerData &data, BundleSpaceGraph* bundleGraph) const
 //{
 //    BundleSpaceGraph::Graph graph = bundleGraph->getGraph();
 //    base::SpaceInformationPtr si = bundleGraph->getBundle();
@@ -118,7 +114,7 @@ unsigned int ompl::multilevel::PathSpace::getNumberOfPaths() const
 
 //            int i1 = vertices.at(0);
 //            base::State *s1 = graph[i1]->state;
-//            multilevel::PlannerDataVertexAnnotated *p1 = 
+//            multilevel::PlannerDataVertexAnnotated *p1 =
 //              new multilevel::PlannerDataVertexAnnotated(si->cloneState(s1));
 
 //            p1->setLevel(bundleGraph->getLevel());
@@ -131,7 +127,7 @@ unsigned int ompl::multilevel::PathSpace::getNumberOfPaths() const
 //                base::State *s2 = graph[vertices.at(k+1)]->state;
 //                // si->printState(s2);
 
-//                multilevel::PlannerDataVertexAnnotated *p2 = 
+//                multilevel::PlannerDataVertexAnnotated *p2 =
 //                  new multilevel::PlannerDataVertexAnnotated(si->cloneState(s2));
 //                p2->setLevel(bundleGraph->getLevel());
 //                p2->setPath(idxPath);

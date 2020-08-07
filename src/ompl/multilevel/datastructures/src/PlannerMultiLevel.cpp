@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -38,8 +38,8 @@
 
 #include <ompl/multilevel/datastructures/PlannerMultiLevel.h>
 
-ompl::multilevel::PlannerMultiLevel::PlannerMultiLevel(
-    std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
+ompl::multilevel::PlannerMultiLevel::PlannerMultiLevel(std::vector<ompl::base::SpaceInformationPtr> &siVec,
+                                                       std::string type)
   : BaseT(siVec.back(), type), siVec_(siVec)
 {
 }
@@ -53,12 +53,11 @@ void ompl::multilevel::PlannerMultiLevel::clear()
     BaseT::clear();
     solutions_.clear();
     pdef_->clearSolutionPaths();
-    for(uint k = 0; k < pdefVec_.size(); k++)
+    for (uint k = 0; k < pdefVec_.size(); k++)
     {
         pdefVec_.at(k)->clearSolutionPaths();
     }
 }
-
 
 std::vector<int> ompl::multilevel::PlannerMultiLevel::getDimensionsPerLevel() const
 {
@@ -76,13 +75,12 @@ int ompl::multilevel::PlannerMultiLevel::getLevels() const
     return siVec_.size();
 }
 
-const ompl::base::ProblemDefinitionPtr &
-ompl::multilevel::PlannerMultiLevel::getProblemDefinition(int level) const
+const ompl::base::ProblemDefinitionPtr &ompl::multilevel::PlannerMultiLevel::getProblemDefinition(int level) const
 {
     return pdefVec_.at(level);
 }
 
-const std::vector<ompl::base::ProblemDefinitionPtr>&
+const std::vector<ompl::base::ProblemDefinitionPtr> &
 ompl::multilevel::PlannerMultiLevel::getProblemDefinitionVector() const
 {
     return pdefVec_;

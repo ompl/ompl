@@ -118,7 +118,8 @@ void ompl::multilevel::PlannerDataVertexAnnotated::setState(ompl::base::State *s
     state_ = s;
 }
 
-bool operator==(const ompl::multilevel::PlannerDataVertexAnnotated &lhs, const ompl::multilevel::PlannerDataVertexAnnotated &rhs)
+bool operator==(const ompl::multilevel::PlannerDataVertexAnnotated &lhs,
+                const ompl::multilevel::PlannerDataVertexAnnotated &rhs)
 {
     return (lhs.getLevel() == rhs.getLevel() && lhs.getState() == rhs.getState() && lhs.getPath() == rhs.getPath());
 }

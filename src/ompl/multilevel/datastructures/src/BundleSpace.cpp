@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -317,7 +317,7 @@ void ompl::multilevel::BundleSpace::resetCounter()
 // }
 
 unsigned int ompl::multilevel::BundleSpace::interpolateAlongBasePath(const std::vector<base::State *> basePath,
-                                                                    double location, base::State *xResult) const
+                                                                     double location, base::State *xResult) const
 {
     double d_path = 0;
     for (uint k = 0; k < basePath.size() - 1; k++)
@@ -380,7 +380,7 @@ unsigned int ompl::multilevel::BundleSpace::interpolateAlongBasePath(const std::
 }
 
 void ompl::multilevel::BundleSpace::liftState(const base::State *xBase, const base::State *xFiber,
-                                             base::State *xBundle) const
+                                              base::State *xBundle) const
 {
     unsigned int M = components_.size();
 
@@ -735,10 +735,8 @@ void ompl::multilevel::BundleSpace::debugInvalidState(const base::State *x)
                         double qkh = bh.at(k);
                         if (qk < qkl || qk > qkh)
                         {
-                            std::cout << "Out Of Bounds ["
-                                      << "component " << m << ", "
-                                      << "link " << k << "] " << bl.at(k) << " <= " << qk << " <= " << bh.at(k)
-                                      << std::endl;
+                            OMPL_ERROR("Out Of Bounds [component %d, link %d] %.2f <= %.2f <= %.2f",
+                                m, k, bl.at(k), qk, bh.at(k));
                         }
                     }
                     break;
@@ -757,7 +755,7 @@ void ompl::multilevel::BundleSpace::debugInvalidState(const base::State *x)
                         const base::SO2StateSpace::StateType *xk = x->as<base::SO2StateSpace::StateType>();
                         value = xk->value;
                     }
-                    std::cout << "Invalid: -pi <= " << value << " <= +pi" << std::endl;
+                    OMPL_ERROR("Invalid: -%.2f <= %f <= +%.2f", 3.14, value, 3.14);
                     break;
                 }
                 default:
@@ -781,7 +779,6 @@ void ompl::multilevel::BundleSpace::print(std::ostream &out) const
     for (unsigned int m = 0; m < M; m++)
     {
         out << components_.at(m)->getTypeAsString()
-            // << (components_.at(m)->isDynamic()?" (dyn)":"");
             << (isDynamic_ ? "(dyn)" : "") << (m < M - 1 ? " | " : "");
     }
     out << "]";

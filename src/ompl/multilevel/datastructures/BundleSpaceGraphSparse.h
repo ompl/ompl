@@ -73,10 +73,16 @@ namespace ompl
             void getPlannerDataRoadmap(base::PlannerData &data, std::vector<int> pathIdx) const;
 
             virtual Vertex addConfiguration(Configuration *q) override;
+            virtual Vertex addConfigurationConditional(Configuration *q);
+
             virtual void deleteConfiguration(Configuration *q) override;
-            Vertex addConfigurationSparse(Configuration *q);
 
             virtual void addEdge(const Vertex a, const Vertex b) override;
+
+            virtual unsigned int getNumberOfVertices() const;
+            virtual unsigned int getNumberOfEdges() const;
+
+            virtual void setGraphSampler(const std::string &sGraphSampler) override;
 
             virtual void setup() override;
             virtual void clear() override;
@@ -114,10 +120,15 @@ namespace ompl
 
             virtual const Configuration *nearest(const Configuration *s) const;
 
+            double getSparseDelta() const
+            {
+                return sparseDelta_;
+            }
+
         protected:
             double sparseDelta_{0.};
             double denseDelta_{0.};  // delta for dense graph -> move this BundleSpaceGraph.h
-            double sparseDeltaFraction_{0.1};
+            double sparseDeltaFraction_{0.15};
             double denseDeltaFraction_{0.001};
             unsigned Nold_v{0};
             unsigned Nold_e{0};

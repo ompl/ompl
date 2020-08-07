@@ -49,8 +49,15 @@ namespace ompl
              @anchor QRRTstar
 
              @par Short description
+             QRRTstar is an almost-surely asymptotically optimal planners which
+             generalizes RRTstar to multilevel abstractions, which we formulate 
+             using fiber bundle sequences.
 
              @par External documentation
+             Andreas Orthey and Sohaib Akbar and Marc Toussaint, 
+             Multilevel Motion Planning: A Fiber Bundle Formulation, 
+             in <em>arXiv:2007.09435 [cs.RO]</em>, 2020,
+             [[PDF]](https://arxiv.org/pdf/2007.09435.pdf)
         */
 
         /** \brief [Q]uotient space [R]apidly exploring [R]andom [T]rees Star (QRRT*) Algorithm*/

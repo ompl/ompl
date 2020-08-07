@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -39,7 +39,7 @@
 #include <ompl/multilevel/datastructures/components/None.h>
 
 ompl::multilevel::BundleSpaceComponent_None::BundleSpaceComponent_None(base::StateSpacePtr BundleSpace,
-                                                                      base::StateSpacePtr BaseSpace)
+                                                                       base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
@@ -55,7 +55,7 @@ void ompl::multilevel::BundleSpaceComponent_None::projectBase(const ompl::base::
 }
 
 void ompl::multilevel::BundleSpaceComponent_None::liftState(const ompl::base::State *, const ompl::base::State *,
-                                                           ompl::base::State *) const
+                                                            ompl::base::State *) const
 {
     OMPL_WARN("Trying to lift States with non-projectable Bundle Space.");
 }

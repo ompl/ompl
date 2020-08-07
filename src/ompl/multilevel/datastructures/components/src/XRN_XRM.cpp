@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -42,12 +42,12 @@
 #include <ompl/util/Exception.h>
 
 ompl::multilevel::BundleSpaceComponent_XRN_XRM::BundleSpaceComponent_XRN_XRM(base::StateSpacePtr BundleSpace,
-                                                                            base::StateSpacePtr BaseSpace)
+                                                                             base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 void ompl::multilevel::BundleSpaceComponent_XRN_XRM::projectFiber(const ompl::base::State *xBundle,
-                                                                 ompl::base::State *xFiber) const
+                                                                  ompl::base::State *xFiber) const
 {
     const base::RealVectorStateSpace::StateType *xBundle_RN =
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);

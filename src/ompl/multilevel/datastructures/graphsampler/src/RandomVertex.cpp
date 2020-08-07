@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -47,6 +47,5 @@ ompl::multilevel::BundleSpaceGraphSamplerRandomVertex::BundleSpaceGraphSamplerRa
 void ompl::multilevel::BundleSpaceGraphSamplerRandomVertex::sampleImplementation(base::State *xRandom)
 {
     const Vertex v = boost::random_vertex(bundleSpaceGraph_->getGraph(), rng_boost);
-    bundleSpaceGraph_->getBundle()->getStateSpace()
-      ->copyState(xRandom, bundleSpaceGraph_->getGraph()[v]->state);
+    bundleSpaceGraph_->getBundle()->getStateSpace()->copyState(xRandom, bundleSpaceGraph_->getGraph()[v]->state);
 }

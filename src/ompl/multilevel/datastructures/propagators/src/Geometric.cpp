@@ -10,7 +10,7 @@ ompl::multilevel::BundleSpacePropagatorGeometric::~BundleSpacePropagatorGeometri
 }
 
 bool ompl::multilevel::BundleSpacePropagatorGeometric::steer(const Configuration *from, const Configuration *to,
-                                                            Configuration *result)
+                                                             Configuration *result)
 {
     bundleSpaceGraph_->interpolate(from, to, result);
     bool val = bundleSpaceGraph_->checkMotion(from, result);

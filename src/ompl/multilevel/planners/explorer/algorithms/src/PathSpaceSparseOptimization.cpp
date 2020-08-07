@@ -4,7 +4,6 @@
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/datastructures/PDF.h>
 
-
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/objectives/MaximizeMinClearanceObjective.h>
 #include <ompl/control/ControlSpace.h>
@@ -22,14 +21,14 @@
 using namespace ompl::multilevel;
 using namespace ompl::base;
 
-PathSpaceSparseOptimization::PathSpaceSparseOptimization(const base::SpaceInformationPtr &si, BundleSpace *parent_) : 
-  PathSpace(this),
-  BaseT(si, parent_)
+PathSpaceSparseOptimization::PathSpaceSparseOptimization(const base::SpaceInformationPtr &si, BundleSpace *parent_)
+  : PathSpace(this), BaseT(si, parent_)
 {
     setName("BundleSpaceExplorer" + std::to_string(id_));
-    Planner::declareParam<double>("range", this, &PathSpaceSparseOptimization::setRange, &PathSpaceSparseOptimization::getRange, "0.:1.:10000.");
-    Planner::declareParam<double>("goal_bias", this, &PathSpaceSparseOptimization::setGoalBias, &PathSpaceSparseOptimization::getGoalBias,
-                                  "0.:.1:1.");
+    Planner::declareParam<double>("range", this, &PathSpaceSparseOptimization::setRange,
+                                  &PathSpaceSparseOptimization::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("goal_bias", this, &PathSpaceSparseOptimization::setGoalBias,
+                                  &PathSpaceSparseOptimization::getGoalBias, "0.:.1:1.");
 
     specs_.approximateSolutions = true;
     approximateDistanceToGoal = std::numeric_limits<double>::infinity();
@@ -179,7 +178,8 @@ bool PathSpaceSparseOptimization::hasSolution()
 //     std::vector<base::State *> workStates(5);
 //     getBundle()->allocStates(workStates);
 //     Configuration *qv = pdf.sample(rng_.uniform01());
-//     unsigned int s = getBundle()->randomBounceMotion(Bundle_sampler_, qv->state, workStates.size(), workStates, false);
+//     unsigned int s = getBundle()->randomBounceMotion(Bundle_sampler_, qv->state, workStates.size(), workStates,
+//     false);
 
 //     if (s > 0)
 //     {
@@ -219,21 +219,7 @@ void PathSpaceSparseOptimization::growGeometric()
     {
         Configuration *q_next = new Configuration(getBundle(), xRandom_->state);
 
-        //############################################################################
-        // TODO: replace w AddConfig
-        Vertex v_next = addConfiguration(q_next);
-        // Configuration *q_next = addConfigurationDense(xRandom_);
-
-        findGraphNeighbors(q_next, graphNeighborhood, visibleNeighborhood);
-
-        if (!checkAddCoverage(q_next, visibleNeighborhood))
-            if (!checkAddConnectivity(q_next, visibleNeighborhood))
-                if (!checkAddInterface(q_next, graphNeighborhood, visibleNeighborhood))
-                {
-                    if (!checkAddPath(q_next))
-                        ++consecutiveFailures_;
-                }
-        //############################################################################
+        Vertex v_next = addConfigurationConditional(q_next);
 
         addEdge(q_nearest->index, v_next);
 
@@ -263,7 +249,7 @@ void PathSpaceSparseOptimization::growControl()
     }
 
     Configuration *q_next = new Configuration(getBundle(), s_random);
-    Vertex v_next = addConfigurationSparse(q_next);
+    Vertex v_next = addConfiguration(q_next);
     addEdge(q_nearest->index, v_next);
 
     if (!hasSolution_)
@@ -340,10 +326,10 @@ void PathSpaceSparseOptimization::getPlannerData(base::PlannerData &data) const
             // p1->setPath(idxPathI);
             data.addStartVertex(*p1);
 
-            double dk=0;
+            double dk = 0;
             for (uint k = 0; k < states.size() - 1; k++)
             {
-                dk += getBundle()->distance(states.at(k), states.at(k+1));
+                dk += getBundle()->distance(states.at(k), states.at(k + 1));
 
                 multilevel::PlannerDataVertexAnnotated *p2 = new multilevel::PlannerDataVertexAnnotated(
                     states.at(k + 1));  // getBundle()->cloneState(graphSparse_[v2]->state));
@@ -392,28 +378,27 @@ void PathSpaceSparseOptimization::sampleFromDatastructure(base::State *xRandom_g
     {
         // if (selectedPath_ >= 0 && selectedPath_ < (int)pathStack_.size())
         // {
-            const std::vector<base::State *>& states = 
-              localMinimaTree_->getSelectedMinimumAsStateVector(getLevel());
+        const std::vector<base::State *> &states = localMinimaTree_->getSelectedMinimumAsStateVector(getLevel());
 
-            uint N = states.size();
+        uint N = states.size();
 
-            //############################################################################
-            // Vertex Sampling
-            // int k = rng_.uniformInt(0, N-1);
-            // base::State *state = states.at(k);
-            // getBundle()->getStateSpace()->copyState(xRandom_graph, state);
-            // Bundle_sampler->sampleUniformNear(xRandom_graph, xRandom_graph, 0.2);
+        //############################################################################
+        // Vertex Sampling
+        // int k = rng_.uniformInt(0, N-1);
+        // base::State *state = states.at(k);
+        // getBundle()->getStateSpace()->copyState(xRandom_graph, state);
+        // Bundle_sampler->sampleUniformNear(xRandom_graph, xRandom_graph, 0.2);
 
-            //############################################################################
-            // Edge Sampling
-            uint k = rng_.uniformInt(0, N - 1);
-            double r = rng_.uniform01();
-            base::State *s1 = states.at((k < N - 1) ? k : k - 1);
-            base::State *s2 = states.at((k < N - 1) ? k + 1 : k);
+        //############################################################################
+        // Edge Sampling
+        uint k = rng_.uniformInt(0, N - 1);
+        double r = rng_.uniform01();
+        base::State *s1 = states.at((k < N - 1) ? k : k - 1);
+        base::State *s2 = states.at((k < N - 1) ? k + 1 : k);
 
-            getBundle()->getStateSpace()->interpolate(s1, s2, r, xRandom_graph);
+        getBundle()->getStateSpace()->interpolate(s1, s2, r, xRandom_graph);
 
-            Bundle_sampler_->sampleUniformNear(xRandom_graph, xRandom_graph, pathBias_);
+        Bundle_sampler_->sampleUniformNear(xRandom_graph, xRandom_graph, pathBias_);
         // }
         // else
         // {
@@ -440,11 +425,10 @@ unsigned int PathSpaceSparseOptimization::getNumberOfPaths() const
 
 void PathSpaceSparseOptimization::pushPathToStack(std::vector<base::State *> &path)
 {
-
     if (isDynamic())
     {
         control::PathControl cpath(getBundle());
-        for(uint k = 0; k < path.size(); k++)
+        for (uint k = 0; k < path.size(); k++)
         {
             cpath.append(path.at(k));
         }
@@ -468,10 +452,11 @@ void PathSpaceSparseOptimization::pushPathToStack(std::vector<base::State *> &pa
         //     }
         // }
         // pathStack_.push_back(gpath);
-
-    }else{
+    }
+    else
+    {
         geometric::PathGeometric gpath(getBundle());
-        for(uint k = 0; k < path.size(); k++)
+        for (uint k = 0; k < path.size(); k++)
         {
             gpath.append(path.at(k));
         }
@@ -480,7 +465,7 @@ void PathSpaceSparseOptimization::pushPathToStack(std::vector<base::State *> &pa
         // visualized (problems with S1)
         if (getBundle()->getStateSpace()->getType() == base::STATE_SPACE_SO2)
         {
-          std::cout << "SO2 INTERPOLATE" << std::endl;
+            std::cout << "SO2 INTERPOLATE" << std::endl;
             gpath.interpolate();
         }
         else
@@ -488,18 +473,18 @@ void PathSpaceSparseOptimization::pushPathToStack(std::vector<base::State *> &pa
             shortcutter.smoothBSpline(gpath);
             shortcutter.simplifyMax(gpath);
         }
-        if(!isProjectable(gpath.getStates()))
+        if (!isProjectable(gpath.getStates()))
         {
-          std::cout << "REJECTED (Not projectable)" << std::endl;
-          numberOfFailedAddingPathCalls++;
-          return;
+            std::cout << "REJECTED (Not projectable)" << std::endl;
+            numberOfFailedAddingPathCalls++;
+            return;
         }
 
-        if(!pathVisibilityChecker_->CheckValidity(gpath.getStates()))
+        if (!pathVisibilityChecker_->CheckValidity(gpath.getStates()))
         {
-          std::cout << "REJECTED (Infeasible)" << std::endl;
-          numberOfFailedAddingPathCalls++;
-          return;
+            std::cout << "REJECTED (Infeasible)" << std::endl;
+            numberOfFailedAddingPathCalls++;
+            return;
         }
         if (pathStack_.size() <= 0)
         {
@@ -521,7 +506,6 @@ void PathSpaceSparseOptimization::pushPathToStack(std::vector<base::State *> &pa
         }
         std::cout << "Added to stack (" << pathStack_.size() << " paths on stack)" << std::endl;
     }
-
 }
 
 void PathSpaceSparseOptimization::PrintPathStack()
@@ -628,8 +612,8 @@ void PathSpaceSparseOptimization::freePath(std::vector<base::State *> path, cons
     path.clear();
 }
 
-std::vector<ompl::base::State *> PathSpaceSparseOptimization::getProjectedPath(const std::vector<base::State *> pathBundle,
-                                                        const base::SpaceInformationPtr &) const
+std::vector<ompl::base::State *> PathSpaceSparseOptimization::getProjectedPath(
+    const std::vector<base::State *> pathBundle, const base::SpaceInformationPtr &) const
 {
     std::vector<base::State *> pathBase;
     for (uint k = 0; k < pathBundle.size(); k++)
@@ -678,7 +662,8 @@ int PathSpaceSparseOptimization::getProjectionIndex(const std::vector<base::Stat
     return -1;
 }
 
-// void PathSpaceSparseOptimization::getPathIndices(const std::vector<base::State *> &states, std::vector<int> &idxPath) const
+// void PathSpaceSparseOptimization::getPathIndices(const std::vector<base::State *> &states, std::vector<int> &idxPath)
+// const
 // {
 //     if (!hasParent())
 //     {

@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -42,13 +42,13 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
 ompl::multilevel::BundleSpaceComponent_SE3_R3::BundleSpaceComponent_SE3_R3(base::StateSpacePtr BundleSpace,
-                                                                          base::StateSpacePtr BaseSpace)
+                                                                           base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
 void ompl::multilevel::BundleSpaceComponent_SE3_R3::projectFiber(const ompl::base::State *xBundle,
-                                                                ompl::base::State *xFiber) const
+                                                                 ompl::base::State *xFiber) const
 {
     const base::SE3StateSpace::StateType *xBundle_SE3 = xBundle->as<base::SE3StateSpace::StateType>();
     const base::SO3StateSpace::StateType *xBundle_SO3 = &xBundle_SE3->rotation();
@@ -61,7 +61,7 @@ void ompl::multilevel::BundleSpaceComponent_SE3_R3::projectFiber(const ompl::bas
 }
 
 void ompl::multilevel::BundleSpaceComponent_SE3_R3::projectBase(const ompl::base::State *xBundle,
-                                                               ompl::base::State *xBase) const
+                                                                ompl::base::State *xBase) const
 {
     const base::SE3StateSpace::StateType *xBundle_SE3 = xBundle->as<base::SE3StateSpace::StateType>();
     base::RealVectorStateSpace::StateType *xBase_R3 = xBase->as<base::RealVectorStateSpace::StateType>();
@@ -71,8 +71,8 @@ void ompl::multilevel::BundleSpaceComponent_SE3_R3::projectBase(const ompl::base
 }
 
 void ompl::multilevel::BundleSpaceComponent_SE3_R3::liftState(const ompl::base::State *xBase,
-                                                             const ompl::base::State *xFiber,
-                                                             ompl::base::State *xBundle) const
+                                                              const ompl::base::State *xFiber,
+                                                              ompl::base::State *xBundle) const
 {
     base::SE3StateSpace::StateType *xBundle_SE3 = xBundle->as<base::SE3StateSpace::StateType>();
     base::SO3StateSpace::StateType *xBundle_SO3 = &xBundle_SE3->rotation();

@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -39,7 +39,7 @@
 #include <ompl/multilevel/datastructures/components/Relaxation.h>
 
 ompl::multilevel::BundleSpaceComponent_Relaxation::BundleSpaceComponent_Relaxation(base::StateSpacePtr BundleSpace,
-                                                                                  base::StateSpacePtr BaseSpace)
+                                                                                   base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }

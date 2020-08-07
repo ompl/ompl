@@ -262,7 +262,7 @@ ompl::multilevel::BundleSpaceGraph::Configuration::Configuration(const base::Spa
     }
 }
 ompl::multilevel::BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si,
-                                                                const base::State *state_)
+                                                                 const base::State *state_)
   : state(si->cloneState(state_))
 {
     const ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
@@ -434,7 +434,7 @@ bool ompl::multilevel::BundleSpaceGraph::checkMotion(const Configuration *a, con
 }
 
 void ompl::multilevel::BundleSpaceGraph::interpolate(const Configuration *a, const Configuration *b,
-                                                    Configuration *dest) const
+                                                     Configuration *dest) const
 {
     metric_->interpolateBundle(a, b, dest);
 }
@@ -469,7 +469,8 @@ Configuration *ompl::multilevel::BundleSpaceGraph::steerTowards_Range(const Conf
     return next;
 }
 
-Configuration *ompl::multilevel::BundleSpaceGraph::extendGraphTowards_Range(const Configuration *from, Configuration *to)
+Configuration *ompl::multilevel::BundleSpaceGraph::extendGraphTowards_Range(const Configuration *from,
+                                                                            Configuration *to)
 {
     // Configuration *next = new Configuration(getBundle(), to->state);
 
@@ -658,8 +659,7 @@ bool ompl::multilevel::BundleSpaceGraph::getSolution(base::PathPtr &solution)
                 // if(optimize)
                 // {
                 geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), pathRefinementObj_);
-                geometric::PathGeometric &gpath = 
-                  static_cast<geometric::PathGeometric &>(*solutionPath_);
+                geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
 
                 bool valid = shortcutter.reduceVertices(gpath);
                 if (!valid)
@@ -683,7 +683,7 @@ bool ompl::multilevel::BundleSpaceGraph::getSolution(base::PathPtr &solution)
 //                                                               std::deque<base::State *> &path)
 // {
 //     ompl::base::PathPtr dpath = getPath(start, goal, graph);
-//     std::vector<base::State*> states = 
+//     std::vector<base::State*> states =
 //       std::static_pointer_cast<geometric::PathGeometric>(dpath)->getStates();
 
 //     std::move(begin(states), end(states), back_inserter(path));
@@ -827,7 +827,7 @@ void ompl::multilevel::BundleSpaceGraph::printConfiguration(const Configuration 
 }
 
 void ompl::multilevel::BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &data, const Graph &graph,
-                                                            const Vertex vStart, const Vertex vGoal) const
+                                                             const Vertex vStart, const Vertex vGoal) const
 {
     if (boost::num_vertices(graph) <= 0)
         return;
@@ -845,8 +845,7 @@ void ompl::multilevel::BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &
         data.addGoalVertex(pgoal);
         if (solutionPath_ != nullptr)
         {
-            geometric::PathGeometric &gpath = 
-              static_cast<geometric::PathGeometric &>(*solutionPath_);
+            geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
 
             std::vector<base::State *> gstates = gpath.getStates();
 

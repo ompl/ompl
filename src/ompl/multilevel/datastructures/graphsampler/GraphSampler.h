@@ -57,9 +57,10 @@ namespace ompl
 
             BundleSpaceGraphSampler(BundleSpaceGraph *);
 
-            void sample(base::State *xRandom);
+            virtual void sample(base::State *xRandom);
 
             void setPathBiasStartSegment(double);
+
             double getPathBiasStartSegment();
 
             void disableSegmentBias();

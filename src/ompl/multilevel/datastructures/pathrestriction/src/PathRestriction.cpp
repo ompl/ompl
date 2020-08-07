@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -90,8 +90,7 @@ void ompl::multilevel::BundleSpacePathRestriction::reset()
 
 void ompl::multilevel::BundleSpacePathRestriction::setBasePath(ompl::base::PathPtr path)
 {
-    geometric::PathGeometricPtr geometricBasePath = 
-      std::static_pointer_cast<geometric::PathGeometric>(path);
+    geometric::PathGeometricPtr geometricBasePath = std::static_pointer_cast<geometric::PathGeometric>(path);
     setBasePath(geometricBasePath->getStates());
 }
 
@@ -232,7 +231,7 @@ ompl::multilevel::BundleSpacePathRestriction::addFeasibleSegment(Configuration *
 }
 
 void ompl::multilevel::BundleSpacePathRestriction::addFeasibleGoalSegment(Configuration *const xLast,
-                                                                         Configuration *const xGoal)
+                                                                          Configuration *const xGoal)
 {
     if (xGoal->index <= 0)
     {
@@ -275,7 +274,7 @@ bool ompl::multilevel::BundleSpacePathRestriction::sideStepAlongFiber(const base
 }
 
 bool ompl::multilevel::BundleSpacePathRestriction::hasFeasibleSection(Configuration *const xStart,
-                                                                     Configuration *const xGoal)
+                                                                      Configuration *const xGoal)
 {
     // check for quasisection computation module
     int type = bundleSpaceGraph_->getBundle()->getStateSpace()->getType();
@@ -388,11 +387,9 @@ bool ompl::multilevel::BundleSpacePathRestriction::checkSection(Configuration *c
 const unsigned int PATH_SECTION_TREE_MAX_DEPTH = 3;
 const unsigned int PATH_SECTION_TREE_MAX_BRANCHING = 10;
 
-bool ompl::multilevel::BundleSpacePathRestriction::checkSectionRecursiveRepair(Configuration *const xStart,
-                                                                              Configuration *const xGoal,
-                                                                              const std::vector<base::State *> basePath,
-                                                                              bool interpolateL1, unsigned int depth,
-                                                                              double startLength)
+bool ompl::multilevel::BundleSpacePathRestriction::checkSectionRecursiveRepair(
+    Configuration *const xStart, Configuration *const xGoal, const std::vector<base::State *> basePath,
+    bool interpolateL1, unsigned int depth, double startLength)
 {
     bundleSpaceGraph_->projectFiber(xStart->state, xFiberStart_);
     bundleSpaceGraph_->projectFiber(xGoal->state, xFiberGoal_);

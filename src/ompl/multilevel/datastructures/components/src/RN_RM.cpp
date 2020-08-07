@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -40,13 +40,13 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
 ompl::multilevel::BundleSpaceComponent_RN_RM::BundleSpaceComponent_RN_RM(base::StateSpacePtr BundleSpace,
-                                                                        base::StateSpacePtr BaseSpace)
+                                                                         base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
 void ompl::multilevel::BundleSpaceComponent_RN_RM::projectFiber(const ompl::base::State *xBundle,
-                                                               ompl::base::State *xFiber) const
+                                                                ompl::base::State *xFiber) const
 {
     const base::RealVectorStateSpace::StateType *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();
     base::RealVectorStateSpace::StateType *xFiber_RM = xFiber->as<base::RealVectorStateSpace::StateType>();
@@ -58,7 +58,7 @@ void ompl::multilevel::BundleSpaceComponent_RN_RM::projectFiber(const ompl::base
 }
 
 void ompl::multilevel::BundleSpaceComponent_RN_RM::projectBase(const ompl::base::State *xBundle,
-                                                              ompl::base::State *xBase) const
+                                                               ompl::base::State *xBase) const
 {
     const base::RealVectorStateSpace::StateType *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();
     base::RealVectorStateSpace::StateType *xBase_RM = xBase->as<base::RealVectorStateSpace::StateType>();
@@ -70,8 +70,8 @@ void ompl::multilevel::BundleSpaceComponent_RN_RM::projectBase(const ompl::base:
 }
 
 void ompl::multilevel::BundleSpaceComponent_RN_RM::liftState(const ompl::base::State *xBase,
-                                                            const ompl::base::State *xFiber,
-                                                            ompl::base::State *xBundle) const
+                                                             const ompl::base::State *xFiber,
+                                                             ompl::base::State *xBundle) const
 {
     base::RealVectorStateSpace::StateType *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();
     const base::RealVectorStateSpace::StateType *xBase_RM = xBase->as<base::RealVectorStateSpace::StateType>();

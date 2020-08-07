@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -130,8 +130,7 @@ std::vector<const Configuration *> BundleSpaceMetricShortestPath::getInterpolati
 
     if (pathBasePtr)
     {
-        geometric::PathGeometricPtr gpath = 
-          std::static_pointer_cast<geometric::PathGeometric>(pathBasePtr);
+        geometric::PathGeometricPtr gpath = std::static_pointer_cast<geometric::PathGeometric>(pathBasePtr);
 
         const std::vector<base::State *> pathBase = gpath->getStates();
         if (pathBase.size() > 1)

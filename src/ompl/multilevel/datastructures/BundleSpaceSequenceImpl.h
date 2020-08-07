@@ -144,7 +144,6 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
 
     for (unsigned int k = currentBundleSpaceLevel_; k < stopAtLevel_; k++)
     {
-      std::cout << "LEVEL " << k << std::endl;
         BundleSpace *kBundle = static_cast<BundleSpace*>(bundleSpaces_.at(k));
 
         foundKLevelSolution_ = false;
@@ -319,5 +318,5 @@ void ompl::multilevel::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planne
         }
         Nvertices = data.numVertices();
     }
-    OMPL_DEBUG("Graph has %d/%d vertices/edges", data.numVertices(), data.numEdges());
+    OMPL_DEBUG("Multilevel Graph has %d/%d vertices/edges", data.numVertices(), data.numEdges());
 }

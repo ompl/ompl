@@ -51,6 +51,10 @@ namespace ompl
              Quotient space roadMap Planner Star (QMP*) generalizes the PRM* algorithm to bundle spaces.
 
              @par External documentation
+             Andreas Orthey and Sohaib Akbar and Marc Toussaint, 
+             Multilevel Motion Planning: A Fiber Bundle Formulation, 
+             in <em>arXiv:2007.09435 [cs.RO]</em>, 2020,
+             [[PDF]](https://arxiv.org/pdf/2007.09435.pdf)
         */
 
         /** \brief [Q]uotient space road[M]ap [P]lanner Star (QMP*) Algorithm */
