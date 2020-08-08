@@ -265,7 +265,6 @@ namespace ompl
 
             /** \brief The best solution we found so far. */
             std::vector<base::State *> prevSolution_;
-            Motion *lastGoalMotion_{nullptr};
             std::vector<Control *> prevSolutionControls_;
             std::vector<unsigned> prevSolutionSteps_;
 

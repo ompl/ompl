@@ -1,7 +1,8 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, Robert Bosch GmbH
+ *  Copyright (c) 2020, 
+ *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,9 +15,10 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the Robert Bosch GmbH nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
+ *   * Neither the name of the MPI-IS nor the names
+ *     of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written
+ *     permission.
  *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -32,33 +34,28 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Leonard Bruns */
+/* Author: Andreas Orthey, Sohaib Akbar */
 
-#ifndef OMPL_BASE_DETERMINISTIC_SEQUENCE
-#define OMPL_BASE_DETERMINISTIC_SEQUENCE
+#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_SPQR_
+#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_SPQR_
 
-#include <vector>
+#include <ompl/multilevel/datastructures/BundleSpaceSequence.h>
+#include <ompl/multilevel/planners/sparse/SPQRImpl.h>
 
 namespace ompl
 {
-    namespace base
+    namespace multilevel
     {
-        /** \brief An abstract class for deterministic sequences in arbitrary dimensions. */
-        class DeterministicSequence
-        {
-        public:
-            /** \brief Constructor */
-            DeterministicSequence(unsigned int dimensions) : dimensions_(dimensions)
-            {
-            }
-            virtual ~DeterministicSequence() = default;
+        /**
+             @anchor SPQR
+             @par Short description
+             SParse Quotient space Roadmap planner (SPQR) algorithm,
+             generalizes the SPARS roadmap planner to bundle spaces
+             @par External documentation
+        */
 
-            /** \brief Returns the next sample in the interval [0,1] */
-            virtual std::vector<double> sample() = 0;
-
-            const unsigned int dimensions_;
-        };
-    }  // namespace base
-}  // namespace ompl
-
+        /** \brief [SP]arse [Q]uotient space [R]oadmap planner (SPQR) Algorithm */
+        using SPQR = BundleSpaceSequence<SPQRImpl>;
+    }
+}
 #endif

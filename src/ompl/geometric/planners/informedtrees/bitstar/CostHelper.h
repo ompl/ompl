@@ -34,8 +34,8 @@
 
 /* Authors: Jonathan Gammell, Marlin Strub */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_COSTHELPER_
-#define OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_COSTHELPER_
+#ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_COSTHELPER_
+#define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_COSTHELPER_
 
 // OMPL:
 // The cost class:
@@ -50,11 +50,11 @@
 // I am member class of the BITstar class (i.e., I am in it's namespace), so I need to include it's definition to be
 // aware of the class BITstar. It has a forward declaration to me and the other helper classes but I will need to
 // include any I use in my .cpp (to avoid dependency loops).
-#include "ompl/geometric/planners/bitstar/BITstar.h"
+#include "ompl/geometric/planners/informedtrees/BITstar.h"
 // The vertex class
-#include "ompl/geometric/planners/bitstar/datastructures/Vertex.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/Vertex.h"
 // The graph class
-#include "ompl/geometric/planners/bitstar/datastructures/ImplicitGraph.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/ImplicitGraph.h"
 
 namespace ompl
 {
@@ -342,4 +342,4 @@ namespace ompl
         };  // class CostHelper
     }       // geometric
 }  // ompl
-#endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_DATASTRUCTURES_COSTHELPER_
+#endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_COSTHELPER_

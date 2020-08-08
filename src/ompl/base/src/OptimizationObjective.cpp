@@ -162,10 +162,6 @@ const ompl::base::SpaceInformationPtr &ompl::base::OptimizationObjective::getSpa
 {
     return si_;
 }
-void ompl::base::OptimizationObjective::setSpaceInformation(const SpaceInformationPtr si)
-{
-    si_ = si;
-}
 
 ompl::base::InformedSamplerPtr ompl::base::OptimizationObjective::allocInformedStateSampler(
     const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls) const
@@ -198,13 +194,6 @@ ompl::base::MultiOptimizationObjective::MultiOptimizationObjective(const SpaceIn
 ompl::base::MultiOptimizationObjective::Component::Component(OptimizationObjectivePtr obj, double weight)
   : objective(std::move(obj)), weight(weight)
 {
-}
-
-void ompl::base::MultiOptimizationObjective::setSpaceInformation(const SpaceInformationPtr si)
-{
-    for(uint k = 0; k < components_.size(); k++){
-        components_.at(k).objective->setSpaceInformation(si);
-    }
 }
 
 void ompl::base::MultiOptimizationObjective::addObjective(const OptimizationObjectivePtr &objective, double weight)

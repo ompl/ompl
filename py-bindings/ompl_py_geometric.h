@@ -41,7 +41,7 @@
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
 #include "ompl/geometric/planners/prm/PRM.h"
 #include "ompl/geometric/planners/quotientspace/QRRT.h"
-#include "ompl/geometric/planners/bitstar/BITstar.h"
+#include "ompl/geometric/planners/informedtrees/BITstar.h"
 #include <deque>
 #include <map>
 #include <boost/graph/adjacency_list.hpp>

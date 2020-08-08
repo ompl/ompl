@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
-project(ompl VERSION 1.5.0 LANGUAGES CXX)
-set(OMPL_ABI_VERSION 16)
+project(ompl VERSION 1.6.0 LANGUAGES CXX)
+set(OMPL_ABI_VERSION 17)
 
 # set the default build type
 if (NOT CMAKE_BUILD_TYPE)
@@ -230,7 +230,7 @@ add_custom_target(uninstall
 
 include(CPackSettings)
 
-option(OMPL_REGISTRATION "Enable one-time registration of OMPL" OFF)
+option(OMPL_REGISTRATION "Enable one-time registration of OMPL" ON)
 if (OMPL_REGISTRATION)
     find_file(OMPL_REGISTERED ".registered" PATHS "${CMAKE_CURRENT_SOURCE_DIR}" NO_DEFAULT_PATH)
     if (NOT OMPL_REGISTERED)

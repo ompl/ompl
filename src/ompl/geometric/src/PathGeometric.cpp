@@ -66,7 +66,8 @@ ompl::geometric::PathGeometric::PathGeometric(const base::SpaceInformationPtr &s
 ompl::geometric::PathGeometric::PathGeometric(const base::SpaceInformationPtr &si, std::vector<const base::State *> states)
   : base::Path(si)
 {
-    for(uint k = 0; k < states.size(); k++){
+    for(unsigned int k = 0; k < states.size(); k++)
+    {
         this->append(states.at(k));
     }
 }

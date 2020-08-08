@@ -34,7 +34,7 @@
 
 /* Authors: Jonathan Gammell, Marlin Strub */
 
-#include "ompl/geometric/planners/bitstar/BITstar.h"
+#include "ompl/geometric/planners/informedtrees/BITstar.h"
 
 #include <sstream>
 #include <iomanip>
@@ -47,12 +47,12 @@
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 
-#include "ompl/geometric/planners/bitstar/datastructures/HelperFunctions.h"
-#include "ompl/geometric/planners/bitstar/datastructures/IdGenerator.h"
-#include "ompl/geometric/planners/bitstar/datastructures/Vertex.h"
-#include "ompl/geometric/planners/bitstar/datastructures/CostHelper.h"
-#include "ompl/geometric/planners/bitstar/datastructures/ImplicitGraph.h"
-#include "ompl/geometric/planners/bitstar/datastructures/SearchQueue.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/HelperFunctions.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/IdGenerator.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/Vertex.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/CostHelper.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/ImplicitGraph.h"
+#include "ompl/geometric/planners/informedtrees/bitstar/SearchQueue.h"
 
 #ifdef BITSTAR_DEBUG
 #warning Compiling BIT* with debug-level asserts.

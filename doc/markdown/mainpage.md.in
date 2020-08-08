@@ -185,7 +185,7 @@
         <li><a href="https://www.youtube.com/watch?v=r1zbuLc8RhI">At ROSCON 2012, Sachin Chitta and Ioan Șucan gave a talk
             about MoveIt</a>, the new motion planning stack in ROS. It provides a common interface to motion planning
           libraries in ROS (including OMPL). It will eventually replace the arm navigation stack.</li>
-        <li><a href="https://kavrakilab.org/OMPLtutorial">IROS 2011 Tutorial on Motion Planning for Real Robots</a>. This
+        <li><a href="http://kavrakilab.org/OMPLtutorial">IROS 2011 Tutorial on Motion Planning for Real Robots</a>. This
           hands-on tutorial described how to use the ROS and OMPL, but it also provided some background on sampling-based
           motion planning.</li>
       </ul>

@@ -38,7 +38,6 @@
 #define OMPL_BASE_MOTION_VALIDATOR_
 
 #include "ompl/base/State.h"
-#include "ompl/control/Control.h"
 #include "ompl/util/ClassForward.h"
 #include <utility>
 
@@ -98,18 +97,6 @@ namespace ompl
 
                 \note This function updates the number of valid and invalid segments. */
             virtual bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const = 0;
-
-	    virtual ompl::control::Control* getCurrentControl() const 
-	    {
-			return nullptr ;
-	    }
-
-
-	    virtual double getControlDuration() const 
-	    {
-			return 0 ;
-	    }
-
 
             /** \brief Get the number of segments that tested as valid */
             unsigned int getValidMotionCount() const

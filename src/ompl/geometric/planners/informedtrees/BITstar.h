@@ -34,8 +34,8 @@
 
 /* Authors: Jonathan Gammell, Marlin Strub */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_BITSTAR_BITSTAR_
-#define OMPL_GEOMETRIC_PLANNERS_BITSTAR_BITSTAR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_
+#define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_
 
 #include <string>
 #include <utility>
@@ -560,4 +560,4 @@ namespace ompl
     }       // namespace geometric
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_BITSTAR_BITSTAR_
+#endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_

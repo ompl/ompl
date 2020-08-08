@@ -72,9 +72,6 @@ namespace ompl
             /** \brief ompl::base::DubinsStateSpace */
             STATE_SPACE_DUBINS = 8,
 
-            /** \brief ompl::base::DubinsAirplaneStateSpace */
-            STATE_SPACE_DUBINS_AIRPLANE = 9,
-
             /** \brief Number of state space types; To add new types,
                 use values that are larger than the count*/
             STATE_SPACE_TYPE_COUNT

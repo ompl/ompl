@@ -36,6 +36,7 @@
 
 #include "PolyWorld.h"
 
+#include <cassert>
 #include <fstream>
 #include <ompl/util/Console.h>
 #include <yaml-cpp/yaml.h>
@@ -129,7 +130,7 @@ bool ConvexPolygon::inside(Point point) const
     bool c = false;
     for (i = 0, j = coordinates_.size() - 1; i < coordinates_.size(); j = i++)
     {
-        if ((coordinates_[i].second > point.second != coordinates_[j].second > point.second) &&
+        if (((coordinates_[i].second > point.second) != (coordinates_[j].second > point.second)) &&
             (point.first < (coordinates_[j].first - coordinates_[i].first) * (point.second - coordinates_[i].second) /
                                    (coordinates_[j].second - coordinates_[i].second) +
                                coordinates_[i].first))

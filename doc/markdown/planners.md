@@ -46,6 +46,8 @@ Planners in this category only accounts for the geometric and kinematic constrai
       Many different parallelization schemes have been proposed for sampling-based planners, including RRT. In this implementation, several threads simultaneously add states to the same tree. Once a solution is found, all threads terminate.
     - [Lazy RRT (LazyRRT)](\ref gLazyRRT)<br>
       This planner performs lazy state validity checking (similar to LazyPRM). It is not experimental, but in our experience it does not seem to outperform other planners by a significant margin on any class of problems.
+    - [Task-space RRT (TSRRT)](\ref gTSRRT)<br>
+      TSRRT is a variant of RRT where exploration is guided by the task space. It requires an ompl::geometric::TaskSpaceConfig instance that defines how to project configuration space states to the task spaces and an inverse operation to lift task space states to the configuration space.
   - [Expansive Space Trees (EST)](\ref gEST)<br>
     This planner was published around the same time as RRT. In our experience it is not as sensitive to having a good distance measure, which can be difficult to define for complex high-dimensional state spaces. There are actually three versions of EST: the [original version](\ref gEST) that is close to the first publication, [a bidirectional version](\ref gBiEST), and a [projection-based version](\ref gProjEST). The low-dimensional projection is used to keep track of how the state space has been explored. Most of the time OMPL can automatically determine a reasonable projection. We have implemented a few planners that not necessarily simple variants of EST, but do share the same expansion strategy:
     - [Single-query Bi-directional Lazy collision checking planner (SBL)](\ref gSBL)<br>
@@ -67,6 +69,14 @@ Planners in this category only accounts for the geometric and kinematic constrai
     The FMT∗ algorithm performs a “lazy” dynamic programming recursion on a set of probabilistically-drawn samples to grow a tree of paths, which moves outward in cost-to-come space. Unlike all other planners, the numbers of valid samples needs to be chosen beforehand.
   - [Bidirectional Fast Marching Tree algorithm (BFMT∗)](\ref gBFMT)<br>
     Executes two FMT* trees, one from the start and another one from the goal resulting in a faster planner as it explores less space.
+- **Multi-level planners**<br>
+  Planning algorithms which can exploit multiple levels of abstractions. If you want to use them, you should call them with a vector of `ompl::base::SpaceInformationPtr`. All planner then guarantee probabilistic completeness, if the supplied abstractions are admissible. There is extensive documentation in the form of a [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](group__demos.html).
+  - [Rapidly-exploring Random Quotient space Trees (QRRT)](\ref QRRT)<br>
+    A generalization of RRT to plan on different abstraction levels. 
+  - [QRRT*](\ref QRRTstar)<br> An asymptotically optimal version of QRRT
+  - [Quotient-Space Roadmap Planner (QMP)](\ref QMP)<br>
+    A generalization of PRM to plan on different abstraction levels. 
+  - [QMP*](\ref QMPstar)<br> An asymptotically optimal version of QMP
 - **Optimizing planners**<br>
   In recent years several sampling-based planning algorithms have been proposed that still provide some optimality guarantees. Typically, an optimal solution is assumed to be shortest path. In OMPL we have a more general framework for expressing the cost of states and paths that allows you to, e.g., maximize the minimum clearance along a path, minimize the mechanical work, or some arbitrary user-defined optimization criterion. See \ref optimalPlanning for more information. Some of the planners below use this general cost framework, but keep in mind that convergence to optimality is **not guaranteed** when optimizing over something other than path length.
   - [PRM*](\ref gPRMstar)<br> An asymptotically optimal version of PRM; _uses the general cost framework._
@@ -77,6 +87,7 @@ Planners in this category only accounts for the geometric and kinematic constrai
   - [Informed RRT*](\ref gInformedRRTstar)<br> A variant of RRT* that uses heuristics to bound the search for optimal solutions. _It uses the general cost framework._
   - [Batch Informed Trees (BIT*)](\ref gBITstar)<br> An anytime asymptotically optimal algorithm that uses heuristics to order and bound the search for optimal solutions. _It uses the general cost framework._
   - [Advanced BIT* (ABIT*)](\ref gABITstar)<br> An extension to BIT* that uses advanced graph-search techniques to find initial solutions faster. _It uses the general cost framework._
+  - [Adaptively Informed Trees (AIT*)](\ref gAITstar)<br> An anytime asymptotically optimal algorithm that simultaneously estimates and exploits problem-specific heuristics. _It uses the general cost framework._
   - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT)<br> An asymptotically near-optimal version of RRT.
   - [Sparse Stable RRT](\ref gSST)<br> SST is an asymptotically near-optimal incremental version of RRT.
   - [Transition-based RRT (T-RRT)](\ref gTRRT)<br> T-RRT does not give any hard optimality guarantees, but tries to find short, low-cost paths. _It uses the general cost framework._

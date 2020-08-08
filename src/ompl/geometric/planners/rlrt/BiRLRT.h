@@ -44,6 +44,21 @@ namespace ompl
 {
     namespace geometric
     {
+        /**
+        \anchor gBiRLRT
+
+        \ref gBiRLRT "BiRLRT" is a basic bidirectional tree-based planner without any sophistic heuristics to guide the
+        exploration. It should be used as a baseline for comparison against other bidirectional tree-based planners. In
+        high-dimensional search spaces it can sometimes perform surprisingly well.
+
+        \par Associated publication:
+        R. Luna, M. Moll, J. Badger, and L. E. Kavraki,
+        A Scalable Motion Planner for High-Dimensional Kinematic Systems,
+        <em>Intl. J. of Robotics Research</em>, vol. 39, issue 4, pp. 361-388, Mar. 2020.
+        DOI: [10.1177/0278364919890408](http://dx.doi.org/10.1177/0278364919890408)<br>
+        [[PDF]](http://www.kavrakilab.org/publications/luna2020a-scalable-motion-planner-for-high-dimensional.pdf)
+        **/
+
         /// \brief Bi-directional Range-Limited Random Tree (Ryan Luna's Random Tree)
         class BiRLRT : public base::Planner
         {

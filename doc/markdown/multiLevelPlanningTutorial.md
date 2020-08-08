@@ -159,6 +159,9 @@ functionalities, including
 - `getState()`, returns a state in the original configuration space (this way
     the behavior is the same as for the classical PlannerData class).
 
+
+You can use this in your code in the following way:
+
 ~~~{.cpp}
     #include <ompl/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 

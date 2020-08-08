@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [ `id -u` == 0 ]; then
     SUDO=
     export DEBIAN_FRONTEND=noninteractive
@@ -69,8 +71,13 @@ install_ompl()
         OMPL="omplapp"
     fi
     if [ -z $GITHUB ]; then
-        wget -O - https://github.com/ompl/ompl/releases/download/@PROJECT_VERSION@/${OMPL}-@PROJECT_VERSION@.tar.gz | tar zxf -
-        cd $OMPL-@PROJECT_VERSION@-Source
+        if [ -z $APP]; then
+            wget -O - https://github.com/ompl/${OMPL}/archive/@PROJECT_VERSION@.tar.gz | tar zxf -
+            cd ${OMPL}-@PROJECT_VERSION@
+        else
+            wget -O - https://github.com/ompl/${OMPL}/releases/download/@PROJECT_VERSION@/${OMPL}-@PROJECT_VERSION@-Source.tar.gz | tar zxf -
+            cd $OMPL-@PROJECT_VERSION@-Source
+        fi
     else
         ${SUDO} apt-get -y install git
         git clone --recurse-submodules https://github.com/ompl/${OMPL}.git
