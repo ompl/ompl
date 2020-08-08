@@ -35,8 +35,7 @@ bool ompl::control::Optimizer::IsGeometric() const
 
 ompl::base::PlannerStatus ompl::control::Optimizer::solve(const base::PlannerTerminationCondition &ptc)
 {
-  if(IsGeometric())
-  {
+  if(IsGeometric()){
     OMPL_WARN("Optimizing on geometric Path.");
     og::PathGeometric* gpath = static_cast<og::PathGeometric*>(path_.get());
     og::PathSimplifier simplifier(si_);

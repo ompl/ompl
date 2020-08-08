@@ -4,8 +4,11 @@
 #include <ompl/control/PathControl.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/OptimizationObjective.h>
-#include <ompl/control/ModifiedDirectedControlSampler.h>
-#include <ompl/util/RandomNumbers.h>
+#include "ompl/util/RandomNumbers.h"
+#include "ompl/base/DynamicalMotionValidator.h"
+
+
+
 
 namespace ompl
 {

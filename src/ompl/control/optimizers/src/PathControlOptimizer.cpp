@@ -1,5 +1,6 @@
 #include <ompl/control/optimizers/PathControlOptimizer.h>
 
+
 ompl::control::PathControlOptimizer::PathControlOptimizer(base::SpaceInformationPtr si, ompl::base::State* goalState , const base::OptimizationObjectivePtr& obj)
   : si_(si), obj_(obj), freeStates_(true)
 {
@@ -42,11 +43,11 @@ void ompl::control::PathControlOptimizer::reduceVertices(PathControl &path, unsi
 	
 	const base::SpaceInformationPtr &si = path.getSpaceInformation();
 	ompl::control::SpaceInformation *siC = static_cast<ompl::control::SpaceInformation*>(si.get());
+	siC->setMotionValidator(std::make_shared<ompl::base::DynamicalMotionValidator>(siC));
 	siC->setMinMaxControlDuration(1,500);
 	
 	ompl::control::ModifiedDirectedControlSamplerPtr sampler;
-	// sampler = siC->allocModifiedDirectedControlSampler();
-  sampler = std::make_shared<ModifiedDirectedControlSampler>(siC);
+	sampler = siC->allocModifiedDirectedControlSampler();
 	sampler->setNumControlSamples(500);
   
 	std::cout << " propagation size " << siC->getPropagationStepSize() << std::endl;
