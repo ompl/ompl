@@ -40,12 +40,14 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/StateSpace.h>
-#include <ompl/geometric/planners/multilevel/QRRT.h>
+#include <ompl/multilevel/planners/qrrt/QRRT.h>
 #include <iostream>
 #include <boost/math/constants/constants.hpp>
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
+namespace om = ompl::multilevel;
+
 using SE3State = ob::ScopedState<ob::SE3StateSpace>;
 using SO3State = ob::ScopedState<ob::SO3StateSpace>;
 using R3State = ob::ScopedState<ob::RealVectorStateSpace>;
@@ -123,7 +125,7 @@ int main()
     // Step 2: Do path planning as usual but with a sequence of
     // spaceinformationptr
     //############################################################################
-    auto planner = std::make_shared<og::QRRT>(si_vec);
+    auto planner = std::make_shared<ompl::multilevel::QRRT>(si_vec);
 
     // Planner can be used as any other OMPL algorithm
     planner->setProblemDefinition(pdef);

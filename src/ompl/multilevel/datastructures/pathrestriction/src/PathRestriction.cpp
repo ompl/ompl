@@ -278,7 +278,7 @@ bool ompl::multilevel::BundleSpacePathRestriction::hasFeasibleSection(Configurat
 {
     // check for quasisection computation module
     int type = bundleSpaceGraph_->getBundle()->getStateSpace()->getType();
-    if (type == base::STATE_SPACE_DUBINS || type == base::STATE_SPACE_DUBINS_AIRPLANE)
+    if (type == base::STATE_SPACE_DUBINS)// || type == base::STATE_SPACE_DUBINS_AIRPLANE)
     {
         // Quasisections
         bundleSpaceGraph_->projectFiber(xStart->state, xFiberStart_);

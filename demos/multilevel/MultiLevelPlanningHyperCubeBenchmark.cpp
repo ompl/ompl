@@ -38,6 +38,7 @@
 #include "MultiLevelPlanningCommon.h"
 #include "MultiLevelPlanningHyperCubeCommon.h"
 #include <ompl/base/spaces/RealVectorStateSpace.h>
+#include <ompl/multilevel/datastructures/PlannerMultiLevel.h>
 
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/util/String.h>
@@ -49,6 +50,8 @@ const double runtime_limit = 60;
 const double memory_limit = 1024*20; //in MB, but does not consider free operations from prev runs
 const int run_count = 10;
 unsigned int curDim = 100;
+
+namespace om = ompl::multilevel;
 
 int main(int argc, char **argv)
 {
@@ -85,11 +88,10 @@ int main(int argc, char **argv)
 
     //MultiLevel Planner
     std::vector<int> proj = getHypercubeAdmissibleProjection(curDim);
-    addPlanner(benchmark, GetMultiLevelPlanner<og::QRRT>(proj, si, "QRRT"), range);
-    addPlanner(benchmark, GetMultiLevelPlanner<og::QRRTStar>(proj, si, "QRRTStar"), range);
-    addPlanner(benchmark, GetMultiLevelPlanner<og::QMP>(proj, si, "QMP"), range);
-    addPlanner(benchmark, GetMultiLevelPlanner<og::QMPStar>(proj, si, "QMPStar"), range);
-    addPlanner(benchmark, GetMultiLevelPlanner<og::QRRTStar>(proj, si, "SPQR"), range);
+    addPlanner(benchmark, GetMultiLevelPlanner<om::QRRT>(proj, si, "QRRT"), range);
+    addPlanner(benchmark, GetMultiLevelPlanner<om::QRRTStar>(proj, si, "QRRTStar"), range);
+    addPlanner(benchmark, GetMultiLevelPlanner<om::QMP>(proj, si, "QMP"), range);
+    addPlanner(benchmark, GetMultiLevelPlanner<om::QMPStar>(proj, si, "QMPStar"), range);
 
     //Classical Planner
     addPlanner(benchmark, std::make_shared<og::RRT>(si), range);
