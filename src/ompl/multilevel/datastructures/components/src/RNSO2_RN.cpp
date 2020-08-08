@@ -64,7 +64,7 @@ void ompl::multilevel::BundleSpaceComponent_RNSO2_RN::projectBase(const ompl::ba
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(0);
     base::RealVectorStateSpace::StateType *xBase_R3 = xBase->as<base::RealVectorStateSpace::StateType>();
 
-    for (uint k = 0; k < 3; k++)
+    for (unsigned int k = 0; k < 3; k++)
     {
         xBase_R3->values[k] = xBundle_R3->values[k];
     }
@@ -83,7 +83,7 @@ void ompl::multilevel::BundleSpaceComponent_RNSO2_RN::liftState(const ompl::base
 
     const base::RealVectorStateSpace::StateType *xBase_R3 = xBase->as<base::RealVectorStateSpace::StateType>();
 
-    for (uint k = 0; k < 3; k++)
+    for (unsigned int k = 0; k < 3; k++)
     {
         xBundle_R3->values[k] = xBase_R3->values[k];
     }

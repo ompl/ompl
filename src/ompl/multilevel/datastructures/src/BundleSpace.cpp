@@ -55,9 +55,12 @@
 #define DEBUG_BUNDLESPACE
 #undef DEBUG_BUNDLESPACE
 
-unsigned int ompl::multilevel::BundleSpace::counter_ = 0;
+using namespace ompl::base;
+using namespace ompl::multilevel;
 
-ompl::multilevel::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, BundleSpace *parent_)
+unsigned int BundleSpace::counter_ = 0;
+
+BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, BundleSpace *parent_)
   : base::Planner(si, "BundleSpace"), Bundle(si), parent_(parent_)
 {
     id_ = counter_++;
@@ -118,7 +121,7 @@ ompl::multilevel::BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, 
     xBundleTmp_ = getBundle()->allocState();
 }
 
-ompl::multilevel::BundleSpace::~BundleSpace()
+BundleSpace::~BundleSpace()
 {
     if (hasParent())
     {
@@ -138,26 +141,26 @@ ompl::multilevel::BundleSpace::~BundleSpace()
     components_.clear();
 }
 
-bool ompl::multilevel::BundleSpace::hasParent() const
+bool BundleSpace::hasParent() const
 {
     return !(parent_ == nullptr);
 }
-bool ompl::multilevel::BundleSpace::hasBaseSpace() const
+bool BundleSpace::hasBaseSpace() const
 {
     return hasParent();
 }
 
-bool ompl::multilevel::BundleSpace::hasChild() const
+bool BundleSpace::hasChild() const
 {
     return !(child_ == nullptr);
 }
 
-bool ompl::multilevel::BundleSpace::isDynamic() const
+bool BundleSpace::isDynamic() const
 {
     return isDynamic_;
 }
 
-void ompl::multilevel::BundleSpace::setup()
+void BundleSpace::setup()
 {
     BaseT::setup();
     hasSolution_ = false;
@@ -166,7 +169,7 @@ void ompl::multilevel::BundleSpace::setup()
         goal_ = pdef_->getGoal().get();
 }
 
-void ompl::multilevel::BundleSpace::clear()
+void BundleSpace::clear()
 {
     BaseT::clear();
 
@@ -178,13 +181,13 @@ void ompl::multilevel::BundleSpace::clear()
     pdef_->clearSolutionPaths();
 }
 
-void ompl::multilevel::BundleSpace::MakeFiberSpace()
+void BundleSpace::MakeFiberSpace()
 {
     base::StateSpacePtr Fiber_space = nullptr;
     if (components_.size() > 1)
     {
         Fiber_space = std::make_shared<base::CompoundStateSpace>();
-        for (uint m = 0; m < components_.size(); m++)
+        for (unsigned int m = 0; m < components_.size(); m++)
         {
             base::StateSpacePtr FiberM = components_.at(m)->getFiberSpace();
             double weight = (FiberM->getDimension() > 0 ? 1.0 : 0.0);
@@ -203,7 +206,7 @@ void ompl::multilevel::BundleSpace::MakeFiberSpace()
     }
 }
 
-void ompl::multilevel::BundleSpace::sanityChecks() const
+void BundleSpace::sanityChecks() const
 {
     const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
     checkBundleSpaceMeasure("Bundle", Bundle_space);
@@ -229,7 +232,7 @@ void ompl::multilevel::BundleSpace::sanityChecks() const
     }
 }
 
-void ompl::multilevel::BundleSpace::checkBundleSpaceMeasure(std::string name, const base::StateSpacePtr space) const
+void BundleSpace::checkBundleSpaceMeasure(std::string name, const base::StateSpacePtr space) const
 {
     OMPL_DEVMSG1("%s dimension: %d measure: %f", name, space->getDimension(), space->getMeasure());
     if ((space->getMeasure() >= std::numeric_limits<double>::infinity()))
@@ -243,13 +246,13 @@ void ompl::multilevel::BundleSpace::checkBundleSpaceMeasure(std::string name, co
     // }
 }
 
-ompl::base::PlannerStatus ompl::multilevel::BundleSpace::solve(const base::PlannerTerminationCondition &)
+ompl::base::PlannerStatus BundleSpace::solve(const base::PlannerTerminationCondition &)
 {
     throw ompl::Exception("A Bundle-Space cannot be solved alone. \
         Use class BundleSpaceSequence to solve Bundle-Spaces.");
 }
 
-void ompl::multilevel::BundleSpace::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
+void BundleSpace::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
 {
     BaseT::setProblemDefinition(pdef);
 
@@ -264,12 +267,12 @@ void ompl::multilevel::BundleSpace::setProblemDefinition(const base::ProblemDefi
     }
 }
 
-void ompl::multilevel::BundleSpace::resetCounter()
+void BundleSpace::resetCounter()
 {
     BundleSpace::counter_ = 0;
 }
 
-// void ompl::multilevel::BundleSpace::liftPath(
+// void BundleSpace::liftPath(
 //       const std::vector<base::State*> pathBase,
 //       const base::State* xFiberStart,
 //       const base::State* xFiberGoal,
@@ -285,7 +288,7 @@ void ompl::multilevel::BundleSpace::resetCounter()
 //         double lengthTotalPathBase = 0;
 //         std::vector<double> lengthIntermediatePathBase;
 
-//         for(uint k = 1; k < pathBase.size(); k++){
+//         for(unsigned int k = 1; k < pathBase.size(); k++){
 //             double lengthKthSegment = getBase()->distance(pathBase.at(k-1), pathBase.at(k));
 //             lengthIntermediatePathBase.push_back(lengthKthSegment);
 //             lengthTotalPathBase += lengthKthSegment;
@@ -295,7 +298,7 @@ void ompl::multilevel::BundleSpace::resetCounter()
 
 //         base::State *xFiberCur = getFiber()->allocState();
 
-//         for(uint k = 0; k < pathBase.size(); k++)
+//         for(unsigned int k = 0; k < pathBase.size(); k++)
 //         {
 //             double step = lengthCurrent / lengthTotalPathBase;
 //             getFiber()->getStateSpace()->interpolate(xFiberStart, xFiberGoal, step, xFiberCur);
@@ -310,17 +313,17 @@ void ompl::multilevel::BundleSpace::resetCounter()
 //         getFiber()->freeState(xFiberCur);
 
 //     }else{
-//         for(uint k = 0; k < pathBase.size(); k++){
+//         for(unsigned int k = 0; k < pathBase.size(); k++){
 //             getBundle()->copyState(pathBundle.at(k), pathBase.at(k));
 //         }
 //     }
 // }
 
-unsigned int ompl::multilevel::BundleSpace::interpolateAlongBasePath(const std::vector<base::State *> basePath,
-                                                                     double location, base::State *xResult) const
+unsigned int BundleSpace::interpolateAlongBasePath(const std::vector<base::State *> basePath, double location,
+                                                   base::State *xResult) const
 {
     double d_path = 0;
-    for (uint k = 0; k < basePath.size() - 1; k++)
+    for (unsigned int k = 0; k < basePath.size() - 1; k++)
     {
         d_path += getBase()->distance(basePath.at(k), basePath.at(k + 1));
     }
@@ -360,7 +363,7 @@ unsigned int ompl::multilevel::BundleSpace::interpolateAlongBasePath(const std::
     if ((std::isnan(step)) || (step < 0) || (step > 1))
     {
         std::cout << std::string(80, '#') << std::endl;
-        for (uint k = 0; k < basePath.size(); k++)
+        for (unsigned int k = 0; k < basePath.size(); k++)
         {
             getBase()->printState(basePath.at(k));
         }
@@ -379,14 +382,13 @@ unsigned int ompl::multilevel::BundleSpace::interpolateAlongBasePath(const std::
     return ctr;
 }
 
-void ompl::multilevel::BundleSpace::liftState(const base::State *xBase, const base::State *xFiber,
-                                              base::State *xBundle) const
+void BundleSpace::liftState(const base::State *xBase, const base::State *xFiber, base::State *xBundle) const
 {
     unsigned int M = components_.size();
 
     if (M > 1)
     {
-        for (uint m = 0; m < M; m++)
+        for (unsigned int m = 0; m < M; m++)
         {
             const base::State *xmBase = xBase->as<base::CompoundState>()->as<base::State>(m);
             const base::State *xmFiber = xFiber->as<base::CompoundState>()->as<base::State>(m);
@@ -417,13 +419,13 @@ void ompl::multilevel::BundleSpace::liftState(const base::State *xBase, const ba
 #endif
 }
 
-void ompl::multilevel::BundleSpace::projectFiber(const base::State *xBundle, base::State *xFiber) const
+void BundleSpace::projectFiber(const base::State *xBundle, base::State *xFiber) const
 {
     unsigned int M = components_.size();
 
     if (M > 1)
     {
-        for (uint m = 0; m < M; m++)
+        for (unsigned int m = 0; m < M; m++)
         {
             if (components_.at(m)->getFiberDimension() > 0)
             {
@@ -439,13 +441,13 @@ void ompl::multilevel::BundleSpace::projectFiber(const base::State *xBundle, bas
     }
 }
 
-void ompl::multilevel::BundleSpace::projectBase(const base::State *xBundle, base::State *xBase) const
+void BundleSpace::projectBase(const base::State *xBundle, base::State *xBase) const
 {
     unsigned int M = components_.size();
 
     if (M > 1)
     {
-        for (uint m = 0; m < M; m++)
+        for (unsigned int m = 0; m < M; m++)
         {
             if (components_.at(m)->getBaseDimension() > 0)
             {
@@ -461,7 +463,7 @@ void ompl::multilevel::BundleSpace::projectBase(const base::State *xBundle, base
     }
 }
 
-void ompl::multilevel::BundleSpace::allocIdentityState(base::State *s, base::StateSpacePtr space) const
+void BundleSpace::allocIdentityState(base::State *s, base::StateSpacePtr space) const
 {
     if (space->isCompound())
     {
@@ -504,7 +506,7 @@ void ompl::multilevel::BundleSpace::allocIdentityState(base::State *s, base::Sta
             case base::STATE_SPACE_REAL_VECTOR:
             {
                 base::RealVectorStateSpace::StateType *sRN = s->as<base::RealVectorStateSpace::StateType>();
-                for (uint k = 0; k < space->getDimension(); k++)
+                for (unsigned int k = 0; k < space->getDimension(); k++)
                 {
                     sRN->values[k] = 0;
                 }
@@ -519,7 +521,7 @@ void ompl::multilevel::BundleSpace::allocIdentityState(base::State *s, base::Sta
     }
 }
 
-ompl::base::State *ompl::multilevel::BundleSpace::allocIdentityState(base::StateSpacePtr space) const
+ompl::base::State *BundleSpace::allocIdentityState(base::StateSpacePtr space) const
 {
     if (space != nullptr)
     {
@@ -533,37 +535,37 @@ ompl::base::State *ompl::multilevel::BundleSpace::allocIdentityState(base::State
     }
 }
 
-ompl::base::State *ompl::multilevel::BundleSpace::allocIdentityStateFiber() const
+ompl::base::State *BundleSpace::allocIdentityStateFiber() const
 {
     return allocIdentityState(getFiber()->getStateSpace());
 }
 
-ompl::base::State *ompl::multilevel::BundleSpace::allocIdentityStateBundle() const
+ompl::base::State *BundleSpace::allocIdentityStateBundle() const
 {
     return allocIdentityState(getBundle()->getStateSpace());
 }
 
-ompl::base::State *ompl::multilevel::BundleSpace::allocIdentityStateBase() const
+ompl::base::State *BundleSpace::allocIdentityStateBase() const
 {
     return allocIdentityState(getBase()->getStateSpace());
 }
 
-const ompl::base::SpaceInformationPtr &ompl::multilevel::BundleSpace::getFiber() const
+const ompl::base::SpaceInformationPtr &BundleSpace::getFiber() const
 {
     return Fiber;
 }
 
-const ompl::base::SpaceInformationPtr &ompl::multilevel::BundleSpace::getBundle() const
+const ompl::base::SpaceInformationPtr &BundleSpace::getBundle() const
 {
     return Bundle;
 }
 
-const ompl::base::SpaceInformationPtr &ompl::multilevel::BundleSpace::getBase() const
+const ompl::base::SpaceInformationPtr &BundleSpace::getBase() const
 {
     return Base;
 }
 
-unsigned int ompl::multilevel::BundleSpace::getFiberDimension() const
+unsigned int BundleSpace::getFiberDimension() const
 {
     if (getFiber())
         return getFiber()->getStateDimension();
@@ -571,7 +573,7 @@ unsigned int ompl::multilevel::BundleSpace::getFiberDimension() const
         return 0;
 }
 
-unsigned int ompl::multilevel::BundleSpace::getBaseDimension() const
+unsigned int BundleSpace::getBaseDimension() const
 {
     if (getBase())
         return getBase()->getStateDimension();
@@ -579,27 +581,27 @@ unsigned int ompl::multilevel::BundleSpace::getBaseDimension() const
         return 0;
 }
 
-unsigned int ompl::multilevel::BundleSpace::getBundleDimension() const
+unsigned int BundleSpace::getBundleDimension() const
 {
     return getBundle()->getStateDimension();
 }
 
-const ompl::base::StateSamplerPtr &ompl::multilevel::BundleSpace::getFiberSamplerPtr() const
+const ompl::base::StateSamplerPtr &BundleSpace::getFiberSamplerPtr() const
 {
     return Fiber_sampler_;
 }
 
-const ompl::base::StateSamplerPtr &ompl::multilevel::BundleSpace::getBundleSamplerPtr() const
+const ompl::base::StateSamplerPtr &BundleSpace::getBundleSamplerPtr() const
 {
     return Bundle_sampler_;
 }
 
-bool ompl::multilevel::BundleSpace::isInfeasible()
+bool BundleSpace::isInfeasible()
 {
     return false;
 }
 
-bool ompl::multilevel::BundleSpace::hasSolution()
+bool BundleSpace::hasSolution()
 {
     if (!hasSolution_)
     {
@@ -609,47 +611,47 @@ bool ompl::multilevel::BundleSpace::hasSolution()
     return hasSolution_;
 }
 
-ompl::multilevel::BundleSpace *ompl::multilevel::BundleSpace::getParent() const
+BundleSpace *BundleSpace::getParent() const
 {
     return parent_;
 }
 
-ompl::multilevel::BundleSpace *ompl::multilevel::BundleSpace::getChild() const
+BundleSpace *BundleSpace::getChild() const
 {
     return child_;
 }
 
-void ompl::multilevel::BundleSpace::setChild(ompl::multilevel::BundleSpace *child)
+void BundleSpace::setChild(BundleSpace *child)
 {
     child_ = child;
 }
 
-void ompl::multilevel::BundleSpace::setParent(ompl::multilevel::BundleSpace *parent)
+void BundleSpace::setParent(BundleSpace *parent)
 {
     parent_ = parent;
 }
 
-unsigned int ompl::multilevel::BundleSpace::getLevel() const
+unsigned int BundleSpace::getLevel() const
 {
     return level_;
 }
 
-void ompl::multilevel::BundleSpace::setLevel(unsigned int level)
+void BundleSpace::setLevel(unsigned int level)
 {
     level_ = level;
 }
 
-ompl::base::OptimizationObjectivePtr ompl::multilevel::BundleSpace::getOptimizationObjectivePtr() const
+ompl::base::OptimizationObjectivePtr BundleSpace::getOptimizationObjectivePtr() const
 {
     return opt_;
 }
 
-void ompl::multilevel::BundleSpace::sampleFiber(base::State *xFiber)
+void BundleSpace::sampleFiber(base::State *xFiber)
 {
     Fiber_sampler_->sampleUniform(xFiber);
 }
 
-bool ompl::multilevel::BundleSpace::sampleBundleValid(base::State *xRandom)
+bool BundleSpace::sampleBundleValid(base::State *xRandom)
 {
     bool found = false;
 
@@ -663,7 +665,7 @@ bool ompl::multilevel::BundleSpace::sampleBundleValid(base::State *xRandom)
     return found;
 }
 
-void ompl::multilevel::BundleSpace::sampleBundle(base::State *xRandom)
+void BundleSpace::sampleBundle(base::State *xRandom)
 {
     if (!hasParent())
     {
@@ -685,7 +687,7 @@ void ompl::multilevel::BundleSpace::sampleBundle(base::State *xRandom)
     }
 }
 
-std::vector<int> ompl::multilevel::BundleSpace::getIndexLevel() const
+std::vector<int> BundleSpace::getIndexLevel() const
 {
     std::vector<int> idxPathI;
     BundleSpace *pparent = getParent();
@@ -698,7 +700,7 @@ std::vector<int> ompl::multilevel::BundleSpace::getIndexLevel() const
     return idxPathI;
 }
 
-void ompl::multilevel::BundleSpace::debugInvalidState(const base::State *x)
+void BundleSpace::debugInvalidState(const base::State *x)
 {
     const base::StateSpacePtr space = Bundle->getStateSpace();
     bool bounds = space->satisfiesBounds(x);
@@ -735,8 +737,8 @@ void ompl::multilevel::BundleSpace::debugInvalidState(const base::State *x)
                         double qkh = bh.at(k);
                         if (qk < qkl || qk > qkh)
                         {
-                            OMPL_ERROR("Out Of Bounds [component %d, link %d] %.2f <= %.2f <= %.2f",
-                                m, k, bl.at(k), qk, bh.at(k));
+                            OMPL_ERROR("Out Of Bounds [component %d, link %d] %.2f <= %.2f <= %.2f", m, k, bl.at(k), qk,
+                                       bh.at(k));
                         }
                     }
                     break;
@@ -772,14 +774,13 @@ void ompl::multilevel::BundleSpace::debugInvalidState(const base::State *x)
     }
 }
 
-void ompl::multilevel::BundleSpace::print(std::ostream &out) const
+void BundleSpace::print(std::ostream &out) const
 {
     unsigned int M = components_.size();
     out << "[";
     for (unsigned int m = 0; m < M; m++)
     {
-        out << components_.at(m)->getTypeAsString()
-            << (isDynamic_ ? "(dyn)" : "") << (m < M - 1 ? " | " : "");
+        out << components_.at(m)->getTypeAsString() << (isDynamic_ ? "(dyn)" : "") << (m < M - 1 ? " | " : "");
     }
     out << "]";
 }

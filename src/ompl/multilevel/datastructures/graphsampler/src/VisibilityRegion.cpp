@@ -40,13 +40,12 @@
 
 using namespace ompl::multilevel;
 
-BundleSpaceGraphSamplerVisibilityRegion::BundleSpaceGraphSamplerVisibilityRegion(
-    BundleSpaceGraph *bundleSpaceGraph)
+BundleSpaceGraphSamplerVisibilityRegion::BundleSpaceGraphSamplerVisibilityRegion(BundleSpaceGraph *bundleSpaceGraph)
   : BaseT(bundleSpaceGraph)
 {
     epsilonGraphThickening_ = 0;
-    bundleSpaceGraphSparse_ = dynamic_cast<BundleSpaceGraphSparse*>(bundleSpaceGraph);
-    if(bundleSpaceGraphSparse_ == nullptr)
+    bundleSpaceGraphSparse_ = dynamic_cast<BundleSpaceGraphSparse *>(bundleSpaceGraph);
+    if (bundleSpaceGraphSparse_ == nullptr)
     {
         OMPL_ERROR("Visibility Region Sampler only valid with sparse graph.");
         throw ompl::Exception("Invalid Sampler");

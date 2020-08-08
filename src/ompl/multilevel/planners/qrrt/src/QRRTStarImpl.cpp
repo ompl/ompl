@@ -252,7 +252,7 @@ void ompl::multilevel::QRRTStarImpl::grow()
             }
             else
             {
-                for (uint k = 0; k < goalConfigurations_.size(); k++)
+                for (unsigned int k = 0; k < goalConfigurations_.size(); k++)
                 {
                     Configuration *qk = goalConfigurations_.at(k);
 

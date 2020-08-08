@@ -281,7 +281,7 @@ void ompl::multilevel::BundleSpaceGraph::deleteConfiguration(Configuration *q)
         {
             getBundle()->freeState(q->state);
         }
-        for (uint k = 0; k < q->reachableSet.size(); k++)
+        for (unsigned int k = 0; k < q->reachableSet.size(); k++)
         {
             Configuration *qk = q->reachableSet.at(k);
             if (qk->state != nullptr)
@@ -645,7 +645,7 @@ bool ompl::multilevel::BundleSpaceGraph::getSolution(base::PathPtr &solution)
                 //     base::CompoundStateSpace *Bundle_compound =
                 //       getBundle()->getStateSpace()->as<base::CompoundStateSpace>();
                 //     Bundle_decomposed = Bundle_compound->getSubspaces();
-                //     for(uint k = 0; k < Bundle_decomposed.size(); k++)
+                //     for(unsigned int k = 0; k < Bundle_decomposed.size(); k++)
                 //     {
                 //       int tk = Bundle_decomposed.at(k)->getType();
                 //       if(tk == base::STATE_SPACE_DUBINS || tk == base::STATE_SPACE_DUBINS_AIRPLANE)
@@ -850,7 +850,7 @@ void ompl::multilevel::BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &
             std::vector<base::State *> gstates = gpath.getStates();
 
             multilevel::PlannerDataVertexAnnotated *pLast = &pstart;
-            for (uint k = 1; k < gstates.size() - 1; k++)
+            for (unsigned int k = 1; k < gstates.size() - 1; k++)
             {
                 multilevel::PlannerDataVertexAnnotated p(gstates.at(k));
                 p.setPath(idxPathI);
