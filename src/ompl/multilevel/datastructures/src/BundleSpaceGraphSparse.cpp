@@ -36,7 +36,7 @@
 
 /* Author: Andreas Orthey, Sohaib Akbar */
 
-#include "BundleSpaceGraphGoalVisitor.hpp"
+#include <ompl/multilevel/datastructures/src/BundleSpaceGraphGoalVisitor.hpp>
 #include <ompl/multilevel/datastructures/BundleSpaceGraphSparse.h>
 #include <ompl/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/multilevel/datastructures/graphsampler/VisibilityRegion.h>
@@ -187,7 +187,8 @@ PathPtr BundleSpaceGraphSparse::getPathSparse(const Vertex &start, const Vertex 
                                     return opt_->combineCosts(c1.getCost(), c2.getCost());
                                 })
                                 .distance_inf(opt_->infiniteCost())
-                                .distance_zero(opt_->identityCost()));
+                                .distance_zero(opt_->identityCost())
+                                .visitor(BundleSpaceGraphGoalVisitor<Vertex>(goal)));
     }
     catch (BundleSpaceGraphFoundGoal &)
     {
