@@ -1,0 +1,36 @@
+#ifndef OMPL_MULTILEVEL_PLANNERS_EXPLORER_PLANNER_MULTILEVELEXPLORER_
+#define OMPL_MULTILEVEL_PLANNERS_EXPLORER_PLANNER_MULTILEVELEXPLORER_
+#include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
+#include <ompl/multilevel/datastructures/BundleSpaceGraphSparse.h>
+
+#include <ompl/multilevel/datastructures/PlannerMultiLevel.h>
+#include <ompl/multilevel/planners/explorer/datastructures/PathSpace.h>
+#include <type_traits>
+#include <queue>
+
+namespace ompl
+{
+    namespace multilevel
+    {
+        OMPL_CLASS_FORWARD(LocalMinimaTree);
+
+        template <class T>
+        class PlannerMultiLevelExplorer : public PlannerMultiLevel
+        {
+            using BaseT = ompl::multilevel::PlannerMultiLevel;
+        public:
+            PlannerMultiLevelExplorer(std::vector<base::SpaceInformationPtr> &siVec, 
+                std::string type = "PlannerMultiLevelExplorer");
+            virtual ~PlannerMultiLevelExplorer() override;
+
+            LocalMinimaTreePtr& getLocalMinimaTree();
+
+        protected:
+            LocalMinimaTreePtr localMinimaTree_;
+        };
+    }
+}
+
+#include "MultiLevelPathSpaceImpl.h"
+#endif
+

@@ -1,0 +1,7 @@
+[ ] Add function getLocalMinimaTree() to explorer (make corresponding changes in GUI)
+[ ] Incorporate optimizer
+[ ] Return control in PlannerData
+
+[ ] Anytime thread-based (plus exhaustive mode)
+
+[ ] Every non-const function of LMT should be mutexed
