@@ -14,7 +14,7 @@ There are currently three provided representations of constrained state spaces, 
 - `ompl::base::AtlasStateSpace`, a constrained state space that, while planning, builds a piecewise linear approximation of \f$X\f$ using tangent spaces. This approximation is called an _atlas_, and is used to guide planning.
 - `ompl::base::TangentBundleStateSpace`, a constrained state space similar to `ompl::base::AtlasStateSpace`, but lazily evaluates the atlas.
 
-Each of these state spaces has their own documentation that can be viewed on their page. The augmented state space approach taken by OMPL was presented in [a 2019 paper in the International Journal of Robotics Research](https://www.kavrakilab.org/publications/kingston2019exploring-implicit-spaces-for-constrained.pdf). More information about constrained motion planning is presented in [this review paper](https://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf).
+Each of these state spaces has their own documentation that can be viewed on their page. The augmented state space approach taken by OMPL was presented in [a 2019 paper in the International Journal of Robotics Research](https://www.kavrakilab.org/publications/kingston2019exploring-implicit-spaces-for-constrained.pdf). More information about constrained motion planning is presented in [this review paper](http://kavrakilab.org/publications/kingston2018sampling-based-methods-for-motion-planning.pdf).
 
 You can view an example of how to use the constrained planning framework in [this tutorial](constrainedPlanningTutorial.html)!
 
