@@ -124,7 +124,7 @@ void ompl::multilevel::QRRTStarImpl::grow()
         // (3) Rewire Tree
         base::Cost cost_nearest = q_new->cost;
 
-        int validNeighbor[nearestNbh.size()];
+        std::vector<int> validNeighbor(nearestNbh.size(), 0);
 
         // store the connection cost for later use, if space is symmetric
         std::vector<ompl::base::Cost> lineCosts;
@@ -140,14 +140,14 @@ void ompl::multilevel::QRRTStarImpl::grow()
 
             if (q_near == q_nearest)
             {
-                validNeighbor[i] = 1;
+                validNeighbor.at(i) = 1;
                 if (symmetric_)
                 {
                     lineCosts[i] = cost_nearest;
                 }
                 continue;
             }
-            validNeighbor[i] = 0;
+            validNeighbor.at(i) = 0;
 
             ompl::base::Cost line_cost = opt_->motionCost(q_near->state, q_new->state);
             ompl::base::Cost new_cost = opt_->combineCosts(q_near->cost, line_cost);
@@ -165,10 +165,10 @@ void ompl::multilevel::QRRTStarImpl::grow()
                     q_new->lineCost = line_cost;
                     q_new->cost = new_cost;
                     q_new->parent = q_near;
-                    validNeighbor[i] = 1;
+                    validNeighbor.at(i) = 1;
                 }
                 else
-                    validNeighbor[i] = -1;
+                    validNeighbor.at(i) = -1;
             }
         }
         //(4) Connect to minimum cost neighbor
@@ -200,9 +200,9 @@ void ompl::multilevel::QRRTStarImpl::grow()
                 // pathway)
                 if (opt_->isCostBetterThan(new_cost, q_near->cost))
                 {
-                    bool valid = (validNeighbor[i] == 1);
+                    bool valid = (validNeighbor.at(i) == 1);
                     // check neighbor validity if it wasn´t checked before
-                    if (validNeighbor[i] == 0)
+                    if (validNeighbor.at(i) == 0)
                     {
                         valid = ((!useKNearest_ || distance(q_near, q_new) < maxDistance_) &&
                                  getBundle()->checkMotion(q_new->state, q_near->state));
@@ -252,7 +252,7 @@ void ompl::multilevel::QRRTStarImpl::grow()
             }
             else
             {
-                for (uint k = 0; k < goalConfigurations_.size(); k++)
+                for (unsigned int k = 0; k < goalConfigurations_.size(); k++)
                 {
                     Configuration *qk = goalConfigurations_.at(k);
 

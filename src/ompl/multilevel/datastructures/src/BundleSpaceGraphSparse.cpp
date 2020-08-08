@@ -36,7 +36,7 @@
 
 /* Author: Andreas Orthey, Sohaib Akbar */
 
-#include "BundleSpaceGraphGoalVisitor.hpp"
+#include <ompl/multilevel/datastructures/src/BundleSpaceGraphGoalVisitor.hpp>
 #include <ompl/multilevel/datastructures/BundleSpaceGraphSparse.h>
 #include <ompl/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/multilevel/datastructures/graphsampler/VisibilityRegion.h>
@@ -60,9 +60,10 @@
 
 #define foreach BOOST_FOREACH
 
+using namespace ompl::base;
 using namespace ompl::multilevel;
 
-BundleSpaceGraphSparse::BundleSpaceGraphSparse(const base::SpaceInformationPtr &si, BundleSpace *parent)
+BundleSpaceGraphSparse::BundleSpaceGraphSparse(const SpaceInformationPtr &si, BundleSpace *parent)
   : BaseT(si, parent), geomPath_(si)
 {
     setName("BundleSpaceGraphSparse");
@@ -74,7 +75,7 @@ BundleSpaceGraphSparse::BundleSpaceGraphSparse(const base::SpaceInformationPtr &
     {
         setup();
     }
-    psimp_ = std::make_shared<geometric::PathSimplifier>(getBundle());
+    psimp_ = std::make_shared<ompl::geometric::PathSimplifier>(getBundle());
     psimp_->freeStates(false);
 
     setGraphSampler("visibilityregion");
@@ -154,8 +155,7 @@ unsigned int BundleSpaceGraphSparse::getNumberOfEdges() const
     return num_edges(graphSparse_);
 }
 
-const BundleSpaceGraph::Configuration *
-BundleSpaceGraphSparse::nearest(const Configuration *q) const
+const BundleSpaceGraph::Configuration *BundleSpaceGraphSparse::nearest(const Configuration *q) const
 {
     if (!isDynamic())
         return BaseT::nearest(q);
@@ -165,12 +165,12 @@ BundleSpaceGraphSparse::nearest(const Configuration *q) const
     }
 }
 
-ompl::base::Cost BundleSpaceGraphSparse::costHeuristicSparse(Vertex u, Vertex v) const
+Cost BundleSpaceGraphSparse::costHeuristicSparse(Vertex u, Vertex v) const
 {
     return opt_->motionCostHeuristic(graphSparse_[u]->state, graphSparse_[v]->state);
 }
 
-ompl::base::PathPtr BundleSpaceGraphSparse::getPathSparse(const Vertex &start, const Vertex &goal)
+PathPtr BundleSpaceGraphSparse::getPathSparse(const Vertex &start, const Vertex &goal)
 {
     std::vector<Vertex> prev(boost::num_vertices(graphSparse_));
     auto weight = boost::make_transform_value_property_map(std::mem_fn(&EdgeInternalState::getCost),
@@ -187,13 +187,14 @@ ompl::base::PathPtr BundleSpaceGraphSparse::getPathSparse(const Vertex &start, c
                                     return opt_->combineCosts(c1.getCost(), c2.getCost());
                                 })
                                 .distance_inf(opt_->infiniteCost())
-                                .distance_zero(opt_->identityCost()));
+                                .distance_zero(opt_->identityCost())
+                                .visitor(BundleSpaceGraphGoalVisitor<Vertex>(goal)));
     }
     catch (BundleSpaceGraphFoundGoal &)
     {
     }
 
-    auto p(std::make_shared<geometric::PathGeometric>(getBundle()));
+    auto p(std::make_shared<ompl::geometric::PathGeometric>(getBundle()));
     if (prev[goal] == goal)
     {
         return nullptr;
@@ -261,12 +262,13 @@ BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfigurationCondition
             {
                 if (!hasChild())
                 {
-                    //optimality only on last level
+                    // optimality only on last level
                     if (!checkAddPath(q))
                     {
                         ++consecutiveFailures_;
                     }
-                }else
+                }
+                else
                 {
                     ++consecutiveFailures_;
                 }
@@ -311,7 +313,7 @@ void BundleSpaceGraphSparse::findGraphNeighbors(Configuration *q, std::vector<Co
 
 void BundleSpaceGraphSparse::addEdge(const Vertex a, const Vertex b)
 {
-    base::Cost weight = opt_->motionCost(graphSparse_[a]->state, graphSparse_[b]->state);
+    Cost weight = opt_->motionCost(graphSparse_[a]->state, graphSparse_[b]->state);
     EdgeInternalState properties(weight);
     boost::add_edge(a, b, properties, graphSparse_);
     uniteComponentsSparse(a, b);
@@ -371,10 +373,8 @@ bool BundleSpaceGraphSparse::checkAddConnectivity(Configuration *q, std::vector<
     return false;
 }
 
-bool BundleSpaceGraphSparse::checkAddInterface(
-    Configuration *q, 
-    std::vector<Configuration *> &graphNeighborhood,
-    std::vector<Configuration *> &visibleNeighborhood)
+bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q, std::vector<Configuration *> &graphNeighborhood,
+                                               std::vector<Configuration *> &visibleNeighborhood)
 {
     // Pairs of nodes that share an interface to also be connected with an edge
     // If we have more than 1 or 0 neighbors
@@ -458,7 +458,7 @@ bool BundleSpaceGraphSparse::checkAddPath(Configuration *q)
                     s_max = dist;
             }
 
-            std::deque<base::State *> bestDPath;  // DensePath
+            std::deque<State *> bestDPath;  // DensePath
             Vertex best_qpp = boost::graph_traits<Graph>::null_vertex();
             double d_min = std::numeric_limits<double>::infinity();  // Insanely big number
             // For each vpp in vpps
@@ -484,13 +484,13 @@ bool BundleSpaceGraphSparse::checkAddPath(Configuration *q)
                         else
                         {
                             // Compute/Retain MINimum distance path on D through q, q"
-                            std::deque<base::State *> dPath;  // DensePath
+                            std::deque<State *> dPath;  // DensePath
                             computeDensePath(q->index, qpp, dPath);
                             if (!dPath.empty())
                             {
                                 // compute path length
                                 double length = 0.0;
-                                std::deque<base::State *>::const_iterator jt = dPath.begin();
+                                std::deque<State *>::const_iterator jt = dPath.begin();
                                 for (auto it = jt + 1; it != dPath.end(); ++it)
                                 {
                                     length += getBundle()->distance(*jt, *it);
@@ -575,7 +575,7 @@ void BundleSpaceGraphSparse::updateRepresentatives(Configuration *q)
 }
 
 void BundleSpaceGraphSparse::addToRepresentatives(Vertex q, Vertex rep,
-                                                                    const std::set<Vertex> &interfaceRepresentatives)
+                                                  const std::set<Vertex> &interfaceRepresentatives)
 {
     // If this node supports no interfaces
     if (interfaceRepresentatives.empty())
@@ -609,8 +609,8 @@ void BundleSpaceGraphSparse::addToRepresentatives(Vertex q, Vertex rep,
     }
 }
 
-void BundleSpaceGraphSparse::getInterfaceNeighborRepresentatives(
-    Configuration *q, std::set<Vertex> &interfaceRepresentatives)
+void BundleSpaceGraphSparse::getInterfaceNeighborRepresentatives(Configuration *q,
+                                                                 std::set<Vertex> &interfaceRepresentatives)
 {
     interfaceRepresentatives.clear();
 
@@ -650,8 +650,7 @@ void BundleSpaceGraphSparse::removeFromRepresentatives(Configuration *q)
     }
 }
 
-void BundleSpaceGraphSparse::getInterfaceNeighborhood(Configuration *q,
-                                                                        std::vector<Vertex> &interfaceNeighborhood)
+void BundleSpaceGraphSparse::getInterfaceNeighborhood(Configuration *q, std::vector<Vertex> &interfaceNeighborhood)
 {
     interfaceNeighborhood.clear();
 
@@ -697,8 +696,7 @@ void BundleSpaceGraphSparse::computeX(Vertex v, Vertex vp, Vertex vpp, std::vect
     Xs.push_back(vpp);
 }
 
-BundleSpaceGraph::Vertex BundleSpaceGraphSparse::getInterfaceNeighbor(Vertex q,
-                                                                                                          Vertex rep)
+BundleSpaceGraph::Vertex BundleSpaceGraphSparse::getInterfaceNeighbor(Vertex q, Vertex rep)
 {
     foreach (Vertex vp, boost::adjacent_vertices(q, graph_))
         if (/*representativesProperty_[vp]*/ graph_[vp]->representativeIndex == (int)rep)
@@ -707,20 +705,21 @@ BundleSpaceGraph::Vertex BundleSpaceGraphSparse::getInterfaceNeighbor(Vertex q,
     throw Exception(name_, "Vertex has no interface neighbor with given representative");
 }
 
-void BundleSpaceGraphSparse::computeDensePath(const Vertex &start, const Vertex &goal,
-                                                                std::deque<base::State *> &path)
+void BundleSpaceGraphSparse::computeDensePath(
+    const Vertex &start, const Vertex &goal, std::deque<State *> &path)
 {
     path.clear();
     // BaseT::getPathDenseGraphPath(start, goal, graph_, path);
 
-    ompl::base::PathPtr dpath = BaseT::getPath(start, goal, graph_);
-    std::vector<base::State *> states = std::static_pointer_cast<geometric::PathGeometric>(dpath)->getStates();
+    PathPtr dpath = BaseT::getPath(start, goal, graph_);
+    std::vector<State *> states = 
+      std::static_pointer_cast<ompl::geometric::PathGeometric>(dpath)->getStates();
 
     std::move(begin(states), end(states), back_inserter(path));
 }
 
-bool BundleSpaceGraphSparse::addPathToSpanner(const std::deque<base::State *> &dense_path, Vertex vp,
-                                                                Vertex vpp)
+bool BundleSpaceGraphSparse::addPathToSpanner(
+    const std::deque<State *> &dense_path, Vertex vp, Vertex vpp)
 {
     // First, check to see that the path has length
     if (dense_path.size() <= 1)
@@ -775,7 +774,7 @@ bool BundleSpaceGraphSparse::hasSparseGraphChanged()
     return false;
 }
 
-void BundleSpaceGraphSparse::getPlannerDataRoadmap(base::PlannerData &data, std::vector<int> pathIdx) const
+void BundleSpaceGraphSparse::getPlannerDataRoadmap(PlannerData &data, std::vector<int> pathIdx) const
 {
     foreach (const Vertex v, boost::vertices(graphSparse_))
     {
@@ -803,7 +802,7 @@ void BundleSpaceGraphSparse::print(std::ostream &out) const
         << boost::num_edges(graphSparse_) << " edges.]" << std::endl;
 }
 
-bool BundleSpaceGraphSparse::getSolution(base::PathPtr &solution)
+bool BundleSpaceGraphSparse::getSolution(PathPtr &solution)
 {
     if (hasSolution_)
     {
@@ -812,7 +811,7 @@ bool BundleSpaceGraphSparse::getSolution(base::PathPtr &solution)
         solution = solutionPath_;
 
         lengthStartGoalVertexPath_ = 0;
-        for (uint k = 1; k < startGoalVertexPath_.size(); k++)
+        for (unsigned int k = 1; k < startGoalVertexPath_.size(); k++)
         {
             Configuration *xk = graphSparse_[startGoalVertexPath_.at(k)];
             Configuration *xkk = graphSparse_[startGoalVertexPath_.at(k - 1)];
@@ -825,8 +824,8 @@ bool BundleSpaceGraphSparse::getSolution(base::PathPtr &solution)
     else
     {
         return false;
-        // base::Goal *g = pdef_->getGoal().get();
-        // bestCost_ = base::Cost(+base::dInf);
+        // Goal *g = pdef_->getGoal().get();
+        // bestCost_ = Cost(+dInf);
         // bool same_component = sameComponentSparse(v_start_sparse, v_goal_sparse);
         // std::cout << v_start_sparse << std::endl;
         // std::cout << v_goal_sparse << std::endl;
@@ -843,7 +842,7 @@ bool BundleSpaceGraphSparse::getSolution(base::PathPtr &solution)
         //         startGoalVertexPath_ = shortestVertexPath_;
 
         //         lengthStartGoalVertexPath_ = 0;
-        //         for (uint k = 1; k < startGoalVertexPath_.size(); k++)
+        //         for (unsigned int k = 1; k < startGoalVertexPath_.size(); k++)
         //         {
         //             Configuration *xk = graphSparse_[startGoalVertexPath_.at(k)];
         //             Configuration *xkk = graphSparse_[startGoalVertexPath_.at(k - 1)];
@@ -858,14 +857,11 @@ bool BundleSpaceGraphSparse::getSolution(base::PathPtr &solution)
     return false;
 }
 
-void BundleSpaceGraphSparse::getPlannerData(base::PlannerData &data) const
+void BundleSpaceGraphSparse::getPlannerData(PlannerData &data) const
 {
-    OMPL_DEBUG("Sparse Graph (level %d) has %d/%d vertices/edges (Dense has %d/%d).", 
-        getLevel(), 
-        boost::num_vertices(graphSparse_), 
-        boost::num_edges(graphSparse_), 
-        boost::num_vertices(graph_), 
-        boost::num_edges(graph_));
+    OMPL_DEBUG("Sparse Graph (level %d) has %d/%d vertices/edges (Dense has %d/%d).", getLevel(),
+               boost::num_vertices(graphSparse_), boost::num_edges(graphSparse_), boost::num_vertices(graph_),
+               boost::num_edges(graph_));
 
     if (boost::num_vertices(graphSparse_) > 1)
     {

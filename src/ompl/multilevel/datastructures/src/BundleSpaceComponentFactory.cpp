@@ -350,7 +350,7 @@ bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_Identity(const bas
 
             if (Bundle_decomposed.size() == Base_decomposed.size())
             {
-                for (uint k = 0; k < Bundle_decomposed.size(); k++)
+                for (unsigned int k = 0; k < Bundle_decomposed.size(); k++)
                 {
                     if (!isMapping_Identity(Bundle_decomposed.at(k), Base_decomposed.at(k)))
                     {
@@ -642,7 +642,7 @@ int ompl::multilevel::BundleSpaceComponentFactory::GetNumberOfComponents(base::S
             int type = space->getType();
 
             if ((type == base::STATE_SPACE_SE2) || (type == base::STATE_SPACE_SE3) ||
-                (type == base::STATE_SPACE_DUBINS))// || (type == base::STATE_SPACE_DUBINS_AIRPLANE))
+                (type == base::STATE_SPACE_DUBINS))  // || (type == base::STATE_SPACE_DUBINS_AIRPLANE))
             {
                 nrComponents = 1;
             }

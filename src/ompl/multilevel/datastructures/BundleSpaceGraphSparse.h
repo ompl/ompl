@@ -66,7 +66,7 @@ namespace ompl
             BundleSpaceGraphSparse(const base::SpaceInformationPtr &si, BundleSpace *parent = nullptr);
             virtual ~BundleSpaceGraphSparse() override;
 
-            virtual void grow() = 0;
+            virtual void grow() override = 0;
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
 
             virtual void getPlannerData(base::PlannerData &data) const override;
@@ -79,8 +79,8 @@ namespace ompl
 
             virtual void addEdge(const Vertex a, const Vertex b) override;
 
-            virtual unsigned int getNumberOfVertices() const;
-            virtual unsigned int getNumberOfEdges() const;
+            virtual unsigned int getNumberOfVertices() const override;
+            virtual unsigned int getNumberOfEdges() const override;
 
             virtual void setGraphSampler(const std::string &sGraphSampler) override;
 
@@ -118,7 +118,7 @@ namespace ompl
             virtual void print(std::ostream &out) const override;
             bool hasSparseGraphChanged();
 
-            virtual const Configuration *nearest(const Configuration *s) const;
+            virtual const Configuration *nearest(const Configuration *s) const override;
 
             double getSparseDelta() const
             {

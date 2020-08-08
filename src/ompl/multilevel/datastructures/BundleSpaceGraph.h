@@ -197,7 +197,7 @@ namespace ompl
             virtual unsigned int getNumberOfVertices() const;
             virtual unsigned int getNumberOfEdges() const;
 
-            virtual void grow() = 0;
+            virtual void grow() override = 0;
             virtual void sampleFromDatastructure(ompl::base::State *) override;
             virtual void sampleBundleGoalBias(ompl::base::State *xRandom);
 

@@ -39,21 +39,21 @@
 #include <ompl/multilevel/datastructures/graphsampler/VisibilityRegion.h>
 
 using namespace ompl::multilevel;
+using namespace ompl::base;
 
-BundleSpaceGraphSamplerVisibilityRegion::BundleSpaceGraphSamplerVisibilityRegion(
-    BundleSpaceGraph *bundleSpaceGraph)
+BundleSpaceGraphSamplerVisibilityRegion::BundleSpaceGraphSamplerVisibilityRegion(BundleSpaceGraph *bundleSpaceGraph)
   : BaseT(bundleSpaceGraph)
 {
     epsilonGraphThickening_ = 0;
-    bundleSpaceGraphSparse_ = dynamic_cast<BundleSpaceGraphSparse*>(bundleSpaceGraph);
-    if(bundleSpaceGraphSparse_ == nullptr)
+    bundleSpaceGraphSparse_ = dynamic_cast<BundleSpaceGraphSparse *>(bundleSpaceGraph);
+    if (bundleSpaceGraphSparse_ == nullptr)
     {
         OMPL_ERROR("Visibility Region Sampler only valid with sparse graph.");
         throw ompl::Exception("Invalid Sampler");
     }
 }
 
-void BundleSpaceGraphSamplerVisibilityRegion::sampleImplementation(base::State *xRandom)
+void BundleSpaceGraphSamplerVisibilityRegion::sampleImplementation(State *xRandom)
 {
     const BundleSpaceGraph::Graph &graph = bundleSpaceGraphSparse_->getGraph();
     const Vertex v = boost::random_vertex(graph, rng_boost);

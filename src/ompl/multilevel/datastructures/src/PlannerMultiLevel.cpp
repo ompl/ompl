@@ -53,7 +53,7 @@ void ompl::multilevel::PlannerMultiLevel::clear()
     BaseT::clear();
     solutions_.clear();
     pdef_->clearSolutionPaths();
-    for (uint k = 0; k < pdefVec_.size(); k++)
+    for (unsigned int k = 0; k < pdefVec_.size(); k++)
     {
         pdefVec_.at(k)->clearSolutionPaths();
     }
