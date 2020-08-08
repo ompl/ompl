@@ -234,7 +234,8 @@ void BundleSpace::sanityChecks() const
 
 void BundleSpace::checkBundleSpaceMeasure(std::string name, const StateSpacePtr space) const
 {
-    OMPL_DEVMSG1("%s dimension: %d measure: %f", name, space->getDimension(), space->getMeasure());
+    OMPL_DEVMSG1("%s dimension: %d measure: %f", 
+        name.c_str(), space->getDimension(), space->getMeasure());
     if ((space->getMeasure() >= std::numeric_limits<double>::infinity()))
     {
         throw Exception("Space infinite measure.");
