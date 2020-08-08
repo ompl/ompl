@@ -131,9 +131,6 @@ void ompl::multilevel::BundleSpaceSequence<T>::clear()
         priorityQueue_.pop();
 
     foundKLevelSolution_ = false;
-
-    // solutions_.clear();
-    pdef_->clearSolutionPaths();
 }
 
 template <class T>

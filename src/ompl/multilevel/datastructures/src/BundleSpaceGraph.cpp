@@ -108,7 +108,7 @@ ompl::multilevel::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformatio
 
     if (!isSetup())
     {
-        setup();
+        this->setup();
     }
 
     ompl::base::OptimizationObjectivePtr lengthObj =
@@ -289,6 +289,10 @@ void ompl::multilevel::BundleSpaceGraph::deleteConfiguration(Configuration *q)
                 getBundle()->freeState(qk->state);
             }
         }
+        for (unsigned int k = 0; k < q->children.size(); k++)
+        {
+            deleteConfiguration(q->children.at(k));
+        }
         if (isDynamic())
         {
             const ompl::control::SpaceInformationPtr siC =
@@ -299,6 +303,7 @@ void ompl::multilevel::BundleSpaceGraph::deleteConfiguration(Configuration *q)
 
         delete q;
         q = nullptr;
+
     }
 }
 

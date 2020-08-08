@@ -60,8 +60,8 @@ using namespace ompl::multilevel;
 
 unsigned int BundleSpace::counter_ = 0;
 
-BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, BundleSpace *parent_)
-  : base::Planner(si, "BundleSpace"), Bundle(si), parent_(parent_)
+BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *parent_)
+  : Planner(si, "BundleSpace"), Bundle(si), parent_(parent_)
 {
     id_ = counter_++;
 
@@ -69,7 +69,7 @@ BundleSpace::BundleSpace(const base::SpaceInformationPtr &si, BundleSpace *paren
     // Check for dynamic spaces
     //############################################################################
 
-    ompl::control::SpaceInformation *siC = dynamic_cast<ompl::control::SpaceInformation *>(getBundle().get());
+    control::SpaceInformation *siC = dynamic_cast<control::SpaceInformation *>(getBundle().get());
     if (siC == nullptr)
     {
         isDynamic_ = false;
@@ -183,15 +183,15 @@ void BundleSpace::clear()
 
 void BundleSpace::MakeFiberSpace()
 {
-    base::StateSpacePtr Fiber_space = nullptr;
+    StateSpacePtr Fiber_space = nullptr;
     if (components_.size() > 1)
     {
-        Fiber_space = std::make_shared<base::CompoundStateSpace>();
+        Fiber_space = std::make_shared<CompoundStateSpace>();
         for (unsigned int m = 0; m < components_.size(); m++)
         {
-            base::StateSpacePtr FiberM = components_.at(m)->getFiberSpace();
+            StateSpacePtr FiberM = components_.at(m)->getFiberSpace();
             double weight = (FiberM->getDimension() > 0 ? 1.0 : 0.0);
-            std::static_pointer_cast<base::CompoundStateSpace>(Fiber_space)->addSubspace(FiberM, weight);
+            std::static_pointer_cast<CompoundStateSpace>(Fiber_space)->addSubspace(FiberM, weight);
         }
     }
     else
@@ -201,24 +201,24 @@ void BundleSpace::MakeFiberSpace()
 
     if (Fiber_space != nullptr)
     {
-        Fiber = std::make_shared<base::SpaceInformation>(Fiber_space);
+        Fiber = std::make_shared<SpaceInformation>(Fiber_space);
         Fiber_sampler_ = Fiber->allocStateSampler();
     }
 }
 
 void BundleSpace::sanityChecks() const
 {
-    const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
+    const StateSpacePtr Bundle_space = Bundle->getStateSpace();
     checkBundleSpaceMeasure("Bundle", Bundle_space);
 
     if (Base != nullptr)
     {
-        const base::StateSpacePtr Base_space = Base->getStateSpace();
+        const StateSpacePtr Base_space = Base->getStateSpace();
         checkBundleSpaceMeasure("Base", Base_space);
     }
     if (Fiber != nullptr)
     {
-        const base::StateSpacePtr Fiber_space = Fiber->getStateSpace();
+        const StateSpacePtr Fiber_space = Fiber->getStateSpace();
         checkBundleSpaceMeasure("Fiber", Fiber_space);
     }
     if (hasParent())
@@ -227,32 +227,32 @@ void BundleSpace::sanityChecks() const
         {
             OMPL_ERROR("Dimensions %d (Base) + %d (Fiber) != %d (Bundle)", getBaseDimension(), getFiberDimension(),
                        getBundleDimension());
-            throw ompl::Exception("BundleSpace Dimensions are wrong.");
+            throw Exception("BundleSpace Dimensions are wrong.");
         }
     }
 }
 
-void BundleSpace::checkBundleSpaceMeasure(std::string name, const base::StateSpacePtr space) const
+void BundleSpace::checkBundleSpaceMeasure(std::string name, const StateSpacePtr space) const
 {
     OMPL_DEVMSG1("%s dimension: %d measure: %f", name, space->getDimension(), space->getMeasure());
     if ((space->getMeasure() >= std::numeric_limits<double>::infinity()))
     {
-        throw ompl::Exception("Space infinite measure.");
+        throw Exception("Space infinite measure.");
     }
 
     // if(space->getMeasure() <= 0)
     // {
-    //     throw ompl::Exception("Space has zero measure.");
+    //     throw Exception("Space has zero measure.");
     // }
 }
 
-ompl::base::PlannerStatus BundleSpace::solve(const base::PlannerTerminationCondition &)
+PlannerStatus BundleSpace::solve(const PlannerTerminationCondition &)
 {
-    throw ompl::Exception("A Bundle-Space cannot be solved alone. \
+    throw Exception("A Bundle-Space cannot be solved alone. \
         Use class BundleSpaceSequence to solve Bundle-Spaces.");
 }
 
-void BundleSpace::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
+void BundleSpace::setProblemDefinition(const ProblemDefinitionPtr &pdef)
 {
     BaseT::setProblemDefinition(pdef);
 
@@ -262,8 +262,8 @@ void BundleSpace::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
     }
     else
     {
-        opt_ = std::make_shared<base::PathLengthOptimizationObjective>(getBundle());
-        opt_->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
+        opt_ = std::make_shared<PathLengthOptimizationObjective>(getBundle());
+        opt_->setCostThreshold(Cost(std::numeric_limits<double>::infinity()));
     }
 }
 
@@ -273,10 +273,10 @@ void BundleSpace::resetCounter()
 }
 
 // void BundleSpace::liftPath(
-//       const std::vector<base::State*> pathBase,
-//       const base::State* xFiberStart,
-//       const base::State* xFiberGoal,
-//       std::vector<base::State*> &pathBundle) const
+//       const std::vector<State*> pathBase,
+//       const State* xFiberStart,
+//       const State* xFiberGoal,
+//       std::vector<State*> &pathBundle) const
 // {
 //     if(pathBase.size() != pathBundle.size())
 //     {
@@ -296,7 +296,7 @@ void BundleSpace::resetCounter()
 
 //         double lengthCurrent = 0;
 
-//         base::State *xFiberCur = getFiber()->allocState();
+//         State *xFiberCur = getFiber()->allocState();
 
 //         for(unsigned int k = 0; k < pathBase.size(); k++)
 //         {
@@ -319,8 +319,10 @@ void BundleSpace::resetCounter()
 //     }
 // }
 
-unsigned int BundleSpace::interpolateAlongBasePath(const std::vector<base::State *> basePath, double location,
-                                                   base::State *xResult) const
+unsigned int BundleSpace::interpolateAlongBasePath(
+    const std::vector<State *> basePath, 
+    double location, 
+    State *xResult) const
 {
     double d_path = 0;
     for (unsigned int k = 0; k < basePath.size() - 1; k++)
@@ -342,8 +344,8 @@ unsigned int BundleSpace::interpolateAlongBasePath(const std::vector<base::State
         ctr++;
     }
 
-    base::State *xLast = basePath.at(ctr - 1);
-    base::State *xNext = basePath.at(ctr);
+    State *xLast = basePath.at(ctr - 1);
+    State *xNext = basePath.at(ctr);
 
     //|--------------------- d ----------------------------|
     //|----------------- location -------------|
@@ -382,7 +384,7 @@ unsigned int BundleSpace::interpolateAlongBasePath(const std::vector<base::State
     return ctr;
 }
 
-void BundleSpace::liftState(const base::State *xBase, const base::State *xFiber, base::State *xBundle) const
+void BundleSpace::liftState(const State *xBase, const State *xFiber, State *xBundle) const
 {
     unsigned int M = components_.size();
 
@@ -390,9 +392,9 @@ void BundleSpace::liftState(const base::State *xBase, const base::State *xFiber,
     {
         for (unsigned int m = 0; m < M; m++)
         {
-            const base::State *xmBase = xBase->as<base::CompoundState>()->as<base::State>(m);
-            const base::State *xmFiber = xFiber->as<base::CompoundState>()->as<base::State>(m);
-            base::State *xmBundle = xBundle->as<base::CompoundState>()->as<base::State>(m);
+            const State *xmBase = xBase->as<CompoundState>()->as<State>(m);
+            const State *xmFiber = xFiber->as<CompoundState>()->as<State>(m);
+            State *xmBundle = xBundle->as<CompoundState>()->as<State>(m);
             components_.at(m)->liftState(xmBase, xmFiber, xmBundle);
         }
     }
@@ -403,7 +405,7 @@ void BundleSpace::liftState(const base::State *xBase, const base::State *xFiber,
 
 #ifdef DEBUG_BUNDLESPACE
     OMPL_WARN("Debugging ON");
-    base::State *xF = getFiber()->allocState();
+    State *xF = getFiber()->allocState();
     projectFiber(xBundle, xF);
 
     if (getFiber()->distance(xFiber, xF) > 1e-5)
@@ -419,7 +421,7 @@ void BundleSpace::liftState(const base::State *xBase, const base::State *xFiber,
 #endif
 }
 
-void BundleSpace::projectFiber(const base::State *xBundle, base::State *xFiber) const
+void BundleSpace::projectFiber(const State *xBundle, State *xFiber) const
 {
     unsigned int M = components_.size();
 
@@ -429,8 +431,8 @@ void BundleSpace::projectFiber(const base::State *xBundle, base::State *xFiber) 
         {
             if (components_.at(m)->getFiberDimension() > 0)
             {
-                const base::State *xmBundle = xBundle->as<base::CompoundState>()->as<base::State>(m);
-                base::State *xmFiber = xFiber->as<base::CompoundState>()->as<base::State>(m);
+                const State *xmBundle = xBundle->as<CompoundState>()->as<State>(m);
+                State *xmFiber = xFiber->as<CompoundState>()->as<State>(m);
                 components_.at(m)->projectFiber(xmBundle, xmFiber);
             }
         }
@@ -441,7 +443,7 @@ void BundleSpace::projectFiber(const base::State *xBundle, base::State *xFiber) 
     }
 }
 
-void BundleSpace::projectBase(const base::State *xBundle, base::State *xBase) const
+void BundleSpace::projectBase(const State *xBundle, State *xBase) const
 {
     unsigned int M = components_.size();
 
@@ -451,8 +453,8 @@ void BundleSpace::projectBase(const base::State *xBundle, base::State *xBase) co
         {
             if (components_.at(m)->getBaseDimension() > 0)
             {
-                const base::State *xmBundle = xBundle->as<base::CompoundState>()->as<base::State>(m);
-                base::State *xmBase = xBase->as<base::CompoundState>()->as<base::State>(m);
+                const State *xmBundle = xBundle->as<CompoundState>()->as<State>(m);
+                State *xmBase = xBase->as<CompoundState>()->as<State>(m);
                 components_.at(m)->projectBase(xmBundle, xmBase);
             }
         }
@@ -463,16 +465,16 @@ void BundleSpace::projectBase(const base::State *xBundle, base::State *xBase) co
     }
 }
 
-void BundleSpace::allocIdentityState(base::State *s, base::StateSpacePtr space) const
+void BundleSpace::allocIdentityState(State *s, StateSpacePtr space) const
 {
     if (space->isCompound())
     {
-        base::CompoundStateSpace *cspace = space->as<base::CompoundStateSpace>();
-        const std::vector<base::StateSpacePtr> compounds = cspace->getSubspaces();
+        CompoundStateSpace *cspace = space->as<CompoundStateSpace>();
+        const std::vector<StateSpacePtr> compounds = cspace->getSubspaces();
         for (unsigned int k = 0; k < compounds.size(); k++)
         {
-            base::StateSpacePtr spacek = compounds.at(k);
-            base::State *xk = s->as<base::CompoundState>()->as<base::State>(k);
+            StateSpacePtr spacek = compounds.at(k);
+            State *xk = s->as<CompoundState>()->as<State>(k);
             allocIdentityState(xk, spacek);
         }
     }
@@ -481,31 +483,31 @@ void BundleSpace::allocIdentityState(base::State *s, base::StateSpacePtr space) 
         int stype = space->getType();
         switch (stype)
         {
-            case base::STATE_SPACE_SO3:
+            case STATE_SPACE_SO3:
             {
-                static_cast<base::SO3StateSpace::StateType *>(s)->setIdentity();
+                static_cast<SO3StateSpace::StateType *>(s)->setIdentity();
                 break;
             }
-            case base::STATE_SPACE_SO2:
+            case STATE_SPACE_SO2:
             {
-                static_cast<base::SO2StateSpace::StateType *>(s)->setIdentity();
+                static_cast<SO2StateSpace::StateType *>(s)->setIdentity();
                 break;
             }
-            case base::STATE_SPACE_TIME:
+            case STATE_SPACE_TIME:
             {
-                static_cast<base::TimeStateSpace::StateType *>(s)->position = 0;
+                static_cast<TimeStateSpace::StateType *>(s)->position = 0;
                 break;
             }
-            case base::STATE_SPACE_DISCRETE:
+            case STATE_SPACE_DISCRETE:
             {
-                base::DiscreteStateSpace *space_Discrete = space->as<base::DiscreteStateSpace>();
+                DiscreteStateSpace *space_Discrete = space->as<DiscreteStateSpace>();
                 int lb = space_Discrete->getLowerBound();
-                static_cast<base::DiscreteStateSpace::StateType *>(s)->value = lb;
+                static_cast<DiscreteStateSpace::StateType *>(s)->value = lb;
                 break;
             }
-            case base::STATE_SPACE_REAL_VECTOR:
+            case STATE_SPACE_REAL_VECTOR:
             {
-                base::RealVectorStateSpace::StateType *sRN = s->as<base::RealVectorStateSpace::StateType>();
+                RealVectorStateSpace::StateType *sRN = s->as<RealVectorStateSpace::StateType>();
                 for (unsigned int k = 0; k < space->getDimension(); k++)
                 {
                     sRN->values[k] = 0;
@@ -521,11 +523,11 @@ void BundleSpace::allocIdentityState(base::State *s, base::StateSpacePtr space) 
     }
 }
 
-ompl::base::State *BundleSpace::allocIdentityState(base::StateSpacePtr space) const
+State *BundleSpace::allocIdentityState(StateSpacePtr space) const
 {
     if (space != nullptr)
     {
-        base::State *s = space->allocState();
+        State *s = space->allocState();
         allocIdentityState(s, space);
         return s;
     }
@@ -535,32 +537,32 @@ ompl::base::State *BundleSpace::allocIdentityState(base::StateSpacePtr space) co
     }
 }
 
-ompl::base::State *BundleSpace::allocIdentityStateFiber() const
+State *BundleSpace::allocIdentityStateFiber() const
 {
     return allocIdentityState(getFiber()->getStateSpace());
 }
 
-ompl::base::State *BundleSpace::allocIdentityStateBundle() const
+State *BundleSpace::allocIdentityStateBundle() const
 {
     return allocIdentityState(getBundle()->getStateSpace());
 }
 
-ompl::base::State *BundleSpace::allocIdentityStateBase() const
+State *BundleSpace::allocIdentityStateBase() const
 {
     return allocIdentityState(getBase()->getStateSpace());
 }
 
-const ompl::base::SpaceInformationPtr &BundleSpace::getFiber() const
+const SpaceInformationPtr &BundleSpace::getFiber() const
 {
     return Fiber;
 }
 
-const ompl::base::SpaceInformationPtr &BundleSpace::getBundle() const
+const SpaceInformationPtr &BundleSpace::getBundle() const
 {
     return Bundle;
 }
 
-const ompl::base::SpaceInformationPtr &BundleSpace::getBase() const
+const SpaceInformationPtr &BundleSpace::getBase() const
 {
     return Base;
 }
@@ -586,12 +588,12 @@ unsigned int BundleSpace::getBundleDimension() const
     return getBundle()->getStateDimension();
 }
 
-const ompl::base::StateSamplerPtr &BundleSpace::getFiberSamplerPtr() const
+const StateSamplerPtr &BundleSpace::getFiberSamplerPtr() const
 {
     return Fiber_sampler_;
 }
 
-const ompl::base::StateSamplerPtr &BundleSpace::getBundleSamplerPtr() const
+const StateSamplerPtr &BundleSpace::getBundleSamplerPtr() const
 {
     return Bundle_sampler_;
 }
@@ -605,7 +607,7 @@ bool BundleSpace::hasSolution()
 {
     if (!hasSolution_)
     {
-        base::PathPtr path;
+        PathPtr path;
         hasSolution_ = getSolution(path);
     }
     return hasSolution_;
@@ -641,17 +643,17 @@ void BundleSpace::setLevel(unsigned int level)
     level_ = level;
 }
 
-ompl::base::OptimizationObjectivePtr BundleSpace::getOptimizationObjectivePtr() const
+OptimizationObjectivePtr BundleSpace::getOptimizationObjectivePtr() const
 {
     return opt_;
 }
 
-void BundleSpace::sampleFiber(base::State *xFiber)
+void BundleSpace::sampleFiber(State *xFiber)
 {
     Fiber_sampler_->sampleUniform(xFiber);
 }
 
-bool BundleSpace::sampleBundleValid(base::State *xRandom)
+bool BundleSpace::sampleBundleValid(State *xRandom)
 {
     bool found = false;
 
@@ -665,7 +667,7 @@ bool BundleSpace::sampleBundleValid(base::State *xRandom)
     return found;
 }
 
-void BundleSpace::sampleBundle(base::State *xRandom)
+void BundleSpace::sampleBundle(State *xRandom)
 {
     if (!hasParent())
     {
@@ -700,34 +702,34 @@ std::vector<int> BundleSpace::getIndexLevel() const
     return idxPathI;
 }
 
-void BundleSpace::debugInvalidState(const base::State *x)
+void BundleSpace::debugInvalidState(const State *x)
 {
-    const base::StateSpacePtr space = Bundle->getStateSpace();
+    const StateSpacePtr space = Bundle->getStateSpace();
     bool bounds = space->satisfiesBounds(x);
     if (!bounds)
     {
-        std::vector<base::StateSpacePtr> Bundle_decomposed;
+        std::vector<StateSpacePtr> Bundle_decomposed;
         if (!space->isCompound())
         {
             Bundle_decomposed.push_back(space);
         }
         else
         {
-            base::CompoundStateSpace *Bundle_compound = space->as<base::CompoundStateSpace>();
+            CompoundStateSpace *Bundle_compound = space->as<CompoundStateSpace>();
             Bundle_decomposed = Bundle_compound->getSubspaces();
         }
 
         for (unsigned int m = 0; m < Bundle_decomposed.size(); m++)
         {
-            base::StateSpacePtr spacek = Bundle_decomposed.at(m);
+            StateSpacePtr spacek = Bundle_decomposed.at(m);
             int type = spacek->getType();
             switch (type)
             {
-                case base::STATE_SPACE_REAL_VECTOR:
+                case STATE_SPACE_REAL_VECTOR:
                 {
-                    auto *RN = spacek->as<base::RealVectorStateSpace>();
-                    const base::RealVectorStateSpace::StateType *xk =
-                        x->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(m);
+                    auto *RN = spacek->as<RealVectorStateSpace>();
+                    const RealVectorStateSpace::StateType *xk =
+                        x->as<CompoundState>()->as<RealVectorStateSpace::StateType>(m);
                     std::vector<double> bl = RN->getBounds().low;
                     std::vector<double> bh = RN->getBounds().high;
                     for (unsigned int k = 0; k < bl.size(); k++)
@@ -743,18 +745,18 @@ void BundleSpace::debugInvalidState(const base::State *x)
                     }
                     break;
                 }
-                case base::STATE_SPACE_SO2:
+                case STATE_SPACE_SO2:
                 {
                     double value = 0;
                     if (!space->isCompound())
                     {
-                        const base::SO2StateSpace::StateType *xk =
-                            x->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(m);
+                        const SO2StateSpace::StateType *xk =
+                            x->as<CompoundState>()->as<SO2StateSpace::StateType>(m);
                         value = xk->value;
                     }
                     else
                     {
-                        const base::SO2StateSpace::StateType *xk = x->as<base::SO2StateSpace::StateType>();
+                        const SO2StateSpace::StateType *xk = x->as<SO2StateSpace::StateType>();
                         value = xk->value;
                     }
                     OMPL_ERROR("Invalid: -%.2f <= %f <= +%.2f", 3.14, value, 3.14);
