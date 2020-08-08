@@ -39,6 +39,7 @@
 #include <ompl/multilevel/datastructures/graphsampler/VisibilityRegion.h>
 
 using namespace ompl::multilevel;
+using namespace ompl::base;
 
 BundleSpaceGraphSamplerVisibilityRegion::BundleSpaceGraphSamplerVisibilityRegion(BundleSpaceGraph *bundleSpaceGraph)
   : BaseT(bundleSpaceGraph)
@@ -52,7 +53,7 @@ BundleSpaceGraphSamplerVisibilityRegion::BundleSpaceGraphSamplerVisibilityRegion
     }
 }
 
-void BundleSpaceGraphSamplerVisibilityRegion::sampleImplementation(base::State *xRandom)
+void BundleSpaceGraphSamplerVisibilityRegion::sampleImplementation(State *xRandom)
 {
     const BundleSpaceGraph::Graph &graph = bundleSpaceGraphSparse_->getGraph();
     const Vertex v = boost::random_vertex(graph, rng_boost);

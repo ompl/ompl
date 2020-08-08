@@ -42,6 +42,7 @@
 
 #include <ompl/base/Path.h>
 #include <ompl/geometric/PathGeometric.h>
+#include <numeric>
 
 #define SANITY_CHECK_PATH_RESTRICTION
 #undef SANITY_CHECK_PATH_RESTRICTION
