@@ -43,6 +43,7 @@
 #include <ompl/geometric/planners/PlannerIncludes.h>
 #include <ompl/datastructures/NearestNeighbors.h>
 #include <ompl/base/Cost.h>
+#include <ompl/control/Control.h>
 #include <ompl/datastructures/PDF.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <boost/pending/disjoint_sets.hpp>

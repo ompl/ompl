@@ -39,8 +39,7 @@
 #include "MultiLevelPlanningHyperCubeCommon.h"
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
-#include <ompl/geometric/planners/multilevel/QRRT.h>
-#include <ompl/geometric/planners/multilevel/SPQR.h>
+#include <ompl/multilevel/planners/qrrt/QRRT.h>
 
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/util/String.h>
@@ -73,7 +72,8 @@ int main()
     ss.setStartAndGoalStates(start, goal);
 
     std::vector<int> admissibleProjection = getHypercubeAdmissibleProjection(ndim);
-    ob::PlannerPtr planner = GetMultiLevelPlanner<og::QRRT>(admissibleProjection, si, "QRRT");
+    ob::PlannerPtr planner = 
+      GetMultiLevelPlanner<ompl::multilevel::QRRT>(admissibleProjection, si, "QRRT");
     ss.setPlanner(planner);
 
     bool solved = ss.solve(1.0);

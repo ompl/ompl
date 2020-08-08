@@ -81,7 +81,7 @@ ob::PlannerPtr GetQRRT(std::vector<int> sequenceLinks, ob::SpaceInformationPtr s
     OMPL_INFORM("Add Original Chain with %d links.", numLinks);
     si_vec.push_back(si);
 
-    auto planner = std::make_shared<og::QRRT>(si_vec);
+    auto planner = std::make_shared<ompl::multilevel::QRRT>(si_vec);
 
     std::string qName = "QRRT[";
     for (unsigned int k = 0; k < sequenceLinks.size(); k++)
@@ -180,9 +180,6 @@ int main()
 
     addPlanner(benchmark, std::make_shared<og::STRIDE>(si));
     addPlanner(benchmark, std::make_shared<og::KPIECE1>(si));
-    // addPlanner(benchmark, std::make_shared<og::FMT>(si));
-
-    // addPlanner(benchmark, std::make_shared<og::RRTConnect>(si)); //TODO: Investigate: does not return?
     addPlanner(benchmark, std::make_shared<og::EST>(si));
     addPlanner(benchmark, std::make_shared<og::PRM>(si));
 
@@ -193,7 +190,6 @@ int main()
         ob::PlannerPtr plannerK = GetQRRT(proj, si);
         addPlanner(benchmark, plannerK);
     }
-    // addPlanner(benchmark, std::make_shared<og::BKPIECE1>(si));
 
     printEstimatedTimeToCompletion(numberPlanners, run_count, runtime_limit);
 

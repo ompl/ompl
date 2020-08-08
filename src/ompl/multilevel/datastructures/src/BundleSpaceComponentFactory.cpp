@@ -642,7 +642,7 @@ int ompl::multilevel::BundleSpaceComponentFactory::GetNumberOfComponents(base::S
             int type = space->getType();
 
             if ((type == base::STATE_SPACE_SE2) || (type == base::STATE_SPACE_SE3) ||
-                (type == base::STATE_SPACE_DUBINS) || (type == base::STATE_SPACE_DUBINS_AIRPLANE))
+                (type == base::STATE_SPACE_DUBINS))// || (type == base::STATE_SPACE_DUBINS_AIRPLANE))
             {
                 nrComponents = 1;
             }

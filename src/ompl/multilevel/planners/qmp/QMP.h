@@ -61,7 +61,7 @@ namespace ompl
         */
 
         /** \brief [Q]uotient space road[M]ap [P]lanner (QMP) Algorithm */
-        using QMP = ompl::multilevel::BundleSpaceSequence<ompl::multilevel::QMPImpl>;
+        using QMP = BundleSpaceSequence<QMPImpl>;
 
     }  // namespace multilevel
 }  // namespace ompl
