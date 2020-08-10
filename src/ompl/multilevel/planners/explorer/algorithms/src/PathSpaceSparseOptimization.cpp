@@ -13,7 +13,6 @@
 #include <ompl/control/SimpleDirectedControlSampler.h>
 #include <ompl/control/StatePropagator.h>
 
-#include <ompl/control/optimizers/PathControlOptimizer.h>
 #include <boost/foreach.hpp>
 
 #define foreach BOOST_FOREACH
@@ -427,31 +426,33 @@ void PathSpaceSparseOptimization::pushPathToStack(std::vector<base::State *> &pa
 {
     if (isDynamic())
     {
-        control::PathControl cpath(getBundle());
-        for (uint k = 0; k < path.size(); k++)
-        {
-            cpath.append(path.at(k));
-        }
-        // shortcutter.shortcutPath(gpath)
-        // control::PathControl* cpath = static_cast<control::PathControl*>(path_.get());
-        // base::State* goalState = si_->allocState();
-        // std::static_pointer_cast<const base::GoalSampleableRegion> (pdef_->getGoal())->sampleGoal(goalState) ;
-
-        control::PathControlOptimizer control_simplifier(getBundle(), qGoal_->state);
-        std::cout << "Dynamic Optimize" << std::endl;
-        control_simplifier.simplify(&cpath);
-
-        // for (uint k = 0; k < pathStack_.size(); k++)
+        OMPL_ERROR("NYI");
+        throw Exception("NYI");
+        // control::PathControl cpath(getBundle());
+        // for (uint k = 0; k < path.size(); k++)
         // {
-        //     control::PathControl &pathk = pathStack_.at(k);
-        //     if (getPathVisibilityChecker()->IsPathVisible(gpath.getStates(), pathk.getStates()))
-        //     {
-        //         std::cout << "REJECTED (Equal to path " << k << ")" << std::endl;
-        //         numberOfFailedAddingPathCalls++;
-        //         return;
-        //     }
+        //     cpath.append(path.at(k));
         // }
-        // pathStack_.push_back(gpath);
+        // // shortcutter.shortcutPath(gpath)
+        // // control::PathControl* cpath = static_cast<control::PathControl*>(path_.get());
+        // // base::State* goalState = si_->allocState();
+        // // std::static_pointer_cast<const base::GoalSampleableRegion> (pdef_->getGoal())->sampleGoal(goalState) ;
+
+        // control::PathControlOptimizer control_simplifier(getBundle(), qGoal_->state);
+        // std::cout << "Dynamic Optimize" << std::endl;
+        // control_simplifier.simplify(&cpath);
+
+        // // for (uint k = 0; k < pathStack_.size(); k++)
+        // // {
+        // //     control::PathControl &pathk = pathStack_.at(k);
+        // //     if (getPathVisibilityChecker()->IsPathVisible(gpath.getStates(), pathk.getStates()))
+        // //     {
+        // //         std::cout << "REJECTED (Equal to path " << k << ")" << std::endl;
+        // //         numberOfFailedAddingPathCalls++;
+        // //         return;
+        // //     }
+        // // }
+        // // pathStack_.push_back(gpath);
     }
     else
     {
