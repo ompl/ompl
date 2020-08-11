@@ -58,7 +58,7 @@ namespace ompl
 
             virtual double eval() = 0;
 
-            virtual void reset(){};
+            virtual void clear(){};
 
         protected:
             BundleSpaceGraph *bundleSpaceGraph_;

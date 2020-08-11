@@ -288,29 +288,34 @@ void ompl::multilevel::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planne
             v.setLevel(k);
             v.setMaxLevel(K);
 
-            ompl::base::State *s_lift = Qk->getBundle()->cloneState(v.getState());
-            v.setBaseState(s_lift);
-            // Qk->getBundle()->printState(s_lift);
+            //NOTE: Additionally, we could project state into the total state space.
+            //However, this creates higher computational demand on the algorithm
+            //and might fill up the memory of your system. So we have not
+            //enabled this by default.
 
-            for (unsigned int m = k + 1; m < bundleSpaces_.size(); m++)
-            {
-                BundleSpace *Qm = bundleSpaces_.at(m);
+            // ompl::base::State *s_lift = Qk->getBundle()->cloneState(v.getState());
+            // v.setBaseState(s_lift);
+            // // Qk->getBundle()->printState(s_lift);
 
-                if (Qm->getFiberDimension() > 0)
-                {
-                    base::State *s_Bundle = Qm->getBundle()->allocState();
-                    base::State *s_Fiber = Qm->allocIdentityStateFiber();
+            // for (unsigned int m = k + 1; m < bundleSpaces_.size(); m++)
+            // {
+            //     BundleSpace *Qm = bundleSpaces_.at(m);
 
-                    Qm->liftState(s_lift, s_Fiber, s_Bundle);
+            //     if (Qm->getFiberDimension() > 0)
+            //     {
+            //         base::State *s_Bundle = Qm->getBundle()->allocState();
+            //         base::State *s_Fiber = Qm->allocIdentityStateFiber();
 
-                    // Qm->getBase()->freeState(s_lift);
-                    s_lift = Qm->getBundle()->cloneState(s_Bundle);
+            //         Qm->liftState(s_lift, s_Fiber, s_Bundle);
 
-                    Qm->getBundle()->freeState(s_Bundle);
-                    Qm->getFiber()->freeState(s_Fiber);
-                }
-            }
-            v.setState(s_lift);
+            //         // Qm->getBase()->freeState(s_lift);
+            //         s_lift = Qm->getBundle()->cloneState(s_Bundle);
+
+            //         Qm->getBundle()->freeState(s_Bundle);
+            //         Qm->getFiber()->freeState(s_Fiber);
+            //     }
+            // }
+            // v.setState(s_lift);
             ctr++;
         }
         Nvertices = data.numVertices();

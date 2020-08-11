@@ -57,7 +57,7 @@ ompl::multilevel::BundleSpaceGraphSampler::BundleSpaceGraphSampler(BundleSpaceGr
     graphThickeningGrowth_.setUpperBound(0.0);
 }
 
-void ompl::multilevel::BundleSpaceGraphSampler::reset()
+void ompl::multilevel::BundleSpaceGraphSampler::clear()
 {
     double mu = bundleSpaceGraph_->getBundle()->getMaximumExtent();
     epsilonGraphThickening_ = mu * epsilonGraphThickeningFraction_;

@@ -67,7 +67,7 @@ namespace ompl
 
             void disablePathBias();
 
-            virtual void reset();
+            virtual void clear();
 
         protected:
             virtual void sampleImplementation(base::State *xRandom) = 0;

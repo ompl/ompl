@@ -415,6 +415,11 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q, std::vector<Con
 
 bool BundleSpaceGraphSparse::checkAddPath(Configuration *q)
 {
+  //TODO: test if we can quicker do feasibility checks
+  OMPL_WARN("Does not test CHECKADDPATH");
+    return false;
+
+
     std::vector<Vertex> neigh;
     getInterfaceNeighborhood(q, neigh);
 

@@ -70,9 +70,9 @@ namespace ompl
             unsigned int getComponent() const;
 
             void setState(ompl::base::State *s);
-            void setBaseState(const ompl::base::State *s);
+            void setUnprojectedState(const ompl::base::State *s);
             virtual const ompl::base::State *getState() const override;
-            virtual const ompl::base::State *getBaseState() const;
+            virtual const ompl::base::State *getUnprojectedState() const;
 
             friend bool operator==(const PlannerDataVertexAnnotated &lhs, const PlannerDataVertexAnnotated &rhs);
             friend std::ostream &operator<<(std::ostream &, const PlannerDataVertexAnnotated &);
@@ -84,7 +84,7 @@ namespace ompl
             std::vector<int> path_;
 
             unsigned int component_{0};
-            const ompl::base::State *stateBaseSpace_{nullptr};
+            const ompl::base::State *stateUnprojected_{nullptr};
         };
 
     }  // namespace multilevel

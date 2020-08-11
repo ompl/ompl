@@ -55,7 +55,7 @@ namespace ompl
 
             virtual ~BundleSpaceMetric();
 
-            virtual void reset();
+            virtual void clear();
 
             //############################################################################
             // Distance Functions

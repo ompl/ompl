@@ -71,6 +71,8 @@ namespace ompl
 
             virtual ~BundleSpacePathRestriction();
 
+            virtual void clear();
+
             void setBasePath(base::PathPtr);
             void setBasePath(std::vector<base::State *>);
 
@@ -128,8 +130,6 @@ namespace ompl
             std::vector<base::State *> interpolateSectionL1FF(const base::State *xFiberStart,
                                                               const base::State *xFiberGoal,
                                                               const std::vector<base::State *> basePath);
-
-            virtual void reset();
 
         protected:
             BundleSpaceGraph *bundleSpaceGraph_;

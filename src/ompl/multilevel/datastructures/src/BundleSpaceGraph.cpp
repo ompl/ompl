@@ -212,9 +212,9 @@ void ompl::multilevel::BundleSpaceGraph::clear()
 
     numVerticesWhenComputingSolutionPath_ = 0;
 
-    importanceCalculator_->reset();
-    graphSampler_->reset();
-    pathRestriction_->reset();
+    importanceCalculator_->clear();
+    graphSampler_->clear();
+    pathRestriction_->clear();
 }
 
 void ompl::multilevel::BundleSpaceGraph::clearVertices()
@@ -288,10 +288,6 @@ void ompl::multilevel::BundleSpaceGraph::deleteConfiguration(Configuration *q)
             {
                 getBundle()->freeState(qk->state);
             }
-        }
-        for (unsigned int k = 0; k < q->children.size(); k++)
-        {
-            deleteConfiguration(q->children.at(k));
         }
         if (isDynamic())
         {

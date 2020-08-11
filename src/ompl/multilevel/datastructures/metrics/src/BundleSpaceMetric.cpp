@@ -66,7 +66,7 @@ ompl::multilevel::BundleSpaceMetric::~BundleSpaceMetric()
     }
 }
 
-void ompl::multilevel::BundleSpaceMetric::reset()
+void ompl::multilevel::BundleSpaceMetric::clear()
 {
 }
 

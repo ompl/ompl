@@ -84,7 +84,7 @@ ompl::multilevel::BundleSpacePathRestriction::~BundleSpacePathRestriction()
     bundleSpaceGraph_->getBundle()->freeState(xBundleTmp_);
 }
 
-void ompl::multilevel::BundleSpacePathRestriction::reset()
+void ompl::multilevel::BundleSpacePathRestriction::clear()
 {
     basePath_.clear();
 }
