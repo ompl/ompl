@@ -84,6 +84,7 @@ namespace ompl
             void setStopLevel(unsigned int level_);
 
         protected:
+            ompl::base::State* getTotalState(int baseLevel, const base::State* baseState) const;
 
             /** \brief Sequence of BundleSpaces */
             std::vector<T *> bundleSpaces_;

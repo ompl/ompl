@@ -779,26 +779,25 @@ bool BundleSpaceGraphSparse::hasSparseGraphChanged()
     return false;
 }
 
-void BundleSpaceGraphSparse::getPlannerDataRoadmap(PlannerData &data, std::vector<int> pathIdx) const
-{
-    foreach (const Vertex v, boost::vertices(graphSparse_))
-    {
-        multilevel::PlannerDataVertexAnnotated p(graphSparse_[v]->state);
-        p.setLevel(level_);
-        p.setPath(pathIdx);
-        data.addVertex(p);
-    }
-    foreach (const Edge e, boost::edges(graphSparse_))
-    {
-        const Vertex v1 = boost::source(e, graphSparse_);
-        const Vertex v2 = boost::target(e, graphSparse_);
+// void BundleSpaceGraphSparse::getPlannerDataRoadmap(PlannerData &data) const
+// {
+//     foreach (const Vertex v, boost::vertices(graphSparse_))
+//     {
+//         multilevel::PlannerDataVertexAnnotated p(graphSparse_[v]->state);
+//         p.setLevel(getLevel());
+//         data.addVertex(p);
+//     }
+//     foreach (const Edge e, boost::edges(graphSparse_))
+//     {
+//         const Vertex v1 = boost::source(e, graphSparse_);
+//         const Vertex v2 = boost::target(e, graphSparse_);
 
-        multilevel::PlannerDataVertexAnnotated p1(graphSparse_[v1]->state);
-        multilevel::PlannerDataVertexAnnotated p2(graphSparse_[v2]->state);
+//         multilevel::PlannerDataVertexAnnotated p1(graphSparse_[v1]->state);
+//         multilevel::PlannerDataVertexAnnotated p2(graphSparse_[v2]->state);
 
-        data.addEdge(p1, p2);
-    }
-}
+//         data.addEdge(p1, p2);
+//     }
+// }
 
 void BundleSpaceGraphSparse::print(std::ostream &out) const
 {

@@ -53,8 +53,10 @@ namespace ompl
             // If new elements are added,
             // you need to update the clone/getstate functions!
         public:
-            PlannerDataVertexAnnotated(const ompl::base::State *st, int tag = 0);
+            PlannerDataVertexAnnotated(const ompl::base::State *state);
+
             PlannerDataVertexAnnotated(const PlannerDataVertexAnnotated &rhs);
+            virtual ~PlannerDataVertexAnnotated() override;
             virtual PlannerDataVertex *clone() const override;
 
             void setLevel(unsigned int level_);
@@ -63,28 +65,34 @@ namespace ompl
             void setMaxLevel(unsigned int level_);
             unsigned int getMaxLevel() const;
 
-            void setPath(std::vector<int> path_);
-            std::vector<int> getPath() const;
-
             void setComponent(unsigned int component_);
             unsigned int getComponent() const;
 
-            void setState(ompl::base::State *s);
-            void setUnprojectedState(const ompl::base::State *s);
-            virtual const ompl::base::State *getState() const override;
-            virtual const ompl::base::State *getUnprojectedState() const;
+            // \brief requires si because we need to free total state
+            void setTotalState(ompl::base::State *s, ompl::base::SpaceInformationPtr si);
 
-            friend bool operator==(const PlannerDataVertexAnnotated &lhs, const PlannerDataVertexAnnotated &rhs);
+            void setBaseState(const ompl::base::State *s);
+            virtual const ompl::base::State *getState() const override;
+            ompl::base::State *getStateNonConst() const;
+            const ompl::base::State *getBaseState() const;
+            ompl::base::SpaceInformationPtr getSpaceInformationPtr() const;
+
+            virtual bool operator==(const PlannerDataVertex &rhs) const override;
+
             friend std::ostream &operator<<(std::ostream &, const PlannerDataVertexAnnotated &);
 
         protected:
             unsigned int level_{0};
             unsigned int maxLevel_{1};
-
-            std::vector<int> path_;
-
             unsigned int component_{0};
-            const ompl::base::State *stateUnprojected_{nullptr};
+
+            bool totalStateIsSet{false};
+
+            //reference to base state
+            const ompl::base::State *stateBase_{nullptr};
+            ompl::base::State *stateTotal_{nullptr};
+
+            ompl::base::SpaceInformationPtr si_{nullptr};
         };
 
     }  // namespace multilevel

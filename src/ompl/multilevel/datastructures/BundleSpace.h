@@ -100,8 +100,6 @@ namespace ompl
 
             virtual double getImportance() const = 0;
 
-            std::vector<int> getIndexLevel() const;
-
             /// \brief Allocate State, set entries to Identity/Zero
             ompl::base::State *allocIdentityStateFiber() const;
             ompl::base::State *allocIdentityStateBundle() const;
@@ -192,6 +190,8 @@ namespace ompl
             ompl::base::SpaceInformationPtr Base{nullptr};
             ompl::base::SpaceInformationPtr Fiber{nullptr};
 
+            /// Level in sequence of Bundle-spaces
+            unsigned int level_{0};
         protected:
             /// Check if Bundle-space is unbounded
             void checkBundleSpaceMeasure(std::string name, const ompl::base::StateSpacePtr space) const;
@@ -220,9 +220,6 @@ namespace ompl
 
             /// Identity of space (to keep track of number of Bundle-spaces created)
             unsigned int id_{0};
-
-            /// Level in sequence of Bundle-spaces
-            unsigned int level_{0};
 
             bool hasSolution_{false};
             bool firstRun_{true};

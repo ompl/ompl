@@ -320,8 +320,9 @@ void PathSpaceSparseOptimization::getPlannerData(base::PlannerData &data) const
             std::cout << "]" << std::endl;
             //############################################################################
 
-            multilevel::PlannerDataVertexAnnotated *p1 = new multilevel::PlannerDataVertexAnnotated(states.at(0));
-            p1->setLevel(level_);
+            multilevel::PlannerDataVertexAnnotated *p1 = 
+              new multilevel::PlannerDataVertexAnnotated(states.at(0));
+            p1->setLevel(getLevel());
             // p1->setPath(idxPathI);
             data.addStartVertex(*p1);
 
@@ -330,9 +331,9 @@ void PathSpaceSparseOptimization::getPlannerData(base::PlannerData &data) const
             {
                 dk += getBundle()->distance(states.at(k), states.at(k + 1));
 
-                multilevel::PlannerDataVertexAnnotated *p2 = new multilevel::PlannerDataVertexAnnotated(
-                    states.at(k + 1));  // getBundle()->cloneState(graphSparse_[v2]->state));
-                p2->setLevel(level_);
+                multilevel::PlannerDataVertexAnnotated *p2 = 
+                  new multilevel::PlannerDataVertexAnnotated(states.at(k + 1));
+                p2->setLevel(getLevel());
                 // p2->setPath(idxPathI);
 
                 if (k == states.size() - 2)
@@ -351,7 +352,7 @@ void PathSpaceSparseOptimization::getPlannerData(base::PlannerData &data) const
 
             // getBundle()->printState(states.back());
         }
-        getPlannerDataRoadmap(data, idxPathI);
+        // getPlannerDataRoadmap(data, idxPathI);
     }
     else
     {
@@ -401,7 +402,7 @@ void PathSpaceSparseOptimization::sampleFromDatastructure(base::State *xRandom_g
         // }
         // else
         // {
-        //     std::cout << "Level:" << level_ << std::endl;
+        //     std::cout << "Level:" << getLevel() << std::endl;
         //     OMPL_ERROR("Selected path is %d/%d (have you selected a path?)", selectedPath_, pathStack_.size());
         //     throw ompl::Exception("Unknown selected path");
         // }

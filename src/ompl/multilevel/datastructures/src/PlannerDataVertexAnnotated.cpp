@@ -38,93 +38,113 @@
 #include <ompl/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 
 using namespace ompl::multilevel;
-PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const ompl::base::State *st, int tag)
-  : PlannerDataVertex(st, tag)
+
+PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(
+    const ompl::base::State *state)
+  : PlannerDataVertex(state), stateBase_(state), stateTotal_(nullptr), si_(nullptr)
 {
+    totalStateIsSet = false;
 }
 
-ompl::multilevel::PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const PlannerDataVertexAnnotated &rhs)
-  : PlannerDataVertex(rhs.state_, rhs.tag_)
+PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const PlannerDataVertexAnnotated &rhs)
+  : PlannerDataVertex(rhs.getBaseState(), rhs.tag_)
 {
     level_ = rhs.getLevel();
     maxLevel_ = rhs.getMaxLevel();
     component_ = rhs.getComponent();
-    path_ = rhs.getPath();
-    stateUnprojected_ = rhs.getUnprojectedState();
+    stateBase_ = rhs.getBaseState();
+    stateTotal_ = rhs.getStateNonConst();
+    si_ = rhs.getSpaceInformationPtr();
 }
 
-ompl::base::PlannerDataVertex *ompl::multilevel::PlannerDataVertexAnnotated::clone() const
+PlannerDataVertexAnnotated::~PlannerDataVertexAnnotated()
+{
+  if(totalStateIsSet)
+  {
+    si_->freeState(stateTotal_);
+  }
+}
+
+ompl::base::PlannerDataVertex *PlannerDataVertexAnnotated::clone() const
 {
     return new PlannerDataVertexAnnotated(*this);
 }
 
-void ompl::multilevel::PlannerDataVertexAnnotated::setComponent(unsigned int component)
+void PlannerDataVertexAnnotated::setComponent(unsigned int component)
 {
     component_ = component;
 }
 
-unsigned int ompl::multilevel::PlannerDataVertexAnnotated::getComponent() const
+ompl::base::SpaceInformationPtr PlannerDataVertexAnnotated::getSpaceInformationPtr() const
+{
+  return si_;
+}
+
+unsigned int PlannerDataVertexAnnotated::getComponent() const
 {
     return component_;
 }
 
-void ompl::multilevel::PlannerDataVertexAnnotated::setLevel(unsigned int level)
+void PlannerDataVertexAnnotated::setLevel(unsigned int level)
 {
     level_ = level;
 }
 
-unsigned int ompl::multilevel::PlannerDataVertexAnnotated::getLevel() const
+unsigned int PlannerDataVertexAnnotated::getLevel() const
 {
     return level_;
 }
 
-void ompl::multilevel::PlannerDataVertexAnnotated::setMaxLevel(unsigned int level)
+void PlannerDataVertexAnnotated::setMaxLevel(unsigned int level)
 {
     maxLevel_ = level;
 }
 
-unsigned int ompl::multilevel::PlannerDataVertexAnnotated::getMaxLevel() const
+unsigned int PlannerDataVertexAnnotated::getMaxLevel() const
 {
     return maxLevel_;
 }
 
-void ompl::multilevel::PlannerDataVertexAnnotated::setPath(std::vector<int> path)
+const ompl::base::State *PlannerDataVertexAnnotated::getState() const
 {
-    path_ = path;
+    if(totalStateIsSet) return stateTotal_;
+    else return state_;
 }
 
-std::vector<int> ompl::multilevel::PlannerDataVertexAnnotated::getPath() const
+ompl::base::State *PlannerDataVertexAnnotated::getStateNonConst() const
 {
-    return path_;
+    return stateTotal_;
 }
 
-const ompl::base::State *ompl::multilevel::PlannerDataVertexAnnotated::getState() const
+const ompl::base::State *PlannerDataVertexAnnotated::getBaseState() const
 {
-    return state_;
+    return stateBase_;
 }
 
-const ompl::base::State *ompl::multilevel::PlannerDataVertexAnnotated::getUnprojectedState() const
+void PlannerDataVertexAnnotated::setBaseState(const ompl::base::State *s)
 {
-    return stateUnprojected_;
+    stateBase_ = s;
 }
 
-void ompl::multilevel::PlannerDataVertexAnnotated::setUnprojectedState(const ompl::base::State *s)
+void PlannerDataVertexAnnotated::setTotalState(
+    ompl::base::State *s, 
+    ompl::base::SpaceInformationPtr si)
 {
-    stateUnprojected_ = s;
+    stateTotal_ = s;
+    si_ = si;
+    totalStateIsSet = true;
 }
 
-void ompl::multilevel::PlannerDataVertexAnnotated::setState(ompl::base::State *s)
+bool PlannerDataVertexAnnotated::operator==(
+    const PlannerDataVertex &rhs) const
 {
-    state_ = s;
+    const PlannerDataVertexAnnotated& rhsA = static_cast<const PlannerDataVertexAnnotated&>(rhs);
+    bool equiv = (getLevel() == rhsA.getLevel() && getBaseState() == rhsA.getBaseState());
+    std::cout << "Eq:" << (equiv?"YES":"NO") << std::endl;
+    return equiv;
 }
 
-bool operator==(const ompl::multilevel::PlannerDataVertexAnnotated &lhs,
-                const ompl::multilevel::PlannerDataVertexAnnotated &rhs)
-{
-    return (lhs.getLevel() == rhs.getLevel() && lhs.getState() == rhs.getState() && lhs.getPath() == rhs.getPath());
-}
-
-std::ostream &operator<<(std::ostream &out, const ompl::multilevel::PlannerDataVertexAnnotated &v)
+std::ostream &operator<<(std::ostream &out, const PlannerDataVertexAnnotated &v)
 {
     out << "AnnotatedVertex";
     out << " ->level " << v.getLevel() << "/" << v.getMaxLevel();

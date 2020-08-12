@@ -70,7 +70,7 @@ namespace ompl
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
 
             virtual void getPlannerData(base::PlannerData &data) const override;
-            void getPlannerDataRoadmap(base::PlannerData &data, std::vector<int> pathIdx) const;
+            // void getPlannerDataRoadmap(base::PlannerData &data) const;
 
             virtual Vertex addConfiguration(Configuration *q) override;
             virtual Vertex addConfigurationConditional(Configuration *q);

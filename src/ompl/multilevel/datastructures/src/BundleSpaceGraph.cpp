@@ -73,7 +73,9 @@
 
 using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
-ompl::multilevel::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformationPtr &si, BundleSpace *parent_)
+using namespace ompl::multilevel;
+
+BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformationPtr &si, BundleSpace *parent_)
   : BaseT(si, parent_)
 {
     setName("BundleSpaceGraph");
@@ -128,7 +130,7 @@ ompl::multilevel::BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformatio
     }
 }
 
-ompl::multilevel::BundleSpaceGraph::~BundleSpaceGraph()
+BundleSpaceGraph::~BundleSpaceGraph()
 {
     deleteConfiguration(xRandom_);
     if (getFiberDimension() > 0)
@@ -138,7 +140,7 @@ ompl::multilevel::BundleSpaceGraph::~BundleSpaceGraph()
     }
 }
 
-void ompl::multilevel::BundleSpaceGraph::setup()
+void BundleSpaceGraph::setup()
 {
     BaseT::setup();
 
@@ -184,7 +186,7 @@ void ompl::multilevel::BundleSpaceGraph::setup()
     }
 }
 
-void ompl::multilevel::BundleSpaceGraph::clear()
+void BundleSpaceGraph::clear()
 {
     BaseT::clear();
 
@@ -217,7 +219,7 @@ void ompl::multilevel::BundleSpaceGraph::clear()
     pathRestriction_->clear();
 }
 
-void ompl::multilevel::BundleSpaceGraph::clearVertices()
+void BundleSpaceGraph::clearVertices()
 {
     if (nearestDatastructure_)
     {
@@ -232,27 +234,27 @@ void ompl::multilevel::BundleSpaceGraph::clearVertices()
     graph_.clear();
 }
 
-void ompl::multilevel::BundleSpaceGraph::setGoalBias(double goalBias)
+void BundleSpaceGraph::setGoalBias(double goalBias)
 {
     goalBias_ = goalBias;
 }
 
-double ompl::multilevel::BundleSpaceGraph::getGoalBias() const
+double BundleSpaceGraph::getGoalBias() const
 {
     return goalBias_;
 }
 
-void ompl::multilevel::BundleSpaceGraph::setRange(double maxDistance)
+void BundleSpaceGraph::setRange(double maxDistance)
 {
     maxDistance_ = maxDistance;
 }
 
-double ompl::multilevel::BundleSpaceGraph::getRange() const
+double BundleSpaceGraph::getRange() const
 {
     return maxDistance_;
 }
 
-ompl::multilevel::BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si)
+BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si)
   : state(si->allocState())
 {
     const ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
@@ -261,7 +263,7 @@ ompl::multilevel::BundleSpaceGraph::Configuration::Configuration(const base::Spa
         control = siC->allocControl();
     }
 }
-ompl::multilevel::BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si,
+BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si,
                                                                  const base::State *state_)
   : state(si->cloneState(state_))
 {
@@ -273,7 +275,7 @@ ompl::multilevel::BundleSpaceGraph::Configuration::Configuration(const base::Spa
     }
 }
 
-void ompl::multilevel::BundleSpaceGraph::deleteConfiguration(Configuration *q)
+void BundleSpaceGraph::deleteConfiguration(Configuration *q)
 {
     if (q != nullptr)
     {
@@ -303,12 +305,12 @@ void ompl::multilevel::BundleSpaceGraph::deleteConfiguration(Configuration *q)
     }
 }
 
-double ompl::multilevel::BundleSpaceGraph::getImportance() const
+double BundleSpaceGraph::getImportance() const
 {
     return importanceCalculator_->eval();
 }
 
-void ompl::multilevel::BundleSpaceGraph::init()
+void BundleSpaceGraph::init()
 {
     auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
     if (goal == nullptr)
@@ -343,36 +345,36 @@ void ompl::multilevel::BundleSpaceGraph::init()
     }
 }
 
-void ompl::multilevel::BundleSpaceGraph::uniteComponents(Vertex m1, Vertex m2)
+void BundleSpaceGraph::uniteComponents(Vertex m1, Vertex m2)
 {
     disjointSets_.union_set(m1, m2);
 }
 
-bool ompl::multilevel::BundleSpaceGraph::sameComponent(Vertex m1, Vertex m2)
+bool BundleSpaceGraph::sameComponent(Vertex m1, Vertex m2)
 {
     return boost::same_component(m1, m2, disjointSets_);
 }
 
-const ompl::multilevel::BundleSpaceGraph::Configuration *
-ompl::multilevel::BundleSpaceGraph::nearest(const Configuration *q) const
+const BundleSpaceGraph::Configuration *
+BundleSpaceGraph::nearest(const Configuration *q) const
 {
     return nearestDatastructure_->nearest(const_cast<Configuration *>(q));
 }
 
-ompl::multilevel::BundleSpaceGraph::Configuration *
-ompl::multilevel::BundleSpaceGraph::addBundleConfiguration(base::State *state)
+BundleSpaceGraph::Configuration *
+BundleSpaceGraph::addBundleConfiguration(base::State *state)
 {
     Configuration *x = new Configuration(getBundle(), state);
     addConfiguration(x);
     return x;
 }
 
-void ompl::multilevel::BundleSpaceGraph::addBundleEdge(const Configuration *a, const Configuration *b)
+void BundleSpaceGraph::addBundleEdge(const Configuration *a, const Configuration *b)
 {
     addEdge(a->index, b->index);
 }
 
-ompl::multilevel::BundleSpaceGraph::Vertex ompl::multilevel::BundleSpaceGraph::addConfiguration(Configuration *q)
+BundleSpaceGraph::Vertex BundleSpaceGraph::addConfiguration(Configuration *q)
 {
     Vertex m = boost::add_vertex(q, graph_);
     graph_[m]->total_connection_attempts = 1;
@@ -385,34 +387,34 @@ ompl::multilevel::BundleSpaceGraph::Vertex ompl::multilevel::BundleSpaceGraph::a
     return m;
 }
 
-unsigned int ompl::multilevel::BundleSpaceGraph::getNumberOfVertices() const
+unsigned int BundleSpaceGraph::getNumberOfVertices() const
 {
     return num_vertices(graph_);
 }
 
-unsigned int ompl::multilevel::BundleSpaceGraph::getNumberOfEdges() const
+unsigned int BundleSpaceGraph::getNumberOfEdges() const
 {
     return num_edges(graph_);
 }
 
-const ompl::multilevel::BundleSpaceGraph::Graph &ompl::multilevel::BundleSpaceGraph::getGraph() const
+const BundleSpaceGraph::Graph &BundleSpaceGraph::getGraph() const
 {
     return graph_;
 }
 
-const ompl::multilevel::BundleSpaceGraph::RoadmapNeighborsPtr &
-ompl::multilevel::BundleSpaceGraph::getRoadmapNeighborsPtr() const
+const BundleSpaceGraph::RoadmapNeighborsPtr &
+BundleSpaceGraph::getRoadmapNeighborsPtr() const
 {
     return nearestDatastructure_;
 }
 
-ompl::base::Cost ompl::multilevel::BundleSpaceGraph::costHeuristic(Vertex u, Vertex v) const
+ompl::base::Cost BundleSpaceGraph::costHeuristic(Vertex u, Vertex v) const
 {
     return opt_->motionCostHeuristic(graph_[u]->state, graph_[v]->state);
 }
 
 template <template <typename T> class NN>
-void ompl::multilevel::BundleSpaceGraph::setNearestNeighbors()
+void BundleSpaceGraph::setNearestNeighbors()
 {
     if (nearestDatastructure_ && nearestDatastructure_->size() == 0)
         OMPL_WARN("Calling setNearestNeighbors will clear all states.");
@@ -424,23 +426,23 @@ void ompl::multilevel::BundleSpaceGraph::setNearestNeighbors()
     }
 }
 
-double ompl::multilevel::BundleSpaceGraph::distance(const Configuration *a, const Configuration *b) const
+double BundleSpaceGraph::distance(const Configuration *a, const Configuration *b) const
 {
     return metric_->distanceBundle(a, b);
 }
 
-bool ompl::multilevel::BundleSpaceGraph::checkMotion(const Configuration *a, const Configuration *b) const
+bool BundleSpaceGraph::checkMotion(const Configuration *a, const Configuration *b) const
 {
     return getBundle()->checkMotion(a->state, b->state);
 }
 
-void ompl::multilevel::BundleSpaceGraph::interpolate(const Configuration *a, const Configuration *b,
+void BundleSpaceGraph::interpolate(const Configuration *a, const Configuration *b,
                                                      Configuration *dest) const
 {
     metric_->interpolateBundle(a, b, dest);
 }
 
-Configuration *ompl::multilevel::BundleSpaceGraph::steerTowards(const Configuration *from, const Configuration *to)
+Configuration *BundleSpaceGraph::steerTowards(const Configuration *from, const Configuration *to)
 {
     Configuration *next = new Configuration(getBundle(), to->state);
 
@@ -452,7 +454,7 @@ Configuration *ompl::multilevel::BundleSpaceGraph::steerTowards(const Configurat
     return next;
 }
 
-Configuration *ompl::multilevel::BundleSpaceGraph::steerTowards_Range(const Configuration *from, Configuration *to)
+Configuration *BundleSpaceGraph::steerTowards_Range(const Configuration *from, Configuration *to)
 {
     // Configuration *next = new Configuration(getBundle(), to->state);
 
@@ -470,7 +472,7 @@ Configuration *ompl::multilevel::BundleSpaceGraph::steerTowards_Range(const Conf
     return next;
 }
 
-Configuration *ompl::multilevel::BundleSpaceGraph::extendGraphTowards_Range(const Configuration *from,
+Configuration *BundleSpaceGraph::extendGraphTowards_Range(const Configuration *from,
                                                                             Configuration *to)
 {
     // Configuration *next = new Configuration(getBundle(), to->state);
@@ -503,7 +505,7 @@ Configuration *ompl::multilevel::BundleSpaceGraph::extendGraphTowards_Range(cons
     return next;
 }
 
-bool ompl::multilevel::BundleSpaceGraph::connect(const Configuration *from, const Configuration *to)
+bool BundleSpaceGraph::connect(const Configuration *from, const Configuration *to)
 {
     if (!propagator_->steer(from, to, xRandom_))
     {
@@ -514,7 +516,7 @@ bool ompl::multilevel::BundleSpaceGraph::connect(const Configuration *from, cons
     return true;
 }
 
-void ompl::multilevel::BundleSpaceGraph::setPropagator(const std::string &sPropagator)
+void BundleSpaceGraph::setPropagator(const std::string &sPropagator)
 {
     if (sPropagator == "geometric")
     {
@@ -533,7 +535,7 @@ void ompl::multilevel::BundleSpaceGraph::setPropagator(const std::string &sPropa
     }
 }
 
-void ompl::multilevel::BundleSpaceGraph::setMetric(const std::string &sMetric)
+void BundleSpaceGraph::setMetric(const std::string &sMetric)
 {
     if (sMetric == "geodesic")
     {
@@ -552,7 +554,7 @@ void ompl::multilevel::BundleSpaceGraph::setMetric(const std::string &sMetric)
     }
 }
 
-void ompl::multilevel::BundleSpaceGraph::setImportance(const std::string &sImportance)
+void BundleSpaceGraph::setImportance(const std::string &sImportance)
 {
     if (sImportance == "uniform")
     {
@@ -576,7 +578,7 @@ void ompl::multilevel::BundleSpaceGraph::setImportance(const std::string &sImpor
     }
 }
 
-void ompl::multilevel::BundleSpaceGraph::setGraphSampler(const std::string &sGraphSampler)
+void BundleSpaceGraph::setGraphSampler(const std::string &sGraphSampler)
 {
     if (sGraphSampler == "randomvertex")
     {
@@ -600,12 +602,12 @@ void ompl::multilevel::BundleSpaceGraph::setGraphSampler(const std::string &sGra
     }
 }
 
-ompl::multilevel::BundleSpaceGraphSamplerPtr ompl::multilevel::BundleSpaceGraph::getGraphSampler()
+BundleSpaceGraphSamplerPtr BundleSpaceGraph::getGraphSampler()
 {
     return graphSampler_;
 }
 
-void ompl::multilevel::BundleSpaceGraph::addEdge(const Vertex a, const Vertex b)
+void BundleSpaceGraph::addEdge(const Vertex a, const Vertex b)
 {
     base::Cost weight = opt_->motionCost(graph_[a]->state, graph_[b]->state);
     EdgeInternalState properties(weight);
@@ -613,12 +615,12 @@ void ompl::multilevel::BundleSpaceGraph::addEdge(const Vertex a, const Vertex b)
     uniteComponents(a, b);
 }
 
-double ompl::multilevel::BundleSpaceGraph::getGraphLength() const
+double BundleSpaceGraph::getGraphLength() const
 {
     return graphLength_;
 }
 
-bool ompl::multilevel::BundleSpaceGraph::getSolution(base::PathPtr &solution)
+bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
 {
     if (hasSolution_)
     {
@@ -680,7 +682,7 @@ bool ompl::multilevel::BundleSpaceGraph::getSolution(base::PathPtr &solution)
     }
 }
 
-// void ompl::multilevel::BundleSpaceGraph::getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph,
+// void BundleSpaceGraph::getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph,
 //                                                               std::deque<base::State *> &path)
 // {
 //     ompl::base::PathPtr dpath = getPath(start, goal, graph);
@@ -722,12 +724,12 @@ bool ompl::multilevel::BundleSpaceGraph::getSolution(base::PathPtr &solution)
 //     // }
 // }
 
-ompl::base::PathPtr ompl::multilevel::BundleSpaceGraph::getPath(const Vertex &start, const Vertex &goal)
+ompl::base::PathPtr BundleSpaceGraph::getPath(const Vertex &start, const Vertex &goal)
 {
     return getPath(start, goal, graph_);
 }
 
-ompl::base::PathPtr ompl::multilevel::BundleSpaceGraph::getPath(const Vertex &start, const Vertex &goal, Graph &graph)
+ompl::base::PathPtr BundleSpaceGraph::getPath(const Vertex &start, const Vertex &goal, Graph &graph)
 {
     std::vector<Vertex> prev(boost::num_vertices(graph));
     auto weight = boost::make_transform_value_property_map(std::mem_fn(&EdgeInternalState::getCost),
@@ -776,7 +778,7 @@ ompl::base::PathPtr ompl::multilevel::BundleSpaceGraph::getPath(const Vertex &st
     return p;
 }
 
-const ompl::multilevel::BundleSpacePathRestrictionPtr ompl::multilevel::BundleSpaceGraph::getPathRestriction()
+const BundleSpacePathRestrictionPtr BundleSpaceGraph::getPathRestriction()
 {
     if (!hasParent())
     {
@@ -790,7 +792,7 @@ const ompl::multilevel::BundleSpacePathRestrictionPtr ompl::multilevel::BundleSp
     return pathRestriction_;
 }
 
-void ompl::multilevel::BundleSpaceGraph::sampleBundleGoalBias(base::State *xRandom)
+void BundleSpaceGraph::sampleBundleGoalBias(base::State *xRandom)
 {
     if (hasSolution_)
     {
@@ -811,12 +813,12 @@ void ompl::multilevel::BundleSpaceGraph::sampleBundleGoalBias(base::State *xRand
     }
 }
 
-void ompl::multilevel::BundleSpaceGraph::sampleFromDatastructure(base::State *xRandom)
+void BundleSpaceGraph::sampleFromDatastructure(base::State *xRandom)
 {
     graphSampler_->sample(xRandom);
 }
 
-void ompl::multilevel::BundleSpaceGraph::print(std::ostream &out) const
+void BundleSpaceGraph::print(std::ostream &out) const
 {
     BaseT::print(out);
     out << std::endl
@@ -824,27 +826,25 @@ void ompl::multilevel::BundleSpaceGraph::print(std::ostream &out) const
         << std::endl;
 }
 
-void ompl::multilevel::BundleSpaceGraph::printConfiguration(const Configuration *q) const
+void BundleSpaceGraph::printConfiguration(const Configuration *q) const
 {
     getBundle()->printState(q->state);
 }
 
-void ompl::multilevel::BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &data, const Graph &graph,
+void BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &data, const Graph &graph,
                                                              const Vertex vStart, const Vertex vGoal) const
 {
     if (boost::num_vertices(graph) <= 0)
         return;
 
-    std::vector<int> idxPathI = getIndexLevel();
-
     multilevel::PlannerDataVertexAnnotated pstart(graph[vStart]->state);
-    pstart.setPath(idxPathI);
+    pstart.setLevel(getLevel());
     data.addStartVertex(pstart);
 
     if (hasSolution_)
     {
         multilevel::PlannerDataVertexAnnotated pgoal(graph[vGoal]->state);
-        pgoal.setPath(idxPathI);
+        pgoal.setLevel(getLevel());
         data.addGoalVertex(pgoal);
         if (solutionPath_ != nullptr)
         {
@@ -856,7 +856,7 @@ void ompl::multilevel::BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &
             for (unsigned int k = 1; k < gstates.size() - 1; k++)
             {
                 multilevel::PlannerDataVertexAnnotated p(gstates.at(k));
-                p.setPath(idxPathI);
+                p.setLevel(getLevel());
                 data.addVertex(p);
                 data.addEdge(*pLast, p);
                 pLast = &p;
@@ -872,20 +872,19 @@ void ompl::multilevel::BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &
 
         multilevel::PlannerDataVertexAnnotated p1(graph[v1]->state);
         multilevel::PlannerDataVertexAnnotated p2(graph[v2]->state);
-        p1.setPath(idxPathI);
-        p2.setPath(idxPathI);
+        p1.setLevel(getLevel());
+        p2.setLevel(getLevel());
         data.addEdge(p1, p2);
     }
     foreach (const Vertex v, boost::vertices(graph))
     {
         multilevel::PlannerDataVertexAnnotated p(graph[v]->state);
-        p.setPath(idxPathI);
+        p.setLevel(getLevel());
         data.addVertex(p);
-        // getBundle()->printState(graph[v]->state);
     }
 }
 
-void ompl::multilevel::BundleSpaceGraph::getPlannerData(base::PlannerData &data) const
+void BundleSpaceGraph::getPlannerData(base::PlannerData &data) const
 {
     OMPL_DEBUG("Graph (level %d) has %d/%d vertices/edges", getLevel(), boost::num_vertices(graph_),
                boost::num_edges(graph_));

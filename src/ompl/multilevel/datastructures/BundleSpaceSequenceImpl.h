@@ -262,6 +262,36 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(const ompl::
 }
 
 template <class T>
+ompl::base::State* ompl::multilevel::BundleSpaceSequence<T>::getTotalState(
+    int baseLevel, const base::State* baseState) const
+{
+    BundleSpace *Qprev = bundleSpaces_.at(baseLevel);
+    ompl::base::State *s_lift = Qprev->getBundle()->cloneState(baseState);
+
+    for (unsigned int m = baseLevel + 1; m < bundleSpaces_.size(); m++)
+    {
+        BundleSpace *Qm = bundleSpaces_.at(m);
+
+        if (Qm->getFiberDimension() > 0)
+        {
+            base::State *s_Bundle = Qm->allocIdentityStateBundle();
+            base::State *s_Fiber = Qm->allocIdentityStateFiber();
+
+            Qm->liftState(s_lift, s_Fiber, s_Bundle);
+
+            Qprev->getBundle()->freeState(s_lift);
+
+            s_lift = Qm->getBundle()->cloneState(s_Bundle);
+
+            Qm->getBundle()->freeState(s_Bundle);
+            Qm->getFiber()->freeState(s_Fiber);
+
+            Qprev = Qm;
+        }
+    }
+    return s_lift;
+}
+template <class T>
 void ompl::multilevel::BundleSpaceSequence<T>::getPlannerData(ompl::base::PlannerData &data) const
 {
     unsigned int Nvertices = data.numVertices();
@@ -274,13 +304,17 @@ void ompl::multilevel::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planne
     unsigned int K = std::min(solutions_.size() + 1, bundleSpaces_.size());
     K = std::min(K, stopAtLevel_);
 
+    BundleSpace *Qlast = this->bundleSpaces_.back();
     for (unsigned int k = 0; k < K; k++)
     {
         BundleSpace *Qk = static_cast<BundleSpace*>(bundleSpaces_.at(k));
         Qk->getPlannerData(data);
 
-        // label all vertices
+        // lift all states into the last bundle space (original state space)
+        // Required for decouplePlannerData() function in PlannerData
+
         unsigned int ctr = 0;
+
         for (unsigned int vidx = Nvertices; vidx < data.numVertices(); vidx++)
         {
             ompl::multilevel::PlannerDataVertexAnnotated &v =
@@ -288,34 +322,8 @@ void ompl::multilevel::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planne
             v.setLevel(k);
             v.setMaxLevel(K);
 
-            //NOTE: Additionally, we could project state into the total state space.
-            //However, this creates higher computational demand on the algorithm
-            //and might fill up the memory of your system. So we have not
-            //enabled this by default.
-
-            // ompl::base::State *s_lift = Qk->getBundle()->cloneState(v.getState());
-            // v.setBaseState(s_lift);
-            // // Qk->getBundle()->printState(s_lift);
-
-            // for (unsigned int m = k + 1; m < bundleSpaces_.size(); m++)
-            // {
-            //     BundleSpace *Qm = bundleSpaces_.at(m);
-
-            //     if (Qm->getFiberDimension() > 0)
-            //     {
-            //         base::State *s_Bundle = Qm->getBundle()->allocState();
-            //         base::State *s_Fiber = Qm->allocIdentityStateFiber();
-
-            //         Qm->liftState(s_lift, s_Fiber, s_Bundle);
-
-            //         // Qm->getBase()->freeState(s_lift);
-            //         s_lift = Qm->getBundle()->cloneState(s_Bundle);
-
-            //         Qm->getBundle()->freeState(s_Bundle);
-            //         Qm->getFiber()->freeState(s_Fiber);
-            //     }
-            // }
-            // v.setState(s_lift);
+            base::State* s_lift = getTotalState(k, v.getBaseState());
+            v.setTotalState(s_lift, Qlast->getBundle());
             ctr++;
         }
         Nvertices = data.numVertices();

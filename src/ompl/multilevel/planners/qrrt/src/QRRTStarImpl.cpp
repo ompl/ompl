@@ -345,16 +345,14 @@ void ompl::multilevel::QRRTStarImpl::calculateRewiringLowerBounds()
 
 void ompl::multilevel::QRRTStarImpl::getPlannerData(base::PlannerData &data) const
 {
-    std::vector<int> idxPathI = getIndexLevel();
-
     multilevel::PlannerDataVertexAnnotated pstart(qStart_->state);
-    pstart.setPath(idxPathI);
+    pstart.setLevel(getLevel());
     data.addStartVertex(pstart);
 
     if (hasSolution_)
     {
         multilevel::PlannerDataVertexAnnotated pgoal(qGoal_->state);
-        pgoal.setPath(idxPathI);
+        pgoal.setLevel(getLevel());
         data.addGoalVertex(pgoal);
     }
 
@@ -368,8 +366,8 @@ void ompl::multilevel::QRRTStarImpl::getPlannerData(base::PlannerData &data) con
         {
             multilevel::PlannerDataVertexAnnotated p1(q->parent->state);
             multilevel::PlannerDataVertexAnnotated p2(q->state);
-            p1.setPath(idxPathI);
-            p2.setPath(idxPathI);
+            p1.setLevel(getLevel());
+            p2.setLevel(getLevel());
             data.addEdge(p1, p2);
         }
     }

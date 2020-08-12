@@ -690,19 +690,6 @@ void BundleSpace::sampleBundle(State *xRandom)
     }
 }
 
-std::vector<int> BundleSpace::getIndexLevel() const
-{
-    std::vector<int> idxPathI;
-    BundleSpace *pparent = getParent();
-    while (pparent != nullptr)
-    {
-        idxPathI.push_back(0);
-        pparent = pparent->getParent();
-    }
-    idxPathI.push_back(0);
-    return idxPathI;
-}
-
 void BundleSpace::debugInvalidState(const State *x)
 {
     const StateSpacePtr space = Bundle->getStateSpace();

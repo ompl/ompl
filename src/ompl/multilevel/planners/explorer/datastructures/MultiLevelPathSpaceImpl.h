@@ -107,6 +107,7 @@ void MultiLevelPathSpace<T>::getPlannerData(base::PlannerData &data) const
     unsigned int K = this->bundleSpaces_.size();
     std::vector<uint> countVerticesPerBundleSpace;
 
+    BundleSpace *Qlast = this->bundleSpaces_.back();
     for (unsigned int k = 0; k < K; k++)
     {
         BundleSpaceGraph *Qk = static_cast<BundleSpaceGraph*>(this->bundleSpaces_.at(k));
@@ -118,9 +119,6 @@ void MultiLevelPathSpace<T>::getPlannerData(base::PlannerData &data) const
         // }
         Qk->getPlannerData(data);
 
-        // label all new vertices
-        unsigned int ctr = 0;
-
         for (unsigned int vidx = Nvertices; vidx < data.numVertices(); vidx++)
         {
             multilevel::PlannerDataVertexAnnotated &v = 
@@ -128,29 +126,8 @@ void MultiLevelPathSpace<T>::getPlannerData(base::PlannerData &data) const
             v.setLevel(k);
             v.setMaxLevel(K);
 
-            base::State *s_lift = Qk->getBundle()->cloneState(v.getState());
-            v.setBaseState(s_lift);
-
-            for (unsigned int m = k + 1; m < this->bundleSpaces_.size(); m++)
-            {
-                const BundleSpace *Qm = this->bundleSpaces_.at(m);
-
-                if (Qm->getFiberDimension() > 0)
-                {
-                    base::State *s_Bundle = Qm->allocIdentityStateBundle();
-                    base::State *s_Fiber = Qm->allocIdentityStateFiber();
-
-                    Qm->liftState(s_lift, s_Fiber, s_Bundle);
-
-                    // Qm->getBase()->freeState(s_lift);
-                    s_lift = Qm->getBundle()->cloneState(s_Bundle);
-
-                    Qm->getBundle()->freeState(s_Bundle);
-                    Qm->getFiber()->freeState(s_Fiber);
-                }
-            }
-            v.setState(s_lift);
-            ctr++;
+            base::State* s_lift = getTotalState(k, v.getBaseState());
+            v.setTotalState(s_lift, Qlast->getBundle());
         }
         countVerticesPerBundleSpace.push_back(data.numVertices() - Nvertices);
         Nvertices = data.numVertices();
