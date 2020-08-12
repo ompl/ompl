@@ -126,7 +126,7 @@ void MultiLevelPathSpace<T>::getPlannerData(base::PlannerData &data) const
             v.setLevel(k);
             v.setMaxLevel(K);
 
-            base::State* s_lift = getTotalState(k, v.getBaseState());
+            base::State* s_lift = BaseT::getTotalState(k, v.getBaseState());
             v.setTotalState(s_lift, Qlast->getBundle());
         }
         countVerticesPerBundleSpace.push_back(data.numVertices() - Nvertices);
