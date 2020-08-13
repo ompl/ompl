@@ -48,6 +48,12 @@ namespace ompl
     }
     namespace multilevel
     {
+        /** Shortest path Bundle Space Metric: Distance between two elements on
+         * bundle space is given by first computing the shortest path between
+         * the PROJECTIONS of those elements onto the base space. This is the
+         * most obvious way to exploit a base space. However, it might often be
+         * too slow for realistic applications. */
+
         class BundleSpaceMetricShortestPath : public BundleSpaceMetricGeodesic
         {
             using BaseT = BundleSpaceMetricGeodesic;
@@ -57,17 +63,33 @@ namespace ompl
             BundleSpaceMetricShortestPath(BundleSpaceGraph *);
             virtual ~BundleSpaceMetricShortestPath() override;
 
-            virtual double distanceBundle(const Configuration *xStart, const Configuration *xDest) override;
+            virtual double distanceBundle(
+                const Configuration *xStart, 
+                const Configuration *xDest) override;
 
-            virtual double distanceFiber(const Configuration *xStart, const Configuration *xDest) override;
+            virtual double distanceFiber(
+                const Configuration *xStart, 
+                const Configuration *xDest) override;
 
-            virtual double distanceBase(const Configuration *xStart, const Configuration *xDest) override;
+            virtual double distanceBase(
+                const Configuration *xStart, 
+                const Configuration *xDest) override;
 
-            virtual void interpolateBundle(const Configuration *q_from, const Configuration *q_to, const double step,
-                                           Configuration *q_interp) override;
+            virtual void interpolateBundle(
+                const Configuration *q_from, 
+                const Configuration *q_to, 
+                const double step,
+                Configuration *q_interp) override;
 
-            std::vector<const Configuration *> getInterpolationPath(const Configuration *xStart,
-                                                                    const Configuration *xDest);
+            /** \brief Interpolate path between bundle space elements xStart and
+             * xDest by using the base space. First, we project elements down
+             * onto base space. Second, we do a graph search on base space graph
+             * to connect them. Third, we interpolate an L2 section along the
+             * base path. Fourth, we return the milestones along L2 section.*/
+
+            std::vector<const Configuration *> getInterpolationPath(
+                const Configuration *xStart,
+                const Configuration *xDest);
 
         protected:
             std::vector<Configuration *> tmpPath_;

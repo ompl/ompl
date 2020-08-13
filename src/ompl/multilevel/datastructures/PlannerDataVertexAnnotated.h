@@ -45,14 +45,22 @@ namespace ompl
 {
     namespace multilevel
     {
-        /** \brief An annotated vertex, adding information about its level in the
-            quotient-space hiearchy, the maxlevel of quotientspaces and the component it
-            belongs to */
+
+        /** \brief An annotated vertex, adding information about its level in
+            the multilevel hierarchy. Class has two modes: Mode 1 (baseMode), we
+            store a reference to its base state element. In Mode 2 (totalMode),
+            we store a deep copy of the lift of the base state into the total
+            space (NOTE: required for PlannerData functions like decoupleFromPlanner()) 
+        */
+
+
         class PlannerDataVertexAnnotated : public ompl::base::PlannerDataVertex
         {
             // If new elements are added,
             // you need to update the clone/getstate functions!
         public:
+
+            /** \brief Constructor for base state. Set mode to baseMode. */
             PlannerDataVertexAnnotated(const ompl::base::State *state);
 
             PlannerDataVertexAnnotated(const PlannerDataVertexAnnotated &rhs);
@@ -68,30 +76,68 @@ namespace ompl
             void setComponent(unsigned int component_);
             unsigned int getComponent() const;
 
-            // \brief requires si because we need to free total state
+            /** \brief Set total state, i.e. the lift of the base state to the
+               total space (last Spaceinformationptr in sequence). 
+               NOTE: Changes mode to totalMode.
+               NOTE: requires Spaceinformationptr (of total space) 
+               to free state
+            */
             void setTotalState(ompl::base::State *s, ompl::base::SpaceInformationPtr si);
 
+            /** \brief Explicitly changes base state (does not change mode) */
             void setBaseState(const ompl::base::State *s);
+
+            /** \brief Returns base state in baseMode and total state in
+             * totalMode. The total space here is the last element of space sequence.
+             * */
             virtual const ompl::base::State *getState() const override;
+
+            /** \brief Same as getState(), but state can be changed */
             ompl::base::State *getStateNonConst() const;
+
+            /** \brief Returns base state, indepent of mode*/
             const ompl::base::State *getBaseState() const;
+
             ompl::base::SpaceInformationPtr getSpaceInformationPtr() const;
 
+            /** \brief Verifies equality by checking level and base state (mode
+             * independent) */
             virtual bool operator==(const PlannerDataVertex &rhs) const override;
 
             friend std::ostream &operator<<(std::ostream &, const PlannerDataVertexAnnotated &);
 
         protected:
+            
+            /** \brief The level for the base state */
             unsigned int level_{0};
+
+            /** \brief How many spaces exists in the multilevel structure */
             unsigned int maxLevel_{1};
+
+            /** \brief (Optional:) which component in roadmap does vertex belong
+             * to */
             unsigned int component_{0};
 
+            /** \brief There are two modes. Mode 1 is the normal mode where this
+             * class contains a reference to the base state. In
+             * that case getState() returns the base state. Mode 2 is the total
+             * space mode, where we set a total
+             * state, in which case getState() returns the total state. Note
+             * that we require the class to be in Mode 2 for methods like
+             * PlannerData::decoupleFromPlanner(). You can put the class into
+             * Mode 2 by calling setTotalState()
+             */
             bool totalStateIsSet{false};
 
-            //reference to base state
+            /** \brief Internal reference to base state. Same as state_ in
+             * normal Mode to avoid confusion. */
             const ompl::base::State *stateBase_{nullptr};
+
+            /** \brief Storage of total state */
             ompl::base::State *stateTotal_{nullptr};
 
+            /** \brief Pointer to total space (to free total space element upon
+             * deletion) */
             ompl::base::SpaceInformationPtr si_{nullptr};
         };
 

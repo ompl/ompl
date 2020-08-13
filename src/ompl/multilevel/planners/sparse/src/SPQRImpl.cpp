@@ -75,20 +75,16 @@ void ompl::multilevel::SPQRImpl::grow()
         init();
         firstRun_ = false;
 
-        // if (hasBaseSpace())
-        // {
-        //   printConfiguration(qStart_);
-        //   printConfiguration(qGoal_);
-        //   std::cout << qStart_->index << std::endl;
-        //   std::cout << qGoal_->index << std::endl;
-        //     if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
-        //     {
-        //         if (sameComponentSparse(v_start_sparse, v_goal_sparse))
-        //         {
-        //             hasSolution_ = true;
-        //         }
-        //     }
-        // }
+        if (hasBaseSpace())
+        {
+            if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
+            {
+                if (sameComponentSparse(v_start_sparse, v_goal_sparse))
+                {
+                    hasSolution_ = true;
+                }
+            }
+        }
     }
     // std::cout << "GROW" << getLevel() << std::endl;
 

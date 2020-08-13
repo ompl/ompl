@@ -44,6 +44,9 @@ namespace ompl
 {
     namespace multilevel
     {
+        /** Geodesic Bundle Space Metric: Reverting to the intrinsic metric of
+         * each space, i.e. we ignore the base space (naive, but fast) */
+
         class BundleSpaceMetricGeodesic : public BundleSpaceMetric
         {
             using BaseT = BundleSpaceMetric;
@@ -53,12 +56,23 @@ namespace ompl
             BundleSpaceMetricGeodesic(BundleSpaceGraph *);
             virtual ~BundleSpaceMetricGeodesic() override = default;
 
-            virtual double distanceBundle(const Configuration *xStart, const Configuration *xDest) override;
-            virtual double distanceFiber(const Configuration *xStart, const Configuration *xDest) override;
-            virtual double distanceBase(const Configuration *xStart, const Configuration *xDest) override;
+            virtual double distanceBundle(
+                const Configuration *xStart, 
+                const Configuration *xDest) override;
 
-            virtual void interpolateBundle(const Configuration *q_from, const Configuration *q_to, const double step,
-                                           Configuration *q_interp) override;
+            virtual double distanceFiber(
+                const Configuration *xStart, 
+                const Configuration *xDest) override;
+
+            virtual double distanceBase(
+                const Configuration *xStart, 
+                const Configuration *xDest) override;
+
+            virtual void interpolateBundle(
+                const Configuration *q_from, 
+                const Configuration *q_to, 
+                const double step,
+                Configuration *q_interp) override;
         };
     }
 }

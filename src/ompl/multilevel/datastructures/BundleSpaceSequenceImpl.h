@@ -233,6 +233,7 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(const ompl::
 
     base::OptimizationObjectivePtr obj = pdef->getOptimizationObjective();
 
+    pdefVec_.clear();
     pdefVec_.push_back(pdef);
 
     for (unsigned int k = siVec_.size() - 1; k > 0; k--)

@@ -44,8 +44,10 @@ namespace ompl
 {
     namespace multilevel
     {
-        /** \brief MultiLevel Planner Interface
-         */
+        /** \brief MultiLevel Planner Interface. 
+         * Extends base::Planner by allowing sequences 
+         * of base::SpaceInformationPtr */
+
         class PlannerMultiLevel : public ompl::base::Planner
         {
             using BaseT = ompl::base::Planner;

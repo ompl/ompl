@@ -140,7 +140,6 @@ bool PlannerDataVertexAnnotated::operator==(
 {
     const PlannerDataVertexAnnotated& rhsA = static_cast<const PlannerDataVertexAnnotated&>(rhs);
     bool equiv = (getLevel() == rhsA.getLevel() && getBaseState() == rhsA.getBaseState());
-    std::cout << "Eq:" << (equiv?"YES":"NO") << std::endl;
     return equiv;
 }
 

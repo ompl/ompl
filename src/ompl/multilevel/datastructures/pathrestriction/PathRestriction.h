@@ -54,18 +54,24 @@ namespace ompl
     {
         OMPL_CLASS_FORWARD(BundleSpaceGraph);
 
-        /// \brief Representation of path restriction (set of all elements of bundle space
-        // which project onto a given base path --- i.e. the union of fibers over base path).
-        //
-        // This class has additional
-        // functionalities to find path sections (paths lying inside path
-        // restriction) using different interpolation methods (shortest L1, L2
-        // paths)
+        /** \brief Representation of path restriction 
+            (set of all elements of bundle space
+            which project onto a given base path --- 
+            i.e. the union of fibers over a given base path).
+           
+            This class has additional functionalities to find path sections
+            (paths lying inside path restriction) using different interpolation
+            methods (shortest L1 or L2 paths). 
+
+            To use this class, you need to set a base path (setBasePath), 
+            then you can compute sections over this base path (hasFeasibleSection)
+        */
 
         class BundleSpacePathRestriction
         {
         public:
             using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
+
             BundleSpacePathRestriction() = delete;
             BundleSpacePathRestriction(BundleSpaceGraph *);
 
@@ -73,70 +79,98 @@ namespace ompl
 
             virtual void clear();
 
+            /** \brief Set base path over which restriction is defined */
             void setBasePath(base::PathPtr);
+
+            /** \brief Set base path over which restriction is defined */
             void setBasePath(std::vector<base::State *>);
 
+            /** \brief Check if feasible section exists between xStart and xGoal. 
+             * Main method to use outside this class. Use this if you are
+             * unsure.
+             * NOTE: 
+             *  "const ptr*" means that the pointer itself is const
+             *  "ptr* const" means that the content of the pointer is const (but ptr
+             *  can change */
+
+            bool hasFeasibleSection(Configuration *const, Configuration *const);
+
+            /** \brief Interpolate L2 section and check validity */
             bool checkSection(Configuration *const xStart, Configuration *const xGoal);
 
-            bool checkSectionRecursiveRepair(Configuration *const xStart, Configuration *const xGoal,
-                                             const std::vector<base::State *> basePath, bool interpolateL1 = true,
-                                             unsigned int depth = 0, double startLength = 0.0);
+            /** \brief Interpolate L1 sections and check validity. Return last
+               valid configuration and call method recursively to sidestep along
+               fiber. Terminate if PATH_SECTION_TREE_MAX_DEPTH recursion were
+               done or we found a feasible section. */
+            bool checkSectionRecursiveRepair(
+                Configuration *const xStart, 
+                Configuration *const xGoal,
+                const std::vector<base::State *> basePath, 
+                bool interpolateL1 = true,
+                unsigned int depth = 0, 
+                double startLength = 0.0);
 
+            /** \brief Sample state on fiber while keeping base state fixed */
             bool sideStepAlongFiber(const base::State *xBase, base::State *xBundle);
 
+            /** \brief Verify that a given section is indeed valid */
             void sanityCheckSection();
 
+            /** \brief Add vertex for sNext and edge to xLast by assuming motion
+             * is valid  */
             Configuration *addFeasibleSegment(Configuration *xLast, base::State *sNext);
 
             void addFeasibleGoalSegment(Configuration *const xLast, Configuration *const xGoal);
 
-            // Note:
-            // const ptr* means that the pointer itself is const
-            // ptr* const means that the content of the pointer is const (but ptr
-            // can change)
+            /** \brief Interpolate along restriction using L2 metric
+              *  ---------------
+              *            ____x
+              *       ____/
+              *   ___/
+              *  x
+              *  --------------- */
+            std::vector<base::State *> interpolateSectionL2(
+                const base::State *xFiberStart,
+                const base::State *xFiberGoal,
+                const std::vector<base::State *> basePath);
 
-            bool hasFeasibleSection(Configuration *const, Configuration *const);
+            /** \brief Interpolate along restriction using L1 metric (Fiber Last)
+              *   ---------------
+              *                 x
+              *                 |
+              *                 |
+              *   x_____________|
+              *   --------------- */
+            std::vector<base::State *> interpolateSectionL1FL(
+                const base::State *xFiberStart,
+                const base::State *xFiberGoal,
+                const std::vector<base::State *> basePath);
 
-            //\brief Interpolate along restriction using L2 metric
-            //  ---------------
-            //            ____x
-            //       ____/
-            //   ___/
-            //  x
-            //  ---------------
-            std::vector<base::State *> interpolateSectionL2(const base::State *xFiberStart,
-                                                            const base::State *xFiberGoal,
-                                                            const std::vector<base::State *> basePath);
-
-            //\brief Interpolate along restriction using L1 metric
-            //  ---------------
-            //                x
-            //                |
-            //                |
-            //  x_____________|
-            //  ---------------
-            std::vector<base::State *> interpolateSectionL1FL(const base::State *xFiberStart,
-                                                              const base::State *xFiberGoal,
-                                                              const std::vector<base::State *> basePath);
-
-            //\brief Interpolate along restriction using L1 metric, but first
-            // interpolate along fiber
-            //  ---------------
-            //   _____________x
-            //  |
-            //  |
-            //  x
-            //  ---------------
-            std::vector<base::State *> interpolateSectionL1FF(const base::State *xFiberStart,
-                                                              const base::State *xFiberGoal,
-                                                              const std::vector<base::State *> basePath);
+            /** \brief Interpolate along restriction using L1 metric 
+              * (Fiber first)
+              *   ---------------
+              *    _____________x
+              *   |
+              *   |
+              *   x
+              *   --------------- */
+            std::vector<base::State *> interpolateSectionL1FF(
+                const base::State *xFiberStart,
+                const base::State *xFiberGoal,
+                const std::vector<base::State *> basePath);
 
         protected:
+
+            /** \brief Pointer to associated bundle space */
             BundleSpaceGraph *bundleSpaceGraph_;
 
+            /** \brief Base path over which we define the restriction */
             std::vector<base::State *> basePath_;
 
+            /** \brief Length of set base path */
             double lengthBasePath_{0.0};
+
+            /** \brief Intermediate lengths between states on base path */
             std::vector<double> intermediateLengthsBasePath_;
 
             base::State *xBaseTmp_{nullptr};
@@ -146,6 +180,8 @@ namespace ompl
             base::State *xFiberGoal_{nullptr};
             base::State *xFiberTmp_{nullptr};
 
+            /** \brief Temporary variable to save last valid state along a
+             * section */
             std::pair<base::State *, double> lastValid_;
         };
     }
