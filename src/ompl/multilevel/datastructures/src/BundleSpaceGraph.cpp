@@ -75,8 +75,7 @@ using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
 using namespace ompl::multilevel;
 
-BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformationPtr &si, BundleSpace *parent_)
-  : BaseT(si, parent_)
+BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("BundleSpaceGraph");
 
@@ -85,7 +84,7 @@ BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformationPtr &si, BundleSp
     setGraphSampler("randomvertex");
     setImportance("uniform");
 
-    pathRestriction_ = std::make_shared<BundleSpacePathRestriction>(this);
+    pathRestriction_ = std::make_shared<PathRestriction>(this);
 
     if (isDynamic())
     {
@@ -254,8 +253,7 @@ double BundleSpaceGraph::getRange() const
     return maxDistance_;
 }
 
-BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si)
-  : state(si->allocState())
+BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si) : state(si->allocState())
 {
     const ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
     if (siC != nullptr)
@@ -263,8 +261,7 @@ BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &
         control = siC->allocControl();
     }
 }
-BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si,
-                                                                 const base::State *state_)
+BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si, const base::State *state_)
   : state(si->cloneState(state_))
 {
     const ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
@@ -301,7 +298,6 @@ void BundleSpaceGraph::deleteConfiguration(Configuration *q)
 
         delete q;
         q = nullptr;
-
     }
 }
 
@@ -355,14 +351,12 @@ bool BundleSpaceGraph::sameComponent(Vertex m1, Vertex m2)
     return boost::same_component(m1, m2, disjointSets_);
 }
 
-const BundleSpaceGraph::Configuration *
-BundleSpaceGraph::nearest(const Configuration *q) const
+const BundleSpaceGraph::Configuration *BundleSpaceGraph::nearest(const Configuration *q) const
 {
     return nearestDatastructure_->nearest(const_cast<Configuration *>(q));
 }
 
-BundleSpaceGraph::Configuration *
-BundleSpaceGraph::addBundleConfiguration(base::State *state)
+BundleSpaceGraph::Configuration *BundleSpaceGraph::addBundleConfiguration(base::State *state)
 {
     Configuration *x = new Configuration(getBundle(), state);
     addConfiguration(x);
@@ -402,8 +396,7 @@ const BundleSpaceGraph::Graph &BundleSpaceGraph::getGraph() const
     return graph_;
 }
 
-const BundleSpaceGraph::RoadmapNeighborsPtr &
-BundleSpaceGraph::getRoadmapNeighborsPtr() const
+const BundleSpaceGraph::RoadmapNeighborsPtr &BundleSpaceGraph::getRoadmapNeighborsPtr() const
 {
     return nearestDatastructure_;
 }
@@ -436,8 +429,7 @@ bool BundleSpaceGraph::checkMotion(const Configuration *a, const Configuration *
     return getBundle()->checkMotion(a->state, b->state);
 }
 
-void BundleSpaceGraph::interpolate(const Configuration *a, const Configuration *b,
-                                                     Configuration *dest) const
+void BundleSpaceGraph::interpolate(const Configuration *a, const Configuration *b, Configuration *dest) const
 {
     metric_->interpolateBundle(a, b, dest);
 }
@@ -472,8 +464,7 @@ Configuration *BundleSpaceGraph::steerTowards_Range(const Configuration *from, C
     return next;
 }
 
-Configuration *BundleSpaceGraph::extendGraphTowards_Range(const Configuration *from,
-                                                                            Configuration *to)
+Configuration *BundleSpaceGraph::extendGraphTowards_Range(const Configuration *from, Configuration *to)
 {
     // Configuration *next = new Configuration(getBundle(), to->state);
 
@@ -748,7 +739,6 @@ ompl::base::PathPtr BundleSpaceGraph::getPath(const Vertex &start, const Vertex 
                                 .distance_inf(opt_->infiniteCost())
                                 .distance_zero(opt_->identityCost())
                                 .visitor(BundleSpaceGraphGoalVisitor<Vertex>(goal)));
-
     }
     catch (BundleSpaceGraphFoundGoal &)
     {
@@ -778,7 +768,7 @@ ompl::base::PathPtr BundleSpaceGraph::getPath(const Vertex &start, const Vertex 
     return p;
 }
 
-const BundleSpacePathRestrictionPtr BundleSpaceGraph::getPathRestriction()
+const PathRestrictionPtr BundleSpaceGraph::getPathRestriction()
 {
     if (!hasParent())
     {
@@ -831,8 +821,8 @@ void BundleSpaceGraph::printConfiguration(const Configuration *q) const
     getBundle()->printState(q->state);
 }
 
-void BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &data, const Graph &graph,
-                                                             const Vertex vStart, const Vertex vGoal) const
+void BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &data, const Graph &graph, const Vertex vStart,
+                                           const Vertex vGoal) const
 {
     if (boost::num_vertices(graph) <= 0)
         return;

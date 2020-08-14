@@ -47,55 +47,63 @@
 #define SANITY_CHECK_PATH_RESTRICTION
 #undef SANITY_CHECK_PATH_RESTRICTION
 
-ompl::multilevel::BundleSpacePathRestriction::BundleSpacePathRestriction(BundleSpaceGraph *bundleSpaceGraph)
+using namespace ompl::multilevel;
+
+PathRestriction::PathRestriction(BundleSpaceGraph *bundleSpaceGraph)
   : bundleSpaceGraph_(bundleSpaceGraph)
 {
     if (bundleSpaceGraph_->getFiberDimension() > 0)
     {
-        xFiberStart_ = bundleSpaceGraph_->getFiber()->allocState();
-        xFiberGoal_ = bundleSpaceGraph_->getFiber()->allocState();
-        xFiberTmp_ = bundleSpaceGraph_->getFiber()->allocState();
+        base::SpaceInformationPtr fiber = bundleSpaceGraph_->getFiber();
+        xFiberStart_ = fiber->allocState();
+        xFiberGoal_ = fiber->allocState();
+        xFiberTmp_ =  fiber->allocState();
     }
     if (bundleSpaceGraph_->getBaseDimension() > 0)
     {
-        xBaseTmp_ = bundleSpaceGraph_->getBase()->allocState();
+        base::SpaceInformationPtr base = bundleSpaceGraph_->getBase();
+        xBaseTmp_ = base->allocState();
+        validSegmentLength_ = base->getStateSpace()->getLongestValidSegmentLength();
     }
-    xBundleTmp_ = bundleSpaceGraph_->getBundle()->allocState();
-
-    lastValid_.first = bundleSpaceGraph_->getBundle()->allocState();
+    base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
+    xBundleTmp_ = bundle->allocState();
+    lastValid_.first = bundle->allocState();
 }
 
-ompl::multilevel::BundleSpacePathRestriction::~BundleSpacePathRestriction()
+PathRestriction::~PathRestriction()
 {
     if (bundleSpaceGraph_->isDynamic())
         return;
 
     if (bundleSpaceGraph_->getFiberDimension() > 0)
     {
-        bundleSpaceGraph_->getFiber()->freeState(xFiberStart_);
-        bundleSpaceGraph_->getFiber()->freeState(xFiberGoal_);
-        bundleSpaceGraph_->getFiber()->freeState(xFiberTmp_);
+        base::SpaceInformationPtr fiber = bundleSpaceGraph_->getFiber();
+        fiber->freeState(xFiberStart_);
+        fiber->freeState(xFiberGoal_);
+        fiber->freeState(xFiberTmp_);
     }
     if (bundleSpaceGraph_->getBaseDimension() > 0)
     {
-        bundleSpaceGraph_->getBase()->freeState(xBaseTmp_);
+        base::SpaceInformationPtr base = bundleSpaceGraph_->getBase();
+        base->freeState(xBaseTmp_);
     }
-    bundleSpaceGraph_->getBundle()->freeState(lastValid_.first);
-    bundleSpaceGraph_->getBundle()->freeState(xBundleTmp_);
+    base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
+    bundle->freeState(lastValid_.first);
+    bundle->freeState(xBundleTmp_);
 }
 
-void ompl::multilevel::BundleSpacePathRestriction::clear()
+void PathRestriction::clear()
 {
     basePath_.clear();
 }
 
-void ompl::multilevel::BundleSpacePathRestriction::setBasePath(ompl::base::PathPtr path)
+void PathRestriction::setBasePath(ompl::base::PathPtr path)
 {
     geometric::PathGeometricPtr geometricBasePath = std::static_pointer_cast<geometric::PathGeometric>(path);
     setBasePath(geometricBasePath->getStates());
 }
 
-void ompl::multilevel::BundleSpacePathRestriction::setBasePath(std::vector<base::State *> basePath)
+void PathRestriction::setBasePath(std::vector<base::State *> basePath)
 {
     basePath_ = basePath;
 
@@ -110,15 +118,17 @@ void ompl::multilevel::BundleSpacePathRestriction::setBasePath(std::vector<base:
     OMPL_INFORM("Set new base path with %d states and length %f.", basePath_.size(), lengthBasePath_);
 }
 
-std::vector<ompl::base::State *> ompl::multilevel::BundleSpacePathRestriction::interpolateSectionL1FL(
+std::vector<ompl::base::State *> PathRestriction::interpolateSectionL1FL(
     const base::State *xFiberStart, const base::State *xFiberGoal, const std::vector<base::State *> basePath)
 {
     std::vector<base::State *> bundlePath;
 
+    base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
+
     if (bundleSpaceGraph_->getFiberDimension() > 0)
     {
         bundlePath.resize(basePath.size() + 1);
-        bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
+        bundle->allocStates(bundlePath);
         for (unsigned int k = 0; k < bundlePath.size() - 1; k++)
         {
             bundleSpaceGraph_->liftState(basePath.at(k), xFiberStart, bundlePath.at(k));
@@ -128,24 +138,26 @@ std::vector<ompl::base::State *> ompl::multilevel::BundleSpacePathRestriction::i
     else
     {
         bundlePath.resize(basePath.size());
-        bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
+        bundle->allocStates(bundlePath);
         for (unsigned int k = 0; k < basePath.size(); k++)
         {
-            bundleSpaceGraph_->getBundle()->copyState(bundlePath.at(k), basePath.at(k));
+            bundle->copyState(bundlePath.at(k), basePath.at(k));
         }
     }
     return bundlePath;
 }
 
-std::vector<ompl::base::State *> ompl::multilevel::BundleSpacePathRestriction::interpolateSectionL1FF(
+std::vector<ompl::base::State *> PathRestriction::interpolateSectionL1FF(
     const base::State *xFiberStart, const base::State *xFiberGoal, const std::vector<base::State *> basePath)
 {
     std::vector<base::State *> bundlePath;
 
+    base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
+
     if (bundleSpaceGraph_->getFiberDimension() > 0)
     {
         bundlePath.resize(basePath.size() + 1);
-        bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
+        bundle->allocStates(bundlePath);
 
         bundleSpaceGraph_->liftState(basePath.front(), xFiberStart, bundlePath.front());
         for (unsigned int k = 1; k < bundlePath.size(); k++)
@@ -156,21 +168,24 @@ std::vector<ompl::base::State *> ompl::multilevel::BundleSpacePathRestriction::i
     else
     {
         bundlePath.resize(basePath.size());
-        bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
+        bundle->allocStates(bundlePath);
         for (unsigned int k = 0; k < basePath.size(); k++)
         {
-            bundleSpaceGraph_->getBundle()->copyState(bundlePath.at(k), basePath.at(k));
+            bundle->copyState(bundlePath.at(k), basePath.at(k));
         }
     }
     return bundlePath;
 }
 
-std::vector<ompl::base::State *> ompl::multilevel::BundleSpacePathRestriction::interpolateSectionL2(
+std::vector<ompl::base::State *> PathRestriction::interpolateSectionL2(
     const base::State *xFiberStart, const base::State *xFiberGoal, const std::vector<base::State *> basePath)
 {
     std::vector<base::State *> bundlePath;
     bundlePath.resize(basePath.size());
-    bundleSpaceGraph_->getBundle()->allocStates(bundlePath);
+
+    base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
+
+    bundle->allocStates(bundlePath);
 
     double totalLengthBasePath = 0.0;
     for (unsigned int k = 1; k < basePath.size(); k++)
@@ -200,38 +215,40 @@ std::vector<ompl::base::State *> ompl::multilevel::BundleSpacePathRestriction::i
     {
         for (unsigned int k = 0; k < basePath.size(); k++)
         {
-            bundleSpaceGraph_->getBundle()->copyState(bundlePath.at(k), basePath.at(k));
+            bundle->copyState(bundlePath.at(k), basePath.at(k));
         }
     }
     return bundlePath;
 }
 
-ompl::multilevel::BundleSpaceGraph::Configuration *
-ompl::multilevel::BundleSpacePathRestriction::addFeasibleSegment(Configuration *xLast, base::State *sNext)
+BundleSpaceGraph::Configuration *
+PathRestriction::addFeasibleSegment(Configuration *xLast, base::State *sNext)
 {
-    Configuration *x = new Configuration(bundleSpaceGraph_->getBundle(), sNext);
+    base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
+
+    Configuration *x = new Configuration(bundle, sNext);
     bundleSpaceGraph_->addConfiguration(x);
     bundleSpaceGraph_->addBundleEdge(xLast, x);
 
     x->parent = xLast;
 
 #ifdef SANITY_CHECK_PATH_RESTRICTION
-    if (!bundleSpaceGraph_->getBundle()->checkMotion(xLast->state, x->state))
+    if (!bundle->checkMotion(xLast->state, x->state))
     {
         OMPL_ERROR("Not feasible from last");
         std::cout << std::string(80, '-') << std::endl;
         std::cout << "Last State" << std::endl;
-        bundleSpaceGraph_->getBundle()->printState(xLast->state);
+        bundle->printState(xLast->state);
         std::cout << std::string(80, '-') << std::endl;
         std::cout << "Current State" << std::endl;
-        bundleSpaceGraph_->getBundle()->printState(x->state);
+        bundle->printState(x->state);
         throw Exception("");
     }
 #endif
     return x;
 }
 
-void ompl::multilevel::BundleSpacePathRestriction::addFeasibleGoalSegment(Configuration *const xLast,
+void PathRestriction::addFeasibleGoalSegment(Configuration *const xLast,
                                                                           Configuration *const xGoal)
 {
     if (xGoal->index <= 0)
@@ -243,20 +260,21 @@ void ompl::multilevel::BundleSpacePathRestriction::addFeasibleGoalSegment(Config
     xGoal->parent = xLast;
 
 #ifdef SANITY_CHECK_PATH_RESTRICTION
-    if (!bundleSpaceGraph_->getBundle()->checkMotion(xLast->state, xGoal->state))
+    base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
+    if (!bundle->checkMotion(xLast->state, xGoal->state))
     {
-        std::cout << std::string(80, '-') << std::endl;
-        std::cout << "Last State" << std::endl;
-        bundleSpaceGraph_->getBundle()->printState(xLast->state);
-        std::cout << std::string(80, '-') << std::endl;
-        std::cout << "Current State" << std::endl;
-        bundleSpaceGraph_->getBundle()->printState(xGoal->state);
+        OMPL_DEBUG(std::string(80, '-').c_str());
+        OMPL_DEBUG("Last State");
+        bundle->printState(xLast->state);
+        OMPL_DEBUG(std::string(80, '-').c_str());
+        OMPL_DEBUG("Current State");
+        bundle->printState(xGoal->state);
         throw Exception("Infeasible goal segment.");
     }
 #endif
 }
 
-bool ompl::multilevel::BundleSpacePathRestriction::sideStepAlongFiber(const base::State *xBase, base::State *xBundle)
+bool PathRestriction::sideStepAlongFiber(const base::State *xBase, base::State *xBundle)
 {
     int ctr = 0;
     bool found = false;
@@ -274,8 +292,9 @@ bool ompl::multilevel::BundleSpacePathRestriction::sideStepAlongFiber(const base
     return found;
 }
 
-bool ompl::multilevel::BundleSpacePathRestriction::hasFeasibleSection(Configuration *const xStart,
-                                                                      Configuration *const xGoal)
+bool PathRestriction::hasFeasibleSection(
+    Configuration *const xStart, 
+    Configuration *const xGoal)
 {
     // check for quasisection computation module
     int type = bundleSpaceGraph_->getBundle()->getStateSpace()->getType();
@@ -317,11 +336,11 @@ bool ompl::multilevel::BundleSpacePathRestriction::hasFeasibleSection(Configurat
     }
     else
     {
-        bool foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_);
+        bool foundFeasibleSection = checkSectionL1BacktrackRecursive(xStart, xGoal, basePath_);
         if (!foundFeasibleSection)
         {
             // Try with inverse L1
-            foundFeasibleSection = checkSectionRecursiveRepair(xStart, xGoal, basePath_, false);
+            foundFeasibleSection = checkSectionL1BacktrackRecursive(xStart, xGoal, basePath_, false);
         }
 
 #ifdef SANITY_CHECK_PATH_RESTRICTION
@@ -334,7 +353,8 @@ bool ompl::multilevel::BundleSpacePathRestriction::hasFeasibleSection(Configurat
     }
 }
 
-bool ompl::multilevel::BundleSpacePathRestriction::checkSection(Configuration *const xStart, Configuration *const xGoal)
+bool PathRestriction::checkSectionL2(
+    Configuration *const xStart, Configuration *const xGoal)
 {
     bundleSpaceGraph_->projectFiber(xStart->state, xFiberStart_);
     bundleSpaceGraph_->projectFiber(xGoal->state, xFiberGoal_);
@@ -343,10 +363,12 @@ bool ompl::multilevel::BundleSpacePathRestriction::checkSection(Configuration *c
 
     Configuration *xLast = xStart;
 
+    base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
+
     bool found = false;
     for (unsigned int k = 1; k < section.size(); k++)
     {
-        if (bundleSpaceGraph_->getBundle()->checkMotion(section.at(k - 1), section.at(k), lastValid_))
+        if (bundle->checkMotion(section.at(k - 1), section.at(k), lastValid_))
         {
             if (k < section.size() - 1)
             {
@@ -365,7 +387,7 @@ bool ompl::multilevel::BundleSpacePathRestriction::checkSection(Configuration *c
             if (lastValid_.second > 0)
             {
                 // add last valid into the bundle graph
-                Configuration *xk = new Configuration(bundleSpaceGraph_->getBundle(), lastValid_.first);
+                Configuration *xk = new Configuration(bundle, lastValid_.first);
                 bundleSpaceGraph_->addConfiguration(xk);
                 bundleSpaceGraph_->addBundleEdge(xLast, xk);
             }
@@ -381,22 +403,25 @@ bool ompl::multilevel::BundleSpacePathRestriction::checkSection(Configuration *c
             break;
         }
     }
-    bundleSpaceGraph_->getBundle()->freeStates(section);
+    bundle->freeStates(section);
     return found;
 }
 
-const unsigned int PATH_SECTION_TREE_MAX_DEPTH = 3;
-const unsigned int PATH_SECTION_TREE_MAX_BRANCHING = 10;
-
-bool ompl::multilevel::BundleSpacePathRestriction::checkSectionRecursiveRepair(
-    Configuration *const xStart, Configuration *const xGoal, const std::vector<base::State *> basePath,
-    bool interpolateL1, unsigned int depth, double startLength)
+const unsigned int PATH_SECTION_L1UTURN_MAX_DEPTH = 3;
+const unsigned int PATH_SECTION_L1UTURN_MAX_BRANCHING = 10;
+bool PathRestriction::checkSectionL1BacktrackRecursive(
+    Configuration *const xStart, 
+    Configuration *const xGoal, 
+    const std::vector<base::State *> basePath,
+    bool interpolateFiberFirst, 
+    unsigned int depth, 
+    double startLength)
 {
     bundleSpaceGraph_->projectFiber(xStart->state, xFiberStart_);
     bundleSpaceGraph_->projectFiber(xGoal->state, xFiberGoal_);
 
     std::vector<base::State *> section;
-    if (interpolateL1)
+    if (interpolateFiberFirst)
     {
         section = interpolateSectionL1FF(xFiberStart_, xFiberGoal_, basePath);
     }
@@ -407,9 +432,20 @@ bool ompl::multilevel::BundleSpacePathRestriction::checkSectionRecursiveRepair(
 
     Configuration *xLast = xStart;
 
+    base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
+    base::SpaceInformationPtr base = bundleSpaceGraph_->getBase();
+    base::SpaceInformationPtr fiber = bundleSpaceGraph_->getFiber();
+
+    // std::cout << std::string(80, '-') << std::endl;
+    // std::cout << "SECTION:" << std::endl;
+    // for (unsigned int k = 0; k < section.size(); k++)
+    // {
+    //     bundle->printState(section.at(k));
+    // }
+    // std::cout << std::string(80, '-') << std::endl;
     for (unsigned int k = 1; k < section.size(); k++)
     {
-        if (bundleSpaceGraph_->getBundle()->checkMotion(section.at(k - 1), section.at(k), lastValid_))
+        if (bundle->checkMotion(section.at(k - 1), section.at(k), lastValid_))
         {
             if (k < section.size() - 1)
             {
@@ -418,8 +454,8 @@ bool ompl::multilevel::BundleSpacePathRestriction::checkSectionRecursiveRepair(
             else
             {
                 addFeasibleGoalSegment(xLast, xGoal);
-                OMPL_DEBUG("Found feasible path section (%d edges added)", k);
-                bundleSpaceGraph_->getBundle()->freeStates(section);
+                OMPL_DEBUG("Found feasible path section");
+                bundle->freeStates(section);
 
                 return true;
             }
@@ -430,10 +466,12 @@ bool ompl::multilevel::BundleSpacePathRestriction::checkSectionRecursiveRepair(
             // Get Last valid
             //############################################################################
             Configuration *xLastValid{nullptr};
+            // std::cout << "Stopped at last valid location: " << 
+            //   lastValid_.second << "with k=" << k <<"/"<<section.size()<< std::endl;
             if (lastValid_.second > 0)
             {
                 // add last valid into the bundle graph
-                xLastValid = new Configuration(bundleSpaceGraph_->getBundle(), lastValid_.first);
+                xLastValid = new Configuration(bundle, lastValid_.first);
                 bundleSpaceGraph_->addConfiguration(xLastValid);
                 bundleSpaceGraph_->addBundleEdge(xLast, xLastValid);
                 xLast = xLastValid;
@@ -447,17 +485,292 @@ bool ompl::multilevel::BundleSpacePathRestriction::checkSectionRecursiveRepair(
             // Get length until last Valid
             //############################################################################
             double locationOnBasePath = 0.0;
-            for (unsigned int j = 1; j < k; j++)
+            unsigned int stopK = k;
+            if(interpolateFiberFirst)
+            {
+              //NOTE: first segment of section does not exist on base path
+                stopK -= 1;
+
+            }
+            if(stopK < 1)
+            {
+              //no movement on base path
+              locationOnBasePath = 0;
+            }else{
+                for (unsigned int j = 1; j < stopK; j++)
+                {
+                    double dj = bundleSpaceGraph_->getBase()->distance(basePath.at(j - 1), basePath.at(j));
+                    locationOnBasePath += dj;
+                }
+
+                if (stopK < basePath.size())
+                {
+                    double dLastSegment = 
+                      bundleSpaceGraph_->getBase()->distance( 
+                          basePath.at(stopK - 1), 
+                          basePath.at(stopK));
+
+                    double dLocationLastSegment = lastValid_.second * dLastSegment;
+
+                    //make one more step into the constraint
+                    if( dLocationLastSegment + validSegmentLength_ < dLastSegment)
+                    {
+                        dLocationLastSegment += validSegmentLength_;
+                    }
+                    locationOnBasePath += dLocationLastSegment;
+                }
+            }
+
+            static_cast<BundleSpaceGraph *>(bundleSpaceGraph_->getParent())
+                ->getGraphSampler()
+                ->setPathBiasStartSegment(locationOnBasePath + startLength);
+
+            if (depth + 1 >= PATH_SECTION_L1UTURN_MAX_DEPTH)
+            {
+                bundle->freeStates(section);
+                return false;
+            }
+
+            //############################################################################
+            // Side step randomly and interpolate from there towards goal
+            //############################################################################
+            unsigned int lastCtr = 
+              bundleSpaceGraph_->interpolateAlongBasePath(basePath, locationOnBasePath, xBaseTmp_);
+
+            std::vector<base::State *> basePathSegment = {basePath.begin() + lastCtr, basePath.end()};
+            basePathSegment.insert(basePathSegment.begin(), xBaseTmp_);
+
+            for (unsigned int j = 0; j < PATH_SECTION_L1UTURN_MAX_BRANCHING; j++)
+            {
+                //#############################################################
+                // find feasible sample in current fiber
+                //#############################################################
+                if (!sideStepAlongFiber(xBaseTmp_, xBundleTmp_))
+                {
+                    continue;
+                }
+
+                //#############################################################
+                // Make Uturn
+                //#############################################################
+                if (bundle->checkMotion(xLastValid->state, xBundleTmp_))
+                {
+                    Configuration *xSideStep = new Configuration(bundle, xBundleTmp_);
+                    bundleSpaceGraph_->addConfiguration(xSideStep);
+                    bundleSpaceGraph_->addBundleEdge(xLastValid, xSideStep);
+
+                    //#########################################################
+                    // side step was successful.
+                    // Now interpolate from there to goal
+                    //#########################################################
+
+                    bool feasibleSection = checkSectionL1BacktrackRecursive(
+                        xSideStep, xGoal, basePathSegment, 
+                        !interpolateFiberFirst, depth + 1, locationOnBasePath);
+
+                    if (feasibleSection)
+                    {
+                        bundle->freeStates(section);
+                        return true;
+                    }
+                }else
+                {
+                    base::State* xBundleTest = bundle->allocState();
+                    base::State* xBundleOpening = bundle->allocState();
+                    base::State* xBase = base->cloneState(xBaseTmp_);
+
+                    base::State* xFiberTest = xFiberStart_;
+                    base::State* xFiberOpening = xFiberGoal_;
+
+                    bundleSpaceGraph_->projectFiber(xLast->state, xFiberTest);
+                    bundleSpaceGraph_->projectFiber(xBundleTmp_, xFiberOpening);
+
+                    bool found = false;
+
+                    double location = locationOnBasePath - validSegmentLength_;
+
+                    //mid point heuristic 
+                    fiber->getStateSpace()->interpolate(xFiberTest, xFiberOpening, 0.5, xFiberTest);
+
+                    while(!found && location >= 0)
+                    {
+                        bundleSpaceGraph_->interpolateAlongBasePath(
+                            basePath, location, xBase);
+
+                        bundleSpaceGraph_->liftState(xBase, xFiberTest, xBundleTest);
+
+                        if (bundle->isValid(xBundleTest))
+                        {
+                            //revert xBundleTest back to crevice fiber position
+                            bundleSpaceGraph_->projectFiber(xLast->state, xFiberTest);
+                            bundleSpaceGraph_->liftState(xBase, xFiberTest, xBundleTest);
+                            bundleSpaceGraph_->liftState(xBase, xFiberOpening, xBundleOpening);
+                            if(bundle->checkMotion(xBundleTest, xBundleOpening))
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        location -= validSegmentLength_;
+                    }
+
+                    if(found)
+                    {
+
+                        ///Create UTurn step sequence
+                        // xBackStep <------- xBundleCrevice (xLastValid)
+                        //     |
+                        //     |
+                        //     |
+                        //     v
+                        // xSideStep -------> xBundleOpening
+                        Configuration *xBackStep = new Configuration(bundle, xBundleTest);
+                        bundleSpaceGraph_->addConfiguration(xBackStep);
+                        bundleSpaceGraph_->addBundleEdge(xLastValid, xBackStep);
+
+                        Configuration *xSideStep = new Configuration(bundle, xBundleOpening);
+                        bundleSpaceGraph_->addConfiguration(xSideStep);
+                        bundleSpaceGraph_->addBundleEdge(xBackStep, xSideStep);
+
+                        //xBaseTmp_ is on last valid fiber. 
+                        bundleSpaceGraph_->liftState(xBaseTmp_, xFiberOpening, xBundleOpening);
+                        Configuration *xOpening = new Configuration(bundle, xBundleOpening);
+                        bundleSpaceGraph_->addConfiguration(xOpening);
+                        bundleSpaceGraph_->addBundleEdge(xSideStep, xOpening);
+
+                        std::cout << "INSERT UTURN" << std::endl;
+                        bundle->printState(xLastValid->state);
+                        bundle->printState(xBackStep->state);
+                        bundle->printState(xSideStep->state);
+                        bundle->printState(xOpening->state);
+
+                        //Continue with fiber last interpolation. If there is an opening in
+                        //geometry, it seems likely to be a passage -> so move
+                        //straight (regardless of what happened before)
+                        bool feasibleSection = checkSectionL1BacktrackRecursive(
+                            xOpening, xGoal, basePathSegment, 
+                            false, depth + 1, locationOnBasePath);
+
+                        if (feasibleSection)
+                        {
+                            bundle->freeState(xBundleOpening);
+                            bundle->freeState(xBundleTest);
+                            base->freeState(xBase);
+                            bundle->freeStates(section);
+                            return true;
+                        }
+                    }
+                    bundle->freeState(xBundleOpening);
+                    bundle->freeState(xBundleTest);
+                    base->freeState(xBase);
+                }
+            }
+
+            break;
+        }
+    }
+    bundle->freeStates(section);
+    return false;
+}
+
+const unsigned int PATH_SECTION_TREE_MAX_DEPTH = 3;
+const unsigned int PATH_SECTION_TREE_MAX_BRANCHING = 10;
+
+bool PathRestriction::checkSectionL1Recursive(
+    Configuration *const xStart, Configuration *const xGoal, const std::vector<base::State *> basePath,
+    bool interpolateFiberFirst, unsigned int depth, double startLength)
+{
+    bundleSpaceGraph_->projectFiber(xStart->state, xFiberStart_);
+    bundleSpaceGraph_->projectFiber(xGoal->state, xFiberGoal_);
+
+    base::SpaceInformationPtr bundle = bundle;
+
+    std::vector<base::State *> section;
+    if (interpolateFiberFirst)
+    {
+        section = interpolateSectionL1FF(xFiberStart_, xFiberGoal_, basePath);
+    }
+    else
+    {
+        section = interpolateSectionL1FL(xFiberStart_, xFiberGoal_, basePath);
+    }
+
+    Configuration *xLast = xStart;
+
+    for (unsigned int k = 1; k < section.size(); k++)
+    {
+        if (bundle->checkMotion(section.at(k - 1), section.at(k), lastValid_))
+        {
+            if (k < section.size() - 1)
+            {
+                xLast = addFeasibleSegment(xLast, section.at(k));
+            }
+            else
+            {
+                addFeasibleGoalSegment(xLast, xGoal);
+                OMPL_DEBUG("Found feasible path section (%d edges added)", k);
+                bundle->freeStates(section);
+
+                return true;
+            }
+        }
+        else
+        {
+            //############################################################################
+            // Get Last valid
+            //############################################################################
+            Configuration *xLastValid{nullptr};
+            if (lastValid_.second > 0)
+            {
+                // add last valid into the bundle graph
+                xLastValid = new Configuration(bundle, lastValid_.first);
+                bundleSpaceGraph_->addConfiguration(xLastValid);
+                bundleSpaceGraph_->addBundleEdge(xLast, xLastValid);
+                xLast = xLastValid;
+            }
+            else
+            {
+                xLastValid = xLast;
+            }
+
+            //############################################################################
+            // Get length until last Valid
+            //############################################################################
+            //OLD VERSION (need testing)
+            // double locationOnBasePath = 0.0;
+            // for (unsigned int j = 1; j < k; j++)
+            // {
+            //     double dj = bundleSpaceGraph_->getBase()->distance(basePath.at(j - 1), basePath.at(j));
+            //     locationOnBasePath += dj;
+            // }
+
+            // if (k < basePath.size())
+            // {
+            //     locationOnBasePath +=
+            //         lastValid_.second * bundleSpaceGraph_->getBase()->distance(basePath.at(k - 1), basePath.at(k));
+            // }
+
+            double locationOnBasePath = 0.0;
+            unsigned int stopK = k;
+            if(interpolateFiberFirst)
+            {
+                stopK -= 1;
+            }
+            for (unsigned int j = 1; j < stopK; j++)
             {
                 double dj = bundleSpaceGraph_->getBase()->distance(basePath.at(j - 1), basePath.at(j));
                 locationOnBasePath += dj;
             }
 
-            if (k < basePath.size())
+            if (stopK < basePath.size())
             {
                 locationOnBasePath +=
-                    lastValid_.second * bundleSpaceGraph_->getBase()->distance(basePath.at(k - 1), basePath.at(k));
+                    lastValid_.second * bundleSpaceGraph_->getBase()->distance(basePath.at(stopK - 1), basePath.at(stopK));
             }
+
+
+
 
             static_cast<BundleSpaceGraph *>(bundleSpaceGraph_->getParent())
                 ->getGraphSampler()
@@ -465,7 +778,7 @@ bool ompl::multilevel::BundleSpacePathRestriction::checkSectionRecursiveRepair(
 
             if (depth + 1 >= PATH_SECTION_TREE_MAX_DEPTH)
             {
-                bundleSpaceGraph_->getBundle()->freeStates(section);
+                bundle->freeStates(section);
                 return false;
             }
 
@@ -488,9 +801,9 @@ bool ompl::multilevel::BundleSpacePathRestriction::checkSectionRecursiveRepair(
                 //#############################################################
                 // check that we can connect new sample with last states
                 //#############################################################
-                if (bundleSpaceGraph_->getBundle()->checkMotion(xLastValid->state, xBundleTmp_))
+                if (bundle->checkMotion(xLastValid->state, xBundleTmp_))
                 {
-                    Configuration *xSideStep = new Configuration(bundleSpaceGraph_->getBundle(), xBundleTmp_);
+                    Configuration *xSideStep = new Configuration(bundle, xBundleTmp_);
                     bundleSpaceGraph_->addConfiguration(xSideStep);
                     bundleSpaceGraph_->addBundleEdge(xLastValid, xSideStep);
 
@@ -499,12 +812,12 @@ bool ompl::multilevel::BundleSpacePathRestriction::checkSectionRecursiveRepair(
                     // Now interpolate from there to goal
                     //#########################################################
 
-                    bool feasibleSection = checkSectionRecursiveRepair(xSideStep, xGoal, basePathSegment,
-                                                                       !interpolateL1, depth + 1, locationOnBasePath);
+                    bool feasibleSection = checkSectionL1Recursive(xSideStep, xGoal, basePathSegment,
+                                                                       !interpolateFiberFirst, depth + 1, locationOnBasePath);
 
                     if (feasibleSection)
                     {
-                        bundleSpaceGraph_->getBundle()->freeStates(section);
+                        bundle->freeStates(section);
                         return true;
                     }
                 }
@@ -513,11 +826,11 @@ bool ompl::multilevel::BundleSpacePathRestriction::checkSectionRecursiveRepair(
             break;
         }
     }
-    bundleSpaceGraph_->getBundle()->freeStates(section);
+    bundle->freeStates(section);
     return false;
 }
 
-void ompl::multilevel::BundleSpacePathRestriction::sanityCheckSection()
+void PathRestriction::sanityCheckSection()
 {
     if (!bundleSpaceGraph_->sameComponent(bundleSpaceGraph_->vStart_, bundleSpaceGraph_->vGoal_))
     {

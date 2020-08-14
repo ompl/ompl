@@ -39,8 +39,7 @@
 
 using namespace ompl::multilevel;
 
-PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(
-    const ompl::base::State *state)
+PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const ompl::base::State *state)
   : PlannerDataVertex(state), stateBase_(state), stateTotal_(nullptr), si_(nullptr)
 {
     totalStateIsSet = false;
@@ -59,10 +58,10 @@ PlannerDataVertexAnnotated::PlannerDataVertexAnnotated(const PlannerDataVertexAn
 
 PlannerDataVertexAnnotated::~PlannerDataVertexAnnotated()
 {
-  if(totalStateIsSet)
-  {
-    si_->freeState(stateTotal_);
-  }
+    if (totalStateIsSet)
+    {
+        si_->freeState(stateTotal_);
+    }
 }
 
 ompl::base::PlannerDataVertex *PlannerDataVertexAnnotated::clone() const
@@ -77,7 +76,7 @@ void PlannerDataVertexAnnotated::setComponent(unsigned int component)
 
 ompl::base::SpaceInformationPtr PlannerDataVertexAnnotated::getSpaceInformationPtr() const
 {
-  return si_;
+    return si_;
 }
 
 unsigned int PlannerDataVertexAnnotated::getComponent() const
@@ -107,8 +106,10 @@ unsigned int PlannerDataVertexAnnotated::getMaxLevel() const
 
 const ompl::base::State *PlannerDataVertexAnnotated::getState() const
 {
-    if(totalStateIsSet) return stateTotal_;
-    else return state_;
+    if (totalStateIsSet)
+        return stateTotal_;
+    else
+        return state_;
 }
 
 ompl::base::State *PlannerDataVertexAnnotated::getStateNonConst() const
@@ -126,19 +127,16 @@ void PlannerDataVertexAnnotated::setBaseState(const ompl::base::State *s)
     stateBase_ = s;
 }
 
-void PlannerDataVertexAnnotated::setTotalState(
-    ompl::base::State *s, 
-    ompl::base::SpaceInformationPtr si)
+void PlannerDataVertexAnnotated::setTotalState(ompl::base::State *s, ompl::base::SpaceInformationPtr si)
 {
     stateTotal_ = s;
     si_ = si;
     totalStateIsSet = true;
 }
 
-bool PlannerDataVertexAnnotated::operator==(
-    const PlannerDataVertex &rhs) const
+bool PlannerDataVertexAnnotated::operator==(const PlannerDataVertex &rhs) const
 {
-    const PlannerDataVertexAnnotated& rhsA = static_cast<const PlannerDataVertexAnnotated&>(rhs);
+    const PlannerDataVertexAnnotated &rhsA = static_cast<const PlannerDataVertexAnnotated &>(rhs);
     bool equiv = (getLevel() == rhsA.getLevel() && getBaseState() == rhsA.getBaseState());
     return equiv;
 }

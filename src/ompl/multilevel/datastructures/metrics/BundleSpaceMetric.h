@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -61,39 +61,24 @@ namespace ompl
             // Distance Functions
             //############################################################################
 
-            virtual double distanceBundle(
-                const Configuration *xStart, 
-                const Configuration *xDest) = 0;
+            virtual double distanceBundle(const Configuration *xStart, const Configuration *xDest) = 0;
 
-            virtual double distanceFiber(
-                const Configuration *xStart, 
-                const Configuration *xDest) = 0;
+            virtual double distanceFiber(const Configuration *xStart, const Configuration *xDest) = 0;
 
-            virtual double distanceBase(
-                const Configuration *xStart, 
-                const Configuration *xDest) = 0;
+            virtual double distanceBase(const Configuration *xStart, const Configuration *xDest) = 0;
 
             //############################################################################
             // Interpolate Functions
             //############################################################################
 
-            virtual void interpolateBundle(
-                const Configuration *q_from, 
-                const Configuration *q_to, 
-                const double step,
-                Configuration *q_interp) = 0;
+            virtual void interpolateBundle(const Configuration *q_from, const Configuration *q_to, const double step,
+                                           Configuration *q_interp) = 0;
 
-            void interpolateBundle(
-                const Configuration *q_from, 
-                const Configuration *q_to, 
-                Configuration *q_interp);
+            void interpolateBundle(const Configuration *q_from, const Configuration *q_to, Configuration *q_interp);
 
-            void interpolateBundle(
-                const Configuration *q_from, 
-                Configuration *q_to);
+            void interpolateBundle(const Configuration *q_from, Configuration *q_to);
 
         protected:
-
             BundleSpaceGraph *bundleSpaceGraph_;
 
             base::State *xFiberStartTmp_;

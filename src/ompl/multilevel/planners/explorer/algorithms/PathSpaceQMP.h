@@ -14,8 +14,7 @@ namespace ompl
     {
         OMPL_CLASS_FORWARD(PathVisibilityChecker);
 
-        class PathSpaceQMP : public ompl::multilevel::PathSpace, 
-                             public ompl::multilevel::QMPStarImpl
+        class PathSpaceQMP : public ompl::multilevel::PathSpace, public ompl::multilevel::QMPStarImpl
         {
             using BaseT = QMPStarImpl;
 
@@ -28,7 +27,6 @@ namespace ompl
             double bestCost_{std::numeric_limits<double>::infinity()};
 
             PathVisibilityChecker *pathVisibilityChecker_{nullptr};
-
         };
     }  // namespace multilevel
 }  // namespace ompl

@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -50,12 +50,12 @@ namespace ompl
 
              @par Short description
              QRRTstar is an almost-surely asymptotically optimal planners which
-             generalizes RRTstar to multilevel abstractions, which we formulate 
+             generalizes RRTstar to multilevel abstractions, which we formulate
              using fiber bundle sequences.
 
              @par External documentation
-             Andreas Orthey and Sohaib Akbar and Marc Toussaint, 
-             Multilevel Motion Planning: A Fiber Bundle Formulation, 
+             Andreas Orthey and Sohaib Akbar and Marc Toussaint,
+             Multilevel Motion Planning: A Fiber Bundle Formulation,
              in <em>arXiv:2007.09435 [cs.RO]</em>, 2020,
              [[PDF]](https://arxiv.org/pdf/2007.09435.pdf)
         */

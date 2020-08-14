@@ -320,8 +320,7 @@ void PathSpaceSparseOptimization::getPlannerData(base::PlannerData &data) const
             std::cout << "]" << std::endl;
             //############################################################################
 
-            multilevel::PlannerDataVertexAnnotated *p1 = 
-              new multilevel::PlannerDataVertexAnnotated(states.at(0));
+            multilevel::PlannerDataVertexAnnotated *p1 = new multilevel::PlannerDataVertexAnnotated(states.at(0));
             p1->setLevel(getLevel());
             // p1->setPath(idxPathI);
             data.addStartVertex(*p1);
@@ -331,8 +330,8 @@ void PathSpaceSparseOptimization::getPlannerData(base::PlannerData &data) const
             {
                 dk += getBundle()->distance(states.at(k), states.at(k + 1));
 
-                multilevel::PlannerDataVertexAnnotated *p2 = 
-                  new multilevel::PlannerDataVertexAnnotated(states.at(k + 1));
+                multilevel::PlannerDataVertexAnnotated *p2 =
+                    new multilevel::PlannerDataVertexAnnotated(states.at(k + 1));
                 p2->setLevel(getLevel());
                 // p2->setPath(idxPathI);
 

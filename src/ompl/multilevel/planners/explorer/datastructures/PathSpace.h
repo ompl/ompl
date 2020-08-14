@@ -13,12 +13,11 @@ namespace ompl
     {
         OMPL_CLASS_FORWARD(LocalMinimaTree);
 
-        class PathSpace{
-
-          public:
-
+        class PathSpace
+        {
+        public:
             PathSpace() = delete;
-            PathSpace(BundleSpaceGraph*);
+            PathSpace(BundleSpaceGraph *);
             ~PathSpace();
 
             void setLocalMinimaTree(LocalMinimaTreePtr);
@@ -35,14 +34,12 @@ namespace ompl
 
             void clear();
 
-            const std::vector<BundleSpaceGraph::Vertex>& getMinimumPath(unsigned int k);
+            const std::vector<BundleSpaceGraph::Vertex> &getMinimumPath(unsigned int k);
 
-          protected:
-
+        protected:
             BundleSpaceGraph *bundleSpaceGraph_;
 
             LocalMinimaTreePtr localMinimaTree_;
-
         };
     }
 }

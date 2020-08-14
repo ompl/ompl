@@ -39,23 +39,24 @@
 #include <ompl/multilevel/datastructures/BundleSpaceComponent.h>
 #include <ompl/util/Exception.h>
 
-ompl::multilevel::BundleSpaceComponent::BundleSpaceComponent(base::StateSpacePtr BundleSpace,
-                                                             base::StateSpacePtr BaseSpace)
+using namespace ompl::multilevel;
+
+BundleSpaceComponent::BundleSpaceComponent(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace)
   : BundleSpace_(BundleSpace), BaseSpace_(BaseSpace)
 {
 }
 
-void ompl::multilevel::BundleSpaceComponent::initFiberSpace()
+void BundleSpaceComponent::initFiberSpace()
 {
     FiberSpace_ = computeFiberSpace();
 }
 
-ompl::base::StateSpacePtr ompl::multilevel::BundleSpaceComponent::getFiberSpace() const
+ompl::base::StateSpacePtr BundleSpaceComponent::getFiberSpace() const
 {
     return FiberSpace_;
 }
 
-unsigned int ompl::multilevel::BundleSpaceComponent::getFiberDimension() const
+unsigned int BundleSpaceComponent::getFiberDimension() const
 {
     if (FiberSpace_)
         return FiberSpace_->getDimension();
@@ -63,7 +64,7 @@ unsigned int ompl::multilevel::BundleSpaceComponent::getFiberDimension() const
         return 0;
 }
 
-unsigned int ompl::multilevel::BundleSpaceComponent::getBaseDimension() const
+unsigned int BundleSpaceComponent::getBaseDimension() const
 {
     if (BaseSpace_)
         return BaseSpace_->getDimension();
@@ -71,22 +72,22 @@ unsigned int ompl::multilevel::BundleSpaceComponent::getBaseDimension() const
         return 0;
 }
 
-unsigned int ompl::multilevel::BundleSpaceComponent::getDimension() const
+unsigned int BundleSpaceComponent::getDimension() const
 {
     return BundleSpace_->getDimension();
 }
 
-ompl::multilevel::BundleSpaceComponentType ompl::multilevel::BundleSpaceComponent::getType() const
+BundleSpaceComponentType BundleSpaceComponent::getType() const
 {
     return type_;
 }
 
-void ompl::multilevel::BundleSpaceComponent::setType(BundleSpaceComponentType &type)
+void BundleSpaceComponent::setType(BundleSpaceComponentType &type)
 {
     type_ = type;
 }
 
-std::string ompl::multilevel::BundleSpaceComponent::stateTypeToString(base::StateSpacePtr space) const
+std::string BundleSpaceComponent::stateTypeToString(base::StateSpacePtr space) const
 {
     std::string tstr;
     int type = space->getType();
@@ -132,7 +133,7 @@ std::string ompl::multilevel::BundleSpaceComponent::stateTypeToString(base::Stat
     return tstr;
 }
 
-std::string ompl::multilevel::BundleSpaceComponent::getTypeAsString() const
+std::string BundleSpaceComponent::getTypeAsString() const
 {
     if (BaseSpace_)
     {
@@ -153,7 +154,7 @@ std::string ompl::multilevel::BundleSpaceComponent::getTypeAsString() const
     }
 }
 
-std::string ompl::multilevel::BundleSpaceComponent::getFiberTypeAsString() const
+std::string BundleSpaceComponent::getFiberTypeAsString() const
 {
     if (FiberSpace_)
         return stateTypeToString(FiberSpace_);
@@ -161,7 +162,7 @@ std::string ompl::multilevel::BundleSpaceComponent::getFiberTypeAsString() const
         return "None";
 }
 
-std::string ompl::multilevel::BundleSpaceComponent::getBaseTypeAsString() const
+std::string BundleSpaceComponent::getBaseTypeAsString() const
 {
     if (BaseSpace_)
         return stateTypeToString(BaseSpace_);
@@ -169,17 +170,17 @@ std::string ompl::multilevel::BundleSpaceComponent::getBaseTypeAsString() const
         return "None";
 }
 
-std::string ompl::multilevel::BundleSpaceComponent::getBundleTypeAsString() const
+std::string BundleSpaceComponent::getBundleTypeAsString() const
 {
     return stateTypeToString(BundleSpace_);
 }
 
-bool ompl::multilevel::BundleSpaceComponent::isDynamic() const
+bool BundleSpaceComponent::isDynamic() const
 {
     return isDynamic_;
 }
 
-void ompl::multilevel::BundleSpaceComponent::print(std::ostream &out) const
+void BundleSpaceComponent::print(std::ostream &out) const
 {
     out << getTypeAsString() << std::endl;
 }

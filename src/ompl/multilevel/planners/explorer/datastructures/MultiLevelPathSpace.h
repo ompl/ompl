@@ -17,15 +17,15 @@ namespace ompl
         template <class T>
         class MultiLevelPathSpace : public BundleSpaceSequence<T>
         {
-            static_assert(std::is_base_of<BundleSpace, T>::value, 
-                "Template must inherit from BundleSpace");
+            static_assert(std::is_base_of<BundleSpace, T>::value, "Template must inherit from BundleSpace");
 
             using BaseT = BundleSpaceSequence<T>;
+
         public:
             const bool DEBUG{false};
 
-            MultiLevelPathSpace(std::vector<base::SpaceInformationPtr> &siVec, 
-                std::string type = "MultiLevelPathSpace");
+            MultiLevelPathSpace(std::vector<base::SpaceInformationPtr> &siVec,
+                                std::string type = "MultiLevelPathSpace");
             virtual ~MultiLevelPathSpace() override;
 
             void getPlannerData(base::PlannerData &data) const override;
@@ -34,10 +34,10 @@ namespace ompl
             void setup() override;
             void clear() override;
 
-            LocalMinimaTreePtr& getLocalMinimaTree();
+            LocalMinimaTreePtr &getLocalMinimaTree();
 
         protected:
-            double pathBias{0.8}; //[0,1]
+            double pathBias{0.8};  //[0,1]
 
             T *current{nullptr};
             // std::vector<int> selectedLocalMinimum_;
@@ -46,13 +46,12 @@ namespace ompl
 
             enum ExtensionMode
             {
-              AUTOMATIC_UNIFORM = 0,
-              AUTOMATIC_FAST_DOWNWARD = 1,
-              MANUAL = 2
+                AUTOMATIC_UNIFORM = 0,
+                AUTOMATIC_FAST_DOWNWARD = 1,
+                MANUAL = 2
             };
 
             ExtensionMode mode;
-
         };
     }
 }

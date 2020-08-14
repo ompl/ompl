@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -44,11 +44,9 @@ class ExponentialDecay
 public:
     ExponentialDecay() = default;
 
-    ExponentialDecay(double lambda) 
-      : lambda_(lambda){};
+    ExponentialDecay(double lambda) : lambda_(lambda){};
 
-    ExponentialDecay(double lambda, double lowerBound) 
-      : lambda_(lambda), lowerBound_(lowerBound){};
+    ExponentialDecay(double lambda, double lowerBound) : lambda_(lambda), lowerBound_(lowerBound){};
 
     ExponentialDecay(double lambda, double lowerBound, double upperBound)
       : lambda_(lambda), lowerBound_(lowerBound), upperBound_(upperBound){};

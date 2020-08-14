@@ -65,8 +65,10 @@
 
 #include <ompl/util/Exception.h>
 
-std::vector<ompl::multilevel::BundleSpaceComponentPtr>
-ompl::multilevel::BundleSpaceComponentFactory::MakeBundleSpaceComponents(base::SpaceInformationPtr Bundle)
+using namespace ompl::multilevel;
+
+std::vector<BundleSpaceComponentPtr>
+BundleSpaceComponentFactory::MakeBundleSpaceComponents(base::SpaceInformationPtr Bundle)
 {
     const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
     int bundleSpaceComponents = GetNumberOfComponents(Bundle_space);
@@ -96,9 +98,8 @@ ompl::multilevel::BundleSpaceComponentFactory::MakeBundleSpaceComponents(base::S
     return components;
 }
 
-std::vector<ompl::multilevel::BundleSpaceComponentPtr>
-ompl::multilevel::BundleSpaceComponentFactory::MakeBundleSpaceComponents(base::SpaceInformationPtr Bundle,
-                                                                         base::SpaceInformationPtr Base)
+std::vector<BundleSpaceComponentPtr>
+BundleSpaceComponentFactory::MakeBundleSpaceComponents(base::SpaceInformationPtr Bundle, base::SpaceInformationPtr Base)
 {
     const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
     int bundleSpaceComponents = GetNumberOfComponents(Bundle_space);
@@ -148,14 +149,14 @@ ompl::multilevel::BundleSpaceComponentFactory::MakeBundleSpaceComponents(base::S
     return components;
 }
 
-ompl::multilevel::BundleSpaceComponentPtr
-ompl::multilevel::BundleSpaceComponentFactory::MakeBundleSpaceComponent(const base::StateSpacePtr Bundle)
+BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(const base::StateSpacePtr Bundle)
 {
     return MakeBundleSpaceComponent(Bundle, nullptr, false);
 }
 
-ompl::multilevel::BundleSpaceComponentPtr ompl::multilevel::BundleSpaceComponentFactory::MakeBundleSpaceComponent(
-    const base::StateSpacePtr Bundle, const base::StateSpacePtr Base, bool areValidityCheckersEquivalent)
+BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(const base::StateSpacePtr Bundle,
+                                                                              const base::StateSpacePtr Base,
+                                                                              bool areValidityCheckersEquivalent)
 {
     BundleSpaceComponentType type = identifyBundleSpaceComponentType(Bundle, Base);
     if (type == BUNDLE_SPACE_IDENTITY_PROJECTION && !areValidityCheckersEquivalent)
@@ -247,9 +248,8 @@ ompl::multilevel::BundleSpaceComponentPtr ompl::multilevel::BundleSpaceComponent
     return component;
 }
 
-ompl::multilevel::BundleSpaceComponentType
-ompl::multilevel::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(const base::StateSpacePtr Bundle,
-                                                                                const base::StateSpacePtr Base)
+BundleSpaceComponentType BundleSpaceComponentFactory::identifyBundleSpaceComponentType(const base::StateSpacePtr Bundle,
+                                                                                       const base::StateSpacePtr Base)
 {
     if (Base == nullptr)
     {
@@ -336,8 +336,7 @@ ompl::multilevel::BundleSpaceComponentFactory::identifyBundleSpaceComponentType(
     return BUNDLE_SPACE_UNKNOWN;
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_Identity(const base::StateSpacePtr Bundle,
-                                                                       const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_Identity(const base::StateSpacePtr Bundle, const base::StateSpacePtr Base)
 {
     if (Bundle->isCompound())
     {
@@ -371,8 +370,7 @@ bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_Identity(const bas
     return false;
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_RN_to_RM(const base::StateSpacePtr Bundle,
-                                                                       const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_RN_to_RM(const base::StateSpacePtr Bundle, const base::StateSpacePtr Base)
 {
     if (Bundle->isCompound())
         return false;
@@ -392,8 +390,7 @@ bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_RN_to_RM(const bas
     return false;
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SE3_to_R3(const base::StateSpacePtr Bundle,
-                                                                        const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_SE3_to_R3(const base::StateSpacePtr Bundle, const base::StateSpacePtr Base)
 {
     if (!Bundle->isCompound())
         return false;
@@ -410,8 +407,8 @@ bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SE3_to_R3(const ba
     }
     return false;
 }
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SE3RN_to_R3(const base::StateSpacePtr Bundle,
-                                                                          const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_SE3RN_to_R3(const base::StateSpacePtr Bundle,
+                                                        const base::StateSpacePtr Base)
 {
     if (!Bundle->isCompound())
         return false;
@@ -437,8 +434,7 @@ bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SE3RN_to_R3(const 
     return false;
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SE2_to_R2(const base::StateSpacePtr Bundle,
-                                                                        const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_SE2_to_R2(const base::StateSpacePtr Bundle, const base::StateSpacePtr Base)
 {
     if (!Bundle->isCompound())
         return false;
@@ -456,8 +452,8 @@ bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SE2_to_R2(const ba
     return false;
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_RNSO2_to_RN(const base::StateSpacePtr Bundle,
-                                                                          const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_RNSO2_to_RN(const base::StateSpacePtr Bundle,
+                                                        const base::StateSpacePtr Base)
 {
     if (!Bundle->isCompound())
         return false;
@@ -484,8 +480,8 @@ bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_RNSO2_to_RN(const 
     return false;
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SE2RN_to_R2(const base::StateSpacePtr Bundle,
-                                                                          const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_SE2RN_to_R2(const base::StateSpacePtr Bundle,
+                                                        const base::StateSpacePtr Base)
 {
     if (!Bundle->isCompound())
         return false;
@@ -511,57 +507,56 @@ bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SE2RN_to_R2(const 
     return false;
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SE2RN_to_SE2(const base::StateSpacePtr Bundle,
-                                                                           const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_SE2RN_to_SE2(const base::StateSpacePtr Bundle,
+                                                         const base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SE2);
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SE3RN_to_SE3(const base::StateSpacePtr Bundle,
-                                                                           const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_SE3RN_to_SE3(const base::StateSpacePtr Bundle,
+                                                         const base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SE3);
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SO2RN_to_SO2(const base::StateSpacePtr Bundle,
-                                                                           const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_SO2RN_to_SO2(const base::StateSpacePtr Bundle,
+                                                         const base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SO2);
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SO3RN_to_SO3(const base::StateSpacePtr Bundle,
-                                                                           const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_SO3RN_to_SO3(const base::StateSpacePtr Bundle,
+                                                         const base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SO3);
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SE2RN_to_SE2RM(const base::StateSpacePtr Bundle,
-                                                                             const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_SE2RN_to_SE2RM(const base::StateSpacePtr Bundle,
+                                                           const base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SE2);
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SE3RN_to_SE3RM(const base::StateSpacePtr Bundle,
-                                                                             const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_SE3RN_to_SE3RM(const base::StateSpacePtr Bundle,
+                                                           const base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SE3);
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SO2RN_to_SO2RM(const base::StateSpacePtr Bundle,
-                                                                             const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_SO2RN_to_SO2RM(const base::StateSpacePtr Bundle,
+                                                           const base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SO2);
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_SO3RN_to_SO3RM(const base::StateSpacePtr Bundle,
-                                                                             const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_SO3RN_to_SO3RM(const base::StateSpacePtr Bundle,
+                                                           const base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SO3);
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_XRN_to_X(const base::StateSpacePtr Bundle,
-                                                                       const base::StateSpacePtr Base,
-                                                                       const base::StateSpaceType type)
+bool BundleSpaceComponentFactory::isMapping_XRN_to_X(const base::StateSpacePtr Bundle, const base::StateSpacePtr Base,
+                                                     const base::StateSpaceType type)
 {
     if (!Bundle->isCompound())
         return false;
@@ -583,9 +578,8 @@ bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_XRN_to_X(const bas
     return false;
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_XRN_to_XRM(const base::StateSpacePtr Bundle,
-                                                                         const base::StateSpacePtr Base,
-                                                                         const base::StateSpaceType type)
+bool BundleSpaceComponentFactory::isMapping_XRN_to_XRM(const base::StateSpacePtr Bundle, const base::StateSpacePtr Base,
+                                                       const base::StateSpaceType type)
 {
     if (!Bundle->isCompound())
         return false;
@@ -620,8 +614,7 @@ bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_XRN_to_XRM(const b
     return false;
 }
 
-bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_EmptyProjection(const base::StateSpacePtr,
-                                                                              const base::StateSpacePtr Base)
+bool BundleSpaceComponentFactory::isMapping_EmptyProjection(const base::StateSpacePtr, const base::StateSpacePtr Base)
 {
     if (Base == nullptr || Base->getDimension() <= 0)
     {
@@ -629,7 +622,7 @@ bool ompl::multilevel::BundleSpaceComponentFactory::isMapping_EmptyProjection(co
     }
     return false;
 }
-int ompl::multilevel::BundleSpaceComponentFactory::GetNumberOfComponents(base::StateSpacePtr space)
+int BundleSpaceComponentFactory::GetNumberOfComponents(base::StateSpacePtr space)
 {
     int nrComponents = 0;
 

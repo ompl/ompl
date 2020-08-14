@@ -66,7 +66,7 @@ namespace ompl
     {
         OMPL_CLASS_FORWARD(BundleSpaceImportance);
         OMPL_CLASS_FORWARD(BundleSpaceGraphSampler);
-        OMPL_CLASS_FORWARD(BundleSpacePathRestriction);
+        OMPL_CLASS_FORWARD(PathRestriction);
     }
 
     namespace multilevel
@@ -241,7 +241,7 @@ namespace ompl
 
             BundleSpaceGraphSamplerPtr getGraphSampler();
 
-            const BundleSpacePathRestrictionPtr getPathRestriction();
+            const PathRestrictionPtr getPathRestriction();
 
             /** \brief Best cost found so far by algorithm */
             base::Cost bestCost_{+base::dInf};
@@ -339,7 +339,7 @@ namespace ompl
 
             BundleSpaceGraphSamplerPtr graphSampler_{nullptr};
 
-            BundleSpacePathRestrictionPtr pathRestriction_{nullptr};
+            PathRestrictionPtr pathRestriction_{nullptr};
 
             ompl::base::OptimizationObjectivePtr pathRefinementObj_{nullptr};
         };

@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -36,8 +36,8 @@
 
 /* Author: Andreas Orthey */
 
-#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_SECTION_
-#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_SECTION_
+#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_RESTRICTION__
+#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_RESTRICTION__
 #include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
 
 namespace ompl
@@ -54,28 +54,29 @@ namespace ompl
     {
         OMPL_CLASS_FORWARD(BundleSpaceGraph);
 
-        /** \brief Representation of path restriction 
+        /** \brief Representation of path restriction
             (set of all elements of bundle space
-            which project onto a given base path --- 
-            i.e. the union of fibers over a given base path).
-           
+            which project onto a given base path ---
+            the union of fibers over a given base path).
+
             This class has additional functionalities to find path sections
             (paths lying inside path restriction) using different interpolation
-            methods (shortest L1 or L2 paths). 
+            methods (L1 or L2 paths).
 
-            To use this class, you need to set a base path (setBasePath), 
-            then you can compute sections over this base path (hasFeasibleSection)
+            To use this class, you need to set a base path (setBasePath),
+            then you can search for sections over this base path 
+            (for example using hasFeasibleSection)
         */
 
-        class BundleSpacePathRestriction
+        class PathRestriction
         {
         public:
             using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
-            BundleSpacePathRestriction() = delete;
-            BundleSpacePathRestriction(BundleSpaceGraph *);
+            PathRestriction() = delete;
+            PathRestriction(BundleSpaceGraph *);
 
-            virtual ~BundleSpacePathRestriction();
+            virtual ~PathRestriction();
 
             virtual void clear();
 
@@ -85,29 +86,48 @@ namespace ompl
             /** \brief Set base path over which restriction is defined */
             void setBasePath(std::vector<base::State *>);
 
-            /** \brief Check if feasible section exists between xStart and xGoal. 
+            /** \brief Check if feasible section exists between xStart and xGoal.
              * Main method to use outside this class. Use this if you are
              * unsure.
-             * NOTE: 
+             * NOTE:
              *  "const ptr*" means that the pointer itself is const
              *  "ptr* const" means that the content of the pointer is const (but ptr
              *  can change */
-
             bool hasFeasibleSection(Configuration *const, Configuration *const);
 
             /** \brief Interpolate L2 section and check validity */
-            bool checkSection(Configuration *const xStart, Configuration *const xGoal);
+            bool checkSectionL2(Configuration *const xStart, Configuration *const xGoal);
 
-            /** \brief Interpolate L1 sections and check validity. Return last
-               valid configuration and call method recursively to sidestep along
-               fiber. Terminate if PATH_SECTION_TREE_MAX_DEPTH recursion were
-               done or we found a feasible section. */
-            bool checkSectionRecursiveRepair(
+            /** 
+             * Interpolate L1 section recursively and check validity. 
+             *
+             * Return last valid configuration and call method recursively to sidestep along
+             * fiber. Terminate if PATH_SECTION_TREE_MAX_DEPTH recursion were
+             * done or we found a feasible section. 
+             *
+             * @param xStart Bundle space element (start)
+             * @param xGoal Bundle space element (goal)
+             * @param basePath Current base path (clipped after recursion call)
+             * @param interpolateFiberFirst whether to interpolate FF or FL
+             * @param depth current recursion depth
+             * @param startLength current position along base path
+             *
+             * @retval True or false if method succeeds
+             * */
+            bool checkSectionL1Recursive(
                 Configuration *const xStart, 
                 Configuration *const xGoal,
-                const std::vector<base::State *> basePath, 
-                bool interpolateL1 = true,
-                unsigned int depth = 0, 
+                const std::vector<base::State *> basePath,
+                bool interpolateFiberFirst = true,
+                unsigned int depth = 0,
+                double startLength = 0.0);
+
+            bool checkSectionL1BacktrackRecursive(
+                Configuration *const xStart, 
+                Configuration *const xGoal, 
+                const std::vector<base::State *> basePath,
+                bool interpolateFiberFirst = true,
+                unsigned int depth = 0,
                 double startLength = 0.0);
 
             /** \brief Sample state on fiber while keeping base state fixed */
@@ -129,10 +149,9 @@ namespace ompl
               *   ___/
               *  x
               *  --------------- */
-            std::vector<base::State *> interpolateSectionL2(
-                const base::State *xFiberStart,
-                const base::State *xFiberGoal,
-                const std::vector<base::State *> basePath);
+            std::vector<base::State *> interpolateSectionL2(const base::State *xFiberStart,
+                                                            const base::State *xFiberGoal,
+                                                            const std::vector<base::State *> basePath);
 
             /** \brief Interpolate along restriction using L1 metric (Fiber Last)
               *   ---------------
@@ -141,12 +160,11 @@ namespace ompl
               *                 |
               *   x_____________|
               *   --------------- */
-            std::vector<base::State *> interpolateSectionL1FL(
-                const base::State *xFiberStart,
-                const base::State *xFiberGoal,
-                const std::vector<base::State *> basePath);
+            std::vector<base::State *> interpolateSectionL1FL(const base::State *xFiberStart,
+                                                              const base::State *xFiberGoal,
+                                                              const std::vector<base::State *> basePath);
 
-            /** \brief Interpolate along restriction using L1 metric 
+            /** \brief Interpolate along restriction using L1 metric
               * (Fiber first)
               *   ---------------
               *    _____________x
@@ -154,13 +172,11 @@ namespace ompl
               *   |
               *   x
               *   --------------- */
-            std::vector<base::State *> interpolateSectionL1FF(
-                const base::State *xFiberStart,
-                const base::State *xFiberGoal,
-                const std::vector<base::State *> basePath);
+            std::vector<base::State *> interpolateSectionL1FF(const base::State *xFiberStart,
+                                                              const base::State *xFiberGoal,
+                                                              const std::vector<base::State *> basePath);
 
         protected:
-
             /** \brief Pointer to associated bundle space */
             BundleSpaceGraph *bundleSpaceGraph_;
 
@@ -179,6 +195,9 @@ namespace ompl
             base::State *xFiberStart_{nullptr};
             base::State *xFiberGoal_{nullptr};
             base::State *xFiberTmp_{nullptr};
+
+            /** \brief Step size to check validity */
+            double validSegmentLength_;
 
             /** \brief Temporary variable to save last valid state along a
              * section */

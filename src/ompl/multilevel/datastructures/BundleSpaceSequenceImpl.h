@@ -42,7 +42,7 @@
 
 template <class T>
 ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec,
-                                                             std::string type)
+                                                              std::string type)
   : BaseT(siVec, type)
 {
     T::resetCounter();
@@ -54,7 +54,7 @@ ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::
 
         T *ss = new T(siVec_.at(k), parent);
         bundleSpaces_.push_back(ss);
-        static_cast<BundleSpace*>(bundleSpaces_.back())->setLevel(k);
+        static_cast<BundleSpace *>(bundleSpaces_.back())->setLevel(k);
     }
     stopAtLevel_ = bundleSpaces_.size();
 
@@ -111,7 +111,7 @@ void ompl::multilevel::BundleSpaceSequence<T>::setup()
     BaseT::setup();
     for (unsigned int k = 0; k < stopAtLevel_; k++)
     {
-        static_cast<BundleSpace*>(bundleSpaces_.at(k))->setup();
+        static_cast<BundleSpace *>(bundleSpaces_.at(k))->setup();
     }
     currentBundleSpaceLevel_ = 0;
 }
@@ -123,7 +123,7 @@ void ompl::multilevel::BundleSpaceSequence<T>::clear()
 
     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
     {
-        static_cast<BundleSpace*>(bundleSpaces_.at(k))->clear();
+        static_cast<BundleSpace *>(bundleSpaces_.at(k))->clear();
     }
     currentBundleSpaceLevel_ = 0;
 
@@ -141,7 +141,7 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
 
     for (unsigned int k = currentBundleSpaceLevel_; k < stopAtLevel_; k++)
     {
-        BundleSpace *kBundle = static_cast<BundleSpace*>(bundleSpaces_.at(k));
+        BundleSpace *kBundle = static_cast<BundleSpace *>(bundleSpaces_.at(k));
 
         foundKLevelSolution_ = false;
 
@@ -207,7 +207,7 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
 
     ompl::base::PathPtr sol;
     ompl::base::PlannerSolution psol(sol);
-    static_cast<BundleSpace*>(bundleSpaces_.back())->getProblemDefinition()->getSolution(psol);
+    static_cast<BundleSpace *>(bundleSpaces_.back())->getProblemDefinition()->getSolution(psol);
     pdef_->addSolutionPath(psol);
 
     return ompl::base::PlannerStatus::EXACT_SOLUTION;
@@ -229,7 +229,7 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(const ompl::
 
     OMPL_DEVMSG1("Projecting start and goal onto BundleSpaces.");
 
-    static_cast<BundleSpace*>(bundleSpaces_.back())->setProblemDefinition(pdef);
+    static_cast<BundleSpace *>(bundleSpaces_.back())->setProblemDefinition(pdef);
 
     base::OptimizationObjectivePtr obj = pdef->getOptimizationObjective();
 
@@ -238,8 +238,8 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(const ompl::
 
     for (unsigned int k = siVec_.size() - 1; k > 0; k--)
     {
-        BundleSpace *bundleSpaceParent = static_cast<BundleSpace*>(bundleSpaces_.at(k));
-        BundleSpace *bundleSpaceChild = static_cast<BundleSpace*>(bundleSpaces_.at(k - 1));
+        BundleSpace *bundleSpaceParent = static_cast<BundleSpace *>(bundleSpaces_.at(k));
+        BundleSpace *bundleSpaceChild = static_cast<BundleSpace *>(bundleSpaces_.at(k - 1));
         ompl::base::SpaceInformationPtr sik = bundleSpaceChild->getBundle();
         ompl::base::ProblemDefinitionPtr pdefk = std::make_shared<base::ProblemDefinition>(sik);
 
@@ -263,8 +263,8 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(const ompl::
 }
 
 template <class T>
-ompl::base::State* ompl::multilevel::BundleSpaceSequence<T>::getTotalState(
-    int baseLevel, const base::State* baseState) const
+ompl::base::State *ompl::multilevel::BundleSpaceSequence<T>::getTotalState(int baseLevel,
+                                                                           const base::State *baseState) const
 {
     BundleSpace *Qprev = bundleSpaces_.at(baseLevel);
     ompl::base::State *s_lift = Qprev->getBundle()->cloneState(baseState);
@@ -308,7 +308,7 @@ void ompl::multilevel::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planne
     BundleSpace *Qlast = this->bundleSpaces_.back();
     for (unsigned int k = 0; k < K; k++)
     {
-        BundleSpace *Qk = static_cast<BundleSpace*>(bundleSpaces_.at(k));
+        BundleSpace *Qk = static_cast<BundleSpace *>(bundleSpaces_.at(k));
         Qk->getPlannerData(data);
 
         // lift all states into the last bundle space (original state space)
@@ -323,7 +323,7 @@ void ompl::multilevel::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planne
             v.setLevel(k);
             v.setMaxLevel(K);
 
-            base::State* s_lift = getTotalState(k, v.getBaseState());
+            base::State *s_lift = getTotalState(k, v.getBaseState());
             v.setTotalState(s_lift, Qlast->getBundle());
             ctr++;
         }

@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -63,23 +63,14 @@ namespace ompl
             BundleSpaceMetricShortestPath(BundleSpaceGraph *);
             virtual ~BundleSpaceMetricShortestPath() override;
 
-            virtual double distanceBundle(
-                const Configuration *xStart, 
-                const Configuration *xDest) override;
+            virtual double distanceBundle(const Configuration *xStart, const Configuration *xDest) override;
 
-            virtual double distanceFiber(
-                const Configuration *xStart, 
-                const Configuration *xDest) override;
+            virtual double distanceFiber(const Configuration *xStart, const Configuration *xDest) override;
 
-            virtual double distanceBase(
-                const Configuration *xStart, 
-                const Configuration *xDest) override;
+            virtual double distanceBase(const Configuration *xStart, const Configuration *xDest) override;
 
-            virtual void interpolateBundle(
-                const Configuration *q_from, 
-                const Configuration *q_to, 
-                const double step,
-                Configuration *q_interp) override;
+            virtual void interpolateBundle(const Configuration *q_from, const Configuration *q_to, const double step,
+                                           Configuration *q_interp) override;
 
             /** \brief Interpolate path between bundle space elements xStart and
              * xDest by using the base space. First, we project elements down
@@ -87,9 +78,8 @@ namespace ompl
              * to connect them. Third, we interpolate an L2 section along the
              * base path. Fourth, we return the milestones along L2 section.*/
 
-            std::vector<const Configuration *> getInterpolationPath(
-                const Configuration *xStart,
-                const Configuration *xDest);
+            std::vector<const Configuration *> getInterpolationPath(const Configuration *xStart,
+                                                                    const Configuration *xDest);
 
         protected:
             std::vector<Configuration *> tmpPath_;

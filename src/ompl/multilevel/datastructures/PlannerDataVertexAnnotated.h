@@ -45,21 +45,18 @@ namespace ompl
 {
     namespace multilevel
     {
-
         /** \brief An annotated vertex, adding information about its level in
             the multilevel hierarchy. Class has two modes: Mode 1 (baseMode), we
             store a reference to its base state element. In Mode 2 (totalMode),
             we store a deep copy of the lift of the base state into the total
-            space (NOTE: required for PlannerData functions like decoupleFromPlanner()) 
+            space (NOTE: required for PlannerData functions like decoupleFromPlanner())
         */
-
 
         class PlannerDataVertexAnnotated : public ompl::base::PlannerDataVertex
         {
             // If new elements are added,
             // you need to update the clone/getstate functions!
         public:
-
             /** \brief Constructor for base state. Set mode to baseMode. */
             PlannerDataVertexAnnotated(const ompl::base::State *state);
 
@@ -77,9 +74,9 @@ namespace ompl
             unsigned int getComponent() const;
 
             /** \brief Set total state, i.e. the lift of the base state to the
-               total space (last Spaceinformationptr in sequence). 
+               total space (last Spaceinformationptr in sequence).
                NOTE: Changes mode to totalMode.
-               NOTE: requires Spaceinformationptr (of total space) 
+               NOTE: requires Spaceinformationptr (of total space)
                to free state
             */
             void setTotalState(ompl::base::State *s, ompl::base::SpaceInformationPtr si);
@@ -107,7 +104,6 @@ namespace ompl
             friend std::ostream &operator<<(std::ostream &, const PlannerDataVertexAnnotated &);
 
         protected:
-            
             /** \brief The level for the base state */
             unsigned int level_{0};
 

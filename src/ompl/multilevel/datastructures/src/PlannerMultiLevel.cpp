@@ -38,17 +38,18 @@
 
 #include <ompl/multilevel/datastructures/PlannerMultiLevel.h>
 
-ompl::multilevel::PlannerMultiLevel::PlannerMultiLevel(std::vector<ompl::base::SpaceInformationPtr> &siVec,
-                                                       std::string type)
+using namespace ompl::multilevel;
+
+PlannerMultiLevel::PlannerMultiLevel(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
   : BaseT(siVec.back(), type), siVec_(siVec)
 {
 }
 
-ompl::multilevel::PlannerMultiLevel::~PlannerMultiLevel()
+PlannerMultiLevel::~PlannerMultiLevel()
 {
 }
 
-void ompl::multilevel::PlannerMultiLevel::clear()
+void PlannerMultiLevel::clear()
 {
     BaseT::clear();
     solutions_.clear();
@@ -59,7 +60,7 @@ void ompl::multilevel::PlannerMultiLevel::clear()
     }
 }
 
-std::vector<int> ompl::multilevel::PlannerMultiLevel::getDimensionsPerLevel() const
+std::vector<int> PlannerMultiLevel::getDimensionsPerLevel() const
 {
     std::vector<int> dimensionsPerLevel;
     for (unsigned int k = 0; k < siVec_.size(); k++)
@@ -70,18 +71,17 @@ std::vector<int> ompl::multilevel::PlannerMultiLevel::getDimensionsPerLevel() co
     return dimensionsPerLevel;
 }
 
-int ompl::multilevel::PlannerMultiLevel::getLevels() const
+int PlannerMultiLevel::getLevels() const
 {
     return siVec_.size();
 }
 
-const ompl::base::ProblemDefinitionPtr &ompl::multilevel::PlannerMultiLevel::getProblemDefinition(int level) const
+const ompl::base::ProblemDefinitionPtr &PlannerMultiLevel::getProblemDefinition(int level) const
 {
     return pdefVec_.at(level);
 }
 
-const std::vector<ompl::base::ProblemDefinitionPtr> &
-ompl::multilevel::PlannerMultiLevel::getProblemDefinitionVector() const
+const std::vector<ompl::base::ProblemDefinitionPtr> &PlannerMultiLevel::getProblemDefinitionVector() const
 {
     return pdefVec_;
 }

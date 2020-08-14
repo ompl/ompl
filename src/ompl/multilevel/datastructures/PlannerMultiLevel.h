@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -44,8 +44,8 @@ namespace ompl
 {
     namespace multilevel
     {
-        /** \brief MultiLevel Planner Interface. 
-         * Extends base::Planner by allowing sequences 
+        /** \brief MultiLevel Planner Interface.
+         * Extends base::Planner by allowing sequences
          * of base::SpaceInformationPtr */
 
         class PlannerMultiLevel : public ompl::base::Planner
@@ -54,7 +54,7 @@ namespace ompl
 
         public:
             PlannerMultiLevel(std::vector<ompl::base::SpaceInformationPtr> &siVec,
-                                std::string type = "PlannerMultiLevel");
+                              std::string type = "PlannerMultiLevel");
             PlannerMultiLevel(ompl::base::SpaceInformationPtr si) = delete;
             PlannerMultiLevel(ompl::base::SpaceInformationPtr si, std::string type) = delete;
 

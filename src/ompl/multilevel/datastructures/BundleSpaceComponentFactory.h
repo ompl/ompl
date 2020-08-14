@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -65,6 +65,7 @@ namespace ompl
         protected:
             BundleSpaceComponentPtr MakeBundleSpaceComponent(base::StateSpacePtr BundleSpace,
                                                              base::StateSpacePtr BaseSpace, bool);
+
             BundleSpaceComponentPtr MakeBundleSpaceComponent(base::StateSpacePtr BundleSpace);
 
             BundleSpaceComponentType identifyBundleSpaceComponentType(const base::StateSpacePtr BundleSpace,
@@ -86,7 +87,6 @@ namespace ompl
             bool isMapping_SO3RN_to_SO3(const base::StateSpacePtr, const base::StateSpacePtr);
             bool isMapping_SO3RN_to_SO3RM(const base::StateSpacePtr, const base::StateSpacePtr);
             bool isMapping_RNSO2_to_RN(const base::StateSpacePtr, const base::StateSpacePtr);
-
             bool isMapping_XRN_to_XRM(const base::StateSpacePtr, const base::StateSpacePtr, const base::StateSpaceType);
             bool isMapping_XRN_to_X(const base::StateSpacePtr, const base::StateSpacePtr, const base::StateSpaceType);
 

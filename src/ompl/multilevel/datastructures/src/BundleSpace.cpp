@@ -234,8 +234,7 @@ void BundleSpace::sanityChecks() const
 
 void BundleSpace::checkBundleSpaceMeasure(std::string name, const StateSpacePtr space) const
 {
-    OMPL_DEVMSG1("%s dimension: %d measure: %f", 
-        name.c_str(), space->getDimension(), space->getMeasure());
+    OMPL_DEVMSG1("%s dimension: %d measure: %f", name.c_str(), space->getDimension(), space->getMeasure());
     if ((space->getMeasure() >= std::numeric_limits<double>::infinity()))
     {
         throw Exception("Space infinite measure.");
@@ -320,10 +319,8 @@ void BundleSpace::resetCounter()
 //     }
 // }
 
-unsigned int BundleSpace::interpolateAlongBasePath(
-    const std::vector<State *> basePath, 
-    double location, 
-    State *xResult) const
+unsigned int BundleSpace::interpolateAlongBasePath(const std::vector<State *> basePath, double location,
+                                                   State *xResult) const
 {
     double d_path = 0;
     for (unsigned int k = 0; k < basePath.size() - 1; k++)
@@ -738,8 +735,7 @@ void BundleSpace::debugInvalidState(const State *x)
                     double value = 0;
                     if (!space->isCompound())
                     {
-                        const SO2StateSpace::StateType *xk =
-                            x->as<CompoundState>()->as<SO2StateSpace::StateType>(m);
+                        const SO2StateSpace::StateType *xk = x->as<CompoundState>()->as<SO2StateSpace::StateType>(m);
                         value = xk->value;
                     }
                     else

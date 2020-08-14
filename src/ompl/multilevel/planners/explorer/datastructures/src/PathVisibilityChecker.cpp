@@ -190,7 +190,7 @@ public:
             }
         }
         assert(idx >= 0);
-        assert(idx <= distances.size() - 1);
+        assert(idx <= (int)distances.size() - 1);
 
         double lastDistance = (idx > 0) ? distances.at(idx - 1) : 0.0;
         double distanceIdxIdxNext = distances.at(idx) - lastDistance;
@@ -320,7 +320,7 @@ void PathVisibilityChecker::createStateAt(ob::SpaceInformationPtr si_, const std
         }
     }
     assert(idx >= 0);
-    assert(idx <= distances.size() - 1);
+    assert(idx <= (int)distances.size() - 1);
 
     double lastDistance = (idx > 0) ? distances.at(idx - 1) : 0.0;
     double distanceIdxIdxNext = distances.at(idx) - lastDistance;

@@ -415,10 +415,9 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q, std::vector<Con
 
 bool BundleSpaceGraphSparse::checkAddPath(Configuration *q)
 {
-  //TODO: test if we can quicker do feasibility checks
-  OMPL_WARN("Does not test CHECKADDPATH");
+    // TODO: test if we can quicker do feasibility checks
+    OMPL_WARN("Does not test CHECKADDPATH");
     return false;
-
 
     std::vector<Vertex> neigh;
     getInterfaceNeighborhood(q, neigh);
@@ -710,21 +709,18 @@ BundleSpaceGraph::Vertex BundleSpaceGraphSparse::getInterfaceNeighbor(Vertex q, 
     throw Exception(name_, "Vertex has no interface neighbor with given representative");
 }
 
-void BundleSpaceGraphSparse::computeDensePath(
-    const Vertex &start, const Vertex &goal, std::deque<State *> &path)
+void BundleSpaceGraphSparse::computeDensePath(const Vertex &start, const Vertex &goal, std::deque<State *> &path)
 {
     path.clear();
     // BaseT::getPathDenseGraphPath(start, goal, graph_, path);
 
     PathPtr dpath = BaseT::getPath(start, goal, graph_);
-    std::vector<State *> states = 
-      std::static_pointer_cast<ompl::geometric::PathGeometric>(dpath)->getStates();
+    std::vector<State *> states = std::static_pointer_cast<ompl::geometric::PathGeometric>(dpath)->getStates();
 
     std::move(begin(states), end(states), back_inserter(path));
 }
 
-bool BundleSpaceGraphSparse::addPathToSpanner(
-    const std::deque<State *> &dense_path, Vertex vp, Vertex vpp)
+bool BundleSpaceGraphSparse::addPathToSpanner(const std::deque<State *> &dense_path, Vertex vp, Vertex vpp)
 {
     // First, check to see that the path has length
     if (dense_path.size() <= 1)

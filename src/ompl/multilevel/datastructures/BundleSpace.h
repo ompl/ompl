@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, 
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -192,6 +192,7 @@ namespace ompl
 
             /// Level in sequence of Bundle-spaces
             unsigned int level_{0};
+
         protected:
             /// Check if Bundle-space is unbounded
             void checkBundleSpaceMeasure(std::string name, const ompl::base::StateSpacePtr space) const;
