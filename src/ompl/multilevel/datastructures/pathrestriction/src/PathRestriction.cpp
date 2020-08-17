@@ -245,13 +245,12 @@ bool PathRestriction::tripleStep(
         bundle->printState(xGoal->state);
 
         xBundleLastValid = xGoal;
-
-        //Continue with fiber last interpolation. If there is an opening in
-        //geometry, it seems likely to be a passage -> so move
-        //straight (regardless of what happened before)
-        return true;
     }
-    return false;
+
+    bundle->freeState(xBundleStartTmp);
+    bundle->freeState(xBundleGoalTmp);
+    base->freeState(xBase);
+    return found;
 }
 
 bool PathRestriction::sideStepAlongFiber(Configuration *xOrigin, base::State *state)
@@ -346,7 +345,6 @@ bool PathRestriction::checkSectionL1BacktrackRecursive(
     unsigned int depth, 
     double startLength)
 {
-
     base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
     base::SpaceInformationPtr base = bundleSpaceGraph_->getBase();
     base::SpaceInformationPtr fiber = bundleSpaceGraph_->getFiber();
@@ -425,6 +423,7 @@ bool PathRestriction::checkSectionL1BacktrackRecursive(
         {
           foundAlternative = true;
         }else{
+            std::cout << "Triple stepping:" << std::endl;
             if(tripleStep(xLastValid, xBundleTmp_, xBaseTmp_, locationOnBasePath))
             {
               foundAlternative = true;
@@ -433,6 +432,7 @@ bool PathRestriction::checkSectionL1BacktrackRecursive(
 
         if(foundAlternative)
         {
+            std::cout << "Go recursive:" << std::endl;
             bool feasibleSection = checkSectionL1BacktrackRecursive(
                 xLastValid, xGoal, basePathSegment, 
                 false, depth + 1, locationOnBasePath);
