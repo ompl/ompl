@@ -53,6 +53,7 @@ namespace ompl
     namespace multilevel
     {
         OMPL_CLASS_FORWARD(BundleSpaceGraph);
+        OMPL_CLASS_FORWARD(PathSection);
 
         /** \brief Representation of path restriction
             (set of all elements of bundle space
@@ -86,6 +87,8 @@ namespace ompl
             /** \brief Set base path over which restriction is defined */
             void setBasePath(std::vector<base::State *>);
 
+            const std::vector<base::State*> getBasePath();
+
             /** \brief Check if feasible section exists between xStart and xGoal.
              * Main method to use outside this class. Use this if you are
              * unsure.
@@ -114,13 +117,13 @@ namespace ompl
              *
              * @retval True or false if method succeeds
              * */
-            bool checkSectionL1Recursive(
-                Configuration *const xStart, 
-                Configuration *const xGoal,
-                const std::vector<base::State *> basePath,
-                bool interpolateFiberFirst = true,
-                unsigned int depth = 0,
-                double startLength = 0.0);
+            // bool checkSectionL1Recursive(
+            //     Configuration *const xStart, 
+            //     Configuration *const xGoal,
+            //     const std::vector<base::State *> basePath,
+            //     bool interpolateFiberFirst = true,
+            //     unsigned int depth = 0,
+            //     double startLength = 0.0);
 
             bool checkSectionL1BacktrackRecursive(
                 Configuration *const xStart, 
@@ -131,16 +134,17 @@ namespace ompl
                 double startLength = 0.0);
 
             /** \brief Sample state on fiber while keeping base state fixed */
-            bool sideStepAlongFiber(const base::State *xBase, base::State *xBundle);
+            bool findFeasibleStateOnFiber(const base::State *xBase, base::State *xBundle);
+
+            bool wriggleFree(
+                const base::State *xBundleOrigin, 
+                const base::State *xBundleGoal, 
+                base::State *xBundleNext,
+                double&);
 
             /** \brief Verify that a given section is indeed valid */
             void sanityCheckSection();
 
-            /** \brief Add vertex for sNext and edge to xLast by assuming motion
-             * is valid  */
-            Configuration *addFeasibleSegment(Configuration *xLast, base::State *sNext);
-
-            void addFeasibleGoalSegment(Configuration *const xLast, Configuration *const xGoal);
 
             /** \brief Interpolate along restriction using L2 metric
               *  ---------------
@@ -176,6 +180,27 @@ namespace ompl
                                                               const base::State *xFiberGoal,
                                                               const std::vector<base::State *> basePath);
 
+            BundleSpaceGraph* getBundleSpaceGraph();
+
+            /** \brief Length of base path */
+            double getLengthBasePath();
+
+            /** \brief Length between base state indices k and k+1 */
+            double getLengthIntermediateBasePath(int k);
+
+            /** \brief Cumulative length until base state index k */
+            double getLengthBasePathUntil(int k);
+
+            bool sideStepAlongFiber(
+                Configuration *xOrigin, 
+                base::State *state);
+
+            bool tripleStep(
+                Configuration* &xBundleLastValid, 
+                const base::State *sBundleGoal, 
+                base::State *sBase,
+                double startLocation);
+
         protected:
             /** \brief Pointer to associated bundle space */
             BundleSpaceGraph *bundleSpaceGraph_;
@@ -187,7 +212,10 @@ namespace ompl
             double lengthBasePath_{0.0};
 
             /** \brief Intermediate lengths between states on base path */
-            std::vector<double> intermediateLengthsBasePath_;
+            std::vector<double> lengthsIntermediateBasePath_;
+
+            /** \brief Cumulative lengths between states on base path */
+            std::vector<double> lengthsCumulativeBasePath_;
 
             base::State *xBaseTmp_{nullptr};
             base::State *xBundleTmp_{nullptr};

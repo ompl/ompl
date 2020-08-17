@@ -350,7 +350,7 @@ unsigned int BundleSpace::interpolateAlongBasePath(const std::vector<State *> ba
     //                                |-- d_last_to_next --|
     //                                |-step-|
     //
-    //                              xLast                 xNext
+    //                              xLast                 xNext (ctr)
 
     double step = 0.0;
     if (d_last_to_next > 0)
