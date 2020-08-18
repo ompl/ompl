@@ -55,6 +55,13 @@ namespace ompl
         OMPL_CLASS_FORWARD(BundleSpaceGraph);
         OMPL_CLASS_FORWARD(PathSection);
 
+        // class BasePathHead
+        // {
+        //     Configuration *xLast{nullptr};
+        //     double location_;
+        //     int lastValidIndexOnBasePath_;
+        // };
+
         /** \brief Representation of path restriction
             (set of all elements of bundle space
             which project onto a given base path ---
@@ -98,9 +105,6 @@ namespace ompl
              *  can change */
             bool hasFeasibleSection(Configuration *const, Configuration *const);
 
-            /** \brief Interpolate L2 section and check validity */
-            bool checkSectionL2(Configuration *const xStart, Configuration *const xGoal);
-
             /** 
              * Interpolate L1 section recursively and check validity. 
              *
@@ -136,50 +140,6 @@ namespace ompl
             /** \brief Sample state on fiber while keeping base state fixed */
             bool findFeasibleStateOnFiber(const base::State *xBase, base::State *xBundle);
 
-            bool wriggleFree(
-                const base::State *xBundleOrigin, 
-                const base::State *xBundleGoal, 
-                base::State *xBundleNext,
-                double&);
-
-            /** \brief Verify that a given section is indeed valid */
-            void sanityCheckSection();
-
-
-            /** \brief Interpolate along restriction using L2 metric
-              *  ---------------
-              *            ____x
-              *       ____/
-              *   ___/
-              *  x
-              *  --------------- */
-            std::vector<base::State *> interpolateSectionL2(const base::State *xFiberStart,
-                                                            const base::State *xFiberGoal,
-                                                            const std::vector<base::State *> basePath);
-
-            /** \brief Interpolate along restriction using L1 metric (Fiber Last)
-              *   ---------------
-              *                 x
-              *                 |
-              *                 |
-              *   x_____________|
-              *   --------------- */
-            std::vector<base::State *> interpolateSectionL1FL(const base::State *xFiberStart,
-                                                              const base::State *xFiberGoal,
-                                                              const std::vector<base::State *> basePath);
-
-            /** \brief Interpolate along restriction using L1 metric
-              * (Fiber first)
-              *   ---------------
-              *    _____________x
-              *   |
-              *   |
-              *   x
-              *   --------------- */
-            std::vector<base::State *> interpolateSectionL1FF(const base::State *xFiberStart,
-                                                              const base::State *xFiberGoal,
-                                                              const std::vector<base::State *> basePath);
-
             BundleSpaceGraph* getBundleSpaceGraph();
 
             /** \brief Length of base path */
@@ -192,7 +152,7 @@ namespace ompl
             double getLengthBasePathUntil(int k);
 
             bool sideStepAlongFiber(
-                Configuration *xOrigin, 
+                Configuration* &xOrigin, 
                 base::State *state);
 
             bool tripleStep(
@@ -200,6 +160,16 @@ namespace ompl
                 const base::State *sBundleGoal, 
                 base::State *sBase,
                 double startLocation);
+
+            bool wriggleFree(
+                Configuration* &xLastValid,
+                const base::State *xBundleGoal,
+                double&);
+
+            bool wriggleFree(
+                Configuration* &xLastValid,
+                const base::State *xBundleGoal);
+
 
         protected:
             /** \brief Pointer to associated bundle space */

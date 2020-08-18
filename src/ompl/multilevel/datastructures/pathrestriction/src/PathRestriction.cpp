@@ -45,6 +45,16 @@
 #include <ompl/geometric/PathGeometric.h>
 #include <numeric>
 
+namespace ompl
+{
+    namespace magic
+    {
+        static const unsigned int PATH_SECTION_MAX_DEPTH = 3;
+        static const unsigned int PATH_SECTION_MAX_BRANCHING = 10;
+    }
+}
+
+
 #define SANITY_CHECK_PATH_RESTRICTION
 #undef SANITY_CHECK_PATH_RESTRICTION
 
@@ -253,7 +263,7 @@ bool PathRestriction::tripleStep(
     return found;
 }
 
-bool PathRestriction::sideStepAlongFiber(Configuration *xOrigin, base::State *state)
+bool PathRestriction::sideStepAlongFiber(Configuration* &xOrigin, base::State *state)
 {
     base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
     if (bundle->checkMotion(xOrigin->state, state))
@@ -276,9 +286,16 @@ bool PathRestriction::sideStepAlongFiber(Configuration *xOrigin, base::State *st
 }
 
 bool PathRestriction::wriggleFree(
-    const base::State *xBundleOrigin, 
+    Configuration* &xLastValid,
+    const base::State *xBundleGoal)
+{
+    double d;
+    return wriggleFree(xLastValid, xBundleGoal, d);
+}
+
+bool PathRestriction::wriggleFree(
+    Configuration* &xLastValid,
     const base::State *xBundleGoal, 
-    base::State *xBundleBestState,
     double &distProgress)
 {
 
@@ -288,34 +305,35 @@ bool PathRestriction::wriggleFree(
     int ctr = 0;
 
     base::State* xBundleNext = bundle->allocState();
-    double originDist = bundle->distance(xBundleOrigin, xBundleGoal);
+    double originDist = bundle->distance(xLastValid->state, xBundleGoal);
     double bestDist = originDist;
 
-    double epsilon = 0.1;
-    std::cout << "Start wriggling" << std::endl;
-    std::cout << "ORIGIN dist " << bestDist << std::endl;
-    bundle->printState(xBundleOrigin);
+    double epsilon = 0.3;
     while (ctr++ < 10)
     {
-        bundleSampler->sampleUniformNear(xBundleNext, xBundleOrigin, epsilon);
+        bundleSampler->sampleUniformNear(xBundleNext, xLastValid->state, epsilon);
         double dist = bundle->distance(xBundleNext, xBundleGoal);
         if(dist < bestDist && 
             bundle->isValid(xBundleNext) &&
-            bundle->checkMotion(xBundleOrigin, xBundleNext))
+            bundle->checkMotion(xLastValid->state, xBundleNext))
         {
             //set cur to next. Continue from there
-            bundle->copyState(xBundleBestState, xBundleNext);
+            // bundle->copyState(xBundleBestState, xBundleNext);
             bestDist = dist;
-            std::cout << "Improved state to " << "bestDist:" << bestDist << std::endl;
-            bundle->printState(xBundleBestState);
-        }
+            std::cout << "Add wriggle state with new dist " << bestDist << std::endl;
+            bundle->printState(xBundleNext);
 
+            Configuration *xWriggleStep = new Configuration(bundle, xBundleNext);
+            bundleSpaceGraph_->addConfiguration(xWriggleStep);
+            bundleSpaceGraph_->addBundleEdge(xLastValid, xWriggleStep);
+
+            xLastValid = xWriggleStep;
+        }
     }
+
     bundle->freeState(xBundleNext);
 
     distProgress = originDist - bestDist;
-
-    std::cout << "Progress: " << distProgress << std::endl;
 
     return (distProgress > 0);
 }
@@ -331,11 +349,14 @@ bool PathRestriction::hasFeasibleSection(
         foundFeasibleSection = checkSectionL1BacktrackRecursive(xStart, xGoal, basePath_, false);
     }
 
+    if(!foundFeasibleSection)
+    {
+        OMPL_DEBUG("No feasible section found over base path");
+    }
+
     return foundFeasibleSection;
 }
 
-const unsigned int PATH_SECTION_L1UTURN_MAX_DEPTH = 3;
-const unsigned int PATH_SECTION_L1UTURN_MAX_BRANCHING = 10;
 
 bool PathRestriction::checkSectionL1BacktrackRecursive(
     Configuration *const xStart, 
@@ -352,8 +373,10 @@ bool PathRestriction::checkSectionL1BacktrackRecursive(
     bundleSpaceGraph_->projectFiber(xStart->state, xFiberStart_);
     bundleSpaceGraph_->projectFiber(xGoal->state, xFiberGoal_);
 
+    //TODO: need to take into account that basePath might be segment
     PathSectionPtr section = std::make_shared<PathSection>(this);
 
+    //TODO: should be part of section class or strategy pattern
     if (interpolateFiberFirst)
     {
         section->interpolateL1FiberFirst(xFiberStart_, xFiberGoal_);
@@ -368,7 +391,7 @@ bool PathRestriction::checkSectionL1BacktrackRecursive(
         return true;
     }
 
-    if (depth >= PATH_SECTION_L1UTURN_MAX_DEPTH)
+    if (depth >= magic::PATH_SECTION_MAX_DEPTH)
     {
         return false;
     }
@@ -384,6 +407,7 @@ bool PathRestriction::checkSectionL1BacktrackRecursive(
 
     std::vector<base::State *> basePathSegment = {basePath.begin() + lastCtr + 1, basePath.end()};
 
+
     basePathSegment.insert(basePathSegment.begin(), xBaseTmp_);
 
     double locationOnBasePath = section->getLastValidBasePathLocation();
@@ -397,42 +421,36 @@ bool PathRestriction::checkSectionL1BacktrackRecursive(
        ->getGraphSampler()
        ->setPathBiasStartSegment(locationOnBasePath + startLength);
 
-    for (unsigned int j = 0; j < PATH_SECTION_L1UTURN_MAX_BRANCHING; j++)
+    for (unsigned int j = 0; j < magic::PATH_SECTION_MAX_BRANCHING; j++)
     {
         //#####################################################################
         // (1) Try wriggling to escape crevice
         //#####################################################################
-       
-        //#####################################################################
-        // (2) Find other opening to traverse path restriction.
-        //
-        // find feasible sample xBundleTmp_ in fiber space over the last valid
-        // base path state
-        //#############################################################
-        if (!findFeasibleStateOnFiber(xBaseTmp_, xBundleTmp_))
-        {
-            continue;
-        }
 
-        //#############################################################
-        // (2a) Use other opening to sidestep
-        //#############################################################
         bool foundAlternative = false;
-
-        if(sideStepAlongFiber(xLastValid, xBundleTmp_))
+        if(wriggleFree(xLastValid, section->at(lastCtr+1)))
         {
-          foundAlternative = true;
+            std::cout << "Return:" << std::endl;
+            bundle->printState(xLastValid->state);
+            foundAlternative = true;
         }else{
-            std::cout << "Triple stepping:" << std::endl;
-            if(tripleStep(xLastValid, xBundleTmp_, xBaseTmp_, locationOnBasePath))
+            if (!findFeasibleStateOnFiber(xBaseTmp_, xBundleTmp_))
             {
-              foundAlternative = true;
+                continue;
+            }
+            if(sideStepAlongFiber(xLastValid, xBundleTmp_))
+            {
+                foundAlternative = true;
+            }else{
+                if(tripleStep(xLastValid, xBundleTmp_, xBaseTmp_, locationOnBasePath))
+                {
+                    foundAlternative = true;
+                }
             }
         }
 
         if(foundAlternative)
         {
-            std::cout << "Go recursive:" << std::endl;
             bool feasibleSection = checkSectionL1BacktrackRecursive(
                 xLastValid, xGoal, basePathSegment, 
                 false, depth + 1, locationOnBasePath);

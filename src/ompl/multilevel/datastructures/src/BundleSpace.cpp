@@ -724,8 +724,8 @@ void BundleSpace::debugInvalidState(const State *x)
                         double qkh = bh.at(k);
                         if (qk < qkl || qk > qkh)
                         {
-                            OMPL_ERROR("Out Of Bounds [component %d, link %d] %.2f <= %.2f <= %.2f", m, k, bl.at(k), qk,
-                                       bh.at(k));
+                            OMPL_ERROR("Out Of Bounds [component %d, link %d] %.2f <= %.2f <= %.2f", 
+                                m, k, bl.at(k), qk, bh.at(k));
                         }
                     }
                     break;
@@ -735,7 +735,8 @@ void BundleSpace::debugInvalidState(const State *x)
                     double value = 0;
                     if (!space->isCompound())
                     {
-                        const SO2StateSpace::StateType *xk = x->as<CompoundState>()->as<SO2StateSpace::StateType>(m);
+                        const SO2StateSpace::StateType *xk 
+                          = x->as<CompoundState>()->as<SO2StateSpace::StateType>(m);
                         value = xk->value;
                     }
                     else
@@ -766,7 +767,9 @@ void BundleSpace::print(std::ostream &out) const
     out << "[";
     for (unsigned int m = 0; m < M; m++)
     {
-        out << components_.at(m)->getTypeAsString() << (isDynamic_ ? "(dyn)" : "") << (m < M - 1 ? " | " : "");
+        out << components_.at(m)->getTypeAsString() 
+          << (isDynamic_ ? "(dyn)" : "") 
+          << (m < M - 1 ? " | " : "");
     }
     out << "]";
 }

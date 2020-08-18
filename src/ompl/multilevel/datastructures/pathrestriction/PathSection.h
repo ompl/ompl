@@ -18,14 +18,36 @@ namespace ompl
             PathSection(PathRestriction*);
             virtual ~PathSection();
             
+            /** \brief Interpolate along restriction using L2 metric
+              *  ---------------
+              *            ____x
+              *       ____/
+              *   ___/
+              *  x
+              *  --------------- */
             void interpolateL2(
                 const base::State* fiberStart, 
                 const base::State* fiberGoal);
 
+            /** \brief Interpolate along restriction using L1 metric
+              * (Fiber first)
+              *   ---------------
+              *    _____________x
+              *   |
+              *   |
+              *   x
+              *   --------------- */
             void interpolateL1FiberFirst(
                 const base::State* fiberStart, 
                 const base::State* fiberGoal);
 
+            /** \brief Interpolate along restriction using L1 metric (Fiber Last)
+              *   ---------------
+              *                 x
+              *                 |
+              *                 |
+              *   x_____________|
+              *   --------------- */
             void interpolateL1FiberLast(
                 const base::State* fiberStart, 
                 const base::State* fiberGoal);
@@ -47,6 +69,8 @@ namespace ompl
 
             int getLastValidBasePathIndex();
 
+            base::State* at(int k);
+
             /** \brief Add vertex for sNext and edge to xLast by assuming motion
              * is valid  */
             Configuration *addFeasibleSegment(Configuration *xLast, base::State *sNext);
@@ -56,6 +80,8 @@ namespace ompl
             Configuration *getLastValidConfiguration();
 
           protected:
+
+            // BasePathHead head_;
 
             PathRestriction *restriction_;
 

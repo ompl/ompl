@@ -99,11 +99,15 @@ BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformationPtr &si, BundleSp
     specs_.approximateSolutions = false;
     specs_.optimizingPaths = false;
 
-    Planner::declareParam<double>("range", this, &BundleSpaceGraph::setRange, &BundleSpaceGraph::getRange, "0.:1.:"
-                                                                                                           "10000.");
+    Planner::declareParam<double>("range", 
+        this, &BundleSpaceGraph::setRange, 
+        &BundleSpaceGraph::getRange, "0.:1.:10000.");
 
-    Planner::declareParam<double>("goal_bias", this, &BundleSpaceGraph::setGoalBias, &BundleSpaceGraph::getGoalBias,
-                                  "0.:.1:1.");
+    Planner::declareParam<double>("goal_bias", 
+        this, 
+        &BundleSpaceGraph::setGoalBias, 
+        &BundleSpaceGraph::getGoalBias, 
+        "0.:.1:1.");
 
     xRandom_ = new Configuration(getBundle());
 
@@ -672,48 +676,6 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
         return false;
     }
 }
-
-// void BundleSpaceGraph::getPathDenseGraphPath(const Vertex &start, const Vertex &goal, Graph &graph,
-//                                                               std::deque<base::State *> &path)
-// {
-//     ompl::base::PathPtr dpath = getPath(start, goal, graph);
-//     std::vector<base::State*> states =
-//       std::static_pointer_cast<geometric::PathGeometric>(dpath)->getStates();
-
-//     std::move(begin(states), end(states), back_inserter(path));
-
-//     // std::vector<Vertex> prev(boost::num_vertices(graph));
-//     // auto weight = boost::make_transform_value_property_map(std::mem_fn(&EdgeInternalState::getCost),
-//     //                                                        get(boost::edge_bundle, graph));
-//     // try
-//     // {
-//     //     boost::astar_search(graph, start, [this, goal](const Vertex v) { return costHeuristic(v, goal); },
-//     //                         boost::predecessor_map(&prev[0])
-//     //                             .weight_map(weight)
-//     //                             .distance_compare([this](EdgeInternalState c1, EdgeInternalState c2) {
-//     //                                 return opt_->isCostBetterThan(c1.getCost(), c2.getCost());
-//     //                             })
-//     //                             .distance_combine([this](EdgeInternalState c1, EdgeInternalState c2) {
-//     //                                 return opt_->combineCosts(c1.getCost(), c2.getCost());
-//     //                             })
-//     //                             .distance_inf(opt_->infiniteCost())
-//     //                             .distance_zero(opt_->identityCost()));
-//     // }
-//     // catch (BundleSpaceGraphFoundGoal &)
-//     // {
-//     // }
-
-//     // if (prev[goal] == goal)
-//     // {
-//     //     OMPL_WARN("%s: No dense path was found?", getName().c_str());
-//     // }
-//     // else
-//     // {
-//     //     for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
-//     //         path.push_front(graph_[pos]->state);
-//     //     path.push_front(graph_[start]->state);
-//     // }
-// }
 
 ompl::base::PathPtr BundleSpaceGraph::getPath(const Vertex &start, const Vertex &goal)
 {

@@ -134,6 +134,11 @@ PathSection::Configuration* PathSection::getLastValidConfiguration()
     return xBundleLastValid_;
 }
 
+ompl::base::State* PathSection::at(int k)
+{
+  return section_.at(k);
+}
+
 void PathSection::interpolateL1FiberFirst(
     const base::State *xFiberStart, 
     const base::State *xFiberGoal)
@@ -144,6 +149,8 @@ void PathSection::interpolateL1FiberFirst(
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
     const std::vector<base::State *> basePath = restriction_->getBasePath();
+
+    //TODO: start from a state somewhere on basePath
 
     if (graph->getFiberDimension() > 0)
     {
