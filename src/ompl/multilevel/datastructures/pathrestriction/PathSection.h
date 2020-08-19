@@ -8,6 +8,7 @@ namespace ompl
     namespace multilevel
     {
         OMPL_CLASS_FORWARD(PathRestriction);
+        OMPL_CLASS_FORWARD(BasePathHead);
 
         class PathSection
         {
@@ -15,7 +16,7 @@ namespace ompl
             using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
             PathSection() = delete;
-            PathSection(PathRestriction*);
+            PathSection(PathRestriction*, BasePathHeadPtr);
             virtual ~PathSection();
             
             /** \brief Interpolate along restriction using L2 metric
@@ -25,9 +26,9 @@ namespace ompl
               *   ___/
               *  x
               *  --------------- */
-            void interpolateL2(
-                const base::State* fiberStart, 
-                const base::State* fiberGoal);
+            void interpolateL2();
+                // const base::State* fiberStart, 
+                // const base::State* fiberGoal);
 
             /** \brief Interpolate along restriction using L1 metric
               * (Fiber first)
@@ -37,9 +38,7 @@ namespace ompl
               *   |
               *   x
               *   --------------- */
-            void interpolateL1FiberFirst(
-                const base::State* fiberStart, 
-                const base::State* fiberGoal);
+            void interpolateL1FiberFirst();
 
             /** \brief Interpolate along restriction using L1 metric (Fiber Last)
               *   ---------------
@@ -48,19 +47,13 @@ namespace ompl
               *                 |
               *   x_____________|
               *   --------------- */
-            void interpolateL1FiberLast(
-                const base::State* fiberStart, 
-                const base::State* fiberGoal);
+            void interpolateL1FiberLast();
 
             /** \brief Checks if section is feasible
              *
              *  @retval True if feasible and false if only partially feasible
              */
-            // bool checkMotion(std::pair<base::State *, double>& lastValid_);
-            bool checkMotion(
-                Configuration* const xStart, 
-                Configuration* const xGoal, 
-                std::pair<base::State *, double>& lastValid_);
+            bool checkMotion();
 
             /** \brief checks if section is feasible */
             void sanityCheck();
@@ -68,22 +61,29 @@ namespace ompl
             double getLastValidBasePathLocation();
 
             int getLastValidBasePathIndex();
+            int getLastValidSectionPathIndex();
 
-            base::State* at(int k);
+            base::State* at(int k) const;
+
+            int size() const;
 
             /** \brief Add vertex for sNext and edge to xLast by assuming motion
              * is valid  */
             Configuration *addFeasibleSegment(Configuration *xLast, base::State *sNext);
 
-            void addFeasibleGoalSegment(Configuration *const xLast, Configuration *const xGoal);
+            void addFeasibleGoalSegment(
+                Configuration *xLast, 
+                Configuration *xGoal);
 
-            Configuration *getLastValidConfiguration();
+            Configuration* getLastValidConfiguration();
+
+            friend std::ostream &operator<<(std::ostream &, const PathSection&);
 
           protected:
 
-            // BasePathHead head_;
-
             PathRestriction *restriction_;
+
+            BasePathHeadPtr head_;
 
             /** \brief Interpolated section along restriction */
             std::vector<base::State*> section_;
@@ -97,6 +97,7 @@ namespace ompl
 
             double lastValidLocationOnBasePath_;
             int lastValidIndexOnBasePath_;
+            int lastValidIndexOnSectionPath_;
 
             base::State *xBaseTmp_{nullptr};
             base::State *xBundleTmp_{nullptr};

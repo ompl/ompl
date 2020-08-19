@@ -1,0 +1,5 @@
+[x] Fix path restriction feasible segment to recursive call
+[ ] Make interpolateAlongBasepath a member of PathRestriction (and rewrite it)
+[ ] Ensure that goal state moves inside cosntraints when using triple stepping
+[ ] Remove safety checks in addBundleEdge()
+

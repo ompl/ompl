@@ -54,13 +54,9 @@ namespace ompl
     {
         OMPL_CLASS_FORWARD(BundleSpaceGraph);
         OMPL_CLASS_FORWARD(PathSection);
+        OMPL_CLASS_FORWARD(BasePathHead);
 
-        // class BasePathHead
-        // {
-        //     Configuration *xLast{nullptr};
-        //     double location_;
-        //     int lastValidIndexOnBasePath_;
-        // };
+        using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
         /** \brief Representation of path restriction
             (set of all elements of bundle space
@@ -79,7 +75,6 @@ namespace ompl
         class PathRestriction
         {
         public:
-            using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
             PathRestriction() = delete;
             PathRestriction(BundleSpaceGraph *);
@@ -94,7 +89,7 @@ namespace ompl
             /** \brief Set base path over which restriction is defined */
             void setBasePath(std::vector<base::State *>);
 
-            const std::vector<base::State*> getBasePath();
+            const std::vector<base::State*>& getBasePath();
 
             /** \brief Check if feasible section exists between xStart and xGoal.
              * Main method to use outside this class. Use this if you are
@@ -121,24 +116,16 @@ namespace ompl
              *
              * @retval True or false if method succeeds
              * */
-            // bool checkSectionL1Recursive(
-            //     Configuration *const xStart, 
-            //     Configuration *const xGoal,
-            //     const std::vector<base::State *> basePath,
-            //     bool interpolateFiberFirst = true,
-            //     unsigned int depth = 0,
-            //     double startLength = 0.0);
 
-            bool checkSectionL1BacktrackRecursive(
-                Configuration *const xStart, 
-                Configuration *const xGoal, 
-                const std::vector<base::State *> basePath,
+            bool findSection(
+                const BasePathHeadPtr head,
                 bool interpolateFiberFirst = true,
-                unsigned int depth = 0,
-                double startLength = 0.0);
+                unsigned int depth = 0);
 
             /** \brief Sample state on fiber while keeping base state fixed */
-            bool findFeasibleStateOnFiber(const base::State *xBase, base::State *xBundle);
+            bool findFeasibleStateOnFiber(
+                const base::State *xBase, 
+                base::State *xBundle);
 
             BundleSpaceGraph* getBundleSpaceGraph();
 
@@ -158,8 +145,8 @@ namespace ompl
             bool tripleStep(
                 Configuration* &xBundleLastValid, 
                 const base::State *sBundleGoal, 
-                base::State *sBase,
-                double startLocation);
+                const base::State *sBaseLastValid,
+                const base::State *sBasePrevious);
 
             bool wriggleFree(
                 Configuration* &xLastValid,
@@ -170,6 +157,9 @@ namespace ompl
                 Configuration* &xLastValid,
                 const base::State *xBundleGoal);
 
+            bool tunneling(
+                Configuration* &xLastValid,
+                const base::State *xBundleGoal);
 
         protected:
             /** \brief Pointer to associated bundle space */
@@ -196,10 +186,6 @@ namespace ompl
 
             /** \brief Step size to check validity */
             double validSegmentLength_;
-
-            /** \brief Temporary variable to save last valid state along a
-             * section */
-            std::pair<base::State *, double> lastValid_;
         };
     }
 }

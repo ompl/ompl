@@ -369,6 +369,22 @@ BundleSpaceGraph::Configuration *BundleSpaceGraph::addBundleConfiguration(base::
 
 void BundleSpaceGraph::addBundleEdge(const Configuration *a, const Configuration *b)
 {
+    bool feasible = getBundle()->checkMotion(a->state, b->state);
+    if(!feasible)
+    {
+      std::cout << "Trying to add infeasible bundle edge" << std::endl;
+      getBundle()->printState(a->state);
+      if(!getBundle()->isValid(a->state))
+      {
+        std::cout << "Infeasible state" << std::endl;
+      }
+      getBundle()->printState(b->state);
+      if(!getBundle()->isValid(b->state))
+      {
+        std::cout << "Infeasible state" << std::endl;
+      }
+      throw "";
+    }
     addEdge(a->index, b->index);
 }
 
