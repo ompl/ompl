@@ -79,21 +79,21 @@ namespace ompl
                 if (!update(edge))
                 {
                     // Compute the first field of the key.
-                    auto key1 =
+                    const auto key1 =
                         objective_->combineCosts(objective_->combineCosts(edge.source->getAdmissibleCostToGo(),
                                                                           objective_->motionCostHeuristic(
                                                                               edge.source->raw(), edge.target->raw())),
                                                  edge.target->getLowerBoundCostToCome());
 
-                    auto key2 = edge.source->getEstimatedEffortToGo() +
-                                space_->validSegmentCount(edge.source->raw(), edge.target->raw()) +
-                                edge.target->getLowerBoundEffortToCome();
+                    const auto key2 = edge.source->getEstimatedEffortToGo() +
+                                      space_->validSegmentCount(edge.source->raw(), edge.target->raw()) +
+                                      edge.target->getLowerBoundEffortToCome();
 
                     // Create the heap element.
-                    auto element = std::make_tuple(key1, key2, edge);
+                    const auto element = std::make_tuple(key1, key2, edge);
 
                     // Insert the edge with the key in the queue.
-                    auto elementPointer = queue_.insert(element);
+                    const auto elementPointer = queue_.insert(element);
 
                     // Remember the element.
                     edge.source->asReverseVertex()->outgoingReverseQueueLookup_.emplace_back(elementPointer);
