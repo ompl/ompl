@@ -145,17 +145,20 @@ namespace ompl
                             {
                                 std::get<1>(outgoingEdge->data) = newEffort;
                                 queue_.update(outgoingEdge);
-                                return true;
                             }
                         }
                         else if (objective_->isCostBetterThan(newCost, oldCost))
                         {
                             std::get<0>(outgoingEdge->data) = newCost;
                             queue_.update(outgoingEdge);
-                            return true;
                         }
+
+                        // It doesn't matter whether the edge was actually updated or not, we return
+                        // true as long as it already exists in the queue.
+                        return true;
                     }
                 }
+
                 return false;
             }
 
