@@ -688,7 +688,7 @@ namespace ompl
             reverseQueue_->pop();
 
             // Register the expansion of its parent.
-            edge.source->asReverseVertex()->registerExpansionInReverseSearch(searchTag_);
+            edge.source->asReverseVertex()->registerExpansionInReverseSearch(reverseSearchTag_);
 
             // Simply expand the child vertex if the edge is already in the reverse tree, and the child has not been
             // expanded yet.
@@ -840,7 +840,7 @@ namespace ompl
                     phase_ = Phase::REVERSE_SEARCH;
 
                     // Update the search tag.
-                    ++searchTag_;
+                    ++reverseSearchTag_;
                 }
             }
         }
@@ -988,6 +988,8 @@ namespace ompl
             {
                 phase_ = Phase::IMPROVE_APPROXIMATION;
             }
+
+            ++reverseSearchTag_;
         }
 
         void EITstar::informAboutNewSolution() const
@@ -1346,7 +1348,7 @@ namespace ompl
 
         bool EITstar::isClosed(const std::shared_ptr<Vertex> &vertex) const
         {
-            return vertex->getExpandTag() == searchTag_;
+            return vertex->getExpandTag() == reverseSearchTag_;
         }
 
         bool EITstar::doAllVerticesHaveAdmissibleCostToGo(const eitstar::Edge &edge) const

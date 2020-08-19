@@ -326,7 +326,7 @@ namespace ompl
             std::size_t iteration_{0u};
 
             /** \brief The tag of the current search. */
-            std::size_t searchTag_{1u};
+            std::size_t reverseSearchTag_{1u};
 
             /** \brief The tag of the current batch. */
             std::size_t startExpansionGraphTag_{0u};
