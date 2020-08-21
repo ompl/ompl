@@ -86,6 +86,7 @@ bool PathSection::checkMotion(BasePathHeadPtr& head)
 
             double distBaseSegment = base->distance(lastValidBaseState, xBaseTmp_);
 
+            std::cout << "Last valid index: " << lastValidIndexOnBasePath_ << std::endl;
             lastValidLocationOnBasePath_ = 
               restriction_->getLengthBasePathUntil(lastValidIndexOnBasePath_)
               + distBaseSegment;

@@ -42,8 +42,8 @@ BasePathHead::BasePathHead(const BasePathHead &rhs)
 
     xFiberCurrent_ = rhs.getStateFiberNonConst();
     xBaseCurrent_ = rhs.getStateBaseNonConst();
-    xTarget_ = rhs.getTargetConfiguration();
     xFiberTarget_ = rhs.getStateTargetFiberNonConst();
+    xTarget_ = rhs.getTargetConfiguration();
 }
 
 BasePathHead::~BasePathHead()
@@ -149,7 +149,8 @@ double BasePathHead::getLocationOnBasePath() const
 
 int BasePathHead::getNumberOfRemainingStates()
 {
-    return restriction_->getBasePath().size() - lastValidIndexOnBasePath_;
+    int Nstates = restriction_->getBasePath().size();
+    return Nstates - (lastValidIndexOnBasePath_ + 1);
 }
 
 void BasePathHead::setLocationOnBasePath(double d)

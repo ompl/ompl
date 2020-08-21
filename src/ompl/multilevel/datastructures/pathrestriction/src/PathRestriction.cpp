@@ -187,6 +187,11 @@ double PathRestriction::getLengthIntermediateBasePath(int k)
 
 double PathRestriction::getLengthBasePathUntil(int k)
 {
+  if(k > lengthsCumulativeBasePath_.size()-1)
+  {
+    std::cout << "Wrong index k=" << k << "/" << lengthsCumulativeBasePath_.size() - 1 << std::endl;
+    throw Exception("WrongIndex");
+  }
   if(k <= 0) return 0;
   else return lengthsCumulativeBasePath_.at(k-1);
 }
@@ -198,6 +203,9 @@ int PathRestriction::getBasePathLastIndexFromLocation(double d)
         std::cout << "Location: " << d << std::endl;
         std::cout << "Length  : " << lengthBasePath_ << std::endl;
         OMPL_ERROR("location not on base path");
+        for(uint k = 0; k < lengthsCumulativeBasePath_.size(); k++){
+          std::cout << k << ":" << lengthsCumulativeBasePath_.at(k) << std::endl;
+        }
         throw Exception("InvalidLocation");
     }
     unsigned int ctr = 0;
@@ -249,6 +257,9 @@ bool PathRestriction::tripleStep(
     base::State* xBundleGoalTmp = bundle->allocState();
     base::State* xBase = base->cloneState(head->getStateBase());
     const base::State *sBundleStart = head->getState();
+
+    // const ompl::base::StateSamplerPtr fiberSampler = bundleSpaceGraph_->getFiberSamplerPtr();
+    const ompl::base::StateSamplerPtr baseSampler = bundleSpaceGraph_->getBaseSamplerPtr();
 
     bundleSpaceGraph_->projectFiber(sBundleStart, xFiberStart_);
     bundleSpaceGraph_->projectFiber(sBundleGoal, xFiberGoal_);
@@ -322,11 +333,13 @@ bool PathRestriction::tripleStep(
                       double fiberLocation = 0.5*fiberDist;
                       do{
                         fiberLocation += fiberStepSize;
-                        
+
                         fiber->getStateSpace()->interpolate(
                             xFiberStart_, xFiberGoal_, fiberLocation/fiberDist, xFiberTmp_);
 
-                        bundleSpaceGraph_->liftState(xBase, xFiberTmp_, xBundleGoalTmp);
+                        baseSampler->sampleUniformNear(xBaseTmp_, xBase, validBaseSpaceSegmentLength_);
+                        
+                        bundleSpaceGraph_->liftState(xBaseTmp_, xFiberTmp_, xBundleGoalTmp);
 
                         if(bundle->checkMotion(xBundleGoalTmp, sBundleGoal)
                             && bundle->checkMotion(xBundleStartTmp, xBundleGoalTmp))
@@ -432,8 +445,6 @@ bool PathRestriction::tunneling(
     ompl::base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
     ompl::base::SpaceInformationPtr base = bundleSpaceGraph_->getBase();
 
-    std::cout << "###### Tunnel along interpolated section" << std::endl;
-
     double curLocation = head->getLocationOnBasePath() + validBaseSpaceSegmentLength_;
 
     bool found = false;
@@ -516,7 +527,7 @@ bool PathRestriction::tunneling(
 
 bool PathRestriction::wriggleFree(BasePathHeadPtr& head)
 {
-    const ompl::base::StateSamplerPtr bundleSampler = bundleSpaceGraph_->getBundleSamplerPtr();
+    // const ompl::base::StateSamplerPtr bundleSampler = bundleSpaceGraph_->getBundleSamplerPtr();
     ompl::base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
 
     double curLocation = head->getLocationOnBasePath() + validBaseSpaceSegmentLength_;
@@ -524,6 +535,7 @@ bool PathRestriction::wriggleFree(BasePathHeadPtr& head)
     double epsilon = 2*validFiberSpaceSegmentLength_;
 
     const ompl::base::StateSamplerPtr fiberSampler = bundleSpaceGraph_->getFiberSamplerPtr();
+    const ompl::base::StateSamplerPtr baseSampler = bundleSpaceGraph_->getBaseSamplerPtr();
 
     int steps = 0;
     while (curLocation < lengthBasePath_)
@@ -534,6 +546,8 @@ bool PathRestriction::wriggleFree(BasePathHeadPtr& head)
         while(ctr++ < magic::PATH_SECTION_MAX_WRIGGLING)
         {
             interpolateBasePath(curLocation, xBaseTmp_);
+
+            baseSampler->sampleUniformNear(xBaseTmp_, xBaseTmp_, validBaseSpaceSegmentLength_);
 
             fiberSampler->sampleUniformNear(xFiberTmp_, head->getStateFiber(), epsilon);
 
@@ -657,6 +671,11 @@ bool PathRestriction::findSection(
 
     if(wriggleFree(head))
     {
+        COUT(depth) << "Depth " << depth 
+          << " xLastValid (after wriggling):";
+        head->print();
+        COUT(depth) << std::endl;
+
         BasePathHeadPtr newHead(head);
 
         bool feasibleSection = findSection(newHead, false, depth + 1);
@@ -666,11 +685,6 @@ bool PathRestriction::findSection(
             return true;
         }
     }
-
-    COUT(depth) << "Depth " << depth 
-      << " xLastValid (after wriggling):";
-    head->print();
-    COUT(depth) << std::endl;
 
     if(tunneling(head))
     {
@@ -688,13 +702,6 @@ bool PathRestriction::findSection(
         }
 
     }
-    // COUT(depth) << "Depth " << depth 
-    //   << " xLastValid (after tunnel):";
-    // bundle->printState(xLastValid->state);
-    // COUT(depth) << std::endl;
-
-    // waitForKeypressed();
-
 
     double curLocation = head->getLocationOnBasePath();
 
@@ -720,7 +727,7 @@ bool PathRestriction::findSection(
         //############################################################################
         // interpolateBasePath(locationOnBasePath + validBaseSpaceSegmentLength_, xBaseTmp_);
 
-        double location = head->getLocationOnBasePath();
+        double location = head->getLocationOnBasePath() + validBaseSpaceSegmentLength_;
 
         if (!findFeasibleStateOnFiber(head->getStateBase(), xBundleTmp_))
         {
@@ -733,7 +740,8 @@ bool PathRestriction::findSection(
         {
             if(bundle->checkMotion(xBundleTemporaries_.at(k), xBundleTmp_))
             {
-              // std::cout << "Dismissed: already sampled area before" << std::endl;
+              infeasibleCtr++;
+              std::cout << "Dismissed: already sampled area before" << std::endl;
               continue;
             }
         }
@@ -742,7 +750,7 @@ bool PathRestriction::findSection(
 
         if(bundle->checkMotion(head->getState(), xBundleTmp_))
         {
-            // std::cout << "Dismissed: reachable from current" << std::endl;
+            std::cout << "Dismissed: reachable from current" << std::endl;
         }else{
 
             if(tripleStep(head, xBundleTmp_, location))
@@ -759,6 +767,10 @@ bool PathRestriction::findSection(
                     COUT(depth) << "Success (depth " << depth << ") after 3step." << std::endl;
                     return true;
                 }
+            }else{
+              std::cout << "Dismissed: non connectable" << std::endl;
+              bundle->printState(head->getState());
+              bundle->printState(xBundleTmp_);
             }
 
             waitForKeypressed();
