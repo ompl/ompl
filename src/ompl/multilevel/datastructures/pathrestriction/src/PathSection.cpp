@@ -4,8 +4,8 @@
 
 using namespace ompl::multilevel;
 
-PathSection::PathSection(PathRestriction* restriction, BasePathHeadPtr head):
-  restriction_(restriction), head_(head)
+PathSection::PathSection(PathRestriction* restriction):
+  restriction_(restriction)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     if (graph->getFiberDimension() > 0)
@@ -49,30 +49,29 @@ PathSection::~PathSection()
     bundle->freeState(xBundleTmp_);
 }
 
-bool PathSection::checkMotion()
+bool PathSection::checkMotion(BasePathHeadPtr& head)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
 
     base::SpaceInformationPtr bundle = graph->getBundle();
     base::SpaceInformationPtr base = graph->getBase();
 
-    Configuration *xStart = head_->getStartConfiguration();
-    Configuration *xGoal = head_->getGoalConfiguration();
-
-    Configuration *xLast = xStart;
-
     for (unsigned int k = 1; k < section_.size(); k++)
     {
 
-        if (bundle->checkMotion(xLast->state, section_.at(k), lastValid_))
+        if (bundle->checkMotion(head->getState(), section_.at(k), lastValid_))
         {
             if (k < section_.size() - 1)
             {
-                xLast = addFeasibleSegment(xLast, section_.at(k));
+                Configuration *xLast = 
+                  addFeasibleSegment(head->getConfiguration(), section_.at(k));
+                double locationOnBasePath = 
+                  restriction_->getLengthBasePathUntil(sectionBaseStateIndices_.at(k));
+                head->setCurrent(xLast, locationOnBasePath);
             }
             else
             {
-                addFeasibleGoalSegment(xLast, xGoal);
+                addFeasibleGoalSegment(head->getConfiguration(), head->getTargetConfiguration());
                 return true;
             }
         }
@@ -91,35 +90,18 @@ bool PathSection::checkMotion()
               restriction_->getLengthBasePathUntil(lastValidIndexOnBasePath_)
               + distBaseSegment;
 
-            // std::cout << "Stopped at last valid location: " << 
-            //   lastValid_.second << "with k=" << k 
-            //   << "/" << section_.size()<< std::endl;
-
-            // std::cout << "Last valid base path index:" << 
-            //   lastValidIndexOnBasePath_ << std::endl;
-
-            // std::cout << "Last valid position on base path" << 
-            //   lastValidLocationOnBasePath_ << " (" 
-            //   << restriction_->getLengthBasePathUntil(lastValidIndexOnBasePath_) 
-            //   << "+" << distBaseSegment << ")" << std::endl;
-
             //############################################################################
             // Get Last valid
             //############################################################################
             if (lastValid_.second > 0)
             {
                 // add last valid into the bundle graph
-
                 Configuration *xBundleLastValid = new Configuration(bundle, lastValid_.first);
                 graph->addConfiguration(xBundleLastValid);
-                graph->addBundleEdge(xLast, xBundleLastValid);
-                xBundleLastValid_ = xBundleLastValid;
+                graph->addBundleEdge(head->getConfiguration(), xBundleLastValid);
+
+                head->setCurrent(xBundleLastValid, lastValidLocationOnBasePath_);
             }
-            else
-            {
-                xBundleLastValid_ = xLast;
-            }
-            xLast = xBundleLastValid_;
             return false;
         }
     }
@@ -149,7 +131,7 @@ ompl::base::State* PathSection::at(int k) const
   return section_.at(k);
 }
 
-void PathSection::interpolateL1FiberFirst()
+void PathSection::interpolateL1FiberFirst(BasePathHeadPtr& head)
 {
     section_.clear();
     sectionBaseStateIndices_.clear();
@@ -159,25 +141,25 @@ void PathSection::interpolateL1FiberFirst()
     base::SpaceInformationPtr bundle = graph->getBundle();
     base::SpaceInformationPtr fiber = graph->getFiber();
 
-    int size = head_->getNumberOfRemainingStates();
+    int size = head->getNumberOfRemainingStates();
 
     if (graph->getFiberDimension() > 0)
     {
-        const base::State* xFiberStart = head_->getFiberElementStart();
-        const base::State* xFiberGoal = head_->getFiberElementGoal();
+        const base::State* xFiberStart = head->getStateFiber();
+        const base::State* xFiberGoal = head->getStateTargetFiber();
 
         section_.resize(size + 1);
 
         bundle->allocStates(section_);
 
-        graph->liftState(head_->getBaseStateAt(0), xFiberStart, section_.front());
+        graph->liftState(head->getBaseStateAt(0), xFiberStart, section_.front());
 
-        sectionBaseStateIndices_.push_back(head_->getBaseStateIndexAt(0));
+        sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(0));
 
         for (unsigned int k = 1; k < section_.size(); k++)
         {
-            graph->liftState(head_->getBaseStateAt(k - 1), xFiberGoal, section_.at(k));
-            sectionBaseStateIndices_.push_back(head_->getBaseStateIndexAt(k - 1));
+            graph->liftState(head->getBaseStateAt(k - 1), xFiberGoal, section_.at(k));
+            sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(k - 1));
         }
     }
     else
@@ -188,13 +170,13 @@ void PathSection::interpolateL1FiberFirst()
 
         for (int k = 0; k < size; k++)
         {
-            bundle->copyState(section_.at(k), head_->getBaseStateAt(k));
-            sectionBaseStateIndices_.push_back(head_->getBaseStateIndexAt(k));
+            bundle->copyState(section_.at(k), head->getBaseStateAt(k));
+            sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(k));
         }
     }
 }
 
-void PathSection::interpolateL1FiberLast()
+void PathSection::interpolateL1FiberLast(BasePathHeadPtr& head)
 {
     section_.clear();
     sectionBaseStateIndices_.clear();
@@ -202,12 +184,12 @@ void PathSection::interpolateL1FiberLast()
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
 
-    int size = head_->getNumberOfRemainingStates();
+    int size = head->getNumberOfRemainingStates();
 
     if (graph->getFiberDimension() > 0)
     {
-        const base::State* xFiberStart = head_->getFiberElementStart();
-        const base::State* xFiberGoal = head_->getFiberElementGoal();
+        const base::State* xFiberStart = head->getStateFiber();
+        const base::State* xFiberGoal = head->getStateTargetFiber();
 
         section_.resize(size + 1);
 
@@ -215,11 +197,11 @@ void PathSection::interpolateL1FiberLast()
 
         for (int k = 0; k < size; k++)
         {
-            graph->liftState(head_->getBaseStateAt(k), xFiberStart, section_.at(k));
-            sectionBaseStateIndices_.push_back(head_->getBaseStateIndexAt(k));
+            graph->liftState(head->getBaseStateAt(k), xFiberStart, section_.at(k));
+            sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(k));
         }
-        graph->liftState(head_->getBaseStateAt(size-1), xFiberGoal, section_.back());
-        sectionBaseStateIndices_.push_back(head_->getBaseStateIndexAt(size-1));
+        graph->liftState(head->getBaseStateAt(size-1), xFiberGoal, section_.back());
+        sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(size-1));
     }
     else
     {
@@ -227,8 +209,8 @@ void PathSection::interpolateL1FiberLast()
         bundle->allocStates(section_);
         for (int k = 0; k < size; k++)
         {
-            bundle->copyState(section_.at(k), head_->getBaseStateAt(k));
-            sectionBaseStateIndices_.push_back(head_->getBaseStateIndexAt(k));
+            bundle->copyState(section_.at(k), head->getBaseStateAt(k));
+            sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(k));
         }
     }
 }
@@ -332,18 +314,6 @@ void PathSection::sanityCheck()
         }
     }
 
-    if(section_.size() > 1)
-    {
-        base::State *sk1 = head_->getStartConfiguration()->state;
-        base::State *sk2 = section_.at(1);
-        if (!bundle->checkMotion(sk1, sk2))
-        {
-            feasible = false;
-            std::cout << "Error between startState and second state" << std::endl;
-            bundle->printState(sk1);
-            bundle->printState(sk2);
-        }
-    }
     if(!feasible)
     {
       throw Exception("Reported feasible path section, \

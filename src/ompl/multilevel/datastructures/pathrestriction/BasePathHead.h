@@ -28,41 +28,54 @@ namespace ompl
           public:
             BasePathHead(
                 PathRestriction *restriction,
-                Configuration* const xStart,
-                Configuration* const xGoal);
+                Configuration* const xCurrent,
+                Configuration* const xTarget);
+
+            BasePathHead(const BasePathHead &rhs);
 
             ~BasePathHead();
 
-            base::State* getFiberElementStart();
-            base::State* getFiberElementGoal();
+            const base::State* getState() const;
+            const base::State* getStateFiber() const;
+            const base::State* getStateBase() const;
+            base::State* getStateFiberNonConst() const;
+            base::State* getStateBaseNonConst() const;
+            Configuration* getConfiguration() const;
 
-            Configuration* getStartConfiguration();
-            Configuration* getGoalConfiguration();
+            void setCurrent(Configuration*, double);
+
+            Configuration* getTargetConfiguration() const;
+            const base::State* getStateTargetFiber() const;
+            base::State* getStateTargetFiberNonConst() const;
 
             int getNumberOfRemainingStates();
 
             //relative to where the head points 
-            const base::State* getBaseStateAt(int k);
-            int getBaseStateIndexAt(int k);
+            const base::State* getBaseStateAt(int k) const;
+            int getBaseStateIndexAt(int k) const;
 
-            double getLocationOnBasePath();
+            double getLocationOnBasePath() const;
             void setLocationOnBasePath(double d);
 
-            int getLastValidBasePathIndex();
+            int getLastValidBasePathIndex() const;
             void setLastValidBasePathIndex(int k);
+
+            void print();
+
+            PathRestriction* getRestriction() const;
 
           private:
             double locationOnBasePath_{0.0};
-            double locationFromLastIndex_{0.0};
             int lastValidIndexOnBasePath_{0};
 
             PathRestriction* restriction_{nullptr};
-            Configuration *xStart_{nullptr};
-            Configuration *xGoal_{nullptr};
 
-            base::State *xBaseStart_{nullptr};
-            base::State *xFiberStart_{nullptr};
-            base::State *xFiberGoal_{nullptr};
+            Configuration *xCurrent_{nullptr};
+            base::State *xBaseCurrent_{nullptr};
+            base::State *xFiberCurrent_{nullptr};
+
+            Configuration *xTarget_{nullptr};
+            base::State *xFiberTarget_{nullptr};
         };
     }
 }

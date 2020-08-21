@@ -84,8 +84,6 @@ BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformationPtr &si, BundleSp
     setGraphSampler("randomvertex");
     setImportance("uniform");
 
-    pathRestriction_ = std::make_shared<PathRestriction>(this);
-
     if (isDynamic())
     {
         setPropagator("dynamic");
@@ -123,8 +121,10 @@ BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformationPtr &si, BundleSp
 
     pathRefinementObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
 
-    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 1.0);
-    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(clearObj, 1.0);
+    // std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)
+    //   ->addObjective(lengthObj, 1.0);
+    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)
+      ->addObjective(clearObj, 1.0);
 
     if (getFiberDimension() > 0)
     {
@@ -187,6 +187,10 @@ void BundleSpaceGraph::setup()
     {
         setup_ = false;
     }
+    if(hasParent())
+    {
+        pathRestriction_ = std::make_shared<PathRestriction>(this);
+    }
 }
 
 void BundleSpaceGraph::clear()
@@ -219,7 +223,10 @@ void BundleSpaceGraph::clear()
 
     importanceCalculator_->clear();
     graphSampler_->clear();
-    pathRestriction_->clear();
+    if(pathRestriction_ != nullptr)
+    {
+        pathRestriction_->clear();
+    }
 }
 
 void BundleSpaceGraph::clearVertices()
@@ -673,9 +680,17 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
                 // if(optimize)
                 // {
                 geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), pathRefinementObj_);
+                
                 geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
+                // gpath.interpolate();
 
-                bool valid = shortcutter.reduceVertices(gpath);
+                bool valid = shortcutter.simplifyMax(gpath);
+                shortcutter.smoothBSpline(gpath);
+
+                gpath.interpolate();
+
+                // bool valid = shortcutter.reduceVertices(gpath);
+                // bool valid = shortcutter.simplifyMax(gpath);
                 if (!valid)
                 {
                     // reset solutionPath

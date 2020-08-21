@@ -16,7 +16,7 @@ namespace ompl
             using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
             PathSection() = delete;
-            PathSection(PathRestriction*, BasePathHeadPtr);
+            PathSection(PathRestriction*);
             virtual ~PathSection();
             
             /** \brief Interpolate along restriction using L2 metric
@@ -38,7 +38,7 @@ namespace ompl
               *   |
               *   x
               *   --------------- */
-            void interpolateL1FiberFirst();
+            void interpolateL1FiberFirst(BasePathHeadPtr&);
 
             /** \brief Interpolate along restriction using L1 metric (Fiber Last)
               *   ---------------
@@ -47,13 +47,14 @@ namespace ompl
               *                 |
               *   x_____________|
               *   --------------- */
-            void interpolateL1FiberLast();
+            void interpolateL1FiberLast(BasePathHeadPtr&);
 
             /** \brief Checks if section is feasible
              *
              *  @retval True if feasible and false if only partially feasible
+             *  @retval Basepathheadptr forward path ptr
              */
-            bool checkMotion();
+            bool checkMotion(BasePathHeadPtr&);
 
             /** \brief checks if section is feasible */
             void sanityCheck();

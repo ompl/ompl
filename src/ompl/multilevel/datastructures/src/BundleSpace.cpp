@@ -167,6 +167,12 @@ void BundleSpace::setup()
     firstRun_ = true;
     if (pdef_)
         goal_ = pdef_->getGoal().get();
+
+    if(getFiberDimension() > 0)
+    {
+        getFiber()->getStateSpace()->setup();
+        std::cout << getFiber()->getStateSpace()->getLongestValidSegmentLength() << std::endl;
+    }
 }
 
 void BundleSpace::clear()
@@ -589,6 +595,12 @@ unsigned int BundleSpace::getBundleDimension() const
 const StateSamplerPtr &BundleSpace::getFiberSamplerPtr() const
 {
     return Fiber_sampler_;
+}
+
+const StateSamplerPtr &BundleSpace::getBaseSamplerPtr() const
+{
+    if(hasParent()) return getParent()->getBundleSamplerPtr();
+    return nullptr;
 }
 
 const StateSamplerPtr &BundleSpace::getBundleSamplerPtr() const

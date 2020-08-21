@@ -107,6 +107,7 @@ void ompl::multilevel::QMPImpl::grow()
 
         if (hasBaseSpace())
         {
+            std::cout << "Trying Feasible Section" << std::endl;
             if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
             {
                 if (sameComponent(vStart_, vGoal_))
@@ -115,6 +116,10 @@ void ompl::multilevel::QMPImpl::grow()
                 }
             }
         }
+    }
+    if(hasBaseSpace())
+    {
+        return;
     }
 
     //(1) Get Random Sample

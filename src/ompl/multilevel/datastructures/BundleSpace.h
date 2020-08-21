@@ -130,6 +130,7 @@ namespace ompl
 
             const ompl::base::StateSamplerPtr &getFiberSamplerPtr() const;
             const ompl::base::StateSamplerPtr &getBundleSamplerPtr() const;
+            const ompl::base::StateSamplerPtr &getBaseSamplerPtr() const;
 
             /// \brief Parent is a more simplified Bundle-space
             /// (higher in abstraction hierarchy)

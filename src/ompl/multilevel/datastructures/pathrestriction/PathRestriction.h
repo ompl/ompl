@@ -89,7 +89,7 @@ namespace ompl
             /** \brief Set base path over which restriction is defined */
             void setBasePath(std::vector<base::State *>);
 
-            const std::vector<base::State*>& getBasePath();
+            const std::vector<base::State*>& getBasePath() const;
 
             /** \brief Check if feasible section exists between xStart and xGoal.
              * Main method to use outside this class. Use this if you are
@@ -118,7 +118,7 @@ namespace ompl
              * */
 
             bool findSection(
-                const BasePathHeadPtr head,
+                BasePathHeadPtr& head,
                 bool interpolateFiberFirst = true,
                 unsigned int depth = 0);
 
@@ -138,28 +138,22 @@ namespace ompl
             /** \brief Cumulative length until base state index k */
             double getLengthBasePathUntil(int k);
 
+            int getBasePathLastIndexFromLocation(double d);
+
             bool sideStepAlongFiber(
                 Configuration* &xOrigin, 
                 base::State *state);
 
             bool tripleStep(
-                Configuration* &xBundleLastValid, 
-                const base::State *sBundleGoal, 
-                const base::State *sBaseLastValid,
-                const base::State *sBasePrevious);
+                BasePathHeadPtr& head,
+                const base::State *sBundleGoal,
+                double locationOnBasePathGoal);
 
-            bool wriggleFree(
-                Configuration* &xLastValid,
-                const base::State *xBundleGoal,
-                double&);
+            bool wriggleFree(BasePathHeadPtr& head);
 
-            bool wriggleFree(
-                Configuration* &xLastValid,
-                const base::State *xBundleGoal);
+            bool tunneling(BasePathHeadPtr& head);
 
-            bool tunneling(
-                Configuration* &xLastValid,
-                const base::State *xBundleGoal);
+            void interpolateBasePath(double t, base::State* &state) const;
 
         protected:
             /** \brief Pointer to associated bundle space */
@@ -184,8 +178,14 @@ namespace ompl
             base::State *xFiberGoal_{nullptr};
             base::State *xFiberTmp_{nullptr};
 
+            std::vector<base::State*> xBundleTemporaries_;
+
             /** \brief Step size to check validity */
-            double validSegmentLength_;
+            double validBaseSpaceSegmentLength_;
+
+            double validBundleSpaceSegmentLength_;
+
+            double validFiberSpaceSegmentLength_;
         };
     }
 }
