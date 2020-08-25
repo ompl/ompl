@@ -806,7 +806,42 @@ bool BundleSpaceGraphSparse::getSolution(PathPtr &solution)
 {
     if (hasSolution_)
     {
-        solutionPath_ = getPathSparse(v_start_sparse, v_goal_sparse);
+        if ((solutionPath_ != nullptr) 
+            && (getNumberOfVertices() == numVerticesWhenComputingSolutionPath_))
+        {
+        }
+        else
+        {
+            solutionPath_ = getPathSparse(v_start_sparse, v_goal_sparse);
+
+            numVerticesWhenComputingSolutionPath_ = getNumberOfVertices();
+
+            if (!isDynamic() && solutionPath_ != solution && getChild() != nullptr)
+            {
+                geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), pathRefinementObj_);
+                
+                geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
+                // gpath.interpolate();
+
+                // bool valid = shortcutter.simplifyMax(gpath);
+                std::cout << "Optimize..." << std::endl;
+                bool valid = shortcutter.reduceVertices(gpath);
+                // shortcutter.smoothBSpline(gpath);
+
+                // gpath.interpolate();
+
+                // bool valid = shortcutter.reduceVertices(gpath);
+                // bool valid = shortcutter.simplifyMax(gpath);
+                if (!valid)
+                {
+                    // reset solutionPath
+                    solutionPath_ = getPathSparse(v_start_sparse, v_goal_sparse);
+                }
+                // }
+            }
+        }
+
+
         startGoalVertexPath_ = shortestVertexPath_;
         solution = solutionPath_;
 

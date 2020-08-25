@@ -20,7 +20,6 @@ namespace ompl
          * of the base path states and information about the fiber space and
          * fiber element at the current location. Can be used to interpolate
          * from current location to goal of path restriction.
-         *
         */
 
         class BasePathHead
@@ -38,6 +37,7 @@ namespace ompl
             const base::State* getState() const;
             const base::State* getStateFiber() const;
             const base::State* getStateBase() const;
+
             base::State* getStateFiberNonConst() const;
             base::State* getStateBaseNonConst() const;
             Configuration* getConfiguration() const;
@@ -57,6 +57,7 @@ namespace ompl
             double getLocationOnBasePath() const;
             void setLocationOnBasePath(double d);
 
+            int getNextValidBasePathIndex() const;
             int getLastValidBasePathIndex() const;
             void setLastValidBasePathIndex(int k);
 

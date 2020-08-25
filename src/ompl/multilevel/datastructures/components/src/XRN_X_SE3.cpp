@@ -41,13 +41,16 @@
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
-ompl::multilevel::BundleSpaceComponent_SE3RN_SE3::BundleSpaceComponent_SE3RN_SE3(base::StateSpacePtr BundleSpace,
-                                                                                 base::StateSpacePtr BaseSpace)
+using namespace ompl::multilevel;
+
+BundleSpaceComponent_SE3RN_SE3::BundleSpaceComponent_SE3RN_SE3(
+    base::StateSpacePtr BundleSpace, 
+    base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::multilevel::BundleSpaceComponent_SE3RN_SE3::projectBase(const ompl::base::State *xBundle,
+void BundleSpaceComponent_SE3RN_SE3::projectBase(const ompl::base::State *xBundle,
                                                                    ompl::base::State *xBase) const
 {
     const base::SE3StateSpace::StateType *xBundle_SE3 =
@@ -64,7 +67,7 @@ void ompl::multilevel::BundleSpaceComponent_SE3RN_SE3::projectBase(const ompl::b
     xBase_SO3->w = xBundle_SO3->w;
 }
 
-void ompl::multilevel::BundleSpaceComponent_SE3RN_SE3::liftState(const ompl::base::State *xBase,
+void BundleSpaceComponent_SE3RN_SE3::liftState(const ompl::base::State *xBase,
                                                                  const ompl::base::State *xFiber,
                                                                  ompl::base::State *xBundle) const
 {

@@ -41,12 +41,15 @@
 
 #include <ompl/util/Exception.h>
 
-ompl::multilevel::BundleSpaceComponent_XRN_XRM::BundleSpaceComponent_XRN_XRM(base::StateSpacePtr BundleSpace,
-                                                                             base::StateSpacePtr BaseSpace)
+using namespace ompl::multilevel;
+
+BundleSpaceComponent_XRN_XRM::BundleSpaceComponent_XRN_XRM(
+    base::StateSpacePtr BundleSpace, 
+    base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
-void ompl::multilevel::BundleSpaceComponent_XRN_XRM::projectFiber(const ompl::base::State *xBundle,
+void BundleSpaceComponent_XRN_XRM::projectFiber(const ompl::base::State *xBundle,
                                                                   ompl::base::State *xFiber) const
 {
     const base::RealVectorStateSpace::StateType *xBundle_RN =
@@ -61,7 +64,7 @@ void ompl::multilevel::BundleSpaceComponent_XRN_XRM::projectFiber(const ompl::ba
     }
 }
 
-ompl::base::StateSpacePtr ompl::multilevel::BundleSpaceComponent_XRN_XRM::computeFiberSpace()
+ompl::base::StateSpacePtr BundleSpaceComponent_XRN_XRM::computeFiberSpace()
 {
     base::CompoundStateSpace *Bundle_compound = BundleSpace_->as<base::CompoundStateSpace>();
     const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();

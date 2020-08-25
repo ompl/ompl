@@ -167,15 +167,15 @@ namespace ompl
             void liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                            ompl::base::State *xBundle) const;
 
-            /// \brief return xResult, being a state on the basePath at location
-            //    Input: - basePath on getBase()
-            //           - location in [0, basePath.length()]
-            //    Output:- xResult
-            //
-            //    Example: location=0 returns basePath.front()
-            //    Example: location=basePath.length() returns basePath.back()
-            unsigned int interpolateAlongBasePath(const std::vector<base::State *> basePath, double location,
-                                                  base::State *xResult) const;
+            ///// \brief return xResult, being a state on the basePath at location
+            ////    Input: - basePath on getBase()
+            ////           - location in [0, basePath.length()]
+            ////    Output:- xResult
+            ////
+            ////    Example: location=0 returns basePath.front()
+            ////    Example: location=basePath.length() returns basePath.back()
+            //unsigned int interpolateAlongBasePath(const std::vector<base::State *> basePath, double location,
+            //                                      base::State *xResult) const;
 
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 

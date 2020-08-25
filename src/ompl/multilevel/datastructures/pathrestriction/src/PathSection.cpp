@@ -58,13 +58,13 @@ bool PathSection::checkMotion(BasePathHeadPtr& head)
 
     for (unsigned int k = 1; k < section_.size(); k++)
     {
-
         if (bundle->checkMotion(head->getState(), section_.at(k), lastValid_))
         {
             if (k < section_.size() - 1)
             {
                 Configuration *xLast = 
                   addFeasibleSegment(head->getConfiguration(), section_.at(k));
+
                 double locationOnBasePath = 
                   restriction_->getLengthBasePathUntil(sectionBaseStateIndices_.at(k));
                 head->setCurrent(xLast, locationOnBasePath);
@@ -86,14 +86,28 @@ bool PathSection::checkMotion(BasePathHeadPtr& head)
 
             double distBaseSegment = base->distance(lastValidBaseState, xBaseTmp_);
 
-            std::cout << "Last valid index: " << lastValidIndexOnBasePath_ << std::endl;
-            lastValidLocationOnBasePath_ = 
-              restriction_->getLengthBasePathUntil(lastValidIndexOnBasePath_)
-              + distBaseSegment;
+
+            double locationOnBasePath = 
+                restriction_->getLengthBasePathUntil(lastValidIndexOnBasePath_) + distBaseSegment;
+
+            // if(locationOnBasePath > restriction_->getLengthBasePath())
+            // {
+                // std::cout << std::string(80, '-') << std::endl;
+                // std::cout << std::string(80, '-') << std::endl;
+                // std::cout << std::string(80, '-') << std::endl;
+                // print();
+                // std::cout << "Stopped checkMotion at last valid "
+                //   << lastValidIndexOnBasePath_ << "/" << restriction_->size()
+                //   << " dist " << locationOnBasePath << "/" << restriction_->getLengthBasePath() 
+                //   << " (last segment:" << distBaseSegment << ")" << std::endl;
+
+                // bundle->printState(lastValid_.first);
+                // base->printState(xBaseTmp_);
 
             //############################################################################
             // Get Last valid
             //############################################################################
+            // print();
             if (lastValid_.second > 0)
             {
                 // add last valid into the bundle graph
@@ -101,7 +115,8 @@ bool PathSection::checkMotion(BasePathHeadPtr& head)
                 graph->addConfiguration(xBundleLastValid);
                 graph->addBundleEdge(head->getConfiguration(), xBundleLastValid);
 
-                head->setCurrent(xBundleLastValid, lastValidLocationOnBasePath_);
+                head->setCurrent(xBundleLastValid, locationOnBasePath);
+                head->print();
             }
             return false;
         }
@@ -183,7 +198,8 @@ void PathSection::interpolateL1FiberLast(BasePathHeadPtr& head)
     sectionBaseStateIndices_.clear();
 
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    base::SpaceInformationPtr bundle = graph->getBundle();
+    const base::SpaceInformationPtr bundle = graph->getBundle();
+    const base::SpaceInformationPtr base = graph->getBase();
 
     int size = head->getNumberOfRemainingStates();
 
@@ -322,6 +338,28 @@ void PathSection::sanityCheck()
     }
 }
 
+void PathSection::print() const
+{
+    BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
+    base::SpaceInformationPtr bundle = graph->getBundle();
+    base::SpaceInformationPtr base = graph->getBase();
+
+    std::cout << std::string(80, '-') << std::endl;
+    std::cout << "PATH SECTION" << std::endl;
+    std::cout << std::string(80, '-') << std::endl;
+
+    for (int k = 0; k < std::min((int)section_.size(), 5); k++)
+    {
+        int idx = sectionBaseStateIndices_.at(k);
+        bundle->printState(section_.at(k));
+        std::cout << "Over Base state (idx " << idx << ") ";
+        base->printState(restriction_->getBasePath().at(idx));
+        std::cout << std::endl;
+    }
+
+    std::cout << std::string(80, '-') << std::endl;
+}
+
 int PathSection::size() const
 {
   return section_.size();
@@ -330,5 +368,6 @@ int PathSection::size() const
 std::ostream &operator<<(std::ostream &out, const PathSection &s)
 {
     out << "PathSection with " << s.size() << " states.";
+    s.print();
     return out;
 }

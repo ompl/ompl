@@ -325,68 +325,68 @@ void BundleSpace::resetCounter()
 //     }
 // }
 
-unsigned int BundleSpace::interpolateAlongBasePath(const std::vector<State *> basePath, double location,
-                                                   State *xResult) const
-{
-    double d_path = 0;
-    for (unsigned int k = 0; k < basePath.size() - 1; k++)
-    {
-        d_path += getBase()->distance(basePath.at(k), basePath.at(k + 1));
-    }
+//unsigned int BundleSpace::interpolateAlongBasePath(const std::vector<State *> basePath, double location,
+//                                                   State *xResult) const
+//{
+//    double d_path = 0;
+//    for (unsigned int k = 0; k < basePath.size() - 1; k++)
+//    {
+//        d_path += getBase()->distance(basePath.at(k), basePath.at(k + 1));
+//    }
 
-    assert(location >= 0);
-    assert(location <= d_path);
+//    assert(location >= 0);
+//    assert(location <= d_path);
 
-    double d_last_to_next = 0;
+//    double d_last_to_next = 0;
 
-    unsigned int ctr = 0;
-    double d = 0;
-    while (d <= location && ctr < basePath.size() - 1)
-    {
-        d_last_to_next = getBase()->distance(basePath.at(ctr), basePath.at(ctr + 1));
-        d += d_last_to_next;
-        ctr++;
-    }
+//    unsigned int ctr = 0;
+//    double d = 0;
+//    while (d <= location && ctr < basePath.size() - 1)
+//    {
+//        d_last_to_next = getBase()->distance(basePath.at(ctr), basePath.at(ctr + 1));
+//        d += d_last_to_next;
+//        ctr++;
+//    }
 
-    State *xLast = basePath.at(ctr - 1);
-    State *xNext = basePath.at(ctr);
+//    State *xLast = basePath.at(ctr - 1);
+//    State *xNext = basePath.at(ctr);
 
-    //|--------------------- d ----------------------------|
-    //|----------------- location -------------|
-    //                                |-- d_last_to_next --|
-    //                                |-step-|
-    //
-    //                              xLast                 xNext (ctr)
+//    //|--------------------- d ----------------------------|
+//    //|----------------- location -------------|
+//    //                                |-- d_last_to_next --|
+//    //                                |-step-|
+//    //
+//    //                              xLast                 xNext (ctr)
 
-    double step = 0.0;
-    if (d_last_to_next > 0)
-    {
-        step = std::fabs(d_last_to_next - (d - location)) / d_last_to_next;
-    }
+//    double step = 0.0;
+//    if (d_last_to_next > 0)
+//    {
+//        step = std::fabs(d_last_to_next - (d - location)) / d_last_to_next;
+//    }
 
-    getBase()->getStateSpace()->interpolate(xLast, xNext, step, xResult);
+//    getBase()->getStateSpace()->interpolate(xLast, xNext, step, xResult);
 
-    if ((std::isnan(step)) || (step < 0) || (step > 1))
-    {
-        std::cout << std::string(80, '#') << std::endl;
-        for (unsigned int k = 0; k < basePath.size(); k++)
-        {
-            getBase()->printState(basePath.at(k));
-        }
-        std::cout << std::string(80, '-') << std::endl;
-        getBase()->printState(xLast);
-        std::cout << "position:" << d - d_last_to_next << std::endl;
-        getBase()->printState(xNext);
-        std::cout << "position:" << d << std::endl;
-        std::cout << "location:" << location << std::endl;
-        std::cout << "d_last_to_next:" << d_last_to_next << std::endl;
-        std::cout << "step: " << step << std::endl;
-        std::cout << "step (not normalized): " << (d_last_to_next - (d - location)) << std::endl;
-        getBase()->printState(xResult);
-        exit(0);
-    }
-    return ctr;
-}
+//    if ((std::isnan(step)) || (step < 0) || (step > 1))
+//    {
+//        std::cout << std::string(80, '#') << std::endl;
+//        for (unsigned int k = 0; k < basePath.size(); k++)
+//        {
+//            getBase()->printState(basePath.at(k));
+//        }
+//        std::cout << std::string(80, '-') << std::endl;
+//        getBase()->printState(xLast);
+//        std::cout << "position:" << d - d_last_to_next << std::endl;
+//        getBase()->printState(xNext);
+//        std::cout << "position:" << d << std::endl;
+//        std::cout << "location:" << location << std::endl;
+//        std::cout << "d_last_to_next:" << d_last_to_next << std::endl;
+//        std::cout << "step: " << step << std::endl;
+//        std::cout << "step (not normalized): " << (d_last_to_next - (d - location)) << std::endl;
+//        getBase()->printState(xResult);
+//        exit(0);
+//    }
+//    return ctr;
+//}
 
 void BundleSpace::liftState(const State *xBase, const State *xFiber, State *xBundle) const
 {

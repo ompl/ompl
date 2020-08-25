@@ -46,15 +46,15 @@ ompl::multilevel::BundleSpaceGraphSampler::BundleSpaceGraphSampler(BundleSpaceGr
     OMPL_DEBUG("Epsilon Graph Thickening constant set to %f", epsilonGraphThickening_);
 
     pathBiasDecay_.setLambda(exponentialDecayLambda_);
-    pathBiasDecay_.setLowerBound(pathBiasFixed_);
+    pathBiasDecay_.setInitValue(pathBiasFixed_);
 
     pathThickeningGrowth_.setLambda(exponentialDecayLambda_);
-    pathThickeningGrowth_.setLowerBound(epsilonGraphThickening_);
-    pathThickeningGrowth_.setUpperBound(0.0);
+    pathThickeningGrowth_.setInitValue(epsilonGraphThickening_);
+    pathThickeningGrowth_.setTargetValue(0.0);
 
     graphThickeningGrowth_.setLambda(exponentialDecayLambda_);
-    graphThickeningGrowth_.setLowerBound(epsilonGraphThickening_);
-    graphThickeningGrowth_.setUpperBound(0.0);
+    graphThickeningGrowth_.setInitValue(epsilonGraphThickening_);
+    graphThickeningGrowth_.setTargetValue(0.0);
 }
 
 void ompl::multilevel::BundleSpaceGraphSampler::clear()
@@ -75,8 +75,8 @@ void ompl::multilevel::BundleSpaceGraphSampler::disableSegmentBias()
 void ompl::multilevel::BundleSpaceGraphSampler::disablePathBias()
 {
     pathBiasDecay_.setLambda(0);
-    pathBiasDecay_.setUpperBound(0);
-    pathBiasDecay_.setLowerBound(0);
+    pathBiasDecay_.setTargetValue(0);
+    pathBiasDecay_.setInitValue(0);
 }
 
 void ompl::multilevel::BundleSpaceGraphSampler::setPathBiasStartSegment(double s)

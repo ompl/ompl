@@ -42,14 +42,18 @@
 
 #include <ompl/util/Exception.h>
 
-ompl::multilevel::BundleSpaceComponent_SO3RN_SO3RM::BundleSpaceComponent_SO3RN_SO3RM(base::StateSpacePtr BundleSpace,
-                                                                                     base::StateSpacePtr BaseSpace)
+using namespace ompl::multilevel;
+
+BundleSpaceComponent_SO3RN_SO3RM::BundleSpaceComponent_SO3RN_SO3RM(
+    base::StateSpacePtr BundleSpace, 
+    base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::multilevel::BundleSpaceComponent_SO3RN_SO3RM::projectBase(const ompl::base::State *xBundle,
-                                                                     ompl::base::State *xBase) const
+void BundleSpaceComponent_SO3RN_SO3RM::projectBase(
+    const ompl::base::State *xBundle, 
+    ompl::base::State *xBase) const
 {
     const base::SO3StateSpace::StateType *xBundle_SO3 =
         xBundle->as<base::CompoundState>()->as<base::SO3StateSpace::StateType>(0);
@@ -71,9 +75,10 @@ void ompl::multilevel::BundleSpaceComponent_SO3RN_SO3RM::projectBase(const ompl:
     }
 }
 
-void ompl::multilevel::BundleSpaceComponent_SO3RN_SO3RM::liftState(const ompl::base::State *xBase,
-                                                                   const ompl::base::State *xFiber,
-                                                                   ompl::base::State *xBundle) const
+void BundleSpaceComponent_SO3RN_SO3RM::liftState(
+    const ompl::base::State *xBase, 
+    const ompl::base::State *xFiber, 
+    ompl::base::State *xBundle) const
 {
     base::SO3StateSpace::StateType *xBundle_SO3 =
         xBundle->as<base::CompoundState>()->as<base::SO3StateSpace::StateType>(0);

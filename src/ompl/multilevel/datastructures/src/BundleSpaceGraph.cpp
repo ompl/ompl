@@ -266,21 +266,26 @@ double BundleSpaceGraph::getRange() const
 
 BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si) : state(si->allocState())
 {
-    const ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
-    if (siC != nullptr)
-    {
-        control = siC->allocControl();
-    }
+    //Too costly to do dynamic_pointer_cast in every call. Best to create
+    //different Configuration classes (dynamic, geometric, etc). Or do inside
+    //addconfiguration function.
+    //
+    //
+    // const ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
+    // if (siC != nullptr)
+    // {
+    //     control = siC->allocControl();
+    // }
 }
 BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si, const base::State *state_)
   : state(si->cloneState(state_))
 {
-    const ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
+    // const ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
 
-    if (siC != nullptr)
-    {
-        control = siC->allocControl();
-    }
+    // if (siC != nullptr)
+    // {
+    //     control = siC->allocControl();
+    // }
 }
 
 void BundleSpaceGraph::deleteConfiguration(Configuration *q)
@@ -642,7 +647,8 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
 {
     if (hasSolution_)
     {
-        if ((solutionPath_ != nullptr) && (getNumberOfVertices() == numVerticesWhenComputingSolutionPath_))
+        if ((solutionPath_ != nullptr) 
+            && (getNumberOfVertices() == numVerticesWhenComputingSolutionPath_))
         {
         }
         else
@@ -682,15 +688,8 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
                 geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), pathRefinementObj_);
                 
                 geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
-                // gpath.interpolate();
 
-                bool valid = shortcutter.simplifyMax(gpath);
-                shortcutter.smoothBSpline(gpath);
-
-                gpath.interpolate();
-
-                // bool valid = shortcutter.reduceVertices(gpath);
-                // bool valid = shortcutter.simplifyMax(gpath);
+                bool valid = shortcutter.reduceVertices(gpath);
                 if (!valid)
                 {
                     // reset solutionPath

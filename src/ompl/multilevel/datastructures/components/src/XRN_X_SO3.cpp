@@ -42,13 +42,16 @@
 
 #include <ompl/util/Exception.h>
 
-ompl::multilevel::BundleSpaceComponent_SO3RN_SO3::BundleSpaceComponent_SO3RN_SO3(base::StateSpacePtr BundleSpace,
-                                                                                 base::StateSpacePtr BaseSpace)
+using namespace ompl::multilevel;
+
+BundleSpaceComponent_SO3RN_SO3::BundleSpaceComponent_SO3RN_SO3(
+    base::StateSpacePtr BundleSpace, 
+    base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::multilevel::BundleSpaceComponent_SO3RN_SO3::projectBase(const ompl::base::State *xBundle,
+void BundleSpaceComponent_SO3RN_SO3::projectBase(const ompl::base::State *xBundle,
                                                                    ompl::base::State *xBase) const
 {
     const base::SO3StateSpace::StateType *xBundle_SO3 =
@@ -61,7 +64,7 @@ void ompl::multilevel::BundleSpaceComponent_SO3RN_SO3::projectBase(const ompl::b
     xBase_SO3->w = xBundle_SO3->w;
 }
 
-void ompl::multilevel::BundleSpaceComponent_SO3RN_SO3::liftState(const ompl::base::State *xBase,
+void BundleSpaceComponent_SO3RN_SO3::liftState(const ompl::base::State *xBase,
                                                                  const ompl::base::State *xFiber,
                                                                  ompl::base::State *xBundle) const
 {

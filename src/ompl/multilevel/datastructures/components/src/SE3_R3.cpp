@@ -41,14 +41,18 @@
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
-ompl::multilevel::BundleSpaceComponent_SE3_R3::BundleSpaceComponent_SE3_R3(base::StateSpacePtr BundleSpace,
-                                                                           base::StateSpacePtr BaseSpace)
+using namespace ompl::multilevel;
+
+BundleSpaceComponent_SE3_R3::BundleSpaceComponent_SE3_R3(
+    base::StateSpacePtr BundleSpace, 
+    base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::multilevel::BundleSpaceComponent_SE3_R3::projectFiber(const ompl::base::State *xBundle,
-                                                                 ompl::base::State *xFiber) const
+void BundleSpaceComponent_SE3_R3::projectFiber(
+    const ompl::base::State *xBundle, 
+    ompl::base::State *xFiber) const
 {
     const base::SE3StateSpace::StateType *xBundle_SE3 = xBundle->as<base::SE3StateSpace::StateType>();
     const base::SO3StateSpace::StateType *xBundle_SO3 = &xBundle_SE3->rotation();
@@ -60,8 +64,9 @@ void ompl::multilevel::BundleSpaceComponent_SE3_R3::projectFiber(const ompl::bas
     xFiber_SO3->w = xBundle_SO3->w;
 }
 
-void ompl::multilevel::BundleSpaceComponent_SE3_R3::projectBase(const ompl::base::State *xBundle,
-                                                                ompl::base::State *xBase) const
+void BundleSpaceComponent_SE3_R3::projectBase(
+    const ompl::base::State *xBundle, 
+    ompl::base::State *xBase) const
 {
     const base::SE3StateSpace::StateType *xBundle_SE3 = xBundle->as<base::SE3StateSpace::StateType>();
     base::RealVectorStateSpace::StateType *xBase_R3 = xBase->as<base::RealVectorStateSpace::StateType>();
@@ -70,9 +75,10 @@ void ompl::multilevel::BundleSpaceComponent_SE3_R3::projectBase(const ompl::base
     xBase_R3->values[2] = xBundle_SE3->getZ();
 }
 
-void ompl::multilevel::BundleSpaceComponent_SE3_R3::liftState(const ompl::base::State *xBase,
-                                                              const ompl::base::State *xFiber,
-                                                              ompl::base::State *xBundle) const
+void BundleSpaceComponent_SE3_R3::liftState(
+    const ompl::base::State *xBase, 
+    const ompl::base::State *xFiber, 
+    ompl::base::State *xBundle) const
 {
     base::SE3StateSpace::StateType *xBundle_SE3 = xBundle->as<base::SE3StateSpace::StateType>();
     base::SO3StateSpace::StateType *xBundle_SO3 = &xBundle_SE3->rotation();
@@ -88,7 +94,7 @@ void ompl::multilevel::BundleSpaceComponent_SE3_R3::liftState(const ompl::base::
     xBundle_SO3->w = xFiber_SO3->w;
 }
 
-ompl::base::StateSpacePtr ompl::multilevel::BundleSpaceComponent_SE3_R3::computeFiberSpace()
+ompl::base::StateSpacePtr BundleSpaceComponent_SE3_R3::computeFiberSpace()
 {
     unsigned int N = BundleSpace_->getDimension();
     unsigned int Y = BaseSpace_->getDimension();

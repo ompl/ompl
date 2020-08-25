@@ -39,9 +39,9 @@
 #ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_DATASTRUCTURES_GRAPHSAMPLER_SAMPLER_
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_DATASTRUCTURES_GRAPHSAMPLER_SAMPLER_
 #include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
+#include <ompl/multilevel/datastructures/ExponentialDecay.h>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/variate_generator.hpp>
-#include "ExponentialDecay.h"
 
 namespace ompl
 {

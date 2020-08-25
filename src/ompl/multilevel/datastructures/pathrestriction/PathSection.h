@@ -52,7 +52,7 @@ namespace ompl
             /** \brief Checks if section is feasible
              *
              *  @retval True if feasible and false if only partially feasible
-             *  @retval Basepathheadptr forward path ptr
+             *  @retval Basepathheadptr Return last valid
              */
             bool checkMotion(BasePathHeadPtr&);
 
@@ -79,6 +79,8 @@ namespace ompl
             Configuration* getLastValidConfiguration();
 
             friend std::ostream &operator<<(std::ostream &, const PathSection&);
+
+            void print() const;
 
           protected:
 

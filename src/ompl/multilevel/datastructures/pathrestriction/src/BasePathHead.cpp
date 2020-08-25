@@ -68,50 +68,46 @@ PathRestriction* BasePathHead::getRestriction() const
   return restriction_;
 }
 
-void BasePathHead::print()
-{
-    BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    base::SpaceInformationPtr bundle = graph->getBundle();
-
-    std::cout << "Head at:";
-    bundle->printState(xCurrent_->state);
-    std::cout << "Base location:" << getLocationOnBasePath() << std::endl;
-}
-
-
-
 Configuration* BasePathHead::getConfiguration() const
 {
     return xCurrent_;
 }
+
 const ompl::base::State* BasePathHead::getState() const
 {
   return xCurrent_->state;
 }
+
 const ompl::base::State* BasePathHead::getStateFiber() const
 {
   return xFiberCurrent_;
 }
+
 const ompl::base::State* BasePathHead::getStateBase() const
 {
   return xBaseCurrent_;
 }
+
 ompl::base::State* BasePathHead::getStateFiberNonConst() const
 {
   return xFiberCurrent_;
 }
+
 ompl::base::State* BasePathHead::getStateBaseNonConst() const
 {
   return xBaseCurrent_;
 }
+
 Configuration* BasePathHead::getTargetConfiguration() const
 {
     return xTarget_;
 }
+
 const ompl::base::State* BasePathHead::getStateTargetFiber() const
 {
   return xFiberTarget_;
 }
+
 ompl::base::State* BasePathHead::getStateTargetFiberNonConst() const
 {
   return xFiberTarget_;
@@ -119,13 +115,22 @@ ompl::base::State* BasePathHead::getStateTargetFiberNonConst() const
 
 void BasePathHead::setCurrent(Configuration *newCurrent, double location)
 {
+    BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
+
     xCurrent_ = newCurrent;
+
+    // if(location < locationOnBasePath_)
+    // {
+    //   print();
+    //   std::cout << "Trying to set new at base location " << location << std::endl;
+    //   graph->printConfiguration(newCurrent);
+    //   exit(0);
+    // }
     locationOnBasePath_ = location;
 
     lastValidIndexOnBasePath_ = 
       restriction_->getBasePathLastIndexFromLocation(location);
 
-    BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     if(graph->getBaseDimension() > 0)
     {
         base::SpaceInformationPtr base = graph->getBase();
@@ -142,6 +147,19 @@ int BasePathHead::getLastValidBasePathIndex() const
 {
     return lastValidIndexOnBasePath_;
 }
+
+int BasePathHead::getNextValidBasePathIndex() const
+{
+    int Nlast = getRestriction()->size() - 1;
+    if(lastValidIndexOnBasePath_ < Nlast)
+    {
+        return lastValidIndexOnBasePath_ + 1;
+    }else
+    {
+        return Nlast;
+    }
+}
+
 double BasePathHead::getLocationOnBasePath() const
 {
     return locationOnBasePath_;
@@ -150,7 +168,7 @@ double BasePathHead::getLocationOnBasePath() const
 int BasePathHead::getNumberOfRemainingStates()
 {
     int Nstates = restriction_->getBasePath().size();
-    return Nstates - (lastValidIndexOnBasePath_ + 1);
+    return Nstates - (lastValidIndexOnBasePath_);
 }
 
 void BasePathHead::setLocationOnBasePath(double d)
@@ -179,5 +197,41 @@ int BasePathHead::getBaseStateIndexAt(int k) const
 {
     //----- | ---------------X-------|---------
     //    lastValid        xCurrent    basePath(lastValid + 1)
-    return lastValidIndexOnBasePath_ + k;
+  
+
+    int idx = lastValidIndexOnBasePath_ + k;
+    if(idx > restriction_->size()-1)
+    {
+      std::cout << "idx " << idx << std::endl;
+      throw Exception("WrongIndex");
+    }
+    return idx;
 }
+
+void BasePathHead::print()
+{
+    BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
+    base::SpaceInformationPtr bundle = graph->getBundle();
+    base::SpaceInformationPtr base = graph->getBase();
+
+    std::cout << "[ Head at:";
+    int idx = getLastValidBasePathIndex();
+    bundle->printState(xCurrent_->state);
+    std::cout << "base location " << getLocationOnBasePath()
+      << "/" << restriction_->getLengthBasePath()
+      << " idx " << idx
+      << "/" << restriction_->size()
+      << std::endl;
+    std::cout << "last base state idx ";
+    base->printState(restriction_->getBasePath().at(idx));
+    std::cout << "]" << std::endl;
+
+    // double d = base->distance(xBaseCurrent_, restriction_->getBasePath().at(idx));
+    // if(d > 1e-2)
+    // {
+    //   std::cout << "Distance: " << d << std::endl;
+    //   exit(0);
+    // }
+
+}
+
