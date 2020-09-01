@@ -30,31 +30,12 @@ namespace ompl
 
             virtual ~FindSection();
 
-            virtual bool solve(BasePathHeadPtr& head);
-
-            bool recursivePatternSearch(
-                BasePathHeadPtr& head,
-                bool interpolateFiberFirst = true,
-                unsigned int depth = 0);
+            virtual bool solve(BasePathHeadPtr& head) = 0;
 
             /** \brief Sample state on fiber while keeping base state fixed */
             bool findFeasibleStateOnFiber(
                 const base::State *xBase, 
                 base::State *xBundle);
-
-            bool sideStepAlongFiber(
-                Configuration* &xOrigin, 
-                base::State *state);
-
-            bool tripleStep(
-                BasePathHeadPtr& head,
-                const base::State *sBundleGoal,
-                double locationOnBasePathGoal);
-
-            bool wriggleFree(BasePathHeadPtr& head);
-
-            bool tunneling(BasePathHeadPtr& head);
-
         protected:
             /** \brief Pointer to associated bundle space */
             PathRestriction *restriction_;
@@ -65,8 +46,6 @@ namespace ompl
             base::State *xFiberStart_{nullptr};
             base::State *xFiberGoal_{nullptr};
             base::State *xFiberTmp_{nullptr};
-
-            std::vector<base::State*> xBundleTemporaries_;
 
             /** \brief Radius of restriction neighborhood */
             ExponentialDecay neighborhoodRadiusBaseSpace_;

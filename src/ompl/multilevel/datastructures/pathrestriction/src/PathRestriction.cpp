@@ -40,6 +40,7 @@
 #include <ompl/multilevel/datastructures/pathrestriction/BasePathHead.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSection.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSectionSideStep.h>
+#include <ompl/multilevel/datastructures/pathrestriction/FindSectionPatternDance.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 
@@ -53,7 +54,7 @@ using namespace ompl::multilevel;
 PathRestriction::PathRestriction(BundleSpaceGraph *bundleSpaceGraph)
   : bundleSpaceGraph_(bundleSpaceGraph)
 {
-    findSection_ = std::make_shared<FindSection>(this);
+    findSection_ = std::make_shared<FindSectionPatternDance>(this);
     // findSection_ = std::make_shared<FindSectionSideStep>(this);
 }
 
