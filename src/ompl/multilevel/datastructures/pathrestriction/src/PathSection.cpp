@@ -90,24 +90,9 @@ bool PathSection::checkMotion(BasePathHeadPtr& head)
             double locationOnBasePath = 
                 restriction_->getLengthBasePathUntil(lastValidIndexOnBasePath_) + distBaseSegment;
 
-            // if(locationOnBasePath > restriction_->getLengthBasePath())
-            // {
-                // std::cout << std::string(80, '-') << std::endl;
-                // std::cout << std::string(80, '-') << std::endl;
-                // std::cout << std::string(80, '-') << std::endl;
-                // print();
-                // std::cout << "Stopped checkMotion at last valid "
-                //   << lastValidIndexOnBasePath_ << "/" << restriction_->size()
-                //   << " dist " << locationOnBasePath << "/" << restriction_->getLengthBasePath() 
-                //   << " (last segment:" << distBaseSegment << ")" << std::endl;
-
-                // bundle->printState(lastValid_.first);
-                // base->printState(xBaseTmp_);
-
             //############################################################################
             // Get Last valid
             //############################################################################
-            // print();
             if (lastValid_.second > 0)
             {
                 // add last valid into the bundle graph
@@ -116,7 +101,6 @@ bool PathSection::checkMotion(BasePathHeadPtr& head)
                 graph->addBundleEdge(head->getConfiguration(), xBundleLastValid);
 
                 head->setCurrent(xBundleLastValid, locationOnBasePath);
-                head->print();
             }
             return false;
         }

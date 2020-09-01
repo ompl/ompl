@@ -86,12 +86,14 @@ void ompl::multilevel::SPQRImpl::grow()
             }
         }
     }
-    // std::cout << "GROW" << getLevel() << std::endl;
+    /// DEBUG
     if(hasBaseSpace())
     {
-        hasSolution_= true;
+        //make infeasible
+        consecutiveFailures_ = maxFailures_;
         return;
     }
+    /// DEBUG
 
     if (!sampleBundleValid(xRandom_->state))
     {

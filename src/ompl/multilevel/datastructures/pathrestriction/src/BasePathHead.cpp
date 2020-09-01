@@ -119,13 +119,6 @@ void BasePathHead::setCurrent(Configuration *newCurrent, double location)
 
     xCurrent_ = newCurrent;
 
-    // if(location < locationOnBasePath_)
-    // {
-    //   print();
-    //   std::cout << "Trying to set new at base location " << location << std::endl;
-    //   graph->printConfiguration(newCurrent);
-    //   exit(0);
-    // }
     locationOnBasePath_ = location;
 
     lastValidIndexOnBasePath_ = 

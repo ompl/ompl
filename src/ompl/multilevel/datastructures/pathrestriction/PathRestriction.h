@@ -56,6 +56,7 @@ namespace ompl
         OMPL_CLASS_FORWARD(BundleSpaceGraph);
         OMPL_CLASS_FORWARD(PathSection);
         OMPL_CLASS_FORWARD(BasePathHead);
+        OMPL_CLASS_FORWARD(FindSection);
 
         using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
@@ -117,7 +118,6 @@ namespace ompl
              *
              * @retval True or false if method succeeds
              * */
-
             bool findSection(
                 BasePathHeadPtr& head,
                 bool interpolateFiberFirst = true,
@@ -174,28 +174,30 @@ namespace ompl
             /** \brief Cumulative lengths between states on base path */
             std::vector<double> lengthsCumulativeBasePath_;
 
-            base::State *xBaseTmp_{nullptr};
-            base::State *xBundleTmp_{nullptr};
+            FindSectionPtr findSection_;
 
-            base::State *xFiberStart_{nullptr};
-            base::State *xFiberGoal_{nullptr};
-            base::State *xFiberTmp_{nullptr};
+            // base::State *xBaseTmp_{nullptr};
+            // base::State *xBundleTmp_{nullptr};
 
-            std::vector<base::State*> xBundleTemporaries_;
+            // base::State *xFiberStart_{nullptr};
+            // base::State *xFiberGoal_{nullptr};
+            // base::State *xFiberTmp_{nullptr};
 
-            /** \brief Radius of restriction neighborhood */
-            ExponentialDecay neighborhoodRadius_;
+            // std::vector<base::State*> xBundleTemporaries_;
 
-            double neighborhoodRadiusLambda_{100.0};
+            // /** \brief Radius of restriction neighborhood */
+            // ExponentialDecay neighborhoodRadiusBaseSpace_;
 
-            double neighborhoodRadiusTarget_{0.5};
+            // double neighborhoodRadiusBaseSpaceLambda_{1.0};
 
-            /** \brief Step size to check validity */
-            double validBaseSpaceSegmentLength_;
+            // double neighborhoodRadiusBaseSpaceTarget_{0.5};
 
-            double validBundleSpaceSegmentLength_;
+            // /** \brief Step size to check validity */
+            // double validBaseSpaceSegmentLength_;
 
-            double validFiberSpaceSegmentLength_;
+            // double validBundleSpaceSegmentLength_;
+
+            // double validFiberSpaceSegmentLength_;
         };
     }
 }

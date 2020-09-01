@@ -416,7 +416,7 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q, std::vector<Con
 bool BundleSpaceGraphSparse::checkAddPath(Configuration *q)
 {
     // TODO: test if we can quicker do feasibility checks
-    OMPL_WARN("Does not test CHECKADDPATH");
+    // OMPL_WARN("Does not test CHECKADDPATH");
     return false;
 
     std::vector<Vertex> neigh;
@@ -824,7 +824,7 @@ bool BundleSpaceGraphSparse::getSolution(PathPtr &solution)
                 // gpath.interpolate();
 
                 // bool valid = shortcutter.simplifyMax(gpath);
-                std::cout << "Optimize..." << std::endl;
+                std::cout << "Optimize path from " << solutionPath_->length() << std::flush;
                 bool valid = shortcutter.reduceVertices(gpath);
                 // shortcutter.smoothBSpline(gpath);
 
@@ -837,6 +837,7 @@ bool BundleSpaceGraphSparse::getSolution(PathPtr &solution)
                     // reset solutionPath
                     solutionPath_ = getPathSparse(v_start_sparse, v_goal_sparse);
                 }
+                std::cout << " to " << solutionPath_->length() << std::endl;
                 // }
             }
         }

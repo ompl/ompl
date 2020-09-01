@@ -41,7 +41,9 @@
 
 using namespace ompl::multilevel;
 
-BundleSpaceComponent::BundleSpaceComponent(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace)
+BundleSpaceComponent::BundleSpaceComponent(
+    base::StateSpacePtr BundleSpace, 
+    base::StateSpacePtr BaseSpace)
   : BundleSpace_(BundleSpace), BaseSpace_(BaseSpace)
 {
 }
@@ -112,6 +114,10 @@ std::string BundleSpaceComponent::stateTypeToString(base::StateSpacePtr space) c
     else if (type == base::STATE_SPACE_SO3)
     {
         tstr = "SO3";
+    }
+    else if (type == base::STATE_SPACE_TIME)
+    {
+        tstr = "T";
     }
     else if (space->isCompound())
     {

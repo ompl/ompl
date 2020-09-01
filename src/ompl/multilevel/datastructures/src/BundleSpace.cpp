@@ -43,8 +43,7 @@
 #include <ompl/control/SpaceInformation.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/SO3StateSpace.h>
-#include <ompl/base/spaces/SE2StateSpace.h>
-#include <ompl/base/spaces/SE3StateSpace.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/TimeStateSpace.h>
 #include <ompl/base/spaces/DiscreteStateSpace.h>
 #include <ompl/tools/config/MagicConstants.h>
@@ -512,9 +511,19 @@ void BundleSpace::allocIdentityState(State *s, StateSpacePtr space) const
             case STATE_SPACE_REAL_VECTOR:
             {
                 RealVectorStateSpace::StateType *sRN = s->as<RealVectorStateSpace::StateType>();
+                RealVectorStateSpace *RN = space->as<RealVectorStateSpace>();
+                const std::vector<double>& bl = RN->getBounds().low;
+                const std::vector<double>& bh = RN->getBounds().high;
                 for (unsigned int k = 0; k < space->getDimension(); k++)
                 {
-                    sRN->values[k] = 0;
+                    double &v = sRN->values[k];
+                    v = 0.0;
+
+                    //if zero is not valid, use mid point as identity
+                    if( v < bl.at(k) || v > bh.at(k))
+                    {
+                      v = bl.at(k) + 0.5*(bh.at(k) - bl.at(k));
+                    }
                 }
                 break;
             }

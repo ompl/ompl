@@ -116,6 +116,13 @@ void ompl::multilevel::QMPImpl::grow()
             }
         }
     }
+    /// DEBUG
+    if(hasBaseSpace())
+    {
+        hasSolution_ = true;
+        return;
+    }
+    /// DEBUG
 
     //(1) Get Random Sample
     if (!sampleBundleValid(xRandom_->state))

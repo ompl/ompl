@@ -149,14 +149,16 @@ BundleSpaceComponentFactory::MakeBundleSpaceComponents(base::SpaceInformationPtr
     return components;
 }
 
-BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(const base::StateSpacePtr Bundle)
+BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(
+    const base::StateSpacePtr Bundle)
 {
     return MakeBundleSpaceComponent(Bundle, nullptr, false);
 }
 
-BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(const base::StateSpacePtr Bundle,
-                                                                              const base::StateSpacePtr Base,
-                                                                              bool areValidityCheckersEquivalent)
+BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(
+    const base::StateSpacePtr Bundle, 
+    const base::StateSpacePtr Base, 
+    bool areValidityCheckersEquivalent)
 {
     BundleSpaceComponentType type = identifyBundleSpaceComponentType(Bundle, Base);
     if (type == BUNDLE_SPACE_IDENTITY_PROJECTION && !areValidityCheckersEquivalent)
@@ -248,8 +250,9 @@ BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(co
     return component;
 }
 
-BundleSpaceComponentType BundleSpaceComponentFactory::identifyBundleSpaceComponentType(const base::StateSpacePtr Bundle,
-                                                                                       const base::StateSpacePtr Base)
+BundleSpaceComponentType BundleSpaceComponentFactory::identifyBundleSpaceComponentType(
+    const base::StateSpacePtr Bundle,
+    const base::StateSpacePtr Base)
 {
     if (Base == nullptr)
     {

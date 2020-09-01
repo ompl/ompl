@@ -36,54 +36,75 @@
 
 /* Author: Andreas Orthey */
 
-#include <ompl/multilevel/datastructures/PlannerMultiLevel.h>
+#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_DATASTRUCTURES_EXPONENTIAL_DECAY__
+#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_DATASTRUCTURES_EXPONENTIAL_DECAY__
 
-using namespace ompl::multilevel;
+#include <ompl/util/Exception.h>
 
-PlannerMultiLevel::PlannerMultiLevel(
-    std::vector<ompl::base::SpaceInformationPtr> &siVec, 
-    std::string type)
-  : BaseT(siVec.back(), type), siVec_(siVec)
+namespace ompl
 {
-}
-
-PlannerMultiLevel::~PlannerMultiLevel()
-{
-}
-
-void PlannerMultiLevel::clear()
-{
-    BaseT::clear();
-    solutions_.clear();
-    pdef_->clearSolutionPaths();
-    for (unsigned int k = 0; k < pdefVec_.size(); k++)
+    class ExponentialDecay
     {
-        pdefVec_.at(k)->clearSolutionPaths();
-    }
-}
+    public:
+        ExponentialDecay() = default;
 
-std::vector<int> PlannerMultiLevel::getDimensionsPerLevel() const
-{
-    std::vector<int> dimensionsPerLevel;
-    for (unsigned int k = 0; k < siVec_.size(); k++)
-    {
-        unsigned int Nk = siVec_.at(k)->getStateDimension();
-        dimensionsPerLevel.push_back(Nk);
-    }
-    return dimensionsPerLevel;
-}
+        ExponentialDecay(double lambda) : lambda_(lambda)
+        {
+            setLambda(lambda);
+            counter_ = 0;
+        };
 
-int PlannerMultiLevel::getLevels() const
-{
-    return siVec_.size();
-}
+        ExponentialDecay(double lambda, double initValue) : 
+          lambda_(lambda), initValue_(initValue)
+        {
+            setLambda(lambda);
+            counter_ = 0;
+        };
 
-const ompl::base::ProblemDefinitionPtr &PlannerMultiLevel::getProblemDefinition(int level) const
-{
-    return pdefVec_.at(level);
-}
+        ExponentialDecay(double lambda, double initValue, double targetValue)
+          : lambda_(lambda), initValue_(initValue), targetValue_(targetValue)
+        {
+            setLambda(lambda);
+            counter_ = 0;
+        };
 
-const std::vector<ompl::base::ProblemDefinitionPtr> &PlannerMultiLevel::getProblemDefinitionVector() const
-{
-    return pdefVec_;
+        void setInitValue(double initValue)
+        {
+            initValue_ = initValue;
+        }
+        void setTargetValue(double targetValue)
+        {
+            targetValue_ = targetValue;
+        }
+        void setLambda(double lambda)
+        {
+            if(lambda <= 0)
+            {
+                throw ompl::Exception("ExponentialDecay requires positive lambda");
+            }else{
+                lambda_ = lambda;
+            }
+        }
+
+        double operator()(void)
+        {
+            return (initValue_ - targetValue_) * exp(-lambda_ * counter_++) + targetValue_;
+        }
+
+        void reset()
+        {
+            counter_ = 0;
+        }
+        unsigned long long getCounter()
+        {
+            return counter_;
+        }
+
+    private:
+        double lambda_{0.1};
+        double initValue_{0.0};
+        double targetValue_{1.0};
+        unsigned long long counter_{0};
+    };
 }
+#endif

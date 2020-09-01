@@ -41,8 +41,9 @@
 #include <ompl/util/Time.h>
 
 template <class T>
-ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec,
-                                                              std::string type)
+ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(
+    std::vector<ompl::base::SpaceInformationPtr> &siVec, 
+    std::string type)
   : BaseT(siVec, type)
 {
     T::resetCounter();
@@ -73,24 +74,6 @@ ompl::multilevel::BundleSpaceSequence<T>::~BundleSpaceSequence()
     }
     bundleSpaces_.clear();
 }
-
-// template <class T>
-// int ompl::multilevel::BundleSpaceSequence<T>::getLevels() const
-// {
-//     return bundleSpaces_.size();
-// }
-
-// template <class T>
-// std::vector<int> ompl::multilevel::BundleSpaceSequence<T>::getDimensionsPerLevel() const
-// {
-//     std::vector<int> dimensionsPerLevel;
-//     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
-//     {
-//         unsigned int Nk = static_cast<BundleSpace*>(bundleSpaces_.at(k))->getBundleDimension();
-//         dimensionsPerLevel.push_back(Nk);
-//     }
-//     return dimensionsPerLevel;
-// }
 
 template <class T>
 void ompl::multilevel::BundleSpaceSequence<T>::setStopLevel(unsigned int level_)
@@ -214,7 +197,8 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
 }
 
 template <class T>
-void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef)
+void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(
+    const ompl::base::ProblemDefinitionPtr &pdef)
 {
     BaseT::setProblemDefinition(pdef);
 
@@ -263,8 +247,9 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(const ompl::
 }
 
 template <class T>
-ompl::base::State *ompl::multilevel::BundleSpaceSequence<T>::getTotalState(int baseLevel,
-                                                                           const base::State *baseState) const
+ompl::base::State *ompl::multilevel::BundleSpaceSequence<T>::getTotalState(
+    int baseLevel, 
+    const base::State *baseState) const
 {
     BundleSpace *Qprev = bundleSpaces_.at(baseLevel);
     ompl::base::State *s_lift = Qprev->getBundle()->cloneState(baseState);
