@@ -39,7 +39,7 @@
 #ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_DATASTRUCTURES_GRAPHSAMPLER_SAMPLER_
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_DATASTRUCTURES_GRAPHSAMPLER_SAMPLER_
 #include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
-#include <ompl/multilevel/datastructures/ExponentialDecay.h>
+#include <ompl/multilevel/datastructures/ParameterExponentialDecay.h>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/variate_generator.hpp>
 
@@ -94,9 +94,9 @@ namespace ompl
 
             unsigned long long counterGraphSampling_{0};
 
-            ExponentialDecay pathBiasDecay_;
-            ExponentialDecay graphThickeningGrowth_;
-            ExponentialDecay pathThickeningGrowth_;
+            ParameterExponentialDecay pathBiasDecay_;
+            ParameterExponentialDecay graphThickeningGrowth_;
+            ParameterExponentialDecay pathThickeningGrowth_;
         };
     }  // namespace multilevel
 }  // namespace ompl

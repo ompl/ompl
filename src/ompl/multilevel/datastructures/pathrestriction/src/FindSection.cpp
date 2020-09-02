@@ -40,8 +40,8 @@ FindSection::FindSection(PathRestriction* restriction):
     neighborhoodRadiusBaseSpaceLambda_ = 1e-4;
 
     neighborhoodRadiusBaseSpace_.setLambda(neighborhoodRadiusBaseSpaceLambda_);
-    neighborhoodRadiusBaseSpace_.setInitValue(0.0);
-    neighborhoodRadiusBaseSpace_.setTargetValue(10*validBaseSpaceSegmentLength_);
+    neighborhoodRadiusBaseSpace_.setValueInit(0.0);
+    neighborhoodRadiusBaseSpace_.setValueTarget(10*validBaseSpaceSegmentLength_);
 }
 
 FindSection::~FindSection()

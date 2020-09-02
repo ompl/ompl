@@ -1,8 +1,8 @@
 #ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_RESTRICTION_FIND_SECTION_PATTERNDANCE_
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_RESTRICTION_FIND_SECTION_PATTERNDANCE_
 #include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
-#include <ompl/multilevel/datastructures/ExponentialDecay.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSection.h>
+#include <ompl/multilevel/datastructures/ParameterSmoothStep.h>
 
 namespace ompl
 {
@@ -43,6 +43,8 @@ namespace ompl
 
         protected:
             std::vector<base::State*> xBundleTemporaries_;
+
+            ParameterSmoothStep neighborhoodBaseSpace_;
 
         };
     }

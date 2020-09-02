@@ -9,8 +9,8 @@ namespace ompl
     namespace magic
     {
         static const unsigned int PATH_SECTION_MAX_WRIGGLING = 10;
-        static const unsigned int PATH_SECTION_MAX_DEPTH = 3;
-        static const unsigned int PATH_SECTION_MAX_BRANCHING = 20;
+        static const unsigned int PATH_SECTION_MAX_DEPTH = 10;
+        static const unsigned int PATH_SECTION_MAX_BRANCHING = 100;
         static const unsigned int PATH_SECTION_MAX_TUNNELING = 100;
     }
 }
@@ -25,6 +25,12 @@ FindSectionPatternDance::FindSectionPatternDance(PathRestriction* restriction):
 
     xBundleTemporaries_.resize(magic::PATH_SECTION_MAX_DEPTH * magic::PATH_SECTION_MAX_BRANCHING);
     bundle->allocStates(xBundleTemporaries_);
+
+    neighborhoodBaseSpace_.setValueInit(0);
+    neighborhoodBaseSpace_.setValueTarget(validBaseSpaceSegmentLength_);
+
+    neighborhoodBaseSpace_.setCounterInit(0);
+    neighborhoodBaseSpace_.setCounterTarget(magic::PATH_SECTION_MAX_BRANCHING);
 }
 
 FindSectionPatternDance::~FindSectionPatternDance()
@@ -209,12 +215,6 @@ bool FindSectionPatternDance::tripleStep(
         graph->addConfiguration(xGoal);
         graph->addBundleEdge(xSideStep, xGoal);
 
-        // std::cout << "INSERT TRIPLE STEP (BWD-SIDE-FWD)" << std::endl;
-        // bundle->printState(xBundleLastValid->state);
-        // bundle->printState(xBackStep->state);
-        // bundle->printState(xSideStep->state);
-        // bundle->printState(xGoal->state);
-
         head->setCurrent(xGoal, locationOnBasePathGoal);
     }
 
@@ -364,6 +364,7 @@ bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr& head)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     ompl::base::SpaceInformationPtr bundle = graph->getBundle();
+    ompl::base::SpaceInformationPtr fiber = graph->getFiber();
 
     double curLocation = head->getLocationOnBasePath() + validBaseSpaceSegmentLength_;
 
@@ -410,6 +411,36 @@ bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr& head)
         }
         curLocation += validBaseSpaceSegmentLength_;
     }
+    if(steps > 0)
+    {
+        //try moving back to restriction
+        fiber->copyState(xFiberTmp_, head->getStateFiber());
+
+        restriction_->interpolateBasePath(curLocation, xBaseTmp_);
+
+        unsigned int ctr = 0;
+
+        while(ctr++ < magic::PATH_SECTION_MAX_WRIGGLING)
+        {
+            graph->liftState(xBaseTmp_, xFiberTmp_, xBundleTmp_);
+
+            if(bundle->isValid(xBundleTmp_))
+            {
+                if(bundle->checkMotion(head->getState(), xBundleTmp_))
+                {
+                    Configuration *xHomingStep = new Configuration(bundle, xBundleTmp_);
+                    graph->addConfiguration(xHomingStep);
+                    graph->addBundleEdge(head->getConfiguration(), xHomingStep);
+
+                    head->setCurrent(xHomingStep, curLocation);
+                    break;
+                }
+            }
+
+            fiberSampler->sampleUniformNear(xFiberTmp_, head->getStateFiber(), epsilon);
+        }
+    }
+
     return (steps > 0);
 }
 
@@ -475,15 +506,15 @@ bool FindSectionPatternDance::recursivePatternSearch(
         }
     }
 
-    // if(tunneling(head))
-    // {
-    //     BasePathHeadPtr newHead(head);
-    //     bool feasibleSection = recursivePatternSearch(newHead, false, depth + 1);
-    //     if(feasibleSection)
-    //     {
-    //         return true;
-    //     }
-    // }
+    if(tunneling(head))
+    {
+        BasePathHeadPtr newHead(head);
+        bool feasibleSection = recursivePatternSearch(newHead, false, depth + 1);
+        if(feasibleSection)
+        {
+            return true;
+        }
+    }
 
     double curLocation = head->getLocationOnBasePath();
 
@@ -496,11 +527,12 @@ bool FindSectionPatternDance::recursivePatternSearch(
     ////search for alternative openings
     unsigned int infeasibleCtr = 0;
 
-    // unsigned int size = 0;
-
-    // int offset = depth * magic::PATH_SECTION_MAX_DEPTH;
-
     double location = head->getLocationOnBasePath() + validBaseSpaceSegmentLength_;
+    // double location = head->getLocationOnBasePath();
+
+    const ompl::base::StateSamplerPtr baseSampler = graph->getBaseSamplerPtr();
+
+    // neighborhoodBaseSpace_.reset();
 
     for (unsigned int j = 0; j < magic::PATH_SECTION_MAX_BRANCHING; j++)
     {
@@ -515,51 +547,33 @@ bool FindSectionPatternDance::recursivePatternSearch(
 
         restriction_->interpolateBasePath(location, xBaseTmp_);
 
+        double epsNBH = neighborhoodBaseSpace_();
+        std::cout << neighborhoodBaseSpace_.getCounter() << ": " << epsNBH << std::endl;
+        baseSampler->sampleUniformNear(xBaseTmp_, xBaseTmp_, epsNBH);
+
         if (!findFeasibleStateOnFiber(xBaseTmp_, xBundleTmp_))
         {
             infeasibleCtr++;
             continue;
         }
 
-        //check that we did not previously visited this area
-
-        // bool found = true;
-        // for(uint k = 0; k < size; k++)
-        // {
-        //     if(bundle->checkMotion(xBundleTemporaries_.at(offset + k), xBundleTmp_))
-        //     {
-        //         infeasibleCtr++;
-        //         // std::cout << "Dismissed: already sampled area before" << std::endl;
-        //         found = false;
-        //         break;
-        //     }
-        // }
-        // if(!found)
-        // {
-        //   continue;
-        // }
-
-        // bundle->copyState(xBundleTemporaries_.at(offset + size), xBundleTmp_);
-        // size++;
-
         if(bundle->checkMotion(head->getState(), xBundleTmp_))
         {
-            ////side step along fiber
-            //Configuration *xSideStep = new Configuration(bundle, xBundleTmp_);
-            //graph->addConfiguration(xSideStep);
-            //graph->addBundleEdge(head->getConfiguration(), xSideStep);
+            infeasibleCtr++;
+            continue;
+        }
 
-            //head->setCurrent(xSideStep, curLocation);
-        }else{
-            if(tripleStep(head, xBundleTmp_, location))
+        if(tripleStep(head, xBundleTmp_, location))
+        {
+            BasePathHeadPtr newHead(head);
+
+            bool feasibleSection = recursivePatternSearch(newHead, false, depth + 1);
+            if(feasibleSection)
             {
-                BasePathHeadPtr newHead(head);
-
-                bool feasibleSection = recursivePatternSearch(newHead, false, depth + 1);
-                if(feasibleSection)
-                {
-                    return true;
-                }
+                return true;
+            }else{
+                infeasibleCtr++;
+                continue;
             }
         }
 

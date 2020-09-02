@@ -1,7 +1,7 @@
 #ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_RESTRICTION_FIND_SECTION_
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_RESTRICTION_FIND_SECTION_
 #include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
-#include <ompl/multilevel/datastructures/ExponentialDecay.h>
+#include <ompl/multilevel/datastructures/ParameterExponentialDecay.h>
 
 namespace ompl
 {
@@ -48,7 +48,7 @@ namespace ompl
             base::State *xFiberTmp_{nullptr};
 
             /** \brief Radius of restriction neighborhood */
-            ExponentialDecay neighborhoodRadiusBaseSpace_;
+            ParameterExponentialDecay neighborhoodRadiusBaseSpace_;
 
             double neighborhoodRadiusBaseSpaceLambda_{1.0};
 

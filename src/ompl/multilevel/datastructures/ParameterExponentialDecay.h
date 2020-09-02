@@ -40,42 +40,34 @@
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_DATASTRUCTURES_EXPONENTIAL_DECAY__
 
 #include <ompl/util/Exception.h>
+#include <ompl/multilevel/datastructures/Parameter.h>
 
 namespace ompl
 {
-    class ExponentialDecay
+    class ParameterExponentialDecay: public Parameter
     {
     public:
-        ExponentialDecay() = default;
+        ParameterExponentialDecay() = default;
 
-        ExponentialDecay(double lambda) : lambda_(lambda)
+        ParameterExponentialDecay(double lambda) : 
+          Parameter(), lambda_(lambda)
         {
             setLambda(lambda);
-            counter_ = 0;
         };
 
-        ExponentialDecay(double lambda, double initValue) : 
-          lambda_(lambda), initValue_(initValue)
+        ParameterExponentialDecay(double lambda, double valueInit) : 
+          Parameter(valueInit), lambda_(lambda)
         {
             setLambda(lambda);
-            counter_ = 0;
         };
 
-        ExponentialDecay(double lambda, double initValue, double targetValue)
-          : lambda_(lambda), initValue_(initValue), targetValue_(targetValue)
+        ParameterExponentialDecay(double lambda, double valueInit, double valueTarget):
+           Parameter(valueInit, valueTarget),
+           lambda_(lambda)
         {
             setLambda(lambda);
-            counter_ = 0;
         };
 
-        void setInitValue(double initValue)
-        {
-            initValue_ = initValue;
-        }
-        void setTargetValue(double targetValue)
-        {
-            targetValue_ = targetValue;
-        }
         void setLambda(double lambda)
         {
             if(lambda <= 0)
@@ -88,23 +80,14 @@ namespace ompl
 
         double operator()(void)
         {
-            return (initValue_ - targetValue_) * exp(-lambda_ * counter_++) + targetValue_;
-        }
-
-        void reset()
-        {
-            counter_ = 0;
-        }
-        unsigned long long getCounter()
-        {
-            return counter_;
+            double value = (getValueInit() - getValueTarget()) * exp(-lambda_ * getCounter()) 
+              + getValueTarget();
+            incrementCounter();
+            return value;
         }
 
     private:
         double lambda_{0.1};
-        double initValue_{0.0};
-        double targetValue_{1.0};
-        unsigned long long counter_{0};
     };
 }
 #endif

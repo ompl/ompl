@@ -39,7 +39,6 @@
 #ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_RESTRICTION__
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_RESTRICTION__
 #include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
-#include <ompl/multilevel/datastructures/ExponentialDecay.h>
 
 namespace ompl
 {
@@ -176,28 +175,6 @@ namespace ompl
 
             FindSectionPtr findSection_;
 
-            // base::State *xBaseTmp_{nullptr};
-            // base::State *xBundleTmp_{nullptr};
-
-            // base::State *xFiberStart_{nullptr};
-            // base::State *xFiberGoal_{nullptr};
-            // base::State *xFiberTmp_{nullptr};
-
-            // std::vector<base::State*> xBundleTemporaries_;
-
-            // /** \brief Radius of restriction neighborhood */
-            // ExponentialDecay neighborhoodRadiusBaseSpace_;
-
-            // double neighborhoodRadiusBaseSpaceLambda_{1.0};
-
-            // double neighborhoodRadiusBaseSpaceTarget_{0.5};
-
-            // /** \brief Step size to check validity */
-            // double validBaseSpaceSegmentLength_;
-
-            // double validBundleSpaceSegmentLength_;
-
-            // double validFiberSpaceSegmentLength_;
         };
     }
 }

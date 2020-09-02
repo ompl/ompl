@@ -689,7 +689,12 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
                 
                 geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
 
-                bool valid = shortcutter.reduceVertices(gpath);
+                shortcutter.simplifyMax(gpath);
+                shortcutter.smoothBSpline(gpath);
+
+                gpath.interpolate();
+
+                bool valid = shortcutter.reduceVertices(gpath, 0, 0, 0.1);
                 if (!valid)
                 {
                     // reset solutionPath
