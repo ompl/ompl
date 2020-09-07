@@ -37,7 +37,7 @@
 /* Author: Andreas Orthey */
 
 #include <ompl/multilevel/datastructures/components/Identity.h>
-#include <ompl/base/spaces/RealVectorStateSpace.h>
+#include <ompl/base/spaces/EmptyStateSpace.h>
 
 ompl::multilevel::BundleSpaceComponent_Identity::BundleSpaceComponent_Identity(base::StateSpacePtr BundleSpace,
                                                                                base::StateSpacePtr BaseSpace)
@@ -65,5 +65,5 @@ void ompl::multilevel::BundleSpaceComponent_Identity::liftState(const ompl::base
 
 ompl::base::StateSpacePtr ompl::multilevel::BundleSpaceComponent_Identity::computeFiberSpace()
 {
-    return std::make_shared<base::RealVectorStateSpace>(0);
+    return std::make_shared<base::EmptyStateSpace>();
 }

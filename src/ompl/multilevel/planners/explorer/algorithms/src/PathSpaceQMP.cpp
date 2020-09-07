@@ -23,7 +23,7 @@ PathSpaceQMP::PathSpaceQMP(const base::SpaceInformationPtr &si, BundleSpace *par
 
     if (hasBaseSpace())
     {
-        static_cast<BundleSpaceGraph *>(getParent())->getGraphSampler()->disablePathBias();
+        static_cast<BundleSpaceGraph *>(getBaseBundleSpace())->getGraphSampler()->disablePathBias();
     }
 }
 

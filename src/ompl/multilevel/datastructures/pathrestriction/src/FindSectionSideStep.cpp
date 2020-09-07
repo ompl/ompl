@@ -28,17 +28,11 @@ bool FindSectionSideStep::solve(BasePathHeadPtr& head)
 {
     BasePathHeadPtr head2(head);
 
-    ompl::time::point tStart = ompl::time::now();
     bool foundFeasibleSection = recursiveSideStep(head);
-    ompl::time::point t1 = ompl::time::now();
-
-    OMPL_WARN("FindSection required %.2fs.", ompl::time::seconds(t1 - tStart));
 
     if(!foundFeasibleSection)
     {
         foundFeasibleSection = recursiveSideStep(head2, false);
-        ompl::time::point t2 = ompl::time::now();
-        OMPL_WARN("FindSection2 required %.2fs.", ompl::time::seconds(t2 - t1));
     }
 
     return foundFeasibleSection;
@@ -71,7 +65,7 @@ bool FindSectionSideStep::recursiveSideStep(
         return true;
     }
 
-    static_cast<BundleSpaceGraph *>(graph->getParent())
+    static_cast<BundleSpaceGraph *>(graph->getBaseBundleSpace())
        ->getGraphSampler()
        ->setPathBiasStartSegment(head->getLocationOnBasePath());
 
@@ -118,10 +112,10 @@ bool FindSectionSideStep::recursiveSideStep(
         }
 
     }
-    std::cout << "Failed depth " << depth 
-      << " after sampling " << infeasibleCtr 
-      << " infeasible fiber elements on fiber"
-      << std::endl;
+    // std::cout << "Failed depth " << depth 
+    //   << " after sampling " << infeasibleCtr 
+    //   << " infeasible fiber elements on fiber"
+    //   << std::endl;
     return false;
 }
 

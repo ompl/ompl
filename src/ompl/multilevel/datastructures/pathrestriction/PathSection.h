@@ -10,6 +10,11 @@ namespace ompl
         OMPL_CLASS_FORWARD(PathRestriction);
         OMPL_CLASS_FORWARD(BasePathHead);
 
+        /** \brief Representation of a path section (not necessarily feasible). 
+         *
+         *  This class provides convenience methods to interpolate different
+         *  path section over a given path restriction */
+
         class PathSection
         {
           public:
@@ -59,7 +64,7 @@ namespace ompl
             /** \brief checks if section is feasible */
             void sanityCheck();
 
-            double getLastValidBasePathLocation();
+            // double getLastValidBasePathLocation();
 
             int getLastValidBasePathIndex();
             int getLastValidSectionPathIndex();

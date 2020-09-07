@@ -132,28 +132,29 @@ namespace ompl
             const ompl::base::StateSamplerPtr &getBundleSamplerPtr() const;
             const ompl::base::StateSamplerPtr &getBaseSamplerPtr() const;
 
-            /// \brief Parent is a more simplified Bundle-space
-            /// (higher in abstraction hierarchy)
-            BundleSpace *getParent() const;
-            /// \brief Child is a less simplified Bundle-space
-            /// (lower in abstraction hierarchy)
-            BundleSpace *getChild() const;
+            /// \brief Return k-1 th bundle space (locally the base space)
+            BundleSpace *getBaseBundleSpace() const;
 
+            /// \brief Pointer to k-1 th bundle space (locally the base space)
+            void setBaseBundleSpace(BundleSpace *baseBundleSpace);
+
+            /// \brief Return k+1 th bundle space (locally the total space)
+            BundleSpace *getTotalBundleSpace() const;
+
+            /// \brief Pointer to k+1 th bundle space (locally the total space)
+            void setTotalBundleSpace(BundleSpace *totalBundleSpace);
+
+            /// \brief Return if has base space pointer
             bool hasBaseSpace() const;
-            bool hasParent() const;
-            bool hasChild() const;
 
-            /// Level in abstraction hierarchy of Bundle-spaces
+            /// \brief Return if has total space pointer
+            bool hasTotalSpace() const;
+
+            /// Level in hierarchy of Bundle-spaces
             unsigned int getLevel() const;
 
-            /// Change abstraction level
+            /// Change level in hierarchy
             void setLevel(unsigned int);
-
-            /// Set pointer to next Bundle-space (more dimensional)
-            void setChild(BundleSpace *child_);
-
-            /// Set pointer to previous Bundle-space (less dimensional)
-            void setParent(BundleSpace *parent_);
 
             /// \brief Bundle Space Projection Operator onto second component
             /// ProjectFiber: Base \times Fiber \rightarrow Fiber
@@ -194,6 +195,18 @@ namespace ompl
             /// Level in sequence of Bundle-spaces
             unsigned int level_{0};
 
+            //\brief Being on the k-th bundle space, we denote as baseBundleSpace the k-1-th
+            //bundle space (because it locally acts as the base space for the current class) 
+            BundleSpace *baseBundleSpace_{nullptr};
+
+            //\brief Being on the k-th bundle space, we denote as totalBundleSpace the k+1-th
+            //bundle space (because it locally acts as the total space for the current class) 
+            BundleSpace *totalBundleSpace_{nullptr};
+
+            ompl::base::StateSamplerPtr Fiber_sampler_;
+            ompl::base::StateSamplerPtr Bundle_sampler_;
+            ompl::base::ValidStateSamplerPtr Bundle_valid_sampler_;
+
         protected:
             /// Check if Bundle-space is unbounded
             void checkBundleSpaceMeasure(std::string name, const ompl::base::StateSpacePtr space) const;
@@ -204,10 +217,6 @@ namespace ompl
 
             /// Internal function implementing actual printing to stream
             virtual void print(std::ostream &out) const;
-
-            ompl::base::StateSamplerPtr Fiber_sampler_;
-            ompl::base::StateSamplerPtr Bundle_sampler_;
-            ompl::base::ValidStateSamplerPtr Bundle_valid_sampler_;
 
             ompl::base::OptimizationObjectivePtr opt_;
 
@@ -227,9 +236,6 @@ namespace ompl
             bool firstRun_{true};
 
             bool isDynamic_{false};
-
-            BundleSpace *parent_{nullptr};
-            BundleSpace *child_{nullptr};
 
             /** \brief Goal state or goal region */
             ompl::base::Goal *goal_;

@@ -41,6 +41,7 @@
 #include <ompl/multilevel/datastructures/pathrestriction/FindSection.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSectionSideStep.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSectionPatternDance.h>
+#include <ompl/multilevel/datastructures/pathrestriction/FindSectionVariableNeighborhood.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 
@@ -56,6 +57,7 @@ PathRestriction::PathRestriction(BundleSpaceGraph *bundleSpaceGraph)
 {
     findSection_ = std::make_shared<FindSectionPatternDance>(this);
     // findSection_ = std::make_shared<FindSectionSideStep>(this);
+    // findSection_ = std::make_shared<FindSectionVariableNeighborhood>(this);
 }
 
 PathRestriction::~PathRestriction()
@@ -104,7 +106,8 @@ void PathRestriction::interpolateBasePath(double t, base::State* &state) const
     assert(t<=lengthBasePath_);
 
     unsigned int ctr = 0;
-    while(t > lengthsCumulativeBasePath_.at(ctr) && ctr < lengthsCumulativeBasePath_.size() - 1)
+    while(t > lengthsCumulativeBasePath_.at(ctr) 
+        && ctr < lengthsCumulativeBasePath_.size() - 1)
     {
         ctr++;
     }
@@ -113,7 +116,7 @@ void PathRestriction::interpolateBasePath(double t, base::State* &state) const
     base::State *s2 = basePath_.at(ctr+1);
     double d = lengthsIntermediateBasePath_.at(ctr);
 
-    double dCum = (ctr > 0?lengthsCumulativeBasePath_.at(ctr-1):0.0);
+    double dCum = ( ctr > 0 ? lengthsCumulativeBasePath_.at(ctr-1) : 0.0);
     double step = (t - dCum)/d;
     
     base::SpaceInformationPtr base = bundleSpaceGraph_->getBase();
@@ -133,6 +136,11 @@ double PathRestriction::getLengthBasePath() const
 int PathRestriction::size() const
 {
   return basePath_.size();
+}
+
+const ompl::base::State* PathRestriction::getBaseStateAt(int k) const
+{
+  return basePath_.at(k);
 }
 
 //distance between base states k and k+1
@@ -160,16 +168,6 @@ int PathRestriction::getBasePathLastIndexFromLocation(double d)
     if(d > lengthBasePath_)
     {
         return size() - 1;
-
-        // std::cout << "Location: " << d << std::endl;
-        // std::cout << "Length  : " << lengthBasePath_ << std::endl;
-        // OMPL_ERROR("location not on base path");
-        // for(uint k = 0; k < lengthsCumulativeBasePath_.size(); k++)
-        // {
-        //     std::cout << k << ":" << lengthsCumulativeBasePath_.at(k) << " (" <<
-        //       lengthsIntermediateBasePath_.at(k) << ")" << std::endl;
-        // }
-        // throw Exception("InvalidLocation");
     }
     unsigned int ctr = 0;
     while(d >= lengthsCumulativeBasePath_.at(ctr) && ctr < lengthsCumulativeBasePath_.size() - 1)
@@ -185,7 +183,14 @@ bool PathRestriction::hasFeasibleSection(
 {
     BasePathHeadPtr head = std::make_shared<BasePathHead>(this, xStart, xGoal);
 
+    ompl::time::point tStart = ompl::time::now();
     bool foundFeasibleSection = findSection_->solve(head);
+    ompl::time::point t1 = ompl::time::now();
+
+    OMPL_DEBUG("FindSection terminated after %.2fs (%d/%d vertices/edges).", 
+        ompl::time::seconds(t1 - tStart), 
+        bundleSpaceGraph_->getNumberOfVertices(),
+        bundleSpaceGraph_->getNumberOfEdges());
 
     if(foundFeasibleSection)
     {
@@ -196,4 +201,3 @@ bool PathRestriction::hasFeasibleSection(
 
     return foundFeasibleSection;
 }
-

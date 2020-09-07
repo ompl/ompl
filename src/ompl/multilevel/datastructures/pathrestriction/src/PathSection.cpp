@@ -108,10 +108,10 @@ bool PathSection::checkMotion(BasePathHeadPtr& head)
     return false;
 }
 
-double PathSection::getLastValidBasePathLocation()
-{
-  return lastValidLocationOnBasePath_;
-}
+// double PathSection::getLastValidBasePathLocation()
+// {
+//   return lastValidLocationOnBasePath_;
+// }
 int PathSection::getLastValidBasePathIndex()
 {
   return lastValidIndexOnBasePath_;

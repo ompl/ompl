@@ -373,7 +373,7 @@ void PathSpaceSparseOptimization::getPlannerData(base::PlannerData &data) const
 //############################################################################
 void PathSpaceSparseOptimization::sampleFromDatastructure(base::State *xRandom_graph)
 {
-    if (!getChild()->isDynamic() && pathStack_.size() > 0)
+    if (!getTotalBundleSpace()->isDynamic() && pathStack_.size() > 0)
     {
         // if (selectedPath_ >= 0 && selectedPath_ < (int)pathStack_.size())
         // {
@@ -397,7 +397,7 @@ void PathSpaceSparseOptimization::sampleFromDatastructure(base::State *xRandom_g
 
         getBundle()->getStateSpace()->interpolate(s1, s2, r, xRandom_graph);
 
-        Bundle_sampler_->sampleUniformNear(xRandom_graph, xRandom_graph, pathBias_);
+        getBundleSamplerPtr()->sampleUniformNear(xRandom_graph, xRandom_graph, pathBias_);
         // }
         // else
         // {
@@ -634,7 +634,7 @@ bool PathSpaceSparseOptimization::isProjectable(const std::vector<base::State *>
 
 int PathSpaceSparseOptimization::getProjectionIndex(const std::vector<base::State *> &pathBundle) const
 {
-    if (!hasParent())
+    if (!hasBaseSpace())
     {
         return 0;
     }
@@ -646,7 +646,8 @@ int PathSpaceSparseOptimization::getProjectionIndex(const std::vector<base::Stat
     //   pathBase.push_back(qkProjected);
     // }
 
-    PathSpaceSparseOptimization *parent = static_cast<PathSpaceSparseOptimization *>(parent_);
+    PathSpaceSparseOptimization *parent = 
+      static_cast<PathSpaceSparseOptimization *>(getBaseBundleSpace());
     unsigned int K = parent->getNumberOfPaths();
 
     for (uint k = 0; k < K; k++)
@@ -666,7 +667,7 @@ int PathSpaceSparseOptimization::getProjectionIndex(const std::vector<base::Stat
 // void PathSpaceSparseOptimization::getPathIndices(const std::vector<base::State *> &states, std::vector<int> &idxPath)
 // const
 // {
-//     if (!hasParent())
+//     if (!hasBaseSpace())
 //     {
 //         return;
 //     }

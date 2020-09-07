@@ -8,8 +8,8 @@ namespace ompl
 {
     namespace magic
     {
-        static const unsigned int PATH_SECTION_MAX_WRIGGLING = 10;
-        static const unsigned int PATH_SECTION_MAX_DEPTH = 10;
+        static const unsigned int PATH_SECTION_MAX_WRIGGLING = 100;
+        static const unsigned int PATH_SECTION_MAX_DEPTH = 5;
         static const unsigned int PATH_SECTION_MAX_BRANCHING = 100;
         static const unsigned int PATH_SECTION_MAX_TUNNELING = 100;
     }
@@ -31,6 +31,12 @@ FindSectionPatternDance::FindSectionPatternDance(PathRestriction* restriction):
 
     neighborhoodBaseSpace_.setCounterInit(0);
     neighborhoodBaseSpace_.setCounterTarget(magic::PATH_SECTION_MAX_BRANCHING);
+
+    if(graph->hasBaseSpace())
+    {
+        base::SpaceInformationPtr base = graph->getBase();
+        xBaseFixed_ = base->allocState();
+    }
 }
 
 FindSectionPatternDance::~FindSectionPatternDance()
@@ -38,6 +44,11 @@ FindSectionPatternDance::~FindSectionPatternDance()
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
     bundle->freeStates(xBundleTemporaries_);
+    if(graph->hasBaseSpace())
+    {
+        base::SpaceInformationPtr base = graph->getBase();
+        base->freeState(xBaseFixed_);
+    }
 }
 
 bool FindSectionPatternDance::solve(BasePathHeadPtr& head)
@@ -374,12 +385,15 @@ bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr& head)
     const ompl::base::StateSamplerPtr baseSampler = graph->getBaseSamplerPtr();
 
     int steps = 0;
+
     while (curLocation < restriction_->getLengthBasePath())
     {
         unsigned int ctr = 0;
         bool madeProgress = false;
 
         restriction_->interpolateBasePath(curLocation, xBaseTmp_);
+
+        neighborhoodRadiusBaseSpace_.reset();
 
         while(ctr++ < magic::PATH_SECTION_MAX_WRIGGLING)
         {
@@ -477,7 +491,7 @@ bool FindSectionPatternDance::recursivePatternSearch(
         return true;
     }
 
-    static_cast<BundleSpaceGraph *>(graph->getParent())
+    static_cast<BundleSpaceGraph *>(graph->getBaseBundleSpace())
        ->getGraphSampler()
        ->setPathBiasStartSegment(head->getLocationOnBasePath());
 
@@ -495,20 +509,10 @@ bool FindSectionPatternDance::recursivePatternSearch(
     //Then call function recursively with clipped base path
     //############################################################################
 
-    if(wriggleFree(head))
+    if(wriggleFree(head) || tunneling(head))
     {
         BasePathHeadPtr newHead(head);
 
-        bool feasibleSection = recursivePatternSearch(newHead, false, depth + 1);
-        if(feasibleSection)
-        {
-            return true;
-        }
-    }
-
-    if(tunneling(head))
-    {
-        BasePathHeadPtr newHead(head);
         bool feasibleSection = recursivePatternSearch(newHead, false, depth + 1);
         if(feasibleSection)
         {
@@ -528,7 +532,6 @@ bool FindSectionPatternDance::recursivePatternSearch(
     unsigned int infeasibleCtr = 0;
 
     double location = head->getLocationOnBasePath() + validBaseSpaceSegmentLength_;
-    // double location = head->getLocationOnBasePath();
 
     const ompl::base::StateSamplerPtr baseSampler = graph->getBaseSamplerPtr();
 
@@ -547,9 +550,8 @@ bool FindSectionPatternDance::recursivePatternSearch(
 
         restriction_->interpolateBasePath(location, xBaseTmp_);
 
-        double epsNBH = neighborhoodBaseSpace_();
-        std::cout << neighborhoodBaseSpace_.getCounter() << ": " << epsNBH << std::endl;
-        baseSampler->sampleUniformNear(xBaseTmp_, xBaseTmp_, epsNBH);
+        // double epsNBH = neighborhoodBaseSpace_();
+        // baseSampler->sampleUniformNear(xBaseTmp_, xBaseTmp_, epsNBH);
 
         if (!findFeasibleStateOnFiber(xBaseTmp_, xBundleTmp_))
         {

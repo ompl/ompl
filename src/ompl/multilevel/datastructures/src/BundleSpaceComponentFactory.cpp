@@ -99,7 +99,8 @@ BundleSpaceComponentFactory::MakeBundleSpaceComponents(base::SpaceInformationPtr
 }
 
 std::vector<BundleSpaceComponentPtr>
-BundleSpaceComponentFactory::MakeBundleSpaceComponents(base::SpaceInformationPtr Bundle, base::SpaceInformationPtr Base)
+BundleSpaceComponentFactory::MakeBundleSpaceComponents(
+    base::SpaceInformationPtr Bundle, base::SpaceInformationPtr Base)
 {
     const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
     int bundleSpaceComponents = GetNumberOfComponents(Bundle_space);

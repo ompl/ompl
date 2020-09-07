@@ -260,7 +260,7 @@ BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfigurationCondition
         {
             if (!checkAddInterface(q, graphNeighborhood, visibleNeighborhood))
             {
-                if (!hasChild())
+                if (!hasTotalSpace())
                 {
                     // optimality only on last level
                     if (!checkAddPath(q))
@@ -816,7 +816,7 @@ bool BundleSpaceGraphSparse::getSolution(PathPtr &solution)
 
             numVerticesWhenComputingSolutionPath_ = getNumberOfVertices();
 
-            if (!isDynamic() && solutionPath_ != solution && getChild() != nullptr)
+            if (!isDynamic() && solutionPath_ != solution && hasTotalSpace())
             {
                 geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), pathRefinementObj_);
                 

@@ -1,6 +1,0 @@
-[x] Fix path restriction feasible segment to recursive call
-[x] Ensure that goal state moves inside cosntraints when using triple stepping
-[x] Make interpolateAlongBasepath a member of PathRestriction (and rewrite it)
-[x] Remove safety checks in addBundleEdge()
-[ ] Wriggling goes too long
-[ ] Do worst case analysis for pathsection method (or use PTC?)

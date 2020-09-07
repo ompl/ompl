@@ -218,13 +218,5 @@ void BasePathHead::print()
     std::cout << "last base state idx ";
     base->printState(restriction_->getBasePath().at(idx));
     std::cout << "]" << std::endl;
-
-    // double d = base->distance(xBaseCurrent_, restriction_->getBasePath().at(idx));
-    // if(d > 1e-2)
-    // {
-    //   std::cout << "Distance: " << d << std::endl;
-    //   exit(0);
-    // }
-
 }
 

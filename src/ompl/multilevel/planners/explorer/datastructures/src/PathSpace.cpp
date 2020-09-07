@@ -74,7 +74,7 @@ unsigned int ompl::multilevel::PathSpace::getNumberOfPaths() const
 //     const std::vector<BundleSpaceGraph::Vertex> &vertices,
 //     std::vector<int> &idxPath) const
 // {
-//     if (!bundleSpaceGraph_->hasParent())
+//     if (!bundleSpaceGraph_->hasBaseSpace())
 //     {
 //         std::reverse(idxPath.begin(), idxPath.end());
 //         return;

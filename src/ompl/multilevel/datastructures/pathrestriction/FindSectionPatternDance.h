@@ -44,6 +44,8 @@ namespace ompl
         protected:
             std::vector<base::State*> xBundleTemporaries_;
 
+            base::State* xBaseFixed_;
+
             ParameterSmoothStep neighborhoodBaseSpace_;
 
         };

@@ -187,7 +187,7 @@ void BundleSpaceGraph::setup()
     {
         setup_ = false;
     }
-    if(hasParent())
+    if(hasBaseSpace())
     {
         pathRestriction_ = std::make_shared<PathRestriction>(this);
     }
@@ -307,7 +307,7 @@ void BundleSpaceGraph::deleteConfiguration(Configuration *q)
         if (isDynamic())
         {
             const ompl::control::SpaceInformationPtr siC =
-                std::dynamic_pointer_cast<ompl::control::SpaceInformation>(getBundle());
+                std::static_pointer_cast<ompl::control::SpaceInformation>(getBundle());
             siC->freeControl(q->control);
         }
         q->reachableSet.clear();
@@ -656,7 +656,7 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
             solutionPath_ = getPath(vStart_, vGoal_);
             numVerticesWhenComputingSolutionPath_ = getNumberOfVertices();
 
-            if (!isDynamic() && solutionPath_ != solution && getChild() != nullptr)
+            if (!isDynamic() && solutionPath_ != solution && hasTotalSpace())
             {
                 // bool optimize = true;
                 // int type = getBundle()->getStateSpace()->getType();
@@ -687,19 +687,29 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
                 // {
                 geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), pathRefinementObj_);
                 
-                geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
+                geometric::PathGeometric &gpath = 
+                  static_cast<geometric::PathGeometric &>(*solutionPath_);
 
-                shortcutter.simplifyMax(gpath);
-                shortcutter.smoothBSpline(gpath);
+                // @NOTE: optimization seems to improve feasibility of sections
+                // in low-dim problems (up to 20 dof roughly), but will take too
+                // much time for high-dim problems. Reducing vertices seems to
+                // be the only optimization not significantly slowing everything
+                // down.
 
-                gpath.interpolate();
+                // shortcutter.simplifyMax(gpath);
 
                 bool valid = shortcutter.reduceVertices(gpath, 0, 0, 0.1);
+
                 if (!valid)
                 {
                     // reset solutionPath
                     solutionPath_ = getPath(vStart_, vGoal_);
                 }
+
+                geometric::PathGeometric &gpath2 = 
+                  static_cast<geometric::PathGeometric &>(*solutionPath_);
+                shortcutter.smoothBSpline(gpath2);
+                gpath2.interpolate();
                 // }
             }
         }
@@ -767,13 +777,13 @@ ompl::base::PathPtr BundleSpaceGraph::getPath(const Vertex &start, const Vertex 
 
 const PathRestrictionPtr BundleSpaceGraph::getPathRestriction()
 {
-    if (!hasParent())
+    if (!hasBaseSpace())
     {
         OMPL_WARN("Tried getting path restriction without base space");
         return nullptr;
     }
 
-    base::PathPtr basePath = static_cast<BundleSpaceGraph *>(getParent())->solutionPath_;
+    base::PathPtr basePath = static_cast<BundleSpaceGraph *>(getBaseBundleSpace())->solutionPath_;
     pathRestriction_->setBasePath(basePath);
 
     return pathRestriction_;

@@ -117,11 +117,11 @@ void ompl::multilevel::QMPImpl::grow()
         }
     }
     /// DEBUG
-    if(hasBaseSpace())
-    {
-        hasSolution_ = true;
-        return;
-    }
+    // if(hasBaseSpace())
+    // {
+    //     hasSolution_ = true;
+    //     return;
+    // }
     /// DEBUG
 
     //(1) Get Random Sample
@@ -141,6 +141,7 @@ void ompl::multilevel::QMPImpl::grow()
     {
         if (sameComponent(vStart_, vGoal_))
         {
+            std::cout << "Found solution" << std::endl;
             hasSolution_ = true;
         }
     }
@@ -177,7 +178,7 @@ void ompl::multilevel::QMPImpl::expand()
     Configuration *q = pdf.sample(rng_.uniform01());
 
     int s =
-        getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_, false);
+        getBundle()->randomBounceMotion(getBundleSamplerPtr(), q->state, randomWorkStates_.size(), randomWorkStates_, false);
     if (s > 0)
     {
         Configuration *prev = q;
