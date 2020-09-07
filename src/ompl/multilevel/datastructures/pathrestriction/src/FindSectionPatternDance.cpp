@@ -2,6 +2,7 @@
 #include <ompl/multilevel/datastructures/pathrestriction/PathSection.h>
 #include <ompl/multilevel/datastructures/pathrestriction/BasePathHead.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSectionPatternDance.h>
+#include <ompl/multilevel/datastructures/pathrestriction/FindSectionAnalyzer.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
 
 namespace ompl
@@ -9,8 +10,8 @@ namespace ompl
     namespace magic
     {
         static const unsigned int PATH_SECTION_MAX_WRIGGLING = 100;
-        static const unsigned int PATH_SECTION_MAX_DEPTH = 5;
-        static const unsigned int PATH_SECTION_MAX_BRANCHING = 100;
+        static const unsigned int PATH_SECTION_MAX_DEPTH = 2; //3 seems max
+        static const unsigned int PATH_SECTION_MAX_BRANCHING = 500;
         static const unsigned int PATH_SECTION_MAX_TUNNELING = 100;
     }
 }
@@ -23,14 +24,19 @@ FindSectionPatternDance::FindSectionPatternDance(PathRestriction* restriction):
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
 
-    xBundleTemporaries_.resize(magic::PATH_SECTION_MAX_DEPTH * magic::PATH_SECTION_MAX_BRANCHING);
-    bundle->allocStates(xBundleTemporaries_);
-
     neighborhoodBaseSpace_.setValueInit(0);
     neighborhoodBaseSpace_.setValueTarget(validBaseSpaceSegmentLength_);
-
     neighborhoodBaseSpace_.setCounterInit(0);
     neighborhoodBaseSpace_.setCounterTarget(magic::PATH_SECTION_MAX_BRANCHING);
+    for(uint k = 0; k < magic::PATH_SECTION_MAX_DEPTH; k++)
+    {
+        ParameterSmoothStep param;
+        param.setValueInit(0.01*validBaseSpaceSegmentLength_);
+        param.setValueTarget(2*validBaseSpaceSegmentLength_);
+        param.setCounterInit(0);
+        param.setCounterTarget(magic::PATH_SECTION_MAX_BRANCHING);
+        neighborhoodBaseSpacePerDepth_.push_back(param);
+    }
 
     if(graph->hasBaseSpace())
     {
@@ -43,7 +49,6 @@ FindSectionPatternDance::~FindSectionPatternDance()
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
-    bundle->freeStates(xBundleTemporaries_);
     if(graph->hasBaseSpace())
     {
         base::SpaceInformationPtr base = graph->getBase();
@@ -59,13 +64,13 @@ bool FindSectionPatternDance::solve(BasePathHeadPtr& head)
     bool foundFeasibleSection = recursivePatternSearch(head);
     ompl::time::point t1 = ompl::time::now();
 
-    OMPL_WARN("FindSectionPatternDance required %.2fs.", ompl::time::seconds(t1 - tStart));
+    OMPL_DEBUG("FindSectionPatternDance required %.2fs.", ompl::time::seconds(t1 - tStart));
 
     if(!foundFeasibleSection)
     {
         foundFeasibleSection = recursivePatternSearch(head2, false);
         ompl::time::point t2 = ompl::time::now();
-        OMPL_WARN("FindSectionPatternDance2 required %.2fs.", ompl::time::seconds(t2 - t1));
+        OMPL_DEBUG("FindSectionPatternDance2 required %.2fs.", ompl::time::seconds(t2 - t1));
     }
 
     return foundFeasibleSection;
@@ -92,147 +97,6 @@ bool FindSectionPatternDance::sideStepAlongFiber(Configuration* &xOrigin, base::
 
     }
     return false;
-}
-
-bool FindSectionPatternDance::tripleStep(
-    BasePathHeadPtr& head,
-    const base::State *sBundleGoal,
-    double locationOnBasePathGoal)
-{
-    BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    base::SpaceInformationPtr bundle = graph->getBundle();
-    base::SpaceInformationPtr base = graph->getBase();
-    base::SpaceInformationPtr fiber = graph->getFiber();
-
-    base::State* xBundleStartTmp = bundle->allocState();
-    base::State* xBundleGoalTmp = bundle->allocState();
-    base::State* xBase = base->cloneState(head->getStateBase());
-    const base::State *sBundleStart = head->getState();
-
-    // const ompl::base::StateSamplerPtr fiberSampler = graph->getFiberSamplerPtr();
-    // const ompl::base::StateSamplerPtr baseSampler = graph->getBaseSamplerPtr();
-
-    graph->projectFiber(sBundleStart, xFiberStart_);
-    graph->projectFiber(sBundleGoal, xFiberGoal_);
-
-    bool found = false;
-
-    //mid point heuristic 
-    fiber->getStateSpace()->interpolate(xFiberStart_, xFiberGoal_, 0.5, xFiberTmp_);
-
-    double location = head->getLocationOnBasePath() - validBaseSpaceSegmentLength_;
-
-    //Triple step connection attempt
-    // xBundleStartTmp <------- xBundleStart
-    //     |
-    //     |
-    //     |
-    //     v
-    // xBundleGoalTmp -------> xBundleGoal
-
-    while(!found && location >= 0)
-    {
-        restriction_->interpolateBasePath(location, xBase);
-
-        graph->liftState(xBase, xFiberTmp_, xBundleStartTmp);
-
-        if (bundle->isValid(xBundleStartTmp))
-        {
-            graph->liftState(xBase, xFiberStart_, xBundleStartTmp);
-            graph->liftState(xBase, xFiberGoal_, xBundleGoalTmp);
-
-            if(bundle->isValid(xBundleStartTmp)
-                && bundle->isValid(xBundleGoalTmp))
-            {
-                if(bundle->checkMotion(xBundleStartTmp, xBundleGoalTmp))
-                {
-                    
-                    bool feasible = true;
-
-                    double fiberDist = fiber->distance(xFiberStart_, xFiberGoal_);
-                    double fiberStepSize = validFiberSpaceSegmentLength_;
-
-                    if(!bundle->checkMotion(sBundleStart, xBundleStartTmp))
-                    {
-                      feasible = false;
-
-                      double fiberLocation = 0.5*fiberDist;
-                      do{
-                        fiberLocation -= fiberStepSize;
-                        
-                        fiber->getStateSpace()->interpolate(
-                            xFiberStart_, xFiberGoal_, fiberLocation/fiberDist, xFiberTmp_);
-
-
-                        graph->liftState(xBase, xFiberTmp_, xBundleStartTmp);
-
-                        if(bundle->checkMotion(sBundleStart, xBundleStartTmp)
-                            && bundle->checkMotion(xBundleStartTmp, xBundleGoalTmp))
-                        {
-                          feasible = true;
-                          break;
-                        }
-                      }while(fiberLocation > -0.5*fiberDist);
-                      //try to repair
-                    }
-                    if(feasible && !bundle->checkMotion(xBundleGoalTmp, sBundleGoal))
-                    {
-                      feasible = false;
-
-                      double fiberLocation = 0.5*fiberDist;
-                      do{
-                        fiberLocation += fiberStepSize;
-
-                        fiber->getStateSpace()->interpolate(
-                            xFiberStart_, xFiberGoal_, fiberLocation/fiberDist, xFiberTmp_);
-
-                        // graph->liftState(xBaseTmp_, xFiberTmp_, xBundleGoalTmp);
-                        graph->liftState(xBase, xFiberTmp_, xBundleGoalTmp);
-
-                        if(bundle->checkMotion(xBundleGoalTmp, sBundleGoal)
-                            && bundle->checkMotion(xBundleStartTmp, xBundleGoalTmp))
-                        {
-                          feasible = true;
-                          break;
-                        }
-
-                      }while(fiberLocation < 1.5*fiberDist);
-                    }
-                    if(feasible)
-                    {
-                        found = true;
-                    }
-                    break;
-                }
-            }
-        }
-
-        location -= validBaseSpaceSegmentLength_;
-    }
-
-    if(found)
-    {
-        Configuration *xBackStep = new Configuration(bundle, xBundleStartTmp);
-        graph->addConfiguration(xBackStep);
-        graph->addBundleEdge(head->getConfiguration(), xBackStep);
-
-
-        Configuration *xSideStep = new Configuration(bundle, xBundleGoalTmp);
-        graph->addConfiguration(xSideStep);
-        graph->addBundleEdge(xBackStep, xSideStep);
-
-        //xBaseTmp_ is on last valid fiber. 
-        Configuration *xGoal = new Configuration(bundle, sBundleGoal);
-        graph->addConfiguration(xGoal);
-        graph->addBundleEdge(xSideStep, xGoal);
-
-        head->setCurrent(xGoal, locationOnBasePathGoal);
-    }
-
-    bundle->freeState(xBundleStartTmp);
-    bundle->freeState(xBundleGoalTmp);
-    base->freeState(xBase);
-    return found;
 }
 
 bool FindSectionPatternDance::tunneling(
@@ -524,19 +388,25 @@ bool FindSectionPatternDance::recursivePatternSearch(
 
     if(curLocation <= prevLocation)
     {
-        //stuck in crevice
         return false;
     }
 
+    //############################################################################
     ////search for alternative openings
-    unsigned int infeasibleCtr = 0;
+    //############################################################################
 
     double location = head->getLocationOnBasePath() + validBaseSpaceSegmentLength_;
 
     const ompl::base::StateSamplerPtr baseSampler = graph->getBaseSamplerPtr();
 
-    // neighborhoodBaseSpace_.reset();
+    neighborhoodBaseSpace_.reset();
+    neighborhoodBaseSpacePerDepth_.at(depth).reset();
 
+    FindSectionAnalyzer analyzer(head);
+
+    //analyzer.disable();
+
+    bool found  = false;
     for (unsigned int j = 0; j < magic::PATH_SECTION_MAX_BRANCHING; j++)
     {
         //############################################################################
@@ -551,40 +421,43 @@ bool FindSectionPatternDance::recursivePatternSearch(
         restriction_->interpolateBasePath(location, xBaseTmp_);
 
         // double epsNBH = neighborhoodBaseSpace_();
-        // baseSampler->sampleUniformNear(xBaseTmp_, xBaseTmp_, epsNBH);
+        double epsNBH = neighborhoodBaseSpacePerDepth_.at(depth)();
+
+        baseSampler->sampleUniformNear(xBaseTmp_, xBaseTmp_, epsNBH);
 
         if (!findFeasibleStateOnFiber(xBaseTmp_, xBundleTmp_))
         {
-            infeasibleCtr++;
+            analyzer("infeasible");
             continue;
         }
 
         if(bundle->checkMotion(head->getState(), xBundleTmp_))
         {
-            infeasibleCtr++;
+            analyzer("locally reachable (ignored)");
             continue;
         }
 
-        if(tripleStep(head, xBundleTmp_, location))
+        if(cornerStep(head, xBundleTmp_, location) || 
+            tripleStep(head, xBundleTmp_, location))
         {
             BasePathHeadPtr newHead(head);
 
             bool feasibleSection = recursivePatternSearch(newHead, false, depth + 1);
             if(feasibleSection)
             {
-                return true;
+                found = true;
+                break;
             }else{
-                infeasibleCtr++;
+                analyzer("no section");
                 continue;
             }
+        }else{
+            analyzer("not reachable (triple step)");
+            continue;
         }
-
     }
-    COUT(depth) << "Failed depth " << depth 
-      << " after sampling " << infeasibleCtr 
-      << " infeasible fiber elements on fiber";
-    COUT(depth) << std::endl;
-    return false;
+    analyzer.print();
+    return found;
 }
 
 

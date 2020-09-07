@@ -2,6 +2,7 @@
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_RESTRICTION_FIND_SECTION_
 #include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
 #include <ompl/multilevel/datastructures/ParameterExponentialDecay.h>
+#include <ompl/multilevel/datastructures/ParameterSmoothStep.h>
 
 namespace ompl
 {
@@ -36,6 +37,16 @@ namespace ompl
             bool findFeasibleStateOnFiber(
                 const base::State *xBase, 
                 base::State *xBundle);
+
+            bool tripleStep(
+                BasePathHeadPtr& head,
+                const base::State *sBundleGoal,
+                double locationOnBasePathGoal);
+
+            bool cornerStep(
+                BasePathHeadPtr& head,
+                const base::State *xBundleTarget,
+                double locationOnBasePathTarget);
         protected:
             /** \brief Pointer to associated bundle space */
             PathRestriction *restriction_;
@@ -60,6 +71,8 @@ namespace ompl
             double validBundleSpaceSegmentLength_;
 
             double validFiberSpaceSegmentLength_;
+
+            ParameterSmoothStep neighborhoodCornerStep_;
         };
     }
 }

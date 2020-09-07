@@ -93,6 +93,10 @@ void ompl::multilevel::BundleSpaceGraphSampler::setPathBiasStartSegment(double s
             geometric::PathGeometric &spath =
                 static_cast<geometric::PathGeometric &>(*bundleSpaceGraph_->solutionPath_);
             OMPL_DEBUG("Set path bias: %f/%f", s, spath.length());
+            if(s > spath.length())
+            {
+              s = spath.length();
+            }
         }
     }
 }
@@ -129,11 +133,10 @@ void ompl::multilevel::BundleSpaceGraphSampler::sample(base::State *xRandom)
         {
             // First one works well for SE3->R3, second one works best for
             // SE3^k->SE3^{k-1}
-            // double endLength = std::min( pathBiasStartSegment_ + 0.1*spath.length(),
-            //     spath.length());
 
             double endLength = spath.length();
-            double distStopping = pathBiasStartSegment_ + rng_.uniform01() * (endLength - pathBiasStartSegment_);
+            double distStopping = pathBiasStartSegment_ 
+              + rng_.uniform01() * (endLength - pathBiasStartSegment_);
 
             // std::cout << "pathbias start:" << pathBiasStartSegment_ << std::endl;
 

@@ -141,7 +141,6 @@ void ompl::multilevel::QMPImpl::grow()
     {
         if (sameComponent(vStart_, vGoal_))
         {
-            std::cout << "Found solution" << std::endl;
             hasSolution_ = true;
         }
     }

@@ -31,16 +31,6 @@ namespace ompl
                 Configuration* &xOrigin, 
                 base::State *state);
 
-            bool tripleStep(
-                BasePathHeadPtr& head,
-                const base::State *sBundleGoal,
-                double locationOnBasePathGoal);
-
-            bool cornerStep(
-                BasePathHeadPtr& head,
-                const base::State *xBundleTarget,
-                double locationOnBasePathTarget);
-
         protected:
             base::State* xBaseFixed_;
 

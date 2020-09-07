@@ -32,21 +32,16 @@ namespace ompl
                 Configuration* &xOrigin, 
                 base::State *state);
 
-            bool tripleStep(
-                BasePathHeadPtr& head,
-                const base::State *sBundleGoal,
-                double locationOnBasePathGoal);
-
             bool wriggleFree(BasePathHeadPtr& head);
 
             bool tunneling(BasePathHeadPtr& head);
 
         protected:
-            std::vector<base::State*> xBundleTemporaries_;
 
             base::State* xBaseFixed_;
 
             ParameterSmoothStep neighborhoodBaseSpace_;
+            std::vector<ParameterSmoothStep> neighborhoodBaseSpacePerDepth_;
 
         };
     }

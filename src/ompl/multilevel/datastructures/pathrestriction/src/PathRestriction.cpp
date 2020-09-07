@@ -102,8 +102,18 @@ void PathRestriction::setBasePath(std::vector<base::State *> basePath)
 
 void PathRestriction::interpolateBasePath(double t, base::State* &state) const
 {
-    assert(t>=0);
-    assert(t<=lengthBasePath_);
+    base::SpaceInformationPtr base = bundleSpaceGraph_->getBase();
+
+    if(t <= 0)
+    {
+        base->copyState(state, basePath_.front());
+        return;
+    }
+    if(t >= lengthBasePath_)
+    {
+        base->copyState(state, basePath_.back());
+        return;
+    }
 
     unsigned int ctr = 0;
     while(t > lengthsCumulativeBasePath_.at(ctr) 
@@ -119,7 +129,6 @@ void PathRestriction::interpolateBasePath(double t, base::State* &state) const
     double dCum = ( ctr > 0 ? lengthsCumulativeBasePath_.at(ctr-1) : 0.0);
     double step = (t - dCum)/d;
     
-    base::SpaceInformationPtr base = bundleSpaceGraph_->getBase();
     base->getStateSpace()->interpolate(s1, s2, step, state);
 }
 
@@ -192,12 +201,12 @@ bool PathRestriction::hasFeasibleSection(
         bundleSpaceGraph_->getNumberOfVertices(),
         bundleSpaceGraph_->getNumberOfEdges());
 
-    if(foundFeasibleSection)
-    {
-        OMPL_ERROR("Found Feasible Section on level %d", bundleSpaceGraph_->getLevel());
-    }else{
-        OMPL_DEBUG("No feasible section found over base path");
-    }
+    // if(foundFeasibleSection)
+    // {
+    //     OMPL_ERROR("Found Feasible Section on level %d", bundleSpaceGraph_->getLevel());
+    // }else{
+    //     OMPL_DEBUG("No feasible section found over base path");
+    // }
 
     return foundFeasibleSection;
 }
