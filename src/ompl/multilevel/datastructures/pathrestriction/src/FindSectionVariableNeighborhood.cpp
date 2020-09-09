@@ -2,6 +2,7 @@
 #include <ompl/multilevel/datastructures/pathrestriction/PathSection.h>
 #include <ompl/multilevel/datastructures/pathrestriction/BasePathHead.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSectionVariableNeighborhood.h>
+#include <ompl/multilevel/datastructures/pathrestriction/FindSectionAnalyzer.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
 
 namespace ompl
@@ -19,7 +20,6 @@ using namespace ompl::multilevel;
 FindSectionVariableNeighborhood::FindSectionVariableNeighborhood(PathRestriction* restriction):
   BaseT(restriction)
 {
-    std::cout << "FINDSECTION variableNeighborhoodPatternSearch" << std::endl;
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
 
@@ -151,8 +151,11 @@ bool FindSectionVariableNeighborhood::variableNeighborhoodPatternSearch(
 
     std::cout << "best dist:" << bestDistance << std::endl;
 
+    FindSectionAnalyzer analyzer(head);
+
     ompl::RNG rng;
 
+    bool found = false;
     for (unsigned int j = 0; j < magic::PATH_SECTION_MAX_BRANCHING; j++)
     {
         double location = rng.uniformReal(headLocation, 
@@ -160,7 +163,7 @@ bool FindSectionVariableNeighborhood::variableNeighborhoodPatternSearch(
 
         restriction_->interpolateBasePath(location, xBaseTmp_);
 
-        // samplerBase->sampleUniformNear(xBaseTmp_, xBaseTmp_, neighborhoodBaseSpace_());
+        samplerBase->sampleUniformNear(xBaseTmp_, xBaseTmp_, neighborhoodBaseSpace_());
 
         if(j < 0.5*magic::PATH_SECTION_MAX_BRANCHING)
         {
@@ -173,6 +176,7 @@ bool FindSectionVariableNeighborhood::variableNeighborhoodPatternSearch(
 
         if (!bundle->isValid(xBundleTmp_))
         {
+            analyzer("infeasible");
             infeasibleCtr++;
             continue;
         }
@@ -183,6 +187,7 @@ bool FindSectionVariableNeighborhood::variableNeighborhoodPatternSearch(
             bestDistance = curDistance;
         }else
         {
+            analyzer("suboptimal");
             infeasibleCtr++;
             continue;
         }
@@ -196,18 +201,16 @@ bool FindSectionVariableNeighborhood::variableNeighborhoodPatternSearch(
                 !interpolateFiberFirst, depth + 1);
             if(feasibleSection)
             {
-                return true;
+                found = true;
             }
             break;
         }else{
-          std::cout << "Failed sidestep" << std::endl;
+          analyzer("failed triple/corner step");
         }
 
     }
-    std::cout << "Failed depth " << depth 
-      << " after sampling " << infeasibleCtr 
-      << " infeasible fiber elements on fiber" << std::endl;
-    return false;
+    analyzer.print();
+    return found;
 }
 
 

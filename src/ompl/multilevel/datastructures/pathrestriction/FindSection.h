@@ -47,7 +47,9 @@ namespace ompl
                 BasePathHeadPtr& head,
                 const base::State *xBundleTarget,
                 double locationOnBasePathTarget);
+
         protected:
+
             /** \brief Pointer to associated bundle space */
             PathRestriction *restriction_;
 

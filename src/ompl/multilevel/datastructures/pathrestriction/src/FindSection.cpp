@@ -209,9 +209,6 @@ bool FindSection::tripleStep(
     base::State* xBase = base->cloneState(head->getStateBase());
     const base::State *sBundleStart = head->getState();
 
-    // const ompl::base::StateSamplerPtr fiberSampler = graph->getFiberSamplerPtr();
-    // const ompl::base::StateSamplerPtr baseSampler = graph->getBaseSamplerPtr();
-
     graph->projectFiber(sBundleStart, xFiberStart_);
     graph->projectFiber(sBundleGoal, xFiberGoal_);
 
