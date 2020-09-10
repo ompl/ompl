@@ -70,9 +70,10 @@ namespace ompl
             int getLastValidBasePathIndex();
             int getLastValidSectionPathIndex();
 
+            /** \brief Methods to access section like std::vector */
             base::State* at(int k) const;
             const base::State* back() const;
-
+            const base::State* front() const;
             int size() const;
 
             /** \brief Add vertex for sNext and edge to xLast by assuming motion

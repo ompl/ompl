@@ -40,9 +40,6 @@ namespace ompl
 
             base::State* xBaseFixed_;
 
-            ParameterSmoothStep neighborhoodBaseSpace_;
-            std::vector<ParameterSmoothStep> neighborhoodBaseSpacePerDepth_;
-
         };
     }
 }

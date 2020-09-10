@@ -24,20 +24,6 @@ FindSectionPatternDance::FindSectionPatternDance(PathRestriction* restriction):
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
 
-    neighborhoodBaseSpace_.setValueInit(0);
-    neighborhoodBaseSpace_.setValueTarget(validBaseSpaceSegmentLength_);
-    neighborhoodBaseSpace_.setCounterInit(0);
-    neighborhoodBaseSpace_.setCounterTarget(magic::PATH_SECTION_MAX_BRANCHING);
-    for(uint k = 0; k < magic::PATH_SECTION_MAX_DEPTH; k++)
-    {
-        ParameterSmoothStep param;
-        param.setValueInit(0.01*validBaseSpaceSegmentLength_);
-        param.setValueTarget(2*validBaseSpaceSegmentLength_);
-        param.setCounterInit(0);
-        param.setCounterTarget(magic::PATH_SECTION_MAX_BRANCHING);
-        neighborhoodBaseSpacePerDepth_.push_back(param);
-    }
-
     if(graph->hasBaseSpace())
     {
         base::SpaceInformationPtr base = graph->getBase();
@@ -410,7 +396,7 @@ bool FindSectionPatternDance::recursivePatternSearch(
     //Then call function recursively with clipped base path
     //############################################################################
 
-    if(wriggleFree(head))// || tunneling(head))
+    if(wriggleFree(head) || tunneling(head))
     {
         BasePathHeadPtr newHead(head);
 
@@ -437,8 +423,17 @@ bool FindSectionPatternDance::recursivePatternSearch(
     const ompl::base::StateSamplerPtr baseSampler = graph->getBaseSamplerPtr();
     const ompl::base::StateSamplerPtr fiberSampler = graph->getFiberSamplerPtr();
 
-    neighborhoodBaseSpace_.reset();
-    neighborhoodBaseSpacePerDepth_.at(depth).reset();
+    //Use smoothly varying parameter to increase neighborhood on base space
+    //while we did not find solution (we model here a change of belief of
+    //staying tight to the path restriction and allowing deviations from it if
+    //we cannot find feasible samples)
+
+    ParameterSmoothStep neighborhoodBaseSpace;
+    neighborhoodBaseSpace.setValueInit(0);
+    neighborhoodBaseSpace.setValueTarget(validBaseSpaceSegmentLength_);
+    neighborhoodBaseSpace.setCounterInit(0);
+    neighborhoodBaseSpace.setCounterTarget(magic::PATH_SECTION_MAX_BRANCHING);
+    neighborhoodBaseSpace.reset();
 
     FindSectionAnalyzer analyzer(head);
 
@@ -447,7 +442,21 @@ bool FindSectionPatternDance::recursivePatternSearch(
     bool found  = false;
 
     const base::State* xBundleTarget = section->back();
+    const base::State* xBundleInit = section->front();
 
+    //@TODO:
+    //  Notes on possible improvements:
+    //  -- Once we find valid sample, it usually represents a neighborhood of
+    //  states. We should then start focusing on that neighborhood to
+    //  exhaustively try to reach it. 
+    //  -- Try to save explored neighborhoods to reroute resources to other
+    //  neighborhoods (i.e. like Tabu Search)
+    //  -- Maybe even build neighborhood graph in non-reachable neighborhood
+    //  (could be useful to explore later on once we go to normal graph/path restriction
+    //  sampling mode)
+    //  -- Might be a bad idea to just discard locally reachable states (i.e.
+    //  sidesteps)
+    //
     for (unsigned int j = 0; j < magic::PATH_SECTION_MAX_BRANCHING; j++)
     {
         //############################################################################
@@ -458,28 +467,38 @@ bool FindSectionPatternDance::recursivePatternSearch(
         // rotations of a cylinder in front of a hole)
         //############################################################################
         // interpolateBasePath(locationOnBasePath + validBaseSpaceSegmentLength_, xBaseTmp_);
+        // double offset = std::max(validBaseSpaceSegmentLength_, epsNBH);
 
-        double epsNBH = neighborhoodBaseSpacePerDepth_.at(depth)();
-
-        double offset = std::max(validBaseSpaceSegmentLength_, epsNBH);
-
-        // location = head->getLocationOnBasePath() + offset;
         location = head->getLocationOnBasePath() + validBaseSpaceSegmentLength_;
 
         restriction_->interpolateBasePath(location, xBaseTmp_);
 
-        // double epsNBH = neighborhoodBaseSpace_();
+        double epsNBH = neighborhoodBaseSpace(); //every time we call it, the NBH size increases
 
         baseSampler->sampleUniformNear(xBaseTmp_, xBaseTmp_, epsNBH);
 
-        //TODO: first sample should be fiber goal
-
         if( j%10 == 0)
         {
-          //TODO: or go randomly towards goal? goal bias?
-            std::cout << "goal bias step " << j << "/" << magic::PATH_SECTION_MAX_BRANCHING << std::endl;
-            graph->projectFiber(xBundleTarget, xFiberTmp_);
+            // Making a sidestep to the goal or start state is often
+            // advantageous and similar to the rrt-style goal bias
+            std::cout << "goal bias step " << j << "/" 
+              << magic::PATH_SECTION_MAX_BRANCHING << std::endl;
+
+            if( j%20 == 0)
+            {
+                graph->projectFiber(xBundleInit, xFiberTmp_);
+            }else{
+                graph->projectFiber(xBundleTarget, xFiberTmp_);
+            }
+
             graph->liftState(xBaseTmp_, xFiberTmp_, xBundleTmp_);
+
+            if (!bundle->isValid(xBundleTmp_))
+            {
+                analyzer("infeasible");
+                continue;
+            }
+
         }else{
             if (!findFeasibleStateOnFiber(xBaseTmp_, xBundleTmp_))
             {

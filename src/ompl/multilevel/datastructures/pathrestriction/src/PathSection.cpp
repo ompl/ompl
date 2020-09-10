@@ -138,6 +138,11 @@ const ompl::base::State* PathSection::back() const
   return section_.back();
 }
 
+const ompl::base::State* PathSection::front() const
+{
+  return section_.front();
+}
+
 void PathSection::interpolateL1FiberFirst(BasePathHeadPtr& head)
 {
     section_.clear();
@@ -346,7 +351,6 @@ void PathSection::sanityCheck(BasePathHeadPtr& head)
             std::cout << "Next valid idx:" << head->getNextValidBasePathIndex() << std::endl;
             std::cout << "Base states:" << std::endl;
             std::cout << *restriction_ << std::endl;
-
             throw Exception("Invalid Section");
         }
     }

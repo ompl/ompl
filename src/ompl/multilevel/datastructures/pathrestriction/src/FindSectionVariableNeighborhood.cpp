@@ -147,7 +147,7 @@ bool FindSectionVariableNeighborhood::variableNeighborhoodPatternSearch(
     int idxNext = head->getNextValidBasePathIndex();
     const base::State *xBaseTarget = restriction_->getBaseStateAt(idxNext);
 
-    double bestDistance = bundle->distance(head->getState(), xBaseTarget);
+    double bestDistance = base->distance(head->getStateBase(), xBaseTarget);
 
     FindSectionAnalyzer analyzer(head);
 
@@ -190,7 +190,7 @@ bool FindSectionVariableNeighborhood::variableNeighborhoodPatternSearch(
             infeasibleCtr++;
             continue;
         }
-        double curDistance = bundle->distance(xBundleTmp_, xBaseTarget);
+        double curDistance = base->distance(xBaseTmp_, xBaseTarget);
 
         if(curDistance < bestDistance)
         {
