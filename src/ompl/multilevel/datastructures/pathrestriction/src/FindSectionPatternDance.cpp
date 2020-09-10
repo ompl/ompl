@@ -374,7 +374,7 @@ bool FindSectionPatternDance::recursivePatternSearch(
 
     if(section->checkMotion(head))
     {
-        section->sanityCheck();
+        // section->sanityCheck();
         return true;
     }
 
@@ -437,7 +437,7 @@ bool FindSectionPatternDance::recursivePatternSearch(
 
     FindSectionAnalyzer analyzer(head);
 
-    // analyzer.disable();
+    analyzer.disable();
 
     bool found  = false;
 
@@ -481,8 +481,8 @@ bool FindSectionPatternDance::recursivePatternSearch(
         {
             // Making a sidestep to the goal or start state is often
             // advantageous and similar to the rrt-style goal bias
-            std::cout << "goal bias step " << j << "/" 
-              << magic::PATH_SECTION_MAX_BRANCHING << std::endl;
+            // std::cout << "goal bias step " << j << "/" 
+            //   << magic::PATH_SECTION_MAX_BRANCHING << std::endl;
 
             if( j%20 == 0)
             {
@@ -505,10 +505,17 @@ bool FindSectionPatternDance::recursivePatternSearch(
                 analyzer("infeasible");
                 continue;
             }
-            if(bundle->checkMotion(head->getState(), xBundleTmp_))
+
+            //automatically accept states which are valid AND far away
+            double dMax = graph->getRange();
+            if(bundle->distance(head->getState(), xBundleTmp_) < dMax)
             {
-                analyzer("locally reachable (ignored)");
-                continue;
+                //accept nearby states only if motion is infeasible
+                if(bundle->checkMotion(head->getState(), xBundleTmp_))
+                {
+                    analyzer("locally reachable (ignored)");
+                    continue;
+                }
             }
         }
 

@@ -264,7 +264,8 @@ double BundleSpaceGraph::getRange() const
     return maxDistance_;
 }
 
-BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si) : state(si->allocState())
+BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si) 
+  : state(si->allocState())
 {
     //Too costly to do dynamic_pointer_cast in every call. Best to create
     //different Configuration classes (dynamic, geometric, etc). Or do inside
@@ -277,7 +278,8 @@ BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &
     //     control = siC->allocControl();
     // }
 }
-BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si, const base::State *state_)
+BundleSpaceGraph::Configuration::Configuration(
+    const base::SpaceInformationPtr &si, const base::State *state_)
   : state(si->cloneState(state_))
 {
     // const ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
@@ -381,35 +383,38 @@ BundleSpaceGraph::Configuration *BundleSpaceGraph::addBundleConfiguration(base::
 
 void BundleSpaceGraph::addBundleEdge(const Configuration *a, const Configuration *b)
 {
-    bool feasible = getBundle()->checkMotion(a->state, b->state);
-    if(!feasible)
-    {
-      std::cout << "Trying to add infeasible bundle edge" << std::endl;
-      getBundle()->printState(a->state);
-      if(!getBundle()->isValid(a->state))
-      {
-        std::cout << "Infeasible state" << std::endl;
-      }
-      getBundle()->printState(b->state);
-      if(!getBundle()->isValid(b->state))
-      {
-        std::cout << "Infeasible state" << std::endl;
-      }
-      throw "";
-    }
+    //@DEBUG
+    // bool feasible = getBundle()->checkMotion(a->state, b->state);
+    // if(!feasible)
+    // {
+    //   std::cout << "Trying to add infeasible bundle edge" << std::endl;
+    //   getBundle()->printState(a->state);
+    //   if(!getBundle()->isValid(a->state))
+    //   {
+    //     std::cout << "Infeasible state" << std::endl;
+    //   }
+    //   getBundle()->printState(b->state);
+    //   if(!getBundle()->isValid(b->state))
+    //   {
+    //     std::cout << "Infeasible state" << std::endl;
+    //   }
+    //   throw "";
+    // }
+    //@DEBUG
     addEdge(a->index, b->index);
 }
 
 BundleSpaceGraph::Vertex BundleSpaceGraph::addConfiguration(Configuration *q)
 {
-  //TODO: DEBUG
-    std::vector<double> reals;
-    getBundle()->getStateSpace()->copyToReals(reals, q->state);
-    if(reals != reals)
-    {
-        getBundle()->printState(q->state);
-        throw Exception("INVALID");
-    }
+    // @DEBUG
+    // std::vector<double> reals;
+    // getBundle()->getStateSpace()->copyToReals(reals, q->state);
+    // if(reals != reals)
+    // {
+    //     getBundle()->printState(q->state);
+    //     throw Exception("INVALID");
+    // }
+    // @DEBUG
 
     Vertex m = boost::add_vertex(q, graph_);
     graph_[m]->total_connection_attempts = 1;

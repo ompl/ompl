@@ -155,11 +155,10 @@ void PathSection::interpolateL1FiberFirst(BasePathHeadPtr& head)
 
     int size = head->getNumberOfRemainingStates() + 1;
 
-    std::cout << "Remaining states:" << size << std::endl;
-    std::cout << "Restriction size:" << restriction_->size() << std::endl;
-    std::cout << "Last valid idx:" << head->getLastValidBasePathIndex() << std::endl;
-    std::cout << "Next valid idx:" << head->getNextValidBasePathIndex() << std::endl;
-
+    // std::cout << "Remaining states:" << size << std::endl;
+    // std::cout << "Restriction size:" << restriction_->size() << std::endl;
+    // std::cout << "Last valid idx:" << head->getLastValidBasePathIndex() << std::endl;
+    // std::cout << "Next valid idx:" << head->getNextValidBasePathIndex() << std::endl;
 
     if (graph->getFiberDimension() > 0)
     {
@@ -192,7 +191,7 @@ void PathSection::interpolateL1FiberFirst(BasePathHeadPtr& head)
             sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(k));
         }
     }
-    sanityCheck(head);
+    // sanityCheck(head);
 }
 
 void PathSection::interpolateL1FiberLast(BasePathHeadPtr& head)
@@ -233,7 +232,7 @@ void PathSection::interpolateL1FiberLast(BasePathHeadPtr& head)
             sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(k));
         }
     }
-    sanityCheck(head);
+    // sanityCheck(head);
 }
 
 void PathSection::interpolateL2()
