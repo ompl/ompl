@@ -160,8 +160,12 @@ double BasePathHead::getLocationOnBasePath() const
 
 int BasePathHead::getNumberOfRemainingStates()
 {
+    //----- | ---------------X-------|---------|
+    //    lastValid        xCurrent    
+    //    would result in three (including current head)
+
     int Nstates = restriction_->getBasePath().size();
-    return Nstates - (lastValidIndexOnBasePath_);
+    return std::max(1, Nstates - (lastValidIndexOnBasePath_ + 1));
 }
 
 void BasePathHead::setLocationOnBasePath(double d)
@@ -183,9 +187,11 @@ const ompl::base::State* BasePathHead::getBaseStateAt(int k) const
         return xBaseCurrent_;
     }
     else{
-        return restriction_->getBasePath().at(lastValidIndexOnBasePath_ + k);
+        int idx = std::min(restriction_->size() - 1, lastValidIndexOnBasePath_ + k);
+        return restriction_->getBasePath().at(idx);
     }
 }
+
 int BasePathHead::getBaseStateIndexAt(int k) const
 {
     //----- | ---------------X-------|---------
@@ -195,8 +201,9 @@ int BasePathHead::getBaseStateIndexAt(int k) const
     int idx = lastValidIndexOnBasePath_ + k;
     if(idx > restriction_->size()-1)
     {
-      std::cout << "idx " << idx << std::endl;
-      throw Exception("WrongIndex");
+      idx = restriction_->size() - 1;
+      // std::cout << "idx " << idx << std::endl;
+      // throw Exception("WrongIndex");
     }
     return idx;
 }

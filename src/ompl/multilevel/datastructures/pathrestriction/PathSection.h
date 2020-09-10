@@ -7,7 +7,7 @@ namespace ompl
 {
     namespace multilevel
     {
-        OMPL_CLASS_FORWARD(PathRestriction);
+        class PathRestriction;
         OMPL_CLASS_FORWARD(BasePathHead);
 
         /** \brief Representation of a path section (not necessarily feasible). 
@@ -63,6 +63,7 @@ namespace ompl
 
             /** \brief checks if section is feasible */
             void sanityCheck();
+            void sanityCheck(BasePathHeadPtr&);
 
             // double getLastValidBasePathLocation();
 
@@ -70,6 +71,7 @@ namespace ompl
             int getLastValidSectionPathIndex();
 
             base::State* at(int k) const;
+            const base::State* back() const;
 
             int size() const;
 
@@ -83,15 +85,13 @@ namespace ompl
 
             Configuration* getLastValidConfiguration();
 
-            friend std::ostream &operator<<(std::ostream &, const PathSection&);
+            friend std::ostream& operator<<(std::ostream&, const PathSection&);
 
             void print() const;
 
           protected:
 
             PathRestriction *restriction_;
-
-            BasePathHeadPtr head_;
 
             /** \brief Interpolated section along restriction */
             std::vector<base::State*> section_;

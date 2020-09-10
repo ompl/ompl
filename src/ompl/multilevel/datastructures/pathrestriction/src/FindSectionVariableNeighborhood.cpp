@@ -28,7 +28,7 @@ FindSectionVariableNeighborhood::FindSectionVariableNeighborhood(PathRestriction
     neighborhoodBaseSpace_.setCounterInit(0);
     neighborhoodBaseSpace_.setCounterTarget(magic::PATH_SECTION_MAX_SAMPLING);
 
-    neighborhoodFiberSpace_.setValueInit(0);
+    neighborhoodFiberSpace_.setValueInit(validFiberSpaceSegmentLength_);
     neighborhoodFiberSpace_.setValueTarget(4*validFiberSpaceSegmentLength_);
     neighborhoodFiberSpace_.setCounterInit(0);
     neighborhoodFiberSpace_.setCounterTarget(magic::PATH_SECTION_MAX_BRANCHING);
@@ -149,9 +149,9 @@ bool FindSectionVariableNeighborhood::variableNeighborhoodPatternSearch(
 
     double bestDistance = bundle->distance(head->getState(), xBaseTarget);
 
-    std::cout << "best dist:" << bestDistance << std::endl;
-
     FindSectionAnalyzer analyzer(head);
+
+    const base::State* xBundleTarget = section->back();
 
     ompl::RNG rng;
 
@@ -161,13 +161,23 @@ bool FindSectionVariableNeighborhood::variableNeighborhoodPatternSearch(
         double location = rng.uniformReal(headLocation, 
             headLocation + validBaseSpaceSegmentLength_);
 
+        // double location = headLocation;
+        double eps = std::min(neighborhoodBaseSpace_(), location - head->getLocationOnBasePath());
+
         restriction_->interpolateBasePath(location, xBaseTmp_);
 
-        samplerBase->sampleUniformNear(xBaseTmp_, xBaseTmp_, neighborhoodBaseSpace_());
+        samplerBase->sampleUniformNear(xBaseTmp_, xBaseTmp_, eps);
 
-        if(j < 0.5*magic::PATH_SECTION_MAX_BRANCHING)
+        //Select Fiber Space Element
+        if(j % 2 == 0)
         {
-            samplerFiber->sampleUniformNear(xFiberTmp_, xFiberTmp_, neighborhoodFiberSpace_());
+            if( j%10 == 0)
+            {
+                graph->projectFiber(xBundleTarget, xFiberTmp_);
+            }else{
+                samplerFiber->sampleUniformNear(xFiberTmp_, 
+                    head->getStateFiber(), neighborhoodFiberSpace_());
+            }
         }else{
             graph->sampleFiber(xFiberTmp_);
         }

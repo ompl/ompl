@@ -212,6 +212,9 @@ bool FindSection::tripleStep(
     graph->projectFiber(sBundleStart, xFiberStart_);
     graph->projectFiber(sBundleGoal, xFiberGoal_);
 
+    double fiberDist = fiber->distance(xFiberStart_, xFiberGoal_);
+    if(fiberDist < 1e-3) return false;
+
     bool found = false;
 
     //mid point heuristic 
@@ -243,13 +246,12 @@ bool FindSection::tripleStep(
             {
                 if(bundle->checkMotion(xBundleStartTmp, xBundleGoalTmp))
                 {
-                    
                     bool feasible = true;
 
-                    double fiberDist = fiber->distance(xFiberStart_, xFiberGoal_);
-                    double fiberStepSize = validFiberSpaceSegmentLength_;
 
-                    if(!bundle->checkMotion(sBundleStart, xBundleStartTmp))
+                    double fiberStepSize = 2*validFiberSpaceSegmentLength_;
+
+                    if(feasible && !bundle->checkMotion(sBundleStart, xBundleStartTmp))
                     {
                       feasible = false;
 
@@ -268,7 +270,7 @@ bool FindSection::tripleStep(
                           feasible = true;
                           break;
                         }
-                      }while(fiberLocation > -0.2*fiberDist);
+                      }while(fiberLocation > -0.5*fiberDist);
                       //try to repair
                     }
                     if(feasible && !bundle->checkMotion(xBundleGoalTmp, sBundleGoal))
@@ -292,7 +294,7 @@ bool FindSection::tripleStep(
                           break;
                         }
 
-                      }while(fiberLocation < 1.2*fiberDist);
+                      }while(fiberLocation < 1.5*fiberDist);
                     }
                     if(feasible)
                     {
@@ -311,7 +313,6 @@ bool FindSection::tripleStep(
         Configuration *xBackStep = new Configuration(bundle, xBundleStartTmp);
         graph->addConfiguration(xBackStep);
         graph->addBundleEdge(head->getConfiguration(), xBackStep);
-
 
         Configuration *xSideStep = new Configuration(bundle, xBundleGoalTmp);
         graph->addConfiguration(xSideStep);

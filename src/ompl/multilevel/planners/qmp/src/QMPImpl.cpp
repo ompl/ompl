@@ -102,8 +102,9 @@ void ompl::multilevel::QMPImpl::grow()
     if (firstRun_)
     {
         init();
-        vGoal_ = addConfiguration(qGoal_);
         firstRun_ = false;
+
+        vGoal_ = addConfiguration(qGoal_);
 
         if (hasBaseSpace())
         {
@@ -116,13 +117,13 @@ void ompl::multilevel::QMPImpl::grow()
             }
         }
     }
-    /// DEBUG
+    // /// DEBUG
     // if(hasBaseSpace())
     // {
     //     hasSolution_ = true;
     //     return;
     // }
-    /// DEBUG
+    // /// DEBUG
 
     //(1) Get Random Sample
     if (!sampleBundleValid(xRandom_->state))

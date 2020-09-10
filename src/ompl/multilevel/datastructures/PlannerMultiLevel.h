@@ -55,8 +55,10 @@ namespace ompl
         public:
             PlannerMultiLevel(std::vector<ompl::base::SpaceInformationPtr> &siVec,
                               std::string type = "PlannerMultiLevel");
-            PlannerMultiLevel(ompl::base::SpaceInformationPtr si) = delete;
-            PlannerMultiLevel(ompl::base::SpaceInformationPtr si, std::string type) = delete;
+
+            PlannerMultiLevel(ompl::base::SpaceInformationPtr si);
+
+            PlannerMultiLevel(ompl::base::SpaceInformationPtr si, std::string type);
 
             virtual ~PlannerMultiLevel();
 

@@ -68,10 +68,12 @@ namespace ompl
                  and computing the BundleSpaces for each pair in the sequence */
             BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec,
                                 std::string type = "BundleSpacePlanner");
-            BundleSpaceSequence(ompl::base::SpaceInformationPtr si) = delete;
-            BundleSpaceSequence(ompl::base::SpaceInformationPtr si, std::string type) = delete;
+            BundleSpaceSequence(ompl::base::SpaceInformationPtr si);
+            BundleSpaceSequence(ompl::base::SpaceInformationPtr si, std::string type);
 
             virtual ~BundleSpaceSequence();
+
+            void declareBundleSpaces();
 
             /** \brief Return annotated vertices (with information about BundleSpace level) */
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;

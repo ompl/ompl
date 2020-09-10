@@ -47,6 +47,20 @@ PlannerMultiLevel::PlannerMultiLevel(
 {
 }
 
+PlannerMultiLevel::PlannerMultiLevel(ompl::base::SpaceInformationPtr si):
+  BaseT(si, "PlannerMultiLevel")
+{
+    siVec_.push_back(si);
+}
+
+PlannerMultiLevel::PlannerMultiLevel(
+    ompl::base::SpaceInformationPtr si, 
+    std::string type)
+  : BaseT(si, type)
+{
+    siVec_.push_back(si);
+}
+
 PlannerMultiLevel::~PlannerMultiLevel()
 {
 }

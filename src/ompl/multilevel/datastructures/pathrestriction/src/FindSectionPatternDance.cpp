@@ -435,15 +435,19 @@ bool FindSectionPatternDance::recursivePatternSearch(
     double location = head->getLocationOnBasePath() + validBaseSpaceSegmentLength_;
 
     const ompl::base::StateSamplerPtr baseSampler = graph->getBaseSamplerPtr();
+    const ompl::base::StateSamplerPtr fiberSampler = graph->getFiberSamplerPtr();
 
     neighborhoodBaseSpace_.reset();
     neighborhoodBaseSpacePerDepth_.at(depth).reset();
 
     FindSectionAnalyzer analyzer(head);
 
-    analyzer.disable();
+    // analyzer.disable();
 
     bool found  = false;
+
+    const base::State* xBundleTarget = section->back();
+
     for (unsigned int j = 0; j < magic::PATH_SECTION_MAX_BRANCHING; j++)
     {
         //############################################################################
@@ -459,7 +463,8 @@ bool FindSectionPatternDance::recursivePatternSearch(
 
         double offset = std::max(validBaseSpaceSegmentLength_, epsNBH);
 
-        location = head->getLocationOnBasePath() + offset;
+        // location = head->getLocationOnBasePath() + offset;
+        location = head->getLocationOnBasePath() + validBaseSpaceSegmentLength_;
 
         restriction_->interpolateBasePath(location, xBaseTmp_);
 
@@ -467,20 +472,30 @@ bool FindSectionPatternDance::recursivePatternSearch(
 
         baseSampler->sampleUniformNear(xBaseTmp_, xBaseTmp_, epsNBH);
 
-        if (!findFeasibleStateOnFiber(xBaseTmp_, xBundleTmp_))
+        //TODO: first sample should be fiber goal
+
+        if( j%10 == 0)
         {
-            analyzer("infeasible");
-            continue;
+          //TODO: or go randomly towards goal? goal bias?
+            std::cout << "goal bias step " << j << "/" << magic::PATH_SECTION_MAX_BRANCHING << std::endl;
+            graph->projectFiber(xBundleTarget, xFiberTmp_);
+            graph->liftState(xBaseTmp_, xFiberTmp_, xBundleTmp_);
+        }else{
+            if (!findFeasibleStateOnFiber(xBaseTmp_, xBundleTmp_))
+            {
+                analyzer("infeasible");
+                continue;
+            }
+            if(bundle->checkMotion(head->getState(), xBundleTmp_))
+            {
+                analyzer("locally reachable (ignored)");
+                continue;
+            }
         }
 
-        if(bundle->checkMotion(head->getState(), xBundleTmp_))
-        {
-            analyzer("locally reachable (ignored)");
-            continue;
-        }
 
-        if(cornerStep(head, xBundleTmp_, location) || 
-            tripleStep(head, xBundleTmp_, location))
+        // if(cornerStep(head, xBundleTmp_, location) || 
+        if(tripleStep(head, xBundleTmp_, location))
         {
             BasePathHeadPtr newHead(head);
 

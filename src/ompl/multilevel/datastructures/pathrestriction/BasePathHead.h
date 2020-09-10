@@ -48,6 +48,8 @@ namespace ompl
             const base::State* getStateTargetFiber() const;
             base::State* getStateTargetFiberNonConst() const;
 
+            // \brief Remaining discrete states starting at head (including
+            // head)
             int getNumberOfRemainingStates();
 
             //relative to where the head points 

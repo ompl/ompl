@@ -381,27 +381,36 @@ BundleSpaceGraph::Configuration *BundleSpaceGraph::addBundleConfiguration(base::
 
 void BundleSpaceGraph::addBundleEdge(const Configuration *a, const Configuration *b)
 {
-    // bool feasible = getBundle()->checkMotion(a->state, b->state);
-    // if(!feasible)
-    // {
-    //   std::cout << "Trying to add infeasible bundle edge" << std::endl;
-    //   getBundle()->printState(a->state);
-    //   if(!getBundle()->isValid(a->state))
-    //   {
-    //     std::cout << "Infeasible state" << std::endl;
-    //   }
-    //   getBundle()->printState(b->state);
-    //   if(!getBundle()->isValid(b->state))
-    //   {
-    //     std::cout << "Infeasible state" << std::endl;
-    //   }
-    //   throw "";
-    // }
+    bool feasible = getBundle()->checkMotion(a->state, b->state);
+    if(!feasible)
+    {
+      std::cout << "Trying to add infeasible bundle edge" << std::endl;
+      getBundle()->printState(a->state);
+      if(!getBundle()->isValid(a->state))
+      {
+        std::cout << "Infeasible state" << std::endl;
+      }
+      getBundle()->printState(b->state);
+      if(!getBundle()->isValid(b->state))
+      {
+        std::cout << "Infeasible state" << std::endl;
+      }
+      throw "";
+    }
     addEdge(a->index, b->index);
 }
 
 BundleSpaceGraph::Vertex BundleSpaceGraph::addConfiguration(Configuration *q)
 {
+  //TODO: DEBUG
+    std::vector<double> reals;
+    getBundle()->getStateSpace()->copyToReals(reals, q->state);
+    if(reals != reals)
+    {
+        getBundle()->printState(q->state);
+        throw Exception("INVALID");
+    }
+
     Vertex m = boost::add_vertex(q, graph_);
     graph_[m]->total_connection_attempts = 1;
     graph_[m]->successful_connection_attempts = 0;

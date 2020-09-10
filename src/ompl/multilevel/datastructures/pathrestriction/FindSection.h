@@ -60,6 +60,8 @@ namespace ompl
             base::State *xFiberGoal_{nullptr};
             base::State *xFiberTmp_{nullptr};
 
+        protected:
+
             /** \brief Radius of restriction neighborhood */
             ParameterExponentialDecay neighborhoodRadiusBaseSpace_;
 

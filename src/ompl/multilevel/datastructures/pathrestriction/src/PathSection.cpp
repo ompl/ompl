@@ -67,11 +67,13 @@ bool PathSection::checkMotion(BasePathHeadPtr& head)
 
                 double locationOnBasePath = 
                   restriction_->getLengthBasePathUntil(sectionBaseStateIndices_.at(k));
+
                 head->setCurrent(xLast, locationOnBasePath);
             }
             else
             {
                 addFeasibleGoalSegment(head->getConfiguration(), head->getTargetConfiguration());
+                //section_.at(k));
                 return true;
             }
         }
@@ -131,6 +133,11 @@ ompl::base::State* PathSection::at(int k) const
   return section_.at(k);
 }
 
+const ompl::base::State* PathSection::back() const
+{
+  return section_.back();
+}
+
 void PathSection::interpolateL1FiberFirst(BasePathHeadPtr& head)
 {
     section_.clear();
@@ -141,7 +148,13 @@ void PathSection::interpolateL1FiberFirst(BasePathHeadPtr& head)
     base::SpaceInformationPtr bundle = graph->getBundle();
     base::SpaceInformationPtr fiber = graph->getFiber();
 
-    int size = head->getNumberOfRemainingStates();
+    int size = head->getNumberOfRemainingStates() + 1;
+
+    std::cout << "Remaining states:" << size << std::endl;
+    std::cout << "Restriction size:" << restriction_->size() << std::endl;
+    std::cout << "Last valid idx:" << head->getLastValidBasePathIndex() << std::endl;
+    std::cout << "Next valid idx:" << head->getNextValidBasePathIndex() << std::endl;
+
 
     if (graph->getFiberDimension() > 0)
     {
@@ -174,6 +187,7 @@ void PathSection::interpolateL1FiberFirst(BasePathHeadPtr& head)
             sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(k));
         }
     }
+    sanityCheck(head);
 }
 
 void PathSection::interpolateL1FiberLast(BasePathHeadPtr& head)
@@ -185,7 +199,7 @@ void PathSection::interpolateL1FiberLast(BasePathHeadPtr& head)
     const base::SpaceInformationPtr bundle = graph->getBundle();
     const base::SpaceInformationPtr base = graph->getBase();
 
-    int size = head->getNumberOfRemainingStates();
+    int size = head->getNumberOfRemainingStates() + 1;
 
     if (graph->getFiberDimension() > 0)
     {
@@ -214,6 +228,7 @@ void PathSection::interpolateL1FiberLast(BasePathHeadPtr& head)
             sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(k));
         }
     }
+    sanityCheck(head);
 }
 
 void PathSection::interpolateL2()
@@ -288,13 +303,53 @@ void PathSection::addFeasibleGoalSegment(
     Configuration *xGoal)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    if (xGoal->index <= 0)
+    if (graph->vGoal_ <= 0)
     {
         graph->vGoal_ = graph->addConfiguration(xGoal);
     }
     graph->addBundleEdge(xLast, xGoal);
 
     xGoal->parent = xLast;
+}
+
+void PathSection::sanityCheck(BasePathHeadPtr& head)
+{
+    if(section_.size() > 0)
+    {
+        base::State *xi = head->getConfiguration()->state;
+        base::State *xg = head->getTargetConfiguration()->state;
+
+        BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
+        base::SpaceInformationPtr bundle = graph->getBundle();
+        base::SpaceInformationPtr base = graph->getBase();
+
+        double d1 = bundle->distance(section_.front(), xi);
+        double d2 = bundle->distance(section_.back(), xg);
+
+        if( d1 > 1e-5 || d2 > 1e-5)
+        {
+            std::cout << "START STATE" << std::endl;
+            bundle->printState(xi);
+            std::cout << "START STATE (SECTION)" << std::endl;
+            bundle->printState(section_.front());
+            std::cout << "Dist:" << d1 << std::endl;
+            std::cout << "GOAL STATE" << std::endl;
+            bundle->printState(xg);
+            std::cout << "GOAL STATE (SECTION)" << std::endl;
+            bundle->printState(section_.back());
+            std::cout << "Dist:" << d2 << std::endl;
+            int size = head->getNumberOfRemainingStates();
+            std::cout << "Section size: " << section_.size() << std::endl;
+            std::cout << "Remaining states: " << size << std::endl;
+            std::cout << "Restriction size:" << restriction_->size() << std::endl;
+            std::cout << "Last valid idx:" << head->getLastValidBasePathIndex() << std::endl;
+            std::cout << "Next valid idx:" << head->getNextValidBasePathIndex() << std::endl;
+            std::cout << "Base states:" << std::endl;
+            std::cout << *restriction_ << std::endl;
+
+            throw Exception("Invalid Section");
+        }
+    }
 }
 
 void PathSection::sanityCheck()
@@ -322,6 +377,11 @@ void PathSection::sanityCheck()
     }
 }
 
+int PathSection::size() const
+{
+  return section_.size();
+}
+
 void PathSection::print() const
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
@@ -344,14 +404,15 @@ void PathSection::print() const
     std::cout << std::string(80, '-') << std::endl;
 }
 
-int PathSection::size() const
+namespace ompl
 {
-  return section_.size();
-}
-
-std::ostream &operator<<(std::ostream &out, const PathSection &s)
-{
-    out << "PathSection with " << s.size() << " states.";
-    s.print();
-    return out;
+    namespace multilevel
+    {
+        std::ostream& operator<<(std::ostream& out, const PathSection& s)
+        {
+            out << "PathSection with " << s.size() << " states.";
+            s.print();
+            return out;
+        }
+    }
 }
