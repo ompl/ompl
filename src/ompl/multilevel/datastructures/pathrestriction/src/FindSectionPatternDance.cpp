@@ -234,7 +234,6 @@ bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr& head)
     const ompl::base::StateSamplerPtr fiberSampler = graph->getFiberSamplerPtr();
     const ompl::base::StateSamplerPtr baseSampler = graph->getBaseSamplerPtr();
 
-
     base::State* xBundleMidPoint = bundle->allocState();
     int steps = 0;
 
@@ -281,6 +280,7 @@ bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr& head)
                     //#########################################################
                     const base::State* xBaseHead = head->getStateBase();
                     graph->liftState(xBaseHead, xFiberTmp_, xBundleMidPoint);
+
                     if(bundle->checkMotion(head->getState(), xBundleMidPoint)
                         && bundle->checkMotion(xBundleMidPoint, xBundleTmp_))
                     {
@@ -378,9 +378,9 @@ bool FindSectionPatternDance::recursivePatternSearch(
         return true;
     }
 
-    static_cast<BundleSpaceGraph *>(graph->getBaseBundleSpace())
-       ->getGraphSampler()
-       ->setPathBiasStartSegment(head->getLocationOnBasePath());
+    // static_cast<BundleSpaceGraph *>(graph->getBaseBundleSpace())
+    //    ->getGraphSampler()
+    //    ->setPathBiasStartSegment(head->getLocationOnBasePath());
 
     //############################################################################
     //Get last valid state information
@@ -437,7 +437,7 @@ bool FindSectionPatternDance::recursivePatternSearch(
 
     FindSectionAnalyzer analyzer(head);
 
-    analyzer.disable();
+    // analyzer.disable();
 
     bool found  = false;
 
@@ -481,9 +481,6 @@ bool FindSectionPatternDance::recursivePatternSearch(
         {
             // Making a sidestep to the goal or start state is often
             // advantageous and similar to the rrt-style goal bias
-            // std::cout << "goal bias step " << j << "/" 
-            //   << magic::PATH_SECTION_MAX_BRANCHING << std::endl;
-
             if( j%20 == 0)
             {
                 graph->projectFiber(xBundleInit, xFiberTmp_);

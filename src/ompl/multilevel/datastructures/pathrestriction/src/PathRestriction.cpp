@@ -55,8 +55,8 @@ using namespace ompl::multilevel;
 PathRestriction::PathRestriction(BundleSpaceGraph *bundleSpaceGraph)
   : bundleSpaceGraph_(bundleSpaceGraph)
 {
-    findSection_ = std::make_shared<FindSectionPatternDance>(this);
-    // findSection_ = std::make_shared<FindSectionSideStep>(this);
+    // findSection_ = std::make_shared<FindSectionPatternDance>(this);
+    findSection_ = std::make_shared<FindSectionSideStep>(this);
     // findSection_ = std::make_shared<FindSectionVariableNeighborhood>(this);
 }
 

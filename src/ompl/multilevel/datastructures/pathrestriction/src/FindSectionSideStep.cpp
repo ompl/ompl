@@ -73,22 +73,24 @@ bool FindSectionSideStep::recursiveSideStep(
     //Get last valid state information
     //############################################################################
 
-    if (depth+1 >= magic::PATH_SECTION_TREE_MAX_DEPTH)
+    if (depth + 1 >= magic::PATH_SECTION_TREE_MAX_DEPTH)
     {
         return false;
     }
 
-    unsigned int infeasibleCtr = 0;
-
     double location = head->getLocationOnBasePath();
+
+    // base::State* xBase = base->allocState();
+
+    restriction_->interpolateBasePath(location, xBaseTmp_);
+
+    bool found = false;
 
     for (unsigned int j = 0; j < magic::PATH_SECTION_TREE_MAX_BRANCHING; j++)
     {
-        restriction_->interpolateBasePath(location, xBaseTmp_);
 
         if (!findFeasibleStateOnFiber(xBaseTmp_, xBundleTmp_))
         {
-            infeasibleCtr++;
             continue;
         }
 
@@ -107,16 +109,14 @@ bool FindSectionSideStep::recursiveSideStep(
             if(feasibleSection)
             {
                 head = newHead;
-                return true;
+                found = true;
+                break;
             }
         }
 
     }
-    // std::cout << "Failed depth " << depth 
-    //   << " after sampling " << infeasibleCtr 
-    //   << " infeasible fiber elements on fiber"
-    //   << std::endl;
-    return false;
+    // base->freeState(xBase);
+    return found;
 }
 
 
