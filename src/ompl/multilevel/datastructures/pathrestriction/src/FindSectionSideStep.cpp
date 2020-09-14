@@ -26,13 +26,18 @@ FindSectionSideStep::~FindSectionSideStep()
 
 bool FindSectionSideStep::solve(BasePathHeadPtr& head)
 {
+    Configuration *q = head->getConfiguration();
+
     BasePathHeadPtr head2(head);
 
+    std::cout << *head2 << std::endl;
     bool foundFeasibleSection = recursiveSideStep(head);
+    std::cout << *head2 << std::endl;
 
     if(!foundFeasibleSection)
     {
-        foundFeasibleSection = recursiveSideStep(head2, false);
+        head->setCurrent(q, 0);
+        foundFeasibleSection = recursiveSideStep(head, false);
     }
 
     return foundFeasibleSection;
@@ -80,16 +85,16 @@ bool FindSectionSideStep::recursiveSideStep(
 
     double location = head->getLocationOnBasePath();
 
-    // base::State* xBase = base->allocState();
+    base::State* xBase = base->allocState();
 
-    restriction_->interpolateBasePath(location, xBaseTmp_);
+    restriction_->interpolateBasePath(location, xBase);
 
     bool found = false;
 
     for (unsigned int j = 0; j < magic::PATH_SECTION_TREE_MAX_BRANCHING; j++)
     {
 
-        if (!findFeasibleStateOnFiber(xBaseTmp_, xBundleTmp_))
+        if (!findFeasibleStateOnFiber(xBase, xBundleTmp_))
         {
             continue;
         }
@@ -115,7 +120,7 @@ bool FindSectionSideStep::recursiveSideStep(
         }
 
     }
-    // base->freeState(xBase);
+    base->freeState(xBase);
     return found;
 }
 

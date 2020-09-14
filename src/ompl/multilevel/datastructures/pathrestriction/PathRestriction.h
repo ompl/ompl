@@ -132,7 +132,7 @@ namespace ompl
 
             friend std::ostream& operator<<(std::ostream&, const PathRestriction&);
 
-            virtual void print() const;
+            virtual void print(std::ostream&) const;
 
         protected:
             /** \brief Pointer to associated bundle space */

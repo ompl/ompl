@@ -88,7 +88,7 @@ namespace ompl
 
             friend std::ostream& operator<<(std::ostream&, const PathSection&);
 
-            void print() const;
+            void print(std::ostream&) const;
 
           protected:
 

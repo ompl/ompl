@@ -63,7 +63,9 @@ namespace ompl
             int getLastValidBasePathIndex() const;
             void setLastValidBasePathIndex(int k);
 
-            void print();
+            friend std::ostream& operator<<(std::ostream&, const BasePathHead&);
+
+            void print(std::ostream&) const;
 
             PathRestriction* getRestriction() const;
 

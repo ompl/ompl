@@ -385,26 +385,26 @@ int PathSection::size() const
   return section_.size();
 }
 
-void PathSection::print() const
+void PathSection::print(std::ostream& out) const
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
     base::SpaceInformationPtr base = graph->getBase();
 
-    std::cout << std::string(80, '-') << std::endl;
-    std::cout << "PATH SECTION" << std::endl;
-    std::cout << std::string(80, '-') << std::endl;
+    out << std::string(80, '-') << std::endl;
+    out << "PATH SECTION" << std::endl;
+    out << std::string(80, '-') << std::endl;
 
     for (int k = 0; k < std::min((int)section_.size(), 5); k++)
     {
         int idx = sectionBaseStateIndices_.at(k);
         bundle->printState(section_.at(k));
-        std::cout << "Over Base state (idx " << idx << ") ";
+        out << "Over Base state (idx " << idx << ") ";
         base->printState(restriction_->getBasePath().at(idx));
-        std::cout << std::endl;
+        out << std::endl;
     }
 
-    std::cout << std::string(80, '-') << std::endl;
+    out << std::string(80, '-') << std::endl;
 }
 
 namespace ompl
@@ -413,8 +413,7 @@ namespace ompl
     {
         std::ostream& operator<<(std::ostream& out, const PathSection& s)
         {
-            out << "PathSection with " << s.size() << " states.";
-            s.print();
+            s.print(out);
             return out;
         }
     }

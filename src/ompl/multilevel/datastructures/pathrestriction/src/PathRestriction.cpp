@@ -211,14 +211,14 @@ bool PathRestriction::hasFeasibleSection(
     return foundFeasibleSection;
 }
 
-void PathRestriction::print() const
+void PathRestriction::print(std::ostream& out) const
 {
     const base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
     const base::SpaceInformationPtr base = bundleSpaceGraph_->getBase();
 
-    std::cout << std::string(80, '-') << std::endl;
-    std::cout << "PATH RESTRICTION" << std::endl;
-    std::cout << std::string(80, '-') << std::endl;
+    out << std::string(80, '-') << std::endl;
+    out << "PATH RESTRICTION" << std::endl;
+    out << std::string(80, '-') << std::endl;
 
     for(uint k = 0; k < basePath_.size(); k++)
     {
@@ -226,7 +226,7 @@ void PathRestriction::print() const
       const base::State* bk = basePath_.at(k);
       base->printState(bk);
     }
-    std::cout << std::string(80, '-') << std::endl;
+    out << std::string(80, '-') << std::endl;
 }
 
 namespace ompl
@@ -235,8 +235,7 @@ namespace ompl
     {
         std::ostream& operator<<(std::ostream &out, const PathRestriction& r)
         {
-            out << "PathRestriction with " << r.size() << " states.";
-            r.print();
+            r.print(out);
             return out;
         }
     }

@@ -35,11 +35,10 @@ BasePathHead::BasePathHead(const BasePathHead &rhs)
     xTarget_ = rhs.getTargetConfiguration();
     restriction_ = rhs.getRestriction();
 
-    xCurrent_ = rhs.getConfiguration();
     locationOnBasePath_ = rhs.getLocationOnBasePath();
-
     lastValidIndexOnBasePath_ = rhs.getLastValidBasePathIndex();
 
+    xCurrent_ = rhs.getConfiguration();
     xFiberCurrent_ = rhs.getStateFiberNonConst();
     xBaseCurrent_ = rhs.getStateBaseNonConst();
     xFiberTarget_ = rhs.getStateTargetFiberNonConst();
@@ -208,22 +207,33 @@ int BasePathHead::getBaseStateIndexAt(int k) const
     return idx;
 }
 
-void BasePathHead::print()
+void BasePathHead::print(std::ostream &out) const
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
     base::SpaceInformationPtr base = graph->getBase();
 
-    std::cout << "[ Head at:";
+    out << "[ Head at:";
     int idx = getLastValidBasePathIndex();
     bundle->printState(xCurrent_->state);
-    std::cout << "base location " << getLocationOnBasePath()
+    out << "base location " << getLocationOnBasePath()
       << "/" << restriction_->getLengthBasePath()
       << " idx " << idx
       << "/" << restriction_->size()
       << std::endl;
-    std::cout << "last base state idx ";
+    out << "last base state idx ";
     base->printState(restriction_->getBasePath().at(idx));
-    std::cout << "]" << std::endl;
+    out << "]" << std::endl;
 }
 
+namespace ompl
+{
+    namespace multilevel
+    {
+        std::ostream& operator<<(std::ostream &out, const BasePathHead& h)
+        {
+            h.print(out);
+            return out;
+        }
+    }
+}
