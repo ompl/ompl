@@ -9,6 +9,12 @@ namespace ompl
 {
     namespace magic
     {
+        // static const unsigned int PATH_SECTION_MAX_WRIGGLING = 1000;
+        // static const unsigned int PATH_SECTION_MAX_DEPTH = 3; //3 seems max
+        // static const unsigned int PATH_SECTION_MAX_BRANCHING = 1000;
+        // static const unsigned int PATH_SECTION_MAX_TUNNELING = 1000;
+
+        // Values for submission
         static const unsigned int PATH_SECTION_MAX_WRIGGLING = 100;
         static const unsigned int PATH_SECTION_MAX_DEPTH = 2; //3 seems max
         static const unsigned int PATH_SECTION_MAX_BRANCHING = 500;
@@ -130,92 +136,86 @@ bool FindSectionPatternDance::tunneling(
     if(!found)
     {
     }else{
+        found = false;
 
-        //length of tunnel
+        const double locationEndTunnel = curLocation;
+        // const double lengthTunnel = curLocation - head->getLocationOnBasePath();
+        const base::State* xBundleTunnelEnd = bundle->cloneState(xBundleTmp_);
 
+        Configuration *last = head->getConfiguration();
 
-        if(found)
+        curLocation = head->getLocationOnBasePath();
+
+        double bestDistance = bundle->distance(last->state, xBundleTunnelEnd);
+
+        bool makingProgress = true;
+
+        base::State* xBase = base->allocState();
+
+        while (curLocation < locationEndTunnel && makingProgress)
         {
-            found = false;
-
-
-            const double locationEndTunnel = curLocation;
-            // const double lengthTunnel = curLocation - head->getLocationOnBasePath();
-            const base::State* xBundleTunnelEnd = bundle->cloneState(xBundleTmp_);
-
-            Configuration *last = head->getConfiguration();
-
-            curLocation = head->getLocationOnBasePath();
-
-            double bestDistance = bundle->distance(last->state, xBundleTunnelEnd);
-
-            bool makingProgress = true;
-
-            base::State* xBase = base->allocState();
-
-            while (curLocation < locationEndTunnel && makingProgress)
+            if(bundle->checkMotion(last->state, xBundleTunnelEnd))
             {
-                if(bundle->checkMotion(last->state, xBundleTunnelEnd))
+                Configuration *xTunnel = new Configuration(bundle, xBundleTunnelEnd);
+                graph->addConfiguration(xTunnel);
+                graph->addBundleEdge(last, xTunnel);
+
+                head->setCurrent(xTunnel, locationEndTunnel);
+
+                base->freeState(xBase);
+
+                return true;
+            }
+
+            curLocation += validBaseSpaceSegmentLength_;
+
+            restriction_->interpolateBasePath(curLocation, xBaseTmp_);
+
+            makingProgress = false;
+
+            unsigned int ctr = 0;
+
+            neighborhoodRadiusBaseSpace_.reset();
+
+            while(ctr++ < magic::PATH_SECTION_MAX_TUNNELING)
+            {
+                double d = neighborhoodRadiusBaseSpace_();
+
+                baseSampler->sampleUniformNear(xBase, xBaseTmp_, d);
+
+                fiberSampler->sampleUniformNear(xFiberTmp_, head->getStateFiber(), 
+                    4*validFiberSpaceSegmentLength_);
+
+                graph->liftState(xBase, xFiberTmp_, xBundleTmp_);
+
+                if(bundle->isValid(xBundleTmp_))
                 {
-                    Configuration *xTunnel = new Configuration(bundle, xBundleTunnelEnd);
-                    graph->addConfiguration(xTunnel);
-                    graph->addBundleEdge(last, xTunnel);
-
-                    head->setCurrent(xTunnel, locationEndTunnel);
-
-                    base->freeState(xBase);
-
-                    return true;
-                }
-
-                curLocation += validBaseSpaceSegmentLength_;
-
-                restriction_->interpolateBasePath(curLocation, xBaseTmp_);
-
-                makingProgress = false;
-
-                unsigned int ctr = 0;
-
-                while(ctr++ < magic::PATH_SECTION_MAX_TUNNELING)
-                {
-                    double d = neighborhoodRadiusBaseSpace_();
-
-                    baseSampler->sampleUniformNear(xBase, xBaseTmp_, d);
-
-                    fiberSampler->sampleUniformNear(xFiberTmp_, head->getStateFiber(), 
-                        4*validFiberSpaceSegmentLength_);
-
-                    graph->liftState(xBase, xFiberTmp_, xBundleTmp_);
-
-                    if(bundle->isValid(xBundleTmp_))
+                    double d = bundle->distance(xBundleTmp_, xBundleTunnelEnd);
+                    if( d < bestDistance)
                     {
-                        double d = bundle->distance(xBundleTmp_, xBundleTunnelEnd);
-                        if( d < bestDistance)
+                        if(bundle->checkMotion(last->state, xBundleTmp_))
                         {
-                            if(bundle->checkMotion(last->state, xBundleTmp_))
-                            {
-                                Configuration *xTunnelStep = new Configuration(bundle, xBundleTmp_);
-                                graph->addConfiguration(xTunnelStep);
-                                graph->addBundleEdge(last, xTunnelStep);
+                            Configuration *xTunnelStep = new Configuration(bundle, xBundleTmp_);
+                            graph->addConfiguration(xTunnelStep);
+                            graph->addBundleEdge(last, xTunnelStep);
 
-                                last = xTunnelStep;
+                            last = xTunnelStep;
 
-                                makingProgress = true;
-                                bestDistance = d;
-                                //add new configurations, but do not change head
-                                //yet
-                            }
+                            makingProgress = true;
+                            bestDistance = d;
+                            //add new configurations, but do not change head
+                            //yet
                         }
                     }
                 }
             }
-            // if(!makingProgress)
-            // {
-            //   std::cout << "Stopped tunnel at " << curLocation << " of tunnel distance "
-            //    << head->getLocationOnBasePath() << " to " << locationEndTunnel << std::endl;
-            // }
-            base->freeState(xBase);
         }
+        // if(!makingProgress)
+        // {
+        //   std::cout << "Stopped tunnel at " << curLocation << " of tunnel distance "
+        //    << head->getLocationOnBasePath() << " to " << locationEndTunnel << std::endl;
+        // }
+        base->freeState(xBase);
     }
 
     return false;
@@ -470,23 +470,25 @@ bool FindSectionPatternDance::recursivePatternSearch(
         // double offset = std::max(validBaseSpaceSegmentLength_, epsNBH);
 
         location = head->getLocationOnBasePath() + validBaseSpaceSegmentLength_;
+        // location = head->getLocationOnBasePath();
 
         restriction_->interpolateBasePath(location, xBaseTmp_);
 
-        double epsNBH = neighborhoodBaseSpace(); //every time we call it, the NBH size increases
+        // double epsNBH = neighborhoodBaseSpace(); //every time we call it, the NBH size increases
 
-        baseSampler->sampleUniformNear(xBaseTmp_, xBaseTmp_, epsNBH);
+        // baseSampler->sampleUniformNear(xBaseTmp_, xBaseTmp_, epsNBH);
 
-        if( j%10 == 0)
+        if( j==0 || j%10 == 0)
         {
             // Making a sidestep to the goal or start state is often
             // advantageous and similar to the rrt-style goal bias
             if( j%20 == 0)
             {
-                graph->projectFiber(xBundleInit, xFiberTmp_);
-            }else{
                 graph->projectFiber(xBundleTarget, xFiberTmp_);
+            }else{
+                graph->projectFiber(xBundleInit, xFiberTmp_);
             }
+            // graph->projectFiber(xBundleTarget, xFiberTmp_);
 
             graph->liftState(xBaseTmp_, xFiberTmp_, xBundleTmp_);
 

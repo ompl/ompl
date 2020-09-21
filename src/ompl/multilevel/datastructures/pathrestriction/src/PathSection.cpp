@@ -232,57 +232,51 @@ void PathSection::interpolateL1FiberLast(BasePathHeadPtr& head)
             sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(k));
         }
     }
-    // sanityCheck(head);
+    sanityCheck(head);
 }
 
-void PathSection::interpolateL2()
+void PathSection::interpolateL2(BasePathHeadPtr& head)
 {
-    throw ompl::Exception("NYI");
-    // section_.clear();
-    // sectionBaseStateIndices_.clear();
+    section_.clear();
+    sectionBaseStateIndices_.clear();
 
-    // BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    // base::SpaceInformationPtr bundle = graph->getBundle();
-    // const std::vector<base::State *> basePath = restriction_->getBasePath();
+    BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
+    base::SpaceInformationPtr bundle = graph->getBundle();
+    const std::vector<base::State *> basePath = restriction_->getBasePath();
 
-    // section_.resize(basePath.size());
+    int size = head->getNumberOfRemainingStates() + 1;
 
-    // bundle->allocStates(section_);
+    section_.resize(size);
+    bundle->allocStates(section_);
 
-    // double totalLengthBasePath = 0.0;
-    // for (unsigned int k = 1; k < basePath.size(); k++)
-    // {
-    //     totalLengthBasePath += graph->getBase()->distance(basePath.at(k - 1), basePath.at(k));
-    // }
+    if (graph->getFiberDimension() > 0)
+    {
+        const base::State* xFiberStart = head->getStateFiber();
+        const base::State* xFiberGoal = head->getStateTargetFiber();
 
-    // if (graph->getFiberDimension() > 0)
-    // {
-    //     double lengthCurrent = 0;
+        double totalLengthBasePath = restriction_->getLengthBasePath();
 
-    //     for (unsigned int k = 0; k < basePath.size(); k++)
-    //     {
-    //         double step = lengthCurrent / totalLengthBasePath;
+        const base::SpaceInformationPtr fiber = graph->getFiber();
+        for (unsigned int k = 0; k < restriction_->size(); k++)
+        {
+            double lengthCurrent = restriction_->getLengthBasePathUntil(k);
+            double step = lengthCurrent / totalLengthBasePath;
 
-    //         graph->getFiber()->getStateSpace()->interpolate(xFiberStart, xFiberGoal, step, xFiberTmp_);
+            fiber->getStateSpace()->interpolate(xFiberStart, xFiberGoal, step, xFiberTmp_);
 
-    //         graph->liftState(basePath.at(k), xFiberTmp_, section_.at(k));
+            graph->liftState(restriction_->getBaseStateAt(k), xFiberTmp_, section_.at(k));
 
-    //         if (k < basePath.size() - 1)
-    //         {
-    //             lengthCurrent += graph->getBase()->distance(basePath.at(k), basePath.at(k + 1));
-    //         }
-
-    //         sectionBaseStateIndices_.push_back(k);
-    //     }
-    // }
-    // else
-    // {
-    //     for (unsigned int k = 0; k < basePath.size(); k++)
-    //     {
-    //         bundle->copyState(section_.at(k), basePath.at(k));
-    //         sectionBaseStateIndices_.push_back(k);
-    //     }
-    // }
+            sectionBaseStateIndices_.push_back(k);
+        }
+    }
+    else
+    {
+        for (unsigned int k = 0; k < basePath.size(); k++)
+        {
+            bundle->copyState(section_.at(k), basePath.at(k));
+            sectionBaseStateIndices_.push_back(k);
+        }
+    }
 }
 
 BundleSpaceGraph::Configuration*
@@ -395,9 +389,15 @@ void PathSection::print(std::ostream& out) const
     out << "PATH SECTION" << std::endl;
     out << std::string(80, '-') << std::endl;
 
-    for (int k = 0; k < std::min((int)section_.size(), 5); k++)
+    out << section_.size() << " states over " 
+      << restriction_->size() << " base states." << std::endl;
+
+    int maxDisplay = 5;
+    for (int k = 0; k < section_.size(); k++)
     {
+        if(k > maxDisplay && (int)k < std::max(0, (int)section_.size() - maxDisplay)) continue;
         int idx = sectionBaseStateIndices_.at(k);
+        out << "State " << k << ": ";
         bundle->printState(section_.at(k));
         out << "Over Base state (idx " << idx << ") ";
         base->printState(restriction_->getBasePath().at(idx));

@@ -248,36 +248,36 @@ bool FindSection::tripleStep(
                 {
                     bool feasible = true;
 
-
                     double fiberStepSize = 2*validFiberSpaceSegmentLength_;
+                    // double fiberStepSize = validFiberSpaceSegmentLength_;
 
-                    if(feasible && !bundle->checkMotion(sBundleStart, xBundleStartTmp))
+                    if(!bundle->checkMotion(sBundleStart, xBundleStartTmp))
                     {
                       feasible = false;
 
-                      double fiberLocation = 0.5*fiberDist;
-                      do{
-                        fiberLocation -= fiberStepSize;
+                     double fiberLocation = 0.25*fiberDist;
+                     do{
+                       fiberLocation -= fiberStepSize;
                         
-                        fiber->getStateSpace()->interpolate(
-                            xFiberStart_, xFiberGoal_, fiberLocation/fiberDist, xFiberTmp_);
+                       fiber->getStateSpace()->interpolate(
+                           xFiberStart_, xFiberGoal_, fiberLocation/fiberDist, xFiberTmp_);
 
-                        graph->liftState(xBase, xFiberTmp_, xBundleStartTmp);
+                       graph->liftState(xBase, xFiberTmp_, xBundleStartTmp);
 
-                        if(bundle->checkMotion(sBundleStart, xBundleStartTmp)
-                            && bundle->checkMotion(xBundleStartTmp, xBundleGoalTmp))
-                        {
-                          feasible = true;
-                          break;
-                        }
-                      }while(fiberLocation > -0.5*fiberDist);
-                      //try to repair
+                       if(bundle->checkMotion(sBundleStart, xBundleStartTmp)
+                           && bundle->checkMotion(xBundleStartTmp, xBundleGoalTmp))
+                       {
+                         feasible = true;
+                         break;
+                       }
+                     }while(fiberLocation > -0.25*fiberDist);
+                     //try to repair
                     }
                     if(feasible && !bundle->checkMotion(xBundleGoalTmp, sBundleGoal))
                     {
                       feasible = false;
 
-                      double fiberLocation = 0.5*fiberDist;
+                      double fiberLocation = 0.25*fiberDist;
                       do{
                         fiberLocation += fiberStepSize;
 
@@ -294,7 +294,7 @@ bool FindSection::tripleStep(
                           break;
                         }
 
-                      }while(fiberLocation < 1.5*fiberDist);
+                      }while(fiberLocation < 1.25*fiberDist);
                     }
                     if(feasible)
                     {

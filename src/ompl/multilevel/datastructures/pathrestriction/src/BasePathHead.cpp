@@ -163,6 +163,11 @@ int BasePathHead::getNumberOfRemainingStates()
     //    lastValid        xCurrent    
     //    would result in three (including current head)
 
+    if(getLocationOnBasePath() >= restriction_->getLengthBasePath())
+    {
+      return 1;
+    }
+
     int Nstates = restriction_->getBasePath().size();
     return std::max(1, Nstates - (lastValidIndexOnBasePath_ + 1));
 }

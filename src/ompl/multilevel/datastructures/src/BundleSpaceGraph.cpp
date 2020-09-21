@@ -711,15 +711,15 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
 
 
                 bool valid = false;
-                // std::cout << "Optimize" << std::endl;
+                std::cout << "Optimize" << std::endl;
                 for(uint k = 0; k < 3; k++)
                 {
                     geometric::PathGeometric &gpath = 
                       static_cast<geometric::PathGeometric &>(*solutionPath_);
 
-                    // valid = shortcutter.reduceVertices(gpath, 0, 0, 0.1);
+                    valid = shortcutter.reduceVertices(gpath, 0, 0, 0.1);
 
-                    valid = shortcutter.simplifyMax(gpath);
+                    // valid = shortcutter.simplifyMax(gpath);
 
                     if (!valid)
                     {
@@ -729,14 +729,14 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
                         break;
                     }
                 }
-                // std::cout << "Done" << std::endl;
+                std::cout << "Done" << std::endl;
 
                 geometric::PathGeometric &gpath2 = 
                   static_cast<geometric::PathGeometric &>(*solutionPath_);
 
-                shortcutter.smoothBSpline(gpath2);
+                // shortcutter.smoothBSpline(gpath2);
 
-                gpath2.interpolate();
+                // gpath2.interpolate();
                 // }
             }
         }

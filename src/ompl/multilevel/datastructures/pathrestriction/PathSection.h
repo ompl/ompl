@@ -31,9 +31,7 @@ namespace ompl
               *   ___/
               *  x
               *  --------------- */
-            void interpolateL2();
-                // const base::State* fiberStart, 
-                // const base::State* fiberGoal);
+            void interpolateL2(BasePathHeadPtr&);
 
             /** \brief Interpolate along restriction using L1 metric
               * (Fiber first)
