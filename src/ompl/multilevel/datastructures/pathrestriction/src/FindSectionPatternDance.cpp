@@ -436,8 +436,7 @@ bool FindSectionPatternDance::recursivePatternSearch(
     neighborhoodBaseSpace.reset();
 
     FindSectionAnalyzer analyzer(head);
-
-    // analyzer.disable();
+    analyzer.disable();
 
     bool found  = false;
 

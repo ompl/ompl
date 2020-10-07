@@ -145,11 +145,9 @@ void BundleSpaceGraphSparse::clear()
     {
         std::vector<Configuration *> configs;
         nearestSparse_->list(configs);
-        std::cout << "Found " << configs.size() << std::endl;
         int ctr = 0;
         for (auto &config : configs)
         {
-            std::cout << ctr++ << "/" << configs.size() << std::endl;
             deleteConfiguration(config);
         }
         nearestSparse_->clear();
@@ -276,9 +274,6 @@ BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfiguration(Configur
     graphSparse_[vl]->total_connection_attempts = 1;
     graphSparse_[vl]->successful_connection_attempts = 0;
     graphSparse_[vl]->index = vl;
-
-    std::cout << "Adding state" << std::endl;
-    printConfiguration(q);
 
     nearestSparse_->add(q);
 
@@ -850,7 +845,7 @@ bool BundleSpaceGraphSparse::getSolution(PathPtr &solution)
                 // gpath.interpolate();
 
                 // bool valid = shortcutter.simplifyMax(gpath);
-                std::cout << "Optimize path from " << solutionPath_->length() << std::flush;
+                // std::cout << "Optimize path from " << solutionPath_->length() << std::flush;
                 bool valid = shortcutter.reduceVertices(gpath);
                 // shortcutter.smoothBSpline(gpath);
 
