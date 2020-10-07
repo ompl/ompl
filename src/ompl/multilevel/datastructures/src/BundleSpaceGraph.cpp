@@ -657,6 +657,23 @@ double BundleSpaceGraph::getGraphLength() const
     return graphLength_;
 }
 
+BundleSpaceGraph::Vertex BundleSpaceGraph::getStartIndex() const
+{
+  return vStart_;
+}
+BundleSpaceGraph::Vertex BundleSpaceGraph::getGoalIndex() const
+{
+  return vGoal_;
+}
+void BundleSpaceGraph::setStartIndex(Vertex idx)
+{
+  vStart_ = idx;
+}
+void BundleSpaceGraph::setGoalIndex(Vertex idx)
+{
+  vGoal_ = idx;
+}
+
 bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
 {
     if (hasSolution_)

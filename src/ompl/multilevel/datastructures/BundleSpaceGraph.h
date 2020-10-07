@@ -248,8 +248,6 @@ namespace ompl
 
             Configuration *qStart_{nullptr};
             Configuration *qGoal_{nullptr};
-            Vertex vStart_;
-            Vertex vGoal_;
 
             std::vector<Vertex> shortestVertexPath_;
             double lengthStartGoalVertexPath_;
@@ -308,7 +306,14 @@ namespace ompl
 
             virtual void addEdge(const Vertex a, const Vertex b);
 
+            virtual Vertex getGoalIndex() const;
+            virtual Vertex getStartIndex() const;
+            virtual void setGoalIndex(Vertex);
+            virtual void setStartIndex(Vertex);
         protected:
+            Vertex vStart_;
+            Vertex vGoal_;
+
             ompl::base::Cost costHeuristic(Vertex u, Vertex v) const;
 
             /** \brief Nearest neighbor structure for Bundle space configurations */

@@ -301,9 +301,9 @@ void PathSection::addFeasibleGoalSegment(
     Configuration *xGoal)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    if (graph->vGoal_ <= 0)
+    if (graph->getGoalIndex() <= 0)
     {
-        graph->vGoal_ = graph->addConfiguration(xGoal);
+        graph->setGoalIndex(graph->addConfiguration(xGoal));
     }
     graph->addBundleEdge(xLast, xGoal);
 

@@ -36,7 +36,7 @@
 
 /* Author: Andreas Orthey, Sohaib Akbar */
 
-#include <ompl/multilevel/planners/sparse/SPQRImpl.h>
+#include <ompl/multilevel/planners/sparse/SMLRImpl.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <boost/foreach.hpp>
 #include <ompl/datastructures/NearestNeighbors.h>
@@ -46,14 +46,14 @@
 
 #define foreach BOOST_FOREACH
 
-ompl::multilevel::SPQRImpl::SPQRImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
+ompl::multilevel::SMLRImpl::SMLRImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
-    setName("SPQRImpl" + std::to_string(id_));
+    setName("SMLRImpl" + std::to_string(id_));
     randomWorkStates_.resize(5);
     getBundle()->allocStates(randomWorkStates_);
 
     setMetric("geodesic");
-    setGraphSampler("randomvertex");
+    setGraphSampler("randomedge");
     setImportance("exponential");
 
     double d = (double)getBundle()->getStateDimension();
@@ -63,12 +63,12 @@ ompl::multilevel::SPQRImpl::SPQRImpl(const base::SpaceInformationPtr &si, Bundle
     firstRun_ = true;
 }
 
-ompl::multilevel::SPQRImpl::~SPQRImpl()
+ompl::multilevel::SMLRImpl::~SMLRImpl()
 {
     getBundle()->freeStates(randomWorkStates_);
 }
 
-void ompl::multilevel::SPQRImpl::grow()
+void ompl::multilevel::SMLRImpl::grow()
 {
     if (firstRun_)
     {
@@ -86,14 +86,6 @@ void ompl::multilevel::SPQRImpl::grow()
             }
         }
     }
-    /// DEBUG
-    if(hasBaseSpace())
-    {
-        //make infeasible
-        consecutiveFailures_ = maxFailures_;
-        return;
-    }
-    /// DEBUG
 
     if (!sampleBundleValid(xRandom_->state))
     {
@@ -118,7 +110,7 @@ void ompl::multilevel::SPQRImpl::grow()
     }
 }
 
-// void ompl::multilevel::SPQRImpl::expand()
+// void ompl::multilevel::SMLRImpl::expand()
 // {
 //     PDF pdf;
 
@@ -144,7 +136,7 @@ void ompl::multilevel::SPQRImpl::grow()
 //     }
 // }
 
-// void ompl::multilevel::SPQRImpl::connectNeighbors(Configuration *q)
+// void ompl::multilevel::SMLRImpl::connectNeighbors(Configuration *q)
 // {
 
 //     // Calculate K
@@ -202,7 +194,7 @@ void ompl::multilevel::SPQRImpl::grow()
 //     }
 // }
 
-bool ompl::multilevel::SPQRImpl::isInfeasible()
+bool ompl::multilevel::SMLRImpl::isInfeasible()
 {
     bool progressFailure = ((consecutiveFailures_ >= maxFailures_) && !hasSolution_);
     if (progressFailure)

@@ -79,6 +79,11 @@ namespace ompl
 
             virtual void addEdge(const Vertex a, const Vertex b) override;
 
+            virtual Vertex getGoalIndex() const override;
+            virtual Vertex getStartIndex() const override;
+            virtual void setGoalIndex(Vertex);
+            virtual void setStartIndex(Vertex);
+
             virtual unsigned int getNumberOfVertices() const override;
             virtual unsigned int getNumberOfEdges() const override;
 

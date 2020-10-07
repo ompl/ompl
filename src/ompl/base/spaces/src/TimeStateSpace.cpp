@@ -127,14 +127,7 @@ void ompl::base::TimeStateSpace::deserialize(State *state, const void *serializa
 
 double ompl::base::TimeStateSpace::distance(const State *state1, const State *state2) const
 {
-    const double t1 = state1->as<StateType>()->position;
-    const double t2 = state2->as<StateType>()->position;
-    if(t2 >= t1)
-    {
-        return fabs(t2 - t1); //state1->as<StateType>()->position - state2->as<StateType>()->position);
-    }else{
-        return std::numeric_limits<double>::infinity();
-    }
+    return fabs(state1->as<StateType>()->position - state2->as<StateType>()->position);
 }
 
 bool ompl::base::TimeStateSpace::equalStates(const State *state1, const State *state2) const
@@ -143,18 +136,10 @@ bool ompl::base::TimeStateSpace::equalStates(const State *state1, const State *s
            std::numeric_limits<double>::epsilon() * 2.0;
 }
 
-void ompl::base::TimeStateSpace::interpolate(
-    const State *from, const State *to, const double t, State *state) const
+void ompl::base::TimeStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
 {
-    const double t1 = from->as<StateType>()->position;
-    const double t2 = to->as<StateType>()->position;
-
-    if(t1 <= t2)
-    {
-        state->as<StateType>()->position = t1 + t * (t2 - t1);
-    }else{
-        state->as<StateType>()->position = t1;
-    }
+    state->as<StateType>()->position =
+        from->as<StateType>()->position + (to->as<StateType>()->position - from->as<StateType>()->position) * t;
 }
 
 ompl::base::StateSamplerPtr ompl::base::TimeStateSpace::allocDefaultStateSampler() const

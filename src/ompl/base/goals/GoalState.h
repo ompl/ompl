@@ -63,7 +63,7 @@ namespace ompl
             unsigned int maxSampleCount() const override;
 
             /** \brief Compute the distance to the goal (heuristic) */
-            double distanceGoal(const State *st) const override;
+            virtual double distanceGoal(const State *st) const override;
 
             /** \brief Print information about the goal data structure
                 to a stream */

@@ -36,51 +36,26 @@
 
 /* Author: Andreas Orthey, Sohaib Akbar */
 
-#ifndef OMPL_MULTILEVEL_PLANNERS_BundleSpace_SPQRIMPL_
-#define OMPL_MULTILEVEL_PLANNERS_BundleSpace_SPQRIMPL_
-#include <ompl/multilevel/datastructures/BundleSpaceGraphSparse.h>
-#include <ompl/datastructures/PDF.h>
+#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_SMLR_
+#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_SMLR_
+
+#include <ompl/multilevel/datastructures/BundleSpaceSequence.h>
+#include <ompl/multilevel/planners/sparse/SMLRImpl.h>
 
 namespace ompl
 {
-    namespace base
-    {
-        OMPL_CLASS_FORWARD(OptimizationObjective);
-    }
     namespace multilevel
     {
-        /** \brief Sparse Quotient-space roadMap Planner (SPQR) Algorithm*/
-        class SPQRImpl : public BundleSpaceGraphSparse
-        {
-            using BaseT = BundleSpaceGraphSparse;
+        /**
+             @anchor SMLR
+             @par Short description
+             SParse Quotient space Roadmap planner (SMLR) algorithm,
+             generalizes the SPARS roadmap planner to bundle spaces
+             @par External documentation
+        */
 
-        public:
-            SPQRImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
-
-            virtual ~SPQRImpl() override;
-
-            /** \brief One iteration of RRT with adjusted sampling function */
-            virtual void grow() override;
-
-            /** \brief sample random node from Probabilty density function*/
-            // void expand();
-
-            virtual bool isInfeasible() override;
-
-            // void connectNeighbors(Configuration *x);
-
-        protected:
-            /** \brief Maximum failures limit for terminating the algorithm similar to SPARS */
-            unsigned int maxFailures_{1000u};
-
-            /** \brief for different ratio of expand vs grow 1:5*/
-            unsigned int iterations_{0};
-
-            double kPRMStarConstant_{0};
-
-            std::vector<base::State *> randomWorkStates_;
-        };
-    }  // namespace multilevel
-}  // namespace ompl
-
+        /** \brief [SP]arse [Q]uotient space [R]oadmap planner (SMLR) Algorithm */
+        using SMLR = BundleSpaceSequence<SMLRImpl>;
+    }
+}
 #endif

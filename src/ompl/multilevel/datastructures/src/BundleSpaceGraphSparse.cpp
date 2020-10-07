@@ -78,7 +78,7 @@ BundleSpaceGraphSparse::BundleSpaceGraphSparse(const SpaceInformationPtr &si, Bu
     psimp_ = std::make_shared<ompl::geometric::PathSimplifier>(getBundle());
     psimp_->freeStates(false);
 
-    setGraphSampler("visibilityregion");
+    // setGraphSampler("visibilityregion");
 }
 
 BundleSpaceGraphSparse::~BundleSpaceGraphSparse()
@@ -117,6 +117,26 @@ void BundleSpaceGraphSparse::setup()
     sparseDelta_ = sparseDeltaFraction_ * maxExt;
 }
 
+BundleSpaceGraph::Vertex BundleSpaceGraphSparse::getStartIndex() const
+{
+  return v_start_sparse;
+}
+
+BundleSpaceGraph::Vertex BundleSpaceGraphSparse::getGoalIndex() const
+{
+  return v_goal_sparse;
+}
+
+void BundleSpaceGraphSparse::setStartIndex(Vertex idx)
+{
+  v_start_sparse = idx;
+}
+
+void BundleSpaceGraphSparse::setGoalIndex(Vertex idx)
+{
+  v_goal_sparse = idx;
+}
+
 void BundleSpaceGraphSparse::clear()
 {
     BaseT::clear();
@@ -125,8 +145,11 @@ void BundleSpaceGraphSparse::clear()
     {
         std::vector<Configuration *> configs;
         nearestSparse_->list(configs);
+        std::cout << "Found " << configs.size() << std::endl;
+        int ctr = 0;
         for (auto &config : configs)
         {
+            std::cout << ctr++ << "/" << configs.size() << std::endl;
             deleteConfiguration(config);
         }
         nearestSparse_->clear();
@@ -247,6 +270,24 @@ void BundleSpaceGraphSparse::deleteConfiguration(Configuration *q)
     BaseT::deleteConfiguration(q);
 }
 
+BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfiguration(Configuration *q)
+{
+    const Vertex vl = add_vertex(q, graphSparse_);
+    graphSparse_[vl]->total_connection_attempts = 1;
+    graphSparse_[vl]->successful_connection_attempts = 0;
+    graphSparse_[vl]->index = vl;
+
+    std::cout << "Adding state" << std::endl;
+    printConfiguration(q);
+
+    nearestSparse_->add(q);
+
+    disjointSetsSparse_.make_set(vl);
+    consecutiveFailures_ = 0;
+    // updateRepresentatives(ql);
+    return vl;
+}
+
 BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfigurationConditional(Configuration *q)
 {
     // add to dense roadmap
@@ -277,21 +318,6 @@ BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfigurationCondition
         }  // no connectivity
     }      // no coverage
     return q->index;
-}
-
-BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfiguration(Configuration *q)
-{
-    const Vertex vl = add_vertex(q, graphSparse_);
-    graphSparse_[vl]->total_connection_attempts = 1;
-    graphSparse_[vl]->successful_connection_attempts = 0;
-    graphSparse_[vl]->index = vl;
-
-    nearestSparse_->add(q);
-
-    disjointSetsSparse_.make_set(vl);
-    consecutiveFailures_ = 0;
-    // updateRepresentatives(ql);
-    return vl;
 }
 
 void BundleSpaceGraphSparse::findGraphNeighbors(Configuration *q, std::vector<Configuration *> &graphNeighborhood,
