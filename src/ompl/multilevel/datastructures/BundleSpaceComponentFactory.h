@@ -89,6 +89,7 @@ namespace ompl
             bool isMapping_SE3RN_to_SE3RM(const base::StateSpacePtr, const base::StateSpacePtr);
             bool isMapping_SO2RN_to_SO2(const base::StateSpacePtr, const base::StateSpacePtr);
             bool isMapping_SO2RN_to_SO2RM(const base::StateSpacePtr, const base::StateSpacePtr);
+            bool isMapping_SO2N_to_SO2M(const base::StateSpacePtr, const base::StateSpacePtr);
             bool isMapping_SO3RN_to_SO3(const base::StateSpacePtr, const base::StateSpacePtr);
             bool isMapping_SO3RN_to_SO3RM(const base::StateSpacePtr, const base::StateSpacePtr);
             bool isMapping_RNSO2_to_RN(const base::StateSpacePtr, const base::StateSpacePtr);

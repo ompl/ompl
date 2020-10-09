@@ -99,6 +99,9 @@ namespace ompl
             /** \brief RNSO2 \rightarrow RN, n > 0 */
             BUNDLE_SPACE_RNSO2_RN = 17,
 
+            /** \brief SO2N \rightarrow SO2M (N copies of SO2 onto M copies of SO2) */
+            BUNDLE_SPACE_SO2N_SO2M = 18,
+
             BUNDLE_SPACE_UNKNOWN = -1
         };
     }

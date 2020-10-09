@@ -373,10 +373,12 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
     OMPL_INFORM("%s: Created %u states", getName().c_str(), boost::num_vertices(g_) - nrStartStates);
 
     if (sol)
+    {
         pdef_->addSolutionPath(sol, false, -1.0, getName());
-
-    // Return true if any solution was found.
-    return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
+        return base::PlannerStatus::EXACT_SOLUTION;
+    }else{
+        return reachedFailureLimit() ? base::PlannerStatus::INFEASIBLE : base::PlannerStatus::TIMEOUT;
+    }
 }
 
 void ompl::geometric::SPARStwo::checkForSolution(const base::PlannerTerminationCondition &ptc, base::PathPtr &solution)

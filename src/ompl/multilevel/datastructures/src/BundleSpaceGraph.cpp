@@ -718,17 +718,14 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
                 // {
                 geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), pathRefinementObj_);
                 
-
                 // @NOTE: optimization seems to improve feasibility of sections
                 // in low-dim problems (up to 20 dof roughly), but will take too
                 // much time for high-dim problems. Reducing vertices seems to
                 // be the only optimization not significantly slowing everything
                 // down.
 
-
-
                 bool valid = false;
-                std::cout << "Optimize" << std::endl;
+                // std::cout << "Optimize" << std::endl;
                 for(uint k = 0; k < 3; k++)
                 {
                     geometric::PathGeometric &gpath = 
@@ -746,10 +743,10 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
                         break;
                     }
                 }
-                std::cout << "Done" << std::endl;
+                // std::cout << "Done" << std::endl;
 
-                geometric::PathGeometric &gpath2 = 
-                  static_cast<geometric::PathGeometric &>(*solutionPath_);
+                // geometric::PathGeometric &gpath2 = 
+                //   static_cast<geometric::PathGeometric &>(*solutionPath_);
 
                 // shortcutter.smoothBSpline(gpath2);
 

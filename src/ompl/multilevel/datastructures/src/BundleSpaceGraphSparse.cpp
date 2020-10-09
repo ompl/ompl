@@ -145,7 +145,6 @@ void BundleSpaceGraphSparse::clear()
     {
         std::vector<Configuration *> configs;
         nearestSparse_->list(configs);
-        int ctr = 0;
         for (auto &config : configs)
         {
             deleteConfiguration(config);
@@ -296,15 +295,15 @@ BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfigurationCondition
         {
             if (!checkAddInterface(q, graphNeighborhood, visibleNeighborhood))
             {
-                if (!hasTotalSpace())
-                {
-                    // optimality only on last level
-                    if (!checkAddPath(q))
-                    {
-                        ++consecutiveFailures_;
-                    }
-                }
-                else
+                // if (!hasTotalSpace())
+                // {
+                //     // optimality only on last level
+                //     if (!checkAddPath(q))
+                //     {
+                //         ++consecutiveFailures_;
+                //     }
+                // }
+                // else
                 {
                     ++consecutiveFailures_;
                 }
@@ -436,10 +435,6 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q, std::vector<Con
 
 bool BundleSpaceGraphSparse::checkAddPath(Configuration *q)
 {
-    // TODO: test if we can quicker do feasibility checks
-    // OMPL_WARN("Does not test CHECKADDPATH");
-    return false;
-
     std::vector<Vertex> neigh;
     getInterfaceNeighborhood(q, neigh);
 
@@ -858,7 +853,6 @@ bool BundleSpaceGraphSparse::getSolution(PathPtr &solution)
                     // reset solutionPath
                     solutionPath_ = getPathSparse(v_start_sparse, v_goal_sparse);
                 }
-                std::cout << " to " << solutionPath_->length() << std::endl;
                 // }
             }
         }

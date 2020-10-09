@@ -394,7 +394,12 @@ ompl::base::PlannerStatus ompl::geometric::SPARS::solve(const base::PlannerTermi
                 (unsigned int)(boost::num_vertices(s_) - nrStartStatesSparse));
 
     // Return true if any solution was found.
-    return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
+    if(sol)
+    {
+        return base::PlannerStatus::EXACT_SOLUTION;
+    }else{
+        return reachedFailureLimit() ? base::PlannerStatus::INFEASIBLE : base::PlannerStatus::TIMEOUT;
+    }
 }
 
 void ompl::geometric::SPARS::constructRoadmap(const base::PlannerTerminationCondition &ptc, bool stopOnMaxFail)

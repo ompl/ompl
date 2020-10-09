@@ -57,6 +57,7 @@
 
 #include <ompl/multilevel/datastructures/components/RN_RM.h>
 #include <ompl/multilevel/datastructures/components/RNSO2_RN.h>
+#include <ompl/multilevel/datastructures/components/SO2N_SO2M.h>
 
 #include <ompl/multilevel/datastructures/components/None.h>
 #include <ompl/multilevel/datastructures/components/EmptySet.h>
@@ -241,6 +242,10 @@ BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(
     {
         component = std::make_shared<BundleSpaceComponent_SE3RN_SE3RM>(Bundle, Base);
     }
+    else if (type == BUNDLE_SPACE_SO2N_SO2M)
+    {
+        component = std::make_shared<BundleSpaceComponent_SO2N_SO2M>(Bundle, Base);
+    }
     else
     {
         OMPL_ERROR("NYI: %d", type);
@@ -325,6 +330,10 @@ BundleSpaceComponentType BundleSpaceComponentFactory::identifyBundleSpaceCompone
     {
         return BUNDLE_SPACE_SO2RN_SO2RM;
     }
+    if (isMapping_SO2N_to_SO2M(Bundle, Base))
+    {
+        return BUNDLE_SPACE_SO2N_SO2M;
+    }
 
     // SO3 ->
     if (isMapping_SO3RN_to_SO3(Bundle, Base))
@@ -335,6 +344,7 @@ BundleSpaceComponentType BundleSpaceComponentFactory::identifyBundleSpaceCompone
     {
         return BUNDLE_SPACE_SO3RN_SO3RM;
     }
+
 
     OMPL_ERROR("Fiber Bundle unknown.");
     return BUNDLE_SPACE_UNKNOWN;
@@ -559,8 +569,52 @@ bool BundleSpaceComponentFactory::isMapping_SO3RN_to_SO3RM(const base::StateSpac
     return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SO3);
 }
 
-bool BundleSpaceComponentFactory::isMapping_XRN_to_X(const base::StateSpacePtr Bundle, const base::StateSpacePtr Base,
-                                                     const base::StateSpaceType type)
+bool BundleSpaceComponentFactory::isMapping_SO2N_to_SO2M(const base::StateSpacePtr Bundle,
+                                                           const base::StateSpacePtr Base)
+{
+    if (!Bundle->isCompound())
+        return false;
+
+    base::CompoundStateSpace *Bundle_compound = Bundle->as<base::CompoundStateSpace>();
+    const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
+    unsigned int Bundle_subspaces = Bundle_decomposed.size();
+
+    for(uint k = 0; k < Bundle_subspaces; k++)
+    {
+        if(!Bundle_decomposed.at(k)->getType() == base::STATE_SPACE_SO2)
+        {
+            return false;
+        }
+    }
+    if (!Base->isCompound())
+    {
+        if(!Base->getType() == base::STATE_SPACE_SO2)
+        {
+            return false;
+        }
+    }else
+    {
+        base::CompoundStateSpace *Base_compound = Base->as<base::CompoundStateSpace>();
+        const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
+        unsigned int Base_subspaces = Base_decomposed.size();
+
+        for(uint k = 0; k < Base_subspaces; k++)
+        {
+            if(!Base_decomposed.at(k)->getType() == base::STATE_SPACE_SO2)
+            {
+                return false;
+            }
+        }
+    }
+
+
+    return true;
+}
+
+bool BundleSpaceComponentFactory::isMapping_XRN_to_X(
+    const base::StateSpacePtr Bundle, 
+    const base::StateSpacePtr Base, 
+    const base::StateSpaceType type)
 {
     if (!Bundle->isCompound())
         return false;
@@ -651,7 +705,8 @@ int BundleSpaceComponentFactory::GetNumberOfComponents(base::StateSpacePtr space
                 if ((t0 == base::STATE_SPACE_SO2 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
                     (t0 == base::STATE_SPACE_SO3 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
                     (t0 == base::STATE_SPACE_SE2 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
-                    (t0 == base::STATE_SPACE_SE3 && t1 == base::STATE_SPACE_REAL_VECTOR))
+                    (t0 == base::STATE_SPACE_SE3 && t1 == base::STATE_SPACE_REAL_VECTOR) ||
+                    (t0 == base::STATE_SPACE_SO2 && t1 == base::STATE_SPACE_SO2))
                 {
                     if (decomposed.at(1)->getDimension() > 0)
                     {
