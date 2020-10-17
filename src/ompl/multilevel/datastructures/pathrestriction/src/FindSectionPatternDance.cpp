@@ -114,7 +114,7 @@ bool FindSectionPatternDance::tunneling(
 
         restriction_->interpolateBasePath(curLocation, xBaseTmp_);
 
-        for(uint k = 0; k < 5; k++)
+        for(unsigned int k = 0; k < 5; k++)
         {
             fiberSampler->sampleUniformNear(xFiberTmp_, 
                 head->getStateFiber(), validFiberSpaceSegmentLength_);

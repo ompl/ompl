@@ -72,7 +72,7 @@ namespace ompl
             base::State* at(int k) const;
             const base::State* back() const;
             const base::State* front() const;
-            int size() const;
+            unsigned int size() const;
 
             /** \brief Add vertex for sNext and edge to xLast by assuming motion
              * is valid  */

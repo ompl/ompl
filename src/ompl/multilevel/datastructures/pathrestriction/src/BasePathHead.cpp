@@ -191,7 +191,7 @@ const ompl::base::State* BasePathHead::getBaseStateAt(int k) const
         return xBaseCurrent_;
     }
     else{
-        int idx = std::min(restriction_->size() - 1, lastValidIndexOnBasePath_ + k);
+        int idx = std::min(restriction_->size() - 1, (unsigned int)lastValidIndexOnBasePath_ + k);
         return restriction_->getBasePath().at(idx);
     }
 }
@@ -202,8 +202,12 @@ int BasePathHead::getBaseStateIndexAt(int k) const
     //    lastValid        xCurrent    basePath(lastValid + 1)
   
 
-    int idx = lastValidIndexOnBasePath_ + k;
-    if(idx > restriction_->size()-1)
+    unsigned int idx = lastValidIndexOnBasePath_ + k;
+    if(restriction_->size() < 1)
+    {
+        throw Exception("EmptyRestriction");
+    }
+    if(idx > restriction_->size() - 1)
     {
       idx = restriction_->size() - 1;
       // std::cout << "idx " << idx << std::endl;

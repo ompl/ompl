@@ -49,7 +49,10 @@ void ompl::multilevel::BundleSpaceGraphSamplerRandomEdge::sampleImplementation(b
     BundleSpaceGraph::Graph graph = bundleSpaceGraph_->getGraph();
 
     if (num_edges(graph) == 0)
+    {
+        OMPL_WARN("Base graph contains no edges.");
         return;
+    }
 
     BundleSpaceGraph::Edge e = boost::random_edge(graph, rng_boost);
 

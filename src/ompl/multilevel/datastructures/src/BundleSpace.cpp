@@ -157,8 +157,8 @@ bool BundleSpace::isDynamic() const
 
 void BundleSpace::setup()
 {
-
     BaseT::setup();
+
     hasSolution_ = false;
     firstRun_ = true;
     if (pdef_)

@@ -46,30 +46,48 @@
 
 #define foreach BOOST_FOREACH
 
-ompl::multilevel::SMLRImpl::SMLRImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
+using namespace ompl::multilevel;
+
+SMLRImpl::SMLRImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("SMLRImpl" + std::to_string(id_));
     randomWorkStates_.resize(5);
     getBundle()->allocStates(randomWorkStates_);
 
     setMetric("geodesic");
-    setGraphSampler("randomedge");
     setImportance("exponential");
+    setGraphSampler("visibilityregion");
 
     double d = (double)getBundle()->getStateDimension();
     double e = boost::math::constants::e<double>();
     kPRMStarConstant_ = e + (e / d);
 
     firstRun_ = true;
+    isInfeasible_ = false;
 }
 
-ompl::multilevel::SMLRImpl::~SMLRImpl()
+void SMLRImpl::clear()
+{
+    BaseT::clear();
+    firstRun_ = true;
+    isInfeasible_ = false;
+}
+
+SMLRImpl::~SMLRImpl()
 {
     getBundle()->freeStates(randomWorkStates_);
 }
 
-void ompl::multilevel::SMLRImpl::grow()
+double SMLRImpl::getImportance() const
 {
+    // if(consecutiveFailures_ >= maxFailures_) return 0.0;
+    return BaseT::getImportance();
+}
+
+void SMLRImpl::grow()
+{
+    // if(consecutiveFailures_ >= maxFailures_) return;
+
     if (firstRun_)
     {
         init();
@@ -96,10 +114,6 @@ void ompl::multilevel::SMLRImpl::grow()
 
     addConfigurationConditional(xNew);
 
-    // connectNeighbors(xNew);
-
-    // expand();
-
     if (!hasSolution_)
     {
         bool same_component = sameComponentSparse(v_start_sparse, v_goal_sparse);
@@ -110,97 +124,14 @@ void ompl::multilevel::SMLRImpl::grow()
     }
 }
 
-// void ompl::multilevel::SMLRImpl::expand()
-// {
-//     PDF pdf;
-
-//     foreach (Vertex v, boost::vertices(graph_))
-//     {
-//         const unsigned long int t = graph_[v]->total_connection_attempts;
-//         pdf.add(graph_[v], (double)(t - graph_[v]->successful_connection_attempts) / (double)t);
-//     }
-
-//     if (pdf.empty())
-//         return;
-
-//     Configuration *q = pdf.sample(rng_.uniform01());
-
-//     int s =
-//         getBundle()->randomBounceMotion(Bundle_sampler_, q->state, randomWorkStates_.size(), randomWorkStates_,
-//         false);
-//     for (int i = 0; i < s; i++)
-//     {
-//         Configuration *tmp = new Configuration(getBundle(), randomWorkStates_[i]);
-//         addConfiguration(tmp);
-//         addEdge(q->index, tmp->index);
-//     }
-// }
-
-// void ompl::multilevel::SMLRImpl::connectNeighbors(Configuration *q)
-// {
-
-//     // Calculate K
-//     unsigned int k = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)boost::num_vertices(graph_))));
-
-//     // DENSE GRAPH: find nearest neighbors to be conected to new sample
-//     std::vector<Configuration *> r_nearest_neighbors;
-//     nearestDatastructure_->nearestK(q, k, r_nearest_neighbors);
-
-//     for (unsigned int i = 0; i < r_nearest_neighbors.size(); i++)
-//     {
-//         Configuration *q_neighbor = r_nearest_neighbors.at(i);
-//         q->total_connection_attempts++;
-//         q_neighbor->total_connection_attempts++;
-
-//         if (getBundle()->checkMotion(q_neighbor->state, q->state))
-//         {
-//             addEdge(q_neighbor->index, q->index);
-//             q->successful_connection_attempts++;
-//             q_neighbor->successful_connection_attempts++;
-//         }
-//     }
-
-//     // SPARSE GRAPH: Update its representative and interface nodes
-//     std::vector<Configuration *> sparseGraphNeighborhood;
-//     nearestSparse_->nearestR(q, sparseDelta_, sparseGraphNeighborhood);
-
-//     for (Configuration *qn : sparseGraphNeighborhood)
-//     {
-//         if (getBundle()->checkMotion(q->state, qn->state))
-//         {
-//             q->representativeIndex = qn->index;
-//             break;
-//         }
-//     }
-
-//     if (q->representativeIndex >= 0)
-//     {
-//         std::vector<Vertex> interfaceNeighborhood;
-//         std::set<Vertex> interfaceRepresentatives;
-
-//         getInterfaceNeighborRepresentatives(q, interfaceRepresentatives);
-//         getInterfaceNeighborhood(q, interfaceNeighborhood);
-//         addToRepresentatives(q->index, q->representativeIndex, interfaceRepresentatives);
-
-//         foreach (Vertex qp, interfaceNeighborhood)
-//         {
-//             normalized_index_type qp_rep = graph_[qp]->representativeIndex;
-//             if (qp_rep < 0)
-//                 continue;
-//             removeFromRepresentatives(graph_[qp]);
-//             getInterfaceNeighborRepresentatives(graph_[qp], interfaceRepresentatives);
-//             addToRepresentatives(qp, qp_rep, interfaceRepresentatives);
-//         }
-//     }
-// }
-
-bool ompl::multilevel::SMLRImpl::isInfeasible()
+bool SMLRImpl::isInfeasible()
 {
     bool progressFailure = ((consecutiveFailures_ >= maxFailures_) && !hasSolution_);
     if (progressFailure)
     {
         OMPL_INFORM("Infeasibility detected with probability %f (no valid samples for %d rounds).",
                     1.0 - 1.0 / (double)consecutiveFailures_, consecutiveFailures_);
+        isInfeasible_ = true;
     }
     return progressFailure;
 }

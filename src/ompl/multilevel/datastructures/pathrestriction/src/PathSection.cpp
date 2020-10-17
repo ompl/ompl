@@ -374,7 +374,7 @@ void PathSection::sanityCheck()
     }
 }
 
-int PathSection::size() const
+unsigned int PathSection::size() const
 {
   return section_.size();
 }
@@ -392,10 +392,10 @@ void PathSection::print(std::ostream& out) const
     out << section_.size() << " states over " 
       << restriction_->size() << " base states." << std::endl;
 
-    int maxDisplay = 5;
-    for (int k = 0; k < section_.size(); k++)
+    int maxDisplay = 5; //display first and last N elements
+    for (int k = 0; k < (int)section_.size(); k++)
     {
-        if(k > maxDisplay && (int)k < std::max(0, (int)section_.size() - maxDisplay)) continue;
+        if(k > maxDisplay && k < std::max(0, (int)section_.size() - maxDisplay)) continue;
         int idx = sectionBaseStateIndices_.at(k);
         out << "State " << k << ": ";
         bundle->printState(section_.at(k));

@@ -111,7 +111,7 @@ namespace ompl
             double getLengthBasePath() const;
 
             /** \brief Return number of discrete states in base path */
-            int size() const;
+            unsigned int size() const;
 
             /** \brief Return State at index k on base path */
             const base::State* getBaseStateAt(int k) const;

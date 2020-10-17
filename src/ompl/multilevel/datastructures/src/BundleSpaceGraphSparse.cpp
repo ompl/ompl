@@ -79,6 +79,7 @@ BundleSpaceGraphSparse::BundleSpaceGraphSparse(const SpaceInformationPtr &si, Bu
     psimp_->freeStates(false);
 
     // setGraphSampler("visibilityregion");
+    // setGraphSampler("randomedge");
 }
 
 BundleSpaceGraphSparse::~BundleSpaceGraphSparse()
@@ -115,6 +116,7 @@ void BundleSpaceGraphSparse::setup()
 
     double maxExt = getBundle()->getMaximumExtent();
     sparseDelta_ = sparseDeltaFraction_ * maxExt;
+    OMPL_DEBUG("Visibility region set to %f (max extent %f)", sparseDelta_, maxExt);
 }
 
 BundleSpaceGraph::Vertex BundleSpaceGraphSparse::getStartIndex() const
@@ -161,6 +163,8 @@ void BundleSpaceGraphSparse::clear()
     v_goal_sparse = 0;
     Nold_v = 0;
     Nold_e = 0;
+
+    consecutiveFailures_ = 0;
 
     startGoalVertexPath_.clear();
     lengthsStartGoalVertexPath_.clear();
@@ -284,8 +288,6 @@ BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfiguration(Configur
 
 BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfigurationConditional(Configuration *q)
 {
-    // add to dense roadmap
-    // BaseT::addConfiguration(q);
 
     findGraphNeighbors(q, graphNeighborhood, visibleNeighborhood);
 
@@ -837,23 +839,11 @@ bool BundleSpaceGraphSparse::getSolution(PathPtr &solution)
                 geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), pathRefinementObj_);
                 
                 geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
-                // gpath.interpolate();
-
-                // bool valid = shortcutter.simplifyMax(gpath);
-                // std::cout << "Optimize path from " << solutionPath_->length() << std::flush;
                 bool valid = shortcutter.reduceVertices(gpath);
-                // shortcutter.smoothBSpline(gpath);
-
-                // gpath.interpolate();
-
-                // bool valid = shortcutter.reduceVertices(gpath);
-                // bool valid = shortcutter.simplifyMax(gpath);
                 if (!valid)
                 {
-                    // reset solutionPath
                     solutionPath_ = getPathSparse(v_start_sparse, v_goal_sparse);
                 }
-                // }
             }
         }
 

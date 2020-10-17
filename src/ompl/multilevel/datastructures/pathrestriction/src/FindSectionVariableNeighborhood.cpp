@@ -117,7 +117,7 @@ bool FindSectionVariableNeighborhood::variableNeighborhoodPatternSearch(
        ->getGraphSampler()
        ->setPathBiasStartSegment(head->getLocationOnBasePath());
 
-    if(depth >= magic::PATH_SECTION_MAX_DEPTH)
+    if(depth >= (int)magic::PATH_SECTION_MAX_DEPTH)
     {
         return false;
     }

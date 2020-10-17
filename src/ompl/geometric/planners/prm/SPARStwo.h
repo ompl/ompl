@@ -478,7 +478,7 @@ namespace ompl
             double denseDeltaFraction_{.001};
 
             /** \brief The number of consecutive failures to add to the graph before termination */
-            unsigned int maxFailures_{5000};
+            unsigned int maxFailures_{1000};
 
             /** \brief Number of sample points to use when trying to detect interfaces. */
             unsigned int nearSamplePoints_;

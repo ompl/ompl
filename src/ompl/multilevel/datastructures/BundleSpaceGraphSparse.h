@@ -131,13 +131,6 @@ namespace ompl
             }
 
         protected:
-            double sparseDelta_{0.};
-            double denseDelta_{0.};  // delta for dense graph -> move this BundleSpaceGraph.h
-            double sparseDeltaFraction_{0.15};
-            double denseDeltaFraction_{0.001};
-            unsigned Nold_v{0};
-            unsigned Nold_e{0};
-
             void setSparseDeltaFraction(double D)
             {
                 sparseDeltaFraction_ = D;
@@ -169,6 +162,13 @@ namespace ompl
             Vertex v_goal_sparse;
 
             // From SPARS
+            double sparseDelta_{0.};
+            double denseDelta_{0.};
+            double sparseDeltaFraction_{0.25};
+            double denseDeltaFraction_{0.001};
+            unsigned Nold_v{0};
+            unsigned Nold_e{0};
+
             /** \brief A counter for the number of consecutive failed iterations of the algorithm */
             unsigned int consecutiveFailures_{0u};
 

@@ -726,7 +726,7 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
 
                 bool valid = false;
                 // std::cout << "Optimize" << std::endl;
-                for(uint k = 0; k < 3; k++)
+                for(unsigned int k = 0; k < 3; k++)
                 {
                     geometric::PathGeometric &gpath = 
                       static_cast<geometric::PathGeometric &>(*solutionPath_);

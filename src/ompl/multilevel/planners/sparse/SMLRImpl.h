@@ -67,18 +67,21 @@ namespace ompl
 
             virtual bool isInfeasible() override;
 
-            // void connectNeighbors(Configuration *x);
+            virtual void clear() override;
+
+            virtual double getImportance() const override;
 
         protected:
-            /** \brief Maximum failures limit for terminating the algorithm similar to SPARS */
+            /** \brief Maximum failures limit for terminating the algorithm*/
             unsigned int maxFailures_{1000u};
 
-            /** \brief for different ratio of expand vs grow 1:5*/
-            unsigned int iterations_{0};
+            // unsigned int iterations_{0};
 
             double kPRMStarConstant_{0};
 
             std::vector<base::State *> randomWorkStates_;
+
+            bool isInfeasible_{false};
         };
     }  // namespace multilevel
 }  // namespace ompl

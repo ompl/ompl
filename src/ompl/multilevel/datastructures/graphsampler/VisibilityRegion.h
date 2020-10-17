@@ -40,23 +40,28 @@
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_DATASTRUCTURES_GRAPHSAMPLER_VISIBILITY_REGION_
 #include <ompl/multilevel/datastructures/BundleSpaceGraphSparse.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
+#include <ompl/multilevel/datastructures/graphsampler/RandomEdge.h>
+#include <ompl/multilevel/datastructures/ParameterSmoothStep.h>
 
 namespace ompl
 {
     namespace multilevel
     {
-        class BundleSpaceGraphSamplerVisibilityRegion : public BundleSpaceGraphSampler
+        class BundleSpaceGraphSamplerVisibilityRegion : public BundleSpaceGraphSamplerRandomEdge
         {
-            using BaseT = BundleSpaceGraphSampler;
+            using BaseT = BundleSpaceGraphSamplerRandomEdge;
 
         public:
             BundleSpaceGraphSamplerVisibilityRegion() = delete;
             BundleSpaceGraphSamplerVisibilityRegion(BundleSpaceGraph *);
 
+            virtual void clear() override;
         protected:
             virtual void sampleImplementation(base::State *xRandom) override;
 
             BundleSpaceGraphSparse *bundleSpaceGraphSparse_;
+
+            ParameterSmoothStep regionBias_;
         };
     }  // namespace multilevel
 }  // namespace ompl

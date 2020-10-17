@@ -114,7 +114,7 @@ ompl::base::StateSpacePtr ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::comp
 {
     unsigned int N = getDimension() - getBaseDimension();
     auto fiberSpace = std::make_shared<base::CompoundStateSpace>();
-    for(uint k = 0; k < N; k++)
+    for(unsigned int k = 0; k < N; k++)
     {
       base::StateSpacePtr SO2Space = std::make_shared<base::SO2StateSpace>();
       fiberSpace->addSubspace(SO2Space, 1.0);

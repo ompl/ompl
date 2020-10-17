@@ -51,13 +51,34 @@ BundleSpaceGraphSamplerVisibilityRegion::BundleSpaceGraphSamplerVisibilityRegion
         OMPL_ERROR("Visibility Region Sampler only valid with sparse graph.");
         throw ompl::Exception("Invalid Sampler");
     }
+    regionBias_.setValueInit(0.0);
+    regionBias_.setValueTarget(1.0);
+    regionBias_.setCounterInit(0.0);
+    regionBias_.setCounterTarget(1000);
+}
+
+void BundleSpaceGraphSamplerVisibilityRegion::clear()
+{
+    regionBias_.reset();
 }
 
 void BundleSpaceGraphSamplerVisibilityRegion::sampleImplementation(State *xRandom)
 {
-    const BundleSpaceGraph::Graph &graph = bundleSpaceGraphSparse_->getGraph();
-    const Vertex v = boost::random_vertex(graph, rng_boost);
-    bundleSpaceGraphSparse_->getBundle()->getStateSpace()->copyState(xRandom, graph[v]->state);
-    const double visibilityRadius = bundleSpaceGraphSparse_->getSparseDelta();
-    bundleSpaceGraphSparse_->getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, visibilityRadius);
+    BaseT::sampleImplementation(xRandom);
+
+    double bias = regionBias_();
+
+    // const double visibilityRadius = bias*bundleSpaceGraphSparse_->getSparseDelta();
+
+    // bundleSpaceGraphSparse_->getBundleSamplerPtr()
+    //   ->sampleUniformNear(xRandom, xRandom, visibilityRadius);
+
+    double s = rng_.uniform01();
+    if(s < bias)
+    {
+        const double visibilityRadius = bias*bundleSpaceGraphSparse_->getSparseDelta();
+
+        bundleSpaceGraphSparse_->getBundleSamplerPtr()
+          ->sampleUniformNear(xRandom, xRandom, visibilityRadius);
+    }
 }

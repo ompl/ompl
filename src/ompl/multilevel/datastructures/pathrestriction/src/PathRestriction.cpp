@@ -142,7 +142,7 @@ double PathRestriction::getLengthBasePath() const
   return lengthBasePath_;
 }
 
-int PathRestriction::size() const
+unsigned int PathRestriction::size() const
 {
   return basePath_.size();
 }
@@ -220,7 +220,7 @@ void PathRestriction::print(std::ostream& out) const
     out << "PATH RESTRICTION" << std::endl;
     out << std::string(80, '-') << std::endl;
 
-    for(uint k = 0; k < basePath_.size(); k++)
+    for(unsigned int k = 0; k < basePath_.size(); k++)
     {
       if(k > 5 && (int)k < std::max(0, (int)basePath_.size() - 5)) continue;
       const base::State* bk = basePath_.at(k);

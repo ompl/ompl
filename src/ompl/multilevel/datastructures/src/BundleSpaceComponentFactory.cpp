@@ -579,16 +579,16 @@ bool BundleSpaceComponentFactory::isMapping_SO2N_to_SO2M(const base::StateSpaceP
     const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
     unsigned int Bundle_subspaces = Bundle_decomposed.size();
 
-    for(uint k = 0; k < Bundle_subspaces; k++)
+    for(unsigned int k = 0; k < Bundle_subspaces; k++)
     {
-        if(!Bundle_decomposed.at(k)->getType() == base::STATE_SPACE_SO2)
+        if(!(Bundle_decomposed.at(k)->getType() == base::STATE_SPACE_SO2))
         {
             return false;
         }
     }
     if (!Base->isCompound())
     {
-        if(!Base->getType() == base::STATE_SPACE_SO2)
+        if(!(Base->getType() == base::STATE_SPACE_SO2))
         {
             return false;
         }
@@ -598,9 +598,9 @@ bool BundleSpaceComponentFactory::isMapping_SO2N_to_SO2M(const base::StateSpaceP
         const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
         unsigned int Base_subspaces = Base_decomposed.size();
 
-        for(uint k = 0; k < Base_subspaces; k++)
+        for(unsigned int k = 0; k < Base_subspaces; k++)
         {
-            if(!Base_decomposed.at(k)->getType() == base::STATE_SPACE_SO2)
+            if(!(Base_decomposed.at(k)->getType() == base::STATE_SPACE_SO2))
             {
                 return false;
             }
