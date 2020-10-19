@@ -216,8 +216,11 @@ void LocalMinimaTree::setSelectedMinimumPrev()
                 selectedMinimum_.back() = maxMinima - 1;
             }
 
-            OMPL_DEVMSG1("Selected local minimum %d/%d (level %d, cost %.2f)", selectedMinimum_.back() + 1, maxMinima,
-                         level, tree_.at(level).at(selectedMinimum_.back())->getCost());
+            OMPL_DEVMSG1("Selected local minimum %d/%d (level %d, cost %.2f)", 
+                selectedMinimum_.back() + 1, 
+                maxMinima,
+                level, 
+                tree_.at(level).at(selectedMinimum_.back())->getCost());
         }
     }
     hasChanged_ = true;
@@ -229,15 +232,21 @@ void LocalMinimaTree::setSelectedMinimumNext()
 
     if (selectedMinimum_.size() > 0)
     {
-        int maxMinima = getNumberOfMinima(selectedMinimum_.size() - 1);
+        int level = selectedMinimum_.size() - 1;
+        int maxMinima = getNumberOfMinima(level);
         if (maxMinima > 0)
         {
             if (selectedMinimum_.back() < maxMinima - 1)
+            {
                 selectedMinimum_.back()++;
-            else
+            }else{
                 selectedMinimum_.back() = 0;
-            OMPL_DEVMSG1("Selected local minimum %d/%d (level %d)", selectedMinimum_.back() + 1, maxMinima,
-                         selectedMinimum_.size() - 1);
+            }
+            OMPL_DEVMSG1("Selected local minimum %d/%d (level %d, cost %.2f)", 
+                selectedMinimum_.back() + 1, 
+                maxMinima,
+                level,
+                tree_.at(level).at(selectedMinimum_.back())->getCost());
         }
     }
     hasChanged_ = true;
@@ -306,7 +315,14 @@ const ompl::base::PathPtr &LocalMinimaNode::asPathPtr() const
 const StatesPath &LocalMinimaNode::asStates() const
 {
     if (hasStatesRepresentation)
+    {
         return spath_;
+    }
+
+    if(hasPathPtrRepresentation)
+    {
+        return std::static_pointer_cast<geometric::PathGeometric>(path_)->getStates();
+    }
 
     OMPL_ERROR("NYI");
     throw ompl::Exception("NYI");

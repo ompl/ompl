@@ -48,6 +48,5 @@ double ompl::multilevel::BundleSpaceImportanceExponential::eval()
     const double p = 1.0 / bundleSpaceGraph_->getBundleDimension();
     double N = (double)bundleSpaceGraph_->getNumberOfVertices();
     double Nd = powf(N, p);
-    std::cout << "Importance: " << Nd << std::endl;
     return 1.0 / (Nd + 1.0);
 }

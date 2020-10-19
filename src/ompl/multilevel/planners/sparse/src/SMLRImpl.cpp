@@ -93,11 +93,13 @@ void SMLRImpl::grow()
         init();
         firstRun_ = false;
 
+        vGoal_ = addConfiguration(qGoal_);
+
         if (hasBaseSpace())
         {
             if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
             {
-                if (sameComponentSparse(v_start_sparse, v_goal_sparse))
+                if (sameComponent(getStartIndex(), getGoalIndex()))
                 {
                     hasSolution_ = true;
                 }
@@ -116,7 +118,7 @@ void SMLRImpl::grow()
 
     if (!hasSolution_)
     {
-        bool same_component = sameComponentSparse(v_start_sparse, v_goal_sparse);
+        bool same_component = sameComponent(getStartIndex(), getGoalIndex());
         if (same_component)
         {
             hasSolution_ = true;

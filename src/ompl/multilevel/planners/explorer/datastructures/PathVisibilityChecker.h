@@ -20,9 +20,13 @@ namespace ompl
 
             bool IsPathVisible(const std::vector<BundleSpaceGraph::Vertex> &v1,
                                const std::vector<BundleSpaceGraph::Vertex> &v2, BundleSpaceGraph::Graph &graph);
-            bool IsPathVisible(std::vector<ob::State *> &s1, std::vector<ob::State *> &s2);
-            bool IsPathVisibleSO2(std::vector<ob::State *> &s1, std::vector<ob::State *> &s2);
-            bool isPathClockwise(std::vector<ob::State *> &spath);
+            bool IsPathVisible(const std::vector<ob::State *> &s1, 
+                const std::vector<ob::State *> &s2);
+
+            bool IsPathVisibleSO2(const std::vector<ob::State *> &s1, 
+                const std::vector<ob::State *> &s2);
+
+            bool isPathClockwise(const std::vector<ob::State *> &spath);
 
             // bool IsPathDynamicallyVisible(std::vector<ob::State*> &s1, std::vector<ob::State*> &s2,
             // std::vector<ob::State*> &sLocal);

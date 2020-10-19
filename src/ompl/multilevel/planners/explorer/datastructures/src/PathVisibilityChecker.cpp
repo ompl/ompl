@@ -260,7 +260,7 @@ bool PathVisibilityChecker::CheckValidity(const std::vector<ob::State *> &s)
 //(decreasing angle). We encounter a problem whenever the path goes above +PI,
 // which would change the next state to something lower.
 
-bool PathVisibilityChecker::isPathClockwise(std::vector<ob::State *> &spath)
+bool PathVisibilityChecker::isPathClockwise(const std::vector<ob::State *> &spath)
 {
     ob::StateSpacePtr space = si_->getStateSpace();
     assert(space->getType() == ob::STATE_SPACE_SO2);
@@ -276,7 +276,9 @@ bool PathVisibilityChecker::isPathClockwise(std::vector<ob::State *> &spath)
 /// \brief On SO(2), the circle space, two paths are visible if they both go
 // clockwise or counterclockwise. Otherwise they are not visible.
 
-bool PathVisibilityChecker::IsPathVisibleSO2(std::vector<ob::State *> &s1, std::vector<ob::State *> &s2)
+bool PathVisibilityChecker::IsPathVisibleSO2(
+    const std::vector<ob::State *> &s1, 
+    const std::vector<ob::State *> &s2)
 {
     bool s1cw = isPathClockwise(s1);
     bool s2cw = isPathClockwise(s2);
@@ -454,7 +456,9 @@ void PathVisibilityChecker::createStateAt(ob::SpaceInformationPtr si_, const std
 //   return true;
 // }
 
-bool PathVisibilityChecker::IsPathVisible(std::vector<ob::State *> &s1, std::vector<ob::State *> &s2)
+bool PathVisibilityChecker::IsPathVisible(
+    const std::vector<ob::State *> &s1, 
+    const std::vector<ob::State *> &s2)
 {
     // Disable logging for Checker
     ompl::msg::LogLevel logLevelInitial = ompl::msg::getLogLevel();

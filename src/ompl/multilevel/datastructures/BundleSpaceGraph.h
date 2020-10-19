@@ -206,8 +206,8 @@ namespace ompl
             /** \brief Return plannerdata structure, whereby each vertex is marked
                 depending to which component it belongs (start/goal/non-connected) */
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;
-            void getPlannerDataGraph(ompl::base::PlannerData &data, const Graph &graph, const Vertex vStart,
-                                     const Vertex vGoal) const;
+            void getPlannerDataGraph(ompl::base::PlannerData &data, 
+                const Graph &graph, const Vertex vStart, const Vertex vGoal) const;
 
             /** \brief Importance of Bundle-space depending on number of
                 vertices in Bundle-graph */

@@ -333,9 +333,9 @@ void BundleSpaceGraph::init()
         throw ompl::Exception("Unknown goal type");
     }
 
-    if (const base::State *st = pis_.nextStart())
+    if (const base::State *state = pis_.nextStart())
     {
-        qStart_ = new Configuration(getBundle(), st);
+        qStart_ = new Configuration(getBundle(), state);
         vStart_ = addConfiguration(qStart_);
         qStart_->isStart = true;
     }
@@ -346,9 +346,9 @@ void BundleSpaceGraph::init()
         throw ompl::Exception("Invalid initial states.");
     }
 
-    if (const base::State *st = pis_.nextGoal())
+    if (const base::State *state = pis_.nextGoal())
     {
-        qGoal_ = new Configuration(getBundle(), st);
+        qGoal_ = new Configuration(getBundle(), state);
         qGoal_->isGoal = true;
     }
 

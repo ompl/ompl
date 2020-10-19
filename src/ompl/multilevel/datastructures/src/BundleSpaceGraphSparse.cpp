@@ -77,18 +77,12 @@ BundleSpaceGraphSparse::BundleSpaceGraphSparse(const SpaceInformationPtr &si, Bu
     }
     psimp_ = std::make_shared<ompl::geometric::PathSimplifier>(getBundle());
     psimp_->freeStates(false);
-
     // setGraphSampler("visibilityregion");
     // setGraphSampler("randomedge");
 }
 
 BundleSpaceGraphSparse::~BundleSpaceGraphSparse()
 {
-}
-
-const BundleSpaceGraph::Graph &BundleSpaceGraphSparse::getGraph() const
-{
-    return graphSparse_;
 }
 
 void BundleSpaceGraphSparse::setGraphSampler(const std::string &sGraphSampler)
@@ -107,60 +101,20 @@ void BundleSpaceGraphSparse::setGraphSampler(const std::string &sGraphSampler)
 void BundleSpaceGraphSparse::setup()
 {
     BaseT::setup();
-    if (!nearestSparse_)
-    {
-        nearestSparse_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
-        nearestSparse_->setDistanceFunction(
-            [this](const Configuration *a, const Configuration *b) { return distance(a, b); });
-    }
 
     double maxExt = getBundle()->getMaximumExtent();
     sparseDelta_ = sparseDeltaFraction_ * maxExt;
     OMPL_DEBUG("Visibility region set to %f (max extent %f)", sparseDelta_, maxExt);
 }
 
-BundleSpaceGraph::Vertex BundleSpaceGraphSparse::getStartIndex() const
-{
-  return v_start_sparse;
-}
-
-BundleSpaceGraph::Vertex BundleSpaceGraphSparse::getGoalIndex() const
-{
-  return v_goal_sparse;
-}
-
-void BundleSpaceGraphSparse::setStartIndex(Vertex idx)
-{
-  v_start_sparse = idx;
-}
-
-void BundleSpaceGraphSparse::setGoalIndex(Vertex idx)
-{
-  v_goal_sparse = idx;
-}
-
 void BundleSpaceGraphSparse::clear()
 {
     BaseT::clear();
 
-    if (nearestSparse_)
-    {
-        std::vector<Configuration *> configs;
-        nearestSparse_->list(configs);
-        for (auto &config : configs)
-        {
-            deleteConfiguration(config);
-        }
-        nearestSparse_->clear();
-    }
-    graphSparse_.clear();
-
     graphNeighborhood.clear();
     visibleNeighborhood.clear();
-    vrankSparse.clear();
-    vparentSparse.clear();
-    v_start_sparse = 0;
-    v_goal_sparse = 0;
+    // vrankSparse.clear();
+    // vparentSparse.clear();
     Nold_v = 0;
     Nold_e = 0;
 
@@ -169,126 +123,29 @@ void BundleSpaceGraphSparse::clear()
     startGoalVertexPath_.clear();
     lengthsStartGoalVertexPath_.clear();
 }
-unsigned int BundleSpaceGraphSparse::getNumberOfVertices() const
-{
-    return num_vertices(graphSparse_);
-}
-
-unsigned int BundleSpaceGraphSparse::getNumberOfEdges() const
-{
-    return num_edges(graphSparse_);
-}
-
-const BundleSpaceGraph::Configuration *BundleSpaceGraphSparse::nearest(const Configuration *q) const
-{
-    if (!isDynamic())
-        return BaseT::nearest(q);
-    else
-    {
-        return nearestSparse_->nearest(const_cast<Configuration *>(q));
-    }
-}
-
-Cost BundleSpaceGraphSparse::costHeuristicSparse(Vertex u, Vertex v) const
-{
-    return opt_->motionCostHeuristic(graphSparse_[u]->state, graphSparse_[v]->state);
-}
-
-PathPtr BundleSpaceGraphSparse::getPathSparse(const Vertex &start, const Vertex &goal)
-{
-    std::vector<Vertex> prev(boost::num_vertices(graphSparse_));
-    auto weight = boost::make_transform_value_property_map(std::mem_fn(&EdgeInternalState::getCost),
-                                                           get(boost::edge_bundle, graphSparse_));
-    try
-    {
-        boost::astar_search(graphSparse_, start, [this, goal](const Vertex v) { return costHeuristicSparse(v, goal); },
-                            boost::predecessor_map(&prev[0])
-                                .weight_map(weight)
-                                .distance_compare([this](EdgeInternalState c1, EdgeInternalState c2) {
-                                    return opt_->isCostBetterThan(c1.getCost(), c2.getCost());
-                                })
-                                .distance_combine([this](EdgeInternalState c1, EdgeInternalState c2) {
-                                    return opt_->combineCosts(c1.getCost(), c2.getCost());
-                                })
-                                .distance_inf(opt_->infiniteCost())
-                                .distance_zero(opt_->identityCost())
-                                .visitor(BundleSpaceGraphGoalVisitor<Vertex>(goal)));
-    }
-    catch (BundleSpaceGraphFoundGoal &)
-    {
-    }
-
-    auto p(std::make_shared<ompl::geometric::PathGeometric>(getBundle()));
-    if (prev[goal] == goal)
-    {
-        return nullptr;
-    }
-
-    std::vector<Vertex> vpath;
-    for (Vertex pos = goal; prev[pos] != pos; pos = prev[pos])
-    {
-        graphSparse_[pos]->on_shortest_path = true;
-        vpath.push_back(pos);
-        p->append(graphSparse_[pos]->state);
-    }
-    graphSparse_[start]->on_shortest_path = true;
-    vpath.push_back(start);
-    p->append(graphSparse_[start]->state);
-
-    shortestVertexPath_.clear();
-    shortestVertexPath_.insert(shortestVertexPath_.begin(), vpath.rbegin(), vpath.rend());
-    p->reverse();
-
-    return p;
-}
 
 void BundleSpaceGraphSparse::init()
 {
     BaseT::init();
 
-    v_start_sparse = vStart_;
-    qStart_ = graphSparse_[v_start_sparse];
-    qStart_->representativeIndex = v_start_sparse;
+    // v_start_sparse = vStart_;
+    // qStart_ = getGraph()[v_start_sparse];
+    // qStart_->representativeIndex = v_start_sparse;
 
-    v_goal_sparse = addConfiguration(qGoal_);
-    qGoal_ = graphSparse_[v_goal_sparse];
-    qGoal_->isGoal = true;
-    qGoal_->representativeIndex = v_goal_sparse;
+    // v_goal_sparse = addConfiguration(qGoal_);
+    // qGoal_ = getGraph()[v_goal_sparse];
+    // qGoal_->isGoal = true;
+    // qGoal_->representativeIndex = v_goal_sparse;
 }
-
-void BundleSpaceGraphSparse::uniteComponentsSparse(Vertex m1, Vertex m2)
-{
-    disjointSetsSparse_.union_set(m1, m2);
-}
-
-bool BundleSpaceGraphSparse::sameComponentSparse(Vertex m1, Vertex m2)
-{
-    return boost::same_component(m1, m2, disjointSetsSparse_);
-}
-
-void BundleSpaceGraphSparse::deleteConfiguration(Configuration *q)
-{
-    BaseT::deleteConfiguration(q);
-}
-
 BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfiguration(Configuration *q)
 {
-    const Vertex vl = add_vertex(q, graphSparse_);
-    graphSparse_[vl]->total_connection_attempts = 1;
-    graphSparse_[vl]->successful_connection_attempts = 0;
-    graphSparse_[vl]->index = vl;
-
-    nearestSparse_->add(q);
-
-    disjointSetsSparse_.make_set(vl);
+    const Vertex v = BaseT::addConfiguration(q);
     consecutiveFailures_ = 0;
-    // updateRepresentatives(ql);
-    return vl;
+    return v;
 }
 
-BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfigurationConditional(Configuration *q)
+bool BundleSpaceGraphSparse::addConfigurationConditional(Configuration *q)
 {
-
     findGraphNeighbors(q, graphNeighborhood, visibleNeighborhood);
 
     if (!checkAddCoverage(q, visibleNeighborhood))
@@ -303,17 +160,18 @@ BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfigurationCondition
                 //     if (!checkAddPath(q))
                 //     {
                 //         ++consecutiveFailures_;
+                //         return false;
                 //     }
                 // }
                 // else
                 {
                     ++consecutiveFailures_;
+                    return false;
                 }
             }
-            // }// no interface
-        }  // no connectivity
-    }      // no coverage
-    return q->index;
+        }
+    }
+    return true;
 }
 
 void BundleSpaceGraphSparse::findGraphNeighbors(Configuration *q, std::vector<Configuration *> &graphNeighborhood,
@@ -322,7 +180,7 @@ void BundleSpaceGraphSparse::findGraphNeighbors(Configuration *q, std::vector<Co
     graphNeighborhood.clear();
     visibleNeighborhood.clear();
 
-    nearestSparse_->nearestR(q, sparseDelta_, graphNeighborhood);
+    nearestDatastructure_->nearestR(q, sparseDelta_, graphNeighborhood);
 
     for (Configuration *qn : graphNeighborhood)
     {
@@ -331,14 +189,6 @@ void BundleSpaceGraphSparse::findGraphNeighbors(Configuration *q, std::vector<Co
             visibleNeighborhood.push_back(qn);
         }
     }
-}
-
-void BundleSpaceGraphSparse::addEdge(const Vertex a, const Vertex b)
-{
-    Cost weight = opt_->motionCost(graphSparse_[a]->state, graphSparse_[b]->state);
-    EdgeInternalState properties(weight);
-    boost::add_edge(a, b, properties, graphSparse_);
-    uniteComponentsSparse(a, b);
 }
 
 bool BundleSpaceGraphSparse::checkAddCoverage(Configuration *q, std::vector<Configuration *> &visibleNeighborhood)
@@ -364,7 +214,7 @@ bool BundleSpaceGraphSparse::checkAddConnectivity(Configuration *q, std::vector<
             {
                 const Vertex &vi = visibleNeighborhood[i]->index;
                 const Vertex &vj = visibleNeighborhood[j]->index;
-                if (!sameComponentSparse(vi, vj))
+                if (!sameComponent(vi, vj))
                 {
                     links.push_back(vi);
                     links.push_back(vj);
@@ -380,10 +230,10 @@ bool BundleSpaceGraphSparse::checkAddConnectivity(Configuration *q, std::vector<
             for (Vertex link : links)
             {
                 // (1) check that no previous edge exist
-                if (!boost::edge(v, link, graphSparse_).second)
+                if (!boost::edge(v, link, getGraph()).second)
                 {
                     // And the components haven't been united by previous links
-                    if (!sameComponentSparse(link, v))
+                    if (!sameComponent(link, v))
                     {
                         addEdge(v, link);
                     }
@@ -413,7 +263,7 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q, std::vector<Con
             // If our two closest neighbors don't share an edge
             const Vertex &v0idx = qv0->index;
             const Vertex &v1idx = qv1->index;
-            if (!boost::edge(v0idx, v1idx, graphSparse_).second)
+            if (!boost::edge(v0idx, v1idx, getGraph()).second)
             {
                 // If they can be directly connected
                 if (getBundle()->checkMotion(qv0->state, qv1->state))
@@ -427,8 +277,8 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q, std::vector<Con
                     Vertex v = addConfiguration(q);
                     addEdge(v, v0idx);
                     addEdge(v, v1idx);
+                    return true;
                 }
-                return true;
             }
         }
     }
@@ -475,7 +325,7 @@ bool BundleSpaceGraphSparse::checkAddPath(Configuration *q)
             {
                 // Compute/Retain MAXimum distance path thorugh S
                 double dist =
-                    (distance(graphSparse_[x], graphSparse_[v]) + distance(graphSparse_[v], graphSparse_[vp])) / 2.0;
+                    (distance(getGraph()[x], getGraph()[v]) + distance(getGraph()[v], getGraph()[vp])) / 2.0;
                 if (dist > s_max)
                     s_max = dist;
             }
@@ -488,8 +338,8 @@ bool BundleSpaceGraphSparse::checkAddPath(Configuration *q)
             {
                 Vertex vpp = VPPs[j];
                 // For each q", which are stored interface nodes on v for i(vpp,v)
-                auto it = graphSparse_[v]->interfaceIndexList.find(vpp);
-                if (it != graphSparse_[v]->interfaceIndexList.end())
+                auto it = getGraph()[v]->interfaceIndexList.find(vpp);
+                if (it != getGraph()[v]->interfaceIndexList.end())
                 {
                     foreach (Vertex qpp, /*interfaceListsProperty_[v][vpp]*/ it->second)
                     {
@@ -568,7 +418,7 @@ void BundleSpaceGraphSparse::updateRepresentatives(Configuration *q)
 
         // update representatives
         std::vector<Configuration *> graphNeighborhood;
-        nearestSparse_->nearestR(dense_point, sparseDelta_, graphNeighborhood);
+        nearestDatastructure_->nearestR(dense_point, sparseDelta_, graphNeighborhood);
 
         for (Configuration *qn : graphNeighborhood)
             if (getBundle()->checkMotion(dense_point->state, qn->state))
@@ -603,7 +453,7 @@ void BundleSpaceGraphSparse::addToRepresentatives(Vertex q, Vertex rep,
     if (interfaceRepresentatives.empty())
     {
         // Add it to the pool of non-interface nodes
-        bool new_insert = graphSparse_[rep]->nonInterfaceIndexList.insert(q).second;
+        bool new_insert = getGraph()[rep]->nonInterfaceIndexList.insert(q).second;
         // we expect this was not previously tracked
         if (!new_insert)
             assert(false);
@@ -613,8 +463,8 @@ void BundleSpaceGraphSparse::addToRepresentatives(Vertex q, Vertex rep,
         // otherwise, for every neighbor representative
         foreach (Vertex v, interfaceRepresentatives)
         {
-            auto it = graphSparse_[rep]->interfaceIndexList.find(v);
-            if (it != graphSparse_[rep]->interfaceIndexList.end())
+            auto it = getGraph()[rep]->interfaceIndexList.find(v);
+            if (it != getGraph()[rep]->interfaceIndexList.end())
             {
                 if (!it->second.insert(q).second)
                     assert(false);
@@ -624,7 +474,7 @@ void BundleSpaceGraphSparse::addToRepresentatives(Vertex q, Vertex rep,
                 std::set<normalized_index_type> list;
                 list.insert(q);
                 std::pair<normalized_index_type, std::set<normalized_index_type>> newinterface(v, list);
-                if (!graphSparse_[rep]->interfaceIndexList.insert(newinterface).second)
+                if (!getGraph()[rep]->interfaceIndexList.insert(newinterface).second)
                     assert(false);
             }
         }
@@ -657,11 +507,11 @@ void BundleSpaceGraphSparse::removeFromRepresentatives(Configuration *q)
     if (q->representativeIndex < 0)
         return;
     // Remove the node from the non-interface points (if there)
-    graphSparse_[q->representativeIndex]->nonInterfaceIndexList.erase(q->index);
+    getGraph()[q->representativeIndex]->nonInterfaceIndexList.erase(q->index);
 
     // From each of the interface lists
     std::unordered_map<normalized_index_type, std::set<normalized_index_type>> interfaceList =
-        graphSparse_[q->representativeIndex]->interfaceIndexList;
+        getGraph()[q->representativeIndex]->interfaceIndexList;
 
     for (std::unordered_map<normalized_index_type, std::set<normalized_index_type>>::iterator it =
              interfaceList.begin();
@@ -697,9 +547,9 @@ void BundleSpaceGraphSparse::getInterfaceNeighborhood(Configuration *q, std::vec
 
 void BundleSpaceGraphSparse::computeVPP(Vertex v, Vertex vp, std::vector<Vertex> &VPPs)
 {
-    foreach (Vertex cvpp, boost::adjacent_vertices(v, graphSparse_))
+    foreach (Vertex cvpp, boost::adjacent_vertices(v, getGraph()))
         if (cvpp != vp)
-            if (!boost::edge(cvpp, vp, graphSparse_).second)
+            if (!boost::edge(cvpp, vp, getGraph()).second)
                 VPPs.push_back(cvpp);
 }
 
@@ -707,11 +557,11 @@ void BundleSpaceGraphSparse::computeX(Vertex v, Vertex vp, Vertex vpp, std::vect
 {
     // x are nodes that share an interface and an edge with v, share an edge with v" but do not share with v'. I
     Xs.clear();
-    foreach (Vertex cx, boost::adjacent_vertices(vpp, graphSparse_))
-        if (boost::edge(cx, v, graphSparse_).second && !boost::edge(cx, vp, graphSparse_).second)
+    foreach (Vertex cx, boost::adjacent_vertices(vpp, getGraph()))
+        if (boost::edge(cx, v, getGraph()).second && !boost::edge(cx, vp, getGraph()).second)
         {
-            auto it = graphSparse_[vpp]->interfaceIndexList.find(cx);
-            if (it != graphSparse_[vpp]->interfaceIndexList.end())
+            auto it = getGraph()[vpp]->interfaceIndexList.find(cx);
+            if (it != getGraph()[vpp]->interfaceIndexList.end())
                 if (!it->second.empty())  // if (!interfaceListsProperty_[vpp][cx].empty())
                     Xs.push_back(cx);
         }
@@ -782,8 +632,8 @@ bool BundleSpaceGraphSparse::addPathToSpanner(const std::deque<State *> &dense_p
 
 bool BundleSpaceGraphSparse::hasSparseGraphChanged()
 {
-    unsigned Nv = boost::num_vertices(graphSparse_);
-    unsigned Ne = boost::num_edges(graphSparse_);
+    unsigned Nv = boost::num_vertices(getGraph());
+    unsigned Ne = boost::num_edges(getGraph());
     if ((Nv > Nold_v) || (Ne > Nold_e))
     {
         Nold_v = Nv;
@@ -791,121 +641,4 @@ bool BundleSpaceGraphSparse::hasSparseGraphChanged()
         return true;
     }
     return false;
-}
-
-// void BundleSpaceGraphSparse::getPlannerDataRoadmap(PlannerData &data) const
-// {
-//     foreach (const Vertex v, boost::vertices(graphSparse_))
-//     {
-//         multilevel::PlannerDataVertexAnnotated p(graphSparse_[v]->state);
-//         p.setLevel(getLevel());
-//         data.addVertex(p);
-//     }
-//     foreach (const Edge e, boost::edges(graphSparse_))
-//     {
-//         const Vertex v1 = boost::source(e, graphSparse_);
-//         const Vertex v2 = boost::target(e, graphSparse_);
-
-//         multilevel::PlannerDataVertexAnnotated p1(graphSparse_[v1]->state);
-//         multilevel::PlannerDataVertexAnnotated p2(graphSparse_[v2]->state);
-
-//         data.addEdge(p1, p2);
-//     }
-// }
-
-void BundleSpaceGraphSparse::print(std::ostream &out) const
-{
-    BaseT::print(out);
-    out << "   --[BundleSpaceGraphSparse has " << boost::num_vertices(graphSparse_) << " vertices and "
-        << boost::num_edges(graphSparse_) << " edges.]" << std::endl;
-}
-
-bool BundleSpaceGraphSparse::getSolution(PathPtr &solution)
-{
-    if (hasSolution_)
-    {
-        if ((solutionPath_ != nullptr) 
-            && (getNumberOfVertices() == numVerticesWhenComputingSolutionPath_))
-        {
-        }
-        else
-        {
-            solutionPath_ = getPathSparse(v_start_sparse, v_goal_sparse);
-
-            numVerticesWhenComputingSolutionPath_ = getNumberOfVertices();
-
-            if (!isDynamic() && solutionPath_ != solution && hasTotalSpace())
-            {
-                geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), pathRefinementObj_);
-                
-                geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
-                bool valid = shortcutter.reduceVertices(gpath);
-                if (!valid)
-                {
-                    solutionPath_ = getPathSparse(v_start_sparse, v_goal_sparse);
-                }
-            }
-        }
-
-
-        startGoalVertexPath_ = shortestVertexPath_;
-        solution = solutionPath_;
-
-        lengthStartGoalVertexPath_ = 0;
-        for (unsigned int k = 1; k < startGoalVertexPath_.size(); k++)
-        {
-            Configuration *xk = graphSparse_[startGoalVertexPath_.at(k)];
-            Configuration *xkk = graphSparse_[startGoalVertexPath_.at(k - 1)];
-            double d = distance(xk, xkk);
-            lengthsStartGoalVertexPath_.push_back(d);
-            lengthStartGoalVertexPath_ += d;
-        }
-        return true;
-    }
-    else
-    {
-        return false;
-        // Goal *g = pdef_->getGoal().get();
-        // bestCost_ = Cost(+dInf);
-        // bool same_component = sameComponentSparse(v_start_sparse, v_goal_sparse);
-        // std::cout << v_start_sparse << std::endl;
-        // std::cout << v_goal_sparse << std::endl;
-        // std::cout << "SAme comp:" << (same_component?"YES":"NO") << std::endl;
-
-        // if (same_component &&
-        //     g->isStartGoalPairValid(graphSparse_[v_goal_sparse]->state, graphSparse_[v_start_sparse]->state))
-        // {
-        //     solutionPath_ = getPathSparse(v_start_sparse, v_goal_sparse);
-        //     if (solutionPath_)
-        //     {
-        //         solution = solutionPath_;
-        //         hasSolution_ = true;
-        //         startGoalVertexPath_ = shortestVertexPath_;
-
-        //         lengthStartGoalVertexPath_ = 0;
-        //         for (unsigned int k = 1; k < startGoalVertexPath_.size(); k++)
-        //         {
-        //             Configuration *xk = graphSparse_[startGoalVertexPath_.at(k)];
-        //             Configuration *xkk = graphSparse_[startGoalVertexPath_.at(k - 1)];
-        //             double d = distance(xk, xkk);
-        //             lengthsStartGoalVertexPath_.push_back(d);
-        //             lengthStartGoalVertexPath_ += d;
-        //         }
-        //         return true;
-        //     }
-        // }
-    }
-    return false;
-}
-
-void BundleSpaceGraphSparse::getPlannerData(PlannerData &data) const
-{
-    OMPL_DEBUG("Sparse Graph (level %d) has %d/%d vertices/edges (Dense has %d/%d).", getLevel(),
-               boost::num_vertices(graphSparse_), boost::num_edges(graphSparse_), boost::num_vertices(graph_),
-               boost::num_edges(graph_));
-
-    if (boost::num_vertices(graphSparse_) > 1)
-    {
-        BaseT::getPlannerDataGraph(data, graphSparse_, v_start_sparse, v_goal_sparse);
-    }
 }
