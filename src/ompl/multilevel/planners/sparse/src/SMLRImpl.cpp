@@ -34,7 +34,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey, Sohaib Akbar */
+/* Author: Andreas Orthey */
 
 #include <ompl/multilevel/planners/sparse/SMLRImpl.h>
 #include <ompl/tools/config/SelfConfig.h>
@@ -80,15 +80,11 @@ SMLRImpl::~SMLRImpl()
 
 double SMLRImpl::getImportance() const
 {
-    // if(consecutiveFailures_ >= maxFailures_) return 0.0;
     return 1.0/(consecutiveFailures_  + 1);
-    // return BaseT::getImportance();
 }
 
 void SMLRImpl::grow()
 {
-    // if(consecutiveFailures_ >= maxFailures_) return;
-
     if (firstRun_)
     {
         init();
@@ -133,7 +129,8 @@ bool SMLRImpl::isInfeasible()
     if (progressFailure)
     {
         OMPL_INFORM("Infeasibility detected with probability %f (no valid samples for %d rounds).",
-                    1.0 - 1.0 / (double)consecutiveFailures_, consecutiveFailures_);
+            (1.0 - 1.0 / (double)consecutiveFailures_), 
+            consecutiveFailures_);
         isInfeasible_ = true;
     }
     return progressFailure;

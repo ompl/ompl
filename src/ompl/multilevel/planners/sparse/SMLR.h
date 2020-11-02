@@ -34,7 +34,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey, Sohaib Akbar */
+/* Author: Andreas Orthey */
 
 #ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_SMLR_
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_SMLR_
@@ -49,12 +49,16 @@ namespace ompl
         /**
              @anchor SMLR
              @par Short description
-             SParse Quotient space Roadmap planner (SMLR) algorithm,
-             generalizes the SPARS roadmap planner to bundle spaces
+             Sparse Multilevel Roadmap Planner (SMLR) algorithm,
+             generalizes the SPARS planner to bundle spaces
+
              @par External documentation
+             A. Orthey and M. Toussaint,
+             Sparse Multilevel Roadmaps on Fiber Bundles for High-Dimensional Motion Planning,
+             2020
         */
 
-        /** \brief [SP]arse [Q]uotient space [R]oadmap planner (SMLR) Algorithm */
+        /** \brief [S]parse [M]ulti[L]evel [R]oadmap planner (SMLR) Algorithm */
         using SMLR = BundleSpaceSequence<SMLRImpl>;
     }
 }
