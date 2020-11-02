@@ -81,7 +81,8 @@ SMLRImpl::~SMLRImpl()
 double SMLRImpl::getImportance() const
 {
     // if(consecutiveFailures_ >= maxFailures_) return 0.0;
-    return BaseT::getImportance();
+    return 1.0/(consecutiveFailures_  + 1);
+    // return BaseT::getImportance();
 }
 
 void SMLRImpl::grow()
