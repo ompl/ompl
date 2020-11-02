@@ -34,7 +34,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey */
+/* Author: Andreas Orthey, Sohaib Akbar */
 
 #ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_SMLR_
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_SMLR_

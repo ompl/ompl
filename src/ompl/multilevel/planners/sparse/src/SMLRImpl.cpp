@@ -34,7 +34,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey */
+/* Author: Andreas Orthey, Sohaib Akbar */
 
 #include <ompl/multilevel/planners/sparse/SMLRImpl.h>
 #include <ompl/tools/config/SelfConfig.h>
