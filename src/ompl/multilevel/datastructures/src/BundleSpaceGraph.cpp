@@ -668,7 +668,7 @@ void BundleSpaceGraph::setGoalIndex(Vertex idx)
     vGoal_ = idx;
 }
 
-bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
+bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
 {
     if (hasSolution_)
     {

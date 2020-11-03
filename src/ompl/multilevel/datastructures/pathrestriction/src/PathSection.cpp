@@ -312,7 +312,9 @@ void PathSection::interpolateL2(BasePathHeadPtr &head)
     }
 }
 
-BundleSpaceGraph::Configuration *PathSection::addFeasibleSegment(Configuration *xLast, base::State *sNext)
+BundleSpaceGraph::Configuration *PathSection::addFeasibleSegment(
+    Configuration *xLast, 
+    ompl::base::State *sNext)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
 
