@@ -81,7 +81,7 @@ void PathRestriction::setBasePath(ompl::base::PathPtr path)
     setBasePath(geometricBasePath->getStates());
 }
 
-void PathRestriction::setBasePath(std::vector<base::State *> basePath)
+void PathRestriction::setBasePath(std::vector<ompl::base::State *> basePath)
 {
     basePath_ = basePath;
 
@@ -99,7 +99,7 @@ void PathRestriction::setBasePath(std::vector<base::State *> basePath)
     OMPL_DEBUG("Set new base path with %d states and length %f.", basePath_.size(), lengthBasePath_);
 }
 
-void PathRestriction::interpolateBasePath(double t, base::State *&state) const
+void PathRestriction::interpolateBasePath(double t, ompl::base::State *&state) const
 {
     base::SpaceInformationPtr base = bundleSpaceGraph_->getBase();
 

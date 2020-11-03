@@ -97,7 +97,7 @@ bool FindSectionVariableNeighborhood::solve(BasePathHeadPtr &head)
     return foundFeasibleSection;
 }
 
-bool FindSectionVariableNeighborhood::sideStepAlongFiber(Configuration *&xOrigin, base::State *state)
+bool FindSectionVariableNeighborhood::sideStepAlongFiber(Configuration *&xOrigin, ompl::base::State *state)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();

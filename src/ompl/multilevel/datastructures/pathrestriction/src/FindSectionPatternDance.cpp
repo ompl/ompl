@@ -105,7 +105,7 @@ bool FindSectionPatternDance::solve(BasePathHeadPtr &head)
     return foundFeasibleSection;
 }
 
-bool FindSectionPatternDance::sideStepAlongFiber(Configuration *&xOrigin, base::State *state)
+bool FindSectionPatternDance::sideStepAlongFiber(Configuration *&xOrigin, ompl::base::State *state)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();

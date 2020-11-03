@@ -75,7 +75,7 @@ using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
 using namespace ompl::multilevel;
 
-BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
+BundleSpaceGraph::BundleSpaceGraph(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("BundleSpaceGraph");
 
@@ -259,7 +259,7 @@ double BundleSpaceGraph::getRange() const
     return maxDistance_;
 }
 
-BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si) : state(si->allocState())
+BundleSpaceGraph::Configuration::Configuration(const ompl::base::SpaceInformationPtr &si) : state(si->allocState())
 {
     // Too costly to do dynamic_pointer_cast in every call. Best to create
     // different Configuration classes (dynamic, geometric, etc). Or do inside
@@ -272,7 +272,8 @@ BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &
     //     control = siC->allocControl();
     // }
 }
-BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si, const base::State *state_)
+BundleSpaceGraph::Configuration::Configuration(const ompl::base::SpaceInformationPtr &si,
+                                               const ompl::base::State *state_)
   : state(si->cloneState(state_))
 {
     // const ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
@@ -367,7 +368,7 @@ const BundleSpaceGraph::Configuration *BundleSpaceGraph::nearest(const Configura
     return nearestDatastructure_->nearest(const_cast<Configuration *>(q));
 }
 
-BundleSpaceGraph::Configuration *BundleSpaceGraph::addBundleConfiguration(base::State *state)
+BundleSpaceGraph::Configuration *BundleSpaceGraph::addBundleConfiguration(ompl::base::State *state)
 {
     Configuration *x = new Configuration(getBundle(), state);
     addConfiguration(x);
@@ -823,7 +824,7 @@ const PathRestrictionPtr BundleSpaceGraph::getPathRestriction()
     return pathRestriction_;
 }
 
-void BundleSpaceGraph::sampleBundleGoalBias(base::State *xRandom)
+void BundleSpaceGraph::sampleBundleGoalBias(ompl::base::State *xRandom)
 {
     if (hasSolution_)
     {
@@ -844,7 +845,7 @@ void BundleSpaceGraph::sampleBundleGoalBias(base::State *xRandom)
     }
 }
 
-void BundleSpaceGraph::sampleFromDatastructure(base::State *xRandom)
+void BundleSpaceGraph::sampleFromDatastructure(ompl::base::State *xRandom)
 {
     graphSampler_->sample(xRandom);
 }
@@ -862,7 +863,7 @@ void BundleSpaceGraph::printConfiguration(const Configuration *q) const
     getBundle()->printState(q->state);
 }
 
-void BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &data, const Graph &graph, const Vertex vStart,
+void BundleSpaceGraph::getPlannerDataGraph(ompl::base::PlannerData &data, const Graph &graph, const Vertex vStart,
                                            const Vertex vGoal) const
 {
     if (boost::num_vertices(graph) <= 0)
@@ -915,7 +916,7 @@ void BundleSpaceGraph::getPlannerDataGraph(base::PlannerData &data, const Graph 
     }
 }
 
-void BundleSpaceGraph::getPlannerData(base::PlannerData &data) const
+void BundleSpaceGraph::getPlannerData(ompl::base::PlannerData &data) const
 {
     OMPL_DEBUG("Graph (level %d) has %d/%d vertices/edges", getLevel(), boost::num_vertices(graph_),
                boost::num_edges(graph_));

@@ -105,7 +105,7 @@ FindSection::~FindSection()
     bundle->freeState(xBundleTmp_);
 }
 
-bool FindSection::findFeasibleStateOnFiber(const base::State *xBase, base::State *xBundle)
+bool FindSection::findFeasibleStateOnFiber(const ompl::base::State *xBase, ompl::base::State *xBundle)
 {
     unsigned int ctr = 0;
     bool found = false;
@@ -133,7 +133,8 @@ bool FindSection::findFeasibleStateOnFiber(const base::State *xBase, base::State
     return found;
 }
 
-bool FindSection::cornerStep(BasePathHeadPtr &head, const base::State *xBundleTarget, double locationOnBasePathTarget)
+bool FindSection::cornerStep(BasePathHeadPtr &head, const ompl::base::State *xBundleTarget,
+                             double locationOnBasePathTarget)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
@@ -225,7 +226,7 @@ bool FindSection::cornerStep(BasePathHeadPtr &head, const base::State *xBundleTa
     return found;
 }
 
-bool FindSection::tripleStep(BasePathHeadPtr &head, const base::State *sBundleGoal, double locationOnBasePathGoal)
+bool FindSection::tripleStep(BasePathHeadPtr &head, const ompl::base::State *sBundleGoal, double locationOnBasePathGoal)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();

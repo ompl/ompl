@@ -41,7 +41,7 @@
 
 using namespace ompl::multilevel;
 
-BundleSpaceComponent::BundleSpaceComponent(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace)
+BundleSpaceComponent::BundleSpaceComponent(ompl::base::StateSpacePtr BundleSpace, ompl::base::StateSpacePtr BaseSpace)
   : BundleSpace_(BundleSpace), BaseSpace_(BaseSpace)
 {
 }
@@ -87,7 +87,7 @@ void BundleSpaceComponent::setType(BundleSpaceComponentType &type)
     type_ = type;
 }
 
-std::string BundleSpaceComponent::stateTypeToString(base::StateSpacePtr space) const
+std::string BundleSpaceComponent::stateTypeToString(ompl::base::StateSpacePtr space) const
 {
     std::string tstr;
     int type = space->getType();
