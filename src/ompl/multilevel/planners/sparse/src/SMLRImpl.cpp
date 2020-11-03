@@ -48,7 +48,7 @@
 
 using namespace ompl::multilevel;
 
-SMLRImpl::SMLRImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
+SMLRImpl::SMLRImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("SMLRImpl" + std::to_string(id_));
     randomWorkStates_.resize(5);

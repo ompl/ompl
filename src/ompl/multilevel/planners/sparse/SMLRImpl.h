@@ -55,7 +55,7 @@ namespace ompl
             using BaseT = BundleSpaceGraphSparse;
 
         public:
-            SMLRImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
+            SMLRImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_);
 
             virtual ~SMLRImpl() override;
 
