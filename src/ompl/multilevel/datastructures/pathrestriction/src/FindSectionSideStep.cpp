@@ -53,8 +53,7 @@ namespace ompl
 
 using namespace ompl::multilevel;
 
-FindSectionSideStep::FindSectionSideStep(PathRestriction* restriction):
-  BaseT(restriction)
+FindSectionSideStep::FindSectionSideStep(PathRestriction *restriction) : BaseT(restriction)
 {
 }
 
@@ -62,7 +61,7 @@ FindSectionSideStep::~FindSectionSideStep()
 {
 }
 
-bool FindSectionSideStep::solve(BasePathHeadPtr& head)
+bool FindSectionSideStep::solve(BasePathHeadPtr &head)
 {
     Configuration *q = head->getConfiguration();
 
@@ -72,7 +71,7 @@ bool FindSectionSideStep::solve(BasePathHeadPtr& head)
     bool foundFeasibleSection = recursiveSideStep(head);
     std::cout << *head2 << std::endl;
 
-    if(!foundFeasibleSection)
+    if (!foundFeasibleSection)
     {
         head->setCurrent(q, 0);
         foundFeasibleSection = recursiveSideStep(head, false);
@@ -81,10 +80,7 @@ bool FindSectionSideStep::solve(BasePathHeadPtr& head)
     return foundFeasibleSection;
 }
 
-bool FindSectionSideStep::recursiveSideStep(
-    BasePathHeadPtr& head,
-    bool interpolateFiberFirst, 
-    unsigned int depth)
+bool FindSectionSideStep::recursiveSideStep(BasePathHeadPtr &head, bool interpolateFiberFirst, unsigned int depth)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
@@ -102,18 +98,18 @@ bool FindSectionSideStep::recursiveSideStep(
         section->interpolateL1FiberLast(head);
     }
 
-    if(section->checkMotion(head))
+    if (section->checkMotion(head))
     {
         section->sanityCheck();
         return true;
     }
 
     static_cast<BundleSpaceGraph *>(graph->getBaseBundleSpace())
-       ->getGraphSampler()
-       ->setPathBiasStartSegment(head->getLocationOnBasePath());
+        ->getGraphSampler()
+        ->setPathBiasStartSegment(head->getLocationOnBasePath());
 
     //############################################################################
-    //Get last valid state information
+    // Get last valid state information
     //############################################################################
 
     if (depth + 1 >= magic::PATH_SECTION_TREE_MAX_DEPTH)
@@ -123,7 +119,7 @@ bool FindSectionSideStep::recursiveSideStep(
 
     double location = head->getLocationOnBasePath();
 
-    base::State* xBase = base->allocState();
+    base::State *xBase = base->allocState();
 
     restriction_->interpolateBasePath(location, xBase);
 
@@ -131,13 +127,12 @@ bool FindSectionSideStep::recursiveSideStep(
 
     for (unsigned int j = 0; j < magic::PATH_SECTION_TREE_MAX_BRANCHING; j++)
     {
-
         if (!findFeasibleStateOnFiber(xBase, xBundleTmp_))
         {
             continue;
         }
 
-        if(bundle->checkMotion(head->getState(), xBundleTmp_))
+        if (bundle->checkMotion(head->getState(), xBundleTmp_))
         {
             Configuration *xSideStep = new Configuration(bundle, xBundleTmp_);
             graph->addConfiguration(xSideStep);
@@ -149,17 +144,14 @@ bool FindSectionSideStep::recursiveSideStep(
 
             bool feasibleSection = recursiveSideStep(newHead, !interpolateFiberFirst, depth + 1);
 
-            if(feasibleSection)
+            if (feasibleSection)
             {
                 head = newHead;
                 found = true;
                 break;
             }
         }
-
     }
     base->freeState(xBase);
     return found;
 }
-
-

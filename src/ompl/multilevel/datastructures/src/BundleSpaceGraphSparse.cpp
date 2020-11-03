@@ -324,8 +324,7 @@ bool BundleSpaceGraphSparse::checkAddPath(Configuration *q)
             foreach (Vertex x, Xs)
             {
                 // Compute/Retain MAXimum distance path thorugh S
-                double dist =
-                    (distance(getGraph()[x], getGraph()[v]) + distance(getGraph()[v], getGraph()[vp])) / 2.0;
+                double dist = (distance(getGraph()[x], getGraph()[v]) + distance(getGraph()[v], getGraph()[vp])) / 2.0;
                 if (dist > s_max)
                     s_max = dist;
             }

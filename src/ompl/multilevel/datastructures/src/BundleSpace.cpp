@@ -164,7 +164,7 @@ void BundleSpace::setup()
     if (pdef_)
         goal_ = pdef_->getGoal().get();
 
-    if(getFiberDimension() > 0)
+    if (getFiberDimension() > 0)
     {
         getFiber()->getStateSpace()->setup();
     }
@@ -320,7 +320,7 @@ void BundleSpace::resetCounter()
 //     }
 // }
 
-//unsigned int BundleSpace::interpolateAlongBasePath(const std::vector<State *> basePath, double location,
+// unsigned int BundleSpace::interpolateAlongBasePath(const std::vector<State *> basePath, double location,
 //                                                   State *xResult) const
 //{
 //    double d_path = 0;
@@ -508,17 +508,17 @@ void BundleSpace::allocIdentityState(State *s, StateSpacePtr space) const
             {
                 RealVectorStateSpace::StateType *sRN = s->as<RealVectorStateSpace::StateType>();
                 RealVectorStateSpace *RN = space->as<RealVectorStateSpace>();
-                const std::vector<double>& bl = RN->getBounds().low;
-                const std::vector<double>& bh = RN->getBounds().high;
+                const std::vector<double> &bl = RN->getBounds().low;
+                const std::vector<double> &bh = RN->getBounds().high;
                 for (unsigned int k = 0; k < space->getDimension(); k++)
                 {
                     double &v = sRN->values[k];
                     v = 0.0;
 
-                    //if zero is not valid, use mid point as identity
-                    if( v < bl.at(k) || v > bh.at(k))
+                    // if zero is not valid, use mid point as identity
+                    if (v < bl.at(k) || v > bh.at(k))
                     {
-                      v = bl.at(k) + 0.5*(bh.at(k) - bl.at(k));
+                        v = bl.at(k) + 0.5 * (bh.at(k) - bl.at(k));
                     }
                 }
                 break;
@@ -604,12 +604,14 @@ const StateSamplerPtr &BundleSpace::getFiberSamplerPtr() const
 
 const StateSamplerPtr &BundleSpace::getBaseSamplerPtr() const
 {
-    if(hasBaseSpace())
+    if (hasBaseSpace())
     {
-      return getBaseBundleSpace()->getBundleSamplerPtr();
-    }else{
-      OMPL_ERROR("Cannot get Base Sampler without Base Space.");
-      throw Exception("Tried Calling Non-existing base space sampler");
+        return getBaseBundleSpace()->getBundleSamplerPtr();
+    }
+    else
+    {
+        OMPL_ERROR("Cannot get Base Sampler without Base Space.");
+        throw Exception("Tried Calling Non-existing base space sampler");
     }
 }
 
@@ -746,8 +748,8 @@ void BundleSpace::debugInvalidState(const State *x)
                         double qkh = bh.at(k);
                         if (qk < qkl || qk > qkh)
                         {
-                            OMPL_ERROR("Out Of Bounds [component %d, link %d] %.2f <= %.2f <= %.2f", 
-                                m, k, bl.at(k), qk, bh.at(k));
+                            OMPL_ERROR("Out Of Bounds [component %d, link %d] %.2f <= %.2f <= %.2f", m, k, bl.at(k), qk,
+                                       bh.at(k));
                         }
                     }
                     break;
@@ -757,8 +759,7 @@ void BundleSpace::debugInvalidState(const State *x)
                     double value = 0;
                     if (!space->isCompound())
                     {
-                        const SO2StateSpace::StateType *xk 
-                          = x->as<CompoundState>()->as<SO2StateSpace::StateType>(m);
+                        const SO2StateSpace::StateType *xk = x->as<CompoundState>()->as<SO2StateSpace::StateType>(m);
                         value = xk->value;
                     }
                     else
@@ -789,9 +790,7 @@ void BundleSpace::print(std::ostream &out) const
     out << "[";
     for (unsigned int m = 0; m < M; m++)
     {
-        out << components_.at(m)->getTypeAsString() 
-          << (isDynamic_ ? "(dyn)" : "") 
-          << (m < M - 1 ? " | " : "");
+        out << components_.at(m)->getTypeAsString() << (isDynamic_ ? "(dyn)" : "") << (m < M - 1 ? " | " : "");
     }
     out << "]";
 }

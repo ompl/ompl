@@ -6,34 +6,29 @@
 
 namespace ompl
 {
-    class ParameterSmoothStep: public Parameter
+    class ParameterSmoothStep : public Parameter
     {
     public:
         ParameterSmoothStep() = default;
 
-        ParameterSmoothStep(double initValue) : 
-          Parameter(initValue)
-        {
-        };
+        ParameterSmoothStep(double initValue) : Parameter(initValue){};
 
-        ParameterSmoothStep(double initValue, double targetValue):
-          Parameter(initValue, targetValue)
-        {
-        };
+        ParameterSmoothStep(double initValue, double targetValue) : Parameter(initValue, targetValue){};
 
         double operator()(void)
         {
-            //map to [0,1]
-            double t = (getCounter() - getCounterInit())/(double)(getCounterTarget() - getCounterInit());
+            // map to [0,1]
+            double t = (getCounter() - getCounterInit()) / (double)(getCounterTarget() - getCounterInit());
 
             incrementCounter();
 
-            if(t < 0) return getValueInit();
-            if(t >= 1) return getValueTarget();
+            if (t < 0)
+                return getValueInit();
+            if (t >= 1)
+                return getValueTarget();
 
-            return getValueInit() + (getValueTarget() - getValueInit())*(t * t * (3 - 2*t));
+            return getValueInit() + (getValueTarget() - getValueInit()) * (t * t * (3 - 2 * t));
         }
-
     };
 }
 #endif

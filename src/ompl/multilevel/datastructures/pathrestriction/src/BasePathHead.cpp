@@ -41,10 +41,7 @@
 
 using namespace ompl::multilevel;
 
-BasePathHead::BasePathHead(
-        PathRestriction *restriction,
-        Configuration* xCurrent,
-        Configuration* xTarget)
+BasePathHead::BasePathHead(PathRestriction *restriction, Configuration *xCurrent, Configuration *xTarget)
 {
     xCurrent_ = xCurrent;
     xTarget_ = xTarget;
@@ -52,13 +49,13 @@ BasePathHead::BasePathHead(
     restriction_ = restriction;
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
 
-    if(graph->getBaseDimension() > 0)
+    if (graph->getBaseDimension() > 0)
     {
         base::SpaceInformationPtr base = graph->getBase();
         xBaseCurrent_ = base->allocState();
         graph->projectBase(xCurrent->state, xBaseCurrent_);
     }
-    if(graph->getFiberDimension() > 0)
+    if (graph->getFiberDimension() > 0)
     {
         base::SpaceInformationPtr fiber = graph->getFiber();
         xFiberCurrent_ = fiber->allocState();
@@ -86,68 +83,68 @@ BasePathHead::BasePathHead(const BasePathHead &rhs)
 BasePathHead::~BasePathHead()
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    if(graph->getFiberDimension() > 0)
+    if (graph->getFiberDimension() > 0)
     {
         base::SpaceInformationPtr fiber = graph->getFiber();
         fiber->freeState(xFiberCurrent_);
         fiber->freeState(xFiberTarget_);
     }
 
-    if(graph->getBaseDimension() > 0)
+    if (graph->getBaseDimension() > 0)
     {
         base::SpaceInformationPtr base = graph->getBase();
         base->freeState(xBaseCurrent_);
     }
 }
 
-PathRestriction* BasePathHead::getRestriction() const
+PathRestriction *BasePathHead::getRestriction() const
 {
-  return restriction_;
+    return restriction_;
 }
 
-Configuration* BasePathHead::getConfiguration() const
+Configuration *BasePathHead::getConfiguration() const
 {
     return xCurrent_;
 }
 
-const ompl::base::State* BasePathHead::getState() const
+const ompl::base::State *BasePathHead::getState() const
 {
-  return xCurrent_->state;
+    return xCurrent_->state;
 }
 
-const ompl::base::State* BasePathHead::getStateFiber() const
+const ompl::base::State *BasePathHead::getStateFiber() const
 {
-  return xFiberCurrent_;
+    return xFiberCurrent_;
 }
 
-const ompl::base::State* BasePathHead::getStateBase() const
+const ompl::base::State *BasePathHead::getStateBase() const
 {
-  return xBaseCurrent_;
+    return xBaseCurrent_;
 }
 
-ompl::base::State* BasePathHead::getStateFiberNonConst() const
+ompl::base::State *BasePathHead::getStateFiberNonConst() const
 {
-  return xFiberCurrent_;
+    return xFiberCurrent_;
 }
 
-ompl::base::State* BasePathHead::getStateBaseNonConst() const
+ompl::base::State *BasePathHead::getStateBaseNonConst() const
 {
-  return xBaseCurrent_;
+    return xBaseCurrent_;
 }
 
-Configuration* BasePathHead::getTargetConfiguration() const
+Configuration *BasePathHead::getTargetConfiguration() const
 {
     return xTarget_;
 }
 
-const ompl::base::State* BasePathHead::getStateTargetFiber() const
+const ompl::base::State *BasePathHead::getStateTargetFiber() const
 {
-  return xFiberTarget_;
+    return xFiberTarget_;
 }
 
-ompl::base::State* BasePathHead::getStateTargetFiberNonConst() const
+ompl::base::State *BasePathHead::getStateTargetFiberNonConst() const
 {
-  return xFiberTarget_;
+    return xFiberTarget_;
 }
 
 void BasePathHead::setCurrent(Configuration *newCurrent, double location)
@@ -158,15 +155,14 @@ void BasePathHead::setCurrent(Configuration *newCurrent, double location)
 
     locationOnBasePath_ = location;
 
-    lastValidIndexOnBasePath_ = 
-      restriction_->getBasePathLastIndexFromLocation(location);
+    lastValidIndexOnBasePath_ = restriction_->getBasePathLastIndexFromLocation(location);
 
-    if(graph->getBaseDimension() > 0)
+    if (graph->getBaseDimension() > 0)
     {
         base::SpaceInformationPtr base = graph->getBase();
         graph->projectBase(xCurrent_->state, xBaseCurrent_);
     }
-    if(graph->getFiberDimension() > 0)
+    if (graph->getFiberDimension() > 0)
     {
         base::SpaceInformationPtr fiber = graph->getFiber();
         graph->projectFiber(xCurrent_->state, xFiberCurrent_);
@@ -181,10 +177,11 @@ int BasePathHead::getLastValidBasePathIndex() const
 int BasePathHead::getNextValidBasePathIndex() const
 {
     int Nlast = getRestriction()->size() - 1;
-    if(lastValidIndexOnBasePath_ < Nlast)
+    if (lastValidIndexOnBasePath_ < Nlast)
     {
         return lastValidIndexOnBasePath_ + 1;
-    }else
+    }
+    else
     {
         return Nlast;
     }
@@ -198,12 +195,12 @@ double BasePathHead::getLocationOnBasePath() const
 int BasePathHead::getNumberOfRemainingStates()
 {
     //----- | ---------------X-------|---------|
-    //    lastValid        xCurrent    
+    //    lastValid        xCurrent
     //    would result in three (including current head)
 
-    if(getLocationOnBasePath() >= restriction_->getLengthBasePath())
+    if (getLocationOnBasePath() >= restriction_->getLengthBasePath())
     {
-      return 1;
+        return 1;
     }
 
     int Nstates = restriction_->getBasePath().size();
@@ -220,15 +217,16 @@ void BasePathHead::setLastValidBasePathIndex(int k)
     lastValidIndexOnBasePath_ = k;
 }
 
-const ompl::base::State* BasePathHead::getBaseStateAt(int k) const
+const ompl::base::State *BasePathHead::getBaseStateAt(int k) const
 {
     //----- | ---------------X-------|---------
     //    lastValid        xCurrent    basePath(lastValid + 1)
-    if(k <= 0)
+    if (k <= 0)
     {
         return xBaseCurrent_;
     }
-    else{
+    else
+    {
         int idx = std::min(restriction_->size() - 1, (unsigned int)lastValidIndexOnBasePath_ + k);
         return restriction_->getBasePath().at(idx);
     }
@@ -238,18 +236,17 @@ int BasePathHead::getBaseStateIndexAt(int k) const
 {
     //----- | ---------------X-------|---------
     //    lastValid        xCurrent    basePath(lastValid + 1)
-  
 
     unsigned int idx = lastValidIndexOnBasePath_ + k;
-    if(restriction_->size() < 1)
+    if (restriction_->size() < 1)
     {
         throw Exception("EmptyRestriction");
     }
-    if(idx > restriction_->size() - 1)
+    if (idx > restriction_->size() - 1)
     {
-      idx = restriction_->size() - 1;
-      // std::cout << "idx " << idx << std::endl;
-      // throw Exception("WrongIndex");
+        idx = restriction_->size() - 1;
+        // std::cout << "idx " << idx << std::endl;
+        // throw Exception("WrongIndex");
     }
     return idx;
 }
@@ -263,11 +260,8 @@ void BasePathHead::print(std::ostream &out) const
     out << "[ Head at:";
     int idx = getLastValidBasePathIndex();
     bundle->printState(xCurrent_->state);
-    out << "base location " << getLocationOnBasePath()
-      << "/" << restriction_->getLengthBasePath()
-      << " idx " << idx
-      << "/" << restriction_->size()
-      << std::endl;
+    out << "base location " << getLocationOnBasePath() << "/" << restriction_->getLengthBasePath() << " idx " << idx
+        << "/" << restriction_->size() << std::endl;
     out << "last base state idx ";
     base->printState(restriction_->getBasePath().at(idx));
     out << "]" << std::endl;
@@ -277,7 +271,7 @@ namespace ompl
 {
     namespace multilevel
     {
-        std::ostream& operator<<(std::ostream &out, const BasePathHead& h)
+        std::ostream &operator<<(std::ostream &out, const BasePathHead &h)
         {
             h.print(out);
             return out;

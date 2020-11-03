@@ -76,7 +76,7 @@ SMLRImpl::~SMLRImpl()
 
 double SMLRImpl::getImportance() const
 {
-    return 1.0/(consecutiveFailures_  + 1);
+    return 1.0 / (consecutiveFailures_ + 1);
 }
 
 void SMLRImpl::grow()
@@ -125,8 +125,7 @@ bool SMLRImpl::isInfeasible()
     if (progressFailure)
     {
         OMPL_INFORM("Infeasibility detected with probability %f (no valid samples for %d rounds).",
-            (1.0 - 1.0 / (double)consecutiveFailures_), 
-            consecutiveFailures_);
+                    (1.0 - 1.0 / (double)consecutiveFailures_), consecutiveFailures_);
         isInfeasible_ = true;
     }
     return progressFailure;

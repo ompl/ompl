@@ -41,9 +41,7 @@
 
 using namespace ompl::multilevel;
 
-BundleSpaceComponent::BundleSpaceComponent(
-    base::StateSpacePtr BundleSpace, 
-    base::StateSpacePtr BaseSpace)
+BundleSpaceComponent::BundleSpaceComponent(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace)
   : BundleSpace_(BundleSpace), BaseSpace_(BaseSpace)
 {
 }

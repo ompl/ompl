@@ -40,7 +40,7 @@
 
 ompl::multilevel::BundleSpaceImportanceGreedy::BundleSpaceImportanceGreedy(BundleSpaceGraph *graph) : BaseT(graph)
 {
-    if(epsilon <= 0)
+    if (epsilon <= 0)
     {
         OMPL_WARN("Epsilon is zero.");
     }

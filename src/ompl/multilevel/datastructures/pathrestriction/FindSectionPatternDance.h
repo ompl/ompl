@@ -48,39 +48,31 @@ namespace ompl
     {
         using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
-        class FindSectionPatternDance: public FindSection
+        class FindSectionPatternDance : public FindSection
         {
             using BaseT = FindSection;
-        public:
 
+        public:
             FindSectionPatternDance() = delete;
-            FindSectionPatternDance(PathRestriction*);
+            FindSectionPatternDance(PathRestriction *);
 
             virtual ~FindSectionPatternDance();
 
-            virtual bool solve(BasePathHeadPtr& head) override;
+            virtual bool solve(BasePathHeadPtr &head) override;
 
-            bool recursivePatternSearch(
-                BasePathHeadPtr& head,
-                bool interpolateFiberFirst = true,
-                unsigned int depth = 0);
+            bool recursivePatternSearch(BasePathHeadPtr &head, bool interpolateFiberFirst = true,
+                                        unsigned int depth = 0);
 
+            bool sideStepAlongFiber(Configuration *&xOrigin, base::State *state);
 
-            bool sideStepAlongFiber(
-                Configuration* &xOrigin, 
-                base::State *state);
+            bool wriggleFree(BasePathHeadPtr &head);
 
-            bool wriggleFree(BasePathHeadPtr& head);
-
-            bool tunneling(BasePathHeadPtr& head);
+            bool tunneling(BasePathHeadPtr &head);
 
         protected:
-
-            base::State* xBaseFixed_;
-
+            base::State *xBaseFixed_;
         };
     }
 }
 
 #endif
-

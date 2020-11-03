@@ -97,15 +97,11 @@ BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformationPtr &si, BundleSp
     specs_.approximateSolutions = false;
     specs_.optimizingPaths = false;
 
-    Planner::declareParam<double>("range", 
-        this, &BundleSpaceGraph::setRange, 
-        &BundleSpaceGraph::getRange, "0.:1.:10000.");
+    Planner::declareParam<double>("range", this, &BundleSpaceGraph::setRange, &BundleSpaceGraph::getRange, "0.:1.:"
+                                                                                                           "10000.");
 
-    Planner::declareParam<double>("goal_bias", 
-        this, 
-        &BundleSpaceGraph::setGoalBias, 
-        &BundleSpaceGraph::getGoalBias, 
-        "0.:.1:1.");
+    Planner::declareParam<double>("goal_bias", this, &BundleSpaceGraph::setGoalBias, &BundleSpaceGraph::getGoalBias,
+                                  "0.:.1:1.");
 
     xRandom_ = new Configuration(getBundle());
 
@@ -121,8 +117,7 @@ BundleSpaceGraph::BundleSpaceGraph(const base::SpaceInformationPtr &si, BundleSp
 
     pathRefinementObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
 
-    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)
-      ->addObjective(lengthObj, 1.0);
+    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 1.0);
     // std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)
     //   ->addObjective(clearObj, 1.0);
 
@@ -187,7 +182,7 @@ void BundleSpaceGraph::setup()
     {
         setup_ = false;
     }
-    if(hasBaseSpace())
+    if (hasBaseSpace())
     {
         pathRestriction_ = std::make_shared<PathRestriction>(this);
     }
@@ -223,7 +218,7 @@ void BundleSpaceGraph::clear()
 
     importanceCalculator_->clear();
     graphSampler_->clear();
-    if(pathRestriction_ != nullptr)
+    if (pathRestriction_ != nullptr)
     {
         pathRestriction_->clear();
     }
@@ -264,12 +259,11 @@ double BundleSpaceGraph::getRange() const
     return maxDistance_;
 }
 
-BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si) 
-  : state(si->allocState())
+BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si) : state(si->allocState())
 {
-    //Too costly to do dynamic_pointer_cast in every call. Best to create
-    //different Configuration classes (dynamic, geometric, etc). Or do inside
-    //addconfiguration function.
+    // Too costly to do dynamic_pointer_cast in every call. Best to create
+    // different Configuration classes (dynamic, geometric, etc). Or do inside
+    // addconfiguration function.
     //
     //
     // const ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
@@ -278,8 +272,7 @@ BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &
     //     control = siC->allocControl();
     // }
 }
-BundleSpaceGraph::Configuration::Configuration(
-    const base::SpaceInformationPtr &si, const base::State *state_)
+BundleSpaceGraph::Configuration::Configuration(const base::SpaceInformationPtr &si, const base::State *state_)
   : state(si->cloneState(state_))
 {
     // const ompl::control::SpaceInformationPtr siC = std::dynamic_pointer_cast<ompl::control::SpaceInformation>(si);
@@ -659,27 +652,26 @@ double BundleSpaceGraph::getGraphLength() const
 
 BundleSpaceGraph::Vertex BundleSpaceGraph::getStartIndex() const
 {
-  return vStart_;
+    return vStart_;
 }
 BundleSpaceGraph::Vertex BundleSpaceGraph::getGoalIndex() const
 {
-  return vGoal_;
+    return vGoal_;
 }
 void BundleSpaceGraph::setStartIndex(Vertex idx)
 {
-  vStart_ = idx;
+    vStart_ = idx;
 }
 void BundleSpaceGraph::setGoalIndex(Vertex idx)
 {
-  vGoal_ = idx;
+    vGoal_ = idx;
 }
 
 bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
 {
     if (hasSolution_)
     {
-        if ((solutionPath_ != nullptr) 
-            && (getNumberOfVertices() == numVerticesWhenComputingSolutionPath_))
+        if ((solutionPath_ != nullptr) && (getNumberOfVertices() == numVerticesWhenComputingSolutionPath_))
         {
         }
         else
@@ -717,7 +709,7 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
                 // if(optimize)
                 // {
                 geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), pathRefinementObj_);
-                
+
                 // @NOTE: optimization seems to improve feasibility of sections
                 // in low-dim problems (up to 20 dof roughly), but will take too
                 // much time for high-dim problems. Reducing vertices seems to
@@ -726,10 +718,9 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
 
                 bool valid = false;
                 // std::cout << "Optimize" << std::endl;
-                for(unsigned int k = 0; k < 3; k++)
+                for (unsigned int k = 0; k < 3; k++)
                 {
-                    geometric::PathGeometric &gpath = 
-                      static_cast<geometric::PathGeometric &>(*solutionPath_);
+                    geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
 
                     valid = shortcutter.reduceVertices(gpath, 0, 0, 0.1);
 
@@ -739,13 +730,15 @@ bool BundleSpaceGraph::getSolution(base::PathPtr &solution)
                     {
                         // reset solutionPath
                         solutionPath_ = getPath(vStart_, vGoal_);
-                    }else{
+                    }
+                    else
+                    {
                         break;
                     }
                 }
                 // std::cout << "Done" << std::endl;
 
-                // geometric::PathGeometric &gpath2 = 
+                // geometric::PathGeometric &gpath2 =
                 //   static_cast<geometric::PathGeometric &>(*solutionPath_);
 
                 // shortcutter.smoothBSpline(gpath2);

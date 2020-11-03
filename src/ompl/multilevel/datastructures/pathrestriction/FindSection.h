@@ -63,31 +63,21 @@ namespace ompl
         class FindSection
         {
         public:
-
             FindSection() = delete;
-            FindSection(PathRestriction*);
+            FindSection(PathRestriction *);
 
             virtual ~FindSection();
 
-            virtual bool solve(BasePathHeadPtr& head) = 0;
+            virtual bool solve(BasePathHeadPtr &head) = 0;
 
             /** \brief Sample state on fiber while keeping base state fixed */
-            bool findFeasibleStateOnFiber(
-                const base::State *xBase, 
-                base::State *xBundle);
+            bool findFeasibleStateOnFiber(const base::State *xBase, base::State *xBundle);
 
-            bool tripleStep(
-                BasePathHeadPtr& head,
-                const base::State *sBundleGoal,
-                double locationOnBasePathGoal);
+            bool tripleStep(BasePathHeadPtr &head, const base::State *sBundleGoal, double locationOnBasePathGoal);
 
-            bool cornerStep(
-                BasePathHeadPtr& head,
-                const base::State *xBundleTarget,
-                double locationOnBasePathTarget);
+            bool cornerStep(BasePathHeadPtr &head, const base::State *xBundleTarget, double locationOnBasePathTarget);
 
         protected:
-
             /** \brief Pointer to associated bundle space */
             PathRestriction *restriction_;
 
@@ -99,7 +89,6 @@ namespace ompl
             base::State *xFiberTmp_{nullptr};
 
         protected:
-
             /** \brief Radius of restriction neighborhood */
             ParameterExponentialDecay neighborhoodRadiusBaseSpace_;
 
@@ -120,4 +109,3 @@ namespace ompl
 }
 
 #endif
-

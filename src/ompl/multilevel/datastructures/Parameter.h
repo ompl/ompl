@@ -10,16 +10,9 @@ namespace ompl
     public:
         Parameter() = default;
 
-        Parameter(double valueInit) : 
-          valueInit_(valueInit)
-        {
-        };
+        Parameter(double valueInit) : valueInit_(valueInit){};
 
-        Parameter(double valueInit, double valueTarget) : 
-          valueInit_(valueInit), 
-          valueTarget_(valueTarget)
-        {
-        };
+        Parameter(double valueInit, double valueTarget) : valueInit_(valueInit), valueTarget_(valueTarget){};
 
         void setValueInit(double valueInit)
         {
@@ -57,12 +50,13 @@ namespace ompl
 
         double operator()(void)
         {
-            if(counter_ > counterTarget_) return valueTarget_;
+            if (counter_ > counterTarget_)
+                return valueTarget_;
 
-            //map to [0,1]
-            double t = (counter_ - counterInit_)/(double)(counterTarget_ - counterInit_);
+            // map to [0,1]
+            double t = (counter_ - counterInit_) / (double)(counterTarget_ - counterInit_);
 
-            double d = valueInit_ + t*(valueTarget_ - valueInit_);
+            double d = valueInit_ + t * (valueTarget_ - valueInit_);
             counter_++;
             return d;
         }
@@ -92,4 +86,3 @@ namespace ompl
     };
 }
 #endif
-

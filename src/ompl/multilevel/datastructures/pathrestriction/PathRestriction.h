@@ -76,8 +76,8 @@ namespace ompl
             feasible sections.
 
             @par External documentation
-            A. Orthey and M. Toussaint, 
-            Section Patterns: Efficiently Solving Narrow Passage Problems 
+            A. Orthey and M. Toussaint,
+            Section Patterns: Efficiently Solving Narrow Passage Problems
             using Multilevel Motion Planning, <em>arXiv:2010.14524 [cs.RO]</em>, 2020
             [[PDF]](https://arxiv.org/pdf/2010.14524.pdf)
 
@@ -86,9 +86,8 @@ namespace ompl
         class PathRestriction
         {
         public:
-
             PathRestriction() = delete;
-            PathRestriction(BundleSpaceGraph*);
+            PathRestriction(BundleSpaceGraph *);
 
             virtual ~PathRestriction();
 
@@ -101,7 +100,7 @@ namespace ompl
             void setBasePath(std::vector<base::State *>);
 
             /** \brief Return discrete states representation of base path */
-            const std::vector<base::State*>& getBasePath() const;
+            const std::vector<base::State *> &getBasePath() const;
 
             /** \brief Check if feasible section exists between xStart and xGoal.
              *
@@ -112,7 +111,7 @@ namespace ompl
             bool hasFeasibleSection(Configuration *const, Configuration *const);
 
             /** \brief Return pointer to underlying bundle space graph */
-            BundleSpaceGraph* getBundleSpaceGraph();
+            BundleSpaceGraph *getBundleSpaceGraph();
 
             /** \brief Length of base path */
             double getLengthBasePath() const;
@@ -121,7 +120,7 @@ namespace ompl
             unsigned int size() const;
 
             /** \brief Return State at index k on base path */
-            const base::State* getBaseStateAt(int k) const;
+            const base::State *getBaseStateAt(int k) const;
 
             /** \brief Length between base state indices k and k+1 */
             double getLengthIntermediateBasePath(int k);
@@ -135,11 +134,11 @@ namespace ompl
 
             /** \brief Interpolate state on base path at position t in [0,
              * lengthbasepath_] (using discrete state representation) */
-            void interpolateBasePath(double t, base::State* &state) const;
+            void interpolateBasePath(double t, base::State *&state) const;
 
-            friend std::ostream& operator<<(std::ostream&, const PathRestriction&);
+            friend std::ostream &operator<<(std::ostream &, const PathRestriction &);
 
-            virtual void print(std::ostream&) const;
+            virtual void print(std::ostream &) const;
 
         protected:
             /** \brief Pointer to associated bundle space */
@@ -158,10 +157,9 @@ namespace ompl
             std::vector<double> lengthsCumulativeBasePath_;
 
             /** \brief Strategy to find a feasible section (between specific
-             * elements on fiber at first base path index and fiber at 
-             * last base path index)*/  
+             * elements on fiber at first base path index and fiber at
+             * last base path index)*/
             FindSectionPtr findSection_;
-
         };
     }
 }

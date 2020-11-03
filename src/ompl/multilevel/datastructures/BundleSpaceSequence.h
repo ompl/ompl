@@ -60,8 +60,7 @@ namespace ompl
         class BundleSpaceSequence : public PlannerMultiLevel
         {
             using BaseT = ompl::multilevel::PlannerMultiLevel;
-            static_assert(std::is_base_of<BundleSpace, T>::value, 
-                "Template must inherit from BundleSpace");
+            static_assert(std::is_base_of<BundleSpace, T>::value, "Template must inherit from BundleSpace");
 
         public:
             /** \brief Constructor taking a sequence of ompl::base::SpaceInformationPtr

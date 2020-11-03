@@ -104,8 +104,7 @@ double BundleSpaceMetricShortestPath::distanceBase(const Configuration *xStart, 
 std::vector<const Configuration *> BundleSpaceMetricShortestPath::getInterpolationPath(const Configuration *xStart,
                                                                                        const Configuration *xDest)
 {
-    BundleSpaceGraph *parent = 
-      dynamic_cast<BundleSpaceGraph *>(bundleSpaceGraph_->getBaseBundleSpace());
+    BundleSpaceGraph *parent = dynamic_cast<BundleSpaceGraph *>(bundleSpaceGraph_->getBaseBundleSpace());
 
     const base::SpaceInformationPtr &base = bundleSpaceGraph_->getBase();
     const base::SpaceInformationPtr &bundle = bundleSpaceGraph_->getBundle();

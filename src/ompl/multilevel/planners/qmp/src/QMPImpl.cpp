@@ -177,8 +177,8 @@ void ompl::multilevel::QMPImpl::expand()
 
     Configuration *q = pdf.sample(rng_.uniform01());
 
-    int s =
-        getBundle()->randomBounceMotion(getBundleSamplerPtr(), q->state, randomWorkStates_.size(), randomWorkStates_, false);
+    int s = getBundle()->randomBounceMotion(getBundleSamplerPtr(), q->state, randomWorkStates_.size(),
+                                            randomWorkStates_, false);
     if (s > 0)
     {
         Configuration *prev = q;

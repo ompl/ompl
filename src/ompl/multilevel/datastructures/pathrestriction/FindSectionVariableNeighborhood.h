@@ -48,33 +48,28 @@ namespace ompl
     {
         using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
-        class FindSectionVariableNeighborhood: public FindSection
+        class FindSectionVariableNeighborhood : public FindSection
         {
             using BaseT = FindSection;
-        public:
 
+        public:
             FindSectionVariableNeighborhood() = delete;
-            FindSectionVariableNeighborhood(PathRestriction*);
+            FindSectionVariableNeighborhood(PathRestriction *);
 
             virtual ~FindSectionVariableNeighborhood();
 
-            virtual bool solve(BasePathHeadPtr& head) override;
+            virtual bool solve(BasePathHeadPtr &head) override;
 
-            bool variableNeighborhoodPatternSearch(
-                BasePathHeadPtr& head,
-                bool interpolateFiberFirst = true,
-                int depth = 0);
+            bool variableNeighborhoodPatternSearch(BasePathHeadPtr &head, bool interpolateFiberFirst = true,
+                                                   int depth = 0);
 
-            bool sideStepAlongFiber(
-                Configuration* &xOrigin, 
-                base::State *state);
+            bool sideStepAlongFiber(Configuration *&xOrigin, base::State *state);
 
         protected:
-            base::State* xBaseFixed_;
+            base::State *xBaseFixed_;
 
             ParameterSmoothStep neighborhoodBaseSpace_;
             ParameterSmoothStep neighborhoodFiberSpace_;
-
         };
     }
 }

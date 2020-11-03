@@ -74,11 +74,10 @@ void BundleSpaceGraphSamplerVisibilityRegion::sampleImplementation(State *xRando
     //   ->sampleUniformNear(xRandom, xRandom, visibilityRadius);
 
     double s = rng_.uniform01();
-    if(s < bias)
+    if (s < bias)
     {
-        const double visibilityRadius = bias*bundleSpaceGraphSparse_->getSparseDelta();
+        const double visibilityRadius = bias * bundleSpaceGraphSparse_->getSparseDelta();
 
-        bundleSpaceGraphSparse_->getBundleSamplerPtr()
-          ->sampleUniformNear(xRandom, xRandom, visibilityRadius);
+        bundleSpaceGraphSparse_->getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, visibilityRadius);
     }
 }

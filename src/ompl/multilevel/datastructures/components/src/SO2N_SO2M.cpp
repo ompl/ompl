@@ -39,65 +39,65 @@
 #include <ompl/multilevel/datastructures/components/SO2N_SO2M.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 
-ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::BundleSpaceComponent_SO2N_SO2M(
-    ompl::base::StateSpacePtr BundleSpace,
-    ompl::base::StateSpacePtr BaseSpace)
+ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::BundleSpaceComponent_SO2N_SO2M(ompl::base::StateSpacePtr BundleSpace,
+                                                                                 ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::projectFiber(
-    const ompl::base::State *xBundle,
-    ompl::base::State *xFiber) const
+void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::projectFiber(const ompl::base::State *xBundle,
+                                                                    ompl::base::State *xFiber) const
 {
     for (unsigned int k = 0; k < getFiberDimension(); k++)
     {
-        const base::SO2StateSpace::StateType *SO2bundle = 
-          xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k + getBaseDimension());
-        base::SO2StateSpace::StateType *SO2fiber
-          = xFiber->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
+        const base::SO2StateSpace::StateType *SO2bundle =
+            xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k + getBaseDimension());
+        base::SO2StateSpace::StateType *SO2fiber =
+            xFiber->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
 
         SO2fiber->value = SO2bundle->value;
     }
 }
 
-void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::projectBase(
-    const ompl::base::State *xBundle,
-    ompl::base::State *xBase) const
+void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::projectBase(const ompl::base::State *xBundle,
+                                                                   ompl::base::State *xBase) const
 {
     for (unsigned int k = 0; k < getBaseDimension(); k++)
     {
-        const base::SO2StateSpace::StateType *SO2bundle = 
-          xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
+        const base::SO2StateSpace::StateType *SO2bundle =
+            xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
 
         base::SO2StateSpace::StateType *SO2base;
 
-        if(getBaseDimension() <= 1)
+        if (getBaseDimension() <= 1)
         {
-          SO2base = xBase->as<base::SO2StateSpace::StateType>();
-        }else{
-          SO2base = xBase->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
+            SO2base = xBase->as<base::SO2StateSpace::StateType>();
+        }
+        else
+        {
+            SO2base = xBase->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
         }
 
         SO2base->value = SO2bundle->value;
     }
 }
 
-void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::liftState(
-    const ompl::base::State *xBase,
-    const ompl::base::State *xFiber,
-    ompl::base::State *xBundle) const
+void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::liftState(const ompl::base::State *xBase,
+                                                                 const ompl::base::State *xFiber,
+                                                                 ompl::base::State *xBundle) const
 {
     for (unsigned int k = 0; k < getBaseDimension(); k++)
     {
-        base::SO2StateSpace::StateType *SO2bundle = 
-          xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
+        base::SO2StateSpace::StateType *SO2bundle =
+            xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
         const base::SO2StateSpace::StateType *SO2base;
 
-        if(getBaseDimension() <= 1)
+        if (getBaseDimension() <= 1)
         {
             SO2base = xBase->as<base::SO2StateSpace::StateType>();
-        }else{
+        }
+        else
+        {
             SO2base = xBase->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
         }
 
@@ -105,10 +105,10 @@ void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::liftState(
     }
     for (unsigned int k = getBaseDimension(); k < getBaseDimension() + getFiberDimension(); k++)
     {
-        base::SO2StateSpace::StateType *SO2bundle = 
-          xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
-        const base::SO2StateSpace::StateType *SO2fiber = 
-          xFiber->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k - getBaseDimension());
+        base::SO2StateSpace::StateType *SO2bundle =
+            xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
+        const base::SO2StateSpace::StateType *SO2fiber =
+            xFiber->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k - getBaseDimension());
 
         SO2bundle->value = SO2fiber->value;
     }
@@ -118,10 +118,10 @@ ompl::base::StateSpacePtr ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::comp
 {
     unsigned int N = getDimension() - getBaseDimension();
     auto fiberSpace = std::make_shared<base::CompoundStateSpace>();
-    for(unsigned int k = 0; k < N; k++)
+    for (unsigned int k = 0; k < N; k++)
     {
-      base::StateSpacePtr SO2Space = std::make_shared<base::SO2StateSpace>();
-      fiberSpace->addSubspace(SO2Space, 1.0);
+        base::StateSpacePtr SO2Space = std::make_shared<base::SO2StateSpace>();
+        fiberSpace->addSubspace(SO2Space, 1.0);
     }
     return fiberSpace;
 }

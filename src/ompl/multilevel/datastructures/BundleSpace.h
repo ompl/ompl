@@ -175,7 +175,7 @@ namespace ompl
             ////
             ////    Example: location=0 returns basePath.front()
             ////    Example: location=basePath.length() returns basePath.back()
-            //unsigned int interpolateAlongBasePath(const std::vector<base::State *> basePath, double location,
+            // unsigned int interpolateAlongBasePath(const std::vector<base::State *> basePath, double location,
             //                                      base::State *xResult) const;
 
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
@@ -196,11 +196,11 @@ namespace ompl
             unsigned int level_{0};
 
             //\brief Being on the k-th bundle space, we denote as baseBundleSpace the k-1-th
-            //bundle space (because it locally acts as the base space for the current class) 
+            // bundle space (because it locally acts as the base space for the current class)
             BundleSpace *baseBundleSpace_{nullptr};
 
             //\brief Being on the k-th bundle space, we denote as totalBundleSpace the k+1-th
-            //bundle space (because it locally acts as the total space for the current class) 
+            // bundle space (because it locally acts as the total space for the current class)
             BundleSpace *totalBundleSpace_{nullptr};
 
             ompl::base::StateSamplerPtr Fiber_sampler_;

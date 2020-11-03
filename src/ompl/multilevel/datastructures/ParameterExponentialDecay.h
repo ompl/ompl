@@ -44,44 +44,42 @@
 
 namespace ompl
 {
-    class ParameterExponentialDecay: public Parameter
+    class ParameterExponentialDecay : public Parameter
     {
     public:
         ParameterExponentialDecay() = default;
 
-        ParameterExponentialDecay(double lambda) : 
-          Parameter(), lambda_(lambda)
+        ParameterExponentialDecay(double lambda) : Parameter(), lambda_(lambda)
         {
             setLambda(lambda);
         };
 
-        ParameterExponentialDecay(double lambda, double valueInit) : 
-          Parameter(valueInit), lambda_(lambda)
+        ParameterExponentialDecay(double lambda, double valueInit) : Parameter(valueInit), lambda_(lambda)
         {
             setLambda(lambda);
         };
 
-        ParameterExponentialDecay(double lambda, double valueInit, double valueTarget):
-           Parameter(valueInit, valueTarget),
-           lambda_(lambda)
+        ParameterExponentialDecay(double lambda, double valueInit, double valueTarget)
+          : Parameter(valueInit, valueTarget), lambda_(lambda)
         {
             setLambda(lambda);
         };
 
         void setLambda(double lambda)
         {
-            if(lambda <= 0)
+            if (lambda <= 0)
             {
                 throw ompl::Exception("ExponentialDecay requires positive lambda");
-            }else{
+            }
+            else
+            {
                 lambda_ = lambda;
             }
         }
 
         double operator()(void)
         {
-            double value = (getValueInit() - getValueTarget()) * exp(-lambda_ * getCounter()) 
-              + getValueTarget();
+            double value = (getValueInit() - getValueTarget()) * exp(-lambda_ * getCounter()) + getValueTarget();
             incrementCounter();
             return value;
         }

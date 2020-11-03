@@ -42,16 +42,13 @@
 
 using namespace ompl::multilevel;
 
-BundleSpaceComponent_XRN_X::BundleSpaceComponent_XRN_X(
-    ompl::base::StateSpacePtr BundleSpace, 
-    ompl::base::StateSpacePtr BaseSpace)
+BundleSpaceComponent_XRN_X::BundleSpaceComponent_XRN_X(ompl::base::StateSpacePtr BundleSpace,
+                                                       ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void BundleSpaceComponent_XRN_X::projectFiber(
-    const ompl::base::State *xBundle,
-    ompl::base::State *xFiber) const
+void BundleSpaceComponent_XRN_X::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
     const base::RealVectorStateSpace::StateType *xBundle_RN =
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);

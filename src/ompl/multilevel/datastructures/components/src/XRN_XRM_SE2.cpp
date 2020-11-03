@@ -44,16 +44,13 @@
 
 using namespace ompl::multilevel;
 
-BundleSpaceComponent_SE2RN_SE2RM::BundleSpaceComponent_SE2RN_SE2RM(
-    ompl::base::StateSpacePtr BundleSpace,
-    ompl::base::StateSpacePtr BaseSpace)
+BundleSpaceComponent_SE2RN_SE2RM::BundleSpaceComponent_SE2RN_SE2RM(ompl::base::StateSpacePtr BundleSpace,
+                                                                   ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void BundleSpaceComponent_SE2RN_SE2RM::projectBase(
-    const ompl::base::State *xBundle,
-    ompl::base::State *xBase) const
+void BundleSpaceComponent_SE2RN_SE2RM::projectBase(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
     const base::SE2StateSpace::StateType *xBundle_SE2 =
         xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
@@ -74,10 +71,8 @@ void BundleSpaceComponent_SE2RN_SE2RM::projectBase(
     }
 }
 
-void BundleSpaceComponent_SE2RN_SE2RM::liftState(
-    const ompl::base::State *xBase,
-    const ompl::base::State *xFiber,
-    ompl::base::State *xBundle) const
+void BundleSpaceComponent_SE2RN_SE2RM::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+                                                 ompl::base::State *xBundle) const
 {
     base::SE2StateSpace::StateType *xBundle_SE2 =
         xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);

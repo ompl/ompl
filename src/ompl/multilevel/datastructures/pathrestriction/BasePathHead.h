@@ -49,7 +49,6 @@ namespace ompl
 
         using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
-
         /** \brief A pointer to a specific location on the base path of the path
          * restriction
          *
@@ -62,36 +61,33 @@ namespace ompl
 
         class BasePathHead
         {
-          public:
-            BasePathHead(
-                PathRestriction *restriction,
-                Configuration* const xCurrent,
-                Configuration* const xTarget);
+        public:
+            BasePathHead(PathRestriction *restriction, Configuration *const xCurrent, Configuration *const xTarget);
 
             BasePathHead(const BasePathHead &rhs);
 
             ~BasePathHead();
 
-            const base::State* getState() const;
-            const base::State* getStateFiber() const;
-            const base::State* getStateBase() const;
+            const base::State *getState() const;
+            const base::State *getStateFiber() const;
+            const base::State *getStateBase() const;
 
-            base::State* getStateFiberNonConst() const;
-            base::State* getStateBaseNonConst() const;
-            Configuration* getConfiguration() const;
+            base::State *getStateFiberNonConst() const;
+            base::State *getStateBaseNonConst() const;
+            Configuration *getConfiguration() const;
 
-            void setCurrent(Configuration*, double);
+            void setCurrent(Configuration *, double);
 
-            Configuration* getTargetConfiguration() const;
-            const base::State* getStateTargetFiber() const;
-            base::State* getStateTargetFiberNonConst() const;
+            Configuration *getTargetConfiguration() const;
+            const base::State *getStateTargetFiber() const;
+            base::State *getStateTargetFiberNonConst() const;
 
             // \brief Remaining discrete states starting at head (including
             // head)
             int getNumberOfRemainingStates();
 
-            //relative to where the head points 
-            const base::State* getBaseStateAt(int k) const;
+            // relative to where the head points
+            const base::State *getBaseStateAt(int k) const;
             int getBaseStateIndexAt(int k) const;
 
             double getLocationOnBasePath() const;
@@ -101,17 +97,17 @@ namespace ompl
             int getLastValidBasePathIndex() const;
             void setLastValidBasePathIndex(int k);
 
-            friend std::ostream& operator<<(std::ostream&, const BasePathHead&);
+            friend std::ostream &operator<<(std::ostream &, const BasePathHead &);
 
-            void print(std::ostream&) const;
+            void print(std::ostream &) const;
 
-            PathRestriction* getRestriction() const;
+            PathRestriction *getRestriction() const;
 
-          private:
+        private:
             double locationOnBasePath_{0.0};
             int lastValidIndexOnBasePath_{0};
 
-            PathRestriction* restriction_{nullptr};
+            PathRestriction *restriction_{nullptr};
 
             Configuration *xCurrent_{nullptr};
             base::State *xBaseCurrent_{nullptr};

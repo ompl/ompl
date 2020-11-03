@@ -100,8 +100,7 @@ BundleSpaceComponentFactory::MakeBundleSpaceComponents(base::SpaceInformationPtr
 }
 
 std::vector<BundleSpaceComponentPtr>
-BundleSpaceComponentFactory::MakeBundleSpaceComponents(
-    base::SpaceInformationPtr Bundle, base::SpaceInformationPtr Base)
+BundleSpaceComponentFactory::MakeBundleSpaceComponents(base::SpaceInformationPtr Bundle, base::SpaceInformationPtr Base)
 {
     const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
     int bundleSpaceComponents = GetNumberOfComponents(Bundle_space);
@@ -151,16 +150,14 @@ BundleSpaceComponentFactory::MakeBundleSpaceComponents(
     return components;
 }
 
-BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(
-    const base::StateSpacePtr Bundle)
+BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(const base::StateSpacePtr Bundle)
 {
     return MakeBundleSpaceComponent(Bundle, nullptr, false);
 }
 
-BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(
-    const base::StateSpacePtr Bundle, 
-    const base::StateSpacePtr Base, 
-    bool areValidityCheckersEquivalent)
+BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(const base::StateSpacePtr Bundle,
+                                                                              const base::StateSpacePtr Base,
+                                                                              bool areValidityCheckersEquivalent)
 {
     BundleSpaceComponentType type = identifyBundleSpaceComponentType(Bundle, Base);
     if (type == BUNDLE_SPACE_IDENTITY_PROJECTION && !areValidityCheckersEquivalent)
@@ -256,9 +253,8 @@ BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(
     return component;
 }
 
-BundleSpaceComponentType BundleSpaceComponentFactory::identifyBundleSpaceComponentType(
-    const base::StateSpacePtr Bundle,
-    const base::StateSpacePtr Base)
+BundleSpaceComponentType BundleSpaceComponentFactory::identifyBundleSpaceComponentType(const base::StateSpacePtr Bundle,
+                                                                                       const base::StateSpacePtr Base)
 {
     if (Base == nullptr)
     {
@@ -344,7 +340,6 @@ BundleSpaceComponentType BundleSpaceComponentFactory::identifyBundleSpaceCompone
     {
         return BUNDLE_SPACE_SO3RN_SO3RM;
     }
-
 
     OMPL_ERROR("Fiber Bundle unknown.");
     return BUNDLE_SPACE_UNKNOWN;
@@ -570,7 +565,7 @@ bool BundleSpaceComponentFactory::isMapping_SO3RN_to_SO3RM(const base::StateSpac
 }
 
 bool BundleSpaceComponentFactory::isMapping_SO2N_to_SO2M(const base::StateSpacePtr Bundle,
-                                                           const base::StateSpacePtr Base)
+                                                         const base::StateSpacePtr Base)
 {
     if (!Bundle->isCompound())
         return false;
@@ -579,42 +574,40 @@ bool BundleSpaceComponentFactory::isMapping_SO2N_to_SO2M(const base::StateSpaceP
     const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
     unsigned int Bundle_subspaces = Bundle_decomposed.size();
 
-    for(unsigned int k = 0; k < Bundle_subspaces; k++)
+    for (unsigned int k = 0; k < Bundle_subspaces; k++)
     {
-        if(!(Bundle_decomposed.at(k)->getType() == base::STATE_SPACE_SO2))
+        if (!(Bundle_decomposed.at(k)->getType() == base::STATE_SPACE_SO2))
         {
             return false;
         }
     }
     if (!Base->isCompound())
     {
-        if(!(Base->getType() == base::STATE_SPACE_SO2))
+        if (!(Base->getType() == base::STATE_SPACE_SO2))
         {
             return false;
         }
-    }else
+    }
+    else
     {
         base::CompoundStateSpace *Base_compound = Base->as<base::CompoundStateSpace>();
         const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
         unsigned int Base_subspaces = Base_decomposed.size();
 
-        for(unsigned int k = 0; k < Base_subspaces; k++)
+        for (unsigned int k = 0; k < Base_subspaces; k++)
         {
-            if(!(Base_decomposed.at(k)->getType() == base::STATE_SPACE_SO2))
+            if (!(Base_decomposed.at(k)->getType() == base::STATE_SPACE_SO2))
             {
                 return false;
             }
         }
     }
 
-
     return true;
 }
 
-bool BundleSpaceComponentFactory::isMapping_XRN_to_X(
-    const base::StateSpacePtr Bundle, 
-    const base::StateSpacePtr Base, 
-    const base::StateSpaceType type)
+bool BundleSpaceComponentFactory::isMapping_XRN_to_X(const base::StateSpacePtr Bundle, const base::StateSpacePtr Base,
+                                                     const base::StateSpaceType type)
 {
     if (!Bundle->isCompound())
         return false;

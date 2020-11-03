@@ -56,6 +56,7 @@ namespace ompl
             BundleSpaceGraphSamplerVisibilityRegion(BundleSpaceGraph *);
 
             virtual void clear() override;
+
         protected:
             virtual void sampleImplementation(base::State *xRandom) override;
 

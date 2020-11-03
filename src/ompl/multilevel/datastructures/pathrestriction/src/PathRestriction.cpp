@@ -52,8 +52,7 @@
 
 using namespace ompl::multilevel;
 
-PathRestriction::PathRestriction(BundleSpaceGraph *bundleSpaceGraph)
-  : bundleSpaceGraph_(bundleSpaceGraph)
+PathRestriction::PathRestriction(BundleSpaceGraph *bundleSpaceGraph) : bundleSpaceGraph_(bundleSpaceGraph)
 {
     findSection_ = std::make_shared<FindSectionPatternDance>(this);
     // findSection_ = std::make_shared<FindSectionSideStep>(this);
@@ -69,16 +68,16 @@ void PathRestriction::clear()
     basePath_.clear();
 }
 
-BundleSpaceGraph* PathRestriction::getBundleSpaceGraph()
+BundleSpaceGraph *PathRestriction::getBundleSpaceGraph()
 {
-  return bundleSpaceGraph_;
+    return bundleSpaceGraph_;
 }
 
 void PathRestriction::setBasePath(ompl::base::PathPtr path)
 {
-    if(!path) return;
-    geometric::PathGeometricPtr geometricBasePath = 
-      std::static_pointer_cast<geometric::PathGeometric>(path);
+    if (!path)
+        return;
+    geometric::PathGeometricPtr geometricBasePath = std::static_pointer_cast<geometric::PathGeometric>(path);
     setBasePath(geometricBasePath->getStates());
 }
 
@@ -100,95 +99,93 @@ void PathRestriction::setBasePath(std::vector<base::State *> basePath)
     OMPL_DEBUG("Set new base path with %d states and length %f.", basePath_.size(), lengthBasePath_);
 }
 
-void PathRestriction::interpolateBasePath(double t, base::State* &state) const
+void PathRestriction::interpolateBasePath(double t, base::State *&state) const
 {
     base::SpaceInformationPtr base = bundleSpaceGraph_->getBase();
 
-    if(t <= 0)
+    if (t <= 0)
     {
         base->copyState(state, basePath_.front());
         return;
     }
-    if(t >= lengthBasePath_)
+    if (t >= lengthBasePath_)
     {
         base->copyState(state, basePath_.back());
         return;
     }
 
     unsigned int ctr = 0;
-    while(t > lengthsCumulativeBasePath_.at(ctr) 
-        && ctr < lengthsCumulativeBasePath_.size() - 1)
+    while (t > lengthsCumulativeBasePath_.at(ctr) && ctr < lengthsCumulativeBasePath_.size() - 1)
     {
         ctr++;
     }
 
     base::State *s1 = basePath_.at(ctr);
-    base::State *s2 = basePath_.at(ctr+1);
+    base::State *s2 = basePath_.at(ctr + 1);
     double d = lengthsIntermediateBasePath_.at(ctr);
 
-    double dCum = ( ctr > 0 ? lengthsCumulativeBasePath_.at(ctr-1) : 0.0);
-    double step = (t - dCum)/d;
-    
+    double dCum = (ctr > 0 ? lengthsCumulativeBasePath_.at(ctr - 1) : 0.0);
+    double step = (t - dCum) / d;
+
     base->getStateSpace()->interpolate(s1, s2, step, state);
 }
 
-const std::vector<ompl::base::State*>& PathRestriction::getBasePath() const
+const std::vector<ompl::base::State *> &PathRestriction::getBasePath() const
 {
-  return basePath_;
+    return basePath_;
 }
 
 double PathRestriction::getLengthBasePath() const
 {
-  return lengthBasePath_;
+    return lengthBasePath_;
 }
 
 unsigned int PathRestriction::size() const
 {
-  return basePath_.size();
+    return basePath_.size();
 }
 
-const ompl::base::State* PathRestriction::getBaseStateAt(int k) const
+const ompl::base::State *PathRestriction::getBaseStateAt(int k) const
 {
-  return basePath_.at(k);
+    return basePath_.at(k);
 }
 
-//distance between base states k and k+1
+// distance between base states k and k+1
 double PathRestriction::getLengthIntermediateBasePath(int k)
 {
-  return lengthsIntermediateBasePath_.at(k);
+    return lengthsIntermediateBasePath_.at(k);
 }
 
 double PathRestriction::getLengthBasePathUntil(int k)
 {
-  if(k > (int)size())
-  {
-    std::cout << "Wrong index k=" << k << "/" << size() << std::endl;
-    throw Exception("WrongIndex");
-  }
-  if(k <= 0) return 0;
-  else
-  {
-    return lengthsCumulativeBasePath_.at(k-1);
-  }
+    if (k > (int)size())
+    {
+        std::cout << "Wrong index k=" << k << "/" << size() << std::endl;
+        throw Exception("WrongIndex");
+    }
+    if (k <= 0)
+        return 0;
+    else
+    {
+        return lengthsCumulativeBasePath_.at(k - 1);
+    }
 }
 
 int PathRestriction::getBasePathLastIndexFromLocation(double d)
 {
-    if(d > lengthBasePath_)
+    if (d > lengthBasePath_)
     {
         return size() - 1;
     }
     unsigned int ctr = 0;
-    while(d >= lengthsCumulativeBasePath_.at(ctr) && ctr < lengthsCumulativeBasePath_.size() - 1)
+    while (d >= lengthsCumulativeBasePath_.at(ctr) && ctr < lengthsCumulativeBasePath_.size() - 1)
     {
         ctr++;
     }
     return ctr;
 }
 
-bool PathRestriction::hasFeasibleSection(
-    Configuration *const xStart, 
-    Configuration *const xGoal)
+bool PathRestriction::hasFeasibleSection(Configuration *const xStart, Configuration *const xGoal)
 {
     BasePathHeadPtr head = std::make_shared<BasePathHead>(this, xStart, xGoal);
 
@@ -196,10 +193,8 @@ bool PathRestriction::hasFeasibleSection(
     bool foundFeasibleSection = findSection_->solve(head);
     ompl::time::point t1 = ompl::time::now();
 
-    OMPL_DEBUG("FindSection terminated after %.2fs (%d/%d vertices/edges).", 
-        ompl::time::seconds(t1 - tStart), 
-        bundleSpaceGraph_->getNumberOfVertices(),
-        bundleSpaceGraph_->getNumberOfEdges());
+    OMPL_DEBUG("FindSection terminated after %.2fs (%d/%d vertices/edges).", ompl::time::seconds(t1 - tStart),
+               bundleSpaceGraph_->getNumberOfVertices(), bundleSpaceGraph_->getNumberOfEdges());
 
     // if(foundFeasibleSection)
     // {
@@ -211,7 +206,7 @@ bool PathRestriction::hasFeasibleSection(
     return foundFeasibleSection;
 }
 
-void PathRestriction::print(std::ostream& out) const
+void PathRestriction::print(std::ostream &out) const
 {
     const base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
     const base::SpaceInformationPtr base = bundleSpaceGraph_->getBase();
@@ -220,11 +215,12 @@ void PathRestriction::print(std::ostream& out) const
     out << "PATH RESTRICTION" << std::endl;
     out << std::string(80, '-') << std::endl;
 
-    for(unsigned int k = 0; k < basePath_.size(); k++)
+    for (unsigned int k = 0; k < basePath_.size(); k++)
     {
-      if(k > 5 && (int)k < std::max(0, (int)basePath_.size() - 5)) continue;
-      const base::State* bk = basePath_.at(k);
-      base->printState(bk);
+        if (k > 5 && (int)k < std::max(0, (int)basePath_.size() - 5))
+            continue;
+        const base::State *bk = basePath_.at(k);
+        base->printState(bk);
     }
     out << std::string(80, '-') << std::endl;
 }
@@ -233,7 +229,7 @@ namespace ompl
 {
     namespace multilevel
     {
-        std::ostream& operator<<(std::ostream &out, const PathRestriction& r)
+        std::ostream &operator<<(std::ostream &out, const PathRestriction &r)
         {
             r.print(out);
             return out;

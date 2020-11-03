@@ -54,21 +54,20 @@ namespace ompl
 
         // Values for submission
         static const unsigned int PATH_SECTION_MAX_WRIGGLING = 100;
-        static const unsigned int PATH_SECTION_MAX_DEPTH = 2; //3 seems max
-        static const unsigned int PATH_SECTION_MAX_BRANCHING = 500; //500
+        static const unsigned int PATH_SECTION_MAX_DEPTH = 2;        // 3 seems max
+        static const unsigned int PATH_SECTION_MAX_BRANCHING = 500;  // 500
         static const unsigned int PATH_SECTION_MAX_TUNNELING = 100;
     }
 }
 
 using namespace ompl::multilevel;
 
-FindSectionPatternDance::FindSectionPatternDance(PathRestriction* restriction):
-  BaseT(restriction)
+FindSectionPatternDance::FindSectionPatternDance(PathRestriction *restriction) : BaseT(restriction)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
 
-    if(graph->hasBaseSpace())
+    if (graph->hasBaseSpace())
     {
         base::SpaceInformationPtr base = graph->getBase();
         xBaseFixed_ = base->allocState();
@@ -79,14 +78,14 @@ FindSectionPatternDance::~FindSectionPatternDance()
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
-    if(graph->hasBaseSpace())
+    if (graph->hasBaseSpace())
     {
         base::SpaceInformationPtr base = graph->getBase();
         base->freeState(xBaseFixed_);
     }
 }
 
-bool FindSectionPatternDance::solve(BasePathHeadPtr& head)
+bool FindSectionPatternDance::solve(BasePathHeadPtr &head)
 {
     BasePathHeadPtr head2(head);
 
@@ -96,7 +95,7 @@ bool FindSectionPatternDance::solve(BasePathHeadPtr& head)
 
     OMPL_DEBUG("FindSectionPatternDance required %.2fs.", ompl::time::seconds(t1 - tStart));
 
-    if(!foundFeasibleSection)
+    if (!foundFeasibleSection)
     {
         foundFeasibleSection = recursivePatternSearch(head2, false);
         ompl::time::point t2 = ompl::time::now();
@@ -106,7 +105,7 @@ bool FindSectionPatternDance::solve(BasePathHeadPtr& head)
     return foundFeasibleSection;
 }
 
-bool FindSectionPatternDance::sideStepAlongFiber(Configuration* &xOrigin, base::State *state)
+bool FindSectionPatternDance::sideStepAlongFiber(Configuration *&xOrigin, base::State *state)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
@@ -124,13 +123,11 @@ bool FindSectionPatternDance::sideStepAlongFiber(Configuration* &xOrigin, base::
         xOrigin = xSideStep;
 
         return true;
-
     }
     return false;
 }
 
-bool FindSectionPatternDance::tunneling(
-    BasePathHeadPtr& head)
+bool FindSectionPatternDance::tunneling(BasePathHeadPtr &head)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     const ompl::base::StateSamplerPtr bundleSampler = graph->getBundleSamplerPtr();
@@ -152,33 +149,36 @@ bool FindSectionPatternDance::tunneling(
 
         restriction_->interpolateBasePath(curLocation, xBaseTmp_);
 
-        for(unsigned int k = 0; k < 5; k++)
+        for (unsigned int k = 0; k < 5; k++)
         {
-            fiberSampler->sampleUniformNear(xFiberTmp_, 
-                head->getStateFiber(), validFiberSpaceSegmentLength_);
+            fiberSampler->sampleUniformNear(xFiberTmp_, head->getStateFiber(), validFiberSpaceSegmentLength_);
 
             graph->liftState(xBaseTmp_, xFiberTmp_, xBundleTmp_);
 
-            if(bundle->isValid(xBundleTmp_))
+            if (bundle->isValid(xBundleTmp_))
             {
-                if(hitTunnel)
+                if (hitTunnel)
                 {
                     found = true;
                     break;
                 }
-            }else{
+            }
+            else
+            {
                 hitTunnel = true;
             }
         }
     }
-    if(!found)
+    if (!found)
     {
-    }else{
+    }
+    else
+    {
         found = false;
 
         const double locationEndTunnel = curLocation;
         // const double lengthTunnel = curLocation - head->getLocationOnBasePath();
-        const base::State* xBundleTunnelEnd = bundle->cloneState(xBundleTmp_);
+        const base::State *xBundleTunnelEnd = bundle->cloneState(xBundleTmp_);
 
         Configuration *last = head->getConfiguration();
 
@@ -188,11 +188,11 @@ bool FindSectionPatternDance::tunneling(
 
         bool makingProgress = true;
 
-        base::State* xBase = base->allocState();
+        base::State *xBase = base->allocState();
 
         while (curLocation < locationEndTunnel && makingProgress)
         {
-            if(bundle->checkMotion(last->state, xBundleTunnelEnd))
+            if (bundle->checkMotion(last->state, xBundleTunnelEnd))
             {
                 Configuration *xTunnel = new Configuration(bundle, xBundleTunnelEnd);
                 graph->addConfiguration(xTunnel);
@@ -215,23 +215,22 @@ bool FindSectionPatternDance::tunneling(
 
             neighborhoodRadiusBaseSpace_.reset();
 
-            while(ctr++ < magic::PATH_SECTION_MAX_TUNNELING)
+            while (ctr++ < magic::PATH_SECTION_MAX_TUNNELING)
             {
                 double d = neighborhoodRadiusBaseSpace_();
 
                 baseSampler->sampleUniformNear(xBase, xBaseTmp_, d);
 
-                fiberSampler->sampleUniformNear(xFiberTmp_, head->getStateFiber(), 
-                    4*validFiberSpaceSegmentLength_);
+                fiberSampler->sampleUniformNear(xFiberTmp_, head->getStateFiber(), 4 * validFiberSpaceSegmentLength_);
 
                 graph->liftState(xBase, xFiberTmp_, xBundleTmp_);
 
-                if(bundle->isValid(xBundleTmp_))
+                if (bundle->isValid(xBundleTmp_))
                 {
                     double d = bundle->distance(xBundleTmp_, xBundleTunnelEnd);
-                    if( d < bestDistance)
+                    if (d < bestDistance)
                     {
-                        if(bundle->checkMotion(last->state, xBundleTmp_))
+                        if (bundle->checkMotion(last->state, xBundleTmp_))
                         {
                             Configuration *xTunnelStep = new Configuration(bundle, xBundleTmp_);
                             graph->addConfiguration(xTunnelStep);
@@ -241,8 +240,8 @@ bool FindSectionPatternDance::tunneling(
 
                             makingProgress = true;
                             bestDistance = d;
-                            //add new configurations, but do not change head
-                            //yet
+                            // add new configurations, but do not change head
+                            // yet
                         }
                     }
                 }
@@ -259,7 +258,7 @@ bool FindSectionPatternDance::tunneling(
     return false;
 }
 
-bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr& head)
+bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr &head)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     ompl::base::SpaceInformationPtr bundle = graph->getBundle();
@@ -267,12 +266,12 @@ bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr& head)
 
     double curLocation = head->getLocationOnBasePath() + validBaseSpaceSegmentLength_;
 
-    double epsilon = 4*validFiberSpaceSegmentLength_;
+    double epsilon = 4 * validFiberSpaceSegmentLength_;
 
     const ompl::base::StateSamplerPtr fiberSampler = graph->getFiberSamplerPtr();
     const ompl::base::StateSamplerPtr baseSampler = graph->getBaseSamplerPtr();
 
-    base::State* xBundleMidPoint = bundle->allocState();
+    base::State *xBundleMidPoint = bundle->allocState();
     int steps = 0;
 
     while (curLocation < restriction_->getLengthBasePath())
@@ -284,7 +283,7 @@ bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr& head)
 
         neighborhoodRadiusBaseSpace_.reset();
 
-        while(ctr++ < magic::PATH_SECTION_MAX_WRIGGLING)
+        while (ctr++ < magic::PATH_SECTION_MAX_WRIGGLING)
         {
             double d = neighborhoodRadiusBaseSpace_();
 
@@ -294,14 +293,13 @@ bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr& head)
 
             graph->liftState(xBaseTmp_, xFiberTmp_, xBundleTmp_);
 
-
             //#########################################################
-            //L2 step
+            // L2 step
             //#########################################################
             //
-            if(bundle->isValid(xBundleTmp_))
+            if (bundle->isValid(xBundleTmp_))
             {
-                if(bundle->checkMotion(head->getState(), xBundleTmp_))
+                if (bundle->checkMotion(head->getState(), xBundleTmp_))
                 {
                     Configuration *xWriggleStep = new Configuration(bundle, xBundleTmp_);
                     graph->addConfiguration(xWriggleStep);
@@ -312,15 +310,17 @@ bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr& head)
                     madeProgress = true;
                     steps++;
                     break;
-                }else{
+                }
+                else
+                {
                     //#########################################################
-                    //try corner step
+                    // try corner step
                     //#########################################################
-                    const base::State* xBaseHead = head->getStateBase();
+                    const base::State *xBaseHead = head->getStateBase();
                     graph->liftState(xBaseHead, xFiberTmp_, xBundleMidPoint);
 
-                    if(bundle->checkMotion(head->getState(), xBundleMidPoint)
-                        && bundle->checkMotion(xBundleMidPoint, xBundleTmp_))
+                    if (bundle->checkMotion(head->getState(), xBundleMidPoint) &&
+                        bundle->checkMotion(xBundleMidPoint, xBundleTmp_))
                     {
                         Configuration *xMidPointStep = new Configuration(bundle, xBundleMidPoint);
                         graph->addConfiguration(xMidPointStep);
@@ -334,14 +334,11 @@ bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr& head)
 
                         madeProgress = true;
                         steps++;
-
                     }
                 }
             }
-
-
         }
-        if(!madeProgress)
+        if (!madeProgress)
         {
             break;
         }
@@ -350,9 +347,9 @@ bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr& head)
 
     bundle->freeState(xBundleMidPoint);
 
-    if(steps > 0)
+    if (steps > 0)
     {
-        //try moving back to restriction
+        // try moving back to restriction
         fiber->copyState(xFiberTmp_, head->getStateFiber());
 
         double location = head->getLocationOnBasePath() + validBaseSpaceSegmentLength_;
@@ -360,13 +357,13 @@ bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr& head)
 
         unsigned int ctr = 0;
 
-        while(ctr++ < magic::PATH_SECTION_MAX_WRIGGLING)
+        while (ctr++ < magic::PATH_SECTION_MAX_WRIGGLING)
         {
             graph->liftState(xBaseTmp_, xFiberTmp_, xBundleTmp_);
 
-            if(bundle->isValid(xBundleTmp_))
+            if (bundle->isValid(xBundleTmp_))
             {
-                if(bundle->checkMotion(head->getState(), xBundleTmp_))
+                if (bundle->checkMotion(head->getState(), xBundleTmp_))
                 {
                     Configuration *xHomingStep = new Configuration(bundle, xBundleTmp_);
                     graph->addConfiguration(xHomingStep);
@@ -384,13 +381,10 @@ bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr& head)
     return (steps > 0);
 }
 
+#define COUT(depth) (std::cout << std::string(4 * depth, '>'))
 
-#define COUT(depth) (std::cout << std::string(4*depth, '>'))
-
-bool FindSectionPatternDance::recursivePatternSearch(
-    BasePathHeadPtr& head,
-    bool interpolateFiberFirst, 
-    unsigned int depth)
+bool FindSectionPatternDance::recursivePatternSearch(BasePathHeadPtr &head, bool interpolateFiberFirst,
+                                                     unsigned int depth)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
@@ -410,7 +404,7 @@ bool FindSectionPatternDance::recursivePatternSearch(
         section->interpolateL1FiberLast(head);
     }
 
-    if(section->checkMotion(head))
+    if (section->checkMotion(head))
     {
         // section->sanityCheck();
         return true;
@@ -421,7 +415,7 @@ bool FindSectionPatternDance::recursivePatternSearch(
     //    ->setPathBiasStartSegment(head->getLocationOnBasePath());
 
     //############################################################################
-    //Get last valid state information
+    // Get last valid state information
     //############################################################################
 
     if (depth >= magic::PATH_SECTION_MAX_DEPTH)
@@ -430,16 +424,16 @@ bool FindSectionPatternDance::recursivePatternSearch(
     }
 
     //############################################################################
-    //Try different strategies to locally resolve constraint violation
-    //Then call function recursively with clipped base path
+    // Try different strategies to locally resolve constraint violation
+    // Then call function recursively with clipped base path
     //############################################################################
 
-    if(wriggleFree(head) || tunneling(head))
+    if (wriggleFree(head) || tunneling(head))
     {
         BasePathHeadPtr newHead(head);
 
         bool feasibleSection = recursivePatternSearch(newHead, false, depth + 1);
-        if(feasibleSection)
+        if (feasibleSection)
         {
             return true;
         }
@@ -447,7 +441,7 @@ bool FindSectionPatternDance::recursivePatternSearch(
 
     double curLocation = head->getLocationOnBasePath();
 
-    if(curLocation <= prevLocation)
+    if (curLocation <= prevLocation)
     {
         return false;
     }
@@ -461,10 +455,10 @@ bool FindSectionPatternDance::recursivePatternSearch(
     const ompl::base::StateSamplerPtr baseSampler = graph->getBaseSamplerPtr();
     const ompl::base::StateSamplerPtr fiberSampler = graph->getFiberSamplerPtr();
 
-    //Use smoothly varying parameter to increase neighborhood on base space
-    //while we did not find solution (we model here a change of belief of
-    //staying tight to the path restriction and allowing deviations from it if
-    //we cannot find feasible samples)
+    // Use smoothly varying parameter to increase neighborhood on base space
+    // while we did not find solution (we model here a change of belief of
+    // staying tight to the path restriction and allowing deviations from it if
+    // we cannot find feasible samples)
 
     ParameterSmoothStep neighborhoodBaseSpace;
     neighborhoodBaseSpace.setValueInit(0);
@@ -476,16 +470,16 @@ bool FindSectionPatternDance::recursivePatternSearch(
     FindSectionAnalyzer analyzer(head);
     analyzer.disable();
 
-    bool found  = false;
+    bool found = false;
 
-    const base::State* xBundleTarget = section->back();
-    const base::State* xBundleInit = section->front();
+    const base::State *xBundleTarget = section->back();
+    const base::State *xBundleInit = section->front();
 
     //@TODO:
     //  Notes on possible improvements:
     //  -- Once we find valid sample, it usually represents a neighborhood of
     //  states. We should then start focusing on that neighborhood to
-    //  exhaustively try to reach it. 
+    //  exhaustively try to reach it.
     //  -- Try to save explored neighborhoods to reroute resources to other
     //  neighborhoods (i.e. like Tabu Search)
     //  -- Maybe even build neighborhood graph in non-reachable neighborhood
@@ -515,14 +509,16 @@ bool FindSectionPatternDance::recursivePatternSearch(
 
         // baseSampler->sampleUniformNear(xBaseTmp_, xBaseTmp_, epsNBH);
 
-        if( j==0 || j%10 == 0)
+        if (j == 0 || j % 10 == 0)
         {
             // Making a sidestep to the goal or start state is often
             // advantageous and similar to the rrt-style goal bias
-            if( j%20 == 0)
+            if (j % 20 == 0)
             {
                 graph->projectFiber(xBundleTarget, xFiberTmp_);
-            }else{
+            }
+            else
+            {
                 graph->projectFiber(xBundleInit, xFiberTmp_);
             }
             // graph->projectFiber(xBundleTarget, xFiberTmp_);
@@ -534,20 +530,21 @@ bool FindSectionPatternDance::recursivePatternSearch(
                 analyzer("infeasible");
                 continue;
             }
-
-        }else{
+        }
+        else
+        {
             if (!findFeasibleStateOnFiber(xBaseTmp_, xBundleTmp_))
             {
                 analyzer("infeasible");
                 continue;
             }
 
-            //automatically accept states which are valid AND far away
+            // automatically accept states which are valid AND far away
             double dMax = graph->getRange();
-            if(bundle->distance(head->getState(), xBundleTmp_) < dMax)
+            if (bundle->distance(head->getState(), xBundleTmp_) < dMax)
             {
-                //accept nearby states only if motion is infeasible
-                if(bundle->checkMotion(head->getState(), xBundleTmp_))
+                // accept nearby states only if motion is infeasible
+                if (bundle->checkMotion(head->getState(), xBundleTmp_))
                 {
                     analyzer("locally reachable (ignored)");
                     continue;
@@ -555,22 +552,25 @@ bool FindSectionPatternDance::recursivePatternSearch(
             }
         }
 
-
-        // if(cornerStep(head, xBundleTmp_, location) || 
-        if(tripleStep(head, xBundleTmp_, location))
+        // if(cornerStep(head, xBundleTmp_, location) ||
+        if (tripleStep(head, xBundleTmp_, location))
         {
             BasePathHeadPtr newHead(head);
 
             bool feasibleSection = recursivePatternSearch(newHead, false, depth + 1);
-            if(feasibleSection)
+            if (feasibleSection)
             {
                 found = true;
                 break;
-            }else{
+            }
+            else
+            {
                 analyzer("no section");
                 continue;
             }
-        }else{
+        }
+        else
+        {
             analyzer("not reachable (triple step)");
             continue;
         }
@@ -578,5 +578,3 @@ bool FindSectionPatternDance::recursivePatternSearch(
     analyzer.print();
     return found;
 }
-
-

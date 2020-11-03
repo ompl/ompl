@@ -38,31 +38,24 @@
 
 #include <ompl/multilevel/datastructures/components/None.h>
 
-ompl::multilevel::BundleSpaceComponent_None::BundleSpaceComponent_None(
-    ompl::base::StateSpacePtr BundleSpace, 
-    ompl::base::StateSpacePtr BaseSpace)
+ompl::multilevel::BundleSpaceComponent_None::BundleSpaceComponent_None(ompl::base::StateSpacePtr BundleSpace,
+                                                                       ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::multilevel::BundleSpaceComponent_None::projectFiber(
-    const ompl::base::State *, 
-    ompl::base::State *) const
+void ompl::multilevel::BundleSpaceComponent_None::projectFiber(const ompl::base::State *, ompl::base::State *) const
 {
     OMPL_WARN("Trying to project to fiber with non-projectable Bundle Space.");
 }
 
-void ompl::multilevel::BundleSpaceComponent_None::projectBase(
-    const ompl::base::State *, 
-    ompl::base::State *) const
+void ompl::multilevel::BundleSpaceComponent_None::projectBase(const ompl::base::State *, ompl::base::State *) const
 {
     OMPL_WARN("Trying to project to base with non-projectable Bundle Space.");
 }
 
-void ompl::multilevel::BundleSpaceComponent_None::liftState(
-    const ompl::base::State *, 
-    const ompl::base::State *, 
-    ompl::base::State *) const
+void ompl::multilevel::BundleSpaceComponent_None::liftState(const ompl::base::State *, const ompl::base::State *,
+                                                            ompl::base::State *) const
 {
     OMPL_WARN("Trying to lift States with non-projectable Bundle Space.");
 }
