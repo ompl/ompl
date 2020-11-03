@@ -50,12 +50,13 @@ namespace ompl
              @anchor SMLR
              @par Short description
              Sparse Multilevel Roadmap Planner (SMLR) algorithm,
-             generalizes the SPARS planner to bundle spaces
+             generalizes the SPARS planner to bundle spaces.
 
              @par External documentation
              A. Orthey and M. Toussaint,
              Sparse Multilevel Roadmaps on Fiber Bundles for High-Dimensional Motion Planning,
-             2020
+             in arXiv:2011.00832 [cs.RO], 2020
+             [[PDF]](https://arxiv.org/pdf/2011.00832.pdf)
         */
 
         /** \brief [S]parse [M]ulti[L]evel [R]oadmap planner (SMLR) Algorithm */

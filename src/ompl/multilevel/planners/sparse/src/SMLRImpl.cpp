@@ -58,10 +58,6 @@ SMLRImpl::SMLRImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : 
     setImportance("exponential");
     setGraphSampler("visibilityregion");
 
-    double d = (double)getBundle()->getStateDimension();
-    double e = boost::math::constants::e<double>();
-    kPRMStarConstant_ = e + (e / d);
-
     firstRun_ = true;
     isInfeasible_ = false;
 }

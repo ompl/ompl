@@ -59,25 +59,24 @@ namespace ompl
 
             virtual ~SMLRImpl() override;
 
-            /** \brief One iteration of RRT with adjusted sampling function */
+            /** \brief One iteration of SPARS using restriction sampling with
+             * visibility regions */
             virtual void grow() override;
 
-            /** \brief sample random node from Probabilty density function*/
-            // void expand();
-
+            /** \brief Check if number of consecutive failures is larger than
+             * maxFailures_ */
             virtual bool isInfeasible() override;
 
             virtual void clear() override;
 
+            /** \brief Return estimate of free state space coverage using the
+             * formula $(1 / M + 1)$ whereby $M$ is the number of
+             * consecutive failures to sample a feasible state */
             virtual double getImportance() const override;
 
         protected:
             /** \brief Maximum failures limit for terminating the algorithm*/
             unsigned int maxFailures_{1000u};
-
-            // unsigned int iterations_{0};
-
-            double kPRMStarConstant_{0};
 
             std::vector<base::State *> randomWorkStates_;
 
