@@ -43,14 +43,16 @@
 
 #include <ompl/util/Exception.h>
 
-ompl::multilevel::BundleSpaceComponent_SE2RN_R2::BundleSpaceComponent_SE2RN_R2(base::StateSpacePtr BundleSpace,
-                                                                               base::StateSpacePtr BaseSpace)
+ompl::multilevel::BundleSpaceComponent_SE2RN_R2::BundleSpaceComponent_SE2RN_R2(
+    ompl::base::StateSpacePtr BundleSpace,
+    ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::multilevel::BundleSpaceComponent_SE2RN_R2::projectFiber(const ompl::base::State *xBundle,
-                                                                   ompl::base::State *xFiber) const
+void ompl::multilevel::BundleSpaceComponent_SE2RN_R2::projectFiber(
+    const ompl::base::State *xBundle,
+    ompl::base::State *xFiber) const
 {
     const base::SE2StateSpace::StateType *xBundle_SE2 =
         xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
@@ -69,8 +71,9 @@ void ompl::multilevel::BundleSpaceComponent_SE2RN_R2::projectFiber(const ompl::b
     }
 }
 
-void ompl::multilevel::BundleSpaceComponent_SE2RN_R2::projectBase(const ompl::base::State *xBundle,
-                                                                  ompl::base::State *xBase) const
+void ompl::multilevel::BundleSpaceComponent_SE2RN_R2::projectBase(
+    const ompl::base::State *xBundle,
+    ompl::base::State *xBase) const
 {
     const base::SE2StateSpace::StateType *xBundle_SE2 =
         xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
@@ -79,16 +82,18 @@ void ompl::multilevel::BundleSpaceComponent_SE2RN_R2::projectBase(const ompl::ba
     xBase_R2->values[1] = xBundle_SE2->getY();
 }
 
-void ompl::multilevel::BundleSpaceComponent_SE2RN_R2::liftState(const ompl::base::State *xBase,
-                                                                const ompl::base::State *xFiber,
-                                                                ompl::base::State *xBundle) const
+void ompl::multilevel::BundleSpaceComponent_SE2RN_R2::liftState(
+    const ompl::base::State *xBase,
+    const ompl::base::State *xFiber,
+    ompl::base::State *xBundle) const
 {
     base::SE2StateSpace::StateType *xBundle_SE2 =
         xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
     base::RealVectorStateSpace::StateType *xBundle_RN =
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
-    const base::RealVectorStateSpace::StateType *xBase_R2 = xBase->as<base::RealVectorStateSpace::StateType>();
+    const base::RealVectorStateSpace::StateType *xBase_R2 = 
+      xBase->as<base::RealVectorStateSpace::StateType>();
 
     const base::SO2StateSpace::StateType *xFiber_SO2 =
         xFiber->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(0);

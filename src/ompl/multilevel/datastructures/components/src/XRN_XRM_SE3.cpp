@@ -44,8 +44,8 @@
 using namespace ompl::multilevel;
 
 BundleSpaceComponent_SE3RN_SE3RM::BundleSpaceComponent_SE3RN_SE3RM(
-    base::StateSpacePtr BundleSpace, 
-    base::StateSpacePtr BaseSpace)
+    ompl::base::StateSpacePtr BundleSpace, 
+    ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }

@@ -39,14 +39,16 @@
 #include <ompl/multilevel/datastructures/components/SO2N_SO2M.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 
-ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::BundleSpaceComponent_SO2N_SO2M(base::StateSpacePtr BundleSpace,
-                                                                         base::StateSpacePtr BaseSpace)
+ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::BundleSpaceComponent_SO2N_SO2M(
+    ompl::base::StateSpacePtr BundleSpace,
+    ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::projectFiber(const ompl::base::State *xBundle,
-                                                                ompl::base::State *xFiber) const
+void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::projectFiber(
+    const ompl::base::State *xBundle,
+    ompl::base::State *xFiber) const
 {
     for (unsigned int k = 0; k < getFiberDimension(); k++)
     {
@@ -59,8 +61,9 @@ void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::projectFiber(const ompl::
     }
 }
 
-void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::projectBase(const ompl::base::State *xBundle,
-                                                               ompl::base::State *xBase) const
+void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::projectBase(
+    const ompl::base::State *xBundle,
+    ompl::base::State *xBase) const
 {
     for (unsigned int k = 0; k < getBaseDimension(); k++)
     {
@@ -80,9 +83,10 @@ void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::projectBase(const ompl::b
     }
 }
 
-void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::liftState(const ompl::base::State *xBase,
-                                                             const ompl::base::State *xFiber,
-                                                             ompl::base::State *xBundle) const
+void ompl::multilevel::BundleSpaceComponent_SO2N_SO2M::liftState(
+    const ompl::base::State *xBase,
+    const ompl::base::State *xFiber,
+    ompl::base::State *xBundle) const
 {
     for (unsigned int k = 0; k < getBaseDimension(); k++)
     {
