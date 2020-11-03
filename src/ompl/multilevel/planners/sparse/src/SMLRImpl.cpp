@@ -55,7 +55,6 @@ SMLRImpl::SMLRImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *paren
     getBundle()->allocStates(randomWorkStates_);
 
     setMetric("geodesic");
-    setImportance("exponential");
     setGraphSampler("visibilityregion");
 
     firstRun_ = true;
