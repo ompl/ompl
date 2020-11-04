@@ -436,6 +436,11 @@ const BundleSpaceGraph::Graph &BundleSpaceGraph::getGraph() const
     return graph_;
 }
 
+BundleSpaceGraph::Graph &BundleSpaceGraph::getGraphNonConst()
+{
+    return graph_;
+}
+
 const BundleSpaceGraph::RoadmapNeighborsPtr &BundleSpaceGraph::getRoadmapNeighborsPtr() const
 {
     return nearestDatastructure_;

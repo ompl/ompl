@@ -252,7 +252,9 @@ namespace ompl
             std::vector<Vertex> shortestVertexPath_;
             double lengthStartGoalVertexPath_;
 
+            virtual Graph &getGraphNonConst();
             virtual const Graph &getGraph() const;
+
             virtual double getGraphLength() const;
             const RoadmapNeighborsPtr &getRoadmapNeighborsPtr() const;
 
