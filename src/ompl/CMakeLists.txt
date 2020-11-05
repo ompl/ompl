@@ -54,12 +54,9 @@ else(MSVC)
 endif(MSVC)
 target_link_libraries(ompl
     ${OMPL_LINK_LIBRARIES}
-    ${Boost_DATE_TIME_LIBRARY}
-    ${Boost_THREAD_LIBRARY}
     ${Boost_SERIALIZATION_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
-    ${Boost_CHRONO_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT})
 
 if (OMPL_EXTENSION_ODE)
