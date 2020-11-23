@@ -48,14 +48,15 @@ const double narrowPassageWidth = log((double)numLinks) / (double)numLinks;
 namespace ot = ompl::tools;
 std::vector<Environment> envs;
 
-ob::PlannerPtr GetQRRT(std::vector<int> sequenceLinks, ob::SpaceInformationPtr si, ob::ProblemDefinitionPtr pdef)
+ob::PlannerPtr GetQRRT(std::vector<unsigned int> sequenceLinks, ob::SpaceInformationPtr si,
+                       ob::ProblemDefinitionPtr pdef)
 {
     // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     std::vector<ob::SpaceInformationPtr> si_vec;
 
     for (unsigned int k = 0; k < sequenceLinks.size(); k++)
     {
-        int links = sequenceLinks.at(k);
+        auto links = sequenceLinks.at(k);
         assert(links < numLinks);
 
         OMPL_INFORM("Create QuotientSpace Chain with %d links.", links);
@@ -126,16 +127,16 @@ int main()
     b.addPlanner(std::make_shared<ompl::geometric::RRT>(ss.getSpaceInformation()));
     b.addPlanner(std::make_shared<ompl::geometric::PRM>(ss.getSpaceInformation()));
 
-    b.addPlanner(GetQRRT(std::vector<int>{3}, ss.getSpaceInformation(), ss.getProblemDefinition()));
-    b.addPlanner(GetQRRT(std::vector<int>{2}, ss.getSpaceInformation(), ss.getProblemDefinition()));
-    b.addPlanner(GetQRRT(std::vector<int>{3, 5, 9}, ss.getSpaceInformation(), ss.getProblemDefinition()));
-    b.addPlanner(GetQRRT(std::vector<int>{3, 11}, ss.getSpaceInformation(), ss.getProblemDefinition()));
-    b.addPlanner(GetQRRT(std::vector<int>{10}, ss.getSpaceInformation(), ss.getProblemDefinition()));
-    b.addPlanner(GetQRRT(std::vector<int>{12}, ss.getSpaceInformation(), ss.getProblemDefinition()));
-    b.addPlanner(GetQRRT(std::vector<int>{8, 13}, ss.getSpaceInformation(), ss.getProblemDefinition()));
-    b.addPlanner(GetQRRT(std::vector<int>{}, ss.getSpaceInformation(), ss.getProblemDefinition()));
-    b.addPlanner(GetQRRT(std::vector<int>{2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}, ss.getSpaceInformation(),
-                         ss.getProblemDefinition()));
+    b.addPlanner(GetQRRT(std::vector<unsigned int>{3}, ss.getSpaceInformation(), ss.getProblemDefinition()));
+    b.addPlanner(GetQRRT(std::vector<unsigned int>{2}, ss.getSpaceInformation(), ss.getProblemDefinition()));
+    b.addPlanner(GetQRRT(std::vector<unsigned int>{3, 5, 9}, ss.getSpaceInformation(), ss.getProblemDefinition()));
+    b.addPlanner(GetQRRT(std::vector<unsigned int>{3, 11}, ss.getSpaceInformation(), ss.getProblemDefinition()));
+    b.addPlanner(GetQRRT(std::vector<unsigned int>{10}, ss.getSpaceInformation(), ss.getProblemDefinition()));
+    b.addPlanner(GetQRRT(std::vector<unsigned int>{12}, ss.getSpaceInformation(), ss.getProblemDefinition()));
+    b.addPlanner(GetQRRT(std::vector<unsigned int>{8, 13}, ss.getSpaceInformation(), ss.getProblemDefinition()));
+    b.addPlanner(GetQRRT(std::vector<unsigned int>{}, ss.getSpaceInformation(), ss.getProblemDefinition()));
+    b.addPlanner(GetQRRT(std::vector<unsigned int>{2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
+                         ss.getSpaceInformation(), ss.getProblemDefinition()));
 
     b.benchmark(request);
     b.saveResultsToFile(boost::str(boost::format("kinematic_%i.log") % numLinks).c_str());
