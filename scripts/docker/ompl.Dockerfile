@@ -26,12 +26,12 @@ RUN apt-get update && \
         python3-pip \
         wget && \
     # Install spot
-    wget -q -O - https://www.lrde.epita.fr/repo/debian.gpg | apt-key add - && \
+    wget --no-check-certificate -q -O - https://www.lrde.epita.fr/repo/debian.gpg | apt-key add - && \
     echo 'deb http://www.lrde.epita.fr/repo/debian/ stable/' >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y libspot-dev && \
     # Install pypy3:
-    wget -q -O- https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.3.1-linux64.tar.bz2 |tar jxf - && \
+    wget --no-check-certificate -q -O- https://downloads.python.org/pypy/pypy3.7-v7.3.3-linux64.tar.bz2 |tar jxf - && \
     pip3 install pygccxml pyplusplus
 COPY . /ompl
 WORKDIR /build
@@ -39,7 +39,7 @@ RUN cmake \
         -DPYTHON_EXEC=/usr/bin/python3 \
         -DOMPL_REGISTRATION=OFF \
         -DCMAKE_INSTALL_PREFIX=/usr \
-        -DPYPY=/pypy3.6-v7.3.1-linux64/bin/pypy3 \
+        -DPYPY=/pypy3.7-v7.3.3-linux64/bin/pypy3.7 \
         /ompl && \
     make update_bindings -j `nproc` && \
     make -j `nproc` && \
@@ -67,7 +67,7 @@ RUN apt-get update && \
         python3-pip \
         wget && \
     # Install spot
-    wget -q -O - https://www.lrde.epita.fr/repo/debian.gpg | apt-key add - && \
+    wget --no-check-certificate -q -O - https://www.lrde.epita.fr/repo/debian.gpg | apt-key add - && \
     echo 'deb http://www.lrde.epita.fr/repo/debian/ stable/' >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y libspot-dev

@@ -151,7 +151,7 @@ ob::PlannerPtr allocatePlanner(ob::SpaceInformationPtr si, optimalPlanner planne
             return std::make_shared<og::AITstar>(si);
             break;
         }
-     		case PLANNER_BFMTSTAR:
+        case PLANNER_BFMTSTAR:
         {
             return std::make_shared<og::BFMT>(si);
             break;

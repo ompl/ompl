@@ -1,5 +1,9 @@
 # Release Notes {#releaseNotes}
 
+## OMPL 1.5.1 (November 25, 2020)
+
+- Bug fixes.
+
 ## OMPL 1.5.0 (June 2, 2020)
 
 - A C++14 compiler is now required. The minimum version of CMake required is now 3.5 and the minimum version of Boost supported is now 1.58.
