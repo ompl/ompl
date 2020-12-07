@@ -191,7 +191,7 @@ class ompl_base_generator_t(code_generator_t):
         self.ompl_ns.class_('SpecificParam< float >').rename('SpecificParamFloat')
         self.ompl_ns.class_('SpecificParam< double >').rename('SpecificParamDouble')
         self.ompl_ns.class_('SpecificParam< long double >').rename('SpecificParamLongDouble')
-        self.ompl_ns.class_('SpecificParam< std::basic_string<char> >').rename(
+        self.ompl_ns.class_(lambda decl: decl.name.startswith('SpecificParam<std::basic_string')).rename(
             'SpecificParamString')
         for cls in self.ompl_ns.classes(lambda decl: decl.name.startswith('SpecificParam')):
             cls.constructors().exclude()
