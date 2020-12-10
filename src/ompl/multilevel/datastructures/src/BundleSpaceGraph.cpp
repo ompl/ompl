@@ -84,6 +84,11 @@ BundleSpaceGraph::BundleSpaceGraph(const ompl::base::SpaceInformationPtr &si, Bu
     setGraphSampler("randomvertex");
     setImportance("uniform");
 
+    if (hasBaseSpace())
+    {
+        pathRestriction_ = std::make_shared<PathRestriction>(this);
+    }
+
     if (isDynamic())
     {
         setPropagator("dynamic");
@@ -182,9 +187,14 @@ void BundleSpaceGraph::setup()
     {
         setup_ = false;
     }
-    if (hasBaseSpace())
+
+}
+
+void BundleSpaceGraph::setFindSectionStrategy(const std::string &sFindSection)
+{
+    if (pathRestriction_ != nullptr)
     {
-        pathRestriction_ = std::make_shared<PathRestriction>(this);
+        pathRestriction_->setFindSectionStrategy(sFindSection);
     }
 }
 

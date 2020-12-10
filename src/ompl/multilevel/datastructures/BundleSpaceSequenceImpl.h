@@ -39,6 +39,7 @@
 #include <ompl/base/goals/GoalState.h>
 #include <ompl/util/Exception.h>
 #include <ompl/util/Time.h>
+#include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
 
 template <class T>
 ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(ompl::base::SpaceInformationPtr si, std::string type)
@@ -103,6 +104,19 @@ void ompl::multilevel::BundleSpaceSequence<T>::setStopLevel(unsigned int level_)
     else
     {
         stopAtLevel_ = level_;
+    }
+}
+
+template <class T>
+void ompl::multilevel::BundleSpaceSequence<T>::setFindSectionStrategy(const std::string &sFindSection)
+{
+    for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
+    {
+        BundleSpaceGraph* bsg = dynamic_cast<BundleSpaceGraph *>(bundleSpaces_.at(k));
+        if(bsg != nullptr)
+        {
+          bsg->setFindSectionStrategy(sFindSection);
+        }
     }
 }
 
@@ -222,6 +236,13 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(const ompl::
     // Compute projection of qInit and qGoal onto BundleSpaces
     ompl::base::Goal *goal = pdef_->getGoal().get();
     ompl::base::GoalState *goalRegion = dynamic_cast<ompl::base::GoalState *>(goal);
+
+    //@TODO: how to handle arbitrary goal regions?
+    if(goalRegion == nullptr)
+    {
+        throw ompl::Exception("Multilevel framework does not support provided goal specs.");
+    }
+
     double epsilon = goalRegion->getThreshold();
     assert(bundleSpaces_.size() == siVec_.size());
 
@@ -230,7 +251,7 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(const ompl::
 
     OMPL_DEVMSG1("Projecting start and goal onto BundleSpaces.");
 
-    static_cast<BundleSpace *>(bundleSpaces_.back())->setProblemDefinition(pdef);
+    bundleSpaces_.back()->setProblemDefinition(pdef);
 
     base::OptimizationObjectivePtr obj = pdef->getOptimizationObjective();
 
@@ -293,6 +314,7 @@ ompl::base::State *ompl::multilevel::BundleSpaceSequence<T>::getTotalState(int b
     }
     return s_lift;
 }
+
 template <class T>
 void ompl::multilevel::BundleSpaceSequence<T>::getPlannerData(ompl::base::PlannerData &data) const
 {

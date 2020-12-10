@@ -9,6 +9,7 @@
 #include <ompl/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/multilevel/planners/explorer/datastructures/PathVisibilityChecker.h>
 
+#include <ompl/util/Exception.h>
 #include <ompl/geometric/PathSimplifier.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
@@ -189,7 +190,7 @@ void PathSpaceSparse::grow()
     if(v>1e10)
     {
       std::cout << "Vertex " << v << std::endl;
-      exit(0);
+      throw ompl::Exception("Vertex invalid");
     }
 
 

@@ -67,15 +67,14 @@ bool FindSectionSideStep::solve(BasePathHeadPtr &head)
 
     BasePathHeadPtr head2(head);
 
-    std::cout << *head2 << std::endl;
     bool foundFeasibleSection = recursiveSideStep(head);
-    std::cout << *head2 << std::endl;
 
     if (!foundFeasibleSection)
     {
         head->setCurrent(q, 0);
         foundFeasibleSection = recursiveSideStep(head, false);
     }
+    std::cout << "Stopped at: " << *head << std::endl;
 
     return foundFeasibleSection;
 }

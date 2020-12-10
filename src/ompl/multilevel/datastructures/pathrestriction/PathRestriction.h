@@ -102,6 +102,9 @@ namespace ompl
             /** \brief Return discrete states representation of base path */
             const std::vector<base::State *> &getBasePath() const;
 
+            /** \brief Choose algorithm to find sections over restriction */
+            void setFindSectionStrategy(const std::string &sFindSection);
+
             /** \brief Check if feasible section exists between xStart and xGoal.
              *
              * NOTE:

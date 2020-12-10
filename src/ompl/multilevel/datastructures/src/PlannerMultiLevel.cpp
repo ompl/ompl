@@ -86,6 +86,11 @@ int PlannerMultiLevel::getLevels() const
     return siVec_.size();
 }
 
+ompl::base::ProblemDefinitionPtr &PlannerMultiLevel::getProblemDefinitionNonConst(int level)
+{
+    return pdefVec_.at(level);
+}
+
 const ompl::base::ProblemDefinitionPtr &PlannerMultiLevel::getProblemDefinition(int level) const
 {
     return pdefVec_.at(level);

@@ -115,20 +115,26 @@ bool FindSection::findFeasibleStateOnFiber(const ompl::base::State *xBase, ompl:
     base::SpaceInformationPtr base = graph->getBundle();
     // const ompl::base::StateSamplerPtr samplerBase = graph->getBaseSamplerPtr();
 
-    while (ctr++ < magic::PATH_SECTION_MAX_FIBER_SAMPLING && !found)
+    if(graph->getFiberDimension() > 0)
     {
-        // sample model fiber
-        // samplerBase->sampleUniformNear(xBaseTmp_, xBase, validBaseSpaceSegmentLength_);
-
-        graph->sampleFiber(xFiberTmp_);
-
-        graph->liftState(xBase, xFiberTmp_, xBundle);
-
-        // New sample must be valid AND not reachable from last valid
-        if (bundle->isValid(xBundle))
+        while (ctr++ < magic::PATH_SECTION_MAX_FIBER_SAMPLING && !found)
         {
-            found = true;
+            // sample model fiber
+            // samplerBase->sampleUniformNear(xBaseTmp_, xBase, validBaseSpaceSegmentLength_);
+
+            graph->sampleFiber(xFiberTmp_);
+
+            graph->liftState(xBase, xFiberTmp_, xBundle);
+
+            // New sample must be valid AND not reachable from last valid
+            if (bundle->isValid(xBundle))
+            {
+                found = true;
+            }
         }
+    }else
+    {
+        base->copyState(xBundle, xBase);
     }
     return found;
 }

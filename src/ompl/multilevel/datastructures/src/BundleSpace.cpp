@@ -378,7 +378,6 @@ void BundleSpace::resetCounter()
 //        std::cout << "step: " << step << std::endl;
 //        std::cout << "step (not normalized): " << (d_last_to_next - (d - location)) << std::endl;
 //        getBase()->printState(xResult);
-//        exit(0);
 //    }
 //    return ctr;
 //}
@@ -414,7 +413,7 @@ void BundleSpace::liftState(const State *xBase, const State *xFiber, State *xBun
         std::cout << std::string(80, '-') << std::endl;
         getFiber()->printState(xF);
         OMPL_ERROR("Fibers are not preserved after lifting.");
-        exit(0);
+        throw base::Exception("NotPreserved");
     }
     getFiber()->freeState(xF);
 #endif

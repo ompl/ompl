@@ -238,6 +238,7 @@ namespace ompl
             virtual void setPropagator(const std::string &sPropagator) override;
             virtual void setImportance(const std::string &sImportance);
             virtual void setGraphSampler(const std::string &sGraphSampler);
+            virtual void setFindSectionStrategy(const std::string &sFindSection);
 
             BundleSpaceGraphSamplerPtr getGraphSampler();
 

@@ -330,7 +330,7 @@ void PathVisibilityChecker::createStateAt(ob::SpaceInformationPtr si_, const std
     {
         OMPL_ERROR("lineFraction: %f. length: %f, newPos: %f, distanceNext: %f, distanceCur: %f", lineFraction,
                    pathLength, newPosition, distanceIdxIdxNext, distances.at(idx));
-        exit(0);
+        throw ompl::Exception("invalid");
     }
 
     si_->getStateSpace()->interpolate(path.at(idx), path.at(idx + 1), lineFraction, s_interpolate);

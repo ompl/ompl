@@ -84,6 +84,8 @@ namespace ompl
 
             void setStopLevel(unsigned int level_);
 
+            void setFindSectionStrategy(const std::string &sFindSection);
+
         protected:
             ompl::base::State *getTotalState(int baseLevel, const base::State *baseState) const;
 

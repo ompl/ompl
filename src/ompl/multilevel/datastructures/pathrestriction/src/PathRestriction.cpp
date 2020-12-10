@@ -54,9 +54,29 @@ using namespace ompl::multilevel;
 
 PathRestriction::PathRestriction(BundleSpaceGraph *bundleSpaceGraph) : bundleSpaceGraph_(bundleSpaceGraph)
 {
-    findSection_ = std::make_shared<FindSectionPatternDance>(this);
-    // findSection_ = std::make_shared<FindSectionSideStep>(this);
-    // findSection_ = std::make_shared<FindSectionVariableNeighborhood>(this);
+    // setFindSectionStrategy("patterndance");
+    setFindSectionStrategy("sidestep");
+}
+
+void PathRestriction::setFindSectionStrategy(const std::string &sFindSection)
+{
+    if(sFindSection == "patterndance")
+    {
+        findSection_ = std::make_shared<FindSectionPatternDance>(this);
+    }
+    else if(sFindSection == "sidestep")
+    {
+        findSection_ = std::make_shared<FindSectionSideStep>(this);
+    }
+    else if(sFindSection == "none")
+    {
+        findSection_ = nullptr;
+    }
+    else
+    {
+        OMPL_ERROR("Find section strategy unknown: %s", sFindSection.c_str());
+        throw ompl::Exception("Unknown Strategy");
+    }
 }
 
 PathRestriction::~PathRestriction()
@@ -187,14 +207,18 @@ int PathRestriction::getBasePathLastIndexFromLocation(double d)
 
 bool PathRestriction::hasFeasibleSection(Configuration *const xStart, Configuration *const xGoal)
 {
+    if(findSection_ == nullptr) return false;
+
     BasePathHeadPtr head = std::make_shared<BasePathHead>(this, xStart, xGoal);
 
     ompl::time::point tStart = ompl::time::now();
     bool foundFeasibleSection = findSection_->solve(head);
     ompl::time::point t1 = ompl::time::now();
 
-    OMPL_DEBUG("FindSection terminated after %.2fs (%d/%d vertices/edges).", ompl::time::seconds(t1 - tStart),
-               bundleSpaceGraph_->getNumberOfVertices(), bundleSpaceGraph_->getNumberOfEdges());
+    OMPL_DEBUG("FindSection terminated after %.2fs (%d/%d vertices/edges).", 
+        ompl::time::seconds(t1 - tStart), 
+        bundleSpaceGraph_->getNumberOfVertices(), 
+        bundleSpaceGraph_->getNumberOfEdges());
 
     // if(foundFeasibleSection)
     // {
