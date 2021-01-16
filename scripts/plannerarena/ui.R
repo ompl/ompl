@@ -36,7 +36,7 @@
 
 shinyUI(navbarPage("Planner Arena",
     useShinyjs(),
-    extendShinyjs(script = "www/plannerarena.js"),
+    extendShinyjs(script = "plannerarena.js", functions=c("shinyjs.refresh")),
     tabPanel("Overall performance",
         uiOutput("performance_page"),
         value = "performance",

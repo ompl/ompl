@@ -815,6 +815,15 @@ shinyServer(function(input, output, session) {
                 uiOutput("perf_planner_select")
             ),
             mainPanel(
+                HTML(
+                    "<div class=\"alert alert-info alert-dismissible fade in\" role=\"alert\">
+                      <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">×</span></button>
+                      If you use Planner Arena or the OMPL benchmarking facilities, then we kindly ask you to include the following citation in your publications:
+                     <blockquote>
+                        Mark Moll, Ioan A. Șucan, Lydia E. Kavraki, <a href=\"https://moll.ai/publications/moll2015benchmarking-motion-planning-algorithms.pdf\">Benchmarking Motion Planning Algorithms: An Extensible Infrastructure for Analysis and Visualization</a>, <em>IEEE Robotics & Automation Magazine,</em> 22(3):96–102, September 2015. doi: <a href=\"https://dx.doi.org/10.1109/MRA.2015.2448276\">10.1109/MRA.2015.2448276</a>.
+                      </blockquote>
+                    </div>"
+                ),
                 downloadButton("perf_download_plot", "Download plot as PDF"),
                 downloadButton("perf_download_rdata", "Download plot as RData"),
                 plotOutput("perf_plot"),
