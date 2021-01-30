@@ -21,6 +21,8 @@
 
   <exec_depend>boost</exec_depend>
   <exec_depend>eigen</exec_depend>
+  <exec_depend>libode-dev</exec_depend>
+  <exec_depend>libflann-dev</exec_depend>
 
   <export>
     <build_type>cmake</build_type>
