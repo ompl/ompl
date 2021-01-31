@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(ompl VERSION 1.5.1 LANGUAGES CXX)
+project(ompl VERSION 1.5.2 LANGUAGES CXX)
 set(OMPL_ABI_VERSION 16)
 
 # set the default build type
