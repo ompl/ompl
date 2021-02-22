@@ -683,6 +683,11 @@ void BundleSpaceGraph::setGoalIndex(Vertex idx)
     vGoal_ = idx;
 }
 
+ompl::base::PathPtr& BundleSpaceGraph::getSolutionPathByReference()
+{
+  return solutionPath_;
+}
+
 bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
 {
     if (hasSolution_)
@@ -833,7 +838,9 @@ const PathRestrictionPtr BundleSpaceGraph::getPathRestriction()
         return nullptr;
     }
 
-    base::PathPtr basePath = static_cast<BundleSpaceGraph *>(getBaseBundleSpace())->solutionPath_;
+    base::PathPtr basePath = 
+      static_cast<BundleSpaceGraph *>(getBaseBundleSpace())->getSolutionPathByReference();
+      
     pathRestriction_->setBasePath(basePath);
 
     return pathRestriction_;

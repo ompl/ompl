@@ -91,7 +91,8 @@ void ompl::multilevel::BundleSpaceGraphSampler::setPathBiasStartSegment(double s
         {
             this->pathBiasStartSegment_ = s;
             geometric::PathGeometric &spath =
-                static_cast<geometric::PathGeometric &>(*bundleSpaceGraph_->solutionPath_);
+                static_cast<geometric::PathGeometric &>(
+                    *bundleSpaceGraph_->getSolutionPathByReference());
             OMPL_DEBUG("Set path bias: %f/%f", s, spath.length());
             if (s > spath.length())
             {
@@ -121,7 +122,11 @@ void ompl::multilevel::BundleSpaceGraphSampler::sample(base::State *xRandom)
 
     if (p < pd && !bundleSpaceGraph_->isDynamic())
     {
-        geometric::PathGeometric &spath = static_cast<geometric::PathGeometric &>(*bundleSpaceGraph_->solutionPath_);
+        geometric::PathGeometric &spath = 
+          static_cast<geometric::PathGeometric &>(*bundleSpaceGraph_->getSolutionPathByReference());
+              // *bundleSpaceGraph_->solutionPath_);
+
+
         std::vector<base::State *> states = spath.getStates();
 
         if (states.size() < 2)

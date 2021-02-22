@@ -67,9 +67,9 @@ namespace ompl
 
         void setLambda(double lambda)
         {
-            if (lambda <= 0)
+            if (lambda < 0)
             {
-                throw ompl::Exception("ExponentialDecay requires positive lambda");
+                throw ompl::Exception("ExponentialDecay requires non-negative lambda");
             }
             else
             {
