@@ -41,7 +41,6 @@
 #include <ompl/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/multilevel/datastructures/graphsampler/VisibilityRegion.h>
 
-#include <ompl/geometric/PathSimplifier.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/objectives/MaximizeMinClearanceObjective.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>

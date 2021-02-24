@@ -94,6 +94,7 @@ namespace ompl
 
             virtual bool hasSolution();
             virtual bool isInfeasible();
+            virtual bool hasConverged();
 
             virtual void clear() override;
             virtual void setup() override;

@@ -129,8 +129,6 @@ namespace ompl
             {
                 return sparseDelta_;
             }
-
-        protected:
             void setSparseDeltaFraction(double D)
             {
                 sparseDeltaFraction_ = D;
@@ -139,6 +137,8 @@ namespace ompl
             {
                 return sparseDeltaFraction_;
             }
+
+        protected:
 
             // virtual void uniteComponentsSparse(Vertex m1, Vertex m2);
             // bool sameComponentSparse(Vertex m1, Vertex m2);

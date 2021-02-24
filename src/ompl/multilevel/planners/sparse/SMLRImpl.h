@@ -64,8 +64,12 @@ namespace ompl
             virtual void grow() override;
 
             /** \brief Check if number of consecutive failures is larger than
-             * maxFailures_ */
+             * maxFailures_ and no solution exists.*/
             virtual bool isInfeasible() override;
+
+            /** \brief Check if number of consecutive failures is larger than
+             * maxFailures_ */
+            virtual bool hasConverged() override;
 
             virtual void clear() override;
 

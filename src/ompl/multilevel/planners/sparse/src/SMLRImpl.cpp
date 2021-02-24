@@ -118,6 +118,18 @@ void SMLRImpl::grow()
     }
 }
 
+bool SMLRImpl::hasConverged()
+{
+    bool progressFailure = (consecutiveFailures_ >= maxFailures_);
+    if (progressFailure)
+    {
+        OMPL_INFORM("Converged with probability %f (no valid samples for %d rounds).",
+        (1.0 - 1.0 / (double)consecutiveFailures_), 
+        consecutiveFailures_);
+    }
+    return progressFailure;
+}
+
 bool SMLRImpl::isInfeasible()
 {
     bool progressFailure = ((consecutiveFailures_ >= maxFailures_) && !hasSolution_);

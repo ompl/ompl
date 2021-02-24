@@ -624,6 +624,11 @@ bool BundleSpace::isInfeasible()
     return false;
 }
 
+bool BundleSpace::hasConverged()
+{
+    return false;
+}
+
 bool BundleSpace::hasSolution()
 {
     if (!hasSolution_)
