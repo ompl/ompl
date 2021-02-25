@@ -249,7 +249,6 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
     if (st != nullptr)
     {
         si_->copyState(gmotion->state, st);
-        gmotion->phase_end = experience_->phase_end;
     }
     else
     {
@@ -263,6 +262,7 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
 
         experience_ = new Motion(si_, 50); // 50 states for the straight experience
         experience_->phase_end = experience_->phase_span - 1;
+        gmotion->phase_end = experience_->phase_end;
         si_->getMotionStates(smotion->state, gmotion->state, experience_->segment, experience_->phase_span - 2, true, false);
     }
     else
@@ -275,6 +275,7 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
             tmotion->phase_end = experience_->phase_end;
             tmotion->segment.resize(experience_->phase_span);
             tmotion->segment = experience_->segment; // copy the pointers to update the experience_
+            gmotion->phase_end = experience_->phase_end;
 
             mapExperienceOntoProblem(smotion, tmotion);
         }
