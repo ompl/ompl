@@ -56,7 +56,7 @@ namespace ompl
     {
         OMPL_CLASS_FORWARD(BundleSpaceGraph);
         OMPL_CLASS_FORWARD(PathRestriction);
-        OMPL_CLASS_FORWARD(BasePathHead);
+        OMPL_CLASS_FORWARD(Head);
 
         using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
@@ -68,14 +68,14 @@ namespace ompl
 
             virtual ~FindSection();
 
-            virtual bool solve(BasePathHeadPtr &head) = 0;
+            virtual bool solve(HeadPtr &head) = 0;
 
             /** \brief Sample state on fiber while keeping base state fixed */
             bool findFeasibleStateOnFiber(const base::State *xBase, base::State *xBundle);
 
-            bool tripleStep(BasePathHeadPtr &head, const base::State *sBundleGoal, double locationOnBasePathGoal);
+            bool tripleStep(HeadPtr &head, const base::State *sBundleGoal, double locationOnBasePathGoal);
 
-            bool cornerStep(BasePathHeadPtr &head, const base::State *xBundleTarget, double locationOnBasePathTarget);
+            bool cornerStep(HeadPtr &head, const base::State *xBundleTarget, double locationOnBasePathTarget);
 
         protected:
             /** \brief Pointer to associated bundle space */

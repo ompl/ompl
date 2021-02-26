@@ -38,9 +38,9 @@
 
 #include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
 #include <ompl/multilevel/datastructures/pathrestriction/PathSection.h>
-#include <ompl/multilevel/datastructures/pathrestriction/BasePathHead.h>
+#include <ompl/multilevel/datastructures/pathrestriction/Head.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSectionVariableNeighborhood.h>
-#include <ompl/multilevel/datastructures/pathrestriction/FindSectionAnalyzer.h>
+#include <ompl/multilevel/datastructures/pathrestriction/HeadAnalyzer.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
 
 namespace ompl
@@ -77,9 +77,9 @@ FindSectionVariableNeighborhood::~FindSectionVariableNeighborhood()
     // base::SpaceInformationPtr bundle = graph->getBundle();
 }
 
-bool FindSectionVariableNeighborhood::solve(BasePathHeadPtr &head)
+bool FindSectionVariableNeighborhood::solve(HeadPtr &head)
 {
-    BasePathHeadPtr head2(head);
+    HeadPtr head2(head);
 
     ompl::time::point tStart = ompl::time::now();
     bool foundFeasibleSection = variableNeighborhoodPatternSearch(head);
@@ -119,7 +119,7 @@ bool FindSectionVariableNeighborhood::sideStepAlongFiber(Configuration *&xOrigin
     return false;
 }
 
-bool FindSectionVariableNeighborhood::variableNeighborhoodPatternSearch(BasePathHeadPtr &head,
+bool FindSectionVariableNeighborhood::variableNeighborhoodPatternSearch(HeadPtr &head,
                                                                         bool interpolateFiberFirst, int depth)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
@@ -182,7 +182,7 @@ bool FindSectionVariableNeighborhood::variableNeighborhoodPatternSearch(BasePath
 
     double bestDistance = base->distance(head->getStateBase(), xBaseTarget);
 
-    FindSectionAnalyzer analyzer(head);
+    HeadAnalyzer analyzer(head);
 
     const base::State *xBundleTarget = section->back();
 
@@ -240,7 +240,7 @@ bool FindSectionVariableNeighborhood::variableNeighborhoodPatternSearch(BasePath
 
         if (cornerStep(head, xBundleTmp_, location) || tripleStep(head, xBundleTmp_, location))
         {
-            BasePathHeadPtr newHead(head);
+            HeadPtr newHead(head);
 
             bool feasibleSection = variableNeighborhoodPatternSearch(newHead, !interpolateFiberFirst, depth + 1);
             if (feasibleSection)

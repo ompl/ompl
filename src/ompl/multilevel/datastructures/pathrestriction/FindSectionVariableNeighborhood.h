@@ -58,9 +58,9 @@ namespace ompl
 
             virtual ~FindSectionVariableNeighborhood();
 
-            virtual bool solve(BasePathHeadPtr &head) override;
+            virtual bool solve(HeadPtr &head) override;
 
-            bool variableNeighborhoodPatternSearch(BasePathHeadPtr &head, bool interpolateFiberFirst = true,
+            bool variableNeighborhoodPatternSearch(HeadPtr &head, bool interpolateFiberFirst = true,
                                                    int depth = 0);
 
             bool sideStepAlongFiber(Configuration *&xOrigin, base::State *state);

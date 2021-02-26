@@ -47,7 +47,8 @@ ompl::multilevel::BundleSpaceGraphSamplerRandomDegreeVertex::BundleSpaceGraphSam
 {
 }
 
-void ompl::multilevel::BundleSpaceGraphSamplerRandomDegreeVertex::sampleImplementation(base::State *xRandom)
+void ompl::multilevel::BundleSpaceGraphSamplerRandomDegreeVertex::sampleImplementation(
+    base::State *xRandom)
 {
     const BundleSpaceGraph::Graph &graph = bundleSpaceGraph_->getGraph();
 

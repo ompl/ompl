@@ -54,9 +54,9 @@ namespace ompl
 
             virtual ~FindSectionSideStep();
 
-            virtual bool solve(BasePathHeadPtr &head) override;
+            virtual bool solve(HeadPtr &head) override;
 
-            bool recursiveSideStep(BasePathHeadPtr &head, bool interpolateFiberFirst = true, unsigned int depth = 0);
+            bool recursiveSideStep(HeadPtr &head, bool interpolateFiberFirst = true, unsigned int depth = 0);
         };
     }
 }

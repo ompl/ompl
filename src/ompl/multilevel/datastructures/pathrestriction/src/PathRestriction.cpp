@@ -37,7 +37,7 @@
 /* Author: Andreas Orthey */
 
 #include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
-#include <ompl/multilevel/datastructures/pathrestriction/BasePathHead.h>
+#include <ompl/multilevel/datastructures/pathrestriction/Head.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSection.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSectionSideStep.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSectionPatternDance.h>
@@ -209,7 +209,7 @@ bool PathRestriction::hasFeasibleSection(Configuration *const xStart, Configurat
 {
     if(findSection_ == nullptr) return false;
 
-    BasePathHeadPtr head = std::make_shared<BasePathHead>(this, xStart, xGoal);
+    HeadPtr head = std::make_shared<Head>(this, xStart, xGoal);
 
     ompl::time::point tStart = ompl::time::now();
     bool foundFeasibleSection = findSection_->solve(head);

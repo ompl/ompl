@@ -46,7 +46,7 @@ namespace ompl
     namespace multilevel
     {
         class PathRestriction;
-        OMPL_CLASS_FORWARD(BasePathHead);
+        OMPL_CLASS_FORWARD(Head);
 
         /** \brief Representation of a path section (not necessarily feasible).
          *
@@ -69,7 +69,7 @@ namespace ompl
               *   ___/
               *  x
               *  --------------- */
-            void interpolateL2(BasePathHeadPtr &);
+            void interpolateL2(HeadPtr &);
 
             /** \brief Interpolate along restriction using L1 metric
               * (Fiber first)
@@ -79,7 +79,7 @@ namespace ompl
               *   |
               *   x
               *   --------------- */
-            void interpolateL1FiberFirst(BasePathHeadPtr &);
+            void interpolateL1FiberFirst(HeadPtr &);
 
             /** \brief Interpolate along restriction using L1 metric (Fiber Last)
               *   ---------------
@@ -88,18 +88,18 @@ namespace ompl
               *                 |
               *   x_____________|
               *   --------------- */
-            void interpolateL1FiberLast(BasePathHeadPtr &);
+            void interpolateL1FiberLast(HeadPtr &);
 
             /** \brief Checks if section is feasible
              *
              *  @retval True if feasible and false if only partially feasible
              *  @retval Basepathheadptr Return last valid
              */
-            bool checkMotion(BasePathHeadPtr &);
+            bool checkMotion(HeadPtr &);
 
             /** \brief checks if section is feasible */
             void sanityCheck();
-            void sanityCheck(BasePathHeadPtr &);
+            void sanityCheck(HeadPtr &);
 
             // double getLastValidBasePathLocation();
 

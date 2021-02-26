@@ -52,8 +52,11 @@ ompl::multilevel::QRRTStarImpl::QRRTStarImpl(const base::SpaceInformationPtr &si
   : BaseT(si, parent_)
 {
     setName("QRRTStarImpl" + std::to_string(id_));
-    Planner::declareParam<double>("useKNearest_", this, &ompl::multilevel::QRRTStarImpl::setKNearest,
-                                  &ompl::multilevel::QRRTStarImpl::getKNearest, "0,1");
+    Planner::declareParam<double>("useKNearest_", 
+        this, 
+        &ompl::multilevel::QRRTStarImpl::setKNearest,
+        &ompl::multilevel::QRRTStarImpl::getKNearest, 
+        "0,1");
 
     symmetric_ = getBundle()->getStateSpace()->hasSymmetricInterpolate();
 
@@ -83,14 +86,13 @@ void ompl::multilevel::QRRTStarImpl::grow()
     if (firstRun_)
     {
         init();
-        goal_ = pdef_->getGoal().get();
         firstRun_ = false;
 
         if (hasBaseSpace())
         {
             if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
             {
-                if (opt_->isCostBetterThan(qGoal_->cost, bestCost_))
+                if (getOptimizationObjectivePtr()->isCostBetterThan(qGoal_->cost, bestCost_))
                 {
                     goalConfigurations_.push_back(qGoal_);
                     vGoal_ = qGoal_->index;
@@ -117,8 +119,10 @@ void ompl::multilevel::QRRTStarImpl::grow()
         getNearestNeighbors(q_new, nearestNbh);
 
         // (2) Find neighbor with minimum Cost
-        q_new->lineCost = opt_->motionCost(q_nearest->state, q_new->state);
-        q_new->cost = opt_->combineCosts(q_nearest->cost, q_new->lineCost);
+        q_new->lineCost = getOptimizationObjectivePtr()->motionCost(
+            q_nearest->state, q_new->state);
+        q_new->cost = getOptimizationObjectivePtr()->combineCosts(
+            q_nearest->cost, q_new->lineCost);
         q_new->parent = q_nearest;
 
         // (3) Rewire Tree
@@ -149,15 +153,15 @@ void ompl::multilevel::QRRTStarImpl::grow()
             }
             validNeighbor.at(i) = 0;
 
-            ompl::base::Cost line_cost = opt_->motionCost(q_near->state, q_new->state);
-            ompl::base::Cost new_cost = opt_->combineCosts(q_near->cost, line_cost);
+            ompl::base::Cost line_cost = getOptimizationObjectivePtr()->motionCost(q_near->state, q_new->state);
+            ompl::base::Cost new_cost = getOptimizationObjectivePtr()->combineCosts(q_near->cost, line_cost);
 
             if (symmetric_)
             {
                 lineCosts[i] = line_cost;
             }
 
-            if (opt_->isCostBetterThan(new_cost, q_new->cost))
+            if (getOptimizationObjectivePtr()->isCostBetterThan(new_cost, q_new->cost))
             {
                 if ((!useKNearest_ || distance(q_near, q_new) < maxDistance_) &&
                     getBundle()->checkMotion(q_near->state, q_new->state))
@@ -192,13 +196,13 @@ void ompl::multilevel::QRRTStarImpl::grow()
                 }
                 else
                 {
-                    line_cost = opt_->motionCost(q_new->state, q_near->state);
+                    line_cost = getOptimizationObjectivePtr()->motionCost(q_new->state, q_near->state);
                 }
-                base::Cost new_cost = opt_->combineCosts(q_new->cost, line_cost);
+                base::Cost new_cost = getOptimizationObjectivePtr()->combineCosts(q_new->cost, line_cost);
 
                 // (7b) check if new cost better than q_near->cost (over old
                 // pathway)
-                if (opt_->isCostBetterThan(new_cost, q_near->cost))
+                if (getOptimizationObjectivePtr()->isCostBetterThan(new_cost, q_near->cost))
                 {
                     bool valid = (validNeighbor.at(i) == 1);
                     // check neighbor validity if it wasn´t checked before
@@ -233,7 +237,7 @@ void ompl::multilevel::QRRTStarImpl::grow()
 
         // (8) check if this sample satisfies the goal
         double dist = 0.0;
-        bool satisfied = goal_->isSatisfied(q_new->state, &dist);
+        bool satisfied = pdef_->getGoal()->isSatisfied(q_new->state, &dist);
         if (satisfied)
         {
             goalConfigurations_.push_back(q_new);
@@ -256,7 +260,7 @@ void ompl::multilevel::QRRTStarImpl::grow()
                 {
                     Configuration *qk = goalConfigurations_.at(k);
 
-                    if (opt_->isCostBetterThan(qk->cost, bestCost_))
+                    if (getOptimizationObjectivePtr()->isCostBetterThan(qk->cost, bestCost_))
                     {
                         qGoal_ = qk;
                         vGoal_ = qGoal_->index;
@@ -278,10 +282,12 @@ void ompl::multilevel::QRRTStarImpl::updateChildCosts(Configuration *q)
 {
     for (std::size_t i = 0; i < q->children.size(); ++i)
     {
-        q->children.at(i)->cost = opt_->combineCosts(q->cost, q->children.at(i)->lineCost);
+        q->children.at(i)->cost = 
+          getOptimizationObjectivePtr()->combineCosts(q->cost, q->children.at(i)->lineCost);
         updateChildCosts(q->children.at(i));
     }
 }
+
 void ompl::multilevel::QRRTStarImpl::removeFromParent(Configuration *q)
 {
     for (auto it = q->parent->children.begin(); it != q->parent->children.end(); ++it)
@@ -372,5 +378,6 @@ void ompl::multilevel::QRRTStarImpl::getPlannerData(base::PlannerData &data) con
         }
     }
 
-    OMPL_DEBUG("Tree (level %d) has %d/%d vertices/edges", getLevel(), motions.size(), motions.size() - 1);
+    OMPL_DEBUG("Tree (level %d) has %d/%d vertices/edges", 
+        getLevel(), motions.size(), motions.size() - 1);
 }

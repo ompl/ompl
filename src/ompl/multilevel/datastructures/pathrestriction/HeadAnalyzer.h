@@ -37,17 +37,17 @@
 /* Author: Andreas Orthey */
 
 #pragma once
-#include <ompl/multilevel/datastructures/pathrestriction/BasePathHead.h>
+#include <ompl/multilevel/datastructures/pathrestriction/Head.h>
 
 namespace ompl
 {
     namespace multilevel
     {
-        OMPL_CLASS_FORWARD(BasePathHead);
-        class FindSectionAnalyzer
+        OMPL_CLASS_FORWARD(Head);
+        class HeadAnalyzer
         {
         public:
-            FindSectionAnalyzer(BasePathHeadPtr &head)
+            HeadAnalyzer(HeadPtr &head)
             {
                 head_ = head;
             }
@@ -85,7 +85,7 @@ namespace ompl
                 {
                     OccurenceMap::iterator itr;
                     std::cout << std::string(80, '-') << std::endl;
-                    std::cout << "FindSectionAnalyzer (" << samples_ << " samples, location "
+                    std::cout << "HeadAnalyzer (" << samples_ << " samples, location "
                               << head_->getLocationOnBasePath() << ")" << std::endl;
                     for (itr = map_.begin(); itr != map_.end(); ++itr)
                     {
@@ -98,7 +98,7 @@ namespace ompl
         private:
             OccurenceMap map_;
             int samples_{0};
-            BasePathHeadPtr head_;
+            HeadPtr head_;
 
             bool enabled_{true};
         };

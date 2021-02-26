@@ -58,16 +58,16 @@ namespace ompl
 
             virtual ~FindSectionPatternDance();
 
-            virtual bool solve(BasePathHeadPtr &head) override;
+            virtual bool solve(HeadPtr &head) override;
 
-            bool recursivePatternSearch(BasePathHeadPtr &head, bool interpolateFiberFirst = true,
+            bool recursivePatternSearch(HeadPtr &head, bool interpolateFiberFirst = true,
                                         unsigned int depth = 0);
 
             bool sideStepAlongFiber(Configuration *&xOrigin, base::State *state);
 
-            bool wriggleFree(BasePathHeadPtr &head);
+            bool wriggleFree(HeadPtr &head);
 
-            bool tunneling(BasePathHeadPtr &head);
+            bool tunneling(HeadPtr &head);
 
         protected:
             base::State *xBaseFixed_;

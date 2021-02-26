@@ -38,7 +38,7 @@
 
 #include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
 #include <ompl/multilevel/datastructures/pathrestriction/PathSection.h>
-#include <ompl/multilevel/datastructures/pathrestriction/BasePathHead.h>
+#include <ompl/multilevel/datastructures/pathrestriction/Head.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSection.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
 
@@ -139,7 +139,7 @@ bool FindSection::findFeasibleStateOnFiber(const ompl::base::State *xBase, ompl:
     return found;
 }
 
-bool FindSection::cornerStep(BasePathHeadPtr &head, const ompl::base::State *xBundleTarget,
+bool FindSection::cornerStep(HeadPtr &head, const ompl::base::State *xBundleTarget,
                              double locationOnBasePathTarget)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
@@ -232,7 +232,7 @@ bool FindSection::cornerStep(BasePathHeadPtr &head, const ompl::base::State *xBu
     return found;
 }
 
-bool FindSection::tripleStep(BasePathHeadPtr &head, const ompl::base::State *sBundleGoal, double locationOnBasePathGoal)
+bool FindSection::tripleStep(HeadPtr &head, const ompl::base::State *sBundleGoal, double locationOnBasePathGoal)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();

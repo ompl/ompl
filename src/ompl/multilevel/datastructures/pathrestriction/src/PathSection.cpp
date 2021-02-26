@@ -38,7 +38,7 @@
 
 #include <ompl/multilevel/datastructures/pathrestriction/PathSection.h>
 #include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
-#include <ompl/multilevel/datastructures/pathrestriction/BasePathHead.h>
+#include <ompl/multilevel/datastructures/pathrestriction/Head.h>
 
 using namespace ompl::multilevel;
 
@@ -85,7 +85,7 @@ PathSection::~PathSection()
     bundle->freeState(xBundleTmp_);
 }
 
-bool PathSection::checkMotion(BasePathHeadPtr &head)
+bool PathSection::checkMotion(HeadPtr &head)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
 
@@ -176,7 +176,7 @@ const ompl::base::State *PathSection::front() const
     return section_.front();
 }
 
-void PathSection::interpolateL1FiberFirst(BasePathHeadPtr &head)
+void PathSection::interpolateL1FiberFirst(HeadPtr &head)
 {
     section_.clear();
     sectionBaseStateIndices_.clear();
@@ -227,7 +227,7 @@ void PathSection::interpolateL1FiberFirst(BasePathHeadPtr &head)
     // sanityCheck(head);
 }
 
-void PathSection::interpolateL1FiberLast(BasePathHeadPtr &head)
+void PathSection::interpolateL1FiberLast(HeadPtr &head)
 {
     section_.clear();
     sectionBaseStateIndices_.clear();
@@ -268,7 +268,7 @@ void PathSection::interpolateL1FiberLast(BasePathHeadPtr &head)
     sanityCheck(head);
 }
 
-void PathSection::interpolateL2(BasePathHeadPtr &head)
+void PathSection::interpolateL2(HeadPtr &head)
 {
     section_.clear();
     sectionBaseStateIndices_.clear();
@@ -338,7 +338,7 @@ void PathSection::addFeasibleGoalSegment(Configuration *xLast, Configuration *xG
     xGoal->parent = xLast;
 }
 
-void PathSection::sanityCheck(BasePathHeadPtr &head)
+void PathSection::sanityCheck(HeadPtr &head)
 {
     if (section_.size() > 0)
     {

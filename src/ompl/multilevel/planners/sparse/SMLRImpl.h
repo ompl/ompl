@@ -74,7 +74,7 @@ namespace ompl
             virtual void clear() override;
 
             /** \brief Return estimate of free state space coverage using the
-             * formula $(1 / M + 1)$ whereby $M$ is the number of
+             * formula $(1 / (M + 1))$ whereby $M$ is the number of
              * consecutive failures to sample a feasible state */
             virtual double getImportance() const override;
 

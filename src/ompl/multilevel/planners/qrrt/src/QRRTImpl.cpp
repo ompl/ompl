@@ -87,7 +87,7 @@ void ompl::multilevel::QRRTImpl::grow()
         if (isDynamic())
         {
             double dist;
-            bool satisfied = goal_->isSatisfied(xNext->state, &dist);
+            bool satisfied = pdef_->getGoal()->isSatisfied(xNext->state, &dist);
             if (dist < bestCost_.value())
             {
                 bestCost_ = base::Cost(dist);
@@ -102,7 +102,7 @@ void ompl::multilevel::QRRTImpl::grow()
         }
         else
         {
-            bool satisfied = goal_->isSatisfied(xNext->state);
+            bool satisfied = pdef_->getGoal()->isSatisfied(xNext->state);
             if (satisfied)
             {
                 vGoal_ = addConfiguration(qGoal_);

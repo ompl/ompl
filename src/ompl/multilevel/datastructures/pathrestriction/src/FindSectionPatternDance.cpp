@@ -38,9 +38,9 @@
 
 #include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
 #include <ompl/multilevel/datastructures/pathrestriction/PathSection.h>
-#include <ompl/multilevel/datastructures/pathrestriction/BasePathHead.h>
+#include <ompl/multilevel/datastructures/pathrestriction/Head.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSectionPatternDance.h>
-#include <ompl/multilevel/datastructures/pathrestriction/FindSectionAnalyzer.h>
+#include <ompl/multilevel/datastructures/pathrestriction/HeadAnalyzer.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
 
 namespace ompl
@@ -85,9 +85,9 @@ FindSectionPatternDance::~FindSectionPatternDance()
     }
 }
 
-bool FindSectionPatternDance::solve(BasePathHeadPtr &head)
+bool FindSectionPatternDance::solve(HeadPtr &head)
 {
-    BasePathHeadPtr head2(head);
+    HeadPtr head2(head);
 
     ompl::time::point tStart = ompl::time::now();
     bool foundFeasibleSection = recursivePatternSearch(head);
@@ -127,7 +127,7 @@ bool FindSectionPatternDance::sideStepAlongFiber(Configuration *&xOrigin, ompl::
     return false;
 }
 
-bool FindSectionPatternDance::tunneling(BasePathHeadPtr &head)
+bool FindSectionPatternDance::tunneling(HeadPtr &head)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     const ompl::base::StateSamplerPtr bundleSampler = graph->getBundleSamplerPtr();
@@ -258,7 +258,7 @@ bool FindSectionPatternDance::tunneling(BasePathHeadPtr &head)
     return false;
 }
 
-bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr &head)
+bool FindSectionPatternDance::wriggleFree(HeadPtr &head)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     ompl::base::SpaceInformationPtr bundle = graph->getBundle();
@@ -383,7 +383,7 @@ bool FindSectionPatternDance::wriggleFree(BasePathHeadPtr &head)
 
 #define COUT(depth) (std::cout << std::string(4 * depth, '>'))
 
-bool FindSectionPatternDance::recursivePatternSearch(BasePathHeadPtr &head, bool interpolateFiberFirst,
+bool FindSectionPatternDance::recursivePatternSearch(HeadPtr &head, bool interpolateFiberFirst,
                                                      unsigned int depth)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
@@ -430,7 +430,7 @@ bool FindSectionPatternDance::recursivePatternSearch(BasePathHeadPtr &head, bool
 
     if (wriggleFree(head) || tunneling(head))
     {
-        BasePathHeadPtr newHead(head);
+        HeadPtr newHead(head);
 
         bool feasibleSection = recursivePatternSearch(newHead, false, depth + 1);
         if (feasibleSection)
@@ -467,7 +467,7 @@ bool FindSectionPatternDance::recursivePatternSearch(BasePathHeadPtr &head, bool
     neighborhoodBaseSpace.setCounterTarget(magic::PATH_SECTION_MAX_BRANCHING);
     neighborhoodBaseSpace.reset();
 
-    FindSectionAnalyzer analyzer(head);
+    HeadAnalyzer analyzer(head);
     analyzer.disable();
 
     bool found = false;
@@ -555,7 +555,7 @@ bool FindSectionPatternDance::recursivePatternSearch(BasePathHeadPtr &head, bool
         // if(cornerStep(head, xBundleTmp_, location) ||
         if (tripleStep(head, xBundleTmp_, location))
         {
-            BasePathHeadPtr newHead(head);
+            HeadPtr newHead(head);
 
             bool feasibleSection = recursivePatternSearch(newHead, false, depth + 1);
             if (feasibleSection)

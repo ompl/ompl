@@ -59,14 +59,14 @@ namespace ompl
          * from current location to goal of path restriction.
         */
 
-        class BasePathHead
+        class Head
         {
         public:
-            BasePathHead(PathRestriction *restriction, Configuration *const xCurrent, Configuration *const xTarget);
+            Head(PathRestriction *restriction, Configuration *const xCurrent, Configuration *const xTarget);
 
-            BasePathHead(const BasePathHead &rhs);
+            Head(const Head &rhs);
 
-            ~BasePathHead();
+            ~Head();
 
             const base::State *getState() const;
             const base::State *getStateFiber() const;
@@ -97,7 +97,7 @@ namespace ompl
             int getLastValidBasePathIndex() const;
             void setLastValidBasePathIndex(int k);
 
-            friend std::ostream &operator<<(std::ostream &, const BasePathHead &);
+            friend std::ostream &operator<<(std::ostream &, const Head &);
 
             void print(std::ostream &) const;
 

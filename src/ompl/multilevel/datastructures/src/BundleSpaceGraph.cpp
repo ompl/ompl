@@ -120,11 +120,11 @@ BundleSpaceGraph::BundleSpaceGraph(const ompl::base::SpaceInformationPtr &si, Bu
     ompl::base::OptimizationObjectivePtr clearObj =
         std::make_shared<ompl::base::MaximizeMinClearanceObjective>(getBundle());
 
-    pathRefinementObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
+    // pathRefinementObj_ = std::make_shared<ompl::base::MultiOptimizationObjective>(getBundle());
 
-    std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 1.0);
-    // std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)
-    //   ->addObjective(clearObj, 1.0);
+    // std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)->addObjective(lengthObj, 1.0);
+    // // std::static_pointer_cast<base::MultiOptimizationObjective>(pathRefinementObj_)
+    // //   ->addObjective(clearObj, 1.0);
 
     if (getFiberDimension() > 0)
     {
@@ -170,18 +170,12 @@ void BundleSpaceGraph::setup()
 
     if (pdef_)
     {
-        if (pdef_->hasOptimizationObjective())
-        {
-            opt_ = pdef_->getOptimizationObjective();
-        }
-        else
-        {
-            opt_ = std::make_shared<base::PathLengthOptimizationObjective>(getBundle());
-            opt_->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
-            pdef_->setOptimizationObjective(opt_);
-        }
         firstRun_ = true;
         setup_ = true;
+
+        optimizer_ = std::make_shared<ompl::geometric::PathSimplifier>(
+            getBundle(), pdef_->getGoal(), getOptimizationObjectivePtr());
+        optimizer_->freeStates(false);
     }
     else
     {
@@ -458,7 +452,7 @@ const BundleSpaceGraph::RoadmapNeighborsPtr &BundleSpaceGraph::getRoadmapNeighbo
 
 ompl::base::Cost BundleSpaceGraph::costHeuristic(Vertex u, Vertex v) const
 {
-    return opt_->motionCostHeuristic(graph_[u]->state, graph_[v]->state);
+    return getOptimizationObjectivePtr()->motionCostHeuristic(graph_[u]->state, graph_[v]->state);
 }
 
 template <template <typename T> class NN>
@@ -655,7 +649,7 @@ BundleSpaceGraphSamplerPtr BundleSpaceGraph::getGraphSampler()
 
 void BundleSpaceGraph::addEdge(const Vertex a, const Vertex b)
 {
-    base::Cost weight = opt_->motionCost(graph_[a]->state, graph_[b]->state);
+    base::Cost weight = getOptimizationObjectivePtr()->motionCost(graph_[a]->state, graph_[b]->state);
     EdgeInternalState properties(weight);
     boost::add_edge(a, b, properties, graph_);
     uniteComponents(a, b);
@@ -729,7 +723,8 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
 
                 // if(optimize)
                 // {
-                geometric::PathSimplifier shortcutter(getBundle(), base::GoalPtr(), pathRefinementObj_);
+                // geometric::PathSimplifier shortcutter(
+                //     getBundle(), pdef_->getGoal(), pathRefinementObj_);
 
                 // @NOTE: optimization seems to improve feasibility of sections
                 // in low-dim problems (up to 20 dof roughly), but will take too
@@ -743,9 +738,9 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
                 {
                     geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
 
-                    valid = shortcutter.reduceVertices(gpath, 0, 0, 0.1);
+                    valid = optimizer_->reduceVertices(gpath, 0, 0, 0.1);
 
-                    // valid = shortcutter.simplifyMax(gpath);
+                    // valid = optimizer_->simplifyMax(gpath);
 
                     if (!valid)
                     {
@@ -762,7 +757,7 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
                 // geometric::PathGeometric &gpath2 =
                 //   static_cast<geometric::PathGeometric &>(*solutionPath_);
 
-                // shortcutter.smoothBSpline(gpath2);
+                // optimizer_->smoothBSpline(gpath2);
 
                 // gpath2.interpolate();
                 // }
@@ -793,13 +788,13 @@ ompl::base::PathPtr BundleSpaceGraph::getPath(const Vertex &start, const Vertex 
                             boost::predecessor_map(&prev[0])
                                 .weight_map(weight)
                                 .distance_compare([this](EdgeInternalState c1, EdgeInternalState c2) {
-                                    return opt_->isCostBetterThan(c1.getCost(), c2.getCost());
+                                    return getOptimizationObjectivePtr()->isCostBetterThan(c1.getCost(), c2.getCost());
                                 })
                                 .distance_combine([this](EdgeInternalState c1, EdgeInternalState c2) {
-                                    return opt_->combineCosts(c1.getCost(), c2.getCost());
+                                    return getOptimizationObjectivePtr()->combineCosts(c1.getCost(), c2.getCost());
                                 })
-                                .distance_inf(opt_->infiniteCost())
-                                .distance_zero(opt_->identityCost())
+                                .distance_inf(getOptimizationObjectivePtr()->infiniteCost())
+                                .distance_zero(getOptimizationObjectivePtr()->identityCost())
                                 .visitor(BundleSpaceGraphGoalVisitor<Vertex>(goal)));
     }
     catch (BundleSpaceGraphFoundGoal &)
@@ -858,7 +853,10 @@ void BundleSpaceGraph::sampleBundleGoalBias(ompl::base::State *xRandom)
         double s = rng_.uniform01();
         if (s < goalBias_)
         {
-            getBundle()->copyState(xRandom, qGoal_->state);
+            // getBundle()->copyState(xRandom, qGoal_->state);
+            auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+            goal->sampleGoal(xRandom);
+            
         }
         else
         {

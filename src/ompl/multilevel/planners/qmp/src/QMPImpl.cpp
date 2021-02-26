@@ -106,6 +106,8 @@ void ompl::multilevel::QMPImpl::grow()
 
         vGoal_ = addConfiguration(qGoal_);
 
+        // findSection();
+
         if (hasBaseSpace())
         {
             if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))

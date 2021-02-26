@@ -161,8 +161,19 @@ void BundleSpace::setup()
 
     hasSolution_ = false;
     firstRun_ = true;
+
     if (pdef_)
-        goal_ = pdef_->getGoal().get();
+    {
+        // goal_ = pdef_->getGoal().get();
+        if (!pdef_->hasOptimizationObjective())
+        {
+            OptimizationObjectivePtr lengthObj = 
+              std::make_shared<base::PathLengthOptimizationObjective>(getBundle());
+
+            lengthObj->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
+            pdef_->setOptimizationObjective(lengthObj);
+        }
+    }
 
     if (getFiberDimension() > 0)
     {
@@ -256,16 +267,6 @@ PlannerStatus BundleSpace::solve(const PlannerTerminationCondition &)
 void BundleSpace::setProblemDefinition(const ProblemDefinitionPtr &pdef)
 {
     BaseT::setProblemDefinition(pdef);
-
-    if (pdef_->hasOptimizationObjective())
-    {
-        opt_ = pdef_->getOptimizationObjective();
-    }
-    else
-    {
-        opt_ = std::make_shared<PathLengthOptimizationObjective>(getBundle());
-        opt_->setCostThreshold(Cost(std::numeric_limits<double>::infinity()));
-    }
 }
 
 void BundleSpace::resetCounter()
@@ -671,7 +672,7 @@ void BundleSpace::setLevel(unsigned int level)
 
 OptimizationObjectivePtr BundleSpace::getOptimizationObjectivePtr() const
 {
-    return opt_;
+    return pdef_->getOptimizationObjective();
 }
 
 void BundleSpace::sampleFiber(State *xFiber)
@@ -752,8 +753,9 @@ void BundleSpace::debugInvalidState(const State *x)
                         double qkh = bh.at(k);
                         if (qk < qkl || qk > qkh)
                         {
-                            OMPL_ERROR("Out Of Bounds [component %d, link %d] %.2f <= %.2f <= %.2f", m, k, bl.at(k), qk,
-                                       bh.at(k));
+                            OMPL_ERROR("Out Of Bounds [component %d, \
+                                link %d] %.2f <= %.2f <= %.2f", 
+                                m, k, bl.at(k), qk, bh.at(k));
                         }
                     }
                     break;

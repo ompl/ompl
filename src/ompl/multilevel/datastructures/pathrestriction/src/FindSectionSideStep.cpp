@@ -38,7 +38,7 @@
 
 #include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
 #include <ompl/multilevel/datastructures/pathrestriction/PathSection.h>
-#include <ompl/multilevel/datastructures/pathrestriction/BasePathHead.h>
+#include <ompl/multilevel/datastructures/pathrestriction/Head.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSectionSideStep.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
 
@@ -61,11 +61,11 @@ FindSectionSideStep::~FindSectionSideStep()
 {
 }
 
-bool FindSectionSideStep::solve(BasePathHeadPtr &head)
+bool FindSectionSideStep::solve(HeadPtr &head)
 {
     Configuration *q = head->getConfiguration();
 
-    BasePathHeadPtr head2(head);
+    HeadPtr head2(head);
 
     bool foundFeasibleSection = recursiveSideStep(head);
 
@@ -79,7 +79,7 @@ bool FindSectionSideStep::solve(BasePathHeadPtr &head)
     return foundFeasibleSection;
 }
 
-bool FindSectionSideStep::recursiveSideStep(BasePathHeadPtr &head, bool interpolateFiberFirst, unsigned int depth)
+bool FindSectionSideStep::recursiveSideStep(HeadPtr &head, bool interpolateFiberFirst, unsigned int depth)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
@@ -137,7 +137,7 @@ bool FindSectionSideStep::recursiveSideStep(BasePathHeadPtr &head, bool interpol
             graph->addConfiguration(xSideStep);
             graph->addBundleEdge(head->getConfiguration(), xSideStep);
 
-            BasePathHeadPtr newHead(head);
+            HeadPtr newHead(head);
 
             newHead->setCurrent(xSideStep, location);
 

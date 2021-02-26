@@ -52,10 +52,6 @@
 
 namespace ompl
 {
-    namespace geometric
-    {
-        OMPL_CLASS_FORWARD(PathSimplifier);
-    }
     namespace multilevel
     {
         class BundleSpaceGraphSparse : public BundleSpaceGraph
@@ -177,9 +173,6 @@ namespace ompl
 
             /** \brief Geometric Path variable used for smoothing out paths. */
             geometric::PathGeometric geomPath_;
-
-            /** \brief A path simplifier used to simplify dense paths added to S */
-            geometric::PathSimplifierPtr psimp_;
 
             std::vector<Vertex> startGoalVertexPath_;
             std::vector<double> lengthsStartGoalVertexPath_;

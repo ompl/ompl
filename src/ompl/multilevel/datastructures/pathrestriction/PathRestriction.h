@@ -54,7 +54,7 @@ namespace ompl
     {
         OMPL_CLASS_FORWARD(BundleSpaceGraph);
         OMPL_CLASS_FORWARD(PathSection);
-        OMPL_CLASS_FORWARD(BasePathHead);
+        OMPL_CLASS_FORWARD(Head);
         OMPL_CLASS_FORWARD(FindSection);
 
         using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;

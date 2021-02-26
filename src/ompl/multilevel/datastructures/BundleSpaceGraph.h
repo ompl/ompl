@@ -60,13 +60,17 @@ namespace ompl
     namespace base
     {
         const double dInf = std::numeric_limits<double>::infinity();
-        OMPL_CLASS_FORWARD(OptimizationObjective);
+        // OMPL_CLASS_FORWARD(OptimizationObjective);
     }
     namespace multilevel
     {
         OMPL_CLASS_FORWARD(BundleSpaceImportance);
         OMPL_CLASS_FORWARD(BundleSpaceGraphSampler);
         OMPL_CLASS_FORWARD(PathRestriction);
+    }
+    namespace geometric
+    {
+        OMPL_CLASS_FORWARD(PathSimplifier);
     }
 
     namespace multilevel
@@ -355,7 +359,11 @@ namespace ompl
 
             PathRestrictionPtr pathRestriction_{nullptr};
 
-            ompl::base::OptimizationObjectivePtr pathRefinementObj_{nullptr};
+            // ompl::base::OptimizationObjectivePtr pathRefinementObj_{nullptr};
+
+            /** \brief A path optimizer */
+            ompl::geometric::PathSimplifierPtr optimizer_;
+
         };
     }  // namespace multilevel
 }  // namespace ompl

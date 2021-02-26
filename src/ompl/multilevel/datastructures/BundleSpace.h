@@ -77,10 +77,13 @@ namespace ompl
                  We assume that Bundle and Base have been given (as ompl::base::SpaceInformationPtr),
                  and we automatically compute the fiber */
 
-            BundleSpace(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_ = nullptr);
+            BundleSpace(const ompl::base::SpaceInformationPtr &si, 
+                BundleSpace *parent_ = nullptr);
+
             virtual ~BundleSpace();
 
-            virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
+            virtual void setProblemDefinition(
+                const ompl::base::ProblemDefinitionPtr &pdef) override;
 
             virtual void grow() = 0;
             virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
@@ -208,6 +211,9 @@ namespace ompl
             ompl::base::StateSamplerPtr Bundle_sampler_;
             ompl::base::ValidStateSamplerPtr Bundle_valid_sampler_;
 
+            /**\brief Call algorithm to solve the find section problem */
+            void findSection(int s);
+
         protected:
             /// Check if Bundle-space is unbounded
             void checkBundleSpaceMeasure(std::string name, const ompl::base::StateSpacePtr space) const;
@@ -218,8 +224,6 @@ namespace ompl
 
             /// Internal function implementing actual printing to stream
             virtual void print(std::ostream &out) const;
-
-            ompl::base::OptimizationObjectivePtr opt_;
 
             /// A temporary state on Base
             ompl::base::State *xBaseTmp_{nullptr};
@@ -238,11 +242,11 @@ namespace ompl
 
             bool isDynamic_{false};
 
-            /** \brief Goal state or goal region */
-            ompl::base::Goal *goal_;
-
             /** \brief Metric on bundle space */
             BundleSpaceMetricPtr metric_;
+
+            /** \brief Goal state or goal region */
+            // ompl::base::Goal *goal_;
 
             /** \brief Propagator (steering or interpolation) on bundle space.
              * Note: currently just a stub for base::StatePropagator*/

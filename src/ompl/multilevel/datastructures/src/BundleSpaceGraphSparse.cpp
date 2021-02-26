@@ -41,8 +41,8 @@
 #include <ompl/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/multilevel/datastructures/graphsampler/VisibilityRegion.h>
 
-#include <ompl/base/objectives/PathLengthOptimizationObjective.h>
-#include <ompl/base/objectives/MaximizeMinClearanceObjective.h>
+// #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
+// #include <ompl/base/objectives/MaximizeMinClearanceObjective.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/util/Exception.h>
@@ -67,17 +67,16 @@ BundleSpaceGraphSparse::BundleSpaceGraphSparse(const SpaceInformationPtr &si, Bu
 {
     setName("BundleSpaceGraphSparse");
 
-    Planner::declareParam<double>("sparse_delta_fraction", this, &BundleSpaceGraphSparse::setSparseDeltaFraction,
-                                  &BundleSpaceGraphSparse::getSparseDeltaFraction, "0.0:0.01:1.0");
+    Planner::declareParam<double>("sparse_delta_fraction", 
+        this, 
+        &BundleSpaceGraphSparse::setSparseDeltaFraction,
+        &BundleSpaceGraphSparse::getSparseDeltaFraction, 
+        "0.0:0.01:1.0");
 
     if (!isSetup())
     {
         setup();
     }
-    psimp_ = std::make_shared<ompl::geometric::PathSimplifier>(getBundle());
-    psimp_->freeStates(false);
-    // setGraphSampler("visibilityregion");
-    // setGraphSampler("randomedge");
 }
 
 BundleSpaceGraphSparse::~BundleSpaceGraphSparse()
@@ -104,6 +103,7 @@ void BundleSpaceGraphSparse::setup()
     double maxExt = getBundle()->getMaximumExtent();
     sparseDelta_ = sparseDeltaFraction_ * maxExt;
     OMPL_DEBUG("Visibility region set to %f (max extent %f)", sparseDelta_, maxExt);
+
 }
 
 void BundleSpaceGraphSparse::clear()
@@ -602,7 +602,7 @@ bool BundleSpaceGraphSparse::addPathToSpanner(const std::deque<State *> &dense_p
         std::copy(dense_path.begin(), dense_path.end(), geomPath_.getStates().begin());
 
         // Attempt to simplify the path
-        psimp_->reduceVertices(geomPath_, geomPath_.getStateCount() * 2);
+        optimizer_->reduceVertices(geomPath_, geomPath_.getStateCount() * 2);
 
         // we are sure there are at least 2 points left on geomPath_
 
