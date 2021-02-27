@@ -50,16 +50,24 @@ namespace ompl
         class BundleSpaceComponent
         {
         public:
-            BundleSpaceComponent(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace);
+            BundleSpaceComponent(
+                base::StateSpacePtr BundleSpace, 
+                base::StateSpacePtr BaseSpace);
 
             virtual ~BundleSpaceComponent() = default;
 
-            virtual void projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const = 0;
+            virtual void projectFiber(
+                const ompl::base::State *xBundle, 
+                ompl::base::State *xFiber) const = 0;
 
-            virtual void projectBase(const ompl::base::State *xBundle, ompl::base::State *xBase) const = 0;
+            virtual void projectBase(
+                const ompl::base::State *xBundle, 
+                ompl::base::State *xBase) const = 0;
 
-            virtual void liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
-                                   ompl::base::State *xBundle) const = 0;
+            virtual void liftState(
+                const ompl::base::State *xBase, 
+                const ompl::base::State *xFiber,
+                ompl::base::State *xBundle) const = 0;
 
             ompl::base::StateSpacePtr getFiberSpace() const;
 
@@ -82,7 +90,9 @@ namespace ompl
             std::string getBundleTypeAsString() const;
             std::string getBaseTypeAsString() const;
 
-            friend std::ostream &operator<<(std::ostream &out, const BundleSpaceComponent &);
+            friend std::ostream &operator<<(
+                std::ostream &out, 
+                const BundleSpaceComponent &);
 
         protected:
             virtual ompl::base::StateSpacePtr computeFiberSpace() = 0;

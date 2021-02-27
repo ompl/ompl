@@ -57,19 +57,24 @@ namespace ompl
         public:
             BundleSpaceComponentFactory() = default;
 
-            std::vector<BundleSpaceComponentPtr> MakeBundleSpaceComponents(base::SpaceInformationPtr Bundle,
-                                                                           base::SpaceInformationPtr Base);
+            std::vector<BundleSpaceComponentPtr> MakeBundleSpaceComponents(
+                base::SpaceInformationPtr Bundle,
+                base::SpaceInformationPtr Base);
 
-            std::vector<BundleSpaceComponentPtr> MakeBundleSpaceComponents(base::SpaceInformationPtr Bundle);
+            std::vector<BundleSpaceComponentPtr> MakeBundleSpaceComponents(
+                base::SpaceInformationPtr Bundle);
 
         protected:
-            BundleSpaceComponentPtr MakeBundleSpaceComponent(base::StateSpacePtr BundleSpace,
-                                                             base::StateSpacePtr BaseSpace, bool);
+            BundleSpaceComponentPtr MakeBundleSpaceComponent(
+                base::StateSpacePtr BundleSpace,
+                base::StateSpacePtr BaseSpace, bool);
 
-            BundleSpaceComponentPtr MakeBundleSpaceComponent(base::StateSpacePtr BundleSpace);
+            BundleSpaceComponentPtr MakeBundleSpaceComponent(
+                base::StateSpacePtr BundleSpace);
 
-            BundleSpaceComponentType identifyBundleSpaceComponentType(const base::StateSpacePtr BundleSpace,
-                                                                      const base::StateSpacePtr BaseSpace);
+            BundleSpaceComponentType identifyBundleSpaceComponentType(
+                const base::StateSpacePtr BundleSpace,
+                const base::StateSpacePtr BaseSpace);
 
             bool isMapping_Identity(const base::StateSpacePtr, const base::StateSpacePtr);
             bool isMapping_EmptyProjection(const base::StateSpacePtr, const base::StateSpacePtr);

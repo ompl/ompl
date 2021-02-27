@@ -339,7 +339,7 @@ double BundleSpaceGraph::getImportance() const
 
 void BundleSpaceGraph::init()
 {
-    auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    auto *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
     if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
@@ -663,7 +663,8 @@ BundleSpaceGraphSamplerPtr BundleSpaceGraph::getGraphSampler()
     return graphSampler_;
 }
 
-const std::pair<BundleSpaceGraph::Edge, bool> BundleSpaceGraph::addEdge(const Vertex a, const Vertex b)
+const std::pair<BundleSpaceGraph::Edge, bool> 
+BundleSpaceGraph::addEdge(const Vertex a, const Vertex b)
 {
     base::Cost weight = 
       getOptimizationObjectivePtr()->motionCost(graph_[a]->state, graph_[b]->state);

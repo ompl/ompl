@@ -86,17 +86,7 @@ void SMLRImpl::grow()
         firstRun_ = false;
 
         vGoal_ = addConfiguration(qGoal_);
-
-        if (hasBaseSpace())
-        {
-            if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
-            {
-                if (sameComponent(getStartIndex(), getGoalIndex()))
-                {
-                    hasSolution_ = true;
-                }
-            }
-        }
+        findSection();
     }
 
     if (!sampleBundleValid(xRandom_->state))
