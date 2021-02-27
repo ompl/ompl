@@ -108,14 +108,14 @@ void ompl::multilevel::BundleSpaceSequence<T>::setStopLevel(unsigned int level_)
 }
 
 template <class T>
-void ompl::multilevel::BundleSpaceSequence<T>::setFindSectionStrategy(const std::string &sFindSection)
+void ompl::multilevel::BundleSpaceSequence<T>::setFindSectionStrategy(FindSectionType type)
 {
     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
     {
         BundleSpaceGraph* bsg = dynamic_cast<BundleSpaceGraph *>(bundleSpaces_.at(k));
         if(bsg != nullptr)
         {
-          bsg->setFindSectionStrategy(sFindSection);
+            bsg->setFindSectionStrategy(type);
         }
     }
 }

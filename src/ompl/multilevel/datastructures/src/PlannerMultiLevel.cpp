@@ -40,17 +40,20 @@
 
 using namespace ompl::multilevel;
 
-PlannerMultiLevel::PlannerMultiLevel(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
+PlannerMultiLevel::PlannerMultiLevel(std::vector<ompl::base::SpaceInformationPtr> &siVec, 
+    std::string type)
   : BaseT(siVec.back(), type), siVec_(siVec)
 {
 }
 
-PlannerMultiLevel::PlannerMultiLevel(ompl::base::SpaceInformationPtr si) : BaseT(si, "PlannerMultiLevel")
+PlannerMultiLevel::PlannerMultiLevel(ompl::base::SpaceInformationPtr si) 
+  : BaseT(si, "PlannerMultiLevel")
 {
     siVec_.push_back(si);
 }
 
-PlannerMultiLevel::PlannerMultiLevel(ompl::base::SpaceInformationPtr si, std::string type) : BaseT(si, type)
+PlannerMultiLevel::PlannerMultiLevel(ompl::base::SpaceInformationPtr si, std::string type) 
+  : BaseT(si, type)
 {
     siVec_.push_back(si);
 }
@@ -96,7 +99,8 @@ const ompl::base::ProblemDefinitionPtr &PlannerMultiLevel::getProblemDefinition(
     return pdefVec_.at(level);
 }
 
-const std::vector<ompl::base::ProblemDefinitionPtr> &PlannerMultiLevel::getProblemDefinitionVector() const
+const std::vector<ompl::base::ProblemDefinitionPtr> 
+&PlannerMultiLevel::getProblemDefinitionVector() const
 {
     return pdefVec_;
 }

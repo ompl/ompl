@@ -39,6 +39,7 @@
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLESPACESEQUENCE_
 #include <ompl/multilevel/datastructures/BundleSpace.h>
 #include <ompl/multilevel/datastructures/PlannerMultiLevel.h>
+#include <ompl/multilevel/datastructures/pathrestriction/FindSectionTypes.h>
 #include <type_traits>
 #include <queue>
 
@@ -60,7 +61,8 @@ namespace ompl
         class BundleSpaceSequence : public PlannerMultiLevel
         {
             using BaseT = ompl::multilevel::PlannerMultiLevel;
-            static_assert(std::is_base_of<BundleSpace, T>::value, "Template must inherit from BundleSpace");
+            static_assert(std::is_base_of<BundleSpace, T>::value, 
+                "Template must inherit from BundleSpace");
 
         public:
             /** \brief Constructor taking a sequence of ompl::base::SpaceInformationPtr
@@ -84,7 +86,7 @@ namespace ompl
 
             void setStopLevel(unsigned int level_);
 
-            void setFindSectionStrategy(const std::string &sFindSection);
+            void setFindSectionStrategy(FindSectionType type);
 
         protected:
             ompl::base::State *getTotalState(int baseLevel, const base::State *baseState) const;

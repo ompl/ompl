@@ -106,26 +106,8 @@ void ompl::multilevel::QMPImpl::grow()
 
         vGoal_ = addConfiguration(qGoal_);
 
-        // findSection();
-
-        if (hasBaseSpace())
-        {
-            if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
-            {
-                if (sameComponent(vStart_, vGoal_))
-                {
-                    hasSolution_ = true;
-                }
-            }
-        }
+        findSection();
     }
-    // /// DEBUG
-    // if(hasBaseSpace())
-    // {
-    //     hasSolution_ = true;
-    //     return;
-    // }
-    // /// DEBUG
 
     //(1) Get Random Sample
     if (!sampleBundleValid(xRandom_->state))

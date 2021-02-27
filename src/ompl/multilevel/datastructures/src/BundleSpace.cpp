@@ -94,7 +94,7 @@ BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *baseBundleS
 
         components_ = componentFactory.MakeBundleSpaceComponents(Bundle, Base);
 
-        MakeFiberSpace();
+        makeFiberSpace();
     }
 
     sanityChecks();
@@ -145,6 +145,11 @@ bool BundleSpace::hasBaseSpace() const
     return !(baseBundleSpace_ == nullptr);
 }
 
+void BundleSpace::findSection()
+{
+    return;
+}
+
 bool BundleSpace::hasTotalSpace() const
 {
     return !(totalBundleSpace_ == nullptr);
@@ -193,7 +198,7 @@ void BundleSpace::clear()
     pdef_->clearSolutionPaths();
 }
 
-void BundleSpace::MakeFiberSpace()
+void BundleSpace::makeFiberSpace()
 {
     StateSpacePtr Fiber_space = nullptr;
     if (components_.size() > 1)

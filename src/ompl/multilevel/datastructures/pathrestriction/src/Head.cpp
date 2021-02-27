@@ -260,7 +260,8 @@ void Head::print(std::ostream &out) const
     out << "[ Head at:";
     int idx = getLastValidBasePathIndex();
     bundle->printState(xCurrent_->state);
-    out << "base location " << getLocationOnBasePath() << "/" << restriction_->getLengthBasePath() << " idx " << idx
+    out << "base location " << getLocationOnBasePath() << "/" 
+      << restriction_->getLengthBasePath() << " idx " << idx
         << "/" << restriction_->size() << std::endl;
     out << "last base state idx ";
     base->printState(restriction_->getBasePath().at(idx));

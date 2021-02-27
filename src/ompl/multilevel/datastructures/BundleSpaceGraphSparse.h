@@ -63,25 +63,9 @@ namespace ompl
             virtual ~BundleSpaceGraphSparse() override;
 
             virtual void grow() override = 0;
-            // virtual bool getSolution(ompl::base::PathPtr &solution) override;
-
-            // virtual void getPlannerData(base::PlannerData &data) const override;
-            // void getPlannerDataRoadmap(base::PlannerData &data) const;
 
             virtual Vertex addConfiguration(Configuration *q) override;
             virtual bool addConfigurationConditional(Configuration *q);
-
-            // virtual void deleteConfiguration(Configuration *q) override;
-
-            // virtual void addEdge(const Vertex a, const Vertex b) override;
-
-            // virtual Vertex getGoalIndex() const override;
-            // virtual Vertex getStartIndex() const override;
-            // virtual void setGoalIndex(Vertex);
-            // virtual void setStartIndex(Vertex);
-
-            // virtual unsigned int getNumberOfVertices() const override;
-            // virtual unsigned int getNumberOfEdges() const override;
 
             virtual void setGraphSampler(const std::string &sGraphSampler) override;
 
@@ -89,8 +73,6 @@ namespace ompl
             virtual void clear() override;
 
             virtual void init() override;
-
-            // virtual const Graph &getGraph() const override;
 
             // Using same conditions as SPARS algorithm to determine sparse graph
             // addition
@@ -119,8 +101,6 @@ namespace ompl
             // virtual void print(std::ostream &out) const override;
             bool hasSparseGraphChanged();
 
-            // virtual const Configuration *nearest(const Configuration *s) const override;
-
             double getSparseDelta() const
             {
                 return sparseDelta_;
@@ -136,26 +116,8 @@ namespace ompl
 
         protected:
 
-            // virtual void uniteComponentsSparse(Vertex m1, Vertex m2);
-            // bool sameComponentSparse(Vertex m1, Vertex m2);
-
-            // std::map<Vertex, VertexRank> vrankSparse;
-            // std::map<Vertex, Vertex> vparentSparse;
-            // boost::disjoint_sets<boost::associative_property_map<std::map<Vertex, VertexRank>>,
-            //                      boost::associative_property_map<std::map<Vertex, Vertex>>>
-            //     disjointSetsSparse_{boost::make_assoc_property_map(vrankSparse),
-            //                         boost::make_assoc_property_map(vparentSparse)};
-
-            // ompl::base::PathPtr getPathSparse(const Vertex &start, const Vertex &goal);
-            // ompl::base::Cost costHeuristicSparse(Vertex u, Vertex v) const;
-
-            // Graph graphSparse_;
-            // RoadmapNeighborsPtr nearestSparse_;
             std::vector<Configuration *> graphNeighborhood;
             std::vector<Configuration *> visibleNeighborhood;
-
-            // Vertex v_start_sparse;
-            // Vertex v_goal_sparse;
 
             // From SPARS
             double sparseDelta_{0.};

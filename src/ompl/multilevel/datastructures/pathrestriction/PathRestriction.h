@@ -103,7 +103,7 @@ namespace ompl
             const std::vector<base::State *> &getBasePath() const;
 
             /** \brief Choose algorithm to find sections over restriction */
-            void setFindSectionStrategy(const std::string &sFindSection);
+            void setFindSectionStrategy(FindSectionType type);
 
             /** \brief Check if feasible section exists between xStart and xGoal.
              *

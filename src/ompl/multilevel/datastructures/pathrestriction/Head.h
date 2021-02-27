@@ -62,7 +62,8 @@ namespace ompl
         class Head
         {
         public:
-            Head(PathRestriction *restriction, Configuration *const xCurrent, Configuration *const xTarget);
+            Head(PathRestriction *restriction, 
+                Configuration *const xCurrent, Configuration *const xTarget);
 
             Head(const Head &rhs);
 

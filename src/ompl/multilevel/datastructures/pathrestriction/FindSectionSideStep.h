@@ -56,7 +56,8 @@ namespace ompl
 
             virtual bool solve(HeadPtr &head) override;
 
-            bool recursiveSideStep(HeadPtr &head, bool interpolateFiberFirst = true, unsigned int depth = 0);
+            bool recursiveSideStep(HeadPtr &head, 
+                bool interpolateFiberFirst = true, unsigned int depth = 0);
         };
     }
 }

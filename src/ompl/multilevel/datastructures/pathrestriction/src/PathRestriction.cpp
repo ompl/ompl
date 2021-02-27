@@ -52,31 +52,30 @@
 
 using namespace ompl::multilevel;
 
-PathRestriction::PathRestriction(BundleSpaceGraph *bundleSpaceGraph) : bundleSpaceGraph_(bundleSpaceGraph)
+PathRestriction::PathRestriction(BundleSpaceGraph *bundleSpaceGraph) : 
+  bundleSpaceGraph_(bundleSpaceGraph)
 {
-    // setFindSectionStrategy("patterndance");
-    setFindSectionStrategy("sidestep");
+    setFindSectionStrategy(FindSectionType::SIDE_STEP);
 }
 
-void PathRestriction::setFindSectionStrategy(const std::string &sFindSection)
+void PathRestriction::setFindSectionStrategy(FindSectionType type)
 {
-    if(sFindSection == "patterndance")
-    {
-        findSection_ = std::make_shared<FindSectionPatternDance>(this);
-    }
-    else if(sFindSection == "sidestep")
-    {
-        findSection_ = std::make_shared<FindSectionSideStep>(this);
-    }
-    else if(sFindSection == "none")
-    {
-        findSection_ = nullptr;
-    }
-    else
-    {
-        OMPL_ERROR("Find section strategy unknown: %s", sFindSection.c_str());
-        throw ompl::Exception("Unknown Strategy");
-    }
+  switch (type) 
+  {
+    case FindSectionType::SIDE_STEP:
+      findSection_ = std::make_shared<FindSectionSideStep>(this);
+      break;
+    case FindSectionType::PATTERN_DANCE:
+      findSection_ = std::make_shared<FindSectionPatternDance>(this);
+      break;
+    case FindSectionType::NONE:
+      findSection_ = nullptr;
+      break;
+    default:
+      OMPL_ERROR("Find section strategy unknown: %s", type);
+      throw ompl::Exception("Unknown Strategy");
+      break;
+  }
 }
 
 PathRestriction::~PathRestriction()
@@ -116,7 +115,8 @@ void PathRestriction::setBasePath(std::vector<ompl::base::State *> basePath)
         lengthBasePath_ += lk;
         lengthsCumulativeBasePath_.push_back(lengthBasePath_);
     }
-    OMPL_DEBUG("Set new base path with %d states and length %f.", basePath_.size(), lengthBasePath_);
+    OMPL_DEBUG("Set new base path with %d states and length %f.", 
+        basePath_.size(), lengthBasePath_);
 }
 
 void PathRestriction::interpolateBasePath(double t, ompl::base::State *&state) const
@@ -135,7 +135,8 @@ void PathRestriction::interpolateBasePath(double t, ompl::base::State *&state) c
     }
 
     unsigned int ctr = 0;
-    while (t > lengthsCumulativeBasePath_.at(ctr) && ctr < lengthsCumulativeBasePath_.size() - 1)
+    while (t > lengthsCumulativeBasePath_.at(ctr) 
+        && ctr < lengthsCumulativeBasePath_.size() - 1)
     {
         ctr++;
     }

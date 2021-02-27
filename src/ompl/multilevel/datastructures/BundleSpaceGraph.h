@@ -38,7 +38,8 @@
 #ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_
 
-#include "BundleSpace.h"
+#include <ompl/multilevel/datastructures/BundleSpace.h>
+#include <ompl/multilevel/datastructures/pathrestriction/FindSectionTypes.h>
 #include <limits>
 #include <ompl/geometric/planners/PlannerIncludes.h>
 #include <ompl/datastructures/NearestNeighbors.h>
@@ -46,11 +47,14 @@
 #include <ompl/control/Control.h>
 #include <ompl/datastructures/PDF.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
+
 #include <boost/pending/disjoint_sets.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/random.hpp>
-// #include <boost/graph/subgraph.hpp>
+// #include <boost/graph/subgraph.hpp> //Note: Everything would be nicer with
+// subgraphs, but there are still some bugs in the boost impl which prevent
+// us to use them here
 #include <boost/graph/properties.hpp>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/variate_generator.hpp>
@@ -60,7 +64,6 @@ namespace ompl
     namespace base
     {
         const double dInf = std::numeric_limits<double>::infinity();
-        // OMPL_CLASS_FORWARD(OptimizationObjective);
     }
     namespace multilevel
     {
@@ -237,9 +240,15 @@ namespace ompl
             bool sameComponent(Vertex m1, Vertex m2);
             std::map<Vertex, VertexRank> vrank;
             std::map<Vertex, Vertex> vparent;
-            boost::disjoint_sets<boost::associative_property_map<std::map<Vertex, VertexRank>>,
-                                 boost::associative_property_map<std::map<Vertex, Vertex>>>
-                disjointSets_{boost::make_assoc_property_map(vrank), boost::make_assoc_property_map(vparent)};
+            boost::disjoint_sets
+            <
+              boost::associative_property_map<std::map<Vertex, VertexRank>>, 
+              boost::associative_property_map<std::map<Vertex, Vertex>>
+            >
+            disjointSets_{
+              boost::make_assoc_property_map(vrank), 
+              boost::make_assoc_property_map(vparent)
+            };
 
             virtual const Configuration *nearest(const Configuration *s) const;
 
@@ -247,7 +256,7 @@ namespace ompl
             virtual void setPropagator(const std::string &sPropagator) override;
             virtual void setImportance(const std::string &sImportance);
             virtual void setGraphSampler(const std::string &sGraphSampler);
-            virtual void setFindSectionStrategy(const std::string &sFindSection);
+            virtual void setFindSectionStrategy(FindSectionType type);
 
             BundleSpaceGraphSamplerPtr getGraphSampler();
 
@@ -269,6 +278,7 @@ namespace ompl
             const RoadmapNeighborsPtr &getRoadmapNeighborsPtr() const;
 
             virtual void print(std::ostream &out) const override;
+            void writeToGraphviz(std::string filename) const;
 
             /** \brief Print configuration to std::cout */
             virtual void printConfiguration(const Configuration *) const;
@@ -314,12 +324,16 @@ namespace ompl
 
             virtual void addBundleEdge(const Configuration *a, const Configuration *b);
 
-            virtual void addEdge(const Vertex a, const Vertex b);
+            virtual const std::pair<Edge, bool> 
+              addEdge(const Vertex a, const Vertex b);
 
             virtual Vertex getGoalIndex() const;
             virtual Vertex getStartIndex() const;
             virtual void setGoalIndex(Vertex);
             virtual void setStartIndex(Vertex);
+
+            /**\brief Call algorithm to solve the find section problem */
+            virtual void findSection() override;
 
         protected:
             ompl::base::PathPtr solutionPath_;

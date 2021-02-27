@@ -40,8 +40,8 @@
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_
 
 #include <ompl/base/Planner.h>
-#include "BundleSpaceComponent.h"
-#include "BundleSpaceComponentFactory.h"
+#include <ompl/multilevel/datastructures/BundleSpaceComponent.h>
+#include <ompl/multilevel/datastructures/BundleSpaceComponentFactory.h>
 
 namespace ompl
 {
@@ -62,19 +62,23 @@ namespace ompl
             using BaseT::si_;  // make it private.
             using BaseT::getSpaceInformation;
 
-            // Note: use getBundle(), getFiber() or getBase() to access the SpaceInformationPtr
+            // Note: use getBundle(), getFiber() 
+            // or getBase() to access the SpaceInformationPtr
 
             /// \brief solve is disabled (use BundleSequence::solve)
-            ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override final;
+            ompl::base::PlannerStatus solve(
+                const ompl::base::PlannerTerminationCondition &ptc) override final;
 
         public:
-            /**  \brief Bundle Space contains three OMPL spaces, which we call Bundle, Base and Fiber.
+            /**  \brief Bundle Space contains three OMPL spaces, 
+             * which we call Bundle, Base and Fiber.
 
                  - Bundle is (locally) a product space of Base and Fiber
                  - Base is a pointer to the next lower-dimensional Bundle-space (if any)
                  - Fiber is the quotient space Bundle / Base
 
-                 We assume that Bundle and Base have been given (as ompl::base::SpaceInformationPtr),
+                 We assume that Bundle and Base have been given 
+                 (as ompl::base::SpaceInformationPtr),
                  and we automatically compute the fiber */
 
             BundleSpace(const ompl::base::SpaceInformationPtr &si, 
@@ -172,16 +176,6 @@ namespace ompl
             void liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                            ompl::base::State *xBundle) const;
 
-            ///// \brief return xResult, being a state on the basePath at location
-            ////    Input: - basePath on getBase()
-            ////           - location in [0, basePath.length()]
-            ////    Output:- xResult
-            ////
-            ////    Example: location=0 returns basePath.front()
-            ////    Example: location=basePath.length() returns basePath.back()
-            // unsigned int interpolateAlongBasePath(const std::vector<base::State *> basePath, double location,
-            //                                      base::State *xResult) const;
-
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 
             /// \brief Write class to stream (use as std::cout << *this << std::endl)
@@ -212,13 +206,14 @@ namespace ompl
             ompl::base::ValidStateSamplerPtr Bundle_valid_sampler_;
 
             /**\brief Call algorithm to solve the find section problem */
-            void findSection(int s);
+            virtual void findSection();
 
         protected:
-            /// Check if Bundle-space is unbounded
-            void checkBundleSpaceMeasure(std::string name, const ompl::base::StateSpacePtr space) const;
+            /// Check if Bundle-space is bounded
+            void checkBundleSpaceMeasure(std::string name, 
+                const ompl::base::StateSpacePtr space) const;
             void sanityChecks() const;
-            void MakeFiberSpace();
+            void makeFiberSpace();
 
             std::vector<BundleSpaceComponentPtr> components_;
 
@@ -246,7 +241,7 @@ namespace ompl
             BundleSpaceMetricPtr metric_;
 
             /** \brief Goal state or goal region */
-            // ompl::base::Goal *goal_;
+            // ompl::base::GoalSampleableRegion *goal_;
 
             /** \brief Propagator (steering or interpolation) on bundle space.
              * Note: currently just a stub for base::StatePropagator*/
