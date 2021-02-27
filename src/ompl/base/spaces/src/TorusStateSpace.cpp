@@ -3,9 +3,7 @@
 #include <cstring>
 
 #include <boost/math/constants/constants.hpp>
-
 using namespace boost::math::double_constants; //pi
-
 using namespace ompl::base;
 
 TorusStateSampler::TorusStateSampler(const StateSpace *space) : StateSampler(space)

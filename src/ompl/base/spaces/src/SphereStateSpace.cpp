@@ -1,8 +1,11 @@
 #include "ompl/base/spaces/SphereStateSpace.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include <cstring>
+#include <boost/math/constants/constants.hpp>
 
+using namespace boost::math::double_constants; //pi
 using namespace ompl::base;
+
 SphereStateSampler::SphereStateSampler(const StateSpace *space) : StateSampler(space)
 {
 }
@@ -10,7 +13,7 @@ SphereStateSampler::SphereStateSampler(const StateSpace *space) : StateSampler(s
 void SphereStateSampler::sampleUniform(State *state) 
 {
     //see for example http://corysimon.github.io/articles/uniformdistn-on-sphere/
-    double theta = 2.0 * M_PI * rng_.uniformReal(0,1) - M_PI;
+    double theta = 2.0 * pi * rng_.uniformReal(0,1) - pi;
     double phi = acos(1.0 - 2.0 * rng_.uniformReal(0,1));
     SphereStateSpace::StateType *S = 
      state->as<SphereStateSpace::StateType>();
@@ -82,7 +85,7 @@ double SphereStateSpace::distance(const State *state1, const State *state2) cons
 
 double SphereStateSpace::getMeasure() const
 {
-    return 4*M_PI*radius_*radius_;
+    return 4*pi*radius_*radius_;
 }
 
 ompl::base::State *ompl::base::SphereStateSpace::allocState() const
