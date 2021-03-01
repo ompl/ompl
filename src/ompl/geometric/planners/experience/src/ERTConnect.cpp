@@ -55,11 +55,14 @@ ompl::geometric::ERTConnect::~ERTConnect()
     freeMemory();
 
     // NOTE: in the deconstructor as MoveIt calls freeMemory() before planning
-    for (auto &state : experience_->segment)
-        if (state != nullptr)
-            si_->freeState(state);
-    experience_->segment.clear();
-    delete experience_;
+    if (experience_)
+    {
+        for (auto &state : experience_->segment)
+            if (state != nullptr)
+                si_->freeState(state);
+        experience_->segment.clear();
+        delete experience_;
+    }
 }
 
 void ompl::geometric::ERTConnect::clear()
