@@ -63,13 +63,7 @@ void ompl::multilevel::QRRTImpl::grow()
         init();
         firstRun_ = false;
 
-        if (hasBaseSpace())
-        {
-            if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
-            {
-                hasSolution_ = true;
-            }
-        }
+        findSection();
     }
 
     //(1) Get Random Sample
@@ -95,18 +89,21 @@ void ompl::multilevel::QRRTImpl::grow()
             }
             if (satisfied)
             {
-                vGoal_ = xNext->index;  // addConfiguration(qGoal_);
+                vGoal_ = xNext->index;
                 // addEdge(xNext->index, vGoal_);
                 hasSolution_ = true;
             }
         }
         else
         {
-            bool satisfied = pdef_->getGoal()->isSatisfied(xNext->state);
+            bool satisfied = getGoalPtr()->isSatisfied(xNext->state);
             if (satisfied)
             {
-                vGoal_ = addConfiguration(qGoal_);
-                addEdge(xNext->index, vGoal_);
+                goalConfigurations_.push_back(xNext);
+
+                addConfiguration(qGoal_);
+                addEdge(xNext->index, getGoalIndex());
+                // qGoal_ = xNext;
                 hasSolution_ = true;
             }
         }

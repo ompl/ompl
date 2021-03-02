@@ -40,6 +40,7 @@
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_
 
 #include <ompl/base/Planner.h>
+#include <ompl/base/goals/GoalSampleableRegion.h>
 #include <ompl/multilevel/datastructures/BundleSpaceComponent.h>
 #include <ompl/multilevel/datastructures/BundleSpaceComponentFactory.h>
 
@@ -166,15 +167,18 @@ namespace ompl
 
             /// \brief Bundle Space Projection Operator onto second component
             /// ProjectFiber: Base \times Fiber \rightarrow Fiber
-            void projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const;
+            void projectFiber(const ompl::base::State *xBundle, 
+                ompl::base::State *xFiber) const;
 
             /// \brief Bundle Space Projection Operator onto first component
             /// ProjectBase: Base \times Fiber \rightarrow Base
-            void projectBase(const ompl::base::State *xBundle, ompl::base::State *xBase) const;
+            void projectBase(const ompl::base::State *xBundle, 
+                ompl::base::State *xBase) const;
 
             /// \brief Lift a state from Base to Bundle using a Fiber State
-            void liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
-                           ompl::base::State *xBundle) const;
+            void liftState(const ompl::base::State *xBase, 
+                const ompl::base::State *xFiber,
+                ompl::base::State *xBundle) const;
 
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 
@@ -184,6 +188,8 @@ namespace ompl
             friend std::ostream &operator<<(std::ostream &, const BundleSpace &);
 
             bool isDynamic() const;
+
+            base::GoalSampleableRegion* getGoalPtr() const;
 
         private:
             ompl::base::SpaceInformationPtr Bundle{nullptr};
@@ -206,7 +212,7 @@ namespace ompl
             ompl::base::ValidStateSamplerPtr Bundle_valid_sampler_;
 
             /**\brief Call algorithm to solve the find section problem */
-            virtual void findSection();
+            virtual bool findSection();
 
         protected:
             /// Check if Bundle-space is bounded

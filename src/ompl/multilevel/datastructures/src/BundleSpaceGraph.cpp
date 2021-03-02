@@ -193,18 +193,20 @@ void BundleSpaceGraph::setFindSectionStrategy(FindSectionType type)
     }
 }
 
-void BundleSpaceGraph::findSection()
+bool BundleSpaceGraph::findSection()
 {
     if (hasBaseSpace())
     {
         if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
         {
-            if (sameComponent(vStart_, vGoal_))
+            if (sameComponent(vStart_, getGoalIndex()))
             {
                 hasSolution_ = true;
+                return true;
             }
         }
     }
+    return false;
 }
 
 void BundleSpaceGraph::clear()
@@ -339,13 +341,6 @@ double BundleSpaceGraph::getImportance() const
 
 void BundleSpaceGraph::init()
 {
-    auto *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
-    if (goal == nullptr)
-    {
-        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
-        throw ompl::Exception("Unknown goal type");
-    }
-
     if (const base::State *state = pis_.nextStart())
     {
         qStart_ = new Configuration(getBundle(), state);
@@ -358,6 +353,13 @@ void BundleSpaceGraph::init()
         OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         throw ompl::Exception("Invalid initial states.");
     }
+
+    // auto *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    // if (goal == nullptr)
+    // {
+    //     OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
+    //     throw ompl::Exception("Unknown goal type");
+    // }
 
     if (const base::State *state = pis_.nextGoal())
     {
@@ -685,7 +687,7 @@ BundleSpaceGraph::Vertex BundleSpaceGraph::getStartIndex() const
 }
 BundleSpaceGraph::Vertex BundleSpaceGraph::getGoalIndex() const
 {
-    return vGoal_;
+    return qGoal_->index;
 }
 void BundleSpaceGraph::setStartIndex(Vertex idx)
 {
@@ -710,7 +712,7 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
         }
         else
         {
-            solutionPath_ = getPath(vStart_, vGoal_);
+            solutionPath_ = getPath(vStart_, getGoalIndex());
             numVerticesWhenComputingSolutionPath_ = getNumberOfVertices();
 
             if (!isDynamic() && solutionPath_ != solution && hasTotalSpace())
@@ -764,7 +766,7 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
                     if (!valid)
                     {
                         // reset solutionPath
-                        solutionPath_ = getPath(vStart_, vGoal_);
+                        solutionPath_ = getPath(vStart_, getGoalIndex());
                     }
                     else
                     {
@@ -884,10 +886,7 @@ void BundleSpaceGraph::sampleBundleGoalBias(ompl::base::State *xRandom)
         double s = rng_.uniform01();
         if (s < goalBias_)
         {
-            // getBundle()->copyState(xRandom, qGoal_->state);
-            auto *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
-            goal->sampleGoal(xRandom);
-            
+            getGoalPtr()->sampleGoal(xRandom);
         }
         else
         {
@@ -995,5 +994,5 @@ void BundleSpaceGraph::getPlannerData(ompl::base::PlannerData &data) const
     {
         OMPL_DEBUG("Best Cost: %.2f", bestCost_.value());
     }
-    getPlannerDataGraph(data, graph_, vStart_, vGoal_);
+    getPlannerDataGraph(data, graph_, vStart_, getGoalIndex());
 }

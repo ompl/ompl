@@ -88,17 +88,14 @@ void ompl::multilevel::QRRTStarImpl::grow()
         init();
         firstRun_ = false;
 
-        if (hasBaseSpace())
+        if(findSection())
         {
-            if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
+            if (getOptimizationObjectivePtr()->isCostBetterThan(qGoal_->cost, bestCost_))
             {
-                if (getOptimizationObjectivePtr()->isCostBetterThan(qGoal_->cost, bestCost_))
-                {
-                    goalConfigurations_.push_back(qGoal_);
-                    vGoal_ = qGoal_->index;
-                    bestCost_ = qGoal_->cost;
-                    hasSolution_ = true;
-                }
+                goalConfigurations_.push_back(qGoal_);
+                vGoal_ = qGoal_->index;
+                bestCost_ = qGoal_->cost;
+                hasSolution_ = true;
             }
         }
     }

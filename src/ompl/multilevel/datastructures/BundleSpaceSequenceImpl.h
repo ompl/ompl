@@ -181,7 +181,8 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
                 {
                     solutions_.push_back(sol_k);
                     double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
-                    OMPL_DEBUG("Found Solution on Level %d/%d after %f seconds.", k + 1, stopAtLevel_, t_k_end);
+                    OMPL_DEBUG("Found Solution on Level %d/%d after %f seconds.", 
+                        k + 1, stopAtLevel_, t_k_end);
                     currentBundleSpaceLevel_ = k + 1;  // std::min(k + 1, bundleSpaces_.size()-1);
                     if (currentBundleSpaceLevel_ > (bundleSpaces_.size() - 1))
                         currentBundleSpaceLevel_ = bundleSpaces_.size() - 1;
@@ -301,8 +302,9 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(
 }
 
 template <class T>
-ompl::base::State *ompl::multilevel::BundleSpaceSequence<T>::getTotalState(int baseLevel,
-                                                                           const base::State *baseState) const
+ompl::base::State *ompl::multilevel::BundleSpaceSequence<T>::getTotalState(
+    int baseLevel,
+    const base::State *baseState) const
 {
     BundleSpace *Qprev = bundleSpaces_.at(baseLevel);
     ompl::base::State *s_lift = Qprev->getBundle()->cloneState(baseState);

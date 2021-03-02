@@ -265,9 +265,6 @@ namespace ompl
             /** \brief Best cost found so far by algorithm */
             base::Cost bestCost_{+base::dInf};
 
-            Configuration *qStart_{nullptr};
-            Configuration *qGoal_{nullptr};
-
             std::vector<Vertex> shortestVertexPath_;
             double lengthStartGoalVertexPath_;
 
@@ -333,7 +330,7 @@ namespace ompl
             virtual void setStartIndex(Vertex);
 
             /**\brief Call algorithm to solve the find section problem */
-            virtual void findSection() override;
+            virtual bool findSection() override;
 
         protected:
             ompl::base::PathPtr solutionPath_;
@@ -378,6 +375,14 @@ namespace ompl
             /** \brief A path optimizer */
             ompl::geometric::PathSimplifierPtr optimizer_;
 
+            /** \brief Start configuration */
+            Configuration *qStart_{nullptr};
+
+            /** \brief List of configurations that satisfy the goal condition */
+            std::vector<Configuration *> goalConfigurations_;
+
+            /** \brief The (best) goal configuration */
+            Configuration *qGoal_{nullptr};
         };
     }  // namespace multilevel
 }  // namespace ompl

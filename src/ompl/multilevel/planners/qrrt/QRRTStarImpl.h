@@ -99,8 +99,8 @@ namespace ompl
             /** \brief store dimension of bundle space to calc radius */
             double d_{0};
 
-            /** \brief list of configurations that satisfy the goal condition */
-            std::vector<Configuration *> goalConfigurations_;
+            // /** \brief list of configurations that satisfy the goal condition */
+            // std::vector<Configuration *> goalConfigurations_;
         };
     }  // namespace multilevel
 }  // namespace ompl

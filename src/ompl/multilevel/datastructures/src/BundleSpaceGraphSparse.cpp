@@ -126,16 +126,8 @@ void BundleSpaceGraphSparse::clear()
 void BundleSpaceGraphSparse::init()
 {
     BaseT::init();
-
-    // v_start_sparse = vStart_;
-    // qStart_ = getGraph()[v_start_sparse];
-    // qStart_->representativeIndex = v_start_sparse;
-
-    // v_goal_sparse = addConfiguration(qGoal_);
-    // qGoal_ = getGraph()[v_goal_sparse];
-    // qGoal_->isGoal = true;
-    // qGoal_->representativeIndex = v_goal_sparse;
 }
+
 BundleSpaceGraphSparse::Vertex BundleSpaceGraphSparse::addConfiguration(Configuration *q)
 {
     const Vertex v = BaseT::addConfiguration(q);

@@ -104,7 +104,11 @@ void ompl::multilevel::QMPImpl::grow()
         init();
         firstRun_ = false;
 
-        vGoal_ = addConfiguration(qGoal_);
+        // qGoal_ = new Configuration(getBundle(), xRandom_->state);
+        // qGoal_->isGoal = true;
+
+        getGoalPtr()->sampleGoal(qGoal_->state);
+        addConfiguration(qGoal_);
 
         findSection();
     }
@@ -124,7 +128,7 @@ void ompl::multilevel::QMPImpl::grow()
 
     if (!hasSolution_)
     {
-        if (sameComponent(vStart_, vGoal_))
+        if (sameComponent(vStart_, getGoalIndex()))
         {
             hasSolution_ = true;
         }

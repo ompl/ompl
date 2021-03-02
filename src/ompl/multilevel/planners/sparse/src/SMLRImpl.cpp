@@ -85,7 +85,9 @@ void SMLRImpl::grow()
         init();
         firstRun_ = false;
 
-        vGoal_ = addConfiguration(qGoal_);
+        getGoalPtr()->sampleGoal(qGoal_->state);
+        addConfiguration(qGoal_);
+
         findSection();
     }
 

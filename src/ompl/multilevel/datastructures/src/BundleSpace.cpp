@@ -146,9 +146,9 @@ bool BundleSpace::hasBaseSpace() const
     return !(baseBundleSpace_ == nullptr);
 }
 
-void BundleSpace::findSection()
+bool BundleSpace::findSection()
 {
-    return;
+    return false;
 }
 
 bool BundleSpace::hasTotalSpace() const
@@ -185,6 +185,14 @@ void BundleSpace::setup()
         getFiber()->getStateSpace()->setup();
     }
 }
+
+GoalSampleableRegion* BundleSpace::getGoalPtr() const
+{
+  base::GoalSampleableRegion *goal = 
+    static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+  return goal;
+}
+
 
 void BundleSpace::clear()
 {
