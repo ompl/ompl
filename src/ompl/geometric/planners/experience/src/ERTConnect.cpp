@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2020, Rice University
+*  Copyright (c) 2021, Rice University
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ ompl::geometric::ERTConnect::~ERTConnect()
 {
     freeMemory();
 
-    // NOTE: in the deconstructor as MoveIt calls freeMemory() before planning
+    /* in the deconstructor as MoveIt calls freeMemory() before planning */
     if (experience_)
     {
         for (auto &state : experience_->segment)
@@ -180,7 +180,6 @@ bool ompl::geometric::ERTConnect::getValidSegment(const Motion *imotion, Motion 
         return false;
     }
 
-    base::State *xstate = si_->allocState();
     const auto ss = si_->getStateSpace();
     const auto &locations = ss->getValueLocations();
     const unsigned int dimensionality = locations.size();
@@ -195,7 +194,7 @@ bool ompl::geometric::ERTConnect::getValidSegment(const Motion *imotion, Motion 
     if (connect_flag)
     {
         /* compute transform parameters to connect */
-        for(size_t i = 0; i < dimensionality; ++i)
+        for (size_t i = 0; i < dimensionality; ++i)
         {
             b[i] = *(ss->getValueAddressAtLocation(imotion->state, locations[i])) - *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end], locations[i]));
             l[i] = *(ss->getValueAddressAtLocation(tmotion->state, locations[i])) - (*(ss->getValueAddressAtLocation(experience_->segment[tmotion->phase_end], locations[i])) + b[i]);
@@ -204,15 +203,16 @@ bool ompl::geometric::ERTConnect::getValidSegment(const Motion *imotion, Motion 
     else
     {
         /* compute transform parameters to explore */
+        base::State *xstate = si_->allocState();
         double noise = (tmotion->phase_span - 1) * experienceTubularRadius_ / (experience_->phase_span - 1);
-        for(size_t i = 0; i < dimensionality; ++i)
+        for (size_t i = 0; i < dimensionality; ++i)
         {
             b[i] = *(ss->getValueAddressAtLocation(imotion->state, locations[i])) - *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end], locations[i]));
             *(ss->getValueAddressAtLocation(xstate, locations[i])) = *(ss->getValueAddressAtLocation(experience_->segment[tmotion->phase_end], locations[i])) + b[i];
         }
 
         /* sample and validate target state */
-        sampler_->sampleUniformNear(tmotion->state, xstate, noise); // already enforcing bounds
+        sampler_->sampleUniformNear(tmotion->state, xstate, noise); /* already enforcing bounds */
         if (!si_->isValid(tmotion->state))
         {
             si_->freeState(xstate);
@@ -221,15 +221,18 @@ bool ompl::geometric::ERTConnect::getValidSegment(const Motion *imotion, Motion 
 
         for (size_t i = 0; i < dimensionality; ++i)
             l[i] = *(ss->getValueAddressAtLocation(tmotion->state, locations[i])) - *(ss->getValueAddressAtLocation(xstate, locations[i]));
+
+        si_->freeState(xstate);
     }
 
     /* transform segment while valid */
     double t;
     si_->copyState(tmotion->segment[0], imotion->state);
-    for(size_t i = 1; i < tmotion->phase_span; ++i)
+    for (size_t i = 1; i < tmotion->phase_span; ++i)
     {
+        base::State *xstate = si_->allocState(); /* need to allocate memory per state as otherwise the validity flag of the previous check skips the checking of the new values */
         t = double(i) / double(tmotion->phase_span - 1);
-        for(size_t j = 0; j < dimensionality; ++j)
+        for (size_t j = 0; j < dimensionality; ++j)
             *(ss->getValueAddressAtLocation(xstate, locations[j])) = *(ss->getValueAddressAtLocation(experience_->segment[imotion->phase_end + i * direction], locations[j])) + t * l[j] + b[j];
 
         if (!si_->checkMotion(tmotion->segment[i - 1], xstate))
@@ -239,8 +242,8 @@ bool ompl::geometric::ERTConnect::getValidSegment(const Motion *imotion, Motion 
         }
 
         si_->copyState(tmotion->segment[i], xstate);
+        si_->freeState(xstate);
     }
-    si_->freeState(xstate);
     return true;
 }
 
@@ -299,21 +302,23 @@ ompl::base::PlannerStatus ompl::geometric::ERTConnect::solve(const base::Planner
     {
         OMPL_INFORM("%s: No experience provided. Setting straight experience", getName().c_str());
 
-        experience_ = new Motion(si_, 50); // 50 states for the straight experience
+        experience_ = new Motion(si_, si_->getStateSpace()->validSegmentCount(smotion->state, gmotion->state));
         experience_->phase_end = experience_->phase_span - 1;
         gmotion->phase_end = experience_->phase_end;
         si_->getMotionStates(smotion->state, gmotion->state, experience_->segment, experience_->phase_span - 2, true, false);
+
+        std::cout << experience_->phase_end << std::endl;
     }
     else
     {
         /* update experience as its mapping onto the current planning problem */
         if (experienceInitialUpdate_)
         {
-            Motion *tmotion = new Motion(si_, 0); // targ
+            Motion *tmotion = new Motion(si_, 0);
             si_->copyState(tmotion->state, gmotion->state);
             tmotion->phase_end = experience_->phase_end;
             tmotion->segment.resize(experience_->phase_span);
-            tmotion->segment = experience_->segment; // copy the pointers to update the experience_
+            tmotion->segment = experience_->segment; /* copy the pointers to update the experience_ */
             gmotion->phase_end = experience_->phase_end;
 
             mapExperienceOntoProblem(smotion, tmotion);
@@ -346,7 +351,7 @@ ompl::base::PlannerStatus ompl::geometric::ERTConnect::solve(const base::Planner
     Motion *approxsol = nullptr;
     double approxdif = std::numeric_limits<double>::infinity();
 
-    Motion *imotion; // init
+    Motion *imotion;
     Motion *tmotion = new Motion(si_, experience_->phase_span); /* pre-allocate memory for candidate segments */
     Motion *addedMotion = nullptr;
     Motion *otherAddedMotion = nullptr;
@@ -391,7 +396,7 @@ ompl::base::PlannerStatus ompl::geometric::ERTConnect::solve(const base::Planner
         {
             connect_flag = true;
             tmotion->phase_end = target->phase_end;
-            si_->copyState(tmotion->state, target->state); // make sure we don't modify pointed start/goal
+            si_->copyState(tmotion->state, target->state); /* make sure we don't modify pointed start/goal */
         }
 
         /* attempt generating a valid segment to connect or explore */
