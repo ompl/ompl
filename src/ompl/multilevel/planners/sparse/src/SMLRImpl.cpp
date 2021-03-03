@@ -87,9 +87,18 @@ void SMLRImpl::grow()
 
         getGoalPtr()->sampleGoal(qGoal_->state);
         addConfiguration(qGoal_);
+        goalConfigurations_.push_back(qGoal_);
 
         findSection();
     }
+
+    // if(pis_.getSampledGoalsCount() < getGoalPtr()->maxSampleCount())
+    // {
+    //     const base::State *state = pis_.nextGoal();
+    //     Configuration qgoal = new Configuration(getBundle(), state);
+    //     qgoal->isGoal = true;
+    //     goalConfigurations_.push_back(qgoal);
+    // }
 
     if (!sampleBundleValid(xRandom_->state))
     {

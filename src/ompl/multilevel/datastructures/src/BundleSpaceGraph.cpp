@@ -687,8 +687,21 @@ BundleSpaceGraph::Vertex BundleSpaceGraph::getStartIndex() const
 }
 BundleSpaceGraph::Vertex BundleSpaceGraph::getGoalIndex() const
 {
+  if(qGoal_)
+  {
     return qGoal_->index;
+  }else
+  {
+    std::cout << "NullVertex" << std::endl;
+    return nullVertex();
+  }
 }
+
+BundleSpaceGraph::Vertex BundleSpaceGraph::nullVertex() const
+{
+    return BGT::null_vertex();
+}
+
 void BundleSpaceGraph::setStartIndex(Vertex idx)
 {
     vStart_ = idx;

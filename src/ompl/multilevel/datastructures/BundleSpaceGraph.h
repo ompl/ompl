@@ -204,6 +204,8 @@ namespace ompl
             virtual unsigned int getNumberOfVertices() const;
             virtual unsigned int getNumberOfEdges() const;
 
+            Vertex nullVertex() const;
+
             virtual void grow() override = 0;
             virtual void sampleFromDatastructure(ompl::base::State *) override;
             virtual void sampleBundleGoalBias(ompl::base::State *xRandom);
@@ -378,11 +380,15 @@ namespace ompl
             /** \brief Start configuration */
             Configuration *qStart_{nullptr};
 
+            /** \brief The (best) goal configuration */
+            Configuration *qGoal_{nullptr};
+
+            /** \brief List of configurations that satisfy the start condition */
+            std::vector<Configuration *> startConfigurations_;
+
             /** \brief List of configurations that satisfy the goal condition */
             std::vector<Configuration *> goalConfigurations_;
 
-            /** \brief The (best) goal configuration */
-            Configuration *qGoal_{nullptr};
         };
     }  // namespace multilevel
 }  // namespace ompl
