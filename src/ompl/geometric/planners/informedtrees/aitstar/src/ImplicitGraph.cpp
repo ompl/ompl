@@ -314,49 +314,68 @@ namespace ompl
                 return numberOfSamplesInInformedSet;
             }
 
-            std::vector<std::shared_ptr<Vertex>> ImplicitGraph::addSamples(std::size_t numNewSamples)
+            bool ImplicitGraph::addSamples(std::size_t numNewSamples,
+                                           const ompl::base::PlannerTerminationCondition &terminationCondition)
             {
-                // First get the number of samples inside the informed set.
-                auto numSamplesInInformedSet = computeNumberOfSamplesInInformedSet();
+                // If there are no states to be added, then there's nothing to do.
+                if (numNewSamples == 0u)
+                {
+                    return true;
+                }
 
-                // Create new vertices.
-                std::vector<std::shared_ptr<Vertex>> newVertices;
-                newVertices.reserve(numNewSamples);
-                while (newVertices.size() < numNewSamples)
+                // Ensure there's enough space for the new samples.
+                newSamples_.reserve(numNewSamples);
+
+                do
                 {
                     // Create a new vertex.
-                    newVertices.emplace_back(std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_));
+                    newSamples_.emplace_back(std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_));
 
                     do
                     {
                         // Sample the associated state uniformly within the informed set.
-                        sampler_->sampleUniform(newVertices.back()->getState(), solutionCost_);
+                        sampler_->sampleUniform(newSamples_.back()->getState(), solutionCost_);
 
                         // Count how many states we've checked.
                         ++numSampledStates_;
-                    } while (!spaceInformation_->getStateValidityChecker()->isValid(newVertices.back()->getState()));
+                    } while (!spaceInformation_->getStateValidityChecker()->isValid(newSamples_.back()->getState()));
+
+                    // If this state happens to satisfy the goal condition, add it as such.
+                    if (problemDefinition_->getGoal()->isSatisfied(newSamples_.back()->getState()))
+                    {
+                        goalVertices_.emplace_back(newSamples_.back());
+                    }
 
                     ++numValidSamples_;
-                }
+                } while (newSamples_.size() < numNewSamples && !terminationCondition);
 
-                // Add all new vertices to the nearest neighbor structure.
-                vertices_.add(newVertices);
-
-                auto numUniformSamplesInInformedSet =
-                    numSamplesInInformedSet + numNewSamples - startVertices_.size() - goalVertices_.size();
-
-                // We need to do some internal housekeeping.
-                ++batchId_;
-                if (useKNearest_)
+                if (newSamples_.size() == numNewSamples)
                 {
-                    numNeighbors_ = computeNumberOfNeighbors(numUniformSamplesInInformedSet);
-                }
-                else
-                {
-                    radius_ = computeConnectionRadius(numUniformSamplesInInformedSet);
+                    // First get the number of samples inside the informed set.
+                    auto numSamplesInInformedSet = computeNumberOfSamplesInInformedSet();
+
+                    if (useKNearest_)
+                    {
+                        numNeighbors_ = computeNumberOfNeighbors(numSamplesInInformedSet + numNewSamples -
+                                                                 startVertices_.size() - goalVertices_.size());
+                    }
+                    else
+                    {
+                        radius_ = computeConnectionRadius(numSamplesInInformedSet + numNewSamples -
+                                                          startVertices_.size() - goalVertices_.size());
+                    }
+
+                    // Add all new vertices to the nearest neighbor structure.
+                    vertices_.add(newSamples_);
+                    newSamples_.clear();
+
+                    // Update the batch id.
+                    ++batchId_;
+
+                    return true;
                 }
 
-                return newVertices;
+                return false;
             }
 
             std::size_t ImplicitGraph::getNumVertices() const

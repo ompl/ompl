@@ -88,7 +88,8 @@ namespace ompl
                 void setTrackApproximateSolution(bool track);
 
                 /** \brief Adds a batch of samples and returns the samples it has added. */
-                std::vector<std::shared_ptr<Vertex>> addSamples(std::size_t numNewSamples);
+                bool addSamples(std::size_t numNewSamples,
+                                const ompl::base::PlannerTerminationCondition &terminationCondition);
 
                 /** \brief Gets the number of samples in the graph. */
                 std::size_t getNumVertices() const;
@@ -217,6 +218,9 @@ namespace ompl
                  * add start states after we've pruned some goal states, we might want to add these pruned goal states
                  * again. */
                 std::vector<std::shared_ptr<Vertex>> prunedGoalVertices_;
+
+                /** \brief The new samples already sampled but not yet added to the nearest neighbor struct. */
+                std::vector<std::shared_ptr<Vertex>> newSamples_;
 
                 /** \brief The number of sampled states that were valid. */
                 mutable std::size_t numValidSamples_{0u};

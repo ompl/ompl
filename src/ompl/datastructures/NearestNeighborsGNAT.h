@@ -66,7 +66,7 @@ namespace ompl
         B. Gipson, M. Moll, and L.E. Kavraki, Resolution independent density
          estimation for motion planning in high-dimensional spaces, in
         <em>IEEE Intl. Conf. on Robotics and Automation</em>, 2013.
-        [[PDF]](http://kavrakilab.org/sites/default/files/2013%20resolution%20independent%20density%20estimation%20for%20motion.pdf)
+        [[PDF]](http://www.kavrakilab.org/publications/gipson-moll2013resolution-independent-density.pdf)
     */
     template <typename _T>
     class NearestNeighborsGNAT : public NearestNeighbors<_T>

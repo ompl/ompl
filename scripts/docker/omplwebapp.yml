@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
   app:
-    image: mmoll/omplapp
+    image: kavrakilab/omplapp
     environment:
       &env
       - OMPL_BROKER_URL=amqp://broker:5672
@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
 
   worker:
-    image: mmoll/omplapp
+    image: kavrakilab/omplapp
     environment: *env
     init: true
     working_dir: /usr/share/ompl/webapp
@@ -34,7 +34,7 @@ services:
     restart: unless-stopped
 
   plannerarena:
-    image: mmoll/plannerarena
+    image: kavrakilab/plannerarena
     init: true
     ports:
       - "8888:8888"

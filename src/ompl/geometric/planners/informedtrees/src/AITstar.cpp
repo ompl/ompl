@@ -213,7 +213,7 @@ namespace ompl
             // Iterate to solve the problem.
             while (!terminationCondition && !objective_->isSatisfied(solutionCost_))
             {
-                iterate();
+                iterate(terminationCondition);
             }
 
             // Someone might call ProblemDefinition::clearSolutionPaths() between invokations of Planner::solve(), in
@@ -550,7 +550,7 @@ namespace ompl
             return vertices;
         }
 
-        void AITstar::iterate()
+        void AITstar::iterate(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
             // If this is the first time solve is called, populate the reverse queue.
             if (numIterations_ == 0u)
@@ -656,57 +656,58 @@ namespace ompl
                 else  // We should not perform a reverse search iteration and the forward queue is empty. Add more
                       // samples.
                 {
-                    // Clear the reverse queue.
-                    std::vector<std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>>>
-                        reverseQueue;
-                    reverseQueue_.getContent(reverseQueue);
-                    for (const auto &element : reverseQueue)
-                    {
-                        element.second->resetReverseQueuePointer();
-                    }
-                    reverseQueue_.clear();
-
-                    // Clear the forward queue.
-                    std::vector<aitstar::Edge> forwardQueue;
-                    forwardQueue_.getContent(forwardQueue);
-                    for (const auto &element : forwardQueue)
-                    {
-                        element.getChild()->resetForwardQueueIncomingLookup();
-                        element.getParent()->resetForwardQueueOutgoingLookup();
-                    }
-                    forwardQueue_.clear();
-
-                    // Clear the cache of edges to be inserted.
-                    edgesToBeInserted_.clear();
-
-                    // Add new start and goal states if necessary.
-                    if (pis_.haveMoreStartStates() || pis_.haveMoreGoalStates())
-                    {
-                        graph_.updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), &pis_);
-                    }
-
-                    // Remove useless samples from the graph.
-                    if (isPruningEnabled_)
-                    {
-                        graph_.prune();
-                    }
-
                     // Add new samples to the graph.
-                    graph_.addSamples(batchSize_);
-
-                    // Add the goals to the reverse queue.
-                    for (const auto &goal : graph_.getGoalVertices())
+                    if (graph_.addSamples(batchSize_, terminationCondition))
                     {
-                        auto reverseQueuePointer = reverseQueue_.insert(std::make_pair(computeSortKey(goal), goal));
-                        goal->setReverseQueuePointer(reverseQueuePointer);
-                        goal->setCostToComeFromGoal(objective_->identityCost());
+                        // Clear the reverse queue.
+                        std::vector<std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>>>
+                            reverseQueue;
+                        reverseQueue_.getContent(reverseQueue);
+                        for (const auto &element : reverseQueue)
+                        {
+                            element.second->resetReverseQueuePointer();
+                        }
+                        reverseQueue_.clear();
+
+                        // Clear the forward queue.
+                        std::vector<aitstar::Edge> forwardQueue;
+                        forwardQueue_.getContent(forwardQueue);
+                        for (const auto &element : forwardQueue)
+                        {
+                            element.getChild()->resetForwardQueueIncomingLookup();
+                            element.getParent()->resetForwardQueueOutgoingLookup();
+                        }
+                        forwardQueue_.clear();
+
+                        // Clear the cache of edges to be inserted.
+                        edgesToBeInserted_.clear();
+
+                        // Remove useless samples from the graph.
+                        if (isPruningEnabled_)
+                        {
+                            graph_.prune();
+                        }
+
+                        // Add new start and goal states if necessary.
+                        if (pis_.haveMoreStartStates() || pis_.haveMoreGoalStates())
+                        {
+                            graph_.updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), &pis_);
+                        }
+
+                        // Add the goals to the reverse queue.
+                        for (const auto &goal : graph_.getGoalVertices())
+                        {
+                            goal->setCostToComeFromGoal(objective_->identityCost());
+                            auto reverseQueuePointer = reverseQueue_.insert(std::make_pair(computeSortKey(goal), goal));
+                            goal->setReverseQueuePointer(reverseQueuePointer);
+                        }
+
+                        // This is a new batch, so the search hasn't been started.
+                        isForwardSearchStartedOnBatch_ = false;
+
+                        // We have to update the heuristic. Start with a reverse iteration.
+                        performReverseSearchIteration_ = true;
                     }
-
-                    // This is a new batch, so the search hasn't been started.
-                    isForwardSearchStartedOnBatch_ = false;
-
-                    // We have to update the heuristic. Start with a reverse iteration.
-                    performReverseSearchIteration_ = true;
                 }
             }
         }

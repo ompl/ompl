@@ -2,7 +2,7 @@
 
 [TOC]
 
-CForest was proposed by M. Otte and N. Correll in [this paper.](http://www.mit.edu/~ottemw/html_stuff/pdf_files/otte_ieeetro2013.pdf)
+CForest was proposed by M. Otte and N. Correll in [this paper.](http://ottelab.com/html_stuff/pdf_files/otte_ieeetro2013.pdf)
 
 The main idea behind CForest is that many trees are built in parallel between the same start and goal states. The key concepts of CForest are:
 

@@ -67,3 +67,9 @@ div.checkbox {
 @media (min-width: 980px) and (max-width: 1199px) {
     #videocollection { margin-left: -60px; margin-right: -100px; }
 }
+
+.alert blockquote {
+    font-size: 14px;
+    border: none;
+    margin: 0;
+}
