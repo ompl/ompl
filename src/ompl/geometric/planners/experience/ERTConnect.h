@@ -56,6 +56,10 @@ namespace ompl
             one from the goal, and attempts to connect them. A solution can
             also be found from an individual tree, as each exploits the
             experience differently.
+            @par External documentation
+            Èric Pairet, Constantinos Chamzas, Yvan Petillot, Lydia Kavraki,
+            Path Planning for Manipulation using Experience-driven Random Trees.
+            [[PDF]](https://arxiv.org/abs/2103.00448)
         */
 
         /** \brief ERT-Connect (ERTConnect) */

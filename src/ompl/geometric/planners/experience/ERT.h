@@ -52,9 +52,13 @@ namespace ompl
             ERT is a tree-based motion planner that leverages a prior experience
             to find similar motion plans. The provided experience is used to
             bias the sampling of candidate states, and their connections.
+            @par External documentation
+            Èric Pairet, Constantinos Chamzas, Yvan Petillot, Lydia Kavraki,
+            Path Planning for Manipulation using Experience-driven Random Trees.
+            [[PDF]](https://arxiv.org/abs/2103.00448)
         */
 
-        /** \brief Experience-guided Random Trees */
+        /** \brief Experience-driven Random Tree */
         class ERT : public base::Planner
         {
         public:
