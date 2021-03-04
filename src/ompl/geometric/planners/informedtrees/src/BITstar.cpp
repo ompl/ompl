@@ -117,9 +117,6 @@ namespace ompl
             addPlannerProgressProperty("best cost DOUBLE", [this] { return bestCostProgressProperty(); });
             addPlannerProgressProperty("number of segments in solution path INTEGER",
                                        [this] { return bestLengthProgressProperty(); });
-            addPlannerProgressProperty("current free states INTEGER", [this] { return currentFreeProgressProperty(); });
-            addPlannerProgressProperty("current graph vertices INTEGER",
-                                       [this] { return currentVertexProgressProperty(); });
             addPlannerProgressProperty("state collision checks INTEGER",
                                        [this] { return stateCollisionCheckProgressProperty(); });
             addPlannerProgressProperty("edge collision checks INTEGER",
@@ -1338,16 +1335,6 @@ namespace ompl
         std::string BITstar::bestLengthProgressProperty() const
         {
             return std::to_string(bestLength_);
-        }
-
-        std::string BITstar::currentFreeProgressProperty() const
-        {
-            return std::to_string(graphPtr_->numSamples());
-        }
-
-        std::string BITstar::currentVertexProgressProperty() const
-        {
-            return std::to_string(graphPtr_->numVertices());
         }
 
         std::string BITstar::edgeQueueSizeProgressProperty() const
