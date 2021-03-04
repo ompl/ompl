@@ -476,8 +476,7 @@ namespace ompl
             std::shared_ptr<ImplicitGraph> graphPtr_{nullptr};
 
             /** \brief The queue of vertices to expand and edges to process ordered on "f-value", i.e., estimated
-             * solution cost. Remaining vertex queue "size" and edge queue size are accessible via
-             * vertexQueueSizeProgressProperty and edgeQueueSizeProgressProperty, respectively. */
+             * solution cost. */
             std::shared_ptr<SearchQueue> queuePtr_{nullptr};
 
             /** \brief The inflation factor for the initial search. */
