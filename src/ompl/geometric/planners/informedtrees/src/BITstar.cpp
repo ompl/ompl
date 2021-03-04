@@ -126,10 +126,6 @@ namespace ompl
 
             // Extra progress info that aren't necessary for every day use. Uncomment if desired.
             /*
-            addPlannerProgressProperty("vertex queue size INTEGER", [this]
-                                       {
-                                           return vertexQueueSizeProgressProperty();
-                                       });
             addPlannerProgressProperty("edge queue size INTEGER", [this]
                                        {
                                            return edgeQueueSizeProgressProperty();
