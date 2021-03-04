@@ -149,7 +149,7 @@ namespace ompl
             using NameFunc = std::function<std::string()>;
 
             /** \brief Construct with a pointer to the space information and an optional name. */
-            BITstar(const base::SpaceInformationPtr &spaceInfo, const std::string &name = "BITstar");
+            BITstar(const base::SpaceInformationPtr &spaceInfo, const std::string &name = "kBITstar");
 
             /** \brief Destruct using the default destructor. */
             virtual ~BITstar() override = default;
