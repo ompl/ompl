@@ -1325,7 +1325,7 @@ namespace ompl
 
         std::string BITstar::bestCostProgressProperty() const
         {
-            return ompl::toString(this->bestCost().value());
+            return ompl::toString(bestCost_.value());
         }
 
         std::string BITstar::bestLengthProgressProperty() const
@@ -1340,12 +1340,12 @@ namespace ompl
 
         std::string BITstar::iterationProgressProperty() const
         {
-            return std::to_string(this->numIterations());
+            return std::to_string(numIterations_);
         }
 
         std::string BITstar::batchesProgressProperty() const
         {
-            return std::to_string(this->numBatches());
+            return std::to_string(numBatches_);
         }
 
         std::string BITstar::pruningProgressProperty() const
