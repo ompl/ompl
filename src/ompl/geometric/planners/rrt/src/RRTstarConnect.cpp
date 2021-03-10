@@ -601,6 +601,9 @@ ompl::base::PlannerStatus ompl::geometric::RRTstarConnect::solve(const base::Pla
     }
 
     si_->freeState(tgi.xstate);
+
+    if (rmotion->state)
+        si_->freeState(rmotion->state);
     delete rmotion;
 
     ptc.terminate();
