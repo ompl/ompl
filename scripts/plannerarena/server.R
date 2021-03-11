@@ -590,9 +590,9 @@ shinyServer(function(input, output, session) {
             dev.off()
         }
     )
-    output$perf_download_rdata <- downloadHandler(filename = "perfplot.RData",
+    output$perf_download_rdata <- downloadHandler(filename = "perfplot.rds",
         content = function(file) {
-            save(perfplot(), file = file)
+            saveRDS(perf_plot(), file = file)
         }
     )
     output$perf_missing_data_table <- renderTable({
