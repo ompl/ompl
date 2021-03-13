@@ -53,7 +53,7 @@ void TorusStateSampler::sampleUniform(State *state)
     // https://stackoverflow.com/questions/26300510/generating-random-points-on-a-surface-of-an-n-dimensional-torus
     // Based on publication "Random selection of points distributed on curved surfaces."
     // Link: https://iopscience.iop.org/article/10.1088/0031-9155/32/10/009/pdf
-    const TorusStateSpace *T = static_cast<const TorusStateSpace *>(space_);
+    const auto *T = static_cast<const TorusStateSpace *>(space_);
 
     bool acceptedSampleFound = false;
     while (!acceptedSampleFound)
