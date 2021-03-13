@@ -329,13 +329,13 @@ BundleSpaceGraph::Configuration *PathSection::addFeasibleSegment(Configuration *
 void PathSection::addFeasibleGoalSegment(Configuration *xLast, Configuration *xGoal)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    if (graph->getGoalIndex() <= 0)
-    {
-        graph->setGoalIndex(graph->addConfiguration(xGoal));
-    }
+    // if (graph->getGoalIndex() <= 0)
+    // {
+    //     graph->setGoalIndex(graph->addConfiguration(xGoal));
+    // }
     graph->addBundleEdge(xLast, xGoal);
-
     xGoal->parent = xLast;
+    graph->addGoalConfiguration(xGoal);
 }
 
 void PathSection::sanityCheck(HeadPtr &head)

@@ -81,7 +81,7 @@ void ompl::multilevel::QRRTImpl::grow()
         if (isDynamic())
         {
             double dist;
-            bool satisfied = pdef_->getGoal()->isSatisfied(xNext->state, &dist);
+            bool satisfied = getGoalPtr()->isSatisfied(xNext->state, &dist);
             if (dist < bestCost_.value())
             {
                 bestCost_ = base::Cost(dist);
@@ -89,8 +89,7 @@ void ompl::multilevel::QRRTImpl::grow()
             }
             if (satisfied)
             {
-                vGoal_ = xNext->index;
-                // addEdge(xNext->index, vGoal_);
+                goalConfigurations_.push_back(xNext);
                 hasSolution_ = true;
             }
         }
@@ -101,9 +100,11 @@ void ompl::multilevel::QRRTImpl::grow()
             {
                 goalConfigurations_.push_back(xNext);
 
-                addConfiguration(qGoal_);
-                addEdge(xNext->index, getGoalIndex());
-                // qGoal_ = xNext;
+                // if(qGoal_ != nullptr)
+                // {
+                //     addConfiguration(qGoal_);
+                //     addEdge(xNext->index, getGoalIndex());
+                // }
                 hasSolution_ = true;
             }
         }

@@ -90,13 +90,12 @@ void ompl::multilevel::QRRTStarImpl::grow()
 
         if(findSection())
         {
-            if (getOptimizationObjectivePtr()->isCostBetterThan(qGoal_->cost, bestCost_))
-            {
-                goalConfigurations_.push_back(qGoal_);
-                vGoal_ = qGoal_->index;
-                bestCost_ = qGoal_->cost;
+            // if (getOptimizationObjectivePtr()->isCostBetterThan(qGoal_->cost, bestCost_))
+            // {
+            //     goalConfigurations_.push_back(qGoal_);
+                // bestCost_ = qGoal_->cost;
                 hasSolution_ = true;
-            }
+            // }
         }
     }
 
@@ -247,7 +246,6 @@ void ompl::multilevel::QRRTStarImpl::grow()
             if (!goalConfigurations_.empty() && qGoal_ == nullptr)
             {
                 qGoal_ = q_new;
-                vGoal_ = qGoal_->index;
                 bestCost_ = qGoal_->cost;
                 updatedSolution = true;
             }
@@ -260,7 +258,6 @@ void ompl::multilevel::QRRTStarImpl::grow()
                     if (getOptimizationObjectivePtr()->isCostBetterThan(qk->cost, bestCost_))
                     {
                         qGoal_ = qk;
-                        vGoal_ = qGoal_->index;
                         bestCost_ = qGoal_->cost;
                         updatedSolution = true;
                     }

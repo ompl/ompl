@@ -37,6 +37,8 @@
 
 #include <ompl/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
+#include <ompl/base/goals/GoalState.h>
+#include <ompl/base/goals/GoalStates.h>
 #include <ompl/util/Exception.h>
 #include <ompl/util/Time.h>
 #include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
@@ -234,68 +236,85 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(
     const ompl::base::ProblemDefinitionPtr &pdef)
 {
     BaseT::setProblemDefinition(pdef);
+    if(siVec_.size() <= 1) return;
 
-    ompl::base::GoalSampleableRegion *goalRegion = 
-      dynamic_cast<ompl::base::GoalSampleableRegion*>(pdef_->getGoal().get());
+    assert(bundleSpaces_.size() == siVec_.size());
 
-    if(goalRegion == nullptr)
+    //#########################################################################
+    //Check if goal type is projectable
+    //#########################################################################
+    ompl::base::GoalType type = pdef_->getGoal()->getType();
+    if(!(type == ompl::base::GoalType::GOAL_STATE 
+          || type == ompl::base::GoalType::GOAL_STATES))
     {
+        OMPL_ERROR("If you want to use other goal classes than \"GoalSampleableRegion\", you need to specify them manually for each SpaceInformationPtr in the hierarchy.");
         throw ompl::Exception("Multilevel framework does not support provided goal specs.");
     }
 
+    //#########################################################################
+    //Iterate through all levels and project from the last level down
+    //#########################################################################
+    ompl::base::GoalSampleableRegion *goalRegion = 
+      static_cast<ompl::base::GoalSampleableRegion*>(pdef_->getGoal().get());
     double epsilon = goalRegion->getThreshold();
-    assert(bundleSpaces_.size() == siVec_.size());
-
-    BundleSpace *bundleSpace = static_cast<BundleSpace *>(bundleSpaces_.back());
-
-    ompl::base::State *sInit = pdef->getStartState(0);
-    ompl::base::State *sGoal = bundleSpace->getBundle()->allocState();
-    goalRegion->sampleGoal(sGoal);
-
-    if(siVec_.size() > 0)
-      OMPL_DEVMSG1("Projecting start and goal onto BundleSpaces.");
-
-    bundleSpaces_.back()->setProblemDefinition(pdef);
 
     base::OptimizationObjectivePtr obj = pdef->getOptimizationObjective();
 
     pdefVec_.clear();
     pdefVec_.push_back(pdef);
+    bundleSpaces_.back()->setProblemDefinition(pdef);
 
     for (unsigned int k = siVec_.size() - 1; k > 0; k--)
     {
         BundleSpace *bundleSpaceParent = static_cast<BundleSpace *>(bundleSpaces_.at(k));
         BundleSpace *bundleSpaceChild = static_cast<BundleSpace *>(bundleSpaces_.at(k - 1));
-        ompl::base::SpaceInformationPtr sik = 
+        ompl::base::SpaceInformationPtr siChild = 
           bundleSpaceChild->getBundle();
 
-        ompl::base::ProblemDefinitionPtr pdefk = 
-          std::make_shared<base::ProblemDefinition>(sik);
+        ompl::base::ProblemDefinitionPtr pdefParent = pdefVec_.back();
 
-        ompl::base::State *sInitK = sik->allocState();
-        ompl::base::State *sGoalK = sik->allocState();
+        ompl::base::ProblemDefinitionPtr pdefChild = 
+          std::make_shared<base::ProblemDefinition>(siChild);
 
-        bundleSpaceParent->projectBase(sInit, sInitK);
-        bundleSpaceParent->projectBase(sGoal, sGoalK);
+        //Project Start State onto lower dimensional quotient space
+        const ompl::base::State *sInitParent = pdefParent->getStartState(0);
+        ompl::base::State *sInitChild = siChild->allocState();
+        bundleSpaceParent->projectBase(sInitParent, sInitChild);
+        pdefChild->addStartState(sInitChild);
 
-        //@TODO: need to make this more rigorous. When we project a goal region,
-        //we should take its structure into account. I.e. 
-        //  projecting GoalState -> single state
-        //  projecting GoalStates -> multiple states (avoid duplicates after
-        //  projection)
-        //  projecting GoalSpace -> 
-        //      (1) project input state to total space. Then enforce bounds from
-        //      goalspace, then project down again. 
-        //      ---> will likely require a ProjectedGoalSpace class!?
+        //Now project goal state(s) down
+        if(type == ompl::base::GoalType::GOAL_STATE)
+        {
+            ompl::base::GoalState* goal = 
+              static_cast<ompl::base::GoalState*>(pdefParent->getGoal().get());
 
-        pdefk->setStartAndGoalStates(sInitK, sGoalK, epsilon);
+            const ompl::base::State *sGoalParent = goal->getState();
+            ompl::base::State *sGoalChild = siChild->allocState();
+            bundleSpaceParent->projectBase(sGoalParent, sGoalChild);
+            pdefChild->setGoalState(sGoalChild, epsilon);
+        }
+        else if(type == ompl::base::GoalType::GOAL_STATES)
+        {
+            ompl::base::GoalStates* goal = 
+              static_cast<ompl::base::GoalStates*>(pdefParent->getGoal().get());
+            unsigned int N = goal->getStateCount();
 
-        bundleSpaceChild->setProblemDefinition(pdefk);
+            ompl::base::GoalStatesPtr goalStates = 
+              std::make_shared<ompl::base::GoalStates>(siChild);
+            goalStates->setThreshold(epsilon);
 
-        sInit = sInitK;
-        sGoal = sGoalK;
+            for(unsigned int j = 0; j < N; j++)
+            {
+                const ompl::base::State *sGoalParent = goal->getState(j);
+                ompl::base::State *sGoalChild = siChild->allocState();
+                bundleSpaceParent->projectBase(sGoalParent, sGoalChild);
+                goalStates->addState(sGoalChild);
+            }
+            pdefChild->setGoal(goalStates);
+        }
 
-        pdefVec_.push_back(pdefk);
+        bundleSpaceChild->setProblemDefinition(pdefChild);
+        pdefVec_.push_back(pdefChild);
     }
 
     std::reverse(pdefVec_.begin(), pdefVec_.end());

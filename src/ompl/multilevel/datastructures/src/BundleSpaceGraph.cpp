@@ -220,7 +220,6 @@ void BundleSpaceGraph::clear()
     bestCost_ = base::Cost(base::dInf);
     setup_ = false;
     vStart_ = 0;
-    vGoal_ = 0;
     lengthStartGoalVertexPath_ = base::dInf;
     shortestVertexPath_.clear();
 
@@ -367,7 +366,7 @@ void BundleSpaceGraph::init()
         qGoal_->isGoal = true;
     }
 
-    if (qGoal_ == nullptr)
+    if (qGoal_ == nullptr && getGoalPtr()->canSample())
     {
         OMPL_ERROR("%s: There are no valid goal states!", getName().c_str());
         throw ompl::Exception("Invalid goal states.");
@@ -685,16 +684,26 @@ BundleSpaceGraph::Vertex BundleSpaceGraph::getStartIndex() const
 {
     return vStart_;
 }
+
+void BundleSpaceGraph::addGoalConfiguration(Configuration *x)
+{
+    goalConfigurations_.push_back(x);
+    if (getOptimizationObjectivePtr()->isCostBetterThan(x->cost, bestCost_))
+    {
+        bestCost_ = x->cost;
+    }
+}
+
 BundleSpaceGraph::Vertex BundleSpaceGraph::getGoalIndex() const
 {
-  if(qGoal_)
-  {
-    return qGoal_->index;
-  }else
-  {
-    std::cout << "NullVertex" << std::endl;
-    return nullVertex();
-  }
+    if(goalConfigurations_.size() > 0)
+    {
+        return goalConfigurations_.front()->index;
+    }else
+    {
+        std::cout << "NullVertex" << std::endl;
+        return nullVertex();
+    }
 }
 
 BundleSpaceGraph::Vertex BundleSpaceGraph::nullVertex() const
@@ -706,11 +715,6 @@ void BundleSpaceGraph::setStartIndex(Vertex idx)
 {
     vStart_ = idx;
 }
-void BundleSpaceGraph::setGoalIndex(Vertex idx)
-{
-    vGoal_ = idx;
-}
-
 ompl::base::PathPtr& BundleSpaceGraph::getSolutionPathByReference()
 {
   return solutionPath_;
@@ -725,7 +729,21 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
         }
         else
         {
-            solutionPath_ = getPath(vStart_, getGoalIndex());
+            Vertex goalVertex;
+            for(uint k = 0; k < goalConfigurations_.size(); k++)
+            {
+                Configuration *qk = goalConfigurations_.at(k);
+                if(sameComponent(vStart_, qk->index))
+                {
+                    solutionPath_ = getPath(vStart_, qk->index);
+                    goalVertex = qk->index;
+                    break;
+                }
+            }
+            if(solutionPath_==nullptr)
+            {
+                throw "hasSolution_ is set, but no solution exists.";
+            }
             numVerticesWhenComputingSolutionPath_ = getNumberOfVertices();
 
             if (!isDynamic() && solutionPath_ != solution && hasTotalSpace())
@@ -779,7 +797,7 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
                     if (!valid)
                     {
                         // reset solutionPath
-                        solutionPath_ = getPath(vStart_, getGoalIndex());
+                        solutionPath_ = getPath(vStart_, goalVertex);
                     }
                     else
                     {
@@ -897,7 +915,7 @@ void BundleSpaceGraph::sampleBundleGoalBias(ompl::base::State *xRandom)
     else
     {
         double s = rng_.uniform01();
-        if (s < goalBias_)
+        if (s < goalBias_ && getGoalPtr()->canSample())
         {
             getGoalPtr()->sampleGoal(xRandom);
         }
@@ -943,8 +961,10 @@ void BundleSpaceGraph::printConfiguration(const Configuration *q) const
     getBundle()->printState(q->state);
 }
 
-void BundleSpaceGraph::getPlannerDataGraph(ompl::base::PlannerData &data, const Graph &graph, const Vertex vStart,
-                                           const Vertex vGoal) const
+void BundleSpaceGraph::getPlannerDataGraph(
+    ompl::base::PlannerData &data, 
+    const Graph &graph, 
+    const Vertex vStart) const
 {
     if (boost::num_vertices(graph) <= 0)
         return;
@@ -953,19 +973,26 @@ void BundleSpaceGraph::getPlannerDataGraph(ompl::base::PlannerData &data, const 
     pstart.setLevel(getLevel());
     data.addStartVertex(pstart);
 
-    if (hasSolution_)
+    for(uint k = 0; k < goalConfigurations_.size(); k++)
     {
-        multilevel::PlannerDataVertexAnnotated pgoal(graph[vGoal]->state);
+        Configuration *qgoal = goalConfigurations_.at(k);
+        multilevel::PlannerDataVertexAnnotated pgoal(qgoal->state);
         pgoal.setLevel(getLevel());
         data.addGoalVertex(pgoal);
+    }
+    if (hasSolution_)
+    {
+
         if (solutionPath_ != nullptr)
         {
-            geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
+            geometric::PathGeometric &gpath = 
+              static_cast<geometric::PathGeometric &>(*solutionPath_);
 
             std::vector<base::State *> gstates = gpath.getStates();
 
             multilevel::PlannerDataVertexAnnotated *pLast = &pstart;
-            for (unsigned int k = 1; k < gstates.size() - 1; k++)
+
+            for (unsigned int k = 1; k < gstates.size(); k++)
             {
                 multilevel::PlannerDataVertexAnnotated p(gstates.at(k));
                 p.setLevel(getLevel());
@@ -973,7 +1000,6 @@ void BundleSpaceGraph::getPlannerDataGraph(ompl::base::PlannerData &data, const 
                 data.addEdge(*pLast, p);
                 pLast = &p;
             }
-            data.addEdge(*pLast, pgoal);
         }
     }
 
@@ -1007,5 +1033,5 @@ void BundleSpaceGraph::getPlannerData(ompl::base::PlannerData &data) const
     {
         OMPL_DEBUG("Best Cost: %.2f", bestCost_.value());
     }
-    getPlannerDataGraph(data, graph_, vStart_, getGoalIndex());
+    getPlannerDataGraph(data, graph_, vStart_);
 }

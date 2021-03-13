@@ -616,6 +616,12 @@ void BundleSpace::sampleBundle(State *xRandom)
         {
             // Adjusted sampling function: Sampling in G0 x Fiber
             baseBundleSpace_->sampleFromDatastructure(xBaseTmp_);
+
+            //projection_->lift();
+            //projection_->lift(xBaseTmp_, xRandom);
+
+            //liftingOperator_->randomLift(xBaseTmp_, xRandom);
+            //localNeighborhood->randomliftState(xBaseTmp_, xRandom);
             sampleFiber(xFiberTmp_);
             liftState(xBaseTmp_, xFiberTmp_, xRandom);
         }

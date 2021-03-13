@@ -56,10 +56,9 @@ namespace ompl
 
         /** \brief Definition of a goal region that can be sampled,
          but the sampling process can be slow.  This class allows
-         sampling the happen in a separate thread, and the number of
+         sampling to happen in a separate thread, and the number of
          goals may increase, as the planner is running, in a
          thread-safe manner.
-
 
          \todo The Python bindings for GoalLazySamples class are still broken.
          The OMPL C++ code creates a new thread from which you should be able

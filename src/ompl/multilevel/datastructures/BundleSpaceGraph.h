@@ -220,8 +220,7 @@ namespace ompl
             void getPlannerDataGraph(
                 ompl::base::PlannerData &data, 
                 const Graph &graph, 
-                const Vertex vStart, 
-                const Vertex vGoal) const;
+                const Vertex vStart) const;
 
             /** \brief Importance of Bundle-space depending on number of
                 vertices in Bundle-graph */
@@ -320,25 +319,25 @@ namespace ompl
             virtual Configuration *addBundleConfiguration(base::State *);
 
             virtual Vertex addConfiguration(Configuration *q);
+            void addGoalConfiguration(Configuration *x);
 
             virtual void addBundleEdge(const Configuration *a, const Configuration *b);
 
             virtual const std::pair<Edge, bool> 
               addEdge(const Vertex a, const Vertex b);
 
-            virtual Vertex getGoalIndex() const;
             virtual Vertex getStartIndex() const;
-            virtual void setGoalIndex(Vertex);
+            virtual Vertex getGoalIndex() const;
             virtual void setStartIndex(Vertex);
 
             /**\brief Call algorithm to solve the find section problem */
             virtual bool findSection() override;
 
+            //TODO: everything should be private
         protected:
             ompl::base::PathPtr solutionPath_;
 
             Vertex vStart_;
-            Vertex vGoal_;
 
             ompl::base::Cost costHeuristic(Vertex u, Vertex v) const;
 

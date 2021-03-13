@@ -45,6 +45,11 @@
 
 namespace ompl
 {
+    namespace base
+    {
+        OMPL_CLASS_FORWARD(GoalState);
+        OMPL_CLASS_FORWARD(GoalStates);
+    }
     namespace multilevel
     {
         /** \brief A planner for a sequence of BundleSpaces
@@ -79,10 +84,13 @@ namespace ompl
             /** \brief Return annotated vertices (with information about BundleSpace level) */
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;
 
-            ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override;
+            ompl::base::PlannerStatus solve(
+                const ompl::base::PlannerTerminationCondition &ptc) override;
+
             virtual void setup() override;
             virtual void clear() override;
-            virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
+            virtual void setProblemDefinition(
+                const ompl::base::ProblemDefinitionPtr &pdef) override;
 
             void setStopLevel(unsigned int level_);
 
