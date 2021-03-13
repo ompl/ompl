@@ -702,7 +702,7 @@ namespace ompl
             {
                 throw ompl::Exception("A code change has prevented ImplicitGraph::removeSample() "
                                       "from taking it's own copy of the given shared pointer. See "
-                                      "https://bitbucket.org/ompl/ompl/issues/364/code-cleanup-breaking-bit");
+                                      "https://github.com/ompl/ompl/issues/485");
             }
             if (sampleCopy->edgeQueueOutLookupSize() != 0u)
             {
@@ -772,7 +772,7 @@ namespace ompl
             {
                 throw ompl::Exception("A code change has prevented ImplicitGraph::removeVertex() "
                                       "from taking it's own copy of the given shared pointer. See "
-                                      "https://bitbucket.org/ompl/ompl/issues/364/code-cleanup-breaking-bit");
+                                      "https://github.com/ompl/ompl/issues/485");
             }
 #endif  // BITSTAR_DEBUG
 
@@ -823,7 +823,7 @@ namespace ompl
             {
                 throw ompl::Exception("A code change has prevented ImplicitGraph::removeSample() "
                                       "from taking it's own copy of the given shared pointer. See "
-                                      "https://bitbucket.org/ompl/ompl/issues/364/code-cleanup-breaking-bit");
+                                      "https://github.com/ompl/ompl/issues/485");
             }
 #endif  // BITSTAR_DEBUG
 

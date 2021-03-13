@@ -20,7 +20,7 @@
 
 - [Installation script for Ubuntu 16.04 and higher that installs the latest OMPL version from source](install-ompl-ubuntu.sh)
 - [Installation instructions.](installation.html)
-- [Older releases.](https://bitbucket.org/ompl/ompl/downloads) See the [release notes](releaseNotes.html) for a brief a description of changes for each release.
+- [Older releases.](https://github.com/ompl/ompl/releases) See the [release notes](releaseNotes.html) for a brief a description of changes for each release.
 
 ## Repository {#download_repos}
 

@@ -1,6 +1,6 @@
 # Installation of Py++ {#installPyPlusPlus}
 
-[Py++](https://bitbucket.org/ompl/pyplusplus) depends on [pygccxml](https://github.com/gccxml/pygccxml), which in turn depends on [CastXML](https://github.com/CastXML/CastXML). You can install these packages from source yourself, but you can also use package managers. For CastXML there are binaries available at <https://data.kitware.com/#collection/57b5c9e58d777f126827f5a1/folder/57b5de948d777f10f2696370>.
+[Py++](https://github.com/ompl/pyplusplus) depends on [pygccxml](https://github.com/gccxml/pygccxml), which in turn depends on [CastXML](https://github.com/CastXML/CastXML). You can install these packages from source yourself, but you can also use package managers. For CastXML there are binaries available at <https://data.kitware.com/#collection/57b5c9e58d777f126827f5a1/folder/57b5de948d777f10f2696370>.
 
 ## Ubuntu
 
