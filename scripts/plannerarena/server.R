@@ -39,6 +39,7 @@ library(dplyr, warn.conflicts = FALSE)
 library(tidyr)
 library(ggplot2)
 library(rlang)
+library(Hmisc)
 
 default_database <- "www/benchmark.db"
 
