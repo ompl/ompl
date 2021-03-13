@@ -54,8 +54,6 @@ namespace ompl
                 State *state) const override;
 
             State *allocState() const override;
-
-            void freeState(State *state) const override;
         };
     }
 }

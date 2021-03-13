@@ -104,9 +104,3 @@ State *MobiusStateSpace::allocState() const
     allocStateComponents(state);
     return state;
 }
-
-void MobiusStateSpace::freeState(State *state) const
-{
-    CompoundStateSpace::freeState(state);
-}
-

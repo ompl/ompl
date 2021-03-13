@@ -91,9 +91,3 @@ ompl::base::State *ompl::base::SphereStateSpace::allocState() const
     allocStateComponents(state);
     return state;
 }
-
-void ompl::base::SphereStateSpace::freeState(State *state) const
-{
-    CompoundStateSpace::freeState(state);
-}
-

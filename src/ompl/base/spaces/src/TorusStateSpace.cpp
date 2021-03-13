@@ -95,11 +95,6 @@ State *TorusStateSpace::allocState() const
     return state;
 }
 
-void TorusStateSpace::freeState(State *state) const
-{
-    CompoundStateSpace::freeState(state);
-}
-
 double TorusStateSpace::getMajorRadius() const
 {
     return majorRadius_;

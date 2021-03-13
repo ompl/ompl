@@ -68,8 +68,6 @@ namespace ompl
 
             State *allocState() const override;
 
-            void freeState(State *state) const override;
-
             double getMajorRadius() const;
 
             double getMinorRadius() const;

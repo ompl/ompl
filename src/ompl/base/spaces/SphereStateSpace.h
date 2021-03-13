@@ -71,7 +71,6 @@ namespace ompl
 
             State *allocState() const override;
 
-            void freeState(State *state) const override;
         protected:
             double radius_{1.0};
         };
