@@ -798,10 +798,10 @@ shinyServer(function(input, output, session) {
             dev.off()
         }
     )
-    output$regr_download_rdata <- downloadHandler(filename = "regrplot.RData",
+    output$regr_download_rdata <- downloadHandler(filename = "regrplot.rds",
         content = function(file) {
             regrplot <- regr_plot()
-            save(regrplot, file = file)
+            saveRDS(regrplot, file = file)
         }
     )
 
