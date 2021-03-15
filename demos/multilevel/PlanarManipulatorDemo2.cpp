@@ -75,7 +75,7 @@ int main()
     // PolyWorld world = createConstrictedProblem(numLinks, baseFrame, goalFrame);
 
     //#########################################################################
-    //## Create robot joint configuration space
+    //## Create robot joint configuration space [TOTAL SPACE]
     //#########################################################################
     ompl::base::StateSpacePtr space(new PlanarManipulatorStateSpace(numLinks));
     ompl::base::RealVectorBounds bounds(numLinks);
@@ -90,7 +90,7 @@ int main()
     si->setStateValidityCheckingResolution(0.001);
 
     //#########################################################################
-    //## Create task space
+    //## Create task space [BASE SPACE]
     //#########################################################################
     // ompl::base::StateSpacePtr workspace(new RealVectorStateSpace(3));
     // ompl::base::RealVectorBounds bounds(3);
@@ -102,6 +102,14 @@ int main()
     // siTask->setStateValidityChecker( 
     //     std::make_shared<TaskSpaceCollisionChecker>( siTask));
     // siTask->setStateValidityCheckingResolution(0.001);
+    
+    //#########################################################################
+    //## Create mapping total to base space [PROJECTION]
+    //#########################################################################
+
+    // FiberBundle bundle(totalSpace, baseSpace);
+    // FiberBundle bundle(totalSpace, baseSpace, projection);
+    // FiberBundle bundle(std::vector<spaces>, std::vector<projections>);
 
     //#########################################################################
     //## Create robot joint configuration space

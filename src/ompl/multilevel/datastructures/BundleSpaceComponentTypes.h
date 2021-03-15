@@ -102,6 +102,8 @@ namespace ompl
             /** \brief SO2N \rightarrow SO2M (N copies of SO2 onto M copies of SO2) */
             BUNDLE_SPACE_SO2N_SO2M = 18,
 
+            BUNDLE_SPACE_TASK_SPACE = 19,
+
             BUNDLE_SPACE_UNKNOWN = -1
         };
     }

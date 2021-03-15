@@ -97,6 +97,11 @@ namespace ompl
             void setFindSectionStrategy(FindSectionType type);
 
         protected:
+
+            /** \brief Starting from a baseState on baseLevel, we lift
+             * it iteratively upwards into the total space of the sequence. For
+             * each lift, we choose an identity fiber element using the
+             * allocIdentityState method in ompl::multilevel::BundleSpace. */
             ompl::base::State *getTotalState(int baseLevel, const base::State *baseState) const;
 
             /** \brief Sequence of BundleSpaces */
@@ -125,8 +130,10 @@ namespace ompl
             };
             /** \brief \brief Priority queue of BundleSpaces which keeps track of how often
                 every graph on each space has been expanded. */
-            typedef std::priority_queue<BundleSpace *, std::vector<BundleSpace *>, CmpBundleSpacePtrs>
-                BundleSpacePriorityQueue;
+            typedef std::priority_queue<
+                    BundleSpace *, 
+                    std::vector<BundleSpace *>, 
+                    CmpBundleSpacePtrs> BundleSpacePriorityQueue;
             BundleSpacePriorityQueue priorityQueue_;
         };
     }  // namespace multilevel

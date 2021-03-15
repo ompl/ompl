@@ -56,6 +56,9 @@ namespace ompl
 
             virtual ~BundleSpaceComponent() = default;
 
+            //TODO: this should not be here, but inside the product space
+            //projection class (TBD). In fact, the whole fiber space and all
+            //fiber states should be removed and shadowed.
             virtual void projectFiber(
                 const ompl::base::State *xBundle, 
                 ompl::base::State *xFiber) const = 0;
@@ -86,24 +89,19 @@ namespace ompl
             void setType(BundleSpaceComponentType &);
 
             std::string getTypeAsString() const;
-            std::string getFiberTypeAsString() const;
             std::string getBundleTypeAsString() const;
             std::string getBaseTypeAsString() const;
 
             friend std::ostream &operator<<(
                 std::ostream &out, 
-                const BundleSpaceComponent &);
+                const BundleSpaceProjection &);
 
         protected:
-            virtual ompl::base::StateSpacePtr computeFiberSpace() = 0;
             virtual void print(std::ostream &out) const;
             std::string stateTypeToString(base::StateSpacePtr) const;
 
             base::StateSpacePtr BundleSpace_{nullptr};
             base::StateSpacePtr BaseSpace_{nullptr};
-            base::StateSpacePtr FiberSpace_{nullptr};
-
-            bool isDynamic_{false};
 
             BundleSpaceComponentType type_;
         };
