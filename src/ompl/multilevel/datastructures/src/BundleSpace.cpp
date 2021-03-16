@@ -163,16 +163,14 @@ void BundleSpace::setup()
             pdef_->setOptimizationObjective(lengthObj);
         }
     }
-
 }
 
 GoalSampleableRegion* BundleSpace::getGoalPtr() const
 {
-  base::GoalSampleableRegion *goal = 
-    static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
-  return goal;
+    base::GoalSampleableRegion *goal = 
+      static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    return goal;
 }
-
 
 void BundleSpace::clear()
 {

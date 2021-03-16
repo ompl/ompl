@@ -4,6 +4,10 @@
 using namespace ompl::base;
 using namespace ompl::multilevel;
 
+Projection::Projection()
+{
+}
+
 Projection::Projection(std::vector<ProjectionComponentPtr> components):
   components_(components)
 {

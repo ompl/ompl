@@ -19,15 +19,18 @@
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/multilevel/planners/qrrt/QRRT.h>
+#include <ompl/multilevel/planners/qmp/QMP.h>
+#include <ompl/multilevel/datastructures/Projection.h>
 
 using namespace ompl::base;
 using namespace ompl::geometric;
 
 // Input arguments to this binary.
-int numLinks = 10;
-double timeout = 60;
-std::string problemName = "corridor";
-bool viz = false;
+const int numLinks = 10;
+const double timeout = 60;
+const int xySlices = std::max(2, numLinks / 3);
+const std::string problemName = "corridor";
+const bool viz = false;
 
 void WriteVisualization(
     const PlanarManipulator &manipulator, 
@@ -50,7 +53,7 @@ void WriteVisualization(
     fout.open(path_file);
     fout << numLinks << " " << linkLength 
       << " " << basePose.translation()(0) 
-      << " " << basePose.translation()(1) << std::endl;
+      << " " << basePose.translation()(1) << " " << xySlices << std::endl;
 
     // Write each state on the interpolated path.
     for (size_t i = 0; i < path.getStateCount(); ++i)
@@ -63,21 +66,50 @@ void WriteVisualization(
     fout.close();
 }
 
-//class MyProjectionOperator: public BundleSpaceProjection
-//{
-//  MyProjectionOperator(StateSpacePtr bundle, StateSpacePtr base):
-//    BundleSpaceProjection(bundle, base)
-//  {
-//  }
-//  void project( const State *xBundle, State *xBase) const
-//  {
-//    //Take xBundle and return xBase (e.g. Forward Kinematics)
-//  }
-//  void lift( const State *xBase, State *xBundle) const
-//  {
-//    //Take xBase and return xBundle (e.g. Inverse Kinematics)
-//  }
-//}
+namespace ompl
+{
+  namespace multilevel
+  {
+    OMPL_CLASS_FORWARD(Projection);
+  }
+}
+
+class MyProjectionOperator: public ompl::multilevel::Projection
+{
+  public:
+    MyProjectionOperator(StateSpacePtr bundle, StateSpacePtr base, PlanarManipulator *manip):
+      Projection(), bundle_(bundle), base_(base), manip_(manip)
+    {
+    }
+
+    void project( const State *xBundle, State *xBase) const
+    {
+        std::vector<double> reals;
+        bundle_->copyToReals(reals, xBundle);
+
+        Eigen::Affine2d eeFrame;
+        manip_->FK(reals, eeFrame);
+
+        std::cout << " " << eeFrame.translation()(0) 
+                      << " " << eeFrame.translation()(1) << std::endl;
+
+
+        double x = eeFrame.translation()(0);
+        double y = eeFrame.translation()(1);
+        xBase->as<RealVectorStateSpace::StateType>()->values[0] = x;
+        xBase->as<RealVectorStateSpace::StateType>()->values[1] = y;
+    }
+
+    void lift( const State *xBase, State *xBundle) const
+    {
+      //Take xBase and return xBundle (e.g. Inverse Kinematics)
+    }
+
+  private:
+    ompl::base::StateSpacePtr bundle_;
+    ompl::base::StateSpacePtr base_;
+    PlanarManipulator *manip_;
+};
 
 
 
@@ -111,36 +143,34 @@ int main()
     //#########################################################################
     //## Create task space [BASE SPACE]
     //#########################################################################
-    // ompl::base::StateSpacePtr workspace(new RealVectorStateSpace(3));
-    // ompl::base::RealVectorBounds bounds(3);
-    // bounds.setLow(-2);
-    // bounds.setHigh(+2);
-    // workspace->as<RealVectorStateSpace>()->setBounds(bounds);
+    ompl::base::StateSpacePtr workspace(new RealVectorStateSpace(3));
+    ompl::base::RealVectorBounds boundsWorkspace(3);
+    boundsWorkspace.setLow(-2);
+    boundsWorkspace.setHigh(+2);
+    workspace->as<RealVectorStateSpace>()->setBounds(boundsWorkspace);
 
-    // SpaceInformationPtr siTask = std::make_shared<SpaceInformation>(workspace);
+    SpaceInformationPtr siTask = std::make_shared<SpaceInformation>(workspace);
     // siTask->setStateValidityChecker( 
     //     std::make_shared<TaskSpaceCollisionChecker>( siTask));
-    // siTask->setStateValidityCheckingResolution(0.001);
+    siTask->setStateValidityChecker( 
+        std::make_shared<AllValidStateValidityChecker>( siTask));
+    siTask->setStateValidityCheckingResolution(0.001);
     
     //#########################################################################
     //## Create mapping total to base space [PROJECTION]
     //#########################################################################
 
-    // auto planner = std::make_shared<ompl::multilevel::QRRT>(si);
-    // Projection proj = new MyProjectionOperator(totalSpace, baseSpace);
+    ompl::multilevel::ProjectionPtr proj = 
+      std::make_shared<MyProjectionOperator>(space, workspace, &manipulator);
 
-    // std::vector<SpaceInformationPtr> siVec;
-    // siVec.push_back(siTask);
-    // siVec.push_back(siJointSpace);
+    std::vector<SpaceInformationPtr> siVec;
+    siVec.push_back(siTask);
+    siVec.push_back(si);
 
-    // std::vector<BundleSpaceProjectionPtr> projVec;
-    // projVec.push_back(proj);
+    std::vector<ompl::multilevel::ProjectionPtr> projVec;
+    projVec.push_back(proj);
 
-    // auto planner = std::make_shared<ompl::multilevel::QRRT>(siVec, projVec);
-
-    // FiberBundle bundle(totalSpace, baseSpace);
-    // FiberBundle bundle(totalSpace, baseSpace, projection);
-    // FiberBundle bundle(std::vector<spaces>, std::vector<projections>);
+    auto planner = std::make_shared<ompl::multilevel::QRRT>(siVec, projVec);
 
     //#########################################################################
     //## Create robot joint configuration space
@@ -156,7 +186,6 @@ int main()
 
     ProblemDefinitionPtr pdef = std::make_shared<ProblemDefinition>(si);
     pdef->addStartState(start);
-
     si->freeState(start);
 
     ompl::base::GoalPtr goal(new PlanarManipulatorIKGoal(si, goalFrame, &manipulator, false));
@@ -164,7 +193,7 @@ int main()
     pdef->setGoal(goal);
 
     // auto planner = std::make_shared<ompl::geometric::RRTConnect>(si);
-    auto planner = std::make_shared<ompl::multilevel::QRRT>(si);
+    // auto planner = std::make_shared<ompl::multilevel::QRRT>(si);
     // auto planner = std::make_shared<ompl::geometric::RRT>(si);
     planner->setProblemDefinition(pdef);
     planner->setup();

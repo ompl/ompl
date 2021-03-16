@@ -106,8 +106,14 @@ void ompl::multilevel::QMPImpl::grow()
         // qGoal_ = new Configuration(getBundle(), xRandom_->state);
         // qGoal_->isGoal = true;
 
+        if(qGoal_ == nullptr)
+        {
+            qGoal_ = new Configuration(getBundle());
+            qGoal_->isGoal = true;
+        }
         getGoalPtr()->sampleGoal(qGoal_->state);
         addConfiguration(qGoal_);
+        addGoalConfiguration(qGoal_);
 
         findSection();
     }

@@ -15,6 +15,7 @@ namespace ompl
         class Projection
         {
         public:
+            Projection();
             Projection(std::vector<ProjectionComponentPtr> components);
 
             virtual ~Projection() = default;

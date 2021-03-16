@@ -53,12 +53,6 @@ ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(
     declareBundleSpaces(true);
 }
 
-// template <class T>
-// ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(ompl::base::SpaceInformationPtr si) : BaseT(si)
-// {
-//     declareBundleSpaces();
-// }
-
 template <class T>
 ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
   : BaseT(siVec, type)
@@ -266,6 +260,13 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(
     const ompl::base::ProblemDefinitionPtr &pdef)
 {
     BaseT::setProblemDefinition(pdef);
+
+    if(siVec_.size() < 1) return;
+
+    pdefVec_.clear();
+    pdefVec_.push_back(pdef);
+    bundleSpaces_.back()->setProblemDefinition(pdef);
+
     if(siVec_.size() <= 1) return;
 
     assert(bundleSpaces_.size() == siVec_.size());
@@ -290,9 +291,6 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(
 
     base::OptimizationObjectivePtr obj = pdef->getOptimizationObjective();
 
-    pdefVec_.clear();
-    pdefVec_.push_back(pdef);
-    bundleSpaces_.back()->setProblemDefinition(pdef);
 
     for (unsigned int k = siVec_.size() - 1; k > 0; k--)
     {
