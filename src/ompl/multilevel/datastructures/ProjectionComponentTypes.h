@@ -43,7 +43,7 @@ namespace ompl
 {
     namespace multilevel
     {
-        enum BundleSpaceComponentType
+        enum ProjectionComponentType
         {
             /** \brief ompl::multilevel::BundleSpaceComponent_None */
             BUNDLE_SPACE_NO_PROJECTION = 0,

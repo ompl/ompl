@@ -44,13 +44,13 @@
 
 using namespace ompl::multilevel;
 
-BundleSpaceComponent_SE2RN_SE2::BundleSpaceComponent_SE2RN_SE2(ompl::base::StateSpacePtr BundleSpace,
+ProjectionComponentWithFiber_SE2RN_SE2::ProjectionComponentWithFiber_SE2RN_SE2(ompl::base::StateSpacePtr BundleSpace,
                                                                ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void BundleSpaceComponent_SE2RN_SE2::projectBase(const ompl::base::State *xBundle, ompl::base::State *xBase) const
+void ProjectionComponentWithFiber_SE2RN_SE2::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
     const base::SE2StateSpace::StateType *xBundle_SE2 =
         xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
@@ -60,7 +60,7 @@ void BundleSpaceComponent_SE2RN_SE2::projectBase(const ompl::base::State *xBundl
     xBase_SE2->setYaw(xBundle_SE2->getYaw());
 }
 
-void BundleSpaceComponent_SE2RN_SE2::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+void ProjectionComponentWithFiber_SE2RN_SE2::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                                ompl::base::State *xBundle) const
 {
     base::SE2StateSpace::StateType *xBundle_SE2 =

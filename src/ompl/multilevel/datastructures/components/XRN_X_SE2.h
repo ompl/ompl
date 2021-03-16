@@ -44,16 +44,16 @@ namespace ompl
 {
     namespace multilevel
     {
-        class BundleSpaceComponent_SE2RN_SE2 : public BundleSpaceComponent_XRN_X
+        class ProjectionComponentWithFiber_SE2RN_SE2 : public ProjectionComponentWithFiber_XRN_X
         {
-            using BaseT = BundleSpaceComponent_XRN_X;
+            using BaseT = ProjectionComponentWithFiber_XRN_X;
 
         public:
-            BundleSpaceComponent_SE2RN_SE2(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace);
+            ProjectionComponentWithFiber_SE2RN_SE2(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace);
 
-            ~BundleSpaceComponent_SE2RN_SE2() override = default;
+            ~ProjectionComponentWithFiber_SE2RN_SE2() override = default;
 
-            virtual void projectBase(const ompl::base::State *xBundle, ompl::base::State *xBase) const override;
+            virtual void project(const ompl::base::State *xBundle, ompl::base::State *xBase) const override;
 
             virtual void liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                    ompl::base::State *xBundle) const override;

@@ -39,13 +39,13 @@
 #include <ompl/multilevel/datastructures/components/RN_RM.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
-ompl::multilevel::BundleSpaceComponent_RN_RM::BundleSpaceComponent_RN_RM(ompl::base::StateSpacePtr BundleSpace,
+ompl::multilevel::ProjectionComponentWithFiber_RN_RM::ProjectionComponentWithFiber_RN_RM(ompl::base::StateSpacePtr BundleSpace,
                                                                          ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::multilevel::BundleSpaceComponent_RN_RM::projectFiber(const ompl::base::State *xBundle,
+void ompl::multilevel::ProjectionComponentWithFiber_RN_RM::projectFiber(const ompl::base::State *xBundle,
                                                                 ompl::base::State *xFiber) const
 {
     const base::RealVectorStateSpace::StateType *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();
@@ -58,7 +58,7 @@ void ompl::multilevel::BundleSpaceComponent_RN_RM::projectFiber(const ompl::base
     }
 }
 
-void ompl::multilevel::BundleSpaceComponent_RN_RM::projectBase(const ompl::base::State *xBundle,
+void ompl::multilevel::ProjectionComponentWithFiber_RN_RM::project(const ompl::base::State *xBundle,
                                                                ompl::base::State *xBase) const
 {
     const base::RealVectorStateSpace::StateType *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();
@@ -70,7 +70,7 @@ void ompl::multilevel::BundleSpaceComponent_RN_RM::projectBase(const ompl::base:
     }
 }
 
-void ompl::multilevel::BundleSpaceComponent_RN_RM::liftState(const ompl::base::State *xBase,
+void ompl::multilevel::ProjectionComponentWithFiber_RN_RM::liftState(const ompl::base::State *xBase,
                                                              const ompl::base::State *xFiber,
                                                              ompl::base::State *xBundle) const
 {
@@ -88,14 +88,14 @@ void ompl::multilevel::BundleSpaceComponent_RN_RM::liftState(const ompl::base::S
     }
 }
 
-ompl::base::StateSpacePtr ompl::multilevel::BundleSpaceComponent_RN_RM::computeFiberSpace()
+ompl::base::StateSpacePtr ompl::multilevel::ProjectionComponentWithFiber_RN_RM::computeFiberSpace()
 {
     unsigned int N1 = getDimension();
     unsigned int N0 = getBaseDimension();
     unsigned int NX = N1 - N0;
     base::StateSpacePtr FiberSpace = std::make_shared<base::RealVectorStateSpace>(NX);
     base::RealVectorBounds Bundle_bounds =
-        std::static_pointer_cast<base::RealVectorStateSpace>(BundleSpace_)->getBounds();
+        std::static_pointer_cast<base::RealVectorStateSpace>(getBundleSpace())->getBounds();
 
     std::vector<double> low;
     low.resize(NX);

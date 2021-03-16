@@ -43,13 +43,13 @@
 
 using namespace ompl::multilevel;
 
-BundleSpaceComponent_SE3RN_SE3RM::BundleSpaceComponent_SE3RN_SE3RM(ompl::base::StateSpacePtr BundleSpace,
+ProjectionComponentWithFiber_SE3RN_SE3RM::ProjectionComponentWithFiber_SE3RN_SE3RM(ompl::base::StateSpacePtr BundleSpace,
                                                                    ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void BundleSpaceComponent_SE3RN_SE3RM::projectBase(const ompl::base::State *xBundle, ompl::base::State *xBase) const
+void ProjectionComponentWithFiber_SE3RN_SE3RM::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
     const base::SE3StateSpace::StateType *xBundle_SE3 =
         xBundle->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);
@@ -74,7 +74,7 @@ void BundleSpaceComponent_SE3RN_SE3RM::projectBase(const ompl::base::State *xBun
     }
 }
 
-void BundleSpaceComponent_SE3RN_SE3RM::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+void ProjectionComponentWithFiber_SE3RN_SE3RM::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                                  ompl::base::State *xBundle) const
 {
     base::SE3StateSpace::StateType *xBundle_SE3 =

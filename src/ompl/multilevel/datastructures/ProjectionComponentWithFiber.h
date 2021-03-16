@@ -39,29 +39,33 @@
 #ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_COMPONENT_
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_COMPONENT_
 #include <ompl/base/State.h>
-#include <ompl/base/StateSpace.h>
 #include <ompl/base/StateSpaceTypes.h>
-#include "BundleSpaceComponentTypes.h"
-#include "BundleSpaceProjection.h"
+#include "ProjectionComponentTypes.h"
+#include "ProjectionComponent.h"
 
 namespace ompl
 {
+    namespace base
+    {
+      OMPL_CLASS_FORWARD(SpaceInformation);
+      OMPL_CLASS_FORWARD(StateSpace);
+    }
     namespace multilevel
     {
         /* \brief A bundle projection with an explicit fiber space representation
          * which can be explicitly sampled to lift states */
-        class BundleSpaceComponent: public BundleSpaceProjection
+        class ProjectionComponentWithFiber: public ProjectionComponent
         {
         public:
-            BundleSpaceComponent(
-                base::StateSpacePtr BundleSpace, 
-                base::StateSpacePtr BaseSpace);
+            ProjectionComponentWithFiber(
+                base::StateSpacePtr bundleSpace, 
+                base::StateSpacePtr baseSpace);
 
-            virtual ~BundleSpaceComponent() = default;
+            virtual ~ProjectionComponentWithFiber() = default;
 
-            virtual void liftState(
+            virtual void lift(
                 const ompl::base::State *xBase, 
-                ompl::base::State *xBundle) const;
+                ompl::base::State *xBundle) const override;
 
             virtual void liftState(
                 const ompl::base::State *xBase, 
@@ -74,13 +78,11 @@ namespace ompl
 
             ompl::base::StateSpacePtr getFiberSpace() const;
 
-            void initFiberSpace();
-
-            bool isDynamic() const;
-
             /// Dimension of Fiber Space
             unsigned int getFiberDimension() const;
             std::string getFiberTypeAsString() const;
+
+            void makeFiberSpace();
 
         protected:
             virtual ompl::base::StateSpacePtr computeFiberSpace() = 0;
@@ -89,7 +91,9 @@ namespace ompl
 
             base::StateSpacePtr fiberSpace_{nullptr};
 
-            ompl::base::StateSamplerPtr fiberSpaceSampler_;
+            base::SpaceInformationPtr siFiberSpace_{nullptr};
+
+            base::StateSamplerPtr fiberSpaceSampler_;
 
             // \brief A temporary state on Fiber space
             ompl::base::State *xFiberTmp_{nullptr};

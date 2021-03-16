@@ -43,13 +43,13 @@
 
 #include <ompl/util/Exception.h>
 
-ompl::multilevel::BundleSpaceComponent_SE2RN_R2::BundleSpaceComponent_SE2RN_R2(ompl::base::StateSpacePtr BundleSpace,
+ompl::multilevel::ProjectionComponentWithFiber_SE2RN_R2::ProjectionComponentWithFiber_SE2RN_R2(ompl::base::StateSpacePtr BundleSpace,
                                                                                ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::multilevel::BundleSpaceComponent_SE2RN_R2::projectFiber(const ompl::base::State *xBundle,
+void ompl::multilevel::ProjectionComponentWithFiber_SE2RN_R2::projectFiber(const ompl::base::State *xBundle,
                                                                    ompl::base::State *xFiber) const
 {
     const base::SE2StateSpace::StateType *xBundle_SE2 =
@@ -69,7 +69,7 @@ void ompl::multilevel::BundleSpaceComponent_SE2RN_R2::projectFiber(const ompl::b
     }
 }
 
-void ompl::multilevel::BundleSpaceComponent_SE2RN_R2::projectBase(const ompl::base::State *xBundle,
+void ompl::multilevel::ProjectionComponentWithFiber_SE2RN_R2::project(const ompl::base::State *xBundle,
                                                                   ompl::base::State *xBase) const
 {
     const base::SE2StateSpace::StateType *xBundle_SE2 =
@@ -79,7 +79,7 @@ void ompl::multilevel::BundleSpaceComponent_SE2RN_R2::projectBase(const ompl::ba
     xBase_R2->values[1] = xBundle_SE2->getY();
 }
 
-void ompl::multilevel::BundleSpaceComponent_SE2RN_R2::liftState(const ompl::base::State *xBase,
+void ompl::multilevel::ProjectionComponentWithFiber_SE2RN_R2::liftState(const ompl::base::State *xBase,
                                                                 const ompl::base::State *xFiber,
                                                                 ompl::base::State *xBundle) const
 {
@@ -105,17 +105,17 @@ void ompl::multilevel::BundleSpaceComponent_SE2RN_R2::liftState(const ompl::base
     }
 }
 
-ompl::base::StateSpacePtr ompl::multilevel::BundleSpaceComponent_SE2RN_R2::computeFiberSpace()
+ompl::base::StateSpacePtr ompl::multilevel::ProjectionComponentWithFiber_SE2RN_R2::computeFiberSpace()
 {
-    unsigned int N = BundleSpace_->getDimension();
-    unsigned int Y = BaseSpace_->getDimension();
+    unsigned int N = getDimension();
+    unsigned int Y = getBaseDimension();
     if (N > 3 && Y != 2)
     {
         OMPL_ERROR("Assumed input is SE(2)xRN -> R2, but got %d -> %d dimensions.", N, Y);
         throw Exception("Invalid Dimensionality");
     }
 
-    base::CompoundStateSpace *Bundle_compound = BundleSpace_->as<base::CompoundStateSpace>();
+    base::CompoundStateSpace *Bundle_compound = getBundleSpace()->as<base::CompoundStateSpace>();
     const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
     const std::vector<base::StateSpacePtr> Bundle_SE2_decomposed =
         Bundle_decomposed.at(0)->as<base::CompoundStateSpace>()->getSubspaces();

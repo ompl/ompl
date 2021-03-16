@@ -41,8 +41,7 @@
 
 #include <ompl/base/Planner.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
-#include <ompl/multilevel/datastructures/BundleSpaceComponent.h>
-#include <ompl/multilevel/datastructures/BundleSpaceComponentFactory.h>
+#include <ompl/multilevel/datastructures/ProjectionComponentFactory.h>
 
 namespace ompl
 {
@@ -53,6 +52,7 @@ namespace ompl
     {
         OMPL_CLASS_FORWARD(BundleSpaceComponent);
         OMPL_CLASS_FORWARD(BundleSpaceMetric);
+        OMPL_CLASS_FORWARD(Projection);
         OMPL_CLASS_FORWARD(BundleSpacePropagator);
 
         /// \brief A single Bundle-space
@@ -83,7 +83,7 @@ namespace ompl
                  and we automatically compute the fiber */
 
             BundleSpace(const ompl::base::SpaceInformationPtr &si, 
-                BundleSpace *parent_ = nullptr);
+                BundleSpace *baseSpace_ = nullptr);
 
             virtual ~BundleSpace();
 
@@ -92,7 +92,9 @@ namespace ompl
             /// \brief Get SpaceInformationPtr for Base
             const ompl::base::SpaceInformationPtr &getBase() const;
             /// \brief Get ProjectionPtr from Bundle to Base
-            BundleSpaceProjectionPtr getProjection() const;
+            ProjectionPtr getProjection() const;
+
+            bool makeProjection();
 
             virtual void setProblemDefinition(
                 const ompl::base::ProblemDefinitionPtr &pdef) override;
@@ -123,7 +125,7 @@ namespace ompl
 
             /// \brief Print Information pertaining to why a state failed being
             /// valid
-            void debugInvalidState(const ompl::base::State *);
+            // void debugInvalidState(const ompl::base::State *);
 
             /// \brief reset counter for number of levels
             static void resetCounter();
@@ -143,16 +145,16 @@ namespace ompl
             void setBaseSpace(BundleSpace *baseBundleSpace);
 
             /// \brief Return k+1 th bundle space (locally the total space)
-            BundleSpace *getTotalSpace() const;
+            BundleSpace *getParentSpace() const;
 
             /// \brief Pointer to k+1 th bundle space (locally the total space)
-            void setTotalSpace(BundleSpace *totalSpace);
+            void setParentSpace(BundleSpace *parentSpace);
 
             /// \brief Return if has base space pointer
             bool hasBaseSpace() const;
 
-            /// \brief Return if has total space pointer
-            bool hasTotalSpace() const;
+            /// \brief Return if has parent space pointer
+            bool hasParentSpace() const;
 
             /// Level in hierarchy of Bundle-spaces
             unsigned int getLevel() const;
@@ -185,13 +187,16 @@ namespace ompl
             /// Level in sequence of Bundle-spaces
             unsigned int level_{0};
 
-            //\brief Being on the k-th bundle space, we denote as baseBundleSpace the k-1-th
+            //\brief Being on the k-th bundle space, we denote as baseSpace the k-1-th
             // bundle space (because it locally acts as the base space for the current class)
-            BundleSpace *baseSpace_{nullptr};
+            BundleSpace *baseBundleSpace_{nullptr};
 
-            //\brief Being on the k-th bundle space, we denote as totalBundleSpace the k+1-th
-            // bundle space (because it locally acts as the total space for the current class)
-            BundleSpace *totalSpace_{nullptr};
+            //\brief Being on the k-th bundle space, we denote as parentSpace the k+1-th
+            // bundle space
+            BundleSpace *parentBundleSpace_{nullptr};
+
+            ompl::base::SpaceInformationPtr totalSpace_{nullptr};
+            ompl::base::SpaceInformationPtr baseSpace_{nullptr};
 
             ompl::base::StateSamplerPtr Bundle_sampler_;
             ompl::base::ValidStateSamplerPtr Bundle_valid_sampler_;
@@ -201,15 +206,13 @@ namespace ompl
 
             /** \brief Projection Operator to project and lift between bundle
              * and base space */
-            BundleSpaceProjectionPtr projection_;
+            ProjectionPtr projection_;
 
         protected:
             /// Check if Bundle-space is bounded
             void checkBundleSpaceMeasure(std::string name, 
                 const ompl::base::StateSpacePtr space) const;
             void sanityChecks() const;
-
-            std::vector<BundleSpaceComponentPtr> components_;
 
             /// Internal function implementing actual printing to stream
             virtual void print(std::ostream &out) const;

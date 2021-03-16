@@ -41,13 +41,13 @@
 #include <ompl/base/spaces/SO3StateSpace.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
-ompl::multilevel::BundleSpaceComponent_SE3RN_R3::BundleSpaceComponent_SE3RN_R3(ompl::base::StateSpacePtr BundleSpace,
+ompl::multilevel::ProjectionComponentWithFiber_SE3RN_R3::ProjectionComponentWithFiber_SE3RN_R3(ompl::base::StateSpacePtr BundleSpace,
                                                                                ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::multilevel::BundleSpaceComponent_SE3RN_R3::projectFiber(const ompl::base::State *xBundle,
+void ompl::multilevel::ProjectionComponentWithFiber_SE3RN_R3::projectFiber(const ompl::base::State *xBundle,
                                                                    ompl::base::State *xFiber) const
 {
     const base::SE3StateSpace::StateType *xBundle_SE3 =
@@ -72,7 +72,7 @@ void ompl::multilevel::BundleSpaceComponent_SE3RN_R3::projectFiber(const ompl::b
     }
 }
 
-void ompl::multilevel::BundleSpaceComponent_SE3RN_R3::projectBase(const ompl::base::State *xBundle,
+void ompl::multilevel::ProjectionComponentWithFiber_SE3RN_R3::project(const ompl::base::State *xBundle,
                                                                   ompl::base::State *xBase) const
 {
     const base::SE3StateSpace::StateType *xBundle_SE3 =
@@ -84,7 +84,7 @@ void ompl::multilevel::BundleSpaceComponent_SE3RN_R3::projectBase(const ompl::ba
     xBase_R3->values[2] = xBundle_SE3->getZ();
 }
 
-void ompl::multilevel::BundleSpaceComponent_SE3RN_R3::liftState(const ompl::base::State *xBase,
+void ompl::multilevel::ProjectionComponentWithFiber_SE3RN_R3::liftState(const ompl::base::State *xBase,
                                                                 const ompl::base::State *xFiber,
                                                                 ompl::base::State *xBundle) const
 {
@@ -112,9 +112,9 @@ void ompl::multilevel::BundleSpaceComponent_SE3RN_R3::liftState(const ompl::base
     }
 }
 
-ompl::base::StateSpacePtr ompl::multilevel::BundleSpaceComponent_SE3RN_R3::computeFiberSpace()
+ompl::base::StateSpacePtr ompl::multilevel::ProjectionComponentWithFiber_SE3RN_R3::computeFiberSpace()
 {
-    base::CompoundStateSpace *Bundle_compound = BundleSpace_->as<base::CompoundStateSpace>();
+    base::CompoundStateSpace *Bundle_compound = getBundleSpace()->as<base::CompoundStateSpace>();
     const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
     const std::vector<base::StateSpacePtr> Bundle_SE3_decomposed =
         Bundle_decomposed.at(0)->as<base::CompoundStateSpace>()->getSubspaces();

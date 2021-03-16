@@ -36,7 +36,7 @@
 
 /* Author: Andreas Orthey */
 
-#include <ompl/multilevel/datastructures/BundleSpaceComponentFactory.h>
+#include <ompl/multilevel/datastructures/ProjectionComponentFactory.h>
 
 // XRN -> X
 #include <ompl/multilevel/datastructures/components/XRN_X_SO2.h>
@@ -68,54 +68,54 @@
 
 using namespace ompl::multilevel;
 
-std::vector<BundleSpaceComponentPtr>
-BundleSpaceComponentFactory::MakeBundleSpaceComponents(ompl::base::SpaceInformationPtr Bundle)
+std::vector<ProjectionComponentPtr>
+ProjectionComponentFactory::MakeProjectionComponents(ompl::base::SpaceInformationPtr Bundle)
 {
     const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
-    int bundleSpaceComponents = GetNumberOfComponents(Bundle_space);
+    int ProjectionComponents = GetNumberOfComponents(Bundle_space);
 
-    std::vector<BundleSpaceComponentPtr> components;
+    std::vector<ProjectionComponentPtr> components;
 
-    OMPL_DEBUG("Bundle components: %d", bundleSpaceComponents);
+    OMPL_DEBUG("Bundle components: %d", ProjectionComponents);
 
-    if (bundleSpaceComponents > 1)
+    if (ProjectionComponents > 1)
     {
         base::CompoundStateSpace *Bundle_compound = Bundle_space->as<base::CompoundStateSpace>();
         const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
 
-        for (int m = 0; m < bundleSpaceComponents; m++)
+        for (int m = 0; m < ProjectionComponents; m++)
         {
             base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
-            BundleSpaceComponentPtr componentM = MakeBundleSpaceComponent(BundleM);
+            ProjectionComponentPtr componentM = MakeProjectionComponent(BundleM);
             components.push_back(componentM);
         }
     }
     else
     {
-        BundleSpaceComponentPtr component = MakeBundleSpaceComponent(Bundle_space);
+        ProjectionComponentPtr component = MakeProjectionComponent(Bundle_space);
         components.push_back(component);
     }
 
     return components;
 }
 
-std::vector<BundleSpaceComponentPtr> BundleSpaceComponentFactory::MakeBundleSpaceComponents(
+std::vector<ProjectionComponentPtr> ProjectionComponentFactory::MakeProjectionComponents(
     ompl::base::SpaceInformationPtr Bundle, ompl::base::SpaceInformationPtr Base)
 {
     const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
-    int bundleSpaceComponents = GetNumberOfComponents(Bundle_space);
+    int ProjectionComponents = GetNumberOfComponents(Bundle_space);
     const base::StateSpacePtr Base_space = Base->getStateSpace();
     int baseSpaceComponents = GetNumberOfComponents(Base_space);
 
-    if (baseSpaceComponents != bundleSpaceComponents)
+    if (baseSpaceComponents != ProjectionComponents)
     {
         Base->printSettings();
         OMPL_ERROR("Base Space has %d, but Bundle Space has %d components.", baseSpaceComponents,
-                   bundleSpaceComponents);
+                   ProjectionComponents);
         throw Exception("Different Number Of Components");
     }
 
-    std::vector<BundleSpaceComponentPtr> components;
+    std::vector<ProjectionComponentPtr> components;
 
     // Check if planning spaces are equivalent, i.e. if (X, \phi) == (Y, \phi)
     bool areValidityCheckersEquivalent = false;
@@ -124,7 +124,7 @@ std::vector<BundleSpaceComponentPtr> BundleSpaceComponentFactory::MakeBundleSpac
         areValidityCheckersEquivalent = true;
     }
 
-    if (bundleSpaceComponents > 1)
+    if (ProjectionComponents > 1)
     {
         base::CompoundStateSpace *Bundle_compound = Bundle_space->as<base::CompoundStateSpace>();
         base::CompoundStateSpace *Base_compound = Base_space->as<base::CompoundStateSpace>();
@@ -132,116 +132,117 @@ std::vector<BundleSpaceComponentPtr> BundleSpaceComponentFactory::MakeBundleSpac
         const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
         const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
 
-        for (int m = 0; m < bundleSpaceComponents; m++)
+        for (int m = 0; m < ProjectionComponents; m++)
         {
             base::StateSpacePtr BaseM = Base_decomposed.at(m);
             base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
-            BundleSpaceComponentPtr componentM =
-                MakeBundleSpaceComponent(BundleM, BaseM, areValidityCheckersEquivalent);
+            ProjectionComponentPtr componentM =
+                MakeProjectionComponent(BundleM, BaseM, areValidityCheckersEquivalent);
             components.push_back(componentM);
         }
     }
     else
     {
-        BundleSpaceComponentPtr component =
-            MakeBundleSpaceComponent(Bundle_space, Base_space, areValidityCheckersEquivalent);
+        ProjectionComponentPtr component =
+            MakeProjectionComponent(Bundle_space, Base_space, areValidityCheckersEquivalent);
         components.push_back(component);
     }
     return components;
 }
 
-BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(const ompl::base::StateSpacePtr Bundle)
+ProjectionComponentPtr ProjectionComponentFactory::MakeProjectionComponent(const ompl::base::StateSpacePtr Bundle)
 {
-    return MakeBundleSpaceComponent(Bundle, nullptr, false);
+    return MakeProjectionComponent(Bundle, nullptr, false);
 }
 
-BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(const ompl::base::StateSpacePtr Bundle,
-                                                                              const ompl::base::StateSpacePtr Base,
-                                                                              bool areValidityCheckersEquivalent)
+ProjectionComponentPtr ProjectionComponentFactory::MakeProjectionComponent(
+    const ompl::base::StateSpacePtr Bundle, 
+    const ompl::base::StateSpacePtr Base, 
+    bool areValidityCheckersEquivalent)
 {
-    BundleSpaceComponentType type = identifyBundleSpaceComponentType(Bundle, Base);
+    ProjectionComponentType type = identifyProjectionComponentType(Bundle, Base);
     if (type == BUNDLE_SPACE_IDENTITY_PROJECTION && !areValidityCheckersEquivalent)
     {
         type = BUNDLE_SPACE_CONSTRAINED_RELAXATION;
     }
 
-    BundleSpaceComponentPtr component;
+    ProjectionComponentPtr component;
 
     if (type == BUNDLE_SPACE_NO_PROJECTION)
     {
-        component = std::make_shared<BundleSpaceComponent_None>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_None>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_EMPTY_SET_PROJECTION)
     {
-        component = std::make_shared<BundleSpaceComponent_EmptySet>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_EmptySet>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_IDENTITY_PROJECTION)
     {
-        component = std::make_shared<BundleSpaceComponent_Identity>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_Identity>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_CONSTRAINED_RELAXATION)
     {
-        component = std::make_shared<BundleSpaceComponent_Relaxation>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_Relaxation>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_RN_RM)
     {
-        component = std::make_shared<BundleSpaceComponent_RN_RM>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_RN_RM>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_RNSO2_RN)
     {
-        component = std::make_shared<BundleSpaceComponent_RNSO2_RN>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_RNSO2_RN>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE2_R2)
     {
-        component = std::make_shared<BundleSpaceComponent_SE2_R2>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_SE2_R2>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE2RN_R2)
     {
-        component = std::make_shared<BundleSpaceComponent_SE2RN_R2>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_SE2RN_R2>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE2RN_SE2)
     {
-        component = std::make_shared<BundleSpaceComponent_SE2RN_SE2>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_SE2RN_SE2>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE2RN_SE2RM)
     {
-        component = std::make_shared<BundleSpaceComponent_SE2RN_SE2RM>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_SE2RN_SE2RM>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SO2RN_SO2)
     {
-        component = std::make_shared<BundleSpaceComponent_SO2RN_SO2>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_SO2RN_SO2>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SO2RN_SO2RM)
     {
-        component = std::make_shared<BundleSpaceComponent_SO2RN_SO2RM>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_SO2RN_SO2RM>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SO3RN_SO3)
     {
-        component = std::make_shared<BundleSpaceComponent_SO3RN_SO3>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_SO3RN_SO3>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SO3RN_SO3RM)
     {
-        component = std::make_shared<BundleSpaceComponent_SO3RN_SO3RM>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_SO3RN_SO3RM>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE3_R3)
     {
-        component = std::make_shared<BundleSpaceComponent_SE3_R3>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_SE3_R3>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE3RN_R3)
     {
-        component = std::make_shared<BundleSpaceComponent_SE3RN_R3>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_SE3RN_R3>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE3RN_SE3)
     {
-        component = std::make_shared<BundleSpaceComponent_SE3RN_SE3>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_SE3RN_SE3>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE3RN_SE3RM)
     {
-        component = std::make_shared<BundleSpaceComponent_SE3RN_SE3RM>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_SE3RN_SE3RM>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SO2N_SO2M)
     {
-        component = std::make_shared<BundleSpaceComponent_SO2N_SO2M>(Bundle, Base);
+        component = std::make_shared<ProjectionComponent_SO2N_SO2M>(Bundle, Base);
     }
     else
     {
@@ -253,7 +254,7 @@ BundleSpaceComponentPtr BundleSpaceComponentFactory::MakeBundleSpaceComponent(co
     return component;
 }
 
-BundleSpaceComponentType BundleSpaceComponentFactory::identifyBundleSpaceComponentType(
+ProjectionComponentType ProjectionComponentFactory::identifyProjectionComponentType(
     const ompl::base::StateSpacePtr Bundle, const ompl::base::StateSpacePtr Base)
 {
     if (Base == nullptr)
@@ -345,7 +346,7 @@ BundleSpaceComponentType BundleSpaceComponentFactory::identifyBundleSpaceCompone
     return BUNDLE_SPACE_UNKNOWN;
 }
 
-bool BundleSpaceComponentFactory::isMapping_Identity(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_Identity(const ompl::base::StateSpacePtr Bundle,
                                                      const ompl::base::StateSpacePtr Base)
 {
     if (Bundle->isCompound())
@@ -380,7 +381,7 @@ bool BundleSpaceComponentFactory::isMapping_Identity(const ompl::base::StateSpac
     return false;
 }
 
-bool BundleSpaceComponentFactory::isMapping_RN_to_RM(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_RN_to_RM(const ompl::base::StateSpacePtr Bundle,
                                                      const ompl::base::StateSpacePtr Base)
 {
     if (Bundle->isCompound())
@@ -401,7 +402,7 @@ bool BundleSpaceComponentFactory::isMapping_RN_to_RM(const ompl::base::StateSpac
     return false;
 }
 
-bool BundleSpaceComponentFactory::isMapping_SE3_to_R3(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_SE3_to_R3(const ompl::base::StateSpacePtr Bundle,
                                                       const ompl::base::StateSpacePtr Base)
 {
     if (!Bundle->isCompound())
@@ -419,7 +420,7 @@ bool BundleSpaceComponentFactory::isMapping_SE3_to_R3(const ompl::base::StateSpa
     }
     return false;
 }
-bool BundleSpaceComponentFactory::isMapping_SE3RN_to_R3(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_SE3RN_to_R3(const ompl::base::StateSpacePtr Bundle,
                                                         const ompl::base::StateSpacePtr Base)
 {
     if (!Bundle->isCompound())
@@ -446,7 +447,7 @@ bool BundleSpaceComponentFactory::isMapping_SE3RN_to_R3(const ompl::base::StateS
     return false;
 }
 
-bool BundleSpaceComponentFactory::isMapping_SE2_to_R2(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_SE2_to_R2(const ompl::base::StateSpacePtr Bundle,
                                                       const ompl::base::StateSpacePtr Base)
 {
     if (!Bundle->isCompound())
@@ -465,7 +466,7 @@ bool BundleSpaceComponentFactory::isMapping_SE2_to_R2(const ompl::base::StateSpa
     return false;
 }
 
-bool BundleSpaceComponentFactory::isMapping_RNSO2_to_RN(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_RNSO2_to_RN(const ompl::base::StateSpacePtr Bundle,
                                                         const ompl::base::StateSpacePtr Base)
 {
     if (!Bundle->isCompound())
@@ -493,7 +494,7 @@ bool BundleSpaceComponentFactory::isMapping_RNSO2_to_RN(const ompl::base::StateS
     return false;
 }
 
-bool BundleSpaceComponentFactory::isMapping_SE2RN_to_R2(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_SE2RN_to_R2(const ompl::base::StateSpacePtr Bundle,
                                                         const ompl::base::StateSpacePtr Base)
 {
     if (!Bundle->isCompound())
@@ -520,55 +521,55 @@ bool BundleSpaceComponentFactory::isMapping_SE2RN_to_R2(const ompl::base::StateS
     return false;
 }
 
-bool BundleSpaceComponentFactory::isMapping_SE2RN_to_SE2(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_SE2RN_to_SE2(const ompl::base::StateSpacePtr Bundle,
                                                          const ompl::base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SE2);
 }
 
-bool BundleSpaceComponentFactory::isMapping_SE3RN_to_SE3(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_SE3RN_to_SE3(const ompl::base::StateSpacePtr Bundle,
                                                          const ompl::base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SE3);
 }
 
-bool BundleSpaceComponentFactory::isMapping_SO2RN_to_SO2(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_SO2RN_to_SO2(const ompl::base::StateSpacePtr Bundle,
                                                          const ompl::base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SO2);
 }
 
-bool BundleSpaceComponentFactory::isMapping_SO3RN_to_SO3(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_SO3RN_to_SO3(const ompl::base::StateSpacePtr Bundle,
                                                          const ompl::base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SO3);
 }
 
-bool BundleSpaceComponentFactory::isMapping_SE2RN_to_SE2RM(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_SE2RN_to_SE2RM(const ompl::base::StateSpacePtr Bundle,
                                                            const ompl::base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SE2);
 }
 
-bool BundleSpaceComponentFactory::isMapping_SE3RN_to_SE3RM(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_SE3RN_to_SE3RM(const ompl::base::StateSpacePtr Bundle,
                                                            const ompl::base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SE3);
 }
 
-bool BundleSpaceComponentFactory::isMapping_SO2RN_to_SO2RM(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_SO2RN_to_SO2RM(const ompl::base::StateSpacePtr Bundle,
                                                            const ompl::base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SO2);
 }
 
-bool BundleSpaceComponentFactory::isMapping_SO3RN_to_SO3RM(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_SO3RN_to_SO3RM(const ompl::base::StateSpacePtr Bundle,
                                                            const ompl::base::StateSpacePtr Base)
 {
     return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SO3);
 }
 
-bool BundleSpaceComponentFactory::isMapping_SO2N_to_SO2M(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_SO2N_to_SO2M(const ompl::base::StateSpacePtr Bundle,
                                                          const ompl::base::StateSpacePtr Base)
 {
     if (!Bundle->isCompound())
@@ -610,7 +611,7 @@ bool BundleSpaceComponentFactory::isMapping_SO2N_to_SO2M(const ompl::base::State
     return true;
 }
 
-bool BundleSpaceComponentFactory::isMapping_XRN_to_X(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_XRN_to_X(const ompl::base::StateSpacePtr Bundle,
                                                      const ompl::base::StateSpacePtr Base,
                                                      const ompl::base::StateSpaceType type)
 {
@@ -634,7 +635,7 @@ bool BundleSpaceComponentFactory::isMapping_XRN_to_X(const ompl::base::StateSpac
     return false;
 }
 
-bool BundleSpaceComponentFactory::isMapping_XRN_to_XRM(const ompl::base::StateSpacePtr Bundle,
+bool ProjectionComponentFactory::isMapping_XRN_to_XRM(const ompl::base::StateSpacePtr Bundle,
                                                        const ompl::base::StateSpacePtr Base,
                                                        const ompl::base::StateSpaceType type)
 {
@@ -671,7 +672,7 @@ bool BundleSpaceComponentFactory::isMapping_XRN_to_XRM(const ompl::base::StateSp
     return false;
 }
 
-bool BundleSpaceComponentFactory::isMapping_EmptyProjection(const ompl::base::StateSpacePtr,
+bool ProjectionComponentFactory::isMapping_EmptyProjection(const ompl::base::StateSpacePtr,
                                                             const ompl::base::StateSpacePtr Base)
 {
     if (Base == nullptr || Base->getDimension() <= 0)
@@ -680,7 +681,7 @@ bool BundleSpaceComponentFactory::isMapping_EmptyProjection(const ompl::base::St
     }
     return false;
 }
-int BundleSpaceComponentFactory::GetNumberOfComponents(ompl::base::StateSpacePtr space)
+int ProjectionComponentFactory::GetNumberOfComponents(ompl::base::StateSpacePtr space)
 {
     int nrComponents = 0;
 

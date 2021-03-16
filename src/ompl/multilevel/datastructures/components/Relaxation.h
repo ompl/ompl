@@ -44,14 +44,14 @@ namespace ompl
 {
     namespace multilevel
     {
-        class BundleSpaceComponent_Relaxation : public BundleSpaceComponent_Identity
+        class ProjectionComponentWithFiber_Relaxation : public ProjectionComponentWithFiber_Identity
         {
-            using BaseT = BundleSpaceComponent_Identity;
+            using BaseT = ProjectionComponentWithFiber_Identity;
 
         public:
-            BundleSpaceComponent_Relaxation(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace);
+            ProjectionComponentWithFiber_Relaxation(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace);
 
-            ~BundleSpaceComponent_Relaxation() override = default;
+            ~ProjectionComponentWithFiber_Relaxation() override = default;
         };
     }
 }

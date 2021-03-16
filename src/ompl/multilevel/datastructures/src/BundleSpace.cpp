@@ -37,6 +37,7 @@
 /* Author: Andreas Orthey */
 
 #include <ompl/multilevel/datastructures/BundleSpace.h>
+#include <ompl/multilevel/datastructures/Projection.h>
 
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
@@ -51,55 +52,18 @@
 #include <ompl/util/Exception.h>
 #include <cmath>  //to use isnan(d)
 
-#define DEBUG_BUNDLESPACE
-#undef DEBUG_BUNDLESPACE
-
 using namespace ompl::base;
 using namespace ompl::multilevel;
 
 unsigned int BundleSpace::counter_ = 0;
 
-BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *baseSpace_)
-  : Planner(si, "BundleSpace"), totalSpace_(si), baseSpace_(baseSpace_)
+BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *baseBundleSpace_)
+  : Planner(si, "BundleSpace"), 
+  baseBundleSpace_(baseBundleSpace_),
+  totalSpace_(si), 
+  baseSpace_(baseBundleSpace_->getBundle())
 {
     id_ = counter_++;
-
-    //############################################################################
-    // Check for dynamic spaces
-    //############################################################################
-    control::SpaceInformation *siC = 
-      dynamic_cast<control::SpaceInformation *>(getBundle().get());
-    if (siC == nullptr)
-    {
-        isDynamic_ = false;
-    }
-    else
-    {
-        isDynamic_ = true;
-    }
-    OMPL_DEBUG("--- BundleSpace %d%s", id_, (isDynamic_ ? " (dynamic)" : ""));
-
-    //############################################################################
-
-    BundleSpaceComponentFactory componentFactory;
-
-    if (!hasBaseSpace())
-    {
-        components_ = componentFactory.MakeBundleSpaceComponents(getTotalSpace());
-    }
-    else
-    {
-        baseSpace_->setTotalSpace(this);
-
-        components_ = componentFactory.MakeBundleSpaceComponents(
-            getTotalSpace(), getBaseSpace());
-
-        makeFiberSpace();
-    }
-
-    sanityChecks();
-
-    // MakeProjection();
 
     std::stringstream ss;
     ss << (*this);
@@ -107,11 +71,11 @@ BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *baseSpace_)
 
     if (!Bundle_valid_sampler_)
     {
-        Bundle_valid_sampler_ = getTotalSpace()->allocValidStateSampler();
+        Bundle_valid_sampler_ = getBundle()->allocValidStateSampler();
     }
     if (!Bundle_sampler_)
     {
-        Bundle_sampler_ = getTotalSpace()->allocStateSampler();
+        Bundle_sampler_ = getBundle()->allocStateSampler();
     }
     if (hasBaseSpace())
     {
@@ -126,14 +90,37 @@ BundleSpace::~BundleSpace()
     {
         if (xBaseTmp_)
         {
-            Base->freeState(xBaseTmp_);
+            getBase()->freeState(xBaseTmp_);
         }
     }
     if (xBundleTmp_)
     {
-        getTotalSpace()->freeState(xBundleTmp_);
+        getBundle()->freeState(xBundleTmp_);
     }
-    components_.clear();
+}
+
+bool BundleSpace::makeProjection()
+{
+  std::cout << "NYI" << std::endl;
+  exit(0);
+    // ProjectionComponentFactory componentFactory;
+
+    // if (!hasBaseSpace())
+    // {
+    //     components_ = componentFactory.MakeBundleSpaceComponents(getBundle());
+    // }
+    // else
+    // {
+    //     baseSpace_->setParentSpace(this);
+
+    //     components_ = componentFactory.MakeBundleSpaceComponents(
+    //         getBundle(), getBase());
+
+    //     makeFiberSpace();
+    // }
+
+    sanityChecks();
+
 }
 
 bool BundleSpace::hasBaseSpace() const
@@ -146,9 +133,9 @@ bool BundleSpace::findSection()
     return false;
 }
 
-bool BundleSpace::hasTotalSpace() const
+bool BundleSpace::hasParentSpace() const
 {
-    return !(totalSpace_ == nullptr);
+    return !(parentBundleSpace_ == nullptr);
 }
 
 bool BundleSpace::isDynamic() const
@@ -195,44 +182,16 @@ void BundleSpace::clear()
     pdef_->clearSolutionPaths();
 }
 
-void BundleSpace::makeFiberSpace()
-{
-    StateSpacePtr Fiber_space = nullptr;
-    if (components_.size() > 1)
-    {
-        Fiber_space = std::make_shared<CompoundStateSpace>();
-        for (unsigned int m = 0; m < components_.size(); m++)
-        {
-            StateSpacePtr FiberM = components_.at(m)->getFiberSpace();
-            double weight = (FiberM->getDimension() > 0 ? 1.0 : 0.0);
-            std::static_pointer_cast<CompoundStateSpace>(Fiber_space)->addSubspace(FiberM, weight);
-        }
-    }
-    else
-    {
-        Fiber_space = components_.front()->getFiberSpace();
-    }
-
-    if (Fiber_space != nullptr)
-    {
-        Fiber = std::make_shared<SpaceInformation>(Fiber_space);
-        Fiber_sampler_ = Fiber->allocStateSampler();
-    }
-}
-
 void BundleSpace::sanityChecks() const
 {
-    const StateSpacePtr Bundle_space = getTotalSpace()->getStateSpace();
+    const StateSpacePtr Bundle_space = getBundle()->getStateSpace();
     checkBundleSpaceMeasure("Bundle", Bundle_space);
 
-    if (Base != nullptr)
-    {
-        const StateSpacePtr Base_space = Base->getStateSpace();
-        checkBundleSpaceMeasure("Base", Base_space);
-    }
     if (hasBaseSpace())
     {
-        if (getProjection()->getDimension() != getBundleDimension()))
+        const StateSpacePtr Base_space = getBase()->getStateSpace();
+        checkBundleSpaceMeasure("Base", Base_space);
+        if (getProjection()->getDimension() != getBundleDimension())
         {
             throw Exception("BundleSpace Dimensions are wrong.");
         }
@@ -273,26 +232,6 @@ void BundleSpace::resetCounter()
     BundleSpace::counter_ = 0;
 }
 
-void BundleSpace::liftState(const State *xBase, const State *xFiber, State *xBundle) const
-{
-    unsigned int M = components_.size();
-
-    if (M > 1)
-    {
-        for (unsigned int m = 0; m < M; m++)
-        {
-            const State *xmBase = xBase->as<CompoundState>()->as<State>(m);
-            const State *xmFiber = xFiber->as<CompoundState>()->as<State>(m);
-            State *xmBundle = xBundle->as<CompoundState>()->as<State>(m);
-            components_.at(m)->liftState(xmBase, xmFiber, xmBundle);
-        }
-    }
-    else
-    {
-        components_.front()->liftState(xBase, xFiber, xBundle);
-    }
-}
-
 // void BundleSpace::projectFiber(const State *xBundle, State *xFiber) const
 // {
 //     unsigned int M = components_.size();
@@ -315,29 +254,7 @@ void BundleSpace::liftState(const State *xBase, const State *xFiber, State *xBun
 //     }
 // }
 
-void BundleSpace::projectBase(const State *xBundle, State *xBase) const
-{
-    unsigned int M = components_.size();
-
-    if (M > 1)
-    {
-        for (unsigned int m = 0; m < M; m++)
-        {
-            if (components_.at(m)->getBaseDimension() > 0)
-            {
-                const State *xmBundle = xBundle->as<CompoundState>()->as<State>(m);
-                State *xmBase = xBase->as<CompoundState>()->as<State>(m);
-                components_.at(m)->projectBase(xmBundle, xmBase);
-            }
-        }
-    }
-    else
-    {
-        components_.front()->projectBase(xBundle, xBase);
-    }
-}
-
-BundleSpaceProjectionPtr BundleSpace::getProjection() const
+ProjectionPtr BundleSpace::getProjection() const
 {
   return projection_;
 }
@@ -497,22 +414,22 @@ bool BundleSpace::hasSolution()
 
 BundleSpace *BundleSpace::getBaseSpace() const
 {
-    return baseSpace_;
+    return baseBundleSpace_;
 }
 
-void BundleSpace::setbaseSpace(BundleSpace *baseSpace)
+void BundleSpace::setBaseSpace(BundleSpace *baseSpace)
 {
-    baseSpace_ = baseSpace;
+    baseBundleSpace_ = baseSpace;
 }
 
-BundleSpace *BundleSpace::getTotalSpace() const
+BundleSpace *BundleSpace::getParentSpace() const
 {
-    return totalSpace_;
+    return parentBundleSpace_;
 }
 
-void BundleSpace::setTotalSpace(BundleSpace *TotalSpace)
+void BundleSpace::setParentSpace(BundleSpace *parentSpace)
 {
-    totalSpace_ = TotalSpace;
+    parentBundleSpace_ = parentSpace;
 }
 
 unsigned int BundleSpace::getLevel() const
@@ -556,7 +473,7 @@ void BundleSpace::sampleBundle(State *xRandom)
         {
             // Adjusted sampling function: Sampling in G0 x Fiber
             getBaseSpace()->sampleFromDatastructure(xBaseTmp_);
-            projection_->lift(xBaseTmp_, xRandom);
+            getProjection()->lift(xBaseTmp_, xRandom);
         }
         else
         {
@@ -565,89 +482,15 @@ void BundleSpace::sampleBundle(State *xRandom)
     }
 }
 
-void BundleSpace::debugInvalidState(const State *x)
-{
-    const StateSpacePtr space = getTotalSpace()->getStateSpace();
-    bool bounds = space->satisfiesBounds(x);
-    if (!bounds)
-    {
-        std::vector<StateSpacePtr> Bundle_decomposed;
-        if (!space->isCompound())
-        {
-            Bundle_decomposed.push_back(space);
-        }
-        else
-        {
-            CompoundStateSpace *Bundle_compound = space->as<CompoundStateSpace>();
-            Bundle_decomposed = Bundle_compound->getSubspaces();
-        }
-
-        for (unsigned int m = 0; m < Bundle_decomposed.size(); m++)
-        {
-            StateSpacePtr spacek = Bundle_decomposed.at(m);
-            int type = spacek->getType();
-            switch (type)
-            {
-                case STATE_SPACE_REAL_VECTOR:
-                {
-                    auto *RN = spacek->as<RealVectorStateSpace>();
-                    const RealVectorStateSpace::StateType *xk =
-                        x->as<CompoundState>()->as<RealVectorStateSpace::StateType>(m);
-                    std::vector<double> bl = RN->getBounds().low;
-                    std::vector<double> bh = RN->getBounds().high;
-                    for (unsigned int k = 0; k < bl.size(); k++)
-                    {
-                        double qk = xk->values[k];
-                        double qkl = bl.at(k);
-                        double qkh = bh.at(k);
-                        if (qk < qkl || qk > qkh)
-                        {
-                            OMPL_ERROR("Out Of Bounds [component %d, \
-                                link %d] %.2f <= %.2f <= %.2f", 
-                                m, k, bl.at(k), qk, bh.at(k));
-                        }
-                    }
-                    break;
-                }
-                case STATE_SPACE_SO2:
-                {
-                    double value = 0;
-                    if (!space->isCompound())
-                    {
-                        const SO2StateSpace::StateType *xk = x->as<CompoundState>()->as<SO2StateSpace::StateType>(m);
-                        value = xk->value;
-                    }
-                    else
-                    {
-                        const SO2StateSpace::StateType *xk = x->as<SO2StateSpace::StateType>();
-                        value = xk->value;
-                    }
-                    OMPL_ERROR("Invalid: -%.2f <= %f <= +%.2f", 3.14, value, 3.14);
-                    break;
-                }
-                default:
-                {
-                    OMPL_ERROR("Could not debug state type %d.", type);
-                    break;
-                }
-            }
-        }
-    }
-    else
-    {
-        std::cout << "Bounds satisfied. Must be collision problem." << std::endl;
-    }
-}
-
 void BundleSpace::print(std::ostream &out) const
 {
-    unsigned int M = components_.size();
-    out << "[";
-    for (unsigned int m = 0; m < M; m++)
-    {
-        out << components_.at(m)->getTypeAsString() << (isDynamic_ ? "(dyn)" : "") << (m < M - 1 ? " | " : "");
-    }
-    out << "]";
+    // unsigned int M = components_.size();
+    // out << "[";
+    // for (unsigned int m = 0; m < M; m++)
+    // {
+    //     out << components_.at(m)->getTypeAsString() << (isDynamic_ ? "(dyn)" : "") << (m < M - 1 ? " | " : "");
+    // }
+    // out << "]";
 }
 
 namespace ompl

@@ -43,13 +43,13 @@
 
 using namespace ompl::multilevel;
 
-BundleSpaceComponent_SE3_R3::BundleSpaceComponent_SE3_R3(ompl::base::StateSpacePtr BundleSpace,
+ProjectionComponentWithFiber_SE3_R3::ProjectionComponentWithFiber_SE3_R3(ompl::base::StateSpacePtr BundleSpace,
                                                          ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void BundleSpaceComponent_SE3_R3::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
+void ProjectionComponentWithFiber_SE3_R3::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
     const base::SE3StateSpace::StateType *xBundle_SE3 = xBundle->as<base::SE3StateSpace::StateType>();
     const base::SO3StateSpace::StateType *xBundle_SO3 = &xBundle_SE3->rotation();
@@ -61,7 +61,7 @@ void BundleSpaceComponent_SE3_R3::projectFiber(const ompl::base::State *xBundle,
     xFiber_SO3->w = xBundle_SO3->w;
 }
 
-void BundleSpaceComponent_SE3_R3::projectBase(const ompl::base::State *xBundle, ompl::base::State *xBase) const
+void ProjectionComponentWithFiber_SE3_R3::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
     const base::SE3StateSpace::StateType *xBundle_SE3 = xBundle->as<base::SE3StateSpace::StateType>();
     base::RealVectorStateSpace::StateType *xBase_R3 = xBase->as<base::RealVectorStateSpace::StateType>();
@@ -70,7 +70,7 @@ void BundleSpaceComponent_SE3_R3::projectBase(const ompl::base::State *xBundle, 
     xBase_R3->values[2] = xBundle_SE3->getZ();
 }
 
-void BundleSpaceComponent_SE3_R3::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+void ProjectionComponentWithFiber_SE3_R3::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                             ompl::base::State *xBundle) const
 {
     base::SE3StateSpace::StateType *xBundle_SE3 = xBundle->as<base::SE3StateSpace::StateType>();
@@ -87,10 +87,10 @@ void BundleSpaceComponent_SE3_R3::liftState(const ompl::base::State *xBase, cons
     xBundle_SO3->w = xFiber_SO3->w;
 }
 
-ompl::base::StateSpacePtr BundleSpaceComponent_SE3_R3::computeFiberSpace()
+ompl::base::StateSpacePtr ProjectionComponentWithFiber_SE3_R3::computeFiberSpace()
 {
-    unsigned int N = BundleSpace_->getDimension();
-    unsigned int Y = BaseSpace_->getDimension();
+    unsigned int N = getDimension();
+    unsigned int Y = getBaseDimension();
     if (N != 6 && Y != 3)
     {
         OMPL_ERROR("Assumed input is SE(3) -> R3, but got %d -> %d dimensions.", N, Y);

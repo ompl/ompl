@@ -257,7 +257,7 @@ namespace ompl
             virtual void setPropagator(const std::string &sPropagator) override;
             virtual void setImportance(const std::string &sImportance);
             virtual void setGraphSampler(const std::string &sGraphSampler);
-            virtual void setFindSectionStrategy(FindSectionType type);
+            // virtual void setFindSectionStrategy(FindSectionType type);
 
             BundleSpaceGraphSamplerPtr getGraphSampler();
 
@@ -361,9 +361,6 @@ namespace ompl
 
             /** \brief Temporary random configuration */
             Configuration *xRandom_{nullptr};
-
-            base::State *xFiberTmp1_{nullptr};
-            base::State *xFiberTmp2_{nullptr};
 
             BundleSpaceImportancePtr importanceCalculator_{nullptr};
 

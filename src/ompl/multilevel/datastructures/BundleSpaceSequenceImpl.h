@@ -49,7 +49,7 @@ ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(
     std::string type)
   : BaseT(si, type)
 {
-    declareBundleSpaces();
+    declareBundleSpaces(true);
 }
 
 // template <class T>
@@ -59,11 +59,10 @@ ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(
 // }
 
 template <class T>
-ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec,
-                                                              std::string type)
+ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type)
   : BaseT(siVec, type)
 {
-    declareBundleSpaces();
+    declareBundleSpaces(true);
 }
 
 template <class T>
@@ -74,11 +73,16 @@ ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(
   : BaseT(siVec, type)
 {
     assert(siVec.size() == (projVec.size() - 1));
-    declareBundleSpaces();
+    declareBundleSpaces(false);
+
+    for(unsigned int k = 0; k < bundleSpaces_.size(); k++)
+    {
+        bundleSpaces_.at(k)->makeProjection();
+    }
 }
 
 template <class T>
-void ompl::multilevel::BundleSpaceSequence<T>::declareBundleSpaces()
+void ompl::multilevel::BundleSpaceSequence<T>::declareBundleSpaces(bool guessProjection)
 {
     T::resetCounter();
     for (unsigned int k = 0; k < siVec_.size(); k++)
@@ -92,6 +96,14 @@ void ompl::multilevel::BundleSpaceSequence<T>::declareBundleSpaces()
         static_cast<BundleSpace *>(bundleSpaces_.back())->setLevel(k);
     }
     stopAtLevel_ = bundleSpaces_.size();
+
+    if(guessProjection)
+    {
+        for(unsigned int k = 0; k < bundleSpaces_.size(); k++)
+        {
+            bundleSpaces_.at(k)->makeProjection();
+        }
+    }
 
     OMPL_DEBUG("Created %d BundleSpace levels (%s).", siVec_.size(), getName().c_str());
 }

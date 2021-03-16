@@ -42,13 +42,13 @@
 
 using namespace ompl::multilevel;
 
-BundleSpaceComponent_XRN_X::BundleSpaceComponent_XRN_X(ompl::base::StateSpacePtr BundleSpace,
+ProjectionComponentWithFiber_XRN_X::ProjectionComponentWithFiber_XRN_X(ompl::base::StateSpacePtr BundleSpace,
                                                        ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void BundleSpaceComponent_XRN_X::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
+void ProjectionComponentWithFiber_XRN_X::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
     const base::RealVectorStateSpace::StateType *xBundle_RN =
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
@@ -60,9 +60,9 @@ void BundleSpaceComponent_XRN_X::projectFiber(const ompl::base::State *xBundle, 
     }
 }
 
-ompl::base::StateSpacePtr BundleSpaceComponent_XRN_X::computeFiberSpace()
+ompl::base::StateSpacePtr ProjectionComponentWithFiber_XRN_X::computeFiberSpace()
 {
-    base::CompoundStateSpace *Bundle_compound = BundleSpace_->as<base::CompoundStateSpace>();
+    base::CompoundStateSpace *Bundle_compound = getBundleSpace()->as<base::CompoundStateSpace>();
     const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
 
     const base::RealVectorStateSpace *Bundle_RN = Bundle_decomposed.at(1)->as<base::RealVectorStateSpace>();

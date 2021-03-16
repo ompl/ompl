@@ -1,24 +1,24 @@
 /* Author: Andreas Orthey */
 
-#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_PROJECTION_
-#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_PROJECTION_
+#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_PROJECTION_COMPONENT_
+#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_PROJECTION_COMPONENT_
 #include <ompl/base/State.h>
 #include <ompl/base/StateSpace.h>
 #include <ompl/base/StateSpaceTypes.h>
-#include "BundleSpaceComponentTypes.h"
+#include "ProjectionComponentTypes.h"
 
 namespace ompl
 {
     namespace multilevel
     {
-        class BundleSpaceProjection
+        class ProjectionComponent
         {
         public:
-            BundleSpaceProjection(
+            ProjectionComponent(
                 base::StateSpacePtr BundleSpace, 
                 base::StateSpacePtr BaseSpace);
 
-            virtual ~BundleSpaceProjection() = default;
+            virtual ~ProjectionComponent() = default;
 
             /* \brief All subclasses need to be able to project onto base space
              * */
@@ -41,10 +41,18 @@ namespace ompl
             unsigned int getBaseDimension() const;
             /// Dimension of Bundle Space
             unsigned int getDimension() const;
+            /// Dimension of Bundle - Dimension of Base
+            unsigned int getCoDimension() const;
+
+            /// \brief Get bundle space
+            base::StateSpacePtr getBundleSpace() const;
+            /// \brief Get base space
+            base::StateSpacePtr getBaseSpace() const;
+
 
             /// Type of Bundle Space Projection
-            BundleSpaceComponentType getType() const;
-            void setType(BundleSpaceComponentType &);
+            ProjectionComponentType getType() const;
+            void setType(ProjectionComponentType &);
 
             std::string getTypeAsString() const;
             std::string getBundleTypeAsString() const;
@@ -52,18 +60,16 @@ namespace ompl
 
             friend std::ostream &operator<<(
                 std::ostream &out, 
-                const BundleSpaceProjection &);
-
-        protected:
+                const ProjectionComponent &);
             virtual void print(std::ostream &out) const;
             std::string stateTypeToString(base::StateSpacePtr) const;
+        private:
 
-            base::StateSpacePtr BundleSpace_{nullptr};
-            base::StateSpacePtr BaseSpace_{nullptr};
 
-            bool isDynamic_{false};
+            base::StateSpacePtr bundleSpace_{nullptr};
+            base::StateSpacePtr baseSpace_{nullptr};
 
-            BundleSpaceComponentType type_;
+            ProjectionComponentType type_;
         };
 
     }

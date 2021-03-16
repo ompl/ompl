@@ -88,12 +88,12 @@ namespace ompl
              * we should project from each bundle space to each base space. */
             BundleSpaceSequence(
                 std::vector<ompl::base::SpaceInformationPtr> &siVec,
-                std::vector<ompl::multilevel::BundleSpaceProjectionPtr> &projVec,
+                std::vector<ompl::multilevel::ProjectionPtr> &projVec,
                 std::string type = "BundleSpacePlannerCustomProjection");
 
             virtual ~BundleSpaceSequence();
 
-            void declareBundleSpaces();
+            void declareBundleSpaces(bool guessProjection=true);
 
             /** \brief Return annotated vertices (with information about BundleSpace level) */
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;

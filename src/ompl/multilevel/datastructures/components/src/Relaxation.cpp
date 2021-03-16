@@ -38,7 +38,7 @@
 
 #include <ompl/multilevel/datastructures/components/Relaxation.h>
 
-ompl::multilevel::BundleSpaceComponent_Relaxation::BundleSpaceComponent_Relaxation(
+ompl::multilevel::ProjectionComponentWithFiber_Relaxation::ProjectionComponentWithFiber_Relaxation(
     ompl::base::StateSpacePtr BundleSpace, ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {

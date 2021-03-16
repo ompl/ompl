@@ -39,31 +39,31 @@
 #include <ompl/multilevel/datastructures/components/Identity.h>
 #include <ompl/base/spaces/EmptyStateSpace.h>
 
-ompl::multilevel::BundleSpaceComponent_Identity::BundleSpaceComponent_Identity(ompl::base::StateSpacePtr BundleSpace,
+ompl::multilevel::ProjectionComponentWithFiber_Identity::ProjectionComponentWithFiber_Identity(ompl::base::StateSpacePtr BundleSpace,
                                                                                ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
 
-void ompl::multilevel::BundleSpaceComponent_Identity::projectFiber(const ompl::base::State *, ompl::base::State *) const
+void ompl::multilevel::ProjectionComponentWithFiber_Identity::projectFiber(const ompl::base::State *, ompl::base::State *) const
 {
     OMPL_WARN("Trying to project to fiber of Identity Bundle Space.");
 }
 
-void ompl::multilevel::BundleSpaceComponent_Identity::projectBase(const ompl::base::State *xBundle,
+void ompl::multilevel::ProjectionComponentWithFiber_Identity::project(const ompl::base::State *xBundle,
                                                                   ompl::base::State *xBase) const
 {
-    BundleSpace_->copyState(xBase, xBundle);
+    getBundleSpace()->copyState(xBase, xBundle);
 }
 
-void ompl::multilevel::BundleSpaceComponent_Identity::liftState(const ompl::base::State *xBase,
+void ompl::multilevel::ProjectionComponentWithFiber_Identity::liftState(const ompl::base::State *xBase,
                                                                 const ompl::base::State *,
                                                                 ompl::base::State *xBundle) const
 {
-    BundleSpace_->copyState(xBundle, xBase);
+    getBundleSpace()->copyState(xBundle, xBase);
 }
 
-ompl::base::StateSpacePtr ompl::multilevel::BundleSpaceComponent_Identity::computeFiberSpace()
+ompl::base::StateSpacePtr ompl::multilevel::ProjectionComponentWithFiber_Identity::computeFiberSpace()
 {
     return std::make_shared<base::EmptyStateSpace>();
 }

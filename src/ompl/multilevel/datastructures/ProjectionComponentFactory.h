@@ -38,8 +38,8 @@
 
 #ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_SUBSPACE_FACTORY__
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_SUBSPACE_FACTORY__
-#include "BundleSpaceComponent.h"
-#include "BundleSpaceComponentTypes.h"
+#include "ProjectionComponent.h"
+#include "ProjectionComponentTypes.h"
 #include <ompl/base/State.h>
 #include <ompl/base/StateSpace.h>
 #include <ompl/base/SpaceInformation.h>
@@ -48,31 +48,35 @@ namespace ompl
 {
     namespace multilevel
     {
-        OMPL_CLASS_FORWARD(BundleSpaceComponent);
+        OMPL_CLASS_FORWARD(ProjectionComponent);
     }
     namespace multilevel
     {
-        class BundleSpaceComponentFactory
+        /* \brief If no projection operator is provided, you can invoke this
+         * projection component factory, which tries to guess the projection
+         * mapping. For example, if you specify SE3 and R3 as bundle and base,
+         * this factory would return the projection onto the R3 subspace in SE3. */
+        class ProjectionComponentFactory
         {
         public:
-            BundleSpaceComponentFactory() = default;
+            ProjectionComponentFactory() = default;
 
-            std::vector<BundleSpaceComponentPtr> MakeBundleSpaceComponents(
+            std::vector<ProjectionComponentPtr> MakeProjectionComponents(
                 base::SpaceInformationPtr Bundle,
                 base::SpaceInformationPtr Base);
 
-            std::vector<BundleSpaceComponentPtr> MakeBundleSpaceComponents(
+            std::vector<ProjectionComponentPtr> MakeProjectionComponents(
                 base::SpaceInformationPtr Bundle);
 
         protected:
-            BundleSpaceComponentPtr MakeBundleSpaceComponent(
+            ProjectionComponentPtr MakeProjectionComponent(
                 base::StateSpacePtr BundleSpace,
                 base::StateSpacePtr BaseSpace, bool);
 
-            BundleSpaceComponentPtr MakeBundleSpaceComponent(
+            ProjectionComponentPtr MakeProjectionComponent(
                 base::StateSpacePtr BundleSpace);
 
-            BundleSpaceComponentType identifyBundleSpaceComponentType(
+            ProjectionComponentType identifyProjectionComponentType(
                 const base::StateSpacePtr BundleSpace,
                 const base::StateSpacePtr BaseSpace);
 

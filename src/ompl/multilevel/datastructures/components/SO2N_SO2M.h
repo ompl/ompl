@@ -38,24 +38,24 @@
 
 #ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_COMPONENT_SO2N_SO2M__
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_COMPONENT_SO2N_SO2M__
-#include <ompl/multilevel/datastructures/BundleSpaceComponent.h>
+#include <ompl/multilevel/datastructures/ProjectionComponentWithFiber.h>
 
 namespace ompl
 {
     namespace multilevel
     {
-        class BundleSpaceComponent_SO2N_SO2M : public BundleSpaceComponent
+        class ProjectionComponentWithFiber_SO2N_SO2M : public ProjectionComponentWithFiber
         {
-            using BaseT = BundleSpaceComponent;
+            using BaseT = ProjectionComponentWithFiber;
 
         public:
-            BundleSpaceComponent_SO2N_SO2M(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace);
+            ProjectionComponentWithFiber_SO2N_SO2M(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace);
 
-            ~BundleSpaceComponent_SO2N_SO2M() override = default;
+            ~ProjectionComponentWithFiber_SO2N_SO2M() override = default;
 
             virtual void projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const override;
 
-            virtual void projectBase(const ompl::base::State *xBundle, ompl::base::State *xBase) const override;
+            virtual void project(const ompl::base::State *xBundle, ompl::base::State *xBase) const override;
 
             virtual void liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                    ompl::base::State *xBundle) const override;

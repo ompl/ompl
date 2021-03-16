@@ -46,7 +46,7 @@
 #include <ompl/multilevel/datastructures/importance/Exponential.h>
 #include <ompl/multilevel/datastructures/importance/Uniform.h>
 #include <ompl/multilevel/datastructures/metrics/Geodesic.h>
-#include <ompl/multilevel/datastructures/metrics/ShortestPath.h>
+// #include <ompl/multilevel/datastructures/metrics/ShortestPath.h>
 #include <ompl/multilevel/datastructures/propagators/Geometric.h>
 #include <ompl/multilevel/datastructures/propagators/Dynamic.h>
 // #include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
@@ -127,21 +127,11 @@ BundleSpaceGraph::BundleSpaceGraph(
         this->setup();
     }
 
-    if (getFiberDimension() > 0)
-    {
-        xFiberTmp1_ = getFiber()->allocState();
-        xFiberTmp2_ = getFiber()->allocState();
-    }
 }
 
 BundleSpaceGraph::~BundleSpaceGraph()
 {
     deleteConfiguration(xRandom_);
-    if (getFiberDimension() > 0)
-    {
-        getFiber()->freeState(xFiberTmp1_);
-        getFiber()->freeState(xFiberTmp2_);
-    }
 }
 
 void BundleSpaceGraph::setup()
@@ -616,11 +606,11 @@ void BundleSpaceGraph::setMetric(const std::string &sMetric)
         OMPL_DEBUG("Geodesic Metric Selected");
         metric_ = std::make_shared<BundleSpaceMetricGeodesic>(this);
     }
-    else if (sMetric == "shortestpath")
-    {
-        OMPL_DEBUG("ShortestPath Metric Selected");
-        metric_ = std::make_shared<BundleSpaceMetricShortestPath>(this);
-    }
+    // else if (sMetric == "shortestpath")
+    // {
+    //     OMPL_DEBUG("ShortestPath Metric Selected");
+    //     metric_ = std::make_shared<BundleSpaceMetricShortestPath>(this);
+    // }
     else
     {
         OMPL_ERROR("Metric unknown: %s", sMetric.c_str());
@@ -763,7 +753,7 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
             }
             numVerticesWhenComputingSolutionPath_ = getNumberOfVertices();
 
-            if (!isDynamic() && solutionPath_ != solution && hasTotalSpace())
+            if (!isDynamic() && solutionPath_ != solution && hasParentSpace())
             {
                 // bool optimize = true;
                 // int type = getBundle()->getStateSpace()->getType();
