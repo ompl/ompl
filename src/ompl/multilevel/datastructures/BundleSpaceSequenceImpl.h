@@ -44,23 +44,36 @@
 #include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
 
 template <class T>
-ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(ompl::base::SpaceInformationPtr si, std::string type)
+ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(
+    ompl::base::SpaceInformationPtr si, 
+    std::string type)
   : BaseT(si, type)
 {
     declareBundleSpaces();
 }
 
-template <class T>
-ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(ompl::base::SpaceInformationPtr si) : BaseT(si)
-{
-    declareBundleSpaces();
-}
+// template <class T>
+// ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(ompl::base::SpaceInformationPtr si) : BaseT(si)
+// {
+//     declareBundleSpaces();
+// }
 
 template <class T>
 ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec,
                                                               std::string type)
   : BaseT(siVec, type)
 {
+    declareBundleSpaces();
+}
+
+template <class T>
+ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(
+    std::vector<ompl::base::SpaceInformationPtr> &siVec,
+    std::vector<ompl::multilevel::BundleSpaceProjectionPtr> &projVec,
+    std::string type)
+  : BaseT(siVec, type)
+{
+    assert(siVec.size() == (projVec.size() - 1));
     declareBundleSpaces();
 }
 
@@ -266,10 +279,9 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(
 
     for (unsigned int k = siVec_.size() - 1; k > 0; k--)
     {
-        BundleSpace *bundleSpaceParent = static_cast<BundleSpace *>(bundleSpaces_.at(k));
-        BundleSpace *bundleSpaceChild = static_cast<BundleSpace *>(bundleSpaces_.at(k - 1));
-        ompl::base::SpaceInformationPtr siChild = 
-          bundleSpaceChild->getBundle();
+        BundleSpace *parent = static_cast<BundleSpace *>(bundleSpaces_.at(k));
+        BundleSpace *child = static_cast<BundleSpace *>(bundleSpaces_.at(k - 1));
+        ompl::base::SpaceInformationPtr siChild = child->getBundle();
 
         ompl::base::ProblemDefinitionPtr pdefParent = pdefVec_.back();
 
@@ -279,7 +291,9 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(
         //Project Start State onto lower dimensional quotient space
         const ompl::base::State *sInitParent = pdefParent->getStartState(0);
         ompl::base::State *sInitChild = siChild->allocState();
-        bundleSpaceParent->projectBase(sInitParent, sInitChild);
+
+        parent->getProjection()->projectBase(sInitParent, sInitChild);
+        parent->getProjection()->projectBase(sInitParent, sInitChild);
         pdefChild->addStartState(sInitChild);
 
         //Now project goal state(s) down
@@ -290,7 +304,7 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(
 
             const ompl::base::State *sGoalParent = goal->getState();
             ompl::base::State *sGoalChild = siChild->allocState();
-            bundleSpaceParent->projectBase(sGoalParent, sGoalChild);
+            parent->getProjection()->projectBase(sGoalParent, sGoalChild);
             pdefChild->setGoalState(sGoalChild, epsilon);
         }
         else if(type == ompl::base::GoalType::GOAL_STATES)
@@ -307,13 +321,13 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(
             {
                 const ompl::base::State *sGoalParent = goal->getState(j);
                 ompl::base::State *sGoalChild = siChild->allocState();
-                bundleSpaceParent->projectBase(sGoalParent, sGoalChild);
+                parent->getProjection()->projectBase(sGoalParent, sGoalChild);
                 goalStates->addState(sGoalChild);
             }
             pdefChild->setGoal(goalStates);
         }
 
-        bundleSpaceChild->setProblemDefinition(pdefChild);
+        child->setProblemDefinition(pdefChild);
         pdefVec_.push_back(pdefChild);
     }
 
@@ -335,16 +349,17 @@ ompl::base::State *ompl::multilevel::BundleSpaceSequence<T>::getTotalState(
         if (Qm->getFiberDimension() > 0)
         {
             base::State *s_Bundle = Qm->allocIdentityStateBundle();
-            base::State *s_Fiber = Qm->allocIdentityStateFiber();
+            // base::State *s_Fiber = Qm->allocIdentityStateFiber();
+            // Qm->getProjection()->lift(s_lift, s_Fiber, s_Bundle);
 
-            Qm->liftState(s_lift, s_Fiber, s_Bundle);
+            Qm->getProjection()->lift(s_lift, s_Bundle);
 
             Qprev->getBundle()->freeState(s_lift);
 
             s_lift = Qm->getBundle()->cloneState(s_Bundle);
 
             Qm->getBundle()->freeState(s_Bundle);
-            Qm->getFiber()->freeState(s_Fiber);
+            // Qm->getFiber()->freeState(s_Fiber);
 
             Qprev = Qm;
         }

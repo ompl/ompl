@@ -63,8 +63,8 @@ namespace ompl
             using BaseT::si_;  // make it private.
             using BaseT::getSpaceInformation;
 
-            // Note: use getBundle(), getFiber() 
-            // or getBase() to access the SpaceInformationPtr
+            // Note: use getBundle(), or getBase() 
+            // to access the SpaceInformationPtr
 
             /// \brief solve is disabled (use BundleSequence::solve)
             ompl::base::PlannerStatus solve(
@@ -87,6 +87,13 @@ namespace ompl
 
             virtual ~BundleSpace();
 
+            /// \brief Get SpaceInformationPtr for Bundle
+            const ompl::base::SpaceInformationPtr &getBundle() const;
+            /// \brief Get SpaceInformationPtr for Base
+            const ompl::base::SpaceInformationPtr &getBase() const;
+            /// \brief Get ProjectionPtr from Bundle to Base
+            BundleSpaceProjectionPtr getProjection() const;
+
             virtual void setProblemDefinition(
                 const ompl::base::ProblemDefinitionPtr &pdef) override;
 
@@ -96,7 +103,6 @@ namespace ompl
             virtual void setPropagator(const std::string &sPropagator) = 0;
 
             virtual void sampleFromDatastructure(ompl::base::State *xBase) = 0;
-            virtual void sampleFiber(ompl::base::State *xFiber);
             virtual void sampleBundle(ompl::base::State *xRandom);
             bool sampleBundleValid(ompl::base::State *xRandom);
 
@@ -110,7 +116,6 @@ namespace ompl
             virtual double getImportance() const = 0;
 
             /// \brief Allocate State, set entries to Identity/Zero
-            ompl::base::State *allocIdentityStateFiber() const;
             ompl::base::State *allocIdentityStateBundle() const;
             ompl::base::State *allocIdentityStateBase() const;
             ompl::base::State *allocIdentityState(ompl::base::StateSpacePtr) const;
@@ -123,35 +128,25 @@ namespace ompl
             /// \brief reset counter for number of levels
             static void resetCounter();
 
-            /// \brief Get SpaceInformationPtr for Fiber
-            const ompl::base::SpaceInformationPtr &getFiber() const;
-            /// \brief Get SpaceInformationPtr for Bundle
-            const ompl::base::SpaceInformationPtr &getBundle() const;
-            /// \brief Get SpaceInformationPtr for Base
-            const ompl::base::SpaceInformationPtr &getBase() const;
-
-            /// \brief Dimension of Fiber Space
-            unsigned int getFiberDimension() const;
             /// \brief Dimension of Base Space
             unsigned int getBaseDimension() const;
             /// \brief Dimension of Bundle Space
             unsigned int getBundleDimension() const;
 
-            const ompl::base::StateSamplerPtr &getFiberSamplerPtr() const;
             const ompl::base::StateSamplerPtr &getBundleSamplerPtr() const;
             const ompl::base::StateSamplerPtr &getBaseSamplerPtr() const;
 
             /// \brief Return k-1 th bundle space (locally the base space)
-            BundleSpace *getBaseBundleSpace() const;
+            BundleSpace *getBaseSpace() const;
 
             /// \brief Pointer to k-1 th bundle space (locally the base space)
-            void setBaseBundleSpace(BundleSpace *baseBundleSpace);
+            void setBaseSpace(BundleSpace *baseBundleSpace);
 
             /// \brief Return k+1 th bundle space (locally the total space)
-            BundleSpace *getTotalBundleSpace() const;
+            BundleSpace *getTotalSpace() const;
 
             /// \brief Pointer to k+1 th bundle space (locally the total space)
-            void setTotalBundleSpace(BundleSpace *totalBundleSpace);
+            void setTotalSpace(BundleSpace *totalSpace);
 
             /// \brief Return if has base space pointer
             bool hasBaseSpace() const;
@@ -165,19 +160,13 @@ namespace ompl
             /// Change level in hierarchy
             void setLevel(unsigned int);
 
-            /// \brief Bundle Space Projection Operator onto second component
-            /// ProjectFiber: Base \times Fiber \rightarrow Fiber
-            void projectFiber(const ompl::base::State *xBundle, 
-                ompl::base::State *xFiber) const;
-
             /// \brief Bundle Space Projection Operator onto first component
-            /// ProjectBase: Base \times Fiber \rightarrow Base
+            /// ProjectBase: Bundle \rightarrow Base
             void projectBase(const ompl::base::State *xBundle, 
                 ompl::base::State *xBase) const;
 
-            /// \brief Lift a state from Base to Bundle using a Fiber State
+            /// \brief Lift a state from Base to Bundle
             void liftState(const ompl::base::State *xBase, 
-                const ompl::base::State *xFiber,
                 ompl::base::State *xBundle) const;
 
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
@@ -192,34 +181,33 @@ namespace ompl
             base::GoalSampleableRegion* getGoalPtr() const;
 
         private:
-            ompl::base::SpaceInformationPtr Bundle{nullptr};
-            ompl::base::SpaceInformationPtr Base{nullptr};
-            ompl::base::SpaceInformationPtr Fiber{nullptr};
 
             /// Level in sequence of Bundle-spaces
             unsigned int level_{0};
 
             //\brief Being on the k-th bundle space, we denote as baseBundleSpace the k-1-th
             // bundle space (because it locally acts as the base space for the current class)
-            BundleSpace *baseBundleSpace_{nullptr};
+            BundleSpace *baseSpace_{nullptr};
 
             //\brief Being on the k-th bundle space, we denote as totalBundleSpace the k+1-th
             // bundle space (because it locally acts as the total space for the current class)
-            BundleSpace *totalBundleSpace_{nullptr};
+            BundleSpace *totalSpace_{nullptr};
 
-            ompl::base::StateSamplerPtr Fiber_sampler_;
             ompl::base::StateSamplerPtr Bundle_sampler_;
             ompl::base::ValidStateSamplerPtr Bundle_valid_sampler_;
 
             /**\brief Call algorithm to solve the find section problem */
             virtual bool findSection();
 
+            /** \brief Projection Operator to project and lift between bundle
+             * and base space */
+            BundleSpaceProjectionPtr projection_;
+
         protected:
             /// Check if Bundle-space is bounded
             void checkBundleSpaceMeasure(std::string name, 
                 const ompl::base::StateSpacePtr space) const;
             void sanityChecks() const;
-            void makeFiberSpace();
 
             std::vector<BundleSpaceComponentPtr> components_;
 
@@ -228,8 +216,6 @@ namespace ompl
 
             /// A temporary state on Base
             ompl::base::State *xBaseTmp_{nullptr};
-            /// A temporary state on Fiber
-            ompl::base::State *xFiberTmp_{nullptr};
             /// A temporary state on Bundle
             ompl::base::State *xBundleTmp_{nullptr};
 
@@ -245,9 +231,6 @@ namespace ompl
 
             /** \brief Metric on bundle space */
             BundleSpaceMetricPtr metric_;
-
-            /** \brief Goal state or goal region */
-            // ompl::base::GoalSampleableRegion *goal_;
 
             /** \brief Propagator (steering or interpolation) on bundle space.
              * Note: currently just a stub for base::StatePropagator*/

@@ -39,7 +39,7 @@
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_
 
 #include <ompl/multilevel/datastructures/BundleSpace.h>
-#include <ompl/multilevel/datastructures/pathrestriction/FindSectionTypes.h>
+// #include <ompl/multilevel/datastructures/pathrestriction/FindSectionTypes.h>
 #include <limits>
 #include <ompl/geometric/planners/PlannerIncludes.h>
 #include <ompl/datastructures/NearestNeighbors.h>
@@ -69,7 +69,7 @@ namespace ompl
     {
         OMPL_CLASS_FORWARD(BundleSpaceImportance);
         OMPL_CLASS_FORWARD(BundleSpaceGraphSampler);
-        OMPL_CLASS_FORWARD(PathRestriction);
+        // OMPL_CLASS_FORWARD(PathRestriction);
     }
     namespace geometric
     {
@@ -261,7 +261,7 @@ namespace ompl
 
             BundleSpaceGraphSamplerPtr getGraphSampler();
 
-            const PathRestrictionPtr getPathRestriction();
+            // const PathRestrictionPtr getPathRestriction();
 
             /** \brief Best cost found so far by algorithm */
             base::Cost bestCost_{+base::dInf};
@@ -369,7 +369,7 @@ namespace ompl
 
             BundleSpaceGraphSamplerPtr graphSampler_{nullptr};
 
-            PathRestrictionPtr pathRestriction_{nullptr};
+            // PathRestrictionPtr pathRestriction_{nullptr};
 
             // ompl::base::OptimizationObjectivePtr pathRefinementObj_{nullptr};
 

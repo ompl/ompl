@@ -52,6 +52,8 @@ namespace ompl
     }
     namespace multilevel
     {
+        OMPL_CLASS_FORWARD(BundleSpaceProjection);
+
         /** \brief A planner for a sequence of BundleSpaces
 
              Example usage with QRRT
@@ -70,12 +72,24 @@ namespace ompl
                 "Template must inherit from BundleSpace");
 
         public:
-            /** \brief Constructor taking a sequence of ompl::base::SpaceInformationPtr
-                 and computing the BundleSpaces for each pair in the sequence */
+            /** \brief Non-multilevel Mode: Calling with a single 
+             * ompl::base::SpaceInformationPtr will revert to standard planning
+             * without invoking any projection operators. */
+            BundleSpaceSequence(ompl::base::SpaceInformationPtr si,
+                std::string type = "BundleSpacePlannerNonMultilevel");
+
+            /** \brief Basic Mode: Specify vector of ompl::base::SpaceInformationPtr
+                 and let the algorithm figure out the projections itself.*/
             BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec,
                                 std::string type = "BundleSpacePlanner");
-            BundleSpaceSequence(ompl::base::SpaceInformationPtr si);
-            BundleSpaceSequence(ompl::base::SpaceInformationPtr si, std::string type);
+
+            /** \brief Advanced Mode: Specify not only the vector of 
+             * ompl::base::SpaceInformationPtr, but also how
+             * we should project from each bundle space to each base space. */
+            BundleSpaceSequence(
+                std::vector<ompl::base::SpaceInformationPtr> &siVec,
+                std::vector<ompl::multilevel::BundleSpaceProjectionPtr> &projVec,
+                std::string type = "BundleSpacePlannerCustomProjection");
 
             virtual ~BundleSpaceSequence();
 

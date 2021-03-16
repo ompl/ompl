@@ -42,7 +42,6 @@
 #include <ompl/datastructures/NearestNeighbors.h>
 #include "ompl/datastructures/PDF.h"
 #include <boost/math/constants/constants.hpp>
-#include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
 
 #define foreach BOOST_FOREACH
 

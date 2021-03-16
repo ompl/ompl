@@ -43,7 +43,6 @@
 #include "ompl/datastructures/PDF.h"
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
-#include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
 
 #define foreach BOOST_FOREACH
 

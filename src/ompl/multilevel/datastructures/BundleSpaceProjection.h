@@ -1,7 +1,7 @@
 /* Author: Andreas Orthey */
 
-#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_SUBSPACE_
-#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_SUBSPACE_
+#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_PROJECTION_
+#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_PROJECTION_
 #include <ompl/base/State.h>
 #include <ompl/base/StateSpace.h>
 #include <ompl/base/StateSpaceTypes.h>
@@ -22,7 +22,7 @@ namespace ompl
 
             /* \brief All subclasses need to be able to project onto base space
              * */
-            virtual void projectBase(
+            virtual void project(
                 const ompl::base::State *xBundle, 
                 ompl::base::State *xBase) const = 0;
 
@@ -33,12 +33,16 @@ namespace ompl
                 const ompl::base::State *xBase, 
                 ompl::base::State *xBundle) const = 0;
 
+            /* \brief Test implementation by repreatedly calling project/lift
+             * */
+            virtual bool test();
+
             /// Dimension of Base Space
             unsigned int getBaseDimension() const;
             /// Dimension of Bundle Space
             unsigned int getDimension() const;
 
-            /// Type of Bundle Space
+            /// Type of Bundle Space Projection
             BundleSpaceComponentType getType() const;
             void setType(BundleSpaceComponentType &);
 
@@ -48,7 +52,7 @@ namespace ompl
 
             friend std::ostream &operator<<(
                 std::ostream &out, 
-                const BundleSpaceComponent &);
+                const BundleSpaceProjection &);
 
         protected:
             virtual void print(std::ostream &out) const;
@@ -62,3 +66,6 @@ namespace ompl
             BundleSpaceComponentType type_;
         };
 
+    }
+}
+#endif

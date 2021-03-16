@@ -49,7 +49,7 @@
 #include <ompl/multilevel/datastructures/metrics/ShortestPath.h>
 #include <ompl/multilevel/datastructures/propagators/Geometric.h>
 #include <ompl/multilevel/datastructures/propagators/Dynamic.h>
-#include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
+// #include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
 
 #include <ompl/geometric/PathSimplifier.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
@@ -88,10 +88,10 @@ BundleSpaceGraph::BundleSpaceGraph(
     setGraphSampler("randomvertex");
     setImportance("uniform");
 
-    if (hasBaseSpace())
-    {
-        pathRestriction_ = std::make_shared<PathRestriction>(this);
-    }
+    // if (hasBaseSpace())
+    // {
+    //     pathRestriction_ = std::make_shared<PathRestriction>(this);
+    // }
 
     if (isDynamic())
     {
@@ -185,27 +185,44 @@ void BundleSpaceGraph::setup()
 
 }
 
-void BundleSpaceGraph::setFindSectionStrategy(FindSectionType type)
-{
-    if (pathRestriction_ != nullptr)
-    {
-        pathRestriction_->setFindSectionStrategy(type);
-    }
-}
+// void BundleSpaceGraph::setFindSectionStrategy(FindSectionType type)
+// {
+//     if (pathRestriction_ != nullptr)
+//     {
+//         pathRestriction_->setFindSectionStrategy(type);
+//     }
+// }
+// const PathRestrictionPtr BundleSpaceGraph::getPathRestriction()
+// {
+//     if (!hasBaseSpace())
+//     {
+//         OMPL_WARN("Tried getting path restriction without base space");
+//         return nullptr;
+//     }
+
+//     base::PathPtr basePath = 
+//       static_cast<BundleSpaceGraph *>(getBaseBundleSpace())->getSolutionPathByReference();
+      
+//     pathRestriction_->setBasePath(basePath);
+
+//     return pathRestriction_;
+// }
+
 
 bool BundleSpaceGraph::findSection()
 {
-    if (hasBaseSpace())
-    {
-        if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
-        {
-            if (sameComponent(vStart_, getGoalIndex()))
-            {
-                hasSolution_ = true;
-                return true;
-            }
-        }
-    }
+    //@TODO REMOVED FOR NOW. Need to be able to handle task-space mappings.
+    // if (hasBaseSpace())
+    // {
+    //     if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
+    //     {
+    //         if (sameComponent(vStart_, getGoalIndex()))
+    //         {
+    //             hasSolution_ = true;
+    //             return true;
+    //         }
+    //     }
+    // }
     return false;
 }
 
@@ -238,10 +255,10 @@ void BundleSpaceGraph::clear()
 
     importanceCalculator_->clear();
     graphSampler_->clear();
-    if (pathRestriction_ != nullptr)
-    {
-        pathRestriction_->clear();
-    }
+    // if (pathRestriction_ != nullptr)
+    // {
+    //     pathRestriction_->clear();
+    // }
 }
 
 void BundleSpaceGraph::clearVertices()
@@ -887,22 +904,6 @@ ompl::base::PathPtr BundleSpaceGraph::getPath(const Vertex &start, const Vertex 
     p->reverse();
 
     return p;
-}
-
-const PathRestrictionPtr BundleSpaceGraph::getPathRestriction()
-{
-    if (!hasBaseSpace())
-    {
-        OMPL_WARN("Tried getting path restriction without base space");
-        return nullptr;
-    }
-
-    base::PathPtr basePath = 
-      static_cast<BundleSpaceGraph *>(getBaseBundleSpace())->getSolutionPathByReference();
-      
-    pathRestriction_->setBasePath(basePath);
-
-    return pathRestriction_;
 }
 
 void BundleSpaceGraph::sampleBundleGoalBias(ompl::base::State *xRandom)

@@ -36,18 +36,21 @@
 
 /* Author: Andreas Orthey */
 
-#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_SUBSPACE_
-#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_SUBSPACE_
+#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_COMPONENT_
+#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLE_COMPONENT_
 #include <ompl/base/State.h>
 #include <ompl/base/StateSpace.h>
 #include <ompl/base/StateSpaceTypes.h>
 #include "BundleSpaceComponentTypes.h"
+#include "BundleSpaceProjection.h"
 
 namespace ompl
 {
     namespace multilevel
     {
-        class BundleSpaceComponent
+        /* \brief A bundle projection with an explicit fiber space representation
+         * which can be explicitly sampled to lift states */
+        class BundleSpaceComponent: public BundleSpaceProjection
         {
         public:
             BundleSpaceComponent(
@@ -56,18 +59,18 @@ namespace ompl
 
             virtual ~BundleSpaceComponent() = default;
 
-            virtual void projectFiber(
-                const ompl::base::State *xBundle, 
-                ompl::base::State *xFiber) const = 0;
-
-            virtual void projectBase(
-                const ompl::base::State *xBundle, 
-                ompl::base::State *xBase) const = 0;
+            virtual void liftState(
+                const ompl::base::State *xBase, 
+                ompl::base::State *xBundle) const;
 
             virtual void liftState(
                 const ompl::base::State *xBase, 
                 const ompl::base::State *xFiber,
                 ompl::base::State *xBundle) const = 0;
+
+            virtual void projectFiber(
+                const ompl::base::State *xBundle, 
+                ompl::base::State *xFiber) const = 0;
 
             ompl::base::StateSpacePtr getFiberSpace() const;
 
@@ -77,35 +80,19 @@ namespace ompl
 
             /// Dimension of Fiber Space
             unsigned int getFiberDimension() const;
-            /// Dimension of Base Space
-            unsigned int getBaseDimension() const;
-            /// Dimension of Bundle Space
-            unsigned int getDimension() const;
-            /// Type of Bundle Space
-            BundleSpaceComponentType getType() const;
-            void setType(BundleSpaceComponentType &);
-
-            std::string getTypeAsString() const;
             std::string getFiberTypeAsString() const;
-            std::string getBundleTypeAsString() const;
-            std::string getBaseTypeAsString() const;
-
-            friend std::ostream &operator<<(
-                std::ostream &out, 
-                const BundleSpaceComponent &);
 
         protected:
             virtual ompl::base::StateSpacePtr computeFiberSpace() = 0;
+
             virtual void print(std::ostream &out) const;
-            std::string stateTypeToString(base::StateSpacePtr) const;
 
-            base::StateSpacePtr BundleSpace_{nullptr};
-            base::StateSpacePtr BaseSpace_{nullptr};
-            base::StateSpacePtr FiberSpace_{nullptr};
+            base::StateSpacePtr fiberSpace_{nullptr};
 
-            bool isDynamic_{false};
+            ompl::base::StateSamplerPtr fiberSpaceSampler_;
 
-            BundleSpaceComponentType type_;
+            // \brief A temporary state on Fiber space
+            ompl::base::State *xFiberTmp_{nullptr};
         };
     }
 }

@@ -36,7 +36,6 @@
 /* Author: Andreas Orthey */
 
 #include <ompl/multilevel/planners/qrrt/QRRTImpl.h>
-#include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <boost/foreach.hpp>

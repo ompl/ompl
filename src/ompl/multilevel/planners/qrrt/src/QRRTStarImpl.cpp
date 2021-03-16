@@ -38,7 +38,6 @@
 
 #include <ompl/multilevel/planners/qrrt/QRRTStarImpl.h>
 #include <ompl/multilevel/datastructures/PlannerDataVertexAnnotated.h>
-#include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <boost/foreach.hpp>

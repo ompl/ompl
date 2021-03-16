@@ -59,15 +59,14 @@ using namespace ompl::multilevel;
 
 unsigned int BundleSpace::counter_ = 0;
 
-BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *baseBundleSpace_)
-  : Planner(si, "BundleSpace"), Bundle(si), baseBundleSpace_(baseBundleSpace_)
+BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *baseSpace_)
+  : Planner(si, "BundleSpace"), totalSpace_(si), baseSpace_(baseSpace_)
 {
     id_ = counter_++;
 
     //############################################################################
     // Check for dynamic spaces
     //############################################################################
-
     control::SpaceInformation *siC = 
       dynamic_cast<control::SpaceInformation *>(getBundle().get());
     if (siC == nullptr)
@@ -86,19 +85,21 @@ BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *baseBundleS
 
     if (!hasBaseSpace())
     {
-        components_ = componentFactory.MakeBundleSpaceComponents(Bundle);
+        components_ = componentFactory.MakeBundleSpaceComponents(getTotalSpace());
     }
     else
     {
-        baseBundleSpace_->setTotalBundleSpace(this);
-        Base = baseBundleSpace_->getBundle();
+        baseSpace_->setTotalSpace(this);
 
-        components_ = componentFactory.MakeBundleSpaceComponents(Bundle, Base);
+        components_ = componentFactory.MakeBundleSpaceComponents(
+            getTotalSpace(), getBaseSpace());
 
         makeFiberSpace();
     }
 
     sanityChecks();
+
+    // MakeProjection();
 
     std::stringstream ss;
     ss << (*this);
@@ -106,17 +107,15 @@ BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *baseBundleS
 
     if (!Bundle_valid_sampler_)
     {
-        Bundle_valid_sampler_ = Bundle->allocValidStateSampler();
+        Bundle_valid_sampler_ = getTotalSpace()->allocValidStateSampler();
     }
     if (!Bundle_sampler_)
     {
-        Bundle_sampler_ = Bundle->allocStateSampler();
+        Bundle_sampler_ = getTotalSpace()->allocStateSampler();
     }
     if (hasBaseSpace())
     {
         xBaseTmp_ = getBase()->allocState();
-        if (getFiberDimension() > 0)
-            xFiberTmp_ = getFiber()->allocState();
     }
     xBundleTmp_ = getBundle()->allocState();
 }
@@ -129,21 +128,17 @@ BundleSpace::~BundleSpace()
         {
             Base->freeState(xBaseTmp_);
         }
-        if (getFiberDimension() > 0 && xFiberTmp_)
-        {
-            Fiber->freeState(xFiberTmp_);
-        }
     }
     if (xBundleTmp_)
     {
-        Bundle->freeState(xBundleTmp_);
+        getTotalSpace()->freeState(xBundleTmp_);
     }
     components_.clear();
 }
 
 bool BundleSpace::hasBaseSpace() const
 {
-    return !(baseBundleSpace_ == nullptr);
+    return !(baseSpace_ == nullptr);
 }
 
 bool BundleSpace::findSection()
@@ -153,7 +148,7 @@ bool BundleSpace::findSection()
 
 bool BundleSpace::hasTotalSpace() const
 {
-    return !(totalBundleSpace_ == nullptr);
+    return !(totalSpace_ == nullptr);
 }
 
 bool BundleSpace::isDynamic() const
@@ -180,10 +175,6 @@ void BundleSpace::setup()
         }
     }
 
-    if (getFiberDimension() > 0)
-    {
-        getFiber()->getStateSpace()->setup();
-    }
 }
 
 GoalSampleableRegion* BundleSpace::getGoalPtr() const
@@ -200,8 +191,6 @@ void BundleSpace::clear()
 
     hasSolution_ = false;
     firstRun_ = true;
-    if (!hasBaseSpace() && getFiberDimension() > 0)
-        Fiber_sampler_.reset();
 
     pdef_->clearSolutionPaths();
 }
@@ -233,7 +222,7 @@ void BundleSpace::makeFiberSpace()
 
 void BundleSpace::sanityChecks() const
 {
-    const StateSpacePtr Bundle_space = Bundle->getStateSpace();
+    const StateSpacePtr Bundle_space = getTotalSpace()->getStateSpace();
     checkBundleSpaceMeasure("Bundle", Bundle_space);
 
     if (Base != nullptr)
@@ -241,19 +230,10 @@ void BundleSpace::sanityChecks() const
         const StateSpacePtr Base_space = Base->getStateSpace();
         checkBundleSpaceMeasure("Base", Base_space);
     }
-    if (Fiber != nullptr)
-    {
-        const StateSpacePtr Fiber_space = Fiber->getStateSpace();
-        checkBundleSpaceMeasure("Fiber", Fiber_space);
-    }
     if (hasBaseSpace())
     {
-        if ((getBaseDimension() + getFiberDimension() != getBundleDimension()))
+        if (getProjection()->getDimension() != getBundleDimension()))
         {
-            OMPL_ERROR("Dimensions %d (Base) + %d (Fiber) != %d (Bundle)", 
-                getBaseDimension(), 
-                getFiberDimension(), 
-                getBundleDimension());
             throw Exception("BundleSpace Dimensions are wrong.");
         }
     }
@@ -311,46 +291,29 @@ void BundleSpace::liftState(const State *xBase, const State *xFiber, State *xBun
     {
         components_.front()->liftState(xBase, xFiber, xBundle);
     }
-
-#ifdef DEBUG_BUNDLESPACE
-    OMPL_WARN("Debugging ON");
-    State *xF = getFiber()->allocState();
-    projectFiber(xBundle, xF);
-
-    if (getFiber()->distance(xFiber, xF) > 1e-5)
-    {
-        std::cout << std::string(80, '-') << std::endl;
-        getFiber()->printState(xFiber);
-        std::cout << std::string(80, '-') << std::endl;
-        getFiber()->printState(xF);
-        OMPL_ERROR("Fibers are not preserved after lifting.");
-        throw base::Exception("NotPreserved");
-    }
-    getFiber()->freeState(xF);
-#endif
 }
 
-void BundleSpace::projectFiber(const State *xBundle, State *xFiber) const
-{
-    unsigned int M = components_.size();
+// void BundleSpace::projectFiber(const State *xBundle, State *xFiber) const
+// {
+//     unsigned int M = components_.size();
 
-    if (M > 1)
-    {
-        for (unsigned int m = 0; m < M; m++)
-        {
-            if (components_.at(m)->getFiberDimension() > 0)
-            {
-                const State *xmBundle = xBundle->as<CompoundState>()->as<State>(m);
-                State *xmFiber = xFiber->as<CompoundState>()->as<State>(m);
-                components_.at(m)->projectFiber(xmBundle, xmFiber);
-            }
-        }
-    }
-    else
-    {
-        components_.front()->projectFiber(xBundle, xFiber);
-    }
-}
+//     if (M > 1)
+//     {
+//         for (unsigned int m = 0; m < M; m++)
+//         {
+//             if (components_.at(m)->getFiberDimension() > 0)
+//             {
+//                 const State *xmBundle = xBundle->as<CompoundState>()->as<State>(m);
+//                 State *xmFiber = xFiber->as<CompoundState>()->as<State>(m);
+//                 components_.at(m)->projectFiber(xmBundle, xmFiber);
+//             }
+//         }
+//     }
+//     else
+//     {
+//         components_.front()->projectFiber(xBundle, xFiber);
+//     }
+// }
 
 void BundleSpace::projectBase(const State *xBundle, State *xBase) const
 {
@@ -372,6 +335,11 @@ void BundleSpace::projectBase(const State *xBundle, State *xBase) const
     {
         components_.front()->projectBase(xBundle, xBase);
     }
+}
+
+BundleSpaceProjectionPtr BundleSpace::getProjection() const
+{
+  return projection_;
 }
 
 void BundleSpace::allocIdentityState(State *s, StateSpacePtr space) const
@@ -456,11 +424,6 @@ State *BundleSpace::allocIdentityState(StateSpacePtr space) const
     }
 }
 
-State *BundleSpace::allocIdentityStateFiber() const
-{
-    return allocIdentityState(getFiber()->getStateSpace());
-}
-
 State *BundleSpace::allocIdentityStateBundle() const
 {
     return allocIdentityState(getBundle()->getStateSpace());
@@ -471,27 +434,14 @@ State *BundleSpace::allocIdentityStateBase() const
     return allocIdentityState(getBase()->getStateSpace());
 }
 
-const SpaceInformationPtr &BundleSpace::getFiber() const
-{
-    return Fiber;
-}
-
 const SpaceInformationPtr &BundleSpace::getBundle() const
 {
-    return Bundle;
+    return totalSpace_;
 }
 
 const SpaceInformationPtr &BundleSpace::getBase() const
 {
-    return Base;
-}
-
-unsigned int BundleSpace::getFiberDimension() const
-{
-    if (getFiber())
-        return getFiber()->getStateDimension();
-    else
-        return 0;
+    return baseSpace_;
 }
 
 unsigned int BundleSpace::getBaseDimension() const
@@ -507,16 +457,11 @@ unsigned int BundleSpace::getBundleDimension() const
     return getBundle()->getStateDimension();
 }
 
-const StateSamplerPtr &BundleSpace::getFiberSamplerPtr() const
-{
-    return Fiber_sampler_;
-}
-
 const StateSamplerPtr &BundleSpace::getBaseSamplerPtr() const
 {
     if (hasBaseSpace())
     {
-        return getBaseBundleSpace()->getBundleSamplerPtr();
+        return getBaseSpace()->getBundleSamplerPtr();
     }
     else
     {
@@ -550,24 +495,24 @@ bool BundleSpace::hasSolution()
     return hasSolution_;
 }
 
-BundleSpace *BundleSpace::getBaseBundleSpace() const
+BundleSpace *BundleSpace::getBaseSpace() const
 {
-    return baseBundleSpace_;
+    return baseSpace_;
 }
 
-void BundleSpace::setBaseBundleSpace(BundleSpace *baseBundleSpace)
+void BundleSpace::setbaseSpace(BundleSpace *baseSpace)
 {
-    baseBundleSpace_ = baseBundleSpace;
+    baseSpace_ = baseSpace;
 }
 
-BundleSpace *BundleSpace::getTotalBundleSpace() const
+BundleSpace *BundleSpace::getTotalSpace() const
 {
-    return totalBundleSpace_;
+    return totalSpace_;
 }
 
-void BundleSpace::setTotalBundleSpace(BundleSpace *totalBundleSpace)
+void BundleSpace::setTotalSpace(BundleSpace *TotalSpace)
 {
-    totalBundleSpace_ = totalBundleSpace;
+    totalSpace_ = TotalSpace;
 }
 
 unsigned int BundleSpace::getLevel() const
@@ -583,11 +528,6 @@ void BundleSpace::setLevel(unsigned int level)
 OptimizationObjectivePtr BundleSpace::getOptimizationObjectivePtr() const
 {
     return pdef_->getOptimizationObjective();
-}
-
-void BundleSpace::sampleFiber(State *xFiber)
-{
-    Fiber_sampler_->sampleUniform(xFiber);
 }
 
 bool BundleSpace::sampleBundleValid(State *xRandom)
@@ -612,29 +552,22 @@ void BundleSpace::sampleBundle(State *xRandom)
     }
     else
     {
-        if (getFiberDimension() > 0)
+        if (getProjection()->getCoDimension() > 0)
         {
             // Adjusted sampling function: Sampling in G0 x Fiber
-            baseBundleSpace_->sampleFromDatastructure(xBaseTmp_);
-
-            //projection_->lift();
-            //projection_->lift(xBaseTmp_, xRandom);
-
-            //liftingOperator_->randomLift(xBaseTmp_, xRandom);
-            //localNeighborhood->randomliftState(xBaseTmp_, xRandom);
-            sampleFiber(xFiberTmp_);
-            liftState(xBaseTmp_, xFiberTmp_, xRandom);
+            getBaseSpace()->sampleFromDatastructure(xBaseTmp_);
+            projection_->lift(xBaseTmp_, xRandom);
         }
         else
         {
-            baseBundleSpace_->sampleFromDatastructure(xRandom);
+            getBaseSpace()->sampleFromDatastructure(xRandom);
         }
     }
 }
 
 void BundleSpace::debugInvalidState(const State *x)
 {
-    const StateSpacePtr space = Bundle->getStateSpace();
+    const StateSpacePtr space = getTotalSpace()->getStateSpace();
     bool bounds = space->satisfiesBounds(x);
     if (!bounds)
     {
