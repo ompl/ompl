@@ -33,10 +33,6 @@ namespace ompl
                 const ompl::base::State *xBase, 
                 ompl::base::State *xBundle) const = 0;
 
-            /* \brief Test implementation by repreatedly calling project/lift
-             * */
-            virtual bool test();
-
             /// Dimension of Base Space
             unsigned int getBaseDimension() const;
             /// Dimension of Bundle Space

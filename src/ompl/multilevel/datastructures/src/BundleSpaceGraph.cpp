@@ -753,7 +753,7 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
             }
             numVerticesWhenComputingSolutionPath_ = getNumberOfVertices();
 
-            if (!isDynamic() && solutionPath_ != solution && hasParentSpace())
+            if (!isDynamic() && solutionPath_ != solution && hasParent())
             {
                 // bool optimize = true;
                 // int type = getBundle()->getStateSpace()->getType();

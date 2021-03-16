@@ -42,6 +42,7 @@
 #include <ompl/util/Exception.h>
 #include <ompl/util/Time.h>
 #include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
+#include <ompl/multilevel/datastructures/Projection.h>
 
 template <class T>
 ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(
@@ -63,22 +64,26 @@ ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::
   : BaseT(siVec, type)
 {
     declareBundleSpaces(true);
+    for(unsigned int k = 0; k < bundleSpaces_.size(); k++)
+    {
+        bundleSpaces_.at(k)->makeProjection();
+    }
 }
 
 template <class T>
 ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(
     std::vector<ompl::base::SpaceInformationPtr> &siVec,
-    std::vector<ompl::multilevel::BundleSpaceProjectionPtr> &projVec,
+    std::vector<ompl::multilevel::ProjectionPtr> &projVec,
     std::string type)
   : BaseT(siVec, type)
 {
     assert(siVec.size() == (projVec.size() - 1));
     declareBundleSpaces(false);
 
-    for(unsigned int k = 0; k < bundleSpaces_.size(); k++)
-    {
-        bundleSpaces_.at(k)->makeProjection();
-    }
+    std::cout << "NEED TO ASSIGN PROJECTIONS TO SPACES!" << std::endl;
+    OMPL_ERROR("NYI");
+    exit(0);
+
 }
 
 template <class T>
@@ -134,18 +139,18 @@ void ompl::multilevel::BundleSpaceSequence<T>::setStopLevel(unsigned int level_)
     }
 }
 
-template <class T>
-void ompl::multilevel::BundleSpaceSequence<T>::setFindSectionStrategy(FindSectionType type)
-{
-    for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
-    {
-        BundleSpaceGraph* bsg = dynamic_cast<BundleSpaceGraph *>(bundleSpaces_.at(k));
-        if(bsg != nullptr)
-        {
-            bsg->setFindSectionStrategy(type);
-        }
-    }
-}
+// template <class T>
+// void ompl::multilevel::BundleSpaceSequence<T>::setFindSectionStrategy(FindSectionType type)
+// {
+//     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
+//     {
+//         BundleSpaceGraph* bsg = dynamic_cast<BundleSpaceGraph *>(bundleSpaces_.at(k));
+//         if(bsg != nullptr)
+//         {
+//             bsg->setFindSectionStrategy(type);
+//         }
+//     }
+// }
 
 template <class T>
 void ompl::multilevel::BundleSpaceSequence<T>::setup()
@@ -304,8 +309,8 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(
         const ompl::base::State *sInitParent = pdefParent->getStartState(0);
         ompl::base::State *sInitChild = siChild->allocState();
 
-        parent->getProjection()->projectBase(sInitParent, sInitChild);
-        parent->getProjection()->projectBase(sInitParent, sInitChild);
+        parent->getProjection()->project(sInitParent, sInitChild);
+        parent->getProjection()->project(sInitParent, sInitChild);
         pdefChild->addStartState(sInitChild);
 
         //Now project goal state(s) down
@@ -316,7 +321,7 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(
 
             const ompl::base::State *sGoalParent = goal->getState();
             ompl::base::State *sGoalChild = siChild->allocState();
-            parent->getProjection()->projectBase(sGoalParent, sGoalChild);
+            parent->getProjection()->project(sGoalParent, sGoalChild);
             pdefChild->setGoalState(sGoalChild, epsilon);
         }
         else if(type == ompl::base::GoalType::GOAL_STATES)
@@ -333,7 +338,7 @@ void ompl::multilevel::BundleSpaceSequence<T>::setProblemDefinition(
             {
                 const ompl::base::State *sGoalParent = goal->getState(j);
                 ompl::base::State *sGoalChild = siChild->allocState();
-                parent->getProjection()->projectBase(sGoalParent, sGoalChild);
+                parent->getProjection()->project(sGoalParent, sGoalChild);
                 goalStates->addState(sGoalChild);
             }
             pdefChild->setGoal(goalStates);
@@ -358,7 +363,7 @@ ompl::base::State *ompl::multilevel::BundleSpaceSequence<T>::getTotalState(
     {
         BundleSpace *Qm = bundleSpaces_.at(m);
 
-        if (Qm->getFiberDimension() > 0)
+        if (Qm->getProjection()->getCoDimension() > 0)
         {
             base::State *s_Bundle = Qm->allocIdentityStateBundle();
             // base::State *s_Fiber = Qm->allocIdentityStateFiber();

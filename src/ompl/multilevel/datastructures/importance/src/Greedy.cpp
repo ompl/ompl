@@ -52,9 +52,9 @@ double ompl::multilevel::BundleSpaceImportanceGreedy::getLevelConstant()
     BundleSpace *cur = bundleSpaceGraph_;
 
     double K = k;
-    while (cur->hasSolution() && cur->hasParentSpace())
+    while (cur->hasSolution() && cur->hasParent())
     {
-        cur = cur->getParentSpace();
+        cur = cur->getParent();
         K++;
     }
 

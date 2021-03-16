@@ -57,13 +57,16 @@ using namespace ompl::multilevel;
 
 unsigned int BundleSpace::counter_ = 0;
 
-BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *baseBundleSpace_)
+BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *child)
   : Planner(si, "BundleSpace"), 
-  baseBundleSpace_(baseBundleSpace_),
-  totalSpace_(si), 
-  baseSpace_(baseBundleSpace_->getBundle())
+  childBundleSpace_(child),
+  totalSpace_(si)
 {
     id_ = counter_++;
+    if(child)
+    {
+        baseSpace_ = childBundleSpace_->getBundle();
+    }
 
     std::stringstream ss;
     ss << (*this);
@@ -101,23 +104,22 @@ BundleSpace::~BundleSpace()
 
 bool BundleSpace::makeProjection()
 {
-  std::cout << "NYI" << std::endl;
-  exit(0);
-    // ProjectionComponentFactory componentFactory;
+    ProjectionComponentFactory componentFactory;
 
-    // if (!hasBaseSpace())
-    // {
-    //     components_ = componentFactory.MakeBundleSpaceComponents(getBundle());
-    // }
-    // else
-    // {
-    //     baseSpace_->setParentSpace(this);
+    std::vector<ProjectionComponentPtr> projectionComponents;
+    if (!hasBaseSpace())
+    {
+        projectionComponents = 
+          componentFactory.MakeProjectionComponents(getBundle());
+    }
+    else
+    {
+        childBundleSpace_->setParent(this);
 
-    //     components_ = componentFactory.MakeBundleSpaceComponents(
-    //         getBundle(), getBase());
-
-    //     makeFiberSpace();
-    // }
+        projectionComponents = 
+          componentFactory.MakeProjectionComponents(getBundle(), getBase());
+    }
+    projection_ = std::make_shared<Projection>(projectionComponents);
 
     sanityChecks();
 
@@ -133,7 +135,7 @@ bool BundleSpace::findSection()
     return false;
 }
 
-bool BundleSpace::hasParentSpace() const
+bool BundleSpace::hasParent() const
 {
     return !(parentBundleSpace_ == nullptr);
 }
@@ -378,7 +380,7 @@ const StateSamplerPtr &BundleSpace::getBaseSamplerPtr() const
 {
     if (hasBaseSpace())
     {
-        return getBaseSpace()->getBundleSamplerPtr();
+        return getChild()->getBundleSamplerPtr();
     }
     else
     {
@@ -412,24 +414,24 @@ bool BundleSpace::hasSolution()
     return hasSolution_;
 }
 
-BundleSpace *BundleSpace::getBaseSpace() const
+BundleSpace *BundleSpace::getChild() const
 {
-    return baseBundleSpace_;
+    return childBundleSpace_;
 }
 
-void BundleSpace::setBaseSpace(BundleSpace *baseSpace)
+void BundleSpace::setChild(BundleSpace *child)
 {
-    baseBundleSpace_ = baseSpace;
+    childBundleSpace_ = child;
 }
 
-BundleSpace *BundleSpace::getParentSpace() const
+BundleSpace *BundleSpace::getParent() const
 {
     return parentBundleSpace_;
 }
 
-void BundleSpace::setParentSpace(BundleSpace *parentSpace)
+void BundleSpace::setParent(BundleSpace *parent)
 {
-    parentBundleSpace_ = parentSpace;
+    parentBundleSpace_ = parent;
 }
 
 unsigned int BundleSpace::getLevel() const
@@ -472,14 +474,19 @@ void BundleSpace::sampleBundle(State *xRandom)
         if (getProjection()->getCoDimension() > 0)
         {
             // Adjusted sampling function: Sampling in G0 x Fiber
-            getBaseSpace()->sampleFromDatastructure(xBaseTmp_);
+            getChild()->sampleFromDatastructure(xBaseTmp_);
             getProjection()->lift(xBaseTmp_, xRandom);
         }
         else
         {
-            getBaseSpace()->sampleFromDatastructure(xRandom);
+            getChild()->sampleFromDatastructure(xRandom);
         }
     }
+}
+
+void BundleSpace::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
+{
+    projection_->project(xBundle, xBase);
 }
 
 void BundleSpace::print(std::ostream &out) const

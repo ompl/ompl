@@ -63,21 +63,21 @@ void WriteVisualization(
     fout.close();
 }
 
-class MyProjectionOperator: public BundleSpaceProjection
-{
-  MyProjectionOperator(StateSpacePtr bundle, StateSpacePtr base):
-    BundleSpaceProjection(bundle, base)
-  {
-  }
-  void project( const State *xBundle, State *xBase) const
-  {
-    //Take xBundle and return xBase (e.g. Forward Kinematics)
-  }
-  void lift( const State *xBase, State *xBundle) const
-  {
-    //Take xBase and return xBundle (e.g. Inverse Kinematics)
-  }
-}
+//class MyProjectionOperator: public BundleSpaceProjection
+//{
+//  MyProjectionOperator(StateSpacePtr bundle, StateSpacePtr base):
+//    BundleSpaceProjection(bundle, base)
+//  {
+//  }
+//  void project( const State *xBundle, State *xBase) const
+//  {
+//    //Take xBundle and return xBase (e.g. Forward Kinematics)
+//  }
+//  void lift( const State *xBase, State *xBundle) const
+//  {
+//    //Take xBase and return xBundle (e.g. Inverse Kinematics)
+//  }
+//}
 
 
 
@@ -102,11 +102,11 @@ int main()
     space->as<PlanarManipulatorStateSpace>()->setBounds(bounds);
     manipulator.setBounds(bounds.low, bounds.high);
 
-    SpaceInformationPtr siJointSpace = std::make_shared<SpaceInformation>(space);
-    siJointSpace->setStateValidityChecker( 
+    SpaceInformationPtr si = std::make_shared<SpaceInformation>(space);
+    si->setStateValidityChecker( 
         std::make_shared<PlanarManipulatorCollisionChecker>( 
-          siJointSpace, manipulator, world));
-    siJointSpace->setStateValidityCheckingResolution(0.001);
+          si, manipulator, world));
+    si->setStateValidityCheckingResolution(0.001);
 
     //#########################################################################
     //## Create task space [BASE SPACE]
@@ -126,16 +126,17 @@ int main()
     //## Create mapping total to base space [PROJECTION]
     //#########################################################################
 
-    Projection proj = new MyProjectionOperator(totalSpace, baseSpace);
+    // auto planner = std::make_shared<ompl::multilevel::QRRT>(si);
+    // Projection proj = new MyProjectionOperator(totalSpace, baseSpace);
 
-    std::vector<SpaceInformationPtr> siVec;
-    siVec.push_back(siTask);
-    siVec.push_back(siJointSpace);
+    // std::vector<SpaceInformationPtr> siVec;
+    // siVec.push_back(siTask);
+    // siVec.push_back(siJointSpace);
 
-    std::vector<BundleSpaceProjectionPtr> projVec;
-    projVec.push_back(proj);
+    // std::vector<BundleSpaceProjectionPtr> projVec;
+    // projVec.push_back(proj);
 
-    auto planner = std::make_shared<ompl::multilevel::QRRT>(siVec, projVec);
+    // auto planner = std::make_shared<ompl::multilevel::QRRT>(siVec, projVec);
 
     // FiberBundle bundle(totalSpace, baseSpace);
     // FiberBundle bundle(totalSpace, baseSpace, projection);

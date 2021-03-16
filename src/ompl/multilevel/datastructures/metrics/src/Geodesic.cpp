@@ -37,6 +37,7 @@
 /* Author: Andreas Orthey */
 
 #include <ompl/multilevel/datastructures/metrics/Geodesic.h>
+#include <ompl/multilevel/datastructures/Projection.h>
 using namespace ompl::multilevel;
 using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
@@ -71,8 +72,8 @@ double BundleSpaceMetricGeodesic::distanceBase(const Configuration *xStart, cons
 {
     if (bundleSpaceGraph_->getBaseDimension() > 0)
     {
-        bundleSpaceGraph_->projectBase(xStart->state, xBaseStartTmp_);
-        bundleSpaceGraph_->projectBase(xDest->state, xBaseDestTmp_);
+        bundleSpaceGraph_->getProjection()->project(xStart->state, xBaseStartTmp_);
+        bundleSpaceGraph_->getProjection()->project(xDest->state, xBaseDestTmp_);
         double d = bundleSpaceGraph_->getBase()->distance(xBaseStartTmp_, xBaseDestTmp_);
         return d;
     }

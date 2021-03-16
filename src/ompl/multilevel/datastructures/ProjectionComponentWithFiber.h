@@ -87,7 +87,7 @@ namespace ompl
         protected:
             virtual ompl::base::StateSpacePtr computeFiberSpace() = 0;
 
-            virtual void print(std::ostream &out) const;
+            // virtual void print(std::ostream &out) const;
 
             base::StateSpacePtr fiberSpace_{nullptr};
 

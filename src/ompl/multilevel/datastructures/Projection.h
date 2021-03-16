@@ -15,9 +15,7 @@ namespace ompl
         class Projection
         {
         public:
-            Projection(
-                base::StateSpacePtr bundle, 
-                base::StateSpacePtr base);
+            Projection(std::vector<ProjectionComponentPtr> components);
 
             virtual ~Projection() = default;
 

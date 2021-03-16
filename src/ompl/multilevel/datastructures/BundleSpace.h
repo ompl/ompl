@@ -139,22 +139,22 @@ namespace ompl
             const ompl::base::StateSamplerPtr &getBaseSamplerPtr() const;
 
             /// \brief Return k-1 th bundle space (locally the base space)
-            BundleSpace *getBaseSpace() const;
+            BundleSpace *getChild() const;
 
             /// \brief Pointer to k-1 th bundle space (locally the base space)
-            void setBaseSpace(BundleSpace *baseBundleSpace);
+            void setChild(BundleSpace *child);
 
             /// \brief Return k+1 th bundle space (locally the total space)
-            BundleSpace *getParentSpace() const;
+            BundleSpace *getParent() const;
 
             /// \brief Pointer to k+1 th bundle space (locally the total space)
-            void setParentSpace(BundleSpace *parentSpace);
+            void setParent(BundleSpace *parent);
+
+            /// \brief Return if has parent space pointer
+            bool hasParent() const;
 
             /// \brief Return if has base space pointer
             bool hasBaseSpace() const;
-
-            /// \brief Return if has parent space pointer
-            bool hasParentSpace() const;
 
             /// Level in hierarchy of Bundle-spaces
             unsigned int getLevel() const;
@@ -164,12 +164,12 @@ namespace ompl
 
             /// \brief Bundle Space Projection Operator onto first component
             /// ProjectBase: Bundle \rightarrow Base
-            void projectBase(const ompl::base::State *xBundle, 
+            void project(const ompl::base::State *xBundle, 
                 ompl::base::State *xBase) const;
 
             /// \brief Lift a state from Base to Bundle
-            void liftState(const ompl::base::State *xBase, 
-                ompl::base::State *xBundle) const;
+            // void liftState(const ompl::base::State *xBase, 
+            //     ompl::base::State *xBundle) const;
 
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 
@@ -189,7 +189,7 @@ namespace ompl
 
             //\brief Being on the k-th bundle space, we denote as baseSpace the k-1-th
             // bundle space (because it locally acts as the base space for the current class)
-            BundleSpace *baseBundleSpace_{nullptr};
+            BundleSpace *childBundleSpace_{nullptr};
 
             //\brief Being on the k-th bundle space, we denote as parentSpace the k+1-th
             // bundle space

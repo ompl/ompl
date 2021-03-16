@@ -4,6 +4,11 @@
 using namespace ompl::base;
 using namespace ompl::multilevel;
 
+Projection::Projection(std::vector<ProjectionComponentPtr> components):
+  components_(components)
+{
+}
+
 void Projection::lift(const State *xBase, State *xBundle) const
 {
     unsigned int M = components_.size();

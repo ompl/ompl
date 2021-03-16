@@ -10,22 +10,13 @@ using namespace ompl::multilevel;
 ProjectionComponentWithFiber::ProjectionComponentWithFiber(ompl::base::StateSpacePtr bundleSpace, ompl::base::StateSpacePtr baseSpace)
   : ProjectionComponent(bundleSpace, baseSpace)
 {
-    makeFiberSpace();
-
-
-    if (fiberSpace_ != nullptr)
-    {
-        siFiberSpace_ = std::make_shared<SpaceInformation>(fiberSpace_);
-        fiberSpaceSampler_ = siFiberSpace_->allocStateSampler();
-        xFiberTmp_ = siFiberSpace_->allocState();
-    }
 }
 
 void ProjectionComponentWithFiber::lift(
     const ompl::base::State *xBase, 
     ompl::base::State *xBundle) const
 {
-    fiberSpaceSampler_->sample(xFiberTmp_);
+    fiberSpaceSampler_->sampleUniform(xFiberTmp_);
     liftState(xBase, xFiberTmp_, xBundle);
 }
 
@@ -44,28 +35,37 @@ unsigned int ProjectionComponentWithFiber::getFiberDimension() const
 
 std::string ProjectionComponentWithFiber::getFiberTypeAsString() const
 {
-    if (FiberSpace_)
-        return stateTypeToString(FiberSpace_);
+    if (fiberSpace_)
+        return stateTypeToString(fiberSpace_);
     else
         return "None";
 }
 
 void ProjectionComponentWithFiber::makeFiberSpace()
 {
-    fiberSpace_ = nullptr;
-    if (components_.size() > 1)
+    // fiberSpace_ = nullptr;
+    // if (components_.size() > 1)
+    // {
+    //     fiberSpace_ = std::make_shared<CompoundStateSpace>();
+    //     for (unsigned int m = 0; m < components_.size(); m++)
+    //     {
+    //         StateSpacePtr FiberM = components_.at(m)->getFiberSpace();
+    //         double weight = (FiberM->getDimension() > 0 ? 1.0 : 0.0);
+    //         std::static_pointer_cast<CompoundStateSpace>(fiberSpace_)->addSubspace(FiberM, weight);
+    //     }
+    // }
+    // else
+    // {
+    //     fiberSpace_ = components_.front()->getFiberSpace();
+    // }
+
+    fiberSpace_ = computeFiberSpace();
+
+    if (fiberSpace_ != nullptr)
     {
-        fiberSpace_ = std::make_shared<CompoundStateSpace>();
-        for (unsigned int m = 0; m < components_.size(); m++)
-        {
-            StateSpacePtr FiberM = components_.at(m)->getFiberSpace();
-            double weight = (FiberM->getDimension() > 0 ? 1.0 : 0.0);
-            std::static_pointer_cast<CompoundStateSpace>(fiberSpace_)->addSubspace(FiberM, weight);
-        }
-    }
-    else
-    {
-        fiberSpace_ = components_.front()->getFiberSpace();
+        siFiberSpace_ = std::make_shared<ompl::base::SpaceInformation>(fiberSpace_);
+        fiberSpaceSampler_ = siFiberSpace_->allocStateSampler();
+        xFiberTmp_ = siFiberSpace_->allocState();
     }
 }
 

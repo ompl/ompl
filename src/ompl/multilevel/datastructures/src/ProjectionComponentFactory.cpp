@@ -170,79 +170,79 @@ ProjectionComponentPtr ProjectionComponentFactory::MakeProjectionComponent(
 
     if (type == BUNDLE_SPACE_NO_PROJECTION)
     {
-        component = std::make_shared<ProjectionComponent_None>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_None>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_EMPTY_SET_PROJECTION)
     {
-        component = std::make_shared<ProjectionComponent_EmptySet>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_EmptySet>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_IDENTITY_PROJECTION)
     {
-        component = std::make_shared<ProjectionComponent_Identity>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_Identity>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_CONSTRAINED_RELAXATION)
     {
-        component = std::make_shared<ProjectionComponent_Relaxation>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_Relaxation>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_RN_RM)
     {
-        component = std::make_shared<ProjectionComponent_RN_RM>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_RN_RM>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_RNSO2_RN)
     {
-        component = std::make_shared<ProjectionComponent_RNSO2_RN>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_RNSO2_RN>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE2_R2)
     {
-        component = std::make_shared<ProjectionComponent_SE2_R2>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_SE2_R2>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE2RN_R2)
     {
-        component = std::make_shared<ProjectionComponent_SE2RN_R2>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_SE2RN_R2>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE2RN_SE2)
     {
-        component = std::make_shared<ProjectionComponent_SE2RN_SE2>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_SE2RN_SE2>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE2RN_SE2RM)
     {
-        component = std::make_shared<ProjectionComponent_SE2RN_SE2RM>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_SE2RN_SE2RM>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SO2RN_SO2)
     {
-        component = std::make_shared<ProjectionComponent_SO2RN_SO2>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_SO2RN_SO2>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SO2RN_SO2RM)
     {
-        component = std::make_shared<ProjectionComponent_SO2RN_SO2RM>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_SO2RN_SO2RM>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SO3RN_SO3)
     {
-        component = std::make_shared<ProjectionComponent_SO3RN_SO3>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_SO3RN_SO3>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SO3RN_SO3RM)
     {
-        component = std::make_shared<ProjectionComponent_SO3RN_SO3RM>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_SO3RN_SO3RM>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE3_R3)
     {
-        component = std::make_shared<ProjectionComponent_SE3_R3>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_SE3_R3>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE3RN_R3)
     {
-        component = std::make_shared<ProjectionComponent_SE3RN_R3>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_SE3RN_R3>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE3RN_SE3)
     {
-        component = std::make_shared<ProjectionComponent_SE3RN_SE3>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_SE3RN_SE3>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SE3RN_SE3RM)
     {
-        component = std::make_shared<ProjectionComponent_SE3RN_SE3RM>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_SE3RN_SE3RM>(Bundle, Base);
     }
     else if (type == BUNDLE_SPACE_SO2N_SO2M)
     {
-        component = std::make_shared<ProjectionComponent_SO2N_SO2M>(Bundle, Base);
+        component = std::make_shared<ProjectionComponentWithFiber_SO2N_SO2M>(Bundle, Base);
     }
     else
     {
@@ -250,7 +250,11 @@ ProjectionComponentPtr ProjectionComponentFactory::MakeProjectionComponent(
         throw Exception("BundleSpaceType not yet implemented.");
     }
     component->setType(type);
-    component->initFiberSpace();
+    auto componentFiber = std::dynamic_pointer_cast<ProjectionComponentWithFiber>(component);
+    if(componentFiber != nullptr)
+    {
+        componentFiber->makeFiberSpace();
+    }
     return component;
 }
 

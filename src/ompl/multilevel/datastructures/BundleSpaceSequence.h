@@ -39,7 +39,7 @@
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLESPACESEQUENCE_
 #include <ompl/multilevel/datastructures/BundleSpace.h>
 #include <ompl/multilevel/datastructures/PlannerMultiLevel.h>
-#include <ompl/multilevel/datastructures/pathrestriction/FindSectionTypes.h>
+// #include <ompl/multilevel/datastructures/pathrestriction/FindSectionTypes.h>
 #include <type_traits>
 #include <queue>
 
@@ -108,7 +108,7 @@ namespace ompl
 
             void setStopLevel(unsigned int level_);
 
-            void setFindSectionStrategy(FindSectionType type);
+            // void setFindSectionStrategy(FindSectionType type);
 
         protected:
 
