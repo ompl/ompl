@@ -44,7 +44,8 @@
 using namespace boost::math::double_constants;  // pi
 using namespace ompl::base;
 
-MobiusStateSpace::MobiusStateSpace(double intervalMax)
+MobiusStateSpace::MobiusStateSpace(double intervalMax, double radius):
+  intervalMax_(intervalMax), radius_(radius)
 {
     setName("Mobius" + getName());
     type_ = STATE_SPACE_MOBIUS;
@@ -139,3 +140,20 @@ State *MobiusStateSpace::allocState() const
     allocStateComponents(state);
     return state;
 }
+
+Eigen::Vector3f MobiusStateSpace::toVector(const State *state) const
+{
+    Eigen::Vector3f vec;
+
+    const MobiusStateSpace::StateType *s = state->as<MobiusStateSpace::StateType>();
+    float u = s->getS1();
+    float v = s->getR1();
+
+    double R = radius_ + v*cos(0.5*u);
+    vec[0] = R*cos(u);
+    vec[1] = R*sin(u);
+    vec[2] = v*sin(0.5*u);
+    return vec;
+
+}
+

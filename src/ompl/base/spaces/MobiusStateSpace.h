@@ -79,7 +79,7 @@ namespace ompl
                 }
             };
 
-            MobiusStateSpace(double intervalMax = 1.0);
+            MobiusStateSpace(double intervalMax = 1.0, double radius = 1.0);
 
             virtual ~MobiusStateSpace() override = default;
 
@@ -88,6 +88,12 @@ namespace ompl
             virtual void interpolate(const State *from, const State *to, double t, State *state) const override;
 
             virtual State *allocState() const override;
+
+            Eigen::Vector3f toVector(const State *state) const;
+
+        private:
+            double intervalMax_{1.0}; //width of mobius strip
+            double radius_{1.0}; // radius of inner circle
         };
     }
 }

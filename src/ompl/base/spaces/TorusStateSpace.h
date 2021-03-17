@@ -104,6 +104,8 @@ namespace ompl
 
             double getMinorRadius() const;
 
+            Eigen::Vector3f toVector(const State *state) const;
+
         private:
             double majorRadius_;
 
