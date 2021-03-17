@@ -80,7 +80,7 @@ StateSamplerPtr SphereStateSpace::allocDefaultStateSampler() const
     return std::make_shared<SphereStateSampler>(this);
 }
 
-ompl::base::SphereStateSpace::SphereStateSpace(double radius):
+SphereStateSpace::SphereStateSpace(double radius):
   radius_(radius)
 {
     setName("Sphere" + getName());
@@ -128,9 +128,32 @@ double SphereStateSpace::getMeasure() const
     return 4 * pi * radius_ * radius_;
 }
 
-ompl::base::State *ompl::base::SphereStateSpace::allocState() const
+State *SphereStateSpace::allocState() const
 {
     auto *state = new StateType();
     allocStateComponents(state);
     return state;
+}
+
+Eigen::Vector3f SphereStateSpace::toVector(const State *state) const
+{
+    Eigen::Vector3f v;
+
+    const SphereStateSpace::StateType *S1 = state->as<SphereStateSpace::StateType>();
+    float theta = S1->getTheta();
+    float phi = S1->getPhi();
+
+    // const double &R = majorRadius_;
+    // const double &r = minorRadius_;
+    // float theta = S1->getTheta();
+    // float phi = S1->getPhi();
+    // v[0] = (R + r*cos(phi))*cos(theta);
+    // v[1] = (R + r*cos(phi))*sin(theta);
+    // v[2] = r*sin(phi);
+
+    v[0] = radius_*sin(phi)*cos(theta);
+    v[1] = radius_*sin(phi)*sin(theta);
+    v[2] = radius_*cos(phi);
+
+    return v;
 }

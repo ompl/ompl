@@ -42,6 +42,7 @@
 #include <ompl/base/StateSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
+#include <Eigen/Core>
 
 namespace ompl
 {
@@ -101,9 +102,9 @@ namespace ompl
 
             virtual double distance(const State *state1, const State *state2) const override;
 
-            // virtual void interpolate(const State *from, const State *to, double t, State *state) const override;
-
             virtual State *allocState() const override;
+
+            Eigen::Vector3f toVector(const State *state) const;
 
         protected:
             double radius_{1.0};
