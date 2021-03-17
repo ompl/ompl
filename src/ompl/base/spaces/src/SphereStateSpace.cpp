@@ -80,7 +80,8 @@ StateSamplerPtr SphereStateSpace::allocDefaultStateSampler() const
     return std::make_shared<SphereStateSampler>(this);
 }
 
-ompl::base::SphereStateSpace::SphereStateSpace()
+ompl::base::SphereStateSpace::SphereStateSpace(double radius):
+  radius_(radius)
 {
     setName("Sphere" + getName());
     type_ = STATE_SPACE_SPHERE;

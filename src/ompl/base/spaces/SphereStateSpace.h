@@ -90,7 +90,7 @@ namespace ompl
                 }
             };
 
-            SphereStateSpace();
+            SphereStateSpace(double radius = 1.0);
 
             virtual ~SphereStateSpace() override = default;
 

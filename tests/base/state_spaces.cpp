@@ -418,6 +418,35 @@ BOOST_AUTO_TEST_CASE(Compound_Simple)
     BOOST_CHECK(t->includes(t));
 }
 
+BOOST_AUTO_TEST_CASE(Sphere_Simple)
+{
+    auto m(std::make_shared<base::TorusStateSpace>());
+    m->setup();
+    m->sanityChecks();
+
+    StateSpaceTest mt(m, 1000, 1e-12);
+    mt.test();
+
+    BOOST_CHECK_EQUAL(m->getDimension(), 2u);
+    base::ScopedState<base::SphereStateSpace> s1(m);
+    base::ScopedState<base::SphereStateSpace> s2(m);
+
+    //Check equivalences at gluing points
+    s1->setTheta(-PI);
+    s1->setPhi(0);
+    s2->setTheta(+PI);
+    s2->setPhi(0);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.0, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.0, 1e-3);
+
+    s1->setTheta(0);
+    s1->setPhi(+PI);
+    s2->setTheta(0);
+    s2->setPhi(-PI);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.0, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.0, 1e-3);
+}
+
 BOOST_AUTO_TEST_CASE(Torus_Simple)
 {
     auto m(std::make_shared<base::TorusStateSpace>());
