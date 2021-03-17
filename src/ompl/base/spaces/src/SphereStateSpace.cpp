@@ -51,8 +51,8 @@ SphereStateSampler::SphereStateSampler(const StateSpace *space) : StateSampler(s
 void SphereStateSampler::sampleUniform(State *state)
 {
     // see for example http://corysimon.github.io/articles/uniformdistn-on-sphere/
-    double theta = 2.0 * pi * rng_.uniformReal(0, 1) - pi;
-    double phi = acos(1.0 - 2.0 * rng_.uniformReal(0, 1));
+    double theta = 2.0 * pi * rng_.uniformReal(0, 1) - pi; //uniform in [-pi,+pi]
+    double phi = acos(1.0 - 2.0 * rng_.uniformReal(0, 1));//in [0,+pi]
     SphereStateSpace::StateType *S = state->as<SphereStateSpace::StateType>();
     S->setThetaPhi(theta, phi);
 }
@@ -85,34 +85,42 @@ ompl::base::SphereStateSpace::SphereStateSpace(double radius):
 {
     setName("Sphere" + getName());
     type_ = STATE_SPACE_SPHERE;
-    addSubspace(std::make_shared<SO2StateSpace>(), 1.0);
-    addSubspace(std::make_shared<SO2StateSpace>(), 1.0);
+
+    StateSpacePtr SO2(std::make_shared<SO2StateSpace>());
+    StateSpacePtr R1(std::make_shared<RealVectorStateSpace>(1));
+    R1->as<RealVectorStateSpace>()->setBounds(0, M_PI);
+
+    addSubspace(SO2, 1.0);
+    addSubspace(R1, 1.0);
     lock();
 }
 
 double SphereStateSpace::distance(const State *state1, const State *state2) const
 {
-    // https://en.wikipedia.org/wiki/Great-circle_distance
-    // https://en.wikipedia.org/wiki/Vincenty%27s_formulae
+    // https://en.wikipedia.org/wiki/Great-circle_distance#Formulae
 
     const SphereStateSpace::StateType *S1 = state1->as<SphereStateSpace::StateType>();
     const SphereStateSpace::StateType *S2 = state2->as<SphereStateSpace::StateType>();
 
-    double t1 = S1->getTheta();
-    double p1 = S1->getPhi();
+    // Note: Formula assumes phi in [-pi/2,+pi/2]
+    float t1 = S1->getTheta();
+    float phi1 = S1->getPhi() - pi/2.0;
 
-    double t2 = S2->getTheta();
-    double p2 = S2->getPhi();
+    float t2 = S2->getTheta();
+    float phi2 = S2->getPhi() - pi/2.0;
 
-    double dt = t2 - t1;
-    double d1 = powf(cos(p2) * sin(dt), 2);
-    double d2 = powf(cos(p1) * sin(p2) - sin(p1) * cos(p2) * cos(dt), 2);
+    // double dt = t2 - t1;
+    // double d1 = powf(cos(phi2) * sin(dt), 2);
+    // double d2 = powf(cos(phi1) * sin(phi2) - sin(phi1) * cos(phi2) * cos(dt), 2);
+    // double numerator = sqrtf(d1 + d2);
+    // double denumerator = sin(phi1) * sin(phi2) + cos(phi1) * cos(phi2) * cos(dt);
+    // return radius_ * atan2(numerator, denumerator);
 
-    double numerator = sqrtf(d1 + d2);
+    float s = 0.5*(phi1 - phi2);
+    float t = 0.5*(t1 - t2);
+    float d = sqrtf(sin(s)*sin(s) + cos(phi1)*cos(phi2)*sin(t)*sin(t));
+    return 2*radius_*asin(d);
 
-    double denumerator = sin(p1) * sin(p2) + cos(p1) * cos(p2) * cos(dt);
-
-    return radius_ * atan2(numerator, denumerator);
 }
 
 double SphereStateSpace::getMeasure() const

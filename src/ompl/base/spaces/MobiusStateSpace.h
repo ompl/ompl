@@ -83,11 +83,11 @@ namespace ompl
 
             virtual ~MobiusStateSpace() override = default;
 
-            double distance(const State *state1, const State *state2) const override;
+            virtual double distance(const State *state1, const State *state2) const override;
 
             virtual void interpolate(const State *from, const State *to, double t, State *state) const override;
 
-            State *allocState() const override;
+            virtual State *allocState() const override;
         };
     }
 }

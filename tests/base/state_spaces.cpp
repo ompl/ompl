@@ -418,35 +418,6 @@ BOOST_AUTO_TEST_CASE(Compound_Simple)
     BOOST_CHECK(t->includes(t));
 }
 
-BOOST_AUTO_TEST_CASE(Sphere_Simple)
-{
-    auto m(std::make_shared<base::TorusStateSpace>());
-    m->setup();
-    m->sanityChecks();
-
-    StateSpaceTest mt(m, 1000, 1e-12);
-    mt.test();
-
-    BOOST_CHECK_EQUAL(m->getDimension(), 2u);
-    base::ScopedState<base::SphereStateSpace> s1(m);
-    base::ScopedState<base::SphereStateSpace> s2(m);
-
-    //Check equivalences at gluing points
-    s1->setTheta(-PI);
-    s1->setPhi(0);
-    s2->setTheta(+PI);
-    s2->setPhi(0);
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.0, 1e-3);
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.0, 1e-3);
-
-    s1->setTheta(0);
-    s1->setPhi(+PI);
-    s2->setTheta(0);
-    s2->setPhi(-PI);
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.0, 1e-3);
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.0, 1e-3);
-}
-
 BOOST_AUTO_TEST_CASE(Torus_Simple)
 {
     auto m(std::make_shared<base::TorusStateSpace>());
@@ -479,14 +450,6 @@ BOOST_AUTO_TEST_CASE(Torus_Simple)
     BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.2, 1e-3);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s1.get()), 0.0, 1e-3);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s2.get()), 0.0, 1e-3);
-
-    //Check distances at gluing point
-    s1->setS1(+intervalMax);
-    s1->setS2(+PI - 0.1);
-    s2->setS1(-intervalMax);
-    s2->setS2(-PI + 0.1);
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.2 +2*intervalMax, 1e-3);
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.2 +2*intervalMax, 1e-3);
 
     //Check interpolation
     s2 = s1;
@@ -543,5 +506,51 @@ BOOST_AUTO_TEST_CASE(Mobius_Simple)
     s2->setS1(-PI + 0.1);
     s2->setR1(+intervalMax);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 2*intervalMax + 0.2, 1e-3);
-
 }
+
+BOOST_AUTO_TEST_CASE(Sphere_Simple)
+{
+    auto m(std::make_shared<base::SphereStateSpace>(1.0));
+    m->setup();
+    m->sanityChecks();
+
+    StateSpaceTest mt(m, 1000, 1e-5);
+    mt.testDistance();
+
+    BOOST_CHECK_EQUAL(m->getDimension(), 2u);
+    base::ScopedState<base::SphereStateSpace> s1(m);
+    base::ScopedState<base::SphereStateSpace> s2(m);
+
+    //north-south interpolation
+    s1->setTheta(0);
+    s1->setPhi(0);
+    s2->setTheta(0);
+    s2->setPhi(PI);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), PI, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), PI, 1e-3);
+
+    //east-west interpolation (at south pole)
+    s1->setTheta(0);
+    s1->setPhi(0);
+    s2->setTheta(+PI);
+    s2->setPhi(0);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.0, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.0, 1e-3);
+
+    //east-west interpolation (at north pole)
+    s1->setTheta(PI);
+    s1->setPhi(PI);
+    s2->setTheta(0);
+    s2->setPhi(PI);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.0, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.0, 1e-3);
+
+    //east-west interpolation (at equator)
+    s1->setTheta(0);
+    s1->setPhi(+PI/2.0);
+    s2->setTheta(+PI/3);
+    s2->setPhi(+PI/2.0);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), PI/3, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), PI/3, 1e-3);
+}
+

@@ -39,8 +39,9 @@
 #ifndef OMPL_BASE_SPACES_SPHERE_STATE_SPACE_
 #define OMPL_BASE_SPACES_SPHERE_STATE_SPACE_
 
-#include "ompl/base/StateSpace.h"
-#include "ompl/base/spaces/SO2StateSpace.h"
+#include <ompl/base/StateSpace.h>
+#include <ompl/base/spaces/SO2StateSpace.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 
 namespace ompl
 {
@@ -72,7 +73,7 @@ namespace ompl
                 }
                 double getPhi() const
                 {
-                    return as<SO2StateSpace::StateType>(1)->value;
+                    return as<RealVectorStateSpace::StateType>(1)->values[0];
                 }
 
                 void setTheta(double theta)
@@ -81,7 +82,7 @@ namespace ompl
                 }
                 void setPhi(double phi)
                 {
-                    as<SO2StateSpace::StateType>(1)->value = phi;
+                    as<RealVectorStateSpace::StateType>(1)->values[0] = phi;
                 }
                 void setThetaPhi(double theta, double phi)
                 {
@@ -94,13 +95,15 @@ namespace ompl
 
             virtual ~SphereStateSpace() override = default;
 
-            StateSamplerPtr allocDefaultStateSampler() const override;
+            virtual StateSamplerPtr allocDefaultStateSampler() const override;
 
-            double getMeasure() const override;
+            virtual double getMeasure() const override;
 
-            double distance(const State *state1, const State *state2) const override;
+            virtual double distance(const State *state1, const State *state2) const override;
 
-            State *allocState() const override;
+            // virtual void interpolate(const State *from, const State *to, double t, State *state) const override;
+
+            virtual State *allocState() const override;
 
         protected:
             double radius_{1.0};
