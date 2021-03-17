@@ -66,7 +66,7 @@ ob::PlannerPtr GetQRRT(std::vector<int> sequenceLinks, ob::SpaceInformationPtr s
 
     for (unsigned int k = 0; k < sequenceLinks.size(); k++)
     {
-        int links = sequenceLinks.at(k);
+        auto links = sequenceLinks.at(k);
         assert(links < numLinks);
 
         OMPL_INFORM("Create MultiLevel Chain with %d links.", links);

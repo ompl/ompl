@@ -178,7 +178,7 @@ namespace ompl
                 void cacheNeighbors(const std::vector<std::shared_ptr<Vertex>> &neighbors) const;
 
                 /** \brief Returns the nearest neighbors, throws if not up to date. */
-                const std::vector<std::shared_ptr<Vertex>> &getNeighbors() const;
+                const std::vector<std::shared_ptr<Vertex>> getNeighbors() const;
 
                 /** \brief Registers that a child has been added to this vertex during the current forward search. */
                 void registerPoppedOutgoingEdgeDuringForwardSearch();
@@ -281,7 +281,7 @@ namespace ompl
                 std::vector<std::weak_ptr<Vertex>> reverseChildren_{};
 
                 /** \brief The cached neighbors of this vertex. */
-                mutable std::vector<std::shared_ptr<Vertex>> neighbors_{};
+                mutable std::vector<std::weak_ptr<Vertex>> neighbors_{};
 
                 /** \brief The list of whitelisted children. */
                 mutable std::vector<std::weak_ptr<Vertex>> whitelistedChildren_{};

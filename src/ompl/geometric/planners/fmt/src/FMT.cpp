@@ -64,7 +64,7 @@ ompl::geometric::FMT::FMT(const base::SpaceInformationPtr &si)
                                                     "10:10:1000000");
     ompl::base::Planner::declareParam<double>("radius_multiplier", this, &FMT::setRadiusMultiplier,
                                               &FMT::getRadiusMultiplier, "0.1:0.05:50.");
-    ompl::base::Planner::declareParam<bool>("nearest_k", this, &FMT::setNearestK, &FMT::getNearestK, "0,1");
+    ompl::base::Planner::declareParam<bool>("use_k_nearest", this, &FMT::setNearestK, &FMT::getNearestK, "0,1");
     ompl::base::Planner::declareParam<bool>("cache_cc", this, &FMT::setCacheCC, &FMT::getCacheCC, "0,1");
     ompl::base::Planner::declareParam<bool>("heuristics", this, &FMT::setHeuristics, &FMT::getHeuristics, "0,1");
     ompl::base::Planner::declareParam<bool>("extended_fmt", this, &FMT::setExtendedFMT, &FMT::getExtendedFMT, "0,1");

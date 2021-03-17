@@ -97,7 +97,11 @@ void ompl::geometric::SST::setup()
             pdef_->setOptimizationObjective(opt_);
         }
     }
-
+    else
+    {
+        OMPL_WARN("%s: No optimization object set. Using path length", getName().c_str());
+        opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
+    }
     prevSolutionCost_ = opt_->infiniteCost();
 }
 

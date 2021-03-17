@@ -234,7 +234,7 @@ void ompl::geometric::LazyPRM::setDefaultConnectionStrategy()
                                      return distanceFunction(a, b);
                                  });
     }
-  
+
     if (starStrategy_)
         connectionStrategy_ = KStarStrategy<Vertex>([this] { return milestoneCount(); }, nn_, si_->getStateDimension());
     else

@@ -72,6 +72,15 @@ namespace ompl
             /** \brief ompl::base::DubinsStateSpace */
             STATE_SPACE_DUBINS = 8,
 
+            /** \brief ompl::base::MobiusStateSpace */
+            STATE_SPACE_MOBIUS = 9,
+
+            /** \brief ompl::base::SphereStateSpace */
+            STATE_SPACE_SPHERE = 10,
+
+            /** \brief ompl::base::TorusStateSpace */
+            STATE_SPACE_TORUS = 11,
+
             /** \brief Number of state space types; To add new types,
                 use values that are larger than the count*/
             STATE_SPACE_TYPE_COUNT
