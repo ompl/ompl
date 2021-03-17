@@ -1,7 +1,8 @@
 [ ] Remove Goal Vertex Dependence
 
-[ ] Projection Rewrite:
- [ ] Rename ProjectionComponentWithFiber_ to Projection_
- [ ] Make CompoundProjection instead of having a projection class
- [ ] ProjectionComponentTypes to ProjectionTypes
+[x] Projection Rewrite:
+ [x] Rename ProjectionComponentWithFiber_ to Projection_
+ [x] Make CompoundProjection instead of having a projection class
+ [x] ProjectionComponentTypes to ProjectionTypes
 
+[ ] Check why segfault on setting own projection

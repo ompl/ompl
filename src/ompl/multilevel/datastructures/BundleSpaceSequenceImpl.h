@@ -73,8 +73,11 @@ ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(
   : BaseT(siVec, type)
 {
     assert(siVec.size() == (projVec.size() - 1));
+    assert(siVec.size() > 0);
     declareBundleSpaces(false);
 
+    //None projection added
+    bundleSpaces_.front()->makeProjection();
     for(uint k = 1; k < bundleSpaces_.size(); k++)
     {
         BundleSpace* bk = bundleSpaces_.at(k);

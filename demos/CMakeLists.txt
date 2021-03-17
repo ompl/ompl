@@ -64,13 +64,13 @@ if (OMPL_BUILD_DEMOS)
       #            PlanarManipulator/PlanarManipulator.cpp
       #            PlanarManipulator/PolyWorld.cpp
       #        )
-        add_ompl_demo(demo_PlanarManipulator2
-            multilevel/PlanarManipulatorDemo2.cpp
+      add_ompl_demo(demo_MultiLevelPlanarManipulator
+            multilevel/MultiLevelPlanarManipulatorDemo.cpp
             PlanarManipulator/PlanarManipulator.cpp
             PlanarManipulator/PolyWorld.cpp
         )
-        target_include_directories(demo_PlanarManipulator2 PUBLIC ${YAMLCPP_INCLUDE_DIRS})
-        target_link_libraries(demo_PlanarManipulator2 ${YAMLCPP_LIBRARIES})
+        target_include_directories(demo_MultiLevelPlanarManipulator PUBLIC ${YAMLCPP_INCLUDE_DIRS})
+        target_link_libraries(demo_MultiLevelPlanarManipulator ${YAMLCPP_LIBRARIES})
     endif()
 
     #if (OMPL_EXTENSION_ODE)

@@ -42,22 +42,6 @@ std::string FiberedProjection::getFiberTypeAsString() const
 
 void FiberedProjection::makeFiberSpace()
 {
-    // fiberSpace_ = nullptr;
-    // if (components_.size() > 1)
-    // {
-    //     fiberSpace_ = std::make_shared<CompoundStateSpace>();
-    //     for (unsigned int m = 0; m < components_.size(); m++)
-    //     {
-    //         StateSpacePtr FiberM = components_.at(m)->getFiberSpace();
-    //         double weight = (FiberM->getDimension() > 0 ? 1.0 : 0.0);
-    //         std::static_pointer_cast<CompoundStateSpace>(fiberSpace_)->addSubspace(FiberM, weight);
-    //     }
-    // }
-    // else
-    // {
-    //     fiberSpace_ = components_.front()->getFiberSpace();
-    // }
-
     fiberSpace_ = computeFiberSpace();
 
     if (fiberSpace_ != nullptr)

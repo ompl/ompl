@@ -66,6 +66,8 @@ BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *child)
     if(child)
     {
         baseSpace_ = childBundleSpace_->getBundle();
+        childBundleSpace_->setParent(this);
+        xBaseTmp_ = getBase()->allocState();
     }
 
     std::stringstream ss;
@@ -79,10 +81,6 @@ BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *child)
     if (!Bundle_sampler_)
     {
         Bundle_sampler_ = getBundle()->allocStateSampler();
-    }
-    if (hasBaseSpace())
-    {
-        xBaseTmp_ = getBase()->allocState();
     }
     xBundleTmp_ = getBundle()->allocState();
 }
@@ -114,8 +112,6 @@ bool BundleSpace::makeProjection()
     }
     else
     {
-        childBundleSpace_->setParent(this);
-
         projections = 
           projectionFactory.MakeProjections(getBundle(), getBase());
     }
@@ -133,7 +129,6 @@ bool BundleSpace::makeProjection()
 
     sanityChecks();
     return true;
-
 }
 
 bool BundleSpace::hasBaseSpace() const
