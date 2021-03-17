@@ -51,7 +51,7 @@ if (OMPL_BUILD_DEMOS)
     #add_ompl_demo(demo_MultiLevelPlanningKinematicChain multilevel/MultiLevelPlanningKinematicChain.cpp)
     #add_ompl_demo(demo_MultiLevelPlanningHyperCube multilevel/MultiLevelPlanningHyperCube.cpp)
     #add_ompl_demo(demo_MultiLevelPlanningHyperCubeBenchmark multilevel/MultiLevelPlanningHyperCubeBenchmark.cpp)
-    add_ompl_demo(demo_MultiLevelPlanningRigidBody2DTaskSpace multilevel/MultiLevelPlanningRigidBody2DTaskSpace.cpp)
+    #add_ompl_demo(demo_MultiLevelPlanningRigidBody2DTaskSpace multilevel/MultiLevelPlanningRigidBody2DTaskSpace.cpp)
     #add_ompl_demo(demo_MultiLevelPlanarManipulator multilevel/MultiLevelPlanarManipulator.cpp)
 
     find_package(yaml-cpp)
