@@ -1,10 +1,5 @@
 //This is basically just a simplified version of Ryan Luna's Demo, used for
 //testing purposes of the multilevel planning framework
-//
-// TODO
-//  [ ] How do the decompositions here by Ryan differ from multilevel? Can we
-//  reuse anything? 
-//  [ ] How does it all compare to syclop decompositions?
 
 #include <fstream>
 
@@ -18,9 +13,13 @@
 
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
+#include <ompl/base/spaces/SE2StateSpace.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/multilevel/planners/qrrt/QRRT.h>
 #include <ompl/multilevel/planners/qmp/QMP.h>
+
 #include <ompl/multilevel/datastructures/Projection.h>
+#include <ompl/multilevel/datastructures/projections/SE2_R2.h>
 
 using namespace ompl::base;
 using namespace ompl::geometric;
@@ -68,24 +67,24 @@ void WriteVisualization(
 
 namespace ompl
 {
-  namespace multilevel
-  {
-    OMPL_CLASS_FORWARD(Projection);
-  }
+    namespace multilevel
+    {
+        OMPL_CLASS_FORWARD(Projection);
+    }
 }
 
-class MyProjectionOperator: public ompl::multilevel::Projection
+class ProjectionJointSpaceToSE2: public ompl::multilevel::Projection
 {
   public:
-    MyProjectionOperator(StateSpacePtr bundle, StateSpacePtr base, PlanarManipulator *manip):
-      Projection(), bundle_(bundle), base_(base), manip_(manip)
+    ProjectionJointSpaceToSE2(StateSpacePtr bundle, StateSpacePtr base, PlanarManipulator *manip):
+      Projection(bundle, base), manip_(manip)
     {
     }
 
     void project( const State *xBundle, State *xBase) const
     {
         std::vector<double> reals;
-        bundle_->copyToReals(reals, xBundle);
+        getBundle()->copyToReals(reals, xBundle);
 
         Eigen::Affine2d eeFrame;
         manip_->FK(reals, eeFrame);
@@ -93,11 +92,11 @@ class MyProjectionOperator: public ompl::multilevel::Projection
         std::cout << " " << eeFrame.translation()(0) 
                       << " " << eeFrame.translation()(1) << std::endl;
 
-
         double x = eeFrame.translation()(0);
         double y = eeFrame.translation()(1);
-        xBase->as<RealVectorStateSpace::StateType>()->values[0] = x;
-        xBase->as<RealVectorStateSpace::StateType>()->values[1] = y;
+        double yaw = 0;
+        xBase->as<SE2StateSpace::StateType>()->setXY(x,y);
+        xBase->as<SE2StateSpace::StateType>()->setYaw(yaw);
     }
 
     void lift( const State *xBase, State *xBundle) const
@@ -106,12 +105,8 @@ class MyProjectionOperator: public ompl::multilevel::Projection
     }
 
   private:
-    ompl::base::StateSpacePtr bundle_;
-    ompl::base::StateSpacePtr base_;
     PlanarManipulator *manip_;
 };
-
-
 
 int main()
 {
@@ -141,41 +136,59 @@ int main()
     si->setStateValidityCheckingResolution(0.001);
 
     //#########################################################################
-    //## Create task space [BASE SPACE]
+    //## Create task space [SE2 BASE SPACE]
     //#########################################################################
-    ompl::base::StateSpacePtr workspace(new RealVectorStateSpace(3));
-    ompl::base::RealVectorBounds boundsWorkspace(3);
+    ompl::base::StateSpacePtr spaceSE2(new SE2StateSpace());
+    ompl::base::RealVectorBounds boundsWorkspace(2);
     boundsWorkspace.setLow(-2);
     boundsWorkspace.setHigh(+2);
-    workspace->as<RealVectorStateSpace>()->setBounds(boundsWorkspace);
+    spaceSE2->as<SE2StateSpace>()->setBounds(boundsWorkspace);
 
-    SpaceInformationPtr siTask = std::make_shared<SpaceInformation>(workspace);
-    // siTask->setStateValidityChecker( 
-    //     std::make_shared<TaskSpaceCollisionChecker>( siTask));
-    siTask->setStateValidityChecker( 
-        std::make_shared<AllValidStateValidityChecker>( siTask));
-    siTask->setStateValidityCheckingResolution(0.001);
+    SpaceInformationPtr siSE2 = std::make_shared<SpaceInformation>(spaceSE2);
+    siSE2->setStateValidityChecker( 
+        std::make_shared<AllValidStateValidityChecker>(siSE2));
+    siSE2->setStateValidityCheckingResolution(0.001);
+
+    //#########################################################################
+    //## Create task space [R2 BASE SPACE]
+    //#########################################################################
+    ompl::base::StateSpacePtr spaceR2(new RealVectorStateSpace(2));
+    ompl::base::RealVectorBounds boundsR2(2);
+    boundsR2.setLow(-2);
+    boundsR2.setHigh(+2);
+    spaceR2->as<RealVectorStateSpace>()->setBounds(boundsR2);
+
+    SpaceInformationPtr siR2 = std::make_shared<SpaceInformation>(spaceR2);
+    siR2->setStateValidityChecker( 
+        std::make_shared<AllValidStateValidityChecker>(siR2));
+    siR2->setStateValidityCheckingResolution(0.001);
     
     //#########################################################################
     //## Create mapping total to base space [PROJECTION]
     //#########################################################################
+    ompl::multilevel::ProjectionPtr projAB = 
+      std::make_shared<ProjectionJointSpaceToSE2>(space, spaceSE2, &manipulator);
 
-    ompl::multilevel::ProjectionPtr proj = 
-      std::make_shared<MyProjectionOperator>(space, workspace, &manipulator);
+    ompl::multilevel::ProjectionPtr projBC = 
+      std::make_shared<ompl::multilevel::Projection_SE2_R2>(spaceSE2, spaceR2);
 
+    //#########################################################################
+    //## Put it all together
+    //#########################################################################
     std::vector<SpaceInformationPtr> siVec;
-    siVec.push_back(siTask);
+    siVec.push_back(siR2);
+    siVec.push_back(siSE2);
     siVec.push_back(si);
 
     std::vector<ompl::multilevel::ProjectionPtr> projVec;
-    projVec.push_back(proj);
+    projVec.push_back(projBC);
+    projVec.push_back(projAB);
 
     auto planner = std::make_shared<ompl::multilevel::QRRT>(siVec, projVec);
 
     //#########################################################################
-    //## Create robot joint configuration space
+    //## Set start state
     //#########################################################################
-    // Set the start and goal.
     ompl::base::State *start = si->allocState();
     double *start_angles = start->as<PlanarManipulatorStateSpace::StateType>()->values;
 
@@ -184,17 +197,27 @@ int main()
         start_angles[i] = 1e-7;
     }
 
+    //#########################################################################
+    //## Set goal state
+    //#########################################################################
+    ompl::base::State *goal = si->allocState();
+
+    std::vector<double> goalJoints;
+    manipulator.IK(goalJoints, goalFrame);
+    goal->as<RealVectorStateSpace::StateType>()->values[0] = goalJoints.at(0);
+    goal->as<RealVectorStateSpace::StateType>()->values[1] = goalJoints.at(1);
+    goal->as<RealVectorStateSpace::StateType>()->values[2] = goalJoints.at(2);
+
     ProblemDefinitionPtr pdef = std::make_shared<ProblemDefinition>(si);
     pdef->addStartState(start);
+    pdef->setGoalState(goal, 1e-3);
+
     si->freeState(start);
+    si->freeState(goal);
 
-    ompl::base::GoalPtr goal(new PlanarManipulatorIKGoal(si, goalFrame, &manipulator, false));
-    goal->as<PlanarManipulatorIKGoal>()->setThreshold(1e-3);
-    pdef->setGoal(goal);
-
-    // auto planner = std::make_shared<ompl::geometric::RRTConnect>(si);
-    // auto planner = std::make_shared<ompl::multilevel::QRRT>(si);
-    // auto planner = std::make_shared<ompl::geometric::RRT>(si);
+    //#########################################################################
+    //## Invoke planner
+    //#########################################################################
     planner->setProblemDefinition(pdef);
     planner->setup();
 

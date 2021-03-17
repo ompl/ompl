@@ -1,2 +1,7 @@
 [ ] Remove Goal Vertex Dependence
 
+[ ] Projection Rewrite:
+ [ ] Rename ProjectionComponentWithFiber_ to Projection_
+ [ ] Make CompoundProjection instead of having a projection class
+ [ ] ProjectionComponentTypes to ProjectionTypes
+

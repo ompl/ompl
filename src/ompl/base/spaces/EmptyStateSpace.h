@@ -30,7 +30,6 @@ namespace ompl
               return 0;
             }
 
-
             double getMaximumExtent() const override
             {
               return 0;

@@ -36,55 +36,34 @@
 
 /* Author: Andreas Orthey */
 
-#include <ompl/multilevel/datastructures/metrics/Geodesic.h>
-#include <ompl/multilevel/datastructures/Projection.h>
+#include <ompl/multilevel/datastructures/projections/None.h>
+
 using namespace ompl::multilevel;
-using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
-BundleSpaceMetricGeodesic::BundleSpaceMetricGeodesic(BundleSpaceGraph *bundleSpaceGraph) : BaseT(bundleSpaceGraph)
+Projection_None::Projection_None(ompl::base::StateSpacePtr BundleSpace,
+                                                                       ompl::base::StateSpacePtr BaseSpace)
+  : BaseT(BundleSpace, BaseSpace)
 {
+    setType(PROJECTION_NONE);
 }
 
-double BundleSpaceMetricGeodesic::distanceBundle(const Configuration *xStart, const Configuration *xDest)
+void Projection_None::projectFiber(const ompl::base::State *, ompl::base::State *) const
 {
-    return bundleSpaceGraph_->getBundle()->distance(xStart->state, xDest->state);
+    OMPL_WARN("Trying to project to fiber with non-projectable Bundle Space.");
 }
 
-double BundleSpaceMetricGeodesic::distanceFiber(const Configuration * /*xStart*/, const Configuration* /*xDest*/)
+void Projection_None::project(const ompl::base::State *, ompl::base::State *) const
 {
-    std::cout << "NYI" << std::endl;
-    exit(0);
-    return 0.0;
-    // if (bundleSpaceGraph_->getFiberDimension() > 0)
-    // {
-    //     bundleSpaceGraph_->projectFiber(xStart->state, xFiberStartTmp_);
-    //     bundleSpaceGraph_->projectFiber(xDest->state, xFiberDestTmp_);
-    //     double d = bundleSpaceGraph_->getFiber()->distance(xFiberStartTmp_, xFiberDestTmp_);
-    //     return d;
-    // }
-    // else
-    // {
-    //     return 0.0;
-    // }
+    OMPL_WARN("Trying to project to base with non-projectable Bundle Space.");
 }
 
-double BundleSpaceMetricGeodesic::distanceBase(const Configuration *xStart, const Configuration *xDest)
+void Projection_None::liftState(const ompl::base::State *, const ompl::base::State *,
+                                                            ompl::base::State *) const
 {
-    if (bundleSpaceGraph_->getBaseDimension() > 0)
-    {
-        bundleSpaceGraph_->getProjection()->project(xStart->state, xBaseStartTmp_);
-        bundleSpaceGraph_->getProjection()->project(xDest->state, xBaseDestTmp_);
-        double d = bundleSpaceGraph_->getBase()->distance(xBaseStartTmp_, xBaseDestTmp_);
-        return d;
-    }
-    else
-    {
-        return 0.0;
-    }
+    OMPL_WARN("Trying to lift States with non-projectable Bundle Space.");
 }
 
-void BundleSpaceMetricGeodesic::interpolateBundle(const Configuration *q_from, const Configuration *q_to,
-                                                  const double step, Configuration *q_interp)
+ompl::base::StateSpacePtr Projection_None::computeFiberSpace()
 {
-    bundleSpaceGraph_->getBundle()->getStateSpace()->interpolate(q_from->state, q_to->state, step, q_interp->state);
+    return nullptr;
 }

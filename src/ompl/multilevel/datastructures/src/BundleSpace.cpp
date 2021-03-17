@@ -104,24 +104,35 @@ BundleSpace::~BundleSpace()
 
 bool BundleSpace::makeProjection()
 {
-    ProjectionComponentFactory componentFactory;
+    ProjectionFactory projectionFactory;
 
-    std::vector<ProjectionComponentPtr> projectionComponents;
+    std::vector<ProjectionPtr> projections;
     if (!hasBaseSpace())
     {
-        projectionComponents = 
-          componentFactory.MakeProjectionComponents(getBundle());
+        projections = 
+          projectionFactory.MakeProjections(getBundle());
     }
     else
     {
         childBundleSpace_->setParent(this);
 
-        projectionComponents = 
-          componentFactory.MakeProjectionComponents(getBundle(), getBase());
+        projections = 
+          projectionFactory.MakeProjections(getBundle(), getBase());
     }
-    projection_ = std::make_shared<Projection>(projectionComponents);
+
+    if(projections.size() < 1) return false;
+
+    if(projections.size() > 1)
+    {
+        projection_ = std::make_shared<CompoundProjection>(
+            getBundle()->getStateSpace(), 
+            getBase()->getStateSpace(), projections);
+    }else{
+        projection_ = projections.front();
+    }
 
     sanityChecks();
+    return true;
 
 }
 
@@ -254,9 +265,14 @@ void BundleSpace::resetCounter()
 //     }
 // }
 
+void BundleSpace::setProjection(ProjectionPtr projection)
+{
+    projection_ = projection;
+}
+
 ProjectionPtr BundleSpace::getProjection() const
 {
-  return projection_;
+    return projection_;
 }
 
 void BundleSpace::allocIdentityState(State *s, StateSpacePtr space) const
@@ -482,6 +498,11 @@ void BundleSpace::sampleBundle(State *xRandom)
     }
 }
 
+void BundleSpace::lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const
+{
+    projection_->lift(xBase, xBundle);
+}
+
 void BundleSpace::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
     projection_->project(xBundle, xBase);
@@ -490,12 +511,12 @@ void BundleSpace::project(const ompl::base::State *xBundle, ompl::base::State *x
 void BundleSpace::print(std::ostream &out) const
 {
     // unsigned int M = components_.size();
-    // out << "[";
+    out << "[";
     // for (unsigned int m = 0; m < M; m++)
     // {
     //     out << components_.at(m)->getTypeAsString() << (isDynamic_ ? "(dyn)" : "") << (m < M - 1 ? " | " : "");
     // }
-    // out << "]";
+    out << "]";
 }
 
 namespace ompl

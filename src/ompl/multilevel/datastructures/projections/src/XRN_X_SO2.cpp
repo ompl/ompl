@@ -36,55 +36,45 @@
 
 /* Author: Andreas Orthey */
 
-#include <ompl/multilevel/datastructures/metrics/Geodesic.h>
-#include <ompl/multilevel/datastructures/Projection.h>
+#include <ompl/multilevel/datastructures/projections/XRN_X_SO2.h>
+#include <ompl/base/spaces/SO2StateSpace.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
+
+#include <ompl/util/Exception.h>
+
 using namespace ompl::multilevel;
-using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
-BundleSpaceMetricGeodesic::BundleSpaceMetricGeodesic(BundleSpaceGraph *bundleSpaceGraph) : BaseT(bundleSpaceGraph)
+Projection_SO2RN_SO2::Projection_SO2RN_SO2(ompl::base::StateSpacePtr BundleSpace,
+                                                               ompl::base::StateSpacePtr BaseSpace)
+  : BaseT(BundleSpace, BaseSpace)
 {
+    setType(PROJECTION_SO2RN_SO2);
 }
 
-double BundleSpaceMetricGeodesic::distanceBundle(const Configuration *xStart, const Configuration *xDest)
+void Projection_SO2RN_SO2::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
-    return bundleSpaceGraph_->getBundle()->distance(xStart->state, xDest->state);
+    const base::SO2StateSpace::StateType *xBundle_SO2 =
+        xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(0);
+    base::SO2StateSpace::StateType *xBase_SO2 = xBase->as<base::SO2StateSpace::StateType>();
+
+    xBase_SO2->value = xBundle_SO2->value;
 }
 
-double BundleSpaceMetricGeodesic::distanceFiber(const Configuration * /*xStart*/, const Configuration* /*xDest*/)
+void Projection_SO2RN_SO2::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+                                               ompl::base::State *xBundle) const
 {
-    std::cout << "NYI" << std::endl;
-    exit(0);
-    return 0.0;
-    // if (bundleSpaceGraph_->getFiberDimension() > 0)
-    // {
-    //     bundleSpaceGraph_->projectFiber(xStart->state, xFiberStartTmp_);
-    //     bundleSpaceGraph_->projectFiber(xDest->state, xFiberDestTmp_);
-    //     double d = bundleSpaceGraph_->getFiber()->distance(xFiberStartTmp_, xFiberDestTmp_);
-    //     return d;
-    // }
-    // else
-    // {
-    //     return 0.0;
-    // }
-}
+    base::SO2StateSpace::StateType *xBundle_SO2 =
+        xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(0);
+    base::RealVectorStateSpace::StateType *xBundle_RN =
+        xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
-double BundleSpaceMetricGeodesic::distanceBase(const Configuration *xStart, const Configuration *xDest)
-{
-    if (bundleSpaceGraph_->getBaseDimension() > 0)
+    const base::SO2StateSpace::StateType *xBase_SO2 = xBase->as<base::SO2StateSpace::StateType>();
+    const base::RealVectorStateSpace::StateType *xFiber_RN = xFiber->as<base::RealVectorStateSpace::StateType>();
+
+    xBundle_SO2->value = xBase_SO2->value;
+
+    for (unsigned int k = 0; k < getFiberDimension(); k++)
     {
-        bundleSpaceGraph_->getProjection()->project(xStart->state, xBaseStartTmp_);
-        bundleSpaceGraph_->getProjection()->project(xDest->state, xBaseDestTmp_);
-        double d = bundleSpaceGraph_->getBase()->distance(xBaseStartTmp_, xBaseDestTmp_);
-        return d;
+        xBundle_RN->values[k] = xFiber_RN->values[k];
     }
-    else
-    {
-        return 0.0;
-    }
-}
-
-void BundleSpaceMetricGeodesic::interpolateBundle(const Configuration *q_from, const Configuration *q_to,
-                                                  const double step, Configuration *q_interp)
-{
-    bundleSpaceGraph_->getBundle()->getStateSpace()->interpolate(q_from->state, q_to->state, step, q_interp->state);
 }

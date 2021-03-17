@@ -41,7 +41,7 @@
 
 #include <ompl/base/Planner.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
-#include <ompl/multilevel/datastructures/ProjectionComponentFactory.h>
+#include <ompl/multilevel/datastructures/ProjectionFactory.h>
 
 namespace ompl
 {
@@ -93,7 +93,7 @@ namespace ompl
             const ompl::base::SpaceInformationPtr &getBase() const;
             /// \brief Get ProjectionPtr from Bundle to Base
             ProjectionPtr getProjection() const;
-
+            void setProjection(ProjectionPtr);
             bool makeProjection();
 
             virtual void setProblemDefinition(
@@ -168,8 +168,8 @@ namespace ompl
                 ompl::base::State *xBase) const;
 
             /// \brief Lift a state from Base to Bundle
-            // void liftState(const ompl::base::State *xBase, 
-            //     ompl::base::State *xBundle) const;
+            void lift(const ompl::base::State *xBase, 
+                ompl::base::State *xBundle) const;
 
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 

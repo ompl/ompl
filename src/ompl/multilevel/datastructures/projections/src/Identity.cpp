@@ -36,55 +36,38 @@
 
 /* Author: Andreas Orthey */
 
-#include <ompl/multilevel/datastructures/metrics/Geodesic.h>
-#include <ompl/multilevel/datastructures/Projection.h>
+#include <ompl/multilevel/datastructures/projections/Identity.h>
+#include <ompl/base/spaces/EmptyStateSpace.h>
+
 using namespace ompl::multilevel;
-using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
-BundleSpaceMetricGeodesic::BundleSpaceMetricGeodesic(BundleSpaceGraph *bundleSpaceGraph) : BaseT(bundleSpaceGraph)
+Projection_Identity::Projection_Identity(
+    ompl::base::StateSpacePtr BundleSpace, 
+    ompl::base::StateSpacePtr BaseSpace)
+  : BaseT(BundleSpace, BaseSpace)
 {
+    setType(PROJECTION_IDENTITY);
 }
 
-double BundleSpaceMetricGeodesic::distanceBundle(const Configuration *xStart, const Configuration *xDest)
+void Projection_Identity::projectFiber(const ompl::base::State *, ompl::base::State *) const
 {
-    return bundleSpaceGraph_->getBundle()->distance(xStart->state, xDest->state);
+    OMPL_WARN("Trying to project to fiber of Identity Bundle Space.");
 }
 
-double BundleSpaceMetricGeodesic::distanceFiber(const Configuration * /*xStart*/, const Configuration* /*xDest*/)
+void Projection_Identity::project(const ompl::base::State *xBundle,
+                                                                  ompl::base::State *xBase) const
 {
-    std::cout << "NYI" << std::endl;
-    exit(0);
-    return 0.0;
-    // if (bundleSpaceGraph_->getFiberDimension() > 0)
-    // {
-    //     bundleSpaceGraph_->projectFiber(xStart->state, xFiberStartTmp_);
-    //     bundleSpaceGraph_->projectFiber(xDest->state, xFiberDestTmp_);
-    //     double d = bundleSpaceGraph_->getFiber()->distance(xFiberStartTmp_, xFiberDestTmp_);
-    //     return d;
-    // }
-    // else
-    // {
-    //     return 0.0;
-    // }
+    getBundle()->copyState(xBase, xBundle);
 }
 
-double BundleSpaceMetricGeodesic::distanceBase(const Configuration *xStart, const Configuration *xDest)
+void Projection_Identity::liftState(const ompl::base::State *xBase,
+                                                                const ompl::base::State *,
+                                                                ompl::base::State *xBundle) const
 {
-    if (bundleSpaceGraph_->getBaseDimension() > 0)
-    {
-        bundleSpaceGraph_->getProjection()->project(xStart->state, xBaseStartTmp_);
-        bundleSpaceGraph_->getProjection()->project(xDest->state, xBaseDestTmp_);
-        double d = bundleSpaceGraph_->getBase()->distance(xBaseStartTmp_, xBaseDestTmp_);
-        return d;
-    }
-    else
-    {
-        return 0.0;
-    }
+    getBundle()->copyState(xBundle, xBase);
 }
 
-void BundleSpaceMetricGeodesic::interpolateBundle(const Configuration *q_from, const Configuration *q_to,
-                                                  const double step, Configuration *q_interp)
+ompl::base::StateSpacePtr Projection_Identity::computeFiberSpace()
 {
-    bundleSpaceGraph_->getBundle()->getStateSpace()->interpolate(q_from->state, q_to->state, step, q_interp->state);
+    return std::make_shared<base::EmptyStateSpace>();
 }
