@@ -10,6 +10,7 @@
 #include "../PlanarManipulator/PlanarManipulatorStateSpace.h"
 #include "../PlanarManipulator/PlanarManipulatorStateValidityChecker.h"
 #include "../PlanarManipulator/PlanarManipulatorIKGoal.h"
+#include "MultiLevelPlanarManipulatorCommon.h"
 
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
@@ -23,47 +24,6 @@
 
 using namespace ompl::base;
 using namespace ompl::geometric;
-
-// Input arguments to this binary.
-const int numLinks = 10;
-const double timeout = 3;
-const int xySlices = std::max(2, numLinks / 3);
-const std::string problemName = "corridor";
-const bool viz = false;
-
-void WriteVisualization(
-    const PlanarManipulator &manipulator, 
-    const PolyWorld &world, 
-    const ompl::geometric::PathGeometric &path)
-{
-    const int numLinks = manipulator.getNumLinks();
-
-    const char *world_file = "world.yaml";
-    OMPL_INFORM("Writing world to %s", world_file);
-    world.writeWorld(world_file);
-
-    const double linkLength = 1.0 / numLinks;
-    const Eigen::Affine2d &basePose = manipulator.getBaseFrame();
-
-    const char *path_file = "manipulator_path.txt";
-    OMPL_INFORM("Writing path to %s", path_file);
-    std::ofstream fout;
-
-    fout.open(path_file);
-    fout << numLinks << " " << linkLength 
-      << " " << basePose.translation()(0) 
-      << " " << basePose.translation()(1) << " " << xySlices << std::endl;
-
-    // Write each state on the interpolated path.
-    for (size_t i = 0; i < path.getStateCount(); ++i)
-    {
-        const double *angles = path.getState(i)->as<PlanarManipulatorStateSpace::StateType>()->values;
-        for (size_t j = 0; j < manipulator.getNumLinks(); ++j)
-            fout << angles[j] << " ";
-        fout << std::endl;
-    }
-    fout.close();
-}
 
 namespace ompl
 {
@@ -113,7 +73,7 @@ class ProjectionJointSpaceToSE2: public ompl::multilevel::Projection
         eeFrame.rotate(reals.at(2));
 
         std::vector<double> solution;
-        manip_->IK(solution, eeFrame);
+        manip_->FABRIK(solution, eeFrame);
 
         double *angles = xBundle->as<PlanarManipulatorStateSpace::StateType>()->values;
         for(uint k = 0; k < solution.size(); k++)
@@ -166,8 +126,10 @@ int main()
     spaceSE2->as<SE2StateSpace>()->setBounds(boundsWorkspace);
 
     SpaceInformationPtr siSE2 = std::make_shared<SpaceInformation>(spaceSE2);
+    // siSE2->setStateValidityChecker( 
+    //     std::make_shared<AllValidStateValidityChecker>(siSE2));
     siSE2->setStateValidityChecker( 
-        std::make_shared<AllValidStateValidityChecker>(siSE2));
+        std::make_shared<SE2CollisionChecker>(siSE2, world));
     siSE2->setStateValidityCheckingResolution(0.001);
 
     //#########################################################################
@@ -182,6 +144,8 @@ int main()
     SpaceInformationPtr siR2 = std::make_shared<SpaceInformation>(spaceR2);
     siR2->setStateValidityChecker( 
         std::make_shared<AllValidStateValidityChecker>(siR2));
+    siR2->setStateValidityChecker( 
+        std::make_shared<R2CollisionChecker>(siR2, world));
     siR2->setStateValidityCheckingResolution(0.001);
     
     //#########################################################################
@@ -201,8 +165,8 @@ int main()
     std::vector<SpaceInformationPtr> siVec;
     std::vector<ompl::multilevel::ProjectionPtr> projVec;
 
-    // siVec.push_back(siR2); //Base Space R2
-    // projVec.push_back(projBC); //Projection R2 to SE2
+    siVec.push_back(siR2); //Base Space R2
+    projVec.push_back(projBC); //Projection R2 to SE2
     siVec.push_back(siSE2); //Base Space SE2
     projVec.push_back(projAB); //Projection SE2 to X
     siVec.push_back(si); //State Space X
@@ -219,7 +183,6 @@ int main()
     {
         start_angles[i] = 1e-7;
     }
-
 
     //#########################################################################
     //## Set goal state
