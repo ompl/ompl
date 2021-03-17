@@ -88,7 +88,7 @@ ompl::base::SphereStateSpace::SphereStateSpace(double radius):
 
     StateSpacePtr SO2(std::make_shared<SO2StateSpace>());
     StateSpacePtr R1(std::make_shared<RealVectorStateSpace>(1));
-    R1->as<RealVectorStateSpace>()->setBounds(0, M_PI);
+    R1->as<RealVectorStateSpace>()->setBounds(0, pi);
 
     addSubspace(SO2, 1.0);
     addSubspace(R1, 1.0);
