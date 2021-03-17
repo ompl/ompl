@@ -99,7 +99,7 @@ TorusStateSpace::TorusStateSpace(double majorRadius, double minorRadius)
   : majorRadius_(majorRadius), minorRadius_(minorRadius)
 {
     setName("Torus" + getName());
-    type_ = STATE_SPACE_UNKNOWN;
+    type_ = STATE_SPACE_TORUS;
     addSubspace(std::make_shared<SO2StateSpace>(), 1.0);
     addSubspace(std::make_shared<SO2StateSpace>(), 1.0);
     lock();

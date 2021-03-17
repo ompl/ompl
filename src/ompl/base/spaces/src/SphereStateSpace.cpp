@@ -83,7 +83,7 @@ StateSamplerPtr SphereStateSpace::allocDefaultStateSampler() const
 ompl::base::SphereStateSpace::SphereStateSpace()
 {
     setName("Sphere" + getName());
-    type_ = STATE_SPACE_UNKNOWN;
+    type_ = STATE_SPACE_SPHERE;
     addSubspace(std::make_shared<SO2StateSpace>(), 1.0);
     addSubspace(std::make_shared<SO2StateSpace>(), 1.0);
     lock();

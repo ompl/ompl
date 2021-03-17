@@ -36,8 +36,8 @@
 
 /* Author: Andreas Orthey */
 
-#ifndef OMPL_BASE_SPACES_TORUS_STATE_SPACE_
-#define OMPL_BASE_SPACES_TORUS_STATE_SPACE_
+#ifndef OMPL_BASE_SPACES_MOBIUS_STATE_SPACE_
+#define OMPL_BASE_SPACES_MOBIUS_STATE_SPACE_
 
 #include <ompl/base/StateSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
@@ -79,7 +79,7 @@ namespace ompl
                 }
             };
 
-            MobiusStateSpace(double intervalMax);
+            MobiusStateSpace(double intervalMax = 1.0);
 
             virtual ~MobiusStateSpace() override = default;
 

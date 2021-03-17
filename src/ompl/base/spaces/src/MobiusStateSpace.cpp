@@ -47,7 +47,7 @@ using namespace ompl::base;
 MobiusStateSpace::MobiusStateSpace(double intervalMax)
 {
     setName("Mobius" + getName());
-    type_ = STATE_SPACE_UNKNOWN;
+    type_ = STATE_SPACE_MOBIUS;
 
     StateSpacePtr SO2(std::make_shared<SO2StateSpace>());
     StateSpacePtr R1(std::make_shared<RealVectorStateSpace>(1));

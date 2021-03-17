@@ -69,6 +69,15 @@ namespace ompl
             /** \brief ompl::base::DiscreteStateSpace */
             STATE_SPACE_DISCRETE = 7,
 
+            /** \brief ompl::base::MobiusStateSpace */
+            STATE_SPACE_MOBIUS = 8,
+
+            /** \brief ompl::base::SphereStateSpace */
+            STATE_SPACE_SPHERE = 9,
+
+            /** \brief ompl::base::TorusStateSpace */
+            STATE_SPACE_TORUS = 10,
+
             /** \brief Number of state space types; To add new types,
                 use values that are larger than the count*/
             STATE_SPACE_TYPE_COUNT
