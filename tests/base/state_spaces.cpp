@@ -512,9 +512,12 @@ BOOST_AUTO_TEST_CASE(Sphere_Simple)
 {
     auto m(std::make_shared<base::SphereStateSpace>(1.0));
     m->setup();
-    m->sanityChecks();
 
-    StateSpaceTest mt(m, 1000, 1e-5);
+    unsigned int flags = ~0;
+    double eps = std::numeric_limits<double>::epsilon();
+    m->sanityChecks(eps, 1e-6, flags);
+
+    StateSpaceTest mt(m, 1000, 1e-12);
     mt.testDistance();
 
     BOOST_CHECK_EQUAL(m->getDimension(), 2u);

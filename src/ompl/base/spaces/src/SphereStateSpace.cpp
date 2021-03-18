@@ -109,6 +109,7 @@ double SphereStateSpace::distance(const State *state1, const State *state2) cons
     float t2 = S2->getTheta();
     float phi2 = S2->getPhi() - pi/2.0;
 
+    // This is the Vincenty formula, but it is less numerically stable
     // double dt = t2 - t1;
     // double d1 = powf(cos(phi2) * sin(dt), 2);
     // double d2 = powf(cos(phi1) * sin(phi2) - sin(phi1) * cos(phi2) * cos(dt), 2);
@@ -116,6 +117,7 @@ double SphereStateSpace::distance(const State *state1, const State *state2) cons
     // double denumerator = sin(phi1) * sin(phi2) + cos(phi1) * cos(phi2) * cos(dt);
     // return radius_ * atan2(numerator, denumerator);
 
+    // Haversine formula
     float s = 0.5*(phi1 - phi2);
     float t = 0.5*(t1 - t2);
     float d = sqrtf(sin(s)*sin(s) + cos(phi1)*cos(phi2)*sin(t)*sin(t));
@@ -142,14 +144,6 @@ Eigen::Vector3f SphereStateSpace::toVector(const State *state) const
     const SphereStateSpace::StateType *S1 = state->as<SphereStateSpace::StateType>();
     float theta = S1->getTheta();
     float phi = S1->getPhi();
-
-    // const double &R = majorRadius_;
-    // const double &r = minorRadius_;
-    // float theta = S1->getTheta();
-    // float phi = S1->getPhi();
-    // v[0] = (R + r*cos(phi))*cos(theta);
-    // v[1] = (R + r*cos(phi))*sin(theta);
-    // v[2] = r*sin(phi);
 
     v[0] = radius_*sin(phi)*cos(theta);
     v[1] = radius_*sin(phi)*sin(theta);
