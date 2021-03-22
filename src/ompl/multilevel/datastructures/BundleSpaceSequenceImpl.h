@@ -76,7 +76,7 @@ ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::
 
     // None projection added
     bundleSpaces_.front()->makeProjection();
-    for (uint k = 1; k < bundleSpaces_.size(); k++)
+    for (unsigned int k = 1; k < bundleSpaces_.size(); k++)
     {
         BundleSpace *bk = bundleSpaces_.at(k);
         bk->setProjection(projVec.at(k - 1));

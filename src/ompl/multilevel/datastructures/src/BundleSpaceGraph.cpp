@@ -709,7 +709,7 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
         else
         {
             Vertex goalVertex;
-            for (uint k = 0; k < goalConfigurations_.size(); k++)
+            for (unsigned int k = 0; k < goalConfigurations_.size(); k++)
             {
                 Configuration *qk = goalConfigurations_.at(k);
                 if (sameComponent(vStart_, qk->index))
@@ -920,7 +920,7 @@ void BundleSpaceGraph::getPlannerDataGraph(ompl::base::PlannerData &data, const 
     pstart.setLevel(getLevel());
     data.addStartVertex(pstart);
 
-    for (uint k = 0; k < goalConfigurations_.size(); k++)
+    for (unsigned int k = 0; k < goalConfigurations_.size(); k++)
     {
         Configuration *qgoal = goalConfigurations_.at(k);
         multilevel::PlannerDataVertexAnnotated pgoal(qgoal->state);
