@@ -149,7 +149,7 @@ namespace ompl
             using NameFunc = std::function<std::string()>;
 
             /** \brief Construct with a pointer to the space information and an optional name. */
-            BITstar(const base::SpaceInformationPtr &spaceInfo, const std::string &name = "BITstar");
+            BITstar(const base::SpaceInformationPtr &spaceInfo, const std::string &name = "kBITstar");
 
             /** \brief Destruct using the default destructor. */
             virtual ~BITstar() override = default;
@@ -476,8 +476,7 @@ namespace ompl
             std::shared_ptr<ImplicitGraph> graphPtr_{nullptr};
 
             /** \brief The queue of vertices to expand and edges to process ordered on "f-value", i.e., estimated
-             * solution cost. Remaining vertex queue "size" and edge queue size are accessible via
-             * vertexQueueSizeProgressProperty and edgeQueueSizeProgressProperty, respectively. */
+             * solution cost. */
             std::shared_ptr<SearchQueue> queuePtr_{nullptr};
 
             /** \brief The inflation factor for the initial search. */

@@ -177,7 +177,7 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
 
     if (!goal)
     {
-        OMPL_ERROR("%s: Unknow type of goal", getName().c_str());
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 

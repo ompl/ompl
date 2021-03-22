@@ -18,6 +18,8 @@
   <build_depend>boost</build_depend>
   <build_depend>eigen</build_depend>
   <build_depend>pkg-config</build_depend>
+  <build_depend>opende</build_depend>
+  <build_depend>libflann-dev</build_depend>
 
   <exec_depend>boost</exec_depend>
   <exec_depend>eigen</exec_depend>

@@ -247,24 +247,6 @@ namespace ompl
             // The approximation id.
             *approximationId_ = 1u;
 
-            // The lookups and white-/blacklists of the start vertices.
-            for (const auto &vertex : startVertices_)
-            {
-                vertex->clearEdgeQueueInLookup();
-                vertex->clearEdgeQueueOutLookup();
-                vertex->clearBlacklist();
-                vertex->clearWhitelist();
-            }
-
-            // The lookups and white-/blacklists of the goal vertices.
-            for (const auto &vertex : goalVertices_)
-            {
-                vertex->clearEdgeQueueInLookup();
-                vertex->clearEdgeQueueOutLookup();
-                vertex->clearBlacklist();
-                vertex->clearWhitelist();
-            }
-
             // The various convenience pointers:
             // DO NOT reset the parameters:
             // rewireFactor_
@@ -720,7 +702,7 @@ namespace ompl
             {
                 throw ompl::Exception("A code change has prevented ImplicitGraph::removeSample() "
                                       "from taking it's own copy of the given shared pointer. See "
-                                      "https://bitbucket.org/ompl/ompl/issues/364/code-cleanup-breaking-bit");
+                                      "https://github.com/ompl/ompl/issues/485");
             }
             if (sampleCopy->edgeQueueOutLookupSize() != 0u)
             {
@@ -790,7 +772,7 @@ namespace ompl
             {
                 throw ompl::Exception("A code change has prevented ImplicitGraph::removeVertex() "
                                       "from taking it's own copy of the given shared pointer. See "
-                                      "https://bitbucket.org/ompl/ompl/issues/364/code-cleanup-breaking-bit");
+                                      "https://github.com/ompl/ompl/issues/485");
             }
 #endif  // BITSTAR_DEBUG
 
@@ -841,7 +823,7 @@ namespace ompl
             {
                 throw ompl::Exception("A code change has prevented ImplicitGraph::removeSample() "
                                       "from taking it's own copy of the given shared pointer. See "
-                                      "https://bitbucket.org/ompl/ompl/issues/364/code-cleanup-breaking-bit");
+                                      "https://github.com/ompl/ompl/issues/485");
             }
 #endif  // BITSTAR_DEBUG
 

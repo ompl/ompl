@@ -846,7 +846,7 @@ bool ompl::geometric::SPARSdb::checkStartGoalConnection(ompl::geometric::PathGeo
     // Make sure path has states
     if (solutionPath.getStateCount() < 2)
     {
-        OMPL_ERROR("Not enought states (< 2) in the solutionPath");
+        OMPL_ERROR("Not enough states (< 2) in the solutionPath");
         return false;
     }
 

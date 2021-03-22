@@ -21,4 +21,4 @@ PlannerArena is also available as a Docker container. Once you have Docker insta
     docker pull mmoll/plannerarena
     docker run --rm -p 8888:8888 plannerarena
 
-Go to <http://127.0.0.1:8888> and upload your benchmark data.
+Go to <http://127.0.0.1:8888> and upload your benchmark data. If your benchmark database files exceed 50MB, set the environment variable `OMPL_PLANNERARENA_MAX_DB_SIZE` to the desired limit in bytes in the [Dockerfile for Planner Arena](https://github.com/ompl/ompl/blob/main/scripts/docker/plannerarena.Dockerfile) and rebuild the docker container.

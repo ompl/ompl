@@ -220,7 +220,7 @@ bool ompl::tools::ThunderDB::save(const std::string &fileName)
     {
         ompl::base::PlannerData &pd = *plannerDatas[i].get();
 
-        OMPL_INFORM("Saving experience %d with %d verticies and %d edges", i, pd.numVertices(), pd.numEdges());
+        OMPL_INFORM("Saving experience %d with %d vertices and %d edges", i, pd.numVertices(), pd.numEdges());
 
         if (false)  // debug code
         {

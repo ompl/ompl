@@ -121,7 +121,7 @@ case $i in
         echo "Usage: `basename $0` [-p] [-a]"
         echo "  -p: enable Python bindings"
         echo "  -a: enable OMPL.app (implies '-p')"
-        echo "  -g: install latest commit from master branch on GitHub"
+        echo "  -g: install latest commit from main branch on GitHub"
     ;;
 esac
 done

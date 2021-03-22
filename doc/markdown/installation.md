@@ -33,7 +33,7 @@
            <li><code>./install-ompl-ubuntu.sh</code> will install the latest release of OMPL without Python bindings</li>
            <li><code>./install-ompl-ubuntu.sh --python</code> will install the latest release of OMPL with Python bindings</li>
            <li><code>./install-ompl-ubuntu.sh --app</code> will install the latest release of OMPL.app with Python bindings</li>
-           <li><code>./install-ompl-ubuntu.sh --github</code> will install the master branch of OMPL (this can be combined with the other flags above)</li>         </ul>
+           <li><code>./install-ompl-ubuntu.sh --github</code> will install the main branch of OMPL (this can be combined with the other flags above)</li>         </ul>
          The script downloads and installs OMPL and all dependencies via <code>apt-get</code> &amp; <code>pip</code> and from source. It will ask for your password to install things. The script has been tested on vanilla installs of 16.04 (Xenial) and higher. The Python binding generation requires a lot of RAM; having 6GB or more available is recommended.
       </div>
       <div role="tabpanel" class="tab-pane fade" id="ubuntubinary">

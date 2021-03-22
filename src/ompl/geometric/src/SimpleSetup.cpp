@@ -70,6 +70,7 @@ void ompl::geometric::SimpleSetup::setup()
         planner_->setProblemDefinition(pdef_);
         if (!planner_->isSetup())
             planner_->setup();
+        psk_ = std::make_shared<PathSimplifier>(si_, pdef_->getGoal(), pdef_->getOptimizationObjective());
         configured_ = true;
     }
 }
@@ -90,13 +91,16 @@ void ompl::geometric::SimpleSetup::setStartAndGoalStates(const base::ScopedState
     // Clear any past solutions since they no longer correspond to our start and goal states
     pdef_->clearSolutionPaths();
 
-    psk_ = std::make_shared<PathSimplifier>(si_, pdef_->getGoal());
+    // force setup to rerun
+    configured_ = false;
 }
 
 void ompl::geometric::SimpleSetup::setGoalState(const base::ScopedState<> &goal, const double threshold)
 {
     pdef_->setGoalState(goal, threshold);
-    psk_ = std::make_shared<PathSimplifier>(si_, pdef_->getGoal());
+
+    // force setup to rerun 
+    configured_ = false;
 }
 
 /** \brief Set the goal for planning. This call is not
@@ -109,6 +113,9 @@ void ompl::geometric::SimpleSetup::setGoal(const base::GoalPtr &goal)
         psk_ = std::make_shared<PathSimplifier>(si_, pdef_->getGoal());
     else
         psk_ = std::make_shared<PathSimplifier>(si_);
+
+    // force setup to rerun
+    configured_ = false;
 }
 
 // we provide a duplicate implementation here to allow the planner to choose how the time is turned into a planner
