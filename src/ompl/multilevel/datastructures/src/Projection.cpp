@@ -196,7 +196,7 @@ namespace ompl
     }
 }
 
-CompoundProjection::CompoundProjection(base::StateSpacePtr bundleSpace, base::StateSpacePtr baseSpace,
+CompoundProjection::CompoundProjection(StateSpacePtr bundleSpace, StateSpacePtr baseSpace,
                                        std::vector<ProjectionPtr> &components)
   : Projection(bundleSpace, baseSpace), components_(components)
 {
