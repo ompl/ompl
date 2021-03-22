@@ -444,8 +444,6 @@ namespace ompl
              * planning process */
             MotionValidatorPtr motionValidator_;
 
-            // ProjectionOperatorPtr projectionOperator_{nullptr};
-
             /** \brief Flag indicating whether setup() has been called on this instance */
             bool setup_;
 
