@@ -58,12 +58,10 @@ using namespace ompl::multilevel;
 unsigned int BundleSpace::counter_ = 0;
 
 BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *child)
-  : Planner(si, "BundleSpace"), 
-  childBundleSpace_(child),
-  totalSpace_(si)
+  : Planner(si, "BundleSpace"), childBundleSpace_(child), totalSpace_(si)
 {
     id_ = counter_++;
-    if(child)
+    if (child)
     {
         baseSpace_ = childBundleSpace_->getBundle();
         childBundleSpace_->setParent(this);
@@ -107,23 +105,23 @@ bool BundleSpace::makeProjection()
     std::vector<ProjectionPtr> projections;
     if (!hasBaseSpace())
     {
-        projections = 
-          projectionFactory.MakeProjections(getBundle());
+        projections = projectionFactory.MakeProjections(getBundle());
     }
     else
     {
-        projections = 
-          projectionFactory.MakeProjections(getBundle(), getBase());
+        projections = projectionFactory.MakeProjections(getBundle(), getBase());
     }
 
-    if(projections.size() < 1) return false;
+    if (projections.size() < 1)
+        return false;
 
-    if(projections.size() > 1)
+    if (projections.size() > 1)
     {
-        projection_ = std::make_shared<CompoundProjection>(
-            getBundle()->getStateSpace(), 
-            getBase()->getStateSpace(), projections);
-    }else{
+        projection_ =
+            std::make_shared<CompoundProjection>(getBundle()->getStateSpace(), getBase()->getStateSpace(), projections);
+    }
+    else
+    {
         projection_ = projections.front();
     }
 
@@ -162,8 +160,7 @@ void BundleSpace::setup()
     {
         if (!pdef_->hasOptimizationObjective())
         {
-            OptimizationObjectivePtr lengthObj = 
-              std::make_shared<base::PathLengthOptimizationObjective>(getBundle());
+            OptimizationObjectivePtr lengthObj = std::make_shared<base::PathLengthOptimizationObjective>(getBundle());
 
             lengthObj->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
             pdef_->setOptimizationObjective(lengthObj);
@@ -171,10 +168,9 @@ void BundleSpace::setup()
     }
 }
 
-GoalSampleableRegion* BundleSpace::getGoalPtr() const
+GoalSampleableRegion *BundleSpace::getGoalPtr() const
 {
-    base::GoalSampleableRegion *goal = 
-      static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    base::GoalSampleableRegion *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
     return goal;
 }
 
@@ -206,10 +202,7 @@ void BundleSpace::sanityChecks() const
 
 void BundleSpace::checkBundleSpaceMeasure(std::string name, const StateSpacePtr space) const
 {
-    OMPL_DEVMSG1("%s dimension: %d measure: %f", 
-        name.c_str(), 
-        space->getDimension(), 
-        space->getMeasure());
+    OMPL_DEVMSG1("%s dimension: %d measure: %f", name.c_str(), space->getDimension(), space->getMeasure());
 
     if ((space->getMeasure() >= std::numeric_limits<double>::infinity()))
     {

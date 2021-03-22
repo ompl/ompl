@@ -41,9 +41,7 @@
 
 using namespace ompl::multilevel;
 
-Projection_Identity::Projection_Identity(
-    ompl::base::StateSpacePtr BundleSpace, 
-    ompl::base::StateSpacePtr BaseSpace)
+Projection_Identity::Projection_Identity(ompl::base::StateSpacePtr BundleSpace, ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
     setType(PROJECTION_IDENTITY);
@@ -54,15 +52,13 @@ void Projection_Identity::projectFiber(const ompl::base::State *, ompl::base::St
     OMPL_WARN("Trying to project to fiber of Identity Bundle Space.");
 }
 
-void Projection_Identity::project(const ompl::base::State *xBundle,
-                                                                  ompl::base::State *xBase) const
+void Projection_Identity::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
     getBundle()->copyState(xBase, xBundle);
 }
 
-void Projection_Identity::liftState(const ompl::base::State *xBase,
-                                                                const ompl::base::State *,
-                                                                ompl::base::State *xBundle) const
+void Projection_Identity::liftState(const ompl::base::State *xBase, const ompl::base::State *,
+                                    ompl::base::State *xBundle) const
 {
     getBundle()->copyState(xBundle, xBase);
 }

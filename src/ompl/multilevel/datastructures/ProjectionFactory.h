@@ -60,24 +60,18 @@ namespace ompl
         public:
             ProjectionFactory() = default;
 
-            std::vector<ProjectionPtr> MakeProjections(
-                base::SpaceInformationPtr Bundle,
-                base::SpaceInformationPtr Base);
+            std::vector<ProjectionPtr> MakeProjections(base::SpaceInformationPtr Bundle,
+                                                       base::SpaceInformationPtr Base);
 
-            std::vector<ProjectionPtr> MakeProjections(
-                base::SpaceInformationPtr Bundle);
+            std::vector<ProjectionPtr> MakeProjections(base::SpaceInformationPtr Bundle);
 
         protected:
-            ProjectionPtr MakeProjection(
-                base::StateSpacePtr BundleSpace,
-                base::StateSpacePtr BaseSpace, bool);
+            ProjectionPtr MakeProjection(base::StateSpacePtr BundleSpace, base::StateSpacePtr BaseSpace, bool);
 
-            ProjectionPtr MakeProjection(
-                base::StateSpacePtr BundleSpace);
+            ProjectionPtr MakeProjection(base::StateSpacePtr BundleSpace);
 
-            ProjectionType identifyProjectionType(
-                const base::StateSpacePtr BundleSpace,
-                const base::StateSpacePtr BaseSpace);
+            ProjectionType identifyProjectionType(const base::StateSpacePtr BundleSpace,
+                                                  const base::StateSpacePtr BaseSpace);
 
             bool isMapping_Identity(const base::StateSpacePtr, const base::StateSpacePtr);
             bool isMapping_EmptyProjection(const base::StateSpacePtr, const base::StateSpacePtr);

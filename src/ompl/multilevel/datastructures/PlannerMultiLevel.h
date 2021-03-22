@@ -62,9 +62,9 @@ namespace ompl
 
             virtual ~PlannerMultiLevel();
 
-            const ompl::base::ProblemDefinitionPtr& getProblemDefinition(int level) const;
+            const ompl::base::ProblemDefinitionPtr &getProblemDefinition(int level) const;
 
-            ompl::base::ProblemDefinitionPtr& getProblemDefinitionNonConst(int level);
+            ompl::base::ProblemDefinitionPtr &getProblemDefinitionNonConst(int level);
 
             const std::vector<ompl::base::ProblemDefinitionPtr> &getProblemDefinitionVector() const;
 

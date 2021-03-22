@@ -41,15 +41,13 @@
 
 using namespace ompl::multilevel;
 
-Projection_SO2N_SO2M::Projection_SO2N_SO2M(ompl::base::StateSpacePtr BundleSpace,
-                                                                                 ompl::base::StateSpacePtr BaseSpace)
+Projection_SO2N_SO2M::Projection_SO2N_SO2M(ompl::base::StateSpacePtr BundleSpace, ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
     setType(PROJECTION_SO2N_SO2M);
 }
 
-void Projection_SO2N_SO2M::projectFiber(const ompl::base::State *xBundle,
-                                                                    ompl::base::State *xFiber) const
+void Projection_SO2N_SO2M::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
     for (unsigned int k = 0; k < getFiberDimension(); k++)
     {
@@ -62,8 +60,7 @@ void Projection_SO2N_SO2M::projectFiber(const ompl::base::State *xBundle,
     }
 }
 
-void Projection_SO2N_SO2M::project(const ompl::base::State *xBundle,
-                                                                   ompl::base::State *xBase) const
+void Projection_SO2N_SO2M::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
     for (unsigned int k = 0; k < getBaseDimension(); k++)
     {
@@ -85,9 +82,8 @@ void Projection_SO2N_SO2M::project(const ompl::base::State *xBundle,
     }
 }
 
-void Projection_SO2N_SO2M::liftState(const ompl::base::State *xBase,
-                                                                 const ompl::base::State *xFiber,
-                                                                 ompl::base::State *xBundle) const
+void Projection_SO2N_SO2M::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+                                     ompl::base::State *xBundle) const
 {
     for (unsigned int k = 0; k < getBaseDimension(); k++)
     {

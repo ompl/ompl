@@ -63,27 +63,25 @@ namespace ompl
             using BaseT::si_;  // make it private.
             using BaseT::getSpaceInformation;
 
-            // Note: use getBundle(), or getBase() 
+            // Note: use getBundle(), or getBase()
             // to access the SpaceInformationPtr
 
             /// \brief solve is disabled (use BundleSequence::solve)
-            ompl::base::PlannerStatus solve(
-                const ompl::base::PlannerTerminationCondition &ptc) override final;
+            ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override final;
 
         public:
-            /**  \brief Bundle Space contains three OMPL spaces, 
+            /**  \brief Bundle Space contains three OMPL spaces,
              * which we call Bundle, Base and Fiber.
 
                  - Bundle is (locally) a product space of Base and Fiber
                  - Base is a pointer to the next lower-dimensional Bundle-space (if any)
                  - Fiber is the quotient space Bundle / Base
 
-                 We assume that Bundle and Base have been given 
+                 We assume that Bundle and Base have been given
                  (as ompl::base::SpaceInformationPtr),
                  and we automatically compute the fiber */
 
-            BundleSpace(const ompl::base::SpaceInformationPtr &si, 
-                BundleSpace *baseSpace_ = nullptr);
+            BundleSpace(const ompl::base::SpaceInformationPtr &si, BundleSpace *baseSpace_ = nullptr);
 
             virtual ~BundleSpace();
 
@@ -96,8 +94,7 @@ namespace ompl
             void setProjection(ProjectionPtr);
             bool makeProjection();
 
-            virtual void setProblemDefinition(
-                const ompl::base::ProblemDefinitionPtr &pdef) override;
+            virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
 
             virtual void grow() = 0;
             virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
@@ -164,12 +161,10 @@ namespace ompl
 
             /// \brief Bundle Space Projection Operator onto first component
             /// ProjectBase: Bundle \rightarrow Base
-            void project(const ompl::base::State *xBundle, 
-                ompl::base::State *xBase) const;
+            void project(const ompl::base::State *xBundle, ompl::base::State *xBase) const;
 
             /// \brief Lift a state from Base to Bundle
-            void lift(const ompl::base::State *xBase, 
-                ompl::base::State *xBundle) const;
+            void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const;
 
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 
@@ -180,10 +175,9 @@ namespace ompl
 
             bool isDynamic() const;
 
-            base::GoalSampleableRegion* getGoalPtr() const;
+            base::GoalSampleableRegion *getGoalPtr() const;
 
         private:
-
             /// Level in sequence of Bundle-spaces
             unsigned int level_{0};
 
@@ -210,8 +204,7 @@ namespace ompl
 
         protected:
             /// Check if Bundle-space is bounded
-            void checkBundleSpaceMeasure(std::string name, 
-                const ompl::base::StateSpacePtr space) const;
+            void checkBundleSpaceMeasure(std::string name, const ompl::base::StateSpacePtr space) const;
             void sanityChecks() const;
 
             /// Internal function implementing actual printing to stream

@@ -50,7 +50,7 @@ double BundleSpaceMetricGeodesic::distanceBundle(const Configuration *xStart, co
     return bundleSpaceGraph_->getBundle()->distance(xStart->state, xDest->state);
 }
 
-double BundleSpaceMetricGeodesic::distanceFiber(const Configuration * /*xStart*/, const Configuration* /*xDest*/)
+double BundleSpaceMetricGeodesic::distanceFiber(const Configuration * /*xStart*/, const Configuration * /*xDest*/)
 {
     std::cout << "NYI" << std::endl;
     exit(0);

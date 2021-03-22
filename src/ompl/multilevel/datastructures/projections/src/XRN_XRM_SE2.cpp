@@ -45,7 +45,7 @@
 using namespace ompl::multilevel;
 
 Projection_SE2RN_SE2RM::Projection_SE2RN_SE2RM(ompl::base::StateSpacePtr BundleSpace,
-                                                                   ompl::base::StateSpacePtr BaseSpace)
+                                               ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
     setType(PROJECTION_SE2RN_SE2RM);
@@ -73,7 +73,7 @@ void Projection_SE2RN_SE2RM::project(const ompl::base::State *xBundle, ompl::bas
 }
 
 void Projection_SE2RN_SE2RM::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
-                                                 ompl::base::State *xBundle) const
+                                       ompl::base::State *xBundle) const
 {
     base::SE2StateSpace::StateType *xBundle_SE2 =
         xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);

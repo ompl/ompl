@@ -47,38 +47,28 @@ namespace ompl
 {
     namespace base
     {
-      OMPL_CLASS_FORWARD(SpaceInformation);
-      OMPL_CLASS_FORWARD(StateSpace);
+        OMPL_CLASS_FORWARD(SpaceInformation);
+        OMPL_CLASS_FORWARD(StateSpace);
     }
     namespace multilevel
     {
         /* \brief A bundle projection with an explicit fiber space representation
          * which can be explicitly sampled to lift states */
-        class FiberedProjection: public Projection
+        class FiberedProjection : public Projection
         {
         public:
-            FiberedProjection(
-                base::StateSpacePtr bundleSpace, 
-                base::StateSpacePtr baseSpace);
+            FiberedProjection(base::StateSpacePtr bundleSpace, base::StateSpacePtr baseSpace);
 
             virtual ~FiberedProjection() = default;
 
-            virtual void lift(
-                const ompl::base::State *xBase, 
-                ompl::base::State *xBundle) const override;
+            virtual void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const override;
 
-            virtual void project(
-                const ompl::base::State *xBundle, 
-                ompl::base::State *xBase) const = 0;
+            virtual void project(const ompl::base::State *xBundle, ompl::base::State *xBase) const = 0;
 
-            virtual void liftState(
-                const ompl::base::State *xBase, 
-                const ompl::base::State *xFiber,
-                ompl::base::State *xBundle) const = 0;
+            virtual void liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+                                   ompl::base::State *xBundle) const = 0;
 
-            virtual void projectFiber(
-                const ompl::base::State *xBundle, 
-                ompl::base::State *xFiber) const = 0;
+            virtual void projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const = 0;
 
             ompl::base::StateSpacePtr getFiberSpace() const;
 

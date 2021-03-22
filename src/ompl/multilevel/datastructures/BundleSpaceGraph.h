@@ -211,16 +211,13 @@ namespace ompl
             virtual void sampleBundleGoalBias(ompl::base::State *xRandom);
 
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
-            virtual ompl::base::PathPtr& getSolutionPathByReference();
+            virtual ompl::base::PathPtr &getSolutionPathByReference();
 
             /** \brief Return plannerdata structure, whereby each vertex is marked
                 depending to which component it belongs (start/goal/non-connected) */
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;
 
-            void getPlannerDataGraph(
-                ompl::base::PlannerData &data, 
-                const Graph &graph, 
-                const Vertex vStart) const;
+            void getPlannerDataGraph(ompl::base::PlannerData &data, const Graph &graph, const Vertex vStart) const;
 
             /** \brief Importance of Bundle-space depending on number of
                 vertices in Bundle-graph */
@@ -241,15 +238,9 @@ namespace ompl
             bool sameComponent(Vertex m1, Vertex m2);
             std::map<Vertex, VertexRank> vrank;
             std::map<Vertex, Vertex> vparent;
-            boost::disjoint_sets
-            <
-              boost::associative_property_map<std::map<Vertex, VertexRank>>, 
-              boost::associative_property_map<std::map<Vertex, Vertex>>
-            >
-            disjointSets_{
-              boost::make_assoc_property_map(vrank), 
-              boost::make_assoc_property_map(vparent)
-            };
+            boost::disjoint_sets<boost::associative_property_map<std::map<Vertex, VertexRank>>,
+                                 boost::associative_property_map<std::map<Vertex, Vertex>>>
+                disjointSets_{boost::make_assoc_property_map(vrank), boost::make_assoc_property_map(vparent)};
 
             virtual const Configuration *nearest(const Configuration *s) const;
 
@@ -323,8 +314,7 @@ namespace ompl
 
             virtual void addBundleEdge(const Configuration *a, const Configuration *b);
 
-            virtual const std::pair<Edge, bool> 
-              addEdge(const Vertex a, const Vertex b);
+            virtual const std::pair<Edge, bool> addEdge(const Vertex a, const Vertex b);
 
             virtual Vertex getStartIndex() const;
             virtual Vertex getGoalIndex() const;
@@ -333,7 +323,7 @@ namespace ompl
             /**\brief Call algorithm to solve the find section problem */
             virtual bool findSection() override;
 
-            //TODO: everything should be private
+            // TODO: everything should be private
         protected:
             ompl::base::PathPtr solutionPath_;
 
@@ -384,7 +374,6 @@ namespace ompl
 
             /** \brief List of configurations that satisfy the goal condition */
             std::vector<Configuration *> goalConfigurations_;
-
         };
     }  // namespace multilevel
 }  // namespace ompl

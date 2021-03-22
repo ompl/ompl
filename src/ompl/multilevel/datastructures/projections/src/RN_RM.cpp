@@ -41,15 +41,13 @@
 
 using namespace ompl::multilevel;
 
-Projection_RN_RM::Projection_RN_RM(ompl::base::StateSpacePtr BundleSpace,
-                                                                         ompl::base::StateSpacePtr BaseSpace)
+Projection_RN_RM::Projection_RN_RM(ompl::base::StateSpacePtr BundleSpace, ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
     setType(PROJECTION_RN_RM);
 }
 
-void Projection_RN_RM::projectFiber(const ompl::base::State *xBundle,
-                                                                ompl::base::State *xFiber) const
+void Projection_RN_RM::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
     const base::RealVectorStateSpace::StateType *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();
 
@@ -61,8 +59,7 @@ void Projection_RN_RM::projectFiber(const ompl::base::State *xBundle,
     }
 }
 
-void Projection_RN_RM::project(const ompl::base::State *xBundle,
-                                                               ompl::base::State *xBase) const
+void Projection_RN_RM::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
     const base::RealVectorStateSpace::StateType *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();
     base::RealVectorStateSpace::StateType *xBase_RM = xBase->as<base::RealVectorStateSpace::StateType>();
@@ -73,9 +70,8 @@ void Projection_RN_RM::project(const ompl::base::State *xBundle,
     }
 }
 
-void Projection_RN_RM::liftState(const ompl::base::State *xBase,
-                                                             const ompl::base::State *xFiber,
-                                                             ompl::base::State *xBundle) const
+void Projection_RN_RM::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+                                 ompl::base::State *xBundle) const
 {
     base::RealVectorStateSpace::StateType *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();
     const base::RealVectorStateSpace::StateType *xBase_RM = xBase->as<base::RealVectorStateSpace::StateType>();

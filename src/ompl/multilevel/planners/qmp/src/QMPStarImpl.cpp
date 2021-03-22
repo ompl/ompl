@@ -61,8 +61,6 @@ ompl::multilevel::QMPStarImpl::~QMPStarImpl()
 
 unsigned int ompl::multilevel::QMPStarImpl::computeK()
 {
-    unsigned int K = 
-      static_cast<unsigned int>(ceil(kPRMStarConstant_ * 
-            log((double)boost::num_vertices(graph_))));
+    unsigned int K = static_cast<unsigned int>(ceil(kPRMStarConstant_ * log((double)boost::num_vertices(graph_))));
     return K;
 }

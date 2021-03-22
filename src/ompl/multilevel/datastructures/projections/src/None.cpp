@@ -40,8 +40,7 @@
 
 using namespace ompl::multilevel;
 
-Projection_None::Projection_None(ompl::base::StateSpacePtr BundleSpace,
-                                                                       ompl::base::StateSpacePtr BaseSpace)
+Projection_None::Projection_None(ompl::base::StateSpacePtr BundleSpace, ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
     setType(PROJECTION_NONE);
@@ -57,8 +56,7 @@ void Projection_None::project(const ompl::base::State *, ompl::base::State *) co
     OMPL_WARN("Trying to project to base with non-projectable Bundle Space.");
 }
 
-void Projection_None::liftState(const ompl::base::State *, const ompl::base::State *,
-                                                            ompl::base::State *) const
+void Projection_None::liftState(const ompl::base::State *, const ompl::base::State *, ompl::base::State *) const
 {
     OMPL_WARN("Trying to lift States with non-projectable Bundle Space.");
 }

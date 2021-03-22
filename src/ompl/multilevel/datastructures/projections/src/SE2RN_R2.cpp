@@ -45,15 +45,13 @@
 
 using namespace ompl::multilevel;
 
-Projection_SE2RN_R2::Projection_SE2RN_R2(ompl::base::StateSpacePtr BundleSpace,
-                                                                               ompl::base::StateSpacePtr BaseSpace)
+Projection_SE2RN_R2::Projection_SE2RN_R2(ompl::base::StateSpacePtr BundleSpace, ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
     setType(PROJECTION_SE2RN_R2);
 }
 
-void Projection_SE2RN_R2::projectFiber(const ompl::base::State *xBundle,
-                                                                   ompl::base::State *xFiber) const
+void Projection_SE2RN_R2::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
     const base::SE2StateSpace::StateType *xBundle_SE2 =
         xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
@@ -72,8 +70,7 @@ void Projection_SE2RN_R2::projectFiber(const ompl::base::State *xBundle,
     }
 }
 
-void Projection_SE2RN_R2::project(const ompl::base::State *xBundle,
-                                                                  ompl::base::State *xBase) const
+void Projection_SE2RN_R2::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
     const base::SE2StateSpace::StateType *xBundle_SE2 =
         xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
@@ -82,9 +79,8 @@ void Projection_SE2RN_R2::project(const ompl::base::State *xBundle,
     xBase_R2->values[1] = xBundle_SE2->getY();
 }
 
-void Projection_SE2RN_R2::liftState(const ompl::base::State *xBase,
-                                                                const ompl::base::State *xFiber,
-                                                                ompl::base::State *xBundle) const
+void Projection_SE2RN_R2::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+                                    ompl::base::State *xBundle) const
 {
     base::SE2StateSpace::StateType *xBundle_SE2 =
         xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);

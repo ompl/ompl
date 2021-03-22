@@ -42,15 +42,13 @@
 
 using namespace ompl::multilevel;
 
-Projection_EmptySet::Projection_EmptySet(ompl::base::StateSpacePtr BundleSpace,
-                                                                               ompl::base::StateSpacePtr BaseSpace)
+Projection_EmptySet::Projection_EmptySet(ompl::base::StateSpacePtr BundleSpace, ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
     setType(PROJECTION_EMPTY_SET);
 }
 
-void Projection_EmptySet::projectFiber(const ompl::base::State *xBundle,
-                                                                   ompl::base::State *xFiber) const
+void Projection_EmptySet::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
     getBundle()->copyState(xFiber, xBundle);
 }
@@ -60,9 +58,8 @@ void Projection_EmptySet::project(const ompl::base::State *, ompl::base::State *
     OMPL_WARN("Trying to project to base of Empty-Set Projection space.");
 }
 
-void Projection_EmptySet::liftState(const ompl::base::State *,
-                                                                const ompl::base::State *xFiber,
-                                                                ompl::base::State *xBundle) const
+void Projection_EmptySet::liftState(const ompl::base::State *, const ompl::base::State *xFiber,
+                                    ompl::base::State *xBundle) const
 {
     getBundle()->copyState(xBundle, xFiber);
 }

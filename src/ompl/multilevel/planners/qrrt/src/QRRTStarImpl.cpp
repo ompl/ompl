@@ -51,11 +51,8 @@ ompl::multilevel::QRRTStarImpl::QRRTStarImpl(const base::SpaceInformationPtr &si
   : BaseT(si, parent_)
 {
     setName("QRRTStarImpl" + std::to_string(id_));
-    Planner::declareParam<double>("useKNearest_", 
-        this, 
-        &ompl::multilevel::QRRTStarImpl::setKNearest,
-        &ompl::multilevel::QRRTStarImpl::getKNearest, 
-        "0,1");
+    Planner::declareParam<double>("useKNearest_", this, &ompl::multilevel::QRRTStarImpl::setKNearest,
+                                  &ompl::multilevel::QRRTStarImpl::getKNearest, "0,1");
 
     symmetric_ = getBundle()->getStateSpace()->hasSymmetricInterpolate();
 
@@ -87,13 +84,13 @@ void ompl::multilevel::QRRTStarImpl::grow()
         init();
         firstRun_ = false;
 
-        if(findSection())
+        if (findSection())
         {
             // if (getOptimizationObjectivePtr()->isCostBetterThan(qGoal_->cost, bestCost_))
             // {
             //     goalConfigurations_.push_back(qGoal_);
-                // bestCost_ = qGoal_->cost;
-                hasSolution_ = true;
+            // bestCost_ = qGoal_->cost;
+            hasSolution_ = true;
             // }
         }
     }
@@ -114,10 +111,8 @@ void ompl::multilevel::QRRTStarImpl::grow()
         getNearestNeighbors(q_new, nearestNbh);
 
         // (2) Find neighbor with minimum Cost
-        q_new->lineCost = getOptimizationObjectivePtr()->motionCost(
-            q_nearest->state, q_new->state);
-        q_new->cost = getOptimizationObjectivePtr()->combineCosts(
-            q_nearest->cost, q_new->lineCost);
+        q_new->lineCost = getOptimizationObjectivePtr()->motionCost(q_nearest->state, q_new->state);
+        q_new->cost = getOptimizationObjectivePtr()->combineCosts(q_nearest->cost, q_new->lineCost);
         q_new->parent = q_nearest;
 
         // (3) Rewire Tree
@@ -275,8 +270,7 @@ void ompl::multilevel::QRRTStarImpl::updateChildCosts(Configuration *q)
 {
     for (std::size_t i = 0; i < q->children.size(); ++i)
     {
-        q->children.at(i)->cost = 
-          getOptimizationObjectivePtr()->combineCosts(q->cost, q->children.at(i)->lineCost);
+        q->children.at(i)->cost = getOptimizationObjectivePtr()->combineCosts(q->cost, q->children.at(i)->lineCost);
         updateChildCosts(q->children.at(i));
     }
 }
@@ -371,6 +365,5 @@ void ompl::multilevel::QRRTStarImpl::getPlannerData(base::PlannerData &data) con
         }
     }
 
-    OMPL_DEBUG("Tree (level %d) has %d/%d vertices/edges", 
-        getLevel(), motions.size(), motions.size() - 1);
+    OMPL_DEBUG("Tree (level %d) has %d/%d vertices/edges", getLevel(), motions.size(), motions.size() - 1);
 }

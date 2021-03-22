@@ -58,7 +58,8 @@ unsigned int Projection::getBaseDimension() const
     if (baseSpace_)
     {
         return baseSpace_->getDimension();
-    }else
+    }
+    else
     {
         return 0;
     }
@@ -195,11 +196,9 @@ namespace ompl
     }
 }
 
-CompoundProjection::CompoundProjection(
-    base::StateSpacePtr bundleSpace, 
-    base::StateSpacePtr baseSpace, 
-    std::vector<ProjectionPtr>& components):
-  Projection(bundleSpace, baseSpace), components_(components)
+CompoundProjection::CompoundProjection(base::StateSpacePtr bundleSpace, base::StateSpacePtr baseSpace,
+                                       std::vector<ProjectionPtr> &components)
+  : Projection(bundleSpace, baseSpace), components_(components)
 {
     setType(PROJECTION_COMPOUND);
 }
@@ -247,10 +246,11 @@ void CompoundProjection::project(const State *xBundle, State *xBase) const
 
 unsigned int CompoundProjection::getDimension() const
 {
-    if(components_.size() > 0)
+    if (components_.size() > 0)
     {
         return components_.front()->getDimension();
-    }else
+    }
+    else
     {
         return 0;
     }
@@ -258,20 +258,22 @@ unsigned int CompoundProjection::getDimension() const
 
 unsigned int CompoundProjection::getCoDimension() const
 {
-    if(components_.size() > 0)
+    if (components_.size() > 0)
     {
         return components_.front()->getCoDimension();
-    }else
+    }
+    else
     {
         return 0;
     }
 }
 unsigned int CompoundProjection::getBaseDimension() const
 {
-    if(components_.size() > 0)
+    if (components_.size() > 0)
     {
         return components_.front()->getBaseDimension();
-    }else
+    }
+    else
     {
         return 0;
     }

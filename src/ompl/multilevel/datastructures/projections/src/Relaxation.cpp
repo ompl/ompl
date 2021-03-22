@@ -40,8 +40,7 @@
 
 using namespace ompl::multilevel;
 
-Projection_Relaxation::Projection_Relaxation(
-    ompl::base::StateSpacePtr BundleSpace, ompl::base::StateSpacePtr BaseSpace)
+Projection_Relaxation::Projection_Relaxation(ompl::base::StateSpacePtr BundleSpace, ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
     setType(PROJECTION_CONSTRAINED_RELAXATION);

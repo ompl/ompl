@@ -74,9 +74,7 @@ using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
 using namespace ompl::multilevel;
 
-BundleSpaceGraph::BundleSpaceGraph(
-    const ompl::base::SpaceInformationPtr &si, 
-    BundleSpace *parent_) : BaseT(si, parent_)
+BundleSpaceGraph::BundleSpaceGraph(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("BundleSpaceGraph");
 
@@ -98,19 +96,11 @@ BundleSpaceGraph::BundleSpaceGraph(
     specs_.approximateSolutions = false;
     specs_.optimizingPaths = false;
 
-    Planner::declareParam<double>(
-        "range", 
-        this, 
-        &BundleSpaceGraph::setRange, 
-        &BundleSpaceGraph::getRange, 
-        "0.:1.:10000.");
+    Planner::declareParam<double>("range", this, &BundleSpaceGraph::setRange, &BundleSpaceGraph::getRange, "0.:1.:"
+                                                                                                           "10000.");
 
-    Planner::declareParam<double>(
-        "goal_bias", 
-        this, 
-        &BundleSpaceGraph::setGoalBias, 
-        &BundleSpaceGraph::getGoalBias,
-        "0.:.1:1.");
+    Planner::declareParam<double>("goal_bias", this, &BundleSpaceGraph::setGoalBias, &BundleSpaceGraph::getGoalBias,
+                                  "0.:.1:1.");
 
     xRandom_ = new Configuration(getBundle());
 
@@ -118,7 +108,6 @@ BundleSpaceGraph::BundleSpaceGraph(
     {
         this->setup();
     }
-
 }
 
 BundleSpaceGraph::~BundleSpaceGraph()
@@ -156,15 +145,14 @@ void BundleSpaceGraph::setup()
         firstRun_ = true;
         setup_ = true;
 
-        optimizer_ = std::make_shared<ompl::geometric::PathSimplifier>(
-            getBundle(), pdef_->getGoal(), getOptimizationObjectivePtr());
+        optimizer_ = std::make_shared<ompl::geometric::PathSimplifier>(getBundle(), pdef_->getGoal(),
+                                                                       getOptimizationObjectivePtr());
         optimizer_->freeStates(false);
     }
     else
     {
         setup_ = false;
     }
-
 }
 
 // void BundleSpaceGraph::setFindSectionStrategy(FindSectionType type)
@@ -182,14 +170,13 @@ void BundleSpaceGraph::setup()
 //         return nullptr;
 //     }
 
-//     base::PathPtr basePath = 
+//     base::PathPtr basePath =
 //       static_cast<BundleSpaceGraph *>(getBaseBundleSpace())->getSolutionPathByReference();
-      
+
 //     pathRestriction_->setBasePath(basePath);
 
 //     return pathRestriction_;
 // }
-
 
 bool BundleSpaceGraph::findSection()
 {
@@ -467,8 +454,7 @@ const BundleSpaceGraph::RoadmapNeighborsPtr &BundleSpaceGraph::getRoadmapNeighbo
 
 ompl::base::Cost BundleSpaceGraph::costHeuristic(Vertex u, Vertex v) const
 {
-    return getOptimizationObjectivePtr()->motionCostHeuristic(
-        graph_[u]->state, graph_[v]->state);
+    return getOptimizationObjectivePtr()->motionCostHeuristic(graph_[u]->state, graph_[v]->state);
 }
 
 template <template <typename T> class NN>
@@ -658,11 +644,9 @@ BundleSpaceGraphSamplerPtr BundleSpaceGraph::getGraphSampler()
     return graphSampler_;
 }
 
-const std::pair<BundleSpaceGraph::Edge, bool> 
-BundleSpaceGraph::addEdge(const Vertex a, const Vertex b)
+const std::pair<BundleSpaceGraph::Edge, bool> BundleSpaceGraph::addEdge(const Vertex a, const Vertex b)
 {
-    base::Cost weight = 
-      getOptimizationObjectivePtr()->motionCost(graph_[a]->state, graph_[b]->state);
+    base::Cost weight = getOptimizationObjectivePtr()->motionCost(graph_[a]->state, graph_[b]->state);
     EdgeInternalState properties(weight);
     const std::pair<Edge, bool> e = boost::add_edge(a, b, properties, graph_);
     uniteComponents(a, b);
@@ -690,10 +674,11 @@ void BundleSpaceGraph::addGoalConfiguration(Configuration *x)
 
 BundleSpaceGraph::Vertex BundleSpaceGraph::getGoalIndex() const
 {
-    if(goalConfigurations_.size() > 0)
+    if (goalConfigurations_.size() > 0)
     {
         return goalConfigurations_.front()->index;
-    }else
+    }
+    else
     {
         std::cout << "NullVertex" << std::endl;
         return nullVertex();
@@ -709,9 +694,9 @@ void BundleSpaceGraph::setStartIndex(Vertex idx)
 {
     vStart_ = idx;
 }
-ompl::base::PathPtr& BundleSpaceGraph::getSolutionPathByReference()
+ompl::base::PathPtr &BundleSpaceGraph::getSolutionPathByReference()
 {
-  return solutionPath_;
+    return solutionPath_;
 }
 
 bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
@@ -724,17 +709,17 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
         else
         {
             Vertex goalVertex;
-            for(uint k = 0; k < goalConfigurations_.size(); k++)
+            for (uint k = 0; k < goalConfigurations_.size(); k++)
             {
                 Configuration *qk = goalConfigurations_.at(k);
-                if(sameComponent(vStart_, qk->index))
+                if (sameComponent(vStart_, qk->index))
                 {
                     solutionPath_ = getPath(vStart_, qk->index);
                     goalVertex = qk->index;
                     break;
                 }
             }
-            if(solutionPath_==nullptr)
+            if (solutionPath_ == nullptr)
             {
                 throw "hasSolution_ is set, but no solution exists.";
             }
@@ -826,34 +811,23 @@ ompl::base::PathPtr BundleSpaceGraph::getPath(const Vertex &start, const Vertex 
 ompl::base::PathPtr BundleSpaceGraph::getPath(const Vertex &start, const Vertex &goal, Graph &graph)
 {
     std::vector<Vertex> prev(boost::num_vertices(graph));
-    auto weight = boost::make_transform_value_property_map(
-        std::mem_fn(&EdgeInternalState::getCost),
-        get(boost::edge_bundle, graph));
+    auto weight = boost::make_transform_value_property_map(std::mem_fn(&EdgeInternalState::getCost),
+                                                           get(boost::edge_bundle, graph));
 
     try
     {
-        boost::astar_search(
-            graph, 
-            start, 
-            [this, goal](const Vertex v) { return costHeuristic(v, goal); },
-            boost::predecessor_map(&prev[0])
-            .weight_map(weight)
-            .distance_compare(
-              [this](EdgeInternalState c1, EdgeInternalState c2) 
-              {
-                return getOptimizationObjectivePtr()->isCostBetterThan(
-                    c1.getCost(), c2.getCost()); 
-              })
-            .distance_combine(
-              [this](EdgeInternalState c1, EdgeInternalState c2) 
-              {
-                return getOptimizationObjectivePtr()->combineCosts(
-                    c1.getCost(), c2.getCost());
-              })
-            .distance_inf(getOptimizationObjectivePtr()->infiniteCost())
-            .distance_zero(getOptimizationObjectivePtr()->identityCost())
-            .visitor(BundleSpaceGraphGoalVisitor<Vertex>(goal))
-        );
+        boost::astar_search(graph, start, [this, goal](const Vertex v) { return costHeuristic(v, goal); },
+                            boost::predecessor_map(&prev[0])
+                                .weight_map(weight)
+                                .distance_compare([this](EdgeInternalState c1, EdgeInternalState c2) {
+                                    return getOptimizationObjectivePtr()->isCostBetterThan(c1.getCost(), c2.getCost());
+                                })
+                                .distance_combine([this](EdgeInternalState c1, EdgeInternalState c2) {
+                                    return getOptimizationObjectivePtr()->combineCosts(c1.getCost(), c2.getCost());
+                                })
+                                .distance_inf(getOptimizationObjectivePtr()->infiniteCost())
+                                .distance_zero(getOptimizationObjectivePtr()->identityCost())
+                                .visitor(BundleSpaceGraphGoalVisitor<Vertex>(goal)));
     }
     catch (BundleSpaceGraphFoundGoal &)
     {
@@ -911,26 +885,24 @@ void BundleSpaceGraph::sampleFromDatastructure(ompl::base::State *xRandom)
 
 void BundleSpaceGraph::writeToGraphviz(std::string filename) const
 {
-  std::ofstream f(filename.c_str());
-  std::vector<std::string> annotationVec;
-  foreach (const Vertex v, boost::vertices(graph_))
-  {
-      Configuration *qv = graph_[v];
-      const base::State *s = qv->state;
-      std::ostringstream out;
-      getBundle()->printState(s, out);
-      annotationVec.push_back(out.str());
-  }
-  write_graphviz (f, graph_, boost::make_label_writer(&annotationVec[0]));
+    std::ofstream f(filename.c_str());
+    std::vector<std::string> annotationVec;
+    foreach (const Vertex v, boost::vertices(graph_))
+    {
+        Configuration *qv = graph_[v];
+        const base::State *s = qv->state;
+        std::ostringstream out;
+        getBundle()->printState(s, out);
+        annotationVec.push_back(out.str());
+    }
+    write_graphviz(f, graph_, boost::make_label_writer(&annotationVec[0]));
 }
 
 void BundleSpaceGraph::print(std::ostream &out) const
 {
     BaseT::print(out);
     out << std::endl
-        << " --[BundleSpaceGraph has " 
-        << getNumberOfVertices() << " vertices and " 
-        << getNumberOfEdges() << " edges.]"
+        << " --[BundleSpaceGraph has " << getNumberOfVertices() << " vertices and " << getNumberOfEdges() << " edges.]"
         << std::endl;
 }
 
@@ -939,10 +911,7 @@ void BundleSpaceGraph::printConfiguration(const Configuration *q) const
     getBundle()->printState(q->state);
 }
 
-void BundleSpaceGraph::getPlannerDataGraph(
-    ompl::base::PlannerData &data, 
-    const Graph &graph, 
-    const Vertex vStart) const
+void BundleSpaceGraph::getPlannerDataGraph(ompl::base::PlannerData &data, const Graph &graph, const Vertex vStart) const
 {
     if (boost::num_vertices(graph) <= 0)
         return;
@@ -951,7 +920,7 @@ void BundleSpaceGraph::getPlannerDataGraph(
     pstart.setLevel(getLevel());
     data.addStartVertex(pstart);
 
-    for(uint k = 0; k < goalConfigurations_.size(); k++)
+    for (uint k = 0; k < goalConfigurations_.size(); k++)
     {
         Configuration *qgoal = goalConfigurations_.at(k);
         multilevel::PlannerDataVertexAnnotated pgoal(qgoal->state);
@@ -960,11 +929,9 @@ void BundleSpaceGraph::getPlannerDataGraph(
     }
     if (hasSolution_)
     {
-
         if (solutionPath_ != nullptr)
         {
-            geometric::PathGeometric &gpath = 
-              static_cast<geometric::PathGeometric &>(*solutionPath_);
+            geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
 
             std::vector<base::State *> gstates = gpath.getStates();
 
@@ -1002,10 +969,8 @@ void BundleSpaceGraph::getPlannerDataGraph(
 
 void BundleSpaceGraph::getPlannerData(ompl::base::PlannerData &data) const
 {
-    OMPL_DEBUG("Graph (level %d) has %d/%d vertices/edges", 
-        getLevel(), 
-        boost::num_vertices(graph_), 
-        boost::num_edges(graph_));
+    OMPL_DEBUG("Graph (level %d) has %d/%d vertices/edges", getLevel(), boost::num_vertices(graph_),
+               boost::num_edges(graph_));
 
     if (bestCost_.value() < ompl::base::dInf)
     {

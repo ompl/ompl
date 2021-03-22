@@ -68,50 +68,45 @@ namespace ompl
         class BundleSpaceSequence : public PlannerMultiLevel
         {
             using BaseT = ompl::multilevel::PlannerMultiLevel;
-            static_assert(std::is_base_of<BundleSpace, T>::value, 
-                "Template must inherit from BundleSpace");
+            static_assert(std::is_base_of<BundleSpace, T>::value, "Template must inherit from BundleSpace");
 
         public:
-            /** \brief Non-multilevel Mode: Calling with a single 
+            /** \brief Non-multilevel Mode: Calling with a single
              * ompl::base::SpaceInformationPtr will revert to standard planning
              * without invoking any projection operators. */
             BundleSpaceSequence(ompl::base::SpaceInformationPtr si,
-                std::string type = "BundleSpacePlannerNonMultilevel");
+                                std::string type = "BundleSpacePlannerNonMultilevel");
 
             /** \brief Basic Mode: Specify vector of ompl::base::SpaceInformationPtr
                  and let the algorithm figure out the projections itself.*/
             BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec,
                                 std::string type = "BundleSpacePlanner");
 
-            /** \brief Advanced Mode: Specify not only the vector of 
+            /** \brief Advanced Mode: Specify not only the vector of
              * ompl::base::SpaceInformationPtr, but also how
              * we should project from each bundle space to each base space. */
-            BundleSpaceSequence(
-                std::vector<ompl::base::SpaceInformationPtr> &siVec,
-                std::vector<ompl::multilevel::ProjectionPtr> &projVec,
-                std::string type = "BundleSpacePlannerCustomProjection");
+            BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec,
+                                std::vector<ompl::multilevel::ProjectionPtr> &projVec,
+                                std::string type = "BundleSpacePlannerCustomProjection");
 
             virtual ~BundleSpaceSequence();
 
-            void declareBundleSpaces(bool guessProjection=true);
+            void declareBundleSpaces(bool guessProjection = true);
 
             /** \brief Return annotated vertices (with information about BundleSpace level) */
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;
 
-            ompl::base::PlannerStatus solve(
-                const ompl::base::PlannerTerminationCondition &ptc) override;
+            ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override;
 
             virtual void setup() override;
             virtual void clear() override;
-            virtual void setProblemDefinition(
-                const ompl::base::ProblemDefinitionPtr &pdef) override;
+            virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
 
             void setStopLevel(unsigned int level_);
 
             // void setFindSectionStrategy(FindSectionType type);
 
         protected:
-
             /** \brief Starting from a baseState on baseLevel, we lift
              * it iteratively upwards into the total space of the sequence. For
              * each lift, we choose an identity fiber element using the
@@ -144,10 +139,8 @@ namespace ompl
             };
             /** \brief \brief Priority queue of BundleSpaces which keeps track of how often
                 every graph on each space has been expanded. */
-            typedef std::priority_queue<
-                    BundleSpace *, 
-                    std::vector<BundleSpace *>, 
-                    CmpBundleSpacePtrs> BundleSpacePriorityQueue;
+            typedef std::priority_queue<BundleSpace *, std::vector<BundleSpace *>, CmpBundleSpacePtrs>
+                BundleSpacePriorityQueue;
             BundleSpacePriorityQueue priorityQueue_;
         };
     }  // namespace multilevel

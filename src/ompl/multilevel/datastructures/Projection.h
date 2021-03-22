@@ -64,15 +64,11 @@ namespace ompl
 
             /* \brief All subclasses need to be able to project onto base space
              * */
-            virtual void project(
-                const ompl::base::State *xBundle, 
-                ompl::base::State *xBase) const = 0;
+            virtual void project(const ompl::base::State *xBundle, ompl::base::State *xBase) const = 0;
 
             /* \brief All subclasses need to be able to lift from base space
              * into the total bundle space */
-            virtual void lift(
-                const ompl::base::State *xBase, 
-                ompl::base::State *xBundle) const = 0;
+            virtual void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const = 0;
 
             unsigned int getCoDimension() const;
             unsigned int getDimension() const;
@@ -93,9 +89,7 @@ namespace ompl
             std::string getBundleTypeAsString() const;
             std::string getBaseTypeAsString() const;
 
-            friend std::ostream &operator<<(
-                std::ostream &out, 
-                const Projection &);
+            friend std::ostream &operator<<(std::ostream &out, const Projection &);
             virtual void print(std::ostream &out) const;
             std::string stateTypeToString(base::StateSpacePtr) const;
 
@@ -104,31 +98,24 @@ namespace ompl
             base::StateSpacePtr baseSpace_{nullptr};
 
             ProjectionType type_;
-
         };
 
-        class CompoundProjection: public Projection
+        class CompoundProjection : public Projection
         {
         public:
-            CompoundProjection(
-                base::StateSpacePtr bundleSpace, 
-                base::StateSpacePtr baseSpace, 
-                std::vector<ProjectionPtr>& components);
+            CompoundProjection(base::StateSpacePtr bundleSpace, base::StateSpacePtr baseSpace,
+                               std::vector<ProjectionPtr> &components);
 
             virtual ~CompoundProjection() = default;
 
             /* \brief All subclasses need to be able to project onto base space
              * */
-            virtual void project(
-                const ompl::base::State *xBundle, 
-                ompl::base::State *xBase) const override;
+            virtual void project(const ompl::base::State *xBundle, ompl::base::State *xBase) const override;
 
             /* \brief All subclasses need to be able to lift from base space
              * into the total bundle space
              * */
-            virtual void lift(
-                const ompl::base::State *xBase, 
-                ompl::base::State *xBundle) const override;
+            virtual void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const override;
 
             /// Dimension of Base Space
             unsigned int getBaseDimension() const;
@@ -138,13 +125,10 @@ namespace ompl
             unsigned int getCoDimension() const;
 
         private:
-
             std::vector<ProjectionType> types_;
 
             std::vector<ProjectionPtr> components_;
-
         };
     }
 }
 #endif
-

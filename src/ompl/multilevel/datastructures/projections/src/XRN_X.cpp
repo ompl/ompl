@@ -42,8 +42,7 @@
 
 using namespace ompl::multilevel;
 
-Projection_XRN_X::Projection_XRN_X(ompl::base::StateSpacePtr BundleSpace,
-                                                       ompl::base::StateSpacePtr BaseSpace)
+Projection_XRN_X::Projection_XRN_X(ompl::base::StateSpacePtr BundleSpace, ompl::base::StateSpacePtr BaseSpace)
   : BaseT(BundleSpace, BaseSpace)
 {
 }
