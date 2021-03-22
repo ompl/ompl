@@ -46,10 +46,7 @@
 #include <ompl/multilevel/datastructures/importance/Exponential.h>
 #include <ompl/multilevel/datastructures/importance/Uniform.h>
 #include <ompl/multilevel/datastructures/metrics/Geodesic.h>
-// #include <ompl/multilevel/datastructures/metrics/ShortestPath.h>
 #include <ompl/multilevel/datastructures/propagators/Geometric.h>
-#include <ompl/multilevel/datastructures/propagators/Dynamic.h>
-// #include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
 
 #include <ompl/geometric/PathSimplifier.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
@@ -87,11 +84,6 @@ BundleSpaceGraph::BundleSpaceGraph(
     setMetric("geodesic");
     setGraphSampler("randomvertex");
     setImportance("uniform");
-
-    // if (hasBaseSpace())
-    // {
-    //     pathRestriction_ = std::make_shared<PathRestriction>(this);
-    // }
 
     if (isDynamic())
     {
@@ -586,11 +578,6 @@ void BundleSpaceGraph::setPropagator(const std::string &sPropagator)
     {
         OMPL_DEBUG("Geometric Propagator Selected");
         propagator_ = std::make_shared<BundleSpacePropagatorGeometric>(this);
-    }
-    else if (sPropagator == "dynamic")
-    {
-        OMPL_DEBUG("Dynamic Propagator Selected");
-        propagator_ = std::make_shared<BundleSpacePropagatorDynamic>(this);
     }
     else
     {
