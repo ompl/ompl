@@ -45,8 +45,12 @@ namespace ompl
 {
     namespace multilevel
     {
-        class PathRestriction;
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::multilevel::PathRestriction */
+        OMPL_CLASS_FORWARD(PathRestriction);
+        /** \brief Forward declaration of ompl::multilevel::Head */
         OMPL_CLASS_FORWARD(Head);
+        /// @endcond
 
         /** \brief Representation of a path section (not necessarily feasible).
          *

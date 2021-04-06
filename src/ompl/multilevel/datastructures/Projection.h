@@ -46,11 +46,17 @@ namespace ompl
 {
     namespace base
     {
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::StateSpace */
         OMPL_CLASS_FORWARD(StateSpace);
+        /// @endcond
     }
     namespace multilevel
     {
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::multilevel::Projection */
         OMPL_CLASS_FORWARD(Projection);
+        /// @endcond
 
         /* \brief A projection which consists of a set of component projections
          * */

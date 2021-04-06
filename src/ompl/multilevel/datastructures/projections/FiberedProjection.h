@@ -47,8 +47,12 @@ namespace ompl
 {
     namespace base
     {
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::SpaceInformation */
         OMPL_CLASS_FORWARD(SpaceInformation);
+        /** \brief Forward declaration of ompl::base::StateSpace */
         OMPL_CLASS_FORWARD(StateSpace);
+        /// @endcond
     }
     namespace multilevel
     {

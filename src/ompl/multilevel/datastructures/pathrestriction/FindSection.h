@@ -46,18 +46,30 @@ namespace ompl
 {
     namespace base
     {
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::Path */
         OMPL_CLASS_FORWARD(Path);
+        /// @endcond
     }
     namespace geometric
     {
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::geometric::PathGeometric */
         OMPL_CLASS_FORWARD(PathGeometric);
+        /// @endcond
     }
     namespace multilevel
     {
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::multilevel::BundleSpaceGraph */
         OMPL_CLASS_FORWARD(BundleSpaceGraph);
+        /** \brief Forward declaration of ompl::multilevel::PathRestriction */
         OMPL_CLASS_FORWARD(PathRestriction);
+        /** \brief Forward declaration of ompl::multilevel::FiberedProjection */
         OMPL_CLASS_FORWARD(FiberedProjection);
+        /** \brief Forward declaration of ompl::multilevel::Head */
         OMPL_CLASS_FORWARD(Head);
+        /// @endcond
 
         using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 

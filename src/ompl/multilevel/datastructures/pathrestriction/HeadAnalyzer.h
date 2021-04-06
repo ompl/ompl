@@ -43,7 +43,10 @@ namespace ompl
 {
     namespace multilevel
     {
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::multilevel::Head */
         OMPL_CLASS_FORWARD(Head);
+        /// @endcond
         class HeadAnalyzer
         {
         public:

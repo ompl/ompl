@@ -47,7 +47,10 @@ namespace ompl
 {
     namespace multilevel
     {
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::multilevel::Projection */
         OMPL_CLASS_FORWARD(Projection);
+        /// @endcond
     }
     namespace multilevel
     {

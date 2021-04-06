@@ -47,13 +47,15 @@ namespace ompl
 {
     namespace base
     {
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::base::GoalState */
         OMPL_CLASS_FORWARD(GoalState);
+        /** \brief Forward declaration of ompl::base::GoalStates */
         OMPL_CLASS_FORWARD(GoalStates);
+        /// @endcond
     }
     namespace multilevel
     {
-        OMPL_CLASS_FORWARD(BundleSpaceProjection);
-
         /** \brief A planner for a sequence of BundleSpaces
 
              Example usage with QRRT

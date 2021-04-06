@@ -6,7 +6,10 @@ namespace ompl
 {
     namespace multilevel
     {
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::multilevel::BundleSpaceGraph */
         OMPL_CLASS_FORWARD(BundleSpaceGraph);
+        /// @endcond
 
         class BundleSpacePropagator
         {
