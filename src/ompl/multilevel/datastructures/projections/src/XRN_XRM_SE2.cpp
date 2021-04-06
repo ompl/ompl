@@ -73,7 +73,7 @@ void Projection_SE2RN_SE2RM::project(const ompl::base::State *xBundle, ompl::bas
 }
 
 void Projection_SE2RN_SE2RM::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
-                                       ompl::base::State *xBundle) const
+                                  ompl::base::State *xBundle) const
 {
     base::SE2StateSpace::StateType *xBundle_SE2 =
         xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);

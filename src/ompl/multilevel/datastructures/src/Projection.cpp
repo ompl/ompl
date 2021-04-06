@@ -201,8 +201,8 @@ namespace ompl
     }
 }
 
-CompoundProjection::CompoundProjection(StateSpacePtr bundleSpace, StateSpacePtr baseSpace,
-                                       std::vector<ProjectionPtr> &components)
+CompoundProjection::CompoundProjection(const StateSpacePtr &bundleSpace, const StateSpacePtr &baseSpace,
+                                       const std::vector<ProjectionPtr> &components)
   : Projection(bundleSpace, baseSpace), components_(components)
 {
     setType(PROJECTION_COMPOUND);
@@ -286,17 +286,17 @@ unsigned int CompoundProjection::getBaseDimension() const
 
 bool CompoundProjection::isFibered() const
 {
-    for(unsigned int k = 0; k < components_.size(); k++)
+    for (unsigned int k = 0; k < components_.size(); k++)
     {
-        if(!components_.at(k)->isFibered()) return false;
+        if (!components_.at(k)->isFibered())
+            return false;
     }
     return true;
 }
 
-
 void CompoundProjection::print(std::ostream &out) const
 {
-    for(unsigned int k = 0; k < components_.size(); k++)
+    for (unsigned int k = 0; k < components_.size(); k++)
     {
         out << components_.at(k) << "|";
     }

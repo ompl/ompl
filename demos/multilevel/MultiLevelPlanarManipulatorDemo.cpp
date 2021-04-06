@@ -60,7 +60,6 @@
 #include <ompl/multilevel/datastructures/Projection.h>
 #include <ompl/multilevel/datastructures/projections/SE2_R2.h>
 
-using namespace ompl::base;
 using namespace ompl::geometric;
 
 namespace ompl

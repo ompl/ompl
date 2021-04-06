@@ -57,11 +57,11 @@ using namespace ompl::multilevel;
 FindSection::FindSection(PathRestriction *restriction) : restriction_(restriction)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    FiberedProjectionPtr projection = 
-      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
 
     if (graph->getCoDimension() > 0)
     {
+        std::cout << "TODO: Make sure you get the fiber space from compund." << std::endl;
         base::StateSpacePtr fiber = projection->getFiberSpace();
         xFiberStart_ = fiber->allocState();
         xFiberGoal_ = fiber->allocState();
@@ -94,8 +94,7 @@ FindSection::FindSection(PathRestriction *restriction) : restriction_(restrictio
 FindSection::~FindSection()
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    FiberedProjectionPtr projection = 
-      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
 
     if (graph->getCoDimension() > 0)
     {
@@ -126,7 +125,7 @@ bool FindSection::findFeasibleStateOnFiber(const ompl::base::State *xBase, ompl:
 
     const ompl::base::StateSamplerPtr samplerFiber = projection->getFiberSamplerPtr();
 
-    if(graph->getCoDimension() > 0)
+    if (graph->getCoDimension() > 0)
     {
         while (ctr++ < magic::PATH_SECTION_MAX_FIBER_SAMPLING && !found)
         {
@@ -140,15 +139,15 @@ bool FindSection::findFeasibleStateOnFiber(const ompl::base::State *xBase, ompl:
                 found = true;
             }
         }
-    }else
+    }
+    else
     {
         base->copyState(xBundle, xBase);
     }
     return found;
 }
 
-bool FindSection::cornerStep(HeadPtr &head, const ompl::base::State *xBundleTarget,
-                             double locationOnBasePathTarget)
+bool FindSection::cornerStep(HeadPtr &head, const ompl::base::State *xBundleTarget, double locationOnBasePathTarget)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
@@ -161,8 +160,7 @@ bool FindSection::cornerStep(HeadPtr &head, const ompl::base::State *xBundleTarg
 
     base::State *xBundleMidPoint = bundle->allocState();
 
-    FiberedProjectionPtr projection = 
-      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
     projection->projectFiber(xBundleTarget, xFiberGoal_);
     projection->projectFiber(xBundleHead, xFiberStart_);
 
@@ -252,8 +250,7 @@ bool FindSection::tripleStep(HeadPtr &head, const ompl::base::State *sBundleGoal
     base::State *xBase = base->cloneState(head->getStateBase());
     const base::State *sBundleStart = head->getState();
 
-    FiberedProjectionPtr projection = 
-      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
     projection->projectFiber(sBundleStart, xFiberStart_);
     projection->projectFiber(sBundleGoal, xFiberGoal_);
     base::StateSpacePtr fiber = projection->getFiberSpace();
@@ -306,8 +303,7 @@ bool FindSection::tripleStep(HeadPtr &head, const ompl::base::State *sBundleGoal
                         {
                             fiberLocation -= fiberStepSize;
 
-                            fiber->interpolate(xFiberStart_, xFiberGoal_, fiberLocation / fiberDist,
-                                                                xFiberTmp_);
+                            fiber->interpolate(xFiberStart_, xFiberGoal_, fiberLocation / fiberDist, xFiberTmp_);
 
                             projection->lift(xBase, xFiberTmp_, xBundleStartTmp);
 
@@ -329,8 +325,7 @@ bool FindSection::tripleStep(HeadPtr &head, const ompl::base::State *sBundleGoal
                         {
                             fiberLocation += fiberStepSize;
 
-                            fiber->interpolate(xFiberStart_, xFiberGoal_, fiberLocation / fiberDist,
-                                                                xFiberTmp_);
+                            fiber->interpolate(xFiberStart_, xFiberGoal_, fiberLocation / fiberDist, xFiberTmp_);
 
                             // projection->lift(xBaseTmp_, xFiberTmp_, xBundleGoalTmp);
                             projection->lift(xBase, xFiberTmp_, xBundleGoalTmp);

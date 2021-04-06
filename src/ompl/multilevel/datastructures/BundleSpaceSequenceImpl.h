@@ -141,8 +141,8 @@ void ompl::multilevel::BundleSpaceSequence<T>::setFindSectionStrategy(FindSectio
 {
     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
     {
-        BundleSpaceGraph* bsg = dynamic_cast<BundleSpaceGraph *>(bundleSpaces_.at(k));
-        if(bsg != nullptr)
+        BundleSpaceGraph *bsg = dynamic_cast<BundleSpaceGraph *>(bundleSpaces_.at(k));
+        if (bsg != nullptr)
         {
             bsg->setFindSectionStrategy(type);
         }
@@ -211,7 +211,7 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
                     solutions_.push_back(sol_k);
                     double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
                     OMPL_DEBUG("Found Solution on Level %d/%d after %f seconds.", k + 1, stopAtLevel_, t_k_end);
-                    currentBundleSpaceLevel_ = k + 1;  
+                    currentBundleSpaceLevel_ = k + 1;
                     if (currentBundleSpaceLevel_ > (bundleSpaces_.size() - 1))
                         currentBundleSpaceLevel_ = bundleSpaces_.size() - 1;
                 }

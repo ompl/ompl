@@ -64,8 +64,8 @@ int main(int argc, char **argv)
     auto space(std::make_shared<ompl::base::RealVectorStateSpace>(curDim));
     ompl::base::RealVectorBounds bounds(curDim);
     ompl::geometric::SimpleSetup ss(space);
-    ob::SpaceInformationPtr si = ss.getSpaceInformation();
-    ob::ProblemDefinitionPtr pdef = ss.getProblemDefinition();
+    ompl::base::SpaceInformationPtr si = ss.getSpaceInformation();
+    ompl::base::ProblemDefinitionPtr pdef = ss.getProblemDefinition();
     ompl::base::ScopedState<> start(space), goal(space);
 
     bounds.setLow(0.);

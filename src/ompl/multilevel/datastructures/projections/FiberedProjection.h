@@ -72,7 +72,7 @@ namespace ompl
 
             /* \brief Lift base space element using a fiber bundle element */
             virtual void lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
-                                   ompl::base::State *xBundle) const = 0;
+                              ompl::base::State *xBundle) const = 0;
 
             /* \brief Project bundle space onto fiber space */
             virtual void projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const = 0;
@@ -94,8 +94,6 @@ namespace ompl
 
         protected:
             virtual ompl::base::StateSpacePtr computeFiberSpace() = 0;
-
-            // virtual void print(std::ostream &out) const;
 
             base::StateSpacePtr fiberSpace_{nullptr};
 

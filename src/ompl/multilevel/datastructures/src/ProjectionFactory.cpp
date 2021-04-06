@@ -152,8 +152,7 @@ ProjectionPtr ProjectionFactory::MakeProjection(const StateSpacePtr &Bundle)
     return MakeProjection(Bundle, nullptr, false);
 }
 
-ProjectionPtr ProjectionFactory::MakeProjection(const StateSpacePtr &Bundle,
-                                                const StateSpacePtr &Base,
+ProjectionPtr ProjectionFactory::MakeProjection(const StateSpacePtr &Bundle, const StateSpacePtr &Base,
                                                 bool areValidityCheckersEquivalent)
 {
     ProjectionType type = identifyProjectionType(Bundle, Base);
@@ -254,8 +253,7 @@ ProjectionPtr ProjectionFactory::MakeProjection(const StateSpacePtr &Bundle,
     return component;
 }
 
-ProjectionType ProjectionFactory::identifyProjectionType(const StateSpacePtr &Bundle,
-                                                         const StateSpacePtr &Base)
+ProjectionType ProjectionFactory::identifyProjectionType(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     if (Base == nullptr)
     {
@@ -400,8 +398,7 @@ bool ProjectionFactory::isMapping_RN_to_RM(const StateSpacePtr &Bundle, const St
     return false;
 }
 
-bool ProjectionFactory::isMapping_SE3_to_R3(const StateSpacePtr &Bundle,
-                                            const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_SE3_to_R3(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     if (!Bundle->isCompound())
         return false;
@@ -418,8 +415,7 @@ bool ProjectionFactory::isMapping_SE3_to_R3(const StateSpacePtr &Bundle,
     }
     return false;
 }
-bool ProjectionFactory::isMapping_SE3RN_to_R3(const StateSpacePtr &Bundle,
-                                              const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_SE3RN_to_R3(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     if (!Bundle->isCompound())
         return false;
@@ -445,8 +441,7 @@ bool ProjectionFactory::isMapping_SE3RN_to_R3(const StateSpacePtr &Bundle,
     return false;
 }
 
-bool ProjectionFactory::isMapping_SE2_to_R2(const StateSpacePtr &Bundle,
-                                            const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_SE2_to_R2(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     if (!Bundle->isCompound())
         return false;
@@ -464,8 +459,7 @@ bool ProjectionFactory::isMapping_SE2_to_R2(const StateSpacePtr &Bundle,
     return false;
 }
 
-bool ProjectionFactory::isMapping_RNSO2_to_RN(const StateSpacePtr &Bundle,
-                                              const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_RNSO2_to_RN(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     if (!Bundle->isCompound())
         return false;
@@ -492,8 +486,7 @@ bool ProjectionFactory::isMapping_RNSO2_to_RN(const StateSpacePtr &Bundle,
     return false;
 }
 
-bool ProjectionFactory::isMapping_SE2RN_to_R2(const StateSpacePtr &Bundle,
-                                              const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_SE2RN_to_R2(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     if (!Bundle->isCompound())
         return false;
@@ -519,56 +512,47 @@ bool ProjectionFactory::isMapping_SE2RN_to_R2(const StateSpacePtr &Bundle,
     return false;
 }
 
-bool ProjectionFactory::isMapping_SE2RN_to_SE2(const StateSpacePtr &Bundle,
-                                               const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_SE2RN_to_SE2(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SE2);
 }
 
-bool ProjectionFactory::isMapping_SE3RN_to_SE3(const StateSpacePtr &Bundle,
-                                               const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_SE3RN_to_SE3(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SE3);
 }
 
-bool ProjectionFactory::isMapping_SO2RN_to_SO2(const StateSpacePtr &Bundle,
-                                               const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_SO2RN_to_SO2(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SO2);
 }
 
-bool ProjectionFactory::isMapping_SO3RN_to_SO3(const StateSpacePtr &Bundle,
-                                               const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_SO3RN_to_SO3(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     return isMapping_XRN_to_X(Bundle, Base, base::STATE_SPACE_SO3);
 }
 
-bool ProjectionFactory::isMapping_SE2RN_to_SE2RM(const StateSpacePtr &Bundle,
-                                                 const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_SE2RN_to_SE2RM(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SE2);
 }
 
-bool ProjectionFactory::isMapping_SE3RN_to_SE3RM(const StateSpacePtr &Bundle,
-                                                 const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_SE3RN_to_SE3RM(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SE3);
 }
 
-bool ProjectionFactory::isMapping_SO2RN_to_SO2RM(const StateSpacePtr &Bundle,
-                                                 const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_SO2RN_to_SO2RM(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SO2);
 }
 
-bool ProjectionFactory::isMapping_SO3RN_to_SO3RM(const StateSpacePtr &Bundle,
-                                                 const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_SO3RN_to_SO3RM(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     return isMapping_XRN_to_XRM(Bundle, Base, base::STATE_SPACE_SO3);
 }
 
-bool ProjectionFactory::isMapping_SO2N_to_SO2M(const StateSpacePtr &Bundle,
-                                               const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_SO2N_to_SO2M(const StateSpacePtr &Bundle, const StateSpacePtr &Base)
 {
     if (!Bundle->isCompound())
         return false;
@@ -632,8 +616,7 @@ bool ProjectionFactory::isMapping_XRN_to_X(const StateSpacePtr &Bundle, const St
     return false;
 }
 
-bool ProjectionFactory::isMapping_XRN_to_XRM(const StateSpacePtr &Bundle,
-                                             const StateSpacePtr &Base,
+bool ProjectionFactory::isMapping_XRN_to_XRM(const StateSpacePtr &Bundle, const StateSpacePtr &Base,
                                              const StateSpaceType type)
 {
     if (!Bundle->isCompound())
@@ -669,7 +652,7 @@ bool ProjectionFactory::isMapping_XRN_to_XRM(const StateSpacePtr &Bundle,
     return false;
 }
 
-bool ProjectionFactory::isMapping_EmptyProjection(const StateSpacePtr&, const StateSpacePtr &Base)
+bool ProjectionFactory::isMapping_EmptyProjection(const StateSpacePtr &, const StateSpacePtr &Base)
 {
     if (Base == nullptr || Base->getDimension() <= 0)
     {

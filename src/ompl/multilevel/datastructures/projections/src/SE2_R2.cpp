@@ -65,7 +65,7 @@ void Projection_SE2_R2::project(const ompl::base::State *xBundle, ompl::base::St
 }
 
 void Projection_SE2_R2::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
-                                  ompl::base::State *xBundle) const
+                             ompl::base::State *xBundle) const
 {
     base::SE2StateSpace::StateType *xBundle_SE2 = xBundle->as<base::SE2StateSpace::StateType>();
     const base::RealVectorStateSpace::StateType *xBase_R2 = xBase->as<base::RealVectorStateSpace::StateType>();

@@ -163,12 +163,12 @@ void printEstimatedTimeToCompletion(unsigned int numberPlanners, unsigned int ru
 
 static unsigned int numberRuns{0};
 
-void PostRunEvent(const ob::PlannerPtr &planner, ot::Benchmark::RunProperties &run)
+void PostRunEvent(const ompl::base::PlannerPtr &planner, ot::Benchmark::RunProperties &run)
 {
     static unsigned int pid = 0;
 
-    ob::SpaceInformationPtr si = planner->getSpaceInformation();
-    ob::ProblemDefinitionPtr pdef = planner->getProblemDefinition();
+    ompl::base::SpaceInformationPtr si = planner->getSpaceInformation();
+    ompl::base::ProblemDefinitionPtr pdef = planner->getProblemDefinition();
 
     unsigned int states = boost::lexical_cast<int>(run["graph states INTEGER"]);
     double time = boost::lexical_cast<double>(run["time REAL"]);
@@ -195,9 +195,9 @@ void PostRunEvent(const ob::PlannerPtr &planner, ot::Benchmark::RunProperties &r
 
 int numberPlanners = 0;
 
-void addPlanner(ot::Benchmark &benchmark, const ob::PlannerPtr &planner, double range = 1e-2)
+void addPlanner(ot::Benchmark &benchmark, const ompl::base::PlannerPtr &planner, double range = 1e-2)
 {
-    ob::ParamSet &params = planner->params();
+    ompl::base::ParamSet &params = planner->params();
     if (params.hasParam(std::string("range")))
         params.setParam(std::string("range"), ompl::toString(range));
     benchmark.addPlanner(planner);

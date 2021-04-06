@@ -84,6 +84,12 @@ BundleSpaceGraph::BundleSpaceGraph(const ompl::base::SpaceInformationPtr &si, Bu
     setMetric("geodesic");
     setGraphSampler("randomvertex");
     setImportance("uniform");
+    setFindSectionStrategy(FindSectionType::SIDE_STEP);
+
+    if (hasBaseSpace())
+    {
+        pathRestriction_ = std::make_shared<PathRestriction>(this);
+    }
 
     if (isDynamic())
     {
@@ -172,8 +178,7 @@ const PathRestrictionPtr BundleSpaceGraph::getPathRestriction()
         return nullptr;
     }
 
-    base::PathPtr basePath =
-      static_cast<BundleSpaceGraph *>(getChild())->getSolutionPathByReference();
+    base::PathPtr basePath = static_cast<BundleSpaceGraph *>(getChild())->getSolutionPathByReference();
 
     pathRestriction_->setBasePath(basePath);
 
@@ -210,8 +215,14 @@ void BundleSpaceGraph::clear()
     lengthStartGoalVertexPath_ = base::dInf;
     shortestVertexPath_.clear();
 
-    qStart_ = nullptr;
-    qGoal_ = nullptr;
+    if (qStart_)
+    {
+        delete qStart_;
+    }
+    if (qGoal_)
+    {
+        delete qGoal_;
+    }
 
     if (!isDynamic())
     {
@@ -323,13 +334,6 @@ void BundleSpaceGraph::init()
         OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         throw ompl::Exception("Invalid initial states.");
     }
-
-    // auto *goal = static_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
-    // if (goal == nullptr)
-    // {
-    //     OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
-    //     throw ompl::Exception("Unknown goal type");
-    // }
 
     if (const base::State *state = pis_.nextGoal())
     {
@@ -456,8 +460,6 @@ Configuration *BundleSpaceGraph::steerTowards(const Configuration *from, const C
 
 Configuration *BundleSpaceGraph::steerTowards_Range(const Configuration *from, Configuration *to)
 {
-    // Configuration *next = new Configuration(getBundle(), to->state);
-
     double d = distance(from, to);
     if (d > maxDistance_)
     {
@@ -474,8 +476,6 @@ Configuration *BundleSpaceGraph::steerTowards_Range(const Configuration *from, C
 
 Configuration *BundleSpaceGraph::extendGraphTowards_Range(const Configuration *from, Configuration *to)
 {
-    // Configuration *next = new Configuration(getBundle(), to->state);
-
     if (!isDynamic())
     {
         double d = distance(from, to);
@@ -491,14 +491,6 @@ Configuration *BundleSpaceGraph::extendGraphTowards_Range(const Configuration *f
     }
 
     Configuration *next = new Configuration(getBundle(), to->state);
-    // if (isDynamic())
-    // {
-    //     const ompl::control::SpaceInformationPtr siC =
-    //         std::dynamic_pointer_cast<ompl::control::SpaceInformation>(getBundle());
-    //     const control::Control *lastControl =
-    //         std::static_pointer_cast<BundleSpacePropagatorDynamic>(propagator_)->getLastControl();
-    //     siC->copyControl(next->control, lastControl);
-    // }
     addConfiguration(next);
     addBundleEdge(from, next);
     return next;
@@ -632,7 +624,7 @@ BundleSpaceGraph::Vertex BundleSpaceGraph::getGoalIndex() const
     }
     else
     {
-        std::cout << "NullVertex" << std::endl;
+        OMPL_DEVMSG1("Returned NullVertex");
         return nullVertex();
     }
 }
@@ -646,6 +638,7 @@ void BundleSpaceGraph::setStartIndex(Vertex idx)
 {
     vStart_ = idx;
 }
+
 ompl::base::PathPtr &BundleSpaceGraph::getSolutionPathByReference()
 {
     return solutionPath_;
@@ -679,36 +672,6 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
 
             if (!isDynamic() && solutionPath_ != solution && hasParent())
             {
-                // bool optimize = true;
-                // int type = getBundle()->getStateSpace()->getType();
-                // // if(type == base::STATE_SPACE_DUBINS || type == base::STATE_SPACE_DUBINS_AIRPLANE)
-                // if(type == base::STATE_SPACE_DUBINS
-                //     || type == base::STATE_SPACE_DUBINS_AIRPLANE)
-                // {
-                //   optimize = false;
-                // }
-                // if(!optimize && getBundle()->getStateSpace()->isCompound())
-                // {
-                //     std::vector<base::StateSpacePtr> Bundle_decomposed;
-                //     base::CompoundStateSpace *Bundle_compound =
-                //       getBundle()->getStateSpace()->as<base::CompoundStateSpace>();
-                //     Bundle_decomposed = Bundle_compound->getSubspaces();
-                //     for(unsigned int k = 0; k < Bundle_decomposed.size(); k++)
-                //     {
-                //       int tk = Bundle_decomposed.at(k)->getType();
-                //       if(tk == base::STATE_SPACE_DUBINS || tk == base::STATE_SPACE_DUBINS_AIRPLANE)
-                //       {
-                //         optimize = false;
-                //         break;
-                //       }
-                //     }
-                // }
-
-                // if(optimize)
-                // {
-                // geometric::PathSimplifier shortcutter(
-                //     getBundle(), pdef_->getGoal(), pathRefinementObj_);
-
                 // @NOTE: optimization seems to improve feasibility of sections
                 // in low-dim problems (up to 20 dof roughly), but will take too
                 // much time for high-dim problems. Reducing vertices seems to
@@ -716,13 +679,11 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
                 // down.
 
                 bool valid = false;
-                // std::cout << "Optimize" << std::endl;
                 for (unsigned int k = 0; k < 3; k++)
                 {
                     geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
 
                     valid = optimizer_->reduceVertices(gpath, 0, 0, 0.1);
-
                     // valid = optimizer_->simplifyMax(gpath);
 
                     if (!valid)
@@ -735,15 +696,6 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
                         break;
                     }
                 }
-                // std::cout << "Done" << std::endl;
-
-                // geometric::PathGeometric &gpath2 =
-                //   static_cast<geometric::PathGeometric &>(*solutionPath_);
-
-                // optimizer_->smoothBSpline(gpath2);
-
-                // gpath2.interpolate();
-                // }
             }
         }
         solution = solutionPath_;

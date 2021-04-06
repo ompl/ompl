@@ -57,7 +57,7 @@ int main()
     ompl::geometric::SimpleSetup ss(space);
     ompl::base::ScopedState<> start(space), goal(space);
 
-    ob::SpaceInformationPtr si = ss.getSpaceInformation();
+    ompl::base::SpaceInformationPtr si = ss.getSpaceInformation();
 
     bounds.setLow(0.);
     bounds.setHigh(1.);
@@ -72,7 +72,7 @@ int main()
     ss.setStartAndGoalStates(start, goal);
 
     std::vector<int> admissibleProjection = getHypercubeAdmissibleProjection(ndim);
-    ob::PlannerPtr planner = 
+    ompl::base::PlannerPtr planner = 
       GetMultiLevelPlanner<ompl::multilevel::QRRT>(admissibleProjection, si, "QRRT");
     ss.setPlanner(planner);
 
@@ -82,7 +82,7 @@ int main()
 
     if (solved)
     {
-        const ob::ProblemDefinitionPtr pdef = planner->getProblemDefinition();
+        const ompl::base::ProblemDefinitionPtr pdef = planner->getProblemDefinition();
         std::cout << std::string(80, '-') << std::endl;
         pdef->getSolutionPath()->print(std::cout);
         std::cout << std::string(80, '-') << std::endl;

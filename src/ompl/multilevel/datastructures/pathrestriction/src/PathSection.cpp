@@ -46,8 +46,7 @@ using namespace ompl::multilevel;
 PathSection::PathSection(PathRestriction *restriction) : restriction_(restriction)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    FiberedProjectionPtr projection = 
-      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
     if (graph->getCoDimension() > 0)
     {
         base::StateSpacePtr fiber = projection->getFiberSpace();
@@ -72,8 +71,7 @@ PathSection::~PathSection()
 
     if (graph->getCoDimension() > 0)
     {
-        FiberedProjectionPtr projection = 
-          std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+        FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
         base::StateSpacePtr fiber = projection->getFiberSpace();
         fiber->freeState(xFiberStart_);
         fiber->freeState(xFiberGoal_);
@@ -197,8 +195,7 @@ void PathSection::interpolateL1FiberFirst(HeadPtr &head)
     // std::cout << "Last valid idx:" << head->getLastValidBasePathIndex() << std::endl;
     // std::cout << "Next valid idx:" << head->getNextValidBasePathIndex() << std::endl;
 
-    FiberedProjectionPtr projection = 
-      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
 
     if (graph->getCoDimension() > 0)
     {
@@ -245,8 +242,7 @@ void PathSection::interpolateL1FiberLast(HeadPtr &head)
 
     int size = head->getNumberOfRemainingStates() + 1;
 
-    FiberedProjectionPtr projection = 
-      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
     if (graph->getCoDimension() > 0)
     {
         const base::State *xFiberStart = head->getStateFiber();
@@ -298,8 +294,7 @@ void PathSection::interpolateL2(HeadPtr &head)
 
         double totalLengthBasePath = restriction_->getLengthBasePath();
 
-        FiberedProjectionPtr projection = 
-          std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+        FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
         base::StateSpacePtr fiber = projection->getFiberSpace();
 
         for (unsigned int k = 0; k < restriction_->size(); k++)

@@ -49,8 +49,7 @@ Head::Head(PathRestriction *restriction, Configuration *xCurrent, Configuration 
 
     restriction_ = restriction;
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    FiberedProjectionPtr projection = 
-      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
 
     if (graph->getBaseDimension() > 0)
     {
@@ -88,8 +87,7 @@ Head::~Head()
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     if (graph->getCoDimension() > 0)
     {
-        FiberedProjectionPtr projection = 
-          std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+        FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
         base::StateSpacePtr fiber = projection->getFiberSpace();
         fiber->freeState(xFiberCurrent_);
         fiber->freeState(xFiberTarget_);
@@ -169,8 +167,7 @@ void Head::setCurrent(Configuration *newCurrent, double location)
     }
     if (graph->getCoDimension() > 0)
     {
-        FiberedProjectionPtr projection = 
-          std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+        FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
         projection->projectFiber(xCurrent_->state, xFiberCurrent_);
     }
 }
@@ -266,8 +263,7 @@ void Head::print(std::ostream &out) const
     out << "[ Head at:";
     int idx = getLastValidBasePathIndex();
     bundle->printState(xCurrent_->state);
-    out << "base location " << getLocationOnBasePath() << "/" 
-      << restriction_->getLengthBasePath() << " idx " << idx
+    out << "base location " << getLocationOnBasePath() << "/" << restriction_->getLengthBasePath() << " idx " << idx
         << "/" << restriction_->size() << std::endl;
     out << "last base state idx ";
     base->printState(restriction_->getBasePath().at(idx));

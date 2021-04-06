@@ -71,7 +71,7 @@ void Projection_RNSO2_RN::project(const ompl::base::State *xBundle, ompl::base::
 }
 
 void Projection_RNSO2_RN::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
-                                    ompl::base::State *xBundle) const
+                               ompl::base::State *xBundle) const
 {
     base::RealVectorStateSpace::StateType *xBundle_R3 =
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(0);

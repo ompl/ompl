@@ -83,8 +83,7 @@ bool FindSectionSideStep::solve(HeadPtr &head)
 bool FindSectionSideStep::recursiveSideStep(HeadPtr &head, bool interpolateFiberFirst, unsigned int depth)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    FiberedProjectionPtr projection = 
-      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
     base::SpaceInformationPtr bundle = graph->getBundle();
     base::SpaceInformationPtr base = graph->getBase();
 

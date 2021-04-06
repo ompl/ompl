@@ -83,7 +83,7 @@ void Projection_SO2N_SO2M::project(const ompl::base::State *xBundle, ompl::base:
 }
 
 void Projection_SO2N_SO2M::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
-                                     ompl::base::State *xBundle) const
+                                ompl::base::State *xBundle) const
 {
     for (unsigned int k = 0; k < getBaseDimension(); k++)
     {

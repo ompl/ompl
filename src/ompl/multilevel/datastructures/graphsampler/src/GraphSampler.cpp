@@ -117,7 +117,6 @@ void ompl::multilevel::BundleSpaceGraphSampler::sample(base::State *xRandom)
     {
         geometric::PathGeometric &spath =
             static_cast<geometric::PathGeometric &>(*bundleSpaceGraph_->getSolutionPathByReference());
-        // *bundleSpaceGraph_->solutionPath_);
 
         std::vector<base::State *> states = spath.getStates();
 
@@ -133,11 +132,6 @@ void ompl::multilevel::BundleSpaceGraphSampler::sample(base::State *xRandom)
 
             double endLength = spath.length();
             double distStopping = pathBiasStartSegment_ + rng_.uniform01() * (endLength - pathBiasStartSegment_);
-
-            // std::cout << "pathbias start:" << pathBiasStartSegment_ << std::endl;
-
-            // std::cout << "pathSampling:" << distStopping << "/" << totalLength
-            //   << " biasSegment:" << pathBiasStartSegment_ << "." << std::endl;
 
             base::State *s1 = nullptr;
             base::State *s2 = nullptr;
@@ -182,7 +176,6 @@ void ompl::multilevel::BundleSpaceGraphSampler::sample(base::State *xRandom)
         // Decay on graph thickening (reflects or believe in the usefullness of
         // the graph for biasing our sampling)
         double eps = graphThickeningGrowth_();
-        // std::cout << "Epsilon: " << eps << std::endl;
         bundleSpaceGraph_->getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, eps);
     }
 }

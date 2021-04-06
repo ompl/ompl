@@ -59,7 +59,7 @@ void Projection_EmptySet::project(const ompl::base::State *, ompl::base::State *
 }
 
 void Projection_EmptySet::lift(const ompl::base::State *, const ompl::base::State *xFiber,
-                                    ompl::base::State *xBundle) const
+                               ompl::base::State *xBundle) const
 {
     getBundle()->copyState(xBundle, xFiber);
 }

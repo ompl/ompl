@@ -81,9 +81,9 @@ namespace ompl
                  - Base is a pointer to the next lower-dimensional Bundle-space (if any)
                  - Projection is a mapping from Bundle to Base
 
-                 You can provide Bundle and Base space 
-                 (as ompl::base::SpaceInformationPtr) and let the class 
-                 compute the projection automatically 
+                 You can provide Bundle and Base space
+                 (as ompl::base::SpaceInformationPtr) and let the class
+                 compute the projection automatically
                  or provide an explicit projection */
 
             BundleSpace(const ompl::base::SpaceInformationPtr &si, BundleSpace *baseSpace_ = nullptr);
@@ -98,7 +98,7 @@ namespace ompl
             ProjectionPtr getProjection() const;
 
             /// \brief Given bundle space and base space, try to guess the right
-            //projection.
+            // projection.
             bool makeProjection();
 
             /// \brief Set explicit projection
@@ -127,7 +127,7 @@ namespace ompl
             virtual void setup() override;
 
             /// \brief Compute importance of bundle space (to decide where to
-            //allocate computational resources)
+            // allocate computational resources)
             virtual double getImportance() const = 0;
 
             /// \brief Allocate State, set entries to Identity/Zero
@@ -218,7 +218,7 @@ namespace ompl
             /// Check if Bundle-space is bounded
             void checkBundleSpaceMeasure(std::string name, const ompl::base::StateSpacePtr space) const;
 
-            /// Check if Bundle-space has correct structure 
+            /// Check if Bundle-space has correct structure
             void sanityChecks() const;
 
             /// Internal function implementing actual printing to stream
@@ -239,7 +239,7 @@ namespace ompl
             bool hasSolution_{false};
 
             /// Variable to check if this bundle space planner has been run at
-            //least once
+            // least once
             bool firstRun_{true};
 
             /// If the problem is dynamic or geometric
