@@ -70,29 +70,45 @@ namespace ompl
              * into the total bundle space */
             virtual void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const = 0;
 
+            /* \brief Fibered projection have explicit fiber space */
             virtual bool isFibered() const;
 
+            /* \brief Co-dimension of projection (dimension of null space) */
             unsigned int getCoDimension() const;
+
+            /* \brief Dimension of bundle space of projection */
             unsigned int getDimension() const;
+
+            /* \brief Dimension of base space */
             unsigned int getBaseDimension() const;
 
-            /// \brief Get bundle space
+            /* \brief Get bundle space */
             base::StateSpacePtr getBundle() const;
-            /// \brief Get base space
+            /* \brief Get base space */
             base::StateSpacePtr getBase() const;
 
+            /* \brief Check if projection is admissible (NYI) */
             virtual bool isAdmissible() const;
 
-            /// Type of Bundle Space Projection
+            /* \brief Type of Bundle Space Projection */
             ProjectionType getType() const;
+            /* \brief Set type of Bundle Space Projection */
             void setType(const ProjectionType);
 
+            /* \brief Projection type to std::string */
             std::string getTypeAsString() const;
+            /* \brief Bundle space as std::string */
             std::string getBundleTypeAsString() const;
+            /* \brief Base space as std::string */
             std::string getBaseTypeAsString() const;
 
+            /// Print to stream (actual implementation in print(std::ostream &out))
             friend std::ostream &operator<<(std::ostream &out, const Projection &);
+
+            /// Print to stream
             virtual void print(std::ostream &out) const;
+
+            /// Return string representing type of ompl::base::StateSpace
             std::string stateTypeToString(base::StateSpacePtr) const;
 
         protected:

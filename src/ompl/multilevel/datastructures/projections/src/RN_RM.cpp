@@ -70,7 +70,7 @@ void Projection_RN_RM::project(const ompl::base::State *xBundle, ompl::base::Sta
     }
 }
 
-void Projection_RN_RM::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+void Projection_RN_RM::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                  ompl::base::State *xBundle) const
 {
     base::RealVectorStateSpace::StateType *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();

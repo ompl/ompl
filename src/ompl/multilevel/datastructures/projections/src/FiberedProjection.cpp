@@ -14,7 +14,7 @@ FiberedProjection::FiberedProjection(ompl::base::StateSpacePtr bundleSpace, ompl
 void FiberedProjection::lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const
 {
     fiberSpaceSampler_->sampleUniform(xFiberTmp_);
-    liftState(xBase, xFiberTmp_, xBundle);
+    lift(xBase, xFiberTmp_, xBundle);
 }
 
 ompl::base::StateSpacePtr FiberedProjection::getFiberSpace() const

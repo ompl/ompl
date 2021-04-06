@@ -58,7 +58,7 @@ void Projection_EmptySet::project(const ompl::base::State *, ompl::base::State *
     OMPL_WARN("Trying to project to base of Empty-Set Projection space.");
 }
 
-void Projection_EmptySet::liftState(const ompl::base::State *, const ompl::base::State *xFiber,
+void Projection_EmptySet::lift(const ompl::base::State *, const ompl::base::State *xFiber,
                                     ompl::base::State *xBundle) const
 {
     getBundle()->copyState(xBundle, xFiber);

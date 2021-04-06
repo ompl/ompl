@@ -70,7 +70,7 @@ void Projection_SE3_R3::project(const ompl::base::State *xBundle, ompl::base::St
     xBase_R3->values[2] = xBundle_SE3->getZ();
 }
 
-void Projection_SE3_R3::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+void Projection_SE3_R3::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                   ompl::base::State *xBundle) const
 {
     base::SE3StateSpace::StateType *xBundle_SE3 = xBundle->as<base::SE3StateSpace::StateType>();

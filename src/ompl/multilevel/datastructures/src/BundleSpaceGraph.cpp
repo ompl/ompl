@@ -38,6 +38,7 @@
 #include <ompl/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 #include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
 #include <ompl/multilevel/datastructures/src/BundleSpaceGraphGoalVisitor.hpp>
+#include <ompl/multilevel/datastructures/Projection.h>
 
 #include <ompl/multilevel/datastructures/graphsampler/RandomVertex.h>
 #include <ompl/multilevel/datastructures/graphsampler/RandomDegreeVertex.h>

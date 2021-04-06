@@ -57,7 +57,7 @@ void Projection_Identity::project(const ompl::base::State *xBundle, ompl::base::
     getBundle()->copyState(xBase, xBundle);
 }
 
-void Projection_Identity::liftState(const ompl::base::State *xBase, const ompl::base::State *,
+void Projection_Identity::lift(const ompl::base::State *xBase, const ompl::base::State *,
                                     ompl::base::State *xBundle) const
 {
     getBundle()->copyState(xBundle, xBase);

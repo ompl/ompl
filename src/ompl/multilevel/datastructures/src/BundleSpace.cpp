@@ -208,11 +208,6 @@ void BundleSpace::checkBundleSpaceMeasure(std::string name, const StateSpacePtr 
     {
         throw Exception("Space infinite measure.");
     }
-
-    // if(space->getMeasure() <= 0)
-    // {
-    //     throw Exception("Space has zero measure.");
-    // }
 }
 
 PlannerStatus BundleSpace::solve(const PlannerTerminationCondition &)
@@ -230,28 +225,6 @@ void BundleSpace::resetCounter()
 {
     BundleSpace::counter_ = 0;
 }
-
-// void BundleSpace::projectFiber(const State *xBundle, State *xFiber) const
-// {
-//     unsigned int M = components_.size();
-
-//     if (M > 1)
-//     {
-//         for (unsigned int m = 0; m < M; m++)
-//         {
-//             if (components_.at(m)->getFiberDimension() > 0)
-//             {
-//                 const State *xmBundle = xBundle->as<CompoundState>()->as<State>(m);
-//                 State *xmFiber = xFiber->as<CompoundState>()->as<State>(m);
-//                 components_.at(m)->projectFiber(xmBundle, xmFiber);
-//             }
-//         }
-//     }
-//     else
-//     {
-//         components_.front()->projectFiber(xBundle, xFiber);
-//     }
-// }
 
 void BundleSpace::setProjection(ProjectionPtr projection)
 {
@@ -496,23 +469,13 @@ void BundleSpace::project(const ompl::base::State *xBundle, ompl::base::State *x
     projection_->project(xBundle, xBase);
 }
 
-void BundleSpace::print(std::ostream &out) const
-{
-    // unsigned int M = components_.size();
-    out << "[";
-    // for (unsigned int m = 0; m < M; m++)
-    // {
-    //     out << components_.at(m)->getTypeAsString() << (isDynamic_ ? "(dyn)" : "") << (m < M - 1 ? " | " : "");
-    // }
-    out << "]";
-}
-
 namespace ompl
 {
     namespace multilevel
     {
         std::ostream &operator<<(std::ostream &out, const BundleSpace &bundleSpace)
         {
+            out << bundleSpace.getProjection();
             bundleSpace.print(out);
             return out;
         }

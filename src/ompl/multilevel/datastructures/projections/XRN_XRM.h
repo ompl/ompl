@@ -57,7 +57,7 @@ namespace ompl
 
             virtual void project(const ompl::base::State *xBundle, ompl::base::State *xBase) const override = 0;
 
-            virtual void liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+            virtual void lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                    ompl::base::State *xBundle) const override = 0;
 
         protected:

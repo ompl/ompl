@@ -56,7 +56,7 @@ void Projection_None::project(const ompl::base::State *, ompl::base::State *) co
     OMPL_WARN("Trying to project to base with non-projectable Bundle Space.");
 }
 
-void Projection_None::liftState(const ompl::base::State *, const ompl::base::State *, ompl::base::State *) const
+void Projection_None::lift(const ompl::base::State *, const ompl::base::State *, ompl::base::State *) const
 {
     OMPL_WARN("Trying to lift States with non-projectable Bundle Space.");
 }

@@ -257,7 +257,7 @@ namespace ompl
 
             BundleSpaceGraphSamplerPtr getGraphSampler();
 
-            // const PathRestrictionPtr getPathRestriction();
+            const PathRestrictionPtr getPathRestriction();
 
             /** \brief Best cost found so far by algorithm */
             base::Cost bestCost_{+base::dInf};

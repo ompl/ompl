@@ -169,8 +169,6 @@ namespace ompl
             ompl::base::OptimizationObjectivePtr getOptimizationObjectivePtr() const;
 
             /// \brief Write class to stream (use as std::cout << *this << std::endl)
-            ///  Actual implementation is in void print(std::ostream& out),
-            ///  which can be inherited.
             friend std::ostream &operator<<(std::ostream &, const BundleSpace &);
 
             bool isDynamic() const;

@@ -65,7 +65,7 @@ void Projection_SE3RN_SE3::project(const ompl::base::State *xBundle, ompl::base:
     xBase_SO3->w = xBundle_SO3->w;
 }
 
-void Projection_SE3RN_SE3::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+void Projection_SE3RN_SE3::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                      ompl::base::State *xBundle) const
 {
     base::SE3StateSpace::StateType *xBundle_SE3 =

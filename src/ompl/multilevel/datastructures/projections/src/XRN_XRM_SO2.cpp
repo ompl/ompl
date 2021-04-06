@@ -70,7 +70,7 @@ void Projection_SO2RN_SO2RM::project(const ompl::base::State *xBundle, ompl::bas
     }
 }
 
-void Projection_SO2RN_SO2RM::liftState(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+void Projection_SO2RN_SO2RM::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                        ompl::base::State *xBundle) const
 {
     base::SO2StateSpace::StateType *xBundle_SO2 =
