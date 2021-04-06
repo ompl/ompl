@@ -80,12 +80,12 @@ std::vector<ProjectionPtr> ProjectionFactory::MakeProjections(const SpaceInforma
 
     if (Projections > 1)
     {
-        base::CompoundStateSpace *Bundle_compound = Bundle_space->as<base::CompoundStateSpace>();
+        const base::CompoundStateSpace *Bundle_compound = Bundle_space->as<base::CompoundStateSpace>();
         const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
 
         for (int m = 0; m < Projections; m++)
         {
-            base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
+            const base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
             ProjectionPtr componentM = MakeProjection(BundleM);
             components.push_back(componentM);
         }
@@ -254,8 +254,8 @@ ProjectionPtr ProjectionFactory::MakeProjection(const StateSpacePtr &Bundle,
     return component;
 }
 
-ProjectionType ProjectionFactory::identifyProjectionType(const StateSpacePtr Bundle,
-                                                         const StateSpacePtr Base)
+ProjectionType ProjectionFactory::identifyProjectionType(const StateSpacePtr &Bundle,
+                                                         const StateSpacePtr &Base)
 {
     if (Base == nullptr)
     {
@@ -677,7 +677,8 @@ bool ProjectionFactory::isMapping_EmptyProjection(const StateSpacePtr&, const St
     }
     return false;
 }
-int ProjectionFactory::GetNumberOfComponents(constStateSpacePtr &space)
+
+int ProjectionFactory::GetNumberOfComponents(const StateSpacePtr &space)
 {
     int nrComponents = 0;
 

@@ -71,7 +71,7 @@ namespace ompl
         protected:
             ProjectionPtr MakeProjection(const base::StateSpacePtr &BundleSpace, const base::StateSpacePtr &BaseSpace, bool);
 
-            ProjectionPtr MakeProjection(base::StateSpacePtr &BundleSpace);
+            ProjectionPtr MakeProjection(const base::StateSpacePtr &BundleSpace);
 
             ProjectionType identifyProjectionType(const base::StateSpacePtr &BundleSpace,
                                                   const base::StateSpacePtr &BaseSpace);
