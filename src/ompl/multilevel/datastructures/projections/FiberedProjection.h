@@ -76,6 +76,8 @@ namespace ompl
             unsigned int getFiberDimension() const;
             std::string getFiberTypeAsString() const;
 
+            bool isFibered() const override;
+
             void makeFiberSpace();
 
         protected:

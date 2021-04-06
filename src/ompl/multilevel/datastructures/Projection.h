@@ -70,6 +70,8 @@ namespace ompl
              * into the total bundle space */
             virtual void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const = 0;
 
+            virtual bool isFibered() const;
+
             unsigned int getCoDimension() const;
             unsigned int getDimension() const;
             unsigned int getBaseDimension() const;

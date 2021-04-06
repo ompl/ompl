@@ -103,8 +103,8 @@ int main(int argc, char **argv)
     ss.setStartAndGoalStates(start, goal);
 
     // by default, use the Benchmark class
-    double runtime_limit = 60, memory_limit = 4096;
-    int run_count = 10;
+    double runtime_limit = 1000, memory_limit = 4096;
+    int run_count = 20;
     ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count);
     ompl::tools::Benchmark b(ss, "HyperCube");
     b.addExperimentParameter("num_dims", "INTEGER", std::to_string(ndim));

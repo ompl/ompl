@@ -63,7 +63,8 @@ ompl::geometric::PathGeometric::PathGeometric(const base::SpaceInformationPtr &s
     states_[0] = si_->cloneState(state1);
     states_[1] = si_->cloneState(state2);
 }
-ompl::geometric::PathGeometric::PathGeometric(const base::SpaceInformationPtr &si, std::vector<const base::State *> states)
+
+ompl::geometric::PathGeometric::PathGeometric(const base::SpaceInformationPtr &si, std::vector<const base::State *> &states)
   : base::Path(si)
 {
     for(unsigned int k = 0; k < states.size(); k++)

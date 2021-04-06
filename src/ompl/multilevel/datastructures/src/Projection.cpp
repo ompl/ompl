@@ -85,6 +85,11 @@ ompl::base::StateSpacePtr Projection::getBase() const
     return baseSpace_;
 }
 
+bool Projection::isFibered() const
+{
+    return false;
+}
+
 ProjectionType Projection::getType() const
 {
     return type_;

@@ -195,9 +195,9 @@ void PostRunEvent(const ob::PlannerPtr &planner, ot::Benchmark::RunProperties &r
 
 int numberPlanners = 0;
 
-void addPlanner(ompl::tools::Benchmark &benchmark, const ompl::base::PlannerPtr &planner, double range = 1e-2)
+void addPlanner(ot::Benchmark &benchmark, const ob::PlannerPtr &planner, double range = 1e-2)
 {
-    ompl::base::ParamSet &params = planner->params();
+    ob::ParamSet &params = planner->params();
     if (params.hasParam(std::string("range")))
         params.setParam(std::string("range"), ompl::toString(range));
     benchmark.addPlanner(planner);

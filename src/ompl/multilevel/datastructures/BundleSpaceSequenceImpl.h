@@ -136,18 +136,18 @@ void ompl::multilevel::BundleSpaceSequence<T>::setStopLevel(unsigned int level_)
     }
 }
 
-// template <class T>
-// void ompl::multilevel::BundleSpaceSequence<T>::setFindSectionStrategy(FindSectionType type)
-// {
-//     for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
-//     {
-//         BundleSpaceGraph* bsg = dynamic_cast<BundleSpaceGraph *>(bundleSpaces_.at(k));
-//         if(bsg != nullptr)
-//         {
-//             bsg->setFindSectionStrategy(type);
-//         }
-//     }
-// }
+template <class T>
+void ompl::multilevel::BundleSpaceSequence<T>::setFindSectionStrategy(FindSectionType type)
+{
+    for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
+    {
+        BundleSpaceGraph* bsg = dynamic_cast<BundleSpaceGraph *>(bundleSpaces_.at(k));
+        if(bsg != nullptr)
+        {
+            bsg->setFindSectionStrategy(type);
+        }
+    }
+}
 
 template <class T>
 void ompl::multilevel::BundleSpaceSequence<T>::setup()
@@ -211,7 +211,7 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
                     solutions_.push_back(sol_k);
                     double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
                     OMPL_DEBUG("Found Solution on Level %d/%d after %f seconds.", k + 1, stopAtLevel_, t_k_end);
-                    currentBundleSpaceLevel_ = k + 1;  // std::min(k + 1, bundleSpaces_.size()-1);
+                    currentBundleSpaceLevel_ = k + 1;  
                     if (currentBundleSpaceLevel_ > (bundleSpaces_.size() - 1))
                         currentBundleSpaceLevel_ = bundleSpaces_.size() - 1;
                 }
@@ -246,8 +246,6 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
             return ompl::base::PlannerStatus::TIMEOUT;
         }
     }
-    // double t_end = ompl::time::seconds(ompl::time::now() - t_start);
-    // OMPL_DEBUG("Found exact solution after %f seconds.", t_end);
 
     ompl::base::PathPtr sol;
     ompl::base::PlannerSolution psol(sol);
@@ -361,8 +359,6 @@ ompl::base::State *ompl::multilevel::BundleSpaceSequence<T>::getTotalState(int b
         if (Qm->getProjection()->getCoDimension() > 0)
         {
             base::State *s_Bundle = Qm->allocIdentityStateBundle();
-            // base::State *s_Fiber = Qm->allocIdentityStateFiber();
-            // Qm->getProjection()->lift(s_lift, s_Fiber, s_Bundle);
 
             Qm->getProjection()->lift(s_lift, s_Bundle);
 
@@ -371,7 +367,6 @@ ompl::base::State *ompl::multilevel::BundleSpaceSequence<T>::getTotalState(int b
             s_lift = Qm->getBundle()->cloneState(s_Bundle);
 
             Qm->getBundle()->freeState(s_Bundle);
-            // Qm->getFiber()->freeState(s_Fiber);
 
             Qprev = Qm;
         }

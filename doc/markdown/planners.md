@@ -1,6 +1,6 @@
 # Available Planners {#planners}
 
-All implementations listed below are considered fully functional. Within OMPL planners are divided into two categories:
+All implementations listed below are considered fully functional. Within OMPL planners are divided into three categories:
 - \ref geometric_planners
 - \ref control_planners
 - \ref multilevel_planners

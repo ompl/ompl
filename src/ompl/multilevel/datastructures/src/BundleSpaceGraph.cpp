@@ -47,6 +47,7 @@
 #include <ompl/multilevel/datastructures/importance/Uniform.h>
 #include <ompl/multilevel/datastructures/metrics/Geodesic.h>
 #include <ompl/multilevel/datastructures/propagators/Geometric.h>
+#include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
 
 #include <ompl/geometric/PathSimplifier.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
@@ -155,43 +156,42 @@ void BundleSpaceGraph::setup()
     }
 }
 
-// void BundleSpaceGraph::setFindSectionStrategy(FindSectionType type)
-// {
-//     if (pathRestriction_ != nullptr)
-//     {
-//         pathRestriction_->setFindSectionStrategy(type);
-//     }
-// }
-// const PathRestrictionPtr BundleSpaceGraph::getPathRestriction()
-// {
-//     if (!hasBaseSpace())
-//     {
-//         OMPL_WARN("Tried getting path restriction without base space");
-//         return nullptr;
-//     }
+void BundleSpaceGraph::setFindSectionStrategy(FindSectionType type)
+{
+    if (pathRestriction_ != nullptr)
+    {
+        pathRestriction_->setFindSectionStrategy(type);
+    }
+}
+const PathRestrictionPtr BundleSpaceGraph::getPathRestriction()
+{
+    if (!hasBaseSpace())
+    {
+        OMPL_WARN("Tried getting path restriction without base space");
+        return nullptr;
+    }
 
-//     base::PathPtr basePath =
-//       static_cast<BundleSpaceGraph *>(getBaseBundleSpace())->getSolutionPathByReference();
+    base::PathPtr basePath =
+      static_cast<BundleSpaceGraph *>(getBaseBundleSpace())->getSolutionPathByReference();
 
-//     pathRestriction_->setBasePath(basePath);
+    pathRestriction_->setBasePath(basePath);
 
-//     return pathRestriction_;
-// }
+    return pathRestriction_;
+}
 
 bool BundleSpaceGraph::findSection()
 {
-    //@TODO REMOVED FOR NOW. Need to be able to handle task-space mappings.
-    // if (hasBaseSpace())
-    // {
-    //     if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
-    //     {
-    //         if (sameComponent(vStart_, getGoalIndex()))
-    //         {
-    //             hasSolution_ = true;
-    //             return true;
-    //         }
-    //     }
-    // }
+    if (hasBaseSpace() && getProjection()->isFibered())
+    {
+        if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
+        {
+            if (sameComponent(vStart_, getGoalIndex()))
+            {
+                hasSolution_ = true;
+                return true;
+            }
+        }
+    }
     return false;
 }
 
@@ -224,10 +224,10 @@ void BundleSpaceGraph::clear()
 
     importanceCalculator_->clear();
     graphSampler_->clear();
-    // if (pathRestriction_ != nullptr)
-    // {
-    //     pathRestriction_->clear();
-    // }
+    if (pathRestriction_ != nullptr)
+    {
+        pathRestriction_->clear();
+    }
 }
 
 void BundleSpaceGraph::clearVertices()

@@ -61,7 +61,6 @@ Environment createCustomHornEnvironment(unsigned int d)
 
 ob::PlannerPtr GetQRRT(std::vector<int> sequenceLinks, ob::SpaceInformationPtr si)
 {
-    // ompl::msg::setLogLevel(ompl::msg::LOG_DEV2);
     std::vector<ob::SpaceInformationPtr> si_vec;
 
     for (unsigned int k = 0; k < sequenceLinks.size(); k++)
@@ -98,24 +97,6 @@ ob::PlannerPtr GetQRRT(std::vector<int> sequenceLinks, ob::SpaceInformationPtr s
 std::vector<std::vector<int>> getAdmissibleProjections(int dim)
 {
     std::vector<std::vector<int>> projections;
-    // projections.push_back(std::vector<int>{});
-    // projections.push_back(std::vector<int>{2});
-    // projections.push_back(std::vector<int>{3});
-
-    // unsigned int K = ceil(dim*0.5);
-    // for(uint k = 0; k < K; k++){
-    //   std::vector<int> kStep;
-    //   if(k>0) boost::push_back(kStep, boost::irange(2, dim, k));
-    //   projections.push_back(kStep);
-    // }
-    // for(int k = 2; k < dim; k++){
-    //   std::vector<int> kStep{k};
-    //   projections.push_back(kStep);
-    //   for(int j = k+1; j < dim; j++){
-    //     std::vector<int> kjStep{k,j};
-    //     projections.push_back(kjStep);
-    //   }
-    // }
     std::vector<int> discrete;
     boost::push_back(discrete, boost::irange(2, dim + 1));
 
@@ -147,7 +128,6 @@ std::vector<std::vector<int>> getAdmissibleProjections(int dim)
 int main()
 {
     Environment env = createCustomHornEnvironment(numLinks);
-    // Environment env = createHornEnvironment(numLinks, log((double)numLinks) / (double)numLinks);
     OMPL_INFORM("Original Chain has %d links", numLinks);
     for (unsigned int k = 0; k < numLinks; k++)
     {

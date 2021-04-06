@@ -1,3 +1,41 @@
+/*********************************************************************
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2021,
+ *  Max Planck Institute for Intelligent Systems (MPI-IS).
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the MPI-IS nor the names
+ *     of its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written
+ *     permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
+
+/* Author: Andreas Orthey */
+
 //This is basically just a simplified version of Ryan Luna's Demo, used for
 //testing purposes of the multilevel planning framework
 
@@ -56,7 +94,6 @@ class ProjectionJointSpaceToSE2: public ompl::multilevel::Projection
         xBase->as<SE2StateSpace::StateType>()->setXY(x,y);
         xBase->as<SE2StateSpace::StateType>()->setYaw(yaw);
 
-        std::cout << "---Project---" << std::endl;
         getBundle()->printState(xBundle);
         getBase()->printState(xBase);
     }
@@ -80,9 +117,6 @@ class ProjectionJointSpaceToSE2: public ompl::multilevel::Projection
         {
             angles[k] = solution.at(k);
         }
-        // std::cout << "---Lift---" << std::endl;
-        // getBase()->printState(xBase);
-        // getBundle()->printState(xBundle);
     }
 
   private:
@@ -91,14 +125,11 @@ class ProjectionJointSpaceToSE2: public ompl::multilevel::Projection
 
 int main()
 {
-    // ompl::msg::setLogLevel(ompl::msg::LOG_INFO);
-
     Eigen::Affine2d baseFrame;
     Eigen::Affine2d goalFrame;
 
     PlanarManipulator manipulator = PlanarManipulator(numLinks, 1.0/numLinks);
     PolyWorld world = createCorridorProblem(numLinks, baseFrame, goalFrame);
-    // PolyWorld world = createConstrictedProblem(numLinks, baseFrame, goalFrame);
 
     //#########################################################################
     //## Create robot joint configuration space [TOTAL SPACE]
@@ -113,7 +144,7 @@ int main()
     SpaceInformationPtr si = std::make_shared<SpaceInformation>(space);
     si->setStateValidityChecker( 
         std::make_shared<PlanarManipulatorCollisionChecker>( 
-          si, manipulator, world));
+          si, manipulator, &world));
     si->setStateValidityCheckingResolution(0.001);
 
     //#########################################################################
@@ -126,10 +157,8 @@ int main()
     spaceSE2->as<SE2StateSpace>()->setBounds(boundsWorkspace);
 
     SpaceInformationPtr siSE2 = std::make_shared<SpaceInformation>(spaceSE2);
-    // siSE2->setStateValidityChecker( 
-    //     std::make_shared<AllValidStateValidityChecker>(siSE2));
     siSE2->setStateValidityChecker( 
-        std::make_shared<SE2CollisionChecker>(siSE2, world));
+        std::make_shared<SE2CollisionChecker>(siSE2, &world));
     siSE2->setStateValidityCheckingResolution(0.001);
 
     //#########################################################################
@@ -145,7 +174,7 @@ int main()
     siR2->setStateValidityChecker( 
         std::make_shared<AllValidStateValidityChecker>(siR2));
     siR2->setStateValidityChecker( 
-        std::make_shared<R2CollisionChecker>(siR2, world));
+        std::make_shared<R2CollisionChecker>(siR2, &world));
     siR2->setStateValidityCheckingResolution(0.001);
     
     //#########################################################################
@@ -230,6 +259,6 @@ int main()
         OMPL_INFORM("Solution path has %d states", pgeo.getStateCount());
 
         pgeo.interpolate(250);
-        WriteVisualization(manipulator, world, pgeo);
+        WriteVisualization(manipulator, &world, pgeo);
     }
 }

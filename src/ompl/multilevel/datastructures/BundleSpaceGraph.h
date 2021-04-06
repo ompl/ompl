@@ -39,7 +39,7 @@
 #define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BUNDLEGRAPH_
 
 #include <ompl/multilevel/datastructures/BundleSpace.h>
-// #include <ompl/multilevel/datastructures/pathrestriction/FindSectionTypes.h>
+#include <ompl/multilevel/datastructures/pathrestriction/FindSectionTypes.h>
 #include <limits>
 #include <ompl/geometric/planners/PlannerIncludes.h>
 #include <ompl/datastructures/NearestNeighbors.h>
@@ -67,9 +67,14 @@ namespace ompl
     }
     namespace multilevel
     {
+        /// @cond IGNORE
+        /** \brief Forward declaration of * ompl::multilevel::BundleSpaceImportance */
         OMPL_CLASS_FORWARD(BundleSpaceImportance);
+        /** \brief Forward declaration of * ompl::multilevel::BundleSpaceGraphSampler */
         OMPL_CLASS_FORWARD(BundleSpaceGraphSampler);
-        // OMPL_CLASS_FORWARD(PathRestriction);
+        /** \brief Forward declaration of * ompl::multilevel::PathRestriction */
+        OMPL_CLASS_FORWARD(PathRestriction);
+        /// @endcond
     }
     namespace geometric
     {
@@ -248,7 +253,7 @@ namespace ompl
             virtual void setPropagator(const std::string &sPropagator) override;
             virtual void setImportance(const std::string &sImportance);
             virtual void setGraphSampler(const std::string &sGraphSampler);
-            // virtual void setFindSectionStrategy(FindSectionType type);
+            virtual void setFindSectionStrategy(FindSectionType type);
 
             BundleSpaceGraphSamplerPtr getGraphSampler();
 
@@ -356,9 +361,7 @@ namespace ompl
 
             BundleSpaceGraphSamplerPtr graphSampler_{nullptr};
 
-            // PathRestrictionPtr pathRestriction_{nullptr};
-
-            // ompl::base::OptimizationObjectivePtr pathRefinementObj_{nullptr};
+            PathRestrictionPtr pathRestriction_{nullptr};
 
             /** \brief A path optimizer */
             ompl::geometric::PathSimplifierPtr optimizer_;

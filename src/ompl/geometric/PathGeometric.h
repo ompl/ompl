@@ -82,7 +82,7 @@ namespace ompl
 
             /** \brief Construct a path from a sequence of states */
             PathGeometric(const base::SpaceInformationPtr &si, 
-                std::vector<const base::State *> states);
+                std::vector<const base::State *> &states);
 
             ~PathGeometric() override
             {

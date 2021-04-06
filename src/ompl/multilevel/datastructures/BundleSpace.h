@@ -50,10 +50,14 @@ namespace ompl
          a sequence of SpaceInformationPtr (each with their own StateValidityChecker). */
     namespace multilevel
     {
-        OMPL_CLASS_FORWARD(BundleSpaceComponent);
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::multilevel::BundleSpaceMetric */
         OMPL_CLASS_FORWARD(BundleSpaceMetric);
+        /** \brief Forward declaration of ompl::multilevel::Projection */
         OMPL_CLASS_FORWARD(Projection);
+        /** \brief Forward declaration of ompl::multilevel::BundleSpacePropagator */
         OMPL_CLASS_FORWARD(BundleSpacePropagator);
+        /// @endcond
 
         /// \brief A single Bundle-space
         class BundleSpace : public ompl::base::Planner
@@ -119,10 +123,6 @@ namespace ompl
             ompl::base::State *allocIdentityStateBase() const;
             ompl::base::State *allocIdentityState(ompl::base::StateSpacePtr) const;
             void allocIdentityState(ompl::base::State *, ompl::base::StateSpacePtr) const;
-
-            /// \brief Print Information pertaining to why a state failed being
-            /// valid
-            // void debugInvalidState(const ompl::base::State *);
 
             /// \brief reset counter for number of levels
             static void resetCounter();
@@ -205,6 +205,8 @@ namespace ompl
         protected:
             /// Check if Bundle-space is bounded
             void checkBundleSpaceMeasure(std::string name, const ompl::base::StateSpacePtr space) const;
+
+            /// Check if Bundle-space has correct structure 
             void sanityChecks() const;
 
             /// Internal function implementing actual printing to stream
@@ -215,14 +217,20 @@ namespace ompl
             /// A temporary state on Bundle
             ompl::base::State *xBundleTmp_{nullptr};
 
+            /// Internal counter to track multiple bundle spaces
             static unsigned int counter_;
 
             /// Identity of space (to keep track of number of Bundle-spaces created)
             unsigned int id_{0};
 
+            /// If there exists a solution
             bool hasSolution_{false};
+
+            /// Variable to check if this bundle space planner has been run at
+            //least once
             bool firstRun_{true};
 
+            /// If the problem is dynamic or geometric
             bool isDynamic_{false};
 
             /** \brief Metric on bundle space */

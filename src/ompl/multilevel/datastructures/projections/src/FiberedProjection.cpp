@@ -22,6 +22,11 @@ ompl::base::StateSpacePtr FiberedProjection::getFiberSpace() const
     return fiberSpace_;
 }
 
+bool FiberedProjection::isFibered() const
+{
+    return true;
+}
+
 unsigned int FiberedProjection::getFiberDimension() const
 {
     if (fiberSpace_)
