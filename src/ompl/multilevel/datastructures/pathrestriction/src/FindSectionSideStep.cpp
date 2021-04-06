@@ -41,6 +41,7 @@
 #include <ompl/multilevel/datastructures/pathrestriction/Head.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSectionSideStep.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
+#include <ompl/multilevel/datastructures/projections/FiberedProjection.h>
 
 namespace ompl
 {
@@ -82,9 +83,10 @@ bool FindSectionSideStep::solve(HeadPtr &head)
 bool FindSectionSideStep::recursiveSideStep(HeadPtr &head, bool interpolateFiberFirst, unsigned int depth)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
+    FiberedProjectionPtr projection = 
+      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
     base::SpaceInformationPtr bundle = graph->getBundle();
     base::SpaceInformationPtr base = graph->getBase();
-    base::SpaceInformationPtr fiber = graph->getFiber();
 
     PathSectionPtr section = std::make_shared<PathSection>(restriction_);
 
@@ -103,7 +105,7 @@ bool FindSectionSideStep::recursiveSideStep(HeadPtr &head, bool interpolateFiber
         return true;
     }
 
-    static_cast<BundleSpaceGraph *>(graph->getBaseBundleSpace())
+    static_cast<BundleSpaceGraph *>(graph->getChild())
         ->getGraphSampler()
         ->setPathBiasStartSegment(head->getLocationOnBasePath());
 

@@ -53,6 +53,8 @@ namespace ompl
             using BaseT = ompl::base::Planner;
 
         public:
+            /** \brief Constructor for a set of ompl::base::SpaceInformationPtr
+             * which represent different abstraction levels */
             PlannerMultiLevel(std::vector<ompl::base::SpaceInformationPtr> &siVec,
                               std::string type = "PlannerMultiLevel");
 
@@ -62,12 +64,17 @@ namespace ompl
 
             virtual ~PlannerMultiLevel();
 
+            /** \brief Get ompl::base::ProblemDefinitionPtr for a specific level */
             const ompl::base::ProblemDefinitionPtr &getProblemDefinition(int level) const;
 
+            /** \brief Get ompl::base::ProblemDefinitionPtr for a specific level (non const)*/
             ompl::base::ProblemDefinitionPtr &getProblemDefinitionNonConst(int level);
 
+            /** \brief Get all ompl::base::ProblemDefinitionPtr for all levels
+             * in the hierarchy */
             const std::vector<ompl::base::ProblemDefinitionPtr> &getProblemDefinitionVector() const;
 
+            /** \brief Clear multilevel planner by clearing all levels */
             virtual void clear() override;
 
             /** \brief Number of multilevel abstractions */

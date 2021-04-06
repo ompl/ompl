@@ -63,14 +63,21 @@ namespace ompl
 
             virtual void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const override;
 
+            /* \brief Project bundle space element onto base space */
             virtual void project(const ompl::base::State *xBundle, ompl::base::State *xBase) const = 0;
 
+            /* \brief Lift base space element using a fiber bundle element */
             virtual void lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                    ompl::base::State *xBundle) const = 0;
 
+            /* \brief Project bundle space onto fiber space */
             virtual void projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const = 0;
 
+            /* \brief Get explicit fiber space representation */
             ompl::base::StateSpacePtr getFiberSpace() const;
+
+            /* \brief Get explicit fiber space sampler */
+            ompl::base::StateSamplerPtr getFiberSamplerPtr() const;
 
             /// Dimension of Fiber Space
             unsigned int getFiberDimension() const;
@@ -78,6 +85,7 @@ namespace ompl
 
             bool isFibered() const override;
 
+            /* \brief Create explicit fiber space representation */
             void makeFiberSpace();
 
         protected:

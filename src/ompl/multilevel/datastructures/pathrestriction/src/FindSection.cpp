@@ -41,6 +41,8 @@
 #include <ompl/multilevel/datastructures/pathrestriction/Head.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSection.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
+#include <ompl/multilevel/datastructures/Projection.h>
+#include <ompl/multilevel/datastructures/projections/FiberedProjection.h>
 
 namespace ompl
 {
@@ -55,13 +57,16 @@ using namespace ompl::multilevel;
 FindSection::FindSection(PathRestriction *restriction) : restriction_(restriction)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    if (graph->getFiberDimension() > 0)
+    FiberedProjectionPtr projection = 
+      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+
+    if (graph->getCoDimension() > 0)
     {
-        base::SpaceInformationPtr fiber = graph->getFiber();
+        base::StateSpacePtr fiber = projection->getFiberSpace();
         xFiberStart_ = fiber->allocState();
         xFiberGoal_ = fiber->allocState();
         xFiberTmp_ = fiber->allocState();
-        validFiberSpaceSegmentLength_ = fiber->getStateSpace()->getLongestValidSegmentLength();
+        validFiberSpaceSegmentLength_ = fiber->getLongestValidSegmentLength();
     }
     if (graph->getBaseDimension() > 0)
     {
@@ -89,9 +94,12 @@ FindSection::FindSection(PathRestriction *restriction) : restriction_(restrictio
 FindSection::~FindSection()
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    if (graph->getFiberDimension() > 0)
+    FiberedProjectionPtr projection = 
+      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+
+    if (graph->getCoDimension() > 0)
     {
-        base::SpaceInformationPtr fiber = graph->getFiber();
+        base::StateSpacePtr fiber = projection->getFiberSpace();
         fiber->freeState(xFiberStart_);
         fiber->freeState(xFiberGoal_);
         fiber->freeState(xFiberTmp_);
@@ -111,20 +119,20 @@ bool FindSection::findFeasibleStateOnFiber(const ompl::base::State *xBase, ompl:
     bool found = false;
 
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
+
+    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
     base::SpaceInformationPtr bundle = graph->getBundle();
     base::SpaceInformationPtr base = graph->getBundle();
-    // const ompl::base::StateSamplerPtr samplerBase = graph->getBaseSamplerPtr();
 
-    if(graph->getFiberDimension() > 0)
+    const ompl::base::StateSamplerPtr samplerFiber = projection->getFiberSamplerPtr();
+
+    if(graph->getCoDimension() > 0)
     {
         while (ctr++ < magic::PATH_SECTION_MAX_FIBER_SAMPLING && !found)
         {
-            // sample model fiber
-            // samplerBase->sampleUniformNear(xBaseTmp_, xBase, validBaseSpaceSegmentLength_);
+            samplerFiber->sampleUniform(xFiberTmp_);
 
-            graph->sampleFiber(xFiberTmp_);
-
-            graph->liftState(xBase, xFiberTmp_, xBundle);
+            projection->lift(xBase, xFiberTmp_, xBundle);
 
             // New sample must be valid AND not reachable from last valid
             if (bundle->isValid(xBundle))
@@ -145,7 +153,6 @@ bool FindSection::cornerStep(HeadPtr &head, const ompl::base::State *xBundleTarg
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
     base::SpaceInformationPtr base = graph->getBase();
-    base::SpaceInformationPtr fiber = graph->getFiber();
     const ompl::base::StateSamplerPtr samplerBase = graph->getBaseSamplerPtr();
 
     const base::State *xBundleHead = head->getState();
@@ -154,8 +161,10 @@ bool FindSection::cornerStep(HeadPtr &head, const ompl::base::State *xBundleTarg
 
     base::State *xBundleMidPoint = bundle->allocState();
 
-    graph->projectFiber(xBundleTarget, xFiberGoal_);
-    graph->projectFiber(xBundleHead, xFiberStart_);
+    FiberedProjectionPtr projection = 
+      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    projection->projectFiber(xBundleTarget, xFiberGoal_);
+    projection->projectFiber(xBundleHead, xFiberStart_);
 
     // Corner step connection attempt
     // xBundleHead
@@ -183,7 +192,7 @@ bool FindSection::cornerStep(HeadPtr &head, const ompl::base::State *xBundleTarg
 
         //############################################################################
         // try fiber first
-        graph->liftState(xBaseTmp_, xFiberGoal_, xBundleMidPoint);
+        projection->lift(xBaseTmp_, xFiberGoal_, xBundleMidPoint);
 
         if (bundle->isValid(xBundleMidPoint))
         {
@@ -205,7 +214,7 @@ bool FindSection::cornerStep(HeadPtr &head, const ompl::base::State *xBundleTarg
         }
         //############################################################################
         // try fiber last
-        graph->liftState(xBaseTmp_, xFiberStart_, xBundleMidPoint);
+        projection->lift(xBaseTmp_, xFiberStart_, xBundleMidPoint);
 
         if (bundle->isValid(xBundleMidPoint))
         {
@@ -237,15 +246,17 @@ bool FindSection::tripleStep(HeadPtr &head, const ompl::base::State *sBundleGoal
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
     base::SpaceInformationPtr base = graph->getBase();
-    base::SpaceInformationPtr fiber = graph->getFiber();
 
     base::State *xBundleStartTmp = bundle->allocState();
     base::State *xBundleGoalTmp = bundle->allocState();
     base::State *xBase = base->cloneState(head->getStateBase());
     const base::State *sBundleStart = head->getState();
 
-    graph->projectFiber(sBundleStart, xFiberStart_);
-    graph->projectFiber(sBundleGoal, xFiberGoal_);
+    FiberedProjectionPtr projection = 
+      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    projection->projectFiber(sBundleStart, xFiberStart_);
+    projection->projectFiber(sBundleGoal, xFiberGoal_);
+    base::StateSpacePtr fiber = projection->getFiberSpace();
 
     double fiberDist = fiber->distance(xFiberStart_, xFiberGoal_);
     if (fiberDist < 1e-3)
@@ -254,7 +265,7 @@ bool FindSection::tripleStep(HeadPtr &head, const ompl::base::State *sBundleGoal
     bool found = false;
 
     // mid point heuristic
-    fiber->getStateSpace()->interpolate(xFiberStart_, xFiberGoal_, 0.5, xFiberTmp_);
+    fiber->interpolate(xFiberStart_, xFiberGoal_, 0.5, xFiberTmp_);
 
     double location = head->getLocationOnBasePath() - validBaseSpaceSegmentLength_;
 
@@ -270,12 +281,12 @@ bool FindSection::tripleStep(HeadPtr &head, const ompl::base::State *sBundleGoal
     {
         restriction_->interpolateBasePath(location, xBase);
 
-        graph->liftState(xBase, xFiberTmp_, xBundleStartTmp);
+        projection->lift(xBase, xFiberTmp_, xBundleStartTmp);
 
         if (bundle->isValid(xBundleStartTmp))
         {
-            graph->liftState(xBase, xFiberStart_, xBundleStartTmp);
-            graph->liftState(xBase, xFiberGoal_, xBundleGoalTmp);
+            projection->lift(xBase, xFiberStart_, xBundleStartTmp);
+            projection->lift(xBase, xFiberGoal_, xBundleGoalTmp);
 
             if (bundle->isValid(xBundleStartTmp) && bundle->isValid(xBundleGoalTmp))
             {
@@ -295,10 +306,10 @@ bool FindSection::tripleStep(HeadPtr &head, const ompl::base::State *sBundleGoal
                         {
                             fiberLocation -= fiberStepSize;
 
-                            fiber->getStateSpace()->interpolate(xFiberStart_, xFiberGoal_, fiberLocation / fiberDist,
+                            fiber->interpolate(xFiberStart_, xFiberGoal_, fiberLocation / fiberDist,
                                                                 xFiberTmp_);
 
-                            graph->liftState(xBase, xFiberTmp_, xBundleStartTmp);
+                            projection->lift(xBase, xFiberTmp_, xBundleStartTmp);
 
                             if (bundle->checkMotion(sBundleStart, xBundleStartTmp) &&
                                 bundle->checkMotion(xBundleStartTmp, xBundleGoalTmp))
@@ -318,11 +329,11 @@ bool FindSection::tripleStep(HeadPtr &head, const ompl::base::State *sBundleGoal
                         {
                             fiberLocation += fiberStepSize;
 
-                            fiber->getStateSpace()->interpolate(xFiberStart_, xFiberGoal_, fiberLocation / fiberDist,
+                            fiber->interpolate(xFiberStart_, xFiberGoal_, fiberLocation / fiberDist,
                                                                 xFiberTmp_);
 
-                            // graph->liftState(xBaseTmp_, xFiberTmp_, xBundleGoalTmp);
-                            graph->liftState(xBase, xFiberTmp_, xBundleGoalTmp);
+                            // projection->lift(xBaseTmp_, xFiberTmp_, xBundleGoalTmp);
+                            projection->lift(xBase, xFiberTmp_, xBundleGoalTmp);
 
                             if (bundle->checkMotion(xBundleGoalTmp, sBundleGoal) &&
                                 bundle->checkMotion(xBundleStartTmp, xBundleGoalTmp))

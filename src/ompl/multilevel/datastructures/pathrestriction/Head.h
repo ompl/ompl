@@ -46,6 +46,7 @@ namespace ompl
     {
         OMPL_CLASS_FORWARD(BundleSpaceGraph);
         OMPL_CLASS_FORWARD(PathRestriction);
+        OMPL_CLASS_FORWARD(FiberedProjection);
 
         using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 

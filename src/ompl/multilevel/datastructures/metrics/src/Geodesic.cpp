@@ -52,20 +52,8 @@ double BundleSpaceMetricGeodesic::distanceBundle(const Configuration *xStart, co
 
 double BundleSpaceMetricGeodesic::distanceFiber(const Configuration * /*xStart*/, const Configuration * /*xDest*/)
 {
-    std::cout << "NYI" << std::endl;
-    exit(0);
+    throw "Computing distance along fiber requires explicit fiber space.";
     return 0.0;
-    // if (bundleSpaceGraph_->getFiberDimension() > 0)
-    // {
-    //     bundleSpaceGraph_->projectFiber(xStart->state, xFiberStartTmp_);
-    //     bundleSpaceGraph_->projectFiber(xDest->state, xFiberDestTmp_);
-    //     double d = bundleSpaceGraph_->getFiber()->distance(xFiberStartTmp_, xFiberDestTmp_);
-    //     return d;
-    // }
-    // else
-    // {
-    //     return 0.0;
-    // }
 }
 
 double BundleSpaceMetricGeodesic::distanceBase(const Configuration *xStart, const Configuration *xDest)

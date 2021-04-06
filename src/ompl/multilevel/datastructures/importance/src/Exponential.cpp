@@ -46,7 +46,7 @@ ompl::multilevel::BundleSpaceImportanceExponential::BundleSpaceImportanceExponen
 double ompl::multilevel::BundleSpaceImportanceExponential::eval()
 {
     const double p = 1.0 / bundleSpaceGraph_->getBundleDimension();
-    double N = (double)bundleSpaceGraph_->getNumberOfVertices();
-    double Nd = powf(N, p);
+    const double N = (double)bundleSpaceGraph_->getNumberOfVertices();
+    const double Nd = powf(N, p);
     return 1.0 / (Nd + 1.0);
 }

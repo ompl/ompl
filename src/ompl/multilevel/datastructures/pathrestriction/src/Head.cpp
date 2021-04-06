@@ -38,6 +38,7 @@
 
 #include <ompl/multilevel/datastructures/pathrestriction/Head.h>
 #include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
+#include <ompl/multilevel/datastructures/projections/FiberedProjection.h>
 
 using namespace ompl::multilevel;
 
@@ -48,20 +49,22 @@ Head::Head(PathRestriction *restriction, Configuration *xCurrent, Configuration 
 
     restriction_ = restriction;
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
+    FiberedProjectionPtr projection = 
+      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
 
     if (graph->getBaseDimension() > 0)
     {
         base::SpaceInformationPtr base = graph->getBase();
         xBaseCurrent_ = base->allocState();
-        graph->projectBase(xCurrent->state, xBaseCurrent_);
+        graph->project(xCurrent->state, xBaseCurrent_);
     }
-    if (graph->getFiberDimension() > 0)
+    if (graph->getCoDimension() > 0)
     {
-        base::SpaceInformationPtr fiber = graph->getFiber();
+        base::StateSpacePtr fiber = projection->getFiberSpace();
         xFiberCurrent_ = fiber->allocState();
         xFiberTarget_ = fiber->allocState();
-        graph->projectFiber(xCurrent->state, xFiberCurrent_);
-        graph->projectFiber(xTarget->state, xFiberTarget_);
+        projection->projectFiber(xCurrent->state, xFiberCurrent_);
+        projection->projectFiber(xTarget->state, xFiberTarget_);
     }
 }
 
@@ -83,9 +86,11 @@ Head::Head(const Head &rhs)
 Head::~Head()
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    if (graph->getFiberDimension() > 0)
+    if (graph->getCoDimension() > 0)
     {
-        base::SpaceInformationPtr fiber = graph->getFiber();
+        FiberedProjectionPtr projection = 
+          std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+        base::StateSpacePtr fiber = projection->getFiberSpace();
         fiber->freeState(xFiberCurrent_);
         fiber->freeState(xFiberTarget_);
     }
@@ -160,12 +165,13 @@ void Head::setCurrent(Configuration *newCurrent, double location)
     if (graph->getBaseDimension() > 0)
     {
         base::SpaceInformationPtr base = graph->getBase();
-        graph->projectBase(xCurrent_->state, xBaseCurrent_);
+        graph->project(xCurrent_->state, xBaseCurrent_);
     }
-    if (graph->getFiberDimension() > 0)
+    if (graph->getCoDimension() > 0)
     {
-        base::SpaceInformationPtr fiber = graph->getFiber();
-        graph->projectFiber(xCurrent_->state, xFiberCurrent_);
+        FiberedProjectionPtr projection = 
+          std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+        projection->projectFiber(xCurrent_->state, xFiberCurrent_);
     }
 }
 

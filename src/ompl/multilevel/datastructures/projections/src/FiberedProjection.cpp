@@ -54,3 +54,8 @@ void FiberedProjection::makeFiberSpace()
         xFiberTmp_ = siFiberSpace_->allocState();
     }
 }
+
+ompl::base::StateSamplerPtr FiberedProjection::getFiberSamplerPtr() const
+{
+    return fiberSpaceSampler_;
+}

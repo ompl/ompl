@@ -70,7 +70,7 @@ namespace ompl
              * into the total bundle space */
             virtual void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const = 0;
 
-            /* \brief Fibered projection have explicit fiber space */
+            /* \brief Check if projection is fibered (has explicit fiber space) */
             virtual bool isFibered() const;
 
             /* \brief Co-dimension of projection (dimension of null space) */
@@ -84,6 +84,7 @@ namespace ompl
 
             /* \brief Get bundle space */
             base::StateSpacePtr getBundle() const;
+
             /* \brief Get base space */
             base::StateSpacePtr getBase() const;
 
@@ -134,6 +135,8 @@ namespace ompl
              * into the total bundle space
              * */
             virtual void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const override;
+            /// Print to stream
+            virtual void print(std::ostream &out) const;
 
             /// Dimension of Base Space
             unsigned int getBaseDimension() const;
@@ -141,6 +144,9 @@ namespace ompl
             unsigned int getDimension() const;
             /// Dimension of Bundle - Dimension of Base
             unsigned int getCoDimension() const;
+
+            /// Check that every compound has an explicit fiber representation
+            bool isFibered() const override;
 
         private:
             std::vector<ProjectionType> types_;

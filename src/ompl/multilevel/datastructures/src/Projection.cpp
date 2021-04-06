@@ -193,9 +193,9 @@ namespace ompl
 {
     namespace multilevel
     {
-        std::ostream &operator<<(std::ostream &out, const CompoundProjection &CompoundProjection)
+        std::ostream &operator<<(std::ostream &out, const Projection &projection)
         {
-            CompoundProjection.print(out);
+            projection.print(out);
             return out;
         }
     }
@@ -282,4 +282,23 @@ unsigned int CompoundProjection::getBaseDimension() const
     {
         return 0;
     }
+}
+
+bool CompoundProjection::isFibered() const
+{
+    for(unsigned int k = 0; k < components_.size(); k++)
+    {
+        if(!components_.at(k)->isFibered()) return false;
+    }
+    return true;
+}
+
+
+void CompoundProjection::print(std::ostream &out) const
+{
+    for(unsigned int k = 0; k < components_.size(); k++)
+    {
+        out << components_.at(k) << "|";
+    }
+    out << std::endl;
 }

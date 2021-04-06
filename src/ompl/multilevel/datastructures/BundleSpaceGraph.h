@@ -211,29 +211,29 @@ namespace ompl
 
             Vertex nullVertex() const;
 
-            virtual void grow() override = 0;
-            virtual void sampleFromDatastructure(ompl::base::State *) override;
+            void grow() override = 0;
+            void sampleFromDatastructure(ompl::base::State *) override;
             virtual void sampleBundleGoalBias(ompl::base::State *xRandom);
 
-            virtual bool getSolution(ompl::base::PathPtr &solution) override;
+            bool getSolution(ompl::base::PathPtr &solution) override;
             virtual ompl::base::PathPtr &getSolutionPathByReference();
 
             /** \brief Return plannerdata structure, whereby each vertex is marked
                 depending to which component it belongs (start/goal/non-connected) */
-            virtual void getPlannerData(ompl::base::PlannerData &data) const override;
+            void getPlannerData(ompl::base::PlannerData &data) const override;
 
             void getPlannerDataGraph(ompl::base::PlannerData &data, const Graph &graph, const Vertex vStart) const;
 
             /** \brief Importance of Bundle-space depending on number of
                 vertices in Bundle-graph */
-            virtual double getImportance() const override;
+            double getImportance() const override;
 
             /** \brief Initialization methods for the first iteration
                  (adding start configuration and doing sanity checks) */
             virtual void init();
 
-            virtual void setup() override;
-            virtual void clear() override;
+            void setup() override;
+            void clear() override;
             virtual void clearVertices();
             virtual void deleteConfiguration(Configuration *q);
 
@@ -249,8 +249,8 @@ namespace ompl
 
             virtual const Configuration *nearest(const Configuration *s) const;
 
-            virtual void setMetric(const std::string &sMetric) override;
-            virtual void setPropagator(const std::string &sPropagator) override;
+            void setMetric(const std::string &sMetric) override;
+            void setPropagator(const std::string &sPropagator) override;
             virtual void setImportance(const std::string &sImportance);
             virtual void setGraphSampler(const std::string &sGraphSampler);
             virtual void setFindSectionStrategy(FindSectionType type);
@@ -265,13 +265,15 @@ namespace ompl
             std::vector<Vertex> shortestVertexPath_;
             double lengthStartGoalVertexPath_;
 
+            /** \brief Get underlying boost graph representation (non const)*/
             virtual Graph &getGraphNonConst();
+            /** \brief Get underlying boost graph representation */
             virtual const Graph &getGraph() const;
 
-            virtual double getGraphLength() const;
             const RoadmapNeighborsPtr &getRoadmapNeighborsPtr() const;
 
-            virtual void print(std::ostream &out) const override;
+            void print(std::ostream &out) const override;
+
             void writeToGraphviz(std::string filename) const;
 
             /** \brief Print configuration to std::cout */
@@ -326,9 +328,8 @@ namespace ompl
             virtual void setStartIndex(Vertex);
 
             /**\brief Call algorithm to solve the find section problem */
-            virtual bool findSection() override;
+            bool findSection() override;
 
-            // TODO: everything should be private
         protected:
             ompl::base::PathPtr solutionPath_;
 

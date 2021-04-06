@@ -110,12 +110,6 @@ void ompl::multilevel::BundleSpaceGraphSampler::sample(base::State *xRandom)
 {
     base::SpaceInformationPtr bundle = bundleSpaceGraph_->getBundle();
 
-    // EXP DECAY PATH BIAS.
-    // from 1.0 down to lower limit pathbiasfixed_
-    // const double pathBias =
-    //   (1.0 - pathBiasFixed_) * exp(-exponentialDecayLambda_ * counterPathSampling_++)
-    //   + pathBiasFixed_;
-
     double p = rng_.uniform01();
     double pd = pathBiasDecay_();
 

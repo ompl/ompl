@@ -74,16 +74,17 @@ namespace ompl
             ompl::base::PlannerStatus solve(const ompl::base::PlannerTerminationCondition &ptc) override final;
 
         public:
-            /**  \brief Bundle Space contains three OMPL spaces,
-             * which we call Bundle, Base and Fiber.
+            /**  \brief Bundle Space contains three primary characters,
+             * the bundle space, the base space and the projection.
 
                  - Bundle is (locally) a product space of Base and Fiber
                  - Base is a pointer to the next lower-dimensional Bundle-space (if any)
-                 - Fiber is the quotient space Bundle / Base
+                 - Projection is a mapping from Bundle to Base
 
-                 We assume that Bundle and Base have been given
-                 (as ompl::base::SpaceInformationPtr),
-                 and we automatically compute the fiber */
+                 You can provide Bundle and Base space 
+                 (as ompl::base::SpaceInformationPtr) and let the class 
+                 compute the projection automatically 
+                 or provide an explicit projection */
 
             BundleSpace(const ompl::base::SpaceInformationPtr &si, BundleSpace *baseSpace_ = nullptr);
 
@@ -95,8 +96,13 @@ namespace ompl
             const ompl::base::SpaceInformationPtr &getBase() const;
             /// \brief Get ProjectionPtr from Bundle to Base
             ProjectionPtr getProjection() const;
-            void setProjection(ProjectionPtr);
+
+            /// \brief Given bundle space and base space, try to guess the right
+            //projection.
             bool makeProjection();
+
+            /// \brief Set explicit projection
+            void setProjection(ProjectionPtr);
 
             virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
 
@@ -110,12 +116,18 @@ namespace ompl
             bool sampleBundleValid(ompl::base::State *xRandom);
 
             virtual bool hasSolution();
+
+            /// \brief Check if any infeasibility guarantees are fulfilled
             virtual bool isInfeasible();
+
+            /// \brief Check if the current space can still be sampled
             virtual bool hasConverged();
 
             virtual void clear() override;
             virtual void setup() override;
 
+            /// \brief Compute importance of bundle space (to decide where to
+            //allocate computational resources)
             virtual double getImportance() const = 0;
 
             /// \brief Allocate State, set entries to Identity/Zero
@@ -131,6 +143,8 @@ namespace ompl
             unsigned int getBaseDimension() const;
             /// \brief Dimension of Bundle Space
             unsigned int getBundleDimension() const;
+            /// \brief Dimension of Bundle Space - Dimension of Base Space
+            unsigned int getCoDimension() const;
 
             const ompl::base::StateSamplerPtr &getBundleSamplerPtr() const;
             const ompl::base::StateSamplerPtr &getBaseSamplerPtr() const;

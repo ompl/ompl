@@ -39,15 +39,18 @@
 #include <ompl/multilevel/datastructures/pathrestriction/PathSection.h>
 #include <ompl/multilevel/datastructures/pathrestriction/PathRestriction.h>
 #include <ompl/multilevel/datastructures/pathrestriction/Head.h>
+#include <ompl/multilevel/datastructures/projections/FiberedProjection.h>
 
 using namespace ompl::multilevel;
 
 PathSection::PathSection(PathRestriction *restriction) : restriction_(restriction)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    if (graph->getFiberDimension() > 0)
+    FiberedProjectionPtr projection = 
+      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    if (graph->getCoDimension() > 0)
     {
-        base::SpaceInformationPtr fiber = graph->getFiber();
+        base::StateSpacePtr fiber = projection->getFiberSpace();
         xFiberStart_ = fiber->allocState();
         xFiberGoal_ = fiber->allocState();
         xFiberTmp_ = fiber->allocState();
@@ -67,9 +70,11 @@ PathSection::~PathSection()
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr bundle = graph->getBundle();
 
-    if (graph->getFiberDimension() > 0)
+    if (graph->getCoDimension() > 0)
     {
-        base::SpaceInformationPtr fiber = graph->getFiber();
+        FiberedProjectionPtr projection = 
+          std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+        base::StateSpacePtr fiber = projection->getFiberSpace();
         fiber->freeState(xFiberStart_);
         fiber->freeState(xFiberGoal_);
         fiber->freeState(xFiberTmp_);
@@ -118,7 +123,7 @@ bool PathSection::checkMotion(HeadPtr &head)
 
             base::State *lastValidBaseState = restriction_->getBasePath().at(lastValidIndexOnBasePath_);
 
-            graph->projectBase(lastValid_.first, xBaseTmp_);
+            graph->project(lastValid_.first, xBaseTmp_);
 
             double distBaseSegment = base->distance(lastValidBaseState, xBaseTmp_);
 
@@ -184,7 +189,6 @@ void PathSection::interpolateL1FiberFirst(HeadPtr &head)
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     base::SpaceInformationPtr base = graph->getBase();
     base::SpaceInformationPtr bundle = graph->getBundle();
-    base::SpaceInformationPtr fiber = graph->getFiber();
 
     int size = head->getNumberOfRemainingStates() + 1;
 
@@ -193,7 +197,10 @@ void PathSection::interpolateL1FiberFirst(HeadPtr &head)
     // std::cout << "Last valid idx:" << head->getLastValidBasePathIndex() << std::endl;
     // std::cout << "Next valid idx:" << head->getNextValidBasePathIndex() << std::endl;
 
-    if (graph->getFiberDimension() > 0)
+    FiberedProjectionPtr projection = 
+      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+
+    if (graph->getCoDimension() > 0)
     {
         const base::State *xFiberStart = head->getStateFiber();
         const base::State *xFiberGoal = head->getStateTargetFiber();
@@ -202,13 +209,13 @@ void PathSection::interpolateL1FiberFirst(HeadPtr &head)
 
         bundle->allocStates(section_);
 
-        graph->liftState(head->getBaseStateAt(0), xFiberStart, section_.front());
+        projection->lift(head->getBaseStateAt(0), xFiberStart, section_.front());
 
         sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(0));
 
         for (unsigned int k = 1; k < section_.size(); k++)
         {
-            graph->liftState(head->getBaseStateAt(k - 1), xFiberGoal, section_.at(k));
+            projection->lift(head->getBaseStateAt(k - 1), xFiberGoal, section_.at(k));
             sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(k - 1));
         }
     }
@@ -238,7 +245,9 @@ void PathSection::interpolateL1FiberLast(HeadPtr &head)
 
     int size = head->getNumberOfRemainingStates() + 1;
 
-    if (graph->getFiberDimension() > 0)
+    FiberedProjectionPtr projection = 
+      std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    if (graph->getCoDimension() > 0)
     {
         const base::State *xFiberStart = head->getStateFiber();
         const base::State *xFiberGoal = head->getStateTargetFiber();
@@ -249,10 +258,10 @@ void PathSection::interpolateL1FiberLast(HeadPtr &head)
 
         for (int k = 0; k < size; k++)
         {
-            graph->liftState(head->getBaseStateAt(k), xFiberStart, section_.at(k));
+            projection->lift(head->getBaseStateAt(k), xFiberStart, section_.at(k));
             sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(k));
         }
-        graph->liftState(head->getBaseStateAt(size - 1), xFiberGoal, section_.back());
+        projection->lift(head->getBaseStateAt(size - 1), xFiberGoal, section_.back());
         sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(size - 1));
     }
     else
@@ -282,22 +291,25 @@ void PathSection::interpolateL2(HeadPtr &head)
     section_.resize(size);
     bundle->allocStates(section_);
 
-    if (graph->getFiberDimension() > 0)
+    if (graph->getCoDimension() > 0)
     {
         const base::State *xFiberStart = head->getStateFiber();
         const base::State *xFiberGoal = head->getStateTargetFiber();
 
         double totalLengthBasePath = restriction_->getLengthBasePath();
 
-        const base::SpaceInformationPtr fiber = graph->getFiber();
+        FiberedProjectionPtr projection = 
+          std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+        base::StateSpacePtr fiber = projection->getFiberSpace();
+
         for (unsigned int k = 0; k < restriction_->size(); k++)
         {
             double lengthCurrent = restriction_->getLengthBasePathUntil(k);
             double step = lengthCurrent / totalLengthBasePath;
 
-            fiber->getStateSpace()->interpolate(xFiberStart, xFiberGoal, step, xFiberTmp_);
+            fiber->interpolate(xFiberStart, xFiberGoal, step, xFiberTmp_);
 
-            graph->liftState(restriction_->getBaseStateAt(k), xFiberTmp_, section_.at(k));
+            projection->lift(restriction_->getBaseStateAt(k), xFiberTmp_, section_.at(k));
 
             sectionBaseStateIndices_.push_back(k);
         }
@@ -331,7 +343,8 @@ void PathSection::addFeasibleGoalSegment(Configuration *xLast, Configuration *xG
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     if (graph->getGoalIndex() <= 0)
     {
-        graph->setGoalIndex(graph->addConfiguration(xGoal));
+        // graph->setGoalIndex(graph->addConfiguration(xGoal));
+        graph->addGoalConfiguration(xGoal);
     }
     graph->addBundleEdge(xLast, xGoal);
 

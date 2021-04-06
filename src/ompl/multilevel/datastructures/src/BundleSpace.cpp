@@ -351,6 +351,11 @@ unsigned int BundleSpace::getBundleDimension() const
     return getBundle()->getStateDimension();
 }
 
+unsigned int BundleSpace::getCoDimension() const
+{
+    return getBundleDimension() - getBaseDimension();
+}
+
 const StateSamplerPtr &BundleSpace::getBaseSamplerPtr() const
 {
     if (hasBaseSpace())
@@ -467,6 +472,10 @@ void BundleSpace::lift(const ompl::base::State *xBase, ompl::base::State *xBundl
 void BundleSpace::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
     projection_->project(xBundle, xBase);
+}
+
+void BundleSpace::print(std::ostream &out) const
+{
 }
 
 namespace ompl

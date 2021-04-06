@@ -40,8 +40,6 @@
 #include <ompl/multilevel/datastructures/pathrestriction/Head.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSection.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSectionSideStep.h>
-#include <ompl/multilevel/datastructures/pathrestriction/FindSectionPatternDance.h>
-#include <ompl/multilevel/datastructures/pathrestriction/FindSectionVariableNeighborhood.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 
@@ -64,9 +62,6 @@ void PathRestriction::setFindSectionStrategy(FindSectionType type)
   {
     case FindSectionType::SIDE_STEP:
       findSection_ = std::make_shared<FindSectionSideStep>(this);
-      break;
-    case FindSectionType::PATTERN_DANCE:
-      findSection_ = std::make_shared<FindSectionPatternDance>(this);
       break;
     case FindSectionType::NONE:
       findSection_ = nullptr;
@@ -220,13 +215,6 @@ bool PathRestriction::hasFeasibleSection(Configuration *const xStart, Configurat
         ompl::time::seconds(t1 - tStart), 
         bundleSpaceGraph_->getNumberOfVertices(), 
         bundleSpaceGraph_->getNumberOfEdges());
-
-    // if(foundFeasibleSection)
-    // {
-    //     OMPL_ERROR("Found Feasible Section on level %d", bundleSpaceGraph_->getLevel());
-    // }else{
-    //     OMPL_DEBUG("No feasible section found over base path");
-    // }
 
     return foundFeasibleSection;
 }
