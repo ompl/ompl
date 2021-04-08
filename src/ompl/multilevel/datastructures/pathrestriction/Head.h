@@ -69,39 +69,56 @@ namespace ompl
 
             ~Head();
 
+            /** \brief Get state to which head points */
             const base::State *getState() const;
+            /** \brief Get projection of state onto fiber space */
             const base::State *getStateFiber() const;
+            /** \brief Get projection of state onto base space */
             const base::State *getStateBase() const;
 
+            /** \brief Get projection of state onto fiber space (non const)*/
             base::State *getStateFiberNonConst() const;
+            /** \brief Get projection of state onto base space (non const)*/
             base::State *getStateBaseNonConst() const;
+            /** \brief Get state as configuration */
             Configuration *getConfiguration() const;
 
+            /** \brief Setter for current configuration/state */
             void setCurrent(Configuration *, double);
 
+            /** \brief Get target configuration */
             Configuration *getTargetConfiguration() const;
+            /** \brief Get target configuration projected onto fiber */
             const base::State *getStateTargetFiber() const;
+            /** \brief Get target configuration projected onto fiber (non const)*/
             base::State *getStateTargetFiberNonConst() const;
 
-            // \brief Remaining discrete states starting at head (including
-            // head)
+            /** \brief Remaining discrete states starting at head 
+             * (including head) and relative to the head */
             int getNumberOfRemainingStates();
 
-            // relative to where the head points
+            /** \brief Get target configuration projected onto fiber (non const)*/
             const base::State *getBaseStateAt(int k) const;
+            /** \brief Get base state at base path index */
             int getBaseStateIndexAt(int k) const;
 
+            /** \brief Get location in [0,1] on base path to which head points*/
             double getLocationOnBasePath() const;
+            /** \brief Set location of head along base path. */
             void setLocationOnBasePath(double d);
 
+            /** \brief Get next base path index (after head)*/
             int getNextValidBasePathIndex() const;
+            /** \brief Get last base path index (before head)*/
             int getLastValidBasePathIndex() const;
             void setLastValidBasePathIndex(int k);
 
+            /** \brief Pipe head to stream */
             friend std::ostream &operator<<(std::ostream &, const Head &);
 
             void print(std::ostream &) const;
 
+            /** \brief Get underlying path restriction. */
             PathRestriction *getRestriction() const;
 
         private:

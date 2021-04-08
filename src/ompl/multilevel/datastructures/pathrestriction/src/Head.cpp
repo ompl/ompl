@@ -260,14 +260,14 @@ void Head::print(std::ostream &out) const
     base::SpaceInformationPtr bundle = graph->getBundle();
     base::SpaceInformationPtr base = graph->getBase();
 
-    out << "[ Head at:";
+    out << std::endl << "[ Head at:";
     int idx = getLastValidBasePathIndex();
-    bundle->printState(xCurrent_->state);
+    bundle->printState(xCurrent_->state, out);
     out << "base location " << getLocationOnBasePath() << "/" << restriction_->getLengthBasePath() << " idx " << idx
         << "/" << restriction_->size() << std::endl;
     out << "last base state idx ";
-    base->printState(restriction_->getBasePath().at(idx));
-    out << "]" << std::endl;
+    base->printState(restriction_->getBasePath().at(idx), out);
+    out << "]";
 }
 
 namespace ompl

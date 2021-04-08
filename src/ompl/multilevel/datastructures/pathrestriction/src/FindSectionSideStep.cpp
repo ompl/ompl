@@ -75,7 +75,12 @@ bool FindSectionSideStep::solve(HeadPtr &head)
         head->setCurrent(q, 0);
         foundFeasibleSection = recursiveSideStep(head, false);
     }
-    std::cout << "Stopped at: " << *head << std::endl;
+
+
+    std::stringstream buffer;
+    buffer << *head;
+    OMPL_DEVMSG1("Stopped section method at %s.", buffer.str().c_str());
+
 
     return foundFeasibleSection;
 }

@@ -50,6 +50,8 @@ namespace ompl
         class HeadAnalyzer
         {
         public:
+            /** \brief Simple debugger for the Head class to write information
+             * continuously onto the terminal */
             HeadAnalyzer(HeadPtr &head)
             {
                 head_ = head;
