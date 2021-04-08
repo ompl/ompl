@@ -103,9 +103,6 @@ void ompl::multilevel::QMPImpl::grow()
         init();
         firstRun_ = false;
 
-        // qGoal_ = new Configuration(getBundle(), xRandom_->state);
-        // qGoal_->isGoal = true;
-
         if (qGoal_ == nullptr)
         {
             qGoal_ = new Configuration(getBundle());

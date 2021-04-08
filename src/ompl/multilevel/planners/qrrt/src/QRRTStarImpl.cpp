@@ -84,15 +84,7 @@ void ompl::multilevel::QRRTStarImpl::grow()
         init();
         firstRun_ = false;
 
-        if (findSection())
-        {
-            // if (getOptimizationObjectivePtr()->isCostBetterThan(qGoal_->cost, bestCost_))
-            // {
-            //     goalConfigurations_.push_back(qGoal_);
-            // bestCost_ = qGoal_->cost;
-            hasSolution_ = true;
-            // }
-        }
+        findSection();
     }
 
     //(1) Get Random Sample
