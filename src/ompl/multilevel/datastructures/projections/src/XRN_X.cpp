@@ -64,7 +64,7 @@ ompl::base::StateSpacePtr Projection_XRN_X::computeFiberSpace()
     base::CompoundStateSpace *Bundle_compound = getBundle()->as<base::CompoundStateSpace>();
     const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
 
-    const auto = Bundle_decomposed.at(1)->as<base::RealVectorStateSpace>();
+    const auto *Bundle_RN = Bundle_decomposed.at(1)->as<base::RealVectorStateSpace>();
 
     unsigned int N = Bundle_RN->getDimension();
 

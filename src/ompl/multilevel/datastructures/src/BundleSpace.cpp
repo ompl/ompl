@@ -102,28 +102,9 @@ bool BundleSpace::makeProjection()
 {
     ProjectionFactory projectionFactory;
 
-    std::vector<ProjectionPtr> projections;
-    if (!hasBaseSpace())
-    {
-        projections = projectionFactory.MakeProjections(getBundle());
-    }
-    else
-    {
-        projections = projectionFactory.MakeProjections(getBundle(), getBase());
-    }
+    projection_ = projectionFactory.makeProjection(getBundle(), getBase());
 
-    if (projections.size() < 1)
-        return false;
-
-    if (projections.size() > 1)
-    {
-        projection_ =
-            std::make_shared<CompoundProjection>(getBundle()->getStateSpace(), getBase()->getStateSpace(), projections);
-    }
-    else
-    {
-        projection_ = projections.front();
-    }
+    if (!projection_) return false;
 
     sanityChecks();
     return true;

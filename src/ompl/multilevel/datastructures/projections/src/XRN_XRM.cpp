@@ -77,7 +77,7 @@ ompl::base::StateSpacePtr Projection_XRN_XRM::computeFiberSpace()
 
     base::StateSpacePtr Fiber_RN(new base::RealVectorStateSpace(Nfiber));
 
-    const auto = Bundle_decomposed.at(1)->as<base::RealVectorStateSpace>();
+    const auto *Bundle_RN = Bundle_decomposed.at(1)->as<base::RealVectorStateSpace>();
     base::RealVectorBounds Bundle_bounds = Bundle_RN->getBounds();
     std::vector<double> low;
     low.resize(Nfiber);

@@ -64,16 +64,25 @@ namespace ompl
             ProjectionFactory() = default;
 
             /** \brief Guess projection(s) between two SpaceInformationPtr Bundle and Base */
-            std::vector<ProjectionPtr> MakeProjections(const base::SpaceInformationPtr &Bundle,
-                                                       const base::SpaceInformationPtr &Base);
+            // std::vector<ProjectionPtr> MakeProjections(const base::SpaceInformationPtr &Bundle,
+            //                                            const base::SpaceInformationPtr &Base);
 
-            std::vector<ProjectionPtr> MakeProjections(const base::SpaceInformationPtr &Bundle);
+            // std::vector<ProjectionPtr> MakeProjections(const base::SpaceInformationPtr &Bundle);
+
+            ProjectionPtr makeProjection(const base::SpaceInformationPtr &Bundle, 
+                const base::SpaceInformationPtr &Base);
+
+            ProjectionPtr makeProjection(const base::SpaceInformationPtr &Bundle);
+
+            // ProjectionPtr MakeProjections(const base::SpaceInformationPtr &Bundle);
 
         protected:
-            ProjectionPtr MakeProjection(const base::StateSpacePtr &BundleSpace, const base::StateSpacePtr &BaseSpace,
-                                         bool);
+            ProjectionPtr makeProjection(
+                const base::StateSpacePtr &BundleSpace, 
+                const base::StateSpacePtr &BaseSpace,
+                bool areValidityCheckersEquivalent);
 
-            ProjectionPtr MakeProjection(const base::StateSpacePtr &BundleSpace);
+            ProjectionPtr makeProjection(const base::StateSpacePtr &BundleSpace);
 
             /** \brief Guess the projection type from the list of projections in
              * ompl::multilevel::ProjectionTypes */

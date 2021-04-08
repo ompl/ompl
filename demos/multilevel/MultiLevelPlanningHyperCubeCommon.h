@@ -72,7 +72,7 @@ public:
 
     bool isValid(const ob::State *state) const override
     {
-        const auto *s = state->as<const ob::RealVectorStateSpace::StateType*>();
+        const auto *s = state->as<ob::RealVectorStateSpace::StateType>();
         bool foundMaxDim = false;
 
         for (int i = dimension_ - 1; i >= 0; i--)

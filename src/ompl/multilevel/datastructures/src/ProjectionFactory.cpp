@@ -69,52 +69,56 @@
 using namespace ompl::multilevel;
 using namespace ompl::base;
 
-std::vector<ProjectionPtr> ProjectionFactory::MakeProjections(const SpaceInformationPtr &Bundle)
+ProjectionPtr ProjectionFactory::makeProjection(const SpaceInformationPtr &Bundle)
 {
     const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
-    int Projections = GetNumberOfComponents(Bundle_space);
+    int nrProjections = GetNumberOfComponents(Bundle_space);
 
-    std::vector<ProjectionPtr> components;
+    OMPL_DEBUG("Bundle components: %d", nrProjections);
 
-    OMPL_DEBUG("Bundle components: %d", Projections);
-
-    if (Projections > 1)
+    if (nrProjections > 1)
     {
+        std::vector<ProjectionPtr> components;
         const base::CompoundStateSpace *Bundle_compound = Bundle_space->as<base::CompoundStateSpace>();
         const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
 
-        for (int m = 0; m < Projections; m++)
+        for (int m = 0; m < nrProjections; m++)
         {
             const base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
-            ProjectionPtr componentM = MakeProjection(BundleM);
+            ProjectionPtr componentM = makeProjection(BundleM);
             components.push_back(componentM);
         }
+        return std::make_shared<CompoundProjection>(
+            Bundle_space, nullptr, components);
     }
     else
     {
-        ProjectionPtr component = MakeProjection(Bundle_space);
-        components.push_back(component);
+        ProjectionPtr component = makeProjection(Bundle_space);
+        return component;
     }
 
-    return components;
 }
 
-std::vector<ProjectionPtr> ProjectionFactory::MakeProjections(const SpaceInformationPtr &Bundle,
-                                                              const SpaceInformationPtr &Base)
+ProjectionPtr ProjectionFactory::makeProjection(
+    const SpaceInformationPtr &Bundle,
+    const SpaceInformationPtr &Base)
 {
+    if(Base==nullptr)
+    {
+        return makeProjection(Bundle);
+    }
+
     const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
-    int Projections = GetNumberOfComponents(Bundle_space);
+    int nrProjections = GetNumberOfComponents(Bundle_space);
     const base::StateSpacePtr Base_space = Base->getStateSpace();
     int baseSpaceComponents = GetNumberOfComponents(Base_space);
 
-    if (baseSpaceComponents != Projections)
+    if (baseSpaceComponents != nrProjections)
     {
         Base->printSettings();
-        OMPL_ERROR("Base Space has %d, but Bundle Space has %d components.", baseSpaceComponents, Projections);
+        OMPL_ERROR("Base Space has %d, but Bundle Space has %d components.", baseSpaceComponents, nrProjections);
         throw Exception("Different Number Of Components");
     }
-
-    std::vector<ProjectionPtr> components;
 
     // Check if planning spaces are equivalent, i.e. if (X, \phi) == (Y, \phi)
     bool areValidityCheckersEquivalent = false;
@@ -123,36 +127,42 @@ std::vector<ProjectionPtr> ProjectionFactory::MakeProjections(const SpaceInforma
         areValidityCheckersEquivalent = true;
     }
 
-    if (Projections > 1)
+    if (nrProjections > 1)
     {
+        std::vector<ProjectionPtr> components;
+
         base::CompoundStateSpace *Bundle_compound = Bundle_space->as<base::CompoundStateSpace>();
         base::CompoundStateSpace *Base_compound = Base_space->as<base::CompoundStateSpace>();
 
         const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
         const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
 
-        for (int m = 0; m < Projections; m++)
+        for (int m = 0; m < nrProjections; m++)
         {
             base::StateSpacePtr BaseM = Base_decomposed.at(m);
             base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
-            ProjectionPtr componentM = MakeProjection(BundleM, BaseM, areValidityCheckersEquivalent);
+            ProjectionPtr componentM = makeProjection(BundleM, BaseM, areValidityCheckersEquivalent);
             components.push_back(componentM);
         }
+
+        return std::make_shared<CompoundProjection>(
+            Bundle_space,
+            Base_space,
+            components);
     }
     else
     {
-        ProjectionPtr component = MakeProjection(Bundle_space, Base_space, areValidityCheckersEquivalent);
-        components.push_back(component);
+        ProjectionPtr component = makeProjection(Bundle_space, Base_space, areValidityCheckersEquivalent);
+        return component;
     }
-    return components;
 }
 
-ProjectionPtr ProjectionFactory::MakeProjection(const StateSpacePtr &Bundle)
+ProjectionPtr ProjectionFactory::makeProjection(const StateSpacePtr &Bundle)
 {
-    return MakeProjection(Bundle, nullptr, false);
+    return makeProjection(Bundle, nullptr, false);
 }
 
-ProjectionPtr ProjectionFactory::MakeProjection(const StateSpacePtr &Bundle, const StateSpacePtr &Base,
+ProjectionPtr ProjectionFactory::makeProjection(const StateSpacePtr &Bundle, const StateSpacePtr &Base,
                                                 bool areValidityCheckersEquivalent)
 {
     ProjectionType type = identifyProjectionType(Bundle, Base);
