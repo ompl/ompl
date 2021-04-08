@@ -49,8 +49,7 @@ const int run_count = 2;
 
 const double linkLength = 1.0 / numLinks;
 
-namespace ot = ompl::tools;
-namespace og = ompl::geometric;
+using namespace ompl::base;
 std::vector<Environment> envs;
 
 Environment createCustomHornEnvironment(unsigned int d)
@@ -59,9 +58,9 @@ Environment createCustomHornEnvironment(unsigned int d)
     return createHornEnvironment(d, narrowPassageWidth);
 }
 
-ob::PlannerPtr GetQRRT(std::vector<int> sequenceLinks, ob::SpaceInformationPtr si)
+PlannerPtr GetQRRT(std::vector<int> sequenceLinks, SpaceInformationPtr si)
 {
-    std::vector<ob::SpaceInformationPtr> si_vec;
+    std::vector<SpaceInformationPtr> si_vec;
 
     for (unsigned int k = 0; k < sequenceLinks.size(); k++)
     {
@@ -71,7 +70,7 @@ ob::PlannerPtr GetQRRT(std::vector<int> sequenceLinks, ob::SpaceInformationPtr s
         OMPL_INFORM("Create MultiLevel Chain with %d links.", links);
         auto spaceK(std::make_shared<KinematicChainSpace>(links, linkLength, &envs.at(links)));
 
-        auto siK = std::make_shared<ob::SpaceInformation>(spaceK);
+        auto siK = std::make_shared<SpaceInformation>(spaceK);
         siK->setStateValidityChecker(std::make_shared<KinematicChainValidityChecker>(siK));
         spaceK->setup();
         si_vec.push_back(siK);
@@ -157,25 +156,25 @@ int main()
     //############################################################################
     // Compare QRRT with different QuotientSpace sequences to other OMPL planner
     //############################################################################
-    ob::SpaceInformationPtr si = ss.getSpaceInformation();
-    ob::ProblemDefinitionPtr pdef = ss.getProblemDefinition();
+    SpaceInformationPtr si = ss.getSpaceInformation();
+    ProblemDefinitionPtr pdef = ss.getProblemDefinition();
 
-    addPlanner(benchmark, std::make_shared<og::STRIDE>(si));
-    addPlanner(benchmark, std::make_shared<og::KPIECE1>(si));
-    addPlanner(benchmark, std::make_shared<og::EST>(si));
-    addPlanner(benchmark, std::make_shared<og::PRM>(si));
+    addPlanner(benchmark, std::make_shared<ompl::geometric::STRIDE>(si));
+    addPlanner(benchmark, std::make_shared<ompl::geometric::KPIECE1>(si));
+    addPlanner(benchmark, std::make_shared<ompl::geometric::EST>(si));
+    addPlanner(benchmark, std::make_shared<ompl::geometric::PRM>(si));
 
     std::vector<std::vector<int>> admissibleProjections = getAdmissibleProjections(numLinks - 1);
     for (unsigned int k = 0; k < admissibleProjections.size(); k++)
     {
         std::vector<int> proj = admissibleProjections.at(k);
-        ob::PlannerPtr plannerK = GetQRRT(proj, si);
+        PlannerPtr plannerK = GetQRRT(proj, si);
         addPlanner(benchmark, plannerK);
     }
 
     printEstimatedTimeToCompletion(numberPlanners, run_count, runtime_limit);
 
-    ot::Benchmark::Request request;
+    ompl::tools::Benchmark::Request request;
     request.maxTime = runtime_limit;
     request.maxMem = memory_limit;
     request.runCount = run_count;

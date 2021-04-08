@@ -76,13 +76,9 @@
 
 #include <boost/lexical_cast.hpp>
 
-namespace ot = ompl::tools;
-namespace ob = ompl::base;
-namespace og = ompl::geometric;
-
-void printBenchmarkResults(const ot::Benchmark &b)
+void printBenchmarkResults(const ompl::tools::Benchmark &b)
 {
-    ot::Benchmark::CompleteExperiment experiment = b.getRecordedExperimentData();
+    ompl::tools::Benchmark::CompleteExperiment experiment = b.getRecordedExperimentData();
 
     std::vector<double> meanTime;
     std::vector<std::string> plannerName;
@@ -90,15 +86,15 @@ void printBenchmarkResults(const ot::Benchmark &b)
 
     for (unsigned int k = 0; k < experiment.planners.size(); k++)
     {
-        ot::Benchmark::PlannerExperiment pk = experiment.planners.at(k);
-        std::vector<ot::Benchmark::RunProperties> runs = pk.runs;
+        ompl::tools::Benchmark::PlannerExperiment pk = experiment.planners.at(k);
+        std::vector<ompl::tools::Benchmark::RunProperties> runs = pk.runs;
 
         unsigned int N = runs.size();
         double time = 0;
         double percentSuccess = 0.0;
         for (unsigned int j = 0; j < N; j++)
         {
-            ot::Benchmark::RunProperties run = runs.at(j);
+            ompl::tools::Benchmark::RunProperties run = runs.at(j);
             double timeJrun = std::atof(run["time REAL"].c_str());
             bool runSolved = std::atoi(run["solved BOOLEAN"].c_str());
 
@@ -162,7 +158,7 @@ void printEstimatedTimeToCompletion(unsigned int numberPlanners, unsigned int ru
 
 static unsigned int numberRuns{0};
 
-void PostRunEvent(const ompl::base::PlannerPtr &planner, ot::Benchmark::RunProperties &run)
+void PostRunEvent(const ompl::base::PlannerPtr &planner, ompl::tools::Benchmark::RunProperties &run)
 {
     static unsigned int pid = 0;
 
@@ -190,7 +186,7 @@ void PostRunEvent(const ompl::base::PlannerPtr &planner, ot::Benchmark::RunPrope
 
 int numberPlanners = 0;
 
-void addPlanner(ot::Benchmark &benchmark, const ompl::base::PlannerPtr &planner, double range = 1e-2)
+void addPlanner(ompl::tools::Benchmark &benchmark, const ompl::base::PlannerPtr &planner, double range = 1e-2)
 {
     ompl::base::ParamSet &params = planner->params();
     if (params.hasParam(std::string("range")))

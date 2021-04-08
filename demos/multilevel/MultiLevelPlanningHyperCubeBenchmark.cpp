@@ -51,7 +51,8 @@ const double memory_limit = 1024 * 20;  // in MB, but does not consider free ope
 const int run_count = 10;
 unsigned int curDim = 100;
 
-namespace om = ompl::multilevel;
+using namespace ompl::geometric;
+using namespace ompl::multilevel;
 
 int main(int argc, char **argv)
 {
@@ -79,7 +80,7 @@ int main(int argc, char **argv)
     }
     ss.setStartAndGoalStates(start, goal);
 
-    ot::Benchmark benchmark(ss, "HyperCube");
+    ompl::tools::Benchmark benchmark(ss, "HyperCube");
     benchmark.addExperimentParameter("num_dims", "INTEGER", std::to_string(curDim));
 
     //############################################################################
@@ -88,53 +89,53 @@ int main(int argc, char **argv)
 
     // MultiLevel Planner
     std::vector<int> proj = getHypercubeAdmissibleProjection(curDim);
-    addPlanner(benchmark, GetMultiLevelPlanner<om::QRRT>(proj, si, "QRRT"), range);
-    addPlanner(benchmark, GetMultiLevelPlanner<om::QRRTStar>(proj, si, "QRRTStar"), range);
-    addPlanner(benchmark, GetMultiLevelPlanner<om::QMP>(proj, si, "QMP"), range);
-    addPlanner(benchmark, GetMultiLevelPlanner<om::QMPStar>(proj, si, "QMPStar"), range);
+    addPlanner(benchmark, GetMultiLevelPlanner<QRRT>(proj, si, "QRRT"), range);
+    addPlanner(benchmark, GetMultiLevelPlanner<QRRTStar>(proj, si, "QRRTStar"), range);
+    addPlanner(benchmark, GetMultiLevelPlanner<QMP>(proj, si, "QMP"), range);
+    addPlanner(benchmark, GetMultiLevelPlanner<QMPStar>(proj, si, "QMPStar"), range);
 
     // Classical Planner
-    addPlanner(benchmark, std::make_shared<og::RRT>(si), range);
-    addPlanner(benchmark, std::make_shared<og::RRTConnect>(si), range);
-    addPlanner(benchmark, std::make_shared<og::RRTstar>(si), range);
-    addPlanner(benchmark, std::make_shared<og::RRTXstatic>(si), range);
-    addPlanner(benchmark, std::make_shared<og::LazyRRT>(si), range);
+    addPlanner(benchmark, std::make_shared<RRT>(si), range);
+    addPlanner(benchmark, std::make_shared<RRTConnect>(si), range);
+    addPlanner(benchmark, std::make_shared<RRTstar>(si), range);
+    addPlanner(benchmark, std::make_shared<RRTXstatic>(si), range);
+    addPlanner(benchmark, std::make_shared<LazyRRT>(si), range);
 
-    addPlanner(benchmark, std::make_shared<og::TRRT>(si), range);
-    addPlanner(benchmark, std::make_shared<og::BiTRRT>(si), range);
-    addPlanner(benchmark, std::make_shared<og::LBTRRT>(si), range);
-    addPlanner(benchmark, std::make_shared<og::RRTsharp>(si), range);
-    addPlanner(benchmark, std::make_shared<og::InformedRRTstar>(si), range);
+    addPlanner(benchmark, std::make_shared<TRRT>(si), range);
+    addPlanner(benchmark, std::make_shared<BiTRRT>(si), range);
+    addPlanner(benchmark, std::make_shared<LBTRRT>(si), range);
+    addPlanner(benchmark, std::make_shared<RRTsharp>(si), range);
+    addPlanner(benchmark, std::make_shared<InformedRRTstar>(si), range);
 
-    addPlanner(benchmark, std::make_shared<og::SORRTstar>(si), range);
-    addPlanner(benchmark, std::make_shared<og::SBL>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::SST>(si), range); //out of memory
-    addPlanner(benchmark, std::make_shared<og::STRIDE>(si), range);
-    addPlanner(benchmark, std::make_shared<og::FMT>(si), range);
+    addPlanner(benchmark, std::make_shared<SORRTstar>(si), range);
+    addPlanner(benchmark, std::make_shared<SBL>(si), range);
+    // addPlanner(benchmark, std::make_shared<SST>(si), range); //out of memory
+    addPlanner(benchmark, std::make_shared<STRIDE>(si), range);
+    addPlanner(benchmark, std::make_shared<FMT>(si), range);
 
-    addPlanner(benchmark, std::make_shared<og::BFMT>(si), range);
-    addPlanner(benchmark, std::make_shared<og::BITstar>(si), range);
-    addPlanner(benchmark, std::make_shared<og::ABITstar>(si), range);
-    addPlanner(benchmark, std::make_shared<og::EST>(si), range);
-    addPlanner(benchmark, std::make_shared<og::BiEST>(si), range);
+    addPlanner(benchmark, std::make_shared<BFMT>(si), range);
+    addPlanner(benchmark, std::make_shared<BITstar>(si), range);
+    addPlanner(benchmark, std::make_shared<ABITstar>(si), range);
+    addPlanner(benchmark, std::make_shared<EST>(si), range);
+    addPlanner(benchmark, std::make_shared<BiEST>(si), range);
 
-    addPlanner(benchmark, std::make_shared<og::ProjEST>(si), range);
-    addPlanner(benchmark, std::make_shared<og::KPIECE1>(si), range);
-    addPlanner(benchmark, std::make_shared<og::BKPIECE1>(si), range);
-    addPlanner(benchmark, std::make_shared<og::LBKPIECE1>(si), range);
-    // addPlanner(benchmark, std::make_shared<og::PDST>(si), range); //OOM
+    addPlanner(benchmark, std::make_shared<ProjEST>(si), range);
+    addPlanner(benchmark, std::make_shared<KPIECE1>(si), range);
+    addPlanner(benchmark, std::make_shared<BKPIECE1>(si), range);
+    addPlanner(benchmark, std::make_shared<LBKPIECE1>(si), range);
+    // addPlanner(benchmark, std::make_shared<PDST>(si), range); //OOM
 
-    addPlanner(benchmark, std::make_shared<og::PRM>(si), range);
-    addPlanner(benchmark, std::make_shared<og::PRMstar>(si), range);
-    addPlanner(benchmark, std::make_shared<og::LazyPRMstar>(si), range);
-    addPlanner(benchmark, std::make_shared<og::SPARS>(si), range);
-    addPlanner(benchmark, std::make_shared<og::SPARStwo>(si), range);
+    addPlanner(benchmark, std::make_shared<PRM>(si), range);
+    addPlanner(benchmark, std::make_shared<PRMstar>(si), range);
+    addPlanner(benchmark, std::make_shared<LazyPRMstar>(si), range);
+    addPlanner(benchmark, std::make_shared<SPARS>(si), range);
+    addPlanner(benchmark, std::make_shared<SPARStwo>(si), range);
 
     //############################################################################
 
     printEstimatedTimeToCompletion(numberPlanners, run_count, runtime_limit);
 
-    ot::Benchmark::Request request;
+    ompl::tools::Benchmark::Request request;
     request.maxTime = runtime_limit;
     request.maxMem = memory_limit;
     request.runCount = run_count;

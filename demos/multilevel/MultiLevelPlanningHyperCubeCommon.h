@@ -44,9 +44,7 @@
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 
-namespace ot = ompl::tools;
-namespace ob = ompl::base;
-namespace og = ompl::geometric;
+using namespace ompl::base;
 
 const double edgeWidth = 0.1;  // original STRIDE paper had edgewidth = 0.1
 
@@ -61,18 +59,18 @@ std::vector<int> getHypercubeAdmissibleProjection(int dim)
 // narrow passage from (0,...,0) to (1,...,1). A state s is valid if there exists
 // a k s.t. (a) 0<=s[k]<=1, (b) for all i<k s[i]<=edgeWidth, and (c) for all i>k
 // s[i]>=1-edgewidth.
-class HyperCubeValidityChecker : public ob::StateValidityChecker
+class HyperCubeValidityChecker : public StateValidityChecker
 {
 public:
-    HyperCubeValidityChecker(const ob::SpaceInformationPtr &si, int dimension)
-      : ob::StateValidityChecker(si), dimension_(dimension)
+    HyperCubeValidityChecker(const SpaceInformationPtr &si, int dimension)
+      : StateValidityChecker(si), dimension_(dimension)
     {
         si->setStateValidityCheckingResolution(0.001);
     }
 
-    bool isValid(const ob::State *state) const override
+    bool isValid(const State *state) const override
     {
-        const auto *s = state->as<ob::RealVectorStateSpace::StateType>();
+        const auto *s = state->as<RealVectorStateSpace::StateType>();
         bool foundMaxDim = false;
 
         for (int i = dimension_ - 1; i >= 0; i--)
@@ -91,10 +89,10 @@ protected:
 };
 
 template <typename T>
-ob::PlannerPtr GetMultiLevelPlanner(std::vector<int> sequenceLinks, ob::SpaceInformationPtr si,
+PlannerPtr GetMultiLevelPlanner(std::vector<int> sequenceLinks, SpaceInformationPtr si,
                                     std::string name = "Planner")
 {
-    std::vector<ob::SpaceInformationPtr> si_vec;
+    std::vector<SpaceInformationPtr> si_vec;
 
     for (unsigned int k = 0; k < sequenceLinks.size() - 1; k++)
     {
@@ -106,7 +104,7 @@ ob::PlannerPtr GetMultiLevelPlanner(std::vector<int> sequenceLinks, ob::SpaceInf
         bounds.setHigh(1.);
         spaceK->setBounds(bounds);
 
-        auto siK = std::make_shared<ob::SpaceInformation>(spaceK);
+        auto siK = std::make_shared<SpaceInformation>(spaceK);
         siK->setStateValidityChecker(std::make_shared<HyperCubeValidityChecker>(siK, links));
 
         spaceK->setup();

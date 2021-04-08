@@ -44,13 +44,11 @@
 #include <iostream>
 #include <boost/math/constants/constants.hpp>
 
-namespace ob = ompl::base;
-namespace og = ompl::geometric;
-namespace om = ompl::multilevel;
+using namespace ompl::base;
 
-using SE3State = ob::ScopedState<ob::SE3StateSpace>;
-using SO3State = ob::ScopedState<ob::SO3StateSpace>;
-using R3State = ob::ScopedState<ob::RealVectorStateSpace>;
+using SE3State = ScopedState<SE3StateSpace>;
+using SO3State = ScopedState<SO3StateSpace>;
+using R3State = ScopedState<RealVectorStateSpace>;
 const double pi = boost::math::constants::pi<double>();
 
 // Path Planning on fiber bundle SE3 \rightarrow R3
@@ -64,24 +62,24 @@ bool isInCollision(double *val)
     return (d > 0.2);
 }
 
-bool isStateValid_SE3(const ob::State *state)
+bool isStateValid_SE3(const State *state)
 {
-    static auto SO3(std::make_shared<ob::SO3StateSpace>());
+    static auto SO3(std::make_shared<SO3StateSpace>());
     static SO3State SO3id(SO3);
     SO3id->setIdentity();
 
-    const auto *SE3state = state->as<ob::SE3StateSpace::StateType>();
-    const auto *R3state = SE3state->as<ob::RealVectorStateSpace::StateType>(0);
-    const ob::State *SO3state = SE3state->as<ob::SO3StateSpace::StateType>(1);
-    const ob::State *SO3stateIdentity = SO3id->as<ob::SO3StateSpace::StateType>();
+    const auto *SE3state = state->as<SE3StateSpace::StateType>();
+    const auto *R3state = SE3state->as<RealVectorStateSpace::StateType>(0);
+    const State *SO3state = SE3state->as<SO3StateSpace::StateType>(1);
+    const State *SO3stateIdentity = SO3id->as<SO3StateSpace::StateType>();
 
     double d = SO3->distance(SO3state, SO3stateIdentity);
     return isInCollision(R3state->values) && (d < pi / 4.0);
 }
 
-bool isStateValid_R3(const ob::State *state)
+bool isStateValid_R3(const State *state)
 {
-    const auto *R3 = state->as<ob::RealVectorStateSpace::StateType>();
+    const auto *R3 = state->as<RealVectorStateSpace::StateType>();
     return isInCollision(R3->values);
 }
 
@@ -91,22 +89,22 @@ int main()
     // Step 1: Setup planning problem using several quotient-spaces
     //############################################################################
     // Setup SE3
-    auto SE3(std::make_shared<ob::SE3StateSpace>());
-    ob::RealVectorBounds bounds(3);
+    auto SE3(std::make_shared<SE3StateSpace>());
+    RealVectorBounds bounds(3);
     bounds.setLow(0);
     bounds.setHigh(1);
     SE3->setBounds(bounds);
-    ob::SpaceInformationPtr si_SE3(std::make_shared<ob::SpaceInformation>(SE3));
+    SpaceInformationPtr si_SE3(std::make_shared<SpaceInformation>(SE3));
     si_SE3->setStateValidityChecker(isStateValid_SE3);
 
     // Setup Quotient-Space R2
-    auto R3(std::make_shared<ob::RealVectorStateSpace>(3));
+    auto R3(std::make_shared<RealVectorStateSpace>(3));
     R3->setBounds(0, 1);
-    ob::SpaceInformationPtr si_R3(std::make_shared<ob::SpaceInformation>(R3));
+    SpaceInformationPtr si_R3(std::make_shared<SpaceInformation>(R3));
     si_R3->setStateValidityChecker(isStateValid_R3);
 
     // Create vector of spaceinformationptr (last one is original cspace)
-    std::vector<ob::SpaceInformationPtr> si_vec;
+    std::vector<SpaceInformationPtr> si_vec;
     si_vec.push_back(si_R3);
     si_vec.push_back(si_SE3);
 
@@ -118,7 +116,7 @@ int main()
     goal_SE3->setXYZ(1, 1, 1);
     goal_SE3->rotation().setIdentity();
 
-    ob::ProblemDefinitionPtr pdef = std::make_shared<ob::ProblemDefinition>(si_SE3);
+    ProblemDefinitionPtr pdef = std::make_shared<ProblemDefinition>(si_SE3);
     pdef->setStartAndGoalStates(start_SE3, goal_SE3);
 
     //############################################################################
@@ -131,7 +129,7 @@ int main()
     planner->setProblemDefinition(pdef);
     planner->setup();
 
-    ob::PlannerStatus solved = planner->ob::Planner::solve(1.0);
+    PlannerStatus solved = planner->Planner::solve(1.0);
 
     if (solved)
     {
@@ -143,7 +141,7 @@ int main()
         std::cout << std::string(80, '-') << std::endl;
         std::cout << "Base-Space Path (R3)   :" << std::endl;
         std::cout << std::string(80, '-') << std::endl;
-        const ob::ProblemDefinitionPtr pdefR3 = planner->getProblemDefinition(0);
+        const ProblemDefinitionPtr pdefR3 = planner->getProblemDefinition(0);
         pdefR3->getSolutionPath()->print(std::cout);
     }
     return 0;
