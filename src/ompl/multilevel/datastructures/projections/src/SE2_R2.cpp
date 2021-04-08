@@ -51,15 +51,15 @@ Projection_SE2_R2::Projection_SE2_R2(ompl::base::StateSpacePtr BundleSpace, ompl
 
 void Projection_SE2_R2::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
-    const base::SE2StateSpace::StateType *xBundle_SE2 = xBundle->as<base::SE2StateSpace::StateType>();
-    base::SO2StateSpace::StateType *xFiber_SO2 = xFiber->as<base::SO2StateSpace::StateType>();
+    const auto *xBundle_SE2 = xBundle->as<base::SE2StateSpace::StateType>();
+    auto *xFiber_SO2 = xFiber->as<base::SO2StateSpace::StateType>();
     xFiber_SO2->value = xBundle_SE2->getYaw();
 }
 
 void Projection_SE2_R2::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
-    const base::SE2StateSpace::StateType *xBundle_SE2 = xBundle->as<base::SE2StateSpace::StateType>();
-    base::RealVectorStateSpace::StateType *xBase_R2 = xBase->as<base::RealVectorStateSpace::StateType>();
+    const auto *xBundle_SE2 = xBundle->as<base::SE2StateSpace::StateType>();
+    auto *xBase_R2 = xBase->as<base::RealVectorStateSpace::StateType>();
     xBase_R2->values[0] = xBundle_SE2->getX();
     xBase_R2->values[1] = xBundle_SE2->getY();
 }
@@ -67,9 +67,9 @@ void Projection_SE2_R2::project(const ompl::base::State *xBundle, ompl::base::St
 void Projection_SE2_R2::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                              ompl::base::State *xBundle) const
 {
-    base::SE2StateSpace::StateType *xBundle_SE2 = xBundle->as<base::SE2StateSpace::StateType>();
-    const base::RealVectorStateSpace::StateType *xBase_R2 = xBase->as<base::RealVectorStateSpace::StateType>();
-    const base::SO2StateSpace::StateType *xFiber_SO2 = xFiber->as<base::SO2StateSpace::StateType>();
+    auto *xBundle_SE2 = xBundle->as<base::SE2StateSpace::StateType>();
+    const auto *xBase_R2 = xBase->as<base::RealVectorStateSpace::StateType>();
+    const auto *xFiber_SO2 = xFiber->as<base::SO2StateSpace::StateType>();
 
     xBundle_SE2->setXY(xBase_R2->values[0], xBase_R2->values[1]);
     xBundle_SE2->setYaw(xFiber_SO2->value);

@@ -476,6 +476,7 @@ void BundleSpace::project(const ompl::base::State *xBundle, ompl::base::State *x
 
 void BundleSpace::print(std::ostream &out) const
 {
+    out << getProjection();
 }
 
 namespace ompl
@@ -484,7 +485,6 @@ namespace ompl
     {
         std::ostream &operator<<(std::ostream &out, const BundleSpace &bundleSpace)
         {
-            out << bundleSpace.getProjection();
             bundleSpace.print(out);
             return out;
         }

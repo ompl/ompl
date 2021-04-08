@@ -52,15 +52,15 @@ Projection_SE3RN_SE3RM::Projection_SE3RN_SE3RM(ompl::base::StateSpacePtr BundleS
 
 void Projection_SE3RN_SE3RM::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
-    const base::SE3StateSpace::StateType *xBundle_SE3 =
+    const auto *xBundle_SE3 =
         xBundle->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);
-    const base::SO3StateSpace::StateType *xBundle_SO3 = &xBundle_SE3->rotation();
-    const base::RealVectorStateSpace::StateType *xBundle_RN =
+    const auto *xBundle_SO3 = &xBundle_SE3->rotation();
+    const auto *xBundle_RN =
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
-    base::SE3StateSpace::StateType *xBase_SE3 = xBase->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);
-    base::SO3StateSpace::StateType *xBase_SO3 = &xBase_SE3->rotation();
-    base::RealVectorStateSpace::StateType *xBase_RM =
+    auto *xBase_SE3 = xBase->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);
+    auto *xBase_SO3 = &xBase_SE3->rotation();
+    auto *xBase_RM =
         xBase->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
     xBase_SE3->setXYZ(xBundle_SE3->getX(), xBundle_SE3->getY(), xBundle_SE3->getZ());
@@ -78,19 +78,19 @@ void Projection_SE3RN_SE3RM::project(const ompl::base::State *xBundle, ompl::bas
 void Projection_SE3RN_SE3RM::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                   ompl::base::State *xBundle) const
 {
-    base::SE3StateSpace::StateType *xBundle_SE3 =
+    auto *xBundle_SE3 =
         xBundle->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);
-    base::SO3StateSpace::StateType *xBundle_SO3 = &xBundle_SE3->rotation();
-    base::RealVectorStateSpace::StateType *xBundle_RN =
+    auto *xBundle_SO3 = &xBundle_SE3->rotation();
+    auto *xBundle_RN =
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
-    const base::SE3StateSpace::StateType *xBase_SE3 =
+    const auto *xBase_SE3 =
         xBase->as<base::CompoundState>()->as<base::SE3StateSpace::StateType>(0);
-    const base::SO3StateSpace::StateType *xBase_SO3 = &xBase_SE3->rotation();
-    const base::RealVectorStateSpace::StateType *xBase_RM =
+    const auto *xBase_SO3 = &xBase_SE3->rotation();
+    const auto *xBase_RM =
         xBase->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
-    const base::RealVectorStateSpace::StateType *xFiber_RJ = xFiber->as<base::RealVectorStateSpace::StateType>();
+    const auto *xFiber_RJ = xFiber->as<base::RealVectorStateSpace::StateType>();
 
     xBundle_SE3->setXYZ(xBase_SE3->getX(), xBase_SE3->getY(), xBase_SE3->getZ());
     xBundle_SO3->x = xBase_SO3->x;

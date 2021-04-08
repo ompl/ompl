@@ -51,9 +51,9 @@ void Projection_SO2N_SO2M::projectFiber(const ompl::base::State *xBundle, ompl::
 {
     for (unsigned int k = 0; k < getFiberDimension(); k++)
     {
-        const base::SO2StateSpace::StateType *SO2bundle =
+        const auto *SO2bundle =
             xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k + getBaseDimension());
-        base::SO2StateSpace::StateType *SO2fiber =
+        auto *SO2fiber =
             xFiber->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
 
         SO2fiber->value = SO2bundle->value;
@@ -64,10 +64,10 @@ void Projection_SO2N_SO2M::project(const ompl::base::State *xBundle, ompl::base:
 {
     for (unsigned int k = 0; k < getBaseDimension(); k++)
     {
-        const base::SO2StateSpace::StateType *SO2bundle =
+        const auto *SO2bundle =
             xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
 
-        base::SO2StateSpace::StateType *SO2base;
+        auto *SO2base;
 
         if (getBaseDimension() <= 1)
         {
@@ -87,9 +87,9 @@ void Projection_SO2N_SO2M::lift(const ompl::base::State *xBase, const ompl::base
 {
     for (unsigned int k = 0; k < getBaseDimension(); k++)
     {
-        base::SO2StateSpace::StateType *SO2bundle =
+        auto *SO2bundle =
             xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
-        const base::SO2StateSpace::StateType *SO2base;
+        const auto *SO2base;
 
         if (getBaseDimension() <= 1)
         {
@@ -104,9 +104,9 @@ void Projection_SO2N_SO2M::lift(const ompl::base::State *xBase, const ompl::base
     }
     for (unsigned int k = getBaseDimension(); k < getBaseDimension() + getFiberDimension(); k++)
     {
-        base::SO2StateSpace::StateType *SO2bundle =
+        auto *SO2bundle =
             xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
-        const base::SO2StateSpace::StateType *SO2fiber =
+        const auto *SO2fiber =
             xFiber->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k - getBaseDimension());
 
         SO2bundle->value = SO2fiber->value;
@@ -119,7 +119,7 @@ ompl::base::StateSpacePtr Projection_SO2N_SO2M::computeFiberSpace()
     auto fiberSpace = std::make_shared<base::CompoundStateSpace>();
     for (unsigned int k = 0; k < N; k++)
     {
-        base::StateSpacePtr SO2Space = std::make_shared<base::SO2StateSpace>();
+        auto SO2Space = std::make_shared<base::SO2StateSpace>();
         fiberSpace->addSubspace(SO2Space, 1.0);
     }
     return fiberSpace;

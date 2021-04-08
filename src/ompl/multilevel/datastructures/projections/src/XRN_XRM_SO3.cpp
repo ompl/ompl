@@ -53,13 +53,13 @@ Projection_SO3RN_SO3RM::Projection_SO3RN_SO3RM(ompl::base::StateSpacePtr BundleS
 
 void Projection_SO3RN_SO3RM::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
-    const base::SO3StateSpace::StateType *xBundle_SO3 =
+    const auto *xBundle_SO3 =
         xBundle->as<base::CompoundState>()->as<base::SO3StateSpace::StateType>(0);
-    const base::RealVectorStateSpace::StateType *xBundle_RN =
+    const auto *xBundle_RN =
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
-    base::SO3StateSpace::StateType *xBase_SO3 = xBase->as<base::CompoundState>()->as<base::SO3StateSpace::StateType>(0);
-    base::RealVectorStateSpace::StateType *xBase_RM =
+    auto *xBase_SO3 = xBase->as<base::CompoundState>()->as<base::SO3StateSpace::StateType>(0);
+    auto *xBase_RM =
         xBase->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
     xBase_SO3->x = xBundle_SO3->x;
@@ -76,17 +76,17 @@ void Projection_SO3RN_SO3RM::project(const ompl::base::State *xBundle, ompl::bas
 void Projection_SO3RN_SO3RM::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                   ompl::base::State *xBundle) const
 {
-    base::SO3StateSpace::StateType *xBundle_SO3 =
+    auto *xBundle_SO3 =
         xBundle->as<base::CompoundState>()->as<base::SO3StateSpace::StateType>(0);
-    base::RealVectorStateSpace::StateType *xBundle_RN =
+    auto *xBundle_RN =
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
-    const base::SO3StateSpace::StateType *xBase_SO3 =
+    const auto *xBase_SO3 =
         xBase->as<base::CompoundState>()->as<base::SO3StateSpace::StateType>(0);
-    const base::RealVectorStateSpace::StateType *xBase_RM =
+    const auto *xBase_RM =
         xBase->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
-    const base::RealVectorStateSpace::StateType *xFiber_RJ = xFiber->as<base::RealVectorStateSpace::StateType>();
+    const auto *xFiber_RJ = xFiber->as<base::RealVectorStateSpace::StateType>();
 
     xBundle_SO3->x = xBase_SO3->x;
     xBundle_SO3->y = xBase_SO3->y;

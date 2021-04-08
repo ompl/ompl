@@ -50,19 +50,19 @@ Projection_RNSO2_RN::Projection_RNSO2_RN(ompl::base::StateSpacePtr BundleSpace, 
 
 void Projection_RNSO2_RN::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
-    const base::SO2StateSpace::StateType *xBundle_SO2 =
+    const auto *xBundle_SO2 =
         xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(1);
 
-    base::SO2StateSpace::StateType *xFiber_SO2 = xFiber->as<base::SO2StateSpace::StateType>();
+    auto *xFiber_SO2 = xFiber->as<base::SO2StateSpace::StateType>();
 
     xFiber_SO2->value = xBundle_SO2->value;
 }
 
 void Projection_RNSO2_RN::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
-    const base::RealVectorStateSpace::StateType *xBundle_R3 =
+    const auto *xBundle_R3 =
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(0);
-    base::RealVectorStateSpace::StateType *xBase_R3 = xBase->as<base::RealVectorStateSpace::StateType>();
+    auto *xBase_R3 = xBase->as<base::RealVectorStateSpace::StateType>();
 
     for (unsigned int k = 0; k < 3; k++)
     {
@@ -73,14 +73,14 @@ void Projection_RNSO2_RN::project(const ompl::base::State *xBundle, ompl::base::
 void Projection_RNSO2_RN::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                ompl::base::State *xBundle) const
 {
-    base::RealVectorStateSpace::StateType *xBundle_R3 =
+    auto *xBundle_R3 =
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(0);
-    base::SO2StateSpace::StateType *xBundle_SO2 =
+    auto *xBundle_SO2 =
         xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(1);
 
-    const base::SO2StateSpace::StateType *xFiber_SO2 = xFiber->as<base::SO2StateSpace::StateType>();
+    const auto *xFiber_SO2 = xFiber->as<base::SO2StateSpace::StateType>();
 
-    const base::RealVectorStateSpace::StateType *xBase_R3 = xBase->as<base::RealVectorStateSpace::StateType>();
+    const auto *xBase_R3 = xBase->as<base::RealVectorStateSpace::StateType>();
 
     for (unsigned int k = 0; k < 3; k++)
     {

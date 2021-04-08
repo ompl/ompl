@@ -49,9 +49,9 @@ Projection_RN_RM::Projection_RN_RM(ompl::base::StateSpacePtr BundleSpace, ompl::
 
 void Projection_RN_RM::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
-    const base::RealVectorStateSpace::StateType *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();
+    const auto *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();
 
-    base::RealVectorStateSpace::StateType *xFiber_RM = xFiber->as<base::RealVectorStateSpace::StateType>();
+    auto *xFiber_RM = xFiber->as<base::RealVectorStateSpace::StateType>();
 
     for (unsigned int k = getBaseDimension(); k < getDimension(); k++)
     {
@@ -61,8 +61,8 @@ void Projection_RN_RM::projectFiber(const ompl::base::State *xBundle, ompl::base
 
 void Projection_RN_RM::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
-    const base::RealVectorStateSpace::StateType *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();
-    base::RealVectorStateSpace::StateType *xBase_RM = xBase->as<base::RealVectorStateSpace::StateType>();
+    const auto *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();
+    auto *xBase_RM = xBase->as<base::RealVectorStateSpace::StateType>();
 
     for (unsigned int k = 0; k < getBaseDimension(); k++)
     {
@@ -73,9 +73,9 @@ void Projection_RN_RM::project(const ompl::base::State *xBundle, ompl::base::Sta
 void Projection_RN_RM::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                             ompl::base::State *xBundle) const
 {
-    base::RealVectorStateSpace::StateType *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();
-    const base::RealVectorStateSpace::StateType *xBase_RM = xBase->as<base::RealVectorStateSpace::StateType>();
-    const base::RealVectorStateSpace::StateType *xFiber_RJ = xFiber->as<base::RealVectorStateSpace::StateType>();
+    auto *xBundle_RN = xBundle->as<base::RealVectorStateSpace::StateType>();
+    const auto *xBase_RM = xBase->as<base::RealVectorStateSpace::StateType>();
+    const auto *xFiber_RJ = xFiber->as<base::RealVectorStateSpace::StateType>();
 
     for (unsigned int k = 0; k < getBaseDimension(); k++)
     {

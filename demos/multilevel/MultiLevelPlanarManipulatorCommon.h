@@ -108,7 +108,7 @@ public:
     {
         const double *angles = state->as<RealVectorStateSpace::StateType>()->values;
         std::vector<Point> coordinates;
-        coordinates.push_back({angles[0], angles[1]});
+        coordinates.emplace_back({angles[0], angles[1]});
 
         //(1) check out of bounds
         if (world_->outOfBounds(coordinates[0]))

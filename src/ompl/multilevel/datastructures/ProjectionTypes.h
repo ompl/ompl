@@ -102,10 +102,14 @@ namespace ompl
             /** \brief SO2N \rightarrow SO2M (N copies of SO2 onto M copies of SO2) */
             PROJECTION_SO2N_SO2M = 18,
 
+            /** \brief X \rightarrow T (A mapping from state space X to a task
+             * space T) */
             PROJECTION_TASK_SPACE = 19,
 
+            /** \brief Compound projection */
             PROJECTION_COMPOUND = -2,
 
+            /** \brief Unknown projection */
             PROJECTION_UNKNOWN = -1
         };
     }

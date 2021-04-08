@@ -49,10 +49,10 @@ Projection_XRN_XRM::Projection_XRN_XRM(ompl::base::StateSpacePtr BundleSpace, om
 }
 void Projection_XRN_XRM::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
-    const base::RealVectorStateSpace::StateType *xBundle_RN =
+    const auto *xBundle_RN =
         xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
-    const base::RealVectorStateSpace::StateType *xFiber_RJ = xFiber->as<base::RealVectorStateSpace::StateType>();
+    const auto *xFiber_RJ = xFiber->as<base::RealVectorStateSpace::StateType>();
 
     unsigned int Noffset = getBaseDimension() - dimensionBaseFirstSubspace;
     for (unsigned int k = 0; k < getFiberDimension(); k++)
@@ -77,7 +77,7 @@ ompl::base::StateSpacePtr Projection_XRN_XRM::computeFiberSpace()
 
     base::StateSpacePtr Fiber_RN(new base::RealVectorStateSpace(Nfiber));
 
-    const base::RealVectorStateSpace *Bundle_RN = Bundle_decomposed.at(1)->as<base::RealVectorStateSpace>();
+    const auto = Bundle_decomposed.at(1)->as<base::RealVectorStateSpace>();
     base::RealVectorBounds Bundle_bounds = Bundle_RN->getBounds();
     std::vector<double> low;
     low.resize(Nfiber);
