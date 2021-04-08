@@ -57,11 +57,16 @@ using namespace ompl::multilevel;
 FindSection::FindSection(PathRestriction *restriction) : restriction_(restriction)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
 
+    if(!graph->getProjection()->isFibered())
+    {
+        OMPL_DEBUG("Finding section with non-fibered projection.");
+        return;
+    }
+
+    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
     if (graph->getCoDimension() > 0)
     {
-        std::cout << "TODO: Make sure you get the fiber space from compund." << std::endl;
         base::StateSpacePtr fiber = projection->getFiberSpace();
         xFiberStart_ = fiber->allocState();
         xFiberGoal_ = fiber->allocState();

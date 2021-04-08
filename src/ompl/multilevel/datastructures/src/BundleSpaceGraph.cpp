@@ -86,11 +86,6 @@ BundleSpaceGraph::BundleSpaceGraph(const ompl::base::SpaceInformationPtr &si, Bu
     setImportance("uniform");
     setFindSectionStrategy(FindSectionType::SIDE_STEP);
 
-    if (hasBaseSpace())
-    {
-        pathRestriction_ = std::make_shared<PathRestriction>(this);
-    }
-
     if (isDynamic())
     {
         setPropagator("dynamic");
@@ -111,11 +106,6 @@ BundleSpaceGraph::BundleSpaceGraph(const ompl::base::SpaceInformationPtr &si, Bu
                                   "0.:.1:1.");
 
     xRandom_ = new Configuration(getBundle());
-
-    if (!isSetup())
-    {
-        this->setup();
-    }
 }
 
 BundleSpaceGraph::~BundleSpaceGraph()
@@ -146,6 +136,11 @@ void BundleSpaceGraph::setup()
         }
         nearestDatastructure_->setDistanceFunction(
             [this](const Configuration *a, const Configuration *b) { return distance(a, b); });
+    }
+
+    if (hasBaseSpace())
+    {
+        pathRestriction_ = std::make_shared<PathRestriction>(this);
     }
 
     if (pdef_)
@@ -191,7 +186,7 @@ bool BundleSpaceGraph::findSection()
     {
         if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
         {
-            if (sameComponent(vStart_, getGoalIndex()))
+            if (sameComponent(vStart_, qGoal_->index))
             {
                 hasSolution_ = true;
                 return true;

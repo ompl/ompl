@@ -336,9 +336,10 @@ BundleSpaceGraph::Configuration *PathSection::addFeasibleSegment(Configuration *
 void PathSection::addFeasibleGoalSegment(Configuration *xLast, Configuration *xGoal)
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    if (graph->getGoalIndex() <= 0)
+    if (xGoal->index < 0)//graph->getGoalIndex())
     {
         // graph->setGoalIndex(graph->addConfiguration(xGoal));
+        graph->addConfiguration(xGoal);
         graph->addGoalConfiguration(xGoal);
     }
     graph->addBundleEdge(xLast, xGoal);

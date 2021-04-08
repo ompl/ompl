@@ -113,6 +113,8 @@ ProjectionPtr ProjectionFactory::makeProjection(
     const base::StateSpacePtr Base_space = Base->getStateSpace();
     int baseSpaceComponents = GetNumberOfComponents(Base_space);
 
+    OMPL_DEBUG("Bundle components: %d", nrProjections);
+
     if (baseSpaceComponents != nrProjections)
     {
         Base->printSettings();

@@ -136,12 +136,12 @@ namespace ompl
 
             /* \brief All subclasses need to be able to project onto base space
              * */
-            virtual void project(const ompl::base::State *xBundle, ompl::base::State *xBase) const override;
+            void project(const ompl::base::State *xBundle, ompl::base::State *xBase) const override;
 
             /* \brief All subclasses need to be able to lift from base space
              * into the total bundle space
              * */
-            virtual void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const override;
+            void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const override;
             /// Print to stream
             virtual void print(std::ostream &out) const;
 

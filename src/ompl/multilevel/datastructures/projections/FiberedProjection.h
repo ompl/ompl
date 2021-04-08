@@ -78,7 +78,7 @@ namespace ompl
             virtual void projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const = 0;
 
             /* \brief Get explicit fiber space representation */
-            ompl::base::StateSpacePtr getFiberSpace() const;
+            virtual ompl::base::StateSpacePtr getFiberSpace() const;
 
             /* \brief Get explicit fiber space sampler */
             ompl::base::StateSamplerPtr getFiberSamplerPtr() const;
@@ -104,6 +104,7 @@ namespace ompl
             // \brief A temporary state on Fiber space
             ompl::base::State *xFiberTmp_{nullptr};
         };
+
     }
 }
 

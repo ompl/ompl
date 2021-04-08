@@ -57,11 +57,6 @@ ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::
   : BaseT(siVec, type)
 {
     declareBundleSpaces(true);
-    OMPL_DEVMSG1("Guessing projection from bundle and base spaces given.");
-    for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
-    {
-        bundleSpaces_.at(k)->makeProjection();
-    }
 }
 
 template <class T>
