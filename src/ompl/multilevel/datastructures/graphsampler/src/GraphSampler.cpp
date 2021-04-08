@@ -89,7 +89,6 @@ void ompl::multilevel::BundleSpaceGraphSampler::setPathBiasStartSegment(double s
     {
         if (s > this->pathBiasStartSegment_)
         {
-            this->pathBiasStartSegment_ = s;
             geometric::PathGeometric &spath =
                 static_cast<geometric::PathGeometric &>(*bundleSpaceGraph_->getSolutionPathByReference());
             OMPL_DEBUG("Set path bias: %f/%f", s, spath.length());
@@ -97,6 +96,7 @@ void ompl::multilevel::BundleSpaceGraphSampler::setPathBiasStartSegment(double s
             {
                 s = spath.length();
             }
+            this->pathBiasStartSegment_ = s;
         }
     }
 }

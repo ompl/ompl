@@ -284,7 +284,7 @@ namespace ompl
             /* \brief Get current graph sampler */
             BundleSpaceGraphSamplerPtr getGraphSampler();
 
-            /* \brief Get the path restriction (representing a set on the total space) 
+            /* \brief Get the path restriction (representing a set on the total space)
              * over the current best cost path on the base space. Function
              * requires the existance of a base space and the existance of a
              * path on the base space. */

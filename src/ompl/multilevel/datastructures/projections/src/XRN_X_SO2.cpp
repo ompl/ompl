@@ -52,8 +52,7 @@ Projection_SO2RN_SO2::Projection_SO2RN_SO2(ompl::base::StateSpacePtr BundleSpace
 
 void Projection_SO2RN_SO2::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
-    const auto *xBundle_SO2 =
-        xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(0);
+    const auto *xBundle_SO2 = xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(0);
     auto *xBase_SO2 = xBase->as<base::SO2StateSpace::StateType>();
 
     xBase_SO2->value = xBundle_SO2->value;
@@ -62,10 +61,8 @@ void Projection_SO2RN_SO2::project(const ompl::base::State *xBundle, ompl::base:
 void Projection_SO2RN_SO2::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                 ompl::base::State *xBundle) const
 {
-    auto *xBundle_SO2 =
-        xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(0);
-    auto *xBundle_RN =
-        xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
+    auto *xBundle_SO2 = xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(0);
+    auto *xBundle_RN = xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
     const auto *xBase_SO2 = xBase->as<base::SO2StateSpace::StateType>();
     const auto *xFiber_RN = xFiber->as<base::RealVectorStateSpace::StateType>();

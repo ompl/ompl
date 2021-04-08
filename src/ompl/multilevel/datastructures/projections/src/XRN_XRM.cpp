@@ -49,8 +49,7 @@ Projection_XRN_XRM::Projection_XRN_XRM(ompl::base::StateSpacePtr BundleSpace, om
 }
 void Projection_XRN_XRM::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
-    const auto *xBundle_RN =
-        xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
+    const auto *xBundle_RN = xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
     const auto *xFiber_RJ = xFiber->as<base::RealVectorStateSpace::StateType>();
 

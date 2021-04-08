@@ -88,22 +88,18 @@ ProjectionPtr ProjectionFactory::makeProjection(const SpaceInformationPtr &Bundl
             ProjectionPtr componentM = makeProjection(BundleM);
             components.push_back(componentM);
         }
-        return std::make_shared<CompoundProjection>(
-            Bundle_space, nullptr, components);
+        return std::make_shared<CompoundProjection>(Bundle_space, nullptr, components);
     }
     else
     {
         ProjectionPtr component = makeProjection(Bundle_space);
         return component;
     }
-
 }
 
-ProjectionPtr ProjectionFactory::makeProjection(
-    const SpaceInformationPtr &Bundle,
-    const SpaceInformationPtr &Base)
+ProjectionPtr ProjectionFactory::makeProjection(const SpaceInformationPtr &Bundle, const SpaceInformationPtr &Base)
 {
-    if(Base==nullptr)
+    if (Base == nullptr)
     {
         return makeProjection(Bundle);
     }
@@ -147,10 +143,7 @@ ProjectionPtr ProjectionFactory::makeProjection(
             components.push_back(componentM);
         }
 
-        return std::make_shared<CompoundProjection>(
-            Bundle_space,
-            Base_space,
-            components);
+        return std::make_shared<CompoundProjection>(Bundle_space, Base_space, components);
     }
     else
     {

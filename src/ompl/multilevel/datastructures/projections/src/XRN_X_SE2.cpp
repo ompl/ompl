@@ -52,8 +52,7 @@ Projection_SE2RN_SE2::Projection_SE2RN_SE2(ompl::base::StateSpacePtr BundleSpace
 
 void Projection_SE2RN_SE2::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
-    const auto *xBundle_SE2 =
-        xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
+    const auto *xBundle_SE2 = xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
     auto *xBase_SE2 = xBase->as<base::SE2StateSpace::StateType>();
     xBase_SE2->setX(xBundle_SE2->getX());
     xBase_SE2->setY(xBundle_SE2->getY());
@@ -63,10 +62,8 @@ void Projection_SE2RN_SE2::project(const ompl::base::State *xBundle, ompl::base:
 void Projection_SE2RN_SE2::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                 ompl::base::State *xBundle) const
 {
-    auto *xBundle_SE2 =
-        xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
-    auto *xBundle_RN =
-        xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
+    auto *xBundle_SE2 = xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
+    auto *xBundle_RN = xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
     const auto *xBase_SE2 = xBase->as<base::SE2StateSpace::StateType>();
     const auto *xFiber_RN = xFiber->as<base::RealVectorStateSpace::StateType>();

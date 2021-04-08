@@ -102,7 +102,7 @@ namespace ompl
             bool makeProjection();
 
             /// \brief Set explicit projection (so that we do not need to guess
-            //projection)
+            // projection)
             void setProjection(ProjectionPtr projection);
 
             virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
@@ -113,11 +113,11 @@ namespace ompl
             /// \brief Return best solution
             virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
 
-            /* \brief Change the metric to be used on bundle space (default: 
+            /* \brief Change the metric to be used on bundle space (default:
              * intrinsic bundle space metric) */
             virtual void setMetric(const std::string &sMetric) = 0;
 
-            /* \brief Change the propagator to be used on bundle space (default: 
+            /* \brief Change the propagator to be used on bundle space (default:
              * intrinsic bundle space propagator) */
             virtual void setPropagator(const std::string &sPropagator) = 0;
 

@@ -49,8 +49,7 @@ Projection_XRN_X::Projection_XRN_X(ompl::base::StateSpacePtr BundleSpace, ompl::
 
 void Projection_XRN_X::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
-    const auto *xBundle_RN =
-        xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
+    const auto *xBundle_RN = xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
     auto *xFiber_RN = xFiber->as<base::RealVectorStateSpace::StateType>();
 
     for (unsigned int k = 0; k < getFiberDimension(); k++)

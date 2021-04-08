@@ -93,7 +93,7 @@ namespace ompl
             /** \brief Get target configuration projected onto fiber (non const)*/
             base::State *getStateTargetFiberNonConst() const;
 
-            /** \brief Remaining discrete states starting at head 
+            /** \brief Remaining discrete states starting at head
              * (including head) and relative to the head */
             int getNumberOfRemainingStates();
 

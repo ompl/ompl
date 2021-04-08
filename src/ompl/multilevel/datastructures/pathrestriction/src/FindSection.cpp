@@ -58,7 +58,7 @@ FindSection::FindSection(PathRestriction *restriction) : restriction_(restrictio
 {
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
 
-    if(!graph->getProjection()->isFibered())
+    if (!graph->getProjection()->isFibered())
     {
         OMPL_DEBUG("Finding section with non-fibered projection.");
         return;

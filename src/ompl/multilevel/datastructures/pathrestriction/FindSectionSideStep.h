@@ -48,11 +48,11 @@ namespace ompl
            @anchor FindSectionSideStep
 
            @par Short description
-           FindSectionSideStep tries to solve the find section problem by 
+           FindSectionSideStep tries to solve the find section problem by
            going along an L1 interpolation towards the goal while no collision
            occurs. Once a collision occurs, we sample randomly on the current
            fiber and make side steps towards feasible samples. We then
-           recursively continue from those samples. 
+           recursively continue from those samples.
 
            @par External documentation
            Andreas Orthey and Sohaib Akbar and Marc Toussaint,

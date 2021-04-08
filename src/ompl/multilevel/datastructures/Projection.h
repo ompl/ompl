@@ -128,9 +128,8 @@ namespace ompl
         class CompoundProjection : public Projection
         {
         public:
-            CompoundProjection(const base::StateSpacePtr &bundleSpace, 
-                const base::StateSpacePtr &baseSpace,
-                const std::vector<ProjectionPtr> &components);
+            CompoundProjection(const base::StateSpacePtr &bundleSpace, const base::StateSpacePtr &baseSpace,
+                               const std::vector<ProjectionPtr> &components);
 
             virtual ~CompoundProjection() = default;
 

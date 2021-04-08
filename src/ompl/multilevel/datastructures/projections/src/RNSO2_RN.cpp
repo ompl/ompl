@@ -50,8 +50,7 @@ Projection_RNSO2_RN::Projection_RNSO2_RN(ompl::base::StateSpacePtr BundleSpace, 
 
 void Projection_RNSO2_RN::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
-    const auto *xBundle_SO2 =
-        xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(1);
+    const auto *xBundle_SO2 = xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(1);
 
     auto *xFiber_SO2 = xFiber->as<base::SO2StateSpace::StateType>();
 
@@ -60,8 +59,7 @@ void Projection_RNSO2_RN::projectFiber(const ompl::base::State *xBundle, ompl::b
 
 void Projection_RNSO2_RN::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
-    const auto *xBundle_R3 =
-        xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(0);
+    const auto *xBundle_R3 = xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(0);
     auto *xBase_R3 = xBase->as<base::RealVectorStateSpace::StateType>();
 
     for (unsigned int k = 0; k < 3; k++)
@@ -73,10 +71,8 @@ void Projection_RNSO2_RN::project(const ompl::base::State *xBundle, ompl::base::
 void Projection_RNSO2_RN::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                ompl::base::State *xBundle) const
 {
-    auto *xBundle_R3 =
-        xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(0);
-    auto *xBundle_SO2 =
-        xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(1);
+    auto *xBundle_R3 = xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(0);
+    auto *xBundle_SO2 = xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(1);
 
     const auto *xFiber_SO2 = xFiber->as<base::SO2StateSpace::StateType>();
 

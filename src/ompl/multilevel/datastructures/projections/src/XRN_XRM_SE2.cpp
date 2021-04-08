@@ -53,14 +53,11 @@ Projection_SE2RN_SE2RM::Projection_SE2RN_SE2RM(ompl::base::StateSpacePtr BundleS
 
 void Projection_SE2RN_SE2RM::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
-    const auto *xBundle_SE2 =
-        xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
-    const auto *xBundle_RN =
-        xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
+    const auto *xBundle_SE2 = xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
+    const auto *xBundle_RN = xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
     auto *xBase_SE2 = xBase->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
-    auto *xBase_RN =
-        xBase->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
+    auto *xBase_RN = xBase->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
     xBase_SE2->setX(xBundle_SE2->getX());
     xBase_SE2->setY(xBundle_SE2->getY());
@@ -75,15 +72,11 @@ void Projection_SE2RN_SE2RM::project(const ompl::base::State *xBundle, ompl::bas
 void Projection_SE2RN_SE2RM::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                                   ompl::base::State *xBundle) const
 {
-    auto *xBundle_SE2 =
-        xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
-    auto *xBundle_RN =
-        xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
+    auto *xBundle_SE2 = xBundle->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
+    auto *xBundle_RN = xBundle->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
-    const auto *xBase_SE2 =
-        xBase->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
-    const auto *xBase_RM =
-        xBase->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
+    const auto *xBase_SE2 = xBase->as<base::CompoundState>()->as<base::SE2StateSpace::StateType>(0);
+    const auto *xBase_RM = xBase->as<base::CompoundState>()->as<base::RealVectorStateSpace::StateType>(1);
 
     const auto *xFiber_RJ = xFiber->as<base::RealVectorStateSpace::StateType>();
 

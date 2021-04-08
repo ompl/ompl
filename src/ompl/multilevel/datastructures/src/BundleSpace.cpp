@@ -104,7 +104,8 @@ bool BundleSpace::makeProjection()
 
     projection_ = projectionFactory.makeProjection(getBundle(), getBase());
 
-    if (!projection_) return false;
+    if (!projection_)
+        return false;
 
     sanityChecks();
     return true;

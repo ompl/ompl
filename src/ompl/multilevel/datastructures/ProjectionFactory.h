@@ -69,18 +69,16 @@ namespace ompl
 
             // std::vector<ProjectionPtr> MakeProjections(const base::SpaceInformationPtr &Bundle);
 
-            ProjectionPtr makeProjection(const base::SpaceInformationPtr &Bundle, 
-                const base::SpaceInformationPtr &Base);
+            ProjectionPtr makeProjection(const base::SpaceInformationPtr &Bundle,
+                                         const base::SpaceInformationPtr &Base);
 
             ProjectionPtr makeProjection(const base::SpaceInformationPtr &Bundle);
 
             // ProjectionPtr MakeProjections(const base::SpaceInformationPtr &Bundle);
 
         protected:
-            ProjectionPtr makeProjection(
-                const base::StateSpacePtr &BundleSpace, 
-                const base::StateSpacePtr &BaseSpace,
-                bool areValidityCheckersEquivalent);
+            ProjectionPtr makeProjection(const base::StateSpacePtr &BundleSpace, const base::StateSpacePtr &BaseSpace,
+                                         bool areValidityCheckersEquivalent);
 
             ProjectionPtr makeProjection(const base::StateSpacePtr &BundleSpace);
 
@@ -93,59 +91,59 @@ namespace ompl
             bool isMapping_Identity(const base::StateSpacePtr &, const base::StateSpacePtr &);
             /** \brief Check if the mapping is an empty projection */
             bool isMapping_EmptyProjection(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathbb{R}^N \f$ to \f$ \mathbb{R}^M \f$ */
             bool isMapping_RN_to_RM(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathrm{SE}(2) \f$ to \f$ \mathbb{R}^2 \f$ */
             bool isMapping_SE2_to_R2(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathrm{SE}(2)\times \mathbb{R}^N \f$ to \f$ \mathbb{R}^2 \f$ */
             bool isMapping_SE2RN_to_R2(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathrm{SE}(2)\times \mathbb{R}^N \f$ to \f$ \mathrm{SE}(2) \f$ */
             bool isMapping_SE2RN_to_SE2(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathrm{SE}(2)\times \mathbb{R}^N \f$ to \f$ \mathrm{SE}(2)\times \mathbb{R}^M \f$ */
             bool isMapping_SE2RN_to_SE2RM(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathrm{SE}(3) \f$ to \f$ \mathbb{R}^3 \f$ */
             bool isMapping_SE3_to_R3(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathrm{SE}(3)\times \mathbb{R}^N \f$ to \f$ \mathbb{R}^3 \f$ */
             bool isMapping_SE3RN_to_R3(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathrm{SE}(3)\times \mathbb{R}^N \f$ to \f$ \mathrm{SE}(3) \f$ */
             bool isMapping_SE3RN_to_SE3(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathrm{SE}(3)\times \mathbb{R}^N \f$ to \f$ \mathrm{SE}(3)\times \mathbb{R}^M \f$ */
             bool isMapping_SE3RN_to_SE3RM(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathrm{SO}(2)\times \mathbb{R}^N \f$ to \f$ \mathrm{SO}(2) \f$ */
             bool isMapping_SO2RN_to_SO2(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathrm{SO}(2)\times \mathbb{R}^N \f$ to \f$ \mathrm{SO}(2)\times \mathbb{R}^M \f$ */
             bool isMapping_SO2RN_to_SO2RM(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathrm{SO}^N(2) \f$ to \f$ \mathrm{SO}^M(2) \f$ */
             bool isMapping_SO2N_to_SO2M(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathrm{SO}(3)\times \mathbb{R}^N \f$ to \f$ \mathrm{SO}(3) \f$ */
             bool isMapping_SO3RN_to_SO3(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathrm{SO}(3)\times \mathbb{R}^N \f$ to \f$ \mathrm{SO}(3)\times \mathbb{R}^M \f$ */
             bool isMapping_SO3RN_to_SO3RM(const base::StateSpacePtr &, const base::StateSpacePtr &);
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ \mathbb{R}^N \times \mathrm{SO}(2) \f$ to \f$ \mathbb{R}^N \f$ */
             bool isMapping_RNSO2_to_RN(const base::StateSpacePtr &, const base::StateSpacePtr &);
 
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ X\times \mathbb{R}^N \f$ to \f$ X \times \mathbb{R}^M \f$
              * whereby \f$ X = \{\mathrm{SO}(2),\mathrm{SO}(3),\mathrm{SE}(2),\mathrm{SE}(3)\} \f$ */
             bool isMapping_XRN_to_XRM(const base::StateSpacePtr &, const base::StateSpacePtr &,
                                       const base::StateSpaceType);
 
-            /** \brief Check if mapping is 
+            /** \brief Check if mapping is
              * \f$ X\times \mathbb{R}^N \f$ to \f$ X \f$
              * whereby \f$ X = \{\mathrm{SO}(2),\mathrm{SO}(3),\mathrm{SE}(2),\mathrm{SE}(3)\} \f$ */
             bool isMapping_XRN_to_X(const base::StateSpacePtr &, const base::StateSpacePtr &,

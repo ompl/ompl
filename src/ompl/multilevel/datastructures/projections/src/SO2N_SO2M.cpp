@@ -53,8 +53,7 @@ void Projection_SO2N_SO2M::projectFiber(const ompl::base::State *xBundle, ompl::
     {
         const auto *SO2bundle =
             xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k + getBaseDimension());
-        auto *SO2fiber =
-            xFiber->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
+        auto *SO2fiber = xFiber->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
 
         SO2fiber->value = SO2bundle->value;
     }
@@ -64,8 +63,7 @@ void Projection_SO2N_SO2M::project(const ompl::base::State *xBundle, ompl::base:
 {
     for (unsigned int k = 0; k < getBaseDimension(); k++)
     {
-        const auto *SO2bundle =
-            xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
+        const auto *SO2bundle = xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
 
         base::SO2StateSpace::StateType *SO2base;
 
@@ -87,8 +85,7 @@ void Projection_SO2N_SO2M::lift(const ompl::base::State *xBase, const ompl::base
 {
     for (unsigned int k = 0; k < getBaseDimension(); k++)
     {
-        auto *SO2bundle =
-            xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
+        auto *SO2bundle = xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
         const base::SO2StateSpace::StateType *SO2base;
 
         if (getBaseDimension() <= 1)
@@ -104,8 +101,7 @@ void Projection_SO2N_SO2M::lift(const ompl::base::State *xBase, const ompl::base
     }
     for (unsigned int k = getBaseDimension(); k < getBaseDimension() + getFiberDimension(); k++)
     {
-        auto *SO2bundle =
-            xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
+        auto *SO2bundle = xBundle->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k);
         const auto *SO2fiber =
             xFiber->as<base::CompoundState>()->as<base::SO2StateSpace::StateType>(k - getBaseDimension());
 

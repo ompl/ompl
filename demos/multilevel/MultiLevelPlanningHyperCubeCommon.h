@@ -89,8 +89,7 @@ protected:
 };
 
 template <typename T>
-PlannerPtr GetMultiLevelPlanner(std::vector<int> sequenceLinks, SpaceInformationPtr si,
-                                    std::string name = "Planner")
+PlannerPtr GetMultiLevelPlanner(std::vector<int> sequenceLinks, SpaceInformationPtr si, std::string name = "Planner")
 {
     std::vector<SpaceInformationPtr> si_vec;
 

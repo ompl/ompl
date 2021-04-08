@@ -104,7 +104,6 @@ namespace ompl
             // \brief A temporary state on Fiber space
             ompl::base::State *xFiberTmp_{nullptr};
         };
-
     }
 }
 
