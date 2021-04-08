@@ -103,7 +103,6 @@ bool FindSectionSideStep::recursiveSideStep(HeadPtr &head, bool interpolateFiber
 
     if (section->checkMotion(head))
     {
-        section->sanityCheck();
         return true;
     }
 

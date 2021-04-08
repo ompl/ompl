@@ -249,7 +249,6 @@ ProjectionPtr ProjectionFactory::makeProjection(const StateSpacePtr &Bundle, con
         OMPL_ERROR("NYI: %d", type);
         throw Exception("BundleSpaceType not yet implemented.");
     }
-    // component->setType(type);
     auto componentFiber = std::dynamic_pointer_cast<FiberedProjection>(component);
     if (componentFiber != nullptr)
     {
@@ -679,7 +678,7 @@ int ProjectionFactory::GetNumberOfComponents(const StateSpacePtr &space)
             int type = space->getType();
 
             if ((type == base::STATE_SPACE_SE2) || (type == base::STATE_SPACE_SE3) ||
-                (type == base::STATE_SPACE_DUBINS))  // || (type == base::STATE_SPACE_DUBINS_AIRPLANE))
+                (type == base::STATE_SPACE_DUBINS)) 
             {
                 nrComponents = 1;
             }

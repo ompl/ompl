@@ -79,6 +79,9 @@ PathRestriction::~PathRestriction()
 void PathRestriction::clear()
 {
     basePath_.clear();
+    lengthsIntermediateBasePath_.clear();
+    lengthsCumulativeBasePath_.clear();
+    lengthBasePath_ = 0;
 }
 
 BundleSpaceGraph *PathRestriction::getBundleSpaceGraph()
@@ -88,26 +91,27 @@ BundleSpaceGraph *PathRestriction::getBundleSpaceGraph()
 
 void PathRestriction::setBasePath(ompl::base::PathPtr path)
 {
-    if (!path)
-        return;
-    geometric::PathGeometricPtr geometricBasePath = std::static_pointer_cast<geometric::PathGeometric>(path);
+    if (!path) return;
+    auto geometricBasePath = std::static_pointer_cast<geometric::PathGeometric>(path);
     setBasePath(geometricBasePath->getStates());
 }
 
 void PathRestriction::setBasePath(std::vector<ompl::base::State *> basePath)
 {
-    basePath_ = basePath;
-
-    lengthBasePath_ = 0.0;
-
+    basePath_.clear();
     lengthsIntermediateBasePath_.clear();
     lengthsCumulativeBasePath_.clear();
+    lengthBasePath_ = 0.0;
+
+    basePath_ = basePath;
+
     for (unsigned int k = 1; k < basePath_.size(); k++)
     {
         double lk = bundleSpaceGraph_->getBase()->distance(basePath_.at(k - 1), basePath_.at(k));
         lengthsIntermediateBasePath_.push_back(lk);
         lengthBasePath_ += lk;
         lengthsCumulativeBasePath_.push_back(lengthBasePath_);
+
     }
     OMPL_DEBUG("Set new base path with %d states and length %f.", basePath_.size(), lengthBasePath_);
 }
@@ -173,7 +177,7 @@ double PathRestriction::getLengthBasePathUntil(int k)
 {
     if (k > (int)size())
     {
-        std::cout << "Wrong index k=" << k << "/" << size() << std::endl;
+        OMPL_ERROR("Wrong index k=%d/%d", k, size());
         throw Exception("WrongIndex");
     }
     if (k <= 0)
@@ -229,7 +233,7 @@ void PathRestriction::print(std::ostream &out) const
         if (k > 5 && (int)k < std::max(0, (int)basePath_.size() - 5))
             continue;
         const base::State *bk = basePath_.at(k);
-        base->printState(bk);
+        base->printState(bk, out);
     }
     out << std::string(80, '-') << std::endl;
 }

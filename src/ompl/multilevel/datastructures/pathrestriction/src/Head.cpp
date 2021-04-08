@@ -248,8 +248,6 @@ int Head::getBaseStateIndexAt(int k) const
     if (idx > restriction_->size() - 1)
     {
         idx = restriction_->size() - 1;
-        // std::cout << "idx " << idx << std::endl;
-        // throw Exception("WrongIndex");
     }
     return idx;
 }

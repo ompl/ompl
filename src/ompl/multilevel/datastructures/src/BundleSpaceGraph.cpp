@@ -165,26 +165,15 @@ void BundleSpaceGraph::setFindSectionStrategy(FindSectionType type)
         pathRestriction_->setFindSectionStrategy(type);
     }
 }
-const PathRestrictionPtr BundleSpaceGraph::getPathRestriction()
-{
-    if (!hasBaseSpace())
-    {
-        OMPL_WARN("Tried getting path restriction without base space");
-        return nullptr;
-    }
-
-    base::PathPtr basePath = static_cast<BundleSpaceGraph *>(getChild())->getSolutionPathByReference();
-
-    pathRestriction_->setBasePath(basePath);
-
-    return pathRestriction_;
-}
 
 bool BundleSpaceGraph::findSection()
 {
     if (hasBaseSpace() && getProjection()->isFibered())
     {
-        if (getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
+        base::PathPtr basePath = static_cast<BundleSpaceGraph *>(getChild())->getSolutionPathByReference();
+        pathRestriction_->setBasePath(basePath);
+
+        if (pathRestriction_->hasFeasibleSection(qStart_, qGoal_))
         {
             if (sameComponent(vStart_, qGoal_->index))
             {
@@ -209,14 +198,8 @@ void BundleSpaceGraph::clear()
     vStart_ = 0;
     shortestVertexPath_.clear();
 
-    if (qStart_)
-    {
-        delete qStart_;
-    }
-    if (qGoal_)
-    {
-        delete qGoal_;
-    }
+    startConfigurations_.clear();
+    goalConfigurations_.clear();
 
     if (!isDynamic())
     {
@@ -522,11 +505,6 @@ void BundleSpaceGraph::setMetric(const std::string &sMetric)
         OMPL_DEBUG("Geodesic Metric Selected");
         metric_ = std::make_shared<BundleSpaceMetricGeodesic>(this);
     }
-    // else if (sMetric == "shortestpath")
-    // {
-    //     OMPL_DEBUG("ShortestPath Metric Selected");
-    //     metric_ = std::make_shared<BundleSpaceMetricShortestPath>(this);
-    // }
     else
     {
         OMPL_ERROR("Metric unknown: %s", sMetric.c_str());
@@ -678,7 +656,6 @@ bool BundleSpaceGraph::getSolution(ompl::base::PathPtr &solution)
                     geometric::PathGeometric &gpath = static_cast<geometric::PathGeometric &>(*solutionPath_);
 
                     valid = optimizer_->reduceVertices(gpath, 0, 0, 0.1);
-                    // valid = optimizer_->simplifyMax(gpath);
 
                     if (!valid)
                     {

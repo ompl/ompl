@@ -200,7 +200,6 @@ bool FindSection::tripleStep(HeadPtr &head, const ompl::base::State *sBundleGoal
                     bool feasible = true;
 
                     double fiberStepSize = 2 * validFiberSpaceSegmentLength_;
-                    // double fiberStepSize = validFiberSpaceSegmentLength_;
 
                     if (!bundle->checkMotion(sBundleStart, xBundleStartTmp))
                     {
@@ -235,7 +234,6 @@ bool FindSection::tripleStep(HeadPtr &head, const ompl::base::State *sBundleGoal
 
                             fiber->interpolate(xFiberStart_, xFiberGoal_, fiberLocation / fiberDist, xFiberTmp_);
 
-                            // projection->lift(xBaseTmp_, xFiberTmp_, xBundleGoalTmp);
                             projection->lift(xBase, xFiberTmp_, xBundleGoalTmp);
 
                             if (bundle->checkMotion(xBundleGoalTmp, sBundleGoal) &&

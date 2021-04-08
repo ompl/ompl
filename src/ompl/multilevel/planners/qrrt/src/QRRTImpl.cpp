@@ -97,12 +97,6 @@ void ompl::multilevel::QRRTImpl::grow()
             if (satisfied)
             {
                 goalConfigurations_.push_back(xNext);
-
-                // if(qGoal_ != nullptr)
-                // {
-                //     addConfiguration(qGoal_);
-                //     addEdge(xNext->index, getGoalIndex());
-                // }
                 hasSolution_ = true;
             }
         }

@@ -110,7 +110,6 @@ bool PathSection::checkMotion(HeadPtr &head)
             else
             {
                 addFeasibleGoalSegment(head->getConfiguration(), head->getTargetConfiguration());
-                // section_.at(k));
                 return true;
             }
         }
@@ -204,7 +203,6 @@ void PathSection::interpolateL1FiberFirst(HeadPtr &head)
             sectionBaseStateIndices_.push_back(head->getBaseStateIndexAt(k));
         }
     }
-    // sanityCheck(head);
 }
 
 void PathSection::interpolateL1FiberLast(HeadPtr &head)
@@ -314,7 +312,6 @@ void PathSection::addFeasibleGoalSegment(Configuration *xLast, Configuration *xG
     BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
     if (xGoal->index < 0)  // graph->getGoalIndex())
     {
-        // graph->setGoalIndex(graph->addConfiguration(xGoal));
         graph->addConfiguration(xGoal);
         graph->addGoalConfiguration(xGoal);
     }
@@ -342,20 +339,20 @@ void PathSection::sanityCheck(HeadPtr &head)
             std::stringstream buffer;
             buffer << "START STATE" << std::endl;
             bundle->printState(xi, buffer);
-            // std::cout << "START STATE (SECTION)" << std::endl;
-            // bundle->printState(section_.front());
-            // std::cout << "Dist:" << d1 << std::endl;
-            // std::cout << "GOAL STATE" << std::endl;
-            // bundle->printState(xg);
-            // std::cout << "GOAL STATE (SECTION)" << std::endl;
-            // bundle->printState(section_.back());
-            // std::cout << "Dist:" << d2 << std::endl;
-            // int size = head->getNumberOfRemainingStates();
-            // std::cout << "Section size: " << section_.size() << std::endl;
-            // std::cout << "Remaining states: " << size << std::endl;
-            // std::cout << "Restriction size:" << restriction_->size() << std::endl;
-            // std::cout << "Base states:" << std::endl;
-            // std::cout << *restriction_ << std::endl;
+            bundle->printState(section_.front(), buffer);
+            buffer << "Distance: " << d1 << std::endl;
+            buffer << "GOAL STATE" << std::endl;
+            bundle->printState(xg, buffer);
+            buffer << "GOAL STATE (SECTION)" << std::endl;
+            bundle->printState(section_.back(), buffer);
+            buffer << "Dist:" << d2 << std::endl;
+            int size = head->getNumberOfRemainingStates();
+            buffer << "Section size: " << section_.size() << std::endl;
+            buffer << "Remaining states: " << size << std::endl;
+            buffer << "Restriction size:" << restriction_->size() << std::endl;
+            buffer << "Base states:" << std::endl;
+            buffer << *restriction_ << std::endl;
+            OMPL_ERROR("Invalid Section: %s", buffer.str().c_str());
             throw Exception("Invalid Section");
         }
     }
@@ -373,7 +370,7 @@ void PathSection::sanityCheck()
         if (!bundle->checkMotion(sk1, sk2))
         {
             feasible = false;
-            OMPL_DEBUG("Error between states %d and %d.", k - 1, k);
+            OMPL_ERROR("Error between states %d and %d.", k - 1, k);
             bundle->printState(sk1);
             bundle->printState(sk2);
         }
