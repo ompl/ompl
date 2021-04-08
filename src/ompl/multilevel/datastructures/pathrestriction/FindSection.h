@@ -86,9 +86,8 @@ namespace ompl
             /** \brief Sample state on fiber while keeping base state fixed */
             bool findFeasibleStateOnFiber(const base::State *xBase, base::State *xBundle);
 
+            /** \brief Triple step pattern */
             bool tripleStep(HeadPtr &head, const base::State *sBundleGoal, double locationOnBasePathGoal);
-
-            bool cornerStep(HeadPtr &head, const base::State *xBundleTarget, double locationOnBasePathTarget);
 
         protected:
             /** \brief Pointer to associated bundle space */
@@ -115,8 +114,6 @@ namespace ompl
             double validBundleSpaceSegmentLength_;
 
             double validFiberSpaceSegmentLength_;
-
-            ParameterSmoothStep neighborhoodCornerStep_;
         };
     }
 }

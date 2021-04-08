@@ -89,11 +89,6 @@ FindSection::FindSection(PathRestriction *restriction) : restriction_(restrictio
     neighborhoodRadiusBaseSpace_.setLambda(neighborhoodRadiusBaseSpaceLambda_);
     neighborhoodRadiusBaseSpace_.setValueInit(0.0);
     neighborhoodRadiusBaseSpace_.setValueTarget(10 * validBaseSpaceSegmentLength_);
-
-    neighborhoodCornerStep_.setValueInit(0);
-    neighborhoodCornerStep_.setValueTarget(validBaseSpaceSegmentLength_);
-    neighborhoodCornerStep_.setCounterInit(0);
-    neighborhoodCornerStep_.setCounterTarget(magic::PATH_SECTION_MAX_FIBER_SAMPLING);
 }
 
 FindSection::~FindSection()
@@ -149,98 +144,6 @@ bool FindSection::findFeasibleStateOnFiber(const ompl::base::State *xBase, ompl:
     {
         base->copyState(xBundle, xBase);
     }
-    return found;
-}
-
-bool FindSection::cornerStep(HeadPtr &head, const ompl::base::State *xBundleTarget, double locationOnBasePathTarget)
-{
-    BundleSpaceGraph *graph = restriction_->getBundleSpaceGraph();
-    base::SpaceInformationPtr bundle = graph->getBundle();
-    base::SpaceInformationPtr base = graph->getBase();
-    const ompl::base::StateSamplerPtr samplerBase = graph->getBaseSamplerPtr();
-
-    const base::State *xBundleHead = head->getState();
-
-    base::State *xBaseHead = base->cloneState(head->getStateBase());
-
-    base::State *xBundleMidPoint = bundle->allocState();
-
-    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
-    projection->projectFiber(xBundleTarget, xFiberGoal_);
-    projection->projectFiber(xBundleHead, xFiberStart_);
-
-    // Corner step connection attempt
-    // xBundleHead
-    //     |
-    //     |
-    //     |
-    //     v
-    // xBundleMidPoint -------> xBundleTarget
-
-    // xBundleHead -----------> xBundleMidpoint
-    //                               |
-    //                               |
-    //                               |
-    //                               v
-    //                          xBundleTarget
-
-    bool found = false;
-
-    unsigned int ctr = 0;
-
-    neighborhoodCornerStep_.reset();
-    while (ctr++ < magic::PATH_SECTION_MAX_FIBER_SAMPLING)
-    {
-        samplerBase->sampleUniformNear(xBaseTmp_, xBaseHead, neighborhoodCornerStep_());
-
-        //############################################################################
-        // try fiber first
-        projection->lift(xBaseTmp_, xFiberGoal_, xBundleMidPoint);
-
-        if (bundle->isValid(xBundleMidPoint))
-        {
-            if (bundle->checkMotion(xBundleHead, xBundleMidPoint) &&
-                bundle->checkMotion(xBundleMidPoint, xBundleTarget))
-            {
-                Configuration *xMidPointStep = new Configuration(bundle, xBundleMidPoint);
-                graph->addConfiguration(xMidPointStep);
-                graph->addBundleEdge(head->getConfiguration(), xMidPointStep);
-
-                Configuration *xTarget = new Configuration(bundle, xBundleTarget);
-                graph->addConfiguration(xTarget);
-                graph->addBundleEdge(xMidPointStep, xTarget);
-
-                head->setCurrent(xTarget, locationOnBasePathTarget);
-                found = true;
-                break;
-            }
-        }
-        //############################################################################
-        // try fiber last
-        projection->lift(xBaseTmp_, xFiberStart_, xBundleMidPoint);
-
-        if (bundle->isValid(xBundleMidPoint))
-        {
-            if (bundle->checkMotion(xBundleHead, xBundleMidPoint) &&
-                bundle->checkMotion(xBundleMidPoint, xBundleTarget))
-            {
-                Configuration *xMidPointStep = new Configuration(bundle, xBundleMidPoint);
-                graph->addConfiguration(xMidPointStep);
-                graph->addBundleEdge(head->getConfiguration(), xMidPointStep);
-
-                Configuration *xTarget = new Configuration(bundle, xBundleTarget);
-                graph->addConfiguration(xTarget);
-                graph->addBundleEdge(xMidPointStep, xTarget);
-
-                head->setCurrent(xTarget, locationOnBasePathTarget);
-                found = true;
-                break;
-            }
-        }
-    }
-
-    bundle->freeState(xBundleMidPoint);
-    base->freeState(xBaseHead);
     return found;
 }
 

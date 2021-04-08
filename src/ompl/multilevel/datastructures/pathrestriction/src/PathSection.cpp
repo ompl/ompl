@@ -116,7 +116,6 @@ bool PathSection::checkMotion(HeadPtr &head)
         }
         else
         {
-            lastValidIndexOnSectionPath_ = k - 1;
             lastValidIndexOnBasePath_ = sectionBaseStateIndices_.at(k - 1);
 
             base::State *lastValidBaseState = restriction_->getBasePath().at(lastValidIndexOnBasePath_);
@@ -146,24 +145,6 @@ bool PathSection::checkMotion(HeadPtr &head)
     return false;
 }
 
-// double PathSection::getLastValidBasePathLocation()
-// {
-//   return lastValidLocationOnBasePath_;
-// }
-int PathSection::getLastValidBasePathIndex()
-{
-    return lastValidIndexOnBasePath_;
-}
-int PathSection::getLastValidSectionPathIndex()
-{
-    return lastValidIndexOnSectionPath_;
-}
-
-PathSection::Configuration *PathSection::getLastValidConfiguration()
-{
-    return xBundleLastValid_;
-}
-
 ompl::base::State *PathSection::at(int k) const
 {
     return section_.at(k);
@@ -189,11 +170,6 @@ void PathSection::interpolateL1FiberFirst(HeadPtr &head)
     base::SpaceInformationPtr bundle = graph->getBundle();
 
     int size = head->getNumberOfRemainingStates() + 1;
-
-    // std::cout << "Remaining states:" << size << std::endl;
-    // std::cout << "Restriction size:" << restriction_->size() << std::endl;
-    // std::cout << "Last valid idx:" << head->getLastValidBasePathIndex() << std::endl;
-    // std::cout << "Next valid idx:" << head->getNextValidBasePathIndex() << std::endl;
 
     FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
 
@@ -363,24 +339,23 @@ void PathSection::sanityCheck(HeadPtr &head)
 
         if (d1 > 1e-5 || d2 > 1e-5)
         {
-            std::cout << "START STATE" << std::endl;
-            bundle->printState(xi);
-            std::cout << "START STATE (SECTION)" << std::endl;
-            bundle->printState(section_.front());
-            std::cout << "Dist:" << d1 << std::endl;
-            std::cout << "GOAL STATE" << std::endl;
-            bundle->printState(xg);
-            std::cout << "GOAL STATE (SECTION)" << std::endl;
-            bundle->printState(section_.back());
-            std::cout << "Dist:" << d2 << std::endl;
-            int size = head->getNumberOfRemainingStates();
-            std::cout << "Section size: " << section_.size() << std::endl;
-            std::cout << "Remaining states: " << size << std::endl;
-            std::cout << "Restriction size:" << restriction_->size() << std::endl;
-            std::cout << "Last valid idx:" << head->getLastValidBasePathIndex() << std::endl;
-            std::cout << "Next valid idx:" << head->getNextValidBasePathIndex() << std::endl;
-            std::cout << "Base states:" << std::endl;
-            std::cout << *restriction_ << std::endl;
+            std::stringstream buffer;
+            buffer << "START STATE" << std::endl;
+            bundle->printState(xi, buffer);
+            // std::cout << "START STATE (SECTION)" << std::endl;
+            // bundle->printState(section_.front());
+            // std::cout << "Dist:" << d1 << std::endl;
+            // std::cout << "GOAL STATE" << std::endl;
+            // bundle->printState(xg);
+            // std::cout << "GOAL STATE (SECTION)" << std::endl;
+            // bundle->printState(section_.back());
+            // std::cout << "Dist:" << d2 << std::endl;
+            // int size = head->getNumberOfRemainingStates();
+            // std::cout << "Section size: " << section_.size() << std::endl;
+            // std::cout << "Remaining states: " << size << std::endl;
+            // std::cout << "Restriction size:" << restriction_->size() << std::endl;
+            // std::cout << "Base states:" << std::endl;
+            // std::cout << *restriction_ << std::endl;
             throw Exception("Invalid Section");
         }
     }
@@ -398,7 +373,7 @@ void PathSection::sanityCheck()
         if (!bundle->checkMotion(sk1, sk2))
         {
             feasible = false;
-            std::cout << "Error between states " << k - 1 << " and " << k << std::endl;
+            OMPL_DEBUG("Error between states %d and %d.", k - 1, k);
             bundle->printState(sk1);
             bundle->printState(sk2);
         }

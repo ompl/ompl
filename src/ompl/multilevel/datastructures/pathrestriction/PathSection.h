@@ -105,12 +105,7 @@ namespace ompl
             void sanityCheck();
             void sanityCheck(HeadPtr &);
 
-            // double getLastValidBasePathLocation();
-
-            int getLastValidBasePathIndex();
-            int getLastValidSectionPathIndex();
-
-            /** \brief Methods to access section like std::vector */
+            /** \brief Methods to access sections like std::vector */
             base::State *at(int k) const;
             const base::State *back() const;
             const base::State *front() const;
@@ -121,8 +116,6 @@ namespace ompl
             Configuration *addFeasibleSegment(Configuration *xLast, base::State *sNext);
 
             void addFeasibleGoalSegment(Configuration *xLast, Configuration *xGoal);
-
-            Configuration *getLastValidConfiguration();
 
             friend std::ostream &operator<<(std::ostream &, const PathSection &);
 
@@ -136,14 +129,10 @@ namespace ompl
 
             std::vector<int> sectionBaseStateIndices_;
 
-            Configuration *xBundleLastValid_;
-
             /** \brief Last valid state on feasible segment */
             std::pair<base::State *, double> lastValid_;
 
-            double lastValidLocationOnBasePath_;
             int lastValidIndexOnBasePath_;
-            int lastValidIndexOnSectionPath_;
 
             base::State *xBaseTmp_{nullptr};
             base::State *xBundleTmp_{nullptr};

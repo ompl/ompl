@@ -76,11 +76,9 @@ bool FindSectionSideStep::solve(HeadPtr &head)
         foundFeasibleSection = recursiveSideStep(head, false);
     }
 
-
     std::stringstream buffer;
     buffer << *head;
     OMPL_DEVMSG1("Stopped section method at %s.", buffer.str().c_str());
-
 
     return foundFeasibleSection;
 }

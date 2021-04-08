@@ -44,6 +44,23 @@ namespace ompl
 {
     namespace multilevel
     {
+        /**
+           @anchor FindSectionSideStep
+
+           @par Short description
+           FindSectionSideStep tries to solve the find section problem by 
+           going along an L1 interpolation towards the goal while no collision
+           occurs. Once a collision occurs, we sample randomly on the current
+           fiber and make side steps towards feasible samples. We then
+           recursively continue from those samples. 
+
+           @par External documentation
+           Andreas Orthey and Sohaib Akbar and Marc Toussaint,
+           Multilevel Motion Planning: A Fiber Bundle Formulation,
+           in <em>arXiv:2007.09435 [cs.RO]</em>, 2020,
+           [[PDF]](https://arxiv.org/pdf/2007.09435.pdf)
+       */
+
         class FindSectionSideStep : public FindSection
         {
             using BaseT = FindSection;
