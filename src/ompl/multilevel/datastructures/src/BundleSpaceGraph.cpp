@@ -212,7 +212,6 @@ void BundleSpaceGraph::clear()
     bestCost_ = base::Cost(base::dInf);
     setup_ = false;
     vStart_ = 0;
-    lengthStartGoalVertexPath_ = base::dInf;
     shortestVertexPath_.clear();
 
     if (qStart_)

@@ -48,7 +48,7 @@ namespace ot = ompl::tools;
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-const double edgeWidth = 0.1; //original STRIDE paper had edgewidth = 0.1
+const double edgeWidth = 0.1;  // original STRIDE paper had edgewidth = 0.1
 
 std::vector<int> getHypercubeAdmissibleProjection(int dim)
 {
@@ -90,8 +90,9 @@ protected:
     int dimension_;
 };
 
-template<typename T>  
-ob::PlannerPtr GetMultiLevelPlanner(std::vector<int> sequenceLinks, ob::SpaceInformationPtr si, std::string name="Planner")
+template <typename T>
+ob::PlannerPtr GetMultiLevelPlanner(std::vector<int> sequenceLinks, ob::SpaceInformationPtr si,
+                                    std::string name = "Planner")
 {
     std::vector<ob::SpaceInformationPtr> si_vec;
 
@@ -117,4 +118,3 @@ ob::PlannerPtr GetMultiLevelPlanner(std::vector<int> sequenceLinks, ob::SpaceInf
 
     return planner;
 }
-

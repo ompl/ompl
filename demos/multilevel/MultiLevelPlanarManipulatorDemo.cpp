@@ -36,8 +36,8 @@
 
 /* Author: Andreas Orthey */
 
-//This is basically just a simplified version of Ryan Luna's Demo, used for
-//testing purposes of the multilevel planning framework
+// This is basically just a simplified version of Ryan Luna's Demo, used for
+// testing purposes of the multilevel planning framework
 
 #include <fstream>
 
@@ -70,15 +70,15 @@ namespace ompl
     }
 }
 
-class ProjectionJointSpaceToSE2: public ompl::multilevel::Projection
+class ProjectionJointSpaceToSE2 : public ompl::multilevel::Projection
 {
-  public:
-    ProjectionJointSpaceToSE2(StateSpacePtr bundle, StateSpacePtr base, PlanarManipulator *manip):
-      Projection(bundle, base), manip_(manip)
+public:
+    ProjectionJointSpaceToSE2(StateSpacePtr bundle, StateSpacePtr base, PlanarManipulator *manip)
+      : Projection(bundle, base), manip_(manip)
     {
     }
 
-    void project( const State *xBundle, State *xBase) const
+    void project(const State *xBundle, State *xBase) const
     {
         std::vector<double> reals;
         getBundle()->copyToReals(reals, xBundle);
@@ -90,19 +90,19 @@ class ProjectionJointSpaceToSE2: public ompl::multilevel::Projection
         double y = eeFrame.translation()(1);
         double yaw = acos(eeFrame.matrix()(0, 0));
 
-        xBase->as<SE2StateSpace::StateType>()->setXY(x,y);
+        xBase->as<SE2StateSpace::StateType>()->setXY(x, y);
         xBase->as<SE2StateSpace::StateType>()->setYaw(yaw);
 
         getBundle()->printState(xBundle);
         getBase()->printState(xBase);
     }
 
-    void lift( const State *xBase, State *xBundle) const
+    void lift(const State *xBase, State *xBundle) const
     {
         std::vector<double> reals;
         getBase()->copyToReals(reals, xBase);
 
-        //to Eigen
+        // to Eigen
         Eigen::Affine2d eeFrame;
         eeFrame.translation()(0) = reals.at(0);
         eeFrame.translation()(1) = reals.at(1);
@@ -112,13 +112,13 @@ class ProjectionJointSpaceToSE2: public ompl::multilevel::Projection
         manip_->FABRIK(solution, eeFrame);
 
         double *angles = xBundle->as<PlanarManipulatorStateSpace::StateType>()->values;
-        for(uint k = 0; k < solution.size(); k++)
+        for (uint k = 0; k < solution.size(); k++)
         {
             angles[k] = solution.at(k);
         }
     }
 
-  private:
+private:
     PlanarManipulator *manip_;
 };
 
@@ -127,7 +127,7 @@ int main()
     Eigen::Affine2d baseFrame;
     Eigen::Affine2d goalFrame;
 
-    PlanarManipulator manipulator = PlanarManipulator(numLinks, 1.0/numLinks);
+    PlanarManipulator manipulator = PlanarManipulator(numLinks, 1.0 / numLinks);
     PolyWorld world = createCorridorProblem(numLinks, baseFrame, goalFrame);
 
     //#########################################################################
@@ -141,9 +141,7 @@ int main()
     manipulator.setBounds(bounds.low, bounds.high);
 
     SpaceInformationPtr si = std::make_shared<SpaceInformation>(space);
-    si->setStateValidityChecker( 
-        std::make_shared<PlanarManipulatorCollisionChecker>( 
-          si, manipulator, &world));
+    si->setStateValidityChecker(std::make_shared<PlanarManipulatorCollisionChecker>(si, manipulator, &world));
     si->setStateValidityCheckingResolution(0.001);
 
     //#########################################################################
@@ -156,8 +154,7 @@ int main()
     spaceSE2->as<SE2StateSpace>()->setBounds(boundsWorkspace);
 
     SpaceInformationPtr siSE2 = std::make_shared<SpaceInformation>(spaceSE2);
-    siSE2->setStateValidityChecker( 
-        std::make_shared<SE2CollisionChecker>(siSE2, &world));
+    siSE2->setStateValidityChecker(std::make_shared<SE2CollisionChecker>(siSE2, &world));
     siSE2->setStateValidityCheckingResolution(0.001);
 
     //#########################################################################
@@ -170,20 +167,16 @@ int main()
     spaceR2->as<RealVectorStateSpace>()->setBounds(boundsR2);
 
     SpaceInformationPtr siR2 = std::make_shared<SpaceInformation>(spaceR2);
-    siR2->setStateValidityChecker( 
-        std::make_shared<AllValidStateValidityChecker>(siR2));
-    siR2->setStateValidityChecker( 
-        std::make_shared<R2CollisionChecker>(siR2, &world));
+    siR2->setStateValidityChecker(std::make_shared<AllValidStateValidityChecker>(siR2));
+    siR2->setStateValidityChecker(std::make_shared<R2CollisionChecker>(siR2, &world));
     siR2->setStateValidityCheckingResolution(0.001);
-    
+
     //#########################################################################
     //## Create mapping total to base space [PROJECTION]
     //#########################################################################
-    ompl::multilevel::ProjectionPtr projAB = 
-      std::make_shared<ProjectionJointSpaceToSE2>(space, spaceSE2, &manipulator);
+    ompl::multilevel::ProjectionPtr projAB = std::make_shared<ProjectionJointSpaceToSE2>(space, spaceSE2, &manipulator);
 
-    ompl::multilevel::ProjectionPtr projBC = 
-      std::make_shared<ompl::multilevel::Projection_SE2_R2>(spaceSE2, spaceR2);
+    ompl::multilevel::ProjectionPtr projBC = std::make_shared<ompl::multilevel::Projection_SE2_R2>(spaceSE2, spaceR2);
 
     std::static_pointer_cast<ompl::multilevel::FiberedProjection>(projBC)->makeFiberSpace();
 
@@ -193,11 +186,11 @@ int main()
     std::vector<SpaceInformationPtr> siVec;
     std::vector<ompl::multilevel::ProjectionPtr> projVec;
 
-    siVec.push_back(siR2); //Base Space R2
-    projVec.push_back(projBC); //Projection R2 to SE2
-    siVec.push_back(siSE2); //Base Space SE2
-    projVec.push_back(projAB); //Projection SE2 to X
-    siVec.push_back(si); //State Space X
+    siVec.push_back(siR2);      // Base Space R2
+    projVec.push_back(projBC);  // Projection R2 to SE2
+    siVec.push_back(siSE2);     // Base Space SE2
+    projVec.push_back(projAB);  // Projection SE2 to X
+    siVec.push_back(si);        // State Space X
 
     auto planner = std::make_shared<ompl::multilevel::QRRT>(siVec, projVec);
 
@@ -215,7 +208,7 @@ int main()
     //#########################################################################
     //## Set goal state
     //#########################################################################
-    // 0.346324 0.0828153 2.96842 -2.17559 -0.718962 0.16532 -0.228314 0.172762 0.0471638 0.341137 
+    // 0.346324 0.0828153 2.96842 -2.17559 -0.718962 0.16532 -0.228314 0.172762 0.0471638 0.341137
     ompl::base::State *goal = si->allocState();
 
     std::vector<double> goalJoints;
@@ -224,16 +217,15 @@ int main()
     double *goal_angles = goal->as<PlanarManipulatorStateSpace::StateType>()->values;
     goal_angles[0] = 0.346324;
     goal_angles[1] = 0.0828153;
-    goal_angles[2] =2.96842;
-    goal_angles[3] =-2.17559;
-    goal_angles[4] =-0.718962;
-    goal_angles[5] =0.16532;
-    goal_angles[6] =-0.228314;
-    goal_angles[7] =0.172762;
-    goal_angles[8] =0.0471638;
-    goal_angles[9] =0.341137;
-    //0.346324 0.0828153 2.96842 -2.17559 -0.718962 0.16532 -0.228314 0.172762 0.0471638 0.341137 
-
+    goal_angles[2] = 2.96842;
+    goal_angles[3] = -2.17559;
+    goal_angles[4] = -0.718962;
+    goal_angles[5] = 0.16532;
+    goal_angles[6] = -0.228314;
+    goal_angles[7] = 0.172762;
+    goal_angles[8] = 0.0471638;
+    goal_angles[9] = 0.341137;
+    // 0.346324 0.0828153 2.96842 -2.17559 -0.718962 0.16532 -0.228314 0.172762 0.0471638 0.341137
 
     ProblemDefinitionPtr pdef = std::make_shared<ProblemDefinition>(si);
     pdef->addStartState(start);
@@ -254,7 +246,7 @@ int main()
         status == ompl::base::PlannerStatus::APPROXIMATE_SOLUTION)
     {
         PathPtr path = pdef->getSolutionPath();
-        PathGeometric &pgeo = *static_cast<PathGeometric*>(path.get());
+        PathGeometric &pgeo = *static_cast<PathGeometric *>(path.get());
         OMPL_INFORM("Solution path has %d states", pgeo.getStateCount());
 
         pgeo.interpolate(250);

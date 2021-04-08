@@ -44,6 +44,10 @@
 
 namespace ompl
 {
+    /**  \brief ParameterExponentialDecay represents a smooth interpolation between two
+     * parameter values using an exponential decay as interpolation. This decay
+     * depends on a paramter lambda, which can be tuned to either converge
+     * slow or fast to valueTarget. */
     class ParameterExponentialDecay : public Parameter
     {
     public:
@@ -65,6 +69,7 @@ namespace ompl
             setLambda(lambda);
         };
 
+        /** \brief Set lambda decay parameter (default: 0.1) */
         void setLambda(double lambda)
         {
             if (lambda < 0)
@@ -77,6 +82,7 @@ namespace ompl
             }
         }
 
+        /** \brief Evaluate exponential decay at counter */
         double operator()(void)
         {
             double value = (getValueInit() - getValueTarget()) * exp(-lambda_ * getCounter()) + getValueTarget();
@@ -85,6 +91,7 @@ namespace ompl
         }
 
     private:
+        /** \brief Decay parameter */
         double lambda_{0.1};
     };
 }

@@ -206,22 +206,36 @@ namespace ompl
             BundleSpaceGraph(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent = nullptr);
             virtual ~BundleSpaceGraph();
 
+            /* \brief Number of vertices on boost graph */
             virtual unsigned int getNumberOfVertices() const;
+
+            /* \brief Number of edges on boost graph */
             virtual unsigned int getNumberOfEdges() const;
 
+            /* \brief A null vertex representing a non-existing vertex */
             Vertex nullVertex() const;
 
+            /* \brief One iteration of the growing the graph */
             void grow() override = 0;
+
+            /* \brief Sample from the graph (used in restriction sampling for
+             * parent bundle space) */
             void sampleFromDatastructure(ompl::base::State *) override;
+
+            /* \brief as sampleBundle() but with goal bias */
             virtual void sampleBundleGoalBias(ompl::base::State *xRandom);
 
+            /* \brief Check that there exist a path on graph */
             bool getSolution(ompl::base::PathPtr &solution) override;
+
+            /* \brief Return best cost path on graph (as reference) */
             virtual ompl::base::PathPtr &getSolutionPathByReference();
 
             /** \brief Return plannerdata structure, whereby each vertex is marked
                 depending to which component it belongs (start/goal/non-connected) */
             void getPlannerData(ompl::base::PlannerData &data) const override;
 
+            /* \brief Given graph, fill in the ompl::base::PlannerData structure */
             void getPlannerDataGraph(ompl::base::PlannerData &data, const Graph &graph, const Vertex vStart) const;
 
             /** \brief Importance of Bundle-space depending on number of
@@ -234,12 +248,20 @@ namespace ompl
 
             void setup() override;
             void clear() override;
+
+            /* \brief Delete all vertices and their attached configurations */
             virtual void clearVertices();
+
+            /* \brief Delete a configuration and free its state */
             virtual void deleteConfiguration(Configuration *q);
 
+            /* \brief Create nearest neighbors structure */
             template <template <typename T> class NN>
             void setNearestNeighbors();
+
+            /* \brief Unite two components */
             void uniteComponents(Vertex m1, Vertex m2);
+            /* \brief Check if both vertices are in the same component */
             bool sameComponent(Vertex m1, Vertex m2);
             std::map<Vertex, VertexRank> vrank;
             std::map<Vertex, Vertex> vparent;
@@ -247,23 +269,32 @@ namespace ompl
                                  boost::associative_property_map<std::map<Vertex, Vertex>>>
                 disjointSets_{boost::make_assoc_property_map(vrank), boost::make_assoc_property_map(vparent)};
 
+            /* \brief Get nearest configuration to configuration s */
             virtual const Configuration *nearest(const Configuration *s) const;
 
+            /* \brief Set metric to be used for growing graph */
             void setMetric(const std::string &sMetric) override;
             void setPropagator(const std::string &sPropagator) override;
             virtual void setImportance(const std::string &sImportance);
             virtual void setGraphSampler(const std::string &sGraphSampler);
+
+            /* \brief Set strategy to solve the find section problem */
             virtual void setFindSectionStrategy(FindSectionType type);
 
+            /* \brief Get current graph sampler */
             BundleSpaceGraphSamplerPtr getGraphSampler();
 
+            /* \brief Get the path restriction (representing a set on the total space) 
+             * over the current best cost path on the base space. Function
+             * requires the existance of a base space and the existance of a
+             * path on the base space. */
             const PathRestrictionPtr getPathRestriction();
 
             /** \brief Best cost found so far by algorithm */
             base::Cost bestCost_{+base::dInf};
 
+            /* \brief Best cost path on graph as vertex representation */
             std::vector<Vertex> shortestVertexPath_;
-            double lengthStartGoalVertexPath_;
 
             /** \brief Get underlying boost graph representation (non const)*/
             virtual Graph &getGraphNonConst();
@@ -272,8 +303,10 @@ namespace ompl
 
             const RoadmapNeighborsPtr &getRoadmapNeighborsPtr() const;
 
+            /** \brief Print class to ostream */
             void print(std::ostream &out) const override;
 
+            /** \brief Write class to graphviz */
             void writeToGraphviz(std::string filename) const;
 
             /** \brief Print configuration to std::cout */
@@ -291,9 +324,15 @@ namespace ompl
             ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal);
             ompl::base::PathPtr getPath(const Vertex &start, const Vertex &goal, Graph &graph);
 
+            /** \brief Distance between two configurations using the current
+             * metric. */
             virtual double distance(const Configuration *a, const Configuration *b) const;
+            /** \brief Check if we can move from configuration a to
+             * configuration b using the current metric. */
             virtual bool checkMotion(const Configuration *a, const Configuration *b) const;
 
+            /** \brief Try to connect configuration a to
+             * configuration b using the current metric. */
             bool connect(const Configuration *from, const Configuration *to);
 
             /** \brief Steer system at Configuration *from to Configuration
@@ -305,26 +344,33 @@ namespace ompl
             Configuration *steerTowards_Range(const Configuration *from, Configuration *to);
 
             /** \brief Steer system at Configuration *from to Configuration
-             * *to while system is valid */
-            // const Configuration *extendGraphTowards(const Configuration *from, const Configuration *to);
-
-            /** \brief Steer system at Configuration *from to Configuration
              * *to while system is valid, stopping if maxDistance is reached */
             Configuration *extendGraphTowards_Range(const Configuration *from, Configuration *to);
 
+            /** \brief Interpolate from configuration a to configuration b and
+             * store results in dest */
             virtual void interpolate(const Configuration *a, const Configuration *b, Configuration *dest) const;
 
+            /** \brief Add ompl::base::State to graph. Return its configuration. */
             virtual Configuration *addBundleConfiguration(base::State *);
 
+            /** \brief Add configuration to graph. Return its vertex in boost
+             * graph */
             virtual Vertex addConfiguration(Configuration *q);
+            /** \brief Add configuration to graph as goal vertex. */
             void addGoalConfiguration(Configuration *x);
 
+            /** \brief Add edge between configuration a and configuration b to graph. */
             virtual void addBundleEdge(const Configuration *a, const Configuration *b);
 
+            /** \brief Add edge between Vertex a and Vertex b to graph. */
             virtual const std::pair<Edge, bool> addEdge(const Vertex a, const Vertex b);
 
+            /** \brief Get vertex representing the start. */
             virtual Vertex getStartIndex() const;
+            /** \brief Get vertex representing the goal. */
             virtual Vertex getGoalIndex() const;
+            /** \brief Set vertex representing the start. */
             virtual void setStartIndex(Vertex);
 
             /**\brief Call algorithm to solve the find section problem */
@@ -358,10 +404,18 @@ namespace ompl
             /** \brief Temporary random configuration */
             Configuration *xRandom_{nullptr};
 
+            /** \brief Pointer to strategy to compute importance of this bundle
+             * space (which is used to decide which bundle space to grow next)
+             * */
             BundleSpaceImportancePtr importanceCalculator_{nullptr};
 
+            /** \brief Pointer to strategy to sample from graph */
             BundleSpaceGraphSamplerPtr graphSampler_{nullptr};
 
+            /** \brief Pointer to current path restriction (the set of points
+             * which project onto the best cost path on the base space if any).
+             * This only exists if there exists a base space and there exists a
+             * base space path. */
             PathRestrictionPtr pathRestriction_{nullptr};
 
             /** \brief A path optimizer */

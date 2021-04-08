@@ -38,7 +38,7 @@
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/tools/benchmark/Benchmark.h>
 
-//include planners
+// include planners
 #include <ompl/geometric/planners/informedtrees/BITstar.h>
 #include <ompl/geometric/planners/informedtrees/ABITstar.h>
 #include <ompl/geometric/planners/est/BiEST.h>
@@ -102,7 +102,8 @@ void printBenchmarkResults(const ot::Benchmark &b)
             double timeJrun = std::atof(run["time REAL"].c_str());
             bool runSolved = std::atoi(run["solved BOOLEAN"].c_str());
 
-            if(!runSolved) timeJrun = experiment.maxTime;
+            if (!runSolved)
+                timeJrun = experiment.maxTime;
 
             time += timeJrun;
             if (timeJrun < experiment.maxTime)
@@ -123,10 +124,8 @@ void printBenchmarkResults(const ot::Benchmark &b)
     std::cout << std::string(80, '-') << std::endl;
     for (auto const &p : plannerTimes)
     {
-        std::cout << "Place <" << ctr 
-          << "> Time: <" << p.first 
-          << "> \%Success: <" << p.second.second 
-          << "> (" << p.second.first << ")" << std::endl;
+        std::cout << "Place <" << ctr << "> Time: <" << p.first << "> \%Success: <" << p.second.second << "> ("
+                  << p.second.first << ")" << std::endl;
         ctr++;
     }
     std::cout << std::string(80, '-') << std::endl;
@@ -177,18 +176,14 @@ void PostRunEvent(const ompl::base::PlannerPtr &planner, ot::Benchmark::RunPrope
     bool solved = boost::lexical_cast<bool>(run["solved BOOLEAN"]);
 
     double cost = std::numeric_limits<double>::infinity();
-    if ( run.find("solution length REAL") != run.end() ) 
+    if (run.find("solution length REAL") != run.end())
     {
-      cost = boost::lexical_cast<double>(run["solution length REAL"]);
+        cost = boost::lexical_cast<double>(run["solution length REAL"]);
     }
 
     std::cout << "Run " << pid << "/" << numberRuns << " [" << planner->getName() << "] "
-              << (solved ? "solved" : "FAILED") 
-              << "(time: " << time 
-              << ", cost: " << cost
-              << ", states: " << states 
-              << ", memory: " << memory
-              << ")" << std::endl;
+              << (solved ? "solved" : "FAILED") << "(time: " << time << ", cost: " << cost << ", states: " << states
+              << ", memory: " << memory << ")" << std::endl;
     std::cout << std::string(80, '-') << std::endl;
     pid++;
 }

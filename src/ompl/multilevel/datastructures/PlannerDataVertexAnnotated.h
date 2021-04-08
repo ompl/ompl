@@ -64,12 +64,16 @@ namespace ompl
             virtual ~PlannerDataVertexAnnotated() override;
             virtual PlannerDataVertex *clone() const override;
 
+            /** \brief The level of vertex in the bundle space hierarchy */
             void setLevel(unsigned int level_);
             unsigned int getLevel() const;
 
+            /** \brief The maximum level in the bundle space hierarchy */
             void setMaxLevel(unsigned int level_);
             unsigned int getMaxLevel() const;
 
+            /** \brief The component of vertex in the graph (start, goal or
+             * other component) */
             void setComponent(unsigned int component_);
             unsigned int getComponent() const;
 

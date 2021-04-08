@@ -72,8 +72,7 @@ int main()
     ss.setStartAndGoalStates(start, goal);
 
     std::vector<int> admissibleProjection = getHypercubeAdmissibleProjection(ndim);
-    ompl::base::PlannerPtr planner = 
-      GetMultiLevelPlanner<ompl::multilevel::QRRT>(admissibleProjection, si, "QRRT");
+    ompl::base::PlannerPtr planner = GetMultiLevelPlanner<ompl::multilevel::QRRT>(admissibleProjection, si, "QRRT");
     ss.setPlanner(planner);
 
     bool solved = ss.solve(1.0);
@@ -87,9 +86,10 @@ int main()
         pdef->getSolutionPath()->print(std::cout);
         std::cout << std::string(80, '-') << std::endl;
         OMPL_INFORM("Solved hypercube with %d dimensions after %f seconds.", ndim, timeToCompute);
-    }else
+    }
+    else
     {
-      OMPL_ERROR("Failed finding solution after %f seconds.", timeToCompute);
+        OMPL_ERROR("Failed finding solution after %f seconds.", timeToCompute);
     }
 
     return 0;

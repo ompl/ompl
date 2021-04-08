@@ -36,8 +36,8 @@
 
 /* Author: Andreas Orthey */
 
-//This is basically just a simplified version of Ryan Luna's Demo, used for
-//testing purposes of the multilevel planning framework
+// This is basically just a simplified version of Ryan Luna's Demo, used for
+// testing purposes of the multilevel planning framework
 
 #include <fstream>
 
@@ -64,10 +64,7 @@ const int xySlices = std::max(2, numLinks / 3);
 const std::string problemName = "corridor";
 const bool viz = false;
 
-void WriteVisualization(
-    const PlanarManipulator &manipulator, 
-    const PolyWorld *world, 
-    const PathGeometric &path)
+void WriteVisualization(const PlanarManipulator &manipulator, const PolyWorld *world, const PathGeometric &path)
 {
     const int numLinks = manipulator.getNumLinks();
 
@@ -83,9 +80,8 @@ void WriteVisualization(
     std::ofstream fout;
 
     fout.open(path_file);
-    fout << numLinks << " " << linkLength 
-      << " " << basePose.translation()(0) 
-      << " " << basePose.translation()(1) << " " << xySlices << std::endl;
+    fout << numLinks << " " << linkLength << " " << basePose.translation()(0) << " " << basePose.translation()(1) << " "
+         << xySlices << std::endl;
 
     // Write each state on the interpolated path.
     for (size_t i = 0; i < path.getStateCount(); ++i)
@@ -101,7 +97,7 @@ void WriteVisualization(
 class R2CollisionChecker : public ompl::base::StateValidityChecker
 {
 public:
-    R2CollisionChecker(const ompl::base::SpaceInformationPtr& si, const PolyWorld *world)
+    R2CollisionChecker(const ompl::base::SpaceInformationPtr &si, const PolyWorld *world)
       : ompl::base::StateValidityChecker(si), world_(world)
     {
     }
@@ -115,8 +111,8 @@ public:
         coordinates.push_back({angles[0], angles[1]});
 
         //(1) check out of bounds
-        if (world_->outOfBounds(coordinates[0])) 
-          return false;
+        if (world_->outOfBounds(coordinates[0]))
+            return false;
 
         // Check each coordinate for obstacle intersection.
         for (size_t j = 0; j < world_->numObstacles(); ++j)
@@ -125,13 +121,14 @@ public:
 
         return true;
     }
+
 private:
     const PolyWorld *world_;
 };
 class SE2CollisionChecker : public ompl::base::StateValidityChecker
 {
 public:
-    SE2CollisionChecker(const ompl::base::SpaceInformationPtr& si, const PolyWorld *world)
+    SE2CollisionChecker(const ompl::base::SpaceInformationPtr &si, const PolyWorld *world)
       : ompl::base::StateValidityChecker(si), world_(world)
     {
     }
@@ -144,10 +141,11 @@ public:
         const double y = state->as<SE2StateSpace::StateType>()->getY();
 
         std::vector<Point> coordinates;
-        coordinates.push_back({x,y});
+        coordinates.push_back({x, y});
 
         //(1) check out of bounds
-        if (world_->outOfBounds(coordinates[0])) return false;
+        if (world_->outOfBounds(coordinates[0]))
+            return false;
 
         // Check each coordinate for obstacle intersection.
         for (size_t j = 0; j < world_->numObstacles(); ++j)
@@ -156,6 +154,7 @@ public:
 
         return true;
     }
+
 private:
     const PolyWorld *world_;
 };

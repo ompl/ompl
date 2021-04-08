@@ -113,11 +113,13 @@ std::vector<std::vector<int>> getAdmissibleProjections(int dim)
     projections.erase(last, projections.end());
 
     std::cout << "Projections for dim " << dim << std::endl;
-    for(unsigned int k = 0; k < projections.size(); k++){
+    for (unsigned int k = 0; k < projections.size(); k++)
+    {
         std::vector<int> pk = projections.at(k);
         std::cout << k << ": ";
-        for(unsigned int j = 0; j < pk.size(); j++){
-          std::cout << pk.at(j) << (j<pk.size()-1?",":"");
+        for (unsigned int j = 0; j < pk.size(); j++)
+        {
+            std::cout << pk.at(j) << (j < pk.size() - 1 ? "," : "");
         }
         std::cout << std::endl;
     }
@@ -131,7 +133,7 @@ int main()
     OMPL_INFORM("Original Chain has %d links", numLinks);
     for (unsigned int k = 0; k < numLinks; k++)
     {
-        envs.push_back(createCustomHornEnvironment((k>0?k:1)));
+        envs.push_back(createCustomHornEnvironment((k > 0 ? k : 1)));
     }
 
     auto chain(std::make_shared<KinematicChainSpace>(numLinks, linkLength, &env));
@@ -163,7 +165,7 @@ int main()
     addPlanner(benchmark, std::make_shared<og::EST>(si));
     addPlanner(benchmark, std::make_shared<og::PRM>(si));
 
-    std::vector<std::vector<int>> admissibleProjections = getAdmissibleProjections(numLinks-1);
+    std::vector<std::vector<int>> admissibleProjections = getAdmissibleProjections(numLinks - 1);
     for (unsigned int k = 0; k < admissibleProjections.size(); k++)
     {
         std::vector<int> proj = admissibleProjections.at(k);

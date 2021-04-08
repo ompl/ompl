@@ -43,6 +43,11 @@
 
 namespace ompl
 {
+    /**  \brief Parameter represents a smooth interpolation between two
+     * parameter values, namely valueInit and valueTarget. The default class
+     * keeps a counter to track how often it was called. Starting at counterInit
+     * we then count towards counterTarget and smoothly interpolate parameter
+     * values inbetween.*/
     class Parameter
     {
     public:
@@ -52,40 +57,49 @@ namespace ompl
 
         Parameter(double valueInit, double valueTarget) : valueInit_(valueInit), valueTarget_(valueTarget){};
 
+        /** \brief Set initial value (default: 0.0) */
         void setValueInit(double valueInit)
         {
             valueInit_ = valueInit;
         }
+        /** \brief Set target value (default: 1.0) */
         void setValueTarget(double valueTarget)
         {
             valueTarget_ = valueTarget;
         }
-        void setCounterTarget(unsigned long long counterTarget)
-        {
-            counterTarget_ = counterTarget;
-        }
+        /** \brief Set counter init value (default: 0) */
         void setCounterInit(unsigned long long counterInit)
         {
             counterInit_ = counterInit;
         }
+        /** \brief Set counter target value (default: 100) */
+        void setCounterTarget(unsigned long long counterTarget)
+        {
+            counterTarget_ = counterTarget;
+        }
 
+        /** \brief Get init value */
         double getValueInit()
         {
             return valueInit_;
         }
+        /** \brief Get target value */
         double getValueTarget()
         {
             return valueTarget_;
         }
-        unsigned long long getCounterTarget()
-        {
-            return counterTarget_;
-        }
+        /** \brief Get counter init value */
         unsigned long long getCounterInit()
         {
             return counterInit_;
         }
+        /** \brief Get counter target value */
+        unsigned long long getCounterTarget()
+        {
+            return counterTarget_;
+        }
 
+        /** \brief Call parameter and increase counter */
         double operator()(void)
         {
             if (counter_ > counterTarget_)
@@ -99,26 +113,30 @@ namespace ompl
             return d;
         }
 
+        /** \brief Reset counter to init counter */
         void reset()
         {
-            counter_ = 0;
+            counter_ = counterInit_;
         }
 
+        /** \brief Get current counter */
         unsigned long long getCounter()
         {
             return counter_;
         }
+        /** \brief Increment counter */
         void incrementCounter()
         {
             counter_++;
         }
 
     private:
+        /** \brief Init value */
         double valueInit_{0.0};
+        /** \brief Target value */
         double valueTarget_{1.0};
 
         unsigned long long counter_{0};
-
         unsigned long long counterInit_{0};
         unsigned long long counterTarget_{100};
     };

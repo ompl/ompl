@@ -106,6 +106,8 @@ namespace ompl
 
             void setStopLevel(unsigned int level_);
 
+            /** \brief Set strategy to use to solve the find section problem.
+             * */
             void setFindSectionStrategy(FindSectionType type);
 
         protected:

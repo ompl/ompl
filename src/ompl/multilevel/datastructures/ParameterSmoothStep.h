@@ -44,6 +44,8 @@
 
 namespace ompl
 {
+    /**  \brief ParameterSmoothStep represents a smooth interpolation between two
+     * parameter values using a hermite polynomial interpolation. */
     class ParameterSmoothStep : public Parameter
     {
     public:
@@ -53,6 +55,8 @@ namespace ompl
 
         ParameterSmoothStep(double initValue, double targetValue) : Parameter(initValue, targetValue){};
 
+        /**  \brief Evaluate interpolation at counter using a third-order hermite
+         * polynomial */
         double operator()(void)
         {
             // map to [0,1]

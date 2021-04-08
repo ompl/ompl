@@ -101,20 +101,36 @@ namespace ompl
             // projection.
             bool makeProjection();
 
-            /// \brief Set explicit projection
-            void setProjection(ProjectionPtr);
+            /// \brief Set explicit projection (so that we do not need to guess
+            //projection)
+            void setProjection(ProjectionPtr projection);
 
             virtual void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) override;
 
+            /// \brief Perform an iteration of the planner
             virtual void grow() = 0;
+
+            /// \brief Return best solution
             virtual bool getSolution(ompl::base::PathPtr &solution) = 0;
+
+            /* \brief Change the metric to be used on bundle space (default: 
+             * intrinsic bundle space metric) */
             virtual void setMetric(const std::string &sMetric) = 0;
+
+            /* \brief Change the propagator to be used on bundle space (default: 
+             * intrinsic bundle space propagator) */
             virtual void setPropagator(const std::string &sPropagator) = 0;
 
+            /* \brief Return a sample from the current datastructure on the
+             * total space*/
             virtual void sampleFromDatastructure(ompl::base::State *xBase) = 0;
+            /* \brief Return a sample from bundle space (using restriction
+             * sampling) */
             virtual void sampleBundle(ompl::base::State *xRandom);
+            /* \brief Same as sampleBundle, but return a valid state */
             bool sampleBundleValid(ompl::base::State *xRandom);
 
+            /* \brief Check if there exists a solution */
             virtual bool hasSolution();
 
             /// \brief Check if any infeasibility guarantees are fulfilled
@@ -185,8 +201,10 @@ namespace ompl
             /// \brief Write class to stream (use as std::cout << *this << std::endl)
             friend std::ostream &operator<<(std::ostream &, const BundleSpace &);
 
+            /* \brief Check if the current bundle space is dynamic*/
             bool isDynamic() const;
 
+            /* \brief Get pointer to goal region on bundle space */
             base::GoalSampleableRegion *getGoalPtr() const;
 
         private:
@@ -201,9 +219,13 @@ namespace ompl
             // bundle space
             BundleSpace *parentBundleSpace_{nullptr};
 
+            /* \brief Total space of bundle */
             ompl::base::SpaceInformationPtr totalSpace_{nullptr};
+
+            /* \brief Base space of bundle */
             ompl::base::SpaceInformationPtr baseSpace_{nullptr};
 
+            /* \brief Pointer to uniform state sampler on total space */
             ompl::base::StateSamplerPtr Bundle_sampler_;
             ompl::base::ValidStateSamplerPtr Bundle_valid_sampler_;
 
