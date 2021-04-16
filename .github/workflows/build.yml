@@ -1,0 +1,64 @@
+name: Build & Test
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - pr-github-actions
+
+jobs:
+  default:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019]
+    steps:
+    - uses: actions/checkout@v2
+    - name: "Install Linux dependencies"
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update -y -qq &&
+        sudo apt-get install -y -qq \
+        libboost-filesystem-dev \
+        libboost-program-options-dev \
+        libboost-serialization-dev \
+        libboost-system-dev \
+        libboost-test-dev \
+        libeigen3-dev \
+        libflann-dev \
+        libode-dev \
+        libtriangle-dev
+    - name: "Install macOS dependencies"
+      if: runner.os == 'macOS'
+      run: brew install boost eigen flann ode
+    - name: "Install Windows dependencies"
+      if: runner.os == 'Windows'
+      uses: lukka/run-vcpkg@v6
+      id: runvcpkg
+      with:
+          vcpkgGitCommitId: ec6fe06e8da05a8157dc8581fa96b36b571c1bd5
+          vcpkgTriplet: 'x64-windows'
+          vcpkgArguments: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-system boost-test eigen3 flann'
+    - name: Build & Test (Linux, macOS)
+      if: runner.os != 'Windows'
+      uses: ashutoshvarma/action-cmake-build@master
+      with:
+        build-dir: ${{ runner.workspace }}/build
+        build-type: Release
+        configure-options: -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python
+        run-test: true
+        ctest-options: --output-on-failure
+        install-build: true
+    - name: Build & Test (Windows)
+      if: runner.os == 'Windows'
+      uses: ashutoshvarma/action-cmake-build@master
+      with:
+        build-dir: ${{ runner.workspace }}/build
+        build-type: Release
+        configure-options: -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/ompl/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_GENERATOR_PLATFORM=x64
+        run-test: true
+        ctest-options: --output-on-failure
+        install-build: true
