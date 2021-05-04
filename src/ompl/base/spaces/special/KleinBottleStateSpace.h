@@ -36,8 +36,8 @@
 
 /* Author: Andreas Orthey */
 
-#ifndef OMPL_BASE_SPACES_KleinBottle_STATE_SPACE_
-#define OMPL_BASE_SPACES_KleinBottle_STATE_SPACE_
+#ifndef OMPL_BASE_SPACES_KLEINBOTTLE_STATE_SPACE_
+#define OMPL_BASE_SPACES_KLEINBOTTLE_STATE_SPACE_
 
 #include <ompl/base/StateSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
@@ -93,7 +93,7 @@ namespace ompl
                 }
             };
 
-            KleinBottleStateSpace(double length = 1.0);
+            KleinBottleStateSpace();
 
             ~KleinBottleStateSpace() override = default;
 
@@ -107,8 +107,6 @@ namespace ompl
 
             Eigen::Vector3f toVector(const State *state) const;
 
-        private:
-            double length_{1.0}; //length of KleinBottle
         };
     }
 }

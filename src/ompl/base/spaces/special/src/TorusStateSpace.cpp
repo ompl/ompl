@@ -36,7 +36,7 @@
 
 /* Author: Andreas Orthey */
 
-#include <ompl/base/spaces/TorusStateSpace.h>
+#include <ompl/base/spaces/special/TorusStateSpace.h>
 #include <ompl/tools/config/MagicConstants.h>
 #include <cstring>
 

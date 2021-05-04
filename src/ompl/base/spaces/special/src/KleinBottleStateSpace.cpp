@@ -36,7 +36,7 @@
 
 /* Author: Andreas Orthey */
 
-#include <ompl/base/spaces/KleinBottleStateSpace.h>
+#include <ompl/base/spaces/special/KleinBottleStateSpace.h>
 #include <ompl/tools/config/MagicConstants.h>
 #include <cstring>
 #include <boost/math/constants/constants.hpp>
@@ -58,10 +58,10 @@ void KleinBottleStateSampler::sampleUniform(State *state)
 
         //NOTE: The idea here is to compute the norm of the gradient at each
         //point of the surface (i.e. the gradient of the coordinate mapping from
-        //(u,v) to (x,y,z)). To get vprime, we divide by the maximum norm of the
+        //(u,v) to (x,y,z)). To get the norm, we divide by the maximum norm of the
         //gradient over the whole surface. This gives a number between [0,1]. We
         //then do rejection sampling, by choosing a random number in [0,1] and
-        //accept if vprime is larger than this random number. Surface elements
+        //accept if the norm is larger than this random number. Surface elements
         //with a high curvature will have a small norm and will therefore be
         //penalized under this method (i.e. rejected more often).
         //See also: https://mathematica.stackexchange.com/questions/148693/generating-random-points-on-a-kleins-bottle
@@ -89,15 +89,15 @@ void KleinBottleStateSampler::sampleUniform(State *state)
 
         double a = (-aprime*cv + (2/3)*sv*sv*cu*cos(2*u));
 
-        double bprime = (26.6666666666667*su7*cv - 55.0*su5*cv - 37.3333333333333*su3*cu6*cv + 28.0*su3*cv + 10.6666666666667*su*cu8*cv - 10.6666666666667*su*cu6*cv - 4.0*sin(2*u) + 22.4*cu7*cv - 35.2*cu5*cv + 12.2*cu3*cv + 0.6*cu*cv);
+        double bprime = ((26+2/3.0)*su7*cv - 55.0*su5*cv - (37+1.0/3.0)*su3*cu6*cv + 28.0*su3*cv + (10+2/3.0)*su*cu8*cv - (10+2/3.0)*su*cu6*cv - 4.0*sin(2*u) + 22.4*cu7*cv - 35.2*cu5*cv + 12.2*cu3*cv + 0.6*cu*cv);
 
-        double cprime = (5.33333333333333*su5*cu + 3.2*su4 - 10.6666666666667*su3*cu - 6.4*su2 + 2.5*sin(2*u) + 3.0);
+        double cprime = ((5+1/3.0)*su5*cu + 3.2*su4 - (10+2/3.0)*su3*cu - 6.4*su2 + 2.5*sin(2*u) + 3.0);
 
-        double b =((0.333333333333333*sin(2*u) + 0.4)*bprime*cu - cprime*aprime*su3);
+        double b =(((1.0/3.0)*sin(2*u) + 0.4)*bprime*cu - cprime*aprime*su3);
 
-        double c = (0.833333333333333*sin(2*u) + 1);
+        double c = ((5.0/6.0)*sin(2*u) + 1);
 
-        double d = (-(0.333333333333333*sin(2*u) + 0.4)*bprime*cv + 0.666666666666667*cprime*su3*sv*sv*cos(2*u));
+        double d = (-((1.0/3.0)*sin(2*u) + 0.4)*bprime*cv + (2.0/3.0)*cprime*su3*sv*sv*cos(2*u));
 
         double s = sqrtf(a*a*(0.16*c*c) + b*b*sv*sv + d*d);
 
@@ -132,14 +132,13 @@ void KleinBottleStateSampler::sampleGaussian(State *state, const State *mean, do
     space_->enforceBounds(state);
 }
 
-KleinBottleStateSpace::KleinBottleStateSpace(double length):
-  length_(length)
+KleinBottleStateSpace::KleinBottleStateSpace()
 {
     setName("KleinBottle" + getName());
     type_ = STATE_SPACE_KLEIN_BOTTLE;
 
     //We model the Klein bottle as a regular cylinder, but where both ends are
-    //glued together in an inverse manner. For more information, check out the
+    //glued inversely together. For more information, check out the
     //wikipedia article: https://en.wikipedia.org/wiki/Klein_bottle.
     //Both interpolation and distance computation have to take 
     //the gluing into account when crossing over the boundary.
@@ -151,10 +150,16 @@ KleinBottleStateSpace::KleinBottleStateSpace(double length):
     // |            |
     // ------>-------
     //  v-dimension (0 to 2*pi)
+    //
+    //  Gluing:
+    // u=pi+0.001:  0 ----------- -pi pi ---------- 0
+    // u=0       :  -pi ----------- 0 0 ---------- pi
 
     StateSpacePtr R1(std::make_shared<RealVectorStateSpace>(1));
     R1->as<RealVectorStateSpace>()->setBounds(0, pi);
+
     StateSpacePtr SO2(std::make_shared<SO2StateSpace>());
+
     addSubspace(R1, 1.0);
     addSubspace(SO2, 1.0);
 
@@ -179,10 +184,10 @@ double KleinBottleStateSpace::distance(const State *state1, const State *state2)
     }
     else
     {
-        double d_u = pi - diffU;
+        double d_u = pi - fabs(diffU);
 
         const double v1 = state1->as<KleinBottleStateSpace::StateType>()->getV();
-        double v2 = state1->as<KleinBottleStateSpace::StateType>()->getV();
+        double v2 = state2->as<KleinBottleStateSpace::StateType>()->getV();
 
         //reverse v2 (valid for both directions)
         v2 = (v2 > 0 ? pi - v2 : -pi - v2);
@@ -237,7 +242,7 @@ void KleinBottleStateSpace::interpolate(const State *from, const State *to, doub
         double v2 = to->as<KleinBottleStateSpace::StateType>()->getV();
 
         //If we crossed the gluing, we need to invert the "from"-state, otherwise
-        //we need to invert the "to"-state. 
+        //we need to invert the "to"-state (similar to default SO2 interpolation)
         if(crossed)
         {
           v1 = (v1 > 0 ? pi - v1 : -pi - v1);
@@ -281,7 +286,7 @@ Eigen::Vector3f KleinBottleStateSpace::toVector(const State *state) const
     //Formula from https://en.wikipedia.org/wiki/Klein_bottle#Bottle_shape
     const KleinBottleStateSpace::StateType *s = state->as<KleinBottleStateSpace::StateType>();
     float u = s->getU();
-    float v = s->getV() + pi;
+    float v = s->getV() + pi; //NOTE: SO2 state space has bounds [-pi, +pi] 
 
     assert(u >= 0);
     assert(u <= pi);

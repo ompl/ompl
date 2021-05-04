@@ -36,7 +36,7 @@
 
 /* Author: Andreas Orthey */
 
-#include <ompl/base/spaces/MobiusStateSpace.h>
+#include <ompl/base/spaces/special/MobiusStateSpace.h>
 #include <ompl/tools/config/MagicConstants.h>
 #include <cstring>
 #include <boost/math/constants/constants.hpp>

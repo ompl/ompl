@@ -36,7 +36,7 @@
 
 /* Author: Andreas Orthey */
 
-#include <ompl/base/spaces/SphereStateSpace.h>
+#include <ompl/base/spaces/special/SphereStateSpace.h>
 #include <ompl/tools/config/MagicConstants.h>
 #include <cstring>
 #include <boost/math/constants/constants.hpp>
