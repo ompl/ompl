@@ -147,9 +147,9 @@ Eigen::Vector3f TorusStateSpace::toVector(const State *state) const
     const double &R = majorRadius_;
     const double &r = minorRadius_;
 
-    v[0] = (R + r*cos(phi))*cos(theta);
-    v[1] = (R + r*cos(phi))*sin(theta);
-    v[2] = r*sin(phi);
+    v[0] = (R + r * cos(phi)) * cos(theta);
+    v[1] = (R + r * cos(phi)) * sin(theta);
+    v[2] = r * sin(phi);
 
     return v;
 }

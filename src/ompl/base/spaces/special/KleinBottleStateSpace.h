@@ -57,8 +57,9 @@ namespace ompl
             void sampleUniformNear(State *state, const State *near, double distance) override;
 
             void sampleGaussian(State *state, const State *mean, double stdDev) override;
+
         private:
-            const double gMax_{4.12}; //maximum norm gradient of surface (do not change)
+            const double gMax_{4.12};  // maximum norm gradient of surface (do not change)
         };
 
         class KleinBottleStateSpace : public CompoundStateSpace
@@ -106,7 +107,6 @@ namespace ompl
             State *allocState() const override;
 
             Eigen::Vector3f toVector(const State *state) const;
-
         };
     }
 }

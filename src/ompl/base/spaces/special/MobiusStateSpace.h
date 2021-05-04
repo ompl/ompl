@@ -92,8 +92,8 @@ namespace ompl
             Eigen::Vector3f toVector(const State *state) const;
 
         private:
-            double intervalMax_{1.0}; //width of mobius strip
-            double radius_{1.0}; // radius of inner circle
+            double intervalMax_{1.0};  // width of mobius strip
+            double radius_{1.0};       // radius of inner circle
         };
     }
 }

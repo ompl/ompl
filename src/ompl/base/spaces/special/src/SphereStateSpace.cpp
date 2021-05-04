@@ -51,8 +51,8 @@ SphereStateSampler::SphereStateSampler(const StateSpace *space) : StateSampler(s
 void SphereStateSampler::sampleUniform(State *state)
 {
     // see for example http://corysimon.github.io/articles/uniformdistn-on-sphere/
-    double theta = 2.0 * pi * rng_.uniformReal(0, 1) - pi; //uniform in [-pi,+pi]
-    double phi = acos(1.0 - 2.0 * rng_.uniformReal(0, 1));//in [0,+pi]
+    double theta = 2.0 * pi * rng_.uniformReal(0, 1) - pi;  // uniform in [-pi,+pi]
+    double phi = acos(1.0 - 2.0 * rng_.uniformReal(0, 1));  // in [0,+pi]
     SphereStateSpace::StateType *S = state->as<SphereStateSpace::StateType>();
     S->setThetaPhi(theta, phi);
 }
@@ -80,8 +80,7 @@ StateSamplerPtr SphereStateSpace::allocDefaultStateSampler() const
     return std::make_shared<SphereStateSampler>(this);
 }
 
-SphereStateSpace::SphereStateSpace(double radius):
-  radius_(radius)
+SphereStateSpace::SphereStateSpace(double radius) : radius_(radius)
 {
     setName("Sphere" + getName());
     type_ = STATE_SPACE_SPHERE;
@@ -104,10 +103,10 @@ double SphereStateSpace::distance(const State *state1, const State *state2) cons
 
     // Note: Formula assumes phi in [-pi/2,+pi/2]
     float t1 = S1->getTheta();
-    float phi1 = S1->getPhi() - pi/2.0;
+    float phi1 = S1->getPhi() - pi / 2.0;
 
     float t2 = S2->getTheta();
-    float phi2 = S2->getPhi() - pi/2.0;
+    float phi2 = S2->getPhi() - pi / 2.0;
 
     // This is the Vincenty formula, but it is less numerically stable
     // double dt = t2 - t1;
@@ -118,11 +117,10 @@ double SphereStateSpace::distance(const State *state1, const State *state2) cons
     // return radius_ * atan2(numerator, denumerator);
 
     // Haversine formula
-    float s = 0.5*(phi1 - phi2);
-    float t = 0.5*(t1 - t2);
-    float d = sqrtf(sin(s)*sin(s) + cos(phi1)*cos(phi2)*sin(t)*sin(t));
-    return 2*radius_*asin(d);
-
+    float s = 0.5 * (phi1 - phi2);
+    float t = 0.5 * (t1 - t2);
+    float d = sqrtf(sin(s) * sin(s) + cos(phi1) * cos(phi2) * sin(t) * sin(t));
+    return 2 * radius_ * asin(d);
 }
 
 double SphereStateSpace::getMeasure() const
@@ -145,9 +143,9 @@ Eigen::Vector3f SphereStateSpace::toVector(const State *state) const
     float theta = S1->getTheta();
     float phi = S1->getPhi();
 
-    v[0] = radius_*sin(phi)*cos(theta);
-    v[1] = radius_*sin(phi)*sin(theta);
-    v[2] = radius_*cos(phi);
+    v[0] = radius_ * sin(phi) * cos(theta);
+    v[1] = radius_ * sin(phi) * sin(theta);
+    v[2] = radius_ * cos(phi);
 
     return v;
 }
