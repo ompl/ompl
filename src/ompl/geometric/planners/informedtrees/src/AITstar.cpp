@@ -493,6 +493,24 @@ namespace ompl
             }
         }
 
+        bool AITstar::continueReverseSearch() const
+        {
+            // Never continue the reverse search if its queue is empty.
+            if (reverseQueue_.empty())
+            {
+                return false;
+            }
+
+            // Get references to the best edge and vertex in the queues.
+            const auto &bestEdge = forwardQueue_.top()->data;
+            const auto &bestVertex = reverseQueue_.top()->data;
+
+            // The reverse search must be continued if the best edge has an inconsistent child state or if the best
+            // vertex can potentially lead to a better solution than the best edge.
+            return !bestEdge.getChild()->isConsistent() ||
+                   objective_->isCostBetterThan(bestVertex.first[0u], bestEdge.getSortKey()[0u]);
+        }
+
         std::vector<aitstar::Edge> AITstar::getEdgesInQueue() const
         {
             std::vector<aitstar::Edge> edges;
@@ -561,7 +579,7 @@ namespace ompl
             ++numIterations_;
 
             // If the algorithm is in a state that requires performing a reverse search iteration, try to perform one.
-            if (performReverseSearchIteration_)
+            if (continueReverseSearch())
             {
                 // If the reverse queue is not empty, perform a reverse search iteration.
                 if (!reverseQueue_.empty())

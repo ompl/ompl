@@ -194,6 +194,9 @@ namespace ompl
             /** \brief Inserts the goal vertices of the graph into the reverse search queue. */
             void insertGoalVerticesInReverseQueue();
 
+            /** \brief Check whether the reverse search must be continued. */
+            bool continueReverseSearch() const;
+
             /** \brief Returns the path a start to the argument. */
             std::shared_ptr<ompl::geometric::PathGeometric>
             getPathToVertex(const std::shared_ptr<aitstar::Vertex> &vertex) const;
