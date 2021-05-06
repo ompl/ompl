@@ -623,10 +623,11 @@ namespace ompl
 
         void AITstar::iterate(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
-            // If this is the first time solve is called, populate the reverse queue.
+            // If this is the first time solve is called, populate the queues.
             if (numIterations_ == 0u)
             {
                 insertGoalVerticesInReverseQueue();
+                expandStartVerticesIntoForwardQueue();
             }
 
             // Keep track of the number of iterations.
