@@ -276,6 +276,11 @@ namespace ompl
 
             /** \brief The edges to be inserted in the forward queue. */
             std::vector<aitstar::Edge> edgesToBeInserted_{};
+            /** \brief Lexicographically compares the keys of two edges. */
+            bool isEdgeBetter(const aitstar::Edge& lhs, const aitstar::Edge& rhs) const;
+
+            /** \brief Lexicographically compares the keys of two vertices. */
+            bool isVertexBetter(const KeyVertexPair& lhs, const KeyVertexPair& rhs) const;
 
             /** \brief The number of iterations that have been performed. */
             std::size_t numIterations_{0u};

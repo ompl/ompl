@@ -54,22 +54,8 @@ namespace ompl
           : ompl::base::Planner(spaceInformation, "AITstar")
           , solutionCost_()
           , graph_(solutionCost_)
-          , forwardQueue_([this](const aitstar::Edge &lhs, const aitstar::Edge &rhs) {
-              return std::lexicographical_compare(lhs.getSortKey().cbegin(), lhs.getSortKey().cend(),
-                                                  rhs.getSortKey().cbegin(), rhs.getSortKey().cend(),
-                                                  [this](const ompl::base::Cost &a, const ompl::base::Cost &b) {
-                                                      return objective_->isCostBetterThan(a, b);
-                                                  });
-          })
-          , reverseQueue_(
-                [this](const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> &lhs,
-                       const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> &rhs) {
-                    return std::lexicographical_compare(lhs.first.cbegin(), lhs.first.cend(), rhs.first.cbegin(),
-                                                        rhs.first.cend(),
-                                                        [this](const ompl::base::Cost &a, const ompl::base::Cost &b) {
-                                                            return objective_->isCostBetterThan(a, b);
-                                                        });
-                })
+          , forwardQueue_([this](const auto &lhs, const auto &rhs) { return isEdgeBetter(lhs, rhs); })
+          , reverseQueue_([this](const auto &lhs, const auto &rhs) { return isVertexBetter(lhs, rhs); })
         {
             // Specify AIT*'s planner specs.
             specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
@@ -995,6 +981,20 @@ namespace ompl
                     edgesToBeInserted_.clear();
                 }
             }
+        }
+
+        bool AITstar::isEdgeBetter(const aitstar::Edge &lhs, const aitstar::Edge &rhs) const
+        {
+            return std::lexicographical_compare(
+                lhs.getSortKey().cbegin(), lhs.getSortKey().cend(), rhs.getSortKey().cbegin(), rhs.getSortKey().cend(),
+                [this](const auto &a, const auto &b) { return objective_->isCostBetterThan(a, b); });
+        }
+
+        bool AITstar::isVertexBetter(const KeyVertexPair &lhs, const KeyVertexPair &rhs) const
+        {
+            return std::lexicographical_compare(
+                lhs.first.cbegin(), lhs.first.cend(), rhs.first.cbegin(), rhs.first.cend(),
+                [this](const auto &a, const auto &b) { return objective_->isCostBetterThan(a, b); });
         }
 
         void AITstar::reverseSearchUpdateVertex(const std::shared_ptr<aitstar::Vertex> &vertex)
