@@ -188,6 +188,12 @@ namespace ompl
             /** \brief Rebuilds the forward queue. */
             void rebuildReverseQueue();
 
+            /** \brief Clears the forward queue, resetting the lookups of the vertices in it. */
+            void clearForwardQueue();
+
+            /** \brief Clears the reverse queue, resetting the lookups of the vertices in it. */
+            void clearReverseQueue();
+
             /** \brief Prints a message using OMPL_INFORM to let the user know that AIT* found a new solution. */
             void informAboutNewSolution() const;
 
