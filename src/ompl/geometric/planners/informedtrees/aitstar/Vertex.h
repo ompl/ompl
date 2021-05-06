@@ -60,8 +60,7 @@ namespace ompl
             public:
                 /** \brief Constructs a vertex by sampling a state. */
                 Vertex(const ompl::base::SpaceInformationPtr &spaceInformation,
-                       const ompl::base::ProblemDefinitionPtr &problemDefinition,
-                       const std::size_t &batchId);
+                       const ompl::base::ProblemDefinitionPtr &problemDefinition, const std::size_t &batchId);
 
                 /** \brief Destructs the vertex. */
                 virtual ~Vertex();
@@ -194,12 +193,9 @@ namespace ompl
                  * search. */
                 void registerInsertionIntoQueueDuringReverseSearch();
 
-                /** \brief Returns whether the vertex has had an outgoing edge popped during the current forward search.
-                 */
-                bool hasHadOutgoingEdgePoppedDuringCurrentForwardSearch() const;
-
-                /** \brief Returns whether the vertex has been expanded during the current reverse search. */
-                bool hasBeenExpandedDuringCurrentReverseSearch() const;
+                /** \brief Returns whether the vertex is consistent, i.e., whether its cost-to-come is equal to the
+                 * cost-to-come when it was last expanded. */
+                bool isConsistent() const;
 
                 /** \brief Returns whether the vertex has been inserted into the queue during the current reverse
                  * search. */
@@ -317,7 +313,7 @@ namespace ompl
                 const std::size_t vertexId_;
 
                 /** \brief The id of the most recent batch. */
-                const std::size_t& batchId_;
+                const std::size_t &batchId_;
 
                 /** \brief The batch id for which the cached neighbor list is valid. */
                 mutable std::size_t neighborBatchId_{0u};

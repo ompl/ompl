@@ -203,6 +203,9 @@ namespace ompl
             /** \brief Inserts the goal vertices of the graph into the reverse search queue. */
             void insertGoalVerticesInReverseQueue();
 
+            /** \brief Insert start vertices in the forward queue. */
+            void expandStartVerticesIntoForwardQueue();
+            
             /** \brief Check whether the reverse search must be continued. */
             bool continueReverseSearch() const;
 
@@ -222,13 +225,6 @@ namespace ompl
 
             /** \brief Get all outgoing edges of a vertex. */
             std::vector<aitstar::Edge> getOutgoingEdges(const std::shared_ptr<aitstar::Vertex> &vertex) const;
-
-            /** \brief Check whether all vertices of a set of edges have been processed by the reverse queue. */
-            bool haveAllVerticesBeenProcessed(const std::vector<aitstar::Edge> &edges) const;
-
-            /** \brief Check whether the parent and child vertices of an edge have been processed by the reverse queue.
-             */
-            bool haveAllVerticesBeenProcessed(const aitstar::Edge &edges) const;
 
             /** \brief Checks whether the cost to come of a goal vertex has been updated and updates the solution if so.
              */
@@ -289,8 +285,6 @@ namespace ompl
             /** \brief The reverse queue. */
             VertexQueue reverseQueue_;
 
-            /** \brief The edges to be inserted in the forward queue. */
-            std::vector<aitstar::Edge> edgesToBeInserted_{};
             /** \brief Lexicographically compares the keys of two edges. */
             bool isEdgeBetter(const aitstar::Edge& lhs, const aitstar::Edge& rhs) const;
 

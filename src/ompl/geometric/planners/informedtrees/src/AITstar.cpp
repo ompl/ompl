@@ -146,9 +146,7 @@ namespace ompl
             solutionCost_ = objective_->infiniteCost();
             approximateSolutionCost_ = objective_->infiniteCost();
             approximateSolutionCostToGoal_ = objective_->infiniteCost();
-            edgesToBeInserted_.clear();
             numIterations_ = 0u;
-            performReverseSearchIteration_ = true;
             isForwardSearchStartedOnBatch_ = false;
             forwardQueueMustBeRebuilt_ = false;
             Planner::clear();
@@ -511,6 +509,14 @@ namespace ompl
             }
         }
 
+        void AITstar::expandStartVerticesIntoForwardQueue()
+        {
+            for (const auto &start : graph_.getStartVertices())
+            {
+                insertOrUpdateInForwardQueue(getOutgoingEdges(start));
+            }
+        }
+
         bool AITstar::continueReverseSearch() const
         {
             // Never continue the reverse search if its queue is empty.
@@ -599,30 +605,7 @@ namespace ompl
             // If the algorithm is in a state that requires performing a reverse search iteration, try to perform one.
             if (continueReverseSearch())
             {
-                // If the reverse queue is not empty, perform a reverse search iteration.
-                if (!reverseQueue_.empty())
-                {
-                    performReverseSearchIteration();
-                }
-                else
-                {
-                    // If the reverse queue is empty, check if there are forward edges to be inserted.
-                    // Only insert forward edges that connect vertices that have been processed with the reverse search.
-                    // If the reverse queue is empty and a vertex has not been processed with the reverse queue, it
-                    // means that it's not in the same connected component of the RGG as the goal. We can not reach the
-                    // goal from this vertex and therefore this edge can be disregarded.
-                    for (const auto &edge : edgesToBeInserted_)
-                    {
-                        if (haveAllVerticesBeenProcessed(edge))
-                        {
-                            insertOrUpdateInForwardQueue(aitstar::Edge(
-                                edge.getParent(), edge.getChild(), computeSortKey(edge.getParent(), edge.getChild())));
-                        }
-                    }
-                    edgesToBeInserted_.clear();
-                    performReverseSearchIteration_ = false;
-                    forwardQueueMustBeRebuilt_ = true;
-                }
+                performReverseSearchIteration();
             }
             else
             {
@@ -631,37 +614,8 @@ namespace ompl
                     // Remember that we've started the forward search on this batch.
                     isForwardSearchStartedOnBatch_ = true;
 
-                    // If no start vertex has finite cost to come from the goal, there is no need to start the
-                    // forward search.
-                    std::vector<aitstar::Edge> outgoingStartEdges;
-                    for (const auto &start : graph_.getStartVertices())
-                    {
-                        if (objective_->isFinite(start->getCostToComeFromGoal()))
-                        {
-                            // Add the outgoing edges of all start vertices to the queue.
-                            for (const auto &start : graph_.getStartVertices())
-                            {
-                                const auto outgoingEdges = getOutgoingEdges(start);
-                                outgoingStartEdges.insert(outgoingStartEdges.end(), outgoingEdges.begin(),
-                                                          outgoingEdges.end());
-                            }
-                        }
-                    }
-                    // If all vertices of the outgoing start edges have been processed, insert the edges into the
-                    // forward queue. If not, remember that they are to be inserted.
-                    if (haveAllVerticesBeenProcessed(outgoingStartEdges))
-                    {
-                        for (const auto &edge : outgoingStartEdges)
-                        {
-                            insertOrUpdateInForwardQueue(edge);
-                        }
-                    }
-                    else
-                    {
-                        assert(edgesToBeInserted_.empty());
-                        edgesToBeInserted_ = outgoingStartEdges;
-                        performReverseSearchIteration_ = true;
-                    }
+                    // Expand the start vertices into the forward queue.
+                    expandStartVerticesIntoForwardQueue();
                 }
                 else if (forwardQueueMustBeRebuilt_)
                 {
@@ -680,29 +634,6 @@ namespace ompl
                     // Add new samples to the graph.
                     if (graph_.addSamples(batchSize_, terminationCondition))
                     {
-                        // Clear the reverse queue.
-                        std::vector<std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>>>
-                            reverseQueue;
-                        reverseQueue_.getContent(reverseQueue);
-                        for (const auto &element : reverseQueue)
-                        {
-                            element.second->resetReverseQueuePointer();
-                        }
-                        reverseQueue_.clear();
-
-                        // Clear the forward queue.
-                        std::vector<aitstar::Edge> forwardQueue;
-                        forwardQueue_.getContent(forwardQueue);
-                        for (const auto &element : forwardQueue)
-                        {
-                            element.getChild()->resetForwardQueueIncomingLookup();
-                            element.getParent()->resetForwardQueueOutgoingLookup();
-                        }
-                        forwardQueue_.clear();
-
-                        // Clear the cache of edges to be inserted.
-                        edgesToBeInserted_.clear();
-
                         // Remove useless samples from the graph.
                         if (isPruningEnabled_)
                         {
@@ -715,19 +646,11 @@ namespace ompl
                             graph_.updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), &pis_);
                         }
 
-                        // Add the goals to the reverse queue.
-                        for (const auto &goal : graph_.getGoalVertices())
-                        {
-                            goal->setCostToComeFromGoal(objective_->identityCost());
-                            auto reverseQueuePointer = reverseQueue_.insert(std::make_pair(computeSortKey(goal), goal));
-                            goal->setReverseQueuePointer(reverseQueuePointer);
-                        }
-
-                        // This is a new batch, so the search hasn't been started.
-                        isForwardSearchStartedOnBatch_ = false;
-
-                        // We have to update the heuristic. Start with a reverse iteration.
-                        performReverseSearchIteration_ = true;
+                        // Reinitialize the queues.
+                        clearReverseQueue();
+                        clearForwardQueue();
+                        insertGoalVerticesInReverseQueue();
+                        expandStartVerticesIntoForwardQueue();
                     }
                 }
             }
@@ -779,21 +702,8 @@ namespace ompl
             }  // This edge can improve the solution. Check if it's already in the reverse search tree.
             else if (child->hasForwardParent() && child->getForwardParent()->getId() == parent->getId())
             {
-                // This is a freebie, just insert the outgoing edges of the child.
-                auto edges = getOutgoingEdges(child);
-                if (haveAllVerticesBeenProcessed(edges))
-                {
-                    for (const auto &edge : edges)
-                    {
-                        insertOrUpdateInForwardQueue(edge);
-                    }
-                }
-                else
-                {
-                    edgesToBeInserted_ = edges;
-                    performReverseSearchIteration_ = true;
-                    return;
-                }
+                insertOrUpdateInForwardQueue(getOutgoingEdges(child));
+                return;
             }  // This edge can improve the solution and is not already in the reverse search tree.
             else if (objective_->isCostBetterThan(child->getCostToComeFromStart(),
                                                   objective_->combineCosts(parent->getCostToComeFromStart(),
@@ -843,20 +753,7 @@ namespace ompl
                     }
 
                     // Insert the child's outgoing edges into the queue.
-                    auto edges = getOutgoingEdges(child);
-                    if (haveAllVerticesBeenProcessed(edges))
-                    {
-                        for (const auto &edge : edges)
-                        {
-                            insertOrUpdateInForwardQueue(edge);
-                        }
-                    }
-                    else
-                    {
-                        edgesToBeInserted_ = edges;
-                        performReverseSearchIteration_ = true;
-                        return;
-                    }
+                    insertOrUpdateInForwardQueue(getOutgoingEdges(child));
                 }
             }
             else
@@ -1041,6 +938,17 @@ namespace ompl
                     }
                 }
             }
+            else
+            {
+                // Reset the reverse parent if the vertex has one.
+                if (vertex->hasReverseParent())
+                {
+                    vertex->getReverseParent()->removeFromReverseChildren(vertex->getId());
+                    vertex->resetReverseParent();
+                }
+            }
+        }
+
         void AITstar::updateReverseSearchNeighbors(const std::shared_ptr<aitstar::Vertex> &vertex)
         {
             // Start with the reverse search children, because if this vertex becomes the parent of a neighbor, that
@@ -1226,25 +1134,6 @@ namespace ompl
             }
 
             return outgoingEdges;
-        }
-
-        bool AITstar::haveAllVerticesBeenProcessed(const std::vector<aitstar::Edge> &edges) const
-        {
-            for (const auto &edge : edges)
-            {
-                if (!haveAllVerticesBeenProcessed(edge))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        bool AITstar::haveAllVerticesBeenProcessed(const aitstar::Edge &edge) const
-        {
-            return edge.getParent()->hasBeenExpandedDuringCurrentReverseSearch() &&
-                   edge.getChild()->hasBeenExpandedDuringCurrentReverseSearch();
         }
 
         void AITstar::updateExactSolution()

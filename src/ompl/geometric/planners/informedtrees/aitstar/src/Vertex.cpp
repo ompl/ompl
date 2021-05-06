@@ -61,8 +61,7 @@ namespace ompl
             }  // namespace
 
             Vertex::Vertex(const ompl::base::SpaceInformationPtr &spaceInformation,
-                           const ompl::base::ProblemDefinitionPtr &problemDefinition,
-                           const std::size_t &batchId)
+                           const ompl::base::ProblemDefinitionPtr &problemDefinition, const std::size_t &batchId)
               : spaceInformation_(spaceInformation)
               , problemDefinition_(problemDefinition)
               , objective_(problemDefinition->getOptimizationObjective())
@@ -192,8 +191,8 @@ namespace ompl
                 // Update the cost of all forward children.
                 for (const auto &child : getForwardChildren())
                 {
-                    child->setCostToComeFromStart(objective_->combineCosts(
-                        costToComeFromStart_, child->getEdgeCostFromForwardParent()));
+                    child->setCostToComeFromStart(
+                        objective_->combineCosts(costToComeFromStart_, child->getEdgeCostFromForwardParent()));
                     child->updateCostOfForwardBranch();
                 }
             }
@@ -456,14 +455,9 @@ namespace ompl
                 insertedIntoQueueId_ = batchId_;
             }
 
-            bool Vertex::hasHadOutgoingEdgePoppedDuringCurrentForwardSearch() const
+            bool Vertex::isConsistent() const
             {
-                return poppedOutgoingEdgeId_ == batchId_;
-            }
-
-            bool Vertex::hasBeenExpandedDuringCurrentReverseSearch() const
-            {
-                return expandedReverseSearchId_ == batchId_;
+                return objective_->isCostEquivalentTo(costToComeFromGoal_, expandedCostToComeFromGoal_);
             }
 
             bool Vertex::hasBeenInsertedIntoQueueDuringCurrentReverseSearch() const
