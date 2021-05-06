@@ -367,11 +367,8 @@ namespace ompl
             // in the cache of edges that are to be inserted.
             if (haveAllVerticesBeenProcessed(edges))
             {
-                for (auto &edge : edges)
-                {
-                    insertOrUpdateInForwardQueue(aitstar::Edge(edge.getParent(), edge.getChild(),
-                                                               computeSortKey(edge.getParent(), edge.getChild())));
-                }
+                insertOrUpdateInForwardQueue(aitstar::Edge(edge.getParent(), edge.getChild(),
+                                                           computeSortKey(edge.getParent(), edge.getChild())));
             }
             else
             {
@@ -1228,6 +1225,14 @@ namespace ompl
                 auto element = forwardQueue_.insert(edge);
                 edge.getParent()->addToForwardQueueOutgoingLookup(element);
                 edge.getChild()->addToForwardQueueIncomingLookup(element);
+            }
+        }
+
+        void AITstar::insertOrUpdateInForwardQueue(const std::vector<aitstar::Edge> &edges)
+        {
+            for (const auto &edge : edges)
+            {
+                insertOrUpdateInForwardQueue(edge);
             }
         }
 

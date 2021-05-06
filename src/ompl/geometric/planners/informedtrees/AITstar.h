@@ -170,8 +170,11 @@ namespace ompl
             /** \brief Updates a vertex in the reverse search queue (LPA* update). */
             void reverseSearchUpdateVertex(const std::shared_ptr<aitstar::Vertex> &vertex);
 
-            /** \brief Inserts or updates a vertex in the reverse queue. */
+            /** \brief Inserts or updates an edge in the forward queue. */
             void insertOrUpdateInForwardQueue(const aitstar::Edge &edge);
+            
+            /** \brief Inserts or updates edges in the forward queue. */
+            void insertOrUpdateInForwardQueue(const std::vector<aitstar::Edge> &edges);
 
             /** \brief Inserts or updates a vertex in the reverse queue. */
             void insertOrUpdateInReverseQueue(const std::shared_ptr<aitstar::Vertex> &vertex);
