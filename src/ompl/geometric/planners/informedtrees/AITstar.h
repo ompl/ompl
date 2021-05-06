@@ -188,6 +188,9 @@ namespace ompl
             /** \brief Prints a message using OMPL_INFORM to let the user know of the planner status. */
             void informAboutPlannerStatus(ompl::base::PlannerStatus::StatusType status) const;
 
+            /** \brief Inserts the goal vertices of the graph into the reverse search queue. */
+            void insertGoalVerticesInReverseQueue();
+
             /** \brief Returns the path a start to the argument. */
             std::shared_ptr<ompl::geometric::PathGeometric>
             getPathToVertex(const std::shared_ptr<aitstar::Vertex> &vertex) const;

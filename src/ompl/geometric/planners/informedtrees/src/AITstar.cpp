@@ -494,6 +494,22 @@ namespace ompl
                 countNumVerticesInForwardTree(), countNumVerticesInReverseTree());
         }
 
+        void AITstar::insertGoalVerticesInReverseQueue()
+        {
+            for (const auto &goal : graph_.getGoalVertices())
+            {
+                // Make sure the goal has zero cost to come from the reverse tree.
+                assert(objective_->isCostEquivalentTo(goal->getCostToComeFromGoal(), objective_->identityCost()));
+
+                // Create an element for the queue.
+                KeyVertexPair element({computeCostToGoToStartHeuristic(goal), objective_->identityCost()}, goal);
+
+                // Insert the element into the queue and set the corresponding pointer.
+                auto reverseQueuePointer = reverseQueue_.insert(element);
+                goal->setReverseQueuePointer(reverseQueuePointer);
+            }
+        }
+
         std::vector<aitstar::Edge> AITstar::getEdgesInQueue() const
         {
             std::vector<aitstar::Edge> edges;
@@ -555,21 +571,7 @@ namespace ompl
             // If this is the first time solve is called, populate the reverse queue.
             if (numIterations_ == 0u)
             {
-                for (const auto &goal : graph_.getGoalVertices())
-                {
-                    // Set the cost to come from the goal to identity cost.
-                    goal->setCostToComeFromGoal(objective_->identityCost());
-
-                    // Create an element for the queue.
-                    std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> element(
-                        std::array<ompl::base::Cost, 2u>(
-                            {computeCostToGoToStartHeuristic(goal), ompl::base::Cost(0.0)}),
-                        goal);
-
-                    // Insert the element into the queue and set the corresponding pointer.
-                    auto reverseQueuePointer = reverseQueue_.insert(element);
-                    goal->setReverseQueuePointer(reverseQueuePointer);
-                }
+                insertGoalVerticesInReverseQueue();
             }
 
             // Keep track of the number of iterations.
