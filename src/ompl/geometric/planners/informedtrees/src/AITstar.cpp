@@ -148,7 +148,6 @@ namespace ompl
             approximateSolutionCostToGoal_ = objective_->infiniteCost();
             numIterations_ = 0u;
             isForwardSearchStartedOnBatch_ = false;
-            forwardQueueMustBeRebuilt_ = false;
             Planner::clear();
         }
 
@@ -545,6 +544,27 @@ namespace ompl
                    objective_->isCostBetterThan(bestVertex.first[0u], bestEdge.getSortKey()[0u]);
         }
 
+        bool AITstar::continueForwardSearch() const
+        {
+            // Never continue the forward search if its queue is empty.
+            if (forwardQueue_.empty())
+            {
+                return false;
+            }
+
+            // If the best edge in the forward queue has a potential total solution cost of infinity, the forward search
+            // does not need to be continued. This can happen if the reverse search did not reach any target state of
+            // the edges in the forward queue.
+            const auto &bestEdgeCost = forwardQueue_.top()->data.getSortKey()[0u];
+            if (objective_->isFinite(bestEdgeCost))
+            {
+                return false;
+            }
+
+            // The forward search can be stopped once the resolution optimal solution has been found.
+            return objective_->isCostBetterThan(solutionCost_, bestEdgeCost);
+        }
+
         std::vector<aitstar::Edge> AITstar::getEdgesInQueue() const
         {
             std::vector<aitstar::Edge> edges;
@@ -612,58 +632,51 @@ namespace ompl
             // Keep track of the number of iterations.
             ++numIterations_;
 
-            // If the algorithm is in a state that requires performing a reverse search iteration, try to perform one.
+            // If the reverse search needs to be continued, do that now.
             if (continueReverseSearch())
             {
                 performReverseSearchIteration();
-            }
+            }  // If the reverse search is suspended, check whether the forward search needs to be continued.
+            else if (continueForwardSearch())
+            {
+                performForwardSearchIteration();
+            }  // If neither the forward search nor the reverse search needs to be continued, add more samples.
             else
             {
-                if (!isForwardSearchStartedOnBatch_)
+                // Add new samples to the graph, respecting the termination condition.
+                if (graph_.addSamples(batchSize_, terminationCondition))
                 {
-                    // Remember that we've started the forward search on this batch.
-                    isForwardSearchStartedOnBatch_ = true;
-
-                    // Expand the start vertices into the forward queue.
-                    expandStartVerticesIntoForwardQueue();
-                }
-                else if (!forwardQueue_.empty())
-                {
-                    // If the forward queue is not empty, perform a forward search iteration.
-                    performForwardSearchIteration();
-                }
-                else  // We should not perform a reverse search iteration and the forward queue is empty. Add more
-                      // samples.
-                {
-                    // Add new samples to the graph.
-                    if (graph_.addSamples(batchSize_, terminationCondition))
+                    // Remove useless samples from the graph.
+                    if (isPruningEnabled_)
                     {
-                        // Remove useless samples from the graph.
-                        if (isPruningEnabled_)
-                        {
-                            graph_.prune();
-                        }
-
-                        // Add new start and goal states if necessary.
-                        if (pis_.haveMoreStartStates() || pis_.haveMoreGoalStates())
-                        {
-                            graph_.updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), &pis_);
-                        }
-
-                        // Reinitialize the queues.
-                        clearReverseQueue();
-                        clearForwardQueue();
-                        insertGoalVerticesInReverseQueue();
-                        expandStartVerticesIntoForwardQueue();
+                        graph_.prune();
                     }
+
+                    // Add new start and goal states if necessary.
+                    if (pis_.haveMoreStartStates() || pis_.haveMoreGoalStates())
+                    {
+                        graph_.updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), &pis_);
+                    }
+
+                    // Reinitialize the queues.
+                    clearReverseQueue();
+                    clearForwardQueue();
+                    insertGoalVerticesInReverseQueue();
+                    expandStartVerticesIntoForwardQueue();
                 }
             }
         }
 
         void AITstar::performForwardSearchIteration()
         {
-            // We should never perform a forward search iteration while there are still edges to be inserted.
-            assert(edgesToBeInserted_.empty());
+            if (!isForwardSearchStartedOnBatch_)
+            {
+                // Remember that we've started the forward search on this batch.
+                isForwardSearchStartedOnBatch_ = true;
+
+                // Expand the start vertices into the forward queue.
+                expandStartVerticesIntoForwardQueue();
+            }
 
             // Make sure all edges are sorted.
             updateUnsortedEdgesInForwardQueue();

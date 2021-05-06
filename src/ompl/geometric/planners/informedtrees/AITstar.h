@@ -212,6 +212,9 @@ namespace ompl
             /** \brief Check whether the reverse search must be continued. */
             bool continueReverseSearch() const;
 
+            /** \brief Check whether the forward search must be continued. */
+            bool continueForwardSearch() const;
+
             /** \brief Returns the path a start to the argument. */
             std::shared_ptr<ompl::geometric::PathGeometric>
             getPathToVertex(const std::shared_ptr<aitstar::Vertex> &vertex) const;
