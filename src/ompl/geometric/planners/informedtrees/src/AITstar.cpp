@@ -1215,8 +1215,13 @@ namespace ompl
                                     [&edge](const auto element) {
                                         return element->data.getChild()->getId() == edge.getChild()->getId();
                                     }) != edge.getParent()->getForwardQueueOutgoingLookup().end());
-                (*it)->data.setSortKey(edge.getSortKey());
-                forwardQueue_.update(*it);
+
+                // This edge exists in the queue. If the new sort key is better than the old, we update it.
+                if (isEdgeBetter(edge, (*it)->data))
+                {
+                    (*it)->data.setSortKey(edge.getSortKey());
+                    forwardQueue_.update(*it);
+                }
             }
             else
             {
