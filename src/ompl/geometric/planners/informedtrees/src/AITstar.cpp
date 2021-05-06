@@ -414,6 +414,16 @@ namespace ompl
             reverseQueue_.clear();
         }
 
+        void AITstar::updateUnsortedEdgesInForwardQueue()
+        {
+            // This is a no-op if unsortedEdgesInForwardQueue_ is empty.
+            for (const auto edge : unsortedEdgesInForwardQueue_)
+            {
+                forwardQueue_.update(edge);
+            }
+            unsortedEdgesInForwardQueue_.clear();
+        }
+
         void AITstar::informAboutNewSolution() const
         {
             OMPL_INFORM("%s (%u iterations): Found a new exact solution of cost %.4f. Sampled a total of %u states, %u "
@@ -617,12 +627,6 @@ namespace ompl
                     // Expand the start vertices into the forward queue.
                     expandStartVerticesIntoForwardQueue();
                 }
-                else if (forwardQueueMustBeRebuilt_)
-                {
-                    // Rebuild the forwared queue if necessary.
-                    rebuildForwardQueue();
-                    forwardQueueMustBeRebuilt_ = false;
-                }
                 else if (!forwardQueue_.empty())
                 {
                     // If the forward queue is not empty, perform a forward search iteration.
@@ -660,6 +664,9 @@ namespace ompl
         {
             // We should never perform a forward search iteration while there are still edges to be inserted.
             assert(edgesToBeInserted_.empty());
+
+            // Make sure all edges are sorted.
+            updateUnsortedEdgesInForwardQueue();
 
             // Get the most promising edge.
             auto &edge = forwardQueue_.top()->data;
@@ -947,6 +954,13 @@ namespace ompl
                     vertex->resetReverseParent();
                 }
             }
+
+            // This vertex now has a changed cost-to-come in the reverse search. All edges in the forward queue that
+            // have this vertex as a target must be updated. We could do this now, but this risks updating the edges too
+            // many times, as the cost to come to this vertex might change again before we resume to forward search.
+            const auto &toBeUpdated = vertex->getForwardQueueIncomingLookup();
+            unsortedEdgesInForwardQueue_.insert(unsortedEdgesInForwardQueue_.cend(), toBeUpdated.cbegin(),
+                                                toBeUpdated.cend());
         }
 
         void AITstar::updateReverseSearchNeighbors(const std::shared_ptr<aitstar::Vertex> &vertex)

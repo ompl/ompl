@@ -194,6 +194,9 @@ namespace ompl
             /** \brief Clears the reverse queue, resetting the lookups of the vertices in it. */
             void clearReverseQueue();
 
+            /** \brief Updates the unsorted edges in the forward queue. */
+            void updateUnsortedEdgesInForwardQueue();
+
             /** \brief Prints a message using OMPL_INFORM to let the user know that AIT* found a new solution. */
             void informAboutNewSolution() const;
 
@@ -303,8 +306,8 @@ namespace ompl
             /** \brief Flag whether the forward search has been started on the batch. */
             bool isForwardSearchStartedOnBatch_{false};
 
-            /** \brief Flag whether the forward queue needs to be rebuilt. */
-            bool forwardQueueMustBeRebuilt_{false};
+            /** \brief A vector that holds the unsorted edges in the forward queue. */
+            std::vector<EdgeQueue::Element*> unsortedEdgesInForwardQueue_{};
 
             /** \brief The option that specifies whether to repair the reverse search when detecting a collision. */
             bool repairReverseSearch_{true};
