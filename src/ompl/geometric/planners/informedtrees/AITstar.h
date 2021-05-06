@@ -162,10 +162,10 @@ namespace ompl
             void iterate(const ompl::base::PlannerTerminationCondition &terminationCondition);
 
             /** \brief Performs one forward search iterations. */
-            void performForwardSearchIteration();
+            void iterateForwardSearch();
 
             /** \brief Performs one reverse search iterations. */
-            void performReverseSearchIteration();
+            void iterateReverseSearch();
 
             /** \brief Updates a vertex in the reverse search queue (LPA* update). */
             void updateReverseSearchVertex(const std::shared_ptr<aitstar::Vertex> &vertex);
@@ -194,9 +194,6 @@ namespace ompl
             /** \brief Clears the reverse queue, resetting the lookups of the vertices in it. */
             void clearReverseQueue();
 
-            /** \brief Updates the unsorted edges in the forward queue. */
-            void updateUnsortedEdgesInForwardQueue();
-
             /** \brief Prints a message using OMPL_INFORM to let the user know that AIT* found a new solution. */
             void informAboutNewSolution() const;
 
@@ -213,7 +210,7 @@ namespace ompl
             bool continueReverseSearch() const;
 
             /** \brief Check whether the forward search must be continued. */
-            bool continueForwardSearch() const;
+            bool continueForwardSearch();
 
             /** \brief Returns the path a start to the argument. */
             std::shared_ptr<ompl::geometric::PathGeometric>
@@ -308,9 +305,6 @@ namespace ompl
 
             /** \brief Flag whether the forward search has been started on the batch. */
             bool isForwardSearchStartedOnBatch_{false};
-
-            /** \brief A vector that holds the unsorted edges in the forward queue. */
-            std::vector<EdgeQueue::Element*> unsortedEdgesInForwardQueue_{};
 
             /** \brief The option that specifies whether to repair the reverse search when detecting a collision. */
             bool repairReverseSearch_{true};

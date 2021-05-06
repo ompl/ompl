@@ -120,7 +120,7 @@ namespace ompl
 
             ompl::base::Cost Vertex::getExpandedCostToComeFromGoal() const
             {
-                if (expandedReverseSearchId_ != batchId_)
+                if (reverseSearchBatchId_ != batchId_)
                 {
                     expandedCostToComeFromGoal_ = objective_->infiniteCost();
                 }
@@ -178,6 +178,7 @@ namespace ompl
 
             void Vertex::setExpandedCostToComeFromGoal(const ompl::base::Cost &cost)
             {
+                reverseSearchBatchId_ = batchId_;
                 expandedCostToComeFromGoal_ = cost;
             }
 
@@ -441,7 +442,6 @@ namespace ompl
 
             void Vertex::registerExpansionDuringReverseSearch()
             {
-                expandedCostToComeFromGoal_ = costToComeFromGoal_;
                 expandedReverseSearchId_ = batchId_;
             }
 
