@@ -871,7 +871,7 @@ namespace ompl
                         rebuildReverseQueue();
 
                         // The parent's cost-to-come needs to be updated. This places children in open.
-                        reverseSearchUpdateVertex(parent);
+                        updateReverseSearchVertex(parent);
 
                         // If the reverse queue is empty, this means we have to add new samples.
                         if (reverseQueue_.empty())
@@ -950,7 +950,7 @@ namespace ompl
                 // Register the expansion of this vertex.
                 vertex->registerExpansionDuringReverseSearch();
                 vertex->setExpandedCostToComeFromGoal(objective_->infiniteCost());
-                reverseSearchUpdateVertex(vertex);
+                updateReverseSearchVertex(vertex);
             }
 
             // Update all successors. Start with the reverse search children, because if this vertex
@@ -1012,168 +1012,89 @@ namespace ompl
                 [this](const auto &a, const auto &b) { return objective_->isCostBetterThan(a, b); });
         }
 
-        void AITstar::reverseSearchUpdateVertex(const std::shared_ptr<aitstar::Vertex> &vertex)
+        void AITstar::updateReverseSearchVertex(const std::shared_ptr<aitstar::Vertex> &vertex)
         {
-            if (!graph_.isGoal(vertex))
+            // If the vertex is a goal, there's no updating to do.
+            if (graph_.isGoal(vertex))
             {
-                // Get the best parent for this vertex.
-                auto bestParent = vertex->getReverseParent();
-                auto bestCost =
-                    vertex->hasReverseParent() ? vertex->getCostToComeFromGoal() : objective_->infiniteCost();
+                return;
+            }
 
-                // Check all neighbors as defined by the graph.
-                for (const auto &neighbor : graph_.getNeighbors(vertex))
+            // Get the best parent for this vertex.
+            auto bestParent = vertex->getReverseParent();
+            auto bestCost = vertex->hasReverseParent() ? vertex->getCostToComeFromGoal() : objective_->infiniteCost();
+
+            // Check all neighbors as defined by the RGG.
+            for (const auto &neighbor : graph_.getNeighbors(vertex))
+            {
+                if (neighbor->getId() != vertex->getId() && !neighbor->isBlacklistedAsChild(vertex) &&
+                    !vertex->isBlacklistedAsChild(neighbor))
                 {
-                    if (neighbor->getId() != vertex->getId() && !neighbor->isBlacklistedAsChild(vertex) &&
-                        !vertex->isBlacklistedAsChild(neighbor))
-                    {
-                        auto edgeCost = objective_->motionCostHeuristic(neighbor->getState(), vertex->getState());
-                        auto parentCost = objective_->combineCosts(neighbor->getExpandedCostToComeFromGoal(), edgeCost);
-                        if (objective_->isCostBetterThan(parentCost, bestCost))
-                        {
-                            bestParent = neighbor;
-                            bestCost = parentCost;
-                        }
-                    }
-                }
-
-                // Check all children this vertex holds in the forward search.
-                for (const auto &forwardChild : vertex->getForwardChildren())
-                {
-                    auto edgeCost = objective_->motionCostHeuristic(forwardChild->getState(), vertex->getState());
-                    auto parentCost = objective_->combineCosts(forwardChild->getExpandedCostToComeFromGoal(), edgeCost);
-
+                    auto edgeCost = objective_->motionCostHeuristic(neighbor->getState(), vertex->getState());
+                    auto parentCost = objective_->combineCosts(neighbor->getExpandedCostToComeFromGoal(), edgeCost);
                     if (objective_->isCostBetterThan(parentCost, bestCost))
                     {
-                        bestParent = forwardChild;
+                        bestParent = neighbor;
                         bestCost = parentCost;
                     }
                 }
+            }
 
-                // Check the parent of this vertex in the forward search.
-                if (vertex->hasForwardParent())
+            // Check all children this vertex holds in the forward search.
+            for (const auto &forwardChild : vertex->getForwardChildren())
+            {
+                auto edgeCost = objective_->motionCostHeuristic(forwardChild->getState(), vertex->getState());
+                auto parentCost = objective_->combineCosts(forwardChild->getExpandedCostToComeFromGoal(), edgeCost);
+
+                if (objective_->isCostBetterThan(parentCost, bestCost))
                 {
-                    auto forwardParent = vertex->getForwardParent();
-                    auto edgeCost = objective_->motionCostHeuristic(forwardParent->getState(), vertex->getState());
-                    auto parentCost =
-                        objective_->combineCosts(forwardParent->getExpandedCostToComeFromGoal(), edgeCost);
-
-                    if (objective_->isCostBetterThan(parentCost, bestCost))
-                    {
-                        bestParent = forwardParent;
-                        bestCost = parentCost;
-                    }
+                    bestParent = forwardChild;
+                    bestCost = parentCost;
                 }
+            }
 
-                // Check the parent of this vertex in the reverse search.
-                if (vertex->hasReverseParent())
+            // Check the parent of this vertex in the forward search.
+            if (vertex->hasForwardParent())
+            {
+                auto forwardParent = vertex->getForwardParent();
+                auto edgeCost = objective_->motionCostHeuristic(forwardParent->getState(), vertex->getState());
+                auto parentCost = objective_->combineCosts(forwardParent->getExpandedCostToComeFromGoal(), edgeCost);
+
+                if (objective_->isCostBetterThan(parentCost, bestCost))
                 {
-                    auto reverseParent = vertex->getReverseParent();
-                    auto edgeCost = objective_->motionCostHeuristic(reverseParent->getState(), vertex->getState());
-                    auto parentCost =
-                        objective_->combineCosts(reverseParent->getExpandedCostToComeFromGoal(), edgeCost);
-
-                    if (objective_->isCostBetterThan(parentCost, bestCost))
-                    {
-                        bestParent = reverseParent;
-                        bestCost = parentCost;
-                    }
+                    bestParent = forwardParent;
+                    bestCost = parentCost;
                 }
+            }
 
-                // If this vertex is now disconnected, take special care.
-                if (!objective_->isFinite(bestCost))
+            // Check the parent of this vertex in the reverse search.
+            if (vertex->hasReverseParent())
+            {
+                auto reverseParent = vertex->getReverseParent();
+                auto edgeCost = objective_->motionCostHeuristic(reverseParent->getState(), vertex->getState());
+                auto parentCost = objective_->combineCosts(reverseParent->getExpandedCostToComeFromGoal(), edgeCost);
+
+                if (objective_->isCostBetterThan(parentCost, bestCost))
                 {
-                    // Reset the reverse parent if the vertex has one.
-                    if (vertex->hasReverseParent())
-                    {
-                        vertex->getReverseParent()->removeFromReverseChildren(vertex->getId());
-                        vertex->resetReverseParent();
-                    }
-
-                    // Invalidate the branch in the reverse search tree that is rooted at this vertex.
-                    vertex->setCostToComeFromGoal(objective_->infiniteCost());
-                    vertex->setExpandedCostToComeFromGoal(objective_->infiniteCost());
-                    auto affectedVertices = vertex->invalidateReverseBranch();
-
-                    // Remove the affected edges from the forward queue, placing them in the edge cache.
-                    for (const auto &affectedVertex : affectedVertices)
-                    {
-                        auto forwardQueueIncomingLookup = affectedVertex.lock()->getForwardQueueIncomingLookup();
-                        for (const auto &element : forwardQueueIncomingLookup)
-                        {
-                            edgesToBeInserted_.emplace_back(element->data);
-                            element->data.getParent()->removeFromForwardQueueOutgoingLookup(element);
-                            forwardQueue_.remove(element);
-                        }
-                        affectedVertex.lock()->resetForwardQueueIncomingLookup();
-
-                        auto forwardQueueOutgoingLookup = affectedVertex.lock()->getForwardQueueOutgoingLookup();
-                        for (const auto &element : forwardQueueOutgoingLookup)
-                        {
-                            edgesToBeInserted_.emplace_back(element->data);
-                            element->data.getChild()->removeFromForwardQueueIncomingLookup(element);
-                            forwardQueue_.remove(element);
-                        }
-                        affectedVertex.lock()->resetForwardQueueOutgoingLookup();
-                    }
-
-                    // Remove appropriate edges from the forward queue that target the root of the branch.
-                    auto vertexForwardQueueIncomingLookup = vertex->getForwardQueueIncomingLookup();
-                    for (const auto &element : vertexForwardQueueIncomingLookup)
-                    {
-                        auto &edge = element->data;
-                        auto it = std::find_if(affectedVertices.begin(), affectedVertices.end(),
-                                               [edge](const auto &affectedVertex) {
-                                                   return affectedVertex.lock()->getId() == edge.getParent()->getId();
-                                               });
-                        if (it != affectedVertices.end())
-                        {
-                            edgesToBeInserted_.emplace_back(element->data);
-                            vertex->removeFromForwardQueueIncomingLookup(element);
-                            element->data.getParent()->removeFromForwardQueueOutgoingLookup(element);
-                            forwardQueue_.remove(element);
-                        }
-                    }
-
-                    // Remove appropriate edges from the forward queue that target the root of the branch.
-                    auto vertexForwardQueueOutgoingLookup = vertex->getForwardQueueOutgoingLookup();
-                    for (const auto &element : vertexForwardQueueOutgoingLookup)
-                    {
-                        edgesToBeInserted_.emplace_back(element->data);
-                        vertex->removeFromForwardQueueOutgoingLookup(element);
-                        element->data.getChild()->removeFromForwardQueueIncomingLookup(element);
-                        forwardQueue_.remove(element);
-                    }
-
-                    // Check update the invalidated vertices and insert them in open if they become connected to the
-                    // tree.
-                    for (const auto &affectedVertex : affectedVertices)
-                    {
-                        auto affectedVertexPtr = affectedVertex.lock();
-
-                        reverseSearchUpdateVertex(affectedVertexPtr);
-                        if (affectedVertex.lock()->hasReverseParent())
-                        {
-                            insertOrUpdateInReverseQueue(affectedVertexPtr);
-                            affectedVertexPtr->setExpandedCostToComeFromGoal(objective_->infiniteCost());
-                        }
-                    }
-
-                    return;
+                    bestParent = reverseParent;
+                    bestCost = parentCost;
                 }
+            }
 
-                // Update the reverse parent.
+            // Set the best cost as the cost to come from the goal.
+            vertex->setCostToComeFromGoal(bestCost);
+
+            // What happens next depends on whether the vertex is disconnected or not.
+            if (objective_->isFinite(bestCost))
+            {
+                // The vertex is connected. Update the reverse parent.
                 vertex->setReverseParent(bestParent);
 
-                // Update the children of the parent.
+                // Add this vertex to the children of the parent.
                 bestParent->addToReverseChildren(vertex);
 
-                // Set the cost to come from the goal.
-                vertex->setCostToComeFromGoal(bestCost);
-
                 // If this has made the vertex inconsistent, insert or update it in the open queue.
-                if (!objective_->isCostEquivalentTo(vertex->getCostToComeFromGoal(),
-                                                    vertex->getExpandedCostToComeFromGoal()))
+                if (!vertex->isConsistent())
                 {
                     insertOrUpdateInReverseQueue(vertex);
                 }

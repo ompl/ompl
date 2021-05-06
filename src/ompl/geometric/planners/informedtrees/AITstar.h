@@ -168,7 +168,8 @@ namespace ompl
             void performReverseSearchIteration();
 
             /** \brief Updates a vertex in the reverse search queue (LPA* update). */
-            void reverseSearchUpdateVertex(const std::shared_ptr<aitstar::Vertex> &vertex);
+            void updateReverseSearchVertex(const std::shared_ptr<aitstar::Vertex> &vertex);
+
 
             /** \brief Inserts or updates an edge in the forward queue. */
             void insertOrUpdateInForwardQueue(const aitstar::Edge &edge);
