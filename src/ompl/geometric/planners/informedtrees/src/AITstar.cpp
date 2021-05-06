@@ -1201,8 +1201,8 @@ namespace ompl
         void AITstar::insertOrUpdateInForwardQueue(const aitstar::Edge &edge)
         {
             // Check if the edge is already in the queue and can be updated.
-            auto lookup = edge.getChild()->getForwardQueueIncomingLookup();
-            auto it = std::find_if(lookup.begin(), lookup.end(), [&edge](const auto element) {
+            const auto lookup = edge.getChild()->getForwardQueueIncomingLookup();
+            const auto it = std::find_if(lookup.begin(), lookup.end(), [&edge](const auto element) {
                 return element->data.getParent()->getId() == edge.getParent()->getId();
             });
 
