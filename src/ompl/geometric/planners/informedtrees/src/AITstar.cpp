@@ -905,97 +905,25 @@ namespace ompl
             reverseQueue_.pop();
             vertex->resetReverseQueuePointer();
 
+            // Register the expansion of this vertex during the reverse search.
+            vertex->registerExpansionDuringReverseSearch();
+
             // The open queue should not contain consistent vertices.
             assert((!objective_->isFinite(vertex->getCostToComeFromGoal()) &&
                     !objective_->isFinite(vertex->getExpandedCostToComeFromGoal())) ||
                    (!objective_->isCostEquivalentTo(vertex->getCostToComeFromGoal(),
                                                     vertex->getExpandedCostToComeFromGoal())));
 
-            // If any start is underconsistent, we need to continue.
-            bool underconsistentStart{false};
-            for (const auto &start : graph_.getStartVertices())
+            // Check if the vertex is overconsistent. g[s] < v[s].
+            if (objective_->isCostBetterThan(vertex->getExpandedCostToComeFromGoal(), vertex->getCostToComeFromGoal()))
             {
-                if (objective_->isCostBetterThan(start->getExpandedCostToComeFromGoal(),
-                                                 start->getCostToComeFromGoal()))
-                {
-                    underconsistentStart = true;
-                    break;
-                }
-            }
-
-            // If there is currently no reason to think this vertex can be on an optimal path, clear the queue.
-            if (edgesToBeInserted_.empty() &&
-                ((!underconsistentStart &&
-                  !objective_->isCostBetterThan(objective_->combineCosts(vertex->getCostToComeFromGoal(),
-                                                                         computeCostToGoToStartHeuristic(vertex)),
-                                                solutionCost_)) ||
-                 objective_->isCostBetterThan(
-                     ompl::base::Cost(computeBestCostToComeFromGoalOfAnyStart().value() + 1e-6), solutionCost_)))
-            {
-                // This invalidates the cost-to-go estimate of the forward search.
-                performReverseSearchIteration_ = false;
-                forwardQueueMustBeRebuilt_ = true;
-                vertex->registerExpansionDuringReverseSearch();
-                return;
-            }
-
-            // Check if the vertex is overconsistent. g(s) < v(s).
-            if (objective_->isCostBetterThan(vertex->getCostToComeFromGoal(), vertex->getExpandedCostToComeFromGoal()))
-            {
-                // Register the expansion of this vertex.
-                vertex->registerExpansionDuringReverseSearch();
-            }
-            else
-            {
-                // Register the expansion of this vertex.
-                vertex->registerExpansionDuringReverseSearch();
+                // Set the expanded cost to infinity (v[s] <- infty) and update the vertex.
                 vertex->setExpandedCostToComeFromGoal(objective_->infiniteCost());
                 updateReverseSearchVertex(vertex);
             }
 
-            // Update all successors. Start with the reverse search children, because if this vertex
-            // becomes the parent of a neighbor, that neighbor would be updated again as part of the
-            // reverse children.
-            for (const auto &child : vertex->getReverseChildren())
-            {
-                reverseSearchUpdateVertex(child);
-            }
-
-            // We can now process the neighbors.
-            for (const auto &neighbor : graph_.getNeighbors(vertex))
-            {
-                if (neighbor->getId() != vertex->getId() && !neighbor->isBlacklistedAsChild(vertex) &&
-                    !vertex->isBlacklistedAsChild(neighbor))
-                {
-                    reverseSearchUpdateVertex(neighbor);
-                }
-            }
-
-            // We also need to update the forward search children.
-            for (const auto &child : vertex->getForwardChildren())
-            {
-                reverseSearchUpdateVertex(child);
-            }
-
-            // We also need to update the forward search parent if it exists.
-            if (vertex->hasForwardParent())
-            {
-                reverseSearchUpdateVertex(vertex->getForwardParent());
-            }
-
-            if (!edgesToBeInserted_.empty())
-            {
-                if (haveAllVerticesBeenProcessed(edgesToBeInserted_))
-                {
-                    for (std::size_t i = 0u; i < edgesToBeInserted_.size(); ++i)
-                    {
-                        auto &edge = edgesToBeInserted_.at(i);
-                        edge.setSortKey(computeSortKey(edge.getParent(), edge.getChild()));
-                        insertOrUpdateInForwardQueue(edge);
-                    }
-                    edgesToBeInserted_.clear();
-                }
-            }
+            // Update all neighbors in the graph.
+            updateReverseSearchNeighbors(vertex);
         }
 
         bool AITstar::isEdgeBetter(const aitstar::Edge &lhs, const aitstar::Edge &rhs) const
@@ -1108,6 +1036,36 @@ namespace ompl
                         vertex->resetReverseQueuePointer();
                     }
                 }
+            }
+        void AITstar::updateReverseSearchNeighbors(const std::shared_ptr<aitstar::Vertex> &vertex)
+        {
+            // Start with the reverse search children, because if this vertex becomes the parent of a neighbor, that
+            // neighbor would be updated again as part of the reverse children.
+            for (const auto &child : vertex->getReverseChildren())
+            {
+                updateReverseSearchVertex(child);
+            }
+
+            // We can now process the neighbors.
+            for (const auto &neighbor : graph_.getNeighbors(vertex))
+            {
+                if (neighbor->getId() != vertex->getId() && !neighbor->isBlacklistedAsChild(vertex) &&
+                    !vertex->isBlacklistedAsChild(neighbor))
+                {
+                    updateReverseSearchVertex(neighbor);
+                }
+            }
+
+            // We also need to update the forward search children.
+            for (const auto &child : vertex->getForwardChildren())
+            {
+                updateReverseSearchVertex(child);
+            }
+
+            // We also need to update the forward search parent if it exists.
+            if (vertex->hasForwardParent())
+            {
+                updateReverseSearchVertex(vertex->getForwardParent());
             }
         }
 
