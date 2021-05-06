@@ -910,7 +910,7 @@ namespace ompl
                    (!objective_->isCostEquivalentTo(vertex->getCostToComeFromGoal(),
                                                     vertex->getExpandedCostToComeFromGoal())));
 
-            // If any goal is underconsistent, we need to continue.
+            // If any start is underconsistent, we need to continue.
             bool underconsistentStart{false};
             for (const auto &start : graph_.getStartVertices())
             {
