@@ -1234,9 +1234,22 @@ namespace ompl
             // Update the cost of all reverse children and remove from open.
             for (const auto &child : vertex->getReverseChildren())
             {
+                // Reset the cost to come from the goal.
+                child->resetCostToComeFromGoal();
+                child->resetExpandedCostToComeFromGoal();
+                child->getReverseParent()->removeFromReverseChildren(child->getId());
+                child->resetReverseParent();
+
+                // Invalidate the cost to come for all reverse children of this vertex.
                 invalidateCostToComeFromGoalOfReverseBranch(child);
-                child->setCostToComeFromGoal(objective_->infiniteCost());
-                child->setExpandedCostToComeFromGoal(objective_->infiniteCost());
+
+                // Update all affected edges in the forward queue.
+                for (const auto &edge : child->getForwardQueueIncomingLookup())
+                {
+                    forwardQueue_.update(edge);
+                }
+
+                // Update this vertex in the open list if it is it.
                 auto reverseQueuePointer = child->getReverseQueuePointer();
                 if (reverseQueuePointer)
                 {
