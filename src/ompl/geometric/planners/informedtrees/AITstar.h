@@ -88,7 +88,7 @@ namespace ompl
         {
         public:
             /** \brief Constructs a AIT*. */
-            AITstar(const ompl::base::SpaceInformationPtr &spaceInformation);
+            explicit AITstar(const ompl::base::SpaceInformationPtr &spaceInformation);
 
             /** \brief Destructs a AIT*. */
             ~AITstar() = default;
