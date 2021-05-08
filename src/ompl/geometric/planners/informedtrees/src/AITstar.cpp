@@ -747,21 +747,17 @@ namespace ompl
                 parent->blacklistAsChild(child);
                 child->blacklistAsChild(parent);
 
+                assert(!graph_.isGoal(parent));
+
                 // Repair the reverse search if this edge was in the reverse search tree.
                 if (parent->hasReverseParent() && parent->getReverseParent()->getId() == child->getId())
                 {
                     // The parent was connected to the child through an invalid edge.
-                    parent->setCostToComeFromGoal(objective_->infiniteCost());
-                    parent->resetReverseParent();
-                    child->removeFromReverseChildren(parent->getId());
+                    parent->resetCostToComeFromGoal();
                     invalidateCostToComeFromGoalOfReverseBranch(parent);
 
                     // The parent's cost-to-come needs to be updated. This places children in open.
                     updateReverseSearchVertex(parent);
-
-                    // If any of these children are in the reverse queue, their sort key is outdated.
-                    rebuildReverseQueue();
-                    rebuildForwardQueue();
                 }
             }
         }
