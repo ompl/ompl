@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2021,
+ *  Copyright (c) 2020,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -36,64 +36,41 @@
 
 /* Author: Andreas Orthey */
 
-#ifndef OMPL_BASE_SPACES_MOBIUS_STATE_SPACE_
-#define OMPL_BASE_SPACES_MOBIUS_STATE_SPACE_
-
-#include <ompl/base/StateSpace.h>
-#include <ompl/base/spaces/SO2StateSpace.h>
-#include <ompl/base/spaces/RealVectorStateSpace.h>
+#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_RESTRICTION_FIND_SECTION_PATTERNDANCE_
+#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_RESTRICTION_FIND_SECTION_PATTERNDANCE_
+#include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
+#include <ompl/multilevel/datastructures/pathrestriction/FindSection.h>
+#include <ompl/multilevel/datastructures/ParameterSmoothStep.h>
 
 namespace ompl
 {
-    namespace base
+    namespace multilevel
     {
-        class MobiusStateSpace : public CompoundStateSpace
+        using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
+
+        class FindSectionPatternDance : public FindSection
         {
+            using BaseT = FindSection;
+
         public:
-            class StateType : public CompoundStateSpace::StateType
-            {
-            public:
-                StateType() = default;
+            FindSectionPatternDance() = delete;
+            FindSectionPatternDance(PathRestriction *);
 
-                double getS1() const
-                {
-                    return as<SO2StateSpace::StateType>(0)->value;
-                }
-                double getR1() const
-                {
-                    return as<RealVectorStateSpace::StateType>(1)->values[0];
-                }
+            virtual ~FindSectionPatternDance();
 
-                void setS1(double s)
-                {
-                    as<SO2StateSpace::StateType>(0)->value = s;
-                }
-                void setR1(double s)
-                {
-                    as<RealVectorStateSpace::StateType>(1)->values[0] = s;
-                }
-                void setS1R1(double s, double t)
-                {
-                    setS1(s);
-                    setR1(t);
-                }
-            };
+            virtual bool solve(HeadPtr &head) override;
 
-            MobiusStateSpace(double intervalMax = 1.0, double radius = 1.0);
+            bool recursivePatternSearch(HeadPtr &head, bool interpolateFiberFirst = true,
+                                        unsigned int depth = 0);
 
-            virtual ~MobiusStateSpace() override = default;
+            bool sideStepAlongFiber(Configuration *&xOrigin, base::State *state);
 
-            virtual double distance(const State *state1, const State *state2) const override;
+            bool wriggleFree(HeadPtr &head);
 
-            virtual void interpolate(const State *from, const State *to, double t, State *state) const override;
+            bool tunneling(HeadPtr &head);
 
-            virtual State *allocState() const override;
-
-            Eigen::Vector3f toVector(const State *state) const;
-
-        private:
-            double intervalMax_{1.0}; //width of mobius strip
-            double radius_{1.0}; // radius of inner circle
+        protected:
+            base::State *xBaseFixed_;
         };
     }
 }

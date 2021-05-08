@@ -93,6 +93,8 @@ namespace ompl
             /** \brief Pointer to associated bundle space */
             PathRestriction *restriction_;
 
+            FiberedProjectionPtr projection_;
+
             base::State *xBaseTmp_{nullptr};
             base::State *xBundleTmp_{nullptr};
 
@@ -100,7 +102,6 @@ namespace ompl
             base::State *xFiberGoal_{nullptr};
             base::State *xFiberTmp_{nullptr};
 
-        protected:
             /** \brief Radius of restriction neighborhood */
             ParameterExponentialDecay neighborhoodRadiusBaseSpace_;
 

@@ -17,6 +17,9 @@ MultiSPARSImpl::MultiSPARSImpl(const ompl::base::SpaceInformationPtr &si, Bundle
 
     setMetric("geodesic");
     setGraphSampler("visibilityregion");
+    setImportance("exponential");
+    // setFindSectionStrategy(FindSectionType::SIDE_STEP);
+    // setFindSectionStrategy(FindSectionType::PATTERN_DANCE);
 
     firstRun_ = true;
     isInfeasible_ = false;

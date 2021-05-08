@@ -56,19 +56,26 @@ namespace ompl
     }
     namespace multilevel
     {
+        /// @cond IGNORE
+        /** \brief Forward declaration of ompl::multilevel::FiberedProjection */
+        OMPL_CLASS_FORWARD(FiberedProjection);
+        /// @endcond
+
         /* \brief A bundle projection with an explicit fiber space representation
          * which can be explicitly sampled to lift states */
         class FiberedProjection : public Projection
         {
+            friend class CompoundFiberedProjection;
         public:
             FiberedProjection(base::StateSpacePtr bundleSpace, base::StateSpacePtr baseSpace);
 
             virtual ~FiberedProjection() = default;
 
             virtual void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const override;
-
             /* \brief Project bundle space element onto base space */
             virtual void project(const ompl::base::State *xBundle, ompl::base::State *xBase) const = 0;
+
+            /* Fiber Space specific methods */
 
             /* \brief Lift base space element using a fiber bundle element */
             virtual void lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
@@ -76,21 +83,20 @@ namespace ompl
 
             /* \brief Project bundle space onto fiber space */
             virtual void projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const = 0;
-
             /* \brief Get explicit fiber space representation */
-            virtual ompl::base::StateSpacePtr getFiberSpace() const;
+            ompl::base::StateSpacePtr getFiberSpace() const;
 
             /* \brief Get explicit fiber space sampler */
             ompl::base::StateSamplerPtr getFiberSamplerPtr() const;
 
             /// Dimension of Fiber Space
-            unsigned int getFiberDimension() const;
-            std::string getFiberTypeAsString() const;
+            virtual unsigned int getFiberDimension() const;
+            virtual std::string getFiberTypeAsString() const;
 
             bool isFibered() const override;
 
             /* \brief Create explicit fiber space representation */
-            void makeFiberSpace();
+            virtual void makeFiberSpace();
 
         protected:
             virtual ompl::base::StateSpacePtr computeFiberSpace() = 0;
@@ -103,6 +109,43 @@ namespace ompl
 
             // \brief A temporary state on Fiber space
             ompl::base::State *xFiberTmp_{nullptr};
+        };
+
+        class CompoundFiberedProjection : public FiberedProjection, public CompoundProjection
+        {
+        public:
+            CompoundFiberedProjection(base::StateSpacePtr bundleSpace, base::StateSpacePtr baseSpace) = delete;
+            CompoundFiberedProjection(const base::StateSpacePtr &bundleSpace, const base::StateSpacePtr &baseSpace,
+                               const std::vector<ProjectionPtr> &components);
+
+            ~CompoundFiberedProjection() override = default;
+
+            /* Overrride all Compound projection methods here */
+            void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const override;
+            void project(const ompl::base::State *xBundle, ompl::base::State *xBase) const override;
+
+            /// Dimension of Base Space
+            unsigned int getBaseDimension() const override;
+            /// Dimension of Bundle Space
+            unsigned int getDimension() const override;
+            /// Dimension of Bundle - Dimension of Base
+            unsigned int getCoDimension() const override;
+            /// Check that every compound has an explicit fiber representation
+            bool isFibered() const override;
+
+            bool isCompound() const override;
+
+            /* Overrride all fiber projection methods here */
+
+            /* \brief Lift base space element using a fiber bundle element */
+            void lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+                              ompl::base::State *xBundle) const override;
+
+            /* \brief Project bundle space onto fiber space */
+            void projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const override;
+
+        protected:
+            ompl::base::StateSpacePtr computeFiberSpace() override;
         };
     }
 }

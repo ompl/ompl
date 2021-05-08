@@ -60,19 +60,23 @@ FindSection::FindSection(PathRestriction *restriction) : restriction_(restrictio
 
     if (!graph->getProjection()->isFibered())
     {
-        OMPL_DEBUG("Finding section with non-fibered projection.");
+        OMPL_DEBUG("Cannot init section module with non-fibered projection.");
         return;
     }
 
-    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    std::cout << "Cast to fibered" << std::endl;
+    projection_ = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+
     if (graph->getCoDimension() > 0)
     {
-        base::StateSpacePtr fiber = projection->getFiberSpace();
+        std::cout << "Get Fiber space" << std::endl;
+        base::StateSpacePtr fiber = projection_->getFiberSpace();
         xFiberStart_ = fiber->allocState();
         xFiberGoal_ = fiber->allocState();
         xFiberTmp_ = fiber->allocState();
         validFiberSpaceSegmentLength_ = fiber->getLongestValidSegmentLength();
     }
+    std::cout << "done" << std::endl;
     if (graph->getBaseDimension() > 0)
     {
         base::SpaceInformationPtr base = graph->getBase();

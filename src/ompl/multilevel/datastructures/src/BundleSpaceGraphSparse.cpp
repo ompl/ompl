@@ -72,11 +72,6 @@ BundleSpaceGraphSparse::BundleSpaceGraphSparse(const SpaceInformationPtr &si, Bu
         &BundleSpaceGraphSparse::setSparseDeltaFraction,
         &BundleSpaceGraphSparse::getSparseDeltaFraction, 
         "0.0:0.01:1.0");
-
-    if (!isSetup())
-    {
-        setup();
-    }
 }
 
 BundleSpaceGraphSparse::~BundleSpaceGraphSparse()
