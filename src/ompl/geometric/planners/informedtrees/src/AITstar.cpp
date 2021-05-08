@@ -870,33 +870,30 @@ namespace ompl
             {
                 // The vertex is connected. Update the reverse parent.
                 vertex->setReverseParent(bestParent);
-
-                // Add this vertex to the children of the parent.
                 bestParent->addToReverseChildren(vertex);
-
-                // If this has made the vertex inconsistent, insert or update it in the open queue.
-                if (!vertex->isConsistent())
-                {
-                    insertOrUpdateInReverseQueue(vertex);
-                }
-                else
-                {
-                    // Remove this vertex from the queue if it is in the queue.
-                    auto reverseQueuePointer = vertex->getReverseQueuePointer();
-                    if (reverseQueuePointer)
-                    {
-                        reverseQueue_.remove(reverseQueuePointer);
-                        vertex->resetReverseQueuePointer();
-                    }
-                }
             }
             else
             {
-                // Reset the reverse parent if the vertex has one.
+                // This vertex is now orphaned. Reset the reverse parent if the vertex had one.
                 if (vertex->hasReverseParent())
                 {
                     vertex->getReverseParent()->removeFromReverseChildren(vertex->getId());
                     vertex->resetReverseParent();
+                }
+            }
+
+            // If this has made the vertex inconsistent, insert or update it in the open queue.
+            if (!vertex->isConsistent())
+            {
+                insertOrUpdateInReverseQueue(vertex);
+            }
+            else  // Remove this vertex from the queue if it is in the queue if it is consistent.
+            {
+                auto reverseQueuePointer = vertex->getReverseQueuePointer();
+                if (reverseQueuePointer)
+                {
+                    reverseQueue_.remove(reverseQueuePointer);
+                    vertex->resetReverseQueuePointer();
                 }
             }
 
@@ -905,7 +902,7 @@ namespace ompl
             // be suspended depends on the best edge in the forward queue.
             for (const auto &element : vertex->getForwardQueueIncomingLookup())
             {
-                auto& edge = element->data;
+                auto &edge = element->data;
                 edge.setSortKey(computeSortKey(edge.getParent(), edge.getChild()));
                 forwardQueue_.update(element);
             }
