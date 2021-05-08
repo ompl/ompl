@@ -224,7 +224,6 @@ namespace ompl
                 }
                 reverseChildren_.clear();
 
-                unregisterExpansionDuringReverseSearch();
                 return accumulatedChildren;
             }
 
@@ -448,16 +447,6 @@ namespace ompl
             void Vertex::registerPoppedOutgoingEdgeDuringForwardSearch()
             {
                 poppedOutgoingEdgeId_ = batchId_;
-            }
-
-            void Vertex::registerExpansionDuringReverseSearch()
-            {
-                expandedReverseSearchId_ = batchId_;
-            }
-
-            void Vertex::unregisterExpansionDuringReverseSearch()
-            {
-                expandedReverseSearchId_ = 0u;
             }
 
             void Vertex::registerInsertionIntoQueueDuringReverseSearch()

@@ -188,13 +188,6 @@ namespace ompl
                 /** \brief Registers that a child has been added to this vertex during the current forward search. */
                 void registerPoppedOutgoingEdgeDuringForwardSearch();
 
-                /** \brief Registers the expansion of this vertex during the current reverse search. */
-                void registerExpansionDuringReverseSearch();
-
-                /** \brief Unregisters the expansion of this vertex during the current reverse search, needed when a
-                 * reverse branch is invalidated due to a collision detection on an edge. */
-                void unregisterExpansionDuringReverseSearch();
-
                 /** \brief Registers the insertion of this vertex into the open queue during the current reverse
                  * search. */
                 void registerInsertionIntoQueueDuringReverseSearch();

@@ -774,9 +774,6 @@ namespace ompl
             // The open queue should not contain consistent vertices.
             assert(!vertex->isConsistent());
 
-            // Register the expansion of this vertex during the reverse search.
-            vertex->registerExpansionDuringReverseSearch();
-
             // Check if the vertex is underconsistent. g[s] < v[s].
             if (objective_->isCostBetterThan(vertex->getCostToComeFromGoal(), vertex->getExpandedCostToComeFromGoal()))
             {
@@ -1250,7 +1247,6 @@ namespace ompl
 
         void AITstar::invalidateCostToComeFromGoalOfReverseBranch(const std::shared_ptr<aitstar::Vertex> &vertex)
         {
-            vertex->unregisterExpansionDuringReverseSearch();
             // Update the cost of all reverse children and remove from open.
             for (const auto &child : vertex->getReverseChildren())
             {
