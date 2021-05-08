@@ -811,6 +811,7 @@ namespace ompl
             // If the vertex is a goal, there's no updating to do.
             if (graph_.isGoal(vertex))
             {
+                assert(objective_->isCostEquivalentTo(vertex->getCostToComeFromGoal(), objective_->identityCost()));
                 return;
             }
 
