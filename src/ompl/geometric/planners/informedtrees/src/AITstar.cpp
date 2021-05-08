@@ -862,21 +862,7 @@ namespace ompl
                 }
             }
 
-            // Check the parent of this vertex in the reverse search.
-            if (vertex->hasReverseParent())
-            {
-                auto reverseParent = vertex->getReverseParent();
-                auto edgeCost = objective_->motionCostHeuristic(reverseParent->getState(), vertex->getState());
-                auto parentCost = objective_->combineCosts(reverseParent->getExpandedCostToComeFromGoal(), edgeCost);
-
-                if (objective_->isCostBetterThan(parentCost, bestCost))
-                {
-                    bestParent = reverseParent;
-                    bestCost = parentCost;
-                }
-            }
-
-            // Set the best cost as the cost to come from the goal.
+            // Set the best cost as the cost-to-come from the goal.
             vertex->setCostToComeFromGoal(bestCost);
 
             // What happens next depends on whether the vertex is disconnected or not.
