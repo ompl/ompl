@@ -176,9 +176,19 @@ namespace ompl
                 costToComeFromGoal_ = cost;
             }
 
+            void Vertex::resetCostToComeFromGoal()
+            {
+                costToComeFromGoal_ = objective_->infiniteCost();
+            }
+            
+            void Vertex::resetExpandedCostToComeFromGoal()
+            {
+                expandedCostToComeFromGoal_ = objective_->infiniteCost();
+            }
+
             void Vertex::setExpandedCostToComeFromGoal(const ompl::base::Cost &cost)
             {
-                reverseSearchBatchId_ = batchId_;
+                // reverseSearchBatchId_ = batchId_;
                 expandedCostToComeFromGoal_ = cost;
             }
 

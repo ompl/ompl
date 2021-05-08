@@ -124,6 +124,12 @@ namespace ompl
 
                 /** \brief Sets the cost to come to this vertex from the goal. */
                 void setCostToComeFromGoal(const ompl::base::Cost &cost);
+                    
+                /** \brief Resets the cost to come to this vertex from the goal to infinity. */
+                void resetCostToComeFromGoal();
+
+                /** \brief Resets the expanded cost to come to this vertex from the goal to infinity. */
+                void resetExpandedCostToComeFromGoal();
 
                 /** \brief Sets the cost to come to this vertex from the goal when it was expanded. */
                 void setExpandedCostToComeFromGoal(const ompl::base::Cost &cost);
