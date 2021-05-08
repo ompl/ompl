@@ -324,9 +324,6 @@ namespace ompl
                  */
                 mutable std::size_t poppedOutgoingEdgeId_{0u};
 
-                /** \brief The reverse search id this vertex has last been expanded on. */
-                mutable std::size_t expandedReverseSearchId_{0u};
-
                 /** \brief The reverse search id this vertex has last been inserted into open on. */
                 mutable std::size_t insertedIntoQueueId_{0u};
 
