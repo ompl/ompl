@@ -89,14 +89,14 @@ namespace ompl
                 if (enabled_)
                 {
                     OccurenceMap::iterator itr;
-                    std::cout << std::string(80, '-') << std::endl;
-                    std::cout << "HeadAnalyzer (" << samples_ << " samples, location " << head_->getLocationOnBasePath()
-                              << ")" << std::endl;
+                    OMPL_DEBUG("%s",std::string(80, '-'));
+                    OMPL_DEBUG("HeadAnalyzer (%d samples, location: %f).", samples_, head_->getLocationOnBasePath());
                     for (itr = map_.begin(); itr != map_.end(); ++itr)
                     {
-                        std::cout << " > " << itr->first << ": " << itr->second << std::endl;
+
+                        OMPL_DEBUG(" > %s:%d", itr->first, itr->second);
                     }
-                    std::cout << std::string(80, '-') << std::endl;
+                    OMPL_DEBUG("%s",std::string(80, '-'));
                 }
             }
 

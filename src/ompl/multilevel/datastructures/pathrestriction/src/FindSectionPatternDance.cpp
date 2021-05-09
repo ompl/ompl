@@ -249,11 +249,6 @@ bool FindSectionPatternDance::tunneling(HeadPtr &head)
                 }
             }
         }
-        // if(!makingProgress)
-        // {
-        //   std::cout << "Stopped tunnel at " << curLocation << " of tunnel distance "
-        //    << head->getLocationOnBasePath() << " to " << locationEndTunnel << std::endl;
-        // }
         base->freeState(xBase);
     }
 
@@ -384,8 +379,6 @@ bool FindSectionPatternDance::wriggleFree(HeadPtr &head)
     return (steps > 0);
 }
 
-#define COUT(depth) (std::cout << std::string(4 * depth, '>'))
-
 bool FindSectionPatternDance::recursivePatternSearch(HeadPtr &head, bool interpolateFiberFirst,
                                                      unsigned int depth)
 {
@@ -472,7 +465,7 @@ bool FindSectionPatternDance::recursivePatternSearch(HeadPtr &head, bool interpo
     neighborhoodBaseSpace.reset();
 
     HeadAnalyzer analyzer(head);
-    analyzer.disable();
+    // analyzer.disable();
 
     bool found = false;
 
