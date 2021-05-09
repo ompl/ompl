@@ -238,8 +238,8 @@ namespace ompl
             /* \brief Given graph, fill in the ompl::base::PlannerData structure */
             void getPlannerDataGraph(ompl::base::PlannerData &data, const Graph &graph, const Vertex vStart) const;
 
-            /** \brief Importance of Bundle-space depending on number of
-                vertices in Bundle-graph */
+            /** \brief Importance of BundleSpace depending on number of
+                vertices in BundleSpaceGraph */
             double getImportance() const override;
 
             /** \brief Initialization methods for the first iteration
