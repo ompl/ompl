@@ -23,22 +23,23 @@ namespace ompl
 
             /** \brief One iteration of SPARS using restriction sampling with
              * visibility regions */
-            virtual void grow() override;
+            void grow() override;
 
             /** \brief Check if number of consecutive failures is larger than
              * maxFailures_ and no solution exists.*/
-            virtual bool isInfeasible() override;
+            bool isInfeasible() override;
 
             /** \brief Check if number of consecutive failures is larger than
              * maxFailures_ */
-            virtual bool hasConverged() override;
+            bool hasConverged() override;
 
-            virtual void clear() override;
+            void clear() override;
+            void setup() override;
 
             /** \brief Return estimate of free state space coverage using the
              * formula $(1 / (M + 1))$ whereby $M$ is the number of
              * consecutive failures to sample a feasible state */
-            virtual double getImportance() const override;
+            double getImportance() const override;
 
         protected:
             /** \brief Maximum failures limit for terminating the algorithm*/

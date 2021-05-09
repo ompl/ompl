@@ -64,19 +64,16 @@ FindSection::FindSection(PathRestriction *restriction) : restriction_(restrictio
         return;
     }
 
-    std::cout << "Cast to fibered" << std::endl;
     projection_ = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
 
     if (graph->getCoDimension() > 0)
     {
-        std::cout << "Get Fiber space" << std::endl;
         base::StateSpacePtr fiber = projection_->getFiberSpace();
         xFiberStart_ = fiber->allocState();
         xFiberGoal_ = fiber->allocState();
         xFiberTmp_ = fiber->allocState();
         validFiberSpaceSegmentLength_ = fiber->getLongestValidSegmentLength();
     }
-    std::cout << "done" << std::endl;
     if (graph->getBaseDimension() > 0)
     {
         base::SpaceInformationPtr base = graph->getBase();

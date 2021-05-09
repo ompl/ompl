@@ -777,8 +777,8 @@ void BundleSpaceGraph::print(std::ostream &out) const
 {
     BaseT::print(out);
     out << std::endl
-        << " --[BundleSpaceGraph has " << getNumberOfVertices() << " vertices and " << getNumberOfEdges() << " edges.]"
-        << std::endl;
+        << " --[BundleSpaceGraph has " << getNumberOfVertices() 
+        << " vertices and " << getNumberOfEdges() << " edges.]";
 }
 
 void BundleSpaceGraph::printConfiguration(const Configuration *q) const

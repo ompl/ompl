@@ -135,6 +135,8 @@ namespace ompl
 
             bool isCompound() const override;
 
+            void print(std::ostream &out) const override;
+
             /* Overrride all fiber projection methods here */
 
             /* \brief Lift base space element using a fiber bundle element */

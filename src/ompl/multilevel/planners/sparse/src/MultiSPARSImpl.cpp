@@ -11,18 +11,26 @@ using namespace ompl::multilevel;
 
 MultiSPARSImpl::MultiSPARSImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
-    setName("MultiSPARSImpl" + std::to_string(id_));
+    setName("MultiSPARSImplLevel" + std::to_string(id_));
     randomWorkStates_.resize(5);
     getBundle()->allocStates(randomWorkStates_);
 
     setMetric("geodesic");
     setGraphSampler("visibilityregion");
     setImportance("exponential");
-    // setFindSectionStrategy(FindSectionType::SIDE_STEP);
-    // setFindSectionStrategy(FindSectionType::PATTERN_DANCE);
 
     firstRun_ = true;
     isInfeasible_ = false;
+
+    // sparseDeltaFraction_ = 0.25;
+    sparseDeltaFraction_ = 0.15;
+
+}
+
+void MultiSPARSImpl::setup()
+{
+    BaseT::setup();
+    setFindSectionStrategy(FindSectionType::PATTERN_DANCE);
 }
 
 void MultiSPARSImpl::clear()
@@ -52,6 +60,7 @@ void MultiSPARSImpl::grow()
         getGoalPtr()->sampleGoal(qGoal_->state);
         addConfiguration(qGoal_);
         goalConfigurations_.push_back(qGoal_);
+
 
         findSection();
     }

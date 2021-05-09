@@ -53,7 +53,6 @@ using namespace ompl::multilevel;
 
 PathRestriction::PathRestriction(BundleSpaceGraph *bundleSpaceGraph) : bundleSpaceGraph_(bundleSpaceGraph)
 {
-    setFindSectionStrategy(FindSectionType::SIDE_STEP);
 }
 
 void PathRestriction::setFindSectionStrategy(FindSectionType type)
@@ -62,9 +61,11 @@ void PathRestriction::setFindSectionStrategy(FindSectionType type)
     {
         case FindSectionType::SIDE_STEP:
             findSection_ = std::make_shared<FindSectionSideStep>(this);
+            OMPL_DEBUG("Set FindSection to SideStep.");
             break;
         case FindSectionType::PATTERN_DANCE:
             findSection_ = std::make_shared<FindSectionPatternDance>(this);
+            OMPL_DEBUG("Set FindSection to PatternDance.");
             break;
         case FindSectionType::NONE:
             findSection_ = nullptr;

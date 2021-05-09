@@ -76,7 +76,7 @@ ProjectionPtr ProjectionFactory::makeProjection(const SpaceInformationPtr &Bundl
     const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
     int nrProjections = GetNumberOfComponents(Bundle_space);
 
-    OMPL_DEBUG("Bundle components: %d", nrProjections);
+    OMPL_DEVMSG1("Bundle components: %d", nrProjections);
 
     if (nrProjections > 1)
     {
@@ -96,7 +96,6 @@ ProjectionPtr ProjectionFactory::makeProjection(const SpaceInformationPtr &Bundl
         {
             CompoundFiberedProjectionPtr proj = std::make_shared<CompoundFiberedProjection>(Bundle_space, nullptr, components);
             FiberedProjectionPtr cproj = std::static_pointer_cast<FiberedProjection>(proj);
-            cproj->makeFiberSpace();
             return cproj;
             // return std::make_shared<CompoundFiberedProjection>(Bundle_space, nullptr, components);
         }
@@ -123,7 +122,7 @@ ProjectionPtr ProjectionFactory::makeProjection(const SpaceInformationPtr &Bundl
     const base::StateSpacePtr Base_space = Base->getStateSpace();
     int baseSpaceComponents = GetNumberOfComponents(Base_space);
 
-    OMPL_DEBUG("Bundle components: %d", nrProjections);
+    OMPL_DEVMSG1("Bundle components: %d", nrProjections);
 
     if (baseSpaceComponents != nrProjections)
     {

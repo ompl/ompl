@@ -161,7 +161,7 @@ std::string Projection::getTypeAsString() const
         std::string tstr = getBundleTypeAsString() + " -> " + getBaseTypeAsString();
         if (type_ == PROJECTION_CONSTRAINED_RELAXATION)
         {
-            tstr += " (relax)";
+            tstr += " (rlx)";
         }
         else if (type_ == PROJECTION_IDENTITY)
         {
@@ -190,7 +190,7 @@ std::string Projection::getBundleTypeAsString() const
 
 void Projection::print(std::ostream &out) const
 {
-    out << getTypeAsString() << std::endl;
+    out << getTypeAsString();
 }
 
 namespace ompl
@@ -314,7 +314,7 @@ void CompoundProjection::print(std::ostream &out) const
 {
     for (unsigned int k = 0; k < components_.size(); k++)
     {
-        out << components_.at(k) << "|";
+        out << "[" << *(components_.at(k).get()) << "]"
+          << (k < (components_.size() - 1)?" | ":"");
     }
-    out << std::endl;
 }

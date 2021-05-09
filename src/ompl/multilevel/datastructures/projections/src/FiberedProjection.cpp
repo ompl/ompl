@@ -61,7 +61,6 @@ ompl::base::StateSamplerPtr FiberedProjection::getFiberSamplerPtr() const
     return fiberSpaceSampler_;
 }
 
-
 CompoundFiberedProjection::CompoundFiberedProjection(
     const base::StateSpacePtr &bundleSpace, const base::StateSpacePtr &baseSpace,
     const std::vector<ProjectionPtr> &components):
@@ -80,34 +79,47 @@ CompoundFiberedProjection::CompoundFiberedProjection(
     FiberedProjection::setType(PROJECTION_COMPOUND);
     CompoundProjection::setType(PROJECTION_COMPOUND);
 }
+
 void CompoundFiberedProjection::lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const
 {
     return CompoundProjection::lift(xBase, xBundle);
 }
+
 void CompoundFiberedProjection::project(const ompl::base::State *xBundle, ompl::base::State *xBase) const
 {
     return CompoundProjection::project(xBundle, xBase);
 }
+
 unsigned int CompoundFiberedProjection::getBaseDimension() const
 {
     return CompoundProjection::getBaseDimension();
 }
+
 unsigned int CompoundFiberedProjection::getDimension() const
 {
     return CompoundProjection::getDimension();
 }
+
 unsigned int CompoundFiberedProjection::getCoDimension() const
 {
     return CompoundProjection::getCoDimension();
 }
+
 bool CompoundFiberedProjection::isFibered() const
 {
     return true;
 }
+
 bool CompoundFiberedProjection::isCompound() const
 {
     return true;
 }
+
+void CompoundFiberedProjection::print(std::ostream &out) const
+{
+    CompoundProjection::print(out);
+}
+
 void CompoundFiberedProjection::lift(
     const ompl::base::State *xBase, 
     const ompl::base::State *xFiber, 

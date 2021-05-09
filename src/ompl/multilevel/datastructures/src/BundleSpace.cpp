@@ -68,10 +68,6 @@ BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *child)
         xBaseTmp_ = getBase()->allocState();
     }
 
-    std::stringstream ss;
-    ss << (*this);
-    OMPL_DEBUG(ss.str().c_str());
-
     if (!Bundle_valid_sampler_)
     {
         Bundle_valid_sampler_ = getBundle()->allocValidStateSampler();
@@ -108,6 +104,11 @@ bool BundleSpace::makeProjection()
         return false;
 
     sanityChecks();
+
+    std::stringstream ss;
+    ss << (*this);
+    OMPL_DEBUG("%s", ss.str().c_str());
+
     return true;
 }
 
@@ -148,6 +149,7 @@ void BundleSpace::setup()
             pdef_->setOptimizationObjective(lengthObj);
         }
     }
+
 }
 
 GoalSampleableRegion *BundleSpace::getGoalPtr() const
@@ -460,7 +462,7 @@ void BundleSpace::project(const ompl::base::State *xBundle, ompl::base::State *x
 
 void BundleSpace::print(std::ostream &out) const
 {
-    out << getProjection();
+    out << "BundleSpace(lvl" << getLevel() << "):" << *(getProjection().get());
 }
 
 namespace ompl
