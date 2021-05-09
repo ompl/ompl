@@ -50,6 +50,7 @@ void FiberedProjection::makeFiberSpace()
 
     if (fiberSpace_ != nullptr)
     {
+        fiberSpace_->setup();
         siFiberSpace_ = std::make_shared<ompl::base::SpaceInformation>(fiberSpace_);
         fiberSpaceSampler_ = siFiberSpace_->allocStateSampler();
         xFiberTmp_ = siFiberSpace_->allocState();
@@ -157,11 +158,14 @@ void CompoundFiberedProjection::projectFiber(
     {
         for (unsigned int m = 0; m < M; m++)
         {
-            const State *xmBundle = xBundle->as<CompoundState>()->as<State>(m);
-            State *xmFiber = xFiber->as<CompoundState>()->as<State>(m);
-            FiberedProjectionPtr projFibered = 
-              std::static_pointer_cast<FiberedProjection>(components_.at(m));
-            projFibered->projectFiber(xmBundle, xmFiber);
+            if(components_.at(m)->getCoDimension() > 0)
+            {
+                FiberedProjectionPtr projFibered = 
+                  std::static_pointer_cast<FiberedProjection>(components_.at(m));
+                const State *xmBundle = xBundle->as<CompoundState>()->as<State>(m);
+                State *xmFiber = xFiber->as<CompoundState>()->as<State>(m);
+                projFibered->projectFiber(xmBundle, xmFiber);
+            }
         }
     }
     else
@@ -185,5 +189,6 @@ ompl::base::StateSpacePtr CompoundFiberedProjection::computeFiberSpace()
         StateSpacePtr fiberM = projFibered->getFiberSpace();
         compoundFiber->as<CompoundStateSpace>()->addSubspace(fiberM, 1.0);
     }
+    
     return compoundFiber;
 }

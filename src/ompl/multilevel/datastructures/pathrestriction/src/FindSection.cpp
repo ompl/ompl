@@ -183,7 +183,8 @@ bool FindSection::tripleStep(HeadPtr &head, const ompl::base::State *sBundleGoal
     //     v
     // xBundleGoalTmp -------> xBundleGoal
 
-    while (!found && location >= 0)
+    double locationMin = std::max(0.0, location - 100*validBaseSpaceSegmentLength_);
+    while (!found && location >= locationMin)
     {
         restriction_->interpolateBasePath(location, xBase);
 

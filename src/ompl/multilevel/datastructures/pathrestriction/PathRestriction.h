@@ -72,7 +72,7 @@ namespace ompl
         using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
         /** \brief Representation of path restriction
-            (union of fibers over a base path).
+           (union of fibers over a base path).
 
             Class represents path restriction by keeping a set of discrete base
             path states. To access states inbetween, we use the
@@ -90,7 +90,7 @@ namespace ompl
             @par External documentation
             A. Orthey and M. Toussaint,
             Section Patterns: Efficiently Solving Narrow Passage Problems
-            using Multilevel Motion Planning, <em>arXiv:2010.14524 [cs.RO]</em>, 2020
+            in Multilevel Motion Planning, <em>arXiv:2010.14524 [cs.RO]</em>, 2020
             [[PDF]](https://arxiv.org/pdf/2010.14524.pdf)
 
         */

@@ -54,9 +54,14 @@ namespace ompl
         // static const unsigned int PATH_SECTION_MAX_TUNNELING = 1000;
 
         // Values for submission
+        // static const unsigned int PATH_SECTION_MAX_WRIGGLING = 100;
+        // static const unsigned int PATH_SECTION_MAX_DEPTH = 2;        // 3 seems max
+        // static const unsigned int PATH_SECTION_MAX_BRANCHING = 500;  // 500
+        // static const unsigned int PATH_SECTION_MAX_TUNNELING = 100;
+        
         static const unsigned int PATH_SECTION_MAX_WRIGGLING = 100;
         static const unsigned int PATH_SECTION_MAX_DEPTH = 2;        // 3 seems max
-        static const unsigned int PATH_SECTION_MAX_BRANCHING = 500;  // 500
+        static const unsigned int PATH_SECTION_MAX_BRANCHING = 100;  // 500
         static const unsigned int PATH_SECTION_MAX_TUNNELING = 100;
     }
 }
