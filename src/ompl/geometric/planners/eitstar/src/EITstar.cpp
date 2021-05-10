@@ -44,12 +44,12 @@
 #include "ompl/geometric/planners/eitstar/stopwatch/timetable.h"
 
 using namespace std::string_literals;
+using namespace ompl::geometric::eitstar;
 
 namespace ompl
 {
     namespace geometric
     {
-        using namespace eitstar;
 
         EITstar::EITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo)
           : ompl::base::Planner(spaceInfo, "EIT*")
