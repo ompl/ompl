@@ -192,7 +192,8 @@ namespace ompl
                 return status;
             }
 
-            OMPL_INFORM("%s: Searching for a solution to the given planning problem. The current best solution cost is "
+            OMPL_INFORM("%s: Searching for a solution to the given planning problem. The current best solution "
+                        "cost is "
                         "%.4f",
                         name_.c_str(), solutionCost_.value());
 
@@ -202,8 +203,8 @@ namespace ompl
                 iterate(terminationCondition);
             }
 
-            // Someone might call ProblemDefinition::clearSolutionPaths() between invokations of Planner::solve(), in
-            // which case previously found solutions are not registered with the problem definition anymore.
+            // Someone might call ProblemDefinition::clearSolutionPaths() between invokations of Planner::solve(),
+            // in which case previously found solutions are not registered with the problem definition anymore.
             updateExactSolution();
 
             // If there are no exact solutions registered in the problem definition and we're tracking approximate
@@ -417,9 +418,12 @@ namespace ompl
 
         void AITstar::informAboutNewSolution() const
         {
-            OMPL_INFORM("%s (%u iterations): Found a new exact solution of cost %.4f. Sampled a total of %u states, %u "
-                        "of which were valid samples (%.1f \%). Processed %u edges, %u of which were collision checked "
-                        "(%.1f \%). The forward search tree has %u vertices. The reverse search tree has %u vertices.",
+            OMPL_INFORM("%s (%u iterations): Found a new exact solution of cost %.4f. Sampled a total of %u "
+                        "states, %u "
+                        "of which were valid samples (%.1f \%). Processed %u edges, %u of which were collision "
+                        "checked "
+                        "(%.1f \%). The forward search tree has %u vertices. The reverse search tree has %u "
+                        "vertices.",
                         name_.c_str(), numIterations_, solutionCost_.value(), graph_.getNumberOfSampledStates(),
                         graph_.getNumberOfValidSamples(),
                         graph_.getNumberOfSampledStates() == 0u ?
@@ -445,7 +449,8 @@ namespace ompl
                 }
                 case ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION:
                 {
-                    OMPL_INFORM("%s (%u iterations): Did not find an exact solution, but found an approximate solution "
+                    OMPL_INFORM("%s (%u iterations): Did not find an exact solution, but found an approximate "
+                                "solution "
                                 "of cost %.4f which is %.4f away from a goal (in cost space).",
                                 name_.c_str(), numIterations_, approximateSolutionCost_.value(),
                                 approximateSolutionCostToGoal_.value());
@@ -548,9 +553,9 @@ namespace ompl
                 return false;
             }
 
-            // If the best edge in the forward queue has a potential total solution cost of infinity, the forward search
-            // does not need to be continued. This can happen if the reverse search did not reach any target state of
-            // the edges in the forward queue.
+            // If the best edge in the forward queue has a potential total solution cost of infinity, the forward
+            // search does not need to be continued. This can happen if the reverse search did not reach any target
+            // state of the edges in the forward queue.
             const auto &bestEdgeCost = forwardQueue_.top()->data.getSortKey()[0u];
             if (!objective_->isFinite(bestEdgeCost))
             {
@@ -891,8 +896,8 @@ namespace ompl
             }
 
             // This vertex now has a changed cost-to-come in the reverse search. All edges in the forward queue that
-            // have this vertex as a target must be updated. This cannot be delayed, as whether the reverse search can
-            // be suspended depends on the best edge in the forward queue.
+            // have this vertex as a target must be updated. This cannot be delayed, as whether the reverse search
+            // can be suspended depends on the best edge in the forward queue.
             for (const auto &element : vertex->getForwardQueueIncomingLookup())
             {
                 auto &edge = element->data;
@@ -1093,8 +1098,8 @@ namespace ompl
             // Check if any of the goals have a cost to come less than the current solution cost.
             for (const auto &goal : graph_.getGoalVertices())
             {
-                // We need to check whether the cost is better, or whether someone has removed the exact solution from
-                // the problem definition.
+                // We need to check whether the cost is better, or whether someone has removed the exact solution
+                // from the problem definition.
                 if (objective_->isCostBetterThan(goal->getCostToComeFromStart(), solutionCost_) ||
                     (!pdef_->hasExactSolution() && objective_->isFinite(goal->getCostToComeFromStart())))
                 {
@@ -1124,8 +1129,8 @@ namespace ompl
             {
                 auto costToGoal = computeCostToGoToGoal(vertex);
 
-                // We need to check whether this is better than the current approximate solution or whether someone has
-                // removed all approximate solutions from the problem definition.
+                // We need to check whether this is better than the current approximate solution or whether someone
+                // has removed all approximate solutions from the problem definition.
                 if (objective_->isCostBetterThan(costToGoal, approximateSolutionCostToGoal_) ||
                     !pdef_->hasApproximateSolution())
                 {
