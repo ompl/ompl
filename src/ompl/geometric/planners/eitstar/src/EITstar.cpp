@@ -842,7 +842,31 @@ namespace ompl
                     // Update the search tag.
                     ++reverseSearchTag_;
                 }
+        bool EITstar::continueReverseSearch() const
+        {
+            // Never continue the reverse search if the reverse queue is empty.
+            if (reverseQueue_->empty()) {
+                return false;
             }
+            
+            // The reverse search must be continued if the target of the best edge in the forward queue is
+            // not yet closed of if the best edge in the forward queue has a lower potential solution
+            // cost than the best edge in the reverse queue.
+            return !isClosed(forwardQueue_->peek(1.0).target->asReverseVertex()) ||
+                   objective_->isCostBetterThan(forwardQueue_->getLowerBoundOnOptimalSolutionCost(),
+                                                reverseQueue_->getLowerBoundOnOptimalSolutionCost());
+        }
+
+        bool EITstar::continueForwardSearch() const
+        {
+            // Never continue to forward search if the forward queue is empty.
+            if (forwardQueue_->empty()) {
+                return false;
+            }
+            
+            // The forward search must be continued if the potential solution cost of the best edge is lower than the
+            // current solution cost.
+            return objective_->isCostBetterThan(forwardQueue_->getLowerBoundOnOptimalSolutionCost(), solutionCost_);
         }
 
         void EITstar::updateExactSolution()

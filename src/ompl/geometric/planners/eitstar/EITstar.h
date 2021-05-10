@@ -174,6 +174,12 @@ namespace ompl
             /** \brief Improves the approximation by sampling more states. */
             void improveApproximation(const ompl::base::PlannerTerminationCondition &terminationCondition);
 
+            /** \brief Checks whether the reverse search must be continued. */
+            bool continueReverseSearch() const;
+
+            /** \brief Checks whether the forward search must be continued. */
+            bool continueForwardSearch() const;
+
             /** \brief Updates the exact solution by checking every goal in the graph. */
             void updateExactSolution();
 
