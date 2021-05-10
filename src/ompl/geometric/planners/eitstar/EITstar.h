@@ -56,7 +56,7 @@ namespace ompl
         {
         public:
             /** \brief Constructs an algorithm using the provided space information */
-            EITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo);
+            explicit EITstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo);
 
             /** \brief Destructs the algorithm. */
             ~EITstar();
