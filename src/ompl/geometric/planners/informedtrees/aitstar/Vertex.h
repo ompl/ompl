@@ -141,10 +141,10 @@ namespace ompl
                 void updateCostOfForwardBranch() const;
 
                 /** \brief Recursively invalidates the branch of the reverse tree rooted in this vertex. */
-                std::vector<std::weak_ptr<aitstar::Vertex>> invalidateReverseBranch();
+                std::vector<std::weak_ptr<Vertex>> invalidateReverseBranch();
 
                 /** \brief Recursively invalidates the branch of the forward tree rooted in this vertex. */
-                std::vector<std::weak_ptr<aitstar::Vertex>> invalidateForwardBranch();
+                std::vector<std::weak_ptr<Vertex>> invalidateForwardBranch();
 
                 /** \brief Adds a vertex to this vertex's forward children. */
                 void addToForwardChildren(const std::shared_ptr<Vertex> &vertex);

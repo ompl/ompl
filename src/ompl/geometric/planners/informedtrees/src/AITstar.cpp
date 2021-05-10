@@ -384,7 +384,7 @@ namespace ompl
         void AITstar::rebuildReverseQueue()
         {
             // Rebuilding the reverse queue invalidates the reverse queue pointers.
-            std::vector<KeyVertexPair> content;
+            std::vector<aitstar::KeyVertexPair> content;
             reverseQueue_.getContent(content);
             for (auto &element : content)
             {
@@ -404,7 +404,7 @@ namespace ompl
 
         void AITstar::clearReverseQueue()
         {
-            std::vector<KeyVertexPair> reverseQueue;
+            std::vector<aitstar::KeyVertexPair> reverseQueue;
             reverseQueue_.getContent(reverseQueue);
             for (const auto &element : reverseQueue)
             {
@@ -502,7 +502,8 @@ namespace ompl
                 goal->setCostToComeFromGoal(objective_->identityCost());
 
                 // Create an element for the queue.
-                KeyVertexPair element({computeCostToGoToStartHeuristic(goal), objective_->identityCost()}, goal);
+                aitstar::KeyVertexPair element({computeCostToGoToStartHeuristic(goal), objective_->identityCost()},
+                                               goal);
 
                 // Insert the element into the queue and set the corresponding pointer.
                 auto reverseQueuePointer = reverseQueue_.insert(element);
@@ -799,7 +800,7 @@ namespace ompl
                 [this](const auto &a, const auto &b) { return objective_->isCostBetterThan(a, b); });
         }
 
-        bool AITstar::isVertexBetter(const KeyVertexPair &lhs, const KeyVertexPair &rhs) const
+        bool AITstar::isVertexBetter(const aitstar::KeyVertexPair &lhs, const aitstar::KeyVertexPair &rhs) const
         {
             return std::lexicographical_compare(
                 lhs.first.cbegin(), lhs.first.cend(), rhs.first.cbegin(), rhs.first.cend(),
