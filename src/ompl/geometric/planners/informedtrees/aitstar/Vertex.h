@@ -125,7 +125,7 @@ namespace ompl
 
                 /** \brief Sets the cost to come to this vertex from the goal. */
                 void setCostToComeFromGoal(const ompl::base::Cost &cost);
-                    
+
                 /** \brief Resets the cost to come to this vertex from the goal to infinity. */
                 void resetCostToComeFromGoal();
 
@@ -186,20 +186,9 @@ namespace ompl
                 /** \brief Returns the nearest neighbors, throws if not up to date. */
                 const std::vector<std::shared_ptr<Vertex>> getNeighbors() const;
 
-                /** \brief Registers that a child has been added to this vertex during the current forward search. */
-                void registerPoppedOutgoingEdgeDuringForwardSearch();
-
-                /** \brief Registers the insertion of this vertex into the open queue during the current reverse
-                 * search. */
-                void registerInsertionIntoQueueDuringReverseSearch();
-
                 /** \brief Returns whether the vertex is consistent, i.e., whether its cost-to-come is equal to the
                  * cost-to-come when it was last expanded. */
                 bool isConsistent() const;
-
-                /** \brief Returns whether the vertex has been inserted into the queue during the current reverse
-                 * search. */
-                bool hasBeenInsertedIntoQueueDuringCurrentReverseSearch() const;
 
                 /** \brief Sets the reverse queue pointer of this vertex. */
                 void setReverseQueuePointer(typename VertexQueue::Element *pointer);
@@ -294,13 +283,6 @@ namespace ompl
 
                 /** \brief The batch id for which the reverse search cost to come is valid. */
                 mutable std::size_t reverseSearchBatchId_{0u};
-
-                /** \brief The forward search id when the most recent outgoing edge was popped from the forward queue.
-                 */
-                mutable std::size_t poppedOutgoingEdgeId_{0u};
-
-                /** \brief The reverse search id this vertex has last been inserted into open on. */
-                mutable std::size_t insertedIntoQueueId_{0u};
 
                 /** \brief The reverse search id for which the reverse queue pointer is valid. */
                 mutable std::size_t reverseQueuePointerId_{0u};

@@ -444,24 +444,9 @@ namespace ompl
                 return children;
             }
 
-            void Vertex::registerPoppedOutgoingEdgeDuringForwardSearch()
-            {
-                poppedOutgoingEdgeId_ = batchId_;
-            }
-
-            void Vertex::registerInsertionIntoQueueDuringReverseSearch()
-            {
-                insertedIntoQueueId_ = batchId_;
-            }
-
             bool Vertex::isConsistent() const
             {
                 return objective_->isCostEquivalentTo(costToComeFromGoal_, expandedCostToComeFromGoal_);
-            }
-
-            bool Vertex::hasBeenInsertedIntoQueueDuringCurrentReverseSearch() const
-            {
-                return insertedIntoQueueId_ == batchId_;
             }
 
             void Vertex::setReverseQueuePointer(

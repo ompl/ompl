@@ -686,10 +686,6 @@ namespace ompl
             // This counts as processing an edge.
             ++numProcessedEdges_;
 
-            // Register that an outgoing edge of the parent has been popped from the queue. This means that the parent
-            // has optimal cost-to-come for the current approximation.
-            parent->registerPoppedOutgoingEdgeDuringForwardSearch();
-
             // If this edge is already in the forward tree, it's a freeby.
             if (child->hasForwardParent() && child->getForwardParent()->getId() == parent->getId())
             {
