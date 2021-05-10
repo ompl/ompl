@@ -166,10 +166,10 @@ namespace ompl
             void iterate(const ompl::base::PlannerTerminationCondition &terminationCondition);
 
             /** \brief Perform one reverse iteration. */
-            void reverseIterate();
+            void iterateReverseSearch();
 
             /** \brief Perform one forward iteration. */
-            void forwardIterate();
+            void iterateForwardSearch();
 
             /** \brief Improves the approximation by sampling more states. */
             void improveApproximation(const ompl::base::PlannerTerminationCondition &terminationCondition);

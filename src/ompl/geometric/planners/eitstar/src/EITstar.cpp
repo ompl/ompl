@@ -432,12 +432,12 @@ namespace ompl
             {
                 case Phase::REVERSE_SEARCH:
                 {
-                    reverseIterate();
+                    iterateReverseSearch();
                     break;
                 }
                 case Phase::FORWARD_SEARCH:
                 {
-                    forwardIterate();
+                    iterateForwardSearch();
                     break;
                 }
                 case Phase::IMPROVE_APPROXIMATION:
@@ -458,7 +458,7 @@ namespace ompl
             ++iteration_;
         }
 
-        void EITstar::forwardIterate()
+        void EITstar::iterateForwardSearch()
         {
             // Ensure the forward queue is not empty.
             assert(!forwardQueue_->empty());
@@ -640,7 +640,7 @@ namespace ompl
             }
         }
 
-        void EITstar::reverseIterate()
+        void EITstar::iterateReverseSearch()
         {
             // Ensure the reverse queue is not empty.
             assert(!reverseQueue_->empty());
