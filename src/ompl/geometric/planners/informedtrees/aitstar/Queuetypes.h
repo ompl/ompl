@@ -42,8 +42,8 @@
 #include <memory>
 #include <utility>
 
+#include "ompl/base/Cost.h"
 #include "ompl/datastructures/BinaryHeap.h"
-#include "ompl/geometric/planners/informedtrees/aitstar/Edge.h"
 
 namespace ompl
 {
@@ -51,6 +51,10 @@ namespace ompl
     {
         namespace aitstar
         {
+            // Forward declarations of the AIT* edge and vertex classes.
+            class Edge;
+            class Vertex;
+            
             /** \brief The type of the edge queue. */
             using EdgeQueue = ompl::BinaryHeap<Edge, std::function<bool(const Edge &, const Edge &)>>;
 
