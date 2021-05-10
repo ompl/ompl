@@ -119,6 +119,8 @@ void ompl::geometric::RRTXstatic::setup()
             // Store the new objective in the problem def'n
             pdef_->setOptimizationObjective(opt_);
         }
+        // Set the bestCost_ as infinite
+        bestCost_ = opt_->infiniteCost();
         mc_ = MotionCompare(opt_, pdef_);
         q_ = BinaryHeap<Motion *, MotionCompare>(mc_);
     }
@@ -130,9 +132,6 @@ void ompl::geometric::RRTXstatic::setup()
 
     // Calculate some constants:
     calculateRewiringLowerBounds();
-
-    // Set the bestCost_ and prunedCost_ as infinite
-    bestCost_ = opt_->infiniteCost();
 }
 
 void ompl::geometric::RRTXstatic::clear()

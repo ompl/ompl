@@ -159,6 +159,14 @@ namespace ompl
             /** \brief Create a problem definition given the SpaceInformation it is part of */
             ProblemDefinition(SpaceInformationPtr si);
 
+            /** \brief Return a copy of the problem definition
+             *
+             * A deep copy is made of the start and goal states. A shallow copy is made
+             * of shared ptrs. The set of solutions paths and the intermediate solution
+             * callback function are not copied.
+             */
+            ProblemDefinitionPtr clone() const;
+
             virtual ~ProblemDefinition()
             {
                 clearStartStates();

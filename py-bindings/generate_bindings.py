@@ -191,7 +191,7 @@ class ompl_base_generator_t(code_generator_t):
         self.ompl_ns.class_('SpecificParam< float >').rename('SpecificParamFloat')
         self.ompl_ns.class_('SpecificParam< double >').rename('SpecificParamDouble')
         self.ompl_ns.class_('SpecificParam< long double >').rename('SpecificParamLongDouble')
-        self.ompl_ns.class_('SpecificParam< std::basic_string<char> >').rename(
+        self.ompl_ns.class_(lambda decl: decl.name.startswith('SpecificParam<std::basic_string')).rename(
             'SpecificParamString')
         for cls in self.ompl_ns.classes(lambda decl: decl.name.startswith('SpecificParam')):
             cls.constructors().exclude()
@@ -647,6 +647,7 @@ class ompl_geometric_generator_t(code_generator_t):
             'def("getPlannerAllocator", &ompl::geometric::SimpleSetup::getPlannerAllocator, ' \
             'bp::return_value_policy< bp::copy_const_reference >())')
         self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::BITstar::Vertex> >').exclude()
+        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::aitstar::Vertex> >').exclude()
         self.std_ns.class_('vector<const ompl::base::State *>').exclude()
 
         self.std_ns.class_('vector< std::shared_ptr<ompl::base::SpaceInformation> >').rename('vectorSpaceInformation')
@@ -753,6 +754,9 @@ class ompl_geometric_generator_t(code_generator_t):
         cls.member_function('addPathToSpanner').exclude()
         cls.member_function('computeDensePath').exclude()
         self.ompl_ns.class_('SPARStwo').member_function('findCloseRepresentatives').exclude()
+        cls = self.ompl_ns.class_('AITstar')
+        cls.member_function('getVerticesInQueue').exclude()
+        cls.member_function('getVerticesInReverseSearchTree').exclude()
 
         # needed to able to set connection strategy for PRM
         # the PRM::Vertex type is typedef-ed to boost::graph_traits<Graph>::vertex_descriptor. This
@@ -777,7 +781,6 @@ class ompl_geometric_generator_t(code_generator_t):
             # Exclude some functions from BIT* that cause some Py++ compilation problems
             # (#I don't know why this doesn't work):
             self.ompl_ns.class_('BITstar').member_functions('getEdgeQueue').exclude()
-            self.ompl_ns.class_('BITstar').member_functions('getVertexQueue').exclude()
         except declaration_not_found_t:
             pass
 

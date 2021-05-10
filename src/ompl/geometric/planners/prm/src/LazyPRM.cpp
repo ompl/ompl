@@ -226,6 +226,15 @@ void ompl::geometric::LazyPRM::setMaxNearestNeighbors(unsigned int k)
 
 void ompl::geometric::LazyPRM::setDefaultConnectionStrategy()
 {
+    if (!nn_)
+    {
+        nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
+        nn_->setDistanceFunction([this](const Vertex a, const Vertex b)
+                                 {
+                                     return distanceFunction(a, b);
+                                 });
+    }
+
     if (starStrategy_)
         connectionStrategy_ = KStarStrategy<Vertex>([this] { return milestoneCount(); }, nn_, si_->getStateDimension());
     else

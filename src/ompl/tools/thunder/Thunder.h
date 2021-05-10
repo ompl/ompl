@@ -160,7 +160,7 @@ namespace ompl
             /** \brief Get the total number of paths stored in the database */
             std::size_t getExperiencesCount() const override;
 
-            /** \brief Convert PlannerData to PathGeometric. Assume ordering of verticies is order of path */
+            /** \brief Convert PlannerData to PathGeometric. Assume ordering of vertices is order of path */
             void convertPlannerData(const ompl::base::PlannerDataPtr &plannerData,
                                     ompl::geometric::PathGeometric &path);
 

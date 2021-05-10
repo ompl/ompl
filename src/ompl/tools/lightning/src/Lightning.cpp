@@ -435,7 +435,7 @@ void ompl::tools::Lightning::getAllPlannerDatas(std::vector<ob::PlannerDataPtr> 
 
 void ompl::tools::Lightning::convertPlannerData(const ob::PlannerDataPtr &plannerData, og::PathGeometric &path)
 {
-    // Convert the planner data verticies into a vector of states
+    // Convert the planner data vertices into a vector of states
     for (std::size_t i = 0; i < plannerData->numVertices(); ++i)
         path.append(plannerData->getVertex(i).getState());
 }

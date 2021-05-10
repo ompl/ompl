@@ -43,7 +43,8 @@
 #include "ompl/util/Console.h"
 
 // The supported optimal planners, in alphabetical order
-#include <ompl/geometric/planners/bitstar/BITstar.h>
+#include <ompl/geometric/planners/informedtrees/AITstar.h>
+#include <ompl/geometric/planners/informedtrees/BITstar.h>
 #include <ompl/geometric/planners/cforest/CForest.h>
 #include <ompl/geometric/planners/fmt/FMT.h>
 #include <ompl/geometric/planners/fmt/BFMT.h>
@@ -70,6 +71,7 @@ namespace og = ompl::geometric;
 // An enum of supported optimal planners, alphabetical order
 enum optimalPlanner
 {
+    PLANNER_AITSTAR,
     PLANNER_BFMTSTAR,
     PLANNER_BITSTAR,
     PLANNER_CFOREST,
@@ -144,7 +146,12 @@ ob::PlannerPtr allocatePlanner(ob::SpaceInformationPtr si, optimalPlanner planne
 {
     switch (plannerType)
     {
-		case PLANNER_BFMTSTAR:
+        case PLANNER_AITSTAR:
+        {
+            return std::make_shared<og::AITstar>(si);
+            break;
+        }
+        case PLANNER_BFMTSTAR:
         {
             return std::make_shared<og::BFMT>(si);
             break;
@@ -423,7 +430,7 @@ bool argParse(int argc, char** argv, double* runTimePtr, optimalPlanner *planner
     desc.add_options()
         ("help,h", "produce help message")
         ("runtime,t", bpo::value<double>()->default_value(1.0), "(Optional) Specify the runtime in seconds. Defaults to 1 and must be greater than 0.")
-        ("planner,p", bpo::value<std::string>()->default_value("RRTstar"), "(Optional) Specify the optimal planner to use, defaults to RRTstar if not given. Valid options are BFMTstar, BITstar, CForest, FMTstar, InformedRRTstar, PRMstar, RRTstar, and SORRTstar.") //Alphabetical order
+        ("planner,p", bpo::value<std::string>()->default_value("RRTstar"), "(Optional) Specify the optimal planner to use, defaults to RRTstar if not given. Valid options are AITstar, BFMTstar, BITstar, CForest, FMTstar, InformedRRTstar, PRMstar, RRTstar, and SORRTstar.") //Alphabetical order
         ("objective,o", bpo::value<std::string>()->default_value("PathLength"), "(Optional) Specify the optimization objective, defaults to PathLength if not given. Valid options are PathClearance, PathLength, ThresholdPathLength, and WeightedLengthAndClearanceCombo.") //Alphabetical order
         ("file,f", bpo::value<std::string>()->default_value(""), "(Optional) Specify an output path for the found solution path.")
         ("info,i", bpo::value<unsigned int>()->default_value(0u), "(Optional) Set the OMPL log level. 0 for WARN, 1 for INFO, 2 for DEBUG. Defaults to WARN.");
@@ -474,7 +481,10 @@ bool argParse(int argc, char** argv, double* runTimePtr, optimalPlanner *planner
     std::string plannerStr = vm["planner"].as<std::string>();
 
     // Map the string to the enum
-    if (boost::iequals("BFMTstar", plannerStr))
+    if (boost::iequals("AITstar", plannerStr)) {
+        *plannerPtr = PLANNER_AITSTAR;
+    }
+    else if (boost::iequals("BFMTstar", plannerStr))
     {
         *plannerPtr = PLANNER_BFMTSTAR;
     }

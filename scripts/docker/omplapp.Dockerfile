@@ -1,10 +1,11 @@
-FROM ubuntu:bionic AS builder
+FROM ubuntu:focal AS builder
 # avoid interactive configuration dialog from tzdata, which gets pulled in
 # as a dependency
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y \
         build-essential  \
+        castxml \
         cmake \
         freeglut3-dev \
         libassimp-dev \
@@ -21,7 +22,7 @@ RUN apt-get update && \
         libfcl-dev \
         libflann-dev \
         libode-dev \
-        libssl1.0.0 \
+        libssl1.1 \
         libtinfo5 \
         libtriangle-dev \
         pkg-config \
@@ -34,14 +35,12 @@ RUN apt-get update && \
         python3-pyqt5.qtopengl \
         wget && \
     # Install spot
-    wget -q -O- https://www.lrde.epita.fr/repo/debian.gpg | apt-key add - && \
+    wget --no-check-certificate -q -O- https://www.lrde.epita.fr/repo/debian.gpg | apt-key add - && \
     echo 'deb http://www.lrde.epita.fr/repo/debian/ stable/' >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y libspot-dev && \
-    # Install newer version of castxml than is available via apt-get:
-    wget -q -O- https://data.kitware.com/api/v1/file/5b68c2c28d777f06857c1f48/download | tar zxf - && \
     # Install pypy3
-    wget -q -O- https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.1.1-linux64.tar.bz2 |tar jxf - && \
+    wget --no-check-certificate -q -O- https://downloads.python.org/pypy/pypy3.7-v7.3.3-linux64.tar.bz2 |tar jxf - && \
     pip3 install pygccxml pyplusplus PyOpenGL-accelerate
 COPY . /omplapp
 WORKDIR /build
@@ -49,14 +48,13 @@ RUN cmake \
         -DPYTHON_EXEC=/usr/bin/python3 \
         -DOMPL_REGISTRATION=OFF \
         -DCMAKE_INSTALL_PREFIX=/usr \
-        -DCASTXML=/castxml/bin/castxml \
-        -DPYPY=/pypy3.6-v7.1.1-linux64/bin/pypy3 \
+        -DPYPY=/pypy3.7-v7.3.3-linux64/bin/pypy3.7 \
         /omplapp && \
     make update_bindings -j `nproc` && \
     make -j `nproc` && \
     make install
 
-FROM ubuntu:bionic
+FROM ubuntu:focal
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y \
@@ -88,7 +86,7 @@ RUN apt-get update && \
         uwsgi-plugin-python3 \
         wget && \
     # Install spot
-    wget -q -O - https://www.lrde.epita.fr/repo/debian.gpg | apt-key add - && \
+    wget --no-check-certificate -q -O - https://www.lrde.epita.fr/repo/debian.gpg | apt-key add - && \
     echo 'deb http://www.lrde.epita.fr/repo/debian/ stable/' >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y libspot-dev && \

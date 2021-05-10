@@ -889,7 +889,7 @@ bool ompl::base::CompoundStateSpace::isHybrid() const
 {
     bool c = false;
     bool d = false;
-    for (const auto component : components_)
+    for (const auto &component : components_)
     {
         if (component->isHybrid())
             return true;
@@ -916,7 +916,7 @@ const ompl::base::StateSpacePtr &ompl::base::CompoundStateSpace::getSubspace(con
 
 bool ompl::base::CompoundStateSpace::hasSubspace(const std::string &name) const
 {
-    for (const auto component : components_)
+    for (const auto &component : components_)
         if (component->getName() == name)
             return true;
     return false;
@@ -1038,7 +1038,7 @@ void ompl::base::CompoundStateSpace::copyState(State *destination, const State *
 unsigned int ompl::base::CompoundStateSpace::getSerializationLength() const
 {
     unsigned int l = 0;
-    for (const auto component : components_)
+    for (const auto &component : components_)
         l += component->getSerializationLength();
     return l;
 }
@@ -1078,7 +1078,7 @@ double ompl::base::CompoundStateSpace::distance(const State *state1, const State
 void ompl::base::CompoundStateSpace::setLongestValidSegmentFraction(double segmentFraction)
 {
     StateSpace::setLongestValidSegmentFraction(segmentFraction);
-    for (const auto component : components_)
+    for (const auto &component : components_)
         component->setLongestValidSegmentFraction(segmentFraction);
 }
 
@@ -1216,7 +1216,7 @@ void ompl::base::CompoundStateSpace::printSettings(std::ostream &out) const
 
 void ompl::base::CompoundStateSpace::setup()
 {
-    for (const auto component : components_)
+    for (const auto &component : components_)
         component->setup();
 
     StateSpace::setup();
@@ -1225,7 +1225,7 @@ void ompl::base::CompoundStateSpace::setup()
 void ompl::base::CompoundStateSpace::computeLocations()
 {
     StateSpace::computeLocations();
-    for (const auto component : components_)
+    for (const auto &component : components_)
         component->computeLocations();
 }
 

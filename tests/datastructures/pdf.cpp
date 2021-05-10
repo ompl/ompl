@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(Statistical)
     /* Calculate weighted variance of discrete uniform distribution, which is defined as
      * sum(w[i]*(x[i]-mean)^2)/sumWeights. */
     double variance = 0.0;
-    for (const auto elem : values)
+    for (const auto & elem : values)
     {
         variance += elem.second * (elem.first - mean) * (elem.first - mean);
     }

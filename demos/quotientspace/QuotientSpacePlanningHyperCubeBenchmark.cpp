@@ -45,7 +45,7 @@ int numberPlanners = 0;
 #include "QuotientSpacePlanningCommon.h"
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
-#include <ompl/geometric/planners/bitstar/BITstar.h>
+#include <ompl/geometric/planners/informedtrees/BITstar.h>
 #include <ompl/geometric/planners/est/BiEST.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/est/ProjEST.h>

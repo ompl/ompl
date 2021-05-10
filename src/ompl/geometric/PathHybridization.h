@@ -80,7 +80,7 @@ namespace ompl
             ~PathHybridization();
 
             /** \brief Get the currently computed hybrid path. computeHybridPath() needs to have been called before. */
-            const base::PathPtr &getHybridPath() const;
+            const geometric::PathGeometricPtr &getHybridPath() const;
 
             /** \brief Run Dijkstra's algorithm to find out the lowest-cost path among the mixed ones */
             void computeHybridPath();
@@ -88,7 +88,7 @@ namespace ompl
             /** \brief Add a path to the hybridization. If \e matchAcrossGaps is true, more possible edge connections
                are evaluated.
                 Return the number of attempted connections between paths. */
-            unsigned int recordPath(const base::PathPtr &pp, bool matchAcrossGaps);
+            unsigned int recordPath(const geometric::PathGeometricPtr &pp, bool matchAcrossGaps);
 
             /** \brief Get the number of paths that are currently considered as part of the hybridization */
             std::size_t pathCount() const;
@@ -129,8 +129,8 @@ namespace ompl
 
             struct PathInfo
             {
-                PathInfo(const base::PathPtr &path)
-                  : path_(path), states_(static_cast<PathGeometric *>(path.get())->getStates()), cost_(base::Cost())
+                PathInfo(const geometric::PathGeometricPtr &path)
+                  : path_(path), states_(path->getStates()), cost_(base::Cost())
                 {
                     vertices_.reserve(states_.size());
                 }
@@ -145,7 +145,7 @@ namespace ompl
                     return path_ < other.path_;
                 }
 
-                base::PathPtr path_;
+                geometric::PathGeometricPtr path_;
                 const std::vector<base::State *> &states_;
                 base::Cost cost_;
                 std::vector<Vertex> vertices_;
@@ -161,7 +161,7 @@ namespace ompl
             Vertex root_;
             Vertex goal_;
             std::set<PathInfo> paths_;
-            base::PathPtr hpath_;
+            geometric::PathGeometricPtr hpath_;
 
             /** \brief The name of the path hybridization algorithm, used for tracking planner solution sources */
             std::string name_;

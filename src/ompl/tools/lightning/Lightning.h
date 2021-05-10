@@ -178,7 +178,7 @@ namespace ompl
             std::size_t getExperiencesCount() const override;
 
             /**
-             * \brief Convert PlannerData to PathGeometric. Assume ordering of verticies is order of path
+             * \brief Convert PlannerData to PathGeometric. Assume ordering of vertices is order of path
              * \param PlannerData
              * \param PathGeometric
              */

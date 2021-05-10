@@ -2,7 +2,7 @@
 
 [TOC]
 
-Almost all of the functionality of the C++ OMPL library is accessible through Python using more or less the same API. Some important differences will be described below. The Python bindings are generated with [Py++](https://bitbucket.org/ompl/pyplusplus), which relies on [Boost.Python](https://www.boost.org/doc/libs/release/libs/python/doc). The bindings are packaged in the ompl module. The main namespaces (ompl::base, ompl::control, ompl::geometric) are available as sub-modules. To quickly get an idea of what classes, functions, etc., are available within each submodule, type something like this at the Python prompt:
+Almost all of the functionality of the C++ OMPL library is accessible through Python using more or less the same API. Some important differences will be described below. The Python bindings are generated with [Py++](https://github.com/ompl/pyplusplus), which relies on [Boost.Python](https://www.boost.org/doc/libs/release/libs/python/doc). The bindings are packaged in the ompl module. The main namespaces (ompl::base, ompl::control, ompl::geometric) are available as sub-modules. To quickly get an idea of what classes, functions, etc., are available within each submodule, type something like this at the Python prompt:
 
 ~~~{.py}
 from ompl import base, control, geometric, tools, util

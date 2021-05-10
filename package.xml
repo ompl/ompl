@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>ompl</name>
-  <version>1.5.0</version>
+  <version>1.5.2</version>
   <description>OMPL is a free sampling-based motion planning library.</description>
   <maintainer email="mmoll@rice.edu">Mark Moll</maintainer>
   <license>BSD</license>
@@ -18,9 +18,13 @@
   <build_depend>boost</build_depend>
   <build_depend>eigen</build_depend>
   <build_depend>pkg-config</build_depend>
+  <build_depend>opende</build_depend>
+  <build_depend>libflann-dev</build_depend>
 
   <exec_depend>boost</exec_depend>
   <exec_depend>eigen</exec_depend>
+  <exec_depend>opende</exec_depend>
+  <exec_depend>libflann-dev</exec_depend>
 
   <export>
     <build_type>cmake</build_type>

@@ -272,7 +272,7 @@ bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *s
             pathScore += checkMotionScore(goalState, pathStartState);
 
         // Factor in the distance between start/goal and our new start/goal
-        OMPL_INFORM("LightningRetrieveRepair: Path %d | %d verticies | %d invalid | score %d | reversed: %s | "
+        OMPL_INFORM("LightningRetrieveRepair: Path %d | %d vertices | %d invalid | score %d | reversed: %s | "
                     "distance: %f",
                     int(pathID), currentPath->numVertices(), invalidStates, pathScore,
                     isReversed[pathID] ? "true" : "false", distances[pathID]);
@@ -322,7 +322,7 @@ bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *s
     }
     if ((bestPath->numVertices() == 0u) || bestPath->numVertices() == 1)
     {
-        OMPL_ERROR("LightningRetrieveRepair: Only %d verticies found in PlannerData loaded from file. This is a bug.",
+        OMPL_ERROR("LightningRetrieveRepair: Only %d vertices found in PlannerData loaded from file. This is a bug.",
                    bestPath->numVertices());
         return false;
     }
@@ -330,7 +330,7 @@ bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *s
     // Reverse the path if necessary. We allocate memory for this so that we don't alter the database
     if (isReversed[nearestPathsChosenID_])
     {
-        OMPL_DEBUG("LightningRetrieveRepair: Reversing planner data verticies count %d", bestPath->numVertices());
+        OMPL_DEBUG("LightningRetrieveRepair: Reversing planner data vertices count %d", bestPath->numVertices());
         auto newPath(std::make_shared<ompl::base::PlannerData>(si_));
         for (std::size_t i = bestPath->numVertices(); i > 0; --i)  // size_t can't go negative so subtract 1 instead
         {

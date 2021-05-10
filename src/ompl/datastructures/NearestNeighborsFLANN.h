@@ -81,7 +81,7 @@ namespace ompl
         M. Muja and D.G. Lowe, "Fast Approximate Nearest Neighbors with
         Automatic Algorithm Configuration", in International Conference
         on Computer Vision Theory and Applications (VISAPP'09), 2009.
-        http://people.cs.ubc.ca/~mariusm/index.php/FLANN/FLANN
+        https://github.com/mariusmuja/flann
     */
     template <typename _T, typename _Dist = FLANNDistance<_T>>
     class NearestNeighborsFLANN : public NearestNeighbors<_T>
@@ -136,6 +136,7 @@ namespace ompl
         }
         void add(const std::vector<_T> &data) override
         {
+            if (data.empty()) return;
             unsigned int oldSize = data_.size();
             unsigned int newSize = oldSize + data.size();
             bool rebuild = index_ && (newSize > data_.capacity());
