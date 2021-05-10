@@ -730,18 +730,12 @@ namespace ompl
                     // Share the good news with the whole branch.
                     child->updateCostOfForwardBranch();
 
-                    // Check if the solution can benefit from this.
-                    updateExactSolution();
+                        // Check if the solution can benefit from this.
+                        updateSolution(child);
 
-                    // If we don't have an exact solution but are tracking approximate solutions, see if the child is
-                    // the best approximate solution so far.
-                    if (!pdef_->hasExactSolution() && trackApproximateSolutions_)
-                    {
-                        updateApproximateSolution(child);
+                        // Insert the child's outgoing edges into the queue.
+                        insertOrUpdateInForwardQueue(getOutgoingEdges(child));
                     }
-
-                    // Insert the child's outgoing edges into the queue.
-                    insertOrUpdateInForwardQueue(getOutgoingEdges(child));
                 }
             }
             else
@@ -1157,7 +1151,20 @@ namespace ompl
             }
         };
 
-        ompl::base::Cost AITstar::computeCostToGoToStartHeuristic(const std::shared_ptr<aitstar::Vertex> &vertex) const
+        void AITstar::updateSolution(const std::shared_ptr<Vertex> &vertex)
+        {
+            // Check whether we found a better path to any goal.
+            updateExactSolution();
+
+            // If we don't have an exact solution but are tracking approximate solutions, see if the vertex is
+            // the best approximate solution so far.
+            if (!pdef_->hasExactSolution() && trackApproximateSolutions_)
+            {
+                updateApproximateSolution(vertex);
+            }
+        }
+
+        ompl::base::Cost AITstar::computeCostToGoToStartHeuristic(const std::shared_ptr<Vertex> &vertex) const
         {
             // We need to loop over all start vertices and see which is the closest one.
             ompl::base::Cost bestCost = objective_->infiniteCost();

@@ -237,6 +237,9 @@ namespace ompl
              * the problem definition if so. **/
             void updateApproximateSolution(const std::shared_ptr<aitstar::Vertex> &vertex);
 
+            /** \brief Updates the exact solution and if AIT* track approximate solutions, it updates it as well. */
+            void updateSolution(const std::shared_ptr<aitstar::Vertex> &vertex);
+
             /** \brief Returns the best cost-to-go-heuristic to any start in the graph. */
             ompl::base::Cost computeCostToGoToStartHeuristic(const std::shared_ptr<aitstar::Vertex> &vertex) const;
 
