@@ -674,19 +674,15 @@ namespace ompl
             assert(!forwardQueue_.empty());
 
             // Get the most promising edge.
-            auto &edge = forwardQueue_.top()->data;
-            auto parent = edge.getParent();
-            auto child = edge.getChild();
-
-            // This child has to be consistent.
-            assert(child->isConsistent());
-
-            // Remove the edge from the incoming and outgoing lookups.
+            auto parent = forwardQueue_.top()->data.getParent();
+            auto child = forwardQueue_.top()->data.getChild();
             child->removeFromForwardQueueIncomingLookup(forwardQueue_.top());
             parent->removeFromForwardQueueOutgoingLookup(forwardQueue_.top());
-
-            // Remove the edge from the queue.
             forwardQueue_.pop();
+
+            // Ensure that the child is consistent and the parent isn't the goal.
+            assert(child->isConsistent());
+            assert(!graph_.isGoal(parent));
 
             // This counts as processing an edge.
             ++numProcessedEdges_;
@@ -696,40 +692,40 @@ namespace ompl
             {
                 insertOrUpdateInForwardQueue(getOutgoingEdges(child));
                 return;
-            }  // Check if this edge can improve the solution and is not already in the reverse search tree.
-            else if (objective_->isCostBetterThan(child->getCostToComeFromStart(),
-                                                  objective_->combineCosts(parent->getCostToComeFromStart(),
+            }  // Check if this edge can possibly improve the current search tree.
+            else if (objective_->isCostBetterThan(objective_->combineCosts(parent->getCostToComeFromStart(),
                                                                            objective_->motionCostHeuristic(
-                                                                               parent->getState(), child->getState()))))
+                                                                               parent->getState(), child->getState())),
+                                                  child->getCostToComeFromStart()))
             {
-                // The edge cannot improve the cost to come to the child, we're done processing it.
-                return;
-            }  // The edge can possibly improve the solution and the path to the child. Let's check it for collision.
-            else if (parent->isWhitelistedAsChild(child) ||
-                     motionValidator_->checkMotion(parent->getState(), child->getState()))
-            {
-                // Remember that this is a good edge.
-                if (!parent->isWhitelistedAsChild(child))
+                // The edge can possibly improve the solution and the path to the child. Let's check it for
+                // collision.
+                if (parent->isWhitelistedAsChild(child) ||
+                    motionValidator_->checkMotion(parent->getState(), child->getState()))
                 {
-                    parent->whitelistAsChild(child);
-                    numEdgeCollisionChecks_++;
-                }
+                    // Remember that this is a good edge.
+                    if (!parent->isWhitelistedAsChild(child))
+                    {
+                        parent->whitelistAsChild(child);
+                        numEdgeCollisionChecks_++;
+                    }
 
-                // Compute the edge cost.
-                auto edgeCost = objective_->motionCost(parent->getState(), child->getState());
+                    // Compute the edge cost.
+                    const auto edgeCost = objective_->motionCost(parent->getState(), child->getState());
 
-                // Check if the edge can improve the cost to come to the child.
-                if (objective_->isCostBetterThan(objective_->combineCosts(parent->getCostToComeFromStart(), edgeCost),
-                                                 child->getCostToComeFromStart()))
-                {
-                    // Rewire the child.
-                    child->setForwardParent(parent, edgeCost);
+                    // Check if the edge can improve the cost to come to the child.
+                    if (objective_->isCostBetterThan(
+                            objective_->combineCosts(parent->getCostToComeFromStart(), edgeCost),
+                            child->getCostToComeFromStart()))
+                    {
+                        // Rewire the child.
+                        child->setForwardParent(parent, edgeCost);
 
-                    // Add it to the children of the parent.
-                    parent->addToForwardChildren(child);
+                        // Add it to the children of the parent.
+                        parent->addToForwardChildren(child);
 
-                    // Share the good news with the whole branch.
-                    child->updateCostOfForwardBranch();
+                        // Share the good news with the whole branch.
+                        child->updateCostOfForwardBranch();
 
                         // Check if the solution can benefit from this.
                         updateSolution(child);
@@ -738,24 +734,22 @@ namespace ompl
                         insertOrUpdateInForwardQueue(getOutgoingEdges(child));
                     }
                 }
-            }
-            else
-            {
-                // This child should be blacklisted in both directions.
-                parent->blacklistAsChild(child);
-                child->blacklistAsChild(parent);
-
-                assert(!graph_.isGoal(parent));
-
-                // Repair the reverse search if this edge was in the reverse search tree.
-                if (parent->hasReverseParent() && parent->getReverseParent()->getId() == child->getId())
+                else  // This edge is in collision
                 {
-                    // The parent was connected to the child through an invalid edge.
-                    parent->resetCostToComeFromGoal();
-                    invalidateCostToComeFromGoalOfReverseBranch(parent);
+                    // The edge should be blacklisted in both directions.
+                    parent->blacklistAsChild(child);
+                    child->blacklistAsChild(parent);
 
-                    // The parent's cost-to-come needs to be updated. This places children in open.
-                    updateReverseSearchVertex(parent);
+                    // Repair the reverse search if this edge was in the reverse search tree.
+                    if (parent->hasReverseParent() && parent->getReverseParent()->getId() == child->getId())
+                    {
+                        // The parent was connected to the child through an invalid edge, so we need to invalidate
+                        // the branch of the reverse search tree starting from the parent.
+                        invalidateCostToComeFromGoalOfReverseBranch(parent);
+
+                        // The parent's cost-to-come needs to be updated. This places children in open.
+                        updateReverseSearchVertex(parent);
+                    }
                 }
             }
         }
