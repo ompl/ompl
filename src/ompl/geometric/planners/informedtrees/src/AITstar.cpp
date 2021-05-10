@@ -1234,33 +1234,33 @@ namespace ompl
             return numVerticesInReverseTree;
         }
 
-        void AITstar::invalidateCostToComeFromGoalOfReverseBranch(const std::shared_ptr<aitstar::Vertex> &vertex)
+        void AITstar::invalidateCostToComeFromGoalOfReverseBranch(const std::shared_ptr<Vertex> &vertex)
         {
-            // Update the cost of all reverse children and remove from open.
+            // Reset the cost to come from the goal.
+            vertex->resetCostToComeFromGoal();
+            vertex->resetExpandedCostToComeFromGoal();
+            vertex->getReverseParent()->removeFromReverseChildren(vertex->getId());
+            vertex->resetReverseParent();
+
+            // Update all affected edges in the forward queue.
+            for (const auto &edge : vertex->getForwardQueueIncomingLookup())
+            {
+                edge->data.setSortKey(computeSortKey(edge->data.getParent(), edge->data.getChild()));
+                forwardQueue_.update(edge);
+            }
+
+            // Remove this vertex from the reverse search queue if it is it.
+            auto reverseQueuePointer = vertex->getReverseQueuePointer();
+            if (reverseQueuePointer)
+            {
+                reverseQueue_.remove(reverseQueuePointer);
+                vertex->resetReverseQueuePointer();
+            }
+
+            // Update the cost of all reverse children.
             for (const auto &child : vertex->getReverseChildren())
             {
-                // Reset the cost to come from the goal.
-                child->resetCostToComeFromGoal();
-                child->resetExpandedCostToComeFromGoal();
-                child->getReverseParent()->removeFromReverseChildren(child->getId());
-                child->resetReverseParent();
-
-                // Invalidate the cost to come for all reverse children of this vertex.
                 invalidateCostToComeFromGoalOfReverseBranch(child);
-
-                // Update all affected edges in the forward queue.
-                for (const auto &edge : child->getForwardQueueIncomingLookup())
-                {
-                    forwardQueue_.update(edge);
-                }
-
-                // Update this vertex in the open list if it is it.
-                auto reverseQueuePointer = child->getReverseQueuePointer();
-                if (reverseQueuePointer)
-                {
-                    reverseQueue_.remove(reverseQueuePointer);
-                    child->resetReverseQueuePointer();
-                }
             }
         }
 
