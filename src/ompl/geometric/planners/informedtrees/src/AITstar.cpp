@@ -34,6 +34,8 @@
 
 // Authors: Marlin Strub
 
+#include "ompl/geometric/planners/informedtrees/AITstar.h"
+
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -41,15 +43,16 @@
 #include <boost/range/adaptor/reversed.hpp>
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
-#include "ompl/geometric/planners/informedtrees/AITstar.h"
 #include "ompl/util/Console.h"
 
 using namespace std::string_literals;
+using namespace ompl::geometric::aitstar;
 
 namespace ompl
 {
     namespace geometric
     {
+        
         AITstar::AITstar(const ompl::base::SpaceInformationPtr &spaceInformation)
           : ompl::base::Planner(spaceInformation, "AITstar")
           , solutionCost_()
@@ -238,11 +241,10 @@ namespace ompl
 
         void AITstar::getPlannerData(base::PlannerData &data) const
         {
-            // base::PlannerDataVertex takes a raw pointer to a state. I want to guarantee, that the state lives as long
-            // as the program lives.
-            static std::set<
-                std::shared_ptr<aitstar::Vertex>,
-                std::function<bool(const std::shared_ptr<aitstar::Vertex> &, const std::shared_ptr<aitstar::Vertex> &)>>
+            // base::PlannerDataVertex takes a raw pointer to a state. I want to guarantee, that the state lives as
+            // long as the program lives.
+            static std::set<std::shared_ptr<Vertex>,
+                            std::function<bool(const std::shared_ptr<Vertex> &, const std::shared_ptr<Vertex> &)>>
                 liveStates([](const auto &lhs, const auto &rhs) { return lhs->getId() < rhs->getId(); });
 
             // Fill the planner progress properties.
@@ -347,7 +349,7 @@ namespace ompl
         void AITstar::rebuildForwardQueue()
         {
             // Get all edges from the queue.
-            std::vector<aitstar::Edge> edges;
+            std::vector<Edge> edges;
             forwardQueue_.getContent(edges);
 
             // Rebuilding the queue invalidates the incoming and outgoing lookup.
@@ -360,18 +362,18 @@ namespace ompl
             // Clear the queue.
             forwardQueue_.clear();
 
-            // Insert all edges into the queue if they connect vertices that have been processed, otherwise store them
-            // in the cache of edges that are to be inserted.
+            // Insert all edges into the queue if they connect vertices that have been processed, otherwise store
+            // them in the cache of edges that are to be inserted.
             for (auto &edge : edges)
             {
-                insertOrUpdateInForwardQueue(aitstar::Edge(edge.getParent(), edge.getChild(),
-                                                           computeSortKey(edge.getParent(), edge.getChild())));
+                insertOrUpdateInForwardQueue(
+                    Edge(edge.getParent(), edge.getChild(), computeSortKey(edge.getParent(), edge.getChild())));
             }
         }
 
         void AITstar::clearForwardQueue()
         {
-            std::vector<aitstar::Edge> forwardQueue;
+            std::vector<Edge> forwardQueue;
             forwardQueue_.getContent(forwardQueue);
             for (const auto &element : forwardQueue)
             {
@@ -395,7 +397,7 @@ namespace ompl
             for (auto &vertex : content)
             {
                 // Compute the sort key for the vertex queue.
-                std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> element(
+                std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> element(
                     computeSortKey(vertex.second), vertex.second);
                 auto reverseQueuePointer = reverseQueue_.insert(element);
                 element.second->setReverseQueuePointer(reverseQueuePointer);
@@ -559,21 +561,21 @@ namespace ompl
             return objective_->isCostBetterThan(bestEdgeCost, solutionCost_);
         }
 
-        std::vector<aitstar::Edge> AITstar::getEdgesInQueue() const
+        std::vector<Edge> AITstar::getEdgesInQueue() const
         {
-            std::vector<aitstar::Edge> edges;
+            std::vector<Edge> edges;
             forwardQueue_.getContent(edges);
             return edges;
         }
 
-        std::vector<std::shared_ptr<aitstar::Vertex>> AITstar::getVerticesInQueue() const
+        std::vector<std::shared_ptr<Vertex>> AITstar::getVerticesInQueue() const
         {
             // Get the content from the queue.
-            std::vector<std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>>> content;
+            std::vector<std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>> content;
             reverseQueue_.getContent(content);
 
             // Return the vertices.
-            std::vector<std::shared_ptr<aitstar::Vertex>> vertices;
+            std::vector<std::shared_ptr<Vertex>> vertices;
             for (const auto &pair : content)
             {
                 vertices.emplace_back(pair.second);
@@ -581,7 +583,7 @@ namespace ompl
             return vertices;
         }
 
-        aitstar::Edge AITstar::getNextEdgeInQueue() const
+        Edge AITstar::getNextEdgeInQueue() const
         {
             if (!forwardQueue_.empty())
             {
@@ -591,7 +593,7 @@ namespace ompl
             return {};
         }
 
-        std::shared_ptr<aitstar::Vertex> AITstar::getNextVertexInQueue() const
+        std::shared_ptr<Vertex> AITstar::getNextVertexInQueue() const
         {
             if (!reverseQueue_.empty())
             {
@@ -601,14 +603,14 @@ namespace ompl
             return {};
         }
 
-        std::vector<std::shared_ptr<aitstar::Vertex>> AITstar::getVerticesInReverseSearchTree() const
+        std::vector<std::shared_ptr<Vertex>> AITstar::getVerticesInReverseSearchTree() const
         {
             // Get all vertices from the graph.
             auto vertices = graph_.getVertices();
 
             // Erase the vertices that are not in the reverse search tree.
             vertices.erase(std::remove_if(vertices.begin(), vertices.end(),
-                                          [this](const std::shared_ptr<aitstar::Vertex> &vertex) {
+                                          [this](const std::shared_ptr<Vertex> &vertex) {
                                               return !graph_.isGoal(vertex) && !vertex->hasReverseParent();
                                           }),
                            vertices.end());
@@ -793,7 +795,7 @@ namespace ompl
             }
         }
 
-        bool AITstar::isEdgeBetter(const aitstar::Edge &lhs, const aitstar::Edge &rhs) const
+        bool AITstar::isEdgeBetter(const Edge &lhs, const Edge &rhs) const
         {
             return std::lexicographical_compare(
                 lhs.getSortKey().cbegin(), lhs.getSortKey().cend(), rhs.getSortKey().cbegin(), rhs.getSortKey().cend(),
@@ -807,7 +809,7 @@ namespace ompl
                 [this](const auto &a, const auto &b) { return objective_->isCostBetterThan(a, b); });
         }
 
-        void AITstar::updateReverseSearchVertex(const std::shared_ptr<aitstar::Vertex> &vertex)
+        void AITstar::updateReverseSearchVertex(const std::shared_ptr<Vertex> &vertex)
         {
             // If the vertex is a goal, there's no updating to do.
             if (graph_.isGoal(vertex))
@@ -909,7 +911,7 @@ namespace ompl
             }
         }
 
-        void AITstar::updateReverseSearchNeighbors(const std::shared_ptr<aitstar::Vertex> &vertex)
+        void AITstar::updateReverseSearchNeighbors(const std::shared_ptr<Vertex> &vertex)
         {
             // Start with the reverse search children, because if this vertex becomes the parent of a neighbor, that
             // neighbor would be updated again as part of the reverse children.
@@ -941,7 +943,7 @@ namespace ompl
             }
         }
 
-        void AITstar::insertOrUpdateInReverseQueue(const std::shared_ptr<aitstar::Vertex> &vertex)
+        void AITstar::insertOrUpdateInReverseQueue(const std::shared_ptr<Vertex> &vertex)
         {
             // Get the pointer to the element in the queue.
             auto element = vertex->getReverseQueuePointer();
@@ -955,8 +957,8 @@ namespace ompl
             else  // Insert it into the queue otherwise.
             {
                 // Compute the sort key for the vertex queue.
-                std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>> element(
-                    computeSortKey(vertex), vertex);
+                std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> element(computeSortKey(vertex),
+                                                                                             vertex);
 
                 // Insert the vertex into the queue, storing the corresponding pointer.
                 auto reverseQueuePointer = reverseQueue_.insert(element);
@@ -964,7 +966,7 @@ namespace ompl
             }
         }
 
-        void AITstar::insertOrUpdateInForwardQueue(const aitstar::Edge &edge)
+        void AITstar::insertOrUpdateInForwardQueue(const Edge &edge)
         {
             // Check if the edge is already in the queue and can be updated.
             const auto lookup = edge.getChild()->getForwardQueueIncomingLookup();
@@ -997,7 +999,7 @@ namespace ompl
             }
         }
 
-        void AITstar::insertOrUpdateInForwardQueue(const std::vector<aitstar::Edge> &edges)
+        void AITstar::insertOrUpdateInForwardQueue(const std::vector<Edge> &edges)
         {
             for (const auto &edge : edges)
             {
@@ -1006,10 +1008,10 @@ namespace ompl
         }
 
         std::shared_ptr<ompl::geometric::PathGeometric>
-        AITstar::getPathToVertex(const std::shared_ptr<aitstar::Vertex> &vertex) const
+        AITstar::getPathToVertex(const std::shared_ptr<Vertex> &vertex) const
         {
             // Create the reverse path by following the parents to the start.
-            std::vector<std::shared_ptr<aitstar::Vertex>> reversePath;
+            std::vector<std::shared_ptr<Vertex>> reversePath;
             auto current = vertex;
             while (!graph_.isStart(current))
             {
@@ -1028,8 +1030,8 @@ namespace ompl
             return path;
         }
 
-        std::array<ompl::base::Cost, 3u> AITstar::computeSortKey(const std::shared_ptr<aitstar::Vertex> &parent,
-                                                                 const std::shared_ptr<aitstar::Vertex> &child) const
+        std::array<ompl::base::Cost, 3u> AITstar::computeSortKey(const std::shared_ptr<Vertex> &parent,
+                                                                 const std::shared_ptr<Vertex> &child) const
         {
             // Compute the sort key [g_T(start) + c_hat(start, neighbor) + h_hat(neighbor), g_T(start) +
             // c_hat(start, neighbor), g_T(start)].
@@ -1041,7 +1043,7 @@ namespace ompl
                 parent->getCostToComeFromStart()};
         }
 
-        std::array<ompl::base::Cost, 2u> AITstar::computeSortKey(const std::shared_ptr<aitstar::Vertex> &vertex) const
+        std::array<ompl::base::Cost, 2u> AITstar::computeSortKey(const std::shared_ptr<Vertex> &vertex) const
         {
             // LPA* sort key is [min(g(x), v(x)) + h(x); min(g(x), v(x))].
             return {objective_->combineCosts(objective_->betterCost(vertex->getCostToComeFromGoal(),
@@ -1050,10 +1052,10 @@ namespace ompl
                     objective_->betterCost(vertex->getCostToComeFromGoal(), vertex->getExpandedCostToComeFromGoal())};
         }
 
-        std::vector<aitstar::Edge> AITstar::getOutgoingEdges(const std::shared_ptr<aitstar::Vertex> &vertex) const
+        std::vector<Edge> AITstar::getOutgoingEdges(const std::shared_ptr<Vertex> &vertex) const
         {
             // Prepare the return variable.
-            std::vector<aitstar::Edge> outgoingEdges;
+            std::vector<Edge> outgoingEdges;
 
             // Insert the edges to the current children.
             for (const auto &child : vertex->getForwardChildren())
@@ -1125,7 +1127,7 @@ namespace ompl
             }
         }
 
-        void AITstar::updateApproximateSolution(const std::shared_ptr<aitstar::Vertex> &vertex)
+        void AITstar::updateApproximateSolution(const std::shared_ptr<Vertex> &vertex)
         {
             assert(trackApproximateSolutions_);
             if (vertex->hasForwardParent() || graph_.isStart(vertex))
@@ -1167,7 +1169,7 @@ namespace ompl
             return bestCost;
         }
 
-        ompl::base::Cost AITstar::computeCostToGoToGoalHeuristic(const std::shared_ptr<aitstar::Vertex> &vertex) const
+        ompl::base::Cost AITstar::computeCostToGoToGoalHeuristic(const std::shared_ptr<Vertex> &vertex) const
         {
             // We need to loop over all goal vertices and see which is the closest one.
             ompl::base::Cost bestCost = objective_->infiniteCost();
@@ -1179,7 +1181,7 @@ namespace ompl
             return bestCost;
         }
 
-        ompl::base::Cost AITstar::computeCostToGoToGoal(const std::shared_ptr<aitstar::Vertex> &vertex) const
+        ompl::base::Cost AITstar::computeCostToGoToGoal(const std::shared_ptr<Vertex> &vertex) const
         {
             // We need to loop over all goal vertices and see which is the closest one.
             ompl::base::Cost bestCost = objective_->infiniteCost();

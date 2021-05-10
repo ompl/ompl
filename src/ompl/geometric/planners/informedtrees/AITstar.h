@@ -41,11 +41,11 @@
 #include <memory>
 
 #include "ompl/base/Planner.h"
-#include "ompl/datastructures/BinaryHeap.h"
 #include "ompl/geometric/PathGeometric.h"
 #include "ompl/geometric/planners/informedtrees/aitstar/Edge.h"
 #include "ompl/geometric/planners/informedtrees/aitstar/ImplicitGraph.h"
 #include "ompl/geometric/planners/informedtrees/aitstar/Vertex.h"
+#include "ompl/geometric/planners/informedtrees/aitstar/Queuetypes.h"
 
 namespace ompl
 {
@@ -175,7 +175,7 @@ namespace ompl
 
             /** \brief Inserts or updates an edge in the forward queue. */
             void insertOrUpdateInForwardQueue(const aitstar::Edge &edge);
-            
+
             /** \brief Inserts or updates edges in the forward queue. */
             void insertOrUpdateInForwardQueue(const std::vector<aitstar::Edge> &edges);
 
@@ -205,7 +205,7 @@ namespace ompl
 
             /** \brief Insert start vertices in the forward queue. */
             void expandStartVerticesIntoForwardQueue();
-            
+
             /** \brief Check whether the reverse search must be continued. */
             bool continueReverseSearch() const;
 
@@ -271,28 +271,17 @@ namespace ompl
             /** \brief The increasingly dense sampling-based approximation. */
             aitstar::ImplicitGraph graph_;
 
-            /** \brief The type of the edge queue. */
-            using EdgeQueue =
-                ompl::BinaryHeap<aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>;
-
             /** \brief The forward queue. */
-            EdgeQueue forwardQueue_;
-
-            /** \brief A type for elements in the vertex queue. */
-            using KeyVertexPair = std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<aitstar::Vertex>>;
-
-            /** \brief The type of the vertex queue. */
-            using VertexQueue =
-                ompl::BinaryHeap<KeyVertexPair, std::function<bool(const KeyVertexPair &, const KeyVertexPair &)>>;
+            aitstar::EdgeQueue forwardQueue_;
 
             /** \brief The reverse queue. */
-            VertexQueue reverseQueue_;
+            aitstar::VertexQueue reverseQueue_;
 
             /** \brief Lexicographically compares the keys of two edges. */
-            bool isEdgeBetter(const aitstar::Edge& lhs, const aitstar::Edge& rhs) const;
+            bool isEdgeBetter(const aitstar::Edge &lhs, const aitstar::Edge &rhs) const;
 
             /** \brief Lexicographically compares the keys of two vertices. */
-            bool isVertexBetter(const KeyVertexPair& lhs, const KeyVertexPair& rhs) const;
+            bool isVertexBetter(const aitstar::KeyVertexPair &lhs, const aitstar::KeyVertexPair &rhs) const;
 
             /** \brief The number of iterations that have been performed. */
             std::size_t numIterations_{0u};

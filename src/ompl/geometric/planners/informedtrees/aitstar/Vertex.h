@@ -48,6 +48,7 @@
 #include "ompl/datastructures/BinaryHeap.h"
 
 #include "ompl/geometric/planners/informedtrees/aitstar/Edge.h"
+#include "ompl/geometric/planners/informedtrees/aitstar/Queuetypes.h"
 
 namespace ompl
 {
@@ -201,57 +202,31 @@ namespace ompl
                 bool hasBeenInsertedIntoQueueDuringCurrentReverseSearch() const;
 
                 /** \brief Sets the reverse queue pointer of this vertex. */
-                void setReverseQueuePointer(
-                    typename ompl::BinaryHeap<
-                        std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
-                        std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
-                                           const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>
-                                               &)>>::Element *pointer);
+                void setReverseQueuePointer(typename VertexQueue::Element *pointer);
 
                 /** \brief Returns the reverse queue pointer of this vertex. */
-                typename ompl::BinaryHeap<
-                    std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
-                    std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
-                                       const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
-                    Element *
-                    getReverseQueuePointer() const;
+                typename VertexQueue::Element *getReverseQueuePointer() const;
 
                 /** \brief Resets the reverse queue pointer. */
                 void resetReverseQueuePointer();
 
                 /** \brief Adds an element to the forward queue incoming lookup. */
-                void addToForwardQueueIncomingLookup(
-                    typename ompl::BinaryHeap<
-                        aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element
-                        *pointer);
+                void addToForwardQueueIncomingLookup(typename EdgeQueue::Element *pointer);
 
                 /** \brief Adds an element to the forward queue outgoing lookup. */
-                void addToForwardQueueOutgoingLookup(
-                    typename ompl::BinaryHeap<
-                        aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element
-                        *pointer);
+                void addToForwardQueueOutgoingLookup(typename EdgeQueue::Element *pointer);
 
                 /** \brief Returns the forward queue incoming lookup of this vertex. */
-                std::vector<ompl::BinaryHeap<
-                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
-                getForwardQueueIncomingLookup() const;
+                std::vector<EdgeQueue::Element *> getForwardQueueIncomingLookup() const;
 
                 /** \brief Returns the forward queue outgoing lookup of this vertex. */
-                std::vector<ompl::BinaryHeap<
-                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
-                getForwardQueueOutgoingLookup() const;
+                std::vector<EdgeQueue::Element *> getForwardQueueOutgoingLookup() const;
 
                 /** \brief Remove an element from the incoming queue lookup. */
-                void removeFromForwardQueueIncomingLookup(
-                    ompl::BinaryHeap<aitstar::Edge,
-                                     std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element
-                        *element);
+                void removeFromForwardQueueIncomingLookup(typename EdgeQueue::Element *element);
 
                 /** \brief Remove an element from the outgoing queue lookup. */
-                void removeFromForwardQueueOutgoingLookup(
-                    ompl::BinaryHeap<aitstar::Edge,
-                                     std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element
-                        *element);
+                void removeFromForwardQueueOutgoingLookup(typename EdgeQueue::Element *element);
 
                 /** \brief Resets the forward queue incoming lookup. */
                 void resetForwardQueueIncomingLookup();
@@ -330,25 +305,14 @@ namespace ompl
                 /** \brief The reverse search id for which the reverse queue pointer is valid. */
                 mutable std::size_t reverseQueuePointerId_{0u};
 
-                /** \brief The type of the elements in the reverse queue. */
-                using ReverseQueueElement = typename ompl::BinaryHeap<
-                    std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
-                    std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
-                                       const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
-                    Element;
-
                 /** \brief The pointer to the reverse queue element. */
-                mutable ReverseQueueElement *reverseQueuePointer_{nullptr};
-
-                /** \brief The type of the elements in the forward queue. */
-                using ForwardQueueElement = typename ompl::BinaryHeap<
-                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element;
+                mutable typename VertexQueue::Element *reverseQueuePointer_{nullptr};
 
                 /** \brief The lookup to incoming edges in the forward queue. */
-                mutable std::vector<ForwardQueueElement *> forwardQueueIncomingLookup_;
+                mutable std::vector<EdgeQueue::Element *> forwardQueueIncomingLookup_;
 
                 /** \brief The lookup to outgoing edges in the forward queue. */
-                mutable std::vector<ForwardQueueElement *> forwardQueueOutgoingLookup_;
+                mutable std::vector<EdgeQueue::Element *> forwardQueueOutgoingLookup_;
             };
 
         }  // namespace aitstar
