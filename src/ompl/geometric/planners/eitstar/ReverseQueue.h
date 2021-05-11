@@ -84,6 +84,9 @@ namespace ompl
                 /** \brief Returns and deletes the top element of the queue. */
                 Edge pop();
 
+                /** \brief Returns a lower bound on the resolution-optimal solution cost. */
+                ompl::base::Cost getLowerBoundOnOptimalSolutionCost() const;
+
                 /** \brief Clears the queue, i.e., deletes all elements from it. */
                 void clear();
 

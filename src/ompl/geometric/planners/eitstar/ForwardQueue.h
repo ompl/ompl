@@ -74,16 +74,16 @@ namespace ompl
                 std::size_t size() const;
 
                 /** \brief Insert an edge into the queue. */
-                void insert(const Edge &edge);
+                void insertOrUpdate(const Edge &edge);
 
                 /** \brief Inserts multiple edges into the queue. */
-                void insert(const std::vector<Edge> &edges);
+                void insertOrUpdate(const std::vector<Edge> &edges);
 
                 /** \brief Removes an edge from the queue. Throws if the edge is not in the queue. */
                 void remove(const Edge &edge);
 
                 /** \brief Update an edge in the queue. */
-                bool update(const Edge &edge);
+                void updateIfExists(const Edge &edge);
 
                 /** \brief Returns a copy to the next edge. */
                 Edge peek(double suboptimalityFactor) const;
@@ -104,6 +104,35 @@ namespace ompl
                 void rebuild();
 
             private:
+                /** \brief The three values an edge can be sorted by. */
+                struct EdgeKeys
+                {
+                    EdgeKeys(const ompl::base::Cost &lowerBound, const ompl::base::Cost &estimated,
+                             const std::size_t effort)
+                      : lowerBoundCost(lowerBound), estimatedCost(estimated), estimatedEffort(effort){};
+                    ompl::base::Cost lowerBoundCost;
+                    ompl::base::Cost estimatedCost;
+                    std::size_t estimatedEffort;
+                };
+
+                /** \brief Creates a queue element from the given edge. */
+                std::pair<EdgeKeys, Edge> makeElement(const Edge &edge) const;
+
+                /** \brief Returns an iterator to the edge in the queue or end() if it is not in the queue. */
+                std::vector<std::pair<EdgeKeys, Edge>>::iterator iterator(const Edge &edge);
+
+                /** \brief Returns an iterator to the position the edge and key would be in if it was in the queue. */
+                std::vector<std::pair<EdgeKeys, Edge>>::iterator position(const std::pair<EdgeKeys, Edge> &keysAndEdge);
+
+                /** \brief Returns an iterator to the edge with the best estimated cost. */
+                std::vector<std::pair<EdgeKeys, Edge>>::iterator getBestCostEstimateEdge();
+
+                /** \brief Returns a constant iterator to the edge with the best estimated cost. */
+                std::vector<std::pair<EdgeKeys, Edge>>::const_iterator getBestCostEstimateEdge() const;
+
+                /** \brief Returns the cost inflated by a factor. */
+                ompl::base::Cost inflateCost(const ompl::base::Cost &cost, double factor) const;
+
                 /** \brief Estimates the effort that remains to validate a solution through an edge. */
                 std::size_t estimateEffort(const Edge &edge) const;
 
@@ -118,16 +147,6 @@ namespace ompl
 
                 /** \brief The state space information. */
                 std::shared_ptr<const ompl::base::StateSpace> space_;
-
-                /** \brief The three values an edge can be sorted by. */
-                struct EdgeKeys
-                {
-                    EdgeKeys(const ompl::base::Cost& lowerBound, const ompl::base::Cost& estimated, const std::size_t effort)
-                      : lowerBoundCost(lowerBound), estimatedCost(estimated), estimatedEffort(effort){};
-                    ompl::base::Cost lowerBoundCost;
-                    ompl::base::Cost estimatedCost;
-                    std::size_t estimatedEffort;
-                };
 
                 /** \brief The queue is ordered on the lower bound cost through an edge. */
                 std::vector<std::pair<EdgeKeys, Edge>> queue_;

@@ -92,6 +92,9 @@ namespace ompl
                 /** \brief Returns the parent of the vertex. */
                 std::weak_ptr<Vertex> getParent() const;
 
+                /** \brief Returns whether the given vertex is this vertex' parent. */
+                bool isParent(const std::shared_ptr<Vertex> &vertex) const;
+
                 /** \brief Returns the twin of this vertex, i.e., the vertex in the other search tree with the same
                  * underlying state. */
                 std::weak_ptr<Vertex> getTwin() const;

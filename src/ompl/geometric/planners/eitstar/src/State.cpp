@@ -199,7 +199,7 @@ namespace ompl
                 lowerBoundEffortToCome_ = effort;
             }
 
-            std::size_t State::getEstimatedEffortToGo() const
+            unsigned int State::getEstimatedEffortToGo() const
             {
                 return estimatedEffortToGo_;
             }
@@ -232,6 +232,37 @@ namespace ompl
             unsigned int State::getLowerBoundEffortToCome() const
             {
                 return lowerBoundEffortToCome_;
+            }
+
+            const std::vector<std::shared_ptr<State>> State::getSourcesOfIncomingEdgesInForwardQueue() const
+            {
+                return sourcesOfIncomingEdgesInForwardQueue_;
+            }
+
+            void State::addToSourcesOfIncomingEdgesInForwardQueue(const std::shared_ptr<State> &state) const
+            {
+                sourcesOfIncomingEdgesInForwardQueue_.emplace_back(state);
+            }
+
+            void State::removeFromSourcesOfIncomingEdgesInForwardQueue(const std::shared_ptr<State> &state) const
+            {
+                const auto iter = std::find_if(
+                    sourcesOfIncomingEdgesInForwardQueue_.begin(), sourcesOfIncomingEdgesInForwardQueue_.end(),
+                    [&state](const auto &source) { return state->getId() == source->getId(); });
+
+                if (iter != sourcesOfIncomingEdgesInForwardQueue_.end())
+                {
+                    sourcesOfIncomingEdgesInForwardQueue_.erase(iter);
+                }
+                else
+                {
+                    throw std::out_of_range("Unable to remove source from incoming edges in forward queue.");
+                }
+            }
+
+            void State::resetSourcesOfIncomingEdgesInForwardQueue()
+            {
+                sourcesOfIncomingEdgesInForwardQueue_.clear();
             }
 
         }  // namespace eitstar

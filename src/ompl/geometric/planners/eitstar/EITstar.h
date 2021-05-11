@@ -89,13 +89,6 @@ namespace ompl
             /** \brief Sets the radius factor. */
             void setSuboptimalityFactor(double factor);
 
-            /** \brief Sets the option whether to increse collision detection on the reverse search tree when the
-             * forward search detects a collision. */
-            void enableCollisionDetectionInReverseSearch(bool enable);
-
-            /** \brief Whether increasingly dense collision detection in the reverse search is enabled. */
-            bool isCollisionDetectionInReverseSearchEnabled() const;
-
             /** \brief Set whether pruning is enabled or not. */
             void enablePruning(bool prune);
 
@@ -151,17 +144,6 @@ namespace ompl
             void getPlannerData(base::PlannerData &data) const override;
 
         private:
-            /** \brief The different phases the algorithm can be in. */
-            enum class Phase
-            {
-                FORWARD_SEARCH,
-                REVERSE_SEARCH,
-                IMPROVE_APPROXIMATION
-            };
-
-            /** \brief The phase the algorithm is in. */
-            Phase phase_{Phase::REVERSE_SEARCH};
-
             /** \brief Performs one iteration. */
             void iterate(const ompl::base::PlannerTerminationCondition &terminationCondition);
 
@@ -180,15 +162,32 @@ namespace ompl
             /** \brief Checks whether the forward search must be continued. */
             bool continueForwardSearch() const;
 
+            /** \brief Restarts the reverse search. */
+            void restartReverseSearch();
+
             /** \brief Updates the exact solution by checking every goal in the graph. */
             void updateExactSolution();
-
-            /** \brief Updates the solution with a given goal state. */
-            void updateExactSolution(const std::shared_ptr<eitstar::State> &goalState);
 
             /** \brief Checks whether the input vertex is the new best approximate solution and updates the solution in
              * the problem definition if so. **/
             void updateApproximateSolution();
+
+            /** \brief Updates the exact, and if appropriate approximate, solution given every goal and state in the
+             * graph, respectively. */
+            ompl::base::PlannerStatus::StatusType updateSolution();
+
+            /** \brief Checks whether the planner and state space are setup. */
+            void checkSetup() const;
+
+            /** \brief Checks whether the problem specified a start and goal state. */
+            ompl::base::PlannerStatus::StatusType
+            checkProblem(const ompl::base::PlannerTerminationCondition &terminationCondition);
+
+            /** \brief Updates the planner status. */
+            ompl::base::PlannerStatus::StatusType updateStatus();
+
+            /** \brief Updates the solution with a given goal state. */
+            void updateExactSolution(const std::shared_ptr<eitstar::State> &goalState);
 
             /** \brief Checks whether the input vertex is the new best approximate solution and updates the solution in
              * the problem definition if so. **/
@@ -199,9 +198,6 @@ namespace ompl
 
             /** \brief Computes the cost to go to the goal. */
             ompl::base::Cost computeCostToGoToGoal(const std::shared_ptr<eitstar::State> &state) const;
-
-            /** \brief Increases the collision detection resolution and restart reverse search. */
-            void increaseSparseCollisionDetectionResolutionAndRestartReverseSearch();
 
             /** \brief Uses OMPL_INFORM to let the user know about a newly found solution. */
             void informAboutNewSolution() const;
@@ -220,30 +216,29 @@ namespace ompl
             std::tuple<std::shared_ptr<eitstar::State>, ompl::base::Cost, ompl::base::Cost>
             getBestParentInReverseTree(const std::shared_ptr<eitstar::State> &state) const;
 
-            /** \brief Expands the input state, creating forward edges. */
+            /** \brief Returns all edges of the state in the RGG its parents and children. */
             std::vector<eitstar::Edge> expand(const std::shared_ptr<eitstar::State> &state) const;
+
+            /** \brief Only expands if the state isn't a goal, otherwise returns an empty vector. */
+            std::vector<eitstar::Edge> expandUnlessGoal(const std::shared_ptr<eitstar::State> &state) const;
 
             /** \brief Expands the forward roots that are in the reverse search tree. */
             std::vector<eitstar::Edge> expandForwardRootsInReverseTree() const;
 
-            /** \brief Updates the jit search edge cache by inserting edges that connect vertices whose cost-to-come
-             * estimates are admissible. */
-            void updateJitSearchEdgeCache();
-
             /** \brief Returns whether the vertex has been closed during the current search. */
             bool isClosed(const std::shared_ptr<eitstar::Vertex> &vertex) const;
 
-            /** \brief Returns whether all vertices connected by the input edges have been closed in reverse search. */
-            bool doAllVerticesHaveAdmissibleCostToGo(const eitstar::Edge &edge) const;
+            /** \brief Returns whether the edge is in the forward tree. */
+            bool isInForwardTree(const eitstar::Edge &edge) const;
 
-            /** \brief Returns whether all vertices connected by the input edges have been closed in reverse search. */
-            bool doAllVerticesHaveAdmissibleCostToGo(const std::vector<eitstar::Edge> &edges) const;
+            /** \brief Returns whether the edge is in the reverse tree. */
+            bool isInReverseTree(const eitstar::Edge &edge) const;
 
             /** \brief Returns whether the edge can improve the reverse path. */
             bool doesImproveReversePath(const eitstar::Edge &edge) const;
 
             /** \brief Returns whether the edge can improve the reverse tree. */
-            bool doesImproveReverseTree(const eitstar::Edge &edge, const ompl::base::Cost &admissibleEdgeCost) const;
+            bool doesImproveReverseTree(const eitstar::Edge &edge, const ompl::base::Cost &edgeCost) const;
 
             /** \brief Returns whether the edge can improve the forward path. */
             bool couldImproveForwardPath(const eitstar::Edge &edge) const;
@@ -252,10 +247,16 @@ namespace ompl
             bool couldImproveForwardTree(const eitstar::Edge &edge) const;
 
             /** \brief Returns whether the edge does improve the forward path. */
-            bool doesImproveForwardPath(const eitstar::Edge &edge, const ompl::base::Cost &trueEdgeCost) const;
+            bool doesImproveForwardPath(const eitstar::Edge &edge, const ompl::base::Cost &edgeCost) const;
 
             /** \brief Returns whether the edge does improve the forward tree. */
-            bool doesImproveForwardTree(const eitstar::Edge &edge, const ompl::base::Cost &trueEdgeCost) const;
+            bool doesImproveForwardTree(const eitstar::Edge &edge, const ompl::base::Cost &edgeCost) const;
+
+            /** \brief Returns the estimated cost to the target through this edge. */
+            ompl::base::Cost estimateCostToTarget(const eitstar::Edge &edge) const;
+
+            /** \brief Returns the estimated effort to the target through this edge. */
+            unsigned int estimateEffortToTarget(const eitstar::Edge &edge) const;
 
             /** \brief Returns whether the edge is valid. */
             bool isValid(const eitstar::Edge &edge) const;
@@ -263,20 +264,24 @@ namespace ompl
             /** \brief Returns whether the edge could be valid. */
             bool couldBeValid(const eitstar::Edge &edge) const;
 
+            /** \brief Returns whether the cost is better than the other. */
+            bool isBetter(const ompl::base::Cost &lhs, const ompl::base::Cost &rhs) const;
+
+            /** \brief Combines two costs. */
+            ompl::base::Cost combine(const ompl::base::Cost &lhs, const ompl::base::Cost &rhs) const;
+
+            /** \brief Combines multiple costs. */
+            template <typename... Costs>
+            ompl::base::Cost combine(const ompl::base::Cost &cost, const Costs &... costs) const
+            {
+                return combine(cost, combine(costs...));
+            }
+
             /** \brief Expands and inserts the reverse roots into the reverse queue. */
-            void expandReverseRootsIntoReverseQueue();
+            void expandStartVerticesIntoForwardQueue();
 
-            /** \brief Returns whether any forward root is in the reverse search tree. */
-            bool isAnyForwardRootInReverseTree() const;
-
-            /** \brief Returns whether any reverse root is in the forward search tree. */
-            bool isAnyReverseRootInForwardTree() const;
-
-            /** \brief Returns whether the vertices of the edge have been processed by the reverse search. */
-            bool canBeInsertedInForwardQueue(const eitstar::Edge &edge) const;
-
-            /** \brief Returns whether all vertices of the edges have been processed by the reverse search. */
-            bool canBeInsertedInForwardQueue(const std::vector<eitstar::Edge> &edges) const;
+            /** \brief Expands and inserts the reverse roots into the reverse queue. */
+            void expandGoalVerticesIntoReverseQueue();
 
             /** \brief The sampling-based approximation of the state space. */
             eitstar::RandomGeometricGraph graph_;
@@ -286,10 +291,6 @@ namespace ompl
 
             /** \brief The current suboptimality factor of the forward search. */
             double suboptimalityFactor_{std::numeric_limits<float>::infinity()};
-
-            /** \brief The option that specifies whether sparse collision detection on the reverse search tree is
-             * enabled. */
-            bool isCollisionDetectionInReverseTreeEnabled_{true};
 
             /** \brief The number of sparse collision detections on level 0. */
             std::size_t initialNumSparseCollisionChecks_{1u};
@@ -310,17 +311,14 @@ namespace ompl
             /** \brief Whether EIT* resets the suboptimality factor of its forward search on every approximation. */
             bool resetSuboptimalityFactorOnEveryApproximation_{true};
 
-            /** \brief The edge cache that enables the just-in-time reverse search. */
-            std::vector<eitstar::Edge> jitSearchEdgeCache_{};
-
             /** \brief The state used to do sparse collision detection with. */
             ompl::base::State *detectionState_;
 
             /** \brief The roots of the forward search tree (forest). */
-            std::vector<std::shared_ptr<eitstar::Vertex>> forwardRoots_;
+            std::vector<std::shared_ptr<eitstar::Vertex>> startVertices_;
 
             /** \brief The roots of the reverse search tree (forest). */
-            std::vector<std::shared_ptr<eitstar::Vertex>> reverseRoots_;
+            std::vector<std::shared_ptr<eitstar::Vertex>> goalVertices_;
 
             /** \brief The forward queue. */
             std::unique_ptr<eitstar::ForwardQueue> forwardQueue_;

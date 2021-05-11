@@ -123,7 +123,7 @@ namespace ompl
 
                 /** \brief Get the estimated effort (number of collision detections) to go from this state to the goal
                  * through the current RGG. */
-                std::size_t getEstimatedEffortToGo() const;
+                unsigned int getEstimatedEffortToGo() const;
 
                 /** \brief Get the best estimate of the cost to go from this state to the goal through the current RGG.
                  */
@@ -148,6 +148,18 @@ namespace ompl
                  * space. */
                 unsigned int getLowerBoundEffortToCome() const;
 
+                /** \brief Returns the sources of incoming edges in forward queue. */
+                const std::vector<std::shared_ptr<State>> getSourcesOfIncomingEdgesInForwardQueue() const;
+
+                /** \brief Adds a source to sources of incoming edges in forward queue. */
+                void addToSourcesOfIncomingEdgesInForwardQueue(const std::shared_ptr<State> &state) const;
+
+                /** \brief Removes a source from sources of incoming edges in forward queue. */
+                void removeFromSourcesOfIncomingEdgesInForwardQueue(const std::shared_ptr<State> &state) const;
+
+                /** \brief Resets the sources of incoming edges in the forward queue. */
+                void resetSourcesOfIncomingEdgesInForwardQueue();
+
             private:
                 /** \brief Grant access to the state internals to the random geometric graph. */
                 friend class RandomGeometricGraph;
@@ -157,7 +169,7 @@ namespace ompl
 
                 /** \brief The estimated effort (number of collision detections) to go from this state to the goal
                  * through the current graph. */
-                std::size_t estimatedEffortToGo_{std::numeric_limits<std::size_t>::max()};
+                unsigned int estimatedEffortToGo_{std::numeric_limits<unsigned int>::max()};
 
                 /** \brief A best estimate of the cost to go from this state to the goal through the current RGG. */
                 ompl::base::Cost estimatedCostToGo_;
@@ -197,6 +209,9 @@ namespace ompl
 
                 /** \brief The whitelist of states that can be connected to this state. */
                 std::set<std::size_t> whitelist_{};  // Maybe this would be faster as vector?
+
+                /** \brief The source states that for which this state is a target in the forward queue. */
+                mutable std::vector<std::shared_ptr<State>> sourcesOfIncomingEdgesInForwardQueue_{};
 
                 /** \brief The info on the state space this state lives in. */
                 std::shared_ptr<ompl::base::SpaceInformation> spaceInfo_;

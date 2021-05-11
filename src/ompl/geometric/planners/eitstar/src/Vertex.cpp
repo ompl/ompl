@@ -122,7 +122,7 @@ namespace ompl
             {
                 assert(this);
                 assert(vertex);
-                assert((!parent_.lock()) || (parent_.lock() && parent_.lock()->getId() != vertex->getId()));
+                assert((!parent_.lock()) || parent_.lock()->getId() != vertex->getId());
                 children_.emplace_back(vertex);
             }
 
@@ -132,8 +132,9 @@ namespace ompl
                 assert(vertex);
 
                 // Find the child that is to be removed.
-                auto it = std::find_if(children_.begin(), children_.end(),
-                                       [&vertex](const auto &child) { return child->getId() == vertex->getId(); });
+                const auto it = std::find_if(children_.begin(), children_.end(), [&vertex](const auto &child) {
+                    return child->getId() == vertex->getId();
+                });
 
                 // If the provided vertex is not a child, this is a bug.
                 assert(it != children_.end());
@@ -146,6 +147,15 @@ namespace ompl
             std::weak_ptr<Vertex> Vertex::getParent() const
             {
                 return parent_;
+            }
+
+            bool Vertex::isParent(const std::shared_ptr<Vertex> &vertex) const
+            {
+                if (!static_cast<bool>(vertex) || parent_.expired()) {
+                    return false;
+                }
+
+                return vertex->getId() == parent_.lock()->getId();
             }
 
             std::weak_ptr<Vertex> Vertex::getTwin() const

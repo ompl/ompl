@@ -293,74 +293,43 @@ namespace ompl
                 return tag_;
             }
 
-            std::shared_ptr<State> RandomGeometricGraph::registerStartState(const ompl::base::State *start)
+            std::shared_ptr<State> RandomGeometricGraph::registerStartState(const ompl::base::State *state)
             {
                 // Allocate the start state.
-                auto startState = std::make_shared<State>(spaceInfo_, objective_);
+                auto start = std::make_shared<State>(spaceInfo_, objective_);
+                spaceInfo_->copyState(start->raw(), state);
 
                 // Hold onto it.
-                startStates_.emplace_back(startState);
+                startStates_.emplace_back(start);
+                samples_.add(start);
 
-                // Set the lower bound for the cost to go.
-                startState->setLowerBoundCostToGo(objective_->costToGo(start, problem_->getGoal().get()));
+                // Initialize the state.
+                initializeState(start);
 
-                // Set the lower bound for the cost to come.
-                startState->setLowerBoundCostToCome(objective_->identityCost());
+                // Ensure its lower bounds are correct.
+                assert(objective_->isCostEquivalentTo(start->getLowerBoundCostToCome(), objective_->identityCost()));
+                assert(start->getLowerBoundEffortToCome() == 0u);
 
-                // Set the lower bound effort to come.
-                startState->setLowerBoundEffortToCome(0u);
-
-                // Copy the given state.
-                spaceInfo_->copyState(startState->raw(), start);
-
-                // Add the start to the set of samples.
-                samples_.add(startState);
-
-                return startState;
+                return start;
             }
 
-            std::shared_ptr<State> RandomGeometricGraph::registerGoalState(const ompl::base::State *goal)
+            std::shared_ptr<State> RandomGeometricGraph::registerGoalState(const ompl::base::State *state)
             {
                 // Allocate the goal state.
-                auto goalState = std::make_shared<State>(spaceInfo_, objective_);
+                auto goal = std::make_shared<State>(spaceInfo_, objective_);
+                spaceInfo_->copyState(goal->raw(), state);
 
                 // Hold onto it.
-                goalStates_.emplace_back(goalState);
+                goalStates_.emplace_back(goal);
+                samples_.add(goal);
 
-                // Copy the given state.
-                spaceInfo_->copyState(goalState->raw(), goal);
+                // Initialize the state.
+                initializeState(goal);
 
-                // Set the lower bound cost to go.
-                goalState->setLowerBoundCostToGo(objective_->identityCost());
+                // Ensure its lower bounds are correct.
+                assert(objective_->isCostEquivalentTo(goal->getLowerBoundCostToGo(), objective_->identityCost()));
 
-                // Set the cost to go estimate admissible for the approximation.
-                goalState->setAdmissibleCostToGo(objective_->identityCost());
-
-                // Set the estimated cost to go.
-                goalState->setEstimatedCostToGo(objective_->identityCost());
-
-                // Set the estimated effort to go.
-                goalState->setEstimatedEffortToGo(0u);
-
-                // Set the lower bound effort to come.
-                unsigned int lowerBoundEffortToCome = std::numeric_limits<unsigned int>::max();
-                for (const auto &start : startStates_)
-                {
-                    const auto lowerBoundEffortToComeFromThisStart = space_->validSegmentCount(start->raw(), goal);
-                    lowerBoundEffortToCome = lowerBoundEffortToComeFromThisStart < lowerBoundEffortToCome ?
-                                                 lowerBoundEffortToComeFromThisStart :
-                                                 lowerBoundEffortToCome;
-                }
-                goalState->setLowerBoundEffortToCome(lowerBoundEffortToCome);
-
-                // Sanity check the cost-to-go definition.
-                assert(objective_->isCostEquivalentTo(objective_->costToGo(goal, problem_->getGoal().get()),
-                                                      objective_->identityCost()));
-
-                // Add the goal to the set of samples.
-                samples_.add(goalState);
-
-                return goalState;
+                return goal;
             }
 
             bool RandomGeometricGraph::addStates(std::size_t numNewStates,
@@ -379,68 +348,26 @@ namespace ompl
                 do
                 {
                     // Allocate a new state.
-                    newSamples_.emplace_back(std::make_shared<State>(spaceInfo_, objective_));
-                    auto &newState = newSamples_.back();
+                    auto state = std::make_shared<State>(spaceInfo_, objective_);
+                    newSamples_.emplace_back(state);
 
                     do  // Sample randomly until a valid state is found.
                     {
-                        sampler_->sampleUniform(newState->raw(), solutionCost_);
+                        sampler_->sampleUniform(state->raw(), solutionCost_);
                         ++numSampledStates_;
-                    } while (!spaceInfo_->isValid(newState->raw()));
+                    } while (!spaceInfo_->isValid(state->raw()));
+
+                    // Add this state to the goal states if it is a goal.
+                    if (problem_->getGoal()->isSatisfied(state->raw()))
+                    {
+                        goalStates_.emplace_back(state);
+                    }
+
+                    // Initialize the state.
+                    initializeState(state);
 
                     // We've found a valid sample.
                     ++numValidSamples_;
-
-                    // Set the current cost to come.
-                    newState->setCurrentCostToCome(objective_->infiniteCost());
-
-                    // Set the lower bound for the cost to come.
-                    newState->setLowerBoundCostToCome(heuristicCostFromPreferredStart(newState));
-
-                    // Set the lower bound effort to come.
-                    unsigned int lowerBoundEffortToCome = std::numeric_limits<unsigned int>::max();
-                    for (const auto &start : startStates_)
-                    {
-                        const auto lowerBoundEffortToComeFromThisStart =
-                            space_->validSegmentCount(start->raw(), newState->raw());
-                        lowerBoundEffortToCome = lowerBoundEffortToComeFromThisStart < lowerBoundEffortToCome ?
-                                                     lowerBoundEffortToComeFromThisStart :
-                                                     lowerBoundEffortToCome;
-                    }
-                    newState->setLowerBoundEffortToCome(lowerBoundEffortToCome);
-
-                    if (problem_->getGoal()->isSatisfied(newState->raw()))
-                    {
-                        // Set the lower bound cost to go.
-                        newState->setLowerBoundCostToGo(objective_->identityCost());
-
-                        // Set the cost to go estimate admissible for the approximation.
-                        newState->setAdmissibleCostToGo(objective_->identityCost());
-
-                        // Set the estimated cost to go.
-                        newState->setEstimatedCostToGo(objective_->identityCost());
-
-                        // Set the estimated effort to go.
-                        newState->setEstimatedEffortToGo(0u);
-
-                        // Add this state to the goal states.
-                        goalStates_.emplace_back(newState);
-                    }
-                    else
-                    {
-                        // Set the lower bound for the cost to go.
-                        newState->setLowerBoundCostToGo(
-                            objective_->costToGo(newState->raw(), problem_->getGoal().get()));
-
-                        // Set the admissible cost to go.
-                        newState->setAdmissibleCostToGo(objective_->infiniteCost());
-
-                        // Set the estimated cost to go.
-                        newState->setEstimatedCostToGo(objective_->infiniteCost());
-
-                        // Set the estimated effort to go.
-                        newState->setEstimatedEffortToGo(std::numeric_limits<std::size_t>::max());
-                    }
                 } while (newSamples_.size() < numNewStates && !terminationCondition);
 
                 // Add the new states to the samples.
@@ -677,10 +604,10 @@ namespace ompl
                 else
                 {
                     // Get the heuristic cost to come.
-                    const auto costToCome = heuristicCostFromPreferredStart(state);
+                    const auto costToCome = lowerBoundCostToCome(state);
 
                     // Get the heuristic cost to go.
-                    const auto costToGo = heuristicCostToPreferredGoal(state);
+                    const auto costToGo = lowerBoundCostToGo(state);
 
                     // Return whether the heuristic cost to come and the heuristic cost to go is better than the current
                     // cost.
@@ -688,8 +615,7 @@ namespace ompl
                 }
             }
 
-            ompl::base::Cost
-            RandomGeometricGraph::heuristicCostFromPreferredStart(const std::shared_ptr<State> &state) const
+            ompl::base::Cost RandomGeometricGraph::lowerBoundCostToCome(const std::shared_ptr<State> &state) const
             {
                 // Get the preferred start for this state.
                 auto bestCost = objective_->infiniteCost();
@@ -702,8 +628,18 @@ namespace ompl
                 return bestCost;
             }
 
-            ompl::base::Cost
-            RandomGeometricGraph::heuristicCostToPreferredGoal(const std::shared_ptr<State> &state) const
+            unsigned int RandomGeometricGraph::lowerBoundEffortToCome(const std::shared_ptr<State> &state) const
+            {
+                auto admissibleEffort = std::numeric_limits<unsigned int>::max();
+                for (const auto &start : startStates_)
+                {
+                    admissibleEffort =
+                        std::min(admissibleEffort, space_->validSegmentCount(start->raw(), state->raw()));
+                }
+                return admissibleEffort;
+            }
+
+            ompl::base::Cost RandomGeometricGraph::lowerBoundCostToGo(const std::shared_ptr<State> &state) const
             {
                 // Get the preferred goal for this state.
                 auto bestCost = objective_->infiniteCost();
@@ -714,6 +650,40 @@ namespace ompl
                 }
 
                 return bestCost;
+            }
+
+            void RandomGeometricGraph::initializeState(const std::shared_ptr<State> &state)
+            {
+                // Set the current cost to come.
+                state->setCurrentCostToCome(objective_->infiniteCost());
+
+                // Set the lower bounds.
+                state->setLowerBoundCostToCome(lowerBoundCostToCome(state));
+                state->setLowerBoundEffortToCome(lowerBoundEffortToCome(state));
+                state->setLowerBoundCostToGo(lowerBoundCostToGo(state));
+
+                if (problem_->getGoal()->isSatisfied(state->raw()))
+                {
+                    // Set the cost to go estimate admissible for the approximation.
+                    state->setAdmissibleCostToGo(objective_->identityCost());
+
+                    // Set the estimated cost to go.
+                    state->setEstimatedCostToGo(objective_->identityCost());
+
+                    // Set the estimated effort to go.
+                    state->setEstimatedEffortToGo(0u);
+                }
+                else
+                {
+                    // Set the admissible cost to go.
+                    state->setAdmissibleCostToGo(objective_->infiniteCost());
+
+                    // Set the estimated cost to go.
+                    state->setEstimatedCostToGo(objective_->infiniteCost());
+
+                    // Set the estimated effort to go.
+                    state->setEstimatedEffortToGo(std::numeric_limits<std::size_t>::max());
+                }
             }
 
             std::size_t RandomGeometricGraph::computeNumberOfNeighbors(std::size_t numInformedSamples) const

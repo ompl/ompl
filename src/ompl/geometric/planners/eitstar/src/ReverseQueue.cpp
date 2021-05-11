@@ -195,6 +195,11 @@ namespace ompl
                 return edge;
             }
 
+            ompl::base::Cost ReverseQueue::getLowerBoundOnOptimalSolutionCost() const
+            {
+                return std::get<0>(queue_.top()->data);
+            }
+
             void ReverseQueue::clear()
             {
                 // Can't use queue_.clear() because we need to remove the outgoing edge lookup pointers.

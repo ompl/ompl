@@ -158,11 +158,17 @@ namespace ompl
                 /** \brief Returns whether a state can possibly improve the current solution. */
                 bool canPossiblyImproveSolution(const std::shared_ptr<State> &state) const;
 
-                /** \brief Get the heuristic cost from the preferred start of a state. */
-                ompl::base::Cost heuristicCostFromPreferredStart(const std::shared_ptr<State> &state) const;
+                /** \brief Returns the heuristic cost from the preferred start of a state. */
+                ompl::base::Cost lowerBoundCostToCome(const std::shared_ptr<State> &state) const;
 
-                /** \brief Get the heuristic cost to the preferred goal of a state. */
-                ompl::base::Cost heuristicCostToPreferredGoal(const std::shared_ptr<State> &state) const;
+                /** \brief Returns the admissible effort from the preferred start of a state. */
+                unsigned int lowerBoundEffortToCome(const std::shared_ptr<State> &state) const;
+
+                /** \brief Returns the heuristic cost to the preferred goal of a state. */
+                ompl::base::Cost lowerBoundCostToGo(const std::shared_ptr<State> &state) const;
+
+                /** \brief Initializes a state's cost and effort values. */
+                void initializeState(const std::shared_ptr<State> &state);
 
                 /** \brief Computes the number of neighbors of the k-nearest model with a given number of samples. */
                 std::size_t computeNumberOfNeighbors(std::size_t numInformedSamples) const;
