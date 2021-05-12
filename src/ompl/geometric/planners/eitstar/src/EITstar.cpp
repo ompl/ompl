@@ -578,7 +578,7 @@ namespace ompl
                     goal->setEstimatedCostToGo(objective_->identityCost());
                     goal->setEstimatedEffortToGo(0u);
                     goalVertices_.emplace_back(goal->asReverseVertex());
-                    reverseQueue_->insert(expand(goal));
+                    reverseQueue_->insertOrUpdate(expand(goal));
                 }
 
                 // Update the search tag.
