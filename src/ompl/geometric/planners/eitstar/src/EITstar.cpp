@@ -711,6 +711,9 @@ namespace ompl
             for (const auto &goal : graph_.getGoalStates())
             {
                 goalVertices_.emplace_back(goal->asReverseVertex());
+                goal->setAdmissibleCostToGo(objective_->identityCost());
+                goal->setEstimatedCostToGo(objective_->identityCost());
+                goal->setEstimatedEffortToGo(0u);
             }
             expandGoalVerticesIntoReverseQueue();
             ++reverseSearchTag_;
