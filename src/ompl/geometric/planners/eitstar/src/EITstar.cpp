@@ -499,7 +499,7 @@ namespace ompl
             if (isInReverseTree(edge))
             {
                 // Simply expand the target into the queue.
-                reverseQueue_->insert(expand(target));
+                reverseQueue_->insertOrUpdate(expand(target));
                 return;
             }
 
@@ -515,6 +515,8 @@ namespace ompl
                     // Get the parent and child vertices.
                     auto parentVertex = source->asReverseVertex();
                     auto childVertex = target->asReverseVertex();
+
+                    // The child must not be closed.
                     assert(!isClosed(childVertex));
 
                     // Update the parent of the child in the reverse tree.
@@ -541,12 +543,13 @@ namespace ompl
                     }
 
                     // Update any edge in the forward queue affected by the target.
-                    for (const auto& source : target->getSourcesOfIncomingEdgesInForwardQueue()) {
-                        forwardQueue_->updateIfExists({source, target});
+                    for (const auto &queueSource : target->getSourcesOfIncomingEdgesInForwardQueue())
+                    {
+                        forwardQueue_->updateIfExists({queueSource, target});
                     }
 
                     // Expand the target state into the reverse queue.
-                    reverseQueue_->insert(expand(target));
+                    reverseQueue_->insertOrUpdate(expand(target));
                 }
             }
         }
@@ -561,7 +564,8 @@ namespace ompl
                 numSparseCollisionChecksPreviousLevel_ = 0u;
 
                 // Restart the reverse search.
-                goalVertices_.clear();
+                reverseQueue_->clear();
+                goalVertices_.clear();  // Free the reverse tree.
                 reverseCost_ = objective_->infiniteCost();
                 for (const auto &goal : graph_.getGoalStates())
                 {
@@ -1117,7 +1121,7 @@ namespace ompl
         {
             for (auto &vertex : goalVertices_)
             {
-                reverseQueue_->insert(expand(vertex->getState()));
+                reverseQueue_->insertOrUpdate(expand(vertex->getState()));
             }
         }
 

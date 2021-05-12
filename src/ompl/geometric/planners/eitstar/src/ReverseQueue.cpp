@@ -74,20 +74,13 @@ namespace ompl
                 return queue_.size();
             }
 
-            void ReverseQueue::insert(const Edge &edge)
+            void ReverseQueue::insertOrUpdate(const Edge &edge)
             {
-                if (!update(edge))
+                if (!updateIfExists(edge))
                 {
-                    // Compute the first field of the key.
-                    const auto key1 =
-                        objective_->combineCosts(objective_->combineCosts(edge.source->getAdmissibleCostToGo(),
-                                                                          objective_->motionCostHeuristic(
-                                                                              edge.source->raw(), edge.target->raw())),
-                                                 edge.target->getLowerBoundCostToCome());
-
-                    const auto key2 = edge.source->getEstimatedEffortToGo() +
-                                      space_->validSegmentCount(edge.source->raw(), edge.target->raw()) +
-                                      edge.target->getLowerBoundEffortToCome();
+                    // Compute the keys.
+                    const auto key1 = computeAdmissibleSolutionCost(edge);
+                    const auto key2 = computeAdmissibleSolutionEffort(edge);
 
                     // Create the heap element.
                     const auto element = std::make_tuple(key1, key2, edge);
@@ -100,12 +93,12 @@ namespace ompl
                 }
             }
 
-            void ReverseQueue::insert(const std::vector<Edge> &edges)
+            void ReverseQueue::insertOrUpdate(const std::vector<Edge> &edges)
             {
                 // Let's do this naively.
                 for (const auto &edge : edges)
                 {
-                    insert(edge);
+                    insertOrUpdate(edge);
                 }
             }
 
@@ -121,45 +114,42 @@ namespace ompl
                 }
             }
 
-            bool ReverseQueue::update(const Edge &edge)
+            bool ReverseQueue::updateIfExists(const Edge &edge)
             {
-                // Update if the edges is already in the queue.
-                for (const auto outgoingEdge : edge.source->asReverseVertex()->outgoingReverseQueueLookup_)
+                // Check if the edge is in the queue via the reverse queue pointers.
+                const auto &lookup = edge.source->asReverseVertex()->outgoingReverseQueueLookup_;
+                const auto it = std::find_if(lookup.cbegin(), lookup.cend(), [&edge](const auto &p) {
+                    return std::get<2>(p->data).target->getId() == edge.target->getId();
+                });
+
+                // Indicate that the edge is not in the queue by returning false.
+                if (it == lookup.cend())
                 {
-                    if (std::get<2>(outgoingEdge->data).target->getId() == edge.target->getId())
-                    {
-                        const auto oldCost = std::get<0>(outgoingEdge->data);
-                        const auto edgeCostHeuristic =
-                            objective_->motionCostHeuristic(edge.source->raw(), edge.target->raw());
-                        const auto newCost = objective_->combineCosts(
-                            objective_->combineCosts(edge.source->getAdmissibleCostToGo(), edgeCostHeuristic),
-                            edge.target->getLowerBoundCostToGo());
-                        const auto oldEffort = std::get<1>(outgoingEdge->data);
-                        const auto newEffort = edge.source->getEstimatedEffortToGo() +
-                                               space_->validSegmentCount(edge.source->raw(), edge.target->raw()) +
-                                               edge.target->getLowerBoundEffortToCome();
-
-                        if (objective_->isCostEquivalentTo(oldCost, newCost))
-                        {
-                            if (newEffort < oldEffort)
-                            {
-                                std::get<1>(outgoingEdge->data) = newEffort;
-                                queue_.update(outgoingEdge);
-                            }
-                        }
-                        else if (objective_->isCostBetterThan(newCost, oldCost))
-                        {
-                            std::get<0>(outgoingEdge->data) = newCost;
-                            queue_.update(outgoingEdge);
-                        }
-
-                        // It doesn't matter whether the edge was actually updated or not, we return
-                        // true as long as it already exists in the queue.
-                        return true;
-                    }
+                    return false;
                 }
 
-                return false;
+                // Update the cost and effort and the position of the edge in the queue.
+                std::get<0>((*it)->data) = computeAdmissibleSolutionCost(edge);
+                std::get<1>((*it)->data) = computeAdmissibleSolutionEffort(edge);
+                queue_.update(*it);
+
+                // Indicate that the edge was updated by returning true.
+                return true;
+            }
+
+            ompl::base::Cost ReverseQueue::computeAdmissibleSolutionCost(const Edge &edge) const
+            {
+                return objective_->combineCosts(
+                    objective_->combineCosts(edge.source->getAdmissibleCostToGo(),
+                                             objective_->motionCostHeuristic(edge.target->raw(), edge.source->raw())),
+                    edge.target->getLowerBoundCostToCome());
+            }
+
+            unsigned int ReverseQueue::computeAdmissibleSolutionEffort(const Edge &edge) const
+            {
+                return edge.source->getEstimatedEffortToGo() +
+                       space_->validSegmentCount(edge.target->raw(), edge.source->raw()) +
+                       edge.target->getLowerBoundEffortToCome();
             }
 
             Edge ReverseQueue::pop()
@@ -220,6 +210,13 @@ namespace ompl
                     edges.push_back(std::get<2>(element));
                 }
                 return edges;
+            }
+
+            void ReverseQueue::rebuild()
+            {
+                const auto edges = getEdges();
+                clear();
+                insertOrUpdate(edges);
             }
 
             void ReverseQueue::removeOutgoingEdges(const std::shared_ptr<Vertex> &vertex)

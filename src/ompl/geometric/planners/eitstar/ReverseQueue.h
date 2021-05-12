@@ -73,10 +73,10 @@ namespace ompl
                 std::size_t size() const;
 
                 /** \brief Insert an element into the queue. */
-                void insert(const Edge &edge);
+                void insertOrUpdate(const Edge &edge);
 
                 /** \brief Insert an element into the queue. */
-                void insert(const std::vector<Edge> &edges);
+                void insertOrUpdate(const std::vector<Edge> &edges);
 
                 /** Get a reference to the top edge in the queue. */
                 const Edge &peek() const;
@@ -96,11 +96,18 @@ namespace ompl
                 /** \brief Rebuilds the queue. */
                 void rebuild();
 
+                /** \brief Removes the outgoing edges of a vertex from the queue. */
                 void removeOutgoingEdges(const std::shared_ptr<Vertex> &vertex);
 
             private:
                 /** \brief Update an edge in the queue if it exists. */
-                bool update(const Edge &edge);
+                bool updateIfExists(const Edge &edge);
+
+                /** \brief Returns the admissible total potential solution cost of an edge. */
+                ompl::base::Cost computeAdmissibleSolutionCost(const Edge &edge) const;
+
+                /** \brief Returns the admissible total potential solution effort of an edge. */
+                unsigned int computeAdmissibleSolutionEffort(const Edge &edge) const;
 
                 /** \brief The optimization objective. */
                 std::shared_ptr<const ompl::base::OptimizationObjective> objective_;
