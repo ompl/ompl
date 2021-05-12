@@ -101,12 +101,6 @@ namespace ompl
             /** \brief Get whether approximate solutions are tracked or not. */
             bool areApproximateSolutionsTracked() const;
 
-            /** \brief Set whether to reset the suboptimality factor on every approximation or not. */
-            void resetSuboptimalityFactorOnEveryApproximation(bool reset);
-
-            /** \brief Get whether the suboptimality factor is reset or not. */
-            bool isSuboptimalityFactorOnEveryApproximationReset() const;
-
             /** \brief Set whether to use a k-nearest RGG connection model. If false, AIT* uses an r-disc model. */
             void setUseKNearest(bool useKNearest);
 
@@ -289,8 +283,10 @@ namespace ompl
             /** \brief The number of states added when the approximation is updated. */
             unsigned int batchSize_{100u};
 
-            /** \brief The current suboptimality factor of the forward search. */
-            double suboptimalityFactor_{std::numeric_limits<float>::infinity()};
+            /** \brief The current suboptimality factor of the forward search. Infinity will not do what you want,
+             * because then all edges in the queue have infinite cost. The maximum double is also a bad idea, as that
+             * will end up being infinity if multiplied by something greater than 1.*/
+            double suboptimalityFactor_{1000000.0};
 
             /** \brief The number of sparse collision detections on level 0. */
             std::size_t initialNumSparseCollisionChecks_{1u};
@@ -307,9 +303,6 @@ namespace ompl
 
             /** \brief Whether EIT* tracks approximate solutions. */
             bool trackApproximateSolutions_{true};
-
-            /** \brief Whether EIT* resets the suboptimality factor of its forward search on every approximation. */
-            bool resetSuboptimalityFactorOnEveryApproximation_{true};
 
             /** \brief The state used to do sparse collision detection with. */
             ompl::base::State *detectionState_;
