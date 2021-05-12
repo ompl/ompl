@@ -241,7 +241,10 @@ namespace ompl
 
             void ForwardQueue::clear()
             {
-                // Can simply call clear here, as we don't store pointers to edges in the forward queue.
+                for (const auto &edge : queue_)
+                {
+                    edge.second.target->resetSourcesOfIncomingEdgesInForwardQueue();
+                }
                 queue_.clear();
             }
 
