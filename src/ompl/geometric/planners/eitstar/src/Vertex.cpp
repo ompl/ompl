@@ -151,7 +151,8 @@ namespace ompl
 
             bool Vertex::isParent(const std::shared_ptr<Vertex> &vertex) const
             {
-                if (!static_cast<bool>(vertex) || parent_.expired()) {
+                if (!static_cast<bool>(vertex) || parent_.expired())
+                {
                     return false;
                 }
 
