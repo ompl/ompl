@@ -563,6 +563,10 @@ namespace ompl
                 numSparseCollisionChecksCurrentLevel_ = initialNumSparseCollisionChecks_;
                 numSparseCollisionChecksPreviousLevel_ = 0u;
 
+                // Reinitialize the forward queue.
+                forwardQueue_->clear();
+                expandStartVerticesIntoForwardQueue();
+
                 // Restart the reverse search.
                 reverseQueue_->clear();
                 goalVertices_.clear();  // Free the reverse tree.
