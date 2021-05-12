@@ -684,6 +684,10 @@ namespace ompl
                     // Set the estimated effort to go.
                     state->setEstimatedEffortToGo(std::numeric_limits<std::size_t>::max());
                 }
+
+                if (isStart(state)) {
+                    state->setCurrentCostToCome(objective_->identityCost());
+                }
             }
 
             std::size_t RandomGeometricGraph::computeNumberOfNeighbors(std::size_t numInformedSamples) const
