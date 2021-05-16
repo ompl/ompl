@@ -307,12 +307,20 @@ namespace ompl
         Edge EITstar::getNextForwardEdge() const
         {
             assert(forwardQueue_);
+            if (forwardQueue_->empty())
+            {
+                return {};
+            }
             return forwardQueue_->peek(suboptimalityFactor_);
         }
 
         Edge EITstar::getNextReverseEdge() const
         {
             assert(reverseQueue_);
+            if (reverseQueue_->empty())
+            {
+                return {};
+            }
             return reverseQueue_->peek();
         }
 
