@@ -171,7 +171,7 @@ namespace ompl
             ompl::base::PlannerStatus::StatusType updateSolution();
 
             /** \brief Checks whether the planner and state space are setup. */
-            void checkSetup() const;
+            ompl::base::PlannerStatus::StatusType checkSetup() const;
 
             /** \brief Checks whether the problem specified a start and goal state. */
             ompl::base::PlannerStatus::StatusType
