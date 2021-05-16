@@ -66,7 +66,9 @@ namespace ompl
               , problemDefinition_(problemDefinition)
               , objective_(problemDefinition->getOptimizationObjective())
               , forwardChildren_()
+              , reverseChildren_()
               , forwardParent_()
+              , reverseParent_()
               , state_(spaceInformation->allocState())  // The memory allocated here is freed in the destructor.
               , costToComeFromStart_(objective_->infiniteCost())
               , edgeCostFromForwardParent_(objective_->infiniteCost())
@@ -78,6 +80,26 @@ namespace ompl
             {
             }
 
+            Vertex::Vertex(const std::shared_ptr<Vertex>& other)
+                : spaceInformation_(other->spaceInformation_)
+                , problemDefinition_(other->problemDefinition_)
+                , objective_(other->objective_)
+                , forwardChildren_(other->forwardChildren_)
+                , reverseChildren_(other->reverseChildren_)
+                , forwardParent_(other->forwardParent_)
+                , reverseParent_(other->reverseParent_)
+                , state_(spaceInformation_->allocState())  // The memory allocated here is freed in the destructor.
+                , costToComeFromStart_(other->costToComeFromStart_)
+                , edgeCostFromForwardParent_(other->edgeCostFromForwardParent_)
+                , costToComeFromGoal_(other->costToComeFromGoal_)
+                , expandedCostToComeFromGoal_(other->expandedCostToComeFromGoal_)
+                , costToGoToGoal_(other->costToGoToGoal_)
+                , vertexId_(other->vertexId_)
+                , batchId_(other->batchId_)
+            {
+                spaceInformation_->copyState(state_, other->getState());
+            }
+            
             Vertex::~Vertex()
             {
                 // The state has associated memory that needs to be freed manually.
@@ -446,6 +468,7 @@ namespace ompl
 
             bool Vertex::isConsistent() const
             {
+                // Return whether the cost to come is the same now as when this vertex was expanded.
                 return objective_->isCostEquivalentTo(costToComeFromGoal_, expandedCostToComeFromGoal_);
             }
 
@@ -531,6 +554,30 @@ namespace ompl
             void Vertex::resetForwardQueueOutgoingLookup()
             {
                 forwardQueueOutgoingLookup_.clear();
+            }
+
+            void Vertex::callOnForwardBranch(const std::function<void(const std::shared_ptr<Vertex> &)> &function)
+            {
+                // Call the function on this vertex.
+                function(shared_from_this());
+
+                // Recursively call it on all forward children.
+                for (auto &child : forwardChildren_)
+                {
+                    child.lock()->callOnForwardBranch(function);
+                }
+            }
+
+            void Vertex::callOnReverseBranch(const std::function<void(const std::shared_ptr<Vertex> &)> &function)
+            {
+                // Call the function on this vertex.
+                function(shared_from_this());
+
+                // Recursively call it on all reverse children.
+                for (auto &child : reverseChildren_)
+                {
+                    child.lock()->callOnReverseBranch(function);
+                }
             }
 
         }  // namespace aitstar

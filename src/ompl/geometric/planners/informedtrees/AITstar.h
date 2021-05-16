@@ -96,6 +96,13 @@ namespace ompl
             /** \brief Additional setup that can only be done once a problem definition is set. */
             void setup() override;
 
+            /** \brief Checks whether the planner is successfully setup. */
+            ompl::base::PlannerStatus::StatusType checkSetup() const;
+
+            /** \brief Checks whether the problem is successfully setup. */
+            ompl::base::PlannerStatus::StatusType
+            checkProblem(const ompl::base::PlannerTerminationCondition &terminationCondition);
+
             /** \brief Clears the algorithm's internal state. */
             void clear() override;
 
@@ -237,8 +244,14 @@ namespace ompl
              * the problem definition if so. **/
             void updateApproximateSolution(const std::shared_ptr<aitstar::Vertex> &vertex);
 
+            /** \brief Checks which vertex is the best approximate solution. */
+            void updateApproximateSolution();
+            
             /** \brief Updates the exact solution and if AIT* track approximate solutions, it updates it as well. */
-            void updateSolution(const std::shared_ptr<aitstar::Vertex> &vertex);
+            ompl::base::PlannerStatus::StatusType updateSolution();
+
+            /** \brief Updates the exact solution and if AIT* track approximate solutions, it updates it as well. */
+            ompl::base::PlannerStatus::StatusType updateSolution(const std::shared_ptr<aitstar::Vertex> &vertex);
 
             /** \brief Returns the best cost-to-go-heuristic to any start in the graph. */
             ompl::base::Cost computeCostToGoToStartHeuristic(const std::shared_ptr<aitstar::Vertex> &vertex) const;

@@ -141,6 +141,52 @@ namespace ompl
             }
         }
 
+        ompl::base::PlannerStatus::StatusType AITstar::checkSetup() const
+        {
+            // Ensure the planner is setup.
+            if (!setup_)
+            {
+                OMPL_ERROR("%s: Called solve without setting up the planner first.", name_.c_str());
+                return ompl::base::PlannerStatus::StatusType::ABORT;
+            }
+
+            // Ensure the space is setup.
+            if (!si_->isSetup())
+            {
+                OMPL_ERROR("%s: Called solve without setting up the state space first.", name_.c_str());
+                return ompl::base::PlannerStatus::StatusType::ABORT;
+            }
+
+            return ompl::base::PlannerStatus::StatusType::UNKNOWN;
+        }
+
+        ompl::base::PlannerStatus::StatusType
+        AITstar::checkProblem(const ompl::base::PlannerTerminationCondition &terminationCondition)
+        {
+            // Ensure the graph has a start state.
+            if (!graph_.hasAStartState())
+            {
+                OMPL_WARN("%s: No solution can be found as no start states are available", name_.c_str());
+                return ompl::base::PlannerStatus::StatusType::INVALID_START;
+            }
+
+            // If the graph currently does not have a goal state, we wait until we get one.
+            if (!graph_.hasAGoalState())
+            {
+                graph_.updateStartAndGoalStates(terminationCondition, &pis_);
+
+                // If the graph still doesn't have a goal after waiting there's nothing to solve.
+                if (!graph_.hasAGoalState())
+                {
+                    OMPL_WARN("%s: No solution can be found as no goal states are available", name_.c_str());
+                    return ompl::base::PlannerStatus::StatusType::INVALID_GOAL;
+                }
+            }
+
+            // Would it be worth implementing a 'setup' or 'checked' status type?
+            return ompl::base::PlannerStatus::StatusType::UNKNOWN;
+        }
+
         void AITstar::clear()
         {
             graph_.clear();
@@ -156,46 +202,21 @@ namespace ompl
 
         ompl::base::PlannerStatus AITstar::solve(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
+            // Check that the planner and state space are setup.
+            auto status = checkSetup();
+
             // The planner status to return.
-            auto status = ompl::base::PlannerStatus::StatusType::UNKNOWN;
+            status = checkProblem(terminationCondition);
 
-            // Ensure the planner is setup.
-            Planner::checkValidity();
-            if (!Planner::setup_)
+            // Return early if the problem cannot be solved.
+            if (status == ompl::base::PlannerStatus::StatusType::INVALID_START ||
+                status == ompl::base::PlannerStatus::StatusType::INVALID_GOAL)
             {
-                OMPL_WARN("%s: Failed to setup and thus solve can not do anything meaningful.", name_.c_str());
-                status = ompl::base::PlannerStatus::StatusType::ABORT;
-                informAboutPlannerStatus(status);
                 return status;
             }
 
-            // If the graph currently does not have a goal state, we wait until we get one.
-            if (!graph_.hasAGoalState())
-            {
-                graph_.updateStartAndGoalStates(terminationCondition, &pis_);
-            }
-
-            if (!graph_.hasAStartState())
-            {
-                OMPL_WARN("%s: No solution can be found as no start states are available", name_.c_str());
-                status = ompl::base::PlannerStatus::StatusType::INVALID_START;
-                informAboutPlannerStatus(status);
-                return status;
-            }
-
-            // If the graph still doesn't have a goal after waiting there's nothing to solve.
-            if (!graph_.hasAGoalState())
-            {
-                OMPL_WARN("%s: No solution can be found as no goal states are available", name_.c_str());
-                status = ompl::base::PlannerStatus::StatusType::INVALID_GOAL;
-                informAboutPlannerStatus(status);
-                return status;
-            }
-
-            OMPL_INFORM("%s: Searching for a solution to the given planning problem. The current best solution "
-                        "cost is "
-                        "%.4f",
-                        name_.c_str(), solutionCost_.value());
+            OMPL_INFORM("%s: Solving the given planning problem. The current best solution cost is %.4f", name_.c_str(),
+                        solutionCost_.value());
 
             // Iterate to solve the problem.
             while (!terminationCondition && !objective_->isSatisfied(solutionCost_))
@@ -203,34 +224,11 @@ namespace ompl
                 iterate(terminationCondition);
             }
 
-            // Someone might call ProblemDefinition::clearSolutionPaths() between invokations of Planner::solve(),
-            // in which case previously found solutions are not registered with the problem definition anymore.
-            updateExactSolution();
+            // Someone might call ProblemDefinition::clearSolutionPaths() between invocations of Planner::sovle(), in
+            // which case previously found solutions are not registered with the problem definition anymore.
+            status = updateSolution();
 
-            // If there are no exact solutions registered in the problem definition and we're tracking approximate
-            // solutions, find the best vertex in the graph.
-            if (!pdef_->hasExactSolution() && trackApproximateSolutions_)
-            {
-                for (const auto &vertex : graph_.getVertices())
-                {
-                    updateApproximateSolution(vertex);
-                }
-            }
-
-            // Return the right planner status.
-            if (objective_->isFinite(solutionCost_))
-            {
-                status = ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION;
-            }
-            else if (trackApproximateSolutions_ && objective_->isFinite(approximateSolutionCost_))
-            {
-                status = ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION;
-            }
-            else
-            {
-                status = ompl::base::PlannerStatus::StatusType::TIMEOUT;
-            }
-
+            // Let the caller know the status.
             informAboutPlannerStatus(status);
             return status;
         }
@@ -1116,6 +1114,13 @@ namespace ompl
             }
         }
 
+        void AITstar::updateApproximateSolution()
+        {
+            for (auto& start : graph_.getStartVertices()) {
+                start->callOnForwardBranch([this](const auto& vertex) -> void { updateApproximateSolution(vertex); });
+            }
+        }
+
         void AITstar::updateApproximateSolution(const std::shared_ptr<Vertex> &vertex)
         {
             assert(trackApproximateSolutions_);
@@ -1146,16 +1151,39 @@ namespace ompl
             }
         };
 
-        void AITstar::updateSolution(const std::shared_ptr<Vertex> &vertex)
+        ompl::base::PlannerStatus::StatusType AITstar::updateSolution()
         {
-            // Check whether we found a better path to any goal.
             updateExactSolution();
+            if (objective_->isFinite(solutionCost_))
+            {
+                return ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION;
+            }
+            else if (trackApproximateSolutions_)
+            {
+                updateApproximateSolution();
+                return ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION;
+            }
+            else
+            {
+                return ompl::base::PlannerStatus::StatusType::TIMEOUT;
+            }
+        }
 
-            // If we don't have an exact solution but are tracking approximate solutions, see if the vertex is
-            // the best approximate solution so far.
-            if (!pdef_->hasExactSolution() && trackApproximateSolutions_)
+        ompl::base::PlannerStatus::StatusType AITstar::updateSolution(const std::shared_ptr<Vertex> &vertex)
+        {
+            updateExactSolution();
+            if (objective_->isFinite(solutionCost_))
+            {
+                return ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION;
+            }
+            else if (trackApproximateSolutions_)
             {
                 updateApproximateSolution(vertex);
+                return ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION;
+            }
+            else
+            {
+                return ompl::base::PlannerStatus::StatusType::TIMEOUT;
             }
         }
 

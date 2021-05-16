@@ -56,12 +56,15 @@ namespace ompl
     {
         namespace aitstar
         {
-            class Vertex
+            class Vertex : public std::enable_shared_from_this<Vertex>
             {
             public:
                 /** \brief Constructs a vertex by sampling a state. */
                 Vertex(const ompl::base::SpaceInformationPtr &spaceInformation,
                        const ompl::base::ProblemDefinitionPtr &problemDefinition, const std::size_t &batchId);
+
+                /** \brief Constructs a copy of another vertex. */
+                explicit Vertex(const std::shared_ptr<Vertex> &other);
 
                 /** \brief Destructs the vertex. */
                 virtual ~Vertex();
@@ -222,6 +225,12 @@ namespace ompl
 
                 /** \brief Resets the forward queue outgoing lookup. */
                 void resetForwardQueueOutgoingLookup();
+
+                /** \brief Calls the given function on this vertex and all of its children. */
+                void callOnForwardBranch(const std::function<void(const std::shared_ptr<Vertex> &)> &function);
+
+                /** \brief Calls the given function on this vertex and all of its children. */
+                void callOnReverseBranch(const std::function<void(const std::shared_ptr<Vertex> &)> &function);
 
             private:
                 /** \brief The space information of the planning problem. */
