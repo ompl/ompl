@@ -78,6 +78,8 @@ namespace ompl
             declareParam<bool>("use_graph_pruning", this, &AITstar::enablePruning, &AITstar::isPruningEnabled, "0,1");
             declareParam<bool>("find_approximate_solutions", this, &AITstar::trackApproximateSolutions,
                                &AITstar::areApproximateSolutionsTracked, "0,1");
+            declareParam<bool>("set_max_num_goals", this, &AITstar::setMaxNumberOfGoals, &AITstar::getMaxNumberOfGoals,
+                               "1,1000");
 
             // Register the progress properties.
             addPlannerProgressProperty("iterations INTEGER", [this]() { return std::to_string(numIterations_); });
@@ -338,6 +340,16 @@ namespace ompl
         bool AITstar::getUseKNearest() const
         {
             return graph_.getUseKNearest();
+        }
+
+        void AITstar::setMaxNumberOfGoals(unsigned int numberOfGoals)
+        {
+            graph_.setMaxNumberOfGoals(numberOfGoals);
+        }
+
+        unsigned int AITstar::getMaxNumberOfGoals() const
+        {
+            return graph_.getMaxNumberOfGoals();
         }
 
         void AITstar::setRepairReverseSearch(bool repairReverseSearch)

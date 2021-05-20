@@ -92,6 +92,16 @@ namespace ompl
                 return rewireFactor_;
             }
 
+            void ImplicitGraph::setMaxNumberOfGoals(unsigned int maxNumberOfGoals)
+            {
+                maxNumGoals_ = maxNumberOfGoals;
+            }
+
+            unsigned int ImplicitGraph::getMaxNumberOfGoals() const
+            {
+                return maxNumGoals_;
+            }
+
             void ImplicitGraph::setUseKNearest(bool useKNearest)
             {
                 useKNearest_ = useKNearest;
@@ -168,7 +178,7 @@ namespace ompl
                         addedNewGoalState = true;
                     }
 
-                } while (inputStates->haveMoreGoalStates());
+                } while (inputStates->haveMoreGoalStates() && goalVertices_.size() <= maxNumGoals_);
 
                 // Having updated the goals, we now update the starts.
                 while (inputStates->haveMoreStartStates())

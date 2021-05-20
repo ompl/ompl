@@ -146,6 +146,12 @@ namespace ompl
             /** \brief Get whether to use a k-nearest RGG connection model. If false, AIT* uses an r-disc model. */
             bool getUseKNearest() const;
 
+            /** \brief Set the maximum number of goals AIT* will sample from sampleable goal regions. */
+            void setMaxNumberOfGoals(unsigned int numberOfGoals);
+
+            /** \brief Get the maximum number of goals AIT* will sample from sampleable goal regions. */
+            unsigned int getMaxNumberOfGoals() const;
+
             /** \brief Enable LPA* repair of reverse search. */
             void setRepairReverseSearch(bool repairReverseSearch);
 
