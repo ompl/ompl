@@ -416,12 +416,10 @@ namespace ompl
 
         void AITstar::informAboutNewSolution() const
         {
-            OMPL_INFORM("%s (%u iterations): Found a new exact solution of cost %.4f. Sampled a total of %u "
-                        "states, %u "
-                        "of which were valid samples (%.1f \%). Processed %u edges, %u of which were collision "
-                        "checked "
-                        "(%.1f \%). The forward search tree has %u vertices. The reverse search tree has %u "
-                        "vertices.",
+            OMPL_INFORM("%s (%u iterations): Found a new exact solution of cost %.4f. Sampled a total of %u states, %u "
+                        "of which were valid samples (%.1f \%). Processed %u edges, %u of which were collision checked "
+                        "(%.1f \%). The forward search tree has %u vertices, %u of which are start states. The reverse "
+                        "search tree has %u vertices, %u of which are goal states.",
                         name_.c_str(), numIterations_, solutionCost_.value(), graph_.getNumberOfSampledStates(),
                         graph_.getNumberOfValidSamples(),
                         graph_.getNumberOfSampledStates() == 0u ?
@@ -432,7 +430,8 @@ namespace ompl
                         numProcessedEdges_ == 0u ? 0.0 :
                                                    100.0 * (static_cast<float>(numEdgeCollisionChecks_) /
                                                             static_cast<float>(numProcessedEdges_)),
-                        countNumVerticesInForwardTree(), countNumVerticesInReverseTree());
+                        countNumVerticesInForwardTree(), graph_.getStartVertices().size(),
+                        countNumVerticesInReverseTree(), graph_.getGoalVertices().size());
         }
 
         void AITstar::informAboutPlannerStatus(ompl::base::PlannerStatus::StatusType status) const
