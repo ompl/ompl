@@ -203,7 +203,6 @@ namespace ompl
             approximateSolutionCost_ = objective_->infiniteCost();
             approximateSolutionCostToGoal_ = objective_->infiniteCost();
             numIterations_ = 0u;
-            isForwardSearchStartedOnBatch_ = false;
             Planner::clear();
         }
 
@@ -355,11 +354,6 @@ namespace ompl
         unsigned int AITstar::getMaxNumberOfGoals() const
         {
             return graph_.getMaxNumberOfGoals();
-        }
-
-        void AITstar::setRepairReverseSearch(bool repairReverseSearch)
-        {
-            repairReverseSearch_ = repairReverseSearch;
         }
 
         void AITstar::rebuildForwardQueue()
