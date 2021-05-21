@@ -113,55 +113,18 @@ namespace ompl
                 }
             }
 
-            Edge ForwardQueue::peek(double suboptimalityFactor) const
+            Edge ForwardQueue::peek(double suboptimalityFactor)
             {
                 // Make sure the queue contains edges.
                 if (queue_.empty())
                 {
                     throw std::out_of_range("Forward queue is empty, cannot peek.");
                 }
-
-                // If the edge with suboptimality factor 1 is requested, serve that without doing any work.
-                if (suboptimalityFactor == 1.0)
-                {
-                    return queue_.begin()->second;
-                }
-
-                // Get the lower bounding edge and corresponding cost.
-                const auto lowerBoundEdge = queue_.begin();
-                const auto lowerBoundEdgeCost = inflateCost(lowerBoundEdge->first.lowerBoundCost, suboptimalityFactor);
-
-                // Find the best estimate edge and corresponding cost.
-                const auto bestCostEdge = getBestCostEstimateEdge();
-                const auto bestCostEdgeCost = inflateCost(bestCostEdge->first.estimatedCost, suboptimalityFactor);
-
-                // Find the least effort edge and corresponding cost.
-                auto bestEffortEdge = queue_.cbegin();
-                auto bestEffortEdgeCost = objective_->infiniteCost();
-                for (auto it = queue_.cbegin(); it != queue_.cend(); ++it)
-                {
-                    if (it->first.estimatedEffort < bestEffortEdge->first.estimatedEffort &&
-                        !objective_->isCostBetterThan(bestCostEdgeCost, it->first.estimatedCost))
-                    {
-                        bestEffortEdgeCost = it->first.estimatedCost;
-                        bestEffortEdge = it;
-                    }
-                }
-
-                // Return the correct edge.
-                if (!objective_->isCostBetterThan(lowerBoundEdgeCost, bestEffortEdgeCost))
-                {
-                    return bestEffortEdge->second;
-                }
-                else if (!objective_->isCostBetterThan(lowerBoundEdgeCost, bestCostEdge->first.estimatedCost))
-                {
-                    return bestCostEdge->second;
-                }
-                else
-                {
-                    return lowerBoundEdge->second;
-                }
-            }  // namespace eitstar
+                
+                const auto edge = pop(suboptimalityFactor);
+                insertOrUpdate(edge);
+                return edge;
+            } 
 
             void ForwardQueue::updateIfExists(const Edge &edge)
             {

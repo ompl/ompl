@@ -86,7 +86,7 @@ namespace ompl
                 void updateIfExists(const Edge &edge);
 
                 /** \brief Returns a copy to the next edge. */
-                Edge peek(double suboptimalityFactor) const;
+                Edge peek(double suboptimalityFactor);
 
                 /** \brief Returns and deletes the top element of the queue. */
                 Edge pop(double suboptimalityFactor);
