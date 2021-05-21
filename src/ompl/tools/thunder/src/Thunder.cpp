@@ -517,7 +517,6 @@ bool ompl::tools::Thunder::doPostProcessing()
         double queued_path_length {queuedSolutionPath.length()};
         if(!queuedSolutionPath.getStates().empty() && queued_path_length > 0 && queued_path_length < shortest_path_length) {
           shortest_path_length = queuedSolutionPath.length();
-          solutionPath = queuedSolutionPath;
           *solutionPathPtr = queuedSolutionPath;
         }
     }
