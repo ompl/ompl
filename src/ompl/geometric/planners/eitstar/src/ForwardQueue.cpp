@@ -37,6 +37,7 @@
 #include "ompl/geometric/planners/eitstar/ForwardQueue.h"
 
 #include <algorithm>
+#include <cmath>
 
 #include "ompl/geometric/planners/eitstar/stopwatch/timetable.h"
 #include "ompl/geometric/planners/eitstar/Direction.h"
@@ -285,7 +286,14 @@ namespace ompl
             {
                 // I don't think this will work for problems which minimize cost, but making it work would require a
                 // larger change in OMPL.
-                return ompl::base::Cost(cost.value() * factor);
+                if (!std::isfinite(factor) || !objective_->isFinite(cost))
+                {
+                    return objective_->infiniteCost();
+                }
+                else
+                {
+                    return ompl::base::Cost(cost.value() * factor);
+                }
             }
 
             std::size_t ForwardQueue::estimateEffort(const Edge &edge) const
