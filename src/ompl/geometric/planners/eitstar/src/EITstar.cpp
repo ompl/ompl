@@ -978,7 +978,7 @@ namespace ompl
         unsigned int EITstar::estimateEffortToTarget(const eitstar::Edge &edge) const
         {
             return edge.source->getEstimatedEffortToGo() +
-                   space_->validSegmentCount(edge.source->raw(), edge.target->raw());
+                   space_->validSegmentCount(edge.target->raw(), edge.source->raw());
         }
 
         bool EITstar::isValid(const Edge &edge) const
