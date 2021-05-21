@@ -803,9 +803,20 @@ namespace ompl
 
         bool AITstar::isVertexBetter(const aitstar::KeyVertexPair &lhs, const aitstar::KeyVertexPair &rhs) const
         {
-            return std::lexicographical_compare(
-                lhs.first.cbegin(), lhs.first.cend(), rhs.first.cbegin(), rhs.first.cend(),
-                [this](const auto &a, const auto &b) { return objective_->isCostBetterThan(a, b); });
+            // If the costs of two vertices are equal then we prioritize inconsistent vertices that are targets of
+            // edges in the forward queue.
+            if (objective_->isCostEquivalentTo(lhs.first[0u], rhs.first[0u]) &&
+                objective_->isCostEquivalentTo(lhs.first[1u], rhs.first[1u]))
+            {
+                return !lhs.second->getForwardQueueIncomingLookup().empty() && !lhs.second->isConsistent();
+            }
+            else
+            {
+                // Otherwise it's a regular lexicographical comparison of the keys.
+                return std::lexicographical_compare(
+                    lhs.first.cbegin(), lhs.first.cend(), rhs.first.cbegin(), rhs.first.cend(),
+                    [this](const auto &a, const auto &b) { return objective_->isCostBetterThan(a, b); });
+            }
         }
 
         void AITstar::updateReverseSearchVertex(const std::shared_ptr<Vertex> &vertex)
