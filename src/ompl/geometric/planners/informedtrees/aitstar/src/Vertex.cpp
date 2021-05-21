@@ -80,26 +80,26 @@ namespace ompl
             {
             }
 
-            Vertex::Vertex(const std::shared_ptr<Vertex>& other)
-                : spaceInformation_(other->spaceInformation_)
-                , problemDefinition_(other->problemDefinition_)
-                , objective_(other->objective_)
-                , forwardChildren_(other->forwardChildren_)
-                , reverseChildren_(other->reverseChildren_)
-                , forwardParent_(other->forwardParent_)
-                , reverseParent_(other->reverseParent_)
-                , state_(spaceInformation_->allocState())  // The memory allocated here is freed in the destructor.
-                , costToComeFromStart_(other->costToComeFromStart_)
-                , edgeCostFromForwardParent_(other->edgeCostFromForwardParent_)
-                , costToComeFromGoal_(other->costToComeFromGoal_)
-                , expandedCostToComeFromGoal_(other->expandedCostToComeFromGoal_)
-                , costToGoToGoal_(other->costToGoToGoal_)
-                , vertexId_(other->vertexId_)
-                , batchId_(other->batchId_)
+            Vertex::Vertex(const std::shared_ptr<Vertex> &other)
+              : spaceInformation_(other->spaceInformation_)
+              , problemDefinition_(other->problemDefinition_)
+              , objective_(other->objective_)
+              , forwardChildren_(other->forwardChildren_)
+              , reverseChildren_(other->reverseChildren_)
+              , forwardParent_(other->forwardParent_)
+              , reverseParent_(other->reverseParent_)
+              , state_(spaceInformation_->allocState())  // The memory allocated here is freed in the destructor.
+              , costToComeFromStart_(other->costToComeFromStart_)
+              , edgeCostFromForwardParent_(other->edgeCostFromForwardParent_)
+              , costToComeFromGoal_(other->costToComeFromGoal_)
+              , expandedCostToComeFromGoal_(other->expandedCostToComeFromGoal_)
+              , costToGoToGoal_(other->costToGoToGoal_)
+              , vertexId_(other->vertexId_)
+              , batchId_(other->batchId_)
             {
                 spaceInformation_->copyState(state_, other->getState());
             }
-            
+
             Vertex::~Vertex()
             {
                 // The state has associated memory that needs to be freed manually.
@@ -133,19 +133,11 @@ namespace ompl
 
             ompl::base::Cost Vertex::getCostToComeFromGoal() const
             {
-                if (reverseSearchBatchId_ != batchId_)
-                {
-                    costToComeFromGoal_ = objective_->infiniteCost();
-                }
                 return costToComeFromGoal_;
             }
 
             ompl::base::Cost Vertex::getExpandedCostToComeFromGoal() const
             {
-                if (reverseSearchBatchId_ != batchId_)
-                {
-                    expandedCostToComeFromGoal_ = objective_->infiniteCost();
-                }
                 return expandedCostToComeFromGoal_;
             }
 
@@ -194,7 +186,6 @@ namespace ompl
 
             void Vertex::setCostToComeFromGoal(const ompl::base::Cost &cost)
             {
-                reverseSearchBatchId_ = batchId_;
                 costToComeFromGoal_ = cost;
             }
 
@@ -202,7 +193,7 @@ namespace ompl
             {
                 costToComeFromGoal_ = objective_->infiniteCost();
             }
-            
+
             void Vertex::resetExpandedCostToComeFromGoal()
             {
                 expandedCostToComeFromGoal_ = objective_->infiniteCost();
@@ -210,7 +201,6 @@ namespace ompl
 
             void Vertex::setExpandedCostToComeFromGoal(const ompl::base::Cost &cost)
             {
-                // reverseSearchBatchId_ = batchId_;
                 expandedCostToComeFromGoal_ = cost;
             }
 

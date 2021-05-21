@@ -52,7 +52,6 @@ namespace ompl
 {
     namespace geometric
     {
-        
         AITstar::AITstar(const ompl::base::SpaceInformationPtr &spaceInformation)
           : ompl::base::Planner(spaceInformation, "AITstar")
           , solutionCost_()
@@ -512,8 +511,7 @@ namespace ompl
         {
             for (const auto &goal : graph_.getGoalVertices())
             {
-                // Set the cost to come from the goal to infinity and the expanded cost to identity.
-                // This seems wrong, but check Koenig et al. 2004 (www.doi.org/10.1016/j.artint.2003.12.001).
+                // Set the cost to come from the goal to identity and the expanded cost to infinity.
                 goal->setExpandedCostToComeFromGoal(objective_->infiniteCost());
                 goal->setCostToComeFromGoal(objective_->identityCost());
 
@@ -550,8 +548,8 @@ namespace ompl
 
             // The reverse search must be continued if the best edge has an inconsistent child state or if the best
             // vertex can potentially lead to a better solution than the best edge.
-            return !bestEdge.getChild()->isConsistent() ||
-                   objective_->isCostBetterThan(bestVertex.first[0u], bestEdge.getSortKey()[0u]);
+            return !(bestEdge.getChild()->isConsistent() &&
+                     objective_->isCostBetterThan(bestEdge.getSortKey()[0u], bestVertex.first[0u]));
         }
 
         bool AITstar::continueForwardSearch()
@@ -663,6 +661,12 @@ namespace ompl
                         graph_.prune();
                     }
 
+                    // Clear the reverse search tree.
+                    for (auto &goal : graph_.getGoalVertices())
+                    {
+                        invalidateCostToComeFromGoalOfReverseBranch(goal);
+                    }
+
                     // Add new start and goal states if necessary.
                     if (pis_.haveMoreStartStates() || pis_.haveMoreGoalStates())
                     {
@@ -755,9 +759,6 @@ namespace ompl
                         // The parent was connected to the child through an invalid edge, so we need to invalidate
                         // the branch of the reverse search tree starting from the parent.
                         invalidateCostToComeFromGoalOfReverseBranch(parent);
-
-                        // The parent's cost-to-come needs to be updated. This places children in open.
-                        updateReverseSearchVertex(parent);
                     }
                 }
             }
@@ -1127,8 +1128,9 @@ namespace ompl
 
         void AITstar::updateApproximateSolution()
         {
-            for (auto& start : graph_.getStartVertices()) {
-                start->callOnForwardBranch([this](const auto& vertex) -> void { updateApproximateSolution(vertex); });
+            for (auto &start : graph_.getStartVertices())
+            {
+                start->callOnForwardBranch([this](const auto &vertex) -> void { updateApproximateSolution(vertex); });
             }
         }
 
@@ -1275,11 +1277,18 @@ namespace ompl
 
         void AITstar::invalidateCostToComeFromGoalOfReverseBranch(const std::shared_ptr<Vertex> &vertex)
         {
-            // Reset the cost to come from the goal.
-            vertex->resetCostToComeFromGoal();
+            if (!graph_.isGoal(vertex))
+            {
+                // Reset the cost to come from the goal.
+                vertex->resetCostToComeFromGoal();
+
+                // Reset the reverse parent.
+                vertex->getReverseParent()->removeFromReverseChildren(vertex->getId());
+                vertex->resetReverseParent();
+            }
+
+            // Reset the expanded cost to come from goal.
             vertex->resetExpandedCostToComeFromGoal();
-            vertex->getReverseParent()->removeFromReverseChildren(vertex->getId());
-            vertex->resetReverseParent();
 
             // Update all affected edges in the forward queue.
             for (const auto &edge : vertex->getForwardQueueIncomingLookup())
@@ -1301,6 +1310,10 @@ namespace ompl
             {
                 invalidateCostToComeFromGoalOfReverseBranch(child);
             }
+
+            // TODO: Explain why this is needed.
+            // Update the reverse search vertex.
+            updateReverseSearchVertex(vertex);
         }
 
     }  // namespace geometric

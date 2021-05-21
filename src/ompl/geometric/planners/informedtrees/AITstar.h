@@ -171,6 +171,7 @@ namespace ompl
             std::vector<std::shared_ptr<aitstar::Vertex>> getVerticesInReverseSearchTree() const;
 
         private:
+
             /** \brief Performs one iteration of AIT*. */
             void iterate(const ompl::base::PlannerTerminationCondition &terminationCondition);
 

@@ -282,40 +282,28 @@ namespace ompl
 
             std::size_t ImplicitGraph::computeNumberOfSamplesInInformedSet() const
             {
+                // Loop over all vertices and count the ones in the informed set.
                 std::size_t numberOfSamplesInInformedSet{0u};
-                std::vector<std::shared_ptr<Vertex>> vertices;
-                vertices_.list(vertices);
-
-                // Loop over all vertices.
-                for (const auto &vertex : vertices)
+                for (const auto &vertex : getVertices())
                 {
                     // Get the best cost to come from any start.
-                    ompl::base::Cost bestCostToComeHeuristic = objective_->infiniteCost();
+                    auto costToCome = objective_->infiniteCost();
                     for (const auto &start : startVertices_)
                     {
-                        auto costToComeHeuristic =
-                            objective_->motionCostHeuristic(start->getState(), vertex->getState());
-                        if (objective_->isCostBetterThan(costToComeHeuristic, bestCostToComeHeuristic))
-                        {
-                            bestCostToComeHeuristic = costToComeHeuristic;
-                        }
+                        costToCome = objective_->betterCost(
+                            costToCome, objective_->motionCostHeuristic(start->getState(), vertex->getState()));
                     }
 
                     // Get the best cost to go to any goal.
-                    ompl::base::Cost bestCostToGoHeuristic = objective_->infiniteCost();
+                    auto costToGo = objective_->infiniteCost();
                     for (const auto &goal : goalVertices_)
                     {
-                        auto costToComeHeuristic =
-                            objective_->motionCostHeuristic(vertex->getState(), goal->getState());
-                        if (objective_->isCostBetterThan(costToComeHeuristic, bestCostToGoHeuristic))
-                        {
-                            bestCostToGoHeuristic = costToComeHeuristic;
-                        }
+                        costToGo = objective_->betterCost(
+                            costToCome, objective_->motionCostHeuristic(vertex->getState(), goal->getState()));
                     }
 
                     // If this can possibly improve the current solution, it is in the informed set.
-                    if (objective_->isCostBetterThan(
-                            objective_->combineCosts(bestCostToComeHeuristic, bestCostToGoHeuristic), solutionCost_))
+                    if (objective_->isCostBetterThan(objective_->combineCosts(costToCome, costToGo), solutionCost_))
                     {
                         ++numberOfSamplesInInformedSet;
                     }
@@ -354,6 +342,7 @@ namespace ompl
                     if (problemDefinition_->getGoal()->isSatisfied(newSamples_.back()->getState()))
                     {
                         goalVertices_.emplace_back(newSamples_.back());
+                        newSamples_.back()->setCostToComeFromGoal(objective_->identityCost());
                     }
 
                     ++numValidSamples_;
@@ -378,7 +367,7 @@ namespace ompl
                     // Add all new vertices to the nearest neighbor structure.
                     vertices_.add(newSamples_);
                     newSamples_.clear();
-
+                    
                     // Update the batch id.
                     ++batchId_;
 

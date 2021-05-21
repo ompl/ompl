@@ -290,9 +290,6 @@ namespace ompl
                 /** \brief The batch id for which the cached neighbor list is valid. */
                 mutable std::size_t neighborBatchId_{0u};
 
-                /** \brief The batch id for which the reverse search cost to come is valid. */
-                mutable std::size_t reverseSearchBatchId_{0u};
-
                 /** \brief The reverse search id for which the reverse queue pointer is valid. */
                 mutable std::size_t reverseQueuePointerId_{0u};
 
