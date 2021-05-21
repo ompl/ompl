@@ -164,11 +164,17 @@ namespace ompl
         ompl::base::PlannerStatus::StatusType
         AITstar::checkProblem(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
-            // Ensure the graph has a start state.
+            // If the graph currently does not have a start state, try to get one.
             if (!graph_.hasAStartState())
             {
-                OMPL_WARN("%s: No solution can be found as no start states are available", name_.c_str());
-                return ompl::base::PlannerStatus::StatusType::INVALID_START;
+                graph_.updateStartAndGoalStates(terminationCondition, &pis_);
+
+                // If we could not get a start state, then there's nothing to solve.
+                if (!graph_.hasAStartState())
+                {
+                    OMPL_WARN("%s: No solution can be found as no start states are available", name_.c_str());
+                    return ompl::base::PlannerStatus::StatusType::INVALID_START;
+                }
             }
 
             // If the graph currently does not have a goal state, we wait until we get one.
@@ -176,7 +182,7 @@ namespace ompl
             {
                 graph_.updateStartAndGoalStates(terminationCondition, &pis_);
 
-                // If the graph still doesn't have a goal after waiting there's nothing to solve.
+                // If the graph still doesn't have a goal after waiting, then there's nothing to solve.
                 if (!graph_.hasAGoalState())
                 {
                     OMPL_WARN("%s: No solution can be found as no goal states are available", name_.c_str());
