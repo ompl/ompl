@@ -160,6 +160,13 @@ namespace ompl
                 /** \brief Resets the sources of incoming edges in the forward queue. */
                 void resetSourcesOfIncomingEdgesInForwardQueue();
 
+                /** \brief Sets the number of collision checks already performed on the edge incoming from source. */
+                void setIncomingCollisionCheckResolution(const std::shared_ptr<State> &source,
+                                                         std::size_t numChecks) const;
+
+                /** \brief Returns the number of collision checks already performed on the edge incoming from source. */
+                std::size_t getIncomingCollisionCheckResolution(const std::shared_ptr<State> &source) const;
+
             private:
                 /** \brief Grant access to the state internals to the random geometric graph. */
                 friend class RandomGeometricGraph;
@@ -212,6 +219,11 @@ namespace ompl
 
                 /** \brief The source states that for which this state is a target in the forward queue. */
                 mutable std::vector<std::shared_ptr<State>> sourcesOfIncomingEdgesInForwardQueue_{};
+
+                /** \brief A map that holds the checked collision checking resolution of the incoming edges.
+                 The key is the id of the source state and the value is the number of checks already performed on that
+                 edge. */
+                mutable std::map<std::size_t, std::size_t> incomingCollisionCheckResolution_{};
 
                 /** \brief The info on the state space this state lives in. */
                 std::shared_ptr<ompl::base::SpaceInformation> spaceInfo_;

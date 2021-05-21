@@ -138,6 +138,7 @@ namespace ompl
             void getPlannerData(base::PlannerData &data) const override;
 
         private:
+
             /** \brief Performs one iteration. */
             void iterate(const ompl::base::PlannerTerminationCondition &terminationCondition);
 
@@ -257,6 +258,10 @@ namespace ompl
 
             /** \brief Returns whether the edge could be valid. */
             bool couldBeValid(const eitstar::Edge &edge) const;
+
+            /** \brief Returns whether the edge is valid at the given resolution, this function does the actual work of
+             * checking states along the edge. */
+            bool isValidAtResolution(const eitstar::Edge &edge, std::size_t numChecks) const;
 
             /** \brief Returns whether the cost is better than the other. */
             bool isBetter(const ompl::base::Cost &lhs, const ompl::base::Cost &rhs) const;

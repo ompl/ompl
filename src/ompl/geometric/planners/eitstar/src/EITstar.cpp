@@ -983,40 +983,18 @@ namespace ompl
 
         bool EITstar::isValid(const Edge &edge) const
         {
-            // Check if the edge is whitelisted.
-            if (edge.source->isWhitelisted(edge.target))
-            {
-                return true;
-            }
-
-            // Check if the edge is blacklisted.
-            if (edge.source->isBlacklisted(edge.target))
-            {
-                return false;
-            }
-
-            // Fine, we have to do work.
-            ++numCollisionCheckedEdges_;
-            if (motionValidator_->checkMotion(edge.source->raw(), edge.target->raw()))
-            {
-                // Whitelist this edge.
-                edge.source->whitelist(edge.target);
-                edge.target->whitelist(edge.source);
-                return true;
-            }
-            else
-            {
-                // Blacklist this edge.
-                edge.source->blacklist(edge.target);
-                edge.target->blacklist(edge.source);
-
-                // Register it with the graph.
-                graph_.registerInvalidEdge(edge);
-                return false;
-            }
+            // The number of checks required to determine whether the edge is valid is the valid segment count minus one
+            // because we know that the source and target states are valid.
+            const std::size_t numChecks = space_->validSegmentCount(edge.source->raw(), edge.target->raw()) - 1u;
+            return isValidAtResolution(edge, numChecks);
         }
 
         bool EITstar::couldBeValid(const Edge &edge) const
+        {
+            return isValidAtResolution(edge, numSparseCollisionChecksCurrentLevel_);
+        }
+
+        bool EITstar::isValidAtResolution(const Edge &edge, std::size_t numChecks) const
         {
             // Check if the edge is whitelisted.
             if (edge.source->isWhitelisted(edge.target))
@@ -1029,51 +1007,56 @@ namespace ompl
             {
                 return false;
             }
-            // Fine, we have to do some work.
+
+            // Get the segment count for the full resolution.
+            const std::size_t fullSegmentCount = space_->validSegmentCount(edge.source->raw(), edge.target->raw());
+
+            // The segment count is the number of checks on this level plus 1, capped by the full resolution segment
+            // count.
+            const auto segmentCount = std::min(numChecks + 1u, fullSegmentCount);
+
             /***
                Let's say we want to perform seven collision checks on an edge:
 
-               position of checks:   |--------x--------x--------x--------x--------x--------x--------x--------|
-               indices of checks:             1        2        3        4        5        6        7
-               order of testing:              4        2        5        1        6        3        7
+               position of checks: |--------x--------x--------x--------x--------x--------x--------x--------|
+               indices of checks:           1        2        3        4        5        6        7
+               order of testing:            4        2        5        1        6        3        7
 
-               We create a queue that holds segments and always test the midpoint of the segments. We start with
-               the outermost indices and then break the segment in half until the segment collapses to a single
+               We create a queue that holds segments and always test the midpoint of the segments. We start
+               with the outermost indices and then break the segment in half until the segment collapses to a single
                point:
 
-               1. indices = { (1, 7) }
-                  current = (1, 7) -> test midpoint = 4 -> add (1, 3) and (5, 7) to queue
-               2. indices = { (1, 3), (5, 7) }
-                  current (1, 3) -> test midpoint = 2 -> add (1, 1) and (3, 3) to queue
-               3. indices = { (5, 7), (1, 1), (3, 3) }
-                  current (5, 7) -> test midpoint = 6 -> add (5, 5) and (7, 7) to queue
-               4. indices = { (1, 1), (3, 3), (5, 5), (7, 7) }
-                  current (1, 1) -> test midpoint = 1 -> add nothing to the queue
-               5. indices = { (3, 3), (5, 5), (7, 7) }
-                  current (3, 3) -> test midpoint = 3 -> add nothing to the queue
-               6. indices = { (5, 5) (7, 7) }
-                  current (5, 5) -> test midpoint = 5 -> add nothing to the queue
-               7  indices = { (7, 7) }
-                  current (7, 7) -> test midpoint = 7 -> add nothing to the queue
+                 1. indices = { (1, 7) }
+                    current = (1, 7) -> test midpoint = 4 -> add (1, 3) and (5, 7) to queue
 
+                 2. indices = { (1, 3), (5, 7) }
+                    current (1, 3) -> test midpoint = 2 -> add (1, 1) and (3, 3) to queue
+
+                 3. indices = { (5, 7), (1, 1), (3, 3) }
+                    current (5, 7) -> test midpoint = 6 -> add (5, 5) and (7, 7) to queue
+
+                 4. indices = { (1, 1), (3, 3), (5, 5), (7, 7) }
+                    current (1, 1) -> test midpoint = 1 -> add nothing to the queue
+
+                 5. indices = { (3, 3), (5, 5), (7, 7) }
+                    current (3, 3) -> test midpoint = 3 -> add nothing to the queue
+
+                 6. indices = { (5, 5) (7, 7) }
+                    current (5, 5) -> test midpoint = 5 -> add nothing to the queue
+
+                 7. indices = { (7, 7) }
+                    current (7, 7) -> test midpoint = 7 -> add nothing to the queue
             ***/
-
-            // The segment count is the number of checks on this level plus 1.
-            auto segmentCount = numSparseCollisionChecksCurrentLevel_ + 1u;
-
-            // If the segment cound is larger than what would be necessary we just do the full collision check
-            // which will whitelist the edge.
-            if (segmentCount >= space_->validSegmentCount(edge.source->raw(), edge.target->raw()))
-            {
-                return isValid(edge);
-            }
-
-            // Initialize the queue of positions to be tested.
-            std::queue<std::pair<std::size_t, std::size_t>> indices;
-            indices.emplace(1u, numSparseCollisionChecksCurrentLevel_);
 
             // Store the current check number.
             std::size_t currentCheck = 1u;
+
+            // Get the number of checks already performed on this edge.
+            const std::size_t performedChecks = edge.target->getIncomingCollisionCheckResolution(edge.source);
+
+            // Initialize the queue of positions to be tested.
+            std::queue<std::pair<std::size_t, std::size_t>> indices;
+            indices.emplace(1u, numChecks);
 
             // Test states while there are states to be tested.
             while (!indices.empty())
@@ -1098,21 +1081,38 @@ namespace ompl
                 }
 
                 // Only do the detection if we haven't tested this state on a previous level.
-                if (currentCheck > numSparseCollisionChecksPreviousLevel_)
+                if (currentCheck > performedChecks)
                 {
                     space_->interpolate(edge.source->raw(), edge.target->raw(),
                                         static_cast<double>(mid) / static_cast<double>(segmentCount), detectionState_);
 
                     if (!spaceInfo_->isValid(detectionState_))
                     {
+                        // Blacklist the edge.
                         edge.source->blacklist(edge.target);
                         edge.target->blacklist(edge.source);
+
+                        // Register it with the graph.
+                        graph_.registerInvalidEdge(edge);
                         return false;
                     }
                 }
 
                 // Increase the current check number.
                 ++currentCheck;
+            }
+
+            // Remember at what resolution this edge was already checked. We're assuming that the number of collision
+            // checks is symmetric for each edge.
+            edge.source->setIncomingCollisionCheckResolution(edge.target, currentCheck);
+            edge.target->setIncomingCollisionCheckResolution(edge.source, currentCheck);
+
+            // Whitelist this edge if it was checked at full resolution.
+            if (segmentCount == fullSegmentCount)
+            {
+                ++numCollisionCheckedEdges_;
+                edge.source->whitelist(edge.target);
+                edge.target->whitelist(edge.source);
             }
 
             return true;

@@ -265,6 +265,24 @@ namespace ompl
                 sourcesOfIncomingEdgesInForwardQueue_.clear();
             }
 
+            void State::setIncomingCollisionCheckResolution(const std::shared_ptr<State> &source,
+                                                            std::size_t numChecks) const
+            {
+                incomingCollisionCheckResolution_[source->getId()] = numChecks;
+            }
+
+            std::size_t State::getIncomingCollisionCheckResolution(const std::shared_ptr<State> &source) const
+            {
+                if (incomingCollisionCheckResolution_.find(source->getId()) == incomingCollisionCheckResolution_.end())
+                {
+                    return 0u;
+                }
+                else
+                {
+                    return incomingCollisionCheckResolution_[source->getId()];
+                }
+            }
+
         }  // namespace eitstar
 
     }  // namespace geometric
