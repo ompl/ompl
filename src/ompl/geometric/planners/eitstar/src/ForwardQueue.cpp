@@ -298,6 +298,15 @@ namespace ompl
 
             std::size_t ForwardQueue::estimateEffort(const Edge &edge) const
             {
+                // Make sure this doesn't overflow.
+                if (std::numeric_limits<unsigned int>::max() -
+                        space_->validSegmentCount(edge.source->raw(), edge.target->raw()) <
+                    edge.target->getEstimatedEffortToGo())
+                {
+                    return std::numeric_limits<unsigned int>::max();
+                }
+
+                // Add the segment count of the edge plus the estimated effort to go.
                 return space_->validSegmentCount(edge.source->raw(), edge.target->raw()) +
                        edge.target->getEstimatedEffortToGo();
             }
