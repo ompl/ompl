@@ -70,54 +70,29 @@ void ompl::tools::Thunder::initialize()
 
 void ompl::tools::Thunder::setup()
 {
-    if (!configured_ || !si_->isSetup() || !planner_->isSetup() || !rrPlanner_->isSetup())
+    if (!configured_ || !si_->isSetup() || !planner_vec_.front() || !rrPlanner_->isSetup())
     {
+
         // Setup Space Information if we haven't already done so
         if (!si_->isSetup())
             si_->setup();
 
         // Setup planning from scratch planner
-        if (!planner_)
-        {
-            if (pa_)
-                planner_ = pa_(si_);
-            if (!planner_)
-            {
-                OMPL_INFORM("Getting default planner: ");
-                planner_ = std::make_shared<ompl::geometric::RRTConnect>(si_);
-                // This was disabled because i like to use Thunder / SPARSdb without setting a goal definition
-                // planner_ = ompl::geometric::getDefaultPlanner(pdef_->getGoal()); // we could use the
-                // repairProblemDef_ here but that isn't setup yet
-
-                OMPL_INFORM("No planner specified. Using default: %s", planner_->getName().c_str());
+        OMPL_INFORM("Initializing planners");
+        // planner_vec_.clear();
+        // planner_vec_ = {nullptr, nullptr, nullptr, nullptr};
+        for (auto& planner : planner_vec_) {
+          if(!planner) {
+            if(pa_) {
+              OMPL_INFORM("Planner Allocator specified");
+              planner = pa_(si_);
+            } else {
+              planner = std::make_shared<ompl::geometric::RRTConnect>(si_);
             }
-        }
-        planner_->setProblemDefinition(pdef_);
-        if (!planner_->isSetup())
-            planner_->setup();
-
-        // Decide if we should setup the second planning from scratch planner for benchmarking w/o recall
-        if (dualThreadScratchEnabled_ && !recallEnabled_)
-        {
-            // Setup planning from scratch planner 2
-            if (!planner2_)
-            {
-                if (pa_)
-                    planner2_ = pa_(si_);
-                if (!planner2_)
-                {
-                    OMPL_INFORM("Getting default planner: ");
-                    planner2_ = std::make_shared<ompl::geometric::RRTConnect>(si_);
-                    // This was disabled because i like to use Thunder / SPARSdb without setting a goal definition
-                    // planner2_ = ompl::geometric::getDefaultPlanner(pdef_->getGoal()); // we could use the
-                    // repairProblemDef_ here but that isn't setup yet
-
-                    OMPL_INFORM("No planner 2 specified. Using default: %s", planner2_->getName().c_str());
-                }
-            }
-            planner2_->setProblemDefinition(pdef_);
-            if (!planner2_->isSetup())
-                planner2_->setup();
+            planner->setProblemDefinition(pdef_);
+            if (!planner->isSetup())
+                planner->setup();
+          }
         }
 
         // Setup planning from experience planner
@@ -132,14 +107,18 @@ void ompl::tools::Thunder::setup()
         {
             throw Exception("Both planning from scratch and experience have been disabled, unable to plan");
         }
-        if (recallEnabled_)
+        if (recallEnabled_) {
+            OMPL_INFORM("recallEnabled_: Adding recall planner");
             pp_->addPlanner(rrPlanner_);  // Add the planning from experience planner if desired
-        if (scratchEnabled_)
-            pp_->addPlanner(planner_);  // Add the planning from scratch planner if desired
-        if (dualThreadScratchEnabled_ && !recallEnabled_)
-        {
-            OMPL_INFORM("Adding second planning from scratch planner");
-            pp_->addPlanner(planner2_);  // Add a SECOND planning from scratch planner if desired
+        }
+        if (scratchEnabled_) {
+          
+          OMPL_INFORM("Adding %u planners for scratch planning", planner_vec_.size());
+          for (auto& planner : planner_vec_) {
+            if(planner)
+              pp_->addPlanner(planner);
+          }
+
         }
 
         // Setup SPARS
@@ -169,12 +148,12 @@ void ompl::tools::Thunder::setup()
 
 void ompl::tools::Thunder::clear()
 {
-    if (planner_)
-        planner_->clear();
     if (rrPlanner_)
         rrPlanner_->clear();
-    if (planner2_)
-        planner2_->clear();
+    for(auto& planner : planner_vec_) {
+      if(planner)
+        planner->clear();
+    }
     if (pdef_)
         pdef_->clearSolutionPaths();
     if (pp_)
@@ -186,7 +165,9 @@ void ompl::tools::Thunder::clear()
 void ompl::tools::Thunder::setPlannerAllocator(const base::PlannerAllocator &pa)
 {
     pa_ = pa;
-    planner_.reset();
+    // for(auto& planner : planner_vec_) {
+    //   planner->reset();
+    // }
     // note: the rrPlanner_ never uses the allocator so does not need to be reset
     configured_ = false;
 }
@@ -221,7 +202,7 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
         // If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as well.
         // OMPL_DEBUG("Thunder: stopping when first solution is found from either thread");
         // Start both threads
-        bool hybridize = false;
+        bool hybridize = true;
         lastStatus_ = pp_->solve(ptc, hybridize);
     }
     else
@@ -430,20 +411,17 @@ void ompl::tools::Thunder::print(std::ostream &out) const
         si_->printProperties(out);
         si_->printSettings(out);
     }
-    if (planner_)
-    {
-        planner_->printProperties(out);
-        planner_->printSettings(out);
-    }
+
     if (rrPlanner_)
     {
         rrPlanner_->printProperties(out);
         rrPlanner_->printSettings(out);
     }
-    if (planner2_)
-    {
-        planner2_->printProperties(out);
-        planner2_->printSettings(out);
+    for(auto& planner : planner_vec_) {
+      if(planner) {
+        planner->printProperties(out);
+        planner->printSettings(out);
+      }
     }
     if (pdef_)
         pdef_->print(out);
@@ -526,7 +504,8 @@ ompl::tools::ThunderDBPtr ompl::tools::Thunder::getExperienceDB()
 bool ompl::tools::Thunder::doPostProcessing()
 {
     OMPL_INFORM("Performing post-processing");
-
+    double shortest_path_length = getSolutionPath().length(); 
+    auto solutionPathPtr {std::make_shared<ompl::geometric::PathGeometric>(getSpaceInformation())};
     for (auto &queuedSolutionPath : queuedSolutionPaths_)
     {
         // Time to add a path to experience database
@@ -535,6 +514,17 @@ bool ompl::tools::Thunder::doPostProcessing()
         experienceDB_->addPath(queuedSolutionPath, insertionTime);
         OMPL_INFORM("Finished inserting experience path in %f seconds", insertionTime);
         stats_.totalInsertionTime_ += insertionTime;  // used for averaging
+        double queued_path_length {queuedSolutionPath.length()};
+        if(!queuedSolutionPath.getStates().empty() && queued_path_length > 0 && queued_path_length < shortest_path_length) {
+          shortest_path_length = queuedSolutionPath.length();
+          solutionPath = queuedSolutionPath;
+          *solutionPathPtr = queuedSolutionPath;
+        }
+    }
+    if (solutionPathPtr && !solutionPathPtr->getStates().empty() && solutionPathPtr->length() > 0) {
+      OMPL_INFORM("Added new solution path with %d states of length %f",
+                  solutionPathPtr->getStates().size(), solutionPathPtr->length());
+      getProblemDefinition()->addSolutionPath(solutionPathPtr);
     }
 
     // Remove all inserted paths from the queue

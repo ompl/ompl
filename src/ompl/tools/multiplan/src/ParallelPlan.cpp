@@ -175,7 +175,8 @@ void ompl::tools::ParallelPlan::solveMore(base::Planner *planner, std::size_t mi
         if (nrSol >= maxSolCount)
             ptc->terminate();
 
-        OMPL_DEBUG("ParallelPlan.solveMore: Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
+        double found_path_length {pdef_->getSolutionPath()->length()};
+        OMPL_DEBUG("ParallelPlan.solveMore: Solution of length: %lf found by %s in %lf seconds", found_path_length, planner->getName().c_str(), duration);
 
         const std::vector<base::PlannerSolution> &paths = pdef_->getSolutions();
 

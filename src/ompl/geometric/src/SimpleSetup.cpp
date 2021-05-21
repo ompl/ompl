@@ -150,14 +150,16 @@ ompl::base::PlannerStatus ompl::geometric::SimpleSetup::solve(const base::Planne
 
 void ompl::geometric::SimpleSetup::simplifySolution(const base::PlannerTerminationCondition &ptc)
 {
-    if (pdef_)
+    if (pdef_ && psk_)
     {
         const base::PathPtr &p = pdef_->getSolutionPath();
         if (p)
         {
             time::point start = time::now();
+            OMPL_DEBUG("SimpleSetup: starting simplifySolution"); 
             auto &path = static_cast<PathGeometric &>(*p);
             std::size_t numStates = path.getStateCount();
+            OMPL_DEBUG("SimpleSetup: starting simplifySolution with %d states", numStates); 
             psk_->simplify(path, ptc);
             simplifyTime_ = time::seconds(time::now() - start);
             OMPL_INFORM("SimpleSetup: Path simplification took %f seconds and changed from %d to %d states",
