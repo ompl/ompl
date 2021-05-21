@@ -182,8 +182,8 @@ namespace ompl
             /**  The maintained experience planner instance */
             base::PlannerPtr rrPlanner_;
 
-            /**  A third planner used for testing dual-thread scratch-only planning */
-            base::PlannerPtr planner2_;
+            /**  planners used for testing dual-thread scratch-only planning */
+            std::vector<base::PlannerPtr> planner_vec_ {8};
 
             /**  Flag indicating whether dual thread scratch planning is enabled */
             bool dualThreadScratchEnabled_{true};

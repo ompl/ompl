@@ -261,6 +261,7 @@ void ompl::base::ProjectionEvaluator::inferCellSizes()
     cellSizes_.resize(dim);
     for (unsigned int j = 0; j < dim; ++j)
     {
+        OMPL_DEBUG("dim(%u/%u): %f < %f", j, dim, bounds_.low[j], bounds_.high[j]);
         cellSizes_[j] = (bounds_.high[j] - bounds_.low[j]) / magic::PROJECTION_DIMENSION_SPLITS;
         if (cellSizes_[j] < std::numeric_limits<double>::epsilon())
         {

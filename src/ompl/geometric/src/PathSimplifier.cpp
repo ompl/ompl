@@ -677,6 +677,7 @@ bool ompl::geometric::PathSimplifier::simplify(PathGeometric &path, double maxTi
 bool ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::PlannerTerminationCondition &ptc,
                                                bool atLeastOnce)
 {
+    OMPL_DEBUG("PathSimplifier: starting..."); 
     if (path.getStateCount() < 3)
         return true;
 
