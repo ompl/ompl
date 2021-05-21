@@ -303,6 +303,9 @@ namespace ompl
             /** \brief Lexicographically compares the keys of two vertices. */
             bool isVertexBetter(const aitstar::KeyVertexPair &lhs, const aitstar::KeyVertexPair &rhs) const;
 
+            /** \brief the number of edges in the forward queue with inconsistent target states. */
+            std::size_t numInconsistentOrUnconnectedTargets_{0u};
+
             /** \brief The number of iterations that have been performed. */
             std::size_t numIterations_{0u};
 

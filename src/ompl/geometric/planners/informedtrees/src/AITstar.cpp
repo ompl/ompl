@@ -203,6 +203,7 @@ namespace ompl
             approximateSolutionCost_ = objective_->infiniteCost();
             approximateSolutionCostToGoal_ = objective_->infiniteCost();
             numIterations_ = 0u;
+            numInconsistentOrUnconnectedTargets_ = 0u;
             Planner::clear();
         }
 
@@ -371,6 +372,7 @@ namespace ompl
 
             // Clear the queue.
             forwardQueue_.clear();
+            numInconsistentOrUnconnectedTargets_ = 0u;
 
             // Insert all edges into the queue if they connect vertices that have been processed, otherwise store
             // them in the cache of edges that are to be inserted.
@@ -391,6 +393,7 @@ namespace ompl
                 element.getParent()->resetForwardQueueOutgoingLookup();
             }
             forwardQueue_.clear();
+            numInconsistentOrUnconnectedTargets_ = 0u;
         }
 
         void AITstar::rebuildReverseQueue()
@@ -548,8 +551,9 @@ namespace ompl
 
             // The reverse search must be continued if the best edge has an inconsistent child state or if the best
             // vertex can potentially lead to a better solution than the best edge.
-            return !(bestEdge.getChild()->isConsistent() &&
-                     objective_->isCostBetterThan(bestEdge.getSortKey()[0u], bestVertex.first[0u]));
+            return !((bestEdge.getChild()->isConsistent() &&
+                      objective_->isCostBetterThan(bestEdge.getSortKey()[0u], bestVertex.first[0u])) ||
+                     numInconsistentOrUnconnectedTargets_ == 0u);
         }
 
         bool AITstar::continueForwardSearch()
@@ -782,6 +786,9 @@ namespace ompl
                 // Make the vertex consistent and update the vertex.
                 vertex->setExpandedCostToComeFromGoal(vertex->getCostToComeFromGoal());
                 updateReverseSearchNeighbors(vertex);
+
+                // Update the number of inconsistent targets in the forward queue.
+                numInconsistentOrUnconnectedTargets_ -= vertex->getForwardQueueIncomingLookup().size();
             }
             else
             {
@@ -1006,6 +1013,12 @@ namespace ompl
                 auto element = forwardQueue_.insert(edge);
                 edge.getParent()->addToForwardQueueOutgoingLookup(element);
                 edge.getChild()->addToForwardQueueIncomingLookup(element);
+
+                // Incement the counter if the target is inconsistent.
+                if (!edge.getChild()->isConsistent() || !objective_->isFinite(edge.getChild()->getCostToComeFromGoal()))
+                {
+                    ++numInconsistentOrUnconnectedTargets_;
+                }
             }
         }
 
@@ -1288,6 +1301,14 @@ namespace ompl
 
         void AITstar::invalidateCostToComeFromGoalOfReverseBranch(const std::shared_ptr<Vertex> &vertex)
         {
+            // If this vertex is consistent before invalidation, then all incoming edges now have targets that are
+            // inconsistent.
+            if (vertex->isConsistent())
+            {
+                numInconsistentOrUnconnectedTargets_ += vertex->getForwardQueueIncomingLookup().size();
+            }
+
+            // Reset the cost to come from the goal and the reverse parent unless the vertex is itself a goal.
             if (!graph_.isGoal(vertex))
             {
                 // Reset the cost to come from the goal.
@@ -1308,7 +1329,7 @@ namespace ompl
                 forwardQueue_.update(edge);
             }
 
-            // Remove this vertex from the reverse search queue if it is it.
+            // Remove this vertex from the reverse search queue if it is in it.
             auto reverseQueuePointer = vertex->getReverseQueuePointer();
             if (reverseQueuePointer)
             {
@@ -1322,8 +1343,7 @@ namespace ompl
                 invalidateCostToComeFromGoalOfReverseBranch(child);
             }
 
-            // TODO: Explain why this is needed.
-            // Update the reverse search vertex.
+            // Update the reverse search vertex to ensure that this vertex is placed in open if necessary.
             updateReverseSearchVertex(vertex);
         }
 
