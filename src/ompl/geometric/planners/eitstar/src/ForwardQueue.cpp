@@ -224,11 +224,9 @@ namespace ompl
 
             void ForwardQueue::rebuild()
             {
-                // Update all edges.
-                for (const auto &element : queue_)
-                {
-                    updateIfExists(element.second);
-                }
+                const auto edges = getEdges();
+                clear();
+                insertOrUpdate(edges);
             }
 
             std::pair<ForwardQueue::EdgeKeys, Edge> ForwardQueue::makeElement(const Edge &edge) const
