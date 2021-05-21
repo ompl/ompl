@@ -668,7 +668,9 @@ namespace ompl
             return !((isClosed(forwardQueue_->peek(suboptimalityFactor_).target->asReverseVertex()) &&
                       isBetter(forwardQueue_->getLowerBoundOnOptimalSolutionCost(),
                                reverseQueue_->getLowerBoundOnOptimalSolutionCost())) ||
-                     !forwardQueue_->containsOpenTargets(reverseSearchTag_));
+                     !forwardQueue_->containsOpenTargets(reverseSearchTag_) ||
+                     (isClosed(forwardQueue_->peek(suboptimalityFactor_).target->asReverseVertex()) &&
+                      !objective_->isFinite(solutionCost_)));
         }
 
         bool EITstar::continueForwardSearch() const
