@@ -94,6 +94,10 @@ namespace ompl
                 /** \brief Returns a lower bound on the resolution-optimal solution cost. */
                 ompl::base::Cost getLowerBoundOnOptimalSolutionCost() const;
 
+                /** \brief Returns whether the queue contains edges with targets that are open or unconnected in the
+                 * reverse search tree. */
+                bool containsOpenTargets(std::size_t reverseSearchTag) const;
+
                 /** \brief Clears the queue, i.e., deletes all elements from it. */
                 void clear();
 

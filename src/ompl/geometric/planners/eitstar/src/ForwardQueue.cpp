@@ -202,6 +202,13 @@ namespace ompl
                 return queue_.begin()->first.lowerBoundCost;
             }
 
+            bool ForwardQueue::containsOpenTargets(std::size_t reverseSearchTag) const
+            {
+                return std::find_if(queue_.begin(), queue_.end(), [reverseSearchTag](const auto &edge) {
+                           return edge.second.target->asReverseVertex()->getExpandTag() != reverseSearchTag;
+                       }) != queue_.end();
+            }
+
             void ForwardQueue::clear()
             {
                 for (const auto &edge : queue_)

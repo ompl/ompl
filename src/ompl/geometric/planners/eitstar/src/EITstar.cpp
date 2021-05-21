@@ -665,9 +665,10 @@ namespace ompl
             // The reverse search must be continued if the target of the best edge in the forward queue is
             // not yet closed of if the best edge in the forward queue has a lower potential solution
             // cost than the best edge in the reverse queue.
-            return !(isClosed(forwardQueue_->peek(suboptimalityFactor_).target->asReverseVertex()) &&
-                     isBetter(forwardQueue_->getLowerBoundOnOptimalSolutionCost(),
-                              reverseQueue_->getLowerBoundOnOptimalSolutionCost()));
+            return !((isClosed(forwardQueue_->peek(suboptimalityFactor_).target->asReverseVertex()) &&
+                      isBetter(forwardQueue_->getLowerBoundOnOptimalSolutionCost(),
+                               reverseQueue_->getLowerBoundOnOptimalSolutionCost())) ||
+                     !forwardQueue_->containsOpenTargets(reverseSearchTag_));
         }
 
         bool EITstar::continueForwardSearch() const
