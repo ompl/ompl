@@ -288,10 +288,8 @@ namespace ompl
             /** \brief The number of states added when the approximation is updated. */
             unsigned int batchSize_{100u};
 
-            /** \brief The current suboptimality factor of the forward search. Infinity will not do what you want,
-             * because then all edges in the queue have infinite cost. The maximum double is also a bad idea, as that
-             * will end up being infinity if multiplied by something greater than 1.*/
-            double suboptimalityFactor_{1000000.0};
+            /** \brief The current suboptimality factor of the forward search. */
+            double suboptimalityFactor_{std::numeric_limits<double>::infinity()};
 
             /** \brief The number of sparse collision detections on level 0. */
             std::size_t initialNumSparseCollisionChecks_{1u};
