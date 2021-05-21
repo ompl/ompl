@@ -146,6 +146,10 @@ namespace ompl
                 {
                     goalVertices_.emplace_back(goal->asReverseVertex());
                 }
+
+                // Populate the queues.
+                expandGoalVerticesIntoReverseQueue();
+                expandStartVerticesIntoForwardQueue();
             }
             else
             {
@@ -359,21 +363,11 @@ namespace ompl
 
         void EITstar::iterate(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
-            // If this is the first iteration, populate the reverse queue.
-            if (iteration_ == 0u)
-            {
-                expandGoalVerticesIntoReverseQueue();
-                expandStartVerticesIntoForwardQueue();
-            }
-
-            // Increment the iteration count.
-            ++iteration_;
-
-            // If the reverse search needs to be continued, do that now.
+            // First check if the reverse search needs to be continued.
             if (continueReverseSearch())
             {
                 iterateReverseSearch();
-            }  // If the reverse search is suspended, check whether the forward search needs to be continued.
+            }  // If the reverse search is suspended, check if the forward search needs to be continued.
             else if (continueForwardSearch())
             {
                 iterateForwardSearch();
@@ -382,6 +376,9 @@ namespace ompl
             {
                 improveApproximation(terminationCondition);
             }
+
+            // Increment the iteration count.
+            ++iteration_;
         }
 
         void EITstar::iterateForwardSearch()
