@@ -260,22 +260,18 @@ namespace ompl
             std::vector<std::pair<ForwardQueue::EdgeKeys, Edge>>::iterator ForwardQueue::getBestCostEstimateEdge()
             {
                 // Find the best estimate edge and corresponding cost.
-                return std::min_element(queue_.begin(), queue_.end(),
-                                        [this](const std::pair<EdgeKeys, Edge> &a, const std::pair<EdgeKeys, Edge> &b) {
-                                            return objective_->isCostBetterThan(a.first.estimatedCost,
-                                                                                b.first.estimatedCost);
-                                        });
+                return std::min_element(queue_.begin(), queue_.end(), [this](const auto &a, const auto &b) {
+                    return objective_->isCostBetterThan(a.first.estimatedCost, b.first.estimatedCost);
+                });
             }
 
             std::vector<std::pair<ForwardQueue::EdgeKeys, Edge>>::const_iterator
             ForwardQueue::getBestCostEstimateEdge() const
             {
                 // Find the best estimate edge and corresponding cost.
-                return std::min_element(queue_.cbegin(), queue_.cend(),
-                                        [this](const std::pair<EdgeKeys, Edge> &a, const std::pair<EdgeKeys, Edge> &b) {
-                                            return objective_->isCostBetterThan(a.first.estimatedCost,
-                                                                                b.first.estimatedCost);
-                                        });
+                return std::min_element(queue_.cbegin(), queue_.cend(), [this](const auto &a, const auto &b) {
+                    return objective_->isCostBetterThan(a.first.estimatedCost, b.first.estimatedCost);
+                });
             }
 
             ompl::base::Cost ForwardQueue::inflateCost(const ompl::base::Cost &cost, double factor) const
