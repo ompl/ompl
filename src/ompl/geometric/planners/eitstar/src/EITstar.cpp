@@ -661,16 +661,37 @@ namespace ompl
             {
                 return false;
             }
+            // Always continue the reverse search if the reverse queue is not empty but the forward queue is.
+            else if (forwardQueue_->empty())
+            {
+                return true;
+            }
 
-            // The reverse search must be continued if the target of the best edge in the forward queue is
-            // not yet closed of if the best edge in the forward queue has a lower potential solution
-            // cost than the best edge in the reverse queue.
-            return !((isClosed(forwardQueue_->peek(suboptimalityFactor_).target->asReverseVertex()) &&
-                      isBetter(forwardQueue_->getLowerBoundOnOptimalSolutionCost(),
-                               reverseQueue_->getLowerBoundOnOptimalSolutionCost())) ||
-                     !forwardQueue_->containsOpenTargets(reverseSearchTag_) ||
-                     (isClosed(forwardQueue_->peek(suboptimalityFactor_).target->asReverseVertex()) &&
-                      !objective_->isFinite(solutionCost_)));
+            /*
+
+            There are three conditions under which the reverse search can be suspended:
+
+               1. The best edge in the forward search has a closed target (admissible cost-to-go estimate), and the
+                  reverse search cannot lead to a better solution than the potential solution of this edge.
+
+               2. All edges in the forward queue have closed targets (admissible cost-to-go estimates).
+
+               3. We do not care about solution cost and the least-effort edge in the forward queue is connected to the
+                  reverse tree.
+
+             */
+
+            const bool condition1 = isClosed(forwardQueue_->peek(suboptimalityFactor_).target->asReverseVertex()) &&
+                                    isBetter(forwardQueue_->getLowerBoundOnOptimalSolutionCost(),
+                                             reverseQueue_->getLowerBoundOnOptimalSolutionCost());
+
+            const bool condition2 = !forwardQueue_->containsOpenTargets(reverseSearchTag_);
+
+            const bool condition3 = !std::isfinite(suboptimalityFactor_) &&
+                                    forwardQueue_->peek(suboptimalityFactor_).target->hasReverseVertex();
+
+            // The reverse search must be continued if it cannot be suspended.
+            return !(condition1 || condition2 || condition3);
         }
 
         bool EITstar::continueForwardSearch() const
