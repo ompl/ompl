@@ -392,7 +392,7 @@ namespace ompl
 
             // Assert the validity of the edge.
             assert(edge.source->hasForwardVertex());
-            assert(isClosed(edge.target->asReverseVertex()));
+            assert(!std::isfinite(suboptimalityFactor_) || isClosed(edge.target->asReverseVertex()));
 
             // The edge is a freeby if its parent is already the parent of the child.
             if (isInForwardTree(edge))
