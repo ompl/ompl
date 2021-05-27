@@ -97,11 +97,11 @@ namespace ompl
             void setup() override;
 
             /** \brief Checks whether the planner is successfully setup. */
-            ompl::base::PlannerStatus::StatusType checkSetup() const;
+            ompl::base::PlannerStatus::StatusType ensureSetup();
 
             /** \brief Checks whether the problem is successfully setup. */
             ompl::base::PlannerStatus::StatusType
-            checkProblem(const ompl::base::PlannerTerminationCondition &terminationCondition);
+            ensureStartAndGoalStates(const ompl::base::PlannerTerminationCondition &terminationCondition);
 
             /** \brief Clears the algorithm's internal state. */
             void clear() override;
