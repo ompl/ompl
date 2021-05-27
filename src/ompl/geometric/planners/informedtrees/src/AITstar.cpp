@@ -205,6 +205,7 @@ namespace ompl
             numIterations_ = 0u;
             numInconsistentOrUnconnectedTargets_ = 0u;
             Planner::clear();
+            setup_ = false;
         }
 
         ompl::base::PlannerStatus AITstar::solve(const ompl::base::PlannerTerminationCondition &terminationCondition)
