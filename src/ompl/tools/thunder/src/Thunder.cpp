@@ -200,9 +200,9 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
     if (stopWhenFirstSolutionFound)
     {
         // If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as well.
-        // OMPL_DEBUG("Thunder: stopping when first solution is found from either thread");
+        OMPL_DEBUG("Thunder: stopping when first solution is found from either thread");
         // Start both threads
-        bool hybridize = true;
+        bool hybridize = false; // was true
         lastStatus_ = pp_->solve(ptc, hybridize);
     }
     else
