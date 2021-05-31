@@ -38,6 +38,7 @@
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/base/goals/GoalRegion.h"
 #include "ompl/base/samplers/informed/RejectionInfSampler.h"
+#include "ompl/base/samplers/informed/PathLengthDirectInfSampler.h"
 #include <limits>
 // For std::make_shared
 #include <memory>
@@ -166,9 +167,12 @@ const ompl::base::SpaceInformationPtr &ompl::base::OptimizationObjective::getSpa
 ompl::base::InformedSamplerPtr ompl::base::OptimizationObjective::allocInformedStateSampler(
     const ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls) const
 {
-    OMPL_INFORM("%s: No direct informed sampling scheme is defined, defaulting to rejection sampling.",
+    // OMPL_INFORM("%s: No direct informed sampling scheme is defined, defaulting to rejection sampling.",
+    //             description_.c_str());
+    // return std::make_shared<RejectionInfSampler>(probDefn, maxNumberCalls);
+    OMPL_INFORM("%s: Defaulting to path length direct inf sampling.",
                 description_.c_str());
-    return std::make_shared<RejectionInfSampler>(probDefn, maxNumberCalls);
+    return std::make_shared<PathLengthDirectInfSampler>(probDefn, maxNumberCalls);
 }
 
 void ompl::base::OptimizationObjective::print(std::ostream &out) const

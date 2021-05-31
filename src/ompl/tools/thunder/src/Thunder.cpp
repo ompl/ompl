@@ -131,10 +131,10 @@ void ompl::tools::Thunder::setup()
             experienceDB_->getSPARSdb()->setProblemDefinition(pdef_);
             experienceDB_->getSPARSdb()->setup();
 
-            experienceDB_->getSPARSdb()->setStretchFactor(1.2);
+            experienceDB_->getSPARSdb()->setStretchFactor(1.2); 
             experienceDB_->getSPARSdb()->setSparseDeltaFraction(
-                0.05);  // vertex visibility range  = maximum_extent * this_fraction
-            // experienceDB_->getSPARSdb()->setDenseDeltaFraction(0.001);
+                0.05);  // was 0.05 // vertex visibility range  = maximum_extent * this_fraction
+            experienceDB_->getSPARSdb()->setDenseDeltaFraction(0.0001);
 
             experienceDB_->getSPARSdb()->printDebug();
 
@@ -202,7 +202,7 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
         // If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as well.
         OMPL_DEBUG("Thunder: stopping when first solution is found from either thread");
         // Start both threads
-        bool hybridize = false; // was true
+        bool hybridize = hybridize_; // was true; false makes it faster
         lastStatus_ = pp_->solve(ptc, hybridize);
     }
     else

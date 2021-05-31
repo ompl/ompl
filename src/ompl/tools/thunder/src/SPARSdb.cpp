@@ -1385,6 +1385,9 @@ void ompl::geometric::SPARSdb::findCloseRepresentatives(base::State *workState, 
     closeRepresentatives.clear();
 
     // denseDelta_ = 0.25 * sparseDelta_;
+    double maxExt = si_->getMaximumExtent();
+    sparseDelta_ = sparseDeltaFraction_ * maxExt;
+    denseDelta_ = denseDeltaFraction_ * maxExt;
     nearSamplePoints_ /= 10;  // HACK - this makes it look for the same number of samples as dimensions
 
     if (verbose_)
