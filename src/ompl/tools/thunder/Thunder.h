@@ -136,6 +136,11 @@ namespace ompl
             /** \brief Run the planner until \e ptc becomes true (at most) */
             base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, bool hybridize) {
+              hybridize_ = hybridize;
+              return solve(ptc);
+            }
+
             /** \brief Save the experience database to file */
             bool save() override;
 
@@ -178,12 +183,16 @@ namespace ompl
             /** \brief Allow accumlated experiences to be processed */
             bool doPostProcessing() override;
 
+            void addSolutionToQueue(const std::shared_ptr<ompl::geometric::PathGeometric>& path_ptr) {
+              queuedSolutionPaths_.push_back(*path_ptr); 
+            }
+
         protected:
             /**  The maintained experience planner instance */
             base::PlannerPtr rrPlanner_;
 
             /**  planners used for testing dual-thread scratch-only planning */
-            std::vector<base::PlannerPtr> planner_vec_ {1};
+            std::vector<base::PlannerPtr> planner_vec_ {std::max(std::thread::hardware_concurrency(), 2u) - 1};
 
             /**  Flag indicating whether dual thread scratch planning is enabled */
             bool dualThreadScratchEnabled_{true};
@@ -196,6 +205,8 @@ namespace ompl
 
             /** \brief Accumulated experiences to be later added to experience database */
             std::vector<ompl::geometric::PathGeometric> queuedSolutionPaths_;
+
+            bool hybridize_ {true}; 
 
         };  // end of class Thunder
 
