@@ -477,35 +477,35 @@ BOOST_AUTO_TEST_CASE(Mobius_Simple)
     base::ScopedState<base::MobiusStateSpace> s1(m);
     base::ScopedState<base::MobiusStateSpace> s2(m);
 
-    s1->setS1(-PI);
-    s1->setR1(-intervalMax);
-    s2->setS1(-PI);
-    s2->setR1(+intervalMax);
+    s1->setU(-PI);
+    s1->setV(-intervalMax);
+    s2->setU(-PI);
+    s2->setV(+intervalMax);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 2*intervalMax, 1e-3);
 
-    s1->setS1(+PI);
-    s1->setR1(-intervalMax);
-    s2->setS1(+PI);
-    s2->setR1(+intervalMax);
+    s1->setU(+PI);
+    s1->setV(-intervalMax);
+    s2->setU(+PI);
+    s2->setV(+intervalMax);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 2*intervalMax, 1e-3);
 
     //check that the both endings are correctly glued together
-    s1->setS1(+PI - 0.1);
-    s1->setR1(+intervalMax);
-    s2->setS1(-PI + 0.1);
-    s2->setR1(-intervalMax); //segment should be inverted!
+    s1->setU(+PI - 0.1);
+    s1->setV(+intervalMax);
+    s2->setU(-PI + 0.1);
+    s2->setV(-intervalMax); //segment should be inverted!
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.2, 1e-3);
 
-    s1->setS1(+PI - 0.1);
-    s1->setR1(+0);
-    s2->setS1(-PI + 0.1);
-    s2->setR1(+0);
+    s1->setU(+PI - 0.1);
+    s1->setV(+0);
+    s2->setU(-PI + 0.1);
+    s2->setV(+0);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.2, 1e-3);
 
-    s1->setS1(+PI - 0.1);
-    s1->setR1(+intervalMax);
-    s2->setS1(-PI + 0.1);
-    s2->setR1(+intervalMax);
+    s1->setU(+PI - 0.1);
+    s1->setV(+intervalMax);
+    s2->setU(-PI + 0.1);
+    s2->setV(+intervalMax);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 2*intervalMax + 0.2, 1e-3);
 }
 
