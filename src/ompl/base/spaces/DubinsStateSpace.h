@@ -104,6 +104,7 @@ namespace ompl
             DubinsStateSpace(double turningRadius = 1.0, bool isSymmetric = false)
               : rho_(turningRadius), isSymmetric_(isSymmetric)
             {
+                type_ = STATE_SPACE_DUBINS;
             }
 
             bool isMetricSpace() const override
