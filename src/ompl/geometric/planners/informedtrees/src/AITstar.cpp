@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the University of Toronto nor the names of its
+ *   * Neither the names of the copyright holders nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -147,7 +147,7 @@ namespace ompl
             // Call the base planners validity check. This checks if the
             // planner is setup if not then it calls setup().
             checkValidity();
-            
+
             // Ensure the planner is setup.
             if (!setup_)
             {
@@ -218,7 +218,8 @@ namespace ompl
             auto status = ensureSetup();
 
             // Return early if the planner or state space are not setup.
-            if (status == ompl::base::PlannerStatus::StatusType::ABORT) {
+            if (status == ompl::base::PlannerStatus::StatusType::ABORT)
+            {
                 return status;
             }
 

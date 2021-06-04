@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019-present University of Oxford
+ *  Copyright (c) 2019, University of Oxford
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without

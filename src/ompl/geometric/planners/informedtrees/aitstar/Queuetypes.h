@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the University of Toronto nor the names of its
+ *   * Neither the names of the copyright holders nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -54,7 +54,7 @@ namespace ompl
             // Forward declarations of the AIT* edge and vertex classes.
             class Edge;
             class Vertex;
-            
+
             /** \brief The type of the edge queue. */
             using EdgeQueue = ompl::BinaryHeap<Edge, std::function<bool(const Edge &, const Edge &)>>;
 
@@ -66,7 +66,7 @@ namespace ompl
                 ompl::BinaryHeap<KeyVertexPair, std::function<bool(const KeyVertexPair &, const KeyVertexPair &)>>;
 
         }  // namespace aitstar
-    }  // namespace geometric
+    }      // namespace geometric
 }  // namespace ompl
 
 #endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_AITSTAR_QUEUETYPES_
