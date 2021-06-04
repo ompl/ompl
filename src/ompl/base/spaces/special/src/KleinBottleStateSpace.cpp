@@ -86,35 +86,34 @@ void KleinBottleStateSampler::sampleUniform(State *state)
         const double su7 = std::pow(su, 7);
         const double su8 = std::pow(su, 8);
 
-        const double aprime =
-            (64.0 * su8 - 128.0 * su6 + 60.0 * su4 + 0.4 * su * cv - (1.0 / 6.0) * cu * cv - 0.5 * std::cos(3 * u) * cv);
+        const double aprime = (64.0 * su8 - 128.0 * su6 + 60.0 * su4 + 0.4 * su * cv - (1.0 / 6.0) * cu * cv -
+                               0.5 * std::cos(3 * u) * cv);
 
         const double a = (-aprime * cv + (2.0 / 3.0) * sv * sv * cu * std::cos(2.0 * u));
 
-        const double bprime = ((26 + 2.0 / 3.0) * su7 * cv - 55.0 * su5 * cv - (37 + 1.0 / 3.0) * su3 * cu6 * cv +
-                         28.0 * su3 * cv + (10 + 2.0 / 3.0) * su * cu8 * cv - (10 + 2.0 / 3.0) * su * cu6 * cv -
-                         4.0 * std::sin(2.0 * u) + 22.4 * cu7 * cv - 35.2 * cu5 * cv + 12.2 * cu3 * cv + 0.6 * cu * cv);
+        const double bprime =
+            ((26 + 2.0 / 3.0) * su7 * cv - 55.0 * su5 * cv - (37 + 1.0 / 3.0) * su3 * cu6 * cv + 28.0 * su3 * cv +
+             (10 + 2.0 / 3.0) * su * cu8 * cv - (10 + 2.0 / 3.0) * su * cu6 * cv - 4.0 * std::sin(2.0 * u) +
+             22.4 * cu7 * cv - 35.2 * cu5 * cv + 12.2 * cu3 * cv + 0.6 * cu * cv);
 
-        const double cprime =
-            ((5 + 1.0 / 3.0) * su5 * cu + 3.2 * su4 - (10 + 2.0 / 3.0) * su3 * cu - 6.4 * su2 + 2.5 * std::sin(2 * u) + 3.0);
+        const double cprime = ((5 + 1.0 / 3.0) * su5 * cu + 3.2 * su4 - (10 + 2.0 / 3.0) * su3 * cu - 6.4 * su2 +
+                               2.5 * std::sin(2 * u) + 3.0);
 
         const double b = (((1.0 / 3.0) * std::sin(2.0 * u) + 0.4) * bprime * cu - cprime * aprime * su3);
 
         const double c = ((5.0 / 6.0) * std::sin(2.0 * u) + 1);
 
-        const double d =
-            (-((1.0 / 3.0) * std::sin(2.0 * u) + 0.4) * bprime * cv + (2.0 / 3.0) * cprime * su3 * sv * sv * std::cos(2.0 * u));
+        const double d = (-((1.0 / 3.0) * std::sin(2.0 * u) + 0.4) * bprime * cv +
+                          (2.0 / 3.0) * cprime * su3 * sv * sv * std::cos(2.0 * u));
 
         double s = std::sqrt(a * a * (0.16 * c * c) + b * b * sv * sv + d * d);
 
-        if(s > gMax_)
+        if (s > gMax_)
         {
             OMPL_ERROR("Norm of gradient (%.10f) larger than maximum norm (%.10f).", s, gMax_);
             throw "Wrong norm error.";
         }
         s = s / gMax_;
-
-
 
         const double mu = rng_.uniformReal(0, 1);
         if (mu <= s)

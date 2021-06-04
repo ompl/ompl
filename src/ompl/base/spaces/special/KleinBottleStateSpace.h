@@ -60,9 +60,9 @@ namespace ompl
             void sampleGaussian(State *state, const State *mean, double stdDev) override;
 
         private:
-            /** \brief Constant of maximum norm gradient of surface (do not change). 
+            /** \brief Constant of maximum norm gradient of surface (do not change).
              * Estimated by taking the upper bound over 10k samples. */
-            const double gMax_{4.1455};  
+            const double gMax_{4.1455};
         };
 
         /** \brief The Klein bottle is a 2-dimensional non-orientable surface.
@@ -75,7 +75,7 @@ namespace ompl
              * space. A state is represented as a cylinder with height u in the
              * interval [0, Pi] and
              * angle v in the interval [-Pi, Pi] as in the discussion
-             * here: https://en.wikipedia.org/wiki/Klein_bottle#Construction 
+             * here: https://en.wikipedia.org/wiki/Klein_bottle#Construction
              *
              * This cylinder is then glued together (mapped) internally to provide
              * correct distance and interpolation functions. */

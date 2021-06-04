@@ -53,7 +53,7 @@ namespace ompl
         {
         public:
             /** \brief The definition of a state (u,v) in the Mobius strip state
-             * space. 
+             * space.
              * The variable u is the position on the center circle in the interval [-Pi, Pi]
              * The variable v is the position along the width in the interval [-intervalMax, intervalMax]
              * */
