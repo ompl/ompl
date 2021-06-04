@@ -36,9 +36,10 @@
 
 /* Author: Andreas Orthey */
 
-#include <ompl/base/spaces/TorusStateSpace.h>
+#include <ompl/base/spaces/special/TorusStateSpace.h>
 #include <ompl/tools/config/MagicConstants.h>
 #include <cstring>
+#include <cmath>
 
 #include <boost/math/constants/constants.hpp>
 using namespace boost::math::double_constants;  // pi
@@ -58,18 +59,18 @@ void TorusStateSampler::sampleUniform(State *state)
     bool acceptedSampleFound = false;
     while (!acceptedSampleFound)
     {
-        double u = rng_.uniformReal(-pi, pi);
-        double v = rng_.uniformReal(-pi, pi);
+        const double u = rng_.uniformReal(-pi, pi);
+        const double v = rng_.uniformReal(-pi, pi);
 
         const double &R = T->getMajorRadius();
         const double &r = T->getMinorRadius();
 
-        double vprime = (R + r * cos(v)) / (R + r);
+        const double vprime = (R + r * std::cos(v)) / (R + r);
 
-        double mu = rng_.uniformReal(0, 1);
+        const double mu = rng_.uniformReal(0, 1);
         if (mu <= vprime)
         {
-            TorusStateSpace::StateType *T = state->as<TorusStateSpace::StateType>();
+            auto *T = state->as<TorusStateSpace::StateType>();
             T->setS1S2(u, v);
             acceptedSampleFound = true;
         }
@@ -78,8 +79,8 @@ void TorusStateSampler::sampleUniform(State *state)
 
 void TorusStateSampler::sampleUniformNear(State *state, const State *near, double distance)
 {
-    TorusStateSpace::StateType *T = state->as<TorusStateSpace::StateType>();
-    const TorusStateSpace::StateType *Tnear = near->as<TorusStateSpace::StateType>();
+    auto *T = state->as<TorusStateSpace::StateType>();
+    const auto *Tnear = near->as<TorusStateSpace::StateType>();
     T->setS1(rng_.uniformReal(Tnear->getS1() - distance, Tnear->getS1() + distance));
     T->setS2(rng_.uniformReal(Tnear->getS2() - distance, Tnear->getS2() + distance));
     space_->enforceBounds(state);
@@ -87,8 +88,8 @@ void TorusStateSampler::sampleUniformNear(State *state, const State *near, doubl
 
 void TorusStateSampler::sampleGaussian(State *state, const State *mean, double stdDev)
 {
-    TorusStateSpace::StateType *T = state->as<TorusStateSpace::StateType>();
-    const TorusStateSpace::StateType *Tmean = mean->as<TorusStateSpace::StateType>();
+    auto *T = state->as<TorusStateSpace::StateType>();
+    const auto *Tmean = mean->as<TorusStateSpace::StateType>();
     T->setS1(rng_.gaussian(Tmean->getS1(), stdDev));
     T->setS2(rng_.gaussian(Tmean->getS2(), stdDev));
 
@@ -114,9 +115,9 @@ double TorusStateSpace::distance(const State *state1, const State *state2) const
 {
     const auto *cstate1 = static_cast<const CompoundState *>(state1);
     const auto *cstate2 = static_cast<const CompoundState *>(state2);
-    double x = components_[0]->distance(cstate1->components[0], cstate2->components[0]);
-    double y = components_[1]->distance(cstate1->components[1], cstate2->components[1]);
-    return sqrtf(x * x + y * y);
+    const double x = components_[0]->distance(cstate1->components[0], cstate2->components[0]);
+    const double y = components_[1]->distance(cstate1->components[1], cstate2->components[1]);
+    return std::sqrt(x * x + y * y);
 }
 
 State *TorusStateSpace::allocState() const
@@ -140,16 +141,16 @@ Eigen::Vector3f TorusStateSpace::toVector(const State *state) const
 {
     Eigen::Vector3f v;
 
-    const TorusStateSpace::StateType *s = state->as<TorusStateSpace::StateType>();
-    float theta = s->getS1();
-    float phi = s->getS2();
+    const auto *s = state->as<TorusStateSpace::StateType>();
+    const float theta = s->getS1();
+    const float phi = s->getS2();
 
     const double &R = majorRadius_;
     const double &r = minorRadius_;
 
-    v[0] = (R + r*cos(phi))*cos(theta);
-    v[1] = (R + r*cos(phi))*sin(theta);
-    v[2] = r*sin(phi);
+    v[0] = (R + r * std::cos(phi)) * std::cos(theta);
+    v[1] = (R + r * std::cos(phi)) * std::sin(theta);
+    v[2] = r * std::sin(phi);
 
     return v;
 }

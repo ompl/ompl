@@ -36,9 +36,10 @@
 
 /* Author: Andreas Orthey */
 
-#include <ompl/base/spaces/SphereStateSpace.h>
+#include <ompl/base/spaces/special/SphereStateSpace.h>
 #include <ompl/tools/config/MagicConstants.h>
 #include <cstring>
+#include <cmath>
 #include <boost/math/constants/constants.hpp>
 
 using namespace boost::math::double_constants;  // pi
@@ -51,16 +52,16 @@ SphereStateSampler::SphereStateSampler(const StateSpace *space) : StateSampler(s
 void SphereStateSampler::sampleUniform(State *state)
 {
     // see for example http://corysimon.github.io/articles/uniformdistn-on-sphere/
-    double theta = 2.0 * pi * rng_.uniformReal(0, 1) - pi; //uniform in [-pi,+pi]
-    double phi = acos(1.0 - 2.0 * rng_.uniformReal(0, 1));//in [0,+pi]
-    SphereStateSpace::StateType *S = state->as<SphereStateSpace::StateType>();
+    const double theta = 2.0 * pi * rng_.uniformReal(0, 1) - pi;  // uniform in [-pi,+pi]
+    const double phi = acos(1.0 - 2.0 * rng_.uniformReal(0, 1));  // in [0,+pi]
+    auto *S = state->as<SphereStateSpace::StateType>();
     S->setThetaPhi(theta, phi);
 }
 
 void SphereStateSampler::sampleUniformNear(State *state, const State *near, double distance)
 {
-    SphereStateSpace::StateType *S = state->as<SphereStateSpace::StateType>();
-    const SphereStateSpace::StateType *Snear = near->as<SphereStateSpace::StateType>();
+    auto *S = state->as<SphereStateSpace::StateType>();
+    const auto *Snear = near->as<SphereStateSpace::StateType>();
     S->setTheta(rng_.uniformReal(Snear->getTheta() - distance, Snear->getTheta() + distance));
     S->setPhi(rng_.uniformReal(Snear->getPhi() - distance, Snear->getPhi() + distance));
     space_->enforceBounds(state);
@@ -68,8 +69,8 @@ void SphereStateSampler::sampleUniformNear(State *state, const State *near, doub
 
 void SphereStateSampler::sampleGaussian(State *state, const State *mean, double stdDev)
 {
-    SphereStateSpace::StateType *S = state->as<SphereStateSpace::StateType>();
-    const SphereStateSpace::StateType *Smean = mean->as<SphereStateSpace::StateType>();
+    auto *S = state->as<SphereStateSpace::StateType>();
+    const auto *Smean = mean->as<SphereStateSpace::StateType>();
     S->setTheta(rng_.gaussian(Smean->getTheta(), stdDev));
     S->setPhi(rng_.gaussian(Smean->getPhi(), stdDev));
     space_->enforceBounds(state);
@@ -80,8 +81,7 @@ StateSamplerPtr SphereStateSpace::allocDefaultStateSampler() const
     return std::make_shared<SphereStateSampler>(this);
 }
 
-SphereStateSpace::SphereStateSpace(double radius):
-  radius_(radius)
+SphereStateSpace::SphereStateSpace(double radius) : radius_(radius)
 {
     setName("Sphere" + getName());
     type_ = STATE_SPACE_SPHERE;
@@ -99,30 +99,29 @@ double SphereStateSpace::distance(const State *state1, const State *state2) cons
 {
     // https://en.wikipedia.org/wiki/Great-circle_distance#Formulae
 
-    const SphereStateSpace::StateType *S1 = state1->as<SphereStateSpace::StateType>();
-    const SphereStateSpace::StateType *S2 = state2->as<SphereStateSpace::StateType>();
+    const auto *S1 = state1->as<SphereStateSpace::StateType>();
+    const auto *S2 = state2->as<SphereStateSpace::StateType>();
 
     // Note: Formula assumes phi in [-pi/2,+pi/2]
-    float t1 = S1->getTheta();
-    float phi1 = S1->getPhi() - pi/2.0;
+    const float t1 = S1->getTheta();
+    const float phi1 = S1->getPhi() - pi / 2.0;
 
-    float t2 = S2->getTheta();
-    float phi2 = S2->getPhi() - pi/2.0;
+    const float t2 = S2->getTheta();
+    const float phi2 = S2->getPhi() - pi / 2.0;
 
     // This is the Vincenty formula, but it is less numerically stable
     // double dt = t2 - t1;
-    // double d1 = powf(cos(phi2) * sin(dt), 2);
-    // double d2 = powf(cos(phi1) * sin(phi2) - sin(phi1) * cos(phi2) * cos(dt), 2);
-    // double numerator = sqrtf(d1 + d2);
-    // double denumerator = sin(phi1) * sin(phi2) + cos(phi1) * cos(phi2) * cos(dt);
+    // double d1 = std::pow(cos(phi2) * std::sin(dt), 2);
+    // double d2 = std::pow(cos(phi1) * std::sin(phi2) - std::sin(phi1) * cos(phi2) * cos(dt), 2);
+    // double numerator = std::sqrt(d1 + d2);
+    // double denumerator = std::sin(phi1) * std::sin(phi2) + cos(phi1) * cos(phi2) * cos(dt);
     // return radius_ * atan2(numerator, denumerator);
 
     // Haversine formula
-    float s = 0.5*(phi1 - phi2);
-    float t = 0.5*(t1 - t2);
-    float d = sqrtf(sin(s)*sin(s) + cos(phi1)*cos(phi2)*sin(t)*sin(t));
-    return 2*radius_*asin(d);
-
+    const float s = 0.5 * (phi1 - phi2);
+    const float t = 0.5 * (t1 - t2);
+    const float d = std::sqrt(std::sin(s) * std::sin(s) + std::cos(phi1) * std::cos(phi2) * std::sin(t) * std::sin(t));
+    return 2 * radius_ * asin(d);
 }
 
 double SphereStateSpace::getMeasure() const
@@ -141,13 +140,13 @@ Eigen::Vector3f SphereStateSpace::toVector(const State *state) const
 {
     Eigen::Vector3f v;
 
-    const SphereStateSpace::StateType *S1 = state->as<SphereStateSpace::StateType>();
-    float theta = S1->getTheta();
-    float phi = S1->getPhi();
+    const auto *S1 = state->as<SphereStateSpace::StateType>();
+    const float theta = S1->getTheta();
+    const float phi = S1->getPhi();
 
-    v[0] = radius_*sin(phi)*cos(theta);
-    v[1] = radius_*sin(phi)*sin(theta);
-    v[2] = radius_*cos(phi);
+    v[0] = radius_ * std::sin(phi) * std::cos(theta);
+    v[1] = radius_ * std::sin(phi) * std::sin(theta);
+    v[2] = radius_ * std::cos(phi);
 
     return v;
 }
