@@ -131,10 +131,10 @@ void ompl::tools::Thunder::setup()
             experienceDB_->getSPARSdb()->setProblemDefinition(pdef_);
             experienceDB_->getSPARSdb()->setup();
 
-            experienceDB_->getSPARSdb()->setStretchFactor(1.2); 
+            experienceDB_->getSPARSdb()->setStretchFactor(1.6); 
             experienceDB_->getSPARSdb()->setSparseDeltaFraction(
-                0.05);  // was 0.05 // vertex visibility range  = maximum_extent * this_fraction
-            experienceDB_->getSPARSdb()->setDenseDeltaFraction(0.0001);
+                0.1);  // was 0.05 // vertex visibility range  = maximum_extent * this_fraction
+            experienceDB_->getSPARSdb()->setDenseDeltaFraction(0.001);
 
             experienceDB_->getSPARSdb()->printDebug();
 
@@ -195,30 +195,14 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
     // There are two modes for running parallel plan - one in which both threads are run until they both return a result
     // and/or fail
     // The second mode stops with the first solution found - we want this one
-    bool stopWhenFirstSolutionFound = true;
-
-    if (stopWhenFirstSolutionFound)
-    {
+    if (!hybridize_) {
         // If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as well.
         OMPL_DEBUG("Thunder: stopping when first solution is found from either thread");
-        // Start both threads
-        bool hybridize = hybridize_; // was true; false makes it faster
-        lastStatus_ = pp_->solve(ptc, hybridize);
+    else {
+        OMPL_DEBUG("Thunder: stopping only after all threads report a solution");
     }
-    else
-    {
-        OMPL_WARN("Thunder: not stopping until a solution or a failure is found from both threads. THIS MODE IS JUST "
-                  "FOR TESTING");
-        // This mode is more for benchmarking, since I don't care about optimality
-        // If \e hybridize is false, when \e minSolCount new solutions are found (added to the set of solutions
-        // maintained by ompl::base::Goal), the rest of the planners are stopped as well.
 
-        // Start both threads
-        std::size_t minSolCount = 2;
-        std::size_t maxSolCount = 2;
-        bool hybridize = false;
-        lastStatus_ = pp_->solve(ptc, minSolCount, maxSolCount, hybridize);
-    }
+    lastStatus_ = pp_->solve(ptc, hybridize_); //, hybridize);
 
     // Planning time
     planTime_ = time::seconds(time::now() - start);
