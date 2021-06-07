@@ -577,7 +577,7 @@ void ompl::geometric::SPARSdb::printDebug(std::ostream &out) const
 bool ompl::geometric::SPARSdb::getGuardSpacingFactor(const double pathLength, int &numGuards, double &spacingFactor)
 {
     static const double factorHigh = 1.9;
-    static const double factorLow = 1.1;
+    static const double factorLow = 1.3;
     double minPathLength = sparseDelta_ * factorLow;
 
     // Check if the path length is too short

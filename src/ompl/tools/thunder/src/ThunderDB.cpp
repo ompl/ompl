@@ -154,7 +154,7 @@ bool ompl::tools::ThunderDB::addPath(ompl::geometric::PathGeometric &solutionPat
     }
     insertionTime = time::seconds(time::now() - startTime);
 
-    OMPL_INFORM("SPARSdb now has %d states", spars_->getNumVertices());
+    OMPL_INFORM("ThunderDB:addPath SPARSdb now has %d states", spars_->getNumVertices());
 
     // Record this new addition
     numPathsInserted_++;

@@ -95,6 +95,12 @@ namespace ompl
                 return pdef_;
             }
 
+            void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) {
+              for (auto& planner : planners_) {
+                planner->setProblemDefinition(pdef); 
+              }
+            }
+
             /** \brief Call Planner::solve() for all planners, in parallel, each planner running for at most \e
                solveTime seconds.
                 If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as
