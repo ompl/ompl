@@ -96,7 +96,7 @@ namespace ompl
             }
 
             void setProblemDefinition(const ompl::base::ProblemDefinitionPtr &pdef) {
-              for(auto& planner : planners_) {
+              for (auto& planner : planners_) {
                 planner->setProblemDefinition(pdef); 
               }
             }
