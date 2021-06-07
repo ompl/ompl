@@ -198,7 +198,7 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
     if (!hybridize_) {
         // If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as well.
         OMPL_DEBUG("Thunder: stopping when first solution is found from either thread");
-    else {
+    } else {
         OMPL_DEBUG("Thunder: stopping only after all threads report a solution");
     }
 
