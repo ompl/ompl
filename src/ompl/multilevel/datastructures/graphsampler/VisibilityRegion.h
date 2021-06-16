@@ -41,6 +41,7 @@
 #include <ompl/multilevel/datastructures/BundleSpaceGraphSparse.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
 #include <ompl/multilevel/datastructures/graphsampler/RandomEdge.h>
+#include <ompl/multilevel/datastructures/graphsampler/RandomVertex.h>
 #include <ompl/multilevel/datastructures/ParameterSmoothStep.h>
 
 namespace ompl

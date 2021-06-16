@@ -190,7 +190,7 @@ std::string Projection::getBundleTypeAsString() const
 
 void Projection::print(std::ostream &out) const
 {
-    out << getTypeAsString();
+    out << "[" << getTypeAsString() << "]";
 }
 
 namespace ompl
@@ -314,7 +314,7 @@ void CompoundProjection::print(std::ostream &out) const
 {
     for (unsigned int k = 0; k < components_.size(); k++)
     {
-        out << "[" << *(components_.at(k).get()) << "]"
+        out << *(components_.at(k).get())
           << (k < (components_.size() - 1)?" | ":"");
     }
 }

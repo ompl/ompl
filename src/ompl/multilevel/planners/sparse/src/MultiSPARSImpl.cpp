@@ -23,7 +23,9 @@ MultiSPARSImpl::MultiSPARSImpl(const ompl::base::SpaceInformationPtr &si, Bundle
     isInfeasible_ = false;
 
     // sparseDeltaFraction_ = 0.25;
-    sparseDeltaFraction_ = 0.15;
+    sparseDeltaFraction_ = 0.25;
+    std::cout << getBundle()->getMaximumExtent() << std::endl;
+    // sparseDeltaFraction_ = 0.1;
 
 }
 
@@ -31,6 +33,7 @@ void MultiSPARSImpl::setup()
 {
     BaseT::setup();
     setFindSectionStrategy(FindSectionType::PATTERN_DANCE);
+    // setFindSectionStrategy(FindSectionType::SIDE_STEP);
 }
 
 void MultiSPARSImpl::clear()

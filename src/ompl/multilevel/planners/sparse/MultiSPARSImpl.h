@@ -42,8 +42,6 @@ namespace ompl
             double getImportance() const override;
 
         protected:
-            /** \brief Maximum failures limit for terminating the algorithm*/
-            unsigned int maxFailures_{1000u};
 
             std::vector<base::State *> randomWorkStates_;
 

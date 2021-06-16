@@ -255,7 +255,6 @@ bool BundleSpaceGraphSparse::checkAddInterface(Configuration *q, std::vector<Con
                 if (getBundle()->checkMotion(qv0->state, qv1->state))
                 {
                     addEdge(v0idx, v1idx);
-                    consecutiveFailures_ = 0;  // reset consecutive failures
                 }
                 else
                 {
@@ -580,7 +579,6 @@ bool BundleSpaceGraphSparse::addPathToSpanner(const std::deque<State *> &dense_p
     {
         // The path is 0 length, so simply link the representatives
         addEdge(vp, vpp);
-        consecutiveFailures_ = 0;  // resetFailures();
     }
     else
     {
@@ -615,6 +613,20 @@ bool BundleSpaceGraphSparse::addPathToSpanner(const std::deque<State *> &dense_p
     return true;
 }
 
+const std::pair<BundleSpaceGraph::Edge, bool> BundleSpaceGraphSparse::addEdge(const Vertex a, const Vertex b)
+{
+    // consecutiveFailures_ = 0;  // reset consecutive failures
+    auto e = BaseT::addEdge(a, b);
+    if(sameComponent(a, vStart_))
+    {
+      //TODO: This cannot work like that. what if an edge is drawn between two
+      //previously unconnected components? In that case we would need to update
+      //the edges what we do not do right now.
+        initialConnectedComponentEdges.push_back(e.first);
+    }
+    return e;
+}
+
 bool BundleSpaceGraphSparse::hasSparseGraphChanged()
 {
     unsigned Nv = boost::num_vertices(getGraph());
@@ -626,4 +638,9 @@ bool BundleSpaceGraphSparse::hasSparseGraphChanged()
         return true;
     }
     return false;
+}
+void BundleSpaceGraphSparse::getPlannerData(ompl::base::PlannerData &data) const
+{
+    BaseT::getPlannerData(data);
+    OMPL_DEBUG(" Sparse graph: %d/%d failures.", consecutiveFailures_, maxFailures_);
 }

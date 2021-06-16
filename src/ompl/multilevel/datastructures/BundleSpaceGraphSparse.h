@@ -114,6 +114,12 @@ namespace ompl
                 return sparseDeltaFraction_;
             }
 
+            void getPlannerData(ompl::base::PlannerData &data) const override;
+
+            /** \brief Add edge between Vertex a and Vertex b to graph. */
+            const std::pair<Edge, bool> addEdge(const Vertex a, const Vertex b) override;
+
+            std::vector<Edge> initialConnectedComponentEdges;
         protected:
 
             std::vector<Configuration *> graphNeighborhood;
@@ -129,6 +135,9 @@ namespace ompl
 
             /** \brief A counter for the number of consecutive failed iterations of the algorithm */
             unsigned int consecutiveFailures_{0u};
+
+            /** \brief Maximum failures limit for terminating the algorithm*/
+            unsigned int maxFailures_{1000u};
 
             /** \brief The stretch factor in terms of graph spanners for SPARS to check against */
             double stretchFactor_{3.};

@@ -102,7 +102,8 @@ namespace ompl
             /** \brief Get base state at base path index */
             int getBaseStateIndexAt(int k) const;
 
-            /** \brief Get location in [0,1] on base path to which head points*/
+            /** \brief Get location on base path to which head points (non
+             * normalized)*/
             double getLocationOnBasePath() const;
             /** \brief Set location of head along base path. */
             void setLocationOnBasePath(double d);

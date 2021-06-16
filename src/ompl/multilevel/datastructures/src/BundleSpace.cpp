@@ -463,7 +463,7 @@ void BundleSpace::project(const ompl::base::State *xBundle, ompl::base::State *x
 
 void BundleSpace::print(std::ostream &out) const
 {
-    out << "BundleSpace(lvl" << getLevel() << "):" << *(getProjection().get());
+    out << "BundleSpace(lvl" << getLevel() << "): " << *(getProjection().get());
 }
 
 namespace ompl
