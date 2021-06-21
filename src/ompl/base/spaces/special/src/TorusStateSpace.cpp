@@ -108,15 +108,10 @@ void TorusStateSampler::sampleShell(State *state, const State *center, double in
     double ro = outerRadius*outerRadius;
     double ri = innerRadius*innerRadius;
     double r = std::sqrt(u*(ro-ri)+ri);
-    std::cout << r << std::endl;
-
-    std::cout << "S1:" << Tcenter->getS1() << std::endl;
 
     xu = (r/d) * xu + Tcenter->getS1();
     xv = (r/d) * xv + Tcenter->getS2();
 
-    std::cout << xu << std::endl;
-    std::cout << xv << std::endl;
     T->setS1(xu);
     T->setS2(xv);
     space_->enforceBounds(state);

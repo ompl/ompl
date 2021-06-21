@@ -800,8 +800,15 @@ void BundleSpaceGraph::getPlannerDataGraph(ompl::base::PlannerData &data, const 
         Configuration *qgoal = goalConfigurations_.at(k);
         multilevel::PlannerDataVertexAnnotated pgoal(qgoal->state);
         pgoal.setLevel(getLevel());
+        bool startComponent = 
+          const_cast<BundleSpaceGraph *>(this)->sameComponent(qgoal->index, vStart_);
+        if(!startComponent)
+        {
+            pgoal.setComponent(1);
+        }
         data.addGoalVertex(pgoal);
     }
+
     if (hasSolution_)
     {
         if (solutionPath_ != nullptr)
@@ -840,8 +847,8 @@ void BundleSpaceGraph::getPlannerDataGraph(ompl::base::PlannerData &data, const 
           const_cast<BundleSpaceGraph *>(this)->sameComponent(v1, vStart_);
         if(!startComponent)
         {
-          p1.setComponent(1);
-          p2.setComponent(1);
+            p1.setComponent(1);
+            p2.setComponent(1);
         }
         data.addEdge(p1, p2);
     }
@@ -849,6 +856,7 @@ void BundleSpaceGraph::getPlannerDataGraph(ompl::base::PlannerData &data, const 
     {
         multilevel::PlannerDataVertexAnnotated p(graph[v]->state);
         p.setLevel(getLevel());
+        p.setComponent(2);
         data.addVertex(p);
     }
 }

@@ -75,14 +75,20 @@ void STARImpl::grow()
     }
 
     //###########################################################
-    //(0) Tree Selection
+    //(0) Tree Selection. Can stay like that.
     TreeData &tree = activeInitialTree_ ? treeStart_ : treeGoal_;
     activeInitialTree_ = !activeInitialTree_;
     TreeData &otherTree = activeInitialTree_ ? treeStart_ : treeGoal_;
 
     //###########################################################
     //(1) State Selection
-
+    //  [ ] Selected state based on 
+    //    (i) number of unsuccessful attempts.
+    //    (ii) frontier node status
+    //    (iii) not yet expanded
+    //    (iv) number of neighbors. More neighbors means more of the shell is
+    //    blocked. 
+    //
     std::vector<Configuration*> treeElements;
     tree->list(treeElements);
 
@@ -90,42 +96,64 @@ void STARImpl::grow()
     Configuration *xSelected = treeElements.at(selectedTreeElement);
 
     //###########################################################
-    //(3) Extend Selection
+    //(2) Extend Selection
     // auto sampler = std::static_pointer_cast<base::RealVectorStateSampler>(getBundleSamplerPtr());
-    auto sampler = std::static_pointer_cast<base::TorusStateSampler>(getBundleSamplerPtr());
-
     double maxExt = getBundle()->getMaximumExtent();
     double sparseDelta = 0.05 * maxExt;
 
-    getBundle()->printState(xSelected->state);
-
-    sampler->sampleShell(xRandom_->state, xSelected->state, sparseDelta, sparseDelta + 0.1*sparseDelta);
+    int type = getBundle()->getStateSpace()->getType();
+    if(type == base::STATE_SPACE_REAL_VECTOR)
+    {
+        auto sampler = std::static_pointer_cast<base::RealVectorStateSampler>(getBundleSamplerPtr());
+        sampler->sampleShell(xRandom_->state, xSelected->state, 
+            sparseDelta, sparseDelta + 0.1*sparseDelta);
+    }else if(type == base::STATE_SPACE_TORUS)
+    {
+        auto sampler = std::static_pointer_cast<base::TorusStateSampler>(getBundleSamplerPtr());
+        sampler->sampleShell(xRandom_->state, xSelected->state, 
+            sparseDelta, sparseDelta + 0.1*sparseDelta);
+    }else{
+        auto sampler = getBundleSamplerPtr();
+        sampler->sampleUniformNear(xRandom_->state, xSelected->state, sparseDelta + 0.1*sparseDelta);
+        throw "NYI";
+    }
 
     bool valid = getBundle()->getStateValidityChecker()->isValid(xRandom_->state);
     if(!valid)
     {
+        //For debugging purposes
+        Configuration *x = new Configuration(getBundle(), xRandom_->state);
+        boost::add_vertex(x, graph_);
         return;
     }
     //###########################################################
-    //(4) Remove Covered Samples
+    //(3) Remove Covered Samples.
+    //  Need to keep some to guarantee near-optimality.
     Configuration *xNearest = tree->nearest(xRandom_);
     double d = distance(xNearest, xRandom_);
     if (d < sparseDelta)
     {
+        //For debugging purposes
+        Configuration *x = new Configuration(getBundle(), xRandom_->state);
+        boost::add_vertex(x, graph_);
         //sample is covered by xNearest
         return;
     }
 
     //###########################################################
-    //(5) Connect Selected to Random
+    //(4) Connect Selected to Random
+    // Improvements: Do local planning to reach state. We could even use a
+    // potential field method here. 
 
     if (!propagator_->steer(xSelected, xRandom_, xRandom_))
     {
+        Configuration *x = new Configuration(getBundle(), xRandom_->state);
+        boost::add_vertex(x, graph_);
         return;
     }
 
     //###########################################################
-    //(6) Valid Connected Element is added to Tree
+    //(5) Valid Connected Element is added to Tree
     Configuration *xNext = new Configuration(getBundle(), xRandom_->state);
     Vertex m = boost::add_vertex(xNext, graph_);
     disjointSets_.make_set(m);
@@ -134,7 +162,7 @@ void STARImpl::grow()
     addBundleEdge(xNearest, xNext);
 
     //###########################################################
-    //(4) If extension was successful, check if we reached goal
+    //(6) If extension was successful, check if we reached goal
     if (xNext && !hasSolution_)
     {
         /* update distance between trees */
