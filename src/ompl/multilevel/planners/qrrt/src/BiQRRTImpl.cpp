@@ -93,6 +93,7 @@ void BiQRRTImpl::init()
         qStart_ = new Configuration(getBundle(), state);
         qStart_->isStart = true;
         Vertex m = boost::add_vertex(qStart_, graph_);
+        disjointSets_.make_set(m);
         qStart_->index = m;
         treeStart_->add(qStart_);
     }
@@ -108,6 +109,7 @@ void BiQRRTImpl::init()
         qGoal_ = new Configuration(getBundle(), state);
         qGoal_->isGoal = true;
         Vertex m = boost::add_vertex(qGoal_, graph_);
+        disjointSets_.make_set(m);
         qGoal_->index = m;
         treeGoal_->add(qGoal_);
         goalConfigurations_.push_back(qGoal_);
@@ -161,6 +163,7 @@ void BiQRRTImpl::grow()
 
     Configuration *xNext = new Configuration(getBundle(), xRandom_->state);
     Vertex m = boost::add_vertex(xNext, graph_);
+    disjointSets_.make_set(m);
     xNext->index = m;
     tree->add(xNext);
     addBundleEdge(xNearest, xNext);
@@ -187,10 +190,10 @@ void BiQRRTImpl::grow()
         }
     }
 }
+
 void BiQRRTImpl::getPlannerData(ompl::base::PlannerData &data) const
 {
     BaseT::getPlannerData(data);
     OMPL_DEBUG(" Start Tree has %d vertices, Goal Tree has %d vertices.", 
         treeStart_->size(), treeGoal_->size());
-
 }

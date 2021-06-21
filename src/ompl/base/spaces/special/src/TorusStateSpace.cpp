@@ -94,6 +94,33 @@ void TorusStateSampler::sampleGaussian(State *state, const State *mean, double s
 
     space_->enforceBounds(state);
 }
+void TorusStateSampler::sampleShell(State *state, const State *center, double innerRadius, double outerRadius)
+{
+    auto *T = state->as<TorusStateSpace::StateType>();
+    const auto *Tcenter = center->as<TorusStateSpace::StateType>();
+
+    //random shell sampling around origin 
+    double xu = rng_.uniformReal(-1, 1);
+    double xv = rng_.uniformReal(-1, 1);
+
+    double d = std::sqrt(xu*xu + xv*xv);
+    double u = rng_.uniformReal(0, 1);
+    double ro = outerRadius*outerRadius;
+    double ri = innerRadius*innerRadius;
+    double r = std::sqrt(u*(ro-ri)+ri);
+    std::cout << r << std::endl;
+
+    std::cout << "S1:" << Tcenter->getS1() << std::endl;
+
+    xu = (r/d) * xu + Tcenter->getS1();
+    xv = (r/d) * xv + Tcenter->getS2();
+
+    std::cout << xu << std::endl;
+    std::cout << xv << std::endl;
+    T->setS1(xu);
+    T->setS2(xv);
+    space_->enforceBounds(state);
+}
 
 TorusStateSpace::TorusStateSpace(double majorRadius, double minorRadius)
   : majorRadius_(majorRadius), minorRadius_(minorRadius)

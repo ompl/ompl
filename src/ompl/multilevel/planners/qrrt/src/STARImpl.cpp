@@ -40,6 +40,8 @@
 #include <ompl/multilevel/datastructures/propagators/Geometric.h>
 #include <ompl/multilevel/datastructures/metrics/Geodesic.h>
 #include <ompl/tools/config/SelfConfig.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
+#include <ompl/base/spaces/special/TorusStateSpace.h>
 #include <boost/foreach.hpp>
 
 #define foreach BOOST_FOREACH
@@ -60,6 +62,96 @@ void STARImpl::grow()
   // [ ] Add conditional adding
   // [ ] Add termination criterion
   // [ ] Provide guarantees in terms of free space covered
+  // [ ] Impl shell sampling
+  // [x] Color start/goal trees differently
 
-    BaseT::grow();
+    //(0) If first run, add start configuration
+    if (firstRun_)
+    {
+        init();
+        firstRun_ = false;
+
+        findSection();
+    }
+
+    //###########################################################
+    //(0) Tree Selection
+    TreeData &tree = activeInitialTree_ ? treeStart_ : treeGoal_;
+    activeInitialTree_ = !activeInitialTree_;
+    TreeData &otherTree = activeInitialTree_ ? treeStart_ : treeGoal_;
+
+    //###########################################################
+    //(1) State Selection
+
+    std::vector<Configuration*> treeElements;
+    tree->list(treeElements);
+
+    int selectedTreeElement = rng_.uniformInt(0, tree->size()-1);
+    Configuration *xSelected = treeElements.at(selectedTreeElement);
+
+    //###########################################################
+    //(3) Extend Selection
+    // auto sampler = std::static_pointer_cast<base::RealVectorStateSampler>(getBundleSamplerPtr());
+    auto sampler = std::static_pointer_cast<base::TorusStateSampler>(getBundleSamplerPtr());
+
+    double maxExt = getBundle()->getMaximumExtent();
+    double sparseDelta = 0.05 * maxExt;
+
+    getBundle()->printState(xSelected->state);
+
+    sampler->sampleShell(xRandom_->state, xSelected->state, sparseDelta, sparseDelta + 0.1*sparseDelta);
+
+    bool valid = getBundle()->getStateValidityChecker()->isValid(xRandom_->state);
+    if(!valid)
+    {
+        return;
+    }
+    //###########################################################
+    //(4) Remove Covered Samples
+    Configuration *xNearest = tree->nearest(xRandom_);
+    double d = distance(xNearest, xRandom_);
+    if (d < sparseDelta)
+    {
+        //sample is covered by xNearest
+        return;
+    }
+
+    //###########################################################
+    //(5) Connect Selected to Random
+
+    if (!propagator_->steer(xSelected, xRandom_, xRandom_))
+    {
+        return;
+    }
+
+    //###########################################################
+    //(6) Valid Connected Element is added to Tree
+    Configuration *xNext = new Configuration(getBundle(), xRandom_->state);
+    Vertex m = boost::add_vertex(xNext, graph_);
+    disjointSets_.make_set(m);
+    xNext->index = m;
+    tree->add(xNext);
+    addBundleEdge(xNearest, xNext);
+
+    //###########################################################
+    //(4) If extension was successful, check if we reached goal
+    if (xNext && !hasSolution_)
+    {
+        /* update distance between trees */
+        Configuration *xOtherTree = otherTree->nearest(xNext);
+        const double newDist = tree->getDistanceFunction()(xNext, xOtherTree);
+        if (newDist < distanceBetweenTrees_)
+        {
+            distanceBetweenTrees_ = newDist;
+            OMPL_INFORM("Estimated distance to go: %f", distanceBetweenTrees_);
+        }
+
+        bool satisfied = propagator_->steer(xNext, xOtherTree, xRandom_);
+
+        if (satisfied)
+        {
+            addBundleEdge(xNext, xOtherTree);
+            hasSolution_ = true;
+        }
+    }
 }

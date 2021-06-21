@@ -330,7 +330,7 @@ void BundleSpaceGraph::uniteComponents(Vertex m1, Vertex m2)
     disjointSets_.union_set(m1, m2);
 }
 
-bool BundleSpaceGraph::sameComponent(Vertex m1, Vertex m2)
+bool BundleSpaceGraph::sameComponent(Vertex m1, Vertex m2) 
 {
     return boost::same_component(m1, m2, disjointSets_);
 }
@@ -832,6 +832,17 @@ void BundleSpaceGraph::getPlannerDataGraph(ompl::base::PlannerData &data, const 
         multilevel::PlannerDataVertexAnnotated p2(graph[v2]->state);
         p1.setLevel(getLevel());
         p2.setLevel(getLevel());
+
+        //Check component.
+        //  Small workaround to get vertex component, 
+        //  because boost disjointSet functions are non-const
+        bool startComponent = 
+          const_cast<BundleSpaceGraph *>(this)->sameComponent(v1, vStart_);
+        if(!startComponent)
+        {
+          p1.setComponent(1);
+          p2.setComponent(1);
+        }
         data.addEdge(p1, p2);
     }
     foreach (const Vertex v, boost::vertices(graph))

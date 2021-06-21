@@ -65,7 +65,7 @@ namespace ompl
             void clear() override;
             void getPlannerData(ompl::base::PlannerData &data) const override;
 
-        private:
+        protected:
             using TreeData = std::shared_ptr<NearestNeighbors<Configuration *>>;
             TreeData treeStart_;
             TreeData treeGoal_;

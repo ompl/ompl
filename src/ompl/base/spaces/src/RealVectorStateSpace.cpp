@@ -82,6 +82,41 @@ void ompl::base::RealVectorStateSampler::sampleGaussian(State *state, const Stat
     }
 }
 
+void ompl::base::RealVectorStateSampler::sampleShell(State *state, const State *center, double innerRadius, double outerRadius)
+{
+    const unsigned int dim = space_->getDimension();
+    const RealVectorBounds &bounds = static_cast<const RealVectorStateSpace *>(space_)->getBounds();
+
+    auto *rstate = static_cast<RealVectorStateSpace::StateType *>(state);
+    const auto *rcenter = static_cast<const RealVectorStateSpace::StateType *>(center);
+
+    //random shell sampling around origin 
+    Eigen::VectorXf xrand(dim);
+    for(unsigned int k = 0; k < dim; k++)
+    {
+        xrand[k] = rng_.uniformReal(-1, 1);
+    }
+
+    double d = std::sqrt(xrand.dot(xrand));
+    double u = rng_.uniformReal(0, 1);
+    double ro = outerRadius*outerRadius;
+    double ri = innerRadius*innerRadius;
+    double r = std::sqrt(u*(ro-ri)+ri);
+
+    xrand = (r/d) * xrand;
+
+    //add center state offset and convert to ompl state
+    for(unsigned int k = 0; k < dim; k++)
+    {
+        double v = xrand[k] + rcenter->values[k];
+        if (v < bounds.low[k])
+            v = bounds.low[k];
+        else if (v > bounds.high[k])
+            v = bounds.high[k];
+        rstate->values[k] = v;
+    }
+}
+
 void ompl::base::RealVectorStateSpace::registerProjections()
 {
     // compute a default random projection
