@@ -568,26 +568,12 @@ namespace ompl
                 numSparseCollisionChecksCurrentLevel_ = initialNumSparseCollisionChecks_;
                 numSparseCollisionChecksPreviousLevel_ = 0u;
 
+                // Restart the reverse search.
+                restartReverseSearch();
+
                 // Reinitialize the forward queue.
                 forwardQueue_->clear();
                 expandStartVerticesIntoForwardQueue();
-
-                // Restart the reverse search.
-                reverseQueue_->clear();
-                goalVertices_.clear();  // Free the reverse tree.
-                reverseCost_ = objective_->infiniteCost();
-                for (const auto &goal : graph_.getGoalStates())
-                {
-                    goal->setCurrentCostToCome(objective_->infiniteCost());
-                    goal->setAdmissibleCostToGo(objective_->identityCost());
-                    goal->setEstimatedCostToGo(objective_->identityCost());
-                    goal->setEstimatedEffortToGo(0u);
-                    goalVertices_.emplace_back(goal->asReverseVertex());
-                    reverseQueue_->insertOrUpdate(expand(goal));
-                }
-
-                // Update the search tag.
-                ++reverseSearchTag_;
             }
         }
 

@@ -192,11 +192,13 @@ namespace ompl
 
             void ReverseQueue::clear()
             {
-                // Can't use queue_.clear() because we need to remove the outgoing edge lookup pointers.
-                while (!empty())
-                {
-                    pop();
+                // We need to ensure the reverse queue lookup is cleared for all edges in the queue.
+                std::vector<HeapElement> contents;
+                queue_.getContent(contents);
+                for (auto element : contents) {
+                    std::get<2>(element).source->asReverseVertex()->outgoingReverseQueueLookup_.clear();
                 }
+                queue_.clear();
             }
 
             std::vector<Edge> ReverseQueue::getEdges() const
