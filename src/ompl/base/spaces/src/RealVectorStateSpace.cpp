@@ -84,24 +84,28 @@ void ompl::base::RealVectorStateSampler::sampleGaussian(State *state, const Stat
 
 void ompl::base::RealVectorStateSampler::sampleShell(State *state, const State *center, double innerRadius, double outerRadius)
 {
+  //https://math.stackexchange.com/questions/1885630/random-multivariate-in-hyperannulus
     const unsigned int dim = space_->getDimension();
     const RealVectorBounds &bounds = static_cast<const RealVectorStateSpace *>(space_)->getBounds();
 
     auto *rstate = static_cast<RealVectorStateSpace::StateType *>(state);
     const auto *rcenter = static_cast<const RealVectorStateSpace::StateType *>(center);
 
-    //random shell sampling around origin 
+    //Sample a random direction
     Eigen::VectorXf xrand(dim);
     for(unsigned int k = 0; k < dim; k++)
     {
         xrand[k] = rng_.uniformReal(-1, 1);
     }
 
+    //norm of random direction (to scale it to unit vector)
     double d = std::sqrt(xrand.dot(xrand));
+
+    //Scale the direction randomly to fall into shell
     double u = rng_.uniformReal(0, 1);
-    double ro = outerRadius*outerRadius;
-    double ri = innerRadius*innerRadius;
-    double r = std::sqrt(u*(ro-ri)+ri);
+    double ro = std::pow(outerRadius, dim);
+    double ri = std::pow(innerRadius, dim);
+    double r = std::pow(u*ro + (1.0-u)*ri, 1.0/dim);
 
     xrand = (r/d) * xrand;
 

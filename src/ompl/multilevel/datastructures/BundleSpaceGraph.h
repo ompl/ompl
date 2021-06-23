@@ -121,6 +121,8 @@ namespace ompl
                 bool isStart{false};
                 bool isGoal{false};
 
+                float importance{0.0};
+
                 /** \brief parent index for {qrrt*} */
                 Configuration *parent{nullptr};
 

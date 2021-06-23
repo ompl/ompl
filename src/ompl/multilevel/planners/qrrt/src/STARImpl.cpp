@@ -50,22 +50,157 @@ using namespace ompl::multilevel;
 STARImpl::STARImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("STARImpl" + std::to_string(id_));
+    setImportance("exponential");
+    setGraphSampler("randomvertex");
+    getGraphSampler()->disableSegmentBias();
+    distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
 }
 
 STARImpl::~STARImpl()
 {
 }
 
+void STARImpl::setup()
+{
+    BaseT::setup();
+
+    maxDistance_ = 0.1;
+
+    if(!treeStart_)
+    {
+      TreeData tree;
+      tree.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
+      tree->setDistanceFunction(
+          [this](const Configuration *a, const Configuration *b) 
+          { return distance(a, b); });
+      treeStart_ = std::make_shared<SparseTree>(tree);
+      treeStart_->setup();
+    }
+    if(!treeGoal_)
+    {
+      TreeData tree;
+      tree.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
+      tree->setDistanceFunction(
+          [this](const Configuration *a, const Configuration *b) 
+          { return distance(a, b); });
+
+      treeGoal_ = std::make_shared<SparseTree>(tree);
+      treeGoal_->setup();
+    }
+    // if(!treeStart_)
+    // {
+    //     treeStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
+    //     treeStart_->setDistanceFunction(
+    //         [this](const Configuration *a, const Configuration *b) 
+    //         { return distance(a, b); });
+    // }
+    // if(!treeGoal_)
+    // {
+    //     treeGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
+    //     treeGoal_->setDistanceFunction(
+    //         [this](const Configuration *a, const Configuration *b) 
+    //         { return distance(a, b); });
+    // }
+}
+void STARImpl::clear()
+{
+    BaseT::clear();
+    treeStart_->clear();
+    treeGoal_->clear();
+    distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
+}
+
+void STARImpl::init()
+{
+    if (const base::State *state = pis_.nextStart())
+    {
+        qStart_ = new Configuration(getBundle(), state);
+        qStart_->isStart = true;
+        addToTree(treeStart_, qStart_);
+    }
+
+    if (qStart_ == nullptr)
+    {
+        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
+        throw ompl::Exception("Invalid initial states.");
+    }
+
+    if (const base::State *state = pis_.nextGoal())
+    {
+        qGoal_ = new Configuration(getBundle(), state);
+        qGoal_->isGoal = true;
+        addToTree(treeGoal_, qGoal_);
+        goalConfigurations_.push_back(qGoal_);
+    }
+
+    if (qGoal_ == nullptr && getGoalPtr()->canSample())
+    {
+        OMPL_ERROR("%s: There are no valid goal states!", getName().c_str());
+        throw ompl::Exception("Invalid goal states.");
+    }
+}
+
+void STARImpl::addToTree(SparseTreePtr& tree, Configuration *x)
+{
+    Vertex m = boost::add_vertex(x, graph_);
+    disjointSets_.make_set(m);
+    x->index = m;
+    tree->add(x);
+    //analytics about tree elements
+    // assert(m == treeElement_numberOfExtensions_.size()-1);
+    // treeElement_numberOfExtensions_.push_back(0);
+    // treeElement_numberOfSuccessfulExtensions_.push_back(0);
+    // treeElement_isConverged_.push_back(false);
+    // treeElement_numberOfUnsuccessfulSubsequentExtensions_.push_back(0);
+    // x->importance = 0;
+}
+
+//void STARImpl::updateExtension(SparseTreePtr& tree, Configuration *x)
+//{
+//    int idx = x->index;
+//    if(treeElement_numberOfUnsuccessfulSubsequentExtensions_.at(idx) > 1000)
+//    {
+//        treeElement_isConverged_.at(idx) = true;
+//    }else{
+//        int n = treeElement_numberOfExtensions_.at(idx);
+//        int m = treeElement_numberOfSuccessfulExtensions_.at(idx);
+//        tree->push(x, (double)m/(double)(n+1));
+//    }
+//}
+
+//void STARImpl::updateUnsuccessfulExtension(SparseTreePtr& tree, Configuration *x)
+//{
+//  //DEBUG to visualize all samples
+//    // Configuration *v = new Configuration(getBundle(), xRandom_->state);
+//    // boost::add_vertex(v, graph_);
+
+//    int idx = x->index;
+//    treeElement_numberOfExtensions_.at(idx)++;
+//    treeElement_numberOfUnsuccessfulSubsequentExtensions_.at(idx)++;
+//    updateExtension(tree, x);
+//}
+
+//void STARImpl::updateSuccessfulExtension(SparseTreePtr& tree, Configuration *x)
+//{
+//    int idx = x->index;
+//    treeElement_numberOfExtensions_.at(idx)++;
+//    treeElement_numberOfSuccessfulExtensions_.at(idx)++;
+//    treeElement_numberOfUnsuccessfulSubsequentExtensions_.at(idx) = 0;
+//    updateExtension(tree, x);
+//}
+
 void STARImpl::grow()
 {
-  // TODO
-  // [ ] Add conditional adding
-  // [ ] Add termination criterion
-  // [ ] Provide guarantees in terms of free space covered
-  // [ ] Impl shell sampling
-  // [x] Color start/goal trees differently
+    // TODO
+    // [ ] Add conditional adding
+    // [ ] Add termination criterion
+    // [ ] Provide guarantees in terms of free space covered
+    // [ ] Add explicit shell sampling to SO3
+    // [x] Impl shell sampling
+    // [x] Color start/goal trees differently
+    //
+    //  -> Longterm Goal is to solve 06D mug infeasible/feasible
 
-    //(0) If first run, add start configuration
     if (firstRun_)
     {
         init();
@@ -75,10 +210,10 @@ void STARImpl::grow()
     }
 
     //###########################################################
-    //(0) Tree Selection. Can stay like that.
-    TreeData &tree = activeInitialTree_ ? treeStart_ : treeGoal_;
+    //(0) Tree Selection. 
+    SparseTreePtr &tree = activeInitialTree_ ? treeStart_ : treeGoal_;
     activeInitialTree_ = !activeInitialTree_;
-    TreeData &otherTree = activeInitialTree_ ? treeStart_ : treeGoal_;
+    SparseTreePtr &otherTree = activeInitialTree_ ? treeStart_ : treeGoal_;
 
     //###########################################################
     //(1) State Selection
@@ -89,54 +224,42 @@ void STARImpl::grow()
     //    (iv) number of neighbors. More neighbors means more of the shell is
     //    blocked. 
     //
-    std::vector<Configuration*> treeElements;
-    tree->list(treeElements);
+    // std::vector<Configuration*> treeElements;
+    // tree->list(treeElements);
 
-    int selectedTreeElement = rng_.uniformInt(0, tree->size()-1);
-    Configuration *xSelected = treeElements.at(selectedTreeElement);
+    // int selectedTreeElement = rng_.uniformInt(0, tree->size()-1);
+    // Configuration *xSelected = treeElements.at(selectedTreeElement);
+
+    Configuration *xSelected = tree->pop();
 
     //###########################################################
     //(2) Extend Selection
     // auto sampler = std::static_pointer_cast<base::RealVectorStateSampler>(getBundleSamplerPtr());
-    double maxExt = getBundle()->getMaximumExtent();
-    double sparseDelta = 0.05 * maxExt;
 
-    int type = getBundle()->getStateSpace()->getType();
-    if(type == base::STATE_SPACE_REAL_VECTOR)
-    {
-        auto sampler = std::static_pointer_cast<base::RealVectorStateSampler>(getBundleSamplerPtr());
-        sampler->sampleShell(xRandom_->state, xSelected->state, 
-            sparseDelta, sparseDelta + 0.1*sparseDelta);
-    }else if(type == base::STATE_SPACE_TORUS)
-    {
-        auto sampler = std::static_pointer_cast<base::TorusStateSampler>(getBundleSamplerPtr());
-        sampler->sampleShell(xRandom_->state, xSelected->state, 
-            sparseDelta, sparseDelta + 0.1*sparseDelta);
-    }else{
-        auto sampler = getBundleSamplerPtr();
-        sampler->sampleUniformNear(xRandom_->state, xSelected->state, sparseDelta + 0.1*sparseDelta);
-        throw "NYI";
-    }
+    double maxExt = getBundle()->getMaximumExtent();
+    double sparseDelta = 0.1 * maxExt;
+
+    auto sampler = getBundleSamplerPtr();
+    sampler->sampleShell(xRandom_->state, xSelected->state, 
+        sparseDelta, sparseDelta + 0.1*sparseDelta);
 
     bool valid = getBundle()->getStateValidityChecker()->isValid(xRandom_->state);
     if(!valid)
     {
-        //For debugging purposes
-        Configuration *x = new Configuration(getBundle(), xRandom_->state);
-        boost::add_vertex(x, graph_);
+        tree->push(xSelected, EXTENSION_FAILURE_INVALID_STATE);
         return;
     }
+
     //###########################################################
     //(3) Remove Covered Samples.
     //  Need to keep some to guarantee near-optimality.
+
     Configuration *xNearest = tree->nearest(xRandom_);
     double d = distance(xNearest, xRandom_);
-    if (d < sparseDelta)
+    if (d <= sparseDelta && 
+        getBundle()->checkMotion(xNearest->state, xRandom_->state))
     {
-        //For debugging purposes
-        Configuration *x = new Configuration(getBundle(), xRandom_->state);
-        boost::add_vertex(x, graph_);
-        //sample is covered by xNearest
+        tree->push(xSelected, EXTENSION_FAILURE_INSIDE_COVER);
         return;
     }
 
@@ -147,19 +270,20 @@ void STARImpl::grow()
 
     if (!propagator_->steer(xSelected, xRandom_, xRandom_))
     {
-        Configuration *x = new Configuration(getBundle(), xRandom_->state);
-        boost::add_vertex(x, graph_);
+        //If we find a valid sample which is not connectable, then this usually
+        //indicates a complicated state space geometry which could be useful to
+        //investigate further (i.e. allocate more resources to this)
+        tree->push(xSelected, EXTENSION_FAILURE_NO_CONNECTION);
         return;
     }
 
+    tree->push(xSelected, EXTENSION_SUCCESS);
     //###########################################################
     //(5) Valid Connected Element is added to Tree
+
     Configuration *xNext = new Configuration(getBundle(), xRandom_->state);
-    Vertex m = boost::add_vertex(xNext, graph_);
-    disjointSets_.make_set(m);
-    xNext->index = m;
-    tree->add(xNext);
-    addBundleEdge(xNearest, xNext);
+    addToTree(tree, xNext);
+    addBundleEdge(xSelected, xNext);
 
     //###########################################################
     //(6) If extension was successful, check if we reached goal
@@ -167,7 +291,7 @@ void STARImpl::grow()
     {
         /* update distance between trees */
         Configuration *xOtherTree = otherTree->nearest(xNext);
-        const double newDist = tree->getDistanceFunction()(xNext, xOtherTree);
+        const double newDist = distance(xNext, xOtherTree);
         if (newDist < distanceBetweenTrees_)
         {
             distanceBetweenTrees_ = newDist;
@@ -182,4 +306,10 @@ void STARImpl::grow()
             hasSolution_ = true;
         }
     }
+}
+void STARImpl::getPlannerData(ompl::base::PlannerData &data) const
+{
+    BaseT::getPlannerData(data);
+    OMPL_DEBUG(" Start Tree has %d vertices, Goal Tree has %d vertices.", 
+        treeStart_->size(), treeGoal_->size());
 }
