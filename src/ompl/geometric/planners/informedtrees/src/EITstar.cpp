@@ -1059,8 +1059,21 @@ namespace ompl
 
         unsigned int EITstar::estimateEffortToTarget(const eitstar::Edge &edge) const
         {
-            return edge.source->getEstimatedEffortToGo() +
-                   space_->validSegmentCount(edge.target->raw(), edge.source->raw());
+            // if we previously validated (=whitelisted) an edge, the effort to
+            // check is zero
+            if (edge.source->isWhitelisted(edge.target))
+            {
+              return 0;
+            }
+
+            // Get the segment count for the full resolution.
+            const std::size_t fullSegmentCount = space_->validSegmentCount(edge.source->raw(), edge.target->raw());
+
+            // Get the number of checks already performed on this edge.
+            const std::size_t performedChecks = edge.target->getIncomingCollisionCheckResolution(edge.source);
+
+            const std::size_t checksToCome = fullSegmentCount - performedChecks;
+            return edge.source->getEstimatedEffortToGo() + checksToCome;
         }
 
         bool EITstar::isValid(const Edge &edge) const
