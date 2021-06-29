@@ -600,8 +600,8 @@ namespace ompl
         {
             ASSERT_SETUP
 
-            // Set the cost sampled to the minimum
-            sampledCost_ = minCost_;
+            // Set the cost sampled to identity
+            sampledCost_ = costHelpPtr_->identityCost();
 
             // Store the number of samples being used in this batch
             numNewSamplesInCurrentBatch_ = numSamples;
