@@ -161,10 +161,16 @@ namespace ompl
         ompl::base::PlannerStatus EITstar::solve(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
             // Check that the planner and state space are setup.
-            auto status = checkSetup();
+            auto status = ensureSetup();
+
+            // Return early if the planner or state space are not setup.
+            if (status == ompl::base::PlannerStatus::StatusType::ABORT)
+            {
+                return status;
+            }
 
             // Update the status of the planner.
-            status = checkProblem(terminationCondition);
+            status = ensureStartAndGoalStates(terminationCondition);
 
             // Return early if no problem can be solved.
             if (status == ompl::base::PlannerStatus::StatusType::INVALID_START ||
@@ -577,8 +583,12 @@ namespace ompl
             }
         }
 
-        ompl::base::PlannerStatus::StatusType EITstar::checkSetup() const
+        ompl::base::PlannerStatus::StatusType EITstar::ensureSetup() const
         {
+            // Call the base planners validity check. This checks if the
+            // planner is setup if not then it calls setup().
+            checkValidity();
+
             // Ensure the planner is setup.
             if (!setup_)
             {
@@ -597,22 +607,28 @@ namespace ompl
         }
 
         ompl::base::PlannerStatus::StatusType
-        EITstar::checkProblem(const ompl::base::PlannerTerminationCondition &terminationCondition)
+        EITstar::ensureStartAndGoalStates(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
-            // Ensure the graph has a start state.
-            if (!graph_.hasStartState())
-            {
-                OMPL_WARN("%s: No solution can be found as no start states are available", name_.c_str());
-                return ompl::base::PlannerStatus::StatusType::INVALID_START;
-            }
-
-            // If the graph currently does not have a goal state, we wait until we get one.
-            if (!graph_.hasGoalState())
+            // If the graph currently does not have a start state, try to get one.
+            if (!graph_.hasAStartState())
             {
                 graph_.updateStartAndGoalStates(terminationCondition, &pis_);
 
-                // If the graph still doesn't have a goal after waiting there's nothing to solve.
-                if (!graph_.hasGoalState())
+                // If we could not get a start state, then there's nothing to solve.
+                if (!graph_.hasAStartState())
+                {
+                    OMPL_WARN("%s: No solution can be found as no start states are available", name_.c_str());
+                    return ompl::base::PlannerStatus::StatusType::INVALID_START;
+                }
+            }
+
+            // If the graph currently does not have a goal state, we wait until we get one.
+            if (!graph_.hasAGoalState())
+            {
+                graph_.updateStartAndGoalStates(terminationCondition, &pis_);
+
+                // If the graph still doesn't have a goal after waiting, then there's nothing to solve.
+                if (!graph_.hasAGoalState())
                 {
                     OMPL_WARN("%s: No solution can be found as no goal states are available", name_.c_str());
                     return ompl::base::PlannerStatus::StatusType::INVALID_GOAL;

@@ -138,7 +138,6 @@ namespace ompl
             void getPlannerData(base::PlannerData &data) const override;
 
         private:
-
             /** \brief Performs one iteration. */
             void iterate(const ompl::base::PlannerTerminationCondition &terminationCondition);
 
@@ -171,12 +170,12 @@ namespace ompl
              * graph, respectively. */
             ompl::base::PlannerStatus::StatusType updateSolution();
 
-            /** \brief Checks whether the planner and state space are setup. */
-            ompl::base::PlannerStatus::StatusType checkSetup() const;
+            /** \brief Checks whether the planner is successfully setup. */
+            ompl::base::PlannerStatus::StatusType ensureSetup();
 
             /** \brief Checks whether the problem specified a start and goal state. */
             ompl::base::PlannerStatus::StatusType
-            checkProblem(const ompl::base::PlannerTerminationCondition &terminationCondition);
+            ensureStartAndGoalStates(const ompl::base::PlannerTerminationCondition &terminationCondition);
 
             /** \brief Updates the planner status. */
             ompl::base::PlannerStatus::StatusType updateStatus();
