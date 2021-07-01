@@ -68,6 +68,14 @@ namespace ompl
             ompl::base::PlannerStatus
             solve(const ompl::base::PlannerTerminationCondition &terminationCondition) override;
 
+            /** \brief Clears all internal planner structures but retains settings. Subsequent calls to solve() will
+             * start from scratch. */
+            void clear() override;
+
+            /** \brief Clears all query-specific information, such as start and goal states and search trees. EIT*
+             * retains the samples and collision checking cache of previous queries. */
+            void clearQuery() override;
+
             /** \brief Gets the cost of the current best solution. */
             ompl::base::Cost bestCost() const;
 
@@ -349,13 +357,13 @@ namespace ompl
             ompl::base::Cost solutionCost_{std::numeric_limits<double>::signaling_NaN()};
 
             /** \brief The cost of the best reverse path. */
-            ompl::base::Cost reverseCost_;
+            ompl::base::Cost reverseCost_{std::numeric_limits<double>::signaling_NaN()};
 
             /** \brief The cost to come to the vertex that is closest to the goal (in cost space). */
-            ompl::base::Cost approximateSolutionCost_{};
+            ompl::base::Cost approximateSolutionCost_{std::numeric_limits<double>::signaling_NaN()};
 
             /** \brief The cost to go to the goal from the current best approximate solution. */
-            ompl::base::Cost approximateSolutionCostToGoal_{};
+            ompl::base::Cost approximateSolutionCostToGoal_{std::numeric_limits<double>::signaling_NaN()};
 
             /** \brief The number of processed edges. */
             mutable unsigned int numProcessedEdges_{0u};

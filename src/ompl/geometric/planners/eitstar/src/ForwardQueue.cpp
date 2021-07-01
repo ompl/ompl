@@ -51,7 +51,7 @@ namespace ompl
         {
             ForwardQueue::ForwardQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
                                        const std::shared_ptr<const ompl::base::StateSpace> &space)
-              : objective_(objective), space_(space), queue_()
+              : objective_(objective), space_(space)
             {
                 queue_.reserve(1000u);
             }

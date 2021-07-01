@@ -70,6 +70,13 @@ namespace ompl
                 void setup(const std::shared_ptr<ompl::base::ProblemDefinition> &problem,
                            ompl::base::PlannerInputStates *inputStates);
 
+                /** \brief Clears all internal planner structures but retains settings. Subsequent calls to solve() will
+                 * start from scratch. */
+                void clear();
+
+                /** \brief Clears all query-specific structures, such as start and goal states. */
+                void clearQuery();
+
                 /** \brief Adds new start and goals to the graph if available and creates a new informed sampler if
                  * necessary. */
                 void updateStartAndGoalStates(const ompl::base::PlannerTerminationCondition &terminationCondition,

@@ -74,10 +74,33 @@ namespace ompl
             {
                 problem_ = problem;
                 objective_ = problem->getOptimizationObjective();
-                sampler_ = objective_->allocInformedStateSampler(problem, std::numeric_limits<unsigned int>::max());
                 k_rgg_ = boost::math::constants::e<double>() +
                          (boost::math::constants::e<double>() / spaceInfo_->getStateDimension());
                 updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), inputStates);
+            }
+
+            void RandomGeometricGraph::clear()
+            {
+                problem_.reset();
+                objective_.reset();
+                sampler_.reset();
+                k_rgg_ = std::numeric_limits<std::size_t>::max();
+                numNeighbors_ = std::numeric_limits<std::size_t>::max();
+                radius_ = std::numeric_limits<double>::infinity();
+                samples_.clear();
+                newSamples_.clear();
+                startStates_.clear();
+                goalStates_.clear();
+                prunedStartStates_.clear();
+                prunedGoalStates_.clear();
+            }
+
+            void RandomGeometricGraph::clearQuery()
+            {
+                startStates_.clear();
+                goalStates_.clear();
+                prunedStartStates_.clear();
+                prunedGoalStates_.clear();
             }
 
             void RandomGeometricGraph::updateStartAndGoalStates(
