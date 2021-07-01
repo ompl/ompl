@@ -620,7 +620,7 @@ namespace ompl
             }
         }
 
-        ompl::base::PlannerStatus::StatusType EITstar::ensureSetup() const
+        ompl::base::PlannerStatus::StatusType EITstar::ensureSetup()
         {
             // Call the base planners validity check. This checks if the
             // planner is setup if not then it calls setup().
