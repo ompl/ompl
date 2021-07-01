@@ -647,12 +647,12 @@ namespace ompl
         EITstar::ensureStartAndGoalStates(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
             // If the graph currently does not have a start state, try to get one.
-            if (!graph_.hasAStartState())
+            if (!graph_.hasStartState())
             {
                 graph_.updateStartAndGoalStates(terminationCondition, &pis_);
 
                 // If we could not get a start state, then there's nothing to solve.
-                if (!graph_.hasAStartState())
+                if (!graph_.hasStartState())
                 {
                     OMPL_WARN("%s: No solution can be found as no start states are available", name_.c_str());
                     return ompl::base::PlannerStatus::StatusType::INVALID_START;
@@ -660,12 +660,12 @@ namespace ompl
             }
 
             // If the graph currently does not have a goal state, we wait until we get one.
-            if (!graph_.hasAGoalState())
+            if (!graph_.hasGoalState())
             {
                 graph_.updateStartAndGoalStates(terminationCondition, &pis_);
 
                 // If the graph still doesn't have a goal after waiting, then there's nothing to solve.
-                if (!graph_.hasAGoalState())
+                if (!graph_.hasGoalState())
                 {
                     OMPL_WARN("%s: No solution can be found as no goal states are available", name_.c_str());
                     return ompl::base::PlannerStatus::StatusType::INVALID_GOAL;
