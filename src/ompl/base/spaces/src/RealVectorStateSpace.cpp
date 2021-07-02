@@ -103,6 +103,9 @@ void ompl::base::RealVectorStateSampler::sampleShell(State *state, const State *
 
     //Scale the direction randomly to fall into shell
     double u = rng_.uniformReal(0, 1);
+
+    //inner shells have lower measure, outer shells have higher measure.
+    //This needs to be taken into account to create an unbiased sampler.
     double ro = std::pow(outerRadius, dim);
     double ri = std::pow(innerRadius, dim);
     double r = std::pow(u*ro + (1.0-u)*ri, 1.0/dim);

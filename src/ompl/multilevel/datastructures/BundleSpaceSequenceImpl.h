@@ -229,7 +229,9 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
             if (isInfeasible)
             {
                 double t_end = ompl::time::seconds(ompl::time::now() - t_start);
-                OMPL_DEBUG("-- Infeasibility detected after %f seconds (level %d).", t_end, k);
+                OMPL_INFORM("%s", std::string(80,'-').c_str());
+                OMPL_INFORM("-- Infeasibility detected after %f seconds (level %d).", t_end, k);
+                OMPL_INFORM("%s", std::string(80,'-').c_str());
                 return ompl::base::PlannerStatus::INFEASIBLE;
             }
             priorityQueue_.push(jBundle);
@@ -237,7 +239,7 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
 
         if (!foundKLevelSolution_)
         {
-            OMPL_DEBUG("-- Planner failed finding solution on BundleSpace level %d", k);
+            OMPL_INFORM("-- Planner failed finding solution on BundleSpace level %d", k);
             return ompl::base::PlannerStatus::TIMEOUT;
         }
     }

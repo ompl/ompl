@@ -39,11 +39,16 @@
 
 void ompl::base::StateSampler::sampleShell(State *state, const State *center, double innerRadius, double outerRadius)
 {
-    while(true)
+    const int max_attempts = 10;
+    int attempts = 0;
+    while(attempts++ < max_attempts)
     {
         sampleUniformNear(state, center, outerRadius);
-        if(space_->distance(state, center) >= innerRadius)
+        space_->enforceBounds(state);
+        if(space_->distance(center, state) >= innerRadius)
+        {
           break;
+        }
     }
 }
 
