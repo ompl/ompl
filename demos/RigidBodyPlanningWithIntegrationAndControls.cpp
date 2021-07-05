@@ -101,19 +101,19 @@ public:
 
     void propagate(const ob::State *start, const oc::Control *control, const double duration, ob::State *result) const
     {
-        double t = timeStep_;
+        double t = 0;
         std::valarray<double> dstate;
         space_->copyState(result, start);
-        while (t < duration + std::numeric_limits<double>::epsilon())
+        while (t+timeStep_ < duration + std::numeric_limits<double>::epsilon())
         {
             ode_(result, control, dstate);
             ode_.update(result, timeStep_ * dstate);
             t += timeStep_;
         }
-        if (t + std::numeric_limits<double>::epsilon() > duration)
+        if (t + std::numeric_limits<double>::epsilon() < duration)
         {
             ode_(result, control, dstate);
-            ode_.update(result, (t - duration) * dstate);
+            ode_.update(result, (duration-t) * dstate);
         }
     }
 
