@@ -147,6 +147,9 @@ void BundleSpace::setup()
             lengthObj->setCostThreshold(base::Cost(std::numeric_limits<double>::infinity()));
             pdef_->setOptimizationObjective(lengthObj);
         }
+    }else{
+        OMPL_ERROR("Called without ProblemDefinitionPtr");
+        throw "NoProblemDef";
     }
 }
 
@@ -211,6 +214,11 @@ void BundleSpace::resetCounter()
 void BundleSpace::setProjection(ProjectionPtr projection)
 {
     projection_ = projection;
+    if(getProjection() == nullptr)
+    {
+        OMPL_ERROR("Projection is nullptr.");
+        throw "Projection is nullptr.";
+    }
 }
 
 ProjectionPtr BundleSpace::getProjection() const

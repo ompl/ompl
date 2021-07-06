@@ -65,16 +65,19 @@ ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::
                                                               std::string type)
   : BaseT(siVec, type)
 {
-    assert(siVec.size() == (projVec.size() - 1));
     assert(siVec.size() > 0);
+    assert((siVec.size() - 1) == projVec.size());
     declareBundleSpaces(false);
 
-    // None projection added
+    // None projection (from last state to empty) 
     bundleSpaces_.front()->makeProjection();
     for (unsigned int k = 1; k < bundleSpaces_.size(); k++)
     {
         BundleSpace *bk = bundleSpaces_.at(k);
         bk->setProjection(projVec.at(k - 1));
+        //need to precompute the location helper functions to utilize
+        //"copyToReals" inside the projection function
+        bk->getBundle()->setup();
     }
 }
 
