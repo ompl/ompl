@@ -91,7 +91,8 @@ BundleSpaceGraph *PathRestriction::getBundleSpaceGraph()
 
 void PathRestriction::setBasePath(ompl::base::PathPtr path)
 {
-    if (!path) return;
+    if (!path)
+        return;
     auto geometricBasePath = std::static_pointer_cast<geometric::PathGeometric>(path);
     setBasePath(geometricBasePath->getStates());
 }
@@ -111,7 +112,6 @@ void PathRestriction::setBasePath(std::vector<ompl::base::State *> basePath)
         lengthsIntermediateBasePath_.push_back(lk);
         lengthBasePath_ += lk;
         lengthsCumulativeBasePath_.push_back(lengthBasePath_);
-
     }
     OMPL_DEBUG("Set new base path with %d states and length %f.", basePath_.size(), lengthBasePath_);
 }

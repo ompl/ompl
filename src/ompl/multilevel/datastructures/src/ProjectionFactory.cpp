@@ -678,7 +678,7 @@ int ProjectionFactory::GetNumberOfComponents(const StateSpacePtr &space)
             int type = space->getType();
 
             if ((type == base::STATE_SPACE_SE2) || (type == base::STATE_SPACE_SE3) ||
-                (type == base::STATE_SPACE_DUBINS)) 
+                (type == base::STATE_SPACE_DUBINS))
             {
                 nrComponents = 1;
             }
