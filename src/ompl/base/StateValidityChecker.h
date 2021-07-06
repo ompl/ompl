@@ -153,6 +153,18 @@ namespace ompl
                 return specs_;
             }
 
+            /** \brief Checks for equivalence between two Statevaliditycheckers
+             * */
+            virtual bool operator ==(const StateValidityChecker&) const
+            {
+              return false;
+            }
+            bool operator !=(const StateValidityChecker &rhs) const
+            {
+              return !(*this == rhs);
+            }
+
+
         protected:
             /** \brief The instance of space information this state validity checker operates on */
             SpaceInformation *si_;

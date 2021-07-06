@@ -166,7 +166,7 @@ class PlanarManipulatorCollisionChecker : public ompl::base::StateValidityChecke
 {
 public:
     PlanarManipulatorCollisionChecker(const ompl::base::SpaceInformationPtr si, const PlanarManipulator &manip,
-                                      const PolyWorld &world)
+                                      const PolyWorld *world)
       : ompl::base::StateValidityChecker(si), manip_(manip), world_(world)
     {
     }
@@ -189,13 +189,13 @@ public:
 
         // Check each coordinate to make sure they are in bounds.
         for (size_t i = 1; i < coordinates.size(); ++i)
-            if (world_.outOfBounds(coordinates[i]))
+            if (world_->outOfBounds(coordinates[i]))
                 return false;
 
         // Check each coordinate for obstacle intersection.
         for (size_t i = 1; i < coordinates.size(); ++i)
-            for (size_t j = 0; j < world_.numObstacles(); ++j)
-                if (world_.obstacle(j).inside(coordinates[i]))
+            for (size_t j = 0; j < world_->numObstacles(); ++j)
+                if (world_->obstacle(j).inside(coordinates[i]))
                     return false;
 
         // Self-collision with the manipulator.
@@ -209,9 +209,9 @@ public:
             Point p1 = coordinates[i];
             Point p2 = coordinates[i + 1];
 
-            for (size_t j = 0; j < world_.numObstacles(); ++j)
+            for (size_t j = 0; j < world_->numObstacles(); ++j)
             {
-                const ConvexPolygon &obstacle = world_.obstacle(j);
+                const ConvexPolygon &obstacle = world_->obstacle(j);
                 Point prev = obstacle[obstacle.numPoints() - 1];
                 for (size_t k = 0; k < obstacle.numPoints(); ++k)
                 {
@@ -243,7 +243,7 @@ private:
     }
 
     const PlanarManipulator &manip_;
-    const PolyWorld &world_;
+    const PolyWorld *world_;
 };
 
 #endif

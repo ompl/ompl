@@ -68,6 +68,8 @@ namespace ompl
                 CRASH,
                 /// The planner did not find a solution for some other reason
                 ABORT,
+                /// The planner decided that problem is infeasible
+                INFEASIBLE,
                 /// The number of possible status values
                 TYPE_COUNT
             };

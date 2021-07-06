@@ -492,6 +492,7 @@ namespace ompl
                     }
                     break;
                 }
+                case ompl::base::PlannerStatus::StatusType::INFEASIBLE:
                 case ompl::base::PlannerStatus::StatusType::UNKNOWN:
                 case ompl::base::PlannerStatus::StatusType::INVALID_START:
                 case ompl::base::PlannerStatus::StatusType::INVALID_GOAL:

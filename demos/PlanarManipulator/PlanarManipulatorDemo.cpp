@@ -129,7 +129,7 @@ ompl::geometric::SimpleSetupPtr setupOMPL(Problem &problem)
 
     // Create the collision checker.
     setup->setStateValidityChecker(std::make_shared<PlanarManipulatorCollisionChecker>(
-        setup->getSpaceInformation(), problem.manipulator, problem.world));
+        setup->getSpaceInformation(), problem.manipulator, &problem.world));
 
     // Increase motion validator resolution.
     setup->getSpaceInformation()->setStateValidityCheckingResolution(0.001);
