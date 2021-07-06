@@ -36,78 +36,97 @@
 
 /* Author: Andreas Orthey */
 
-#ifndef OMPL_BASE_SPACES_SPHERE_STATE_SPACE_
-#define OMPL_BASE_SPACES_SPHERE_STATE_SPACE_
+#ifndef OMPL_BASE_SPACES_KLEINBOTTLE_STATE_SPACE_
+#define OMPL_BASE_SPACES_KLEINBOTTLE_STATE_SPACE_
 
 #include <ompl/base/StateSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
-#include <Eigen/Core>
 
 namespace ompl
 {
     namespace base
     {
-        class SphereStateSampler : public ompl::base::StateSampler
+        /** \brief State sampler for the Klein bottle state space */
+        class KleinBottleStateSampler : public StateSampler
         {
         public:
-            SphereStateSampler(const StateSpace *space);
+            KleinBottleStateSampler(const StateSpace *space);
 
             void sampleUniform(State *state) override;
 
             void sampleUniformNear(State *state, const State *near, double distance) override;
 
             void sampleGaussian(State *state, const State *mean, double stdDev) override;
+
+        private:
+            /** \brief Constant of maximum norm gradient of surface (do not change).
+             * Estimated by taking the upper bound over 10k samples. */
+            const double gMax_{4.1455};
         };
 
-        class SphereStateSpace : public CompoundStateSpace
+        /** \brief The Klein bottle is a 2-dimensional non-orientable surface.
+         * In this class, we implement a 3-dimensional immersion of the
+         * Bottle.  */
+        class KleinBottleStateSpace : public CompoundStateSpace
         {
         public:
+            /** \brief The definition of a state (u,v) in the Klein bottle state
+             * space. A state is represented as a cylinder with height u in the
+             * interval [0, Pi] and
+             * angle v in the interval [-Pi, Pi] as in the discussion
+             * here: https://en.wikipedia.org/wiki/Klein_bottle#Construction
+             *
+             * This cylinder is then glued together (mapped) internally to provide
+             * correct distance and interpolation functions. */
             class StateType : public CompoundStateSpace::StateType
             {
             public:
                 StateType() = default;
 
-                double getTheta() const
+                /** \brief Access U, the height of the cylinder */
+                double getU() const
                 {
-                    return as<SO2StateSpace::StateType>(0)->value;
+                    return as<RealVectorStateSpace::StateType>(0)->values[0];
                 }
-                double getPhi() const
+                /** \brief Access V, the angle of the cylinder */
+                double getV() const
                 {
-                    return as<RealVectorStateSpace::StateType>(1)->values[0];
+                    return as<SO2StateSpace::StateType>(1)->value;
                 }
 
-                void setTheta(double theta)
+                /** \brief Set U, the height of the cylinder */
+                void setU(double u)
                 {
-                    as<SO2StateSpace::StateType>(0)->value = theta;
+                    as<RealVectorStateSpace::StateType>(0)->values[0] = u;
                 }
-                void setPhi(double phi)
+                /** \brief Set V, the angle of the cylinder */
+                void setV(double v)
                 {
-                    as<RealVectorStateSpace::StateType>(1)->values[0] = phi;
+                    as<SO2StateSpace::StateType>(1)->value = v;
                 }
-                void setThetaPhi(double theta, double phi)
+                void setUV(double u, double v)
                 {
-                    setTheta(theta);
-                    setPhi(phi);
+                    setU(u);
+                    setV(v);
                 }
             };
 
-            SphereStateSpace(double radius = 1.0);
+            KleinBottleStateSpace();
 
-            virtual ~SphereStateSpace() override = default;
+            ~KleinBottleStateSpace() override = default;
 
-            virtual StateSamplerPtr allocDefaultStateSampler() const override;
+            StateSamplerPtr allocDefaultStateSampler() const override;
 
-            virtual double getMeasure() const override;
+            double distance(const State *state1, const State *state2) const override;
 
-            virtual double distance(const State *state1, const State *state2) const override;
+            void interpolate(const State *from, const State *to, double t, State *state) const override;
 
-            virtual State *allocState() const override;
+            State *allocState() const override;
 
+            /* \brief Convert a state to a 3D vector to visualize the state
+             * space. */
             Eigen::Vector3f toVector(const State *state) const;
-
-        protected:
-            double radius_{1.0};
         };
     }
 }

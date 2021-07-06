@@ -36,16 +36,16 @@
 
 /* Author: Andreas Orthey */
 
-#include <ompl/base/spaces/MobiusStateSpace.h>
+#include <ompl/base/spaces/special/MobiusStateSpace.h>
 #include <ompl/tools/config/MagicConstants.h>
 #include <cstring>
+#include <cmath>
 #include <boost/math/constants/constants.hpp>
 
 using namespace boost::math::double_constants;  // pi
 using namespace ompl::base;
 
-MobiusStateSpace::MobiusStateSpace(double intervalMax, double radius):
-  intervalMax_(intervalMax), radius_(radius)
+MobiusStateSpace::MobiusStateSpace(double intervalMax, double radius) : intervalMax_(intervalMax), radius_(radius)
 {
     setName("Mobius" + getName());
     type_ = STATE_SPACE_MOBIUS;
@@ -61,12 +61,12 @@ MobiusStateSpace::MobiusStateSpace(double intervalMax, double radius):
 
 double MobiusStateSpace::distance(const State *state1, const State *state2) const
 {
-    double theta1 = state1->as<MobiusStateSpace::StateType>()->getS1();
-    double theta2 = state2->as<MobiusStateSpace::StateType>()->getS1();
+    double theta1 = state1->as<MobiusStateSpace::StateType>()->getU();
+    double theta2 = state2->as<MobiusStateSpace::StateType>()->getU();
 
     double diff = theta2 - theta1;
 
-    if (fabs(diff) <= pi)
+    if (std::abs(diff) <= pi)
     {
         return CompoundStateSpace::distance(state1, state2);
     }
@@ -80,24 +80,24 @@ double MobiusStateSpace::distance(const State *state1, const State *state2) cons
         double dist = 0.0;
         dist += weights_[0] * components_[0]->distance(cstate1->components[0], cstate2->components[0]);
 
-        double r1 = state1->as<MobiusStateSpace::StateType>()->getR1();
-        double r2 = state2->as<MobiusStateSpace::StateType>()->getR1();
+        double r1 = state1->as<MobiusStateSpace::StateType>()->getV();
+        double r2 = state2->as<MobiusStateSpace::StateType>()->getV();
 
         r2 = -r2;
 
-        dist += sqrt((r2 - r1) * (r2 - r1));
+        dist += std::sqrt((r2 - r1) * (r2 - r1));
         return dist;
     }
 }
 
 void MobiusStateSpace::interpolate(const State *from, const State *to, double t, State *state) const
 {
-    double theta1 = from->as<MobiusStateSpace::StateType>()->getS1();
-    double theta2 = to->as<MobiusStateSpace::StateType>()->getS1();
+    double theta1 = from->as<MobiusStateSpace::StateType>()->getU();
+    double theta2 = to->as<MobiusStateSpace::StateType>()->getU();
 
     double diff = theta2 - theta1;
 
-    if (fabs(diff) <= pi)
+    if (std::abs(diff) <= pi)
     {
         // interpolate as it would be a cylinder
         CompoundStateSpace::interpolate(from, to, t, state);
@@ -112,8 +112,8 @@ void MobiusStateSpace::interpolate(const State *from, const State *to, double t,
         // interpolate S1 as usual
         components_[0]->interpolate(cfrom->components[0], cto->components[0], t, cstate->components[0]);
 
-        double r1 = from->as<MobiusStateSpace::StateType>()->getR1();
-        double r2 = to->as<MobiusStateSpace::StateType>()->getR1();
+        double r1 = from->as<MobiusStateSpace::StateType>()->getV();
+        double r2 = to->as<MobiusStateSpace::StateType>()->getV();
 
         // Need to mirror point for interpolation
         r2 = -r2;
@@ -122,15 +122,15 @@ void MobiusStateSpace::interpolate(const State *from, const State *to, double t,
 
         // check again if we need to invert (only if we already crossed gluing
         // line)
-        double thetaNew = state->as<MobiusStateSpace::StateType>()->getS1();
+        double thetaNew = state->as<MobiusStateSpace::StateType>()->getU();
         double diff2 = theta2 - thetaNew;
 
-        if (fabs(diff2) <= pi)
+        if (std::abs(diff2) <= pi)
         {
             r = -r;
         }
 
-        state->as<MobiusStateSpace::StateType>()->setR1(r);
+        state->as<MobiusStateSpace::StateType>()->setV(r);
     }
 }
 
@@ -145,15 +145,13 @@ Eigen::Vector3f MobiusStateSpace::toVector(const State *state) const
 {
     Eigen::Vector3f vec;
 
-    const MobiusStateSpace::StateType *s = state->as<MobiusStateSpace::StateType>();
-    float u = s->getS1();
-    float v = s->getR1();
+    const auto *s = state->as<MobiusStateSpace::StateType>();
+    float u = s->getU();
+    float v = s->getV();
 
-    double R = radius_ + v*cos(0.5*u);
-    vec[0] = R*cos(u);
-    vec[1] = R*sin(u);
-    vec[2] = v*sin(0.5*u);
+    double R = radius_ + v * std::cos(0.5 * u);
+    vec[0] = R * std::cos(u);
+    vec[1] = R * std::sin(u);
+    vec[2] = v * std::sin(0.5 * u);
     return vec;
-
 }
-

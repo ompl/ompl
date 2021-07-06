@@ -95,6 +95,7 @@ namespace ompl
 
             ReedsSheppStateSpace(double turningRadius = 1.0) : rho_(turningRadius)
             {
+                type_ = STATE_SPACE_REEDS_SHEPP;
             }
 
             double distance(const State *state1, const State *state2) const override;

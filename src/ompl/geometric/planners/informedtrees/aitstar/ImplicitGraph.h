@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019-present University of Oxford
+ *  Copyright (c) 2019, University of Oxford
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -77,6 +77,12 @@ namespace ompl
 
                 /** \brief Get the reqire factor of the RGG. */
                 double getRewireFactor() const;
+
+                /** \brief Set the maximum number of goals AIT* will sample from sampleable goal regions. */
+                void setMaxNumberOfGoals(unsigned int maxNumberOfGoals);
+
+                /** \brief Get the maximum number of goals AIT* will sample from sampleable goal regions. */
+                unsigned int getMaxNumberOfGoals() const;
 
                 /** \brief Whether to use a k-nearest connection model. If false, it uses an r-disc model. */
                 void setUseKNearest(bool useKNearest);
@@ -183,6 +189,9 @@ namespace ompl
 
                 /** \brief Whether to use a k-nearest RGG. If false, AIT* uses an r-disc RGG. */
                 bool useKNearest_{true};
+
+                /** \brief The maximum number of goals BIT* will sample. */
+                unsigned int maxNumGoals_{10u};
 
                 /** \brief The radius that defines the neighborhood of a vertex if using an r-disc graph. */
                 double radius_{std::numeric_limits<double>::infinity()};
