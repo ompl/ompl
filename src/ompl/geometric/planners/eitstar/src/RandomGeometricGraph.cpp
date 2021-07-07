@@ -692,39 +692,33 @@ namespace ompl
 
             void RandomGeometricGraph::initializeState(const std::shared_ptr<State> &state)
             {
-                // Set the current cost to come.
-                state->setCurrentCostToCome(objective_->infiniteCost());
-
                 // Set the lower bounds.
                 state->setLowerBoundCostToCome(lowerBoundCostToCome(state));
                 state->setLowerBoundEffortToCome(lowerBoundEffortToCome(state));
                 state->setLowerBoundCostToGo(lowerBoundCostToGo(state));
 
-                if (problem_->getGoal()->isSatisfied(state->raw()))
+                // Set the current cost to come.
+                if (isStart(state))
                 {
-                    // Set the cost to go estimate admissible for the approximation.
+                    state->setCurrentCostToCome(objective_->identityCost());
+                }
+                else
+                {
+                    state->setCurrentCostToCome(objective_->infiniteCost());
+                }
+
+                // Set the estimated heuristics.
+                if (isGoal(state))
+                {
                     state->setAdmissibleCostToGo(objective_->identityCost());
-
-                    // Set the estimated cost to go.
                     state->setEstimatedCostToGo(objective_->identityCost());
-
-                    // Set the estimated effort to go.
                     state->setEstimatedEffortToGo(0u);
                 }
                 else
                 {
-                    // Set the admissible cost to go.
                     state->setAdmissibleCostToGo(objective_->infiniteCost());
-
-                    // Set the estimated cost to go.
                     state->setEstimatedCostToGo(objective_->infiniteCost());
-
-                    // Set the estimated effort to go.
                     state->setEstimatedEffortToGo(std::numeric_limits<std::size_t>::max());
-                }
-
-                if (isStart(state)) {
-                    state->setCurrentCostToCome(objective_->identityCost());
                 }
             }
 
