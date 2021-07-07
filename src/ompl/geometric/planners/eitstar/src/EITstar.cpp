@@ -901,6 +901,9 @@ namespace ompl
                 {
                     suboptimalityFactor_ = 1.0;
                 }
+
+                // Let the user know about the new solution.
+                informAboutNewSolution();
             }
         }
 
