@@ -174,7 +174,7 @@ namespace ompl
                 return status;
             }
 
-            // Update the status of the planner.
+            // Ensure that the problem has start and goal states before solving.
             status = ensureStartAndGoalStates(terminationCondition);
 
             // Return early if no problem can be solved.

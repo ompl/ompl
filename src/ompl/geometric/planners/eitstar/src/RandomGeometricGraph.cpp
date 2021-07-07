@@ -107,8 +107,7 @@ namespace ompl
                 const ompl::base::PlannerTerminationCondition &terminationCondition,
                 ompl::base::PlannerInputStates *inputStates)
             {
-                // We need to keep track of whether a new goal and/or a new start has been added when calling this
-                // function.
+                // We need to keep track of whether a new goal and/or a new start has been added.
                 bool addedNewStartState = false;
                 bool addedNewGoalState = false;
 
@@ -198,7 +197,7 @@ namespace ompl
                                 heuristicCost, objective_->motionCostHeuristic(goal->raw(), (*it)->raw()));
                         }
 
-                        // If this goal can possibly improve the current solution, add it back to the graph.
+                        // If this start can possibly improve the current solution, add it back to the graph.
                         if (objective_->isCostBetterThan(heuristicCost, solutionCost_))
                         {
                             registerStartState((*it)->raw());
@@ -207,7 +206,7 @@ namespace ompl
                         }
                     }
 
-                    // Remove all revived goals from the pruned goals.
+                    // Remove all revived starts from the pruned starts.
                     for (auto &revivedStart : revivedStarts)
                     {
                         std::iter_swap(revivedStart, prunedStartStates_.rbegin());
