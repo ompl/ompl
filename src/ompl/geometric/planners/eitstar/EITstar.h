@@ -43,6 +43,7 @@
 #include "ompl/base/Planner.h"
 #include "ompl/base/SpaceInformation.h"
 
+#include "ompl/geometric/PathGeometric.h"
 #include "ompl/geometric/planners/eitstar/Direction.h"
 #include "ompl/geometric/planners/eitstar/RandomGeometricGraph.h"
 #include "ompl/geometric/planners/eitstar/ForwardQueue.h"
@@ -190,6 +191,10 @@ namespace ompl
 
             /** \brief Updates the planner status. */
             ompl::base::PlannerStatus::StatusType updateStatus();
+
+            /** \brief Constructs the forward path to a state. */
+            std::shared_ptr<ompl::geometric::PathGeometric>
+            getPathToState(const std::shared_ptr<eitstar::State> &state) const;
 
             /** \brief Updates the solution with a given goal state. */
             void updateExactSolution(const std::shared_ptr<eitstar::State> &goalState);

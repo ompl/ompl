@@ -693,6 +693,35 @@ namespace ompl
             }
         }
 
+        std::shared_ptr<ompl::geometric::PathGeometric>
+        EITstar::getPathToState(const std::shared_ptr<eitstar::State> &state) const
+        {
+            // Allocate a vector for states. The append function of the path inserts states in front of an
+            // std::vector, which is not very efficient. I'll rather iterate over the vector in reverse.
+            std::vector<std::shared_ptr<State>> states;
+            auto current = state;
+
+            // Collect all states in reverse order of the path (starting from the goal).
+            while (!graph_.isStart(current))
+            {
+                assert(current->asForwardVertex()->getParent().lock());
+                states.emplace_back(current);
+                current = current->asForwardVertex()->getParent().lock()->getState();
+            }
+            states.emplace_back(current);
+
+            // Append all states to the path in correct order (starting from the start).
+            auto path = std::make_shared<ompl::geometric::PathGeometric>(spaceInfo_);
+            for (auto it = states.crbegin(); it != states.crend(); ++it)
+            {
+                assert(*it);
+                assert((*it)->raw());
+                path->append((*it)->raw());
+            }
+
+            return path;
+        }
+
         bool EITstar::continueSolving(const ompl::base::PlannerTerminationCondition &terminationCondition) const
         {
             // We stop solving the problem if:
@@ -836,44 +865,16 @@ namespace ompl
 
         void EITstar::updateExactSolution(const std::shared_ptr<eitstar::State> &goal)
         {
-            // Throw if the reverse root does not have a forward vertex.
-            assert(goal->hasForwardVertex());
-
             // We update the current goal if
-            //   1. We currently don't have a goal; or
-            //   2. The new goal has a better cost to come than the old goal
-            if (isBetter(goal->getCurrentCostToCome(), solutionCost_))
+            //   1. The new goal has a better cost to come than the old goal
+            //   2. Or the exact solution we found is no longer registered with the problem definition
+            if (isBetter(goal->getCurrentCostToCome(), solutionCost_) || !problem_->hasExactSolution())
             {
                 // Update the best cost.
                 solutionCost_ = goal->getCurrentCostToCome();
 
-                // Allocate the path.
-                auto path = std::make_shared<ompl::geometric::PathGeometric>(spaceInfo_);
-
-                // Allocate a vector for states. The append function of the path inserts states in front of an
-                // std::vector, which is not very efficient. I'll rather iterate over the vector in reverse.
-                std::vector<std::shared_ptr<State>> states;
-                auto current = goal;
-
-                // Collect all states in reverse order of the path (starting from the goal).
-                while (!graph_.isStart(current))
-                {
-                    assert(current->asForwardVertex()->getParent().lock());
-                    states.emplace_back(current);
-                    current = current->asForwardVertex()->getParent().lock()->getState();
-                }
-                states.emplace_back(current);
-
-                // Append all states to the path in correct order (starting from the start).
-                for (auto it = states.crbegin(); it != states.crend(); ++it)
-                {
-                    assert(*it);
-                    assert((*it)->raw());
-                    path->append((*it)->raw());
-                }
-
                 // Register this solution with the problem definition.
-                ompl::base::PlannerSolution solution(path);
+                ompl::base::PlannerSolution solution(getPathToState(goal));
                 solution.setPlannerName(name_);
                 solution.setOptimized(objective_, solutionCost_, objective_->isSatisfied(solutionCost_));
                 problem_->addSolutionPath(solution);
