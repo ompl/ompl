@@ -1208,8 +1208,8 @@ namespace ompl
 
             // Remember at what resolution this edge was already checked. We're assuming that the number of collision
             // checks is symmetric for each edge.
-            edge.source->setIncomingCollisionCheckResolution(edge.target, currentCheck);
-            edge.target->setIncomingCollisionCheckResolution(edge.source, currentCheck);
+            edge.source->setIncomingCollisionCheckResolution(edge.target, currentCheck - 1u);
+            edge.target->setIncomingCollisionCheckResolution(edge.source, currentCheck - 1u);
 
             // Whitelist this edge if it was checked at full resolution.
             if (segmentCount == fullSegmentCount)
