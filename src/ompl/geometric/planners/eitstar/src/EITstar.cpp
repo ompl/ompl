@@ -205,10 +205,18 @@ namespace ompl
 
         void EITstar::clear()
         {
-            forwardQueue_->clear();
-            forwardQueue_.reset();
-            reverseQueue_->clear();
-            reverseQueue_.reset();
+            if (forwardQueue_)
+            {
+                forwardQueue_->clear();
+            }
+
+            if (reverseQueue_)
+            {
+                reverseQueue_->clear();
+            }
+
+            startVertices_.clear();
+            goalVertices_.clear();
             objective_.reset();
             graph_.clear();
 
@@ -219,6 +227,14 @@ namespace ompl
             approximateSolutionCost_ = ompl::base::Cost(std::numeric_limits<double>::signaling_NaN());
             approximateSolutionCostToGoal_ = ompl::base::Cost(std::numeric_limits<double>::signaling_NaN());
 
+            // Reset the tags.
+            reverseSearchTag_ = 1u;
+            startExpansionGraphTag_ = 0u;
+            numSparseCollisionChecksCurrentLevel_ = initialNumSparseCollisionChecks_;
+            numSparseCollisionChecksPreviousLevel_ = 0u;
+            suboptimalityFactor_ = std::numeric_limits<double>::infinity();
+
+            Planner::clear();
             setup_ = false;
         }
 
