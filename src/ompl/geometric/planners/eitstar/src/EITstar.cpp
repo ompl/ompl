@@ -188,8 +188,8 @@ namespace ompl
             OMPL_INFORM("%s: Solving the given planning problem. The current best solution cost is %.4f", name_.c_str(),
                         solutionCost_.value());
 
-            // Iterate until stopped or objective is satisfied.
-            while (!terminationCondition && !objective_->isSatisfied(solutionCost_))
+            // Iterate while we should continue solving the problem.
+            while (continueSolving(terminationCondition))
             {
                 iterate(terminationCondition);
             }
@@ -691,6 +691,19 @@ namespace ompl
             {
                 return ompl::base::PlannerStatus::StatusType::TIMEOUT;
             }
+        }
+
+        bool EITstar::continueSolving(const ompl::base::PlannerTerminationCondition &terminationCondition) const
+        {
+            // We stop solving the problem if:
+            //   - The termination condition is satisfied; or
+            //   - The current solution satisfies the objective; or
+            //   - There is no better solution to be found for the current start goal pair and no new starts or
+            //     goals are available
+            // We continue solving the problem if we don't stop solving.
+            return !(terminationCondition || objective_->isSatisfied(solutionCost_) ||
+                     (!isBetter(graph_.minPossibleCost(), solutionCost_) && !pis_.haveMoreStartStates() &&
+                      !pis_.haveMoreGoalStates()));
         }
 
         bool EITstar::continueReverseSearch() const

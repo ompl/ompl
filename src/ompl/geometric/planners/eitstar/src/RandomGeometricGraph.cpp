@@ -230,6 +230,23 @@ namespace ompl
                     OMPL_WARN("EIT*: The problem has a goal but not a start. EIT* can not find a solution since "
                               "PlannerInputStates provides no method to wait for a valid start state to appear.");
                 }
+
+                // Compute the minimum possible cost for this problem given the start and goal states and an admissible
+                // cost heuristic.
+                minPossibleCost_ = objective_->infiniteCost();
+                for (const auto &start : startStates_)
+                {
+                    for (const auto &goal : goalStates_)
+                    {
+                        minPossibleCost_ = objective_->betterCost(
+                            minPossibleCost_, objective_->motionCostHeuristic(start->raw(), goal->raw()));
+                    }
+                }
+            }
+
+            ompl::base::Cost RandomGeometricGraph::minPossibleCost() const
+            {
+                return minPossibleCost_;
             }
 
             void RandomGeometricGraph::setRadiusFactor(double factor)

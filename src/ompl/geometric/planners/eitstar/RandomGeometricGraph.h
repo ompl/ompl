@@ -82,6 +82,9 @@ namespace ompl
                 void updateStartAndGoalStates(const ompl::base::PlannerTerminationCondition &terminationCondition,
                                               ompl::base::PlannerInputStates *inputStates);
 
+                /** \brief Returns the minimum possible cost for the current problem. */
+                ompl::base::Cost minPossibleCost() const;
+
                 /** \brief Sets the radius factor. */
                 void setRadiusFactor(double factor);
 
@@ -251,6 +254,9 @@ namespace ompl
 
                 /** \brief The cost of the incumbent solution. */
                 const ompl::base::Cost &solutionCost_;
+
+                /** \brief The minimum possible cost for this problem. */
+                ompl::base::Cost minPossibleCost_{std::numeric_limits<double>::signaling_NaN()};
 
                 /** \brief The number of sampled states. */
                 mutable unsigned int numSampledStates_{0u};

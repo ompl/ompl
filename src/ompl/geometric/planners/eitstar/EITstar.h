@@ -158,6 +158,9 @@ namespace ompl
             /** \brief Improves the approximation by sampling more states. */
             void improveApproximation(const ompl::base::PlannerTerminationCondition &terminationCondition);
 
+            /* \brief Checks whether the to continue solving the problem or return the best solution. */
+            bool continueSolving(const ompl::base::PlannerTerminationCondition &terminationCondition) const;
+
             /** \brief Checks whether the reverse search must be continued. */
             bool continueReverseSearch() const;
 
