@@ -81,12 +81,9 @@ namespace ompl
 
             void RandomGeometricGraph::clear()
             {
-                problem_.reset();
-                objective_.reset();
-                sampler_.reset();
-                k_rgg_ = std::numeric_limits<std::size_t>::max();
-                numNeighbors_ = std::numeric_limits<std::size_t>::max();
+                tag_ = 1u;
                 radius_ = std::numeric_limits<double>::infinity();
+                numNeighbors_ = std::numeric_limits<std::size_t>::max();
                 samples_.clear();
                 newSamples_.clear();
                 startStates_.clear();
