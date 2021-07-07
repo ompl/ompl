@@ -728,11 +728,11 @@ namespace ompl
             {
                 // Compute and return the radius. Note to self: double / int -> double. You looked it up. It's fine.
                 // RRT*
-                return radiusFactor_ *
-                       std::pow(2.0 * (1.0 + 1.0 / dimension_) *
-                                    (sampler_->getInformedMeasure(solutionCost_) / unitNBallMeasure_) *
-                                    (std::log(static_cast<double>(numInformedSamples)) / numInformedSamples),
-                                1.0 / dimension_);
+                // return radiusFactor_ *
+                //        std::pow(2.0 * (1.0 + 1.0 / dimension_) *
+                //                     (sampler_->getInformedMeasure(solutionCost_) / unitNBallMeasure_) *
+                //                     (std::log(static_cast<double>(numInformedSamples)) / numInformedSamples),
+                //                 1.0 / dimension_);
 
                 // FMT*
                 // return 2.0 * radiusFactor_ *
@@ -740,6 +740,13 @@ namespace ompl
                 //        unitNBallMeasure_) *
                 //                     (std::log(static_cast<double>(numInformedSamples)) / numInformedSamples),
                 //                 1.0 / dimension_);
+
+                // PRM*
+                return radiusFactor_ * 2.0 *
+                       std::pow((1.0 + 1.0 / dimension_) *
+                                    (sampler_->getInformedMeasure(solutionCost_) / unitNBallMeasure_) *
+                                    (std::log(static_cast<double>(numInformedSamples)) / numInformedSamples),
+                                1.0 / dimension_);
             }
 
         }  // namespace eitstar
