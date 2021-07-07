@@ -891,13 +891,24 @@ namespace ompl
         void EITstar::updateApproximateSolution(const std::shared_ptr<eitstar::State> &state)
         {
             assert(trackApproximateSolutions_);
-            if (state->hasForwardVertex() || graph_.isStart(state))
+            if ((state->hasForwardVertex() || graph_.isStart(state)) && !graph_.isGoal(state))
             {
                 const auto costToGoal = computeCostToGoToGoal(state);
-                if (isBetter(costToGoal, approximateSolutionCostToGoal_))
+                if (isBetter(costToGoal, approximateSolutionCostToGoal_) || !problem_->hasSolution())
                 {
                     approximateSolutionCost_ = state->getCurrentCostToCome();
                     approximateSolutionCostToGoal_ = costToGoal;
+                    ompl::base::PlannerSolution solution(getPathToState(state));
+                    solution.setPlannerName(name_);
+
+                    // Set the approximate flag.
+                    solution.setApproximate(costToGoal.value());
+
+                    // This solution is approximate and can not satisfy the objective.
+                    solution.setOptimized(objective_, approximateSolutionCost_, false);
+
+                    // Let the problem definition know that a new solution exists.
+                    pdef_->addSolutionPath(solution);
                 }
             }
         }
