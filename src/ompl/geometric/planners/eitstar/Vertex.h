@@ -163,9 +163,13 @@ namespace ompl
                 /** \brief The outgoing edges from this vertex currently in the queue. This is maintained by the queue.
                  */
                 mutable std::vector<ompl::BinaryHeap<
-                    std::tuple<ompl::base::Cost, unsigned int, Edge>,
-                    std::function<bool(const std::tuple<ompl::base::Cost, unsigned int, Edge> &,
-                                       const std::tuple<ompl::base::Cost, unsigned int, Edge> &)>>::Element *>
+                    std::tuple<ompl::base::Cost, ompl::base::Cost, unsigned int, Edge>,
+                    std::function<bool(const std::tuple<ompl::base::Cost,
+                                                        ompl::base::Cost,
+                                                        unsigned int, Edge> &,
+                                       const std::tuple<ompl::base::Cost,
+                                                        ompl::base::Cost,
+                                                        unsigned int, Edge> &)>>::Element *>
                     outgoingReverseQueueLookup_;
             };
 

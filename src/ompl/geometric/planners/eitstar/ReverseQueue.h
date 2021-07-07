@@ -106,6 +106,9 @@ namespace ompl
                 /** \brief Returns the admissible total potential solution cost of an edge. */
                 ompl::base::Cost computeAdmissibleSolutionCost(const Edge &edge) const;
 
+                /** \brief Returns the cost to come to the target of the edge. */
+                ompl::base::Cost computeAdmissibleCostToComeToTarget(const Edge &edge) const;
+                    
                 /** \brief Returns the admissible total potential solution effort of an edge. */
                 unsigned int computeAdmissibleSolutionEffort(const Edge &edge) const;
 
@@ -115,8 +118,8 @@ namespace ompl
                 /** \brief The state space information. */
                 std::shared_ptr<const ompl::base::StateSpace> space_;
 
-                /** \brief The queue is ordered on the lower bound cost through an edge. */
-                using HeapElement = std::tuple<ompl::base::Cost, unsigned int, Edge>;
+                /** \brief The queue is ordered on [g + c + h, g + c, effort] */
+                using HeapElement = std::tuple<ompl::base::Cost, ompl::base::Cost, unsigned int, Edge>;
                 using CostEffortHeap =
                     ompl::BinaryHeap<HeapElement, std::function<bool(const HeapElement &, const HeapElement &)>>;
                 CostEffortHeap queue_;

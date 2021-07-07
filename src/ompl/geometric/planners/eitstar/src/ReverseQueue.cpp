@@ -54,7 +54,14 @@ namespace ompl
               , queue_([objective](const HeapElement &lhs, const HeapElement &rhs) {
                   if (objective->isCostEquivalentTo(std::get<0>(lhs), std::get<0>(rhs)))
                   {
-                      return std::get<1>(lhs) < std::get<1>(rhs);
+                      if (objective->isCostEquivalentTo(std::get<1>(lhs), std::get<1>(rhs)))
+                      {
+                          return std::get<2>(lhs) < std::get<2>(rhs);
+                      }
+                      else
+                      {
+                          return objective->isCostBetterThan(std::get<1>(lhs), std::get<1>(rhs));
+                      }
                   }
                   else
                   {
@@ -80,10 +87,11 @@ namespace ompl
                 {
                     // Compute the keys.
                     const auto key1 = computeAdmissibleSolutionCost(edge);
-                    const auto key2 = computeAdmissibleSolutionEffort(edge);
+                    const auto key2 = computeAdmissibleCostToComeToTarget(edge);
+                    const auto key3 = computeAdmissibleSolutionEffort(edge);
 
                     // Create the heap element.
-                    const auto element = std::make_tuple(key1, key2, edge);
+                    const auto element = std::make_tuple(key1, key2, key3, edge);
 
                     // Insert the edge with the key in the queue.
                     const auto elementPointer = queue_.insert(element);
@@ -106,7 +114,7 @@ namespace ompl
             {
                 if (auto element = queue_.top())
                 {
-                    return std::get<2>(element->data);
+                    return std::get<3>(element->data);
                 }
                 else
                 {
@@ -119,7 +127,7 @@ namespace ompl
                 // Check if the edge is in the queue via the reverse queue pointers.
                 const auto &lookup = edge.source->asReverseVertex()->outgoingReverseQueueLookup_;
                 const auto it = std::find_if(lookup.cbegin(), lookup.cend(), [&edge](const auto &p) {
-                    return std::get<2>(p->data).target->getId() == edge.target->getId();
+                    return std::get<3>(p->data).target->getId() == edge.target->getId();
                 });
 
                 // Indicate that the edge is not in the queue by returning false.
@@ -130,7 +138,8 @@ namespace ompl
 
                 // Update the cost and effort and the position of the edge in the queue.
                 std::get<0>((*it)->data) = computeAdmissibleSolutionCost(edge);
-                std::get<1>((*it)->data) = computeAdmissibleSolutionEffort(edge);
+                std::get<1>((*it)->data) = computeAdmissibleCostToComeToTarget(edge);
+                std::get<2>((*it)->data) = computeAdmissibleSolutionEffort(edge);
                 queue_.update(*it);
 
                 // Indicate that the edge was updated by returning true.
@@ -143,6 +152,13 @@ namespace ompl
                     objective_->combineCosts(edge.source->getAdmissibleCostToGo(),
                                              objective_->motionCostHeuristic(edge.target->raw(), edge.source->raw())),
                     edge.target->getLowerBoundCostToCome());
+            }
+
+            ompl::base::Cost ReverseQueue::computeAdmissibleCostToComeToTarget(const Edge &edge) const
+            {
+                return  objective_->combineCosts(edge.source->getAdmissibleCostToGo(),
+                                                 objective_->motionCostHeuristic(edge.target->raw(),
+                                                                                 edge.source->raw()));
             }
 
             unsigned int ReverseQueue::computeAdmissibleSolutionEffort(const Edge &edge) const
@@ -160,7 +176,7 @@ namespace ompl
                 const auto element = queue_.top();
 
                 // Copy the data of the top edge.
-                auto edge = std::get<2>(element->data);
+                auto edge = std::get<3>(element->data);
 
                 // If the source state of the edge does not have an associated vertex, it's a bug.
                 assert(edge.source->hasReverseVertex());
@@ -195,8 +211,9 @@ namespace ompl
                 // We need to ensure the reverse queue lookup is cleared for all edges in the queue.
                 std::vector<HeapElement> contents;
                 queue_.getContent(contents);
-                for (auto element : contents) {
-                    std::get<2>(element).source->asReverseVertex()->outgoingReverseQueueLookup_.clear();
+                for (auto element : contents)
+                {
+                    std::get<3>(element).source->asReverseVertex()->outgoingReverseQueueLookup_.clear();
                 }
                 queue_.clear();
             }
@@ -209,7 +226,7 @@ namespace ompl
                 edges.reserve(contents.size());
                 for (const auto &element : contents)
                 {
-                    edges.push_back(std::get<2>(element));
+                    edges.push_back(std::get<3>(element));
                 }
                 return edges;
             }
