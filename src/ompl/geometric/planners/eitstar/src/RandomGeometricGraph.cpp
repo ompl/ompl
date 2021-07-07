@@ -572,7 +572,7 @@ namespace ompl
                 // Check each sample if it can be pruned.
                 for (const auto &sample : samples)
                 {
-                    if (!canPossiblyImproveSolution(sample))
+                    if (canBePruned(sample))
                     {
                         if (isStart(sample))
                         {
@@ -630,16 +630,16 @@ namespace ompl
                 // Count the number of samples that can possibly improve the solution and subtract the start and goal
                 // states from this number, as they're not technically uniformly distributed.
                 return std::count_if(samples.begin(), samples.end(),
-                                     [this](const auto &sample) { return canPossiblyImproveSolution(sample); }) -
+                                     [this](const auto &sample) { return !canBePruned(sample); }) -
                        startStates_.size() - goalStates_.size();
             }
 
-            bool RandomGeometricGraph::canPossiblyImproveSolution(const std::shared_ptr<State> &state) const
+            bool RandomGeometricGraph::canBePruned(const std::shared_ptr<State> &state) const
             {
-                // If it is infinite, any state can improve it.
+                // If we don't have a solution, no state can be pruned.
                 if (!objective_->isFinite(solutionCost_))
                 {
-                    return true;
+                    return false;
                 }
                 else
                 {
@@ -649,9 +649,8 @@ namespace ompl
                     // Get the heuristic cost to go.
                     const auto costToGo = lowerBoundCostToGo(state);
 
-                    // Return whether the heuristic cost to come and the heuristic cost to go is better than the current
-                    // cost.
-                    return objective_->isCostBetterThan(objective_->combineCosts(costToCome, costToGo), solutionCost_);
+                    // Return whether the current solution is better than the lower bound potential solution.
+                    return objective_->isCostBetterThan(solutionCost_, objective_->combineCosts(costToCome, costToGo));
                 }
             }
 

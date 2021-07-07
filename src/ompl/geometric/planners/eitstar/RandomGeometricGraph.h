@@ -165,8 +165,9 @@ namespace ompl
                 /** \brief Returns the number of states in the informed set. */
                 std::size_t countSamplesInInformedSet() const;
 
-                /** \brief Returns whether a state can possibly improve the current solution. */
-                bool canPossiblyImproveSolution(const std::shared_ptr<State> &state) const;
+                /** \brief Returns whether a state can be pruned because it cannot possibly be part of a solution equal
+                 * to or better than the current solution. */
+                bool canBePruned(const std::shared_ptr<State> &state) const;
 
                 /** \brief Returns the heuristic cost from the preferred start of a state. */
                 ompl::base::Cost lowerBoundCostToCome(const std::shared_ptr<State> &state) const;
