@@ -152,7 +152,7 @@ namespace ompl
                 /** \brief The state space information. */
                 std::shared_ptr<const ompl::base::StateSpace> space_;
 
-                /** \brief The queue is ordered on the lower bound cost through an edge. */
+                /** \brief The queue is ordered on the lower bound cost through an edge (high to low). */
                 std::vector<std::pair<EdgeKeys, Edge>> queue_{};
             };
         }  // namespace eitstar

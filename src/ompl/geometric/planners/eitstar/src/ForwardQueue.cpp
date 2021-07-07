@@ -121,11 +121,11 @@ namespace ompl
                 {
                     throw std::out_of_range("Forward queue is empty, cannot peek.");
                 }
-                
+
                 const auto edge = pop(suboptimalityFactor);
                 insertOrUpdate(edge);
                 return edge;
-            } 
+            }
 
             void ForwardQueue::updateIfExists(const Edge &edge)
             {
@@ -154,7 +154,8 @@ namespace ompl
             Edge ForwardQueue::pop(double suboptimalityFactor)
             {
                 // Get the lower bounding edge and corresponding cost.
-                const auto lowerBoundEdge = queue_.begin();
+                const auto lowerBoundEdge = queue_.end() - 1u;  // Could do rbegin(), but converting reverse iterators
+                                                                // to froward iterators is error prone.
                 const auto lowerBoundEdgeCost = inflateCost(lowerBoundEdge->first.lowerBoundCost, suboptimalityFactor);
 
                 // Find the best estimate edge and corresponding cost.
@@ -200,7 +201,7 @@ namespace ompl
 
             ompl::base::Cost ForwardQueue::getLowerBoundOnOptimalSolutionCost() const
             {
-                return queue_.begin()->first.lowerBoundCost;
+                return queue_.rbegin()->first.lowerBoundCost;
             }
 
             bool ForwardQueue::containsOpenTargets(std::size_t reverseSearchTag) const
@@ -261,7 +262,7 @@ namespace ompl
             {
                 return std::lower_bound(
                     queue_.begin(), queue_.end(), keysAndEdge, [this](const auto &a, const auto &b) {
-                        return objective_->isCostBetterThan(a.first.lowerBoundCost, b.first.lowerBoundCost);
+                        return !objective_->isCostBetterThan(a.first.lowerBoundCost, b.first.lowerBoundCost);
                     });
             }
 
