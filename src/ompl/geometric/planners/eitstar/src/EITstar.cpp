@@ -1165,24 +1165,11 @@ namespace ompl
             // Test states while there are states to be tested.
             while (!indices.empty())
             {
-                // Get the current segment and remove if from the queue.
+                // Get the current segment.
                 const auto current = indices.front();
-                indices.pop();
 
                 // Get the midpoint of the segment.
                 auto mid = (current.first + current.second) / 2;
-
-                // Create the first half of the split segment if necessary.
-                if (current.first < mid)
-                {
-                    indices.emplace(current.first, mid - 1u);
-                }
-
-                // Create the second half of the split segment if necessary.
-                if (current.second > mid)
-                {
-                    indices.emplace(mid + 1u, current.second);
-                }
 
                 // Only do the detection if we haven't tested this state on a previous level.
                 if (currentCheck > performedChecks)
@@ -1200,6 +1187,19 @@ namespace ompl
                         graph_.registerInvalidEdge(edge);
                         return false;
                     }
+                }
+
+                // Remove the current segment from the queue.
+                indices.pop();
+
+                // Create the first or second half of the split segment if necessary.
+                if (current.first < mid)
+                {
+                    indices.emplace(current.first, mid - 1u);
+                }
+                else if (current.second > mid)
+                {
+                    indices.emplace(mid + 1u, current.second);
                 }
 
                 // Increase the current check number.
