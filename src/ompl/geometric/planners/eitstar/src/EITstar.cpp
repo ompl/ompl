@@ -249,6 +249,9 @@ namespace ompl
             reverseCost_ = objective_->infiniteCost();
             approximateSolutionCost_ = objective_->infiniteCost();
             approximateSolutionCostToGoal_ = objective_->infiniteCost();
+
+            Planner::clearQuery();
+            setup_ = false;
         }
 
         ompl::base::Cost EITstar::bestCost() const
