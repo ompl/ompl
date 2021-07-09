@@ -99,6 +99,11 @@ namespace ompl
             }
 
             double distance(const State *state1, const State *state2) const override;
+            unsigned int validSegmentCount(const State *state1, const State *state2) const override
+            {
+                return longestValidSegmentCountFactor_ *
+                       (unsigned int)ceil(distance(state1, state2) / longestValidSegment_);
+            }
 
             void interpolate(const State *from, const State *to, double t, State *state) const override;
             virtual void interpolate(const State *from, const State *to, double t, bool &firstTime,
