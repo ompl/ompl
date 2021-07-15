@@ -249,7 +249,9 @@ namespace ompl
             approximateSolutionCost_ = objective_->infiniteCost();
             approximateSolutionCostToGoal_ = objective_->infiniteCost();
 
-            Planner::clearQuery();
+            suboptimalityFactor_ = std::numeric_limits<double>::infinity();
+
+            //Planner::clearQuery();
             setup_ = false;
         }
 
@@ -1059,6 +1061,7 @@ namespace ompl
 
         unsigned int EITstar::estimateEffortToTarget(const eitstar::Edge &edge) const
         {
+#if 1
             // if we previously validated (=whitelisted) an edge, the effort to
             // check is zero
             if (edge.source->isWhitelisted(edge.target))
@@ -1074,6 +1077,10 @@ namespace ompl
 
             const std::size_t checksToCome = fullSegmentCount - performedChecks;
             return edge.source->getEstimatedEffortToGo() + checksToCome;
+#else
+            return edge.source->getEstimatedEffortToGo() +
+                   space_->validSegmentCount(edge.target->raw(), edge.source->raw());
+#endif
         }
 
         bool EITstar::isValid(const Edge &edge) const
