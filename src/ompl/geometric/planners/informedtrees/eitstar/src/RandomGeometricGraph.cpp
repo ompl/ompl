@@ -238,6 +238,12 @@ namespace ompl
                             minPossibleCost_, objective_->motionCostHeuristic(start->raw(), goal->raw()));
                     }
                 }
+
+                std::vector<std::shared_ptr<State>> samples;
+                samples_.list(samples);
+                for (auto &state: samples){
+                  initializeState(state);
+                }
             }
 
             ompl::base::Cost RandomGeometricGraph::minPossibleCost() const
