@@ -393,34 +393,33 @@ namespace ompl
 
         void EITstar::getPlannerData(base::PlannerData &data) const
         {
-            // base::PlannerDataVertex takes a raw pointer to a state. I want to guarantee, that the state lives as long
-            // as the program lives.
-            static std::set<std::shared_ptr<State>,
-                            std::function<bool(const std::shared_ptr<State> &, const std::shared_ptr<State> &)>>
-                liveStates([](const auto &lhs, const auto &rhs) { return lhs->getId() < rhs->getId(); });
-
             // Get the base class data.
             Planner::getPlannerData(data);
 
             // Add the samples and their outgoing edges.
             for (const auto &state : graph_.getStates())
             {
-                // Add the state to the live states.
-                liveStates.insert(state);
-
                 // Add the state as a vertex.
                 data.addVertex(base::PlannerDataVertex(state->raw(), state->getId()));
 
                 // If the sample is in the forward tree, add the outgoing edges.
-                if (state->hasForwardVertex())
+                for (const auto &state2 : graph_.getStates()){
+                    if (state->isWhitelisted(state2)){
+                        data.addEdge(base::PlannerDataVertex(state->raw(),
+                                                             state->getId()),
+                                     base::PlannerDataVertex(state2->raw(), state2->getId()));
+                    
+                    }
+                }
+                /*if (state->hasForwardVertex())
                 {
                     for (const auto &child : state->asForwardVertex()->getChildren())
                     {
-                        data.addEdge(base::PlannerDataVertex(state->asForwardVertex()->getState()->raw(),
-                                                             state->asForwardVertex()->getState()->getId()),
+                        data.addEdge(base::PlannerDataVertex(state->raw(),
+                                                             state->getId()),
                                      base::PlannerDataVertex(child->getState()->raw(), child->getState()->getId()));
                     }
-                }
+                }*/
             }
         }
 
