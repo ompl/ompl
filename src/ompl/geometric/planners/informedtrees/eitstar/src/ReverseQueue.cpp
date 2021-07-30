@@ -163,9 +163,41 @@ namespace ompl
 
             unsigned int ReverseQueue::computeAdmissibleSolutionEffort(const Edge &edge) const
             {
-                return edge.source->getEstimatedEffortToGo() +
-                       space_->validSegmentCount(edge.target->raw(), edge.source->raw()) +
-                       edge.target->getLowerBoundEffortToCome();
+                std::size_t edgeEffort;;
+                if (edge.source->isWhitelisted(edge.target))
+                {
+                    edgeEffort = 0u;
+                }
+                else
+                {
+                    const std::size_t fullSegmentCount = 
+                      space_->validSegmentCount(edge.source->raw(), edge.target->raw());
+
+                    // Get the number of checks already performed on this edge.
+                    const std::size_t performedChecks = 
+                      edge.target->getIncomingCollisionCheckResolution(edge.source);
+
+                    edgeEffort = fullSegmentCount - performedChecks;
+
+                    // This should never occur, but we check anyways
+                    if (fullSegmentCount < performedChecks)
+                    {
+                        edgeEffort = 0u;
+                    }
+                }
+
+                unsigned int totalEffort = edge.source->getEstimatedEffortToGo() +
+                  edgeEffort + 
+                  edge.target->getLowerBoundEffortToCome();
+
+                if (std::numeric_limits<unsigned int>::max() -
+                    edgeEffort - edge.source->getEstimatedEffortToGo() < 
+                    edge.target->getLowerBoundEffortToCome())
+                {
+                  return std::numeric_limits<unsigned int>::max(); 
+                }
+
+                return totalEffort;
             }
 
             Edge ReverseQueue::pop()

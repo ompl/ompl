@@ -297,17 +297,33 @@ namespace ompl
 
             std::size_t ForwardQueue::estimateEffort(const Edge &edge) const
             {
+                unsigned int edgeEffort;;
+                if (edge.source->isWhitelisted(edge.target))
+                {
+                    edgeEffort = 0u;
+                }
+                else
+                {
+                    const unsigned int fullSegmentCount = space_->validSegmentCount(edge.source->raw(), edge.target->raw());
+
+                    // Get the number of checks already performed on this edge.
+                    const unsigned int performedChecks = edge.target->getIncomingCollisionCheckResolution(edge.source);
+
+                    edgeEffort = fullSegmentCount - performedChecks;
+                }
+
                 // Make sure this doesn't overflow.
                 if (std::numeric_limits<unsigned int>::max() -
-                        space_->validSegmentCount(edge.source->raw(), edge.target->raw()) <
+                        edgeEffort <
                     edge.target->getEstimatedEffortToGo())
                 {
                     return std::numeric_limits<unsigned int>::max();
                 }
 
-                // Add the segment count of the edge plus the estimated effort to go.
-                return space_->validSegmentCount(edge.source->raw(), edge.target->raw()) +
-                       edge.target->getEstimatedEffortToGo();
+                unsigned int totalEffort = edge.target->getEstimatedEffortToGo()
+                  + edgeEffort;
+
+                return totalEffort;
             }
 
             ompl::base::Cost ForwardQueue::estimateCost(const Edge &edge) const
