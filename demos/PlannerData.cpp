@@ -145,7 +145,7 @@ void readPlannerData()
     // Loading an instance of PlannerData from disk.
     dataStorage.load("myPlannerData", data);
 
-    // Re-extract the shortest path from the loaded planner data
+    // Re-extract a shortest path from the loaded planner data
     if (data.numStartVertices() > 0 && data.numGoalVertices() > 0)
     {
         // Create an optimization objective for optimizing path length in A*

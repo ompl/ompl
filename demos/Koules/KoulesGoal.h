@@ -49,7 +49,7 @@ public:
         threshold_ = 0.01;
     }
 
-    // number of "live" koules plus the shortest distance between any live koule and an edge
+    // number of "live" koules plus a shortest distance between any live koule and an edge
     virtual double distanceGoal(const ompl::base::State *st) const;
     // pick a random state where each koule is on the edge of the workspace
     virtual void sampleGoal(ompl::base::State *st) const;

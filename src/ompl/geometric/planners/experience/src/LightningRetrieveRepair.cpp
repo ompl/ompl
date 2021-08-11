@@ -204,7 +204,7 @@ bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *s
     ompl::base::PlannerDataPtr bestPath = nearestPaths_.front();
     std::size_t bestPathScore = std::numeric_limits<std::size_t>::max();
 
-    // Track which path has the shortest distance
+    // Track which path has a shortest distance
     std::vector<double> distances(nearestPaths_.size(), 0);
     std::vector<bool> isReversed(nearestPaths_.size());
 
@@ -277,7 +277,7 @@ bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *s
                     int(pathID), currentPath->numVertices(), invalidStates, pathScore,
                     isReversed[pathID] ? "true" : "false", distances[pathID]);
 
-        // Check if we have a perfect score (0) and this is the shortest path (the first one)
+        // Check if we have a perfect score (0) and this is a shortest path (the first one)
         if (pathID == 0 && pathScore == 0)
         {
             OMPL_DEBUG("LightningRetrieveRepair:  --> The shortest path (path 0) has a perfect score (0), ending "
