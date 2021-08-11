@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019-present University of Oxford
+ *  Copyright (c) 2019, University of Oxford
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,7 @@
 #include "ompl/datastructures/BinaryHeap.h"
 
 #include "ompl/geometric/planners/informedtrees/aitstar/Edge.h"
+#include "ompl/geometric/planners/informedtrees/aitstar/Queuetypes.h"
 
 namespace ompl
 {
@@ -55,13 +56,15 @@ namespace ompl
     {
         namespace aitstar
         {
-            class Vertex
+            class Vertex : public std::enable_shared_from_this<Vertex>
             {
             public:
                 /** \brief Constructs a vertex by sampling a state. */
                 Vertex(const ompl::base::SpaceInformationPtr &spaceInformation,
-                       const ompl::base::ProblemDefinitionPtr &problemDefinition,
-                       const std::size_t &batchId);
+                       const ompl::base::ProblemDefinitionPtr &problemDefinition, const std::size_t &batchId);
+
+                /** \brief Constructs a copy of another vertex. */
+                explicit Vertex(const std::shared_ptr<Vertex> &other);
 
                 /** \brief Destructs the vertex. */
                 virtual ~Vertex();
@@ -126,6 +129,12 @@ namespace ompl
                 /** \brief Sets the cost to come to this vertex from the goal. */
                 void setCostToComeFromGoal(const ompl::base::Cost &cost);
 
+                /** \brief Resets the cost to come to this vertex from the goal to infinity. */
+                void resetCostToComeFromGoal();
+
+                /** \brief Resets the expanded cost to come to this vertex from the goal to infinity. */
+                void resetExpandedCostToComeFromGoal();
+
                 /** \brief Sets the cost to come to this vertex from the goal when it was expanded. */
                 void setExpandedCostToComeFromGoal(const ompl::base::Cost &cost);
 
@@ -136,10 +145,10 @@ namespace ompl
                 void updateCostOfForwardBranch() const;
 
                 /** \brief Recursively invalidates the branch of the reverse tree rooted in this vertex. */
-                std::vector<std::weak_ptr<aitstar::Vertex>> invalidateReverseBranch();
+                std::vector<std::weak_ptr<Vertex>> invalidateReverseBranch();
 
                 /** \brief Recursively invalidates the branch of the forward tree rooted in this vertex. */
-                std::vector<std::weak_ptr<aitstar::Vertex>> invalidateForwardBranch();
+                std::vector<std::weak_ptr<Vertex>> invalidateForwardBranch();
 
                 /** \brief Adds a vertex to this vertex's forward children. */
                 void addToForwardChildren(const std::shared_ptr<Vertex> &vertex);
@@ -180,89 +189,48 @@ namespace ompl
                 /** \brief Returns the nearest neighbors, throws if not up to date. */
                 const std::vector<std::shared_ptr<Vertex>> getNeighbors() const;
 
-                /** \brief Registers that a child has been added to this vertex during the current forward search. */
-                void registerPoppedOutgoingEdgeDuringForwardSearch();
-
-                /** \brief Registers the expansion of this vertex during the current reverse search. */
-                void registerExpansionDuringReverseSearch();
-
-                /** \brief Unregisters the expansion of this vertex during the current reverse search, needed when a
-                 * reverse branch is invalidated due to a collision detection on an edge. */
-                void unregisterExpansionDuringReverseSearch();
-
-                /** \brief Registers the insertion of this vertex into the open queue during the current reverse
-                 * search. */
-                void registerInsertionIntoQueueDuringReverseSearch();
-
-                /** \brief Returns whether the vertex has had an outgoing edge popped during the current forward search.
-                 */
-                bool hasHadOutgoingEdgePoppedDuringCurrentForwardSearch() const;
-
-                /** \brief Returns whether the vertex has been expanded during the current reverse search. */
-                bool hasBeenExpandedDuringCurrentReverseSearch() const;
-
-                /** \brief Returns whether the vertex has been inserted into the queue during the current reverse
-                 * search. */
-                bool hasBeenInsertedIntoQueueDuringCurrentReverseSearch() const;
+                /** \brief Returns whether the vertex is consistent, i.e., whether its cost-to-come is equal to the
+                 * cost-to-come when it was last expanded. */
+                bool isConsistent() const;
 
                 /** \brief Sets the reverse queue pointer of this vertex. */
-                void setReverseQueuePointer(
-                    typename ompl::BinaryHeap<
-                        std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
-                        std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
-                                           const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>
-                                               &)>>::Element *pointer);
+                void setReverseQueuePointer(typename VertexQueue::Element *pointer);
 
                 /** \brief Returns the reverse queue pointer of this vertex. */
-                typename ompl::BinaryHeap<
-                    std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
-                    std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
-                                       const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
-                    Element *
-                    getReverseQueuePointer() const;
+                typename VertexQueue::Element *getReverseQueuePointer() const;
 
                 /** \brief Resets the reverse queue pointer. */
                 void resetReverseQueuePointer();
 
                 /** \brief Adds an element to the forward queue incoming lookup. */
-                void addToForwardQueueIncomingLookup(
-                    typename ompl::BinaryHeap<
-                        aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element
-                        *pointer);
+                void addToForwardQueueIncomingLookup(typename EdgeQueue::Element *pointer);
 
                 /** \brief Adds an element to the forward queue outgoing lookup. */
-                void addToForwardQueueOutgoingLookup(
-                    typename ompl::BinaryHeap<
-                        aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element
-                        *pointer);
+                void addToForwardQueueOutgoingLookup(typename EdgeQueue::Element *pointer);
 
                 /** \brief Returns the forward queue incoming lookup of this vertex. */
-                std::vector<ompl::BinaryHeap<
-                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
-                getForwardQueueIncomingLookup() const;
+                std::vector<EdgeQueue::Element *> getForwardQueueIncomingLookup() const;
 
                 /** \brief Returns the forward queue outgoing lookup of this vertex. */
-                std::vector<ompl::BinaryHeap<
-                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element *>
-                getForwardQueueOutgoingLookup() const;
+                std::vector<EdgeQueue::Element *> getForwardQueueOutgoingLookup() const;
 
                 /** \brief Remove an element from the incoming queue lookup. */
-                void removeFromForwardQueueIncomingLookup(
-                    ompl::BinaryHeap<aitstar::Edge,
-                                     std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element
-                        *element);
+                void removeFromForwardQueueIncomingLookup(typename EdgeQueue::Element *element);
 
                 /** \brief Remove an element from the outgoing queue lookup. */
-                void removeFromForwardQueueOutgoingLookup(
-                    ompl::BinaryHeap<aitstar::Edge,
-                                     std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element
-                        *element);
+                void removeFromForwardQueueOutgoingLookup(typename EdgeQueue::Element *element);
 
                 /** \brief Resets the forward queue incoming lookup. */
                 void resetForwardQueueIncomingLookup();
 
                 /** \brief Resets the forward queue outgoing lookup. */
                 void resetForwardQueueOutgoingLookup();
+
+                /** \brief Calls the given function on this vertex and all of its children. */
+                void callOnForwardBranch(const std::function<void(const std::shared_ptr<Vertex> &)> &function);
+
+                /** \brief Calls the given function on this vertex and all of its children. */
+                void callOnReverseBranch(const std::function<void(const std::shared_ptr<Vertex> &)> &function);
 
             private:
                 /** \brief The space information of the planning problem. */
@@ -317,46 +285,22 @@ namespace ompl
                 const std::size_t vertexId_;
 
                 /** \brief The id of the most recent batch. */
-                const std::size_t& batchId_;
+                const std::size_t &batchId_;
 
                 /** \brief The batch id for which the cached neighbor list is valid. */
                 mutable std::size_t neighborBatchId_{0u};
 
-                /** \brief The batch id for which the reverse search cost to come is valid. */
-                mutable std::size_t reverseSearchBatchId_{0u};
-
-                /** \brief The forward search id when the most recent outgoing edge was popped from the forward queue.
-                 */
-                mutable std::size_t poppedOutgoingEdgeId_{0u};
-
-                /** \brief The reverse search id this vertex has last been expanded on. */
-                mutable std::size_t expandedReverseSearchId_{0u};
-
-                /** \brief The reverse search id this vertex has last been inserted into open on. */
-                mutable std::size_t insertedIntoQueueId_{0u};
-
                 /** \brief The reverse search id for which the reverse queue pointer is valid. */
                 mutable std::size_t reverseQueuePointerId_{0u};
 
-                /** \brief The type of the elements in the reverse queue. */
-                using ReverseQueueElement = typename ompl::BinaryHeap<
-                    std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
-                    std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
-                                       const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &)>>::
-                    Element;
-
                 /** \brief The pointer to the reverse queue element. */
-                mutable ReverseQueueElement *reverseQueuePointer_{nullptr};
-
-                /** \brief The type of the elements in the forward queue. */
-                using ForwardQueueElement = typename ompl::BinaryHeap<
-                    aitstar::Edge, std::function<bool(const aitstar::Edge &, const aitstar::Edge &)>>::Element;
+                mutable typename VertexQueue::Element *reverseQueuePointer_{nullptr};
 
                 /** \brief The lookup to incoming edges in the forward queue. */
-                mutable std::vector<ForwardQueueElement *> forwardQueueIncomingLookup_;
+                mutable std::vector<EdgeQueue::Element *> forwardQueueIncomingLookup_;
 
                 /** \brief The lookup to outgoing edges in the forward queue. */
-                mutable std::vector<ForwardQueueElement *> forwardQueueOutgoingLookup_;
+                mutable std::vector<EdgeQueue::Element *> forwardQueueOutgoingLookup_;
             };
 
         }  // namespace aitstar
