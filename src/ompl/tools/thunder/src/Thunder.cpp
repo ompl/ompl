@@ -70,6 +70,12 @@ void ompl::tools::Thunder::initialize()
 
 void ompl::tools::Thunder::setup()
 {
+    if (!filePath_.compare("unloaded"))
+    {
+        OMPL_WARN("Database was not set setup has to be called with a database different than %s", filePath_.c_str());
+        return;
+    }
+
     if (!configured_ || !si_->isSetup() || !planner_->isSetup() || !rrPlanner_->isSetup())
     {
         // Setup Space Information if we haven't already done so
@@ -153,8 +159,8 @@ void ompl::tools::Thunder::setup()
             experienceDB_->getSPARSdb()->setup();
 
             experienceDB_->getSPARSdb()->setStretchFactor(1.2);
-            experienceDB_->getSPARSdb()->setSparseDeltaFraction(
-                0.05);  // vertex visibility range  = maximum_extent * this_fraction
+            experienceDB_->getSPARSdb()->setSparseDeltaFraction(0.05);  // vertex visibility range  = maximum_extent *
+                                                                        // this_fraction
             // experienceDB_->getSPARSdb()->setDenseDeltaFraction(0.001);
 
             experienceDB_->getSPARSdb()->printDebug();
