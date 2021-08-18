@@ -129,7 +129,6 @@ void ompl::tools::Lightning::setup()
             else
             {
                 experienceDB_->load(filePath_);  // load from file
-                return; 
             }
         }
         else

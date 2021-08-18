@@ -70,9 +70,9 @@ void ompl::tools::Thunder::initialize()
 
 void ompl::tools::Thunder::setup()
 {
-    if (!filePath_.compare("unloaded"))
+    if (filePath_ == "unloaded" or filePath_.empty())
     {
-        OMPL_WARN("Database was not set setup has to be called with a database different than %s", filePath_.c_str());
+        OMPL_WARN("Database filepath has not been set. Unable to setup!");
         return;
     }
 
