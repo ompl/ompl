@@ -17,6 +17,10 @@ STARImpl::STARImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : 
     setGraphSampler("randomedge");
     getGraphSampler()->disableSegmentBias();
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
+
+    //parameters
+    //maximumextensions_ (SparseTree.h)
+
 }
 
 STARImpl::~STARImpl()
@@ -121,13 +125,13 @@ void STARImpl::grow()
 
     //###########################################################
     //(0) Tree Selection. 
-    SparseTreePtr &tree = activeInitialTree_ ? treeStart_ : treeGoal_;
-    activeInitialTree_ = !activeInitialTree_;
-    SparseTreePtr &otherTree = activeInitialTree_ ? treeStart_ : treeGoal_;
+    // SparseTreePtr &tree = activeInitialTree_ ? treeStart_ : treeGoal_;
+    // activeInitialTree_ = !activeInitialTree_;
+    // SparseTreePtr &otherTree = activeInitialTree_ ? treeStart_ : treeGoal_;
 
     //DEBUG with only start tree
-    // SparseTreePtr &tree = treeStart_;
-    // SparseTreePtr &otherTree = treeGoal_;
+    SparseTreePtr &tree = treeStart_;
+    SparseTreePtr &otherTree = treeGoal_;
 
     if(tree->isConverged()) return;
 
@@ -149,6 +153,8 @@ void STARImpl::grow()
     Configuration *xSelected = tree->pop();
 
     if(!xSelected) return;
+
+    std::cout << "Selected config with importance " << xSelected->importance << std::endl;
 
     //###########################################################
     //(2) Extend Selection
@@ -245,6 +251,7 @@ void STARImpl::grow()
             OMPL_INFORM("Estimated distance to go: %f", distanceBetweenTrees_);
         }
 
+        //Try to connect trees
         bool satisfied = propagator_->steer(xNext, xOtherTree, xRandom_);
 
         if (satisfied)

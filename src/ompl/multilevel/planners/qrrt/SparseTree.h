@@ -32,18 +32,9 @@ namespace ompl
             int extensionInsideCover{0};
             int extensionNoConnection{0};
             double radius{0.0};
-            void print()
-            {
-                std::cout << "Config " << config->index 
-                  << " radius: " << radius
-                  << " (ext: " << numberOfExtensions 
-                  << ", unsuccess seq: " << numberOfUnsuccessfulSubsequentExtensions 
-                  << "), (extension failures: "
-                 << extensionInvalidState << " invalid state, " 
-                 << extensionInsideCover << " inside cover, " 
-                 << extensionNoConnection << " no connection)" 
-                 << std::endl;
-            }
+
+            void print();
+            double getImportance();
         };
 
         class SparseTree
@@ -68,14 +59,23 @@ namespace ompl
             Configuration* pop();
             ConfigurationAnalytics* getAnalytics(Configuration *x);
 
+            Configuration* getRoot();
+            double getDistanceToRoot(Configuration *x);
+
             double getRadius(Configuration *x);
+
+            void setMaximumExtensions(int);
+            void setSparseDeltaFraction(double);
 
           private:
             static unsigned int counter_;
             unsigned int id_{0}; //tree identity (if we are using multiple trees)
 
-            double initialRadius_{0.0};
-            int maximumExtensions_{1000};
+            double sparseDeltaFraction_{0.02};
+            double sparseDelta_{0.0};
+            int maximumExtensions_{5000};
+
+            Configuration *root_{nullptr};
 
             TreeData data_;
             base::SpaceInformationPtr si_;

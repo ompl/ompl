@@ -5,13 +5,31 @@ using namespace ompl::multilevel;
 
 unsigned int SparseTree::counter_ = 0;
 
+void ConfigurationAnalytics::print()
+{
+    std::cout << "Config " << config->index 
+      << " radius: " << radius
+      << " (ext: " << numberOfExtensions 
+      << ", unsuccess seq: " << numberOfUnsuccessfulSubsequentExtensions 
+      << "), (extension failures: "
+     << extensionInvalidState << " invalid state, " 
+     << extensionInsideCover << " inside cover, " 
+     << extensionNoConnection << " no connection)" 
+     << std::endl;
+}
+
+double ConfigurationAnalytics::getImportance()
+{
+    double d = extensionNoConnection / (numberOfExtensions + 1);
+    return d;
+}
+
 SparseTree::SparseTree(TreeData& data, ompl::base::SpaceInformationPtr si):
   data_(data), si_(si)
 {
     id_ = counter_++;
     double maxExt = si_->getMaximumExtent();
-    initialRadius_ = 0.1 * maxExt; //0.02 for 6d ?
-    maximumExtensions_ = 100;
+    sparseDelta_ = sparseDeltaFraction_ * maxExt; //0.02 for 6d ?
 }
 
 void SparseTree::setup()
@@ -49,10 +67,12 @@ void SparseTree::add(Configuration *x)
 {
     data_->add(x);
 
+    if(treeElementsPriorityQueue_.empty()) root_ = x;
+
     treeElementsPriorityQueue_.push(x);
     ConfigurationAnalytics *configAnalysis = new ConfigurationAnalytics();
     configAnalysis->config = x;
-    configAnalysis->radius = initialRadius_;
+    configAnalysis->radius = sparseDelta_;
 
     analytics_.push_back(configAnalysis);
     indexConfigToAnalytics_.insert({x->index, analytics_.size()-1});
@@ -64,7 +84,18 @@ void SparseTree::add(Configuration *x)
       OMPL_ERROR("Wrong Indexing. config has index %d, but analytics vector returned index %d", x->index, idx);
       throw "WrongIndex";
     }
+
 }
+void SparseTree::setMaximumExtensions(int maximumExtensions)
+{
+  maximumExtensions_ = maximumExtensions;
+}
+
+void SparseTree::setSparseDeltaFraction(double sparseDeltaFraction)
+{
+  sparseDeltaFraction_ = sparseDeltaFraction;
+}
+
 
 BundleSpaceGraph::Configuration* 
 SparseTree::pop()
@@ -90,6 +121,16 @@ std::size_t SparseTree::sizeConvergedNodes()
 double SparseTree::getRadius(Configuration *x)
 {
     return getAnalytics(x)->radius;
+}
+
+double SparseTree::getDistanceToRoot(Configuration *x)
+{
+    return si_->distance(x->state, getRoot()->state);
+}
+
+Configuration* SparseTree::getRoot() 
+{
+    return root_;
 }
 
 void SparseTree::push(Configuration *x, ExtensionReturnType type)
@@ -139,6 +180,9 @@ void SparseTree::push(Configuration *x, ExtensionReturnType type)
 
     if(xstats->numberOfUnsuccessfulSubsequentExtensions < maximumExtensions_)
     {
+        //recompute importance
+        x->importance = xstats->getImportance() + getDistanceToRoot(x);
+        // std::cout << "Add config with importance= " << x->importance << std::endl;
         treeElementsPriorityQueue_.push(x);
         if(treeElementsPriorityQueue_.size() > size())
         {
