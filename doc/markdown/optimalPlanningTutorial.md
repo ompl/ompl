@@ -5,7 +5,7 @@ Defining an optimal motion planning problem is almost exactly the same as defini
 1. You need to specify an optimization objective to `ompl::base::ProblemDefinition`.
 2. You need to use an optimizing planner for the actual motion planning.
 
-## Finding the shortest path
+## Finding a shortest path
 
 We'll demonstrate OMPL's optimal planning framework with an example. In this example, our robot is represented as a (x,y) coordinate on a square, where (0,0) is the square's bottom-left corner and (1,1) is the square's top-right corner. There is also an obstacle in this square that the robot cannot pass through; this obstacle is a circle of radius 0.25 centered at (0.5,0.5). To reflect this environment, we use a two-dimensional `ompl::base::RealVectorStateSpace` and define our state validity checker as follows:
 
@@ -84,7 +84,7 @@ ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
 pdef->setStartAndGoalStates(start, goal);
 ~~~
 
-Next, we want to define an `ompl::base::OptimizationObjective` for optimal planning. For now, we can specify an objective that corresponds to finding the shortest path between the start and goal states. We'll define another function that returns this particular objective:
+Next, we want to define an `ompl::base::OptimizationObjective` for optimal planning. For now, we can specify an objective that corresponds to finding a shortest path between the start and goal states. We'll define another function that returns this particular objective:
 
 ~~~{.cpp}
 // Returns a structure representing the optimization objective to use

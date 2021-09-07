@@ -54,7 +54,7 @@ namespace ompl
             145(2):367–393, 1990.
 
             This implementation explicitly computes all 48 Reeds-Shepp curves
-            and returns the shortest valid solution. This can be improved by
+            and returns a shortest valid solution. This can be improved by
             using the configuration space partition described in:
             P. Souères and J.-P. Laumond, “Shortest paths synthesis for a
             car-like robot,” IEEE Trans. on Automatic Control, 41(5):672–688,
@@ -95,6 +95,7 @@ namespace ompl
 
             ReedsSheppStateSpace(double turningRadius = 1.0) : rho_(turningRadius)
             {
+                type_ = STATE_SPACE_REEDS_SHEPP;
             }
 
             double distance(const State *state1, const State *state2) const override;
@@ -110,7 +111,7 @@ namespace ompl
                 StateSpace::sanityChecks(zero, eps, ~STATESPACE_INTERPOLATION);
             }
 
-            /** \brief Return the shortest Reeds-Shepp path from SE(2) state state1 to SE(2) state state2 */
+            /** \brief Return a shortest Reeds-Shepp path from SE(2) state state1 to SE(2) state state2 */
             ReedsSheppPath reedsShepp(const State *state1, const State *state2) const;
 
         protected:

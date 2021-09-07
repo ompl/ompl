@@ -138,7 +138,7 @@ namespace ompl
                 StateSpace::sanityChecks(zero, eps, flags);
             }
 
-            /** \brief Return the shortest Dubins path from SE(2) state state1 to SE(2) state state2 */
+            /** \brief Return a shortest Dubins path from SE(2) state state1 to SE(2) state state2 */
             DubinsPath dubins(const State *state1, const State *state2) const;
 
         protected:

@@ -202,7 +202,7 @@ Note that the default implementation of `ompl::base::OptimizationObjective::moti
 
 Cost-to-go heuristics can provide even more information to a planner by quickly approximating the optimal path cost between a given state and the goal. However, cost-to-go heuristics must be specified differently from motion cost heuristics: instead of overriding a method as with motion cost heuristics, we need to supply a function pointer to the objective using `ompl::base::OptimizationObjective::setCostToGoHeuristic`. This is necessary because one optimization objective might be used with many different types of goals, and heuristic calculations can differ depending on the goal type. As with motion cost heuristics, an optimizing planner is most effective when the provided cost-to-go heuristic is admissible and is an adequate approximation of the true optimal path cost between a given state and the goal.
 
-Let's look at how we can use a cost-to-go heuristic in our 2D point robot problem. Assume we're interested in minimizing path length. In this example, the goal is defined as all states within a given tolerance distance of a specified goal state. Therefore, the shortest possible path between a given state and the goal is equal to the straight-line distance between the state and the goal state minus the goal tolerance. This is an admissible heuristic on the cost-to-go distance, and is already defined for you as `ompl::base::goalRegionCostToGo`:
+Let's look at how we can use a cost-to-go heuristic in our 2D point robot problem. Assume we're interested in minimizing path length. In this example, the goal is defined as all states within a given tolerance distance of a specified goal state. Therefore, a shortest possible path between a given state and the goal is equal to the straight-line distance between the state and the goal state minus the goal tolerance. This is an admissible heuristic on the cost-to-go distance, and is already defined for you as `ompl::base::goalRegionCostToGo`:
 
 ~~~{.cpp}
 ompl::base::Cost ompl::base::goalRegionCostToGo(const State* state, const Goal* goal)
@@ -216,7 +216,7 @@ ompl::base::Cost ompl::base::goalRegionCostToGo(const State* state, const Goal* 
 }
 ~~~
 
-This cost-to-go heuristic function can handle any goal of type `ompl::base::GoalRegion`, because these goals define a notion of goal distance in the form of `ompl::base::GoalRegion::distanceGoal`. We have to subtract the goal threshold in the cost-to-go calculation because the shortest path to the goal from a given state isn't to the center of the goal region, but to the boundary. Lastly, we use `std::max` to ensure we don't return a negative cost. We can create a path length objective that uses this cost-to-go heuristic with the following function:
+This cost-to-go heuristic function can handle any goal of type `ompl::base::GoalRegion`, because these goals define a notion of goal distance in the form of `ompl::base::GoalRegion::distanceGoal`. We have to subtract the goal threshold in the cost-to-go calculation because a shortest path to the goal from a given state isn't to the center of the goal region, but to the boundary. Lastly, we use `std::max` to ensure we don't return a negative cost. We can create a path length objective that uses this cost-to-go heuristic with the following function:
 
 ~~~{.cpp}
 ob::OptimizationObjectivePtr getPathLengthObjWithCostToGo(const ob::SpaceInformationPtr& si)

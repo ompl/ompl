@@ -46,6 +46,7 @@ namespace ompl
 {
     namespace base
     {
+        /** \brief State sampler for the torus state space */
         class TorusStateSampler : public StateSampler
         {
         public:
@@ -106,6 +107,8 @@ namespace ompl
 
             double getMinorRadius() const;
 
+            /* \brief Convert a state to a 3D vector to visualize the state
+             * space. */
             Eigen::Vector3f toVector(const State *state) const;
 
         private:

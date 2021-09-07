@@ -47,6 +47,7 @@ namespace ompl
 {
     namespace base
     {
+        /** \brief State sampler for the Klein bottle state space */
         class KleinBottleStateSampler : public StateSampler
         {
         public:
@@ -59,30 +60,47 @@ namespace ompl
             void sampleGaussian(State *state, const State *mean, double stdDev) override;
 
         private:
-            const double gMax_{4.12};  // maximum norm gradient of surface (do not change)
+            /** \brief Constant of maximum norm gradient of surface (do not change).
+             * Estimated by taking the upper bound over 10k samples. */
+            const double gMax_{4.1455};
         };
 
+        /** \brief The Klein bottle is a 2-dimensional non-orientable surface.
+         * In this class, we implement a 3-dimensional immersion of the
+         * Bottle.  */
         class KleinBottleStateSpace : public CompoundStateSpace
         {
         public:
+            /** \brief The definition of a state (u,v) in the Klein bottle state
+             * space. A state is represented as a cylinder with height u in the
+             * interval [0, Pi] and
+             * angle v in the interval [-Pi, Pi] as in the discussion
+             * here: https://en.wikipedia.org/wiki/Klein_bottle#Construction
+             *
+             * This cylinder is then glued together (mapped) internally to provide
+             * correct distance and interpolation functions. */
             class StateType : public CompoundStateSpace::StateType
             {
             public:
                 StateType() = default;
 
+                /** \brief Access U, the height of the cylinder */
                 double getU() const
                 {
                     return as<RealVectorStateSpace::StateType>(0)->values[0];
                 }
+                /** \brief Access V, the angle of the cylinder */
                 double getV() const
                 {
                     return as<SO2StateSpace::StateType>(1)->value;
                 }
 
+                /** \brief Set U, the height of the cylinder */
                 void setU(double u)
                 {
                     as<RealVectorStateSpace::StateType>(0)->values[0] = u;
                 }
+                /** \brief Set V, the angle of the cylinder */
                 void setV(double v)
                 {
                     as<SO2StateSpace::StateType>(1)->value = v;
@@ -106,6 +124,8 @@ namespace ompl
 
             State *allocState() const override;
 
+            /* \brief Convert a state to a 3D vector to visualize the state
+             * space. */
             Eigen::Vector3f toVector(const State *state) const;
         };
     }
