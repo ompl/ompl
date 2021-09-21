@@ -30,11 +30,11 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-## CoppelliaSim {#integration_copelliasim}
+## CoppeliaSim {#integration_copelliasim}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
-    [CoppelliaSim](http://coppeliarobotics.com) is a modular, generic and general purpose robot simulation framework that offers various tools related to robotics (4 physics engines, collision detection, minimum distance calculation, proximity sensor simulation, vision sensor simulation, full FK/IK kinematic solver, etc.), with various kinds of interfaces (ROS, remote API, plug-ins, add-ons) and language support: C/C++, Python, Java, Matlab, Octave, Lua. It is built on a distributed control architecture, allowing virtually any number of scripts running in parallel and controlling various aspects of a simulation. The OMPL interface for V-REP was implemented via a plug-in wrapping the OMPL functionality, and offering that functionality via scripting functions. This allows to quickly test various scenarios, without the need to recompile/load test code over and over again. In combination with V-REP's kinematic functionality, complex movement sequences can easily be computed: e.g. V-REP can also quickly compute several valid robot configurations for a desired end-effector pose.
+    [CoppeliaSim](http://coppeliarobotics.com) is a modular, generic and general purpose robot simulation framework that offers various tools related to robotics (4 physics engines, collision detection, minimum distance calculation, proximity sensor simulation, vision sensor simulation, full FK/IK kinematic solver, etc.), with various kinds of interfaces (ROS, remote API, plug-ins, add-ons) and language support: C/C++, Python, Java, Matlab, Octave, Lua. It is built on a distributed control architecture, allowing virtually any number of scripts running in parallel and controlling various aspects of a simulation. The OMPL interface for V-REP was implemented via a plug-in wrapping the OMPL functionality, and offering that functionality via scripting functions. This allows to quickly test various scenarios, without the need to recompile/load test code over and over again. In combination with V-REP's kinematic functionality, complex movement sequences can easily be computed: e.g. V-REP can also quickly compute several valid robot configurations for a desired end-effector pose.
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-16by9">
