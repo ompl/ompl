@@ -43,12 +43,16 @@ namespace og = ompl::geometric;
 namespace ob = ompl::base;
 namespace ot = ompl::tools;
 
-ompl::tools::Thunder::Thunder(const base::SpaceInformationPtr &si) : ompl::tools::ExperienceSetup(si)
+ompl::tools::Thunder::Thunder(const base::SpaceInformationPtr &si, const double stretch_factor, const double DenseD,
+                              const double SparseD)
+  : ompl::tools::ExperienceSetup{si}, stretch_factor_{stretch_factor}, DenseD_{DenseD}, SparseD_{SparseD}
 {
     initialize();
 }
 
-ompl::tools::Thunder::Thunder(const base::StateSpacePtr &space) : ompl::tools::ExperienceSetup(space)
+ompl::tools::Thunder::Thunder(const base::StateSpacePtr &space, const double stretch_factor, const double DenseD,
+                              const double SparseD)
+  : ompl::tools::ExperienceSetup{space}, stretch_factor_{stretch_factor}, DenseD_{DenseD}, SparseD_{SparseD}
 {
     initialize();
 }
@@ -72,7 +76,6 @@ void ompl::tools::Thunder::setup()
 {
     if (!configured_ || !si_->isSetup() || !planner_vec_.front() || !rrPlanner_->isSetup())
     {
-
         // Setup Space Information if we haven't already done so
         if (!si_->isSetup())
             si_->setup();
@@ -81,18 +84,23 @@ void ompl::tools::Thunder::setup()
         OMPL_INFORM("Initializing planners");
         // planner_vec_.clear();
         // planner_vec_ = {nullptr, nullptr, nullptr, nullptr};
-        for (auto& planner : planner_vec_) {
-          if(!planner) {
-            if(pa_) {
-              OMPL_INFORM("Planner Allocator specified");
-              planner = pa_(si_);
-            } else {
-              planner = std::make_shared<ompl::geometric::RRTConnect>(si_);
+        for (auto &planner : planner_vec_)
+        {
+            if (!planner)
+            {
+                if (pa_)
+                {
+                    OMPL_INFORM("Planner Allocator specified");
+                    planner = pa_(si_);
+                }
+                else
+                {
+                    planner = std::make_shared<ompl::geometric::RRTConnect>(si_);
+                }
+                planner->setProblemDefinition(pdef_);
+                if (!planner->isSetup())
+                    planner->setup();
             }
-            planner->setProblemDefinition(pdef_);
-            if (!planner->isSetup())
-                planner->setup();
-          }
         }
 
         // Setup planning from experience planner
@@ -107,18 +115,19 @@ void ompl::tools::Thunder::setup()
         {
             throw Exception("Both planning from scratch and experience have been disabled, unable to plan");
         }
-        if (recallEnabled_) {
+        if (recallEnabled_)
+        {
             OMPL_INFORM("recallEnabled_: Adding recall planner");
             pp_->addPlanner(rrPlanner_);  // Add the planning from experience planner if desired
         }
-        if (scratchEnabled_) {
-          
-          OMPL_INFORM("Adding %u planners for scratch planning", planner_vec_.size());
-          for (auto& planner : planner_vec_) {
-            if(planner)
-              pp_->addPlanner(planner);
-          }
-
+        if (scratchEnabled_)
+        {
+            OMPL_INFORM("Adding %u planners for scratch planning", planner_vec_.size());
+            for (auto &planner : planner_vec_)
+            {
+                if (planner)
+                    pp_->addPlanner(planner);
+            }
         }
 
         // Setup SPARS
@@ -131,10 +140,10 @@ void ompl::tools::Thunder::setup()
             experienceDB_->getSPARSdb()->setProblemDefinition(pdef_);
             experienceDB_->getSPARSdb()->setup();
 
-            experienceDB_->getSPARSdb()->setStretchFactor(1.6); 
-            experienceDB_->getSPARSdb()->setSparseDeltaFraction(
-                0.1);  // was 0.05 // vertex visibility range  = maximum_extent * this_fraction
-            experienceDB_->getSPARSdb()->setDenseDeltaFraction(0.001);
+            experienceDB_->getSPARSdb()->setStretchFactor(stretch_factor_);
+            // was 0.05 // vertex visibility range  = maximum_extent * this_fraction
+            experienceDB_->getSPARSdb()->setSparseDeltaFraction(SparseD_);
+            experienceDB_->getSPARSdb()->setDenseDeltaFraction(DenseD_);
 
             experienceDB_->getSPARSdb()->printDebug();
 
@@ -150,9 +159,10 @@ void ompl::tools::Thunder::clear()
 {
     if (rrPlanner_)
         rrPlanner_->clear();
-    for(auto& planner : planner_vec_) {
-      if(planner)
-        planner->clear();
+    for (auto &planner : planner_vec_)
+    {
+        if (planner)
+            planner->clear();
     }
     if (pdef_)
         pdef_->clearSolutionPaths();
@@ -195,14 +205,17 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
     // There are two modes for running parallel plan - one in which both threads are run until they both return a result
     // and/or fail
     // The second mode stops with the first solution found - we want this one
-    if (!hybridize_) {
+    if (!hybridize_)
+    {
         // If \e hybridize is false, when the first solution is found, the rest of the planners are stopped as well.
         OMPL_DEBUG("Thunder: stopping when first solution is found from either thread");
-    } else {
+    }
+    else
+    {
         OMPL_DEBUG("Thunder: stopping only after all threads report a solution");
     }
 
-    lastStatus_ = pp_->solve(ptc, hybridize_); //, hybridize);
+    lastStatus_ = pp_->solve(ptc, hybridize_);  //, hybridize);
 
     // Planning time
     planTime_ = time::seconds(time::now() - start);
@@ -401,11 +414,13 @@ void ompl::tools::Thunder::print(std::ostream &out) const
         rrPlanner_->printProperties(out);
         rrPlanner_->printSettings(out);
     }
-    for(auto& planner : planner_vec_) {
-      if(planner) {
-        planner->printProperties(out);
-        planner->printSettings(out);
-      }
+    for (auto &planner : planner_vec_)
+    {
+        if (planner)
+        {
+            planner->printProperties(out);
+            planner->printSettings(out);
+        }
     }
     if (pdef_)
         pdef_->print(out);
@@ -488,8 +503,8 @@ ompl::tools::ThunderDBPtr ompl::tools::Thunder::getExperienceDB()
 bool ompl::tools::Thunder::doPostProcessing()
 {
     OMPL_INFORM("Performing post-processing");
-    double shortest_path_length = getSolutionPath().length(); 
-    auto solutionPathPtr {std::make_shared<ompl::geometric::PathGeometric>(getSpaceInformation())};
+    double shortest_path_length = getSolutionPath().length();
+    auto solutionPathPtr{std::make_shared<ompl::geometric::PathGeometric>(getSpaceInformation())};
     for (auto &queuedSolutionPath : queuedSolutionPaths_)
     {
         // Time to add a path to experience database
@@ -498,16 +513,19 @@ bool ompl::tools::Thunder::doPostProcessing()
         experienceDB_->addPath(queuedSolutionPath, insertionTime);
         OMPL_INFORM("Finished inserting experience path in %f seconds", insertionTime);
         stats_.totalInsertionTime_ += insertionTime;  // used for averaging
-        double queued_path_length {queuedSolutionPath.length()};
-        if(!queuedSolutionPath.getStates().empty() && queued_path_length > 0 && queued_path_length < shortest_path_length) {
-          shortest_path_length = queuedSolutionPath.length();
-          *solutionPathPtr = queuedSolutionPath;
+        double queued_path_length{queuedSolutionPath.length()};
+        if (!queuedSolutionPath.getStates().empty() && queued_path_length > 0 &&
+            queued_path_length < shortest_path_length)
+        {
+            shortest_path_length = queuedSolutionPath.length();
+            *solutionPathPtr = queuedSolutionPath;
         }
     }
-    if (solutionPathPtr && !solutionPathPtr->getStates().empty() && solutionPathPtr->length() > 0) {
-      OMPL_INFORM("Added new solution path with %d states of length %f",
-                  solutionPathPtr->getStates().size(), solutionPathPtr->length());
-      getProblemDefinition()->addSolutionPath(solutionPathPtr);
+    if (solutionPathPtr && !solutionPathPtr->getStates().empty() && solutionPathPtr->length() > 0)
+    {
+        OMPL_INFORM("Added new solution path with %d states of length %f", solutionPathPtr->getStates().size(),
+                    solutionPathPtr->length());
+        getProblemDefinition()->addSolutionPath(solutionPathPtr);
     }
 
     // Remove all inserted paths from the queue

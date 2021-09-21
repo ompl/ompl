@@ -33,7 +33,7 @@
  *********************************************************************/
 
 /* Author: Dave Coleman
-*/
+ */
 
 #ifndef OMPL_TOOLS_THUNDER_THUNDER_
 #define OMPL_TOOLS_THUNDER_THUNDER_
@@ -87,16 +87,21 @@ namespace ompl
         {
         public:
             /** \brief Constructor needs the state space used for planning. */
-            explicit Thunder(const base::SpaceInformationPtr &si);
+            explicit Thunder(const base::SpaceInformationPtr &si, double stretch_factor = 1.2, double DenseD = 0.001,
+                             double SparseD = 0.1);
 
             /** \brief Constructor needs the state space used for planning.
              *  \param space - the state space to plan in
              */
-            explicit Thunder(const base::StateSpacePtr &space);
+            explicit Thunder(const base::StateSpacePtr &space, double stretch_factor = 1.2, double DenseD = 0.001,
+                             double SparseD = 0.1);
 
         private:
             /** \brief Shared constructor functions */
             void initialize();
+            double stretch_factor_{};
+            double DenseD_{};
+            double SparseD_{};
 
         public:
             /** \brief Display debug data about potential available solutions */
@@ -136,9 +141,10 @@ namespace ompl
             /** \brief Run the planner until \e ptc becomes true (at most) */
             base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, bool hybridize) {
-              hybridize_ = hybridize;
-              return solve(ptc);
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, bool hybridize)
+            {
+                hybridize_ = hybridize;
+                return solve(ptc);
             }
 
             /** \brief Save the experience database to file */
@@ -183,16 +189,47 @@ namespace ompl
             /** \brief Allow accumlated experiences to be processed */
             bool doPostProcessing() override;
 
-            void addSolutionToQueue(const std::shared_ptr<ompl::geometric::PathGeometric>& path_ptr) {
-              queuedSolutionPaths_.push_back(*path_ptr); 
+            void addSolutionToQueue(const std::shared_ptr<ompl::geometric::PathGeometric> &path_ptr)
+            {
+                queuedSolutionPaths_.push_back(*path_ptr);
             }
+
+            void setStretchFactor(double stretch_factor)
+            {
+                stretch_factor_ = stretch_factor;
+            };
+
+            double getStretchFactor() const
+            {
+                return stretch_factor_;
+            };
+
+            void setSparseDelta(double SparseD)
+            {
+                SparseD_ = SparseD;
+            };
+
+            double getSparseDelta() const
+            {
+                return SparseD_;
+            };
+
+            void setDenseDelta(double DenseD)
+            {
+                DenseD_ = DenseD;
+            };
+
+            double getDenseDelta() const
+            {
+                return DenseD_;
+            };
 
         protected:
             /**  The maintained experience planner instance */
             base::PlannerPtr rrPlanner_;
 
             /**  planners used for testing dual-thread scratch-only planning */
-            std::vector<base::PlannerPtr> planner_vec_ {std::max(std::thread::hardware_concurrency(), 2u) - 1};
+            std::vector<base::PlannerPtr> planner_vec_{std::max(std::thread::hardware_concurrency(), 2u) - 1};
 
             /**  Flag indicating whether dual thread scratch planning is enabled */
             bool dualThreadScratchEnabled_{true};
@@ -206,11 +243,11 @@ namespace ompl
             /** \brief Accumulated experiences to be later added to experience database */
             std::vector<ompl::geometric::PathGeometric> queuedSolutionPaths_;
 
-            bool hybridize_ {true}; 
+            bool hybridize_{true};
 
         };  // end of class Thunder
 
-    }  // end of namespace
+    }  // end of namespace tools
 
-}  // end of namespace
+}  // end of namespace ompl
 #endif
