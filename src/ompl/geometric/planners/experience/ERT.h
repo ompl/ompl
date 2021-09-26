@@ -53,8 +53,10 @@ namespace ompl
             to find similar motion plans. The provided experience is used to
             bias the sampling of candidate states, and their connections.
             @par External documentation
-            Èric Pairet, Constantinos Chamzas, Yvan Petillot, Lydia Kavraki,
-            Path Planning for Manipulation using Experience-driven Random Trees.
+            Èric Pairet, Constantinos Chamzas, Yvan Petillot, Lydia Kavraki
+            Path Planning for Manipulation using Experience-driven Random Trees
+            IEEE Robotics and Automation Letters, 2021
+            [[10.1109/LRA.2021.3063063]](https://ieeexplore.ieee.org/document/9366973)
             [[PDF]](https://arxiv.org/abs/2103.00448)
         */
 
