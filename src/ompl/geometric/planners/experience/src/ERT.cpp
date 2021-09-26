@@ -283,7 +283,7 @@ ompl::base::PlannerStatus ompl::geometric::ERT::solve(const base::PlannerTermina
     {
         OMPL_INFORM("%s: No experience provided. Setting straight experience", getName().c_str());
 
-        experience_ = new Motion(si_, si_->getStateSpace()->validSegmentCount(smotion->state, gmotion->state));
+        experience_ = new Motion(si_, si_->getStateSpace()->validSegmentCount(smotion->state, gmotion->state) + 1);
         experience_->phase_end = experience_->phase_span - 1;
         gmotion->phase_end = experience_->phase_end;
         si_->getMotionStates(smotion->state, gmotion->state, experience_->segment, experience_->phase_span - 2, true, false);
