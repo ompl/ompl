@@ -44,6 +44,8 @@ from pyplusplus.module_builder import call_policies
 from pyplusplus import function_transformers as FT
 from ompl.bindings_generator import code_generator_t, default_replacement
 
+STRING = 'std::basic_string<char, std::char_traits<char>, std::allocator<char>>'
+
 class ompl_base_generator_t(code_generator_t):
     """Class for generating the ompl.base python module."""
 
@@ -161,7 +163,7 @@ class ompl_base_generator_t(code_generator_t):
         code_generator_t.filter_declarations(self)
         # rename STL vectors of certain types
         self.std_ns.class_(
-            'map< std::string, std::shared_ptr< ompl::base::ProjectionEvaluator > >').rename(
+            f'map< {STRING}, std::shared_ptr< ompl::base::ProjectionEvaluator > >').rename(
                 'mapStringToProjectionEvaluator')
         self.std_ns.class_('vector< ompl::base::State * >').rename('vectorState')
         try:
@@ -172,9 +174,9 @@ class ompl_base_generator_t(code_generator_t):
             'vectorStateSpacePtr')
         #self.std_ns.class_('vector< <ompl::base::PlannerSolution> >').rename(
         # 'vectorPlannerSolution')
-        self.std_ns.class_('map< std::string, std::shared_ptr<ompl::base::GenericParam> >').rename(
+        self.std_ns.class_(f'map< {STRING}, std::shared_ptr<ompl::base::GenericParam> >').rename(
             'mapStringToGenericParam')
-        self.std_ns.class_('map< std::string, ompl::base::StateSpace::SubstateLocation >').rename(
+        self.std_ns.class_(f'map< {STRING}, ompl::base::StateSpace::SubstateLocation >').rename(
             'mapStringToSubstateLocation')
         self.std_ns.class_('vector<ompl::base::PlannerSolution>').rename('vectorPlannerSolution')
 
@@ -191,8 +193,7 @@ class ompl_base_generator_t(code_generator_t):
         self.ompl_ns.class_('SpecificParam< float >').rename('SpecificParamFloat')
         self.ompl_ns.class_('SpecificParam< double >').rename('SpecificParamDouble')
         self.ompl_ns.class_('SpecificParam< long double >').rename('SpecificParamLongDouble')
-        self.ompl_ns.class_(lambda decl: decl.name.startswith('SpecificParam<std::basic_string')).rename(
-            'SpecificParamString')
+        self.ompl_ns.class_(f'SpecificParam< {STRING} >').rename('SpecificParamString')
         for cls in self.ompl_ns.classes(lambda decl: decl.name.startswith('SpecificParam')):
             cls.constructors().exclude()
         # don't export variables that need a wrapper
@@ -848,7 +849,7 @@ class ompl_tools_generator_t(code_generator_t):
         # rename STL vectors/maps of certain types
         self.std_ns.class_('vector< ompl::tools::Benchmark::PlannerExperiment >').rename(
             'vectorPlannerExperiment')
-        self.std_ns.class_('vector< std::vector< std::map<std::string, std::string> > >').rename(
+        self.std_ns.class_('vector<std::vector<std::map<{STRING},{STRING}>>>').rename(
             'vectorRunProgressData')
         # make objects printable that have a print function
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
@@ -890,19 +891,19 @@ class ompl_util_generator_t(code_generator_t):
         self.std_ns.class_('vector< double >').rename('vectorDouble')
         self.std_ns.class_('vector< unsigned int >').include()
         self.std_ns.class_('vector< unsigned int >').rename('vectorUint')
-        self.std_ns.class_('vector< std::string >').include()
-        self.std_ns.class_('vector< std::string >').rename('vectorString')
+        self.std_ns.class_(f'vector<{STRING}>').include()
+        self.std_ns.class_(f'vector<{STRING}>').rename('vectorString')
         self.std_ns.class_('vector< std::vector<int> >').include()
         self.std_ns.class_('vector< std::vector<int> >').rename('vectorVectorInt')
         self.std_ns.class_('vector< std::vector<unsigned int> >').include()
         self.std_ns.class_('vector< std::vector<unsigned int> >').rename('vectorVectorUint')
         self.std_ns.class_('vector< std::vector<double> >').include()
         self.std_ns.class_('vector< std::vector<double> >').rename('vectorVectorDouble')
-        self.std_ns.class_('vector< std::map<std::string, std::string > >').include()
-        self.std_ns.class_('vector< std::map<std::string, std::string > >').rename(
+        self.std_ns.class_(f'vector<std::map<{STRING},{STRING}>>').include()
+        self.std_ns.class_(f'vector<std::map<{STRING},{STRING}>>').rename(
             'vectorMapStringToString')
-        self.std_ns.class_('map<std::string, std::string >').include()
-        self.std_ns.class_('map<std::string, std::string >').rename('mapStringToString')
+        self.std_ns.class_(f'map<{STRING},{STRING}>').include()
+        self.std_ns.class_(f'map<{STRING},{STRING}>').rename('mapStringToString')
         self.std_ns.class_('vector< ompl::PPM::Color >').rename('vectorPPMColor')
         try:
             # Exclude the ProlateHyperspheroid Class which needs Eigen, and the associated member
