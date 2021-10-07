@@ -166,7 +166,7 @@ ompl::geometric::VFRRT::Motion *ompl::geometric::VFRRT::extendTree(Motion *m, ba
         *space->getValueAddressAtIndex(newState, i) += d * v[i];
     if (!v.hasNaN() && si_->checkMotion(m->state, newState))
     {
-        auto *motion = new Motion(si_);
+        auto *motion = new Motion();
         motion->state = newState;
         motion->parent = m;
         updateExplorationEfficiency(motion);
