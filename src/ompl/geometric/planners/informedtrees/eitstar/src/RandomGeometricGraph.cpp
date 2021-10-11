@@ -492,9 +492,30 @@ namespace ompl
             RandomGeometricGraph::getNeighbors(const std::shared_ptr<State> &state) const
             {
                 assert(state);
+                constexpr bool keepWhitelisted = true;
+
                 // If the neighbors cache of the vertex isn't up to date, update it.
                 if (state->neighbors_.first != tag_)
                 {
+                    // copy the whitelisted vertices
+                    std::vector<std::shared_ptr<State>> whitelistedNeighbors;
+                    if (keepWhitelisted)
+                    {
+                        std::vector<std::shared_ptr<State>> samples;
+                        samples_.list(samples);
+
+                        // replace with copy_if
+                        if (std::find(samples.begin(), samples.end(), state) != samples.end()){
+                          std::copy_if(state->neighbors_.second.begin(), 
+                                       state->neighbors_.second.end(), 
+                                       std::back_inserter(whitelistedNeighbors),
+                                       [&](auto v){
+                                          return state->isWhitelisted(v) 
+                                              && (std::find(samples.begin(), samples.end(), v) != samples.end());
+                                       });
+                        }
+                    }
+
                     // The cache is invalid, let's clear all vertices.
                     state->neighbors_.second.clear();
 
@@ -508,9 +529,20 @@ namespace ompl
                     {
                         samples_.nearestR(state, radius_, neighbors);
                     }
+
+                    // add whitelisted neighbours to the vector even if they are above the radius
+                    if (keepWhitelisted)
+                    {
+                        std::copy_if(whitelistedNeighbors.begin(), 
+                                     whitelistedNeighbors.end(), 
+                                     std::back_inserter(neighbors),
+                                     [&](auto v){return std::find(neighbors.begin(), neighbors.end(), v) == neighbors.end();});
+
+                    }
+
                     // We dont want to connect to blacklisted neighbors and the querying state itself.
                     const auto connectionPredicate = [&state, this](const std::shared_ptr<State> &neighbor) {
-                        return (state->blacklist_.find(neighbor->id_) == state->blacklist_.end()) &&
+                        return !state->isBlacklisted(neighbor) &&
                                (state->id_ != neighbor->id_) && !(isGoal(state) && isGoal(neighbor));
                     };
 
@@ -678,6 +710,11 @@ namespace ompl
 
             unsigned int RandomGeometricGraph::lowerBoundEffortToCome(const std::shared_ptr<State> &state) const
             {
+                return 0u;
+            }
+
+            unsigned int RandomGeometricGraph::inadmissibleEffortToCome(const std::shared_ptr<State> &state) const
+            {
                 auto admissibleEffort = std::numeric_limits<unsigned int>::max();
                 for (const auto &start : startStates_)
                 {
@@ -705,6 +742,7 @@ namespace ompl
                 // Set the lower bounds.
                 state->setLowerBoundCostToCome(lowerBoundCostToCome(state));
                 state->setLowerBoundEffortToCome(lowerBoundEffortToCome(state));
+                state->setInadmissibleEffortToCome(inadmissibleEffortToCome(state));
                 state->setLowerBoundCostToGo(lowerBoundCostToGo(state));
 
                 // Set the current cost to come.
