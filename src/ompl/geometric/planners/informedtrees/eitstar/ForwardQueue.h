@@ -51,6 +51,24 @@
 #include "ompl/geometric/planners/informedtrees/eitstar/Edge.h"
 #include "ompl/geometric/planners/informedtrees/eitstar/Vertex.h"
 
+#include  <unordered_map>
+namespace std {
+  template<>
+  struct hash<pair<size_t, size_t>>
+  {
+    size_t operator()(const pair<size_t, size_t> &k) const
+    {
+      size_t seed;
+      hash<size_t> hasher;
+
+      seed = hasher(k.first);
+      seed ^= hasher(k.second) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+
+      return seed;
+    }
+  };
+}
+
 namespace ompl
 {
     namespace geometric
@@ -107,6 +125,11 @@ namespace ompl
                 /** \brief Rebuilds the queue. */
                 void rebuild();
 
+                /** \brief Returns the minimum effort that remains. */
+                unsigned int getMinEffortToCome() const;
+
+                /** \brief Estimates the effort that remains to validate a solution through an edge. */
+                std::size_t estimateEffort(const Edge &edge) const;
             private:
                 /** \brief The three values an edge can be sorted by. */
                 struct EdgeKeys
@@ -122,17 +145,40 @@ namespace ompl
                 /** \brief Creates a queue element from the given edge. */
                 std::pair<EdgeKeys, Edge> makeElement(const Edge &edge) const;
 
-                /** \brief Returns an iterator to the edge in the queue or end() if it is not in the queue. */
-                std::vector<std::pair<EdgeKeys, Edge>>::iterator iterator(const Edge &edge);
+                using Container = 
+                    std::unordered_map<
+                        std::pair<std::size_t, std::size_t>, 
+                        std::pair<EdgeKeys, Edge>
+                    >;
 
-                /** \brief Returns an iterator to the position the edge and key would be in if it was in the queue. */
-                std::vector<std::pair<EdgeKeys, Edge>>::iterator position(const std::pair<EdgeKeys, Edge> &keysAndEdge);
+                /** \brief Finds the iterator at the front of the queue. */
+                Container::const_iterator getFrontIter(double suboptimalityFactor);
+                Container::const_iterator front_;
+
+                const bool cacheQueueLookup_ = true;
+                bool modifiedQueue_ = true;
+
+                /** \brief Returns the edge pair from the container. */
+                inline std::pair<EdgeKeys, Edge>& get(Container::iterator &it) const 
+                {
+                    return it->second;
+                }
+
+                /** \brief Returns the edge pair from the container. */
+                inline const std::pair<EdgeKeys, Edge>& get(Container::const_iterator &it) const
+                {
+                    return it->second;
+                }
 
                 /** \brief Returns an iterator to the edge with the best estimated cost. */
-                std::vector<std::pair<EdgeKeys, Edge>>::iterator getBestCostEstimateEdge();
+                Container::iterator getBestCostEstimateEdge();
+
+                /** \brief Returns an iterator to the edge with the lower bound cost. */
+                Container::iterator getLowerBoundCostEdge();
+                Container::const_iterator getLowerBoundCostEdge() const;
 
                 /** \brief Returns a constant iterator to the edge with the best estimated cost. */
-                std::vector<std::pair<EdgeKeys, Edge>>::const_iterator getBestCostEstimateEdge() const;
+                Container::const_iterator getBestCostEstimateEdge() const;
 
                 /** \brief Returns the cost inflated by a factor. */
                 ompl::base::Cost inflateCost(const ompl::base::Cost &cost, double factor) const;
@@ -153,7 +199,7 @@ namespace ompl
                 std::shared_ptr<const ompl::base::StateSpace> space_;
 
                 /** \brief The queue is ordered on the lower bound cost through an edge (high to low). */
-                std::vector<std::pair<EdgeKeys, Edge>> queue_{};
+                Container queue_{};
             };
         }  // namespace eitstar
 
