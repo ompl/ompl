@@ -513,10 +513,17 @@ namespace ompl
                         }
                     }
 
+
                     // Expand the outgoing edges into the queue unless this state is the goal state.
                     if (!graph_.isGoal(edge.target))
                     {
-                        forwardQueue_->insertOrUpdate(expand(edge.target));
+                        auto edges = expand(edge.target);
+                        edges.erase(
+                            std::remove_if(edges.begin(), edges.end(),
+                              [&](const auto &e){return e.target->getId() == source->getId();}), 
+                            edges.end());
+                        forwardQueueInsertedEdges_ += edges.size();
+                        forwardQueue_->insertOrUpdate(edges);
                     }
                     else  // It is the goal state, update the solution.
                     {
@@ -565,8 +572,15 @@ namespace ompl
             // The edge is a freeby if its parent is already the parent of the child.
             if (isInReverseTree(edge))
             {
+                auto outgoingEdges = expand(target);
+                outgoingEdges.erase(
+                    std::remove_if(outgoingEdges.begin(), outgoingEdges.end(),
+                      [&](const auto &e){return e.target->getId() == source->getId();}), 
+                    outgoingEdges.end());
+
                 // Simply expand the target into the queue.
-                reverseQueue_->insertOrUpdate(expand(target));
+                reverseQueue_->insertOrUpdate(outgoingEdges);
+                
                 return;
             }
 
@@ -616,7 +630,18 @@ namespace ompl
                     }
 
                     // Expand the target state into the reverse queue.
-                    reverseQueue_->insertOrUpdate(expand(target));
+                    auto outgoingEdges = expand(target);
+                    outgoingEdges.erase(
+                        std::remove_if(outgoingEdges.begin(), outgoingEdges.end(),
+                          [&](const auto &e){
+                            if(e.target->getId() == source->getId()){
+                              return true;
+                            }
+                            return false;
+                          }), 
+                        outgoingEdges.end());
+
+                    reverseQueue_->insertOrUpdate(outgoingEdges);
                 }
             }
         }
