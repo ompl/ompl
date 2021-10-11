@@ -91,10 +91,16 @@ namespace ompl
                 modifiedQueue_ = true;
                 
                 // For now, let's just do this naively.
+                auto start_update = std::chrono::steady_clock::now();
                 for (const auto &edge : edges)
                 {
                     insertOrUpdate(edge);
                 }
+
+                auto end_update = std::chrono::steady_clock::now();
+                unsigned int duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                    end_update - start_update ).count();
+                updateDuration_ += duration;
             }
 
             void ForwardQueue::remove(const Edge &edge)
@@ -118,8 +124,15 @@ namespace ompl
 
             ForwardQueue::Container::const_iterator ForwardQueue::getFrontIter(double suboptimalityFactor)
             {
+                auto start_update = std::chrono::steady_clock::now();
+
                 if (cacheQueueLookup_ && !modifiedQueue_)
                 {
+                    auto end_update = std::chrono::steady_clock::now();
+                    unsigned int duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                        end_update - start_update ).count();
+                    popDuration_ += duration;
+
                     return front_;
                 }
 
@@ -146,6 +159,11 @@ namespace ompl
                 auto bestEffortLowerBoundCost = objective_->infiniteCost();
                 for (auto it = queue_.cbegin(); it != queue_.cend(); ++it)
                 {
+                    /*std::cout << "fe: "
+                      << it->second.source->getId() << " "
+                      << it->second.target->getId() << " "
+                      << it->first.estimatedEffort << " " 
+                      <<std::endl;*/
                     if (get(it).first.estimatedEffort < get(bestEffortEdge).first.estimatedEffort &&
                         !objective_->isCostBetterThan(bestCostEdgeCost, get(it).first.estimatedCost))
                     {
@@ -166,6 +184,12 @@ namespace ompl
                 // Return the correct edge.
                 if (objective_->isCostBetterThan(bestEffortEdgeCost, lowerBoundEdgeCost))
                 {
+
+                    auto end_update = std::chrono::steady_clock::now();
+                    unsigned int duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        end_update - start_update ).count();
+                    popDuration_ += duration;
+
                     return bestEffortEdge;
                 }
                 else if (objective_->isCostBetterThan(get(bestCostEdge).first.estimatedCost, lowerBoundEdgeCost))
@@ -188,7 +212,6 @@ namespace ompl
 
                 front_ = getFrontIter(suboptimalityFactor);
                 auto edge = get(front_).second;
-
                 modifiedQueue_ = false;
 
                 return edge;
@@ -230,12 +253,15 @@ namespace ompl
                     auto edge = get(it).second;
                     
                     if (edge.target->hasReverseVertex()){
-                        continue;
+                       //std::cout << "skipping " << edge.source->getId() << " " << edge.target->getId() << std::endl;
+                      continue;
                     }
 
                     unsigned int edgeEffort = 0u;
                     if (edge.source->isWhitelisted(edge.target))
                     {
+                        edgeEffort = 0u;
+                        //std::cout << 0 << std::endl;
                         return 0u;
                     }
                     else
@@ -250,15 +276,18 @@ namespace ompl
 
                     if (edgeEffort < minEdgeEffort)
                     {
+                        //std::cout << edge.source->getId() << " " << edge.target->getId() << " " << edgeEffort << std::endl;
                         minEdgeEffort = edgeEffort;
                     }
 
                     if (minEdgeEffort == 0u)
                     {
+                        //std::cout << 0 << std::endl;
                         return 0u;
                     }
                 }
 
+                //std::cout << minEdgeEffort << std::endl;
                 return minEdgeEffort;
             }
 
@@ -396,6 +425,12 @@ namespace ompl
                 }
 
                 unsigned int totalEffort = edge.target->getEstimatedEffortToGo() + edgeEffort;
+                /*std::cout << "Forward Queue: "
+                  << edge.source->getId() << " "
+                  << edge.target->getId() << " "
+                  << edge.target->getEstimatedEffortToGo() << " " 
+                  << edgeEffort << " "
+                  << totalEffort << std::endl;*/
 
                 return totalEffort;
             }

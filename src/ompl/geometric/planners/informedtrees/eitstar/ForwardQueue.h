@@ -91,6 +91,9 @@ namespace ompl
                 /** \brief Returns how many elements are in the queue. */
                 std::size_t size() const;
 
+                unsigned int popDuration_{0u};
+                unsigned int updateDuration_{0u};
+
                 /** \brief Inserts or updates an edge in the queue. */
                 void insertOrUpdate(const Edge &edge);
 
