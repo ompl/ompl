@@ -47,35 +47,42 @@ namespace ompl
 {
     namespace base
     {
+        /** \brief The Mobius strip is a 2-dimensional non-orientable surface.
+         * */
         class MobiusStateSpace : public CompoundStateSpace
         {
         public:
+            /** \brief The definition of a state (u,v) in the Mobius strip state
+             * space.
+             * The variable u is the position on the center circle in the interval [-Pi, Pi]
+             * The variable v is the position along the width in the interval [-intervalMax, intervalMax]
+             * */
             class StateType : public CompoundStateSpace::StateType
             {
             public:
                 StateType() = default;
 
-                double getS1() const
+                double getU() const
                 {
                     return as<SO2StateSpace::StateType>(0)->value;
                 }
-                double getR1() const
+                double getV() const
                 {
                     return as<RealVectorStateSpace::StateType>(1)->values[0];
                 }
 
-                void setS1(double s)
+                void setU(double u)
                 {
-                    as<SO2StateSpace::StateType>(0)->value = s;
+                    as<SO2StateSpace::StateType>(0)->value = u;
                 }
-                void setR1(double s)
+                void setV(double v)
                 {
-                    as<RealVectorStateSpace::StateType>(1)->values[0] = s;
+                    as<RealVectorStateSpace::StateType>(1)->values[0] = v;
                 }
-                void setS1R1(double s, double t)
+                void setUV(double u, double v)
                 {
-                    setS1(s);
-                    setR1(t);
+                    setU(u);
+                    setV(v);
                 }
             };
 
@@ -89,11 +96,13 @@ namespace ompl
 
             virtual State *allocState() const override;
 
+            /* \brief Convert a state to a 3D vector to visualize the state
+             * space. */
             Eigen::Vector3f toVector(const State *state) const;
 
         private:
-            double intervalMax_{1.0}; //width of mobius strip
-            double radius_{1.0}; // radius of inner circle
+            double intervalMax_{1.0};  // width of mobius strip
+            double radius_{1.0};       // radius of inner circle
         };
     }
 }

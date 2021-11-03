@@ -72,29 +72,7 @@ void ompl::tools::Thunder::setup()
 {
     if (!configured_ || !si_->isSetup() || !planner_->isSetup() || !rrPlanner_->isSetup())
     {
-        // Setup Space Information if we haven't already done so
-        if (!si_->isSetup())
-            si_->setup();
-
-        // Setup planning from scratch planner
-        if (!planner_)
-        {
-            if (pa_)
-                planner_ = pa_(si_);
-            if (!planner_)
-            {
-                OMPL_INFORM("Getting default planner: ");
-                planner_ = std::make_shared<ompl::geometric::RRTConnect>(si_);
-                // This was disabled because i like to use Thunder / SPARSdb without setting a goal definition
-                // planner_ = ompl::geometric::getDefaultPlanner(pdef_->getGoal()); // we could use the
-                // repairProblemDef_ here but that isn't setup yet
-
-                OMPL_INFORM("No planner specified. Using default: %s", planner_->getName().c_str());
-            }
-        }
-        planner_->setProblemDefinition(pdef_);
-        if (!planner_->isSetup())
-            planner_->setup();
+        SimpleSetup::setup();
 
         // Decide if we should setup the second planning from scratch planner for benchmarking w/o recall
         if (dualThreadScratchEnabled_ && !recallEnabled_)
@@ -161,9 +139,6 @@ void ompl::tools::Thunder::setup()
 
             experienceDB_->load(filePath_);  // load from file
         }
-
-        // Set the configured flag
-        configured_ = true;
     }
 }
 

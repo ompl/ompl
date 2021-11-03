@@ -356,15 +356,15 @@ namespace ompl
              * objective) */
             bool hasOptimizedSolution() const;
 
-            /** \brief Return the top solution path, if one is found. The top path is the shortest
-                 one that was found, preference being given to solutions that are not approximate.
+            /** \brief Return the top solution path, if one is found. The top path is a shortest
+                 path that was found, preference being given to solutions that are not approximate.
 
                 This will need to be casted into the specialization computed by the planner */
             PathPtr getSolutionPath() const;
 
             /** \brief Return true if a top solution is found, with the top solution passed by reference in the function
                header
-                 The top path is the shortest one that was found, preference being given to solutions that are not
+                 The top path is a shortest path that was found, preference being given to solutions that are not
                approximate.
                 This will need to be casted into the specialization computed by the planner */
             bool getSolution(PlannerSolution &solution) const;

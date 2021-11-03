@@ -36,20 +36,23 @@
 
 /* Author: Andreas Orthey */
 
-#ifndef OMPL_BASE_SPACES_TORUS_STATE_SPACE_
-#define OMPL_BASE_SPACES_TORUS_STATE_SPACE_
+#ifndef OMPL_BASE_SPACES_SPHERE_STATE_SPACE_
+#define OMPL_BASE_SPACES_SPHERE_STATE_SPACE_
 
 #include <ompl/base/StateSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
+#include <Eigen/Core>
 
 namespace ompl
 {
     namespace base
     {
-        class TorusStateSampler : public StateSampler
+        /** \brief State sampler for the sphere state space */
+        class SphereStateSampler : public ompl::base::StateSampler
         {
         public:
-            TorusStateSampler(const StateSpace *space);
+            SphereStateSampler(const StateSpace *space);
 
             void sampleUniform(State *state) override;
 
@@ -58,7 +61,7 @@ namespace ompl
             void sampleGaussian(State *state, const State *mean, double stdDev) override;
         };
 
-        class TorusStateSpace : public CompoundStateSpace
+        class SphereStateSpace : public CompoundStateSpace
         {
         public:
             class StateType : public CompoundStateSpace::StateType
@@ -66,50 +69,48 @@ namespace ompl
             public:
                 StateType() = default;
 
-                double getS1() const
+                double getTheta() const
                 {
                     return as<SO2StateSpace::StateType>(0)->value;
                 }
-                double getS2() const
+                double getPhi() const
                 {
-                    return as<SO2StateSpace::StateType>(1)->value;
+                    return as<RealVectorStateSpace::StateType>(1)->values[0];
                 }
 
-                void setS1(double s)
+                void setTheta(double theta)
                 {
-                    as<SO2StateSpace::StateType>(0)->value = s;
+                    as<SO2StateSpace::StateType>(0)->value = theta;
                 }
-                void setS2(double s)
+                void setPhi(double phi)
                 {
-                    as<SO2StateSpace::StateType>(1)->value = s;
+                    as<RealVectorStateSpace::StateType>(1)->values[0] = phi;
                 }
-                void setS1S2(double s, double t)
+                void setThetaPhi(double theta, double phi)
                 {
-                    setS1(s);
-                    setS2(t);
+                    setTheta(theta);
+                    setPhi(phi);
                 }
             };
 
-            TorusStateSpace(double majorRadius = 1, double minorRadius = 0.5);
+            SphereStateSpace(double radius = 1.0);
 
-            virtual ~TorusStateSpace() override = default;
+            virtual ~SphereStateSpace() override = default;
 
-            StateSamplerPtr allocDefaultStateSampler() const override;
+            virtual StateSamplerPtr allocDefaultStateSampler() const override;
 
-            double distance(const State *state1, const State *state2) const override;
+            virtual double getMeasure() const override;
 
-            State *allocState() const override;
+            virtual double distance(const State *state1, const State *state2) const override;
 
-            double getMajorRadius() const;
+            virtual State *allocState() const override;
 
-            double getMinorRadius() const;
-
+            /* \brief Convert a state to a 3D vector to visualize the state
+             * space. */
             Eigen::Vector3f toVector(const State *state) const;
 
-        private:
-            double majorRadius_;
-
-            double minorRadius_;
+        protected:
+            double radius_{1.0};
         };
     }
 }

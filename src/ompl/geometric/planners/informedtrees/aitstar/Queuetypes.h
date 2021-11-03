@@ -34,7 +34,16 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/informedtrees/aitstar/Edge.h"
+#ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_AITSTAR_QUEUETYPES_
+#define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_AITSTAR_QUEUETYPES_
+
+#include <array>
+#include <functional>
+#include <memory>
+#include <utility>
+
+#include "ompl/base/Cost.h"
+#include "ompl/datastructures/BinaryHeap.h"
 
 namespace ompl
 {
@@ -42,43 +51,22 @@ namespace ompl
     {
         namespace aitstar
         {
-            Edge::Edge()
-              : parent_()
-              , child_()
-              , sortKey_({ompl::base::Cost(std::numeric_limits<double>::signaling_NaN()),
-                          ompl::base::Cost(std::numeric_limits<double>::signaling_NaN()),
-                          ompl::base::Cost(std::numeric_limits<double>::signaling_NaN())})
-            {
-            }
+            // Forward declarations of the AIT* edge and vertex classes.
+            class Edge;
+            class Vertex;
 
-            Edge::Edge(const std::shared_ptr<Vertex> &parent, const std::shared_ptr<Vertex> &child,
-                       const std::array<ompl::base::Cost, 3u> &sortKey)
-              : parent_(parent), child_(child), sortKey_(sortKey)
-            {
-            }
+            /** \brief The type of the edge queue. */
+            using EdgeQueue = ompl::BinaryHeap<Edge, std::function<bool(const Edge &, const Edge &)>>;
 
-            std::shared_ptr<Vertex> Edge::getParent() const
-            {
-                return parent_;
-            }
+            /** \brief A type for elements in the vertex queue. */
+            using KeyVertexPair = std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>;
 
-            std::shared_ptr<Vertex> Edge::getChild() const
-            {
-                return child_;
-            }
-
-            const std::array<ompl::base::Cost, 3u> &Edge::getSortKey() const
-            {
-                return sortKey_;
-            }
-
-            void Edge::setSortKey(const std::array<ompl::base::Cost, 3u> &key)
-            {
-                sortKey_ = key;
-            }
+            /** \brief The type of the vertex queue. */
+            using VertexQueue =
+                ompl::BinaryHeap<KeyVertexPair, std::function<bool(const KeyVertexPair &, const KeyVertexPair &)>>;
 
         }  // namespace aitstar
-
-    }  // namespace geometric
-
+    }      // namespace geometric
 }  // namespace ompl
+
+#endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_AITSTAR_QUEUETYPES_
