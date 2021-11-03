@@ -1194,12 +1194,13 @@ namespace ompl
                 // Remove the current segment from the queue.
                 indices.pop();
 
-                // Create the first or second half of the split segment if necessary.
+                // Create the first and second half of the split segment if necessary.
                 if (current.first < mid)
                 {
                     indices.emplace(current.first, mid - 1u);
                 }
-                else if (current.second > mid)
+                
+                if (current.second > mid)
                 {
                     indices.emplace(mid + 1u, current.second);
                 }
