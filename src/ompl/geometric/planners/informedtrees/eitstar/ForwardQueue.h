@@ -60,7 +60,7 @@ namespace ompl
             class ForwardQueue
             {
             public:
-                /** \brief Constructs the queue. */
+                /** \brief Constructs the queue given the objective and state space. */
                 ForwardQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
                              const std::shared_ptr<const ompl::base::StateSpace> &space);
 
@@ -73,16 +73,16 @@ namespace ompl
                 /** \brief Returns how many elements are in the queue. */
                 std::size_t size() const;
 
-                /** \brief Insert an edge into the queue. */
+                /** \brief Inserts or updates an edge in the queue. */
                 void insertOrUpdate(const Edge &edge);
 
-                /** \brief Inserts multiple edges into the queue. */
+                /** \brief Inserts or updates multiple edges into the queue. */
                 void insertOrUpdate(const std::vector<Edge> &edges);
 
                 /** \brief Removes an edge from the queue. Throws if the edge is not in the queue. */
                 void remove(const Edge &edge);
 
-                /** \brief Update an edge in the queue. */
+                /** \brief Update an edge in the queue. Does nothing if the edge is not in the queue. */
                 void updateIfExists(const Edge &edge);
 
                 /** \brief Returns a copy to the next edge. */
@@ -137,10 +137,10 @@ namespace ompl
                 /** \brief Returns the cost inflated by a factor. */
                 ompl::base::Cost inflateCost(const ompl::base::Cost &cost, double factor) const;
 
-                /** \brief Estimates the effort that remains to validate a solution through an edge. */
+                /** \brief Returns the estimated effort that remains to validate a solution through an edge. */
                 std::size_t estimateEffort(const Edge &edge) const;
 
-                /** \brief Estimates the cost of a solution through an edge (possibly inadmissible). */
+                /** \brief Returns the estimated cost of a solution through an edge (possibly inadmissible). */
                 ompl::base::Cost estimateCost(const Edge &edge) const;
 
                 /** \brief Returns a lower bounding cost for a solution through an edge (admissible). */
@@ -149,7 +149,7 @@ namespace ompl
                 /** \brief The optimization objective. */
                 std::shared_ptr<const ompl::base::OptimizationObjective> objective_;
 
-                /** \brief The state space information. */
+                /** \brief The state space. */
                 std::shared_ptr<const ompl::base::StateSpace> space_;
 
                 /** \brief The queue is ordered on the lower bound cost through an edge (high to low). */

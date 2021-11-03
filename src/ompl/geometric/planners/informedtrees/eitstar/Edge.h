@@ -55,7 +55,8 @@ namespace ompl
             /** \brief A struct for basic edge data. */
             struct Edge
             {
-                /** \brief OMPL's heap unfortunately only works for default constructable element. */
+                /** \brief The default constructor. This is necessary because OMPL's heap requires elements to be
+                 * default constructible. */
                 Edge() = default;
 
                 /** \brief Construct the edge by providing source and target states. */

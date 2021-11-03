@@ -59,14 +59,15 @@ namespace ompl
             class RandomGeometricGraph
             {
             public:
-                /** \brief Constructs a random geometric graph. */
+                /** \brief Constructs a random geometric graph with the given space information and reference to the
+                 * current solution cost. */
                 RandomGeometricGraph(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo,
                                      const ompl::base::Cost &solutionCost);
 
-                /** \brief Destricts a random geometric graph. */
+                /** \brief Destricts this random geometric graph. */
                 ~RandomGeometricGraph() = default;
 
-                /** \brief Sets the optimization objective. */
+                /** \brief Setup the graph with the given problem definition and planner input states. */
                 void setup(const std::shared_ptr<ompl::base::ProblemDefinition> &problem,
                            ompl::base::PlannerInputStates *inputStates);
 
@@ -77,36 +78,38 @@ namespace ompl
                 /** \brief Clears all query-specific structures, such as start and goal states. */
                 void clearQuery();
 
-                /** \brief Adds new start and goals to the graph if available and creates a new informed sampler if
+                /** \brief Adds new starts and goals to the graph if available and creates a new informed sampler if
                  * necessary. */
                 void updateStartAndGoalStates(const ompl::base::PlannerTerminationCondition &terminationCondition,
                                               ompl::base::PlannerInputStates *inputStates);
 
-                /** \brief Returns the minimum possible cost for the current problem. */
+                /** \brief Returns the minimum possible cost for the current problem, using admissible cost estimates to
+                 * calculate it. */
                 ompl::base::Cost minPossibleCost() const;
 
-                /** \brief Sets the radius factor. */
+                /** \brief Sets the radius factor (eta in the paper). */
                 void setRadiusFactor(double factor);
 
-                /** \brief Gets the radius factor. */
+                /** \brief Returns the radius factor (eta in the paper). */
                 double getRadiusFactor() const;
 
-                /** \brief Enable pruning of the graph. */
+                /** \brief Enables or disables pruning of states that cannot possibly improve the current solution. */
                 void enablePruning(bool prune);
 
-                /** \brief Whether pruning is enabled. */
+                /** \brief Returns Whether pruning is enabled. */
                 bool isPruningEnabled() const;
 
-                /** \brief Whether to use a k-nearest connection model. If false, it uses an r-disc model. */
+                /** \brief Set whether to use a k-nearest connection model. If false, it uses an r-disc model. */
                 void setUseKNearest(bool useKNearest);
 
-                /** \brief Whether the graph uses a k-nearest connection model. If false, it uses an r-disc model. */
+                /** \brief Returns whether the graph uses a k-nearest connection model. If false, it uses an r-disc
+                 * model. */
                 bool getUseKNearest() const;
 
-                /** \brief Set the maximum number of goals EIT* will sample from sampleable goal regions. */
+                /** \brief Sets the maximum number of goals EIT* will sample from sampleable goal regions. */
                 void setMaxNumberOfGoals(unsigned int maxNumberOfGoals);
 
-                /** \brief Get the maximum number of goals EIT* will sample from sampleable goal regions. */
+                /** \brief Returns the maximum number of goals EIT* will sample from sampleable goal regions. */
                 unsigned int getMaxNumberOfGoals() const;
 
                 /** \brief Samples random states and adds them to the graph. */
@@ -116,22 +119,22 @@ namespace ompl
                 /** \brief Prunes the graph of states that can not improve the current solution. */
                 void prune();
 
-                /** \brief Gets the neighbors of a state. */
+                /** \brief Returns the neighbors of a state. */
                 std::vector<std::shared_ptr<State>> getNeighbors(const std::shared_ptr<State> &state) const;
 
-                /** \brief Get the start states. */
+                /** \brief Returns the start states. */
                 const std::vector<std::shared_ptr<State>> &getStartStates() const;
 
-                /** \brief Get the goal states. */
+                /** \brief Returns the goal states. */
                 const std::vector<std::shared_ptr<State>> &getGoalStates() const;
 
-                /** \brief Get the number of sampled states. */
+                /** \brief Returns the number of sampled states. */
                 unsigned int getNumberOfSampledStates() const;
 
-                /** \brief Get the number of valid samples. */
+                /** \brief Returns the number of valid samples. */
                 unsigned int getNumberOfValidSamples() const;
 
-                /** \brief Get the number of nearest neighbor calls. */
+                /** \brief Returns the number of nearest neighbor calls. */
                 unsigned int getNumberOfNearestNeighborCalls() const;
 
                 /** \brief Sets the start state. */
@@ -140,29 +143,30 @@ namespace ompl
                 /** \brief Sets the goal state. */
                 std::shared_ptr<State> registerGoalState(const ompl::base::State *goal);
 
-                /** \brief Returns whether a start state is set. */
+                /** \brief Returns whether a start state is available. */
                 bool hasStartState() const;
 
-                /** \brief Returns whether a goal state is set. */
+                /** \brief Returns whether a goal state is available. */
                 bool hasGoalState() const;
 
-                /** \brief Returns whether a state is a start state. */
+                /** \brief Returns whether the given state is a start state. */
                 bool isStart(const std::shared_ptr<State> &state) const;
 
-                /** \brief Returns whether a state is a goal state. */
+                /** \brief Returns whether the given state is a goal state. */
                 bool isGoal(const std::shared_ptr<State> &state) const;
 
-                /** \brief Returns all sampled states. */
+                /** \brief Returns all sampled states (that have not been pruned). */
                 std::vector<std::shared_ptr<State>> getStates() const;
 
                 /** \brief Registers an invalid edge. */
                 void registerInvalidEdge(const Edge &edge) const;
 
-                /** \brief Get the tag of the current RGG. */
+                /** \brief Returns the tag of the current RGG. */
                 std::size_t getTag() const;
 
             private:
-                /** \brief Returns the number of states in the informed set. */
+                /** \brief Returns the number of states in the informed set. This iterates through all samples in the
+                 * graph. */
                 std::size_t countSamplesInInformedSet() const;
 
                 /** \brief Returns whether a state can be pruned because it cannot possibly be part of a solution equal
@@ -178,13 +182,13 @@ namespace ompl
                 /** \brief Returns the heuristic cost to the preferred goal of a state. */
                 ompl::base::Cost lowerBoundCostToGo(const std::shared_ptr<State> &state) const;
 
-                /** \brief Initializes a state's cost and effort values. */
+                /** \brief Initializes the given state's cost and effort values. */
                 void initializeState(const std::shared_ptr<State> &state);
 
-                /** \brief Computes the number of neighbors of the k-nearest model with a given number of samples. */
+                /** \brief Returns the number of neighbors of the k-nearest model with a given number of samples. */
                 std::size_t computeNumberOfNeighbors(std::size_t numInformedSamples) const;
 
-                /** \brief Computes the radius for the RGG. */
+                /** \brief Returns the radius for the RGG. */
                 double computeRadius(std::size_t numInformedSamples) const;
 
                 /** \brief The tag of the current RGG. */
@@ -217,12 +221,12 @@ namespace ompl
                 /** \brief The goal states of the problem. */
                 std::vector<std::shared_ptr<State>> goalStates_;
 
-                /** \brief The pruned start states of the problem. We keep these around because if a new start is added
-                 * after pruning a goal, we might want to consider the new goal again. */
+                /** \brief The pruned start states of the problem. We keep these around because if a new goal is added
+                 * after pruning a start, we might want to consider the pruned start again. */
                 std::vector<std::shared_ptr<State>> prunedStartStates_;
 
-                /** \brief The pruned goal states of the problem. We keep these around because if a new goal is added
-                 * after pruning a start, we might want to consider the new start again. */
+                /** \brief The pruned goal states of the problem. We keep these around because if a new start is added
+                 * after pruning a goal, we might want to consider the pruned goal again. */
                 std::vector<std::shared_ptr<State>> prunedGoalStates_;
 
                 /** \brief Whether pruning is enabled. */
@@ -231,7 +235,7 @@ namespace ompl
                 /** \brief Whether to use a k-nearest RGG. If false, EIT* uses an r-disc RGG. */
                 bool useKNearest_{true};
 
-                /** \brief The maximum number of goals EIT* will sample explicitly. */
+                /** \brief The maximum number of goals EIT* will sample explicitly from a sampleable goal region. */
                 unsigned int maxNumGoals_{1u};
 
                 /** \brief The number of neighbors that defines the neighborhood of a vertex if using a k-nearest graph.
@@ -244,7 +248,7 @@ namespace ompl
                 /** \brief The connection radius of the RGG. */
                 double radius_{std::numeric_limits<double>::infinity()};
 
-                /** \brief The factor by which to scale the connection radius. */
+                /** \brief The factor by which to scale the connection radius (eta in the paper). */
                 double radiusFactor_{1.001};
 
                 /** \brief The dimension of the state space this graph is embedded in. */

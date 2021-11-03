@@ -57,14 +57,14 @@ namespace ompl
             class State;
 
             /** \brief The vertex class for both the forward and reverse search. */
-            class Vertex : public std::enable_shared_from_this<Vertex>
+            class Vertex : public std::enable_shared_from_this<Vertex>  // Inheritance must be public here.
             {
             public:
                 /** \brief Constructs the vertex, which must be associated with a state. */
                 Vertex(const std::shared_ptr<State> &state,
                        const std::shared_ptr<ompl::base::OptimizationObjective> &objective, const Direction &direction);
 
-                /** \brief Destructs the vertex. */
+                /** \brief Destructs this vertex. */
                 ~Vertex();
 
                 /** \brief Gets the unique vertex-id of this vertex. */
@@ -73,42 +73,42 @@ namespace ompl
                 /** \brief Returns the state associated with this vertex. */
                 std::shared_ptr<State> getState() const;
 
-                /** \brief Returns the children of the vertex. */
+                /** \brief Returns the children of this vertex. */
                 const std::vector<std::shared_ptr<Vertex>> &getChildren() const;
 
-                /** \brief Returns whether the vertex has children. */
+                /** \brief Returns whether this vertex has children. */
                 bool hasChildren() const;
 
-                /** \brief Update the cost-to-come of the children. */
+                /** \brief Update the cost-to-come of this vertex's children. */
                 std::vector<std::shared_ptr<Vertex>>
                 updateCurrentCostOfChildren(const std::shared_ptr<ompl::base::OptimizationObjective> &objective);
 
-                /** \brief Adds a vertex to this vertex's children. */
+                /** \brief Adds the given vertex to this vertex's children. */
                 void addChild(const std::shared_ptr<Vertex> &vertex);
 
-                /** \brief Removes a vertex from this vertex's child. */
+                /** \brief Removes the given vertex from this vertex's children. */
                 void removeChild(const std::shared_ptr<Vertex> &vertex);
 
-                /** \brief Returns the parent of the vertex. */
+                /** \brief Returns the parent of this vertex. */
                 std::weak_ptr<Vertex> getParent() const;
 
-                /** \brief Returns whether the given vertex is this vertex' parent. */
+                /** \brief Returns whether the given vertex is this vertex's parent. */
                 bool isParent(const std::shared_ptr<Vertex> &vertex) const;
 
                 /** \brief Returns the twin of this vertex, i.e., the vertex in the other search tree with the same
                  * underlying state. */
                 std::weak_ptr<Vertex> getTwin() const;
 
-                /** \brief Resets the parent of the vertex. */
+                /** \brief Resets the parent of this vertex. */
                 void updateParent(const std::shared_ptr<Vertex> &vertex);
 
-                /** \brief Sets the edge cost of the vertex. */
+                /** \brief Sets the cost of the edge in the forward tree that leads to this vertex. */
                 void setEdgeCost(const ompl::base::Cost &edgeCost);
 
-                /** \brief Sets the edge cost of the vertex. */
+                /** \brief Returns the cost of the edge in the forward tree that leads to this vertex. */
                 ompl::base::Cost getEdgeCost() const;
 
-                /** \brief Returns the parent of the vertex. */
+                /** \brief Returns the parent of this vertex. */
                 void resetParent();
 
                 /** \brief Sets the twin of this vertex, i.e., the vertex in the other search tree with the same
@@ -124,7 +124,7 @@ namespace ompl
                 /** \brief Sets the expand tag when this vertex was last expanded. */
                 void registerExpansionInReverseSearch(std::size_t tag);
 
-                /** \brief Calls the given function with all children as arguments. */
+                /** \brief Recursively calls the given function on this vertex and all its children in the tree. */
                 void callOnBranch(const std::function<void(const std::shared_ptr<eitstar::State> &)> &function);
 
             private:
@@ -151,10 +151,10 @@ namespace ompl
                 std::size_t expandTag_{0u};
 
                 /** \brief The state this vertex is associated with. */
-                std::shared_ptr<State> state_;
+                const std::shared_ptr<State> state_;
 
                 /** \brief The direction of the tree this vertex is part of. */
-                Direction direction_;
+                const Direction direction_;
 
                 /** \brief The edge queue is a friend class to allow efficient updates of outgoing edges of this vertex
                  * in the queue. */

@@ -346,13 +346,13 @@ namespace ompl
             std::vector<Edge> edges;
 
             // Define a helper that recursively gets all reverse edges of a vertex.
-            std::function<void(const std::shared_ptr<Vertex> &)> getEdgesRecursively =
+            const std::function<void(const std::shared_ptr<Vertex> &)> getEdgesRecursively =
                 [&edges, &getEdgesRecursively](const std::shared_ptr<Vertex> &vertex) {
                     for (const auto &child : vertex->getChildren())
                     {
                         getEdgesRecursively(child);
                     }
-                    // Catch the root case.
+                    // Catch the root case of the recursion.
                     if (auto parent = vertex->getParent().lock())
                     {
                         edges.emplace_back(parent->getState(), vertex->getState());
@@ -672,7 +672,7 @@ namespace ompl
                 // If we could not get a start state, then there's nothing to solve.
                 if (!graph_.hasStartState())
                 {
-                    OMPL_WARN("%s: No solution can be found as no start states are available", name_.c_str());
+                    OMPL_ERROR("%s: No solution can be found as no start states are available", name_.c_str());
                     return ompl::base::PlannerStatus::StatusType::INVALID_START;
                 }
             }
@@ -685,30 +685,13 @@ namespace ompl
                 // If the graph still doesn't have a goal after waiting, then there's nothing to solve.
                 if (!graph_.hasGoalState())
                 {
-                    OMPL_WARN("%s: No solution can be found as no goal states are available", name_.c_str());
+                    OMPL_ERROR("%s: No solution can be found as no goal states are available", name_.c_str());
                     return ompl::base::PlannerStatus::StatusType::INVALID_GOAL;
                 }
             }
 
             // Would it be worth implementing a 'setup' or 'checked' status type?
             return ompl::base::PlannerStatus::StatusType::UNKNOWN;
-        }
-
-        ompl::base::PlannerStatus::StatusType EITstar::updateStatus()
-        {
-            // Return the appropriate planner status.
-            if (objective_->isFinite(solutionCost_))
-            {
-                return ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION;
-            }
-            else if (trackApproximateSolutions_)
-            {
-                return ompl::base::PlannerStatus::StatusType::APPROXIMATE_SOLUTION;
-            }
-            else
-            {
-                return ompl::base::PlannerStatus::StatusType::TIMEOUT;
-            }
         }
 
         std::shared_ptr<ompl::geometric::PathGeometric>
@@ -766,20 +749,13 @@ namespace ompl
                 return true;
             }
 
-            /*
-
-            There are three conditions under which the reverse search can be suspended:
-
-               1. The best edge in the forward search has a closed target (admissible cost-to-go estimate), and the
-                  reverse search cannot lead to a better solution than the potential solution of this edge.
-
-               2. All edges in the forward queue have closed targets (admissible cost-to-go estimates).
-
-               3. We do not care about solution cost and the least-effort edge in the forward queue is connected to the
-                  reverse tree.
-
-             */
-
+            // There are three conditions under which the reverse search can be suspended:
+            //   1. The best edge in the forward search has a closed target (admissible cost-to-go estimate), and the
+            //      reverse search cannot lead to a better solution than the potential solution of this edge.
+            //   2. All edges in the forward queue have closed targets (admissible cost-to-go estimates).
+            //   3. We do not care about solution cost and the least-effort edge in the forward queue is connected to
+            //   the
+            //      reverse tree.
             const bool condition1 = isClosed(forwardQueue_->peek(suboptimalityFactor_).target->asReverseVertex()) &&
                                     isBetter(forwardQueue_->getLowerBoundOnOptimalSolutionCost(),
                                              reverseQueue_->getLowerBoundOnOptimalSolutionCost());
@@ -1251,29 +1227,6 @@ namespace ompl
             }
         }
 
-        std::tuple<std::shared_ptr<eitstar::State>, ompl::base::Cost, ompl::base::Cost>
-        EITstar::getBestParentInReverseTree(const std::shared_ptr<eitstar::State> &state) const
-        {
-            std::shared_ptr<eitstar::State> bestParent;
-            ompl::base::Cost bestCost = objective_->infiniteCost();
-            ompl::base::Cost bestEdgeCost = objective_->infiniteCost();
-            for (const auto &neighbor : graph_.getNeighbors(state))
-            {
-                if (neighbor->hasReverseVertex())
-                {
-                    const auto neighborEdgeCost = objective_->motionCostBestEstimate(neighbor->raw(), state->raw());
-                    const auto neighborCost = combine(neighbor->getAdmissibleCostToGo(), neighborEdgeCost);
-                    if (isBetter(neighborCost, bestCost))
-                    {
-                        bestParent = neighbor;
-                        bestCost = neighborCost;
-                        bestEdgeCost = neighborEdgeCost;
-                    }
-                }
-            }
-            return {bestParent, bestCost, bestEdgeCost};
-        }
-
         bool EITstar::isClosed(const std::shared_ptr<Vertex> &vertex) const
         {
             return vertex->getExpandTag() == reverseSearchTag_;
@@ -1431,20 +1384,6 @@ namespace ompl
             }
 
             return outgoingEdges;
-        }
-
-        std::vector<eitstar::Edge> EITstar::expandForwardRootsInReverseTree() const
-        {
-            std::vector<eitstar::Edge> allEdges;
-            for (const auto root : startVertices_)
-            {
-                if (root->getTwin().lock())
-                {
-                    auto edges = expand(root->getState());
-                    allEdges.insert(allEdges.end(), edges.begin(), edges.end());
-                }
-            }
-            return allEdges;
         }
     }  // namespace geometric
 }  // namespace ompl

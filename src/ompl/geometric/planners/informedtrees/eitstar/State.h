@@ -62,13 +62,13 @@ namespace ompl
                 State(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo,
                       const std::shared_ptr<ompl::base::OptimizationObjective> &objective);
 
-                /** \brief Destructs the state, freeing the associated memory. */
+                /** \brief Destructs this state, freeing the associated memory. */
                 ~State();
 
-                /** \brief Get the state's unique id. */
+                /** \brief Returns the state's unique id. */
                 std::size_t getId() const;
 
-                /** \brief Get the raw OMPL version of this state. */
+                /** \brief Returns the raw OMPL version of this state. */
                 ompl::base::State *raw() const;
 
                 /** \brief Returns whether the state has an associated forward vertex. */
@@ -77,22 +77,22 @@ namespace ompl
                 /** \brief Returns whether the state has an associated reverse vertex. */
                 bool hasReverseVertex() const;
 
-                /** \brief Get the state as a reverse vertex. */
+                /** \brief Returns the state as a reverse vertex. */
                 std::shared_ptr<Vertex> asForwardVertex();
 
-                /** \brief Get the state as a reverse vertex(); */
+                /** \brief Returns the state as a reverse vertex. */
                 std::shared_ptr<Vertex> asReverseVertex();
 
-                /** \brief Blacklist a state as neighbor. */
+                /** \brief Blacklists the given state as neighbor. */
                 void blacklist(const std::shared_ptr<State> &state);
 
-                /** \brief Whitelist a state as neighbor. */
+                /** \brief Whitelists the given state as neighbor. */
                 void whitelist(const std::shared_ptr<State> &state);
 
-                /** \brief Returns whether a state has been blacklisted. */
+                /** \brief Returns whether the given state has been blacklisted. */
                 bool isBlacklisted(const std::shared_ptr<State> &state) const;
 
-                /** \brief Returns whether a state has been whitelisted. */
+                /** \brief Returns whether the given has been whitelisted. */
                 bool isWhitelisted(const std::shared_ptr<State> &state) const;
 
                 /** \brief Set the estimated effort (number of collision detections) to go from this state to the goal
@@ -121,31 +121,31 @@ namespace ompl
                 /** \brief Sets the lower bound effort to come to this state through the continuous state space. */
                 void setLowerBoundEffortToCome(unsigned int);
 
-                /** \brief Get the estimated effort (number of collision detections) to go from this state to the goal
-                 * through the current RGG. */
+                /** \brief Returns the estimated effort (number of collision detections) to go from this state to the
+                 * goal through the current RGG. */
                 unsigned int getEstimatedEffortToGo() const;
 
-                /** \brief Get the best estimate of the cost to go from this state to the goal through the current RGG.
-                 */
+                /** \brief Returns the best estimate of the cost to go from this state to the goal through the current
+                 * RGG. */
                 ompl::base::Cost getEstimatedCostToGo() const;
 
-                /** \brief Get the admissible estimate of the cost to go from this state to the goal through the current
-                 * RGG. */
+                /** \brief Returns the admissible estimate of the cost to go from this state to the goal through the
+                 * current RGG. */
                 ompl::base::Cost getAdmissibleCostToGo() const;
 
-                /** \brief Get the lower bound cost to go from this state to the goal through the continuous state
+                /** \brief Returns the lower bound cost to go from this state to the goal through the continuous state
                  * space. */
                 ompl::base::Cost getLowerBoundCostToGo() const;
 
-                /** \brief Get the lower bound cost to come from the start to this state through the continuous state
-                 * space. */
+                /** \brief Returns the lower bound cost to come from the start to this state through the continuous
+                 * state space. */
                 ompl::base::Cost getLowerBoundCostToCome() const;
 
-                /** \brief Get the current cost to come from the start to this state. */
+                /** \brief Returns the current cost to come from the start to this state. */
                 ompl::base::Cost getCurrentCostToCome() const;
 
-                /** \brief Get the lower bound cost to come from the start to this state through the continuous state
-                 * space. */
+                /** \brief Returns the lower bound cost to come from the start to this state through the continuous
+                 * state space. */
                 unsigned int getLowerBoundEffortToCome() const;
 
                 /** \brief Returns the sources of incoming edges in forward queue. */
@@ -178,7 +178,8 @@ namespace ompl
                  * through the current graph. */
                 unsigned int estimatedEffortToGo_{std::numeric_limits<unsigned int>::max()};
 
-                /** \brief A best estimate of the cost to go from this state to the goal through the current RGG. */
+                /** \brief A potentially inadmissible estimate of the cost to go from this state to the goal through the
+                 * current RGG. */
                 ompl::base::Cost estimatedCostToGo_;
 
                 /** \brief A lower bound on the effort to come. */
@@ -208,7 +209,7 @@ namespace ompl
                 /** \brief The associated vertex in the forward search tree. */
                 std::weak_ptr<Vertex> reverseVertex_{};
 
-                /** \brief The neighbors in the graph, associated with a graph tag. **/
+                /** \brief The neighbors in the graph, associated with a graph tag. */
                 mutable std::pair<std::size_t, std::vector<std::shared_ptr<State>>> neighbors_{};
 
                 /** \brief The blacklist of states that can not be connected to this state. */

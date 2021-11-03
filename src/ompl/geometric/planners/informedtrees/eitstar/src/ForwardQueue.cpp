@@ -284,8 +284,7 @@ namespace ompl
 
             ompl::base::Cost ForwardQueue::inflateCost(const ompl::base::Cost &cost, double factor) const
             {
-                // I don't think this will work for problems which minimize cost, but making it work would require a
-                // larger change in OMPL.
+                // Will this work with objectives that maximize cost (utility)?
                 if (!std::isfinite(factor) || !objective_->isFinite(cost))
                 {
                     return objective_->infiniteCost();

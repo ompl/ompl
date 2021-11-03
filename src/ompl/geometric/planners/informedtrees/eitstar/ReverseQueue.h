@@ -59,23 +59,23 @@ namespace ompl
             class ReverseQueue
             {
             public:
-                /** \brief Constructs the queue. */
+                /** \brief Constructs the queue with the given optimization objective and state space. */
                 ReverseQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
                              const std::shared_ptr<const ompl::base::StateSpace> &space);
 
-                /** \brief Destructs the queue. */
+                /** \brief Destructs this queue. */
                 ~ReverseQueue() = default;
 
                 /** \brief Returns whether the queue is empty. */
                 bool empty() const;
 
-                /** \brief Returns how many elements are in the queue. */
+                /** \brief Returns the number of elements in the queue. */
                 std::size_t size() const;
 
-                /** \brief Insert an element into the queue. */
+                /** \brief Inserts or updates an element in the queue. */
                 void insertOrUpdate(const Edge &edge);
 
-                /** \brief Insert an element into the queue. */
+                /** \brief Inserts or updates multiple elements in the queue. */
                 void insertOrUpdate(const std::vector<Edge> &edges);
 
                 /** Get a reference to the top edge in the queue. */
@@ -100,7 +100,8 @@ namespace ompl
                 void removeOutgoingEdges(const std::shared_ptr<Vertex> &vertex);
 
             private:
-                /** \brief Update an edge in the queue if it exists. */
+                /** \brief Update an edge in the queue if its in the queue. Does nothing if the edge is not in the
+                 * queue. */
                 bool updateIfExists(const Edge &edge);
 
                 /** \brief Returns the admissible total potential solution cost of an edge. */
