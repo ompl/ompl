@@ -34,7 +34,7 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/eitstar/RandomGeometricGraph.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/RandomGeometricGraph.h"
 
 #include <cmath>
 
@@ -43,7 +43,7 @@
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/util/GeometricEquations.h"
 
-#include "ompl/geometric/planners/eitstar/Vertex.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/Vertex.h"
 
 namespace ompl
 {

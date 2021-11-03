@@ -34,12 +34,12 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/eitstar/Vertex.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/Vertex.h"
 
 #include <algorithm>
 #include <limits>
 
-#include "ompl/geometric/planners/eitstar/State.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/State.h"
 
 namespace ompl
 {

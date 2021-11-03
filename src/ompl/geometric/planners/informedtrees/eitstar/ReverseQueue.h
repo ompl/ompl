@@ -34,8 +34,8 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_EITSTAR_REVERSE_QUEUE_
-#define OMPL_GEOMETRIC_PLANNERS_EITSTAR_REVERSE_QUEUE_
+#ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_REVERSE_QUEUE_
+#define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_REVERSE_QUEUE_
 
 #include <array>
 #include <map>
@@ -46,9 +46,9 @@
 #include "ompl/datastructures/BinaryHeap.h"
 #include "ompl/datastructures/NearestNeighbors.h"
 
-#include "ompl/geometric/planners/eitstar/Direction.h"
-#include "ompl/geometric/planners/eitstar/Edge.h"
-#include "ompl/geometric/planners/eitstar/Vertex.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/Direction.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/Edge.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/Vertex.h"
 
 namespace ompl
 {
@@ -130,4 +130,4 @@ namespace ompl
 
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_EITSTAR_REVERSE_QUEUE_
+#endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_REVERSE_QUEUE_

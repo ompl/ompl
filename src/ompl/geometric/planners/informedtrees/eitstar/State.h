@@ -34,8 +34,8 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_EITSTAR_STATE_
-#define OMPL_GEOMETRIC_PLANNERS_EITSTAR_STATE_
+#ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_STATE_
+#define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_STATE_
 
 #include <memory>
 #include <set>
@@ -45,7 +45,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/State.h"
 
-#include "ompl/geometric/planners/eitstar/Vertex.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/Vertex.h"
 
 namespace ompl
 {
@@ -238,4 +238,4 @@ namespace ompl
 
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_EITSTAR_STATE_
+#endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_STATE_

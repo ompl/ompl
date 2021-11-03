@@ -34,8 +34,8 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_EITSTAR_VERTEX_
-#define OMPL_GEOMETRIC_PLANNERS_EITSTAR_VERTEX_
+#ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_VERTEX_
+#define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_VERTEX_
 
 #include <memory>
 #include <vector>
@@ -44,8 +44,8 @@
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/datastructures/BinaryHeap.h"
 
-#include "ompl/geometric/planners/eitstar/Direction.h"
-#include "ompl/geometric/planners/eitstar/Edge.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/Direction.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/Edge.h"
 
 namespace ompl
 {
@@ -179,4 +179,4 @@ namespace ompl
 
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_EITSTAR_QUEUE_
+#endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_QUEUE_

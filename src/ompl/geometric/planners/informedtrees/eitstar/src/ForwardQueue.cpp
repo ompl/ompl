@@ -34,14 +34,13 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/eitstar/ForwardQueue.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/ForwardQueue.h"
 
 #include <algorithm>
 #include <cmath>
 
-#include "ompl/geometric/planners/eitstar/stopwatch/timetable.h"
-#include "ompl/geometric/planners/eitstar/Direction.h"
-#include "ompl/geometric/planners/eitstar/State.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/Direction.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/State.h"
 
 namespace ompl
 {

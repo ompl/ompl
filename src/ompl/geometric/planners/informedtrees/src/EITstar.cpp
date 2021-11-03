@@ -34,14 +34,13 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/eitstar/EITstar.h"
+#include "ompl/geometric/planners/informedtrees/EITstar.h"
 
 #include <algorithm>
 #include <memory>
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
-#include "ompl/geometric/planners/eitstar/stopwatch/timetable.h"
 
 using namespace std::string_literals;
 using namespace ompl::geometric::eitstar;

@@ -34,8 +34,8 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_EITSTAR_EITSTAR_
-#define OMPL_GEOMETRIC_PLANNERS_EITSTAR_EITSTAR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_
+#define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_
 
 #include <memory>
 
@@ -44,10 +44,10 @@
 #include "ompl/base/SpaceInformation.h"
 
 #include "ompl/geometric/PathGeometric.h"
-#include "ompl/geometric/planners/eitstar/Direction.h"
-#include "ompl/geometric/planners/eitstar/RandomGeometricGraph.h"
-#include "ompl/geometric/planners/eitstar/ForwardQueue.h"
-#include "ompl/geometric/planners/eitstar/ReverseQueue.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/Direction.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/RandomGeometricGraph.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/ForwardQueue.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/ReverseQueue.h"
 
 namespace ompl
 {
@@ -384,4 +384,4 @@ namespace ompl
 
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_EITSTAR_EITSTAR_
+#endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_

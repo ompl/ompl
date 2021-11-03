@@ -34,7 +34,7 @@
 
 // Authors: Marlin Strub
 
-#include "ompl/geometric/planners/eitstar/State.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/State.h"
 
 namespace ompl
 {

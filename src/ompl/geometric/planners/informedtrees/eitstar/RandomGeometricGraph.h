@@ -34,8 +34,8 @@
 
 // Authors: Marlin Strub
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_EITSTAR_RANDOM_GEOMETRIC_GRAPH_
-#define OMPL_GEOMETRIC_PLANNERS_EITSTAR_RANDOM_GEOMETRIC_GRAPH_
+#ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_RANDOM_GEOMETRIC_GRAPH_
+#define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_RANDOM_GEOMETRIC_GRAPH_
 
 #include <limits>
 #include <memory>
@@ -47,8 +47,8 @@
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/base/OptimizationObjective.h"
 
-#include "ompl/geometric/planners/eitstar/State.h"
-#include "ompl/geometric/planners/eitstar/Edge.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/State.h"
+#include "ompl/geometric/planners/informedtrees/eitstar/Edge.h"
 
 namespace ompl
 {
@@ -275,4 +275,4 @@ namespace ompl
 
 }  // namespace ompl
 
-#endif  // OMPL_GEOMETRIC_PLANNERS_EITSTAR_RANDOM_GEOMETRIC_GRAPH_
+#endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_RANDOM_GEOMETRIC_GRAPH_

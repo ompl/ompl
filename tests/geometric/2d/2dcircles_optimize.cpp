@@ -50,7 +50,7 @@ OMPL_POP_CLANG
 #include "ompl/geometric/planners/informedtrees/ABITstar.h"
 #include "ompl/geometric/planners/informedtrees/BITstar.h"
 #include "ompl/geometric/planners/cforest/CForest.h"
-#include "ompl/geometric/planners/eitstar/EITstar.h"
+#include "ompl/geometric/planners/informedtrees/EITstar.h"
 #include "ompl/geometric/planners/prm/PRMstar.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"
 #include "ompl/util/RandomNumbers.h"

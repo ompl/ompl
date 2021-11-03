@@ -45,7 +45,7 @@
 // The supported optimal planners, in alphabetical order
 #include <ompl/geometric/planners/informedtrees/AITstar.h>
 #include <ompl/geometric/planners/informedtrees/BITstar.h>
-#include <ompl/geometric/planners/eitstar/EITstar.h>
+#include <ompl/geometric/planners/informedtrees/EITstar.h>
 #include <ompl/geometric/planners/cforest/CForest.h>
 #include <ompl/geometric/planners/fmt/FMT.h>
 #include <ompl/geometric/planners/fmt/BFMT.h>
