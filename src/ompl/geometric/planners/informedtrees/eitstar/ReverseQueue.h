@@ -108,7 +108,7 @@ namespace ompl
 
                 /** \brief Returns the cost to come to the target of the edge. */
                 ompl::base::Cost computeAdmissibleCostToComeToTarget(const Edge &edge) const;
-                    
+
                 /** \brief Returns the admissible total potential solution effort of an edge. */
                 unsigned int computeAdmissibleSolutionEffort(const Edge &edge) const;
 

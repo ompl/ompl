@@ -164,12 +164,9 @@ namespace ompl
                  */
                 mutable std::vector<ompl::BinaryHeap<
                     std::tuple<ompl::base::Cost, ompl::base::Cost, unsigned int, Edge>,
-                    std::function<bool(const std::tuple<ompl::base::Cost,
-                                                        ompl::base::Cost,
-                                                        unsigned int, Edge> &,
-                                       const std::tuple<ompl::base::Cost,
-                                                        ompl::base::Cost,
-                                                        unsigned int, Edge> &)>>::Element *>
+                    std::function<bool(const std::tuple<ompl::base::Cost, ompl::base::Cost, unsigned int, Edge> &,
+                                       const std::tuple<ompl::base::Cost, ompl::base::Cost, unsigned int, Edge> &)>>::
+                                        Element *>
                     outgoingReverseQueueLookup_;
             };
 

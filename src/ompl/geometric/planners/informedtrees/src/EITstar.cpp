@@ -1199,7 +1199,7 @@ namespace ompl
                 {
                     indices.emplace(current.first, mid - 1u);
                 }
-                
+
                 if (current.second > mid)
                 {
                     indices.emplace(mid + 1u, current.second);

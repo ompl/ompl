@@ -43,12 +43,13 @@ namespace ompl
     {
         namespace eitstar
         {
-            enum class Direction {
+            enum class Direction
+            {
                 FORWARD,
                 REVERSE
             };
 
-        }  // namespace aibitstar
+        }  // namespace eitstar
 
     }  // namespace geometric
 
