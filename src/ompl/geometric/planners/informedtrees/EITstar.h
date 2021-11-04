@@ -53,6 +53,41 @@ namespace ompl
 {
     namespace geometric
     {
+        /**
+        @anchor gEITstar
+
+        \ref gEITstar "EIT*" (Effort Informed Trees) is an almost-surely asymptotically optimal path planner.
+        It aims to find an initial solution quickly and asymptotically converge to the globally optimal solution.
+
+        EIT* views the planning problem as the two subproblems of approximation and search, and approximates the free
+        state space with an increasingly dense, edge-implicit random geometric graph (RGG), similar to BIT* and AIT*.
+
+        EIT* uses an asymmetric bidirectional search that simultaneously calculates and exploits accurate,
+        problem-specific cost and effort heuristics. The reverse search (goal to start) only performs sparse collision
+        detection on the edges and does not evaluate true edge costs. It calculates cost-to-go and effort-to-go
+        heuristics for all states in the RGG that are processed with the forward search (start to goal). This is
+        achieved by integrating a priori cost and effort heuristics over the best reverse path to each state. The
+        forward search (start to goal) performs collision detection and is informed by the heuristics calculated by the
+        reverse search. The forward search in turn informes the reverse search when it detects collisions on an edge
+        that was used to calculate the heuristics which causes the reverse search to update them. In this way, both
+        searches in EIT* continuously inform each other with complementary information. This results in fast initial
+        solution times and almost-sure asymptotic convergence towards the optimal solution.
+
+        This implementation of EIT* can solve problems with multiple start and goal states and supports adding start and
+        goal states while the planner is running.
+
+        @par Associated publications:
+
+        M. P. Strub, J. D. Gammell. “AIT* and EIT*: Asymmetric bidirectional sampling-based path planning”
+        The International Journal of Robotics Research (IJRR), in revision, 2021.
+
+        arXiv: <a href="https://arxiv.org/abs/2111.01877">arXiv:2111.01877</a>
+        Video 1: <a href="https://youtu.be/aC2xBwOcDoo">IJRR trailer</a>
+        Video 2: <a href="https://youtu.be/kNdv1ayzap0">IJRR extension 2</a>
+
+        */
+
+        /** \brief Effort Informed Trees (EIT*) */
         class EITstar : public ompl::base::Planner
         {
         public:
