@@ -31,6 +31,7 @@ src/ompl/geometric/planners/rrt/SORRTstar.h
 src/ompl/geometric/planners/informedtrees/BITstar.h
 src/ompl/geometric/planners/informedtrees/ABITstar.h
 src/ompl/geometric/planners/informedtrees/AITstar.h
+src/ompl/geometric/planners/informedtrees/EITstar.h
 src/ompl/geometric/planners/sbl/SBL.h
 src/ompl/geometric/planners/stride/STRIDE.h
 src/ompl/geometric/planners/fmt/FMT.h
