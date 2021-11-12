@@ -3,7 +3,7 @@
 Registration for OMPL is completely voluntary. We will not spam you with emails. Work on OMPL is funded in part by the National Science Foundation (NSF). It is extremely helpful for us if we can report to the NSF where and how our work is being used. Your cooperation would be highly appreciated.
 
 \htmlonly
-<form action="https://formspree.io/mmoll@rice.edu" method="POST">
+<form action="https://formspree.io/zak@rice.edu" method="POST">
   <div class="form-group">
     <input type="email" class="form-control" name="_replyto" value='' placeholder="Email (optional)">
   </div>
