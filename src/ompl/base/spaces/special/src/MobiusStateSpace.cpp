@@ -45,7 +45,7 @@
 using namespace boost::math::double_constants;  // pi
 using namespace ompl::base;
 
-MobiusStateSpace::MobiusStateSpace(double intervalMax, double radius) : intervalMax_(intervalMax), radius_(radius)
+MobiusStateSpace::MobiusStateSpace(double intervalMax, double radius) : radius_(radius)
 {
     setName("Mobius" + getName());
     type_ = STATE_SPACE_MOBIUS;

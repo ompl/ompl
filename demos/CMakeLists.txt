@@ -72,7 +72,7 @@ if (OMPL_BUILD_DEMOS)
 
     if (OMPL_EXTENSION_TRIANGLE)
         add_ompl_demo(demo_TriangulationDemo TriangulationDemo.cpp)
-        add_ompl_demo(demo_LTLWithTriangulation LTLWithTriangulation)
+        add_ompl_demo(demo_LTLWithTriangulation LTLWithTriangulation.cpp)
     endif()
 endif(OMPL_BUILD_DEMOS)
 

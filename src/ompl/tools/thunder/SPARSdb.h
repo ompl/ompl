@@ -191,7 +191,6 @@ namespace ompl
             // Remove this struct when the minimum Boost requirement is > v1.48.
             struct InterfaceHashStruct
             {
-                InterfaceHashStruct &operator=(const InterfaceHashStruct &rhs) = default;
                 InterfaceHash interfaceHash;
             };
 

@@ -207,7 +207,6 @@ void ompl::control::LTLPlanner::buildAvail(const std::vector<ProductGraph::State
     for (unsigned int i = 0; i < availDist_.size(); ++i)
         abstractInfo_[availDist_[i]].pdfElem = nullptr;
     availDist_.clear();
-    unsigned int numTreePts = 1;
     for (int i = lead.size() - 1; i >= 0; --i)
     {
         ProductGraph::State *as = lead[i];
@@ -215,7 +214,6 @@ void ompl::control::LTLPlanner::buildAvail(const std::vector<ProductGraph::State
         if (!info.motions.empty())
         {
             info.pdfElem = availDist_.add(as, info.weight);
-            numTreePts += info.motions.size();
             if (rng_.uniform01() < 0.5)
                 break;
         }
