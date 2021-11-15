@@ -92,12 +92,136 @@ namespace ompl
                 prunedGoalStates_.clear();
             }
 
+            void RandomGeometricGraph::pruneStartsAndGoals()
+            {
+                constexpr bool deleteStartGoalSamples = false;
+                constexpr bool deleteOnEffort = false;
+
+                if (deleteStartGoalSamples){
+                  // compute overall density
+                  const double density = countSamplesInInformedSet() / spaceInfo_->getSpaceMeasure();
+
+                  for (auto &sample: startStates_){
+                    bool remove = true;
+
+                    if (deleteOnEffort){
+                      // look at the cost that we might save if we keep this one
+                      unsigned int savedEffort = 0;
+                      for (const auto &w: getNeighbors(sample)){
+                        if (sample->isWhitelisted(w)){
+                          const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), w->raw());
+                          savedEffort += fullSegmentCount;
+                        }
+                      }
+
+                      if (savedEffort > 10000){
+                        remove = false;
+                      }
+                    }
+                    else{
+                      // compute density for the specific sample
+                      const auto &neighbors = getNeighbors(sample);
+                      double maxDist = 0.;
+                      for (const auto &n: neighbors){
+                        auto dist = spaceInfo_->distance(sample->raw(), n->raw());
+                        if (maxDist < dist){
+                          maxDist = dist;
+                        }
+                      }
+                      const double specificDensity = neighbors.size() / (unitNBallMeasure_ * std::pow(maxDist, dimension_));
+
+                      // std::cout << density << " " << specificDensity << std::endl;
+
+                      if (specificDensity < 1.5* density){
+                        remove = false;
+                      }
+                    
+                    }
+
+                    if (remove){
+                      samples_.remove(sample);
+                    }
+                    else{
+                      startGoalBuffer_.push_back(sample);
+
+                      numStartVerticesInGraph_++;
+                    }
+                  }
+
+                  for (auto &sample: goalStates_){
+                    bool remove = true;
+
+                    if (deleteOnEffort){
+                      // look at the cost that we might save if we keep this one
+                      unsigned int savedEffort = 0;
+                      for (const auto &w: getNeighbors(sample)){
+                        if (sample->isWhitelisted(w)){
+                          const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), w->raw());
+                          savedEffort += fullSegmentCount;
+                        }
+                      }
+
+                      if (savedEffort > 10000){
+                        remove = false;
+                      }
+                    }
+                    else{
+                      // compute density for the specific sample
+                      const auto &neighbors = getNeighbors(sample);
+                      double maxDist = 0.;
+                      for (const auto &n: neighbors){
+                        auto dist = spaceInfo_->distance(sample->raw(), n->raw());
+                        if (maxDist < dist){
+                          maxDist = dist;
+                        }
+                      }
+                      const double specificDensity = neighbors.size() / (unitNBallMeasure_ * std::pow(maxDist, dimension_));
+
+                      // std::cout << density << " " << specificDensity << std::endl;
+
+                      if (specificDensity < 1.5 * density){
+                        remove = false;
+                      }
+                    
+                    }
+
+                    if (remove){
+                      samples_.remove(sample);
+                    }
+                    else{
+                      startGoalBuffer_.push_back(sample);
+                      numGoalVerticesInGraph_++;
+                    }
+                  }
+                }
+                else{
+                  for (auto &sample: startStates_){
+                    startGoalBuffer_.push_back(sample);
+                  }
+                  for (auto &sample: goalStates_){
+                    startGoalBuffer_.push_back(sample);
+                  }
+
+                  numStartVerticesInGraph_ += startStates_.size();
+                  numGoalVerticesInGraph_ += goalStates_.size();
+                }
+
+            
+            }
+
             void RandomGeometricGraph::clearQuery()
             {
                 startStates_.clear();
                 goalStates_.clear();
                 prunedStartStates_.clear();
                 prunedGoalStates_.clear();
+
+                newSamples_.clear();
+
+                samples_.clear();
+                currentNumSamples_ = 0u;
+
+                tag_ ++;
             }
 
             void RandomGeometricGraph::updateStartAndGoalStates(
@@ -122,6 +246,8 @@ namespace ompl
                         // If there was a new valid goal, register it as such and remember that a goal has been added.
                         if (static_cast<bool>(newGoalState))
                         {
+                            ++numValidSamples_; 
+                            
                             registerGoalState(newGoalState);
                             addedNewGoalState = true;
                         }
@@ -138,6 +264,8 @@ namespace ompl
                     // If there is a new valid start, register it as such and remember that a start has been added.
                     if (static_cast<bool>(newStartState))
                     {
+                        ++numValidSamples_; 
+
                         registerStartState(newStartState);
                         addedNewStartState = true;
                     }
@@ -381,6 +509,44 @@ namespace ompl
                 return goal;
             }
 
+            void RandomGeometricGraph::getNewSample(std::shared_ptr<State> &state)
+            {
+                // Create the requested number of new states.
+                if (currentNumSamples_ < buffer_.size())
+                {
+                    // This does at the moment not deal with the fact that samples might become invalid
+                    // also, these samples might not be informed samples
+                    state = buffer_[currentNumSamples_];
+                }
+                else
+                {
+                    // Allocate a new state.
+                    state = std::make_shared<State>(spaceInfo_, objective_);
+
+                    do  // Sample randomly until a valid state is found.
+                    {
+                        // We sample unifrormly since we are generally assuming that we are doing multiquery planning
+                        // this means that we need to sample the whole space, and add the samples to the buffer
+                        // We only add the samples that could improve the solution to the graph later on.
+                        sampler_->sampleUniform(state->raw(), objective_->infiniteCost());
+                        //sampler_->sampleUniform(state->raw(), solutionCost_);
+
+                        ++numSampledStates_;
+                    } while (!spaceInfo_->isValid(state->raw()));
+
+                    // We've found a valid sample.
+                    ++numValidSamples_;
+
+                    // and we add it to the buffer
+                    buffer_.emplace_back(state);
+                }
+
+                ++currentNumSamples_;
+
+                // Initialize the state.
+                //initializeState(state);
+            }
+
             bool RandomGeometricGraph::addStates(std::size_t numNewStates,
                                                  const ompl::base::PlannerTerminationCondition &terminationCondition)
             {
@@ -396,15 +562,19 @@ namespace ompl
                 // Create the requested number of new states.
                 do
                 {
-                    // Allocate a new state.
-                    auto state = std::make_shared<State>(spaceInfo_, objective_);
-                    newSamples_.emplace_back(state);
+                    std::shared_ptr<State> state;
+                    do
+                    { 
+                        getNewSample(state);
 
-                    do  // Sample randomly until a valid state is found.
-                    {
-                        sampler_->sampleUniform(state->raw(), solutionCost_);
-                        ++numSampledStates_;
-                    } while (!spaceInfo_->isValid(state->raw()));
+                        // Since we do not do informed sampling, we need to check if the sample could improve
+                        // the current solution.
+                        if (!canBePruned(state))
+                        {
+                            newSamples_.emplace_back(state);
+                            break;
+                        }
+                    } while (!terminationCondition);
 
                     // Add this state to the goal states if it is a goal.
                     if (problem_->getGoal()->isSatisfied(state->raw()))
@@ -426,7 +596,15 @@ namespace ompl
                     // because all new states will be in the informed set, and its known how many of them will be added.
                     // If pruning is enabled, we can do this now. After pruning all remaining states are in the informed
                     // set.
+
                     auto numInformedSamples{0u};
+
+                    // Fix this
+                    if (samples_.size() == 2) 
+                    {
+                        samples_.add(startGoalBuffer_);
+                    }
+
                     if (isPruningEnabled_)
                     {
                         prune();
@@ -504,14 +682,12 @@ namespace ompl
                         std::vector<std::shared_ptr<State>> samples;
                         samples_.list(samples);
 
-                        // replace with copy_if
                         if (std::find(samples.begin(), samples.end(), state) != samples.end()){
-                          std::copy_if(state->neighbors_.second.begin(), 
-                                       state->neighbors_.second.end(), 
+                          std::copy_if(samples.begin(), 
+                                       samples.end(), 
                                        std::back_inserter(whitelistedNeighbors),
                                        [&](auto v){
-                                          return state->isWhitelisted(v) 
-                                              && (std::find(samples.begin(), samples.end(), v) != samples.end());
+                                          return state->isWhitelisted(v) ;
                                        });
                         }
                     }

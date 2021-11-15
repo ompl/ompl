@@ -165,8 +165,10 @@ namespace ompl
                 std::size_t getTag() const;
 
             private:
-                /** \brief Returns the number of states in the informed set. This iterates through all samples in the
-                 * graph. */
+                /** \brief Returns a sample either from the buffer or a newly generated one. */
+                void getNewSample(std::shared_ptr<State> &state);
+
+                /** \brief Returns the number of states in the informed set. */
                 std::size_t countSamplesInInformedSet() const;
 
                 /** \brief Returns whether a state can be pruned because it cannot possibly be part of a solution equal
@@ -193,6 +195,15 @@ namespace ompl
 
                 /** \brief The tag of the current RGG. */
                 std::size_t tag_{1u};
+
+                /** \brief The buffered sampled states. */
+                std::vector<std::shared_ptr<State>> buffer_;
+
+                /** \brief The buffered start and goal states. */
+                std::vector<std::shared_ptr<State>> startGoalBuffer_;
+
+                /** \brief The current number of samples that are in use */
+                std::size_t currentNumSamples_{0u};
 
                 /** \brief The sampled states in a nearest neighbor structure. */
                 NearestNeighborsGNATNoThreadSafety<std::shared_ptr<State>> samples_;
