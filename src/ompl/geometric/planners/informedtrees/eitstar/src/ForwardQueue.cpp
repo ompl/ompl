@@ -91,16 +91,20 @@ namespace ompl
                 modifiedQueue_ = true;
                 
                 // For now, let's just do this naively.
+#ifdef TIMING
                 auto start_update = std::chrono::steady_clock::now();
+#endif
                 for (const auto &edge : edges)
                 {
                     insertOrUpdate(edge);
                 }
 
+#ifdef TIMING 
                 auto end_update = std::chrono::steady_clock::now();
                 unsigned int duration = std::chrono::duration_cast<std::chrono::microseconds>(
                     end_update - start_update ).count();
                 updateDuration_ += duration;
+#endif
             }
 
             void ForwardQueue::remove(const Edge &edge)
@@ -124,14 +128,18 @@ namespace ompl
 
             ForwardQueue::Container::const_iterator ForwardQueue::getFrontIter(double suboptimalityFactor)
             {
+#ifdef TIMING 
                 auto start_update = std::chrono::steady_clock::now();
+#endif
 
                 if (cacheQueueLookup_ && !modifiedQueue_)
                 {
+#ifdef TIMING 
                     auto end_update = std::chrono::steady_clock::now();
                     unsigned int duration = std::chrono::duration_cast<std::chrono::microseconds>(
                         end_update - start_update ).count();
                     popDuration_ += duration;
+#endif
 
                     return front_;
                 }
@@ -184,11 +192,12 @@ namespace ompl
                 // Return the correct edge.
                 if (objective_->isCostBetterThan(bestEffortEdgeCost, lowerBoundEdgeCost))
                 {
-
+#ifdef TIMING 
                     auto end_update = std::chrono::steady_clock::now();
                     unsigned int duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
                         end_update - start_update ).count();
                     popDuration_ += duration;
+#endif
 
                     return bestEffortEdge;
                 }
@@ -212,6 +221,7 @@ namespace ompl
 
                 front_ = getFrontIter(suboptimalityFactor);
                 auto edge = get(front_).second;
+                getMinEffortToCome({}, {});
                 modifiedQueue_ = false;
 
                 return edge;
@@ -246,48 +256,46 @@ namespace ompl
 
             unsigned int ForwardQueue::getMinEffortToCome() const
             {
+                if (cacheQueueLookup_ && !modifiedQueue_)
+                {
+                    return cachedMinEdgeEffort_;
+                }
+
                 unsigned int minEdgeEffort = std::numeric_limits<unsigned int>::max();
-            
                 for (auto it = queue_.cbegin(); it != queue_.cend(); ++it)
                 {
                     auto edge = get(it).second;
                     
-                    if (edge.target->hasReverseVertex()){
-                       //std::cout << "skipping " << edge.source->getId() << " " << edge.target->getId() << std::endl;
-                      continue;
+                    if (edge.target->hasReverseVertex() || edge.target->hasForwardVertex())
+                    {
+                        continue;
                     }
 
-                    unsigned int edgeEffort = 0u;
                     if (edge.source->isWhitelisted(edge.target))
                     {
-                        edgeEffort = 0u;
-                        //std::cout << 0 << std::endl;
-                        return 0u;
+                        continue;
                     }
-                    else
-                    {
-                        const unsigned int fullSegmentCount = space_->validSegmentCount(edge.source->raw(), edge.target->raw());
 
-                        // Get the number of checks already performed on this edge.
-                        const unsigned int performedChecks = edge.target->getIncomingCollisionCheckResolution(edge.source);
 
-                        edgeEffort = fullSegmentCount - performedChecks;
-                    }
+                    // Get the number of checks already performed on this edge.
+                    const unsigned int performedChecks = edge.target->getIncomingCollisionCheckResolution(edge.source);
+                    const unsigned int fullSegmentCount = space_->validSegmentCount(edge.source->raw(), edge.target->raw());
+
+                    const unsigned int edgeEffort = fullSegmentCount - performedChecks;
 
                     if (edgeEffort < minEdgeEffort)
                     {
-                        //std::cout << edge.source->getId() << " " << edge.target->getId() << " " << edgeEffort << std::endl;
                         minEdgeEffort = edgeEffort;
                     }
 
                     if (minEdgeEffort == 0u)
                     {
-                        //std::cout << 0 << std::endl;
+                        cachedMinEdgeEffort_ = 0;
                         return 0u;
                     }
                 }
 
-                //std::cout << minEdgeEffort << std::endl;
+                cachedMinEdgeEffort_ = minEdgeEffort;
                 return minEdgeEffort;
             }
 
@@ -313,6 +321,7 @@ namespace ompl
                     a.second.target->resetSourcesOfIncomingEdgesInForwardQueue();
                 }
                 queue_.clear();
+                modifiedQueue_ = true;
             }
 
             std::vector<Edge> ForwardQueue::getEdges() const
