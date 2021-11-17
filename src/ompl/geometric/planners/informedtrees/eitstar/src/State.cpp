@@ -234,7 +234,7 @@ namespace ompl
                 return lowerBoundEffortToCome_;
             }
 
-            const std::vector<std::shared_ptr<State>> State::getSourcesOfIncomingEdgesInForwardQueue() const
+            const std::vector<std::weak_ptr<State>> State::getSourcesOfIncomingEdgesInForwardQueue() const
             {
                 return sourcesOfIncomingEdgesInForwardQueue_;
             }
@@ -248,7 +248,7 @@ namespace ompl
             {
                 const auto iter = std::find_if(
                     sourcesOfIncomingEdgesInForwardQueue_.begin(), sourcesOfIncomingEdgesInForwardQueue_.end(),
-                    [&state](const auto &source) { return state->getId() == source->getId(); });
+                    [&state](const auto &source) { return state->getId() == source.lock()->getId(); });
 
                 if (iter != sourcesOfIncomingEdgesInForwardQueue_.end())
                 {

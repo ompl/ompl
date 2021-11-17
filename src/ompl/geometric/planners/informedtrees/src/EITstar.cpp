@@ -611,7 +611,7 @@ namespace ompl
                     // Update any edge in the forward queue affected by the target.
                     for (const auto &queueSource : target->getSourcesOfIncomingEdgesInForwardQueue())
                     {
-                        forwardQueue_->updateIfExists({queueSource, target});
+                        forwardQueue_->updateIfExists({queueSource.lock(), target});
                     }
 
                     // Expand the target state into the reverse queue.
@@ -1296,7 +1296,7 @@ namespace ompl
             // Get the neighbors in the current graph.
             for (const auto &neighborState : graph_.getNeighbors(state))
             {
-                outgoingEdges.emplace_back(state, neighborState);
+                outgoingEdges.emplace_back(state, neighborState.lock());
             }
 
             // If the state is in the forward search tree, extra edges have to be added.

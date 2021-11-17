@@ -149,7 +149,7 @@ namespace ompl
                 unsigned int getLowerBoundEffortToCome() const;
 
                 /** \brief Returns the sources of incoming edges in forward queue. */
-                const std::vector<std::shared_ptr<State>> getSourcesOfIncomingEdgesInForwardQueue() const;
+                const std::vector<std::weak_ptr<State>> getSourcesOfIncomingEdgesInForwardQueue() const;
 
                 /** \brief Adds a source to sources of incoming edges in forward queue. */
                 void addToSourcesOfIncomingEdgesInForwardQueue(const std::shared_ptr<State> &state) const;
@@ -210,7 +210,7 @@ namespace ompl
                 std::weak_ptr<Vertex> reverseVertex_{};
 
                 /** \brief The neighbors in the graph, associated with a graph tag. */
-                mutable std::pair<std::size_t, std::vector<std::shared_ptr<State>>> neighbors_{};
+                mutable std::pair<std::size_t, std::vector<std::weak_ptr<State>>> neighbors_{};
 
                 /** \brief The blacklist of states that can not be connected to this state. */
                 std::set<std::size_t> blacklist_{};  // Maybe this would be faster as vector?
@@ -219,7 +219,7 @@ namespace ompl
                 std::set<std::size_t> whitelist_{};  // Maybe this would be faster as vector?
 
                 /** \brief The source states that for which this state is a target in the forward queue. */
-                mutable std::vector<std::shared_ptr<State>> sourcesOfIncomingEdgesInForwardQueue_{};
+                mutable std::vector<std::weak_ptr<State>> sourcesOfIncomingEdgesInForwardQueue_{};
 
                 /** \brief A map that holds the checked collision checking resolution of the incoming edges.
                  The key is the id of the source state and the value is the number of checks already performed on that

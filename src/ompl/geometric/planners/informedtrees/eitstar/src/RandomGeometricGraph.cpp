@@ -314,14 +314,16 @@ namespace ompl
                 // Remove the edge from the caches (using the erase-remove idiom).
                 auto &sourceNeighbors = edge.source->neighbors_.second;
                 auto &targetNeighbors = edge.target->neighbors_.second;
-                sourceNeighbors.erase(
-                    std::remove_if(sourceNeighbors.begin(), sourceNeighbors.end(),
-                                   [&edge](const auto &neighbor) { return neighbor->getId() == edge.target->getId(); }),
-                    sourceNeighbors.end());
-                targetNeighbors.erase(
-                    std::remove_if(targetNeighbors.begin(), targetNeighbors.end(),
-                                   [&edge](const auto &neighbor) { return neighbor->getId() == edge.source->getId(); }),
-                    targetNeighbors.end());
+                sourceNeighbors.erase(std::remove_if(sourceNeighbors.begin(), sourceNeighbors.end(),
+                                                     [&edge](const auto &neighbor) {
+                                                         return neighbor.lock()->getId() == edge.target->getId();
+                                                     }),
+                                      sourceNeighbors.end());
+                targetNeighbors.erase(std::remove_if(targetNeighbors.begin(), targetNeighbors.end(),
+                                                     [&edge](const auto &neighbor) {
+                                                         return neighbor.lock()->getId() == edge.source->getId();
+                                                     }),
+                                      targetNeighbors.end());
             }
 
             std::size_t RandomGeometricGraph::getTag() const
@@ -475,7 +477,7 @@ namespace ompl
                 return maxNumGoals_;
             }
 
-            std::vector<std::shared_ptr<State>>
+            std::vector<std::weak_ptr<State>>
             RandomGeometricGraph::getNeighbors(const std::shared_ptr<State> &state) const
             {
                 assert(state);
