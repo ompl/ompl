@@ -71,6 +71,7 @@ namespace ompl
             declareParam<double>("rewire_factor", this, &EITstar::setRadiusFactor, &EITstar::getRadiusFactor,
                                  "1.0:0.01:3.0");
             declareParam<std::size_t>("batch_size", this, &EITstar::setBatchSize, &EITstar::getBatchSize, "1:1:10000");
+            declareParam<bool>("use_multiquery", this, &EITstar::enableMultiquery, &EITstar::isMultiqueryEnabled, "0,1");
             declareParam<bool>("use_graph_pruning", this, &EITstar::enablePruning, &EITstar::isPruningEnabled, "0,1");
             declareParam<bool>("find_approximate_solutions", this, &EITstar::trackApproximateSolutions,
                                &EITstar::areApproximateSolutionsTracked, "0,1");
@@ -132,10 +133,21 @@ namespace ompl
                 approximateSolutionCost_ = objective_->infiniteCost();
                 approximateSolutionCostToGoal_ = objective_->infiniteCost();
 
+                unsigned int tmp1=0, tmp2=0, tmp3=0;
+                if (reverseQueue_){
+                  tmp1 = reverseQueue_->insertReverseDuration_;
+                  tmp2 = reverseQueue_->computeKeysDuration_;
+                  tmp3 = reverseQueue_->updateReverseDuration_;
+                }
+
                 // Instantiate the queues.
                 forwardQueue_ = std::make_unique<eitstar::ForwardQueue>(objective_, space_);
-                reverseQueue_ = std::make_unique<eitstar::ReverseQueue>(objective_, space_);
+                reverseQueue_ = std::make_unique<eitstar::ReverseQueue>(objective_, space_, suboptimalityFactor_);
 
+                reverseQueue_->insertReverseDuration_ = tmp1; 
+                reverseQueue_->computeKeysDuration_  =tmp2;
+                reverseQueue_->updateReverseDuration_ = tmp3;
+                
                 // Setup the graph with the problem information.
                 graph_.setup(problem_, &pis_);
 
@@ -190,7 +202,19 @@ namespace ompl
             // Iterate while we should continue solving the problem.
             while (continueSolving(terminationCondition))
             {
+#ifdef TIMING 
+                auto start_iterate = std::chrono::steady_clock::now();
+                bool hasSol = std::isfinite(suboptimalityFactor_);
+#endif
+
                 iterate(terminationCondition);
+
+#ifdef TIMING 
+                auto end_iterate = std::chrono::steady_clock::now();
+                unsigned int duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                    end_iterate - start_iterate ).count();
+                if (!hasSol) iterateDuration_ += duration;
+#endif
             }
 
             // Someone might call ProblemDefinition::clearSolutionPaths() between invocations of Planner::sovle(), in
@@ -225,6 +249,7 @@ namespace ompl
             reverseCost_ = ompl::base::Cost(std::numeric_limits<double>::signaling_NaN());
             approximateSolutionCost_ = ompl::base::Cost(std::numeric_limits<double>::signaling_NaN());
             approximateSolutionCostToGoal_ = ompl::base::Cost(std::numeric_limits<double>::signaling_NaN());
+            numReusedEdges_ = 0u;
 
             // Reset the tags.
             reverseSearchTag_ = 1u;
@@ -250,8 +275,47 @@ namespace ompl
             approximateSolutionCostToGoal_ = objective_->infiniteCost();
 
             suboptimalityFactor_ = std::numeric_limits<double>::infinity();
+            restartReverseSearch();
 
-            //Planner::clearQuery();
+            numSparseCollisionChecksCurrentLevel_ = initialNumSparseCollisionChecks_;
+
+            numProcessedEdges_ = 0u;
+            numReverseProcessedEdges_ = 0u;
+            numInDepthReverseProcessedEdges_ = 0u;
+            revQueueInsertedEdges_ = 0u;
+            forwardQueueInsertedEdges_ = 0u;
+
+            numReusedEdges_ = 0u;
+            numSavedChecks_ = 0u;
+
+            iterateDuration_ = 0u;
+            forwardDuration_ = 0u;
+
+            reverseDuration_ = 0u;
+            updateReverseDuration_ = 0u;
+            updateForwardDuration_ = 0u;
+            updateFreebyReverseDuration_ = 0u;
+            expandTargetDuration_ = 0u;
+            nnDuration_ = 0u;
+
+            reverseQueue_->insertReverseDuration_ = 0u;
+            reverseQueue_->computeKeysDuration_= 0u;
+            reverseQueue_->updateReverseDuration_ = 0u;
+
+            cntReverseDuration_ = 0u;
+
+            validationDuration_ = 0u;
+            couldBeValidDuration_ = 0u;
+
+            forwardQueue_->popDuration_ = 0u;
+            forwardQueue_->updateDuration_ = 0u;
+
+            reverseSearchTag_++;
+
+            if (!isMultiqueryEnabled_)
+            {
+              clear();
+            }
             setup_ = false;
         }
 
@@ -291,6 +355,14 @@ namespace ompl
         {
             suboptimalityFactor_ = factor;
         }
+
+        void EITstar::enableMultiquery(bool multiquery){
+            isMultiqueryEnabled_ = multiquery;
+        };
+
+        bool EITstar::isMultiqueryEnabled() const{
+            return isMultiqueryEnabled_;
+        };
 
         void EITstar::enablePruning(bool enable)
         {
@@ -425,18 +497,64 @@ namespace ompl
 
         void EITstar::iterate(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
-            // First check if the reverse search needs to be continued.
-            if (continueReverseSearch())
+            // implement this properly
+            if (graph_.getStates().size() < batchSize_ ){
+              improveApproximation(terminationCondition);
+              ++iteration_;
+              return;
+            }
+
+#ifdef TIMING 
+            auto start_cnt_reverse = std::chrono::steady_clock::now();
+#endif
+            bool cntRevSearch = continueReverseSearch();
+#ifdef TIMING 
+            auto end_cnt_reverse = std::chrono::steady_clock::now();
             {
+              unsigned int duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                  end_cnt_reverse - start_cnt_reverse ).count();
+              if (!std::isfinite(suboptimalityFactor_)) cntReverseDuration_ += duration;
+            }
+#endif
+
+            //std::cout << suboptimalityFactor_ << " " << cntRevSearch << std::endl;
+
+            // First check if the reverse search needs to be continued.
+            if (cntRevSearch)
+            {
+#ifdef TIMING 
+                auto start_reverse = std::chrono::steady_clock::now();
+#endif
+
                 iterateReverseSearch();
+
+#ifdef TIMING 
+                auto end_reverse = std::chrono::steady_clock::now();
+                unsigned int duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                    end_reverse - start_reverse ).count();
+                if (!std::isfinite(suboptimalityFactor_)) reverseDuration_ += duration;
+#endif
             }  // If the reverse search is suspended, check if the forward search needs to be continued.
             else if (continueForwardSearch())
             {
+#ifdef TIMING 
+                auto start_forward = std::chrono::steady_clock::now();
+                bool hasSol = std::isfinite(suboptimalityFactor_);
+#endif
+
                 iterateForwardSearch();
+
+#ifdef TIMING 
+                auto end_forward = std::chrono::steady_clock::now();
+                unsigned int duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                    end_forward - start_forward ).count();
+                if (!hasSol) forwardDuration_ += duration;
+#endif
             }  // If neither the reverse nor the forward search needs to be continued, improve the approximation.
             else
             {
                 improveApproximation(terminationCondition);
+                //std::cout << graph_.getStates().size() << std::endl;
             }
 
             // Increment the iteration count.
@@ -450,11 +568,15 @@ namespace ompl
 
             // Get the top edge from the queue.
             auto edge = forwardQueue_->pop(suboptimalityFactor_);
-            ++numProcessedEdges_;
+            if (!std::isfinite(suboptimalityFactor_)) ++numProcessedEdges_;
 
             // Assert the validity of the edge.
             assert(edge.source->hasForwardVertex());
             assert(!std::isfinite(suboptimalityFactor_) || isClosed(edge.target->asReverseVertex()));
+            /*std::cout << "Processing "
+                << edge.source->getId() << " "
+                << edge.target->getId()
+                <<std::endl;*/
 
             // The edge is a freeby if its parent is already the parent of the child.
             if (isInForwardTree(edge))
@@ -470,9 +592,19 @@ namespace ompl
                 return;
             }
 
+            if (edge.source->isWhitelisted(edge.target)) {
+                if (!std::isfinite(suboptimalityFactor_)) numReusedEdges_++;
+
+                // Get the segment count for the full resolution.
+                const std::size_t fullSegmentCount = space_->validSegmentCount(edge.source->raw(), edge.target->raw());
+                const std::size_t checksToCome = fullSegmentCount; 
+                if (!std::isfinite(suboptimalityFactor_)) numSavedChecks_ += checksToCome;
+            }
+
             // The edge could possibly improve the tree, check if it is valid.
             if (isValid(edge))
             {
+
                 // Compute the true edge cost and the target cost through this edge.
                 const auto edgeCost = objective_->motionCost(edge.source->raw(), edge.target->raw());
                 const auto targetCost = combine(edge.source->getCurrentCostToCome(), edgeCost);
@@ -513,16 +645,15 @@ namespace ompl
                         }
                     }
 
-
                     // Expand the outgoing edges into the queue unless this state is the goal state.
                     if (!graph_.isGoal(edge.target))
                     {
                         auto edges = expand(edge.target);
                         edges.erase(
                             std::remove_if(edges.begin(), edges.end(),
-                              [&](const auto &e){return e.target->getId() == source->getId();}), 
+                              [&](const auto &e){return e.target->getId() == edge.source->getId();}), 
                             edges.end());
-                        forwardQueueInsertedEdges_ += edges.size();
+                        if (!std::isfinite(suboptimalityFactor_)) forwardQueueInsertedEdges_ += edges.size();
                         forwardQueue_->insertOrUpdate(edges);
                     }
                     else  // It is the goal state, update the solution.
@@ -557,11 +688,33 @@ namespace ompl
         {
             // Ensure the reverse queue is not empty.
             assert(!reverseQueue_->empty());
+            /*for (auto e: reverseQueue_->getEdges()){
+              std::cout << "re: "
+                << e.source->getId() << " "
+                << e.target->getId() << " "
+                << e.source->getEstimatedEffortToGo() << " "
+                << e.source->getLowerBoundEffortToCome() << " "
+                << e.target->getEstimatedEffortToGo() << " "
+                << e.target->getLowerBoundEffortToCome() << " "
+                << e.target->getInadmissibleEffortToCome() << " "
+                << reverseQueue_->computeAdmissibleSolutionEffort(e) << " "
+                << std::endl;
+            }*/
 
             // Get the top edge from the queue.
             auto edge = reverseQueue_->pop();
             auto &source = edge.source;
             auto &target = edge.target;
+
+            if (!std::isfinite(suboptimalityFactor_)) ++numReverseProcessedEdges_;
+
+            /* std::cout << source->getId() << " "
+              << target->getId() << " "
+              << source->getEstimatedEffortToGo() << " "
+              << estimateEffortToTarget(edge) << " "
+              << target->getInadmissibleEffortToCome() << " "
+              << reverseQueue_->computeAdmissibleSolutionEffort(edge) << " "
+              << std::endl;*/
 
             // The parent vertex must have an associated vertex in the tree.
             assert(source->hasReverseVertex());
@@ -591,8 +744,21 @@ namespace ompl
                 const auto edgeCost = objective_->motionCostHeuristic(source->raw(), target->raw());
 
                 // Incorporate the edge in the reverse tree if it provides an improvement.
-                if (doesImproveReverseTree(edge, edgeCost))
+                const auto effort = estimateEffortToTarget(edge);
+                bool doesDecreaseEffort = (effort < target->getEstimatedEffortToGo());
+                /*std::cout << estimateEffortToTarget(edge) << " " 
+                  << target->getEstimatedEffortToGo() << " "
+                  << combine(source->getAdmissibleCostToGo(), edgeCost) << " "
+                  << target->getAdmissibleCostToGo() << " "
+                  << doesDecreaseEffort << " "
+                  << doesImproveReverseTree(edge, edgeCost)
+                  <<std::endl;*/
+
+                if ((std::isfinite(suboptimalityFactor_) && doesImproveReverseTree(edge, edgeCost)) || 
+                    (!std::isfinite(suboptimalityFactor_) && doesDecreaseEffort))
                 {
+                    if (!std::isfinite(suboptimalityFactor_)) ++numInDepthReverseProcessedEdges_;
+
                     // Get the parent and child vertices.
                     auto parentVertex = source->asReverseVertex();
                     auto childVertex = target->asReverseVertex();
@@ -607,7 +773,9 @@ namespace ompl
                     parentVertex->addChild(childVertex);
 
                     // Update the admissible cost to go.
-                    target->setAdmissibleCostToGo(combine(source->getAdmissibleCostToGo(), edgeCost));
+                    target->setAdmissibleCostToGo(
+                        objective_->betterCost(combine(source->getAdmissibleCostToGo(), edgeCost), 
+                          edge.target->getAdmissibleCostToGo()));
 
                     // Update the best cost estimate of the target state if this edge can improve it.
                     target->setEstimatedCostToGo(
@@ -615,7 +783,7 @@ namespace ompl
 
                     // Update the best effort estimate of the target state if this edge can improve it.
                     target->setEstimatedEffortToGo(
-                        std::min(estimateEffortToTarget(edge), target->getEstimatedEffortToGo()));
+                        std::min(effort, target->getEstimatedEffortToGo()));
 
                     // If this edge improves the reverse cost, update it.
                     if (graph_.isStart(target) && isBetter(target->getAdmissibleCostToGo(), reverseCost_))
@@ -623,27 +791,95 @@ namespace ompl
                         reverseCost_ = target->getAdmissibleCostToGo();
                     }
 
+#ifdef TIMING 
+                    auto start_update_forward = std::chrono::steady_clock::now();
+#endif
+
                     // Update any edge in the forward queue affected by the target.
                     for (const auto &queueSource : target->getSourcesOfIncomingEdgesInForwardQueue())
                     {
                         forwardQueue_->updateIfExists({queueSource.lock(), target});
                     }
 
+#ifdef TIMING 
+                    auto end_update_forward = std::chrono::steady_clock::now();
+                    {
+                      unsigned int duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        end_update_forward - start_update_forward ).count();
+                      if (!std::isfinite(suboptimalityFactor_)) updateForwardDuration_ += duration;
+                    }
+#endif
+
+#ifdef TIMING 
+                    auto start_expand = std::chrono::steady_clock::now();
+#endif
+
                     // Expand the target state into the reverse queue.
                     auto outgoingEdges = expand(target);
+
+#ifdef TIMING 
+                    auto end_expand = std::chrono::steady_clock::now();
+                    {
+                      unsigned int duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                          end_expand - start_expand ).count();
+                      if (!std::isfinite(suboptimalityFactor_)) expandTargetDuration_ += duration;
+                    }
+#endif
+                    /*unsigned int forwardEffort = std::numeric_limits<unsigned int>::max();
+                    if (forwardQueue_->size() != 0)
+                    {
+                        auto forwardEdge = forwardQueue_->peek(suboptimalityFactor_);
+                        forwardEffort = 
+                          forwardQueue_->estimateEffort(forwardEdge); 
+                    }
+                    unsigned int minEffortToCome = 0u;
+
+                    if (!reverseQueue_->empty())
+                    {
+                        const auto reverseEdge = reverseQueue_->peek();
+                        if (!reverseEdge.target->hasForwardVertex())
+                        {
+                            minEffortToCome = forwardQueue_->getMinEffortToCome();
+                        }
+                    }*/
+
                     outgoingEdges.erase(
                         std::remove_if(outgoingEdges.begin(), outgoingEdges.end(),
                           [&](const auto &e){
-                            if(e.target->getId() == source->getId()){
-                              return true;
+                            if(e.target->getId() == source->getId())
+                            {
+                                return true;
                             }
+                            if (objective_->isFinite(solutionCost_) && isBetter(solutionCost_, reverseQueue_->computeAdmissibleSolutionCost(e)))
+                            {
+                                return true;
+                            }
+
+                            /*if (!std::isfinite(suboptimalityFactor_))
+                            {
+                                auto effort = reverseQueue_->computeAdmissibleSolutionEffort(e);
+                                return effort + minEffortToCome >= forwardEffort;
+                            }*/
                             return false;
                           }), 
                         outgoingEdges.end());
 
+#ifdef TIMING 
+                    auto start_update_reverse = std::chrono::steady_clock::now();
+#endif
+
+                    if (!std::isfinite(suboptimalityFactor_)) revQueueInsertedEdges_ += outgoingEdges.size();
                     reverseQueue_->insertOrUpdate(outgoingEdges);
+                    
+#ifdef TIMING 
+                    auto end_update_reverse = std::chrono::steady_clock::now();
+                    unsigned int duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                        end_update_reverse - start_update_reverse ).count();
+                    if (!std::isfinite(suboptimalityFactor_)) updateReverseDuration_ += duration;
+#endif
                 }
             }
+
         }
 
         void EITstar::improveApproximation(const ompl::base::PlannerTerminationCondition &terminationCondition)
@@ -762,6 +998,20 @@ namespace ompl
                       !pis_.haveMoreGoalStates()));
         }
 
+        unsigned int EITstar::getForwardEffort() const 
+        {
+            if (forwardQueue_->size() != 0)
+            {
+                const auto forwardEdge = forwardQueue_->peek(suboptimalityFactor_);
+                const auto forwardEffort = 
+                  forwardQueue_->estimateEffort(forwardEdge); 
+
+                return forwardEffort;
+            }
+            
+            return std::numeric_limits<unsigned int>::infinity();
+        }
+
         bool EITstar::continueReverseSearch() const
         {
             // Never continue the reverse search if the reverse queue is empty.
@@ -775,21 +1025,58 @@ namespace ompl
                 return true;
             }
 
-            // There are three conditions under which the reverse search can be suspended:
-            //   1. The best edge in the forward search has a closed target (admissible cost-to-go estimate), and the
-            //      reverse search cannot lead to a better solution than the potential solution of this edge.
-            //   2. All edges in the forward queue have closed targets (admissible cost-to-go estimates).
-            //   3. We do not care about solution cost and the least-effort edge in the forward queue is connected to
-            //   the
-            //      reverse tree.
-            const bool condition1 = isClosed(forwardQueue_->peek(suboptimalityFactor_).target->asReverseVertex()) &&
+            /*
+
+            There are three conditions under which the reverse search can be suspended:
+
+               1. The best edge in the forward search has a closed target (admissible cost-to-go estimate), and the
+                  reverse search cannot lead to a better solution than the potential solution of this edge.
+
+               2. All edges in the forward queue have closed targets (admissible cost-to-go estimates).
+
+               3. We do not care about solution cost and the least-effort edge in the forward queue is connected to the
+                  reverse tree.
+
+             */
+
+            const auto forwardEdge = forwardQueue_->peek(suboptimalityFactor_);
+
+            if (!std::isfinite(suboptimalityFactor_))
+            {
+                if (!forwardEdge.target->hasReverseVertex())
+                {
+                    return true;
+                }
+
+                const auto forwardEffort = 
+                  forwardQueue_->estimateEffort(forwardEdge); 
+
+                const auto reverseEffort = reverseQueue_->peekEffort();
+
+                unsigned int minEffortToCome = 0u;
+
+                const auto reverseEdge = reverseQueue_->peek();
+                if (!reverseEdge.target->hasForwardVertex())
+                {
+                    minEffortToCome = forwardQueue_->getMinEffortToCome();
+                }
+
+                /*if (forwardEdge.target->hasReverseVertex() && std::isfinite(forwardEffort) && forwardEffort < 1e8){
+                  //std::cout << forwardEffort <<" " << reverseEffort << " " << forwardEffort - reverseEffort << std::endl;
+                  return false;
+                }*/
+
+                return reverseEffort + minEffortToCome < forwardEffort;
+            }
+
+            const bool condition1 = isClosed(forwardEdge.target->asReverseVertex()) &&
                                     isBetter(forwardQueue_->getLowerBoundOnOptimalSolutionCost(),
                                              reverseQueue_->getLowerBoundOnOptimalSolutionCost());
 
             const bool condition2 = !forwardQueue_->containsOpenTargets(reverseSearchTag_);
 
             const bool condition3 = !std::isfinite(suboptimalityFactor_) &&
-                                    forwardQueue_->peek(suboptimalityFactor_).target->hasReverseVertex();
+                                    forwardEdge.target->hasReverseVertex();
 
             // The reverse search must be continued if it cannot be suspended.
             return !(condition1 || condition2 || condition3);
@@ -840,6 +1127,8 @@ namespace ompl
         void EITstar::restartReverseSearch()
         {
             reverseQueue_->clear();
+            reverseQueue_->updateQueueOrdering(suboptimalityFactor_);
+
             goalVertices_.clear();
             reverseCost_ = objective_->infiniteCost();
             for (const auto &goal : graph_.getGoalStates())
@@ -885,6 +1174,26 @@ namespace ompl
 
         void EITstar::updateExactSolution(const std::shared_ptr<eitstar::State> &goal)
         {
+            if (!std::isfinite(suboptimalityFactor_))
+            {
+              numWhitelistedEdges_ = 0;
+              for (const auto &state : graph_.getStates())
+              {
+                  // If the sample is in the forward tree, add the outgoing edges.
+                  for (const auto &state2 : graph_.getStates()){
+                      if (state->isWhitelisted(state2)){
+                          ++numWhitelistedEdges_;
+                      }
+                  }
+              }
+
+              numWhitelistedEdges_ /= 2.;
+
+              numStarts_ = graph_.numStartVerticesInGraph_;
+              numGoals_ = graph_.numGoalVerticesInGraph_;
+              numSamples_ = graph_.getStates().size();
+            }
+
             // We update the current goal if
             //   1. The new goal has a better cost to come than the old goal
             //   2. Or the exact solution we found is no longer registered with the problem definition
@@ -898,6 +1207,16 @@ namespace ompl
                 solution.setPlannerName(name_);
                 solution.setOptimized(objective_, solutionCost_, objective_->isSatisfied(solutionCost_));
                 problem_->addSolutionPath(solution);
+
+                if (!std::isfinite(suboptimalityFactor_))
+                {
+                    suboptimalityFactor_ = 1.0;
+                    restartReverseSearch();
+                    // Reinitialize the forward queue.
+                    forwardQueue_->clear();
+                    expandStartVerticesIntoForwardQueue();
+                }
+
 
                 // If we found this solution with a suboptimality factor greater than 1, set the factor to one now.
                 // Empirically, this results in faster convergence, see associated publication for more info.
@@ -1101,6 +1420,9 @@ namespace ompl
                 checksToCome = fullSegmentCount - performedChecks; 
             }
 
+            // std::cout << edge.source->getId() << " " << edge.target->getId() << " " 
+            //   << checksToCome << " " << edge.source->getEstimatedEffortToGo() << std::endl;
+
             return edge.source->getEstimatedEffortToGo() + checksToCome;
         }
 
@@ -1109,12 +1431,37 @@ namespace ompl
             // The number of checks required to determine whether the edge is valid is the valid segment count minus one
             // because we know that the source and target states are valid.
             const std::size_t numChecks = space_->validSegmentCount(edge.source->raw(), edge.target->raw()) - 1u;
-            return isValidAtResolution(edge, numChecks);
+
+#ifdef TIMING 
+            auto start_validation = std::chrono::steady_clock::now();
+#endif
+
+            bool res = isValidAtResolution(edge, numChecks);
+
+#ifdef TIMING 
+            auto end_validation = std::chrono::steady_clock::now();
+            unsigned int duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                end_validation - start_validation ).count();
+            if (!std::isfinite(suboptimalityFactor_)) validationDuration_ += duration;
+#endif
+            return res;
         }
 
         bool EITstar::couldBeValid(const Edge &edge) const
         {
-            return isValidAtResolution(edge, numSparseCollisionChecksCurrentLevel_);
+#ifdef TIMING 
+            auto start_validation = std::chrono::steady_clock::now();
+#endif
+
+            const bool res = isValidAtResolution(edge, numSparseCollisionChecksCurrentLevel_);
+
+#ifdef TIMING 
+            auto end_validation = std::chrono::steady_clock::now();
+            unsigned int duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                end_validation - start_validation ).count();
+            if (!std::isfinite(suboptimalityFactor_)) couldBeValidDuration_ += duration;
+#endif
+            return res;
         }
 
         bool EITstar::isValidAtResolution(const Edge &edge, std::size_t numChecks) const
@@ -1237,6 +1584,9 @@ namespace ompl
                 ++numCollisionCheckedEdges_;
                 edge.source->whitelist(edge.target);
                 edge.target->whitelist(edge.source);
+
+                graph_.whitelistedStates_.push_back(edge.source);
+                graph_.whitelistedStates_.push_back(edge.target);
             }
 
             return true;
@@ -1335,7 +1685,20 @@ namespace ompl
             std::vector<Edge> outgoingEdges;
 
             // Get the neighbors in the current graph.
-            for (const auto &neighborState : graph_.getNeighbors(state))
+#ifdef TIMING 
+            auto nn_start = std::chrono::steady_clock::now();
+#endif
+
+            const auto &n = graph_.getNeighbors(state);
+
+#ifdef TIMING 
+            auto nn_end = std::chrono::steady_clock::now();
+            unsigned int duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                nn_end - nn_start ).count();
+            if (!std::isfinite(suboptimalityFactor_)) nnDuration_ += duration;
+#endif
+
+            for (const auto &neighborState : n)
             {
                 outgoingEdges.emplace_back(state, neighborState.lock());
             }

@@ -37,6 +37,8 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_
 #define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_
 
+#define TIMING
+
 #include <memory>
 
 #include "ompl/base/Cost.h"
@@ -121,7 +123,92 @@ namespace ompl
             /** \brief Returns the number of samples per batch. */
             unsigned int getBatchSize() const;
 
-            /** \brief Sets the initial number of collision checks on edges in the reverse search. */
+            unsigned int getGraphSize() const{
+              return numSamples_;//graph_.getNumberOfInformedSamples();
+            };
+            unsigned int getProcessedForwardEdges() const{
+              return numProcessedEdges_;
+            };
+            unsigned int getProcessedReverseEdges() const{
+              return numReverseProcessedEdges_;
+            };
+            unsigned int getInDepthProcessedReverseEdges() const{
+              return numInDepthReverseProcessedEdges_;
+            };
+            unsigned int getReusedEdges() const{
+              return numReusedEdges_;
+            };
+            unsigned int getWhitelistedEdges() const{
+              return numWhitelistedEdges_;
+            };
+            unsigned int getSavedEffort() const{
+              return numSavedChecks_;
+            };
+            unsigned int getForwardDuration() const{
+              return forwardDuration_;
+            };
+            unsigned int getReverseDuration() const{
+              return reverseDuration_;
+            };
+            unsigned int getUpdateReverseDuration() const{
+              return updateReverseDuration_;
+            };
+            unsigned int getUpdateForwardDuration() const{
+              return updateForwardDuration_;
+            };
+            unsigned int getExpandTargetDuration() const{
+              return expandTargetDuration_;
+            };
+            unsigned int getUpdateFreebyReverseDuration() const{
+              return updateFreebyReverseDuration_;
+            };
+            unsigned int getCntReverseDuration() const{
+              return cntReverseDuration_;
+            };
+            unsigned int getIterationDuration() const{
+              return iterateDuration_;
+            };
+            unsigned int getValidationDuration() const{
+              return validationDuration_;
+            };
+            unsigned int getNNDuration() const{
+              return nnDuration_;
+            };
+            unsigned int getCouldBeValidDuration() const{
+              return couldBeValidDuration_;
+            };
+            unsigned int getPopDuration() const{
+              return forwardQueue_->popDuration_;
+            };
+            unsigned int getUpdateDuration() const{
+              return forwardQueue_->updateDuration_;
+            };
+            unsigned int getInsertReverseDuration() const{
+              return reverseQueue_->insertReverseDuration_;
+            };
+            unsigned int getCompKeysDuration() const{
+              return reverseQueue_->computeKeysDuration_;
+            };
+            unsigned int getUpdateRevQueueDuration() const{
+              return reverseQueue_->updateReverseDuration_;
+            };
+            unsigned int getForwardQueueInserted() const{
+              return forwardQueueInsertedEdges_;
+            };
+            unsigned int getRevQueueInserted() const{
+              return revQueueInsertedEdges_;
+            };
+            unsigned int getStartsInGraph() const{
+              return numStarts_; //graph_.numStartVerticesInGraph_;
+            };
+            unsigned int getGoalsInGraph() const{
+              return numGoals_;//graph_.numGoalVerticesInGraph_;
+            };
+            bool isTrivialSolution() const{
+              return !isBetter(graph_.minPossibleCost(), solutionCost_);
+            }
+
+            /** \brief Sets the initial number of collision checks on the reverse search. */
             void setInitialNumberOfSparseCollisionChecks(std::size_t numChecks);
 
             /** \brief Sets the radius factor. */
@@ -133,7 +220,13 @@ namespace ompl
             /** \brief Sets the (initial) suboptimality factor. */
             void setSuboptimalityFactor(double factor);
 
-            /** \brief Enables or disables pruning. */
+            /** \brief Set wheter multiquery is enabled or not. */
+            void enableMultiquery(bool multiquery);
+
+            /** \brief Get wheter multiquery is enabled or not. */
+            bool isMultiqueryEnabled() const;
+
+            /** \brief Set whether pruning is enabled or not. */
             void enablePruning(bool prune);
 
             /** \brief Returns whether pruning is enabled or not. */
@@ -160,7 +253,9 @@ namespace ompl
             /** \brief Returns a copy of the forward queue. */
             std::vector<eitstar::Edge> getForwardQueue() const;
 
-            /** \brief Returns a copies of the edges in the reverse queue. */
+            unsigned int getForwardEffort() const;
+
+            /** \brief Returns a copy of the reverse queue. */
             std::vector<eitstar::Edge> getReverseQueue() const;
 
             /** \brief Returns copies of the edges in the reverse tree. */
@@ -353,6 +448,9 @@ namespace ompl
              */
             std::size_t numSparseCollisionChecksPreviousLevel_{0u};
 
+            /** \brief Whether multiquery is enabled. */
+            bool isMultiqueryEnabled_{true};
+
             /** \brief Whether pruning is enabled. */
             bool isPruningEnabled_{true};
 
@@ -410,11 +508,43 @@ namespace ompl
             /** \brief The cost to go to the goal from the current best approximate solution. */
             ompl::base::Cost approximateSolutionCostToGoal_{std::numeric_limits<double>::signaling_NaN()};
 
+            unsigned int iterateDuration_{0u};
+
+            unsigned int reverseDuration_{0u};
+            unsigned int updateForwardDuration_{0u};
+            unsigned int updateFreebyReverseDuration_{0u};
+            unsigned int updateReverseDuration_{0u};
+            unsigned int expandTargetDuration_{0u};
+            mutable unsigned int nnDuration_{0u};
+
+            unsigned int forwardDuration_{0u};
+            unsigned int cntReverseDuration_{0u};
+
+            mutable unsigned int validationDuration_{0u};
+            mutable unsigned int couldBeValidDuration_{0u};
+
+            /** \brief The number of reused edges in case of the multiquery setting. */
+            std::size_t numReusedEdges_{0u};
+
+            /** \brief The number of reused edges in case of the multiquery setting. */
+            std::size_t numSavedChecks_{0u};
+
             /** \brief The number of processed edges. */
             mutable unsigned int numProcessedEdges_{0u};
 
+            /** \brief The number of processed edges. */
+            mutable unsigned int numReverseProcessedEdges_{0u};
+            mutable unsigned int numInDepthReverseProcessedEdges_{0u};
+            mutable unsigned int revQueueInsertedEdges_{0u};
+            mutable unsigned int forwardQueueInsertedEdges_{0u};
+
             /** \brief The number of collision checked edges. */
             mutable unsigned int numCollisionCheckedEdges_{0u};
+
+            mutable unsigned int numWhitelistedEdges_{0u};
+            mutable unsigned int numStarts_{0u};
+            mutable unsigned int numGoals_{0u};
+            mutable unsigned int numSamples_{0u};
         };
 
     }  // namespace geometric
