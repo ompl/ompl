@@ -37,6 +37,8 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_REVERSE_QUEUE_
 #define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_REVERSE_QUEUE_
 
+//#define TIMING
+
 #include <array>
 #include <map>
 #include <tuple>
@@ -61,7 +63,8 @@ namespace ompl
             public:
                 /** \brief Constructs the queue with the given optimization objective and state space. */
                 ReverseQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
-                             const std::shared_ptr<const ompl::base::StateSpace> &space);
+                             const std::shared_ptr<const ompl::base::StateSpace> &space,
+                             const double suboptimalityFactor);
 
                 /** \brief Destructs this queue. */
                 ~ReverseQueue() = default;
@@ -81,14 +84,21 @@ namespace ompl
                 /** Get a reference to the top edge in the queue. */
                 const Edge &peek() const;
 
+                unsigned int peekEffort() const;
+
                 /** \brief Returns and deletes the top element of the queue. */
                 Edge pop();
+
+                void updateQueueOrdering(const double suboptimalityFactor);
 
                 /** \brief Returns a lower bound on the resolution-optimal solution cost. */
                 ompl::base::Cost getLowerBoundOnOptimalSolutionCost() const;
 
                 /** \brief Clears the queue, i.e., deletes all elements from it. */
                 void clear();
+                unsigned int insertReverseDuration_{0u};
+                unsigned int computeKeysDuration_{0u};
+                unsigned int updateReverseDuration_{0u};
 
                 /** \brief Copies all edges into a vector and returns the vector. */
                 std::vector<Edge> getEdges() const;
@@ -99,19 +109,24 @@ namespace ompl
                 /** \brief Removes the outgoing edges of a vertex from the queue. */
                 void removeOutgoingEdges(const std::shared_ptr<Vertex> &vertex);
 
-            private:
-                /** \brief Update an edge in the queue if its in the queue. Does nothing if the edge is not in the
-                 * queue. */
-                bool updateIfExists(const Edge &edge);
+                /** \brief Returns the admissible total potential effort of an edge. */
+                unsigned int computeAdmissibleSolutionEffort(const Edge &edge) const;
 
                 /** \brief Returns the admissible total potential solution cost of an edge. */
                 ompl::base::Cost computeAdmissibleSolutionCost(const Edge &edge) const;
+
+            private:
+                /** \brief Update an edge in the queue if it exists. */
+                bool updateIfExists(const Edge &edge);
 
                 /** \brief Returns the cost to come to the target of the edge. */
                 ompl::base::Cost computeAdmissibleCostToComeToTarget(const Edge &edge) const;
 
                 /** \brief Returns the admissible total potential solution effort of an edge. */
-                unsigned int computeAdmissibleSolutionEffort(const Edge &edge) const;
+                unsigned int computeInadmissibleSolutionEffort(const Edge &edge) const;
+
+                /** \brief What the reverse queue is ordered on. */
+                double suboptimalityFactor_;
 
                 /** \brief The optimization objective. */
                 std::shared_ptr<const ompl::base::OptimizationObjective> objective_;
@@ -120,10 +135,15 @@ namespace ompl
                 std::shared_ptr<const ompl::base::StateSpace> space_;
 
                 /** \brief The queue is ordered on [g + c + h, g + c, effort] */
-                using HeapElement = std::tuple<ompl::base::Cost, ompl::base::Cost, unsigned int, Edge>;
+                using HeapElement = std::tuple<ompl::base::Cost, ompl::base::Cost,
+                      unsigned int, unsigned int, Edge>;
                 using CostEffortHeap =
                     ompl::BinaryHeap<HeapElement, std::function<bool(const HeapElement &, const HeapElement &)>>;
                 CostEffortHeap queue_;
+
+                std::function<bool(const HeapElement &, const HeapElement &)> getCostComparisonOperator() const;
+                std::function<bool(const HeapElement &, const HeapElement &)> getEffortComparisonOperator() const;
+
             };
         }  // namespace eitstar
 
