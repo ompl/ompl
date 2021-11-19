@@ -121,8 +121,10 @@ namespace ompl
                 /** \brief Sets the lower bound effort to come to this state through the continuous state space. */
                 void setLowerBoundEffortToCome(unsigned int);
 
-                /** \brief Returns the estimated effort (number of collision detections) to go from this state to the
-                 * goal through the current RGG. */
+                void setInadmissibleEffortToCome(unsigned int);
+
+                /** \brief Get the estimated effort (number of collision detections) to go from this state to the goal
+                 * through the current RGG. */
                 unsigned int getEstimatedEffortToGo() const;
 
                 /** \brief Returns the best estimate of the cost to go from this state to the goal through the current
@@ -147,6 +149,7 @@ namespace ompl
                 /** \brief Returns the lower bound cost to come from the start to this state through the continuous
                  * state space. */
                 unsigned int getLowerBoundEffortToCome() const;
+                unsigned int getInadmissibleEffortToCome() const;
 
                 /** \brief Returns the sources of incoming edges in forward queue. */
                 const std::vector<std::weak_ptr<State>> getSourcesOfIncomingEdgesInForwardQueue() const;
@@ -184,6 +187,7 @@ namespace ompl
 
                 /** \brief A lower bound on the effort to come. */
                 unsigned int lowerBoundEffortToCome_{std::numeric_limits<unsigned int>::max()};
+                unsigned int inadmissibleEffortToCome_{std::numeric_limits<unsigned int>::max()};
 
                 /** \brief An admissible estimate of the cost to go from this state to the goal through the current RGG.
                  */

@@ -77,6 +77,29 @@ namespace ompl
                 k_rgg_ = boost::math::constants::e<double>() +
                          (boost::math::constants::e<double>() / spaceInfo_->getStateDimension());
                 updateStartAndGoalStates(ompl::base::plannerAlwaysTerminatingCondition(), inputStates);
+
+                auto numInformedSamples{0u};
+                if (isPruningEnabled_)
+                {
+                    prune();
+                    numInformedSamples = samples_.size();
+                }
+                else
+                {
+                    numInformedSamples = countSamplesInInformedSet();
+                }
+                // Update the radius by considering all informed states.
+                if (useKNearest_)
+                {
+                    numNeighbors_ = computeNumberOfNeighbors(numInformedSamples);
+                }
+                else
+                {
+                    radius_ = computeRadius(numInformedSamples);
+                }
+
+                // Update the tag.
+                ++tag_;
             }
 
             void RandomGeometricGraph::clear()
@@ -94,8 +117,9 @@ namespace ompl
 
             void RandomGeometricGraph::pruneStartsAndGoals()
             {
-                constexpr bool deleteStartGoalSamples = false;
-                constexpr bool deleteOnEffort = false;
+                const bool deleteStartGoalSamples = true;//dimension_ <= 2;
+                constexpr bool deleteOnEffort = true;
+                const unsigned int effortThreshold = 10000 * dimension_;
 
                 if (deleteStartGoalSamples){
                   // compute overall density
@@ -106,15 +130,21 @@ namespace ompl
 
                     if (deleteOnEffort){
                       // look at the cost that we might save if we keep this one
-                      unsigned int savedEffort = 0;
+                      unsigned int totalSavedEffort = 0;
+                      unsigned int maxSingleEdgeSavedEffort = 0;
                       for (const auto &w: getNeighbors(sample)){
-                        if (sample->isWhitelisted(w)){
-                          const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), w->raw());
-                          savedEffort += fullSegmentCount;
+                        if (sample->isWhitelisted(w.lock())){
+                          const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), w.lock()->raw());
+                          totalSavedEffort += fullSegmentCount;
+
+                          if (fullSegmentCount > maxSingleEdgeSavedEffort){
+                            maxSingleEdgeSavedEffort = fullSegmentCount;
+                          }
                         }
                       }
 
-                      if (savedEffort > 10000){
+                      //if (totalSavedEffort > effortThreshold){
+                      if (maxSingleEdgeSavedEffort > effortThreshold){
                         remove = false;
                       }
                     }
@@ -123,7 +153,7 @@ namespace ompl
                       const auto &neighbors = getNeighbors(sample);
                       double maxDist = 0.;
                       for (const auto &n: neighbors){
-                        auto dist = spaceInfo_->distance(sample->raw(), n->raw());
+                        auto dist = spaceInfo_->distance(sample->raw(), n.lock()->raw());
                         if (maxDist < dist){
                           maxDist = dist;
                         }
@@ -153,15 +183,21 @@ namespace ompl
 
                     if (deleteOnEffort){
                       // look at the cost that we might save if we keep this one
-                      unsigned int savedEffort = 0;
+                      unsigned int totalSavedEffort = 0;
+                      unsigned int maxSingleEdgeSavedEffort = 0;
                       for (const auto &w: getNeighbors(sample)){
-                        if (sample->isWhitelisted(w)){
-                          const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), w->raw());
-                          savedEffort += fullSegmentCount;
+                        if (sample->isWhitelisted(w.lock())){
+                          const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), w.lock()->raw());
+                          totalSavedEffort += fullSegmentCount;
+
+                          if (fullSegmentCount > maxSingleEdgeSavedEffort){
+                            maxSingleEdgeSavedEffort = fullSegmentCount;
+                          }
                         }
                       }
 
-                      if (savedEffort > 10000){
+                      //if (totalSavedEffort > effortThreshold){
+                      if (maxSingleEdgeSavedEffort > effortThreshold){
                         remove = false;
                       }
                     }
@@ -170,7 +206,7 @@ namespace ompl
                       const auto &neighbors = getNeighbors(sample);
                       double maxDist = 0.;
                       for (const auto &n: neighbors){
-                        auto dist = spaceInfo_->distance(sample->raw(), n->raw());
+                        auto dist = spaceInfo_->distance(sample->raw(), n.lock()->raw());
                         if (maxDist < dist){
                           maxDist = dist;
                         }
@@ -217,6 +253,7 @@ namespace ompl
                 prunedGoalStates_.clear();
 
                 newSamples_.clear();
+                //whitelistedStates_.clear();
 
                 samples_.clear();
                 currentNumSamples_ = 0u;
@@ -251,6 +288,8 @@ namespace ompl
                             registerGoalState(newGoalState);
                             addedNewGoalState = true;
                         }
+
+
                     } while (inputStates->haveMoreGoalStates() && goalStates_.size() < maxNumGoals_ &&
                              !terminationCondition);
                 }
@@ -582,11 +621,6 @@ namespace ompl
                         goalStates_.emplace_back(state);
                     }
 
-                    // Initialize the state.
-                    initializeState(state);
-
-                    // We've found a valid sample.
-                    ++numValidSamples_;
                 } while (newSamples_.size() < numNewStates && !terminationCondition);
 
                 // Add the new states to the samples.
@@ -616,6 +650,22 @@ namespace ompl
                     }
 
                     samples_.add(newSamples_);
+
+                    /*for (auto &sample: newSamples_){
+                      for (const auto &n: getNeighbors(sample)){
+                        if (sample->isWhitelisted(n)){
+                          whitelistedStates_.push_back(sample);
+                          break;
+                        }
+                      }
+                    }*/
+
+                    // only initialize samples after all states have been added to the graph
+                    for (auto &sample: newSamples_)
+                    {
+                        initializeState(sample);
+                    }
+
                     newSamples_.clear();
 
                     // Update the radius by considering all informed states.
@@ -886,18 +936,58 @@ namespace ompl
 
             unsigned int RandomGeometricGraph::lowerBoundEffortToCome(const std::shared_ptr<State> &state) const
             {
-                return 0u;
+
+                if (whitelistedStates_.size() != 0){
+                    /*
+                    unsigned int lowerBoundEffort = 0u;
+                    for (auto &n: getNeighbors(state)){
+                        if (state->isWhitelisted(n.lock()))
+                        {
+                          return 0u;
+                        }
+                        const unsigned int fullSegmentCount = 
+                          space_->validSegmentCount(state->raw(), n.lock()->raw());
+                        const unsigned int performedChecks = 
+                          state->getIncomingCollisionCheckResolution(n.lock());
+                        lowerBoundEffort =
+                            std::min(lowerBoundEffort, fullSegmentCount - performedChecks);
+                    }
+
+                    return lowerBoundEffort;*/
+                    return 0u;
+                }
+
+                unsigned int lowerBoundEffort = std::numeric_limits<unsigned int>::max();
+
+                for (const auto &s: whitelistedStates_) {
+                    if (s->getId() > currentNumSamples_){
+                        break;
+                    }
+                    if (s->getId() == state->getId()){
+                        return 0;
+                    }
+                    lowerBoundEffort =
+                        std::min(lowerBoundEffort, space_->validSegmentCount(state->raw(), s->raw()));
+                }
+
+                for (const auto &start : startStates_)
+                {
+                    lowerBoundEffort =
+                        std::min(lowerBoundEffort, space_->validSegmentCount(start->raw(), state->raw()));
+                }
+
+                return lowerBoundEffort;
             }
 
             unsigned int RandomGeometricGraph::inadmissibleEffortToCome(const std::shared_ptr<State> &state) const
             {
-                auto admissibleEffort = std::numeric_limits<unsigned int>::max();
+                auto inadmissibleEffort = std::numeric_limits<unsigned int>::max();
                 for (const auto &start : startStates_)
                 {
-                    admissibleEffort =
-                        std::min(admissibleEffort, space_->validSegmentCount(start->raw(), state->raw()));
+                    inadmissibleEffort =
+                        std::min(inadmissibleEffort, space_->validSegmentCount(start->raw(), state->raw()));
                 }
-                return admissibleEffort;
+                return inadmissibleEffort;
             }
 
             ompl::base::Cost RandomGeometricGraph::lowerBoundCostToGo(const std::shared_ptr<State> &state) const

@@ -164,6 +164,8 @@ namespace ompl
                 /** \brief Returns the tag of the current RGG. */
                 std::size_t getTag() const;
 
+                mutable std::vector<std::shared_ptr<State>> whitelistedStates_{};
+
             private:
                 /** \brief Returns a sample either from the buffer or a newly generated one. */
                 void getNewSample(std::shared_ptr<State> &state);

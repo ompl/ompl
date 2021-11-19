@@ -221,7 +221,7 @@ namespace ompl
 
                 front_ = getFrontIter(suboptimalityFactor);
                 auto edge = get(front_).second;
-                getMinEffortToCome({}, {});
+                getMinEffortToCome();
                 modifiedQueue_ = false;
 
                 return edge;
