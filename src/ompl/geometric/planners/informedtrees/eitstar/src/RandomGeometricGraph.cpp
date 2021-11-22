@@ -119,7 +119,7 @@ namespace ompl
             {
                 const bool deleteStartGoalSamples = true;//dimension_ <= 2;
                 constexpr bool deleteOnEffort = true;
-                const unsigned int effortThreshold = 10000 * dimension_;
+                const unsigned int effortThreshold = 10000;// * dimension_;
 
                 if (deleteStartGoalSamples){
                   // compute overall density
@@ -133,12 +133,14 @@ namespace ompl
                       unsigned int totalSavedEffort = 0;
                       unsigned int maxSingleEdgeSavedEffort = 0;
                       for (const auto &w: getNeighbors(sample)){
-                        if (sample->isWhitelisted(w.lock())){
-                          const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), w.lock()->raw());
-                          totalSavedEffort += fullSegmentCount;
+                        if (auto neighbor = w.lock()) {
+                          if (sample->isWhitelisted(neighbor)){
+                            const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), neighbor->raw());
+                            totalSavedEffort += fullSegmentCount;
 
-                          if (fullSegmentCount > maxSingleEdgeSavedEffort){
-                            maxSingleEdgeSavedEffort = fullSegmentCount;
+                            if (fullSegmentCount > maxSingleEdgeSavedEffort){
+                              maxSingleEdgeSavedEffort = fullSegmentCount;
+                            }
                           }
                         }
                       }
@@ -153,9 +155,11 @@ namespace ompl
                       const auto &neighbors = getNeighbors(sample);
                       double maxDist = 0.;
                       for (const auto &n: neighbors){
-                        auto dist = spaceInfo_->distance(sample->raw(), n.lock()->raw());
-                        if (maxDist < dist){
-                          maxDist = dist;
+                        if (auto neighbor = n.lock()) {
+                          auto dist = spaceInfo_->distance(sample->raw(), neighbor->raw());
+                          if (maxDist < dist){
+                            maxDist = dist;
+                          }
                         }
                       }
                       const double specificDensity = neighbors.size() / (unitNBallMeasure_ * std::pow(maxDist, dimension_));
@@ -186,12 +190,14 @@ namespace ompl
                       unsigned int totalSavedEffort = 0;
                       unsigned int maxSingleEdgeSavedEffort = 0;
                       for (const auto &w: getNeighbors(sample)){
-                        if (sample->isWhitelisted(w.lock())){
-                          const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), w.lock()->raw());
-                          totalSavedEffort += fullSegmentCount;
+                        if (auto neighbor = w.lock()) {
+                          if (sample->isWhitelisted(neighbor)){
+                            const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), neighbor->raw());
+                            totalSavedEffort += fullSegmentCount;
 
-                          if (fullSegmentCount > maxSingleEdgeSavedEffort){
-                            maxSingleEdgeSavedEffort = fullSegmentCount;
+                            if (fullSegmentCount > maxSingleEdgeSavedEffort){
+                              maxSingleEdgeSavedEffort = fullSegmentCount;
+                            }
                           }
                         }
                       }
@@ -206,9 +212,11 @@ namespace ompl
                       const auto &neighbors = getNeighbors(sample);
                       double maxDist = 0.;
                       for (const auto &n: neighbors){
-                        auto dist = spaceInfo_->distance(sample->raw(), n.lock()->raw());
-                        if (maxDist < dist){
-                          maxDist = dist;
+                        if (auto neighbor = n.lock()) {
+                          auto dist = spaceInfo_->distance(sample->raw(), neighbor->raw());
+                          if (maxDist < dist){
+                            maxDist = dist;
+                          }
                         }
                       }
                       const double specificDensity = neighbors.size() / (unitNBallMeasure_ * std::pow(maxDist, dimension_));
