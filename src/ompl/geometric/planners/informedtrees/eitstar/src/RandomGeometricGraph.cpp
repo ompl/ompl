@@ -117,9 +117,9 @@ namespace ompl
 
             void RandomGeometricGraph::pruneStartsAndGoals()
             {
-                const bool deleteStartGoalSamples = true;//dimension_ <= 2;
+                const bool deleteStartGoalSamples = dimension_ <= 4;
                 constexpr bool deleteOnEffort = true;
-                const unsigned int effortThreshold = 10000;// * dimension_;
+                const unsigned int effortThreshold = 50000;// * dimension_;
 
                 if (deleteStartGoalSamples){
                   // compute overall density
