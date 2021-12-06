@@ -425,6 +425,8 @@ void ompl::base::ProblemDefinition::addSolutionPath(const PathPtr &path, bool ap
                                                     const std::string &plannerName) const
 {
     PlannerSolution sol(path);
+    Cost sol_cost {path->cost(optimizationObjective_)};
+    sol.setOptimized(optimizationObjective_, sol_cost, false);
     if (approximate)
         sol.setApproximate(difference);
     sol.setPlannerName(plannerName);
