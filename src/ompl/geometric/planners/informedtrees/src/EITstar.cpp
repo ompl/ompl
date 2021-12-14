@@ -532,9 +532,6 @@ namespace ompl
               if (!std::isfinite(suboptimalityFactor_)) cntReverseDuration_ += duration;
             }
 #endif
-
-            //std::cout << suboptimalityFactor_ << " " << cntRevSearch << std::endl;
-
             // First check if the reverse search needs to be continued.
             if (cntRevSearch)
             {
@@ -570,7 +567,6 @@ namespace ompl
             else
             {
                 improveApproximation(terminationCondition);
-                //std::cout << graph_.getStates().size() << std::endl;
             }
 
             // Increment the iteration count.
@@ -589,10 +585,6 @@ namespace ompl
             // Assert the validity of the edge.
             assert(edge.source->hasForwardVertex());
             assert(!std::isfinite(suboptimalityFactor_) || isClosed(edge.target->asReverseVertex()));
-            /*std::cout << "Processing "
-                << edge.source->getId() << " "
-                << edge.target->getId()
-                <<std::endl;*/
 
             // The edge is a freeby if its parent is already the parent of the child.
             if (isInForwardTree(edge))
@@ -704,18 +696,6 @@ namespace ompl
         {
             // Ensure the reverse queue is not empty.
             assert(!reverseQueue_->empty());
-            /*for (auto e: reverseQueue_->getEdges()){
-              std::cout << "re: "
-                << e.source->getId() << " "
-                << e.target->getId() << " "
-                << e.source->getEstimatedEffortToGo() << " "
-                << e.source->getLowerBoundEffortToCome() << " "
-                << e.target->getEstimatedEffortToGo() << " "
-                << e.target->getLowerBoundEffortToCome() << " "
-                << e.target->getInadmissibleEffortToCome() << " "
-                << reverseQueue_->computeAdmissibleSolutionEffort(e) << " "
-                << std::endl;
-            }*/
 
             // Get the top edge from the queue.
             auto edge = reverseQueue_->pop();
@@ -723,14 +703,6 @@ namespace ompl
             auto &target = edge.target;
 
             if (!std::isfinite(suboptimalityFactor_)) ++numReverseProcessedEdges_;
-
-            /* std::cout << source->getId() << " "
-              << target->getId() << " "
-              << source->getEstimatedEffortToGo() << " "
-              << estimateEffortToTarget(edge) << " "
-              << target->getInadmissibleEffortToCome() << " "
-              << reverseQueue_->computeAdmissibleSolutionEffort(edge) << " "
-              << std::endl;*/
 
             // The parent vertex must have an associated vertex in the tree.
             assert(source->hasReverseVertex());
@@ -762,13 +734,6 @@ namespace ompl
                 // Incorporate the edge in the reverse tree if it provides an improvement.
                 const auto effort = estimateEffortToTarget(edge);
                 bool doesDecreaseEffort = (effort < target->getEstimatedEffortToGo());
-                /*std::cout << estimateEffortToTarget(edge) << " " 
-                  << target->getEstimatedEffortToGo() << " "
-                  << combine(source->getAdmissibleCostToGo(), edgeCost) << " "
-                  << target->getAdmissibleCostToGo() << " "
-                  << doesDecreaseEffort << " "
-                  << doesImproveReverseTree(edge, edgeCost)
-                  <<std::endl;*/
 
                 if ((std::isfinite(suboptimalityFactor_) && doesImproveReverseTree(edge, edgeCost)) || 
                     (!std::isfinite(suboptimalityFactor_) && doesDecreaseEffort))
@@ -1076,11 +1041,6 @@ namespace ompl
                 {
                     minEffortToCome = forwardQueue_->getMinEffortToCome();
                 }
-
-                /*if (forwardEdge.target->hasReverseVertex() && std::isfinite(forwardEffort) && forwardEffort < 1e8){
-                  //std::cout << forwardEffort <<" " << reverseEffort << " " << forwardEffort - reverseEffort << std::endl;
-                  return false;
-                }*/
 
                 return reverseEffort + minEffortToCome < forwardEffort;
             }
@@ -1444,9 +1404,6 @@ namespace ompl
                 checksToCome = fullSegmentCount - performedChecks; 
             }
 
-            // std::cout << edge.source->getId() << " " << edge.target->getId() << " " 
-            //   << checksToCome << " " << edge.source->getEstimatedEffortToGo() << std::endl;
-
             return edge.source->getEstimatedEffortToGo() + checksToCome;
         }
 
@@ -1587,7 +1544,6 @@ namespace ompl
                 {
                     indices.emplace(current.first, mid - 1u);
                 }
-
                 if (current.second > mid)
                 {
                     indices.emplace(mid + 1u, current.second);

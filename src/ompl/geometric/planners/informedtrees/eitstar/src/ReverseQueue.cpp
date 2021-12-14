@@ -70,11 +70,6 @@ namespace ompl
 
             void ReverseQueue::insertOrUpdate(const Edge &edge)
             {
-                /*std::cout << "Inserting edge "
-                  << edge.source->getId() << " "
-                  << edge.target->getId() << " "
-                  << std::endl;*/
-
 #ifdef TIMING 
                 auto start_update_reverse = std::chrono::steady_clock::now();
 #endif
@@ -110,13 +105,6 @@ namespace ompl
                       if (!std::isfinite(suboptimalityFactor_)) computeKeysDuration_ += duration;
                     }
 #endif
-
-                    /*std::cout << 
-                      key3 << " " << 
-                      key4 << " " <<
-                      edge.target->getId() << " " << 
-                      edge.source->getId() << std::endl;*/
-
                     // Create the heap element.
                     const auto element = std::make_tuple(key1, key2, key3, key4, edge);
 
@@ -205,24 +193,12 @@ namespace ompl
                     return false;
                 }
 
-                /*std::cout << "prev "
-                  << std::get<0>((*it)->data) << " "
-                  << std::get<1>((*it)->data) << " "
-                  << std::get<2>((*it)->data)
-                  << std::endl;*/
-
                 // Update the cost and effort and the position of the edge in the queue.
                 std::get<0>((*it)->data) = computeAdmissibleSolutionCost(edge);
                 std::get<1>((*it)->data) = computeAdmissibleCostToComeToTarget(edge);
                 std::get<2>((*it)->data) = computeAdmissibleSolutionEffort(edge);
                 std::get<3>((*it)->data) = computeInadmissibleSolutionEffort(edge);
                 queue_.update(*it);
-
-                /*std::cout << "after "
-                  << std::get<0>((*it)->data) << " "
-                  << std::get<1>((*it)->data) << " "
-                  << std::get<2>((*it)->data)
-                  << std::endl;*/
 
                 // Indicate that the edge was updated by returning true.
                 return true;
@@ -279,14 +255,6 @@ namespace ompl
                     return std::numeric_limits<unsigned int>::max(); 
                 }
 
-                /*std::cout << "Rev q.: "
-                  << edge.source->getId() << " " 
-                  << edge.target->getId() << ": " 
-                  << edge.source->getEstimatedEffortToGo() << " " 
-                  << edgeEffort << " " 
-                  << edge.target->getLowerBoundEffortToCome() << " "
-                  << totalEffort 
-                  << std::endl;*/
                 return totalEffort;
             }
 
@@ -371,14 +339,6 @@ namespace ompl
                     return std::numeric_limits<unsigned int>::max(); 
                 }
 
-                /*std::cout << "Rev q.: "
-                  << edge.source->getId() << " " 
-                  << edge.target->getId() << ": " 
-                  << edge.source->getEstimatedEffortToGo() << " " 
-                  << edgeEffort << " " 
-                  << edge.target->getLowerBoundEffortToCome() << " "
-                  << totalEffort 
-                  << std::endl;*/
                 return totalEffort;
             }
 

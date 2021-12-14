@@ -168,7 +168,7 @@ namespace ompl
                       }
                       const double specificDensity = neighbors.size() / (unitNBallMeasure_ * std::pow(maxDist, dimension_));
 
-                      if (specificDensity < 1.5* density){
+                      if (specificDensity < 1.5 * density){
                         remove = false;
                       }
                     

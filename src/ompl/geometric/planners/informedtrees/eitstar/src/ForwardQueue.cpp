@@ -167,11 +167,6 @@ namespace ompl
                 auto bestEffortLowerBoundCost = objective_->infiniteCost();
                 for (auto it = queue_.cbegin(); it != queue_.cend(); ++it)
                 {
-                    /*std::cout << "fe: "
-                      << it->second.source->getId() << " "
-                      << it->second.target->getId() << " "
-                      << it->first.estimatedEffort << " " 
-                      <<std::endl;*/
                     if (get(it).first.estimatedEffort < get(bestEffortEdge).first.estimatedEffort &&
                         !objective_->isCostBetterThan(bestCostEdgeCost, get(it).first.estimatedCost))
                     {
@@ -434,13 +429,6 @@ namespace ompl
                 }
 
                 unsigned int totalEffort = edge.target->getEstimatedEffortToGo() + edgeEffort;
-                /*std::cout << "Forward Queue: "
-                  << edge.source->getId() << " "
-                  << edge.target->getId() << " "
-                  << edge.target->getEstimatedEffortToGo() << " " 
-                  << edgeEffort << " "
-                  << totalEffort << std::endl;*/
-
                 return totalEffort;
             }
 
