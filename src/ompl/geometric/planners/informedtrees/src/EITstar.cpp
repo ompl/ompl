@@ -77,6 +77,8 @@ namespace ompl
                                &EITstar::areApproximateSolutionsTracked, "0,1");
             declareParam<unsigned int>("set_max_num_goals", this, &EITstar::setMaxNumberOfGoals,
                                        &EITstar::getMaxNumberOfGoals, "1:1:1000");
+            declareParam<unsigned int>("set_start_goal_pruning", this, &EITstar::setStartGoalPruning,
+                                       &EITstar::getStartGoalPruning, "1:1:100000");
 
             // Register the progress properties.
             addPlannerProgressProperty("iterations INTEGER", [this]() { return std::to_string(iteration_); });
@@ -360,9 +362,19 @@ namespace ompl
             isMultiqueryEnabled_ = multiquery;
         };
 
-        bool EITstar::isMultiqueryEnabled() const{
+        bool EITstar::isMultiqueryEnabled() const
+        {
             return isMultiqueryEnabled_;
         };
+        void EITstar::setStartGoalPruning(unsigned int threshold)
+        {
+            graph_.setEffortThreshold(threshold);
+        }
+
+        unsigned int EITstar::getStartGoalPruning() const
+        {
+            return graph_.getEffortThreshold();
+        }
 
         void EITstar::enablePruning(bool enable)
         {

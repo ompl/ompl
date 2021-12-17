@@ -117,15 +117,17 @@ namespace ompl
 
             void RandomGeometricGraph::pruneStartsAndGoals()
             {
-                const bool deleteStartGoalSamples = dimension_ <= 4;
+                const bool deleteStartGoalSamples = dimension_ <= 8;
                 constexpr bool deleteOnEffort = true;
-                const unsigned int effortThreshold = 50000;// * dimension_;
 
                 if (deleteStartGoalSamples){
                   // compute overall density
                   const double density = countSamplesInInformedSet() / spaceInfo_->getSpaceMeasure();
 
-                  for (auto &sample: startStates_){
+                  auto startAndGoalStates = startStates_;
+                  startAndGoalStates.insert(std::end(startAndGoalStates), std::begin(goalStates_), std::end(goalStates_));
+
+                  for (auto &sample: startAndGoalStates){
                     bool remove = true;
 
                     if (deleteOnEffort){
@@ -145,8 +147,7 @@ namespace ompl
                         }
                       }
 
-                      //if (totalSavedEffort > effortThreshold){
-                      if (maxSingleEdgeSavedEffort > effortThreshold){
+                      if (maxSingleEdgeSavedEffort > effortThreshold_){
                         remove = false;
                       }
                     }
@@ -163,65 +164,6 @@ namespace ompl
                         }
                       }
                       const double specificDensity = neighbors.size() / (unitNBallMeasure_ * std::pow(maxDist, dimension_));
-
-                      // std::cout << density << " " << specificDensity << std::endl;
-
-                      if (specificDensity < 1.5* density){
-                        remove = false;
-                      }
-                    
-                    }
-
-                    if (remove){
-                      samples_.remove(sample);
-                    }
-                    else{
-                      startGoalBuffer_.push_back(sample);
-
-                      numStartVerticesInGraph_++;
-                    }
-                  }
-
-                  for (auto &sample: goalStates_){
-                    bool remove = true;
-
-                    if (deleteOnEffort){
-                      // look at the cost that we might save if we keep this one
-                      unsigned int totalSavedEffort = 0;
-                      unsigned int maxSingleEdgeSavedEffort = 0;
-                      for (const auto &w: getNeighbors(sample)){
-                        if (auto neighbor = w.lock()) {
-                          if (sample->isWhitelisted(neighbor)){
-                            const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), neighbor->raw());
-                            totalSavedEffort += fullSegmentCount;
-
-                            if (fullSegmentCount > maxSingleEdgeSavedEffort){
-                              maxSingleEdgeSavedEffort = fullSegmentCount;
-                            }
-                          }
-                        }
-                      }
-
-                      //if (totalSavedEffort > effortThreshold){
-                      if (maxSingleEdgeSavedEffort > effortThreshold){
-                        remove = false;
-                      }
-                    }
-                    else{
-                      // compute density for the specific sample
-                      const auto &neighbors = getNeighbors(sample);
-                      double maxDist = 0.;
-                      for (const auto &n: neighbors){
-                        if (auto neighbor = n.lock()) {
-                          auto dist = spaceInfo_->distance(sample->raw(), neighbor->raw());
-                          if (maxDist < dist){
-                            maxDist = dist;
-                          }
-                        }
-                      }
-                      const double specificDensity = neighbors.size() / (unitNBallMeasure_ * std::pow(maxDist, dimension_));
-
-                      // std::cout << density << " " << specificDensity << std::endl;
 
                       if (specificDensity < 1.5 * density){
                         remove = false;
@@ -434,6 +376,16 @@ namespace ompl
             double RandomGeometricGraph::getRadiusFactor() const
             {
                 return radiusFactor_;
+            }
+
+            void RandomGeometricGraph::setEffortThreshold(unsigned int threshold)
+            {
+                effortThreshold_ = threshold;
+            }
+
+            unsigned int RandomGeometricGraph::getEffortThreshold() const 
+            {
+                return effortThreshold_;
             }
 
             const std::vector<std::shared_ptr<State>> &RandomGeometricGraph::getStartStates() const

@@ -226,6 +226,12 @@ namespace ompl
             /** \brief Get wheter multiquery is enabled or not. */
             bool isMultiqueryEnabled() const;
 
+            /** \brief Set start/goal pruning threshold. */
+            void setStartGoalPruning(unsigned int threshold);
+
+            /** \brief Get threshold at which we prune starts/goals. */
+            unsigned int getStartGoalPruning() const;
+
             /** \brief Set whether pruning is enabled or not. */
             void enablePruning(bool prune);
 

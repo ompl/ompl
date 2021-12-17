@@ -93,7 +93,13 @@ namespace ompl
                 /** \brief Returns the radius factor (eta in the paper). */
                 double getRadiusFactor() const;
 
-                /** \brief Enables or disables pruning of states that cannot possibly improve the current solution. */
+                /** \brief Sets the effort threshold. */
+                void setEffortThreshold(const unsigned int threshold);
+
+                /** \brief Gets the effort threshold. */
+                unsigned int getEffortThreshold() const;
+
+                /** \brief Enable pruning of the graph. */
                 void enablePruning(bool prune);
 
                 /** \brief Returns Whether pruning is enabled. */
@@ -263,6 +269,9 @@ namespace ompl
 
                 /** \brief The factor by which to scale the connection radius (eta in the paper). */
                 double radiusFactor_{1.001};
+
+                /** \brief The threshold which we use to decide if we keep a start/goal vertex. */
+                unsigned int effortThreshold_{50000};
 
                 /** \brief The dimension of the state space this graph is embedded in. */
                 const double dimension_;
