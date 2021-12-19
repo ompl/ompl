@@ -311,17 +311,22 @@ namespace ompl
 
             void RandomGeometricGraph::registerInvalidEdge(const Edge &edge) const
             {
-                // Remove the edge from the caches (using the erase-remove idiom).
+                // Remove the edge from the caches (using the erase-remove idiom). Take this opportunity to remove
+                // expired states from the cache as well.
                 auto &sourceNeighbors = edge.source->neighbors_.second;
                 auto &targetNeighbors = edge.target->neighbors_.second;
+
                 sourceNeighbors.erase(std::remove_if(sourceNeighbors.begin(), sourceNeighbors.end(),
                                                      [&edge](const auto &neighbor) {
-                                                         return neighbor.lock()->getId() == edge.target->getId();
+                                                         return neighbor.expired() ||
+                                                                neighbor.lock()->getId() == edge.target->getId();
                                                      }),
                                       sourceNeighbors.end());
+
                 targetNeighbors.erase(std::remove_if(targetNeighbors.begin(), targetNeighbors.end(),
                                                      [&edge](const auto &neighbor) {
-                                                         return neighbor.lock()->getId() == edge.source->getId();
+                                                         return neighbor.expired() ||
+                                                                neighbor.lock()->getId() == edge.source->getId();
                                                      }),
                                       targetNeighbors.end());
             }
