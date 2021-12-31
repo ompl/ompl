@@ -177,6 +177,9 @@ namespace ompl
             /** \brief The goal tree */
             TreeData tGoal_;
 
+            /** \brief A flag that toggles between expanding the start tree (true) or goal tree (false). */
+            bool startTree_{true};
+
             /** \brief The maximum length of a motion to be added to a tree */
             double maxDistance_{0.};
 
