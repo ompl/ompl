@@ -1201,8 +1201,8 @@ namespace ompl
 
               numWhitelistedEdges_ /= 2.;
 
-              numStarts_ = graph_.numStartVerticesInGraph_;
-              numGoals_ = graph_.numGoalVerticesInGraph_;
+              numStarts_ = graph_.getStartStates().size();
+              numGoals_ = graph_.getGoalStates().size();
               numSamples_ = graph_.getStates().size();
             }
 

@@ -191,9 +191,6 @@ namespace ompl
                 /** \brief Returns the cost inflated by a factor. */
                 ompl::base::Cost inflateCost(const ompl::base::Cost &cost, double factor) const;
 
-                /** \brief Returns the estimated effort that remains to validate a solution through an edge. */
-                std::size_t estimateEffort(const Edge &edge) const;
-
                 /** \brief Returns the estimated cost of a solution through an edge (possibly inadmissible). */
                 ompl::base::Cost estimateCost(const Edge &edge) const;
 

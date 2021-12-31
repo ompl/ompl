@@ -172,6 +172,8 @@ namespace ompl
 
                 mutable std::vector<std::shared_ptr<State>> whitelistedStates_{};
 
+                unsigned int inadmissibleEffortToCome(const std::shared_ptr<State> &state) const;
+
             private:
                 /** \brief Returns a sample either from the buffer or a newly generated one. */
                 void getNewSample(std::shared_ptr<State> &state);
