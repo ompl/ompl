@@ -115,9 +115,11 @@ namespace ompl
             }
             else if (InformedSampler::space_->isCompound())
             {
-                // Check that it is SE2 or SE3
+                // Check that the given space is SE2, SE3, Dubins, or Reeds-Shepp.
                 if (InformedSampler::space_->getType() == STATE_SPACE_SE2 ||
-                    InformedSampler::space_->getType() == STATE_SPACE_SE3)
+                    InformedSampler::space_->getType() == STATE_SPACE_SE3 ||
+                    InformedSampler::space_->getType() == STATE_SPACE_DUBINS ||
+                    InformedSampler::space_->getType() == STATE_SPACE_REEDS_SHEPP)
                 {
                     // Variable:
                     // An ease of use upcasted pointer to the space as a compound space
@@ -127,8 +129,7 @@ namespace ompl
                     if (compoundSpace->getSubspaceCount() != 2u)
                     {
                         // Pout
-                        throw Exception("The provided compound StateSpace is SE(2) or SE(3) but does not have exactly "
-                                        "2 subspaces.");
+                        throw Exception("The provided compound state space does not have exactly 2 subspaces.");
                     }
 
                     // Iterate over the state spaces, finding the real vector and SO components.
@@ -151,14 +152,13 @@ namespace ompl
                         else
                         {
                             // Pout
-                            throw Exception("The provided compound StateSpace is SE(2) or SE(3) but contains a "
-                                            "subspace that is not R^2, R^3, SO(2), or SO(3).");
+                            throw Exception("The provided compound state space contains a subspace that is not R^2, R^3, SO(2), or SO(3).");
                         }
                     }
                 }
                 else
                 {
-                    throw Exception("PathLengthDirectInfSampler only supports RealVector, SE2 and SE3 statespaces.");
+                    throw Exception("PathLengthDirectInfSampler only supports RealVector, SE2, SE3, Dubins, and ReedsShepp state spaces.");
                 }
             }
 
