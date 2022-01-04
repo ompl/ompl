@@ -52,6 +52,8 @@ if (OMPL_BUILD_DEMOS)
     add_ompl_demo(demo_QuotientSpacePlanningHyperCube quotientspace/QuotientSpacePlanningHyperCube.cpp)
     add_ompl_demo(demo_QuotientSpacePlanningHyperCubeBenchmark quotientspace/QuotientSpacePlanningHyperCubeBenchmark.cpp)
 
+    add_ompl_demo(demo_SpaceTimePlanning SpaceTimePlanning.cpp)
+
     find_package(yaml-cpp)
     set_package_properties(yaml-cpp PROPERTIES
         URL "https://github.com/jbeder/yaml-cpp"
