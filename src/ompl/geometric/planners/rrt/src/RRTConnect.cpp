@@ -224,7 +224,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
     tgi.xstate = si_->allocState();
 
     Motion *approxsol = nullptr;
-    double approxdif = std::numeric_limits<double>::infinity();
+    // double approxdif = std::numeric_limits<double>::infinity();
+    double approxdif = 0;
     auto *rmotion = new Motion(si_);
     base::State *rstate = rmotion->state;
     bool startTree = true;

@@ -127,6 +127,7 @@ namespace ompl
         {
             bool solved = false;
             double approxdif = std::numeric_limits<double>::infinity();
+            // double approxdif = 0;
             nearestPaths_.clear();
 
             // Check if the database is empty

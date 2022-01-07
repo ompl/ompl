@@ -972,8 +972,9 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
     if (verbose_)
         OMPL_INFORM(" - checkAddCoverage() Are other nodes around it visible?");
     // Coverage criterion
-    if (!checkAddCoverage(qNew,
-                          visibleNeighborhood))  // Always add a node if no other nodes around it are visible (GUARD)
+    // if (!checkAddCoverage(qNew,
+    //                       visibleNeighborhood))  // Always add a node if no other nodes around it are visible (GUARD)
+    if (true)
     {
         if (verbose_)
             OMPL_INFORM(" -- checkAddConnectivity() Does this node connect neighboring nodes that are not connected? ");
@@ -1083,10 +1084,14 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
 {
     // Identify visibile nodes around our new state that are unconnected (in different connected components)
     // and connect them
-
+    Vertex newVertex = addGuard(si_->cloneState(qNew), COVERAGE);
     std::vector<Vertex> statesInDiffConnectedComponents;  // links
-    if (visibleNeighborhood.size() >
-        1)  // if less than 2 there is no way to find a pair of nodes in different connected components
+    if (visibleNeighborhood.size() == 1)
+    {
+        if (!sameComponent(visibleNeighborhood[0], newVertex))
+            connectGuards(newVertex, visibleNeighborhood[0]);
+    }
+    if (visibleNeighborhood.size() > 1)  // if less than 2 there is no way to find a pair of nodes in different connected components
     {
         // For each neighbor
         for (std::size_t i = 0; i < visibleNeighborhood.size(); ++i)
@@ -1109,7 +1114,6 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
             if (verbose_)
                 OMPL_INFORM(" --- Adding node for CONNECTIVITY ");
             // Add the node
-            Vertex newVertex = addGuard(si_->cloneState(qNew), CONNECTIVITY);
 
             for (unsigned long statesInDiffConnectedComponent : statesInDiffConnectedComponents)
             {
@@ -1125,6 +1129,10 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
             }
 
             return true;
+        }
+        else if (visibleNeighborhood.size() > 0) {
+            if (!sameComponent(visibleNeighborhood[0], newVertex))
+            connectGuards(newVertex, visibleNeighborhood[0]);
         }
     }
     return false;
