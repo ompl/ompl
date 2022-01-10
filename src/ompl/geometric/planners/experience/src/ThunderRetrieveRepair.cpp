@@ -48,6 +48,11 @@
 #include <limits>
 #include <utility>
 
+
+using hr_clock = std::chrono::high_resolution_clock;
+using chrono_ms = std::chrono::milliseconds;
+using std::chrono::duration_cast;
+
 namespace ompl
 {
     namespace geometric
@@ -125,6 +130,10 @@ namespace ompl
 
         base::PlannerStatus ThunderRetrieveRepair::solve(const base::PlannerTerminationCondition &ptc)
         {
+
+            std::ofstream rr_planner_debug;
+            rr_planner_debug.open("rr_planner_debug.txt", std::ios::app);
+
             bool solved = false;
             double approxdif = std::numeric_limits<double>::infinity();
             // double approxdif = 0;
@@ -150,12 +159,14 @@ namespace ompl
 
             // Search for previous solution in database
             // TODO make this more than 1 path
+            auto t_find {hr_clock::now()};
             if (!experienceDB_->findNearestStartGoal(nearestK_, startState, goalState, candidateSolution, ptc))
             {
                 OMPL_INFORM("RetrieveRepair::solve() No nearest start or goal found");
                 return base::PlannerStatus::TIMEOUT;  // The planner failed to find a solution
             }
-
+            auto delta_find {duration_cast<chrono_ms>(hr_clock::now() - t_find).count()};
+            rr_planner_debug << "\nFinding nearest start and goal took " << delta_find << " ms.\n";
             // Save this for future debugging
             nearestPaths_.push_back(candidateSolution.getGeometricPath());
             nearestPathsChosenID_ = 0;  // TODO not hardcode
@@ -165,6 +176,7 @@ namespace ompl
             assert(candidateSolution.getStateCount() >= 4);
 
             // Smooth the result
+            // auto t_smoothing {hr_clock::now()};
             if (smoothingEnabled_)
             {
                 OMPL_INFORM("ThunderRetrieveRepair solve: Simplifying solution (smoothing)...");
@@ -177,13 +189,17 @@ namespace ompl
                 OMPL_INFORM("ThunderRetrieveRepair: Path simplification took %f seconds and removed %d states",
                             simplifyTime, numStates - candidateSolution.getGeometricPath().getStateCount());
             }
-
+            // auto delta_smoothing {duration_cast<chrono_ms>(hr_clock::now() - t_smoothing).count()};
+            // rr_planner_debug << "\nSmoothing took " << delta_smoothing << " ms.\n";
             // Finished
             approxdif = 0;
             bool approximate = candidateSolution.isApproximate_;
-
+            // auto t_adding {hr_clock::now()};
             pdef_->addSolutionPath(candidateSolution.path_, approximate, approxdif, getName());
+            // auto delta_adding {duration_cast<chrono_ms>(hr_clock::now() - t_adding).count()};
+            // rr_planner_debug << "\nAdding solution took " << delta_adding << " ms.\n";
             solved = true;
+            rr_planner_debug.close();
             return {solved, approximate};
         }
 

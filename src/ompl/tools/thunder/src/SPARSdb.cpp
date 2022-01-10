@@ -52,6 +52,10 @@
 #define foreach BOOST_FOREACH
 #define foreach_reverse BOOST_REVERSE_FOREACH
 
+using hr_clock = std::chrono::high_resolution_clock;
+using chrono_ms = std::chrono::milliseconds;
+using std::chrono::duration_cast;
+
 // edgeWeightMap methods ////////////////////////////////////////////////////////////////////////////
 
 BOOST_CONCEPT_ASSERT(
@@ -195,12 +199,15 @@ bool ompl::geometric::SPARSdb::getSimilarPaths(int /*nearestK*/, const base::Sta
                                                CandidateSolution &candidateSolution,
                                                const base::PlannerTerminationCondition &ptc)
 {
+    std::ofstream rr_planner_debug;
+    rr_planner_debug.open("rr_planner_debug.txt", std::ios::app);
     // TODO: nearestK unused
 
     // Get neighbors near start and goal. Note: potentially they are not *visible* - will test for this later
 
     // Start
     OMPL_INFORM("Looking for a node near the problem start");
+    auto t_find_start {hr_clock::now()};
     if (!findGraphNeighbors(start, startVertexCandidateNeighbors_))
     {
         OMPL_INFORM("No graph neighbors found for start within radius %f", sparseDelta_);
@@ -208,9 +215,11 @@ bool ompl::geometric::SPARSdb::getSimilarPaths(int /*nearestK*/, const base::Sta
     }
     if (verbose_)
         OMPL_INFORM("Found %d nodes near start", startVertexCandidateNeighbors_.size());
-
+    auto delta_find_start {duration_cast<chrono_ms>(hr_clock::now() - t_find_start).count()};
+    rr_planner_debug << "\nFinding states close to start took " << delta_find_start << " ms.\n";
     // Goal
     OMPL_INFORM("Looking for a node near the problem goal");
+    auto t_find_goal {hr_clock::now()};
     if (!findGraphNeighbors(goal, goalVertexCandidateNeighbors_))
     {
         OMPL_INFORM("No graph neighbors found for goal within radius %f", sparseDelta_);
@@ -219,10 +228,14 @@ bool ompl::geometric::SPARSdb::getSimilarPaths(int /*nearestK*/, const base::Sta
     if (verbose_)
         OMPL_INFORM("Found %d nodes near goal", goalVertexCandidateNeighbors_.size());
 
+    auto delta_find_goal {duration_cast<chrono_ms>(hr_clock::now() - t_find_goal).count()};
+    rr_planner_debug << "\nFinding states close to goal took " << delta_find_goal << " ms.\n";
     // Get paths between start and goal
+    auto t_get_paths {hr_clock::now()};
     bool result =
         getPaths(startVertexCandidateNeighbors_, goalVertexCandidateNeighbors_, start, goal, candidateSolution, ptc);
-
+    auto delta_get_paths {duration_cast<chrono_ms>(hr_clock::now() - t_get_paths).count()};
+    rr_planner_debug << "\nGetting close paths took " << delta_get_paths << " ms.\n";
     // Error check
     if (!result)
     {
@@ -247,7 +260,7 @@ bool ompl::geometric::SPARSdb::getSimilarPaths(int /*nearestK*/, const base::Sta
             si_->printState(geometricSolution.getState(i), std::cout);
         }
     }
-
+    rr_planner_debug.close();
     return result;
 }
 
