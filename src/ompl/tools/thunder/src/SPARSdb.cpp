@@ -200,14 +200,14 @@ bool ompl::geometric::SPARSdb::getSimilarPaths(int /*nearestK*/, const base::Sta
                                                const base::PlannerTerminationCondition &ptc)
 {
     std::ofstream rr_planner_debug;
-    rr_planner_debug.open("rr_planner_debug.txt", std::ios::app);
+    rr_planner_debug.open("zzz_rr_planner_debug.txt", std::ios::app);
     // TODO: nearestK unused
 
     // Get neighbors near start and goal. Note: potentially they are not *visible* - will test for this later
 
     // Start
     OMPL_INFORM("Looking for a node near the problem start");
-    auto t_find_start {hr_clock::now()};
+    // auto t_find_start {hr_clock::now()};
     if (!findGraphNeighbors(start, startVertexCandidateNeighbors_))
     {
         OMPL_INFORM("No graph neighbors found for start within radius %f", sparseDelta_);
@@ -215,11 +215,11 @@ bool ompl::geometric::SPARSdb::getSimilarPaths(int /*nearestK*/, const base::Sta
     }
     if (verbose_)
         OMPL_INFORM("Found %d nodes near start", startVertexCandidateNeighbors_.size());
-    auto delta_find_start {duration_cast<chrono_ms>(hr_clock::now() - t_find_start).count()};
-    rr_planner_debug << "\nFinding states close to start took " << delta_find_start << " ms.\n";
+    // auto delta_find_start {duration_cast<chrono_ms>(hr_clock::now() - t_find_start).count()};
+    // rr_planner_debug << "\nFinding states close to start took " << delta_find_start << " ms.\n";
     // Goal
     OMPL_INFORM("Looking for a node near the problem goal");
-    auto t_find_goal {hr_clock::now()};
+    // auto t_find_goal {hr_clock::now()};
     if (!findGraphNeighbors(goal, goalVertexCandidateNeighbors_))
     {
         OMPL_INFORM("No graph neighbors found for goal within radius %f", sparseDelta_);
@@ -228,8 +228,8 @@ bool ompl::geometric::SPARSdb::getSimilarPaths(int /*nearestK*/, const base::Sta
     if (verbose_)
         OMPL_INFORM("Found %d nodes near goal", goalVertexCandidateNeighbors_.size());
 
-    auto delta_find_goal {duration_cast<chrono_ms>(hr_clock::now() - t_find_goal).count()};
-    rr_planner_debug << "\nFinding states close to goal took " << delta_find_goal << " ms.\n";
+    // auto delta_find_goal {duration_cast<chrono_ms>(hr_clock::now() - t_find_goal).count()};
+    // rr_planner_debug << "\nFinding states close to goal took " << delta_find_goal << " ms.\n";
     // Get paths between start and goal
     auto t_get_paths {hr_clock::now()};
     bool result =
@@ -269,17 +269,25 @@ bool ompl::geometric::SPARSdb::getPaths(const std::vector<Vertex> &candidateStar
                                         const base::State *actualGoal, CandidateSolution &candidateSolution,
                                         const base::PlannerTerminationCondition &ptc)
 {
+    std::ofstream nbhd_size;
+    nbhd_size.open("zzz_nbhd_size.txt", std::ios::app);
+    nbhd_size << "\nNeighborhood size is " << candidateStarts.size() << " starts and " << candidateGoals.size() << " goals.\n";
+    int lazyCollisionCheckTime {0};
     // Try every combination of nearby start and goal pairs
     foreach (Vertex start, candidateStarts)
     {
+        auto t_cm {hr_clock::now()};
         // Check if this start is visible from the actual start
         if (!si_->checkMotion(actualStart, stateProperty_[start]))
         {
             if (verbose_)
                 OMPL_WARN("FOUND CANDIDATE START THAT IS NOT VISIBLE ");
+            auto delta_cm {duration_cast<chrono_ms>(hr_clock::now() - t_cm).count()};
+            nbhd_size << "\nThis start / goal conf took " << delta_cm << " ms to check.\n";
+            nbhd_size << "\nStart failed connection check\n";
             continue;  // this is actually not visible
         }
-
+        
         foreach (Vertex goal, candidateGoals)
         {
             if (verbose_)
@@ -297,24 +305,38 @@ bool ompl::geometric::SPARSdb::getPaths(const std::vector<Vertex> &candidateStar
             {
                 if (verbose_)
                     OMPL_INFORM("FOUND CANDIDATE GOAL THAT IS NOT VISIBLE! ");
+                auto delta_cm {duration_cast<chrono_ms>(hr_clock::now() - t_cm).count()};
+                nbhd_size << "\nThis start / goal conf took " << delta_cm << " ms to check.\n";
+                nbhd_size << "\nGoal failed connection check\n";
                 continue;  // this is actually not visible
             }
 
             // Repeatidly search through graph for connection then check for collisions then repeat
+            auto t_lazy {hr_clock::now()};
+            auto delta_lazy {duration_cast<chrono_ms>(hr_clock::now() - t_lazy).count()};
             if (lazyCollisionSearch(start, goal, actualStart, actualGoal, candidateSolution, ptc))
             {
                 // Found a path
+                auto delta_cm {duration_cast<chrono_ms>(hr_clock::now() - t_cm).count()};
+                delta_lazy = duration_cast<chrono_ms>(hr_clock::now() - t_lazy).count();
+                nbhd_size << "\nThis start / goal conf took " << delta_cm << " ms to check. Ouf of which " << delta_lazy << " ms were collision.\n";
+                nbhd_size << "\nThis combo passes collision check\n";
                 return true;
             }
             else
             {
                 // Did not find a path
+                delta_lazy = duration_cast<chrono_ms>(hr_clock::now() - t_lazy).count();
                 OMPL_INFORM("Did not find a path, looking for other start/goal combinations ");
             }
-
+            auto delta_cm {duration_cast<chrono_ms>(hr_clock::now() - t_cm).count()};
+            nbhd_size << "\nThis start / goal conf took " << delta_cm << " ms to check. Ouf of which " << delta_lazy << " ms were collision.\n";
+            lazyCollisionCheckTime += delta_lazy;
         }  // foreach
     }      // foreach
 
+    nbhd_size << "\nTime spent on collision checking is " << lazyCollisionCheckTime << " ms.\n";
+    nbhd_size.close();
     return false;
 }
 
@@ -323,6 +345,8 @@ bool ompl::geometric::SPARSdb::lazyCollisionSearch(const Vertex &start, const Ve
                                                    CandidateSolution &candidateSolution,
                                                    const base::PlannerTerminationCondition &ptc)
 {
+    std::ofstream collision_debug;
+    collision_debug.open("zzz_collision_debug.txt", std::ios::app);
     base::Goal *g = pdef_->getGoal().get();  // for checking isStartGoalPairValid
 
     // Vector to store candidate paths in before they are converted to PathPtrs
@@ -335,19 +359,35 @@ bool ompl::geometric::SPARSdb::lazyCollisionSearch(const Vertex &start, const Ve
         true;  // sameComponent(start, goal); // TODO is this important? I disabled it during dev and never used it
 
     // Check if the chosen start and goal can be used together to satisfy problem
+    auto t_component {hr_clock::now()};
+    auto delta_component {duration_cast<chrono_ms>(hr_clock::now() - t_component).count()};
     if (!same_component)
     {
         if (verbose_)
             OMPL_INFORM("    Goal and start are not part of same component, skipping ");
+        delta_component = duration_cast<chrono_ms>(hr_clock::now() - t_component).count();
+        collision_debug << "\nStart and Goal NOT in the same component. This check took " << delta_component << " ms.\n";
         return false;
     }
-
+    else {
+        delta_component = duration_cast<chrono_ms>(hr_clock::now() - t_component).count();
+        collision_debug << "\nComponent check took " << delta_component << " ms.\n";
+    }
     // TODO: remove this because start and goal are not either start nor goals
+    auto t_valid {hr_clock::now()};
+    auto delta_valid {duration_cast<chrono_ms>(hr_clock::now() - t_valid).count()};
     if (!g->isStartGoalPairValid(stateProperty_[goal], stateProperty_[start]))
     {
         if (verbose_)
             OMPL_INFORM("    Start and goal pair are not valid combinations, skipping ");
+        delta_valid = duration_cast<chrono_ms>(hr_clock::now() - t_valid).count();
+        collision_debug << "\nStart and Goal pair is NOT valid. This check took " << delta_valid << " ms.\n";
+        
         return false;
+    }
+    else {
+        delta_valid = duration_cast<chrono_ms>(hr_clock::now() - t_valid).count();
+        collision_debug << "\nValidity check took " << delta_valid << " ms.\n";
     }
 
     // Make sure that the start and goal aren't so close together that they find the same vertex
@@ -375,6 +415,7 @@ bool ompl::geometric::SPARSdb::lazyCollisionSearch(const Vertex &start, const Ve
         }
 
         // Attempt to find a solution from start to goal
+        auto t_const_sol {hr_clock::now()};
         if (!constructSolution(start, goal, vertexPath))
         {
             // We will stop looking through this start-goal combination, but perhaps this partial solution is good
@@ -399,6 +440,8 @@ bool ompl::geometric::SPARSdb::lazyCollisionSearch(const Vertex &start, const Ve
             // return false;
             return false;
         }
+        auto delta_const_sol {duration_cast<chrono_ms>(hr_clock::now() - t_const_sol).count()};
+        collision_debug << "\n Construct Solution (a-star) takes " << delta_const_sol << " ms.\n";
         havePartialSolution = true;  // we have found at least one path at this point. may be invalid
 
         if (verbose_)
@@ -408,6 +451,8 @@ bool ompl::geometric::SPARSdb::lazyCollisionSearch(const Vertex &start, const Ve
         }
 
         // Check if all the points in the potential solution are valid
+        auto t_collision {hr_clock::now()};
+        auto delta_collision {duration_cast<chrono_ms>(hr_clock::now() - t_collision).count()};
         if (lazyCollisionCheck(vertexPath, ptc))
         {
             if (verbose_)
@@ -417,11 +462,17 @@ bool ompl::geometric::SPARSdb::lazyCollisionSearch(const Vertex &start, const Ve
 
             // the path is valid, we are done!
             convertVertexPathToStatePath(vertexPath, actualStart, actualGoal, candidateSolution);
+            delta_collision = duration_cast<chrono_ms>(hr_clock::now() - t_collision).count();
+            collision_debug << "\nCollision check SUCCEEDED and it took " << delta_collision << " ms.\n";
             return true;
+        }
+        else {
+            delta_collision = duration_cast<chrono_ms>(hr_clock::now() - t_collision).count();
+            collision_debug << "\nCollision checking FAILED and it took " << delta_collision << " ms.\n";
         }
         // else, loop with updated graph that has the invalid edges/states disabled
     }  // while
-
+    collision_debug.close();
     // we never found a valid path
     return false;
 }
@@ -964,12 +1015,15 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
 
     /* The whole neighborhood set which has been most recently computed */
     std::vector<Vertex> graphNeighborhood;
+    std::vector<Vertex> gnbhd;
+
     /* The visible neighborhood set which has been most recently computed */
     std::vector<Vertex> visibleNeighborhood;
-
+    std::vector<Vertex> vnbhd;
     ++iterations_;
 
     findGraphNeighbors(qNew, graphNeighborhood, visibleNeighborhood);
+    findGraphNeighbors(qNew, gnbhd, vnbhd, 0.001);
 
     if (verbose_)
     {
@@ -992,7 +1046,7 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
         if (verbose_)
             OMPL_INFORM(" -- checkAddConnectivity() Does this node connect neighboring nodes that are not connected? ");
         // Connectivity criterion
-        if (!checkAddConnectivity(qNew, visibleNeighborhood))
+        if ((vnbhd.size() > 0) || !checkAddConnectivity(qNew, visibleNeighborhood))
         {
             if (verbose_)
                 OMPL_INFORM(" --- checkAddInterface() Does this node's neighbor's need it to better connect them? ");
@@ -1299,13 +1353,14 @@ void ompl::geometric::SPARSdb::resetFailures()
 }
 
 void ompl::geometric::SPARSdb::findGraphNeighbors(base::State *st, std::vector<Vertex> &graphNeighborhood,
-                                                  std::vector<Vertex> &visibleNeighborhood)
+                                                  std::vector<Vertex> &visibleNeighborhood, double radius)
 {
     visibleNeighborhood.clear();
     stateProperty_[queryVertex_] = st;
-    nn_->nearestR(queryVertex_, sparseDelta_, graphNeighborhood);
+    if (radius < 0) radius = sparseDelta_;
+    nn_->nearestR(queryVertex_, radius, graphNeighborhood);
     if (verbose_ && false)
-        OMPL_INFORM("Finding nearest nodes in NN tree within radius %f", sparseDelta_);
+        OMPL_INFORM("Finding nearest nodes in NN tree within radius %f", radius);
     stateProperty_[queryVertex_] = nullptr;
 
     // Now that we got the neighbors from the NN, we must remove any we can't see
@@ -1314,10 +1369,11 @@ void ompl::geometric::SPARSdb::findGraphNeighbors(base::State *st, std::vector<V
             visibleNeighborhood.push_back(i);
 }
 
-bool ompl::geometric::SPARSdb::findGraphNeighbors(const base::State *state, std::vector<Vertex> &graphNeighborhood)
+bool ompl::geometric::SPARSdb::findGraphNeighbors(const base::State *state, std::vector<Vertex> &graphNeighborhood, double radius)
 {
     base::State *stateCopy = si_->cloneState(state);
 
+    if (radius < 0) radius = sparseDelta_;
     // Don't check for visibility
     graphNeighborhood.clear();
     stateProperty_[queryVertex_] = stateCopy;
@@ -1329,7 +1385,7 @@ bool ompl::geometric::SPARSdb::findGraphNeighbors(const base::State *state, std:
         0.25;  // speed to which we look outside the original sparse delta neighborhood
     for (std::size_t i = 0; i < expandNeighborhoodSearchAttempts; ++i)
     {
-        neighborSearchRadius = sparseDelta_ + i * EXPAND_NEIGHBORHOOD_RATE * sparseDelta_;
+        neighborSearchRadius = radius + i * EXPAND_NEIGHBORHOOD_RATE * radius;
         if (verbose_)
         {
             OMPL_INFORM("-------------------------------------------------------");

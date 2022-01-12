@@ -132,7 +132,7 @@ namespace ompl
         {
 
             std::ofstream rr_planner_debug;
-            rr_planner_debug.open("rr_planner_debug.txt", std::ios::app);
+            rr_planner_debug.open("zzz_rr_planner_debug.txt", std::ios::app);
 
             bool solved = false;
             double approxdif = std::numeric_limits<double>::infinity();
