@@ -453,7 +453,7 @@ bool ompl::geometric::SPARSdb::lazyCollisionSearch(const Vertex &start, const Ve
         // Check if all the points in the potential solution are valid
         auto t_collision {hr_clock::now()};
         auto delta_collision {duration_cast<chrono_ms>(hr_clock::now() - t_collision).count()};
-        if (lazyCollisionCheck(vertexPath, ptc))
+        if (true || lazyCollisionCheck(vertexPath, ptc))
         {
             if (verbose_)
             {
