@@ -705,6 +705,8 @@ bool ompl::geometric::SPARSdb::getGuardSpacingFactor(const double pathLength, in
 bool ompl::geometric::SPARSdb::addPathToRoadmap(const base::PlannerTerminationCondition &ptc,
                                                 ompl::geometric::PathGeometric &solutionPath)
 {
+    std::ofstream astr_debug;
+    astr_debug.open("zzz_astr.txt", std::ios::app);
     // Check that the query vertex is initialized (used for internal nearest neighbor searches)
     checkQueryStateInitialization();
 
@@ -783,6 +785,7 @@ bool ompl::geometric::SPARSdb::addPathToRoadmap(const base::PlannerTerminationCo
 #endif
 
             // Add a single state to the roadmap
+            auto t_astr {hr_clock::now()};
             if (!addStateToRoadmap(ptc, solutionPath.getState(i)))
             {
                 if (verbose_)
@@ -790,7 +793,8 @@ bool ompl::geometric::SPARSdb::addPathToRoadmap(const base::PlannerTerminationCo
                     OMPL_INFORM("Last state added to roadmap failed ");
                 }
             }
-
+            auto delta_astr {duration_cast<chrono_ms>(hr_clock::now() - t_astr).count()};
+            astr_debug << "\nTime to add state to roadmap is " << delta_astr << " ms.\n";
             // Now figure out midpoint state between lastState and i
             std::size_t midStateID = (i - lastStateID) / 2 + lastStateID;
             connectivityStateIDs.push_back(midStateID);
@@ -901,7 +905,7 @@ bool ompl::geometric::SPARSdb::addPathToRoadmap(const base::PlannerTerminationCo
         // Return the result of inserting into database, if applicable
         return checkStartGoalConnection(solutionPath);
     }
-
+    astr_debug.close();
     return true;
 }
 
@@ -1005,6 +1009,8 @@ bool ompl::geometric::SPARSdb::checkStartGoalConnection(ompl::geometric::PathGeo
 
 bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationCondition &ptc, base::State *newState)
 {
+    std::ofstream insertion_times;
+    insertion_times.open("zzz_insertion_times.txt", std::ios::app);
     bool stateAdded = false;
     // Check that the query vertex is initialized (used for internal nearest neighbor searches)
     checkQueryStateInitialization();
@@ -1052,6 +1058,7 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
                 OMPL_INFORM(" --- checkAddInterface() Does this node's neighbor's need it to better connect them? ");
             if (!checkAddInterface(qNew, graphNeighborhood, visibleNeighborhood))
             {
+                // auto t_interface {hr_clock::now()};
                 if (verbose_)
                     OMPL_INFORM(" ---- Ensure SPARS asymptotic optimality");
                 if (visibleNeighborhood.size() > 0)
@@ -1093,6 +1100,8 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
                     if (verbose_)
                         OMPL_INFORM("------ Done with inner most loop ");
                 }
+                // auto delta_interface {duration_cast<chrono_ms>(hr_clock::now() - t_interface).count()};
+                // insertion_times << "\nAdding node as interface took: " << delta_interface << " ms.\n";
             }
             else  //  added for interface
             {
@@ -1114,6 +1123,7 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
 
     si_->freeState(workState);
     si_->freeState(qNew);
+    insertion_times.close();
 
     return stateAdded;
 }
@@ -1151,15 +1161,24 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
 {
     // Identify visibile nodes around our new state that are unconnected (in different connected components)
     // and connect them
+    std::ofstream connectivity_debug;
+    connectivity_debug.open("zzz_connectivity_debug.txt", std::ios::app);
+    auto t_add_guard {hr_clock::now()};
     Vertex newVertex = addGuard(si_->cloneState(qNew), COVERAGE);
+    auto delta_add_guard {duration_cast<chrono_ms>(hr_clock::now() - t_add_guard).count()};
+    connectivity_debug << "\nAdding guard took " << delta_add_guard << " ms.\n";
     std::vector<Vertex> statesInDiffConnectedComponents;  // links
     if (visibleNeighborhood.size() == 1)
     {
+        auto t_connectivity {hr_clock::now()};
         if (!sameComponent(visibleNeighborhood[0], newVertex))
             connectGuards(newVertex, visibleNeighborhood[0]);
+        auto delta_connectivity {duration_cast<chrono_ms>(hr_clock::now() - t_connectivity).count()};
+        connectivity_debug << "\nConnecting nodes took " << delta_connectivity << " ms.\n";
     }
     if (visibleNeighborhood.size() > 1)  // if less than 2 there is no way to find a pair of nodes in different connected components
     {
+        auto t_components {hr_clock::now()};
         // For each neighbor
         for (std::size_t i = 0; i < visibleNeighborhood.size(); ++i)
         {
@@ -1174,7 +1193,10 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
                 }
             }
         }
+        auto delta_components {duration_cast<chrono_ms>(hr_clock::now() - t_components).count()};
+        connectivity_debug << "\nFinding components took " << delta_components << " ms.\n";
 
+        auto t_connect {hr_clock::now()};
         // Were any diconnected states found?
         if (statesInDiffConnectedComponents.size() > 0)
         {
@@ -1194,7 +1216,9 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
                         connectGuards(newVertex, statesInDiffConnectedComponent);
                 }
             }
-
+            auto delta_connect {duration_cast<chrono_ms>(hr_clock::now() - t_connect).count()};
+            connectivity_debug << "\nConnecting edges took " << delta_connect << " ms.\n";
+            connectivity_debug.close();
             return true;
         }
         else if (visibleNeighborhood.size() > 0) {
@@ -1202,6 +1226,7 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
             connectGuards(newVertex, visibleNeighborhood[0]);
         }
     }
+    connectivity_debug.close();
     return false;
 }
 

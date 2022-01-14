@@ -43,6 +43,10 @@ namespace og = ompl::geometric;
 namespace ob = ompl::base;
 namespace ot = ompl::tools;
 
+using hr_clock = std::chrono::high_resolution_clock;
+using chrono_ms = std::chrono::milliseconds;
+using std::chrono::duration_cast;
+
 ompl::tools::Thunder::Thunder(const base::SpaceInformationPtr &si, const double stretch_factor, const double DenseD,
                               const double SparseD)
   : ompl::tools::ExperienceSetup{si}, stretch_factor_{stretch_factor}, DenseD_{DenseD}, SparseD_{SparseD}
@@ -503,6 +507,8 @@ ompl::tools::ThunderDBPtr ompl::tools::Thunder::getExperienceDB()
 
 bool ompl::tools::Thunder::doPostProcessing()
 {
+    std::ofstream pp_debug;
+    pp_debug.open("zzz_post_processing.txt", std::ios::app); 
     OMPL_INFORM("Performing post-processing");
     double shortest_path_length = getSolutionPath().length();
     auto solutionPathPtr{std::make_shared<ompl::geometric::PathGeometric>(getSpaceInformation())};
@@ -510,8 +516,10 @@ bool ompl::tools::Thunder::doPostProcessing()
     {
         // Time to add a path to experience database
         double insertionTime;
-
+        auto t_add_path {hr_clock::now()};
         experienceDB_->addPath(queuedSolutionPath, insertionTime);
+        auto delta_add_path {duration_cast<chrono_ms>(hr_clock::now() - t_add_path).count()};
+        pp_debug << "\nAdding path took " << delta_add_path << " ms.\n";
         OMPL_INFORM("Finished inserting experience path in %f seconds", insertionTime);
         stats_.totalInsertionTime_ += insertionTime;  // used for averaging
         double queued_path_length{queuedSolutionPath.length()};
