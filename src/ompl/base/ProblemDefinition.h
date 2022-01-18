@@ -404,6 +404,16 @@ namespace ompl
             /** \brief Print information about the start and goal states and the optimization objective */
             void print(std::ostream &out = std::cout) const;
 
+            /** \brief Returns the flag that controls whether or not we accept approximate solutions */
+            bool acceptsApproximate() {
+                return acceptApproximate_;
+            }
+
+            /** \brief Sets the flag that controls whether or not we accept approximate solutions */
+            void setAcceptApproximate(const bool acceptApproximate) {
+                acceptApproximate_ = acceptApproximate;
+            }
+
         protected:
             /** \brief Helper function for fixInvalidInputStates(). Attempts to fix an individual state */
             bool fixInvalidInputState(State *state, double dist, bool start, unsigned int attempts);
@@ -430,6 +440,9 @@ namespace ompl
             /// @cond IGNORE
             OMPL_CLASS_FORWARD(PlannerSolutionSet);
             /// @endcond
+
+            // flag to either save or not save approximate solutions
+            bool acceptApproximate_ {true};
 
             /** \brief The set of solutions computed for this goal (maintains an array of PlannerSolution) */
             PlannerSolutionSetPtr solutions_;

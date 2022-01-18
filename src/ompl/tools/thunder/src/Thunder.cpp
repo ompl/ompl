@@ -36,6 +36,8 @@
 
 #include <ompl/tools/thunder/Thunder.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/geometric/planners/rrt/InformedRRTstar.h>
+#include <ompl/geometric/planners/cforest/CForest.h>
 #include <ompl/base/PlannerStatus.h>
 #include <ompl/util/Console.h>
 
@@ -82,8 +84,20 @@ void ompl::tools::Thunder::setup()
 
         // Setup planning from scratch planner
         OMPL_INFORM("Initializing planners");
-        // planner_vec_.clear();
-        // planner_vec_ = {nullptr, nullptr, nullptr, nullptr};
+        // set number of threads if not already set
+        if(n_threads_ == 0) {
+          n_threads_ = std::max(std::thread::hardware_concurrency(), 2u) - 1;
+        }
+        // set the size of the planner vector
+        planner_vec_.clear();
+        if (planner_type_ == thunderPlanner::PLANNER_CFOREST) {
+          std::vector<base::PlannerPtr> planner_vec {1};
+          planner_vec_ = planner_vec;
+        } else {
+          std::vector<base::PlannerPtr> planner_vec (n_threads_);
+          planner_vec_ = planner_vec;
+        }
+        // set up planner ptr vector based on planner type
         for (auto &planner : planner_vec_)
         {
             if (!planner)
@@ -92,6 +106,10 @@ void ompl::tools::Thunder::setup()
                 {
                     OMPL_INFORM("Planner Allocator specified");
                     planner = pa_(si_);
+                }
+                else if (planner_type_ == thunderPlanner::PLANNER_CFOREST)
+                {
+                    planner = std::make_shared<ompl::geometric::CForest>(si_);
                 }
                 else
                 {
@@ -145,7 +163,7 @@ void ompl::tools::Thunder::setup()
             experienceDB_->getSPARSdb()->setSparseDeltaFraction(SparseD_);
             experienceDB_->getSPARSdb()->setDenseDeltaFraction(DenseD_);
 
-            experienceDB_->getSPARSdb()->printDebug();
+            // experienceDB_->getSPARSdb()->printDebug();
 
             experienceDB_->load(filePath_);  // load from file
         }
@@ -214,8 +232,8 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
     {
         OMPL_DEBUG("Thunder: stopping only after all threads report a solution");
     }
-
-    lastStatus_ = pp_->solve(ptc, hybridize_);  //, hybridize);
+    
+    lastStatus_ = pp_->solve(ptc, minSolCount_, maxSolCount_, hybridize_); 
 
     // Planning time
     planTime_ = time::seconds(time::now() - start);
@@ -301,7 +319,7 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
                 log.is_saved = "less_2_states";
                 log.too_short = true;
             }
-            else if (false)  // always add when from recall
+            else if (savePlansFromRecall_)
             {
                 OMPL_INFORM("Adding path to database because SPARS will decide for us if we should keep the nodes");
 

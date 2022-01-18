@@ -60,6 +60,13 @@
 
 namespace ompl
 {
+
+  // An enum of supported thunder planners, alphabetical order
+  enum thunderPlanner
+  {
+      PLANNER_CFOREST,
+      PLANNER_RRTCONNECT
+  };
     namespace tools
     {
         /**
@@ -102,6 +109,7 @@ namespace ompl
             double stretch_factor_{};
             double DenseD_{};
             double SparseD_{};
+            size_t n_threads_{0};
 
         public:
             /** \brief Display debug data about potential available solutions */
@@ -147,6 +155,16 @@ namespace ompl
                 return solve(ptc);
             }
 
+            /** \brief overload so we can toggle min / max solution counts before returning and toggle hybridize */
+            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc, const std::size_t minSolCount,
+                                      const std::size_t maxSolCount, const bool hybridize)
+            {
+                hybridize_ = hybridize;
+                minSolCount_ = minSolCount;
+                maxSolCount_ = maxSolCount;
+                return solve(ptc);
+            }
+
             /** \brief Save the experience database to file */
             bool save() override;
 
@@ -160,6 +178,26 @@ namespace ompl
 
             /** \brief Print information about the current setup */
             void print(std::ostream &out = std::cout) const override;
+
+            /** \brief set the from scratch planner to be CForest */
+            void setCforest() {
+              planner_type_ = thunderPlanner::PLANNER_CFOREST;
+            }
+
+            /** \brief set the from scratch planner to be RRT */
+            void setRRT() {
+              planner_type_ = thunderPlanner::PLANNER_RRTCONNECT;
+            }
+
+            /** \brief Set the number of threads to use for planning. */
+            void setNumThreads(const size_t n_threads) {
+              n_threads_ = n_threads;
+            }
+
+            /** \brief Get the number of threads used for planning. */
+            size_t getNumThreads() const {
+              return n_threads_;
+            }
 
             /** \brief This method will create the necessary classes
                 for planning. The solve() method will call this function automatically. */
@@ -224,12 +262,23 @@ namespace ompl
                 return DenseD_;
             };
 
+            void setSavePlansFromRecall (const bool savePlansFromRecall) {
+                savePlansFromRecall_ = savePlansFromRecall;
+            }
+
+            bool getSavePlansFromRecall() {
+                return savePlansFromRecall_;
+            }
+
         protected:
             /**  The maintained experience planner instance */
             base::PlannerPtr rrPlanner_;
 
             /**  planners used for testing dual-thread scratch-only planning */
-            std::vector<base::PlannerPtr> planner_vec_{std::max(std::thread::hardware_concurrency(), 2u) - 1};
+            std::vector<base::PlannerPtr> planner_vec_ {};
+
+            /**  number of threads to use for RRTConnect planning. 0 for max */
+            size_t n_threads {0};
 
             /**  Flag indicating whether dual thread scratch planning is enabled */
             bool dualThreadScratchEnabled_{true};
@@ -243,7 +292,15 @@ namespace ompl
             /** \brief Accumulated experiences to be later added to experience database */
             std::vector<ompl::geometric::PathGeometric> queuedSolutionPaths_;
 
-            bool hybridize_{true};
+            bool hybridize_{true};            
+
+            /** \brief Flag to indicate whether or not we save plans obtained from recall */
+            bool savePlansFromRecall_ {true};
+
+            std::size_t minSolCount_ {1};
+            std::size_t maxSolCount_ {100};
+
+            thunderPlanner planner_type_ {thunderPlanner::PLANNER_RRTCONNECT};
 
         };  // end of class Thunder
 
