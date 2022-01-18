@@ -405,7 +405,7 @@ namespace ompl
             void print(std::ostream &out = std::cout) const;
 
             /** \brief Setters and getters for runningOnRobot_ flag*/
-            void setRunningOnRobot (bool runningOnRobot) {
+            void setRunningOnRobot (const bool runningOnRobot) {
                 runningOnRobot_ = runningOnRobot;   
             }
 
@@ -413,6 +413,18 @@ namespace ompl
             bool getRunningOnRobot () {
                 return runningOnRobot_;   
             }
+
+            /** \brief Setters and getters for returnApproximateSolutions_ flag*/
+            void setReturnApproximateSolutions (const bool returnApproximateSolutions) {
+                returnApproximateSolutions_ = returnApproximateSolutions;   
+            }
+
+            /** \brief Setters and getters for returnApproximateSolutions_ flag*/
+            bool getReturnApproximateSolutions () {
+                return returnApproximateSolutions_;   
+            }
+
+            
 
         protected:
             /** \brief Helper function for fixInvalidInputStates(). Attempts to fix an individual state */
@@ -446,6 +458,9 @@ namespace ompl
 
             /** \brief Flag that indicates whether we are running online or offline */
             bool runningOnRobot_ {false};
+
+            /** \brief Flag that controls whether or not we return approximate solutions */
+            bool returnApproximateSolutions_ {false};
         };
     }
 }

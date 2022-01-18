@@ -135,8 +135,13 @@ namespace ompl
             rr_planner_debug.open("zzz_rr_planner_debug.txt", std::ios::app);
 
             bool solved = false;
-            double approxdif = std::numeric_limits<double>::infinity();
-            // double approxdif = 0;
+            double approxdif;
+            bool returnApproxSol {pdef_->getReturnApproximateSolutions()};
+            if (returnApproxSol)
+                approxdif = std::numeric_limits<double>::infinity();
+            else {
+                double approxdif = 0;
+            }
             nearestPaths_.clear();
 
             // Check if the database is empty
@@ -192,7 +197,6 @@ namespace ompl
             // auto delta_smoothing {duration_cast<chrono_ms>(hr_clock::now() - t_smoothing).count()};
             // rr_planner_debug << "\nSmoothing took " << delta_smoothing << " ms.\n";
             // Finished
-            approxdif = 0;
             bool approximate = candidateSolution.isApproximate_;
             auto t_adding {hr_clock::now()};
             pdef_->addSolutionPath(candidateSolution.path_, approximate, approxdif, getName());
