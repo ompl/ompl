@@ -244,6 +244,9 @@ namespace ompl
             std::vector<ompl::geometric::PathGeometric> queuedSolutionPaths_;
 
             bool hybridize_{true};
+            
+            /** \brief Flag to indicate whether or not we save plans obtained from recall */
+            bool savePlansFromRecall_ {true};
 
         };  // end of class Thunder
 

@@ -306,7 +306,7 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
                 log.is_saved = "less_2_states";
                 log.too_short = true;
             }
-            else if (true)  // always add when from recall
+            else if (savePlansFromRecall_)  // always add when from recall
             {
                 OMPL_INFORM("Adding path to database because SPARS will decide for us if we should keep the nodes");
 

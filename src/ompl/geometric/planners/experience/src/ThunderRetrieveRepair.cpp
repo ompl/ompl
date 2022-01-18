@@ -194,10 +194,10 @@ namespace ompl
             // Finished
             approxdif = 0;
             bool approximate = candidateSolution.isApproximate_;
-            // auto t_adding {hr_clock::now()};
+            auto t_adding {hr_clock::now()};
             pdef_->addSolutionPath(candidateSolution.path_, approximate, approxdif, getName());
-            // auto delta_adding {duration_cast<chrono_ms>(hr_clock::now() - t_adding).count()};
-            // rr_planner_debug << "\nAdding solution took " << delta_adding << " ms.\n";
+            auto delta_adding {duration_cast<chrono_ms>(hr_clock::now() - t_adding).count()};
+            rr_planner_debug << "\nAdding solution took " << delta_adding << " ms.\n";
             solved = true;
             rr_planner_debug.close();
             return {solved, approximate};

@@ -775,6 +775,15 @@ namespace ompl
             /** \brief Maximum range for allowing two samples to support an interface */
             double denseDelta_{0.};
 
+            /** \brief granularity of nodes in the roadmap. Affects how dense the roamdap will be in (denseRoadmap_ = true) mode. */
+            double granularity_ {0.001};
+
+            /** \brief A flag that indicates if we need to run the database in a way to create a high-density roadmap */
+            bool denseRoadmap_ {true};
+
+            /** \brief Flag to indicate wheter or not we do collision checking for paths retrieved from the database */
+            bool collisionCheckOnRecall_ {false};
+
             /** \brief Used by getSimilarPaths */
             std::vector<Vertex> startVertexCandidateNeighbors_;
             std::vector<Vertex> goalVertexCandidateNeighbors_;

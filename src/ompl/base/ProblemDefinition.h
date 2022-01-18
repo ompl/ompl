@@ -404,6 +404,16 @@ namespace ompl
             /** \brief Print information about the start and goal states and the optimization objective */
             void print(std::ostream &out = std::cout) const;
 
+            /** \brief Setters and getters for runningOnRobot_ flag*/
+            void setRunningOnRobot (bool runningOnRobot) {
+                runningOnRobot_ = runningOnRobot;   
+            }
+
+            /** \brief Setters and getters for runningOnRobot_ flag*/
+            bool getRunningOnRobot () {
+                return runningOnRobot_;   
+            }
+
         protected:
             /** \brief Helper function for fixInvalidInputStates(). Attempts to fix an individual state */
             bool fixInvalidInputState(State *state, double dist, bool start, unsigned int attempts);
@@ -433,6 +443,9 @@ namespace ompl
 
             /** \brief The set of solutions computed for this goal (maintains an array of PlannerSolution) */
             PlannerSolutionSetPtr solutions_;
+
+            /** \brief Flag that indicates whether we are running online or offline */
+            bool runningOnRobot_ {false};
         };
     }
 }

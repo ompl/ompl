@@ -453,7 +453,7 @@ bool ompl::geometric::SPARSdb::lazyCollisionSearch(const Vertex &start, const Ve
         // Check if all the points in the potential solution are valid
         auto t_collision {hr_clock::now()};
         auto delta_collision {duration_cast<chrono_ms>(hr_clock::now() - t_collision).count()};
-        if (true || lazyCollisionCheck(vertexPath, ptc))
+        if (!collisionCheckOnRecall_ || lazyCollisionCheck(vertexPath, ptc))
         {
             if (verbose_)
             {
@@ -1028,8 +1028,10 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
     std::vector<Vertex> vnbhd;
     ++iterations_;
 
+    //@TODO - Ramy: Test if creating another nbhd to seperate recall from connectivity has positive effects.
     findGraphNeighbors(qNew, graphNeighborhood, visibleNeighborhood);
-    findGraphNeighbors(qNew, gnbhd, vnbhd, 0.001);
+    if (denseRoadmap_)
+        findGraphNeighbors(qNew, gnbhd, vnbhd, granularity_);
 
     if (verbose_)
     {
@@ -1045,9 +1047,8 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
     if (verbose_)
         OMPL_INFORM(" - checkAddCoverage() Are other nodes around it visible?");
     // Coverage criterion
-    // if (!checkAddCoverage(qNew,
-    //                       visibleNeighborhood))  // Always add a node if no other nodes around it are visible (GUARD)
-    if (true)
+    if (denseRoadmap_ || !checkAddCoverage(qNew,
+                          visibleNeighborhood))  // Always add a node if no other nodes around it are visible (GUARD)
     {
         if (verbose_)
             OMPL_INFORM(" -- checkAddConnectivity() Does this node connect neighboring nodes that are not connected? ");
@@ -1056,7 +1057,7 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
         {
             if (verbose_)
                 OMPL_INFORM(" --- checkAddInterface() Does this node's neighbor's need it to better connect them? ");
-            if (!checkAddInterface(qNew, graphNeighborhood, visibleNeighborhood))
+            if (!checkAddInterface(qNew, graphNeighborhood, visibleNeighborhood)) // @TODO - Ramy: I think with the new changes this becomes unnecessary. Test without it and see.
             {
                 // auto t_interface {hr_clock::now()};
                 if (verbose_)
@@ -1161,20 +1162,24 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
 {
     // Identify visibile nodes around our new state that are unconnected (in different connected components)
     // and connect them
+    std::vector<Vertex> statesInDiffConnectedComponents;  // links
+    Vertex newVertex;
     std::ofstream connectivity_debug;
     connectivity_debug.open("zzz_connectivity_debug.txt", std::ios::app);
     auto t_add_guard {hr_clock::now()};
-    Vertex newVertex = addGuard(si_->cloneState(qNew), COVERAGE);
-    auto delta_add_guard {duration_cast<chrono_ms>(hr_clock::now() - t_add_guard).count()};
-    connectivity_debug << "\nAdding guard took " << delta_add_guard << " ms.\n";
-    std::vector<Vertex> statesInDiffConnectedComponents;  // links
-    if (visibleNeighborhood.size() == 1)
-    {
-        auto t_connectivity {hr_clock::now()};
-        if (!sameComponent(visibleNeighborhood[0], newVertex))
-            connectGuards(newVertex, visibleNeighborhood[0]);
-        auto delta_connectivity {duration_cast<chrono_ms>(hr_clock::now() - t_connectivity).count()};
-        connectivity_debug << "\nConnecting nodes took " << delta_connectivity << " ms.\n";
+    if (denseRoadmap_) {
+        newVertex = addGuard(si_->cloneState(qNew), COVERAGE);
+        auto delta_add_guard {duration_cast<chrono_ms>(hr_clock::now() - t_add_guard).count()};
+        connectivity_debug << "\nAdding guard took " << delta_add_guard << " ms.\n";
+
+        if (visibleNeighborhood.size() == 1)
+        {
+            auto t_connectivity {hr_clock::now()};
+            if (!sameComponent(visibleNeighborhood[0], newVertex))
+                connectGuards(newVertex, visibleNeighborhood[0]);
+            auto delta_connectivity {duration_cast<chrono_ms>(hr_clock::now() - t_connectivity).count()};
+            connectivity_debug << "\nConnecting nodes took " << delta_connectivity << " ms.\n";
+        }
     }
     if (visibleNeighborhood.size() > 1)  // if less than 2 there is no way to find a pair of nodes in different connected components
     {
@@ -1203,6 +1208,8 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
             if (verbose_)
                 OMPL_INFORM(" --- Adding node for CONNECTIVITY ");
             // Add the node
+            if (!denseRoadmap_)
+                newVertex = addGuard(si_->cloneState(qNew), CONNECTIVITY);
 
             for (unsigned long statesInDiffConnectedComponent : statesInDiffConnectedComponents)
             {
@@ -1221,7 +1228,7 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
             connectivity_debug.close();
             return true;
         }
-        else if (visibleNeighborhood.size() > 0) {
+        else if (denseRoadmap_ && visibleNeighborhood.size() > 0) {
             if (!sameComponent(visibleNeighborhood[0], newVertex))
             connectGuards(newVertex, visibleNeighborhood[0]);
         }
