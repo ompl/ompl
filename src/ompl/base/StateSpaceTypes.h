@@ -87,6 +87,9 @@ namespace ompl
             /** \brief ompl::base::KleinBottleStateSpace */
             STATE_SPACE_KLEIN_BOTTLE = 13,
 
+            /** \brief  combined SO2 and real vector spaces*/
+            STATE_SPACE_COMBINED_SO2_REAL = 98,
+
             /** \brief Number of state space types; To add new types,
                 use values that are larger than the count*/
             STATE_SPACE_TYPE_COUNT
