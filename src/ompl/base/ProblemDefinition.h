@@ -470,7 +470,7 @@ namespace ompl
             PlannerSolutionSetPtr solutions_;
 
             /** \brief Flag that indicates whether we are running online or offline */
-            bool runningOnRobot_ {false};
+            bool runningOnRobot_ {true};
 
             /** \brief Flag that controls whether or not we return approximate solutions */
             bool returnApproximateSolutions_ {false};
