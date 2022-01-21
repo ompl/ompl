@@ -212,14 +212,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     const base::ReportIntermediateSolutionFn intermediateSolutionCallback = pdef_->getIntermediateSolutionCallback();
 
     Motion *approxGoalMotion = nullptr;
-    double approxDist;
+    double approxDist {0.0};
     bool returnApproxSol {pdef_->getReturnApproximateSolutions()};
     if (returnApproxSol)
         approxDist = std::numeric_limits<double>::infinity();
-    else {
-        double approxDist = 0;
-    }
-
     auto *rmotion = new Motion(si_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();

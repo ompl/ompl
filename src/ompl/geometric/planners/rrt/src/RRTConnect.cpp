@@ -224,13 +224,10 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
     tgi.xstate = si_->allocState();
 
     Motion *approxsol = nullptr;
-    double approxdif;
+    double approxdif {0.0};
     bool returnApproxSol {pdef_->getReturnApproximateSolutions()};
     if (returnApproxSol)
         approxdif = std::numeric_limits<double>::infinity();
-    else {
-        double approxdif = 0;
-    }
     auto *rmotion = new Motion(si_);
     base::State *rstate = rmotion->state;
     bool startTree = true;

@@ -425,7 +425,7 @@ void ompl::base::ProblemDefinition::addSolutionPath(const PathPtr &path, bool ap
                                                     const std::string &plannerName) const
 {
     PlannerSolution sol(path);
-    if (!runningOnRobot_) {
+    if (!computeSolutionCost_) {
         Cost sol_cost {path->cost(optimizationObjective_)};
         sol.setOptimized(optimizationObjective_, sol_cost, false);
     }
