@@ -133,8 +133,8 @@ namespace ompl
 
                 \param path the path to reduce vertices from
 
-                \param stepSize the size of the pertubations, i.e. the distance from a randomly selected configuration
-                and its position after perbutation. Also used to determine how far the points on either side of the
+                \param stepSize the size of the perturbations, i.e. the distance from a randomly selected configuration
+                and its position after perturbation. Also used to determine how far the points on either side of the
                 selected configuration are (stepSize / 2).
 
                 \param maxSteps the maximum number of attemps to perturb the path. If this value is set to 0 (the default),
