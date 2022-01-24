@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2021, Technische Universität Berlin (TU Berlin)
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the TU Berlin nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -34,21 +34,21 @@
 
 /* Author: Francesco Grothe */
 
-#include "ompl/base/spaces/AnimationStateSpace.h"
+#include "ompl/base/spaces/SpaceTimeStateSpace.h"
 
-ompl::base::AnimationStateSpace::AnimationStateSpace(const StateSpacePtr& spaceComponent, double vMax,
+ompl::base::SpaceTimeStateSpace::SpaceTimeStateSpace(const StateSpacePtr& spaceComponent, double vMax,
                                                      double timeWeight) : vMax_(vMax)
 {
     if (timeWeight < 0 || timeWeight > 1)
-        throw ompl::Exception("Error in AnimationStateSpace Construction: Time weight must be between 0 and 1");
+        throw ompl::Exception("Error in SpaceTimeStateSpace Construction: Time weight must be between 0 and 1");
 
-    setName("AnimationStateSpace" + getName());
+    setName("SpaceTimeStateSpace" + getName());
     addSubspace(spaceComponent, (1 - timeWeight)); // space component
     addSubspace(std::make_shared<TimeStateSpace>(), timeWeight); // time component
     lock();
 }
 
-double ompl::base::AnimationStateSpace::distance(const ompl::base::State *state1, const ompl::base::State *state2) const
+double ompl::base::SpaceTimeStateSpace::distance(const ompl::base::State *state1, const ompl::base::State *state2) const
 {
     double deltaSpace = distanceSpace(state1, state2);
     double deltaTime = distanceTime(state1, state2);
@@ -62,7 +62,7 @@ double ompl::base::AnimationStateSpace::distance(const ompl::base::State *state1
 /*
  * Direction-independent distance in space
  */
-double ompl::base::AnimationStateSpace::distanceSpace(const ompl::base::State *state1,
+double ompl::base::SpaceTimeStateSpace::distanceSpace(const ompl::base::State *state1,
                                                       const ompl::base::State *state2) const
 {
     const auto *cstate1 = static_cast<const CompoundState *>(state1);
@@ -74,7 +74,7 @@ double ompl::base::AnimationStateSpace::distanceSpace(const ompl::base::State *s
 /*
  * Direction-independent distance in time
  */
-double ompl::base::AnimationStateSpace::distanceTime(const ompl::base::State *state1,
+double ompl::base::SpaceTimeStateSpace::distanceTime(const ompl::base::State *state1,
                                                      const ompl::base::State *state2) const
 {
     const auto *cstate1 = static_cast<const CompoundState *>(state1);
@@ -83,56 +83,56 @@ double ompl::base::AnimationStateSpace::distanceTime(const ompl::base::State *st
     return components_[1]->distance(cstate1->components[1], cstate2->components[1]);
 }
 
-void ompl::base::AnimationStateSpace::setTimeBounds(double lb, double ub)
+void ompl::base::SpaceTimeStateSpace::setTimeBounds(double lb, double ub)
 {
     as<TimeStateSpace>(1)->setBounds(lb, ub);
 }
 
-double ompl::base::AnimationStateSpace::getVMax() const
+double ompl::base::SpaceTimeStateSpace::getVMax() const
 {
     return vMax_;
 }
 
-void ompl::base::AnimationStateSpace::setVMax(double vMax)
+void ompl::base::SpaceTimeStateSpace::setVMax(double vMax)
 {
     vMax_ = vMax;
 }
 
-double ompl::base::AnimationStateSpace::timeToCoverDistance(const ompl::base::State *state1,
+double ompl::base::SpaceTimeStateSpace::timeToCoverDistance(const ompl::base::State *state1,
                                                             const ompl::base::State *state2) const
 {
     double deltaSpace = distanceSpace(state1, state2);
     return deltaSpace / vMax_;
 }
 
-ompl::base::StateSpacePtr ompl::base::AnimationStateSpace::getSpaceComponent()
+ompl::base::StateSpacePtr ompl::base::SpaceTimeStateSpace::getSpaceComponent()
 {
     return components_[0];
 }
 
-ompl::base::TimeStateSpace * ompl::base::AnimationStateSpace::getTimeComponent()
+ompl::base::TimeStateSpace * ompl::base::SpaceTimeStateSpace::getTimeComponent()
 {
     return components_[1]->as<TimeStateSpace>();
 }
 
-bool ompl::base::AnimationStateSpace::isMetricSpace() const
+bool ompl::base::SpaceTimeStateSpace::isMetricSpace() const
 {
     return false;
 }
 
-double ompl::base::AnimationStateSpace::getMaximumExtent() const
+double ompl::base::SpaceTimeStateSpace::getMaximumExtent() const
 {
     return std::numeric_limits<double>::infinity();
 }
 
-void ompl::base::AnimationStateSpace::updateEpsilon()
+void ompl::base::SpaceTimeStateSpace::updateEpsilon()
 {
     auto extent = getTimeComponent()->isBounded() ? getTimeComponent()->getMaximumExtent() :
                                                     getSpaceComponent()->getMaximumExtent() / vMax_;
     eps_ = std::numeric_limits<float>::epsilon() * std::pow(10, std::ceil(std::log10(extent)));
 }
 
-double ompl::base::AnimationStateSpace::getStateTime(const ompl::base::State *state)
+double ompl::base::SpaceTimeStateSpace::getStateTime(const ompl::base::State *state)
 {
     return state->as<CompoundState>()->as<TimeStateSpace::StateType>(1)->position;
 }

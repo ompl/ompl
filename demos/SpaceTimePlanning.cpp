@@ -35,7 +35,7 @@
 /* Author: Francesco Grothe */
 
 #include <ompl/base/SpaceInformation.h>
-#include <ompl/base/spaces/AnimationStateSpace.h>
+#include <ompl/base/spaces/SpaceTimeStateSpace.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/STRRTstar.h>
 #include <ompl/geometric/SimpleSetup.h>
@@ -68,7 +68,7 @@ class SpaceTimeMotionValidator : public ob::MotionValidator {
 
 public:
     explicit SpaceTimeMotionValidator(const ob::SpaceInformationPtr &si) : MotionValidator(si),
-      vMax_(si_->getStateSpace().get()->as<ob::AnimationStateSpace>()->getVMax()),
+      vMax_(si_->getStateSpace().get()->as<ob::SpaceTimeStateSpace>()->getVMax()),
       stateSpace_(si_->getStateSpace().get()) {};
 
     bool checkMotion(const ob::State *s1, const ob::State *s2) const override
@@ -80,7 +80,7 @@ public:
         }
 
         // check if motion is forward in time and is not exceeding the speed limit
-        auto *space = stateSpace_->as<ob::AnimationStateSpace>();
+        auto *space = stateSpace_->as<ob::SpaceTimeStateSpace>();
         auto deltaPos = space->distanceSpace(s1, s2);
         auto deltaT = s2->as<ob::CompoundState>()->as<ob::TimeStateSpace::StateType>(1)->position -
                       s1->as<ob::CompoundState>()->as<ob::TimeStateSpace::StateType>(1)->position;
@@ -113,7 +113,7 @@ void plan(void)
 
     // construct the state space we are planning in
     auto vectorSpace(std::make_shared<ob::RealVectorStateSpace>(1));
-    auto space = std::make_shared<ob::AnimationStateSpace>(vectorSpace, vMax);
+    auto space = std::make_shared<ob::SpaceTimeStateSpace>(vectorSpace, vMax);
 
     // set the bounds for R1
     ob::RealVectorBounds bounds(1);

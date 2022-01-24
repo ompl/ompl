@@ -1,36 +1,36 @@
 /*********************************************************************
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2008, Willow Garage, Inc.
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of the Willow Garage nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *********************************************************************/
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2021, Technische Universität Berlin (TU Berlin)
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the TU Berlin nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
 
 /* Author: Francesco Grothe */
 
@@ -57,16 +57,16 @@ void ompl::geometric::STRRTstar::setup()
     sc.configurePlannerRange(maxDistance_);
 
     if (!tStart_)
-        tStart_.reset(new ompl::NearestNeighborsLinear<Motion *>());
+        tStart_.reset(new ompl::NearestNeighborsLinear<base::Motion *>());
     if (!tGoal_)
-        tGoal_.reset(new ompl::NearestNeighborsLinear<Motion *>());
-    tStart_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
-    tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
+        tGoal_.reset(new ompl::NearestNeighborsLinear<base::Motion *>());
+    tStart_->setDistanceFunction([this](const base::Motion *a, const base::Motion *b) { return distanceFunction(a, b); });
+    tGoal_->setDistanceFunction([this](const base::Motion *a, const base::Motion *b) { return distanceFunction(a, b); });
 
-    if (si_->getStateSpace()->as<ompl::base::AnimationStateSpace>()->getTimeComponent()->isBounded())
+    if (si_->getStateSpace()->as<ompl::base::SpaceTimeStateSpace>()->getTimeComponent()->isBounded())
     {
         upperTimeBound_ =
-            si_->getStateSpace()->as<ompl::base::AnimationStateSpace>()->getTimeComponent()->getMaxTimeBound();
+            si_->getStateSpace()->as<ompl::base::SpaceTimeStateSpace>()->getTimeComponent()->getMaxTimeBound();
         isTimeBounded_ = true;
     }
     else
@@ -76,14 +76,14 @@ void ompl::geometric::STRRTstar::setup()
     }
     initialTimeBound_ = upperTimeBound_;
 
-    si_->getStateSpace()->as<ompl::base::AnimationStateSpace>()->updateEpsilon();
+    si_->getStateSpace()->as<ompl::base::SpaceTimeStateSpace>()->updateEpsilon();
     // Calculate some constants:
     calculateRewiringLowerBounds();
 }
 
 void ompl::geometric::STRRTstar::freeMemory()
 {
-    std::vector<Motion *> motions;
+    std::vector<base::Motion *> motions;
 
     if (tStart_)
     {
@@ -124,7 +124,7 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
 
     while (const ompl::base::State *st = pis_.nextStart())
     {
-        auto *motion = new Motion(si_);
+        auto *motion = new base::Motion(si_);
         si_->copyState(motion->state, st);
         motion->root = motion->state;
         tStart_->add(motion);
@@ -133,7 +133,7 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
 
     if (tStart_->size() == 0)
     {
-        OMPL_ERROR("%s: Motion planning start tree could not be initialized!", getName().c_str());
+        OMPL_ERROR("%s: base::Motion planning start tree could not be initialized!", getName().c_str());
         return ompl::base::PlannerStatus::INVALID_START;
     }
 
@@ -149,13 +149,13 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
     TreeGrowingInfo tgi;
     tgi.xstate = si_->allocState();
 
-    std::vector<Motion *> nbh;
+    std::vector<base::Motion *> nbh;
     const ompl::base::ReportIntermediateSolutionFn intermediateSolutionCallback =
         pdef_->getIntermediateSolutionCallback();
 
-    Motion *approxsol = nullptr;
+    base::Motion *approxsol = nullptr;
     double approxdif = std::numeric_limits<double>::infinity();
-    auto *rmotion = new Motion(si_);
+    auto *rmotion = new base::Motion(si_);
     ompl::base::State *rstate = rmotion->state;
     bool startTree = true;
     bool solved = false;
@@ -200,25 +200,22 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
                 firstBatch = false;
                 oldBatchSampleProb = 0.5 * (1 / timeBoundFactorIncrease_);
             }
-            oldBatchTimeBoundFactor = newBatchTimeBoundFactor;
-            newBatchTimeBoundFactor *= timeBoundFactorIncrease_;
-            startTree = true;
-            if (sampleUniformForUnboundedTime_)
-                batchSize = std::ceil(2.0 * (timeBoundFactorIncrease_ - 1.0) *
-                                      static_cast<double>(tStart_->size() + tGoal_->size()));
-            numBatchSamples = 0;
+            increaseTimeBound(false, oldBatchTimeBoundFactor, newBatchTimeBoundFactor, startTree,
+                              batchSize, numBatchSamples);
+            // transfer new batch goals to old batch
             if (!newBatchGoalMotions_.empty())
             {
                 goalMotions_.insert(goalMotions_.end(), newBatchGoalMotions_.begin(), newBatchGoalMotions_.end());
                 newBatchGoalMotions_.clear();
             }
-            OMPL_INFORM("%s: Increased time bound factor to %.2f", getName().c_str(), newBatchTimeBoundFactor);
             continue;
         }
 
         // determine whether the old or new batch is sampled
         sampleOldBatch_ =
             (firstBatch || isTimeBounded_ || !sampleUniformForUnboundedTime_ || rng_.uniform01() <= oldBatchSampleProb);
+
+        // *** Begin Goal Sampling ***
 
         ompl::base::State *goalState{nullptr};
         if (sampleOldBatch_)
@@ -233,14 +230,8 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
                 // the goal region is most likely blocked for this time period -> increase upper time bound
                 if (goalState == nullptr)
                 {
-                    newBatchTimeBoundFactor *= timeBoundFactorIncrease_;
-                    oldBatchTimeBoundFactor = newBatchTimeBoundFactor;
-                    startTree = true;
-                    if (sampleUniformForUnboundedTime_)
-                        batchSize = std::ceil(2.0 * (timeBoundFactorIncrease_ - 1.0) *
-                                              static_cast<double>(tStart_->size() + tGoal_->size()));
-                    numBatchSamples = 0;
-                    OMPL_INFORM("%s: Increased time bound factor to %.2f", getName().c_str(), newBatchTimeBoundFactor);
+                    increaseTimeBound(true, oldBatchTimeBoundFactor, newBatchTimeBoundFactor, startTree,
+                                      batchSize, numBatchSamples);
                     continue;
                 }
             }
@@ -260,13 +251,8 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
                 // the goal region is most likely blocked for this time period -> increase upper time bound
                 if (goalState == nullptr)
                 {
-                    oldBatchTimeBoundFactor = newBatchTimeBoundFactor;
-                    newBatchTimeBoundFactor *= timeBoundFactorIncrease_;
-                    startTree = true;
-                    batchSize = std::ceil(2.0 * (timeBoundFactorIncrease_ - 1.0) *
-                                          static_cast<double>(tStart_->size() + tGoal_->size()));
-                    numBatchSamples = 0;
-                    OMPL_INFORM("%s: Increased time bound factor to %.2f", getName().c_str(), newBatchTimeBoundFactor);
+                    increaseTimeBound(false, oldBatchTimeBoundFactor, newBatchTimeBoundFactor, startTree,
+                                      batchSize, numBatchSamples);
                     continue;
                 }
             }
@@ -279,7 +265,7 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
 
         if (goalState != nullptr)
         {
-            auto *motion = new Motion(si_);
+            auto *motion = new base::Motion(si_);
             si_->copyState(motion->state, goalState);
             motion->root = motion->state;
             tGoal_->add(motion);
@@ -292,10 +278,12 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
             }
 
             minimumTime_ =
-                std::min(minimumTime_, si_->getStateSpace()->as<ompl::base::AnimationStateSpace>()->timeToCoverDistance(
+                std::min(minimumTime_, si_->getStateSpace()->as<ompl::base::SpaceTimeStateSpace>()->timeToCoverDistance(
                                            startMotion_->state, goalState));
             numBatchSamples++;
         }
+
+        // *** End Goal Sampling ***
 
         /* sample random state */
         bool success = sampler_.sample(rstate);
@@ -311,9 +299,9 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
         {
             numBatchSamples++;
             /* remember which motion was just added */
-            Motion *addedMotion = tgi.xmotion;
-            Motion *startMotion;
-            Motion *goalMotion;
+            base::Motion *addedMotion = tgi.xmotion;
+            base::Motion *startMotion;
+            base::Motion *goalMotion;
 
             /* rewire the goal tree */
             bool newSolution = false;
@@ -323,7 +311,7 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
                 if (newSolution)
                 {
                     // find connection point
-                    std::queue<Motion *> queue;
+                    std::queue<base::Motion *> queue;
                     queue.push(addedMotion);
                     while (!queue.empty())
                     {
@@ -335,7 +323,7 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
                         }
                         else
                         {
-                            for (Motion *c : queue.front()->children)
+                            for (base::Motion *c : queue.front()->children)
                                 queue.push(c);
                         }
                         queue.pop();
@@ -382,9 +370,9 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
             /* if we connected the trees in a valid way (start and goal pair is valid)*/
             if (newSolution && goal->isStartGoalPairValid(startMotion->root, goalMotion->root))
             {
-                constructSolution(startMotion, goalMotion, intermediateSolutionCallback);
+                constructSolution(startMotion, goalMotion, intermediateSolutionCallback, ptc);
                 solved = true;
-                if (!optimize_ || upperTimeBound_ == minimumTime_)
+                if (ptc || upperTimeBound_ == minimumTime_)
                     break;  // first solution is enough or optimal solution is found
                 // continue to look for solutions with the narrower time bound until the termination condition is met
             }
@@ -417,7 +405,7 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
     if (approxsol && !solved)
     {
         /* construct the solution path */
-        std::vector<Motion *> mpath;
+        std::vector<base::Motion *> mpath;
         while (approxsol != nullptr)
         {
             mpath.push_back(approxsol);
@@ -436,7 +424,7 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
         ompl::base::PlannerSolution psol(bestSolution_);
         psol.setPlannerName(getName());
 
-        ompl::base::OptimizationObjectivePtr optimizationObjective = std::make_shared<MinimizeGoalTime>(si_);
+        ompl::base::OptimizationObjectivePtr optimizationObjective = std::make_shared<ompl::base::MinimizeArrivalTime>(si_);
         psol.setOptimized(optimizationObjective, ompl::base::Cost(bestTime_), false);
         pdef_->addSolutionPath(psol);
     }
@@ -446,7 +434,7 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
 
 ompl::geometric::STRRTstar::GrowState ompl::geometric::STRRTstar::growTree(
     ompl::geometric::STRRTstar::TreeData &tree, ompl::geometric::STRRTstar::TreeGrowingInfo &tgi,
-    ompl::geometric::STRRTstar::Motion *rmotion, std::vector<Motion *> &nbh, bool connect)
+    base::Motion *rmotion, std::vector<base::Motion *> &nbh, bool connect)
 {
     // If connect, advance from single nearest neighbor until the random state is reached or trapped
     if (connect)
@@ -455,14 +443,14 @@ ompl::geometric::STRRTstar::GrowState ompl::geometric::STRRTstar::growTree(
         while (gsc == ADVANCED)
         {
             // get nearest motion
-            Motion *nmotion = tree->nearest(rmotion);
+            base::Motion *nmotion = tree->nearest(rmotion);
             gsc = growTreeSingle(tree, tgi, rmotion, nmotion);
         }
         return gsc;
     }
     if (rewireState_ == OFF)
     {
-        Motion *nmotion = tree->nearest(rmotion);
+        base::Motion *nmotion = tree->nearest(rmotion);
         return growTreeSingle(tree, tgi, rmotion, nmotion);
     }
     // get Neighborhood of random state
@@ -471,7 +459,7 @@ ompl::geometric::STRRTstar::GrowState ompl::geometric::STRRTstar::growTree(
     if (tgi.start)
     {
         std::sort(nbh.begin(), nbh.end(),
-                  [this, &rmotion](Motion *a, Motion *b)
+                  [this, &rmotion](base::Motion *a, base::Motion *b)
                   { return si_->distance(a->state, rmotion->state) < si_->distance(b->state, rmotion->state); });
     }
     // in goal tree sort by time of root node
@@ -479,7 +467,7 @@ ompl::geometric::STRRTstar::GrowState ompl::geometric::STRRTstar::growTree(
     {
         std::sort(
             nbh.begin(), nbh.end(),
-            [](Motion *a, Motion *b)
+            [](base::Motion *a, base::Motion *b)
             {
                 auto t1 =
                     a->root->as<ompl::base::CompoundState>()->as<ompl::base::TimeStateSpace::StateType>(1)->position;
@@ -492,7 +480,7 @@ ompl::geometric::STRRTstar::GrowState ompl::geometric::STRRTstar::growTree(
     // attempt to grow the tree for all neighbors in sorted order
     GrowState gs = TRAPPED;
     auto rt = rmotion->state->as<ompl::base::CompoundState>()->as<ompl::base::TimeStateSpace::StateType>(1)->position;
-    for (Motion *nmotion : nbh)
+    for (base::Motion *nmotion : nbh)
     {
         auto nt =
             nmotion->state->as<ompl::base::CompoundState>()->as<ompl::base::TimeStateSpace::StateType>(1)->position;
@@ -506,7 +494,7 @@ ompl::geometric::STRRTstar::GrowState ompl::geometric::STRRTstar::growTree(
     // when radius_ is used for neighborhood calculation, the neighborhood might be empty
     if (nbh.empty())
     {
-        Motion *nmotion = tree->nearest(rmotion);
+        base::Motion *nmotion = tree->nearest(rmotion);
         return growTreeSingle(tree, tgi, rmotion, nmotion);
     }
     // can't grow Tree
@@ -515,7 +503,7 @@ ompl::geometric::STRRTstar::GrowState ompl::geometric::STRRTstar::growTree(
 
 ompl::geometric::STRRTstar::GrowState ompl::geometric::STRRTstar::growTreeSingle(
     ompl::geometric::STRRTstar::TreeData &tree, ompl::geometric::STRRTstar::TreeGrowingInfo &tgi,
-    ompl::geometric::STRRTstar::Motion *rmotion, ompl::geometric::STRRTstar::Motion *nmotion)
+    base::Motion *rmotion, base::Motion *nmotion)
 {
     /* assume we can reach the state we go towards */
     bool reach = true;
@@ -542,7 +530,7 @@ ompl::geometric::STRRTstar::GrowState ompl::geometric::STRRTstar::growTreeSingle
     if (!validMotion)
         return TRAPPED;
 
-    auto *motion = new Motion(si_);
+    auto *motion = new base::Motion(si_);
     si_->copyState(motion->state, dstate);
     motion->parent = nmotion;
     motion->root = nmotion->root;
@@ -553,14 +541,28 @@ ompl::geometric::STRRTstar::GrowState ompl::geometric::STRRTstar::growTreeSingle
     return reach ? REACHED : ADVANCED;
 }
 
+void ompl::geometric::STRRTstar::increaseTimeBound(bool hasSameBounds, double &oldBatchTimeBoundFactor,
+                                                   double &newBatchTimeBoundFactor, bool &startTree,
+                                                   unsigned int &batchSize, int &numBatchSamples)
+{
+    oldBatchTimeBoundFactor = hasSameBounds ? newBatchTimeBoundFactor * timeBoundFactorIncrease_ : newBatchTimeBoundFactor;
+    newBatchTimeBoundFactor *= timeBoundFactorIncrease_;
+    startTree = true;
+    if (sampleUniformForUnboundedTime_)
+        batchSize = std::ceil(2.0 * (timeBoundFactorIncrease_ - 1.0) *
+                              static_cast<double>(tStart_->size() + tGoal_->size()));
+    numBatchSamples = 0;
+    OMPL_INFORM("%s: Increased time bound factor to %.2f", getName().c_str(), newBatchTimeBoundFactor);
+}
+
 void ompl::geometric::STRRTstar::constructSolution(
-    ompl::geometric::STRRTstar::Motion *startMotion, ompl::geometric::STRRTstar::Motion *goalMotion,
-    const ompl::base::ReportIntermediateSolutionFn &intermediateSolutionCallback)
+    base::Motion *startMotion, base::Motion *goalMotion,
+    const ompl::base::ReportIntermediateSolutionFn &intermediateSolutionCallback, const ompl::base::PlannerTerminationCondition& ptc)
 {
     if (goalMotion->connectionPoint == nullptr)
     {
         goalMotion->connectionPoint = startMotion;
-        Motion *tMotion = goalMotion;
+        base::Motion *tMotion = goalMotion;
         while (tMotion != nullptr)
         {
             tMotion->numConnections++;
@@ -582,8 +584,8 @@ void ompl::geometric::STRRTstar::constructSolution(
     }
 
     /* construct the solution path */
-    Motion *solution = startMotion;
-    std::vector<Motion *> mpath1;
+    base::Motion *solution = startMotion;
+    std::vector<base::Motion *> mpath1;
     while (solution != nullptr)
     {
         mpath1.push_back(solution);
@@ -591,7 +593,7 @@ void ompl::geometric::STRRTstar::constructSolution(
     }
 
     solution = goalMotion;
-    std::vector<Motion *> mpath2;
+    std::vector<base::Motion *> mpath2;
     while (solution != nullptr)
     {
         mpath2.push_back(solution);
@@ -625,20 +627,20 @@ void ompl::geometric::STRRTstar::constructSolution(
     // Update Time Limit
     upperTimeBound_ = (bestTime_ - minimumTime_) * optimumApproxFactor_ + minimumTime_;
 
-    if (!optimize_)
+    if (ptc)
         return;
     // Prune Start and Goal Trees
     pruneStartTree();
-    Motion *newSolution = pruneGoalTree();
+    base::Motion *newSolution = pruneGoalTree();
 
     // loop as long as a new solution is found by rewiring the goal tree
     if (newSolution != nullptr)
-        constructSolution(newSolution->connectionPoint, goalMotion, intermediateSolutionCallback);
+        constructSolution(newSolution->connectionPoint, goalMotion, intermediateSolutionCallback, ptc);
 }
 
 void ompl::geometric::STRRTstar::pruneStartTree()
 {
-    std::queue<Motion *> queue;
+    std::queue<base::Motion *> queue;
 
     tStart_->clear();
     tStart_->add(startMotion_);
@@ -653,27 +655,27 @@ void ompl::geometric::STRRTstar::pruneStartTree()
         double timeToNearestGoal = std::numeric_limits<double>::infinity();
         for (const auto &g : goalMotions_)
         {
-            double deltaT = si_->getStateSpace()->as<ompl::base::AnimationStateSpace>()->timeToCoverDistance(
+            double deltaT = si_->getStateSpace()->as<ompl::base::SpaceTimeStateSpace>()->timeToCoverDistance(
                 queue.front()->state, g->state);
             if (deltaT < timeToNearestGoal)
                 timeToNearestGoal = deltaT;
         }
-        // Motion is still valid, re-add to tree
+        // base::Motion is still valid, re-add to tree
         if (t + timeToNearestGoal <= upperTimeBound_)
         {
             tStart_->add(queue.front());
             for (auto &c : queue.front()->children)
                 queue.push(c);
         }
-        // Motion is invalid due to the new time limit, delete motion
+        // base::Motion is invalid due to the new time limit, delete motion
         else
         {
             // Remove the motion from its parent
             removeFromParent(queue.front());
 
             // for deletion first construct list of all descendants
-            std::queue<Motion *> deletionQueue;
-            std::vector<Motion *> deletionList;
+            std::queue<base::Motion *> deletionQueue;
+            std::vector<base::Motion *> deletionList;
 
             deletionQueue.push(queue.front());
             while (!deletionQueue.empty())
@@ -700,20 +702,20 @@ void ompl::geometric::STRRTstar::pruneStartTree()
     }
 }
 
-ompl::geometric::STRRTstar::Motion *ompl::geometric::STRRTstar::pruneGoalTree()
+ompl::base::Motion *ompl::geometric::STRRTstar::pruneGoalTree()
 {
     // it's possible to get multiple new solutions during the rewiring process. Store the best.
     double bestSolutionTime = upperTimeBound_;
-    Motion *solutionMotion{nullptr};
+    base::Motion *solutionMotion{nullptr};
 
     tGoal_->clear();
-    std::vector<Motion *> validGoals;
-    std::vector<Motion *> invalidGoals;
+    std::vector<base::Motion *> validGoals;
+    std::vector<base::Motion *> invalidGoals;
 
     // re-add goals with smallest time first
     std::sort(
         goalMotions_.begin(), goalMotions_.end(),
-        [](Motion *a, Motion *b)
+        [](base::Motion *a, base::Motion *b)
         {
             return a->state->as<ompl::base::CompoundState>()->as<ompl::base::TimeStateSpace::StateType>(1)->position <
                    b->state->as<ompl::base::CompoundState>()->as<ompl::base::TimeStateSpace::StateType>(1)->position;
@@ -732,7 +734,7 @@ ompl::geometric::STRRTstar::Motion *ompl::geometric::STRRTstar::pruneGoalTree()
         else
         {
             invalidGoals.push_back(m);
-            std::queue<Motion *> queue;
+            std::queue<base::Motion *> queue;
             for (auto &c : m->children)
                 queue.push(c);
             while (!queue.empty())
@@ -747,7 +749,7 @@ ompl::geometric::STRRTstar::Motion *ompl::geometric::STRRTstar::pruneGoalTree()
                                            ->position;
                     for (auto &g : validGoals)
                     {
-                        auto deltaT = si_->getStateSpace()->as<ompl::base::AnimationStateSpace>()->timeToCoverDistance(
+                        auto deltaT = si_->getStateSpace()->as<ompl::base::SpaceTimeStateSpace>()->timeToCoverDistance(
                             queue.front()->state, g->state);
                         if (deltaT < costToGo)
                             costToGo = deltaT;
@@ -759,7 +761,7 @@ ompl::geometric::STRRTstar::Motion *ompl::geometric::STRRTstar::pruneGoalTree()
                         TreeGrowingInfo tgi{};
                         tgi.xstate = si_->allocState();
                         tgi.start = false;
-                        std::vector<Motion *> nbh;
+                        std::vector<base::Motion *> nbh;
                         GrowState gsc = growTree(tGoal_, tgi, queue.front(), nbh, true);
                         // connection successful, add all descendants and check if a new solution was found.
                         if (gsc == REACHED)
@@ -773,7 +775,7 @@ ompl::geometric::STRRTstar::Motion *ompl::geometric::STRRTstar::pruneGoalTree()
                             }
                             tgi.xmotion->connectionPoint = queue.front()->connectionPoint;
                             tgi.xmotion->numConnections = queue.front()->numConnections;
-                            Motion *p = tgi.xmotion->parent;
+                            base::Motion *p = tgi.xmotion->parent;
                             while (p != nullptr)
                             {
                                 p->numConnections += tgi.xmotion->numConnections;
@@ -789,22 +791,7 @@ ompl::geometric::STRRTstar::Motion *ompl::geometric::STRRTstar::pruneGoalTree()
                                 bestSolutionTime = tgi.xmotion->root->as<ompl::base::CompoundState>()
                                                        ->as<ompl::base::TimeStateSpace::StateType>(1)
                                                        ->position;
-                                std::queue<Motion *> connectionQueue;
-                                connectionQueue.push(tgi.xmotion);
-                                while (!connectionQueue.empty())
-                                {
-                                    if (connectionQueue.front()->connectionPoint != nullptr)
-                                    {
-                                        solutionMotion = connectionQueue.front();
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        for (Motion *c : connectionQueue.front()->children)
-                                            connectionQueue.push(c);
-                                    }
-                                    connectionQueue.pop();
-                                }
+                                solutionMotion = computeSolutionMotion(tgi.xmotion);
                             }
                             addedToTree = true;
                         }
@@ -829,7 +816,32 @@ ompl::geometric::STRRTstar::Motion *ompl::geometric::STRRTstar::pruneGoalTree()
         }
     }
 
-    // remove invalid goals
+    removeInvalidGoals(invalidGoals);
+    return solutionMotion;
+}
+
+ompl::base::Motion*
+ompl::geometric::STRRTstar::computeSolutionMotion(base::Motion *motion)
+{
+    std::queue<base::Motion *> connectionQueue;
+    connectionQueue.push(motion);
+    while (!connectionQueue.empty())
+    {
+        if (connectionQueue.front()->connectionPoint != nullptr)
+        {
+            return connectionQueue.front();
+        }
+        else
+        {
+            for (base::Motion *c : connectionQueue.front()->children)
+                connectionQueue.push(c);
+        }
+        connectionQueue.pop();
+    }
+}
+
+void ompl::geometric::STRRTstar::removeInvalidGoals(const std::vector<base::Motion *> &invalidGoals)
+{
     for (auto &g : invalidGoals)
     {
         for (auto it = goalMotions_.begin(); it != goalMotions_.end(); ++it)
@@ -844,9 +856,8 @@ ompl::geometric::STRRTstar::Motion *ompl::geometric::STRRTstar::pruneGoalTree()
             si_->freeState(g->state);
         delete g;
     }
-
-    return solutionMotion;
 }
+
 
 void ompl::geometric::STRRTstar::clear()
 {
@@ -876,7 +887,7 @@ void ompl::geometric::STRRTstar::getPlannerData(ompl::base::PlannerData &data) c
 {
     Planner::getPlannerData(data);
 
-    std::vector<Motion *> motions;
+    std::vector<base::Motion *> motions;
     if (tStart_)
         tStart_->list(motions);
 
@@ -914,7 +925,7 @@ void ompl::geometric::STRRTstar::getPlannerData(ompl::base::PlannerData &data) c
     data.properties["approx goal distance REAL"] = ompl::toString(distanceBetweenTrees_);
 }
 
-void ompl::geometric::STRRTstar::removeFromParent(ompl::geometric::STRRTstar::Motion *m)
+void ompl::geometric::STRRTstar::removeFromParent(base::Motion *m)
 {
     for (auto it = m->parent->children.begin(); it != m->parent->children.end(); ++it)
     {
@@ -933,10 +944,10 @@ void ompl::geometric::STRRTstar::removeFromParent(ompl::geometric::STRRTstar::Mo
  * @param tree The tree that the motions are added to
 
  */
-void ompl::geometric::STRRTstar::addDescendants(ompl::geometric::STRRTstar::Motion *m,
+void ompl::geometric::STRRTstar::addDescendants(base::Motion *m,
                                                 const ompl::geometric::STRRTstar::TreeData &tree)
 {
-    std::queue<Motion *> queue;
+    std::queue<base::Motion *> queue;
     for (auto &c : m->children)
         queue.push(c);
     while (!queue.empty())
@@ -950,8 +961,8 @@ void ompl::geometric::STRRTstar::addDescendants(ompl::geometric::STRRTstar::Moti
 }
 
 void ompl::geometric::STRRTstar::getNeighbors(ompl::geometric::STRRTstar::TreeData &tree,
-                                              ompl::geometric::STRRTstar::Motion *motion,
-                                              std::vector<Motion *> &nbh) const
+                                              base::Motion *motion,
+                                              std::vector<base::Motion *> &nbh) const
 {
     auto card = static_cast<double>(tree->size() + 1u);
     if (rewireState_ == RADIUS)
@@ -970,17 +981,17 @@ void ompl::geometric::STRRTstar::getNeighbors(ompl::geometric::STRRTstar::TreeDa
     }
 }
 
-bool ompl::geometric::STRRTstar::rewireGoalTree(ompl::geometric::STRRTstar::Motion *addedMotion)
+bool ompl::geometric::STRRTstar::rewireGoalTree(base::Motion *addedMotion)
 {
     bool solved = false;
-    std::vector<Motion *> nbh;
+    std::vector<base::Motion *> nbh;
     getNeighbors(tGoal_, addedMotion, nbh);
     double nodeT =
         addedMotion->state->as<ompl::base::CompoundState>()->as<ompl::base::TimeStateSpace::StateType>(1)->position;
     double goalT =
         addedMotion->root->as<ompl::base::CompoundState>()->as<ompl::base::TimeStateSpace::StateType>(1)->position;
 
-    for (Motion *otherMotion : nbh)
+    for (base::Motion *otherMotion : nbh)
     {
         double otherNodeT =
             otherMotion->state->as<ompl::base::CompoundState>()->as<ompl::base::TimeStateSpace::StateType>(1)->position;
@@ -991,7 +1002,7 @@ bool ompl::geometric::STRRTstar::rewireGoalTree(ompl::geometric::STRRTstar::Moti
         {
             if (otherMotion->numConnections > 0)
             {
-                Motion *p = otherMotion->parent;
+                base::Motion *p = otherMotion->parent;
                 while (p != nullptr)
                 {
                     p->numConnections--;
@@ -1005,7 +1016,7 @@ bool ompl::geometric::STRRTstar::rewireGoalTree(ompl::geometric::STRRTstar::Moti
             // increase connection count of new ancestors
             if (otherMotion->numConnections > 0)
             {
-                Motion *p = otherMotion->parent;
+                base::Motion *p = otherMotion->parent;
                 while (p != nullptr)
                 {
                     p->numConnections++;
@@ -1043,7 +1054,7 @@ bool ompl::geometric::STRRTstar::sampleGoalTime(ompl::base::State *goal, double 
 {
     double ltb, utb;
     double minTime =
-        si_->getStateSpace()->as<ompl::base::AnimationStateSpace>()->timeToCoverDistance(startMotion_->state, goal);
+        si_->getStateSpace()->as<ompl::base::SpaceTimeStateSpace>()->timeToCoverDistance(startMotion_->state, goal);
     if (isTimeBounded_)
     {
         ltb = minTime;

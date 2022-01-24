@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2010, Rice University
+*  Copyright (c) 2021, Technische Universität Berlin (TU Berlin)
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
 *     copyright notice, this list of conditions and the following
 *     disclaimer in the documentation and/or other materials provided
 *     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
+*   * Neither the name of the TU Berlin nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
 *
@@ -47,18 +47,18 @@ namespace ompl
     namespace base
     {
         /** \brief A state space consisting of a space and a time component. */
-        class AnimationStateSpace : public CompoundStateSpace
+        class SpaceTimeStateSpace : public CompoundStateSpace
         {
         public:
             /** \brief Constructor. The maximum velocity and the weight of the time component for distance calculation
                 need to be specified. */
-            explicit AnimationStateSpace(const StateSpacePtr& spaceComponent, double vMax = 1.0, double timeWeight = 0.5);
+            explicit SpaceTimeStateSpace(const StateSpacePtr& spaceComponent, double vMax = 1.0, double timeWeight = 0.5);
 
             /** \brief The distance from state1 to state2. May be infinite.
              *
              * The distance is direction independent for compatibility to some planners (like RRTConnect).
              * Make sure that the motion validator does not allow motions backwards in time or adjust the distance
-             * function in the Animation State Space and the used planner.
+             * function in the Space Time State Space and the used planner.
              * */
             double distance(const ompl::base::State *state1, const ompl::base::State *state2) const override;
 
