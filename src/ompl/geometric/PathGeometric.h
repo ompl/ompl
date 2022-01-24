@@ -77,7 +77,12 @@ namespace ompl
             PathGeometric(const base::SpaceInformationPtr &si, const base::State *state);
 
             /** \brief Construct a path instance from two states (thus making a segment) */
-            PathGeometric(const base::SpaceInformationPtr &si, const base::State *state1, const base::State *state2);
+            PathGeometric(const base::SpaceInformationPtr &si, 
+                const base::State *state1, const base::State *state2);
+
+            /** \brief Construct a path from a sequence of states */
+            PathGeometric(const base::SpaceInformationPtr &si, 
+                std::vector<const base::State *> &states);
 
             ~PathGeometric() override
             {

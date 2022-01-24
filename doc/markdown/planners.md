@@ -1,8 +1,9 @@
 # Available Planners {#planners}
 
-All implementations listed below are considered fully functional. Within OMPL planners are divided into two categories:
+All implementations listed below are considered fully functional. Within OMPL planners are divided into three categories:
 - \ref geometric_planners
 - \ref control_planners
+- \ref multilevel_planners
 .
 To see how to benchmark planners, click [here](benchmark.html).
 
@@ -68,8 +69,14 @@ Planners in this category only accounts for the geometric and kinematic constrai
     The FMT∗ algorithm performs a “lazy” dynamic programming recursion on a set of probabilistically-drawn samples to grow a tree of paths, which moves outward in cost-to-come space. Unlike all other planners, the numbers of valid samples needs to be chosen beforehand.
   - [Bidirectional Fast Marching Tree algorithm (BFMT∗)](\ref gBFMT)<br>
     Executes two FMT* trees, one from the start and another one from the goal resulting in a faster planner as it explores less space.
-  - [Quotient-Space RRT (QRRT)](\ref QRRT)<br>
-    A generalization of RRT to plan on different abstraction levels. The abstraction levels are represented by quotient-spaces, and QRRT grows random trees sequentially and simultaneously on each quotient-space. There is extensive documentation in the form of a [guide](quotientSpacePlanning.html), [tutorial](quotientSpacePlanningTutorial.html) and [demos](group__demos.html).
+- **Multi-level planners**<br>
+  Planning algorithms which can exploit multiple levels of abstractions. If you want to use them, you should call them with a vector of `ompl::base::SpaceInformationPtr`. All planner then guarantee probabilistic completeness, if the supplied abstractions are admissible. There is extensive documentation in the form of a [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](group__demos.html).
+  - [Rapidly-exploring Random Quotient space Trees (QRRT)](\ref QRRT)<br>
+    A generalization of RRT to plan on different abstraction levels. 
+  - [QRRT*](\ref QRRTstar)<br> An asymptotically optimal version of QRRT
+  - [Quotient-Space Roadmap Planner (QMP)](\ref QMP)<br>
+    A generalization of PRM to plan on different abstraction levels. 
+  - [QMP*](\ref QMPstar)<br> An asymptotically optimal version of QMP
 - **Optimizing planners**<br>
   In recent years several sampling-based planning algorithms have been proposed that still provide some optimality guarantees. Typically, an optimal solution is assumed to be shortest path. In OMPL we have a more general framework for expressing the cost of states and paths that allows you to, e.g., maximize the minimum clearance along a path, minimize the mechanical work, or some arbitrary user-defined optimization criterion. See \ref optimalPlanning for more information. Some of the planners below use this general cost framework, but keep in mind that convergence to optimality is **not guaranteed** when optimizing over something other than path length.
   - [PRM*](\ref gPRMstar)<br> An asymptotically optimal version of PRM; _uses the general cost framework._
@@ -127,5 +134,22 @@ If the system under consideration is subject to differential constraints, then a
 
 \attention How OMPL selects a control-based planner<br>
 If you use the ompl::control::SimpleSetup class (highly recommended) to define and solve your motion planning problem, then OMPL will automatically select an appropriate planner (unless you have explicitly specified one). If the state space has a default projection (which is going to be the case if you use any of the built-in state spaces), then it will use [KPIECE](\ref cKPIECE1). This planner has been shown to work well consistently across many real-world motion planning problems, which is why it is the default choice. In case the state space has no default projection, [RRT](\ref cRRT) will be used. Note that there are no bidirectional control-based planners, since we do not assume that there is a steering function that can connect two states _exactly_.
+</div>
 
+## Multilevel-based planners {#multilevel_planners}
+
+<div class="plannerlist">
+To solve problems involving high-dimensional state spaces, we often can use
+multilevel abstractions to simplify the state spaces, thereby allowing dedicated
+planner to quicker find solutions. The planner in this class support sequences
+of state spaces and can be utilized both for state spaces with geometric and
+dynamic constraints. There is extensive documentation in the form of a [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](group__demos.html).
+  - [Rapidly-exploring Random Quotient space Trees (QRRT)](\ref QRRT)<br>
+    A generalization of RRT to plan on different abstraction levels. 
+  - [QRRT*](\ref QRRTstar)<br> An asymptotically optimal version of QRRT
+  - [Quotient-Space Roadmap Planner (QMP)](\ref QMP)<br>
+    A generalization of PRM to plan on different abstraction levels. 
+  - [QMP*](\ref QMPstar)<br> An asymptotically optimal version of QMP
+  - [Sparse Quotient space roadmap planner (SPQR)*](\ref SPQR)<br> A
+    generalization of SPARS to multi-level planning.
 </div>
